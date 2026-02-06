@@ -2,6 +2,8 @@
 
 AI-powered tool that transforms course syllabi into structured Course Map spreadsheets.
 
+**Live:** [https://lovejzzz.github.io/CourseMapper/](https://lovejzzz.github.io/CourseMapper/)
+
 ## Quick Start
 
 ```bash
@@ -9,7 +11,7 @@ npm install
 npm run dev
 ```
 
-Opens at [http://localhost:5173](http://localhost:5173). Starts both the Vite dev server and the Express API server (port 3001).
+Opens at [http://localhost:5173](http://localhost:5173).
 
 ## Usage
 

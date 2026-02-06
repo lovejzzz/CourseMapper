@@ -1,4 +1,5 @@
 import React, { useState, useEffect, useRef } from 'react';
+import { fetchModelsFromProvider } from '../hooks/useStreamReader';
 
 /**
  * Detect provider from API key prefix and auto-switch if mismatched.
@@ -48,27 +49,12 @@ export default function ModelConfig({
     debounceRef.current = setTimeout(async () => {
       setApiStatus('validating');
       try {
-        // Store key in server-side session first
-        await fetch('/api/session/set-key', {
-          method: 'POST',
-          headers: { 'Content-Type': 'application/json' },
-          credentials: 'include',
-          body: JSON.stringify({ provider, apiKey }),
-        });
-
-        const res = await fetch('/api/models', {
-          method: 'POST',
-          headers: { 'Content-Type': 'application/json' },
-          credentials: 'include',
-          body: JSON.stringify({ provider, apiKey }),
-        });
-        const data = await res.json();
-        if (data.valid && data.models?.length > 0) {
+        const models = await fetchModelsFromProvider(provider, apiKey.trim());
+        if (models && models.length > 0) {
           setApiStatus('connected');
-          setAvailableModels(data.models);
-          // Auto-select the first model
-          setModelId(data.models[0].id);
-          setModelName(data.models[0].name);
+          setAvailableModels(models);
+          setModelId(models[0].id);
+          setModelName(models[0].name);
         } else {
           setApiStatus('error');
         }

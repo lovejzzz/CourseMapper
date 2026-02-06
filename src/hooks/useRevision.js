@@ -1,6 +1,7 @@
 import { useState, useRef, useCallback } from 'react';
 import useStreamReader from './useStreamReader';
 import applyPatches from '../lib/applyPatches';
+import { REVISION_SYSTEM_PROMPT, buildRevisionUserPrompt } from '../lib/prompts';
 
 /**
  * Handles course map revision with patch-based edits, stop/resume, and retry.
@@ -23,7 +24,7 @@ export default function useRevision({
   const fullTextRef = useRef('');
   const lastUIUpdateRef = useRef(0);
 
-  const { streamSSE, parsePartialJSON, abort, abortControllerRef } = useStreamReader();
+  const { streamProvider, parsePartialJSON, abort, abortControllerRef } = useStreamReader();
 
   // ── Main Revision ──
   const handleRevision = useCallback(async (userMessage, chatHistory) => {
@@ -42,11 +43,13 @@ export default function useRevision({
     fullTextRef.current = '';
 
     try {
-      const result = await streamSSE('/api/revise-stream', {
-        provider, modelId, apiKey, courseMap, userMessage,
-        userEdits: userEdits.length > 0 ? userEdits : undefined,
-        chatHistory: chatHistory && chatHistory.length > 1 ? chatHistory.slice(0, -1) : undefined,
-      }, {
+      const revisionUserPrompt = buildRevisionUserPrompt(
+        courseMap,
+        userMessage,
+        userEdits.length > 0 ? userEdits : undefined,
+        chatHistory && chatHistory.length > 1 ? chatHistory.slice(0, -1) : undefined,
+      );
+      const result = await streamProvider(provider, apiKey, modelId, REVISION_SYSTEM_PROMPT, revisionUserPrompt, {
         onChunk: (text, count) => {
           fullTextRef.current = text;
           const now = performance.now();
@@ -162,7 +165,7 @@ export default function useRevision({
       setIsStreaming(false);
       setStreamDetail('');
     }
-  }, [provider, modelId, apiKey, courseMap, userEdits, setCourseMap, setOldCourseMap, pushVersion, setUserEdits, streamSSE, parsePartialJSON, setIsStreaming, setStreamDetail, setStreamProgress, setProgressStep, setIsStopped, setStatus, setError, setRetryInfo]);
+  }, [provider, modelId, apiKey, courseMap, userEdits, setCourseMap, setOldCourseMap, pushVersion, setUserEdits, streamProvider, parsePartialJSON, setIsStreaming, setStreamDetail, setStreamProgress, setProgressStep, setIsStopped, setStatus, setError, setRetryInfo]);
 
   // ── Resume Revision ──
   const handleResumeRevision = useCallback(async () => {
@@ -184,11 +187,7 @@ export default function useRevision({
     try {
       const continuationPrompt = `You were revising a Course Map based on this user request: "${savedMsg}"\n\nHere is the PARTIAL JSON output you generated so far (it was cut off):\n\n${savedText}\n\nContinue generating from EXACTLY where this left off. Output ONLY the remaining JSON text that comes after the last character above. Do NOT repeat any content. Do NOT start with a new JSON object. Just continue the JSON from the exact point it stopped.`;
 
-      const { fullText } = await streamSSE('/api/revise-stream', {
-        provider, modelId, apiKey,
-        courseMap: savedOldMap || courseMap,
-        userMessage: continuationPrompt,
-      }, {
+      const { fullText } = await streamProvider(provider, apiKey, modelId, REVISION_SYSTEM_PROMPT, continuationPrompt, {
         existingText: savedText,
         onChunk: (text) => {
           const partial = parsePartialJSON(text);
@@ -246,7 +245,7 @@ export default function useRevision({
       setIsRevising(false);
       setIsStreaming(false);
     }
-  }, [provider, modelId, apiKey, courseMap, setCourseMap, setOldCourseMap, pushVersion, setUserEdits, streamSSE, parsePartialJSON, setIsStreaming, setStreamDetail, setStreamProgress, setProgressStep, setIsStopped, setStatus, setError, setRetryInfo]);
+  }, [provider, modelId, apiKey, courseMap, setCourseMap, setOldCourseMap, pushVersion, setUserEdits, streamProvider, parsePartialJSON, setIsStreaming, setStreamDetail, setStreamProgress, setProgressStep, setIsStopped, setStatus, setError, setRetryInfo]);
 
   const resetRevision = useCallback(() => {
     setIsRevising(false);

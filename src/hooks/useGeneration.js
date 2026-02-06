@@ -1,6 +1,6 @@
 import { useState, useRef, useCallback } from 'react';
 import { parseFiles } from '../lib/fileParser';
-import { SYSTEM_PROMPT, buildUserPrompt } from '../lib/prompts';
+import { SYSTEM_PROMPT, buildUserPrompt, EXAMINE_SYSTEM_PROMPT, buildExamineUserPrompt } from '../lib/prompts';
 import { checkTokenLimit, truncateToFit } from '../lib/tokenEstimator';
 import useStreamReader from './useStreamReader';
 import { notifyDone } from '../lib/notifyDone';
@@ -30,7 +30,7 @@ export default function useGeneration({
   const lastUIUpdateRef = useRef(0);
   const courseMapRef = useRef(null);
 
-  const { streamSSE, parsePartialJSON, abort, abortControllerRef } = useStreamReader();
+  const { streamProvider, parsePartialJSON, abort, abortControllerRef } = useStreamReader();
 
   // ── Apply pending user edits onto a course map ──
   function applyUserEdits(map) {
@@ -128,11 +128,8 @@ export default function useGeneration({
     setOldCourseMap(preExamineMap);
 
     try {
-      const { fullText: examineText } = await streamSSE('/api/examine-stream', {
-        provider, modelId, apiKey,
-        courseMap: finalResult,
-        syllabusText: syllabusTextRef.current,
-      }, {
+      const examUserPrompt = buildExamineUserPrompt(finalResult, syllabusTextRef.current);
+      const { fullText: examineText } = await streamProvider(provider, apiKey, modelId, EXAMINE_SYSTEM_PROMPT, examUserPrompt, {
         onChunk: (text) => {
           if (text.length % 200 < 10) {
             // Try to parse partial patches for progress feedback
@@ -268,11 +265,7 @@ export default function useGeneration({
       await new Promise((r) => setTimeout(r, 400));
       setProgressStep('generating');
 
-      const { fullText } = await streamSSE('/api/generate-stream', {
-        provider, modelId, apiKey,
-        systemPrompt: SYSTEM_PROMPT,
-        userPrompt: finalUserPrompt,
-      }, {
+      const { fullText } = await streamProvider(provider, apiKey, modelId, SYSTEM_PROMPT, finalUserPrompt, {
         onChunk: (text, count) => {
           fullTextRef.current = text;
           updateGenerationProgress(text, count);
@@ -346,11 +339,7 @@ export default function useGeneration({
       fullTextRef.current = savedText;
       const continuationPrompt = `You were generating a Course Map JSON and the output was interrupted. Here is the partial JSON you generated so far:\n\n${savedText}\n\nContinue generating from EXACTLY where this left off. Output ONLY the remaining JSON text that comes after the last character above. Do NOT repeat any content. Do NOT start with a new JSON object. Just continue the JSON from the exact point it stopped.`;
 
-      const { fullText } = await streamSSE('/api/generate-stream', {
-        provider, modelId, apiKey,
-        systemPrompt: SYSTEM_PROMPT,
-        userPrompt: continuationPrompt,
-      }, {
+      const { fullText } = await streamProvider(provider, apiKey, modelId, SYSTEM_PROMPT, continuationPrompt, {
         existingText: savedText,
         onChunk: (text, count) => {
           fullTextRef.current = text;
@@ -400,7 +389,7 @@ export default function useGeneration({
       setIsStopped(false);
       stoppedTextRef.current = '';
     }
-  }, [provider, modelId, apiKey, setCourseMap, pushVersion, userEdits, streamSSE, parsePartialJSON]);
+  }, [provider, modelId, apiKey, setCourseMap, pushVersion, userEdits, streamProvider, parsePartialJSON]);
 
   const handleStop = useCallback(() => {
     abort();
