@@ -55,7 +55,10 @@ export default function useStreamReader() {
   const streamProvider = useCallback(async (provider, apiKey, modelId, systemPrompt, userPrompt, opts = {}) => {
     const { onChunk, onRetry, maxRetries = 3, existingText = '' } = opts;
 
-    const { url, headers, body, parseChunk } = buildProviderRequest(provider, apiKey, modelId, systemPrompt, userPrompt);
+    // "free" provider uses Google's API under the hood
+    const effectiveProvider = provider === 'free' ? 'google' : provider;
+
+    const { url, headers, body, parseChunk } = buildProviderRequest(effectiveProvider, apiKey, modelId, systemPrompt, userPrompt);
 
     let fullText = existingText;
     let attempt = 0;

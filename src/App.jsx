@@ -16,7 +16,7 @@ export default function App() {
   useEffect(() => { requestNotificationPermission(); }, []);
 
   // ── Model & File Config ──
-  const [provider, setProvider] = useState('openai');
+  const [provider, setProvider] = useState('anthropic');
   const [apiKey, setApiKey] = useState('');
   const [apiStatus, setApiStatus] = useState('idle');
   const [modelName, setModelName] = useState('');
@@ -65,7 +65,7 @@ export default function App() {
 
   // ── Derived ──
   const canGenerate =
-    apiKey.trim() && modelId && files.length > 0 &&
+    (provider === 'free' || apiKey.trim()) && modelId && files.length > 0 &&
     gen.status !== 'parsing' && gen.status !== 'generating' && !gen.isStopped;
 
   // ── Inline Cell Edit ──
