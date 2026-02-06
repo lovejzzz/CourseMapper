@@ -11,20 +11,20 @@ body {
 
 /* ── Mesh gradient background ── */
 .mesh-bg {
-  background-color: #f0f0f5;
+  background-color: #f8f9fc;
   background-image:
-    radial-gradient(ellipse 80% 60% at 10% 20%, rgba(199, 210, 254, 0.45) 0%, transparent 60%),
-    radial-gradient(ellipse 60% 50% at 85% 15%, rgba(221, 214, 254, 0.35) 0%, transparent 55%),
-    radial-gradient(ellipse 70% 50% at 50% 90%, rgba(191, 219, 254, 0.3) 0%, transparent 55%),
-    radial-gradient(ellipse 40% 40% at 75% 70%, rgba(253, 230, 243, 0.25) 0%, transparent 50%);
+    radial-gradient(ellipse 80% 50% at 5% 0%, rgba(199, 210, 254, 0.35) 0%, transparent 60%),
+    radial-gradient(ellipse 50% 40% at 95% 5%, rgba(221, 214, 254, 0.25) 0%, transparent 55%),
+    radial-gradient(ellipse 60% 40% at 50% 100%, rgba(199, 210, 254, 0.2) 0%, transparent 50%);
 }
 
 /* ── Glassmorphism utility classes ── */
 .glass {
-  background: rgba(255, 255, 255, 0.72);
+  background: rgba(255, 255, 255, 0.78);
   backdrop-filter: blur(40px) saturate(180%);
   -webkit-backdrop-filter: blur(40px) saturate(180%);
-  border: 1px solid rgba(255, 255, 255, 0.35);
+  border: 1px solid rgba(0, 0, 0, 0.04);
+  box-shadow: 0 1px 3px rgba(0, 0, 0, 0.04), 0 8px 32px rgba(0, 0, 0, 0.03);
 }
 .glass-light {
   background: rgba(255, 255, 255, 0.5);
@@ -39,10 +39,10 @@ body {
   border: 1px solid rgba(255, 255, 255, 0.5);
 }
 .glass-dark {
-  background: rgba(15, 23, 42, 0.65);
+  background: rgba(15, 23, 42, 0.8);
   backdrop-filter: blur(40px) saturate(180%);
   -webkit-backdrop-filter: blur(40px) saturate(180%);
-  border: 1px solid rgba(255, 255, 255, 0.08);
+  border: 1px solid rgba(255, 255, 255, 0.06);
 }
 
 /* ── Tactile press feedback ── */
@@ -90,19 +90,19 @@ body {
 
 /* ── Input focus glow ── */
 .input-glass {
-  background: rgba(255, 255, 255, 0.6);
+  background: rgba(255, 255, 255, 0.7);
   border: 1px solid rgba(0, 0, 0, 0.06);
   transition: all 0.25s cubic-bezier(0.22, 1, 0.36, 1);
 }
 .input-glass:focus {
-  background: rgba(255, 255, 255, 0.9);
-  border-color: rgba(99, 102, 241, 0.4);
-  box-shadow: 0 0 0 3px rgba(99, 102, 241, 0.1), 0 2px 8px rgba(99, 102, 241, 0.08);
+  background: #fff;
+  border-color: rgba(99, 102, 241, 0.45);
+  box-shadow: 0 0 0 3px rgba(99, 102, 241, 0.08);
 }
 
 /* ── Gradient text utility ── */
 .text-gradient {
-  background: linear-gradient(135deg, #6366f1 0%, #8b5cf6 50%, #a78bfa 100%);
+  background: linear-gradient(135deg, #6366f1 0%, #7c3aed 50%, #8b5cf6 100%);
   -webkit-background-clip: text;
   -webkit-text-fill-color: transparent;
   background-clip: text;

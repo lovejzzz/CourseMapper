@@ -219,7 +219,7 @@ export default function App() {
     <div className="min-h-screen mesh-bg">
       <Header />
 
-      <main className="max-w-7xl mx-auto px-8 py-10 space-y-8">
+      <main className="max-w-7xl mx-auto px-8 pb-10 space-y-8">
         {/* ── Setup panels: only before first generation ── */}
         {!hasGenerated ? (
           <>
@@ -276,9 +276,9 @@ export default function App() {
             <button
               onClick={onGenerate}
               disabled={!canGenerate}
-              className={`tactile px-8 py-3.5 rounded-squircle-sm font-semibold text-white text-sm tracking-wide whitespace-nowrap transition-all duration-200 ${
+              className={`tactile px-8 py-3.5 rounded-[12px] font-semibold text-white text-sm tracking-wide whitespace-nowrap transition-all duration-300 ${
                 canGenerate
-                  ? 'bg-gradient-to-r from-indigo-500 to-violet-600 shadow-btn hover:shadow-btn-hover hover:brightness-110'
+                  ? 'bg-gradient-to-r from-indigo-500 via-violet-500 to-purple-600 shadow-lg shadow-indigo-500/25 hover:shadow-xl hover:shadow-indigo-500/30 hover:brightness-105'
                   : 'bg-slate-200 text-slate-400 cursor-not-allowed shadow-none'
               }`}
             >

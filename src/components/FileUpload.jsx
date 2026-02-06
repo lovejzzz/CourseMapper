@@ -62,10 +62,10 @@ export default function FileUpload({ files, setFiles }) {
 
   return (
     <div className="glass rounded-squircle shadow-glass p-7 animate-stagger-2">
-      <h2 className="text-base font-semibold text-slate-800 mb-5 flex items-center gap-2.5">
-        <div className="w-8 h-8 rounded-squircle-xs bg-gradient-to-br from-sky-500 to-blue-600 flex items-center justify-center flex-shrink-0">
+      <h2 className="text-[15px] font-bold text-slate-800 mb-5 flex items-center gap-3">
+        <div className="w-8 h-8 rounded-[10px] bg-gradient-to-br from-sky-500 to-blue-600 flex items-center justify-center flex-shrink-0 shadow-sm shadow-sky-500/20">
           <svg className="w-4 h-4 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-            <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M7 16a4 4 0 01-.88-7.903A5 5 0 1115.9 6L16 6a5 5 0 011 9.9M15 13l-3-3m0 0l-3 3m3-3v12" />
+            <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={1.8} d="M7 16a4 4 0 01-.88-7.903A5 5 0 1115.9 6L16 6a5 5 0 011 9.9M15 13l-3-3m0 0l-3 3m3-3v12" />
           </svg>
         </div>
         Upload Course Materials
