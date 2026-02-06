@@ -135,10 +135,12 @@ export default function ModelConfig({
           </label>
           <div className="relative">
             <input
-              type="password"
+              type="text"
               autoComplete="off"
               data-1p-ignore
               data-lpignore="true"
+              data-form-type="other"
+              style={{ WebkitTextSecurity: 'disc' }}
               value={apiKey}
               onChange={(e) => setApiKey(e.target.value)}
               placeholder={PLACEHOLDER[provider] || 'Enter API key...'}
