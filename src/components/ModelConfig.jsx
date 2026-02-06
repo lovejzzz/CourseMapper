@@ -16,7 +16,6 @@ function detectProvider(key) {
 
 const FREE_MODELS = [
   { id: 'gemini-3-flash-preview', name: 'Gemini 3 Flash Preview' },
-  { id: 'gemini-2.5-pro', name: 'Gemini 2.5 Pro' },
 ];
 
 const PLACEHOLDER = { openai: 'sk-proj-...', anthropic: 'sk-ant-...', google: 'AIza...' };
@@ -232,7 +231,7 @@ export default function ModelConfig({
             <div className="text-[12px] leading-relaxed text-amber-800">
               <p className="font-semibold mb-1">Free tier limitations:</p>
               <ul className="space-y-0.5 text-amber-700 list-disc list-inside">
-                <li>Rate limited — up to <span className="font-medium">5 req/min</span> and <span className="font-medium">100 req/day</span> depending on model</li>
+                <li>Rate limited — requests may be throttled during peak usage</li>
                 <li>Shared API key — heavy usage by others may cause brief outages</li>
                 <li>For best results, use your own key via OpenAI, Anthropic, or Google</li>
               </ul>
