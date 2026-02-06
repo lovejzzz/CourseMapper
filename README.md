@@ -1,10 +1,12 @@
 # Course Mapper
 
-AI-powered tool that transforms course syllabi into structured Course Map spreadsheets.
+AI-powered tool that transforms course syllabi into structured Course Map spreadsheets. Runs entirely in the browser — no backend required.
 
 **Live:** [https://lovejzzz.github.io/CourseMapper/](https://lovejzzz.github.io/CourseMapper/)
 
 ## Quick Start
+
+Visit the live link above, or run locally:
 
 ```bash
 npm install
@@ -35,16 +37,21 @@ Opens at [http://localhost:5173](http://localhost:5173).
 - **Version history** — undo/redo and jump to any previous version
 - **Browser notifications** — get notified when generation completes
 
-## Production
+## Deployment
+
+Hosted on GitHub Pages via GitHub Actions. Every push to `main` triggers a build and deploy.
+
+To build manually:
 
 ```bash
 npm run build
-npm start
 ```
+
+The `dist/` folder can be served by any static file host.
 
 ## Tech Stack
 
 - **Frontend** — React, Vite, TailwindCSS
-- **Backend** — Express.js (proxies AI API calls, manages sessions)
+- **AI calls** — direct browser-to-provider API (OpenAI, Anthropic, Google) — no server proxy
 - **File parsing** — mammoth (docx), pdfjs-dist (pdf), SheetJS (xlsx), JSZip
 - **Export** — ExcelJS (xlsx), jsPDF (pdf), file-saver

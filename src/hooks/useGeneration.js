@@ -320,7 +320,7 @@ export default function useGeneration({
       setStreamDetail('');
       setStreamProgress(0);
     }
-  }, [provider, modelId, apiKey, files, columns, setCourseMap, setOldCourseMap, pushVersion, setUserEdits, streamSSE, parsePartialJSON]);
+  }, [provider, modelId, apiKey, files, columns, setCourseMap, setOldCourseMap, pushVersion, setUserEdits, streamProvider, parsePartialJSON]);
 
   // ── Resume Generation ──
   const handleResume = useCallback(async () => {
