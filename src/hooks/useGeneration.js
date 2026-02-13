@@ -88,7 +88,7 @@ export default function useGeneration({
           const filledKeys = Object.keys(lastSection).filter(k => lastSection[k]);
           const lastKey = filledKeys[filledKeys.length - 1];
           const keyLabel = lastKey ? lastKey.replace(/([A-Z])/g, ' $1').replace(/^./, s => s.toUpperCase()).trim() : '';
-          setStreamDetail(`Mapping Lesson ${lessonNum} ${keyLabel}...`);
+          setStreamDetail(`Mapping Lesson ${lessonNum}: ${keyLabel}...`);
         } else {
           setStreamDetail(`Starting Lesson ${lessonNum}...`);
         }
@@ -736,7 +736,7 @@ Generate lessons ${actual + 1} through ${expectedCount} now as JSON:`;
             const displayed = existingLessonCount === 0 ? newPart : { lessons: [...completeLessons, ...newPart.lessons] };
             const totalLessons = displayed.lessons.length;
             const lastL = displayed.lessons[displayed.lessons.length - 1];
-            setStreamDetail(`Mapping Lesson ${totalLessons} ${lastL?.title || ''}...`);
+            setStreamDetail(`Mapping ${lastL?.title || `Lesson ${totalLessons}`}...`);
             setStreamProgress(Math.min(90, Math.round((text.length / Math.max(text.length * 1.3, 4000)) * 90)));
           }
         },
