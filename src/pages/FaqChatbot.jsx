@@ -356,6 +356,11 @@ export default function FaqChatbot() {
           </p>
         </div>
       </main>
+      <footer className="max-w-4xl mx-auto px-8 py-3 text-center">
+        <p className="text-[10px] text-slate-300/70">
+          Built by the Educational Technology team at NYU Silver School of Social Work
+        </p>
+      </footer>
     </div>
   );
 }
