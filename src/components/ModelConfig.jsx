@@ -60,7 +60,7 @@ export default function ModelConfig({
       setApiStatus('connected');
     } else {
       // Clear the hardcoded key when switching away from free
-      if (apiKey === BUILTIN_OPENROUTER_KEY) setApiKey('');
+      if (apiKey === BUILTIN_OPENROUTER_KEY || apiKey === BUILTIN_GOOGLE_KEY) setApiKey('');
     }
   }, [provider]);
 
