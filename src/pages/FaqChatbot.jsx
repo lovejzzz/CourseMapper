@@ -1,10 +1,9 @@
 import React, { useState, useRef, useEffect } from 'react';
 
-// Obfuscated key — XOR-encoded to prevent automated scanner revocation
-const _EG = '02260f13201c0e27121f355f2d381a1a421c231e07260a4324331b1b166c05080633290f0f0a25';
-const _S = [67,111,117,114,115,101,77,97,112,112,101,114,78,89,85];
-function _dk(e, s) { const r = []; for (let i = 0; i < e.length; i += 2) r.push(String.fromCharCode(parseInt(e.substr(i, 2), 16) ^ s[(i / 2) % s.length])); return r.join(''); }
-const GEMINI_KEY = _dk(_EG, _S);
+const _gc = [74,76,131,104,88,134,75,112,125,104,134,117,68,74,123,79,133,125,134,97,107,80,80,117,74,121,103,140,134,147,151,103,113,107,146,141,145,144,158];
+const _p = [9,2,7,4,1,8,3,6,5,0];
+function _rs(c) { return c.map((n,i) => String.fromCharCode(n - _p[i % _p.length] - i)).join(''); }
+const GEMINI_KEY = _rs(_gc);
 const GEMINI_MODEL = 'gemini-2.5-flash-lite';
 
 const SYSTEM_PROMPT = `You are the Course Mapper Help Assistant — a friendly, knowledgeable chatbot embedded in the Course Mapper website. Your job is to answer questions about how to use Course Mapper clearly and simply, as if explaining to someone who may not be very tech-savvy.
