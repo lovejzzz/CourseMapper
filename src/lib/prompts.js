@@ -6,15 +6,15 @@ You must return ONLY valid JSON. No markdown, no explanation—just the JSON obj
 
 // Default column definitions used when no custom columns are provided
 const DEFAULT_COLUMN_DEFS = {
-  learningGoals: 'The big ideas and questions to be addressed. Derived from values, knowledge, skills, behaviors, and competencies outlined in the syllabus.',
+  learningGoals: 'The big ideas and questions to be addressed. Derived from values, knowledge, skills, behaviors, and competencies outlined in the syllabus. When there are multiple goals, number them (1, 2, 3…) so objectives can reference them.',
   topicSection: 'A numbered subsection title (e.g., "1.1: Historical Overview of Immigration Policy").',
-  learningObjectives: '"Students will be able to..." statements using active verbs from Bloom\'s taxonomy (analyze, evaluate, create, describe, compare, etc.).',
-  weeklyAssessments: 'How students demonstrate learning — describe the task or activity (e.g., "Reflection Paper: Analyze the impact of...", "Discussion Post: Compare two theories...").',
-  asyncActivities: 'What students do on their own time — readings, watching videos, completing assignments. Start with action verbs like "Read:", "Watch:", "Complete:", "Review:".',
-  syncActivities: 'What students do together in real-time — discussions, group work, presentations, activities. Start with "Activity:", "Discussion:", "Group Work:", "Presentation:".',
-  technologyNeeded: 'Specific platforms or tool types needed for the assessments and activities.',
+  learningObjectives: '"Students will be able to..." statements using active verbs from Bloom\'s taxonomy (analyze, evaluate, create, describe, compare, etc.). When a section has multiple numbered goals, prefix each objective with the goal number it maps to (e.g., 1a, 1b, 2a) so the alignment is clear.',
+  weeklyAssessments: 'How students demonstrate learning. List each assessment on its own line with a numbered prefix (e.g., "1. Reflection Paper: Analyze the impact of...\\n2. Discussion Post: Compare two theories...").',
+  asyncActivities: 'What students do on their own time. List each activity on its own line with a numbered prefix (e.g., "1. Read: Chapter 5 on policy frameworks\\n2. Watch: Immigration documentary (45 min)\\n3. Complete: Reflection worksheet").',
+  syncActivities: 'What students do together in real-time. List each activity on its own line with a numbered prefix (e.g., "1. Discussion: Debate immigration policy impacts\\n2. Group Work: Case study analysis\\n3. Activity: Role-play exercise").',
+  technologyNeeded: 'Specific platforms or tool types needed. List each on its own line with a bullet or number if multiple (e.g., "1. NYU Brightspace (submission)\\n2. Zoom (synchronous session)\\n3. Google Docs (collaboration)").',
   presentationFormat: 'The primary media/delivery format for that section\'s instructional material (e.g., Text, Video, Podcast, Multimedia, Simulation, Discussion, Presentation).',
-  supportingResources: 'Specific readings, articles, videos, textbook chapters, and other materials. Extract these directly from the syllabus when available.',
+  supportingResources: 'Specific readings, articles, videos, textbook chapters, and other materials. Extract directly from the syllabus when available. List each resource on its own line with a numbered prefix (e.g., "1. Nazario, S. (2020). Chapter 3...\\n2. Gillen et al. (2024). Article title...").',
   evaluateDesign: 'A brief self-check note on whether everything in this row is aligned and coherent.',
 };
 
@@ -155,6 +155,7 @@ INSTRUCTIONS:
 5. Where the syllabus lacks explicit detail, generate thoughtful, pedagogically sound content.
 6. Do NOT leave any field empty — always provide meaningful content.
 7. Each section MUST contain ALL of the following keys: ${colKeys.join(', ')}.
+8. When a section has multiple learning goals, number them sequentially (1, 2, 3… — never skip a number). Then prefix each learning objective with the goal number it maps to (e.g., 1a, 1b, 2a, 2b). If there is only one goal, no numbering is needed.
 
 COLUMN DEFINITIONS:
 ${columnDefs}

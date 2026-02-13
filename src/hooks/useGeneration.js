@@ -56,12 +56,21 @@ export default function useGeneration({
     return merged;
   }
 
+  const STREAM_SAVE_KEY = 'coursemapper-stream';
+
   // ── Helpers for stream progress updates (time-based throttle) ──
+  const lastSaveRef = useRef(0);
   function updateGenerationProgress(fullText, chunkCount) {
     const now = performance.now();
     // Throttle UI updates to ~150ms intervals for smooth streaming
     if (now - lastUIUpdateRef.current < 150) return;
     lastUIUpdateRef.current = now;
+
+    // Save partial text to localStorage every ~3s for crash recovery
+    if (now - lastSaveRef.current > 3000) {
+      lastSaveRef.current = now;
+      try { localStorage.setItem(STREAM_SAVE_KEY, fullText); } catch {}
+    }
 
     const partial = parsePartialJSON(fullText);
     if (partial && partial.lessons) {
@@ -603,6 +612,7 @@ Generate lessons ${actual + 1} through ${expectedCount} now as JSON:`;
       setProgressStep('done');
       setStatus('done');
       setUserEdits([]);
+      try { localStorage.removeItem(STREAM_SAVE_KEY); } catch {}
       notifyDone('Course map is ready!');
     } catch (err) {
       setRetryInfo(null);
@@ -627,7 +637,31 @@ Generate lessons ${actual + 1} through ${expectedCount} now as JSON:`;
   // ── Resume Generation ──
   const handleResume = useCallback(async () => {
     const savedText = stoppedTextRef.current;
-    if (!savedText) return;
+    console.log('[Resume] stoppedText length:', savedText?.length || 0, 'provider:', provider, 'modelId:', modelId);
+    if (!savedText) {
+      setError('Nothing to resume — no saved generation data found.');
+      return;
+    }
+
+    // Resolve the correct API key — for free provider, look up from FREE_MODELS
+    let resumeProvider = provider;
+    let resumeKey = apiKey;
+    let resumeModel = modelId;
+
+    if (provider === 'free' || !apiKey) {
+      // Try to find the matching model in FREE_MODELS, or fall back to first one
+      const freeModel = FREE_MODELS.find(m => m.id === modelId) || FREE_MODELS[0];
+      resumeProvider = 'free';
+      resumeKey = freeModel.apiKey;
+      resumeModel = freeModel.id;
+    }
+
+    console.log('[Resume] using:', resumeProvider, resumeModel, 'key length:', resumeKey?.length || 0);
+
+    if (!resumeModel) {
+      setError('No model selected — please select a model and try again.');
+      return;
+    }
 
     setIsStopped(false);
     setStatus('generating');
@@ -637,15 +671,74 @@ Generate lessons ${actual + 1} through ${expectedCount} now as JSON:`;
     setError('');
     setRetryInfo(null);
 
-    try {
-      fullTextRef.current = savedText;
-      const continuationPrompt = `You were generating a Course Map JSON and the output was interrupted. Here is the partial JSON you generated so far:\n\n${savedText}\n\nContinue generating from EXACTLY where this left off. Output ONLY the remaining JSON text that comes after the last character above. Do NOT repeat any content. Do NOT start with a new JSON object. Just continue the JSON from the exact point it stopped.`;
+    // Parse what we already have so we can merge later
+    const existingMap = parsePartialJSON(savedText);
+    const existingLessons = existingMap?.lessons || [];
+    const existingLessonCount = existingLessons.length;
+    const colKeys = columns.map(c => c.key);
+    console.log('[Resume] existing map has', existingLessonCount, 'lessons, rawLen:', savedText.length);
 
-      const { fullText } = await streamProvider(provider, apiKey, modelId, SYSTEM_PROMPT, continuationPrompt, {
-        existingText: savedText,
+    // Separate complete vs incomplete lessons
+    let completeLessons = [...existingLessons];
+    let incompleteLesson = null;
+    if (existingLessonCount > 0) {
+      const lastLesson = existingLessons[existingLessonCount - 1];
+      const lastSections = lastLesson.sections || [];
+      const lastSection = lastSections[lastSections.length - 1];
+      const filledKeys = lastSection ? colKeys.filter(k => lastSection[k] && String(lastSection[k]).trim()) : [];
+      if (!lastSection || filledKeys.length < colKeys.length) {
+        incompleteLesson = lastLesson;
+        completeLessons = existingLessons.slice(0, -1);
+        console.log('[Resume] last lesson incomplete:', lastLesson.title, 'filled:', filledKeys.length, '/', colKeys.length);
+      }
+    }
+
+    try {
+      let continuationPrompt;
+
+      if (existingLessonCount === 0) {
+        // ── Stopped very early (no complete lessons parsed) — give AI the raw partial text ──
+        // Truncate raw text to last 3000 chars to avoid token limits
+        const rawContext = savedText.length > 3000 ? '...' + savedText.slice(-3000) : savedText;
+        continuationPrompt = `You were generating a Course Map JSON but the output was interrupted very early. Here is the raw partial output that was generated before interruption:\n\n${rawContext}\n\nPlease generate the COMPLETE course map as a valid JSON object. Include ALL lessons for the entire course. The JSON must have: "courseName" (string), "semester" (string), "lessons" (array).\n\nEach lesson must have: "title" (string), "sections" (array of section objects). Each section must contain ALL of these keys: ${colKeys.join(', ')}.\n\nIncorporate any content from the partial output above — do not discard what was already started. Output ONLY valid JSON, no markdown fences.`;
+        console.log('[Resume] using raw-text approach (0 lessons parsed)');
+      } else {
+        // ── Have some lessons — ask AI for remaining ──
+        const completedSummary = completeLessons.map((l, i) => `  Lesson ${i + 1}: ${l.title || 'Untitled'} (${l.sections?.length || 0} sections)`).join('\n') || '(none)';
+
+        let incompleteInfo = '';
+        if (incompleteLesson) {
+          incompleteInfo = `\n\nIMPORTANT: The last lesson was INCOMPLETE when interrupted. Here is what was generated so far for it:\n${JSON.stringify(incompleteLesson, null, 2)}\n\nYou MUST first output a COMPLETE version of this lesson (title: "${incompleteLesson.title}") with ALL section keys filled in. Then continue with the remaining lessons.`;
+        }
+
+        continuationPrompt = `You were generating a Course Map JSON and the output was interrupted. Here is a summary of what was already generated:\n\nCourse: ${existingMap?.courseName || 'Unknown'}\nSemester: ${existingMap?.semester || 'Unknown'}\nFully completed lessons:\n${completedSummary}${incompleteInfo}\n\nPlease output a valid JSON object with this structure:\n{"lessons": [ ...array of the remaining lesson objects... ]}\n\nEach lesson must have: "title" (string), "sections" (array of section objects). Each section must contain ALL of these keys: ${colKeys.join(', ')}.\n\n${incompleteLesson ? `Start by completing "${incompleteLesson.title}" (Lesson ${completeLessons.length + 1}), then continue.` : `Start from Lesson ${completeLessons.length + 1}.`} Generate content that logically continues the course. Output ONLY valid JSON, no markdown fences.`;
+      }
+
+      console.log('[Resume] calling streamProvider, prompt length:', continuationPrompt.length);
+      fullTextRef.current = '';
+      const { fullText } = await streamProvider(resumeProvider, resumeKey, resumeModel, SYSTEM_PROMPT, continuationPrompt, {
         onChunk: (text, count) => {
           fullTextRef.current = text;
-          updateGenerationProgress(text, count);
+          if (count <= 3 || count % 20 === 0) console.log('[Resume] chunk', count, 'totalLen:', text.length);
+          const now = performance.now();
+          if (now - lastUIUpdateRef.current < 150) return;
+          lastUIUpdateRef.current = now;
+          const newPart = parsePartialJSON(text);
+          if (newPart && newPart.lessons && newPart.lessons.length > 0) {
+            if (existingLessonCount === 0) {
+              // Early-stop case: AI is generating the full map
+              setCourseMap({ ...newPart });
+            } else {
+              // Normal case: merge with existing complete lessons
+              const merged = { ...existingMap, lessons: [...completeLessons, ...newPart.lessons] };
+              setCourseMap({ ...merged });
+            }
+            const displayed = existingLessonCount === 0 ? newPart : { lessons: [...completeLessons, ...newPart.lessons] };
+            const totalLessons = displayed.lessons.length;
+            const lastL = displayed.lessons[displayed.lessons.length - 1];
+            setStreamDetail(`Mapping Lesson ${totalLessons} ${lastL?.title || ''}...`);
+            setStreamProgress(Math.min(90, Math.round((text.length / Math.max(text.length * 1.3, 4000)) * 90)));
+          }
         },
         onRetry: (attempt, max, delay) => {
           setRetryInfo({ attempt, max, delay });
@@ -654,8 +747,17 @@ Generate lessons ${actual + 1} through ${expectedCount} now as JSON:`;
       });
 
       setRetryInfo(null);
-      const finalResult = parsePartialJSON(fullText);
-      if (!finalResult || !finalResult.lessons) {
+      const newPart = parsePartialJSON(fullText);
+      let finalResult;
+      if (existingLessonCount === 0 && newPart && newPart.lessons) {
+        // Early-stop: AI generated the full map
+        finalResult = newPart;
+      } else if (newPart && newPart.lessons && newPart.lessons.length > 0) {
+        finalResult = { ...existingMap, lessons: [...completeLessons, ...newPart.lessons] };
+      } else if (existingMap && existingMap.lessons && existingMap.lessons.length > 0) {
+        console.warn('[Resume] AI did not produce new lessons, keeping existing map');
+        finalResult = existingMap;
+      } else {
         throw new Error('Invalid response structure from AI.');
       }
 
@@ -670,28 +772,40 @@ Generate lessons ${actual + 1} through ${expectedCount} now as JSON:`;
       pushVersion(merged, 'Resumed generation');
       setProgressStep('done');
       setStatus('done');
+      try { localStorage.removeItem(STREAM_SAVE_KEY); } catch {}
       notifyDone('Course map is ready!');
     } catch (err) {
       setRetryInfo(null);
       if (err.name === 'AbortError') {
-        stoppedTextRef.current = fullTextRef.current;
-        const partial = parsePartialJSON(fullTextRef.current);
-        if (partial && partial.lessons) setCourseMap(partial);
+        // Merge whatever the AI produced so far
+        const newPart = parsePartialJSON(fullTextRef.current);
+        if (newPart && newPart.lessons && newPart.lessons.length > 0) {
+          let merged;
+          if (existingLessonCount === 0) {
+            merged = newPart;
+          } else {
+            merged = { ...(existingMap || {}), lessons: [...completeLessons, ...newPart.lessons] };
+          }
+          setCourseMap(merged);
+          // Save merged JSON so next resume has the accumulated progress
+          stoppedTextRef.current = JSON.stringify(merged);
+        }
         setIsStreaming(false);
         setStreamDetail('');
         setIsStopped(true);
         setStatus('stopped');
         return;
       }
+      // Resume failed — go back to stopped state so user can retry
       setError('Resume failed: ' + err.message);
-      setStatus('error');
+      setStatus('stopped');
       setIsStreaming(false);
       setStreamDetail('');
-      setStreamProgress(0);
-      setIsStopped(false);
-      stoppedTextRef.current = '';
+      setIsStopped(true);
+      setProgressStep('generating');
+      // Keep stoppedTextRef so user can retry
     }
-  }, [provider, modelId, apiKey, setCourseMap, pushVersion, userEdits, streamProvider, parsePartialJSON]);
+  }, [provider, modelId, apiKey, columns, setCourseMap, pushVersion, userEdits, streamProvider, parsePartialJSON]);
 
   const handleStop = useCallback(() => {
     abort();
@@ -711,6 +825,7 @@ Generate lessons ${actual + 1} through ${expectedCount} now as JSON:`;
     setRetryInfo(null);
     setCompletenessInfo(null);
     setGenerationLog([]);
+    try { localStorage.removeItem(STREAM_SAVE_KEY); } catch {}
   }, [setCourseMap, setOldCourseMap]);
 
   const resetGeneration = useCallback(() => {
@@ -730,7 +845,29 @@ Generate lessons ${actual + 1} through ${expectedCount} now as JSON:`;
     syllabusTextRef.current = '';
     expectedLessonsRef.current = null;
     abort();
+    try { localStorage.removeItem(STREAM_SAVE_KEY); } catch {}
   }, [abort]);
+
+  // ── Restore interrupted generation from localStorage (called on mount) ──
+  const restoreStoppedState = useCallback(() => {
+    try {
+      const savedText = localStorage.getItem(STREAM_SAVE_KEY);
+      if (!savedText || savedText.length < 50) return false;
+      stoppedTextRef.current = savedText;
+      fullTextRef.current = savedText;
+      // Parse the partial text and show the in-progress courseMap
+      const partial = parsePartialJSON(savedText);
+      if (partial && partial.lessons) {
+        setCourseMap(partial);
+      }
+      setIsStopped(true);
+      setStatus('stopped');
+      setProgressStep('generating');
+      setStreamDetail('Generation was interrupted — click Resume to continue');
+      localStorage.removeItem(STREAM_SAVE_KEY);
+      return true;
+    } catch { return false; }
+  }, [parsePartialJSON, setCourseMap]);
 
   const handleRetryExamine = useCallback(async () => {
     if (!courseMapRef.current) return;
@@ -762,5 +899,6 @@ Generate lessons ${actual + 1} through ${expectedCount} now as JSON:`;
     handleClearAll,
     resetGeneration,
     handleRetryExamine,
+    restoreStoppedState,
   };
 }

@@ -23,7 +23,9 @@ export default function App() {
 
   // ── Model & File Config ──
   const [provider, setProvider] = useState('anthropic');
-  const [apiKey, setApiKey] = useState('');
+  const [apiKey, setApiKey] = useState(() => {
+    try { return localStorage.getItem('coursemapper-apikey') || ''; } catch { return ''; }
+  });
   const [apiStatus, setApiStatus] = useState('idle');
   const [modelName, setModelName] = useState('');
   const [modelId, setModelId] = useState('');
@@ -80,6 +82,14 @@ export default function App() {
     pushVersion: version.pushVersion,
   });
 
+  // ── Persist API key to localStorage ──
+  useEffect(() => {
+    try {
+      if (apiKey) localStorage.setItem('coursemapper-apikey', apiKey);
+      else localStorage.removeItem('coursemapper-apikey');
+    } catch {}
+  }, [apiKey]);
+
   // ── localStorage: save on changes (debounced) ──
   useEffect(() => {
     if (!hasGenerated || !courseMap) return;
@@ -111,7 +121,7 @@ export default function App() {
       setColumns(saved.columns || [...DEFAULT_COLUMNS]);
       setHasGenerated(true);
       setProvider(saved.provider || 'free');
-      // API key is intentionally NOT restored from localStorage for security
+      // API key restored separately via its own localStorage key
       setModelId(saved.modelId || '');
       setModelName(saved.modelName || '');
       setUserEdits(saved.userEdits || []);
@@ -125,8 +135,11 @@ export default function App() {
       }
       if (saved.chatHistory) setChatHistory(saved.chatHistory);
       setRestoredSession(true);
-      gen.setProgressStep('done');
-      gen.setStatus('done');
+      // Check if there was an interrupted generation to resume
+      if (!gen.restoreStoppedState()) {
+        gen.setProgressStep('done');
+        gen.setStatus('done');
+      }
     } catch (e) { console.warn('Restore failed:', e); }
   }, []); // eslint-disable-line react-hooks/exhaustive-deps
 
@@ -368,7 +381,7 @@ export default function App() {
               <ProgressPanel
                 currentStep={gen.progressStep}
                 modelName={gen.activeModelName || modelName}
-                error={gen.status === 'error' ? gen.error : null}
+                error={gen.error || null}
                 courseMap={courseMap}
                 onRevision={rev.handleRevision}
                 isRevising={rev.isRevising}

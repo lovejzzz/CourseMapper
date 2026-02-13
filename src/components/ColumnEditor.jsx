@@ -1,4 +1,4 @@
-import React, { useState, useRef } from 'react';
+import React, { useState, useRef, useCallback, useEffect } from 'react';
 
 export const DEFAULT_COLUMNS = [
   { key: 'learningGoals', label: 'Learning Goals' },
@@ -16,11 +16,23 @@ export const DEFAULT_COLUMNS = [
 export default function ColumnEditor({ columns, setColumns }) {
   const [editingIdx, setEditingIdx] = useState(null);
   const [editValue, setEditValue] = useState('');
+
+  // ── Pointer-based drag state ──
   const [dragIdx, setDragIdx] = useState(null);
-  const [dragOverIdx, setDragOverIdx] = useState(null);
-  const dragNodeRef = useRef(null);
+  const [ghostPos, setGhostPos] = useState({ x: 0, y: 0 });
+  const [liveColumns, setLiveColumns] = useState(columns);
+  const dragOriginIdx = useRef(null);
+  const itemRectsRef = useRef([]);
+  const containerRef = useRef(null);
+  const ghostOffset = useRef({ x: 0, y: 0 });
+
+  // Keep liveColumns in sync when not dragging
+  useEffect(() => {
+    if (dragIdx === null) setLiveColumns(columns);
+  }, [columns, dragIdx]);
 
   function startEdit(idx) {
+    if (dragIdx !== null) return;
     setEditingIdx(idx);
     setEditValue(columns[idx].label);
   }
@@ -59,42 +71,91 @@ export default function ColumnEditor({ columns, setColumns }) {
     }
   }
 
-  // ── Drag-and-drop reordering ──
-  function handleDragStart(e, idx) {
+  // ── Pointer-based drag-and-drop with smooth animation ──
+  const handlePointerDown = useCallback((e, idx) => {
+    if (editingIdx !== null) return;
+    // Only start drag on primary button
+    if (e.button !== 0) return;
+    e.preventDefault();
+    e.currentTarget.setPointerCapture(e.pointerId);
+
+    // Snapshot all item rects for hit testing
+    const container = containerRef.current;
+    if (container) {
+      const items = container.querySelectorAll('[data-col-idx]');
+      itemRectsRef.current = Array.from(items).map(el => el.getBoundingClientRect());
+    }
+
+    const rect = e.currentTarget.getBoundingClientRect();
+    ghostOffset.current = { x: e.clientX - rect.left, y: e.clientY - rect.top };
+    dragOriginIdx.current = idx;
     setDragIdx(idx);
-    dragNodeRef.current = e.target;
-    e.dataTransfer.effectAllowed = 'move';
-    // Make the drag image semi-transparent
-    requestAnimationFrame(() => {
-      if (dragNodeRef.current) dragNodeRef.current.style.opacity = '0.4';
-    });
-  }
+    setGhostPos({ x: e.clientX - ghostOffset.current.x, y: e.clientY - ghostOffset.current.y });
+    setLiveColumns([...columns]);
+  }, [columns, editingIdx]);
 
-  function handleDragEnd() {
-    if (dragNodeRef.current) dragNodeRef.current.style.opacity = '1';
-    setDragIdx(null);
-    setDragOverIdx(null);
-    dragNodeRef.current = null;
-  }
-
-  function handleDragOver(e, idx) {
+  const handlePointerMove = useCallback((e) => {
+    if (dragIdx === null) return;
     e.preventDefault();
-    e.dataTransfer.dropEffect = 'move';
-    if (idx !== dragOverIdx) setDragOverIdx(idx);
-  }
+    const x = e.clientX - ghostOffset.current.x;
+    const y = e.clientY - ghostOffset.current.y;
+    setGhostPos({ x, y });
 
-  function handleDrop(e, dropIdx) {
-    e.preventDefault();
-    if (dragIdx === null || dragIdx === dropIdx) return;
-    setColumns((prev) => {
-      const next = [...prev];
-      const [moved] = next.splice(dragIdx, 1);
-      next.splice(dropIdx, 0, moved);
-      return next;
-    });
+    // Find which item we're hovering over
+    const cx = e.clientX;
+    const cy = e.clientY;
+    let hoverIdx = -1;
+    for (let i = 0; i < itemRectsRef.current.length; i++) {
+      const r = itemRectsRef.current[i];
+      if (cx >= r.left && cx <= r.right && cy >= r.top && cy <= r.bottom) {
+        hoverIdx = i;
+        break;
+      }
+    }
+
+    if (hoverIdx >= 0 && hoverIdx !== dragIdx) {
+      // Reorder live columns smoothly
+      setLiveColumns(prev => {
+        const next = [...prev];
+        const [moved] = next.splice(dragIdx, 1);
+        next.splice(hoverIdx, 0, moved);
+        return next;
+      });
+      setDragIdx(hoverIdx);
+
+      // Re-snapshot rects after reorder (next frame)
+      requestAnimationFrame(() => {
+        const container = containerRef.current;
+        if (container) {
+          const items = container.querySelectorAll('[data-col-idx]');
+          itemRectsRef.current = Array.from(items).map(el => el.getBoundingClientRect());
+        }
+      });
+    }
+  }, [dragIdx]);
+
+  const handlePointerUp = useCallback((e) => {
+    if (dragIdx === null) return;
+    // Commit the reorder
+    setColumns([...liveColumns]);
     setDragIdx(null);
-    setDragOverIdx(null);
-  }
+    dragOriginIdx.current = null;
+  }, [dragIdx, liveColumns, setColumns]);
+
+  // Cleanup if pointer leaves window
+  useEffect(() => {
+    const handleUp = () => {
+      if (dragIdx !== null) {
+        setColumns([...liveColumns]);
+        setDragIdx(null);
+        dragOriginIdx.current = null;
+      }
+    };
+    window.addEventListener('pointerup', handleUp);
+    return () => window.removeEventListener('pointerup', handleUp);
+  }, [dragIdx, liveColumns, setColumns]);
+
+  const displayColumns = dragIdx !== null ? liveColumns : columns;
 
   return (
     <div className="glass rounded-squircle shadow-glass p-7">
@@ -111,7 +172,7 @@ export default function ColumnEditor({ columns, setColumns }) {
         Drag to reorder, click to edit, or add/remove columns
       </p>
 
-      <div className="flex flex-wrap gap-2">
+      <div ref={containerRef} className="flex flex-wrap gap-2">
         {/* Fixed first column */}
         <span className="inline-flex items-center gap-1.5 px-3.5 py-2 rounded-squircle-xs text-xs font-semibold bg-indigo-100/60 text-indigo-700 border border-indigo-200/40">
           Week/Module [Topic]
@@ -120,19 +181,19 @@ export default function ColumnEditor({ columns, setColumns }) {
           </svg>
         </span>
 
-        {columns.map((col, idx) => (
+        {displayColumns.map((col, idx) => (
           <span
-            key={col.key + idx}
-            draggable={editingIdx !== idx}
-            onDragStart={(e) => handleDragStart(e, idx)}
-            onDragEnd={handleDragEnd}
-            onDragOver={(e) => handleDragOver(e, idx)}
-            onDrop={(e) => handleDrop(e, idx)}
-            className={`group inline-flex items-center gap-1 transition-all duration-150 ${
-              dragOverIdx === idx && dragIdx !== idx ? 'ring-2 ring-indigo-400/60 ring-offset-1 rounded-squircle-xs' : ''
+            key={col.key}
+            data-col-idx={idx}
+            onPointerDown={(e) => handlePointerDown(e, idx)}
+            onPointerMove={handlePointerMove}
+            onPointerUp={handlePointerUp}
+            className={`group inline-flex items-center gap-1 transition-all duration-300 ease-out ${
+              dragIdx === idx ? 'opacity-30 scale-95' : ''
             }`}
+            style={{ touchAction: 'none' }}
           >
-            {editingIdx === idx ? (
+            {editingIdx !== null && displayColumns[editingIdx]?.key === col.key ? (
               <input
                 autoFocus
                 value={editValue}
@@ -144,7 +205,7 @@ export default function ColumnEditor({ columns, setColumns }) {
             ) : (
               <span
                 onClick={() => startEdit(idx)}
-                className="tactile inline-flex items-center gap-1.5 px-3.5 py-2 rounded-squircle-xs text-xs font-medium bg-white/60 text-slate-600 border border-white/40 cursor-grab hover:bg-indigo-50/50 hover:text-indigo-600 hover:border-indigo-200/40 transition-all duration-200 active:cursor-grabbing"
+                className={`tactile inline-flex items-center gap-1.5 px-3.5 py-2 rounded-squircle-xs text-xs font-medium bg-white/60 text-slate-600 border border-white/40 cursor-grab hover:bg-indigo-50/50 hover:text-indigo-600 hover:border-indigo-200/40 transition-all duration-200 active:cursor-grabbing select-none`}
               >
                 <svg className="w-3 h-3 text-slate-300 flex-shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                   <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M4 8h16M4 16h16" />
@@ -177,6 +238,21 @@ export default function ColumnEditor({ columns, setColumns }) {
           Add Column
         </button>
       </div>
+
+      {/* Floating ghost that follows the cursor */}
+      {dragIdx !== null && displayColumns[dragIdx] && (
+        <div
+          className="fixed z-50 pointer-events-none"
+          style={{ left: ghostPos.x, top: ghostPos.y }}
+        >
+          <span className="inline-flex items-center gap-1.5 px-3.5 py-2 rounded-squircle-xs text-xs font-medium bg-indigo-50 text-indigo-700 border border-indigo-300 shadow-lg shadow-indigo-500/20 scale-105 rotate-[2deg]">
+            <svg className="w-3 h-3 text-indigo-400 flex-shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M4 8h16M4 16h16" />
+            </svg>
+            {displayColumns[dragIdx].label}
+          </span>
+        </div>
+      )}
     </div>
   );
 }

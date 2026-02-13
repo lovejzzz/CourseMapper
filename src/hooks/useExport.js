@@ -31,6 +31,7 @@ export default function useExport(courseMap, columns, setError) {
       }
     } catch (err) {
       setError('Failed to export: ' + err.message);
+      setTimeout(() => setError(''), 6000);
     }
   }, [courseMap, columns, setError]);
 

@@ -109,6 +109,8 @@ export default function useRevision({
         setStreamDetail('');
         setStreamProgress(100);
         setProgressStep('done');
+        setStatus('done');
+        setIsStopped(false);
         setOldCourseMap(null);
         return { chatReply: finalResult.chatReply };
       }
@@ -121,6 +123,8 @@ export default function useRevision({
         setStreamDetail('');
         setStreamProgress(100);
         setProgressStep('done');
+        setStatus('done');
+        setIsStopped(false);
         pushVersion(patched, 'Revision');
         setUserEdits([]);
         return patched;
@@ -136,6 +140,8 @@ export default function useRevision({
       setStreamDetail('');
       setStreamProgress(100);
       setProgressStep('done');
+      setStatus('done');
+      setIsStopped(false);
       pushVersion(finalResult, 'Revision');
       setUserEdits([]);
       return finalResult;

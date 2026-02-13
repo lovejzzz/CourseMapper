@@ -166,6 +166,12 @@ export default function ProgressPanel({
               </div>
             )}
 
+            {isStopped && error && (
+              <div className="mt-3 px-3.5 py-2.5 rounded-squircle-xs bg-red-50/80 border border-red-200/40 text-xs text-red-600 font-medium animate-spring-in">
+                {error}
+              </div>
+            )}
+
             {isStopped && (
               <div className="mt-3 flex items-center gap-2.5">
                 <button
@@ -237,7 +243,7 @@ export default function ProgressPanel({
         )}
       </div>
 
-      {isDone && courseMap && (
+      {(isDone || isStopped) && courseMap && (
         <RevisionChat onRevision={onRevision} isRevising={isRevising} savedMessages={chatHistory} onMessagesChange={onChatHistoryChange} />
       )}
     </div>

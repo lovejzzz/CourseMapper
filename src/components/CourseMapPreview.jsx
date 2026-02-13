@@ -1,4 +1,4 @@
-import React, { useState, useEffect, useRef } from 'react';
+import React, { useState, useEffect, useRef, useCallback } from 'react';
 
 // Flatten a cell value to a plain string (handles arrays from AI responses)
 function toStr(val) {
@@ -20,6 +20,59 @@ const SECTION_KEYS = [
   'evaluateDesign',
 ];
 
+// Split text into list items — handles both newline-separated and inline numbered/bulleted items
+function splitIntoItems(text) {
+  // First split by newlines
+  let lines = text.split('\n').filter(l => l.trim());
+
+  // If only one line, try splitting inline numbered/bulleted items
+  // e.g. "1. First item 2. Second item" or "- First - Second"
+  if (lines.length === 1) {
+    const inlineSplit = text.split(/(?=(?:^|\s)(?:\d+[a-z]?[.):]|[-•*])\s)/g).map(s => s.trim()).filter(Boolean);
+    if (inlineSplit.length > 1) lines = inlineSplit;
+  }
+
+  return lines;
+}
+
+const LIST_PREFIX = /^(?:[-•*]|\d+[a-z]?[.):])\s/;
+
+// Format cell text: split by newlines, detect bullets/numbers, render structured
+function FormattedText({ text }) {
+  if (!text) return null;
+  const lines = splitIntoItems(text);
+  if (lines.length <= 1) return <span>{text}</span>;
+
+  // Check if lines look like a list (start with -, •, *, or number/letter prefix)
+  const isList = lines.every(l => LIST_PREFIX.test(l.trim()));
+
+  if (isList) {
+    return (
+      <ul className="space-y-1.5 list-none">
+        {lines.map((line, i) => {
+          const cleaned = line.trim().replace(LIST_PREFIX, '');
+          const prefix = line.trim().match(/^(?:[-•*]|\d+[a-z]?[.):])/)?.[0] || '•';
+          return (
+            <li key={i} className="flex gap-1.5 leading-relaxed">
+              <span className="text-indigo-400 font-semibold flex-shrink-0 text-[10px] mt-[2px]">{prefix}</span>
+              <span>{cleaned}</span>
+            </li>
+          );
+        })}
+      </ul>
+    );
+  }
+
+  // Not a list — just render with line breaks and spacing
+  return (
+    <div className="space-y-1.5">
+      {lines.map((line, i) => (
+        <p key={i} className="leading-relaxed">{line}</p>
+      ))}
+    </div>
+  );
+}
+
 export default function CourseMapPreview({ courseMap, columns, isStreaming, oldCourseMap, onCellEdit, onTitleEdit, onCheckToggle, onAddSection, onDeleteSection, onAddLesson, onDeleteLesson, onMoveLesson, showDiff, onToggleDiff, onDismissDiff }) {
   const tableRef = useRef(null);
   const wrapperRef = useRef(null);
@@ -27,6 +80,10 @@ export default function CourseMapPreview({ courseMap, columns, isStreaming, oldC
   const mouseLeaveTimerRef = useRef(null);
   const autoScrollPausedRef = useRef(false);
   const revisionScrolledRef = useRef(false);
+
+  // ── Column resizing ──
+  const [colWidths, setColWidths] = useState({});
+  const resizingRef = useRef(null);
 
   // Mouse enter: pause auto-scroll so user can browse freely
   const handleMouseEnter = () => {
@@ -83,6 +140,35 @@ export default function CourseMapPreview({ courseMap, columns, isStreaming, oldC
       tableRef.current.scrollTo({ top: tableRef.current.scrollHeight, behavior: 'smooth' });
     }
   }, [courseMap, isStreaming, oldCourseMap]);
+
+  // Drag handlers for column resize
+  const handleResizeStart = useCallback((e, colIdx) => {
+    e.preventDefault();
+    const startX = e.clientX;
+    const th = e.target.parentElement;
+    const startWidth = th.offsetWidth;
+    resizingRef.current = { colIdx, startX, startWidth };
+
+    const handleMouseMove = (ev) => {
+      if (!resizingRef.current) return;
+      const delta = ev.clientX - resizingRef.current.startX;
+      const newWidth = Math.max(60, resizingRef.current.startWidth + delta);
+      setColWidths(prev => ({ ...prev, [resizingRef.current.colIdx]: newWidth }));
+    };
+
+    const handleMouseUp = () => {
+      resizingRef.current = null;
+      document.removeEventListener('mousemove', handleMouseMove);
+      document.removeEventListener('mouseup', handleMouseUp);
+      document.body.style.cursor = '';
+      document.body.style.userSelect = '';
+    };
+
+    document.addEventListener('mousemove', handleMouseMove);
+    document.addEventListener('mouseup', handleMouseUp);
+    document.body.style.cursor = 'col-resize';
+    document.body.style.userSelect = 'none';
+  }, []);
 
   if (!courseMap || !courseMap.lessons || courseMap.lessons.length === 0) {
     if (isStreaming) {
@@ -157,12 +243,17 @@ export default function CourseMapPreview({ courseMap, columns, isStreaming, oldC
       <div className="mb-5" />
 
       <div ref={tableRef} onMouseEnter={handleMouseEnter} onMouseLeave={handleMouseLeave} className="overflow-auto rounded-squircle-sm max-h-[70vh] shadow-glass border border-white/30">
-        <table className="min-w-full text-xs" role="grid" aria-label="Course Map">
+        <table className="min-w-full text-xs table-fixed" role="grid" aria-label="Course Map">
           <thead className="sticky top-0 z-10">
             <tr className="bg-gradient-to-r from-slate-800 to-slate-700 text-white">
-              {colHeaders.map((h) => (
-                <th key={h} className="px-3.5 py-3 text-left text-[11px] font-semibold tracking-wide uppercase whitespace-nowrap">
+              {colHeaders.map((h, hi) => (
+                <th key={h} className="px-3.5 py-3 text-left text-[11px] font-semibold tracking-wide uppercase whitespace-nowrap relative group/th" style={colWidths[hi] ? { width: colWidths[hi], minWidth: colWidths[hi] } : undefined}>
                   {h}
+                  <div
+                    onMouseDown={(e) => handleResizeStart(e, hi)}
+                    className="absolute right-0 top-0 bottom-0 w-[5px] cursor-col-resize hover:bg-indigo-400/40 transition-colors duration-150"
+                    title="Drag to resize"
+                  />
                 </th>
               ))}
               {!isStreaming && <th className="px-2 py-3 text-center text-[11px] font-semibold tracking-wide uppercase w-[60px]" />}
@@ -237,7 +328,7 @@ export default function CourseMapPreview({ courseMap, columns, isStreaming, oldC
                         <td key={key} className={`px-3.5 py-2.5 align-top max-w-[220px] transition-colors duration-300 ${
                           unchanged ? 'bg-slate-50/60 text-slate-400' : 'bg-emerald-50/50 text-emerald-800'
                         }`} style={{ wordBreak: 'break-word', overflowWrap: 'anywhere' }} data-changed={!unchanged ? 'true' : undefined}>
-                          <span>{newText}</span>
+                          <FormattedText text={newText} />
                         </td>
                       );
                     }
@@ -386,116 +477,59 @@ function EditableCell({ text, isStreaming, onSave, highlight }) {
       tabIndex={onSave && !isStreaming ? 0 : undefined}
       aria-label={onSave && !isStreaming ? 'Click to edit cell' : undefined}
     >
-      {text}
+      <FormattedText text={text} />
     </span>
   );
 }
 
 function DiffCell({ text, oldText, isStreaming }) {
-  const [phase, setPhase] = useState('idle'); // idle | strikethrough | typing | done | highlight
-  const [displayed, setDisplayed] = useState('');
-  const [isTyping, setIsTyping] = useState(false);
+  const [phase, setPhase] = useState('idle'); // idle | strikethrough | highlight | done
   const prevTextRef = useRef('');
 
-  // Handle revision diff: oldText → strikethrough → type new
+  // Handle revision diff: oldText → strikethrough → highlight new
   useEffect(() => {
     if (oldText !== null && !isStreaming && text) {
-      // Revision complete — animate the diff
       setPhase('strikethrough');
       const t1 = setTimeout(() => {
-        setPhase('typing');
-        setDisplayed('');
-        let idx = 0;
-        const timer = setInterval(() => {
-          idx++;
-          setDisplayed(text.slice(0, idx));
-          if (idx >= text.length) {
-            clearInterval(timer);
-            setPhase('highlight');
-            setTimeout(() => setPhase('done'), 3000);
-          }
-        }, 12);
+        setPhase('highlight');
+        setTimeout(() => setPhase('done'), 3000);
       }, 800);
       return () => clearTimeout(t1);
     }
   }, [oldText, text, isStreaming]);
 
-  // Handle streaming typewriter (no diff)
+  // Track previous text for streaming cursor
   useEffect(() => {
-    if (oldText !== null) return; // diff mode handled above
-
-    if (!text) {
-      setDisplayed('');
-      prevTextRef.current = '';
-      return;
-    }
-
-    if (text === prevTextRef.current) return;
-
-    const prevLen = prevTextRef.current.length;
-    prevTextRef.current = text;
-
-    if (!isStreaming) {
-      setDisplayed(text);
-      setPhase('idle');
-      return;
-    }
-
-    setIsTyping(true);
-    const newChars = text.slice(prevLen);
-    let idx = 0;
-
-    const timer = setInterval(() => {
-      idx++;
-      setDisplayed(text.slice(0, prevLen + idx));
-      if (idx >= newChars.length) {
-        clearInterval(timer);
-        setIsTyping(false);
-      }
-    }, 8);
-
-    return () => clearInterval(timer);
-  }, [text, isStreaming, oldText]);
+    if (text) prevTextRef.current = text;
+  }, [text]);
 
   // Diff animation rendering
   if (oldText !== null) {
     if (phase === 'strikethrough') {
       return (
         <span className="inline">
-          <span className="line-through text-red-400 decoration-red-400">{oldText}</span>
-        </span>
-      );
-    }
-    if (phase === 'typing') {
-      return (
-        <span className="inline">
-          <span className="text-red-300 line-through text-[10px] mr-1 decoration-red-300">{oldText.slice(0, 20)}{oldText.length > 20 ? '...' : ''}</span>
-          <span className="text-green-700">{displayed}</span>
-          <span className="inline-block w-[2px] h-3.5 bg-green-500 ml-0.5 animate-blink align-text-bottom" />
+          <span className="line-through text-red-400 decoration-red-400"><FormattedText text={oldText} /></span>
         </span>
       );
     }
     if (phase === 'highlight') {
       return (
         <span className="inline text-green-700 bg-green-50 rounded px-0.5">
-          {text}
+          <FormattedText text={text} />
         </span>
       );
     }
     if (phase === 'done') {
-      return <span className="inline">{text}</span>;
+      return <span className="inline"><FormattedText text={text} /></span>;
     }
     // Initial state while waiting
-    return <span className="inline">{oldText}</span>;
+    return <span className="inline"><FormattedText text={oldText} /></span>;
   }
 
-  // Normal streaming / static rendering
+  // Streaming: render formatted text directly (AI chunks provide natural typing feel)
   return (
     <span className="inline">
-      {displayed}
-      {isTyping && (
-        <span className="inline-block w-[2px] h-3.5 bg-blue-500 ml-0.5 animate-blink align-text-bottom" />
-      )}
+      <FormattedText text={text || ''} />
     </span>
   );
 }
