@@ -13,7 +13,12 @@ function Router() {
     return () => window.removeEventListener('hashchange', onHash);
   }, []);
 
-  return page === 'faq' ? <FaqChatbot /> : <App />;
+  return (
+    <>
+      <div style={{ display: page === 'app' ? 'block' : 'none' }}><App /></div>
+      {page === 'faq' && <FaqChatbot />}
+    </>
+  );
 }
 
 ReactDOM.createRoot(document.getElementById('root')).render(
