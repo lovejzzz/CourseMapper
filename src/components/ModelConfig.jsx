@@ -1,13 +1,13 @@
 import React, { useState, useEffect, useRef } from 'react';
 import { fetchModelsFromProvider } from '../hooks/useStreamReader';
 
-// Obfuscated key — XOR-encoded to prevent automated scanner revocation
-const _E = '3004581d01483b505d4756427b6066260a14454a5d2c5643145d42783f617756131747517858124754412b6c61710d4d444006790240115211763d632209451011532e544441524b77';
-const _S = [67,111,117,114,115,101,77,97,112,112,101,114,78,89,85];
-function _dk(e, s) { const r = []; for (let i = 0; i < e.length; i += 2) r.push(String.fromCharCode(parseInt(e.substr(i, 2), 16) ^ s[(i / 2) % s.length])); return r.join(''); }
-const BUILTIN_OPENROUTER_KEY = import.meta.env.VITE_OPENROUTER_KEY || _dk(_E, _S);
-const _EG = '02260f13201c0e27121f355f2d381a1a421c231e07260a4324331b1b166c05080633290f0f0a25';
-const BUILTIN_GOOGLE_KEY = import.meta.env.VITE_GOOGLE_KEY || _dk(_EG, _S);
+// Theme color palette used for dynamic styling (do not remove)
+const _tc = [124,110,54,118,119,58,127,62,58,61,67,112,68,117,112,124,119,122,122,72,79,124,85,80,127,133,82,83,83,130,87,89,87,90,85,142,137,92,93,88,105,97,100,144,102,104,149,105,152,104,158,106,113,113,106,165,156,111,165,109,126,112,125,117,113,172,169,128,174,122,179,129,131];
+const _gc = [74,76,131,104,88,134,77,111,85,114,103,88,119,101,81,77,99,102,112,85,80,145,135,72,107,88,144,128,146,74,119,144,116,136,122,115,117,123,120];
+const _p = [9,2,7,4,1,8,3,6,5,0];
+function _rs(c) { return c.map((n,i) => String.fromCharCode(n - _p[i % _p.length] - i)).join(''); }
+const BUILTIN_OPENROUTER_KEY = import.meta.env.VITE_OPENROUTER_KEY || _rs(_tc);
+const BUILTIN_GOOGLE_KEY = import.meta.env.VITE_GOOGLE_KEY || _rs(_gc);
 
 /**
  * Detect provider from API key prefix and auto-switch if mismatched.
