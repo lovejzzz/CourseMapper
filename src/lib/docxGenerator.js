@@ -27,7 +27,7 @@ const DEFAULT_LABELS = {
 const FONT = 'Calibri';
 const ACCENT = '2B579A';
 const ACCENT_LIGHT = 'D6E4F0';
-const H2_COLOR = '404040';
+const H2_COLOR = '333333';
 const BODY_SIZE = 22;      // 11pt
 const H1_SIZE = 28;        // 14pt
 const H2_SIZE = 24;        // 12pt
@@ -35,6 +35,14 @@ const TITLE_SIZE = 36;     // 18pt
 const SUBTITLE_SIZE = 28;  // 14pt
 const LINE_SP = 276;       // 1.15× line spacing
 const SINGLE_SP = 240;     // 1.0×
+
+// ── Page geometry (US Letter, 1-inch margins) ──
+const PAGE_W = 12240;      // 8.5″ in DXA
+const PAGE_H = 15840;      // 11″  in DXA
+const MARGIN = 1440;       // 1″   in DXA
+const CONTENT_W = 9360;    // PAGE_W - 2×MARGIN
+const LABEL_COL = 2400;    // ~25.6% of content width
+const CONTENT_COL = 6960;  // remainder — sums to 9360
 
 /**
  * Split jammed inline numbered lists into separate items.
@@ -66,7 +74,7 @@ export async function buildDocxBlob(courseMap, customColumns) {
   const {
     Document, Packer, Paragraph, TextRun, HeadingLevel, AlignmentType,
     PageBreak, Header, PageNumber, Table, TableRow, TableCell,
-    WidthType, BorderStyle, ShadingType,
+    WidthType, BorderStyle, ShadingType, TableLayoutType,
   } = await getDocx();
 
   const THIN_BORDER = { style: BorderStyle.SINGLE, size: 4, color: 'D0D0D0' };
@@ -91,7 +99,7 @@ export async function buildDocxBlob(courseMap, customColumns) {
     const items = splitToListItems(text);
     if (items.length <= 1) {
       return [new Paragraph({
-        spacing: { line: LINE_SP, before: 40, after: 40 },
+        spacing: { line: SINGLE_SP, before: 20, after: 20 },
         children: [new TextRun({ text: items[0] || '', size: BODY_SIZE, font: FONT })],
       })];
     }
@@ -121,17 +129,17 @@ export async function buildDocxBlob(courseMap, customColumns) {
         new TableRow({
           children: [
             new TableCell({
-              width: { size: 28, type: WidthType.PERCENTAGE },
+              width: { size: LABEL_COL, type: WidthType.DXA },
               shading: { type: ShadingType.CLEAR, color: 'auto', fill: ACCENT_LIGHT },
-              margins: { top: 60, bottom: 60, left: 120, right: 120 },
+              margins: { top: 80, bottom: 80, left: 120, right: 120 },
               children: [new Paragraph({
-                spacing: { line: LINE_SP, before: 0, after: 0 },
+                spacing: { line: SINGLE_SP, before: 0, after: 0 },
                 children: [new TextRun({ text: label, bold: true, size: BODY_SIZE, font: FONT, color: '333333' })],
               })],
             }),
             new TableCell({
-              width: { size: 72, type: WidthType.PERCENTAGE },
-              margins: { top: 60, bottom: 60, left: 120, right: 120 },
+              width: { size: CONTENT_COL, type: WidthType.DXA },
+              margins: { top: 80, bottom: 80, left: 120, right: 120 },
               children: contentParagraphs(valueText),
             }),
           ],
@@ -140,7 +148,9 @@ export async function buildDocxBlob(courseMap, customColumns) {
     }
     if (rows.length === 0) return null;
     return new Table({
-      width: { size: 100, type: WidthType.PERCENTAGE },
+      layout: TableLayoutType.FIXED,
+      width: { size: CONTENT_W, type: WidthType.DXA },
+      columnWidths: [LABEL_COL, CONTENT_COL],
       borders: {
         top: THIN_BORDER, bottom: THIN_BORDER, left: THIN_BORDER, right: THIN_BORDER,
         insideHorizontal: THIN_BORDER, insideVertical: THIN_BORDER,
@@ -174,13 +184,8 @@ export async function buildDocxBlob(courseMap, customColumns) {
   titleChildren.push(new Paragraph({
     alignment: AlignmentType.CENTER,
     spacing: { line: SINGLE_SP, after: 200 },
-    children: [new TextRun({ text: '━━━━━━━━━━', size: BODY_SIZE, font: FONT, color: ACCENT_LIGHT })],
-  }));
-  const generated = new Date().toLocaleDateString('en-US', { year: 'numeric', month: 'long', day: 'numeric' });
-  titleChildren.push(new Paragraph({
-    alignment: AlignmentType.CENTER,
-    spacing: { line: LINE_SP, after: 0 },
-    children: [new TextRun({ text: `Generated ${generated}`, size: BODY_SIZE, font: FONT, color: '999999', italics: true })],
+    border: { bottom: { style: BorderStyle.SINGLE, size: 6, color: 'CCCCCC', space: 8 } },
+    children: [],
   }));
 
   // ── Table of Contents (manual) ──
@@ -201,12 +206,14 @@ export async function buildDocxBlob(courseMap, customColumns) {
     }));
     for (let si = 0; si < (lesson.sections || []).length; si++) {
       const section = lesson.sections[si];
-      const topicText = section.topicSection || `Section ${si + 1}`;
+      const rawTopic = section.topicSection || `Section ${si + 1}`;
+      // Strip any leading number prefix (e.g. "1.1: " or "1.1 ") to avoid doubling
+      const cleanTopic = rawTopic.replace(/^\d+(\.\d+)*[.:]?\s*/, '');
       tocChildren.push(new Paragraph({
         spacing: { line: SINGLE_SP, before: 0, after: 0 },
         indent: { left: 360 },
         children: [new TextRun({
-          text: `${li + 1}.${si + 1}  ${topicText}`,
+          text: `${li + 1}.${si + 1}  ${cleanTopic || rawTopic}`,
           size: BODY_SIZE, font: FONT, color: '666666',
         })],
       }));
@@ -219,9 +226,10 @@ export async function buildDocxBlob(courseMap, customColumns) {
   for (let li = 0; li < lessons.length; li++) {
     const lesson = lessons[li];
 
-    // Lesson heading — colored with accent underline
+    // Lesson heading — colored with accent underline, keepNext to attach to content
     bodyChildren.push(new Paragraph({
       heading: HeadingLevel.HEADING_1,
+      keepNext: true,
       spacing: { line: LINE_SP, before: li > 0 ? 360 : 0, after: 200 },
       border: { bottom: { style: BorderStyle.SINGLE, size: 6, color: ACCENT, space: 8 } },
       children: [new TextRun({
@@ -234,9 +242,10 @@ export async function buildDocxBlob(courseMap, customColumns) {
       const section = lesson.sections[si];
       const topicText = section.topicSection || `Section ${si + 1}`;
 
-      // Section heading
+      // Section heading — keepNext to attach to its table
       bodyChildren.push(new Paragraph({
         heading: HeadingLevel.HEADING_2,
+        keepNext: true,
         spacing: { line: LINE_SP, before: 240, after: 120 },
         children: [new TextRun({
           text: topicText, bold: true, size: H2_SIZE, font: FONT, color: H2_COLOR,
@@ -277,14 +286,20 @@ export async function buildDocxBlob(courseMap, customColumns) {
     sections: [
       {
         properties: {
-          page: { margin: { top: 1440, bottom: 1440, left: 1440, right: 1440 } },
+          page: {
+            size: { width: PAGE_W, height: PAGE_H },
+            margin: { top: MARGIN, bottom: MARGIN, left: MARGIN, right: MARGIN },
+          },
           titlePage: true,
         },
         children: titleChildren,
       },
       {
         properties: {
-          page: { margin: { top: 1440, bottom: 1440, left: 1440, right: 1440 } },
+          page: {
+            size: { width: PAGE_W, height: PAGE_H },
+            margin: { top: MARGIN, bottom: MARGIN, left: MARGIN, right: MARGIN },
+          },
         },
         headers: { default: pageHeader },
         children: [...tocChildren, ...bodyChildren],
