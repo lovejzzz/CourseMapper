@@ -457,10 +457,16 @@ export default function App() {
           </ErrorBoundary>
         </div>
       )}
-      <footer className="max-w-7xl mx-auto px-8 py-4 text-center">
+      <footer className="max-w-7xl mx-auto px-8 py-4 flex items-center justify-between">
         <p className="text-[10px] text-slate-300/70">
           Built by the Educational Technology team at NYU Silver School of Social Work
         </p>
+        <a
+          href="#/changelog"
+          className="text-[10px] font-medium text-slate-300/70 hover:text-indigo-500 transition-colors duration-200"
+        >
+          v0.1
+        </a>
       </footer>
     </div>
   );
