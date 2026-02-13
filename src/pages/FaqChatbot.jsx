@@ -28,16 +28,21 @@ Other: .html, .epub, .zip (archives containing any of the above)
 Multiple files can be uploaded at once — the AI combines them all.
 
 ## AI Models
-Free tier models (no API key needed, powered by OpenRouter):
-- **GPT-OSS 120B** — best default, fast, reliable structured output
-- **DeepSeek R1 0528** — deepest reasoning, slower
-- **Llama 3.3 70B** — solid general-purpose
-- **Step 3.5 Flash** — fastest
+**Free tier (no API key needed, powered by OpenRouter):**
+- **GPT-OSS 120B** — recommended default. Fast, reliable structured output. Best balance of speed and quality.
+- **DeepSeek R1 0528** — strongest reasoning model on the free tier. Best for complex syllabi with nuanced content. Slower but more thorough.
+- **Llama 3.3 70B** — solid general-purpose Meta model. Good fallback if GPT-OSS is busy.
+- **Step 3.5 Flash** — fastest option. Good for quick drafts or simple syllabi.
 
-Paid providers (user provides their own API key):
-- OpenAI (GPT-4, GPT-4o, o3, etc.)
-- Anthropic (Claude 3.5 Sonnet, etc.)
-- Google (Gemini 2.0 Flash, Gemini 2.5 Pro, etc.)
+**Paid providers (user provides their own API key):**
+- **OpenAI:** GPT-4o, GPT-4o-mini, GPT-4, o3, o3-mini, o4-mini, GPT-5.2. Best for highest quality output. GPT-4o is the recommended choice.
+- **Anthropic:** Claude 4 Sonnet, Claude 3.5 Sonnet, Claude 3.5 Haiku. Claude 4 Sonnet excels at following structured formatting instructions.
+- **Google:** Gemini 2.5 Pro, Gemini 2.5 Flash, Gemini 2.0 Flash. Gemini 2.5 Pro offers the best quality; Flash variants are faster and cheaper.
+
+**How model selection works:**
+- If a model fails or times out, the tool automatically retries and can switch to a backup model.
+- The tool detects how many lessons the syllabus should have and auto-continues if the AI stops short.
+- Free models are rate-limited during peak hours. The tool handles this gracefully with retries.
 
 ## Generation Process
 1. **Parsing** — the tool reads uploaded files locally in the browser
@@ -47,6 +52,14 @@ Paid providers (user provides their own API key):
 5. **Done** — course map is ready
 Takes 1–3 minutes typically. User can click Stop at any time.
 A **Generation Log** panel shows detailed progress: which model ran, retries, model switches, and completeness checks.
+
+## Stop & Resume
+- During generation, click the red **Stop** button to pause at any time.
+- Your partial progress is preserved — you can see the partially generated course map in the preview.
+- Click **Resume** to continue generation from exactly where it stopped. The AI picks up mid-lesson and completes the remaining content.
+- You can stop and resume multiple times. Each resume accumulates progress.
+- If generation was interrupted by a page refresh or browser crash, the tool automatically detects saved progress on next visit and offers to resume.
+- Resume works with both free and paid models. The correct API key and model are restored automatically.
 
 ## Editing the Course Map
 - **Click any cell** to edit text directly — cells are also keyboard-accessible (Tab to navigate, Enter or Space to start editing, Escape to cancel)
@@ -78,15 +91,16 @@ Click the "Import" button in the export bar to load an existing course map from 
 ## Export Options
 **Download to computer:**
 - **.xlsx** — Excel spreadsheet (original table format, best for further editing)
-- **.docx** — Word document (reorganized into readable narrative format per lesson, good for sharing or printing)
+- **.docx** — Word document with modern formatting: Calibri font, 1.15 line spacing, color-coded lesson headings with accent underlines, 2-column tables (Category | Content) per section, properly broken-out numbered lists, and a Table of Contents. Clean and scannable.
 - **.pdf** — PDF (table format, good for printing)
 - **.csv** — for importing into other tools or LMS systems
 
 **Save to Google Drive (requires Google sign-in):**
-- **Google Sheets** — uploads as native Google Sheet (table format)
-- **Google Docs** — uploads as native Google Doc (readable narrative format)
+- **Google Sheets** — uploads as native Google Sheet (table format, same as .xlsx)
+- **Google Docs** — uploads as native Google Doc with the same modern formatting as .docx: tables per section, proper lists, color headings, and Table of Contents. Google Docs also auto-generates an outline from the headings for easy navigation.
 
 When saving to Google Drive, a sign-in popup appears. The user signs in with their own Google account. The file goes to their own Drive. Course Mapper never sees or stores their data.
+To set up Google Drive export, the app's OAuth client must have your origin (e.g., http://localhost:5173) added in the Google Cloud Console under Authorized JavaScript Origins and Redirect URIs.
 
 ## Auto-Save
 Work is automatically saved in the browser's local storage. Closing and reopening the tab restores everything — your course map, chat history, and version history are all preserved. Click "New Project" to clear and start fresh.
