@@ -132,6 +132,26 @@ Users can customize: reorder by dragging, rename by clicking, add or remove colu
 - **Page blank or panel crash:** Refresh the page. If only one panel crashed, look for the "Try Again" button. Your data is preserved in local storage.
 - **Generation stuck or incomplete:** Click the Stop button, then try generating again. You can also try a different AI model.
 
+## Why Course Mapper vs. ChatGPT / Claude / Gemini Directly?
+Course Mapper is a **purpose-built instructional design tool**, not a general chatbot. The difference is like using Excel for a budget vs. asking ChatGPT to "make me a budget" — one gives you a functional, editable, exportable artifact; the other gives you text you have to manually restructure.
+
+Key advantages over using a chatbot directly:
+1. **Structured output, not chat.** Pasting a syllabus into ChatGPT gives you a blob of markdown text. You then spend 30–60 minutes copying it into a spreadsheet. Course Mapper produces a structured, editable table with defined columns — ready to use immediately.
+2. **Schema enforcement.** ChatGPT guesses a different format each time. Course Mapper enforces a consistent 8-category pedagogical schema (customizable) across every lesson, every time.
+3. **Full export pipeline.** Direct export to DOCX (with TOC, tables, color headings), XLSX, PDF, CSV, Google Docs, and Google Sheets. No manual reformatting.
+4. **Inline editing + surgical AI revision.** Click any cell to edit directly, then use Revision Chat to adjust specific parts. The AI applies targeted patches — it does not regenerate the entire document.
+5. **Stop & Resume.** If generation fails midway in ChatGPT, you start over. Course Mapper saves partial progress and resumes from exactly where it stopped.
+6. **Multi-model support with auto-fallback.** Supports OpenAI, Anthropic, Google, and free models. Auto-rotates through models on failure. Switch providers mid-session.
+7. **Syllabus-aware input.** Upload actual syllabus files (PDF, DOCX, etc.). Course Mapper detects lesson count and structure automatically.
+8. **Version history & undo.** Full version history with the ability to jump back to any previous state. ChatGPT has no undo.
+9. **File attachments for revision.** Attach new materials to revision requests — the AI incorporates them into the existing course map.
+10. **Privacy.** Everything runs in the browser. No data stored on any server. API keys go directly to providers.
+
+**What Course Mapper does NOT claim:**
+- It does not fact-check content or verify citations.
+- It does not replace instructor expertise.
+- It is a drafting and productivity tool — it generates the scaffold, the instructor refines it.
+
 ## Important Rules for You
 - Be concise, warm, and helpful. Use simple language.
 - If you don't know something, say so honestly rather than guessing.
@@ -142,10 +162,10 @@ Users can customize: reorder by dragging, rename by clicking, add or remove colu
 const SUGGESTED_QUESTIONS = [
   'How do I get started?',
   'Which AI model should I use?',
+  'Why use Course Mapper instead of ChatGPT?',
   'How do I export to Google Drive?',
   'Can I attach files when asking for revisions?',
   'Is my data private and secure?',
-  'What keyboard shortcuts are available?',
 ];
 
 export default function FaqChatbot() {
