@@ -2,7 +2,26 @@
 
 AI-powered tool that transforms your course syllabus into a structured Course Map spreadsheet. Upload your syllabus, and the AI will organize it into weekly lessons with learning goals, objectives, assessments, activities, resources, and more.
 
-**Live:** [https://lovejzzz.github.io/CourseMapper/](https://lovejzzz.github.io/CourseMapper/)
+**Live:** [https://edutool.dev](https://edutool.dev)
+
+---
+
+## Why Course Mapper vs. ChatGPT / Claude / Gemini?
+
+Course Mapper is a **purpose-built instructional design tool**, not a general chatbot. The difference is like using Excel for a budget vs. asking ChatGPT to "make me a budget" — one gives you a functional, editable, exportable artifact; the other gives you text you have to manually restructure.
+
+1. **Structured output, not chat.** Pasting a syllabus into ChatGPT gives you a blob of markdown. Course Mapper produces a structured, editable table with defined columns — ready to use immediately.
+2. **Schema enforcement.** ChatGPT guesses a different format each time. Course Mapper enforces a consistent pedagogical schema (customizable) across every lesson, every time.
+3. **Full export pipeline.** Direct export to DOCX (with TOC, tables, color headings), XLSX, PDF, CSV, Google Docs, and Google Sheets. No manual reformatting.
+4. **Inline editing + surgical AI revision.** Click any cell to edit directly, then use Revision Chat to adjust specific parts. The AI applies targeted patches — not full regeneration.
+5. **Stop & Resume.** If generation fails midway in ChatGPT, you start over. Course Mapper saves partial progress and resumes from exactly where it stopped.
+6. **Multi-model support with auto-fallback.** Supports OpenAI, Anthropic, Google, and free models. Auto-rotates through models on failure.
+7. **Syllabus-aware input.** Upload actual syllabus files (PDF, DOCX, etc.). Course Mapper detects lesson count and structure automatically.
+8. **Version history & undo.** Full version history with the ability to jump back to any previous state.
+9. **File attachments for revision.** Attach new materials to revision requests — the AI incorporates them into the existing course map.
+10. **Privacy.** Everything runs in the browser. No data stored on any server. API keys go directly to providers.
+
+> **What Course Mapper does NOT claim:** It does not fact-check content or verify citations. It does not replace instructor expertise. It is a drafting and productivity tool — it generates the scaffold, the instructor refines it.
 
 ---
 
@@ -53,6 +72,8 @@ Click the purple **Generate Course Map** button. You will see:
 
 This typically takes 1–3 minutes depending on the length of your syllabus.
 
+You can click **Stop** at any time to pause generation. Your partial progress is preserved — click **Resume** to continue from exactly where it stopped.
+
 ### Step 6: Review and Edit
 
 Once generated, your Course Map appears as a table. You can:
@@ -85,13 +106,13 @@ When you're satisfied, use the export options:
 
 **Download to your computer:**
 - **Excel (.xlsx)** — original table format, for editing in Excel or Google Sheets
-- **Word (.docx)** — reorganized into a readable narrative format, great for sharing
+- **Word (.docx)** — modern formatting with Calibri font, color-coded headings, 2-column tables per section, numbered lists, and a Table of Contents
 - **PDF (.pdf)** — table format, for printing or sharing
-- **CSV (.csv)** — for importing into other tools
+- **CSV (.csv)** — for importing into other tools or LMS systems
 
 **Save to Google Drive** (requires Google sign-in):
 - **Google Sheets** — uploads as a native Google Sheet
-- **Google Docs** — uploads as a native Google Doc in readable format
+- **Google Docs** — uploads as a native Google Doc with the same modern formatting as DOCX, plus auto-generated outline for navigation
 
 When saving to Google Drive, you'll sign in with your own Google account. The file goes to your Drive — Course Mapper never stores your data.
 
@@ -114,9 +135,10 @@ Click **"Hide Changes"** to go back to the normal view, or the **×** button to 
 
 ## Features
 
-- **Free AI models** — use GPT-OSS 120B, DeepSeek R1, Llama 3.3, or Step 3.5 Flash at no cost
+- **Free AI models** — use Gemini 2.5 Flash Lite, Gemini 2.0 Flash, GPT-OSS 120B, Llama 3.3 70B, or DeepSeek R1T at no cost
 - **Multi-provider AI** — also supports OpenAI, Anthropic, and Google with your own API key
 - **Streaming generation** — watch the course map build in real time
+- **Stop & Resume** — pause generation at any time, resume from exactly where it stopped
 - **AI examination** — the AI reviews and fixes its own work automatically
 - **Revision chat** — ask the AI to make changes conversationally, with file attachments
 - **Add materials** — upload new files after generation to update the course map
@@ -125,13 +147,13 @@ Click **"Hide Changes"** to go back to the normal view, or the **×** button to 
 - **Row & lesson management** — add, delete, and reorder sections and lessons
 - **Drag-and-drop columns** — reorder and customize columns
 - **Import** — load an existing course map from `.xlsx` or `.csv`
-- **Export** — download as `.xlsx`, `.docx`, `.pdf`, or `.csv`
+- **Export** — download as `.xlsx`, `.docx` (with TOC, tables, color headings), `.pdf`, or `.csv`
 - **Google Drive** — save directly to Google Sheets or Google Docs
 - **Version history** — undo/redo and jump to any previous version
 - **Auto-save** — your work is saved in the browser automatically
 - **Browser notifications** — get notified when generation completes
 - **Error recovery** — if a panel crashes, a "Try Again" button lets you recover without losing your work
-- **FAQ chatbot** — visit [#/faq](https://lovejzzz.github.io/CourseMapper/#/faq) for an AI-powered help assistant
+- **FAQ chatbot** — visit [#/faq](https://edutool.dev/#/faq) for an AI-powered help assistant
 
 ---
 
