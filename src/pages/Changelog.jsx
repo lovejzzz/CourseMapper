@@ -2,6 +2,44 @@ import React from 'react';
 
 const releases = [
   {
+    version: '0.15',
+    date: 'February 14, 2026',
+    title: 'Google Verification, Privacy & Terms, FAQ Chatbot Updates',
+    highlights: [
+      'Google OAuth verified — clean consent screen, no scary warnings',
+      'Privacy Policy and Terms of Service pages',
+      'FAQ chatbot knows about Course Mapper vs. ChatGPT/Claude/Gemini',
+    ],
+    sections: [
+      {
+        label: 'Features',
+        icon: '✦',
+        color: 'indigo',
+        items: [
+          'Privacy Policy page at #/privacy — covers data handling, third-party providers, Google Drive integration, and no-tracking policy.',
+          'Terms of Service page at #/terms — covers AI-generated content disclaimer, intellectual property, acceptable use, and liability.',
+          'Footer now links to Privacy Policy and Terms of Service alongside the changelog.',
+          'FAQ chatbot updated with "Why Course Mapper vs. ChatGPT/Claude/Gemini" — explains 10 key advantages and honest disclaimers.',
+          'FAQ chatbot suggested question: "Why use Course Mapper instead of ChatGPT?"',
+          'README updated with value proposition section, Stop & Resume, modern DOCX export details, and edutool.dev URL.',
+        ],
+      },
+      {
+        label: 'Improvements',
+        icon: '⚡',
+        color: 'amber',
+        items: [
+          'Google OAuth app branding verified — domain ownership confirmed, app published to production. Users see a clean Google consent dialog instead of the "unverified app" warning.',
+          'FAQ chatbot free model list updated to match current models: Gemini 2.5 Flash Lite (default), Gemini 2.0 Flash, GPT-OSS 120B, Llama 3.3 70B, DeepSeek R1T Chimera.',
+          'FAQ chatbot Google Drive troubleshooting updated — removed outdated "app isn\'t verified" guidance.',
+          'FAQ chatbot Google Drive section updated — clearer explanation of drive.file permission scope and revocation.',
+          'Modern DOCX export: Calibri font, color-coded headings, 2-column tables, numbered lists, Table of Contents, US Letter page size.',
+          'Google Docs export matches DOCX formatting with auto-generated outline.',
+        ],
+      },
+    ],
+  },
+  {
     version: '0.1',
     date: 'February 13, 2026',
     title: 'Initial Release',

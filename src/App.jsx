@@ -462,7 +462,7 @@ export default function App() {
           Built by the Educational Technology team at NYU Silver School of Social Work
         </p>
         <div className="flex items-center justify-center gap-3 text-[10px] text-slate-300/70">
-          <a href="#/changelog" className="font-medium hover:text-indigo-500 transition-colors duration-200">v0.1</a>
+          <a href="#/changelog" className="font-medium hover:text-indigo-500 transition-colors duration-200">v0.15</a>
           <span>·</span>
           <a href="#/privacy" className="hover:text-indigo-500 transition-colors duration-200">Privacy</a>
           <span>·</span>

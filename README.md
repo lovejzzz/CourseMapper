@@ -154,6 +154,8 @@ Click **"Hide Changes"** to go back to the normal view, or the **×** button to 
 - **Browser notifications** — get notified when generation completes
 - **Error recovery** — if a panel crashes, a "Try Again" button lets you recover without losing your work
 - **FAQ chatbot** — visit [#/faq](https://edutool.dev/#/faq) for an AI-powered help assistant
+- **Privacy & Terms** — [Privacy Policy](https://edutool.dev/#/privacy) and [Terms of Service](https://edutool.dev/#/terms) pages built in
+- **Google OAuth verified** — Google Drive export works seamlessly with a clean consent screen, no scary warnings
 
 ---
 
@@ -224,4 +226,7 @@ src/
     __tests__/             # Unit tests
   pages/
     FaqChatbot.jsx         # AI-powered FAQ help page
+    PrivacyPolicy.jsx      # Privacy policy page
+    TermsOfService.jsx     # Terms of service page
+    Changelog.jsx          # Version changelog
 ```

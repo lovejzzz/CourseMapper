@@ -14,7 +14,7 @@ Course Mapper is a free, browser-based tool that uses AI to transform course syl
 ## Getting Started
 - Visit the website. It works in Chrome, Firefox, Safari, or Edge.
 - On the left panel, choose an AI provider:
-  - **Free (no API key needed):** Select "Free" from the dropdown. Pick a model (GPT-OSS 120B is the recommended default). Ready to go.
+  - **Free (no API key needed):** Select "Free" from the dropdown. Pick a model (Gemini 2.5 Flash Lite is the recommended default). Ready to go.
   - **Bring your own key:** Select OpenAI, Anthropic, or Google. Paste your API key. The tool auto-detects which provider the key belongs to.
 - On the right panel, upload course files (drag-and-drop or click to browse).
 - Optionally customize columns below the upload area.
@@ -28,11 +28,12 @@ Other: .html, .epub, .zip (archives containing any of the above)
 Multiple files can be uploaded at once — the AI combines them all.
 
 ## AI Models
-**Free tier (no API key needed, powered by OpenRouter):**
-- **GPT-OSS 120B** — recommended default. Fast, reliable structured output. Best balance of speed and quality.
-- **DeepSeek R1 0528** — strongest reasoning model on the free tier. Best for complex syllabi with nuanced content. Slower but more thorough.
-- **Llama 3.3 70B** — solid general-purpose Meta model. Good fallback if GPT-OSS is busy.
-- **Step 3.5 Flash** — fastest option. Good for quick drafts or simple syllabi.
+**Free tier (no API key needed):**
+- **Gemini 2.5 Flash Lite** — recommended default. Fast, reliable, powered by Google. Best balance of speed and quality.
+- **Gemini 2.0 Flash** — strong Google model. Good alternative if Flash Lite is busy.
+- **GPT-OSS 120B** — reliable structured output via OpenRouter. Good fallback.
+- **Llama 3.3 70B** — solid general-purpose Meta model via OpenRouter.
+- **DeepSeek R1T Chimera** — reasoning-focused model via OpenRouter. Best for complex syllabi.
 
 **Paid providers (user provides their own API key):**
 - **OpenAI:** GPT-4o, GPT-4o-mini, GPT-4, o3, o3-mini, o4-mini, GPT-5.2. Best for highest quality output. GPT-4o is the recommended choice.
@@ -99,8 +100,7 @@ Click the "Import" button in the export bar to load an existing course map from 
 - **Google Sheets** — uploads as native Google Sheet (table format, same as .xlsx)
 - **Google Docs** — uploads as native Google Doc with the same modern formatting as .docx: tables per section, proper lists, color headings, and Table of Contents. Google Docs also auto-generates an outline from the headings for easy navigation.
 
-When saving to Google Drive, a sign-in popup appears. The user signs in with their own Google account. The file goes to their own Drive. Course Mapper never sees or stores their data.
-To set up Google Drive export, the app's OAuth client must have your origin (e.g., http://localhost:5173) added in the Google Cloud Console under Authorized JavaScript Origins and Redirect URIs.
+When saving to Google Drive, a sign-in popup appears. The user signs in with their own Google account and grants Course Mapper permission to create files in their Drive (Course Mapper cannot access any other files). The file goes to their own Drive. Course Mapper never sees or stores their data. Users can revoke access at any time in their Google Account permissions.
 
 ## Auto-Save
 Work is automatically saved in the browser's local storage. Closing and reopening the tab restores everything — your course map, chat history, and version history are all preserved. Click "New Project" to clear and start fresh.
@@ -127,7 +127,7 @@ Users can customize: reorder by dragging, rename by clicking, add or remove colu
 ## Troubleshooting
 - **Free model slow/not responding:** Free models are rate-limited during peak usage. Try another free model or wait a minute. The tool will automatically retry with a different model if one fails.
 - **PDF not read correctly:** Scanned PDFs (images) can't be parsed — they contain pictures of text, not actual text. Convert to .docx first, or use OCR software.
-- **Google Drive error:** Allow popups in your browser, and grant permission in the Google sign-in dialog. If you see "app isn't verified", click Advanced → Continue. This is normal for development apps.
+- **Google Drive error:** Allow popups in your browser and grant permission in the Google sign-in dialog. Make sure you're signed into a Google account.
 - **Lost work after clearing browser data:** Local storage was cleared along with browser data. Always export your finished course map to a file or Google Drive.
 - **Page blank or panel crash:** Refresh the page. If only one panel crashed, look for the "Try Again" button. Your data is preserved in local storage.
 - **Generation stuck or incomplete:** Click the Stop button, then try generating again. You can also try a different AI model.
