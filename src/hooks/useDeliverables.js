@@ -149,6 +149,9 @@ export default function useDeliverables({ provider, modelId, apiKey, deliverable
   const [generationLog, setGenerationLog] = useState([]);
   const [qualityScores, setQualityScores] = useState({});
   const [delivTimings, setDelivTimings]   = useState({});  // { featureId: { startedAt, endedAt, durationMs } }
+  // freshLessons: tracks which lesson indices were just AI-regenerated (for green highlight)
+  // Shape: { [featureId]: Set<number> }
+  const [freshLessons, setFreshLessons]   = useState({});
   const abortRef    = useRef(null);
   const startedRef  = useRef(false);
 
@@ -358,19 +361,26 @@ export default function useDeliverables({ provider, modelId, apiKey, deliverable
     setCurrentFeature(featureId);
     setIsGenerating(true);
 
-    // Mark as regenerating (use SET_DELIVERABLE to preserve existing data)
-    const existing = deliverables[featureId];
-    if (existing) {
-      dispatch({ type: 'SET_DELIVERABLE', featureId, status: existing.status, data: existing.data, error: null, stale: existing.stale, regeneratingIndex: lessonIndex });
-    }
+    // ── Snap-back fix ──────────────────────────────────────────────────────────
+    // Capture the CURRENT data snapshot NOW (before any async work) so the merge
+    // at the end uses this baseline rather than re-reading stale closure state.
+    // We do NOT dispatch existing.data back — that would overwrite user edits.
+    // Instead, MARK_LESSON_REGENERATING sets status:'streaming' + regeneratingIndex
+    // without touching data, so the user sees their edits remain on screen.
+    const existingDataSnapshot = deliverables[featureId]?.data ?? null;
+    const existingKey = getArrayKey(featureId, existingDataSnapshot);
+    const existingArr = existingDataSnapshot?.[existingKey] || [];
+
+    dispatch({ type: 'MARK_LESSON_REGENERATING', featureId, lessonIndex });
 
     appendLog(`Regenerating Lesson ${lessonIndex + 1} in ${label}...`, 'progress');
 
     const regenConfig = deliverableConfigRef.current?.[featureId] || {};
     const prompts = getDeliverablePrompt(featureId, courseMap, [lessonIndex], regenConfig, pedagogicalModeRef.current, examChangesRef.current);
     if (!prompts) {
-      if (existing) {
-        dispatch({ type: 'SET_DELIVERABLE', featureId, status: existing.status, data: existing.data, error: null, stale: existing.stale, regeneratingIndex: null });
+      // Restore to done status (no data change) on prompt-build failure
+      if (existingDataSnapshot) {
+        dispatch({ type: 'SET_DELIVERABLE', featureId, status: 'done', data: existingDataSnapshot, error: null, stale: false, regeneratingIndex: null });
       }
       appendLog(`✗ ${label}: No prompt for lesson ${lessonIndex + 1}`, 'error');
       setCurrentFeature(null);
@@ -382,42 +392,85 @@ export default function useDeliverables({ provider, modelId, apiKey, deliverable
       const controller = new AbortController();
       abortRef.current = controller;
 
+      // ── Live streaming ─────────────────────────────────────────────────────
+      // Mirror the throttled partial-parse + dispatch loop from generateAll so
+      // the user sees the AI writing the content live instead of a frozen view.
       let fullText = '';
+      let lastParseTime = 0;
+
       await streamProvider(
         provider, apiKey, modelId,
         prompts.systemPrompt, prompts.userPrompt,
         {
-          onChunk: (accumulatedText) => { fullText = accumulatedText; },
+          onChunk: (accumulatedText) => {
+            fullText = accumulatedText;
+            const now = Date.now();
+            if (now - lastParseTime > 150) {
+              lastParseTime = now;
+              const partial = parsePartialJSON(fullText);
+              if (partial && existingDataSnapshot && existingKey) {
+                // Merge the partial single-lesson result into the full lesson array
+                // so the view renders all lessons with the current one streaming live
+                const partialKey = getArrayKey(featureId, partial);
+                const partialArr = partialKey ? (partial[partialKey] || []) : [];
+                const merged = [...existingArr];
+                partialArr.forEach((item, i) => {
+                  const targetIdx = lessonIndex + i;
+                  if (targetIdx < merged.length) merged[targetIdx] = item;
+                  else merged.push(item);
+                });
+                dispatch({
+                  type: 'SET_DELIVERABLE', featureId, status: 'streaming',
+                  data: { ...existingDataSnapshot, [existingKey]: merged },
+                  error: null, stale: false, regeneratingIndex: lessonIndex,
+                });
+              }
+            }
+          },
           maxRetries: 2,
         }
       );
 
+      // ── Finalize ───────────────────────────────────────────────────────────
       const parsed = parsePartialJSON(fullText);
       if (parsed) {
         // Post-process: fix lesson/week numbering for single-lesson regeneration
         const finalParsed = patchScopeNumbering(parsed, featureId, [lessonIndex], courseMap);
-        // Merge regenerated lesson(s) into existing data
-        const existingData = deliverables[featureId]?.data;
-        const existingKey = getArrayKey(featureId, existingData);
-        const newKey = getArrayKey(featureId, finalParsed);
-        if (existingKey && existingData) {
-          const existingArr = existingData[existingKey] || [];
-          const newArr = finalParsed[newKey] || [];
+        // Merge into the snapshot captured at start (not re-reading stale state)
+        if (existingKey && existingDataSnapshot) {
+          const newKey = getArrayKey(featureId, finalParsed);
+          const newArr = (newKey ? finalParsed[newKey] : null) || [];
           const merged = [...existingArr];
           newArr.forEach((item, i) => {
             const targetIdx = lessonIndex + i;
             if (targetIdx < merged.length) merged[targetIdx] = item;
             else merged.push(item);
           });
-          dispatch(actions.setDeliverableDone(featureId, { ...existingData, [existingKey]: merged }));
+          dispatch(actions.setDeliverableDone(featureId, { ...existingDataSnapshot, [existingKey]: merged }));
         } else {
           dispatch(actions.setDeliverableDone(featureId, finalParsed));
         }
         appendLog(`✓ Lesson ${lessonIndex + 1} in ${label} regenerated`, 'done');
+
+        // ── Green highlight ──────────────────────────────────────────────────
+        // Mark this lesson as freshly generated for 3 seconds so the view
+        // can render a green ring/background to signal new content to the user.
+        setFreshLessons(prev => ({
+          ...prev,
+          [featureId]: new Set([...(prev[featureId] || []), lessonIndex]),
+        }));
+        setTimeout(() => {
+          setFreshLessons(prev => {
+            const s = new Set(prev[featureId] || []);
+            s.delete(lessonIndex);
+            return { ...prev, [featureId]: s };
+          });
+        }, 3000);
       } else {
         appendLog(`⚠ ${label}: Lesson ${lessonIndex + 1} regeneration response was incomplete`, 'warn');
-        if (existing) {
-          dispatch({ type: 'SET_DELIVERABLE', featureId, status: existing.status, data: existing.data, error: null, stale: existing.stale, regeneratingIndex: null });
+        // Restore existing data (no user edits lost — we use the snapshot)
+        if (existingDataSnapshot) {
+          dispatch({ type: 'SET_DELIVERABLE', featureId, status: 'done', data: existingDataSnapshot, error: null, stale: false, regeneratingIndex: null });
         }
       }
     } catch (err) {
@@ -425,8 +478,9 @@ export default function useDeliverables({ provider, modelId, apiKey, deliverable
         console.warn(`Regenerate lesson ${lessonIndex} failed:`, err);
         appendLog(`✗ ${label}: Lesson ${lessonIndex + 1} regeneration failed — ${err.message || 'Unknown error'}`, 'error');
       }
-      if (existing) {
-        dispatch({ type: 'SET_DELIVERABLE', featureId, status: existing.status, data: existing.data, error: null, stale: existing.stale, regeneratingIndex: null });
+      // Restore existing data on error/abort (using snapshot, not stale closure)
+      if (existingDataSnapshot) {
+        dispatch({ type: 'SET_DELIVERABLE', featureId, status: 'done', data: existingDataSnapshot, error: null, stale: false, regeneratingIndex: null });
       }
     } finally {
       // Always clear the active-feature signal when done
@@ -496,5 +550,6 @@ export default function useDeliverables({ provider, modelId, apiKey, deliverable
     generationLog,
     qualityScores,
     delivTimings,
+    freshLessons,
   };
 }

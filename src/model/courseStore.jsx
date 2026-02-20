@@ -104,6 +104,26 @@ function reducer(state, action) {
         },
       };
     }
+    // Mark a specific lesson as regenerating WITHOUT clearing data or changing status.
+    // Prevents the snap-back bug where dispatching existing.data overwrites user edits.
+    case 'MARK_LESSON_REGENERATING': {
+      const cur = state.deliverables[action.featureId];
+      if (!cur) return state;
+      return {
+        ...state,
+        deliverables: {
+          ...state.deliverables,
+          [action.featureId]: {
+            ...cur,
+            status: 'streaming',   // show streaming indicator immediately
+            stale: false,
+            error: null,
+            regeneratingIndex: action.lessonIndex,
+            // data is intentionally NOT changed — preserves user edits
+          },
+        },
+      };
+    }
     default:
       return state;
   }

@@ -189,7 +189,7 @@ function SaveToBankButton({ onClick }) {
   );
 }
 
-export default function DeliverableView({ featureId, data, status, error, regeneratingIndex, courseMapStatus, isDelivGenerating, currentDelivFeature, onDataChange, onRegenerateLesson, onRetry, onAddLessons, courseMap, lessonScope, isStudentView, onSaveToBank, qualityScore }) {
+export default function DeliverableView({ featureId, data, status, error, regeneratingIndex, courseMapStatus, isDelivGenerating, currentDelivFeature, onDataChange, onRegenerateLesson, onRetry, onAddLessons, courseMap, lessonScope, isStudentView, onSaveToBank, qualityScore, freshLessonIndices }) {
   // ── All hooks MUST come before any early returns (Rules of Hooks) ──
   // Feature 4.1 — Tier detection + toggle state
   const [activeTier, setActiveTier] = useState('standard'); // 'scaffolded' | 'standard' | 'extension'
@@ -233,7 +233,7 @@ export default function DeliverableView({ featureId, data, status, error, regene
 
   const editProps = editable ? { onEdit } : {};
 
-  const viewProps = { data, isStreaming, regeneratingIndex: regeneratingIndex ?? null, onRegenerateLesson, isStudentView, onSaveToBank, activeTier: hasTiers ? activeTier : 'standard', ...editProps };
+  const viewProps = { data, isStreaming, regeneratingIndex: regeneratingIndex ?? null, onRegenerateLesson, isStudentView, onSaveToBank, activeTier: hasTiers ? activeTier : 'standard', freshLessonIndices: freshLessonIndices ?? null, ...editProps };
 
   const isSlides = featureId === 'slideDecks';
 
@@ -467,7 +467,7 @@ function EmptyState({ featureId, onGenerate }) {
   );
 }
 
-function CollapsibleCard({ title, subtitle, defaultOpen = false, accent = 'indigo', streaming = false, regenerating = false, onRegenerate, onTitleEdit, children }) {
+function CollapsibleCard({ title, subtitle, defaultOpen = false, accent = 'indigo', streaming = false, regenerating = false, fresh = false, onRegenerate, onTitleEdit, children }) {
   const [open, setOpen] = useState(defaultOpen);
   const [editingTitle, setEditingTitle] = useState(false);
   const [titleDraft, setTitleDraft] = useState('');
@@ -496,7 +496,7 @@ function CollapsibleCard({ title, subtitle, defaultOpen = false, accent = 'indig
   }, [titleDraft, title, onTitleEdit]);
 
   return (
-    <div className={`glass rounded-squircle-xs overflow-hidden ${streaming ? 'animate-pulse-subtle' : ''} ${regenerating ? 'ring-2 ring-violet-300/60' : ''}`}>
+    <div className={`glass rounded-squircle-xs overflow-hidden transition-all duration-500 ${streaming ? 'animate-pulse-subtle' : ''} ${regenerating ? 'ring-2 ring-violet-300/60' : ''} ${fresh && !regenerating ? 'ring-2 ring-emerald-400/70 bg-emerald-50/20' : ''}`}>
       <div className="flex items-center">
         {/* Chevron toggle — only this controls collapse/expand */}
         <button
@@ -525,11 +525,14 @@ function CollapsibleCard({ title, subtitle, defaultOpen = false, accent = 'indig
               />
             ) : (
               <h3
-                className={`text-sm font-semibold text-slate-800 truncate ${onTitleEdit ? 'cursor-text hover:bg-indigo-50/50 px-1.5 py-0.5 rounded border border-transparent hover:border-indigo-100/50 transition-all' : ''}`}
+                className={`text-sm font-semibold truncate ${fresh && !regenerating ? 'text-emerald-700' : 'text-slate-800'} ${onTitleEdit ? 'cursor-text hover:bg-indigo-50/50 px-1.5 py-0.5 rounded border border-transparent hover:border-indigo-100/50 transition-all' : ''}`}
                 onClick={startTitleEdit}
                 title={onTitleEdit ? 'Click to edit title' : undefined}
               >
                 {title}
+                {fresh && !regenerating && (
+                  <span className="ml-2 text-[9px] font-bold text-emerald-500 bg-emerald-50 border border-emerald-200 px-1.5 py-0.5 rounded-full align-middle">✦ new</span>
+                )}
               </h3>
             )}
             {subtitle && <p className="text-[11px] text-slate-400 truncate">{subtitle}</p>}
@@ -538,6 +541,12 @@ function CollapsibleCard({ title, subtitle, defaultOpen = false, accent = 'indig
             <span className="relative flex h-2 w-2 flex-shrink-0">
               <span className="animate-ping absolute inline-flex h-full w-full rounded-full bg-indigo-400 opacity-75"></span>
               <span className="relative inline-flex rounded-full h-2 w-2 bg-indigo-500"></span>
+            </span>
+          )}
+          {fresh && !regenerating && !streaming && (
+            <span className="relative flex h-2 w-2 flex-shrink-0">
+              <span className="animate-ping absolute inline-flex h-full w-full rounded-full bg-emerald-400 opacity-75"></span>
+              <span className="relative inline-flex rounded-full h-2 w-2 bg-emerald-500"></span>
             </span>
           )}
         </div>
@@ -601,7 +610,7 @@ function SectionHeading({ children }) {
 }
 
 // ─── Lesson Plans ───
-function LessonPlansView({ data, isStreaming, onEdit, regeneratingIndex, onRegenerateLesson, activeTier }) {
+function LessonPlansView({ data, isStreaming, onEdit, regeneratingIndex, onRegenerateLesson, activeTier, freshLessonIndices }) {
   if (!data) return isStreaming ? <StreamingBanner /> : <EmptyState />;
   const key = data.plans ? 'plans' : 'lessonPlans';
   const plans = data[key] || [];
@@ -614,7 +623,7 @@ function LessonPlansView({ data, isStreaming, onEdit, regeneratingIndex, onRegen
         const bloomsTags = plan.bloomsLevels || [];
         const subtitle = [plan.duration, plan.weekNumber].filter(Boolean).join(' · ');
         return (
-          <CollapsibleCard key={i} title={plan.lessonTitle || plan.title || `Plan ${i + 1}`} subtitle={subtitle} defaultOpen={i < 3} accent="violet" streaming={isStreaming && i === plans.length - 1} regenerating={regeneratingIndex === i} onRegenerate={onRegenerateLesson && !isStreaming ? () => onRegenerateLesson(i) : undefined} onTitleEdit={onEdit ? (newTitle) => onEdit([key, i, 'lessonTitle'], newTitle) : undefined}>
+          <CollapsibleCard key={i} title={plan.lessonTitle || plan.title || `Plan ${i + 1}`} subtitle={subtitle} defaultOpen={i < 3} accent="violet" streaming={isStreaming && i === plans.length - 1} regenerating={regeneratingIndex === i} fresh={!!(freshLessonIndices?.has(i))} onRegenerate={onRegenerateLesson && !isStreaming ? () => onRegenerateLesson(i) : undefined} onTitleEdit={onEdit ? (newTitle) => onEdit([key, i, 'lessonTitle'], newTitle) : undefined}>
             <div className="space-y-4 pt-3">
 
               {/* Bloom's levels row */}
@@ -814,7 +823,7 @@ function LessonPlansView({ data, isStreaming, onEdit, regeneratingIndex, onRegen
 }
 
 // ─── Rubrics ───
-function RubricsView({ data, isStreaming, onEdit, regeneratingIndex, onRegenerateLesson, onSaveToBank }) {
+function RubricsView({ data, isStreaming, onEdit, regeneratingIndex, onRegenerateLesson, onSaveToBank, freshLessonIndices }) {
   if (!data) return isStreaming ? <StreamingBanner /> : <EmptyState />;
   const rubrics = data.rubrics || [];
   if (rubrics.length === 0 && !isStreaming) return <EmptyState />;
@@ -839,7 +848,7 @@ function RubricsView({ data, isStreaming, onEdit, regeneratingIndex, onRegenerat
           rubric.bloomsLevel,
         ].filter(Boolean).join(' · ');
         return (
-          <CollapsibleCard key={i} title={rubric.lessonTitle || rubric.title || `Rubric ${i + 1}`} subtitle={subtitle} defaultOpen={i < 3} accent="emerald" streaming={isStreaming && i === rubrics.length - 1} regenerating={regeneratingIndex === i} onRegenerate={onRegenerateLesson && !isStreaming ? () => onRegenerateLesson(i) : undefined} onTitleEdit={onEdit ? (newTitle) => onEdit(['rubrics', i, 'lessonTitle'], newTitle) : undefined}>
+          <CollapsibleCard key={i} title={rubric.lessonTitle || rubric.title || `Rubric ${i + 1}`} subtitle={subtitle} defaultOpen={i < 3} accent="emerald" streaming={isStreaming && i === rubrics.length - 1} regenerating={regeneratingIndex === i} fresh={!!(freshLessonIndices?.has(i))} onRegenerate={onRegenerateLesson && !isStreaming ? () => onRegenerateLesson(i) : undefined} onTitleEdit={onEdit ? (newTitle) => onEdit(['rubrics', i, 'lessonTitle'], newTitle) : undefined}>
             <div className="pt-3 space-y-3">
               {/* Save rubric to bank */}
               {onSaveToBank && rubric.criteria?.length > 0 && (
@@ -1489,7 +1498,7 @@ function SlideDecksView({ data, isStreaming, onEdit }) {
 }
 
 // ─── Quiz Bank ───
-function QuizBankView({ data, isStreaming, onEdit, regeneratingIndex, onRegenerateLesson, onSaveToBank, activeTier }) {
+function QuizBankView({ data, isStreaming, onEdit, regeneratingIndex, onRegenerateLesson, onSaveToBank, activeTier, freshLessonIndices }) {
   if (!data) return isStreaming ? <StreamingBanner /> : <EmptyState />;
   const key = data.quizzes ? 'quizzes' : 'quizBank';
   const quizzes = data[key] || [];
@@ -1504,7 +1513,7 @@ function QuizBankView({ data, isStreaming, onEdit, regeneratingIndex, onRegenera
           quiz.bloomsCoverage?.length ? quiz.bloomsCoverage.join(', ') : null,
         ].filter(Boolean).join(' · ');
         return (
-          <CollapsibleCard key={i} title={quiz.lessonTitle || `Quiz ${i + 1}`} subtitle={subtitle} defaultOpen={i < 3} accent="sky" streaming={isStreaming && i === quizzes.length - 1} regenerating={regeneratingIndex === i} onRegenerate={onRegenerateLesson && !isStreaming ? () => onRegenerateLesson(i) : undefined} onTitleEdit={onEdit ? (newTitle) => onEdit([key, i, 'lessonTitle'], newTitle) : undefined}>
+          <CollapsibleCard key={i} title={quiz.lessonTitle || `Quiz ${i + 1}`} subtitle={subtitle} defaultOpen={i < 3} accent="sky" streaming={isStreaming && i === quizzes.length - 1} regenerating={regeneratingIndex === i} fresh={!!(freshLessonIndices?.has(i))} onRegenerate={onRegenerateLesson && !isStreaming ? () => onRegenerateLesson(i) : undefined} onTitleEdit={onEdit ? (newTitle) => onEdit([key, i, 'lessonTitle'], newTitle) : undefined}>
             <div className="pt-3 space-y-3">
               {quiz.bloomsCoverage?.length > 0 && (
                 <div className="flex flex-wrap gap-1">
@@ -1615,7 +1624,7 @@ function QuestionCard({ question, number, qPath, onEdit, onSaveToBank }) {
 }
 
 // ─── Discussion Prompts ───
-function DiscussionsView({ data, isStreaming, onEdit, regeneratingIndex, onRegenerateLesson, isStudentView, onSaveToBank, activeTier }) {
+function DiscussionsView({ data, isStreaming, onEdit, regeneratingIndex, onRegenerateLesson, isStudentView, onSaveToBank, activeTier, freshLessonIndices }) {
   if (!data) return isStreaming ? <StreamingBanner /> : <EmptyState />;
   const discussions = data.discussions || [];
   if (discussions.length === 0 && !isStreaming) return <EmptyState />;
@@ -1626,7 +1635,7 @@ function DiscussionsView({ data, isStreaming, onEdit, regeneratingIndex, onRegen
         const d = (activeTier && activeTier !== 'standard' && baseD.tiers?.[activeTier]) ? { ...baseD, ...baseD.tiers[activeTier] } : baseD;
         const subtitle = [d.bloomsLevel, d.format, d.estimatedDuration].filter(Boolean).join(' · ');
         return (
-          <CollapsibleCard key={i} title={d.lessonTitle || `Discussion ${i + 1}`} subtitle={subtitle} defaultOpen={i < 3} accent="rose" streaming={isStreaming && i === discussions.length - 1} regenerating={regeneratingIndex === i} onRegenerate={onRegenerateLesson && !isStreaming ? () => onRegenerateLesson(i) : undefined} onTitleEdit={onEdit ? (newTitle) => onEdit(['discussions', i, 'lessonTitle'], newTitle) : undefined}>
+          <CollapsibleCard key={i} title={d.lessonTitle || `Discussion ${i + 1}`} subtitle={subtitle} defaultOpen={i < 3} accent="rose" streaming={isStreaming && i === discussions.length - 1} regenerating={regeneratingIndex === i} fresh={!!(freshLessonIndices?.has(i))} onRegenerate={onRegenerateLesson && !isStreaming ? () => onRegenerateLesson(i) : undefined} onTitleEdit={onEdit ? (newTitle) => onEdit(['discussions', i, 'lessonTitle'], newTitle) : undefined}>
             <div className="pt-3 space-y-3">
               {/* Save to Bank button */}
               {onSaveToBank && d.prompt && (
@@ -1767,7 +1776,7 @@ function DiscussionsView({ data, isStreaming, onEdit, regeneratingIndex, onRegen
 }
 
 // ─── Assignment Briefs ───
-function AssignmentsView({ data, isStreaming, onEdit, regeneratingIndex, onRegenerateLesson, isStudentView, activeTier }) {
+function AssignmentsView({ data, isStreaming, onEdit, regeneratingIndex, onRegenerateLesson, isStudentView, activeTier, freshLessonIndices }) {
   if (!data) return isStreaming ? <StreamingBanner /> : <EmptyState />;
   const assignments = data.assignments || [];
   if (assignments.length === 0 && !isStreaming) return <EmptyState />;
@@ -1783,7 +1792,7 @@ function AssignmentsView({ data, isStreaming, onEdit, regeneratingIndex, onRegen
           a.percentOfGrade,
         ].filter(Boolean).join(' · ');
         return (
-          <CollapsibleCard key={i} title={a.title || `Assignment ${i + 1}`} subtitle={subtitle} defaultOpen={i < 3} accent="orange" streaming={isStreaming && i === assignments.length - 1} regenerating={regeneratingIndex === i} onRegenerate={onRegenerateLesson && !isStreaming ? () => onRegenerateLesson(i) : undefined} onTitleEdit={onEdit ? (newTitle) => onEdit(['assignments', i, 'title'], newTitle) : undefined}>
+          <CollapsibleCard key={i} title={a.title || `Assignment ${i + 1}`} subtitle={subtitle} defaultOpen={i < 3} accent="orange" streaming={isStreaming && i === assignments.length - 1} regenerating={regeneratingIndex === i} fresh={!!(freshLessonIndices?.has(i))} onRegenerate={onRegenerateLesson && !isStreaming ? () => onRegenerateLesson(i) : undefined} onTitleEdit={onEdit ? (newTitle) => onEdit(['assignments', i, 'title'], newTitle) : undefined}>
             <div className="pt-3 space-y-4">
 
               {/* Meta chips */}
@@ -1938,7 +1947,7 @@ function AssignmentsView({ data, isStreaming, onEdit, regeneratingIndex, onRegen
 }
 
 // ─── Study Guides ───
-function StudyGuidesView({ data, isStreaming, onEdit, regeneratingIndex, onRegenerateLesson, activeTier }) {
+function StudyGuidesView({ data, isStreaming, onEdit, regeneratingIndex, onRegenerateLesson, activeTier, freshLessonIndices }) {
   if (!data) return isStreaming ? <StreamingBanner /> : <EmptyState />;
   const key = data.guides ? 'guides' : 'studyGuides';
   const guides = data[key] || [];
@@ -1950,7 +1959,7 @@ function StudyGuidesView({ data, isStreaming, onEdit, regeneratingIndex, onRegen
         const g = (activeTier && activeTier !== 'standard' && baseG.tiers?.[activeTier]) ? { ...baseG, ...baseG.tiers[activeTier] } : baseG;
         const subtitle = g.examScope || '';
         return (
-          <CollapsibleCard key={i} title={g.lessonTitle || `Guide ${i + 1}`} subtitle={subtitle} defaultOpen={i < 3} accent="teal" streaming={isStreaming && i === guides.length - 1} regenerating={regeneratingIndex === i} onRegenerate={onRegenerateLesson && !isStreaming ? () => onRegenerateLesson(i) : undefined} onTitleEdit={onEdit ? (newTitle) => onEdit([key, i, 'lessonTitle'], newTitle) : undefined}>
+          <CollapsibleCard key={i} title={g.lessonTitle || `Guide ${i + 1}`} subtitle={subtitle} defaultOpen={i < 3} accent="teal" streaming={isStreaming && i === guides.length - 1} regenerating={regeneratingIndex === i} fresh={!!(freshLessonIndices?.has(i))} onRegenerate={onRegenerateLesson && !isStreaming ? () => onRegenerateLesson(i) : undefined} onTitleEdit={onEdit ? (newTitle) => onEdit([key, i, 'lessonTitle'], newTitle) : undefined}>
             <div className="pt-3 space-y-4">
 
               {/* Summary */}

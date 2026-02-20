@@ -954,6 +954,7 @@ export default function App() {
                   onAddLessons={(lessonIndices) => {
                     setAddLessonsModal({ lessonIndices });
                   }}
+                  freshLessonIndices={deliv.freshLessons?.[activeTab] ?? null}
                 />
               </ErrorBoundary>
             )}
