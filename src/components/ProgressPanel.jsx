@@ -16,39 +16,43 @@ function AnimatedDots() {
 // ── Collapse consecutive repeat log entries into one row ─────────────────────
 // "Still generating X…" messages repeat every 3s — keep only the last one,
 // animate it with dots, and show a ×N count if there were multiple.
+// Key: group by the base deliverable name (strip token counts, lesson numbers,
+// and parenthetical suffixes) so all "Still generating Lesson Plans…" entries
+// — even as token counts change — collapse into a single updating row.
 function collapseRepeatLog(entries) {
   const result = [];
   for (let i = 0; i < entries.length; i++) {
     const entry = entries[i];
-    // Detect "Still generating" pattern (message starts with "Still generating")
     const isStill = entry.message?.startsWith('Still generating');
-    if (isStill && result.length > 0) {
-      const prev = result[result.length - 1];
-      // Group with previous "Still generating" entry for the same deliverable (same prefix before "~")
-      const baseMsg = entry.message.replace(/\(~[^)]+\)/, '').trim();
-      const prevBase = prev.baseMessage || prev.message.replace(/\(~[^)]+\)/, '').trim();
-      if (prev.isRepeating && prevBase === baseMsg) {
-        // Update the existing entry in-place (same slot)
-        result[result.length - 1] = {
-          ...entry,
-          baseMessage: baseMsg,
-          isRepeating: i === entries.length - 1, // only animate if it's the last entry
-          repeatCount: (prev.repeatCount || 1) + 1,
-        };
-        continue;
-      }
-    }
     if (isStill) {
-      const baseMsg = entry.message.replace(/\(~[^)]+\)/, '').trim();
-      result.push({
-        ...entry,
-        baseMessage: baseMsg,
-        isRepeating: i === entries.length - 1,
-        repeatCount: 1,
-      });
+      // Strip parenthetical suffixes like "(~1234 tokens received, gpt-5.2)"
+      // and also lesson-specific suffixes like "Lesson 3 of 8" to get a stable key
+      const baseMsg = entry.message
+        .replace(/\s*\(~[^)]+\)/g, '')   // (~123 tokens received, model)
+        .replace(/\s*\([^)]*\)/g, '')     // any other parenthetical
+        .trim();
+      if (result.length > 0) {
+        const prev = result[result.length - 1];
+        // Group with any previous "Still generating" entry with same base message
+        if (prev.baseMessage === baseMsg) {
+          result[result.length - 1] = {
+            ...entry,
+            baseMessage: baseMsg,
+            isRepeating: true,
+            repeatCount: (prev.repeatCount || 1) + 1,
+          };
+          continue;
+        }
+      }
+      result.push({ ...entry, baseMessage: baseMsg, isRepeating: true, repeatCount: 1 });
     } else {
       result.push(entry);
     }
+  }
+  // Mark only the very last entry in the full list as "actively animating"
+  // (earlier collapsed entries should show ×N but not animate)
+  for (let i = 0; i < result.length - 1; i++) {
+    if (result[i].isRepeating) result[i] = { ...result[i], isRepeating: false };
   }
   return result;
 }
@@ -315,8 +319,8 @@ export default function ProgressPanel({
   }
 
   return (
-    <div className="glass rounded-squircle shadow-glass animate-spring-scale">
-      <div className="p-5 pb-4">
+    <div className="glass rounded-squircle shadow-glass animate-spring-scale overflow-hidden">
+      <div className="p-5 pb-4 min-w-0">
         {/* Header — collapsible when done */}
         <div className="flex items-center gap-2.5 mb-4">
           <div className="w-8 h-8 rounded-squircle-xs bg-gradient-to-br from-cyan-500 to-blue-600 flex items-center justify-center flex-shrink-0">
@@ -342,15 +346,15 @@ export default function ProgressPanel({
         {isDone ? (
           <div>
             {/* Course map done row */}
-            <div className="flex items-center gap-3 py-1">
+            <div className="flex items-center gap-2 py-1 min-w-0">
               <div className="w-7 h-7 rounded-full bg-emerald-100/80 flex items-center justify-center flex-shrink-0">
                 <svg className="w-3.5 h-3.5 text-emerald-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                   <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2.5} d="M5 13l4 4L19 7" />
                 </svg>
               </div>
-              <span className="text-sm font-medium text-emerald-700">Course map ready</span>
+              <span className="text-[12px] font-semibold text-emerald-700">Course map ready</span>
               {completenessInfo && (
-                <span className={`ml-2 text-[10px] font-semibold px-2.5 py-1 rounded-pill ${
+                <span className={`flex-shrink-0 text-[10px] font-semibold px-2 py-0.5 rounded-pill ${
                   completenessInfo.status === 'complete'
                     ? 'text-emerald-600 bg-emerald-50/60 border border-emerald-100/50'
                     : completenessInfo.status === 'incomplete'
@@ -359,10 +363,10 @@ export default function ProgressPanel({
                 }`}>
                   {completenessInfo.status === 'complete' || completenessInfo.actual >= (completenessInfo.expected || 0)
                     ? `${completenessInfo.actual} lessons ✓`
-                    : `${completenessInfo.actual} of ${completenessInfo.expected || '?'} lessons — may be incomplete`}
+                    : `${completenessInfo.actual}/${completenessInfo.expected || '?'} ⚠`}
                 </span>
               )}
-              <div className="ml-2 flex-1 h-1 bg-emerald-100 rounded-full overflow-hidden">
+              <div className="flex-1 h-1 bg-emerald-100 rounded-full overflow-hidden min-w-0">
                 <div className="h-full bg-emerald-500 rounded-full w-full" />
               </div>
             </div>
@@ -410,10 +414,10 @@ export default function ProgressPanel({
                         ? delivGenerationLog[delivGenerationLog.length - 1]
                         : null;
                       return (
-                        <div key={row.id} className="px-2 py-1 rounded-lg">
-                          <div className="flex items-center gap-2.5">
+                        <div key={row.id} className="px-2 py-1 rounded-lg min-w-0">
+                          <div className="flex items-center gap-2 min-w-0">
                           <DelivStatusIcon status={row.status} />
-                          <span className={`text-[11px] font-medium ${
+                          <span className={`text-[11px] font-medium truncate flex-1 min-w-0 ${
                             row.status === 'done' ? 'text-emerald-700'
                             : row.status === 'error' ? 'text-red-500'
                             : row.status === 'streaming' || row.status === 'generating' ? 'text-indigo-600'
@@ -421,7 +425,7 @@ export default function ProgressPanel({
                           }`}>
                             {row.label}
                           </span>
-                          <span className="ml-auto flex items-center gap-2">
+                          <span className="flex-shrink-0 flex items-center gap-1.5">
                             {/* Time spent for completed deliverables */}
                             {doneMs && row.status === 'done' && (
                               <span className="text-[9px] text-emerald-500 font-medium">
@@ -439,7 +443,7 @@ export default function ProgressPanel({
                               </span>
                             )}
                             {row.error && (
-                              <span className="text-[9px] text-red-400 truncate max-w-[100px]" title={row.error}>
+                              <span className="text-[9px] text-red-400 truncate max-w-[80px]" title={row.error}>
                                 {row.error}
                               </span>
                             )}
@@ -447,7 +451,7 @@ export default function ProgressPanel({
                           </div>
                           {/* Inline current activity subtitle for active deliverable */}
                           {latestLogEntry && (
-                            <p className="text-[10px] text-slate-400 italic mt-0.5 ml-7 truncate max-w-[280px]">
+                            <p className="text-[10px] text-slate-400 italic mt-0.5 ml-6 truncate overflow-hidden">
                               {latestLogEntry.message}
                             </p>
                           )}
