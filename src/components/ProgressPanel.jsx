@@ -162,7 +162,7 @@ export default function ProgressPanel({
   deliverables, delivProgress, currentDelivFeature, isDelivGenerating,
   delivGenerationLog, delivTimings,
   // Item 6: cascade sync log
-  syncLog,
+  syncLog, isSyncing, pendingSyncCount,
   // Version history (moved from ExportSidePanel)
   versionHistory, activeVersion, onJumpVersion,
   // Named snapshots (1.4)
@@ -258,6 +258,15 @@ export default function ProgressPanel({
     }
   }, [everythingDone]);
 
+  // Auto-expand when cascade sync starts (so user can see what's updating)
+  const prevIsSyncingRef = useRef(false);
+  useEffect(() => {
+    if (isSyncing && !prevIsSyncingRef.current) {
+      setSummaryCollapsed(false);
+    }
+    prevIsSyncingRef.current = !!isSyncing;
+  }, [isSyncing]);
+
   // Recent sync entries (last 5)
   const recentSync = syncLog ? [...syncLog].reverse().slice(0, 5) : [];
 
@@ -276,20 +285,33 @@ export default function ProgressPanel({
 
   // Collapsed summary view
   if (isDone && summaryCollapsed) {
+    // Determine the most informative sync status line
+    const latestSyncEntry = syncLog && syncLog.length > 0 ? syncLog[syncLog.length - 1] : null;
+    const syncStatusLabel = isSyncing && latestSyncEntry
+      ? `Updating ${FEATURE_LABELS[latestSyncEntry.featureId] || latestSyncEntry.featureId}…`
+      : null;
+
     return (
       <div className="glass rounded-squircle shadow-glass animate-spring-scale">
         <button
           onClick={() => setSummaryCollapsed(false)}
           className="w-full p-4 flex items-center gap-3 hover:bg-white/20 transition-colors text-left"
         >
-          <div className="w-7 h-7 rounded-full bg-emerald-100/80 flex items-center justify-center flex-shrink-0">
-            <svg className="w-3.5 h-3.5 text-emerald-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2.5} d="M5 13l4 4L19 7" />
-            </svg>
+          <div className={`w-7 h-7 rounded-full flex items-center justify-center flex-shrink-0 ${isSyncing ? 'bg-amber-100/80' : 'bg-emerald-100/80'}`}>
+            {isSyncing ? (
+              <svg className="animate-spin w-3.5 h-3.5 text-amber-500" fill="none" viewBox="0 0 24 24">
+                <circle className="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" strokeWidth="4" />
+                <path className="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4z" />
+              </svg>
+            ) : (
+              <svg className="w-3.5 h-3.5 text-emerald-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2.5} d="M5 13l4 4L19 7" />
+              </svg>
+            )}
           </div>
           <div className="flex-1 min-w-0">
-            <p className="text-sm font-semibold text-emerald-700">
-              {isDelivGenerating ? 'Generating deliverables…' : 'Generation complete'}
+            <p className={`text-sm font-semibold ${isSyncing ? 'text-amber-600' : 'text-emerald-700'}`}>
+              {isSyncing ? (syncStatusLabel || 'Syncing changes…') : isDelivGenerating ? 'Generating deliverables…' : 'Generation complete'}
             </p>
             <p className="text-[11px] text-slate-400 truncate">{summaryText}</p>
           </div>
@@ -370,6 +392,20 @@ export default function ProgressPanel({
                 <div className="h-full bg-emerald-500 rounded-full w-full" />
               </div>
             </div>
+
+            {/* Cascade sync active banner */}
+            {isSyncing && (
+              <div className="mt-2 flex items-center gap-2 px-2.5 py-1.5 rounded-lg bg-amber-50/80 border border-amber-100/60">
+                <svg className="animate-spin w-3 h-3 text-amber-500 flex-shrink-0" fill="none" viewBox="0 0 24 24">
+                  <circle className="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" strokeWidth="4" />
+                  <path className="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4z" />
+                </svg>
+                <span className="text-[10px] font-semibold text-amber-600">
+                  Auto-syncing {pendingSyncCount > 1 ? `${pendingSyncCount} deliverables` : 'deliverable'}…
+                </span>
+                <span className="text-[9px] text-amber-500 ml-auto">edit detected</span>
+              </div>
+            )}
 
             {/* Deliverable generation status */}
             {delivRows.length > 0 && (

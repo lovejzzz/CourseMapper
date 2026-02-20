@@ -354,6 +354,10 @@ export default function useDeliverables({ provider, modelId, apiKey, deliverable
     }
     const label = getFeatureLabel(featureId);
 
+    // Signal that this feature is actively regenerating so the tab badge animates
+    setCurrentFeature(featureId);
+    setIsGenerating(true);
+
     // Mark as regenerating (use SET_DELIVERABLE to preserve existing data)
     const existing = deliverables[featureId];
     if (existing) {
@@ -369,6 +373,8 @@ export default function useDeliverables({ provider, modelId, apiKey, deliverable
         dispatch({ type: 'SET_DELIVERABLE', featureId, status: existing.status, data: existing.data, error: null, stale: existing.stale, regeneratingIndex: null });
       }
       appendLog(`✗ ${label}: No prompt for lesson ${lessonIndex + 1}`, 'error');
+      setCurrentFeature(null);
+      setIsGenerating(false);
       return;
     }
 
@@ -422,6 +428,10 @@ export default function useDeliverables({ provider, modelId, apiKey, deliverable
       if (existing) {
         dispatch({ type: 'SET_DELIVERABLE', featureId, status: existing.status, data: existing.data, error: null, stale: existing.stale, regeneratingIndex: null });
       }
+    } finally {
+      // Always clear the active-feature signal when done
+      setCurrentFeature(null);
+      setIsGenerating(false);
     }
   }, [provider, modelId, apiKey, streamProvider, parsePartialJSON, appendLog, dispatch, deliverables]);
 

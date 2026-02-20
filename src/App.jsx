@@ -647,7 +647,15 @@ export default function App() {
 
               // Cascade sync badges
               const hasUnseen = unseenChanges.has(feature.id);
-              const isSyncingThis = smartSync.isSyncing && deliv.currentFeature === feature.id;
+              // isSyncingThis: either regenerateLesson set currentFeature, or
+              // the latest syncLog entry for this feature is a pending 'start'
+              const lastSyncEntry = smartSync.isSyncing && smartSync.syncLog.length > 0
+                ? [...smartSync.syncLog].reverse().find(e => e.featureId === feature.id)
+                : null;
+              const isSyncingThis = smartSync.isSyncing && (
+                deliv.currentFeature === feature.id ||
+                (lastSyncEntry?.type === 'start')
+              );
 
               return (
                 <button
@@ -854,6 +862,8 @@ export default function App() {
                   delivGenerationLog={deliv.generationLog}
                   delivTimings={deliv.delivTimings}
                   syncLog={smartSync.syncLog}
+                  isSyncing={smartSync.isSyncing}
+                  pendingSyncCount={smartSync.pendingSyncCount}
                 />
               </ErrorBoundary>
             </div>
