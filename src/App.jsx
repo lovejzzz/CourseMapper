@@ -284,6 +284,7 @@ export default function App() {
 
   // Lesson count — estimated by regex first, then refined by AI when user proceeds
   const [lessonCount, setLessonCount] = useState(0);
+  const [isDetectingLessons, setIsDetectingLessons] = useState(false);
 
   // ── Handlers ──
   async function handleImport(file) {
@@ -480,6 +481,7 @@ export default function App() {
 
     // Parse uploaded files in background, then run AI on combined text
     if (modelId) {
+      setIsDetectingLessons(true);
       try {
         let combinedText = promptText;
         if (files.length > 0) {
@@ -501,6 +503,7 @@ export default function App() {
         const aiCount = await detectLessonsWithAI(combinedText, { provider, apiKey, modelId });
         if (aiCount) setLessonCount(aiCount);
       } catch { /* silent — regex fallback is fine */ }
+      finally { setIsDetectingLessons(false); }
     }
   }
 
@@ -557,6 +560,7 @@ export default function App() {
         lessonScope={lessonScope}
         setLessonScope={setLessonScope}
         lessonCount={lessonCount}
+        isDetectingLessons={isDetectingLessons}
         courseMap={courseMap}
         columns={columns}
         setColumns={setColumns}
@@ -709,8 +713,8 @@ export default function App() {
 
         {/* ── New Project Confirmation Modal ── */}
         {newProjectConfirm && (
-          <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/30 backdrop-blur-sm">
-            <div className="bg-white/98 rounded-2xl border border-slate-200/60 shadow-2xl p-6 max-w-sm w-full mx-4 animate-spring-scale">
+          <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/50 backdrop-blur-md">
+            <div className="bg-white rounded-2xl border border-slate-200/60 shadow-2xl p-6 max-w-sm w-full mx-4 animate-spring-scale">
               <div className="flex items-center gap-3 mb-3">
                 <div className="w-9 h-9 rounded-xl bg-amber-100 flex items-center justify-center flex-shrink-0">
                   <svg className="w-5 h-5 text-amber-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">

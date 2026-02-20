@@ -5,7 +5,7 @@ import { HelpDrawer } from '../pages/FaqChatbot';
 
 // ── Lesson scope selector ─────────────────────────────────────────────────────
 
-function LessonScopeSelector({ lessonCount, courseMap, lessonScope, setLessonScope }) {
+function LessonScopeSelector({ lessonCount, isDetectingLessons, courseMap, lessonScope, setLessonScope }) {
   // Prefer actual generated lesson titles; fall back to estimated count
   const generatedLessons = courseMap?.lessons || [];
   const total = generatedLessons.length > 0 ? generatedLessons.length : (lessonCount || 0);
@@ -59,9 +59,19 @@ function LessonScopeSelector({ lessonCount, courseMap, lessonScope, setLessonSco
       {lessonScope.type === 'specific' && (
         <div className="space-y-2 animate-spring-in">
           {total === 0 ? (
-            <p className="text-[11px] text-amber-500 italic">
-              Enter your course description on the previous page to detect lesson count.
-            </p>
+            isDetectingLessons ? (
+              <p className="text-[11px] text-indigo-500 italic flex items-center gap-1.5">
+                <svg className="w-3 h-3 animate-spin flex-shrink-0" fill="none" viewBox="0 0 24 24">
+                  <circle className="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" strokeWidth="4" />
+                  <path className="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4z" />
+                </svg>
+                Detecting lesson count from your syllabus…
+              </p>
+            ) : (
+              <p className="text-[11px] text-amber-500 italic">
+                No lesson count detected — enter a course description or upload a syllabus on the previous page.
+              </p>
+            )
           ) : (
             <>
               <div className="flex items-center justify-between mb-1">
@@ -558,6 +568,7 @@ export default function Config({
   lessonScope,
   setLessonScope,
   lessonCount,      // estimated from promptText + files before generation
+  isDetectingLessons, // true while AI lesson-count detection is running
   courseMap,        // actual generated lessons (may be null on first run)
   columns,
   setColumns,
@@ -625,6 +636,7 @@ export default function Config({
           {/* ── Lesson Scope ── */}
           <LessonScopeSelector
             lessonCount={lessonCount}
+            isDetectingLessons={isDetectingLessons}
             courseMap={courseMap}
             lessonScope={lessonScope}
             setLessonScope={setLessonScope}
