@@ -516,7 +516,7 @@ export default function App() {
     <div className="min-h-screen mesh-bg noise-overlay">
       <Header />
 
-      <main className="max-w-7xl mx-auto px-4 sm:px-8 pb-10 space-y-5">
+      <main className="w-full px-4 sm:px-6 pb-10 space-y-4">
         {/* Top bar */}
         <div className="flex items-center gap-3 animate-spring-in pt-1">
           <button
@@ -629,11 +629,11 @@ export default function App() {
         )}
 
         {/* ── Tab content + Progress sidebar + Export panel ── */}
-        <div className="flex gap-5 items-start">
+        <div className="flex gap-4 items-start">
 
-          {/* ── Left: Progress sidebar — sticky, scrollable ── */}
+          {/* ── Left: Progress sidebar — sticky, naturally sized, never clipped ── */}
           {(gen.progressStep || gen.error) && (
-            <div className="w-72 flex-shrink-0 sticky top-4 max-h-[calc(100vh-5rem)] overflow-y-auto scrollbar-hide">
+            <div className="w-64 flex-shrink-0 sticky top-4 self-start">
               <ErrorBoundary>
                 <ProgressPanel
                   currentStep={gen.progressStep}
@@ -671,7 +671,7 @@ export default function App() {
           )}
 
           {/* ── Main content area ── */}
-          <div className="flex-1 min-w-0 space-y-5">
+          <div className="flex-1 min-w-0 space-y-4">
 
             {/* Course Map tab */}
             {activeTab === 'courseMap' && (
@@ -760,7 +760,7 @@ export default function App() {
         </div>
       </main>
 
-      <footer className="max-w-7xl mx-auto px-8 py-4 text-center space-y-1">
+      <footer className="w-full px-6 py-4 text-center space-y-1">
         <p className="text-[10px] text-slate-300/70">
           Built by the Educational Technology team at NYU Silver School of Social Work
         </p>

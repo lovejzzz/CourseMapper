@@ -256,7 +256,7 @@ export default function ProgressPanel({
   // Collapsed summary view
   if (isDone && summaryCollapsed) {
     return (
-      <div className="glass rounded-squircle shadow-glass overflow-hidden animate-spring-scale">
+      <div className="glass rounded-squircle shadow-glass animate-spring-scale">
         <button
           onClick={() => setSummaryCollapsed(false)}
           className="w-full p-4 flex items-center gap-3 hover:bg-white/20 transition-colors text-left"
@@ -308,7 +308,7 @@ export default function ProgressPanel({
   }
 
   return (
-    <div className="glass rounded-squircle shadow-glass overflow-hidden animate-spring-scale">
+    <div className="glass rounded-squircle shadow-glass animate-spring-scale">
       <div className="p-5 pb-4">
         {/* Header — collapsible when done */}
         <div className="flex items-center gap-2.5 mb-4">
