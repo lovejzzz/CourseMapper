@@ -628,45 +628,47 @@ export default function App() {
           </div>
         )}
 
-        {/* Progress panel — course map generation status */}
-        {(gen.progressStep || gen.error) && (
-          <ErrorBoundary>
-            <ProgressPanel
-              currentStep={gen.progressStep}
-              modelName={gen.activeModelName || modelName}
-              error={gen.error || null}
-              courseMap={courseMap}
-              activeTab={activeTab}
-              onRevision={rev.handleRevision}
-              isRevising={rev.isRevising}
-              streamDetail={gen.streamDetail}
-              streamProgress={gen.streamProgress}
-              onStop={gen.isStreaming ? onStop : null}
-              isStopped={gen.isStopped}
-              onResume={onResume}
-              onClearAll={gen.handleClearAll}
-              examChanges={gen.examChanges}
-              retryInfo={gen.retryInfo}
-              completenessInfo={gen.completenessInfo}
-              generationLog={gen.generationLog}
-              onRetryExamine={gen.handleRetryExamine}
-              chatHistory={chatHistory}
-              onChatHistoryChange={setChatHistory}
-              deliverables={deliv.deliverables}
-              delivProgress={deliv.progress}
-              currentDelivFeature={deliv.currentFeature}
-              isDelivGenerating={deliv.isGenerating}
-              delivGenerationLog={deliv.generationLog}
-              delivTimings={deliv.delivTimings}
-              deliverableConfig={deliverableConfig}
-              setDeliverableConfig={setDeliverableConfig}
-              syncLog={smartSync.syncLog}
-            />
-          </ErrorBoundary>
-        )}
+        {/* ── Tab content + Progress sidebar + Export panel ── */}
+        <div className="flex gap-5 items-start">
 
-        {/* ── Tab content + Export side panel ── */}
-        <div className={`flex gap-5 items-start ${courseMap ? '' : ''}`}>
+          {/* ── Left: Progress sidebar — sticky, scrollable ── */}
+          {(gen.progressStep || gen.error) && (
+            <div className="w-72 flex-shrink-0 sticky top-4 max-h-[calc(100vh-5rem)] overflow-y-auto scrollbar-hide">
+              <ErrorBoundary>
+                <ProgressPanel
+                  currentStep={gen.progressStep}
+                  modelName={gen.activeModelName || modelName}
+                  error={gen.error || null}
+                  courseMap={courseMap}
+                  activeTab={activeTab}
+                  onRevision={rev.handleRevision}
+                  isRevising={rev.isRevising}
+                  streamDetail={gen.streamDetail}
+                  streamProgress={gen.streamProgress}
+                  onStop={gen.isStreaming ? onStop : null}
+                  isStopped={gen.isStopped}
+                  onResume={onResume}
+                  onClearAll={gen.handleClearAll}
+                  examChanges={gen.examChanges}
+                  retryInfo={gen.retryInfo}
+                  completenessInfo={gen.completenessInfo}
+                  generationLog={gen.generationLog}
+                  onRetryExamine={gen.handleRetryExamine}
+                  chatHistory={chatHistory}
+                  onChatHistoryChange={setChatHistory}
+                  deliverables={deliv.deliverables}
+                  delivProgress={deliv.progress}
+                  currentDelivFeature={deliv.currentFeature}
+                  isDelivGenerating={deliv.isGenerating}
+                  delivGenerationLog={deliv.generationLog}
+                  delivTimings={deliv.delivTimings}
+                  deliverableConfig={deliverableConfig}
+                  setDeliverableConfig={setDeliverableConfig}
+                  syncLog={smartSync.syncLog}
+                />
+              </ErrorBoundary>
+            </div>
+          )}
 
           {/* ── Main content area ── */}
           <div className="flex-1 min-w-0 space-y-5">

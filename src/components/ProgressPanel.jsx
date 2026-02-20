@@ -309,7 +309,7 @@ export default function ProgressPanel({
 
   return (
     <div className="glass rounded-squircle shadow-glass overflow-hidden animate-spring-scale">
-      <div className="p-7 pb-5">
+      <div className="p-5 pb-4">
         {/* Header — collapsible when done */}
         <div className="flex items-center gap-2.5 mb-4">
           <div className="w-8 h-8 rounded-squircle-xs bg-gradient-to-br from-cyan-500 to-blue-600 flex items-center justify-center flex-shrink-0">
@@ -318,7 +318,7 @@ export default function ProgressPanel({
               <circle cx="12" cy="12" r="3" stroke="currentColor" strokeWidth={1.6}/>
             </svg>
           </div>
-          <h2 className="text-base font-semibold text-slate-800 flex-1">Generation Progress</h2>
+          <h2 className="text-sm font-semibold text-slate-800 flex-1">Generation Progress</h2>
           {isDone && (
             <button
               onClick={() => setSummaryCollapsed(true)}
@@ -460,11 +460,11 @@ export default function ProgressPanel({
                       <svg className={`w-2.5 h-2.5 transition-transform ${delivLogExpanded ? 'rotate-90' : ''}`} fill="none" stroke="currentColor" viewBox="0 0 24 24">
                         <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 5l7 7-7 7" />
                       </svg>
-                      Generation Log
+                      Activity Log
                       {isDelivGenerating && <span className="w-1.5 h-1.5 rounded-full bg-indigo-400 animate-pulse ml-1" />}
                     </button>
                     {delivLogExpanded && (
-                      <div className="mt-1.5 space-y-0.5 max-h-40 overflow-y-auto">
+                      <div className="mt-1.5 space-y-0.5 max-h-56 overflow-y-auto">
                         {delivGenerationLog.map((entry, i) => {
                           const style = DELIV_LOG_STYLES[entry.type] || DELIV_LOG_STYLES.info;
                           return (
