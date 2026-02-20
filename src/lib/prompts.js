@@ -1,6 +1,17 @@
+// Feature 2.3 — BYOM: Reconstruct course structure from uploaded materials
+export const RECONSTRUCT_SYSTEM_PROMPT = `You are an expert instructional designer. The instructor has uploaded their existing course materials (slides, notes, lecture outlines, prior syllabi, or other teaching artifacts). Your task is to REVERSE-ENGINEER the course structure from these materials and produce a structured Course Map.
+
+DO NOT invent content that isn't implied by the materials. Extract, infer, and organize what is actually there.
+
+CRITICAL WRITING RULE: All content will be read by humans. Never repeat boilerplate phrases across cells. For Learning Objectives, write "Students will be able to:" ONCE as a stem, then list objectives starting directly with Bloom's verbs (e.g., "1a. Analyze...", "2a. Evaluate...") — do NOT repeat "Students will be able to" on every line. Vary sentence structure across all fields to sound natural, not templated.
+
+You must return ONLY valid JSON. No markdown, no explanation—just the JSON object.`;
+
 export const SYSTEM_PROMPT = `You are an expert instructional designer and course mapping specialist. Your task is to analyze course syllabi and related materials, then produce a structured Course Map.
 
 A Course Map breaks down a course into weekly lessons, each with multiple topic sections, and maps out learning goals, objectives, assessments, activities, resources, and technology needs.
+
+CRITICAL WRITING RULE: All content will be read by humans. Never repeat boilerplate phrases across cells. For Learning Objectives, write "Students will be able to:" ONCE as a stem, then list objectives starting directly with Bloom's verbs (e.g., "1a. Analyze...", "2a. Evaluate...") — do NOT repeat "Students will be able to" on every line. Vary sentence structure across all fields to sound natural, not templated.
 
 You must return ONLY valid JSON. No markdown, no explanation—just the JSON object.`;
 
@@ -8,7 +19,7 @@ You must return ONLY valid JSON. No markdown, no explanation—just the JSON obj
 const DEFAULT_COLUMN_DEFS = {
   learningGoals: 'The big ideas and questions to be addressed. Derived from values, knowledge, skills, behaviors, and competencies outlined in the syllabus. When there are multiple goals, number them (1, 2, 3…) so objectives can reference them.',
   topicSection: 'A numbered subsection title (e.g., "1.1: Historical Overview of Immigration Policy").',
-  learningObjectives: '"Students will be able to..." statements using active verbs from Bloom\'s taxonomy (analyze, evaluate, create, describe, compare, etc.). When a section has multiple numbered goals, prefix each objective with the goal number it maps to (e.g., 1a, 1b, 2a) so the alignment is clear.',
+  learningObjectives: 'Write the stem "Students will be able to:" ONCE at the top, then list each objective on its own numbered line using ONLY a Bloom\'s action verb + content — do NOT repeat the stem. Use the goal number prefix (1a, 1b, 2a) when goals are numbered. Example:\\n"Students will be able to:\\n1a. Analyze the impact of immigration policy on communities\\n1b. Compare federal and state policy frameworks\\n2a. Evaluate the effectiveness of advocacy strategies"',
   weeklyAssessments: 'How students demonstrate learning. List each assessment on its own line with a numbered prefix (e.g., "1. Reflection Paper: Analyze the impact of...\\n2. Discussion Post: Compare two theories...").',
   asyncActivities: 'What students do on their own time. List each activity on its own line with a numbered prefix (e.g., "1. Read: Chapter 5 on policy frameworks\\n2. Watch: Immigration documentary (45 min)\\n3. Complete: Reflection worksheet").',
   syncActivities: 'What students do together in real-time. List each activity on its own line with a numbered prefix (e.g., "1. Discussion: Debate immigration policy impacts\\n2. Group Work: Case study analysis\\n3. Activity: Role-play exercise").',
@@ -95,7 +106,7 @@ PATCH RULES:
 7. If the user provides additional reference files, create patches for the specific sections that need new info.
 8. Consider the full conversation history when making changes — do NOT undo previous revisions unless the user explicitly asks.`;
 
-export function buildRevisionUserPrompt(courseMap, userMessage, userEdits, chatHistory) {
+export function buildRevisionUserPrompt(courseMap, userMessage, userEdits, chatHistory, lockedIndices = []) {
   let editsContext = '';
   if (userEdits && userEdits.length > 0) {
     editsContext = '\n\nIMPORTANT — The user has manually edited some cells since the last AI generation. Respect and preserve these manual changes unless the user explicitly asks to change them:\n';
@@ -117,10 +128,14 @@ export function buildRevisionUserPrompt(courseMap, userMessage, userEdits, chatH
     }
   }
 
-  return `Here is the current Course Map JSON:\n\n${JSON.stringify(courseMap)}${editsContext}${historyContext}\n\nUser's latest request:\n${userMessage}\n\nReturn ONLY the JSON patches object:`;
+  const lockNote = lockedIndices.length > 0
+    ? `\n\nLOCKED LESSONS (DO NOT MODIFY — user has locked these): Lesson indices [${lockedIndices.join(', ')}] (0-based). These lessons must remain EXACTLY as-is in the output, even if the user's request would normally change them.`
+    : '';
+
+  return `Here is the current Course Map JSON:\n\n${JSON.stringify(courseMap)}${editsContext}${historyContext}${lockNote}\n\nUser's latest request:\n${userMessage}\n\nReturn ONLY the JSON patches object:`;
 }
 
-export function buildUserPrompt(syllabusText, columns) {
+export function buildUserPrompt(syllabusText, columns, scopeIndices, isReconstruct = false) {
   // Build column definitions dynamically from the columns array
   let columnDefs = '';
   let sampleSection = '';
@@ -145,17 +160,39 @@ export function buildUserPrompt(syllabusText, columns) {
     }
   }
 
-  return `Analyze the following course syllabus/materials and generate a complete Course Map.
+  // Build lesson scope instruction
+  let lessonScopeInstruction;
+  if (Array.isArray(scopeIndices) && scopeIndices.length > 0) {
+    const lessonNumbers = scopeIndices.map(i => i + 1).join(', ');
+    lessonScopeInstruction = `2. Generate ONLY the following lesson numbers from the syllabus: ${lessonNumbers} (1-indexed). Do NOT generate any other lessons. The "lessons" array in your JSON must contain EXACTLY ${scopeIndices.length} lesson(s) corresponding to these positions in the syllabus.`;
+  } else {
+    lessonScopeInstruction = `2. Auto-detect the number of weeks or lessons from the syllabus structure.`;
+  }
+
+  const preamble = isReconstruct
+    ? `Reconstruct a Course Map from the following instructor materials. These are existing slides, notes, or outlines — extract the actual structure present in the materials.`
+    : `Analyze the following course syllabus/materials and generate a complete Course Map.`;
+
+  const guideline4 = isReconstruct
+    ? `4. Extract content DIRECTLY from the materials — topics, activities, assessments, resources. Do not invent.`
+    : `4. Prioritize extracting content directly from the syllabus (especially readings, resources, topics).`;
+
+  const guideline5 = isReconstruct
+    ? `5. Where the materials are sparse on detail for a specific field, infer from surrounding context or mark as "To be determined".`
+    : `5. Where the syllabus lacks explicit detail, generate thoughtful, pedagogically sound content.`;
+
+  return `${preamble}
 
 INSTRUCTIONS:
 1. Auto-detect the course name and semester/term from the content. If semester is not found, use "TBD".
-2. Auto-detect the number of weeks or lessons from the syllabus structure.
+${lessonScopeInstruction}
 3. For each week/lesson, create 2-5 topic subsections.
-4. Prioritize extracting content directly from the syllabus (especially readings, resources, topics).
-5. Where the syllabus lacks explicit detail, generate thoughtful, pedagogically sound content.
+${guideline4}
+${guideline5}
 6. Do NOT leave any field empty — always provide meaningful content.
 7. Each section MUST contain ALL of the following keys: ${colKeys.join(', ')}.
 8. When a section has multiple learning goals, number them sequentially (1, 2, 3… — never skip a number). Then prefix each learning objective with the goal number it maps to (e.g., 1a, 1b, 2a, 2b). If there is only one goal, no numbering is needed.
+9. CRITICAL — For learningObjectives: Write "Students will be able to:" ONCE as the opening stem, then list each objective starting directly with a Bloom's verb. Do NOT repeat "Students will be able to" on every line. Example: "Students will be able to:\\n1a. Analyze the impact of policy...\\n1b. Compare federal and state frameworks...\\n2a. Evaluate advocacy strategies..."
 
 COLUMN DEFINITIONS:
 ${columnDefs}
@@ -174,8 +211,94 @@ ${sampleSection}        }
   ]
 }
 
-SYLLABUS CONTENT:
+${isReconstruct ? 'UPLOADED MATERIALS:' : 'SYLLABUS CONTENT:'}
 ${syllabusText}
 
 Generate the complete Course Map JSON now:`;
+}
+
+// ── Feature 6.4: AI Gap Filler ──
+
+export const GAP_FILL_SYSTEM_PROMPT = `You are an expert instructional designer. You are given a Course Map that has some empty or placeholder fields. Your task is to fill ONLY the empty or clearly incomplete fields with high-quality, specific content appropriate for the course.
+
+Rules:
+1. Return ONLY valid JSON patches as an array: [{ "lessonIndex": N, "sectionIndex": M, "key": "fieldName", "value": "filled content" }]
+2. ONLY fill fields that are empty, null, or contain placeholder text like "TBD", "TODO", or very short generic values (< 5 words).
+3. Do NOT modify fields that already have meaningful content.
+4. Make content specific to the lesson title and course context — no generic filler.
+5. Return an empty array [] if there are no gaps to fill.`;
+
+/**
+ * Build the user prompt for gap filling.
+ * Identifies empty fields and asks AI to fill only those.
+ *
+ * @param {object} courseMap
+ * @param {string[]} colKeys — column keys to check
+ * @returns {string}
+ */
+export function buildGapFillPrompt(courseMap, colKeys = []) {
+  const lessons = courseMap?.lessons || [];
+  const keysToCheck = colKeys.length > 0 ? colKeys : [
+    'learningGoals', 'topicSection', 'learningObjectives',
+    'weeklyAssessments', 'asyncActivities', 'syncActivities',
+    'technologyNeeded', 'supportingResources',
+  ];
+
+  const gaps = [];
+  lessons.forEach((lesson, li) => {
+    const sections = lesson.sections && lesson.sections.length > 0 ? lesson.sections : [{}];
+    sections.forEach((section, si) => {
+      keysToCheck.forEach(key => {
+        const val = section[key];
+        const isEmpty = val == null || val === '' || (typeof val === 'string' && (val.trim().length < 5 || /^(tbd|todo|n\/a|\?)$/i.test(val.trim())));
+        if (isEmpty) {
+          gaps.push({ lessonIndex: li, sectionIndex: si, key, lessonTitle: lesson.title || `Lesson ${li + 1}` });
+        }
+      });
+    });
+  });
+
+  if (gaps.length === 0) {
+    return 'All fields are already filled. Return [].';
+  }
+
+  const gapList = gaps.slice(0, 30).map(g =>
+    `L${g.lessonIndex + 1}S${g.sectionIndex + 1} "${g.lessonTitle}" — field: "${g.key}"`
+  ).join('\n');
+
+  return `Course: ${courseMap.courseName || 'Unknown'}
+Semester: ${courseMap.semester || ''}
+
+The following fields are empty and need to be filled:
+${gapList}
+
+Return JSON patches to fill these gaps (array of {lessonIndex, sectionIndex, key, value}).`;
+}
+
+/**
+ * Count empty fields in a course map.
+ * @param {object} courseMap
+ * @param {string[]} colKeys
+ * @returns {number}
+ */
+export function countGaps(courseMap, colKeys = []) {
+  const lessons = courseMap?.lessons || [];
+  const keysToCheck = colKeys.length > 0 ? colKeys : [
+    'learningGoals', 'topicSection', 'learningObjectives',
+    'weeklyAssessments', 'asyncActivities', 'syncActivities',
+    'technologyNeeded', 'supportingResources',
+  ];
+  let count = 0;
+  lessons.forEach(lesson => {
+    const sections = lesson.sections && lesson.sections.length > 0 ? lesson.sections : [{}];
+    sections.forEach(section => {
+      keysToCheck.forEach(key => {
+        const val = section[key];
+        if (val == null || val === '' || (typeof val === 'string' && (val.trim().length < 5 || /^(tbd|todo|n\/a|\?)$/i.test(val.trim())))) {
+          count++;
+        }
+      });
+    });
+  });
+  return count;
 }

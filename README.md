@@ -1,6 +1,6 @@
 # Course Mapper
 
-AI-powered tool that transforms your course syllabus into a structured Course Map spreadsheet. Upload your syllabus, and the AI will organize it into weekly lessons with learning goals, objectives, assessments, activities, resources, and more.
+AI-powered instructional design platform that transforms course materials into a complete, aligned set of teaching deliverables. Upload your syllabus and generate a structured Course Map, lesson plans, slide decks, rubrics, quizzes, assignments, discussion prompts, study guides, and a polished syllabus — all pedagogically aligned and fully editable.
 
 **Live:** [https://edutool.dev](https://edutool.dev)
 
@@ -10,152 +10,171 @@ AI-powered tool that transforms your course syllabus into a structured Course Ma
 
 Course Mapper is a **purpose-built instructional design tool**, not a general chatbot. The difference is like using Excel for a budget vs. asking ChatGPT to "make me a budget" — one gives you a functional, editable, exportable artifact; the other gives you text you have to manually restructure.
 
-1. **Structured output, not chat.** Pasting a syllabus into ChatGPT gives you a blob of markdown. Course Mapper produces a structured, editable table with defined columns — ready to use immediately.
-2. **Schema enforcement.** ChatGPT guesses a different format each time. Course Mapper enforces a consistent pedagogical schema (customizable) across every lesson, every time.
-3. **Full export pipeline.** Direct export to DOCX (with TOC, tables, color headings), XLSX, PDF, CSV, Google Docs, and Google Sheets. No manual reformatting.
-4. **Inline editing + surgical AI revision.** Click any cell to edit directly, then use Revision Chat to adjust specific parts. The AI applies targeted patches — not full regeneration.
-5. **Stop & Resume.** If generation fails midway in ChatGPT, you start over. Course Mapper saves partial progress and resumes from exactly where it stopped.
-6. **Multi-model support with auto-fallback.** Supports OpenAI, Anthropic, Google, and free models. Auto-rotates through models on failure.
-7. **Syllabus-aware input.** Upload actual syllabus files (PDF, DOCX, etc.). Course Mapper detects lesson count and structure automatically.
-8. **Version history & undo.** Full version history with the ability to jump back to any previous state.
-9. **File attachments for revision.** Attach new materials to revision requests — the AI incorporates them into the existing course map.
-10. **Privacy.** Everything runs in the browser. No data stored on any server. API keys go directly to providers.
+1. **Structured output, not chat.** Pasting a syllabus into ChatGPT gives you a blob of markdown. Course Mapper produces structured, editable tables and slide decks with defined schemas — ready to use immediately.
+2. **9 aligned deliverables.** Generate a Course Map, Syllabus, Lesson Plans, Slide Decks, Rubrics, Quiz Bank, Assignments, Discussion Prompts, and Study Guides — all cross-referenced and pedagogically consistent.
+3. **Cascade editing.** Edit one deliverable and the system automatically detects which other deliverables are affected and surgically regenerates just those lessons — no full regeneration.
+4. **Full export pipeline.** Export each deliverable to DOCX, PDF, XLSX, CSV, PPTX, Google Docs, Google Sheets, Google Slides, and LMS formats (Canvas, Moodle, Brightspace). Bulk ZIP export for everything at once.
+5. **Inline editing everywhere.** Click any text in any deliverable to edit directly — course map cells, slide content, rubric criteria, quiz questions, speaker notes. Everything is editable like Google Docs.
+6. **Stop & Resume.** If generation fails midway in ChatGPT, you start over. Course Mapper saves partial progress and resumes from exactly where it stopped.
+7. **Multi-model support.** Supports OpenAI, Anthropic, Google, and free models (no API key needed). Auto-rotates through models on failure.
+8. **Privacy-first.** Everything runs in the browser. No data stored on any server. API keys go directly to providers.
 
 > **What Course Mapper does NOT claim:** It does not fact-check content or verify citations. It does not replace instructor expertise. It is a drafting and productivity tool — it generates the scaffold, the instructor refines it.
 
 ---
 
-## How to Use (Step-by-Step Guide)
+## How to Use
 
-### Step 1: Open the Website
+### Step 1: Open & Choose an AI Model
 
-Go to the live link above. The website works in any modern web browser (Chrome, Firefox, Safari, Edge). No software installation is needed.
+Go to [edutool.dev](https://edutool.dev). On the landing page:
 
-### Step 2: Choose an AI Model
+- **Free (recommended to start)** — Select "Free" from the dropdown. Access several free AI models at no cost, no API key needed.
+- **Bring your own key** — If you have an API key from OpenAI, Anthropic, or Google, select that provider and paste your key.
 
-On the left panel, you will see **AI Provider**. You have two options:
+### Step 2: Upload Your Materials
 
-- **Free (recommended to start)** — Select "Free" from the dropdown. This gives you access to several free AI models at no cost. No API key is needed. Just pick a model from the list and you're ready to go.
-- **Bring your own key** — If you have an API key from OpenAI, Anthropic, or Google, select that provider and paste your key. The tool will auto-detect which provider your key belongs to.
-
-> **Note about the Free tier:** Free models are rate-limited and shared among all users. Your prompts may be used by model providers to improve their AI. For the best experience with sensitive course materials, consider using your own API key.
-
-### Step 3: Upload Your Syllabus
-
-On the right panel, click the upload area or drag-and-drop your course files. Supported formats include:
+Upload your course files (syllabus, outlines, existing materials). Supported formats:
 
 - **Documents:** `.docx`, `.doc`, `.pdf`, `.txt`, `.rtf`, `.odt`, `.md`
 - **Spreadsheets:** `.xlsx`, `.xls`, `.csv`, `.ods`
 - **Presentations:** `.pptx`, `.ppt`, `.odp`
 - **Other:** `.html`, `.epub`, `.zip` (archives containing any of the above)
 
-You can upload multiple files at once — the AI will combine them all.
+Course Mapper auto-detects lesson count and structure from your files.
 
-### Step 4: Customize Columns (Optional)
+### Step 3: Choose Your Deliverables
 
-If your files are uploaded, a column editor will appear below. This lets you:
+Pick which deliverables to generate. Course Map is always included. Add any combination of: Syllabus, Lesson Plans, Slide Decks, Rubrics, Quiz Bank, Assignments, Discussion Prompts, and Study Guides.
 
-- **Reorder columns** — drag them to change the order
-- **Rename columns** — click on a column name to edit it
-- **Add or remove columns** — use the buttons to customize what appears in your Course Map
+### Step 4: Configure & Generate
 
-The default columns work well for most courses, so you can skip this step if you're not sure.
+Fine-tune each deliverable (session length, question count, speaker notes level, etc.), choose a teaching approach, and click **Generate**. Watch everything build in real time.
 
-### Step 5: Generate Your Course Map
+### Step 5: Edit, Revise, Export
 
-Click the purple **Generate Course Map** button. You will see:
-
-1. **Parsing** — the tool reads your uploaded files
-2. **Generating** — the AI builds your course map in real time (you can watch it appear!)
-3. **Examining** — the AI reviews its own work and fixes any issues
-4. **Done** — your course map is ready
-
-This typically takes 1–3 minutes depending on the length of your syllabus.
-
-You can click **Stop** at any time to pause generation. Your partial progress is preserved — click **Resume** to continue from exactly where it stopped.
-
-### Step 6: Review and Edit
-
-Once generated, your Course Map appears as a table. You can:
-
-- **Click any cell** to edit the text directly
-- **Add or delete rows** — hover over a row to see the + and × buttons
-- **Add or delete lessons** — use the controls on each lesson header
-- **Move lessons up/down** — use the arrow buttons
-- **Undo/Redo** — use the undo and redo buttons at the top
-
-### Step 7: Ask the AI to Revise
-
-In the progress panel, you'll find a chat box. Type a request like:
-
-- *"Add more group activities to Lesson 3"*
-- *"Change the technology platform to Canvas for all lessons"*
-- *"Make the assessments more specific"*
-
-You can also **attach files** to your revision request — drag-and-drop or click the paperclip icon. The AI will incorporate the new content into the course map.
-
-The AI will update your course map based on your instructions.
-
-### Step 8: Add More Materials Later
-
-If you receive additional course materials after generating, click the blue **Add Materials** button at the top. Upload the new files, and the AI will automatically revise the course map to incorporate the new content.
-
-### Step 9: Export Your Course Map
-
-When you're satisfied, use the export options:
-
-**Download to your computer:**
-- **Excel (.xlsx)** — original table format, for editing in Excel or Google Sheets
-- **Word (.docx)** — modern formatting with Calibri font, color-coded headings, 2-column tables per section, numbered lists, and a Table of Contents
-- **PDF (.pdf)** — table format, for printing or sharing
-- **CSV (.csv)** — for importing into other tools or LMS systems
-
-**Save to Google Drive** (requires Google sign-in):
-- **Google Sheets** — uploads as a native Google Sheet
-- **Google Docs** — uploads as a native Google Doc with the same modern formatting as DOCX, plus auto-generated outline for navigation
-
-When saving to Google Drive, you'll sign in with your own Google account. The file goes to your Drive — Course Mapper never stores your data.
-
-### Step 10: Come Back Later
-
-Your work is **automatically saved** in your browser. If you close the tab and come back later, your course map will be restored exactly where you left off. Click **New Project** to start fresh.
-
----
-
-## Reviewing Changes (Diff View)
-
-After the AI examines or revises your course map, you'll see a **"Show Changes"** button in the Course Map Preview header. Click it to see:
-
-- **Red strikethrough text** — what the old content was
-- **Green highlighted text** — what the AI changed it to
-
-Click **"Hide Changes"** to go back to the normal view, or the **×** button to dismiss the diff entirely.
+Click any text to edit inline. Use Revision Chat for AI-assisted changes. Export to your preferred format when ready.
 
 ---
 
 ## Features
 
-- **Free AI models** — use Gemini 2.5 Flash Lite, Gemini 2.0 Flash, GPT-OSS 120B, Llama 3.3 70B, or DeepSeek R1T at no cost
-- **Multi-provider AI** — also supports OpenAI, Anthropic, and Google with your own API key
-- **Streaming generation** — watch the course map build in real time
-- **Stop & Resume** — pause generation at any time, resume from exactly where it stopped
-- **AI examination** — the AI reviews and fixes its own work automatically
-- **Revision chat** — ask the AI to make changes conversationally, with file attachments
-- **Add materials** — upload new files after generation to update the course map
-- **Inline editing** — click any cell to edit directly in the table (also keyboard-accessible)
-- **Diff view** — see exactly what changed after each AI revision
-- **Row & lesson management** — add, delete, and reorder sections and lessons
-- **Drag-and-drop columns** — reorder and customize columns
-- **Import** — load an existing course map from `.xlsx` or `.csv`
-- **Export** — download as `.xlsx`, `.docx` (with TOC, tables, color headings), `.pdf`, or `.csv`
-- **Google Drive** — save directly to Google Sheets or Google Docs
-- **Version history** — undo/redo and jump to any previous version
-- **Auto-save** — your work is saved in the browser automatically
-- **Browser notifications** — get notified when generation completes
-- **Error recovery** — if a panel crashes, a "Try Again" button lets you recover without losing your work
-- **FAQ chatbot** — visit [#/faq](https://edutool.dev/#/faq) for an AI-powered help assistant
-- **Privacy & Terms** — [Privacy Policy](https://edutool.dev/#/privacy) and [Terms of Service](https://edutool.dev/#/terms) pages built in
-- **Google OAuth verified** — Google Drive export works seamlessly with a clean consent screen, no scary warnings
+### Deliverables
+
+- **Course Map** — Week-by-week structure with learning goals, objectives, assessments, activities, and resources in a customizable column layout
+- **Syllabus** — Complete professional syllabus with policies, grading, schedule, and learning outcomes
+- **Lesson Plans** — Session-by-session plans with timing, warm-ups, activities, UDL notes, and instructor notes
+- **Slide Decks** — University-quality presentation slides with 5 color themes, speaker notes, and Google-Slides-style inline editing
+- **Rubrics** — Grading rubrics with criteria, performance levels, descriptors, and teacher calibration notes
+- **Quiz & Exam Bank** — Multiple choice, short answer, and essay questions organized by lesson and difficulty
+- **Assignment Briefs** — Clear assignment descriptions with objectives, deliverables, scaffolding milestones, and submission guidelines
+- **Discussion Prompts** — Engaging prompts with response frameworks, facilitation guides, and equity considerations
+- **Study Guides** — Student-facing review materials with key concepts, vocabulary, common misconceptions, and exam prep tips
+- **Custom Deliverables** — Create your own deliverable types via a wizard (configurable name, tone, format, AI prompts)
+
+### Editing & Collaboration
+
+- **Inline editing** — Click any text in any deliverable to edit directly (course map cells, slide content, rubric criteria, quiz questions, speaker notes)
+- **Cascade sync engine** — Edit one deliverable and affected deliverables auto-update surgically (only the changed lesson, not everything)
+- **Surgical re-sync** — When you edit the course map, only affected lessons are regenerated across deliverables
+- **Course map writeback** — Edits to deliverables (e.g., changing a lesson plan objective) are mirrored back to the course map
+- **Change log drawer** — See exactly what the cascade system changed, when, and why
+- **Lesson locking** — Lock individual lessons to protect them from AI regeneration
+- **Drag-and-drop reordering** — Reorder lessons via Flow View cards or table row controls
+- **Resizable columns** — Drag column edges to resize in the course map table
+- **Version history** — Full undo/redo with the ability to jump to any previous version
+- **Named snapshots** — Pin versions with custom labels (e.g., "Draft v2") for easy reference
+
+### Teaching Modes
+
+Five pedagogical frameworks that shape all generated content:
+
+- **Lecture-Based** — Traditional instructor-led sessions
+- **Flipped Classroom** — Pre-class content + in-class application activities
+- **Problem-Based Learning** — Case-centered inquiry with guiding questions
+- **Seminar** — Discussion-heavy Socratic method with reading assignments
+- **Competency-Based** — Mastery-based progression with competency statements and thresholds
+
+### Per-Deliverable Configuration
+
+- **Session length** — 30 min to 3 hours for lesson plans
+- **Slide count** — 8–20 slides per lesson
+- **Question types** — Toggle MC, short answer, essay for quiz bank
+- **Difficulty distribution** — Even, mostly easy/medium, or mostly medium/hard
+- **Citation style** — APA 7th, MLA 9th, Chicago 17th, IEEE
+- **Tiered differentiation** — Generate 3 variants per item: Scaffolded, Standard, and Extension
+- **Reference file upload** — Upload an example document and the AI matches its format and tone
+- **Extra instructions** — Free-text field for specific constraints per deliverable
+
+### Quality & Analytics
+
+- **Course Health Check** — AI-powered pedagogical audit scoring 0–100 with issues grouped by severity (Bloom's gaps, overloaded weeks, vague objectives, sequencing problems, alignment issues) and one-click "Fix it" buttons
+- **Bloom's Alignment Matrix** — Lessons × Bloom's Levels grid showing coverage with gap detection
+- **Assessment Calendar** — Week-by-week heat map of assessment load (light → overloaded)
+- **Learning Analytics Dashboard** — Radar chart of Bloom's level distribution with mastery likelihood estimates
+- **Quality scoring** — 3-dimension heuristic scores (Bloom's alignment, specificity, actionability) per deliverable
+- **Smart revision suggestions** — After each AI revision, 3 contextual follow-up suggestions appear
+
+### Export & Integration
+
+**Download to your computer:**
+- **Excel (.xlsx)** — Course map in table format
+- **Word (.docx)** — Formatted with TOC, color-coded headings, and 2-column tables
+- **PDF (.pdf)** — Table format for printing or sharing
+- **CSV (.csv)** — For importing into other tools
+- **PowerPoint (.pptx)** — University-quality slides with 5 color themes and 16:9 layout
+- **Print Package (.pdf)** — Single PDF combining cover page, TOC, course map, syllabus, rubrics, assignments, and grading summary
+- **ZIP bundle** — All deliverables in one download with organized folder structure
+
+**Google Workspace:**
+- **Google Sheets** — Native spreadsheet with proper formatting
+- **Google Docs** — Formatted document with auto-generated outline
+- **Google Slides** — Uploaded as native Google Slides presentation
+
+**LMS Export:**
+- **Canvas** — Assignments CSV ready for Canvas import
+- **Moodle** — Section/activity outline CSV
+- **Brightspace (D2L)** — Grades CSV and content modules CSV
+- **Universal LMS** — Generic CSV with objectives, assessments, and activities
+
+**Other:**
+- **Project file (.coursemapper)** — Save/load complete project state including all deliverables
+- **Share link** — Compressed URL for read-only course sharing
+- **Import** — Load an existing course map from `.xlsx` or `.csv`
+
+### Instructor Tools
+
+- **Professor Profile** — Persistent profile with name, institution, department, policies, and AI teaching assistant persona
+- **Institution Templates** — Pre-loaded policy boilerplate for NYU, CUNY, UC System, CSU System, Big Ten, and Ivy League
+- **Section Manager** — Manage multiple course sections with different meeting times, rooms, and TAs
+- **Reading List** — Paste DOI, arXiv ID, or ISBN to auto-fetch citations; 4 citation styles (APA, MLA, Chicago, IEEE); assign readings to lessons
+- **Standards Alignment** — Tag objectives to accreditation frameworks (AAC&U, AACSB, APA, CSWE, CAEP, CCNE, SACSCOC, NASAD) with exportable alignment report
+- **Assessment Bank** — Save individual questions, prompts, or criteria to a personal bank for reuse across courses
+- **Template Library** — Save course structures as reusable templates; includes built-in starters
+- **Semester Adapter** — Clone a course to a new semester with adjusted lesson count
+- **Batch Regeneration** — Select specific deliverables and lessons to regenerate with auto-detection of changed content
+
+### Productivity
+
+- **Command Palette (Cmd+K)** — Quick-access to any action via fuzzy search
+- **Help chatbot** — In-app AI assistant covering all features
+- **Onboarding tour** — 4-step guided walkthrough for new users
+- **Stop & Resume** — Pause generation at any time, resume from exactly where it stopped
+- **Auto-save** — Work is saved in the browser automatically
+- **Browser notifications** — Get notified when generation completes
+- **Student view toggle** — Preview deliverables as students would see them (hides instructor notes)
+- **Error recovery** — If a panel crashes, a "Try Again" button recovers without losing work
+- **Diff view** — See exactly what changed after each AI revision (red strikethrough → green highlight)
+
+### AI & Privacy
+
+- **Free AI models** — Gemini, Llama, DeepSeek, and more via OpenRouter — no API key needed
+- **Multi-provider support** — OpenAI, Anthropic, Google with your own API key
+- **Streaming generation** — Watch deliverables build in real time
+- **AI self-examination** — The AI reviews and fixes its own work automatically
+- **Coherence engine** — Previously generated deliverables are summarized and injected into subsequent prompts to prevent duplication
+- **100% client-side** — No backend server. All data stays in your browser
+- **Google OAuth verified** — Clean consent screen for Google Drive export
 
 ---
 
@@ -176,7 +195,7 @@ Opens at [http://localhost:5173/CourseMapper/](http://localhost:5173/CourseMappe
 npm test
 ```
 
-Runs unit tests with Vitest (covers `applyPatches`, `tokenEstimator`, and more).
+Runs unit tests with Vitest.
 
 ### Build for Production
 
@@ -192,41 +211,73 @@ Hosted on GitHub Pages via GitHub Actions. Every push to `main` triggers a build
 
 ### Tech Stack
 
-- **Frontend** — React, Vite, TailwindCSS
+- **Frontend** — React 18, Vite, TailwindCSS
+- **State** — useReducer + Context (two-context pattern: state + dispatch)
 - **AI providers** — OpenAI, Anthropic, Google, OpenRouter (free models)
 - **File parsing** — mammoth (docx), pdfjs-dist (pdf), SheetJS (xlsx), JSZip
-- **Export** — ExcelJS (xlsx), docx (Word), jsPDF (pdf), file-saver
-- **Google Drive** — Google Sheets API, Google Docs API via GAPI
+- **Export** — ExcelJS (xlsx), docx (Word), jsPDF + jspdf-autotable (pdf), pptxgenjs (PowerPoint), file-saver
+- **Google Workspace** — Sheets API, Docs API, Slides API via GAPI
+- **Citations** — CrossRef API (DOI), OpenLibrary API (ISBN), arXiv API
 - **Testing** — Vitest
 
 ### Project Structure
 
 ```
 src/
-  components/       # React UI components
-    CourseMapPreview.jsx   # Main table with editable cells
-    ProgressPanel.jsx      # Generation progress + step indicators
-    GenerationLogPanel.jsx # Collapsible generation event log
-    ExportBar.jsx          # Download + Google Drive export buttons
+  App.jsx                  # Thin shell: <CourseStoreProvider><Workspace /></CourseStoreProvider>
+  screens/
+    Landing.jsx            # Landing page with AI model selection + file upload
+    FeatureSelect.jsx      # Deliverable picker (step 2)
+    DeliverableConfig.jsx  # Per-deliverable configuration (step 3)
+    Workspace.jsx          # Main workspace with all app logic (~3300 lines)
+  model/
+    courseStore.jsx         # useReducer + Context store (state + dispatch)
+    courseModel.js          # Data shape + factory functions
+    selectors.js           # Pure derived-state functions
+  components/
+    CourseMapPreview.jsx    # Main editable table
+    CourseMapFlow.jsx       # Drag-and-drop flow view
+    DeliverableView.jsx    # Per-deliverable rendering (slides, rubrics, etc.)
+    ExportSidePanel.jsx    # Export panel with all format options
     RevisionChat.jsx       # Chat interface for AI revisions
-    ExamSummary.jsx        # Examination results display
+    CourseHealthPanel.jsx   # AI-powered course health check
+    ChangeLogDrawer.jsx    # Cascade sync activity log
+    CommandPalette.jsx     # Cmd+K quick-action palette
+    StandardsAlignmentPanel.jsx  # Accreditation standards tagging
+    AssessmentCalendar.jsx # Assessment load heat map
+    ReadingListPanel.jsx   # Citation management
+    TemplateLibraryModal.jsx     # Template save/load
+    SemesterAdapterWizard.jsx    # Course cloning wizard
+    BatchRegenDialog.jsx   # Selective regeneration dialog
+    ProfessorProfileDrawer.jsx   # Instructor profile + policies
+    CustomDeliverableWizard.jsx  # Custom deliverable creator
     ErrorBoundary.jsx      # Crash recovery wrapper
-    ModelConfig.jsx        # AI provider/model selector
-    VersionTimeline.jsx    # Version history sidebar
-  hooks/             # Custom React hooks
-  lib/               # Pure utility functions
-    applyPatches.js        # Immutable course map patching
-    tokenEstimator.js      # Token counting + model limits
-    fileParser.js          # Multi-format file parsing
-    exporters.js           # CSV + PDF generation
-    xlsxGenerator.js       # Excel export
-    docxGenerator.js       # Word export
-    googleDrive.js         # Google Drive integration
-    importCourseMap.js     # Import from xlsx/csv
+  hooks/
+    useGeneration.js       # Course map generation + stop/resume
+    useDeliverables.js     # Deliverable generation + surgical regen
+    useSmartSync.js        # Cascade editing engine
+    useRevision.js         # Revision chat + AI patching
+    useExport.js           # Export orchestration
+    useStreamReader.js     # Multi-provider streaming
+    useModelConfig.js      # Provider/API key/model selection
+  lib/
+    syncDependencies.js    # Deliverable dependency graph
+    deliverablePrompts.js  # AI prompt templates per deliverable
+    pedagogicalModes.js    # 5 teaching framework definitions
+    pptxExporter.js        # PowerPoint generation
+    lmsExporter.js         # LMS format exporters
+    healthCheckPrompt.js   # Course health audit prompt
+    citationFetcher.js     # DOI/ISBN/arXiv metadata fetching
+    projectFile.js         # .coursemapper save/load
+    shareUrl.js            # Compressed share link generation
+    assessmentBank.js      # Personal question bank
+    standardSets.js        # 8 accreditation frameworks
+    institutionTemplates.js # University policy templates
+    commandRegistry.js     # Command palette actions
     __tests__/             # Unit tests
   pages/
-    FaqChatbot.jsx         # AI-powered FAQ help page
-    PrivacyPolicy.jsx      # Privacy policy page
-    TermsOfService.jsx     # Terms of service page
+    FaqChatbot.jsx         # AI-powered help chatbot + HelpDrawer
+    PrivacyPolicy.jsx      # Privacy policy
+    TermsOfService.jsx     # Terms of service
     Changelog.jsx          # Version changelog
 ```

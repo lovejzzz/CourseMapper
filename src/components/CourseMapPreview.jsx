@@ -1,4 +1,5 @@
-import React, { useState, useEffect, useRef, useCallback } from 'react';
+import React, { useState, useEffect, useRef, useCallback, useMemo } from 'react';
+import { buildLessonGroupMap, GROUP_COLORS } from '../lib/moduleGrouper';
 
 // Flatten a cell value to a plain string (handles arrays from AI responses)
 function toStr(val) {
@@ -73,7 +74,7 @@ function FormattedText({ text }) {
   );
 }
 
-export default function CourseMapPreview({ courseMap, columns, isStreaming, oldCourseMap, onCellEdit, onTitleEdit, onCheckToggle, onAddSection, onDeleteSection, onAddLesson, onDeleteLesson, onMoveLesson, showDiff, onToggleDiff, onDismissDiff }) {
+export default function CourseMapPreview({ courseMap, columns, isStreaming, oldCourseMap, onCellEdit, onTitleEdit, onCheckToggle, onAddSection, onDeleteSection, onAddLesson, onDeleteLesson, onMoveLesson, showDiff, onToggleDiff, onDismissDiff, lockedLessons, onToggleLock, moduleGroups, onModuleGroupsChange }) {
   const tableRef = useRef(null);
   const wrapperRef = useRef(null);
   const mouseInsideRef = useRef(false);
@@ -84,6 +85,50 @@ export default function CourseMapPreview({ courseMap, columns, isStreaming, oldC
   // ── Column resizing ──
   const [colWidths, setColWidths] = useState({});
   const resizingRef = useRef(null);
+
+  // ── Feature 5.3: Module Groups ──
+  // Track which modules are collapsed (by group id)
+  const [collapsedModules, setCollapsedModules] = useState(new Set());
+
+  // Build a map: lessonIndex → group
+  const lessonGroupMap = useMemo(() => buildLessonGroupMap(moduleGroups), [moduleGroups]);
+
+  // Build a set of lesson indices that are the FIRST in their group (= header position)
+  const groupFirstLessonMap = useMemo(() => {
+    const result = {}; // groupId → first lesson index (sorted)
+    (moduleGroups || []).forEach(group => {
+      const sorted = [...(group.lessonIndices || [])].sort((a, b) => a - b);
+      if (sorted.length > 0) result[group.id] = sorted[0];
+    });
+    return result;
+  }, [moduleGroups]);
+
+  // Which lesson indices are hidden due to their module being collapsed
+  const hiddenLessons = useMemo(() => {
+    const hidden = new Set();
+    (moduleGroups || []).forEach(group => {
+      if (collapsedModules.has(group.id)) {
+        group.lessonIndices.forEach(li => hidden.add(li));
+      }
+    });
+    return hidden;
+  }, [moduleGroups, collapsedModules]);
+
+  const toggleModule = (groupId) => {
+    setCollapsedModules(prev => {
+      const next = new Set(prev);
+      if (next.has(groupId)) next.delete(groupId);
+      else next.add(groupId);
+      return next;
+    });
+  };
+
+  const handleRenameModule = (groupId, newLabel) => {
+    if (!onModuleGroupsChange) return;
+    onModuleGroupsChange((moduleGroups || []).map(g =>
+      g.id === groupId ? { ...g, label: newLabel } : g
+    ));
+  };
 
   // Mouse enter: pause auto-scroll so user can browse freely
   const handleMouseEnter = () => {
@@ -242,7 +287,7 @@ export default function CourseMapPreview({ courseMap, columns, isStreaming, oldC
       </h2>
       <div className="mb-5" />
 
-      <div ref={tableRef} onMouseEnter={handleMouseEnter} onMouseLeave={handleMouseLeave} className="overflow-auto rounded-squircle-sm max-h-[70vh] shadow-glass border border-white/30">
+      <div ref={tableRef} onMouseEnter={handleMouseEnter} onMouseLeave={handleMouseLeave} className="overflow-auto rounded-squircle-sm max-h-[70vh] shadow-glass border border-white/30 scroll-fade-right">
         <table className="min-w-full text-xs table-fixed" role="grid" aria-label="Course Map">
           <thead className="sticky top-0 z-10">
             <tr className="bg-gradient-to-r from-slate-800 to-slate-700 text-white">
@@ -260,37 +305,112 @@ export default function CourseMapPreview({ courseMap, columns, isStreaming, oldC
             </tr>
           </thead>
           <tbody>
-            {courseMap.lessons.map((lesson, li) =>
-              ((lesson.sections && lesson.sections.length > 0) ? lesson.sections : [{}]).map((section, si) => (
+            {courseMap.lessons.map((lesson, li) => {
+              const isLocked = lockedLessons?.has(li);
+              const group = lessonGroupMap[li];
+              const isFirstInGroup = group && groupFirstLessonMap[group.id] === li;
+              const isCollapsed = group && collapsedModules.has(group.id);
+              const isHidden = hiddenLessons.has(li) && !isFirstInGroup;
+              const colors = group ? (GROUP_COLORS[group.color] || GROUP_COLORS.indigo) : null;
+
+              // Number of columns for colspan
+              const totalCols = colKeys.length + 2; // lesson col + content cols + actions col
+
+              const rows = [];
+
+              // Insert module header row BEFORE the first lesson in each group
+              if (isFirstInGroup) {
+                const moduleLesson = isCollapsed
+                  ? group.lessonIndices.length
+                  : null;
+                rows.push(
+                  <tr key={`module-header-${group.id}`} className={`border-t-2 ${colors.border}`}>
+                    <td colSpan={totalCols} className={`px-3.5 py-1.5 ${colors.bg}`}>
+                      <div className="flex items-center gap-2">
+                        <button
+                          onClick={() => toggleModule(group.id)}
+                          className={`flex items-center gap-1.5 font-semibold text-[11px] ${colors.text} hover:opacity-70 transition-opacity`}
+                        >
+                          <svg
+                            className={`w-3 h-3 transition-transform duration-200 ${isCollapsed ? '-rotate-90' : ''}`}
+                            fill="none" stroke="currentColor" viewBox="0 0 24 24"
+                          >
+                            <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2.5} d="M19 9l-7 7-7-7" />
+                          </svg>
+                          <span
+                            contentEditable={!isStreaming}
+                            suppressContentEditableWarning
+                            onBlur={(e) => handleRenameModule(group.id, e.currentTarget.textContent.trim())}
+                            onKeyDown={(e) => { if (e.key === 'Enter') { e.preventDefault(); e.currentTarget.blur(); } }}
+                            className="outline-none cursor-text focus:underline"
+                          >
+                            {group.label}
+                          </span>
+                        </button>
+                        <span className={`text-[8px] font-bold px-1.5 py-0.5 rounded-full ${colors.badge}`}>
+                          {group.lessonIndices.length} lesson{group.lessonIndices.length !== 1 ? 's' : ''}
+                          {isCollapsed ? ' — collapsed' : ''}
+                        </span>
+                      </div>
+                    </td>
+                  </tr>
+                );
+              }
+
+              // Skip rendering lesson rows when collapsed (except the first lesson — already shown by header above)
+              if (isHidden) {
+                return rows; // just the header (or nothing)
+              }
+
+              // Normal lesson rows
+              const sectionRows = ((lesson.sections && lesson.sections.length > 0) ? lesson.sections : [{}]).map((section, si) => (
                 <tr
                   key={`${li}-${si}`}
                   className={`group/row border-t border-slate-100/60 ${
                     si === 0 ? 'border-t-2 border-t-indigo-200/40' : ''
-                  } hover:bg-indigo-50/20 animate-fadeIn transition-colors duration-200`}
+                  } ${isLocked ? 'bg-slate-100/60' : 'hover:bg-indigo-50/20'} animate-fadeIn transition-colors duration-200`}
                 >
-                  <td className="px-3.5 py-2.5 font-medium text-slate-700 align-top bg-slate-50/40 min-w-[120px] max-w-[160px]" style={{ wordBreak: 'break-word', overflowWrap: 'anywhere' }}>
+                  <td className={`px-3.5 py-2.5 font-medium text-slate-700 align-top min-w-[120px] max-w-[160px] ${isLocked ? 'bg-slate-100/80' : 'bg-slate-50/40'}`} style={{ wordBreak: 'break-word', overflowWrap: 'anywhere' }}>
                     {si === 0 ? (
                       <div>
-                        <EditableCell
-                          text={lesson.title || ''}
-                          isStreaming={isStreaming}
-                          onSave={onTitleEdit ? (val) => onTitleEdit(li, val) : null}
-                        />
+                        <div className="flex items-start gap-1">
+                          {isLocked && (
+                            <span className="text-[8px] font-bold text-slate-400 bg-slate-200 px-1 py-0.5 rounded uppercase tracking-wide flex-shrink-0 mt-0.5">LOCKED</span>
+                          )}
+                          <EditableCell
+                            text={lesson.title || ''}
+                            isStreaming={isStreaming}
+                            onSave={(!isLocked && onTitleEdit) ? (val) => onTitleEdit(li, val) : null}
+                          />
+                        </div>
                         {!isStreaming && (
                           <div className="opacity-0 group-hover/row:opacity-100 mt-1.5 flex items-center gap-1 transition-opacity duration-150">
-                            {onMoveLesson && li > 0 && (
+                            {!isLocked && onMoveLesson && li > 0 && (
                               <button onClick={() => onMoveLesson(li, -1)} className="p-0.5 text-slate-300 hover:text-indigo-500 transition-colors" title="Move lesson up">
                                 <svg className="w-3 h-3" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M5 15l7-7 7 7" /></svg>
                               </button>
                             )}
-                            {onMoveLesson && li < courseMap.lessons.length - 1 && (
+                            {!isLocked && onMoveLesson && li < courseMap.lessons.length - 1 && (
                               <button onClick={() => onMoveLesson(li, 1)} className="p-0.5 text-slate-300 hover:text-indigo-500 transition-colors" title="Move lesson down">
                                 <svg className="w-3 h-3" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M19 9l-7 7-7-7" /></svg>
                               </button>
                             )}
-                            {onDeleteLesson && courseMap.lessons.length > 1 && (
+                            {!isLocked && onDeleteLesson && courseMap.lessons.length > 1 && (
                               <button onClick={() => onDeleteLesson(li)} className="p-0.5 text-slate-300 hover:text-red-400 transition-colors" title="Delete lesson">
                                 <svg className="w-3 h-3" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16" /></svg>
+                              </button>
+                            )}
+                            {onToggleLock && (
+                              <button
+                                onClick={() => onToggleLock(li)}
+                                className={`p-0.5 transition-colors ${isLocked ? 'text-amber-500 hover:text-amber-600' : 'text-slate-300 hover:text-amber-400'}`}
+                                title={isLocked ? 'Unlock lesson (allow AI edits)' : 'Lock lesson (protect from AI edits)'}
+                              >
+                                {isLocked ? (
+                                  <svg className="w-3 h-3" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 15v2m-6 4h12a2 2 0 002-2v-6a2 2 0 00-2-2H6a2 2 0 00-2 2v6a2 2 0 002 2zm10-10V7a4 4 0 00-8 0v4h8z" /></svg>
+                                ) : (
+                                  <svg className="w-3 h-3" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M8 11V7a4 4 0 118 0m-4 8v2m-6 4h12a2 2 0 002-2v-6a2 2 0 00-2-2H6a2 2 0 00-2 2v6a2 2 0 002 2z" /></svg>
+                                )}
                               </button>
                             )}
                           </div>
@@ -386,8 +506,10 @@ export default function CourseMapPreview({ courseMap, columns, isStreaming, oldC
                     </td>
                   )}
                 </tr>
-              ))
-            )}
+              ));
+              rows.push(...sectionRows);
+              return rows;
+            })}
             {/* Add lesson row */}
             {!isStreaming && onAddLesson && (
               <tr>

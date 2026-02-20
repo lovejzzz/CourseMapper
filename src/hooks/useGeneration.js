@@ -1,19 +1,22 @@
 import { useState, useRef, useCallback } from 'react';
 import { parseFiles } from '../lib/fileParser';
-import { SYSTEM_PROMPT, buildUserPrompt, EXAMINE_SYSTEM_PROMPT, buildExamineUserPrompt } from '../lib/prompts';
+import { SYSTEM_PROMPT, RECONSTRUCT_SYSTEM_PROMPT, buildUserPrompt, EXAMINE_SYSTEM_PROMPT, buildExamineUserPrompt } from '../lib/prompts';
 import { checkTokenLimit, truncateToFit } from '../lib/tokenEstimator';
 import { detectExpectedLessons } from '../lib/detectLessons';
 import { FREE_MODELS } from '../components/ModelConfig';
 import useStreamReader from './useStreamReader';
-import { notifyDone } from '../lib/notifyDone';
+
 import applyPatches from '../lib/applyPatches';
+import { getModeSystemAddition, getModeCourseMapNote } from '../lib/pedagogicalModes';
 
 /**
  * Handles course map generation, examination, stop/resume, and retry.
  */
 export default function useGeneration({
-  provider, modelId, apiKey, files, columns,
+  provider, modelId, apiKey, files, columns, promptText,
   setCourseMap, setOldCourseMap, pushVersion, userEdits, setUserEdits,
+  lessonScope,
+  pedagogicalMode, // Feature 4.2 — e.g. 'lecture' | 'flipped' | 'pbl' | 'seminar' | 'competency'
 }) {
   const [status, setStatus] = useState('idle');
   const [progressStep, setProgressStep] = useState(null);
@@ -398,7 +401,8 @@ Generate lessons ${actual + 1} through ${expectedCount} now as JSON:`;
   }
 
   // ── Main Generate ──
-  const handleGenerate = useCallback(async () => {
+  // scopeOverride: if provided, uses this instead of the lessonScope from props (avoids async state lag)
+  const handleGenerate = useCallback(async (scopeOverride) => {
     setError('');
     setCourseMap(null);
     setRetryInfo(null);
@@ -411,25 +415,38 @@ Generate lessons ${actual + 1} through ${expectedCount} now as JSON:`;
     // Step 1: Parse files
     setStatus('parsing');
     setProgressStep('parsing');
-    let parsedFiles;
-    try {
-      parsedFiles = await parseFiles(files);
-    } catch (err) {
-      setError('Failed to parse files: ' + err.message);
-      setStatus('error');
-      return;
+    let parsedFiles = [];
+    let errors = [];
+    if (files.length > 0) {
+      try {
+        parsedFiles = await parseFiles(files);
+      } catch (err) {
+        setError('Failed to parse files: ' + err.message);
+        setStatus('error');
+        return;
+      }
+      errors = parsedFiles.filter((f) => f.error);
     }
 
-    const errors = parsedFiles.filter((f) => f.error);
-    const combinedText = parsedFiles
+    let combinedText = parsedFiles
       .filter((f) => f.text)
       .map((f) => `=== File: ${f.name} ===\n${f.text}`)
       .join('\n\n');
 
+    // Incorporate prompt text
+    const prompt = (promptText || '').trim();
+    if (prompt) {
+      if (combinedText.trim()) {
+        combinedText = `=== Instructor Notes ===\n${prompt}\n\n${combinedText}`;
+      } else {
+        combinedText = prompt;
+      }
+    }
+
     if (!combinedText.trim()) {
       const errMsg = errors.length > 0
         ? errors.map((f) => `${f.name}: ${f.error}`).join('\n')
-        : 'No text content could be extracted.';
+        : 'No text content could be extracted. Upload files or describe your course.';
       setError('Failed to parse files:\n' + errMsg);
       setStatus('error');
       return;
@@ -437,8 +454,19 @@ Generate lessons ${actual + 1} through ${expectedCount} now as JSON:`;
 
     syllabusTextRef.current = combinedText;
 
-    // Detect expected lesson/week count from syllabus
-    const detected = detectExpectedLessons(combinedText);
+    // Convert lessonScope to scopeIndices: null/'all' means generate all, number[] means specific lessons
+    // Use scopeOverride if provided (avoids React async state lag when called immediately after setLessonScope)
+    const effectiveScope = scopeOverride !== undefined ? scopeOverride : lessonScope;
+    const scopeIndices = Array.isArray(effectiveScope) ? effectiveScope : null;
+
+    // Detect expected lesson/week count from syllabus (or use scope count if specific lessons are selected)
+    let detected;
+    if (scopeIndices && scopeIndices.length > 0) {
+      // Scope overrides auto-detection — we expect exactly the scoped lessons
+      detected = { expected: scopeIndices.length, confidence: 'high' };
+    } else {
+      detected = detectExpectedLessons(combinedText);
+    }
     expectedLessonsRef.current = detected;
     if (detected.expected) {
       setCompletenessInfo({ expected: detected.expected, actual: 0, confidence: detected.confidence, status: 'generating' });
@@ -448,8 +476,20 @@ Generate lessons ${actual + 1} through ${expectedCount} now as JSON:`;
     setStatus('generating');
 
     // Step 2: Check token limits
-    const userPrompt = buildUserPrompt(combinedText, columns);
-    const fullPromptText = SYSTEM_PROMPT + userPrompt;
+    // Auto-detect mode: use reconstruct prompt when files are present but no freeform prompt text.
+    // If both files + prompt text exist, use standard prompt (instructor notes are prepended above).
+    const hasFiles = parsedFiles.filter(f => f.text).length > 0;
+    const hasPrompt = (promptText || '').trim().length > 0;
+    const isReconstruct = hasFiles && !hasPrompt;
+    // Feature 4.2 — Append pedagogical mode instructions to the system prompt
+    const modeAddition = getModeSystemAddition(pedagogicalMode || 'lecture');
+    const modeCourseMapNote = getModeCourseMapNote(pedagogicalMode || 'lecture');
+    const baseSystemPrompt = isReconstruct ? RECONSTRUCT_SYSTEM_PROMPT : SYSTEM_PROMPT;
+    const activeSystemPrompt = (modeAddition || modeCourseMapNote)
+      ? `${baseSystemPrompt}\n\n${[modeAddition, modeCourseMapNote].filter(Boolean).join('\n')}`
+      : baseSystemPrompt;
+    const userPrompt = buildUserPrompt(combinedText, columns, scopeIndices, isReconstruct);
+    const fullPromptText = activeSystemPrompt + userPrompt;
     const tokenCheck = checkTokenLimit(fullPromptText, modelId);
 
     let finalUserPrompt = userPrompt;
@@ -460,7 +500,7 @@ Generate lessons ${actual + 1} through ${expectedCount} now as JSON:`;
     if (!tokenCheck.fits) {
       const { text: truncatedContent, wasTruncated } = truncateToFit(combinedText, modelId);
       if (wasTruncated) {
-        finalUserPrompt = buildUserPrompt(truncatedContent, columns);
+        finalUserPrompt = buildUserPrompt(truncatedContent, columns, scopeIndices);
         parseWarning = (parseWarning ? parseWarning + '\n' : '') +
           `Content was ~${tokenCheck.estimatedTokens.toLocaleString()} tokens (model limit: ~${tokenCheck.availableTokens.toLocaleString()} available). Auto-truncated to fit.`;
       }
@@ -509,7 +549,7 @@ Generate lessons ${actual + 1} through ${expectedCount} now as JSON:`;
         try {
           fullTextRef.current = '';
           lastGoodParseRef.current = null;
-          const { fullText } = await streamProvider(effectiveProvider, model.apiKey, model.id, SYSTEM_PROMPT, finalUserPrompt, {
+          const { fullText } = await streamProvider(effectiveProvider, model.apiKey, model.id, activeSystemPrompt, finalUserPrompt, {
             onChunk: (text, count) => {
               fullTextRef.current = text;
               updateGenerationProgress(text, count);
@@ -613,7 +653,7 @@ Generate lessons ${actual + 1} through ${expectedCount} now as JSON:`;
       setStatus('done');
       setUserEdits([]);
       try { localStorage.removeItem(STREAM_SAVE_KEY); } catch {}
-      notifyDone('Course map is ready!');
+
     } catch (err) {
       setRetryInfo(null);
       if (err.name === 'AbortError') {
@@ -632,7 +672,7 @@ Generate lessons ${actual + 1} through ${expectedCount} now as JSON:`;
       setStreamDetail('');
       setStreamProgress(0);
     }
-  }, [provider, modelId, apiKey, files, columns, setCourseMap, setOldCourseMap, pushVersion, setUserEdits, streamProvider, parsePartialJSON]);
+  }, [provider, modelId, apiKey, files, columns, promptText, lessonScope, pedagogicalMode, setCourseMap, setOldCourseMap, pushVersion, setUserEdits, streamProvider, parsePartialJSON]);
 
   // ── Resume Generation ──
   const handleResume = useCallback(async () => {
@@ -773,7 +813,7 @@ Generate lessons ${actual + 1} through ${expectedCount} now as JSON:`;
       setProgressStep('done');
       setStatus('done');
       try { localStorage.removeItem(STREAM_SAVE_KEY); } catch {}
-      notifyDone('Course map is ready!');
+
     } catch (err) {
       setRetryInfo(null);
       if (err.name === 'AbortError') {

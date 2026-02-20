@@ -1,12 +1,17 @@
 import React, { useState, useRef, useEffect } from 'react';
 import { parseFiles } from '../lib/fileParser';
+import { generateSuggestions } from '../lib/revisionSuggestions';
+import { getProfile } from '../lib/professorProfile';
 
-export default function RevisionChat({ onRevision, isRevising, savedMessages, onMessagesChange }) {
+export default function RevisionChat({ onRevision, isRevising, savedMessages, onMessagesChange, placeholder, courseMap, isStopped, onResume }) {
+  // Feature 8.3: load assistant persona for placeholder
+  const assistantProfile = getProfile();
   const [messages, setMessages] = useState(savedMessages || []);
   const [input, setInput] = useState('');
   const [attachedFiles, setAttachedFiles] = useState([]);
   const [isDragOver, setIsDragOver] = useState(false);
   const [isParsing, setIsParsing] = useState(false);
+  const [suggestions, setSuggestions] = useState([]); // Feature 6.2: suggestion chips
   const messagesEndRef = useRef(null);
   const fileInputRef = useRef(null);
 
@@ -14,10 +19,13 @@ export default function RevisionChat({ onRevision, isRevising, savedMessages, on
     messagesEndRef.current?.scrollIntoView({ behavior: 'smooth' });
   }, [messages]);
 
-  // Sync messages to parent for persistence
+  // Sync messages to parent for persistence — only when messages actually change,
+  // not when the callback reference changes (avoids infinite-loop if parent isn't memoized)
+  const onMessagesChangeRef = useRef(onMessagesChange);
+  useEffect(() => { onMessagesChangeRef.current = onMessagesChange; });
   useEffect(() => {
-    if (onMessagesChange) onMessagesChange(messages);
-  }, [messages, onMessagesChange]);
+    if (onMessagesChangeRef.current) onMessagesChangeRef.current(messages);
+  }, [messages]); // eslint-disable-line react-hooks/exhaustive-deps
 
   async function processFiles(fileList) {
     const files = Array.from(fileList);
@@ -66,6 +74,16 @@ export default function RevisionChat({ onRevision, isRevising, savedMessages, on
     const text = input.trim();
     if ((!text && attachedFiles.length === 0) || isRevising) return;
 
+    // When generation/revision was stopped, ANY message sent via chat triggers resume.
+    // The resume handlers already carry the partial output and original prompt —
+    // they know how to continue from where they left off.
+    if (isStopped && onResume && attachedFiles.length === 0) {
+      setInput('');
+      setMessages(prev => [...prev, { role: 'user', text }, { role: 'assistant', text: 'Resuming…' }]);
+      onResume();
+      return;
+    }
+
     let fullMessage = text;
     if (attachedFiles.length > 0) {
       const fileContents = attachedFiles
@@ -90,18 +108,27 @@ export default function RevisionChat({ onRevision, isRevising, savedMessages, on
       .filter(m => m.role === 'user' || m.role === 'assistant')
       .slice(-10);
 
+    setSuggestions([]); // clear old suggestions when new message sent
     try {
       const result = await onRevision(fullMessage, chatHistory);
+      let assistantReply;
       if (result && result.chatReply) {
+        assistantReply = result.chatReply;
         setMessages((prev) => [
           ...prev,
           { role: 'assistant', text: result.chatReply },
         ]);
       } else {
+        assistantReply = 'Updated! Review the changes below.';
         setMessages((prev) => [
           ...prev,
-          { role: 'assistant', text: 'Updated! Review the changes below.' },
+          { role: 'assistant', text: assistantReply },
         ]);
+      }
+      // ── Feature 6.2: Generate suggestion chips after revision ──
+      if (courseMap) {
+        const chips = generateSuggestions(courseMap, assistantReply);
+        setSuggestions(chips);
       }
     } catch (err) {
       setMessages((prev) => [
@@ -109,6 +136,12 @@ export default function RevisionChat({ onRevision, isRevising, savedMessages, on
         { role: 'error', text: `Failed: ${err.message}` },
       ]);
     }
+  }
+
+  // Handle suggestion chip click
+  function handleSuggestionClick(text) {
+    setInput(text);
+    setSuggestions([]);
   }
 
   function handleKeyDown(e) {
@@ -150,6 +183,24 @@ export default function RevisionChat({ onRevision, isRevising, savedMessages, on
             </div>
           )}
           <div ref={messagesEndRef} />
+        </div>
+      )}
+
+      {/* ── Feature 6.2: Suggestion chips ── */}
+      {suggestions.length > 0 && !isRevising && (
+        <div className="px-5 pt-2 pb-1 flex flex-col gap-1.5">
+          <p className="text-[9px] font-semibold text-slate-400 uppercase tracking-wider">Try next:</p>
+          <div className="flex flex-wrap gap-1.5">
+            {suggestions.map((sug, i) => (
+              <button
+                key={i}
+                onClick={() => handleSuggestionClick(sug)}
+                className="tactile text-[10px] font-medium text-indigo-600 bg-indigo-50/80 hover:bg-indigo-100/80 border border-indigo-200/60 hover:border-indigo-300 px-2.5 py-1 rounded-lg transition-all duration-150 text-left leading-snug"
+              >
+                {sug}
+              </button>
+            ))}
+          </div>
         </div>
       )}
 
@@ -204,7 +255,7 @@ export default function RevisionChat({ onRevision, isRevising, savedMessages, on
           value={input}
           onChange={(e) => setInput(e.target.value)}
           onKeyDown={handleKeyDown}
-          placeholder={isDragOver ? 'Drop files here...' : 'Ask for revisions or drop files...'}
+          placeholder={isDragOver ? 'Drop files here...' : (placeholder || `Ask ${assistantProfile.assistantName || 'Aria'} for revisions or drop files...`)}
           className="input-glass flex-1 rounded-squircle-xs px-3.5 py-2.5 text-sm text-slate-700 focus:outline-none"
           disabled={isRevising}
         />

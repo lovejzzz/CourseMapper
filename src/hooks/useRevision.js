@@ -2,6 +2,7 @@ import { useState, useRef, useCallback } from 'react';
 import useStreamReader from './useStreamReader';
 import applyPatches from '../lib/applyPatches';
 import { REVISION_SYSTEM_PROMPT, buildRevisionUserPrompt } from '../lib/prompts';
+import { getProfile } from '../lib/professorProfile';
 
 /**
  * Handles course map revision with patch-based edits, stop/resume, and retry.
@@ -15,6 +16,7 @@ export default function useRevision({
   setIsStreaming, setStreamDetail, setStreamProgress,
   setProgressStep, setIsStopped, setStatus, setError,
   setRetryInfo,
+  lockedLessons, // Feature 1.3: Set<number>
 }) {
   const [isRevising, setIsRevising] = useState(false);
 
@@ -43,13 +45,29 @@ export default function useRevision({
     fullTextRef.current = '';
 
     try {
+      const lockedIndices = lockedLessons ? [...lockedLessons] : [];
       const revisionUserPrompt = buildRevisionUserPrompt(
         courseMap,
         userMessage,
         userEdits.length > 0 ? userEdits : undefined,
         chatHistory && chatHistory.length > 1 ? chatHistory.slice(0, -1) : undefined,
+        lockedIndices,
       );
-      const result = await streamProvider(provider, apiKey, modelId, REVISION_SYSTEM_PROMPT, revisionUserPrompt, {
+
+      // Feature 8.3 — inject assistant persona into system prompt
+      const profile = getProfile();
+      const assistantName = profile.assistantName || 'Aria';
+      const toneMap = {
+        formal: 'formal, precise, and academic',
+        collegial: 'collegial, warm, and encouraging',
+        socratic: 'Socratic, inquiry-based, and thought-provoking',
+      };
+      const toneDesc = toneMap[profile.assistantTone || 'collegial'];
+      const focusLine = profile.assistantFocus ? ` specializing in ${profile.assistantFocus}` : '';
+      const personaPrefix = `You are ${assistantName}, a ${toneDesc} instructional design assistant${focusLine}. When responding conversationally, use this persona. When returning patches, still return only valid JSON.\n\n`;
+      const personaSystemPrompt = personaPrefix + REVISION_SYSTEM_PROMPT;
+
+      const result = await streamProvider(provider, apiKey, modelId, personaSystemPrompt, revisionUserPrompt, {
         onChunk: (text, count) => {
           fullTextRef.current = text;
           const now = performance.now();

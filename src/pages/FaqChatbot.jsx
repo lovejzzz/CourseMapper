@@ -9,16 +9,16 @@ const GEMINI_MODEL = 'gemini-2.5-flash-lite';
 const SYSTEM_PROMPT = `You are the Course Mapper Help Assistant — a friendly, knowledgeable chatbot embedded in the Course Mapper website. Your job is to answer questions about how to use Course Mapper clearly and simply, as if explaining to someone who may not be very tech-savvy.
 
 ## What is Course Mapper?
-Course Mapper is a free, browser-based tool that uses AI to transform course syllabi into structured Course Map spreadsheets. Users upload their syllabus, and the AI organizes it into weekly lessons with learning goals, objectives, assessments, activities, resources, and more. Everything runs in the browser — no installation needed, no backend server.
+Course Mapper is a free, browser-based tool that uses AI to transform course descriptions or syllabi into a complete set of teaching materials. It generates a structured Course Map spreadsheet, plus Lesson Plans, Slide Decks, Assignment Briefs, Rubrics, Discussion Prompts, Quiz & Exam Banks, Study Guides, and a Syllabus — all from a single prompt or uploaded document. Everything runs in the browser — no installation needed, no backend server.
 
 ## Getting Started
 - Visit the website. It works in Chrome, Firefox, Safari, or Edge.
-- On the left panel, choose an AI provider:
-  - **Free (no API key needed):** Select "Free" from the dropdown. Pick a model (Gemini 2.5 Flash Lite is the recommended default). Ready to go.
-  - **Bring your own key:** Select OpenAI, Anthropic, or Google. Paste your API key. The tool auto-detects which provider the key belongs to.
-- On the right panel, upload course files (drag-and-drop or click to browse).
-- Optionally customize columns below the upload area.
-- Click the purple "Generate Course Map" button.
+- **Option A — type a course description:** Just describe your course (e.g. "Social Policy and Welfare, 14-week undergraduate course") and click Continue.
+- **Option B — upload a syllabus:** Drag-and-drop or browse to upload course files. The AI extracts the structure automatically.
+- **Option C — try a sample:** Click one of the suggested prompts (e.g. "Intro to Psychology", "Research Methods", "Social Policy") to see a quick demo.
+- Choose an AI model. Free models work out of the box. Or bring your own API key for OpenAI, Anthropic, or Google.
+- Select which deliverables to generate (Course Map, Lesson Plans, Slide Decks, etc.)
+- Click Generate and watch everything build in real time.
 
 ## Supported File Types
 Documents: .docx, .doc, .pdf, .txt, .rtf, .odt, .md
@@ -29,128 +29,109 @@ Multiple files can be uploaded at once — the AI combines them all.
 
 ## AI Models
 **Free tier (no API key needed):**
-- **Gemini 2.5 Flash Lite** — recommended default. Fast, reliable, powered by Google. Best balance of speed and quality.
-- **Gemini 2.0 Flash** — strong Google model. Good alternative if Flash Lite is busy.
-- **GPT-OSS 120B** — reliable structured output via OpenRouter. Good fallback.
+- **Gemini 2.5 Flash Lite** — recommended default. Fast, reliable, powered by Google.
+- **Gemini 2.0 Flash** — strong Google model. Good alternative.
+- **GPT-OSS 120B** — reliable structured output via OpenRouter.
 - **Llama 3.3 70B** — solid general-purpose Meta model via OpenRouter.
-- **DeepSeek R1T Chimera** — reasoning-focused model via OpenRouter. Best for complex syllabi.
+- **DeepSeek R1T Chimera** — reasoning-focused model via OpenRouter.
 
 **Paid providers (user provides their own API key):**
-- **OpenAI:** GPT-4o, GPT-4o-mini, GPT-4, o3, o3-mini, o4-mini, GPT-5.2. Best for highest quality output. GPT-4o is the recommended choice.
-- **Anthropic:** Claude 4 Sonnet, Claude 3.5 Sonnet, Claude 3.5 Haiku. Claude 4 Sonnet excels at following structured formatting instructions.
-- **Google:** Gemini 2.5 Pro, Gemini 2.5 Flash, Gemini 2.0 Flash. Gemini 2.5 Pro offers the best quality; Flash variants are faster and cheaper.
+- **OpenAI:** GPT-4o, GPT-4o-mini, o3, o4-mini, GPT-5.2. Best for highest quality.
+- **Anthropic:** Claude 4 Sonnet, Claude 3.5 Sonnet, Claude 3.5 Haiku. Claude 4 Sonnet excels at structured formatting.
+- **Google:** Gemini 2.5 Pro, Gemini 2.5 Flash, Gemini 2.0 Flash. Best quality with Gemini 2.5 Pro.
 
-**How model selection works:**
-- If a model fails or times out, the tool automatically retries and can switch to a backup model.
-- The tool detects how many lessons the syllabus should have and auto-continues if the AI stops short.
-- Free models are rate-limited during peak hours. The tool handles this gracefully with retries.
+## Deliverables
+After generating the Course Map, Course Mapper can generate up to 8 additional deliverables:
+1. **Lesson Plans** — detailed weekly plans with objectives, activities, materials, formative checks, homework, and instructor notes. Includes Bloom's level tagging and UDL notes.
+2. **Slide Decks** — full presentation decks for each lesson with title slides, agenda, content, activity, and summary slides. Complete with speaker notes and timing. Click any text on the slide to edit it directly. You can add bullet points, edit titles, change activity timers, and modify speaker notes.
+3. **Assignment Briefs** — structured assignments with descriptions, objectives, grading criteria, format requirements, scaffolding milestones, and academic integrity statements.
+4. **Rubrics** — assessment rubrics with criteria, levels, Bloom's alignment, and grading scales.
+5. **Discussion Prompts** — facilitated discussion questions with context, follow-up probes, evaluation criteria, and equity considerations.
+6. **Quiz & Exam Bank** — tiered question banks (standard, challenge, honors) with multiple-choice, short-answer, and essay questions. Includes distractors, explanations, and Bloom's level tagging.
+7. **Study Guides** — student-facing study materials with key terms, concept connections, common misconceptions, practice activities, and exam prep.
+8. **Syllabus** — a complete course syllabus assembled from the generated content.
 
-## Generation Process
-1. **Parsing** — the tool reads uploaded files locally in the browser
-2. **Generating** — AI builds the course map in real time (user can watch it stream)
-3. **Auto-completing** — if lessons are missing, the AI automatically continues generating
-4. **Examining** — AI reviews its own work and fixes issues automatically
-5. **Done** — course map is ready
-Takes 1–3 minutes typically. User can click Stop at any time.
-A **Generation Log** panel shows detailed progress: which model ran, retries, model switches, and completeness checks.
+Each deliverable can be generated for all lessons or only specific ones (lesson scoping).
 
-## Stop & Resume
-- During generation, click the red **Stop** button to pause at any time.
-- Your partial progress is preserved — you can see the partially generated course map in the preview.
-- Click **Resume** to continue generation from exactly where it stopped. The AI picks up mid-lesson and completes the remaining content.
-- You can stop and resume multiple times. Each resume accumulates progress.
-- If generation was interrupted by a page refresh or browser crash, the tool automatically detects saved progress on next visit and offers to resume.
-- Resume works with both free and paid models. The correct API key and model are restored automatically.
+## Editing Deliverables
+- **Course Map:** Click any cell to edit. Hover for add/delete buttons. Lesson headers have controls for reordering.
+- **Slide Decks:** Click any text on the slide to edit — titles, bullets, course name, timer, speaker notes. An "Add point" button appears on hover to add new bullet points. Activity type and Bloom's level tags in the speaker notes are also editable.
+- **All deliverables:** Click any text field to edit it directly. Changes are saved immediately.
+- When you edit the course map, a banner appears showing which lessons were modified. You can do a **surgical re-sync** that only regenerates the affected lessons across all deliverables — not everything from scratch. Or choose "Full re-generate" for a complete refresh.
+- The **Sync Activity** drawer shows real-time progress of which deliverables are being regenerated and why.
 
-## Editing the Course Map
-- **Click any cell** to edit text directly — cells are also keyboard-accessible (Tab to navigate, Enter or Space to start editing, Escape to cancel)
-- Hover over rows to see + and × buttons for adding/deleting sections
-- Each lesson header has controls to add/delete lessons and move them up/down
-- Undo/Redo buttons available at the top
-- Full version history in the History panel on the right — click any version to jump back
+## Cascade Editing
+When you edit a deliverable (e.g., change a learning objective in Lesson Plans), the system automatically detects which other deliverables depend on that field and regenerates only the affected lesson in those deliverables. For example, editing Lesson Plan objectives cascades to Rubrics, Quizzes, Study Guides, and Slide Decks for that lesson only.
+
+## Deliverable Export
+Each deliverable has its own export options:
+- **Slide Decks:** Export as .pptx (PowerPoint), .pdf, or to Google Slides
+- **Lesson Plans, Assignments, Rubrics, etc.:** Export as .pdf, .docx, or to Google Docs
+- **Course Map:** Export as .xlsx, .docx, .pdf, .csv, Google Sheets, or Google Docs
+- **All at once:** "Export All" packages everything into a single .zip file
+- **LMS format:** Export as Brightspace Content Modules CSV or Gradebook Items CSV
 
 ## AI Revision (Chat)
-In the progress panel, there's a chat box. Users type revision requests in plain English, like:
+Below each deliverable, there's a chat box labeled "Ask for revisions." Type requests in plain English:
 - "Add more group activities to Lesson 3"
+- "Make the assessments more project-based"
 - "Change the technology platform to Canvas for all lessons"
-- "Make the assessments more specific"
-The AI updates the course map based on the instructions.
-Users can also **attach files** to revision requests — drag-and-drop files onto the chat or click the paperclip icon. The AI will incorporate the new content into the course map. This is useful for adding supplementary materials or updated syllabi after the initial generation.
+The AI updates the content based on your instructions. You can also attach files to incorporate new materials.
+
+## Generation Process
+1. **Course Map** generates first (1–3 minutes)
+2. **Deliverables** generate in sequence — you can watch each one stream in real time
+3. Progress shows which deliverable is being generated and a time estimate
+4. The browser tab title updates to show progress (e.g., "Generating Lesson Plans... (2/5)")
+5. A notification sound plays when everything is done
+
+## Stop & Resume
+- Click Stop during any generation to pause. Progress is preserved.
+- Click Resume to continue from where it stopped.
+- Works across page refreshes — the tool offers to restore your session.
 
 ## Diff View (Show Changes)
-After AI examines or revises, a "Show Changes" button appears. Clicking it shows:
-- Red strikethrough text = old content
-- Green highlighted text = new content
-Click "Hide Changes" to go back, or × to dismiss the diff.
+After AI revisions, a "Show Changes" button appears:
+- Red strikethrough = old content
+- Green highlight = new content
 
-## Add Materials After Generation
-Click the blue "Add Materials" button at the top. Upload new files. The AI automatically revises the course map to incorporate the new content.
+## Templates
+Click the Templates button to browse pre-built course templates. Load one to instantly populate a full course with all deliverables.
 
-## Import an Existing Course Map
-Click the "Import" button in the export bar to load an existing course map from a .xlsx or .csv file. This is useful if you have a course map from a previous semester and want to use it as a starting point.
+## Lesson Locking
+Lock specific lessons to prevent them from being regenerated during re-sync. Click the lock icon next to any lesson.
 
-## Export Options
-**Download to computer:**
-- **.xlsx** — Excel spreadsheet (original table format, best for further editing)
-- **.docx** — Word document with modern formatting: Calibri font, 1.15 line spacing, color-coded lesson headings with accent underlines, 2-column tables (Category | Content) per section, properly broken-out numbered lists, and a Table of Contents. Clean and scannable.
-- **.pdf** — PDF (table format, good for printing)
-- **.csv** — for importing into other tools or LMS systems
+## Version History
+Full undo/redo with version history. Jump back to any previous state. Every edit and AI revision creates a new version.
 
-**Save to Google Drive (requires Google sign-in):**
-- **Google Sheets** — uploads as native Google Sheet (table format, same as .xlsx)
-- **Google Docs** — uploads as native Google Doc with the same modern formatting as .docx: tables per section, proper lists, color headings, and Table of Contents. Google Docs also auto-generates an outline from the headings for easy navigation.
+## Professor Profile
+Set your teaching profile (name, institution, teaching style, preferences). The AI uses this context to personalize generated content.
 
-When saving to Google Drive, a sign-in popup appears. The user signs in with their own Google account and grants Course Mapper permission to create files in their Drive (Course Mapper cannot access any other files). The file goes to their own Drive. Course Mapper never sees or stores their data. Users can revoke access at any time in their Google Account permissions.
+## Course Health Check
+Run an AI-powered review of your course for gaps, misalignments, or missing elements. The AI suggests improvements.
 
 ## Auto-Save
-Work is automatically saved in the browser's local storage. Closing and reopening the tab restores everything — your course map, chat history, and version history are all preserved. Click "New Project" to clear and start fresh.
-
-## Error Recovery
-If something goes wrong while displaying the course map or progress panel, an error message will appear with a **"Try Again"** button. Clicking it will attempt to re-render the panel without losing your data. Your course map and chat history are preserved even if a display error occurs.
+Work is automatically saved in the browser's local storage. Closing and reopening restores everything.
 
 ## Privacy & Data
-- Everything runs in the browser. No data is stored on Course Mapper servers — there is no backend server at all.
-- API keys are sent directly from the browser to the AI provider (OpenAI, Anthropic, Google, or OpenRouter).
-- If using the free tier, prompts may be used by model providers to improve their AI.
-- For sensitive course materials, use your own API key with a paid provider.
-- Local storage is per-browser, per-device. Export your work to transfer it elsewhere.
+- Everything runs in the browser. No backend server.
+- API keys go directly to AI providers.
+- Free tier prompts may be used by providers to improve their AI.
+- For sensitive materials, use your own API key.
 
-## Columns / Structure
-The default columns are: Learning Goals, Topic/Section, Learning Objectives, Weekly Assessments, Async Activities, Sync Activities, Technology Needed, Presentation Format, Supporting Resources, Evaluate Design.
-Users can customize: reorder by dragging, rename by clicking, add or remove columns. The column editor appears below the file upload area after files are uploaded.
-
-## Keyboard Accessibility
-- All editable cells in the course map table can be reached with **Tab** and activated with **Enter** or **Space**
-- When editing a cell, press **Enter** to save or **Escape** to cancel
-- Checkboxes (Evaluate Design column) are also keyboard-accessible
+## Keyboard Shortcuts
+- **⌘←/⌘→** — Navigate between tabs
+- **⌘Z / ⌘⇧Z** — Undo / Redo
+- **⌘K** — Command Palette
+- **?** — Keyboard shortcuts help
+- **Tab/Enter/Escape** — Navigate and edit cells
 
 ## Troubleshooting
-- **Free model slow/not responding:** Free models are rate-limited during peak usage. Try another free model or wait a minute. The tool will automatically retry with a different model if one fails.
-- **PDF not read correctly:** Scanned PDFs (images) can't be parsed — they contain pictures of text, not actual text. Convert to .docx first, or use OCR software.
-- **Google Drive error:** Allow popups in your browser and grant permission in the Google sign-in dialog. Make sure you're signed into a Google account.
-- **Lost work after clearing browser data:** Local storage was cleared along with browser data. Always export your finished course map to a file or Google Drive.
-- **Page blank or panel crash:** Refresh the page. If only one panel crashed, look for the "Try Again" button. Your data is preserved in local storage.
-- **Generation stuck or incomplete:** Click the Stop button, then try generating again. You can also try a different AI model.
-
-## Why Course Mapper vs. ChatGPT / Claude / Gemini Directly?
-Course Mapper is a **purpose-built instructional design tool**, not a general chatbot. The difference is like using Excel for a budget vs. asking ChatGPT to "make me a budget" — one gives you a functional, editable, exportable artifact; the other gives you text you have to manually restructure.
-
-Key advantages over using a chatbot directly:
-1. **Structured output, not chat.** Pasting a syllabus into ChatGPT gives you a blob of markdown text. You then spend 30–60 minutes copying it into a spreadsheet. Course Mapper produces a structured, editable table with defined columns — ready to use immediately.
-2. **Schema enforcement.** ChatGPT guesses a different format each time. Course Mapper enforces a consistent 8-category pedagogical schema (customizable) across every lesson, every time.
-3. **Full export pipeline.** Direct export to DOCX (with TOC, tables, color headings), XLSX, PDF, CSV, Google Docs, and Google Sheets. No manual reformatting.
-4. **Inline editing + surgical AI revision.** Click any cell to edit directly, then use Revision Chat to adjust specific parts. The AI applies targeted patches — it does not regenerate the entire document.
-5. **Stop & Resume.** If generation fails midway in ChatGPT, you start over. Course Mapper saves partial progress and resumes from exactly where it stopped.
-6. **Multi-model support with auto-fallback.** Supports OpenAI, Anthropic, Google, and free models. Auto-rotates through models on failure. Switch providers mid-session.
-7. **Syllabus-aware input.** Upload actual syllabus files (PDF, DOCX, etc.). Course Mapper detects lesson count and structure automatically.
-8. **Version history & undo.** Full version history with the ability to jump back to any previous state. ChatGPT has no undo.
-9. **File attachments for revision.** Attach new materials to revision requests — the AI incorporates them into the existing course map.
-10. **Privacy.** Everything runs in the browser. No data stored on any server. API keys go directly to providers.
-
-**What Course Mapper does NOT claim:**
-- It does not fact-check content or verify citations.
-- It does not replace instructor expertise.
-- It is a drafting and productivity tool — it generates the scaffold, the instructor refines it.
+- **Free model slow:** Free models are rate-limited during peak hours. Try another model or wait.
+- **PDF not read correctly:** Scanned PDFs (images) can't be parsed. Convert to .docx first.
+- **Google Drive error:** Allow popups and grant permission in the sign-in dialog.
+- **Lost work:** Always export finished work. Local storage is cleared with browser data.
+- **Generation stuck:** Click Stop, then try again or switch models.
 
 ## Important Rules for You
 - Be concise, warm, and helpful. Use simple language.
@@ -161,35 +142,25 @@ Key advantages over using a chatbot directly:
 
 const SUGGESTED_QUESTIONS = [
   'How do I get started?',
-  'Which AI model should I use?',
-  'Why use Course Mapper instead of ChatGPT?',
+  'What deliverables can I generate?',
+  'How do I edit slide decks?',
+  'How does surgical re-sync work?',
   'How do I export to Google Drive?',
-  'Can I attach files when asking for revisions?',
   'Is my data private and secure?',
 ];
 
-export default function FaqChatbot() {
+// ── Shared chat engine ──────────────────────────────────────────────────────
+function useHelpChat() {
   const [messages, setMessages] = useState([]);
   const [input, setInput] = useState('');
   const [isStreaming, setIsStreaming] = useState(false);
-  const messagesEndRef = useRef(null);
-  const inputRef = useRef(null);
   const abortRef = useRef(null);
-
-  useEffect(() => {
-    messagesEndRef.current?.scrollIntoView({ behavior: 'smooth' });
-  }, [messages]);
-
-  useEffect(() => {
-    inputRef.current?.focus();
-  }, []);
 
   async function sendMessage(text) {
     if (!text.trim() || isStreaming) return;
     const userMsg = { role: 'user', content: text.trim() };
     const newMessages = [...messages, userMsg];
     setMessages([...newMessages, { role: 'assistant', content: '' }]);
-    setInput('');
     setIsStreaming(true);
 
     try {
@@ -249,7 +220,21 @@ export default function FaqChatbot() {
         }
       }
     } catch (err) {
-      if (err.name === 'AbortError') return;
+      if (err.name === 'AbortError') {
+        // Remove empty phantom assistant message left by abort
+        setMessages(prev => {
+          const last = prev[prev.length - 1];
+          if (last?.role === 'assistant' && !last.content) return prev.slice(0, -1);
+          // If partial content exists, mark it as stopped
+          if (last?.role === 'assistant') {
+            const updated = [...prev];
+            updated[updated.length - 1] = { ...last, content: last.content + '\n\n*(stopped)*' };
+            return updated;
+          }
+          return prev;
+        });
+        return;
+      }
       setMessages(prev => {
         const updated = [...prev];
         updated[updated.length - 1] = {
@@ -263,15 +248,163 @@ export default function FaqChatbot() {
     }
   }
 
-  function handleSubmit(e) {
-    e.preventDefault();
-    sendMessage(input);
-  }
-
   function handleStop() {
     abortRef.current?.abort();
     setIsStreaming(false);
   }
+
+  return { messages, input, setInput, isStreaming, sendMessage, handleStop };
+}
+
+// ── Chat UI (shared between full-page and drawer) ───────────────────────────
+function ChatBody({ messages, input, setInput, isStreaming, sendMessage, handleStop, compact = false }) {
+  const messagesEndRef = useRef(null);
+  const inputRef = useRef(null);
+
+  useEffect(() => {
+    messagesEndRef.current?.scrollIntoView({ behavior: 'smooth' });
+  }, [messages]);
+
+  useEffect(() => {
+    inputRef.current?.focus();
+  }, []);
+
+  function handleSubmit(e) {
+    e.preventDefault();
+    sendMessage(input);
+    setInput('');
+  }
+
+  return (
+    <div className="flex flex-col h-full min-h-0">
+      <div className="flex-1 overflow-y-auto pr-2 space-y-3 pb-3 px-4" style={{ minHeight: 0 }}>
+        {messages.length === 0 ? (
+          <div className={`flex flex-col items-center justify-center h-full ${compact ? 'pt-8' : 'pt-16'} animate-fade-up`}>
+            <div className={`${compact ? 'w-10 h-10 mb-3' : 'w-16 h-16 mb-6'} rounded-2xl bg-gradient-to-br from-indigo-500/10 to-violet-500/10 flex items-center justify-center`}>
+              <svg className={`${compact ? 'w-5 h-5' : 'w-8 h-8'} text-indigo-400`} fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={1.5}
+                  d="M8.228 9c.549-1.165 2.03-2 3.772-2 2.21 0 4 1.343 4 3 0 1.4-1.278 2.575-3.006 2.907-.542.104-.994.54-.994 1.093m0 3h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z" />
+              </svg>
+            </div>
+            <h2 className={`${compact ? 'text-sm' : 'text-lg'} font-bold text-slate-700 mb-1.5`}>How can I help?</h2>
+            <p className={`${compact ? 'text-[11px] mb-4' : 'text-sm mb-8'} text-slate-400 text-center max-w-md`}>
+              Ask me about features, exporting, editing, AI models, and more.
+            </p>
+            <div className={`grid ${compact ? 'grid-cols-1 gap-1.5' : 'grid-cols-2 gap-2'} max-w-lg w-full`}>
+              {SUGGESTED_QUESTIONS.map((q, i) => (
+                <button
+                  key={i}
+                  onClick={() => { sendMessage(q); }}
+                  className={`tactile text-left ${compact ? 'px-3 py-2 rounded-lg text-[11px]' : 'px-4 py-3 rounded-xl text-xs'} font-medium text-slate-500 bg-white/50 border border-slate-200/30 hover:bg-indigo-50/60 hover:border-indigo-200/40 hover:text-indigo-600 shadow-glass hover:shadow-glow-indigo transition-all duration-300`}
+                >
+                  {q}
+                </button>
+              ))}
+            </div>
+          </div>
+        ) : (
+          <>
+            {messages.map((msg, i) => (
+              <ChatBubble key={i} role={msg.role} content={msg.content} isLast={i === messages.length - 1} isStreaming={isStreaming} compact={compact} />
+            ))}
+            <div ref={messagesEndRef} />
+          </>
+        )}
+      </div>
+
+      {/* Input */}
+      <div className="pt-2 pb-3 px-4 border-t border-slate-200/30 flex-shrink-0">
+        <form onSubmit={handleSubmit} className="flex items-center gap-2">
+          <input
+            ref={inputRef}
+            type="text"
+            value={input}
+            onChange={e => setInput(e.target.value)}
+            placeholder="Type your question..."
+            disabled={isStreaming}
+            className={`flex-1 ${compact ? 'px-3 py-2.5 text-[12px]' : 'px-5 py-3.5 text-sm'} rounded-pill text-slate-700 bg-white/60 border border-slate-200/40 focus:border-indigo-400/40 focus:ring-2 focus:ring-indigo-500/10 focus:bg-white/90 focus:outline-none shadow-glass transition-all duration-300 placeholder:text-slate-400 disabled:opacity-60`}
+          />
+          {isStreaming ? (
+            <button
+              type="button"
+              onClick={handleStop}
+              className={`tactile ${compact ? 'px-3 py-2.5 text-[12px]' : 'px-5 py-3.5 text-sm'} rounded-pill font-semibold text-white bg-red-500 hover:bg-red-600 shadow-lg shadow-red-500/20 transition-all duration-300`}
+            >
+              Stop
+            </button>
+          ) : (
+            <button
+              type="submit"
+              disabled={!input.trim()}
+              className={`tactile btn-glow ${compact ? 'p-2.5' : 'px-5 py-3.5'} rounded-pill text-sm font-semibold text-white bg-gradient-to-r from-indigo-500 via-violet-500 to-purple-600 shadow-lg shadow-indigo-500/20 hover:shadow-glow-violet hover:brightness-[1.06] transition-all duration-300 disabled:opacity-40 disabled:cursor-not-allowed`}
+            >
+              <svg className={compact ? 'w-3.5 h-3.5' : 'w-4 h-4'} fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 19l9 2-9-18-9 18 9-2zm0 0v-8" />
+              </svg>
+            </button>
+          )}
+        </form>
+        <p className="text-[9px] text-slate-400 mt-1.5 text-center">
+          Powered by Gemini — answers may occasionally be inaccurate
+        </p>
+      </div>
+    </div>
+  );
+}
+
+// ── HelpDrawer: embeddable slide-over panel ─────────────────────────────────
+export function HelpDrawer({ isOpen, onClose }) {
+  const chat = useHelpChat();
+
+  // Close on Escape
+  useEffect(() => {
+    if (!isOpen) return;
+    const handler = (e) => { if (e.key === 'Escape') onClose(); };
+    document.addEventListener('keydown', handler);
+    return () => document.removeEventListener('keydown', handler);
+  }, [isOpen, onClose]);
+
+  if (!isOpen) return null;
+
+  return (
+    <div className="fixed inset-0 z-[55] flex justify-end animate-spring-in" data-print="hide">
+      {/* Backdrop */}
+      <div className="absolute inset-0 bg-black/20 backdrop-blur-sm" onClick={onClose} />
+      {/* Panel */}
+      <div className="relative w-full max-w-md bg-white/95 backdrop-blur-xl border-l border-slate-200/60 shadow-2xl flex flex-col">
+        {/* Header */}
+        <div className="flex items-center justify-between px-4 py-3 border-b border-slate-100 flex-shrink-0">
+          <div className="flex items-center gap-2.5">
+            <div className="w-7 h-7 rounded-lg bg-gradient-to-br from-indigo-500/10 to-violet-500/10 flex items-center justify-center">
+              <svg className="w-3.5 h-3.5 text-indigo-500" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2}
+                  d="M8.228 9c.549-1.165 2.03-2 3.772-2 2.21 0 4 1.343 4 3 0 1.4-1.278 2.575-3.006 2.907-.542.104-.994.54-.994 1.093m0 3h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z" />
+              </svg>
+            </div>
+            <div>
+              <h2 className="text-sm font-bold text-slate-800">Help</h2>
+              <p className="text-[10px] text-slate-400">Ask anything about Course Mapper</p>
+            </div>
+          </div>
+          <button
+            onClick={onClose}
+            className="p-1.5 rounded-lg text-slate-400 hover:text-slate-600 hover:bg-slate-100 transition-all"
+          >
+            <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M6 18L18 6M6 6l12 12" />
+            </svg>
+          </button>
+        </div>
+        {/* Chat body */}
+        <ChatBody {...chat} compact />
+      </div>
+    </div>
+  );
+}
+
+// ── Full-page FAQ (still used for #/faq route) ──────────────────────────────
+export default function FaqChatbot() {
+  const chat = useHelpChat();
 
   return (
     <div className="min-h-screen mesh-bg noise-overlay flex flex-col">
@@ -314,80 +447,8 @@ export default function FaqChatbot() {
       </header>
 
       {/* Chat area */}
-      <main className="flex-1 max-w-4xl mx-auto w-full px-8 pb-4 flex flex-col min-h-0">
-        <div className="flex-1 overflow-y-auto pr-2 space-y-4 pb-4" style={{ minHeight: 0 }}>
-          {messages.length === 0 ? (
-            <div className="flex flex-col items-center justify-center h-full pt-16 animate-fade-up">
-              <div className="w-16 h-16 rounded-2xl bg-gradient-to-br from-indigo-500/10 to-violet-500/10 flex items-center justify-center mb-6">
-                <svg className="w-8 h-8 text-indigo-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={1.5}
-                    d="M8.228 9c.549-1.165 2.03-2 3.772-2 2.21 0 4 1.343 4 3 0 1.4-1.278 2.575-3.006 2.907-.542.104-.994.54-.994 1.093m0 3h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z" />
-                </svg>
-              </div>
-              <h2 className="text-lg font-bold text-slate-700 mb-2">How can I help you?</h2>
-              <p className="text-sm text-slate-400 mb-8 text-center max-w-md">
-                I know everything about Course Mapper — ask me about getting started, uploading files, exporting, AI models, privacy, and more.
-              </p>
-              <div className="grid grid-cols-2 gap-2 max-w-lg w-full">
-                {SUGGESTED_QUESTIONS.map((q, i) => (
-                  <button
-                    key={i}
-                    onClick={() => sendMessage(q)}
-                    className="tactile text-left px-4 py-3 rounded-xl text-xs font-medium text-slate-500 bg-white/50 border border-slate-200/30 hover:bg-indigo-50/60 hover:border-indigo-200/40 hover:text-indigo-600 shadow-glass hover:shadow-glow-indigo transition-all duration-300"
-                  >
-                    {q}
-                  </button>
-                ))}
-              </div>
-            </div>
-          ) : (
-            <>
-              {messages.map((msg, i) => (
-                <ChatBubble key={i} role={msg.role} content={msg.content} isLast={i === messages.length - 1} isStreaming={isStreaming} />
-              ))}
-              <div ref={messagesEndRef} />
-            </>
-          )}
-        </div>
-
-        {/* Input */}
-        <div className="pt-3 pb-4 border-t border-slate-200/30">
-          <form onSubmit={handleSubmit} className="flex items-center gap-3">
-            <div className="flex-1 relative">
-              <input
-                ref={inputRef}
-                type="text"
-                value={input}
-                onChange={e => setInput(e.target.value)}
-                placeholder="Type your question..."
-                disabled={isStreaming}
-                className="w-full px-5 py-3.5 rounded-pill text-sm text-slate-700 bg-white/60 border border-slate-200/40 focus:border-indigo-400/40 focus:ring-2 focus:ring-indigo-500/10 focus:bg-white/90 focus:outline-none shadow-glass transition-all duration-300 placeholder:text-slate-400 disabled:opacity-60"
-              />
-            </div>
-            {isStreaming ? (
-              <button
-                type="button"
-                onClick={handleStop}
-                className="tactile px-5 py-3.5 rounded-pill text-sm font-semibold text-white bg-red-500 hover:bg-red-600 shadow-lg shadow-red-500/20 transition-all duration-300"
-              >
-                Stop
-              </button>
-            ) : (
-              <button
-                type="submit"
-                disabled={!input.trim()}
-                className="tactile btn-glow px-5 py-3.5 rounded-pill text-sm font-semibold text-white bg-gradient-to-r from-indigo-500 via-violet-500 to-purple-600 shadow-lg shadow-indigo-500/20 hover:shadow-glow-violet hover:brightness-[1.06] transition-all duration-300 disabled:opacity-40 disabled:cursor-not-allowed"
-              >
-                <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 19l9 2-9-18-9 18 9-2zm0 0v-8" />
-                </svg>
-              </button>
-            )}
-          </form>
-          <p className="text-[10px] text-slate-400 mt-2 text-center">
-            Powered by Gemini via Google AI — answers may occasionally be inaccurate
-          </p>
-        </div>
+      <main className="flex-1 max-w-4xl mx-auto w-full px-4 pb-4 flex flex-col min-h-0">
+        <ChatBody {...chat} />
       </main>
       <footer className="max-w-4xl mx-auto px-8 py-3 text-center">
         <p className="text-[10px] text-slate-300/70">
@@ -398,11 +459,11 @@ export default function FaqChatbot() {
   );
 }
 
-function ChatBubble({ role, content, isLast, isStreaming }) {
+function ChatBubble({ role, content, isLast, isStreaming, compact = false }) {
   if (role === 'user') {
     return (
       <div className="flex justify-end animate-spring-in">
-        <div className="max-w-[80%] px-4 py-3 rounded-2xl rounded-br-md bg-gradient-to-r from-indigo-500 to-violet-500 text-white text-sm leading-relaxed shadow-lg shadow-indigo-500/10">
+        <div className={`max-w-[80%] ${compact ? 'px-3 py-2 text-[12px]' : 'px-4 py-3 text-sm'} rounded-2xl rounded-br-md bg-gradient-to-r from-indigo-500 to-violet-500 text-white leading-relaxed shadow-lg shadow-indigo-500/10`}>
           {content}
         </div>
       </div>
@@ -411,14 +472,14 @@ function ChatBubble({ role, content, isLast, isStreaming }) {
 
   return (
     <div className="flex justify-start animate-spring-in">
-      <div className="flex gap-3 max-w-[85%]">
-        <div className="w-7 h-7 rounded-full bg-gradient-to-br from-slate-100 to-slate-200 flex items-center justify-center flex-shrink-0 mt-1 shadow-sm">
-          <svg className="w-3.5 h-3.5 text-indigo-500" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+      <div className={`flex gap-2.5 max-w-[85%]`}>
+        <div className={`${compact ? 'w-6 h-6' : 'w-7 h-7'} rounded-full bg-gradient-to-br from-slate-100 to-slate-200 flex items-center justify-center flex-shrink-0 mt-1 shadow-sm`}>
+          <svg className={`${compact ? 'w-3 h-3' : 'w-3.5 h-3.5'} text-indigo-500`} fill="none" stroke="currentColor" viewBox="0 0 24 24">
             <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2}
               d="M9.663 17h4.673M12 3v1m6.364 1.636l-.707.707M21 12h-1M4 12H3m3.343-5.657l-.707-.707m2.828 9.9a5 5 0 117.072 0l-.548.547A3.374 3.374 0 0014 18.469V19a2 2 0 11-4 0v-.531c0-.895-.356-1.754-.988-2.386l-.548-.547z" />
           </svg>
         </div>
-        <div className="px-4 py-3 rounded-2xl rounded-bl-md bg-white/70 border border-slate-200/40 shadow-glass text-sm text-slate-700 leading-relaxed">
+        <div className={`${compact ? 'px-3 py-2 text-[12px]' : 'px-4 py-3 text-sm'} rounded-2xl rounded-bl-md bg-white/70 border border-slate-200/40 shadow-glass text-slate-700 leading-relaxed`}>
           {content ? (
             <FormattedContent text={content} />
           ) : isLast && isStreaming ? (
@@ -438,14 +499,12 @@ function ChatBubble({ role, content, isLast, isStreaming }) {
 }
 
 function FormattedContent({ text }) {
-  // Simple markdown-like rendering: bold, lists, line breaks
   const lines = text.split('\n');
   const elements = [];
 
   for (let i = 0; i < lines.length; i++) {
     let line = lines[i];
 
-    // Heading (##)
     if (line.match(/^#{1,3}\s/)) {
       const cleaned = line.replace(/^#{1,3}\s*/, '');
       elements.push(
@@ -456,7 +515,6 @@ function FormattedContent({ text }) {
       continue;
     }
 
-    // Bullet list
     if (line.match(/^[-*]\s/)) {
       const cleaned = line.replace(/^[-*]\s*/, '');
       elements.push(
@@ -468,7 +526,6 @@ function FormattedContent({ text }) {
       continue;
     }
 
-    // Numbered list
     if (line.match(/^\d+\.\s/)) {
       const num = line.match(/^(\d+)\./)[1];
       const cleaned = line.replace(/^\d+\.\s*/, '');
@@ -481,13 +538,11 @@ function FormattedContent({ text }) {
       continue;
     }
 
-    // Empty line
     if (!line.trim()) {
       elements.push(<div key={i} className="h-2" />);
       continue;
     }
 
-    // Normal paragraph
     elements.push(<div key={i}>{formatInline(line)}</div>);
   }
 
@@ -495,13 +550,11 @@ function FormattedContent({ text }) {
 }
 
 function formatInline(text) {
-  // Bold: **text**
   const parts = text.split(/(\*\*[^*]+\*\*)/g);
   return parts.map((part, i) => {
     if (part.startsWith('**') && part.endsWith('**')) {
       return <strong key={i} className="font-semibold text-slate-800">{part.slice(2, -2)}</strong>;
     }
-    // Inline code: `text`
     const codeParts = part.split(/(`[^`]+`)/g);
     return codeParts.map((cp, j) => {
       if (cp.startsWith('`') && cp.endsWith('`')) {

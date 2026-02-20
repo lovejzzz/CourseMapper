@@ -1,8 +1,8 @@
-import React, { useState, useRef, useEffect } from 'react';
+import React, { useState, useRef, useEffect, useCallback } from 'react';
 import GenerationLogPanel from './GenerationLogPanel';
 import ExamSummary from './ExamSummary';
-import ExportBar from './ExportBar';
 import RevisionChat from './RevisionChat';
+import { parseFile } from '../lib/fileParser';
 
 const STEPS = [
   { key: 'parsing', label: 'Parsing uploaded files' },
@@ -13,17 +13,154 @@ const STEPS = [
   { key: 'done', label: 'Course map ready' },
 ];
 
+// Maps featureId → display label
+const FEATURE_LABELS = {
+  lessonPlans: 'Lesson Plans',
+  slideDecks: 'Slide Decks',
+  rubrics: 'Rubrics',
+  quizBank: 'Quiz & Exam Bank',
+  discussions: 'Discussion Prompts',
+  assignments: 'Assignment Briefs',
+  studyGuides: 'Study Guides',
+  syllabus: 'Syllabus',
+};
+
+// Live elapsed timer for currently generating deliverable
+function ElapsedTimer({ startedAt, avgMs }) {
+  const [now, setNow] = useState(Date.now());
+  useEffect(() => {
+    const id = setInterval(() => setNow(Date.now()), 1000);
+    return () => clearInterval(id);
+  }, []);
+  const elapsed = now - startedAt;
+  const elStr = elapsed < 60000 ? `${(elapsed / 1000).toFixed(0)}s` : `${(elapsed / 60000).toFixed(1)}m`;
+  const etaStr = avgMs ? (avgMs < 60000 ? `~${(avgMs / 1000).toFixed(0)}s` : `~${(avgMs / 60000).toFixed(1)}m`) : null;
+  return (
+    <span className="text-[9px] font-semibold text-indigo-400 animate-pulse tabular-nums">
+      {elStr}{etaStr && <span className="text-slate-400 font-normal"> / {etaStr}</span>}
+    </span>
+  );
+}
+
+// Status icon for each deliverable row
+function DelivStatusIcon({ status }) {
+  if (status === 'done') {
+    return (
+      <div className="w-5 h-5 rounded-full bg-emerald-100/80 flex items-center justify-center flex-shrink-0">
+        <svg className="w-3 h-3 text-emerald-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+          <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2.5} d="M5 13l4 4L19 7" />
+        </svg>
+      </div>
+    );
+  }
+  if (status === 'streaming' || status === 'generating') {
+    return (
+      <div className="w-5 h-5 rounded-full bg-indigo-100/80 flex items-center justify-center flex-shrink-0">
+        <svg className="animate-spin w-3 h-3 text-indigo-500" fill="none" viewBox="0 0 24 24">
+          <circle className="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" strokeWidth="4" />
+          <path className="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4z" />
+        </svg>
+      </div>
+    );
+  }
+  if (status === 'error') {
+    return (
+      <div className="w-5 h-5 rounded-full bg-red-100/80 flex items-center justify-center flex-shrink-0">
+        <svg className="w-3 h-3 text-red-500" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+          <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2.5} d="M6 18L18 6M6 6l12 12" />
+        </svg>
+      </div>
+    );
+  }
+  return (
+    <div className="w-5 h-5 rounded-full bg-slate-100/60 flex items-center justify-center flex-shrink-0">
+      <div className="w-1.5 h-1.5 rounded-full bg-slate-300" />
+    </div>
+  );
+}
+
+// Sync cascade log item type → styles
+const SYNC_TYPE_STYLES = {
+  start:   { bg: 'bg-indigo-50', text: 'text-indigo-600', dot: 'bg-indigo-400', label: 'Updating' },
+  done:    { bg: 'bg-emerald-50', text: 'text-emerald-600', dot: 'bg-emerald-400', label: 'Updated' },
+  error:   { bg: 'bg-red-50', text: 'text-red-600', dot: 'bg-red-400', label: 'Failed' },
+  pending: { bg: 'bg-amber-50', text: 'text-amber-600', dot: 'bg-amber-400', label: 'Queued' },
+};
+
+// Deliverable log entry type → styles
+const DELIV_LOG_STYLES = {
+  start:    { text: 'text-slate-400', dot: 'bg-slate-300' },
+  progress: { text: 'text-indigo-500', dot: 'bg-indigo-400' },
+  done:     { text: 'text-emerald-600', dot: 'bg-emerald-400' },
+  error:    { text: 'text-red-500', dot: 'bg-red-400' },
+  warn:     { text: 'text-amber-600', dot: 'bg-amber-400' },
+  info:     { text: 'text-slate-500', dot: 'bg-slate-300' },
+};
+
 export default function ProgressPanel({
   currentStep, modelName, error,
-  courseMap, onRevision, isRevising,
+  courseMap, activeTab, onRevision, onDeliverableRevision, isRevising,
   streamDetail, streamProgress, onStop,
   isStopped, onResume, onClearAll,
-  examChanges, retryInfo, completenessInfo, generationLog, onExport, onImport, onRetryExamine,
+  examChanges, retryInfo, completenessInfo, generationLog, onRetryExamine,
   chatHistory, onChatHistoryChange,
+  // Item 3: deliverable generation state
+  deliverables, delivProgress, currentDelivFeature, isDelivGenerating,
+  delivGenerationLog, delivTimings,
+  // Item 6: cascade sync log
+  syncLog,
+  // Version history (moved from ExportSidePanel)
+  versionHistory, activeVersion, onJumpVersion,
+  // Named snapshots (1.4)
+  namedSnapshots, onSaveSnapshot, onDeleteSnapshot, onLoadSnapshot,
+  // Style reference (per-deliverable, scoped to active tab)
+  deliverableConfig, setDeliverableConfig,
 }) {
   // Track start time for ETA calculation
   const startTimeRef = useRef(null);
   const [eta, setEta] = useState('');
+  const [syncExpanded, setSyncExpanded] = useState(false);
+  const [delivExpanded, setDelivExpanded] = useState(true);
+  const [delivLogExpanded, setDelivLogExpanded] = useState(false);
+  const [historyExpanded, setHistoryExpanded] = useState(false);
+  const [showSnapshotInput, setShowSnapshotInput] = useState(false);
+  const [snapshotLabel, setSnapshotLabel] = useState('');
+  // Collapsed summary state — auto-collapses when fully done
+  const [summaryCollapsed, setSummaryCollapsed] = useState(false);
+  const prevAllDoneRef = useRef(false);
+
+  // Style reference state (for the revision section)
+  const [refParsing, setRefParsing] = useState(false);
+  const refInputRef = useRef(null);
+  const isDeliverableTab = activeTab && activeTab !== 'courseMap';
+  const currentDelivConfig = (isDeliverableTab && deliverableConfig?.[activeTab]) || {};
+  const currentRefFile = currentDelivConfig.referenceFileName || null;
+
+  const handleRefUpload = useCallback(async (e) => {
+    const file = e.target.files?.[0];
+    if (!file || !setDeliverableConfig || !isDeliverableTab) return;
+    setRefParsing(true);
+    try {
+      const text = await parseFile(file);
+      setDeliverableConfig(prev => ({
+        ...prev,
+        [activeTab]: { ...(prev[activeTab] || {}), referenceFileName: file.name, referenceFileText: text || '' },
+      }));
+    } catch (err) {
+      console.warn('Reference file parse failed:', err);
+    } finally {
+      setRefParsing(false);
+      if (refInputRef.current) refInputRef.current.value = '';
+    }
+  }, [activeTab, isDeliverableTab, setDeliverableConfig]);
+
+  const handleRemoveRef = useCallback(() => {
+    if (!setDeliverableConfig || !isDeliverableTab) return;
+    setDeliverableConfig(prev => ({
+      ...prev,
+      [activeTab]: { ...(prev[activeTab] || {}), referenceFileName: null, referenceFileText: null },
+    }));
+  }, [activeTab, isDeliverableTab, setDeliverableConfig]);
 
   useEffect(() => {
     if ((currentStep === 'generating' || currentStep === 'continuing' || currentStep === 'examining') && !startTimeRef.current) {
@@ -48,9 +185,20 @@ export default function ProgressPanel({
     else setEta(`~${Math.ceil(remaining / 60)}min left`);
   }, [streamProgress]);
 
+  // Auto-expand sync log when cascade events arrive (Item 6)
+  const prevSyncLenRef = useRef(0);
+  useEffect(() => {
+    if (syncLog && syncLog.length > prevSyncLenRef.current) {
+      prevSyncLenRef.current = syncLog.length;
+      if (!syncExpanded) setSyncExpanded(true);
+    }
+  }, [syncLog?.length]); // eslint-disable-line react-hooks/exhaustive-deps
+
   if (!currentStep && !error) return null;
 
-  const isDone = currentStep === 'done' && !isRevising;
+  // isDone = course map generation finished. isRevising (deliverables/revision) is shown BELOW,
+  // but should NOT revert the progress panel back to the "generating steps" view.
+  const isDone = currentStep === 'done';
 
   // Only show the 'continuing' step if auto-continuation is active or was used
   const showContinuing = completenessInfo && (
@@ -61,21 +209,127 @@ export default function ProgressPanel({
   const visibleSteps = showContinuing ? STEPS : STEPS.filter(s => s.key !== 'continuing');
   const currentIdx = visibleSteps.findIndex((s) => s.key === currentStep);
 
+  // Deliverable rows to show (only non-courseMap)
+  const delivRows = deliverables
+    ? Object.entries(deliverables)
+        .filter(([id]) => id !== 'courseMap')
+        .map(([id, state]) => ({ id, label: FEATURE_LABELS[id] || id, status: state?.status, error: state?.error }))
+    : [];
+
+  const allDelivDone = delivRows.length === 0 || (delivRows.length > 0 && !isDelivGenerating && delivRows.every(r => r.status === 'done' || r.status === 'error'));
+  const everythingDone = isDone && allDelivDone;
+
+  // Auto-collapse when fully done (with a short delay for the user to see the final state)
+  useEffect(() => {
+    if (everythingDone && !prevAllDoneRef.current) {
+      prevAllDoneRef.current = true;
+      const t = setTimeout(() => setSummaryCollapsed(true), 2200);
+      return () => clearTimeout(t);
+    }
+    if (!everythingDone) {
+      prevAllDoneRef.current = false;
+      setSummaryCollapsed(false);
+    }
+  }, [everythingDone]);
+
+  // Recent sync entries (last 5)
+  const recentSync = syncLog ? [...syncLog].reverse().slice(0, 5) : [];
+
+  // Build summary line for collapsed state
+  const lessonCount = completenessInfo?.actual || courseMap?.lessons?.length || 0;
+  const delivDoneCount = delivRows.filter(r => r.status === 'done').length;
+  const delivErrorCount = delivRows.filter(r => r.status === 'error').length;
+  let summaryText = `${lessonCount} lessons generated`;
+  if (delivRows.length > 0) {
+    if (delivErrorCount > 0) {
+      summaryText += ` · ${delivDoneCount}/${delivRows.length} deliverables (${delivErrorCount} failed)`;
+    } else {
+      summaryText += ` · ${delivDoneCount} deliverable${delivDoneCount !== 1 ? 's' : ''} ready`;
+    }
+  }
+
+  // Collapsed summary view
+  if (isDone && summaryCollapsed) {
+    return (
+      <div className="glass rounded-squircle shadow-glass overflow-hidden animate-spring-scale">
+        <button
+          onClick={() => setSummaryCollapsed(false)}
+          className="w-full p-4 flex items-center gap-3 hover:bg-white/20 transition-colors text-left"
+        >
+          <div className="w-7 h-7 rounded-full bg-emerald-100/80 flex items-center justify-center flex-shrink-0">
+            <svg className="w-3.5 h-3.5 text-emerald-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2.5} d="M5 13l4 4L19 7" />
+            </svg>
+          </div>
+          <div className="flex-1 min-w-0">
+            <p className="text-sm font-semibold text-emerald-700">
+              {isDelivGenerating ? 'Generating deliverables…' : 'Generation complete'}
+            </p>
+            <p className="text-[11px] text-slate-400 truncate">{summaryText}</p>
+          </div>
+          <svg className="w-4 h-4 text-slate-400 flex-shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+            <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M19 9l-7 7-7-7" />
+          </svg>
+        </button>
+
+        {/* Revision chat still accessible when collapsed */}
+        {(isDone || isStopped) && courseMap && (() => {
+          const delivLabel = FEATURE_LABELS[activeTab] || activeTab;
+          const revHandler = isDeliverableTab && onDeliverableRevision ? onDeliverableRevision : onRevision;
+          const placeholder = isDeliverableTab ? `Ask for revisions to ${delivLabel}…` : 'Ask for revisions or drop files…';
+          const tabBadge = isDeliverableTab ? delivLabel : 'Course Map';
+          return (
+            <div>
+              <div className="px-5 pt-1 pb-1 flex items-center gap-1.5">
+                <span className="text-[9px] font-bold text-slate-400 uppercase tracking-wider">Revising:</span>
+                <span className="text-[9px] font-bold px-2 py-0.5 rounded-full bg-indigo-50 text-indigo-600 border border-indigo-100">{tabBadge}</span>
+              </div>
+              {/* Style Reference — only for deliverable tabs */}
+              {isDeliverableTab && setDeliverableConfig && (
+                <StyleReferenceBlock
+                  currentRefFile={currentRefFile}
+                  refParsing={refParsing}
+                  refInputRef={refInputRef}
+                  onUpload={handleRefUpload}
+                  onRemove={handleRemoveRef}
+                />
+              )}
+              <RevisionChat onRevision={revHandler} isRevising={isRevising} savedMessages={chatHistory} onMessagesChange={onChatHistoryChange} placeholder={placeholder} courseMap={courseMap} isStopped={isStopped} onResume={onResume} />
+            </div>
+          );
+        })()}
+      </div>
+    );
+  }
+
   return (
     <div className="glass rounded-squircle shadow-glass overflow-hidden animate-spring-scale">
       <div className="p-7 pb-5">
-        <h2 className="text-base font-semibold text-slate-800 mb-4 flex items-center gap-2.5">
+        {/* Header — collapsible when done */}
+        <div className="flex items-center gap-2.5 mb-4">
           <div className="w-8 h-8 rounded-squircle-xs bg-gradient-to-br from-cyan-500 to-blue-600 flex items-center justify-center flex-shrink-0">
             <svg className="w-4 h-4 text-white" viewBox="0 0 24 24" fill="none">
               <path d="M12 2v4m0 12v4M4.93 4.93l2.83 2.83m8.48 8.48l2.83 2.83M2 12h4m12 0h4M4.93 19.07l2.83-2.83m8.48-8.48l2.83-2.83" stroke="currentColor" strokeWidth={1.6} strokeLinecap="round"/>
               <circle cx="12" cy="12" r="3" stroke="currentColor" strokeWidth={1.6}/>
             </svg>
           </div>
-          Generation Progress
-        </h2>
+          <h2 className="text-base font-semibold text-slate-800 flex-1">Generation Progress</h2>
+          {isDone && (
+            <button
+              onClick={() => setSummaryCollapsed(true)}
+              className="p-1 rounded-lg text-slate-400 hover:text-slate-600 hover:bg-slate-100/60 transition-all"
+              title="Collapse"
+            >
+              <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M5 15l7-7 7 7" />
+              </svg>
+            </button>
+          )}
+        </div>
 
         {isDone ? (
           <div>
+            {/* Course map done row */}
             <div className="flex items-center gap-3 py-1">
               <div className="w-7 h-7 rounded-full bg-emerald-100/80 flex items-center justify-center flex-shrink-0">
                 <svg className="w-3.5 h-3.5 text-emerald-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
@@ -100,18 +354,276 @@ export default function ProgressPanel({
                 <div className="h-full bg-emerald-500 rounded-full w-full" />
               </div>
             </div>
+
+            {/* Deliverable generation status */}
+            {delivRows.length > 0 && (
+              <div className="mt-3">
+                <button
+                  onClick={() => setDelivExpanded(v => !v)}
+                  className="flex items-center gap-2 w-full text-left mb-2"
+                >
+                  <span className="text-[10px] font-bold text-slate-400 uppercase tracking-wider">
+                    Deliverables
+                  </span>
+                  {isDelivGenerating ? (
+                    <span className="text-[10px] text-indigo-500 font-semibold">
+                      {delivRows.filter(r => r.status === 'done').length}/{delivRows.length} done
+                    </span>
+                  ) : (
+                    <span className="text-[10px] text-slate-400">
+                      ({delivRows.filter(r => r.status === 'done').length}/{delivRows.length})
+                    </span>
+                  )}
+                  {isDelivGenerating && (
+                    <svg className="animate-spin w-3 h-3 text-indigo-400 flex-shrink-0" fill="none" viewBox="0 0 24 24">
+                      <circle className="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" strokeWidth="4" />
+                      <path className="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4z" />
+                    </svg>
+                  )}
+                  <svg className={`w-3 h-3 text-slate-400 transition-transform ml-auto ${delivExpanded ? 'rotate-180' : ''}`} fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M19 9l-7 7-7-7" />
+                  </svg>
+                </button>
+                {delivExpanded && (
+                  <div className="space-y-1">
+                    {delivRows.map(row => {
+                      const timing = delivTimings?.[row.id];
+                      const doneMs = timing?.durationMs;
+                      const isActive = row.id === currentDelivFeature && isDelivGenerating;
+                      // Compute avg duration of completed deliverables for ETA
+                      const completedDurations = delivTimings ? Object.values(delivTimings).filter(t => t.durationMs).map(t => t.durationMs) : [];
+                      const avgMs = completedDurations.length > 0 ? completedDurations.reduce((a, b) => a + b, 0) / completedDurations.length : null;
+                      return (
+                        <div key={row.id} className="flex items-center gap-2.5 px-2 py-1 rounded-lg">
+                          <DelivStatusIcon status={row.status} />
+                          <span className={`text-[11px] font-medium ${
+                            row.status === 'done' ? 'text-emerald-700'
+                            : row.status === 'error' ? 'text-red-500'
+                            : row.status === 'streaming' || row.status === 'generating' ? 'text-indigo-600'
+                            : 'text-slate-400'
+                          }`}>
+                            {row.label}
+                          </span>
+                          <span className="ml-auto flex items-center gap-2">
+                            {/* Time spent for completed deliverables */}
+                            {doneMs && row.status === 'done' && (
+                              <span className="text-[9px] text-emerald-500 font-medium">
+                                {doneMs < 60000 ? `${(doneMs / 1000).toFixed(1)}s` : `${(doneMs / 60000).toFixed(1)}m`}
+                              </span>
+                            )}
+                            {/* Elapsed + ETA for currently generating */}
+                            {isActive && timing?.startedAt && (
+                              <ElapsedTimer startedAt={timing.startedAt} avgMs={avgMs} />
+                            )}
+                            {/* Pending ETA based on average */}
+                            {!isActive && !doneMs && row.status !== 'error' && avgMs && isDelivGenerating && (
+                              <span className="text-[9px] text-slate-400">
+                                ~{avgMs < 60000 ? `${(avgMs / 1000).toFixed(0)}s` : `${(avgMs / 60000).toFixed(1)}m`}
+                              </span>
+                            )}
+                            {row.error && (
+                              <span className="text-[9px] text-red-400 truncate max-w-[100px]" title={row.error}>
+                                {row.error}
+                              </span>
+                            )}
+                          </span>
+                        </div>
+                      );
+                    })}
+                  </div>
+                )}
+
+                {/* Deliverable generation log — richer detail */}
+                {delivGenerationLog && delivGenerationLog.length > 0 && (
+                  <div className="mt-2">
+                    <button
+                      onClick={() => setDelivLogExpanded(v => !v)}
+                      className="flex items-center gap-1.5 text-[10px] font-bold text-slate-400 uppercase tracking-wider hover:text-slate-500 transition-colors"
+                    >
+                      <svg className={`w-2.5 h-2.5 transition-transform ${delivLogExpanded ? 'rotate-90' : ''}`} fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                        <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 5l7 7-7 7" />
+                      </svg>
+                      Generation Log
+                      {isDelivGenerating && <span className="w-1.5 h-1.5 rounded-full bg-indigo-400 animate-pulse ml-1" />}
+                    </button>
+                    {delivLogExpanded && (
+                      <div className="mt-1.5 space-y-0.5 max-h-40 overflow-y-auto">
+                        {delivGenerationLog.map((entry, i) => {
+                          const style = DELIV_LOG_STYLES[entry.type] || DELIV_LOG_STYLES.info;
+                          return (
+                            <div key={i} className="flex items-start gap-2 px-2 py-1 rounded-md hover:bg-slate-50/60">
+                              <span className={`w-1.5 h-1.5 mt-1.5 rounded-full flex-shrink-0 ${style.dot}`} />
+                              <span className={`text-[10px] leading-relaxed ${style.text}`}>{entry.message}</span>
+                              {entry.at && (
+                                <span className="ml-auto text-[9px] text-slate-300 flex-shrink-0">
+                                  {new Date(entry.at).toLocaleTimeString([], { hour: '2-digit', minute: '2-digit', second: '2-digit' })}
+                                </span>
+                              )}
+                            </div>
+                          );
+                        })}
+                      </div>
+                    )}
+                  </div>
+                )}
+              </div>
+            )}
+
             {generationLog && generationLog.length > 0 && (
               <GenerationLogPanel entries={generationLog} defaultCollapsed={true} />
             )}
             {examChanges && examChanges.length > 0 && (
               <ExamSummary changes={examChanges} onRetry={onRetryExamine} />
             )}
-            {onExport && (
-              <ExportBar onExport={onExport} onImport={onImport} />
+
+            {/* Cascade sync activity */}
+            {recentSync.length > 0 && (
+              <div className="mt-3">
+                <button
+                  onClick={() => setSyncExpanded(v => !v)}
+                  className="flex items-center gap-2 w-full text-left mb-1.5"
+                >
+                  <span className="text-[10px] font-bold text-slate-400 uppercase tracking-wider">Auto-sync Activity</span>
+                  {syncLog?.some(e => e.type === 'start') && (
+                    <span className="w-1.5 h-1.5 rounded-full bg-indigo-400 animate-pulse flex-shrink-0" />
+                  )}
+                  <svg className={`w-3 h-3 text-slate-400 transition-transform ${syncExpanded ? 'rotate-180' : ''}`} fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M19 9l-7 7-7-7" />
+                  </svg>
+                </button>
+                {syncExpanded && (
+                  <div className="space-y-1">
+                    {recentSync.map((entry, i) => {
+                      const style = SYNC_TYPE_STYLES[entry.type] || SYNC_TYPE_STYLES.pending;
+                      const featLabel = FEATURE_LABELS[entry.featureId] || entry.featureId || '–';
+                      return (
+                        <div key={i} className={`flex items-start gap-2 px-2.5 py-1.5 rounded-lg ${style.bg}`}>
+                          <span className={`w-1.5 h-1.5 mt-1.5 rounded-full flex-shrink-0 ${style.dot}`} />
+                          <div className="min-w-0">
+                            <span className={`text-[10px] font-semibold ${style.text}`}>{style.label}:</span>
+                            <span className="text-[10px] text-slate-600 ml-1">{featLabel}</span>
+                            {entry.message && (
+                              <p className="text-[9px] text-slate-400 mt-0.5 truncate">{entry.message}</p>
+                            )}
+                          </div>
+                        </div>
+                      );
+                    })}
+                  </div>
+                )}
+              </div>
+            )}
+
+            {/* Named Snapshots (1.4) */}
+            {onSaveSnapshot && (
+              <div className="mt-3 pt-3 border-t border-slate-100/60">
+                <div className="flex items-center justify-between mb-1.5">
+                  <span className="text-[10px] font-bold text-slate-400 uppercase tracking-wider flex items-center gap-1.5">
+                    <span>📌</span> Saved Versions
+                    {namedSnapshots?.length > 0 && <span className="text-slate-300">({namedSnapshots.length})</span>}
+                  </span>
+                  <button
+                    onClick={() => { setShowSnapshotInput(v => !v); setSnapshotLabel(''); }}
+                    className="text-[10px] font-semibold text-indigo-500 hover:text-indigo-700 px-1.5 py-0.5 rounded hover:bg-indigo-50 transition-colors"
+                  >
+                    {showSnapshotInput ? 'Cancel' : '+ Name'}
+                  </button>
+                </div>
+                {showSnapshotInput && (
+                  <div className="flex gap-1.5 mb-2">
+                    <input
+                      autoFocus
+                      type="text"
+                      value={snapshotLabel}
+                      onChange={e => setSnapshotLabel(e.target.value)}
+                      placeholder={'e.g. Fall 2026'}
+                      className="flex-1 text-[10px] border border-slate-200 rounded-md px-2 py-1 focus:outline-none focus:ring-1 focus:ring-indigo-400"
+                      onKeyDown={e => {
+                        if (e.key === 'Enter') {
+                          onSaveSnapshot(snapshotLabel);
+                          setShowSnapshotInput(false);
+                          setSnapshotLabel('');
+                        }
+                      }}
+                    />
+                    <button
+                      onClick={() => { onSaveSnapshot(snapshotLabel); setShowSnapshotInput(false); setSnapshotLabel(''); }}
+                      className="text-[10px] font-semibold text-white bg-indigo-500 hover:bg-indigo-600 px-2 py-1 rounded-md transition-colors"
+                    >
+                      Save
+                    </button>
+                  </div>
+                )}
+                {namedSnapshots?.length > 0 ? (
+                  <div className="space-y-1 max-h-32 overflow-y-auto">
+                    {namedSnapshots.map(snap => (
+                      <div key={snap.id} className="flex items-center gap-1.5 group">
+                        <button
+                          onClick={() => onLoadSnapshot && onLoadSnapshot(snap)}
+                          className="flex-1 text-left px-2 py-1 rounded-md text-[10px] text-slate-600 hover:bg-indigo-50 hover:text-indigo-700 transition-colors truncate"
+                          title={`Restore: ${snap.label}`}
+                        >
+                          <span className="font-semibold">{snap.label}</span>
+                          <span className="ml-1.5 text-slate-400 font-normal">{new Date(snap.savedAt).toLocaleDateString()}</span>
+                        </button>
+                        <button
+                          onClick={() => onDeleteSnapshot && onDeleteSnapshot(snap.id)}
+                          className="opacity-0 group-hover:opacity-100 p-0.5 text-slate-300 hover:text-red-400 transition-all"
+                          title="Delete snapshot"
+                        >
+                          <svg className="w-3 h-3" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M6 18L18 6M6 6l12 12" /></svg>
+                        </button>
+                      </div>
+                    ))}
+                  </div>
+                ) : (
+                  <p className="text-[9px] text-slate-400 italic">No saved versions yet. Click "+ Name" to pin the current state.</p>
+                )}
+              </div>
+            )}
+
+            {/* Version History */}
+            {versionHistory && versionHistory.length > 1 && (
+              <div className="mt-3 pt-3 border-t border-slate-100/60">
+                <button
+                  onClick={() => setHistoryExpanded(v => !v)}
+                  className="flex items-center gap-2 w-full text-left mb-1.5"
+                >
+                  <svg className="w-3 h-3 text-slate-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 8v4l3 3m6-3a9 9 0 11-18 0 9 9 0 0118 0z" />
+                  </svg>
+                  <span className="text-[10px] font-bold text-slate-400 uppercase tracking-wider">
+                    Version History ({versionHistory.length})
+                  </span>
+                  <svg className={`w-3 h-3 text-slate-400 transition-transform ml-auto ${historyExpanded ? 'rotate-180' : ''}`} fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M19 9l-7 7-7-7" />
+                  </svg>
+                </button>
+                {historyExpanded && (
+                  <div className="space-y-1 max-h-44 overflow-y-auto">
+                    {versionHistory.slice().reverse().map((v, ri) => {
+                      const idx = versionHistory.length - 1 - ri;
+                      const isActive = idx === activeVersion;
+                      return (
+                        <button
+                          key={idx}
+                          onClick={() => onJumpVersion && onJumpVersion(idx)}
+                          className={`w-full text-left px-2.5 py-1.5 rounded-lg text-[10px] transition-colors flex items-center gap-2 ${isActive ? 'bg-indigo-50 text-indigo-600 font-semibold' : 'text-slate-500 hover:bg-slate-50'}`}
+                        >
+                          <span className={`w-1.5 h-1.5 rounded-full flex-shrink-0 ${isActive ? 'bg-indigo-500' : 'bg-slate-300'}`} />
+                          <span className="truncate flex-1">{v.label || `v${idx + 1}`}</span>
+                          <span className="text-[9px] text-slate-400 flex-shrink-0">{new Date(v.savedAt || v.at || 0).toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })}</span>
+                        </button>
+                      );
+                    })}
+                  </div>
+                )}
+              </div>
             )}
           </div>
         ) : (
           <>
+            {/* Course map generation steps */}
             <div className="space-y-0.5">
               {visibleSteps.map((step, idx) => {
                 let state = 'pending';
@@ -147,6 +659,35 @@ export default function ProgressPanel({
                 );
               })}
             </div>
+
+            {/* Deliverable generation progress while course map generates */}
+            {delivRows.length > 0 && (
+              <div className="mt-3 pt-3 border-t border-slate-100/60">
+                <p className="text-[10px] font-bold text-slate-400 uppercase tracking-wider mb-2">
+                  Deliverables — generating after course map
+                </p>
+                <div className="space-y-1">
+                  {delivRows.map(row => (
+                    <div key={row.id} className="flex items-center gap-2.5 px-2 py-1">
+                      <DelivStatusIcon status={row.status} />
+                      <span className={`text-[11px] font-medium ${
+                        row.status === 'done' ? 'text-emerald-700'
+                        : row.status === 'streaming' || row.status === 'generating' ? 'text-indigo-600'
+                        : row.status === 'error' ? 'text-red-500'
+                        : 'text-slate-300'
+                      }`}>
+                        {row.label}
+                      </span>
+                      {row.id === currentDelivFeature && isDelivGenerating && delivProgress && (
+                        <span className="ml-auto text-[9px] font-semibold text-indigo-400 animate-pulse">
+                          Generating…
+                        </span>
+                      )}
+                    </div>
+                  ))}
+                </div>
+              </div>
+            )}
 
             {generationLog && generationLog.length > 0 && (
               <GenerationLogPanel entries={generationLog} />
@@ -239,13 +780,154 @@ export default function ProgressPanel({
                 )}
               </div>
             )}
+
+            {/* Live cascade sync log during generation */}
+            {recentSync.length > 0 && (
+              <div className="mt-3 pt-3 border-t border-slate-100/60">
+                <button
+                  onClick={() => setSyncExpanded(v => !v)}
+                  className="flex items-center gap-2 w-full text-left mb-1.5"
+                >
+                  <span className="text-[10px] font-bold text-slate-400 uppercase tracking-wider">Auto-sync Activity</span>
+                  <span className="w-1.5 h-1.5 rounded-full bg-indigo-400 animate-pulse flex-shrink-0" />
+                  <svg className={`w-3 h-3 text-slate-400 transition-transform ${syncExpanded ? 'rotate-180' : ''}`} fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M19 9l-7 7-7-7" />
+                  </svg>
+                </button>
+                {syncExpanded && (
+                  <div className="space-y-1">
+                    {recentSync.map((entry, i) => {
+                      const style = SYNC_TYPE_STYLES[entry.type] || SYNC_TYPE_STYLES.pending;
+                      const featLabel = FEATURE_LABELS[entry.featureId] || entry.featureId || '–';
+                      return (
+                        <div key={i} className={`flex items-start gap-2 px-2.5 py-1.5 rounded-lg ${style.bg}`}>
+                          <span className={`w-1.5 h-1.5 mt-1.5 rounded-full flex-shrink-0 ${style.dot}`} />
+                          <div className="min-w-0">
+                            <span className={`text-[10px] font-semibold ${style.text}`}>{style.label}:</span>
+                            <span className="text-[10px] text-slate-600 ml-1">{featLabel}</span>
+                            {entry.message && (
+                              <p className="text-[9px] text-slate-400 mt-0.5 truncate">{entry.message}</p>
+                            )}
+                          </div>
+                        </div>
+                      );
+                    })}
+                  </div>
+                )}
+              </div>
+            )}
           </>
         )}
       </div>
 
-      {(isDone || isStopped) && courseMap && (
-        <RevisionChat onRevision={onRevision} isRevising={isRevising} savedMessages={chatHistory} onMessagesChange={onChatHistoryChange} />
+      {(isDone || isStopped) && courseMap && (() => {
+        // Determine which revision handler and label to use based on active tab
+        const delivLabel = FEATURE_LABELS[activeTab] || activeTab;
+        const revHandler = isDeliverableTab && onDeliverableRevision
+          ? onDeliverableRevision
+          : onRevision;
+        const placeholder = isDeliverableTab
+          ? `Ask for revisions to ${delivLabel}…`
+          : 'Ask for revisions or drop files…';
+        const tabBadge = isDeliverableTab ? delivLabel : 'Course Map';
+        return (
+          <div>
+            {/* Context label */}
+            <div className="px-5 pt-3 pb-1 flex items-center gap-1.5">
+              <span className="text-[9px] font-bold text-slate-400 uppercase tracking-wider">Revising:</span>
+              <span className="text-[9px] font-bold px-2 py-0.5 rounded-full bg-indigo-50 text-indigo-600 border border-indigo-100">
+                {tabBadge}
+              </span>
+            </div>
+            {/* Style Reference — only for deliverable tabs */}
+            {isDeliverableTab && setDeliverableConfig && (
+              <div className="px-5 pb-2">
+                <StyleReferenceBlock
+                  currentRefFile={currentRefFile}
+                  refParsing={refParsing}
+                  refInputRef={refInputRef}
+                  onUpload={handleRefUpload}
+                  onRemove={handleRemoveRef}
+                />
+              </div>
+            )}
+            <RevisionChat
+              onRevision={revHandler}
+              isRevising={isRevising}
+              savedMessages={chatHistory}
+              onMessagesChange={onChatHistoryChange}
+              placeholder={placeholder}
+              courseMap={courseMap}
+              isStopped={isStopped}
+              onResume={onResume}
+            />
+          </div>
+        );
+      })()}
+    </div>
+  );
+}
+
+// ─── Style Reference sub-component ───────────────────────────────────────────
+function StyleReferenceBlock({ currentRefFile, refParsing, refInputRef, onUpload, onRemove }) {
+  return (
+    <div className="mb-2">
+      <p className="text-[9px] font-bold text-slate-400 uppercase tracking-wider mb-1.5 flex items-center gap-1">
+        <svg className="w-3 h-3" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+          <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 12h6m-6 4h6m2 5H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z" />
+        </svg>
+        Style Reference
+      </p>
+      {currentRefFile ? (
+        <div className="flex items-center gap-1.5 px-2 py-1.5 rounded-lg bg-indigo-50 border border-indigo-100">
+          <svg className="w-3 h-3 text-indigo-500 flex-shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+            <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 12h6m-6 4h6m2 5H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z" />
+          </svg>
+          <span className="text-[10px] text-indigo-700 font-medium truncate flex-1" title={currentRefFile}>{currentRefFile}</span>
+          <button
+            onClick={onRemove}
+            className="text-indigo-300 hover:text-red-400 transition-colors flex-shrink-0 p-0.5"
+            title="Remove style reference"
+          >
+            <svg className="w-3 h-3" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M6 18L18 6M6 6l12 12" />
+            </svg>
+          </button>
+        </div>
+      ) : (
+        <button
+          onClick={() => refInputRef.current?.click()}
+          disabled={refParsing}
+          className="w-full flex items-center gap-1.5 px-2 py-1.5 rounded-lg border border-dashed border-slate-200 text-[10px] text-slate-400 hover:border-indigo-300 hover:text-indigo-500 hover:bg-indigo-50/40 transition-all disabled:opacity-50"
+        >
+          {refParsing ? (
+            <>
+              <svg className="animate-spin w-3 h-3 flex-shrink-0" fill="none" viewBox="0 0 24 24">
+                <circle className="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" strokeWidth="4" />
+                <path className="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4z" />
+              </svg>
+              <span>Parsing…</span>
+            </>
+          ) : (
+            <>
+              <svg className="w-3 h-3 flex-shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 4v16m8-8H4" />
+              </svg>
+              <span>Upload style reference</span>
+            </>
+          )}
+        </button>
       )}
+      <input
+        ref={refInputRef}
+        type="file"
+        accept=".pdf,.doc,.docx,.txt"
+        className="hidden"
+        onChange={onUpload}
+      />
+      <p className="text-[9px] text-slate-300 mt-1 leading-relaxed">
+        AI will match formatting & style when revising
+      </p>
     </div>
   );
 }

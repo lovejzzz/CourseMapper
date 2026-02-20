@@ -41,15 +41,36 @@ export default function useStreamReader() {
     let cleaned = stripThinkTags(text);
     const fenceStart = cleaned.indexOf('```');
     if (fenceStart !== -1) {
-      cleaned = cleaned.slice(fenceStart).replace(/^```\w*\n?/, '').replace(/```$/, '');
+      cleaned = cleaned.slice(fenceStart).replace(/^```\w*\n?/, '').replace(/```\s*$/, '');
     }
     const start = cleaned.indexOf('{');
     if (start === -1) return null;
-    const jsonStr = cleaned.slice(start);
+    let jsonStr = cleaned.slice(start);
+    // Strip any trailing text after the last } (e.g. markdown notes the model appended)
+    const lastBrace = jsonStr.lastIndexOf('}');
+    if (lastBrace !== -1 && lastBrace < jsonStr.length - 1) {
+      const trailing = jsonStr.slice(lastBrace + 1).trim();
+      // Only trim if trailing chars are non-JSON (not starting another object)
+      if (trailing && !trailing.startsWith('{') && !trailing.startsWith('[')) {
+        jsonStr = jsonStr.slice(0, lastBrace + 1);
+      }
+    }
     try {
       return deepStripThinkTags(JSON.parse(jsonStr));
     } catch {
       let patched = jsonStr;
+      // Truncate any trailing broken string value (cut mid-value)
+      const lastQuote = patched.lastIndexOf('"');
+      if (lastQuote > 0) {
+        const afterLast = patched.slice(lastQuote + 1).trim();
+        // If the text ends with an unclosed string, close it
+        if (afterLast === '' || /^[,\s]*$/.test(afterLast)) {
+          // already looks okay
+        } else if (!/^[\s,:}\]]/.test(afterLast)) {
+          // Junk after last quote — truncate to last quote and close
+          patched = patched.slice(0, lastQuote + 1);
+        }
+      }
       const quoteCount = (patched.match(/(?<!\\)"/g) || []).length;
       if (quoteCount % 2 !== 0) patched += '"';
       const opens = [];

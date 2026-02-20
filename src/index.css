@@ -164,9 +164,336 @@ body {
   z-index: 9999;
 }
 
+/* ── Fade-in badge (used by save indicator badge) ── */
+@keyframes badgeFadeIn {
+  from { opacity: 0; transform: scale(0.85); }
+  to { opacity: 1; transform: scale(1); }
+}
+.animate-fade-in {
+  animation: badgeFadeIn 0.2s cubic-bezier(0.22, 1, 0.36, 1) both;
+}
+
+/* ── Subtle pulse for streaming cards ── */
+@keyframes pulse-subtle {
+  0%, 100% { opacity: 1; }
+  50% { opacity: 0.85; }
+}
+.animate-pulse-subtle { animation: pulse-subtle 2s ease-in-out infinite; }
+
+/* ── Hide scrollbar utility ── */
+.scrollbar-none::-webkit-scrollbar { display: none; }
+.scrollbar-none { -ms-overflow-style: none; scrollbar-width: none; }
+
 /* ── Smooth focus ring for accessibility ── */
 *:focus-visible {
   outline: 2px solid rgba(99, 102, 241, 0.5);
   outline-offset: 2px;
   border-radius: 8px;
+}
+
+/* ══════════════════════════════════════════════════════════════
+   DARK MODE — Feature 5.4
+   Applied by adding 'dark' class to <html> element.
+   Overrides key backgrounds, text, and border colors globally.
+   ══════════════════════════════════════════════════════════════ */
+
+.dark {
+  color-scheme: dark;
+}
+
+/* Background layers */
+.dark body {
+  background-color: #0f1117;
+  color: #e2e8f0;
+}
+.dark .mesh-bg {
+  background-color: #0f1117;
+  background-image:
+    radial-gradient(ellipse 80% 50% at 5% 0%, rgba(99, 102, 241, 0.12) 0%, transparent 60%),
+    radial-gradient(ellipse 60% 50% at 98% 0%, rgba(139, 92, 246, 0.08) 0%, transparent 55%),
+    radial-gradient(ellipse 50% 35% at 50% 100%, rgba(99, 102, 241, 0.06) 0%, transparent 50%);
+}
+
+/* Glass panels → dark glass */
+.dark .glass {
+  background: rgba(30, 34, 50, 0.85);
+  border: 1px solid rgba(255, 255, 255, 0.07);
+}
+.dark .glass-light {
+  background: rgba(30, 34, 50, 0.55);
+  border: 1px solid rgba(255, 255, 255, 0.05);
+}
+.dark .glass-heavy {
+  background: rgba(20, 24, 38, 0.95);
+  border: 1px solid rgba(255, 255, 255, 0.08);
+}
+
+/* Header */
+.dark header {
+  background: rgba(15, 17, 23, 0.85) !important;
+  border-bottom-color: rgba(255, 255, 255, 0.07) !important;
+}
+
+/* Generic white/light backgrounds → dark */
+.dark .bg-white,
+.dark [class*="bg-white\/"] {
+  background-color: #1a1d27 !important;
+}
+.dark .bg-slate-50,
+.dark [class*="bg-slate-50"] {
+  background-color: #1e2130 !important;
+}
+.dark .bg-slate-100,
+.dark [class*="bg-slate-100"] {
+  background-color: #252836 !important;
+}
+
+/* Text colors */
+.dark .text-slate-900 { color: #f1f5f9 !important; }
+.dark .text-slate-800 { color: #e2e8f0 !important; }
+.dark .text-slate-700 { color: #cbd5e1 !important; }
+.dark .text-slate-600 { color: #94a3b8 !important; }
+.dark .text-slate-500 { color: #64748b !important; }
+.dark .text-slate-400 { color: #475569 !important; }
+.dark .text-slate-300 { color: #334155 !important; }
+
+/* Borders */
+.dark .border-slate-100 { border-color: rgba(255,255,255,0.06) !important; }
+.dark .border-slate-200 { border-color: rgba(255,255,255,0.08) !important; }
+.dark [class*="border-slate-200\/"] { border-color: rgba(255,255,255,0.06) !important; }
+
+/* Table */
+.dark table { color: #cbd5e1; }
+.dark thead { background: rgba(20, 24, 38, 0.9) !important; }
+.dark th { color: #94a3b8 !important; background: rgba(20, 24, 38, 0.9) !important; border-color: rgba(255,255,255,0.06) !important; }
+.dark td { border-color: rgba(255,255,255,0.06) !important; }
+.dark tbody tr:hover { background: rgba(99, 102, 241, 0.05) !important; }
+
+/* Inputs */
+.dark input, .dark textarea, .dark select {
+  background: rgba(30, 34, 50, 0.8) !important;
+  color: #e2e8f0 !important;
+  border-color: rgba(255, 255, 255, 0.1) !important;
+}
+.dark input::placeholder, .dark textarea::placeholder { color: #475569 !important; }
+.dark .input-glass {
+  background: rgba(20, 24, 38, 0.7) !important;
+  border-color: rgba(255,255,255,0.08) !important;
+}
+.dark .input-glass:focus {
+  background: rgba(20, 24, 38, 0.95) !important;
+}
+
+/* Scrollbar */
+.dark ::-webkit-scrollbar-thumb { background: rgba(255,255,255,0.12); }
+.dark ::-webkit-scrollbar-thumb:hover { background: rgba(255,255,255,0.2); }
+
+/* Dropdowns and modals */
+.dark [class*="bg-white\/95"],
+.dark [class*="bg-white\/97"] {
+  background-color: rgba(26, 29, 39, 0.98) !important;
+}
+
+/* ══════════════════════════════════════════════════════════════
+   PRINT STYLES — clean, paper-optimised output
+   ══════════════════════════════════════════════════════════════ */
+@media print {
+  /* Reset layout — make everything flow as a single column */
+  *, *::before, *::after {
+    box-shadow: none !important;
+    text-shadow: none !important;
+    backdrop-filter: none !important;
+    -webkit-backdrop-filter: none !important;
+  }
+
+  html, body {
+    width: 100%;
+    font-size: 11pt;
+    color: #000;
+    background: #fff !important;
+  }
+
+  /* Hide chrome — header, footer, sidebars, banners, buttons */
+  header,
+  footer,
+  [data-print="hide"],
+  .noise-overlay::after,
+  .tactile,
+  nav,
+  button:not(.print-keep),
+  .animate-ping,
+  .animate-spin,
+  [class*="backdrop-blur"] {
+    display: none !important;
+  }
+
+  /* Remove gradient backgrounds from body */
+  .mesh-bg {
+    background: #fff !important;
+    background-image: none !important;
+  }
+
+  /* Glass panels → plain white boxes */
+  .glass, .glass-light, .glass-heavy, .glass-dark {
+    background: #fff !important;
+    border: 1px solid #ddd !important;
+  }
+
+  /* Tables — add borders for print readability */
+  table {
+    border-collapse: collapse;
+    width: 100%;
+    page-break-inside: auto;
+  }
+  tr {
+    page-break-inside: avoid;
+    page-break-after: auto;
+  }
+  th, td {
+    border: 1px solid #ccc;
+    padding: 4pt 6pt;
+    text-align: left;
+    vertical-align: top;
+  }
+  thead {
+    display: table-header-group;
+  }
+
+  /* Page breaks — keep headings with content */
+  h1, h2, h3 {
+    page-break-after: avoid;
+    orphans: 3;
+    widows: 3;
+  }
+
+  /* Course Map table — ensure columns visible */
+  .overflow-x-auto {
+    overflow: visible !important;
+  }
+
+  /* Deliverable cards — expand all collapsed sections */
+  [class*="CollapsibleCard"] > div:last-child,
+  details {
+    display: block !important;
+  }
+
+  /* Slide deck print: show all decks as stacked cards */
+  .slidedecks-print-wrapper {
+    display: block !important;
+  }
+
+  /* Indigo / violet colour → dark grey for print ink saving */
+  [class*="text-indigo"],
+  [class*="text-violet"],
+  [class*="text-emerald"],
+  [class*="text-sky"] {
+    color: #333 !important;
+  }
+  [class*="bg-indigo"],
+  [class*="bg-violet"] {
+    background-color: #f0f0f0 !important;
+  }
+
+  /* Links — show URL after link text */
+  a[href]:after {
+    content: " (" attr(href) ")";
+    font-size: 8pt;
+    color: #666;
+  }
+  a[href^="#"]:after,
+  a[href^="javascript:"]:after {
+    content: "";
+  }
+
+  /* Page margins */
+  @page {
+    margin: 15mm 12mm;
+    size: A4 portrait;
+  }
+  @page :first {
+    margin-top: 20mm;
+  }
+}
+
+/* ══════════════════════════════════════════════════════════════
+   MOBILE RESPONSIVENESS — compact layouts for small screens
+   ══════════════════════════════════════════════════════════════ */
+
+/* Workspace header: wrap on small screens so buttons don't overflow */
+@media (max-width: 640px) {
+  /* Header row: stack title + actions */
+  .workspace-header-row {
+    flex-wrap: wrap;
+    gap: 0.5rem;
+  }
+
+  /* Course map table: ensure horizontal scroll is obvious */
+  .overflow-x-auto {
+    -webkit-overflow-scrolling: touch;
+  }
+  .overflow-x-auto::after {
+    content: '';
+    display: block;
+    position: sticky;
+    right: 0;
+    top: 0;
+    width: 24px;
+    height: 100%;
+    background: linear-gradient(to right, transparent, rgba(247,248,252,0.7));
+    pointer-events: none;
+    float: right;
+    margin-right: -24px;
+  }
+
+  /* Modals: full-width on mobile */
+  .modal-panel {
+    max-width: 100% !important;
+    margin: 0 !important;
+    border-radius: 1rem 1rem 0 0 !important;
+    position: fixed !important;
+    bottom: 0 !important;
+    left: 0 !important;
+    right: 0 !important;
+  }
+
+  /* Export side panel: hide on very small screens (use export button instead) */
+  .export-side-panel-mobile-hide {
+    display: none !important;
+  }
+
+  /* Tab bar: smaller font + padding on mobile */
+  .tab-label-mobile {
+    font-size: 10px;
+  }
+}
+
+/* Tablet (641px – 1023px): side panel becomes narrower */
+@media (min-width: 641px) and (max-width: 1023px) {
+  .export-side-panel {
+    width: 200px !important;
+  }
+}
+
+/* Scroll-fade indicator for horizontally scrollable tables */
+.scroll-fade-right {
+  position: relative;
+}
+.scroll-fade-right::after {
+  content: '';
+  position: absolute;
+  top: 0;
+  right: 0;
+  width: 32px;
+  height: 100%;
+  background: linear-gradient(to right, transparent, rgba(247,248,252,0.85));
+  pointer-events: none;
+  z-index: 2;
+  border-radius: 0 8px 8px 0;
+}
+
+/* Touch-friendly minimum tap target */
+@media (max-width: 768px) {
+  button, a[role="button"] {
+    min-height: 36px;
+  }
 }
