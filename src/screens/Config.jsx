@@ -1,6 +1,7 @@
 import React, { useState, useRef } from 'react';
 import { FEATURES, COLOR_MAP } from './FeatureSelect';
 import ColumnEditor from '../components/ColumnEditor';
+import { HelpDrawer } from '../pages/FaqChatbot';
 
 // ── Lesson scope selector ─────────────────────────────────────────────────────
 
@@ -565,6 +566,7 @@ export default function Config({
   canGenerate,
 }) {
   const [expandedId, setExpandedId] = useState('courseMap');
+  const [showHelp, setShowHelp] = useState(false);
 
   const configurableFeatures = FEATURES.filter(f => selected.includes(f.id));
 
@@ -582,6 +584,7 @@ export default function Config({
   const scopeValid = lessonScope.type === 'all' || (lessonScope.indices?.length > 0);
 
   return (
+    <>
     <div className="min-h-screen mesh-bg noise-overlay flex flex-col">
       {/* Header */}
       <header className="pt-5 px-8 flex items-center justify-between max-w-4xl mx-auto w-full">
@@ -594,15 +597,15 @@ export default function Config({
           </svg>
           Back
         </button>
-        <a
-          href="#/faq"
+        <button
+          onClick={() => setShowHelp(true)}
           className="tactile flex items-center gap-1.5 text-[11px] font-semibold text-slate-400 hover:text-indigo-600 transition-colors"
         >
           <svg className="w-3.5 h-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
             <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M8.228 9c.549-1.165 2.03-2 3.772-2 2.21 0 4 1.343 4 3 0 1.4-1.278 2.575-3.006 2.907-.542.104-.994.54-.994 1.093m0 3h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z" />
           </svg>
           Help
-        </a>
+        </button>
       </header>
 
       {/* Main */}
@@ -720,5 +723,8 @@ export default function Config({
         </div>
       </footer>
     </div>
+
+    <HelpDrawer isOpen={showHelp} onClose={() => setShowHelp(false)} />
+    </>
   );
 }
