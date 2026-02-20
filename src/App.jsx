@@ -475,11 +475,20 @@ export default function App() {
   async function handleLandingContinue() {
     setScreen('features');
 
-    // Start with promptText for instant regex scan
-    const regexCount = detectExpectedLessons(promptText).expected || 0;
+    // Start with a regex scan of promptText for instant feedback
+    const promptRegex = detectExpectedLessons(promptText);
+    const regexCount = promptRegex.expected || 0;
     if (regexCount) setLessonCount(regexCount);
 
-    // Parse uploaded files in background, then run AI on combined text
+    // If regex already found a high-confidence result (e.g. "15-week"), trust it
+    // and skip the AI call — AI can miscount by multiplying weeks × sessions/week
+    // when the text doesn't state meeting frequency explicitly.
+    if (promptRegex.confidence === 'high' && regexCount) {
+      setIsDetectingLessons(false);
+      return;
+    }
+
+    // Parse uploaded files in background, then try regex + AI on combined text
     if (modelId) {
       setIsDetectingLessons(true);
       try {
@@ -491,15 +500,16 @@ export default function App() {
               .filter(f => f.text)
               .map(f => f.text)
               .join('\n\n')
-              .slice(0, 20000); // cap to avoid huge prompts
+              .slice(0, 20000);
             combinedText = [promptText, fileText].filter(Boolean).join('\n\n');
-            // Quick regex upgrade from file content if we didn't have one yet
-            if (!regexCount) {
-              const fileRegex = detectExpectedLessons(fileText).expected || 0;
-              if (fileRegex) setLessonCount(fileRegex);
-            }
+            // Re-run regex on combined text — syllabus may have explicit week count
+            const combinedRegex = detectExpectedLessons(combinedText);
+            if (combinedRegex.expected) setLessonCount(combinedRegex.expected);
+            // If combined regex is high-confidence, trust it and skip AI
+            if (combinedRegex.confidence === 'high') return;
           } catch { /* file parse failed — use promptText only */ }
         }
+        // Only call AI when regex couldn't confidently determine lesson count
         const aiCount = await detectLessonsWithAI(combinedText, { provider, apiKey, modelId });
         if (aiCount) setLessonCount(aiCount);
       } catch { /* silent — regex fallback is fine */ }

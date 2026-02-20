@@ -345,14 +345,14 @@ export default function ProgressPanel({
 
         {isDone ? (
           <div>
-            {/* Course map done row */}
+            {/* Course map done row — same visual weight as deliverable rows */}
             <div className="flex items-center gap-2 py-1 min-w-0">
-              <div className="w-7 h-7 rounded-full bg-emerald-100/80 flex items-center justify-center flex-shrink-0">
-                <svg className="w-3.5 h-3.5 text-emerald-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+              <div className="w-5 h-5 rounded-full bg-emerald-100/80 flex items-center justify-center flex-shrink-0">
+                <svg className="w-3 h-3 text-emerald-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                   <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2.5} d="M5 13l4 4L19 7" />
                 </svg>
               </div>
-              <span className="text-[12px] font-semibold text-emerald-700">Course map ready</span>
+              <span className="text-[11px] font-medium text-emerald-700">Course map ready</span>
               {completenessInfo && (
                 <span className={`flex-shrink-0 text-[10px] font-semibold px-2 py-0.5 rounded-pill ${
                   completenessInfo.status === 'complete'
