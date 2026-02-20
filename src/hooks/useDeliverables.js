@@ -166,7 +166,7 @@ export default function useDeliverables({ provider, modelId, apiKey, deliverable
   }, []);
 
   const generateAll = useCallback(async (courseMap, features, scopeIndices = null) => {
-    const toGenerate = features.filter(f => f !== 'courseMap');
+    const toGenerate = features.filter(f => f && f !== 'courseMap');
     if (toGenerate.length === 0 || !courseMap) return;
 
     startedRef.current = true;
@@ -241,7 +241,7 @@ export default function useDeliverables({ provider, modelId, apiKey, deliverable
                 const partial = parsePartialJSON(fullText);
                 if (partial) {
                   // Streaming preview — dispatch as streaming with partial data
-                  dispatch({ type: 'SET_DELIVERABLE', payload: { featureId, status: 'streaming', data: partial, error: null, stale: false } });
+                  dispatch({ type: 'SET_DELIVERABLE', featureId, status: 'streaming', data: partial, error: null, stale: false });
                 }
               }
             },
@@ -317,6 +317,17 @@ export default function useDeliverables({ provider, modelId, apiKey, deliverable
     startedRef.current = false;
   }, [stopGenerating, dispatch]);
 
+  const restoreDeliverables = useCallback((savedDeliverables) => {
+    stopGenerating();
+    dispatch(actions.restoreDeliverables(savedDeliverables));
+    // Compute progress from restored data
+    const entries = Object.entries(savedDeliverables || {});
+    const done = entries.filter(([, e]) => e?.status === 'done').length;
+    setProgress({ done, total: done });
+    setGenerationLog([]);
+    startedRef.current = false;
+  }, [stopGenerating, dispatch]);
+
   const markAllStale = useCallback(() => {
     dispatch(actions.markAllStale());
   }, [dispatch]);
@@ -340,7 +351,7 @@ export default function useDeliverables({ provider, modelId, apiKey, deliverable
     // Mark as regenerating (use SET_DELIVERABLE to preserve existing data)
     const existing = deliverables[featureId];
     if (existing) {
-      dispatch({ type: 'SET_DELIVERABLE', payload: { featureId, status: existing.status, data: existing.data, error: null, stale: existing.stale, regeneratingIndex: lessonIndex } });
+      dispatch({ type: 'SET_DELIVERABLE', featureId, status: existing.status, data: existing.data, error: null, stale: existing.stale, regeneratingIndex: lessonIndex });
     }
 
     appendLog(`Regenerating Lesson ${lessonIndex + 1} in ${label}...`, 'progress');
@@ -349,7 +360,7 @@ export default function useDeliverables({ provider, modelId, apiKey, deliverable
     const prompts = getDeliverablePrompt(featureId, courseMap, [lessonIndex], regenConfig, pedagogicalModeRef.current);
     if (!prompts) {
       if (existing) {
-        dispatch({ type: 'SET_DELIVERABLE', payload: { featureId, status: existing.status, data: existing.data, error: null, stale: existing.stale, regeneratingIndex: null } });
+        dispatch({ type: 'SET_DELIVERABLE', featureId, status: existing.status, data: existing.data, error: null, stale: existing.stale, regeneratingIndex: null });
       }
       appendLog(`✗ ${label}: No prompt for lesson ${lessonIndex + 1}`, 'error');
       return;
@@ -394,7 +405,7 @@ export default function useDeliverables({ provider, modelId, apiKey, deliverable
       } else {
         appendLog(`⚠ ${label}: Lesson ${lessonIndex + 1} regeneration response was incomplete`, 'warn');
         if (existing) {
-          dispatch({ type: 'SET_DELIVERABLE', payload: { featureId, status: existing.status, data: existing.data, error: null, stale: existing.stale, regeneratingIndex: null } });
+          dispatch({ type: 'SET_DELIVERABLE', featureId, status: existing.status, data: existing.data, error: null, stale: existing.stale, regeneratingIndex: null });
         }
       }
     } catch (err) {
@@ -403,7 +414,7 @@ export default function useDeliverables({ provider, modelId, apiKey, deliverable
         appendLog(`✗ ${label}: Lesson ${lessonIndex + 1} regeneration failed — ${err.message || 'Unknown error'}`, 'error');
       }
       if (existing) {
-        dispatch({ type: 'SET_DELIVERABLE', payload: { featureId, status: existing.status, data: existing.data, error: null, stale: existing.stale, regeneratingIndex: null } });
+        dispatch({ type: 'SET_DELIVERABLE', featureId, status: existing.status, data: existing.data, error: null, stale: existing.stale, regeneratingIndex: null });
       }
     }
   }, [provider, modelId, apiKey, streamProvider, parsePartialJSON, appendLog, dispatch, deliverables]);
@@ -459,6 +470,7 @@ export default function useDeliverables({ provider, modelId, apiKey, deliverable
     generateAll,
     stopGenerating,
     resetDeliverables,
+    restoreDeliverables,
     markAllStale,
     resyncAll,
     regenerateLesson,

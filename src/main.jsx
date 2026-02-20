@@ -5,6 +5,7 @@ import FaqChatbot from './pages/FaqChatbot';
 import Changelog from './pages/Changelog';
 import PrivacyPolicy from './pages/PrivacyPolicy';
 import TermsOfService from './pages/TermsOfService';
+import { CourseStoreProvider } from './model/courseStore';
 import './index.css';
 
 function Router() {
@@ -37,6 +38,8 @@ function Router() {
 
 ReactDOM.createRoot(document.getElementById('root')).render(
   <React.StrictMode>
-    <Router />
+    <CourseStoreProvider>
+      <Router />
+    </CourseStoreProvider>
   </React.StrictMode>
 );

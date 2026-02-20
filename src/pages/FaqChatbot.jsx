@@ -14,7 +14,7 @@ Course Mapper is a free, browser-based tool that uses AI to transform course des
 ## Getting Started
 - Visit the website. It works in Chrome, Firefox, Safari, or Edge.
 - **Option A — type a course description:** Just describe your course (e.g. "Social Policy and Welfare, 14-week undergraduate course") and click Continue.
-- **Option B — upload a syllabus:** Drag-and-drop or browse to upload course files. The AI extracts the structure automatically.
+- **Option B — upload a syllabus:** Drag-and-drop or browse to upload course files. The AI extracts the lesson count and structure automatically.
 - **Option C — try a sample:** Click one of the suggested prompts (e.g. "Intro to Psychology", "Research Methods", "Social Policy") to see a quick demo.
 - Choose an AI model. Free models work out of the box. Or bring your own API key for OpenAI, Anthropic, or Google.
 - Select which deliverables to generate (Course Map, Lesson Plans, Slide Decks, etc.)
@@ -36,40 +36,55 @@ Multiple files can be uploaded at once — the AI combines them all.
 - **DeepSeek R1T Chimera** — reasoning-focused model via OpenRouter.
 
 **Paid providers (user provides their own API key):**
-- **OpenAI:** GPT-4o, GPT-4o-mini, o3, o4-mini, GPT-5.2. Best for highest quality.
-- **Anthropic:** Claude 4 Sonnet, Claude 3.5 Sonnet, Claude 3.5 Haiku. Claude 4 Sonnet excels at structured formatting.
+- **OpenAI:** GPT-4o, GPT-4o-mini, o3, o4-mini. Best for highest quality.
+- **Anthropic:** Claude Sonnet 4, Claude 3.5 Sonnet, Claude 3.5 Haiku. Excellent at structured formatting.
 - **Google:** Gemini 2.5 Pro, Gemini 2.5 Flash, Gemini 2.0 Flash. Best quality with Gemini 2.5 Pro.
 
 ## Deliverables
 After generating the Course Map, Course Mapper can generate up to 8 additional deliverables:
 1. **Lesson Plans** — detailed weekly plans with objectives, activities, materials, formative checks, homework, and instructor notes. Includes Bloom's level tagging and UDL notes.
-2. **Slide Decks** — full presentation decks for each lesson with title slides, agenda, content, activity, and summary slides. Complete with speaker notes and timing. Click any text on the slide to edit it directly. You can add bullet points, edit titles, change activity timers, and modify speaker notes.
+2. **Slide Decks** — full presentation decks for each lesson with title slides, agenda, content, activity, and summary slides. Complete with speaker notes and timing. Click any text on the slide to edit it directly.
 3. **Assignment Briefs** — structured assignments with descriptions, objectives, grading criteria, format requirements, scaffolding milestones, and academic integrity statements.
-4. **Rubrics** — assessment rubrics with criteria, levels, Bloom's alignment, and grading scales.
+4. **Rubrics** — assessment rubrics with criteria, performance levels, Bloom's alignment, and grading scales.
 5. **Discussion Prompts** — facilitated discussion questions with context, follow-up probes, evaluation criteria, and equity considerations.
 6. **Quiz & Exam Bank** — tiered question banks (standard, challenge, honors) with multiple-choice, short-answer, and essay questions. Includes distractors, explanations, and Bloom's level tagging.
 7. **Study Guides** — student-facing study materials with key terms, concept connections, common misconceptions, practice activities, and exam prep.
 8. **Syllabus** — a complete course syllabus assembled from the generated content.
 
-Each deliverable can be generated for all lessons or only specific ones (lesson scoping).
+Each deliverable can be generated for all lessons or only specific ones using the Lesson Scope selector.
+
+## Lesson Scope
+On the Config screen, the Lesson Scope section lets you choose which lessons to generate content for:
+- **All lessons** — generate content for every lesson (default).
+- **Specific lessons** — select only certain lesson numbers. Useful for regenerating or adding a subset.
+The AI auto-detects how many lessons your course has from your uploaded files or description.
 
 ## Editing Deliverables
 - **Course Map:** Click any cell to edit. Hover for add/delete buttons. Lesson headers have controls for reordering.
-- **Slide Decks:** Click any text on the slide to edit — titles, bullets, course name, timer, speaker notes. An "Add point" button appears on hover to add new bullet points. Activity type and Bloom's level tags in the speaker notes are also editable.
+- **Slide Decks:** Click any text on the slide to edit — titles, bullets, course name, timer, speaker notes. An "Add point" button appears on hover to add new bullet points.
 - **All deliverables:** Click any text field to edit it directly. Changes are saved immediately.
-- When you edit the course map, a banner appears showing which lessons were modified. You can do a **surgical re-sync** that only regenerates the affected lessons across all deliverables — not everything from scratch. Or choose "Full re-generate" for a complete refresh.
+- When you edit the course map, a banner appears showing which lessons were modified. You can do a **surgical re-sync** that only regenerates the affected lessons across all deliverables — not everything from scratch.
 - The **Sync Activity** drawer shows real-time progress of which deliverables are being regenerated and why.
 
 ## Cascade Editing
 When you edit a deliverable (e.g., change a learning objective in Lesson Plans), the system automatically detects which other deliverables depend on that field and regenerates only the affected lesson in those deliverables. For example, editing Lesson Plan objectives cascades to Rubrics, Quizzes, Study Guides, and Slide Decks for that lesson only.
 
-## Deliverable Export
-Each deliverable has its own export options:
-- **Slide Decks:** Export as .pptx (PowerPoint), .pdf, or to Google Slides
-- **Lesson Plans, Assignments, Rubrics, etc.:** Export as .pdf, .docx, or to Google Docs
-- **Course Map:** Export as .xlsx, .docx, .pdf, .csv, Google Sheets, or Google Docs
-- **All at once:** "Export All" packages everything into a single .zip file
-- **LMS format:** Export as Brightspace Content Modules CSV or Gradebook Items CSV
+## Export
+The Export panel appears on the right side of the workspace once generation is complete. It has two modes:
+
+**Current tab** — exports only the deliverable you are viewing:
+- **Slide Decks:** .pptx (PowerPoint) or Google Slides
+- **Course Map:** .xlsx, .docx, .pdf, .csv, Google Sheets, or Google Docs
+- **Other deliverables:** .pdf, .docx, Google Docs (or Google Sheets where applicable)
+
+**All tab** — exports everything at once:
+- **Download ZIP** — packages all generated deliverables into a single .zip file with subfolders. Slide Decks export as .pptx; other deliverables export as .docx.
+- **Save .coursemapper** — saves your entire session (course map, all deliverables, settings) into a single project file. Drag this file onto the landing page to restore your exact session, including all generated content.
+
+## Session Save & Restore
+- Work is **automatically saved** in the browser's local storage. When you return to the site, it offers to restore your last session — including all generated deliverables.
+- **Save .coursemapper** (in Export → All) creates a portable project file you can share or archive. Drag it onto the landing page to open it.
+- Both methods restore the course map, all deliverables, selected features, lesson scope, and your position in the app.
 
 ## AI Revision (Chat)
 Below each deliverable, there's a chat box labeled "Ask for revisions." Type requests in plain English:
@@ -79,7 +94,7 @@ Below each deliverable, there's a chat box labeled "Ask for revisions." Type req
 The AI updates the content based on your instructions. You can also attach files to incorporate new materials.
 
 ## Generation Process
-1. **Course Map** generates first (1–3 minutes)
+1. **Course Map** generates first (1–3 minutes depending on course size and model)
 2. **Deliverables** generate in sequence — you can watch each one stream in real time
 3. Progress shows which deliverable is being generated and a time estimate
 4. The browser tab title updates to show progress (e.g., "Generating Lesson Plans... (2/5)")
@@ -88,50 +103,48 @@ The AI updates the content based on your instructions. You can also attach files
 ## Stop & Resume
 - Click Stop during any generation to pause. Progress is preserved.
 - Click Resume to continue from where it stopped.
-- Works across page refreshes — the tool offers to restore your session.
+- Works across page refreshes — the tool offers to restore your session including partial deliverables.
 
 ## Diff View (Show Changes)
 After AI revisions, a "Show Changes" button appears:
-- Red strikethrough = old content
-- Green highlight = new content
+- Red strikethrough = old content removed
+- Green highlight = new content added
 
 ## Templates
-Click the Templates button to browse pre-built course templates. Load one to instantly populate a full course with all deliverables.
+Click the Templates button to browse pre-built course templates. Load one to instantly populate a full course structure.
 
 ## Lesson Locking
-Lock specific lessons to prevent them from being regenerated during re-sync. Click the lock icon next to any lesson.
+Lock specific lessons to prevent them from being regenerated during re-sync or cascade editing. Click the lock icon next to any lesson.
 
 ## Version History
-Full undo/redo with version history. Jump back to any previous state. Every edit and AI revision creates a new version.
+Full undo/redo with version history. Jump back to any previous state. Every edit and AI revision creates a new version automatically.
 
 ## Professor Profile
-Set your teaching profile (name, institution, teaching style, preferences). The AI uses this context to personalize generated content.
+Set your teaching profile (name, institution, teaching style, preferences). The AI uses this context to personalize all generated content.
 
 ## Course Health Check
-Run an AI-powered review of your course for gaps, misalignments, or missing elements. The AI suggests improvements.
+Run an AI-powered review of your course for gaps, misalignments, or missing elements across Bloom's levels, assessment load, and learning objectives. The AI suggests specific improvements with one-click "Fix it" buttons.
 
-## Auto-Save
-Work is automatically saved in the browser's local storage. Closing and reopening restores everything.
-
-## Privacy & Data
-- Everything runs in the browser. No backend server.
-- API keys go directly to AI providers.
-- Free tier prompts may be used by providers to improve their AI.
-- For sensitive materials, use your own API key.
+## Auto-Save & Privacy
+- Work is automatically saved in the browser's local storage after every change.
+- Everything runs in the browser — no backend server, no data sent anywhere except directly to your chosen AI provider.
+- API keys go directly to AI providers (OpenAI, Anthropic, Google) — Course Mapper never sees them.
+- For sensitive materials, use your own API key for maximum privacy.
 
 ## Keyboard Shortcuts
-- **⌘←/⌘→** — Navigate between tabs
+- **⌘← / ⌘→** — Navigate between tabs
 - **⌘Z / ⌘⇧Z** — Undo / Redo
-- **⌘K** — Command Palette
-- **?** — Keyboard shortcuts help
-- **Tab/Enter/Escape** — Navigate and edit cells
+- **⌘K** — Command Palette (quick access to any action)
+- **?** — Show keyboard shortcuts help
+- **Tab / Enter / Escape** — Navigate and confirm edits in cells
 
 ## Troubleshooting
-- **Free model slow:** Free models are rate-limited during peak hours. Try another model or wait.
-- **PDF not read correctly:** Scanned PDFs (images) can't be parsed. Convert to .docx first.
-- **Google Drive error:** Allow popups and grant permission in the sign-in dialog.
-- **Lost work:** Always export finished work. Local storage is cleared with browser data.
-- **Generation stuck:** Click Stop, then try again or switch models.
+- **Free model slow or failing:** Free models are rate-limited during peak hours. Try another free model or wait a moment.
+- **PDF not read correctly:** Scanned PDFs (image-only) can't be parsed — convert to .docx first.
+- **Google Drive error:** Allow popups in your browser and grant permission when the Google sign-in dialog appears.
+- **Lost work:** Use Save .coursemapper regularly to create portable backups. Browser local storage can be cleared with browser data.
+- **Generation stuck:** Click Stop, then try again or switch to a different model.
+- **Deliverables missing after restore:** Make sure you saved after deliverables finished generating — auto-save triggers 1 second after each update.
 
 ## Important Rules for You
 - Be concise, warm, and helpful. Use simple language.
@@ -143,9 +156,9 @@ Work is automatically saved in the browser's local storage. Closing and reopenin
 const SUGGESTED_QUESTIONS = [
   'How do I get started?',
   'What deliverables can I generate?',
-  'How do I edit slide decks?',
+  'How do I save and restore my session?',
   'How does surgical re-sync work?',
-  'How do I export to Google Drive?',
+  'How do I export to Google Slides?',
   'Is my data private and secure?',
 ];
 

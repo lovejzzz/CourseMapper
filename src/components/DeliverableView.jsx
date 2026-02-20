@@ -190,6 +190,25 @@ function SaveToBankButton({ onClick }) {
 }
 
 export default function DeliverableView({ featureId, data, status, error, regeneratingIndex, courseMapStatus, isDelivGenerating, currentDelivFeature, onDataChange, onRegenerateLesson, onRetry, onAddLessons, courseMap, lessonScope, isStudentView, onSaveToBank, qualityScore }) {
+  // ── All hooks MUST come before any early returns (Rules of Hooks) ──
+  // Feature 4.1 — Tier detection + toggle state
+  const [activeTier, setActiveTier] = useState('standard'); // 'scaffolded' | 'standard' | 'extension'
+  const hasTiers = useMemo(() => {
+    if (!data) return false;
+    const TIERED_DELIVERABLES = ['lessonPlans', 'quizBank', 'discussions', 'assignments', 'studyGuides'];
+    if (!TIERED_DELIVERABLES.includes(featureId)) return false;
+    const arrays = {
+      lessonPlans: data.lessonPlans,
+      quizBank: data.quizzes || data.quizBank,
+      discussions: data.discussions,
+      assignments: data.assignments,
+      studyGuides: data.studyGuides || data.guides,
+    };
+    const arr = arrays[featureId];
+    return Array.isArray(arr) && arr.length > 0 && arr[0]?.tiers != null;
+  }, [data, featureId]);
+
+  // ── Early returns (after all hooks) ──
   if (status === 'error') return <ErrorState error={error} onRetry={onRetry} />;
 
   // Show waiting state when course map is still building or deliverables are queued
@@ -213,23 +232,6 @@ export default function DeliverableView({ featureId, data, status, error, regene
   }
 
   const editProps = editable ? { onEdit } : {};
-
-  // Feature 4.1 — Tier detection + toggle state
-  const [activeTier, setActiveTier] = useState('standard'); // 'scaffolded' | 'standard' | 'extension'
-  const hasTiers = useMemo(() => {
-    if (!data) return false;
-    const TIERED_DELIVERABLES = ['lessonPlans', 'quizBank', 'discussions', 'assignments', 'studyGuides'];
-    if (!TIERED_DELIVERABLES.includes(featureId)) return false;
-    const arrays = {
-      lessonPlans: data.lessonPlans,
-      quizBank: data.quizzes || data.quizBank,
-      discussions: data.discussions,
-      assignments: data.assignments,
-      studyGuides: data.studyGuides || data.guides,
-    };
-    const arr = arrays[featureId];
-    return Array.isArray(arr) && arr.length > 0 && arr[0]?.tiers != null;
-  }, [data, featureId]);
 
   const viewProps = { data, isStreaming, regeneratingIndex: regeneratingIndex ?? null, onRegenerateLesson, isStudentView, onSaveToBank, activeTier: hasTiers ? activeTier : 'standard', ...editProps };
 

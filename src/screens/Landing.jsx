@@ -52,7 +52,6 @@ export default function Landing({
   // Legacy — no longer used in UI (mode is auto-detected from input)
   inputMode, setInputMode,
 }) {
-  const [showAdvanced, setShowAdvanced] = useState(false);
   const [isDragging, setIsDragging] = useState(false);
   const [projectDragging, setProjectDragging] = useState(false);
 
@@ -289,7 +288,23 @@ export default function Landing({
             )}
           </div>
 
-          {/* Generate button */}
+          {/* AI Model config — always visible, required before continuing */}
+          <ModelConfig
+            provider={provider}
+            setProvider={setProvider}
+            apiKey={apiKey}
+            setApiKey={setApiKey}
+            modelId={modelId}
+            setModelId={setModelId}
+            availableModels={availableModels}
+            setAvailableModels={setAvailableModels}
+            apiStatus={apiStatus}
+            setApiStatus={setApiStatus}
+            modelName={modelName}
+            setModelName={setModelName}
+          />
+
+          {/* Continue button */}
           <button
             onClick={onGenerate}
             disabled={!canGenerate || isGenerating}
@@ -316,41 +331,6 @@ export default function Landing({
               </span>
             )}
           </button>
-
-          {/* Advanced section */}
-          <div className="pt-1">
-            <button
-              onClick={() => setShowAdvanced(!showAdvanced)}
-              className="text-xs font-medium text-slate-400 hover:text-slate-600 transition-colors flex items-center gap-1.5 mx-auto"
-            >
-              <svg
-                className={`w-3 h-3 transition-transform duration-200 ${showAdvanced ? 'rotate-180' : ''}`}
-                fill="none" stroke="currentColor" viewBox="0 0 24 24"
-              >
-                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M19 9l-7 7-7-7" />
-              </svg>
-              Advanced Options
-            </button>
-            {showAdvanced && (
-              <div className="mt-4 space-y-4 animate-spring-in">
-                <ModelConfig
-                  provider={provider}
-                  setProvider={setProvider}
-                  apiKey={apiKey}
-                  setApiKey={setApiKey}
-                  modelId={modelId}
-                  setModelId={setModelId}
-                  availableModels={availableModels}
-                  setAvailableModels={setAvailableModels}
-                  apiStatus={apiStatus}
-                  setApiStatus={setApiStatus}
-                  modelName={modelName}
-                  setModelName={setModelName}
-                />
-                {/* Column editor moved to FeatureSelect page */}
-              </div>
-            )}
-          </div>
         </div>
       </main>
 

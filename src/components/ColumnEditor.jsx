@@ -212,6 +212,7 @@ export default function ColumnEditor({ columns, setColumns }) {
                 </svg>
                 {col.label}
                 <button
+                  onPointerDown={(e) => e.stopPropagation()}
                   onClick={(e) => {
                     e.stopPropagation();
                     removeColumn(idx);
