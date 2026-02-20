@@ -110,23 +110,21 @@ export function getAffectedFeatures(editKey) {
  *   Currently selected/generated featureIds (only sync features that have data).
  * @param {Object} deliverables
  *   Current deliverable state map — only regenerate features with status 'done'.
- * @param {string|null} excludeFeatureId
- *   Optional featureId to exclude from the plan (used when the edit originated
- *   from within that deliverable itself, so we don't re-generate it needlessly).
+ * @param {string|null} priorityFeatureId
+ *   Optional featureId to sort first in the plan — used when the edit originated
+ *   from within a deliverable so the user sees that tab update live first.
  *
  * @returns {Array<{featureId: string, lessonIndices: number[]|null}>}
  *   lessonIndices=null means full regen for that feature (structural change).
  */
-export function buildSyncPlan(pendingEdits, selectedFeatures, deliverables, excludeFeatureId = null) {
+export function buildSyncPlan(pendingEdits, selectedFeatures, deliverables, priorityFeatureId = null) {
   if (!pendingEdits || pendingEdits.length === 0) return [];
   if (!selectedFeatures || selectedFeatures.length === 0) return [];
 
   // Only sync features that are currently 'done' (have generated data)
-  // Also exclude the source feature if specified (prevents self-regeneration)
   const doneFeatures = new Set(
     selectedFeatures.filter(f =>
       f !== 'courseMap' &&
-      f !== excludeFeatureId &&
       deliverables?.[f]?.status === 'done'
     )
   );
@@ -159,13 +157,22 @@ export function buildSyncPlan(pendingEdits, selectedFeatures, deliverables, excl
     }
   }
 
-  // Convert to array form
+  // Convert to array form, then sort so priorityFeatureId is first
+  // (so the current tab the user is looking at updates live before the others)
   const plan = [];
   for (const [featureId, indices] of featureMap.entries()) {
     plan.push({
       featureId,
       lessonIndices: indices === null ? null : [...indices].sort((a, b) => a - b),
     });
+  }
+
+  if (priorityFeatureId) {
+    const priorityIdx = plan.findIndex(p => p.featureId === priorityFeatureId);
+    if (priorityIdx > 0) {
+      const [priorityEntry] = plan.splice(priorityIdx, 1);
+      plan.unshift(priorityEntry);
+    }
   }
 
   return plan;

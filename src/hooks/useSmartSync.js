@@ -70,15 +70,15 @@ export default function useSmartSync({
 
     if (edits.length === 0) return;
 
-    // Determine excludeFeatureId: only exclude if ALL edits in this batch
-    // came from the same deliverable (mixed course-map + deliverable edits
-    // should not exclude anything)
-    const excludeIds = new Set(edits.map(e => e.excludeFeatureId).filter(Boolean));
-    const excludeFeatureId = excludeIds.size === 1 && edits.every(e => e.excludeFeatureId)
-      ? [...excludeIds][0]
+    // Determine priorityFeatureId: if ALL edits came from within the same deliverable,
+    // put it first in the sync plan so the user sees their current tab update live.
+    // Mixed course-map + deliverable edits don't have a single priority source.
+    const priorityIds = new Set(edits.map(e => e.excludeFeatureId).filter(Boolean));
+    const priorityFeatureId = priorityIds.size === 1 && edits.every(e => e.excludeFeatureId)
+      ? [...priorityIds][0]
       : null;
 
-    const plan = buildSyncPlan(edits, currentFeatures, currentDeliv.deliverables, excludeFeatureId);
+    const plan = buildSyncPlan(edits, currentFeatures, currentDeliv.deliverables, priorityFeatureId);
     if (plan.length === 0) return;
 
     // Build a human-readable summary of what fields changed (for log specificity)
@@ -89,8 +89,8 @@ export default function useSmartSync({
       supportingResources: 'supporting resources', presentationFormat: 'presentation format',
       learningGoals: 'learning goals', technologyNeeded: 'technology needed',
       evaluateDesign: 'evaluate design', _structural: 'lesson structure',
-      _deliverableEdit: excludeFeatureId
-        ? `${excludeFeatureId.replace(/([A-Z])/g, ' $1').replace(/^./, s => s.toUpperCase())} edited`
+      _deliverableEdit: priorityFeatureId
+        ? `${priorityFeatureId.replace(/([A-Z])/g, ' $1').replace(/^./, s => s.toUpperCase())} edited`
         : 'deliverable edited',
       sections: 'sections', courseName: 'course name',
       semester: 'semester', courseDescription: 'course description',
@@ -155,7 +155,7 @@ export default function useSmartSync({
    * @param {number|null} lessonIdx - Lesson index (null for structural changes)
    * @param {string} key - Field key that changed (e.g. 'learningObjectives', '_structural', '_deliverableEdit')
    * @param {string|null} excludeFeatureId - When the edit originated from within a deliverable,
-   *   pass that featureId so we don't re-generate the source deliverable itself.
+   *   pass that featureId so it is prioritized first in the sync plan (user sees it update live).
    */
   const notifyEdit = useCallback((lessonIdx, key, excludeFeatureId = null) => {
     pendingEditsRef.current.push({ lessonIdx, key, excludeFeatureId });
