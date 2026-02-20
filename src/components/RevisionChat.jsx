@@ -240,6 +240,7 @@ export default function RevisionChat({ onRevision, isRevising, savedMessages, on
           ref={fileInputRef}
           className="hidden"
           multiple
+          accept=".doc,.docx,.pdf,.txt,.md,.csv,.rtf,.html,.htm,.xlsx,.xls,.ods,.ppt,.pptx,.odp,.odt,.epub,.key,.pages,.zip"
           onChange={(e) => { processFiles(e.target.files); e.target.value = ''; }}
         />
         {/* Rectangular textarea */}
@@ -287,8 +288,12 @@ export default function RevisionChat({ onRevision, isRevising, savedMessages, on
       </div>
 
       {isDragOver && (
-        <div className="absolute inset-0 bg-indigo-500/5 border-2 border-dashed border-indigo-400/50 rounded-squircle flex items-center justify-center pointer-events-none z-10">
+        <div className="absolute inset-0 bg-indigo-500/5 border-2 border-dashed border-indigo-400/50 rounded-squircle flex flex-col items-center justify-center pointer-events-none z-10 gap-1">
+          <svg className="w-5 h-5 text-indigo-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+            <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={1.8} d="M15.172 7l-6.586 6.586a2 2 0 102.828 2.828l6.414-6.586a4 4 0 00-5.656-5.656l-6.415 6.585a6 6 0 108.486 8.486L20.5 13" />
+          </svg>
           <span className="text-sm font-semibold text-indigo-500">Drop files to attach</span>
+          <span className="text-[10px] text-indigo-400/70">PDF, Word, Excel, PowerPoint, CSV, and more</span>
         </div>
       )}
     </div>

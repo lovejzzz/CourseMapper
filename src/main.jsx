@@ -36,7 +36,14 @@ function Router() {
   );
 }
 
-ReactDOM.createRoot(document.getElementById('root')).render(
+// Keep a single root reference so HMR re-renders don't call createRoot twice
+// on the same container (which triggers a React warning and can cause DOM errors).
+const container = document.getElementById('root');
+if (!container) throw new Error('Missing #root element — check index.html');
+if (!container._reactRoot) {
+  container._reactRoot = ReactDOM.createRoot(container);
+}
+container._reactRoot.render(
   <React.StrictMode>
     <CourseStoreProvider>
       <Router />

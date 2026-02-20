@@ -13,15 +13,15 @@ import { exportSlideDeckPptx, buildSlideDeckPptxBlob } from '../lib/pptxExporter
 // ── Which formats each deliverable supports ─────────────────────────────────
 // courseMap handled separately via useExport (xlsx, csv, pdf, docx, gsheets, gdocs)
 const FORMAT_SUPPORT = {
-  courseMap:    { xlsx: true,  csv: true,  pdf: true,  docx: true,  gdocs: true,  gsheets: true,  pptx: false },
-  syllabus:     { xlsx: false, csv: false, pdf: true,  docx: true,  gdocs: true,  gsheets: false, pptx: false },
-  lessonPlans:  { xlsx: false, csv: true,  pdf: true,  docx: true,  gdocs: true,  gsheets: true,  pptx: false },
-  slideDecks:   { xlsx: false, csv: false, pdf: false, docx: false, gdocs: false, gsheets: false, pptx: true  },
-  assignments:  { xlsx: false, csv: true,  pdf: true,  docx: true,  gdocs: true,  gsheets: false, pptx: false },
-  rubrics:      { xlsx: false, csv: true,  pdf: true,  docx: true,  gdocs: true,  gsheets: false, pptx: false },
-  discussions:  { xlsx: false, csv: true,  pdf: true,  docx: true,  gdocs: true,  gsheets: false, pptx: false },
-  quizBank:     { xlsx: false, csv: true,  pdf: true,  docx: true,  gdocs: true,  gsheets: true,  pptx: false },
-  studyGuides:  { xlsx: false, csv: true,  pdf: true,  docx: true,  gdocs: true,  gsheets: false, pptx: false },
+  courseMap:    { xlsx: true,  csv: true,  pdf: true,  docx: true,  gdocs: true,  gsheets: true,  pptx: false, slidepdf: false },
+  syllabus:     { xlsx: false, csv: false, pdf: true,  docx: true,  gdocs: true,  gsheets: false, pptx: false, slidepdf: false },
+  lessonPlans:  { xlsx: false, csv: true,  pdf: true,  docx: true,  gdocs: true,  gsheets: true,  pptx: false, slidepdf: false },
+  slideDecks:   { xlsx: false, csv: false, pdf: false, docx: false, gdocs: false, gsheets: false, pptx: true,  slidepdf: true  },
+  assignments:  { xlsx: false, csv: true,  pdf: true,  docx: true,  gdocs: true,  gsheets: false, pptx: false, slidepdf: false },
+  rubrics:      { xlsx: false, csv: true,  pdf: true,  docx: true,  gdocs: true,  gsheets: false, pptx: false, slidepdf: false },
+  discussions:  { xlsx: false, csv: true,  pdf: true,  docx: true,  gdocs: true,  gsheets: false, pptx: false, slidepdf: false },
+  quizBank:     { xlsx: false, csv: true,  pdf: true,  docx: true,  gdocs: true,  gsheets: true,  pptx: false, slidepdf: false },
+  studyGuides:  { xlsx: false, csv: true,  pdf: true,  docx: true,  gdocs: true,  gsheets: false, pptx: false, slidepdf: false },
 };
 
 // Formats for non-slideDecks current tab
@@ -36,6 +36,90 @@ const CLOUD_FORMATS = [
   { id: 'gsheets', label: 'Google Sheets', color: 'gsheets' },
 ];
 
+// ── Slide Deck PDF export (text-based, using jsPDF) ───────────────────────────
+async function exportSlideDeckPdf(data, courseName) {
+  const { jsPDF } = await import('jspdf');
+  const { autoTable } = await import('jspdf-autotable');
+  const { saveAs } = await import('file-saver');
+
+  const doc = new jsPDF({ orientation: 'landscape', unit: 'mm', format: 'a4' });
+  const pageW = 297;
+  const pageH = 210;
+  const margin = 12;
+  const contentW = pageW - margin * 2;
+
+  const decks = data.slideDecks || data.decks || [];
+
+  decks.forEach((deck, deckIdx) => {
+    const slides = deck.slides || [];
+    slides.forEach((slide, slideIdx) => {
+      if (deckIdx > 0 || slideIdx > 0) doc.addPage();
+
+      // Header band
+      doc.setFillColor(30, 58, 138); // indigo-900
+      doc.rect(0, 0, pageW, 18, 'F');
+
+      // Lesson label
+      doc.setFontSize(7);
+      doc.setFont('helvetica', 'normal');
+      doc.setTextColor(147, 197, 253); // blue-300
+      const lessonLabel = deck.lessonTitle || deck.title || `Lesson ${deckIdx + 1}`;
+      doc.text(lessonLabel, margin, 7);
+
+      // Slide title
+      doc.setFontSize(12);
+      doc.setFont('helvetica', 'bold');
+      doc.setTextColor(255, 255, 255);
+      const titleText = slide.title || '';
+      const titleLines = doc.splitTextToSize(titleText, contentW - 40);
+      doc.text(titleLines, margin, 14);
+
+      // Slide number badge
+      doc.setFontSize(8);
+      doc.setFont('helvetica', 'normal');
+      doc.setTextColor(147, 197, 253);
+      doc.text(`${slideIdx + 1} / ${slides.length}`, pageW - margin, 14, { align: 'right' });
+
+      let y = 26;
+
+      // Bullets / content
+      const bullets = slide.bullets || slide.content || [];
+      if (bullets.length > 0) {
+        doc.setFontSize(9);
+        doc.setFont('helvetica', 'normal');
+        doc.setTextColor(30, 30, 30);
+        bullets.forEach(bullet => {
+          const lines = doc.splitTextToSize(`• ${bullet}`, contentW);
+          if (y + lines.length * 5 > pageH - 28) return; // skip if overflow
+          doc.text(lines, margin, y);
+          y += lines.length * 5 + 1;
+        });
+      }
+
+      // Speaker notes
+      if (slide.speakerNotes) {
+        const notesY = pageH - 24;
+        doc.setFillColor(248, 250, 252);
+        doc.rect(0, notesY - 4, pageW, pageH - notesY + 4, 'F');
+        doc.setDrawColor(226, 232, 240);
+        doc.setLineWidth(0.3);
+        doc.line(0, notesY - 4, pageW, notesY - 4);
+        doc.setFontSize(7);
+        doc.setFont('helvetica', 'bold');
+        doc.setTextColor(100, 116, 139);
+        doc.text('Speaker Notes:', margin, notesY);
+        doc.setFont('helvetica', 'normal');
+        doc.setTextColor(71, 85, 105);
+        const noteLines = doc.splitTextToSize(slide.speakerNotes, contentW);
+        doc.text(noteLines.slice(0, 2), margin, notesY + 5);
+      }
+    });
+  });
+
+  const blob = doc.output('blob');
+  saveAs(blob, `${courseName || 'Course'} - Slide Decks.pdf`);
+}
+
 // ── Spinner ──────────────────────────────────────────────────────────────────
 function Spin() {
   return (
@@ -47,16 +131,19 @@ function Spin() {
 }
 
 // ── Format button ─────────────────────────────────────────────────────────────
+// All download format buttons use the same neutral ghost style for consistency.
+// Cloud (Google) buttons retain their brand colors via GDriveBtn.
 function FmtBtn({ fmt, label, disabled, busy, onClick }) {
   const colorMap = {
-    emerald: 'text-white bg-gradient-to-r from-emerald-500 to-green-600 shadow-sm hover:brightness-110',
-    blue:    'text-slate-600 bg-white/60 border border-slate-200/50 hover:bg-white/80',
-    red:     'text-slate-600 bg-white/60 border border-slate-200/50 hover:bg-white/80',
-    slate:   'text-slate-600 bg-white/60 border border-slate-200/50 hover:bg-white/80',
-    gdocs:   'text-[#1967D2] bg-[#E8F0FE]/80 border border-[#4285F4]/20 hover:bg-[#D2E3FC]',
-    gsheets: 'text-[#188038] bg-[#E6F4EA]/80 border border-[#34A853]/20 hover:bg-[#CEEAD6]',
-    pptx:    'text-[#C55A11] bg-[#FFF2E8]/80 border border-[#E07B39]/20 hover:bg-[#FFE5CC]',
-    gslides: 'text-[#F4B400] bg-[#FFF8E1]/80 border border-[#FBBC04]/30 hover:bg-[#FFF0B3]',
+    emerald:  'text-slate-600 bg-white/60 border border-slate-200/50 hover:bg-white/80',
+    blue:     'text-slate-600 bg-white/60 border border-slate-200/50 hover:bg-white/80',
+    red:      'text-slate-600 bg-white/60 border border-slate-200/50 hover:bg-white/80',
+    slate:    'text-slate-600 bg-white/60 border border-slate-200/50 hover:bg-white/80',
+    gdocs:    'text-[#1967D2] bg-[#E8F0FE]/80 border border-[#4285F4]/20 hover:bg-[#D2E3FC]',
+    gsheets:  'text-[#188038] bg-[#E6F4EA]/80 border border-[#34A853]/20 hover:bg-[#CEEAD6]',
+    pptx:     'text-slate-600 bg-white/60 border border-slate-200/50 hover:bg-white/80',
+    gslides:  'text-[#F4B400] bg-[#FFF8E1]/80 border border-[#FBBC04]/30 hover:bg-[#FFF0B3]',
+    slidepdf: 'text-slate-600 bg-white/60 border border-slate-200/50 hover:bg-white/80',
   };
   const displayLabel = label || fmt.label;
   return (
@@ -119,7 +206,7 @@ function GDriveBtn({ fmt, label, disabled, busy, onClick }) {
 }
 
 // ── ZIP export (all deliverables) ─────────────────────────────────────────────
-async function exportAllAsZip(deliverables, courseMap, columns, courseName) {
+async function exportAllAsZip(deliverables, courseMap, columns, courseName, lessonFilter) {
   let JSZip;
   try {
     JSZip = (await import('jszip')).default;
@@ -134,10 +221,19 @@ async function exportAllAsZip(deliverables, courseMap, columns, courseName) {
   const zip = new JSZip();
   const name = courseName || 'Course';
 
+  // Apply lesson filter to courseMap if needed
+  let filteredCourseMap = courseMap;
+  if (lessonFilter && lessonFilter.length > 0 && courseMap?.lessons) {
+    filteredCourseMap = {
+      ...courseMap,
+      lessons: courseMap.lessons.filter((_, i) => lessonFilter.includes(i)),
+    };
+  }
+
   // ── Course Map folder ──
   const cmFolder = zip.folder('Course Map');
   try {
-    const buf = await buildXlsxBuffer(courseMap, columns);
+    const buf = await buildXlsxBuffer(filteredCourseMap, columns);
     cmFolder.file(`${name} - Course Map.xlsx`, buf);
   } catch (e) { console.warn('CM xlsx failed', e); }
 
@@ -148,17 +244,47 @@ async function exportAllAsZip(deliverables, courseMap, columns, courseName) {
     const folder = zip.folder(label);
     const support = FORMAT_SUPPORT[featureId] || {};
 
+    // Filter deliverable data by lesson indices if needed
+    let filteredData = entry.data;
+    if (lessonFilter && lessonFilter.length > 0) {
+      const arrayKeys = {
+        lessonPlans: 'lessonPlans',
+        slideDecks: 'slideDecks',
+        rubrics: 'rubrics',
+        quizBank: 'quizzes',
+        discussions: 'discussions',
+        assignments: 'assignments',
+        studyGuides: 'studyGuides',
+        syllabus: null,
+      };
+      const key = arrayKeys[featureId];
+      if (key && Array.isArray(filteredData[key])) {
+        filteredData = { ...filteredData, [key]: filteredData[key].filter((_, i) => lessonFilter.includes(i)) };
+        // Also handle alternate keys
+      } else if (featureId === 'slideDecks') {
+        const deckKey = filteredData.decks ? 'decks' : 'slideDecks';
+        if (Array.isArray(filteredData[deckKey])) {
+          filteredData = { ...filteredData, [deckKey]: filteredData[deckKey].filter((_, i) => lessonFilter.includes(i)) };
+        }
+      } else if (featureId === 'quizBank') {
+        const qKey = filteredData.quizBank ? 'quizBank' : 'quizzes';
+        if (Array.isArray(filteredData[qKey])) {
+          filteredData = { ...filteredData, [qKey]: filteredData[qKey].filter((_, i) => lessonFilter.includes(i)) };
+        }
+      }
+    }
+
     // Slide Decks → PPTX
     if (featureId === 'slideDecks' && support.pptx) {
       try {
-        const blob = await buildSlideDeckPptxBlob(entry.data, name);
+        const blob = await buildSlideDeckPptxBlob(filteredData, name);
         folder.file(`${name} - ${label}.pptx`, blob);
       } catch (e) { console.warn(`${featureId} pptx blob failed`, e); }
     } else {
       // DOCX for other deliverables
       if (support.docx) {
         try {
-          const blob = await buildDeliverableDocxBlob(featureId, entry.data, name);
+          const blob = await buildDeliverableDocxBlob(featureId, filteredData, name);
           folder.file(`${name} - ${label}.docx`, blob);
         } catch (e) { console.warn(`${featureId} docx blob failed`, e); }
       }
@@ -185,6 +311,10 @@ export default function ExportSidePanel({
   const [lastError, setLastError] = useState('');
   const [lastOk, setLastOk] = useState('');
 
+  // All-tab lesson filter (null = all lessons)
+  const allLessons = courseMap?.lessons || [];
+  const [selectedLessons, setSelectedLessons] = useState(null); // null = all
+
   const courseName = courseMap?.courseName || 'Course';
 
   // ── Determine what we're exporting ──────────────────────────────────────────
@@ -202,6 +332,9 @@ export default function ExportSidePanel({
     .filter(([id, e]) => id !== 'courseMap' && e?.status === 'done').length
     + (courseMap ? 1 : 0);
 
+  // Effective lesson filter for ZIP
+  const effectiveLessonFilter = selectedLessons; // null means no filter (all)
+
   async function doExport(format) {
     // For Google exports we must open a tab BEFORE any await (popup blocker)
     const needsTab = format === 'gdocs' || format === 'gsheets' || format === 'gslides';
@@ -214,7 +347,7 @@ export default function ExportSidePanel({
       if (scope === 'all') {
         // All mode: only ZIP is available
         if (format === 'zip') {
-          await exportAllAsZip(deliverables || {}, courseMap, columns, courseName);
+          await exportAllAsZip(deliverables || {}, courseMap, columns, courseName, effectiveLessonFilter);
           setLastOk('ZIP downloaded!');
         }
       } else {
@@ -222,10 +355,12 @@ export default function ExportSidePanel({
         if (activeTab === 'courseMap') {
           await onCourseMapExport(format);
         } else if (activeTab === 'slideDecks') {
-          // Slide decks: pptx or google slides
+          // Slide decks: pptx, pdf, or google slides
           if (!currentDeliverable?.data) throw new Error('No slide data yet');
           if (format === 'pptx') {
             await exportSlideDeckPptx(currentDeliverable.data, courseName);
+          } else if (format === 'slidepdf') {
+            await exportSlideDeckPdf(currentDeliverable.data, courseName);
           } else if (format === 'gslides') {
             const blob = await buildSlideDeckPptxBlob(currentDeliverable.data, courseName);
             await saveToGoogleSlides(blob, `${courseName} - Slide Decks`, preTab);
@@ -253,7 +388,7 @@ export default function ExportSidePanel({
   function isDisabled(formatId) {
     if (activeTab === 'courseMap') return !FORMAT_SUPPORT.courseMap[formatId];
     if (activeTab === 'slideDecks') {
-      if (formatId === 'pptx' || formatId === 'gslides') return !currentHasData;
+      if (formatId === 'pptx' || formatId === 'slidepdf' || formatId === 'gslides') return !currentHasData;
       return true; // other formats not supported for slide decks
     }
     if (!currentHasData) return true;
@@ -261,6 +396,28 @@ export default function ExportSidePanel({
   }
 
   const tabLabel = activeTab === 'courseMap' ? 'Course Map' : (FEATURE_LABELS[activeTab] || activeTab);
+
+  // Toggle a lesson in/out of selectedLessons
+  function toggleLesson(idx) {
+    setSelectedLessons(prev => {
+      if (prev === null) {
+        // Currently all selected — deselect just this one
+        return allLessons.map((_, i) => i).filter(i => i !== idx);
+      }
+      if (prev.includes(idx)) {
+        // Deselect — allow empty array (all unchecked)
+        const next = prev.filter(i => i !== idx);
+        return next.length === allLessons.length ? null : next;
+      } else {
+        // Select — if now all selected, normalize to null
+        const next = [...prev, idx].sort((a, b) => a - b);
+        return next.length === allLessons.length ? null : next;
+      }
+    });
+  }
+
+  const allSelected = selectedLessons === null;
+  const selectedCount = selectedLessons === null ? allLessons.length : selectedLessons.length;
 
   return (
     <div className="flex flex-col gap-4 w-56 flex-shrink-0">
@@ -306,26 +463,74 @@ export default function ExportSidePanel({
         </p>
 
         {/* ────────────────────────────────────────────────────────────── */}
-        {/* ALL MODE: ZIP download + Save Project file                     */}
+        {/* ALL MODE: Lesson scope + ZIP download + Save Project file     */}
         {/* ────────────────────────────────────────────────────────────── */}
         {scope === 'all' && (
-          <div className="space-y-2">
-            <p className="text-[9px] font-bold text-slate-400 uppercase tracking-wider">Download</p>
-            <p className="text-[10px] text-slate-400 leading-snug">
-              All deliverables in one ZIP, organized by folder.
-            </p>
-            <button
-              onClick={() => doExport('zip')}
-              disabled={!!busy || allReadyCount === 0}
-              className="tactile flex items-center justify-center gap-2 w-full py-2.5 rounded-lg text-[12px] font-bold text-white bg-gradient-to-r from-indigo-500 to-violet-600 shadow-sm hover:brightness-110 transition-all disabled:opacity-40 disabled:cursor-not-allowed"
-            >
-              {busy === 'zip' ? <Spin /> : (
-                <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M4 16v1a3 3 0 003 3h10a3 3 0 003-3v-1m-4-4l-4 4m0 0l-4-4m4 4V4" />
-                </svg>
-              )}
-              Download ZIP
-            </button>
+          <div className="space-y-3">
+            {/* Lesson scope selector */}
+            {allLessons.length > 0 && (
+              <div>
+                <div className="flex items-center justify-between mb-1.5">
+                  <p className="text-[9px] font-bold text-slate-400 uppercase tracking-wider">Lessons in ZIP</p>
+                  <button
+                    onClick={() => setSelectedLessons(allSelected ? [] : null)}
+                    className="text-[9px] font-semibold text-indigo-500 hover:text-indigo-700 transition-colors"
+                  >
+                    {allSelected ? 'Uncheck all' : 'Select all'}
+                  </button>
+                </div>
+                <div className="space-y-0.5 max-h-36 overflow-y-auto pr-0.5">
+                  {allLessons.map((lesson, idx) => {
+                    const isOn = allSelected || selectedLessons?.includes(idx);
+                    const title = lesson.title || lesson.lessonTitle || `Lesson ${idx + 1}`;
+                    return (
+                      <button
+                        key={idx}
+                        onClick={() => toggleLesson(idx)}
+                        className={`w-full flex items-center gap-1.5 px-2 py-1 rounded-md text-[10px] text-left transition-colors ${
+                          isOn
+                            ? 'bg-indigo-50 text-indigo-700'
+                            : 'text-slate-400 hover:bg-slate-50'
+                        }`}
+                      >
+                        <span className={`w-3.5 h-3.5 rounded flex-shrink-0 border flex items-center justify-center ${
+                          isOn ? 'bg-indigo-500 border-indigo-500' : 'border-slate-300'
+                        }`}>
+                          {isOn && (
+                            <svg className="w-2 h-2 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={3} d="M5 13l4 4L19 7" />
+                            </svg>
+                          )}
+                        </span>
+                        <span className="truncate">{title}</span>
+                      </button>
+                    );
+                  })}
+                </div>
+                {!allSelected && (
+                  <p className="text-[9px] text-slate-400 mt-1">
+                    {selectedCount} of {allLessons.length} lessons selected
+                  </p>
+                )}
+              </div>
+            )}
+
+            <div>
+              <p className="text-[9px] font-bold text-slate-400 uppercase tracking-wider mb-1.5">Download</p>
+              <button
+                onClick={() => doExport('zip')}
+                disabled={!!busy || allReadyCount === 0 || (selectedLessons !== null && selectedLessons.length === 0)}
+                title={selectedLessons !== null && selectedLessons.length === 0 ? 'Select at least one lesson' : undefined}
+                className="tactile flex items-center justify-center gap-2 w-full py-2.5 rounded-lg text-[12px] font-bold text-white bg-gradient-to-r from-indigo-500 to-violet-600 shadow-sm hover:brightness-110 transition-all disabled:opacity-40 disabled:cursor-not-allowed"
+              >
+                {busy === 'zip' ? <Spin /> : (
+                  <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M4 16v1a3 3 0 003 3h10a3 3 0 003-3v-1m-4-4l-4 4m0 0l-4-4m4 4V4" />
+                  </svg>
+                )}
+                Download ZIP
+              </button>
+            </div>
 
             {/* Save Project file */}
             <div className="pt-1 border-t border-slate-100 space-y-1.5">
@@ -348,7 +553,7 @@ export default function ExportSidePanel({
         )}
 
         {/* ────────────────────────────────────────────────────────────── */}
-        {/* CURRENT MODE — SLIDE DECKS: .pptx + Google Slides             */}
+        {/* CURRENT MODE — SLIDE DECKS: .pptx + .pdf + Google Slides     */}
         {/* ────────────────────────────────────────────────────────────── */}
         {scope === 'current' && activeTab === 'slideDecks' && (
           <>
@@ -359,6 +564,12 @@ export default function ExportSidePanel({
                 disabled={isDisabled('pptx')}
                 busy={busy === 'pptx'}
                 onClick={() => doExport('pptx')}
+              />
+              <FmtBtn
+                fmt={{ id: 'slidepdf', label: '.pdf', color: 'slidepdf' }}
+                disabled={isDisabled('slidepdf')}
+                busy={busy === 'slidepdf'}
+                onClick={() => doExport('slidepdf')}
               />
             </div>
             <div className="space-y-2">

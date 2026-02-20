@@ -65,7 +65,13 @@ Return a JSON object with a "patches" array. Each patch targets a specific cell:
 - For section fields, include both lessonIndex and sectionIndex.
 - For course-level fields (courseName, semester), just use "field" and "value".
 - Every patch MUST have a "reason" string. No exceptions.
-- Return ONLY the JSON object, no explanation or commentary.`;
+- Return ONLY the JSON object, no explanation or commentary.
+
+SEMESTER FIELD RULES (read carefully):
+- "TBD" is a VALID placeholder for semester. It means the instructor has not yet decided the specific academic term (e.g., Fall 2026, Spring 2027). Do NOT patch the semester field just because it says "TBD".
+- Only patch the semester field if the syllabus EXPLICITLY states a specific term (e.g., "Fall 2025", "Spring 2026", "Summer 2024") AND the course map has a clearly wrong value.
+- The semester field refers to the ACADEMIC TERM, not course duration. Never suggest a lesson count or duration (like "15-week course" or "14-week undergraduate") as a semester value.
+- Course length/duration information (e.g., "15-week course") belongs in the course description, NOT the semester field.`;
 
 export function buildExamineUserPrompt(courseMap, syllabusText) {
   return `Here is the Course Map to examine:\n\n${JSON.stringify(courseMap)}${

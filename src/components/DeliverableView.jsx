@@ -290,19 +290,22 @@ export default function DeliverableView({ featureId, data, status, error, regene
             : <EmptyState />;
         }
       })()}
-      {/* ── Add More Lessons button — shown at bottom when not all lessons are generated ── */}
-      {onAddLessons && status === 'done' && !isSlides && (
+      {/* ── Add More Lessons button — shown at bottom when scope was limited ── */}
+      {onAddLessons && status === 'done' && !isSlides && hasMissingLessons && (
         <div className="flex justify-center pb-8 pt-2">
           <button
-            onClick={onAddLessons}
+            onClick={() => {
+              // Compute the missing lesson indices (those not in current scope)
+              const currentScopeSet = new Set(Array.isArray(lessonScope) ? lessonScope : []);
+              const missingIndices = Array.from({ length: allLessonCount }, (_, i) => i).filter(i => !currentScopeSet.has(i));
+              onAddLessons(missingIndices);
+            }}
             className="flex items-center gap-2 px-5 py-2.5 rounded-full text-[12px] font-semibold text-indigo-600 bg-indigo-50 hover:bg-indigo-100 border border-indigo-200/60 shadow-sm hover:shadow transition-all duration-200"
           >
             <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
               <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 4v16m8-8H4" />
             </svg>
-            {hasMissingLessons
-              ? `Add ${allLessonCount - lessonScope.length} more lesson${allLessonCount - lessonScope.length !== 1 ? 's' : ''}`
-              : 'Add more lessons'}
+            {`Add ${allLessonCount - (Array.isArray(lessonScope) ? lessonScope.length : allLessonCount)} more lesson${allLessonCount - (Array.isArray(lessonScope) ? lessonScope.length : allLessonCount) !== 1 ? 's' : ''}`}
           </button>
         </div>
       )}

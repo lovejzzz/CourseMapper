@@ -27,6 +27,7 @@ export default function useGeneration({
   const [streamProgress, setStreamProgress] = useState(0);
   const [isStopped, setIsStopped] = useState(false);
   const [examChanges, setExamChanges] = useState([]);
+  const [pendingExamPatches, setPendingExamPatches] = useState(null); // { patches, baseMap } — waiting for instructor review
   const [retryInfo, setRetryInfo] = useState(null); // { attempt, max, delay }
   const [completenessInfo, setCompletenessInfo] = useState(null); // { expected, actual, confidence, status }
   const [generationLog, setGenerationLog] = useState([]); // [{ model, message, type }]
@@ -141,11 +142,23 @@ export default function useGeneration({
     return changes;
   }
 
-  // ── Run the Examine step (patch-based) ──
+  // ── Build human-readable label for a single patch ──
+  function buildPatchLabel(p) {
+    const label = (p.field || '').replace(/([A-Z])/g, ' $1').replace(/^./, s => s.toUpperCase()).trim();
+    if (p.action === 'addLesson') return `Add Lesson ${(p.lessonIndex || 0) + 1}`;
+    if (p.action === 'addSection') return `Add section in Lesson ${(p.lessonIndex || 0) + 1}`;
+    if (p.action === 'removeLesson') return `Remove Lesson ${(p.lessonIndex || 0) + 1}`;
+    if (p.field === 'title') return `Lesson ${(p.lessonIndex || 0) + 1} title`;
+    if (p.field === 'courseName' || p.field === 'semester') return label;
+    return `Lesson ${(p.lessonIndex || 0) + 1}, Section ${(p.sectionIndex || 0) + 1} — ${label}`;
+  }
+
+  // ── Run the Examine step (patch-based) — stores proposals for instructor review ──
   async function runExamine(finalResult) {
     setProgressStep('examining');
     setStreamDetail('Reviewing for missing or inaccurate content...');
     setExamChanges([]);
+    setPendingExamPatches(null);
     const preExamineMap = structuredClone(finalResult);
     setOldCourseMap(preExamineMap);
 
@@ -159,10 +172,9 @@ export default function useGeneration({
       const { fullText: examineText } = await streamProvider(examProvider, examApiKey, examModelId, EXAMINE_SYSTEM_PROMPT, examUserPrompt, {
         onChunk: (text) => {
           if (text.length % 200 < 10) {
-            // Try to parse partial patches for progress feedback
             const partial = parsePartialJSON(text);
             if (partial && partial.patches) {
-              setStreamDetail(`Found ${partial.patches.length} fix${partial.patches.length !== 1 ? 'es' : ''} so far...`);
+              setStreamDetail(`Found ${partial.patches.length} suggestion${partial.patches.length !== 1 ? 's' : ''} so far...`);
             }
           }
         },
@@ -176,47 +188,28 @@ export default function useGeneration({
       const patchResult = parsePartialJSON(examineText);
 
       if (patchResult && Array.isArray(patchResult.patches) && patchResult.patches.length > 0) {
-        const patched = applyPatches(finalResult, patchResult.patches);
-        setCourseMap(patched);
-
-        // Build change descriptions — use AI-provided reason when available
-        const changes = patchResult.patches.map((p) => {
-          const label = (p.field || '').replace(/([A-Z])/g, ' $1').replace(/^./, s => s.toUpperCase()).trim();
-          let location;
-          if (p.action === 'addLesson') location = `Added Lesson ${(p.lessonIndex || 0) + 1}`;
-          else if (p.action === 'addSection') location = `Added section in Lesson ${(p.lessonIndex || 0) + 1}`;
-          else if (p.action === 'removeLesson') location = `Removed Lesson ${(p.lessonIndex || 0) + 1}`;
-          else if (p.field === 'title') location = `Lesson ${(p.lessonIndex || 0) + 1} title`;
-          else if (p.field === 'courseName' || p.field === 'semester') location = label;
-          else location = `Lesson ${(p.lessonIndex || 0) + 1}, Section ${(p.sectionIndex || 0) + 1} — ${label}`;
-
-          // Prefer the AI's specific reason; fall back to generic location
-          return p.reason ? `${location}: ${p.reason}` : location;
-        });
-        setExamChanges(changes);
-        pushVersion(patched, `Examined — ${changes.length} fix${changes.length > 1 ? 'es' : ''}`);
+        // ── Store as pending — do NOT apply; wait for instructor review ──
+        setPendingExamPatches({ patches: patchResult.patches, baseMap: finalResult });
+        setOldCourseMap(null); // clear diff highlight — review UI handles this
       } else if (patchResult && patchResult.lessons) {
         // Fallback: AI returned a full course map instead of patches
-        // Guard: never overwrite with fewer lessons than we already have
         const currentLessonCount = finalResult.lessons?.length || 0;
         if (patchResult.lessons.length >= currentLessonCount) {
-          setCourseMap(patchResult);
+          // Diff it into synthetic patches for the review UI
           const changes = computeExamDiff(preExamineMap, patchResult);
-          setExamChanges(changes);
           if (changes.length > 0) {
-            pushVersion(patchResult, `Examined — ${changes.length} fix${changes.length > 1 ? 'es' : ''}`);
+            // We can't do per-patch accept/reject for the full-map fallback;
+            // treat as a single "structural" patch the instructor can Accept All or Reject All
+            setPendingExamPatches({ patches: [{ action: '_fullMapFallback', value: patchResult, reason: 'AI returned a revised full course map' }], baseMap: finalResult });
           } else {
-            pushVersion(patchResult, 'Examined — no changes needed');
+            setOldCourseMap(null);
           }
         } else {
-          // Examine returned fewer lessons — ignore it to protect continuation results
           console.warn(`Examine returned ${patchResult.lessons.length} lessons vs current ${currentLessonCount} — skipping`);
-          setExamChanges([]);
           setOldCourseMap(null);
         }
       } else {
-        // No patches needed or empty response
-        setExamChanges([]);
+        // No patches needed or empty response — nothing to review
         setOldCourseMap(null);
       }
     } catch (examErr) {
@@ -226,11 +219,65 @@ export default function useGeneration({
       } else {
         console.warn('Examine step failed:', examErr.message);
         setOldCourseMap(null);
-        // Surface the failure so user can see it and optionally retry
         setExamChanges(['__EXAM_FAILED__:' + (examErr.message || 'Unknown error')]);
       }
     }
   }
+
+  // ── Accept a subset of pending exam patches (by index array, or all if omitted) ──
+  const onAcceptPatches = useCallback((indices) => {
+    if (!pendingExamPatches) return;
+    const { patches, baseMap } = pendingExamPatches;
+    const toApply = indices != null ? patches.filter((_, i) => indices.includes(i)) : patches;
+    const toReject = indices != null ? patches.filter((_, i) => !indices.includes(i)) : [];
+
+    let resultMap = baseMap;
+
+    if (toApply.length > 0) {
+      // Handle _fullMapFallback synthetic patch
+      if (toApply.length === 1 && toApply[0].action === '_fullMapFallback') {
+        resultMap = toApply[0].value;
+      } else {
+        resultMap = applyPatches(baseMap, toApply);
+      }
+      setCourseMap(resultMap);
+
+      const acceptedLabels = toApply.map(p => buildPatchLabel(p));
+      const rejectedLabels = toReject.map(p => buildPatchLabel(p));
+
+      // Build examChanges: accepted = regular entries, rejected = strikethrough marker
+      const changes = [
+        ...acceptedLabels.map((loc, i) => {
+          const p = toApply[i];
+          return p.reason ? `${loc}: ${p.reason}` : loc;
+        }),
+        ...rejectedLabels.map(loc => `__REJECTED__:${loc}`),
+      ];
+      setExamChanges(changes);
+      pushVersion(resultMap, `Examined — ${toApply.length} accepted, ${toReject.length} rejected`);
+    } else {
+      // All rejected — nothing to apply
+      setExamChanges(toReject.map(p => `__REJECTED__:${buildPatchLabel(p)}`));
+    }
+
+    setPendingExamPatches(null);
+  }, [pendingExamPatches, setCourseMap, pushVersion]);
+
+  // ── Reject a single patch by index (removes it from pending) ──
+  const onRejectPatch = useCallback((index) => {
+    if (!pendingExamPatches) return;
+    const remaining = pendingExamPatches.patches.filter((_, i) => i !== index);
+    if (remaining.length === 0) {
+      // Last patch rejected — build examChanges directly to avoid stale closure
+      // in onAcceptPatches (which would see the original full patches array, not
+      // just the one being rejected here).
+      const allLabels = pendingExamPatches.patches.map(p => `__REJECTED__:${buildPatchLabel(p)}`);
+      setExamChanges(allLabels);
+      setPendingExamPatches(null);
+    } else {
+      setPendingExamPatches({ ...pendingExamPatches, patches: remaining });
+    }
+  }, [pendingExamPatches]);
 
   // ── Helper: add a log entry ──
   function addLog(model, message, type = 'info') {
@@ -888,6 +935,8 @@ Generate lessons ${actual + 1} through ${expectedCount} now as JSON:`;
     setRetryInfo(null);
     setCompletenessInfo(null);
     setGenerationLog([]);
+    setExamChanges([]);
+    setPendingExamPatches(null);
     try { localStorage.removeItem(STREAM_SAVE_KEY); } catch {}
   }, [setCourseMap, setOldCourseMap]);
 
@@ -900,6 +949,7 @@ Generate lessons ${actual + 1} through ${expectedCount} now as JSON:`;
     setStreamProgress(0);
     setIsStopped(false);
     setExamChanges([]);
+    setPendingExamPatches(null);
     setRetryInfo(null);
     setCompletenessInfo(null);
     setGenerationLog([]);
@@ -950,6 +1000,9 @@ Generate lessons ${actual + 1} through ${expectedCount} now as JSON:`;
     streamProgress, setStreamProgress,
     isStopped, setIsStopped,
     examChanges,
+    pendingExamPatches,
+    onAcceptPatches,
+    onRejectPatch,
     retryInfo,
     completenessInfo,
     generationLog,

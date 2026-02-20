@@ -65,6 +65,7 @@ The AI auto-detects how many lessons your course has from your uploaded files or
 - **All deliverables:** Click any text field to edit it directly. Changes are saved immediately.
 - When you edit the course map, a banner appears showing which lessons were modified. You can do a **surgical re-sync** that only regenerates the affected lessons across all deliverables — not everything from scratch.
 - The **Sync Activity** drawer shows real-time progress of which deliverables are being regenerated and why.
+- **Add more deliverables after generation:** Click the **+ Add** button at the end of the deliverable tab bar to add any deliverable you didn't originally select. It generates immediately.
 
 ## Cascade Editing
 When you edit a deliverable (e.g., change a learning objective in Lesson Plans), the system automatically detects which other deliverables depend on that field and regenerates only the affected lesson in those deliverables. For example, editing Lesson Plan objectives cascades to Rubrics, Quizzes, Study Guides, and Slide Decks for that lesson only.
@@ -73,12 +74,13 @@ When you edit a deliverable (e.g., change a learning objective in Lesson Plans),
 The Export panel appears on the right side of the workspace once generation is complete. It has two modes:
 
 **Current tab** — exports only the deliverable you are viewing:
-- **Slide Decks:** .pptx (PowerPoint) or Google Slides
+- **Slide Decks:** .pptx (PowerPoint), .pdf, or Google Slides
 - **Course Map:** .xlsx, .docx, .pdf, .csv, Google Sheets, or Google Docs
 - **Other deliverables:** .pdf, .docx, Google Docs (or Google Sheets where applicable)
 
 **All tab** — exports everything at once:
-- **Download ZIP** — packages all generated deliverables into a single .zip file with subfolders. Slide Decks export as .pptx; other deliverables export as .docx.
+- **Lesson scope selector** — choose which lessons to include in the ZIP (default: all). Uncheck any lessons you want to exclude.
+- **Download ZIP** — packages all generated deliverables into a single .zip file with subfolders. Slide Decks export as .pptx; other deliverables export as .docx. Only selected lessons are included.
 - **Save .coursemapper** — saves your entire session (course map, all deliverables, settings) into a single project file. Drag this file onto the landing page to restore your exact session, including all generated content.
 
 ## Session Save & Restore
@@ -125,6 +127,14 @@ Set your teaching profile (name, institution, teaching style, preferences). The 
 ## Course Health Check
 Run an AI-powered review of your course for gaps, misalignments, or missing elements across Bloom's levels, assessment load, and learning objectives. The AI suggests specific improvements with one-click "Fix it" buttons.
 
+## AI Quality Exam Review
+After the Course Map is generated, Course Mapper automatically runs a fact-check pass that compares your course map against the original uploaded syllabus or course description. This catches errors before deliverables are generated.
+- The AI proposes targeted corrections as individual suggestion cards, each showing: the location (e.g., "Lesson 3, Section 1 — Learning Objectives"), the proposed change, and the specific reason cited from your syllabus.
+- Each card has **Accept** and **Keep Mine** buttons — you decide per suggestion.
+- **Accept all** or **Keep all mine** batch buttons let you handle all suggestions at once.
+- Only accepted suggestions are applied to your course map — you are always in control. The AI never silently modifies your content.
+- Accepted corrections are flagged as "verified against syllabus" and inform downstream deliverable generation for higher accuracy.
+
 ## Auto-Save & Privacy
 - Work is automatically saved in the browser's local storage after every change.
 - Everything runs in the browser — no backend server, no data sent anywhere except directly to your chosen AI provider.
@@ -157,7 +167,7 @@ const SUGGESTED_QUESTIONS = [
   'How do I get started?',
   'What deliverables can I generate?',
   'How do I save and restore my session?',
-  'How does surgical re-sync work?',
+  'How does the AI quality exam review work?',
   'How do I export to Google Slides?',
   'Is my data private and secure?',
 ];

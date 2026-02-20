@@ -136,7 +136,7 @@ function buildCoherenceSummary(deliverablesSoFar) {
  * Deliverables state lives in the course store; this hook owns only transient
  * streaming/progress state.
  */
-export default function useDeliverables({ provider, modelId, apiKey, deliverableConfig, lockedLessons, pedagogicalMode }) {
+export default function useDeliverables({ provider, modelId, apiKey, deliverableConfig, lockedLessons, pedagogicalMode, examChanges }) {
   // ── Read deliverables from the store ──
   const storeState = useContext(CourseStateContext);
   const dispatch   = useContext(CourseDispatchContext);
@@ -156,6 +156,8 @@ export default function useDeliverables({ provider, modelId, apiKey, deliverable
   deliverableConfigRef.current = deliverableConfig;
   const pedagogicalModeRef = useRef(pedagogicalMode || 'lecture');
   pedagogicalModeRef.current = pedagogicalMode || 'lecture';
+  const examChangesRef = useRef(examChanges || null);
+  examChangesRef.current = examChanges || null;
   // Normalize lockedLessons to a Set so .has() always works
   const lockedLessonsRef = useRef(null);
   lockedLessonsRef.current = lockedLessons
@@ -199,7 +201,7 @@ export default function useDeliverables({ provider, modelId, apiKey, deliverable
       appendLog(`Generating ${label} (${i + 1}/${toGenerate.length}) — asking AI for ${scopeDesc}...`, 'progress');
 
       const config = deliverableConfigRef.current?.[featureId] || {};
-      const prompts = getDeliverablePrompt(featureId, courseMap, scopeIndices, config, pedagogicalModeRef.current);
+      const prompts = getDeliverablePrompt(featureId, courseMap, scopeIndices, config, pedagogicalModeRef.current, examChangesRef.current);
       if (!prompts) {
         dispatch(actions.setDeliverableError(featureId, 'No prompt template'));
         setProgress(prev => ({ ...prev, done: prev.done + 1 }));
@@ -361,7 +363,7 @@ export default function useDeliverables({ provider, modelId, apiKey, deliverable
     appendLog(`Regenerating Lesson ${lessonIndex + 1} in ${label}...`, 'progress');
 
     const regenConfig = deliverableConfigRef.current?.[featureId] || {};
-    const prompts = getDeliverablePrompt(featureId, courseMap, [lessonIndex], regenConfig, pedagogicalModeRef.current);
+    const prompts = getDeliverablePrompt(featureId, courseMap, [lessonIndex], regenConfig, pedagogicalModeRef.current, examChangesRef.current);
     if (!prompts) {
       if (existing) {
         dispatch({ type: 'SET_DELIVERABLE', featureId, status: existing.status, data: existing.data, error: null, stale: existing.stale, regeneratingIndex: null });

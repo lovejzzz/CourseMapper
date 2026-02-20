@@ -13,7 +13,7 @@ import { getProfile } from './professorProfile.js';
 import { getModeLessonPlanNote } from './pedagogicalModes.js';
 import { getSections, buildSectionsContext } from './courseSections.js';
 
-function condenseCourseMap(courseMap, scopeIndices = null) {
+function condenseCourseMap(courseMap, scopeIndices = null, verifiedChanges = null) {
   const allLessons = courseMap.lessons || [];
 
   // Determine which lessons to include and their original indices.
@@ -44,7 +44,14 @@ function condenseCourseMap(courseMap, scopeIndices = null) {
   const maxOrigIdx = indexedLessons.reduce((mx, il) => Math.max(mx, il.originalIndex), 0);
   const totalForDisplay = Math.max(allLessons.length, maxOrigIdx + 1);
 
-  return JSON.stringify({
+  // ── Provenance: accepted exam patches ──────────────────────────────────────
+  // verifiedChanges is the examChanges array filtered to only accepted entries
+  // (those NOT starting with __REJECTED__:).  When present, we append a
+  // _verifiedByExamination note so the deliverable AI treats those fields as
+  // authoritative (cross-checked against the original uploaded syllabus).
+  const acceptedChanges = (verifiedChanges || []).filter(c => typeof c === 'string' && !c.startsWith('__REJECTED__:'));
+
+  const payload = {
     courseName: courseMap.courseName,
     semester: courseMap.semester,
     totalLessonsInCourse: totalForDisplay,
@@ -56,8 +63,17 @@ function condenseCourseMap(courseMap, scopeIndices = null) {
       objectives: (l.sections || []).map(s => s.learningObjectives || '').filter(Boolean).join(' | '),
       assessments: (l.sections || []).map(s => s.weeklyAssessments || '').filter(Boolean).join('; '),
       resources: (l.sections || []).map(s => s.supportingResources || '').filter(Boolean).join('; '),
-    }))
-  });
+    })),
+  };
+
+  if (acceptedChanges.length > 0) {
+    payload._verifiedByExamination = {
+      note: 'The following fields were fact-checked against the instructor\'s original uploaded syllabus and confirmed or corrected by the AI examiner. Treat these as authoritative.',
+      verifiedItems: acceptedChanges,
+    };
+  }
+
+  return JSON.stringify(payload);
 }
 
 const PROMPTS = {
@@ -65,9 +81,9 @@ const PROMPTS = {
   lessonPlans: {
     system: `You are a senior instructional designer with expertise in Bloom's Revised Taxonomy, Universal Design for Learning (UDL), and backward design (Wiggins & McTighe). Your lesson plans are used directly by university instructors and must be classroom-ready, pedagogically rigorous, and ready to print. Return ONLY valid JSON, no markdown fences.`,
 
-    user: (cm, scope) => `Generate detailed, university-standard lesson plans for each lesson in this course:
+    user: (cm, scope, verifiedChanges) => `Generate detailed, university-standard lesson plans for each lesson in this course:
 
-${condenseCourseMap(cm, scope)}
+${condenseCourseMap(cm, scope, verifiedChanges)}
 
 Return a JSON object with exactly this structure:
 {
@@ -142,9 +158,9 @@ REQUIREMENTS:
   rubrics: {
     system: `You are an expert in educational assessment and analytic rubric design for higher education. Your rubrics follow best practices from Walvoord & Anderson and meet Quality Matters standards. Each criterion uses observable, behavioral language with concrete quantity/quality markers. Rubrics are distributed to students before the assignment and are aligned to course learning objectives. Return ONLY valid JSON, no markdown fences.`,
 
-    user: (cm, scope) => `Generate professional, university-standard analytic grading rubrics for the assessments in this course:
+    user: (cm, scope, verifiedChanges) => `Generate professional, university-standard analytic grading rubrics for the assessments in this course:
 
-${condenseCourseMap(cm, scope)}
+${condenseCourseMap(cm, scope, verifiedChanges)}
 
 Return a JSON object with exactly this structure:
 {
@@ -195,9 +211,9 @@ REQUIREMENTS:
   slideDecks: {
     system: `You are an expert instructional presentation designer for higher education, trained in evidence-based slide design (Mayer's Multimedia Principles), accessibility (WCAG 2.1), and pedagogical flow. Your slide decks follow the hook→instruction→practice→synthesis structure and are used directly in university classrooms. Speaker notes are written as instructor scripts. Return ONLY valid JSON, no markdown fences.`,
 
-    user: (cm, scope) => `Generate complete, university-standard slide deck outlines for each lesson in this course:
+    user: (cm, scope, verifiedChanges) => `Generate complete, university-standard slide deck outlines for each lesson in this course:
 
-${condenseCourseMap(cm, scope)}
+${condenseCourseMap(cm, scope, verifiedChanges)}
 
 Return a JSON object with exactly this structure:
 {
@@ -246,9 +262,9 @@ REQUIREMENTS:
   quizBank: {
     system: `You are an expert in educational assessment, test design, and item-writing best practices for higher education (following NBME and university testing center guidelines). Your questions are used in university exams and must be valid, reliable, and pedagogically sound. Every question includes full metadata and answer rationales. Return ONLY valid JSON, no markdown fences.`,
 
-    user: (cm, scope) => `Generate a comprehensive, university-standard quiz bank for each lesson in this course:
+    user: (cm, scope, verifiedChanges) => `Generate a comprehensive, university-standard quiz bank for each lesson in this course:
 
-${condenseCourseMap(cm, scope)}
+${condenseCourseMap(cm, scope, verifiedChanges)}
 
 Return a JSON object with exactly this structure:
 {
@@ -296,9 +312,9 @@ REQUIREMENTS:
   discussions: {
     system: `You are an expert in facilitating higher-order academic discussions in university classrooms. Your prompts follow Socratic seminar principles and are designed to elicit Bloom's levels 4–6 (Analyze, Evaluate, Create). All prompts require students to engage with course material — not just share personal opinions. You include full facilitation guides for instructors. Return ONLY valid JSON, no markdown fences.`,
 
-    user: (cm, scope) => `Generate university-standard academic discussion prompts for each lesson in this course:
+    user: (cm, scope, verifiedChanges) => `Generate university-standard academic discussion prompts for each lesson in this course:
 
-${condenseCourseMap(cm, scope)}
+${condenseCourseMap(cm, scope, verifiedChanges)}
 
 Return a JSON object with exactly this structure:
 {
@@ -347,9 +363,9 @@ REQUIREMENTS:
   assignments: {
     system: `You are an expert instructional designer specializing in university assignment design (Understanding by Design, Constructive Alignment). Your assignment briefs are complete, classroom-ready documents that instructors can distribute directly to students. Every assignment includes learning objective alignment, scaffolding milestones, submission specifications, and an academic integrity statement. Return ONLY valid JSON, no markdown fences.`,
 
-    user: (cm, scope) => `Generate university-standard, classroom-ready assignment briefs for this course:
+    user: (cm, scope, verifiedChanges) => `Generate university-standard, classroom-ready assignment briefs for this course:
 
-${condenseCourseMap(cm, scope)}
+${condenseCourseMap(cm, scope, verifiedChanges)}
 
 Return a JSON object with exactly this structure:
 {
@@ -412,9 +428,9 @@ REQUIREMENTS:
   studyGuides: {
     system: `You are an expert educator creating university-level student study materials based on cognitive science principles (spaced retrieval practice, interleaving, elaborative interrogation). Your study guides are structured to promote deep learning — not passive re-reading. They are designed for students preparing for exams and are organized to build schema, surface misconceptions, and guide self-assessment. Return ONLY valid JSON, no markdown fences.`,
 
-    user: (cm, scope) => `Generate comprehensive, university-standard study guides for each lesson in this course:
+    user: (cm, scope, verifiedChanges) => `Generate comprehensive, university-standard study guides for each lesson in this course:
 
-${condenseCourseMap(cm, scope)}
+${condenseCourseMap(cm, scope, verifiedChanges)}
 
 Return a JSON object with exactly this structure:
 {
@@ -485,9 +501,9 @@ Your syllabi are:
 - Inclusive and accessible: diverse perspectives, flexible policies where appropriate, belonging-focused language
 
 Return ONLY valid JSON, no markdown, no commentary.`,
-    user: (cm, scope) => `Generate a comprehensive, university-quality course syllabus for:
+    user: (cm, scope, verifiedChanges) => `Generate a comprehensive, university-quality course syllabus for:
 
-${condenseCourseMap(cm, scope)}
+${condenseCourseMap(cm, scope, verifiedChanges)}
 
 Return JSON in this exact structure:
 {"syllabus":{
@@ -712,7 +728,7 @@ function buildScopePreamble(courseMap, scopeIndices) {
   return `⚠️ SCOPE CONSTRAINT — CRITICAL: Generate content for ONLY the following ${scopeIndices.length} lesson${scopeIndices.length !== 1 ? 's' : ''}. Do NOT generate anything for any other lesson. Your output array MUST contain EXACTLY ${scopeIndices.length} item${scopeIndices.length !== 1 ? 's' : ''}:\n${titles}\n\nIMPORTANT: Use the ORIGINAL lesson/week numbers from the course map (e.g., "Week ${firstIdx + 1}", "Lesson ${firstIdx + 1}"). Do NOT renumber them as Lesson 1.\n\n`;
 }
 
-export function getDeliverablePrompt(featureId, courseMap, scopeIndices = null, config = {}, pedagogicalMode = 'lecture') {
+export function getDeliverablePrompt(featureId, courseMap, scopeIndices = null, config = {}, pedagogicalMode = 'lecture', examChanges = null) {
   const template = PROMPTS[featureId];
   const scopePreamble = buildScopePreamble(courseMap, scopeIndices);
 
@@ -720,7 +736,7 @@ export function getDeliverablePrompt(featureId, courseMap, scopeIndices = null, 
   if (!template && featureId.startsWith('custom_')) {
     const custom = getCustomDeliverable(featureId);
     if (custom) {
-      const condensed = condenseCourseMap(courseMap, scopeIndices);
+      const condensed = condenseCourseMap(courseMap, scopeIndices, examChanges);
       const baseUserPrompt = custom.userPromptTemplate.replace('{{courseMap}}', condensed);
       const configInstructions = buildConfigInstructions(featureId, config, pedagogicalMode);
       const withConfig = configInstructions
@@ -743,7 +759,7 @@ export function getDeliverablePrompt(featureId, courseMap, scopeIndices = null, 
 
   if (!template) return null;
 
-  const baseUserPrompt = template.user(courseMap, scopeIndices);
+  const baseUserPrompt = template.user(courseMap, scopeIndices, examChanges);
   const configInstructions = buildConfigInstructions(featureId, config, pedagogicalMode);
   // Inject config instructions right before the final "Return ONLY the JSON" instruction
   const withConfig = configInstructions

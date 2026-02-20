@@ -1,4 +1,5 @@
 import React, { useState, useEffect, useRef, useCallback } from 'react';
+import { createPortal } from 'react-dom';
 import Header from './components/Header';
 import { DEFAULT_COLUMNS } from './components/ColumnEditor';
 import CourseMapPreview from './components/CourseMapPreview';
@@ -24,6 +25,57 @@ import { parseFiles } from './lib/fileParser';
 import { detectExpectedLessons, detectLessonsWithAI } from './lib/detectLessons';
 
 const STORAGE_KEY = 'coursemapper-project';
+
+// ── Add Deliverable dropdown — uses a portal so it escapes the overflow-x-auto tab bar ──
+function AddDeliverableButton({ unselected, showAddDeliverable, setShowAddDeliverable, onAdd }) {
+  const btnRef = useRef(null);
+  const [dropPos, setDropPos] = useState({ top: 0, left: 0 });
+
+  function openDropdown() {
+    if (btnRef.current) {
+      const rect = btnRef.current.getBoundingClientRect();
+      setDropPos({ top: rect.bottom + 6, left: rect.left });
+    }
+    setShowAddDeliverable(true);
+  }
+
+  return (
+    <div className="flex-shrink-0">
+      <button
+        ref={btnRef}
+        onClick={showAddDeliverable ? () => setShowAddDeliverable(false) : openDropdown}
+        className="tactile flex items-center gap-1.5 px-3 py-2 rounded-pill text-xs font-semibold text-indigo-500 bg-indigo-50/60 border border-indigo-200/40 hover:bg-indigo-100/70 transition-all duration-200"
+        title="Add more deliverables"
+      >
+        <svg className="w-3.5 h-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+          <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 4v16m8-8H4" />
+        </svg>
+        Add
+      </button>
+      {showAddDeliverable && createPortal(
+        <>
+          <div className="fixed inset-0 z-[9998]" onClick={() => setShowAddDeliverable(false)} />
+          <div
+            className="fixed z-[9999] bg-white/95 backdrop-blur-xl rounded-xl border border-slate-200/60 shadow-xl p-2 min-w-[200px] animate-spring-in"
+            style={{ top: dropPos.top, left: dropPos.left }}
+          >
+            <p className="text-[9px] font-bold text-slate-400 uppercase tracking-wider px-2 pt-1 pb-1.5">Add Deliverable</p>
+            {unselected.map(feature => (
+              <button
+                key={feature.id}
+                onClick={() => onAdd(feature)}
+                className="w-full text-left px-2 py-2 rounded-lg text-[11px] font-medium text-slate-600 hover:bg-indigo-50 hover:text-indigo-700 transition-colors"
+              >
+                {feature.label}
+              </button>
+            ))}
+          </div>
+        </>,
+        document.body
+      )}
+    </div>
+  );
+}
 
 // Screens: 'landing' | 'features' | 'config' | 'workspace'
 
@@ -61,6 +113,12 @@ export default function App() {
 
   // ── Workspace tab ──
   const [activeTab, setActiveTab] = useState('courseMap');
+  // + tab popover
+  const [showAddDeliverable, setShowAddDeliverable] = useState(false);
+  // Add-lessons modal state: { lessonIndices: number[], mode: null|'asking' }
+  const [addLessonsModal, setAddLessonsModal] = useState(null);
+  // New Project confirmation modal
+  const [newProjectConfirm, setNewProjectConfirm] = useState(false);
 
   // ── Misc ──
   const [downloadedFile, setDownloadedFile] = useState('');
@@ -110,6 +168,7 @@ export default function App() {
     deliverableConfig,
     lockedLessons: lessonScope.type === 'specific' ? lessonScope.indices : null,
     pedagogicalMode: 'lecture',
+    examChanges: gen.examChanges,
   });
 
   // ── Cascade Sync Engine ──
@@ -520,7 +579,7 @@ export default function App() {
         {/* Top bar */}
         <div className="flex items-center gap-3 animate-spring-in pt-1">
           <button
-            onClick={handleNewProject}
+            onClick={() => setNewProjectConfirm(true)}
             className="tactile group flex items-center gap-2 px-4 py-2 rounded-pill text-xs font-semibold text-slate-500 bg-white/50 border border-slate-200/40 hover:bg-white/70 hover:text-slate-700 shadow-glass transition-all duration-300"
           >
             <svg className="w-3.5 h-3.5 group-hover:rotate-90 transition-transform duration-300" fill="none" stroke="currentColor" viewBox="0 0 24 24">
@@ -619,12 +678,127 @@ export default function App() {
               );
             })}
 
+            {/* ── + Add deliverable button ── */}
+            {gen.progressStep === 'done' && (() => {
+              const unselected = FEATURES.filter(f => f.id !== 'courseMap' && !selectedFeatures.includes(f.id));
+              if (unselected.length === 0) return null;
+              return (
+                <AddDeliverableButton
+                  unselected={unselected}
+                  showAddDeliverable={showAddDeliverable}
+                  setShowAddDeliverable={setShowAddDeliverable}
+                  onAdd={(feature) => {
+                    setSelectedFeatures(prev => [...prev, feature.id]);
+                    setActiveTab(feature.id);
+                    setShowAddDeliverable(false);
+                    const scopeIndices = lessonScope.type === 'specific' ? lessonScope.indices : null;
+                    deliv.generateAll(courseMap, [feature.id], scopeIndices);
+                  }}
+                />
+              );
+            })()}
+
             {/* Deliverable generation progress */}
             {deliv.isGenerating && (
               <span className="ml-2 text-[10px] text-indigo-500 font-medium animate-pulse whitespace-nowrap flex-shrink-0">
                 Generating {deliv.progress.done}/{deliv.progress.total}…
               </span>
             )}
+          </div>
+        )}
+
+        {/* ── New Project Confirmation Modal ── */}
+        {newProjectConfirm && (
+          <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/30 backdrop-blur-sm">
+            <div className="bg-white/98 rounded-2xl border border-slate-200/60 shadow-2xl p-6 max-w-sm w-full mx-4 animate-spring-scale">
+              <div className="flex items-center gap-3 mb-3">
+                <div className="w-9 h-9 rounded-xl bg-amber-100 flex items-center justify-center flex-shrink-0">
+                  <svg className="w-5 h-5 text-amber-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 9v2m0 4h.01m-6.938 4h13.856c1.54 0 2.502-1.667 1.732-3L13.732 4c-.77-1.333-2.694-1.333-3.464 0L3.34 16c-.77 1.333.192 3 1.732 3z" />
+                  </svg>
+                </div>
+                <div>
+                  <h3 className="text-sm font-bold text-slate-800">Start a new project?</h3>
+                  <p className="text-[11px] text-slate-500 mt-0.5">Your current course map and all generated deliverables will be cleared.</p>
+                </div>
+              </div>
+              <p className="text-[11px] text-slate-400 mb-5 leading-relaxed">
+                Save your work first using <span className="font-semibold text-slate-500">Export → All → Save .coursemapper</span> if you want to keep it.
+              </p>
+              <div className="flex items-center gap-2 justify-end">
+                <button
+                  onClick={() => setNewProjectConfirm(false)}
+                  className="tactile px-4 py-2 rounded-lg text-xs font-semibold text-slate-600 bg-white border border-slate-200/60 hover:bg-slate-50 transition-all"
+                >
+                  Cancel
+                </button>
+                <button
+                  onClick={() => { setNewProjectConfirm(false); handleNewProject(); }}
+                  className="tactile px-4 py-2 rounded-lg text-xs font-semibold text-white bg-red-500 hover:bg-red-600 transition-all"
+                >
+                  Start New Project
+                </button>
+              </div>
+            </div>
+          </div>
+        )}
+
+        {/* ── Add Lessons Modal ── */}
+        {addLessonsModal && (
+          <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/30 backdrop-blur-sm">
+            <div className="bg-white/98 rounded-2xl border border-slate-200/60 shadow-2xl p-6 max-w-sm w-full mx-4 animate-spring-scale">
+              <h3 className="text-sm font-bold text-slate-800 mb-1">Generate Added Lessons</h3>
+              <p className="text-[11px] text-slate-500 mb-4 leading-relaxed">
+                {addLessonsModal.lessonIndices.length === 1
+                  ? `Generate Lesson ${addLessonsModal.lessonIndices[0] + 1} for:`
+                  : `Generate ${addLessonsModal.lessonIndices.length} new lessons for:`}
+              </p>
+              <div className="space-y-2">
+                <button
+                  onClick={() => {
+                    const { lessonIndices } = addLessonsModal;
+                    deliv.generateAll(courseMap, [activeTab], lessonIndices);
+                    setAddLessonsModal(null);
+                  }}
+                  className="w-full flex items-center gap-2 px-4 py-3 rounded-xl text-[12px] font-semibold text-indigo-700 bg-indigo-50 border border-indigo-200/60 hover:bg-indigo-100 transition-colors"
+                >
+                  <svg className="w-4 h-4 flex-shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 12h6m-6 4h6m2 5H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z" />
+                  </svg>
+                  <span className="text-left">
+                    <span className="block">Just this tab</span>
+                    <span className="block text-[10px] font-normal text-indigo-500 mt-0.5">
+                      {FEATURES.find(f => f.id === activeTab)?.label || activeTab} only
+                    </span>
+                  </span>
+                </button>
+                <button
+                  onClick={() => {
+                    const { lessonIndices } = addLessonsModal;
+                    const activeDelivFeatures = selectedFeatures.filter(f => f !== 'courseMap');
+                    deliv.generateAll(courseMap, activeDelivFeatures, lessonIndices);
+                    setAddLessonsModal(null);
+                  }}
+                  className="w-full flex items-center gap-2 px-4 py-3 rounded-xl text-[12px] font-semibold text-violet-700 bg-violet-50 border border-violet-200/60 hover:bg-violet-100 transition-colors"
+                >
+                  <svg className="w-4 h-4 flex-shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M4 6h16M4 10h16M4 14h16M4 18h16" />
+                  </svg>
+                  <span className="text-left">
+                    <span className="block">All deliverables</span>
+                    <span className="block text-[10px] font-normal text-violet-500 mt-0.5">
+                      {selectedFeatures.filter(f => f !== 'courseMap').map(id => FEATURES.find(f => f.id === id)?.label || id).join(', ')}
+                    </span>
+                  </span>
+                </button>
+              </div>
+              <button
+                onClick={() => setAddLessonsModal(null)}
+                className="mt-3 w-full py-2 text-[11px] text-slate-400 hover:text-slate-600 transition-colors"
+              >
+                Cancel
+              </button>
+            </div>
           </div>
         )}
 
@@ -650,6 +824,9 @@ export default function App() {
                   onResume={onResume}
                   onClearAll={gen.handleClearAll}
                   examChanges={gen.examChanges}
+                  pendingExamPatches={gen.pendingExamPatches}
+                  onAcceptPatches={gen.onAcceptPatches}
+                  onRejectPatch={gen.onRejectPatch}
                   retryInfo={gen.retryInfo}
                   completenessInfo={gen.completenessInfo}
                   generationLog={gen.generationLog}
@@ -662,8 +839,6 @@ export default function App() {
                   isDelivGenerating={deliv.isGenerating}
                   delivGenerationLog={deliv.generationLog}
                   delivTimings={deliv.delivTimings}
-                  deliverableConfig={deliverableConfig}
-                  setDeliverableConfig={setDeliverableConfig}
                   syncLog={smartSync.syncLog}
                 />
               </ErrorBoundary>
@@ -727,6 +902,7 @@ export default function App() {
                   courseMapStatus={gen.progressStep}
                   isDelivGenerating={deliv.isGenerating}
                   currentDelivFeature={deliv.currentFeature}
+                  lessonScope={lessonScope.type === 'specific' ? lessonScope.indices : null}
                   onRetry={() => {
                     const scopeIndices = lessonScope.type === 'specific' ? lessonScope.indices : null;
                     deliv.generateAll(courseMap, [activeTab], scopeIndices);
@@ -739,6 +915,9 @@ export default function App() {
                       ...prev,
                       [activeTab]: { ...prev[activeTab], data: newData },
                     }));
+                  }}
+                  onAddLessons={(lessonIndices) => {
+                    setAddLessonsModal({ lessonIndices });
                   }}
                 />
               </ErrorBoundary>

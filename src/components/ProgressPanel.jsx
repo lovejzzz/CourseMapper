@@ -1,8 +1,57 @@
-import React, { useState, useRef, useEffect, useCallback } from 'react';
+import React, { useState, useRef, useEffect } from 'react';
 import GenerationLogPanel from './GenerationLogPanel';
-import ExamSummary from './ExamSummary';
+import ExamReview from './ExamReview';
 import RevisionChat from './RevisionChat';
-import { parseFile } from '../lib/fileParser';
+
+// ── Animated "..." for repeating log lines ────────────────────────────────────
+function AnimatedDots() {
+  const [frame, setFrame] = useState(0);
+  useEffect(() => {
+    const id = setInterval(() => setFrame(f => (f + 1) % 4), 500);
+    return () => clearInterval(id);
+  }, []);
+  return <span className="inline-block w-5 text-left">{'.'.repeat(frame)}</span>;
+}
+
+// ── Collapse consecutive repeat log entries into one row ─────────────────────
+// "Still generating X…" messages repeat every 3s — keep only the last one,
+// animate it with dots, and show a ×N count if there were multiple.
+function collapseRepeatLog(entries) {
+  const result = [];
+  for (let i = 0; i < entries.length; i++) {
+    const entry = entries[i];
+    // Detect "Still generating" pattern (message starts with "Still generating")
+    const isStill = entry.message?.startsWith('Still generating');
+    if (isStill && result.length > 0) {
+      const prev = result[result.length - 1];
+      // Group with previous "Still generating" entry for the same deliverable (same prefix before "~")
+      const baseMsg = entry.message.replace(/\(~[^)]+\)/, '').trim();
+      const prevBase = prev.baseMessage || prev.message.replace(/\(~[^)]+\)/, '').trim();
+      if (prev.isRepeating && prevBase === baseMsg) {
+        // Update the existing entry in-place (same slot)
+        result[result.length - 1] = {
+          ...entry,
+          baseMessage: baseMsg,
+          isRepeating: i === entries.length - 1, // only animate if it's the last entry
+          repeatCount: (prev.repeatCount || 1) + 1,
+        };
+        continue;
+      }
+    }
+    if (isStill) {
+      const baseMsg = entry.message.replace(/\(~[^)]+\)/, '').trim();
+      result.push({
+        ...entry,
+        baseMessage: baseMsg,
+        isRepeating: i === entries.length - 1,
+        repeatCount: 1,
+      });
+    } else {
+      result.push(entry);
+    }
+  }
+  return result;
+}
 
 const STEPS = [
   { key: 'parsing', label: 'Parsing uploaded files' },
@@ -102,7 +151,8 @@ export default function ProgressPanel({
   courseMap, activeTab, onRevision, onDeliverableRevision, isRevising,
   streamDetail, streamProgress, onStop,
   isStopped, onResume, onClearAll,
-  examChanges, retryInfo, completenessInfo, generationLog, onRetryExamine,
+  examChanges, pendingExamPatches, onAcceptPatches, onRejectPatch,
+  retryInfo, completenessInfo, generationLog, onRetryExamine,
   chatHistory, onChatHistoryChange,
   // Item 3: deliverable generation state
   deliverables, delivProgress, currentDelivFeature, isDelivGenerating,
@@ -113,8 +163,6 @@ export default function ProgressPanel({
   versionHistory, activeVersion, onJumpVersion,
   // Named snapshots (1.4)
   namedSnapshots, onSaveSnapshot, onDeleteSnapshot, onLoadSnapshot,
-  // Style reference (per-deliverable, scoped to active tab)
-  deliverableConfig, setDeliverableConfig,
 }) {
   // Track start time for ETA calculation
   const startTimeRef = useRef(null);
@@ -134,38 +182,7 @@ export default function ProgressPanel({
   const [summaryCollapsed, setSummaryCollapsed] = useState(false);
   const prevAllDoneRef = useRef(false);
 
-  // Style reference state (for the revision section)
-  const [refParsing, setRefParsing] = useState(false);
-  const refInputRef = useRef(null);
   const isDeliverableTab = activeTab && activeTab !== 'courseMap';
-  const currentDelivConfig = (isDeliverableTab && deliverableConfig?.[activeTab]) || {};
-  const currentRefFile = currentDelivConfig.referenceFileName || null;
-
-  const handleRefUpload = useCallback(async (e) => {
-    const file = e.target.files?.[0];
-    if (!file || !setDeliverableConfig || !isDeliverableTab) return;
-    setRefParsing(true);
-    try {
-      const text = await parseFile(file);
-      setDeliverableConfig(prev => ({
-        ...prev,
-        [activeTab]: { ...(prev[activeTab] || {}), referenceFileName: file.name, referenceFileText: text || '' },
-      }));
-    } catch (err) {
-      console.warn('Reference file parse failed:', err);
-    } finally {
-      setRefParsing(false);
-      if (refInputRef.current) refInputRef.current.value = '';
-    }
-  }, [activeTab, isDeliverableTab, setDeliverableConfig]);
-
-  const handleRemoveRef = useCallback(() => {
-    if (!setDeliverableConfig || !isDeliverableTab) return;
-    setDeliverableConfig(prev => ({
-      ...prev,
-      [activeTab]: { ...(prev[activeTab] || {}), referenceFileName: null, referenceFileText: null },
-    }));
-  }, [activeTab, isDeliverableTab, setDeliverableConfig]);
 
   useEffect(() => {
     if ((currentStep === 'generating' || currentStep === 'continuing' || currentStep === 'examining') && !startTimeRef.current) {
@@ -289,16 +306,6 @@ export default function ProgressPanel({
                 <span className="text-[9px] font-bold text-slate-400 uppercase tracking-wider">Revising:</span>
                 <span className="text-[9px] font-bold px-2 py-0.5 rounded-full bg-indigo-50 text-indigo-600 border border-indigo-100 truncate max-w-[120px]">{tabBadge}</span>
               </div>
-              {/* Style Reference — only for deliverable tabs */}
-              {isDeliverableTab && setDeliverableConfig && (
-                <StyleReferenceBlock
-                  currentRefFile={currentRefFile}
-                  refParsing={refParsing}
-                  refInputRef={refInputRef}
-                  onUpload={handleRefUpload}
-                  onRemove={handleRemoveRef}
-                />
-              )}
               <RevisionChat onRevision={revHandler} isRevising={isRevising} savedMessages={chatHistory} onMessagesChange={onChatHistoryChange} placeholder={placeholder} courseMap={courseMap} isStopped={isStopped} onResume={onResume} />
             </div>
           );
@@ -465,12 +472,20 @@ export default function ProgressPanel({
                     </button>
                     {delivLogExpanded && (
                       <div className="mt-1.5 space-y-0.5 max-h-56 overflow-y-auto">
-                        {delivGenerationLog.map((entry, i) => {
+                        {collapseRepeatLog(delivGenerationLog).map((entry, i) => {
                           const style = DELIV_LOG_STYLES[entry.type] || DELIV_LOG_STYLES.info;
                           return (
                             <div key={i} className="flex items-start gap-2 px-2 py-1 rounded-md hover:bg-slate-50/60">
                               <span className={`w-1.5 h-1.5 mt-1.5 rounded-full flex-shrink-0 ${style.dot}`} />
-                              <span className={`text-[10px] leading-relaxed ${style.text}`}>{entry.message}</span>
+                              <span className={`text-[10px] leading-relaxed ${style.text} flex items-center gap-1`}>
+                                {entry.baseMessage || entry.message}
+                                {entry.isRepeating && (
+                                  <AnimatedDots />
+                                )}
+                                {entry.repeatCount > 1 && !entry.isRepeating && (
+                                  <span className="text-[9px] text-slate-300 ml-1">×{entry.repeatCount}</span>
+                                )}
+                              </span>
                               {entry.at && (
                                 <span className="ml-auto text-[9px] text-slate-300 flex-shrink-0">
                                   {new Date(entry.at).toLocaleTimeString([], { hour: '2-digit', minute: '2-digit', second: '2-digit' })}
@@ -489,8 +504,14 @@ export default function ProgressPanel({
             {generationLog && generationLog.length > 0 && (
               <GenerationLogPanel entries={generationLog} defaultCollapsed={true} />
             )}
-            {examChanges && examChanges.length > 0 && (
-              <ExamSummary changes={examChanges} onRetry={onRetryExamine} />
+            {(pendingExamPatches || (examChanges && examChanges.length > 0)) && (
+              <ExamReview
+                pendingExamPatches={pendingExamPatches}
+                examChanges={examChanges}
+                onAcceptPatches={onAcceptPatches}
+                onRejectPatch={onRejectPatch}
+                onRetryExamine={onRetryExamine}
+              />
             )}
 
             {/* Cascade sync activity */}
@@ -856,18 +877,6 @@ export default function ProgressPanel({
                 {tabBadge}
               </span>
             </div>
-            {/* Style Reference — only for deliverable tabs */}
-            {isDeliverableTab && setDeliverableConfig && (
-              <div className="px-4 pb-2">
-                <StyleReferenceBlock
-                  currentRefFile={currentRefFile}
-                  refParsing={refParsing}
-                  refInputRef={refInputRef}
-                  onUpload={handleRefUpload}
-                  onRemove={handleRemoveRef}
-                />
-              </div>
-            )}
             <RevisionChat
               onRevision={revHandler}
               isRevising={isRevising}
@@ -885,69 +894,6 @@ export default function ProgressPanel({
   );
 }
 
-// ─── Style Reference sub-component ───────────────────────────────────────────
-function StyleReferenceBlock({ currentRefFile, refParsing, refInputRef, onUpload, onRemove }) {
-  return (
-    <div className="mb-2">
-      <p className="text-[9px] font-bold text-slate-400 uppercase tracking-wider mb-1.5 flex items-center gap-1">
-        <svg className="w-3 h-3" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-          <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 12h6m-6 4h6m2 5H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z" />
-        </svg>
-        Style Reference
-      </p>
-      {currentRefFile ? (
-        <div className="flex items-center gap-1.5 px-2 py-1.5 rounded-lg bg-indigo-50 border border-indigo-100">
-          <svg className="w-3 h-3 text-indigo-500 flex-shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-            <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 12h6m-6 4h6m2 5H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z" />
-          </svg>
-          <span className="text-[10px] text-indigo-700 font-medium truncate flex-1" title={currentRefFile}>{currentRefFile}</span>
-          <button
-            onClick={onRemove}
-            className="text-indigo-300 hover:text-red-400 transition-colors flex-shrink-0 p-0.5"
-            title="Remove style reference"
-          >
-            <svg className="w-3 h-3" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M6 18L18 6M6 6l12 12" />
-            </svg>
-          </button>
-        </div>
-      ) : (
-        <button
-          onClick={() => refInputRef.current?.click()}
-          disabled={refParsing}
-          className="w-full flex items-center gap-1.5 px-2 py-1.5 rounded-lg border border-dashed border-slate-200 text-[10px] text-slate-400 hover:border-indigo-300 hover:text-indigo-500 hover:bg-indigo-50/40 transition-all disabled:opacity-50"
-        >
-          {refParsing ? (
-            <>
-              <svg className="animate-spin w-3 h-3 flex-shrink-0" fill="none" viewBox="0 0 24 24">
-                <circle className="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" strokeWidth="4" />
-                <path className="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4z" />
-              </svg>
-              <span>Parsing…</span>
-            </>
-          ) : (
-            <>
-              <svg className="w-3 h-3 flex-shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 4v16m8-8H4" />
-              </svg>
-              <span>Upload style reference</span>
-            </>
-          )}
-        </button>
-      )}
-      <input
-        ref={refInputRef}
-        type="file"
-        accept=".pdf,.doc,.docx,.txt"
-        className="hidden"
-        onChange={onUpload}
-      />
-      <p className="text-[9px] text-slate-300 mt-1 leading-relaxed">
-        AI will match formatting & style when revising
-      </p>
-    </div>
-  );
-}
 
 function StepIcon({ state }) {
   if (state === 'done') {
