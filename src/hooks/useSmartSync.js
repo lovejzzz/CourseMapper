@@ -70,8 +70,33 @@ export default function useSmartSync({
 
     if (edits.length === 0) return;
 
-    const plan = buildSyncPlan(edits, currentFeatures, currentDeliv.deliverables);
+    // Determine excludeFeatureId: only exclude if ALL edits in this batch
+    // came from the same deliverable (mixed course-map + deliverable edits
+    // should not exclude anything)
+    const excludeIds = new Set(edits.map(e => e.excludeFeatureId).filter(Boolean));
+    const excludeFeatureId = excludeIds.size === 1 && edits.every(e => e.excludeFeatureId)
+      ? [...excludeIds][0]
+      : null;
+
+    const plan = buildSyncPlan(edits, currentFeatures, currentDeliv.deliverables, excludeFeatureId);
     if (plan.length === 0) return;
+
+    // Build a human-readable summary of what fields changed (for log specificity)
+    const FIELD_LABELS = {
+      title: 'lesson title', learningObjectives: 'learning objectives',
+      weeklyAssessments: 'weekly assessments', topicSection: 'topic/section',
+      asyncActivities: 'async activities', syncActivities: 'sync activities',
+      supportingResources: 'supporting resources', presentationFormat: 'presentation format',
+      learningGoals: 'learning goals', technologyNeeded: 'technology needed',
+      evaluateDesign: 'evaluate design', _structural: 'lesson structure',
+      _deliverableEdit: excludeFeatureId
+        ? `${excludeFeatureId.replace(/([A-Z])/g, ' $1').replace(/^./, s => s.toUpperCase())} edited`
+        : 'deliverable edited',
+      sections: 'sections', courseName: 'course name',
+      semester: 'semester', courseDescription: 'course description',
+    };
+    const uniqueFields = [...new Set(edits.map(e => FIELD_LABELS[e.key] || e.key))];
+    const changedFieldsSummary = uniqueFields.slice(0, 3).join(', ') + (uniqueFields.length > 3 ? '…' : '');
 
     isSyncingRef.current = true;
     setIsSyncing(true);
@@ -84,8 +109,8 @@ export default function useSmartSync({
       setPendingSyncCount(plan.length - i);
 
       appendSyncLog('start', featureId, lessonIndices
-        ? `Updating lesson${lessonIndices.length > 1 ? 's' : ''} ${lessonIndices.map(n => n + 1).join(', ')}…`
-        : 'Full update…'
+        ? `Lesson${lessonIndices.length > 1 ? 's' : ''} ${lessonIndices.map(n => n + 1).join(', ')} — ${changedFieldsSummary} changed`
+        : `Full update — ${changedFieldsSummary} changed`
       );
 
       try {
@@ -99,8 +124,8 @@ export default function useSmartSync({
           }
         }
         appendSyncLog('done', featureId, lessonIndices
-          ? `Lesson${lessonIndices.length > 1 ? 's' : ''} ${lessonIndices.map(n => n + 1).join(', ')} updated`
-          : 'Updated'
+          ? `Lesson${lessonIndices.length > 1 ? 's' : ''} ${lessonIndices.map(n => n + 1).join(', ')} synced ✓`
+          : 'All lessons synced ✓'
         );
         completedFeatureIds.push(featureId);
       } catch (err) {
@@ -123,14 +148,17 @@ export default function useSmartSync({
   }, [appendSyncLog, courseMapRef]);
 
   /**
-   * notifyEdit — called by useCourseMapEditor for every edit.
+   * notifyEdit — called by useCourseMapEditor (course map edits) or
+   * App.jsx onDataChange (deliverable body edits) for every edit.
    * Accumulates the edit and (re)starts the 2-second debounce timer.
    *
    * @param {number|null} lessonIdx - Lesson index (null for structural changes)
-   * @param {string} key - Field key that changed (e.g. 'learningObjectives', '_structural')
+   * @param {string} key - Field key that changed (e.g. 'learningObjectives', '_structural', '_deliverableEdit')
+   * @param {string|null} excludeFeatureId - When the edit originated from within a deliverable,
+   *   pass that featureId so we don't re-generate the source deliverable itself.
    */
-  const notifyEdit = useCallback((lessonIdx, key) => {
-    pendingEditsRef.current.push({ lessonIdx, key });
+  const notifyEdit = useCallback((lessonIdx, key, excludeFeatureId = null) => {
+    pendingEditsRef.current.push({ lessonIdx, key, excludeFeatureId });
 
     // Reset debounce timer
     if (debounceTimerRef.current) clearTimeout(debounceTimerRef.current);

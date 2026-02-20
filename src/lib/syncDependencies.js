@@ -42,6 +42,10 @@ const PER_LESSON_ALL = [
 ];
 
 const FIELD_DEPENDENCY_MAP = {
+  // Direct edit to a deliverable's body text → all other per-lesson deliverables
+  // (source deliverable is excluded in buildSyncPlan via excludeFeatureId)
+  _deliverableEdit: PER_LESSON_ALL,
+
   // Lesson title change → everything needs updating (most deliverables reference the title)
   title: PER_LESSON_ALL,
 
@@ -106,18 +110,24 @@ export function getAffectedFeatures(editKey) {
  *   Currently selected/generated featureIds (only sync features that have data).
  * @param {Object} deliverables
  *   Current deliverable state map — only regenerate features with status 'done'.
+ * @param {string|null} excludeFeatureId
+ *   Optional featureId to exclude from the plan (used when the edit originated
+ *   from within that deliverable itself, so we don't re-generate it needlessly).
  *
  * @returns {Array<{featureId: string, lessonIndices: number[]|null}>}
  *   lessonIndices=null means full regen for that feature (structural change).
  */
-export function buildSyncPlan(pendingEdits, selectedFeatures, deliverables) {
+export function buildSyncPlan(pendingEdits, selectedFeatures, deliverables, excludeFeatureId = null) {
   if (!pendingEdits || pendingEdits.length === 0) return [];
   if (!selectedFeatures || selectedFeatures.length === 0) return [];
 
   // Only sync features that are currently 'done' (have generated data)
+  // Also exclude the source feature if specified (prevents self-regeneration)
   const doneFeatures = new Set(
     selectedFeatures.filter(f =>
-      f !== 'courseMap' && deliverables?.[f]?.status === 'done'
+      f !== 'courseMap' &&
+      f !== excludeFeatureId &&
+      deliverables?.[f]?.status === 'done'
     )
   );
 

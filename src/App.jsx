@@ -934,11 +934,22 @@ export default function App() {
                   onRegenerateLesson={(lessonIndex) => {
                     deliv.regenerateLesson(activeTab, courseMap, lessonIndex);
                   }}
-                  onDataChange={(newData) => {
+                  onDataChange={(newData, editPath) => {
                     deliv.setDeliverables(prev => ({
                       ...prev,
                       [activeTab]: { ...prev[activeTab], data: newData },
                     }));
+                    // Cascade sync: when user edits a deliverable's body text,
+                    // notify the sync engine so other deliverables stay consistent.
+                    // editPath shape: [arrayKey, lessonIdx, fieldName, ...]
+                    if (editPath && Array.isArray(editPath) && editPath.length >= 2) {
+                      const lessonIdx = typeof editPath[1] === 'number' ? editPath[1] : null;
+                      if (lessonIdx !== null) {
+                        // '_deliverableEdit' key maps to all PER_LESSON_ALL features;
+                        // excludeFeatureId = activeTab prevents re-generating the source deliverable
+                        smartSync.notifyEdit(lessonIdx, '_deliverableEdit', activeTab);
+                      }
+                    }
                   }}
                   onAddLessons={(lessonIndices) => {
                     setAddLessonsModal({ lessonIndices });

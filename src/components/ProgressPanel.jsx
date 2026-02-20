@@ -175,10 +175,10 @@ export default function ProgressPanel({
   const [delivExpanded, setDelivExpanded] = useState(true);
   const [delivLogExpanded, setDelivLogExpanded] = useState(false);
 
-  // Auto-expand generation log when actively generating deliverables
+  // Auto-expand activity log when actively generating deliverables OR cascade syncing
   useEffect(() => {
-    if (isDelivGenerating) setDelivLogExpanded(true);
-  }, [isDelivGenerating]);
+    if (isDelivGenerating || isSyncing) setDelivLogExpanded(true);
+  }, [isDelivGenerating, isSyncing]);
   const [historyExpanded, setHistoryExpanded] = useState(false);
   const [showSnapshotInput, setShowSnapshotInput] = useState(false);
   const [snapshotLabel, setSnapshotLabel] = useState('');
@@ -417,20 +417,31 @@ export default function ProgressPanel({
                   <span className="text-[10px] font-bold text-slate-400 uppercase tracking-wider">
                     Deliverables
                   </span>
-                  {isDelivGenerating ? (
-                    <span className="text-[10px] text-indigo-500 font-semibold">
-                      {delivRows.filter(r => r.status === 'done').length}/{delivRows.length} done
-                    </span>
+                  {isSyncing ? (
+                    /* Cascade sync in progress — show amber syncing indicator, not done count */
+                    <>
+                      <span className="text-[10px] text-amber-500 font-semibold">syncing…</span>
+                      <svg className="animate-spin w-3 h-3 text-amber-400 flex-shrink-0" fill="none" viewBox="0 0 24 24">
+                        <circle className="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" strokeWidth="4" />
+                        <path className="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4z" />
+                      </svg>
+                    </>
+                  ) : isDelivGenerating ? (
+                    /* Initial generation — show indigo spinner + count */
+                    <>
+                      <span className="text-[10px] text-indigo-500 font-semibold">
+                        {delivRows.filter(r => r.status === 'done').length}/{delivRows.length} done
+                      </span>
+                      <svg className="animate-spin w-3 h-3 text-indigo-400 flex-shrink-0" fill="none" viewBox="0 0 24 24">
+                        <circle className="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" strokeWidth="4" />
+                        <path className="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4z" />
+                      </svg>
+                    </>
                   ) : (
+                    /* All done — plain count */
                     <span className="text-[10px] text-slate-400">
                       ({delivRows.filter(r => r.status === 'done').length}/{delivRows.length})
                     </span>
-                  )}
-                  {isDelivGenerating && (
-                    <svg className="animate-spin w-3 h-3 text-indigo-400 flex-shrink-0" fill="none" viewBox="0 0 24 24">
-                      <circle className="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" strokeWidth="4" />
-                      <path className="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4z" />
-                    </svg>
                   )}
                   <svg className={`w-3 h-3 text-slate-400 transition-transform ml-auto ${delivExpanded ? 'rotate-180' : ''}`} fill="none" stroke="currentColor" viewBox="0 0 24 24">
                     <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M19 9l-7 7-7-7" />
@@ -497,47 +508,68 @@ export default function ProgressPanel({
                   </div>
                 )}
 
-                {/* Deliverable generation log — richer detail */}
-                {delivGenerationLog && delivGenerationLog.length > 0 && (
-                  <div className="mt-2">
-                    <button
-                      onClick={() => setDelivLogExpanded(v => !v)}
-                      className="flex items-center gap-1.5 text-[10px] font-bold text-slate-400 uppercase tracking-wider hover:text-slate-500 transition-colors"
-                    >
-                      <svg className={`w-2.5 h-2.5 transition-transform ${delivLogExpanded ? 'rotate-90' : ''}`} fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                        <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 5l7 7-7 7" />
-                      </svg>
-                      Activity Log
-                      {isDelivGenerating && <span className="w-1.5 h-1.5 rounded-full bg-indigo-400 animate-pulse ml-1" />}
-                    </button>
-                    {delivLogExpanded && (
-                      <div className="mt-1.5 space-y-0.5 max-h-56 overflow-y-auto">
-                        {collapseRepeatLog(delivGenerationLog).map((entry, i) => {
-                          const style = DELIV_LOG_STYLES[entry.type] || DELIV_LOG_STYLES.info;
-                          return (
-                            <div key={i} className="flex items-start gap-2 px-2 py-1 rounded-md hover:bg-slate-50/60">
-                              <span className={`w-1.5 h-1.5 mt-1.5 rounded-full flex-shrink-0 ${style.dot}`} />
-                              <span className={`text-[10px] leading-relaxed ${style.text} flex items-center gap-1`}>
-                                {entry.baseMessage || entry.message}
-                                {entry.isRepeating && (
-                                  <AnimatedDots />
-                                )}
-                                {entry.repeatCount > 1 && !entry.isRepeating && (
-                                  <span className="text-[9px] text-slate-300 ml-1">×{entry.repeatCount}</span>
-                                )}
-                              </span>
-                              {entry.at && (
-                                <span className="ml-auto text-[9px] text-slate-300 flex-shrink-0">
-                                  {new Date(entry.at).toLocaleTimeString([], { hour: '2-digit', minute: '2-digit', second: '2-digit' })}
+                {/* Activity Log — merges deliverable generation log + auto-sync entries */}
+                {(() => {
+                  // Build a unified log: delivGenerationLog entries + syncLog entries (tagged _sync)
+                  const delivEntries = (delivGenerationLog || []).map(e => ({ ...e, _origin: 'deliv' }));
+                  const syncEntries = (syncLog || []).map(e => ({
+                    // Map sync log shape → activity log shape
+                    type: e.type === 'done' ? 'done' : e.type === 'error' ? 'error' : 'progress',
+                    message: `[Auto-sync] ${FEATURE_LABELS[e.featureId] || e.featureId}: ${e.message}`,
+                    at: e.at,
+                    _origin: 'sync',
+                    _syncType: e.type,
+                  }));
+                  // Merge and sort by timestamp
+                  const combined = [...delivEntries, ...syncEntries].sort((a, b) => (a.at || 0) - (b.at || 0));
+                  if (combined.length === 0) return null;
+                  return (
+                    <div className="mt-2">
+                      <button
+                        onClick={() => setDelivLogExpanded(v => !v)}
+                        className="flex items-center gap-1.5 text-[10px] font-bold text-slate-400 uppercase tracking-wider hover:text-slate-500 transition-colors"
+                      >
+                        <svg className={`w-2.5 h-2.5 transition-transform ${delivLogExpanded ? 'rotate-90' : ''}`} fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                          <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 5l7 7-7 7" />
+                        </svg>
+                        Activity Log
+                        {(isDelivGenerating || isSyncing) && (
+                          <span className={`w-1.5 h-1.5 rounded-full animate-pulse ml-1 ${isSyncing ? 'bg-amber-400' : 'bg-indigo-400'}`} />
+                        )}
+                        <span className="text-[9px] font-normal text-slate-300 ml-1">({combined.length})</span>
+                      </button>
+                      {delivLogExpanded && (
+                        <div className="mt-1.5 space-y-0.5 max-h-56 overflow-y-auto">
+                          {collapseRepeatLog(combined).map((entry, i) => {
+                            const isSyncEntry = entry._origin === 'sync';
+                            const style = isSyncEntry
+                              ? (entry._syncType === 'done' ? { text: 'text-amber-600', dot: 'bg-amber-400' }
+                                : entry._syncType === 'error' ? { text: 'text-red-500', dot: 'bg-red-400' }
+                                : { text: 'text-amber-500', dot: 'bg-amber-300' })
+                              : (DELIV_LOG_STYLES[entry.type] || DELIV_LOG_STYLES.info);
+                            return (
+                              <div key={i} className={`flex items-start gap-2 px-2 py-1 rounded-md hover:bg-slate-50/60 ${isSyncEntry ? 'bg-amber-50/40' : ''}`}>
+                                <span className={`w-1.5 h-1.5 mt-1.5 rounded-full flex-shrink-0 ${style.dot}`} />
+                                <span className={`text-[10px] leading-relaxed ${style.text} flex items-center gap-1 flex-1 min-w-0`}>
+                                  <span className="truncate">{entry.baseMessage || entry.message}</span>
+                                  {entry.isRepeating && <AnimatedDots />}
+                                  {entry.repeatCount > 1 && !entry.isRepeating && (
+                                    <span className="text-[9px] text-slate-300 ml-1 flex-shrink-0">×{entry.repeatCount}</span>
+                                  )}
                                 </span>
-                              )}
-                            </div>
-                          );
-                        })}
-                      </div>
-                    )}
-                  </div>
-                )}
+                                {entry.at && (
+                                  <span className="ml-auto text-[9px] text-slate-300 flex-shrink-0">
+                                    {new Date(entry.at).toLocaleTimeString([], { hour: '2-digit', minute: '2-digit', second: '2-digit' })}
+                                  </span>
+                                )}
+                              </div>
+                            );
+                          })}
+                        </div>
+                      )}
+                    </div>
+                  );
+                })()}
               </div>
             )}
 
@@ -554,8 +586,8 @@ export default function ProgressPanel({
               />
             )}
 
-            {/* Cascade sync activity */}
-            {recentSync.length > 0 && (
+            {/* Cascade sync activity — only shown when deliverables section is hidden (no delivGenerationLog yet) */}
+            {recentSync.length > 0 && (!delivGenerationLog || delivGenerationLog.length === 0) && (
               <div className="mt-3">
                 <button
                   onClick={() => setSyncExpanded(v => !v)}
@@ -563,7 +595,7 @@ export default function ProgressPanel({
                 >
                   <span className="text-[10px] font-bold text-slate-400 uppercase tracking-wider">Auto-sync Activity</span>
                   {syncLog?.some(e => e.type === 'start') && (
-                    <span className="w-1.5 h-1.5 rounded-full bg-indigo-400 animate-pulse flex-shrink-0" />
+                    <span className="w-1.5 h-1.5 rounded-full bg-amber-400 animate-pulse flex-shrink-0" />
                   )}
                   <svg className={`w-3 h-3 text-slate-400 transition-transform ${syncExpanded ? 'rotate-180' : ''}`} fill="none" stroke="currentColor" viewBox="0 0 24 24">
                     <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M19 9l-7 7-7-7" />
