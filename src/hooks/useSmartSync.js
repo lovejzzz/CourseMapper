@@ -1,25 +1,36 @@
 import { useState, useRef, useCallback, useEffect } from 'react';
-import { buildSyncPlan } from '../lib/syncDependencies';
+import { buildSyncPlan, DELIVERABLE_OUTBOUND_MAP } from '../lib/syncDependencies';
 
 /**
- * useSmartSync — Cascade Sync Engine (V1.5.3)
+ * useSmartSync — Cascade Sync Engine (V1.7.0)
  *
- * Watches for course map edits (via notifyEdit), debounces for 2 seconds,
- * then surgically regenerates only the affected lesson(s) in each affected deliverable.
+ * Handles two distinct edit sources:
+ *
+ * 1. COURSE MAP EDITS (learningObjectives, title, etc.)
+ *    → Surgically regenerates only affected lessons in affected deliverables (unchanged).
+ *
+ * 2. DELIVERABLE BODY EDITS (_deliverableEdit key)
+ *    → Source tab: fires onRequestProposal callback so an AI suggestion panel
+ *      appears for the user to accept/reject (never auto-overwrites).
+ *    → Downstream tabs: marked stale immediately (⚠ badge), NOT auto-regenerated.
  *
  * Usage:
- *   const smartSync = useSmartSync({ deliv, gen, courseMap, selectedFeatures, onSyncComplete });
- *   // Wire: editor.handleCellEdit calls smartSync.notifyEdit(lessonIdx, key)
+ *   const smartSync = useSmartSync({ deliv, gen, courseMapRef, selectedFeatures,
+ *     onSyncComplete, onRequestProposal });
+ *   // Wire: editor.handleCellEdit → smartSync.notifyEdit(lessonIdx, key)
+ *   // Wire: App.jsx onDataChange → smartSync.notifyEdit(lessonIdx, '_deliverableEdit', activeTab, editContext)
  *
  * Exposes:
  *   { syncLog, isSyncing, pendingSyncCount, notifyEdit }
  */
 export default function useSmartSync({
-  deliv,          // return value of useDeliverables
-  gen,            // return value of useGeneration (for gen.isStreaming guard)
-  courseMapRef,   // ref to current courseMap (always fresh)
+  deliv,             // return value of useDeliverables
+  gen,               // return value of useGeneration (for gen.isStreaming guard)
+  courseMapRef,      // ref to current courseMap (always fresh)
   selectedFeatures,
-  onSyncComplete, // callback(affectedFeatureIds[]) — called when sync batch done
+  onSyncComplete,    // callback(affectedFeatureIds[]) — called when sync batch done
+  onRequestProposal, // callback({ featureId, lessonIndex, editContext, courseMap })
+                     // — called when a deliverable body edit should show a proposal panel
 }) {
   const [syncLog, setSyncLog] = useState([]);
   const [isSyncing, setIsSyncing] = useState(false);
@@ -39,6 +50,8 @@ export default function useSmartSync({
   selectedFeaturesRef.current = selectedFeatures;
   const onSyncCompleteRef = useRef(onSyncComplete);
   onSyncCompleteRef.current = onSyncComplete;
+  const onRequestProposalRef = useRef(onRequestProposal);
+  onRequestProposalRef.current = onRequestProposal;
 
   const appendSyncLog = useCallback((type, featureId, message) => {
     setSyncLog(prev => [...prev, { type, featureId, message, at: Date.now() }]);
@@ -46,7 +59,14 @@ export default function useSmartSync({
 
   /**
    * The main sync executor — called after debounce expires.
-   * Runs synchronously through the plan, one feature at a time.
+   * Runs sequentially through the plan, one feature at a time.
+   *
+   * For _deliverableEdit edits:
+   *   - Source tab → fires onRequestProposal (no auto-regen)
+   *   - Downstream tabs → marks stale (no auto-regen)
+   *
+   * For all other edits (course map fields):
+   *   - Normal surgical regeneration as before.
    */
   const runSync = useCallback(async () => {
     const currentDeliv = delivRef.current;
@@ -54,12 +74,9 @@ export default function useSmartSync({
     const currentFeatures = selectedFeaturesRef.current;
     const currentCourseMap = courseMapRef?.current;
 
-    // Guard: don't start if something is already generating
+    // Guard: don't start if something is already generating.
+    // The reactive useEffect below will re-fire when idle.
     if (currentGen?.isStreaming || currentDeliv?.isGenerating) {
-      // Re-schedule after a short wait — poll until idle
-      debounceTimerRef.current = setTimeout(() => {
-        if (pendingEditsRef.current.length > 0) runSync();
-      }, 1500);
       return;
     }
 
@@ -70,18 +87,71 @@ export default function useSmartSync({
 
     if (edits.length === 0) return;
 
-    // Determine priorityFeatureId: if ALL edits came from within the same deliverable,
-    // put it first in the sync plan so the user sees their current tab update live.
-    // Mixed course-map + deliverable edits don't have a single priority source.
-    const priorityIds = new Set(edits.map(e => e.excludeFeatureId).filter(Boolean));
-    const priorityFeatureId = priorityIds.size === 1 && edits.every(e => e.excludeFeatureId)
+    // ── Deliverable body edits — proposal + stale path ───────────────────────
+    // Separate out _deliverableEdit edits and handle them independently
+    // (no entry in the sync plan — they bypass buildSyncPlan entirely).
+    const deliverableEdits = edits.filter(e => e.key === '_deliverableEdit' && e.excludeFeatureId);
+    const courseMapEdits   = edits.filter(e => !(e.key === '_deliverableEdit' && e.excludeFeatureId));
+
+    if (deliverableEdits.length > 0) {
+      // Only the features that have 'done' status qualify for stale marking
+      const doneFeatureIds = new Set(
+        (currentFeatures || []).filter(f =>
+          f !== 'courseMap' && currentDeliv?.deliverables?.[f]?.status === 'done'
+        )
+      );
+
+      // Group by source featureId — deduplicate (last edit wins for editContext)
+      const delivEditBySource = new Map();
+      for (const edit of deliverableEdits) {
+        const existing = delivEditBySource.get(edit.excludeFeatureId);
+        // Keep the one with a real editContext, or the last one
+        if (!existing || edit.editContext) {
+          delivEditBySource.set(edit.excludeFeatureId, edit);
+        }
+      }
+
+      for (const [sourceFeatureId, edit] of delivEditBySource.entries()) {
+        if (!doneFeatureIds.has(sourceFeatureId)) continue;
+
+        // 1. Fire proposal for source tab (no auto-regen)
+        if (onRequestProposalRef.current && edit.lessonIdx != null) {
+          onRequestProposalRef.current({
+            featureId: sourceFeatureId,
+            lessonIndex: edit.lessonIdx,
+            editContext: edit.editContext || null,
+            courseMap: currentCourseMap,
+          });
+          appendSyncLog('start', sourceFeatureId,
+            `Lesson ${edit.lessonIdx + 1} — AI suggestion requested`
+          );
+        }
+
+        // 2. Mark outbound tabs stale (no auto-regen)
+        const outbound = DELIVERABLE_OUTBOUND_MAP[sourceFeatureId] ?? [];
+        for (const fId of outbound) {
+          if (doneFeatureIds.has(fId)) {
+            currentDeliv.markFeatureStale(fId);
+            appendSyncLog('pending', fId,
+              `Lesson ${edit.lessonIdx != null ? edit.lessonIdx + 1 : '?'} — marked out of sync`
+            );
+          }
+        }
+      }
+    }
+
+    // ── Course map edits — normal surgical regeneration path ─────────────────
+    if (courseMapEdits.length === 0) return;
+
+    const priorityIds = new Set(courseMapEdits.map(e => e.excludeFeatureId).filter(Boolean));
+    const priorityFeatureId = priorityIds.size === 1 && courseMapEdits.every(e => e.excludeFeatureId)
       ? [...priorityIds][0]
       : null;
 
-    const plan = buildSyncPlan(edits, currentFeatures, currentDeliv.deliverables, priorityFeatureId);
+    const plan = buildSyncPlan(courseMapEdits, currentFeatures, currentDeliv.deliverables, priorityFeatureId);
     if (plan.length === 0) return;
 
-    // Build a human-readable summary of what fields changed (for log specificity)
+    // Build human-readable summary of changed fields (for log specificity)
     const FIELD_LABELS = {
       title: 'lesson title', learningObjectives: 'learning objectives',
       weeklyAssessments: 'weekly assessments', topicSection: 'topic/section',
@@ -89,13 +159,10 @@ export default function useSmartSync({
       supportingResources: 'supporting resources', presentationFormat: 'presentation format',
       learningGoals: 'learning goals', technologyNeeded: 'technology needed',
       evaluateDesign: 'evaluate design', _structural: 'lesson structure',
-      _deliverableEdit: priorityFeatureId
-        ? `${priorityFeatureId.replace(/([A-Z])/g, ' $1').replace(/^./, s => s.toUpperCase())} edited`
-        : 'deliverable edited',
       sections: 'sections', courseName: 'course name',
       semester: 'semester', courseDescription: 'course description',
     };
-    const uniqueFields = [...new Set(edits.map(e => FIELD_LABELS[e.key] || e.key))];
+    const uniqueFields = [...new Set(courseMapEdits.map(e => FIELD_LABELS[e.key] || e.key))];
     const changedFieldsSummary = uniqueFields.slice(0, 3).join(', ') + (uniqueFields.length > 3 ? '…' : '');
 
     isSyncingRef.current = true;
@@ -152,13 +219,13 @@ export default function useSmartSync({
    * App.jsx onDataChange (deliverable body edits) for every edit.
    * Accumulates the edit and (re)starts the 2-second debounce timer.
    *
-   * @param {number|null} lessonIdx - Lesson index (null for structural changes)
-   * @param {string} key - Field key that changed (e.g. 'learningObjectives', '_structural', '_deliverableEdit')
-   * @param {string|null} excludeFeatureId - When the edit originated from within a deliverable,
-   *   pass that featureId so it is prioritized first in the sync plan (user sees it update live).
+   * @param {number|null} lessonIdx       — Lesson index (null for structural changes)
+   * @param {string}      key             — Field key ('learningObjectives', '_deliverableEdit', etc.)
+   * @param {string|null} excludeFeatureId — Source featureId when editing a deliverable body
+   * @param {string|null} editContext      — Human-readable change summary ('homework: "3" → "4"')
    */
-  const notifyEdit = useCallback((lessonIdx, key, excludeFeatureId = null) => {
-    pendingEditsRef.current.push({ lessonIdx, key, excludeFeatureId });
+  const notifyEdit = useCallback((lessonIdx, key, excludeFeatureId = null, editContext = null) => {
+    pendingEditsRef.current.push({ lessonIdx, key, excludeFeatureId, editContext });
 
     // Reset debounce timer
     if (debounceTimerRef.current) clearTimeout(debounceTimerRef.current);
@@ -168,6 +235,17 @@ export default function useSmartSync({
 
     debounceTimerRef.current = setTimeout(runSync, 2000);
   }, [runSync]);
+
+  // ── Reactive idle-watcher (replaces 1.5s polling) ───────────────────────────
+  // When generation finishes (isGenerating or isStreaming flips to false) and
+  // there are pending edits queued, fire runSync after a short grace delay.
+  useEffect(() => {
+    const isIdle = !deliv?.isGenerating && !gen?.isStreaming;
+    if (isIdle && !isSyncingRef.current && pendingEditsRef.current.length > 0) {
+      if (debounceTimerRef.current) clearTimeout(debounceTimerRef.current);
+      debounceTimerRef.current = setTimeout(runSync, 300);
+    }
+  }, [deliv?.isGenerating, gen?.isStreaming, runSync]);
 
   // Cleanup on unmount
   useEffect(() => {

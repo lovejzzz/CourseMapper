@@ -16,6 +16,8 @@ import useRevision from './hooks/useRevision';
 import useCourseMapEditor from './hooks/useCourseMapEditor';
 import useDeliverables from './hooks/useDeliverables';
 import useSmartSync from './hooks/useSmartSync';
+import useEditProposal from './hooks/useEditProposal';
+import { extractEditContext } from './lib/editContextExtractor';
 import { FEATURES } from './screens/FeatureSelect';
 import DeliverableView from './components/DeliverableView';
 import ExportSidePanel from './components/ExportSidePanel';
@@ -131,6 +133,8 @@ export default function App() {
   // Always-fresh ref to courseMap for useSmartSync (avoids stale closure)
   const courseMapRef = useRef(courseMap);
   useEffect(() => { courseMapRef.current = courseMap; }, [courseMap]);
+  // Always-fresh ref to deliverables for onRequestProposal callback
+  const deliverablesRef = useRef(null);
 
   const version = useVersionHistory(setCourseMap, setDownloadedFile);
 
@@ -170,6 +174,15 @@ export default function App() {
     pedagogicalMode: 'lecture',
     examChanges: gen.examChanges,
   });
+  // Keep deliverables ref fresh for use in stable callbacks
+  deliverablesRef.current = deliv.deliverables;
+
+  // ── Edit-Aware AI Proposal Engine ──
+  const editProposal = useEditProposal({
+    provider, modelId, apiKey,
+    deliverableConfig,
+    pedagogicalMode: 'lecture',
+  });
 
   // ── Cascade Sync Engine ──
   const smartSync = useSmartSync({
@@ -184,6 +197,13 @@ export default function App() {
         return next;
       });
     }, []),
+    onRequestProposal: useCallback(({ featureId, lessonIndex, editContext, courseMap: cm }) => {
+      // Use deliverablesRef so this callback stays stable and never reads stale data
+      editProposal.proposeLesson(
+        featureId, cm, lessonIndex, editContext,
+        deliverablesRef.current?.[featureId]?.data,
+      );
+    }, [editProposal.proposeLesson]),
   });
 
   // Wire editor with smartSync notifyEdit
@@ -647,6 +667,7 @@ export default function App() {
 
               // Cascade sync badges
               const hasUnseen = unseenChanges.has(feature.id);
+              const isStaleTab = deliv.deliverables[feature.id]?.stale === true;
               // isSyncingThis: either regenerateLesson set currentFeature, or
               // the latest syncLog entry for this feature is a pending 'start'
               const lastSyncEntry = smartSync.isSyncing && smartSync.syncLog.length > 0
@@ -681,6 +702,7 @@ export default function App() {
                   {feature.id !== 'courseMap' && (
                     <span className={`w-1.5 h-1.5 rounded-full flex-shrink-0 ${
                       isSyncingThis ? 'bg-amber-400 animate-pulse' :
+                      isStaleTab && !isSyncingThis ? 'bg-amber-300' :
                       hasUnseen ? 'bg-amber-400' :
                       isStreaming ? 'bg-indigo-400 animate-pulse' :
                       isDone ? 'bg-emerald-400' :
@@ -695,7 +717,7 @@ export default function App() {
                       'bg-slate-300'
                     }`} />
                   )}
-                  {feature.label}{hasUnseen ? ' *' : ''}
+                  {feature.label}{isStaleTab && !isSyncingThis ? ' ⚠' : hasUnseen ? ' *' : ''}
                 </button>
               );
             })}
@@ -935,6 +957,7 @@ export default function App() {
                     deliv.regenerateLesson(activeTab, courseMap, lessonIndex);
                   }}
                   onDataChange={(newData, editPath) => {
+                    const oldData = deliv.deliverables[activeTab]?.data;
                     deliv.setDeliverables(prev => ({
                       ...prev,
                       [activeTab]: { ...prev[activeTab], data: newData },
@@ -945,9 +968,11 @@ export default function App() {
                     if (editPath && Array.isArray(editPath) && editPath.length >= 2) {
                       const lessonIdx = typeof editPath[1] === 'number' ? editPath[1] : null;
                       if (lessonIdx !== null) {
-                        // '_deliverableEdit' key maps to all PER_LESSON_ALL features;
-                        // excludeFeatureId = activeTab prevents re-generating the source deliverable
-                        smartSync.notifyEdit(lessonIdx, '_deliverableEdit', activeTab);
+                        // Extract a human-readable change summary for the AI proposal
+                        const ctx = extractEditContext(oldData, newData, editPath);
+                        // '_deliverableEdit' key: source tab gets AI proposal,
+                        // downstream tabs get stale badge (no auto-regen)
+                        smartSync.notifyEdit(lessonIdx, '_deliverableEdit', activeTab, ctx);
                       }
                     }
                   }}
@@ -955,6 +980,25 @@ export default function App() {
                     setAddLessonsModal({ lessonIndices });
                   }}
                   freshLessonIndices={deliv.freshLessons?.[activeTab] ?? null}
+                  proposals={editProposal.proposals[activeTab] ?? {}}
+                  onAcceptProposal={(lessonIndex) => {
+                    editProposal.acceptProposal(
+                      activeTab, lessonIndex,
+                      deliv.deliverables[activeTab]?.data,
+                      deliv.setDeliverables,
+                    );
+                  }}
+                  onDismissProposal={(lessonIndex) => editProposal.dismissProposal(activeTab, lessonIndex)}
+                  onRegenerateProposal={(lessonIndex) => editProposal.regenerateProposal(
+                    activeTab, courseMap, lessonIndex,
+                    editProposal.proposals[activeTab]?.[lessonIndex]?.editContext,
+                    deliv.deliverables[activeTab]?.data,
+                  )}
+                  isStale={deliv.deliverables[activeTab]?.stale === true}
+                  onSyncNow={() => {
+                    const scopeIndices = lessonScope.type === 'specific' ? lessonScope.indices : null;
+                    deliv.generateAll(courseMap, [activeTab], scopeIndices);
+                  }}
                 />
               </ErrorBoundary>
             )}

@@ -728,9 +728,25 @@ function buildScopePreamble(courseMap, scopeIndices) {
   return `⚠️ SCOPE CONSTRAINT — CRITICAL: Generate content for ONLY the following ${scopeIndices.length} lesson${scopeIndices.length !== 1 ? 's' : ''}. Do NOT generate anything for any other lesson. Your output array MUST contain EXACTLY ${scopeIndices.length} item${scopeIndices.length !== 1 ? 's' : ''}:\n${titles}\n\nIMPORTANT: Use the ORIGINAL lesson/week numbers from the course map (e.g., "Week ${firstIdx + 1}", "Lesson ${firstIdx + 1}"). Do NOT renumber them as Lesson 1.\n\n`;
 }
 
-export function getDeliverablePrompt(featureId, courseMap, scopeIndices = null, config = {}, pedagogicalMode = 'lecture', examChanges = null) {
+/**
+ * @param {string}      featureId
+ * @param {object}      courseMap
+ * @param {number[]|null} scopeIndices
+ * @param {object}      config
+ * @param {string}      pedagogicalMode
+ * @param {object|null} examChanges
+ * @param {string|null} editContext  — Optional: human-readable summary of what the
+ *   instructor changed (e.g. 'homework: "3" → "4"'). When provided, injected as the
+ *   highest-priority constraint so the AI incorporates the edit precisely.
+ */
+export function getDeliverablePrompt(featureId, courseMap, scopeIndices = null, config = {}, pedagogicalMode = 'lecture', examChanges = null, editContext = null) {
   const template = PROMPTS[featureId];
   const scopePreamble = buildScopePreamble(courseMap, scopeIndices);
+
+  // Build the edit-context block when provided (injected before config instructions)
+  const editContextBlock = editContext
+    ? `\n\nINSTRUCTOR EDIT TO INCORPORATE (mandatory — highest priority):\nThe instructor has made this specific change to this lesson:\n  ${editContext}\nRevise the content to reflect this change precisely. Preserve everything else unchanged. Do NOT invent unrelated changes.`
+    : '';
 
   // ── Custom deliverable fallback ───────────────────────────────────────────
   if (!template && featureId.startsWith('custom_')) {
@@ -739,12 +755,15 @@ export function getDeliverablePrompt(featureId, courseMap, scopeIndices = null, 
       const condensed = condenseCourseMap(courseMap, scopeIndices, examChanges);
       const baseUserPrompt = custom.userPromptTemplate.replace('{{courseMap}}', condensed);
       const configInstructions = buildConfigInstructions(featureId, config, pedagogicalMode);
+      const withEdit = editContextBlock
+        ? baseUserPrompt.replace(/(\nReturn ONLY)/, `${editContextBlock}$1`)
+        : baseUserPrompt;
       const withConfig = configInstructions
-        ? baseUserPrompt.replace(
+        ? withEdit.replace(
             /(\nReturn ONLY)/,
             `\n\nADDITIONAL INSTRUCTOR REQUIREMENTS (must be followed, take priority over defaults):\n${configInstructions}$1`
           )
-        : baseUserPrompt;
+        : withEdit;
       const withExtra = config.extraInstructions?.trim()
         ? withConfig + `\n\nINSTRUCTOR EXTRA INSTRUCTIONS:\n${config.extraInstructions.trim()}`
         : withConfig;
@@ -761,10 +780,15 @@ export function getDeliverablePrompt(featureId, courseMap, scopeIndices = null, 
 
   const baseUserPrompt = template.user(courseMap, scopeIndices, examChanges);
   const configInstructions = buildConfigInstructions(featureId, config, pedagogicalMode);
-  // Inject config instructions right before the final "Return ONLY the JSON" instruction
-  const withConfig = configInstructions
-    ? baseUserPrompt.replace(/(\nReturn ONLY the JSON)/, `\n\nADDITIONAL INSTRUCTOR REQUIREMENTS (must be followed, take priority over defaults):\n${configInstructions}$1`)
+
+  // Inject edit context first (highest priority), then config instructions
+  // Both are inserted right before the final "Return ONLY the JSON" instruction
+  const withEdit = editContextBlock
+    ? baseUserPrompt.replace(/(\nReturn ONLY the JSON)/, `${editContextBlock}$1`)
     : baseUserPrompt;
+  const withConfig = configInstructions
+    ? withEdit.replace(/(\nReturn ONLY the JSON)/, `\n\nADDITIONAL INSTRUCTOR REQUIREMENTS (must be followed, take priority over defaults):\n${configInstructions}$1`)
+    : withEdit;
   // Append extra free-text instructions from the instructor if provided
   const withExtra = config.extraInstructions?.trim()
     ? withConfig + `\n\nINSTRUCTOR EXTRA INSTRUCTIONS:\n${config.extraInstructions.trim()}`

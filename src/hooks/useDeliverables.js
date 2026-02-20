@@ -1,4 +1,4 @@
-import { useState, useCallback, useRef, useContext } from 'react';
+import { useState, useCallback, useRef, useContext, useEffect } from 'react';
 import useStreamReader from './useStreamReader';
 import { getDeliverablePrompt } from '../lib/deliverablePrompts';
 import { getArrayKey } from '../lib/syncDependencies';
@@ -152,6 +152,9 @@ export default function useDeliverables({ provider, modelId, apiKey, deliverable
   // freshLessons: tracks which lesson indices were just AI-regenerated (for green highlight)
   // Shape: { [featureId]: Set<number> }
   const [freshLessons, setFreshLessons]   = useState({});
+  // Ref-tracked timers so we can cancel them on unmount (avoids setState-on-unmounted-component)
+  // Map<"featureId:lessonIdx", timeoutId>
+  const freshTimersRef = useRef(new Map());
   const abortRef    = useRef(null);
   const startedRef  = useRef(false);
 
@@ -341,6 +344,10 @@ export default function useDeliverables({ provider, modelId, apiKey, deliverable
     dispatch(actions.markAllStale());
   }, [dispatch]);
 
+  const markFeatureStale = useCallback((featureId) => {
+    dispatch(actions.markFeatureStale(featureId));
+  }, [dispatch]);
+
   const resyncAll = useCallback(async (courseMap, features, scopeIndices = null) => {
     const staleIds = features.filter(f =>
       f !== 'courseMap' && deliverables[f]?.stale
@@ -455,17 +462,26 @@ export default function useDeliverables({ provider, modelId, apiKey, deliverable
         // ── Green highlight ──────────────────────────────────────────────────
         // Mark this lesson as freshly generated for 3 seconds so the view
         // can render a green ring/background to signal new content to the user.
+        // We track the timer in a ref so it can be cancelled on unmount,
+        // preventing setState-on-unmounted-component warnings.
         setFreshLessons(prev => ({
           ...prev,
           [featureId]: new Set([...(prev[featureId] || []), lessonIndex]),
         }));
-        setTimeout(() => {
+        const freshKey = `${featureId}:${lessonIndex}`;
+        // Cancel any existing timer for this same lesson (e.g. rapid re-regen)
+        if (freshTimersRef.current.has(freshKey)) {
+          clearTimeout(freshTimersRef.current.get(freshKey));
+        }
+        const freshTimer = setTimeout(() => {
           setFreshLessons(prev => {
             const s = new Set(prev[featureId] || []);
             s.delete(lessonIndex);
             return { ...prev, [featureId]: s };
           });
+          freshTimersRef.current.delete(freshKey);
         }, 3000);
+        freshTimersRef.current.set(freshKey, freshTimer);
       } else {
         appendLog(`⚠ ${label}: Lesson ${lessonIndex + 1} regeneration response was incomplete`, 'warn');
         // Restore existing data (no user edits lost — we use the snapshot)
@@ -515,6 +531,14 @@ export default function useDeliverables({ provider, modelId, apiKey, deliverable
     }
   }, [deliverables, generateAll]);
 
+  // ── Cleanup: cancel any pending freshLessons timers on unmount ──────────────
+  useEffect(() => {
+    return () => {
+      freshTimersRef.current.forEach(id => clearTimeout(id));
+      freshTimersRef.current.clear();
+    };
+  }, []);
+
   // staleCount as a computed value from store
   const staleCount = Object.values(deliverables).filter(d => d?.stale).length;
 
@@ -545,6 +569,7 @@ export default function useDeliverables({ provider, modelId, apiKey, deliverable
     resyncAll,
     regenerateLesson,
     surgicalResync,
+    markFeatureStale,
     staleCount,
     started: startedRef.current,
     generationLog,
