@@ -159,7 +159,7 @@ export default function RevisionChat({ onRevision, isRevising, savedMessages, on
       onDrop={handleDrop}
     >
       {messages.length > 0 && (
-        <div className="max-h-48 overflow-y-auto px-5 py-3 space-y-2 bg-slate-50/30">
+        <div className="max-h-48 overflow-y-auto px-4 py-3 space-y-2 bg-slate-50/30">
           {messages.map((msg, i) => (
             <div key={i} className={`flex ${msg.role === 'user' ? 'justify-end' : 'justify-start'} animate-spring-in`}>
               <div className={`px-3.5 py-2 rounded-squircle-xs text-xs max-w-[85%] ${
@@ -188,7 +188,7 @@ export default function RevisionChat({ onRevision, isRevising, savedMessages, on
 
       {/* ── Feature 6.2: Suggestion chips ── */}
       {suggestions.length > 0 && !isRevising && (
-        <div className="px-5 pt-2 pb-1 flex flex-col gap-1.5">
+        <div className="px-4 pt-2 pb-1 flex flex-col gap-1.5">
           <p className="text-[9px] font-semibold text-slate-400 uppercase tracking-wider">Try next:</p>
           <div className="flex flex-wrap gap-1.5">
             {suggestions.map((sug, i) => (
@@ -206,7 +206,7 @@ export default function RevisionChat({ onRevision, isRevising, savedMessages, on
 
       {/* Attached files preview */}
       {attachedFiles.length > 0 && (
-        <div className="px-5 pt-2 flex flex-wrap gap-1.5">
+        <div className="px-4 pt-2 flex flex-wrap gap-1.5">
           {attachedFiles.map((f, i) => (
             <span key={i} className="inline-flex items-center gap-1 px-2.5 py-1 bg-indigo-50/80 text-indigo-700 text-[10px] font-semibold rounded-full border border-indigo-200/40">
               <svg className="w-3 h-3" fill="none" stroke="currentColor" viewBox="0 0 24 24">
@@ -224,7 +224,7 @@ export default function RevisionChat({ onRevision, isRevising, savedMessages, on
       )}
 
       {isParsing && (
-        <div className="px-5 pt-2 flex items-center gap-2 text-xs text-indigo-500">
+        <div className="px-4 pt-2 flex items-center gap-2 text-xs text-indigo-500">
           <svg className="animate-spin w-3 h-3" fill="none" viewBox="0 0 24 24">
             <circle className="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" strokeWidth="4" />
             <path className="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4z" />
@@ -233,7 +233,8 @@ export default function RevisionChat({ onRevision, isRevising, savedMessages, on
         </div>
       )}
 
-      <div className="px-5 py-3.5 flex gap-2.5">
+      {/* ── Compose area: textarea + action row ── */}
+      <div className="px-4 py-3 space-y-2">
         <input
           type="file"
           ref={fileInputRef}
@@ -241,35 +242,48 @@ export default function RevisionChat({ onRevision, isRevising, savedMessages, on
           multiple
           onChange={(e) => { processFiles(e.target.files); e.target.value = ''; }}
         />
-        <button
-          onClick={() => fileInputRef.current?.click()}
-          disabled={isRevising}
-          className="tactile p-2.5 rounded-squircle-xs text-slate-400 hover:text-indigo-500 hover:bg-indigo-50/50 transition-all duration-200 flex-shrink-0"
-          title="Attach files"
-        >
-          <svg className="w-4.5 h-4.5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-            <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M15.172 7l-6.586 6.586a2 2 0 102.828 2.828l6.414-6.586a4 4 0 00-5.656-5.656l-6.415 6.585a6 6 0 108.486 8.486L20.5 13" />
-          </svg>
-        </button>
-        <input
+        {/* Rectangular textarea */}
+        <textarea
           value={input}
           onChange={(e) => setInput(e.target.value)}
           onKeyDown={handleKeyDown}
-          placeholder={isDragOver ? 'Drop files here...' : (placeholder || `Ask ${assistantProfile.assistantName || 'Aria'} for revisions or drop files...`)}
-          className="input-glass flex-1 rounded-squircle-xs px-3.5 py-2.5 text-sm text-slate-700 focus:outline-none"
+          placeholder={isDragOver ? 'Drop files here...' : (placeholder || `Ask for revisions or drop files…`)}
+          rows={3}
+          className="input-glass w-full rounded-lg px-3 py-2.5 text-xs text-slate-700 focus:outline-none resize-none leading-relaxed"
           disabled={isRevising}
         />
-        <button
-          onClick={handleSend}
-          disabled={(!input.trim() && attachedFiles.length === 0) || isRevising}
-          className={`tactile px-5 py-2.5 rounded-squircle-xs text-sm font-semibold text-white transition-all duration-200 flex-shrink-0 ${
-            (input.trim() || attachedFiles.length > 0) && !isRevising
-              ? 'bg-gradient-to-r from-indigo-500 to-violet-600 shadow-btn hover:shadow-btn-hover hover:brightness-110'
-              : 'bg-slate-200 text-slate-400 cursor-not-allowed shadow-none'
-          }`}
-        >
-          Send
-        </button>
+        {/* Bottom action row: attach on left, Send on right */}
+        <div className="flex items-center justify-between">
+          <button
+            onClick={() => fileInputRef.current?.click()}
+            disabled={isRevising}
+            className="tactile p-1.5 rounded-lg text-slate-400 hover:text-indigo-500 hover:bg-indigo-50/50 transition-all duration-200"
+            title="Attach files"
+          >
+            <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M15.172 7l-6.586 6.586a2 2 0 102.828 2.828l6.414-6.586a4 4 0 00-5.656-5.656l-6.415 6.585a6 6 0 108.486 8.486L20.5 13" />
+            </svg>
+          </button>
+          <button
+            onClick={handleSend}
+            disabled={(!input.trim() && attachedFiles.length === 0) || isRevising}
+            className={`tactile px-4 py-1.5 rounded-lg text-xs font-semibold text-white transition-all duration-200 ${
+              (input.trim() || attachedFiles.length > 0) && !isRevising
+                ? 'bg-gradient-to-r from-indigo-500 to-violet-600 shadow-btn hover:brightness-110'
+                : 'bg-slate-200 text-slate-400 cursor-not-allowed shadow-none'
+            }`}
+          >
+            {isRevising ? (
+              <span className="flex items-center gap-1.5">
+                <svg className="animate-spin w-3 h-3" fill="none" viewBox="0 0 24 24">
+                  <circle className="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" strokeWidth="4" />
+                  <path className="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4z" />
+                </svg>
+                Sending…
+              </span>
+            ) : 'Send'}
+          </button>
+        </div>
       </div>
 
       {isDragOver && (

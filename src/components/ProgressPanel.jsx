@@ -285,9 +285,9 @@ export default function ProgressPanel({
           const tabBadge = isDeliverableTab ? delivLabel : 'Course Map';
           return (
             <div>
-              <div className="px-5 pt-1 pb-1 flex items-center gap-1.5">
+              <div className="px-4 pt-1 pb-1 flex items-center gap-1.5">
                 <span className="text-[9px] font-bold text-slate-400 uppercase tracking-wider">Revising:</span>
-                <span className="text-[9px] font-bold px-2 py-0.5 rounded-full bg-indigo-50 text-indigo-600 border border-indigo-100">{tabBadge}</span>
+                <span className="text-[9px] font-bold px-2 py-0.5 rounded-full bg-indigo-50 text-indigo-600 border border-indigo-100 truncate max-w-[120px]">{tabBadge}</span>
               </div>
               {/* Style Reference — only for deliverable tabs */}
               {isDeliverableTab && setDeliverableConfig && (
@@ -850,15 +850,15 @@ export default function ProgressPanel({
         return (
           <div>
             {/* Context label */}
-            <div className="px-5 pt-3 pb-1 flex items-center gap-1.5">
+            <div className="px-4 pt-3 pb-1 flex items-center gap-1.5">
               <span className="text-[9px] font-bold text-slate-400 uppercase tracking-wider">Revising:</span>
-              <span className="text-[9px] font-bold px-2 py-0.5 rounded-full bg-indigo-50 text-indigo-600 border border-indigo-100">
+              <span className="text-[9px] font-bold px-2 py-0.5 rounded-full bg-indigo-50 text-indigo-600 border border-indigo-100 truncate max-w-[120px]">
                 {tabBadge}
               </span>
             </div>
             {/* Style Reference — only for deliverable tabs */}
             {isDeliverableTab && setDeliverableConfig && (
-              <div className="px-5 pb-2">
+              <div className="px-4 pb-2">
                 <StyleReferenceBlock
                   currentRefFile={currentRefFile}
                   refParsing={refParsing}
