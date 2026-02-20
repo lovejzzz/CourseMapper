@@ -156,8 +156,11 @@ export default function useDeliverables({ provider, modelId, apiKey, deliverable
   deliverableConfigRef.current = deliverableConfig;
   const pedagogicalModeRef = useRef(pedagogicalMode || 'lecture');
   pedagogicalModeRef.current = pedagogicalMode || 'lecture';
-  const lockedLessonsRef = useRef(lockedLessons);
-  lockedLessonsRef.current = lockedLessons;
+  // Normalize lockedLessons to a Set so .has() always works
+  const lockedLessonsRef = useRef(null);
+  lockedLessonsRef.current = lockedLessons
+    ? (lockedLessons instanceof Set ? lockedLessons : new Set(lockedLessons))
+    : null;
 
   const { streamProvider, parsePartialJSON } = useStreamReader();
 
