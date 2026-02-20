@@ -122,6 +122,11 @@ export default function ProgressPanel({
   const [syncExpanded, setSyncExpanded] = useState(false);
   const [delivExpanded, setDelivExpanded] = useState(true);
   const [delivLogExpanded, setDelivLogExpanded] = useState(false);
+
+  // Auto-expand generation log when actively generating deliverables
+  useEffect(() => {
+    if (isDelivGenerating) setDelivLogExpanded(true);
+  }, [isDelivGenerating]);
   const [historyExpanded, setHistoryExpanded] = useState(false);
   const [showSnapshotInput, setShowSnapshotInput] = useState(false);
   const [snapshotLabel, setSnapshotLabel] = useState('');
@@ -393,8 +398,13 @@ export default function ProgressPanel({
                       // Compute avg duration of completed deliverables for ETA
                       const completedDurations = delivTimings ? Object.values(delivTimings).filter(t => t.durationMs).map(t => t.durationMs) : [];
                       const avgMs = completedDurations.length > 0 ? completedDurations.reduce((a, b) => a + b, 0) / completedDurations.length : null;
+                      // Latest log entry for the active deliverable — show inline
+                      const latestLogEntry = isActive && delivGenerationLog && delivGenerationLog.length > 0
+                        ? delivGenerationLog[delivGenerationLog.length - 1]
+                        : null;
                       return (
-                        <div key={row.id} className="flex items-center gap-2.5 px-2 py-1 rounded-lg">
+                        <div key={row.id} className="px-2 py-1 rounded-lg">
+                          <div className="flex items-center gap-2.5">
                           <DelivStatusIcon status={row.status} />
                           <span className={`text-[11px] font-medium ${
                             row.status === 'done' ? 'text-emerald-700'
@@ -427,6 +437,13 @@ export default function ProgressPanel({
                               </span>
                             )}
                           </span>
+                          </div>
+                          {/* Inline current activity subtitle for active deliverable */}
+                          {latestLogEntry && (
+                            <p className="text-[10px] text-slate-400 italic mt-0.5 ml-7 truncate max-w-[280px]">
+                              {latestLogEntry.message}
+                            </p>
+                          )}
                         </div>
                       );
                     })}

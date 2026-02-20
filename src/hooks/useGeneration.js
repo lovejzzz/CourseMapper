@@ -17,6 +17,7 @@ export default function useGeneration({
   setCourseMap, setOldCourseMap, pushVersion, userEdits, setUserEdits,
   lessonScope,
   pedagogicalMode, // Feature 4.2 — e.g. 'lecture' | 'flipped' | 'pbl' | 'seminar' | 'competency'
+  courseMapConfig, // Optional config for the course map deliverable (referenceFile, extraInstructions)
 }) {
   const [status, setStatus] = useState('idle');
   const [progressStep, setProgressStep] = useState(null);
@@ -450,6 +451,28 @@ Generate lessons ${actual + 1} through ${expectedCount} now as JSON:`;
       setError('Failed to parse files:\n' + errMsg);
       setStatus('error');
       return;
+    }
+
+    // Append course map reference file content if provided
+    if (courseMapConfig?.referenceFile) {
+      try {
+        const refParsed = await parseFiles([courseMapConfig.referenceFile]);
+        const refText = refParsed.filter(f => f.text).map(f => f.text).join('\n\n');
+        if (refText.trim()) {
+          combinedText = combinedText
+            ? `${combinedText}\n\n=== Course Map Reference Example ===\n${refText}`
+            : `=== Course Map Reference Example ===\n${refText}`;
+        }
+      } catch (err) {
+        console.warn('Course map reference file parse failed:', err);
+      }
+    }
+
+    // Append course map extra instructions if provided
+    if (courseMapConfig?.extraInstructions?.trim()) {
+      combinedText = combinedText
+        ? `${combinedText}\n\n=== Instructor Extra Instructions ===\n${courseMapConfig.extraInstructions.trim()}`
+        : `=== Instructor Extra Instructions ===\n${courseMapConfig.extraInstructions.trim()}`;
     }
 
     syllabusTextRef.current = combinedText;

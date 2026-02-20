@@ -188,7 +188,7 @@ export default function ColumnEditor({ columns, setColumns }) {
             onPointerDown={(e) => handlePointerDown(e, idx)}
             onPointerMove={handlePointerMove}
             onPointerUp={handlePointerUp}
-            className={`group inline-flex items-center gap-1 transition-all duration-300 ease-out ${
+            className={`group inline-flex items-center gap-1 transition-all duration-200 ease-out ${
               dragIdx === idx ? 'opacity-30 scale-95' : ''
             }`}
             style={{ touchAction: 'none' }}
@@ -217,9 +217,9 @@ export default function ColumnEditor({ columns, setColumns }) {
                     e.stopPropagation();
                     removeColumn(idx);
                   }}
-                  className="opacity-0 group-hover:opacity-100 ml-0.5 text-indigo-300 hover:text-red-400 transition-all"
+                  className="opacity-0 group-hover:opacity-100 ml-0.5 p-0.5 text-indigo-300 hover:text-red-400 transition-all rounded"
                 >
-                  <svg className="w-3 h-3" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                  <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                     <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M6 18L18 6M6 6l12 12" />
                   </svg>
                 </button>
@@ -244,9 +244,13 @@ export default function ColumnEditor({ columns, setColumns }) {
       {dragIdx !== null && displayColumns[dragIdx] && (
         <div
           className="fixed z-50 pointer-events-none"
-          style={{ left: ghostPos.x, top: ghostPos.y }}
+          style={{
+            left: ghostPos.x,
+            top: ghostPos.y,
+            transition: 'left 16ms linear, top 16ms linear',
+          }}
         >
-          <span className="inline-flex items-center gap-1.5 px-3.5 py-2 rounded-squircle-xs text-xs font-medium bg-indigo-50 text-indigo-700 border border-indigo-300 shadow-lg shadow-indigo-500/20 scale-105 rotate-[2deg]">
+          <span className="inline-flex items-center gap-1.5 px-3.5 py-2 rounded-squircle-xs text-xs font-medium bg-indigo-50 text-indigo-700 border border-indigo-300 shadow-xl shadow-indigo-500/25 scale-105 rotate-[2deg]">
             <svg className="w-3 h-3 text-indigo-400 flex-shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24">
               <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M4 8h16M4 16h16" />
             </svg>

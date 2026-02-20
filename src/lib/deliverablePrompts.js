@@ -723,12 +723,16 @@ export function getDeliverablePrompt(featureId, courseMap, scopeIndices = null, 
       const condensed = condenseCourseMap(courseMap, scopeIndices);
       const baseUserPrompt = custom.userPromptTemplate.replace('{{courseMap}}', condensed);
       const configInstructions = buildConfigInstructions(featureId, config, pedagogicalMode);
-      const userPrompt = scopePreamble + (configInstructions
+      const withConfig = configInstructions
         ? baseUserPrompt.replace(
             /(\nReturn ONLY)/,
             `\n\nADDITIONAL INSTRUCTOR REQUIREMENTS (must be followed, take priority over defaults):\n${configInstructions}$1`
           )
-        : baseUserPrompt);
+        : baseUserPrompt;
+      const withExtra = config.extraInstructions?.trim()
+        ? withConfig + `\n\nINSTRUCTOR EXTRA INSTRUCTIONS:\n${config.extraInstructions.trim()}`
+        : withConfig;
+      const userPrompt = scopePreamble + withExtra;
       return {
         systemPrompt: custom.systemPrompt,
         userPrompt,
@@ -745,8 +749,12 @@ export function getDeliverablePrompt(featureId, courseMap, scopeIndices = null, 
   const withConfig = configInstructions
     ? baseUserPrompt.replace(/(\nReturn ONLY the JSON)/, `\n\nADDITIONAL INSTRUCTOR REQUIREMENTS (must be followed, take priority over defaults):\n${configInstructions}$1`)
     : baseUserPrompt;
+  // Append extra free-text instructions from the instructor if provided
+  const withExtra = config.extraInstructions?.trim()
+    ? withConfig + `\n\nINSTRUCTOR EXTRA INSTRUCTIONS:\n${config.extraInstructions.trim()}`
+    : withConfig;
   // Prepend scope preamble so the AI sees the constraint before everything else
-  const userPrompt = scopePreamble + withConfig;
+  const userPrompt = scopePreamble + withExtra;
   return {
     systemPrompt: template.system,
     userPrompt,

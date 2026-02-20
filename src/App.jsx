@@ -75,6 +75,7 @@ export default function App() {
     userEdits, setUserEdits,
     promptText,
     lessonScope: lessonScope.type === 'specific' ? lessonScope.indices : null,
+    courseMapConfig: deliverableConfig['courseMap'],
   });
 
   const {

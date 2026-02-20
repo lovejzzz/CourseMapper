@@ -192,6 +192,7 @@ export default function useDeliverables({ provider, modelId, apiKey, deliverable
       dispatch(actions.setDeliverableStreaming(featureId));
       setDelivTimings(prev => ({ ...prev, [featureId]: { startedAt: delivStartTime, endedAt: null, durationMs: null } }));
 
+      appendLog(`Using ${provider}/${modelId} for ${label}`, 'info');
       appendLog(`Generating ${label} (${i + 1}/${toGenerate.length}) — asking AI for ${scopeDesc}...`, 'progress');
 
       const config = deliverableConfigRef.current?.[featureId] || {};
@@ -229,9 +230,9 @@ export default function useDeliverables({ provider, modelId, apiKey, deliverable
 
               if (!streamStarted) {
                 streamStarted = true;
-                appendLog(`Receiving ${label} response from AI...`, 'progress');
+                appendLog(`Receiving ${label} response from AI (${provider}/${modelId})...`, 'progress');
                 logTimer = setInterval(() => {
-                  appendLog(`Still generating ${label}… (~${tokenCount} tokens received)`, 'progress');
+                  appendLog(`Still generating ${label}… (~${tokenCount} tokens received, ${modelId})`, 'progress');
                 }, 3000);
               }
 

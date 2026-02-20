@@ -1,4 +1,4 @@
-import React, { useState, useCallback } from 'react';
+import React, { useState, useCallback, useEffect } from 'react';
 import ModelConfig from '../components/ModelConfig';
 
 const ACCEPTED_EXTENSIONS = [
@@ -55,6 +55,17 @@ export default function Landing({
   const [isDragging, setIsDragging] = useState(false);
   const [projectDragging, setProjectDragging] = useState(false);
 
+  // ── Auto-collapse AI config when already connected ──
+  const isReady = apiStatus === 'connected' || (provider === 'free' && !!modelId);
+  const [configCollapsed, setConfigCollapsed] = useState(isReady);
+
+  // Auto-collapse when API status transitions to connected
+  useEffect(() => {
+    if (apiStatus === 'connected' || (provider === 'free' && !!modelId)) {
+      setConfigCollapsed(true);
+    }
+  }, [apiStatus, provider, modelId]);
+
   const handleDrop = useCallback((e) => {
     e.preventDefault();
     setIsDragging(false);
@@ -104,6 +115,15 @@ export default function Landing({
   const removeFile = useCallback((index) => {
     setFiles(prev => prev.filter((_, i) => i !== index));
   }, [setFiles]);
+
+  // Build a summary label for the collapsed AI config bar
+  const configSummaryLabel = (() => {
+    if (provider === 'free') return `Free · ${modelName || modelId || 'Free model'}`;
+    if (provider === 'openai') return `OpenAI · ${modelName || modelId || 'GPT'}`;
+    if (provider === 'anthropic') return `Anthropic · ${modelName || modelId || 'Claude'}`;
+    if (provider === 'google') return `Google · ${modelName || modelId || 'Gemini'}`;
+    return modelName || modelId || provider || 'AI Model';
+  })();
 
   return (
     <div className="min-h-screen mesh-bg noise-overlay flex flex-col">
@@ -250,8 +270,11 @@ export default function Landing({
                 </svg>
                 {files.length > 0 ? 'Add files' : 'Attach files'}
               </button>
-              <span className="text-[10px] text-slate-300">
-                {isDragging ? 'Drop to attach' : '.pdf .docx .xlsx .pptx .txt and more'}
+              <span className="text-[10px] text-slate-300 text-right">
+                {isDragging
+                  ? 'Drop to attach'
+                  : <>.pdf .docx .xlsx .pptx .txt and more<br/><span className="text-slate-300/60">or drop a <span className="font-medium text-emerald-400/70">.coursemapper</span> file to resume a project</span></>
+                }
               </span>
             </div>
 
@@ -272,7 +295,7 @@ export default function Landing({
                     <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={1.5}
                       d="M7 16a4 4 0 01-.88-7.903A5 5 0 1115.9 6L16 6a5 5 0 011 9.9M15 13l-3-3m0 0l-3 3m3-3v12" />
                   </svg>
-                  Drop files here
+                  Drop course files or .coursemapper project
                 </div>
               </div>
             )}
@@ -288,21 +311,58 @@ export default function Landing({
             )}
           </div>
 
-          {/* AI Model config — always visible, required before continuing */}
-          <ModelConfig
-            provider={provider}
-            setProvider={setProvider}
-            apiKey={apiKey}
-            setApiKey={setApiKey}
-            modelId={modelId}
-            setModelId={setModelId}
-            availableModels={availableModels}
-            setAvailableModels={setAvailableModels}
-            apiStatus={apiStatus}
-            setApiStatus={setApiStatus}
-            modelName={modelName}
-            setModelName={setModelName}
-          />
+          {/* AI Model config — collapsible when already connected */}
+          {configCollapsed ? (
+            /* Collapsed summary bar */
+            <div className="flex items-center gap-3 px-4 py-3 rounded-squircle-xs bg-white/50 border border-slate-200/50">
+              {/* Green connected dot */}
+              <span className="w-2 h-2 rounded-full bg-emerald-400 flex-shrink-0" />
+              <span className="text-xs font-medium text-slate-600 flex-1 truncate">{configSummaryLabel}</span>
+              <span className="text-[10px] font-semibold text-emerald-600 bg-emerald-50/80 px-2 py-0.5 rounded-full border border-emerald-100 flex-shrink-0">
+                Connected
+              </span>
+              <button
+                onClick={() => setConfigCollapsed(false)}
+                className="tactile flex items-center gap-1 px-2.5 py-1 rounded-lg text-[11px] font-medium text-slate-400 hover:text-indigo-600 hover:bg-indigo-50/50 transition-all duration-200 flex-shrink-0"
+                title="Change AI model or key"
+              >
+                <svg className="w-3.5 h-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M11 5H6a2 2 0 00-2 2v11a2 2 0 002 2h11a2 2 0 002-2v-5m-1.414-9.414a2 2 0 112.828 2.828L11.828 15H9v-2.828l8.586-8.586z" />
+                </svg>
+                Edit
+              </button>
+            </div>
+          ) : (
+            /* Expanded ModelConfig */
+            <div className="relative">
+              {isReady && (
+                <button
+                  onClick={() => setConfigCollapsed(true)}
+                  className="absolute top-3 right-3 z-10 tactile flex items-center gap-1 px-2.5 py-1 rounded-lg text-[11px] font-medium text-slate-400 hover:text-slate-600 hover:bg-slate-100/60 transition-all duration-200"
+                  title="Collapse AI config"
+                >
+                  <svg className="w-3.5 h-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M5 15l7-7 7 7" />
+                  </svg>
+                  Collapse
+                </button>
+              )}
+              <ModelConfig
+                provider={provider}
+                setProvider={setProvider}
+                apiKey={apiKey}
+                setApiKey={setApiKey}
+                modelId={modelId}
+                setModelId={setModelId}
+                availableModels={availableModels}
+                setAvailableModels={setAvailableModels}
+                apiStatus={apiStatus}
+                setApiStatus={setApiStatus}
+                modelName={modelName}
+                setModelName={setModelName}
+              />
+            </div>
+          )}
 
           {/* Continue button */}
           <button
