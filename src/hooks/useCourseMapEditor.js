@@ -3,8 +3,12 @@ import { useCallback } from 'react';
 /**
  * Encapsulates all course map editing operations:
  * cell edits, title edits, checkbox toggles, section CRUD, lesson CRUD.
+ *
+ * @param {function} onEdit - Optional callback(lessonIdx: number|null, key: string)
+ *   Called after every edit so the cascade sync engine can accumulate changes.
+ *   lessonIdx=null for structural changes (add/delete/move lesson, add/delete section).
  */
-export default function useCourseMapEditor({ courseMap, setCourseMap, columns, setDownloadedFile, setUserEdits, pushVersion }) {
+export default function useCourseMapEditor({ courseMap, setCourseMap, columns, setDownloadedFile, setUserEdits, pushVersion, onEdit }) {
 
   const handleCellEdit = useCallback((lessonIdx, sectionIdx, key, newValue) => {
     if (!courseMap) return;
@@ -19,7 +23,8 @@ export default function useCourseMapEditor({ courseMap, setCourseMap, columns, s
       lessonTitle: updated.lessons[lessonIdx].title,
     }]);
     pushVersion(updated, `Edited ${key} in Lesson ${lessonIdx + 1}`);
-  }, [courseMap, setCourseMap, setDownloadedFile, setUserEdits, pushVersion]);
+    onEdit?.(lessonIdx, key);
+  }, [courseMap, setCourseMap, setDownloadedFile, setUserEdits, pushVersion, onEdit]);
 
   const handleTitleEdit = useCallback((lessonIdx, newTitle) => {
     if (!courseMap) return;
@@ -34,7 +39,8 @@ export default function useCourseMapEditor({ courseMap, setCourseMap, columns, s
       oldValue: oldTitle, newValue: newTitle, lessonTitle: newTitle,
     }]);
     pushVersion(updated, `Renamed Lesson ${lessonIdx + 1}`);
-  }, [courseMap, setCourseMap, setDownloadedFile, setUserEdits, pushVersion]);
+    onEdit?.(lessonIdx, 'title');
+  }, [courseMap, setCourseMap, setDownloadedFile, setUserEdits, pushVersion, onEdit]);
 
   const handleCheckToggle = useCallback((lessonIdx, sectionIdx) => {
     if (!courseMap) return;
@@ -43,7 +49,8 @@ export default function useCourseMapEditor({ courseMap, setCourseMap, columns, s
     updated.lessons[lessonIdx].sections[sectionIdx].evaluateDesign = !(current === true || current === 'true');
     setCourseMap(updated);
     setDownloadedFile('');
-  }, [courseMap, setCourseMap, setDownloadedFile]);
+    onEdit?.(lessonIdx, 'evaluateDesign');
+  }, [courseMap, setCourseMap, setDownloadedFile, onEdit]);
 
   const handleAddSection = useCallback((lessonIdx, insertAt) => {
     if (!courseMap) return;
@@ -55,7 +62,8 @@ export default function useCourseMapEditor({ courseMap, setCourseMap, columns, s
     setCourseMap(updated);
     setDownloadedFile('');
     pushVersion(updated, `Added section in Lesson ${lessonIdx + 1}`);
-  }, [courseMap, setCourseMap, columns, setDownloadedFile, pushVersion]);
+    onEdit?.(lessonIdx, 'sections');
+  }, [courseMap, setCourseMap, columns, setDownloadedFile, pushVersion, onEdit]);
 
   const handleDeleteSection = useCallback((lessonIdx, sectionIdx) => {
     if (!courseMap) return;
@@ -65,7 +73,8 @@ export default function useCourseMapEditor({ courseMap, setCourseMap, columns, s
     setCourseMap(updated);
     setDownloadedFile('');
     pushVersion(updated, `Deleted section in Lesson ${lessonIdx + 1}`);
-  }, [courseMap, setCourseMap, setDownloadedFile, pushVersion]);
+    onEdit?.(lessonIdx, 'sections');
+  }, [courseMap, setCourseMap, setDownloadedFile, pushVersion, onEdit]);
 
   const handleAddLesson = useCallback(() => {
     if (!courseMap) return;
@@ -80,7 +89,8 @@ export default function useCourseMapEditor({ courseMap, setCourseMap, columns, s
     setCourseMap(updated);
     setDownloadedFile('');
     pushVersion(updated, `Added Lesson ${updated.lessons.length}`);
-  }, [courseMap, setCourseMap, columns, setDownloadedFile, pushVersion]);
+    onEdit?.(null, '_structural');
+  }, [courseMap, setCourseMap, columns, setDownloadedFile, pushVersion, onEdit]);
 
   const handleDeleteLesson = useCallback((lessonIdx) => {
     if (!courseMap || courseMap.lessons.length <= 1) return;
@@ -90,7 +100,8 @@ export default function useCourseMapEditor({ courseMap, setCourseMap, columns, s
     setCourseMap(updated);
     setDownloadedFile('');
     pushVersion(updated, `Deleted ${title}`);
-  }, [courseMap, setCourseMap, setDownloadedFile, pushVersion]);
+    onEdit?.(null, '_structural');
+  }, [courseMap, setCourseMap, setDownloadedFile, pushVersion, onEdit]);
 
   const handleMoveLesson = useCallback((lessonIdx, direction) => {
     if (!courseMap) return;
@@ -102,7 +113,8 @@ export default function useCourseMapEditor({ courseMap, setCourseMap, columns, s
     setCourseMap(updated);
     setDownloadedFile('');
     pushVersion(updated, `Moved ${moved.title} ${direction < 0 ? 'up' : 'down'}`);
-  }, [courseMap, setCourseMap, setDownloadedFile, pushVersion]);
+    onEdit?.(null, '_structural');
+  }, [courseMap, setCourseMap, setDownloadedFile, pushVersion, onEdit]);
 
   return {
     handleCellEdit,

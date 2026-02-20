@@ -28,6 +28,9 @@ export const actions = {
   markAllStale: () => ({
     type: 'MARK_ALL_STALE',
   }),
+  markFeatureStale: (featureId) => ({
+    type: 'MARK_FEATURE_STALE', featureId,
+  }),
   setDeliverable: (featureId, status, data, error, stale) => ({
     type: 'SET_DELIVERABLE', featureId, status, data, error, stale,
   }),
@@ -74,6 +77,17 @@ function reducer(state, action) {
         updated[k] = { ...v, stale: true };
       }
       return { ...state, deliverables: updated };
+    }
+    case 'MARK_FEATURE_STALE': {
+      const existing = state.deliverables[action.featureId];
+      if (!existing) return state;
+      return {
+        ...state,
+        deliverables: {
+          ...state.deliverables,
+          [action.featureId]: { ...existing, stale: true },
+        },
+      };
     }
     case 'SET_DELIVERABLE': {
       return {

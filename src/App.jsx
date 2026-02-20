@@ -14,6 +14,7 @@ import useGeneration from './hooks/useGeneration';
 import useRevision from './hooks/useRevision';
 import useCourseMapEditor from './hooks/useCourseMapEditor';
 import useDeliverables from './hooks/useDeliverables';
+import useSmartSync from './hooks/useSmartSync';
 import { FEATURES } from './screens/FeatureSelect';
 import DeliverableView from './components/DeliverableView';
 import ExportSidePanel from './components/ExportSidePanel';
@@ -66,6 +67,13 @@ export default function App() {
   const saveTimerRef = useRef(null);
   const addMaterialInputRef = useRef(null);
 
+  // ── Cascade sync ──
+  // Track which tabs have unseen changes (show amber * badge)
+  const [unseenChanges, setUnseenChanges] = useState(new Set());
+  // Always-fresh ref to courseMap for useSmartSync (avoids stale closure)
+  const courseMapRef = useRef(courseMap);
+  useEffect(() => { courseMapRef.current = courseMap; }, [courseMap]);
+
   const version = useVersionHistory(setCourseMap, setDownloadedFile);
 
   const gen = useGeneration({
@@ -97,17 +105,34 @@ export default function App() {
     setRetryInfo: () => {},
   });
 
-  const editor = useCourseMapEditor({
-    courseMap, setCourseMap, columns,
-    setDownloadedFile, setUserEdits,
-    pushVersion: version.pushVersion,
-  });
-
   const deliv = useDeliverables({
     provider, modelId, apiKey,
     deliverableConfig,
     lockedLessons: lessonScope.type === 'specific' ? lessonScope.indices : null,
     pedagogicalMode: 'lecture',
+  });
+
+  // ── Cascade Sync Engine ──
+  const smartSync = useSmartSync({
+    deliv,
+    gen,
+    courseMapRef,
+    selectedFeatures,
+    onSyncComplete: useCallback((featureIds) => {
+      setUnseenChanges(prev => {
+        const next = new Set(prev);
+        featureIds.forEach(id => next.add(id));
+        return next;
+      });
+    }, []),
+  });
+
+  // Wire editor with smartSync notifyEdit
+  const editor = useCourseMapEditor({
+    courseMap, setCourseMap, columns,
+    setDownloadedFile, setUserEdits,
+    pushVersion: version.pushVersion,
+    onEdit: smartSync.notifyEdit,
   });
 
   // ── Persist API key ──
@@ -322,6 +347,7 @@ export default function App() {
     setLessonCount(0);
     setActiveTab('courseMap');
     deliv.resetDeliverables();
+    setUnseenChanges(new Set());
     setHasSavedSession(false);
     setScreen('landing');
     try { localStorage.removeItem(STORAGE_KEY); } catch {}
@@ -546,19 +572,35 @@ export default function App() {
               const isError = delivState?.status === 'error';
               const isCourseMapDone = feature.id === 'courseMap' && gen.progressStep === 'done';
 
+              // Cascade sync badges
+              const hasUnseen = unseenChanges.has(feature.id);
+              const isSyncingThis = smartSync.isSyncing && deliv.currentFeature === feature.id;
+
               return (
                 <button
                   key={feature.id}
-                  onClick={() => setActiveTab(feature.id)}
+                  onClick={() => {
+                    setActiveTab(feature.id);
+                    // Clear unseen badge when user clicks the tab
+                    if (hasUnseen) {
+                      setUnseenChanges(prev => {
+                        const next = new Set(prev);
+                        next.delete(feature.id);
+                        return next;
+                      });
+                    }
+                  }}
                   className={`tactile flex items-center gap-2 px-4 py-2 rounded-pill text-xs font-semibold whitespace-nowrap transition-all duration-200 flex-shrink-0 ${
                     isActive
                       ? 'bg-white/80 text-slate-800 shadow-glass border border-slate-200/60'
                       : 'text-slate-500 hover:bg-white/50 hover:text-slate-700'
                   }`}
                 >
-                  {/* Status dot */}
+                  {/* Status dot — cascade sync takes priority for non-courseMap tabs */}
                   {feature.id !== 'courseMap' && (
                     <span className={`w-1.5 h-1.5 rounded-full flex-shrink-0 ${
+                      isSyncingThis ? 'bg-amber-400 animate-pulse' :
+                      hasUnseen ? 'bg-amber-400' :
                       isStreaming ? 'bg-indigo-400 animate-pulse' :
                       isDone ? 'bg-emerald-400' :
                       isError ? 'bg-red-400' :
@@ -572,7 +614,7 @@ export default function App() {
                       'bg-slate-300'
                     }`} />
                   )}
-                  {feature.label}
+                  {feature.label}{hasUnseen ? ' *' : ''}
                 </button>
               );
             })}
@@ -618,6 +660,7 @@ export default function App() {
               delivTimings={deliv.delivTimings}
               deliverableConfig={deliverableConfig}
               setDeliverableConfig={setDeliverableConfig}
+              syncLog={smartSync.syncLog}
             />
           </ErrorBoundary>
         )}
