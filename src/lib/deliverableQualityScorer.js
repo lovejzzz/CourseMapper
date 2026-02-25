@@ -3,28 +3,31 @@
  *
  * Feature 6.3 — Deliverable Quality Scores
  *
- * After each deliverable is generated, evaluate it on 3 dimensions (0-10 each):
+ * After each deliverable is generated, evaluate it on 4 dimensions (0-10 each):
  *   - Bloom's Alignment: do activities/assessments match lesson Bloom's level targets?
  *   - Specificity: are items concrete and actionable vs. vague?
  *   - Actionability: can instructors immediately use these without modification?
+ *   - QM Alignment: does the deliverable meet Quality Matters HE Rubric standards?
  *
- * Returns { bloomsAlignment, specificity, actionability, tips }
+ * Returns { bloomsAlignment, specificity, actionability, qmAlignment, tips }
  *
  * Uses a lightweight heuristic scoring approach to avoid an extra AI call,
  * falling back to an AI scoring call when a stream provider is available.
  */
 
-export const QUALITY_SCORER_SYSTEM_PROMPT = `You are an expert instructional designer evaluating course deliverables. Score the provided deliverable on three dimensions, each 0-10. Return ONLY valid JSON with no explanation or markdown:
+export const QUALITY_SCORER_SYSTEM_PROMPT = `You are an expert instructional designer evaluating course deliverables. Score the provided deliverable on four dimensions, each 0-10. Return ONLY valid JSON with no explanation or markdown:
 {
   "bloomsAlignment": number,
   "specificity": number,
   "actionability": number,
+  "qmAlignment": number,
   "tips": ["tip1", "tip2", "tip3"]
 }
 Scoring rubric:
 - bloomsAlignment (0-10): Do the activities/assessments target appropriate Bloom's cognitive levels? 10 = well-distributed, aligned to objectives. 0 = all at recall level with no higher-order.
 - specificity (0-10): Are items concrete with clear parameters? 10 = measurable, time-bound, precise. 0 = vague, generic, cookie-cutter.
 - actionability (0-10): Can an instructor use this without modification? 10 = ready-to-use. 0 = needs major rework.
+- qmAlignment (0-10): Does the deliverable meet Quality Matters Higher Education Rubric standards? 10 = clear objective-activity-assessment alignment, variety of methods, explicit learner support, accessible design. 0 = no alignment evidence, missing key QM elements (measurable objectives, assessment-objective mapping, learner interaction, support resources).
 Provide 3 brief, actionable improvement tips (max 15 words each).`;
 
 /**
@@ -93,6 +96,7 @@ export function scoreHeuristic(featureId, data) {
   let bloomsAlignment = 6;
   let specificity = 5;
   let actionability = 6;
+  let qmAlignment = 5;
   const tips = [];
 
   try {
@@ -118,10 +122,24 @@ export function scoreHeuristic(featureId, data) {
     else if (actionCount >= 5) actionability = 6;
     else { actionability = 4; tips.push('Add specific time estimates, word counts, or point values.'); }
 
+    // QM alignment check: objective alignment, variety, learner support, accessibility
+    const alignmentMarkers = /objective|aligned|measurable|learner.centered|learning outcome/gi;
+    const varietyMarkers = /variety|multiple|diverse|different types/gi;
+    const supportMarkers = /support|help|office hours|tutoring|accommodat|accessib/gi;
+    const interactionMarkers = /interact|collaborat|discuss|peer|group|active learning/gi;
+    const alignCount = (dataStr.match(alignmentMarkers) || []).length;
+    const varietyCount = (dataStr.match(varietyMarkers) || []).length;
+    const supportCount = (dataStr.match(supportMarkers) || []).length;
+    const interactionCount = (dataStr.match(interactionMarkers) || []).length;
+    const qmTotal = alignCount + varietyCount + supportCount + interactionCount;
+    if (qmTotal >= 15) qmAlignment = 8;
+    else if (qmTotal >= 8) qmAlignment = 6;
+    else { qmAlignment = 4; tips.push('Strengthen objective alignment, learner support, and interaction.'); }
+
     if (tips.length === 0) tips.push('Looks good! Consider peer review for final polish.');
   } catch { /* noop */ }
 
-  return { bloomsAlignment, specificity, actionability, tips: tips.slice(0, 3) };
+  return { bloomsAlignment, specificity, actionability, qmAlignment, tips: tips.slice(0, 3) };
 }
 
 /**
@@ -129,8 +147,12 @@ export function scoreHeuristic(featureId, data) {
  */
 export function computeAvgScore(quality) {
   if (!quality) return null;
-  const { bloomsAlignment = 0, specificity = 0, actionability = 0 } = quality;
-  return Math.round((bloomsAlignment + specificity + actionability) / 3 * 10) / 10;
+  const { bloomsAlignment = 0, specificity = 0, actionability = 0, qmAlignment = 0 } = quality;
+  // Include qmAlignment when present (backward compat: old scores without it still work)
+  const hasQm = quality.qmAlignment !== undefined;
+  const sum = bloomsAlignment + specificity + actionability + (hasQm ? qmAlignment : 0);
+  const count = hasQm ? 4 : 3;
+  return Math.round(sum / count * 10) / 10;
 }
 
 /**

@@ -4,8 +4,9 @@
  *
  * All prompts are designed to meet university instructional-design standards
  * based on Bloom's Revised Taxonomy (Anderson & Krathwohl), UDL 2.2 Guidelines
- * (CAST), Understanding by Design (Wiggins & McTighe), and best practices from
- * Carnegie Mellon's Eberly Center and Vanderbilt's Center for Teaching.
+ * (CAST), Understanding by Design (Wiggins & McTighe), Quality Matters (QM)
+ * Higher Education Rubric (7th Edition), and best practices from Carnegie
+ * Mellon's Eberly Center and Vanderbilt's Center for Teaching.
  */
 
 import { getCustomDeliverable } from './customDeliverableLibrary.js';
@@ -146,6 +147,7 @@ Return a JSON object with exactly this structure:
           "type": "string — e.g. 'Mini-Lecture' | 'Think-Pair-Share' | 'Discussion' | 'Problem Set' | 'Jigsaw' | 'Case Study' | 'Gallery Walk' | 'Lab'",
           "description": "string — what students do during this segment",
           "instructorNotes": "string — specific facilitation moves, questions to ask, pacing tips",
+          "instructorRole": "string — what the instructor does during this segment: circulating, prompting, modeling, observing, providing feedback, facilitating discussion, etc. (QM 5.3)",
           "grouping": "string — 'Individual' | 'Pairs' | 'Small Groups (3-4)' | 'Whole Class'",
           "bloomsLevel": "string — the primary Bloom's level this segment targets"
         }
@@ -183,13 +185,14 @@ REQUIREMENTS:
 - formativeCheck MUST map to a specific objective
 - UDL notes must be substantive (not generic) — specific to this lesson's content
 - Homework must have an explicit connection to the NEXT session
+- QM ALIGNMENT: Each plan must describe the instructor's plan for substantive interaction with learners — the instructorRole field must explain how the instructor engages during each activity segment (QM 5.3). Learner interaction requirements must be clearly stated: specify when students work individually vs. collaboratively, what peer interaction looks like, and participation expectations (QM 5.4). Activities must provide opportunities for interaction that supports active learning — avoid passive lecture-only segments longer than 15 min without an interaction break (QM 5.2).
 - HUMAN READABILITY: All text will be read by instructors. Avoid redundant phrases across items. Vary sentence structure. Do not use copy-paste templates where every item follows the exact same pattern — make each entry sound natural and distinct.
 - Return ONLY the JSON object, no prose, no markdown`,
   },
 
   // ─── RUBRICS ─────────────────────────────────────────────────────────────────
   rubrics: {
-    system: `You are an expert in educational assessment and analytic rubric design for higher education. Your rubrics follow best practices from Walvoord & Anderson and meet Quality Matters standards. Each criterion uses observable, behavioral language with concrete quantity/quality markers. Rubrics are distributed to students before the assignment and are aligned to course learning objectives. Return ONLY valid JSON, no markdown fences.`,
+    system: `You are an expert in educational assessment and analytic rubric design for higher education. Your rubrics follow best practices from Walvoord & Anderson and meet Quality Matters (QM) Higher Education Rubric standards. Rubrics must provide specific and descriptive criteria whose connection to the course grading policy is clearly explained (QM 3.3). Each criterion uses observable, behavioral language with concrete quantity/quality markers. Rubrics are distributed to students before the assignment and are aligned to course learning objectives. Return ONLY valid JSON, no markdown fences.`,
 
     user: (cm, scope, verifiedChanges, columns) => `Generate professional, university-standard analytic grading rubrics for the assessments in this course:
 
@@ -222,7 +225,8 @@ Return a JSON object with exactly this structure:
           "beginning": "string — does not yet meet standard. Still describes what the student has attempted, not purely negative."
         }
       ],
-      "teacherNotes": "string — instructions for calibrating scores, handling edge cases, and giving feedback to students"
+      "gradePolicyConnection": "string — how this rubric connects to the overall course grading policy: state the weight of this assessment in the final grade and which grading category it falls under (QM 3.3)",
+      "teacherNotes": "string — instructions for calibrating scores, handling edge cases, giving feedback to students, and a note to distribute this rubric to students BEFORE the assignment (QM 3.3)"
     }
   ]
 }
@@ -236,6 +240,7 @@ REQUIREMENTS:
 - Exemplary cell describes mastery BEYOND minimum — what an exceptional response looks like
 - Beginning cell describes what the student attempted, using constructive language
 - gradingScale should reflect the institution's typical grading thresholds
+- QM ALIGNMENT: Each rubric must include gradePolicyConnection explaining how it connects to the course grading policy and the weight of this assessment in the final grade (QM 3.3). teacherNotes must include a reminder to distribute the rubric to students BEFORE the assignment (QM 3.3). Include guidance for students on how to uphold academic integrity for this assessment type (QM 3.6).
 - HUMAN READABILITY: Vary wording across rubric cells — do not use identical sentence patterns for every criterion level. Each cell should sound distinct and specific to that criterion.
 - Return ONLY the JSON object, no prose, no markdown`,
   },
@@ -263,7 +268,8 @@ Return a JSON object with exactly this structure:
           "notes": "string — full instructor script paragraph: what to say, which example to use, anticipated student question, and explicit transition cue to next slide. Include accessibility note if slide has complex visuals.",
           "activityType": "string or null — for 'activity' and 'discussion' slides only: e.g. 'Think-Pair-Share' | 'Small Group Discussion' | 'Cold Call' | 'Poll' | 'Whiteboard Race'",
           "timer": "string or null — for activity/discussion slides: e.g. '5 min'",
-          "bloomsLevel": "string or null — for content/activity/discussion slides: the Bloom's level this slide targets"
+          "bloomsLevel": "string or null — for content/activity/discussion slides: the Bloom's level this slide targets",
+          "objectiveLink": "string or null — for content/activity/discussion slides: which learning objective this slide supports (QM 4.1)"
         }
       ]
     }
@@ -287,6 +293,7 @@ REQUIREMENTS:
 - Notes must include: main point, example/analogy, transition cue, and anticipated student question
 - Agenda slide bullets show timing (e.g., "Warm-up activity (5 min)")
 - Summary slide returns to the objectives slide content
+- QM ALIGNMENT: Use a variety of instructional materials within each deck: text, diagrams, examples, video references, and interactive elements (QM 4.5). Speaker notes must include accessibility considerations: describe complex visuals for screen-reader users, note when to pause for questions, and ensure readability (QM 8.2-8.3). Each content slide must clearly connect to a learning objective via the objectiveLink field (QM 4.1, 4.2).
 - HUMAN READABILITY: Speaker notes should sound like a real instructor — vary phrasing, avoid repetitive templates. Each slide's notes should feel distinct. learningObjectives should list Bloom's verbs directly, not repeat "Students will be able to" on every line.
 - Return ONLY the JSON object, no prose, no markdown`,
   },
@@ -306,6 +313,7 @@ Return a JSON object with exactly this structure:
       "lessonTitle": "string — full lesson title",
       "totalQuestions": number — integer count,
       "bloomsCoverage": ["string"] — Bloom's levels covered in this quiz set,
+      "formativeFeedbackNote": "string — guidance for the instructor: common errors students make on this material, how to return results quickly, and how students should use quiz results to identify areas needing review (QM 3.5)",
       "questions": [
         {
           "type": "string — MUST be one of: 'multiple_choice' | 'short_answer' | 'essay'",
@@ -337,6 +345,7 @@ REQUIREMENTS:
 - Short answer questions must specify expected length (e.g., "In 2-3 sentences")
 - Essay prompts must include: task verb + scope + constraints
 - All questions must have objectiveAligned field populated
+- QM ALIGNMENT: Include a variety of question types across the course that are sequenced from lower to higher Bloom's levels as the course progresses (QM 3.4). Questions should help students track their learning progress — include diagnostic questions that help learners identify areas needing review (QM 3.5). Each quiz must include a formativeFeedbackNote for the instructor on common errors and how to provide timely feedback (QM 3.5).
 - HUMAN READABILITY: Vary question phrasing across lessons — do not use the same stem patterns repeatedly. Questions should feel hand-crafted, not template-generated. Each explanation should be written in clear, natural prose.
 - Return ONLY the JSON object, no prose, no markdown`,
   },
@@ -376,7 +385,7 @@ Return a JSON object with exactly this structure:
         "string — 3-4 specific criteria by which student contributions will be assessed (e.g., 'Quality of reasoning and use of specific evidence', 'Engagement with and response to peers', 'Connection to course readings or concepts', 'Consideration of alternative perspectives')"
       ],
       "equityConsiderations": "string — how to ensure equitable participation (think time, multiple entry points, affirming diverse perspectives)",
-      "guidelines": "string — 3-4 sentence student-facing participation guidelines (word count for async, what counts as substantive peer response, etc.)"
+      "guidelines": "string — 4-5 sentence student-facing participation guidelines: posting deadline, response deadline, minimum word count for initial post, what counts as a 'substantive' peer response, and how participation is graded (QM 5.4)"
     }
   ]
 }
@@ -388,6 +397,7 @@ REQUIREMENTS:
 - followUpProbes must be substantive Socratic questions, not just "Can you say more about that?"
 - evaluationCriteria must be specific and shareable with students before the discussion
 - equityConsiderations must be concrete, not generic ("allow think time" → specify duration)
+- QM ALIGNMENT: Learner interaction requirements must be explicit: minimum number of posts, response expectations, substantive reply criteria, and deadlines (QM 5.4). Discussion activities must provide genuine opportunities for learner-to-learner interaction that supports active learning — not just posting and forgetting (QM 5.2).
 - HUMAN READABILITY: Each discussion prompt and its supporting text should feel unique. Vary the opening hooks, probe structures, and facilitation advice. Do not use the same sentence patterns for every lesson.
 - Return ONLY the JSON object, no prose, no markdown`,
   },
@@ -440,7 +450,8 @@ Return a JSON object with exactly this structure:
       "supportResources": [
         "string — specific support: writing center, library databases, office hours schedule, sample work description"
       ],
-      "academicIntegrityStatement": "string — assignment-specific statement: what is/is not permitted (collaboration, AI tools, reuse of prior work), reference to institution policy, and consequences for violation"
+      "progressTracking": "string — how students will receive feedback and track their progress on this assignment: interim feedback points, self-assessment checkpoints, peer review milestones, and expected turnaround time for instructor feedback (QM 3.5)",
+      "academicIntegrityStatement": "string — assignment-specific guidance on how to uphold academic integrity for THIS assignment type: what is/is not permitted (collaboration, AI tools, reuse of prior work), reference to institution policy, and consequences for violation (QM 3.6)"
     }
   ]
 }
@@ -453,6 +464,7 @@ REQUIREMENTS:
 - deliverables must be a checklist (students can tick off each item before submitting)
 - academicIntegrityStatement must be specific to this assignment (not a generic paragraph)
 - formatRequirements.latePolicy must state explicit point deduction or policy
+- QM ALIGNMENT: Assignments must be sequenced and suited to the course level — earlier assignments should scaffold toward later, more complex ones (QM 3.4). Include opportunities for learners to track their progress via the progressTracking field: interim feedback points, self-assessment checkpoints, or peer review milestones (QM 3.5). The academicIntegrityStatement must provide specific guidance on how to uphold integrity for THIS assignment type (QM 3.6).
 - HUMAN READABILITY: Each assignment should read as a unique document — vary the overview voice, instruction phrasing, and scaffolding descriptions. Avoid copy-paste language patterns across assignments.
 - Return ONLY the JSON object, no prose, no markdown`,
   },
@@ -503,7 +515,8 @@ Return a JSON object with exactly this structure:
         "timeManagement": "string — advice on how to pace exam questions from this content",
         "commonErrors": "string — what students typically lose points on for this topic and how to avoid it",
         "reviewStrategy": "string — recommended study approach (e.g., 'Complete the practice problems before reading the solutions; use spaced retrieval over 3 days')"
-      }
+      },
+      "supportResources": "string — 2-3 sentences pointing students to relevant support for this topic: office hours, tutoring availability, study group suggestions, relevant library resources, and writing center services (QM 7.3)"
     }
   ]
 }
@@ -517,6 +530,7 @@ REQUIREMENTS:
 - 4–6 reviewQuestions spanning at least 3 different Bloom's levels
 - practiceActivities must involve active retrieval (not passive re-reading suggestions)
 - examPrep.keyTopicsToKnow should reflect what an instructor would actually test
+- QM ALIGNMENT: Include a supportResources field per guide pointing students to relevant help: office hours, tutoring, study groups, writing center — so students know where to turn when stuck (QM 7.3). Reference specific instructional materials (readings, videos, slides) for each key concept, making the relationship between study materials and learning activities clear (QM 4.2).
 - HUMAN READABILITY: Write summaries, definitions, and review questions in varied, natural academic prose. Do not use the same sentence templates across lessons. Each guide should feel like it was written specifically for that lesson.
 - Return ONLY the JSON object, no prose, no markdown`,
   },
@@ -546,14 +560,20 @@ Return JSON in this exact structure:
   "meetingPattern":"[e.g., Tuesdays & Thursdays, 2:00–3:15 PM]",
   "location":"[TBD]",
   "deliveryMode":"In-Person",
-  "prerequisites":"[Derive from course level, or 'None']",
+  "prerequisites":"[Required prior knowledge in the discipline and/or specific competencies — derive from course level, or 'None' (QM 1.7)]",
 
   "instructor":"[Instructor Name]",
   "instructorEmail":"[Email]",
   "officeHours":"[e.g., Wednesdays 1:00–3:00 PM, or by appointment]",
   "officeLocation":"[TBD]",
 
-  "courseDescription":"3-4 sentence paragraph explaining intellectual goals, real-world relevance, what students will explore, and how the course fits into the broader discipline. Written in engaging, student-facing language.",
+  "instructorBio":"Welcoming 3-4 sentence instructor introduction: academic background, teaching philosophy, what excites them about this course, and an approachable invitation for students to connect during office hours or by email (QM 1.8)",
+
+  "courseDescription":"3-4 sentence paragraph explaining the purpose and structure of the course: intellectual goals, real-world relevance, what students will explore, and how the course is organized so learners understand what to expect (QM 1.2). Written in engaging, student-facing language.",
+
+  "gettingStarted":"Step-by-step guide for students on how to get started: how to access the course site, navigate the LMS, find the syllabus/schedule/materials, and what to do in Week 1. Include where to find various course components (QM 1.1)",
+
+  "learnerIntroActivity":"Description of how learners will introduce themselves in the first week — e.g., discussion board post, icebreaker activity, or introductory survey (QM 1.9)",
 
   "learningOutcomes":["5-7 specific, measurable outcomes using observable action verbs from Bloom's taxonomy (analyze, design, evaluate, synthesize, critique) — avoid vague terms like 'understand' or 'appreciate'. Each should be 1 sentence."],
 
@@ -567,9 +587,11 @@ Return JSON in this exact structure:
 
   "attendancePolicy":"2-3 sentence attendance and participation policy. Explain how attendance is tracked, how absences affect grades, and the process for excused absences.",
 
-  "communicationPolicy":"2-3 sentences on email response expectations, preferred contact method, how to reach the instructor, and appropriate email etiquette.",
+  "communicationPolicy":"2-3 sentences covering all communication guidelines: expected channels, response time commitments, netiquette expectations, how to ask questions, and preferred contact methods (QM 1.3).",
 
-  "technologyPolicy":"2-3 sentences on laptop/device use in class, recording policy, and required software/platforms. Mention the course LMS.",
+  "technologyPolicy":"2-3 sentences stating minimum technology requirements (hardware, software, browser, internet) and how to obtain/access each technology (QM 1.5). Include laptop/device use policy, recording policy, and the course LMS.",
+
+  "technicalSkills":"Digital literacy and technical skills expected of learners: LMS navigation, file upload/submission, video conferencing, library database searches, and any discipline-specific software skills (QM 1.6)",
 
   "aiPolicy":"2-3 sentence policy on generative AI tools (ChatGPT, Claude, etc.). Specify whether AI is permitted, restricted, or prohibited, and any disclosure/citation requirements.",
 
@@ -577,13 +599,17 @@ Return JSON in this exact structure:
 
   "academicIntegrity":"Professional 2-3 sentence academic integrity statement referencing university policy. Include what constitutes a violation in this course and consequences.",
 
-  "accommodations":"2-3 sentence disability/accessibility statement directing students to the campus disability services office, encouraging early outreach, and affirming instructor commitment to accommodations.",
+  "technicalSupport":"2-3 sentences describing how to get technical help: IT helpdesk contact info, LMS support resources, hours of availability, and troubleshooting steps for common issues (QM 7.1)",
+
+  "accommodations":"2-3 sentence statement linking to the institution's accessibility policies and accommodation services, directing students to the disability services office, encouraging early outreach, and affirming instructor commitment to access (QM 7.2).",
 
   "mentalHealth":"2-3 sentence statement normalizing mental health support, providing campus counseling center info, and crisis resources.",
 
   "titleIX":"1-2 sentence Title IX / non-discrimination statement with reference to university reporting resources.",
 
-  "supportServices":"2-3 sentences listing available support: writing center, tutoring, library research help, career services, and any course-specific resources.",
+  "supportServices":"2-3 sentences listing academic support services (tutoring, writing center, library research help) and student services (counseling, career services, financial aid) that help learners succeed (QM 7.3, 7.4).",
+
+  "dataPrivacy":"1-2 sentences on how student data is protected in course technologies, FERPA compliance, and privacy considerations for any third-party tools used in the course (QM 6.4)",
 
   "importantDates":[{"date":"...","event":"..."}]
 }}
@@ -597,6 +623,7 @@ CRITICAL RULES:
 - gradingScale: use the standard US university scale shown above unless professor profile provides a custom one
 - All policy sections must read like real university policies — professional, specific, and actionable
 - importantDates: include midterm exam, final exam, major project deadlines, registration deadlines, and academic calendar dates
+- The syllabus must serve as a complete course orientation: students should be able to find everything they need to get started, understand expectations, access support, and navigate the course (QM Standards 1 & 7)
 - Write everything as if this will be distributed to students on the first day of class at a top university
 - Return ONLY the JSON object`,
   },

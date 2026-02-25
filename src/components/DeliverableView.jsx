@@ -10,7 +10,7 @@ function QualityBadge({ quality }) {
   if (!quality) return null;
   const avg = computeAvgScore(quality);
   const colors = scoreColor(avg);
-  const { bloomsAlignment, specificity, actionability, tips = [] } = quality;
+  const { bloomsAlignment, specificity, actionability, qmAlignment, tips = [] } = quality;
 
   return (
     <div className="relative inline-block">
@@ -32,6 +32,7 @@ function QualityBadge({ quality }) {
               { label: "Bloom's Alignment", score: bloomsAlignment },
               { label: 'Specificity', score: specificity },
               { label: 'Actionability', score: actionability },
+              ...(qmAlignment !== undefined ? [{ label: 'QM Alignment', score: qmAlignment }] : []),
             ].map(({ label, score }) => {
               const c = scoreColor(score);
               return (
