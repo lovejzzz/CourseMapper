@@ -869,7 +869,7 @@ export default function App() {
                   <span className="text-left">
                     <span className="block">Just this tab</span>
                     <span className="block text-[10px] font-normal text-indigo-500 mt-0.5">
-                      {FEATURES.find(f => f.id === activeTab)?.label || activeTab} only
+                      {workspaceTabs.find(f => f.id === activeTab)?.label || activeTab} only
                     </span>
                   </span>
                 </button>
@@ -1083,6 +1083,7 @@ export default function App() {
           {courseMap && gen.progressStep === 'done' && (
             <ExportSidePanel
               activeTab={activeTab}
+              activeTabLabel={workspaceTabs.find(f => f.id === activeTab)?.label || activeTab}
               courseMap={courseMap}
               columns={columns}
               deliverables={deliv.deliverables}

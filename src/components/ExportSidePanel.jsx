@@ -299,6 +299,7 @@ async function exportAllAsZip(deliverables, courseMap, columns, courseName, less
 // ── Main Component ────────────────────────────────────────────────────────────
 export default function ExportSidePanel({
   activeTab,
+  activeTabLabel,
   courseMap,
   columns,
   deliverables,
@@ -395,7 +396,7 @@ export default function ExportSidePanel({
     return !currentSupport[formatId];
   }
 
-  const tabLabel = activeTab === 'courseMap' ? 'Course Map' : (FEATURE_LABELS[activeTab] || activeTab);
+  const tabLabel = activeTabLabel || (activeTab === 'courseMap' ? 'Course Map' : (FEATURE_LABELS[activeTab] || activeTab));
 
   // Toggle a lesson in/out of selectedLessons
   function toggleLesson(idx) {
