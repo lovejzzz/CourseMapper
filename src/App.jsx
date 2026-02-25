@@ -626,6 +626,7 @@ export default function App() {
         hasSyllabusFile={hasSyllabusFile}
         onBack={() => setScreen('landing')}
         onNext={() => setScreen('config')}
+        modelConfig={{ provider, apiKey, modelId }}
       />
     );
   }
@@ -915,6 +916,7 @@ export default function App() {
             deliv.generateAll(courseMap, [saved.id], scopeIndices);
           }}
           editDef={null}
+          modelConfig={{ provider, apiKey, modelId }}
         />
 
         {/* ── Tab content + Progress sidebar + Export panel ── */}

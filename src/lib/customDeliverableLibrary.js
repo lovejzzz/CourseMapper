@@ -127,6 +127,116 @@ export function deleteCustomDeliverable(id) {
 }
 
 /**
+ * AI auto-fill: given a deliverable name, call the AI to generate
+ * description, tone, style, length, icon, and color suggestions.
+ *
+ * @param {string} name - deliverable name (e.g. "Weekly Reflection")
+ * @param {{ provider: string, apiKey: string, modelId: string }} modelConfig
+ * @returns {Promise<{ description, tone, style, length, iconLabel, color } | null>}
+ */
+export async function autoFillCustomDeliverable(name, { provider, apiKey, modelId }) {
+  if (!name?.trim() || !modelId) return null;
+
+  let effectiveProvider = provider;
+  if (provider === 'free') {
+    effectiveProvider = (modelId.includes('/') && !modelId.startsWith('gemini')) ? 'openrouter' : 'google';
+  }
+
+  const systemPrompt = 'You are an expert instructional designer. Return ONLY valid JSON — no markdown, no explanation.';
+  const userPrompt = `A university instructor wants to create a custom course deliverable called "${name.trim()}".
+
+Generate the best configuration for this deliverable. Return JSON with these exact keys:
+{
+  "description": "1-2 sentence description of what this deliverable contains and what the AI will generate for each lesson",
+  "tone": "<one of: Academic, Professional, Conversational, Friendly, Formal, Encouraging>",
+  "style": "<one of: Bullet points, Paragraphs, Tables, Numbered lists, Mixed>",
+  "length": "<one of: Brief, Standard, Detailed, Comprehensive>",
+  "iconLabel": "<one of: Document, Chart, Light bulb, Users, Clipboard, Star, Puzzle, Beaker>",
+  "color": "<one of: violet, indigo, sky, teal, emerald, amber, orange, rose, cyan>"
+}
+
+Pick the most fitting tone, style, length, icon, and color for "${name.trim()}". Write a concise, helpful description.`;
+
+  try {
+    let responseText = '';
+
+    if (effectiveProvider === 'anthropic') {
+      const res = await fetch('https://api.anthropic.com/v1/messages', {
+        method: 'POST',
+        headers: {
+          'x-api-key': apiKey,
+          'content-type': 'application/json',
+          'anthropic-version': '2023-06-01',
+          'anthropic-dangerous-direct-browser-access': 'true',
+        },
+        body: JSON.stringify({
+          model: modelId, max_tokens: 256, temperature: 0,
+          system: systemPrompt,
+          messages: [{ role: 'user', content: userPrompt }],
+        }),
+      });
+      if (!res.ok) return null;
+      const data = await res.json();
+      responseText = data.content?.[0]?.text || '';
+
+    } else if (effectiveProvider === 'openai') {
+      const res = await fetch('https://api.openai.com/v1/chat/completions', {
+        method: 'POST',
+        headers: { 'Authorization': `Bearer ${apiKey}`, 'Content-Type': 'application/json' },
+        body: JSON.stringify({
+          model: modelId, max_completion_tokens: 256, temperature: 0, stream: false,
+          response_format: { type: 'json_object' },
+          messages: [{ role: 'system', content: systemPrompt }, { role: 'user', content: userPrompt }],
+        }),
+      });
+      if (!res.ok) return null;
+      const data = await res.json();
+      responseText = data.choices?.[0]?.message?.content || '';
+
+    } else if (effectiveProvider === 'google') {
+      const res = await fetch(
+        `https://generativelanguage.googleapis.com/v1beta/models/${modelId}:generateContent?key=${apiKey}`,
+        {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({
+            contents: [{ role: 'user', parts: [{ text: userPrompt }] }],
+            systemInstruction: { parts: [{ text: systemPrompt }] },
+            generationConfig: { temperature: 0, maxOutputTokens: 256, responseMimeType: 'application/json' },
+          }),
+        }
+      );
+      if (!res.ok) return null;
+      const data = await res.json();
+      responseText = data.candidates?.[0]?.content?.parts?.[0]?.text || '';
+
+    } else if (effectiveProvider === 'openrouter') {
+      const res = await fetch('https://openrouter.ai/api/v1/chat/completions', {
+        method: 'POST',
+        headers: {
+          'Authorization': `Bearer ${apiKey}`,
+          'Content-Type': 'application/json',
+          'HTTP-Referer': window.location.origin,
+        },
+        body: JSON.stringify({
+          model: modelId, max_tokens: 256, temperature: 0, stream: false,
+          messages: [{ role: 'system', content: systemPrompt }, { role: 'user', content: userPrompt }],
+        }),
+      });
+      if (!res.ok) return null;
+      const data = await res.json();
+      responseText = data.choices?.[0]?.message?.content || '';
+    }
+
+    if (!responseText) return null;
+    const cleaned = responseText.replace(/```json\s*/g, '').replace(/```\s*/g, '').trim();
+    return JSON.parse(cleaned);
+  } catch {
+    return null;
+  }
+}
+
+/**
  * Convert a custom deliverable definition to the FEATURES format
  * used by FeatureSelect and Config screens.
  */
