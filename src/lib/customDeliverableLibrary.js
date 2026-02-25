@@ -142,20 +142,32 @@ export async function autoFillCustomDeliverable(name, { provider, apiKey, modelI
     effectiveProvider = (modelId.includes('/') && !modelId.startsWith('gemini')) ? 'openrouter' : 'google';
   }
 
-  const systemPrompt = 'You are an expert instructional designer. Return ONLY valid JSON — no markdown, no explanation.';
-  const userPrompt = `A university instructor wants to create a custom course deliverable called "${name.trim()}".
+  const trimmedName = name.trim();
+  const jsonKey = trimmedName.toLowerCase().replace(/\s+/g, '_');
+  const sysPrompt = 'You are an expert instructional designer specializing in Quality Matters (QM) aligned course design. Return ONLY valid JSON — no markdown, no explanation.';
+  const userPrompt = `A university instructor wants to create a custom course deliverable called "${trimmedName}".
 
-Generate the best configuration for this deliverable. Return JSON with these exact keys:
+Generate a complete, professional configuration. Return JSON with these exact keys:
 {
   "description": "1-2 sentence description of what this deliverable contains and what the AI will generate for each lesson",
   "tone": "<one of: Academic, Professional, Conversational, Friendly, Formal, Encouraging>",
   "style": "<one of: Bullet points, Paragraphs, Tables, Numbered lists, Mixed>",
   "length": "<one of: Brief, Standard, Detailed, Comprehensive>",
   "iconLabel": "<one of: Document, Chart, Light bulb, Users, Clipboard, Star, Puzzle, Beaker>",
-  "color": "<one of: violet, indigo, sky, teal, emerald, amber, orange, rose, cyan>"
+  "color": "<one of: violet, indigo, sky, teal, emerald, amber, orange, rose, cyan>",
+  "systemPrompt": "A detailed system prompt (5-8 sentences) for generating this deliverable. Must instruct the AI to: act as an expert instructional designer, produce classroom-ready output, align with Quality Matters standards, return ONLY valid JSON with no markdown fences, structure output as a JSON object with a top-level array containing one item per lesson/week, and include specific content fields appropriate for this deliverable type.",
+  "userPromptTemplate": "A detailed user prompt template that includes {{courseMap}} placeholder where course data is inserted. Must specify: what to generate per lesson, the expected JSON output structure with field names appropriate for this deliverable type, formatting requirements (numbered lists, professional language, lesson-specific content), and a sample JSON schema showing the output structure with a top-level key '${jsonKey}' containing an array of objects with 'lessonTitle', 'weekNumber', and content fields."
 }
 
-Pick the most fitting tone, style, length, icon, and color for "${name.trim()}". Write a concise, helpful description.`;
+IMPORTANT for systemPrompt and userPromptTemplate:
+- These prompts will be sent to an AI to generate the actual deliverable content for each lesson in a course.
+- The systemPrompt should establish expertise and formatting rules.
+- The userPromptTemplate MUST contain the literal text {{courseMap}} (not replaced — kept as-is) where the course map JSON will be injected at runtime.
+- Both should reference Quality Matters standards where relevant (e.g., objective alignment, learner support, accessibility).
+- The userPromptTemplate should end with a sample JSON output schema so the AI knows exactly what format to return.
+- Use the JSON key "${jsonKey}" as the top-level array name in the output schema.
+
+Pick the most fitting tone, style, length, icon, and color for "${trimmedName}". Write a concise, helpful description.`;
 
   try {
     let responseText = '';
@@ -170,8 +182,8 @@ Pick the most fitting tone, style, length, icon, and color for "${name.trim()}".
           'anthropic-dangerous-direct-browser-access': 'true',
         },
         body: JSON.stringify({
-          model: modelId, max_tokens: 256, temperature: 0,
-          system: systemPrompt,
+          model: modelId, max_tokens: 1500, temperature: 0,
+          system: sysPrompt,
           messages: [{ role: 'user', content: userPrompt }],
         }),
       });
@@ -184,9 +196,9 @@ Pick the most fitting tone, style, length, icon, and color for "${name.trim()}".
         method: 'POST',
         headers: { 'Authorization': `Bearer ${apiKey}`, 'Content-Type': 'application/json' },
         body: JSON.stringify({
-          model: modelId, max_completion_tokens: 256, temperature: 0, stream: false,
+          model: modelId, max_completion_tokens: 1500, temperature: 0, stream: false,
           response_format: { type: 'json_object' },
-          messages: [{ role: 'system', content: systemPrompt }, { role: 'user', content: userPrompt }],
+          messages: [{ role: 'system', content: sysPrompt }, { role: 'user', content: userPrompt }],
         }),
       });
       if (!res.ok) return null;
@@ -201,8 +213,8 @@ Pick the most fitting tone, style, length, icon, and color for "${name.trim()}".
           headers: { 'Content-Type': 'application/json' },
           body: JSON.stringify({
             contents: [{ role: 'user', parts: [{ text: userPrompt }] }],
-            systemInstruction: { parts: [{ text: systemPrompt }] },
-            generationConfig: { temperature: 0, maxOutputTokens: 256, responseMimeType: 'application/json' },
+            systemInstruction: { parts: [{ text: sysPrompt }] },
+            generationConfig: { temperature: 0, maxOutputTokens: 1500, responseMimeType: 'application/json' },
           }),
         }
       );
@@ -219,8 +231,8 @@ Pick the most fitting tone, style, length, icon, and color for "${name.trim()}".
           'HTTP-Referer': window.location.origin,
         },
         body: JSON.stringify({
-          model: modelId, max_tokens: 256, temperature: 0, stream: false,
-          messages: [{ role: 'system', content: systemPrompt }, { role: 'user', content: userPrompt }],
+          model: modelId, max_tokens: 1500, temperature: 0, stream: false,
+          messages: [{ role: 'system', content: sysPrompt }, { role: 'user', content: userPrompt }],
         }),
       });
       if (!res.ok) return null;

@@ -185,6 +185,8 @@ export function CustomDeliverableBuilder({ isOpen, onClose, onSave, editDef, mod
           const idx = CUSTOM_ICON_CHOICES.findIndex(i => i.label === result.iconLabel);
           if (idx >= 0) setIconIdx(idx);
         }
+        if (result.systemPrompt) setSystemPrompt(result.systemPrompt);
+        if (result.userPromptTemplate) setUserPromptTemplate(result.userPromptTemplate);
       }
     } catch { /* noop */ }
     setIsAutoFilling(false);

@@ -355,7 +355,7 @@ export default function DeliverableView({ featureId, data, status, error, regene
   );
 }
 
-function StreamingBanner() {
+export function StreamingBanner() {
   return (
     <div className="sticky top-0 z-10 mx-4 mt-2 mb-1 flex items-center gap-2.5 px-4 py-2 rounded-squircle-xs bg-indigo-50/80 border border-indigo-200/40 backdrop-blur-sm">
       <span className="relative flex h-2 w-2">
@@ -475,7 +475,7 @@ const FEATURE_META = {
   syllabus: { emoji: '📄', label: 'Syllabus', desc: 'Complete course syllabus with policies, schedule, and grading breakdown.' },
 };
 
-function EmptyState({ featureId, onGenerate }) {
+export function EmptyState({ featureId, onGenerate }) {
   const meta = featureId && FEATURE_META[featureId];
   if (!meta || !onGenerate) {
     return (
@@ -509,7 +509,7 @@ function EmptyState({ featureId, onGenerate }) {
   );
 }
 
-function CollapsibleCard({ title, subtitle, defaultOpen = false, accent = 'indigo', streaming = false, regenerating = false, fresh = false, onRegenerate, onTitleEdit, children }) {
+export function CollapsibleCard({ title, subtitle, defaultOpen = false, accent = 'indigo', streaming = false, regenerating = false, fresh = false, onRegenerate, onTitleEdit, children }) {
   const [open, setOpen] = useState(defaultOpen);
   const [editingTitle, setEditingTitle] = useState(false);
   const [titleDraft, setTitleDraft] = useState('');
@@ -619,7 +619,7 @@ function CollapsibleCard({ title, subtitle, defaultOpen = false, accent = 'indig
   );
 }
 
-function Badge({ children, color = 'indigo' }) {
+export function Badge({ children, color = 'indigo' }) {
   return (
     <span className={`inline-block text-[10px] font-semibold px-2 py-0.5 rounded-full bg-${color}-100/80 text-${color}-700`}>
       {children}
@@ -647,7 +647,7 @@ function BloomsTag({ level }) {
 }
 
 // ─── Section heading ───
-function SectionHeading({ children }) {
+export function SectionHeading({ children }) {
   return <h4 className="text-[11px] font-bold text-slate-500 uppercase tracking-wider mb-1.5">{children}</h4>;
 }
 
