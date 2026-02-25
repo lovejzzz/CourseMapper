@@ -13,23 +13,35 @@ import { getProfile } from './professorProfile.js';
 import { getModeLessonPlanNote } from './pedagogicalModes.js';
 import { getSections, buildSectionsContext } from './courseSections.js';
 
-function condenseCourseMap(courseMap, scopeIndices = null, verifiedChanges = null) {
+// Map from column keys to how they are extracted and labeled in the condensed payload.
+const COLUMN_EXTRACTORS = {
+  topicSection:       { key: 'topics',      extract: (sections) => sections.map(s => s.topicSection || '').filter(Boolean) },
+  learningObjectives: { key: 'objectives',  extract: (sections) => sections.map(s => s.learningObjectives || '').filter(Boolean).join(' | ') },
+  weeklyAssessments:  { key: 'assessments', extract: (sections) => sections.map(s => s.weeklyAssessments || '').filter(Boolean).join('; ') },
+  supportingResources:{ key: 'resources',   extract: (sections) => sections.map(s => s.supportingResources || '').filter(Boolean).join('; ') },
+  learningGoals:      { key: 'learningGoals', extract: (sections) => sections.map(s => s.learningGoals || '').filter(Boolean).join(' | ') },
+  asyncActivities:    { key: 'activities_async', extract: (sections) => sections.map(s => s.asyncActivities || '').filter(Boolean).join('; ') },
+  syncActivities:     { key: 'activities_sync',  extract: (sections) => sections.map(s => s.syncActivities || '').filter(Boolean).join('; ') },
+  technologyNeeded:   { key: 'technology',  extract: (sections) => sections.map(s => s.technologyNeeded || '').filter(Boolean).join('; ') },
+  presentationFormat: { key: 'format',      extract: (sections) => sections.map(s => s.presentationFormat || '').filter(Boolean).join('; ') },
+  evaluateDesign:     { key: 'evaluateDesign', extract: (sections) => sections.map(s => s.evaluateDesign || '').filter(Boolean).join('; ') },
+};
+
+function condenseCourseMap(courseMap, scopeIndices = null, verifiedChanges = null, columns = null) {
   const allLessons = courseMap.lessons || [];
 
+  // Determine which columns are enabled. If columns is provided, only include those that are enabled.
+  const enabledKeys = columns && columns.length > 0
+    ? new Set(columns.filter(c => c.enabled !== false).map(c => c.key))
+    : null; // null = include all (backwards compat)
+
   // Determine which lessons to include and their original indices.
-  // Key insight: when the course map was already generated with a scope (e.g., only lesson 5),
-  // allLessons may only have 1 element. If scopeIndices=[4] but allLessons.length=1,
-  // the scope was already applied during course map generation — use all lessons as-is.
   let indexedLessons;
   if (scopeIndices && scopeIndices.length > 0) {
-    // Check if any scope indices are in range of the course map
     const inRange = scopeIndices.filter(i => i < allLessons.length);
     if (inRange.length > 0) {
-      // Course map has enough lessons — filter by scope (e.g., full course map, re-generating one deliverable)
       indexedLessons = inRange.map(i => ({ lesson: allLessons[i], originalIndex: i }));
     } else {
-      // Course map was already scoped (has fewer lessons than the indices reference)
-      // Use all lessons but label them with original scope indices
       indexedLessons = allLessons.map((lesson, i) => ({
         lesson,
         originalIndex: scopeIndices[i] !== undefined ? scopeIndices[i] : i,
@@ -39,31 +51,52 @@ function condenseCourseMap(courseMap, scopeIndices = null, verifiedChanges = nul
     indexedLessons = allLessons.map((lesson, i) => ({ lesson, originalIndex: i }));
   }
 
-  // Compute a sensible total: if already-scoped, use the highest original index + 1
-  // so the AI doesn't see contradictory data like "totalLessonsInCourse: 1" with "lessonNumber: 5"
   const maxOrigIdx = indexedLessons.reduce((mx, il) => Math.max(mx, il.originalIndex), 0);
   const totalForDisplay = Math.max(allLessons.length, maxOrigIdx + 1);
 
-  // ── Provenance: accepted exam patches ──────────────────────────────────────
-  // verifiedChanges is the examChanges array filtered to only accepted entries
-  // (those NOT starting with __REJECTED__:).  When present, we append a
-  // _verifiedByExamination note so the deliverable AI treats those fields as
-  // authoritative (cross-checked against the original uploaded syllabus).
   const acceptedChanges = (verifiedChanges || []).filter(c => typeof c === 'string' && !c.startsWith('__REJECTED__:'));
 
   const payload = {
     courseName: courseMap.courseName,
     semester: courseMap.semester,
     totalLessonsInCourse: totalForDisplay,
-    lessons: indexedLessons.map(({ lesson: l, originalIndex }) => ({
-      lessonNumber: originalIndex + 1,
-      weekNumber: `Week ${originalIndex + 1}`,
-      title: l.title,
-      topics: (l.sections || []).map(s => s.topicSection || '').filter(Boolean),
-      objectives: (l.sections || []).map(s => s.learningObjectives || '').filter(Boolean).join(' | '),
-      assessments: (l.sections || []).map(s => s.weeklyAssessments || '').filter(Boolean).join('; '),
-      resources: (l.sections || []).map(s => s.supportingResources || '').filter(Boolean).join('; '),
-    })),
+    lessons: indexedLessons.map(({ lesson: l, originalIndex }) => {
+      const sections = l.sections || [];
+      const entry = {
+        lessonNumber: originalIndex + 1,
+        weekNumber: `Week ${originalIndex + 1}`,
+        title: l.title,
+      };
+
+      // Extract only enabled columns (or all if no filter)
+      for (const [colKey, ext] of Object.entries(COLUMN_EXTRACTORS)) {
+        if (enabledKeys && !enabledKeys.has(colKey)) continue;
+        const val = ext.extract(sections);
+        // Group async/sync activities under an "activities" object for cleanliness
+        if (colKey === 'asyncActivities') {
+          if (!entry.activities) entry.activities = {};
+          entry.activities.async = val;
+        } else if (colKey === 'syncActivities') {
+          if (!entry.activities) entry.activities = {};
+          entry.activities.sync = val;
+        } else {
+          entry[ext.key] = val;
+        }
+      }
+
+      // Also include any custom column keys (user-added columns not in the default set)
+      if (enabledKeys) {
+        for (const colKey of enabledKeys) {
+          if (!COLUMN_EXTRACTORS[colKey]) {
+            // Custom column — extract raw values from sections
+            const vals = sections.map(s => s[colKey] || '').filter(Boolean).join('; ');
+            if (vals) entry[colKey] = vals;
+          }
+        }
+      }
+
+      return entry;
+    }),
   };
 
   if (acceptedChanges.length > 0) {
@@ -81,9 +114,9 @@ const PROMPTS = {
   lessonPlans: {
     system: `You are a senior instructional designer with expertise in Bloom's Revised Taxonomy, Universal Design for Learning (UDL), and backward design (Wiggins & McTighe). Your lesson plans are used directly by university instructors and must be classroom-ready, pedagogically rigorous, and ready to print. Return ONLY valid JSON, no markdown fences.`,
 
-    user: (cm, scope, verifiedChanges) => `Generate detailed, university-standard lesson plans for each lesson in this course:
+    user: (cm, scope, verifiedChanges, columns) => `Generate detailed, university-standard lesson plans for each lesson in this course:
 
-${condenseCourseMap(cm, scope, verifiedChanges)}
+${condenseCourseMap(cm, scope, verifiedChanges, columns)}
 
 Return a JSON object with exactly this structure:
 {
@@ -158,9 +191,9 @@ REQUIREMENTS:
   rubrics: {
     system: `You are an expert in educational assessment and analytic rubric design for higher education. Your rubrics follow best practices from Walvoord & Anderson and meet Quality Matters standards. Each criterion uses observable, behavioral language with concrete quantity/quality markers. Rubrics are distributed to students before the assignment and are aligned to course learning objectives. Return ONLY valid JSON, no markdown fences.`,
 
-    user: (cm, scope, verifiedChanges) => `Generate professional, university-standard analytic grading rubrics for the assessments in this course:
+    user: (cm, scope, verifiedChanges, columns) => `Generate professional, university-standard analytic grading rubrics for the assessments in this course:
 
-${condenseCourseMap(cm, scope, verifiedChanges)}
+${condenseCourseMap(cm, scope, verifiedChanges, columns)}
 
 Return a JSON object with exactly this structure:
 {
@@ -211,9 +244,9 @@ REQUIREMENTS:
   slideDecks: {
     system: `You are an expert instructional presentation designer for higher education, trained in evidence-based slide design (Mayer's Multimedia Principles), accessibility (WCAG 2.1), and pedagogical flow. Your slide decks follow the hook→instruction→practice→synthesis structure and are used directly in university classrooms. Speaker notes are written as instructor scripts. Return ONLY valid JSON, no markdown fences.`,
 
-    user: (cm, scope, verifiedChanges) => `Generate complete, university-standard slide deck outlines for each lesson in this course:
+    user: (cm, scope, verifiedChanges, columns) => `Generate complete, university-standard slide deck outlines for each lesson in this course:
 
-${condenseCourseMap(cm, scope, verifiedChanges)}
+${condenseCourseMap(cm, scope, verifiedChanges, columns)}
 
 Return a JSON object with exactly this structure:
 {
@@ -262,9 +295,9 @@ REQUIREMENTS:
   quizBank: {
     system: `You are an expert in educational assessment, test design, and item-writing best practices for higher education (following NBME and university testing center guidelines). Your questions are used in university exams and must be valid, reliable, and pedagogically sound. Every question includes full metadata and answer rationales. Return ONLY valid JSON, no markdown fences.`,
 
-    user: (cm, scope, verifiedChanges) => `Generate a comprehensive, university-standard quiz bank for each lesson in this course:
+    user: (cm, scope, verifiedChanges, columns) => `Generate a comprehensive, university-standard quiz bank for each lesson in this course:
 
-${condenseCourseMap(cm, scope, verifiedChanges)}
+${condenseCourseMap(cm, scope, verifiedChanges, columns)}
 
 Return a JSON object with exactly this structure:
 {
@@ -312,9 +345,9 @@ REQUIREMENTS:
   discussions: {
     system: `You are an expert in facilitating higher-order academic discussions in university classrooms. Your prompts follow Socratic seminar principles and are designed to elicit Bloom's levels 4–6 (Analyze, Evaluate, Create). All prompts require students to engage with course material — not just share personal opinions. You include full facilitation guides for instructors. Return ONLY valid JSON, no markdown fences.`,
 
-    user: (cm, scope, verifiedChanges) => `Generate university-standard academic discussion prompts for each lesson in this course:
+    user: (cm, scope, verifiedChanges, columns) => `Generate university-standard academic discussion prompts for each lesson in this course:
 
-${condenseCourseMap(cm, scope, verifiedChanges)}
+${condenseCourseMap(cm, scope, verifiedChanges, columns)}
 
 Return a JSON object with exactly this structure:
 {
@@ -363,9 +396,9 @@ REQUIREMENTS:
   assignments: {
     system: `You are an expert instructional designer specializing in university assignment design (Understanding by Design, Constructive Alignment). Your assignment briefs are complete, classroom-ready documents that instructors can distribute directly to students. Every assignment includes learning objective alignment, scaffolding milestones, submission specifications, and an academic integrity statement. Return ONLY valid JSON, no markdown fences.`,
 
-    user: (cm, scope, verifiedChanges) => `Generate university-standard, classroom-ready assignment briefs for this course:
+    user: (cm, scope, verifiedChanges, columns) => `Generate university-standard, classroom-ready assignment briefs for this course:
 
-${condenseCourseMap(cm, scope, verifiedChanges)}
+${condenseCourseMap(cm, scope, verifiedChanges, columns)}
 
 Return a JSON object with exactly this structure:
 {
@@ -428,9 +461,9 @@ REQUIREMENTS:
   studyGuides: {
     system: `You are an expert educator creating university-level student study materials based on cognitive science principles (spaced retrieval practice, interleaving, elaborative interrogation). Your study guides are structured to promote deep learning — not passive re-reading. They are designed for students preparing for exams and are organized to build schema, surface misconceptions, and guide self-assessment. Return ONLY valid JSON, no markdown fences.`,
 
-    user: (cm, scope, verifiedChanges) => `Generate comprehensive, university-standard study guides for each lesson in this course:
+    user: (cm, scope, verifiedChanges, columns) => `Generate comprehensive, university-standard study guides for each lesson in this course:
 
-${condenseCourseMap(cm, scope, verifiedChanges)}
+${condenseCourseMap(cm, scope, verifiedChanges, columns)}
 
 Return a JSON object with exactly this structure:
 {
@@ -501,9 +534,9 @@ Your syllabi are:
 - Inclusive and accessible: diverse perspectives, flexible policies where appropriate, belonging-focused language
 
 Return ONLY valid JSON, no markdown, no commentary.`,
-    user: (cm, scope, verifiedChanges) => `Generate a comprehensive, university-quality course syllabus for:
+    user: (cm, scope, verifiedChanges, columns) => `Generate a comprehensive, university-quality course syllabus for:
 
-${condenseCourseMap(cm, scope, verifiedChanges)}
+${condenseCourseMap(cm, scope, verifiedChanges, columns)}
 
 Return JSON in this exact structure:
 {"syllabus":{
@@ -684,6 +717,30 @@ function buildConfigInstructions(featureId, config, pedagogicalMode = 'lecture')
     );
   }
 
+  // ── Universal advanced settings (apply to all deliverables) ──
+  if (config.tone) {
+    lines.push(`TONE: Write all content in a ${config.tone.toLowerCase()} tone. Adjust vocabulary, sentence structure, and formality level to match a ${config.tone.toLowerCase()} register.`);
+  }
+  if (config.style) {
+    const styleMap = {
+      'Bullet points': 'Use bullet points as the primary formatting structure. Prefer concise, scannable lists over long paragraphs.',
+      'Paragraphs': 'Use full paragraphs as the primary formatting structure. Write in flowing, connected prose.',
+      'Tables': 'Where possible, organize information into tables with clear headers and rows.',
+      'Numbered lists': 'Use numbered lists as the primary formatting structure for sequential or prioritized content.',
+      'Mixed': 'Use a mix of bullet points, paragraphs, and tables as appropriate for each section.',
+    };
+    lines.push(`STYLE & FORMAT: ${styleMap[config.style] || `Format content as ${config.style.toLowerCase()}.`}`);
+  }
+  if (config.outputLength) {
+    const lengthMap = {
+      'Brief': 'Keep output concise and minimal — prioritize brevity. Use the shortest effective phrasing. Reduce sections to essentials only.',
+      'Standard': 'Use standard detail level — balanced between brevity and depth.',
+      'Detailed': 'Be highly detailed — elaborate each section with examples, rationale, and thorough coverage.',
+      'Comprehensive': 'Be maximally comprehensive — leave nothing out. Include extensive examples, edge cases, alternative approaches, and deep explanations for every section.',
+    };
+    lines.push(`OUTPUT LENGTH: ${lengthMap[config.outputLength] || `Adjust output length to be ${config.outputLength.toLowerCase()}.`}`);
+  }
+
   if (config.extraInstructions?.trim()) {
     lines.push(`SPECIAL INSTRUCTOR REQUIREMENTS (highest priority — must be followed): ${config.extraInstructions.trim()}`);
   }
@@ -738,8 +795,9 @@ function buildScopePreamble(courseMap, scopeIndices) {
  * @param {string|null} editContext  — Optional: human-readable summary of what the
  *   instructor changed (e.g. 'homework: "3" → "4"'). When provided, injected as the
  *   highest-priority constraint so the AI incorporates the edit precisely.
+ * @param {Array|null}  columns — Active column definitions from ColumnEditor.
  */
-export function getDeliverablePrompt(featureId, courseMap, scopeIndices = null, config = {}, pedagogicalMode = 'lecture', examChanges = null, editContext = null) {
+export function getDeliverablePrompt(featureId, courseMap, scopeIndices = null, config = {}, pedagogicalMode = 'lecture', examChanges = null, editContext = null, columns = null, allConfigs = null) {
   const template = PROMPTS[featureId];
   const scopePreamble = buildScopePreamble(courseMap, scopeIndices);
 
@@ -752,33 +810,74 @@ export function getDeliverablePrompt(featureId, courseMap, scopeIndices = null, 
   if (!template && featureId.startsWith('custom_')) {
     const custom = getCustomDeliverable(featureId);
     if (custom) {
-      const condensed = condenseCourseMap(courseMap, scopeIndices, examChanges);
-      const baseUserPrompt = custom.userPromptTemplate.replace('{{courseMap}}', condensed);
-      const configInstructions = buildConfigInstructions(featureId, config, pedagogicalMode);
+      // ── Auto-fill missing config from custom deliverable defaults + sibling configs ──
+      const enrichedConfig = { ...config };
+      const dc = custom.defaultConfig || {};
+      // 1) Fall back to the custom deliverable's own defaultConfig
+      if (!enrichedConfig.tone && dc.tone) enrichedConfig.tone = dc.tone;
+      if (!enrichedConfig.style && dc.style) enrichedConfig.style = dc.style;
+      if (!enrichedConfig.outputLength && (dc.length || dc.outputLength)) enrichedConfig.outputLength = dc.length || dc.outputLength;
+
+      // 2) If still missing, infer from other deliverables' configs
+      if (allConfigs && (!enrichedConfig.tone || !enrichedConfig.style || !enrichedConfig.outputLength)) {
+        for (const [otherId, otherCfg] of Object.entries(allConfigs)) {
+          if (otherId === featureId || !otherCfg) continue;
+          if (!enrichedConfig.tone && otherCfg.tone) enrichedConfig.tone = otherCfg.tone;
+          if (!enrichedConfig.style && otherCfg.style) enrichedConfig.style = otherCfg.style;
+          if (!enrichedConfig.outputLength && otherCfg.outputLength) enrichedConfig.outputLength = otherCfg.outputLength;
+          if (enrichedConfig.tone && enrichedConfig.style && enrichedConfig.outputLength) break;
+        }
+      }
+
+      // 3) If STILL missing after all fallbacks, inject AI auto-decide instruction
+      const autoDecideHints = [];
+      if (!enrichedConfig.tone) autoDecideHints.push('tone (e.g. Academic, Professional, Conversational, or Friendly — pick what best fits the course and deliverable type)');
+      if (!enrichedConfig.style) autoDecideHints.push('formatting style (e.g. bullet points, paragraphs, tables, numbered lists, or a mix — pick what best fits this deliverable type)');
+      if (!enrichedConfig.outputLength) autoDecideHints.push('output length/detail level (e.g. Brief, Standard, Detailed, or Comprehensive — pick what best fits this deliverable type)');
+
+      const condensed = condenseCourseMap(courseMap, scopeIndices, examChanges, columns);
+      const baseUserPrompt = (config.customUserPrompt?.trim() || custom.userPromptTemplate).replace('{{courseMap}}', condensed);
+      const configInstructions = buildConfigInstructions(featureId, enrichedConfig, pedagogicalMode);
+
+      const autoDecideBlock = autoDecideHints.length > 0
+        ? `\n\nAUTO-DECIDE INSTRUCTIONS (the instructor has not specified these settings — use your best judgment):\nBased on the course content, deliverable type ("${custom.name}"), and pedagogical context, automatically decide the most appropriate:\n${autoDecideHints.map(h => `- ${h}`).join('\n')}\nApply your chosen settings consistently throughout the output.`
+        : '';
+
       const withEdit = editContextBlock
         ? baseUserPrompt.replace(/(\nReturn ONLY)/, `${editContextBlock}$1`)
         : baseUserPrompt;
+      const withAutoDecide = autoDecideBlock
+        ? withEdit.replace(/(\nReturn ONLY)/, `${autoDecideBlock}$1`)
+        : withEdit;
       const withConfig = configInstructions
-        ? withEdit.replace(
+        ? withAutoDecide.replace(
             /(\nReturn ONLY)/,
             `\n\nADDITIONAL INSTRUCTOR REQUIREMENTS (must be followed, take priority over defaults):\n${configInstructions}$1`
           )
-        : withEdit;
+        : withAutoDecide;
       const withExtra = config.extraInstructions?.trim()
         ? withConfig + `\n\nINSTRUCTOR EXTRA INSTRUCTIONS:\n${config.extraInstructions.trim()}`
         : withConfig;
       const userPrompt = scopePreamble + withExtra;
-      return {
-        systemPrompt: custom.systemPrompt,
-        userPrompt,
-      };
+
+      // Build system prompt — enrich with deliverable name/description context
+      let systemPrompt = config.customSystemPrompt?.trim() || custom.systemPrompt;
+      // If the system prompt doesn't already mention the deliverable name, prepend context
+      if (custom.name && !systemPrompt.includes(custom.name)) {
+        const descLine = custom.description ? ` Description: ${custom.description}.` : '';
+        systemPrompt = `You are generating a "${custom.name}" deliverable for a university course.${descLine}\n\n${systemPrompt}`;
+      }
+
+      return { systemPrompt, userPrompt };
     }
     return null;
   }
 
   if (!template) return null;
 
-  const baseUserPrompt = template.user(courseMap, scopeIndices, examChanges);
+  const baseUserPrompt = config.customUserPrompt?.trim()
+    ? config.customUserPrompt.replace('{{courseMap}}', condenseCourseMap(courseMap, scopeIndices, examChanges, columns))
+    : template.user(courseMap, scopeIndices, examChanges, columns);
   const configInstructions = buildConfigInstructions(featureId, config, pedagogicalMode);
 
   // Inject edit context first (highest priority), then config instructions
@@ -796,7 +895,7 @@ export function getDeliverablePrompt(featureId, courseMap, scopeIndices = null, 
   // Prepend scope preamble so the AI sees the constraint before everything else
   const userPrompt = scopePreamble + withExtra;
   return {
-    systemPrompt: template.system,
+    systemPrompt: config.customSystemPrompt?.trim() || template.system,
     userPrompt,
   };
 }

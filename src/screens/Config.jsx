@@ -2,6 +2,12 @@ import React, { useState, useRef } from 'react';
 import { FEATURES, COLOR_MAP } from './FeatureSelect';
 import ColumnEditor from '../components/ColumnEditor';
 import { HelpDrawer } from '../pages/FaqChatbot';
+import { getCustomDeliverable, listCustomDeliverables, toFeatureEntry } from '../lib/customDeliverableLibrary';
+
+// ── Shared option lists for universal advanced settings ───────────────────────
+const TONE_OPTIONS = ['Academic', 'Professional', 'Conversational', 'Friendly', 'Formal', 'Encouraging'];
+const STYLE_OPTIONS = ['Bullet points', 'Paragraphs', 'Tables', 'Numbered lists', 'Mixed'];
+const LENGTH_OPTIONS = ['Brief', 'Standard', 'Detailed', 'Comprehensive'];
 
 // ── Lesson scope selector ─────────────────────────────────────────────────────
 
@@ -134,6 +140,7 @@ function LessonScopeSelector({ lessonCount, isDetectingLessons, courseMap, lesso
 function DeliverableExtras({ featureId, config, onChange }) {
   const inputRef = useRef(null);
   const file = config.referenceFile || null;
+  const [showPromptEditor, setShowPromptEditor] = useState(false);
 
   function handleFile(e) {
     const f = e.target.files?.[0];
@@ -154,8 +161,109 @@ function DeliverableExtras({ featureId, config, onChange }) {
   }
 
   return (
-    <div className="space-y-3">
-      {/* Reference file */}
+    <div className="space-y-4">
+      {/* ── Universal Controls: Tone ── */}
+      <div className="space-y-1">
+        <label className="text-xs font-medium text-slate-700">Tone</label>
+        <p className="text-[10px] text-slate-400">Sets the voice and register of the output.</p>
+        <div className="flex flex-wrap gap-1.5 mt-1">
+          {TONE_OPTIONS.map(opt => (
+            <button
+              key={opt}
+              onClick={() => onChange({ ...config, tone: config.tone === opt ? null : opt })}
+              className={`tactile px-3 py-1.5 rounded-lg text-[11px] font-medium transition-all duration-150 ${
+                config.tone === opt
+                  ? 'bg-indigo-500 text-white shadow-sm'
+                  : 'bg-white/60 text-slate-600 border border-slate-200/60 hover:bg-white/90'
+              }`}
+            >
+              {opt}
+            </button>
+          ))}
+        </div>
+      </div>
+
+      {/* ── Universal Controls: Style & Format ── */}
+      <div className="space-y-1">
+        <label className="text-xs font-medium text-slate-700">Style & Format</label>
+        <p className="text-[10px] text-slate-400">How the content is structured and presented.</p>
+        <div className="flex flex-wrap gap-1.5 mt-1">
+          {STYLE_OPTIONS.map(opt => (
+            <button
+              key={opt}
+              onClick={() => onChange({ ...config, style: config.style === opt ? null : opt })}
+              className={`tactile px-3 py-1.5 rounded-lg text-[11px] font-medium transition-all duration-150 ${
+                config.style === opt
+                  ? 'bg-indigo-500 text-white shadow-sm'
+                  : 'bg-white/60 text-slate-600 border border-slate-200/60 hover:bg-white/90'
+              }`}
+            >
+              {opt}
+            </button>
+          ))}
+        </div>
+      </div>
+
+      {/* ── Universal Controls: Output Length ── */}
+      <div className="space-y-1">
+        <label className="text-xs font-medium text-slate-700">Output Length</label>
+        <p className="text-[10px] text-slate-400">Controls how much detail the AI generates.</p>
+        <div className="flex flex-wrap gap-1.5 mt-1">
+          {LENGTH_OPTIONS.map(opt => (
+            <button
+              key={opt}
+              onClick={() => onChange({ ...config, outputLength: config.outputLength === opt ? null : opt })}
+              className={`tactile px-3 py-1.5 rounded-lg text-[11px] font-medium transition-all duration-150 ${
+                config.outputLength === opt
+                  ? 'bg-indigo-500 text-white shadow-sm'
+                  : 'bg-white/60 text-slate-600 border border-slate-200/60 hover:bg-white/90'
+              }`}
+            >
+              {opt}
+            </button>
+          ))}
+        </div>
+      </div>
+
+      {/* ── Custom Prompt Override ── */}
+      <div>
+        <button
+          onClick={() => setShowPromptEditor(v => !v)}
+          className="flex items-center gap-1.5 text-[11px] font-semibold text-slate-500 hover:text-indigo-500 transition-colors"
+        >
+          <svg className={`w-3 h-3 transition-transform duration-200 ${showPromptEditor ? 'rotate-90' : ''}`}
+            fill="none" stroke="currentColor" viewBox="0 0 24 24">
+            <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 5l7 7-7 7" />
+          </svg>
+          {showPromptEditor ? 'Hide prompt editor' : 'Edit AI prompt'}
+        </button>
+        {showPromptEditor && (
+          <div className="mt-2 space-y-2 animate-spring-in">
+            <p className="text-[10px] text-slate-400">
+              Override the system prompt sent to the AI. Leave blank to use the default.
+            </p>
+            <textarea
+              value={config.customSystemPrompt || ''}
+              onChange={(e) => onChange({ ...config, customSystemPrompt: e.target.value })}
+              placeholder="You are an expert instructional designer…"
+              rows={3}
+              className="w-full bg-white/60 border border-slate-200/60 rounded-lg px-3 py-2 text-[11px] text-slate-700 placeholder:text-slate-300 resize-none focus:outline-none focus:ring-1 focus:ring-indigo-300 focus:border-indigo-300 transition-all font-mono"
+            />
+            <p className="text-[10px] text-slate-400">
+              Override the user prompt. Use <code className="text-[9px] bg-slate-100 px-1 py-0.5 rounded">{'{{courseMap}}'}</code> as a placeholder for course data.
+            </p>
+            <textarea
+              value={config.customUserPrompt || ''}
+              onChange={(e) => onChange({ ...config, customUserPrompt: e.target.value })}
+              placeholder="Generate detailed lesson plans for this course: {{courseMap}}"
+              rows={4}
+              className="w-full bg-white/60 border border-slate-200/60 rounded-lg px-3 py-2 text-[11px] text-slate-700 placeholder:text-slate-300 resize-none focus:outline-none focus:ring-1 focus:ring-indigo-300 focus:border-indigo-300 transition-all font-mono"
+            />
+          </div>
+        )}
+      </div>
+
+      {/* ── Reference file ── */}
       <div>
         <p className="text-xs font-medium text-slate-600 mb-1.5">
           Example file
@@ -200,7 +308,7 @@ function DeliverableExtras({ featureId, config, onChange }) {
         />
       </div>
 
-      {/* Extra instructions textarea */}
+      {/* ── Extra instructions textarea ── */}
       <div>
         <p className="text-xs font-medium text-slate-600 mb-1.5">
           Additional instructions
@@ -351,7 +459,7 @@ function DeliverableConfigContent({ featureId, config, onChange, columns, setCol
     case 'courseMap':
       return (
         <div className="space-y-3">
-          <p className="text-[11px] text-slate-500">Choose which columns to include in your course map. Drag to reorder, click to rename.</p>
+          <p className="text-[11px] text-slate-500">Click to enable/disable, drag to reorder, double-click to rename.</p>
           <ColumnEditor columns={columns} setColumns={setColumns} />
           <AdvancedSection>
             <DeliverableExtras featureId={featureId} config={config} onChange={onChange} />
@@ -554,8 +662,25 @@ function DeliverableConfigContent({ featureId, config, onChange, columns, setCol
         </div>
       );
 
-    default:
+    default: {
+      // Custom deliverable — show universal controls only
+      if (featureId.startsWith('custom_')) {
+        const customDef = getCustomDeliverable(featureId);
+        return (
+          <div className="space-y-4">
+            {customDef && (
+              <p className="text-[11px] text-slate-500 italic">
+                Custom deliverable — all generation settings are in Advanced options below.
+              </p>
+            )}
+            <AdvancedSection>
+              <DeliverableExtras featureId={featureId} config={config} onChange={onChange} />
+            </AdvancedSection>
+          </div>
+        );
+      }
       return null;
+    }
   }
 }
 
@@ -579,7 +704,9 @@ export default function Config({
   const [expandedId, setExpandedId] = useState('courseMap');
   const [showHelp, setShowHelp] = useState(false);
 
-  const configurableFeatures = FEATURES.filter(f => selected.includes(f.id));
+  // Merge built-in + custom features for the config accordion
+  const allFeatures = [...FEATURES, ...listCustomDeliverables().map(toFeatureEntry)];
+  const configurableFeatures = allFeatures.filter(f => selected.includes(f.id));
 
   const scopeDescription = (() => {
     if (lessonScope.type === 'all') {

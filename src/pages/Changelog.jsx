@@ -2,6 +2,42 @@ import React from 'react';
 
 const releases = [
   {
+    version: '0.2',
+    date: 'February 25, 2026',
+    title: 'Column Toggle, Custom Deliverables from Workspace, AI Auto-Config',
+    highlights: [
+      'Click column labels to enable/disable — AI generation & all exports respect the toggle',
+      'Create custom deliverables directly from the workspace via + Add → Create Custom',
+      'AI auto-decides tone, style, and length for custom deliverables when not configured',
+      'Repeating learning goals merge automatically in the course map preview',
+    ],
+    sections: [
+      {
+        label: 'Features',
+        icon: '✦',
+        color: 'indigo',
+        items: [
+          'Column enable/disable toggle — click any column pill in Config to toggle it on or off. Disabled columns are dimmed with strikethrough and excluded from AI generation, preview, and all exports (XLSX, DOCX, CSV, PDF, Google Docs/Sheets).',
+          'Custom deliverables in workspace — the + Add dropdown now shows previously created custom deliverables under "Your Custom" and a "Create Custom..." button to build new ones without leaving the workspace.',
+          'AI auto-config for custom deliverables — when tone, style, or output length are not set, the AI automatically infers the best settings from the course context and other deliverables\' configuration.',
+          'Row merge in Course Map Preview — when sections within a lesson share identical values for a column, cells automatically merge (rowSpan) for a cleaner layout. Editing a merged cell updates all sections.',
+          'FAQ chatbot updated with column configuration, custom deliverables, and AI auto-config knowledge.',
+        ],
+      },
+      {
+        label: 'Improvements',
+        icon: '⚡',
+        color: 'amber',
+        items: [
+          'Click/double-click disambiguation on column pills — single click toggles, double click renames, no accidental flicker.',
+          'Stale columns ref fixed in edit proposal engine — column config changes are always reflected in AI revision proposals.',
+          'Add deliverable dropdown shows clean UI even when all built-in deliverables are selected — orphan divider removed.',
+          'Custom deliverable config uses 3-tier fallback: own defaults → sibling deliverable settings → AI auto-decide.',
+        ],
+      },
+    ],
+  },
+  {
     version: '0.15',
     date: 'February 14, 2026',
     title: 'Google Verification, Privacy & Terms, FAQ Chatbot Updates',

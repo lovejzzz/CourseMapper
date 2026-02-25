@@ -232,14 +232,19 @@ export default function CourseMapPreview({ courseMap, columns, isStreaming, oldC
     return null;
   }
 
-  const colHeaders = columns && columns.length > 0
-    ? ['Week/Module [Topic]', ...columns.map((c) => c.label)]
+  // Filter to only enabled columns (enabled defaults to true when field is missing)
+  const enabledColumns = columns && columns.length > 0
+    ? columns.filter((c) => c.enabled !== false)
+    : null;
+
+  const colHeaders = enabledColumns
+    ? ['Week/Module [Topic]', ...enabledColumns.map((c) => c.label)]
     : ['Week/Module', 'Learning Goals', 'Topic/Section', 'Learning Objectives',
        'Assessments', 'Async Activities', 'Sync Activities', 'Technology',
        'Format', 'Resources', 'Evaluate'];
 
-  const colKeys = columns && columns.length > 0
-    ? columns.map((c) => c.key)
+  const colKeys = enabledColumns
+    ? enabledColumns.map((c) => c.key)
     : SECTION_KEYS;
 
   return (
@@ -363,7 +368,22 @@ export default function CourseMapPreview({ courseMap, columns, isStreaming, oldC
               }
 
               // Normal lesson rows
-              const sectionRows = ((lesson.sections && lesson.sections.length > 0) ? lesson.sections : [{}]).map((section, si) => (
+              const sections = (lesson.sections && lesson.sections.length > 0) ? lesson.sections : [{}];
+
+              // Compute which content columns have identical values across all sections
+              // These will be visually merged with rowSpan to avoid repetition
+              const mergedCols = new Set();
+              if (sections.length > 1) {
+                for (const key of colKeys) {
+                  if (key === 'evaluateDesign') continue;
+                  const firstVal = toStr(sections[0]?.[key]);
+                  if (firstVal && sections.every(s => toStr(s?.[key]) === firstVal)) {
+                    mergedCols.add(key);
+                  }
+                }
+              }
+
+              const sectionRows = sections.map((section, si) => (
                 <tr
                   key={`${li}-${si}`}
                   className={`group/row border-t border-slate-100/60 ${
@@ -419,11 +439,16 @@ export default function CourseMapPreview({ courseMap, columns, isStreaming, oldC
                     ) : ''}
                   </td>
                   {colKeys.map((key) => {
+                    // Skip cells that are merged via rowSpan from the first section
+                    if (mergedCols.has(key) && si > 0) return null;
+
+                    const rowSpan = mergedCols.has(key) ? sections.length : undefined;
+
                     // Evaluate Design → checkbox
                     if (key === 'evaluateDesign') {
                       const checked = section[key] === true || section[key] === 'true';
                       return (
-                        <td key={key} className="px-3.5 py-2.5 align-middle text-center" style={{ minWidth: 60 }}>
+                        <td key={key} className="px-3.5 py-2.5 align-middle text-center" style={{ minWidth: 60 }} rowSpan={rowSpan}>
                           <input
                             type="checkbox"
                             checked={checked}
@@ -441,11 +466,20 @@ export default function CourseMapPreview({ courseMap, columns, isStreaming, oldC
                     const oldText = oldSection ? toStr(oldSection[key]) : null;
                     const isChanged = oldText !== null && oldText !== newText;
 
+                    // Edit handler: for merged cells, propagate edits to all sections
+                    const handleCellSave = onCellEdit ? (val) => {
+                      if (mergedCols.has(key)) {
+                        sections.forEach((_, sIdx) => onCellEdit(li, sIdx, key, val));
+                      } else {
+                        onCellEdit(li, si, key, val);
+                      }
+                    } : null;
+
                     // During revision streaming: show unchanged cells with grey bg, changed with green
                     if (isStreaming && oldCourseMap) {
                       const unchanged = oldText !== null && oldText === newText;
                       return (
-                        <td key={key} className={`px-3.5 py-2.5 align-top max-w-[220px] transition-colors duration-300 ${
+                        <td key={key} rowSpan={rowSpan} className={`px-3.5 py-2.5 align-top max-w-[220px] transition-colors duration-300 ${
                           unchanged ? 'bg-slate-50/60 text-slate-400' : 'bg-emerald-50/50 text-emerald-800'
                         }`} style={{ wordBreak: 'break-word', overflowWrap: 'anywhere' }} data-changed={!unchanged ? 'true' : undefined}>
                           <FormattedText text={newText} />
@@ -456,7 +490,7 @@ export default function CourseMapPreview({ courseMap, columns, isStreaming, oldC
                     // During initial generation streaming (no oldCourseMap)
                     if (isStreaming) {
                       return (
-                        <td key={key} className="px-3.5 py-2.5 align-top text-slate-600 max-w-[220px]" style={{ wordBreak: 'break-word', overflowWrap: 'anywhere' }}>
+                        <td key={key} rowSpan={rowSpan} className="px-3.5 py-2.5 align-top text-slate-600 max-w-[220px]" style={{ wordBreak: 'break-word', overflowWrap: 'anywhere' }}>
                           <DiffCell text={newText} oldText={null} isStreaming={isStreaming} />
                         </td>
                       );
@@ -464,7 +498,7 @@ export default function CourseMapPreview({ courseMap, columns, isStreaming, oldC
 
                     // Not streaming — editable cells with diff view
                     return (
-                      <td key={key} className={`px-3.5 py-2.5 align-top text-slate-600 max-w-[220px] transition-colors duration-500 ${showDiff && isChanged ? 'bg-emerald-50/60 border-l-2 border-emerald-400' : isChanged ? 'bg-emerald-50/40' : ''}`} style={{ wordBreak: 'break-word', overflowWrap: 'anywhere' }}>
+                      <td key={key} rowSpan={rowSpan} className={`px-3.5 py-2.5 align-top text-slate-600 max-w-[220px] transition-colors duration-500 ${showDiff && isChanged ? 'bg-emerald-50/60 border-l-2 border-emerald-400' : isChanged ? 'bg-emerald-50/40' : ''}`} style={{ wordBreak: 'break-word', overflowWrap: 'anywhere' }}>
                         {showDiff && isChanged && oldText ? (
                           <div>
                             <div className="text-[10px] text-red-400 line-through mb-1 pb-1 border-b border-red-100/60 leading-relaxed">
@@ -473,7 +507,7 @@ export default function CourseMapPreview({ courseMap, columns, isStreaming, oldC
                             <EditableCell
                               text={newText}
                               isStreaming={isStreaming}
-                              onSave={onCellEdit ? (val) => onCellEdit(li, si, key, val) : null}
+                              onSave={handleCellSave}
                               highlight={true}
                             />
                           </div>
@@ -481,7 +515,7 @@ export default function CourseMapPreview({ courseMap, columns, isStreaming, oldC
                           <EditableCell
                             text={newText}
                             isStreaming={isStreaming}
-                            onSave={onCellEdit ? (val) => onCellEdit(li, si, key, val) : null}
+                            onSave={handleCellSave}
                             highlight={isChanged}
                           />
                         )}

@@ -18,7 +18,8 @@ import useDeliverables from './hooks/useDeliverables';
 import useSmartSync from './hooks/useSmartSync';
 import useEditProposal from './hooks/useEditProposal';
 import { extractEditContext } from './lib/editContextExtractor';
-import { FEATURES } from './screens/FeatureSelect';
+import { FEATURES, CustomDeliverableBuilder } from './screens/FeatureSelect';
+import { listCustomDeliverables, toFeatureEntry, saveCustomDeliverable } from './lib/customDeliverableLibrary';
 import DeliverableView from './components/DeliverableView';
 import ExportSidePanel from './components/ExportSidePanel';
 import { requestNotificationPermission } from './lib/notifyDone';
@@ -29,7 +30,7 @@ import { detectExpectedLessons, detectLessonsWithAI } from './lib/detectLessons'
 const STORAGE_KEY = 'coursemapper-project';
 
 // ── Add Deliverable dropdown — uses a portal so it escapes the overflow-x-auto tab bar ──
-function AddDeliverableButton({ unselected, showAddDeliverable, setShowAddDeliverable, onAdd }) {
+function AddDeliverableButton({ unselected, showAddDeliverable, setShowAddDeliverable, onAdd, onCreateCustom }) {
   const btnRef = useRef(null);
   const [dropPos, setDropPos] = useState({ top: 0, left: 0 });
 
@@ -40,6 +41,9 @@ function AddDeliverableButton({ unselected, showAddDeliverable, setShowAddDelive
     }
     setShowAddDeliverable(true);
   }
+
+  const builtIn = unselected.filter(f => !f.isCustom);
+  const custom = unselected.filter(f => f.isCustom);
 
   return (
     <div className="flex-shrink-0">
@@ -58,19 +62,49 @@ function AddDeliverableButton({ unselected, showAddDeliverable, setShowAddDelive
         <>
           <div className="fixed inset-0 z-[9998]" onClick={() => setShowAddDeliverable(false)} />
           <div
-            className="fixed z-[9999] bg-white/95 backdrop-blur-xl rounded-xl border border-slate-200/60 shadow-xl p-2 min-w-[200px] animate-spring-in"
+            className="fixed z-[9999] bg-white/95 backdrop-blur-xl rounded-xl border border-slate-200/60 shadow-xl p-2 min-w-[220px] max-h-[70vh] overflow-y-auto animate-spring-in"
             style={{ top: dropPos.top, left: dropPos.left }}
           >
-            <p className="text-[9px] font-bold text-slate-400 uppercase tracking-wider px-2 pt-1 pb-1.5">Add Deliverable</p>
-            {unselected.map(feature => (
-              <button
-                key={feature.id}
-                onClick={() => onAdd(feature)}
-                className="w-full text-left px-2 py-2 rounded-lg text-[11px] font-medium text-slate-600 hover:bg-indigo-50 hover:text-indigo-700 transition-colors"
-              >
-                {feature.label}
-              </button>
-            ))}
+            {builtIn.length > 0 && (
+              <>
+                <p className="text-[9px] font-bold text-slate-400 uppercase tracking-wider px-2 pt-1 pb-1.5">Add Deliverable</p>
+                {builtIn.map(feature => (
+                  <button
+                    key={feature.id}
+                    onClick={() => onAdd(feature)}
+                    className="w-full text-left px-2 py-2 rounded-lg text-[11px] font-medium text-slate-600 hover:bg-indigo-50 hover:text-indigo-700 transition-colors"
+                  >
+                    {feature.label}
+                  </button>
+                ))}
+              </>
+            )}
+            {custom.length > 0 && (
+              <>
+                <div className="border-t border-slate-100/80 my-1.5" />
+                <p className="text-[9px] font-bold text-slate-400 uppercase tracking-wider px-2 pt-1 pb-1.5">Your Custom</p>
+                {custom.map(feature => (
+                  <button
+                    key={feature.id}
+                    onClick={() => onAdd(feature)}
+                    className="w-full text-left px-2 py-2 rounded-lg text-[11px] font-medium text-violet-600 hover:bg-violet-50 hover:text-violet-700 transition-colors"
+                  >
+                    {feature.label}
+                  </button>
+                ))}
+              </>
+            )}
+            {/* Create Custom option */}
+            {(builtIn.length > 0 || custom.length > 0) && <div className="border-t border-slate-100/80 my-1.5" />}
+            <button
+              onClick={() => { setShowAddDeliverable(false); onCreateCustom(); }}
+              className="w-full text-left px-2 py-2 rounded-lg text-[11px] font-medium text-indigo-500 hover:bg-indigo-50 hover:text-indigo-700 transition-colors flex items-center gap-1.5"
+            >
+              <svg className="w-3.5 h-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 4v16m8-8H4" />
+              </svg>
+              Create Custom...
+            </button>
           </div>
         </>,
         document.body
@@ -117,6 +151,8 @@ export default function App() {
   const [activeTab, setActiveTab] = useState('courseMap');
   // + tab popover
   const [showAddDeliverable, setShowAddDeliverable] = useState(false);
+  // Custom deliverable builder modal (from workspace + Add)
+  const [showCustomBuilder, setShowCustomBuilder] = useState(false);
   // Add-lessons modal state: { lessonIndices: number[], mode: null|'asking' }
   const [addLessonsModal, setAddLessonsModal] = useState(null);
   // New Project confirmation modal
@@ -144,6 +180,7 @@ export default function App() {
     pushVersion: version.pushVersion,
     userEdits, setUserEdits,
     promptText,
+    pedagogicalMode: 'lecture', // Feature 4.2 — wired for when mode selector UI is added
     lessonScope: lessonScope.type === 'specific' ? lessonScope.indices : null,
     courseMapConfig: deliverableConfig['courseMap'],
   });
@@ -173,6 +210,7 @@ export default function App() {
     lockedLessons: lessonScope.type === 'specific' ? lessonScope.indices : null,
     pedagogicalMode: 'lecture',
     examChanges: gen.examChanges,
+    columns,
   });
   // Keep deliverables ref fresh for use in stable callbacks
   deliverablesRef.current = deliv.deliverables;
@@ -182,6 +220,7 @@ export default function App() {
     provider, modelId, apiKey,
     deliverableConfig,
     pedagogicalMode: 'lecture',
+    columns,
   });
 
   // ── Cascade Sync Engine ──
@@ -212,6 +251,8 @@ export default function App() {
     setDownloadedFile, setUserEdits,
     pushVersion: version.pushVersion,
     onEdit: smartSync.notifyEdit,
+    deliverables: deliv.deliverables,
+    optimisticUpdate: deliv.optimisticUpdate,
   });
 
   // ── Persist API key ──
@@ -281,7 +322,15 @@ export default function App() {
       if (saved.lessonScope) setLessonScope(saved.lessonScope);
       if (saved.promptText !== undefined) setPromptText(saved.promptText);
       if (saved.activeTab) setActiveTab(saved.activeTab);
-      if (saved.deliverables) deliv.restoreDeliverables(saved.deliverables);
+      if (saved.deliverables) {
+        // ── Change #3: Migrate old stale:true entries that lack staleConfidence ──
+        for (const [, entry] of Object.entries(saved.deliverables)) {
+          if (entry?.stale && !entry?.staleConfidence) {
+            entry.staleConfidence = { level: 'high', maxWeight: 1.0, dominantField: null };
+          }
+        }
+        deliv.restoreDeliverables(saved.deliverables);
+      }
       setRestoredSession(true);
       setHasSavedSession(false);
       if (!gen.restoreStoppedState()) {
@@ -478,7 +527,8 @@ export default function App() {
     // Trigger when step transitions to 'done' (course map just finished)
     if (prev && prev !== 'done' && gen.progressStep === 'done' && courseMap) {
       // Use FEATURES canonical order so generation matches tab order
-      const orderedFeatures = FEATURES
+      const allFeats = [...FEATURES, ...listCustomDeliverables().map(toFeatureEntry)];
+      const orderedFeatures = allFeats
         .filter(f => selectedFeatures.includes(f.id) && f.id !== 'courseMap')
         .map(f => f.id);
       if (orderedFeatures.length > 0 && !deliv.isGenerating) {
@@ -603,7 +653,8 @@ export default function App() {
 
   // ── Screen: Workspace ──
   // Build ordered tab list from selected features (course map always first)
-  const workspaceTabs = FEATURES.filter(f => selectedFeatures.includes(f.id));
+  const allFeaturesForTabs = [...FEATURES, ...listCustomDeliverables().map(toFeatureEntry)];
+  const workspaceTabs = allFeaturesForTabs.filter(f => selectedFeatures.includes(f.id));
 
   return (
     <div className="min-h-screen mesh-bg noise-overlay">
@@ -668,14 +719,18 @@ export default function App() {
               // Cascade sync badges
               const hasUnseen = unseenChanges.has(feature.id);
               const isStaleTab = deliv.deliverables[feature.id]?.stale === true;
+              const staleConf = deliv.deliverables[feature.id]?.staleConfidence;
               // isSyncingThis: either regenerateLesson set currentFeature, or
               // the latest syncLog entry for this feature is a pending 'start'
               const lastSyncEntry = smartSync.isSyncing && smartSync.syncLog.length > 0
                 ? [...smartSync.syncLog].reverse().find(e => e.featureId === feature.id)
                 : null;
-              const isSyncingThis = smartSync.isSyncing && (
-                deliv.currentFeature === feature.id ||
-                (lastSyncEntry?.type === 'start')
+              // Change #1: Use syncingFeatures set for parallel-aware badge
+              const isSyncingThis = smartSync.syncingFeatures?.has(feature.id) || (
+                smartSync.isSyncing && (
+                  deliv.currentFeature === feature.id ||
+                  (lastSyncEntry?.type === 'start')
+                )
               );
 
               return (
@@ -702,7 +757,7 @@ export default function App() {
                   {feature.id !== 'courseMap' && (
                     <span className={`w-1.5 h-1.5 rounded-full flex-shrink-0 ${
                       isSyncingThis ? 'bg-amber-400 animate-pulse' :
-                      isStaleTab && !isSyncingThis ? 'bg-amber-300' :
+                      isStaleTab && !isSyncingThis ? (staleConf?.level === 'high' ? 'bg-amber-400' : staleConf?.level === 'medium' ? 'bg-amber-300' : 'bg-amber-200') :
                       hasUnseen ? 'bg-amber-400' :
                       isStreaming ? 'bg-indigo-400 animate-pulse' :
                       isDone ? 'bg-emerald-400' :
@@ -717,15 +772,15 @@ export default function App() {
                       'bg-slate-300'
                     }`} />
                   )}
-                  {feature.label}{isStaleTab && !isSyncingThis ? ' ⚠' : hasUnseen ? ' *' : ''}
+                  {feature.label}{isStaleTab && !isSyncingThis ? (staleConf?.level === 'high' ? ' ⚠' : ' ~') : hasUnseen ? ' *' : ''}
                 </button>
               );
             })}
 
             {/* ── + Add deliverable button ── */}
             {gen.progressStep === 'done' && (() => {
-              const unselected = FEATURES.filter(f => f.id !== 'courseMap' && !selectedFeatures.includes(f.id));
-              if (unselected.length === 0) return null;
+              const allFeatsForAdd = [...FEATURES, ...listCustomDeliverables().map(toFeatureEntry)];
+              const unselected = allFeatsForAdd.filter(f => f.id !== 'courseMap' && !selectedFeatures.includes(f.id));
               return (
                 <AddDeliverableButton
                   unselected={unselected}
@@ -738,6 +793,7 @@ export default function App() {
                     const scopeIndices = lessonScope.type === 'specific' ? lessonScope.indices : null;
                     deliv.generateAll(courseMap, [feature.id], scopeIndices);
                   }}
+                  onCreateCustom={() => setShowCustomBuilder(true)}
                 />
               );
             })()}
@@ -846,6 +902,21 @@ export default function App() {
           </div>
         )}
 
+        {/* ── Custom Deliverable Builder (from workspace + Add) ── */}
+        <CustomDeliverableBuilder
+          isOpen={showCustomBuilder}
+          onClose={() => setShowCustomBuilder(false)}
+          onSave={(def) => {
+            const saved = saveCustomDeliverable(def);
+            setSelectedFeatures(prev => [...prev, saved.id]);
+            setActiveTab(saved.id);
+            setShowCustomBuilder(false);
+            const scopeIndices = lessonScope.type === 'specific' ? lessonScope.indices : null;
+            deliv.generateAll(courseMap, [saved.id], scopeIndices);
+          }}
+          editDef={null}
+        />
+
         {/* ── Tab content + Progress sidebar + Export panel ── */}
         <div className="flex gap-4 items-start">
 
@@ -886,6 +957,7 @@ export default function App() {
                   syncLog={smartSync.syncLog}
                   isSyncing={smartSync.isSyncing}
                   pendingSyncCount={smartSync.pendingSyncCount}
+                  syncingFeatures={smartSync.syncingFeatures}
                 />
               </ErrorBoundary>
             </div>
@@ -995,6 +1067,7 @@ export default function App() {
                     deliv.deliverables[activeTab]?.data,
                   )}
                   isStale={deliv.deliverables[activeTab]?.stale === true}
+                  staleConfidence={deliv.deliverables[activeTab]?.staleConfidence}
                   onSyncNow={() => {
                     const scopeIndices = lessonScope.type === 'specific' ? lessonScope.indices : null;
                     deliv.generateAll(courseMap, [activeTab], scopeIndices);

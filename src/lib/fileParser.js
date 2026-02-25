@@ -124,12 +124,48 @@ function sanitizeForAI(text) {
     .trim();
 }
 
+/**
+ * Convert mammoth HTML output to structured text preserving headings, tables, and lists.
+ * Uses regex-based conversion (no extra dependencies).
+ */
+function htmlToStructuredText(html) {
+  let text = html;
+  // Convert headings to markdown-style markers
+  text = text.replace(/<h1[^>]*>(.*?)<\/h1>/gi, '\n# $1\n');
+  text = text.replace(/<h2[^>]*>(.*?)<\/h2>/gi, '\n## $1\n');
+  text = text.replace(/<h3[^>]*>(.*?)<\/h3>/gi, '\n### $1\n');
+  text = text.replace(/<h[4-6][^>]*>(.*?)<\/h[4-6]>/gi, '\n#### $1\n');
+  // Convert table rows to pipe-delimited format
+  text = text.replace(/<tr[^>]*>(.*?)<\/tr>/gi, (_, row) => {
+    const cells = [];
+    row.replace(/<t[dh][^>]*>(.*?)<\/t[dh]>/gi, (__, cell) => {
+      cells.push(cell.replace(/<[^>]+>/g, '').trim());
+    });
+    return cells.join(' | ') + '\n';
+  });
+  // Convert list items
+  text = text.replace(/<li[^>]*>(.*?)<\/li>/gi, '\u2022 $1\n');
+  // Convert line breaks and paragraphs
+  text = text.replace(/<br\s*\/?>/gi, '\n');
+  text = text.replace(/<\/p>/gi, '\n');
+  text = text.replace(/<p[^>]*>/gi, '\n');
+  // Strip remaining HTML tags
+  text = text.replace(/<[^>]+>/g, '');
+  // Decode common HTML entities
+  text = text.replace(/&amp;/g, '&').replace(/&lt;/g, '<').replace(/&gt;/g, '>');
+  text = text.replace(/&quot;/g, '"').replace(/&#39;/g, "'").replace(/&nbsp;/g, ' ');
+  // Collapse excessive whitespace
+  text = text.replace(/\n{3,}/g, '\n\n').trim();
+  return text;
+}
+
 // ── Word (.docx) ──
 async function parseDocx(file) {
   const mammoth = await getMammoth();
   const arrayBuffer = await file.arrayBuffer();
-  const result = await mammoth.extractRawText({ arrayBuffer });
-  return result.value;
+  // Use convertToHtml to preserve headings, tables, and list structure
+  const result = await mammoth.convertToHtml({ arrayBuffer });
+  return htmlToStructuredText(result.value);
 }
 
 // ── Legacy Word (.doc) ──

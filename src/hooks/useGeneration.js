@@ -8,6 +8,7 @@ import useStreamReader from './useStreamReader';
 
 import applyPatches from '../lib/applyPatches';
 import { getModeSystemAddition, getModeCourseMapNote } from '../lib/pedagogicalModes';
+import { validateCourseMap } from '../lib/validateCourseMap';
 
 /**
  * Handles course map generation, examination, stop/resume, and retry.
@@ -312,6 +313,15 @@ export default function useGeneration({
     const actual = workingMap.lessons.length;
     const existingTitles = workingMap.lessons.map((l, i) => `${i + 1}. ${l.title}`).join('\n');
     const sampleFields = colDefs.map(k => `"${k}": "..."`).join(', ');
+    // Smart truncation: for continuation, prioritize the latter half of the syllabus
+    // since we're generating later lessons that correspond to content near the end
+    let contSyllabus;
+    if (syllabusText.length > 20000) {
+      const halfLen = Math.floor(syllabusText.length / 2);
+      contSyllabus = syllabusText.slice(Math.max(0, halfLen - 2000));
+    } else {
+      contSyllabus = syllabusText;
+    }
     return `You previously generated a partial Course Map with ${actual} lessons, but the syllabus has ${expectedCount} lessons/weeks total.
 
 Here are the lessons already generated:
@@ -330,21 +340,23 @@ IMPORTANT:
 REQUIRED JSON FORMAT:
 {"lessons": [{"title": "Lesson ${actual + 1}: Title Here", "sections": [{${sampleFields}}]}]}
 
-SYLLABUS CONTENT (for reference):
-${syllabusText.slice(0, 20000)}
+SYLLABUS CONTENT (for reference — focusing on later content for remaining lessons):
+${contSyllabus}
 
 Generate lessons ${actual + 1} through ${expectedCount} now as JSON:`;
   }
 
   // ── Try one continuation call with a specific model ──
-  async function tryContinuation(useProvider, useApiKey, useModelId, modelName, workingMap, expectedCount, syllabusText, colDefs) {
+  async function tryContinuation(useProvider, useApiKey, useModelId, modelName, workingMap, expectedCount, syllabusText, colDefs, systemPromptOverride) {
     const actual = workingMap.lessons.length;
     const contPrompt = buildContinuationPrompt(workingMap, expectedCount, syllabusText, colDefs);
 
     fullTextRef.current = '';
     lastGoodParseRef.current = null;
     let lastContUIUpdate = 0;
-    const { fullText: contText } = await streamProvider(useProvider, useApiKey, useModelId, SYSTEM_PROMPT, contPrompt, {
+    // Use the active system prompt (with pedagogical mode additions) instead of bare SYSTEM_PROMPT
+    const contSystemPrompt = systemPromptOverride || SYSTEM_PROMPT;
+    const { fullText: contText } = await streamProvider(useProvider, useApiKey, useModelId, contSystemPrompt, contPrompt, {
       onChunk: (text) => {
         fullTextRef.current = text;
         const now = performance.now();
@@ -379,7 +391,7 @@ Generate lessons ${actual + 1} through ${expectedCount} now as JSON:`;
   }
 
   // ── Auto-continue with multi-model fallback ──
-  async function continueForMissingLessons(currentMap, expectedCount, syllabusText, colDefs, initialModelId, initialModelName) {
+  async function continueForMissingLessons(currentMap, expectedCount, syllabusText, colDefs, initialModelId, initialModelName, systemPromptOverride) {
     const MAX_ATTEMPTS_PER_MODEL = 2;
     let workingMap = currentMap;
 
@@ -416,7 +428,7 @@ Generate lessons ${actual + 1} through ${expectedCount} now as JSON:`;
         try {
           const contResult = await tryContinuation(
             effectiveProvider, model.apiKey, model.id, model.name,
-            workingMap, expectedCount, syllabusText, colDefs
+            workingMap, expectedCount, syllabusText, colDefs, systemPromptOverride
           );
 
           if (contResult && contResult.lessons && contResult.lessons.length > 0) {
@@ -558,7 +570,7 @@ Generate lessons ${actual + 1} through ${expectedCount} now as JSON:`;
     const activeSystemPrompt = (modeAddition || modeCourseMapNote)
       ? `${baseSystemPrompt}\n\n${[modeAddition, modeCourseMapNote].filter(Boolean).join('\n')}`
       : baseSystemPrompt;
-    const userPrompt = buildUserPrompt(combinedText, columns, scopeIndices, isReconstruct);
+    const userPrompt = buildUserPrompt(combinedText, columns, scopeIndices, isReconstruct, detected?.expected || null);
     const fullPromptText = activeSystemPrompt + userPrompt;
     const tokenCheck = checkTokenLimit(fullPromptText, modelId);
 
@@ -570,7 +582,7 @@ Generate lessons ${actual + 1} through ${expectedCount} now as JSON:`;
     if (!tokenCheck.fits) {
       const { text: truncatedContent, wasTruncated } = truncateToFit(combinedText, modelId);
       if (wasTruncated) {
-        finalUserPrompt = buildUserPrompt(truncatedContent, columns, scopeIndices);
+        finalUserPrompt = buildUserPrompt(truncatedContent, columns, scopeIndices, isReconstruct, detected?.expected || null);
         parseWarning = (parseWarning ? parseWarning + '\n' : '') +
           `Content was ~${tokenCheck.estimatedTokens.toLocaleString()} tokens (model limit: ~${tokenCheck.availableTokens.toLocaleString()} available). Auto-truncated to fit.`;
       }
@@ -667,6 +679,12 @@ Generate lessons ${actual + 1} through ${expectedCount} now as JSON:`;
         })),
       };
 
+      // Post-generation structural validation — auto-fix missing titles, sections, column keys
+      const { warnings: validationWarnings } = validateCourseMap(finalResult, columns);
+      if (validationWarnings.length > 0) {
+        addLog(usedModelName, `Validation: ${validationWarnings.length} fix(es) applied`, 'warning');
+      }
+
       setCourseMap(finalResult);
       courseMapRef.current = finalResult;
       setIsStreaming(false);
@@ -686,7 +704,7 @@ Generate lessons ${actual + 1} through ${expectedCount} now as JSON:`;
         setIsStreaming(true);
         setProgressStep('continuing');
         try {
-          finalResult = await continueForMissingLessons(finalResult, expected, syllabusTextRef.current, colKeys, usedModelId, usedModelName);
+          finalResult = await continueForMissingLessons(finalResult, expected, syllabusTextRef.current, colKeys, usedModelId, usedModelName, activeSystemPrompt);
         } catch (contErr) {
           if (contErr.name === 'AbortError') {
             const partial = courseMapRef.current;

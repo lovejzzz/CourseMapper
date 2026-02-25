@@ -141,14 +141,32 @@ export function buildRevisionUserPrompt(courseMap, userMessage, userEdits, chatH
   return `Here is the current Course Map JSON:\n\n${JSON.stringify(courseMap)}${editsContext}${historyContext}${lockNote}\n\nUser's latest request:\n${userMessage}\n\nReturn ONLY the JSON patches object:`;
 }
 
-export function buildUserPrompt(syllabusText, columns, scopeIndices, isReconstruct = false) {
+/**
+ * Pre-segment syllabus text by week/lesson/module markers.
+ * Adds `--- SEGMENT N ---` labels so the AI can align content to the correct lesson.
+ * Returns original text unchanged if fewer than 2 segments are detected.
+ */
+function segmentSyllabus(text) {
+  if (!text || text.length < 200) return text;
+  // Split on lines that start with common weekly/lesson markers followed by a number
+  const parts = text.split(/(?=(?:^|\n)\s*(?:Week|Lesson|Module|Session|Unit|Class)\s+\d+)/gi).filter(Boolean);
+  if (parts.length < 2) return text; // Couldn't segment — return as-is
+  return parts.map((part, i) => `\n--- SEGMENT ${i + 1} ---\n${part.trim()}`).join('\n');
+}
+
+export function buildUserPrompt(syllabusText, columns, scopeIndices, isReconstruct = false, expectedLessons = null) {
+  // Filter to only enabled columns (enabled defaults to true when field is missing)
+  const enabledColumns = columns && columns.length > 0
+    ? columns.filter(c => c.enabled !== false)
+    : columns;
+
   // Build column definitions dynamically from the columns array
   let columnDefs = '';
   let sampleSection = '';
   const colKeys = [];
 
-  if (columns && columns.length > 0) {
-    for (const col of columns) {
+  if (enabledColumns && enabledColumns.length > 0) {
+    for (const col of enabledColumns) {
       const desc = DEFAULT_COLUMN_DEFS[col.key] || `Content for "${col.label}". Generate thoughtful, pedagogically sound content for this field.`;
       columnDefs += `- ${col.key}: ${desc}\n`;
       const sampleVal = DEFAULT_COLUMN_DEFS[col.key]
@@ -171,6 +189,8 @@ export function buildUserPrompt(syllabusText, columns, scopeIndices, isReconstru
   if (Array.isArray(scopeIndices) && scopeIndices.length > 0) {
     const lessonNumbers = scopeIndices.map(i => i + 1).join(', ');
     lessonScopeInstruction = `2. Generate ONLY the following lesson numbers from the syllabus: ${lessonNumbers} (1-indexed). Do NOT generate any other lessons. The "lessons" array in your JSON must contain EXACTLY ${scopeIndices.length} lesson(s) corresponding to these positions in the syllabus.`;
+  } else if (expectedLessons) {
+    lessonScopeInstruction = `2. The syllabus contains approximately ${expectedLessons} lessons/weeks. Generate exactly that many lessons. If you detect a slightly different structure, match the syllabus but aim for ${expectedLessons} total.`;
   } else {
     lessonScopeInstruction = `2. Auto-detect the number of weeks or lessons from the syllabus structure.`;
   }
@@ -199,6 +219,7 @@ ${guideline5}
 7. Each section MUST contain ALL of the following keys: ${colKeys.join(', ')}.
 8. When a section has multiple learning goals, number them sequentially (1, 2, 3… — never skip a number). Then prefix each learning objective with the goal number it maps to (e.g., 1a, 1b, 2a, 2b). If there is only one goal, no numbering is needed.
 9. CRITICAL — For learningObjectives: Write "Students will be able to:" ONCE as the opening stem, then list each objective starting directly with a Bloom's verb. Do NOT repeat "Students will be able to" on every line. Example: "Students will be able to:\\n1a. Analyze the impact of policy...\\n1b. Compare federal and state frameworks...\\n2a. Evaluate advocacy strategies..."
+10. If the syllabus below contains "--- SEGMENT N ---" markers, use these segments to accurately map content to the correct lesson/week. Each segment corresponds to one lesson.
 
 COLUMN DEFINITIONS:
 ${columnDefs}
@@ -218,7 +239,7 @@ ${sampleSection}        }
 }
 
 ${isReconstruct ? 'UPLOADED MATERIALS:' : 'SYLLABUS CONTENT:'}
-${syllabusText}
+${segmentSyllabus(syllabusText)}
 
 Generate the complete Course Map JSON now:`;
 }

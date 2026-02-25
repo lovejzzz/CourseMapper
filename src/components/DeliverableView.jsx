@@ -190,7 +190,7 @@ function SaveToBankButton({ onClick }) {
   );
 }
 
-export default function DeliverableView({ featureId, data, status, error, regeneratingIndex, courseMapStatus, isDelivGenerating, currentDelivFeature, onDataChange, onRegenerateLesson, onRetry, onAddLessons, courseMap, lessonScope, isStudentView, onSaveToBank, qualityScore, freshLessonIndices, proposals, onAcceptProposal, onDismissProposal, onRegenerateProposal, isStale, onSyncNow }) {
+export default function DeliverableView({ featureId, data, status, error, regeneratingIndex, courseMapStatus, isDelivGenerating, currentDelivFeature, onDataChange, onRegenerateLesson, onRetry, onAddLessons, courseMap, lessonScope, isStudentView, onSaveToBank, qualityScore, freshLessonIndices, proposals, onAcceptProposal, onDismissProposal, onRegenerateProposal, isStale, staleConfidence, onSyncNow }) {
   // ── All hooks MUST come before any early returns (Rules of Hooks) ──
   // Feature 4.1 — Tier detection + toggle state
   const [activeTier, setActiveTier] = useState('standard'); // 'scaffolded' | 'standard' | 'extension'
@@ -254,18 +254,39 @@ export default function DeliverableView({ featureId, data, status, error, regene
         </div>
       )}
       {/* Stale banner — shown when this deliverable is out of sync with recent edits */}
+      {/* Change #3: Confidence-aware banner coloring and messaging */}
       {isStale && !isStreaming && (
-        <div className="mx-4 mt-2 mb-1 flex items-center gap-2.5 px-4 py-2.5 rounded-squircle-xs bg-amber-50/80 border border-amber-200/50 backdrop-blur-sm">
-          <svg className="w-4 h-4 text-amber-500 flex-shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+        <div className={`mx-4 mt-2 mb-1 flex items-center gap-2.5 px-4 py-2.5 rounded-squircle-xs backdrop-blur-sm ${
+          staleConfidence?.level === 'high' ? 'bg-amber-50/80 border border-amber-200/50' :
+          staleConfidence?.level === 'medium' ? 'bg-yellow-50/80 border border-yellow-200/50' :
+          'bg-slate-50/80 border border-slate-200/50'
+        }`}>
+          <svg className={`w-4 h-4 flex-shrink-0 ${
+            staleConfidence?.level === 'high' ? 'text-amber-500' :
+            staleConfidence?.level === 'medium' ? 'text-yellow-500' :
+            'text-slate-400'
+          }`} fill="none" stroke="currentColor" viewBox="0 0 24 24">
             <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 9v2m0 4h.01m-6.938 4h13.856c1.54 0 2.502-1.667 1.732-3L13.732 4c-.77-1.333-2.694-1.333-3.464 0L3.34 16c-.77 1.333.192 3 1.732 3z" />
           </svg>
-          <p className="text-[11px] font-medium text-amber-700 flex-1">
-            This deliverable may be out of sync with recent edits.
+          <p className={`text-[11px] font-medium flex-1 ${
+            staleConfidence?.level === 'high' ? 'text-amber-700' :
+            staleConfidence?.level === 'medium' ? 'text-yellow-700' :
+            'text-slate-500'
+          }`}>
+            {staleConfidence?.level === 'high'
+              ? 'This deliverable is likely out of sync — a core field was changed.'
+              : staleConfidence?.level === 'medium'
+              ? 'This deliverable may be slightly out of sync with recent edits.'
+              : 'A minor change was detected — this deliverable may not need updating.'}
           </p>
           {onSyncNow && (
             <button
               onClick={onSyncNow}
-              className="flex-shrink-0 text-[10px] font-bold text-amber-600 hover:text-amber-800 underline underline-offset-2 transition-colors"
+              className={`flex-shrink-0 text-[10px] font-bold underline underline-offset-2 transition-colors ${
+                staleConfidence?.level === 'high' ? 'text-amber-600 hover:text-amber-800' :
+                staleConfidence?.level === 'medium' ? 'text-yellow-600 hover:text-yellow-800' :
+                'text-slate-500 hover:text-slate-700'
+              }`}
             >
               Sync now →
             </button>

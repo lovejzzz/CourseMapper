@@ -5,7 +5,7 @@
  *
  * State shape:
  *   deliverables: {
- *     [featureId]: { status: 'idle'|'streaming'|'done'|'error', data: any, error: string|null, stale: bool, regeneratingIndex: number|null }
+ *     [featureId]: { status: 'idle'|'streaming'|'done'|'error', data: any, error: string|null, stale: bool, staleConfidence: object|null, regeneratingIndex: number|null }
  *   }
  */
 import React, { createContext, useReducer } from 'react';
@@ -28,8 +28,8 @@ export const actions = {
   markAllStale: () => ({
     type: 'MARK_ALL_STALE',
   }),
-  markFeatureStale: (featureId) => ({
-    type: 'MARK_FEATURE_STALE', featureId,
+  markFeatureStale: (featureId, staleConfidence = null) => ({
+    type: 'MARK_FEATURE_STALE', featureId, staleConfidence,
   }),
   setDeliverable: (featureId, status, data, error, stale) => ({
     type: 'SET_DELIVERABLE', featureId, status, data, error, stale,
@@ -48,7 +48,7 @@ function reducer(state, action) {
         ...state,
         deliverables: {
           ...state.deliverables,
-          [action.featureId]: { status: 'streaming', data: null, error: null, stale: false },
+          [action.featureId]: { status: 'streaming', data: null, error: null, stale: false, staleConfidence: null },
         },
       };
     case 'SET_DELIVERABLE_DONE':
@@ -56,7 +56,7 @@ function reducer(state, action) {
         ...state,
         deliverables: {
           ...state.deliverables,
-          [action.featureId]: { status: 'done', data: action.data, error: null, stale: false },
+          [action.featureId]: { status: 'done', data: action.data, error: null, stale: false, staleConfidence: null },
         },
       };
     case 'SET_DELIVERABLE_ERROR':
@@ -64,7 +64,7 @@ function reducer(state, action) {
         ...state,
         deliverables: {
           ...state.deliverables,
-          [action.featureId]: { status: 'error', data: null, error: action.error, stale: false },
+          [action.featureId]: { status: 'error', data: null, error: action.error, stale: false, staleConfidence: null },
         },
       };
     case 'RESET_DELIVERABLES':
@@ -74,7 +74,7 @@ function reducer(state, action) {
     case 'MARK_ALL_STALE': {
       const updated = {};
       for (const [k, v] of Object.entries(state.deliverables)) {
-        updated[k] = { ...v, stale: true };
+        updated[k] = { ...v, stale: true, staleConfidence: v.staleConfidence || { level: 'high', maxWeight: 1.0, dominantField: '_structural' } };
       }
       return { ...state, deliverables: updated };
     }
@@ -85,7 +85,11 @@ function reducer(state, action) {
         ...state,
         deliverables: {
           ...state.deliverables,
-          [action.featureId]: { ...existing, stale: true },
+          [action.featureId]: {
+            ...existing,
+            stale: true,
+            staleConfidence: action.staleConfidence || existing.staleConfidence || null,
+          },
         },
       };
     }
@@ -99,6 +103,7 @@ function reducer(state, action) {
             data: action.data,
             error: action.error,
             stale: action.stale,
+            staleConfidence: action.staleConfidence ?? null,
             regeneratingIndex: action.regeneratingIndex ?? null,
           },
         },
@@ -117,6 +122,7 @@ function reducer(state, action) {
             ...cur,
             status: 'streaming',   // show streaming indicator immediately
             stale: false,
+            staleConfidence: null,
             error: null,
             regeneratingIndex: action.lessonIndex,
             // data is intentionally NOT changed — preserves user edits

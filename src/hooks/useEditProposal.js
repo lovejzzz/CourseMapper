@@ -26,9 +26,13 @@ import { getArrayKey } from '../lib/syncDependencies';
  * Exposes:
  *   { proposals, proposeLesson, acceptProposal, dismissProposal, regenerateProposal }
  */
-export default function useEditProposal({ provider, modelId, apiKey, deliverableConfig, pedagogicalMode }) {
+export default function useEditProposal({ provider, modelId, apiKey, deliverableConfig, pedagogicalMode, columns }) {
   const [proposals, setProposals] = useState({});
   const { streamProvider, parsePartialJSON } = useStreamReader();
+
+  // Keep columns fresh via ref so proposeLesson always reads current value
+  const columnsRef = useRef(columns);
+  columnsRef.current = columns;
 
   // Ref to prevent multiple concurrent streams for the same lesson
   // Map<"featureId:lessonIndex", AbortController>
@@ -95,7 +99,7 @@ export default function useEditProposal({ provider, modelId, apiKey, deliverable
 
     // Build prompt with edit context injected as the highest-priority constraint
     const prompts = getDeliverablePrompt(
-      featureId, courseMap, [lessonIndex], config, mode, null, editContext
+      featureId, courseMap, [lessonIndex], config, mode, null, editContext, columnsRef.current, deliverableConfig
     );
 
     if (!prompts) {

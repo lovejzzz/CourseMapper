@@ -61,7 +61,7 @@ Click any text to edit inline. Use Revision Chat for AI-assisted changes. Export
 
 ### Deliverables
 
-- **Course Map** — Week-by-week structure with learning goals, objectives, assessments, activities, and resources in a customizable column layout
+- **Course Map** — Week-by-week structure with learning goals, objectives, assessments, activities, and resources in a customizable column layout. Click columns to enable/disable — disabled columns are excluded from AI generation and all exports. Identical values across sections auto-merge for cleaner display
 - **Syllabus** — Complete professional syllabus with policies, grading, schedule, and learning outcomes
 - **Lesson Plans** — Session-by-session plans with timing, warm-ups, activities, UDL notes, and instructor notes
 - **Slide Decks** — University-quality presentation slides with 5 color themes, speaker notes, and inline editing
@@ -96,8 +96,16 @@ Five pedagogical frameworks that shape all generated content:
 - **Seminar** — Discussion-heavy Socratic method with reading assignments
 - **Competency-Based** — Mastery-based progression with competency statements and thresholds
 
+### Custom Deliverables
+
+- **Create your own** — Build custom deliverable types beyond the built-in 9 with custom system prompts, user prompt templates, and default config
+- **Workspace creation** — Click **+ Add → Create Custom...** in the tab bar to build a new custom deliverable without leaving the workspace
+- **AI auto-config** — If you don't set tone, style, or output length, the AI automatically infers the best settings from your course content and sibling deliverables' configuration
+- **Persistent** — Custom deliverables are saved in local storage and appear in the + Add dropdown for re-use
+
 ### Per-Deliverable Configuration
 
+- **Column enable/disable** — Click column pills to toggle on/off; disabled columns are excluded from generation and all exports
 - **Session length** — 30 min to 3 hours for lesson plans
 - **Slide count** — 8–20 slides per lesson
 - **Question types** — Toggle MC, short answer, essay for quiz bank
@@ -199,7 +207,7 @@ src/
   main.jsx                  # Entry point + hash router (#/faq, #/changelog, etc.)
   screens/
     Landing.jsx             # Landing page: AI model selection, file upload, session restore
-    FeatureSelect.jsx       # Deliverable picker (step 2)
+    FeatureSelect.jsx       # Deliverable picker (step 2) + CustomDeliverableBuilder
   model/
     courseStore.jsx         # useReducer + Context store for deliverables state
   components/
@@ -230,6 +238,7 @@ src/
     importCourseMap.js      # Import course map from .xlsx/.csv
     prompts.js              # Course map generation prompts
     streamProvider.js       # AI streaming across providers
+    customDeliverableLibrary.js # localStorage CRUD for custom deliverable definitions
     syncDependencies.js     # Deliverable dependency graph for cascade editing
   pages/
     FaqChatbot.jsx          # AI-powered help chatbot + HelpDrawer (Gemini-powered)

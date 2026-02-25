@@ -1,4 +1,35 @@
 import { useCallback } from 'react';
+import { getArrayKey } from '../lib/syncDependencies';
+
+/**
+ * ── Change #4: Optimistic title string-replace ──
+ * When a user renames a lesson title, instantly patch all "done" deliverables
+ * by replacing exact matches of oldTitle → newTitle at the given lesson index.
+ * Only replaces fields named "lessonTitle" or "title" (the two conventions used).
+ */
+function optimisticTitleReplace(data, featureId, lessonIdx, oldTitle, newTitle) {
+  if (!data || typeof data !== 'object') return null;
+  const arrKey = getArrayKey(featureId, data);
+  if (!arrKey) return null;
+  const arr = data[arrKey];
+  if (!Array.isArray(arr) || lessonIdx >= arr.length) return null;
+
+  const item = arr[lessonIdx];
+  if (!item) return null;
+
+  // Only replace if an exact match exists
+  const hasLessonTitle = item.lessonTitle === oldTitle;
+  const hasTitle = item.title === oldTitle;
+  if (!hasLessonTitle && !hasTitle) return null;
+
+  const patched = { ...item };
+  if (hasLessonTitle) patched.lessonTitle = newTitle;
+  if (hasTitle) patched.title = newTitle;
+
+  const patchedArr = [...arr];
+  patchedArr[lessonIdx] = patched;
+  return { ...data, [arrKey]: patchedArr };
+}
 
 /**
  * Encapsulates all course map editing operations:
@@ -7,8 +38,10 @@ import { useCallback } from 'react';
  * @param {function} onEdit - Optional callback(lessonIdx: number|null, key: string)
  *   Called after every edit so the cascade sync engine can accumulate changes.
  *   lessonIdx=null for structural changes (add/delete/move lesson, add/delete section).
+ * @param {object}   deliverables - Current deliverable state (for optimistic title preview)
+ * @param {function} optimisticUpdate - Callback(featureId, patchedData) for instant title replacement
  */
-export default function useCourseMapEditor({ courseMap, setCourseMap, columns, setDownloadedFile, setUserEdits, pushVersion, onEdit }) {
+export default function useCourseMapEditor({ courseMap, setCourseMap, columns, setDownloadedFile, setUserEdits, pushVersion, onEdit, deliverables, optimisticUpdate }) {
 
   const handleCellEdit = useCallback((lessonIdx, sectionIdx, key, newValue) => {
     if (!courseMap) return;
@@ -39,8 +72,20 @@ export default function useCourseMapEditor({ courseMap, setCourseMap, columns, s
       oldValue: oldTitle, newValue: newTitle, lessonTitle: newTitle,
     }]);
     pushVersion(updated, `Renamed Lesson ${lessonIdx + 1}`);
+
+    // ── Change #4: Optimistic title preview ──
+    // Instantly patch all "done" deliverables with the new title so tabs
+    // reflect the rename immediately (before AI sync completes).
+    if (deliverables && optimisticUpdate) {
+      for (const [featureId, entry] of Object.entries(deliverables)) {
+        if (entry?.status !== 'done' || !entry.data) continue;
+        const patched = optimisticTitleReplace(entry.data, featureId, lessonIdx, oldTitle, newTitle);
+        if (patched) optimisticUpdate(featureId, patched);
+      }
+    }
+
     onEdit?.(lessonIdx, 'title');
-  }, [courseMap, setCourseMap, setDownloadedFile, setUserEdits, pushVersion, onEdit]);
+  }, [courseMap, setCourseMap, setDownloadedFile, setUserEdits, pushVersion, onEdit, deliverables, optimisticUpdate]);
 
   const handleCheckToggle = useCallback((lessonIdx, sectionIdx) => {
     if (!courseMap) return;

@@ -136,7 +136,7 @@ function buildCoherenceSummary(deliverablesSoFar) {
  * Deliverables state lives in the course store; this hook owns only transient
  * streaming/progress state.
  */
-export default function useDeliverables({ provider, modelId, apiKey, deliverableConfig, lockedLessons, pedagogicalMode, examChanges }) {
+export default function useDeliverables({ provider, modelId, apiKey, deliverableConfig, lockedLessons, pedagogicalMode, examChanges, columns }) {
   // ── Read deliverables from the store ──
   const storeState = useContext(CourseStateContext);
   const dispatch   = useContext(CourseDispatchContext);
@@ -155,8 +155,11 @@ export default function useDeliverables({ provider, modelId, apiKey, deliverable
   // Ref-tracked timers so we can cancel them on unmount (avoids setState-on-unmounted-component)
   // Map<"featureId:lessonIdx", timeoutId>
   const freshTimersRef = useRef(new Map());
-  const abortRef    = useRef(null);
+  // ── Change #1: Per-feature abort controllers (replaces single abortRef) ──
+  const abortMapRef = useRef(new Map()); // Map<featureId, AbortController>
   const startedRef  = useRef(false);
+  // ── Change #6: Track the active sync generation ID so stale results can be discarded ──
+  const activeSyncGenRef = useRef(0);
 
   const deliverableConfigRef = useRef(deliverableConfig);
   deliverableConfigRef.current = deliverableConfig;
@@ -164,6 +167,8 @@ export default function useDeliverables({ provider, modelId, apiKey, deliverable
   pedagogicalModeRef.current = pedagogicalMode || 'lecture';
   const examChangesRef = useRef(examChanges || null);
   examChangesRef.current = examChanges || null;
+  const columnsRef = useRef(columns || null);
+  columnsRef.current = columns || null;
   // Normalize lockedLessons to a Set so .has() always works
   const lockedLessonsRef = useRef(null);
   lockedLessonsRef.current = lockedLessons
@@ -176,11 +181,13 @@ export default function useDeliverables({ provider, modelId, apiKey, deliverable
     setGenerationLog(prev => [...prev, { message, type, at: Date.now() }]);
   }, []);
 
-  const generateAll = useCallback(async (courseMap, features, scopeIndices = null) => {
+  const generateAll = useCallback(async (courseMap, features, scopeIndices = null, syncGenId = null) => {
     const toGenerate = features.filter(f => f && f !== 'courseMap');
     if (toGenerate.length === 0 || !courseMap) return;
 
     startedRef.current = true;
+    // ── Change #6: Track sync generation ID ──
+    if (syncGenId !== null) activeSyncGenRef.current = syncGenId;
     setIsGenerating(true);
     setProgress({ done: 0, total: toGenerate.length });
     setGenerationLog([]);
@@ -207,7 +214,7 @@ export default function useDeliverables({ provider, modelId, apiKey, deliverable
       appendLog(`Generating ${label} (${i + 1}/${toGenerate.length}) — asking AI for ${scopeDesc}...`, 'progress');
 
       const config = deliverableConfigRef.current?.[featureId] || {};
-      const prompts = getDeliverablePrompt(featureId, courseMap, scopeIndices, config, pedagogicalModeRef.current, examChangesRef.current);
+      const prompts = getDeliverablePrompt(featureId, courseMap, scopeIndices, config, pedagogicalModeRef.current, examChangesRef.current, null, columnsRef.current, deliverableConfigRef.current);
       if (!prompts) {
         dispatch(actions.setDeliverableError(featureId, 'No prompt template'));
         setProgress(prev => ({ ...prev, done: prev.done + 1 }));
@@ -225,7 +232,7 @@ export default function useDeliverables({ provider, modelId, apiKey, deliverable
 
       try {
         const controller = new AbortController();
-        abortRef.current = controller;
+        abortMapRef.current.set(featureId, controller);
 
         let fullText = '';
         let lastParseTime = 0;
@@ -281,6 +288,11 @@ export default function useDeliverables({ provider, modelId, apiKey, deliverable
           setDelivTimings(prev => ({ ...prev, [featureId]: { startedAt: delivStartTime, endedAt: delivEndTime, durationMs: delivDuration } }));
           const durStr = delivDuration < 60000 ? `${(delivDuration / 1000).toFixed(1)}s` : `${(delivDuration / 60000).toFixed(1)}m`;
           const countDesc = itemCount > 0 ? ` — ${itemCount} item${itemCount !== 1 ? 's' : ''} generated` : '';
+          // ── Change #6: Discard result if a newer sync cycle has started ──
+          if (syncGenId !== null && syncGenId !== activeSyncGenRef.current) {
+            appendLog(`⚠ ${label}: Result discarded (superseded by newer sync cycle)`, 'warn');
+            continue;
+          }
           appendLog(`✓ ${label} complete${countDesc} (${durStr})`, 'done');
           dispatch(actions.setDeliverableDone(featureId, finalData));
           completedDeliverables[featureId] = { data: finalData };
@@ -315,8 +327,15 @@ export default function useDeliverables({ provider, modelId, apiKey, deliverable
     notifyDone('All deliverables are ready!');
   }, [provider, modelId, apiKey, streamProvider, parsePartialJSON, appendLog, dispatch]);
 
-  const stopGenerating = useCallback(() => {
-    abortRef.current?.abort();
+  // ── Change #1: Stop by featureId or stop all ──
+  const stopGenerating = useCallback((featureId = null) => {
+    if (featureId) {
+      abortMapRef.current.get(featureId)?.abort();
+      abortMapRef.current.delete(featureId);
+    } else {
+      for (const [, ctrl] of abortMapRef.current) ctrl.abort();
+      abortMapRef.current.clear();
+    }
     setIsGenerating(false);
     setCurrentFeature(null);
   }, []);
@@ -344,9 +363,24 @@ export default function useDeliverables({ provider, modelId, apiKey, deliverable
     dispatch(actions.markAllStale());
   }, [dispatch]);
 
-  const markFeatureStale = useCallback((featureId) => {
-    dispatch(actions.markFeatureStale(featureId));
+  const markFeatureStale = useCallback((featureId, staleConfidence = null) => {
+    dispatch(actions.markFeatureStale(featureId, staleConfidence));
   }, [dispatch]);
+
+  // ── Change #4: Optimistic update — instantly patch deliverable data (e.g. title rename) ──
+  const optimisticUpdate = useCallback((featureId, patchedData) => {
+    const existing = deliverables[featureId];
+    if (!existing) return;
+    dispatch({
+      type: 'SET_DELIVERABLE', featureId,
+      status: existing.status,
+      data: patchedData,
+      error: existing.error,
+      stale: existing.stale,
+      staleConfidence: existing.staleConfidence ?? null,
+      regeneratingIndex: existing.regeneratingIndex ?? null,
+    });
+  }, [deliverables, dispatch]);
 
   const resyncAll = useCallback(async (courseMap, features, scopeIndices = null) => {
     const staleIds = features.filter(f =>
@@ -356,13 +390,16 @@ export default function useDeliverables({ provider, modelId, apiKey, deliverable
     await generateAll(courseMap, staleIds, scopeIndices);
   }, [deliverables, generateAll]);
 
-  const regenerateLesson = useCallback(async (featureId, courseMap, lessonIndex) => {
+  const regenerateLesson = useCallback(async (featureId, courseMap, lessonIndex, syncGenId = null) => {
     if (!courseMap) return;
     if (lockedLessonsRef.current?.has(lessonIndex)) {
       appendLog(`⚠ Lesson ${lessonIndex + 1} is locked — skipping regeneration`, 'warn');
       return;
     }
     const label = getFeatureLabel(featureId);
+
+    // ── Change #6: Track sync generation ID ──
+    if (syncGenId !== null) activeSyncGenRef.current = syncGenId;
 
     // Signal that this feature is actively regenerating so the tab badge animates
     setCurrentFeature(featureId);
@@ -383,7 +420,7 @@ export default function useDeliverables({ provider, modelId, apiKey, deliverable
     appendLog(`Regenerating Lesson ${lessonIndex + 1} in ${label}...`, 'progress');
 
     const regenConfig = deliverableConfigRef.current?.[featureId] || {};
-    const prompts = getDeliverablePrompt(featureId, courseMap, [lessonIndex], regenConfig, pedagogicalModeRef.current, examChangesRef.current);
+    const prompts = getDeliverablePrompt(featureId, courseMap, [lessonIndex], regenConfig, pedagogicalModeRef.current, examChangesRef.current, null, columnsRef.current, deliverableConfigRef.current);
     if (!prompts) {
       // Restore to done status (no data change) on prompt-build failure
       if (existingDataSnapshot) {
@@ -397,7 +434,7 @@ export default function useDeliverables({ provider, modelId, apiKey, deliverable
 
     try {
       const controller = new AbortController();
-      abortRef.current = controller;
+      abortMapRef.current.set(featureId, controller);
 
       // ── Live streaming ─────────────────────────────────────────────────────
       // Mirror the throttled partial-parse + dispatch loop from generateAll so
@@ -441,6 +478,14 @@ export default function useDeliverables({ provider, modelId, apiKey, deliverable
       // ── Finalize ───────────────────────────────────────────────────────────
       const parsed = parsePartialJSON(fullText);
       if (parsed) {
+        // ── Change #6: Discard result if a newer sync cycle has started ──
+        if (syncGenId !== null && syncGenId !== activeSyncGenRef.current) {
+          appendLog(`⚠ ${label}: Lesson ${lessonIndex + 1} result discarded (superseded by newer sync)`, 'warn');
+          if (existingDataSnapshot) {
+            dispatch({ type: 'SET_DELIVERABLE', featureId, status: 'done', data: existingDataSnapshot, error: null, stale: false, regeneratingIndex: null });
+          }
+          return;
+        }
         // Post-process: fix lesson/week numbering for single-lesson regeneration
         const finalParsed = patchScopeNumbering(parsed, featureId, [lessonIndex], courseMap);
         // Merge into the snapshot captured at start (not re-reading stale state)
@@ -499,9 +544,13 @@ export default function useDeliverables({ provider, modelId, apiKey, deliverable
         dispatch({ type: 'SET_DELIVERABLE', featureId, status: 'done', data: existingDataSnapshot, error: null, stale: false, regeneratingIndex: null });
       }
     } finally {
-      // Always clear the active-feature signal when done
-      setCurrentFeature(null);
-      setIsGenerating(false);
+      // ── Change #1: Clean up per-feature abort controller ──
+      abortMapRef.current.delete(featureId);
+      // Only clear generating state if no other features are still in-flight
+      if (abortMapRef.current.size === 0) {
+        setCurrentFeature(null);
+        setIsGenerating(false);
+      }
     }
   }, [provider, modelId, apiKey, streamProvider, parsePartialJSON, appendLog, dispatch, deliverables]);
 
@@ -570,6 +619,7 @@ export default function useDeliverables({ provider, modelId, apiKey, deliverable
     regenerateLesson,
     surgicalResync,
     markFeatureStale,
+    optimisticUpdate,
     staleCount,
     started: startedRef.current,
     generationLog,

@@ -25,14 +25,18 @@ function toStr(val) {
  * Export course map as CSV.
  */
 export async function generateCsv(courseMap, customColumns) {
-  const colKeys = customColumns && customColumns.length > 0
-    ? customColumns.map(c => c.key)
+  const enabledColumns = customColumns && customColumns.length > 0
+    ? customColumns.filter(c => c.enabled !== false)
+    : null;
+
+  const colKeys = enabledColumns
+    ? enabledColumns.map(c => c.key)
     : ['learningGoals', 'topicSection', 'learningObjectives', 'weeklyAssessments',
        'asyncActivities', 'syncActivities', 'technologyNeeded', 'presentationFormat',
        'supportingResources', 'evaluateDesign'];
 
-  const colHeaders = customColumns && customColumns.length > 0
-    ? ['Week/Module', ...customColumns.map(c => c.label)]
+  const colHeaders = enabledColumns
+    ? ['Week/Module', ...enabledColumns.map(c => c.label)]
     : ['Week/Module', 'Learning Goals', 'Topic/Section', 'Learning Objectives',
        'Assessments', 'Async Activities', 'Sync Activities', 'Technology',
        'Format', 'Resources', 'Evaluate'];
@@ -73,14 +77,18 @@ export async function generateCsv(courseMap, customColumns) {
  * Export course map as PDF.
  */
 export async function generatePdf(courseMap, customColumns) {
-  const colKeys = customColumns && customColumns.length > 0
-    ? customColumns.map(c => c.key)
+  const enabledColumns = customColumns && customColumns.length > 0
+    ? customColumns.filter(c => c.enabled !== false)
+    : null;
+
+  const colKeys = enabledColumns
+    ? enabledColumns.map(c => c.key)
     : ['learningGoals', 'topicSection', 'learningObjectives', 'weeklyAssessments',
        'asyncActivities', 'syncActivities', 'technologyNeeded', 'presentationFormat',
        'supportingResources', 'evaluateDesign'];
 
-  const colHeaders = customColumns && customColumns.length > 0
-    ? ['Week/Module', ...customColumns.map(c => c.label)]
+  const colHeaders = enabledColumns
+    ? ['Week/Module', ...enabledColumns.map(c => c.label)]
     : ['Week/Module', 'Learning Goals', 'Topic/Section', 'Learning Objectives',
        'Assessments', 'Async Activities', 'Sync Activities', 'Technology',
        'Format', 'Resources', 'Evaluate'];

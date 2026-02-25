@@ -118,6 +118,55 @@ const FIELD_DEPENDENCY_MAP = {
   courseDescription: ['syllabus'],
 };
 
+// ── Change #3: Staleness confidence — field impact weights ────────────────────
+//
+// How "impactful" each course map field is to downstream deliverables.
+// Higher weight = higher staleness confidence (more likely content is truly out of date).
+// Scale: 1.0 = maximum impact, 0.2 = minimal cosmetic impact.
+export const FIELD_WEIGHT = {
+  title: 0.5,
+  learningObjectives: 1.0,
+  weeklyAssessments: 0.9,
+  topicSection: 0.8,
+  asyncActivities: 0.6,
+  syncActivities: 0.6,
+  supportingResources: 0.4,
+  presentationFormat: 0.4,
+  learningGoals: 0.7,
+  technologyNeeded: 0.3,
+  evaluateDesign: 0.5,
+  _structural: 1.0,
+  sections: 0.8,
+  courseName: 0.3,
+  semester: 0.2,
+  courseDescription: 0.5,
+  _deliverableEdit: 0.7,
+};
+
+/**
+ * computeStaleConfidence — given an array of edit keys, compute the staleness
+ * confidence level for a downstream deliverable.
+ *
+ * @param {string[]} editKeys — field keys that changed (e.g. ['learningObjectives', 'title'])
+ * @returns {{ level: 'high'|'medium'|'low', maxWeight: number, dominantField: string|null }}
+ */
+export function computeStaleConfidence(editKeys) {
+  if (!editKeys || editKeys.length === 0) return { level: 'low', maxWeight: 0, dominantField: null };
+
+  let maxWeight = 0;
+  let dominantField = editKeys[0];
+  for (const key of editKeys) {
+    const w = FIELD_WEIGHT[key] ?? 0.5; // unknown fields default to medium
+    if (w > maxWeight) {
+      maxWeight = w;
+      dominantField = key;
+    }
+  }
+
+  const level = maxWeight >= 0.8 ? 'high' : maxWeight >= 0.5 ? 'medium' : 'low';
+  return { level, maxWeight, dominantField };
+}
+
 /**
  * Returns which featureIds need re-sync when the given course map field changes.
  *

@@ -79,12 +79,15 @@ export async function buildDocxBlob(courseMap, customColumns) {
 
   const THIN_BORDER = { style: BorderStyle.SINGLE, size: 4, color: 'D0D0D0' };
 
-  const colKeys = customColumns?.length > 0
-    ? customColumns.map(c => c.key)
+  const enabledColumns = customColumns?.length > 0
+    ? customColumns.filter(c => c.enabled !== false)
+    : null;
+  const colKeys = enabledColumns
+    ? enabledColumns.map(c => c.key)
     : Object.keys(DEFAULT_LABELS);
   const colLabels = {};
-  if (customColumns?.length > 0) {
-    for (const col of customColumns)
+  if (enabledColumns) {
+    for (const col of enabledColumns)
       colLabels[col.key] = col.label || DEFAULT_LABELS[col.key] || col.key;
   } else {
     Object.assign(colLabels, DEFAULT_LABELS);

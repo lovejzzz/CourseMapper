@@ -31,6 +31,7 @@ function buildColumns(customColumns) {
 
   if (customColumns && customColumns.length > 0) {
     for (const col of customColumns) {
+      if (col.enabled === false) continue; // skip disabled columns
       cols.push({
         key: col.key,
         header: DEFAULT_HEADERS[col.key] || col.label,

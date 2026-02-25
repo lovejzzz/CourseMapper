@@ -17,6 +17,9 @@ export default function ColumnEditor({ columns, setColumns }) {
   const [editingIdx, setEditingIdx] = useState(null);
   const [editValue, setEditValue] = useState('');
 
+  // ── Click / double-click disambiguation ──
+  const clickTimer = useRef(null);
+
   // ── Pointer-based drag state ──
   const [dragIdx, setDragIdx] = useState(null);
   const [ghostPos, setGhostPos] = useState({ x: 0, y: 0 });
@@ -30,6 +33,13 @@ export default function ColumnEditor({ columns, setColumns }) {
   useEffect(() => {
     if (dragIdx === null) setLiveColumns(columns);
   }, [columns, dragIdx]);
+
+  function toggleColumn(idx) {
+    if (dragIdx !== null) return;
+    setColumns((prev) =>
+      prev.map((c, i) => i === idx ? { ...c, enabled: c.enabled === false ? true : false } : c)
+    );
+  }
 
   function startEdit(idx) {
     if (dragIdx !== null) return;
@@ -169,7 +179,7 @@ export default function ColumnEditor({ columns, setColumns }) {
         Course Map Columns
       </h2>
       <p className="text-xs text-slate-400 mb-5 ml-[42px]">
-        Drag to reorder, click to edit, or add/remove columns
+        Click to enable/disable, drag to reorder, double-click to rename
       </p>
 
       <div ref={containerRef} className="flex flex-wrap gap-2">
@@ -204,10 +214,22 @@ export default function ColumnEditor({ columns, setColumns }) {
               />
             ) : (
               <span
-                onClick={() => startEdit(idx)}
-                className={`tactile inline-flex items-center gap-1.5 px-3.5 py-2 rounded-squircle-xs text-xs font-medium bg-indigo-100/60 text-indigo-700 border border-indigo-200/40 cursor-grab hover:bg-indigo-100/80 hover:border-indigo-300/50 transition-all duration-200 active:cursor-grabbing select-none`}
+                onClick={() => {
+                  clearTimeout(clickTimer.current);
+                  clickTimer.current = setTimeout(() => toggleColumn(idx), 200);
+                }}
+                onDoubleClick={(e) => {
+                  e.stopPropagation();
+                  clearTimeout(clickTimer.current);
+                  startEdit(idx);
+                }}
+                className={`tactile inline-flex items-center gap-1.5 px-3.5 py-2 rounded-squircle-xs text-xs font-medium border cursor-grab active:cursor-grabbing select-none transition-all duration-200 ${
+                  col.enabled === false
+                    ? 'bg-slate-100/40 text-slate-400 border-slate-200/30 line-through decoration-slate-300'
+                    : 'bg-indigo-100/60 text-indigo-700 border-indigo-200/40 hover:bg-indigo-100/80 hover:border-indigo-300/50'
+                }`}
               >
-                <svg className="w-3 h-3 text-indigo-400 flex-shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                <svg className={`w-3 h-3 flex-shrink-0 ${col.enabled === false ? 'text-slate-300' : 'text-indigo-400'}`} fill="none" stroke="currentColor" viewBox="0 0 24 24">
                   <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M4 8h16M4 16h16" />
                 </svg>
                 {col.label}

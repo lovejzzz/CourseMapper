@@ -162,7 +162,7 @@ export default function ProgressPanel({
   deliverables, delivProgress, currentDelivFeature, isDelivGenerating,
   delivGenerationLog, delivTimings,
   // Item 6: cascade sync log
-  syncLog, isSyncing, pendingSyncCount,
+  syncLog, isSyncing, pendingSyncCount, syncingFeatures,
   // Version history (moved from ExportSidePanel)
   versionHistory, activeVersion, onJumpVersion,
   // Named snapshots (1.4)
@@ -401,7 +401,8 @@ export default function ProgressPanel({
                   <path className="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4z" />
                 </svg>
                 <span className="text-[10px] font-semibold text-amber-600">
-                  Auto-syncing {pendingSyncCount > 1 ? `${pendingSyncCount} deliverables` : 'deliverable'}…
+                  Auto-syncing {pendingSyncCount > 1 ? `${pendingSyncCount} deliverables` : 'deliverable'}
+                  {syncingFeatures?.size > 1 ? ` (${syncingFeatures.size} in parallel)` : ''}…
                 </span>
                 <span className="text-[9px] text-amber-500 ml-auto">edit detected</span>
               </div>

@@ -1,5 +1,21 @@
 import { useState, useRef, useCallback, useEffect } from 'react';
-import { buildSyncPlan, DELIVERABLE_OUTBOUND_MAP } from '../lib/syncDependencies';
+
+// ── Change #1: Inline concurrency limiter (no npm dep) ──
+function pLimit(concurrency) {
+  let active = 0;
+  const queue = [];
+  function next() {
+    if (active >= concurrency || queue.length === 0) return;
+    active++;
+    const { fn, resolve, reject } = queue.shift();
+    fn().then(resolve, reject).finally(() => { active--; next(); });
+  }
+  return (fn) => new Promise((resolve, reject) => {
+    queue.push({ fn, resolve, reject });
+    next();
+  });
+}
+import { buildSyncPlan, DELIVERABLE_OUTBOUND_MAP, computeStaleConfidence } from '../lib/syncDependencies';
 
 /**
  * useSmartSync — Cascade Sync Engine (V1.7.0)
@@ -35,11 +51,17 @@ export default function useSmartSync({
   const [syncLog, setSyncLog] = useState([]);
   const [isSyncing, setIsSyncing] = useState(false);
   const [pendingSyncCount, setPendingSyncCount] = useState(0);
+  // ── Change #1: Track which features are actively syncing in parallel ──
+  const [syncingFeatures, setSyncingFeatures] = useState(new Set());
 
   // Accumulate edits between debounce fires
   const pendingEditsRef = useRef([]);
   const debounceTimerRef = useRef(null);
   const isSyncingRef = useRef(false);
+  // ── Change #6: Generation ID for race condition guard ──
+  // Each runSync cycle gets a unique ID. Passed through to regenerateLesson so
+  // stale results from superseded sync cycles can be discarded before writing state.
+  const syncGenIdRef = useRef(0);
 
   // Keep fresh references so the debounce callback always has current values
   const delivRef = useRef(deliv);
@@ -128,10 +150,12 @@ export default function useSmartSync({
         }
 
         // 2. Mark outbound tabs stale (no auto-regen)
+        // ── Change #3: Compute staleness confidence from the edit type ──
+        const delivConfidence = computeStaleConfidence(['_deliverableEdit']);
         const outbound = DELIVERABLE_OUTBOUND_MAP[sourceFeatureId] ?? [];
         for (const fId of outbound) {
           if (doneFeatureIds.has(fId)) {
-            currentDeliv.markFeatureStale(fId);
+            currentDeliv.markFeatureStale(fId, delivConfidence);
             appendSyncLog('pending', fId,
               `Lesson ${edit.lessonIdx != null ? edit.lessonIdx + 1 : '?'} — marked out of sync`
             );
@@ -165,15 +189,25 @@ export default function useSmartSync({
     const uniqueFields = [...new Set(courseMapEdits.map(e => FIELD_LABELS[e.key] || e.key))];
     const changedFieldsSummary = uniqueFields.slice(0, 3).join(', ') + (uniqueFields.length > 3 ? '…' : '');
 
+    // ── Change #6: Increment generation ID for this sync cycle ──
+    syncGenIdRef.current += 1;
+    const currentGenId = syncGenIdRef.current;
+
     isSyncingRef.current = true;
     setIsSyncing(true);
     setPendingSyncCount(plan.length);
 
     const completedFeatureIds = [];
 
-    for (let i = 0; i < plan.length; i++) {
-      const { featureId, lessonIndices } = plan[i];
-      setPendingSyncCount(plan.length - i);
+    // ── Change #1: Parallel sync across features (sequential within each) ──
+    // Max 3 concurrent API calls to avoid rate-limiting.
+    // Lessons within a single feature are still sequential (snapshot merge safety).
+    const limit = pLimit(3);
+
+    const tasks = plan.map((entry) => limit(async () => {
+      const { featureId, lessonIndices } = entry;
+
+      setSyncingFeatures(prev => new Set([...prev, featureId]));
 
       appendSyncLog('start', featureId, lessonIndices
         ? `Lesson${lessonIndices.length > 1 ? 's' : ''} ${lessonIndices.map(n => n + 1).join(', ')} — ${changedFieldsSummary} changed`
@@ -183,11 +217,11 @@ export default function useSmartSync({
       try {
         if (lessonIndices === null) {
           // Structural change — full regen for this feature
-          await delivRef.current.generateAll(currentCourseMap, [featureId], null);
+          await delivRef.current.generateAll(currentCourseMap, [featureId], null, currentGenId);
         } else {
-          // Surgical: regenerate each affected lesson index sequentially
+          // Surgical: regenerate each affected lesson index sequentially within this feature
           for (const lessonIdx of lessonIndices) {
-            await delivRef.current.regenerateLesson(featureId, currentCourseMap, lessonIdx);
+            await delivRef.current.regenerateLesson(featureId, currentCourseMap, lessonIdx, currentGenId);
           }
         }
         appendSyncLog('done', featureId, lessonIndices
@@ -197,8 +231,16 @@ export default function useSmartSync({
         completedFeatureIds.push(featureId);
       } catch (err) {
         appendSyncLog('error', featureId, err.message || 'Sync failed');
+      } finally {
+        setSyncingFeatures(prev => {
+          const next = new Set(prev);
+          next.delete(featureId);
+          return next;
+        });
       }
-    }
+    }));
+
+    await Promise.all(tasks);
 
     isSyncingRef.current = false;
     setIsSyncing(false);
@@ -209,7 +251,8 @@ export default function useSmartSync({
     }
 
     // If new edits arrived while we were syncing, fire another round
-    if (pendingEditsRef.current.length > 0) {
+    // (only if this is still the latest sync cycle — a newer cycle would have its own re-check)
+    if (pendingEditsRef.current.length > 0 && syncGenIdRef.current === currentGenId) {
       debounceTimerRef.current = setTimeout(runSync, 2000);
     }
   }, [appendSyncLog, courseMapRef]);
@@ -254,5 +297,5 @@ export default function useSmartSync({
     };
   }, []);
 
-  return { syncLog, isSyncing, pendingSyncCount, notifyEdit };
+  return { syncLog, isSyncing, pendingSyncCount, notifyEdit, syncingFeatures };
 }
