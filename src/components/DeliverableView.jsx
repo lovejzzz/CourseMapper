@@ -908,7 +908,7 @@ function RubricsView({ data, isStreaming, onEdit, regeneratingIndex, onRegenerat
                 <SaveToBankButton
                   onClick={() => onSaveToBank({
                     type: 'rubric',
-                    text: (rubric.criteria || []).map(c => `${c.criterion || c.name}: ${c.excellent || ''}`).join('\n'),
+                    text: (rubric.criteria || []).map(c => `${c.criterion || c.name}: ${c.excellent || c.exemplary || ''}`).join('\n'),
                     bloomsLevel: rubric.bloomsLevel || '',
                   })}
                 />
@@ -964,7 +964,7 @@ function RubricsView({ data, isStreaming, onEdit, regeneratingIndex, onRegenerat
                         <td className="px-2 py-2 text-center font-semibold text-emerald-600 align-top">
                           {c.points ?? ''}
                         </td>
-                        <td className="px-3 py-2 text-slate-600 align-top leading-relaxed"><E value={c.excellent} path={['rubrics', i, 'criteria', j, 'excellent']} onEdit={onEdit} multiline /></td>
+                        <td className="px-3 py-2 text-slate-600 align-top leading-relaxed"><E value={c.excellent || c.exemplary} path={['rubrics', i, 'criteria', j, c.excellent ? 'excellent' : 'exemplary']} onEdit={onEdit} multiline /></td>
                         <td className="px-3 py-2 text-slate-600 align-top leading-relaxed"><E value={c.proficient} path={['rubrics', i, 'criteria', j, 'proficient']} onEdit={onEdit} multiline /></td>
                         <td className="px-3 py-2 text-slate-600 align-top leading-relaxed"><E value={c.developing} path={['rubrics', i, 'criteria', j, 'developing']} onEdit={onEdit} multiline /></td>
                         <td className="px-3 py-2 text-slate-600 align-top leading-relaxed"><E value={c.beginning} path={['rubrics', i, 'criteria', j, 'beginning']} onEdit={onEdit} multiline /></td>

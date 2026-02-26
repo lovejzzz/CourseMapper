@@ -22,6 +22,7 @@ const FORMAT_SUPPORT = {
   discussions:  { xlsx: false, csv: true,  pdf: true,  docx: true,  gdocs: true,  gsheets: true,  pptx: false, slidepdf: false },
   quizBank:     { xlsx: false, csv: true,  pdf: true,  docx: true,  gdocs: true,  gsheets: true,  pptx: false, slidepdf: false },
   studyGuides:  { xlsx: false, csv: true,  pdf: true,  docx: true,  gdocs: true,  gsheets: true,  pptx: false, slidepdf: false },
+  courseFaq:    { xlsx: false, csv: true,  pdf: true,  docx: true,  gdocs: true,  gsheets: true,  pptx: false, slidepdf: false },
 };
 
 // Formats for non-slideDecks current tab

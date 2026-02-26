@@ -94,7 +94,7 @@ function deliverableToCsvRows(featureId, data) {
           rows.push([
             r.title || '', String(r.totalPoints || ''), r.assessmentType || '',
             c.criterion || c.name || '', String(c.weight || ''),
-            c.excellent || '', c.proficient || '', c.developing || '', c.beginning || '',
+            c.excellent || c.exemplary || '', c.proficient || '', c.developing || '', c.beginning || '',
           ]);
         }
       }
@@ -694,7 +694,7 @@ function _buildDocxContentShared(featureId, data, children, docx) {
         const criteria = r.criteria || [];
         if (criteria.length > 0) {
           children.push(makeTableFn(COL_DXA, ['Criterion', 'Weight', 'Excellent', 'Proficient', 'Developing', 'Beginning'],
-            criteria.map(c => [c.criterion || c.name || '', String(c.weight || ''), c.excellent || '', c.proficient || '', c.developing || '', c.beginning || ''])));
+            criteria.map(c => [c.criterion || c.name || '', String(c.weight || ''), c.excellent || c.exemplary || '', c.proficient || '', c.developing || '', c.beginning || ''])));
         }
         children.push(new Paragraph({ spacing: { before: 200, after: 100 }, children: [] }));
       }
@@ -796,7 +796,12 @@ function _buildDocxContentShared(featureId, data, children, docx) {
         }
         if (a.instructions?.length) {
           children.push(makeSubHeading('Instructions'));
-          a.instructions.forEach((inst, j) => children.push(makeNumbered(j + 1, typeof inst === 'string' ? inst : inst.step || '')));
+          a.instructions.forEach((inst, j) => {
+            const raw = typeof inst === 'string' ? inst : inst.step || '';
+            // Strip leading "1. " prefix that AI sometimes includes (prevents "1. 1." double-numbering)
+            const stripped = raw.replace(/^\d+\.\s*/, '');
+            children.push(makeNumbered(j + 1, stripped));
+          });
         }
         // Format requirements
         if (a.formatRequirements) {
