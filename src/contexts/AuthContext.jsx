@@ -2,12 +2,12 @@
 import React, { createContext, useContext, useState, useEffect } from 'react';
 import { auth, googleProvider, hasConfig } from '../lib/firebase';
 import {
-  signInWithPopup,
+  signInWithRedirect,
+  getRedirectResult,
   onAuthStateChanged,
   signOut as firebaseSignOut,
-  GoogleAuthProvider,
 } from 'firebase/auth';
-import { setFirebaseAccessToken, clearTokenCache } from '../lib/googleDrive';
+import { clearTokenCache } from '../lib/googleDrive';
 
 const AuthContext = createContext({
   user: null,
@@ -36,7 +36,18 @@ export function AuthProvider({ children }) {
     return unsub;
   }, []);
 
-  /* ---- Google sign-in ---- */
+  /* ---- Handle redirect result (runs once after returning from Google) ---- */
+  useEffect(() => {
+    if (!auth) return;
+    getRedirectResult(auth).catch((err) => {
+      // Ignore cancelled / no-redirect cases
+      if (err.code === 'auth/popup-closed-by-user' || err.code === 'auth/cancelled-popup-request') return;
+      console.error('[Auth] redirect result error', err);
+      setError(err);
+    });
+  }, []);
+
+  /* ---- Google sign-in (redirect — no popup window) ---- */
   const handleSignIn = async () => {
     if (!auth || !googleProvider) {
       setError(new Error('Firebase is not configured'));
@@ -44,16 +55,10 @@ export function AuthProvider({ children }) {
     }
     try {
       setError(null);
-      const result = await signInWithPopup(auth, googleProvider);
-      // Extract the OAuth access token so Google Drive exports can reuse it
-      // without requiring a second popup. The token is valid for ~1 hour.
-      const credential = GoogleAuthProvider.credentialFromResult(result);
-      if (credential?.accessToken) {
-        setFirebaseAccessToken(credential.accessToken);
-      }
+      // Redirect to Google — user picks account, then returns to this page.
+      // onAuthStateChanged fires automatically when the page reloads.
+      await signInWithRedirect(auth, googleProvider);
     } catch (err) {
-      // user closed popup → not a real error
-      if (err.code === 'auth/popup-closed-by-user' || err.code === 'auth/cancelled-popup-request') return;
       console.error('[Auth] sign-in error', err);
       setError(err);
     }

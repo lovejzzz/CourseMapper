@@ -22,10 +22,8 @@ const auth = hasConfig ? getAuth(app) : null;
 const db   = hasConfig ? getFirestore(app) : null;
 const googleProvider = hasConfig ? new GoogleAuthProvider() : null;
 
-// Request drive.file scope so Firebase sign-in also grants Google Drive access.
-// This unifies the sign-in popup — users don't need a separate OAuth consent for exports.
-if (googleProvider) {
-  googleProvider.addScope('https://www.googleapis.com/auth/drive.file');
-}
+// NOTE: We do NOT add drive.file scope here — it's requested lazily by
+// googleDrive.js only when the user actually exports to Google Drive.
+// This keeps sign-in to a single quick account-chooser step.
 
 export { app, auth, db, googleProvider, hasConfig };
