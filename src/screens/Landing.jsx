@@ -64,12 +64,15 @@ export default function Landing({
   const isReady = apiStatus === 'connected' || (provider === 'free' && !!modelId);
   const [configCollapsed, setConfigCollapsed] = useState(isReady);
 
-  // Auto-collapse when API status transitions to connected
+  // Auto-collapse only when apiStatus transitions TO 'connected'.
+  // We depend solely on apiStatus so that switching providers (which
+  // momentarily leaves apiStatus as the old 'connected') doesn't
+  // re-collapse the panel before the status resets to 'idle'.
   useEffect(() => {
-    if (apiStatus === 'connected' || (provider === 'free' && !!modelId)) {
+    if (apiStatus === 'connected') {
       setConfigCollapsed(true);
     }
-  }, [apiStatus, provider, modelId]);
+  }, [apiStatus]);
 
   const handleDrop = useCallback((e) => {
     e.preventDefault();
