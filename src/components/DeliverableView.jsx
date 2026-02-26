@@ -327,9 +327,9 @@ export default function DeliverableView({ featureId, data, status, error, regene
           case 'assignments': return <AssignmentsView {...viewProps} />;
           case 'studyGuides': return <StudyGuidesView {...viewProps} />;
           case 'syllabus': return <SyllabusView {...viewProps} />;
-          default: return featureId?.startsWith('custom_')
+          default: return (featureId?.startsWith('custom_') || data)
             ? <GenericDeliverableView featureId={featureId} data={data} isStreaming={isStreaming} regeneratingIndex={regeneratingIndex} onRegenerateLesson={onRegenerateLesson} onEdit={editable ? onEdit : undefined} />
-            : <EmptyState />;
+            : <EmptyState featureId={featureId} onGenerate={onRetry} />;
         }
       })()}
       {/* ── Add More Lessons button — shown at bottom when scope was limited ── */}
@@ -471,8 +471,10 @@ const FEATURE_META = {
   quizBank: { emoji: '❓', label: 'Quiz Bank', desc: 'Multiple-choice, short-answer, and essay questions organized by lesson.' },
   discussions: { emoji: '💬', label: 'Discussion Prompts', desc: 'Socratic discussion questions and response guides for each lesson.' },
   assignments: { emoji: '📋', label: 'Assignments', desc: 'Assignment briefs with learning objectives, instructions, and grading criteria.' },
+  studyGuides: { emoji: '📖', label: 'Study Guides', desc: 'Student-facing study guides with key concepts, review questions, and exam prep.' },
   teachingGuides: { emoji: '🧭', label: 'Teaching Guides', desc: 'Instructor notes with pedagogical tips, common misconceptions, and pacing.' },
   syllabus: { emoji: '📄', label: 'Syllabus', desc: 'Complete course syllabus with policies, schedule, and grading breakdown.' },
+  courseFaq: { emoji: '❔', label: 'Course FAQ', desc: 'Student-facing FAQ with answers to common questions about the course.' },
 };
 
 export function EmptyState({ featureId, onGenerate }) {

@@ -206,7 +206,7 @@ function GDriveBtn({ fmt, label, disabled, busy, onClick }) {
 }
 
 // ── ZIP export (all deliverables) ─────────────────────────────────────────────
-async function exportAllAsZip(deliverables, courseMap, columns, courseName, lessonFilter) {
+async function exportAllAsZip(deliverables, courseMap, columns, courseName, lessonFilter, slideTheme) {
   let JSZip;
   try {
     JSZip = (await import('jszip')).default;
@@ -351,7 +351,7 @@ export default function ExportSidePanel({
       if (scope === 'all') {
         // All mode: only ZIP is available
         if (format === 'zip') {
-          await exportAllAsZip(deliverables || {}, courseMap, columns, courseName, effectiveLessonFilter);
+          await exportAllAsZip(deliverables || {}, courseMap, columns, courseName, effectiveLessonFilter, slideTheme);
           setLastOk('ZIP downloaded!');
         }
       } else {

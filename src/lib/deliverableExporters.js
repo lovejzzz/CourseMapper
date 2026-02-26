@@ -883,16 +883,18 @@ function _buildDocxContentShared(featureId, data, children, docx) {
         // Exam prep
         if (g.examPrep) {
           children.push(makeSubHeading('Exam Preparation'));
-          if (g.examPrep.keyTopicsToKnow?.length) {
+          if (Array.isArray(g.examPrep.keyTopicsToKnow) && g.examPrep.keyTopicsToKnow.length) {
             children.push(makeBold('Key Topics', ''));
-            g.examPrep.keyTopicsToKnow.forEach(t => children.push(makeBullet(t)));
+            g.examPrep.keyTopicsToKnow.forEach(t => children.push(makeBullet(typeof t === 'string' ? t : JSON.stringify(t))));
           }
-          if (g.examPrep.commonErrors?.length) {
+          if (Array.isArray(g.examPrep.commonErrors) && g.examPrep.commonErrors.length) {
             children.push(makeBold('Common Errors', ''));
-            g.examPrep.commonErrors.forEach(e => children.push(makeBullet(e)));
+            g.examPrep.commonErrors.forEach(e => children.push(makeBullet(typeof e === 'string' ? e : JSON.stringify(e))));
+          } else if (typeof g.examPrep.commonErrors === 'string') {
+            children.push(makeBold('Common Errors', g.examPrep.commonErrors));
           }
-          if (g.examPrep.reviewStrategy) children.push(makeBold('Review Strategy', g.examPrep.reviewStrategy));
-          if (g.examPrep.timeManagement) children.push(makeBold('Time Management', g.examPrep.timeManagement));
+          if (g.examPrep.reviewStrategy) children.push(makeBold('Review Strategy', typeof g.examPrep.reviewStrategy === 'string' ? g.examPrep.reviewStrategy : JSON.stringify(g.examPrep.reviewStrategy)));
+          if (g.examPrep.timeManagement) children.push(makeBold('Time Management', typeof g.examPrep.timeManagement === 'string' ? g.examPrep.timeManagement : JSON.stringify(g.examPrep.timeManagement)));
         }
         // Legacy examTips
         if (g.examTips && !g.examPrep) children.push(makeBold('Exam Tips', g.examTips));
