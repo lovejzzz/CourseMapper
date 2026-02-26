@@ -1,5 +1,6 @@
 import React, { useState, useRef } from 'react';
 import { HelpDrawer } from '../pages/FaqChatbot';
+import { useAuth } from '../contexts/AuthContext';
 import { listCustomDeliverables, saveCustomDeliverable, deleteCustomDeliverable, toFeatureEntry, autoFillCustomDeliverable } from '../lib/customDeliverableLibrary';
 
 // ── Color choices for custom deliverables ────────────────────────────────────
@@ -432,6 +433,7 @@ export function CustomDeliverableBuilder({ isOpen, onClose, onSave, editDef, mod
 }
 
 export default function FeatureSelect({ selected, setSelected, onNext, onBack, hasSyllabusFile, modelConfig }) {
+  const { user } = useAuth();
   const [hoveredId, setHoveredId] = useState(null);
   const [showHelp, setShowHelp] = useState(false);
   const [showBuilder, setShowBuilder] = useState(false);
@@ -469,7 +471,7 @@ export default function FeatureSelect({ selected, setSelected, onNext, onBack, h
   }
 
   function handleSaveCustom(def) {
-    const saved = saveCustomDeliverable(def);
+    const saved = saveCustomDeliverable(def, user?.uid);
     setCustomDeliverables(listCustomDeliverables());
     // Auto-select the newly created deliverable
     if (!selected.includes(saved.id)) {
@@ -491,7 +493,7 @@ export default function FeatureSelect({ selected, setSelected, onNext, onBack, h
 
   function handleDeleteCustom(e, featureId) {
     e.stopPropagation();
-    deleteCustomDeliverable(featureId);
+    deleteCustomDeliverable(featureId, user?.uid);
     setCustomDeliverables(listCustomDeliverables());
     setSelected(prev => prev.filter(id => id !== featureId));
   }

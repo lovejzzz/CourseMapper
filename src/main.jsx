@@ -6,6 +6,7 @@ import Changelog from './pages/Changelog';
 import PrivacyPolicy from './pages/PrivacyPolicy';
 import TermsOfService from './pages/TermsOfService';
 import { CourseStoreProvider } from './model/courseStore';
+import { AuthProvider } from './contexts/AuthContext';
 import './index.css';
 
 function Router() {
@@ -45,8 +46,10 @@ if (!container._reactRoot) {
 }
 container._reactRoot.render(
   <React.StrictMode>
-    <CourseStoreProvider>
-      <Router />
-    </CourseStoreProvider>
+    <AuthProvider>
+      <CourseStoreProvider>
+        <Router />
+      </CourseStoreProvider>
+    </AuthProvider>
   </React.StrictMode>
 );

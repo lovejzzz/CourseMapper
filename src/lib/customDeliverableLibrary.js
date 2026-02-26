@@ -21,6 +21,8 @@
  * }
  */
 
+import { saveCustomDeliverable as cloudSave, deleteCustomDeliverable as cloudDelete, loadCustomDeliverables as cloudLoadAll } from './cloudStorage';
+
 const STORAGE_KEY = 'coursemapper-custom-deliverables';
 
 function readAll() {
@@ -62,7 +64,7 @@ export function listCustomDeliverables() {
  * If def.id is provided and exists, it updates; otherwise creates a new one.
  * Returns the saved definition (with id populated).
  */
-export function saveCustomDeliverable(def) {
+export function saveCustomDeliverable(def, uid) {
   const map = readAll();
   const now = Date.now();
   const id = def.id && map[def.id] ? def.id : `custom_${now}`;
@@ -114,15 +116,19 @@ Return ONLY a valid JSON object with this structure:
   if (!saved.color) saved.color = 'violet';
   map[id] = saved;
   writeAll(map);
+  // Fire-and-forget cloud sync if user is logged in
+  if (uid) cloudSave(uid, id, saved).catch(e => console.warn('[Cloud] deliverable save failed:', e));
   return saved;
 }
 
 /** Delete a custom deliverable by ID. Returns true if deleted, false if not found. */
-export function deleteCustomDeliverable(id) {
+export function deleteCustomDeliverable(id, uid) {
   const map = readAll();
   if (!map[id]) return false;
   delete map[id];
   writeAll(map);
+  // Fire-and-forget cloud sync if user is logged in
+  if (uid) cloudDelete(uid, id).catch(e => console.warn('[Cloud] deliverable delete failed:', e));
   return true;
 }
 
@@ -263,4 +269,34 @@ export function toFeatureEntry(def) {
     color: def.color || 'violet',
     isCustom: true,
   };
+}
+
+/**
+ * Merge cloud custom deliverables with localStorage on sign-in.
+ * Cloud wins on conflict (by updatedAt).
+ * Returns the merged map.
+ */
+export async function mergeCloudDeliverables(uid) {
+  try {
+    const cloudMap = await cloudLoadAll(uid);
+    const localMap = readAll();
+    const merged = { ...localMap };
+    for (const [id, cloudDef] of Object.entries(cloudMap)) {
+      const local = merged[id];
+      if (!local || (cloudDef.updatedAt || 0) >= (local.updatedAt || 0)) {
+        merged[id] = { ...cloudDef, id };
+      }
+    }
+    // Also push any local-only items to cloud
+    for (const [id, localDef] of Object.entries(localMap)) {
+      if (!cloudMap[id]) {
+        cloudSave(uid, id, localDef).catch(() => {});
+      }
+    }
+    writeAll(merged);
+    return merged;
+  } catch (e) {
+    console.warn('[Cloud] merge custom deliverables failed:', e);
+    return readAll();
+  }
 }

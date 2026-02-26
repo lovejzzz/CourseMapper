@@ -1,5 +1,7 @@
 import React, { useState, useCallback, useEffect } from 'react';
 import ModelConfig from '../components/ModelConfig';
+import { useAuth } from '../contexts/AuthContext';
+import UserMenu from '../components/UserMenu';
 
 const ACCEPTED_EXTENSIONS = [
   '.doc', '.docx', '.pdf', '.txt', '.md', '.csv', '.rtf',
@@ -49,9 +51,12 @@ export default function Landing({
   onOpenProject,
   // Quick-fill example chips — sets prompt + pre-parses lesson hints
   onExampleSelect,
+  // Cloud project management
+  onOpenProjects,
   // Legacy — no longer used in UI (mode is auto-detected from input)
   inputMode, setInputMode,
 }) {
+  const { user } = useAuth();
   const [isDragging, setIsDragging] = useState(false);
   const [projectDragging, setProjectDragging] = useState(false);
 
@@ -127,9 +132,9 @@ export default function Landing({
 
   return (
     <div className="min-h-screen mesh-bg noise-overlay flex flex-col">
-      {/* Minimal header */}
+      {/* Minimal header with sign-in */}
       <header className="pt-5 px-8 flex justify-end max-w-3xl mx-auto w-full">
-        {/* Help removed — appears on 2nd page onward */}
+        <UserMenu onOpenProjects={onOpenProjects} />
       </header>
 
       {/* Centered content */}
@@ -205,6 +210,27 @@ export default function Landing({
                 </svg>
               </button>
             </div>
+          )}
+
+          {/* Cloud projects hint — when signed in, remind user they can access projects */}
+          {user && onOpenProjects && (
+            <button
+              onClick={onOpenProjects}
+              className="w-full flex items-center gap-3 px-4 py-3 rounded-squircle-xs bg-white/50 border border-indigo-200/30 hover:border-indigo-300/50 hover:bg-indigo-50/30 transition-all duration-200 group"
+            >
+              <div className="w-8 h-8 rounded-squircle-xs bg-indigo-100/60 flex items-center justify-center flex-shrink-0">
+                <svg className="w-4 h-4 text-indigo-500" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M3 7v10a2 2 0 002 2h14a2 2 0 002-2V9a2 2 0 00-2-2h-6l-2-2H5a2 2 0 00-2 2z" />
+                </svg>
+              </div>
+              <div className="flex-1 min-w-0 text-left">
+                <p className="text-xs font-semibold text-slate-700 group-hover:text-indigo-600 transition-colors">My Cloud Projects</p>
+                <p className="text-[11px] text-slate-400">Open a saved project or start a new one</p>
+              </div>
+              <svg className="w-4 h-4 text-slate-300 group-hover:text-indigo-400 transition-colors flex-shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 5l7 7-7 7" />
+              </svg>
+            </button>
           )}
 
           {/* Combined input zone: file drop + text prompt */}

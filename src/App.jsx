@@ -19,7 +19,11 @@ import useSmartSync from './hooks/useSmartSync';
 import useEditProposal from './hooks/useEditProposal';
 import { extractEditContext } from './lib/editContextExtractor';
 import { FEATURES, CustomDeliverableBuilder } from './screens/FeatureSelect';
-import { listCustomDeliverables, toFeatureEntry, saveCustomDeliverable } from './lib/customDeliverableLibrary';
+import { listCustomDeliverables, toFeatureEntry, saveCustomDeliverable, mergeCloudDeliverables } from './lib/customDeliverableLibrary';
+import { mergeCloudProfile } from './lib/professorProfile';
+import { useAuth } from './contexts/AuthContext';
+import { saveProject as cloudSaveProject, loadProject as cloudLoadProject, loadProjectDeliverables, newProjectId } from './lib/cloudStorage';
+import ProjectPicker from './components/ProjectPicker';
 import DeliverableView from './components/DeliverableView';
 import ExportSidePanel from './components/ExportSidePanel';
 import { requestNotificationPermission } from './lib/notifyDone';
@@ -161,6 +165,15 @@ export default function App() {
   // New Project confirmation modal
   const [newProjectConfirm, setNewProjectConfirm] = useState(false);
 
+  // ── Cloud ──
+  const { user } = useAuth();
+  const [projectId, setProjectId] = useState(null); // Firestore project doc ID
+  const projectIdRef = useRef(null); // Ref mirror to prevent race conditions in auto-save
+  const [showProjectPicker, setShowProjectPicker] = useState(false);
+  const [cloudSaveStatus, setCloudSaveStatus] = useState('idle'); // 'idle' | 'saving' | 'saved' | 'error'
+  const cloudSaveTimerRef = useRef(null);
+  const cloudStatusTimerRef = useRef(null);
+
   // ── Misc ──
   const [downloadedFile, setDownloadedFile] = useState('');
   const saveTimerRef = useRef(null);
@@ -288,6 +301,64 @@ export default function App() {
     }, 1000);
     return () => clearTimeout(saveTimerRef.current);
   }, [courseMap, columns, hasGenerated, provider, modelId, modelName, userEdits, chatHistory, version.versionHistory, selectedFeatures, lessonScope, promptText, activeTab, deliv.deliverables, slideTheme]);
+
+  // Keep projectId ref in sync to avoid race conditions
+  useEffect(() => { projectIdRef.current = projectId; }, [projectId]);
+
+  // ── Cloud auto-save (debounced 5s) ──
+  useEffect(() => {
+    if (!user || !hasGenerated || !courseMap) return;
+    clearTimeout(cloudSaveTimerRef.current);
+    setCloudSaveStatus('saving');
+    cloudSaveTimerRef.current = setTimeout(async () => {
+      try {
+        // Use ref to avoid creating duplicate IDs when effect fires multiple times
+        let pid = projectIdRef.current;
+        if (!pid) {
+          pid = newProjectId();
+          projectIdRef.current = pid;
+          setProjectId(pid);
+        }
+        const state = {
+          courseName: courseMap?.courseName || 'Untitled',
+          semester: courseMap?.semester || '',
+          courseMap, columns, hasGenerated: true,
+          provider, modelId, modelName, userEdits,
+          chatHistory: chatHistory.slice(-20),
+          fileNames: files.map(f => f.name),
+          versionHistory: version.versionHistory.slice(-30),
+          selectedFeatures, lessonScope, promptText, activeTab,
+          deliverables: deliv.deliverables,
+          slideTheme,
+          savedAt: Date.now(),
+          version: '1.5',
+        };
+        await cloudSaveProject(user.uid, pid, state);
+        setCloudSaveStatus('saved');
+        // Reset to idle after 3 seconds
+        clearTimeout(cloudStatusTimerRef.current);
+        cloudStatusTimerRef.current = setTimeout(() => setCloudSaveStatus('idle'), 3000);
+      } catch (e) {
+        console.warn('[Cloud] auto-save failed:', e);
+        setCloudSaveStatus('error');
+        clearTimeout(cloudStatusTimerRef.current);
+        cloudStatusTimerRef.current = setTimeout(() => setCloudSaveStatus('idle'), 5000);
+      }
+    }, 5000);
+    return () => clearTimeout(cloudSaveTimerRef.current);
+  }, [user, courseMap, columns, hasGenerated, provider, modelId, modelName, userEdits, chatHistory, version.versionHistory, selectedFeatures, lessonScope, promptText, activeTab, deliv.deliverables, slideTheme]);
+
+  // ── On sign-in: merge cloud data (custom deliverables + profile) ──
+  const prevUserRef = useRef(null);
+  useEffect(() => {
+    if (user && user.uid !== prevUserRef.current) {
+      prevUserRef.current = user.uid;
+      // Fire-and-forget cloud merge
+      mergeCloudDeliverables(user.uid).catch(() => {});
+      mergeCloudProfile(user.uid).catch(() => {});
+    }
+    if (!user) prevUserRef.current = null;
+  }, [user]);
 
   // ── Detect saved session on mount ──
   useEffect(() => {
@@ -460,6 +531,84 @@ export default function App() {
     }
   }
 
+  // ── Open a cloud project by ID ──
+  async function handleOpenCloudProject(pid) {
+    if (!user) return;
+    try {
+      const saved = await cloudLoadProject(user.uid, pid);
+      if (!saved || !saved.courseMap) throw new Error('Project data not found');
+      const deliverables = await loadProjectDeliverables(user.uid, pid);
+      // Restore all state — same as doRestoreSession but from cloud
+      setCourseMap(saved.courseMap);
+      setColumns(saved.columns || [...DEFAULT_COLUMNS]);
+      setHasGenerated(true);
+      setProvider(saved.provider || 'free');
+      setModelId(saved.modelId || '');
+      setModelName(saved.modelName || '');
+      setUserEdits(saved.userEdits || []);
+      if (saved.fileNames?.length > 0) {
+        setFiles(saved.fileNames.map(name => ({ name, size: 0, _restored: true })));
+      }
+      if (saved.versionHistory?.length > 0) {
+        version.initHistory(saved.versionHistory);
+      } else {
+        version.pushVersion(saved.courseMap, 'Restored from cloud');
+      }
+      if (saved.chatHistory) setChatHistory(saved.chatHistory);
+      if (saved.selectedFeatures) setSelectedFeatures(saved.selectedFeatures);
+      if (saved.lessonScope) setLessonScope(saved.lessonScope);
+      if (saved.promptText !== undefined) setPromptText(saved.promptText);
+      if (saved.activeTab) setActiveTab(saved.activeTab);
+      if (saved.slideTheme !== undefined) setSlideTheme(saved.slideTheme);
+      if (deliverables && Object.keys(deliverables).length > 0) {
+        deliv.restoreDeliverables(deliverables);
+      } else if (saved.deliverables) {
+        deliv.restoreDeliverables(saved.deliverables);
+      }
+      setProjectId(pid);
+      projectIdRef.current = pid;
+      setRestoredSession(true);
+      setHasSavedSession(false);
+      if (!gen.restoreStoppedState()) {
+        gen.setProgressStep('done');
+        gen.setStatus('done');
+      }
+      setScreen('workspace');
+    } catch (e) {
+      console.error('[Cloud] open project failed:', e);
+      gen.setError('Failed to open cloud project: ' + e.message);
+      throw e; // Re-throw so ProjectPicker can catch and show error
+    }
+  }
+
+  // ── Save current session as a new cloud project ──
+  async function handleSaveCurrentAsNew() {
+    if (!user || !courseMap) return;
+    try {
+      const pid = newProjectId();
+      const state = {
+        courseName: courseMap?.courseName || 'Untitled',
+        semester: courseMap?.semester || '',
+        courseMap, columns, hasGenerated: true,
+        provider, modelId, modelName, userEdits,
+        chatHistory: chatHistory.slice(-20),
+        fileNames: files.map(f => f.name),
+        versionHistory: version.versionHistory.slice(-30),
+        selectedFeatures, lessonScope, promptText, activeTab,
+        deliverables: deliv.deliverables,
+        slideTheme,
+        savedAt: Date.now(),
+        version: '1.5',
+      };
+      await cloudSaveProject(user.uid, pid, state);
+      setProjectId(pid);
+      projectIdRef.current = pid;
+    } catch (e) {
+      console.error('[Cloud] save-as-new failed:', e);
+      gen.setError('Failed to save project to cloud: ' + e.message);
+    }
+  }
+
   function handleNewProject() {
     gen.handleStop();
     gen.resetGeneration();
@@ -484,6 +633,9 @@ export default function App() {
     deliv.resetDeliverables();
     setUnseenChanges(new Set());
     setHasSavedSession(false);
+    setProjectId(null);
+    projectIdRef.current = null;
+    setCloudSaveStatus('idle');
     setScreen('landing');
     try { localStorage.removeItem(STORAGE_KEY); } catch {}
   }
@@ -596,30 +748,40 @@ export default function App() {
   // ── Screen: Landing ──
   if (screen === 'landing') {
     return (
-      <Landing
-        files={files} setFiles={setFiles}
-        promptText={promptText} setPromptText={setPromptText}
-        onGenerate={handleLandingContinue}
-        canGenerate={
-          (files.length > 0 || promptText.trim().length > 0) &&
-          (provider === 'free' || apiKey.trim()) &&
-          !!modelId
-        }
-        isGenerating={false}
-        provider={provider} setProvider={setProvider}
-        apiKey={apiKey} setApiKey={setApiKey}
-        modelId={modelId} setModelId={setModelId}
-        modelName={modelName} setModelName={setModelName}
-        availableModels={availableModels} setAvailableModels={setAvailableModels}
-        apiStatus={apiStatus} setApiStatus={setApiStatus}
-        columns={columns} setColumns={setColumns}
-        hasSavedSession={hasSavedSession}
-        onRestoreSession={doRestoreSession}
-        onDismissSavedSession={() => setHasSavedSession(false)}
-        onImportCourseMap={handleImport}
-        onOpenProject={handleOpenProject}
-        onExampleSelect={(text) => setPromptText(text)}
-      />
+      <>
+        <Landing
+          files={files} setFiles={setFiles}
+          promptText={promptText} setPromptText={setPromptText}
+          onGenerate={handleLandingContinue}
+          canGenerate={
+            (files.length > 0 || promptText.trim().length > 0) &&
+            (provider === 'free' || apiKey.trim()) &&
+            !!modelId
+          }
+          isGenerating={false}
+          provider={provider} setProvider={setProvider}
+          apiKey={apiKey} setApiKey={setApiKey}
+          modelId={modelId} setModelId={setModelId}
+          modelName={modelName} setModelName={setModelName}
+          availableModels={availableModels} setAvailableModels={setAvailableModels}
+          apiStatus={apiStatus} setApiStatus={setApiStatus}
+          columns={columns} setColumns={setColumns}
+          hasSavedSession={hasSavedSession}
+          onRestoreSession={doRestoreSession}
+          onDismissSavedSession={() => setHasSavedSession(false)}
+          onImportCourseMap={handleImport}
+          onOpenProject={handleOpenProject}
+          onExampleSelect={(text) => setPromptText(text)}
+          onOpenProjects={user ? () => setShowProjectPicker(true) : undefined}
+        />
+        {/* Cloud project picker — available on landing when signed in */}
+        <ProjectPicker
+          isOpen={showProjectPicker}
+          onClose={() => setShowProjectPicker(false)}
+          onOpenProject={handleOpenCloudProject}
+          onSaveCurrentAsNew={null}
+        />
+      </>
     );
   }
 
@@ -687,7 +849,44 @@ export default function App() {
 
   return (
     <div className="min-h-screen mesh-bg noise-overlay">
-      <Header />
+      <Header onOpenProjects={() => setShowProjectPicker(true)} />
+
+      {/* Cloud save status indicator */}
+      {user && hasGenerated && cloudSaveStatus !== 'idle' && (
+        <div className="max-w-7xl mx-auto px-8 -mb-2">
+          <div className={`inline-flex items-center gap-1.5 px-3 py-1 rounded-full text-[10px] font-medium transition-all duration-300 ${
+            cloudSaveStatus === 'saving' ? 'text-slate-400 bg-slate-50/80' :
+            cloudSaveStatus === 'saved' ? 'text-emerald-600 bg-emerald-50/80' :
+            cloudSaveStatus === 'error' ? 'text-red-500 bg-red-50/80' : ''
+          }`}>
+            {cloudSaveStatus === 'saving' && (
+              <>
+                <svg className="animate-spin w-3 h-3" fill="none" viewBox="0 0 24 24">
+                  <circle className="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" strokeWidth="4" />
+                  <path className="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4z" />
+                </svg>
+                Saving to cloud...
+              </>
+            )}
+            {cloudSaveStatus === 'saved' && (
+              <>
+                <svg className="w-3 h-3" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M5 13l4 4L19 7" />
+                </svg>
+                Saved to cloud
+              </>
+            )}
+            {cloudSaveStatus === 'error' && (
+              <>
+                <svg className="w-3 h-3" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 9v2m0 4h.01m-6.938 4h13.856c1.54 0 2.502-1.667 1.732-2.5L13.732 4c-.77-.833-1.964-.833-2.732 0L4.082 16.5c-.77.833.192 2.5 1.732 2.5z" />
+                </svg>
+                Cloud save failed
+              </>
+            )}
+          </div>
+        </div>
+      )}
 
       <main className="w-full px-4 sm:px-6 pb-10 space-y-4">
         {/* Top bar */}
@@ -942,7 +1141,7 @@ export default function App() {
           isOpen={showCustomBuilder}
           onClose={() => setShowCustomBuilder(false)}
           onSave={(def) => {
-            const saved = saveCustomDeliverable(def);
+            const saved = saveCustomDeliverable(def, user?.uid);
             setSelectedFeatures(prev => [...prev, saved.id]);
             setActiveTab(saved.id);
             setShowCustomBuilder(false);
@@ -1144,6 +1343,14 @@ export default function App() {
           <a href="#/terms" className="hover:text-indigo-500 transition-colors duration-200">Terms</a>
         </div>
       </footer>
+
+      {/* Cloud Project Picker modal */}
+      <ProjectPicker
+        isOpen={showProjectPicker}
+        onClose={() => setShowProjectPicker(false)}
+        onOpenProject={handleOpenCloudProject}
+        onSaveCurrentAsNew={hasGenerated ? handleSaveCurrentAsNew : null}
+      />
     </div>
   );
 }

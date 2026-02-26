@@ -39,6 +39,19 @@ export function clearTokenCache() {
   try { localStorage.removeItem(TOKEN_STORAGE_KEY); } catch { /* ignore */ }
 }
 
+export function hasValidToken() {
+  return !!(cachedToken && Date.now() < tokenExpiry - 300_000);
+}
+
+/**
+ * Inject an access token obtained from Firebase Google sign-in.
+ * Called by AuthContext after sign-in so the Drive export flow can
+ * reuse the same token without a second popup.
+ */
+export function setFirebaseAccessToken(token) {
+  if (token) cacheToken(token);
+}
+
 // ── Folder cache (in-memory) ──
 const folderCache = new Map();
 
@@ -277,7 +290,7 @@ export function openTabNow() {
 <p id="status">Preparing your export…</p>
 <small id="detail">Starting up</small>
 <div class="steps">
-  <div class="step" id="step-auth">Sign in to Google</div>
+  <div class="step${hasValidToken() ? ' done' : ''}" id="step-auth">Sign in to Google</div>
   <div class="step" id="step-build">Build file</div>
   <div class="step" id="step-folder">Organize in Drive folder</div>
   <div class="step" id="step-upload">Upload to Google Drive</div>
@@ -345,8 +358,12 @@ export async function saveToGoogleDocs(courseMap, customColumns, preOpenedTab = 
     updateTabStatus(tab, 'build');
     const blob = await buildDocxBlob(courseMap, customColumns);
 
-    updateTabStatus(tab, 'auth');
-    await loadGIS();
+    if (hasValidToken()) {
+      updateTabStatus(tab, 'auth', 'done');
+    } else {
+      updateTabStatus(tab, 'auth');
+      await loadGIS();
+    }
     const accessToken = await getAccessToken();
 
     updateTabStatus(tab, 'folder');
@@ -372,8 +389,12 @@ export async function saveToGoogleDocs(courseMap, customColumns, preOpenedTab = 
 export async function saveToGoogleDocsBlob(blob, fileName, courseName, preOpenedTab = null) {
   const tab = preOpenedTab ?? openTabNow();
   try {
-    updateTabStatus(tab, 'auth');
-    await loadGIS();
+    if (hasValidToken()) {
+      updateTabStatus(tab, 'auth', 'done');
+    } else {
+      updateTabStatus(tab, 'auth');
+      await loadGIS();
+    }
     const accessToken = await getAccessToken();
 
     updateTabStatus(tab, 'folder');
@@ -404,8 +425,12 @@ export async function saveToGoogleSheets(xlsxBuffer, fileName, courseName, preOp
       type: 'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet',
     });
 
-    updateTabStatus(tab, 'auth');
-    await loadGIS();
+    if (hasValidToken()) {
+      updateTabStatus(tab, 'auth', 'done');
+    } else {
+      updateTabStatus(tab, 'auth');
+      await loadGIS();
+    }
     const accessToken = await getAccessToken();
 
     updateTabStatus(tab, 'folder');
@@ -431,8 +456,12 @@ export async function saveToGoogleSheets(xlsxBuffer, fileName, courseName, preOp
 export async function saveToGoogleSlides(pptxBlob, fileName, courseName, preOpenedTab = null) {
   const tab = preOpenedTab ?? openTabNow();
   try {
-    updateTabStatus(tab, 'auth');
-    await loadGIS();
+    if (hasValidToken()) {
+      updateTabStatus(tab, 'auth', 'done');
+    } else {
+      updateTabStatus(tab, 'auth');
+      await loadGIS();
+    }
     const accessToken = await getAccessToken();
 
     // Always wrap with the correct MIME type — pptxgenjs via JSZip produces
