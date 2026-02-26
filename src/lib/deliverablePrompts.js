@@ -113,7 +113,7 @@ function condenseCourseMap(courseMap, scopeIndices = null, verifiedChanges = nul
 const PROMPTS = {
   // ─── LESSON PLANS ────────────────────────────────────────────────────────────
   lessonPlans: {
-    system: `You are a senior instructional designer with expertise in Bloom's Revised Taxonomy, Universal Design for Learning (UDL), and backward design (Wiggins & McTighe). Your lesson plans are used directly by university instructors and must be classroom-ready, pedagogically rigorous, and ready to print. Return ONLY valid JSON, no markdown fences.`,
+    system: `You are a senior instructional designer with expertise in Bloom's Revised Taxonomy, Universal Design for Learning (UDL), and backward design (Wiggins & McTighe). Your lesson plans follow backward design rigorously: begin with learning outcomes, then design assessments that measure those outcomes, then design activities that prepare students for those assessments. This sequence must be evident in every plan. Your lesson plans are used directly by university instructors and must be classroom-ready, pedagogically rigorous, and ready to print. Return ONLY valid JSON, no markdown fences.`,
 
     user: (cm, scope, verifiedChanges, columns) => `Generate detailed, university-standard lesson plans for each lesson in this course:
 
@@ -169,7 +169,10 @@ Return a JSON object with exactly this structure:
         "estimatedTime": "string — e.g. '45 min'",
         "connectionToNext": "string — how this prepares students for the next lesson"
       },
-      "closingActivity": "string — 2-3 sentence description of how the lesson wraps up (synthesis, preview of next class, homework reminder)"
+      "closingActivity": "string — 2-3 sentence description of how the lesson wraps up (synthesis, preview of next class, homework reminder)",
+      "tags": ["string — 5-8 keywords for LMS discoverability: include synonyms, acronyms, and colloquial terms relevant to this lesson"],
+      "suggestedReviewDate": "string — date by which this lesson plan should be reviewed for updates, e.g. 'Review by Fall 2027'",
+      "contentOwnerGroup": "string — department or team responsible for maintaining this content, e.g. 'Department of Social Work'"
     }
   ]
 }
@@ -186,6 +189,7 @@ REQUIREMENTS:
 - UDL notes must be substantive (not generic) — specific to this lesson's content
 - Homework must have an explicit connection to the NEXT session
 - QM ALIGNMENT: Each plan must describe the instructor's plan for substantive interaction with learners — the instructorRole field must explain how the instructor engages during each activity segment (QM 5.3). Learner interaction requirements must be clearly stated: specify when students work individually vs. collaboratively, what peer interaction looks like, and participation expectations (QM 5.4). Activities must provide opportunities for interaction that supports active learning — avoid passive lecture-only segments longer than 15 min without an interaction break (QM 5.2).
+- COGNITIVE LOAD: Keep descriptions and instructorNotes concise — no sentence longer than 20 words. Use imperative voice for instructions. Short paragraphs only.
 - HUMAN READABILITY: All text will be read by instructors. Avoid redundant phrases across items. Vary sentence structure. Do not use copy-paste templates where every item follows the exact same pattern — make each entry sound natural and distinct.
 - Return ONLY the JSON object, no prose, no markdown`,
   },
@@ -226,7 +230,8 @@ Return a JSON object with exactly this structure:
         }
       ],
       "gradePolicyConnection": "string — how this rubric connects to the overall course grading policy: state the weight of this assessment in the final grade and which grading category it falls under (QM 3.3)",
-      "teacherNotes": "string — instructions for calibrating scores, handling edge cases, giving feedback to students, and a note to distribute this rubric to students BEFORE the assignment (QM 3.3)"
+      "teacherNotes": "string — instructions for calibrating scores, handling edge cases, giving feedback to students, and a note to distribute this rubric to students BEFORE the assignment (QM 3.3)",
+      "tags": ["string — 5-8 keywords for LMS discoverability: include assessment type, skill area, and Bloom's levels"]
     }
   ]
 }
@@ -250,7 +255,7 @@ REQUIREMENTS:
     system: `You are a world-class instructional presentation designer for higher education, combining:
 - Evidence-based slide design (Mayer's Multimedia Principles, Assertion-Evidence framework by Garr Reynolds & Michael Alley)
 - Cognitive load theory (Sweller) — minimize extraneous load, optimize germane load
-- Accessibility (WCAG 2.1) and Universal Design for Learning
+- Accessibility (WCAG 2.1) and Universal Design for Learning — screen reader compatibility: all content must be comprehensible as text alone, no reliance on color-only cues or spatial layout to convey meaning
 - Pedagogical flow: hook → instruction → practice → synthesis
 
 Your slides follow the ASSERTION-EVIDENCE model: every content slide title is a FULL DECLARATIVE SENTENCE stating the key claim (the "assertion"), and the body provides visual/textual evidence supporting it. This is proven to increase student learning by 15-20% compared to traditional topic-phrase titles (Alley & Neeley, 2005).
@@ -279,7 +284,8 @@ Return a JSON object with exactly this structure:
           "bloomsLevel": "string or null — for content/activity/discussion/example slides: the Bloom's level this slide targets",
           "objectiveLink": "string or null — for content/activity/discussion/example slides: which learning objective this slide supports (QM 4.1)"
         }
-      ]
+      ],
+      "tags": ["string — 5-8 keywords for LMS discoverability: include topic synonyms, key concepts, and activity types featured in this deck"]
     }
   ]
 }
@@ -356,7 +362,8 @@ Return a JSON object with exactly this structure:
           "rubricHints": "string or null — essay only: 3-4 criteria that a strong response must include",
           "sampleAnswer": "string or null — short answer and essay only: full exemplary response"
         }
-      ]
+      ],
+      "tags": ["string — 5-8 keywords for LMS discoverability: include assessment type, Bloom's levels tested, and key topic areas"]
     }
   ]
 }
@@ -411,7 +418,8 @@ Return a JSON object with exactly this structure:
         "string — 3-4 specific criteria by which student contributions will be assessed (e.g., 'Quality of reasoning and use of specific evidence', 'Engagement with and response to peers', 'Connection to course readings or concepts', 'Consideration of alternative perspectives')"
       ],
       "equityConsiderations": "string — how to ensure equitable participation (think time, multiple entry points, affirming diverse perspectives)",
-      "guidelines": "string — 4-5 sentence student-facing participation guidelines: posting deadline, response deadline, minimum word count for initial post, what counts as a 'substantive' peer response, and how participation is graded (QM 5.4)"
+      "guidelines": "string — 4-5 sentence student-facing participation guidelines: posting deadline, response deadline, minimum word count for initial post, what counts as a 'substantive' peer response, and how participation is graded (QM 5.4)",
+      "tags": ["string — 5-8 keywords for LMS discoverability: include discussion format, Bloom's level, and key concepts debated"]
     }
   ]
 }
@@ -430,7 +438,7 @@ REQUIREMENTS:
 
   // ─── ASSIGNMENTS ─────────────────────────────────────────────────────────────
   assignments: {
-    system: `You are an expert instructional designer specializing in university assignment design (Understanding by Design, Constructive Alignment). Your assignment briefs are complete, classroom-ready documents that instructors can distribute directly to students. Every assignment includes learning objective alignment, scaffolding milestones, submission specifications, and an academic integrity statement. Return ONLY valid JSON, no markdown fences.`,
+    system: `You are an expert instructional designer specializing in university assignment design (Understanding by Design, Constructive Alignment). Every assignment demonstrably traces back to specific learning outcomes through backward design: the assignment measures outcomes, and scaffolding milestones prepare students for the assessment. Your assignment briefs are complete, classroom-ready documents that instructors can distribute directly to students. Every assignment includes learning objective alignment, scaffolding milestones, submission specifications, and an academic integrity statement. Return ONLY valid JSON, no markdown fences.`,
 
     user: (cm, scope, verifiedChanges, columns) => `Generate university-standard, classroom-ready assignment briefs for this course:
 
@@ -477,7 +485,8 @@ Return a JSON object with exactly this structure:
         "string — specific support: writing center, library databases, office hours schedule, sample work description"
       ],
       "progressTracking": "string — how students will receive feedback and track their progress on this assignment: interim feedback points, self-assessment checkpoints, peer review milestones, and expected turnaround time for instructor feedback (QM 3.5)",
-      "academicIntegrityStatement": "string — assignment-specific guidance on how to uphold academic integrity for THIS assignment type: what is/is not permitted (collaboration, AI tools, reuse of prior work), reference to institution policy, and consequences for violation (QM 3.6)"
+      "academicIntegrityStatement": "string — assignment-specific guidance on how to uphold academic integrity for THIS assignment type: what is/is not permitted (collaboration, AI tools, reuse of prior work), reference to institution policy, and consequences for violation (QM 3.6)",
+      "tags": ["string — 5-8 keywords for LMS discoverability: include assignment type, skill area, Bloom's level, and related lesson topics"]
     }
   ]
 }
@@ -491,6 +500,7 @@ REQUIREMENTS:
 - academicIntegrityStatement must be specific to this assignment (not a generic paragraph)
 - formatRequirements.latePolicy must state explicit point deduction or policy
 - QM ALIGNMENT: Assignments must be sequenced and suited to the course level — earlier assignments should scaffold toward later, more complex ones (QM 3.4). Include opportunities for learners to track their progress via the progressTracking field: interim feedback points, self-assessment checkpoints, or peer review milestones (QM 3.5). The academicIntegrityStatement must provide specific guidance on how to uphold integrity for THIS assignment type (QM 3.6).
+- COGNITIVE LOAD: Instructions must be imperative, concise, and scannable. No instruction step longer than 25 words. Each step describes one action only.
 - HUMAN READABILITY: Each assignment should read as a unique document — vary the overview voice, instruction phrasing, and scaffolding descriptions. Avoid copy-paste language patterns across assignments.
 - Return ONLY the JSON object, no prose, no markdown`,
   },
@@ -542,7 +552,8 @@ Return a JSON object with exactly this structure:
         "commonErrors": "string — what students typically lose points on for this topic and how to avoid it",
         "reviewStrategy": "string — recommended study approach (e.g., 'Complete the practice problems before reading the solutions; use spaced retrieval over 3 days')"
       },
-      "supportResources": "string — 2-3 sentences pointing students to relevant support for this topic: office hours, tutoring availability, study group suggestions, relevant library resources, and writing center services (QM 7.3)"
+      "supportResources": "string — 2-3 sentences pointing students to relevant support for this topic: office hours, tutoring availability, study group suggestions, relevant library resources, and writing center services (QM 7.3)",
+      "tags": ["string — 5-8 keywords for LMS discoverability: include key terms, topic area, study strategies, and related lesson titles"]
     }
   ]
 }
@@ -557,6 +568,7 @@ REQUIREMENTS:
 - practiceActivities must involve active retrieval (not passive re-reading suggestions)
 - examPrep.keyTopicsToKnow should reflect what an instructor would actually test
 - QM ALIGNMENT: Include a supportResources field per guide pointing students to relevant help: office hours, tutoring, study groups, writing center — so students know where to turn when stuck (QM 7.3). Reference specific instructional materials (readings, videos, slides) for each key concept, making the relationship between study materials and learning activities clear (QM 4.2).
+- COGNITIVE LOAD: Limit sentences to 20 words maximum. Paragraphs to 5 sentences maximum. Use whitespace and clear section breaks to prevent wall-of-text fatigue.
 - HUMAN READABILITY: Write summaries, definitions, and review questions in varied, natural academic prose. Do not use the same sentence templates across lessons. Each guide should feel like it was written specifically for that lesson.
 - Return ONLY the JSON object, no prose, no markdown`,
   },
@@ -637,7 +649,10 @@ Return JSON in this exact structure:
 
   "dataPrivacy":"1-2 sentences on how student data is protected in course technologies, FERPA compliance, and privacy considerations for any third-party tools used in the course (QM 6.4)",
 
-  "importantDates":[{"date":"...","event":"..."}]
+  "importantDates":[{"date":"...","event":"..."}],
+  "tags":["string — 8-12 keywords for LMS discoverability: include course title, department, discipline, key topics, pedagogy style, and relevant acronyms"],
+  "suggestedReviewDate":"string — date by which this syllabus should be reviewed for updates, e.g. 'Review by Fall 2027'",
+  "contentOwnerGroup":"string — department or team responsible for maintaining this syllabus, e.g. 'Department of Social Work'"
 }}
 
 CRITICAL RULES:
@@ -652,6 +667,46 @@ CRITICAL RULES:
 - The syllabus must serve as a complete course orientation: students should be able to find everything they need to get started, understand expectations, access support, and navigate the course (QM Standards 1 & 7)
 - Write everything as if this will be distributed to students on the first day of class at a top university
 - Return ONLY the JSON object`,
+  },
+
+  // ─── COURSE FAQ ─────────────────────────────────────────────────────────────
+  courseFaq: {
+    system: `You are a student-success specialist who writes warm, approachable FAQ documents for university courses. Your FAQs anticipate the real questions students ask — about logistics, assignments, concepts, technology, and exam prep — and answer them in concise, actionable language. You write from the instructor's perspective but in a supportive, student-facing voice. Return ONLY valid JSON, no markdown fences.`,
+
+    user: (cm, scope, verifiedChanges, columns) => `Generate a comprehensive student-facing Course FAQ for each lesson in this course:
+
+${condenseCourseMap(cm, scope, verifiedChanges, columns)}
+
+Return a JSON object with exactly this structure:
+{
+  "faqs": [
+    {
+      "lessonTitle": "string — full lesson title",
+      "questions": [
+        {
+          "question": "string — a realistic question a student would ask, written in first-person student voice (e.g., 'How should I prepare for the midterm on this material?')",
+          "answer": "string — concise, actionable answer in 2-4 sentences. Be specific: reference assignments, readings, or campus resources by name. Use warm, supportive tone.",
+          "category": "string — one of: 'Course Logistics' | 'Assignment Clarification' | 'Concept Explanation' | 'Technical Help' | 'Assessment Prep'",
+          "relatedConcepts": ["string — 1-3 key concepts or topics this Q&A relates to"],
+          "difficulty": "string — 'Basic' | 'Intermediate' | 'Advanced' — how conceptually challenging the question is"
+        }
+      ],
+      "tags": ["string — 5-8 keywords for LMS discoverability: include lesson topic, question categories covered, and key concepts"]
+    }
+  ]
+}
+
+REQUIREMENTS:
+- 4-6 questions per lesson
+- Each lesson must cover at least 3 different categories from: Course Logistics, Assignment Clarification, Concept Explanation, Technical Help, Assessment Prep
+- Questions must sound like real student questions — use first-person voice and natural phrasing
+- Answers must be actionable: tell the student exactly what to do, where to go, or what to review
+- Answers must be concise (2-4 sentences max) — students skim FAQs, they don't read essays
+- Include at least 1 Concept Explanation question per lesson that clarifies a common point of confusion
+- Include at least 1 Assessment Prep question for lessons with exams or major assignments due
+- relatedConcepts must reference specific terms or topics from the lesson, not generic labels
+- HUMAN READABILITY: Vary question phrasing across lessons. Do not reuse the same question templates. Each FAQ should feel tailored to its specific lesson content.
+- Return ONLY the JSON object, no prose, no markdown`,
   },
 };
 
@@ -702,6 +757,16 @@ function buildConfigInstructions(featureId, config, pedagogicalMode = 'lecture')
     const sectCtx = buildSectionsContext(sects);
     if (sectCtx) lines.push(sectCtx);
   }
+
+  // ── Universal writing mechanics (Dornsife model — apply to ALL deliverables) ──
+  lines.push(`WRITING MECHANICS (apply to all generated content):
+- Use active voice exclusively — never passive constructions.
+- Target ~15-word average sentence length; never exceed 25 words per sentence.
+- Use empowering, supportive tone ("Consider…", "We recommend…" — not "You must…").
+- Be concrete and specific — no jargon, no buzzwords, no filler.
+- Position the instructor as the expert; content is their tool, not a mandate.
+- Avoid walls of text: short paragraphs (≤5 sentences), clear section breaks, scannable formatting.
+- Content must be screen-reader accessible: avoid color-only references, describe visual concepts textually.`);
 
   if (!config || Object.keys(config).length === 0) return lines.join('\n');
 

@@ -108,7 +108,7 @@ export async function buildDocxBlob(courseMap, customColumns) {
     }
     return items.map(item => new Paragraph({
       spacing: { line: SINGLE_SP, before: 20, after: 20 },
-      indent: { left: 144 },
+      bullet: { level: 0 },
       children: [new TextRun({ text: item, size: BODY_SIZE, font: FONT })],
     }));
   }
@@ -279,6 +279,7 @@ export async function buildDocxBlob(courseMap, customColumns) {
 
   // ── Build Document ──
   const doc = new Document({
+    language: { value: 'en-US' },
     styles: {
       default: {
         document: { run: { font: FONT, size: BODY_SIZE } },

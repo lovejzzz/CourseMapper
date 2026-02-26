@@ -98,6 +98,7 @@ function addProgressDots(pptx, slide, theme, slideIndex, totalSlides, isDark) {
       x: startX + i * dotGap, y: y - dotR, w: dotR * 2, h: dotR * 2,
       fill: { color: isCurrent ? theme.accent : (isDark ? 'FFFFFF' : theme.primary), transparency: isCurrent ? 0 : 70 },
       line: { color: 'transparent' },
+      altText: isCurrent ? `Current slide ${slideIndex + 1} of ${totalSlides}` : 'Decorative',
     });
   }
 }
@@ -121,6 +122,7 @@ function buildSlideForDeck(pptx, deck, theme, slideIndex, totalSlides) {
       x: W - 3.2, y: -1.5, w: 4.5, h: 4.5,
       fill: { color: theme.secondary, transparency: 15 },
       line: { color: theme.secondary, transparency: 15 },
+      altText: 'Decorative',
     });
 
     // Smaller accent circle (bottom left)
@@ -128,6 +130,7 @@ function buildSlideForDeck(pptx, deck, theme, slideIndex, totalSlides) {
       x: -1.2, y: H - 1.8, w: 3, h: 3,
       fill: { color: theme.accent, transparency: 30 },
       line: { color: theme.accent, transparency: 30 },
+      altText: 'Decorative',
     });
 
     // Bottom accent bar
@@ -135,12 +138,14 @@ function buildSlideForDeck(pptx, deck, theme, slideIndex, totalSlides) {
       x: 0, y: H - 0.6, w: W, h: 0.6,
       fill: { color: theme.accent, transparency: 20 },
       line: { color: theme.accent, transparency: 20 },
+      altText: 'Decorative',
     });
 
     // Thin decorative line
     slide.addShape(pptx.ShapeType.line, {
       x: 0.7, y: 0.45, w: 2.5, h: 0,
       line: { color: theme.accent, pt: 1.5, transparency: 40 },
+      altText: 'Decorative',
     });
 
     // Course/Lesson number badge
@@ -167,6 +172,7 @@ function buildSlideForDeck(pptx, deck, theme, slideIndex, totalSlides) {
       x: 0.7, y: 3.4, w: 2.2, h: 0.06,
       fill: { color: theme.accent },
       line: { color: theme.accent },
+      altText: 'Decorative',
     });
 
     // Subtitle / first bullet
@@ -192,6 +198,7 @@ function buildSlideForDeck(pptx, deck, theme, slideIndex, totalSlides) {
       x: 0, y: 0, w: 0.12, h: H,
       fill: { color: theme.primary },
       line: { color: theme.primary },
+      altText: 'Decorative',
     });
 
     // Header band
@@ -199,6 +206,7 @@ function buildSlideForDeck(pptx, deck, theme, slideIndex, totalSlides) {
       x: 0.12, y: 0, w: W - 0.12, h: 1.15,
       fill: { color: theme.primary },
       line: { color: theme.primary },
+      altText: 'Decorative',
     });
 
     slide.addText('LEARNING OBJECTIVES', {
@@ -227,6 +235,7 @@ function buildSlideForDeck(pptx, deck, theme, slideIndex, totalSlides) {
           fill: { color: 'FFFFFF' },
           line: { color: theme.secondary, pt: 1.5 },
           rectRadius: 0.1,
+          altText: 'Decorative',
         });
 
         // Number circle
@@ -234,6 +243,7 @@ function buildSlideForDeck(pptx, deck, theme, slideIndex, totalSlides) {
           x: x + 0.15, y: y + 0.15, w: 0.5, h: 0.5,
           fill: { color: theme.secondary },
           line: { color: theme.secondary },
+          altText: `Objective ${i + 1}`,
         });
         slide.addText(`${i + 1}`, {
           x: x + 0.15, y: y + 0.15, w: 0.5, h: 0.5,
@@ -260,12 +270,14 @@ function buildSlideForDeck(pptx, deck, theme, slideIndex, totalSlides) {
       x: 0, y: 0, w: 0.12, h: H,
       fill: { color: theme.primary },
       line: { color: theme.primary },
+      altText: 'Decorative',
     });
 
     slide.addShape(pptx.ShapeType.rect, {
       x: 0.12, y: 0, w: W - 0.12, h: 1.15,
       fill: { color: theme.secondary },
       line: { color: theme.secondary },
+      altText: 'Decorative',
     });
 
     slide.addText('TODAY\'S AGENDA', {
@@ -286,6 +298,7 @@ function buildSlideForDeck(pptx, deck, theme, slideIndex, totalSlides) {
           x: 0.5, y: y + 0.05, w: 0.44, h: 0.44,
           fill: { color: i === 0 ? theme.accent : theme.light },
           line: { color: i === 0 ? theme.accent : theme.secondary, pt: 1.5 },
+          altText: `Agenda item ${i + 1}`,
         });
         slide.addText(`${i + 1}`, {
           x: 0.5, y: y + 0.05, w: 0.44, h: 0.44,
@@ -302,6 +315,7 @@ function buildSlideForDeck(pptx, deck, theme, slideIndex, totalSlides) {
           slide.addShape(pptx.ShapeType.line, {
             x: 1.15, y: y + 0.6, w: W - 1.9, h: 0,
             line: { color: 'E8ECF0', pt: 0.5 },
+            altText: 'Decorative',
           });
         }
       });
@@ -320,6 +334,7 @@ function buildSlideForDeck(pptx, deck, theme, slideIndex, totalSlides) {
       x: 0, y: 0, w: splitX, h: H,
       fill: { color: theme.primary },
       line: { color: theme.primary },
+      altText: 'Decorative',
     });
 
     // Decorative circle on left
@@ -327,6 +342,7 @@ function buildSlideForDeck(pptx, deck, theme, slideIndex, totalSlides) {
       x: -1, y: H - 2.5, w: 3, h: 3,
       fill: { color: theme.secondary, transparency: 50 },
       line: { color: theme.secondary, transparency: 50 },
+      altText: 'Decorative',
     });
 
     // "LAST TIME" label
@@ -370,9 +386,9 @@ function buildSlideForDeck(pptx, deck, theme, slideIndex, totalSlides) {
     });
 
     // Arrow transition indicator
-    slide.addText('→', {
-      x: splitX - 0.15, y: H / 2 - 0.4, w: 0.6, h: 0.6,
-      fontSize: 28, fontFace: FONT_HEADING,
+    slide.addText('Transition to today', {
+      x: splitX - 0.4, y: H / 2 - 0.4, w: 1.1, h: 0.6,
+      fontSize: 10, fontFace: FONT_LABEL,
       color: theme.accent, bold: true, align: 'center', valign: 'middle',
     });
 
@@ -401,6 +417,7 @@ function buildSlideForDeck(pptx, deck, theme, slideIndex, totalSlides) {
       x: 0, y: H - 0.08, w: W, h: 0.08,
       fill: { color: theme.accent },
       line: { color: theme.accent },
+      altText: 'Decorative',
     });
 
     addProgressDots(pptx, slide, theme, slideIndex, totalSlides, false);
@@ -414,6 +431,7 @@ function buildSlideForDeck(pptx, deck, theme, slideIndex, totalSlides) {
       x: 0, y: 0, w: W, h: 0.95,
       fill: { color: theme.primary },
       line: { color: theme.primary },
+      altText: 'Decorative',
     });
 
     // EXAMPLE badge
@@ -422,6 +440,7 @@ function buildSlideForDeck(pptx, deck, theme, slideIndex, totalSlides) {
       fill: { color: theme.accent },
       line: { color: theme.accent },
       rectRadius: 0.08,
+      altText: 'Decorative',
     });
     slide.addText('EXAMPLE', {
       x: 0.5, y: 0.2, w: 1.2, h: 0.52,
@@ -441,6 +460,7 @@ function buildSlideForDeck(pptx, deck, theme, slideIndex, totalSlides) {
       x: 0.5, y: 1.15, w: 0.06, h: H - 1.8,
       fill: { color: theme.accent },
       line: { color: theme.accent },
+      altText: 'Decorative',
     });
 
     // Example content
@@ -471,8 +491,9 @@ function buildSlideForDeck(pptx, deck, theme, slideIndex, totalSlides) {
           fill: { color: theme.light },
           line: { color: theme.accent, pt: 1.5 },
           rectRadius: 0.08,
+          altText: 'Key takeaway highlight',
         });
-        slide.addText(`💡 ${takeaway}`, {
+        slide.addText(`Key Takeaway: ${takeaway}`, {
           x: 0.7, y: H - 1.2, w: W - 1.4, h: 0.8,
           fontSize: 13, fontFace: FONT_BODY,
           color: theme.primary, bold: true, valign: 'middle',
@@ -492,13 +513,14 @@ function buildSlideForDeck(pptx, deck, theme, slideIndex, totalSlides) {
       x: 0, y: 0, w: 0.12, h: H,
       fill: { color: theme.primary },
       line: { color: theme.primary },
+      altText: 'Decorative',
     });
 
     // "KEY CONCEPT" label
     slide.addText('KEY CONCEPT', {
       x: 0.5, y: 0.3, w: W - 0.8, h: 0.35,
       fontSize: 10, fontFace: FONT_LABEL,
-      color: theme.subtleText, bold: true, charSpacing: 4,
+      color: theme.primary, bold: true, charSpacing: 4,
     });
 
     // Large central card
@@ -510,6 +532,7 @@ function buildSlideForDeck(pptx, deck, theme, slideIndex, totalSlides) {
       line: { color: theme.secondary, pt: 2 },
       rectRadius: 0.15,
       shadow: { type: 'outer', blur: 8, offset: 3, opacity: 0.15, color: '000000' },
+      altText: 'Key concept card',
     });
 
     // Accent stripe at top of card
@@ -517,6 +540,7 @@ function buildSlideForDeck(pptx, deck, theme, slideIndex, totalSlides) {
       x: cardX, y: cardY, w: cardW, h: 0.08,
       fill: { color: theme.accent },
       line: { color: theme.accent },
+      altText: 'Decorative',
     });
 
     // Main term/concept (first bullet or title)
@@ -550,6 +574,7 @@ function buildSlideForDeck(pptx, deck, theme, slideIndex, totalSlides) {
       x: 0, y: 0, w: W, h: 0.95,
       fill: { color: theme.primary },
       line: { color: theme.primary },
+      altText: 'Decorative',
     });
 
     // ACTIVITY badge
@@ -558,6 +583,7 @@ function buildSlideForDeck(pptx, deck, theme, slideIndex, totalSlides) {
       fill: { color: theme.accent },
       line: { color: theme.accent },
       rectRadius: 0.08,
+      altText: 'Decorative',
     });
     slide.addText('ACTIVITY', {
       x: 0.5, y: 0.2, w: 1.2, h: 0.52,
@@ -567,7 +593,7 @@ function buildSlideForDeck(pptx, deck, theme, slideIndex, totalSlides) {
     });
 
     if (s.timer || s.activityType) {
-      const timerLabel = s.timer ? `⏱ ${s.timer}` : s.activityType;
+      const timerLabel = s.timer ? `Duration: ${s.timer}` : s.activityType;
       slide.addText(timerLabel, {
         x: W - 2.5, y: 0.22, w: 2.2, h: 0.48,
         fontSize: 12, color: theme.accent,
@@ -587,6 +613,7 @@ function buildSlideForDeck(pptx, deck, theme, slideIndex, totalSlides) {
       fill: { color: 'FFF8F0' },
       line: { color: theme.accent, pt: 2 },
       rectRadius: 0.15,
+      altText: 'Activity instructions area',
     });
 
     if (s.bullets?.length > 0) {
@@ -615,11 +642,13 @@ function buildSlideForDeck(pptx, deck, theme, slideIndex, totalSlides) {
       x: W - 2.5, y: -0.8, w: 3.5, h: 3.5,
       fill: { color: theme.secondary, transparency: 55 },
       line: { color: theme.secondary, transparency: 55 },
+      altText: 'Decorative',
     });
     slide.addShape(pptx.ShapeType.rect, {
       x: 0, y: H - 0.5, w: W, h: 0.5,
       fill: { color: theme.accent },
       line: { color: theme.accent },
+      altText: 'Decorative',
     });
 
     slide.addText('KEY TAKEAWAYS', {
@@ -637,6 +666,7 @@ function buildSlideForDeck(pptx, deck, theme, slideIndex, totalSlides) {
       x: 0.7, y: 1.85, w: 2.2, h: 0.06,
       fill: { color: theme.accent },
       line: { color: theme.accent },
+      altText: 'Decorative',
     });
 
     if (s.bullets?.length > 0) {
@@ -664,11 +694,13 @@ function buildSlideForDeck(pptx, deck, theme, slideIndex, totalSlides) {
       x: W - 3, y: -1, w: 4, h: 4,
       fill: { color: theme.primary, transparency: 40 },
       line: { color: theme.primary, transparency: 40 },
+      altText: 'Decorative',
     });
     slide.addShape(pptx.ShapeType.rect, {
       x: 0, y: H - 0.45, w: W, h: 0.45,
       fill: { color: theme.accent },
       line: { color: theme.accent },
+      altText: 'Decorative',
     });
 
     slide.addText('?', {
@@ -711,6 +743,7 @@ function buildSlideForDeck(pptx, deck, theme, slideIndex, totalSlides) {
       x: 0, y: 0, w: 0.12, h: H,
       fill: { color: theme.primary },
       line: { color: theme.primary },
+      altText: 'Decorative',
     });
 
     // Top header area — gradient feel (light to white)
@@ -718,6 +751,7 @@ function buildSlideForDeck(pptx, deck, theme, slideIndex, totalSlides) {
       x: 0.12, y: 0, w: W - 0.12, h: 1.1,
       fill: { color: theme.light },
       line: { color: theme.light },
+      altText: 'Decorative',
     });
 
     // Accent line below header
@@ -725,6 +759,7 @@ function buildSlideForDeck(pptx, deck, theme, slideIndex, totalSlides) {
       x: 0.12, y: 1.07, w: W - 0.12, h: 0.05,
       fill: { color: theme.accent },
       line: { color: theme.accent },
+      altText: 'Decorative',
     });
 
     // Slide title — assertion-evidence style (full sentence)
@@ -796,6 +831,7 @@ function buildSlideForDeck(pptx, deck, theme, slideIndex, totalSlides) {
     fill: { color: isDarkSlide ? theme.accent : theme.primary },
     line: { color: 'transparent' },
     rectRadius: 0.05,
+    altText: 'Decorative',
   });
   slide.addText(`${slideIndex + 1}/${totalSlides}`, {
     x: W - 0.95, y: H - 0.44, w: 0.68, h: 0.34,
@@ -827,6 +863,7 @@ async function createPptxWithDecks(data, courseName, themeIndex) {
   const pptx = new PptxGenJS();
 
   pptx.layout = 'LAYOUT_16x9';
+  pptx.lang = 'en-US';
   pptx.author = 'CourseMapper';
   pptx.title = courseName || 'Slide Decks';
 
@@ -846,6 +883,7 @@ async function createPptxWithDecks(data, courseName, themeIndex) {
         x: 0, y: 5.625 - 0.08, w: 10, h: 0.08,
         fill: { color: theme.accent },
         line: { color: theme.accent },
+        altText: 'Decorative',
       });
       divider.addText(deck.lessonTitle || `Lesson ${di + 1}`, {
         x: 1, y: 1.5, w: 8, h: 2.5,
@@ -894,6 +932,7 @@ export async function buildSingleDeckPptxBlob(deck, deckIndex, courseName, theme
   const pptx = new PptxGenJS();
 
   pptx.layout = 'LAYOUT_16x9';
+  pptx.lang = 'en-US';
   pptx.title = deck.lessonTitle || courseName || 'Slide Deck';
 
   const theme = resolveTheme(deckIndex, themeIndex);

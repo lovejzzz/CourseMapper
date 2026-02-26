@@ -62,6 +62,7 @@ const FEATURE_LABELS_MAP = {
   assignments: 'Assignment Briefs',
   studyGuides: 'Study Guides',
   syllabus: 'Syllabus',
+  courseFaq: 'Course FAQ',
 };
 
 function getFeatureLabel(featureId) {

@@ -34,6 +34,7 @@ const FEATURE_LABELS = {
   assignments: 'Assignment Briefs',
   studyGuides: 'Study Guides',
   syllabus: 'Syllabus',
+  courseFaq: 'Course FAQ',
 };
 
 /** Resolve featureId to label — supports custom deliverables */

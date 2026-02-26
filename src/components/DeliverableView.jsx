@@ -1219,7 +1219,7 @@ function SlideCanvas({ slide, slideIndex, totalSlides, deckTitle, dataKey, deckI
         </div>
       </div>
       <ProgressDots slideIndex={slideIndex} totalSlides={totalSlides} theme={theme} />
-      <div className="absolute bottom-2.5 right-3.5 text-[8px] font-semibold z-10" style={{ color: theme.subtleText }}>{slideIndex + 1} / {totalSlides}</div>
+      <div className="absolute bottom-2.5 right-3.5 text-[8px] font-semibold z-10" style={{ color: theme.primary + 'B3' }}>{slideIndex + 1} / {totalSlides}</div>
     </div>
   );
 
@@ -1251,7 +1251,7 @@ function SlideCanvas({ slide, slideIndex, totalSlides, deckTitle, dataKey, deckI
         </div>
       </div>
       <ProgressDots slideIndex={slideIndex} totalSlides={totalSlides} theme={theme} />
-      <div className="absolute bottom-2.5 right-3.5 text-[8px] font-semibold z-10" style={{ color: theme.subtleText }}>{slideIndex + 1} / {totalSlides}</div>
+      <div className="absolute bottom-2.5 right-3.5 text-[8px] font-semibold z-10" style={{ color: theme.primary + 'B3' }}>{slideIndex + 1} / {totalSlides}</div>
     </div>
   );
 
@@ -1298,7 +1298,7 @@ function SlideCanvas({ slide, slideIndex, totalSlides, deckTitle, dataKey, deckI
         </div>
       </div>
       <ProgressDots slideIndex={slideIndex} totalSlides={totalSlides} theme={theme} />
-      <div className="absolute bottom-2.5 right-3.5 text-[8px] font-semibold z-10" style={{ color: theme.subtleText }}>{slideIndex + 1} / {totalSlides}</div>
+      <div className="absolute bottom-2.5 right-3.5 text-[8px] font-semibold z-10" style={{ color: theme.primary + 'B3' }}>{slideIndex + 1} / {totalSlides}</div>
     </div>
   );
 
@@ -1340,7 +1340,7 @@ function SlideCanvas({ slide, slideIndex, totalSlides, deckTitle, dataKey, deckI
         </div>
       </div>
       <ProgressDots slideIndex={slideIndex} totalSlides={totalSlides} theme={theme} />
-      <div className="absolute bottom-2.5 right-3.5 text-[8px] font-semibold z-10" style={{ color: theme.subtleText }}>{slideIndex + 1} / {totalSlides}</div>
+      <div className="absolute bottom-2.5 right-3.5 text-[8px] font-semibold z-10" style={{ color: theme.primary + 'B3' }}>{slideIndex + 1} / {totalSlides}</div>
     </div>
   );
 
@@ -1349,7 +1349,7 @@ function SlideCanvas({ slide, slideIndex, totalSlides, deckTitle, dataKey, deckI
     <div className="relative aspect-[16/9] rounded-xl overflow-hidden shadow-2xl group/slide" style={{ fontFamily: bodyFont }}>
       <SlideDecor type="keyTerm" theme={theme} />
       <div className="relative z-10 flex flex-col h-full items-center justify-center px-10 py-6">
-        <p className="text-[9px] font-bold tracking-[0.2em] uppercase mb-3" style={{ color: theme.subtleText }}>KEY CONCEPT</p>
+        <p className="text-[9px] font-bold tracking-[0.2em] uppercase mb-3" style={{ color: theme.primary }}>KEY CONCEPT</p>
         {/* Central card */}
         <div className="bg-white rounded-xl border-2 shadow-lg px-8 py-5 max-w-[75%] text-center" style={{ borderColor: theme.secondary + '60' }}>
           <div className="w-full h-1 rounded-full mb-4 mx-auto" style={{ background: theme.accent, maxWidth: '60%' }} />
@@ -1369,7 +1369,7 @@ function SlideCanvas({ slide, slideIndex, totalSlides, deckTitle, dataKey, deckI
         )}
       </div>
       <ProgressDots slideIndex={slideIndex} totalSlides={totalSlides} theme={theme} />
-      <div className="absolute bottom-2.5 right-3.5 text-[8px] font-semibold z-10" style={{ color: theme.subtleText }}>{slideIndex + 1} / {totalSlides}</div>
+      <div className="absolute bottom-2.5 right-3.5 text-[8px] font-semibold z-10" style={{ color: theme.primary + 'B3' }}>{slideIndex + 1} / {totalSlides}</div>
     </div>
   );
 
@@ -1433,7 +1433,7 @@ function SlideCanvas({ slide, slideIndex, totalSlides, deckTitle, dataKey, deckI
         </div>
       </div>
       <ProgressDots slideIndex={slideIndex} totalSlides={totalSlides} theme={theme} />
-      <div className="absolute bottom-2.5 right-3.5 text-[8px] font-semibold z-10" style={{ color: theme.subtleText }}>{slideIndex + 1} / {totalSlides}</div>
+      <div className="absolute bottom-2.5 right-3.5 text-[8px] font-semibold z-10" style={{ color: theme.primary + 'B3' }}>{slideIndex + 1} / {totalSlides}</div>
     </div>
   );
 
@@ -1511,7 +1511,7 @@ function SlideThumbnail({ slide, slideIndex, deckTitle, deckIndex, themeIndex })
           </div>
         ) : type === 'keyTerm' ? (
           <div className="flex-1 flex flex-col items-center justify-center px-1">
-            <p className="text-[4px] font-bold tracking-wider mb-0.5" style={{ color: theme.subtleText }}>KEY CONCEPT</p>
+            <p className="text-[4px] font-bold tracking-wider mb-0.5" style={{ color: theme.primary }}>KEY CONCEPT</p>
             <div className="bg-white rounded px-2 py-1 border text-center" style={{ borderColor: theme.secondary + '40' }}>
               <p className="text-[5px] font-bold leading-tight" style={{ color: theme.primary }}>{(bullets[0] || slide?.title || 'Concept').substring(0, 40)}</p>
             </div>
