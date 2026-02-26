@@ -3,13 +3,15 @@ import { initializeApp } from 'firebase/app';
 import { getAuth, GoogleAuthProvider } from 'firebase/auth';
 import { getFirestore } from 'firebase/firestore';
 
+// Firebase config is public by design — security comes from Firestore rules,
+// not from hiding these values. Env vars can override for local dev if needed.
 const firebaseConfig = {
-  apiKey:            import.meta.env.VITE_FIREBASE_API_KEY,
-  authDomain:        import.meta.env.VITE_FIREBASE_AUTH_DOMAIN,
-  projectId:         import.meta.env.VITE_FIREBASE_PROJECT_ID,
-  storageBucket:     import.meta.env.VITE_FIREBASE_STORAGE_BUCKET,
-  messagingSenderId: import.meta.env.VITE_FIREBASE_MESSAGING_SENDER_ID,
-  appId:             import.meta.env.VITE_FIREBASE_APP_ID,
+  apiKey:            import.meta.env.VITE_FIREBASE_API_KEY            || 'AIzaSyDaVgYRIAmwP1lkoToc4SEToEq_DLG4ly8',
+  authDomain:        import.meta.env.VITE_FIREBASE_AUTH_DOMAIN        || 'coursemapper-a92c4.firebaseapp.com',
+  projectId:         import.meta.env.VITE_FIREBASE_PROJECT_ID         || 'coursemapper-a92c4',
+  storageBucket:     import.meta.env.VITE_FIREBASE_STORAGE_BUCKET     || 'coursemapper-a92c4.firebasestorage.app',
+  messagingSenderId: import.meta.env.VITE_FIREBASE_MESSAGING_SENDER_ID || '70767622598',
+  appId:             import.meta.env.VITE_FIREBASE_APP_ID             || '1:70767622598:web:83f4e29324e1213c9d9ac7',
 };
 
 // Only initialise Firebase when config is present (graceful no-op otherwise)
