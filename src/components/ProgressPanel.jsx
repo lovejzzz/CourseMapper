@@ -174,6 +174,10 @@ export default function ProgressPanel({
   delivGenerationLog, delivTimings,
   // Item 6: cascade sync log
   syncLog, isSyncing, pendingSyncCount, syncingFeatures,
+  // Cloud save status (silent — shown inline, not as a separate banner)
+  cloudSaveStatus,
+  // Stop deliverable generation
+  onStopDeliverables,
   // Version history (moved from ExportSidePanel)
   versionHistory, activeVersion, onJumpVersion,
   // Named snapshots (1.4)
@@ -439,7 +443,7 @@ export default function ProgressPanel({
                       </svg>
                     </>
                   ) : isDelivGenerating ? (
-                    /* Initial generation — show indigo spinner + count */
+                    /* Initial generation — show indigo spinner + count + stop button */
                     <>
                       <span className="text-[10px] text-indigo-500 font-semibold">
                         {delivRows.filter(r => r.status === 'done').length}/{delivRows.length} done
@@ -459,6 +463,21 @@ export default function ProgressPanel({
                     <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M19 9l-7 7-7-7" />
                   </svg>
                 </button>
+
+                {/* Stop deliverable generation button */}
+                {isDelivGenerating && onStopDeliverables && (
+                  <div className="mb-2">
+                    <button
+                      onClick={onStopDeliverables}
+                      className="tactile flex items-center gap-1.5 px-3 py-1.5 rounded-squircle-xs text-[10px] font-semibold text-red-500 bg-red-50/80 border border-red-200/40 hover:bg-red-100/80 transition-all duration-200"
+                    >
+                      <svg className="w-3 h-3" fill="currentColor" viewBox="0 0 24 24">
+                        <rect x="6" y="6" width="12" height="12" rx="2" />
+                      </svg>
+                      Stop Deliverables
+                    </button>
+                  </div>
+                )}
                 {delivExpanded && (
                   <div className="space-y-1">
                     {delivRows.map(row => {
@@ -517,6 +536,35 @@ export default function ProgressPanel({
                         </div>
                       );
                     })}
+                  </div>
+                )}
+
+                {/* Cloud save status — subtle inline indicator */}
+                {cloudSaveStatus && cloudSaveStatus !== 'idle' && (
+                  <div className={`mt-2 flex items-center gap-1.5 px-2 py-1 rounded-md text-[10px] font-medium ${
+                    cloudSaveStatus === 'saving' ? 'text-slate-400' :
+                    cloudSaveStatus === 'saved' ? 'text-emerald-500' :
+                    cloudSaveStatus === 'error' ? 'text-red-400' : ''
+                  }`}>
+                    {cloudSaveStatus === 'saving' && (
+                      <svg className="animate-spin w-3 h-3 flex-shrink-0" fill="none" viewBox="0 0 24 24">
+                        <circle className="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" strokeWidth="4" />
+                        <path className="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4z" />
+                      </svg>
+                    )}
+                    {cloudSaveStatus === 'saved' && (
+                      <svg className="w-3 h-3 flex-shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                        <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M5 13l4 4L19 7" />
+                      </svg>
+                    )}
+                    {cloudSaveStatus === 'error' && (
+                      <svg className="w-3 h-3 flex-shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                        <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 9v2m0 4h.01" />
+                      </svg>
+                    )}
+                    {cloudSaveStatus === 'saving' ? 'Saving project…' :
+                     cloudSaveStatus === 'saved' ? 'Project saved' :
+                     'Save failed'}
                   </div>
                 )}
 
@@ -823,7 +871,11 @@ export default function ProgressPanel({
                     style={{ width: `${streamProgress || 50}%` }}
                   />
                 </div>
-                <span className="text-xs font-semibold text-amber-600 bg-amber-50/80 px-2.5 py-1 rounded-full flex-shrink-0">
+                <span className="flex items-center gap-1.5 text-xs font-semibold text-amber-600 bg-amber-50/80 px-2.5 py-1 rounded-full flex-shrink-0">
+                  <svg className="w-3 h-3" fill="currentColor" viewBox="0 0 24 24">
+                    <rect x="5" y="4" width="5" height="16" rx="1" />
+                    <rect x="14" y="4" width="5" height="16" rx="1" />
+                  </svg>
                   Paused
                 </span>
               </div>
@@ -844,16 +896,16 @@ export default function ProgressPanel({
                   <svg className="w-3.5 h-3.5" fill="currentColor" viewBox="0 0 24 24">
                     <path d="M8 5v14l11-7z" />
                   </svg>
-                  Resume
+                  Continue
                 </button>
                 <button
                   onClick={onClearAll}
                   className="tactile flex items-center gap-1.5 px-5 py-2 rounded-squircle-xs text-xs font-semibold text-red-500 bg-red-50/80 border border-red-200/40 hover:bg-red-100/80 transition-all duration-200"
                 >
                   <svg className="w-3.5 h-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16" />
+                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M6 18L18 6M6 6l12 12" />
                   </svg>
-                  Clear All
+                  Stop
                 </button>
               </div>
             )}
@@ -882,12 +934,13 @@ export default function ProgressPanel({
                   {onStop && (
                     <button
                       onClick={onStop}
-                      className="tactile flex items-center gap-1.5 px-3.5 py-1.5 rounded-squircle-xs text-xs font-semibold text-red-500 bg-red-50/80 border border-red-200/40 hover:bg-red-100/80 transition-all duration-200 flex-shrink-0"
+                      className="tactile flex items-center gap-1.5 px-3.5 py-1.5 rounded-squircle-xs text-xs font-semibold text-amber-600 bg-amber-50/80 border border-amber-200/40 hover:bg-amber-100/80 transition-all duration-200 flex-shrink-0"
                     >
                       <svg className="w-3 h-3" fill="currentColor" viewBox="0 0 24 24">
-                        <rect x="6" y="6" width="12" height="12" rx="2" />
+                        <rect x="5" y="4" width="5" height="16" rx="1" />
+                        <rect x="14" y="4" width="5" height="16" rx="1" />
                       </svg>
-                      Stop
+                      Pause
                     </button>
                   )}
                 </div>

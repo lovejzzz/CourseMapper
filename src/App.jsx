@@ -305,13 +305,13 @@ export default function App() {
   // Keep projectId ref in sync to avoid race conditions
   useEffect(() => { projectIdRef.current = projectId; }, [projectId]);
 
-  // ── Cloud auto-save (debounced 5s) ──
+  // ── Cloud auto-save (debounced 5s, runs silently) ──
   useEffect(() => {
     if (!user || !hasGenerated || !courseMap) return;
     clearTimeout(cloudSaveTimerRef.current);
-    setCloudSaveStatus('saving');
     cloudSaveTimerRef.current = setTimeout(async () => {
       try {
+        setCloudSaveStatus('saving');
         // Use ref to avoid creating duplicate IDs when effect fires multiple times
         let pid = projectIdRef.current;
         if (!pid) {
@@ -462,6 +462,7 @@ export default function App() {
         if (saved.promptText !== undefined) setPromptText(saved.promptText);
         if (saved.activeTab) setActiveTab(saved.activeTab);
         if (saved.slideTheme !== undefined) setSlideTheme(saved.slideTheme);
+        if (saved.deliverableConfig) setDeliverableConfig(saved.deliverableConfig);
         if (saved.fileNames?.length > 0) {
           setFiles(saved.fileNames.map(n => ({ name: n, size: 0, _restored: true })));
         }
@@ -514,6 +515,8 @@ export default function App() {
         promptText,
         activeTab,
         deliverables: deliv.deliverables,
+        slideTheme,
+        deliverableConfig,
         savedAt: Date.now(),
         version: '1.5',
       };
@@ -610,11 +613,22 @@ export default function App() {
   }
 
   function handleNewProject() {
+    // 1. Stop any active generation / streaming first
     gen.handleStop();
+    deliv.stopGenerating();
+    // 2. Clear pending save timers so old data isn't written after reset
+    clearTimeout(saveTimerRef.current);
+    clearTimeout(cloudSaveTimerRef.current);
+    clearTimeout(cloudStatusTimerRef.current);
+    // 3. Remove persisted data before resetting state
+    //    (prevents save-effects from re-writing stale data)
+    try { localStorage.removeItem(STORAGE_KEY); } catch {}
+    // 4. Reset all state
     gen.resetGeneration();
     rev.resetRevision();
     version.resetHistory();
     resetExport();
+    deliv.resetDeliverables();
     setCourseMap(null);
     setOldCourseMap(null);
     setUserEdits([]);
@@ -630,14 +644,12 @@ export default function App() {
     setDeliverableConfig({});
     setLessonCount(0);
     setActiveTab('courseMap');
-    deliv.resetDeliverables();
     setUnseenChanges(new Set());
     setHasSavedSession(false);
     setProjectId(null);
     projectIdRef.current = null;
     setCloudSaveStatus('idle');
     setScreen('landing');
-    try { localStorage.removeItem(STORAGE_KEY); } catch {}
   }
 
   const handleAddMaterials = useCallback(async (e) => {
@@ -851,42 +863,7 @@ export default function App() {
     <div className="min-h-screen mesh-bg noise-overlay">
       <Header onOpenProjects={() => setShowProjectPicker(true)} />
 
-      {/* Cloud save status indicator */}
-      {user && hasGenerated && cloudSaveStatus !== 'idle' && (
-        <div className="max-w-7xl mx-auto px-8 -mb-2">
-          <div className={`inline-flex items-center gap-1.5 px-3 py-1 rounded-full text-[10px] font-medium transition-all duration-300 ${
-            cloudSaveStatus === 'saving' ? 'text-slate-400 bg-slate-50/80' :
-            cloudSaveStatus === 'saved' ? 'text-emerald-600 bg-emerald-50/80' :
-            cloudSaveStatus === 'error' ? 'text-red-500 bg-red-50/80' : ''
-          }`}>
-            {cloudSaveStatus === 'saving' && (
-              <>
-                <svg className="animate-spin w-3 h-3" fill="none" viewBox="0 0 24 24">
-                  <circle className="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" strokeWidth="4" />
-                  <path className="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4z" />
-                </svg>
-                Saving to cloud...
-              </>
-            )}
-            {cloudSaveStatus === 'saved' && (
-              <>
-                <svg className="w-3 h-3" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M5 13l4 4L19 7" />
-                </svg>
-                Saved to cloud
-              </>
-            )}
-            {cloudSaveStatus === 'error' && (
-              <>
-                <svg className="w-3 h-3" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 9v2m0 4h.01m-6.938 4h13.856c1.54 0 2.502-1.667 1.732-2.5L13.732 4c-.77-.833-1.964-.833-2.732 0L4.082 16.5c-.77.833.192 2.5 1.732 2.5z" />
-                </svg>
-                Cloud save failed
-              </>
-            )}
-          </div>
-        </div>
-      )}
+      {/* Cloud save runs silently — status shown in ProgressPanel activity log */}
 
       <main className="w-full px-4 sm:px-6 pb-10 space-y-4">
         {/* Top bar */}
@@ -1193,6 +1170,8 @@ export default function App() {
                   isSyncing={smartSync.isSyncing}
                   pendingSyncCount={smartSync.pendingSyncCount}
                   syncingFeatures={smartSync.syncingFeatures}
+                  cloudSaveStatus={user ? cloudSaveStatus : null}
+                  onStopDeliverables={deliv.isGenerating ? deliv.stopGenerating : null}
                 />
               </ErrorBoundary>
             </div>
