@@ -43,11 +43,16 @@ export default function ModelConfig({
 }) {
   const debounceRef = useRef(null);
   const isFirstMount = useRef(true);
+  // Tracks whether a provider change was triggered by auto-detection from
+  // the API key prefix (vs the user explicitly switching the dropdown).
+  // When true, the provider-change effect keeps the API key intact.
+  const autoDetectedRef = useRef(false);
 
   const isFree = provider === 'free';
 
-  // When provider changes, reset everything (skip on initial mount to
-  // preserve the existing API key when the collapsed config re-expands)
+  // When provider changes, reset model state.
+  // Skip on initial mount (preserves state when collapsed config re-expands).
+  // Skip clearing apiKey when change was auto-detected from key prefix.
   useEffect(() => {
     if (isFirstMount.current) {
       isFirstMount.current = false;
@@ -62,6 +67,7 @@ export default function ModelConfig({
       return;
     }
 
+    // Always reset model state when provider changes
     setApiStatus('idle');
     setModelName('');
     setAvailableModels([]);
@@ -73,10 +79,12 @@ export default function ModelConfig({
       setModelId(FREE_MODELS[0].id);
       setModelName(FREE_MODELS[0].name);
       setApiStatus('connected');
+    } else if (autoDetectedRef.current) {
+      // Provider was auto-switched because user typed a key with a different
+      // prefix — keep the key so validation can proceed
+      autoDetectedRef.current = false;
     } else {
-      // Clear the API key when switching providers so auto-detect doesn't
-      // fight the user's explicit selection (e.g. switching from Google to
-      // OpenAI while a Google key is still in the field).
+      // User explicitly changed the dropdown — clear the old key
       setApiKey('');
     }
   }, [provider]);
@@ -103,6 +111,7 @@ export default function ModelConfig({
     // Auto-detect and switch provider if key prefix doesn't match
     const detected = detectProvider(apiKey.trim());
     if (detected && detected !== provider) {
+      autoDetectedRef.current = true; // signal: don't clear apiKey
       setProvider(detected);
       return; // provider change will re-trigger this effect
     }
