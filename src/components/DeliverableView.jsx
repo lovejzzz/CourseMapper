@@ -1553,18 +1553,9 @@ function SlideDecksView({ data, isStreaming, onEdit, slideTheme, onSlideThemeCha
   const [deckTabDraft, setDeckTabDraft] = useState('');
   const deckTabRef = useRef(null);
 
-  if (!data) return isStreaming ? <StreamingBanner /> : <EmptyState />;
-  const key = data.decks ? 'decks' : 'slideDecks';
-  const decks = data[key] || [];
-  if (decks.length === 0 && !isStreaming) return <EmptyState />;
-
-  const deck = decks[activeDeck] || decks[0];
-  const slides = deck?.slides || [];
-  const slide = slides[activeSlide] || slides[0];
-  const deckTitle = deck?.lessonTitle || '';
-  const themeIndex = slideTheme !== undefined && slideTheme !== null ? slideTheme : undefined;
-
-  const handleDeckChange = (i) => { setActiveDeck(i); setActiveSlide(0); };
+  // ── All hooks MUST come before any early returns (Rules of Hooks) ──
+  const key = data?.decks ? 'decks' : 'slideDecks';
+  const decks = data?.[key] || [];
 
   const commitDeckTitle = useCallback((i) => {
     if (deckTabDraft && deckTabDraft !== (decks[i]?.lessonTitle || '') && onEdit) {
@@ -1579,6 +1570,18 @@ function SlideDecksView({ data, isStreaming, onEdit, slideTheme, onSlideThemeCha
       deckTabRef.current.select();
     }
   }, [editingDeckTab]);
+
+  // ── Early returns after all hooks ──
+  if (!data) return isStreaming ? <StreamingBanner /> : <EmptyState />;
+  if (decks.length === 0 && !isStreaming) return <EmptyState />;
+
+  const deck = decks[activeDeck] || decks[0];
+  const slides = deck?.slides || [];
+  const slide = slides[activeSlide] || slides[0];
+  const deckTitle = deck?.lessonTitle || '';
+  const themeIndex = slideTheme !== undefined && slideTheme !== null ? slideTheme : undefined;
+
+  const handleDeckChange = (i) => { setActiveDeck(i); setActiveSlide(0); };
 
   return (
     <div className="flex flex-col h-full" style={{ fontFamily: "'Inter', 'Segoe UI', system-ui, sans-serif" }}>
