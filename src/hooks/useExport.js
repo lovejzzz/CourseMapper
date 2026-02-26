@@ -25,13 +25,11 @@ export default function useExport(courseMap, columns, setError) {
         await saveToGoogleDocs(courseMap, columns);
       } else if (format === 'gsheets') {
         const buffer = await buildXlsxBuffer(courseMap, columns);
-        // Calculate exact data dimensions so Google Sheets trims empty space
-        const totalSections = (courseMap.lessons || []).reduce(
-          (sum, l) => sum + Math.max((l.sections?.length || 0), 1), 0
-        );
-        const dataRows = 1 + totalSections; // header row + data rows
-        const dataCols = 1 + (columns?.length || 10); // weekModule col + custom columns
-        await saveToGoogleSheets(buffer, courseMap.courseName, courseMap.semester, dataRows, dataCols);
+        const cName = courseMap.courseName || 'Course';
+        const semester = courseMap.semester || 'TBD';
+        const stamp = new Date().toLocaleDateString('en-US', { month: 'short', day: 'numeric', year: 'numeric' });
+        const fileName = `${cName} Course Map (${semester}) – ${stamp}.xlsx`;
+        await saveToGoogleSheets(buffer, fileName, cName);
       } else {
         await generateXlsx(courseMap, columns);
       }

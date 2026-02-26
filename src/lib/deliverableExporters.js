@@ -2,6 +2,8 @@
 // Exports deliverable data (lesson plans, rubrics, etc.) as PDF, DOCX, CSV,
 // Google Docs, or Google Sheets.
 
+import { getCustomDeliverable } from './customDeliverableLibrary';
+
 let _jsPDF, _autoTable, _docx, _saveAs;
 
 async function loadPdfLibs() {
@@ -33,6 +35,16 @@ const FEATURE_LABELS = {
   studyGuides: 'Study Guides',
   syllabus: 'Syllabus',
 };
+
+/** Resolve featureId to label — supports custom deliverables */
+function resolveFeatureLabel(id) {
+  if (FEATURE_LABELS[id]) return FEATURE_LABELS[id];
+  if (id?.startsWith('custom_')) {
+    const custom = getCustomDeliverable(id);
+    return custom?.name || 'Custom Deliverable';
+  }
+  return id;
+}
 
 // ════════════════════════════════════════════════════════════════
 // CSV EXPORT
@@ -222,8 +234,30 @@ function deliverableToCsvRows(featureId, data) {
       }
       return { headers, rows };
     }
-    default:
-      return { headers: [], rows: [] };
+    default: {
+      // Generic handler for custom deliverables
+      const arrKey = Object.keys(data).find(k => Array.isArray(data[k]) && data[k].length > 0);
+      if (!arrKey) return { headers: [], rows: [] };
+      const items = data[arrKey];
+      // Collect all unique keys across items
+      const allKeys = [];
+      const seen = new Set();
+      for (const item of items) {
+        for (const k of Object.keys(item)) {
+          if (!seen.has(k)) { seen.add(k); allKeys.push(k); }
+        }
+      }
+      const headers = allKeys.map(k => k.replace(/([a-z])([A-Z])/g, '$1 $2').replace(/^./, s => s.toUpperCase()));
+      const rows = items.map(item => allKeys.map(k => {
+        const v = item[k];
+        if (v == null) return '';
+        if (typeof v === 'string') return v;
+        if (Array.isArray(v)) return v.map(x => typeof x === 'string' ? x : JSON.stringify(x)).join('; ');
+        if (typeof v === 'object') return JSON.stringify(v);
+        return String(v);
+      }));
+      return { headers, rows };
+    }
   }
 }
 
@@ -232,7 +266,7 @@ export async function exportDeliverableCsv(featureId, data, courseName) {
   if (rows.length === 0) throw new Error('No data to export');
   const csv = [headers.map(esc).join(','), ...rows.map(r => r.map(esc).join(','))].join('\n');
   const saveAs = await getSaveAs();
-  const fileName = `${courseName || 'Course'} - ${FEATURE_LABELS[featureId] || featureId}.csv`;
+  const fileName = `${courseName || 'Course'} - ${resolveFeatureLabel(featureId)}.csv`;
   saveAs(new Blob(['\uFEFF' + csv], { type: 'text/csv;charset=utf-8;' }), fileName);
   return fileName;
 }
@@ -243,7 +277,7 @@ export async function exportDeliverableCsv(featureId, data, courseName) {
 
 export async function exportDeliverablePdf(featureId, data, courseName) {
   const { jsPDF, autoTable } = await loadPdfLibs();
-  const label = FEATURE_LABELS[featureId] || featureId;
+  const label = resolveFeatureLabel(featureId);
   const title = `${courseName || 'Course'} — ${label}`;
 
   // Syllabus gets a specially formatted multi-section PDF
@@ -915,6 +949,51 @@ function _buildDocxContentShared(featureId, data, children, docx) {
       if (syl.importantDates?.length) { children.push(makeHeading('Important Dates')); syl.importantDates.forEach(d => children.push(makeBold(d.date || '', d.event || ''))); }
       break;
     }
+
+    // ─── CUSTOM DELIVERABLES (generic) ───────────────────────────
+    default: {
+      const arrKey = Object.keys(data).find(k => Array.isArray(data[k]) && data[k].length > 0);
+      const items = arrKey ? data[arrKey] : [data];
+      const headerKeys = new Set(['lessonTitle', 'title', 'name', 'weekNumber', 'week', 'tiers']);
+      const toLabel = (k) => k.replace(/([a-z])([A-Z])/g, '$1 $2').replace(/^./, s => s.toUpperCase());
+
+      for (const item of items) {
+        const title = item.lessonTitle || item.title || item.name || 'Item';
+        const subtitle = item.weekNumber || item.week || '';
+        children.push(makeHeading(subtitle ? `${title} — ${subtitle}` : title));
+
+        for (const [k, v] of Object.entries(item)) {
+          if (headerKeys.has(k) || v == null || v === '') continue;
+          const label = toLabel(k);
+          if (typeof v === 'string') {
+            if (v.length < 100) {
+              children.push(makeBold(label, v));
+            } else {
+              children.push(makeSubHeading(label));
+              children.push(makeText(v));
+            }
+          } else if (Array.isArray(v)) {
+            children.push(makeSubHeading(label));
+            v.forEach(el => {
+              if (typeof el === 'string') {
+                children.push(makeBullet(el));
+              } else if (typeof el === 'object' && el !== null) {
+                const parts = Object.entries(el).filter(([, val]) => val != null && val !== '').map(([ek, ev]) => `${toLabel(ek)}: ${typeof ev === 'string' ? ev : JSON.stringify(ev)}`);
+                children.push(makeBullet(parts.join(' · ')));
+              }
+            });
+          } else if (typeof v === 'object') {
+            children.push(makeSubHeading(label));
+            for (const [sk, sv] of Object.entries(v)) {
+              if (sv != null && sv !== '') children.push(makeBold(toLabel(sk), typeof sv === 'string' ? sv : JSON.stringify(sv)));
+            }
+          } else {
+            children.push(makeBold(label, String(v)));
+          }
+        }
+      }
+      break;
+    }
   }
 }
 
@@ -925,7 +1004,7 @@ export async function exportDeliverableDocx(featureId, data, courseName) {
   } = await getDocx();
   const saveAs = await getSaveAs();
 
-  const label = FEATURE_LABELS[featureId] || featureId;
+  const label = resolveFeatureLabel(featureId);
   const THIN_BORDER = { style: BorderStyle.SINGLE, size: 4, color: 'D0D0D0' };
   const children = [];
 
@@ -967,34 +1046,76 @@ export async function exportDeliverableToGoogleDocs(featureId, data, courseName,
   //
   // preOpenedTab: caller should open a tab synchronously BEFORE any await, then pass it here
   // so the popup-blocker doesn't kill it.
-  const label = FEATURE_LABELS[featureId] || featureId;
+  const label = resolveFeatureLabel(featureId);
+  const { updateTabStatus } = await import('./googleDrive.js');
+  updateTabStatus(preOpenedTab, 'build');
   const blob = await buildDeliverableDocxBlob(featureId, data, courseName);
   const { saveToGoogleDocsBlob } = await import('./googleDrive.js');
-  const fileName = `${courseName || 'Course'} - ${label}`;
-  return await saveToGoogleDocsBlob(blob, fileName, preOpenedTab);
+  const stamp = new Date().toLocaleDateString('en-US', { month: 'short', day: 'numeric', year: 'numeric' });
+  const fileName = `${courseName || 'Course'} - ${label} (${stamp})`;
+  return await saveToGoogleDocsBlob(blob, fileName, courseName, preOpenedTab);
 }
 
 export async function exportDeliverableToGoogleSheets(featureId, data, courseName, preOpenedTab = null) {
   const { headers, rows } = deliverableToCsvRows(featureId, data);
   if (rows.length === 0) throw new Error('No data to export');
 
-  // Build a simple XLSX buffer using SheetJS-style approach via csv blob
+  const { updateTabStatus } = await import('./googleDrive.js');
+  updateTabStatus(preOpenedTab, 'build');
+
+  // Build a styled XLSX workbook (matching course map quality)
   const ExcelJS = (await import('exceljs')).default;
   const workbook = new ExcelJS.Workbook();
-  const label = FEATURE_LABELS[featureId] || featureId;
-  const sheet = workbook.addWorksheet(label);
-  sheet.addRow(headers);
-  for (const row of rows) sheet.addRow(row);
+  workbook.creator = 'Course Mapper';
+  workbook.created = new Date();
 
-  // Style header row
-  const headerRow = sheet.getRow(1);
-  headerRow.font = { bold: true, color: { argb: 'FFFFFFFF' } };
-  headerRow.fill = { type: 'pattern', pattern: 'solid', fgColor: { argb: 'FF4472C4' } };
-  headerRow.commit();
+  const label = resolveFeatureLabel(featureId);
+  const sheet = workbook.addWorksheet(label);
+
+  // ── Column widths — based on header text length ──
+  sheet.columns = headers.map((h) => {
+    const len = String(h).length;
+    const width = Math.max(15, Math.min(45, len * 1.4 + 4));
+    return { width };
+  });
+
+  // ── Styling constants (matching xlsxGenerator.js) ──
+  const HEADER_FILL  = { type: 'pattern', pattern: 'solid', fgColor: { argb: 'FF4472C4' } };
+  const HEADER_FONT  = { name: 'Inter', size: 10, bold: true, color: { argb: 'FFFFFFFF' } };
+  const DATA_FONT    = { name: 'Inter', size: 10 };
+  const BORDER       = { top: { style: 'thin', color: { argb: 'FFB4C6E7' } }, left: { style: 'thin', color: { argb: 'FFB4C6E7' } }, bottom: { style: 'thin', color: { argb: 'FFB4C6E7' } }, right: { style: 'thin', color: { argb: 'FFB4C6E7' } } };
+  const ALT_ROW_FILL = { type: 'pattern', pattern: 'solid', fgColor: { argb: 'FFF2F6FC' } };
+
+  // ── Header row ──
+  const headerRow = sheet.addRow(headers);
+  headerRow.height = 28;
+  headerRow.eachCell((cell) => {
+    cell.fill = HEADER_FILL;
+    cell.font = HEADER_FONT;
+    cell.alignment = { vertical: 'top', horizontal: 'left', wrapText: true };
+    cell.border = BORDER;
+  });
+
+  // ── Data rows ──
+  rows.forEach((row, idx) => {
+    const r = sheet.addRow(row);
+    r.eachCell((cell) => {
+      cell.font = DATA_FONT;
+      cell.alignment = { vertical: 'top', horizontal: 'left', wrapText: true };
+      cell.border = BORDER;
+      // Alternating row color (even data rows = light blue)
+      if (idx % 2 === 1) cell.fill = ALT_ROW_FILL;
+    });
+  });
+
+  // ── Freeze header row ──
+  sheet.views = [{ state: 'frozen', ySplit: 1 }];
 
   const buffer = await workbook.xlsx.writeBuffer();
   const { saveToGoogleSheets } = await import('./googleDrive.js');
-  return await saveToGoogleSheets(buffer, `${courseName || 'Course'} - ${label}`, '', rows.length + 1, headers.length, preOpenedTab);
+  const stamp = new Date().toLocaleDateString('en-US', { month: 'short', day: 'numeric', year: 'numeric' });
+  const fileName = `${courseName || 'Course'} - ${label} (${stamp}).xlsx`;
+  return await saveToGoogleSheets(buffer, fileName, courseName, preOpenedTab);
 }
 
 // ════════════════════════════════════════════════════════════════
@@ -1046,7 +1167,7 @@ export async function buildDeliverableDocxBlob(featureId, data, courseName) {
     Table, TableRow, TableCell, WidthType, BorderStyle, ShadingType, TableLayoutType,
   } = await getDocx();
 
-  const label = FEATURE_LABELS[featureId] || featureId;
+  const label = resolveFeatureLabel(featureId);
   const THIN_BORDER = { style: BorderStyle.SINGLE, size: 4, color: 'D0D0D0' };
   const children = [];
 

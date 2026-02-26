@@ -2,6 +2,7 @@ import React, { useState, useRef, useEffect } from 'react';
 import GenerationLogPanel from './GenerationLogPanel';
 import ExamReview from './ExamReview';
 import RevisionChat from './RevisionChat';
+import { getCustomDeliverable } from '../lib/customDeliverableLibrary';
 
 // ── Animated "..." for repeating log lines ────────────────────────────────────
 function AnimatedDots() {
@@ -77,6 +78,16 @@ const FEATURE_LABELS = {
   studyGuides: 'Study Guides',
   syllabus: 'Syllabus',
 };
+
+/** Resolve any featureId (built-in or custom) to a human-readable label */
+function resolveLabel(id) {
+  if (FEATURE_LABELS[id]) return FEATURE_LABELS[id];
+  if (id?.startsWith('custom_')) {
+    const custom = getCustomDeliverable(id);
+    return custom?.name || 'Custom Deliverable';
+  }
+  return id;
+}
 
 // Live elapsed timer for currently generating deliverable
 function ElapsedTimer({ startedAt, avgMs }) {
@@ -239,7 +250,7 @@ export default function ProgressPanel({
   const delivRows = deliverables
     ? Object.entries(deliverables)
         .filter(([id]) => id !== 'courseMap')
-        .map(([id, state]) => ({ id, label: FEATURE_LABELS[id] || id, status: state?.status, error: state?.error }))
+        .map(([id, state]) => ({ id, label: resolveLabel(id), status: state?.status, error: state?.error }))
     : [];
 
   const allDelivDone = delivRows.length === 0 || (delivRows.length > 0 && !isDelivGenerating && delivRows.every(r => r.status === 'done' || r.status === 'error'));
@@ -288,7 +299,7 @@ export default function ProgressPanel({
     // Determine the most informative sync status line
     const latestSyncEntry = syncLog && syncLog.length > 0 ? syncLog[syncLog.length - 1] : null;
     const syncStatusLabel = isSyncing && latestSyncEntry
-      ? `Updating ${FEATURE_LABELS[latestSyncEntry.featureId] || latestSyncEntry.featureId}…`
+      ? `Updating ${resolveLabel(latestSyncEntry.featureId)}…`
       : null;
 
     return (
@@ -322,7 +333,7 @@ export default function ProgressPanel({
 
         {/* Revision chat still accessible when collapsed */}
         {(isDone || isStopped) && courseMap && (() => {
-          const delivLabel = FEATURE_LABELS[activeTab] || activeTab;
+          const delivLabel = resolveLabel(activeTab);
           const revHandler = isDeliverableTab && onDeliverableRevision ? onDeliverableRevision : onRevision;
           const placeholder = isDeliverableTab ? `Ask for revisions to ${delivLabel}…` : 'Ask for revisions or drop files…';
           const tabBadge = isDeliverableTab ? delivLabel : 'Course Map';
@@ -516,7 +527,7 @@ export default function ProgressPanel({
                   const syncEntries = (syncLog || []).map(e => ({
                     // Map sync log shape → activity log shape
                     type: e.type === 'done' ? 'done' : e.type === 'error' ? 'error' : 'progress',
-                    message: `[Auto-sync] ${FEATURE_LABELS[e.featureId] || e.featureId}: ${e.message}`,
+                    message: `[Auto-sync] ${resolveLabel(e.featureId)}: ${e.message}`,
                     at: e.at,
                     _origin: 'sync',
                     _syncType: e.type,
@@ -606,7 +617,7 @@ export default function ProgressPanel({
                   <div className="space-y-1">
                     {recentSync.map((entry, i) => {
                       const style = SYNC_TYPE_STYLES[entry.type] || SYNC_TYPE_STYLES.pending;
-                      const featLabel = FEATURE_LABELS[entry.featureId] || entry.featureId || '–';
+                      const featLabel = resolveLabel(entry.featureId) || '–';
                       return (
                         <div key={i} className={`flex items-start gap-2 px-2.5 py-1.5 rounded-lg ${style.bg}`}>
                           <span className={`w-1.5 h-1.5 mt-1.5 rounded-full flex-shrink-0 ${style.dot}`} />
@@ -909,7 +920,7 @@ export default function ProgressPanel({
                   <div className="space-y-1">
                     {recentSync.map((entry, i) => {
                       const style = SYNC_TYPE_STYLES[entry.type] || SYNC_TYPE_STYLES.pending;
-                      const featLabel = FEATURE_LABELS[entry.featureId] || entry.featureId || '–';
+                      const featLabel = resolveLabel(entry.featureId) || '–';
                       return (
                         <div key={i} className={`flex items-start gap-2 px-2.5 py-1.5 rounded-lg ${style.bg}`}>
                           <span className={`w-1.5 h-1.5 mt-1.5 rounded-full flex-shrink-0 ${style.dot}`} />
@@ -933,7 +944,7 @@ export default function ProgressPanel({
 
       {(isDone || isStopped) && courseMap && (() => {
         // Determine which revision handler and label to use based on active tab
-        const delivLabel = FEATURE_LABELS[activeTab] || activeTab;
+        const delivLabel = resolveLabel(activeTab);
         const revHandler = isDeliverableTab && onDeliverableRevision
           ? onDeliverableRevision
           : onRevision;

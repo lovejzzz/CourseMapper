@@ -59,8 +59,10 @@ export default function ModelConfig({
       setModelName(FREE_MODELS[0].name);
       setApiStatus('connected');
     } else {
-      // Clear the hardcoded key when switching away from free
-      if (apiKey === BUILTIN_OPENROUTER_KEY || apiKey === BUILTIN_GOOGLE_KEY) setApiKey('');
+      // Clear the API key when switching providers so auto-detect doesn't
+      // fight the user's explicit selection (e.g. switching from Google to
+      // OpenAI while a Google key is still in the field).
+      setApiKey('');
     }
   }, [provider]);
 

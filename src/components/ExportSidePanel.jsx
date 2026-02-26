@@ -17,11 +17,11 @@ const FORMAT_SUPPORT = {
   syllabus:     { xlsx: false, csv: false, pdf: true,  docx: true,  gdocs: true,  gsheets: false, pptx: false, slidepdf: false },
   lessonPlans:  { xlsx: false, csv: true,  pdf: true,  docx: true,  gdocs: true,  gsheets: true,  pptx: false, slidepdf: false },
   slideDecks:   { xlsx: false, csv: false, pdf: false, docx: false, gdocs: false, gsheets: false, pptx: true,  slidepdf: true  },
-  assignments:  { xlsx: false, csv: true,  pdf: true,  docx: true,  gdocs: true,  gsheets: false, pptx: false, slidepdf: false },
-  rubrics:      { xlsx: false, csv: true,  pdf: true,  docx: true,  gdocs: true,  gsheets: false, pptx: false, slidepdf: false },
-  discussions:  { xlsx: false, csv: true,  pdf: true,  docx: true,  gdocs: true,  gsheets: false, pptx: false, slidepdf: false },
+  assignments:  { xlsx: false, csv: true,  pdf: true,  docx: true,  gdocs: true,  gsheets: true,  pptx: false, slidepdf: false },
+  rubrics:      { xlsx: false, csv: true,  pdf: true,  docx: true,  gdocs: true,  gsheets: true,  pptx: false, slidepdf: false },
+  discussions:  { xlsx: false, csv: true,  pdf: true,  docx: true,  gdocs: true,  gsheets: true,  pptx: false, slidepdf: false },
   quizBank:     { xlsx: false, csv: true,  pdf: true,  docx: true,  gdocs: true,  gsheets: true,  pptx: false, slidepdf: false },
-  studyGuides:  { xlsx: false, csv: true,  pdf: true,  docx: true,  gdocs: true,  gsheets: false, pptx: false, slidepdf: false },
+  studyGuides:  { xlsx: false, csv: true,  pdf: true,  docx: true,  gdocs: true,  gsheets: true,  pptx: false, slidepdf: false },
 };
 
 // Formats for non-slideDecks current tab
@@ -325,8 +325,9 @@ export default function ExportSidePanel({
   const currentDeliverable = deliverables?.[activeTab];
   const currentHasData = isCurrentDeliverable && currentDeliverable?.status === 'done' && currentDeliverable?.data;
 
-  // Format support for current tab
-  const currentSupport = FORMAT_SUPPORT[activeTab] || {};
+  // Format support for current tab (custom deliverables get csv/pdf/docx/gdocs)
+  const CUSTOM_FORMAT_SUPPORT = { xlsx: false, csv: true, pdf: true, docx: true, gdocs: true, gsheets: true, pptx: false, slidepdf: false };
+  const currentSupport = FORMAT_SUPPORT[activeTab] || (activeTab?.startsWith('custom_') ? CUSTOM_FORMAT_SUPPORT : {});
 
   // Count ready deliverables for "All" mode
   const allReadyCount = Object.entries(deliverables || {})
@@ -338,7 +339,8 @@ export default function ExportSidePanel({
 
   async function doExport(format) {
     // For Google exports we must open a tab BEFORE any await (popup blocker)
-    const needsTab = format === 'gdocs' || format === 'gsheets' || format === 'gslides';
+    // Course map exports open their own tab internally via useExport → saveToGoogleDocs/Sheets
+    const needsTab = (format === 'gdocs' || format === 'gsheets' || format === 'gslides') && activeTab !== 'courseMap';
     const preTab = needsTab ? openTabNow() : null;
 
     setBusy(format);
@@ -364,7 +366,8 @@ export default function ExportSidePanel({
             await exportSlideDeckPdf(currentDeliverable.data, courseName);
           } else if (format === 'gslides') {
             const blob = await buildSlideDeckPptxBlob(currentDeliverable.data, courseName);
-            await saveToGoogleSlides(blob, `${courseName} - Slide Decks`, preTab);
+            const stamp = new Date().toLocaleDateString('en-US', { month: 'short', day: 'numeric', year: 'numeric' });
+            await saveToGoogleSlides(blob, `${courseName} - Slide Decks (${stamp})`, courseName, preTab);
           }
         } else {
           if (!currentDeliverable?.data) throw new Error('No data yet');

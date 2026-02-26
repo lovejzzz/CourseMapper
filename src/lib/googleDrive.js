@@ -6,6 +6,42 @@ const SCOPES = 'https://www.googleapis.com/auth/drive.file';
 let tokenClient = null;
 let gisLoaded = false;
 
+// ── Token cache (in-memory + localStorage) ──
+let cachedToken = null;
+let tokenExpiry = 0;
+const TOKEN_STORAGE_KEY = 'coursemapper-google-token';
+
+function loadCachedToken() {
+  try {
+    const stored = localStorage.getItem(TOKEN_STORAGE_KEY);
+    if (stored) {
+      const { token, expiry } = JSON.parse(stored);
+      if (token && expiry && Date.now() < expiry - 300_000) {
+        cachedToken = token;
+        tokenExpiry = expiry;
+      }
+    }
+  } catch { /* ignore corrupt data */ }
+}
+loadCachedToken(); // attempt on module load
+
+function cacheToken(token) {
+  cachedToken = token;
+  tokenExpiry = Date.now() + 3600_000; // 1 hour
+  try {
+    localStorage.setItem(TOKEN_STORAGE_KEY, JSON.stringify({ token, expiry: tokenExpiry }));
+  } catch { /* localStorage full — ignore */ }
+}
+
+export function clearTokenCache() {
+  cachedToken = null;
+  tokenExpiry = 0;
+  try { localStorage.removeItem(TOKEN_STORAGE_KEY); } catch { /* ignore */ }
+}
+
+// ── Folder cache (in-memory) ──
+const folderCache = new Map();
+
 /**
  * Load the Google Identity Services script once.
  */
@@ -35,16 +71,17 @@ function loadGIS() {
  * Returns the access token string.
  *
  * Strategy:
- *  1. First attempt with prompt:'' — silently reuses a cached session (no popup if already signed in).
- *  2. If that fails with an error that requires user interaction (e.g. "user_cancelled",
- *     "access_denied", or no cached session), fall back to prompt:'select_account' so the
- *     user picks their account once without seeing the full consent screen again.
- *  3. Only if the token itself is revoked / permissions changed does consent re-appear (correct behaviour).
- *
- *  This prevents the "Continue" button doing nothing — that was caused by prompt:'consent'
- *  always re-triggering the full consent flow even with a valid cached token.
+ *  1. Check in-memory / localStorage cache first (instant, no GIS overhead).
+ *  2. First attempt with prompt:'' — silently reuses a cached session (no popup if already signed in).
+ *  3. If that fails with an error that requires user interaction, fall back to prompt:'select_account'.
+ *  4. Cache the resulting token for ~1 hour (with 5-min safety buffer).
  */
 function getAccessToken() {
+  // Return cached token if still valid (5 min buffer)
+  if (cachedToken && Date.now() < tokenExpiry - 300_000) {
+    return Promise.resolve(cachedToken);
+  }
+
   return new Promise((resolve, reject) => {
     if (!window.google?.accounts?.oauth2) {
       return reject(new Error('Google Identity Services not loaded'));
@@ -68,6 +105,7 @@ function getAccessToken() {
               reject(new Error(response.error_description || response.error));
             }
           } else {
+            cacheToken(response.access_token);
             resolve(response.access_token);
           }
         },
@@ -90,6 +128,56 @@ function getAccessToken() {
   });
 }
 
+// ── Date stamp helper ──
+function dateStamp() {
+  return new Date().toLocaleDateString('en-US', { month: 'short', day: 'numeric', year: 'numeric' });
+}
+
+// ── Folder management ──
+
+/**
+ * Find or create a folder in Google Drive for organizing exports.
+ * Caches folder IDs in memory to avoid repeated API calls.
+ */
+async function getOrCreateFolder(accessToken, folderName) {
+  if (folderCache.has(folderName)) return folderCache.get(folderName);
+
+  // Search for existing folder
+  const query = encodeURIComponent(`name='${folderName}' and mimeType='application/vnd.google-apps.folder' and trashed=false`);
+  const searchRes = await fetch(
+    `https://www.googleapis.com/drive/v3/files?q=${query}&fields=files(id,name)&pageSize=1`,
+    { headers: { Authorization: `Bearer ${accessToken}` } }
+  );
+  if (searchRes.ok) {
+    const { files } = await searchRes.json();
+    if (files && files.length > 0) {
+      folderCache.set(folderName, files[0].id);
+      return files[0].id;
+    }
+  }
+
+  // Create new folder
+  const createRes = await fetch('https://www.googleapis.com/drive/v3/files?fields=id', {
+    method: 'POST',
+    headers: {
+      Authorization: `Bearer ${accessToken}`,
+      'Content-Type': 'application/json',
+    },
+    body: JSON.stringify({
+      name: folderName,
+      mimeType: 'application/vnd.google-apps.folder',
+    }),
+  });
+  if (!createRes.ok) {
+    // Non-fatal — just upload to root if folder creation fails
+    console.warn('Could not create Drive folder:', await createRes.text().catch(() => ''));
+    return null;
+  }
+  const { id } = await createRes.json();
+  folderCache.set(folderName, id);
+  return id;
+}
+
 /**
  * Upload a blob to Google Drive, converting to the specified Google format.
  * Returns the Drive file metadata including webViewLink.
@@ -99,11 +187,12 @@ function getAccessToken() {
  * produced multipart/form-data — Google accepted it for Docs/Sheets but
  * silently produced empty content when converting PPTX → Google Slides.
  */
-async function uploadToDrive(accessToken, blob, fileName, targetMimeType) {
+async function uploadToDrive(accessToken, blob, fileName, targetMimeType, parentFolderId = null) {
   const metadata = {
     name: fileName.replace(/\.(docx|xlsx|pptx)$/, ''),
     mimeType: targetMimeType,
   };
+  if (parentFolderId) metadata.parents = [parentFolderId];
 
   const boundary = '===CourseMapper_Upload_Boundary===';
   const metadataJson = JSON.stringify(metadata);
@@ -142,6 +231,8 @@ async function uploadToDrive(accessToken, blob, fileName, targetMimeType) {
 
   if (!res.ok) {
     const err = await res.json().catch(() => ({}));
+    // If auth expired, clear cache so next attempt re-authenticates
+    if (res.status === 401) clearTokenCache();
     throw new Error(err.error?.message || `Upload failed (${res.status})`);
   }
 
@@ -172,16 +263,55 @@ export function openTabNow() {
   .spinner{width:36px;height:36px;margin:0 auto 16px;border:3px solid #e2e8f0;
            border-top-color:#3b82f6;border-radius:50%;animation:spin .8s linear infinite}
   @keyframes spin{to{transform:rotate(360deg)}}
-  p{font-size:15px;margin:0}
-  small{font-size:12px;color:#94a3b8;margin-top:6px;display:block}
+  p#status{font-size:15px;margin:0}
+  small#detail{font-size:12px;color:#94a3b8;margin-top:6px;display:block}
+  .steps{margin-top:20px;text-align:left;display:inline-block}
+  .step{font-size:12px;color:#94a3b8;padding:3px 0;transition:color .3s}
+  .step.active{color:#3b82f6;font-weight:600}
+  .step.done{color:#10b981}
+  .step::before{content:'○ ';font-size:10px}
+  .step.active::before{content:'◉ '}
+  .step.done::before{content:'✓ '}
 </style></head><body>
 <div class="box"><div class="spinner"></div>
-<p>Preparing your export…</p>
-<small>Signing in to Google & uploading</small>
+<p id="status">Preparing your export…</p>
+<small id="detail">Starting up</small>
+<div class="steps">
+  <div class="step" id="step-auth">Sign in to Google</div>
+  <div class="step" id="step-build">Build file</div>
+  <div class="step" id="step-folder">Organize in Drive folder</div>
+  <div class="step" id="step-upload">Upload to Google Drive</div>
+  <div class="step" id="step-open">Open file</div>
+</div>
 </div></body></html>`);
     tab.document.close();
   } catch { /* cross-origin or closed — ignore */ }
   return tab;
+}
+
+/**
+ * Update the pre-opened tab's status display with step-by-step progress.
+ */
+export function updateTabStatus(tab, stepId, status = 'active') {
+  if (!tab || tab.closed) return;
+  try {
+    // Mark the step
+    const stepEl = tab.document.getElementById(`step-${stepId}`);
+    if (stepEl) {
+      // Mark all previous steps as done
+      const allSteps = tab.document.querySelectorAll('.step');
+      let found = false;
+      for (const s of allSteps) {
+        if (s === stepEl) { found = true; break; }
+        s.className = 'step done';
+      }
+      stepEl.className = `step ${status}`;
+    }
+    // Update main status text
+    const statusEl = tab.document.getElementById('status');
+    const labels = { auth: 'Signing in to Google…', build: 'Building file…', folder: 'Creating Drive folder…', upload: 'Uploading to Google Drive…', open: 'Opening file…' };
+    if (statusEl && labels[stepId]) statusEl.textContent = labels[stepId];
+  } catch { /* cross-origin or closed — ignore */ }
 }
 
 function redirectTab(tab, url) {
@@ -210,13 +340,22 @@ export async function saveToGoogleDocs(courseMap, customColumns, preOpenedTab = 
   try {
     const courseName = courseMap.courseName || 'Course Map';
     const semester = courseMap.semester || '';
-    const fileName = `${courseName} Course Map (${semester || 'TBD'}).docx`;
+    const fileName = `${courseName} Course Map (${semester || 'TBD'}) – ${dateStamp()}.docx`;
+
+    updateTabStatus(tab, 'build');
     const blob = await buildDocxBlob(courseMap, customColumns);
 
+    updateTabStatus(tab, 'auth');
     await loadGIS();
     const accessToken = await getAccessToken();
-    const result = await uploadToDrive(accessToken, blob, fileName, 'application/vnd.google-apps.document');
 
+    updateTabStatus(tab, 'folder');
+    const folderId = await getOrCreateFolder(accessToken, `CourseMapper – ${courseName}`);
+
+    updateTabStatus(tab, 'upload');
+    const result = await uploadToDrive(accessToken, blob, fileName, 'application/vnd.google-apps.document', folderId);
+
+    updateTabStatus(tab, 'open', 'done');
     if (result.webViewLink) redirectTab(tab, result.webViewLink);
     return result.webViewLink || result.id;
   } catch (err) {
@@ -230,12 +369,20 @@ export async function saveToGoogleDocs(courseMap, customColumns, preOpenedTab = 
  *
  * @param {Window|null} preOpenedTab  — tab opened by the caller BEFORE any await
  */
-export async function saveToGoogleDocsBlob(blob, fileName, preOpenedTab = null) {
+export async function saveToGoogleDocsBlob(blob, fileName, courseName, preOpenedTab = null) {
   const tab = preOpenedTab ?? openTabNow();
   try {
+    updateTabStatus(tab, 'auth');
     await loadGIS();
     const accessToken = await getAccessToken();
-    const result = await uploadToDrive(accessToken, blob, `${fileName}.docx`, 'application/vnd.google-apps.document');
+
+    updateTabStatus(tab, 'folder');
+    const folderId = courseName ? await getOrCreateFolder(accessToken, `CourseMapper – ${courseName}`) : null;
+
+    updateTabStatus(tab, 'upload');
+    const result = await uploadToDrive(accessToken, blob, `${fileName}.docx`, 'application/vnd.google-apps.document', folderId);
+
+    updateTabStatus(tab, 'open', 'done');
     if (result.webViewLink) redirectTab(tab, result.webViewLink);
     return result.webViewLink || result.id;
   } catch (err) {
@@ -250,18 +397,24 @@ export async function saveToGoogleDocsBlob(blob, fileName, preOpenedTab = null) 
  * @param {Window|null} preOpenedTab  — tab opened by the caller BEFORE any await
  * @returns {Promise<string>} The URL of the created Google Sheet.
  */
-export async function saveToGoogleSheets(xlsxBuffer, courseName, semester, dataRows, dataCols, preOpenedTab = null) {
+export async function saveToGoogleSheets(xlsxBuffer, fileName, courseName, preOpenedTab = null) {
   const tab = preOpenedTab ?? openTabNow();
   try {
-    const fileName = `${courseName || 'Course'} Course Map (${semester || 'TBD'}).xlsx`;
     const blob = new Blob([xlsxBuffer], {
       type: 'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet',
     });
 
+    updateTabStatus(tab, 'auth');
     await loadGIS();
     const accessToken = await getAccessToken();
-    const result = await uploadToDrive(accessToken, blob, fileName, 'application/vnd.google-apps.spreadsheet');
 
+    updateTabStatus(tab, 'folder');
+    const folderId = courseName ? await getOrCreateFolder(accessToken, `CourseMapper – ${courseName}`) : null;
+
+    updateTabStatus(tab, 'upload');
+    const result = await uploadToDrive(accessToken, blob, fileName, 'application/vnd.google-apps.spreadsheet', folderId);
+
+    updateTabStatus(tab, 'open', 'done');
     if (result.webViewLink) redirectTab(tab, result.webViewLink);
     return result.webViewLink || result.id;
   } catch (err) {
@@ -275,18 +428,27 @@ export async function saveToGoogleSheets(xlsxBuffer, courseName, semester, dataR
  *
  * @param {Window|null} preOpenedTab  — tab opened by the caller BEFORE any await
  */
-export async function saveToGoogleSlides(pptxBlob, fileName, preOpenedTab = null) {
+export async function saveToGoogleSlides(pptxBlob, fileName, courseName, preOpenedTab = null) {
   const tab = preOpenedTab ?? openTabNow();
   try {
+    updateTabStatus(tab, 'auth');
     await loadGIS();
     const accessToken = await getAccessToken();
+
     // Always wrap with the correct MIME type — pptxgenjs via JSZip produces
     // a Blob with an empty type (""), which causes Google Drive to reject or
     // misinterpret the upload.  Re-wrapping ensures the multipart file part
     // has the right Content-Type header.
     const pptxMime = 'application/vnd.openxmlformats-officedocument.presentationml.presentation';
     const blob = new Blob([pptxBlob], { type: pptxMime });
-    const result = await uploadToDrive(accessToken, blob, `${fileName}.pptx`, 'application/vnd.google-apps.presentation');
+
+    updateTabStatus(tab, 'folder');
+    const folderId = courseName ? await getOrCreateFolder(accessToken, `CourseMapper – ${courseName}`) : null;
+
+    updateTabStatus(tab, 'upload');
+    const result = await uploadToDrive(accessToken, blob, `${fileName}.pptx`, 'application/vnd.google-apps.presentation', folderId);
+
+    updateTabStatus(tab, 'open', 'done');
     if (result.webViewLink) redirectTab(tab, result.webViewLink);
     return result.webViewLink || result.id;
   } catch (err) {
@@ -294,4 +456,3 @@ export async function saveToGoogleSlides(pptxBlob, fileName, preOpenedTab = null
     throw err;
   }
 }
-

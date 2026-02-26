@@ -153,6 +153,8 @@ export default function App() {
   const [showAddDeliverable, setShowAddDeliverable] = useState(false);
   // Custom deliverable builder modal (from workspace + Add)
   const [showCustomBuilder, setShowCustomBuilder] = useState(false);
+  // Drag-to-reorder tabs
+  const [dragTabIdx, setDragTabIdx] = useState(null);
   // Add-lessons modal state: { lessonIndices: number[], mode: null|'asking' }
   const [addLessonsModal, setAddLessonsModal] = useState(null);
   // New Project confirmation modal
@@ -653,9 +655,31 @@ export default function App() {
   }
 
   // ── Screen: Workspace ──
-  // Build ordered tab list from selected features (course map always first)
+  // Build ordered tab list from selected features — order follows selectedFeatures array
   const allFeaturesForTabs = [...FEATURES, ...listCustomDeliverables().map(toFeatureEntry)];
-  const workspaceTabs = allFeaturesForTabs.filter(f => selectedFeatures.includes(f.id));
+  const featureMap = Object.fromEntries(allFeaturesForTabs.map(f => [f.id, f]));
+  const workspaceTabs = selectedFeatures.map(id => featureMap[id]).filter(Boolean);
+
+  // Drag-to-reorder tab handlers
+  const handleTabDragStart = (idx) => (e) => {
+    setDragTabIdx(idx);
+    e.dataTransfer.effectAllowed = 'move';
+  };
+  const handleTabDragOver = (idx) => (e) => {
+    e.preventDefault();
+    e.dataTransfer.dropEffect = 'move';
+  };
+  const handleTabDrop = (dropIdx) => (e) => {
+    e.preventDefault();
+    if (dragTabIdx == null || dragTabIdx === dropIdx) { setDragTabIdx(null); return; }
+    setSelectedFeatures(prev => {
+      const next = [...prev];
+      const [moved] = next.splice(dragTabIdx, 1);
+      next.splice(dropIdx, 0, moved);
+      return next;
+    });
+    setDragTabIdx(null);
+  };
 
   return (
     <div className="min-h-screen mesh-bg noise-overlay">
@@ -709,7 +733,7 @@ export default function App() {
         {/* ── Deliverable tabs ── */}
         {workspaceTabs.length > 1 && (
           <div className="flex items-center gap-1 overflow-x-auto pb-1 scrollbar-hide">
-            {workspaceTabs.map(feature => {
+            {workspaceTabs.map((feature, tabIdx) => {
               const isActive = activeTab === feature.id;
               const delivState = deliv.deliverables[feature.id];
               const isStreaming = delivState?.status === 'streaming';
@@ -737,6 +761,11 @@ export default function App() {
               return (
                 <button
                   key={feature.id}
+                  draggable
+                  onDragStart={handleTabDragStart(tabIdx)}
+                  onDragOver={handleTabDragOver(tabIdx)}
+                  onDrop={handleTabDrop(tabIdx)}
+                  onDragEnd={() => setDragTabIdx(null)}
                   onClick={() => {
                     setActiveTab(feature.id);
                     // Clear unseen badge when user clicks the tab
@@ -748,7 +777,8 @@ export default function App() {
                       });
                     }
                   }}
-                  className={`tactile flex items-center gap-2 px-4 py-2 rounded-pill text-xs font-semibold whitespace-nowrap transition-all duration-200 flex-shrink-0 ${
+                  className={`tactile flex items-center gap-2 px-4 py-2 rounded-pill text-xs font-semibold whitespace-nowrap transition-all duration-200 flex-shrink-0 cursor-grab active:cursor-grabbing ${
+                    dragTabIdx === tabIdx ? 'opacity-40' :
                     isActive
                       ? 'bg-white/80 text-slate-800 shadow-glass border border-slate-200/60'
                       : 'text-slate-500 hover:bg-white/50 hover:text-slate-700'
