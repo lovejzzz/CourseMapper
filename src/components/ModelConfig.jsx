@@ -91,8 +91,16 @@ export default function ModelConfig({
 
   // When API key changes, auto-detect provider and validate
   const apiKeyMountRef = useRef(true);
+  const prevProviderRef = useRef(provider);
   useEffect(() => {
     if (isFree) return;
+
+    // Detect if the provider changed in this render cycle.
+    // When it did, the apiKey value is stale (provider effect scheduled
+    // setApiKey('') but it hasn't re-rendered yet). We must skip
+    // auto-detection to prevent switching the provider back.
+    const providerJustChanged = provider !== prevProviderRef.current;
+    prevProviderRef.current = provider;
 
     // On initial mount, skip resetting if we already have a valid state
     // (e.g. re-expanding the collapsed config panel)
@@ -108,12 +116,15 @@ export default function ModelConfig({
 
     if (!apiKey || apiKey.trim().length < 10) return;
 
-    // Auto-detect and switch provider if key prefix doesn't match
-    const detected = detectProvider(apiKey.trim());
-    if (detected && detected !== provider) {
-      autoDetectedRef.current = true; // signal: don't clear apiKey
-      setProvider(detected);
-      return; // provider change will re-trigger this effect
+    // Only auto-detect provider from key prefix when the KEY changed,
+    // not when the PROVIDER changed (stale key would fight the switch)
+    if (!providerJustChanged) {
+      const detected = detectProvider(apiKey.trim());
+      if (detected && detected !== provider) {
+        autoDetectedRef.current = true; // signal: don't clear apiKey
+        setProvider(detected);
+        return; // provider change will re-trigger this effect
+      }
     }
 
     if (debounceRef.current) clearTimeout(debounceRef.current);
