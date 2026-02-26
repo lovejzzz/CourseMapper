@@ -42,11 +42,26 @@ export default function ModelConfig({
   apiStatus, setApiStatus, modelName, setModelName,
 }) {
   const debounceRef = useRef(null);
+  const isFirstMount = useRef(true);
 
   const isFree = provider === 'free';
 
-  // When provider changes, reset everything
+  // When provider changes, reset everything (skip on initial mount to
+  // preserve the existing API key when the collapsed config re-expands)
   useEffect(() => {
+    if (isFirstMount.current) {
+      isFirstMount.current = false;
+      // On mount, still set up free provider if selected
+      if (provider === 'free' && !modelId) {
+        setApiKey(FREE_MODELS[0].apiKey);
+        setAvailableModels(FREE_MODELS);
+        setModelId(FREE_MODELS[0].id);
+        setModelName(FREE_MODELS[0].name);
+        setApiStatus('connected');
+      }
+      return;
+    }
+
     setApiStatus('idle');
     setModelName('');
     setAvailableModels([]);
@@ -67,8 +82,16 @@ export default function ModelConfig({
   }, [provider]);
 
   // When API key changes, auto-detect provider and validate
+  const apiKeyMountRef = useRef(true);
   useEffect(() => {
     if (isFree) return;
+
+    // On initial mount, skip resetting if we already have a valid state
+    // (e.g. re-expanding the collapsed config panel)
+    if (apiKeyMountRef.current) {
+      apiKeyMountRef.current = false;
+      if (apiStatus === 'connected' && availableModels.length > 0) return;
+    }
 
     setApiStatus('idle');
     setModelName('');
