@@ -16,7 +16,7 @@ const FORMAT_SUPPORT = {
   courseMap:    { xlsx: true,  csv: true,  pdf: true,  docx: true,  gdocs: true,  gsheets: true,  pptx: false, slidepdf: false },
   syllabus:     { xlsx: false, csv: false, pdf: true,  docx: true,  gdocs: true,  gsheets: false, pptx: false, slidepdf: false },
   lessonPlans:  { xlsx: false, csv: true,  pdf: true,  docx: true,  gdocs: true,  gsheets: true,  pptx: false, slidepdf: false },
-  slideDecks:   { xlsx: false, csv: false, pdf: false, docx: false, gdocs: false, gsheets: false, pptx: true,  slidepdf: true  },
+  slideDecks:   { xlsx: false, csv: false, pdf: false, docx: false, gdocs: false, gsheets: false, pptx: true,  slidepdf: true, gslides: true },
   assignments:  { xlsx: false, csv: true,  pdf: true,  docx: true,  gdocs: true,  gsheets: true,  pptx: false, slidepdf: false },
   rubrics:      { xlsx: false, csv: true,  pdf: true,  docx: true,  gdocs: true,  gsheets: true,  pptx: false, slidepdf: false },
   discussions:  { xlsx: false, csv: true,  pdf: true,  docx: true,  gdocs: true,  gsheets: true,  pptx: false, slidepdf: false },
@@ -277,7 +277,7 @@ async function exportAllAsZip(deliverables, courseMap, columns, courseName, less
     // Slide Decks → PPTX
     if (featureId === 'slideDecks' && support.pptx) {
       try {
-        const blob = await buildSlideDeckPptxBlob(filteredData, name);
+        const blob = await buildSlideDeckPptxBlob(filteredData, name, slideTheme);
         folder.file(`${name} - ${label}.pptx`, blob);
       } catch (e) { console.warn(`${featureId} pptx blob failed`, e); }
     } else {
@@ -306,6 +306,7 @@ export default function ExportSidePanel({
   selectedFeatures,
   onCourseMapExport,   // handleDownload from useExport
   onSaveProject,       // save full session as .coursemapper
+  slideTheme,          // user-selected theme index (or null for auto-rotate)
 }) {
   const [scope, setScope] = useState('current'); // 'current' | 'all'
   const [busy, setBusy] = useState(null); // format string or 'zip'
@@ -361,11 +362,11 @@ export default function ExportSidePanel({
           // Slide decks: pptx, pdf, or google slides
           if (!currentDeliverable?.data) throw new Error('No slide data yet');
           if (format === 'pptx') {
-            await exportSlideDeckPptx(currentDeliverable.data, courseName);
+            await exportSlideDeckPptx(currentDeliverable.data, courseName, slideTheme);
           } else if (format === 'slidepdf') {
             await exportSlideDeckPdf(currentDeliverable.data, courseName);
           } else if (format === 'gslides') {
-            const blob = await buildSlideDeckPptxBlob(currentDeliverable.data, courseName);
+            const blob = await buildSlideDeckPptxBlob(currentDeliverable.data, courseName, slideTheme);
             const stamp = new Date().toLocaleDateString('en-US', { month: 'short', day: 'numeric', year: 'numeric' });
             await saveToGoogleSlides(blob, `${courseName} - Slide Decks (${stamp})`, courseName, preTab);
           }

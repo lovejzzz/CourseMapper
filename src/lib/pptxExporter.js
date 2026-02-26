@@ -1,7 +1,9 @@
 /**
  * Export slide decks as PowerPoint (.pptx) using pptxgenjs.
- * University-quality design: bold headers, gradient accents, rich layouts.
- * Item 9: Redesigned for visually rich, colorful, modern university slides.
+ * World-class educational slide design with Google-native fonts,
+ * assertion-evidence layouts, and rich visual hierarchy.
+ *
+ * Fonts: Montserrat (headings) + Open Sans (body) — both Google Slides native.
  */
 
 let _PptxGenJS;
@@ -14,73 +16,47 @@ async function getPptxGen() {
   return _PptxGenJS;
 }
 
-// Rich university color themes — each with a primary, secondary, accent, and body colors
-// Design inspiration: MIT OpenCourseWare, Stanford Education, TED-Ed
-const THEMES = [
+// ── Font constants (Google Slides native) ──────────────────────────────────
+const FONT_HEADING = 'Montserrat';
+const FONT_BODY = 'Open Sans';
+const FONT_LABEL = 'Open Sans';
+
+// ── Rich university color themes ───────────────────────────────────────────
+export const THEMES = [
   {
-    // Navy + Gold — classic university authority
-    primary: '1E3A5F',    // Deep navy
-    secondary: '2E86AB',  // Ocean blue
-    accent: 'F6C90E',     // Gold
-    light: 'EEF4FF',      // Soft blue-white
-    sideBar: '1E3A5F',    // Left sidebar
-    body: 'FFFFFF',
-    titleText: 'FFFFFF',
-    bodyText: '1A1A2E',
-    subtleText: '6B7FA3',
+    name: 'Navy & Gold',
+    primary: '1E3A5F', secondary: '2E86AB', accent: 'F6C90E',
+    light: 'EEF4FF', sideBar: '1E3A5F', body: 'FFFFFF',
+    titleText: 'FFFFFF', bodyText: '1A1A2E', subtleText: '6B7FA3',
   },
   {
-    // Forest + Amber — warm academic green
-    primary: '1B4332',    // Deep forest
-    secondary: '52B788',  // Medium green
-    accent: 'F4A261',     // Warm amber
-    light: 'F0FFF4',
-    sideBar: '1B4332',
-    body: 'FFFFFF',
-    titleText: 'FFFFFF',
-    bodyText: '1B2B1F',
-    subtleText: '52796F',
+    name: 'Forest & Amber',
+    primary: '1B4332', secondary: '52B788', accent: 'F4A261',
+    light: 'F0FFF4', sideBar: '1B4332', body: 'FFFFFF',
+    titleText: 'FFFFFF', bodyText: '1B2B1F', subtleText: '52796F',
   },
   {
-    // Royal Purple + Orange — vibrant creative
-    primary: '4A1C96',    // Deep purple
-    secondary: '7B2FBE',  // Medium purple
-    accent: 'FF6B35',     // Vivid orange
-    light: 'FAF5FF',
-    sideBar: '4A1C96',
-    body: 'FFFFFF',
-    titleText: 'FFFFFF',
-    bodyText: '2D1B40',
-    subtleText: '7C3AED',
+    name: 'Purple & Orange',
+    primary: '4A1C96', secondary: '7B2FBE', accent: 'FF6B35',
+    light: 'FAF5FF', sideBar: '4A1C96', body: 'FFFFFF',
+    titleText: 'FFFFFF', bodyText: '2D1B40', subtleText: '7C3AED',
   },
   {
-    // Crimson + Gold — Harvard-style prestige
-    primary: '8B0000',    // Crimson
-    secondary: 'C62828',  // Medium red
-    accent: 'FFD700',     // Pure gold
-    light: 'FFF9F9',
-    sideBar: '8B0000',
-    body: 'FFFFFF',
-    titleText: 'FFFFFF',
-    bodyText: '2D0A0A',
-    subtleText: '9E3030',
+    name: 'Crimson & Gold',
+    primary: '8B0000', secondary: 'C62828', accent: 'FFD700',
+    light: 'FFF9F9', sideBar: '8B0000', body: 'FFFFFF',
+    titleText: 'FFFFFF', bodyText: '2D0A0A', subtleText: '9E3030',
   },
   {
-    // Ocean + Cyan — modern tech university
-    primary: '0C3547',    // Deep ocean
-    secondary: '1565C0',  // Royal blue
-    accent: '00BCD4',     // Bright cyan
-    light: 'F0FBFF',
-    sideBar: '0C3547',
-    body: 'FFFFFF',
-    titleText: 'FFFFFF',
-    bodyText: '0A1628',
-    subtleText: '2196F3',
+    name: 'Ocean & Cyan',
+    primary: '0C3547', secondary: '1565C0', accent: '00BCD4',
+    light: 'F0FBFF', sideBar: '0C3547', body: 'FFFFFF',
+    titleText: 'FFFFFF', bodyText: '0A1628', subtleText: '2196F3',
   },
 ];
 
+// ── Slide type detection ───────────────────────────────────────────────────
 function getSlideType(slide) {
-  // Use explicit type field first (from AI)
   if (slide.type) {
     const t = slide.type.toLowerCase();
     if (t === 'title') return 'title';
@@ -89,8 +65,10 @@ function getSlideType(slide) {
     if (t === 'activity' || t === 'exercise') return 'activity';
     if (t === 'question' || t === 'discussion') return 'question';
     if (t === 'objectives' || t === 'learning_objectives') return 'objectives';
+    if (t === 'bridge') return 'bridge';
+    if (t === 'example') return 'example';
+    if (t === 'keyterm' || t === 'key_term' || t === 'definition') return 'keyTerm';
   }
-  // Fallback: infer from title
   const t = (slide.title || '').toLowerCase();
   if (/welcome|intro|title|overview/i.test(t)) return 'title';
   if (/agenda|outline|today|roadmap/i.test(t)) return 'agenda';
@@ -98,30 +76,51 @@ function getSlideType(slide) {
   if (/activity|exercise|workshop|group|breakout|hands.?on/i.test(t)) return 'activity';
   if (/objective|goal|outcome|learn/i.test(t)) return 'objectives';
   if (/question|q\s*&\s*a|quiz|discuss/i.test(t)) return 'question';
+  if (/bridge|last\s*time|previously|review/i.test(t)) return 'bridge';
+  if (/example|case\s*study|scenario|illustration/i.test(t)) return 'example';
+  if (/key\s*term|definition|concept|glossary/i.test(t)) return 'keyTerm';
   return 'content';
 }
 
+// ── Progress dot builder ───────────────────────────────────────────────────
+function addProgressDots(pptx, slide, theme, slideIndex, totalSlides, isDark) {
+  const W = 10, H = 5.625;
+  const dotR = 0.06;
+  const dotGap = 0.2;
+  const maxDots = Math.min(totalSlides, 20);
+  const totalW = maxDots * dotGap;
+  const startX = 0.4;
+  const y = H - 0.18;
+
+  for (let i = 0; i < maxDots; i++) {
+    const isCurrent = i === slideIndex;
+    slide.addShape(pptx.ShapeType.ellipse, {
+      x: startX + i * dotGap, y: y - dotR, w: dotR * 2, h: dotR * 2,
+      fill: { color: isCurrent ? theme.accent : (isDark ? 'FFFFFF' : theme.primary), transparency: isCurrent ? 0 : 70 },
+      line: { color: 'transparent' },
+    });
+  }
+}
+
 /**
- * Build a single slide deck into a pptx instance.
- * Shared between export-to-file and export-to-blob.
+ * Build a single slide into a pptx instance.
  */
 function buildSlideForDeck(pptx, deck, theme, slideIndex, totalSlides) {
   const s = deck.slides?.[slideIndex];
   if (!s) return;
   const slideType = getSlideType(s);
   const slide = pptx.addSlide();
-  const W = 10, H = 5.625; // 16:9 inches
+  const W = 10, H = 5.625;
 
   if (slideType === 'title') {
     // ── TITLE SLIDE ─────────────────────────────────────────────────────
-    // Full bleed primary color background
     slide.background = { color: theme.primary };
 
     // Large decorative circle (top right)
     slide.addShape(pptx.ShapeType.ellipse, {
       x: W - 3.2, y: -1.5, w: 4.5, h: 4.5,
-      fill: { color: theme.secondary },
-      line: { color: theme.secondary },
+      fill: { color: theme.secondary, transparency: 15 },
+      line: { color: theme.secondary, transparency: 15 },
     });
 
     // Smaller accent circle (bottom left)
@@ -138,20 +137,26 @@ function buildSlideForDeck(pptx, deck, theme, slideIndex, totalSlides) {
       line: { color: theme.accent, transparency: 20 },
     });
 
-    // Course/Lesson number badge — extract from title if possible (e.g., "Lesson 6: ...")
+    // Thin decorative line
+    slide.addShape(pptx.ShapeType.line, {
+      x: 0.7, y: 0.45, w: 2.5, h: 0,
+      line: { color: theme.accent, pt: 1.5, transparency: 40 },
+    });
+
+    // Course/Lesson number badge
     const titleMatch = (deck.lessonTitle || '').match(/^(?:Lesson|Week)\s*(\d+)/i);
     const deckNum = titleMatch ? parseInt(titleMatch[1], 10) : (deck._deckIndex !== undefined ? deck._deckIndex + 1 : 1);
     slide.addText(`LESSON ${deckNum}`, {
-      x: 0.7, y: 0.6, w: 3, h: 0.35,
-      fontSize: 10, fontFace: 'Calibri Light',
+      x: 0.7, y: 0.6, w: 3, h: 0.4,
+      fontSize: 11, fontFace: FONT_LABEL,
       color: theme.accent,
-      bold: true, charSpacing: 3,
+      bold: true, charSpacing: 4,
     });
 
     // Main title — large, bold
     slide.addText(deck.lessonTitle || s.title || 'Untitled Lesson', {
-      x: 0.7, y: 1.1, w: W - 4, h: 2.2,
-      fontSize: 36, fontFace: 'Calibri',
+      x: 0.7, y: 1.15, w: W - 4, h: 2.2,
+      fontSize: 40, fontFace: FONT_HEADING,
       color: theme.titleText,
       bold: true, align: 'left', valign: 'middle',
       lineSpacingMultiple: 1.15,
@@ -159,7 +164,7 @@ function buildSlideForDeck(pptx, deck, theme, slideIndex, totalSlides) {
 
     // Accent line under title
     slide.addShape(pptx.ShapeType.rect, {
-      x: 0.7, y: 3.4, w: 1.8, h: 0.05,
+      x: 0.7, y: 3.4, w: 2.2, h: 0.06,
       fill: { color: theme.accent },
       line: { color: theme.accent },
     });
@@ -167,18 +172,22 @@ function buildSlideForDeck(pptx, deck, theme, slideIndex, totalSlides) {
     // Subtitle / first bullet
     if (s.bullets?.length > 0) {
       slide.addText(s.bullets[0], {
-        x: 0.7, y: 3.6, w: W - 4.2, h: 0.5,
-        fontSize: 14, fontFace: 'Calibri Light',
+        x: 0.7, y: 3.65, w: W - 4.2, h: 0.6,
+        fontSize: 16, fontFace: FONT_BODY,
         color: 'D0DCF0',
         align: 'left', italic: true,
+        lineSpacingMultiple: 1.5,
       });
     }
+
+    // Progress dots
+    addProgressDots(pptx, slide, theme, slideIndex, totalSlides, true);
 
   } else if (slideType === 'objectives') {
     // ── LEARNING OBJECTIVES SLIDE ────────────────────────────────────────
     slide.background = { color: theme.light };
 
-    // Left colored sidebar
+    // Left sidebar
     slide.addShape(pptx.ShapeType.rect, {
       x: 0, y: 0, w: 0.12, h: H,
       fill: { color: theme.primary },
@@ -187,21 +196,20 @@ function buildSlideForDeck(pptx, deck, theme, slideIndex, totalSlides) {
 
     // Header band
     slide.addShape(pptx.ShapeType.rect, {
-      x: 0.12, y: 0, w: W - 0.12, h: 1.1,
+      x: 0.12, y: 0, w: W - 0.12, h: 1.15,
       fill: { color: theme.primary },
       line: { color: theme.primary },
     });
 
-    // "LEARNING OBJECTIVES" label
     slide.addText('LEARNING OBJECTIVES', {
       x: 0.5, y: 0.1, w: W - 0.8, h: 0.4,
-      fontSize: 9, fontFace: 'Calibri Light',
-      color: theme.accent, charSpacing: 3, bold: true,
+      fontSize: 10, fontFace: FONT_LABEL,
+      color: theme.accent, charSpacing: 4, bold: true,
     });
 
     slide.addText(s.title || 'By the end of this lesson, students will be able to:', {
-      x: 0.5, y: 0.5, w: W - 0.8, h: 0.5,
-      fontSize: 20, fontFace: 'Calibri',
+      x: 0.5, y: 0.5, w: W - 0.8, h: 0.55,
+      fontSize: 22, fontFace: FONT_HEADING,
       color: theme.titleText, bold: true,
     });
 
@@ -211,7 +219,7 @@ function buildSlideForDeck(pptx, deck, theme, slideIndex, totalSlides) {
         const col = i < 2 ? 0 : 1;
         const row = i % 2;
         const x = col === 0 ? 0.4 : W / 2 + 0.15;
-        const y = 1.3 + row * 1.85;
+        const y = 1.35 + row * 1.85;
         const cardW = W / 2 - 0.55;
 
         slide.addShape(pptx.ShapeType.roundRect, {
@@ -229,22 +237,255 @@ function buildSlideForDeck(pptx, deck, theme, slideIndex, totalSlides) {
         });
         slide.addText(`${i + 1}`, {
           x: x + 0.15, y: y + 0.15, w: 0.5, h: 0.5,
-          fontSize: 14, fontFace: 'Calibri', color: 'FFFFFF',
+          fontSize: 16, fontFace: FONT_HEADING, color: 'FFFFFF',
           bold: true, align: 'center', valign: 'middle',
         });
 
         slide.addText(b, {
           x: x + 0.75, y: y + 0.15, w: cardW - 0.9, h: 1.3,
-          fontSize: 11, fontFace: 'Calibri',
+          fontSize: 12, fontFace: FONT_BODY,
           color: theme.bodyText, valign: 'top',
-          lineSpacingMultiple: 1.3,
+          lineSpacingMultiple: 1.4,
         });
       });
     }
 
+    addProgressDots(pptx, slide, theme, slideIndex, totalSlides, false);
+
   } else if (slideType === 'agenda') {
     // ── AGENDA SLIDE ─────────────────────────────────────────────────────
     slide.background = { color: 'FFFFFF' };
+
+    slide.addShape(pptx.ShapeType.rect, {
+      x: 0, y: 0, w: 0.12, h: H,
+      fill: { color: theme.primary },
+      line: { color: theme.primary },
+    });
+
+    slide.addShape(pptx.ShapeType.rect, {
+      x: 0.12, y: 0, w: W - 0.12, h: 1.15,
+      fill: { color: theme.secondary },
+      line: { color: theme.secondary },
+    });
+
+    slide.addText('TODAY\'S AGENDA', {
+      x: 0.5, y: 0.08, w: 5, h: 0.35,
+      fontSize: 10, color: theme.accent,
+      charSpacing: 4, bold: true, fontFace: FONT_LABEL,
+    });
+    slide.addText(s.title || 'Session Overview', {
+      x: 0.5, y: 0.45, w: W - 0.8, h: 0.6,
+      fontSize: 24, color: 'FFFFFF',
+      bold: true, fontFace: FONT_HEADING,
+    });
+
+    if (s.bullets?.length > 0) {
+      s.bullets.slice(0, 6).forEach((b, i) => {
+        const y = 1.3 + i * 0.68;
+        slide.addShape(pptx.ShapeType.ellipse, {
+          x: 0.5, y: y + 0.05, w: 0.44, h: 0.44,
+          fill: { color: i === 0 ? theme.accent : theme.light },
+          line: { color: i === 0 ? theme.accent : theme.secondary, pt: 1.5 },
+        });
+        slide.addText(`${i + 1}`, {
+          x: 0.5, y: y + 0.05, w: 0.44, h: 0.44,
+          fontSize: 14, color: i === 0 ? theme.primary : theme.secondary,
+          bold: true, align: 'center', valign: 'middle', fontFace: FONT_HEADING,
+        });
+        slide.addText(b, {
+          x: 1.15, y, w: W - 1.7, h: 0.55,
+          fontSize: 16, color: i === 0 ? theme.bodyText : '555555',
+          fontFace: FONT_BODY, bold: i === 0, valign: 'middle',
+          lineSpacingMultiple: 1.5,
+        });
+        if (i < s.bullets.length - 1) {
+          slide.addShape(pptx.ShapeType.line, {
+            x: 1.15, y: y + 0.6, w: W - 1.9, h: 0,
+            line: { color: 'E8ECF0', pt: 0.5 },
+          });
+        }
+      });
+    }
+
+    addProgressDots(pptx, slide, theme, slideIndex, totalSlides, false);
+
+  } else if (slideType === 'bridge') {
+    // ── BRIDGE / RECAP SLIDE ─────────────────────────────────────────────
+    // Split layout: left dark recap, right light today
+    slide.background = { color: 'FFFFFF' };
+
+    // Left panel (40%)
+    const splitX = W * 0.42;
+    slide.addShape(pptx.ShapeType.rect, {
+      x: 0, y: 0, w: splitX, h: H,
+      fill: { color: theme.primary },
+      line: { color: theme.primary },
+    });
+
+    // Decorative circle on left
+    slide.addShape(pptx.ShapeType.ellipse, {
+      x: -1, y: H - 2.5, w: 3, h: 3,
+      fill: { color: theme.secondary, transparency: 50 },
+      line: { color: theme.secondary, transparency: 50 },
+    });
+
+    // "LAST TIME" label
+    slide.addText('LAST TIME', {
+      x: 0.4, y: 0.35, w: splitX - 0.6, h: 0.35,
+      fontSize: 10, fontFace: FONT_LABEL,
+      color: theme.accent, bold: true, charSpacing: 4,
+    });
+
+    // Recap title
+    slide.addText(s.title || 'Bridge to Today', {
+      x: 0.4, y: 0.75, w: splitX - 0.6, h: 0.7,
+      fontSize: 20, fontFace: FONT_HEADING,
+      color: theme.titleText, bold: true, valign: 'top',
+      lineSpacingMultiple: 1.2,
+    });
+
+    // Recap bullets on left
+    if (s.bullets?.length > 0) {
+      const halfBullets = Math.ceil(s.bullets.length / 2);
+      const recapBullets = s.bullets.slice(0, halfBullets);
+      const recapText = recapBullets.map(b => ({
+        text: `${b}\n`,
+        options: {
+          bullet: { code: '2714' },
+          fontSize: 13, color: 'D0E8FF', breakLine: true,
+          paraSpaceAfter: 10, lineSpacingMultiple: 1.4,
+        },
+      }));
+      slide.addText(recapText, {
+        x: 0.4, y: 1.6, w: splitX - 0.7, h: H - 2.2,
+        fontFace: FONT_BODY, valign: 'top',
+      });
+    }
+
+    // Right panel — "TODAY" label
+    slide.addText('TODAY', {
+      x: splitX + 0.35, y: 0.35, w: W - splitX - 0.6, h: 0.35,
+      fontSize: 10, fontFace: FONT_LABEL,
+      color: theme.primary, bold: true, charSpacing: 4,
+    });
+
+    // Arrow transition indicator
+    slide.addText('→', {
+      x: splitX - 0.15, y: H / 2 - 0.4, w: 0.6, h: 0.6,
+      fontSize: 28, fontFace: FONT_HEADING,
+      color: theme.accent, bold: true, align: 'center', valign: 'middle',
+    });
+
+    // Today bullets on right
+    if (s.bullets?.length > 1) {
+      const halfBullets = Math.ceil(s.bullets.length / 2);
+      const todayBullets = s.bullets.slice(halfBullets);
+      if (todayBullets.length > 0) {
+        const todayText = todayBullets.map(b => ({
+          text: `${b}\n`,
+          options: {
+            bullet: { code: '25B6' },  // ▶
+            fontSize: 14, color: theme.bodyText, breakLine: true,
+            paraSpaceAfter: 12, lineSpacingMultiple: 1.5,
+          },
+        }));
+        slide.addText(todayText, {
+          x: splitX + 0.35, y: 0.85, w: W - splitX - 0.7, h: H - 1.4,
+          fontFace: FONT_BODY, valign: 'top',
+        });
+      }
+    }
+
+    // Accent line divider accent at bottom
+    slide.addShape(pptx.ShapeType.rect, {
+      x: 0, y: H - 0.08, w: W, h: 0.08,
+      fill: { color: theme.accent },
+      line: { color: theme.accent },
+    });
+
+    addProgressDots(pptx, slide, theme, slideIndex, totalSlides, false);
+
+  } else if (slideType === 'example') {
+    // ── EXAMPLE / CASE STUDY SLIDE ────────────────────────────────────────
+    slide.background = { color: 'FFFAF5' };
+
+    // Top header band
+    slide.addShape(pptx.ShapeType.rect, {
+      x: 0, y: 0, w: W, h: 0.95,
+      fill: { color: theme.primary },
+      line: { color: theme.primary },
+    });
+
+    // EXAMPLE badge
+    slide.addShape(pptx.ShapeType.roundRect, {
+      x: 0.5, y: 0.2, w: 1.2, h: 0.52,
+      fill: { color: theme.accent },
+      line: { color: theme.accent },
+      rectRadius: 0.08,
+    });
+    slide.addText('EXAMPLE', {
+      x: 0.5, y: 0.2, w: 1.2, h: 0.52,
+      fontSize: 10, color: theme.primary,
+      bold: true, align: 'center', valign: 'middle',
+      fontFace: FONT_LABEL, charSpacing: 2,
+    });
+
+    slide.addText(s.title || 'Example', {
+      x: 1.9, y: 0.15, w: W - 2.6, h: 0.65,
+      fontSize: 22, color: 'FFFFFF',
+      bold: true, fontFace: FONT_HEADING, valign: 'middle',
+    });
+
+    // Content area with left accent border
+    slide.addShape(pptx.ShapeType.rect, {
+      x: 0.5, y: 1.15, w: 0.06, h: H - 1.8,
+      fill: { color: theme.accent },
+      line: { color: theme.accent },
+    });
+
+    // Example content
+    if (s.bullets?.length > 0) {
+      const lastIdx = s.bullets.length - 1;
+      const mainBullets = s.bullets.slice(0, lastIdx);
+      const takeaway = s.bullets[lastIdx];
+
+      if (mainBullets.length > 0) {
+        const bulletText = mainBullets.map(b => ({
+          text: `${b}\n`,
+          options: {
+            bullet: { code: '25CF' },
+            fontSize: 16, color: theme.bodyText, breakLine: true,
+            paraSpaceAfter: 12, lineSpacingMultiple: 1.5,
+          },
+        }));
+        slide.addText(bulletText, {
+          x: 0.85, y: 1.2, w: W - 1.3, h: H - 2.8,
+          fontFace: FONT_BODY, valign: 'top',
+        });
+      }
+
+      // Key takeaway at bottom
+      if (takeaway) {
+        slide.addShape(pptx.ShapeType.roundRect, {
+          x: 0.5, y: H - 1.2, w: W - 1, h: 0.8,
+          fill: { color: theme.light },
+          line: { color: theme.accent, pt: 1.5 },
+          rectRadius: 0.08,
+        });
+        slide.addText(`💡 ${takeaway}`, {
+          x: 0.7, y: H - 1.2, w: W - 1.4, h: 0.8,
+          fontSize: 13, fontFace: FONT_BODY,
+          color: theme.primary, bold: true, valign: 'middle',
+          lineSpacingMultiple: 1.3,
+        });
+      }
+    }
+
+    addProgressDots(pptx, slide, theme, slideIndex, totalSlides, false);
+
+  } else if (slideType === 'keyTerm') {
+    // ── KEY CONCEPT / DEFINITION SLIDE ────────────────────────────────────
+    slide.background = { color: theme.light };
 
     // Left sidebar
     slide.addShape(pptx.ShapeType.rect, {
@@ -253,100 +494,96 @@ function buildSlideForDeck(pptx, deck, theme, slideIndex, totalSlides) {
       line: { color: theme.primary },
     });
 
-    // Top band
+    // "KEY CONCEPT" label
+    slide.addText('KEY CONCEPT', {
+      x: 0.5, y: 0.3, w: W - 0.8, h: 0.35,
+      fontSize: 10, fontFace: FONT_LABEL,
+      color: theme.subtleText, bold: true, charSpacing: 4,
+    });
+
+    // Large central card
+    const cardX = 1.2, cardY = 1.0;
+    const cardW = W - 2.4, cardH = 2.8;
+    slide.addShape(pptx.ShapeType.roundRect, {
+      x: cardX, y: cardY, w: cardW, h: cardH,
+      fill: { color: 'FFFFFF' },
+      line: { color: theme.secondary, pt: 2 },
+      rectRadius: 0.15,
+      shadow: { type: 'outer', blur: 8, offset: 3, opacity: 0.15, color: '000000' },
+    });
+
+    // Accent stripe at top of card
     slide.addShape(pptx.ShapeType.rect, {
-      x: 0.12, y: 0, w: W - 0.12, h: 1.1,
-      fill: { color: theme.secondary },
-      line: { color: theme.secondary },
+      x: cardX, y: cardY, w: cardW, h: 0.08,
+      fill: { color: theme.accent },
+      line: { color: theme.accent },
     });
 
-    slide.addText('TODAY\'S AGENDA', {
-      x: 0.5, y: 0.08, w: 5, h: 0.35,
-      fontSize: 9, color: theme.accent,
-      charSpacing: 3, bold: true, fontFace: 'Calibri Light',
-    });
-    slide.addText(s.title || 'Session Overview', {
-      x: 0.5, y: 0.45, w: W - 0.8, h: 0.55,
-      fontSize: 22, color: 'FFFFFF',
-      bold: true, fontFace: 'Calibri',
+    // Main term/concept (first bullet or title)
+    const mainText = s.bullets?.[0] || s.title || 'Key Concept';
+    slide.addText(mainText, {
+      x: cardX + 0.4, y: cardY + 0.3, w: cardW - 0.8, h: 1.6,
+      fontSize: 26, fontFace: FONT_HEADING,
+      color: theme.primary, bold: true,
+      align: 'center', valign: 'middle',
+      lineSpacingMultiple: 1.3,
     });
 
-    // Agenda items as numbered list with colored circles
-    if (s.bullets?.length > 0) {
-      s.bullets.slice(0, 6).forEach((b, i) => {
-        const y = 1.25 + i * 0.65;
-        // Number circle
-        slide.addShape(pptx.ShapeType.ellipse, {
-          x: 0.5, y: y + 0.05, w: 0.42, h: 0.42,
-          fill: { color: i === 0 ? theme.accent : theme.light },
-          line: { color: i === 0 ? theme.accent : theme.secondary, pt: 1.5 },
-        });
-        slide.addText(`${i + 1}`, {
-          x: 0.5, y: y + 0.05, w: 0.42, h: 0.42,
-          fontSize: 13, color: i === 0 ? theme.primary : theme.secondary,
-          bold: true, align: 'center', valign: 'middle', fontFace: 'Calibri',
-        });
-        // Agenda item text
-        slide.addText(b, {
-          x: 1.1, y, w: W - 1.6, h: 0.52,
-          fontSize: 14, color: i === 0 ? theme.bodyText : '666666',
-          fontFace: 'Calibri', bold: i === 0, valign: 'middle',
-        });
-        // Separator line
-        if (i < s.bullets.length - 1) {
-          slide.addShape(pptx.ShapeType.line, {
-            x: 1.1, y: y + 0.58, w: W - 1.8, h: 0,
-            line: { color: 'E8ECF0', pt: 0.5 },
-          });
-        }
+    // Explanatory text below card
+    if (s.bullets?.length > 1) {
+      const explanation = s.bullets.slice(1).join('\n');
+      slide.addText(explanation, {
+        x: 1.5, y: cardY + cardH + 0.2, w: W - 3, h: H - cardY - cardH - 0.5,
+        fontSize: 14, fontFace: FONT_BODY,
+        color: theme.bodyText, align: 'center', valign: 'top',
+        lineSpacingMultiple: 1.5,
       });
     }
 
+    addProgressDots(pptx, slide, theme, slideIndex, totalSlides, false);
+
   } else if (slideType === 'activity') {
     // ── ACTIVITY SLIDE ───────────────────────────────────────────────────
-    // Warm, engaging layout with colored card
     slide.background = { color: 'FAFBFF' };
 
-    // Header
     slide.addShape(pptx.ShapeType.rect, {
-      x: 0, y: 0, w: W, h: 0.9,
+      x: 0, y: 0, w: W, h: 0.95,
       fill: { color: theme.primary },
       line: { color: theme.primary },
     });
 
-    // "ACTIVITY" badge
+    // ACTIVITY badge
     slide.addShape(pptx.ShapeType.roundRect, {
-      x: 0.5, y: 0.18, w: 1.1, h: 0.52,
+      x: 0.5, y: 0.2, w: 1.2, h: 0.52,
       fill: { color: theme.accent },
       line: { color: theme.accent },
       rectRadius: 0.08,
     });
     slide.addText('ACTIVITY', {
-      x: 0.5, y: 0.18, w: 1.1, h: 0.52,
-      fontSize: 9, color: theme.primary,
+      x: 0.5, y: 0.2, w: 1.2, h: 0.52,
+      fontSize: 10, color: theme.primary,
       bold: true, align: 'center', valign: 'middle',
-      fontFace: 'Calibri', charSpacing: 1,
+      fontFace: FONT_LABEL, charSpacing: 2,
     });
 
-    // Timer badge (if available)
     if (s.timer || s.activityType) {
       const timerLabel = s.timer ? `⏱ ${s.timer}` : s.activityType;
       slide.addText(timerLabel, {
-        x: W - 2.5, y: 0.22, w: 2.2, h: 0.44,
-        fontSize: 11, color: theme.accent,
-        bold: true, align: 'right', valign: 'middle', fontFace: 'Calibri',
+        x: W - 2.5, y: 0.22, w: 2.2, h: 0.48,
+        fontSize: 12, color: theme.accent,
+        bold: true, align: 'right', valign: 'middle', fontFace: FONT_BODY,
       });
     }
 
     slide.addText(s.title || 'Activity', {
-      x: 1.8, y: 0.12, w: W - 4.5, h: 0.65,
-      fontSize: 20, color: 'FFFFFF',
-      bold: true, fontFace: 'Calibri', valign: 'middle',
+      x: 1.9, y: 0.12, w: W - 4.5, h: 0.7,
+      fontSize: 22, color: 'FFFFFF',
+      bold: true, fontFace: FONT_HEADING, valign: 'middle',
     });
 
     // Activity card
     slide.addShape(pptx.ShapeType.roundRect, {
-      x: 0.5, y: 1.1, w: W - 1, h: H - 1.5,
+      x: 0.5, y: 1.15, w: W - 1, h: H - 1.6,
       fill: { color: 'FFF8F0' },
       line: { color: theme.accent, pt: 2 },
       rectRadius: 0.15,
@@ -357,26 +594,27 @@ function buildSlideForDeck(pptx, deck, theme, slideIndex, totalSlides) {
         text: `${b}\n`,
         options: {
           bullet: { type: 'number', style: '1)', startAt: bi + 1 },
-          fontSize: 14, color: theme.bodyText, breakLine: true,
-          paraSpaceAfter: 6, lineSpacingMultiple: 1.3,
+          fontSize: 16, color: theme.bodyText, breakLine: true,
+          paraSpaceAfter: 12, lineSpacingMultiple: 1.5,
           bold: bi === 0,
         },
       }));
       slide.addText(bulletText, {
-        x: 0.8, y: 1.3, w: W - 1.6, h: H - 1.8,
-        fontFace: 'Calibri', valign: 'top',
+        x: 0.8, y: 1.35, w: W - 1.6, h: H - 2.0,
+        fontFace: FONT_BODY, valign: 'top',
       });
     }
+
+    addProgressDots(pptx, slide, theme, slideIndex, totalSlides, false);
 
   } else if (slideType === 'summary') {
     // ── SUMMARY / CLOSING SLIDE ──────────────────────────────────────────
     slide.background = { color: theme.primary };
 
-    // Large decorative shapes
     slide.addShape(pptx.ShapeType.ellipse, {
       x: W - 2.5, y: -0.8, w: 3.5, h: 3.5,
-      fill: { color: theme.secondary, transparency: 60 },
-      line: { color: theme.secondary, transparency: 60 },
+      fill: { color: theme.secondary, transparency: 55 },
+      line: { color: theme.secondary, transparency: 55 },
     });
     slide.addShape(pptx.ShapeType.rect, {
       x: 0, y: H - 0.5, w: W, h: 0.5,
@@ -386,18 +624,17 @@ function buildSlideForDeck(pptx, deck, theme, slideIndex, totalSlides) {
 
     slide.addText('KEY TAKEAWAYS', {
       x: 0.7, y: 0.4, w: 6, h: 0.4,
-      fontSize: 10, color: theme.accent,
-      bold: true, charSpacing: 3, fontFace: 'Calibri Light',
+      fontSize: 11, color: theme.accent,
+      bold: true, charSpacing: 4, fontFace: FONT_LABEL,
     });
     slide.addText(s.title || 'Summary', {
-      x: 0.7, y: 0.85, w: W - 1.5, h: 0.9,
+      x: 0.7, y: 0.85, w: W - 1.5, h: 0.95,
       fontSize: 28, color: 'FFFFFF',
-      bold: true, fontFace: 'Calibri',
+      bold: true, fontFace: FONT_HEADING,
     });
 
-    // Gold accent line
     slide.addShape(pptx.ShapeType.rect, {
-      x: 0.7, y: 1.8, w: 2, h: 0.05,
+      x: 0.7, y: 1.85, w: 2.2, h: 0.06,
       fill: { color: theme.accent },
       line: { color: theme.accent },
     });
@@ -406,16 +643,18 @@ function buildSlideForDeck(pptx, deck, theme, slideIndex, totalSlides) {
       const bulletText = s.bullets.map(b => ({
         text: `${b}\n`,
         options: {
-          bullet: { code: '2714' },  // ✔ checkmark
-          fontSize: 14, color: 'D0E8FF', breakLine: true,
-          paraSpaceAfter: 8, lineSpacingMultiple: 1.3,
+          bullet: { code: '2714' },
+          fontSize: 16, color: 'D0E8FF', breakLine: true,
+          paraSpaceAfter: 12, lineSpacingMultiple: 1.5,
         },
       }));
       slide.addText(bulletText, {
-        x: 0.7, y: 2.0, w: W - 1.5, h: H - 2.9,
-        fontFace: 'Calibri', valign: 'top',
+        x: 0.7, y: 2.1, w: W - 1.5, h: H - 3.0,
+        fontFace: FONT_BODY, valign: 'top',
       });
     }
+
+    addProgressDots(pptx, slide, theme, slideIndex, totalSlides, true);
 
   } else if (slideType === 'question') {
     // ── Q&A / DISCUSSION SLIDE ───────────────────────────────────────────
@@ -432,93 +671,136 @@ function buildSlideForDeck(pptx, deck, theme, slideIndex, totalSlides) {
       line: { color: theme.accent },
     });
 
-    // Big question mark
     slide.addText('?', {
       x: 0.4, y: 0.5, w: 1.2, h: 1.5,
       fontSize: 80, color: theme.accent,
-      bold: true, align: 'center', fontFace: 'Calibri',
+      bold: true, align: 'center', fontFace: FONT_HEADING,
       transparency: 30,
     });
 
     slide.addText(s.title || 'Discussion', {
       x: 1.6, y: 0.7, w: W - 2.2, h: 1.2,
-      fontSize: 26, color: 'FFFFFF',
-      bold: true, fontFace: 'Calibri', valign: 'middle',
+      fontSize: 28, color: 'FFFFFF',
+      bold: true, fontFace: FONT_HEADING, valign: 'middle',
     });
 
     if (s.bullets?.length > 0) {
       const bulletText = s.bullets.map(b => ({
         text: `${b}\n`,
-        options: { bullet: true, fontSize: 14, color: 'E8F4FF', breakLine: true, paraSpaceAfter: 8, lineSpacingMultiple: 1.3 },
+        options: {
+          bullet: true, fontSize: 16, color: 'E8F4FF', breakLine: true,
+          paraSpaceAfter: 12, lineSpacingMultiple: 1.5,
+        },
       }));
       slide.addText(bulletText, {
-        x: 0.7, y: 2.1, w: W - 1.4, h: H - 2.7,
-        fontFace: 'Calibri', valign: 'top',
+        x: 0.7, y: 2.1, w: W - 1.4, h: H - 2.8,
+        fontFace: FONT_BODY, valign: 'top',
       });
     }
+
+    addProgressDots(pptx, slide, theme, slideIndex, totalSlides, true);
 
   } else {
     // ── CONTENT SLIDE (default) ──────────────────────────────────────────
     slide.background = { color: 'FFFFFF' };
+    const bullets = s.bullets || [];
+    const useTwoCol = bullets.length >= 4;
 
-    // Left colored sidebar (12% of width)
+    // Left sidebar
     slide.addShape(pptx.ShapeType.rect, {
       x: 0, y: 0, w: 0.12, h: H,
       fill: { color: theme.primary },
       line: { color: theme.primary },
     });
 
-    // Top header area
+    // Top header area — gradient feel (light to white)
     slide.addShape(pptx.ShapeType.rect, {
-      x: 0.12, y: 0, w: W - 0.12, h: 1.05,
+      x: 0.12, y: 0, w: W - 0.12, h: 1.1,
       fill: { color: theme.light },
       line: { color: theme.light },
     });
 
     // Accent line below header
     slide.addShape(pptx.ShapeType.rect, {
-      x: 0.12, y: 1.02, w: W - 0.12, h: 0.045,
+      x: 0.12, y: 1.07, w: W - 0.12, h: 0.05,
       fill: { color: theme.accent },
       line: { color: theme.accent },
     });
 
-    // Slide title
+    // Slide title — assertion-evidence style (full sentence)
     slide.addText(s.title || '', {
-      x: 0.45, y: 0.12, w: W - 0.7, h: 0.8,
-      fontSize: 24, fontFace: 'Calibri',
+      x: 0.45, y: 0.1, w: W - 0.7, h: 0.9,
+      fontSize: 28, fontFace: FONT_HEADING,
       color: theme.primary,
       bold: true, valign: 'middle',
+      lineSpacingMultiple: 1.1,
     });
 
-    // Content bullets
-    if (s.bullets?.length > 0) {
-      const bulletText = s.bullets.map((b, bi) => ({
-        text: `${b}\n`,
-        options: {
-          bullet: { code: '25CF' },  // ● filled circle
-          fontSize: 14, color: bi === 0 ? theme.bodyText : '444444',
-          breakLine: true, paraSpaceAfter: 7, lineSpacingMultiple: 1.35,
-          bold: bi === 0,
-        },
-      }));
-      slide.addText(bulletText, {
-        x: 0.45, y: 1.15, w: W - 0.7, h: H - 1.45,
-        fontFace: 'Calibri', valign: 'top',
-      });
+    // Content bullets — two-column if 4+
+    if (bullets.length > 0) {
+      if (useTwoCol) {
+        const mid = Math.ceil(bullets.length / 2);
+        const leftBullets = bullets.slice(0, mid);
+        const rightBullets = bullets.slice(mid);
+
+        const leftText = leftBullets.map((b, bi) => ({
+          text: `${b}\n`,
+          options: {
+            bullet: { code: '25CF' },
+            fontSize: 16, color: bi === 0 ? theme.bodyText : '444444',
+            breakLine: true, paraSpaceAfter: 12, lineSpacingMultiple: 1.5,
+            bold: bi === 0,
+          },
+        }));
+        slide.addText(leftText, {
+          x: 0.45, y: 1.2, w: (W - 1.0) / 2,  h: H - 1.6,
+          fontFace: FONT_BODY, valign: 'top',
+        });
+
+        const rightText = rightBullets.map((b) => ({
+          text: `${b}\n`,
+          options: {
+            bullet: { code: '25CF' },
+            fontSize: 16, color: '444444',
+            breakLine: true, paraSpaceAfter: 12, lineSpacingMultiple: 1.5,
+          },
+        }));
+        slide.addText(rightText, {
+          x: W / 2 + 0.1, y: 1.2, w: (W - 1.0) / 2, h: H - 1.6,
+          fontFace: FONT_BODY, valign: 'top',
+        });
+      } else {
+        const bulletText = bullets.map((b, bi) => ({
+          text: `${b}\n`,
+          options: {
+            bullet: { code: '25CF' },
+            fontSize: 16, color: bi === 0 ? theme.bodyText : '444444',
+            breakLine: true, paraSpaceAfter: 12, lineSpacingMultiple: 1.5,
+            bold: bi === 0,
+          },
+        }));
+        slide.addText(bulletText, {
+          x: 0.45, y: 1.2, w: W - 0.7, h: H - 1.6,
+          fontFace: FONT_BODY, valign: 'top',
+        });
+      }
     }
+
+    addProgressDots(pptx, slide, theme, slideIndex, totalSlides, false);
   }
 
   // ── Slide number badge (bottom right) ────────────────────────────────
+  const isDarkSlide = slideType === 'title' || slideType === 'summary' || slideType === 'question';
   slide.addShape(pptx.ShapeType.roundRect, {
-    x: W - 0.9, y: H - 0.42, w: 0.62, h: 0.32,
-    fill: { color: slideType === 'title' || slideType === 'summary' || slideType === 'question' ? theme.accent : theme.primary },
+    x: W - 0.95, y: H - 0.44, w: 0.68, h: 0.34,
+    fill: { color: isDarkSlide ? theme.accent : theme.primary },
     line: { color: 'transparent' },
-    rectRadius: 0.04,
+    rectRadius: 0.05,
   });
   slide.addText(`${slideIndex + 1}/${totalSlides}`, {
-    x: W - 0.9, y: H - 0.42, w: 0.62, h: 0.32,
-    fontSize: 8, color: slideType === 'title' || slideType === 'summary' || slideType === 'question' ? theme.primary : 'FFFFFF',
-    align: 'center', valign: 'middle', fontFace: 'Calibri', bold: true,
+    x: W - 0.95, y: H - 0.44, w: 0.68, h: 0.34,
+    fontSize: 9, color: isDarkSlide ? theme.primary : 'FFFFFF',
+    align: 'center', valign: 'middle', fontFace: FONT_BODY, bold: true,
   });
 
   // Speaker notes
@@ -528,13 +810,23 @@ function buildSlideForDeck(pptx, deck, theme, slideIndex, totalSlides) {
 }
 
 /**
+ * Resolve theme — supports themeIndex or falls back to rotating.
+ */
+function resolveTheme(deckIndex, themeIndex) {
+  if (themeIndex !== undefined && themeIndex !== null && themeIndex >= 0 && themeIndex < THEMES.length) {
+    return THEMES[themeIndex];
+  }
+  return THEMES[deckIndex % THEMES.length];
+}
+
+/**
  * Create a pptx instance with all decks.
  */
-async function createPptxWithDecks(data, courseName) {
+async function createPptxWithDecks(data, courseName, themeIndex) {
   const PptxGenJS = await getPptxGen();
   const pptx = new PptxGenJS();
 
-  pptx.layout = 'LAYOUT_16x9'; // 10" × 5.625" — matches Google Slides default
+  pptx.layout = 'LAYOUT_16x9';
   pptx.author = 'CourseMapper';
   pptx.title = courseName || 'Slide Decks';
 
@@ -543,8 +835,31 @@ async function createPptxWithDecks(data, courseName) {
 
   for (let di = 0; di < decks.length; di++) {
     const deck = decks[di];
-    const theme = THEMES[di % THEMES.length];
+    const theme = resolveTheme(di, themeIndex);
     const slides = deck.slides || [];
+
+    // Add section divider between decks (after the first)
+    if (di > 0) {
+      const divider = pptx.addSlide();
+      divider.background = { color: theme.primary };
+      divider.addShape(pptx.ShapeType.rect, {
+        x: 0, y: 5.625 - 0.08, w: 10, h: 0.08,
+        fill: { color: theme.accent },
+        line: { color: theme.accent },
+      });
+      divider.addText(deck.lessonTitle || `Lesson ${di + 1}`, {
+        x: 1, y: 1.5, w: 8, h: 2.5,
+        fontSize: 36, fontFace: FONT_HEADING,
+        color: 'FFFFFF', bold: true, align: 'center', valign: 'middle',
+      });
+      const num = (deck.lessonTitle || '').match(/^(?:Lesson|Week)\s*(\d+)/i);
+      divider.addText(`LESSON ${num ? num[1] : di + 1}`, {
+        x: 1, y: 0.6, w: 8, h: 0.4,
+        fontSize: 11, fontFace: FONT_LABEL,
+        color: theme.accent, bold: true, charSpacing: 4, align: 'center',
+      });
+    }
+
     for (let si = 0; si < slides.length; si++) {
       buildSlideForDeck(pptx, deck, theme, si, slides.length);
     }
@@ -556,8 +871,8 @@ async function createPptxWithDecks(data, courseName) {
 /**
  * Export slide deck data as a .pptx file.
  */
-export async function exportSlideDeckPptx(data, courseName) {
-  const pptx = await createPptxWithDecks(data, courseName);
+export async function exportSlideDeckPptx(data, courseName, themeIndex) {
+  const pptx = await createPptxWithDecks(data, courseName, themeIndex);
   const fileName = `${courseName || 'Course'} - Slide Decks.pptx`;
   await pptx.writeFile({ fileName });
   return fileName;
@@ -566,22 +881,22 @@ export async function exportSlideDeckPptx(data, courseName) {
 /**
  * Build a PPTX blob (for uploading to Google Slides).
  */
-export async function buildSlideDeckPptxBlob(data, courseName) {
-  const pptx = await createPptxWithDecks(data, courseName);
+export async function buildSlideDeckPptxBlob(data, courseName, themeIndex) {
+  const pptx = await createPptxWithDecks(data, courseName, themeIndex);
   return await pptx.write({ outputType: 'blob' });
 }
 
 /**
  * Build a PPTX blob for a single slide deck (one lesson).
  */
-export async function buildSingleDeckPptxBlob(deck, deckIndex, courseName) {
+export async function buildSingleDeckPptxBlob(deck, deckIndex, courseName, themeIndex) {
   const PptxGenJS = await getPptxGen();
   const pptx = new PptxGenJS();
 
   pptx.layout = 'LAYOUT_16x9';
   pptx.title = deck.lessonTitle || courseName || 'Slide Deck';
 
-  const theme = THEMES[deckIndex % THEMES.length];
+  const theme = resolveTheme(deckIndex, themeIndex);
   const deckWithIndex = { ...deck, _deckIndex: deckIndex };
   const slides = deck.slides || [];
 
@@ -595,9 +910,9 @@ export async function buildSingleDeckPptxBlob(deck, deckIndex, courseName) {
 /**
  * Download a single deck as its own .pptx file immediately.
  */
-export async function exportSingleDeckPptx(deck, deckIndex, courseName) {
+export async function exportSingleDeckPptx(deck, deckIndex, courseName, themeIndex) {
   const { saveAs } = await import('file-saver');
-  const blob = await buildSingleDeckPptxBlob(deck, deckIndex, courseName);
+  const blob = await buildSingleDeckPptxBlob(deck, deckIndex, courseName, themeIndex);
   const deckName = (deck.lessonTitle || `Deck ${deckIndex + 1}`).replace(/[/\\?%*:|"<>]/g, '-').trim();
   const lessonNumMatch = (deck.lessonTitle || '').match(/^(?:Lesson|Week)\s*(\d+)/i);
   const lessonNum = lessonNumMatch ? parseInt(lessonNumMatch[1], 10) : deckIndex + 1;

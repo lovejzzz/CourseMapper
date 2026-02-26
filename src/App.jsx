@@ -125,6 +125,7 @@ export default function App() {
   const [hasSavedSession, setHasSavedSession] = useState(false);
   const [lessonScope, setLessonScope] = useState({ type: 'all' });
   const [deliverableConfig, setDeliverableConfig] = useState({});
+  const [slideTheme, setSlideTheme] = useState(null); // null = auto-rotate, 0-4 = specific theme
 
   // ── Model & File Config ──
   const [provider, setProvider] = useState('anthropic');
@@ -279,13 +280,14 @@ export default function App() {
           versionHistory: version.versionHistory.slice(-30),
           selectedFeatures, lessonScope, promptText, activeTab,
           deliverables: deliv.deliverables,
+          slideTheme,
           savedAt: Date.now(),
         };
         localStorage.setItem(STORAGE_KEY, JSON.stringify(state));
       } catch (e) { console.warn('Save failed:', e); }
     }, 1000);
     return () => clearTimeout(saveTimerRef.current);
-  }, [courseMap, columns, hasGenerated, provider, modelId, modelName, userEdits, chatHistory, version.versionHistory, selectedFeatures, lessonScope, promptText, activeTab, deliv.deliverables]);
+  }, [courseMap, columns, hasGenerated, provider, modelId, modelName, userEdits, chatHistory, version.versionHistory, selectedFeatures, lessonScope, promptText, activeTab, deliv.deliverables, slideTheme]);
 
   // ── Detect saved session on mount ──
   useEffect(() => {
@@ -324,6 +326,7 @@ export default function App() {
       if (saved.lessonScope) setLessonScope(saved.lessonScope);
       if (saved.promptText !== undefined) setPromptText(saved.promptText);
       if (saved.activeTab) setActiveTab(saved.activeTab);
+      if (saved.slideTheme !== undefined) setSlideTheme(saved.slideTheme);
       if (saved.deliverables) {
         // ── Change #3: Migrate old stale:true entries that lack staleConfidence ──
         for (const [, entry] of Object.entries(saved.deliverables)) {
@@ -387,6 +390,7 @@ export default function App() {
         if (saved.lessonScope) setLessonScope(saved.lessonScope);
         if (saved.promptText !== undefined) setPromptText(saved.promptText);
         if (saved.activeTab) setActiveTab(saved.activeTab);
+        if (saved.slideTheme !== undefined) setSlideTheme(saved.slideTheme);
         if (saved.fileNames?.length > 0) {
           setFiles(saved.fileNames.map(n => ({ name: n, size: 0, _restored: true })));
         }
@@ -1104,6 +1108,8 @@ export default function App() {
                     const scopeIndices = lessonScope.type === 'specific' ? lessonScope.indices : null;
                     deliv.generateAll(courseMap, [activeTab], scopeIndices);
                   }}
+                  slideTheme={slideTheme}
+                  onSlideThemeChange={setSlideTheme}
                 />
               </ErrorBoundary>
             )}
@@ -1120,6 +1126,7 @@ export default function App() {
               selectedFeatures={selectedFeatures}
               onCourseMapExport={handleDownload}
               onSaveProject={handleSaveProject}
+              slideTheme={slideTheme}
             />
           )}
         </div>
