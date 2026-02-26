@@ -2,8 +2,7 @@
 import React, { createContext, useContext, useState, useEffect } from 'react';
 import { auth, googleProvider, hasConfig } from '../lib/firebase';
 import {
-  signInWithRedirect,
-  getRedirectResult,
+  signInWithPopup,
   onAuthStateChanged,
   signOut as firebaseSignOut,
 } from 'firebase/auth';
@@ -36,18 +35,7 @@ export function AuthProvider({ children }) {
     return unsub;
   }, []);
 
-  /* ---- Handle redirect result (runs once after returning from Google) ---- */
-  useEffect(() => {
-    if (!auth) return;
-    getRedirectResult(auth).catch((err) => {
-      // Ignore cancelled / no-redirect cases
-      if (err.code === 'auth/popup-closed-by-user' || err.code === 'auth/cancelled-popup-request') return;
-      console.error('[Auth] redirect result error', err);
-      setError(err);
-    });
-  }, []);
-
-  /* ---- Google sign-in (redirect — no popup window) ---- */
+  /* ---- Google sign-in (popup — single window, no third-party cookie issues) ---- */
   const handleSignIn = async () => {
     if (!auth || !googleProvider) {
       setError(new Error('Firebase is not configured'));
@@ -55,10 +43,11 @@ export function AuthProvider({ children }) {
     }
     try {
       setError(null);
-      // Redirect to Google — user picks account, then returns to this page.
-      // onAuthStateChanged fires automatically when the page reloads.
-      await signInWithRedirect(auth, googleProvider);
+      await signInWithPopup(auth, googleProvider);
+      // onAuthStateChanged fires automatically after successful sign-in
     } catch (err) {
+      // Ignore if user closed the popup
+      if (err.code === 'auth/popup-closed-by-user' || err.code === 'auth/cancelled-popup-request') return;
       console.error('[Auth] sign-in error', err);
       setError(err);
     }
