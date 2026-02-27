@@ -95,7 +95,7 @@ function stripEmptyColumns(columns, courseMap) {
       for (const col of columns) {
         if (populated.has(col.key)) continue;
         const val = section[col.key];
-        if (val != null && val !== '' && !(Array.isArray(val) && val.length === 0)) {
+        if (val != null && val !== '' && val !== false && val !== 0 && !(Array.isArray(val) && val.length === 0)) {
           populated.add(col.key);
         }
       }

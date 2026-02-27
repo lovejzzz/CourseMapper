@@ -422,22 +422,50 @@ export default function useDeliverables({ provider, modelId, apiKey, maxOutputTo
       const arrayKey = getArrayKey(fid, merged);
       let mergedArr = arrayKey ? (merged[arrayKey] || []) : [];
 
-      // Per-lesson completeness: for slide decks, detect truncated lessons (too few slides)
-      if (fid === 'slideDecks' && mergedArr.length >= expectedCount) {
+      // Per-lesson completeness: for slide decks, detect truncated lessons using dynamic threshold
+      if (fid === 'slideDecks' && mergedArr.length > 0) {
+        // Dynamic threshold: 50% of median slide count (min 6) to catch partial generations
+        const slideCounts = mergedArr
+          .map(d => d?.slides?.length || 0)
+          .filter(c => c > 0)
+          .sort((a, b) => a - b);
+        const median = slideCounts.length > 0
+          ? slideCounts[Math.floor(slideCounts.length / 2)]
+          : 10;
+        const truncThreshold = Math.max(6, Math.floor(median * 0.5));
+
         const truncatedIndices = [];
         mergedArr.forEach((deck, i) => {
           const slideCount = deck?.slides?.length || 0;
-          if (slideCount > 0 && slideCount < 4) {
+          if (slideCount > 0 && slideCount < truncThreshold) {
             truncatedIndices.push(lessonIndices[i]);
           }
         });
         if (truncatedIndices.length > 0) {
           const label = getFeatureLabel(fid);
-          appendLog(`⚠ ${label}: ${truncatedIndices.length} lesson(s) appear truncated (< 4 slides) — retrying`, 'warn');
-          // Remove truncated items from the array and treat their indices as missing
-          mergedArr = mergedArr.filter((deck, i) => {
+          appendLog(`⚠ ${label}: ${truncatedIndices.length} lesson(s) appear truncated (< ${truncThreshold} slides, median ${median}) — retrying`, 'warn');
+          mergedArr = mergedArr.filter((deck) => {
             const slideCount = deck?.slides?.length || 0;
-            return slideCount === 0 || slideCount >= 4;
+            return slideCount === 0 || slideCount >= truncThreshold;
+          });
+          merged = { ...merged, [arrayKey]: mergedArr };
+        }
+      }
+
+      // Post-merge grade normalization: ensure assignment percentOfGrade sums to 100%
+      if (fid === 'assignments' && mergedArr.length > 0) {
+        let gradeTotal = 0;
+        const grades = mergedArr.map(a => {
+          const pct = parseFloat(String(a?.percentOfGrade || '0').replace('%', ''));
+          gradeTotal += pct;
+          return pct;
+        });
+        if (gradeTotal > 0 && Math.abs(gradeTotal - 100) > 2) {
+          const label = getFeatureLabel(fid);
+          appendLog(`⚠ ${label}: grade weights sum to ${Math.round(gradeTotal)}% — normalizing to 100%`, 'warn');
+          mergedArr.forEach((a, i) => {
+            const normalized = Math.round((grades[i] / gradeTotal) * 100);
+            a.percentOfGrade = `${normalized}%`;
           });
           merged = { ...merged, [arrayKey]: mergedArr };
         }

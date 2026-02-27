@@ -147,21 +147,21 @@ export function mergeChunkResults(featureId, chunkMap) {
     }
   }
 
-  // Deduplicate by lessonTitle (retry chunks may re-generate items already present)
-  const seen = new Map();
-  for (let i = 0; i < mergedArray.length; i++) {
-    const item = mergedArray[i];
+  // Deduplicate by lessonTitle — keep the LAST occurrence (retry overrides earlier).
+  // Two-pass approach avoids stale-index bugs from in-place splice.
+  const lastSeen = new Map();
+  mergedArray.forEach((item, i) => {
     const key = item?.lessonTitle || item?.title || item?.name;
-    if (key) {
-      if (seen.has(key)) {
-        // Keep the later (retry) version — remove the earlier one
-        mergedArray.splice(seen.get(key), 1);
-        i--; // adjust index after splice
-        seen.set(key, i); // update position
-      } else {
-        seen.set(key, i);
-      }
-    }
+    if (key) lastSeen.set(key, i);
+  });
+  if (lastSeen.size < mergedArray.length) {
+    const keepSet = new Set(lastSeen.values());
+    const deduped = mergedArray.filter((item, i) => {
+      const key = item?.lessonTitle || item?.title || item?.name;
+      return !key || keepSet.has(i);
+    });
+    mergedArray.length = 0;
+    mergedArray.push(...deduped);
   }
 
   // Build merged result: non-array fields from first chunk + merged array
@@ -170,18 +170,36 @@ export function mergeChunkResults(featureId, chunkMap) {
 }
 
 /**
- * Find missing lesson indices by comparing merged array length to expected.
+ * Find missing lesson indices using content-based matching.
+ *
+ * Extracts lesson/week numbers from each item's title and compares against
+ * expected indices. Falls back to length-based tail detection when titles
+ * don't contain parseable lesson numbers.
  *
  * @param {Array} mergedArray — the merged lesson array
  * @param {number[]} expectedIndices — all lesson indices that should be present
- * @returns {number[]} — missing lesson indices (from the tail)
+ * @returns {number[]} — missing lesson indices
  */
 export function findMissingIndices(mergedArray, expectedIndices) {
-  const got = mergedArray?.length || 0;
-  const expected = expectedIndices.length;
-  if (got >= expected) return [];
+  // ── Content-based matching: extract lesson numbers from titles ──
+  if (mergedArray?.length > 0) {
+    const presentNums = new Set();
+    for (const item of mergedArray) {
+      const title = item?.lessonTitle || item?.title || '';
+      const m = title.match(/(?:Lesson|Week)\s*(\d+)/i);
+      if (m) presentNums.add(parseInt(m[1], 10));
+    }
+    // Only use content-based matching if we found parseable lesson numbers
+    if (presentNums.size > 0) {
+      const missing = expectedIndices.filter(i => !presentNums.has(i + 1));
+      // Return content-based result if we found gaps OR all expected are present
+      if (missing.length > 0 || presentNums.size >= expectedIndices.length) return missing;
+    }
+  }
 
-  // Missing indices are at the tail (since chunks are sequential and ordered)
+  // ── Fallback: length-based tail detection ──
+  const got = mergedArray?.length || 0;
+  if (got >= expectedIndices.length) return [];
   return expectedIndices.slice(got);
 }
 

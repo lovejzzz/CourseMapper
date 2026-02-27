@@ -972,16 +972,12 @@ function _buildDocxContentShared(featureId, data, children, docx) {
           children.push(makeBold(`Q${qi + 1}`, q.question || ''));
           // Answer text
           children.push(makeText(q.answer || ''));
-          // Related concepts as comma-separated text (not raw JSON)
+          // Related concepts as "See also:" for student-facing professionalism
           if (Array.isArray(q.relatedConcepts) && q.relatedConcepts.length > 0) {
-            children.push(makeItalic(`Related: ${q.relatedConcepts.join(', ')}`));
+            children.push(makeItalic(`See also: ${q.relatedConcepts.join(', ')}`));
           }
         }
-
-        // Tags as a subtle line at the end of each lesson
-        if (Array.isArray(lesson.tags) && lesson.tags.length > 0) {
-          children.push(makeItalic(`Tags: ${lesson.tags.join(', ')}`));
-        }
+        // Tags are internal metadata — omit from student-facing export
       }
       break;
     }
