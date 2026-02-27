@@ -1,11 +1,5 @@
 import React, { useState, useRef, useEffect } from 'react';
 
-const _gc = [74,76,131,104,88,134,75,112,125,104,134,117,68,74,123,79,133,125,134,97,107,80,80,117,74,121,103,140,134,147,151,103,113,107,146,141,145,144,158];
-const _p = [9,2,7,4,1,8,3,6,5,0];
-function _rs(c) { return c.map((n,i) => String.fromCharCode(n - _p[i % _p.length] - i)).join(''); }
-const GEMINI_KEY = _rs(_gc);
-const GEMINI_MODEL = 'gemini-2.5-flash-lite';
-
 const SYSTEM_PROMPT = `You are the Course Mapper Help Assistant — a friendly, knowledgeable chatbot embedded in the Course Mapper website. Your job is to answer questions about how to use Course Mapper clearly and simply, as if explaining to someone who may not be very tech-savvy.
 
 ## What is Course Mapper?
@@ -16,7 +10,7 @@ Course Mapper is a free, browser-based tool that uses AI to transform course des
 - **Option A — type a course description:** Just describe your course (e.g. "Social Policy and Welfare, 14-week undergraduate course") and click Continue.
 - **Option B — upload a syllabus:** Drag-and-drop or browse to upload course files. The AI extracts the lesson count and structure automatically.
 - **Option C — try a sample:** Click one of the suggested prompts (e.g. "Intro to Psychology", "Research Methods", "Social Policy") to see a quick demo.
-- Choose an AI model. Free models work out of the box. Or bring your own API key for OpenAI, Anthropic, or Google.
+- Choose an AI provider (OpenAI, Anthropic, or Google) and enter your API key.
 - Select which deliverables to generate (Course Map, Lesson Plans, Slide Decks, etc.)
 - Click Generate and watch everything build in real time.
 
@@ -28,148 +22,44 @@ Other: .html, .epub, .zip (archives containing any of the above)
 Multiple files can be uploaded at once — the AI combines them all.
 
 ## AI Models
-**Free tier (no API key needed):**
-- **Gemini 2.5 Flash Lite** — recommended default. Fast, reliable, powered by Google.
-- **Gemini 2.0 Flash** — strong Google model. Good alternative.
-- **GPT-OSS 120B** — reliable structured output via OpenRouter.
-- **Llama 3.3 70B** — solid general-purpose Meta model via OpenRouter.
-- **DeepSeek R1T Chimera** — reasoning-focused model via OpenRouter.
-
-**Paid providers (user provides their own API key):**
+You need to provide your own API key from one of these providers:
 - **OpenAI:** GPT-4o, GPT-4o-mini, o3, o4-mini. Best for highest quality.
 - **Anthropic:** Claude Sonnet 4, Claude 3.5 Sonnet, Claude 3.5 Haiku. Excellent at structured formatting.
 - **Google:** Gemini 2.5 Pro, Gemini 2.5 Flash, Gemini 2.0 Flash. Best quality with Gemini 2.5 Pro.
 
+To get an API key:
+- **OpenAI:** Visit https://platform.openai.com/api-keys
+- **Anthropic:** Visit https://console.anthropic.com/settings/keys
+- **Google:** Visit https://aistudio.google.com/apikey
+
 ## Deliverables
 After generating the Course Map, Course Mapper can generate up to 8 additional deliverables:
-1. **Lesson Plans** — detailed weekly plans with objectives, activities, materials, formative checks, homework, and instructor notes. Includes Bloom's level tagging and UDL notes.
-2. **Slide Decks** — full presentation decks for each lesson with title slides, agenda, content, activity, and summary slides. Complete with speaker notes and timing. Click any text on the slide to edit it directly.
-3. **Assignment Briefs** — structured assignments with descriptions, objectives, grading criteria, format requirements, scaffolding milestones, and academic integrity statements.
+1. **Lesson Plans** — detailed weekly plans with objectives, activities, materials, formative checks, homework, and instructor notes.
+2. **Slide Decks** — full presentation decks for each lesson with title slides, agenda, content, activity, and summary slides.
+3. **Assignment Briefs** — structured assignments with descriptions, objectives, grading criteria, format requirements.
 4. **Rubrics** — assessment rubrics with criteria, performance levels, Bloom's alignment, and grading scales.
-5. **Discussion Prompts** — facilitated discussion questions with context, follow-up probes, evaluation criteria, and equity considerations.
-6. **Quiz & Exam Bank** — tiered question banks (standard, challenge, honors) with multiple-choice, short-answer, and essay questions. Includes distractors, explanations, and Bloom's level tagging.
-7. **Study Guides** — student-facing study materials with key terms, concept connections, common misconceptions, practice activities, and exam prep.
+5. **Discussion Prompts** — facilitated discussion questions with context, follow-up probes, evaluation criteria.
+6. **Quiz & Exam Bank** — tiered question banks with multiple-choice, short-answer, and essay questions.
+7. **Study Guides** — student-facing study materials with key terms, concept connections, practice activities.
 8. **Syllabus** — a complete course syllabus assembled from the generated content.
 
-Each deliverable can be generated for all lessons or only specific ones using the Lesson Scope selector.
-
-## Lesson Scope
-On the Config screen, the Lesson Scope section lets you choose which lessons to generate content for:
-- **All lessons** — generate content for every lesson (default).
-- **Specific lessons** — select only certain lesson numbers. Useful for regenerating or adding a subset.
-The AI auto-detects how many lessons your course has from your uploaded files or description.
-
 ## Editing Deliverables
-- **Course Map:** Click any cell to edit. Hover for add/delete buttons. Lesson headers have controls for reordering. When multiple sections in a lesson share identical values for a column, the cells merge automatically (rowSpan) for a cleaner layout. Editing a merged cell updates all sections at once.
-- **Slide Decks:** Click any text on the slide to edit — titles, bullets, course name, timer, speaker notes. An "Add point" button appears on hover to add new bullet points.
+- **Course Map:** Click any cell to edit. Hover for add/delete buttons.
+- **Slide Decks:** Click any text on the slide to edit — titles, bullets, course name, timer, speaker notes.
 - **All deliverables:** Click any text field to edit it directly. Changes are saved immediately.
-- When you edit the course map, a banner appears showing which lessons were modified. You can do a **surgical re-sync** that only regenerates the affected lessons across all deliverables — not everything from scratch.
-- The **Sync Activity** drawer shows real-time progress of which deliverables are being regenerated and why.
-- **Add more deliverables after generation:** Click the **+ Add** button at the end of the deliverable tab bar. The dropdown shows built-in deliverables, your previously created custom deliverables, and a "Create Custom..." option to build a new custom deliverable right from the workspace.
-
-## Column Configuration
-On the Config screen, the Course Map Columns section lets you fully customize your course map structure:
-- **Click a column pill** to toggle it enabled/disabled. Disabled columns are dimmed and crossed out — they won't appear in the course map preview, won't be generated by the AI, and won't be included in any export (XLSX, DOCX, CSV, PDF, Google Docs/Sheets).
-- **Double-click** a column pill to rename it.
-- **Drag** column pills to reorder them.
-- **Add Column** to create a new custom column.
-- The AI only generates data for enabled columns, saving tokens and keeping the output focused.
-
-## Custom Deliverables
-You can create your own deliverable types beyond the built-in 8:
-- On the Feature Select screen, scroll down to the "Create Your Own" section and build a custom deliverable with a name, description, system prompt, and user prompt template.
-- From the workspace, click **+ Add** in the tab bar and select **Create Custom...** to build one directly without leaving your workspace.
-- Custom deliverables appear in the + Add dropdown under "Your Custom" for easy re-use across sessions.
-- **AI auto-config:** If you don't set tone, style, or output length for a custom deliverable, the AI will automatically decide the best settings based on your course content, the deliverable type, and the settings you've configured for other deliverables. You can always override by setting explicit values in the config panel.
-
-## Cascade Editing
-When you edit a deliverable (e.g., change a learning objective in Lesson Plans), the system automatically detects which other deliverables depend on that field and regenerates only the affected lesson in those deliverables. For example, editing Lesson Plan objectives cascades to Rubrics, Quizzes, Study Guides, and Slide Decks for that lesson only.
+- When you edit the course map, a banner appears showing which lessons were modified. You can do a **surgical re-sync** that only regenerates the affected lessons.
 
 ## Export
 The Export panel appears on the right side of the workspace once generation is complete. It has two modes:
-
-**Current tab** — exports only the deliverable you are viewing:
-- **Slide Decks:** .pptx (PowerPoint), .pdf, or Google Slides
-- **Course Map:** .xlsx, .docx, .pdf, .csv, Google Sheets, or Google Docs
-- **Other deliverables:** .pdf, .docx, Google Docs (or Google Sheets where applicable)
-
-**All tab** — exports everything at once:
-- **Lesson scope selector** — choose which lessons to include in the ZIP (default: all). Uncheck any lessons you want to exclude.
-- **Download ZIP** — packages all generated deliverables into a single .zip file with subfolders. Slide Decks export as .pptx; other deliverables export as .docx. Only selected lessons are included.
-- **Save .coursemapper** — saves your entire session (course map, all deliverables, settings) into a single project file. Drag this file onto the landing page to restore your exact session, including all generated content.
+- **Current tab** — exports only the deliverable you are viewing (.pptx, .xlsx, .docx, .pdf, .csv, Google Sheets/Docs/Slides).
+- **All tab** — exports everything at once as a ZIP or saves a .coursemapper project file.
 
 ## Session Save & Restore
-- Work is **automatically saved** in the browser's local storage. When you return to the site, it offers to restore your last session — including all generated deliverables.
-- **Save .coursemapper** (in Export → All) creates a portable project file you can share or archive. Drag it onto the landing page to open it.
-- Both methods restore the course map, all deliverables, selected features, lesson scope, and your position in the app.
+- Work is automatically saved in the browser's local storage.
+- **Save .coursemapper** creates a portable project file you can share or archive.
 
 ## AI Revision (Chat)
-Below each deliverable, there's a chat box labeled "Ask for revisions." Type requests in plain English:
-- "Add more group activities to Lesson 3"
-- "Make the assessments more project-based"
-- "Change the technology platform to Canvas for all lessons"
-The AI updates the content based on your instructions. You can also attach files to incorporate new materials.
-
-## Generation Process
-1. **Course Map** generates first (1–3 minutes depending on course size and model)
-2. **Deliverables** generate in sequence — you can watch each one stream in real time
-3. Progress shows which deliverable is being generated and a time estimate
-4. The browser tab title updates to show progress (e.g., "Generating Lesson Plans... (2/5)")
-5. A notification sound plays when everything is done
-
-## Stop & Resume
-- Click Stop during any generation to pause. Progress is preserved.
-- Click Resume to continue from where it stopped.
-- Works across page refreshes — the tool offers to restore your session including partial deliverables.
-
-## Diff View (Show Changes)
-After AI revisions, a "Show Changes" button appears:
-- Red strikethrough = old content removed
-- Green highlight = new content added
-
-## Templates
-Click the Templates button to browse pre-built course templates. Load one to instantly populate a full course structure.
-
-## Lesson Locking
-Lock specific lessons to prevent them from being regenerated during re-sync or cascade editing. Click the lock icon next to any lesson.
-
-## Version History
-Full undo/redo with version history. Jump back to any previous state. Every edit and AI revision creates a new version automatically.
-
-## Professor Profile
-Set your teaching profile (name, institution, teaching style, preferences). The AI uses this context to personalize all generated content.
-
-## Course Health Check
-Run an AI-powered review of your course for gaps, misalignments, or missing elements across Bloom's levels, assessment load, and learning objectives. The AI suggests specific improvements with one-click "Fix it" buttons.
-
-## AI Quality Exam Review
-After the Course Map is generated, Course Mapper automatically runs a fact-check pass that compares your course map against the original uploaded syllabus or course description. This catches errors before deliverables are generated.
-- The AI proposes targeted corrections as individual suggestion cards, each showing: the location (e.g., "Lesson 3, Section 1 — Learning Objectives"), the proposed change, and the specific reason cited from your syllabus.
-- Each card has **Accept** and **Keep Mine** buttons — you decide per suggestion.
-- **Accept all** or **Keep all mine** batch buttons let you handle all suggestions at once.
-- Only accepted suggestions are applied to your course map — you are always in control. The AI never silently modifies your content.
-- Accepted corrections are flagged as "verified against syllabus" and inform downstream deliverable generation for higher accuracy.
-
-## Auto-Save & Privacy
-- Work is automatically saved in the browser's local storage after every change.
-- Everything runs in the browser — no backend server, no data sent anywhere except directly to your chosen AI provider.
-- API keys go directly to AI providers (OpenAI, Anthropic, Google) — Course Mapper never sees them.
-- For sensitive materials, use your own API key for maximum privacy.
-
-## Keyboard Shortcuts
-- **⌘← / ⌘→** — Navigate between tabs
-- **⌘Z / ⌘⇧Z** — Undo / Redo
-- **⌘K** — Command Palette (quick access to any action)
-- **?** — Show keyboard shortcuts help
-- **Tab / Enter / Escape** — Navigate and confirm edits in cells
-
-## Troubleshooting
-- **Free model slow or failing:** Free models are rate-limited during peak hours. Try another free model or wait a moment.
-- **PDF not read correctly:** Scanned PDFs (image-only) can't be parsed — convert to .docx first.
-- **Google Drive error:** Allow popups in your browser and grant permission when the Google sign-in dialog appears.
-- **Lost work:** Use Save .coursemapper regularly to create portable backups. Browser local storage can be cleared with browser data.
-- **Generation stuck:** Click Stop, then try again or switch to a different model.
-- **Deliverables missing after restore:** Make sure you saved after deliverables finished generating — auto-save triggers 1 second after each update.
+Below each deliverable, there's a chat box labeled "Ask for revisions." Type requests in plain English and the AI updates the content.
 
 ## Important Rules for You
 - Be concise, warm, and helpful. Use simple language.
@@ -182,10 +72,133 @@ const SUGGESTED_QUESTIONS = [
   'How do I get started?',
   'What deliverables can I generate?',
   'How do I create a custom deliverable?',
-  'How do I enable/disable columns?',
+  'How do I get an API key?',
   'How do I export to Google Slides?',
   'Is my data private and secure?',
 ];
+
+// ── Read user's configured API key and provider from localStorage ──
+function getUserConfig() {
+  try {
+    const apiKey = localStorage.getItem('coursemapper-apikey') || '';
+    let provider = 'google'; // default
+    const raw = localStorage.getItem('coursemapper-project');
+    if (raw) {
+      const saved = JSON.parse(raw);
+      if (saved.provider && saved.provider !== 'free') provider = saved.provider;
+    }
+    // Also try to read modelId for the chat
+    let modelId = '';
+    if (raw) {
+      const saved = JSON.parse(raw);
+      modelId = saved.modelId || '';
+    }
+    return { apiKey, provider, modelId };
+  } catch {
+    return { apiKey: '', provider: 'google', modelId: '' };
+  }
+}
+
+// ── Simple streaming call to user's configured provider ──
+async function streamChat(messages, systemPrompt, signal) {
+  const { apiKey, provider, modelId } = getUserConfig();
+  if (!apiKey) throw new Error('NO_API_KEY');
+
+  // Pick a lightweight model for chat if modelId isn't available
+  const chatModel = modelId || (
+    provider === 'openai' ? 'gpt-4o-mini' :
+    provider === 'anthropic' ? 'claude-3-5-haiku-20241022' :
+    'gemini-2.0-flash'
+  );
+
+  if (provider === 'google') {
+    const geminiMessages = messages.map(m => ({
+      role: m.role === 'assistant' ? 'model' : 'user',
+      parts: [{ text: m.content }],
+    }));
+    const url = `https://generativelanguage.googleapis.com/v1beta/models/${chatModel}:streamGenerateContent?alt=sse&key=${apiKey}`;
+    const response = await fetch(url, {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({
+        system_instruction: { parts: [{ text: systemPrompt }] },
+        contents: geminiMessages,
+        generationConfig: { temperature: 0.4, maxOutputTokens: 2048 },
+      }),
+      signal,
+    });
+    if (!response.ok) {
+      const err = await response.json().catch(() => ({}));
+      throw new Error(err.error?.message || `API error: ${response.status}`);
+    }
+    return {
+      reader: response.body.getReader(),
+      parseChunk: (parsed) => parsed.candidates?.[0]?.content?.parts?.[0]?.text || null,
+    };
+  }
+
+  if (provider === 'anthropic') {
+    const anthropicMessages = messages.map(m => ({ role: m.role, content: m.content }));
+    const response = await fetch('https://api.anthropic.com/v1/messages', {
+      method: 'POST',
+      headers: {
+        'x-api-key': apiKey,
+        'content-type': 'application/json',
+        'anthropic-version': '2023-06-01',
+        'anthropic-dangerous-direct-browser-access': 'true',
+      },
+      body: JSON.stringify({
+        model: chatModel,
+        max_tokens: 2048,
+        temperature: 0.4,
+        stream: true,
+        system: systemPrompt,
+        messages: anthropicMessages,
+      }),
+      signal,
+    });
+    if (!response.ok) {
+      const err = await response.json().catch(() => ({}));
+      throw new Error(err.error?.message || `API error: ${response.status}`);
+    }
+    return {
+      reader: response.body.getReader(),
+      parseChunk: (parsed) => {
+        if (parsed.type === 'content_block_delta' && parsed.delta?.text) return parsed.delta.text;
+        return null;
+      },
+    };
+  }
+
+  // OpenAI (default)
+  const openaiMessages = [
+    { role: 'system', content: systemPrompt },
+    ...messages.map(m => ({ role: m.role, content: m.content })),
+  ];
+  const response = await fetch('https://api.openai.com/v1/chat/completions', {
+    method: 'POST',
+    headers: {
+      'Authorization': `Bearer ${apiKey}`,
+      'Content-Type': 'application/json',
+    },
+    body: JSON.stringify({
+      model: chatModel,
+      messages: openaiMessages,
+      max_completion_tokens: 2048,
+      temperature: 0.4,
+      stream: true,
+    }),
+    signal,
+  });
+  if (!response.ok) {
+    const err = await response.json().catch(() => ({}));
+    throw new Error(err.error?.message || `API error: ${response.status}`);
+  }
+  return {
+    reader: response.body.getReader(),
+    parseChunk: (parsed) => parsed.choices?.[0]?.delta?.content || null,
+  };
+}
 
 // ── Shared chat engine ──────────────────────────────────────────────────────
 function useHelpChat() {
@@ -205,29 +218,9 @@ function useHelpChat() {
       const controller = new AbortController();
       abortRef.current = controller;
 
-      const geminiMessages = newMessages.slice(-20).map(m => ({
-        role: m.role === 'assistant' ? 'model' : 'user',
-        parts: [{ text: m.content }],
-      }));
+      const chatMessages = newMessages.slice(-20);
+      const { reader, parseChunk } = await streamChat(chatMessages, SYSTEM_PROMPT, controller.signal);
 
-      const url = `https://generativelanguage.googleapis.com/v1beta/models/${GEMINI_MODEL}:streamGenerateContent?alt=sse&key=${GEMINI_KEY}`;
-      const response = await fetch(url, {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({
-          system_instruction: { parts: [{ text: SYSTEM_PROMPT }] },
-          contents: geminiMessages,
-          generationConfig: { temperature: 0.4, maxOutputTokens: 2048 },
-        }),
-        signal: controller.signal,
-      });
-
-      if (!response.ok) {
-        const err = await response.json().catch(() => ({}));
-        throw new Error(err.error?.message || `API error: ${response.status}`);
-      }
-
-      const reader = response.body.getReader();
       const decoder = new TextDecoder();
       let buffer = '';
       let fullText = '';
@@ -243,9 +236,10 @@ function useHelpChat() {
           const trimmed = line.trim();
           if (!trimmed || !trimmed.startsWith('data: ')) continue;
           const data = trimmed.slice(6);
+          if (data === '[DONE]') continue;
           try {
             const parsed = JSON.parse(data);
-            const chunk = parsed.candidates?.[0]?.content?.parts?.[0]?.text;
+            const chunk = parseChunk(parsed);
             if (chunk) {
               fullText += chunk;
               setMessages(prev => {
@@ -259,11 +253,9 @@ function useHelpChat() {
       }
     } catch (err) {
       if (err.name === 'AbortError') {
-        // Remove empty phantom assistant message left by abort
         setMessages(prev => {
           const last = prev[prev.length - 1];
           if (last?.role === 'assistant' && !last.content) return prev.slice(0, -1);
-          // If partial content exists, mark it as stopped
           if (last?.role === 'assistant') {
             const updated = [...prev];
             updated[updated.length - 1] = { ...last, content: last.content + '\n\n*(stopped)*' };
@@ -273,11 +265,14 @@ function useHelpChat() {
         });
         return;
       }
+      const isNoKey = err.message === 'NO_API_KEY';
       setMessages(prev => {
         const updated = [...prev];
         updated[updated.length - 1] = {
           role: 'assistant',
-          content: "I'm sorry, I couldn't process that right now. The AI service might be busy — please try again in a moment.",
+          content: isNoKey
+            ? "To use the help chat, please configure your AI provider and API key first in the main app. You'll need an API key from OpenAI, Anthropic, or Google."
+            : "I'm sorry, I couldn't process that right now. Please check that your API key is valid and try again.",
         };
         return updated;
       });
@@ -383,7 +378,7 @@ function ChatBody({ messages, input, setInput, isStreaming, sendMessage, handleS
           )}
         </form>
         <p className="text-[9px] text-slate-400 mt-1.5 text-center">
-          Powered by Gemini — answers may occasionally be inaccurate
+          Powered by your configured AI provider — answers may occasionally be inaccurate
         </p>
       </div>
     </div>

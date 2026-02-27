@@ -86,7 +86,7 @@ function getFeatureLabel(featureId) {
  * V2.0: Parallel chunked generation — all deliverables fire simultaneously,
  * each split into chunks of CHUNK_SIZE lessons with a concurrency cap.
  */
-export default function useDeliverables({ provider, modelId, apiKey, deliverableConfig, lockedLessons, pedagogicalMode, examChanges, columns }) {
+export default function useDeliverables({ provider, modelId, apiKey, maxOutputTokens, deliverableConfig, lockedLessons, pedagogicalMode, examChanges, columns }) {
   // ── Read deliverables from the store ──
   const storeState = useContext(CourseStateContext);
   const dispatch   = useContext(CourseDispatchContext);
@@ -238,6 +238,7 @@ export default function useDeliverables({ provider, modelId, apiKey, deliverable
           provider, apiKey, modelId,
           prompts.systemPrompt, prompts.userPrompt,
           {
+            maxOutputTokens,
             onChunk: (accumulatedText) => {
               fullText = accumulatedText;
               tokenCount = Math.round(accumulatedText.length / 4);
@@ -432,7 +433,7 @@ export default function useDeliverables({ provider, modelId, apiKey, deliverable
               const result = await streamProvider(
                 provider, apiKey, modelId,
                 prompts.systemPrompt, prompts.userPrompt,
-                { onChunk: (t) => { fullText = t; }, maxRetries: 2, signal: controller.signal }
+                { maxOutputTokens, onChunk: (t) => { fullText = t; }, maxRetries: 2, signal: controller.signal }
               );
               const text = result?.fullText || fullText;
               const parsed = parsePartialJSON(text);
@@ -616,6 +617,7 @@ export default function useDeliverables({ provider, modelId, apiKey, deliverable
         provider, apiKey, modelId,
         prompts.systemPrompt, prompts.userPrompt,
         {
+          maxOutputTokens,
           onChunk: (accumulatedText) => {
             fullText = accumulatedText;
             const now = Date.now();

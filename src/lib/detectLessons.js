@@ -117,11 +117,7 @@ export function detectExpectedLessons(text) {
 export async function detectLessonsWithAI(text, { provider, apiKey, modelId }) {
   if (!text?.trim() || !modelId) return null;
 
-  // Resolve effective provider (same logic as useStreamReader)
-  let effectiveProvider = provider;
-  if (provider === 'free') {
-    effectiveProvider = (modelId.includes('/') && !modelId.startsWith('gemini')) ? 'openrouter' : 'google';
-  }
+  const effectiveProvider = provider;
 
   const systemPrompt = 'You are a helpful assistant. Respond only with valid JSON — no markdown, no explanation.';
   const userPrompt = `Based on the course description below, determine:

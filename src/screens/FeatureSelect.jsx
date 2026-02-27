@@ -157,7 +157,7 @@ export function CustomDeliverableBuilder({ isOpen, onClose, onSave, editDef, mod
 
   if (!isOpen) return null;
 
-  const hasModelConfig = modelConfig?.modelId && (modelConfig.provider === 'free' || modelConfig.apiKey?.trim());
+  const hasModelConfig = modelConfig?.modelId && modelConfig.apiKey?.trim();
 
   const canSave = name.trim().length > 0;
 

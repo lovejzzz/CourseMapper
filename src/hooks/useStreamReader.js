@@ -97,16 +97,9 @@ export default function useStreamReader() {
    * @returns {{ fullText: string }}
    */
   const streamProvider = useCallback(async (provider, apiKey, modelId, systemPrompt, userPrompt, opts = {}) => {
-    const { onChunk, onRetry, maxRetries = 3, existingText = '', signal: externalSignal } = opts;
+    const { onChunk, onRetry, maxRetries = 3, existingText = '', signal: externalSignal, maxOutputTokens } = opts;
 
-    // "free" provider — detect backend from model ID
-    let effectiveProvider = provider;
-    if (provider === 'free') {
-      // Models with a slash (e.g. "z-ai/glm-5") are OpenRouter models; others are Google
-      effectiveProvider = (modelId.includes('/') && !modelId.startsWith('gemini')) ? 'openrouter' : 'google';
-    }
-
-    const { url, headers, body, parseChunk } = buildProviderRequest(effectiveProvider, apiKey, modelId, systemPrompt, userPrompt);
+    const { url, headers, body, parseChunk } = buildProviderRequest(provider, apiKey, modelId, systemPrompt, userPrompt, maxOutputTokens);
 
     let fullText = existingText;
     let attempt = 0;
@@ -199,7 +192,7 @@ export default function useStreamReader() {
 
 // ── Provider-specific request builders ──
 
-function buildProviderRequest(provider, apiKey, modelId, systemPrompt, userPrompt) {
+function buildProviderRequest(provider, apiKey, modelId, systemPrompt, userPrompt, maxOutputTokens = 16384) {
   if (provider === 'openai') {
     return {
       url: 'https://api.openai.com/v1/chat/completions',
@@ -214,7 +207,7 @@ function buildProviderRequest(provider, apiKey, modelId, systemPrompt, userPromp
           { role: 'user', content: userPrompt },
         ],
         response_format: { type: 'json_object' },
-        max_completion_tokens: 16384,
+        max_completion_tokens: maxOutputTokens,
         temperature: 0.3,
         stream: true,
       },
@@ -233,7 +226,7 @@ function buildProviderRequest(provider, apiKey, modelId, systemPrompt, userPromp
       },
       body: {
         model: modelId,
-        max_tokens: 16384,
+        max_tokens: maxOutputTokens,
         temperature: 0.3,
         stream: true,
         system: systemPrompt,
@@ -255,7 +248,7 @@ function buildProviderRequest(provider, apiKey, modelId, systemPrompt, userPromp
         systemInstruction: { parts: [{ text: systemPrompt }] },
         generationConfig: {
           temperature: 0.3,
-          maxOutputTokens: 16384,
+          maxOutputTokens: maxOutputTokens,
           responseMimeType: 'application/json',
         },
       },
@@ -277,7 +270,7 @@ function buildProviderRequest(provider, apiKey, modelId, systemPrompt, userPromp
           { role: 'system', content: systemPrompt },
           { role: 'user', content: userPrompt },
         ],
-        max_tokens: 16384,
+        max_tokens: maxOutputTokens,
         temperature: 0.3,
         stream: true,
         provider: { data_collection: 'allow' },
@@ -299,6 +292,26 @@ function cleanOpenAIName(id) {
 }
 
 /**
+ * Lookup max output tokens for OpenAI models (not returned by /v1/models API).
+ */
+function openaiMaxOutput(id) {
+  if (/^o[134]/.test(id)) return 100000; // o1, o3, o3-mini, o4-mini reasoning models
+  if (id.startsWith('gpt-4.1')) return 32768; // gpt-4.1, gpt-4.1-mini, gpt-4.1-nano
+  return 16384; // gpt-4o, gpt-4o-mini, and others
+}
+
+/**
+ * Lookup max output tokens for Anthropic models (not reliably in /v1/models).
+ */
+function anthropicMaxOutput(id) {
+  if (/claude-(sonnet|opus)-4/.test(id)) return 16384;
+  if (id.includes('claude-3-7')) return 16384;
+  if (id.includes('claude-3-5')) return 8192;
+  if (id.includes('claude-3-opus')) return 4096;
+  return 8192; // safe default
+}
+
+/**
  * Fetch models dynamically from provider API, filtered to only chat/text models
  * that support streaming + JSON output. Returns the 5 latest/best.
  */
@@ -313,7 +326,7 @@ export async function fetchModelsFromProvider(provider, apiKey) {
       .filter((m) => (m.id.startsWith('gpt-') || m.id.startsWith('o')) && !OPENAI_EXCLUDE.test(m.id) && !OPENAI_SKIP_VARIANT.test(m.id))
       .sort((a, b) => (b.created || 0) - (a.created || 0))
       .slice(0, 5)
-      .map((m) => ({ id: m.id, name: cleanOpenAIName(m.id) }));
+      .map((m) => ({ id: m.id, name: cleanOpenAIName(m.id), maxOutputTokens: openaiMaxOutput(m.id) }));
   }
 
   if (provider === 'anthropic') {
@@ -334,7 +347,7 @@ export async function fetchModelsFromProvider(provider, apiKey) {
     const seen = new Set();
     const models = (data.data || [])
       .filter((m) => m.id.includes('claude') && !/\d{8}$/.test(m.id))
-      .map((m) => ({ id: m.id, name: m.display_name || m.id, created: m.created_at || '' }))
+      .map((m) => ({ id: m.id, name: m.display_name || m.id, created: m.created_at || '', maxOutputTokens: anthropicMaxOutput(m.id) }))
       .sort((a, b) => (b.created || '').localeCompare(a.created || ''))
       .filter((m) => { if (seen.has(m.name)) return false; seen.add(m.name); return true; })
       .slice(0, 5);
@@ -356,6 +369,7 @@ export async function fetchModelsFromProvider(provider, apiKey) {
       .map((m) => ({
         id: m.name.replace('models/', ''),
         name: m.displayName || m.name.replace('models/', ''),
+        maxOutputTokens: m.outputTokenLimit || 8192,
       }))
       .sort((a, b) => b.id.localeCompare(a.id))
       .filter((m) => { if (gSeen.has(m.name)) return false; gSeen.add(m.name); return true; })

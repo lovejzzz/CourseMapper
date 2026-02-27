@@ -143,10 +143,7 @@ export function deleteCustomDeliverable(id, uid) {
 export async function autoFillCustomDeliverable(name, { provider, apiKey, modelId }) {
   if (!name?.trim() || !modelId) return null;
 
-  let effectiveProvider = provider;
-  if (provider === 'free') {
-    effectiveProvider = (modelId.includes('/') && !modelId.startsWith('gemini')) ? 'openrouter' : 'google';
-  }
+  const effectiveProvider = provider;
 
   const trimmedName = name.trim();
   const jsonKey = trimmedName.toLowerCase().replace(/\s+/g, '_');

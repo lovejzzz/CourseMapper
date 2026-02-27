@@ -3,7 +3,6 @@ import { parseFiles } from '../lib/fileParser';
 import { SYSTEM_PROMPT, RECONSTRUCT_SYSTEM_PROMPT, buildUserPrompt, EXAMINE_SYSTEM_PROMPT, buildExamineUserPrompt } from '../lib/prompts';
 import { checkTokenLimit, truncateToFit } from '../lib/tokenEstimator';
 import { detectExpectedLessons } from '../lib/detectLessons';
-import { FREE_MODELS } from '../components/ModelConfig';
 import useStreamReader from './useStreamReader';
 
 import applyPatches from '../lib/applyPatches';
@@ -14,7 +13,7 @@ import { validateCourseMap } from '../lib/validateCourseMap';
  * Handles course map generation, examination, stop/resume, and retry.
  */
 export default function useGeneration({
-  provider, modelId, apiKey, files, columns, promptText,
+  provider, modelId, apiKey, maxOutputTokens, files, columns, promptText,
   setCourseMap, setOldCourseMap, pushVersion, userEdits, setUserEdits,
   lessonScope,
   pedagogicalMode, // Feature 4.2 — e.g. 'lecture' | 'flipped' | 'pbl' | 'seminar' | 'competency'
@@ -171,6 +170,7 @@ export default function useGeneration({
     try {
       const examUserPrompt = buildExamineUserPrompt(finalResult, syllabusTextRef.current);
       const { fullText: examineText } = await streamProvider(examProvider, examApiKey, examModelId, EXAMINE_SYSTEM_PROMPT, examUserPrompt, {
+        maxOutputTokens,
         onChunk: (text) => {
           if (text.length % 200 < 10) {
             const partial = parsePartialJSON(text);
@@ -357,6 +357,7 @@ Generate lessons ${actual + 1} through ${expectedCount} now as JSON:`;
     // Use the active system prompt (with pedagogical mode additions) instead of bare SYSTEM_PROMPT
     const contSystemPrompt = systemPromptOverride || SYSTEM_PROMPT;
     const { fullText: contText } = await streamProvider(useProvider, useApiKey, useModelId, contSystemPrompt, contPrompt, {
+      maxOutputTokens,
       onChunk: (text) => {
         fullTextRef.current = text;
         const now = performance.now();
@@ -395,28 +396,10 @@ Generate lessons ${actual + 1} through ${expectedCount} now as JSON:`;
     const MAX_ATTEMPTS_PER_MODEL = 2;
     let workingMap = currentMap;
 
-    // Build fallback model queue: current model first, then all other free models
-    const fallbackModels = [{ id: initialModelId, name: initialModelName, backend: provider, apiKey }];
-    for (const fm of FREE_MODELS) {
-      if (fm.id !== initialModelId) {
-        fallbackModels.push({ id: fm.id, name: fm.name, backend: fm.backend || 'openrouter', apiKey: fm.apiKey });
-      }
-    }
+    const model = { id: initialModelId, name: initialModelName, backend: provider, apiKey };
+    setActiveModelName(model.name);
 
-    for (const model of fallbackModels) {
-      if (workingMap.lessons.length >= expectedCount) break;
-
-      const isSwitch = model.id !== initialModelId;
-      setActiveModelName(model.name);
-      if (isSwitch) {
-        addLog(model.name, `Switching to ${model.name} for remaining lessons`, 'switch');
-        setStreamDetail(`Switching to ${model.name}...`);
-      }
-
-      // Determine effective provider for this model
-      const effectiveProvider = model.backend === 'openrouter' || model.id.includes('/') ? 'free' : model.backend;
-
-      for (let attempt = 0; attempt < MAX_ATTEMPTS_PER_MODEL; attempt++) {
+    for (let attempt = 0; attempt < MAX_ATTEMPTS_PER_MODEL; attempt++) {
         const actual = workingMap.lessons.length;
         if (actual >= expectedCount) break;
 
@@ -427,7 +410,7 @@ Generate lessons ${actual + 1} through ${expectedCount} now as JSON:`;
 
         try {
           const contResult = await tryContinuation(
-            effectiveProvider, model.apiKey, model.id, model.name,
+            provider, apiKey, model.id, model.name,
             workingMap, expectedCount, syllabusText, colDefs, systemPromptOverride
           );
 
@@ -452,10 +435,9 @@ Generate lessons ${actual + 1} through ${expectedCount} now as JSON:`;
         } catch (contErr) {
           if (contErr.name === 'AbortError') throw contErr;
           addLog(model.name, `Failed: ${contErr.message}`, 'error');
-          break; // try next model
+          break;
         }
       }
-    }
 
     return workingMap;
   }
@@ -470,7 +452,7 @@ Generate lessons ${actual + 1} through ${expectedCount} now as JSON:`;
     setGenerationLog([]);
 
     // Resolve model display name
-    const currentModelName = FREE_MODELS.find(m => m.id === modelId)?.name || modelId;
+    const currentModelName = modelId;
 
     // Step 1: Parse files
     setStatus('parsing');
@@ -598,76 +580,47 @@ Generate lessons ${actual + 1} through ${expectedCount} now as JSON:`;
       ? columns.map(c => c.key)
       : ['learningGoals', 'topicSection', 'learningObjectives', 'weeklyAssessments', 'asyncActivities', 'syncActivities', 'technologyNeeded', 'presentationFormat', 'supportingResources', 'evaluateDesign'];
 
-    // Build fallback model queue: selected model first, then all other free models
-    const fallbackQueue = [{ id: modelId, name: currentModelName, backend: provider, apiKey }];
-    for (const fm of FREE_MODELS) {
-      if (fm.id !== modelId) {
-        fallbackQueue.push({ id: fm.id, name: fm.name, backend: fm.backend || 'openrouter', apiKey: fm.apiKey });
-      }
-    }
-
     fullTextRef.current = '';
     let finalResult = null;
     let usedModelName = currentModelName;
     let usedModelId = modelId;
 
+    // Update active model label for ProgressPanel
+    setActiveModelName(currentModelName);
+
     try {
       await new Promise((r) => setTimeout(r, 400));
       setProgressStep('generating');
 
-      // ── Initial generation with fallback across models ──
-      for (let mi = 0; mi < fallbackQueue.length; mi++) {
-        const model = fallbackQueue[mi];
-        const effectiveProvider = model.backend === 'openrouter' || model.id.includes('/') ? 'free' : model.backend;
+      fullTextRef.current = '';
+      lastGoodParseRef.current = null;
+      const { fullText } = await streamProvider(provider, apiKey, modelId, activeSystemPrompt, finalUserPrompt, {
+        maxOutputTokens,
+        onChunk: (text, count) => {
+          fullTextRef.current = text;
+          updateGenerationProgress(text, count);
+        },
+        onRetry: (attempt, max, delay) => {
+          setRetryInfo({ attempt, max, delay });
+          setStreamDetail(`Connection lost — retrying (${attempt}/${max})...`);
+        },
+      });
 
-        // Update active model label for ProgressPanel
-        setActiveModelName(model.name);
+      setRetryInfo(null);
 
-        if (mi > 0) {
-          addLog(model.name, `Switching to ${model.name} for generation`, 'switch');
-          setStreamDetail(`Switching to ${model.name}...`);
-        }
-
-        try {
-          fullTextRef.current = '';
-          lastGoodParseRef.current = null;
-          const { fullText } = await streamProvider(effectiveProvider, model.apiKey, model.id, activeSystemPrompt, finalUserPrompt, {
-            onChunk: (text, count) => {
-              fullTextRef.current = text;
-              updateGenerationProgress(text, count);
-            },
-            onRetry: (attempt, max, delay) => {
-              setRetryInfo({ attempt, max, delay });
-              setStreamDetail(`Connection lost — retrying (${attempt}/${max})...`);
-            },
-          });
-
-          setRetryInfo(null);
-
-          // Final parse — fall back to last successful streaming parse if needed
-          let result = parsePartialJSON(fullText);
-          if (!result || !result.lessons) {
-            result = lastGoodParseRef.current;
-          }
-          if (result && result.lessons && result.lessons.length > 0) {
-            finalResult = result;
-            usedModelName = model.name;
-            usedModelId = model.id;
-            // Store working model so examine and continuation use it
-            workingModelRef.current = { provider: effectiveProvider, apiKey: model.apiKey, modelId: model.id };
-            break; // success
-          } else {
-            addLog(model.name, `No valid course map produced`, 'error');
-          }
-        } catch (genErr) {
-          if (genErr.name === 'AbortError') throw genErr; // user stopped, propagate
-          addLog(model.name, `Failed: ${genErr.message}`, 'error');
-          // try next model
-        }
+      // Final parse — fall back to last successful streaming parse if needed
+      let result = parsePartialJSON(fullText);
+      if (!result || !result.lessons) {
+        result = lastGoodParseRef.current;
+      }
+      if (result && result.lessons && result.lessons.length > 0) {
+        finalResult = result;
+        // Store working model so examine and continuation use it
+        workingModelRef.current = { provider, apiKey, modelId };
       }
 
       if (!finalResult || !finalResult.lessons) {
-        throw new Error('All models failed to generate a course map.');
+        throw new Error('Failed to generate a course map. Please check your API key and try again.');
       }
 
       // Sanitize: ensure every lesson has a sections array
@@ -760,7 +713,7 @@ Generate lessons ${actual + 1} through ${expectedCount} now as JSON:`;
       setStreamDetail('');
       setStreamProgress(0);
     }
-  }, [provider, modelId, apiKey, files, columns, promptText, lessonScope, pedagogicalMode, setCourseMap, setOldCourseMap, pushVersion, setUserEdits, streamProvider, parsePartialJSON]);
+  }, [provider, modelId, apiKey, maxOutputTokens, files, columns, promptText, lessonScope, pedagogicalMode, setCourseMap, setOldCourseMap, pushVersion, setUserEdits, streamProvider, parsePartialJSON]);
 
   // ── Resume Generation ──
   const handleResume = useCallback(async () => {
@@ -771,25 +724,20 @@ Generate lessons ${actual + 1} through ${expectedCount} now as JSON:`;
       return;
     }
 
-    // Resolve the correct API key — for free provider, look up from FREE_MODELS
-    let resumeProvider = provider;
-    let resumeKey = apiKey;
-    let resumeModel = modelId;
+    const resumeProvider = provider;
+    const resumeKey = apiKey;
+    const resumeModel = modelId;
 
-    if (provider === 'free' || !apiKey) {
-      // Try to find the matching model in FREE_MODELS, or fall back to first one
-      const freeModel = FREE_MODELS.find(m => m.id === modelId) || FREE_MODELS[0];
-      resumeProvider = 'free';
-      resumeKey = freeModel.apiKey;
-      resumeModel = freeModel.id;
+    if (!resumeKey) {
+      setError('No API key provided — please enter your API key and try again.');
+      return;
     }
-
-    console.log('[Resume] using:', resumeProvider, resumeModel, 'key length:', resumeKey?.length || 0);
-
     if (!resumeModel) {
       setError('No model selected — please select a model and try again.');
       return;
     }
+
+    console.log('[Resume] using:', resumeProvider, resumeModel, 'key length:', resumeKey?.length || 0);
 
     setIsStopped(false);
     setStatus('generating');
@@ -845,6 +793,7 @@ Generate lessons ${actual + 1} through ${expectedCount} now as JSON:`;
       console.log('[Resume] calling streamProvider, prompt length:', continuationPrompt.length);
       fullTextRef.current = '';
       const { fullText } = await streamProvider(resumeProvider, resumeKey, resumeModel, SYSTEM_PROMPT, continuationPrompt, {
+        maxOutputTokens,
         onChunk: (text, count) => {
           fullTextRef.current = text;
           if (count <= 3 || count % 20 === 0) console.log('[Resume] chunk', count, 'totalLen:', text.length);
@@ -933,7 +882,7 @@ Generate lessons ${actual + 1} through ${expectedCount} now as JSON:`;
       setProgressStep('generating');
       // Keep stoppedTextRef so user can retry
     }
-  }, [provider, modelId, apiKey, columns, setCourseMap, pushVersion, userEdits, streamProvider, parsePartialJSON]);
+  }, [provider, modelId, apiKey, maxOutputTokens, columns, setCourseMap, pushVersion, userEdits, streamProvider, parsePartialJSON]);
 
   const handleStop = useCallback(() => {
     abort();
@@ -1007,7 +956,7 @@ Generate lessons ${actual + 1} through ${expectedCount} now as JSON:`;
     setStreamProgress(100);
     setProgressStep('done');
     setStatus('done');
-  }, [provider, modelId, apiKey]);
+  }, [provider, modelId, apiKey, maxOutputTokens]);
 
   return {
     status, setStatus,

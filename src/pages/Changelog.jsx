@@ -2,6 +2,39 @@ import React from 'react';
 
 const releases = [
   {
+    version: '0.3',
+    date: 'February 27, 2026',
+    title: 'BYOK Only, Dynamic Model Token Limits',
+    highlights: [
+      'Removed all built-in free AI models — users must provide their own API key',
+      'Dynamic max output tokens — each model now uses its actual output limit instead of a hardcoded cap',
+      'FAQ chatbot uses your configured API key and provider',
+    ],
+    sections: [
+      {
+        label: 'Features',
+        icon: '✦',
+        color: 'indigo',
+        items: [
+          'Bring Your Own Key (BYOK) — all AI calls now use your personal API key from OpenAI, Anthropic, or Google. No more shared free-tier keys.',
+          'Dynamic max output tokens — the system detects each model\'s actual output limit (e.g. 100K for O3, 32K for GPT-4.1, 8K for Claude 3.5) and uses it automatically. Previously hardcoded to 16K for all models.',
+          'FAQ help chatbot now uses your configured provider and API key instead of a hardcoded Gemini key.',
+        ],
+      },
+      {
+        label: 'Improvements',
+        icon: '⚡',
+        color: 'amber',
+        items: [
+          'API key auto-detection updated — recognizes OpenAI (sk-proj-), Anthropic (sk-ant-), and Google (AIza) key prefixes and auto-switches the provider dropdown.',
+          'Google model list now includes actual outputTokenLimit from the API for accurate token allocation.',
+          'OpenAI reasoning models (O1, O3, O4-mini) now get 100K output tokens instead of being capped at 16K.',
+          'Privacy policy updated — removed OpenRouter/free-tier references, clarified that API keys stay in the browser.',
+        ],
+      },
+    ],
+  },
+  {
     version: '0.2',
     date: 'February 25, 2026',
     title: 'Column Toggle, Custom Deliverables from Workspace, AI Auto-Config',
@@ -91,7 +124,7 @@ const releases = [
         color: 'indigo',
         items: [
           'Upload syllabi (PDF, DOCX, XLSX, PPTX, and more) and generate structured Course Maps with AI.',
-          'Support for multiple AI providers: OpenAI, Anthropic, Google, and free built-in models.',
+          'Support for multiple AI providers: OpenAI, Anthropic, and Google.',
           'Real-time streaming preview — watch the Course Map build as the AI generates it.',
           'Customizable columns — add, remove, rename, and reorder columns with drag-and-drop.',
           'Editable cells — click any cell in the Course Map Preview to edit content directly.',

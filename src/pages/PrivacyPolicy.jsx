@@ -79,12 +79,10 @@ export default function PrivacyPolicy() {
               <li><strong>OpenAI</strong> — governed by <a href="https://openai.com/policies/privacy-policy" target="_blank" rel="noopener noreferrer" className="text-indigo-500 hover:text-indigo-700 underline">OpenAI's Privacy Policy</a></li>
               <li><strong>Anthropic</strong> — governed by <a href="https://www.anthropic.com/privacy" target="_blank" rel="noopener noreferrer" className="text-indigo-500 hover:text-indigo-700 underline">Anthropic's Privacy Policy</a></li>
               <li><strong>Google (Gemini)</strong> — governed by <a href="https://ai.google.dev/terms" target="_blank" rel="noopener noreferrer" className="text-indigo-500 hover:text-indigo-700 underline">Google AI Terms</a></li>
-              <li><strong>OpenRouter</strong> — used for free-tier models, governed by <a href="https://openrouter.ai/privacy" target="_blank" rel="noopener noreferrer" className="text-indigo-500 hover:text-indigo-700 underline">OpenRouter's Privacy Policy</a></li>
             </ul>
             <p className="mt-2">
-              If you use the free tier, your prompts and responses may be used by model providers to
-              improve their AI services. For sensitive course materials, we recommend using your own API
-              key with a paid provider.
+              You provide your own API key to connect directly to your chosen provider. Course Mapper
+              never stores or transmits your API key to any server — it stays in your browser.
             </p>
           </Section>
 

@@ -26,7 +26,7 @@ import { getArrayKey } from '../lib/syncDependencies';
  * Exposes:
  *   { proposals, proposeLesson, acceptProposal, dismissProposal, regenerateProposal }
  */
-export default function useEditProposal({ provider, modelId, apiKey, deliverableConfig, pedagogicalMode, columns }) {
+export default function useEditProposal({ provider, modelId, apiKey, maxOutputTokens, deliverableConfig, pedagogicalMode, columns }) {
   const [proposals, setProposals] = useState({});
   const { streamProvider, parsePartialJSON } = useStreamReader();
 
@@ -117,6 +117,7 @@ export default function useEditProposal({ provider, modelId, apiKey, deliverable
       let lastParseTime = 0;
 
       await streamProvider(provider, apiKey, modelId, prompts.systemPrompt, prompts.userPrompt, {
+        maxOutputTokens,
         signal: controller.signal,
         onChunk: (accumulatedText) => {
           fullText = accumulatedText;
@@ -167,7 +168,7 @@ export default function useEditProposal({ provider, modelId, apiKey, deliverable
     } finally {
       activeStreamsRef.current.delete(streamKey);
     }
-  }, [provider, modelId, apiKey, deliverableConfig, pedagogicalMode, streamProvider, parsePartialJSON, setProposal, clearProposal]);
+  }, [provider, modelId, apiKey, maxOutputTokens, deliverableConfig, pedagogicalMode, streamProvider, parsePartialJSON, setProposal, clearProposal]);
 
   /**
    * acceptProposal — merge the proposed lesson into the full deliverable data

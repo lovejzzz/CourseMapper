@@ -140,6 +140,7 @@ export default function App() {
   const [modelName, setModelName] = useState('');
   const [modelId, setModelId] = useState('');
   const [availableModels, setAvailableModels] = useState([]);
+  const [maxOutputTokens, setMaxOutputTokens] = useState(16384);
   const [files, setFiles] = useState([]);
   const [columns, setColumns] = useState([...DEFAULT_COLUMNS]);
 
@@ -191,7 +192,7 @@ export default function App() {
   const version = useVersionHistory(setCourseMap, setDownloadedFile);
 
   const gen = useGeneration({
-    provider, modelId, apiKey, files, columns,
+    provider, modelId, apiKey, maxOutputTokens, files, columns,
     setCourseMap, setOldCourseMap,
     pushVersion: version.pushVersion,
     userEdits, setUserEdits,
@@ -206,7 +207,7 @@ export default function App() {
   } = useExport(courseMap, columns, gen.setError);
 
   const rev = useRevision({
-    provider, modelId, apiKey,
+    provider, modelId, apiKey, maxOutputTokens,
     courseMap, setCourseMap, setOldCourseMap,
     pushVersion: version.pushVersion,
     userEdits, setUserEdits,
@@ -221,7 +222,7 @@ export default function App() {
   });
 
   const deliv = useDeliverables({
-    provider, modelId, apiKey,
+    provider, modelId, apiKey, maxOutputTokens,
     deliverableConfig,
     lockedLessons: lessonScope.type === 'specific' ? lessonScope.indices : null,
     pedagogicalMode: 'lecture',
@@ -233,7 +234,7 @@ export default function App() {
 
   // ── Edit-Aware AI Proposal Engine ──
   const editProposal = useEditProposal({
-    provider, modelId, apiKey,
+    provider, modelId, apiKey, maxOutputTokens,
     deliverableConfig,
     pedagogicalMode: 'lecture',
     columns,
@@ -380,7 +381,7 @@ export default function App() {
       setCourseMap(saved.courseMap);
       setColumns(saved.columns || [...DEFAULT_COLUMNS]);
       setHasGenerated(true);
-      setProvider(saved.provider || 'free');
+      setProvider(saved.provider === 'free' ? 'openai' : (saved.provider || 'openai'));
       setModelId(saved.modelId || '');
       setModelName(saved.modelName || '');
       setUserEdits(saved.userEdits || []);
@@ -419,7 +420,7 @@ export default function App() {
 
   // ── Derived ──
   const canGenerate =
-    (provider === 'free' || apiKey.trim()) && modelId &&
+    apiKey.trim() && modelId &&
     (files.length > 0 || promptText.trim().length > 0) &&
     gen.status !== 'parsing' && gen.status !== 'generating' && !gen.isStopped;
 
@@ -545,7 +546,7 @@ export default function App() {
       setCourseMap(saved.courseMap);
       setColumns(saved.columns || [...DEFAULT_COLUMNS]);
       setHasGenerated(true);
-      setProvider(saved.provider || 'free');
+      setProvider(saved.provider === 'free' ? 'openai' : (saved.provider || 'openai'));
       setModelId(saved.modelId || '');
       setModelName(saved.modelName || '');
       setUserEdits(saved.userEdits || []);
@@ -767,7 +768,7 @@ export default function App() {
           onGenerate={handleLandingContinue}
           canGenerate={
             (files.length > 0 || promptText.trim().length > 0) &&
-            (provider === 'free' || apiKey.trim()) &&
+            apiKey.trim() &&
             !!modelId
           }
           isGenerating={false}
@@ -777,6 +778,7 @@ export default function App() {
           modelName={modelName} setModelName={setModelName}
           availableModels={availableModels} setAvailableModels={setAvailableModels}
           apiStatus={apiStatus} setApiStatus={setApiStatus}
+          setMaxOutputTokens={setMaxOutputTokens}
           columns={columns} setColumns={setColumns}
           hasSavedSession={hasSavedSession}
           onRestoreSession={doRestoreSession}

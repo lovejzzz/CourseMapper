@@ -41,6 +41,7 @@ export default function Landing({
   modelName, setModelName,
   availableModels, setAvailableModels,
   apiStatus, setApiStatus,
+  setMaxOutputTokens,
   // ColumnEditor props
   columns, setColumns,
   // Session restore
@@ -61,7 +62,7 @@ export default function Landing({
   const [projectDragging, setProjectDragging] = useState(false);
 
   // ── Auto-collapse AI config when already connected ──
-  const isReady = apiStatus === 'connected' || (provider === 'free' && !!modelId);
+  const isReady = apiStatus === 'connected';
   const [configCollapsed, setConfigCollapsed] = useState(isReady);
 
   // Auto-collapse only when apiStatus transitions TO 'connected'.
@@ -126,7 +127,6 @@ export default function Landing({
 
   // Build a summary label for the collapsed AI config bar
   const configSummaryLabel = (() => {
-    if (provider === 'free') return `Free · ${modelName || modelId || 'Free model'}`;
     if (provider === 'openai') return `OpenAI · ${modelName || modelId || 'GPT'}`;
     if (provider === 'anthropic') return `Anthropic · ${modelName || modelId || 'Claude'}`;
     if (provider === 'google') return `Google · ${modelName || modelId || 'Gemini'}`;
@@ -368,6 +368,7 @@ export default function Landing({
                 setApiStatus={setApiStatus}
                 modelName={modelName}
                 setModelName={setModelName}
+                setMaxOutputTokens={setMaxOutputTokens}
               />
             </div>
           )}
