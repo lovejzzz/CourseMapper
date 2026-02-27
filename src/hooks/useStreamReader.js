@@ -286,6 +286,8 @@ function buildProviderRequest(provider, apiKey, modelId, systemPrompt, userPromp
 const OPENAI_EXCLUDE = /sora|image|dall-e|whisper|tts|transcribe|realtime|audio|search|codex|chatgpt|oss|deep-research|embedding|moderation|babbage|davinci/i;
 // Exclude dated snapshots, -chat-latest aliases, and -pro variants to deduplicate
 const OPENAI_SKIP_VARIANT = /\d{4}-\d{2}-\d{2}|-chat-latest|-pro$/;
+// Exclude non-text Google Gemini variants (image generation, TTS, live streaming, embeddings)
+const GOOGLE_EXCLUDE = /imagen|image-gen|tts|live-|embedding|aqa/i;
 
 function cleanOpenAIName(id) {
   return id.replace(/^gpt-/, 'GPT-').replace(/^o(\d)/, 'O$1');
@@ -295,6 +297,7 @@ function cleanOpenAIName(id) {
  * Lookup max output tokens for OpenAI models (not returned by /v1/models API).
  */
 function openaiMaxOutput(id) {
+  if (/^gpt-5/.test(id)) return 128000; // gpt-5, gpt-5.1, gpt-5.2, gpt-5-mini, gpt-5-nano
   if (/^o[134]/.test(id)) return 100000; // o1, o3, o3-mini, o4-mini reasoning models
   if (id.startsWith('gpt-4.1')) return 32768; // gpt-4.1, gpt-4.1-mini, gpt-4.1-nano
   return 16384; // gpt-4o, gpt-4o-mini, and others
@@ -304,7 +307,9 @@ function openaiMaxOutput(id) {
  * Lookup max output tokens for Anthropic models (not reliably in /v1/models).
  */
 function anthropicMaxOutput(id) {
-  if (/claude-(sonnet|opus)-4/.test(id)) return 16384;
+  if (/claude-opus-4/.test(id)) return 128000; // Claude Opus 4.x
+  if (/claude-sonnet-4/.test(id)) return 64000; // Claude Sonnet 4.x
+  if (/claude-haiku-4/.test(id)) return 64000; // Claude Haiku 4.x
   if (id.includes('claude-3-7')) return 16384;
   if (id.includes('claude-3-5')) return 8192;
   if (id.includes('claude-3-opus')) return 4096;
@@ -313,7 +318,7 @@ function anthropicMaxOutput(id) {
 
 /**
  * Fetch models dynamically from provider API, filtered to only chat/text models
- * that support streaming + JSON output. Returns the 5 latest/best.
+ * that support streaming + JSON output.
  */
 export async function fetchModelsFromProvider(provider, apiKey) {
   if (provider === 'openai') {
@@ -325,7 +330,6 @@ export async function fetchModelsFromProvider(provider, apiKey) {
     return data.data
       .filter((m) => (m.id.startsWith('gpt-') || m.id.startsWith('o')) && !OPENAI_EXCLUDE.test(m.id) && !OPENAI_SKIP_VARIANT.test(m.id))
       .sort((a, b) => (b.created || 0) - (a.created || 0))
-      .slice(0, 5)
       .map((m) => ({ id: m.id, name: cleanOpenAIName(m.id), maxOutputTokens: openaiMaxOutput(m.id) }));
   }
 
@@ -349,8 +353,7 @@ export async function fetchModelsFromProvider(provider, apiKey) {
       .filter((m) => m.id.includes('claude') && !/\d{8}$/.test(m.id))
       .map((m) => ({ id: m.id, name: m.display_name || m.id, created: m.created_at || '', maxOutputTokens: anthropicMaxOutput(m.id) }))
       .sort((a, b) => (b.created || '').localeCompare(a.created || ''))
-      .filter((m) => { if (seen.has(m.name)) return false; seen.add(m.name); return true; })
-      .slice(0, 5);
+      .filter((m) => { if (seen.has(m.name)) return false; seen.add(m.name); return true; });
     if (models.length === 0) throw new Error('No models available');
     return models;
   }
@@ -365,15 +368,14 @@ export async function fetchModelsFromProvider(provider, apiKey) {
     // Google: keep only base gemini models (no -exp, no dated suffixes), deduplicate
     const gSeen = new Set();
     const models = (data.models || [])
-      .filter((m) => m.supportedGenerationMethods?.includes('generateContent') && m.name.includes('gemini') && !m.name.includes('exp'))
+      .filter((m) => m.supportedGenerationMethods?.includes('generateContent') && m.name.includes('gemini') && !m.name.includes('exp') && !GOOGLE_EXCLUDE.test(m.name))
       .map((m) => ({
         id: m.name.replace('models/', ''),
         name: m.displayName || m.name.replace('models/', ''),
         maxOutputTokens: m.outputTokenLimit || 8192,
       }))
       .sort((a, b) => b.id.localeCompare(a.id))
-      .filter((m) => { if (gSeen.has(m.name)) return false; gSeen.add(m.name); return true; })
-      .slice(0, 5);
+      .filter((m) => { if (gSeen.has(m.name)) return false; gSeen.add(m.name); return true; });
     if (models.length === 0) throw new Error('No Gemini models available');
     return models;
   }
