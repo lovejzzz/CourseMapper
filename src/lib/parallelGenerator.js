@@ -147,6 +147,23 @@ export function mergeChunkResults(featureId, chunkMap) {
     }
   }
 
+  // Deduplicate by lessonTitle (retry chunks may re-generate items already present)
+  const seen = new Map();
+  for (let i = 0; i < mergedArray.length; i++) {
+    const item = mergedArray[i];
+    const key = item?.lessonTitle || item?.title || item?.name;
+    if (key) {
+      if (seen.has(key)) {
+        // Keep the later (retry) version — remove the earlier one
+        mergedArray.splice(seen.get(key), 1);
+        i--; // adjust index after splice
+        seen.set(key, i); // update position
+      } else {
+        seen.set(key, i);
+      }
+    }
+  }
+
   // Build merged result: non-array fields from first chunk + merged array
   const result = { ...baseData, [arrayKey]: mergedArray };
   return result;

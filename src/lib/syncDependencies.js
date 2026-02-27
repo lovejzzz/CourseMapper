@@ -21,8 +21,22 @@ export function getArrayKey(featureId, parsed) {
     studyGuides: 'studyGuides',
     courseFaq: 'faqs',
   };
+  // Common AI aliases — models sometimes use shortened key names
+  const ALIASES = {
+    slideDecks: ['decks', 'slides'],
+    lessonPlans: ['plans', 'lessons'],
+    studyGuides: ['guides'],
+    courseFaq: ['faq', 'courseFAQ'],
+  };
   const known = KNOWN_KEYS[featureId];
   if (known && parsed[known]) return known;
+  // Try aliases before falling back to generic detection
+  const aliases = ALIASES[featureId];
+  if (aliases) {
+    for (const alias of aliases) {
+      if (parsed[alias] && Array.isArray(parsed[alias])) return alias;
+    }
+  }
   // Fall back: find the first array key in the object
   for (const k of Object.keys(parsed)) {
     if (Array.isArray(parsed[k])) return k;

@@ -210,12 +210,22 @@ export default function useDeliverables({ provider, modelId, apiKey, maxOutputTo
 
       appendLog(`Generating ${chunkLabel}...`, 'progress');
 
-      // Build prompt
+      // Build prompt — for chunks after the first, inject style exemplar from chunk 0
       const config = deliverableConfigRef.current?.[featureId] || {};
+      let styleExemplar = null;
+      if (chunkIndex > 0 && chunkResults[featureId]?.has(0)) {
+        const firstChunk = chunkResults[featureId].get(0);
+        const arrKey = getArrayKey(featureId, firstChunk);
+        const firstItem = arrKey ? firstChunk[arrKey]?.[0] : null;
+        if (firstItem) {
+          styleExemplar = JSON.stringify(firstItem, null, 2).slice(0, 2000);
+        }
+      }
       const prompts = getDeliverablePrompt(
         featureId, courseMap, chunkScope, config,
         pedagogicalModeRef.current, examChangesRef.current, null,
         columnsRef.current, deliverableConfigRef.current,
+        styleExemplar,
       );
       if (!prompts) {
         appendLog(`✗ ${chunkLabel}: No prompt template available`, 'error');
@@ -411,6 +421,27 @@ export default function useDeliverables({ provider, modelId, apiKey, maxOutputTo
       const expectedCount = lessonIndices.length;
       const arrayKey = getArrayKey(fid, merged);
       let mergedArr = arrayKey ? (merged[arrayKey] || []) : [];
+
+      // Per-lesson completeness: for slide decks, detect truncated lessons (too few slides)
+      if (fid === 'slideDecks' && mergedArr.length >= expectedCount) {
+        const truncatedIndices = [];
+        mergedArr.forEach((deck, i) => {
+          const slideCount = deck?.slides?.length || 0;
+          if (slideCount > 0 && slideCount < 4) {
+            truncatedIndices.push(lessonIndices[i]);
+          }
+        });
+        if (truncatedIndices.length > 0) {
+          const label = getFeatureLabel(fid);
+          appendLog(`⚠ ${label}: ${truncatedIndices.length} lesson(s) appear truncated (< 4 slides) — retrying`, 'warn');
+          // Remove truncated items from the array and treat their indices as missing
+          mergedArr = mergedArr.filter((deck, i) => {
+            const slideCount = deck?.slides?.length || 0;
+            return slideCount === 0 || slideCount >= 4;
+          });
+          merged = { ...merged, [arrayKey]: mergedArr };
+        }
+      }
 
       if (mergedArr.length < expectedCount) {
         const label = getFeatureLabel(fid);

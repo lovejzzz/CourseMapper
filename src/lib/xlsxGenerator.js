@@ -86,6 +86,24 @@ function toStr(val) {
   return String(val);
 }
 
+// Remove columns that are entirely empty across all data rows (e.g. unused "Evaluate Design")
+function stripEmptyColumns(columns, courseMap) {
+  if (!courseMap?.lessons?.length) return columns;
+  const populated = new Set(['weekModule']); // always keep the lesson title column
+  for (const lesson of courseMap.lessons) {
+    for (const section of (lesson.sections?.length ? lesson.sections : [{}])) {
+      for (const col of columns) {
+        if (populated.has(col.key)) continue;
+        const val = section[col.key];
+        if (val != null && val !== '' && !(Array.isArray(val) && val.length === 0)) {
+          populated.add(col.key);
+        }
+      }
+    }
+  }
+  return columns.filter(col => populated.has(col.key));
+}
+
 /**
  * Generate a formatted xlsx from course map data and trigger download.
  * @param {object} courseMap - The course map data
@@ -94,7 +112,7 @@ function toStr(val) {
 export async function generateXlsx(courseMap, customColumns) {
   const ExcelJS = await getExcelJS();
   const saveAs = await getSaveAs();
-  const COLUMNS = buildColumns(customColumns);
+  const COLUMNS = stripEmptyColumns(buildColumns(customColumns), courseMap);
 
   const workbook = new ExcelJS.Workbook();
   workbook.creator = 'Course Mapper';
@@ -194,7 +212,7 @@ export async function generateXlsx(courseMap, customColumns) {
  */
 export async function buildXlsxBuffer(courseMap, customColumns) {
   const ExcelJS = await getExcelJS();
-  const COLUMNS = buildColumns(customColumns);
+  const COLUMNS = stripEmptyColumns(buildColumns(customColumns), courseMap);
   const workbook = new ExcelJS.Workbook();
   workbook.creator = 'Course Mapper';
   workbook.created = new Date();

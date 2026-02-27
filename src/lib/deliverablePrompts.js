@@ -247,6 +247,7 @@ REQUIREMENTS:
 - gradingScale should reflect the institution's typical grading thresholds
 - QM ALIGNMENT: Each rubric must include gradePolicyConnection explaining how it connects to the course grading policy and the weight of this assessment in the final grade (QM 3.3). teacherNotes must include a reminder to distribute the rubric to students BEFORE the assignment (QM 3.3). Include guidance for students on how to uphold academic integrity for this assessment type (QM 3.6).
 - HUMAN READABILITY: Vary wording across rubric cells — do not use identical sentence patterns for every criterion level. Each cell should sound distinct and specific to that criterion.
+- RUBRIC COUNT: Generate exactly ONE rubric per unique, explicitly named assessment found in the course map. Do not create rubrics for implicit activities (class participation, attendance) or assessments that are not clearly defined as graded assignments. Your rubric count should match the number of distinct graded assignments in the course.
 - Return ONLY the JSON object, no prose, no markdown`,
   },
 
@@ -502,6 +503,7 @@ REQUIREMENTS:
 - QM ALIGNMENT: Assignments must be sequenced and suited to the course level — earlier assignments should scaffold toward later, more complex ones (QM 3.4). Include opportunities for learners to track their progress via the progressTracking field: interim feedback points, self-assessment checkpoints, or peer review milestones (QM 3.5). The academicIntegrityStatement must provide specific guidance on how to uphold integrity for THIS assignment type (QM 3.6).
 - COGNITIVE LOAD: Instructions must be imperative, concise, and scannable. No instruction step longer than 25 words. Each step describes one action only.
 - HUMAN READABILITY: Each assignment should read as a unique document — vary the overview voice, instruction phrasing, and scaffolding descriptions. Avoid copy-paste language patterns across assignments.
+- GRADE WEIGHT: The percentOfGrade values across ALL assignments in the ENTIRE course must sum to exactly 100%. Distribute grade weight proportionally based on assignment complexity, learning impact, and assessment type. Do not exceed 100% total. If generating a subset of lessons (chunked generation), estimate the proportional share for this subset only — e.g. if generating 5 of 15 lessons, this chunk's assignments should total roughly 33% of the grade.
 - Return ONLY the JSON object, no prose, no markdown`,
   },
 
@@ -570,6 +572,7 @@ REQUIREMENTS:
 - QM ALIGNMENT: Include a supportResources field per guide pointing students to relevant help: office hours, tutoring, study groups, writing center — so students know where to turn when stuck (QM 7.3). Reference specific instructional materials (readings, videos, slides) for each key concept, making the relationship between study materials and learning activities clear (QM 4.2).
 - COGNITIVE LOAD: Limit sentences to 20 words maximum. Paragraphs to 5 sentences maximum. Use whitespace and clear section breaks to prevent wall-of-text fatigue.
 - HUMAN READABILITY: Write summaries, definitions, and review questions in varied, natural academic prose. Do not use the same sentence templates across lessons. Each guide should feel like it was written specifically for that lesson.
+- HEADER FORMAT: Use this exact format for lessonTitle: "Lesson {N}: {Title}" (e.g. "Lesson 3: Social Work Values & Ethics"). Do NOT include week numbers, parenthetical formats, or alternative conventions. Keep headers consistent across all items.
 - Return ONLY the JSON object, no prose, no markdown`,
   },
 
@@ -711,7 +714,7 @@ REQUIREMENTS:
 };
 
 // ── Config → natural-language instructions for the AI ────────────────────────
-function buildConfigInstructions(featureId, config, pedagogicalMode = 'lecture') {
+function buildConfigInstructions(featureId, config, pedagogicalMode = 'lecture', styleExemplar = null) {
   const lines = [];
 
   // Feature 4.2 — Pedagogical mode structure note (lesson plans only)
@@ -863,6 +866,18 @@ function buildConfigInstructions(featureId, config, pedagogicalMode = 'lecture')
     lines.push(`SPECIAL INSTRUCTOR REQUIREMENTS (highest priority — must be followed): ${config.extraInstructions.trim()}`);
   }
 
+  // Cross-chunk style consistency: inject exemplar from chunk 0 into later chunks
+  if (styleExemplar) {
+    lines.push(
+      `\nCROSS-CHUNK CONSISTENCY (mandatory — match exactly):\n` +
+      `This is part of a multi-chunk generation. You MUST replicate the exact formatting, ` +
+      `structure, numbering style, citation format, header conventions, and voice of the first chunk. ` +
+      `Do NOT introduce new formatting patterns, abbreviation styles, or structural changes.\n` +
+      `Here is the first item from chunk 1 as your style reference — replicate its format for every item:\n` +
+      `--- STYLE EXEMPLAR ---\n${styleExemplar}\n--- END EXEMPLAR ---`
+    );
+  }
+
   // Reference file style injection (always last, high priority)
   if (config.referenceFileText?.trim()) {
     lines.push(
@@ -915,7 +930,7 @@ function buildScopePreamble(courseMap, scopeIndices) {
  *   highest-priority constraint so the AI incorporates the edit precisely.
  * @param {Array|null}  columns — Active column definitions from ColumnEditor.
  */
-export function getDeliverablePrompt(featureId, courseMap, scopeIndices = null, config = {}, pedagogicalMode = 'lecture', examChanges = null, editContext = null, columns = null, allConfigs = null) {
+export function getDeliverablePrompt(featureId, courseMap, scopeIndices = null, config = {}, pedagogicalMode = 'lecture', examChanges = null, editContext = null, columns = null, allConfigs = null, styleExemplar = null) {
   const template = PROMPTS[featureId];
   const scopePreamble = buildScopePreamble(courseMap, scopeIndices);
 
@@ -955,7 +970,7 @@ export function getDeliverablePrompt(featureId, courseMap, scopeIndices = null, 
 
       const condensed = condenseCourseMap(courseMap, scopeIndices, examChanges, columns);
       const baseUserPrompt = (config.customUserPrompt?.trim() || custom.userPromptTemplate).replace('{{courseMap}}', condensed);
-      const configInstructions = buildConfigInstructions(featureId, enrichedConfig, pedagogicalMode);
+      const configInstructions = buildConfigInstructions(featureId, enrichedConfig, pedagogicalMode, styleExemplar);
 
       const autoDecideBlock = autoDecideHints.length > 0
         ? `\n\nAUTO-DECIDE INSTRUCTIONS (the instructor has not specified these settings — use your best judgment):\nBased on the course content, deliverable type ("${custom.name}"), and pedagogical context, automatically decide the most appropriate:\n${autoDecideHints.map(h => `- ${h}`).join('\n')}\nApply your chosen settings consistently throughout the output.`
@@ -996,7 +1011,7 @@ export function getDeliverablePrompt(featureId, courseMap, scopeIndices = null, 
   const baseUserPrompt = config.customUserPrompt?.trim()
     ? config.customUserPrompt.replace('{{courseMap}}', condenseCourseMap(courseMap, scopeIndices, examChanges, columns))
     : template.user(courseMap, scopeIndices, examChanges, columns);
-  const configInstructions = buildConfigInstructions(featureId, config, pedagogicalMode);
+  const configInstructions = buildConfigInstructions(featureId, config, pedagogicalMode, styleExemplar);
 
   // Inject edit context first (highest priority), then config instructions
   // Both are inserted right before the final "Return ONLY the JSON" instruction

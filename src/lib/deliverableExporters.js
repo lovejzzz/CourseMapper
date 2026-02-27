@@ -958,6 +958,34 @@ function _buildDocxContentShared(featureId, data, children, docx) {
       break;
     }
 
+    // ─── COURSE FAQ ───────────────────────────────────────────────
+    case 'courseFaq': {
+      const faqs = data.faqs || data.courseFaq || [];
+      for (const lesson of faqs) {
+        const title = lesson.lessonTitle || lesson.title || 'FAQ';
+        children.push(makeHeading(title));
+
+        const questions = lesson.questions || [];
+        for (let qi = 0; qi < questions.length; qi++) {
+          const q = questions[qi];
+          // Bold question
+          children.push(makeBold(`Q${qi + 1}`, q.question || ''));
+          // Answer text
+          children.push(makeText(q.answer || ''));
+          // Related concepts as comma-separated text (not raw JSON)
+          if (Array.isArray(q.relatedConcepts) && q.relatedConcepts.length > 0) {
+            children.push(makeItalic(`Related: ${q.relatedConcepts.join(', ')}`));
+          }
+        }
+
+        // Tags as a subtle line at the end of each lesson
+        if (Array.isArray(lesson.tags) && lesson.tags.length > 0) {
+          children.push(makeItalic(`Tags: ${lesson.tags.join(', ')}`));
+        }
+      }
+      break;
+    }
+
     // ─── CUSTOM DELIVERABLES (generic) ───────────────────────────
     default: {
       const arrKey = Object.keys(data).find(k => Array.isArray(data[k]) && data[k].length > 0);
