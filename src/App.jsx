@@ -933,7 +933,7 @@ export default function App() {
               // Change #1: Use syncingFeatures set for parallel-aware badge
               const isSyncingThis = smartSync.syncingFeatures?.has(feature.id) || (
                 smartSync.isSyncing && (
-                  deliv.currentFeature === feature.id ||
+                  deliv.currentFeatures?.has(feature.id) ||
                   (lastSyncEntry?.type === 'start')
                 )
               );
@@ -1162,7 +1162,7 @@ export default function App() {
                   onChatHistoryChange={setChatHistory}
                   deliverables={deliv.deliverables}
                   delivProgress={deliv.progress}
-                  currentDelivFeature={deliv.currentFeature}
+                  currentDelivFeatures={deliv.currentFeatures}
                   isDelivGenerating={deliv.isGenerating}
                   delivGenerationLog={deliv.generationLog}
                   delivTimings={deliv.delivTimings}
@@ -1233,7 +1233,7 @@ export default function App() {
                   courseMap={courseMap}
                   courseMapStatus={gen.progressStep}
                   isDelivGenerating={deliv.isGenerating}
-                  currentDelivFeature={deliv.currentFeature}
+                  currentDelivFeatures={deliv.currentFeatures}
                   lessonScope={lessonScope.type === 'specific' ? lessonScope.indices : null}
                   onRetry={() => {
                     const scopeIndices = lessonScope.type === 'specific' ? lessonScope.indices : null;

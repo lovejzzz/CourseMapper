@@ -19,6 +19,7 @@ export function getArrayKey(featureId, parsed) {
     discussions: 'discussions',
     assignments: 'assignments',
     studyGuides: 'studyGuides',
+    courseFaq: 'faqs',
   };
   const known = KNOWN_KEYS[featureId];
   if (known && parsed[known]) return known;

@@ -368,6 +368,8 @@ function isRetryableError(err) {
     msg.includes('timeout') ||
     msg.includes('econnreset') ||
     msg.includes('socket hang up') ||
+    msg.includes('429') ||
+    msg.includes('rate') ||
     msg.includes('502') ||
     msg.includes('503') ||
     msg.includes('529')

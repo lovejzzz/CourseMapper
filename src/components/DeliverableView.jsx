@@ -191,7 +191,7 @@ function SaveToBankButton({ onClick }) {
   );
 }
 
-export default function DeliverableView({ featureId, data, status, error, regeneratingIndex, courseMapStatus, isDelivGenerating, currentDelivFeature, onDataChange, onRegenerateLesson, onRetry, onAddLessons, courseMap, lessonScope, isStudentView, onSaveToBank, qualityScore, freshLessonIndices, proposals, onAcceptProposal, onDismissProposal, onRegenerateProposal, isStale, staleConfidence, onSyncNow, slideTheme, onSlideThemeChange }) {
+export default function DeliverableView({ featureId, data, status, error, regeneratingIndex, courseMapStatus, isDelivGenerating, currentDelivFeatures, onDataChange, onRegenerateLesson, onRetry, onAddLessons, courseMap, lessonScope, isStudentView, onSaveToBank, qualityScore, freshLessonIndices, proposals, onAcceptProposal, onDismissProposal, onRegenerateProposal, isStale, staleConfidence, onSyncNow, slideTheme, onSlideThemeChange }) {
   // ── All hooks MUST come before any early returns (Rules of Hooks) ──
   // Feature 4.1 — Tier detection + toggle state
   const [activeTier, setActiveTier] = useState('standard'); // 'scaffolded' | 'standard' | 'extension'
@@ -213,13 +213,13 @@ export default function DeliverableView({ featureId, data, status, error, regene
   // ── Early returns (after all hooks) ──
   if (status === 'error') return <ErrorState error={error} onRetry={onRetry} />;
 
-  // Show waiting state when course map is still building or deliverables are queued
+  // Show waiting state when course map is still building or deliverables are generating
   if (!data && status !== 'streaming') {
     if (courseMapStatus && courseMapStatus !== 'done' && courseMapStatus !== 'idle' && courseMapStatus !== 'error') {
       return <WaitingState stage="courseMap" />;
     }
-    if (isDelivGenerating && currentDelivFeature && currentDelivFeature !== featureId) {
-      return <WaitingState stage="queued" currentFeature={currentDelivFeature} />;
+    if (isDelivGenerating && currentDelivFeatures?.has(featureId)) {
+      return <WaitingState stage="generating" />;
     }
     return <EmptyState featureId={featureId} onGenerate={onRetry} />;
   }
@@ -425,11 +425,7 @@ function ErrorState({ error, onRetry }) {
   );
 }
 
-function WaitingState({ stage, currentFeature }) {
-  const FEATURE_NAMES = {
-    lessonPlans: 'Lesson Plans', rubrics: 'Rubrics', slideDecks: 'Slide Decks',
-    quizBank: 'Quiz Bank', discussions: 'Discussions', assignments: 'Assignments', studyGuides: 'Study Guides', syllabus: 'Syllabus',
-  };
+function WaitingState({ stage }) {
   return (
     <div className="flex items-center justify-center py-20">
       <div className="text-center space-y-4 max-w-sm">
@@ -448,9 +444,9 @@ function WaitingState({ stage, currentFeature }) {
           </>
         ) : (
           <>
-            <p className="text-sm font-semibold text-slate-600">Queued — generating {FEATURE_NAMES[currentFeature] || currentFeature}...</p>
+            <p className="text-sm font-semibold text-slate-600">Generating...</p>
             <p className="text-xs text-slate-400 leading-relaxed">
-              Deliverables are generated one at a time. This one will start streaming live as soon as the current item finishes.
+              All deliverables are generating in parallel. Content will start streaming live shortly.
             </p>
           </>
         )}

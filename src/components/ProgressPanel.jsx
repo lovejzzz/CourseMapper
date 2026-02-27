@@ -170,7 +170,7 @@ export default function ProgressPanel({
   retryInfo, completenessInfo, generationLog, onRetryExamine,
   chatHistory, onChatHistoryChange,
   // Item 3: deliverable generation state
-  deliverables, delivProgress, currentDelivFeature, isDelivGenerating,
+  deliverables, delivProgress, currentDelivFeatures, isDelivGenerating,
   delivGenerationLog, delivTimings,
   // Item 6: cascade sync log
   syncLog, isSyncing, pendingSyncCount, syncingFeatures,
@@ -483,14 +483,12 @@ export default function ProgressPanel({
                     {delivRows.map(row => {
                       const timing = delivTimings?.[row.id];
                       const doneMs = timing?.durationMs;
-                      const isActive = row.id === currentDelivFeature && isDelivGenerating;
+                      const isActive = currentDelivFeatures?.has(row.id) && isDelivGenerating;
+                      const pf = delivProgress?.perFeature?.[row.id];
+                      const chunkPct = pf && pf.chunksTotal > 0 ? Math.round((pf.chunksDone / pf.chunksTotal) * 100) : 0;
                       // Compute avg duration of completed deliverables for ETA
                       const completedDurations = delivTimings ? Object.values(delivTimings).filter(t => t.durationMs).map(t => t.durationMs) : [];
                       const avgMs = completedDurations.length > 0 ? completedDurations.reduce((a, b) => a + b, 0) / completedDurations.length : null;
-                      // Latest log entry for the active deliverable — show inline
-                      const latestLogEntry = isActive && delivGenerationLog && delivGenerationLog.length > 0
-                        ? delivGenerationLog[delivGenerationLog.length - 1]
-                        : null;
                       return (
                         <div key={row.id} className="px-2 py-1 rounded-lg min-w-0">
                           <div className="flex items-center gap-2 min-w-0">
@@ -504,21 +502,27 @@ export default function ProgressPanel({
                             {row.label}
                           </span>
                           <span className="flex-shrink-0 flex items-center gap-1.5">
+                            {/* Chunk progress badge */}
+                            {pf && pf.chunksTotal > 1 && pf.status !== 'done' && isDelivGenerating && (
+                              <span className="text-[9px] text-indigo-400 tabular-nums font-medium">
+                                {pf.chunksDone}/{pf.chunksTotal}
+                              </span>
+                            )}
+                            {/* Mini progress bar for active multi-chunk features */}
+                            {isActive && pf && pf.chunksTotal > 1 && (
+                              <div className="w-12 h-1 bg-indigo-100 rounded-full overflow-hidden">
+                                <div className="h-full bg-indigo-500 rounded-full transition-all duration-500" style={{ width: `${chunkPct}%` }} />
+                              </div>
+                            )}
                             {/* Time spent for completed deliverables */}
                             {doneMs && row.status === 'done' && (
                               <span className="text-[9px] text-emerald-500 font-medium">
                                 {doneMs < 60000 ? `${(doneMs / 1000).toFixed(1)}s` : `${(doneMs / 60000).toFixed(1)}m`}
                               </span>
                             )}
-                            {/* Elapsed + ETA for currently generating */}
+                            {/* Elapsed timer for currently generating */}
                             {isActive && timing?.startedAt && (
                               <ElapsedTimer startedAt={timing.startedAt} avgMs={avgMs} />
-                            )}
-                            {/* Pending ETA based on average */}
-                            {!isActive && !doneMs && row.status !== 'error' && avgMs && isDelivGenerating && (
-                              <span className="text-[9px] text-slate-400">
-                                ~{avgMs < 60000 ? `${(avgMs / 1000).toFixed(0)}s` : `${(avgMs / 60000).toFixed(1)}m`}
-                              </span>
                             )}
                             {row.error && (
                               <span className="text-[9px] text-red-400 truncate max-w-[80px]" title={row.error}>
@@ -527,12 +531,6 @@ export default function ProgressPanel({
                             )}
                           </span>
                           </div>
-                          {/* Inline current activity subtitle for active deliverable */}
-                          {latestLogEntry && (
-                            <p className="text-[10px] text-slate-400 italic mt-0.5 ml-6 truncate overflow-hidden">
-                              {latestLogEntry.message}
-                            </p>
-                          )}
                         </div>
                       );
                     })}

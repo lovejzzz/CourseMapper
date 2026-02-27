@@ -6,6 +6,10 @@ import { getCustomDeliverable } from '../lib/customDeliverableLibrary';
 import { scoreHeuristic } from '../lib/deliverableQualityScorer';
 import { notifyDone } from '../lib/notifyDone';
 import { CourseStateContext, CourseDispatchContext, actions } from '../model/courseStore.jsx';
+import {
+  pLimit, createChunkPlan, mergeChunkResults, findMissingIndices,
+  chunkArray, CHUNK_SIZE, MAX_CONCURRENT, MAX_RETRY_ROUNDS,
+} from '../lib/parallelGenerator';
 
 // ── Post-process scoped deliverable output to fix lesson/week numbering ──
 // When the user generates a subset of lessons (e.g., lesson 6 only), the AI may
@@ -74,68 +78,13 @@ function getFeatureLabel(featureId) {
   return featureId;
 }
 
-// ── Feature 6.1: Coherence Summary Builder ──
-const MAX_COHERENCE_CHARS = 2000;
-
-function buildCoherenceSummary(deliverablesSoFar) {
-  const parts = [];
-
-  const quiz = deliverablesSoFar.quizBank?.data;
-  if (quiz) {
-    const quizzes = quiz.quizzes || quiz.quizBank || [];
-    const stems = [];
-    quizzes.forEach(lesson => {
-      (lesson.tiers?.standard || lesson.questions || []).slice(0, 3).forEach(q => {
-        if (q.question) stems.push(q.question.slice(0, 80));
-      });
-    });
-    if (stems.length > 0) {
-      parts.push(`Quiz questions already used (do not repeat):\n${stems.slice(0, 10).map(s => `- ${s}`).join('\n')}`);
-    }
-  }
-
-  const asgn = deliverablesSoFar.assignments?.data;
-  if (asgn) {
-    const list = asgn.assignments || [];
-    const titles = list.flatMap(l => (l.tiers?.standard || l.assignments || [l]).map(a => a.title).filter(Boolean)).slice(0, 8);
-    if (titles.length > 0) {
-      parts.push(`Assignment titles already used:\n${titles.map(t => `- ${t}`).join('\n')}`);
-    }
-  }
-
-  const rub = deliverablesSoFar.rubrics?.data;
-  if (rub) {
-    const list = rub.rubrics || [];
-    const criteria = list.flatMap(l => (l.criteria || []).map(c => c.name).filter(Boolean)).slice(0, 10);
-    if (criteria.length > 0) {
-      parts.push(`Rubric criteria already defined:\n${criteria.map(c => `- ${c}`).join('\n')}`);
-    }
-  }
-
-  const lp = deliverablesSoFar.lessonPlans?.data;
-  if (lp) {
-    const list = lp.lessonPlans || [];
-    const goals = list.flatMap(l => {
-      const plan = l.tiers?.standard || l;
-      return (plan.learningObjectives || []).slice(0, 1);
-    }).filter(Boolean).slice(0, 5);
-    if (goals.length > 0) {
-      parts.push(`Learning objectives already defined (maintain terminology consistency):\n${goals.map(g => `- ${g}`).join('\n')}`);
-    }
-  }
-
-  const summary = parts.join('\n\n');
-  if (!summary) return '';
-  const truncated = summary.length > MAX_COHERENCE_CHARS
-    ? summary.slice(0, MAX_COHERENCE_CHARS) + '…'
-    : summary;
-  return `\n\nALREADY GENERATED CONTEXT (for consistency — do not repeat these items):\n${truncated}`;
-}
-
 /**
  * Hook for generating additional deliverables (lesson plans, rubrics, etc.)
  * Deliverables state lives in the course store; this hook owns only transient
  * streaming/progress state.
+ *
+ * V2.0: Parallel chunked generation — all deliverables fire simultaneously,
+ * each split into chunks of CHUNK_SIZE lessons with a concurrency cap.
  */
 export default function useDeliverables({ provider, modelId, apiKey, deliverableConfig, lockedLessons, pedagogicalMode, examChanges, columns }) {
   // ── Read deliverables from the store ──
@@ -144,22 +93,22 @@ export default function useDeliverables({ provider, modelId, apiKey, deliverable
   const deliverables = storeState?.deliverables || {};
 
   // ── Transient / streaming-only state (not persisted) ──
-  const [isGenerating, setIsGenerating]   = useState(false);
-  const [currentFeature, setCurrentFeature] = useState(null);
-  const [progress, setProgress]           = useState({ done: 0, total: 0 });
-  const [generationLog, setGenerationLog] = useState([]);
-  const [qualityScores, setQualityScores] = useState({});
-  const [delivTimings, setDelivTimings]   = useState({});  // { featureId: { startedAt, endedAt, durationMs } }
+  const [isGenerating, setIsGenerating]       = useState(false);
+  const [currentFeatures, setCurrentFeatures] = useState(new Set()); // tracks ALL active features (parallel)
+  const [progress, setProgress]               = useState({ done: 0, total: 0, perFeature: {} });
+  const [generationLog, setGenerationLog]     = useState([]);
+  const [qualityScores, setQualityScores]     = useState({});
+  const [delivTimings, setDelivTimings]        = useState({});  // { featureId: { startedAt, endedAt, durationMs } }
   // freshLessons: tracks which lesson indices were just AI-regenerated (for green highlight)
   // Shape: { [featureId]: Set<number> }
   const [freshLessons, setFreshLessons]   = useState({});
   // Ref-tracked timers so we can cancel them on unmount (avoids setState-on-unmounted-component)
   // Map<"featureId:lessonIdx", timeoutId>
   const freshTimersRef = useRef(new Map());
-  // ── Change #1: Per-feature abort controllers (replaces single abortRef) ──
-  const abortMapRef = useRef(new Map()); // Map<featureId, AbortController>
+  // Per-feature/chunk abort controllers: Map<"featureId" | "featureId:chunkN", AbortController>
+  const abortMapRef = useRef(new Map());
   const startedRef  = useRef(false);
-  // ── Change #6: Track the active sync generation ID so stale results can be discarded ──
+  // Track the active sync generation ID so stale results can be discarded
   const activeSyncGenRef = useRef(0);
 
   const deliverableConfigRef = useRef(deliverableConfig);
@@ -182,66 +131,112 @@ export default function useDeliverables({ provider, modelId, apiKey, deliverable
     setGenerationLog(prev => [...prev, { message, type, at: Date.now() }]);
   }, []);
 
+  // ═══════════════════════════════════════════════════════════════════════════
+  // generateAll — Parallel Chunked Generation
+  // ═══════════════════════════════════════════════════════════════════════════
+
   const generateAll = useCallback(async (courseMap, features, scopeIndices = null, syncGenId = null) => {
     const toGenerate = features.filter(f => f && f !== 'courseMap');
     if (toGenerate.length === 0 || !courseMap) return;
 
     startedRef.current = true;
-    // ── Change #6: Track sync generation ID ──
     if (syncGenId !== null) activeSyncGenRef.current = syncGenId;
     setIsGenerating(true);
-    setProgress({ done: 0, total: toGenerate.length });
     setGenerationLog([]);
     setDelivTimings({});
 
     const lessonCount = (courseMap.lessons || []).length;
+    const lessonIndices = scopeIndices ?? Array.from({ length: lessonCount }, (_, i) => i);
+
+    // ── 1. Create chunk plan ──
+    const tasks = createChunkPlan(toGenerate, lessonCount, scopeIndices);
+
+    // ── 2. Initialize per-feature progress ──
+    const perFeatureInit = {};
+    for (const fid of toGenerate) {
+      const featureTasks = tasks.filter(t => t.featureId === fid);
+      perFeatureInit[fid] = { chunksTotal: featureTasks.length, chunksDone: 0, status: 'pending' };
+    }
+    setProgress({ done: 0, total: toGenerate.length, perFeature: perFeatureInit });
+
+    // Mark all features as streaming
+    for (const fid of toGenerate) {
+      dispatch(actions.setDeliverableStreaming(fid));
+    }
+
     const scopeDesc = scopeIndices
       ? `${scopeIndices.length} lesson${scopeIndices.length !== 1 ? 's' : ''}`
       : `all ${lessonCount} lesson${lessonCount !== 1 ? 's' : ''}`;
 
-    appendLog(`Starting generation of ${toGenerate.length} deliverable${toGenerate.length !== 1 ? 's' : ''} for ${scopeDesc}`, 'start');
+    appendLog(`Starting parallel generation of ${toGenerate.length} deliverable${toGenerate.length !== 1 ? 's' : ''} (${tasks.length} tasks) for ${scopeDesc}`, 'start');
 
-    const completedDeliverables = {};
+    // ── 3. Chunk result accumulators ──
+    const chunkResults = {};  // { [featureId]: Map<chunkIndex, parsedData> }
+    for (const fid of toGenerate) {
+      chunkResults[fid] = new Map();
+    }
 
-    for (let i = 0; i < toGenerate.length; i++) {
-      const featureId = toGenerate[i];
+    // ── 4. Run all tasks through concurrency limiter ──
+    const limit = pLimit(MAX_CONCURRENT);
+    const featureStartTimes = {};  // track first-chunk start per feature
+
+    const allPromises = tasks.map(task => limit(async () => {
+      const { featureId, chunkIndex, chunkScope, isWholeCourse } = task;
       const label = getFeatureLabel(featureId);
-      const delivStartTime = Date.now();
-      setCurrentFeature(featureId);
-      dispatch(actions.setDeliverableStreaming(featureId));
-      setDelivTimings(prev => ({ ...prev, [featureId]: { startedAt: delivStartTime, endedAt: null, durationMs: null } }));
+      const chunkLabel = isWholeCourse ? label : `${label} [${chunkScope[0] + 1}-${chunkScope[chunkScope.length - 1] + 1}]`;
+      const taskStartTime = Date.now();
 
-      appendLog(`Using ${provider}/${modelId} for ${label}`, 'info');
-      appendLog(`Generating ${label} (${i + 1}/${toGenerate.length}) — asking AI for ${scopeDesc}...`, 'progress');
-
-      const config = deliverableConfigRef.current?.[featureId] || {};
-      const prompts = getDeliverablePrompt(featureId, courseMap, scopeIndices, config, pedagogicalModeRef.current, examChangesRef.current, null, columnsRef.current, deliverableConfigRef.current);
-      if (!prompts) {
-        dispatch(actions.setDeliverableError(featureId, 'No prompt template'));
-        setProgress(prev => ({ ...prev, done: prev.done + 1 }));
-        appendLog(`✗ ${label}: No prompt template available`, 'error');
-        continue;
+      // Track feature start time (first chunk to start)
+      if (!featureStartTimes[featureId]) {
+        featureStartTimes[featureId] = taskStartTime;
+        setDelivTimings(prev => ({
+          ...prev,
+          [featureId]: { startedAt: taskStartTime, endedAt: null, durationMs: null },
+        }));
       }
 
-      const coherenceCtx = buildCoherenceSummary(completedDeliverables);
-      const coherentSystemPrompt = coherenceCtx
-        ? prompts.systemPrompt + coherenceCtx
-        : prompts.systemPrompt;
+      // Add to active features set
+      setCurrentFeatures(prev => new Set([...prev, featureId]));
+
+      // Update per-feature status to generating
+      setProgress(prev => ({
+        ...prev,
+        perFeature: {
+          ...prev.perFeature,
+          [featureId]: { ...prev.perFeature[featureId], status: 'generating' },
+        },
+      }));
+
+      appendLog(`Generating ${chunkLabel}...`, 'progress');
+
+      // Build prompt
+      const config = deliverableConfigRef.current?.[featureId] || {};
+      const prompts = getDeliverablePrompt(
+        featureId, courseMap, chunkScope, config,
+        pedagogicalModeRef.current, examChangesRef.current, null,
+        columnsRef.current, deliverableConfigRef.current,
+      );
+      if (!prompts) {
+        appendLog(`✗ ${chunkLabel}: No prompt template available`, 'error');
+        return;
+      }
+
+      // Create abort controller
+      const abortKey = isWholeCourse ? featureId : `${featureId}:chunk${chunkIndex}`;
+      const controller = new AbortController();
+      abortMapRef.current.set(abortKey, controller);
 
       let tokenCount = 0;
       let logTimer = null;
 
       try {
-        const controller = new AbortController();
-        abortMapRef.current.set(featureId, controller);
-
         let fullText = '';
         let lastParseTime = 0;
         let streamStarted = false;
 
         const result = await streamProvider(
           provider, apiKey, modelId,
-          coherentSystemPrompt, prompts.userPrompt,
+          prompts.systemPrompt, prompts.userPrompt,
           {
             onChunk: (accumulatedText) => {
               fullText = accumulatedText;
@@ -249,102 +244,282 @@ export default function useDeliverables({ provider, modelId, apiKey, deliverable
 
               if (!streamStarted) {
                 streamStarted = true;
-                appendLog(`Receiving ${label} response from AI (${provider}/${modelId})...`, 'progress');
                 logTimer = setInterval(() => {
-                  appendLog(`Still generating ${label}… (~${tokenCount} tokens received, ${modelId})`, 'progress');
-                }, 3000);
+                  appendLog(`Still generating ${chunkLabel}… (~${tokenCount} tokens)`, 'progress');
+                }, 5000);
               }
 
+              // Throttled streaming preview
               const now = Date.now();
-              if (now - lastParseTime > 150) {
+              if (now - lastParseTime > 200) {
                 lastParseTime = now;
                 const partial = parsePartialJSON(fullText);
                 if (partial) {
-                  // Streaming preview — dispatch as streaming with partial data
-                  dispatch({ type: 'SET_DELIVERABLE', featureId, status: 'streaming', data: partial, error: null, stale: false });
+                  // Merge completed chunks + this partial for live preview
+                  const tempMap = new Map(chunkResults[featureId]);
+                  tempMap.set(chunkIndex, partial);
+                  const merged = mergeChunkResults(featureId, tempMap);
+                  if (merged) {
+                    dispatch({ type: 'SET_DELIVERABLE', featureId, status: 'streaming', data: merged, error: null, stale: false });
+                  }
                 }
               }
             },
             maxRetries: 2,
             onRetry: (attempt) => {
-              appendLog(`⚠ ${label}: Connection interrupted — retrying (attempt ${attempt}/2)...`, 'warn');
+              appendLog(`⚠ ${chunkLabel}: Connection interrupted — retrying (${attempt}/2)...`, 'warn');
             },
           }
         );
 
         if (logTimer) clearInterval(logTimer);
 
+        // Parse final result
         const text = result?.fullText || fullText;
         const parsed = parsePartialJSON(text);
 
         if (parsed) {
-          // Post-process: fix lesson/week numbering for scoped generation
-          const finalData = patchScopeNumbering(parsed, featureId, scopeIndices, courseMap);
-          let itemCount = 0;
-          const k = getArrayKey(featureId, finalData);
-          const arr = k ? (finalData[k] || []) : [];
-          itemCount = arr.length;
-          const delivEndTime = Date.now();
-          const delivDuration = delivEndTime - delivStartTime;
-          setDelivTimings(prev => ({ ...prev, [featureId]: { startedAt: delivStartTime, endedAt: delivEndTime, durationMs: delivDuration } }));
-          const durStr = delivDuration < 60000 ? `${(delivDuration / 1000).toFixed(1)}s` : `${(delivDuration / 60000).toFixed(1)}m`;
-          const countDesc = itemCount > 0 ? ` — ${itemCount} item${itemCount !== 1 ? 's' : ''} generated` : '';
-          // ── Change #6: Discard result if a newer sync cycle has started ──
+          // Discard if superseded by newer sync cycle
           if (syncGenId !== null && syncGenId !== activeSyncGenRef.current) {
-            appendLog(`⚠ ${label}: Result discarded (superseded by newer sync cycle)`, 'warn');
-            continue;
+            appendLog(`⚠ ${chunkLabel}: discarded (superseded)`, 'warn');
+            return;
           }
-          appendLog(`✓ ${label} complete${countDesc} (${durStr})`, 'done');
-          dispatch(actions.setDeliverableDone(featureId, finalData));
-          completedDeliverables[featureId] = { data: finalData };
 
-          try {
-            const quality = scoreHeuristic(featureId, parsed);
-            setQualityScores(prev => ({ ...prev, [featureId]: quality }));
-          } catch { /* ignore scoring errors */ }
+          // Store chunk result
+          chunkResults[featureId].set(chunkIndex, parsed);
+
+          // For whole-course features, dispatch done immediately
+          if (isWholeCourse) {
+            const finalData = patchScopeNumbering(parsed, featureId, chunkScope, courseMap);
+            dispatch(actions.setDeliverableDone(featureId, finalData));
+            try {
+              const quality = scoreHeuristic(featureId, finalData);
+              setQualityScores(prev => ({ ...prev, [featureId]: quality }));
+            } catch { /* ignore */ }
+          } else {
+            // Dispatch merged streaming preview
+            const merged = mergeChunkResults(featureId, chunkResults[featureId]);
+            if (merged) {
+              dispatch({ type: 'SET_DELIVERABLE', featureId, status: 'streaming', data: merged, error: null, stale: false });
+            }
+          }
+
+          const k = getArrayKey(featureId, parsed);
+          const itemCount = k ? (parsed[k]?.length || 0) : 0;
+          const durStr = formatDuration(Date.now() - taskStartTime);
+          const countDesc = itemCount > 0 ? ` — ${itemCount} item${itemCount !== 1 ? 's' : ''}` : '';
+          appendLog(`✓ ${chunkLabel} complete${countDesc} (${durStr})`, 'done');
         } else {
-          appendLog(`⚠ ${label}: AI response was incomplete or could not be parsed`, 'warn');
-          dispatch(actions.setDeliverableError(featureId, 'Failed to parse AI response'));
+          appendLog(`⚠ ${chunkLabel}: AI response could not be parsed`, 'warn');
         }
       } catch (err) {
         if (logTimer) clearInterval(logTimer);
-        const delivEndTime = Date.now();
-        setDelivTimings(prev => ({ ...prev, [featureId]: { startedAt: delivStartTime, endedAt: delivEndTime, durationMs: delivEndTime - delivStartTime } }));
         if (err.name === 'AbortError') {
-          appendLog(`${label}: Generation stopped by user`, 'warn');
-          break;
+          appendLog(`${chunkLabel}: stopped`, 'warn');
+        } else {
+          appendLog(`✗ ${chunkLabel}: ${err.message || 'Generation failed'}`, 'error');
         }
-        const errMsg = err.message || 'Generation failed';
-        appendLog(`✗ ${label}: ${errMsg}`, 'error');
-        dispatch(actions.setDeliverableError(featureId, errMsg));
+      } finally {
+        abortMapRef.current.delete(abortKey);
       }
 
-      setProgress(prev => ({ ...prev, done: prev.done + 1 }));
+      // Update per-feature chunk progress
+      setProgress(prev => {
+        const pf = prev.perFeature[featureId];
+        if (!pf) return prev;
+        const newChunksDone = pf.chunksDone + 1;
+        const allChunksDone = newChunksDone >= pf.chunksTotal;
+        return {
+          ...prev,
+          done: allChunksDone ? prev.done + 1 : prev.done,
+          perFeature: {
+            ...prev.perFeature,
+            [featureId]: {
+              ...pf,
+              chunksDone: newChunksDone,
+              status: allChunksDone ? 'merging' : 'generating',
+            },
+          },
+        };
+      });
+    }));
+
+    // ── 5. Wait for all tasks ──
+    await Promise.allSettled(allPromises);
+
+    // ── 6. Post-generation: merge, verify, retry ──
+    for (const fid of toGenerate) {
+      const chunks = chunkResults[fid];
+      const featureTasks = tasks.filter(t => t.featureId === fid);
+
+      // Whole-course features were already dispatched as done
+      if (featureTasks.length === 1 && featureTasks[0].isWholeCourse) {
+        const delivEndTime = Date.now();
+        setDelivTimings(prev => ({
+          ...prev,
+          [fid]: {
+            startedAt: featureStartTimes[fid] || delivEndTime,
+            endedAt: delivEndTime,
+            durationMs: delivEndTime - (featureStartTimes[fid] || delivEndTime),
+          },
+        }));
+        setProgress(prev => ({
+          ...prev,
+          perFeature: {
+            ...prev.perFeature,
+            [fid]: { ...prev.perFeature[fid], status: 'done' },
+          },
+        }));
+        continue;
+      }
+
+      if (chunks.size === 0) {
+        // No chunks completed — set error
+        dispatch(actions.setDeliverableError(fid, 'All chunks failed'));
+        setProgress(prev => ({
+          ...prev,
+          perFeature: {
+            ...prev.perFeature,
+            [fid]: { ...prev.perFeature[fid], status: 'error' },
+          },
+        }));
+        continue;
+      }
+
+      // Merge chunks
+      let merged = mergeChunkResults(fid, chunks);
+      if (!merged) {
+        dispatch(actions.setDeliverableError(fid, 'Failed to merge chunks'));
+        continue;
+      }
+
+      // Completeness check + retry
+      const expectedCount = lessonIndices.length;
+      const arrayKey = getArrayKey(fid, merged);
+      let mergedArr = arrayKey ? (merged[arrayKey] || []) : [];
+
+      if (mergedArr.length < expectedCount) {
+        const label = getFeatureLabel(fid);
+        let retryRound = 0;
+        while (mergedArr.length < expectedCount && retryRound < MAX_RETRY_ROUNDS) {
+          retryRound++;
+          const missing = findMissingIndices(mergedArr, lessonIndices);
+          appendLog(`⚠ ${label}: ${mergedArr.length}/${expectedCount} items — retrying ${missing.length} missing (round ${retryRound})`, 'warn');
+
+          // Create retry tasks for missing indices
+          const retryChunks = chunkArray(missing, CHUNK_SIZE);
+          const retryLimit = pLimit(MAX_CONCURRENT);
+          const retryPromises = retryChunks.map((retryScope, idx) => retryLimit(async () => {
+            const retryChunkIndex = chunks.size + idx + (retryRound - 1) * 100; // unique index
+            const retryLabel = `${label} retry [${retryScope[0] + 1}-${retryScope[retryScope.length - 1] + 1}]`;
+            appendLog(`Retrying ${retryLabel}...`, 'progress');
+
+            const config = deliverableConfigRef.current?.[fid] || {};
+            const prompts = getDeliverablePrompt(
+              fid, courseMap, retryScope, config,
+              pedagogicalModeRef.current, examChangesRef.current, null,
+              columnsRef.current, deliverableConfigRef.current,
+            );
+            if (!prompts) return;
+
+            const controller = new AbortController();
+            const retryAbortKey = `${fid}:retry${retryChunkIndex}`;
+            abortMapRef.current.set(retryAbortKey, controller);
+
+            try {
+              let fullText = '';
+              const result = await streamProvider(
+                provider, apiKey, modelId,
+                prompts.systemPrompt, prompts.userPrompt,
+                { onChunk: (t) => { fullText = t; }, maxRetries: 2 }
+              );
+              const text = result?.fullText || fullText;
+              const parsed = parsePartialJSON(text);
+              if (parsed) {
+                chunkResults[fid].set(retryChunkIndex, parsed);
+                appendLog(`✓ ${retryLabel} complete`, 'done');
+              } else {
+                appendLog(`⚠ ${retryLabel}: parse failed`, 'warn');
+              }
+            } catch (err) {
+              if (err.name !== 'AbortError') {
+                appendLog(`✗ ${retryLabel}: ${err.message}`, 'error');
+              }
+            } finally {
+              abortMapRef.current.delete(retryAbortKey);
+            }
+          }));
+
+          await Promise.allSettled(retryPromises);
+
+          // Re-merge with retry results
+          merged = mergeChunkResults(fid, chunkResults[fid]);
+          mergedArr = merged && arrayKey ? (merged[arrayKey] || []) : [];
+        }
+      }
+
+      // Apply scope numbering
+      const finalData = patchScopeNumbering(merged, fid, scopeIndices, courseMap);
+      const delivEndTime = Date.now();
+
+      // Dispatch final result
+      dispatch(actions.setDeliverableDone(fid, finalData));
+
+      // Quality scoring
+      try {
+        const quality = scoreHeuristic(fid, finalData);
+        setQualityScores(prev => ({ ...prev, [fid]: quality }));
+      } catch { /* ignore */ }
+
+      // Update timing
+      setDelivTimings(prev => ({
+        ...prev,
+        [fid]: {
+          startedAt: featureStartTimes[fid] || delivEndTime,
+          endedAt: delivEndTime,
+          durationMs: delivEndTime - (featureStartTimes[fid] || delivEndTime),
+        },
+      }));
+
+      // Mark feature as done in progress
+      setProgress(prev => ({
+        ...prev,
+        perFeature: {
+          ...prev.perFeature,
+          [fid]: { ...prev.perFeature[fid], status: 'done' },
+        },
+      }));
     }
 
+    // ── 7. Finalize ──
     setIsGenerating(false);
-    setCurrentFeature(null);
+    setCurrentFeatures(new Set());
     appendLog('All deliverables generated', 'done');
     notifyDone('All deliverables are ready!');
   }, [provider, modelId, apiKey, streamProvider, parsePartialJSON, appendLog, dispatch]);
 
-  // ── Change #1: Stop by featureId or stop all ──
+  // ── Stop by featureId or stop all ──
   const stopGenerating = useCallback((featureId = null) => {
     if (featureId) {
-      abortMapRef.current.get(featureId)?.abort();
-      abortMapRef.current.delete(featureId);
+      // Abort all entries for this feature (featureId, featureId:chunk0, etc.)
+      for (const [key, ctrl] of abortMapRef.current) {
+        if (key === featureId || key.startsWith(featureId + ':')) {
+          ctrl.abort();
+          abortMapRef.current.delete(key);
+        }
+      }
     } else {
       for (const [, ctrl] of abortMapRef.current) ctrl.abort();
       abortMapRef.current.clear();
     }
     setIsGenerating(false);
-    setCurrentFeature(null);
+    setCurrentFeatures(new Set());
   }, []);
 
   const resetDeliverables = useCallback(() => {
     stopGenerating();
     dispatch(actions.resetDeliverables());
-    setProgress({ done: 0, total: 0 });
+    setProgress({ done: 0, total: 0, perFeature: {} });
     setGenerationLog([]);
     startedRef.current = false;
   }, [stopGenerating, dispatch]);
@@ -355,7 +530,7 @@ export default function useDeliverables({ provider, modelId, apiKey, deliverable
     // Compute progress from restored data
     const entries = Object.entries(savedDeliverables || {});
     const done = entries.filter(([, e]) => e?.status === 'done').length;
-    setProgress({ done, total: done });
+    setProgress({ done, total: done, perFeature: {} });
     setGenerationLog([]);
     startedRef.current = false;
   }, [stopGenerating, dispatch]);
@@ -368,7 +543,7 @@ export default function useDeliverables({ provider, modelId, apiKey, deliverable
     dispatch(actions.markFeatureStale(featureId, staleConfidence));
   }, [dispatch]);
 
-  // ── Change #4: Optimistic update — instantly patch deliverable data (e.g. title rename) ──
+  // Optimistic update — instantly patch deliverable data (e.g. title rename)
   const optimisticUpdate = useCallback((featureId, patchedData) => {
     const existing = deliverables[featureId];
     if (!existing) return;
@@ -391,6 +566,9 @@ export default function useDeliverables({ provider, modelId, apiKey, deliverable
     await generateAll(courseMap, staleIds, scopeIndices);
   }, [deliverables, generateAll]);
 
+  // ── Single-lesson regeneration (used by smart sync) ──
+  // This function is UNCHANGED from the sequential version — it already handles
+  // single-lesson scope via scopeIndices=[lessonIndex].
   const regenerateLesson = useCallback(async (featureId, courseMap, lessonIndex, syncGenId = null) => {
     if (!courseMap) return;
     if (lockedLessonsRef.current?.has(lessonIndex)) {
@@ -399,19 +577,13 @@ export default function useDeliverables({ provider, modelId, apiKey, deliverable
     }
     const label = getFeatureLabel(featureId);
 
-    // ── Change #6: Track sync generation ID ──
     if (syncGenId !== null) activeSyncGenRef.current = syncGenId;
 
-    // Signal that this feature is actively regenerating so the tab badge animates
-    setCurrentFeature(featureId);
+    // Signal that this feature is actively regenerating
+    setCurrentFeatures(prev => new Set([...prev, featureId]));
     setIsGenerating(true);
 
-    // ── Snap-back fix ──────────────────────────────────────────────────────────
-    // Capture the CURRENT data snapshot NOW (before any async work) so the merge
-    // at the end uses this baseline rather than re-reading stale closure state.
-    // We do NOT dispatch existing.data back — that would overwrite user edits.
-    // Instead, MARK_LESSON_REGENERATING sets status:'streaming' + regeneratingIndex
-    // without touching data, so the user sees their edits remain on screen.
+    // Capture CURRENT data snapshot NOW (before any async work) to prevent snap-back
     const existingDataSnapshot = deliverables[featureId]?.data ?? null;
     const existingKey = getArrayKey(featureId, existingDataSnapshot);
     const existingArr = existingDataSnapshot?.[existingKey] || [];
@@ -423,13 +595,12 @@ export default function useDeliverables({ provider, modelId, apiKey, deliverable
     const regenConfig = deliverableConfigRef.current?.[featureId] || {};
     const prompts = getDeliverablePrompt(featureId, courseMap, [lessonIndex], regenConfig, pedagogicalModeRef.current, examChangesRef.current, null, columnsRef.current, deliverableConfigRef.current);
     if (!prompts) {
-      // Restore to done status (no data change) on prompt-build failure
       if (existingDataSnapshot) {
         dispatch({ type: 'SET_DELIVERABLE', featureId, status: 'done', data: existingDataSnapshot, error: null, stale: false, regeneratingIndex: null });
       }
       appendLog(`✗ ${label}: No prompt for lesson ${lessonIndex + 1}`, 'error');
-      setCurrentFeature(null);
-      setIsGenerating(false);
+      setCurrentFeatures(prev => { const s = new Set(prev); s.delete(featureId); return s; });
+      if (abortMapRef.current.size === 0) setIsGenerating(false);
       return;
     }
 
@@ -437,9 +608,6 @@ export default function useDeliverables({ provider, modelId, apiKey, deliverable
       const controller = new AbortController();
       abortMapRef.current.set(featureId, controller);
 
-      // ── Live streaming ─────────────────────────────────────────────────────
-      // Mirror the throttled partial-parse + dispatch loop from generateAll so
-      // the user sees the AI writing the content live instead of a frozen view.
       let fullText = '';
       let lastParseTime = 0;
 
@@ -454,8 +622,6 @@ export default function useDeliverables({ provider, modelId, apiKey, deliverable
               lastParseTime = now;
               const partial = parsePartialJSON(fullText);
               if (partial && existingDataSnapshot && existingKey) {
-                // Merge the partial single-lesson result into the full lesson array
-                // so the view renders all lessons with the current one streaming live
                 const partialKey = getArrayKey(featureId, partial);
                 const partialArr = partialKey ? (partial[partialKey] || []) : [];
                 const merged = [...existingArr];
@@ -476,20 +642,16 @@ export default function useDeliverables({ provider, modelId, apiKey, deliverable
         }
       );
 
-      // ── Finalize ───────────────────────────────────────────────────────────
       const parsed = parsePartialJSON(fullText);
       if (parsed) {
-        // ── Change #6: Discard result if a newer sync cycle has started ──
         if (syncGenId !== null && syncGenId !== activeSyncGenRef.current) {
-          appendLog(`⚠ ${label}: Lesson ${lessonIndex + 1} result discarded (superseded by newer sync)`, 'warn');
+          appendLog(`⚠ ${label}: Lesson ${lessonIndex + 1} result discarded (superseded)`, 'warn');
           if (existingDataSnapshot) {
             dispatch({ type: 'SET_DELIVERABLE', featureId, status: 'done', data: existingDataSnapshot, error: null, stale: false, regeneratingIndex: null });
           }
           return;
         }
-        // Post-process: fix lesson/week numbering for single-lesson regeneration
         const finalParsed = patchScopeNumbering(parsed, featureId, [lessonIndex], courseMap);
-        // Merge into the snapshot captured at start (not re-reading stale state)
         if (existingKey && existingDataSnapshot) {
           const newKey = getArrayKey(featureId, finalParsed);
           const newArr = (newKey ? finalParsed[newKey] : null) || [];
@@ -505,17 +667,12 @@ export default function useDeliverables({ provider, modelId, apiKey, deliverable
         }
         appendLog(`✓ Lesson ${lessonIndex + 1} in ${label} regenerated`, 'done');
 
-        // ── Green highlight ──────────────────────────────────────────────────
-        // Mark this lesson as freshly generated for 3 seconds so the view
-        // can render a green ring/background to signal new content to the user.
-        // We track the timer in a ref so it can be cancelled on unmount,
-        // preventing setState-on-unmounted-component warnings.
+        // Green highlight (3s)
         setFreshLessons(prev => ({
           ...prev,
           [featureId]: new Set([...(prev[featureId] || []), lessonIndex]),
         }));
         const freshKey = `${featureId}:${lessonIndex}`;
-        // Cancel any existing timer for this same lesson (e.g. rapid re-regen)
         if (freshTimersRef.current.has(freshKey)) {
           clearTimeout(freshTimersRef.current.get(freshKey));
         }
@@ -530,7 +687,6 @@ export default function useDeliverables({ provider, modelId, apiKey, deliverable
         freshTimersRef.current.set(freshKey, freshTimer);
       } else {
         appendLog(`⚠ ${label}: Lesson ${lessonIndex + 1} regeneration response was incomplete`, 'warn');
-        // Restore existing data (no user edits lost — we use the snapshot)
         if (existingDataSnapshot) {
           dispatch({ type: 'SET_DELIVERABLE', featureId, status: 'done', data: existingDataSnapshot, error: null, stale: false, regeneratingIndex: null });
         }
@@ -540,37 +696,31 @@ export default function useDeliverables({ provider, modelId, apiKey, deliverable
         console.warn(`Regenerate lesson ${lessonIndex} failed:`, err);
         appendLog(`✗ ${label}: Lesson ${lessonIndex + 1} regeneration failed — ${err.message || 'Unknown error'}`, 'error');
       }
-      // Restore existing data on error/abort (using snapshot, not stale closure)
       if (existingDataSnapshot) {
         dispatch({ type: 'SET_DELIVERABLE', featureId, status: 'done', data: existingDataSnapshot, error: null, stale: false, regeneratingIndex: null });
       }
     } finally {
-      // ── Change #1: Clean up per-feature abort controller ──
       abortMapRef.current.delete(featureId);
-      // Only clear generating state if no other features are still in-flight
+      // Remove from active features
+      setCurrentFeatures(prev => { const s = new Set(prev); s.delete(featureId); return s; });
       if (abortMapRef.current.size === 0) {
-        setCurrentFeature(null);
         setIsGenerating(false);
       }
     }
   }, [provider, modelId, apiKey, streamProvider, parsePartialJSON, appendLog, dispatch, deliverables]);
 
   // ── Surgical resync: handles non-per-lesson deliverables (syllabus, custom) ──
-  // Per-lesson deliverables are handled by useSmartSync's queue via handleCourseMapResync.
   const surgicalResync = useCallback(async (courseMap, features) => {
     if (!courseMap) return;
     const nonPerLesson = [];
-    // Syllabus is never per-lesson — full regen
     if (features.includes('syllabus') && deliverables['syllabus']?.stale) {
       nonPerLesson.push('syllabus');
     }
-    // Custom deliverables that lack per-lesson structure also get full regen
     for (const f of features) {
       if (f.startsWith('custom_') && deliverables[f]?.stale) {
         const data = deliverables[f]?.data;
         const arrayKey = getArrayKey(f, data);
         const arr = data?.[arrayKey];
-        // If no array or array is empty, treat as non-per-lesson
         if (!Array.isArray(arr) || arr.length === 0) {
           nonPerLesson.push(f);
         }
@@ -581,7 +731,7 @@ export default function useDeliverables({ provider, modelId, apiKey, deliverable
     }
   }, [deliverables, generateAll]);
 
-  // ── Cleanup: cancel any pending freshLessons timers on unmount ──────────────
+  // ── Cleanup: cancel any pending freshLessons timers on unmount ──
   useEffect(() => {
     return () => {
       freshTimersRef.current.forEach(id => clearTimeout(id));
@@ -592,8 +742,7 @@ export default function useDeliverables({ provider, modelId, apiKey, deliverable
   // staleCount as a computed value from store
   const staleCount = Object.values(deliverables).filter(d => d?.stale).length;
 
-  // setDeliverables shim for legacy call sites in App.jsx (handleRestoreSession etc.)
-  // Maps from { [id]: entry } bulk set → individual dispatches
+  // setDeliverables shim for legacy call sites in App.jsx
   const setDeliverables = useCallback((updaterOrObj) => {
     const obj = typeof updaterOrObj === 'function'
       ? updaterOrObj(deliverables)
@@ -605,11 +754,17 @@ export default function useDeliverables({ provider, modelId, apiKey, deliverable
     }
   }, [deliverables, dispatch]);
 
+  // Backward compat: expose currentFeature as first active feature (for consumers that need a single string)
+  const currentFeature = currentFeatures.size > 0
+    ? currentFeatures.values().next().value
+    : null;
+
   return {
     deliverables,
-    setDeliverables,  // shim — remove after App.jsx is fully migrated
+    setDeliverables,
     isGenerating,
-    currentFeature,
+    currentFeature,       // backward compat: first active feature (string|null)
+    currentFeatures,      // new: all active features (Set<string>)
     progress,
     generateAll,
     stopGenerating,
@@ -628,4 +783,10 @@ export default function useDeliverables({ provider, modelId, apiKey, deliverable
     delivTimings,
     freshLessons,
   };
+}
+
+// ── Helpers ──
+
+function formatDuration(ms) {
+  return ms < 60000 ? `${(ms / 1000).toFixed(1)}s` : `${(ms / 60000).toFixed(1)}m`;
 }
