@@ -93,11 +93,11 @@ export default function useStreamReader() {
    * @param {string} modelId
    * @param {string} systemPrompt
    * @param {string} userPrompt
-   * @param {object} opts - { onChunk, onRetry, maxRetries, existingText }
+   * @param {object} opts - { onChunk, onRetry, maxRetries, existingText, signal }
    * @returns {{ fullText: string }}
    */
   const streamProvider = useCallback(async (provider, apiKey, modelId, systemPrompt, userPrompt, opts = {}) => {
-    const { onChunk, onRetry, maxRetries = 3, existingText = '' } = opts;
+    const { onChunk, onRetry, maxRetries = 3, existingText = '', signal: externalSignal } = opts;
 
     // "free" provider — detect backend from model ID
     let effectiveProvider = provider;
@@ -114,6 +114,13 @@ export default function useStreamReader() {
     while (attempt <= maxRetries) {
       const controller = new AbortController();
       abortControllerRef.current = controller;
+
+      // Link external abort signal (from useDeliverables) to internal controller
+      // so Stop button actually cancels the fetch
+      if (externalSignal) {
+        if (externalSignal.aborted) throw new DOMException('Aborted', 'AbortError');
+        externalSignal.addEventListener('abort', () => controller.abort(), { once: true });
+      }
 
       try {
         const response = await fetch(url, {

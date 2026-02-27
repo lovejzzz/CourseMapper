@@ -846,7 +846,7 @@ export default function ProgressPanel({
                       }`}>
                         {row.label}
                       </span>
-                      {row.id === currentDelivFeature && isDelivGenerating && delivProgress && (
+                      {currentDelivFeatures?.has(row.id) && isDelivGenerating && delivProgress && (
                         <span className="ml-auto text-[9px] font-semibold text-indigo-400 animate-pulse">
                           Generating…
                         </span>

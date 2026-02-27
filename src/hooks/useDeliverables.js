@@ -266,6 +266,7 @@ export default function useDeliverables({ provider, modelId, apiKey, deliverable
               }
             },
             maxRetries: 2,
+            signal: controller.signal,
             onRetry: (attempt) => {
               appendLog(`⚠ ${chunkLabel}: Connection interrupted — retrying (${attempt}/2)...`, 'warn');
             },
@@ -431,7 +432,7 @@ export default function useDeliverables({ provider, modelId, apiKey, deliverable
               const result = await streamProvider(
                 provider, apiKey, modelId,
                 prompts.systemPrompt, prompts.userPrompt,
-                { onChunk: (t) => { fullText = t; }, maxRetries: 2 }
+                { onChunk: (t) => { fullText = t; }, maxRetries: 2, signal: controller.signal }
               );
               const text = result?.fullText || fullText;
               const parsed = parsePartialJSON(text);
@@ -639,6 +640,7 @@ export default function useDeliverables({ provider, modelId, apiKey, deliverable
             }
           },
           maxRetries: 2,
+          signal: controller.signal,
         }
       );
 
