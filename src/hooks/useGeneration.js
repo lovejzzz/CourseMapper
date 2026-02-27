@@ -552,7 +552,7 @@ Generate lessons ${actual + 1} through ${expectedCount} now as JSON:`;
     const activeSystemPrompt = (modeAddition || modeCourseMapNote)
       ? `${baseSystemPrompt}\n\n${[modeAddition, modeCourseMapNote].filter(Boolean).join('\n')}`
       : baseSystemPrompt;
-    const userPrompt = buildUserPrompt(combinedText, columns, scopeIndices, isReconstruct, detected?.expected || null);
+    const userPrompt = buildUserPrompt(combinedText, columns, scopeIndices, isReconstruct, detected?.expected || null, detected?.confidence);
     const fullPromptText = activeSystemPrompt + userPrompt;
     const tokenCheck = checkTokenLimit(fullPromptText, modelId);
 
@@ -564,7 +564,7 @@ Generate lessons ${actual + 1} through ${expectedCount} now as JSON:`;
     if (!tokenCheck.fits) {
       const { text: truncatedContent, wasTruncated } = truncateToFit(combinedText, modelId);
       if (wasTruncated) {
-        finalUserPrompt = buildUserPrompt(truncatedContent, columns, scopeIndices, isReconstruct, detected?.expected || null);
+        finalUserPrompt = buildUserPrompt(truncatedContent, columns, scopeIndices, isReconstruct, detected?.expected || null, detected?.confidence);
         parseWarning = (parseWarning ? parseWarning + '\n' : '') +
           `Content was ~${tokenCheck.estimatedTokens.toLocaleString()} tokens (model limit: ~${tokenCheck.availableTokens.toLocaleString()} available). Auto-truncated to fit.`;
       }

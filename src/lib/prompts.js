@@ -154,7 +154,7 @@ function segmentSyllabus(text) {
   return parts.map((part, i) => `\n--- SEGMENT ${i + 1} ---\n${part.trim()}`).join('\n');
 }
 
-export function buildUserPrompt(syllabusText, columns, scopeIndices, isReconstruct = false, expectedLessons = null) {
+export function buildUserPrompt(syllabusText, columns, scopeIndices, isReconstruct = false, expectedLessons = null, confidence = null) {
   // Filter to only enabled columns (enabled defaults to true when field is missing)
   const enabledColumns = columns && columns.length > 0
     ? columns.filter(c => c.enabled !== false)
@@ -189,8 +189,10 @@ export function buildUserPrompt(syllabusText, columns, scopeIndices, isReconstru
   if (Array.isArray(scopeIndices) && scopeIndices.length > 0) {
     const lessonNumbers = scopeIndices.map(i => i + 1).join(', ');
     lessonScopeInstruction = `2. Generate ONLY the following lesson numbers from the syllabus: ${lessonNumbers} (1-indexed). Do NOT generate any other lessons. The "lessons" array in your JSON must contain EXACTLY ${scopeIndices.length} lesson(s) corresponding to these positions in the syllabus.`;
-  } else if (expectedLessons) {
+  } else if (expectedLessons && confidence === 'high') {
     lessonScopeInstruction = `2. The syllabus contains approximately ${expectedLessons} lessons/weeks. Generate exactly that many lessons. If you detect a slightly different structure, match the syllabus but aim for ${expectedLessons} total.`;
+  } else if (expectedLessons) {
+    lessonScopeInstruction = `2. The syllabus appears to have around ${expectedLessons} lessons/weeks, but auto-detect the actual number from the syllabus structure. Note: modules or units may not equal the number of weekly sessions — a course with 7 modules might span 15 weeks. Count weekly sessions, not modules.`;
   } else {
     lessonScopeInstruction = `2. Auto-detect the number of weeks or lessons from the syllabus structure.`;
   }

@@ -49,32 +49,51 @@ export function detectExpectedLessons(text) {
   if (maxWeek >= 4) return { expected: maxWeek, confidence: 'high', source };
 
   // Pattern 3: Count distinct "Week N" / "Module N" / "Lesson N" / "Session N" headers
-  const headerPatterns = [
+  // Track week-like (week, session, class, lesson) vs module-like (module, unit) separately
+  // so we can distinguish courses organized by modules from courses organized by weeks.
+  const weekLikePatterns = [
     /(?:^|\n)\s*(?:week|wk\.?)\s*(\d{1,2})\b/gi,
-    /(?:^|\n)\s*module\s*(\d{1,2})\b/gi,
-    /(?:^|\n)\s*lesson\s*(\d{1,2})\b/gi,
     /(?:^|\n)\s*session\s*(\d{1,2})\b/gi,
-    /(?:^|\n)\s*unit\s*(\d{1,2})\b/gi,
     /(?:^|\n)\s*class\s*(\d{1,2})\b/gi,
+    /(?:^|\n)\s*lesson\s*(\d{1,2})\b/gi,
+  ];
+  const moduleLikePatterns = [
+    /(?:^|\n)\s*module\s*(\d{1,2})\b/gi,
+    /(?:^|\n)\s*unit\s*(\d{1,2})\b/gi,
   ];
 
-  const weekNumbers = new Set();
-  for (const pat of headerPatterns) {
+  const weekLikeNums = new Set();
+  const moduleLikeNums = new Set();
+  for (const pat of weekLikePatterns) {
     let match;
     while ((match = pat.exec(text)) !== null) {
       const n = parseInt(match[1], 10);
-      if (n >= 1 && n <= 52) weekNumbers.add(n);
+      if (n >= 1 && n <= 52) weekLikeNums.add(n);
+    }
+  }
+  for (const pat of moduleLikePatterns) {
+    let match;
+    while ((match = pat.exec(text)) !== null) {
+      const n = parseInt(match[1], 10);
+      if (n >= 1 && n <= 52) moduleLikeNums.add(n);
     }
   }
 
+  const weekNumbers = new Set([...weekLikeNums, ...moduleLikeNums]);
+
   if (weekNumbers.size >= 3) {
     const highest = Math.max(...weekNumbers);
-    // If we found headers 1,2,3...N and N is reasonable, use it
     if (highest >= 4 && highest <= 52) {
+      // Module/unit-only detection: cap confidence at 'medium' because modules
+      // may not map 1:1 to weekly sessions (e.g. 7 modules spanning 15 weeks).
+      const isModuleOnly = moduleLikeNums.size > 0 && weekLikeNums.size === 0;
       return {
         expected: highest,
-        confidence: weekNumbers.size >= highest * 0.6 ? 'high' : 'medium',
-        source: `Found ${weekNumbers.size} distinct week/module headers (up to ${highest})`,
+        confidence: isModuleOnly ? 'medium'
+          : weekNumbers.size >= highest * 0.6 ? 'high' : 'medium',
+        source: isModuleOnly
+          ? `Found ${moduleLikeNums.size} module/unit headers (may not match weekly sessions)`
+          : `Found ${weekNumbers.size} distinct week/lesson headers (up to ${highest})`,
       };
     }
   }
@@ -121,16 +140,20 @@ export async function detectLessonsWithAI(text, { provider, apiKey, modelId }) {
 
   const systemPrompt = 'You are a helpful assistant. Respond only with valid JSON — no markdown, no explanation.';
   const userPrompt = `Based on the course description below, determine:
-1. How many weeks does this course run? (e.g. 15 for a typical semester, 10 for a quarter)
-2. How many class sessions/lessons happen per week? (e.g. 1 for once-a-week, 2 for twice-a-week like MWF→3, TTh→2)
+1. How many WEEKS does this course run? (e.g. 15 for a typical semester, 10 for a quarter)
+2. How many class sessions/lessons happen per week? (default 1 if unclear)
 3. Total lessons = weeks × sessionsPerWeek
 
-If values are not explicitly stated, make reasonable inferences (a "seminar" or "graduate" course is typically once a week; "lecture" courses are often 2-3x/week; default sessionsPerWeek=1 if unclear).
+IMPORTANT: Distinguish between organizational units (modules, units, parts, themes) and actual weekly class sessions. A course may have 7 modules but span 15 weeks — count the WEEKS, not the modules. Look for:
+- Explicit week counts ("15-week semester")
+- Date-based schedules showing weekly meetings
+- Academic calendar references (Fall/Spring semester = typically 14-16 weeks)
+If only modules/units are listed without week counts, infer the total weeks from the academic term.
 
 Respond with exactly this JSON: {"weeks": <integer>, "sessionsPerWeek": <integer>, "totalLessons": <integer>}
 
 Course description:
-${text.slice(0, 4000)}`;
+${text.slice(0, 8000)}`;
 
   try {
     let responseText = '';
