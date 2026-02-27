@@ -83,8 +83,9 @@ function getFeatureLabel(featureId) {
  * Deliverables state lives in the course store; this hook owns only transient
  * streaming/progress state.
  *
- * V2.0: Parallel chunked generation — all deliverables fire simultaneously,
- * each split into chunks of CHUNK_SIZE lessons with a concurrency cap.
+ * V2.0: Parallel chunked generation — all features fire simultaneously,
+ * each split into chunks of CHUNK_SIZE lessons running sequentially per feature.
+ * This eliminates live-preview "flashing" (one active stream per feature).
  */
 export default function useDeliverables({ provider, modelId, apiKey, maxOutputTokens, deliverableConfig, lockedLessons, pedagogicalMode, examChanges, columns }) {
   // ── Read deliverables from the store ──
@@ -176,12 +177,12 @@ export default function useDeliverables({ provider, modelId, apiKey, maxOutputTo
       chunkResults[fid] = new Map();
     }
 
-    // ── 4. Run all tasks through concurrency limiter ──
-    const limit = pLimit(MAX_CONCURRENT);
-    const featureStartTimes = {};  // track first-chunk start per feature
+    // ── 4. Run chunks sequentially within each feature, all features in parallel ──
+    // This eliminates live-preview "flashing": each feature streams one chunk at a
+    // time, so the preview shows stable L1→L2→L3→… typing in order.
+    const featureStartTimes = {};
 
-    const allPromises = tasks.map(task => limit(async () => {
-      const { featureId, chunkIndex, chunkScope, isWholeCourse } = task;
+    const runChunk = async ({ featureId, chunkIndex, chunkScope, isWholeCourse }) => {
       const label = getFeatureLabel(featureId);
       const chunkLabel = isWholeCourse ? label : `${label} [${chunkScope[0] + 1}-${chunkScope[chunkScope.length - 1] + 1}]`;
       const taskStartTime = Date.now();
@@ -344,10 +345,21 @@ export default function useDeliverables({ provider, modelId, apiKey, maxOutputTo
           },
         };
       });
-    }));
+    };
 
-    // ── 5. Wait for all tasks ──
-    await Promise.allSettled(allPromises);
+    const tasksByFeature = {};
+    for (const task of tasks) {
+      (tasksByFeature[task.featureId] ||= []).push(task);
+    }
+
+    const featurePromises = Object.values(tasksByFeature).map(async (featureTasks) => {
+      for (const task of featureTasks) {
+        await runChunk(task);
+      }
+    });
+
+    // ── 5. Wait for all feature chains ──
+    await Promise.allSettled(featurePromises);
 
     // ── 6. Post-generation: merge, verify, retry ──
     for (const fid of toGenerate) {

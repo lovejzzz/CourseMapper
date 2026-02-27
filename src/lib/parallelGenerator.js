@@ -2,11 +2,12 @@
  * parallelGenerator.js — Parallel Chunked Deliverable Generation Engine
  *
  * Pure utility functions (no React dependency) for splitting deliverable
- * generation into parallel chunks with concurrency control.
+ * generation into parallel chunks.
  *
  * Key concepts:
  * - Each per-lesson deliverable is split into chunks of CHUNK_SIZE lessons
- * - All deliverables run in parallel with MAX_CONCURRENT simultaneous API calls
+ * - All features run in parallel; chunks within each feature run sequentially
+ *   (eliminates live-preview "flashing" — one active stream per feature)
  * - Chunks within a deliverable merge in order to produce the final array
  * - Completeness check + auto-retry fills any gaps from truncated responses
  */
@@ -16,7 +17,7 @@ import { getArrayKey } from './syncDependencies';
 // ── Constants ──────────────────────────────────────────────────────────────────
 
 export const CHUNK_SIZE = 5;           // lessons per chunk
-export const MAX_CONCURRENT = 6;       // max simultaneous API calls
+export const MAX_CONCURRENT = 6;       // max simultaneous API calls (retries only)
 export const MAX_RETRY_ROUNDS = 2;     // max retry attempts for incomplete chunks
 
 /** Features that are whole-course (never chunked) */

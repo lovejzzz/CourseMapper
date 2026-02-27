@@ -159,7 +159,7 @@ Five pedagogical frameworks that shape all generated content:
 
 - **Free AI models** — Gemini, Llama, DeepSeek, and more via OpenRouter — no API key needed
 - **Multi-provider support** — OpenAI, Anthropic, Google with your own API key
-- **Streaming generation** — Watch deliverables build in real time
+- **Streaming generation** — Watch deliverables build in real time with stable per-feature sequential streaming (no preview flashing)
 - **AI self-examination** — The AI reviews and fixes its own structured output automatically
 - **100% client-side** — No backend server. All data stays in your browser
 - **Google OAuth verified** — Clean consent screen for Google Drive export
@@ -221,7 +221,7 @@ src/
     ErrorBoundary.jsx       # Crash recovery wrapper
   hooks/
     useGeneration.js        # Course map generation + stop/resume
-    useDeliverables.js      # Deliverable generation, surgical regen, restore
+    useDeliverables.js      # Deliverable generation (per-feature sequential, cross-feature parallel), surgical regen, restore
     useRevision.js          # AI revision chat + patching
     useExport.js            # Course map export orchestration
     useVersionHistory.js    # Undo/redo version stack
@@ -239,6 +239,7 @@ src/
     prompts.js              # Course map generation prompts
     streamProvider.js       # AI streaming across providers
     customDeliverableLibrary.js # localStorage CRUD for custom deliverable definitions
+    parallelGenerator.js    # Chunking, merging, and completeness-check utilities for parallel generation
     syncDependencies.js     # Deliverable dependency graph for cascade editing
   pages/
     FaqChatbot.jsx          # AI-powered help chatbot + HelpDrawer (Gemini-powered)
