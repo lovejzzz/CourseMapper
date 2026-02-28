@@ -145,6 +145,7 @@ export default function useDeliverables({ provider, modelId, apiKey, maxOutputTo
     setIsGenerating(true);
     setGenerationLog([]);
     setDelivTimings({});
+    const generationStartTime = Date.now();
 
     const lessonCount = (courseMap.lessons || []).length;
     const lessonIndices = scopeIndices ?? Array.from({ length: lessonCount }, (_, i) => i);
@@ -208,7 +209,12 @@ export default function useDeliverables({ provider, modelId, apiKey, maxOutputTo
         },
       }));
 
-      appendLog(`Generating ${chunkLabel}...`, 'progress');
+      const totalChunksForFeature = tasks.filter(t => t.featureId === featureId).length;
+      if (isWholeCourse || totalChunksForFeature === 1) {
+        appendLog(`Generating ${label}…`, 'start');
+      } else {
+        appendLog(`Generating ${label} — lessons ${chunkScope[0]+1}–${chunkScope[chunkScope.length-1]+1} (chunk ${chunkIndex+1}/${totalChunksForFeature})`, 'start');
+      }
 
       // Build prompt — for chunks after the first, inject style exemplar from chunk 0
       const config = deliverableConfigRef.current?.[featureId] || {};
@@ -238,12 +244,10 @@ export default function useDeliverables({ provider, modelId, apiKey, maxOutputTo
       abortMapRef.current.set(abortKey, controller);
 
       let tokenCount = 0;
-      let logTimer = null;
 
       try {
         let fullText = '';
         let lastParseTime = 0;
-        let streamStarted = false;
 
         const result = await streamProvider(
           provider, apiKey, modelId,
@@ -253,13 +257,6 @@ export default function useDeliverables({ provider, modelId, apiKey, maxOutputTo
             onChunk: (accumulatedText) => {
               fullText = accumulatedText;
               tokenCount = Math.round(accumulatedText.length / 4);
-
-              if (!streamStarted) {
-                streamStarted = true;
-                logTimer = setInterval(() => {
-                  appendLog(`Still generating ${chunkLabel}… (~${tokenCount} tokens)`, 'progress');
-                }, 5000);
-              }
 
               // Throttled streaming preview
               const now = Date.now();
@@ -284,8 +281,6 @@ export default function useDeliverables({ provider, modelId, apiKey, maxOutputTo
             },
           }
         );
-
-        if (logTimer) clearInterval(logTimer);
 
         // Parse final result
         const text = result?.fullText || fullText;
@@ -320,13 +315,12 @@ export default function useDeliverables({ provider, modelId, apiKey, maxOutputTo
           const k = getArrayKey(featureId, parsed);
           const itemCount = k ? (parsed[k]?.length || 0) : 0;
           const durStr = formatDuration(Date.now() - taskStartTime);
-          const countDesc = itemCount > 0 ? ` — ${itemCount} item${itemCount !== 1 ? 's' : ''}` : '';
-          appendLog(`✓ ${chunkLabel} complete${countDesc} (${durStr})`, 'done');
+          const tokenDesc = tokenCount > 0 ? `, ~${formatTokens(tokenCount)} tokens` : '';
+          appendLog(`✓ ${chunkLabel} — ${itemCount} item${itemCount !== 1 ? 's' : ''}${tokenDesc} (${durStr})`, 'done');
         } else {
           appendLog(`⚠ ${chunkLabel}: AI response could not be parsed`, 'warn');
         }
       } catch (err) {
-        if (logTimer) clearInterval(logTimer);
         if (err.name === 'AbortError') {
           appendLog(`${chunkLabel}: stopped`, 'warn');
         } else {
@@ -535,6 +529,14 @@ export default function useDeliverables({ provider, modelId, apiKey, maxOutputTo
       const finalData = patchScopeNumbering(merged, fid, scopeIndices, courseMap);
       const delivEndTime = Date.now();
 
+      // Feature-level completion summary for multi-chunk features
+      const featureTotalChunks = tasks.filter(t => t.featureId === fid).length;
+      if (featureTotalChunks > 1) {
+        const totalItems = mergedArr.length;
+        const featureDur = formatDuration(delivEndTime - (featureStartTimes[fid] || delivEndTime));
+        appendLog(`✓ ${getFeatureLabel(fid)} complete — ${totalItems} item${totalItems !== 1 ? 's' : ''} total (${featureDur})`, 'done');
+      }
+
       // Dispatch final result
       dispatch(actions.setDeliverableDone(fid, finalData));
 
@@ -567,7 +569,8 @@ export default function useDeliverables({ provider, modelId, apiKey, maxOutputTo
     // ── 7. Finalize ──
     setIsGenerating(false);
     setCurrentFeatures(new Set());
-    appendLog('All deliverables generated', 'done');
+    const totalDur = formatDuration(Date.now() - generationStartTime);
+    appendLog(`All ${toGenerate.length} deliverable${toGenerate.length !== 1 ? 's' : ''} generated (${totalDur})`, 'done');
     notifyDone('All deliverables are ready!');
   }, [provider, modelId, apiKey, streamProvider, parsePartialJSON, appendLog, dispatch]);
 
@@ -864,4 +867,8 @@ export default function useDeliverables({ provider, modelId, apiKey, maxOutputTo
 
 function formatDuration(ms) {
   return ms < 60000 ? `${(ms / 1000).toFixed(1)}s` : `${(ms / 60000).toFixed(1)}m`;
+}
+
+function formatTokens(count) {
+  return count >= 1000 ? `${(count / 1000).toFixed(1)}k` : String(count);
 }

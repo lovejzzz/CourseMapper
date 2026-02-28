@@ -4,59 +4,41 @@ import ExamReview from './ExamReview';
 import RevisionChat from './RevisionChat';
 import { getCustomDeliverable } from '../lib/customDeliverableLibrary';
 
-// ── Animated "..." for repeating log lines ────────────────────────────────────
-function AnimatedDots() {
-  const [frame, setFrame] = useState(0);
-  useEffect(() => {
-    const id = setInterval(() => setFrame(f => (f + 1) % 4), 500);
-    return () => clearInterval(id);
-  }, []);
-  return <span className="inline-block w-5 text-left">{'.'.repeat(frame)}</span>;
-}
-
-// ── Collapse consecutive repeat log entries into one row ─────────────────────
-// "Still generating X…" messages repeat every 3s — keep only the last one,
-// animate it with dots, and show a ×N count if there were multiple.
-// Key: group by the base deliverable name (strip token counts, lesson numbers,
-// and parenthetical suffixes) so all "Still generating Lesson Plans…" entries
-// — even as token counts change — collapse into a single updating row.
-function collapseRepeatLog(entries) {
-  const result = [];
-  for (let i = 0; i < entries.length; i++) {
-    const entry = entries[i];
-    const isStill = entry.message?.startsWith('Still generating');
-    if (isStill) {
-      // Strip parenthetical suffixes like "(~1234 tokens received, gpt-5.2)"
-      // and also lesson-specific suffixes like "Lesson 3 of 8" to get a stable key
-      const baseMsg = entry.message
-        .replace(/\s*\(~[^)]+\)/g, '')   // (~123 tokens received, model)
-        .replace(/\s*\([^)]*\)/g, '')     // any other parenthetical
-        .trim();
-      if (result.length > 0) {
-        const prev = result[result.length - 1];
-        // Group with any previous "Still generating" entry with same base message
-        if (prev.baseMessage === baseMsg) {
-          result[result.length - 1] = {
-            ...entry,
-            baseMessage: baseMsg,
-            isRepeating: true,
-            repeatCount: (prev.repeatCount || 1) + 1,
-          };
-          continue;
-        }
-      }
-      result.push({ ...entry, baseMessage: baseMsg, isRepeating: true, repeatCount: 1 });
-    } else {
-      result.push(entry);
-    }
-  }
-  // Mark only the very last entry in the full list as "actively animating"
-  // (earlier collapsed entries should show ×N but not animate)
-  for (let i = 0; i < result.length - 1; i++) {
-    if (result[i].isRepeating) result[i] = { ...result[i], isRepeating: false };
-  }
-  return result;
-}
+// ── SVG icons for activity log entry types ────────────────────────────────────
+const LOG_ICONS = {
+  start: (
+    <svg className="w-3 h-3 text-indigo-400 flex-shrink-0 animate-spin" fill="none" viewBox="0 0 24 24">
+      <circle className="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" strokeWidth={3} />
+      <path className="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4z" />
+    </svg>
+  ),
+  progress: (
+    <svg className="w-3 h-3 text-indigo-400 flex-shrink-0 animate-spin" fill="none" viewBox="0 0 24 24">
+      <circle className="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" strokeWidth={3} />
+      <path className="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4z" />
+    </svg>
+  ),
+  done: (
+    <svg className="w-3 h-3 text-emerald-500 flex-shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+      <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2.5} d="M5 13l4 4L19 7" />
+    </svg>
+  ),
+  warn: (
+    <svg className="w-3 h-3 text-amber-500 flex-shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+      <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 9v2m0 4h.01m-6.938 4h13.856c1.54 0 2.502-1.667 1.732-3L13.732 4c-.77-1.333-2.694-1.333-3.464 0L3.34 16c-.77 1.333.192 3 1.732 3z" />
+    </svg>
+  ),
+  error: (
+    <svg className="w-3 h-3 text-red-500 flex-shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+      <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M6 18L18 6M6 6l12 12" />
+    </svg>
+  ),
+  info: (
+    <svg className="w-3 h-3 text-slate-400 flex-shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+      <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M13 16h-1v-4h-1m1-4h.01M12 2a10 10 0 100 20 10 10 0 000-20z" />
+    </svg>
+  ),
+};
 
 const STEPS = [
   { key: 'parsing', label: 'Parsing uploaded files' },
@@ -153,12 +135,12 @@ const SYNC_TYPE_STYLES = {
 
 // Deliverable log entry type → styles
 const DELIV_LOG_STYLES = {
-  start:    { text: 'text-slate-400', dot: 'bg-slate-300' },
-  progress: { text: 'text-indigo-500', dot: 'bg-indigo-400' },
-  done:     { text: 'text-emerald-600', dot: 'bg-emerald-400' },
-  error:    { text: 'text-red-500', dot: 'bg-red-400' },
-  warn:     { text: 'text-amber-600', dot: 'bg-amber-400' },
-  info:     { text: 'text-slate-500', dot: 'bg-slate-300' },
+  start:    { text: 'text-indigo-600', bg: 'bg-indigo-50/40' },
+  progress: { text: 'text-indigo-500', bg: 'bg-indigo-50/40' },
+  done:     { text: 'text-emerald-700', bg: 'bg-emerald-50/40' },
+  error:    { text: 'text-red-600', bg: 'bg-red-50/40' },
+  warn:     { text: 'text-amber-700', bg: 'bg-amber-50/40' },
+  info:     { text: 'text-slate-600', bg: '' },
 };
 
 export default function ProgressPanel({
@@ -597,26 +579,27 @@ export default function ProgressPanel({
                         <span className="text-[9px] font-normal text-slate-300 ml-1">({combined.length})</span>
                       </button>
                       {delivLogExpanded && (
-                        <div className="mt-1.5 space-y-0.5 max-h-56 overflow-y-auto">
-                          {collapseRepeatLog(combined).map((entry, i) => {
+                        <div className="mt-1.5 space-y-px max-h-64 overflow-y-auto">
+                          {combined.map((entry, i) => {
                             const isSyncEntry = entry._origin === 'sync';
+                            const syncIcon = entry._syncType === 'done' ? 'done' : entry._syncType === 'error' ? 'error' : 'progress';
+                            const entryType = isSyncEntry ? syncIcon : (entry.type || 'info');
                             const style = isSyncEntry
-                              ? (entry._syncType === 'done' ? { text: 'text-amber-600', dot: 'bg-amber-400' }
-                                : entry._syncType === 'error' ? { text: 'text-red-500', dot: 'bg-red-400' }
-                                : { text: 'text-amber-500', dot: 'bg-amber-300' })
+                              ? (entry._syncType === 'done' ? { text: 'text-amber-600', bg: 'bg-amber-50/40' }
+                                : entry._syncType === 'error' ? { text: 'text-red-500', bg: 'bg-red-50/40' }
+                                : { text: 'text-amber-500', bg: 'bg-amber-50/30' })
                               : (DELIV_LOG_STYLES[entry.type] || DELIV_LOG_STYLES.info);
+                            const icon = isSyncEntry
+                              ? LOG_ICONS[syncIcon]
+                              : (LOG_ICONS[entryType] || LOG_ICONS.info);
                             return (
-                              <div key={i} className={`flex items-start gap-2 px-2 py-1 rounded-md hover:bg-slate-50/60 ${isSyncEntry ? 'bg-amber-50/40' : ''}`}>
-                                <span className={`w-1.5 h-1.5 mt-1.5 rounded-full flex-shrink-0 ${style.dot}`} />
-                                <span className={`text-[10px] leading-relaxed ${style.text} flex items-center gap-1 flex-1 min-w-0`}>
-                                  <span className="truncate">{entry.baseMessage || entry.message}</span>
-                                  {entry.isRepeating && <AnimatedDots />}
-                                  {entry.repeatCount > 1 && !entry.isRepeating && (
-                                    <span className="text-[9px] text-slate-300 ml-1 flex-shrink-0">×{entry.repeatCount}</span>
-                                  )}
+                              <div key={i} className={`flex items-start gap-2 px-2.5 py-1.5 rounded-md ${style.bg}`}>
+                                <div className="mt-0.5">{icon}</div>
+                                <span className={`text-[11px] leading-relaxed ${style.text} flex-1 min-w-0`}>
+                                  {entry.message}
                                 </span>
                                 {entry.at && (
-                                  <span className="ml-auto text-[9px] text-slate-300 flex-shrink-0">
+                                  <span className="text-[9px] text-slate-300 flex-shrink-0 mt-0.5">
                                     {new Date(entry.at).toLocaleTimeString([], { hour: '2-digit', minute: '2-digit', second: '2-digit' })}
                                   </span>
                                 )}
