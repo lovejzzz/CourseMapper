@@ -240,8 +240,12 @@ function buildProviderRequest(provider, apiKey, modelId, systemPrompt, userPromp
   }
 
   if (provider === 'google') {
+    const vertex = isVertexKey(apiKey);
+    const baseUrl = vertex
+      ? `https://aiplatform.googleapis.com/v1/publishers/google/models/${modelId}`
+      : `https://generativelanguage.googleapis.com/v1beta/models/${modelId}`;
     return {
-      url: `https://generativelanguage.googleapis.com/v1beta/models/${modelId}:streamGenerateContent?key=${apiKey}&alt=sse`,
+      url: `${baseUrl}:streamGenerateContent?key=${apiKey}&alt=sse`,
       headers: { 'Content-Type': 'application/json' },
       body: {
         contents: [{ role: 'user', parts: [{ text: userPrompt }] }],
@@ -288,6 +292,18 @@ const OPENAI_EXCLUDE = /sora|image|dall-e|whisper|tts|transcribe|realtime|audio|
 const OPENAI_SKIP_VARIANT = /\d{4}-\d{2}-\d{2}|-chat-latest|-pro$/;
 // Exclude non-text Google Gemini variants (image generation, TTS, live streaming, embeddings)
 const GOOGLE_EXCLUDE = /imagen|image-gen|tts|live-|embedding|aqa/i;
+
+/** Detect if a Google API key is a Vertex AI Express Mode key (vs standard Gemini/AI Studio key) */
+export function isVertexKey(apiKey) {
+  return apiKey && !apiKey.startsWith('AIza') && apiKey.length > 39;
+}
+
+const VERTEX_MODELS = [
+  { id: 'gemini-2.5-pro', name: 'Gemini 2.5 Pro', maxOutputTokens: 65536 },
+  { id: 'gemini-2.5-flash', name: 'Gemini 2.5 Flash', maxOutputTokens: 65536 },
+  { id: 'gemini-2.5-flash-lite', name: 'Gemini 2.5 Flash Lite', maxOutputTokens: 65536 },
+  { id: 'gemini-2.0-flash-001', name: 'Gemini 2.0 Flash', maxOutputTokens: 8192 },
+];
 
 function cleanOpenAIName(id) {
   return id.replace(/^gpt-/, 'GPT-').replace(/^o(\d)/, 'O$1');
@@ -359,6 +375,17 @@ export async function fetchModelsFromProvider(provider, apiKey) {
   }
 
   if (provider === 'google') {
+    // Vertex AI Express Mode — no model listing endpoint, validate key + return hardcoded list
+    if (isVertexKey(apiKey)) {
+      const testRes = await fetch(
+        `https://aiplatform.googleapis.com/v1/publishers/google/models/gemini-2.5-flash:countTokens?key=${apiKey}`,
+        { method: 'POST', headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({ contents: [{ parts: [{ text: 'test' }] }] }) }
+      );
+      if (!testRes.ok) throw new Error('Invalid API key');
+      return VERTEX_MODELS;
+    }
+
     const response = await fetch(`https://generativelanguage.googleapis.com/v1beta/models?key=${apiKey}`);
     if (!response.ok) {
       const err = await response.json().catch(() => ({}));

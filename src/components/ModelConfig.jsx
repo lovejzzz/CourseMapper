@@ -9,10 +9,11 @@ function detectProvider(key) {
   if (key.startsWith('sk-ant-api03-') || key.startsWith('sk-ant-')) return 'anthropic';
   if (key.startsWith('sk-proj-') || /^sk-[a-zA-Z0-9]{48}$/.test(key)) return 'openai';
   if (key.startsWith('AIza') && key.length === 39) return 'google';
+  if (key.length > 39 && /^[A-Z]/.test(key)) return 'google'; // Vertex AI express keys
   return null;
 }
 
-const PLACEHOLDER = { openai: 'sk-proj-...', anthropic: 'sk-ant-...', google: 'AIza...' };
+const PLACEHOLDER = { openai: 'sk-proj-...', anthropic: 'sk-ant-...', google: 'AIza... or Vertex AI key' };
 
 const API_KEY_URLS = {
   openai: 'https://platform.openai.com/api-keys',

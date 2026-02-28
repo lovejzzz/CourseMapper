@@ -203,8 +203,12 @@ ${text.slice(0, 8000)}`;
       responseText = data.choices?.[0]?.message?.content || '';
 
     } else if (effectiveProvider === 'google') {
+      const vertex = apiKey && !apiKey.startsWith('AIza') && apiKey.length > 39;
+      const baseUrl = vertex
+        ? `https://aiplatform.googleapis.com/v1/publishers/google/models/${modelId}`
+        : `https://generativelanguage.googleapis.com/v1beta/models/${modelId}`;
       const res = await fetch(
-        `https://generativelanguage.googleapis.com/v1beta/models/${modelId}:generateContent?key=${apiKey}`,
+        `${baseUrl}:generateContent?key=${apiKey}`,
         {
           method: 'POST',
           headers: { 'Content-Type': 'application/json' },
