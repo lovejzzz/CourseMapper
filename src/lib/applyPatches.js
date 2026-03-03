@@ -4,7 +4,18 @@
  */
 export default function applyPatches(baseMap, patches) {
   const updated = structuredClone(baseMap);
-  for (const patch of patches) {
+
+  // Sort: process removeLesson in descending index order first so that
+  // earlier splices don't shift the indices of later patches.
+  const sorted = [...patches].sort((a, b) => {
+    if (a.action === 'removeLesson' && b.action === 'removeLesson')
+      return (b.lessonIndex ?? 0) - (a.lessonIndex ?? 0);
+    if (a.action === 'removeLesson') return -1;
+    if (b.action === 'removeLesson') return 1;
+    return 0;
+  });
+
+  for (const patch of sorted) {
     const { lessonIndex, sectionIndex, field, value, action } = patch;
 
     // Lesson-level patch (e.g. title)
@@ -36,7 +47,7 @@ export default function applyPatches(baseMap, patches) {
     }
 
     // Add a new section to a lesson
-    if (action === 'addSection' && lessonIndex != null && patch.section) {
+    if (action === 'addSection' && lessonIndex != null && patch.section && updated.lessons[lessonIndex]) {
       if (!updated.lessons[lessonIndex].sections) updated.lessons[lessonIndex].sections = [];
       const idx = sectionIndex != null ? sectionIndex : updated.lessons[lessonIndex].sections.length;
       updated.lessons[lessonIndex].sections.splice(idx, 0, patch.section);

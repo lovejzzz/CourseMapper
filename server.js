@@ -221,7 +221,7 @@ async function streamOpenAI(apiKey, systemPrompt, userPrompt, modelId, res) {
         if (content) {
           res.write(`data: ${JSON.stringify({ chunk: content })}\n\n`);
         }
-      } catch {}
+      } catch { }
     }
   }
 }
@@ -271,7 +271,7 @@ async function streamAnthropic(apiKey, systemPrompt, userPrompt, modelId, res) {
         if (parsed.type === 'content_block_delta' && parsed.delta?.text) {
           res.write(`data: ${JSON.stringify({ chunk: parsed.delta.text })}\n\n`);
         }
-      } catch {}
+      } catch { }
     }
   }
 }
@@ -328,6 +328,15 @@ async function streamOpenRouter(apiKey, systemPrompt, userPrompt, modelId, res) 
           accumulated += content;
           // Track think tag state across chunks
           if (accumulated.includes('<think>') && !accumulated.includes('</think>')) {
+            // Flush any content before the <think> tag so it isn't delayed
+            const thinkStart = accumulated.indexOf('<think>');
+            if (thinkStart > 0) {
+              const pre = accumulated.slice(0, thinkStart).trim();
+              if (pre) {
+                res.write(`data: ${JSON.stringify({ chunk: pre })}\n\n`);
+              }
+              accumulated = accumulated.slice(thinkStart);
+            }
             insideThink = true;
             continue;
           }
@@ -348,7 +357,7 @@ async function streamOpenRouter(apiKey, systemPrompt, userPrompt, modelId, res) 
             accumulated = '';
           }
         }
-      } catch {}
+      } catch { }
     }
   }
 }
@@ -397,7 +406,7 @@ async function streamGoogle(apiKey, systemPrompt, userPrompt, modelId, res) {
         if (text) {
           res.write(`data: ${JSON.stringify({ chunk: text })}\n\n`);
         }
-      } catch {}
+      } catch { }
     }
   }
 }
@@ -419,6 +428,8 @@ app.post('/api/generate', async (req, res) => {
       result = await callOpenAI(apiKey, systemPrompt, userPrompt, modelId);
     } else if (provider === 'anthropic') {
       result = await callAnthropic(apiKey, systemPrompt, userPrompt, modelId);
+    } else if (provider === 'google') {
+      result = await callGoogle(apiKey, systemPrompt, userPrompt, modelId);
     } else {
       return res.status(400).json({ error: 'Invalid provider.' });
     }
@@ -575,9 +586,8 @@ Return a JSON object with a "patches" array. Each patch targets a specific cell:
 - Every patch MUST have a "reason" string. No exceptions.
 - Return ONLY the JSON object, no explanation or commentary.`;
 
-  const userPrompt = `Here is the Course Map to examine:\n\n${JSON.stringify(courseMap)}${
-    syllabusText ? `\n\nHere is the original syllabus/course material for reference:\n\n${syllabusText.slice(0, 30000)}` : ''
-  }\n\nExamine this course map thoroughly. Return ONLY a JSON patches object for cells that need fixing. If nothing needs fixing, return {"patches": []}:`;
+  const userPrompt = `Here is the Course Map to examine:\n\n${JSON.stringify(courseMap)}${syllabusText ? `\n\nHere is the original syllabus/course material for reference:\n\n${syllabusText.slice(0, 30000)}` : ''
+    }\n\nExamine this course map thoroughly. Return ONLY a JSON patches object for cells that need fixing. If nothing needs fixing, return {"patches": []}:`;
 
   res.setHeader('Content-Type', 'text/event-stream');
   res.setHeader('Cache-Control', 'no-cache');

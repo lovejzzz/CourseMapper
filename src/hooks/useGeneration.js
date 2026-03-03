@@ -74,7 +74,7 @@ export default function useGeneration({
     // Save partial text to localStorage every ~3s for crash recovery
     if (now - lastSaveRef.current > 3000) {
       lastSaveRef.current = now;
-      try { localStorage.setItem(STREAM_SAVE_KEY, fullText); } catch {}
+      try { localStorage.setItem(STREAM_SAVE_KEY, fullText); } catch { }
     }
 
     const partial = parsePartialJSON(fullText);
@@ -290,7 +290,7 @@ export default function useGeneration({
     return lessons.map((lesson) => {
       // Already has populated sections — keep as-is
       if (Array.isArray(lesson.sections) && lesson.sections.length > 0 &&
-          lesson.sections.some(s => Object.keys(s).length > 0)) {
+        lesson.sections.some(s => Object.keys(s).length > 0)) {
         return lesson;
       }
       // Check if column keys exist directly on the lesson object (flat structure)
@@ -400,44 +400,44 @@ Generate lessons ${actual + 1} through ${expectedCount} now as JSON:`;
     setActiveModelName(model.name);
 
     for (let attempt = 0; attempt < MAX_ATTEMPTS_PER_MODEL; attempt++) {
-        const actual = workingMap.lessons.length;
-        if (actual >= expectedCount) break;
+      const actual = workingMap.lessons.length;
+      if (actual >= expectedCount) break;
 
-        const missing = expectedCount - actual;
-        setStreamDetail(`${model.name}: completing ${missing} remaining lessons (attempt ${attempt + 1})...`);
-        setStreamProgress(Math.round((actual / expectedCount) * 85));
-        setCompletenessInfo({ expected: expectedCount, actual, confidence: expectedLessonsRef.current?.confidence, status: 'continuing' });
+      const missing = expectedCount - actual;
+      setStreamDetail(`${model.name}: completing ${missing} remaining lessons (attempt ${attempt + 1})...`);
+      setStreamProgress(Math.round((actual / expectedCount) * 85));
+      setCompletenessInfo({ expected: expectedCount, actual, confidence: expectedLessonsRef.current?.confidence, status: 'continuing' });
 
-        try {
-          const contResult = await tryContinuation(
-            provider, apiKey, model.id, model.name,
-            workingMap, expectedCount, syllabusText, colDefs, systemPromptOverride
-          );
+      try {
+        const contResult = await tryContinuation(
+          provider, apiKey, model.id, model.name,
+          workingMap, expectedCount, syllabusText, colDefs, systemPromptOverride
+        );
 
-          if (contResult && contResult.lessons && contResult.lessons.length > 0) {
-            const prevCount = workingMap.lessons.length;
-            // Normalize flat→nested sections, ensure every lesson has a title
-            const sanitized = normalizeLessons(contResult.lessons, colDefs)
-              .map((l, idx) => ({ ...l, title: l.title || `Lesson ${prevCount + idx + 1}` }));
-            workingMap = {
-              ...workingMap,
-              lessons: [...workingMap.lessons, ...sanitized],
-            };
-            setCourseMap(workingMap);
-            courseMapRef.current = workingMap;
-            const added = workingMap.lessons.length - prevCount;
-            addLog(model.name, `Added ${added} lessons (${prevCount + 1}–${workingMap.lessons.length})`, 'success');
-            pushVersion(workingMap, `${model.name}: added lessons ${prevCount + 1}–${workingMap.lessons.length}`);
-          } else {
-            addLog(model.name, `No new lessons produced`, 'warning');
-            break; // this model can't help, try next
-          }
-        } catch (contErr) {
-          if (contErr.name === 'AbortError') throw contErr;
-          addLog(model.name, `Failed: ${contErr.message}`, 'error');
-          break;
+        if (contResult && contResult.lessons && contResult.lessons.length > 0) {
+          const prevCount = workingMap.lessons.length;
+          // Normalize flat→nested sections, ensure every lesson has a title
+          const sanitized = normalizeLessons(contResult.lessons, colDefs)
+            .map((l, idx) => ({ ...l, title: l.title || `Lesson ${prevCount + idx + 1}` }));
+          workingMap = {
+            ...workingMap,
+            lessons: [...workingMap.lessons, ...sanitized],
+          };
+          setCourseMap(workingMap);
+          courseMapRef.current = workingMap;
+          const added = workingMap.lessons.length - prevCount;
+          addLog(model.name, `Added ${added} lessons (${prevCount + 1}–${workingMap.lessons.length})`, 'success');
+          pushVersion(workingMap, `${model.name}: added lessons ${prevCount + 1}–${workingMap.lessons.length}`);
+        } else {
+          addLog(model.name, `No new lessons produced`, 'warning');
+          break; // this model can't help, try next
         }
+      } catch (contErr) {
+        if (contErr.name === 'AbortError') throw contErr;
+        addLog(model.name, `Failed: ${contErr.message}`, 'error');
+        break;
       }
+    }
 
     return workingMap;
   }
@@ -693,7 +693,7 @@ Generate lessons ${actual + 1} through ${expectedCount} now as JSON:`;
       setProgressStep('done');
       setStatus('done');
       setUserEdits([]);
-      try { localStorage.removeItem(STREAM_SAVE_KEY); } catch {}
+      try { localStorage.removeItem(STREAM_SAVE_KEY); } catch { }
 
     } catch (err) {
       setRetryInfo(null);
@@ -718,7 +718,7 @@ Generate lessons ${actual + 1} through ${expectedCount} now as JSON:`;
   // ── Resume Generation ──
   const handleResume = useCallback(async () => {
     const savedText = stoppedTextRef.current;
-    console.log('[Resume] stoppedText length:', savedText?.length || 0, 'provider:', provider, 'modelId:', modelId);
+    if (import.meta.env.DEV) console.log('[Resume] stoppedText length:', savedText?.length || 0, 'provider:', provider, 'modelId:', modelId);
     if (!savedText) {
       setError('Nothing to resume — no saved generation data found.');
       return;
@@ -737,7 +737,7 @@ Generate lessons ${actual + 1} through ${expectedCount} now as JSON:`;
       return;
     }
 
-    console.log('[Resume] using:', resumeProvider, resumeModel, 'key length:', resumeKey?.length || 0);
+    if (import.meta.env.DEV) console.log('[Resume] using:', resumeProvider, resumeModel, 'key length:', resumeKey?.length || 0);
 
     setIsStopped(false);
     setStatus('generating');
@@ -752,7 +752,7 @@ Generate lessons ${actual + 1} through ${expectedCount} now as JSON:`;
     const existingLessons = existingMap?.lessons || [];
     const existingLessonCount = existingLessons.length;
     const colKeys = columns.map(c => c.key);
-    console.log('[Resume] existing map has', existingLessonCount, 'lessons, rawLen:', savedText.length);
+    if (import.meta.env.DEV) console.log('[Resume] existing map has', existingLessonCount, 'lessons, rawLen:', savedText.length);
 
     // Separate complete vs incomplete lessons
     let completeLessons = [...existingLessons];
@@ -765,7 +765,7 @@ Generate lessons ${actual + 1} through ${expectedCount} now as JSON:`;
       if (!lastSection || filledKeys.length < colKeys.length) {
         incompleteLesson = lastLesson;
         completeLessons = existingLessons.slice(0, -1);
-        console.log('[Resume] last lesson incomplete:', lastLesson.title, 'filled:', filledKeys.length, '/', colKeys.length);
+        if (import.meta.env.DEV) console.log('[Resume] last lesson incomplete:', lastLesson.title, 'filled:', filledKeys.length, '/', colKeys.length);
       }
     }
 
@@ -777,7 +777,7 @@ Generate lessons ${actual + 1} through ${expectedCount} now as JSON:`;
         // Truncate raw text to last 3000 chars to avoid token limits
         const rawContext = savedText.length > 3000 ? '...' + savedText.slice(-3000) : savedText;
         continuationPrompt = `You were generating a Course Map JSON but the output was interrupted very early. Here is the raw partial output that was generated before interruption:\n\n${rawContext}\n\nPlease generate the COMPLETE course map as a valid JSON object. Include ALL lessons for the entire course. The JSON must have: "courseName" (string), "semester" (string), "lessons" (array).\n\nEach lesson must have: "title" (string), "sections" (array of section objects). Each section must contain ALL of these keys: ${colKeys.join(', ')}.\n\nIncorporate any content from the partial output above — do not discard what was already started. Output ONLY valid JSON, no markdown fences.`;
-        console.log('[Resume] using raw-text approach (0 lessons parsed)');
+        if (import.meta.env.DEV) console.log('[Resume] using raw-text approach (0 lessons parsed)');
       } else {
         // ── Have some lessons — ask AI for remaining ──
         const completedSummary = completeLessons.map((l, i) => `  Lesson ${i + 1}: ${l.title || 'Untitled'} (${l.sections?.length || 0} sections)`).join('\n') || '(none)';
@@ -790,13 +790,13 @@ Generate lessons ${actual + 1} through ${expectedCount} now as JSON:`;
         continuationPrompt = `You were generating a Course Map JSON and the output was interrupted. Here is a summary of what was already generated:\n\nCourse: ${existingMap?.courseName || 'Unknown'}\nSemester: ${existingMap?.semester || 'Unknown'}\nFully completed lessons:\n${completedSummary}${incompleteInfo}\n\nPlease output a valid JSON object with this structure:\n{"lessons": [ ...array of the remaining lesson objects... ]}\n\nEach lesson must have: "title" (string), "sections" (array of section objects). Each section must contain ALL of these keys: ${colKeys.join(', ')}.\n\n${incompleteLesson ? `Start by completing "${incompleteLesson.title}" (Lesson ${completeLessons.length + 1}), then continue.` : `Start from Lesson ${completeLessons.length + 1}.`} Generate content that logically continues the course. Output ONLY valid JSON, no markdown fences.`;
       }
 
-      console.log('[Resume] calling streamProvider, prompt length:', continuationPrompt.length);
+      if (import.meta.env.DEV) console.log('[Resume] calling streamProvider, prompt length:', continuationPrompt.length);
       fullTextRef.current = '';
       const { fullText } = await streamProvider(resumeProvider, resumeKey, resumeModel, SYSTEM_PROMPT, continuationPrompt, {
         maxOutputTokens,
         onChunk: (text, count) => {
           fullTextRef.current = text;
-          if (count <= 3 || count % 20 === 0) console.log('[Resume] chunk', count, 'totalLen:', text.length);
+          if (import.meta.env.DEV && (count <= 3 || count % 20 === 0)) console.log('[Resume] chunk', count, 'totalLen:', text.length);
           const now = performance.now();
           if (now - lastUIUpdateRef.current < 150) return;
           lastUIUpdateRef.current = now;
@@ -849,7 +849,7 @@ Generate lessons ${actual + 1} through ${expectedCount} now as JSON:`;
       pushVersion(merged, 'Resumed generation');
       setProgressStep('done');
       setStatus('done');
-      try { localStorage.removeItem(STREAM_SAVE_KEY); } catch {}
+      try { localStorage.removeItem(STREAM_SAVE_KEY); } catch { }
 
     } catch (err) {
       setRetryInfo(null);
@@ -904,7 +904,7 @@ Generate lessons ${actual + 1} through ${expectedCount} now as JSON:`;
     setGenerationLog([]);
     setExamChanges([]);
     setPendingExamPatches(null);
-    try { localStorage.removeItem(STREAM_SAVE_KEY); } catch {}
+    try { localStorage.removeItem(STREAM_SAVE_KEY); } catch { }
   }, [setCourseMap, setOldCourseMap]);
 
   const resetGeneration = useCallback(() => {
@@ -925,7 +925,7 @@ Generate lessons ${actual + 1} through ${expectedCount} now as JSON:`;
     syllabusTextRef.current = '';
     expectedLessonsRef.current = null;
     abort();
-    try { localStorage.removeItem(STREAM_SAVE_KEY); } catch {}
+    try { localStorage.removeItem(STREAM_SAVE_KEY); } catch { }
   }, [abort]);
 
   // ── Restore interrupted generation from localStorage (called on mount) ──

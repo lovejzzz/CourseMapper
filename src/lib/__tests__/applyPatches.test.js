@@ -84,4 +84,36 @@ describe('applyPatches', () => {
     const result = applyPatches(baseMap, []);
     expect(result.lessons).toHaveLength(2);
   });
+
+  it('handles multiple removeLesson patches with stable indices', () => {
+    const map = {
+      ...baseMap,
+      lessons: [
+        { title: 'L1', sections: [] },
+        { title: 'L2', sections: [] },
+        { title: 'L3', sections: [] },
+        { title: 'L4', sections: [] },
+      ],
+    };
+    // Remove L2 (index 1) and L4 (index 3) in one batch
+    const result = applyPatches(map, [
+      { action: 'removeLesson', lessonIndex: 1 },
+      { action: 'removeLesson', lessonIndex: 3 },
+    ]);
+    expect(result.lessons).toHaveLength(2);
+    expect(result.lessons[0].title).toBe('L1');
+    expect(result.lessons[1].title).toBe('L3');
+  });
+
+  it('does not crash when addSection targets a non-existent lesson', () => {
+    const newSection = { learningGoals: 'Goal X', topicSection: 'Topic X' };
+    // lessonIndex 99 doesn't exist — should silently skip, not crash
+    const result = applyPatches(baseMap, [
+      { action: 'addSection', lessonIndex: 99, sectionIndex: 0, section: newSection },
+    ]);
+    // Map should be unchanged
+    expect(result.lessons).toHaveLength(2);
+    expect(result.lessons[0].sections).toHaveLength(2);
+    expect(result.lessons[1].sections).toHaveLength(1);
+  });
 });

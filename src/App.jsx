@@ -218,7 +218,7 @@ export default function App() {
     setIsStopped: gen.setIsStopped,
     setStatus: gen.setStatus,
     setError: gen.setError,
-    setRetryInfo: () => {},
+    setRetryInfo: gen.setRetryInfo,
   });
 
   const deliv = useDeliverables({
@@ -277,7 +277,7 @@ export default function App() {
     try {
       if (apiKey) localStorage.setItem('coursemapper-apikey', apiKey);
       else localStorage.removeItem('coursemapper-apikey');
-    } catch {}
+    } catch { }
   }, [apiKey]);
 
   // ── Save to localStorage (debounced) ──
@@ -355,8 +355,8 @@ export default function App() {
     if (user && user.uid !== prevUserRef.current) {
       prevUserRef.current = user.uid;
       // Fire-and-forget cloud merge
-      mergeCloudDeliverables(user.uid).catch(() => {});
-      mergeCloudProfile(user.uid).catch(() => {});
+      mergeCloudDeliverables(user.uid).catch(() => { });
+      mergeCloudProfile(user.uid).catch(() => { });
     }
     if (!user) prevUserRef.current = null;
   }, [user]);
@@ -368,7 +368,7 @@ export default function App() {
       if (!raw) return;
       const saved = JSON.parse(raw);
       if (saved.courseMap) setHasSavedSession(true);
-    } catch {}
+    } catch { }
   }, []); // eslint-disable-line react-hooks/exhaustive-deps
 
   // ── Restore saved session ──
@@ -623,7 +623,7 @@ export default function App() {
     clearTimeout(cloudStatusTimerRef.current);
     // 3. Remove persisted data before resetting state
     //    (prevents save-effects from re-writing stale data)
-    try { localStorage.removeItem(STORAGE_KEY); } catch {}
+    try { localStorage.removeItem(STORAGE_KEY); } catch { }
     // 4. Reset all state
     gen.resetGeneration();
     rev.resetRevision();
@@ -959,31 +959,28 @@ export default function App() {
                       });
                     }
                   }}
-                  className={`tactile flex items-center gap-2 px-4 py-2 rounded-pill text-xs font-semibold whitespace-nowrap transition-all duration-200 flex-shrink-0 cursor-grab active:cursor-grabbing ${
-                    dragTabIdx === tabIdx ? 'opacity-40' :
-                    isActive
-                      ? 'bg-white/80 text-slate-800 shadow-glass border border-slate-200/60'
-                      : 'text-slate-500 hover:bg-white/50 hover:text-slate-700'
-                  }`}
+                  className={`tactile flex items-center gap-2 px-4 py-2 rounded-pill text-xs font-semibold whitespace-nowrap transition-all duration-200 flex-shrink-0 cursor-grab active:cursor-grabbing ${dragTabIdx === tabIdx ? 'opacity-40' :
+                      isActive
+                        ? 'bg-white/80 text-slate-800 shadow-glass border border-slate-200/60'
+                        : 'text-slate-500 hover:bg-white/50 hover:text-slate-700'
+                    }`}
                 >
                   {/* Status dot — cascade sync takes priority for non-courseMap tabs */}
                   {feature.id !== 'courseMap' && (
-                    <span className={`w-1.5 h-1.5 rounded-full flex-shrink-0 ${
-                      isSyncingThis ? 'bg-amber-400 animate-pulse' :
-                      isStaleTab && !isSyncingThis ? (staleConf?.level === 'high' ? 'bg-amber-400' : staleConf?.level === 'medium' ? 'bg-amber-300' : 'bg-amber-200') :
-                      hasUnseen ? 'bg-amber-400' :
-                      isStreaming ? 'bg-indigo-400 animate-pulse' :
-                      isDone ? 'bg-emerald-400' :
-                      isError ? 'bg-red-400' :
-                      'bg-slate-300'
-                    }`} />
+                    <span className={`w-1.5 h-1.5 rounded-full flex-shrink-0 ${isSyncingThis ? 'bg-amber-400 animate-pulse' :
+                        isStaleTab && !isSyncingThis ? (staleConf?.level === 'high' ? 'bg-amber-400' : staleConf?.level === 'medium' ? 'bg-amber-300' : 'bg-amber-200') :
+                          hasUnseen ? 'bg-amber-400' :
+                            isStreaming ? 'bg-indigo-400 animate-pulse' :
+                              isDone ? 'bg-emerald-400' :
+                                isError ? 'bg-red-400' :
+                                  'bg-slate-300'
+                      }`} />
                   )}
                   {feature.id === 'courseMap' && (
-                    <span className={`w-1.5 h-1.5 rounded-full flex-shrink-0 ${
-                      gen.isStreaming ? 'bg-indigo-400 animate-pulse' :
-                      isCourseMapDone ? 'bg-emerald-400' :
-                      'bg-slate-300'
-                    }`} />
+                    <span className={`w-1.5 h-1.5 rounded-full flex-shrink-0 ${gen.isStreaming ? 'bg-indigo-400 animate-pulse' :
+                        isCourseMapDone ? 'bg-emerald-400' :
+                          'bg-slate-300'
+                      }`} />
                   )}
                   {feature.label}{isStaleTab && !isSyncingThis ? (staleConf?.level === 'high' ? ' ⚠' : ' ~') : hasUnseen ? ' *' : ''}
                 </button>

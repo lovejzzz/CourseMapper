@@ -188,7 +188,7 @@ export default function useRevision({
       setIsStreaming(false);
       setStreamDetail('');
     }
-  }, [provider, modelId, apiKey, maxOutputTokens, courseMap, userEdits, setCourseMap, setOldCourseMap, pushVersion, setUserEdits, streamProvider, parsePartialJSON, setIsStreaming, setStreamDetail, setStreamProgress, setProgressStep, setIsStopped, setStatus, setError, setRetryInfo]);
+  }, [provider, modelId, apiKey, maxOutputTokens, courseMap, userEdits, setCourseMap, setOldCourseMap, pushVersion, setUserEdits, streamProvider, parsePartialJSON, setIsStreaming, setStreamDetail, setStreamProgress, setProgressStep, setIsStopped, setStatus, setError, setRetryInfo, lockedLessons]);
 
   // ── Resume Revision ──
   const handleResumeRevision = useCallback(async () => {

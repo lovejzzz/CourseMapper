@@ -7,6 +7,7 @@ import PrivacyPolicy from './pages/PrivacyPolicy';
 import TermsOfService from './pages/TermsOfService';
 import { CourseStoreProvider } from './model/courseStore';
 import { AuthProvider } from './contexts/AuthContext';
+import ErrorBoundary from './components/ErrorBoundary';
 import './index.css';
 
 function Router() {
@@ -48,7 +49,9 @@ container._reactRoot.render(
   <React.StrictMode>
     <AuthProvider>
       <CourseStoreProvider>
-        <Router />
+        <ErrorBoundary>
+          <Router />
+        </ErrorBoundary>
       </CourseStoreProvider>
     </AuthProvider>
   </React.StrictMode>

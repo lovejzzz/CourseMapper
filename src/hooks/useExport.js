@@ -1,4 +1,4 @@
-import { useState, useCallback } from 'react';
+import { useState, useCallback, useRef, useEffect } from 'react';
 import { generateXlsx, buildXlsxBuffer } from '../lib/xlsxGenerator';
 import { generateCsv, generatePdf } from '../lib/exporters';
 import { generateDocx } from '../lib/docxGenerator';
@@ -10,6 +10,12 @@ import { saveToGoogleDocs, saveToGoogleSheets } from '../lib/googleDrive';
  */
 export default function useExport(courseMap, columns, setError) {
   const [showExportMenu, setShowExportMenu] = useState(false);
+  const errorTimerRef = useRef(null);
+
+  // Cleanup error dismiss timer on unmount
+  useEffect(() => {
+    return () => { clearTimeout(errorTimerRef.current); };
+  }, []);
 
   const handleDownload = useCallback(async (format) => {
     if (!courseMap) return;
@@ -35,12 +41,14 @@ export default function useExport(courseMap, columns, setError) {
       }
     } catch (err) {
       setError('Failed to export: ' + err.message);
-      setTimeout(() => setError(''), 6000);
+      clearTimeout(errorTimerRef.current);
+      errorTimerRef.current = setTimeout(() => setError(''), 6000);
     }
   }, [courseMap, columns, setError]);
 
   const resetExport = useCallback(() => {
     setShowExportMenu(false);
+    clearTimeout(errorTimerRef.current);
   }, []);
 
   return {
