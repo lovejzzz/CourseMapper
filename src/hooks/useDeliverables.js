@@ -3,7 +3,7 @@ import useStreamReader from './useStreamReader';
 import { getDeliverablePrompt } from '../lib/deliverablePrompts';
 import { getArrayKey } from '../lib/syncDependencies';
 import { getCustomDeliverable } from '../lib/customDeliverableLibrary';
-import { scoreHeuristic } from '../lib/deliverableQualityScorer';
+import { scoreHeuristic, computeAvgScore } from '../lib/deliverableQualityScorer';
 import { notifyDone } from '../lib/notifyDone';
 import { CourseStateContext, CourseDispatchContext, actions } from '../model/courseStore.jsx';
 import {
@@ -90,25 +90,25 @@ function getFeatureLabel(featureId) {
 export default function useDeliverables({ provider, modelId, apiKey, maxOutputTokens, deliverableConfig, lockedLessons, pedagogicalMode, examChanges, columns }) {
   // ── Read deliverables from the store ──
   const storeState = useContext(CourseStateContext);
-  const dispatch   = useContext(CourseDispatchContext);
+  const dispatch = useContext(CourseDispatchContext);
   const deliverables = storeState?.deliverables || {};
 
   // ── Transient / streaming-only state (not persisted) ──
-  const [isGenerating, setIsGenerating]       = useState(false);
+  const [isGenerating, setIsGenerating] = useState(false);
   const [currentFeatures, setCurrentFeatures] = useState(new Set()); // tracks ALL active features (parallel)
-  const [progress, setProgress]               = useState({ done: 0, total: 0, perFeature: {} });
-  const [generationLog, setGenerationLog]     = useState([]);
-  const [qualityScores, setQualityScores]     = useState({});
-  const [delivTimings, setDelivTimings]        = useState({});  // { featureId: { startedAt, endedAt, durationMs } }
+  const [progress, setProgress] = useState({ done: 0, total: 0, perFeature: {} });
+  const [generationLog, setGenerationLog] = useState([]);
+  const [qualityScores, setQualityScores] = useState({});
+  const [delivTimings, setDelivTimings] = useState({});  // { featureId: { startedAt, endedAt, durationMs } }
   // freshLessons: tracks which lesson indices were just AI-regenerated (for green highlight)
   // Shape: { [featureId]: Set<number> }
-  const [freshLessons, setFreshLessons]   = useState({});
+  const [freshLessons, setFreshLessons] = useState({});
   // Ref-tracked timers so we can cancel them on unmount (avoids setState-on-unmounted-component)
   // Map<"featureId:lessonIdx", timeoutId>
   const freshTimersRef = useRef(new Map());
   // Per-feature/chunk abort controllers: Map<"featureId" | "featureId:chunkN", AbortController>
   const abortMapRef = useRef(new Map());
-  const startedRef  = useRef(false);
+  const startedRef = useRef(false);
   // Track the active sync generation ID so stale results can be discarded
   const activeSyncGenRef = useRef(0);
 
@@ -213,18 +213,23 @@ export default function useDeliverables({ provider, modelId, apiKey, maxOutputTo
       if (isWholeCourse || totalChunksForFeature === 1) {
         appendLog(`Generating ${label}…`, 'start');
       } else {
-        appendLog(`Generating ${label} — lessons ${chunkScope[0]+1}–${chunkScope[chunkScope.length-1]+1} (chunk ${chunkIndex+1}/${totalChunksForFeature})`, 'start');
+        appendLog(`Generating ${label} — lessons ${chunkScope[0] + 1}–${chunkScope[chunkScope.length - 1] + 1} (chunk ${chunkIndex + 1}/${totalChunksForFeature})`, 'start');
       }
 
       // Build prompt — for chunks after the first, inject style exemplar from chunk 0
+      // Uses first + last items from the previous chunk to provide a quality gradient
       const config = deliverableConfigRef.current?.[featureId] || {};
       let styleExemplar = null;
       if (chunkIndex > 0 && chunkResults[featureId]?.has(0)) {
         const firstChunk = chunkResults[featureId].get(0);
         const arrKey = getArrayKey(featureId, firstChunk);
-        const firstItem = arrKey ? firstChunk[arrKey]?.[0] : null;
+        const chunkArr = arrKey ? (firstChunk[arrKey] || []) : [];
+        const firstItem = chunkArr[0] || null;
+        const lastItem = chunkArr.length > 1 ? chunkArr[chunkArr.length - 1] : null;
         if (firstItem) {
-          styleExemplar = JSON.stringify(firstItem, null, 2).slice(0, 2000);
+          const parts = [JSON.stringify(firstItem, null, 2)];
+          if (lastItem) parts.push(JSON.stringify(lastItem, null, 2));
+          styleExemplar = parts.join('\n---\n').slice(0, 3000);
         }
       }
       const prompts = getDeliverablePrompt(
@@ -446,6 +451,28 @@ export default function useDeliverables({ provider, modelId, apiKey, maxOutputTo
         }
       }
 
+      // Per-lesson completeness: for quiz bank, detect lessons with fewer than 5 questions
+      if (fid === 'quizBank' && mergedArr.length > 0) {
+        const minQuestions = 5;
+        const truncatedQuizIndices = [];
+        mergedArr.forEach((quiz, i) => {
+          const qCount = quiz?.questions?.length || 0;
+          if (qCount > 0 && qCount < minQuestions) {
+            truncatedQuizIndices.push(lessonIndices[i]);
+          }
+        });
+        if (truncatedQuizIndices.length > 0) {
+          const label = getFeatureLabel(fid);
+          appendLog(`⚠ ${label}: ${truncatedQuizIndices.length} lesson(s) have < ${minQuestions} questions — retrying`, 'warn');
+          // Remove truncated lessons so the retry loop below will re-generate them
+          mergedArr = mergedArr.filter((quiz) => {
+            const qCount = quiz?.questions?.length || 0;
+            return qCount === 0 || qCount >= minQuestions;
+          });
+          merged = { ...merged, [arrayKey]: mergedArr };
+        }
+      }
+
       // Post-merge grade normalization: ensure assignment percentOfGrade sums to 100%
       if (fid === 'assignments' && mergedArr.length > 0) {
         let gradeTotal = 0;
@@ -540,10 +567,14 @@ export default function useDeliverables({ provider, modelId, apiKey, maxOutputTo
       // Dispatch final result
       dispatch(actions.setDeliverableDone(fid, finalData));
 
-      // Quality scoring
+      // Quality scoring + quality gate
       try {
         const quality = scoreHeuristic(fid, finalData);
         setQualityScores(prev => ({ ...prev, [fid]: quality }));
+        const avg = computeAvgScore(quality);
+        if (avg !== null && avg < 6) {
+          appendLog(`⚠ ${getFeatureLabel(fid)}: quality score ${avg}/10 — consider regenerating for better results`, 'warn');
+        }
       } catch { /* ignore */ }
 
       // Update timing
