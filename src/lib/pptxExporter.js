@@ -829,7 +829,7 @@ function buildSlideForDeck(pptx, deck, theme, slideIndex, totalSlides) {
   slide.addShape(pptx.ShapeType.roundRect, {
     x: W - 0.95, y: H - 0.44, w: 0.68, h: 0.34,
     fill: { color: isDarkSlide ? theme.accent : theme.primary },
-    line: { color: 'transparent' },
+    line: { width: 0 },
     rectRadius: 0.05,
     altText: 'Decorative',
   });
