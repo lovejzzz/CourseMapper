@@ -491,6 +491,25 @@ export default function useDeliverables({ provider, modelId, apiKey, maxOutputTo
         }
       }
 
+      // Per-lesson completeness: for slide decks, detect OVERSIZED lessons (merged content)
+      if (fid === 'slideDecks' && mergedArr.length > 0) {
+        const HARD_CAP_SLIDES = 25;
+        const oversizedSlideIndices = [];
+        mergedArr = mergedArr.filter((deck, i) => {
+          const sc = deck?.slides?.length || 0;
+          if (sc > HARD_CAP_SLIDES) {
+            oversizedSlideIndices.push(lessonIndices[i] ?? i);
+            return false;
+          }
+          return true;
+        });
+        if (oversizedSlideIndices.length > 0) {
+          const label = getFeatureLabel(fid);
+          appendLog(`⚠ ${label}: removed ${oversizedSlideIndices.length} oversized deck(s) (>${HARD_CAP_SLIDES} slides) — will retry individually`, 'warn');
+          merged = { ...merged, [arrayKey]: mergedArr };
+        }
+      }
+
       // Per-lesson completeness: for quiz bank, detect lessons with fewer than 5 questions
       if (fid === 'quizBank' && mergedArr.length > 0) {
         const minQuestions = 5;
@@ -545,8 +564,9 @@ export default function useDeliverables({ provider, modelId, apiKey, maxOutputTo
           appendLog(`⚠ ${label}: ${mergedArr.length}/${expectedCount} items — retrying ${missing.length} missing (round ${retryRound})`, 'warn');
 
           // Create retry tasks — use smaller chunks to reduce token pressure on retries
-          // Quiz bank uses individual lessons (size 1) to prevent model from merging
-          const retryChunkSize = fid === 'quizBank' ? 1 : Math.max(2, Math.floor(CHUNK_SIZE / 2));
+          // Quiz bank, slide decks, rubrics use individual lessons (size 1) to prevent merging
+          const useIndividualRetry = fid === 'quizBank' || fid === 'slideDecks' || fid === 'rubrics';
+          const retryChunkSize = useIndividualRetry ? 1 : Math.max(2, Math.floor(CHUNK_SIZE / 2));
           const retryChunks = chunkArray(missing, retryChunkSize);
           const retryLimit = pLimit(MAX_CONCURRENT);
           const retryPromises = retryChunks.map((retryScope, idx) => retryLimit(async () => {
