@@ -786,7 +786,10 @@ export default function App() {
           columns={columns} setColumns={setColumns}
           hasSavedSession={hasSavedSession}
           onRestoreSession={doRestoreSession}
-          onDismissSavedSession={() => setHasSavedSession(false)}
+          onDismissSavedSession={() => {
+            try { localStorage.removeItem(STORAGE_KEY); } catch { }
+            setHasSavedSession(false);
+          }}
           onImportCourseMap={handleImport}
           onOpenProject={handleOpenProject}
           onExampleSelect={(text) => setPromptText(text)}
@@ -798,6 +801,15 @@ export default function App() {
           onClose={() => setShowProjectPicker(false)}
           onOpenProject={handleOpenCloudProject}
           onSaveCurrentAsNew={null}
+          onDeleteProject={(deletedId, remainingCount) => {
+            if (deletedId === projectIdRef.current || remainingCount === 0) {
+              try { localStorage.removeItem(STORAGE_KEY); } catch { }
+              setHasSavedSession(false);
+              if (deletedId === projectIdRef.current) {
+                setProjectId(null);
+              }
+            }
+          }}
         />
       </>
     );
@@ -1391,6 +1403,15 @@ export default function App() {
         onClose={() => setShowProjectPicker(false)}
         onOpenProject={handleOpenCloudProject}
         onSaveCurrentAsNew={hasGenerated ? handleSaveCurrentAsNew : null}
+        onDeleteProject={(deletedId, remainingCount) => {
+          if (deletedId === projectIdRef.current || remainingCount === 0) {
+            try { localStorage.removeItem(STORAGE_KEY); } catch { }
+            setHasSavedSession(false);
+            if (deletedId === projectIdRef.current) {
+              setProjectId(null);
+            }
+          }
+        }}
       />
     </div>
   );

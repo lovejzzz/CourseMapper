@@ -3,11 +3,11 @@ import React, { useState, useEffect, useCallback } from 'react';
 import { useAuth } from '../contexts/AuthContext';
 import { listProjects, deleteProject as cloudDeleteProject } from '../lib/cloudStorage';
 
-export default function ProjectPicker({ isOpen, onClose, onOpenProject, onSaveCurrentAsNew }) {
+export default function ProjectPicker({ isOpen, onClose, onOpenProject, onSaveCurrentAsNew, onDeleteProject }) {
   const { user } = useAuth();
   const [projects, setProjects] = useState([]);
-  const [loading, setLoading]   = useState(false);
-  const [error, setError]       = useState(null);
+  const [loading, setLoading] = useState(false);
+  const [error, setError] = useState(null);
   const [deleteConfirm, setDeleteConfirm] = useState(null);   // projectId or null
   const [openingId, setOpeningId] = useState(null);            // projectId being loaded
 
@@ -51,7 +51,9 @@ export default function ProjectPicker({ isOpen, onClose, onOpenProject, onSaveCu
     if (!user) return;
     try {
       await cloudDeleteProject(user.uid, projectId);
-      setProjects(prev => prev.filter(p => p.id !== projectId));
+      const nextProjects = projects.filter(p => p.id !== projectId);
+      setProjects(nextProjects);
+      if (onDeleteProject) onDeleteProject(projectId, nextProjects.length);
       setDeleteConfirm(null);
     } catch (err) {
       console.error('[ProjectPicker] delete failed', err);
@@ -118,9 +120,8 @@ export default function ProjectPicker({ isOpen, onClose, onOpenProject, onSaveCu
           {!loading && projects.map(proj => (
             <div
               key={proj.id}
-              className={`group flex items-center gap-3 px-4 py-3 rounded-xl bg-white/50 border border-slate-100 hover:border-indigo-200/50 hover:bg-indigo-50/30 transition-all duration-200 ${
-                openingId === proj.id ? 'opacity-60 pointer-events-none' : 'cursor-pointer'
-              }`}
+              className={`group flex items-center gap-3 px-4 py-3 rounded-xl bg-white/50 border border-slate-100 hover:border-indigo-200/50 hover:bg-indigo-50/30 transition-all duration-200 ${openingId === proj.id ? 'opacity-60 pointer-events-none' : 'cursor-pointer'
+                }`}
               onClick={() => !openingId && handleOpen(proj.id)}
             >
               <div className="w-9 h-9 rounded-lg bg-indigo-100/60 flex items-center justify-center flex-shrink-0">
