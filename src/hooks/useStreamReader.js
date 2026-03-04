@@ -73,10 +73,10 @@ export default function useStreamReader() {
       }
       const quoteCount = (patched.match(/(?<!\\)"/g) || []).length;
       if (quoteCount % 2 !== 0) patched += '"';
-      // Strip trailing commas before closing brackets (common in truncated JSON)
-      patched = patched.replace(/,\s*$/gm, '');
+      // Strip trailing comma at end of string (common in truncated JSON)
+      patched = patched.replace(/,\s*$/, '');
       // Remove incomplete key-value pair at end (e.g. "key": or "key":  )
-      patched = patched.replace(/,\s*"[^"]*"\s*:\s*$/m, '');
+      patched = patched.replace(/,\s*"[^"]*"\s*:\s*$/, '');
       const opens = [];
       for (const ch of patched) {
         if (ch === '{' || ch === '[') opens.push(ch);
