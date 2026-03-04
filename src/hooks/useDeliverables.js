@@ -692,13 +692,19 @@ export default function useDeliverables({ provider, modelId, apiKey, maxOutputTo
       // ── Coverage-based retry: retry specific missing lessons even if count is met ──
       // e.g., rubrics may have 14 items (above adjustedExpected=9) but lesson 7 is
       // missing because GPT merged lessons in one chunk. Detect and retry missing ones.
+      // NOTE: rubrics/assignments are per-assessment (not per-lesson), so their items
+      // may not have lesson numbers at all — the coveredLessons check below handles this
+      // gracefully (size===0 → per-assessment warning, not a retry loop).
       const extractLessonNum = (item) => {
         const title = item?.lessonTitle || item?.title || item?.lesson || '';
         const m = title.match(/(?:Lesson|Week)\s*(\d+)/i);
         return m ? parseInt(m[1], 10) : null;
       };
 
-      if (mergedArr.length > 0 && expectedCount > 1 && !isPerAssessment) {
+      // Coverage retry is allowed for all deliverables, including rubrics/assignments.
+      // For per-assessment deliverables, it only fires when specific lesson numbers ARE
+      // present in the output (coveredLessons.size > 0) and some are missing.
+      if (mergedArr.length > 0 && expectedCount > 1) {
         const coveredSet = new Set();
         mergedArr.forEach(item => {
           const num = extractLessonNum(item);
@@ -720,9 +726,19 @@ export default function useDeliverables({ provider, modelId, apiKey, maxOutputTo
             appendLog(`Retrying ${retryLabel}...`, 'progress');
 
             const config = deliverableConfigRef.current?.[fid] || {};
+            // For rubric coverage retries, inject the expected lesson title as an edit
+            // context hint so GPT knows which specific assessment to target (not a generic
+            // re-run that might produce a different assessment for the same lesson block).
+            let retryEditContext = null;
+            if (fid === 'rubrics' || fid === 'assignments') {
+              const lesson = courseMap?.lessons?.[idx];
+              if (lesson?.title) {
+                retryEditContext = `Regenerate the rubric/assignment for the assessment associated with: "${lesson.title}". Do not change other assessments.`;
+              }
+            }
             const prompts = getDeliverablePrompt(
               fid, courseMap, [idx], config,
-              pedagogicalModeRef.current, examChangesRef.current, null,
+              pedagogicalModeRef.current, examChangesRef.current, retryEditContext,
               columnsRef.current, deliverableConfigRef.current,
             );
             if (!prompts) return;
@@ -795,8 +811,9 @@ export default function useDeliverables({ provider, modelId, apiKey, maxOutputTo
         const allExpected = Array.from({ length: expectedCount }, (_, i) => i + 1);
         const missing = allExpected.filter(n => !coveredLessons.has(n));
         if (coveredLessons.size === 0 && isPerAssessment) {
-          // Per-assessment items (assignments) may not have lesson numbers — skip warning
-          console.log(`[CM] ${fid}: ${mergedArr.length} items (per-assessment, lesson coverage N/A)`);
+          // Per-assessment items don't use lesson numbers in titles — this is correct.
+          // Log without a MISSING warning to avoid false-alarm console noise.
+          console.log(`[CM] ${fid}: ${mergedArr.length} item${mergedArr.length !== 1 ? 's' : ''} (per-assessment — lesson coverage N/A, not linked by lesson number)`);
         } else if (missing.length > 0) {
           console.warn(`[CM] ${fid}: MISSING lessons in output: ${missing.join(', ')} (have ${coveredLessons.size}/${expectedCount})`);
           appendLog(`⚠ ${getFeatureLabel(fid)}: lessons ${missing.join(', ')} not found in output`, 'warn');
@@ -805,8 +822,12 @@ export default function useDeliverables({ provider, modelId, apiKey, maxOutputTo
         }
       }
 
-      // Apply scope numbering
-      const finalData = patchScopeNumbering(merged, fid, scopeIndices, courseMap);
+      // Apply scope numbering.
+      // Skip rubrics and assignments — they are per-assessment (not 1 item per lesson),
+      // so the index-based mapping in patchScopeNumbering would corrupt lessonTitle fields.
+      const finalData = (fid === 'rubrics' || fid === 'assignments')
+        ? merged
+        : patchScopeNumbering(merged, fid, scopeIndices, courseMap);
       const delivEndTime = Date.now();
 
       // Feature-level completion summary for multi-chunk features

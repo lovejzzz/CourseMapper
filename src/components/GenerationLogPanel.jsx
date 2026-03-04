@@ -64,6 +64,35 @@ export default function GenerationLogPanel({ entries, defaultCollapsed = false }
             <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 5H7a2 2 0 00-2 2v12a2 2 0 002 2h10a2 2 0 002-2V7a2 2 0 00-2-2h-2M9 5a2 2 0 002 2h2a2 2 0 002-2M9 5a2 2 0 012-2h2a2 2 0 012 2" />
           </svg>
           <span className="text-[10px] font-semibold text-slate-500 uppercase tracking-wider">Generation Log</span>
+          {/* Download JSON button */}
+          <button
+            onClick={(e) => {
+              e.stopPropagation();
+              const payload = {
+                exportedAt: new Date().toISOString(),
+                entryCount: entries.length,
+                entries: entries.map((en, i) => ({
+                  index: i,
+                  type: en.type,
+                  message: en.message,
+                  at: en.at ? new Date(en.at).toISOString() : null,
+                })),
+              };
+              const blob = new Blob([JSON.stringify(payload, null, 2)], { type: 'application/json' });
+              const url = URL.createObjectURL(blob);
+              const a = document.createElement('a');
+              a.href = url;
+              a.download = `generation-log-${new Date().toISOString().slice(0, 19).replace(/:/g, '-')}.json`;
+              a.click();
+              URL.revokeObjectURL(url);
+            }}
+            title="Download generation log as JSON"
+            className="ml-1 p-0.5 rounded hover:bg-slate-200/60 transition-colors duration-150 text-slate-400 hover:text-slate-600"
+          >
+            <svg className="w-3 h-3" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M4 16v1a3 3 0 003 3h10a3 3 0 003-3v-1m-4-4l-4 4m0 0l-4-4m4 4V4" />
+            </svg>
+          </button>
           <svg className={`w-3 h-3 text-slate-400 ml-auto transition-transform duration-200 ${collapsed ? '' : 'rotate-180'}`} fill="none" stroke="currentColor" viewBox="0 0 24 24">
             <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M19 9l-7 7-7-7" />
           </svg>
