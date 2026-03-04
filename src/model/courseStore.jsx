@@ -5,7 +5,7 @@
  *
  * State shape:
  *   deliverables: {
- *     [featureId]: { status: 'idle'|'streaming'|'done'|'error', data: any, error: string|null, stale: bool, staleConfidence: object|null, regeneratingIndex: number|null }
+ *     [featureId]: { status, data, error, stale, staleConfidence, staleEdits, regeneratingIndex }
  *   }
  */
 import React, { createContext, useReducer } from 'react';
@@ -28,8 +28,8 @@ export const actions = {
   markAllStale: () => ({
     type: 'MARK_ALL_STALE',
   }),
-  markFeatureStale: (featureId, staleConfidence = null) => ({
-    type: 'MARK_FEATURE_STALE', featureId, staleConfidence,
+  markFeatureStale: (featureId, staleConfidence = null, staleEdits = null) => ({
+    type: 'MARK_FEATURE_STALE', featureId, staleConfidence, staleEdits,
   }),
   setDeliverable: (featureId, status, data, error, stale) => ({
     type: 'SET_DELIVERABLE', featureId, status, data, error, stale,
@@ -81,6 +81,18 @@ function reducer(state, action) {
     case 'MARK_FEATURE_STALE': {
       const existing = state.deliverables[action.featureId];
       if (!existing) return state;
+      // Merge staleEdits: accumulate lesson indices from repeated edits
+      let mergedEdits = action.staleEdits || null;
+      if (existing.staleEdits && mergedEdits) {
+        const combined = new Set([
+          ...(existing.staleEdits.lessonIndices || []),
+          ...(mergedEdits.lessonIndices || []),
+        ]);
+        mergedEdits = {
+          ...mergedEdits,
+          lessonIndices: [...combined].sort((a, b) => a - b),
+        };
+      }
       return {
         ...state,
         deliverables: {
@@ -89,6 +101,7 @@ function reducer(state, action) {
             ...existing,
             stale: true,
             staleConfidence: action.staleConfidence || existing.staleConfidence || null,
+            staleEdits: mergedEdits || existing.staleEdits || null,
           },
         },
       };

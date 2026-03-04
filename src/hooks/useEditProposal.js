@@ -181,6 +181,13 @@ export default function useEditProposal({ provider, modelId, apiKey, maxOutputTo
    * @param {function} setDeliverables  — The setDeliverables shim from useDeliverables
    */
   const acceptProposal = useCallback((featureId, lessonIndex, currentFullData, setDeliverables) => {
+    // Abort any active stream for this lesson before accepting
+    const streamKey = `${featureId}:${lessonIndex}`;
+    if (activeStreamsRef.current.has(streamKey)) {
+      activeStreamsRef.current.get(streamKey).abort();
+      activeStreamsRef.current.delete(streamKey);
+    }
+
     setProposals(prev => {
       const proposal = prev[featureId]?.[lessonIndex];
       if (!proposal || proposal.status !== 'ready' || !proposal.proposedData) return prev;
@@ -204,10 +211,30 @@ export default function useEditProposal({ provider, modelId, apiKey, maxOutputTo
         }));
       }
 
-      // Remove the proposal entry
-      const featureProposals = { ...(prev[featureId] || {}) };
+      // Remove the accepted proposal AND dismiss any proposals for the same
+      // lesson index across OTHER features (they were generated against
+      // pre-accept state and are now stale — conflict resolution)
+      const newProposals = { ...prev };
+      // Remove the accepted entry
+      const featureProposals = { ...(newProposals[featureId] || {}) };
       delete featureProposals[lessonIndex];
-      return { ...prev, [featureId]: featureProposals };
+      newProposals[featureId] = featureProposals;
+
+      // Dismiss cross-feature conflicts
+      for (const [otherFid, otherLessonProposals] of Object.entries(newProposals)) {
+        if (otherFid === featureId) continue;
+        if (otherLessonProposals[lessonIndex]) {
+          // Abort any active stream for the conflicting proposal
+          const conflictKey = `${otherFid}:${lessonIndex}`;
+          if (activeStreamsRef.current.has(conflictKey)) {
+            activeStreamsRef.current.get(conflictKey).abort();
+            activeStreamsRef.current.delete(conflictKey);
+          }
+          newProposals[otherFid] = { ...otherLessonProposals };
+          delete newProposals[otherFid][lessonIndex];
+        }
+      }
+      return newProposals;
     });
   }, []);
 

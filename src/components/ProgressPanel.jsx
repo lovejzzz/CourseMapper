@@ -127,20 +127,20 @@ function DelivStatusIcon({ status }) {
 
 // Sync cascade log item type → styles
 const SYNC_TYPE_STYLES = {
-  start:   { bg: 'bg-indigo-50', text: 'text-indigo-600', dot: 'bg-indigo-400', label: 'Updating' },
-  done:    { bg: 'bg-emerald-50', text: 'text-emerald-600', dot: 'bg-emerald-400', label: 'Updated' },
-  error:   { bg: 'bg-red-50', text: 'text-red-600', dot: 'bg-red-400', label: 'Failed' },
+  start: { bg: 'bg-indigo-50', text: 'text-indigo-600', dot: 'bg-indigo-400', label: 'Updating' },
+  done: { bg: 'bg-emerald-50', text: 'text-emerald-600', dot: 'bg-emerald-400', label: 'Updated' },
+  error: { bg: 'bg-red-50', text: 'text-red-600', dot: 'bg-red-400', label: 'Failed' },
   pending: { bg: 'bg-amber-50', text: 'text-amber-600', dot: 'bg-amber-400', label: 'Queued' },
 };
 
 // Deliverable log entry type → styles
 const DELIV_LOG_STYLES = {
-  start:    { text: 'text-indigo-600', bg: 'bg-indigo-50/40' },
+  start: { text: 'text-indigo-600', bg: 'bg-indigo-50/40' },
   progress: { text: 'text-indigo-500', bg: 'bg-indigo-50/40' },
-  done:     { text: 'text-emerald-700', bg: 'bg-emerald-50/40' },
-  error:    { text: 'text-red-600', bg: 'bg-red-50/40' },
-  warn:     { text: 'text-amber-700', bg: 'bg-amber-50/40' },
-  info:     { text: 'text-slate-600', bg: '' },
+  done: { text: 'text-emerald-700', bg: 'bg-emerald-50/40' },
+  error: { text: 'text-red-600', bg: 'bg-red-50/40' },
+  warn: { text: 'text-amber-700', bg: 'bg-amber-50/40' },
+  info: { text: 'text-slate-600', bg: '' },
 };
 
 export default function ProgressPanel({
@@ -235,8 +235,8 @@ export default function ProgressPanel({
   // Deliverable rows to show (only non-courseMap)
   const delivRows = deliverables
     ? Object.entries(deliverables)
-        .filter(([id]) => id !== 'courseMap')
-        .map(([id, state]) => ({ id, label: resolveLabel(id), status: state?.status, error: state?.error }))
+      .filter(([id]) => id !== 'courseMap')
+      .map(([id, state]) => ({ id, label: resolveLabel(id), status: state?.status, error: state?.error }))
     : [];
 
   const allDelivDone = delivRows.length === 0 || (delivRows.length > 0 && !isDelivGenerating && delivRows.every(r => r.status === 'done' || r.status === 'error'));
@@ -346,8 +346,8 @@ export default function ProgressPanel({
         <div className="flex items-center gap-2.5 mb-4">
           <div className="w-8 h-8 rounded-squircle-xs bg-gradient-to-br from-cyan-500 to-blue-600 flex items-center justify-center flex-shrink-0">
             <svg className="w-4 h-4 text-white" viewBox="0 0 24 24" fill="none">
-              <path d="M12 2v4m0 12v4M4.93 4.93l2.83 2.83m8.48 8.48l2.83 2.83M2 12h4m12 0h4M4.93 19.07l2.83-2.83m8.48-8.48l2.83-2.83" stroke="currentColor" strokeWidth={1.6} strokeLinecap="round"/>
-              <circle cx="12" cy="12" r="3" stroke="currentColor" strokeWidth={1.6}/>
+              <path d="M12 2v4m0 12v4M4.93 4.93l2.83 2.83m8.48 8.48l2.83 2.83M2 12h4m12 0h4M4.93 19.07l2.83-2.83m8.48-8.48l2.83-2.83" stroke="currentColor" strokeWidth={1.6} strokeLinecap="round" />
+              <circle cx="12" cy="12" r="3" stroke="currentColor" strokeWidth={1.6} />
             </svg>
           </div>
           <h2 className="text-sm font-semibold text-slate-800 flex-1">Generation Progress</h2>
@@ -375,13 +375,12 @@ export default function ProgressPanel({
               </div>
               <span className="text-[11px] font-medium text-emerald-700">Course map ready</span>
               {completenessInfo && (
-                <span className={`flex-shrink-0 text-[10px] font-semibold px-2 py-0.5 rounded-pill ${
-                  completenessInfo.status === 'complete'
+                <span className={`flex-shrink-0 text-[10px] font-semibold px-2 py-0.5 rounded-pill ${completenessInfo.status === 'complete'
                     ? 'text-emerald-600 bg-emerald-50/60 border border-emerald-100/50'
                     : completenessInfo.status === 'incomplete'
-                    ? 'text-amber-600 bg-amber-50/60 border border-amber-100/50'
-                    : 'text-slate-500 bg-slate-50/60 border border-slate-200/50'
-                }`}>
+                      ? 'text-amber-600 bg-amber-50/60 border border-amber-100/50'
+                      : 'text-slate-500 bg-slate-50/60 border border-slate-200/50'
+                  }`}>
                   {completenessInfo.status === 'complete' || completenessInfo.actual >= (completenessInfo.expected || 0)
                     ? `${completenessInfo.actual} lessons ✓`
                     : `${completenessInfo.actual}/${completenessInfo.expected || '?'} ⚠`}
@@ -392,18 +391,38 @@ export default function ProgressPanel({
               </div>
             </div>
 
-            {/* Cascade sync active banner */}
+            {/* Cascade sync active banner — enhanced with per-feature queue */}
             {isSyncing && (
-              <div className="mt-2 flex items-center gap-2 px-2.5 py-1.5 rounded-lg bg-amber-50/80 border border-amber-100/60">
-                <svg className="animate-spin w-3 h-3 text-amber-500 flex-shrink-0" fill="none" viewBox="0 0 24 24">
-                  <circle className="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" strokeWidth="4" />
-                  <path className="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4z" />
-                </svg>
-                <span className="text-[10px] font-semibold text-amber-600">
-                  Auto-syncing {pendingSyncCount > 1 ? `${pendingSyncCount} deliverables` : 'deliverable'}
-                  {syncingFeatures?.size > 1 ? ` (${syncingFeatures.size} in parallel)` : ''}…
-                </span>
-                <span className="text-[9px] text-amber-500 ml-auto">edit detected</span>
+              <div className="mt-2 px-2.5 py-2 rounded-lg bg-amber-50/80 border border-amber-100/60">
+                <div className="flex items-center gap-2 mb-1">
+                  <svg className="animate-spin w-3 h-3 text-amber-500 flex-shrink-0" fill="none" viewBox="0 0 24 24">
+                    <circle className="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" strokeWidth="4" />
+                    <path className="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4z" />
+                  </svg>
+                  <span className="text-[10px] font-semibold text-amber-600">
+                    Auto-syncing {pendingSyncCount > 1 ? `${pendingSyncCount} deliverables` : 'deliverable'}
+                  </span>
+                  <span className="text-[9px] text-amber-400 ml-auto">edit detected</span>
+                </div>
+                {/* Per-feature queue: show which are active vs queued */}
+                {syncingFeatures && syncingFeatures.size > 0 && (
+                  <div className="flex flex-wrap gap-1 mt-1">
+                    {[...syncingFeatures].map(fId => (
+                      <span key={fId} className="inline-flex items-center gap-1 px-1.5 py-0.5 rounded-md bg-amber-100/60 text-[9px] font-medium text-amber-700">
+                        <svg className="animate-spin w-2.5 h-2.5 text-amber-500" fill="none" viewBox="0 0 24 24">
+                          <circle className="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" strokeWidth="4" />
+                          <path className="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4z" />
+                        </svg>
+                        {resolveLabel(fId)}
+                      </span>
+                    ))}
+                    {pendingSyncCount > syncingFeatures.size && (
+                      <span className="inline-flex items-center px-1.5 py-0.5 rounded-md bg-slate-100/60 text-[9px] text-slate-500">
+                        +{pendingSyncCount - syncingFeatures.size} queued
+                      </span>
+                    )}
+                  </div>
+                )}
               </div>
             )}
 
@@ -476,44 +495,43 @@ export default function ProgressPanel({
                       return (
                         <div key={row.id} className="px-2 py-1 rounded-lg min-w-0">
                           <div className="flex items-center gap-2 min-w-0">
-                          <DelivStatusIcon status={row.status} />
-                          <span className={`text-[11px] font-medium truncate flex-1 min-w-0 ${
-                            row.status === 'done' ? 'text-emerald-700'
-                            : row.status === 'error' ? 'text-red-500'
-                            : row.status === 'streaming' || row.status === 'generating' ? 'text-indigo-600'
-                            : 'text-slate-400'
-                          }`}>
-                            {row.label}
-                          </span>
-                          <span className="flex-shrink-0 flex items-center gap-1.5">
-                            {/* Chunk progress badge */}
-                            {pf && pf.chunksTotal > 1 && pf.status !== 'done' && isDelivGenerating && (
-                              <span className="text-[9px] text-indigo-400 tabular-nums font-medium">
-                                {pf.chunksDone}/{pf.chunksTotal}
-                              </span>
-                            )}
-                            {/* Mini progress bar for active multi-chunk features */}
-                            {isActive && pf && pf.chunksTotal > 1 && (
-                              <div className="w-12 h-1 bg-indigo-100 rounded-full overflow-hidden">
-                                <div className="h-full bg-indigo-500 rounded-full transition-all duration-500" style={{ width: `${chunkPct}%` }} />
-                              </div>
-                            )}
-                            {/* Time spent for completed deliverables */}
-                            {doneMs && row.status === 'done' && (
-                              <span className="text-[9px] text-emerald-500 font-medium">
-                                {doneMs < 60000 ? `${(doneMs / 1000).toFixed(1)}s` : `${(doneMs / 60000).toFixed(1)}m`}
-                              </span>
-                            )}
-                            {/* Elapsed timer for currently generating */}
-                            {isActive && timing?.startedAt && (
-                              <ElapsedTimer startedAt={timing.startedAt} avgMs={avgMs} />
-                            )}
-                            {row.error && (
-                              <span className="text-[9px] text-red-400 truncate max-w-[80px]" title={row.error}>
-                                {row.error}
-                              </span>
-                            )}
-                          </span>
+                            <DelivStatusIcon status={row.status} />
+                            <span className={`text-[11px] font-medium truncate flex-1 min-w-0 ${row.status === 'done' ? 'text-emerald-700'
+                                : row.status === 'error' ? 'text-red-500'
+                                  : row.status === 'streaming' || row.status === 'generating' ? 'text-indigo-600'
+                                    : 'text-slate-400'
+                              }`}>
+                              {row.label}
+                            </span>
+                            <span className="flex-shrink-0 flex items-center gap-1.5">
+                              {/* Chunk progress badge */}
+                              {pf && pf.chunksTotal > 1 && pf.status !== 'done' && isDelivGenerating && (
+                                <span className="text-[9px] text-indigo-400 tabular-nums font-medium">
+                                  {pf.chunksDone}/{pf.chunksTotal}
+                                </span>
+                              )}
+                              {/* Mini progress bar for active multi-chunk features */}
+                              {isActive && pf && pf.chunksTotal > 1 && (
+                                <div className="w-12 h-1 bg-indigo-100 rounded-full overflow-hidden">
+                                  <div className="h-full bg-indigo-500 rounded-full transition-all duration-500" style={{ width: `${chunkPct}%` }} />
+                                </div>
+                              )}
+                              {/* Time spent for completed deliverables */}
+                              {doneMs && row.status === 'done' && (
+                                <span className="text-[9px] text-emerald-500 font-medium">
+                                  {doneMs < 60000 ? `${(doneMs / 1000).toFixed(1)}s` : `${(doneMs / 60000).toFixed(1)}m`}
+                                </span>
+                              )}
+                              {/* Elapsed timer for currently generating */}
+                              {isActive && timing?.startedAt && (
+                                <ElapsedTimer startedAt={timing.startedAt} avgMs={avgMs} />
+                              )}
+                              {row.error && (
+                                <span className="text-[9px] text-red-400 truncate max-w-[80px]" title={row.error}>
+                                  {row.error}
+                                </span>
+                              )}
+                            </span>
                           </div>
                         </div>
                       );
@@ -523,11 +541,10 @@ export default function ProgressPanel({
 
                 {/* Cloud save status — subtle inline indicator */}
                 {cloudSaveStatus && cloudSaveStatus !== 'idle' && (
-                  <div className={`mt-2 flex items-center gap-1.5 px-2 py-1 rounded-md text-[10px] font-medium ${
-                    cloudSaveStatus === 'saving' ? 'text-slate-400' :
-                    cloudSaveStatus === 'saved' ? 'text-emerald-500' :
-                    cloudSaveStatus === 'error' ? 'text-red-400' : ''
-                  }`}>
+                  <div className={`mt-2 flex items-center gap-1.5 px-2 py-1 rounded-md text-[10px] font-medium ${cloudSaveStatus === 'saving' ? 'text-slate-400' :
+                      cloudSaveStatus === 'saved' ? 'text-emerald-500' :
+                        cloudSaveStatus === 'error' ? 'text-red-400' : ''
+                    }`}>
                     {cloudSaveStatus === 'saving' && (
                       <svg className="animate-spin w-3 h-3 flex-shrink-0" fill="none" viewBox="0 0 24 24">
                         <circle className="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" strokeWidth="4" />
@@ -545,8 +562,8 @@ export default function ProgressPanel({
                       </svg>
                     )}
                     {cloudSaveStatus === 'saving' ? 'Saving project…' :
-                     cloudSaveStatus === 'saved' ? 'Project saved' :
-                     'Save failed'}
+                      cloudSaveStatus === 'saved' ? 'Project saved' :
+                        'Save failed'}
                   </div>
                 )}
 
@@ -593,7 +610,7 @@ export default function ProgressPanel({
                             const style = isSyncEntry
                               ? (entry._syncType === 'done' ? { text: 'text-amber-600', bg: 'bg-amber-50/40' }
                                 : entry._syncType === 'error' ? { text: 'text-red-500', bg: 'bg-red-50/40' }
-                                : { text: 'text-amber-500', bg: 'bg-amber-50/30' })
+                                  : { text: 'text-amber-500', bg: 'bg-amber-50/30' })
                               : (DELIV_LOG_STYLES[entry.type] || DELIV_LOG_STYLES.info);
                             const icon = isSyncEntry
                               ? LOG_ICONS[syncIcon]
@@ -792,19 +809,18 @@ export default function ProgressPanel({
                   <div key={step.key} className="flex items-center gap-3 py-1.5">
                     <StepIcon state={state} />
                     <div className="flex flex-col">
-                      <span className={`text-sm font-medium ${
-                        state === 'done' ? 'text-emerald-600'
+                      <span className={`text-sm font-medium ${state === 'done' ? 'text-emerald-600'
                           : state === 'active' ? 'text-indigo-600'
-                          : state === 'error' ? 'text-red-500'
-                          : 'text-slate-300'
-                      }`}>
+                            : state === 'error' ? 'text-red-500'
+                              : 'text-slate-300'
+                        }`}>
                         {step.key === 'generating' && modelName
                           ? `${modelName} is generating course map`
                           : step.key === 'continuing' && modelName
-                          ? `${modelName} is completing missing lessons`
-                          : step.key === 'examining' && modelName
-                          ? `${modelName} is examining course map`
-                          : step.label}
+                            ? `${modelName} is completing missing lessons`
+                            : step.key === 'examining' && modelName
+                              ? `${modelName} is examining course map`
+                              : step.label}
                       </span>
                       {state === 'active' && (step.key === 'generating' || step.key === 'examining' || step.key === 'continuing') && streamDetail && (
                         <span className="text-xs text-indigo-400 mt-0.5 truncate max-w-[320px]">
@@ -827,12 +843,11 @@ export default function ProgressPanel({
                   {delivRows.map(row => (
                     <div key={row.id} className="flex items-center gap-2.5 px-2 py-1">
                       <DelivStatusIcon status={row.status} />
-                      <span className={`text-[11px] font-medium ${
-                        row.status === 'done' ? 'text-emerald-700'
-                        : row.status === 'streaming' || row.status === 'generating' ? 'text-indigo-600'
-                        : row.status === 'error' ? 'text-red-500'
-                        : 'text-slate-300'
-                      }`}>
+                      <span className={`text-[11px] font-medium ${row.status === 'done' ? 'text-emerald-700'
+                          : row.status === 'streaming' || row.status === 'generating' ? 'text-indigo-600'
+                            : row.status === 'error' ? 'text-red-500'
+                              : 'text-slate-300'
+                        }`}>
                         {row.label}
                       </span>
                       {currentDelivFeatures?.has(row.id) && isDelivGenerating && delivProgress && (

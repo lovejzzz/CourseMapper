@@ -74,14 +74,29 @@ const PER_LESSON_ALL = [
 //   discussions  → no strong structural coupling to other deliverables
 //   assignments  → rubrics score the assignment — keep them in sync
 export const DELIVERABLE_OUTBOUND_MAP = {
-  lessonPlans:  ['slideDecks', 'studyGuides'],
-  slideDecks:   ['lessonPlans'],
-  studyGuides:  ['lessonPlans', 'slideDecks'],
-  rubrics:      ['assignments'],
-  quizBank:     ['studyGuides'],
-  discussions:  [],
-  assignments:  ['rubrics'],
+  lessonPlans: ['slideDecks', 'studyGuides'],
+  slideDecks: ['lessonPlans'],
+  studyGuides: ['lessonPlans', 'slideDecks'],
+  rubrics: ['assignments'],
+  quizBank: ['studyGuides'],
+  discussions: [],
+  assignments: ['rubrics'],
 };
+
+/**
+ * Get cascade targets for a given featureId, including custom deliverables.
+ * Custom deliverables ('custom_*') cascade to the core content pair
+ * (lessonPlans + studyGuides) since we can't know their semantic scope
+ * at definition time. Built-in deliverables use the static map above.
+ *
+ * @param {string} featureId
+ * @returns {string[]} — target featureIds that should cascade-update
+ */
+export function getOutboundTargets(featureId) {
+  if (DELIVERABLE_OUTBOUND_MAP[featureId]) return DELIVERABLE_OUTBOUND_MAP[featureId];
+  if (featureId?.startsWith('custom_')) return ['lessonPlans', 'studyGuides'];
+  return [];
+}
 
 const FIELD_DEPENDENCY_MAP = {
   // Direct edit to a deliverable's body text → only semantically coupled deliverables.
@@ -104,7 +119,7 @@ const FIELD_DEPENDENCY_MAP = {
 
   // Async/sync activities → lesson plans and slides
   asyncActivities: ['lessonPlans', 'slideDecks'],
-  syncActivities:  ['lessonPlans', 'slideDecks'],
+  syncActivities: ['lessonPlans', 'slideDecks'],
 
   // Supporting resources → study guides and lesson plans
   supportingResources: ['studyGuides', 'lessonPlans'],
@@ -251,7 +266,8 @@ export function buildSyncPlan(pendingEdits, selectedFeatures, deliverables, prio
     if (key === '_deliverableEdit' && excludeFeatureId) {
       // Resolve outbound targets from the per-deliverable map — much narrower than PER_LESSON_ALL.
       // e.g. editing a Study Guide only cascades to lessonPlans + slideDecks, not rubrics/quizBank.
-      affected = DELIVERABLE_OUTBOUND_MAP[excludeFeatureId] ?? [];
+      // Uses getOutboundTargets() so custom deliverables also get cascade targets.
+      affected = getOutboundTargets(excludeFeatureId);
     } else {
       // Pass selectedFeatures so unknown column keys fall back to all active per-lesson features
       affected = getAffectedFeatures(key, selectedFeatures);

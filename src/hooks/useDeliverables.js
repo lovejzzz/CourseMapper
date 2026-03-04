@@ -922,8 +922,8 @@ export default function useDeliverables({ provider, modelId, apiKey, maxOutputTo
     dispatch(actions.markAllStale());
   }, [dispatch]);
 
-  const markFeatureStale = useCallback((featureId, staleConfidence = null) => {
-    dispatch(actions.markFeatureStale(featureId, staleConfidence));
+  const markFeatureStale = useCallback((featureId, staleConfidence = null, staleEdits = null) => {
+    dispatch(actions.markFeatureStale(featureId, staleConfidence, staleEdits));
   }, [dispatch]);
 
   // Optimistic update — instantly patch deliverable data (e.g. title rename)
@@ -1009,11 +1009,18 @@ export default function useDeliverables({ provider, modelId, apiKey, maxOutputTo
                 const partialKey = getArrayKey(featureId, partial);
                 const partialArr = partialKey ? (partial[partialKey] || []) : [];
                 const merged = [...existingArr];
-                partialArr.forEach((item, i) => {
-                  const targetIdx = lessonIndex + i;
-                  if (targetIdx < merged.length) merged[targetIdx] = item;
-                  else merged.push(item);
-                });
+                // First item always targets the requested lesson index.
+                // Extra items (rare — AI may return neighbours) match by title.
+                if (partialArr.length > 0 && lessonIndex < merged.length) {
+                  merged[lessonIndex] = partialArr[0];
+                }
+                for (let i = 1; i < partialArr.length; i++) {
+                  const itemTitle = partialArr[i]?.lessonTitle || partialArr[i]?.title || '';
+                  const matchIdx = itemTitle ? merged.findIndex(m =>
+                    m !== partialArr[0] && (m?.lessonTitle === itemTitle || m?.title === itemTitle)
+                  ) : -1;
+                  if (matchIdx >= 0) merged[matchIdx] = partialArr[i];
+                }
                 dispatch({
                   type: 'SET_DELIVERABLE', featureId, status: 'streaming',
                   data: { ...existingDataSnapshot, [existingKey]: merged },
@@ -1041,11 +1048,22 @@ export default function useDeliverables({ provider, modelId, apiKey, maxOutputTo
           const newKey = getArrayKey(featureId, finalParsed);
           const newArr = (newKey ? finalParsed[newKey] : null) || [];
           const merged = [...existingArr];
-          newArr.forEach((item, i) => {
-            const targetIdx = lessonIndex + i;
-            if (targetIdx < merged.length) merged[targetIdx] = item;
-            else merged.push(item);
-          });
+          // First item always replaces the target lesson index.
+          // Any extra items returned by the AI are matched by lessonTitle
+          // to avoid overwriting the wrong lesson in the array.
+          if (newArr.length > 0 && lessonIndex < merged.length) {
+            merged[lessonIndex] = newArr[0];
+          } else if (newArr.length > 0) {
+            merged.push(newArr[0]);
+          }
+          for (let i = 1; i < newArr.length; i++) {
+            const itemTitle = newArr[i]?.lessonTitle || newArr[i]?.title || '';
+            const matchIdx = itemTitle ? merged.findIndex((m, idx) =>
+              idx !== lessonIndex && (m?.lessonTitle === itemTitle || m?.title === itemTitle)
+            ) : -1;
+            if (matchIdx >= 0) merged[matchIdx] = newArr[i];
+            // If no title match, don't blindly push — skip to prevent corruption
+          }
           dispatch(actions.setDeliverableDone(featureId, { ...existingDataSnapshot, [existingKey]: merged }));
         } else {
           dispatch(actions.setDeliverableDone(featureId, finalParsed));

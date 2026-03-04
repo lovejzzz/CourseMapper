@@ -2,6 +2,20 @@ import { useCallback } from 'react';
 import { getArrayKey } from '../lib/syncDependencies';
 
 /**
+ * Immutable path-based update: produces O(depth) shallow clones instead of
+ * O(n) structuredClone. Used for cell/title/toggle edits (frequent, hot-path).
+ * CRUD operations (add/delete/move lesson) still use structuredClone since
+ * the structural changes are complex and infrequent.
+ */
+function setAtPath(obj, path, value) {
+  if (path.length === 0) return value;
+  const [head, ...rest] = path;
+  const clone = Array.isArray(obj) ? [...obj] : { ...obj };
+  clone[head] = setAtPath(clone[head], rest, value);
+  return clone;
+}
+
+/**
  * ── Change #4: Optimistic title string-replace ──
  * When a user renames a lesson title, instantly patch all "done" deliverables
  * by replacing exact matches of oldTitle → newTitle at the given lesson index.
@@ -45,10 +59,9 @@ export default function useCourseMapEditor({ courseMap, setCourseMap, columns, s
 
   const handleCellEdit = useCallback((lessonIdx, sectionIdx, key, newValue) => {
     if (!courseMap) return;
-    const updated = structuredClone(courseMap);
-    const oldValue = updated.lessons[lessonIdx]?.sections?.[sectionIdx]?.[key] || '';
+    const oldValue = courseMap.lessons[lessonIdx]?.sections?.[sectionIdx]?.[key] || '';
     if (oldValue === newValue) return;
-    updated.lessons[lessonIdx].sections[sectionIdx][key] = newValue;
+    const updated = setAtPath(courseMap, ['lessons', lessonIdx, 'sections', sectionIdx, key], newValue);
     setCourseMap(updated);
     setDownloadedFile('');
     setUserEdits(prev => [...prev, {
@@ -61,10 +74,9 @@ export default function useCourseMapEditor({ courseMap, setCourseMap, columns, s
 
   const handleTitleEdit = useCallback((lessonIdx, newTitle) => {
     if (!courseMap) return;
-    const updated = structuredClone(courseMap);
-    const oldTitle = updated.lessons[lessonIdx].title;
+    const oldTitle = courseMap.lessons[lessonIdx].title;
     if (oldTitle === newTitle) return;
-    updated.lessons[lessonIdx].title = newTitle;
+    const updated = setAtPath(courseMap, ['lessons', lessonIdx, 'title'], newTitle);
     setCourseMap(updated);
     setDownloadedFile('');
     setUserEdits(prev => [...prev, {
@@ -89,9 +101,9 @@ export default function useCourseMapEditor({ courseMap, setCourseMap, columns, s
 
   const handleCheckToggle = useCallback((lessonIdx, sectionIdx) => {
     if (!courseMap) return;
-    const updated = structuredClone(courseMap);
-    const current = updated.lessons[lessonIdx].sections[sectionIdx].evaluateDesign;
-    updated.lessons[lessonIdx].sections[sectionIdx].evaluateDesign = !(current === true || current === 'true');
+    const current = courseMap.lessons[lessonIdx].sections[sectionIdx].evaluateDesign;
+    const newValue = !(current === true || current === 'true');
+    const updated = setAtPath(courseMap, ['lessons', lessonIdx, 'sections', sectionIdx, 'evaluateDesign'], newValue);
     setCourseMap(updated);
     setDownloadedFile('');
     onEdit?.(lessonIdx, 'evaluateDesign');

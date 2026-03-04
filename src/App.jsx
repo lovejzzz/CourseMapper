@@ -17,6 +17,7 @@ import useCourseMapEditor from './hooks/useCourseMapEditor';
 import useDeliverables from './hooks/useDeliverables';
 import useSmartSync from './hooks/useSmartSync';
 import useEditProposal from './hooks/useEditProposal';
+import useDeliverableUndo from './hooks/useDeliverableUndo';
 import { extractEditContext } from './lib/editContextExtractor';
 import { FEATURES, CustomDeliverableBuilder } from './screens/FeatureSelect';
 import { listCustomDeliverables, toFeatureEntry, saveCustomDeliverable, mergeCloudDeliverables } from './lib/customDeliverableLibrary';
@@ -239,6 +240,9 @@ export default function App() {
     pedagogicalMode: 'lecture',
     columns,
   });
+
+  // ── Deliverable Undo/Redo ──
+  const delivUndo = useDeliverableUndo();
 
   // ── Cascade Sync Engine ──
   const smartSync = useSmartSync({
@@ -960,26 +964,26 @@ export default function App() {
                     }
                   }}
                   className={`tactile flex items-center gap-2 px-4 py-2 rounded-pill text-xs font-semibold whitespace-nowrap transition-all duration-200 flex-shrink-0 cursor-grab active:cursor-grabbing ${dragTabIdx === tabIdx ? 'opacity-40' :
-                      isActive
-                        ? 'bg-white/80 text-slate-800 shadow-glass border border-slate-200/60'
-                        : 'text-slate-500 hover:bg-white/50 hover:text-slate-700'
+                    isActive
+                      ? 'bg-white/80 text-slate-800 shadow-glass border border-slate-200/60'
+                      : 'text-slate-500 hover:bg-white/50 hover:text-slate-700'
                     }`}
                 >
                   {/* Status dot — cascade sync takes priority for non-courseMap tabs */}
                   {feature.id !== 'courseMap' && (
                     <span className={`w-1.5 h-1.5 rounded-full flex-shrink-0 ${isSyncingThis ? 'bg-amber-400 animate-pulse' :
-                        isStaleTab && !isSyncingThis ? (staleConf?.level === 'high' ? 'bg-amber-400' : staleConf?.level === 'medium' ? 'bg-amber-300' : 'bg-amber-200') :
-                          hasUnseen ? 'bg-amber-400' :
-                            isStreaming ? 'bg-indigo-400 animate-pulse' :
-                              isDone ? 'bg-emerald-400' :
-                                isError ? 'bg-red-400' :
-                                  'bg-slate-300'
+                      isStaleTab && !isSyncingThis ? (staleConf?.level === 'high' ? 'bg-amber-400' : staleConf?.level === 'medium' ? 'bg-amber-300' : 'bg-amber-200') :
+                        hasUnseen ? 'bg-amber-400' :
+                          isStreaming ? 'bg-indigo-400 animate-pulse' :
+                            isDone ? 'bg-emerald-400' :
+                              isError ? 'bg-red-400' :
+                                'bg-slate-300'
                       }`} />
                   )}
                   {feature.id === 'courseMap' && (
                     <span className={`w-1.5 h-1.5 rounded-full flex-shrink-0 ${gen.isStreaming ? 'bg-indigo-400 animate-pulse' :
-                        isCourseMapDone ? 'bg-emerald-400' :
-                          'bg-slate-300'
+                      isCourseMapDone ? 'bg-emerald-400' :
+                        'bg-slate-300'
                       }`} />
                   )}
                   {feature.label}{isStaleTab && !isSyncingThis ? (staleConf?.level === 'high' ? ' ⚠' : ' ~') : hasUnseen ? ' *' : ''}
@@ -1013,6 +1017,54 @@ export default function App() {
               <span className="ml-2 text-[10px] text-indigo-500 font-medium animate-pulse whitespace-nowrap flex-shrink-0">
                 Generating {deliv.progress.done}/{deliv.progress.total}…
               </span>
+            )}
+
+            {/* Sync All Stale button — appears when any deliverable is stale */}
+            {(() => {
+              const staleCount = selectedFeatures.filter(f =>
+                f !== 'courseMap' && deliv.deliverables[f]?.stale === true
+              ).length;
+              if (staleCount === 0 || deliv.isGenerating || smartSync.isSyncing) return null;
+              return (
+                <button
+                  onClick={() => {
+                    const staleIds = selectedFeatures.filter(f =>
+                      f !== 'courseMap' && deliv.deliverables[f]?.stale === true
+                    );
+                    for (const fid of staleIds) {
+                      const se = deliv.deliverables[fid]?.staleEdits;
+                      if (se?.lessonIndices?.length > 0) {
+                        for (const idx of se.lessonIndices) {
+                          deliv.regenerateLesson(fid, courseMap, idx);
+                        }
+                      } else {
+                        const scopeIndices = lessonScope.type === 'specific' ? lessonScope.indices : null;
+                        deliv.generateAll(courseMap, [fid], scopeIndices);
+                      }
+                    }
+                  }}
+                  className="tactile flex items-center gap-1.5 ml-2 px-3 py-1.5 rounded-pill text-[10px] font-semibold text-amber-700 bg-amber-50/70 border border-amber-200/60 hover:bg-amber-100 transition-all duration-200 whitespace-nowrap flex-shrink-0"
+                >
+                  <svg className="w-3 h-3" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M4 4v5h.582m15.356 2A8.001 8.001 0 004.582 9m0 0H9m11 11v-5h-.581m0 0a8.003 8.003 0 01-15.357-2m15.357 2H15" />
+                  </svg>
+                  Sync all stale ({staleCount})
+                </button>
+              );
+            })()}
+
+            {/* Deliverable undo/redo — appears when deliverable edits have been made */}
+            {(delivUndo.canUndo || delivUndo.canRedo) && !gen.isStreaming && (
+              <div className="flex items-center gap-1 ml-2 flex-shrink-0">
+                <button onClick={() => delivUndo.undo(deliv.setDeliverables)} disabled={!delivUndo.canUndo}
+                  className={`tactile p-1.5 rounded-full transition-all duration-200 ${delivUndo.canUndo ? 'text-slate-500 hover:bg-white/60 hover:text-indigo-500' : 'text-slate-300 cursor-not-allowed'}`} title="Undo deliverable edit">
+                  <svg className="w-3.5 h-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M3 10h10a5 5 0 015 5v2M3 10l4-4M3 10l4 4" /></svg>
+                </button>
+                <button onClick={() => delivUndo.redo(deliv.setDeliverables)} disabled={!delivUndo.canRedo}
+                  className={`tactile p-1.5 rounded-full transition-all duration-200 ${delivUndo.canRedo ? 'text-slate-500 hover:bg-white/60 hover:text-indigo-500' : 'text-slate-300 cursor-not-allowed'}`} title="Redo deliverable edit">
+                  <svg className="w-3.5 h-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M21 10H11a5 5 0 00-5 5v2M21 10l-4-4M21 10l-4 4" /></svg>
+                </button>
+              </div>
             )}
           </div>
         )}
@@ -1243,6 +1295,8 @@ export default function App() {
                   }}
                   onDataChange={(newData, editPath) => {
                     const oldData = deliv.deliverables[activeTab]?.data;
+                    // Snapshot for undo before applying the edit
+                    delivUndo.snapshot(activeTab, oldData);
                     deliv.setDeliverables(prev => ({
                       ...prev,
                       [activeTab]: { ...prev[activeTab], data: newData },
@@ -1256,7 +1310,7 @@ export default function App() {
                         // Extract a human-readable change summary for the AI proposal
                         const ctx = extractEditContext(oldData, newData, editPath);
                         // '_deliverableEdit' key: source tab gets AI proposal,
-                        // downstream tabs get stale badge (no auto-regen)
+                        // downstream tabs get stale badge + proposal (no auto-regen)
                         smartSync.notifyEdit(lessonIdx, '_deliverableEdit', activeTab, ctx);
                       }
                     }
@@ -1282,8 +1336,17 @@ export default function App() {
                   isStale={deliv.deliverables[activeTab]?.stale === true}
                   staleConfidence={deliv.deliverables[activeTab]?.staleConfidence}
                   onSyncNow={() => {
-                    const scopeIndices = lessonScope.type === 'specific' ? lessonScope.indices : null;
-                    deliv.generateAll(courseMap, [activeTab], scopeIndices);
+                    const staleEdits = deliv.deliverables[activeTab]?.staleEdits;
+                    if (staleEdits?.lessonIndices?.length > 0) {
+                      // Surgical: only regen the affected lessons
+                      for (const idx of staleEdits.lessonIndices) {
+                        deliv.regenerateLesson(activeTab, courseMap, idx);
+                      }
+                    } else {
+                      // Fallback: full regen
+                      const scopeIndices = lessonScope.type === 'specific' ? lessonScope.indices : null;
+                      deliv.generateAll(courseMap, [activeTab], scopeIndices);
+                    }
                   }}
                   slideTheme={slideTheme}
                   onSlideThemeChange={setSlideTheme}

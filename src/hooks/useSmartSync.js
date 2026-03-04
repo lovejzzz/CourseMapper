@@ -15,7 +15,7 @@ function pLimit(concurrency) {
     next();
   });
 }
-import { buildSyncPlan, DELIVERABLE_OUTBOUND_MAP, computeStaleConfidence } from '../lib/syncDependencies';
+import { buildSyncPlan, getOutboundTargets, computeStaleConfidence } from '../lib/syncDependencies';
 
 /**
  * useSmartSync — Cascade Sync Engine (V1.7.0)
@@ -46,7 +46,7 @@ export default function useSmartSync({
   selectedFeatures,
   onSyncComplete,    // callback(affectedFeatureIds[]) — called when sync batch done
   onRequestProposal, // callback({ featureId, lessonIndex, editContext, courseMap })
-                     // — called when a deliverable body edit should show a proposal panel
+  // — called when a deliverable body edit should show a proposal panel
 }) {
   const [syncLog, setSyncLog] = useState([]);
   const [isSyncing, setIsSyncing] = useState(false);
@@ -113,7 +113,7 @@ export default function useSmartSync({
     // Separate out _deliverableEdit edits and handle them independently
     // (no entry in the sync plan — they bypass buildSyncPlan entirely).
     const deliverableEdits = edits.filter(e => e.key === '_deliverableEdit' && e.excludeFeatureId);
-    const courseMapEdits   = edits.filter(e => !(e.key === '_deliverableEdit' && e.excludeFeatureId));
+    const courseMapEdits = edits.filter(e => !(e.key === '_deliverableEdit' && e.excludeFeatureId));
 
     if (deliverableEdits.length > 0) {
       // Only the features that have 'done' status qualify for stale marking
@@ -149,16 +149,31 @@ export default function useSmartSync({
           );
         }
 
-        // 2. Mark outbound tabs stale (no auto-regen)
+        // 2. Mark outbound tabs stale AND fire downstream proposals
         // ── Change #3: Compute staleness confidence from the edit type ──
         const delivConfidence = computeStaleConfidence(['_deliverableEdit']);
-        const outbound = DELIVERABLE_OUTBOUND_MAP[sourceFeatureId] ?? [];
+        const outbound = getOutboundTargets(sourceFeatureId);
         for (const fId of outbound) {
           if (doneFeatureIds.has(fId)) {
-            currentDeliv.markFeatureStale(fId, delivConfidence);
+            // Mark stale with specific edit info (enables partial sync)
+            currentDeliv.markFeatureStale(fId, delivConfidence, {
+              lessonIndices: edit.lessonIdx != null ? [edit.lessonIdx] : [],
+              editKeys: ['_deliverableEdit'],
+              sourceFeatureId: sourceFeatureId,
+            });
             appendSyncLog('pending', fId,
               `Lesson ${edit.lessonIdx != null ? edit.lessonIdx + 1 : '?'} — marked out of sync`
             );
+            // Fire a surgical downstream proposal so the user sees an AI
+            // suggestion panel (not just a stale badge) for each target
+            if (onRequestProposalRef.current && edit.lessonIdx != null) {
+              onRequestProposalRef.current({
+                featureId: fId,
+                lessonIndex: edit.lessonIdx,
+                editContext: edit.editContext || `Updated from ${sourceFeatureId}`,
+                courseMap: currentCourseMap,
+              });
+            }
           }
         }
       }
