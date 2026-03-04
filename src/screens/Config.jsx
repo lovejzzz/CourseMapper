@@ -1,7 +1,6 @@
 import React, { useState, useRef } from 'react';
 import { FEATURES, COLOR_MAP } from './FeatureSelect';
 import ColumnEditor from '../components/ColumnEditor';
-import { HelpDrawer } from '../pages/FaqChatbot';
 import { getCustomDeliverable, listCustomDeliverables, toFeatureEntry } from '../lib/customDeliverableLibrary';
 
 // ── Shared option lists for universal advanced settings ───────────────────────
@@ -41,21 +40,19 @@ function LessonScopeSelector({ lessonCount, isDetectingLessons, courseMap, lesso
       <div className="flex gap-2">
         <button
           onClick={() => setLessonScope({ type: 'all' })}
-          className={`tactile flex-1 py-2.5 rounded-lg text-xs font-semibold transition-all duration-200 ${
-            lessonScope.type === 'all'
+          className={`tactile flex-1 py-2.5 rounded-lg text-xs font-semibold transition-all duration-200 ${lessonScope.type === 'all'
               ? 'bg-indigo-500 text-white shadow-md shadow-indigo-500/20'
               : 'bg-white/60 text-slate-500 border border-slate-200/60 hover:bg-white/80'
-          }`}
+            }`}
         >
           All {total > 0 ? `(${total} lessons)` : 'lessons'}
         </button>
         <button
           onClick={() => setLessonScope({ type: 'specific', indices: lessonScope.indices || [] })}
-          className={`tactile flex-1 py-2.5 rounded-lg text-xs font-semibold transition-all duration-200 ${
-            lessonScope.type === 'specific'
+          className={`tactile flex-1 py-2.5 rounded-lg text-xs font-semibold transition-all duration-200 ${lessonScope.type === 'specific'
               ? 'bg-indigo-500 text-white shadow-md shadow-indigo-500/20'
               : 'bg-white/60 text-slate-500 border border-slate-200/60 hover:bg-white/80'
-          }`}
+            }`}
         >
           Specific lessons
         </button>
@@ -113,11 +110,10 @@ function LessonScopeSelector({ lessonCount, isDetectingLessons, courseMap, lesso
                           : [...current, index].sort((a, b) => a - b);
                         setLessonScope({ type: 'specific', indices: next });
                       }}
-                      className={`tactile text-left px-3 py-2 rounded-lg text-[11px] transition-all duration-150 ${
-                        isSelected
+                      className={`tactile text-left px-3 py-2 rounded-lg text-[11px] transition-all duration-150 ${isSelected
                           ? 'bg-indigo-500 text-white shadow-sm'
                           : 'bg-white/60 text-slate-600 border border-slate-200/60 hover:bg-white/90'
-                      }`}
+                        }`}
                     >
                       <span className={`font-semibold ${isSelected ? 'text-indigo-100' : 'text-indigo-500'}`}>
                         #{index + 1}
@@ -171,11 +167,10 @@ function DeliverableExtras({ featureId, config, onChange }) {
             <button
               key={opt}
               onClick={() => onChange({ ...config, tone: config.tone === opt ? null : opt })}
-              className={`tactile px-3 py-1.5 rounded-lg text-[11px] font-medium transition-all duration-150 ${
-                config.tone === opt
+              className={`tactile px-3 py-1.5 rounded-lg text-[11px] font-medium transition-all duration-150 ${config.tone === opt
                   ? 'bg-indigo-500 text-white shadow-sm'
                   : 'bg-white/60 text-slate-600 border border-slate-200/60 hover:bg-white/90'
-              }`}
+                }`}
             >
               {opt}
             </button>
@@ -192,11 +187,10 @@ function DeliverableExtras({ featureId, config, onChange }) {
             <button
               key={opt}
               onClick={() => onChange({ ...config, style: config.style === opt ? null : opt })}
-              className={`tactile px-3 py-1.5 rounded-lg text-[11px] font-medium transition-all duration-150 ${
-                config.style === opt
+              className={`tactile px-3 py-1.5 rounded-lg text-[11px] font-medium transition-all duration-150 ${config.style === opt
                   ? 'bg-indigo-500 text-white shadow-sm'
                   : 'bg-white/60 text-slate-600 border border-slate-200/60 hover:bg-white/90'
-              }`}
+                }`}
             >
               {opt}
             </button>
@@ -213,11 +207,10 @@ function DeliverableExtras({ featureId, config, onChange }) {
             <button
               key={opt}
               onClick={() => onChange({ ...config, outputLength: config.outputLength === opt ? null : opt })}
-              className={`tactile px-3 py-1.5 rounded-lg text-[11px] font-medium transition-all duration-150 ${
-                config.outputLength === opt
+              className={`tactile px-3 py-1.5 rounded-lg text-[11px] font-medium transition-all duration-150 ${config.outputLength === opt
                   ? 'bg-indigo-500 text-white shadow-sm'
                   : 'bg-white/60 text-slate-600 border border-slate-200/60 hover:bg-white/90'
-              }`}
+                }`}
             >
               {opt}
             </button>
@@ -337,13 +330,11 @@ function Toggle({ label, value, onChange, description }) {
       </div>
       <button
         onClick={() => onChange(!value)}
-        className={`tactile flex-shrink-0 relative inline-flex h-5 w-9 items-center rounded-full transition-colors duration-200 ${
-          value ? 'bg-indigo-500' : 'bg-slate-200'
-        }`}
+        className={`tactile flex-shrink-0 relative inline-flex h-5 w-9 items-center rounded-full transition-colors duration-200 ${value ? 'bg-indigo-500' : 'bg-slate-200'
+          }`}
       >
-        <span className={`inline-block h-3.5 w-3.5 rounded-full bg-white shadow transition-transform duration-200 ${
-          value ? 'translate-x-[18px]' : 'translate-x-[3px]'
-        }`} />
+        <span className={`inline-block h-3.5 w-3.5 rounded-full bg-white shadow transition-transform duration-200 ${value ? 'translate-x-[18px]' : 'translate-x-[3px]'
+          }`} />
       </button>
     </div>
   );
@@ -359,11 +350,10 @@ function Select({ label, value, onChange, options, description }) {
           <button
             key={opt}
             onClick={() => onChange(opt)}
-            className={`tactile px-3 py-1.5 rounded-lg text-[11px] font-medium transition-all duration-150 ${
-              value === opt
+            className={`tactile px-3 py-1.5 rounded-lg text-[11px] font-medium transition-all duration-150 ${value === opt
                 ? 'bg-indigo-500 text-white shadow-sm'
                 : 'bg-white/60 text-slate-600 border border-slate-200/60 hover:bg-white/90'
-            }`}
+              }`}
           >
             {opt}
           </button>
@@ -409,11 +399,10 @@ function MultiToggle({ label, options, selected, onChange, description }) {
           <button
             key={opt}
             onClick={() => toggle(opt)}
-            className={`tactile px-3 py-1.5 rounded-lg text-[11px] font-medium transition-all duration-150 ${
-              selected.includes(opt)
+            className={`tactile px-3 py-1.5 rounded-lg text-[11px] font-medium transition-all duration-150 ${selected.includes(opt)
                 ? 'bg-indigo-500 text-white shadow-sm'
                 : 'bg-white/60 text-slate-600 border border-slate-200/60 hover:bg-white/90'
-            }`}
+              }`}
           >
             {opt}
           </button>
@@ -700,9 +689,9 @@ export default function Config({
   onBack,
   onGenerate,
   canGenerate,
+  onOpenHelp,
 }) {
   const [expandedId, setExpandedId] = useState('courseMap');
-  const [showHelp, setShowHelp] = useState(false);
 
   // Merge built-in + custom features for the config accordion
   const allFeatures = [...FEATURES, ...listCustomDeliverables().map(toFeatureEntry)];
@@ -723,147 +712,145 @@ export default function Config({
 
   return (
     <>
-    <div className="min-h-screen mesh-bg noise-overlay flex flex-col">
-      {/* Header */}
-      <header className="pt-5 px-8 flex items-center justify-between max-w-4xl mx-auto w-full">
-        <button
-          onClick={onBack}
-          className="tactile flex items-center gap-1.5 px-3 py-1.5 rounded-lg text-xs font-medium text-slate-400 hover:text-slate-700 hover:bg-white/60 transition-all duration-200"
-        >
-          <svg className="w-3.5 h-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-            <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M10 19l-7-7m0 0l7-7m-7 7h18" />
-          </svg>
-          Back
-        </button>
-        <button
-          onClick={() => setShowHelp(true)}
-          className="tactile flex items-center gap-1.5 text-[11px] font-semibold text-slate-400 hover:text-indigo-600 transition-colors"
-        >
-          <svg className="w-3.5 h-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-            <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M8.228 9c.549-1.165 2.03-2 3.772-2 2.21 0 4 1.343 4 3 0 1.4-1.278 2.575-3.006 2.907-.542.104-.994.54-.994 1.093m0 3h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z" />
-          </svg>
-          Help
-        </button>
-      </header>
+      <div className="min-h-screen mesh-bg noise-overlay flex flex-col">
+        {/* Header */}
+        <header className="pt-5 px-8 flex items-center justify-between max-w-4xl mx-auto w-full">
+          <button
+            onClick={onBack}
+            className="tactile flex items-center gap-1.5 px-3 py-1.5 rounded-lg text-xs font-medium text-slate-400 hover:text-slate-700 hover:bg-white/60 transition-all duration-200"
+          >
+            <svg className="w-3.5 h-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M10 19l-7-7m0 0l7-7m-7 7h18" />
+            </svg>
+            Back
+          </button>
+          <button
+            onClick={onOpenHelp}
+            className="tactile flex items-center gap-1.5 text-[11px] font-semibold text-slate-400 hover:text-indigo-600 transition-colors"
+          >
+            <svg className="w-3.5 h-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M8.228 9c.549-1.165 2.03-2 3.772-2 2.21 0 4 1.343 4 3 0 1.4-1.278 2.575-3.006 2.907-.542.104-.994.54-.994 1.093m0 3h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z" />
+            </svg>
+            Help
+          </button>
+        </header>
 
-      {/* Main */}
-      <main className="flex-1 flex flex-col items-center px-6 py-6">
-        <div className="max-w-2xl w-full animate-fade-up space-y-5">
+        {/* Main */}
+        <main className="flex-1 flex flex-col items-center px-6 py-6">
+          <div className="max-w-2xl w-full animate-fade-up space-y-5">
 
-          {/* Step badge + title */}
-          <div className="text-center mb-2">
-            <div className="inline-flex items-center gap-2 px-3 py-1 rounded-full bg-white/50 border border-slate-200/40 text-[10px] font-semibold text-slate-400 uppercase tracking-wider mb-4">
-              <span className="w-4 h-4 rounded-full bg-indigo-100 text-indigo-600 flex items-center justify-center text-[9px] font-bold">3</span>
-              Configure
+            {/* Step badge + title */}
+            <div className="text-center mb-2">
+              <div className="inline-flex items-center gap-2 px-3 py-1 rounded-full bg-white/50 border border-slate-200/40 text-[10px] font-semibold text-slate-400 uppercase tracking-wider mb-4">
+                <span className="w-4 h-4 rounded-full bg-indigo-100 text-indigo-600 flex items-center justify-center text-[9px] font-bold">3</span>
+                Configure
+              </div>
+              <h1 className="text-2xl sm:text-3xl font-bold text-slate-800 tracking-tight">Configure generation</h1>
+              <p className="text-sm text-slate-500 mt-2">Set the lesson scope and customize each deliverable.</p>
             </div>
-            <h1 className="text-2xl sm:text-3xl font-bold text-slate-800 tracking-tight">Configure generation</h1>
-            <p className="text-sm text-slate-500 mt-2">Set the lesson scope and customize each deliverable.</p>
-          </div>
 
-          {/* ── Lesson Scope ── */}
-          <LessonScopeSelector
-            lessonCount={lessonCount}
-            isDetectingLessons={isDetectingLessons}
-            courseMap={courseMap}
-            lessonScope={lessonScope}
-            setLessonScope={setLessonScope}
-          />
+            {/* ── Lesson Scope ── */}
+            <LessonScopeSelector
+              lessonCount={lessonCount}
+              isDetectingLessons={isDetectingLessons}
+              courseMap={courseMap}
+              lessonScope={lessonScope}
+              setLessonScope={setLessonScope}
+            />
 
-          {/* ── Deliverable configs ── */}
-          {configurableFeatures.length > 0 && (
-            <div className="space-y-2">
-              <p className="text-[10px] font-semibold text-slate-400 uppercase tracking-wider px-1">Deliverable settings</p>
-              {configurableFeatures.map(feature => {
-                const config = deliverableConfig[feature.id] || {};
-                const c = COLOR_MAP[feature.color] || COLOR_MAP.indigo;
-                const isExpanded = expandedId === feature.id;
+            {/* ── Deliverable configs ── */}
+            {configurableFeatures.length > 0 && (
+              <div className="space-y-2">
+                <p className="text-[10px] font-semibold text-slate-400 uppercase tracking-wider px-1">Deliverable settings</p>
+                {configurableFeatures.map(feature => {
+                  const config = deliverableConfig[feature.id] || {};
+                  const c = COLOR_MAP[feature.color] || COLOR_MAP.indigo;
+                  const isExpanded = expandedId === feature.id;
 
-                const panel = (
-                  <DeliverableConfigContent
-                    featureId={feature.id}
-                    config={config}
-                    onChange={(next) => setDeliverableConfig(prev => ({ ...prev, [feature.id]: next }))}
-                    columns={columns}
-                    setColumns={setColumns}
-                  />
-                );
+                  const panel = (
+                    <DeliverableConfigContent
+                      featureId={feature.id}
+                      config={config}
+                      onChange={(next) => setDeliverableConfig(prev => ({ ...prev, [feature.id]: next }))}
+                      columns={columns}
+                      setColumns={setColumns}
+                    />
+                  );
 
-                return (
-                  <div
-                    key={feature.id}
-                    className={`rounded-squircle-xs border overflow-hidden transition-all duration-200 ${
-                      isExpanded ? `${c.activeBg} ${c.activeBorder}` : 'bg-white/40 border-slate-200/50'
-                    }`}
-                  >
-                    {/* Accordion header */}
-                    <button
-                      onClick={() => setExpandedId(isExpanded ? null : feature.id)}
-                      className="w-full flex items-center gap-3 px-4 py-3 text-left"
+                  return (
+                    <div
+                      key={feature.id}
+                      className={`rounded-squircle-xs border overflow-hidden transition-all duration-200 ${isExpanded ? `${c.activeBg} ${c.activeBorder}` : 'bg-white/40 border-slate-200/50'
+                        }`}
                     >
-                      <div className={`w-7 h-7 rounded-lg ${c.iconBg} flex items-center justify-center flex-shrink-0`}>
-                        <svg className={`w-3.5 h-3.5 ${c.iconText}`} fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                          <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={1.5} d={feature.icon} />
-                        </svg>
-                      </div>
-                      <span className="text-xs font-semibold text-slate-700 flex-1">{feature.label}</span>
-                      <svg
-                        className={`w-3.5 h-3.5 text-slate-400 transition-transform duration-200 ${isExpanded ? 'rotate-180' : ''}`}
-                        fill="none" stroke="currentColor" viewBox="0 0 24 24"
+                      {/* Accordion header */}
+                      <button
+                        onClick={() => setExpandedId(isExpanded ? null : feature.id)}
+                        className="w-full flex items-center gap-3 px-4 py-3 text-left"
                       >
-                        <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M19 9l-7 7-7-7" />
-                      </svg>
-                    </button>
+                        <div className={`w-7 h-7 rounded-lg ${c.iconBg} flex items-center justify-center flex-shrink-0`}>
+                          <svg className={`w-3.5 h-3.5 ${c.iconText}`} fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                            <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={1.5} d={feature.icon} />
+                          </svg>
+                        </div>
+                        <span className="text-xs font-semibold text-slate-700 flex-1">{feature.label}</span>
+                        <svg
+                          className={`w-3.5 h-3.5 text-slate-400 transition-transform duration-200 ${isExpanded ? 'rotate-180' : ''}`}
+                          fill="none" stroke="currentColor" viewBox="0 0 24 24"
+                        >
+                          <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M19 9l-7 7-7-7" />
+                        </svg>
+                      </button>
 
-                    {/* Config panel */}
-                    {isExpanded && (
-                      <div className="px-4 pb-4 pt-1 border-t border-slate-100/60 animate-spring-in">
-                        {panel}
-                      </div>
-                    )}
-                  </div>
-                );
-              })}
-            </div>
-          )}
-
-          {/* ── Generate button ── */}
-          <div className="pt-2">
-            {lessonScope.type === 'specific' && !scopeValid && (
-              <p className="text-center text-[11px] text-amber-500 mb-2">Select at least one lesson to continue.</p>
+                      {/* Config panel */}
+                      {isExpanded && (
+                        <div className="px-4 pb-4 pt-1 border-t border-slate-100/60 animate-spring-in">
+                          {panel}
+                        </div>
+                      )}
+                    </div>
+                  );
+                })}
+              </div>
             )}
-            <button
-              onClick={onGenerate}
-              disabled={!canGenerate || !scopeValid}
-              className={`tactile btn-glow w-full py-4 rounded-squircle-xs font-semibold text-sm tracking-wide transition-all duration-300 ${
-                canGenerate && scopeValid
-                  ? 'text-white bg-gradient-to-r from-indigo-500 via-violet-500 to-purple-600 shadow-lg shadow-indigo-500/25 hover:shadow-glow-violet hover:brightness-[1.06]'
-                  : 'bg-slate-200 text-slate-400 cursor-not-allowed shadow-none'
-              }`}
-            >
-              <span className="flex items-center justify-center gap-2.5">
-                Generate — {scopeDescription}
-                <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M13 10V3L4 14h7v7l9-11h-7z" />
-                </svg>
-              </span>
-            </button>
+
+            {/* ── Generate button ── */}
+            <div className="pt-2">
+              {lessonScope.type === 'specific' && !scopeValid && (
+                <p className="text-center text-[11px] text-amber-500 mb-2">Select at least one lesson to continue.</p>
+              )}
+              <button
+                onClick={onGenerate}
+                disabled={!canGenerate || !scopeValid}
+                className={`tactile btn-glow w-full py-4 rounded-squircle-xs font-semibold text-sm tracking-wide transition-all duration-300 ${canGenerate && scopeValid
+                    ? 'text-white bg-gradient-to-r from-indigo-500 via-violet-500 to-purple-600 shadow-lg shadow-indigo-500/25 hover:shadow-glow-violet hover:brightness-[1.06]'
+                    : 'bg-slate-200 text-slate-400 cursor-not-allowed shadow-none'
+                  }`}
+              >
+                <span className="flex items-center justify-center gap-2.5">
+                  Generate — {scopeDescription}
+                  <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M13 10V3L4 14h7v7l9-11h-7z" />
+                  </svg>
+                </span>
+              </button>
+            </div>
           </div>
-        </div>
-      </main>
+        </main>
 
-      {/* Footer */}
-      <footer className="py-4 text-center">
-        <div className="flex items-center justify-center gap-3 text-[10px] text-slate-300/70">
-          <a href="#/changelog" className="font-medium hover:text-indigo-500 transition-colors duration-200">v1.5</a>
-          <span>·</span>
-          <a href="#/privacy" className="hover:text-indigo-500 transition-colors duration-200">Privacy</a>
-          <span>·</span>
-          <a href="#/terms" className="hover:text-indigo-500 transition-colors duration-200">Terms</a>
-        </div>
-      </footer>
-    </div>
+        {/* Footer */}
+        <footer className="py-4 text-center">
+          <div className="flex items-center justify-center gap-3 text-[10px] text-slate-300/70">
+            <a href="#/changelog" className="font-medium hover:text-indigo-500 transition-colors duration-200">v1.5</a>
+            <span>·</span>
+            <a href="#/privacy" className="hover:text-indigo-500 transition-colors duration-200">Privacy</a>
+            <span>·</span>
+            <a href="#/terms" className="hover:text-indigo-500 transition-colors duration-200">Terms</a>
+          </div>
+        </footer>
+      </div>
 
-    <HelpDrawer isOpen={showHelp} onClose={() => setShowHelp(false)} />
+      <HelpDrawer isOpen={showHelp} onClose={() => setShowHelp(false)} />
     </>
   );
 }

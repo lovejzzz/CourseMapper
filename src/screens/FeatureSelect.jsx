@@ -1,5 +1,4 @@
 import React, { useState, useRef } from 'react';
-import { HelpDrawer } from '../pages/FaqChatbot';
 import { useAuth } from '../contexts/AuthContext';
 import { listCustomDeliverables, saveCustomDeliverable, deleteCustomDeliverable, toFeatureEntry, autoFillCustomDeliverable } from '../lib/customDeliverableLibrary';
 
@@ -121,15 +120,15 @@ const FEATURES_BASE = [
 const FEATURES = FEATURES_BASE;
 
 const COLOR_MAP = {
-  indigo:  { bg: 'bg-indigo-50/60',  border: 'border-indigo-200/50', activeBorder: 'border-indigo-400',  activeBg: 'bg-indigo-50/80',  iconBg: 'bg-indigo-100',  iconText: 'text-indigo-600',  badge: 'bg-indigo-100 text-indigo-700', ring: 'ring-indigo-400/30' },
-  violet:  { bg: 'bg-violet-50/60',  border: 'border-violet-200/50', activeBorder: 'border-violet-400',  activeBg: 'bg-violet-50/80',  iconBg: 'bg-violet-100',  iconText: 'text-violet-600',  badge: 'bg-violet-100 text-violet-700', ring: 'ring-violet-400/30' },
-  amber:   { bg: 'bg-amber-50/60',   border: 'border-amber-200/50',  activeBorder: 'border-amber-400',   activeBg: 'bg-amber-50/80',   iconBg: 'bg-amber-100',   iconText: 'text-amber-600',   badge: 'bg-amber-100 text-amber-700',  ring: 'ring-amber-400/30' },
-  emerald: { bg: 'bg-emerald-50/60', border: 'border-emerald-200/50',activeBorder: 'border-emerald-400', activeBg: 'bg-emerald-50/80', iconBg: 'bg-emerald-100', iconText: 'text-emerald-600', badge: 'bg-emerald-100 text-emerald-700', ring: 'ring-emerald-400/30' },
-  sky:     { bg: 'bg-sky-50/60',     border: 'border-sky-200/50',    activeBorder: 'border-sky-400',     activeBg: 'bg-sky-50/80',     iconBg: 'bg-sky-100',     iconText: 'text-sky-600',     badge: 'bg-sky-100 text-sky-700',      ring: 'ring-sky-400/30' },
-  rose:    { bg: 'bg-rose-50/60',    border: 'border-rose-200/50',   activeBorder: 'border-rose-400',    activeBg: 'bg-rose-50/80',    iconBg: 'bg-rose-100',    iconText: 'text-rose-600',    badge: 'bg-rose-100 text-rose-700',    ring: 'ring-rose-400/30' },
-  orange:  { bg: 'bg-orange-50/60',  border: 'border-orange-200/50', activeBorder: 'border-orange-400',  activeBg: 'bg-orange-50/80',  iconBg: 'bg-orange-100',  iconText: 'text-orange-600',  badge: 'bg-orange-100 text-orange-700', ring: 'ring-orange-400/30' },
-  teal:    { bg: 'bg-teal-50/60',    border: 'border-teal-200/50',   activeBorder: 'border-teal-400',    activeBg: 'bg-teal-50/80',    iconBg: 'bg-teal-100',    iconText: 'text-teal-600',    badge: 'bg-teal-100 text-teal-700',    ring: 'ring-teal-400/30' },
-  cyan:    { bg: 'bg-cyan-50/60',    border: 'border-cyan-200/50',   activeBorder: 'border-cyan-400',    activeBg: 'bg-cyan-50/80',    iconBg: 'bg-cyan-100',    iconText: 'text-cyan-600',    badge: 'bg-cyan-100 text-cyan-700',    ring: 'ring-cyan-400/30' },
+  indigo: { bg: 'bg-indigo-50/60', border: 'border-indigo-200/50', activeBorder: 'border-indigo-400', activeBg: 'bg-indigo-50/80', iconBg: 'bg-indigo-100', iconText: 'text-indigo-600', badge: 'bg-indigo-100 text-indigo-700', ring: 'ring-indigo-400/30' },
+  violet: { bg: 'bg-violet-50/60', border: 'border-violet-200/50', activeBorder: 'border-violet-400', activeBg: 'bg-violet-50/80', iconBg: 'bg-violet-100', iconText: 'text-violet-600', badge: 'bg-violet-100 text-violet-700', ring: 'ring-violet-400/30' },
+  amber: { bg: 'bg-amber-50/60', border: 'border-amber-200/50', activeBorder: 'border-amber-400', activeBg: 'bg-amber-50/80', iconBg: 'bg-amber-100', iconText: 'text-amber-600', badge: 'bg-amber-100 text-amber-700', ring: 'ring-amber-400/30' },
+  emerald: { bg: 'bg-emerald-50/60', border: 'border-emerald-200/50', activeBorder: 'border-emerald-400', activeBg: 'bg-emerald-50/80', iconBg: 'bg-emerald-100', iconText: 'text-emerald-600', badge: 'bg-emerald-100 text-emerald-700', ring: 'ring-emerald-400/30' },
+  sky: { bg: 'bg-sky-50/60', border: 'border-sky-200/50', activeBorder: 'border-sky-400', activeBg: 'bg-sky-50/80', iconBg: 'bg-sky-100', iconText: 'text-sky-600', badge: 'bg-sky-100 text-sky-700', ring: 'ring-sky-400/30' },
+  rose: { bg: 'bg-rose-50/60', border: 'border-rose-200/50', activeBorder: 'border-rose-400', activeBg: 'bg-rose-50/80', iconBg: 'bg-rose-100', iconText: 'text-rose-600', badge: 'bg-rose-100 text-rose-700', ring: 'ring-rose-400/30' },
+  orange: { bg: 'bg-orange-50/60', border: 'border-orange-200/50', activeBorder: 'border-orange-400', activeBg: 'bg-orange-50/80', iconBg: 'bg-orange-100', iconText: 'text-orange-600', badge: 'bg-orange-100 text-orange-700', ring: 'ring-orange-400/30' },
+  teal: { bg: 'bg-teal-50/60', border: 'border-teal-200/50', activeBorder: 'border-teal-400', activeBg: 'bg-teal-50/80', iconBg: 'bg-teal-100', iconText: 'text-teal-600', badge: 'bg-teal-100 text-teal-700', ring: 'ring-teal-400/30' },
+  cyan: { bg: 'bg-cyan-50/60', border: 'border-cyan-200/50', activeBorder: 'border-cyan-400', activeBg: 'bg-cyan-50/80', iconBg: 'bg-cyan-100', iconText: 'text-cyan-600', badge: 'bg-cyan-100 text-cyan-700', ring: 'ring-cyan-400/30' },
 };
 
 export { FEATURES, COLOR_MAP };
@@ -224,13 +223,11 @@ export function CustomDeliverableBuilder({ isOpen, onClose, onSave, editDef, mod
           {/* Step tabs */}
           <div className="flex gap-2 mt-3">
             <button onClick={() => setStep(1)}
-              className={`px-3 py-1 rounded-lg text-[11px] font-semibold transition-all ${
-                step === 1 ? 'bg-indigo-500 text-white' : 'text-slate-500 hover:bg-slate-100'
-              }`}>1. Basics</button>
+              className={`px-3 py-1 rounded-lg text-[11px] font-semibold transition-all ${step === 1 ? 'bg-indigo-500 text-white' : 'text-slate-500 hover:bg-slate-100'
+                }`}>1. Basics</button>
             <button onClick={() => setStep(2)}
-              className={`px-3 py-1 rounded-lg text-[11px] font-semibold transition-all ${
-                step === 2 ? 'bg-indigo-500 text-white' : 'text-slate-500 hover:bg-slate-100'
-              }`}>2. Prompt & Settings</button>
+              className={`px-3 py-1 rounded-lg text-[11px] font-semibold transition-all ${step === 2 ? 'bg-indigo-500 text-white' : 'text-slate-500 hover:bg-slate-100'
+                }`}>2. Prompt & Settings</button>
           </div>
         </div>
 
@@ -246,11 +243,10 @@ export function CustomDeliverableBuilder({ isOpen, onClose, onSave, editDef, mod
                     <button
                       onClick={handleAutoFill}
                       disabled={!name.trim() || isAutoFilling}
-                      className={`flex items-center gap-1 px-2 py-0.5 rounded-md text-[10px] font-semibold transition-all ${
-                        name.trim() && !isAutoFilling
+                      className={`flex items-center gap-1 px-2 py-0.5 rounded-md text-[10px] font-semibold transition-all ${name.trim() && !isAutoFilling
                           ? 'text-violet-600 hover:bg-violet-50 hover:text-violet-700'
                           : 'text-slate-300 cursor-not-allowed'
-                      }`}
+                        }`}
                       title="AI auto-fill all fields from the name"
                     >
                       {isAutoFilling ? (
@@ -294,9 +290,8 @@ export function CustomDeliverableBuilder({ isOpen, onClose, onSave, editDef, mod
                     const cm = COLOR_MAP[c];
                     return (
                       <button key={c} onClick={() => setColor(c)}
-                        className={`w-8 h-8 rounded-lg ${cm.iconBg} border-2 transition-all ${
-                          color === c ? `${cm.activeBorder} ring-2 ${cm.ring} scale-110` : 'border-transparent hover:scale-105'
-                        }`}
+                        className={`w-8 h-8 rounded-lg ${cm.iconBg} border-2 transition-all ${color === c ? `${cm.activeBorder} ring-2 ${cm.ring} scale-110` : 'border-transparent hover:scale-105'
+                          }`}
                         title={c}
                       />
                     );
@@ -312,9 +307,8 @@ export function CustomDeliverableBuilder({ isOpen, onClose, onSave, editDef, mod
                     const cm = COLOR_MAP[color];
                     return (
                       <button key={i} onClick={() => setIconIdx(i)}
-                        className={`w-9 h-9 rounded-lg ${cm.iconBg} flex items-center justify-center border-2 transition-all ${
-                          iconIdx === i ? `${cm.activeBorder} ring-2 ${cm.ring} scale-110` : 'border-transparent hover:scale-105'
-                        }`}
+                        className={`w-9 h-9 rounded-lg ${cm.iconBg} flex items-center justify-center border-2 transition-all ${iconIdx === i ? `${cm.activeBorder} ring-2 ${cm.ring} scale-110` : 'border-transparent hover:scale-105'
+                          }`}
                         title={ic.label}
                       >
                         <svg className={`w-4 h-4 ${cm.iconText}`} fill="none" stroke="currentColor" viewBox="0 0 24 24">
@@ -336,9 +330,8 @@ export function CustomDeliverableBuilder({ isOpen, onClose, onSave, editDef, mod
                 <div className="flex flex-wrap gap-1.5">
                   {TONE_OPTS.map(opt => (
                     <button key={opt} onClick={() => setTone(tone === opt ? '' : opt)}
-                      className={`px-3 py-1.5 rounded-lg text-[11px] font-medium transition-all ${
-                        tone === opt ? 'bg-indigo-500 text-white shadow-sm' : 'bg-white/60 text-slate-600 border border-slate-200/60 hover:bg-white/90'
-                      }`}>{opt}</button>
+                      className={`px-3 py-1.5 rounded-lg text-[11px] font-medium transition-all ${tone === opt ? 'bg-indigo-500 text-white shadow-sm' : 'bg-white/60 text-slate-600 border border-slate-200/60 hover:bg-white/90'
+                        }`}>{opt}</button>
                   ))}
                 </div>
               </div>
@@ -349,9 +342,8 @@ export function CustomDeliverableBuilder({ isOpen, onClose, onSave, editDef, mod
                 <div className="flex flex-wrap gap-1.5">
                   {STYLE_OPTS.map(opt => (
                     <button key={opt} onClick={() => setStyle(style === opt ? '' : opt)}
-                      className={`px-3 py-1.5 rounded-lg text-[11px] font-medium transition-all ${
-                        style === opt ? 'bg-indigo-500 text-white shadow-sm' : 'bg-white/60 text-slate-600 border border-slate-200/60 hover:bg-white/90'
-                      }`}>{opt}</button>
+                      className={`px-3 py-1.5 rounded-lg text-[11px] font-medium transition-all ${style === opt ? 'bg-indigo-500 text-white shadow-sm' : 'bg-white/60 text-slate-600 border border-slate-200/60 hover:bg-white/90'
+                        }`}>{opt}</button>
                   ))}
                 </div>
               </div>
@@ -362,9 +354,8 @@ export function CustomDeliverableBuilder({ isOpen, onClose, onSave, editDef, mod
                 <div className="flex flex-wrap gap-1.5">
                   {LENGTH_OPTS.map(opt => (
                     <button key={opt} onClick={() => setLength(length === opt ? '' : opt)}
-                      className={`px-3 py-1.5 rounded-lg text-[11px] font-medium transition-all ${
-                        length === opt ? 'bg-indigo-500 text-white shadow-sm' : 'bg-white/60 text-slate-600 border border-slate-200/60 hover:bg-white/90'
-                      }`}>{opt}</button>
+                      className={`px-3 py-1.5 rounded-lg text-[11px] font-medium transition-all ${length === opt ? 'bg-indigo-500 text-white shadow-sm' : 'bg-white/60 text-slate-600 border border-slate-200/60 hover:bg-white/90'
+                        }`}>{opt}</button>
                   ))}
                 </div>
               </div>
@@ -420,9 +411,8 @@ export function CustomDeliverableBuilder({ isOpen, onClose, onSave, editDef, mod
               >Next</button>
             ) : (
               <button onClick={handleSave} disabled={!canSave}
-                className={`px-5 py-2 rounded-lg text-xs font-semibold transition-all ${
-                  canSave ? 'text-white bg-indigo-500 hover:bg-indigo-600 shadow-sm' : 'bg-slate-200 text-slate-400 cursor-not-allowed'
-                }`}
+                className={`px-5 py-2 rounded-lg text-xs font-semibold transition-all ${canSave ? 'text-white bg-indigo-500 hover:bg-indigo-600 shadow-sm' : 'bg-slate-200 text-slate-400 cursor-not-allowed'
+                  }`}
               >{editDef?.id ? 'Save Changes' : 'Create Deliverable'}</button>
             )}
           </div>
@@ -432,10 +422,9 @@ export function CustomDeliverableBuilder({ isOpen, onClose, onSave, editDef, mod
   );
 }
 
-export default function FeatureSelect({ selected, setSelected, onNext, onBack, hasSyllabusFile, modelConfig }) {
+export default function FeatureSelect({ selected, setSelected, onNext, onBack, hasSyllabusFile, modelConfig, onOpenHelp }) {
   const { user } = useAuth();
   const [hoveredId, setHoveredId] = useState(null);
-  const [showHelp, setShowHelp] = useState(false);
   const [showBuilder, setShowBuilder] = useState(false);
   const [editingCustom, setEditingCustom] = useState(null); // custom def being edited
   const [customDeliverables, setCustomDeliverables] = useState(() => listCustomDeliverables());
@@ -512,7 +501,7 @@ export default function FeatureSelect({ selected, setSelected, onNext, onBack, h
           Back
         </button>
         <button
-          onClick={() => setShowHelp(true)}
+          onClick={onOpenHelp}
           className="tactile flex items-center gap-1.5 text-[11px] font-semibold text-slate-400 hover:text-indigo-600 transition-colors"
         >
           <svg className="w-3.5 h-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
@@ -570,22 +559,19 @@ export default function FeatureSelect({ selected, setSelected, onNext, onBack, h
                   onClick={() => toggle(feature.id)}
                   onMouseEnter={() => setHoveredId(feature.id)}
                   onMouseLeave={() => setHoveredId(null)}
-                  className={`tactile group relative text-left rounded-squircle-sm p-4 border-2 transition-all duration-200 ${
-                    isLocked ? 'cursor-default' : ''
-                  } ${
-                    isSelected
+                  className={`tactile group relative text-left rounded-squircle-sm p-4 border-2 transition-all duration-200 ${isLocked ? 'cursor-default' : ''
+                    } ${isSelected
                       ? `${c.activeBg} ${c.activeBorder} shadow-md ring-2 ${c.ring}`
                       : `bg-white/40 ${c.border} hover:bg-white/60 hover:shadow-sm`
-                  }`}
+                    }`}
                 >
                   {/* Checkbox / Lock */}
-                  <div className={`absolute top-3 right-3 w-5 h-5 rounded-md border-2 flex items-center justify-center transition-all duration-200 ${
-                    isLocked
+                  <div className={`absolute top-3 right-3 w-5 h-5 rounded-md border-2 flex items-center justify-center transition-all duration-200 ${isLocked
                       ? `${c.iconBg} ${c.activeBorder}`
                       : isSelected
                         ? `${c.iconBg} ${c.activeBorder}`
                         : 'border-slate-200 bg-white/60'
-                  }`}>
+                    }`}>
                     {isLocked ? (
                       <svg className={`w-3 h-3 ${c.iconText}`} fill="currentColor" viewBox="0 0 20 20">
                         <path fillRule="evenodd" d="M5 9V7a5 5 0 0110 0v2a2 2 0 012 2v5a2 2 0 01-2 2H5a2 2 0 01-2-2v-5a2 2 0 012-2zm8-2v2H7V7a3 3 0 016 0z" clipRule="evenodd" />
@@ -654,9 +640,8 @@ export default function FeatureSelect({ selected, setSelected, onNext, onBack, h
               onMouseLeave={() => setHoveredId(null)}
               className="tactile group relative text-left rounded-squircle-sm p-4 border-2 border-dashed border-slate-300/60 hover:border-indigo-400 hover:bg-indigo-50/30 transition-all duration-200 flex flex-col items-center justify-center min-h-[140px]"
             >
-              <div className={`w-10 h-10 rounded-xl bg-indigo-100/60 flex items-center justify-center mb-3 transition-transform duration-200 ${
-                hoveredId === '__create__' ? 'scale-110' : ''
-              }`}>
+              <div className={`w-10 h-10 rounded-xl bg-indigo-100/60 flex items-center justify-center mb-3 transition-transform duration-200 ${hoveredId === '__create__' ? 'scale-110' : ''
+                }`}>
                 <svg className="w-5 h-5 text-indigo-500" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                   <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 4v16m8-8H4" />
                 </svg>
@@ -673,11 +658,10 @@ export default function FeatureSelect({ selected, setSelected, onNext, onBack, h
             <button
               onClick={onNext}
               disabled={selectedCount === 0}
-              className={`tactile btn-glow px-10 py-4 rounded-squircle-xs font-semibold text-sm tracking-wide transition-all duration-300 ${
-                selectedCount > 0
+              className={`tactile btn-glow px-10 py-4 rounded-squircle-xs font-semibold text-sm tracking-wide transition-all duration-300 ${selectedCount > 0
                   ? 'text-white bg-gradient-to-r from-indigo-500 via-violet-500 to-purple-600 shadow-lg shadow-indigo-500/25 hover:shadow-glow-violet hover:brightness-[1.06]'
                   : 'bg-slate-200 text-slate-400 cursor-not-allowed shadow-none'
-              }`}
+                }`}
             >
               <span className="flex items-center justify-center gap-2.5">
                 Configure & Generate
@@ -700,10 +684,6 @@ export default function FeatureSelect({ selected, setSelected, onNext, onBack, h
           <a href="#/terms" className="hover:text-indigo-500 transition-colors duration-200">Terms</a>
         </div>
       </footer>
-
-      {/* Help Drawer */}
-      <HelpDrawer isOpen={showHelp} onClose={() => setShowHelp(false)} />
-
       {/* Custom Deliverable Builder Modal */}
       <CustomDeliverableBuilder
         isOpen={showBuilder}

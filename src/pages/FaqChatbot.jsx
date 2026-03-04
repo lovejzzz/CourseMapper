@@ -1,6 +1,43 @@
 import React, { useState, useRef, useEffect } from 'react';
 
-const SYSTEM_PROMPT = `You are the Course Mapper Help Assistant — a friendly, knowledgeable chatbot embedded in the Course Mapper website. Your job is to answer questions about how to use Course Mapper clearly and simply, as if explaining to someone who may not be very tech-savvy.
+function getSystemPrompt(courseMap, activeTab) {
+  let contextSection = '';
+
+  if (courseMap) {
+    const courseTitle = courseMap.courseName || 'Untitled Course';
+    const lessons = courseMap.lessons || [];
+    const lessonList = lessons.map((l, i) => `${i + 1}. ${l.title || 'Untitled Lesson'}`).join('\n');
+
+    contextSection = `
+## CURRENT USER CONTEXT (CRITICAL)
+The user is currently actively working on a course inside Course Mapper. YOU MUST ACT AS A PEDAGOGICAL CO-PILOT for this specific course.
+
+**Course Title:** ${courseTitle}
+**Semester/Level:** ${courseMap.semester || 'Not specified'}
+**Number of Lessons:** ${lessons.length}
+
+**Course Outline:**
+${lessonList}
+
+${activeTab ? `**User's Current View:** They are currently looking at the \`${activeTab}\` screen/deliverable.` : ''}
+
+**YOUR DUAL ROLE:**
+1. **Platform Support:** Answer questions about how to use the Course Mapper tool (exporting, editing, adding models, etc.).
+2. **Pro-Level Pedagogical Tutor:** Because you know their course context above, proactively offer to help them brainstorm engaging activities, write better learning objectives, analyze the course for gaps, or explain difficult concepts specific to *their* course subject. If they ask a general teaching question like "Give me an icebreaker," tailor it specifically to the ${courseTitle} curriculum!
+`;
+  } else {
+    contextSection = `
+## CURRENT USER CONTEXT
+The user has not yet created or opened a course. You are in general platform support mode.
+
+**YOUR ROLE:**
+As the Course Mapper Help Assistant, answer questions about how to use the tool, what it does, how to attach an AI API key, and how to get started building their first course.
+`;
+  }
+
+  return `You are the Course Mapper Help Assistant & Pedagogical Tutor — a friendly, highly-knowledgeable AI embedded directly inside the Course Mapper workspace. Your job is to answer questions about the platform AND act as an expert instructional design co-pilot.
+
+${contextSection}
 
 ## What is Course Mapper?
 Course Mapper is a free, browser-based tool that uses AI to transform course descriptions or syllabi into a complete set of teaching materials. It generates a structured Course Map spreadsheet, plus Lesson Plans, Slide Decks, Assignment Briefs, Rubrics, Discussion Prompts, Quiz & Exam Banks, Study Guides, and a Syllabus — all from a single prompt or uploaded document. Everything runs in the browser — no installation needed, no backend server.
@@ -23,9 +60,9 @@ Multiple files can be uploaded at once — the AI combines them all.
 
 ## AI Models
 You need to provide your own API key from one of these providers:
-- **OpenAI:** GPT-4o, GPT-4o-mini, o3, o4-mini. Best for highest quality.
-- **Anthropic:** Claude Sonnet 4, Claude 3.5 Sonnet, Claude 3.5 Haiku. Excellent at structured formatting.
-- **Google:** Gemini 2.5 Pro, Gemini 2.5 Flash, Gemini 2.0 Flash. Best quality with Gemini 2.5 Pro.
+- **OpenAI:** GPT-4o, GPT-4o-mini, o3-mini. Best for highest quality.
+- **Anthropic:** Claude 3.7 Sonnet, Claude 3.5 Haiku. Excellent at structured formatting.
+- **Google:** Gemini 2.5 Pro, Gemini 2.5 Flash. Best quality with Gemini 2.5 Pro.
 
 To get an API key:
 - **OpenAI:** Visit https://platform.openai.com/api-keys
@@ -64,18 +101,28 @@ Below each deliverable, there's a chat box labeled "Ask for revisions." Type req
 ## Important Rules for You
 - Be concise, warm, and helpful. Use simple language.
 - If you don't know something, say so honestly rather than guessing.
-- Only answer questions about Course Mapper. For unrelated questions, politely redirect.
 - Format responses with markdown for readability (bold, lists, etc.).
-- If the user seems confused, offer step-by-step guidance.`;
+- If the user seems confused about pedagogical concepts, offer step-by-step guidance.`;
+}
 
-const SUGGESTED_QUESTIONS = [
-  'How do I get started?',
-  'What deliverables can I generate?',
-  'How do I create a custom deliverable?',
-  'How do I get an API key?',
-  'How do I export to Google Slides?',
-  'Is my data private and secure?',
-];
+function getSuggestedQuestions(courseMap) {
+  if (courseMap) {
+    return [
+      'Can you review my course map for any pedagogical gaps?',
+      'Suggest an engaging active learning activity for Lesson 3.',
+      'How do I export this to Google Docs?',
+      'What other deliverables should I generate for this course?',
+    ];
+  }
+  return [
+    'How do I get started?',
+    'What deliverables can I generate?',
+    'How do I create a custom deliverable?',
+    'How do I get an API key?',
+    'How do I export to Google Slides?',
+    'Is my data private and secure?',
+  ];
+}
 
 // ── Read user's configured API key and provider from localStorage ──
 function getUserConfig() {
@@ -107,8 +154,8 @@ async function streamChat(messages, systemPrompt, signal) {
   // Pick a lightweight model for chat if modelId isn't available
   const chatModel = modelId || (
     provider === 'openai' ? 'gpt-4o-mini' :
-    provider === 'anthropic' ? 'claude-3-5-haiku-20241022' :
-    'gemini-2.0-flash'
+      provider === 'anthropic' ? 'claude-3-5-haiku-20241022' :
+        'gemini-2.0-flash'
   );
 
   if (provider === 'google') {
@@ -201,7 +248,7 @@ async function streamChat(messages, systemPrompt, signal) {
 }
 
 // ── Shared chat engine ──────────────────────────────────────────────────────
-function useHelpChat() {
+function useHelpChat(courseMap, activeTab) {
   const [messages, setMessages] = useState([]);
   const [input, setInput] = useState('');
   const [isStreaming, setIsStreaming] = useState(false);
@@ -219,7 +266,8 @@ function useHelpChat() {
       abortRef.current = controller;
 
       const chatMessages = newMessages.slice(-20);
-      const { reader, parseChunk } = await streamChat(chatMessages, SYSTEM_PROMPT, controller.signal);
+      const systemPrompt = getSystemPrompt(courseMap, activeTab);
+      const { reader, parseChunk } = await streamChat(chatMessages, systemPrompt, controller.signal);
 
       const decoder = new TextDecoder();
       let buffer = '';
@@ -248,7 +296,7 @@ function useHelpChat() {
                 return updated;
               });
             }
-          } catch {}
+          } catch { }
         }
       }
     } catch (err) {
@@ -290,9 +338,11 @@ function useHelpChat() {
 }
 
 // ── Chat UI (shared between full-page and drawer) ───────────────────────────
-function ChatBody({ messages, input, setInput, isStreaming, sendMessage, handleStop, compact = false }) {
+function ChatBody({ messages, input, setInput, isStreaming, sendMessage, handleStop, compact = false, courseMap }) {
   const messagesEndRef = useRef(null);
   const inputRef = useRef(null);
+
+  const suggestedQuestions = getSuggestedQuestions(courseMap);
 
   useEffect(() => {
     messagesEndRef.current?.scrollIntoView({ behavior: 'smooth' });
@@ -324,7 +374,7 @@ function ChatBody({ messages, input, setInput, isStreaming, sendMessage, handleS
               Ask me about features, exporting, editing, AI models, and more.
             </p>
             <div className={`grid ${compact ? 'grid-cols-1 gap-1.5' : 'grid-cols-2 gap-2'} max-w-lg w-full`}>
-              {SUGGESTED_QUESTIONS.map((q, i) => (
+              {suggestedQuestions.map((q, i) => (
                 <button
                   key={i}
                   onClick={() => { sendMessage(q); }}
@@ -386,8 +436,8 @@ function ChatBody({ messages, input, setInput, isStreaming, sendMessage, handleS
 }
 
 // ── HelpDrawer: embeddable slide-over panel ─────────────────────────────────
-export function HelpDrawer({ isOpen, onClose }) {
-  const chat = useHelpChat();
+export function HelpDrawer({ isOpen, onClose, courseMap, activeTab }) {
+  const chat = useHelpChat(courseMap, activeTab);
 
   // Close on Escape
   useEffect(() => {
@@ -429,7 +479,7 @@ export function HelpDrawer({ isOpen, onClose }) {
           </button>
         </div>
         {/* Chat body */}
-        <ChatBody {...chat} compact />
+        <ChatBody {...chat} compact courseMap={courseMap} />
       </div>
     </div>
   );
@@ -437,7 +487,7 @@ export function HelpDrawer({ isOpen, onClose }) {
 
 // ── Full-page FAQ (still used for #/faq route) ──────────────────────────────
 export default function FaqChatbot() {
-  const chat = useHelpChat();
+  const chat = useHelpChat(null, null);
 
   return (
     <div className="min-h-screen mesh-bg noise-overlay flex flex-col">
@@ -450,11 +500,11 @@ export default function FaqChatbot() {
               <div className="absolute -inset-1 bg-gradient-to-br from-indigo-500/20 to-violet-500/20 rounded-2xl blur-lg opacity-0 group-hover:opacity-100 transition-opacity duration-500" />
               <div className="relative w-10 h-10 rounded-[12px] bg-gradient-to-br from-indigo-500 via-violet-500 to-purple-600 flex items-center justify-center shadow-lg shadow-indigo-500/20">
                 <svg className="w-5 h-5 text-white/95" viewBox="0 0 24 24" fill="none">
-                  <path d="M4 5a1 1 0 011-1h14a1 1 0 011 1v2a1 1 0 01-1 1H5a1 1 0 01-1-1V5z" stroke="currentColor" strokeWidth={1.6} strokeLinecap="round"/>
-                  <path d="M4 12a1 1 0 011-1h8a1 1 0 011 1v2a1 1 0 01-1 1H5a1 1 0 01-1-1v-2z" stroke="currentColor" strokeWidth={1.6} strokeLinecap="round"/>
-                  <path d="M4 19a1 1 0 011-1h5a1 1 0 011 1v1a1 1 0 01-1 1H5a1 1 0 01-1-1v-1z" stroke="currentColor" strokeWidth={1.6} strokeLinecap="round"/>
-                  <path d="M19 14l-2 2 2 2" stroke="currentColor" strokeWidth={1.6} strokeLinecap="round" strokeLinejoin="round"/>
-                  <circle cx="18" cy="18" r="1" fill="currentColor" opacity="0.6"/>
+                  <path d="M4 5a1 1 0 011-1h14a1 1 0 011 1v2a1 1 0 01-1 1H5a1 1 0 01-1-1V5z" stroke="currentColor" strokeWidth={1.6} strokeLinecap="round" />
+                  <path d="M4 12a1 1 0 011-1h8a1 1 0 011 1v2a1 1 0 01-1 1H5a1 1 0 01-1-1v-2z" stroke="currentColor" strokeWidth={1.6} strokeLinecap="round" />
+                  <path d="M4 19a1 1 0 011-1h5a1 1 0 011 1v1a1 1 0 01-1 1H5a1 1 0 01-1-1v-1z" stroke="currentColor" strokeWidth={1.6} strokeLinecap="round" />
+                  <path d="M19 14l-2 2 2 2" stroke="currentColor" strokeWidth={1.6} strokeLinecap="round" strokeLinejoin="round" />
+                  <circle cx="18" cy="18" r="1" fill="currentColor" opacity="0.6" />
                 </svg>
               </div>
             </a>
@@ -481,7 +531,7 @@ export default function FaqChatbot() {
 
       {/* Chat area */}
       <main className="flex-1 max-w-4xl mx-auto w-full px-4 pb-4 flex flex-col min-h-0">
-        <ChatBody {...chat} />
+        <ChatBody {...chat} courseMap={null} />
       </main>
       <footer className="max-w-4xl mx-auto px-8 py-3 text-center">
         <p className="text-[10px] text-slate-300/70">

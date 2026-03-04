@@ -23,6 +23,7 @@ import { FEATURES, CustomDeliverableBuilder } from './screens/FeatureSelect';
 import { listCustomDeliverables, toFeatureEntry, saveCustomDeliverable, mergeCloudDeliverables } from './lib/customDeliverableLibrary';
 import { mergeCloudProfile } from './lib/professorProfile';
 import { useAuth } from './contexts/AuthContext';
+import { HelpDrawer } from './pages/FaqChatbot';
 import { saveProject as cloudSaveProject, loadProject as cloudLoadProject, loadProjectDeliverables, newProjectId } from './lib/cloudStorage';
 import ProjectPicker from './components/ProjectPicker';
 import DeliverableView from './components/DeliverableView';
@@ -128,6 +129,7 @@ export default function App() {
   const [selectedFeatures, setSelectedFeatures] = useState(['courseMap']);
   const [promptText, setPromptText] = useState('');
   const [hasSavedSession, setHasSavedSession] = useState(false);
+  const [showHelp, setShowHelp] = useState(false);
   const [lessonScope, setLessonScope] = useState({ type: 'all' });
   const [deliverableConfig, setDeliverableConfig] = useState({});
   const [slideTheme, setSlideTheme] = useState(null); // null = auto-rotate, 0-4 = specific theme
@@ -825,6 +827,7 @@ export default function App() {
         onBack={() => setScreen('landing')}
         onNext={() => setScreen('config')}
         modelConfig={{ provider, apiKey, modelId }}
+        onOpenHelp={() => setShowHelp(true)}
       />
     );
   }
@@ -846,6 +849,7 @@ export default function App() {
         onBack={() => setScreen('features')}
         onGenerate={onGenerate}
         canGenerate={canGenerate}
+        onOpenHelp={() => setShowHelp(true)}
       />
     );
   }
@@ -1413,6 +1417,15 @@ export default function App() {
           }
         }}
       />
+
+      {/* Global Help Drawer */}
+      <HelpDrawer
+        isOpen={showHelp}
+        onClose={() => setShowHelp(false)}
+        courseMap={courseMap}
+        activeTab={activeTab}
+      />
+
     </div>
   );
 }

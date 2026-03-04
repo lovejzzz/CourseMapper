@@ -148,7 +148,7 @@ Five pedagogical frameworks that shape all generated content:
 ### Productivity
 
 - **Command Palette (Cmd+K)** — Quick-access to any action via fuzzy search
-- **Help chatbot** — In-app AI assistant (Gemini-powered) covering all features
+- **Pro-Level AI Tutor** — In-app AI assistant (Gemini/Claude/OpenAI powered) that recognizes your current course map, lesson count, and active tab to provide highly contextual pedagogical advice (e.g., "Suggest an icebreaker for Lesson 3").
 - **Stop & Resume** — Pause generation at any time, resume from exactly where it stopped
 - **Browser notifications** — Get notified when generation completes
 - **Student view toggle** — Preview deliverables as students would see them (hides instructor notes)
