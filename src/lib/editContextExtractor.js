@@ -41,13 +41,15 @@ function pathToLabel(path) {
 
   return fieldParts.map((seg, i) => {
     if (typeof seg === 'number') {
-      // Array index — attach to previous as [n]
+      // Array index — attach to previous as [n] WITHOUT a space
       return `[${seg}]`;
     }
     // Camel-case to space-separated label
     const label = String(seg).replace(/([A-Z])/g, ' $1').replace(/^./, s => s.toLowerCase()).trim();
-    return i === 0 ? label : ` ${label}`;
-  }).join('').replace(/\s+/g, ' ').trim();
+    // If previous segment was a number, we need a space before the next property
+    const prevIsNumber = i > 0 && typeof fieldParts[i - 1] === 'number';
+    return i === 0 || prevIsNumber ? ` ${label}` : ` ${label}`;
+  }).join('').replace(/\s+/g, ' ').replace(/ \]/g, ']').replace(/\[ /g, '[').trim();
 }
 
 /**

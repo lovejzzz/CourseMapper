@@ -1,4 +1,4 @@
-import React from 'react';
+import React, { useState, useEffect } from 'react';
 
 /**
  * EditProposalPanel — AI Edit Suggestion Panel
@@ -9,33 +9,44 @@ import React from 'react';
  *
  * The user can:
  *   Insert ✓   — accept the AI revision (merges into the lesson card)
+ *   Edit       — modify the AI suggestion before inserting
  *   Regenerate — ask the AI to try again
  *   × (dismiss) — keep their raw keystroke edit, no AI involvement
  *
  * Props:
  *   proposal       { status: 'streaming'|'ready'|'dismissed', proposedData, editContext }
  *   featureId      string
- *   onInsert       () => void
+ *   onInsert       (editedData) => void
  *   onRegenerate   () => void
  *   onDismiss      () => void
  */
 export default function EditProposalPanel({ proposal, featureId, onInsert, onRegenerate, onDismiss }) {
+  const [isEditing, setIsEditing] = useState(false);
+  const [editedData, setEditedData] = useState(null);
+
+  // When proposal changes to ready, initialize editedData
+  useEffect(() => {
+    if (proposal?.status === 'ready' && proposal?.proposedData && !isEditing) {
+      setEditedData(proposal.proposedData);
+    }
+  }, [proposal?.status, proposal?.proposedData]);
+
   if (!proposal || proposal.status === 'dismissed') return null;
 
   const { status, proposedData, editContext } = proposal;
   const isStreaming = status === 'streaming';
   const isReady = status === 'ready';
 
+  const dataToRender = isEditing ? editedData : proposedData;
+
   return (
-    <div className={`mb-3 rounded-squircle-xs overflow-hidden border transition-all duration-300 ${
-      isStreaming
+    <div className={`mb-3 rounded-squircle-xs overflow-hidden border transition-all duration-300 ${isStreaming
         ? 'border-indigo-200/60 bg-indigo-50/40 animate-pulse-subtle'
         : 'border-amber-200/70 bg-amber-50/40'
-    }`}>
-      {/* ── Header ── */}
-      <div className={`flex items-center gap-2 px-3.5 py-2 border-b ${
-        isStreaming ? 'border-indigo-200/50 bg-indigo-50/60' : 'border-amber-200/50 bg-amber-50/60'
       }`}>
+      {/* ── Header ── */}
+      <div className={`flex items-center gap-2 px-3.5 py-2 border-b ${isStreaming ? 'border-indigo-200/50 bg-indigo-50/60' : 'border-amber-200/50 bg-amber-50/60'
+        }`}>
         {/* Animated dot */}
         {isStreaming ? (
           <span className="relative flex h-2 w-2 flex-shrink-0">
@@ -49,15 +60,13 @@ export default function EditProposalPanel({ proposal, featureId, onInsert, onReg
         )}
 
         <div className="flex-1 min-w-0">
-          <span className={`text-[10px] font-bold uppercase tracking-wide ${
-            isStreaming ? 'text-indigo-600' : 'text-amber-700'
-          }`}>
+          <span className={`text-[10px] font-bold uppercase tracking-wide ${isStreaming ? 'text-indigo-600' : 'text-amber-700'
+            }`}>
             ✦ AI suggestion
           </span>
           {editContext && (
-            <span className={`ml-1.5 text-[10px] font-normal ${
-              isStreaming ? 'text-indigo-500' : 'text-amber-600'
-            }`}>
+            <span className={`ml-1.5 text-[10px] font-normal ${isStreaming ? 'text-indigo-500' : 'text-amber-600'
+              }`}>
               · {editContext.length > 60 ? editContext.slice(0, 59) + '…' : editContext}
             </span>
           )}
@@ -67,11 +76,10 @@ export default function EditProposalPanel({ proposal, featureId, onInsert, onReg
         <button
           onClick={onDismiss}
           title="Dismiss suggestion (keep your edit)"
-          className={`flex-shrink-0 w-5 h-5 rounded flex items-center justify-center transition-colors ${
-            isStreaming
+          className={`flex-shrink-0 w-5 h-5 rounded flex items-center justify-center transition-colors ${isStreaming
               ? 'text-indigo-400 hover:text-indigo-600 hover:bg-indigo-100/60'
               : 'text-amber-400 hover:text-amber-700 hover:bg-amber-100/60'
-          }`}
+            }`}
         >
           <svg className="w-3 h-3" fill="none" stroke="currentColor" viewBox="0 0 24 24">
             <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2.5} d="M6 18L18 6M6 6l12 12" />
@@ -90,8 +98,27 @@ export default function EditProposalPanel({ proposal, featureId, onInsert, onReg
             </svg>
             <p className="text-[11px] text-indigo-500 italic">AI is writing a revision…</p>
           </div>
-        ) : proposedData ? (
-          <ProposalContent featureId={featureId} data={proposedData} isStreaming={isStreaming} />
+        ) : dataToRender ? (
+          isEditing ? (
+            <div className="w-full">
+              <span className="text-[10px] font-semibold uppercase tracking-wide text-amber-600 mb-1 block">Edit Raw Data (JSON)</span>
+              <textarea
+                className="w-full h-48 p-2 text-[11px] font-mono border border-amber-200/60 rounded-md bg-amber-50/30 focus:outline-none focus:ring-2 focus:ring-amber-400/50 resize-y"
+                value={JSON.stringify(editedData, null, 2)}
+                onChange={(e) => {
+                  try {
+                    setEditedData(JSON.parse(e.target.value));
+                    e.target.setCustomValidity('');
+                  } catch (err) {
+                    // Just let them type even if invalid JSON, but they can't save it properly yet
+                    e.target.setCustomValidity('Invalid JSON');
+                  }
+                }}
+              />
+            </div>
+          ) : (
+            <ProposalContent featureId={featureId} data={dataToRender} isStreaming={isStreaming} />
+          )
         ) : null}
       </div>
 
@@ -99,8 +126,23 @@ export default function EditProposalPanel({ proposal, featureId, onInsert, onReg
       {isReady && (
         <div className={`flex items-center justify-end gap-2 px-3.5 py-2 border-t border-amber-200/40 bg-amber-50/30`}>
           <button
+            onClick={() => setIsEditing(!isEditing)}
+            className={`flex items-center gap-1.5 px-3 py-1.5 rounded-lg text-[11px] font-semibold transition-all ${isEditing
+                ? 'text-amber-700 bg-amber-200/50 hover:bg-amber-300/50'
+                : 'text-slate-500 hover:text-slate-700 hover:bg-slate-100/60 border border-slate-200/60'
+              }`}
+            title={isEditing ? 'View preview' : 'Edit suggestion'}
+          >
+            <svg className="w-3 h-3" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M15.232 5.232l3.536 3.536m-2.036-5.036a2.5 2.5 0 113.536 3.536L6.5 21.036H3v-3.572L16.732 3.732z" />
+            </svg>
+            {isEditing ? 'Preview' : 'Edit'}
+          </button>
+          <button
             onClick={onRegenerate}
-            className="flex items-center gap-1.5 px-3 py-1.5 rounded-lg text-[11px] font-semibold text-slate-500 hover:text-slate-700 hover:bg-slate-100/60 border border-slate-200/60 transition-all"
+            disabled={isEditing}
+            className={`flex items-center gap-1.5 px-3 py-1.5 rounded-lg text-[11px] font-semibold border transition-all ${isEditing ? 'text-slate-300 border-slate-100 opacity-50 cursor-not-allowed' : 'text-slate-500 border-slate-200/60 hover:text-slate-700 hover:bg-slate-100/60'
+              }`}
             title="Ask AI to try again"
           >
             <svg className="w-3 h-3" fill="none" stroke="currentColor" viewBox="0 0 24 24">
@@ -109,7 +151,21 @@ export default function EditProposalPanel({ proposal, featureId, onInsert, onReg
             Regenerate
           </button>
           <button
-            onClick={onInsert}
+            onClick={() => {
+              // Get the textarea value if currently editing to ensure we capture the latest valid JSON
+              if (isEditing) {
+                const textarea = document.querySelector('textarea');
+                if (textarea && textarea.checkValidity()) {
+                  try {
+                    const latestData = JSON.parse(textarea.value);
+                    setEditedData(latestData);
+                    onInsert(latestData);
+                    return;
+                  } catch (e) { }
+                }
+              }
+              onInsert(editedData);
+            }}
             className="flex items-center gap-1.5 px-4 py-1.5 rounded-lg text-[11px] font-bold text-white bg-emerald-500 hover:bg-emerald-600 shadow-sm transition-all"
             title="Replace this lesson with the AI revision"
           >

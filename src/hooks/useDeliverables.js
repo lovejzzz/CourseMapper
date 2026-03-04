@@ -698,22 +698,34 @@ export default function useDeliverables({ provider, modelId, apiKey, maxOutputTo
       const extractLessonNum = (item) => {
         const title = item?.lessonTitle || item?.title || item?.lesson || '';
         const m = title.match(/(?:Lesson|Week)\s*(\d+)/i);
-        return m ? parseInt(m[1], 10) : null;
+        if (m) return parseInt(m[1], 10);
+        // For per-assessment items (assignments/rubrics), check relatedLessons/lessonNumber
+        const related = item?.relatedLessons || item?.relatedLesson || '';
+        const relM = String(related).match(/(\d+)/g);
+        if (relM && relM.length > 0) return parseInt(relM[0], 10);
+        if (item?.lessonNumber) return parseInt(item.lessonNumber, 10);
+        if (item?.week) return parseInt(item.week, 10);
+        return null;
       };
 
       // Coverage retry is allowed for all deliverables, including rubrics/assignments.
       // For per-assessment deliverables, it only fires when specific lesson numbers ARE
-      // present in the output (coveredLessons.size > 0) and some are missing.
+      // present in the output (coveredSet.size > 0) and some are missing.
       if (mergedArr.length > 0 && expectedCount > 1) {
         const coveredSet = new Set();
         mergedArr.forEach(item => {
+          // Check multiple fields for lesson number
           const num = extractLessonNum(item);
           if (num !== null) coveredSet.add(num);
+          // Catch additional related lessons for assignments that span multiple weeks
+          const related = item?.relatedLessons || item?.relatedLesson || '';
+          const relM = String(related).match(/(\d+)/g);
+          if (relM) relM.forEach(n => coveredSet.add(parseInt(n, 10)));
         });
         const missingLessons = Array.from({ length: expectedCount }, (_, i) => i + 1)
           .filter(n => !coveredSet.has(n));
 
-        if (missingLessons.length > 0 && missingLessons.length <= 5) {
+        if (coveredSet.size > 0 && missingLessons.length > 0 && missingLessons.length <= 8) {
           const label = getFeatureLabel(fid);
           console.warn(`[CM] ${fid}: coverage retry — ${missingLessons.length} lesson(s) missing: ${missingLessons.join(', ')}`);
           appendLog(`⚠ ${label}: retrying missing lesson(s): ${missingLessons.join(', ')}`, 'warn');
@@ -768,13 +780,41 @@ export default function useDeliverables({ provider, modelId, apiKey, maxOutputTo
             } catch (err) {
               if (err.name !== 'AbortError') {
                 console.error(`[CM] ✗ ${retryLabel}: ${err.message}`);
+                // Bubble up API exhaustion/rate limit errors so the UI can show them
+                if (err.message.toLowerCase().includes('429') || err.message.toLowerCase().includes('quota') || err.message.toLowerCase().includes('budget')) {
+                  // throw to be caught by the outer loop
+                  throw err;
+                }
               }
             } finally {
               abortMapRef.current.delete(retryAbortKey);
             }
           }));
 
-          await Promise.allSettled(retryPromises);
+          const results = await Promise.allSettled(retryPromises);
+
+          let retryError = null;
+          for (const result of results) {
+            if (result.status === 'rejected' && result.reason) {
+              retryError = result.reason;
+              break;
+            }
+          }
+
+          if (retryError) {
+            console.error(`[CM] ${fid} coverage retry aborted due to API error:`, retryError.message);
+            dispatch(actions.setDeliverableError(fid, 'API budget exhausted or rate limit hit during retry.'));
+            setProgress(prev => ({
+              ...prev,
+              perFeature: {
+                ...prev.perFeature,
+                [fid]: { ...prev.perFeature[fid], status: 'error' },
+              },
+            }));
+            // Stop processing this feature so we don't mark it as done
+            return;
+          }
+
           merged = mergeChunkResults(fid, chunkResults[fid]);
           mergedArr = merged && arrayKey ? (merged[arrayKey] || []) : [];
         }
