@@ -656,20 +656,88 @@ export default function useDeliverables({ provider, modelId, apiKey, maxOutputTo
         }
       }
 
+      // ── Coverage-based retry: retry specific missing lessons even if count is met ──
+      // e.g., rubrics may have 14 items (above adjustedExpected=9) but lesson 7 is
+      // missing because GPT merged lessons in one chunk. Detect and retry missing ones.
+      const extractLessonNum = (item) => {
+        const title = item?.lessonTitle || item?.title || item?.lesson || '';
+        const m = title.match(/(?:Lesson|Week)\s*(\d+)/i);
+        return m ? parseInt(m[1], 10) : null;
+      };
+
+      if (mergedArr.length > 0 && expectedCount > 1 && !isPerAssessment) {
+        const coveredSet = new Set();
+        mergedArr.forEach(item => {
+          const num = extractLessonNum(item);
+          if (num !== null) coveredSet.add(num);
+        });
+        const missingLessons = Array.from({ length: expectedCount }, (_, i) => i + 1)
+          .filter(n => !coveredSet.has(n));
+
+        if (missingLessons.length > 0 && missingLessons.length <= 5) {
+          const label = getFeatureLabel(fid);
+          console.warn(`[CM] ${fid}: coverage retry — ${missingLessons.length} lesson(s) missing: ${missingLessons.join(', ')}`);
+          appendLog(`⚠ ${label}: retrying missing lesson(s): ${missingLessons.join(', ')}`, 'warn');
+
+          const missingIndices = missingLessons.map(n => n - 1); // 0-based
+          const retryLimit = pLimit(MAX_CONCURRENT);
+          const retryPromises = missingIndices.map((idx) => retryLimit(async () => {
+            const retryChunkIndex = chunks.size + 500 + idx;
+            const retryLabel = `${label} coverage-retry [${idx + 1}]`;
+            appendLog(`Retrying ${retryLabel}...`, 'progress');
+
+            const config = deliverableConfigRef.current?.[fid] || {};
+            const prompts = getDeliverablePrompt(
+              fid, courseMap, [idx], config,
+              pedagogicalModeRef.current, examChangesRef.current, null,
+              columnsRef.current, deliverableConfigRef.current,
+            );
+            if (!prompts) return;
+
+            const controller = new AbortController();
+            const retryAbortKey = `${fid}:covretry${idx}`;
+            abortMapRef.current.set(retryAbortKey, controller);
+
+            try {
+              let fullText = '';
+              const result = await streamProvider(
+                provider, apiKey, modelId,
+                prompts.systemPrompt, prompts.userPrompt,
+                { maxOutputTokens, onChunk: (t) => { fullText = t; }, maxRetries: 3, signal: controller.signal }
+              );
+              const text = result?.fullText || fullText;
+              const parsed = parsePartialJSON(text);
+              if (parsed) {
+                chunkResults[fid].set(retryChunkIndex, parsed);
+                const _rk = getArrayKey(fid, parsed);
+                const _ritems = _rk ? (parsed[_rk] || []) : [];
+                console.log(`[CM] ✓ ${retryLabel}: parsed ${_ritems.length} items`);
+                appendLog(`✓ ${retryLabel} complete`, 'done');
+              } else {
+                console.warn(`[CM] ✗ ${retryLabel}: parse failed`);
+              }
+            } catch (err) {
+              if (err.name !== 'AbortError') {
+                console.error(`[CM] ✗ ${retryLabel}: ${err.message}`);
+              }
+            } finally {
+              abortMapRef.current.delete(retryAbortKey);
+            }
+          }));
+
+          await Promise.allSettled(retryPromises);
+          merged = mergeChunkResults(fid, chunkResults[fid]);
+          mergedArr = merged && arrayKey ? (merged[arrayKey] || []) : [];
+        }
+      }
+
       // ── Post-retry: sort items by lesson number ──
-      // Retried items get appended after initial batch, causing out-of-order
-      // lesson numbering (e.g., 5,6,9,…,1,2,3…). Sort by extracted lesson number.
       if (mergedArr.length > 1) {
-        const extractLessonNum = (item) => {
-          const title = item?.lessonTitle || item?.title || item?.lesson || '';
-          const m = title.match(/(?:Lesson|Week)\s*(\d+)/i);
-          return m ? parseInt(m[1], 10) : 9999;
-        };
         const wasSorted = mergedArr.every((item, i) =>
-          i === 0 || extractLessonNum(mergedArr[i - 1]) <= extractLessonNum(item)
+          i === 0 || (extractLessonNum(mergedArr[i - 1]) || 0) <= (extractLessonNum(item) || 0)
         );
         if (!wasSorted) {
-          mergedArr.sort((a, b) => extractLessonNum(a) - extractLessonNum(b));
+          mergedArr.sort((a, b) => (extractLessonNum(a) || 9999) - (extractLessonNum(b) || 9999));
           if (arrayKey && merged) {
             merged = { ...merged, [arrayKey]: mergedArr };
           }
@@ -681,13 +749,22 @@ export default function useDeliverables({ provider, modelId, apiKey, maxOutputTo
       if (mergedArr.length > 0 && expectedCount > 1) {
         const coveredLessons = new Set();
         mergedArr.forEach(item => {
-          const title = item?.lessonTitle || item?.title || item?.lesson || '';
-          const m = title.match(/(?:Lesson|Week)\s*(\d+)/i);
-          if (m) coveredLessons.add(parseInt(m[1], 10));
+          // Check multiple fields for lesson number
+          const num = extractLessonNum(item);
+          if (num !== null) { coveredLessons.add(num); return; }
+          // For per-assessment items (assignments), check relatedLessons/lessonNumber
+          const related = item?.relatedLessons || item?.relatedLesson || '';
+          const relM = String(related).match(/(\d+)/g);
+          if (relM) relM.forEach(n => coveredLessons.add(parseInt(n, 10)));
+          if (item?.lessonNumber) coveredLessons.add(parseInt(item.lessonNumber, 10));
+          if (item?.week) coveredLessons.add(parseInt(item.week, 10));
         });
         const allExpected = Array.from({ length: expectedCount }, (_, i) => i + 1);
         const missing = allExpected.filter(n => !coveredLessons.has(n));
-        if (missing.length > 0) {
+        if (coveredLessons.size === 0 && isPerAssessment) {
+          // Per-assessment items (assignments) may not have lesson numbers — skip warning
+          console.log(`[CM] ${fid}: ${mergedArr.length} items (per-assessment, lesson coverage N/A)`);
+        } else if (missing.length > 0) {
           console.warn(`[CM] ${fid}: MISSING lessons in output: ${missing.join(', ')} (have ${coveredLessons.size}/${expectedCount})`);
           appendLog(`⚠ ${getFeatureLabel(fid)}: lessons ${missing.join(', ')} not found in output`, 'warn');
         } else {
