@@ -97,7 +97,7 @@ function addProgressDots(pptx, slide, theme, slideIndex, totalSlides, isDark) {
     slide.addShape(pptx.ShapeType.ellipse, {
       x: startX + i * dotGap, y: y - dotR, w: dotR * 2, h: dotR * 2,
       fill: { color: isCurrent ? theme.accent : (isDark ? 'FFFFFF' : theme.primary), transparency: isCurrent ? 0 : 70 },
-      line: { color: 'transparent' },
+      line: { width: 0 },
       altText: isCurrent ? `Current slide ${slideIndex + 1} of ${totalSlides}` : 'Decorative',
     });
   }
@@ -788,7 +788,7 @@ function buildSlideForDeck(pptx, deck, theme, slideIndex, totalSlides) {
           },
         }));
         slide.addText(leftText, {
-          x: 0.45, y: 1.2, w: (W - 1.0) / 2,  h: H - 1.6,
+          x: 0.45, y: 1.2, w: (W - 1.0) / 2, h: H - 1.6,
           fontFace: FONT_BODY, valign: 'top',
         });
 
