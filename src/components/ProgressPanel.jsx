@@ -243,8 +243,10 @@ export default function ProgressPanel({
   const everythingDone = isDone && allDelivDone;
 
   // Auto-collapse when fully done (with a short delay for the user to see the final state)
+  // BUT stay expanded if there are pending exam suggestions awaiting user decision
+  const hasPendingSuggestions = pendingExamPatches && pendingExamPatches.patches?.length > 0;
   useEffect(() => {
-    if (everythingDone && !prevAllDoneRef.current) {
+    if (everythingDone && !prevAllDoneRef.current && !hasPendingSuggestions) {
       prevAllDoneRef.current = true;
       const t = setTimeout(() => setSummaryCollapsed(true), 2200);
       return () => clearTimeout(t);
@@ -253,7 +255,7 @@ export default function ProgressPanel({
       prevAllDoneRef.current = false;
       setSummaryCollapsed(false);
     }
-  }, [everythingDone]);
+  }, [everythingDone, hasPendingSuggestions]);
 
   // Auto-expand when cascade sync starts (so user can see what's updating)
   const prevIsSyncingRef = useRef(false);
