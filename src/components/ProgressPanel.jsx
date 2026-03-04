@@ -585,7 +585,11 @@ export default function ProgressPanel({
                           {combined.map((entry, i) => {
                             const isSyncEntry = entry._origin === 'sync';
                             const syncIcon = entry._syncType === 'done' ? 'done' : entry._syncType === 'error' ? 'error' : 'progress';
-                            const entryType = isSyncEntry ? syncIcon : (entry.type || 'info');
+                            let entryType = isSyncEntry ? syncIcon : (entry.type || 'info');
+                            // When all generation is done, stop spinning icons for start/progress entries
+                            if (allDelivDone && !isDelivGenerating && !isSyncing && (entryType === 'start' || entryType === 'progress')) {
+                              entryType = 'done';
+                            }
                             const style = isSyncEntry
                               ? (entry._syncType === 'done' ? { text: 'text-amber-600', bg: 'bg-amber-50/40' }
                                 : entry._syncType === 'error' ? { text: 'text-red-500', bg: 'bg-red-50/40' }
