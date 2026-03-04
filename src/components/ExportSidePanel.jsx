@@ -8,7 +8,7 @@ import {
   FEATURE_LABELS,
 } from '../lib/deliverableExporters';
 import { openTabNow, saveToGoogleSlides } from '../lib/googleDrive';
-import { exportSlideDeckPptx, buildSlideDeckPptxBlob } from '../lib/pptxExporter';
+import { exportSlideDeckPptx, buildSlideDeckPptxBlob } from '../lib/exporters/pptxExporter';
 
 // ── Which formats each deliverable supports ─────────────────────────────────
 // courseMap handled separately via useExport (xlsx, csv, pdf, docx, gsheets, gdocs)

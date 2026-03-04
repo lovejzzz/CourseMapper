@@ -1,5 +1,5 @@
 import React from 'react';
-import { CollapsibleCard, SectionHeading, Badge, StreamingBanner } from './DeliverableView';
+import { CollapsibleCard, SectionHeading, StreamingBanner } from './deliverables/shared/SharedComponents';
 
 // ── Helpers ──
 
@@ -17,180 +17,147 @@ const HEADER_KEYS = new Set(['lessonTitle', 'title', 'name', 'weekNumber', 'week
 /** Short string threshold */
 const SHORT_THRESHOLD = 100;
 
-// ── Render helpers by type ──
+// ── Recursive Renderer ──
 
-function renderStringField(value, label) {
-  if (!value) return null;
-  if (value.length < SHORT_THRESHOLD) {
+/**
+ * Robust, recursive renderer for unpredictable JSON shapes.
+ * Handles deeply nested objects, arrays of objects, and arrays of primitives cleanly.
+ */
+function renderValue(value, label = null, depth = 0) {
+  // 1. Null / Undefined / Empty String
+  if (value == null || value === '') return null;
+
+  // 2. Primitives (String, Number, Boolean)
+  if (typeof value === 'string' || typeof value === 'number' || typeof value === 'boolean') {
+    const isShort = String(value).length < SHORT_THRESHOLD;
+
+    // Depth 0: Top-level primitive field
+    if (depth === 0 && label) {
+      if (isShort) {
+        return (
+          <div key={label} className="mt-4 first:mt-0">
+            <SectionHeading>{label}</SectionHeading>
+            <p className="text-xs text-slate-700 leading-relaxed">{String(value)}</p>
+          </div>
+        );
+      }
+      return (
+        <div key={label} className="mt-4 first:mt-0">
+          <SectionHeading>{label}</SectionHeading>
+          <p className="text-xs text-slate-700 leading-relaxed whitespace-pre-line">{String(value)}</p>
+        </div>
+      );
+    }
+
+    // Depth > 0: Nested primitive field (e.g., inside an object or array)
+    if (label) {
+      if (isShort) {
+        return (
+          <div key={label} className="flex flex-wrap items-baseline gap-1 mt-1">
+            <span className="text-[10px] font-bold text-violet-700 uppercase tracking-wide">{label}:</span>
+            <span className="text-[11px] text-slate-700">{String(value)}</span>
+          </div>
+        );
+      }
+      return (
+        <div key={label} className="mt-2">
+          <span className="text-[10px] font-bold text-violet-700 uppercase tracking-wide">{label}:</span>
+          <p className="text-[11px] text-slate-700 leading-relaxed mt-0.5 whitespace-pre-line border-l-2 border-violet-100 pl-2 ml-1">{String(value)}</p>
+        </div>
+      );
+    }
+
+    // Array element primitive
     return (
-      <div key={label}>
-        <SectionHeading>{label}</SectionHeading>
-        <p className="text-xs text-slate-700 leading-relaxed">{value}</p>
-      </div>
+      <span className="text-[11px] text-slate-700 leading-relaxed">{String(value)}</span>
     );
   }
-  // Long string — render as a section with paragraph
-  return (
-    <div key={label}>
-      <SectionHeading>{label}</SectionHeading>
-      <p className="text-xs text-slate-700 leading-relaxed whitespace-pre-line">{value}</p>
-    </div>
-  );
-}
 
-function renderArrayField(arr, label) {
-  if (!arr || arr.length === 0) return null;
-  const first = arr[0];
+  // 3. Arrays
+  if (Array.isArray(value)) {
+    if (value.length === 0) return null;
 
-  // Array of strings
-  if (typeof first === 'string') {
-    return (
-      <div key={label}>
-        <SectionHeading>{label}</SectionHeading>
-        <ul className="space-y-1">
-          {arr.map((item, j) => (
-            <li key={j} className="text-xs text-slate-700 flex gap-2 leading-relaxed">
-              <span className="text-violet-400 flex-shrink-0">•</span>
-              {item}
-            </li>
-          ))}
-        </ul>
-      </div>
-    );
-  }
+    const isPrimitiveArray = typeof value[0] !== 'object' || value[0] === null;
 
-  // Array of objects — render each as a mini card
-  if (typeof first === 'object' && first !== null) {
-    return (
-      <div key={label}>
-        <SectionHeading>{label}</SectionHeading>
-        <div className="space-y-2">
-          {arr.map((obj, j) => (
-            <div key={j} className="bg-violet-50/40 rounded-lg px-3 py-2 border border-violet-100/50">
-              {renderObjectFields(obj)}
+    // Depth 0 array (Top-level section)
+    if (depth === 0 && label) {
+      return (
+        <div key={label} className="mt-4 first:mt-0">
+          <SectionHeading>{label}</SectionHeading>
+          {isPrimitiveArray ? (
+            <ul className="space-y-1.5 ml-1">
+              {value.map((item, idx) => (
+                <li key={idx} className="flex items-start gap-2">
+                  <span className="text-violet-400 mt-0.5 text-[10px]">●</span>
+                  {renderValue(item, null, depth + 1)}
+                </li>
+              ))}
+            </ul>
+          ) : (
+            <div className="space-y-3 mt-2">
+              {value.map((item, idx) => (
+                <div key={idx} className="bg-slate-50 border border-slate-100 rounded-lg p-3">
+                  {renderValue(item, null, depth + 1)}
+                </div>
+              ))}
             </div>
-          ))}
+          )}
+        </div>
+      );
+    }
+
+    // Depth > 0 array (Nested)
+    return (
+      <div key={label} className="mt-2">
+        {label && <div className="text-[10px] font-bold text-violet-700 uppercase tracking-wide mb-1">{label}:</div>}
+        {isPrimitiveArray ? (
+          <ul className="space-y-1 ml-2">
+            {value.map((item, idx) => (
+              <li key={idx} className="flex items-start gap-1.5">
+                <span className="text-violet-300 mt-0.5 text-[10px]">-</span>
+                {renderValue(item, null, depth + 1)}
+              </li>
+            ))}
+          </ul>
+        ) : (
+          <div className="space-y-2 mt-1 border-l-2 border-violet-100 pl-3 ml-1">
+            {value.map((item, idx) => (
+              <div key={idx} className="bg-white/50 rounded-md p-2">
+                {renderValue(item, null, depth + 1)}
+              </div>
+            ))}
+          </div>
+        )}
+      </div>
+    );
+  }
+
+  // 4. Objects
+  if (typeof value === 'object' && value !== null) {
+    const entries = Object.entries(value).filter(([k, v]) => (!label && depth === 0 ? !HEADER_KEYS.has(k) : true) && v != null && v !== '');
+    if (entries.length === 0) return null;
+
+    // Depth 0 Object
+    if (depth === 0) {
+      return (
+        <div className="space-y-4 pt-2">
+          {entries.map(([k, v]) => renderValue(v, camelToLabel(k), depth))}
+        </div>
+      );
+    }
+
+    // Depth > 0 Object (Nested dictionary)
+    return (
+      <div key={label} className="mt-2">
+        {label && <div className="text-[10px] font-bold text-violet-700 uppercase tracking-wide mb-1.5">{label}</div>}
+        <div className="flex flex-col gap-1.5">
+          {entries.map(([k, v]) => renderValue(v, camelToLabel(k), depth + 1))}
         </div>
       </div>
     );
   }
 
   return null;
-}
-
-/** Render an object's fields as inline key-value pairs */
-function renderObjectFields(obj) {
-  if (!obj || typeof obj !== 'object') return null;
-  const entries = Object.entries(obj).filter(([, v]) => v != null && v !== '');
-
-  return (
-    <div className="space-y-1">
-      {entries.map(([k, v]) => {
-        const label = camelToLabel(k);
-        if (typeof v === 'string') {
-          if (v.length < SHORT_THRESHOLD) {
-            return (
-              <div key={k} className="flex flex-wrap items-baseline gap-1">
-                <span className="text-[10px] font-bold text-violet-700">{label}:</span>
-                <span className="text-[11px] text-slate-600">{v}</span>
-              </div>
-            );
-          }
-          return (
-            <div key={k}>
-              <span className="text-[10px] font-bold text-violet-700">{label}:</span>
-              <p className="text-[11px] text-slate-600 leading-relaxed mt-0.5 whitespace-pre-line">{v}</p>
-            </div>
-          );
-        }
-        if (Array.isArray(v)) {
-          return (
-            <div key={k}>
-              <span className="text-[10px] font-bold text-violet-700">{label}:</span>
-              <ul className="ml-3 mt-0.5 space-y-0.5">
-                {v.map((item, idx) => (
-                  <li key={idx} className="text-[11px] text-slate-600 flex gap-1.5">
-                    <span className="text-violet-300">–</span>
-                    {typeof item === 'string' ? item : JSON.stringify(item)}
-                  </li>
-                ))}
-              </ul>
-            </div>
-          );
-        }
-        if (typeof v === 'number' || typeof v === 'boolean') {
-          return (
-            <div key={k} className="flex flex-wrap items-baseline gap-1">
-              <span className="text-[10px] font-bold text-violet-700">{label}:</span>
-              <span className="text-[11px] text-slate-600">{String(v)}</span>
-            </div>
-          );
-        }
-        return null;
-      })}
-    </div>
-  );
-}
-
-/** Render a single item's content fields (excluding header keys) */
-function renderItemContent(item) {
-  const entries = Object.entries(item).filter(
-    ([k, v]) => !HEADER_KEYS.has(k) && v != null && v !== ''
-  );
-
-  // Separate short strings (badges) from other fields
-  const badges = [];
-  const sections = [];
-
-  for (const [key, value] of entries) {
-    const label = camelToLabel(key);
-    if (typeof value === 'string') {
-      if (value.length < SHORT_THRESHOLD) {
-        badges.push({ key, label, value });
-      } else {
-        sections.push({ key, label, value, type: 'string' });
-      }
-    } else if (Array.isArray(value)) {
-      sections.push({ key, label, value, type: 'array' });
-    } else if (typeof value === 'object' && value !== null) {
-      sections.push({ key, label, value, type: 'object' });
-    } else if (typeof value === 'number' || typeof value === 'boolean') {
-      badges.push({ key, label, value: String(value) });
-    }
-  }
-
-  return (
-    <div className="pt-3 space-y-4">
-      {/* Short string badges at top */}
-      {badges.length > 0 && (
-        <div className="space-y-2">
-          {badges.map(({ key, label, value }) => (
-            <div key={key}>
-              <SectionHeading>{label}</SectionHeading>
-              <p className="text-xs text-slate-700 leading-relaxed">{value}</p>
-            </div>
-          ))}
-        </div>
-      )}
-
-      {/* Longer content sections */}
-      {sections.map(({ key, label, value, type }) => {
-        if (type === 'string') return renderStringField(value, label);
-        if (type === 'array') return renderArrayField(value, label);
-        if (type === 'object') {
-          return (
-            <div key={key}>
-              <SectionHeading>{label}</SectionHeading>
-              <div className="bg-violet-50/30 rounded-lg p-3 border border-violet-100/40">
-                {renderObjectFields(value)}
-              </div>
-            </div>
-          );
-        }
-        return null;
-      })}
-    </div>
-  );
 }
 
 // ── Main Component ──
@@ -210,13 +177,11 @@ export default function GenericDeliverableView({ featureId, data, isStreaming, r
 
   // Find the top-level array in the data object
   let items = null;
-  let arrayKey = null;
 
   if (data) {
-    for (const [k, v] of Object.entries(data)) {
+    for (const v of Object.values(data)) {
       if (Array.isArray(v) && v.length > 0) {
         items = v;
-        arrayKey = k;
         break;
       }
     }
@@ -227,7 +192,7 @@ export default function GenericDeliverableView({ featureId, data, isStreaming, r
     return (
       <div className="space-y-3 p-4">
         <CollapsibleCard title={data.title || data.name || 'Content'} subtitle="" defaultOpen accent="violet">
-          {renderItemContent(data)}
+          {renderValue(data)}
         </CollapsibleCard>
       </div>
     );
@@ -259,7 +224,7 @@ export default function GenericDeliverableView({ featureId, data, isStreaming, r
             regenerating={regeneratingIndex === i}
             onRegenerate={onRegenerateLesson && !isStreaming ? () => onRegenerateLesson(i) : undefined}
           >
-            {renderItemContent(item)}
+            {renderValue(item)}
           </CollapsibleCard>
         );
       })}
