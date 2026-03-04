@@ -467,6 +467,25 @@ export default function useDeliverables({ provider, modelId, apiKey, maxOutputTo
           appendLog(`⚠ ${label}: removed ${oversizedIndices.length} oversized item(s) (>${HARD_CAP_QUESTIONS} questions) — will retry individually`, 'warn');
           merged = { ...merged, [arrayKey]: mergedArr };
         }
+
+        // Enforce consistent question count per lesson: trim to median
+        const qCounts = mergedArr.map(q => q?.questions?.length || 0).filter(c => c > 0);
+        if (qCounts.length > 0) {
+          const sorted = [...qCounts].sort((a, b) => a - b);
+          const targetQ = sorted[Math.floor(sorted.length / 2)]; // median
+          let trimmed = 0;
+          mergedArr = mergedArr.map(quiz => {
+            if (quiz?.questions && quiz.questions.length > targetQ) {
+              trimmed++;
+              return { ...quiz, questions: quiz.questions.slice(0, targetQ) };
+            }
+            return quiz;
+          });
+          if (trimmed > 0) {
+            console.log(`[CM] quizBank: trimmed ${trimmed} lesson(s) to ${targetQ} questions each for consistency`);
+            merged = { ...merged, [arrayKey]: mergedArr };
+          }
+        }
       }
 
       // Per-lesson completeness: for slide decks, detect truncated lessons using dynamic threshold
@@ -634,6 +653,45 @@ export default function useDeliverables({ provider, modelId, apiKey, maxOutputTo
           // Re-merge with retry results
           merged = mergeChunkResults(fid, chunkResults[fid]);
           mergedArr = merged && arrayKey ? (merged[arrayKey] || []) : [];
+        }
+      }
+
+      // ── Post-retry: sort items by lesson number ──
+      // Retried items get appended after initial batch, causing out-of-order
+      // lesson numbering (e.g., 5,6,9,…,1,2,3…). Sort by extracted lesson number.
+      if (mergedArr.length > 1) {
+        const extractLessonNum = (item) => {
+          const title = item?.lessonTitle || item?.title || item?.lesson || '';
+          const m = title.match(/(?:Lesson|Week)\s*(\d+)/i);
+          return m ? parseInt(m[1], 10) : 9999;
+        };
+        const wasSorted = mergedArr.every((item, i) =>
+          i === 0 || extractLessonNum(mergedArr[i - 1]) <= extractLessonNum(item)
+        );
+        if (!wasSorted) {
+          mergedArr.sort((a, b) => extractLessonNum(a) - extractLessonNum(b));
+          if (arrayKey && merged) {
+            merged = { ...merged, [arrayKey]: mergedArr };
+          }
+          console.log(`[CM] ${fid}: sorted items by lesson number`);
+        }
+      }
+
+      // ── Coverage validation: log which lessons are present/missing ──
+      if (mergedArr.length > 0 && expectedCount > 1) {
+        const coveredLessons = new Set();
+        mergedArr.forEach(item => {
+          const title = item?.lessonTitle || item?.title || item?.lesson || '';
+          const m = title.match(/(?:Lesson|Week)\s*(\d+)/i);
+          if (m) coveredLessons.add(parseInt(m[1], 10));
+        });
+        const allExpected = Array.from({ length: expectedCount }, (_, i) => i + 1);
+        const missing = allExpected.filter(n => !coveredLessons.has(n));
+        if (missing.length > 0) {
+          console.warn(`[CM] ${fid}: MISSING lessons in output: ${missing.join(', ')} (have ${coveredLessons.size}/${expectedCount})`);
+          appendLog(`⚠ ${getFeatureLabel(fid)}: lessons ${missing.join(', ')} not found in output`, 'warn');
+        } else {
+          console.log(`[CM] ${fid}: all ${coveredLessons.size} lessons covered ✓`);
         }
       }
 

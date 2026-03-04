@@ -870,6 +870,7 @@ async function createPptxWithDecks(data, courseName, themeIndex) {
   const key = data.decks ? 'decks' : 'slideDecks';
   const decks = (data[key] || []).map((d, i) => ({ ...d, _deckIndex: i }));
 
+  const deckAudit = [];
   for (let di = 0; di < decks.length; di++) {
     const deck = decks[di];
     const theme = resolveTheme(di, themeIndex);
@@ -900,6 +901,22 @@ async function createPptxWithDecks(data, courseName, themeIndex) {
 
     for (let si = 0; si < slides.length; si++) {
       buildSlideForDeck(pptx, deck, theme, si, slides.length);
+    }
+
+    deckAudit.push({ lesson: deck.lessonTitle || `Deck ${di + 1}`, slides: slides.length });
+  }
+
+  // ── Slide deck audit logging ──
+  if (deckAudit.length > 0) {
+    const slideCounts = deckAudit.map(d => d.slides);
+    const totalSlides = slideCounts.reduce((a, b) => a + b, 0);
+    const minSlides = Math.min(...slideCounts);
+    const maxSlides = Math.max(...slideCounts);
+    const median = [...slideCounts].sort((a, b) => a - b)[Math.floor(slideCounts.length / 2)];
+    console.log(`[CM] PPTX audit: ${deckAudit.length} decks, ${totalSlides} total slides (min: ${minSlides}, max: ${maxSlides}, median: ${median})`);
+    const thin = deckAudit.filter(d => d.slides < Math.max(5, Math.floor(median * 0.4)));
+    if (thin.length > 0) {
+      console.warn(`[CM] PPTX: ${thin.length} deck(s) with unusually few slides:`, thin.map(d => `${d.lesson} (${d.slides})`));
     }
   }
 
