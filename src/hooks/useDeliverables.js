@@ -421,6 +421,49 @@ export default function useDeliverables({ provider, modelId, apiKey, maxOutputTo
       const arrayKey = getArrayKey(fid, merged);
       let mergedArr = arrayKey ? (merged[arrayKey] || []) : [];
 
+      // ── Post-merge cleanup: prune near-empty items (parsing artifacts) ──
+      // Items with < 30 words of JSON content are artifacts of failed chunk parsing
+      if (mergedArr.length > 0) {
+        const MIN_ITEM_WORDS = 30;
+        const emptyBefore = mergedArr.length;
+        mergedArr = mergedArr.filter(item => {
+          const content = JSON.stringify(item || {});
+          const wordCount = content.split(/\s+/).length;
+          return wordCount >= MIN_ITEM_WORDS;
+        });
+        if (mergedArr.length < emptyBefore) {
+          const label = getFeatureLabel(fid);
+          appendLog(`⚠ ${label}: pruned ${emptyBefore - mergedArr.length} near-empty item(s)`, 'warn');
+          merged = { ...merged, [arrayKey]: mergedArr };
+        }
+      }
+
+      // ── Post-merge cleanup: detect oversized quiz items ──
+      // When the model merges multiple lessons into one entry (e.g., 35 questions
+      // in a single lesson), remove it so the retry loop regenerates correctly.
+      if (fid === 'quizBank' && mergedArr.length > 0) {
+        const qCounts = mergedArr.map(q => q?.questions?.length || 0).filter(c => c > 0);
+        if (qCounts.length > 1) {
+          const sorted = [...qCounts].sort((a, b) => a - b);
+          const median = sorted[Math.floor(sorted.length / 2)];
+          const maxAllowed = Math.max(10, median * 2.5);
+          const oversized = [];
+          mergedArr = mergedArr.filter((quiz, i) => {
+            const qc = quiz?.questions?.length || 0;
+            if (qc > maxAllowed) {
+              oversized.push(i);
+              return false;
+            }
+            return true;
+          });
+          if (oversized.length > 0) {
+            const label = getFeatureLabel(fid);
+            appendLog(`⚠ ${label}: removed ${oversized.length} oversized item(s) (>${maxAllowed} questions, median ${median}) — will retry`, 'warn');
+            merged = { ...merged, [arrayKey]: mergedArr };
+          }
+        }
+      }
+
       // Per-lesson completeness: for slide decks, detect truncated lessons using dynamic threshold
       if (fid === 'slideDecks' && mergedArr.length > 0) {
         // Dynamic threshold: 50% of median slide count (min 6) to catch partial generations

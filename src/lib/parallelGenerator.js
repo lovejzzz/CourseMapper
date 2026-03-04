@@ -147,17 +147,23 @@ export function mergeChunkResults(featureId, chunkMap) {
     }
   }
 
-  // Deduplicate by lessonTitle — keep the LAST occurrence (retry overrides earlier).
-  // Two-pass approach avoids stale-index bugs from in-place splice.
+  // Deduplicate by lesson number — keep the LAST occurrence (retry overrides earlier).
+  // Normalizes titles like "Lesson 3: Social Work Values & Ethics" to "lesson_3"
+  // so slight title variations between chunks still dedup correctly.
+  const normalizeKey = (item) => {
+    const raw = item?.lessonTitle || item?.title || item?.name || '';
+    const m = raw.match(/(?:Lesson|Week)\s*(\d+)/i);
+    return m ? `lesson_${m[1]}` : raw;
+  };
   const lastSeen = new Map();
   mergedArray.forEach((item, i) => {
-    const key = item?.lessonTitle || item?.title || item?.name;
+    const key = normalizeKey(item);
     if (key) lastSeen.set(key, i);
   });
   if (lastSeen.size < mergedArray.length) {
     const keepSet = new Set(lastSeen.values());
     const deduped = mergedArray.filter((item, i) => {
-      const key = item?.lessonTitle || item?.title || item?.name;
+      const key = normalizeKey(item);
       return !key || keepSet.has(i);
     });
     mergedArray.length = 0;
