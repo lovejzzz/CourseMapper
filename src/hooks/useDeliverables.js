@@ -439,28 +439,25 @@ export default function useDeliverables({ provider, modelId, apiKey, maxOutputTo
       }
 
       // ── Post-merge cleanup: detect oversized quiz items ──
-      // When the model merges multiple lessons into one entry (e.g., 35 questions
+      // When the model merges multiple lessons into one entry (e.g., 36 questions
       // in a single lesson), remove it so the retry loop regenerates correctly.
+      // Uses a hard cap because dynamic thresholds still allow retries to produce
+      // the same oversized result.
       if (fid === 'quizBank' && mergedArr.length > 0) {
-        const qCounts = mergedArr.map(q => q?.questions?.length || 0).filter(c => c > 0);
-        if (qCounts.length > 1) {
-          const sorted = [...qCounts].sort((a, b) => a - b);
-          const median = sorted[Math.floor(sorted.length / 2)];
-          const maxAllowed = Math.max(10, median * 2.5);
-          const oversized = [];
-          mergedArr = mergedArr.filter((quiz, i) => {
-            const qc = quiz?.questions?.length || 0;
-            if (qc > maxAllowed) {
-              oversized.push(i);
-              return false;
-            }
-            return true;
-          });
-          if (oversized.length > 0) {
-            const label = getFeatureLabel(fid);
-            appendLog(`⚠ ${label}: removed ${oversized.length} oversized item(s) (>${maxAllowed} questions, median ${median}) — will retry`, 'warn');
-            merged = { ...merged, [arrayKey]: mergedArr };
+        const HARD_CAP_QUESTIONS = 10;
+        const oversizedIndices = [];
+        mergedArr = mergedArr.filter((quiz, i) => {
+          const qc = quiz?.questions?.length || 0;
+          if (qc > HARD_CAP_QUESTIONS) {
+            oversizedIndices.push(lessonIndices[i] ?? i);
+            return false;
           }
+          return true;
+        });
+        if (oversizedIndices.length > 0) {
+          const label = getFeatureLabel(fid);
+          appendLog(`⚠ ${label}: removed ${oversizedIndices.length} oversized item(s) (>${HARD_CAP_QUESTIONS} questions) — will retry individually`, 'warn');
+          merged = { ...merged, [arrayKey]: mergedArr };
         }
       }
 
@@ -548,7 +545,8 @@ export default function useDeliverables({ provider, modelId, apiKey, maxOutputTo
           appendLog(`⚠ ${label}: ${mergedArr.length}/${expectedCount} items — retrying ${missing.length} missing (round ${retryRound})`, 'warn');
 
           // Create retry tasks — use smaller chunks to reduce token pressure on retries
-          const retryChunkSize = Math.max(2, Math.floor(CHUNK_SIZE / 2));
+          // Quiz bank uses individual lessons (size 1) to prevent model from merging
+          const retryChunkSize = fid === 'quizBank' ? 1 : Math.max(2, Math.floor(CHUNK_SIZE / 2));
           const retryChunks = chunkArray(missing, retryChunkSize);
           const retryLimit = pLimit(MAX_CONCURRENT);
           const retryPromises = retryChunks.map((retryScope, idx) => retryLimit(async () => {
