@@ -73,6 +73,10 @@ export default function useStreamReader() {
       }
       const quoteCount = (patched.match(/(?<!\\)"/g) || []).length;
       if (quoteCount % 2 !== 0) patched += '"';
+      // Strip trailing commas before closing brackets (common in truncated JSON)
+      patched = patched.replace(/,\s*$/gm, '');
+      // Remove incomplete key-value pair at end (e.g. "key": or "key":  )
+      patched = patched.replace(/,\s*"[^"]*"\s*:\s*$/m, '');
       const opens = [];
       for (const ch of patched) {
         if (ch === '{' || ch === '[') opens.push(ch);
@@ -126,7 +130,8 @@ export default function useStreamReader() {
         if (!response.ok) {
           const errData = await response.json().catch(() => ({}));
           const msg = errData.error?.message || errData.error || `API error: ${response.status}`;
-          throw new Error(msg);
+          console.error(`[CM] API ${response.status} error:`, JSON.stringify(errData).slice(0, 500));
+          throw new Error(`${msg} [${response.status}]`);
         }
 
         const reader = response.body.getReader();
@@ -379,8 +384,10 @@ export async function fetchModelsFromProvider(provider, apiKey) {
     if (isVertexKey(apiKey)) {
       const testRes = await fetch(
         `https://aiplatform.googleapis.com/v1/publishers/google/models/gemini-2.5-flash:countTokens?key=${apiKey}`,
-        { method: 'POST', headers: { 'Content-Type': 'application/json' },
-          body: JSON.stringify({ contents: [{ parts: [{ text: 'test' }] }] }) }
+        {
+          method: 'POST', headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({ contents: [{ parts: [{ text: 'test' }] }] })
+        }
       );
       if (!testRes.ok) throw new Error('Invalid API key');
       return VERTEX_MODELS;
@@ -420,6 +427,7 @@ function isRetryableError(err) {
     msg.includes('socket hang up') ||
     msg.includes('429') ||
     msg.includes('rate') ||
+    msg.includes('overloaded') ||
     msg.includes('502') ||
     msg.includes('503') ||
     msg.includes('529')

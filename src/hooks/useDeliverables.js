@@ -592,6 +592,10 @@ export default function useDeliverables({ provider, modelId, apiKey, maxOutputTo
             );
             if (!prompts) return;
 
+            const _sysLen = prompts.systemPrompt?.length || 0;
+            const _usrLen = prompts.userPrompt?.length || 0;
+            console.log(`[CM] ${retryLabel}: prompt sizes — system: ${_sysLen} chars (~${Math.round(_sysLen / 4)} tokens), user: ${_usrLen} chars (~${Math.round(_usrLen / 4)} tokens), total: ~${Math.round((_sysLen + _usrLen) / 4)} tokens`);
+
             const controller = new AbortController();
             const retryAbortKey = `${fid}:retry${retryChunkIndex}`;
             abortMapRef.current.set(retryAbortKey, controller);
@@ -601,7 +605,7 @@ export default function useDeliverables({ provider, modelId, apiKey, maxOutputTo
               const result = await streamProvider(
                 provider, apiKey, modelId,
                 prompts.systemPrompt, prompts.userPrompt,
-                { maxOutputTokens, onChunk: (t) => { fullText = t; }, maxRetries: 2, signal: controller.signal }
+                { maxOutputTokens, onChunk: (t) => { fullText = t; }, maxRetries: 3, signal: controller.signal }
               );
               const text = result?.fullText || fullText;
               const parsed = parsePartialJSON(text);
@@ -617,6 +621,7 @@ export default function useDeliverables({ provider, modelId, apiKey, maxOutputTo
               }
             } catch (err) {
               if (err.name !== 'AbortError') {
+                console.error(`[CM] ✗ ${retryLabel}: ${err.message}`);
                 appendLog(`✗ ${retryLabel}: ${err.message}`, 'error');
               }
             } finally {
