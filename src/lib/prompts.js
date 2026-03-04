@@ -73,10 +73,13 @@ SEMESTER FIELD RULES (read carefully):
 - The semester field refers to the ACADEMIC TERM, not course duration. Never suggest a lesson count or duration (like "15-week course" or "14-week undergraduate") as a semester value.
 - Course length/duration information (e.g., "15-week course") belongs in the course description, NOT the semester field.`;
 
-export function buildExamineUserPrompt(courseMap, syllabusText) {
+export function buildExamineUserPrompt(courseMap, syllabusText, scopeIndices = null) {
+  const scopeNote = Array.isArray(scopeIndices) && scopeIndices.length > 0
+    ? `\n\n⚠️ SCOPE CONSTRAINT: The instructor intentionally selected ONLY ${scopeIndices.length} lesson(s) to generate (lessons ${scopeIndices.map(i => i + 1).join(', ')}). Do NOT suggest adding lessons outside this scope. Do NOT flag missing lessons that are outside the selected scope. Only examine the lessons present in the course map.`
+    : '';
   return `Here is the Course Map to examine:\n\n${JSON.stringify(courseMap)}${
     syllabusText ? `\n\nHere is the original syllabus/course material for reference:\n\n${syllabusText.slice(0, 30000)}` : ''
-  }\n\nExamine this course map thoroughly. Return ONLY a JSON patches object for cells that need fixing. If nothing needs fixing, return {"patches": []}:`;
+  }${scopeNote}\n\nExamine this course map thoroughly. Return ONLY a JSON patches object for cells that need fixing. If nothing needs fixing, return {"patches": []}:`;
 }
 
 export const REVISION_SYSTEM_PROMPT = `You are an expert instructional designer assistant. You have previously generated a Course Map (provided as JSON). You are now chatting with the user about it.

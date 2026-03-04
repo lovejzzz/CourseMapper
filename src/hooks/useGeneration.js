@@ -162,13 +162,16 @@ export default function useGeneration({
     const preExamineMap = structuredClone(finalResult);
     setOldCourseMap(preExamineMap);
 
+    // Resolve lesson scope so the examiner knows which lessons are in scope
+    const scopeIndices = Array.isArray(lessonScope) ? lessonScope : null;
+
     // Use whichever model actually succeeded during generation
     const examProvider = workingModelRef.current.provider || provider;
     const examApiKey = workingModelRef.current.apiKey || apiKey;
     const examModelId = workingModelRef.current.modelId || modelId;
 
     try {
-      const examUserPrompt = buildExamineUserPrompt(finalResult, syllabusTextRef.current);
+      const examUserPrompt = buildExamineUserPrompt(finalResult, syllabusTextRef.current, scopeIndices);
       const { fullText: examineText } = await streamProvider(examProvider, examApiKey, examModelId, EXAMINE_SYSTEM_PROMPT, examUserPrompt, {
         maxOutputTokens,
         onChunk: (text) => {
@@ -189,8 +192,25 @@ export default function useGeneration({
       const patchResult = parsePartialJSON(examineText);
 
       if (patchResult && Array.isArray(patchResult.patches) && patchResult.patches.length > 0) {
+        // ── Filter out addLesson patches that target lessons outside the user's selected scope ──
+        let filteredPatches = patchResult.patches;
+        if (scopeIndices && scopeIndices.length > 0) {
+          const scopeSet = new Set(scopeIndices);
+          const maxScopeIdx = Math.max(...scopeIndices);
+          filteredPatches = patchResult.patches.filter(p => {
+            if (p.action === 'addLesson') {
+              const targetIdx = p.lessonIndex ?? (finalResult.lessons?.length || 0);
+              return targetIdx <= maxScopeIdx && scopeSet.has(targetIdx);
+            }
+            return true;
+          });
+        }
+        if (filteredPatches.length === 0) {
+          setOldCourseMap(null);
+          return;
+        }
         // ── Store as pending — do NOT apply; wait for instructor review ──
-        setPendingExamPatches({ patches: patchResult.patches, baseMap: finalResult });
+        setPendingExamPatches({ patches: filteredPatches, baseMap: finalResult });
         setOldCourseMap(null); // clear diff highlight — review UI handles this
       } else if (patchResult && patchResult.lessons) {
         // Fallback: AI returned a full course map instead of patches
