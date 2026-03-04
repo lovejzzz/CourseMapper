@@ -300,6 +300,9 @@ export default function useDeliverables({ provider, modelId, apiKey, maxOutputTo
 
           // Store chunk result
           chunkResults[featureId].set(chunkIndex, parsed);
+          const _k = getArrayKey(featureId, parsed);
+          const _items = _k ? (parsed[_k] || []) : [];
+          console.log(`[CM] ✓ ${chunkLabel}: parsed ${_items.length} items`, _items.map(it => ({ title: it?.lessonTitle || it?.title || '?', items: it?.questions?.length || it?.slides?.length || '–' })));
 
           // For whole-course features, dispatch done immediately
           if (isWholeCourse) {
@@ -324,6 +327,7 @@ export default function useDeliverables({ provider, modelId, apiKey, maxOutputTo
           appendLog(`✓ ${chunkLabel} — ${itemCount} item${itemCount !== 1 ? 's' : ''}${tokenDesc} (${durStr})`, 'done');
         } else {
           appendLog(`⚠ ${chunkLabel}: AI response could not be parsed (lessons ${chunkScope ? chunkScope.map(i => i + 1).join(', ') : '?'})`, 'warn');
+          console.warn(`[CM] ✗ ${chunkLabel}: PARSE FAILED. Response length: ${text?.length || 0} chars. First 500 chars:`, text?.slice(0, 500));
         }
       } catch (err) {
         if (err.name === 'AbortError') {
@@ -410,6 +414,7 @@ export default function useDeliverables({ provider, modelId, apiKey, maxOutputTo
       }
 
       // Merge chunks
+      console.log(`[CM] ── MERGE ${fid} ──`, { chunkCount: chunks.size, chunkKeys: [...chunks.keys()] });
       let merged = mergeChunkResults(fid, chunks);
       if (!merged) {
         dispatch(actions.setDeliverableError(fid, 'Failed to merge chunks'));
@@ -420,6 +425,7 @@ export default function useDeliverables({ provider, modelId, apiKey, maxOutputTo
       const expectedCount = lessonIndices.length;
       const arrayKey = getArrayKey(fid, merged);
       let mergedArr = arrayKey ? (merged[arrayKey] || []) : [];
+      console.log(`[CM] ${fid}: merged ${mergedArr.length}/${expectedCount} items (key: ${arrayKey})`, mergedArr.map(it => ({ title: it?.lessonTitle || it?.title || '?', questions: it?.questions?.length, slides: it?.slides?.length })));
 
       // ── Post-merge cleanup: prune near-empty items (parsing artifacts) ──
       // Items with < 30 words of JSON content are artifacts of failed chunk parsing
@@ -433,6 +439,7 @@ export default function useDeliverables({ provider, modelId, apiKey, maxOutputTo
         });
         if (mergedArr.length < emptyBefore) {
           const label = getFeatureLabel(fid);
+          console.warn(`[CM] ${fid}: PRUNED ${emptyBefore - mergedArr.length} near-empty items (< ${MIN_ITEM_WORDS} words)`);
           appendLog(`⚠ ${label}: pruned ${emptyBefore - mergedArr.length} near-empty item(s)`, 'warn');
           merged = { ...merged, [arrayKey]: mergedArr };
         }
@@ -456,6 +463,7 @@ export default function useDeliverables({ provider, modelId, apiKey, maxOutputTo
         });
         if (oversizedIndices.length > 0) {
           const label = getFeatureLabel(fid);
+          console.warn(`[CM] ${fid}: OVERSIZED quiz items removed:`, oversizedIndices, `(>${HARD_CAP_QUESTIONS} questions)`);
           appendLog(`⚠ ${label}: removed ${oversizedIndices.length} oversized item(s) (>${HARD_CAP_QUESTIONS} questions) — will retry individually`, 'warn');
           merged = { ...merged, [arrayKey]: mergedArr };
         }
@@ -505,6 +513,7 @@ export default function useDeliverables({ provider, modelId, apiKey, maxOutputTo
         });
         if (oversizedSlideIndices.length > 0) {
           const label = getFeatureLabel(fid);
+          console.warn(`[CM] ${fid}: OVERSIZED slide decks removed:`, oversizedSlideIndices, `(>${HARD_CAP_SLIDES} slides)`);
           appendLog(`⚠ ${label}: removed ${oversizedSlideIndices.length} oversized deck(s) (>${HARD_CAP_SLIDES} slides) — will retry individually`, 'warn');
           merged = { ...merged, [arrayKey]: mergedArr };
         }
@@ -561,6 +570,7 @@ export default function useDeliverables({ provider, modelId, apiKey, maxOutputTo
         while (mergedArr.length < adjustedExpected && retryRound < MAX_RETRY_ROUNDS) {
           retryRound++;
           const missing = findMissingIndices(mergedArr, lessonIndices);
+          console.warn(`[CM] ${fid}: RETRY round ${retryRound} — have ${mergedArr.length}/${adjustedExpected} (expected ${expectedCount}). Missing indices:`, missing);
           appendLog(`⚠ ${label}: ${mergedArr.length}/${expectedCount} items — retrying ${missing.length} missing (round ${retryRound})`, 'warn');
 
           // Create retry tasks — use smaller chunks to reduce token pressure on retries
@@ -597,8 +607,12 @@ export default function useDeliverables({ provider, modelId, apiKey, maxOutputTo
               const parsed = parsePartialJSON(text);
               if (parsed) {
                 chunkResults[fid].set(retryChunkIndex, parsed);
+                const _rk = getArrayKey(fid, parsed);
+                const _ritems = _rk ? (parsed[_rk] || []) : [];
+                console.log(`[CM] ✓ ${retryLabel}: parsed ${_ritems.length} items`, _ritems.map(it => ({ title: it?.lessonTitle || it?.title || '?', questions: it?.questions?.length, slides: it?.slides?.length })));
                 appendLog(`✓ ${retryLabel} complete`, 'done');
               } else {
+                console.warn(`[CM] ✗ ${retryLabel}: RETRY PARSE FAILED. Response length: ${text?.length || 0}. First 500 chars:`, text?.slice(0, 500));
                 appendLog(`⚠ ${retryLabel}: parse failed`, 'warn');
               }
             } catch (err) {
@@ -627,6 +641,7 @@ export default function useDeliverables({ provider, modelId, apiKey, maxOutputTo
       if (featureTotalChunks > 1) {
         const totalItems = mergedArr.length;
         const featureDur = formatDuration(delivEndTime - (featureStartTimes[fid] || delivEndTime));
+        console.log(`[CM] ✓✓ ${fid} COMPLETE: ${totalItems} items in ${featureDur}`, mergedArr.map(it => it?.lessonTitle || it?.title || '?'));
         appendLog(`✓ ${getFeatureLabel(fid)} complete — ${totalItems} item${totalItems !== 1 ? 's' : ''} total (${featureDur})`, 'done');
       }
 
@@ -638,6 +653,7 @@ export default function useDeliverables({ provider, modelId, apiKey, maxOutputTo
         const quality = scoreHeuristic(fid, finalData);
         setQualityScores(prev => ({ ...prev, [fid]: quality }));
         const avg = computeAvgScore(quality);
+        console.log(`[CM] ${fid} quality: ${avg}/10`, quality);
         if (avg !== null && avg < 6) {
           appendLog(`⚠ ${getFeatureLabel(fid)}: quality score ${avg}/10 — consider regenerating for better results`, 'warn');
         }
