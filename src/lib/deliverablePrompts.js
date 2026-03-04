@@ -16,16 +16,16 @@ import { getSections, buildSectionsContext } from './courseSections.js';
 
 // Map from column keys to how they are extracted and labeled in the condensed payload.
 const COLUMN_EXTRACTORS = {
-  topicSection:       { key: 'topics',      extract: (sections) => sections.map(s => s.topicSection || '').filter(Boolean) },
-  learningObjectives: { key: 'objectives',  extract: (sections) => sections.map(s => s.learningObjectives || '').filter(Boolean).join(' | ') },
-  weeklyAssessments:  { key: 'assessments', extract: (sections) => sections.map(s => s.weeklyAssessments || '').filter(Boolean).join('; ') },
-  supportingResources:{ key: 'resources',   extract: (sections) => sections.map(s => s.supportingResources || '').filter(Boolean).join('; ') },
-  learningGoals:      { key: 'learningGoals', extract: (sections) => sections.map(s => s.learningGoals || '').filter(Boolean).join(' | ') },
-  asyncActivities:    { key: 'activities_async', extract: (sections) => sections.map(s => s.asyncActivities || '').filter(Boolean).join('; ') },
-  syncActivities:     { key: 'activities_sync',  extract: (sections) => sections.map(s => s.syncActivities || '').filter(Boolean).join('; ') },
-  technologyNeeded:   { key: 'technology',  extract: (sections) => sections.map(s => s.technologyNeeded || '').filter(Boolean).join('; ') },
-  presentationFormat: { key: 'format',      extract: (sections) => sections.map(s => s.presentationFormat || '').filter(Boolean).join('; ') },
-  evaluateDesign:     { key: 'evaluateDesign', extract: (sections) => sections.map(s => s.evaluateDesign || '').filter(Boolean).join('; ') },
+  topicSection: { key: 'topics', extract: (sections) => sections.map(s => s.topicSection || '').filter(Boolean) },
+  learningObjectives: { key: 'objectives', extract: (sections) => sections.map(s => s.learningObjectives || '').filter(Boolean).join(' | ') },
+  weeklyAssessments: { key: 'assessments', extract: (sections) => sections.map(s => s.weeklyAssessments || '').filter(Boolean).join('; ') },
+  supportingResources: { key: 'resources', extract: (sections) => sections.map(s => s.supportingResources || '').filter(Boolean).join('; ') },
+  learningGoals: { key: 'learningGoals', extract: (sections) => sections.map(s => s.learningGoals || '').filter(Boolean).join(' | ') },
+  asyncActivities: { key: 'activities_async', extract: (sections) => sections.map(s => s.asyncActivities || '').filter(Boolean).join('; ') },
+  syncActivities: { key: 'activities_sync', extract: (sections) => sections.map(s => s.syncActivities || '').filter(Boolean).join('; ') },
+  technologyNeeded: { key: 'technology', extract: (sections) => sections.map(s => s.technologyNeeded || '').filter(Boolean).join('; ') },
+  presentationFormat: { key: 'format', extract: (sections) => sections.map(s => s.presentationFormat || '').filter(Boolean).join('; ') },
+  evaluateDesign: { key: 'evaluateDesign', extract: (sections) => sections.map(s => s.evaluateDesign || '').filter(Boolean).join('; ') },
 };
 
 function condenseCourseMap(courseMap, scopeIndices = null, verifiedChanges = null, columns = null) {
@@ -369,9 +369,9 @@ Return a JSON object with exactly this structure:
   ]
 }
 
-REQUIREMENTS:
 - 5–7 questions per lesson: at least 3 multiple choice, 1–2 short answer, 1 essay
 - Questions must span at least 3 different Bloom's levels per lesson
+- BLOOM'S BALANCE (CRITICAL): Every lesson MUST include at least 1 question at Evaluate or Create level. Do not cluster all questions at Apply/Analyze. Distribute levels so that across 6 questions you have roughly: 1 Remember/Understand, 2 Apply, 1-2 Analyze, 1 Evaluate, and 1 Create.
 - MC stems must be complete sentences or scenarios — NO fill-in-the-blank fragments
 - MC has exactly 4 options (A–D); avoid "All of the above" and "None of the above"
 - All 4 MC options must be similar in length (avoid "longest option is correct" cueing)
@@ -379,6 +379,7 @@ REQUIREMENTS:
 - Short answer questions must specify expected length (e.g., "In 2-3 sentences")
 - Essay prompts must include: task verb + scope + constraints
 - All questions must have objectiveAligned field populated
+- MANDATORY FIELDS (STRICTLY ENFORCED): Every MC question MUST have a non-null "explanation" field starting with "The correct answer is [letter] because...". Every MC question MUST have a non-null "distractorRationale" field explaining why each wrong option is plausible, formatted as "A: [reason]; C: [reason]; D: [reason]". Do NOT omit these fields for any question — they are required for accreditation.
 - QM ALIGNMENT: Include a variety of question types across the course that are sequenced from lower to higher Bloom's levels as the course progresses (QM 3.4). Questions should help students track their learning progress — include diagnostic questions that help learners identify areas needing review (QM 3.5). Each quiz must include a formativeFeedbackNote for the instructor on common errors and how to provide timely feedback (QM 3.5).
 - HUMAN READABILITY: Vary question phrasing across lessons — do not use the same stem patterns repeatedly. Questions should feel hand-crafted, not template-generated. Each explanation should be written in clear, natural prose.
 - Return ONLY the JSON object, no prose, no markdown`,
@@ -432,6 +433,7 @@ REQUIREMENTS:
 - followUpProbes must be substantive Socratic questions, not just "Can you say more about that?"
 - evaluationCriteria must be specific and shareable with students before the discussion
 - equityConsiderations must be concrete, not generic ("allow think time" → specify duration)
+- FORMAT VARIETY (CRITICAL): Use at least 6 DISTINCT discussion formats across all lessons. Choose from: 'Socratic Seminar', 'Think-Pair-Share', 'Fishbowl', 'Jigsaw', 'Gallery Walk', 'Debate / Structured Academic Controversy', 'Case-Based Discussion', 'Role Play / Simulation', 'Small Group then Share-Out', 'Whole-Class Discussion', 'Asynchronous Online'. Do NOT repeat the same format for more than 2 consecutive lessons. Rotate formats to keep student engagement high.
 - QM ALIGNMENT: Learner interaction requirements must be explicit: minimum number of posts, response expectations, substantive reply criteria, and deadlines (QM 5.4). Discussion activities must provide genuine opportunities for learner-to-learner interaction that supports active learning — not just posting and forgetting (QM 5.2).
 - HUMAN READABILITY: Each discussion prompt and its supporting text should feel unique. Vary the opening hooks, probe structures, and facilitation advice. Do not use the same sentence patterns for every lesson.
 - Return ONLY the JSON object, no prose, no markdown`,
@@ -500,6 +502,7 @@ REQUIREMENTS:
 - deliverables must be a checklist (students can tick off each item before submitting)
 - academicIntegrityStatement must be specific to this assignment (not a generic paragraph)
 - formatRequirements.latePolicy must state explicit point deduction or policy
+- RUBRIC CROSS-REFERENCE (CRITICAL): Each assignment MUST include in its gradingCriteria field a sentence like: "See Rubric for [Assignment Title] for full grading criteria and point breakdown." This tells students where to find the detailed rubric.
 - QM ALIGNMENT: Assignments must be sequenced and suited to the course level — earlier assignments should scaffold toward later, more complex ones (QM 3.4). Include opportunities for learners to track their progress via the progressTracking field: interim feedback points, self-assessment checkpoints, or peer review milestones (QM 3.5). The academicIntegrityStatement must provide specific guidance on how to uphold integrity for THIS assignment type (QM 3.6).
 - COGNITIVE LOAD: Instructions must be imperative, concise, and scannable. No instruction step longer than 25 words. Each step describes one action only.
 - HUMAN READABILITY: Each assignment should read as a unique document — vary the overview voice, instruction phrasing, and scaffolding descriptions. Avoid copy-paste language patterns across assignments.
@@ -984,9 +987,9 @@ export function getDeliverablePrompt(featureId, courseMap, scopeIndices = null, 
         : withEdit;
       const withConfig = configInstructions
         ? withAutoDecide.replace(
-            /(\nReturn ONLY)/,
-            `\n\nADDITIONAL INSTRUCTOR REQUIREMENTS (must be followed, take priority over defaults):\n${configInstructions}$1`
-          )
+          /(\nReturn ONLY)/,
+          `\n\nADDITIONAL INSTRUCTOR REQUIREMENTS (must be followed, take priority over defaults):\n${configInstructions}$1`
+        )
         : withAutoDecide;
       const withExtra = config.extraInstructions?.trim()
         ? withConfig + `\n\nINSTRUCTOR EXTRA INSTRUCTIONS:\n${config.extraInstructions.trim()}`

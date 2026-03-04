@@ -486,6 +486,39 @@ export default function useDeliverables({ provider, modelId, apiKey, maxOutputTo
             merged = { ...merged, [arrayKey]: mergedArr };
           }
         }
+
+        // Quiz validation: enforce explanations and distractor rationale
+        let missingExplanations = 0;
+        let missingDistractors = 0;
+        mergedArr = mergedArr.map(quiz => {
+          if (!quiz?.questions) return quiz;
+          const questions = quiz.questions.map(q => {
+            const isMC = q.type === 'multiple_choice';
+            let patched = { ...q };
+
+            if (!patched.explanation || patched.explanation.trim() === '') {
+              missingExplanations++;
+              patched.explanation = isMC
+                ? `The correct answer is ${patched.answer || '?'} because... [Explanation needed - review this question]`
+                : `[Explanation needed - model response required]`;
+            }
+
+            if (isMC && (!patched.distractorRationale || patched.distractorRationale.trim() === '')) {
+              missingDistractors++;
+              patched.distractorRationale = `[Distractor rationale needed to explain why incorrect options are plausible]`;
+            }
+
+            return patched;
+          });
+          return { ...quiz, questions };
+        });
+
+        if (missingExplanations > 0 || missingDistractors > 0) {
+          const label = getFeatureLabel(fid);
+          console.warn(`[CM] ${fid}: patched ${missingExplanations} missing explanations and ${missingDistractors} missing distractor rationales`);
+          appendLog(`⚠ ${label}: patched ${missingExplanations} missing explanations and ${missingDistractors} missing distractors to meet quality standard`, 'warn');
+          merged = { ...merged, [arrayKey]: mergedArr };
+        }
       }
 
       // Per-lesson completeness: for slide decks, detect truncated lessons using dynamic threshold
