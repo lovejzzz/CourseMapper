@@ -323,7 +323,7 @@ export default function useDeliverables({ provider, modelId, apiKey, maxOutputTo
           const tokenDesc = tokenCount > 0 ? `, ~${formatTokens(tokenCount)} tokens` : '';
           appendLog(`✓ ${chunkLabel} — ${itemCount} item${itemCount !== 1 ? 's' : ''}${tokenDesc} (${durStr})`, 'done');
         } else {
-          appendLog(`⚠ ${chunkLabel}: AI response could not be parsed`, 'warn');
+          appendLog(`⚠ ${chunkLabel}: AI response could not be parsed (lessons ${chunkScope ? chunkScope.map(i => i + 1).join(', ') : '?'})`, 'warn');
         }
       } catch (err) {
         if (err.name === 'AbortError') {
@@ -492,16 +492,21 @@ export default function useDeliverables({ provider, modelId, apiKey, maxOutputTo
         }
       }
 
-      if (mergedArr.length < expectedCount) {
+      // Rubrics/assignments generate per-assessment, not per-lesson — use relaxed threshold
+      const isPerAssessment = fid === 'rubrics' || fid === 'assignments';
+      const adjustedExpected = isPerAssessment ? Math.ceil(expectedCount * 0.6) : expectedCount;
+
+      if (mergedArr.length < adjustedExpected) {
         const label = getFeatureLabel(fid);
         let retryRound = 0;
-        while (mergedArr.length < expectedCount && retryRound < MAX_RETRY_ROUNDS) {
+        while (mergedArr.length < adjustedExpected && retryRound < MAX_RETRY_ROUNDS) {
           retryRound++;
           const missing = findMissingIndices(mergedArr, lessonIndices);
           appendLog(`⚠ ${label}: ${mergedArr.length}/${expectedCount} items — retrying ${missing.length} missing (round ${retryRound})`, 'warn');
 
-          // Create retry tasks for missing indices
-          const retryChunks = chunkArray(missing, CHUNK_SIZE);
+          // Create retry tasks — use smaller chunks to reduce token pressure on retries
+          const retryChunkSize = Math.max(2, Math.floor(CHUNK_SIZE / 2));
+          const retryChunks = chunkArray(missing, retryChunkSize);
           const retryLimit = pLimit(MAX_CONCURRENT);
           const retryPromises = retryChunks.map((retryScope, idx) => retryLimit(async () => {
             const retryChunkIndex = chunks.size + idx + (retryRound - 1) * 100; // unique index
