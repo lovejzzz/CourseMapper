@@ -1,7 +1,7 @@
 import React, { useState, useEffect } from 'react';
 import ReactDOM from 'react-dom/client';
 import App from './App';
-import FaqChatbot from './pages/FaqChatbot';
+// FaqChatbot removed — merged into ChatPanel
 import Changelog from './pages/Changelog';
 import PrivacyPolicy from './pages/PrivacyPolicy';
 import TermsOfService from './pages/TermsOfService';
@@ -13,7 +13,7 @@ import './index.css';
 function Router() {
   const getPage = () => {
     const h = window.location.hash;
-    if (h === '#/faq') return 'faq';
+    if (h === '#/faq') { window.location.hash = '#/'; return 'app'; } // redirect old bookmarks
     if (h === '#/changelog') return 'changelog';
     if (h === '#/privacy') return 'privacy';
     if (h === '#/terms') return 'terms';
@@ -30,7 +30,6 @@ function Router() {
   return (
     <>
       <div style={{ display: page === 'app' ? 'block' : 'none' }}><App /></div>
-      {page === 'faq' && <FaqChatbot />}
       {page === 'changelog' && <Changelog />}
       {page === 'privacy' && <PrivacyPolicy />}
       {page === 'terms' && <TermsOfService />}

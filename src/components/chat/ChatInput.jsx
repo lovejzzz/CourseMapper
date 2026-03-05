@@ -1,0 +1,204 @@
+import React, { useState, useRef } from 'react';
+import { resolveLabel } from './constants';
+
+/**
+ * ChatInput — textarea with file drop, mode toggle (Ask/Revise), and send button.
+ */
+export default function ChatInput({
+  mode, setMode, onSend, isStreaming, isRevising, onStop,
+  attachedFiles, onProcessFiles, onRemoveAttached, isParsing,
+  suggestions, onSuggestionClick,
+  activeTab, courseMap,
+  isStopped,
+}) {
+  const [input, setInput] = useState('');
+  const [isDragOver, setIsDragOver] = useState(false);
+  const fileInputRef = useRef(null);
+
+  const isDeliverableTab = activeTab && activeTab !== 'courseMap';
+  const delivLabel = isDeliverableTab ? resolveLabel(activeTab) : 'Course Map';
+
+  function handleKeyDown(e) {
+    if (e.key === 'Enter' && !e.shiftKey) {
+      e.preventDefault();
+      handleSend();
+    }
+  }
+
+  function handleSend() {
+    if ((!input.trim() && (!attachedFiles || attachedFiles.length === 0)) || isStreaming || isRevising) return;
+    onSend(input);
+    setInput('');
+  }
+
+  const placeholder = isDragOver
+    ? 'Drop files here...'
+    : mode === 'ask'
+    ? 'Ask a question...'
+    : `Revise ${delivLabel}...`;
+
+  const busy = isStreaming || isRevising;
+
+  return (
+    <div
+      className={`border-t transition-colors duration-200 relative ${isDragOver ? 'border-indigo-400 bg-indigo-50/20' : 'border-slate-200/40'}`}
+      onDragOver={(e) => { e.preventDefault(); setIsDragOver(true); }}
+      onDragLeave={(e) => { e.preventDefault(); setIsDragOver(false); }}
+      onDrop={(e) => { e.preventDefault(); setIsDragOver(false); onProcessFiles(e.dataTransfer.files); }}
+    >
+      {/* Suggestion chips */}
+      {suggestions && suggestions.length > 0 && !busy && (
+        <div className="px-4 pt-2.5 pb-1 flex flex-col gap-1.5">
+          <p className="text-[11px] font-semibold text-slate-400 uppercase tracking-wider">Try next:</p>
+          <div className="flex flex-wrap gap-1.5">
+            {suggestions.map((sug, i) => (
+              <button
+                key={i}
+                onClick={() => { onSuggestionClick(sug); setInput(sug); }}
+                className="tactile text-[11px] font-medium text-indigo-600 bg-indigo-50/80 hover:bg-indigo-100/80 border border-indigo-200/60 px-2.5 py-1 rounded-lg transition-all text-left leading-snug"
+              >
+                {sug}
+              </button>
+            ))}
+          </div>
+        </div>
+      )}
+
+      {/* Attached files */}
+      {attachedFiles && attachedFiles.length > 0 && (
+        <div className="px-4 pt-2 flex flex-wrap gap-1.5">
+          {attachedFiles.map((f, i) => (
+            <span key={i} className="inline-flex items-center gap-1 px-2.5 py-1 bg-indigo-50/80 text-indigo-700 text-[11px] font-semibold rounded-full border border-indigo-200/40">
+              <svg className="w-3 h-3" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M15.172 7l-6.586 6.586a2 2 0 102.828 2.828l6.414-6.586a4 4 0 00-5.656-5.656l-6.415 6.585a6 6 0 108.486 8.486L20.5 13" />
+              </svg>
+              {f.name}
+              <button onClick={() => onRemoveAttached(i)} className="ml-0.5 hover:text-red-500 transition-colors">
+                <svg className="w-3 h-3" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M6 18L18 6M6 6l12 12" />
+                </svg>
+              </button>
+            </span>
+          ))}
+        </div>
+      )}
+
+      {isParsing && (
+        <div className="px-4 pt-2 flex items-center gap-2 text-[12px] text-indigo-500">
+          <svg className="animate-spin w-3 h-3" fill="none" viewBox="0 0 24 24">
+            <circle className="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" strokeWidth="4" />
+            <path className="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4z" />
+          </svg>
+          Parsing files...
+        </div>
+      )}
+
+      {/* Compose area */}
+      <div className="px-4 py-3 space-y-2.5">
+        <input
+          type="file"
+          ref={fileInputRef}
+          className="hidden"
+          multiple
+          accept=".doc,.docx,.pdf,.txt,.md,.csv,.rtf,.html,.htm,.xlsx,.xls,.ods,.ppt,.pptx,.odp,.odt,.epub,.key,.pages,.zip"
+          onChange={(e) => { onProcessFiles(e.target.files); e.target.value = ''; }}
+        />
+
+        {/* Mode toggle + textarea */}
+        <div className="relative">
+          <textarea
+            value={input}
+            onChange={(e) => setInput(e.target.value)}
+            onKeyDown={handleKeyDown}
+            placeholder={placeholder}
+            rows={2}
+            className="input-glass w-full rounded-xl px-3 pt-2.5 pb-8 text-[13px] text-slate-700 focus:outline-none resize-none leading-relaxed"
+            disabled={busy}
+          />
+          {/* Bottom bar inside textarea area */}
+          <div className="absolute bottom-1.5 left-2 right-2 flex items-center justify-between">
+            <div className="flex items-center gap-1.5">
+              {/* Mode toggle */}
+              {courseMap && (
+                <div className="flex rounded-lg overflow-hidden border border-slate-200/60 bg-slate-50/80">
+                  <button
+                    onClick={() => setMode('ask')}
+                    className={`px-2 py-1 text-[11px] font-semibold transition-all ${
+                      mode === 'ask'
+                        ? 'bg-indigo-500 text-white shadow-sm'
+                        : 'text-slate-400 hover:text-slate-600'
+                    }`}
+                  >
+                    Ask
+                  </button>
+                  <button
+                    onClick={() => setMode('revise')}
+                    className={`px-2 py-1 text-[11px] font-semibold transition-all ${
+                      mode === 'revise'
+                        ? 'bg-violet-500 text-white shadow-sm'
+                        : 'text-slate-400 hover:text-slate-600'
+                    }`}
+                  >
+                    Revise
+                  </button>
+                </div>
+              )}
+              {/* Attach button */}
+              {mode === 'revise' && (
+                <button
+                  onClick={() => fileInputRef.current?.click()}
+                  disabled={busy}
+                  className="tactile p-1 rounded-lg text-slate-400 hover:text-indigo-500 hover:bg-indigo-50/50 transition-all"
+                  title="Attach files"
+                >
+                  <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M15.172 7l-6.586 6.586a2 2 0 102.828 2.828l6.414-6.586a4 4 0 00-5.656-5.656l-6.415 6.585a6 6 0 108.486 8.486L20.5 13" />
+                  </svg>
+                </button>
+              )}
+            </div>
+
+            {/* Send / Stop */}
+            {busy ? (
+              <button
+                type="button"
+                onClick={onStop}
+                className="tactile px-3 py-1 rounded-lg text-[12px] font-semibold text-red-500 hover:bg-red-50 transition-all"
+              >
+                {isRevising ? (
+                  <span className="flex items-center gap-1.5">
+                    <svg className="animate-spin w-3 h-3" fill="none" viewBox="0 0 24 24">
+                      <circle className="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" strokeWidth="4" />
+                      <path className="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4z" />
+                    </svg>
+                    Revising...
+                  </span>
+                ) : 'Stop'}
+              </button>
+            ) : (
+              <button
+                onClick={handleSend}
+                disabled={!input.trim() && (!attachedFiles || attachedFiles.length === 0)}
+                className="tactile p-1.5 rounded-lg text-white bg-gradient-to-r from-indigo-500 to-violet-500 shadow-sm hover:brightness-110 transition-all disabled:opacity-30 disabled:cursor-not-allowed"
+              >
+                <svg className="w-3.5 h-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 19l9 2-9-18-9 18 9-2zm0 0v-8" />
+                </svg>
+              </button>
+            )}
+          </div>
+        </div>
+      </div>
+
+      {/* Drag overlay */}
+      {isDragOver && (
+        <div className="absolute inset-0 bg-indigo-500/5 border-2 border-dashed border-indigo-400/50 rounded-xl flex flex-col items-center justify-center pointer-events-none z-10 gap-1">
+          <svg className="w-5 h-5 text-indigo-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+            <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={1.8} d="M15.172 7l-6.586 6.586a2 2 0 102.828 2.828l6.414-6.586a4 4 0 00-5.656-5.656l-6.415 6.585a6 6 0 108.486 8.486L20.5 13" />
+          </svg>
+          <span className="text-sm font-semibold text-indigo-500">Drop files to attach</span>
+        </div>
+      )}
+    </div>
+  );
+}

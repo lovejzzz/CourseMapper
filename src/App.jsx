@@ -3,8 +3,8 @@ import { createPortal } from 'react-dom';
 import Header from './components/Header';
 import { DEFAULT_COLUMNS } from './components/ColumnEditor';
 import CourseMapPreview from './components/CourseMapPreview';
-import ProgressPanel from './components/ProgressPanel';
-import VersionTimeline from './components/VersionTimeline';
+import ChatPanel from './components/chat/ChatPanel';
+import ResizeHandle from './components/chat/ResizeHandle';
 import ErrorBoundary from './components/ErrorBoundary';
 import Landing from './screens/Landing';
 import FeatureSelect from './screens/FeatureSelect';
@@ -23,7 +23,7 @@ import { FEATURES, CustomDeliverableBuilder } from './screens/FeatureSelect';
 import { listCustomDeliverables, toFeatureEntry, saveCustomDeliverable, mergeCloudDeliverables } from './lib/customDeliverableLibrary';
 import { mergeCloudProfile } from './lib/professorProfile';
 import { useAuth } from './contexts/AuthContext';
-import { HelpDrawer } from './pages/FaqChatbot';
+// HelpDrawer removed — merged into ChatPanel
 import { saveProject as cloudSaveProject, loadProject as cloudLoadProject, loadProjectDeliverables, newProjectId } from './lib/cloudStorage';
 import ProjectPicker from './components/ProjectPicker';
 import DeliverableView from './components/DeliverableView';
@@ -130,6 +130,9 @@ export default function App() {
   const [promptText, setPromptText] = useState('');
   const [hasSavedSession, setHasSavedSession] = useState(false);
   const [showHelp, setShowHelp] = useState(false);
+  const [chatWidth, setChatWidth] = useState(() => {
+    try { return parseInt(localStorage.getItem('coursemapper-chat-width')) || 360; } catch { return 360; }
+  });
   const [lessonScope, setLessonScope] = useState({ type: 'all' });
   const [deliverableConfig, setDeliverableConfig] = useState({});
   const [slideTheme, setSlideTheme] = useState(null); // null = auto-rotate, 0-4 = specific theme
@@ -885,7 +888,7 @@ export default function App() {
     <div className="min-h-screen mesh-bg noise-overlay">
       <Header onOpenProjects={() => setShowProjectPicker(true)} />
 
-      {/* Cloud save runs silently — status shown in ProgressPanel activity log */}
+      {/* Cloud save runs silently */}
 
       <main className="w-full px-4 sm:px-6 pb-10 space-y-4">
         {/* Top bar */}
@@ -1196,56 +1199,67 @@ export default function App() {
           modelConfig={{ provider, apiKey, modelId }}
         />
 
-        {/* ── Tab content + Progress sidebar + Export panel ── */}
-        <div className="flex gap-4 items-start">
+        {/* ── Tab content + Chat panel + Export panel ── */}
+        <div className="flex gap-0 items-stretch" style={{ minHeight: 'calc(100vh - 220px)' }}>
 
-          {/* ── Left: Progress sidebar — sticky, naturally sized, never clipped ── */}
-          {(gen.progressStep || gen.error) && (
-            <div className="w-64 flex-shrink-0 sticky top-4 self-start">
-              <ErrorBoundary>
-                <ProgressPanel
-                  currentStep={gen.progressStep}
-                  modelName={gen.activeModelName || modelName}
-                  error={gen.error || null}
-                  courseMap={courseMap}
-                  activeTab={activeTab}
-                  onRevision={rev.handleRevision}
-                  isRevising={rev.isRevising}
-                  streamDetail={gen.streamDetail}
-                  streamProgress={gen.streamProgress}
-                  onStop={gen.isStreaming ? onStop : null}
-                  isStopped={gen.isStopped}
-                  onResume={onResume}
-                  onClearAll={gen.handleClearAll}
-                  examChanges={gen.examChanges}
-                  pendingExamPatches={gen.pendingExamPatches}
-                  onAcceptPatches={gen.onAcceptPatches}
-                  onRejectPatch={gen.onRejectPatch}
-                  retryInfo={gen.retryInfo}
-                  completenessInfo={gen.completenessInfo}
-                  generationLog={gen.generationLog}
-                  onRetryExamine={gen.handleRetryExamine}
-                  chatHistory={chatHistory}
-                  onChatHistoryChange={setChatHistory}
-                  deliverables={deliv.deliverables}
-                  delivProgress={deliv.progress}
-                  currentDelivFeatures={deliv.currentFeatures}
-                  isDelivGenerating={deliv.isGenerating}
-                  delivGenerationLog={deliv.generationLog}
-                  delivTimings={deliv.delivTimings}
-                  syncLog={smartSync.syncLog}
-                  isSyncing={smartSync.isSyncing}
-                  pendingSyncCount={smartSync.pendingSyncCount}
-                  syncingFeatures={smartSync.syncingFeatures}
-                  cloudSaveStatus={user ? cloudSaveStatus : null}
-                  onStopDeliverables={deliv.isGenerating ? deliv.stopGenerating : null}
-                />
-              </ErrorBoundary>
-            </div>
-          )}
+          {/* ── Left: Resizable Chat Panel ── */}
+          <div className="flex-shrink-0 sticky top-4" style={{ width: chatWidth, height: 'calc(100vh - 160px)' }}>
+            <ErrorBoundary>
+              <ChatPanel
+                currentStep={gen.progressStep}
+                modelName={gen.activeModelName || modelName}
+                error={gen.error || null}
+                streamDetail={gen.streamDetail}
+                streamProgress={gen.streamProgress}
+                completenessInfo={gen.completenessInfo}
+                isStopped={gen.isStopped}
+                retryInfo={gen.retryInfo}
+                generationLog={gen.generationLog}
+                onStop={gen.isStreaming ? onStop : null}
+                onResume={onResume}
+                onClearAll={gen.handleClearAll}
+                onRetryExamine={gen.handleRetryExamine}
+                deliverables={deliv.deliverables}
+                delivProgress={deliv.progress}
+                currentDelivFeatures={deliv.currentFeatures}
+                isDelivGenerating={deliv.isGenerating}
+                delivTimings={deliv.delivTimings}
+                onStopDeliverables={deliv.isGenerating ? deliv.stopGenerating : null}
+                isSyncing={smartSync.isSyncing}
+                pendingSyncCount={smartSync.pendingSyncCount}
+                syncingFeatures={smartSync.syncingFeatures}
+                onRevision={rev.handleRevision}
+                onDeliverableRevision={(msg, history) => {
+                  // For deliverable revisions, regenerate the active deliverable
+                  if (activeTab && activeTab !== 'courseMap') {
+                    const scopeIndices = lessonScope.type === 'specific' ? lessonScope.indices : null;
+                    deliv.generateAll(courseMap, [activeTab], scopeIndices);
+                  }
+                }}
+                isRevising={rev.isRevising}
+                activeTab={activeTab}
+                courseMap={courseMap}
+                chatHistory={chatHistory}
+                onChatHistoryChange={setChatHistory}
+                apiKey={apiKey}
+                provider={provider}
+                modelId={modelId}
+                pendingExamPatches={gen.pendingExamPatches}
+                examChanges={gen.examChanges}
+                onAcceptPatches={gen.onAcceptPatches}
+                onRejectPatch={gen.onRejectPatch}
+              />
+            </ErrorBoundary>
+          </div>
+
+          {/* ── Resize Handle ── */}
+          <ResizeHandle width={chatWidth} onWidthChange={(w) => {
+            setChatWidth(w);
+            try { localStorage.setItem('coursemapper-chat-width', String(w)); } catch {}
+          }} />
 
           {/* ── Main content area ── */}
-          <div className="flex-1 min-w-0 space-y-4">
+          <div className="flex-1 min-w-0 space-y-4 px-4">
 
             {/* Course Map tab */}
             {activeTab === 'courseMap' && (
@@ -1418,13 +1432,7 @@ export default function App() {
         }}
       />
 
-      {/* Global Help Drawer */}
-      <HelpDrawer
-        isOpen={showHelp}
-        onClose={() => setShowHelp(false)}
-        courseMap={courseMap}
-        activeTab={activeTab}
-      />
+      {/* Help merged into ChatPanel — HelpDrawer removed */}
 
     </div>
   );
