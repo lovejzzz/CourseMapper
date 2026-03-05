@@ -36,7 +36,9 @@ export default function ChatPanel({
   // Agent: course map editor + deliverable update
   editor, optimisticUpdate, regenerateLesson,
   // Agent phase 2: undo + highlight
-  delivUndoSnapshot, onAgentHighlight,
+  delivUndoSnapshot, delivUndoFn, delivCanUndo, onAgentHighlight,
+  // Agent-mediated sync
+  pendingSyncSuggestion, clearPendingSyncSuggestion, executeSyncPlan,
 }) {
   // Detect agent mode: deliverables with done status exist
   const isAgentMode = !!(deliverables && Object.keys(deliverables).some(
@@ -44,7 +46,7 @@ export default function ChatPanel({
   ));
 
   // Build the action executor that agent mode uses
-  const execAction = useCallback((action) => {
+  const execAction = useCallback((action, opts = {}) => {
     const result = executeAction(action, {
       editor,
       deliverables,
@@ -52,6 +54,7 @@ export default function ChatPanel({
       courseMap,
       regenerateLesson,
       snapshot: delivUndoSnapshot,
+      skipSnapshot: opts.skipSnapshot || false,
     });
     // Trigger visual highlight on success
     if (result.success && onAgentHighlight && action.featureId) {
@@ -70,7 +73,17 @@ export default function ChatPanel({
     // Agent params
     deliverables,
     executeAction: execAction,
+    delivUndoSnapshot,
+    executeSyncPlan,
   });
+
+  // ── Bridge sync suggestion from useSmartSync into chat messages ──
+  useEffect(() => {
+    if (pendingSyncSuggestion) {
+      chat.pushSyncSuggestion(pendingSyncSuggestion);
+      clearPendingSyncSuggestion?.();
+    }
+  }, [pendingSyncSuggestion]); // eslint-disable-line react-hooks/exhaustive-deps
 
   // ── Auto-insert progress cards on state transitions ─────────────────────
   const prevStepRef = useRef(currentStep);  // init to current so mount doesn't trigger
@@ -84,7 +97,7 @@ export default function ChatPanel({
     // Course map ready card — include opener starters so user sees actionable prompts
     if (currentStep === 'done' && prevStepRef.current && prevStepRef.current !== 'done') {
       const lessonCount = completenessInfo?.actual || courseMap?.lessons?.length || 0;
-      const opener = getChatOpener(courseMap, false, null); // Tier 2: course map exists
+      const opener = getChatOpener(courseMap, false, null, null); // Tier 2: course map exists
       chat.addProgressMessage({
         data: { phase: 'courseMapReady', lessonCount, greeting: opener.greeting, starters: opener.starters },
       });
@@ -107,7 +120,7 @@ export default function ChatPanel({
       const timings = delivTimings ? Object.values(delivTimings) : [];
       const totalTime = timings.reduce((sum, t) => sum + (t.durationMs || 0), 0);
 
-      const agentOpener = getChatOpener(courseMap, true, activeTab); // Tier 3: agent mode
+      const agentOpener = getChatOpener(courseMap, true, activeTab, deliverables); // Tier 3: agent mode
       chat.addProgressMessage({
         data: {
           phase: 'complete',
@@ -184,8 +197,13 @@ export default function ChatPanel({
         courseMap={courseMap}
         isAgentMode={isAgentMode}
         activeTab={activeTab}
+        deliverables={deliverables}
         onSuggestionClick={(q) => chat.send(q)}
         onSelectProposal={chat.handleSelectProposal}
+        onUndo={delivUndoFn}
+        canUndo={delivCanUndo}
+        onApproveSyncSuggestion={chat.handleApproveSyncSuggestion}
+        onSkipSyncSuggestion={chat.handleSkipSyncSuggestion}
       />
 
       {/* ── Chat Input ── */}
@@ -203,6 +221,8 @@ export default function ChatPanel({
         isStopped={isStopped}
         hasPendingProposal={chat.messages.some(m => m.role === 'proposal' && m.status === 'pending')}
         isAgentMode={isAgentMode}
+        onUndo={delivUndoFn}
+        canUndo={delivCanUndo}
       />
     </div>
   );

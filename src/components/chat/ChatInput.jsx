@@ -12,6 +12,7 @@ export default function ChatInput({
   isStopped,
   hasPendingProposal,
   isAgentMode,
+  onUndo, canUndo,
 }) {
   const [input, setInput] = useState('');
   const [isDragOver, setIsDragOver] = useState(false);
@@ -126,6 +127,20 @@ export default function ChatInput({
                   <span className="text-[8px]">✦</span>
                   Agent
                 </span>
+              )}
+
+              {/* Undo button */}
+              {canUndo && onUndo && (
+                <button
+                  onClick={onUndo}
+                  className="tactile flex items-center gap-1 px-2 py-0.5 rounded-lg text-[10px] font-semibold text-slate-500 hover:text-indigo-600 hover:bg-indigo-50/50 transition-all duration-200"
+                  title="Undo last change"
+                >
+                  <svg className="w-3 h-3" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M3 10h10a5 5 0 015 5v2M3 10l4-4M3 10l4 4" />
+                  </svg>
+                  Undo
+                </button>
               )}
             </div>
 

@@ -22,6 +22,15 @@ export const ACTION_TYPES = {
   regenerateLesson: 'regenerateLesson',
 };
 
+// ── Dedup: field to check for exact duplicates when adding items ─────────────
+const DEDUP_FIELDS = {
+  quizBank: 'q',      // question text
+  discussions: 'pr',   // prompt text
+  courseFaq: 'q',     // FAQ question
+  rubrics: 'cn',      // criterion name
+  slideDecks: 't',    // slide title
+};
+
 // ── Per-deliverable sub-array keys ───────────────────────────────────────────
 // Maps featureId → the key within each per-lesson item that holds the sub-array
 // where new items are inserted. null = item IS the per-lesson entry (replace/push to root array).
@@ -118,14 +127,14 @@ function execDeleteLesson({ lessonIndex }, { editor, courseMap }) {
 // ── Deliverable Actions ──────────────────────────────────────────────────────
 
 function execAddItem({ featureId, lessonIndex, item, subKey }, ctx) {
-  const { deliverables, optimisticUpdate, snapshot } = ctx;
+  const { deliverables, optimisticUpdate, snapshot, skipSnapshot } = ctx;
   if (!optimisticUpdate) return { success: false, message: 'Optimistic update not available' };
 
   const entry = deliverables?.[featureId];
   if (!entry?.data) return { success: false, message: `${featureId} not generated yet` };
 
-  // Snapshot for undo before mutating
-  if (snapshot) snapshot(featureId, entry.data);
+  // Snapshot for undo before mutating (skip during batch — caller snapshots once)
+  if (snapshot && !skipSnapshot) snapshot(featureId, entry.data);
 
   const data = structuredClone(entry.data);
   const arrKey = getArrayKey(featureId, data);
@@ -159,6 +168,17 @@ function execAddItem({ featureId, lessonIndex, item, subKey }, ctx) {
   const subArrayKey = subKey || SUB_ARRAY_KEYS[featureId];
 
   if (subArrayKey && lessonItem[subArrayKey]) {
+    // Exact-match dedup check before pushing
+    const dupField = DEDUP_FIELDS[featureId];
+    if (dupField && item[dupField]) {
+      const newText = (item[dupField] || '').toLowerCase().trim();
+      const isDupe = lessonItem[subArrayKey].some(existing =>
+        (existing[dupField] || '').toLowerCase().trim() === newText
+      );
+      if (isDupe) {
+        return { success: false, message: `Duplicate detected: an item with the same ${dupField === 'q' ? 'question' : 'text'} already exists in this lesson.` };
+      }
+    }
     // Has sub-array (quizBank.qs, slideDecks.sl, etc.) — push into it
     lessonItem[subArrayKey].push(item);
     // Update counts if they exist
@@ -179,14 +199,14 @@ function execAddItem({ featureId, lessonIndex, item, subKey }, ctx) {
 }
 
 function execRemoveItem({ featureId, lessonIndex, itemIndex, subKey }, ctx) {
-  const { deliverables, optimisticUpdate, snapshot } = ctx;
+  const { deliverables, optimisticUpdate, snapshot, skipSnapshot } = ctx;
   if (!optimisticUpdate) return { success: false, message: 'Optimistic update not available' };
 
   const entry = deliverables?.[featureId];
   if (!entry?.data) return { success: false, message: `${featureId} not generated yet` };
 
-  // Snapshot for undo before mutating
-  if (snapshot) snapshot(featureId, entry.data);
+  // Snapshot for undo before mutating (skip during batch — caller snapshots once)
+  if (snapshot && !skipSnapshot) snapshot(featureId, entry.data);
 
   const data = structuredClone(entry.data);
   const arrKey = getArrayKey(featureId, data);
@@ -225,14 +245,14 @@ function execRemoveItem({ featureId, lessonIndex, itemIndex, subKey }, ctx) {
 }
 
 function execEditItem({ featureId, path, value }, ctx) {
-  const { deliverables, optimisticUpdate, snapshot } = ctx;
+  const { deliverables, optimisticUpdate, snapshot, skipSnapshot } = ctx;
   if (!optimisticUpdate) return { success: false, message: 'Optimistic update not available' };
 
   const entry = deliverables?.[featureId];
   if (!entry?.data) return { success: false, message: `${featureId} not generated yet` };
 
-  // Snapshot for undo before mutating
-  if (snapshot) snapshot(featureId, entry.data);
+  // Snapshot for undo before mutating (skip during batch — caller snapshots once)
+  if (snapshot && !skipSnapshot) snapshot(featureId, entry.data);
 
   const data = structuredClone(entry.data);
 

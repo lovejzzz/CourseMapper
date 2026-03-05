@@ -1,6 +1,8 @@
 import { useState, useRef, useEffect, useCallback } from 'react';
 import { parseFiles } from '../../lib/fileParser';
 import { buildAgentSystemPrompt } from '../../lib/agentPrompts';
+import { executeResearch } from '../../lib/academicSearch';
+import { generateCourseHealthReport } from '../../lib/pedagogicalValidator';
 
 // ── System prompt for Help / Tutor mode (extracted from FaqChatbot) ─────────
 function getSystemPrompt(courseMap, activeTab) {
@@ -203,33 +205,75 @@ function buildAgentChatHistory(messages) {
     } else if (m.role === 'proposal') {
       // Serialize proposal into an assistant message the AI can understand
       const options = m.proposal?.options || [];
-      const optionList = options.map(o =>
-        `${o.label}. "${o.title}" → ${o.action?.type || 'unknown'} on ${o.action?.featureId || 'unknown'}`
-      ).join('; ');
+      // Check if this is the last proposal in the messages array
+      const isLastProposal = messages.findLastIndex(x => x.role === 'proposal') === messages.indexOf(m);
 
-      if (m.status === 'selected') {
+      if (isLastProposal && m.status === 'pending') {
+        // Full serialization for the most recent pending proposal — enables refinement
+        const optionDetails = options.map(o => {
+          const itemJson = o.action?.item ? JSON.stringify(o.action.item) : '';
+          return `${o.label}. "${o.title}" (${o.description || ''}) → ${o.action?.type} on ${o.action?.featureId || 'unknown'}${itemJson ? ` | item: ${itemJson}` : ''}`;
+        }).join('\n');
+        history.push({
+          role: 'assistant',
+          content: `[PROPOSAL (pending — user has not selected yet):\n${optionDetails}\n]`,
+        });
+      } else if (m.status === 'selected') {
         const chosen = options.find(o => o.label === m.selectedLabel);
         history.push({
           role: 'assistant',
-          content: `[I proposed: ${optionList}. User selected option ${m.selectedLabel}: "${chosen?.title || '?'}". Action executed successfully.]`,
+          content: `[I proposed options. User selected ${m.selectedLabel}: "${chosen?.title || '?'}". Applied successfully.]`,
         });
       } else if (m.status === 'failed') {
         const failedOpt = options.find(o => o.label === m.failedLabel);
         history.push({
           role: 'assistant',
-          content: `[I proposed: ${optionList}. User tried option ${m.failedLabel}: "${failedOpt?.title || '?'}" but it FAILED: ${m.failedMessage || 'unknown error'}. Other options still available.]`,
+          content: `[I proposed options. User tried ${m.failedLabel}: "${failedOpt?.title || '?'}" but FAILED: ${m.failedMessage || 'unknown error'}. Other options still available.]`,
         });
       } else if (m.status === 'dismissed') {
+        // Include detail for dismissed proposals so AI can refine
+        const optionSummary = options.map(o =>
+          `${o.label}. "${o.title}" (${o.description || ''})`
+        ).join('; ');
         history.push({
           role: 'assistant',
-          content: `[I proposed: ${optionList}. User dismissed the proposal.]`,
+          content: `[I proposed: ${optionSummary}. User dismissed and asked for changes.]`,
         });
       } else {
+        const optionList = options.map(o =>
+          `${o.label}. "${o.title}" → ${o.action?.type}`
+        ).join('; ');
         history.push({
           role: 'assistant',
           content: `[I proposed: ${optionList}. Awaiting user selection.]`,
         });
       }
+    } else if (m.role === 'research') {
+      // Include research context so the AI remembers what was searched
+      const query = m.research?.query || 'unknown';
+      const count = m.research?.results?.reduce((sum, g) => sum + (g.items?.length || 0), 0) || 0;
+      history.push({
+        role: 'assistant',
+        content: `[I searched for "${query}" and found ${count} results from academic sources.]`,
+      });
+    } else if (m.role === 'validation') {
+      const r = m.report;
+      if (r) {
+        history.push({
+          role: 'assistant',
+          content: `[Course health: ${r.errorCount} errors, ${r.warningCount} warnings. ${r.findings.slice(0, 3).map(f => f.message).join('; ')}]`,
+        });
+      }
+    } else if (m.role === 'changeSummary') {
+      const s = m.summary;
+      const desc = (s?.changes || []).map(c =>
+        `${c.type} ${c.count} in ${c.featureId}${c.label ? ` (${c.label})` : ''}`
+      ).join(', ');
+      history.push({ role: 'assistant', content: `[Applied changes: ${desc}]` });
+    } else if (m.role === 'syncSuggestion') {
+      const featureNames = (m.plan || []).map(p => p.featureId).join(', ');
+      const statusText = m.status === 'done' ? 'synced' : m.status === 'skipped' ? 'skipped' : 'pending';
+      history.push({ role: 'assistant', content: `[Sync suggestion: ${featureNames} — ${statusText}]` });
     } else if (m.role === 'error') {
       history.push({ role: 'assistant', content: `[Error: ${m.text || 'unknown error'}]` });
     }
@@ -251,6 +295,8 @@ export default function useChatRouter({
   savedMessages, onMessagesChange,
   // Agent params
   deliverables, executeAction,
+  delivUndoSnapshot,
+  executeSyncPlan,
 }) {
   const [messages, setMessages] = useState(savedMessages || []);
   const [isStreaming, setIsStreaming] = useState(false);
@@ -270,6 +316,19 @@ export default function useChatRouter({
   useEffect(() => { executeActionRef.current = executeAction; });
   const delivRef = useRef(deliverables);
   useEffect(() => { delivRef.current = deliverables; });
+  const snapshotRef = useRef(delivUndoSnapshot);
+  useEffect(() => { snapshotRef.current = delivUndoSnapshot; });
+  const executeSyncPlanRef = useRef(executeSyncPlan);
+  useEffect(() => { executeSyncPlanRef.current = executeSyncPlan; });
+
+  // ── Post-action pedagogical validation ────────────────────────────────────
+  function maybeRunValidation() {
+    if (!courseMap || !delivRef.current) return;
+    const report = generateCourseHealthReport(courseMap, delivRef.current);
+    if (report.errorCount > 0 || report.warningCount > 0) {
+      setMessages(prev => [...prev, { role: 'validation', report }]);
+    }
+  }
 
   // ── File handling ─────────────────────────────────────────────────────────
   const processFiles = useCallback(async (fileList) => {
@@ -443,7 +502,14 @@ export default function useChatRouter({
       const chatHistory = buildAgentChatHistory(messages);
       chatHistory.push({ role: 'user', content: fullMessage });
 
-      const systemPrompt = buildAgentSystemPrompt(courseMap, activeTab, delivRef.current);
+      // Inject course health summary so the agent knows about educational issues
+      const healthReport = (courseMap && delivRef.current)
+        ? generateCourseHealthReport(courseMap, delivRef.current)
+        : null;
+      const healthSummary = (healthReport && (healthReport.errorCount > 0 || healthReport.warningCount > 0))
+        ? healthReport.summary
+        : null;
+      const systemPrompt = buildAgentSystemPrompt(courseMap, activeTab, delivRef.current, healthSummary);
       const { reader, parseChunk } = await streamChat(
         chatHistory, systemPrompt, controller.signal, apiKey, provider, modelId,
         4096, // higher max tokens for structured output
@@ -483,6 +549,7 @@ export default function useChatRouter({
                   else if (lower.includes('"actions"')) detectedType = 'batchAction';
                   else if (lower.includes('"action"')) detectedType = 'action';
                   else if (lower.includes('"patches"')) detectedType = 'patches';
+                  else if (lower.includes('"research"')) detectedType = 'research';
                 }
 
                 if (detectedType === 'chatReply') {
@@ -509,6 +576,14 @@ export default function useChatRouter({
                     const u = [...prev];
                     if (!u[u.length - 1].text || u[u.length - 1].text === 'Thinking...') {
                       u[u.length - 1] = { role: 'assistant', text: 'Preparing changes...' };
+                    }
+                    return u;
+                  });
+                } else if (detectedType === 'research') {
+                  setMessages(prev => {
+                    const u = [...prev];
+                    if (!u[u.length - 1].text || u[u.length - 1].text === 'Thinking...') {
+                      u[u.length - 1] = { role: 'assistant', text: 'Searching academic sources...' };
                     }
                     return u;
                   });
@@ -579,6 +654,12 @@ export default function useChatRouter({
       return;
     }
 
+    // 1.5. Research request — execute search, then re-call LLM with results
+    if (parsed.research && parsed.research.query) {
+      handleResearchRequest(parsed.research);
+      return;
+    }
+
     // 2. Proposal
     if (parsed.proposal) {
       setMessages(prev => {
@@ -606,14 +687,28 @@ export default function useChatRouter({
         return;
       }
       const result = exec(parsed.action);
-      const replyText = result.success
-        ? (parsed.message || result.message || 'Done!')
-        : `Failed: ${result.message}`;
-      setMessages(prev => {
-        const updated = [...prev];
-        updated[updated.length - 1] = { role: 'assistant', text: replyText };
-        return updated;
-      });
+      if (result.success) {
+        const actionType = parsed.action.type === 'addItem' ? 'added'
+          : parsed.action.type === 'removeItem' ? 'removed' : 'edited';
+        setMessages(prev => {
+          const updated = [...prev];
+          updated[updated.length - 1] = {
+            role: 'changeSummary',
+            summary: {
+              changes: [{ type: actionType, featureId: parsed.action.featureId, count: 1 }],
+              message: parsed.message || result.message,
+            },
+          };
+          return updated;
+        });
+        maybeRunValidation();
+      } else {
+        setMessages(prev => {
+          const updated = [...prev];
+          updated[updated.length - 1] = { role: 'assistant', text: `Failed: ${result.message}` };
+          return updated;
+        });
+      }
       return;
     }
 
@@ -629,14 +724,29 @@ export default function useChatRouter({
         return;
       }
 
+      // Batch undo grouping: snapshot each affected featureId once before mutations
+      const snapshot = snapshotRef.current;
+      if (snapshot) {
+        const snappedFeatures = new Set();
+        for (const a of parsed.actions) {
+          const fid = a.featureId;
+          if (fid && !snappedFeatures.has(fid)) {
+            const entry = delivRef.current?.[fid];
+            if (entry?.data) { snapshot(fid, entry.data); snappedFeatures.add(fid); }
+          }
+        }
+      }
+
       const total = parsed.actions.length;
       let successCount = 0;
       const failures = [];
+      const successActions = [];
 
       for (let i = 0; i < total; i++) {
-        const result = exec(parsed.actions[i]);
+        const result = exec(parsed.actions[i], { skipSnapshot: true });
         if (result.success) {
           successCount++;
+          successActions.push(parsed.actions[i]);
         } else {
           failures.push(result.message);
         }
@@ -653,18 +763,43 @@ export default function useChatRouter({
         }
       }
 
-      // Final summary
-      const replyText = successCount === total
-        ? (parsed.message || `Done! Applied ${total} changes successfully.`)
-        : successCount === 0
-          ? `All ${total} changes failed. ${failures[0] || ''}`
-          : `Applied ${successCount} of ${total} changes. ${failures.length} failed: ${failures.join('; ')}`;
+      if (successCount > 0) {
+        // Group changes by type:featureId for structured summary
+        const changeCounts = {};
+        for (const a of successActions) {
+          const actionType = a.type === 'addItem' ? 'added'
+            : a.type === 'removeItem' ? 'removed' : 'edited';
+          const key = `${actionType}:${a.featureId}`;
+          if (!changeCounts[key]) changeCounts[key] = { type: actionType, featureId: a.featureId, count: 0 };
+          changeCounts[key].count++;
+        }
 
-      setMessages(prev => {
-        const updated = [...prev];
-        updated[updated.length - 1] = { role: 'assistant', text: replyText };
-        return updated;
-      });
+        const failMsg = failures.length > 0
+          ? `${failures.length} failed: ${failures.slice(0, 2).join('; ')}`
+          : undefined;
+
+        setMessages(prev => {
+          const updated = [...prev];
+          updated[updated.length - 1] = {
+            role: 'changeSummary',
+            summary: {
+              changes: Object.values(changeCounts),
+              message: parsed.message || failMsg,
+            },
+          };
+          return updated;
+        });
+        maybeRunValidation();
+      } else {
+        setMessages(prev => {
+          const updated = [...prev];
+          updated[updated.length - 1] = {
+            role: 'assistant',
+            text: `All ${total} changes failed. ${failures[0] || ''}`,
+          };
+          return updated;
+        });
+      }
       return;
     }
 
@@ -703,6 +838,170 @@ export default function useChatRouter({
     });
   }
 
+  // ── Handle research request — search, then re-call LLM ──────────────────
+  async function handleResearchRequest(researchReq) {
+    const { query, sources, reason } = researchReq;
+
+    // 1. Show research card in "searching" state
+    setMessages(prev => {
+      const updated = [...prev];
+      updated[updated.length - 1] = {
+        role: 'research',
+        research: { query, reason, sources },
+        status: 'searching',
+      };
+      return updated;
+    });
+
+    try {
+      const controller = new AbortController();
+      abortRef.current = controller;
+
+      // 2. Execute the research
+      const { results, formatted } = await executeResearch(researchReq, controller.signal);
+
+      // 3. Update the research card to "complete" state
+      setMessages(prev => {
+        const updated = [...prev];
+        const researchIdx = updated.findLastIndex(m => m.role === 'research' && m.status === 'searching');
+        if (researchIdx >= 0) {
+          updated[researchIdx] = {
+            ...updated[researchIdx],
+            status: 'complete',
+            research: { ...updated[researchIdx].research, results },
+          };
+        }
+        // Add empty assistant placeholder for synthesis response
+        updated.push({ role: 'assistant', text: '' });
+        return updated;
+      });
+
+      // 4. Build chat history with research results injected
+      const chatHistory = buildAgentChatHistory(
+        messages.filter(m => m.role !== 'research')
+      );
+      chatHistory.push({
+        role: 'user',
+        content: `[SYSTEM: Research results for your query "${query}"]\n${formatted}\n\n[SYSTEM: Synthesize a response using these results. Use [N] citations. When proposing content (quizzes, assignments, discussions), embed research findings directly — e.g., use paper titles as recommended readings, cite findings in activity descriptions, or reference studies in discussion prompts. Respond with your normal JSON format — do NOT emit another research request.]`,
+      });
+
+      // 5. Stream the synthesis call
+      const systemPrompt = buildAgentSystemPrompt(courseMap, activeTab, delivRef.current);
+      const { reader, parseChunk } = await streamChat(
+        chatHistory, systemPrompt, controller.signal, apiKey, provider, modelId,
+        4096,
+      );
+
+      const decoder = new TextDecoder();
+      let buffer = '';
+      let fullText = '';
+      let chunkCount = 0;
+      let detectedType = null;
+
+      while (true) {
+        const { done, value } = await reader.read();
+        if (done) break;
+        buffer += decoder.decode(value, { stream: true });
+        const lines = buffer.split('\n');
+        buffer = lines.pop() || '';
+
+        for (const line of lines) {
+          const trimmed = line.trim();
+          if (!trimmed || !trimmed.startsWith('data: ')) continue;
+          const data = trimmed.slice(6);
+          if (data === '[DONE]') continue;
+          try {
+            const parsed = JSON.parse(data);
+            const chunk = parseChunk(parsed);
+            if (chunk) {
+              fullText += chunk;
+              chunkCount++;
+
+              // Live-stream chatReply content during synthesis
+              if (chunkCount % 8 === 0) {
+                if (!detectedType) {
+                  const lower = fullText.toLowerCase();
+                  if (lower.includes('"chatreply"')) detectedType = 'chatReply';
+                  else if (lower.includes('"proposal"')) detectedType = 'proposal';
+                  else if (lower.includes('"actions"')) detectedType = 'batchAction';
+                  else if (lower.includes('"action"')) detectedType = 'action';
+                }
+
+                if (detectedType === 'chatReply') {
+                  const match = fullText.match(/"chatReply"\s*:\s*"([\s\S]*?)(?:"|$)/);
+                  if (match) {
+                    const partial = match[1].replace(/\\n/g, '\n').replace(/\\"/g, '"').replace(/\\\\/g, '\\');
+                    setMessages(prev => {
+                      const u = [...prev];
+                      u[u.length - 1] = { role: 'assistant', text: partial };
+                      return u;
+                    });
+                  }
+                }
+              }
+            }
+          } catch { /* ignore */ }
+        }
+      }
+
+      // 6. Parse the synthesis response — guard against infinite loops
+      const synthParsed = parseAgentJSON(fullText);
+      if (synthParsed?.research) {
+        // LLM tried to research again — force chatReply fallback
+        setMessages(prev => {
+          const updated = [...prev];
+          updated[updated.length - 1] = {
+            role: 'assistant',
+            text: synthParsed.chatReply || synthParsed.message || 'I found some research results above but could not synthesize further. Please review the sources directly.',
+          };
+          return updated;
+        });
+        return;
+      }
+
+      // Normal handling of the synthesis response
+      handleAgentResponse(fullText);
+
+    } catch (err) {
+      if (err.name === 'AbortError') {
+        setMessages(prev => {
+          const last = prev[prev.length - 1];
+          if (last?.role === 'assistant' && !last.text) return prev.slice(0, -1);
+          return prev;
+        });
+        return;
+      }
+      // Update research card to error state + add fallback message
+      setMessages(prev => {
+        const updated = [...prev];
+        const researchIdx = updated.findLastIndex(m => m.role === 'research');
+        if (researchIdx >= 0) {
+          updated[researchIdx] = {
+            ...updated[researchIdx],
+            status: 'error',
+            research: { ...updated[researchIdx].research, error: err.message },
+          };
+        }
+        // Replace or add an assistant message with fallback
+        const lastMsg = updated[updated.length - 1];
+        if (lastMsg?.role === 'assistant' && !lastMsg.text) {
+          updated[updated.length - 1] = {
+            role: 'assistant',
+            text: `I tried to search for "${researchReq.query}" but the search failed. Let me answer based on what I know.`,
+          };
+        } else {
+          updated.push({
+            role: 'assistant',
+            text: `I tried to search for "${researchReq.query}" but the search failed. Let me answer based on what I know.`,
+          });
+        }
+        return updated;
+      });
+    } finally {
+      setIsStreaming(false);
+    }
+  }
+
   // ── Handle proposal selection ─────────────────────────────────────────────
   function handleSelectProposal(messageIndex, optionLabel) {
     const msg = messages[messageIndex];
@@ -724,7 +1023,7 @@ export default function useChatRouter({
     setMessages(prev => {
       const updated = [...prev];
       if (result.success) {
-        // Success: mark selected, clear any previous failure, add confirmation
+        // Success: mark selected, clear any previous failure, add changeSummary
         updated[messageIndex] = {
           ...updated[messageIndex],
           status: 'selected',
@@ -732,7 +1031,15 @@ export default function useChatRouter({
           failedLabel: null,
           failedMessage: null,
         };
-        updated.push({ role: 'assistant', text: `Done! Added "${option.title}" to your course.` });
+        const actionType = option.action?.type === 'addItem' ? 'added'
+          : option.action?.type === 'removeItem' ? 'removed' : 'edited';
+        updated.push({
+          role: 'changeSummary',
+          summary: {
+            changes: [{ type: actionType, featureId: option.action?.featureId, count: 1, label: option.title }],
+            message: `Added "${option.title}" to your course.`,
+          },
+        });
       } else {
         // Failure: mark failed option but keep others clickable
         updated[messageIndex] = {
@@ -744,6 +1051,7 @@ export default function useChatRouter({
       }
       return updated;
     });
+    if (result.success) maybeRunValidation();
   }
 
   // ── Revise mode (legacy): pass to revision handler ────────────────────────
@@ -802,11 +1110,55 @@ export default function useChatRouter({
     });
   }
 
+  // ── Sync suggestion methods (agent-mediated sync) ─────────────────────────
+  const pushSyncSuggestion = useCallback((suggestion) => {
+    setMessages(prev => {
+      // Replace existing pending syncSuggestion (debounce coalescing)
+      const existingIdx = prev.findIndex(m => m.role === 'syncSuggestion' && m.status === 'pending');
+      const newMsg = { role: 'syncSuggestion', ...suggestion, status: 'pending' };
+      if (existingIdx >= 0) {
+        const updated = [...prev];
+        updated[existingIdx] = newMsg;
+        return updated;
+      }
+      return [...prev, newMsg];
+    });
+  }, []);
+
+  const handleApproveSyncSuggestion = useCallback(async (suggestionId) => {
+    let plan, changedFieldsSummary;
+    setMessages(prev => {
+      const msg = prev.find(m => m.id === suggestionId);
+      if (msg) { plan = msg.plan; changedFieldsSummary = msg.changedFieldsSummary; }
+      return prev.map(m => m.id === suggestionId ? { ...m, status: 'syncing' } : m);
+    });
+
+    if (!plan) return;
+
+    try {
+      const completed = await executeSyncPlanRef.current?.(plan, changedFieldsSummary || '');
+      setMessages(prev => prev.map(m =>
+        m.id === suggestionId ? { ...m, status: 'done', completedFeatureIds: completed || [] } : m
+      ));
+    } catch {
+      setMessages(prev => prev.map(m =>
+        m.id === suggestionId ? { ...m, status: 'done', failedFeatureIds: (plan || []).map(p => p.featureId) } : m
+      ));
+    }
+  }, []);
+
+  const handleSkipSyncSuggestion = useCallback((suggestionId) => {
+    setMessages(prev => prev.map(m =>
+      m.id === suggestionId ? { ...m, status: 'skipped' } : m
+    ));
+  }, []);
+
   return {
     messages,
     isStreaming, send, handleStop,
     attachedFiles, processFiles, removeAttached, isParsing,
     addProgressMessage,
     handleSelectProposal,
+    pushSyncSuggestion, handleApproveSyncSuggestion, handleSkipSyncSuggestion,
   };
 }

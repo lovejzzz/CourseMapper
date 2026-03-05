@@ -1,4 +1,6 @@
 import { getCustomDeliverable } from '../../lib/customDeliverableLibrary';
+import { generateCourseHealthReport } from '../../lib/pedagogicalValidator';
+import { getArrayKey } from '../../lib/syncDependencies';
 
 // ── Feature labels ──────────────────────────────────────────────────────────
 export const FEATURE_LABELS = {
@@ -33,34 +35,77 @@ export const STEPS = [
   { key: 'done', label: 'Course map ready' },
 ];
 
+// ── Adaptive starters from course health + deliverable gaps ─────────────────
+
+const SUB_ARRAY_KEYS = { quizBank: 'qs', slideDecks: 'sl', courseFaq: 'qs', rubrics: 'cr' };
+
+function buildAdaptiveStarters(courseMap, activeTab, deliverables) {
+  const starters = [];
+  const lessons = courseMap?.lessons || [];
+  const courseTopic = courseMap?.courseName || 'your course topic';
+
+  // 1. Health-based starters (top 2 findings by severity)
+  if (deliverables && courseMap) {
+    try {
+      const report = generateCourseHealthReport(courseMap, deliverables);
+      if (report && report.findings.length > 0) {
+        const actionable = report.findings
+          .filter(f => f.suggestedPrompt)
+          .slice(0, 2);
+        for (const finding of actionable) {
+          starters.push({ text: finding.suggestedPrompt, icon: 'search' });
+        }
+      }
+    } catch { /* validator may fail on edge cases — fall through to defaults */ }
+  }
+
+  // 2. Gap-based starters — find first lesson missing quiz/discussion
+  if (deliverables && starters.length < 3) {
+    for (const [featureId, subKey] of [['quizBank', 'qs'], ['discussions', null]]) {
+      if (starters.length >= 3) break;
+      const entry = deliverables[featureId];
+      if (!entry?.data) continue;
+      const arrKey = getArrayKey(featureId, entry.data);
+      const arr = arrKey && entry.data[arrKey];
+      if (!Array.isArray(arr)) continue;
+      for (let i = 0; i < arr.length && i < lessons.length; i++) {
+        const lesson = arr[i];
+        const isEmpty = subKey
+          ? !lesson[subKey] || lesson[subKey].length === 0
+          : !lesson || Object.keys(lesson).length <= 2; // lt + maybe one field
+        if (isEmpty) {
+          const lessonTitle = lessons[i]?.title || `Lesson ${i + 1}`;
+          const label = featureId === 'quizBank' ? 'a quiz question' : 'a discussion prompt';
+          starters.push({ text: `Add ${label} to ${lessonTitle}`, icon: 'plus' });
+          break;
+        }
+      }
+    }
+  }
+
+  // 3. Always include a research starter
+  if (starters.length < 4) {
+    starters.push({ text: `Find research on ${courseTopic}`, icon: 'search' });
+  }
+
+  // 4. Fill remaining with course-health review
+  if (starters.length < 4) {
+    starters.push({ text: 'Review my course for educational gaps', icon: 'search' });
+  }
+
+  // Cap at 4
+  return starters.slice(0, 4);
+}
+
 // ── Chat opener — context-aware starters ────────────────────────────────────
 
-export function getChatOpener(courseMap, isAgentMode, activeTab) {
-  // Tier 3: Agent mode — deliverables generated, show action starters
+export function getChatOpener(courseMap, isAgentMode, activeTab, deliverables = null) {
+  // Tier 3: Agent mode — deliverables generated, show adaptive starters
   if (isAgentMode) {
-    const tabLabel = activeTab && FEATURE_LABELS[activeTab]
-      ? FEATURE_LABELS[activeTab]
-      : null;
+    const starters = buildAdaptiveStarters(courseMap, activeTab, deliverables);
     return {
       greeting: 'I can edit your course materials directly. Try asking me to:',
-      starters: [
-        {
-          text: 'Add a homework assignment to Lesson 2',
-          icon: 'plus',
-        },
-        {
-          text: tabLabel ? `Review my ${tabLabel} for gaps` : 'Review my deliverables for gaps',
-          icon: 'search',
-        },
-        {
-          text: 'Add a quiz question about ethics',
-          icon: 'plus',
-        },
-        {
-          text: 'What can you help me with?',
-          icon: 'chat',
-        },
-      ],
+      starters,
     };
   }
 

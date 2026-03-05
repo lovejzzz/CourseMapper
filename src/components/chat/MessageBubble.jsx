@@ -1,57 +1,151 @@
 import React from 'react';
 
-// ── Markdown-lite formatter ─────────────────────────────────────────────────
+// ── Single-pass inline markdown tokenizer ────────────────────────────────────
+const INLINE_RE = /(\*\*[^*]+\*\*)|(\*[^*]+\*)|(_[^_]+_)|(`[^`]+`)|(\[(\d+)\])|(\[([^\]]+)\]\(([^)]+)\))/g;
+
 function formatInline(text) {
-  const parts = text.split(/(\*\*[^*]+\*\*)/g);
-  return parts.map((part, i) => {
-    if (part.startsWith('**') && part.endsWith('**')) {
-      return <strong key={i} className="font-semibold text-slate-800">{part.slice(2, -2)}</strong>;
+  const result = [];
+  let lastIndex = 0;
+  let match;
+  let key = 0;
+
+  INLINE_RE.lastIndex = 0;
+  while ((match = INLINE_RE.exec(text)) !== null) {
+    if (match.index > lastIndex) {
+      result.push(<span key={key++}>{text.slice(lastIndex, match.index)}</span>);
     }
-    const codeParts = part.split(/(`[^`]+`)/g);
-    return codeParts.map((cp, j) => {
-      if (cp.startsWith('`') && cp.endsWith('`')) {
-        return <code key={`${i}-${j}`} className="px-1.5 py-0.5 rounded bg-slate-100 text-[12px] font-mono text-indigo-600">{cp.slice(1, -1)}</code>;
-      }
-      return <span key={`${i}-${j}`}>{cp}</span>;
-    });
-  });
+
+    if (match[1]) {
+      // **bold**
+      result.push(<strong key={key++} className="font-semibold text-slate-800">{match[1].slice(2, -2)}</strong>);
+    } else if (match[2]) {
+      // *italic*
+      result.push(<em key={key++} className="italic text-slate-600">{match[2].slice(1, -1)}</em>);
+    } else if (match[3]) {
+      // _italic_
+      result.push(<em key={key++} className="italic text-slate-600">{match[3].slice(1, -1)}</em>);
+    } else if (match[4]) {
+      // `code`
+      result.push(<code key={key++} className="px-1.5 py-0.5 rounded bg-slate-100 text-[12px] font-mono text-indigo-600">{match[4].slice(1, -1)}</code>);
+    } else if (match[5]) {
+      // [N] citation badge
+      result.push(
+        <span key={key++} className="inline-flex items-center justify-center min-w-[1.25rem] h-5 rounded-full bg-indigo-100 text-indigo-600 text-[10px] font-bold mx-0.5 px-1 align-text-bottom">
+          {match[6]}
+        </span>
+      );
+    } else if (match[7]) {
+      // [text](url) link
+      result.push(
+        <a key={key++} href={match[9]} target="_blank" rel="noopener noreferrer"
+           className="text-indigo-600 hover:text-indigo-800 underline decoration-indigo-300 hover:decoration-indigo-500 transition-colors">
+          {match[8]}
+        </a>
+      );
+    }
+
+    lastIndex = match.index + match[0].length;
+  }
+
+  if (lastIndex < text.length) {
+    result.push(<span key={key++}>{text.slice(lastIndex)}</span>);
+  }
+
+  return result.length > 0 ? result : [<span key={0}>{text}</span>];
 }
 
+// ── Block-level markdown formatter ───────────────────────────────────────────
 function FormattedContent({ text }) {
   const lines = text.split('\n');
   const elements = [];
+  let i = 0;
 
-  for (let i = 0; i < lines.length; i++) {
+  while (i < lines.length) {
     const line = lines[i];
 
-    if (line.match(/^#{1,3}\s/)) {
-      const cleaned = line.replace(/^#{1,3}\s*/, '');
-      elements.push(<div key={i} className="font-bold text-slate-800 mt-2 mb-1">{formatInline(cleaned)}</div>);
+    // Code blocks (triple backtick)
+    if (line.trim().startsWith('```')) {
+      const codeLines = [];
+      i++;
+      while (i < lines.length && !lines[i].trim().startsWith('```')) {
+        codeLines.push(lines[i]);
+        i++;
+      }
+      if (i < lines.length) i++; // skip closing ```
+      elements.push(
+        <pre key={elements.length} className="my-2 px-3 py-2.5 rounded-lg bg-slate-50 border border-slate-200/30 overflow-x-auto">
+          <code className="text-[12px] font-mono text-slate-700 leading-relaxed whitespace-pre">
+            {codeLines.join('\n')}
+          </code>
+        </pre>
+      );
       continue;
     }
+
+    // Horizontal rules
+    if (/^(---|\*\*\*|___)\s*$/.test(line.trim())) {
+      elements.push(<hr key={elements.length} className="my-2 border-slate-200/50" />);
+      i++;
+      continue;
+    }
+
+    // Blockquotes
+    if (line.match(/^>\s?/)) {
+      const cleaned = line.replace(/^>\s?/, '');
+      elements.push(
+        <div key={elements.length} className="border-l-2 border-indigo-300 pl-3 my-1 text-slate-600 italic">
+          {formatInline(cleaned)}
+        </div>
+      );
+      i++;
+      continue;
+    }
+
+    // Headers
+    if (line.match(/^#{1,3}\s/)) {
+      const cleaned = line.replace(/^#{1,3}\s*/, '');
+      elements.push(<div key={elements.length} className="font-bold text-slate-800 mt-2 mb-1">{formatInline(cleaned)}</div>);
+      i++;
+      continue;
+    }
+
+    // Unordered lists
     if (line.match(/^[-*]\s/)) {
       const cleaned = line.replace(/^[-*]\s*/, '');
       elements.push(
-        <div key={i} className="flex gap-2 ml-1">
+        <div key={elements.length} className="flex gap-2 ml-1">
           <span className="text-indigo-400 mt-0.5 flex-shrink-0">•</span>
           <span>{formatInline(cleaned)}</span>
         </div>
       );
+      i++;
       continue;
     }
+
+    // Ordered lists
     if (line.match(/^\d+\.\s/)) {
       const num = line.match(/^(\d+)\./)[1];
       const cleaned = line.replace(/^\d+\.\s*/, '');
       elements.push(
-        <div key={i} className="flex gap-2 ml-1">
+        <div key={elements.length} className="flex gap-2 ml-1">
           <span className="text-indigo-400 font-semibold flex-shrink-0">{num}.</span>
           <span>{formatInline(cleaned)}</span>
         </div>
       );
+      i++;
       continue;
     }
-    if (!line.trim()) { elements.push(<div key={i} className="h-2" />); continue; }
-    elements.push(<div key={i}>{formatInline(line)}</div>);
+
+    // Blank lines
+    if (!line.trim()) {
+      elements.push(<div key={elements.length} className="h-2" />);
+      i++;
+      continue;
+    }
+
+    // Default: paragraph with inline formatting
+    elements.push(<div key={elements.length}>{formatInline(line)}</div>);
+    i++;
   }
 
   return <>{elements}</>;

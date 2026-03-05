@@ -1237,6 +1237,9 @@ export default function App() {
                 isSyncing={smartSync.isSyncing}
                 pendingSyncCount={smartSync.pendingSyncCount}
                 syncingFeatures={smartSync.syncingFeatures}
+                pendingSyncSuggestion={smartSync.pendingSyncSuggestion}
+                clearPendingSyncSuggestion={smartSync.clearPendingSyncSuggestion}
+                executeSyncPlan={smartSync.executeSyncPlan}
                 onRevision={rev.handleRevision}
                 onDeliverableRevision={(msg, history) => {
                   // For deliverable revisions, regenerate the active deliverable
@@ -1261,6 +1264,8 @@ export default function App() {
                 optimisticUpdate={deliv.optimisticUpdate}
                 regenerateLesson={deliv.regenerateLesson}
                 delivUndoSnapshot={delivUndo.snapshot}
+                delivUndoFn={() => delivUndo.undo(deliv.setDeliverables)}
+                delivCanUndo={delivUndo.canUndo}
                 onAgentHighlight={triggerAgentHighlight}
               />
             </ErrorBoundary>

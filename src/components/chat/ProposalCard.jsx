@@ -1,5 +1,42 @@
 import React, { useState } from 'react';
 
+// ── Preview fields per deliverable — what to show in item previews ──────────
+const PREVIEW_FIELDS = {
+  quizBank: [{ key: 'q', label: 'Question' }, { key: 'op', label: 'Options', isArray: true }, { key: 'an', label: 'Answer' }],
+  discussions: [{ key: 'pr', label: 'Prompt' }, { key: 'cx', label: 'Context' }],
+  assignments: [{ key: 't', label: 'Title' }, { key: 'ov', label: 'Overview' }],
+  slideDecks: [{ key: 't', label: 'Title' }, { key: 'bu', label: 'Bullets', isArray: true }],
+  courseFaq: [{ key: 'q', label: 'Question' }, { key: 'an', label: 'Answer' }],
+  rubrics: [{ key: 'cn', label: 'Criterion' }, { key: 'ex', label: 'Exemplary' }],
+  studyGuides: [{ key: 'tm', label: 'Term' }, { key: 'df', label: 'Definition' }],
+  lessonPlans: [{ key: 'lt', label: 'Title' }, { key: 'ob', label: 'Objectives' }],
+};
+
+function ItemPreview({ item, featureId }) {
+  if (!item || !featureId) return null;
+  const fields = PREVIEW_FIELDS[featureId];
+  if (!fields) return null;
+
+  return (
+    <div className="mt-2 px-2.5 py-2 rounded-lg bg-slate-50/80 border border-slate-200/20 space-y-1.5">
+      {fields.map(({ key, label, isArray }) => {
+        const value = item[key];
+        if (!value) return null;
+        return (
+          <div key={key} className="text-[11px]">
+            <span className="text-slate-400 font-medium">{label}: </span>
+            {isArray && Array.isArray(value) ? (
+              <span className="text-slate-600">{value.join(', ')}</span>
+            ) : (
+              <span className="text-slate-600 line-clamp-2">{String(value)}</span>
+            )}
+          </div>
+        );
+      })}
+    </div>
+  );
+}
+
 /**
  * ProposalCard — Renders an AI proposal with clickable option cards.
  *
@@ -87,8 +124,10 @@ export default function ProposalCard({ proposal, status, selectedLabel, failedLa
 
 function OptionCard({ option, isPending, isChosen, isFailed, failedMessage, isFaded, onSelect }) {
   const [expanded, setExpanded] = useState(false);
+  const [showPreview, setShowPreview] = useState(false);
   // Consider "long" if description exceeds ~100 chars (roughly 2 lines)
   const isLong = option.description && option.description.length > 100;
+  const hasPreview = option.action?.type === 'addItem' && option.action?.item;
 
   function handleCardClick() {
     if (isPending) onSelect(option.label);
@@ -195,6 +234,30 @@ function OptionCard({ option, isPending, isChosen, isFailed, failedMessage, isFa
                 <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2.5} d="M19 9l-7 7-7-7" />
               </svg>
             </span>
+          )}
+
+          {/* Item content preview */}
+          {hasPreview && !isFailed && (
+            <>
+              <span
+                role="button"
+                tabIndex={0}
+                onClick={(e) => { e.stopPropagation(); setShowPreview(v => !v); }}
+                onKeyDown={(e) => { if (e.key === 'Enter' || e.key === ' ') { e.stopPropagation(); setShowPreview(v => !v); } }}
+                className={`inline-flex items-center gap-0.5 text-[10px] font-semibold mt-1 ${isLong ? 'ml-2' : ''} transition-colors ${
+                  isPending ? 'text-violet-400 hover:text-violet-600' : 'text-slate-400'
+                }`}
+              >
+                {showPreview ? 'Hide preview' : 'Preview content'}
+                <svg className={`w-2.5 h-2.5 transition-transform duration-200 ${showPreview ? 'rotate-180' : ''}`}
+                  fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2.5} d="M19 9l-7 7-7-7" />
+                </svg>
+              </span>
+              {showPreview && (
+                <ItemPreview item={option.action.item} featureId={option.action.featureId} />
+              )}
+            </>
           )}
         </div>
       </div>

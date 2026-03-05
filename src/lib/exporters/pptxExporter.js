@@ -3,8 +3,16 @@
  * World-class educational slide design with Google-native fonts,
  * assertion-evidence layouts, and rich visual hierarchy.
  *
+ * Features:
+ *   - Auto font sizing via Canvas API (prevents text overflow)
+ *   - Slide element validation (out-of-bounds + overlap detection)
+ *   - LaTeX rendering for STEM courses (Unicode + KaTeX image)
+ *
  * Fonts: Montserrat (headings) + Open Sans (body) — both Google Slides native.
  */
+
+import { autoFitFontSize, autoFitBullets, createElementTracker, SLIDE_W, SLIDE_H } from './slideTextFit.js';
+import { containsLatex, deckDataContainsLatex, processSlideText } from '../latexRenderer.js';
 
 let _PptxGenJS;
 
@@ -104,14 +112,36 @@ function addProgressDots(pptx, slide, theme, slideIndex, totalSlides, isDark) {
 }
 
 /**
- * Build a single slide into a pptx instance.
+ * Process text for LaTeX if applicable, returning { text, images }.
+ * @param {string} text
+ * @param {boolean} hasLatex - Whether deck data contains LaTeX
+ * @param {Object} [opts] - { color, fontSizePt }
+ * @returns {Promise<{ text: string, images: Array }>}
  */
-function buildSlideForDeck(pptx, deck, theme, slideIndex, totalSlides) {
+async function maybeProcessLatex(text, hasLatex, { color = '000000', fontSizePt = 16 } = {}) {
+  if (!hasLatex || !text || !containsLatex(text)) {
+    return { text: text || '', images: [] };
+  }
+  return processSlideText(text, { color: `#${color}`, fontSizePt });
+}
+
+/**
+ * Build a single slide into a pptx instance.
+ * @param {Object} pptx - PptxGenJS instance
+ * @param {Object} deck - Deck data
+ * @param {Object} theme - Color theme
+ * @param {number} slideIndex - Index of slide within deck
+ * @param {number} totalSlides - Total slides in deck
+ * @param {Object} [opts] - Options: { hasLatex: boolean }
+ */
+async function buildSlideForDeck(pptx, deck, theme, slideIndex, totalSlides, opts = {}) {
   const s = deck.slides?.[slideIndex];
   if (!s) return;
   const slideType = getSlideType(s);
   const slide = pptx.addSlide();
-  const W = 10, H = 5.625;
+  const W = SLIDE_W, H = SLIDE_H;
+  const hasLatex = opts.hasLatex || false;
+  const tracker = createElementTracker();
 
   if (slideType === 'title') {
     // ── TITLE SLIDE ─────────────────────────────────────────────────────
@@ -158,14 +188,23 @@ function buildSlideForDeck(pptx, deck, theme, slideIndex, totalSlides) {
       bold: true, charSpacing: 4,
     });
 
-    // Main title — large, bold
-    slide.addText(deck.lessonTitle || s.title || 'Untitled Lesson', {
-      x: 0.7, y: 1.15, w: W - 4, h: 2.2,
-      fontSize: 40, fontFace: FONT_HEADING,
+    // Main title — large, bold (auto-fit from 40pt down to 24pt)
+    const titleText = deck.lessonTitle || s.title || 'Untitled Lesson';
+    const titleBoxW = W - 4, titleBoxH = 2.2;
+    const titleFontSize = autoFitFontSize(titleText, titleBoxW, titleBoxH, FONT_HEADING, 40, 24, 1.15);
+    const titleResult = await maybeProcessLatex(titleText, hasLatex, { color: theme.titleText, fontSizePt: titleFontSize });
+    slide.addText(titleResult.text, {
+      x: 0.7, y: 1.15, w: titleBoxW, h: titleBoxH,
+      fontSize: titleFontSize, fontFace: FONT_HEADING,
       color: theme.titleText,
       bold: true, align: 'left', valign: 'middle',
       lineSpacingMultiple: 1.15,
     });
+    tracker.add({ x: 0.7, y: 1.15, w: titleBoxW, h: titleBoxH, label: 'title' });
+    // Add LaTeX display images for title if any
+    for (const img of titleResult.images.filter(i => i.displayMode)) {
+      slide.addImage({ data: img.base64, x: (W - img.widthIn) / 2, y: 3.5, w: img.widthIn, h: img.heightIn });
+    }
 
     // Accent line under title
     slide.addShape(pptx.ShapeType.rect, {
@@ -175,15 +214,19 @@ function buildSlideForDeck(pptx, deck, theme, slideIndex, totalSlides) {
       altText: 'Decorative',
     });
 
-    // Subtitle / first bullet
+    // Subtitle / first bullet (auto-fit from 16pt down to 12pt)
     if (s.bullets?.length > 0) {
-      slide.addText(s.bullets[0], {
-        x: 0.7, y: 3.65, w: W - 4.2, h: 0.6,
-        fontSize: 16, fontFace: FONT_BODY,
+      const subBoxW = W - 4.2, subBoxH = 0.6;
+      const subFontSize = autoFitFontSize(s.bullets[0], subBoxW, subBoxH, FONT_BODY, 16, 12, 1.5);
+      const subResult = await maybeProcessLatex(s.bullets[0], hasLatex, { color: 'D0DCF0', fontSizePt: subFontSize });
+      slide.addText(subResult.text, {
+        x: 0.7, y: 3.65, w: subBoxW, h: subBoxH,
+        fontSize: subFontSize, fontFace: FONT_BODY,
         color: 'D0DCF0',
         align: 'left', italic: true,
         lineSpacingMultiple: 1.5,
       });
+      tracker.add({ x: 0.7, y: 3.65, w: subBoxW, h: subBoxH, label: 'subtitle' });
     }
 
     // Progress dots
@@ -223,7 +266,9 @@ function buildSlideForDeck(pptx, deck, theme, slideIndex, totalSlides) {
 
     // Numbered objectives as visual cards
     if (s.bullets?.length > 0) {
-      s.bullets.slice(0, 4).forEach((b, i) => {
+      const objBullets = s.bullets.slice(0, 4);
+      for (let i = 0; i < objBullets.length; i++) {
+        const b = objBullets[i];
         const col = i < 2 ? 0 : 1;
         const row = i % 2;
         const x = col === 0 ? 0.4 : W / 2 + 0.15;
@@ -251,13 +296,22 @@ function buildSlideForDeck(pptx, deck, theme, slideIndex, totalSlides) {
           bold: true, align: 'center', valign: 'middle',
         });
 
-        slide.addText(b, {
-          x: x + 0.75, y: y + 0.15, w: cardW - 0.9, h: 1.3,
-          fontSize: 12, fontFace: FONT_BODY,
+        // Auto-fit objective card text from 12pt down to 9pt
+        const objTextW = cardW - 0.9, objTextH = 1.3;
+        const objFontSize = autoFitFontSize(b, objTextW, objTextH, FONT_BODY, 12, 9, 1.4);
+        const objResult = await maybeProcessLatex(b, hasLatex, { color: theme.bodyText, fontSizePt: objFontSize });
+        slide.addText(objResult.text, {
+          x: x + 0.75, y: y + 0.15, w: objTextW, h: objTextH,
+          fontSize: objFontSize, fontFace: FONT_BODY,
           color: theme.bodyText, valign: 'top',
           lineSpacingMultiple: 1.4,
         });
-      });
+        tracker.add({ x: x + 0.75, y: y + 0.15, w: objTextW, h: objTextH, label: `objective-${i + 1}` });
+        // Add LaTeX images for objective
+        for (const img of objResult.images.filter(im => im.displayMode)) {
+          slide.addImage({ data: img.base64, x: x + 0.75, y: y + 1.0, w: Math.min(img.widthIn, objTextW), h: img.heightIn });
+        }
+      }
     }
 
     addProgressDots(pptx, slide, theme, slideIndex, totalSlides, false);
@@ -292,7 +346,9 @@ function buildSlideForDeck(pptx, deck, theme, slideIndex, totalSlides) {
     });
 
     if (s.bullets?.length > 0) {
-      s.bullets.slice(0, 6).forEach((b, i) => {
+      const agendaBullets = s.bullets.slice(0, 6);
+      for (let i = 0; i < agendaBullets.length; i++) {
+        const b = agendaBullets[i];
         const y = 1.3 + i * 0.68;
         slide.addShape(pptx.ShapeType.ellipse, {
           x: 0.5, y: y + 0.05, w: 0.44, h: 0.44,
@@ -305,12 +361,17 @@ function buildSlideForDeck(pptx, deck, theme, slideIndex, totalSlides) {
           fontSize: 14, color: i === 0 ? theme.primary : theme.secondary,
           bold: true, align: 'center', valign: 'middle', fontFace: FONT_HEADING,
         });
-        slide.addText(b, {
-          x: 1.15, y, w: W - 1.7, h: 0.55,
-          fontSize: 16, color: i === 0 ? theme.bodyText : '555555',
+        // Auto-fit agenda item from 16pt down to 12pt
+        const agendaItemW = W - 1.7, agendaItemH = 0.55;
+        const agendaFontSize = autoFitFontSize(b, agendaItemW, agendaItemH, FONT_BODY, 16, 12, 1.5);
+        const agendaResult = await maybeProcessLatex(b, hasLatex, { color: i === 0 ? theme.bodyText : '555555', fontSizePt: agendaFontSize });
+        slide.addText(agendaResult.text, {
+          x: 1.15, y, w: agendaItemW, h: agendaItemH,
+          fontSize: agendaFontSize, color: i === 0 ? theme.bodyText : '555555',
           fontFace: FONT_BODY, bold: i === 0, valign: 'middle',
           lineSpacingMultiple: 1.5,
         });
+        tracker.add({ x: 1.15, y, w: agendaItemW, h: agendaItemH, label: `agenda-${i + 1}` });
         if (i < s.bullets.length - 1) {
           slide.addShape(pptx.ShapeType.line, {
             x: 1.15, y: y + 0.6, w: W - 1.9, h: 0,
@@ -318,7 +379,7 @@ function buildSlideForDeck(pptx, deck, theme, slideIndex, totalSlides) {
             altText: 'Decorative',
           });
         }
-      });
+      }
     }
 
     addProgressDots(pptx, slide, theme, slideIndex, totalSlides, false);
@@ -352,13 +413,17 @@ function buildSlideForDeck(pptx, deck, theme, slideIndex, totalSlides) {
       color: theme.accent, bold: true, charSpacing: 4,
     });
 
-    // Recap title
-    slide.addText(s.title || 'Bridge to Today', {
-      x: 0.4, y: 0.75, w: splitX - 0.6, h: 0.7,
-      fontSize: 20, fontFace: FONT_HEADING,
+    // Recap title (auto-fit from 20pt down to 14pt)
+    const bridgeTitleText = s.title || 'Bridge to Today';
+    const bridgeTitleW = splitX - 0.6, bridgeTitleH = 0.7;
+    const bridgeTitleSize = autoFitFontSize(bridgeTitleText, bridgeTitleW, bridgeTitleH, FONT_HEADING, 20, 14, 1.2);
+    slide.addText(bridgeTitleText, {
+      x: 0.4, y: 0.75, w: bridgeTitleW, h: bridgeTitleH,
+      fontSize: bridgeTitleSize, fontFace: FONT_HEADING,
       color: theme.titleText, bold: true, valign: 'top',
       lineSpacingMultiple: 1.2,
     });
+    tracker.add({ x: 0.4, y: 0.75, w: bridgeTitleW, h: bridgeTitleH, label: 'bridge-title' });
 
     // Recap bullets on left
     if (s.bullets?.length > 0) {
@@ -449,11 +514,16 @@ function buildSlideForDeck(pptx, deck, theme, slideIndex, totalSlides) {
       fontFace: FONT_LABEL, charSpacing: 2,
     });
 
-    slide.addText(s.title || 'Example', {
-      x: 1.9, y: 0.15, w: W - 2.6, h: 0.65,
-      fontSize: 22, color: 'FFFFFF',
+    // Auto-fit example title from 22pt down to 14pt
+    const exTitleText = s.title || 'Example';
+    const exTitleW = W - 2.6, exTitleH = 0.65;
+    const exTitleSize = autoFitFontSize(exTitleText, exTitleW, exTitleH, FONT_HEADING, 22, 14);
+    slide.addText(exTitleText, {
+      x: 1.9, y: 0.15, w: exTitleW, h: exTitleH,
+      fontSize: exTitleSize, color: 'FFFFFF',
       bold: true, fontFace: FONT_HEADING, valign: 'middle',
     });
+    tracker.add({ x: 1.9, y: 0.15, w: exTitleW, h: exTitleH, label: 'example-title' });
 
     // Content area with left accent border
     slide.addShape(pptx.ShapeType.rect, {
@@ -543,15 +613,23 @@ function buildSlideForDeck(pptx, deck, theme, slideIndex, totalSlides) {
       altText: 'Decorative',
     });
 
-    // Main term/concept (first bullet or title)
+    // Main term/concept (auto-fit from 26pt down to 16pt)
     const mainText = s.bullets?.[0] || s.title || 'Key Concept';
-    slide.addText(mainText, {
-      x: cardX + 0.4, y: cardY + 0.3, w: cardW - 0.8, h: 1.6,
-      fontSize: 26, fontFace: FONT_HEADING,
+    const conceptW = cardW - 0.8, conceptH = 1.6;
+    const conceptSize = autoFitFontSize(mainText, conceptW, conceptH, FONT_HEADING, 26, 16, 1.3);
+    const conceptResult = await maybeProcessLatex(mainText, hasLatex, { color: theme.primary, fontSizePt: conceptSize });
+    slide.addText(conceptResult.text, {
+      x: cardX + 0.4, y: cardY + 0.3, w: conceptW, h: conceptH,
+      fontSize: conceptSize, fontFace: FONT_HEADING,
       color: theme.primary, bold: true,
       align: 'center', valign: 'middle',
       lineSpacingMultiple: 1.3,
     });
+    tracker.add({ x: cardX + 0.4, y: cardY + 0.3, w: conceptW, h: conceptH, label: 'key-concept' });
+    // Add LaTeX images for key concept
+    for (const img of conceptResult.images.filter(i => i.displayMode)) {
+      slide.addImage({ data: img.base64, x: (W - img.widthIn) / 2, y: cardY + conceptH + 0.4, w: img.widthIn, h: img.heightIn });
+    }
 
     // Explanatory text below card
     if (s.bullets?.length > 1) {
@@ -601,11 +679,16 @@ function buildSlideForDeck(pptx, deck, theme, slideIndex, totalSlides) {
       });
     }
 
-    slide.addText(s.title || 'Activity', {
-      x: 1.9, y: 0.12, w: W - 4.5, h: 0.7,
-      fontSize: 22, color: 'FFFFFF',
+    // Auto-fit activity title from 22pt down to 14pt
+    const actTitleText = s.title || 'Activity';
+    const actTitleW = W - 4.5, actTitleH = 0.7;
+    const actTitleSize = autoFitFontSize(actTitleText, actTitleW, actTitleH, FONT_HEADING, 22, 14);
+    slide.addText(actTitleText, {
+      x: 1.9, y: 0.12, w: actTitleW, h: actTitleH,
+      fontSize: actTitleSize, color: 'FFFFFF',
       bold: true, fontFace: FONT_HEADING, valign: 'middle',
     });
+    tracker.add({ x: 1.9, y: 0.12, w: actTitleW, h: actTitleH, label: 'activity-title' });
 
     // Activity card
     slide.addShape(pptx.ShapeType.roundRect, {
@@ -656,11 +739,16 @@ function buildSlideForDeck(pptx, deck, theme, slideIndex, totalSlides) {
       fontSize: 11, color: theme.accent,
       bold: true, charSpacing: 4, fontFace: FONT_LABEL,
     });
-    slide.addText(s.title || 'Summary', {
-      x: 0.7, y: 0.85, w: W - 1.5, h: 0.95,
-      fontSize: 28, color: 'FFFFFF',
+    // Auto-fit summary title from 28pt down to 18pt
+    const sumTitleText = s.title || 'Summary';
+    const sumTitleW = W - 1.5, sumTitleH = 0.95;
+    const sumTitleSize = autoFitFontSize(sumTitleText, sumTitleW, sumTitleH, FONT_HEADING, 28, 18);
+    slide.addText(sumTitleText, {
+      x: 0.7, y: 0.85, w: sumTitleW, h: sumTitleH,
+      fontSize: sumTitleSize, color: 'FFFFFF',
       bold: true, fontFace: FONT_HEADING,
     });
+    tracker.add({ x: 0.7, y: 0.85, w: sumTitleW, h: sumTitleH, label: 'summary-title' });
 
     slide.addShape(pptx.ShapeType.rect, {
       x: 0.7, y: 1.85, w: 2.2, h: 0.06,
@@ -710,11 +798,16 @@ function buildSlideForDeck(pptx, deck, theme, slideIndex, totalSlides) {
       transparency: 30,
     });
 
-    slide.addText(s.title || 'Discussion', {
-      x: 1.6, y: 0.7, w: W - 2.2, h: 1.2,
-      fontSize: 28, color: 'FFFFFF',
+    // Auto-fit question title from 28pt down to 18pt
+    const qTitleText = s.title || 'Discussion';
+    const qTitleW = W - 2.2, qTitleH = 1.2;
+    const qTitleSize = autoFitFontSize(qTitleText, qTitleW, qTitleH, FONT_HEADING, 28, 18);
+    slide.addText(qTitleText, {
+      x: 1.6, y: 0.7, w: qTitleW, h: qTitleH,
+      fontSize: qTitleSize, color: 'FFFFFF',
       bold: true, fontFace: FONT_HEADING, valign: 'middle',
     });
+    tracker.add({ x: 1.6, y: 0.7, w: qTitleW, h: qTitleH, label: 'question-title' });
 
     if (s.bullets?.length > 0) {
       const bulletText = s.bullets.map(b => ({
@@ -762,14 +855,19 @@ function buildSlideForDeck(pptx, deck, theme, slideIndex, totalSlides) {
       altText: 'Decorative',
     });
 
-    // Slide title — assertion-evidence style (full sentence)
-    slide.addText(s.title || '', {
-      x: 0.45, y: 0.1, w: W - 0.7, h: 0.9,
-      fontSize: 28, fontFace: FONT_HEADING,
+    // Slide title — assertion-evidence style (auto-fit from 28pt down to 18pt)
+    const contentTitleText = s.title || '';
+    const contentTitleW = W - 0.7, contentTitleH = 0.9;
+    const contentTitleSize = autoFitFontSize(contentTitleText, contentTitleW, contentTitleH, FONT_HEADING, 28, 18, 1.1);
+    const contentTitleResult = await maybeProcessLatex(contentTitleText, hasLatex, { color: theme.primary, fontSizePt: contentTitleSize });
+    slide.addText(contentTitleResult.text, {
+      x: 0.45, y: 0.1, w: contentTitleW, h: contentTitleH,
+      fontSize: contentTitleSize, fontFace: FONT_HEADING,
       color: theme.primary,
       bold: true, valign: 'middle',
       lineSpacingMultiple: 1.1,
     });
+    tracker.add({ x: 0.45, y: 0.1, w: contentTitleW, h: contentTitleH, label: 'content-title' });
 
     // Content bullets — two-column if 4+
     if (bullets.length > 0) {
@@ -778,46 +876,78 @@ function buildSlideForDeck(pptx, deck, theme, slideIndex, totalSlides) {
         const leftBullets = bullets.slice(0, mid);
         const rightBullets = bullets.slice(mid);
 
-        const leftText = leftBullets.map((b, bi) => ({
-          text: `${b}\n`,
+        // Auto-fit two-column bullets from 16pt down to 11pt
+        const twoColW = (W - 1.0) / 2, twoColH = H - 1.6;
+        const allBullets2col = [...leftBullets, ...rightBullets];
+        const twoColSize = autoFitBullets(allBullets2col, twoColW, twoColH, FONT_BODY, 16, 11, 1.5, 12);
+
+        // Process LaTeX for each bullet
+        const leftProcessed = await Promise.all(leftBullets.map(b => maybeProcessLatex(b, hasLatex, { color: theme.bodyText, fontSizePt: twoColSize })));
+        const leftText = leftProcessed.map((r, bi) => ({
+          text: `${r.text}\n`,
           options: {
             bullet: { code: '25CF' },
-            fontSize: 16, color: bi === 0 ? theme.bodyText : '444444',
+            fontSize: twoColSize, color: bi === 0 ? theme.bodyText : '444444',
             breakLine: true, paraSpaceAfter: 12, lineSpacingMultiple: 1.5,
             bold: bi === 0,
           },
         }));
         slide.addText(leftText, {
-          x: 0.45, y: 1.2, w: (W - 1.0) / 2, h: H - 1.6,
+          x: 0.45, y: 1.2, w: twoColW, h: twoColH,
           fontFace: FONT_BODY, valign: 'top',
         });
+        tracker.add({ x: 0.45, y: 1.2, w: twoColW, h: twoColH, label: 'bullets-left' });
 
-        const rightText = rightBullets.map((b) => ({
-          text: `${b}\n`,
+        const rightProcessed = await Promise.all(rightBullets.map(b => maybeProcessLatex(b, hasLatex, { color: '444444', fontSizePt: twoColSize })));
+        const rightText = rightProcessed.map((r) => ({
+          text: `${r.text}\n`,
           options: {
             bullet: { code: '25CF' },
-            fontSize: 16, color: '444444',
+            fontSize: twoColSize, color: '444444',
             breakLine: true, paraSpaceAfter: 12, lineSpacingMultiple: 1.5,
           },
         }));
         slide.addText(rightText, {
-          x: W / 2 + 0.1, y: 1.2, w: (W - 1.0) / 2, h: H - 1.6,
+          x: W / 2 + 0.1, y: 1.2, w: twoColW, h: twoColH,
           fontFace: FONT_BODY, valign: 'top',
         });
+        tracker.add({ x: W / 2 + 0.1, y: 1.2, w: twoColW, h: twoColH, label: 'bullets-right' });
+
+        // Collect display-mode LaTeX images from all bullets
+        const twoColImages = [...leftProcessed, ...rightProcessed].flatMap(r => r.images.filter(i => i.displayMode));
+        let imgY2col = H - 1.0;
+        for (const img of twoColImages) {
+          slide.addImage({ data: img.base64, x: (W - img.widthIn) / 2, y: imgY2col, w: img.widthIn, h: img.heightIn });
+          imgY2col += img.heightIn + 0.1;
+        }
       } else {
-        const bulletText = bullets.map((b, bi) => ({
-          text: `${b}\n`,
+        // Auto-fit single-column bullets from 16pt down to 11pt
+        const oneColW = W - 0.7, oneColH = H - 1.6;
+        const oneColSize = autoFitBullets(bullets, oneColW, oneColH, FONT_BODY, 16, 11, 1.5, 12);
+
+        const oneColProcessed = await Promise.all(bullets.map(b => maybeProcessLatex(b, hasLatex, { color: theme.bodyText, fontSizePt: oneColSize })));
+        const bulletText = oneColProcessed.map((r, bi) => ({
+          text: `${r.text}\n`,
           options: {
             bullet: { code: '25CF' },
-            fontSize: 16, color: bi === 0 ? theme.bodyText : '444444',
+            fontSize: oneColSize, color: bi === 0 ? theme.bodyText : '444444',
             breakLine: true, paraSpaceAfter: 12, lineSpacingMultiple: 1.5,
             bold: bi === 0,
           },
         }));
         slide.addText(bulletText, {
-          x: 0.45, y: 1.2, w: W - 0.7, h: H - 1.6,
+          x: 0.45, y: 1.2, w: oneColW, h: oneColH,
           fontFace: FONT_BODY, valign: 'top',
         });
+        tracker.add({ x: 0.45, y: 1.2, w: oneColW, h: oneColH, label: 'bullets' });
+
+        // Collect display-mode LaTeX images
+        const oneColImages = oneColProcessed.flatMap(r => r.images.filter(i => i.displayMode));
+        let imgY1col = H - 1.0;
+        for (const img of oneColImages) {
+          slide.addImage({ data: img.base64, x: (W - img.widthIn) / 2, y: imgY1col, w: img.widthIn, h: img.heightIn });
+          imgY1col += img.heightIn + 0.1;
+        }
       }
     }
 
@@ -838,6 +968,12 @@ function buildSlideForDeck(pptx, deck, theme, slideIndex, totalSlides) {
     fontSize: 9, color: isDarkSlide ? theme.primary : 'FFFFFF',
     align: 'center', valign: 'middle', fontFace: FONT_BODY, bold: true,
   });
+
+  // ── Element validation ─────────────────────────────────────────────────
+  const warnings = tracker.validate();
+  if (warnings.length > 0) {
+    console.warn(`[CM] Slide ${slideIndex + 1} (${slideType}) validation:`, warnings);
+  }
 
   // Speaker notes
   if (s.notes || s.speakerNotes) {
@@ -870,6 +1006,12 @@ async function createPptxWithDecks(data, courseName, themeIndex) {
   const key = data.decks ? 'decks' : 'slideDecks';
   const decks = (data[key] || []).map((d, i) => ({ ...d, _deckIndex: i }));
 
+  // One-time LaTeX scan across all decks
+  const hasLatex = deckDataContainsLatex(data);
+  if (hasLatex) {
+    console.log('[CM] PPTX: LaTeX detected in deck data — enabling math rendering');
+  }
+
   const deckAudit = [];
   for (let di = 0; di < decks.length; di++) {
     const deck = decks[di];
@@ -900,7 +1042,7 @@ async function createPptxWithDecks(data, courseName, themeIndex) {
     }
 
     for (let si = 0; si < slides.length; si++) {
-      buildSlideForDeck(pptx, deck, theme, si, slides.length);
+      await buildSlideForDeck(pptx, deck, theme, si, slides.length, { hasLatex });
     }
 
     deckAudit.push({ lesson: deck.lessonTitle || `Deck ${di + 1}`, slides: slides.length });
@@ -956,8 +1098,11 @@ export async function buildSingleDeckPptxBlob(deck, deckIndex, courseName, theme
   const deckWithIndex = { ...deck, _deckIndex: deckIndex };
   const slides = deck.slides || [];
 
+  // Check for LaTeX in this single deck
+  const hasLatex = deckDataContainsLatex({ decks: [deck] });
+
   for (let si = 0; si < slides.length; si++) {
-    buildSlideForDeck(pptx, deckWithIndex, theme, si, slides.length);
+    await buildSlideForDeck(pptx, deckWithIndex, theme, si, slides.length, { hasLatex });
   }
 
   return await pptx.write({ outputType: 'blob' });

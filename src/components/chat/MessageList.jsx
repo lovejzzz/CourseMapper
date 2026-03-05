@@ -2,6 +2,10 @@ import React, { useRef, useEffect } from 'react';
 import MessageBubble from './MessageBubble';
 import ProgressCard from './ProgressCard';
 import ProposalCard from './ProposalCard';
+import ResearchCard from './ResearchCard';
+import ValidationCard from './ValidationCard';
+import ChangeSummaryCard from './ChangeSummaryCard';
+import SyncSuggestionCard from './SyncSuggestionCard';
 import { getChatOpener } from './constants';
 
 // ── Starter icon components ─────────────────────────────────────────────────
@@ -33,7 +37,7 @@ function StarterIcon({ type }) {
  * MessageList — scrollable message area with auto-scroll.
  * Renders user/assistant bubbles, progress cards, proposals, and empty state.
  */
-export default function MessageList({ messages, isStreaming, courseMap, isAgentMode, activeTab, onSuggestionClick, onSelectProposal }) {
+export default function MessageList({ messages, isStreaming, courseMap, isAgentMode, activeTab, deliverables, onSuggestionClick, onSelectProposal, onUndo, canUndo, onApproveSyncSuggestion, onSkipSyncSuggestion }) {
   const endRef = useRef(null);
 
   useEffect(() => {
@@ -42,7 +46,7 @@ export default function MessageList({ messages, isStreaming, courseMap, isAgentM
 
   // Empty state — context-aware opener
   if (messages.length === 0) {
-    const opener = getChatOpener(courseMap, isAgentMode, activeTab);
+    const opener = getChatOpener(courseMap, isAgentMode, activeTab, deliverables);
 
     return (
       <div className="flex-1 overflow-y-auto px-4 py-4 flex flex-col" style={{ minHeight: 0 }}>
@@ -90,6 +94,18 @@ export default function MessageList({ messages, isStreaming, courseMap, isAgentM
         if (msg.role === 'progress') {
           return <ProgressCard key={i} data={msg.data || msg} onSuggestionClick={onSuggestionClick} />;
         }
+        if (msg.role === 'research') {
+          return <ResearchCard key={i} research={msg.research} status={msg.status} />;
+        }
+        if (msg.role === 'validation') {
+          return (
+            <ValidationCard
+              key={i}
+              report={msg.report}
+              onFixClick={(prompt) => onSuggestionClick(prompt)}
+            />
+          );
+        }
         if (msg.role === 'proposal') {
           return (
             <ProposalCard
@@ -100,6 +116,19 @@ export default function MessageList({ messages, isStreaming, courseMap, isAgentM
               failedLabel={msg.failedLabel}
               failedMessage={msg.failedMessage}
               onSelect={(label) => onSelectProposal?.(i, label)}
+            />
+          );
+        }
+        if (msg.role === 'changeSummary') {
+          return <ChangeSummaryCard key={i} summary={msg.summary} onUndo={onUndo} canUndo={canUndo} />;
+        }
+        if (msg.role === 'syncSuggestion') {
+          return (
+            <SyncSuggestionCard
+              key={msg.id || i}
+              suggestion={msg}
+              onApprove={onApproveSyncSuggestion}
+              onSkip={onSkipSyncSuggestion}
             />
           );
         }

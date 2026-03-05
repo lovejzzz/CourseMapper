@@ -1,0 +1,510 @@
+/**
+ * pedagogicalValidator.js — Client-side pedagogical validation engine.
+ *
+ * Pure functions that analyze course map + deliverables for educational design issues:
+ *   1. Bloom's taxonomy alignment (objectives ↔ assessments)
+ *   2. Objective coverage (every objective assessed, every assessment mapped)
+ *   3. Cognitive load (overloaded weeks)
+ *   4. Difficulty progression (Easy → Hard across lessons)
+ *
+ * Runs synchronously, no API calls, <50ms for 20-lesson courses.
+ */
+
+import { getArrayKey } from './syncDependencies';
+
+// ── Bloom's Taxonomy ─────────────────────────────────────────────────────────
+
+const BLOOMS_LEVELS = {
+  Remember: 1, Understand: 2, Apply: 3, Analyze: 4, Evaluate: 5, Create: 6,
+};
+
+const BLOOMS_VERBS = {
+  // L1 — Remember
+  define: 1, list: 1, recall: 1, identify: 1, name: 1, recognize: 1, state: 1, label: 1, match: 1, select: 1,
+  // L2 — Understand
+  explain: 2, summarize: 2, interpret: 2, classify: 2, compare: 2, paraphrase: 2, describe: 2, discuss: 2, distinguish: 2, predict: 2,
+  // L3 — Apply
+  apply: 3, demonstrate: 3, solve: 3, use: 3, implement: 3, calculate: 3, execute: 3, illustrate: 3, practice: 3, show: 3,
+  // L4 — Analyze
+  analyze: 4, differentiate: 4, organize: 4, examine: 4, categorize: 4, deconstruct: 4, relate: 4, contrast: 4, investigate: 4,
+  // L5 — Evaluate
+  evaluate: 5, assess: 5, critique: 5, justify: 5, judge: 5, argue: 5, defend: 5, appraise: 5, prioritize: 5, recommend: 5,
+  // L6 — Create
+  create: 6, design: 6, develop: 6, construct: 6, formulate: 6, compose: 6, produce: 6, propose: 6, invent: 6, synthesize: 6,
+};
+
+const LEVEL_NAMES = ['', 'Remember', 'Understand', 'Apply', 'Analyze', 'Evaluate', 'Create'];
+
+const SEVERITY_ORDER = { error: 0, warning: 1, info: 2 };
+
+// ── Helpers ──────────────────────────────────────────────────────────────────
+
+/** Parse Bloom's verbs from a learning objectives text block. */
+export function parseBloomsFromObjectives(text) {
+  if (!text || typeof text !== 'string') return [];
+  const results = [];
+  const lines = text.split('\n').map(l => l.trim()).filter(Boolean);
+
+  for (const line of lines) {
+    // Strip numbered prefixes like "1a.", "2b.", "3.", "- "
+    const stripped = line.replace(/^\s*[-•]?\s*\d+[a-z]?\.\s*/i, '').replace(/^students?\s+will\s+be\s+able\s+to:?\s*/i, '');
+    if (!stripped) continue;
+
+    // Extract the first word (the verb)
+    const firstWord = stripped.split(/[\s,.(]/)[0].toLowerCase();
+    const level = BLOOMS_VERBS[firstWord];
+    if (level) {
+      results.push({ verb: firstWord, level, objectiveText: stripped });
+    }
+  }
+  return results;
+}
+
+/** Get all Bloom's levels from a lesson's objectives (across all sections). */
+function getLessonObjectiveLevels(lesson) {
+  if (!lesson?.sections) return [];
+  const levels = [];
+  for (const section of lesson.sections) {
+    const parsed = parseBloomsFromObjectives(section.learningObjectives);
+    levels.push(...parsed);
+  }
+  return levels;
+}
+
+/** Resolve a Bloom's level string like "Analyze" or "Apply" to a number 1-6. */
+function resolveBloomsLevel(bl) {
+  if (!bl) return 0;
+  if (typeof bl === 'number') return bl;
+  return BLOOMS_LEVELS[bl] || BLOOMS_LEVELS[bl.charAt(0).toUpperCase() + bl.slice(1).toLowerCase()] || 0;
+}
+
+/** Get the deliverable array for a feature, safely. */
+function getDelivArray(deliverables, featureId) {
+  const entry = deliverables?.[featureId];
+  if (!entry || entry.status !== 'done' || !entry.data) return null;
+  const key = getArrayKey(featureId, entry.data);
+  if (!key || !Array.isArray(entry.data[key])) return null;
+  return entry.data[key];
+}
+
+/** Normalize text for substring matching. */
+function norm(s) {
+  return (s || '').toLowerCase().replace(/[^a-z0-9\s]/g, '').trim();
+}
+
+// ── 1. Bloom's Alignment ─────────────────────────────────────────────────────
+
+export function validateBloomsAlignment(courseMap, deliverables) {
+  const findings = [];
+  const lessons = courseMap?.lessons || [];
+  if (lessons.length === 0) return findings;
+
+  const lessonAvgs = []; // track per-lesson average for progression check
+
+  for (let li = 0; li < lessons.length; li++) {
+    const lesson = lessons[li];
+    const objLevels = getLessonObjectiveLevels(lesson);
+    if (objLevels.length === 0) continue;
+
+    const maxObjLevel = Math.max(...objLevels.map(o => o.level));
+    const hasHighOrder = objLevels.some(o => o.level >= 5); // Evaluate or Create
+
+    // Collect assessment Bloom's levels for this lesson
+    const assessmentLevels = [];
+
+    // Quiz questions
+    const quizzes = getDelivArray(deliverables, 'quizBank');
+    if (quizzes && quizzes[li]) {
+      const qs = quizzes[li].qs || [];
+      for (const q of qs) {
+        const lvl = resolveBloomsLevel(q.bl);
+        if (lvl > 0) assessmentLevels.push(lvl);
+      }
+    }
+
+    // Assignments (flat array — match by rl or title)
+    const assignments = getDelivArray(deliverables, 'assignments');
+    if (assignments) {
+      const lessonTitle = norm(lesson.title);
+      for (const a of assignments) {
+        const related = (a.rl || []).map(norm);
+        if (related.some(r => r.includes(lessonTitle) || lessonTitle.includes(r))) {
+          const lvl = resolveBloomsLevel(a.bl);
+          if (lvl > 0) assessmentLevels.push(lvl);
+        }
+      }
+    }
+
+    // Discussions
+    const discussions = getDelivArray(deliverables, 'discussions');
+    if (discussions && discussions[li]) {
+      const lvl = resolveBloomsLevel(discussions[li].bl);
+      if (lvl > 0) assessmentLevels.push(lvl);
+    }
+
+    // Lesson plan segments
+    const plans = getDelivArray(deliverables, 'lessonPlans');
+    if (plans && plans[li]) {
+      for (const seg of (plans[li].ol || [])) {
+        const lvl = resolveBloomsLevel(seg.bl);
+        if (lvl > 0) assessmentLevels.push(lvl);
+      }
+    }
+
+    // Study guide review questions
+    const guides = getDelivArray(deliverables, 'studyGuides');
+    if (guides && guides[li]) {
+      for (const rq of (guides[li].rq || [])) {
+        const lvl = resolveBloomsLevel(rq.bl);
+        if (lvl > 0) assessmentLevels.push(lvl);
+      }
+    }
+
+    if (assessmentLevels.length === 0) continue;
+
+    const maxAssessLevel = Math.max(...assessmentLevels);
+    const avgAssessLevel = assessmentLevels.reduce((s, v) => s + v, 0) / assessmentLevels.length;
+    lessonAvgs.push({ li, avg: avgAssessLevel });
+
+    // Check: objectives require L4+ but ALL assessments are L1-2
+    if (maxObjLevel >= 4 && maxAssessLevel <= 2) {
+      findings.push({
+        id: `blooms-mismatch-L${li}`,
+        severity: 'error',
+        category: 'blooms',
+        message: `Lesson ${li + 1} objectives require ${LEVEL_NAMES[maxObjLevel]} (L${maxObjLevel}) but all assessments are ${LEVEL_NAMES[maxAssessLevel]} or below`,
+        lessonIndex: li,
+        featureId: null,
+        suggestedPrompt: `The assessments in Lesson ${li + 1} are too low-level for the objectives. Upgrade quiz questions and activities to ${LEVEL_NAMES[maxObjLevel]} level.`,
+      });
+    }
+
+    // Check: objectives include Evaluate/Create but no L5-6 assessments
+    if (hasHighOrder && maxAssessLevel < 5) {
+      findings.push({
+        id: `blooms-no-higher-L${li}`,
+        severity: 'warning',
+        category: 'blooms',
+        message: `Lesson ${li + 1} objectives include Evaluate/Create but no assessments reach that level (max: ${LEVEL_NAMES[maxAssessLevel]})`,
+        lessonIndex: li,
+        featureId: null,
+        suggestedPrompt: `Add an Evaluate or Create level activity to Lesson ${li + 1} to match the learning objectives.`,
+      });
+    }
+  }
+
+  // Check Bloom's progression across lessons (avg shouldn't regress by >1)
+  for (let i = 1; i < lessonAvgs.length; i++) {
+    const prev = lessonAvgs[i - 1];
+    const curr = lessonAvgs[i];
+    if (prev.avg - curr.avg > 1.0) {
+      findings.push({
+        id: `blooms-regression-L${curr.li}`,
+        severity: 'warning',
+        category: 'blooms',
+        message: `Bloom's level drops from Lesson ${prev.li + 1} (avg ${prev.avg.toFixed(1)}) to Lesson ${curr.li + 1} (avg ${curr.avg.toFixed(1)})`,
+        lessonIndex: curr.li,
+        featureId: null,
+        suggestedPrompt: `Lesson ${curr.li + 1} assessments are significantly lower-level than Lesson ${prev.li + 1}. Review and increase the cognitive demand.`,
+      });
+    }
+  }
+
+  return findings;
+}
+
+// ── 2. Objective Alignment ───────────────────────────────────────────────────
+
+export function validateObjectiveAlignment(courseMap, deliverables) {
+  const findings = [];
+  const lessons = courseMap?.lessons || [];
+  if (lessons.length === 0) return findings;
+
+  // Check which deliverables have alignment data
+  const hasQuiz = !!getDelivArray(deliverables, 'quizBank');
+  const hasAssignments = !!getDelivArray(deliverables, 'assignments');
+  const hasRubrics = !!getDelivArray(deliverables, 'rubrics');
+
+  if (!hasQuiz && !hasAssignments && !hasRubrics) {
+    findings.push({
+      id: 'alignment-no-data',
+      severity: 'info',
+      category: 'alignment',
+      message: 'No assessments generated yet — cannot check objective alignment',
+      lessonIndex: null,
+      featureId: null,
+      suggestedPrompt: '',
+    });
+    return findings;
+  }
+
+  for (let li = 0; li < lessons.length; li++) {
+    const lesson = lessons[li];
+    const objParsed = getLessonObjectiveLevels(lesson);
+    if (objParsed.length === 0) continue;
+
+    const objectives = objParsed.map(o => norm(o.objectiveText));
+
+    // Collect all assessment alignment texts for this lesson
+    const assessmentAlignments = [];
+
+    const quizzes = getDelivArray(deliverables, 'quizBank');
+    if (quizzes && quizzes[li]) {
+      for (const q of (quizzes[li].qs || [])) {
+        if (q.oa) assessmentAlignments.push(norm(q.oa));
+      }
+    }
+
+    const assignments = getDelivArray(deliverables, 'assignments');
+    if (assignments) {
+      const lessonTitle = norm(lesson.title);
+      for (const a of assignments) {
+        const related = (a.rl || []).map(norm);
+        if (related.some(r => r.includes(lessonTitle) || lessonTitle.includes(r))) {
+          for (const ob of (a.ob || [])) {
+            assessmentAlignments.push(norm(ob));
+          }
+        }
+      }
+    }
+
+    const rubrics = getDelivArray(deliverables, 'rubrics');
+    if (rubrics && rubrics[li]) {
+      for (const cr of (rubrics[li].cr || [])) {
+        if (cr.oa) assessmentAlignments.push(norm(cr.oa));
+      }
+    }
+
+    if (assessmentAlignments.length === 0 && objectives.length > 0) {
+      findings.push({
+        id: `alignment-no-assess-L${li}`,
+        severity: 'error',
+        category: 'alignment',
+        message: `Lesson ${li + 1} has ${objectives.length} objectives but no assessments map to them`,
+        lessonIndex: li,
+        featureId: null,
+        suggestedPrompt: `Add quiz questions or assignments for Lesson ${li + 1} that align to the learning objectives.`,
+      });
+      continue;
+    }
+
+    // Check each objective has at least one matching assessment
+    for (let oi = 0; oi < objectives.length; oi++) {
+      const obj = objectives[oi];
+      // Substring match: does any assessment mention key words from the objective?
+      const objWords = obj.split(/\s+/).filter(w => w.length > 3); // significant words
+      const isMatched = assessmentAlignments.some(aa =>
+        objWords.some(w => aa.includes(w))
+      );
+      if (!isMatched) {
+        const shortObj = objParsed[oi].objectiveText.slice(0, 60);
+        findings.push({
+          id: `alignment-uncovered-L${li}-O${oi}`,
+          severity: 'warning',
+          category: 'alignment',
+          message: `Lesson ${li + 1} objective "${shortObj}..." has no matching assessment`,
+          lessonIndex: li,
+          featureId: null,
+          suggestedPrompt: `Add an assessment for Lesson ${li + 1} that covers: "${shortObj}"`,
+        });
+      }
+    }
+  }
+
+  return findings;
+}
+
+// ── 3. Cognitive Load ────────────────────────────────────────────────────────
+
+const TIME_ESTIMATES = {
+  multiple_choice: 3,
+  short_answer: 5,
+  essay: 15,
+  discussion: 20,
+  assignment_default: 60,
+};
+
+export function assessCognitiveLoad(courseMap, deliverables) {
+  const findings = [];
+  const lessons = courseMap?.lessons || [];
+  if (lessons.length === 0) return findings;
+
+  for (let li = 0; li < lessons.length; li++) {
+    const lesson = lessons[li];
+    let itemCount = 0;
+    let estMinutes = 0;
+
+    // Quiz questions
+    const quizzes = getDelivArray(deliverables, 'quizBank');
+    if (quizzes && quizzes[li]) {
+      const qs = quizzes[li].qs || [];
+      itemCount += qs.length;
+      for (const q of qs) {
+        estMinutes += q.em || TIME_ESTIMATES[q.ty] || 5;
+      }
+    }
+
+    // Assignments related to this lesson
+    const assignments = getDelivArray(deliverables, 'assignments');
+    if (assignments) {
+      const lessonTitle = norm(lesson.title);
+      for (const a of assignments) {
+        const related = (a.rl || []).map(norm);
+        if (related.some(r => r.includes(lessonTitle) || lessonTitle.includes(r))) {
+          itemCount++;
+          // Parse estimated time from 'et' field (e.g. "6-8 hours" → 420 min)
+          const etMatch = (a.et || '').match(/(\d+)/);
+          estMinutes += etMatch ? parseInt(etMatch[1], 10) * 60 : TIME_ESTIMATES.assignment_default;
+        }
+      }
+    }
+
+    // Discussion prompts
+    const discussions = getDelivArray(deliverables, 'discussions');
+    if (discussions && discussions[li]) {
+      itemCount++;
+      const durMatch = (discussions[li].ed || '').match(/(\d+)/);
+      estMinutes += durMatch ? parseInt(durMatch[1], 10) : TIME_ESTIMATES.discussion;
+    }
+
+    // Lesson plan outline segments
+    const plans = getDelivArray(deliverables, 'lessonPlans');
+    if (plans && plans[li]) {
+      const segs = plans[li].ol || [];
+      itemCount += segs.length;
+    }
+
+    if (itemCount === 0) continue;
+
+    // Threshold checks
+    if (estMinutes > 120 || itemCount > 15) {
+      findings.push({
+        id: `load-overloaded-L${li}`,
+        severity: 'error',
+        category: 'cognitiveLoad',
+        message: `Lesson ${li + 1} is overloaded: ${itemCount} items, ~${estMinutes} min estimated student time`,
+        lessonIndex: li,
+        featureId: null,
+        suggestedPrompt: `Lesson ${li + 1} has too many activities (${itemCount} items, ~${estMinutes} min). Suggest which items to remove or redistribute to other lessons.`,
+      });
+    } else if (estMinutes > 90 || itemCount > 10) {
+      findings.push({
+        id: `load-heavy-L${li}`,
+        severity: 'warning',
+        category: 'cognitiveLoad',
+        message: `Lesson ${li + 1} has heavy load: ${itemCount} items, ~${estMinutes} min estimated`,
+        lessonIndex: li,
+        featureId: null,
+        suggestedPrompt: `Lesson ${li + 1} is heavy (${itemCount} items). Consider redistributing some activities to lighter weeks.`,
+      });
+    }
+  }
+
+  return findings;
+}
+
+// ── 4. Difficulty Progression ────────────────────────────────────────────────
+
+const DIFFICULTY_SCORES = { Easy: 1, easy: 1, Medium: 2, medium: 2, Hard: 3, hard: 3 };
+
+export function validateDifficultyProgression(deliverables) {
+  const findings = [];
+  const quizzes = getDelivArray(deliverables, 'quizBank');
+  if (!quizzes) return findings;
+
+  const lessonDiffs = [];
+
+  for (let li = 0; li < quizzes.length; li++) {
+    const qs = quizzes[li]?.qs || [];
+    if (qs.length === 0) continue;
+
+    let easy = 0, medium = 0, hard = 0;
+    for (const q of qs) {
+      const score = DIFFICULTY_SCORES[q.df] || 0;
+      if (score === 1) easy++;
+      else if (score === 2) medium++;
+      else if (score === 3) hard++;
+    }
+
+    const total = easy + medium + hard;
+    if (total === 0) continue;
+
+    const avg = (easy * 1 + medium * 2 + hard * 3) / total;
+    lessonDiffs.push({ li, avg, easy, medium, hard, total });
+
+    // Info: no difficulty variety
+    if ((easy === total || medium === total || hard === total) && total >= 3) {
+      const level = easy === total ? 'Easy' : medium === total ? 'Medium' : 'Hard';
+      findings.push({
+        id: `diff-uniform-L${li}`,
+        severity: 'info',
+        category: 'difficulty',
+        message: `Lesson ${li + 1} quiz: all ${total} questions are ${level} — consider adding variety`,
+        lessonIndex: li,
+        featureId: 'quizBank',
+        suggestedPrompt: `Add variety to Lesson ${li + 1} quiz — all questions are currently ${level}. Mix in some ${level === 'Easy' ? 'Medium and Hard' : level === 'Hard' ? 'Easy and Medium' : 'Easy and Hard'} questions.`,
+      });
+    }
+  }
+
+  // Check progression: later lessons shouldn't be significantly easier
+  for (let i = 1; i < lessonDiffs.length; i++) {
+    const prev = lessonDiffs[i - 1];
+    const curr = lessonDiffs[i];
+    if (prev.avg - curr.avg > 0.5) {
+      findings.push({
+        id: `diff-regression-L${curr.li}`,
+        severity: 'warning',
+        category: 'difficulty',
+        message: `Quiz difficulty drops from Lesson ${prev.li + 1} (avg ${prev.avg.toFixed(1)}) to Lesson ${curr.li + 1} (avg ${curr.avg.toFixed(1)})`,
+        lessonIndex: curr.li,
+        featureId: 'quizBank',
+        suggestedPrompt: `Lesson ${curr.li + 1} quiz is easier than Lesson ${prev.li + 1}. Increase the difficulty to maintain progression.`,
+      });
+    }
+  }
+
+  return findings;
+}
+
+// ── Orchestrator ─────────────────────────────────────────────────────────────
+
+export function generateCourseHealthReport(courseMap, deliverables) {
+  if (!courseMap?.lessons?.length) {
+    return { findings: [], errorCount: 0, warningCount: 0, infoCount: 0, summary: '' };
+  }
+
+  const allFindings = [
+    ...validateBloomsAlignment(courseMap, deliverables),
+    ...validateObjectiveAlignment(courseMap, deliverables),
+    ...assessCognitiveLoad(courseMap, deliverables),
+    ...validateDifficultyProgression(deliverables),
+  ];
+
+  // Deduplicate by id
+  const seen = new Set();
+  const findings = [];
+  for (const f of allFindings) {
+    if (!seen.has(f.id)) {
+      seen.add(f.id);
+      findings.push(f);
+    }
+  }
+
+  // Sort: error → warning → info
+  findings.sort((a, b) => SEVERITY_ORDER[a.severity] - SEVERITY_ORDER[b.severity]);
+
+  const errorCount = findings.filter(f => f.severity === 'error').length;
+  const warningCount = findings.filter(f => f.severity === 'warning').length;
+  const infoCount = findings.filter(f => f.severity === 'info').length;
+
+  // Build summary for prompt injection (top 3 issues, compact)
+  const topFindings = findings.filter(f => f.severity !== 'info').slice(0, 3);
+  const summaryLines = [`Course Health: ${errorCount} error${errorCount !== 1 ? 's' : ''}, ${warningCount} warning${warningCount !== 1 ? 's' : ''}`];
+  for (const f of topFindings) {
+    summaryLines.push(`- ${f.severity.toUpperCase()}: ${f.message}`);
+  }
+  const summary = summaryLines.join('\n');
+
+  return { findings, errorCount, warningCount, infoCount, summary };
+}
