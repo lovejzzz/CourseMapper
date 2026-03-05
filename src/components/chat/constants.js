@@ -33,20 +33,82 @@ export const STEPS = [
   { key: 'done', label: 'Course map ready' },
 ];
 
-// ── Suggested questions for empty chat state ────────────────────────────────
-export function getSuggestedQuestions(courseMap) {
-  if (courseMap) {
-    return [
-      'Review my course map for any gaps',
-      'Suggest an activity for Lesson 3',
-      'How do I export to Google Docs?',
-      'What deliverables should I generate?',
-    ];
+// ── Chat opener — context-aware starters ────────────────────────────────────
+
+export function getChatOpener(courseMap, isAgentMode, activeTab) {
+  // Tier 3: Agent mode — deliverables generated, show action starters
+  if (isAgentMode) {
+    const tabLabel = activeTab && FEATURE_LABELS[activeTab]
+      ? FEATURE_LABELS[activeTab]
+      : null;
+    return {
+      greeting: 'I can edit your course materials directly. Try asking me to:',
+      starters: [
+        {
+          text: 'Add a homework assignment to Lesson 2',
+          icon: 'plus',
+        },
+        {
+          text: tabLabel ? `Review my ${tabLabel} for gaps` : 'Review my deliverables for gaps',
+          icon: 'search',
+        },
+        {
+          text: 'Add a quiz question about ethics',
+          icon: 'plus',
+        },
+        {
+          text: 'What can you help me with?',
+          icon: 'chat',
+        },
+      ],
+    };
   }
-  return [
-    'How do I get started?',
-    'What deliverables can I generate?',
-    'How do I get an API key?',
-    'Is my data private and secure?',
-  ];
+
+  // Tier 2: Course map exists, no deliverables yet
+  if (courseMap) {
+    return {
+      greeting: 'Your course map is ready! I can help you refine it or generate deliverables.',
+      starters: [
+        {
+          text: 'Review my course map for any gaps',
+          icon: 'search',
+        },
+        {
+          text: 'Make the learning objectives more specific',
+          icon: 'edit',
+        },
+        {
+          text: 'What deliverables should I generate?',
+          icon: 'chat',
+        },
+        {
+          text: 'How do I export to Google Docs?',
+          icon: 'chat',
+        },
+      ],
+    };
+  }
+
+  // Tier 1: No course map — onboarding
+  return {
+    greeting: 'I\'m your teaching assistant. Upload a syllabus or describe your course to get started.',
+    starters: [
+      {
+        text: 'How do I get started?',
+        icon: 'chat',
+      },
+      {
+        text: 'What deliverables can I generate?',
+        icon: 'chat',
+      },
+      {
+        text: 'How do I get an API key?',
+        icon: 'chat',
+      },
+      {
+        text: 'Is my data private and secure?',
+        icon: 'chat',
+      },
+    ],
+  };
 }

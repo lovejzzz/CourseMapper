@@ -249,6 +249,15 @@ export default function App() {
   // ── Deliverable Undo/Redo ──
   const delivUndo = useDeliverableUndo();
 
+  // ── Agent action highlight (green ring on affected lesson card) ──
+  const [agentHighlight, setAgentHighlight] = useState(null);
+  const agentHighlightTimerRef = useRef(null);
+  const triggerAgentHighlight = useCallback((featureId, lessonIndex) => {
+    if (agentHighlightTimerRef.current) clearTimeout(agentHighlightTimerRef.current);
+    setAgentHighlight({ featureId, lessonIndex });
+    agentHighlightTimerRef.current = setTimeout(() => setAgentHighlight(null), 5000);
+  }, []);
+
   // ── Cascade Sync Engine ──
   const smartSync = useSmartSync({
     deliv,
@@ -1248,6 +1257,11 @@ export default function App() {
                 examChanges={gen.examChanges}
                 onAcceptPatches={gen.onAcceptPatches}
                 onRejectPatch={gen.onRejectPatch}
+                editor={editor}
+                optimisticUpdate={deliv.optimisticUpdate}
+                regenerateLesson={deliv.regenerateLesson}
+                delivUndoSnapshot={delivUndo.snapshot}
+                onAgentHighlight={triggerAgentHighlight}
               />
             </ErrorBoundary>
           </div>
@@ -1348,7 +1362,15 @@ export default function App() {
                   onAddLessons={(lessonIndices) => {
                     setAddLessonsModal({ lessonIndices });
                   }}
-                  freshLessonIndices={deliv.freshLessons?.[activeTab] ?? null}
+                  freshLessonIndices={(() => {
+                    const base = deliv.freshLessons?.[activeTab] ?? null;
+                    if (agentHighlight && agentHighlight.featureId === activeTab && agentHighlight.lessonIndex != null) {
+                      const merged = new Set(base || []);
+                      merged.add(agentHighlight.lessonIndex);
+                      return merged;
+                    }
+                    return base;
+                  })()}
                   proposals={editProposal.proposals[activeTab] ?? {}}
                   onAcceptProposal={(lessonIndex) => {
                     editProposal.acceptProposal(

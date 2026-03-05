@@ -2,21 +2,23 @@ import React, { useState, useRef } from 'react';
 import { resolveLabel } from './constants';
 
 /**
- * ChatInput — textarea with file drop, mode toggle (Ask/Revise), and send button.
+ * ChatInput — clean textarea with file drop and send button.
+ * No mode toggle — routing is automatic based on context.
  */
 export default function ChatInput({
-  mode, setMode, onSend, isStreaming, isRevising, onStop,
+  onSend, isStreaming, isRevising, onStop,
   attachedFiles, onProcessFiles, onRemoveAttached, isParsing,
-  suggestions, onSuggestionClick,
   activeTab, courseMap,
   isStopped,
+  hasPendingProposal,
+  isAgentMode,
 }) {
   const [input, setInput] = useState('');
   const [isDragOver, setIsDragOver] = useState(false);
   const fileInputRef = useRef(null);
 
   const isDeliverableTab = activeTab && activeTab !== 'courseMap';
-  const delivLabel = isDeliverableTab ? resolveLabel(activeTab) : 'Course Map';
+  const delivLabel = isDeliverableTab ? resolveLabel(activeTab) : null;
 
   function handleKeyDown(e) {
     if (e.key === 'Enter' && !e.shiftKey) {
@@ -31,11 +33,16 @@ export default function ChatInput({
     setInput('');
   }
 
+  // Context-aware placeholder
   const placeholder = isDragOver
     ? 'Drop files here...'
-    : mode === 'ask'
+    : hasPendingProposal
+    ? 'Pick an option above, or type something else...'
+    : !courseMap
     ? 'Ask a question...'
-    : `Revise ${delivLabel}...`;
+    : isAgentMode
+    ? (delivLabel ? `Ask about ${delivLabel}, or request changes...` : 'Ask me to add, edit, or review items...')
+    : 'Ask a question or request changes...';
 
   const busy = isStreaming || isRevising;
 
@@ -46,24 +53,6 @@ export default function ChatInput({
       onDragLeave={(e) => { e.preventDefault(); setIsDragOver(false); }}
       onDrop={(e) => { e.preventDefault(); setIsDragOver(false); onProcessFiles(e.dataTransfer.files); }}
     >
-      {/* Suggestion chips */}
-      {suggestions && suggestions.length > 0 && !busy && (
-        <div className="px-4 pt-2.5 pb-1 flex flex-col gap-1.5">
-          <p className="text-[11px] font-semibold text-slate-400 uppercase tracking-wider">Try next:</p>
-          <div className="flex flex-wrap gap-1.5">
-            {suggestions.map((sug, i) => (
-              <button
-                key={i}
-                onClick={() => { onSuggestionClick(sug); setInput(sug); }}
-                className="tactile text-[11px] font-medium text-indigo-600 bg-indigo-50/80 hover:bg-indigo-100/80 border border-indigo-200/60 px-2.5 py-1 rounded-lg transition-all text-left leading-snug"
-              >
-                {sug}
-              </button>
-            ))}
-          </div>
-        </div>
-      )}
-
       {/* Attached files */}
       {attachedFiles && attachedFiles.length > 0 && (
         <div className="px-4 pt-2 flex flex-wrap gap-1.5">
@@ -104,7 +93,6 @@ export default function ChatInput({
           onChange={(e) => { onProcessFiles(e.target.files); e.target.value = ''; }}
         />
 
-        {/* Mode toggle + textarea */}
         <div className="relative">
           <textarea
             value={input}
@@ -118,33 +106,8 @@ export default function ChatInput({
           {/* Bottom bar inside textarea area */}
           <div className="absolute bottom-1.5 left-2 right-2 flex items-center justify-between">
             <div className="flex items-center gap-1.5">
-              {/* Mode toggle */}
-              {courseMap && (
-                <div className="flex rounded-lg overflow-hidden border border-slate-200/60 bg-slate-50/80">
-                  <button
-                    onClick={() => setMode('ask')}
-                    className={`px-2 py-1 text-[11px] font-semibold transition-all ${
-                      mode === 'ask'
-                        ? 'bg-indigo-500 text-white shadow-sm'
-                        : 'text-slate-400 hover:text-slate-600'
-                    }`}
-                  >
-                    Ask
-                  </button>
-                  <button
-                    onClick={() => setMode('revise')}
-                    className={`px-2 py-1 text-[11px] font-semibold transition-all ${
-                      mode === 'revise'
-                        ? 'bg-violet-500 text-white shadow-sm'
-                        : 'text-slate-400 hover:text-slate-600'
-                    }`}
-                  >
-                    Revise
-                  </button>
-                </div>
-              )}
               {/* Attach button */}
-              {mode === 'revise' && (
+              {courseMap && (
                 <button
                   onClick={() => fileInputRef.current?.click()}
                   disabled={busy}
@@ -155,6 +118,14 @@ export default function ChatInput({
                     <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M15.172 7l-6.586 6.586a2 2 0 102.828 2.828l6.414-6.586a4 4 0 00-5.656-5.656l-6.415 6.585a6 6 0 108.486 8.486L20.5 13" />
                   </svg>
                 </button>
+              )}
+
+              {/* Agent mode indicator */}
+              {isAgentMode && (
+                <span className="text-[10px] font-semibold text-violet-500/70 flex items-center gap-0.5 select-none">
+                  <span className="text-[8px]">✦</span>
+                  Agent
+                </span>
               )}
             </div>
 
@@ -171,7 +142,7 @@ export default function ChatInput({
                       <circle className="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" strokeWidth="4" />
                       <path className="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4z" />
                     </svg>
-                    Revising...
+                    Working...
                   </span>
                 ) : 'Stop'}
               </button>

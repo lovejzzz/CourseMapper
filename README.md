@@ -144,10 +144,22 @@ Five pedagogical frameworks that shape all generated content:
 - **Assessment Bank** — Save individual questions, prompts, or criteria to a personal bank for reuse across courses
 - **Template Library** — Save course structures as reusable templates; includes built-in starters
 
+### AI Teaching Agent
+
+- **Agentic assistant** — An AI agent embedded in the chat panel that takes direct action on your course materials instead of just giving advice. Say "add a quiz question about ethics to Lesson 3" and it generates the content and applies it.
+- **Proposal cards** — For content creation, the agent proposes 2–3 pedagogically distinct options as clickable cards. Pick one and it's instantly added to your deliverables.
+- **Batch actions** — "Add a discussion prompt to every lesson" executes across all lessons in one go with per-lesson unique content and progress feedback.
+- **Cross-deliverable edits** — "Add a quiz AND an assignment for Lesson 2" handles multiple deliverable types in a single request.
+- **Streaming feedback** — Live-streams chat replies and shows "Generating options..." / "Preparing changes..." status while the agent works.
+- **Error recovery** — If a proposed option fails, it highlights the error in red and keeps the other options clickable. Retry or pick a different option.
+- **Agent memory** — The agent remembers its own proposals, what you selected, and what failed within the session.
+- **Context-aware routing** — Messages auto-route: agent mode when deliverables exist, help mode during generation, revision mode for course map edits.
+- **Undo support** — Every agent action snapshots the previous state so you can undo with one click.
+
 ### Productivity
 
 - **Command Palette (Cmd+K)** — Quick-access to any action via fuzzy search
-- **Pro-Level AI Tutor** — In-app AI assistant (Gemini/Claude/OpenAI powered) that recognizes your current course map, lesson count, and active tab to provide highly contextual pedagogical advice (e.g., "Suggest an icebreaker for Lesson 3").
+- **AI Pedagogical Tutor** — Context-aware help assistant that recognizes your course map, active tab, and deliverables to provide tailored pedagogical advice.
 - **Stop & Resume** — Pause generation at any time, resume from exactly where it stopped
 - **Browser notifications** — Get notified when generation completes
 - **Student view toggle** — Preview deliverables as students would see them (hides instructor notes)
@@ -213,11 +225,20 @@ src/
     CourseMapPreview.jsx    # Main editable course map table
     DeliverableView.jsx     # Per-deliverable rendering (slides, rubrics, quiz, etc.)
     ExportSidePanel.jsx     # Right-side export panel (Current/All modes, ZIP, .coursemapper)
-    ProgressPanel.jsx       # Generation progress, revision chat, deliverable status
     ColumnEditor.jsx        # Course map column configuration
     ModelConfig.jsx         # AI provider + model selection UI
     Header.jsx              # App header with navigation
     ErrorBoundary.jsx       # Crash recovery wrapper
+    chat/
+      ChatPanel.jsx         # Unified chat interface (progress, help, agent)
+      ChatInput.jsx         # Message input with file upload
+      MessageList.jsx       # Scrollable message area + opener
+      MessageBubble.jsx     # Individual message rendering (markdown)
+      ProposalCard.jsx      # AI proposal option cards with select/retry
+      ProgressCard.jsx      # Generation milestone cards + starters
+      ProgressHeader.jsx    # Collapsible generation progress bar
+      useChatRouter.js      # Chat state machine: routing, streaming, agent responses
+      constants.js          # Feature labels, step definitions, opener starters
   hooks/
     useGeneration.js        # Course map generation + stop/resume
     useDeliverables.js      # Deliverable generation (per-feature sequential, cross-feature parallel), surgical regen, restore
@@ -236,13 +257,14 @@ src/
     fileParser.js           # Multi-format file parsing
     importCourseMap.js      # Import course map from .xlsx/.csv
     prompts.js              # Course map generation prompts
+    agentPrompts.js         # Dynamic system prompt for the agentic teaching assistant
+    agentActions.js         # Action executor (addItem, editItem, removeItem, etc.)
     streamProvider.js       # AI streaming across providers
     customDeliverableLibrary.js # localStorage CRUD for custom deliverable definitions
     parallelGenerator.js    # Chunking, merging, completeness-check, per-feature output budgets
     keyMaps.js              # Bidirectional key maps + expandKeys() for JSON key minification
     syncDependencies.js     # Deliverable dependency graph for cascade editing
   pages/
-    FaqChatbot.jsx          # AI-powered help chatbot + HelpDrawer (Gemini-powered)
     PrivacyPolicy.jsx       # Privacy policy page
     TermsOfService.jsx      # Terms of service page
     Changelog.jsx           # Version changelog page

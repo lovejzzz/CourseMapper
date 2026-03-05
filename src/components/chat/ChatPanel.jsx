@@ -1,14 +1,15 @@
-import React, { useEffect, useRef } from 'react';
+import React, { useEffect, useRef, useCallback } from 'react';
 import ProgressHeader from './ProgressHeader';
 import MessageList from './MessageList';
 import ChatInput from './ChatInput';
 import useChatRouter from './useChatRouter';
 import ExamReview from '../ExamReview';
-import { resolveLabel } from './constants';
+import { executeAction } from '../../lib/agentActions';
+import { getChatOpener } from './constants';
 
 /**
  * ChatPanel — Unified chat interface replacing ProgressPanel + RevisionChat + HelpDrawer.
- * Handles: generation progress (header), help questions (Ask mode), revision requests (Revise mode),
+ * Handles: generation progress (header), help questions (Ask mode), agent actions (Revise mode),
  * file uploads, and inline progress cards.
  */
 export default function ChatPanel({
@@ -32,7 +33,33 @@ export default function ChatPanel({
   apiKey, provider, modelId,
   // Exam review
   pendingExamPatches, examChanges, onAcceptPatches, onRejectPatch,
+  // Agent: course map editor + deliverable update
+  editor, optimisticUpdate, regenerateLesson,
+  // Agent phase 2: undo + highlight
+  delivUndoSnapshot, onAgentHighlight,
 }) {
+  // Detect agent mode: deliverables with done status exist
+  const isAgentMode = !!(deliverables && Object.keys(deliverables).some(
+    k => k !== 'courseMap' && deliverables[k]?.status === 'done'
+  ));
+
+  // Build the action executor that agent mode uses
+  const execAction = useCallback((action) => {
+    const result = executeAction(action, {
+      editor,
+      deliverables,
+      optimisticUpdate,
+      courseMap,
+      regenerateLesson,
+      snapshot: delivUndoSnapshot,
+    });
+    // Trigger visual highlight on success
+    if (result.success && onAgentHighlight && action.featureId) {
+      onAgentHighlight(action.featureId, action.lessonIndex ?? null);
+    }
+    return result;
+  }, [editor, deliverables, optimisticUpdate, courseMap, regenerateLesson, delivUndoSnapshot, onAgentHighlight]);
+
   const chat = useChatRouter({
     apiKey, provider, modelId,
     courseMap, activeTab,
@@ -40,18 +67,26 @@ export default function ChatPanel({
     isStopped, onResume,
     savedMessages: chatHistory,
     onMessagesChange: onChatHistoryChange,
+    // Agent params
+    deliverables,
+    executeAction: execAction,
   });
 
   // ── Auto-insert progress cards on state transitions ─────────────────────
-  const prevStepRef = useRef(null);
-  const prevDelivDoneRef = useRef(0);
+  const prevStepRef = useRef(currentStep);  // init to current so mount doesn't trigger
+  // Init to current done count so remounts don't re-fire
+  const initDone = deliverables
+    ? Object.entries(deliverables).filter(([id]) => id !== 'courseMap').filter(([, s]) => s?.status === 'done').length
+    : 0;
+  const prevDelivDoneRef = useRef(initDone);
 
   useEffect(() => {
-    // Course map ready card
+    // Course map ready card — include opener starters so user sees actionable prompts
     if (currentStep === 'done' && prevStepRef.current && prevStepRef.current !== 'done') {
       const lessonCount = completenessInfo?.actual || courseMap?.lessons?.length || 0;
+      const opener = getChatOpener(courseMap, false, null); // Tier 2: course map exists
       chat.addProgressMessage({
-        data: { phase: 'courseMapReady', lessonCount },
+        data: { phase: 'courseMapReady', lessonCount, greeting: opener.greeting, starters: opener.starters },
       });
     }
     prevStepRef.current = currentStep;
@@ -72,12 +107,15 @@ export default function ChatPanel({
       const timings = delivTimings ? Object.values(delivTimings) : [];
       const totalTime = timings.reduce((sum, t) => sum + (t.durationMs || 0), 0);
 
+      const agentOpener = getChatOpener(courseMap, true, activeTab); // Tier 3: agent mode
       chat.addProgressMessage({
         data: {
           phase: 'complete',
           lessonCount: completenessInfo?.actual || courseMap?.lessons?.length || 0,
           totalTime,
           deliverables: delivRows.map(([id, s]) => ({ id, status: s?.status })),
+          greeting: agentOpener.greeting,
+          starters: agentOpener.starters,
         },
       });
     }
@@ -97,10 +135,7 @@ export default function ChatPanel({
           </svg>
         </div>
         <div className="flex-1 min-w-0">
-          <h2 className="text-sm font-bold text-slate-800">Assistant</h2>
-          <p className="text-[11px] text-slate-400 truncate">
-            {chat.mode === 'ask' ? 'Help & advice' : `Revising ${resolveLabel(activeTab) || 'Course Map'}`}
-          </p>
+          <h2 className="text-sm font-bold text-slate-800">Your Teaching Assistant</h2>
         </div>
       </div>
 
@@ -147,13 +182,14 @@ export default function ChatPanel({
         messages={chat.messages}
         isStreaming={chat.isStreaming}
         courseMap={courseMap}
+        isAgentMode={isAgentMode}
+        activeTab={activeTab}
         onSuggestionClick={(q) => chat.send(q)}
+        onSelectProposal={chat.handleSelectProposal}
       />
 
       {/* ── Chat Input ── */}
       <ChatInput
-        mode={chat.mode}
-        setMode={chat.setMode}
         onSend={chat.send}
         isStreaming={chat.isStreaming}
         isRevising={isRevising}
@@ -162,11 +198,11 @@ export default function ChatPanel({
         onProcessFiles={chat.processFiles}
         onRemoveAttached={chat.removeAttached}
         isParsing={chat.isParsing}
-        suggestions={chat.suggestions}
-        onSuggestionClick={(sug) => chat.setSuggestions([])}
         activeTab={activeTab}
         courseMap={courseMap}
         isStopped={isStopped}
+        hasPendingProposal={chat.messages.some(m => m.role === 'proposal' && m.status === 'pending')}
+        isAgentMode={isAgentMode}
       />
     </div>
   );

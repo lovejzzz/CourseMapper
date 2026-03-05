@@ -2,6 +2,56 @@ import React from 'react';
 
 const releases = [
   {
+    version: '1.1',
+    date: 'March 5, 2026',
+    title: 'AI Teaching Agent — Act, Don\'t Advise',
+    highlights: [
+      'Agentic AI assistant that takes direct action on your course materials instead of just giving advice',
+      'Batch actions across multiple lessons and cross-deliverable edits in a single request',
+      'Streaming feedback, error recovery, and agent memory for a responsive editing experience',
+    ],
+    sections: [
+      {
+        label: 'AI Agent',
+        icon: '✦',
+        color: 'indigo',
+        items: [
+          'Unified ChatPanel replaces the separate ProgressPanel, RevisionChat, and HelpDrawer with a single context-aware interface.',
+          'Agent mode auto-activates when deliverables are generated — messages are routed to the agentic assistant automatically.',
+          'Proposal cards — the agent proposes 2–3 pedagogically distinct options as clickable cards with expand/collapse descriptions. Pick one and it\'s instantly applied.',
+          'Batch actions — "Add a quiz to every lesson" generates unique, lesson-specific content and applies changes with progress feedback (e.g., "Applying 5 of 12...").',
+          'Cross-deliverable edits — "Add a quiz AND a discussion prompt for Lesson 2" handles multiple deliverable types in a single batch.',
+          'Streaming progress detection — live-streams chatReply text and shows contextual status messages (Generating options, Preparing changes) while the agent works.',
+          'Error recovery — failed proposal options turn red with a retry button, and other options remain clickable. No more stuck proposals.',
+          'Agent memory — buildAgentChatHistory serializes proposals, selections, and failures so the AI remembers its own actions within the session.',
+          'Undo support — every agent action snapshots the previous deliverable state for one-click undo.',
+        ],
+      },
+      {
+        label: 'UX Improvements',
+        icon: '🎨',
+        color: 'violet',
+        items: [
+          'Context-aware chat opener — greeting and starter prompts adapt based on app state (onboarding → course map ready → agent mode).',
+          'Generation milestone cards now include the opener greeting + clickable starter prompts, so users always see helpful next steps.',
+          'Visual highlight — when the agent modifies a deliverable, the affected tab briefly pulses to confirm the change.',
+          'Agent badge — the chat input shows a "✦ Agent" indicator when in agent mode.',
+          'Chat history persistence — conversation survives tab switches and page reloads via localStorage.',
+        ],
+      },
+      {
+        label: 'Robustness',
+        icon: '🛡️',
+        color: 'emerald',
+        items: [
+          'Revision fallback guard — messages on ungenerated deliverable tabs correctly fall back to course map revision instead of failing silently.',
+          'Generation routing guard — messages sent during deliverable generation are routed to help mode instead of being misrouted to revision.',
+          'Prompt hardening — "Act, Don\'t Advise" principle prevents the agent from telling users to do things manually.',
+        ],
+      },
+    ],
+  },
+  {
     version: '0.4',
     date: 'March 4, 2026',
     title: 'Token Optimization — Faster, Cheaper AI Generation',
