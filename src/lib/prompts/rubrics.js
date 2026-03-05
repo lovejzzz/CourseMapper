@@ -7,36 +7,38 @@ export default {
 
 ${condenseCourseMap(cm, scope, verifiedChanges, columns)}
 
+Use abbreviated JSON keys to minimize output size. Each key's meaning is described inline.
+
 Return a JSON object with exactly this structure:
 {
   "rubrics": [
     {
-      "title": "string — assignment/assessment name this rubric grades",
-      "lessonTitle": "string — the lesson this rubric is associated with",
-      "assessmentType": "string — e.g. 'Written Essay' | 'Research Paper' | 'Lab Report' | 'Oral Presentation' | 'Group Project' | 'Reflection' | 'Problem Set'",
-      "totalPoints": number — integer matching the assignment's gradebook weight,
-      "bloomsLevel": "string — highest Bloom's level assessed by this rubric",
-      "gradingScale": {
-        "exemplary": "string — point range or percentage, e.g. '90–100%'",
-        "proficient": "string — e.g. '75–89%'",
-        "developing": "string — e.g. '60–74%'",
-        "beginning": "string — e.g. 'Below 60%'"
+      "t": "string — assignment/assessment name this rubric grades",
+      "lt": "string — the lesson this rubric is associated with",
+      "at": "string — e.g. 'Written Essay' | 'Research Paper' | 'Lab Report' | 'Oral Presentation' | 'Group Project' | 'Reflection' | 'Problem Set'",
+      "tp": number — integer matching the assignment's gradebook weight,
+      "bl": "string — highest Bloom's level assessed by this rubric",
+      "gs": {
+        "ex": "string — point range or percentage, e.g. '90–100%'",
+        "pr": "string — e.g. '75–89%'",
+        "dv": "string — e.g. '60–74%'",
+        "bg": "string — e.g. 'Below 60%'"
       },
-      "criteria": [
+      "cr": [
         {
-          "criterion": "string — specific, measurable dimension being assessed",
-          "objectiveAligned": "string — which course learning objective this criterion maps to",
-          "weight": number — percentage weight (all criteria must sum to 100),
-          "points": number — max points for this criterion (weight/100 × totalPoints),
-          "exemplary": "string — observable, behavioral description with concrete quality/quantity markers. What mastery looks like ABOVE the minimum standard.",
-          "proficient": "string — meets the standard. Concrete descriptors. No vague words like 'good' or 'adequate'.",
-          "developing": "string — partially meets standard. Describes what IS present, not just what is missing.",
-          "beginning": "string — does not yet meet standard. Still describes what the student has attempted, not purely negative."
+          "cn": "string — specific, measurable dimension being assessed",
+          "oa": "string — which course learning objective this criterion maps to",
+          "wt": number — percentage weight (all criteria must sum to 100),
+          "pt": number — max points for this criterion (weight/100 × totalPoints),
+          "ex": "string — observable, behavioral description with concrete quality/quantity markers. What mastery looks like ABOVE the minimum standard.",
+          "pr": "string — meets the standard. Concrete descriptors. No vague words like 'good' or 'adequate'.",
+          "dv": "string — partially meets standard. Describes what IS present, not just what is missing.",
+          "bg": "string — does not yet meet standard. Still describes what the student has attempted, not purely negative."
         }
       ],
-      "gradePolicyConnection": "string — how this rubric connects to the overall course grading policy: state the weight of this assessment in the final grade and which grading category it falls under (QM 3.3)",
-      "teacherNotes": "string — instructions for calibrating scores, handling edge cases, giving feedback to students, and a note to distribute this rubric to students BEFORE the assignment (QM 3.3)",
-      "tags": ["string — 5-8 keywords for LMS discoverability: include assessment type, skill area, and Bloom's levels"]
+      "gp": "string — how this rubric connects to the overall course grading policy: state the weight of this assessment in the final grade and which grading category it falls under (QM 3.3)",
+      "tn": "string — instructions for calibrating scores, handling edge cases, giving feedback to students, and a note to distribute this rubric to students BEFORE the assignment (QM 3.3)",
+      "tg": ["string — 5-8 keywords for LMS discoverability: include assessment type, skill area, and Bloom's levels"]
     }
   ]
 }

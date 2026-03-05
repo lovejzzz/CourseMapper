@@ -850,7 +850,6 @@ export default function Config({
         </footer>
       </div>
 
-      <HelpDrawer isOpen={showHelp} onClose={() => setShowHelp(false)} />
     </>
   );
 }

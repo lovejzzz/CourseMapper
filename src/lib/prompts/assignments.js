@@ -7,49 +7,51 @@ export default {
 
 ${condenseCourseMap(cm, scope, verifiedChanges, columns)}
 
+Use abbreviated JSON keys to minimize output size. Each key's meaning is described inline.
+
 Return a JSON object with exactly this structure:
 {
   "assignments": [
     {
-      "title": "string — assignment name",
-      "assignmentType": "string — e.g. 'Research Paper' | 'Reflective Essay' | 'Case Study Analysis' | 'Lab Report' | 'Group Project' | 'Oral Presentation' | 'Problem Set' | 'Portfolio'",
-      "relatedLessons": ["string"] — lesson titles this assignment draws from,
-      "dueWeek": "string — e.g. 'Week 5, Friday 11:59 PM'",
-      "estimatedTime": "string — realistic total student time, e.g. '6–8 hours over 2 weeks'",
-      "totalPoints": number — integer,
-      "percentOfGrade": "string — e.g. '15%'",
-      "bloomsLevel": "string — primary cognitive level: 'Apply' | 'Analyze' | 'Evaluate' | 'Create'",
-      "overview": "string — 3-4 sentences: what students will do, WHY this assignment matters to their learning and to the field, and which course learning objectives it assesses",
-      "objectives": [
+      "t": "string — assignment name",
+      "at": "string — e.g. 'Research Paper' | 'Reflective Essay' | 'Case Study Analysis' | 'Lab Report' | 'Group Project' | 'Oral Presentation' | 'Problem Set' | 'Portfolio'",
+      "rl": ["string"] — lesson titles this assignment draws from,
+      "dw": "string — e.g. 'Week 5, Friday 11:59 PM'",
+      "et": "string — realistic total student time, e.g. '6–8 hours over 2 weeks'",
+      "tp": number — integer,
+      "pg": "string — e.g. '15%'",
+      "bl": "string — primary cognitive level: 'Apply' | 'Analyze' | 'Evaluate' | 'Create'",
+      "ov": "string — 3-4 sentences: what students will do, WHY this assignment matters to their learning and to the field, and which course learning objectives it assesses",
+      "ob": [
         "string — specific learning objectives this assignment assesses (verbatim from course objectives if possible)"
       ],
-      "instructions": [
+      "ins": [
         "string — numbered, imperative-voice steps: 'Choose a...', 'Write a...', 'Cite at least...'. Each step is a separate string. Be specific about scope, length, format."
       ],
-      "formatRequirements": {
-        "length": "string — e.g. '1,500–2,000 words' or '10-minute presentation'",
-        "format": "string — e.g. 'Double-spaced, 12pt Times New Roman, 1-inch margins'",
-        "citationStyle": "string — e.g. 'APA 7th edition'",
-        "submissionPlatform": "string — e.g. 'Submit as a single PDF to Canvas > Assignments > [title]'",
-        "latePolicy": "string — explicit penalty: e.g. '10 points deducted per 24-hour period; no submissions accepted after 1 week'"
+      "fr": {
+        "ln": "string — e.g. '1,500–2,000 words' or '10-minute presentation'",
+        "fm": "string — e.g. 'Double-spaced, 12pt Times New Roman, 1-inch margins'",
+        "cs": "string — e.g. 'APA 7th edition'",
+        "sp": "string — e.g. 'Submit as a single PDF to Canvas > Assignments > [title]'",
+        "lp": "string — explicit penalty: e.g. '10 points deducted per 24-hour period; no submissions accepted after 1 week'"
       },
-      "deliverables": [
+      "dl": [
         "string — checklist of every item to submit, e.g. '[ ] Cover page with name and student ID', '[ ] 1,500-2,000 word essay', '[ ] Reference list (minimum 5 peer-reviewed sources)'"
       ],
-      "scaffoldingMilestones": [
+      "sm": [
         {
-          "milestone": "string — milestone name, e.g. 'Topic Proposal'",
-          "dueDate": "string — e.g. 'Week 2, class time'",
-          "description": "string — what the student submits and what feedback they receive"
+          "ms": "string — milestone name, e.g. 'Topic Proposal'",
+          "dd": "string — e.g. 'Week 2, class time'",
+          "de": "string — what the student submits and what feedback they receive"
         }
       ],
-      "gradingCriteria": "string — brief rubric summary tying point distribution to criteria (full rubric is generated separately)",
-      "supportResources": [
+      "gc": "string — brief rubric summary tying point distribution to criteria (full rubric is generated separately)",
+      "sr": [
         "string — specific support: writing center, library databases, office hours schedule, sample work description"
       ],
-      "progressTracking": "string — how students will receive feedback and track their progress on this assignment: interim feedback points, self-assessment checkpoints, peer review milestones, and expected turnaround time for instructor feedback (QM 3.5)",
-      "academicIntegrityStatement": "string — assignment-specific guidance on how to uphold academic integrity for THIS assignment type: what is/is not permitted (collaboration, AI tools, reuse of prior work), reference to institution policy, and consequences for violation (QM 3.6)",
-      "tags": ["string — 5-8 keywords for LMS discoverability: include assignment type, skill area, Bloom's level, and related lesson topics"]
+      "pt": "string — how students will receive feedback and track their progress on this assignment: interim feedback points, self-assessment checkpoints, peer review milestones, and expected turnaround time for instructor feedback (QM 3.5)",
+      "ai": "string — assignment-specific guidance on how to uphold academic integrity for THIS assignment type: what is/is not permitted (collaboration, AI tools, reuse of prior work), reference to institution policy, and consequences for violation (QM 3.6)",
+      "tg": ["string — 5-8 keywords for LMS discoverability: include assignment type, skill area, Bloom's level, and related lesson topics"]
     }
   ]
 }
@@ -66,6 +68,6 @@ REQUIREMENTS:
 - QM ALIGNMENT: Assignments must be sequenced and suited to the course level — earlier assignments should scaffold toward later, more complex ones (QM 3.4). Include opportunities for learners to track their progress via the progressTracking field: interim feedback points, self-assessment checkpoints, or peer review milestones (QM 3.5). The academicIntegrityStatement must provide specific guidance on how to uphold integrity for THIS assignment type (QM 3.6).
 - COGNITIVE LOAD: Instructions must be imperative, concise, and scannable. No instruction step longer than 25 words. Each step describes one action only.
 - HUMAN READABILITY: Each assignment should read as a unique document — vary the overview voice, instruction phrasing, and scaffolding descriptions. Avoid copy-paste language patterns across assignments.
-- GRADE WEIGHT (CRITICAL — enforced by post-processing): ${scope && cm?.lessons?.length ? `You are generating assignments for ${scope.length} of ${cm.lessons.length} total lessons. This chunk's percentOfGrade values MUST sum to approximately ${Math.round((scope.length / cm.lessons.length) * 100)}% (your chunk's proportional share of 100%).` : `The percentOfGrade values across ALL assignments must sum to exactly 100%.`} Distribute grade weight proportionally based on assignment complexity and learning impact. Post-processing WILL normalize deviations, so stay as close to the target as possible.
+- GRADE WEIGHT (CRITICAL — enforced by post-processing): ${scope && cm?.lessons?.length ? `You are generating assignments for ${scope.length} of ${cm.lessons.length} total lessons. This chunk's "pg" (percentOfGrade) values MUST sum to approximately ${Math.round((scope.length / cm.lessons.length) * 100)}% (your chunk's proportional share of 100%).` : `The "pg" (percentOfGrade) values across ALL assignments must sum to exactly 100%.`} Distribute grade weight proportionally based on assignment complexity and learning impact. Post-processing WILL normalize deviations, so stay as close to the target as possible.
 - Return ONLY the JSON object, no prose, no markdown`,
   }

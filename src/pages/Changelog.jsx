@@ -2,6 +2,43 @@ import React from 'react';
 
 const releases = [
   {
+    version: '0.4',
+    date: 'March 4, 2026',
+    title: 'Token Optimization — Faster, Cheaper AI Generation',
+    highlights: [
+      'Up to 25% lower API costs through minified JSON keys and smarter chunking',
+      '15–20% fewer API calls via adaptive per-deliverable chunk sizes',
+      'Subsequent chunks use compact schema references instead of repeating full specifications',
+    ],
+    sections: [
+      {
+        label: 'Performance',
+        icon: '⚡',
+        color: 'amber',
+        items: [
+          'JSON Key Minification — AI output uses short keys (e.g. "lt" instead of "lessonTitle"), expanded client-side. Saves ~15–25% output tokens across all deliverables.',
+          'Adaptive Chunk Sizes — deliverables with simpler output structures (discussions, FAQ, study guides) now chunk more lessons per API call. Reduces total calls from ~22 to ~16 for a 15-lesson course.',
+          'Schema Abbreviation for Chunks 1+ — subsequent chunks receive a compact JSON skeleton instead of the full verbose schema, saving ~6,000–10,000 input tokens per generation run.',
+          'Per-Feature Output Budgets — each deliverable type gets a right-sized max_tokens limit (e.g. 5K for FAQ, 12K for slide decks) to prevent overgeneration and reduce retry frequency.',
+          'Style Exemplar Compression — cross-chunk style references now send a 1-item skeleton (~1,200 chars) instead of full raw JSON (~3,000 chars), saving ~500 input tokens per chunk.',
+          'Rubrics as Whole-Course — rubrics now generate in a single API call instead of chunked, eliminating 2 redundant calls and producing more coherent cross-assignment rubrics.',
+          'Empty Payload Filtering — course map serialization skips empty strings and empty arrays, reducing input token waste.',
+          'Quiz Bank Null Field Omission — question types only include applicable fields (no more null placeholders for MC options on essay questions), saving ~15–20% quiz output tokens.',
+        ],
+      },
+      {
+        label: 'Infrastructure',
+        icon: '⚙',
+        color: 'slate',
+        items: [
+          'New keyMaps.js module provides bidirectional key mapping for all 8 deliverable types with a recursive expandKeys() function.',
+          'parallelGenerator.js now exports per-feature chunk sizes and output budgets instead of using hardcoded globals.',
+          'deliverablePrompts.js includes a continuation prompt system that detects chunk index and switches to abbreviated prompts automatically.',
+        ],
+      },
+    ],
+  },
+  {
     version: '0.3',
     date: 'February 27, 2026',
     title: 'BYOK Only, Dynamic Model Token Limits',

@@ -16,12 +16,52 @@ import { getArrayKey } from './syncDependencies';
 
 // ── Constants ──────────────────────────────────────────────────────────────────
 
-export const CHUNK_SIZE = 5;           // lessons per chunk
+export const CHUNK_SIZE = 5;           // default lessons per chunk
 export const MAX_CONCURRENT = 6;       // max simultaneous API calls (retries only)
 export const MAX_RETRY_ROUNDS = 2;     // max retry attempts for incomplete chunks
 
-/** Features that are whole-course (never chunked) */
-export const WHOLE_COURSE_FEATURES = new Set(['syllabus']);
+/** Per-feature chunk sizes — simpler deliverables use larger chunks to reduce API calls */
+const FEATURE_CHUNK_SIZES = {
+  lessonPlans: 5,
+  slideDecks: 5,
+  quizBank: 5,
+  rubrics: 5,
+  assignments: 5,
+  discussions: 8,
+  studyGuides: 5,
+  courseFaq: 10,
+};
+
+/** Get the chunk size for a given feature */
+export function getFeatureChunkSize(featureId) {
+  return FEATURE_CHUNK_SIZES[featureId] || CHUNK_SIZE;
+}
+
+/** Per-feature max output token budgets — caps to prevent runaway responses.
+ *  Uses Math.min(budget, globalMax) so models with small limits are not exceeded. */
+const FEATURE_OUTPUT_BUDGETS = {
+  lessonPlans: 8000,
+  slideDecks: 12000,
+  quizBank: 8000,
+  rubrics: 6000,
+  assignments: 8000,
+  discussions: 12000,
+  studyGuides: 8000,
+  courseFaq: 5000,
+};
+
+/** Get the output token budget for a feature, capped by the global model limit */
+export function getFeatureOutputBudget(featureId, globalMax) {
+  const budget = FEATURE_OUTPUT_BUDGETS[featureId];
+  if (!budget) return globalMax;
+  return Math.min(budget, globalMax);
+}
+
+/** Features that are whole-course (never chunked).
+ *  Rubrics generate per-assessment (not per-lesson), so chunking them by lesson
+ *  is wasteful — the AI needs full course context to identify all unique assessments.
+ *  Output budget (6000 tokens) comfortably fits 4-6 rubrics (~2000-3600 tokens). */
+export const WHOLE_COURSE_FEATURES = new Set(['syllabus', 'rubrics']);
 
 // ── Concurrency Limiter ────────────────────────────────────────────────────────
 
@@ -83,8 +123,8 @@ export function createChunkPlan(features, lessonCount, scopeIndices = null) {
         isWholeCourse: true,
       });
     } else {
-      // Per-lesson feature — chunk the lesson indices
-      const chunks = chunkArray(allIndices, CHUNK_SIZE);
+      // Per-lesson feature — chunk the lesson indices (size varies by feature complexity)
+      const chunks = chunkArray(allIndices, getFeatureChunkSize(featureId));
       for (let i = 0; i < chunks.length; i++) {
         tasks.push({
           featureId,
@@ -220,5 +260,5 @@ export function findMissingIndices(mergedArray, expectedIndices) {
 export function getChunkCount(featureId, lessonCount, scopeIndices = null) {
   if (WHOLE_COURSE_FEATURES.has(featureId)) return 1;
   const count = scopeIndices ? scopeIndices.length : lessonCount;
-  return Math.ceil(count / CHUNK_SIZE);
+  return Math.ceil(count / getFeatureChunkSize(featureId));
 }

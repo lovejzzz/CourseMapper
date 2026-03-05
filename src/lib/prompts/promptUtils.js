@@ -55,9 +55,12 @@ export function condenseCourseMap(courseMap, scopeIndices = null, verifiedChange
       };
 
       // Extract only enabled columns (or all if no filter)
+      // Skip empty values (empty strings, empty arrays) to minimize input tokens
       for (const [colKey, ext] of Object.entries(COLUMN_EXTRACTORS)) {
         if (enabledKeys && !enabledKeys.has(colKey)) continue;
         const val = ext.extract(sections);
+        const isEmpty = val === '' || (Array.isArray(val) && val.length === 0);
+        if (isEmpty) continue;
         // Group async/sync activities under an "activities" object for cleanliness
         if (colKey === 'asyncActivities') {
           if (!entry.activities) entry.activities = {};

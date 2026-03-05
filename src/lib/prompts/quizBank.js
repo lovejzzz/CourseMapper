@@ -7,32 +7,35 @@ export default {
 
 ${condenseCourseMap(cm, scope, verifiedChanges, columns)}
 
+Use abbreviated JSON keys to minimize output size. Each key's meaning is described inline.
+IMPORTANT: Omit fields that do not apply to a question type — do NOT output null values. Only include fields relevant to each question's type (MC, short_answer, or essay).
+
 Return a JSON object with exactly this structure:
 {
   "quizzes": [
     {
-      "lessonTitle": "string — full lesson title",
-      "totalQuestions": number — integer count,
-      "bloomsCoverage": ["string"] — Bloom's levels covered in this quiz set,
-      "formativeFeedbackNote": "string — guidance for the instructor: common errors students make on this material, how to return results quickly, and how students should use quiz results to identify areas needing review (QM 3.5)",
-      "questions": [
+      "lt": "string — full lesson title",
+      "tq": number — integer count,
+      "bc": ["string"] — Bloom's levels covered in this quiz set,
+      "fn": "string — guidance for the instructor: common errors students make on this material, how to return results quickly, and how students should use quiz results to identify areas needing review (QM 3.5)",
+      "qs": [
         {
-          "type": "string — MUST be one of: 'multiple_choice' | 'short_answer' | 'essay'",
-          "bloomsLevel": "string — exact Bloom's level: 'Remember' | 'Understand' | 'Apply' | 'Analyze' | 'Evaluate' | 'Create'",
-          "difficulty": "string — 'Easy' | 'Medium' | 'Hard'",
-          "estimatedMinutes": number — integer time to answer,
-          "points": number — integer point value,
-          "objectiveAligned": "string — which lesson learning objective this question assesses",
-          "question": "string — for MC: complete interrogative sentence or scenario stem; for short answer: includes expected length ('In 2-3 sentences...'); for essay: includes task verb (analyze/evaluate/argue), scope, and constraints",
-          "options": ["string"] — MC only: exactly 4 options as 'A. ...', 'B. ...', 'C. ...', 'D. ...'; null for other types,
-          "answer": "string — MC: the letter only (e.g. 'B'); short answer: model answer with key required elements; essay: null",
-          "distractorRationale": "string or null — MC only: explain why each wrong option is plausible (common misconception it tests), format: 'A: [reason]; C: [reason]; D: [reason]'",
-          "explanation": "string — for ALL types: MC: 'The correct answer is [X] because [reason]'; short answer: full model response + 2 alternative acceptable phrasings; essay: null",
-          "rubricHints": "string or null — essay only: 3-4 criteria that a strong response must include",
-          "sampleAnswer": "string or null — short answer and essay only: full exemplary response"
+          "ty": "string — MUST be one of: 'multiple_choice' | 'short_answer' | 'essay'",
+          "bl": "string — exact Bloom's level: 'Remember' | 'Understand' | 'Apply' | 'Analyze' | 'Evaluate' | 'Create'",
+          "df": "string — 'Easy' | 'Medium' | 'Hard'",
+          "em": number — integer time to answer,
+          "pt": number — integer point value,
+          "oa": "string — which lesson learning objective this question assesses",
+          "q": "string — for MC: complete interrogative sentence or scenario stem; for short answer: includes expected length ('In 2-3 sentences...'); for essay: includes task verb (analyze/evaluate/argue), scope, and constraints",
+          "op": ["string"] — MC ONLY: exactly 4 options as 'A. ...', 'B. ...', 'C. ...', 'D. ...' (omit for short_answer/essay),
+          "an": "string — MC: the letter only (e.g. 'B'); short_answer: model answer with key required elements (omit for essay)",
+          "dr": "string — MC ONLY: explain why each wrong option is plausible, format: 'A: [reason]; C: [reason]; D: [reason]' (omit for short_answer/essay)",
+          "ex": "string — MC: 'The correct answer is [X] because [reason]'; short_answer: full model response + 2 alternative acceptable phrasings (omit for essay)",
+          "rh": "string — ESSAY ONLY: 3-4 criteria that a strong response must include (omit for MC/short_answer)",
+          "sa": "string — short_answer & essay ONLY: full exemplary response (omit for MC)"
         }
       ],
-      "tags": ["string — 5-8 keywords for LMS discoverability: include assessment type, Bloom's levels tested, and key topic areas"]
+      "tg": ["string — 5-8 keywords for LMS discoverability: include assessment type, Bloom's levels tested, and key topic areas"]
     }
   ]
 }

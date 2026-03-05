@@ -7,21 +7,23 @@ export default {
 
 ${condenseCourseMap(cm, scope, verifiedChanges, columns)}
 
+Use abbreviated JSON keys to minimize output size. Each key's meaning is described inline.
+
 Return a JSON object with exactly this structure:
 {
   "faqs": [
     {
-      "lessonTitle": "string — full lesson title",
-      "questions": [
+      "lt": "string — full lesson title",
+      "qs": [
         {
-          "question": "string — a realistic question a student would ask, written in first-person student voice (e.g., 'How should I prepare for the midterm on this material?')",
-          "answer": "string — concise, actionable answer in 2-4 sentences. Be specific: reference assignments, readings, or campus resources by name. Use warm, supportive tone.",
-          "category": "string — one of: 'Course Logistics' | 'Assignment Clarification' | 'Concept Explanation' | 'Technical Help' | 'Assessment Prep'",
-          "relatedConcepts": ["string — 1-3 key concepts or topics this Q&A relates to"],
-          "difficulty": "string — 'Basic' | 'Intermediate' | 'Advanced' — how conceptually challenging the question is"
+          "q": "string — a realistic question a student would ask, written in first-person student voice (e.g., 'How should I prepare for the midterm on this material?')",
+          "an": "string — concise, actionable answer in 2-4 sentences. Be specific: reference assignments, readings, or campus resources by name. Use warm, supportive tone.",
+          "ca": "string — one of: 'Course Logistics' | 'Assignment Clarification' | 'Concept Explanation' | 'Technical Help' | 'Assessment Prep'",
+          "rc": ["string — 1-3 key concepts or topics this Q&A relates to"],
+          "df": "string — 'Basic' | 'Intermediate' | 'Advanced' — how conceptually challenging the question is"
         }
       ],
-      "tags": ["string — 5-8 keywords for LMS discoverability: include lesson topic, question categories covered, and key concepts"]
+      "tg": ["string — 5-8 keywords for LMS discoverability: include lesson topic, question categories covered, and key concepts"]
     }
   ]
 }

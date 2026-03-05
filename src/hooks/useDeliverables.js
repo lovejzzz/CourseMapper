@@ -9,7 +9,9 @@ import { CourseStateContext, CourseDispatchContext, actions } from '../model/cou
 import {
   pLimit, createChunkPlan, mergeChunkResults, findMissingIndices,
   chunkArray, CHUNK_SIZE, MAX_CONCURRENT, MAX_RETRY_ROUNDS,
+  getFeatureChunkSize, getFeatureOutputBudget,
 } from '../lib/parallelGenerator';
+import { expandKeys } from '../lib/keyMaps';
 
 // ── Post-process scoped deliverable output to fix lesson/week numbering ──
 // When the user generates a subset of lessons (e.g., lesson 6 only), the AI may
@@ -216,8 +218,8 @@ export default function useDeliverables({ provider, modelId, apiKey, maxOutputTo
         appendLog(`Generating ${label} — lessons ${chunkScope[0] + 1}–${chunkScope[chunkScope.length - 1] + 1} (chunk ${chunkIndex + 1}/${totalChunksForFeature})`, 'start');
       }
 
-      // Build prompt — for chunks after the first, inject style exemplar from chunk 0
-      // Uses first + last items from the previous chunk to provide a quality gradient
+      // Build prompt — for chunks after the first, inject compressed style exemplar
+      // from chunk 0 (first item only, capped at 1200 chars to save input tokens)
       const config = deliverableConfigRef.current?.[featureId] || {};
       let styleExemplar = null;
       if (chunkIndex > 0 && chunkResults[featureId]?.has(0)) {
@@ -225,18 +227,15 @@ export default function useDeliverables({ provider, modelId, apiKey, maxOutputTo
         const arrKey = getArrayKey(featureId, firstChunk);
         const chunkArr = arrKey ? (firstChunk[arrKey] || []) : [];
         const firstItem = chunkArr[0] || null;
-        const lastItem = chunkArr.length > 1 ? chunkArr[chunkArr.length - 1] : null;
         if (firstItem) {
-          const parts = [JSON.stringify(firstItem, null, 2)];
-          if (lastItem) parts.push(JSON.stringify(lastItem, null, 2));
-          styleExemplar = parts.join('\n---\n').slice(0, 3000);
+          styleExemplar = JSON.stringify(firstItem, null, 2).slice(0, 1200);
         }
       }
       const prompts = getDeliverablePrompt(
         featureId, courseMap, chunkScope, config,
         pedagogicalModeRef.current, examChangesRef.current, null,
         columnsRef.current, deliverableConfigRef.current,
-        styleExemplar,
+        styleExemplar, chunkIndex,
       );
       if (!prompts) {
         appendLog(`✗ ${chunkLabel}: No prompt template available`, 'error');
@@ -258,7 +257,7 @@ export default function useDeliverables({ provider, modelId, apiKey, maxOutputTo
           provider, apiKey, modelId,
           prompts.systemPrompt, prompts.userPrompt,
           {
-            maxOutputTokens,
+            maxOutputTokens: getFeatureOutputBudget(featureId, maxOutputTokens),
             onChunk: (accumulatedText) => {
               fullText = accumulatedText;
               tokenCount = Math.round(accumulatedText.length / 4);
@@ -267,7 +266,7 @@ export default function useDeliverables({ provider, modelId, apiKey, maxOutputTo
               const now = Date.now();
               if (now - lastParseTime > 200) {
                 lastParseTime = now;
-                const partial = parsePartialJSON(fullText);
+                const partial = expandKeys(featureId, parsePartialJSON(fullText));
                 if (partial) {
                   // Merge completed chunks + this partial for live preview
                   const tempMap = new Map(chunkResults[featureId]);
@@ -287,9 +286,9 @@ export default function useDeliverables({ provider, modelId, apiKey, maxOutputTo
           }
         );
 
-        // Parse final result
+        // Parse final result and expand minified keys
         const text = result?.fullText || fullText;
-        const parsed = parsePartialJSON(text);
+        const parsed = expandKeys(featureId, parsePartialJSON(text));
 
         if (parsed) {
           // Discard if superseded by newer sync cycle
@@ -628,7 +627,7 @@ export default function useDeliverables({ provider, modelId, apiKey, maxOutputTo
           // Create retry tasks — use smaller chunks to reduce token pressure on retries
           // Quiz bank, slide decks, rubrics use individual lessons (size 1) to prevent merging
           const useIndividualRetry = fid === 'quizBank' || fid === 'slideDecks' || fid === 'rubrics';
-          const retryChunkSize = useIndividualRetry ? 1 : Math.max(2, Math.floor(CHUNK_SIZE / 2));
+          const retryChunkSize = useIndividualRetry ? 1 : Math.max(2, Math.floor(getFeatureChunkSize(fid) / 2));
           const retryChunks = chunkArray(missing, retryChunkSize);
           const retryLimit = pLimit(MAX_CONCURRENT);
           const retryPromises = retryChunks.map((retryScope, idx) => retryLimit(async () => {
@@ -657,10 +656,10 @@ export default function useDeliverables({ provider, modelId, apiKey, maxOutputTo
               const result = await streamProvider(
                 provider, apiKey, modelId,
                 prompts.systemPrompt, prompts.userPrompt,
-                { maxOutputTokens, onChunk: (t) => { fullText = t; }, maxRetries: 3, signal: controller.signal }
+                { maxOutputTokens: getFeatureOutputBudget(fid, maxOutputTokens), onChunk: (t) => { fullText = t; }, maxRetries: 3, signal: controller.signal }
               );
               const text = result?.fullText || fullText;
-              const parsed = parsePartialJSON(text);
+              const parsed = expandKeys(fid, parsePartialJSON(text));
               if (parsed) {
                 chunkResults[fid].set(retryChunkIndex, parsed);
                 const _rk = getArrayKey(fid, parsed);
@@ -764,10 +763,10 @@ export default function useDeliverables({ provider, modelId, apiKey, maxOutputTo
               const result = await streamProvider(
                 provider, apiKey, modelId,
                 prompts.systemPrompt, prompts.userPrompt,
-                { maxOutputTokens, onChunk: (t) => { fullText = t; }, maxRetries: 3, signal: controller.signal }
+                { maxOutputTokens: getFeatureOutputBudget(fid, maxOutputTokens), onChunk: (t) => { fullText = t; }, maxRetries: 3, signal: controller.signal }
               );
               const text = result?.fullText || fullText;
-              const parsed = parsePartialJSON(text);
+              const parsed = expandKeys(fid, parsePartialJSON(text));
               if (parsed) {
                 chunkResults[fid].set(retryChunkIndex, parsed);
                 const _rk = getArrayKey(fid, parsed);
@@ -1044,7 +1043,7 @@ export default function useDeliverables({ provider, modelId, apiKey, maxOutputTo
             const now = Date.now();
             if (now - lastParseTime > 150) {
               lastParseTime = now;
-              const partial = parsePartialJSON(fullText);
+              const partial = expandKeys(featureId, parsePartialJSON(fullText));
               if (partial && existingDataSnapshot && existingKey) {
                 const partialKey = getArrayKey(featureId, partial);
                 const partialArr = partialKey ? (partial[partialKey] || []) : [];
@@ -1074,7 +1073,7 @@ export default function useDeliverables({ provider, modelId, apiKey, maxOutputTo
         }
       );
 
-      const parsed = parsePartialJSON(fullText);
+      const parsed = expandKeys(featureId, parsePartialJSON(fullText));
       if (parsed) {
         if (syncGenId !== null && syncGenId !== activeSyncGenRef.current) {
           appendLog(`⚠ ${label}: Lesson ${lessonIndex + 1} result discarded (superseded)`, 'warn');

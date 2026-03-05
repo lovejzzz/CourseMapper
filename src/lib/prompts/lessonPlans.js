@@ -7,60 +7,62 @@ export default {
 
 ${condenseCourseMap(cm, scope, verifiedChanges, columns)}
 
+Use abbreviated JSON keys to minimize output size. Each key's meaning is described inline.
+
 Return a JSON object with exactly this structure:
 {
   "plans": [
     {
-      "lessonTitle": "string — full lesson title",
-      "weekNumber": "string — e.g. 'Week 3'",
-      "duration": "string — e.g. '75 min'",
-      "bloomsLevels": ["string"] — Bloom's levels targeted, e.g. ["Understand","Apply","Analyze"],
-      "objectives": [
+      "lt": "string — full lesson title",
+      "wk": "string — e.g. 'Week 3'",
+      "dur": "string — e.g. '75 min'",
+      "bls": ["string"] — Bloom's levels targeted, e.g. ["Understand","Apply","Analyze"],
+      "ob": [
         "string — Each objective starts directly with a Bloom's action verb (Analyze, Evaluate, Create, etc.) followed by content and condition. Do NOT repeat 'Students will be able to' or 'By the end of this lesson' — just the verb + content. Example: 'Analyze the impact of immigration policy on vulnerable populations'"
       ],
-      "materials": [
+      "mt": [
         "string — each item includes purpose, e.g. 'Whiteboard — for collaborative concept mapping'"
       ],
-      "warmUp": {
-        "duration": "string — e.g. '8 min'",
-        "type": "string — e.g. 'Think-Pair-Share' | 'Poll' | 'Case Study Hook' | 'Retrieval Quiz' | 'Surprising Statistic'",
-        "prompt": "string — the exact warm-up question or task posed to students",
-        "purpose": "string — what prior knowledge or curiosity this activates",
-        "facilitation": "string — instructor note on how to run this and transition to new content"
+      "wu": {
+        "dur": "string — e.g. '8 min'",
+        "ty": "string — e.g. 'Think-Pair-Share' | 'Poll' | 'Case Study Hook' | 'Retrieval Quiz' | 'Surprising Statistic'",
+        "pr": "string — the exact warm-up question or task posed to students",
+        "pu": "string — what prior knowledge or curiosity this activates",
+        "fa": "string — instructor note on how to run this and transition to new content"
       },
-      "outline": [
+      "ol": [
         {
-          "time": "string — e.g. '10–25 min'",
-          "activity": "string — activity name",
-          "type": "string — e.g. 'Mini-Lecture' | 'Think-Pair-Share' | 'Discussion' | 'Problem Set' | 'Jigsaw' | 'Case Study' | 'Gallery Walk' | 'Lab'",
-          "description": "string — what students do during this segment",
-          "instructorNotes": "string — specific facilitation moves, questions to ask, pacing tips",
-          "instructorRole": "string — what the instructor does during this segment: circulating, prompting, modeling, observing, providing feedback, facilitating discussion, etc. (QM 5.3)",
-          "grouping": "string — 'Individual' | 'Pairs' | 'Small Groups (3-4)' | 'Whole Class'",
-          "bloomsLevel": "string — the primary Bloom's level this segment targets"
+          "tm": "string — e.g. '10–25 min'",
+          "ac": "string — activity name",
+          "ty": "string — e.g. 'Mini-Lecture' | 'Think-Pair-Share' | 'Discussion' | 'Problem Set' | 'Jigsaw' | 'Case Study' | 'Gallery Walk' | 'Lab'",
+          "de": "string — what students do during this segment",
+          "in": "string — specific facilitation moves, questions to ask, pacing tips",
+          "ir": "string — what the instructor does during this segment: circulating, prompting, modeling, observing, providing feedback, facilitating discussion, etc. (QM 5.3)",
+          "gr": "string — 'Individual' | 'Pairs' | 'Small Groups (3-4)' | 'Whole Class'",
+          "bl": "string — the primary Bloom's level this segment targets"
         }
       ],
-      "formativeCheck": {
-        "type": "string — e.g. 'Exit Ticket' | 'Muddiest Point' | 'Think-Pair-Share' | 'Cold Call' | 'Mini Poll'",
-        "prompt": "string — the exact formative check question or task",
-        "objectiveAligned": "string — which lesson objective this checks",
-        "instructorAction": "string — what instructor does with the results (adjust next class, address misconceptions, etc.)"
+      "fc": {
+        "ty": "string — e.g. 'Exit Ticket' | 'Muddiest Point' | 'Think-Pair-Share' | 'Cold Call' | 'Mini Poll'",
+        "pr": "string — the exact formative check question or task",
+        "oa": "string — which lesson objective this checks",
+        "ia": "string — what instructor does with the results (adjust next class, address misconceptions, etc.)"
       },
-      "udlNotes": {
-        "representation": "string — how content is presented in multiple formats (visual, verbal, examples)",
-        "engagement": "string — how student motivation and choice are supported",
-        "expression": "string — flexible ways students can demonstrate understanding"
+      "un": {
+        "rp": "string — how content is presented in multiple formats (visual, verbal, examples)",
+        "eg": "string — how student motivation and choice are supported",
+        "ex": "string — flexible ways students can demonstrate understanding"
       },
-      "homework": {
-        "title": "string — homework task name",
-        "description": "string — clear task description with scope",
-        "estimatedTime": "string — e.g. '45 min'",
-        "connectionToNext": "string — how this prepares students for the next lesson"
+      "hw": {
+        "t": "string — homework task name",
+        "de": "string — clear task description with scope",
+        "et": "string — e.g. '45 min'",
+        "cn": "string — how this prepares students for the next lesson"
       },
-      "closingActivity": "string — 2-3 sentence description of how the lesson wraps up (synthesis, preview of next class, homework reminder)",
-      "tags": ["string — 5-8 keywords for LMS discoverability: include synonyms, acronyms, and colloquial terms relevant to this lesson"],
-      "suggestedReviewDate": "string — date by which this lesson plan should be reviewed for updates, e.g. 'Review by Fall 2027'",
-      "contentOwnerGroup": "string — department or team responsible for maintaining this content, e.g. 'Department of Social Work'"
+      "ca": "string — 2-3 sentence description of how the lesson wraps up (synthesis, preview of next class, homework reminder)",
+      "tg": ["string — 5-8 keywords for LMS discoverability: include synonyms, acronyms, and colloquial terms relevant to this lesson"],
+      "rd": "string — date by which this lesson plan should be reviewed for updates, e.g. 'Review by Fall 2027'",
+      "cg": "string — department or team responsible for maintaining this content, e.g. 'Department of Social Work'"
     }
   ]
 }

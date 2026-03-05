@@ -38,6 +38,76 @@ const PROMPTS = {
   courseFaq
 };
 
+// ── Schema Abbreviation for Chunks 1+ ──────────────────────────────────────────
+// For subsequent chunks (chunkIndex > 0), we send a compact JSON skeleton + brief
+// requirements instead of the full verbose schema with inline descriptions.
+// This saves ~400-700 input tokens per subsequent chunk call.
+
+const COMPACT_SCHEMAS = {
+  lessonPlans: `{"plans":[{"lt":"str","wk":"str","dur":"str","bls":["str"],"ob":["str"],"mt":["str"],"wu":{"dur":"str","ty":"str","pr":"str","pu":"str","fa":"str"},"ol":[{"tm":"str","ac":"str","ty":"str","de":"str","in":"str","ir":"str","gr":"str","bl":"str"}],"fc":{"ty":"str","pr":"str","oa":"str","ia":"str"},"un":{"rp":"str","eg":"str","ex":"str"},"hw":{"t":"str","de":"str","et":"str","cn":"str"},"ca":"str","tg":["str"],"rd":"str","cg":"str"}]}`,
+  slideDecks: `{"decks":[{"lt":"str","ts":0,"lo":["str"],"sl":[{"t":"str","ty":"str","bu":["str"],"no":"str","at":"str|null","ti":"str|null","bl":"str|null","ol":"str|null"}],"tg":["str"]}]}`,
+  quizBank: `{"quizzes":[{"lt":"str","tq":0,"bc":["str"],"fn":"str","qs":[{"ty":"str","bl":"str","df":"str","em":0,"pt":0,"oa":"str","q":"str","op":["str"],"an":"str","dr":"str","ex":"str","rh":"str","sa":"str"}],"tg":["str"]}]}`,
+  rubrics: `{"rubrics":[{"t":"str","lt":"str","at":"str","tp":0,"bl":"str","gs":{"ex":"str","pr":"str","dv":"str","bg":"str"},"cr":[{"cn":"str","oa":"str","wt":0,"pt":0,"ex":"str","pr":"str","dv":"str","bg":"str"}],"gp":"str","tn":"str","tg":["str"]}]}`,
+  assignments: `{"assignments":[{"t":"str","at":"str","rl":["str"],"dw":"str","et":"str","tp":0,"pg":"str","bl":"str","ov":"str","ob":["str"],"ins":["str"],"fr":{"ln":"str","fm":"str","cs":"str","sp":"str","lp":"str"},"dl":["str"],"sm":[{"ms":"str","dd":"str","de":"str"}],"gc":"str","sr":["str"],"pt":"str","ai":"str","tg":["str"]}]}`,
+  discussions: `{"discussions":[{"lt":"str","bl":"str","fm":"str","ed":"str","cx":"str","pr":"str","er":"str","fp":["str"],"ft":{"op":"str","is":"str","id":"str","cl":"str"},"rs":["str"],"ec":["str"],"eq":"str","gl":"str","tg":["str"]}]}`,
+  studyGuides: `{"guides":[{"lt":"str","es":"str","su":"str","kt":[{"tm":"str","df":"str","ex":"str"}],"cc":["str"],"cm":[{"mc":"str","co":"str"}],"rq":[{"q":"str","bl":"str","ht":"str"}],"pa":["str"],"ep":{"kk":["str"],"tl":"str","ce":"str","rv":"str"},"sr":"str","tg":["str"]}]}`,
+  courseFaq: `{"faqs":[{"lt":"str","qs":[{"q":"str","an":"str","ca":"str","rc":["str"],"df":"str"}],"tg":["str"]}]}`,
+};
+
+const CONTINUATION_REQUIREMENTS = {
+  lessonPlans: `- One plan per lesson. ≥5 outline segments with times summing to session duration.
+- Bloom's verbs for objectives. Materials include tech + handout.
+- WarmUp connects to objective. FormativeCheck maps to objective. UDL specific to lesson.
+- Header format: "Lesson {N}: {Title}". Return ONLY JSON.`,
+  slideDecks: `- 12-16 slides per deck. Sequence: title→agenda→objectives→bridge→body→summary→closing.
+- Content slide titles = declarative sentences (assertion-evidence). Max 4 bullets.
+- Speaker notes: ≥4 sentences, include example + anticipated Q + TRANSITION cue. Never 3+ consecutive content slides.
+- Header format: "Lesson {N}: {Title}". Return ONLY JSON.`,
+  quizBank: `- 5-7 questions per lesson. ≥3 MC, 1-2 short answer, 1 essay. ≥3 Bloom's levels per lesson.
+- MC: 4 options (A-D), complete sentence stems, similar length. Omit inapplicable fields (no nulls).
+- Mandatory: explanation + distractorRationale for every MC question.
+- Header format: "Lesson {N}: {Title}". Return ONLY JSON.`,
+  rubrics: `- One rubric per unique assessment. 4-6 criteria, weights sum to 100.
+- Observable behavioral language. No vague qualifiers. Exemplary = above minimum.
+- Include gradePolicyConnection and teacherNotes. Return ONLY JSON.`,
+  assignments: `- 4-7 assignments spanning different types. Imperative-voice numbered instructions.
+- ≥2 scaffolding milestones for major assignments. Checklist deliverables.
+- percentOfGrade values sum proportionally. Return ONLY JSON.`,
+  discussions: `- One per lesson. Target Bloom's 4-6. Main prompt = open-ended, no single answer.
+- ≥6 distinct formats across all lessons. Substantive follow-up probes.
+- Include equityConsiderations and participation guidelines. Return ONLY JSON.`,
+  studyGuides: `- One guide per lesson. Summary = 2-3 paragraphs in clear prose.
+- 8-12 key terms with definition AND example. ≥1 cross-lesson connection.
+- 2-4 misconceptions. 4-6 review questions spanning ≥3 Bloom's levels.
+- Header format: "Lesson {N}: {Title}". Return ONLY JSON.`,
+  courseFaq: `- 4-6 questions per lesson. ≥3 different categories.
+- Questions in first-person student voice. Answers concise (2-4 sentences), actionable.
+- Header format: "Lesson {N}: {Title}". Return ONLY JSON.`,
+};
+
+/**
+ * Build a shortened continuation prompt for chunks 1+ of the same feature.
+ * Uses compact schema skeleton + brief requirements instead of the full verbose template.
+ */
+function buildContinuationPrompt(featureId, courseMap, scopeIndices, examChanges, columns) {
+  const schema = COMPACT_SCHEMAS[featureId];
+  const reqs = CONTINUATION_REQUIREMENTS[featureId];
+  if (!schema || !reqs) return null; // fall back to full prompt
+
+  const condensed = condenseCourseMap(courseMap, scopeIndices, examChanges, columns);
+
+  return `Continue generating the same deliverable for the next set of lessons:
+
+${condensed}
+
+Use the EXACT same JSON schema, key names, formatting, and quality standards as the previous chunk.
+Schema skeleton (for reference — match this structure exactly):
+${schema}
+
+KEY REQUIREMENTS:
+${reqs}`;
+}
+
 // ── Config → natural-language instructions for the AI ────────────────────────
 function buildConfigInstructions(featureId, config, pedagogicalMode = 'lecture', styleExemplar = null) {
   const lines = [];
@@ -102,9 +172,9 @@ function buildConfigInstructions(featureId, config, pedagogicalMode = 'lecture',
     if (config.sessionLength) lines.push(`Each class session is ${config.sessionLength} — adjust ALL time estimates in the outline to match this duration exactly.`);
     if (config.detailLevel === 'Brief') lines.push('Keep content concise — use short bullet points, minimal elaboration. Prioritize actionability over depth.');
     if (config.detailLevel === 'Detailed') lines.push('Be highly detailed and rich — elaborate each section with multiple examples, instructor guidance, and pedagogical rationale.');
-    if (config.includeWarmUp === false) lines.push('Do NOT include a warm-up activity — set the "warmUp" field to null.');
-    if (config.includeUDL === false) lines.push('Do NOT include UDL notes — set the "udlNotes" field to null.');
-    if (config.includeHomework === false) lines.push('Do NOT include a homework section — set the "homework" field to null.');
+    if (config.includeWarmUp === false) lines.push('Do NOT include a warm-up activity — set the "wu" (warmUp) field to null.');
+    if (config.includeUDL === false) lines.push('Do NOT include UDL notes — set the "un" (udlNotes) field to null.');
+    if (config.includeHomework === false) lines.push('Do NOT include a homework section — set the "hw" (homework) field to null.');
   }
   else if (featureId === 'slideDecks') {
     if (config.slidesPerLesson) lines.push(`Target ${config.slidesPerLesson} slides per deck (including title, agenda, objectives, bridge, content slides, and closing).`);
@@ -115,7 +185,7 @@ function buildConfigInstructions(featureId, config, pedagogicalMode = 'lecture',
   else if (featureId === 'rubrics') {
     if (config.criteriaCount) lines.push(`Each rubric must have exactly ${config.criteriaCount} criteria (ensure weights sum to 100%).`);
     if (config.performanceLevels === '3 levels') lines.push('Use exactly 3 performance levels: Developing, Proficient, and Mastery. Do NOT include a "Beginning" level. Adjust the gradingScale accordingly.');
-    if (config.includeTeacherNotes === false) lines.push('Do NOT include the teacherNotes field — omit it entirely from the JSON.');
+    if (config.includeTeacherNotes === false) lines.push('Do NOT include the "tn" (teacherNotes) field — omit it entirely from the JSON.');
   }
   else if (featureId === 'quizBank') {
     if (config.questionsPerLesson) lines.push(`Generate ${config.questionsPerLesson} questions per lesson. Distribute them across the allowed question types.`);
@@ -129,21 +199,21 @@ function buildConfigInstructions(featureId, config, pedagogicalMode = 'lecture',
   }
   else if (featureId === 'discussions') {
     if (config.formatPreference && config.formatPreference !== 'Any') lines.push(`Use "${config.formatPreference}" as the discussion format for ALL lessons.`);
-    if (config.includeFacilitation === false) lines.push('Do NOT include the facilitationTips field — omit it entirely.');
-    if (config.includeEquity === false) lines.push('Do NOT include the equityConsiderations field — omit it entirely.');
+    if (config.includeFacilitation === false) lines.push('Do NOT include the "ft" (facilitationTips) field — omit it entirely.');
+    if (config.includeEquity === false) lines.push('Do NOT include the "eq" (equityConsiderations) field — omit it entirely.');
   }
   else if (featureId === 'assignments') {
     if (config.assignmentTypes?.length > 0 && config.assignmentTypes.length < 6) {
       lines.push(`Only create assignments of these types: ${config.assignmentTypes.join(', ')}. Do not create other assignment types.`);
     }
-    if (config.includeScaffolding === false) lines.push('Do NOT include scaffoldingMilestones — omit the field entirely.');
-    if (config.includeIntegrity === false) lines.push('Do NOT include the academicIntegrityStatement field — omit it entirely.');
+    if (config.includeScaffolding === false) lines.push('Do NOT include "sm" (scaffoldingMilestones) — omit the field entirely.');
+    if (config.includeIntegrity === false) lines.push('Do NOT include the "ai" (academicIntegrityStatement) field — omit it entirely.');
   }
   else if (featureId === 'studyGuides') {
     if (config.keyTermsCount) lines.push(`Include exactly ${config.keyTermsCount} key terms per guide — each with definition AND example.`);
-    if (config.includeMisconceptions === false) lines.push('Do NOT include the commonMisconceptions field — omit it entirely.');
-    if (config.includeExamPrep === false) lines.push('Do NOT include the examPrep field — omit it entirely.');
-    if (config.includePractice === false) lines.push('Do NOT include the practiceActivities field — omit it entirely.');
+    if (config.includeMisconceptions === false) lines.push('Do NOT include the "cm" (commonMisconceptions) field — omit it entirely.');
+    if (config.includeExamPrep === false) lines.push('Do NOT include the "ep" (examPrep) field — omit it entirely.');
+    if (config.includePractice === false) lines.push('Do NOT include the "pa" (practiceActivities) field — omit it entirely.');
   }
   else if (featureId === 'syllabus') {
     if (config.citationStyle) lines.push(`Use ${config.citationStyle} citation format throughout the syllabus (reference list, in-text citations, and all examples).`);
@@ -255,7 +325,7 @@ function buildScopePreamble(courseMap, scopeIndices) {
  *   highest-priority constraint so the AI incorporates the edit precisely.
  * @param {Array|null}  columns — Active column definitions from ColumnEditor.
  */
-export function getDeliverablePrompt(featureId, courseMap, scopeIndices = null, config = {}, pedagogicalMode = 'lecture', examChanges = null, editContext = null, columns = null, allConfigs = null, styleExemplar = null) {
+export function getDeliverablePrompt(featureId, courseMap, scopeIndices = null, config = {}, pedagogicalMode = 'lecture', examChanges = null, editContext = null, columns = null, allConfigs = null, styleExemplar = null, chunkIndex = 0) {
   const template = PROMPTS[featureId];
   const scopePreamble = buildScopePreamble(courseMap, scopeIndices);
 
@@ -333,11 +403,36 @@ export function getDeliverablePrompt(featureId, courseMap, scopeIndices = null, 
 
   if (!template) return null;
 
-  const baseUserPrompt = config.customUserPrompt?.trim()
-    ? config.customUserPrompt.replace('{{courseMap}}', condenseCourseMap(courseMap, scopeIndices, examChanges, columns))
-    : template.user(courseMap, scopeIndices, examChanges, columns);
+  // ── Schema Abbreviation: use compact continuation prompt for chunks 1+ ──
+  // This saves ~400-700 input tokens per subsequent chunk by replacing the full
+  // verbose schema + inline descriptions with a compact skeleton + brief requirements.
+  const useContinuation = chunkIndex > 0 && !config.customUserPrompt?.trim() && !editContext;
+  const continuationPrompt = useContinuation ? buildContinuationPrompt(featureId, courseMap, scopeIndices, examChanges, columns) : null;
+
+  const baseUserPrompt = continuationPrompt
+    || (config.customUserPrompt?.trim()
+      ? config.customUserPrompt.replace('{{courseMap}}', condenseCourseMap(courseMap, scopeIndices, examChanges, columns))
+      : template.user(courseMap, scopeIndices, examChanges, columns));
   const configInstructions = buildConfigInstructions(featureId, config, pedagogicalMode, styleExemplar);
 
+  if (continuationPrompt) {
+    // For continuation prompts, append config + scope preamble directly
+    // (no "Return ONLY the JSON" marker to match — the compact prompt already ends with "Return ONLY JSON")
+    let userPrompt = baseUserPrompt;
+    if (configInstructions) {
+      userPrompt += `\n\nADDITIONAL INSTRUCTOR REQUIREMENTS:\n${configInstructions}`;
+    }
+    if (config.extraInstructions?.trim()) {
+      userPrompt += `\n\nINSTRUCTOR EXTRA INSTRUCTIONS:\n${config.extraInstructions.trim()}`;
+    }
+    userPrompt = scopePreamble + userPrompt;
+    return {
+      systemPrompt: config.customSystemPrompt?.trim() || template.system,
+      userPrompt,
+    };
+  }
+
+  // ── Full prompt path (chunk 0, custom prompts, or edit context) ──
   // Inject edit context first (highest priority), then config instructions
   // Both are inserted right before the final "Return ONLY the JSON" instruction
   const withEdit = editContextBlock

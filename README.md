@@ -16,7 +16,7 @@ Course Mapper is a **purpose-built instructional design tool**, not a general ch
 4. **Full export pipeline.** Export each deliverable to DOCX, PDF, XLSX, CSV, PPTX, Google Docs, Google Sheets, Google Slides, and ZIP bundle. Save/load complete sessions as `.coursemapper` project files.
 5. **Inline editing everywhere.** Click any text in any deliverable to edit directly — course map cells, slide content, rubric criteria, quiz questions, speaker notes. Everything is editable like Google Docs.
 6. **Stop & Resume.** If generation fails midway in ChatGPT, you start over. Course Mapper saves partial progress and resumes from exactly where it stopped.
-7. **Multi-model support.** Supports OpenAI, Anthropic, Google, and free models (no API key needed). Auto-rotates through models on failure.
+7. **Multi-model support.** Supports OpenAI, Anthropic, and Google. Auto-detects key format and auto-rotates through models on failure.
 8. **Privacy-first.** Everything runs in the browser. No data stored on any server. API keys go directly to providers.
 
 > **What Course Mapper does NOT claim:** It does not fact-check content or verify citations. It does not replace instructor expertise. It is a drafting and productivity tool — it generates the scaffold, the instructor refines it.
@@ -29,8 +29,7 @@ Course Mapper is a **purpose-built instructional design tool**, not a general ch
 
 Go to [edutool.dev](https://edutool.dev). On the landing page:
 
-- **Free (recommended to start)** — Select "Free" from the dropdown. Access several free AI models at no cost, no API key needed.
-- **Bring your own key** — If you have an API key from OpenAI, Anthropic, or Google, select that provider and paste your key.
+- **Bring your own key** — Select your provider (OpenAI, Anthropic, or Google) and paste your API key. The app auto-detects key format and switches the provider dropdown.
 
 ### Step 2: Upload Your Materials
 
@@ -157,9 +156,9 @@ Five pedagogical frameworks that shape all generated content:
 
 ### AI & Privacy
 
-- **Free AI models** — Gemini, Llama, DeepSeek, and more via OpenRouter — no API key needed
-- **Multi-provider support** — OpenAI, Anthropic, Google with your own API key
+- **Multi-provider support** — OpenAI, Anthropic, and Google with your own API key (BYOK)
 - **Streaming generation** — Watch deliverables build in real time with stable per-feature sequential streaming (no preview flashing)
+- **Token-optimized prompts** — Minified JSON keys, adaptive chunk sizes, and compact continuation schemas reduce API costs by ~20% and cut total API calls by ~15–20%
 - **AI self-examination** — The AI reviews and fixes its own structured output automatically
 - **100% client-side** — No backend server. All data stays in your browser
 - **Google OAuth verified** — Clean consent screen for Google Drive export
@@ -193,7 +192,7 @@ Hosted on GitHub Pages via GitHub Actions. Every push to `main` triggers a build
 
 - **Frontend** — React 18, Vite, TailwindCSS
 - **State** — useReducer + Context (two-context pattern: state + dispatch via `courseStore.jsx`)
-- **AI providers** — OpenAI, Anthropic, Google, OpenRouter (free models)
+- **AI providers** — OpenAI, Anthropic, Google (BYOK)
 - **File parsing** — mammoth (docx), pdfjs-dist (pdf), SheetJS (xlsx), JSZip
 - **Export** — ExcelJS (xlsx), docx (Word), jsPDF + jspdf-autotable (pdf), pptxgenjs (PowerPoint), file-saver, JSZip (ZIP bundle)
 - **Google Workspace** — Drive API v3 via OAuth2 (Docs, Sheets, Slides)
@@ -239,7 +238,8 @@ src/
     prompts.js              # Course map generation prompts
     streamProvider.js       # AI streaming across providers
     customDeliverableLibrary.js # localStorage CRUD for custom deliverable definitions
-    parallelGenerator.js    # Chunking, merging, and completeness-check utilities for parallel generation
+    parallelGenerator.js    # Chunking, merging, completeness-check, per-feature output budgets
+    keyMaps.js              # Bidirectional key maps + expandKeys() for JSON key minification
     syncDependencies.js     # Deliverable dependency graph for cascade editing
   pages/
     FaqChatbot.jsx          # AI-powered help chatbot + HelpDrawer (Gemini-powered)

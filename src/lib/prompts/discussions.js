@@ -7,35 +7,37 @@ export default {
 
 ${condenseCourseMap(cm, scope, verifiedChanges, columns)}
 
+Use abbreviated JSON keys to minimize output size. Each key's meaning is described inline.
+
 Return a JSON object with exactly this structure:
 {
   "discussions": [
     {
-      "lessonTitle": "string — full lesson title",
-      "bloomsLevel": "string — primary Bloom's level: 'Analyze' | 'Evaluate' | 'Create'",
-      "format": "string — recommended discussion format: 'Socratic Seminar' | 'Think-Pair-Share' | 'Fishbowl' | 'Small Group then Share-Out' | 'Whole-Class Discussion' | 'Asynchronous Online'",
-      "estimatedDuration": "string — e.g. '20 min'",
-      "context": "string — 2-3 sentences grounding the discussion in specific course content, a case, a tension, or a real-world application. Students must engage with this material.",
-      "prompt": "string — the single, focused main question. Must be open-ended (no single correct answer), require evidence from course material, and target Analyze/Evaluate/Create level. NO multi-part questions.",
-      "evidenceRequirement": "string — explicit directive: e.g. 'Draw on at least two sources from this unit to support your position' or 'Reference the case study and at least one theoretical framework discussed in class'",
-      "followUpProbes": [
+      "lt": "string — full lesson title",
+      "bl": "string — primary Bloom's level: 'Analyze' | 'Evaluate' | 'Create'",
+      "fm": "string — recommended discussion format: 'Socratic Seminar' | 'Think-Pair-Share' | 'Fishbowl' | 'Small Group then Share-Out' | 'Whole-Class Discussion' | 'Asynchronous Online'",
+      "ed": "string — e.g. '20 min'",
+      "cx": "string — 2-3 sentences grounding the discussion in specific course content, a case, a tension, or a real-world application. Students must engage with this material.",
+      "pr": "string — the single, focused main question. Must be open-ended (no single correct answer), require evidence from course material, and target Analyze/Evaluate/Create level. NO multi-part questions.",
+      "er": "string — explicit directive: e.g. 'Draw on at least two sources from this unit to support your position' or 'Reference the case study and at least one theoretical framework discussed in class'",
+      "fp": [
         "string — 4-5 probing follow-up questions the instructor uses to deepen discussion (e.g., 'What evidence from the reading supports that?', 'How would [theorist] respond to that claim?', 'Can someone steelman the opposing view?')"
       ],
-      "facilitationTips": {
-        "opening": "string — how to launch the discussion and get initial engagement",
-        "ifStalls": "string — what to do if discussion stalls (backup prompt or technique)",
-        "ifDominates": "string — strategy if one student monopolizes",
-        "closure": "string — how to bring the discussion to a productive conclusion and connect back to objectives"
+      "ft": {
+        "op": "string — how to launch the discussion and get initial engagement",
+        "is": "string — what to do if discussion stalls (backup prompt or technique)",
+        "id": "string — strategy if one student monopolizes",
+        "cl": "string — how to bring the discussion to a productive conclusion and connect back to objectives"
       },
-      "responseStarters": [
+      "rs": [
         "string — 3-4 sentence starters to help students enter the discussion: 'Building on what [name] said...', 'The evidence I find most compelling is...' etc."
       ],
-      "evaluationCriteria": [
+      "ec": [
         "string — 3-4 specific criteria by which student contributions will be assessed (e.g., 'Quality of reasoning and use of specific evidence', 'Engagement with and response to peers', 'Connection to course readings or concepts', 'Consideration of alternative perspectives')"
       ],
-      "equityConsiderations": "string — how to ensure equitable participation (think time, multiple entry points, affirming diverse perspectives)",
-      "guidelines": "string — 4-5 sentence student-facing participation guidelines: posting deadline, response deadline, minimum word count for initial post, what counts as a 'substantive' peer response, and how participation is graded (QM 5.4)",
-      "tags": ["string — 5-8 keywords for LMS discoverability: include discussion format, Bloom's level, and key concepts debated"]
+      "eq": "string — how to ensure equitable participation (think time, multiple entry points, affirming diverse perspectives)",
+      "gl": "string — 4-5 sentence student-facing participation guidelines: posting deadline, response deadline, minimum word count for initial post, what counts as a 'substantive' peer response, and how participation is graded (QM 5.4)",
+      "tg": ["string — 5-8 keywords for LMS discoverability: include discussion format, Bloom's level, and key concepts debated"]
     }
   ]
 }

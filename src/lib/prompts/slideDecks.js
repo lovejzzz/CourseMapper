@@ -15,26 +15,28 @@ Speaker notes are written as natural instructor scripts — they sound like a co
 
 ${condenseCourseMap(cm, scope, verifiedChanges, columns)}
 
+Use abbreviated JSON keys to minimize output size. Each key's meaning is described inline.
+
 Return a JSON object with exactly this structure:
 {
   "decks": [
     {
-      "lessonTitle": "string — full lesson title",
-      "totalSlides": number — integer count of slides,
-      "learningObjectives": ["string"] — 2-5 objectives shown on the objectives slide,
-      "slides": [
+      "lt": "string — full lesson title",
+      "ts": number — integer count of slides,
+      "lo": ["string"] — 2-5 objectives shown on the objectives slide,
+      "sl": [
         {
-          "title": "string — for content/bridge/example/keyTerm slides: MUST be a full declarative sentence (assertion). Examples: ✅ 'Dopamine regulates motivation through reward prediction errors' ✅ 'Three factors determine housing policy effectiveness' ❌ 'Dopamine' ❌ 'Housing Policy'. For title/agenda/objectives/activity/summary/closing slides: descriptive label is acceptable.",
-          "type": "string — MUST be one of: 'title' | 'agenda' | 'objectives' | 'bridge' | 'content' | 'activity' | 'discussion' | 'example' | 'keyTerm' | 'summary' | 'closing'",
-          "bullets": ["string"] — max 4 concise bullets for content slides; title slides use 1 subtitle; activity/discussion 1-3 steps; summary recaps objectives as 'Can you now...?' questions; keyTerm slides: first bullet is the term/definition, remaining bullets explain it,
-          "notes": "string — full instructor script paragraph (minimum 4 sentences). Must include: (1) the main point in your own words, (2) a concrete real-world example or analogy, (3) an anticipated student question with your response, (4) TRANSITION: [explicit cue to next slide]. Each slide's notes must feel unique — never use the same phrasing patterns across slides.",
-          "activityType": "string or null — for 'activity' and 'discussion' slides only: e.g. 'Think-Pair-Share' | 'Small Group Discussion' | 'Cold Call' | 'Poll' | 'Gallery Walk' | 'Jigsaw'",
-          "timer": "string or null — for activity/discussion slides: e.g. '5 min'",
-          "bloomsLevel": "string or null — for content/activity/discussion/example slides: the Bloom's level this slide targets",
-          "objectiveLink": "string or null — for content/activity/discussion/example slides: which learning objective this slide supports (QM 4.1)"
+          "t": "string — for content/bridge/example/keyTerm slides: MUST be a full declarative sentence (assertion). Examples: 'Dopamine regulates motivation through reward prediction errors', 'Three factors determine housing policy effectiveness'. For title/agenda/objectives/activity/summary/closing slides: descriptive label is acceptable.",
+          "ty": "string — MUST be one of: 'title' | 'agenda' | 'objectives' | 'bridge' | 'content' | 'activity' | 'discussion' | 'example' | 'keyTerm' | 'summary' | 'closing'",
+          "bu": ["string"] — max 4 concise bullets for content slides; title slides use 1 subtitle; activity/discussion 1-3 steps; summary recaps objectives as 'Can you now...?' questions; keyTerm slides: first bullet is the term/definition, remaining bullets explain it,
+          "no": "string — full instructor script paragraph (minimum 4 sentences). Must include: (1) the main point in your own words, (2) a concrete real-world example or analogy, (3) an anticipated student question with your response, (4) TRANSITION: [explicit cue to next slide]. Each slide's notes must feel unique — never use the same phrasing patterns across slides.",
+          "at": "string or null — for 'activity' and 'discussion' slides only: e.g. 'Think-Pair-Share' | 'Small Group Discussion' | 'Cold Call' | 'Poll' | 'Gallery Walk' | 'Jigsaw'",
+          "ti": "string or null — for activity/discussion slides: e.g. '5 min'",
+          "bl": "string or null — for content/activity/discussion/example slides: the Bloom's level this slide targets",
+          "ol": "string or null — for content/activity/discussion/example slides: which learning objective this slide supports (QM 4.1)"
         }
       ],
-      "tags": ["string — 5-8 keywords for LMS discoverability: include topic synonyms, key concepts, and activity types featured in this deck"]
+      "tg": ["string — 5-8 keywords for LMS discoverability: include topic synonyms, key concepts, and activity types featured in this deck"]
     }
   ]
 }
