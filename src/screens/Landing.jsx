@@ -1,4 +1,4 @@
-import React, { useState, useCallback, useEffect } from 'react';
+import React, { useState, useCallback, useEffect, useRef } from 'react';
 import ModelConfig from '../components/ModelConfig';
 import { useAuth } from '../contexts/AuthContext';
 import UserMenu from '../components/UserMenu';
@@ -65,12 +65,13 @@ export default function Landing({
   const isReady = apiStatus === 'connected';
   const [configCollapsed, setConfigCollapsed] = useState(isReady);
 
-  // Auto-collapse only when apiStatus transitions TO 'connected'.
-  // We depend solely on apiStatus so that switching providers (which
-  // momentarily leaves apiStatus as the old 'connected') doesn't
-  // re-collapse the panel before the status resets to 'idle'.
+  // Auto-collapse only when apiStatus transitions TO 'connected' (not on mount).
+  // This prevents the panel from re-collapsing when the user clicks "Edit".
+  const prevApiStatusRef = useRef(apiStatus);
   useEffect(() => {
-    if (apiStatus === 'connected') {
+    const prev = prevApiStatusRef.current;
+    prevApiStatusRef.current = apiStatus;
+    if (apiStatus === 'connected' && prev !== 'connected') {
       setConfigCollapsed(true);
     }
   }, [apiStatus]);

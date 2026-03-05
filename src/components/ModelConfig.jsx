@@ -28,20 +28,25 @@ export default function ModelConfig({
   setMaxOutputTokens,
 }) {
   const debounceRef = useRef(null);
-  const isFirstMount = useRef(true);
+  // Track the previous provider value to distinguish real changes from mount/remount.
+  // This is more robust than an isFirstMount flag because it survives React 18
+  // StrictMode double-effects and conditional rendering unmount/remount cycles.
+  const prevProviderValueRef = useRef(provider);
   // Tracks whether a provider change was triggered by auto-detection from
   // the API key prefix (vs the user explicitly switching the dropdown).
   // When true, the provider-change effect keeps the API key intact.
   const autoDetectedRef = useRef(false);
 
   // When provider changes, reset model state.
-  // Skip on initial mount (preserves state when collapsed config re-expands).
+  // Skip when provider hasn't actually changed (mount/remount/StrictMode).
   // Skip clearing apiKey when change was auto-detected from key prefix.
   useEffect(() => {
-    if (isFirstMount.current) {
-      isFirstMount.current = false;
+    if (prevProviderValueRef.current === provider) {
+      // Provider hasn't changed — this is a mount, remount, or StrictMode re-run.
+      // Don't reset anything.
       return;
     }
+    prevProviderValueRef.current = provider;
 
     // Always reset model state when provider changes
     setApiStatus('idle');
@@ -59,23 +64,26 @@ export default function ModelConfig({
     }
   }, [provider]);
 
-  // When API key changes, auto-detect provider and validate
-  const apiKeyMountRef = useRef(true);
+  // When API key or provider changes, auto-detect provider and validate.
+  // Track previous values to distinguish real changes from mount/remount/StrictMode.
+  const prevApiKeyRef = useRef(apiKey);
   const prevProviderRef = useRef(provider);
+  const hasRunOnceRef = useRef(false);
   useEffect(() => {
-    // Detect if the provider changed in this render cycle.
-    // When it did, the apiKey value is stale (provider effect scheduled
-    // setApiKey('') but it hasn't re-rendered yet). We must skip
-    // auto-detection to prevent switching the provider back.
-    const providerJustChanged = provider !== prevProviderRef.current;
+    const apiKeyChanged = apiKey !== prevApiKeyRef.current;
+    const providerChanged = provider !== prevProviderRef.current;
+    prevApiKeyRef.current = apiKey;
     prevProviderRef.current = provider;
 
-    // On initial mount, skip resetting if we already have a valid state
-    // (e.g. re-expanding the collapsed config panel)
-    if (apiKeyMountRef.current) {
-      apiKeyMountRef.current = false;
+    // On mount/remount: if nothing changed AND we already have a valid state,
+    // skip re-validation entirely. This prevents StrictMode double-effects
+    // from resetting apiStatus and triggering a re-collapse.
+    if (!apiKeyChanged && !providerChanged) {
       if (apiStatus === 'connected' && availableModels.length > 0) return;
+      // First time ever (initial page load): allow validation to proceed
+      if (hasRunOnceRef.current) return;
     }
+    hasRunOnceRef.current = true;
 
     setApiStatus('idle');
     setModelName('');
@@ -86,7 +94,7 @@ export default function ModelConfig({
 
     // Only auto-detect provider from key prefix when the KEY changed,
     // not when the PROVIDER changed (stale key would fight the switch)
-    if (!providerJustChanged) {
+    if (!providerChanged) {
       const detected = detectProvider(apiKey.trim());
       if (detected && detected !== provider) {
         autoDetectedRef.current = true; // signal: don't clear apiKey
