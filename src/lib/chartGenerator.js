@@ -38,7 +38,7 @@ export function buildChartUrl(spec, options = {}) {
 }
 
 // Generate distinct colors for chart elements
-function generateColors(count, alpha = 1) {
+export function generateColors(count, alpha = 1) {
   const palette = [
     `rgba(54, 162, 235, ${alpha})`,   // blue
     `rgba(255, 99, 132, ${alpha})`,   // red

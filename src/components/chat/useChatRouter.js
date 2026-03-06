@@ -702,7 +702,7 @@ export default function useChatRouter({
       return;
     }
 
-    // 1.4. Image search response
+    // 1.4. Image generation response
     if (parsed.imageSearch) {
       setMessages(prev => {
         const updated = [...prev];
@@ -710,6 +710,8 @@ export default function useChatRouter({
           role: 'imageSearch',
           imageSearch: parsed.imageSearch,
           status: 'complete',
+          provider,
+          apiKey,
         };
         return updated;
       });

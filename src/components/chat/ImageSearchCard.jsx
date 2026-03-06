@@ -1,11 +1,11 @@
 import React, { useState, useEffect } from 'react';
-import { searchImages } from '../../lib/imageSearch';
+import { generateImages } from '../../lib/imageSearch';
 
 /**
- * ImageSearchCard — Shows Pixabay image search results in a grid.
- * Users can select images for slide illustration.
+ * ImageSearchCard — Shows AI-generated images in a grid.
+ * Uses the user's configured provider (OpenAI DALL-E 3 or Google Imagen 3).
  */
-export default function ImageSearchCard({ imageSearch, status }) {
+export default function ImageSearchCard({ imageSearch, status, provider, apiKey }) {
   const [images, setImages] = useState([]);
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState(null);
@@ -17,7 +17,7 @@ export default function ImageSearchCard({ imageSearch, status }) {
     let cancelled = false;
     setLoading(true);
     setError(null);
-    searchImages(imageSearch.query, { category: imageSearch.category })
+    generateImages(imageSearch.query, { provider, apiKey })
       .then(result => {
         if (cancelled) return;
         if (result.error) setError(result.error);
@@ -30,7 +30,7 @@ export default function ImageSearchCard({ imageSearch, status }) {
         if (!cancelled) setLoading(false);
       });
     return () => { cancelled = true; };
-  }, [imageSearch?.query, status]);
+  }, [imageSearch?.query, status, provider, apiKey]);
 
   if (status === 'searching') {
     return (
@@ -40,7 +40,7 @@ export default function ImageSearchCard({ imageSearch, status }) {
             <circle className="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" strokeWidth="4" />
             <path className="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4z" />
           </svg>
-          <span className="text-[13px] font-semibold text-rose-700">Searching images…</span>
+          <span className="text-[13px] font-semibold text-rose-700">Generating images…</span>
         </div>
       </div>
     );
@@ -48,8 +48,10 @@ export default function ImageSearchCard({ imageSearch, status }) {
 
   if (!imageSearch) return null;
 
+  const selectedImage = images.find(i => i.id === selected);
+
   const handleCopyUrl = (url) => {
-    navigator.clipboard.writeText(url);
+    navigator.clipboard?.writeText(url);
   };
 
   return (
@@ -65,7 +67,7 @@ export default function ImageSearchCard({ imageSearch, status }) {
           </svg>
         </div>
         <span className="text-[13px] font-semibold text-rose-700 flex-1 text-left">
-          Images: {imageSearch.query}
+          Generated Images: {imageSearch.query}
         </span>
         <svg
           className={`w-3 h-3 text-rose-400 transition-transform duration-200 ${collapsed ? '' : 'rotate-180'}`}
@@ -79,16 +81,16 @@ export default function ImageSearchCard({ imageSearch, status }) {
       {!collapsed && (
         <div className="px-3.5 pb-3 space-y-2 border-t border-rose-100/50 pt-2">
           {loading && (
-            <p className="text-[12px] text-rose-600 animate-pulse">Loading images…</p>
+            <p className="text-[12px] text-rose-600 animate-pulse">Generating images…</p>
           )}
           {error && (
             <p className="text-[12px] text-red-500">{error}</p>
           )}
           {!loading && images.length === 0 && !error && (
-            <p className="text-[12px] text-rose-500">No images found.</p>
+            <p className="text-[12px] text-rose-500">No images generated.</p>
           )}
           {images.length > 0 && (
-            <div className="grid grid-cols-3 gap-1.5">
+            <div className="grid grid-cols-2 gap-1.5">
               {images.map(img => (
                 <button
                   key={img.id}
@@ -98,9 +100,9 @@ export default function ImageSearchCard({ imageSearch, status }) {
                   }`}
                 >
                   <img
-                    src={img.previewUrl}
-                    alt={img.tags}
-                    className="w-full h-20 object-cover"
+                    src={img.url}
+                    alt={imageSearch.query}
+                    className="w-full h-32 object-cover"
                     loading="lazy"
                   />
                   {selected === img.id && (
@@ -114,16 +116,26 @@ export default function ImageSearchCard({ imageSearch, status }) {
               ))}
             </div>
           )}
-          {selected && (
+          {selected && selectedImage && (
             <div className="flex items-center gap-2 pt-1">
-              <button
-                onClick={() => handleCopyUrl(images.find(i => i.id === selected)?.largeUrl)}
-                className="tactile px-3 py-1 rounded-lg text-[12px] font-semibold text-white bg-rose-500 hover:bg-rose-600 shadow-sm transition-colors"
-              >
-                Copy Image URL
-              </button>
+              {selectedImage.url?.startsWith('data:') ? (
+                <a
+                  href={selectedImage.url}
+                  download={`generated-image-${selectedImage.id}.png`}
+                  className="tactile px-3 py-1 rounded-lg text-[12px] font-semibold text-white bg-rose-500 hover:bg-rose-600 shadow-sm transition-colors"
+                >
+                  Download Image
+                </a>
+              ) : (
+                <button
+                  onClick={() => handleCopyUrl(selectedImage.url)}
+                  className="tactile px-3 py-1 rounded-lg text-[12px] font-semibold text-white bg-rose-500 hover:bg-rose-600 shadow-sm transition-colors"
+                >
+                  Copy Image URL
+                </button>
+              )}
               <span className="text-[11px] text-rose-400">
-                by {images.find(i => i.id === selected)?.user} • Pixabay
+                Generated by {selectedImage.provider || 'AI'}
               </span>
             </div>
           )}

@@ -13,7 +13,7 @@
 // ── OpenAlex (replaces Semantic Scholar — browser CORS-friendly) ─────────────
 
 // Reconstruct abstract from OpenAlex's inverted index format
-function reconstructAbstract(invertedIndex) {
+export function reconstructAbstract(invertedIndex) {
   if (!invertedIndex || typeof invertedIndex !== 'object') return null;
   const words = [];
   for (const [word, positions] of Object.entries(invertedIndex)) {
@@ -155,13 +155,9 @@ export async function searchBooks(query, limit = 5, signal) {
 
 // ── Google Books ─────────────────────────────────────────────────────────────
 
-const GBOOKS_KEY_NAME = 'coursemapper-gbooks-key';
-
 export async function searchGoogleBooks(query, limit = 5, signal) {
   try {
-    const apiKey = localStorage.getItem(GBOOKS_KEY_NAME);
-    const keyParam = apiKey ? `&key=${apiKey}` : '';
-    const url = `https://www.googleapis.com/books/v1/volumes?q=${encodeURIComponent(query)}&maxResults=${limit}&printType=books${keyParam}`;
+    const url = `https://www.googleapis.com/books/v1/volumes?q=${encodeURIComponent(query)}&maxResults=${limit}&printType=books`;
     const res = await fetch(url, { signal });
     if (!res.ok) throw new Error(`Google Books: ${res.status}`);
     const json = await res.json();
@@ -279,7 +275,7 @@ export async function executeResearch({ query, sources = ['papers'], limit }, si
 
 // ── Formatter — produces text the LLM can cite with [N] references ───────────
 
-function formatResearchResults(results) {
+export function formatResearchResults(results) {
   const lines = ['=== RESEARCH RESULTS ==='];
   let refNum = 1;
 

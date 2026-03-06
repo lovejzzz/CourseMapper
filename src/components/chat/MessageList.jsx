@@ -159,6 +159,8 @@ export default function MessageList({ messages, isStreaming, courseMap, isAgentM
               key={msg.id || i}
               imageSearch={msg.imageSearch}
               status={msg.status}
+              provider={msg.provider}
+              apiKey={msg.apiKey}
             />
           );
         }

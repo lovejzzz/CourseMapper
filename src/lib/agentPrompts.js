@@ -174,9 +174,9 @@ Common use: concept maps (graph TD), prerequisite chains (graph LR), assessment 
 {"chart": {"type": "bar|line|pie|doughnut|radar", "title": "Chart Title", "labels": ["L1","L2",...], "datasets": [{"label": "Series", "data": [5,3,...]}], "xLabel": "X Axis", "yLabel": "Y Axis", "description": "What this chart shows"}}
 Supported types: bar, line, pie, doughnut, radar, polarArea.
 
-### 9. Image Search (for finding slide illustrations — requires Pixabay API key)
-{"imageSearch": {"query": "search terms for relevant images", "context": "Where this image will be used", "category": "education|science|business|nature|technology"}}
-Use this when building slide decks or when the user asks for visuals/images for course materials.
+### 9. Image Generation (for creating slide illustrations — uses your configured AI provider)
+{"imageSearch": {"query": "descriptive prompt for image generation", "context": "Where this image will be used"}}
+Use this when building slide decks or when the user asks for visuals/images for course materials. Supported providers: OpenAI (DALL-E 3), Google (Imagen 3). Anthropic does not support image generation.
 
 ## AVAILABLE ACTION TYPES
 - editCell: {type:"editCell", lessonIndex, sectionIndex, field, value} — edit a course map cell
@@ -204,7 +204,7 @@ Use this when building slide decks or when the user asks for visuals/images for 
 - **Textbook recommendations, reading lists, supplementary materials**: Include "books" in sources.
 - **Concept relationships, prerequisite chains, process flows**: Use DIAGRAM format with Mermaid syntax. Example use cases: "show how topics connect", "map out prerequisites", "visualize the assessment flow".
 - **Data visualization, distributions, comparisons**: Use CHART format. Common uses: Bloom's taxonomy distribution, assessment coverage, topic frequency, grade distribution.
-- **Slide illustration, visual aids, images for courses**: Use IMAGE SEARCH format (requires Pixabay key in settings). Search for relevant, professional images.
+- **Slide illustration, visual aids, images for courses**: Use IMAGE SEARCH format. Generate descriptive prompts for AI image generation. Works with OpenAI and Google providers.
 - **Factual verification** ("is it true that...", "what year was..."): Use RESEARCH with wiki source, then chatReply.
 - Do NOT use research for opinions, course-specific questions, or platform help.
 - **After receiving research results**: When proposing new content, embed findings directly into items. For example: cite papers in assignment instructions (sr field), reference studies in discussion context (cx field), or use research findings in quiz question stems (q field). Don't just summarize research — integrate it into actionable course materials. Formatted APA citations are provided at the end of research results — use them verbatim in course materials (readings, references, assignment instructions).
