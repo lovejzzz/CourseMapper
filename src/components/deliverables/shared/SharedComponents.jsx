@@ -73,7 +73,7 @@ export function updatePath(obj, path, value) {
 }
 
 // ─── Editable text field (click-to-edit) ───
-export function E({ value, path, onEdit, className = '', multiline = false }) {
+export function E({ value, path, onEdit, className = '', multiline = false, onAIContextMenu }) {
   const [editing, setEditing] = useState(false);
   const [draft, setDraft] = useState('');
   const textareaRef = useRef(null);
@@ -121,11 +121,17 @@ export function E({ value, path, onEdit, className = '', multiline = false }) {
     );
   }
 
+  const handleCtxMenu = (e) => {
+    if (!onAIContextMenu || !(value || '').trim()) return;
+    onAIContextMenu(e, { type: 'deliverableField', path, currentValue: value || '' });
+  };
+
   return (
     <span
       onClick={() => { setDraft(value || ''); setEditing(true); }}
+      onContextMenu={handleCtxMenu}
       className={`${className} cursor-text hover:bg-white/20 rounded px-0.5 -mx-0.5 transition-colors inline-block min-w-[2em]`}
-      title="Click to edit"
+      title="Click to edit · Right-click for AI"
     >
       {value || ''}
     </span>

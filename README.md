@@ -1,6 +1,6 @@
 # Course Mapper
 
-AI-powered instructional design platform that transforms course materials into a complete, aligned set of teaching deliverables. Upload your syllabus and generate a structured Course Map, lesson plans, slide decks, rubrics, quizzes, assignments, discussion prompts, study guides, and a polished syllabus — all pedagogically aligned and fully editable.
+AI-powered instructional design platform with an embedded teaching assistant agent. Upload your syllabus and generate a structured Course Map, lesson plans, slide decks, rubrics, quizzes, assignments, discussion prompts, study guides, and a polished syllabus — all pedagogically aligned, validated, and fully editable. Then use the AI agent to revise, validate, research, and visualize your curriculum through natural conversation.
 
 **Live:** [https://edutool.dev](https://edutool.dev)
 
@@ -12,12 +12,13 @@ Course Mapper is a **purpose-built instructional design tool**, not a general ch
 
 1. **Structured output, not chat.** Pasting a syllabus into ChatGPT gives you a blob of markdown. Course Mapper produces structured, editable tables and slide decks with defined schemas — ready to use immediately.
 2. **9 aligned deliverables.** Generate a Course Map, Syllabus, Lesson Plans, Slide Decks, Rubrics, Quiz Bank, Assignments, Discussion Prompts, and Study Guides — all cross-referenced and pedagogically consistent.
-3. **Cascade editing.** Edit one deliverable and the system automatically detects which other deliverables are affected and surgically regenerates just those lessons — no full regeneration.
-4. **Full export pipeline.** Export each deliverable to DOCX, PDF, XLSX, CSV, PPTX, Google Docs, Google Sheets, Google Slides, and ZIP bundle. Save/load complete sessions as `.coursemapper` project files.
-5. **Inline editing everywhere.** Click any text in any deliverable to edit directly — course map cells, slide content, rubric criteria, quiz questions, speaker notes. Everything is editable like Google Docs.
-6. **Stop & Resume.** If generation fails midway in ChatGPT, you start over. Course Mapper saves partial progress and resumes from exactly where it stopped.
-7. **Multi-model support.** Supports OpenAI, Anthropic, and Google. Auto-detects key format and auto-rotates through models on failure.
-8. **Privacy-first.** Everything runs in the browser. No data stored on any server. API keys go directly to providers.
+3. **Embedded AI agent with 8 tools.** A multi-step teaching assistant that can read your deliverables, validate pedagogy, search academic literature, generate diagrams and charts, and apply edits — all through native tool calling with accept/reject review before changes land.
+4. **Inline AI editing.** Right-click any cell to Improve, Expand, Simplify, or Rewrite with AI. No need to describe what you want changed — the agent sees the cell context automatically.
+5. **Cascade editing.** Edit one deliverable and the system automatically detects which other deliverables are affected and surgically regenerates just those lessons — no full regeneration.
+6. **Pedagogical validation.** Built-in Bloom's taxonomy alignment, objective coverage, cognitive load assessment, readability scoring, and difficulty progression checks — with auto-fix for common issues.
+7. **Full export pipeline.** Export each deliverable to DOCX, PDF, XLSX, CSV, PPTX, Google Docs, Google Sheets, Google Slides, and ZIP bundle. Save/load complete sessions as `.coursemapper` project files.
+8. **Multi-model support.** Supports OpenAI, Anthropic, and Google with native tool calling per provider. Auto-detects key format and auto-rotates through models on failure.
+9. **Privacy-first.** 100% client-side. No backend server. No data stored anywhere. API keys go directly to providers.
 
 > **What Course Mapper does NOT claim:** It does not fact-check content or verify citations. It does not replace instructor expertise. It is a drafting and productivity tool — it generates the scaffold, the instructor refines it.
 
@@ -58,32 +59,126 @@ Click any text to edit inline. Use Revision Chat for AI-assisted changes. Export
 
 ## Features
 
+### AI Teaching Agent
+
+An embedded multi-step AI agent with native tool calling, not a chatbot wrapper. The agent reads your course data, reasons about pedagogy, and takes action — with your approval at every step.
+
+**8 Agent Tools:**
+
+| Tool | What It Does |
+|------|-------------|
+| `validate_course` | Full pedagogical health check (Bloom's, alignment, cognitive load, readability, difficulty) |
+| `check_grammar` | Grammar and spelling check via LanguageTool for any lesson |
+| `search_research` | Academic search across 6 free sources (OpenAlex, Wikipedia, CrossRef, YouTube, Open Library, Google Books) |
+| `read_deliverable` | Reads current deliverable data (summary or per-lesson detail) |
+| `read_lesson` | Reads full course map lesson data (title, sections, all fields) |
+| `edit_course_map` | Edits cells, renames lesson titles, adds or removes lessons |
+| `edit_deliverables` | Adds, edits, or removes deliverable items with deduplication |
+| `save_preference` | Remembers teaching preferences across sessions |
+
+**5 Response Types:**
+
+| Type | Description |
+|------|-------------|
+| Chat reply | Markdown text responses with pedagogical guidance |
+| Proposal cards | 2–3 pedagogically distinct options as clickable cards — pick one, review the diff, then accept or reject |
+| Diagrams | Mermaid.js visualizations (flowcharts, concept maps, sequence diagrams, Gantt charts, state diagrams) |
+| Charts | Data visualizations (bar, line, pie, doughnut, radar, polar area) via QuickChart |
+| Image search | AI-generated images via DALL-E 3 or Google Imagen 3 |
+
+**Agent Capabilities:**
+
+- **Native tool calling** — Uses each provider's native function-calling API (OpenAI, Anthropic, Google) instead of JSON-in-text parsing. Up to 10 reasoning iterations per request.
+- **Parallel tool execution** — Executes multiple tools concurrently (e.g., reading 5 lessons at once), dramatically reducing response time.
+- **Accept/reject diff review** — Every change shows a before/after diff preview. Accept to apply, reject to discard. No changes land without your approval.
+- **Pre-validation** — Every proposed action is validated against current deliverable state before being shown. Invalid options are filtered out automatically.
+- **Batch actions** — "Add a discussion prompt to every lesson" executes across all lessons in one go with per-lesson unique content.
+- **Cross-deliverable edits** — "Add a quiz AND an assignment for Lesson 2" handles multiple deliverable types in a single request.
+- **Context-aware routing** — Messages auto-route: agent mode when deliverables exist, help/tutor mode during generation, revision mode for course map edits.
+- **One-click undo** — Every agent action snapshots previous state. Undo buttons appear in change summaries and the input bar.
+- **Silent auto-fix** — After deliverables generate, the agent runs a health check and auto-fixes readability, difficulty, and grammar issues without cluttering the chat.
+- **Error recovery** — If a proposed action fails, the agent auto-recovers by silently re-invoking itself to find an alternative.
+- **User preferences** — Tell the agent your teaching style, Bloom's focus, or difficulty preference and it persists across sessions.
+
+### Inline AI Editing
+
+Right-click any course map cell or deliverable field to invoke AI directly on it — no need to describe what you want changed in chat.
+
+- **Improve** — Makes content more specific, actionable, and pedagogically sound
+- **Expand** — Adds detail, examples, and depth while preserving intent
+- **Simplify** — Condenses while keeping key pedagogical points
+- **Rewrite** — Fresh version with different wording and approach, same learning goal
+- **Ask AI about this...** — Opens chat pre-scoped to the selected cell's context
+
+### Pedagogical Validation
+
+Client-side validation engine that runs in under 50ms. Six validators catch issues before students ever see them:
+
+- **Bloom's taxonomy alignment** — Checks that learning objectives and assessments operate at compatible cognitive levels. Detects mismatches (e.g., "analyze" objectives paired with recall-level quizzes) and regressions across the semester.
+- **Objective coverage** — Ensures every learning objective has at least one matching assessment, and vice versa.
+- **Cognitive load assessment** — Estimates student time per lesson. Flags overloaded weeks (>120 min or >15 items per lesson).
+- **Difficulty progression** — Checks quiz difficulty trends across lessons. Detects flat difficulty curves and unexpected regressions.
+- **Readability scoring** — Flesch-Kincaid grade level analysis per deliverable. Adjusts thresholds for intro-level courses.
+- **Grammar checking** — LanguageTool API integration for grammar and style issues.
+
+The agent auto-classifies findings: **auto-fixable** issues (readability, difficulty, grammar) are resolved silently; **needs-decision** issues (Bloom's, alignment, cognitive load) are surfaced in a Validation Card with one-click "Fix" buttons.
+
+### Academic Research
+
+Six free, keyless academic search sources built into the agent — no API keys required:
+
+- **OpenAlex** — 250M+ academic works with abstracts and citation counts
+- **Wikipedia** — Topic overviews and background summaries
+- **CrossRef** — DOI and citation metadata
+- **YouTube** (via Invidious) — Educational video search, no API key needed
+- **Open Library** — Book and textbook search with covers and ISBNs
+- **Google Books** — Books with categories and page counts
+
+Results are synthesized by the AI with numbered `[N]` citations and formatted in APA 7 via `citation-js`. Research cards render source-specific previews (video thumbnails, book covers, paper DOI links).
+
 ### Deliverables
 
-- **Course Map** — Week-by-week structure with learning goals, objectives, assessments, activities, and resources in a customizable column layout. Click columns to enable/disable — disabled columns are excluded from AI generation and all exports. Identical values across sections auto-merge for cleaner display
-- **Syllabus** — Complete professional syllabus with policies, grading, schedule, and learning outcomes
-- **Lesson Plans** — Session-by-session plans with timing, warm-ups, activities, UDL notes, and instructor notes
-- **Slide Decks** — University-quality presentation slides with 5 color themes, speaker notes, and inline editing
-- **Rubrics** — Grading rubrics with criteria, performance levels, descriptors, and teacher calibration notes
-- **Quiz & Exam Bank** — Multiple choice, short answer, and essay questions organized by lesson and difficulty
-- **Assignment Briefs** — Clear assignment descriptions with objectives, deliverables, scaffolding milestones, and submission guidelines
-- **Discussion Prompts** — Engaging prompts with response frameworks, facilitation guides, and equity considerations
-- **Study Guides** — Student-facing review materials with key concepts, vocabulary, common misconceptions, and exam prep tips
+Nine built-in deliverable types, all cross-referenced and pedagogically consistent:
 
-### Editing & Collaboration
+- **Course Map** — Week-by-week structure with learning goals, objectives, assessments, activities, and resources in a customizable column layout. Click columns to enable/disable — disabled columns are excluded from AI generation and all exports. Identical values across sections auto-merge for cleaner display.
+- **Syllabus** — Complete professional syllabus with policies, grading, schedule, and learning outcomes.
+- **Lesson Plans** — Session-by-session plans with timing, warm-ups, activities, UDL notes, and instructor notes.
+- **Slide Decks** — University-quality presentation slides with 5 color themes, speaker notes, and inline editing.
+- **Rubrics** — Grading rubrics with criteria, performance levels, descriptors, and teacher calibration notes.
+- **Quiz & Exam Bank** — Multiple choice, short answer, and essay questions organized by lesson and difficulty.
+- **Assignment Briefs** — Clear assignment descriptions with objectives, deliverables, scaffolding milestones, and submission guidelines.
+- **Discussion Prompts** — Engaging prompts with response frameworks, facilitation guides, and equity considerations.
+- **Study Guides** — Student-facing review materials with key concepts, vocabulary, common misconceptions, and exam prep tips.
 
-- **Inline editing** — Click any text in any deliverable to edit directly (course map cells, slide content, rubric criteria, quiz questions, speaker notes)
-- **Cascade sync engine** — Edit one deliverable and affected deliverables auto-update surgically (only the changed lesson, not everything)
-- **Surgical re-sync** — When you edit the course map, only affected lessons are regenerated across deliverables
-- **Change log drawer** — See exactly what the cascade system changed, when, and why
-- **Lesson locking** — Lock individual lessons to protect them from AI regeneration
-- **Version history** — Full undo/redo with the ability to jump to any previous version
+### Editing & Sync
+
+- **Inline editing** — Click any text in any deliverable to edit directly (course map cells, slide content, rubric criteria, quiz questions, speaker notes).
+- **Cascade sync engine** — Edit one deliverable and affected deliverables auto-update surgically (only the changed lesson, not everything). Sync suggestions appear in chat for your approval before executing.
+- **Debounced edit accumulation** — Rapid edits are batched over a 2-second window before the sync planner runs, avoiding unnecessary regeneration.
+- **Concurrent regeneration** — Sync runs up to 3 regeneration tasks in parallel with race condition guards.
+- **Lesson locking** — Lock individual lessons to protect them from AI regeneration.
+- **Version history** — Full undo/redo with the ability to jump to any previous version.
+- **Change summaries** — After every agent edit, a structured summary shows what was added, removed, or changed — with an undo button.
+
+### Reading Level Control
+
+Set a target reading level for all AI-generated content. Five tiers match academic audiences:
+
+| Level | Grade Range | Description |
+|-------|------------|-------------|
+| Community College | 8–10 | Simple, accessible language |
+| Undergraduate | 10–12 | Standard academic register |
+| Upper Division | 12–14 | Advanced vocabulary, discipline-specific terms |
+| Graduate | 14–16 | Scholarly, assumes domain knowledge |
+| Professional | 16+ | Expert-level, specialized terminology |
+
+The current Flesch-Kincaid grade level is auto-detected and displayed as a badge. The target level is persisted and injected into all agent prompts.
 
 ### Lesson Scope
 
-- Choose to generate content for **all lessons** or **specific lessons** only
-- The AI auto-detects lesson count from uploaded files or course descriptions
-- Useful for adding a new lesson or regenerating a subset without touching the rest
+- Choose to generate content for **all lessons** or **specific lessons** only.
+- The AI auto-detects lesson count from uploaded files or course descriptions.
+- Useful for adding a new lesson or regenerating a subset without touching the rest.
 
 ### Teaching Modes
 
@@ -97,10 +192,10 @@ Five pedagogical frameworks that shape all generated content:
 
 ### Custom Deliverables
 
-- **Create your own** — Build custom deliverable types beyond the built-in 9 with custom system prompts, user prompt templates, and default config
-- **Workspace creation** — Click **+ Add → Create Custom...** in the tab bar to build a new custom deliverable without leaving the workspace
-- **AI auto-config** — If you don't set tone, style, or output length, the AI automatically infers the best settings from your course content and sibling deliverables' configuration
-- **Persistent** — Custom deliverables are saved in local storage and appear in the + Add dropdown for re-use
+- **Create your own** — Build custom deliverable types beyond the built-in 9 with custom system prompts, user prompt templates, and default config.
+- **Workspace creation** — Click **+ Add → Create Custom...** in the tab bar to build a new custom deliverable without leaving the workspace.
+- **AI auto-config** — If you don't set tone, style, or output length, the AI automatically infers the best settings from your course content and sibling deliverables' configuration.
+- **Persistent** — Custom deliverables are saved in local storage and appear in the + Add dropdown for re-use.
 
 ### Per-Deliverable Configuration
 
@@ -112,12 +207,6 @@ Five pedagogical frameworks that shape all generated content:
 - **Citation style** — APA 7th, MLA 9th, Chicago 17th, IEEE
 - **Tiered differentiation** — Generate 3 variants per item: Scaffolded, Standard, and Extension
 - **Extra instructions** — Free-text field for specific constraints per deliverable
-
-### Quality & Analytics
-
-- **Course Health Check** — AI-powered pedagogical audit scoring 0–100 with issues grouped by severity (Bloom's gaps, overloaded weeks, vague objectives, sequencing problems) and one-click "Fix it" buttons
-- **Quality scoring** — Heuristic scores (Bloom's alignment, specificity, actionability) per deliverable
-- **Smart revision suggestions** — After each AI revision, contextual follow-up suggestions appear
 
 ### Export & Integration
 
@@ -132,51 +221,37 @@ Five pedagogical frameworks that shape all generated content:
 
 ### Session Persistence
 
-- **Auto-save** — Full session state (including all deliverables) saved to browser local storage automatically
-- **Session restore** — On next visit, the app offers to restore exactly where you left off including all generated content
-- **.coursemapper project file** — Portable save/load for archiving or sharing complete sessions
+- **Auto-save** — Full session state (including all deliverables) saved to browser local storage automatically.
+- **Session restore** — On next visit, the app offers to restore exactly where you left off including all generated content.
+- **.coursemapper project file** — Portable save/load for archiving or sharing complete sessions.
 
 ### Instructor Tools
 
-- **Professor Profile** — Persistent profile with name, institution, department, policies, and AI teaching assistant persona
-- **Reading List** — Paste DOI, arXiv ID, or ISBN to auto-fetch citations; assign readings to lessons
-- **Standards Alignment** — Tag objectives to accreditation frameworks (AAC&U, AACSB, CSWE, CAEP, etc.) with exportable alignment report
-- **Assessment Bank** — Save individual questions, prompts, or criteria to a personal bank for reuse across courses
-- **Template Library** — Save course structures as reusable templates; includes built-in starters
-
-### AI Teaching Agent
-
-- **Native tool calling** — Uses each provider's native function-calling API (OpenAI, Anthropic, Google) instead of JSON-in-text parsing. Structured tool calls and responses through the API guarantee reliable execution.
-- **Parallel tool execution** — Agent executes multiple tools concurrently (e.g., reading 5 lessons at once) instead of sequentially, dramatically reducing response time.
-- **Proposal cards** — For content creation, the agent proposes 2–3 pedagogically distinct options as clickable cards. Pick one and it's instantly added to your deliverables.
-- **Pre-validation** — Every proposed action is validated against current deliverable state before being shown to the user. Invalid options are filtered out automatically.
-- **Batch actions** — "Add a discussion prompt to every lesson" executes across all lessons in one go with per-lesson unique content and progress feedback.
-- **Cross-deliverable edits** — "Add a quiz AND an assignment for Lesson 2" handles multiple deliverable types in a single request.
-- **Clean status UI** — Generation progress and agent tool steps are shown in a collapsible header area, keeping the chat timeline clean for conversation only. Repeated steps (like reading 15 lessons) are grouped into a single line.
-- **Silent auto-fix** — After deliverables generate, the agent runs a health check and auto-fixes issues without showing system prompts in the chat.
-- **Error recovery** — If a proposed option fails, the agent auto-recovers by silently re-invoking itself to find an alternative approach.
-- **User preferences** — Tell the agent your teaching preferences (Bloom's focus, difficulty level, style) and it remembers them across sessions via `save_preference`.
-- **Context-aware routing** — Messages auto-route: agent mode when deliverables exist, help mode during generation, revision mode for course map edits.
-- **Undo support** — Every agent action snapshots the previous state so you can undo with one click.
+- **Professor Profile** — Persistent profile with name, institution, department, policies, and AI teaching assistant persona. Cloud-synced via Firestore on sign-in.
+- **Reading List** — Paste DOI, arXiv ID, or ISBN to auto-fetch citations; assign readings to lessons.
+- **Standards Alignment** — Tag objectives to accreditation frameworks (AAC&U, AACSB, CSWE, CAEP, etc.) with exportable alignment report.
+- **Assessment Bank** — Save individual questions, prompts, or criteria to a personal bank for reuse across courses.
+- **Template Library** — Save course structures as reusable templates; includes built-in starters.
 
 ### Productivity
 
-- **Command Palette (Cmd+K)** — Quick-access to any action via fuzzy search
+- **Command Palette (Cmd+K)** — Quick-access to any action via fuzzy search.
 - **AI Pedagogical Tutor** — Context-aware help assistant that recognizes your course map, active tab, and deliverables to provide tailored pedagogical advice.
-- **Stop & Resume** — Pause generation at any time, resume from exactly where it stopped
-- **Browser notifications** — Get notified when generation completes
-- **Student view toggle** — Preview deliverables as students would see them (hides instructor notes)
-- **Error recovery** — If a panel crashes, a "Try Again" button recovers without losing work
-- **Diff view** — See exactly what changed after each AI revision (red strikethrough → green highlight)
+- **Stop & Resume** — Pause generation at any time, resume from exactly where it stopped.
+- **Browser notifications** — Get notified when generation completes.
+- **Student view toggle** — Preview deliverables as students would see them (hides instructor notes).
+- **Dark mode** — Light/dark toggle with system preference detection, persisted across sessions.
+- **Error recovery** — If a panel crashes, a "Try Again" button recovers without losing work.
+- **File attachments** — Drag-and-drop documents into chat (supports 18+ formats: .docx, .pdf, .xlsx, .pptx, .epub, .csv, .html, .zip, and more). File contents are injected into the agent's context.
 
 ### AI & Privacy
 
-- **Multi-provider support** — OpenAI, Anthropic, and Google with your own API key (BYOK)
-- **Streaming generation** — Watch deliverables build in real time with stable per-feature sequential streaming (no preview flashing)
-- **Token-optimized prompts** — Minified JSON keys, adaptive chunk sizes, and compact continuation schemas reduce API costs by ~20% and cut total API calls by ~15–20%
-- **AI self-examination** — The AI reviews and fixes its own structured output automatically
-- **100% client-side** — No backend server. All data stays in your browser
-- **Google OAuth verified** — Clean consent screen for Google Drive export
+- **Multi-provider support** — OpenAI, Anthropic, and Google with native tool calling per provider. Your own API key (BYOK).
+- **Streaming generation** — Watch deliverables build in real time with stable per-feature sequential streaming (no preview flashing).
+- **Token-optimized prompts** — Minified JSON keys, adaptive chunk sizes, and compact continuation schemas reduce API costs by ~20% and cut total API calls by ~15–20%.
+- **AI self-examination** — The AI reviews and fixes its own structured output automatically.
+- **100% client-side** — No backend server. All data stays in your browser.
+- **Google OAuth verified** — Clean consent screen for Google Drive export.
 
 ---
 
@@ -207,78 +282,151 @@ Hosted on GitHub Pages via GitHub Actions. Every push to `main` triggers a build
 
 - **Frontend** — React 18, Vite, TailwindCSS
 - **State** — useReducer + Context (two-context pattern: state + dispatch via `courseStore.jsx`)
-- **AI providers** — OpenAI, Anthropic, Google (BYOK)
+- **AI providers** — OpenAI, Anthropic, Google (BYOK) with native tool calling per provider
+- **Auth & Cloud** — Firebase Auth (Google OAuth), Firestore (project cloud storage, professor profiles)
 - **File parsing** — mammoth (docx), pdfjs-dist (pdf), SheetJS (xlsx), JSZip
 - **Export** — ExcelJS (xlsx), docx (Word), jsPDF + jspdf-autotable (pdf), pptxgenjs (PowerPoint), file-saver, JSZip (ZIP bundle)
 - **Google Workspace** — Drive API v3 via OAuth2 (Docs, Sheets, Slides)
-- **Testing** — Vitest
+- **Validation** — text-readability (Flesch-Kincaid), citation-js (APA 7), KaTeX (LaTeX math)
+- **Testing** — Vitest (13 test modules)
 
 ### Project Structure
 
 ```
 src/
-  App.jsx                   # Main app shell: screen routing + all top-level state
-  main.jsx                  # Entry point + hash router (#/faq, #/changelog, etc.)
+  App.jsx                     # Main app shell: screen routing + all top-level state
+  main.jsx                    # Entry point + hash router (#/faq, #/changelog, etc.)
   screens/
-    Landing.jsx             # Landing page: AI model selection, file upload, session restore
-    FeatureSelect.jsx       # Deliverable picker (step 2) + CustomDeliverableBuilder
+    Landing.jsx               # Landing page: file upload, session restore, demo buttons
+    FeatureSelect.jsx         # Deliverable picker (step 2) + CustomDeliverableBuilder
+    Config.jsx                # AI provider, model, and deliverable configuration (step 3)
   model/
-    courseStore.jsx         # useReducer + Context store for deliverables state
+    courseStore.jsx            # useReducer + Context store for deliverables state
+  contexts/
+    AuthContext.jsx            # Firebase auth context (Google OAuth)
   components/
-    CourseMapPreview.jsx    # Main editable course map table
-    DeliverableView.jsx     # Per-deliverable rendering (slides, rubrics, quiz, etc.)
-    ExportSidePanel.jsx     # Right-side export panel (Current/All modes, ZIP, .coursemapper)
-    ColumnEditor.jsx        # Course map column configuration
-    ModelConfig.jsx         # AI provider + model selection UI
-    Header.jsx              # App header with navigation
-    ErrorBoundary.jsx       # Crash recovery wrapper
+    CourseMapPreview.jsx       # Main editable course map table
+    DeliverableView.jsx        # Per-deliverable rendering dispatcher
+    ExportSidePanel.jsx        # Right-side export panel (Current/All modes, ZIP, .coursemapper)
+    ColumnEditor.jsx           # Course map column configuration
+    ModelConfig.jsx            # AI provider + model selection UI
+    Header.jsx                 # App header with navigation
+    ErrorBoundary.jsx          # Crash recovery wrapper
+    AIContextMenu.jsx          # Right-click inline AI editing (Improve, Expand, Simplify, Rewrite)
+    ReadingLevelControl.jsx    # Target reading level selector (5 tiers)
+    DarkModeToggle.jsx         # Light/dark mode toggle with system preference detection
+    FileUpload.jsx             # Drag-and-drop file upload with format detection
+    UserMenu.jsx               # User menu with Google sign-in
+    ProjectPicker.jsx          # Cloud project picker (Firestore)
+    EditProposalPanel.jsx      # Revision proposal accept/reject panel
+    VersionTimeline.jsx        # Version history timeline with undo/redo
+    GenericDeliverableView.jsx # Renderer for custom deliverable types
+    ExportBar.jsx              # Legacy export bar
     chat/
-      ChatPanel.jsx         # Unified chat interface (progress, help, agent)
-      ChatInput.jsx         # Message input with file upload
-      MessageList.jsx       # Scrollable message area (clean chat only)
-      MessageBubble.jsx     # Individual message rendering (markdown)
-      AgentProgressCard.jsx # Collapsible agent tool-step progress (fixed top area)
-      ProposalCard.jsx      # AI proposal option cards with select/retry
-      ProgressCard.jsx      # Generation milestone cards (health gate, completion)
-      ProgressHeader.jsx    # Collapsible generation + deliverable progress bar
-      ChangeSummaryCard.jsx # Inline change summary after agent edits
-      ResearchCard.jsx      # Academic research results card
-      ValidationCard.jsx    # Course validation report card
-      DiagramCard.jsx       # AI-generated diagram display
-      ChartCard.jsx         # AI-generated chart display
-      ImageSearchCard.jsx   # Image search results card
-      SyncSuggestionCard.jsx# Cascade sync suggestion with approve/skip
-      useChatRouter.js      # Chat state machine: routing, streaming, native tool-calling agent loop
-      constants.js          # Feature labels, step definitions
+      ChatPanel.jsx            # Unified chat interface (progress, help, agent)
+      ChatInput.jsx            # Message input with file upload
+      MessageList.jsx          # Scrollable message area (clean chat only)
+      MessageBubble.jsx        # Individual message rendering (markdown)
+      AgentProgressCard.jsx    # Collapsible agent tool-step progress (fixed top area)
+      ProposalCard.jsx         # AI proposal option cards with select/retry
+      DiffReviewCard.jsx       # Accept/reject diff review before applying AI changes
+      ProgressCard.jsx         # Generation milestone cards (health gate, completion)
+      ProgressHeader.jsx       # Collapsible generation + deliverable progress bar
+      ChangeSummaryCard.jsx    # Inline change summary after agent edits
+      ResearchCard.jsx         # Academic research results card
+      ValidationCard.jsx       # Course validation report card
+      DiagramCard.jsx          # AI-generated diagram display (Mermaid.js)
+      ChartCard.jsx            # AI-generated chart display (Chart.js)
+      ImageSearchCard.jsx      # AI image generation card (DALL-E 3 / Imagen 3)
+      SyncSuggestionCard.jsx   # Cascade sync suggestion with approve/skip
+      ResizeHandle.jsx         # Draggable chat panel resize handle
+      useChatRouter.js         # Chat state machine: routing, streaming, native tool-calling agent loop
+      constants.js             # Feature labels, step definitions
+    deliverables/              # Per-deliverable view components
+      AssignmentsView.jsx      # Assignment briefs renderer
+      DiscussionsView.jsx      # Discussion prompts renderer
+      LessonPlansView.jsx      # Lesson plans renderer
+      QuizBankView.jsx         # Quiz & exam bank renderer
+      RubricsView.jsx          # Rubrics renderer
+      SlideDecksView.jsx       # Slide decks renderer with theme support
+      StudyGuidesView.jsx      # Study guides renderer
+      SyllabusView.jsx         # Syllabus renderer
+      shared/
+        SharedComponents.jsx   # Shared deliverable UI components
   hooks/
-    useGeneration.js        # Course map generation + stop/resume
-    useDeliverables.js      # Deliverable generation (per-feature sequential, cross-feature parallel), surgical regen, restore
-    useRevision.js          # AI revision chat + patching
-    useExport.js            # Course map export orchestration
-    useVersionHistory.js    # Undo/redo version stack
-    useCourseMapEditor.js   # Inline cell editing logic
-    useStreamReader.js      # Multi-provider streaming abstraction
+    useGeneration.js           # Course map generation + stop/resume
+    useDeliverables.js         # Deliverable generation (per-feature sequential, cross-feature parallel)
+    useRevision.js             # AI revision chat + patching
+    useExport.js               # Course map export orchestration
+    useVersionHistory.js       # Undo/redo version stack
+    useCourseMapEditor.js      # Inline cell editing logic
+    useStreamReader.js         # Multi-provider streaming abstraction
+    useSmartSync.js            # Cascade sync engine: edit detection, plan building, concurrent regen
+    useDeliverableUndo.js      # Deliverable-level undo snapshots
+    useEditProposal.js         # Edit proposal state management
   lib/
-    deliverablePrompts.js   # AI prompt templates per deliverable type
-    deliverableExporters.js # Export functions (PDF, DOCX, CSV, Google Docs/Sheets)
-    pptxExporter.js         # PowerPoint generation (pptxgenjs)
-    googleDrive.js          # Google OAuth + Drive upload (Docs, Sheets, Slides)
-    xlsxGenerator.js        # Excel export (ExcelJS)
-    docxGenerator.js        # Word export (docx library)
-    fileParser.js           # Multi-format file parsing
-    importCourseMap.js      # Import course map from .xlsx/.csv
-    prompts.js              # Course map generation prompts
-    agentProviders.js       # Provider abstraction for native tool calling (OpenAI/Anthropic/Google)
-    agentTools.js           # Agent tool definitions, execution, and result summarization
-    agentPrompts.js         # Dynamic system prompt for the agentic teaching assistant
-    agentActions.js         # Action executor + pre-validator (addItem, editItem, removeItem, etc.)
-    streamProvider.js       # AI streaming across providers
+    agentProviders.js          # Provider abstraction for native tool calling (OpenAI/Anthropic/Google)
+    agentTools.js              # Agent tool definitions, JSON schemas, execution, result summarization
+    agentPrompts.js            # Dynamic system prompt for the agentic teaching assistant
+    agentActions.js            # Action executor + field aliasing + pre-validator
+    academicSearch.js          # Free academic search (OpenAlex, Wikipedia, CrossRef, YouTube, Open Library, Google Books)
+    pedagogicalValidator.js    # Bloom's, alignment, cognitive load, readability, difficulty validators
+    imageSearch.js             # AI image generation (DALL-E 3, Imagen 3)
+    chartGenerator.js          # Chart data generation for Chart.js
+    grammarChecker.js          # LanguageTool API integration
+    editContextExtractor.js    # Extract cell context for inline AI editing
+    deliverablePrompts.js      # AI prompt templates per deliverable type
+    deliverableExporters.js    # Export function dispatcher
+    deliverableQualityScorer.js # Deliverable completeness scoring
+    prompts.js                 # Course map generation prompts
+    prompts/                   # Per-deliverable prompt modules
+      assignments.js
+      courseFaq.js
+      discussions.js
+      lessonPlans.js
+      quizBank.js
+      rubrics.js
+      slideDecks.js
+      studyGuides.js
+      syllabus.js
+      promptUtils.js           # Shared prompt utilities
+    exporters/                 # Per-format export modules
+      docxExporter.js          # Word export (docx library)
+      pdfExporter.js           # PDF export (jsPDF)
+      pptxExporter.js          # PowerPoint export (pptxgenjs)
+      csvExporter.js           # CSV export
+      rubricExporter.js        # Rubric-specific export
+      googleExporter.js        # Google Drive export (Docs, Sheets, Slides)
+      bulkDocxExporter.js      # Batch DOCX export for ZIP
+      exportAll.js             # ZIP bundle export orchestration
+      exporterUtils.js         # Shared export utilities
+      slideTextFit.js          # Slide text auto-fitting
+    xlsxGenerator.js           # Excel export (ExcelJS)
+    docxGenerator.js           # Word export (docx library, legacy)
+    googleDrive.js             # Google OAuth + Drive upload
+    fileParser.js              # Multi-format file parsing (18+ formats)
+    importCourseMap.js         # Import course map from .xlsx/.csv
+    streamProvider.js          # AI streaming across providers
+    professorProfile.js        # Professor profile CRUD with Firestore cloud sync
+    cloudStorage.js            # Firestore project cloud storage
+    firebase.js                # Firebase app initialization
     customDeliverableLibrary.js # localStorage CRUD for custom deliverable definitions
-    parallelGenerator.js    # Chunking, merging, completeness-check, per-feature output budgets
-    keyMaps.js              # Bidirectional key maps + expandKeys() for JSON key minification
-    syncDependencies.js     # Deliverable dependency graph for cascade editing
+    parallelGenerator.js       # Chunking, merging, completeness-check, per-feature output budgets
+    keyMaps.js                 # Bidirectional key maps + expandKeys() for JSON key minification
+    syncDependencies.js        # Deliverable dependency graph for cascade editing
+    pedagogicalModes.js        # Teaching mode definitions (lecture, flipped, PBL, seminar, CBE)
+    courseSections.js          # Course map section/column definitions
+    moduleGrouper.js           # Module grouping logic
+    detectLessons.js           # AI-based lesson count detection
+    tokenEstimator.js          # Token count estimation
+    validateCourseMap.js       # Course map structure validation
+    revisionSuggestions.js     # Revision suggestion generation
+    latexRenderer.js           # LaTeX math rendering (KaTeX)
+    notifyDone.js              # Browser notification on generation complete
+    applyPatches.js            # JSON patch application for AI edits
   pages/
-    PrivacyPolicy.jsx       # Privacy policy page
-    TermsOfService.jsx      # Terms of service page
-    Changelog.jsx           # Version changelog page
+    PrivacyPolicy.jsx          # Privacy policy page
+    TermsOfService.jsx         # Terms of service page
+    Changelog.jsx              # Version changelog page
+    FaqChatbot.jsx             # FAQ help chatbot page
 ```

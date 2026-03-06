@@ -2,7 +2,7 @@ import React from 'react';
 
 const releases = [
   {
-    version: '1.1',
+    version: '0.5',
     date: 'March 5, 2026',
     title: 'AI Teaching Agent — Act, Don\'t Advise',
     highlights: [

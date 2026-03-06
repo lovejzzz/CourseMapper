@@ -84,7 +84,29 @@ export default function ImageSearchCard({ imageSearch, status, provider, apiKey 
             <p className="text-[12px] text-rose-600 animate-pulse">Generating images…</p>
           )}
           {error && (
-            <p className="text-[12px] text-red-500">{error}</p>
+            <div className="flex items-center gap-2">
+              <p className="text-[12px] text-red-500 flex-1">
+                {error.includes('server had an error') || error.includes('500')
+                  ? 'Image generation failed — the AI provider had a temporary issue.'
+                  : error.length > 120 ? error.slice(0, 120) + '…' : error}
+              </p>
+              <button
+                onClick={() => {
+                  setError(null);
+                  setLoading(true);
+                  generateImages(imageSearch.query, { provider, apiKey })
+                    .then(result => {
+                      if (result.error) setError(result.error);
+                      setImages(result.images || []);
+                    })
+                    .catch(err => setError(err.message))
+                    .finally(() => setLoading(false));
+                }}
+                className="tactile flex-shrink-0 px-2 py-0.5 rounded-md text-[11px] font-semibold text-rose-600 bg-rose-100/80 hover:bg-rose-200/80 transition-colors"
+              >
+                Retry
+              </button>
+            </div>
           )}
           {!loading && images.length === 0 && !error && (
             <p className="text-[12px] text-rose-500">No images generated.</p>

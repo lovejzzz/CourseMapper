@@ -2,6 +2,7 @@ import React, { useState, useCallback, useEffect, useRef } from 'react';
 import ModelConfig from '../components/ModelConfig';
 import { useAuth } from '../contexts/AuthContext';
 import UserMenu from '../components/UserMenu';
+import DarkModeToggle from '../components/DarkModeToggle';
 
 const ACCEPTED_EXTENSIONS = [
   '.doc', '.docx', '.pdf', '.txt', '.md', '.csv', '.rtf',
@@ -137,7 +138,8 @@ export default function Landing({
   return (
     <div className="min-h-screen mesh-bg noise-overlay flex flex-col">
       {/* Minimal header with sign-in */}
-      <header className="pt-5 px-8 flex justify-end max-w-3xl mx-auto w-full">
+      <header className="pt-5 px-8 flex justify-end items-center gap-2 max-w-3xl mx-auto w-full">
+        <DarkModeToggle />
         <UserMenu onOpenProjects={onOpenProjects} />
       </header>
 
@@ -410,7 +412,7 @@ export default function Landing({
           Built by the Educational Technology team at NYU Silver School of Social Work
         </p>
         <div className="flex items-center justify-center gap-3 text-[10px] text-slate-300/70">
-          <a href="#/changelog" className="font-medium hover:text-indigo-500 transition-colors duration-200">v0.3</a>
+          <a href="#/changelog" className="font-medium hover:text-indigo-500 transition-colors duration-200">v0.5</a>
           <span>·</span>
           <a href="#/privacy" className="hover:text-indigo-500 transition-colors duration-200">Privacy</a>
           <span>·</span>

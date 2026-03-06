@@ -677,7 +677,7 @@ export default function FeatureSelect({ selected, setSelected, onNext, onBack, h
       {/* Footer */}
       <footer className="py-4 text-center">
         <div className="flex items-center justify-center gap-3 text-[10px] text-slate-300/70">
-          <a href="#/changelog" className="font-medium hover:text-indigo-500 transition-colors duration-200">v0.3</a>
+          <a href="#/changelog" className="font-medium hover:text-indigo-500 transition-colors duration-200">v0.5</a>
           <span>·</span>
           <a href="#/privacy" className="hover:text-indigo-500 transition-colors duration-200">Privacy</a>
           <span>·</span>

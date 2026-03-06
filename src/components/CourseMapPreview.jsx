@@ -74,7 +74,7 @@ function FormattedText({ text }) {
   );
 }
 
-export default function CourseMapPreview({ courseMap, columns, isStreaming, oldCourseMap, onCellEdit, onTitleEdit, onCheckToggle, onAddSection, onDeleteSection, onAddLesson, onDeleteLesson, onMoveLesson, showDiff, onToggleDiff, onDismissDiff, lockedLessons, onToggleLock, moduleGroups, onModuleGroupsChange }) {
+export default function CourseMapPreview({ courseMap, columns, isStreaming, oldCourseMap, onCellEdit, onTitleEdit, onCheckToggle, onAddSection, onDeleteSection, onAddLesson, onDeleteLesson, onMoveLesson, showDiff, onToggleDiff, onDismissDiff, lockedLessons, onToggleLock, moduleGroups, onModuleGroupsChange, onAIContextMenu }) {
   const tableRef = useRef(null);
   const wrapperRef = useRef(null);
   const mouseInsideRef = useRef(false);
@@ -401,6 +401,8 @@ export default function CourseMapPreview({ courseMap, columns, isStreaming, oldC
                             text={lesson.title || ''}
                             isStreaming={isStreaming}
                             onSave={(!isLocked && onTitleEdit) ? (val) => onTitleEdit(li, val) : null}
+                            onAIContextMenu={onAIContextMenu}
+                            cellContext={{ lessonIndex: li, columnKey: 'title' }}
                           />
                         </div>
                         {!isStreaming && (
@@ -509,6 +511,8 @@ export default function CourseMapPreview({ courseMap, columns, isStreaming, oldC
                               isStreaming={isStreaming}
                               onSave={handleCellSave}
                               highlight={true}
+                              onAIContextMenu={onAIContextMenu}
+                              cellContext={{ lessonIndex: li, sectionIndex: si, columnKey: key }}
                             />
                           </div>
                         ) : (
@@ -517,6 +521,8 @@ export default function CourseMapPreview({ courseMap, columns, isStreaming, oldC
                             isStreaming={isStreaming}
                             onSave={handleCellSave}
                             highlight={isChanged}
+                            onAIContextMenu={onAIContextMenu}
+                            cellContext={{ lessonIndex: li, sectionIndex: si, columnKey: key }}
                           />
                         )}
                       </td>
@@ -565,7 +571,7 @@ export default function CourseMapPreview({ courseMap, columns, isStreaming, oldC
   );
 }
 
-function EditableCell({ text, isStreaming, onSave, highlight }) {
+function EditableCell({ text, isStreaming, onSave, highlight, onAIContextMenu, cellContext }) {
   const [editing, setEditing] = useState(false);
   const [value, setValue] = useState(text);
   const textareaRef = useRef(null);
@@ -623,12 +629,18 @@ function EditableCell({ text, isStreaming, onSave, highlight }) {
     );
   }
 
+  const handleContextMenu = (e) => {
+    if (!onAIContextMenu || isStreaming || !text?.trim()) return;
+    onAIContextMenu(e, { type: 'courseMapCell', ...cellContext, currentValue: text });
+  };
+
   return (
     <span
       onClick={handleClick}
+      onContextMenu={handleContextMenu}
       onKeyDown={(e) => { if (e.key === 'Enter' || e.key === ' ') { e.preventDefault(); handleClick(); } }}
       className={`inline ${highlight ? 'text-green-700 bg-green-50/60 rounded px-0.5 -mx-0.5' : ''} ${onSave && !isStreaming ? 'cursor-text hover:bg-indigo-50/40 hover:outline hover:outline-1 hover:outline-indigo-200/60 rounded px-0.5 -mx-0.5 transition-all duration-150' : ''}`}
-      title={onSave && !isStreaming ? 'Click to edit' : ''}
+      title={onSave && !isStreaming ? 'Click to edit · Right-click for AI' : ''}
       role={onSave && !isStreaming ? 'button' : undefined}
       tabIndex={onSave && !isStreaming ? 0 : undefined}
       aria-label={onSave && !isStreaming ? 'Click to edit cell' : undefined}

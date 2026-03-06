@@ -28,6 +28,8 @@ import { saveProject as cloudSaveProject, loadProject as cloudLoadProject, loadP
 import ProjectPicker from './components/ProjectPicker';
 import DeliverableView from './components/DeliverableView';
 import ExportSidePanel from './components/ExportSidePanel';
+import AIContextMenu from './components/AIContextMenu';
+import ReadingLevelControl from './components/ReadingLevelControl';
 import { requestNotificationPermission } from './lib/notifyDone';
 import { importCourseMap } from './lib/importCourseMap';
 import { parseFiles } from './lib/fileParser';
@@ -185,6 +187,28 @@ export default function App() {
   const [downloadedFile, setDownloadedFile] = useState('');
   const saveTimerRef = useRef(null);
   const addMaterialInputRef = useRef(null);
+
+  // ── AI Context Menu (inline AI editing) ──
+  const chatSendRef = useRef(null);
+  const [aiContextMenu, setAiContextMenu] = useState(null); // { position: {x,y}, target: {...} }
+  const handleAIContextMenu = useCallback((e, target) => {
+    e.preventDefault();
+    setAiContextMenu({ position: { x: e.clientX, y: e.clientY }, target });
+  }, []);
+  const closeAIContextMenu = useCallback(() => setAiContextMenu(null), []);
+  const handleAIAction = useCallback((prompt) => {
+    // Handle "__FOCUS__" prefix — pre-fill chat with context but let user type
+    if (prompt.startsWith('__FOCUS__')) {
+      const payload = prompt.slice(9);
+      const sepIdx = payload.indexOf('|||');
+      const location = sepIdx >= 0 ? payload.slice(0, sepIdx) : payload;
+      const value = sepIdx >= 0 ? payload.slice(sepIdx + 3) : '';
+      const focusPrompt = `Regarding "${(value || '').slice(0, 60)}${(value || '').length > 60 ? '...' : ''}" in ${location}: `;
+      chatSendRef.current?.(focusPrompt);
+      return;
+    }
+    chatSendRef.current?.(prompt);
+  }, []);
 
   // ── Cascade sync ──
   // Track which tabs have unseen changes (show amber * badge)
@@ -1094,6 +1118,13 @@ export default function App() {
                 </button>
               </div>
             )}
+
+            {/* Reading Level Control */}
+            {courseMap && gen.progressStep === 'done' && (
+              <div className="ml-auto flex-shrink-0">
+                <ReadingLevelControl />
+              </div>
+            )}
           </div>
         )}
 
@@ -1267,6 +1298,7 @@ export default function App() {
                 delivUndoFn={() => delivUndo.undo(deliv.setDeliverables)}
                 delivCanUndo={delivUndo.canUndo}
                 onAgentHighlight={triggerAgentHighlight}
+                chatSendRef={chatSendRef}
               />
             </ErrorBoundary>
           </div>
@@ -1314,6 +1346,7 @@ export default function App() {
                         showDiff={showDiff}
                         onToggleDiff={() => setShowDiff(d => !d)}
                         onDismissDiff={() => { setOldCourseMap(null); setShowDiff(false); }}
+                        onAIContextMenu={handleAIContextMenu}
                       />
                     </ErrorBoundary>
                   </div>
@@ -1434,7 +1467,7 @@ export default function App() {
           Built by the Educational Technology team at NYU Silver School of Social Work
         </p>
         <div className="flex items-center justify-center gap-3 text-[10px] text-slate-300/70">
-          <a href="#/changelog" className="font-medium hover:text-indigo-500 transition-colors duration-200">v1.5</a>
+          <a href="#/changelog" className="font-medium hover:text-indigo-500 transition-colors duration-200">v0.5</a>
           <span>·</span>
           <a href="#/privacy" className="hover:text-indigo-500 transition-colors duration-200">Privacy</a>
           <span>·</span>
@@ -1460,6 +1493,16 @@ export default function App() {
       />
 
       {/* Help merged into ChatPanel — HelpDrawer removed */}
+
+      {/* AI Context Menu (right-click on cells/items for inline AI editing) */}
+      {aiContextMenu && (
+        <AIContextMenu
+          position={aiContextMenu.position}
+          target={aiContextMenu.target}
+          onAction={handleAIAction}
+          onClose={closeAIContextMenu}
+        />
+      )}
 
     </div>
   );

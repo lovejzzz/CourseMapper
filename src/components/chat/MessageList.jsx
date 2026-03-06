@@ -1,6 +1,7 @@
 import React, { useRef, useEffect } from 'react';
 import MessageBubble from './MessageBubble';
 import ProposalCard from './ProposalCard';
+import DiffReviewCard from './DiffReviewCard';
 import ResearchCard from './ResearchCard';
 import ValidationCard from './ValidationCard';
 import ChangeSummaryCard from './ChangeSummaryCard';
@@ -9,16 +10,42 @@ import DiagramCard from './DiagramCard';
 import ChartCard from './ChartCard';
 import ImageSearchCard from './ImageSearchCard';
 
+// Stable key generator: assigns a unique ID to each message object (by identity).
+// Uses WeakMap so keys are GC'd when messages are removed.
+let _nextId = 0;
+const _keyMap = new WeakMap();
+function stableKey(msg, fallback) {
+  if (msg.id) return msg.id;
+  if (_keyMap.has(msg)) return _keyMap.get(msg);
+  const key = `msg-${++_nextId}`;
+  _keyMap.set(msg, key);
+  return key;
+}
+
 /**
  * MessageList — scrollable message area with auto-scroll.
- * Renders user/assistant bubbles, proposals, and content cards.
+ * Renders user/assistant bubbles, proposals, diff reviews, and content cards.
  * Status cards (progress, agent steps) are shown in the fixed top area instead.
  */
-export default function MessageList({ messages, isStreaming, onSuggestionClick, onSelectProposal, onUndo, canUndo, onApproveSyncSuggestion, onSkipSyncSuggestion }) {
+export default function MessageList({ messages, isStreaming, onSuggestionClick, onSelectProposal, onAcceptDiff, onRejectDiff, onUndo, canUndo, onApproveSyncSuggestion, onSkipSyncSuggestion }) {
   const endRef = useRef(null);
+  const prevCountRef = useRef(messages.length);
+  const containerRef = useRef(null);
 
   useEffect(() => {
-    endRef.current?.scrollIntoView({ behavior: 'smooth' });
+    // Only auto-scroll when new messages are added (count increases),
+    // not when existing messages are mutated (e.g., status changes).
+    // Also scroll if user is already near the bottom.
+    const countChanged = messages.length !== prevCountRef.current;
+    prevCountRef.current = messages.length;
+
+    if (countChanged) {
+      const container = containerRef.current;
+      const isNearBottom = !container || (container.scrollHeight - container.scrollTop - container.clientHeight < 120);
+      if (isNearBottom) {
+        endRef.current?.scrollIntoView({ behavior: 'smooth' });
+      }
+    }
   }, [messages]);
 
   // Empty state — clean, minimal (also when only status messages exist)
@@ -33,26 +60,27 @@ export default function MessageList({ messages, isStreaming, onSuggestionClick, 
 
   // Messages list
   return (
-    <div className="flex-1 overflow-y-auto px-4 py-3 space-y-3" style={{ minHeight: 0 }}>
+    <div ref={containerRef} className="flex-1 overflow-y-auto px-4 py-3 space-y-3" style={{ minHeight: 0 }}>
       {messages.map((msg, i) => {
+        const key = stableKey(msg);
         // Status messages are shown in the fixed top area, not in chat
         if (msg.role === 'agentProgress' || msg.role === 'progress') return null;
         if (msg.role === 'research') {
-          return <ResearchCard key={i} research={msg.research} status={msg.status} />;
+          return <ResearchCard key={key} research={msg.research} status={msg.status} />;
         }
         if (msg.role === 'validation') {
           return (
             <ValidationCard
-              key={i}
+              key={key}
               report={msg.report}
-              onFixClick={(prompt) => onSuggestionClick(prompt)}
+              onFixClick={(prompt) => onSuggestionClick?.(prompt)}
             />
           );
         }
         if (msg.role === 'proposal') {
           return (
             <ProposalCard
-              key={i}
+              key={key}
               proposal={msg.proposal}
               status={msg.status}
               selectedLabel={msg.selectedLabel}
@@ -62,13 +90,24 @@ export default function MessageList({ messages, isStreaming, onSuggestionClick, 
             />
           );
         }
+        if (msg.role === 'diffReview') {
+          return (
+            <DiffReviewCard
+              key={key}
+              diff={msg.diff}
+              status={msg.status}
+              onAccept={() => onAcceptDiff?.(i)}
+              onReject={() => onRejectDiff?.(i)}
+            />
+          );
+        }
         if (msg.role === 'changeSummary') {
-          return <ChangeSummaryCard key={i} summary={msg.summary} onUndo={onUndo} canUndo={canUndo} />;
+          return <ChangeSummaryCard key={key} summary={msg.summary} onUndo={onUndo} canUndo={canUndo} />;
         }
         if (msg.role === 'syncSuggestion') {
           return (
             <SyncSuggestionCard
-              key={msg.id || i}
+              key={key}
               suggestion={msg}
               onApprove={onApproveSyncSuggestion}
               onSkip={onSkipSyncSuggestion}
@@ -78,7 +117,7 @@ export default function MessageList({ messages, isStreaming, onSuggestionClick, 
         if (msg.role === 'diagram') {
           return (
             <DiagramCard
-              key={msg.id || i}
+              key={key}
               diagram={msg.diagram}
               status={msg.status}
             />
@@ -87,7 +126,7 @@ export default function MessageList({ messages, isStreaming, onSuggestionClick, 
         if (msg.role === 'chart') {
           return (
             <ChartCard
-              key={msg.id || i}
+              key={key}
               chart={msg.chart}
               status={msg.status}
             />
@@ -96,7 +135,7 @@ export default function MessageList({ messages, isStreaming, onSuggestionClick, 
         if (msg.role === 'imageSearch') {
           return (
             <ImageSearchCard
-              key={msg.id || i}
+              key={key}
               imageSearch={msg.imageSearch}
               status={msg.status}
               provider={msg.provider}
@@ -106,7 +145,7 @@ export default function MessageList({ messages, isStreaming, onSuggestionClick, 
         }
         return (
           <MessageBubble
-            key={i}
+            key={key}
             role={msg.role}
             text={msg.text || msg.content || ''}
             isLast={i === messages.length - 1}

@@ -1,5 +1,6 @@
 import React from 'react';
 import UserMenu from './UserMenu';
+import DarkModeToggle from './DarkModeToggle';
 
 export default function Header({ onOpenProjects, onOpenHelp }) {
 
@@ -19,6 +20,7 @@ export default function Header({ onOpenProjects, onOpenHelp }) {
           </div>
 
           <div className="flex items-center gap-2">
+            <DarkModeToggle />
             <UserMenu onOpenProjects={onOpenProjects} />
             {onOpenHelp && (
               <button

@@ -129,6 +129,24 @@ export default function ChatInput({
                 </span>
               )}
 
+              {/* Review Course button — AI scans content and suggests improvements */}
+              {isAgentMode && !busy && (
+                <button
+                  onClick={() => {
+                    onSend('Review my course. Run validate_course, then scan all generated deliverables for: (1) weak learning objectives that use lower Bloom\'s verbs like "understand" or "know" — suggest upgrades, (2) misalignment between assessments and stated objectives, (3) missing or vague content in any deliverable, (4) readability issues. For each issue found, explain what\'s wrong and propose a specific fix using edit_deliverables or edit_course_map.');
+                    setInput('');
+                  }}
+                  className="tactile flex items-center gap-1 px-2 py-0.5 rounded-lg text-[10px] font-semibold text-emerald-600 hover:bg-emerald-50/60 hover:text-emerald-700 transition-all duration-200"
+                  title="AI reviews your course for alignment, readability, and completeness"
+                >
+                  <svg className="w-3 h-3" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2}
+                      d="M9 5H7a2 2 0 00-2 2v12a2 2 0 002 2h10a2 2 0 002-2V7a2 2 0 00-2-2h-2M9 5a2 2 0 002 2h2a2 2 0 002-2M9 5a2 2 0 012-2h2a2 2 0 012 2m-6 9l2 2 4-4" />
+                  </svg>
+                  Review
+                </button>
+              )}
+
               {/* Undo button */}
               {canUndo && onUndo && (
                 <button

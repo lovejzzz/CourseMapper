@@ -7,6 +7,36 @@
 
 import { getArrayKey } from './syncDependencies';
 
+// ── Course map field aliases (agent shorthand → actual field key) ────────────
+// The AI may use abbreviated names; resolve them to real course map field keys.
+const FIELD_ALIASES = {
+  lo: 'learningObjectives',
+  lg: 'learningGoals',
+  tp: 'topicSection',
+  topic: 'topicSection',
+  topics: 'topicSection',
+  as: 'weeklyAssessments',
+  assessments: 'weeklyAssessments',
+  ac: 'asyncActivities',
+  async: 'asyncActivities',
+  sync: 'syncActivities',
+  rs: 'supportingResources',
+  resources: 'supportingResources',
+  tech: 'technologyNeeded',
+  pf: 'presentationFormat',
+  ed: 'evaluateDesign',
+  objectives: 'learningObjectives',
+  goals: 'learningGoals',
+};
+
+function resolveField(field, sections) {
+  if (!field) return field;
+  // If the field exists directly in any section, use it as-is
+  if (sections?.some(sec => field in sec)) return field;
+  // Try alias mapping
+  return FIELD_ALIASES[field.toLowerCase()] || field;
+}
+
 // ── Action Types ─────────────────────────────────────────────────────────────
 
 export const ACTION_TYPES = {
@@ -88,10 +118,13 @@ export function executeAction(action, ctx) {
 
 // ── Course Map Actions ───────────────────────────────────────────────────────
 
-function execEditCell({ lessonIndex, sectionIndex, field, value }, { editor }) {
+function execEditCell({ lessonIndex, sectionIndex, field, value }, { editor, courseMap }) {
   if (!editor?.handleCellEdit) return { success: false, message: 'Editor not available' };
-  editor.handleCellEdit(lessonIndex, sectionIndex ?? 0, field, value);
-  return { success: true, message: `Updated ${field} in Lesson ${lessonIndex + 1}` };
+  // Resolve abbreviated field names to actual course map keys
+  const sections = courseMap?.lessons?.[lessonIndex]?.sections;
+  const resolvedField = resolveField(field, sections);
+  editor.handleCellEdit(lessonIndex, sectionIndex ?? 0, resolvedField, value);
+  return { success: true, message: `Updated ${resolvedField} in Lesson ${lessonIndex + 1}` };
 }
 
 function execEditTitle({ lessonIndex, newTitle }, { editor }) {
@@ -213,7 +246,7 @@ function execRemoveItem({ featureId, lessonIndex, itemIndex, subKey }, ctx) {
 
   if (featureId === 'assignments') {
     // Flat array — remove by index
-    if (!data[arrKey] || itemIndex >= data[arrKey].length) {
+    if (!data[arrKey] || itemIndex < 0 || itemIndex >= data[arrKey].length) {
       return { success: false, message: 'Item index out of range' };
     }
     const removed = data[arrKey].splice(itemIndex, 1)[0];
@@ -231,7 +264,7 @@ function execRemoveItem({ featureId, lessonIndex, itemIndex, subKey }, ctx) {
   const subArrayKey = subKey || SUB_ARRAY_KEYS[featureId];
 
   if (subArrayKey && Array.isArray(lessonItem[subArrayKey])) {
-    if (itemIndex >= lessonItem[subArrayKey].length) {
+    if (itemIndex < 0 || itemIndex >= lessonItem[subArrayKey].length) {
       return { success: false, message: 'Item index out of range' };
     }
     const removed = lessonItem[subArrayKey].splice(itemIndex, 1)[0];
@@ -257,13 +290,23 @@ function execEditItem({ featureId, path, value }, ctx) {
 
   const data = structuredClone(entry.data);
 
+  // Resolve the first path segment: the agent may send "slideDecks" but data uses "decks"
+  // Use getArrayKey to find the actual root array key and substitute if needed
+  const resolvedPath = [...path];
+  if (resolvedPath.length >= 1 && typeof resolvedPath[0] === 'string' && data[resolvedPath[0]] == null) {
+    const actualKey = getArrayKey(featureId, data);
+    if (actualKey && data[actualKey] != null) {
+      resolvedPath[0] = actualKey;
+    }
+  }
+
   // Walk the path and set the value
   let target = data;
-  for (let i = 0; i < path.length - 1; i++) {
-    target = target[path[i]];
-    if (target == null) return { success: false, message: `Invalid path at ${path[i]}` };
+  for (let i = 0; i < resolvedPath.length - 1; i++) {
+    target = target[resolvedPath[i]];
+    if (target == null) return { success: false, message: `Invalid path at ${resolvedPath[i]}` };
   }
-  const finalKey = path[path.length - 1];
+  const finalKey = resolvedPath[resolvedPath.length - 1];
   if (target == null || typeof target !== 'object') return { success: false, message: `Invalid path — cannot set property on ${typeof target}` };
   target[finalKey] = value;
 

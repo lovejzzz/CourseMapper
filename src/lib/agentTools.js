@@ -109,12 +109,26 @@ export const AGENT_TOOLS = {
       if (args.lessonIndex !== undefined && arrKey && Array.isArray(data[arrKey])) {
         const item = data[arrKey][args.lessonIndex];
         if (!item) return { error: `Lesson index ${args.lessonIndex} out of range (0-${data[arrKey].length - 1}).` };
-        const str = JSON.stringify(item);
-        if (str.length > 3000) {
-          // Truncate large items — keep first 3000 chars
-          return { data: item, note: 'Data truncated to fit context.', truncated: true };
+        // Build editItem path hints so agent knows how to edit fields
+        const pathPrefix = `["${arrKey}", ${args.lessonIndex}`;
+        const pathHints = [];
+        for (const [key, val] of Object.entries(item)) {
+          if (Array.isArray(val) && val.length > 0 && typeof val[0] === 'object') {
+            // Sub-array with objects — show path to first item's fields
+            const subFields = Object.keys(val[0]).slice(0, 5).join(', ');
+            pathHints.push(`${pathPrefix}, "${key}", <idx>, "<field>"] — ${val.length} items, fields: ${subFields}`);
+          } else if (typeof val === 'string' || typeof val === 'number') {
+            pathHints.push(`${pathPrefix}, "${key}"] — ${typeof val}`);
+          }
         }
-        return { data: item };
+        const str = JSON.stringify(item);
+        const result = { data: item };
+        if (pathHints.length > 0) result.editPaths = pathHints;
+        if (str.length > 3000) {
+          result.note = 'Data truncated to fit context.';
+          result.truncated = true;
+        }
+        return result;
       }
 
       // Summary of all items
@@ -159,9 +173,32 @@ export const AGENT_TOOLS = {
   },
 
   edit_course_map: {
-    description: 'Edit course map: cells, titles, add/remove lessons. Changes are applied immediately.',
+    description: 'Edit course map: rename lesson titles, edit cells (objectives, activities, topics, etc.), add or remove lessons. Changes are applied immediately. For title renames, set field to "title".',
     params: {
       patches: 'array — each: {lessonIndex, sectionIndex?, field, value} for cells, {lessonIndex, field:"title", value} for rename, {action:"addLesson", title, sections?} to add, {action:"removeLesson", lessonIndex} to remove',
+    },
+    // Explicit JSON Schema for better LLM tool-calling accuracy
+    jsonSchema: {
+      type: 'object',
+      properties: {
+        patches: {
+          type: 'array',
+          description: 'Array of patch operations to apply to the course map.',
+          items: {
+            type: 'object',
+            properties: {
+              lessonIndex: { type: 'number', description: '0-based lesson index' },
+              sectionIndex: { type: 'number', description: '0-based section index (default 0)' },
+              field: { type: 'string', description: 'Field to edit: "title" for lesson title, or cell field name: "learningGoals", "learningObjectives", "topicSection", "weeklyAssessments", "asyncActivities", "syncActivities", "supportingResources", "technologyNeeded", "presentationFormat", "evaluateDesign". Abbreviations also accepted: "lo", "lg", "tp", "as", "ac", "rs"' },
+              value: { type: 'string', description: 'New value for the field' },
+              action: { type: 'string', description: 'Special action: "addLesson" or "removeLesson"' },
+              title: { type: 'string', description: 'Title for new lesson (when action is "addLesson")' },
+            },
+            required: ['lessonIndex'],
+          },
+        },
+      },
+      required: ['patches'],
     },
     execute: (args, ctx) => {
       const patches = args.patches || [];
@@ -201,6 +238,31 @@ export const AGENT_TOOLS = {
     description: 'Add, edit, or remove deliverable items. Changes are applied immediately with undo support.',
     params: {
       actions: 'array — each: {type:"addItem"|"removeItem"|"editItem"|"regenerateLesson", featureId, lessonIndex, item?, itemIndex?, path?, value?}',
+    },
+    // Explicit JSON Schema for better LLM tool-calling accuracy
+    jsonSchema: {
+      type: 'object',
+      properties: {
+        actions: {
+          type: 'array',
+          description: 'Array of actions to apply to deliverables.',
+          items: {
+            type: 'object',
+            properties: {
+              type: { type: 'string', description: 'Action type: "addItem", "removeItem", "editItem", or "regenerateLesson"' },
+              featureId: { type: 'string', description: 'Deliverable ID: assignments, quizBank, discussions, slideDecks, lessonPlans, rubrics, studyGuides, courseFaq, syllabus' },
+              lessonIndex: { type: 'number', description: '0-based lesson index' },
+              item: { type: 'object', description: 'Item object to add (for addItem)' },
+              itemIndex: { type: 'number', description: 'Index of item to remove (for removeItem)' },
+              subKey: { type: 'string', description: 'Sub-array key if needed (e.g., "qs", "sl", "cr")' },
+              path: { type: 'array', description: 'Path from data root to field. Examples: ["slideDecks",0,"sl",2,"no"] for slide notes, ["quizzes",0,"qs",1,"q"] for quiz question, ["discussions",0,"pr"] for discussion prompt. Format: [rootKey, lessonIdx, subArrayKey?, itemIdx?, field]', items: {} },
+              value: { description: 'New value to set (for editItem)' },
+            },
+            required: ['type', 'featureId'],
+          },
+        },
+      },
+      required: ['actions'],
     },
     execute: (args, ctx) => {
       const actions = args.actions || [];

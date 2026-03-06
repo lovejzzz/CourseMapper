@@ -6,6 +6,7 @@ import { generateCourseHealthReport, classifyFindings } from '../../lib/pedagogi
 import { getChatOpener } from './constants';
 import { AGENT_TOOLS, TOOL_LABELS, summarizeToolResult } from '../../lib/agentTools';
 import { preValidateAction } from '../../lib/agentActions';
+import { getArrayKey } from '../../lib/syncDependencies';
 import {
   buildNativeTools, buildAgentRequest, parseAgentResponse as parseProviderResponse,
   formatAssistantToolCalls, batchToolResults,
@@ -321,7 +322,11 @@ export default function useChatRouter({
   executeSyncPlan,
 }) {
   const [messages, setMessages] = useState(savedMessages || []);
+  const messagesRef = useRef(messages);
+  messagesRef.current = messages;
   const [isStreaming, setIsStreaming] = useState(false);
+  const isStreamingRef = useRef(false);
+  function setStreaming(val) { isStreamingRef.current = val; setIsStreaming(val); }
   const [attachedFiles, setAttachedFiles] = useState([]);
   const [isParsing, setIsParsing] = useState(false);
   const abortRef = useRef(null);
@@ -344,12 +349,10 @@ export default function useChatRouter({
   useEffect(() => { executeSyncPlanRef.current = executeSyncPlan; });
 
   // ── Post-action pedagogical validation ────────────────────────────────────
+  // Disabled: validation is available on-demand via the "Review" button.
+  // Auto-validation after every edit was too noisy and disruptive.
   function maybeRunValidation() {
-    if (!courseMap || !delivRef.current) return;
-    const report = generateCourseHealthReport(courseMap, delivRef.current);
-    if (report.errorCount > 0 || report.warningCount > 0) {
-      setMessages(prev => [...prev, { role: 'validation', report }]);
-    }
+    // no-op — users can trigger validation manually
   }
 
   // ── File handling ─────────────────────────────────────────────────────────
@@ -381,7 +384,7 @@ export default function useChatRouter({
   // ── Send message ──────────────────────────────────────────────────────────
   async function send(text) {
     const trimmed = text.trim();
-    if ((!trimmed && attachedFiles.length === 0) || isStreaming) return;
+    if ((!trimmed && attachedFiles.length === 0) || isStreamingRef.current) return;
 
     // Dismiss any pending or failed proposals
     setMessages(prev => prev.map(m =>
@@ -424,9 +427,10 @@ export default function useChatRouter({
     })), userMsg];
 
     setMessages(prev => [...prev, { role: 'user', text }, { role: 'assistant', text: '' }]);
-    setIsStreaming(true);
+    setStreaming(true);
 
     try {
+      abortRef.current?.abort();
       const controller = new AbortController();
       abortRef.current = controller;
 
@@ -493,7 +497,7 @@ export default function useChatRouter({
         return updated;
       });
     } finally {
-      setIsStreaming(false);
+      setStreaming(false);
     }
   }
 
@@ -526,7 +530,7 @@ export default function useChatRouter({
         { role: 'agentProgress', steps: [], status: 'running' },
       ]);
     }
-    setIsStreaming(true);
+    setStreaming(true);
 
     // Helper: update the progress card
     const updateProgress = (updater) => {
@@ -558,6 +562,7 @@ export default function useChatRouter({
     };
 
     try {
+      abortRef.current?.abort();
       const controller = new AbortController();
       abortRef.current = controller;
 
@@ -594,7 +599,15 @@ export default function useChatRouter({
         if (toolCalls) {
           const respondCall = toolCalls.find(tc => tc.name === 'respond');
           if (respondCall) {
-            if (usedTools) {
+            // Silent mode: always remove progress card
+            if (silent) {
+              setMessages(prev => {
+                const updated = [...prev];
+                const progressIdx = updated.findLastIndex(m => m.role === 'agentProgress');
+                if (progressIdx >= 0) updated.splice(progressIdx, 1);
+                return updated;
+              });
+            } else if (usedTools) {
               updateProgress({ status: 'complete' });
             } else {
               // No tools used — remove progress card entirely for clean UX
@@ -613,7 +626,15 @@ export default function useChatRouter({
         // ── NO TOOL CALLS: text-only fallback ───────────────────────────
         if (!toolCalls) {
           const fallbackText = textContent || "I wasn't able to complete that request. Could you try asking about one specific aspect?";
-          if (usedTools) {
+          // Silent mode: remove progress card, skip fallback message
+          if (silent) {
+            setMessages(prev => {
+              const updated = [...prev];
+              const progressIdx = updated.findLastIndex(m => m.role === 'agentProgress');
+              if (progressIdx >= 0) updated.splice(progressIdx, 1);
+              return updated;
+            });
+          } else if (usedTools) {
             updateProgress({ status: 'complete' });
             setMessages(prev => [...prev, { role: 'assistant', text: fallbackText }]);
           } else {
@@ -706,8 +727,16 @@ export default function useChatRouter({
         }
       }
 
-      // If loop exhausted MAX_ITERATIONS without breaking, notify the user
-      if (!usedTools) {
+      // Silent mode: clean up progress card entirely — user should never see auto-fix steps
+      if (silent) {
+        setMessages(prev => {
+          const updated = [...prev];
+          const progressIdx = updated.findLastIndex(m => m.role === 'agentProgress');
+          if (progressIdx >= 0) updated.splice(progressIdx, 1);
+          return updated;
+        });
+      } else if (!usedTools) {
+        // If loop exhausted MAX_ITERATIONS without any tool use, remove the empty progress card
         setMessages(prev => {
           const updated = [...prev];
           const progressIdx = updated.findLastIndex(m => m.role === 'agentProgress');
@@ -717,38 +746,59 @@ export default function useChatRouter({
       } else {
         updateProgress({ status: 'complete' });
       }
-      // Only add a message if the loop truly exhausted (no break was hit)
-      // We detect this by checking if the last iteration completed without breaking
-      setMessages(prev => {
-        const lastMsg = prev[prev.length - 1];
-        // If the last message is already an assistant response or changeSummary, the loop did break
-        if (lastMsg?.role === 'assistant' || lastMsg?.role === 'proposal' || lastMsg?.role === 'changeSummary') return prev;
-        return [...prev, { role: 'assistant', text: "I've completed several steps but couldn't fully finish. Could you try a more specific request?" }];
-      });
+      // Only add a fallback message if non-silent and the loop truly exhausted (no break was hit)
+      if (!silent) {
+        setMessages(prev => {
+          const lastMsg = prev[prev.length - 1];
+          // If the last message is already an assistant response or changeSummary, the loop did break
+          if (lastMsg?.role === 'assistant' || lastMsg?.role === 'proposal' || lastMsg?.role === 'changeSummary') return prev;
+          return [...prev, { role: 'assistant', text: "I've completed several steps but couldn't fully finish. Could you try a more specific request?" }];
+        });
+      }
     } catch (err) {
       if (err.name === 'AbortError') {
-        updateProgress({ status: 'complete' });
+        // Silent mode: remove progress card on abort too
+        if (silent) {
+          setMessages(prev => {
+            const updated = [...prev];
+            const progressIdx = updated.findLastIndex(m => m.role === 'agentProgress');
+            if (progressIdx >= 0) updated.splice(progressIdx, 1);
+            return updated;
+          });
+        } else {
+          updateProgress({ status: 'complete' });
+        }
         return;
       }
       const isNoKey = err.message === 'NO_API_KEY';
       const isNoModel = err.message === 'NO_MODEL_SELECTED';
-      setMessages(prev => {
-        const updated = [...prev];
-        const progressIdx = updated.findLastIndex(m => m.role === 'agentProgress');
-        const errMsg = {
-          role: 'assistant',
-          text: isNoKey
-            ? 'To use the agent, please configure your AI provider and API key first.'
-            : isNoModel
-            ? 'No AI model selected. Please select a model on the landing page first.'
-            : "Sorry, I couldn't process that request. Please check your API key and try again.",
-        };
-        if (progressIdx >= 0) updated[progressIdx] = errMsg;
-        else updated.push(errMsg);
-        return updated;
-      });
+      if (silent) {
+        // Silent mode: just remove the progress card, don't show error to user
+        setMessages(prev => {
+          const updated = [...prev];
+          const progressIdx = updated.findLastIndex(m => m.role === 'agentProgress');
+          if (progressIdx >= 0) updated.splice(progressIdx, 1);
+          return updated;
+        });
+      } else {
+        setMessages(prev => {
+          const updated = [...prev];
+          const progressIdx = updated.findLastIndex(m => m.role === 'agentProgress');
+          const errMsg = {
+            role: 'assistant',
+            text: isNoKey
+              ? 'To use the agent, please configure your AI provider and API key first.'
+              : isNoModel
+              ? 'No AI model selected. Please select a model on the landing page first.'
+              : "Sorry, I couldn't process that request. Please check your API key and try again.",
+          };
+          if (progressIdx >= 0) updated[progressIdx] = errMsg;
+          else updated.push(errMsg);
+          return updated;
+        });
+      }
     } finally {
-      setIsStreaming(false);
+      setStreaming(false);
     }
   }
 
@@ -922,7 +972,9 @@ export default function useChatRouter({
       return updated;
     });
 
+    setStreaming(true);
     try {
+      abortRef.current?.abort();
       const controller = new AbortController();
       abortRef.current = controller;
 
@@ -1071,11 +1123,62 @@ export default function useChatRouter({
         return updated;
       });
     } finally {
-      setIsStreaming(false);
+      setStreaming(false);
     }
   }
 
-  // ── Handle proposal selection ─────────────────────────────────────────────
+  // ── Generate diff preview for an action (before applying) ─────────────────
+  function generateDiffPreview(action) {
+    const preview = {};
+    const type = action?.type;
+    try {
+      if (type === 'editCell') {
+        // Read old value from courseMap
+        const lesson = courseMap?.lessons?.[action.lessonIndex];
+        const section = lesson?.sections?.[action.sectionIndex];
+        preview.oldValue = section?.[action.field] ?? '';
+      } else if (type === 'editTitle') {
+        const lesson = courseMap?.lessons?.[action.lessonIndex];
+        preview.oldValue = lesson?.title ?? '';
+      } else if (type === 'removeItem') {
+        // Read item that will be removed
+        const deliv = delivRef.current;
+        const entry = deliv?.[action.featureId];
+        if (entry?.data) {
+          const arrKey = Object.keys(entry.data).find(k => Array.isArray(entry.data[k]));
+          if (arrKey) {
+            const lessonItems = entry.data[arrKey]?.[action.lessonIndex];
+            const items = Array.isArray(lessonItems) ? lessonItems : lessonItems?.items;
+            preview.removedItem = items?.[action.itemIndex] ?? null;
+          }
+        }
+      } else if (type === 'editItem') {
+        // Read old value at the edit path
+        const deliv = delivRef.current;
+        const entry = deliv?.[action.featureId];
+        if (entry?.data && action.path) {
+          let val = entry.data;
+          const parts = Array.isArray(action.path) ? [...action.path] : String(action.path).split('.');
+          // Resolve root key: agent may send "slideDecks" but data uses "decks" etc.
+          if (parts.length >= 1 && typeof parts[0] === 'string' && val[parts[0]] == null) {
+            const actualKey = getArrayKey(action.featureId, val);
+            if (actualKey) parts[0] = actualKey;
+          }
+          for (const p of parts) {
+            if (val == null) break;
+            val = val[p];
+          }
+          preview.oldValue = val ?? '';
+        }
+      } else if (type === 'deleteLesson') {
+        const lesson = courseMap?.lessons?.[action.lessonIndex];
+        preview.lessonTitle = lesson?.title ?? `Lesson ${(action.lessonIndex ?? 0) + 1}`;
+      }
+    } catch { /* preview is best-effort */ }
+    return preview;
+  }
+
+  // ── Handle proposal selection → show diff review first ──────────────────
   function handleSelectProposal(messageIndex, optionLabel) {
     const msg = messages[messageIndex];
     if (!msg || msg.role !== 'proposal') return;
@@ -1105,56 +1208,123 @@ export default function useChatRouter({
       });
       sendAgentMessage(
         `Option "${option.title}" is invalid: ${validation.reason}. `
-        + `Please propose a new option targeting valid deliverables.`,
+        + `Please propose a new option that addresses this issue.`,
         { silent: true },
       );
       return;
     }
 
-    const result = exec(option.action);
+    // Generate a diff preview BEFORE applying
+    const preview = generateDiffPreview(option.action);
+
+    // Mark proposal as "reviewing" and push a diffReview message
+    setMessages(prev => {
+      const updated = [...prev];
+      updated[messageIndex] = {
+        ...updated[messageIndex],
+        status: 'reviewing',
+        selectedLabel: optionLabel,
+      };
+      updated.push({
+        role: 'diffReview',
+        diff: {
+          action: option.action,
+          preview,
+          optionTitle: option.title,
+        },
+        status: 'pending',
+        _proposalIndex: messageIndex,
+        _optionLabel: optionLabel,
+      });
+      return updated;
+    });
+  }
+
+  // ── Accept diff → apply the change ────────────────────────────────────────
+  function handleAcceptDiff(diffMessageIndex) {
+    const msg = messages[diffMessageIndex];
+    if (!msg || msg.role !== 'diffReview' || msg.status !== 'pending') return;
+
+    const exec = executeActionRef.current;
+    if (!exec) return;
+
+    const { action, optionTitle } = msg.diff;
+    const proposalIndex = msg._proposalIndex;
+    const optionLabel = msg._optionLabel;
+
+    const result = exec(action);
 
     if (result.success) {
       setMessages(prev => {
         const updated = [...prev];
-        updated[messageIndex] = {
-          ...updated[messageIndex],
-          status: 'selected',
-          selectedLabel: optionLabel,
-          failedLabel: null,
-          failedMessage: null,
-        };
-        const actionType = option.action?.type === 'addItem' ? 'added'
-          : option.action?.type === 'removeItem' ? 'removed' : 'edited';
+        // Mark diff as accepted
+        updated[diffMessageIndex] = { ...updated[diffMessageIndex], status: 'accepted' };
+        // Mark parent proposal as selected
+        if (proposalIndex != null && updated[proposalIndex]?.role === 'proposal') {
+          updated[proposalIndex] = {
+            ...updated[proposalIndex],
+            status: 'selected',
+            selectedLabel: optionLabel,
+            failedLabel: null,
+            failedMessage: null,
+          };
+        }
+        // Add change summary
+        const actionType = (action?.type === 'addItem' || action?.type === 'addLesson') ? 'added'
+          : (action?.type === 'removeItem' || action?.type === 'deleteLesson') ? 'removed' : 'edited';
+        const target = action?.featureId || 'courseMap';
         updated.push({
           role: 'changeSummary',
           summary: {
-            changes: [{ type: actionType, featureId: option.action?.featureId, count: 1, label: option.title }],
-            message: `Added "${option.title}" to your course.`,
+            changes: [{ type: actionType, featureId: target, count: 1, label: optionTitle }],
+            message: `Applied "${optionTitle}" to your course.`,
           },
         });
         return updated;
       });
       maybeRunValidation();
     } else {
-      // Auto-recover: dismiss the broken proposal and ask the agent to fix the issue
       const errorDetail = result.message || 'Unknown error';
-      const featureId = option.action?.featureId || 'unknown';
+      const isCourseMapAction = ['editCell', 'editTitle', 'addLesson', 'deleteLesson'].includes(action?.type);
       setMessages(prev => {
         const updated = [...prev];
-        updated[messageIndex] = {
-          ...updated[messageIndex],
-          status: 'dismissed',
-        };
+        updated[diffMessageIndex] = { ...updated[diffMessageIndex], status: 'rejected' };
+        if (proposalIndex != null && updated[proposalIndex]?.role === 'proposal') {
+          updated[proposalIndex] = { ...updated[proposalIndex], status: 'dismissed' };
+        }
         return updated;
       });
-      // Send to agent to find an alternative approach (silently — no user bubble)
       sendAgentMessage(
-        `I tried to apply "${option.title}" but it failed: ${errorDetail}. `
-        + `The deliverable "${featureId}" may not be available. `
-        + `Please find another way to accomplish this — target a deliverable that IS generated (status "done"), or suggest an alternative approach.`,
+        `I tried to apply "${optionTitle}" but it failed: ${errorDetail}. `
+        + (isCourseMapAction
+          ? `The course map edit could not be applied. Please try a different approach.`
+          : `The deliverable "${action?.featureId || 'unknown'}" may not be available. Please target a deliverable that IS generated (status "done"), or suggest an alternative approach.`),
         { silent: true },
       );
     }
+  }
+
+  // ── Reject diff → dismiss and optionally ask agent for alternative ────────
+  function handleRejectDiff(diffMessageIndex) {
+    const msg = messages[diffMessageIndex];
+    if (!msg || msg.role !== 'diffReview' || msg.status !== 'pending') return;
+
+    const proposalIndex = msg._proposalIndex;
+    const optionTitle = msg.diff?.optionTitle || 'this change';
+
+    setMessages(prev => {
+      const updated = [...prev];
+      updated[diffMessageIndex] = { ...updated[diffMessageIndex], status: 'rejected' };
+      // Restore parent proposal to pending so user can pick another option
+      if (proposalIndex != null && updated[proposalIndex]?.role === 'proposal') {
+        updated[proposalIndex] = {
+          ...updated[proposalIndex],
+          status: 'pending',
+          selectedLabel: null,
+        };
+      }
+      return updated;
+    });
   }
 
   // ── Revise mode (legacy): pass to revision handler ────────────────────────
@@ -1174,19 +1344,22 @@ export default function useChatRouter({
       : '');
 
     setAttachedFiles([]);
-    const updatedMessages = [...messages, { role: 'user', text: displayText }];
-    setMessages(updatedMessages);
+    // Use updater to avoid stale messages closure
+    let chatHistorySnapshot;
+    setMessages(prev => {
+      const updated = [...prev, { role: 'user', text: displayText }];
+      chatHistorySnapshot = updated
+        .filter(m => m.role === 'user' || m.role === 'assistant')
+        .slice(-10);
+      return updated;
+    });
 
     const isDeliverableTab = activeTab && activeTab !== 'courseMap';
     const delivHasData = isDeliverableTab && delivRef.current?.[activeTab]?.status === 'done';
     const handler = isDeliverableTab && delivHasData && onDeliverableRevision ? onDeliverableRevision : onRevision;
 
-    const chatHistory = updatedMessages
-      .filter(m => m.role === 'user' || m.role === 'assistant')
-      .slice(-10);
-
     try {
-      const result = await handler(fullMessage, chatHistory);
+      const result = await handler(fullMessage, chatHistorySnapshot);
       const assistantReply = result?.chatReply || 'Updated! Review the changes in the workspace.';
       setMessages(prev => [...prev, { role: 'assistant', text: assistantReply }]);
     } catch (err) {
@@ -1197,7 +1370,7 @@ export default function useChatRouter({
   // ── Stop streaming ────────────────────────────────────────────────────────
   function handleStop() {
     abortRef.current?.abort();
-    setIsStreaming(false);
+    setStreaming(false);
   }
 
   // ── Add progress card (called by ChatPanel when generation status changes)
@@ -1229,12 +1402,15 @@ export default function useChatRouter({
   }, []);
 
   const handleApproveSyncSuggestion = useCallback(async (suggestionId) => {
+    // Read plan from current messages before mutating state
     let plan, changedFieldsSummary;
-    setMessages(prev => {
-      const msg = prev.find(m => m.id === suggestionId);
-      if (msg) { plan = msg.plan; changedFieldsSummary = msg.changedFieldsSummary; }
-      return prev.map(m => m.id === suggestionId ? { ...m, status: 'syncing' } : m);
-    });
+    const currentMsgs = messagesRef.current;
+    const matchMsg = currentMsgs.find(m => m.id === suggestionId);
+    if (matchMsg) { plan = matchMsg.plan; changedFieldsSummary = matchMsg.changedFieldsSummary; }
+
+    setMessages(prev =>
+      prev.map(m => m.id === suggestionId ? { ...m, status: 'syncing' } : m)
+    );
 
     if (!plan) return;
 
@@ -1266,14 +1442,18 @@ export default function useChatRouter({
 
     // Fallback: read from healthGate card in messages (legacy / button-click path)
     if (findings.length === 0) {
-      setMessages(prev => {
-        const gateIdx = prev.findIndex(m => m.role === 'progress' && m.data?.phase === 'healthGate');
-        if (gateIdx < 0) return prev;
-        findings = prev[gateIdx].data?.findings || [];
-        const updated = [...prev];
-        updated[gateIdx] = { ...updated[gateIdx], data: { ...updated[gateIdx].data, status: 'fixing' } };
-        return updated;
-      });
+      const currentMsgs = messagesRef.current;
+      const gateMsg = currentMsgs.find(m => m.role === 'progress' && m.data?.phase === 'healthGate');
+      if (gateMsg) {
+        findings = gateMsg.data?.findings || [];
+        setMessages(prev => {
+          const gateIdx = prev.findIndex(m => m.role === 'progress' && m.data?.phase === 'healthGate');
+          if (gateIdx < 0) return prev;
+          const updated = [...prev];
+          updated[gateIdx] = { ...updated[gateIdx], data: { ...updated[gateIdx].data, status: 'fixing' } };
+          return updated;
+        });
+      }
     }
 
     if (findings.length === 0) return;
@@ -1334,6 +1514,7 @@ export default function useChatRouter({
     attachedFiles, processFiles, removeAttached, isParsing,
     addProgressMessage,
     handleSelectProposal,
+    handleAcceptDiff, handleRejectDiff,
     pushSyncSuggestion, handleApproveSyncSuggestion, handleSkipSyncSuggestion,
     triggerAutoFix, skipHealthGate,
   };

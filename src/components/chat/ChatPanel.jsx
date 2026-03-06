@@ -1,4 +1,4 @@
-import React, { useEffect, useRef, useCallback } from 'react';
+import React, { useEffect, useRef, useCallback, useMemo } from 'react';
 import ProgressHeader from './ProgressHeader';
 import MessageList from './MessageList';
 import ChatInput from './ChatInput';
@@ -6,7 +6,6 @@ import AgentProgressCard from './AgentProgressCard';
 import useChatRouter from './useChatRouter';
 import ExamReview from '../ExamReview';
 import { executeAction } from '../../lib/agentActions';
-import { generateCourseHealthReport } from '../../lib/pedagogicalValidator';
 
 /**
  * ChatPanel — Unified chat interface replacing ProgressPanel + RevisionChat + HelpDrawer.
@@ -40,19 +39,27 @@ export default function ChatPanel({
   delivUndoSnapshot, delivUndoFn, delivCanUndo, onAgentHighlight,
   // Agent-mediated sync
   pendingSyncSuggestion, clearPendingSyncSuggestion, executeSyncPlan,
+  // External ref for sending messages from outside (e.g., context menu)
+  chatSendRef,
 }) {
   // Detect agent mode: deliverables with done status exist
   const isAgentMode = !!(deliverables && Object.keys(deliverables).some(
     k => k !== 'courseMap' && deliverables[k]?.status === 'done'
   ));
 
+  // Keep refs for values that can change between parallel tool calls in the same agent turn
+  const delivRef = useRef(deliverables);
+  delivRef.current = deliverables;
+  const courseMapRef = useRef(courseMap);
+  courseMapRef.current = courseMap;
+
   // Build the action executor that agent mode uses
   const execAction = useCallback((action, opts = {}) => {
     const result = executeAction(action, {
       editor,
-      deliverables,
+      deliverables: delivRef.current,
       optimisticUpdate,
-      courseMap,
+      courseMap: courseMapRef.current,
       regenerateLesson,
       snapshot: delivUndoSnapshot,
       skipSnapshot: opts.skipSnapshot || false,
@@ -62,7 +69,7 @@ export default function ChatPanel({
       onAgentHighlight(action.featureId, action.lessonIndex ?? null);
     }
     return result;
-  }, [editor, deliverables, optimisticUpdate, courseMap, regenerateLesson, delivUndoSnapshot, onAgentHighlight]);
+  }, [editor, optimisticUpdate, regenerateLesson, delivUndoSnapshot, onAgentHighlight]);
 
   const chat = useChatRouter({
     apiKey, provider, modelId,
@@ -78,6 +85,11 @@ export default function ChatPanel({
     executeSyncPlan,
   });
 
+  // ── Expose chat.send to parent via ref (for context menu inline AI) ──
+  useEffect(() => {
+    if (chatSendRef) chatSendRef.current = chat.send;
+  }, [chat.send, chatSendRef]);
+
   // ── Bridge sync suggestion from useSmartSync into chat messages ──
   useEffect(() => {
     if (pendingSyncSuggestion) {
@@ -86,37 +98,17 @@ export default function ChatPanel({
     }
   }, [pendingSyncSuggestion]); // eslint-disable-line react-hooks/exhaustive-deps
 
-  // ── Auto health-fix after deliverables complete ─────────────────────────
-  const initDone = deliverables
-    ? Object.entries(deliverables).filter(([id]) => id !== 'courseMap').filter(([, s]) => s?.status === 'done').length
-    : 0;
-  const prevDelivDoneRef = useRef(initDone);
-
-  useEffect(() => {
-    const delivRows = deliverables
-      ? Object.entries(deliverables).filter(([id]) => id !== 'courseMap')
-      : [];
-    const doneCount = delivRows.filter(([, s]) => s?.status === 'done').length;
-    const allDone = delivRows.length > 0 && !isDelivGenerating &&
-      delivRows.every(([, s]) => s?.status === 'done' || s?.status === 'error');
-
-    if (allDone && doneCount > 0 && doneCount !== prevDelivDoneRef.current) {
-      // Run health check — if issues found, auto-fix silently
-      const healthReport = (courseMap && deliverables)
-        ? generateCourseHealthReport(courseMap, deliverables)
-        : null;
-
-      if (healthReport && (healthReport.errorCount > 0 || healthReport.warningCount > 0)) {
-        setTimeout(() => chat.triggerAutoFix(healthReport.findings), 300);
-      }
-    }
-    prevDelivDoneRef.current = doneCount;
-  }, [deliverables, isDelivGenerating]); // eslint-disable-line react-hooks/exhaustive-deps
+  // Auto health-fix removed — users can trigger validation manually via "Review Course" button
 
   const showProgressHeader = !!(currentStep || error);
 
   // Extract latest agent progress for the fixed status area (not in chat scroll)
-  const latestAgentProgress = [...chat.messages].reverse().find(m => m.role === 'agentProgress');
+  const latestAgentProgress = useMemo(() => {
+    for (let i = chat.messages.length - 1; i >= 0; i--) {
+      if (chat.messages[i].role === 'agentProgress') return chat.messages[i];
+    }
+    return null;
+  }, [chat.messages]);
 
   return (
     <div className="flex flex-col h-full bg-white/72 backdrop-blur-xl rounded-squircle shadow-glass overflow-hidden" data-print="hide">
@@ -184,6 +176,8 @@ export default function ChatPanel({
         isStreaming={chat.isStreaming}
         onSuggestionClick={(q) => chat.send(q)}
         onSelectProposal={chat.handleSelectProposal}
+        onAcceptDiff={chat.handleAcceptDiff}
+        onRejectDiff={chat.handleRejectDiff}
         onUndo={delivUndoFn}
         canUndo={delivCanUndo}
         onApproveSyncSuggestion={chat.handleApproveSyncSuggestion}

@@ -124,7 +124,8 @@ export function buildNativeTools(provider, agentTools) {
 
   // Add all agent tools
   for (const [name, tool] of Object.entries(agentTools)) {
-    const schema = toolToJsonSchema(tool);
+    // Use explicit jsonSchema if defined, otherwise auto-generate from params
+    const schema = tool.jsonSchema || toolToJsonSchema(tool);
     tools.push({ name, description: tool.description, schema });
   }
 
