@@ -7,9 +7,9 @@ export default function DiagramCard({ diagram, status }) {
   const containerRef = useRef(null);
   const renderIdRef = useRef(0);
 
-  if (!diagram) return null;
-
-  const { syntax, title, description } = diagram;
+  const syntax = diagram?.syntax;
+  const title = diagram?.title;
+  const description = diagram?.description;
 
   useEffect(() => {
     if (!syntax || status === 'searching') return;
@@ -48,6 +48,9 @@ export default function DiagramCard({ diagram, status }) {
       navigator.clipboard?.writeText(svgHtml);
     }
   };
+
+  // Guard: no diagram data yet
+  if (!diagram) return null;
 
   // Searching state
   if (status === 'searching') {
