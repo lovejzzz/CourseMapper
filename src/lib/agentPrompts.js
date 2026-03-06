@@ -8,6 +8,7 @@
  */
 
 import { getArrayKey } from './syncDependencies';
+import { buildMemoryContext } from './agentMemory';
 
 // ── Compact item schemas (one-line summaries of each deliverable's item shape) ──
 const ITEM_SCHEMAS = {
@@ -128,6 +129,11 @@ export function buildAgentSystemPrompt(courseMap, activeTab, deliverables, healt
     ? `\n\n## USER PREFERENCES (remembered from previous sessions)\n${Object.entries(userPrefs).map(([k, v]) => `- ${k}: ${v}`).join('\n')}`
     : '';
 
+  const memoryContext = buildMemoryContext();
+  const memorySection = memoryContext
+    ? `\n\n## AGENT MEMORY (learned from past interactions — use to personalize responses)\n${memoryContext}\n\nUse the **remember** tool to save new insights about this user. Use **recall** to search memories before making recommendations. Use **forget** to remove outdated memories.`
+    : `\n\n## AGENT MEMORY\nNo memories yet. Use the **remember** tool to save insights about this user's teaching style, preferences, and patterns for future sessions.`;
+
   return `You are an agentic teaching assistant embedded in Course Mapper. You help instructors build and refine their courses by taking ACTIONS — not just answering questions.
 
 ## CORE PRINCIPLE: ACT, DON'T ADVISE
@@ -242,5 +248,5 @@ ${courseMapFields}
 ${delivStatusLines}
 ${delivContext}
 ${schemaSection}
-${otherSchemasSection}${healthSection}${prefsSection}`;
+${otherSchemasSection}${healthSection}${prefsSection}${memorySection}`;
 }

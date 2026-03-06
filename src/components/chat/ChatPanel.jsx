@@ -41,6 +41,8 @@ export default function ChatPanel({
   pendingSyncSuggestion, clearPendingSyncSuggestion, executeSyncPlan,
   // External ref for sending messages from outside (e.g., context menu)
   chatSendRef,
+  // User ID for cloud sync
+  uid,
 }) {
   // Detect agent mode: deliverables with done status exist
   const isAgentMode = !!(deliverables && Object.keys(deliverables).some(
@@ -83,6 +85,7 @@ export default function ChatPanel({
     executeAction: execAction,
     delivUndoSnapshot,
     executeSyncPlan,
+    uid,
   });
 
   // ── Expose chat.send to parent via ref (for context menu inline AI) ──

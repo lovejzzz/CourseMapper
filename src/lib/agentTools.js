@@ -9,6 +9,8 @@ import { generateCourseHealthReport } from './pedagogicalValidator';
 import { checkGrammar } from './grammarChecker';
 import { executeResearch } from './academicSearch';
 import { getArrayKey } from './syncDependencies';
+import { addMemory, searchMemories, deleteMemory, getMemories, MEMORY_CATEGORIES } from './agentMemory';
+import { saveAgentPrefs } from './cloudStorage';
 
 // ── Helpers ──────────────────────────────────────────────────────────────────
 
@@ -300,19 +302,111 @@ export const AGENT_TOOLS = {
   },
 
   save_preference: {
-    description: 'Save a user teaching preference for future sessions (e.g., preferred Bloom\'s level, strictness, teaching style).',
+    description: 'Save a user teaching preference for future sessions (e.g., preferred Bloom\'s level, strictness, teaching style). Syncs to cloud if signed in.',
     params: {
       key: 'string — preference name (blooms_focus, difficulty_level, teaching_style, formality, etc.)',
       value: 'string — preference value',
     },
-    execute: (args) => {
+    execute: (args, ctx) => {
       try {
         const stored = JSON.parse(localStorage.getItem('coursemapper-agent-prefs') || '{}');
         stored[args.key] = args.value;
         localStorage.setItem('coursemapper-agent-prefs', JSON.stringify(stored));
+        // Fire-and-forget cloud sync
+        if (ctx?.uid) saveAgentPrefs(ctx.uid, stored).catch(() => {});
         return { saved: true, key: args.key, value: args.value };
       } catch (err) {
         return { error: `Failed to save preference: ${err.message}` };
+      }
+    },
+  },
+
+  remember: {
+    description: 'Save a persistent memory about this user for future sessions. Use this to remember teaching philosophy, preferred pedagogy, course patterns, institutional context, or any user preference the agent should recall later.',
+    params: {
+      content: 'string — what to remember (1-2 sentences, specific and actionable)',
+      category: 'string — one of: teaching_style, assessment, course_design, feedback, institutional, general',
+      importance: 'number (optional) — 1 (low) to 5 (critical). Default 3.',
+    },
+    jsonSchema: {
+      type: 'object',
+      properties: {
+        content: { type: 'string', description: 'What to remember about this user' },
+        category: { type: 'string', enum: ['teaching_style', 'assessment', 'course_design', 'feedback', 'institutional', 'general'] },
+        importance: { type: 'number', minimum: 1, maximum: 5, description: 'Importance 1-5 (default 3)' },
+      },
+      required: ['content', 'category'],
+    },
+    execute: (args, ctx) => {
+      try {
+        const mem = addMemory({
+          category: args.category || 'general',
+          content: args.content,
+          importance: args.importance || 3,
+          uid: ctx?.uid || null,
+        });
+        return { saved: true, id: mem.id, category: mem.category, content: mem.content };
+      } catch (err) {
+        return { error: `Failed to save memory: ${err.message}` };
+      }
+    },
+  },
+
+  recall: {
+    description: 'Search saved memories about this user. Use to recall teaching preferences, past decisions, institutional context, or feedback patterns before making recommendations.',
+    params: {
+      query: 'string (optional) — search term. If omitted, returns top memories by importance.',
+      category: 'string (optional) — filter by category: teaching_style, assessment, course_design, feedback, institutional, general',
+    },
+    jsonSchema: {
+      type: 'object',
+      properties: {
+        query: { type: 'string', description: 'Search term to find relevant memories' },
+        category: { type: 'string', enum: ['teaching_style', 'assessment', 'course_design', 'feedback', 'institutional', 'general'] },
+      },
+    },
+    execute: (args) => {
+      try {
+        let results;
+        if (args.query) {
+          results = searchMemories(args.query);
+        } else if (args.category) {
+          results = getMemories().filter(m => m.category === args.category);
+        } else {
+          results = getMemories();
+        }
+        // Return top 10 most relevant
+        const top = results.slice(0, 10).map(m => ({
+          id: m.id,
+          category: MEMORY_CATEGORIES[m.category] || m.category,
+          content: m.content,
+          importance: m.importance,
+        }));
+        return { count: top.length, total: results.length, memories: top };
+      } catch (err) {
+        return { error: `Failed to recall memories: ${err.message}` };
+      }
+    },
+  },
+
+  forget: {
+    description: 'Delete a specific memory that is no longer accurate or relevant.',
+    params: {
+      id: 'string — memory ID to delete (from recall results)',
+    },
+    jsonSchema: {
+      type: 'object',
+      properties: {
+        id: { type: 'string', description: 'Memory ID to delete' },
+      },
+      required: ['id'],
+    },
+    execute: (args, ctx) => {
+      try {
+        deleteMemory(args.id, ctx?.uid || null);
+        return { deleted: true, id: args.id };
+      } catch (err) {
+        return { error: `Failed to delete memory: ${err.message}` };
       }
     },
   },
@@ -329,6 +423,9 @@ export const TOOL_LABELS = {
   edit_course_map: 'Editing course map',
   edit_deliverables: 'Editing deliverables',
   save_preference: 'Saving preference',
+  remember: 'Remembering for next time',
+  recall: 'Recalling past context',
+  forget: 'Forgetting outdated info',
   respond: 'Preparing response',
 };
 
@@ -370,6 +467,12 @@ export function summarizeToolResult(toolName, result) {
       return `${result.applied || 0} applied, ${result.failed || 0} failed`;
     case 'save_preference':
       return result.saved ? `Saved ${result.key}` : 'Failed';
+    case 'remember':
+      return result.saved ? `Remembered: ${result.content?.slice(0, 40)}…` : 'Failed';
+    case 'recall':
+      return `${result.count || 0} memories found`;
+    case 'forget':
+      return result.deleted ? 'Memory deleted' : 'Failed';
     case 'respond':
       return 'Response ready';
     default:

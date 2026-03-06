@@ -320,6 +320,7 @@ export default function useChatRouter({
   deliverables, executeAction,
   delivUndoSnapshot,
   executeSyncPlan,
+  uid,
 }) {
   const [messages, setMessages] = useState(savedMessages || []);
   const messagesRef = useRef(messages);
@@ -682,6 +683,7 @@ export default function useChatRouter({
                 deliverables: delivRef.current,
                 executeAction: executeActionRef.current,
                 snapshot: snapshotRef.current,
+                uid,
               };
               const result = await AGENT_TOOLS[tc.name].execute(tc.args || {}, ctx, controller.signal);
               const summary = summarizeToolResult(tc.name, result);

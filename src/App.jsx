@@ -22,6 +22,7 @@ import { extractEditContext } from './lib/editContextExtractor';
 import { FEATURES, CustomDeliverableBuilder } from './screens/FeatureSelect';
 import { listCustomDeliverables, toFeatureEntry, saveCustomDeliverable, mergeCloudDeliverables } from './lib/customDeliverableLibrary';
 import { mergeCloudProfile } from './lib/professorProfile';
+import { mergeCloudMemories, mergeCloudAgentPrefs } from './lib/agentMemory';
 import { useAuth } from './contexts/AuthContext';
 // HelpDrawer removed — merged into ChatPanel
 import { saveProject as cloudSaveProject, loadProject as cloudLoadProject, loadProjectDeliverables, newProjectId } from './lib/cloudStorage';
@@ -331,7 +332,7 @@ export default function App() {
         const state = {
           courseMap, columns, hasGenerated: true,
           provider, modelId, modelName, userEdits,
-          chatHistory: chatHistory.slice(-20),
+          chatHistory: chatHistory.slice(-50),
           fileNames: files.map(f => f.name),
           versionHistory: version.versionHistory.slice(-30),
           selectedFeatures, lessonScope, promptText, activeTab,
@@ -367,7 +368,7 @@ export default function App() {
           semester: courseMap?.semester || '',
           courseMap, columns, hasGenerated: true,
           provider, modelId, modelName, userEdits,
-          chatHistory: chatHistory.slice(-20),
+          chatHistory: chatHistory.slice(-50),
           fileNames: files.map(f => f.name),
           versionHistory: version.versionHistory.slice(-30),
           selectedFeatures, lessonScope, promptText, activeTab,
@@ -399,6 +400,8 @@ export default function App() {
       // Fire-and-forget cloud merge
       mergeCloudDeliverables(user.uid).catch(() => { });
       mergeCloudProfile(user.uid).catch(() => { });
+      mergeCloudMemories(user.uid).catch(() => { });
+      mergeCloudAgentPrefs(user.uid).catch(() => { });
     }
     if (!user) prevUserRef.current = null;
   }, [user]);
@@ -550,7 +553,7 @@ export default function App() {
         modelId,
         modelName,
         userEdits,
-        chatHistory: chatHistory.slice(-20),
+        chatHistory: chatHistory.slice(-50),
         fileNames: files.map(f => f.name),
         versionHistory: version.versionHistory.slice(-30),
         selectedFeatures,
@@ -637,7 +640,7 @@ export default function App() {
         semester: courseMap?.semester || '',
         courseMap, columns, hasGenerated: true,
         provider, modelId, modelName, userEdits,
-        chatHistory: chatHistory.slice(-20),
+        chatHistory: chatHistory.slice(-50),
         fileNames: files.map(f => f.name),
         versionHistory: version.versionHistory.slice(-30),
         selectedFeatures, lessonScope, promptText, activeTab,
@@ -1299,6 +1302,7 @@ export default function App() {
                 delivCanUndo={delivUndo.canUndo}
                 onAgentHighlight={triggerAgentHighlight}
                 chatSendRef={chatSendRef}
+                uid={user?.uid || null}
               />
             </ErrorBoundary>
           </div>

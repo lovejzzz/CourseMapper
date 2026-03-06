@@ -136,6 +136,51 @@ export async function loadProjectDeliverables(uid, projectId) {
   return map;
 }
 
+/* ═══════════════════ Agent Preferences ═══════════════════ */
+
+function agentPrefsDoc(uid) { return doc(db, 'users', uid, 'agentData', 'preferences'); }
+
+export async function loadAgentPrefs(uid) {
+  if (!db) return null;
+  const snap = await getDoc(agentPrefsDoc(uid));
+  return snap.exists() ? snap.data() : null;
+}
+
+export async function saveAgentPrefs(uid, prefs) {
+  if (!db) return;
+  await setDoc(agentPrefsDoc(uid), {
+    ...prefs,
+    updatedAt: serverTimestamp(),
+  }, { merge: true });
+}
+
+/* ═══════════════════ Agent Memory ═══════════════════ */
+
+function memoryCol(uid) { return collection(db, 'users', uid, 'agentData', 'memory', 'entries'); }
+function memoryDoc(uid, id) { return doc(db, 'users', uid, 'agentData', 'memory', 'entries', id); }
+
+export async function loadAgentMemories(uid) {
+  if (!db) return [];
+  const snap = await getDocs(memoryCol(uid));
+  return snap.docs.map(d => ({ id: d.id, ...d.data() }));
+}
+
+export async function saveAgentMemory(uid, entry) {
+  if (!db) return;
+  const id = entry.id || doc(collection(db, '_')).id;
+  await setDoc(memoryDoc(uid, id), {
+    ...entry,
+    id,
+    updatedAt: serverTimestamp(),
+  });
+  return id;
+}
+
+export async function deleteAgentMemory(uid, id) {
+  if (!db) return;
+  await deleteDoc(memoryDoc(uid, id));
+}
+
 /* ═══════════════════ Generate unique project ID ═══════════════════ */
 
 export function newProjectId() {

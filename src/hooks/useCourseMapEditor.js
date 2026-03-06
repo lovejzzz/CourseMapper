@@ -1,5 +1,6 @@
 import { useCallback } from 'react';
 import { getArrayKey } from '../lib/syncDependencies';
+import { recordEditPattern } from '../lib/agentMemory';
 
 /**
  * Immutable path-based update: produces O(depth) shallow clones instead of
@@ -70,6 +71,8 @@ export default function useCourseMapEditor({ courseMap, setCourseMap, columns, s
     }]);
     pushVersion(updated, `Edited ${key} in Lesson ${lessonIdx + 1}`);
     onEdit?.(lessonIdx, key);
+    // Track edit pattern for agent learning (fire-and-forget)
+    recordEditPattern({ featureId: 'courseMap', field: key, action: 'edited' });
   }, [courseMap, setCourseMap, setDownloadedFile, setUserEdits, pushVersion, onEdit]);
 
   const handleTitleEdit = useCallback((lessonIdx, newTitle) => {
