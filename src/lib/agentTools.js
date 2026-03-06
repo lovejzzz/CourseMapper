@@ -1,0 +1,316 @@
+/**
+ * agentTools.js — Tool registry for the multi-step agentic teaching assistant.
+ *
+ * Each tool has: name, description, params, execute(args, ctx, signal).
+ * Tools are called during the agentic loop; results are fed back to the LLM.
+ */
+
+import { generateCourseHealthReport } from './pedagogicalValidator';
+import { checkGrammar } from './grammarChecker';
+import { executeResearch } from './academicSearch';
+import { getArrayKey } from './syncDependencies';
+
+// ── Helpers ──────────────────────────────────────────────────────────────────
+
+const FEATURE_NAMES = {
+  assignments: 'Assignments', quizBank: 'Quiz & Exam Bank',
+  discussions: 'Discussion Prompts', slideDecks: 'Slide Decks',
+  lessonPlans: 'Lesson Plans', rubrics: 'Rubrics',
+  studyGuides: 'Study Guides', courseFaq: 'Course FAQ', syllabus: 'Syllabus',
+};
+
+/** Extract concatenated text from a lesson's sections for grammar checking. */
+function extractLessonText(courseMap, lessonIndex) {
+  const lesson = courseMap?.lessons?.[lessonIndex];
+  if (!lesson) return '';
+  const texts = [lesson.title || ''];
+  for (const section of (lesson.sections || [])) {
+    for (const val of Object.values(section)) {
+      if (typeof val === 'string' && val.length > 10) texts.push(val);
+    }
+  }
+  return texts.join('\n\n');
+}
+
+// ── Tool Registry ────────────────────────────────────────────────────────────
+
+export const AGENT_TOOLS = {
+  validate_course: {
+    description: "Run pedagogical validation (Bloom's alignment, readability, cognitive load, difficulty progression). Returns errors, warnings, and info.",
+    params: {},
+    execute: async (args, ctx) => {
+      const report = generateCourseHealthReport(ctx.courseMap, ctx.deliverables);
+      return {
+        errorCount: report.errorCount,
+        warningCount: report.warningCount,
+        infoCount: report.infoCount,
+        findings: report.findings.map(f => ({
+          severity: f.severity,
+          category: f.category,
+          message: f.message,
+          lessonIndex: f.lessonIndex,
+        })),
+      };
+    },
+  },
+
+  check_grammar: {
+    description: "Check grammar and spelling in a specific lesson's text content via LanguageTool.",
+    params: { lessonIndex: 'number — 0-based lesson index' },
+    execute: async (args, ctx, signal) => {
+      const text = extractLessonText(ctx.courseMap, args.lessonIndex);
+      if (!text || text.length < 20) return { matches: [], note: 'Not enough text to check.' };
+      const result = await checkGrammar(text, 'en-US', signal);
+      return {
+        matchCount: result.matches.length,
+        matches: result.matches.slice(0, 10).map(m => ({
+          message: m.message,
+          context: m.context,
+          replacements: m.replacements,
+          rule: m.rule,
+        })),
+      };
+    },
+  },
+
+  search_research: {
+    description: 'Search academic sources. Returns numbered results you can cite with [N] format.',
+    params: {
+      query: 'string — search terms',
+      sources: 'string[] — from: "papers", "wiki", "crossref", "videos", "books", "gbooks"',
+      count: 'number — results per source (default 5)',
+    },
+    execute: async (args, ctx, signal) => {
+      const { results, formatted } = await executeResearch(
+        { query: args.query, sources: args.sources || ['papers'], limit: args.count },
+        signal,
+      );
+      return {
+        formatted: formatted.slice(0, 4000), // cap to stay within context
+        totalResults: results.reduce((s, r) => s + (r.items?.length || 0), 0),
+      };
+    },
+  },
+
+  read_deliverable: {
+    description: 'Read current data for a deliverable. Use to see what exists before making changes.',
+    params: {
+      featureId: 'string — one of: assignments, quizBank, discussions, slideDecks, lessonPlans, rubrics, studyGuides, courseFaq, syllabus',
+      lessonIndex: 'number (optional) — return only that lesson\'s data',
+    },
+    execute: (args, ctx) => {
+      const entry = ctx.deliverables?.[args.featureId];
+      if (!entry?.data) return { error: `${FEATURE_NAMES[args.featureId] || args.featureId} not generated yet.` };
+
+      const data = entry.data;
+      const arrKey = getArrayKey(args.featureId, data);
+
+      // Specific lesson requested
+      if (args.lessonIndex !== undefined && arrKey && Array.isArray(data[arrKey])) {
+        const item = data[arrKey][args.lessonIndex];
+        if (!item) return { error: `Lesson index ${args.lessonIndex} out of range (0-${data[arrKey].length - 1}).` };
+        const str = JSON.stringify(item);
+        if (str.length > 3000) {
+          // Truncate large items — keep first 3000 chars
+          return { data: item, note: 'Data truncated to fit context.', truncated: true };
+        }
+        return { data: item };
+      }
+
+      // Summary of all items
+      if (arrKey && Array.isArray(data[arrKey])) {
+        return {
+          featureId: args.featureId,
+          name: FEATURE_NAMES[args.featureId],
+          totalItems: data[arrKey].length,
+          items: data[arrKey].map((item, i) => {
+            const summary = { index: i };
+            if (item.lt) summary.title = item.lt;
+            if (item.t) summary.title = item.t;
+            if (item.qs) summary.questionCount = item.qs.length;
+            if (item.sl) summary.slideCount = item.sl.length;
+            if (item.cr) summary.criteriaCount = item.cr.length;
+            if (item.rq) summary.reviewQuestionCount = item.rq.length;
+            if (item.kt) summary.keyTermCount = item.kt.length;
+            return summary;
+          }),
+        };
+      }
+
+      // Fallback: return stringified data (e.g., syllabus)
+      const str = JSON.stringify(data);
+      return { data: str.length > 2000 ? str.slice(0, 2000) + '…' : str };
+    },
+  },
+
+  read_lesson: {
+    description: 'Read full course map data for a specific lesson including all sections and fields.',
+    params: { lessonIndex: 'number — 0-based lesson index' },
+    execute: (args, ctx) => {
+      const lessons = ctx.courseMap?.lessons;
+      if (!lessons) return { error: 'No course map loaded.' };
+      const lesson = lessons[args.lessonIndex];
+      if (!lesson) return { error: `Lesson ${args.lessonIndex} not found (0-${lessons.length - 1}).` };
+      return {
+        title: lesson.title,
+        sections: (lesson.sections || []).map((sec, i) => ({ sectionIndex: i, ...sec })),
+      };
+    },
+  },
+
+  edit_course_map: {
+    description: 'Edit course map: cells, titles, add/remove lessons. Changes are applied immediately.',
+    params: {
+      patches: 'array — each: {lessonIndex, sectionIndex?, field, value} for cells, {lessonIndex, field:"title", value} for rename, {action:"addLesson", title, sections?} to add, {action:"removeLesson", lessonIndex} to remove',
+    },
+    execute: (args, ctx) => {
+      const patches = args.patches || [];
+      if (patches.length === 0) return { error: 'No patches provided.' };
+
+      const results = [];
+      for (const patch of patches) {
+        let action;
+        if (patch.action === 'addLesson') {
+          action = { type: 'addLesson', title: patch.title || patch.lesson?.title, sections: patch.sections || patch.lesson?.sections };
+        } else if (patch.action === 'removeLesson') {
+          action = { type: 'deleteLesson', lessonIndex: patch.lessonIndex };
+        } else if (patch.field === 'title') {
+          action = { type: 'editTitle', lessonIndex: patch.lessonIndex, newTitle: patch.value };
+        } else {
+          action = {
+            type: 'editCell',
+            lessonIndex: patch.lessonIndex,
+            sectionIndex: patch.sectionIndex ?? 0,
+            field: patch.field,
+            value: patch.value,
+          };
+        }
+        const result = ctx.executeAction(action);
+        results.push({ patch: patch.field || patch.action, success: result.success, message: result.message });
+      }
+
+      return {
+        applied: results.filter(r => r.success).length,
+        failed: results.filter(r => !r.success).length,
+        details: results,
+      };
+    },
+  },
+
+  edit_deliverables: {
+    description: 'Add, edit, or remove deliverable items. Changes are applied immediately with undo support.',
+    params: {
+      actions: 'array — each: {type:"addItem"|"removeItem"|"editItem"|"regenerateLesson", featureId, lessonIndex, item?, itemIndex?, path?, value?}',
+    },
+    execute: (args, ctx) => {
+      const actions = args.actions || [];
+      if (actions.length === 0) return { error: 'No actions provided.' };
+
+      // Snapshot each affected featureId once for undo
+      const snapped = new Set();
+      if (ctx.snapshot) {
+        for (const a of actions) {
+          const fid = a.featureId;
+          if (fid && !snapped.has(fid)) {
+            const entry = ctx.deliverables?.[fid];
+            if (entry?.data) { ctx.snapshot(fid, entry.data); snapped.add(fid); }
+          }
+        }
+      }
+
+      const results = [];
+      for (const action of actions) {
+        const result = ctx.executeAction(action, { skipSnapshot: true });
+        results.push({
+          action: action.type,
+          featureId: action.featureId,
+          success: result.success,
+          message: result.message,
+        });
+      }
+
+      return {
+        applied: results.filter(r => r.success).length,
+        failed: results.filter(r => !r.success).length,
+        details: results,
+      };
+    },
+  },
+
+  save_preference: {
+    description: 'Save a user teaching preference for future sessions (e.g., preferred Bloom\'s level, strictness, teaching style).',
+    params: {
+      key: 'string — preference name (blooms_focus, difficulty_level, teaching_style, formality, etc.)',
+      value: 'string — preference value',
+    },
+    execute: (args) => {
+      try {
+        const stored = JSON.parse(localStorage.getItem('coursemapper-agent-prefs') || '{}');
+        stored[args.key] = args.value;
+        localStorage.setItem('coursemapper-agent-prefs', JSON.stringify(stored));
+        return { saved: true, key: args.key, value: args.value };
+      } catch (err) {
+        return { error: `Failed to save preference: ${err.message}` };
+      }
+    },
+  },
+};
+
+// ── UI labels for progress card ──────────────────────────────────────────────
+
+export const TOOL_LABELS = {
+  validate_course: 'Validating course health',
+  check_grammar: 'Checking grammar',
+  search_research: 'Searching academic sources',
+  read_deliverable: 'Reading deliverable data',
+  read_lesson: 'Reading lesson data',
+  edit_course_map: 'Editing course map',
+  edit_deliverables: 'Editing deliverables',
+  save_preference: 'Saving preference',
+  respond: 'Preparing response',
+};
+
+// ── Build tool descriptions for system prompt ────────────────────────────────
+
+export function buildToolDescriptions() {
+  const lines = [];
+  for (const [name, tool] of Object.entries(AGENT_TOOLS)) {
+    const paramEntries = Object.entries(tool.params);
+    const paramStr = paramEntries.length > 0
+      ? '\n    Args: ' + paramEntries.map(([k, v]) => `${k} (${v})`).join(', ')
+      : '\n    Args: none';
+    lines.push(`  - **${name}**: ${tool.description}${paramStr}`);
+  }
+  return lines.join('\n');
+}
+
+// ── Summarize tool result for progress UI and chat history ───────────────────
+
+export function summarizeToolResult(toolName, result) {
+  if (!result) return 'No result';
+  if (result.error) return result.error;
+
+  switch (toolName) {
+    case 'validate_course':
+      return `${result.errorCount || 0} errors, ${result.warningCount || 0} warnings, ${result.infoCount || 0} info`;
+    case 'check_grammar':
+      return `${result.matchCount || 0} grammar issue${(result.matchCount || 0) !== 1 ? 's' : ''} found`;
+    case 'search_research':
+      return `${result.totalResults || 0} results found`;
+    case 'read_deliverable':
+      if (result.totalItems !== undefined) return `${result.totalItems} items loaded`;
+      return result.data ? 'Data loaded' : 'No data';
+    case 'read_lesson':
+      return `${result.sections?.length || 0} sections loaded`;
+    case 'edit_course_map':
+      return `${result.applied || 0} applied, ${result.failed || 0} failed`;
+    case 'edit_deliverables':
+      return `${result.applied || 0} applied, ${result.failed || 0} failed`;
+    case 'save_preference':
+      return result.saved ? `Saved ${result.key}` : 'Failed';
+    case 'respond':
+      return 'Response ready';
+    default:
+      return 'Done';
+  }
+}

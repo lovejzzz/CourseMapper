@@ -2,7 +2,14 @@ import { useState, useRef, useEffect, useCallback } from 'react';
 import { parseFiles } from '../../lib/fileParser';
 import { buildAgentSystemPrompt } from '../../lib/agentPrompts';
 import { executeResearch } from '../../lib/academicSearch';
-import { generateCourseHealthReport } from '../../lib/pedagogicalValidator';
+import { generateCourseHealthReport, classifyFindings } from '../../lib/pedagogicalValidator';
+import { getChatOpener } from './constants';
+import { AGENT_TOOLS, TOOL_LABELS, summarizeToolResult } from '../../lib/agentTools';
+import { preValidateAction } from '../../lib/agentActions';
+import {
+  buildNativeTools, buildAgentRequest, parseAgentResponse as parseProviderResponse,
+  formatAssistantToolCalls, batchToolResults,
+} from '../../lib/agentProviders';
 
 // ── System prompt for Help / Tutor mode (extracted from FaqChatbot) ─────────
 function getSystemPrompt(courseMap, activeTab) {
@@ -68,12 +75,9 @@ A free, browser-based tool that transforms syllabi into complete teaching materi
 // ── Streaming call to user's configured provider ────────────────────────────
 async function streamChat(messages, systemPrompt, signal, apiKey, provider, modelId, maxTokens = 2048) {
   if (!apiKey) throw new Error('NO_API_KEY');
+  if (!modelId) throw new Error('NO_MODEL_SELECTED');
 
-  const chatModel = modelId || (
-    provider === 'openai' ? 'gpt-4o-mini' :
-      provider === 'anthropic' ? 'claude-3-5-haiku-20241022' :
-        'gemini-2.0-flash'
-  );
+  const chatModel = modelId;
 
   if (provider === 'google') {
     const geminiMessages = messages.map(m => ({
@@ -164,37 +168,35 @@ async function streamChat(messages, systemPrompt, signal, apiKey, provider, mode
   };
 }
 
-// ── Parse agent JSON response ────────────────────────────────────────────────
-function parseAgentJSON(text) {
-  if (!text) return null;
-  // Strip markdown fences if present
-  let cleaned = text.trim();
-  if (cleaned.startsWith('```')) {
-    cleaned = cleaned.replace(/^```(?:json)?\n?/, '').replace(/\n?```$/, '');
+// ── Native tool-calling LLM call for agentic loop ─────────────────────────
+async function fetchAgentResponseNative(loopMessages, systemPrompt, signal, apiKey, provider, modelId, nativeTools) {
+  if (!apiKey) throw new Error('NO_API_KEY');
+  if (!modelId) throw new Error('NO_MODEL_SELECTED');
+
+  const { endpoint, headers, body } = buildAgentRequest(provider, {
+    model: modelId,
+    systemPrompt,
+    messages: loopMessages,
+    tools: nativeTools,
+    maxTokens: 16384,
+    temperature: 0.4,
+    apiKey,
+  });
+
+  const response = await fetch(endpoint, {
+    method: 'POST',
+    headers,
+    body: JSON.stringify(body),
+    signal,
+  });
+
+  if (!response.ok) {
+    const err = await response.json().catch(() => ({}));
+    throw new Error(err.error?.message || `API error: ${response.status}`);
   }
-  // Find JSON start
-  const start = cleaned.indexOf('{');
-  if (start < 0) return null;
-  // Find matching end brace, skipping braces inside strings
-  let depth = 0;
-  let end = -1;
-  let inString = false;
-  let escaped = false;
-  for (let i = start; i < cleaned.length; i++) {
-    const ch = cleaned[i];
-    if (escaped) { escaped = false; continue; }
-    if (ch === '\\' && inString) { escaped = true; continue; }
-    if (ch === '"') { inString = !inString; continue; }
-    if (inString) continue;
-    if (ch === '{') depth++;
-    else if (ch === '}') { depth--; if (depth === 0) { end = i; break; } }
-  }
-  if (end < 0) return null;
-  try {
-    return JSON.parse(cleaned.slice(start, end + 1));
-  } catch {
-    return null;
-  }
+
+  const json = await response.json();
+  return parseProviderResponse(provider, json);
 }
 
 // ── Build chat history with agent memory ─────────────────────────────────────
@@ -287,6 +289,13 @@ function buildAgentChatHistory(messages) {
       const featureNames = (m.plan || []).map(p => p.featureId).join(', ');
       const statusText = m.status === 'done' ? 'synced' : m.status === 'skipped' ? 'skipped' : 'pending';
       history.push({ role: 'assistant', content: `[Sync suggestion: ${featureNames} — ${statusText}]` });
+    } else if (m.role === 'agentProgress') {
+      // Serialize agentic turn as a summary
+      const steps = m.steps || [];
+      if (steps.length > 0) {
+        const stepSummary = steps.map(s => `${s.tool}: ${s.summary || 'done'}`).join(', ');
+        history.push({ role: 'assistant', content: `[Agent used ${steps.length} tool${steps.length !== 1 ? 's' : ''}: ${stepSummary}]` });
+      }
     } else if (m.role === 'error') {
       history.push({ role: 'assistant', content: `[Error: ${m.text || 'unknown error'}]` });
     }
@@ -470,12 +479,15 @@ export default function useChatRouter({
         return;
       }
       const isNoKey = err.message === 'NO_API_KEY';
+      const isNoModel = err.message === 'NO_MODEL_SELECTED';
       setMessages(prev => {
         const updated = [...prev];
         updated[updated.length - 1] = {
           role: 'assistant',
           text: isNoKey
             ? 'To use the help chat, please configure your AI provider and API key first.'
+            : isNoModel
+            ? 'No AI model selected. Please select a model on the landing page first.'
             : "Sorry, I couldn't process that. Please check your API key and try again.",
         };
         return updated;
@@ -485,10 +497,10 @@ export default function useChatRouter({
     }
   }
 
-  // ── Agent mode: stream and parse structured JSON response ─────────────────
-  async function sendAgentMessage(text) {
+  // ── Agent mode: multi-step agentic loop with native tool calling ─────────
+  async function sendAgentMessage(text, { silent = false } = {}) {
     let fullMessage = text;
-    if (attachedFiles.length > 0) {
+    if (!silent && attachedFiles.length > 0) {
       const fileContents = attachedFiles
         .map(f => `=== Attached File: ${f.name} ===\n${f.text}`)
         .join('\n\n');
@@ -497,172 +509,242 @@ export default function useChatRouter({
         : `Please incorporate the following additional reference files:\n\n${fileContents}`;
     }
 
-    const displayText = text + (attachedFiles.length > 0
+    const displayText = text + (!silent && attachedFiles.length > 0
       ? ` [+${attachedFiles.length} file${attachedFiles.length > 1 ? 's' : ''}]`
       : '');
 
-    setAttachedFiles([]);
+    if (!silent) setAttachedFiles([]);
 
-    // Add user message + animated dots placeholder (empty text triggers bounce animation in MessageBubble)
-    setMessages(prev => [...prev, { role: 'user', text: displayText }, { role: 'assistant', text: '' }]);
+    // Add user message + agentProgress card (silent mode: no user bubble)
+    if (silent) {
+      setMessages(prev => [...prev,
+        { role: 'agentProgress', steps: [], status: 'running' },
+      ]);
+    } else {
+      setMessages(prev => [...prev,
+        { role: 'user', text: displayText },
+        { role: 'agentProgress', steps: [], status: 'running' },
+      ]);
+    }
     setIsStreaming(true);
+
+    // Helper: update the progress card
+    const updateProgress = (updater) => {
+      setMessages(prev => {
+        const updated = [...prev];
+        const idx = updated.findLastIndex(m => m.role === 'agentProgress');
+        if (idx >= 0) updated[idx] = typeof updater === 'function' ? updater(updated[idx]) : { ...updated[idx], ...updater };
+        return updated;
+      });
+    };
+
+    // Helper: add a step to the progress card
+    const addProgressStep = (step) => {
+      updateProgress(card => ({
+        ...card,
+        steps: [...card.steps, step],
+      }));
+    };
+
+    // Helper: update a specific step by index
+    const updateStepAt = (stepIndex, updates) => {
+      updateProgress(card => {
+        const steps = [...card.steps];
+        if (stepIndex >= 0 && stepIndex < steps.length) {
+          steps[stepIndex] = { ...steps[stepIndex], ...updates };
+        }
+        return { ...card, steps };
+      });
+    };
 
     try {
       const controller = new AbortController();
       abortRef.current = controller;
 
-      // Build chat history for context — include proposals so the agent has memory
-      const chatHistory = buildAgentChatHistory(messages);
-      chatHistory.push({ role: 'user', content: fullMessage });
+      // Load user preferences
+      let userPrefs = null;
+      try { userPrefs = JSON.parse(localStorage.getItem('coursemapper-agent-prefs') || 'null'); } catch { /* ignore */ }
 
-      // Inject course health summary so the agent knows about educational issues
+      // Build context
+      const chatHistory = buildAgentChatHistory(messages);
       const healthReport = (courseMap && delivRef.current)
         ? generateCourseHealthReport(courseMap, delivRef.current)
         : null;
       const healthSummary = (healthReport && (healthReport.errorCount > 0 || healthReport.warningCount > 0))
         ? healthReport.summary
         : null;
-      const systemPrompt = buildAgentSystemPrompt(courseMap, activeTab, delivRef.current, healthSummary);
-      const { reader, parseChunk } = await streamChat(
-        chatHistory, systemPrompt, controller.signal, apiKey, provider, modelId,
-        16384, // high limit for structured output (proposals with embedded items)
-      );
+      const systemPrompt = buildAgentSystemPrompt(courseMap, activeTab, delivRef.current, healthSummary, userPrefs);
 
-      const decoder = new TextDecoder();
-      let buffer = '';
-      let fullText = '';
-      let chunkCount = 0;
-      let detectedType = null;
+      // Build native tools for provider
+      const nativeTools = buildNativeTools(provider, AGENT_TOOLS);
 
-      while (true) {
-        const { done, value } = await reader.read();
-        if (done) break;
-        buffer += decoder.decode(value, { stream: true });
-        const lines = buffer.split('\n');
-        buffer = lines.pop() || '';
+      // Loop messages (internal to this turn — separate from chat history)
+      const loopMessages = [...chatHistory, { role: 'user', content: fullMessage }];
 
-        for (const line of lines) {
-          const trimmed = line.trim();
-          if (!trimmed || !trimmed.startsWith('data: ')) continue;
-          const data = trimmed.slice(6);
-          if (data === '[DONE]') continue;
-          try {
-            const parsed = JSON.parse(data);
-            const chunk = parseChunk(parsed);
-            if (chunk) {
-              fullText += chunk;
-              chunkCount++;
+      const MAX_ITERATIONS = 10;
+      let usedTools = false;
 
-              // Periodically detect response type and update UI
-              if (chunkCount % 8 === 0) {
-                if (!detectedType) {
-                  const lower = fullText.toLowerCase();
-                  if (lower.includes('"chatreply"')) detectedType = 'chatReply';
-                  else if (lower.includes('"proposal"')) detectedType = 'proposal';
-                  else if (lower.includes('"actions"')) detectedType = 'batchAction';
-                  else if (lower.includes('"action"')) detectedType = 'action';
-                  else if (lower.includes('"patches"')) detectedType = 'patches';
-                  else if (lower.includes('"research"')) detectedType = 'research';
-                  else if (lower.includes('"diagram"')) detectedType = 'diagram';
-                  else if (lower.includes('"chart"')) detectedType = 'chart';
-                  else if (lower.includes('"imagesearch"')) detectedType = 'imageSearch';
-                }
+      // ── AGENTIC LOOP (native tool calling) ───────────────────────────────
+      for (let iteration = 0; iteration < MAX_ITERATIONS; iteration++) {
+        const { toolCalls, textContent, stopReason } = await fetchAgentResponseNative(
+          loopMessages, systemPrompt, controller.signal, apiKey, provider, modelId, nativeTools,
+        );
 
-                if (detectedType === 'chatReply') {
-                  // Live-stream the chatReply value like help mode
-                  const match = fullText.match(/"chatReply"\s*:\s*"([\s\S]*?)(?:"|$)/);
-                  if (match) {
-                    const partial = match[1].replace(/\\n/g, '\n').replace(/\\"/g, '"').replace(/\\\\/g, '\\');
-                    setMessages(prev => {
-                      const u = [...prev];
-                      u[u.length - 1] = { role: 'assistant', text: partial };
-                      return u;
-                    });
-                  }
-                } else if (detectedType === 'proposal') {
-                  setMessages(prev => {
-                    const u = [...prev];
-                    if (!u[u.length - 1].text || u[u.length - 1].text === 'Thinking...') {
-                      u[u.length - 1] = { role: 'assistant', text: 'Generating options...' };
-                    }
-                    return u;
-                  });
-                } else if (detectedType === 'action' || detectedType === 'batchAction') {
-                  setMessages(prev => {
-                    const u = [...prev];
-                    if (!u[u.length - 1].text || u[u.length - 1].text === 'Thinking...') {
-                      u[u.length - 1] = { role: 'assistant', text: 'Preparing changes...' };
-                    }
-                    return u;
-                  });
-                } else if (detectedType === 'research') {
-                  setMessages(prev => {
-                    const u = [...prev];
-                    if (!u[u.length - 1].text || u[u.length - 1].text === 'Thinking...') {
-                      u[u.length - 1] = { role: 'assistant', text: 'Searching academic sources...' };
-                    }
-                    return u;
-                  });
-                } else if (detectedType === 'diagram') {
-                  setMessages(prev => {
-                    const u = [...prev];
-                    if (!u[u.length - 1].text || u[u.length - 1].text === 'Thinking...') {
-                      u[u.length - 1] = { role: 'diagram', diagram: null, status: 'searching' };
-                    }
-                    return u;
-                  });
-                } else if (detectedType === 'chart') {
-                  setMessages(prev => {
-                    const u = [...prev];
-                    if (!u[u.length - 1].text || u[u.length - 1].text === 'Thinking...') {
-                      u[u.length - 1] = { role: 'chart', chart: null, status: 'searching' };
-                    }
-                    return u;
-                  });
-                } else if (detectedType === 'imageSearch') {
-                  setMessages(prev => {
-                    const u = [...prev];
-                    if (!u[u.length - 1].text || u[u.length - 1].text === 'Thinking...') {
-                      u[u.length - 1] = { role: 'imageSearch', imageSearch: null, status: 'searching' };
-                    }
-                    return u;
-                  });
-                } else if (!detectedType && chunkCount >= 16) {
-                  // Fallback: show thinking after enough chunks with no detection
-                  setMessages(prev => {
-                    const u = [...prev];
-                    if (!u[u.length - 1].text) {
-                      u[u.length - 1] = { role: 'assistant', text: 'Thinking...' };
-                    }
-                    return u;
-                  });
-                }
-              }
+        // ── RESPOND TOOL (final answer) ──────────────────────────────────
+        if (toolCalls) {
+          const respondCall = toolCalls.find(tc => tc.name === 'respond');
+          if (respondCall) {
+            if (usedTools) {
+              updateProgress({ status: 'complete' });
+            } else {
+              // No tools used — remove progress card entirely for clean UX
+              setMessages(prev => {
+                const updated = [...prev];
+                const progressIdx = updated.findLastIndex(m => m.role === 'agentProgress');
+                if (progressIdx >= 0) updated.splice(progressIdx, 1);
+                return updated;
+              });
             }
-          } catch { /* ignore */ }
+            handleAgentFinalResponse(respondCall.args);
+            break;
+          }
+        }
+
+        // ── NO TOOL CALLS: text-only fallback ───────────────────────────
+        if (!toolCalls) {
+          const fallbackText = textContent || "I wasn't able to complete that request. Could you try asking about one specific aspect?";
+          if (usedTools) {
+            updateProgress({ status: 'complete' });
+            setMessages(prev => [...prev, { role: 'assistant', text: fallbackText }]);
+          } else {
+            setMessages(prev => {
+              const updated = [...prev];
+              const progressIdx = updated.findLastIndex(m => m.role === 'agentProgress');
+              if (progressIdx >= 0) updated[progressIdx] = { role: 'assistant', text: fallbackText };
+              return updated;
+            });
+          }
+          break;
+        }
+
+        // ── TOOL CALLS (parallel execution) ─────────────────────────────
+        const nonRespondCalls = toolCalls.filter(tc => tc.name !== 'respond');
+        if (nonRespondCalls.length > 0) {
+          usedTools = true;
+
+          // Add all steps to progress card at once — capture start index from latest state
+          let stepStartIndex = 0;
+          const newSteps = nonRespondCalls.map(tc => ({
+            tool: tc.name,
+            label: TOOL_LABELS[tc.name] || tc.name,
+            thought: '',
+            status: 'running',
+            summary: '',
+          }));
+
+          updateProgress(card => {
+            stepStartIndex = card.steps.length;
+            return { ...card, steps: [...card.steps, ...newSteps] };
+          });
+
+          // Execute all tools in parallel
+          const toolResults = await Promise.all(nonRespondCalls.map(async (tc, i) => {
+            const stepIdx = stepStartIndex + i;
+            if (!AGENT_TOOLS[tc.name]) {
+              updateStepAt(stepIdx, { status: 'error', summary: `Unknown tool: ${tc.name}` });
+              return { toolCallId: tc.id, toolName: tc.name, result: { error: `Unknown tool: ${tc.name}. Available: ${Object.keys(AGENT_TOOLS).join(', ')}` } };
+            }
+
+            try {
+              const ctx = {
+                courseMap,
+                deliverables: delivRef.current,
+                executeAction: executeActionRef.current,
+                snapshot: snapshotRef.current,
+              };
+              const result = await AGENT_TOOLS[tc.name].execute(tc.args || {}, ctx, controller.signal);
+              const summary = summarizeToolResult(tc.name, result);
+              updateStepAt(stepIdx, { status: 'done', summary });
+
+              // If edit tool → also add a changeSummary to the chat
+              if ((tc.name === 'edit_course_map' || tc.name === 'edit_deliverables') && result.applied > 0) {
+                const changes = [];
+                for (const detail of (result.details || [])) {
+                  if (detail.success) {
+                    const featureId = detail.featureId || 'courseMap';
+                    const actionType = detail.action === 'addItem' ? 'added'
+                      : detail.action === 'removeItem' ? 'removed' : 'edited';
+                    const key = `${actionType}:${featureId}`;
+                    const existing = changes.find(c => `${c.type}:${c.featureId}` === key);
+                    if (existing) existing.count++;
+                    else changes.push({ type: actionType, featureId, count: 1 });
+                  }
+                }
+                if (changes.length > 0) {
+                  setMessages(prev => [...prev, {
+                    role: 'changeSummary',
+                    summary: { changes, message: `${result.applied} change${result.applied !== 1 ? 's' : ''} applied.` },
+                  }]);
+                }
+                maybeRunValidation();
+              }
+
+              return { toolCallId: tc.id, toolName: tc.name, result };
+            } catch (toolErr) {
+              if (toolErr.name === 'AbortError') throw toolErr;
+              updateStepAt(stepIdx, { status: 'error', summary: toolErr.message });
+              return { toolCallId: tc.id, toolName: tc.name, result: { error: toolErr.message } };
+            }
+          }));
+
+          // Add assistant tool-call turn + all tool results to loop messages
+          loopMessages.push(formatAssistantToolCalls(provider, nonRespondCalls));
+          const resultMessages = batchToolResults(provider, toolResults);
+          loopMessages.push(...resultMessages);
+
+          continue;
         }
       }
 
-      // Parse the complete response
-      handleAgentResponse(fullText);
+      // If loop exhausted MAX_ITERATIONS without breaking, notify the user
+      if (!usedTools) {
+        setMessages(prev => {
+          const updated = [...prev];
+          const progressIdx = updated.findLastIndex(m => m.role === 'agentProgress');
+          if (progressIdx >= 0) updated.splice(progressIdx, 1);
+          return updated;
+        });
+      } else {
+        updateProgress({ status: 'complete' });
+      }
+      // Only add a message if the loop truly exhausted (no break was hit)
+      // We detect this by checking if the last iteration completed without breaking
+      setMessages(prev => {
+        const lastMsg = prev[prev.length - 1];
+        // If the last message is already an assistant response or changeSummary, the loop did break
+        if (lastMsg?.role === 'assistant' || lastMsg?.role === 'proposal' || lastMsg?.role === 'changeSummary') return prev;
+        return [...prev, { role: 'assistant', text: "I've completed several steps but couldn't fully finish. Could you try a more specific request?" }];
+      });
     } catch (err) {
       if (err.name === 'AbortError') {
-        setMessages(prev => {
-          const last = prev[prev.length - 1];
-          if (last?.role === 'assistant' && !last.text) return prev.slice(0, -1);
-          return prev;
-        });
+        updateProgress({ status: 'complete' });
         return;
       }
       const isNoKey = err.message === 'NO_API_KEY';
+      const isNoModel = err.message === 'NO_MODEL_SELECTED';
       setMessages(prev => {
         const updated = [...prev];
-        updated[updated.length - 1] = {
+        const progressIdx = updated.findLastIndex(m => m.role === 'agentProgress');
+        const errMsg = {
           role: 'assistant',
           text: isNoKey
             ? 'To use the agent, please configure your AI provider and API key first.'
+            : isNoModel
+            ? 'No AI model selected. Please select a model on the landing page first.'
             : "Sorry, I couldn't process that request. Please check your API key and try again.",
         };
+        if (progressIdx >= 0) updated[progressIdx] = errMsg;
+        else updated.push(errMsg);
         return updated;
       });
     } finally {
@@ -670,16 +752,113 @@ export default function useChatRouter({
     }
   }
 
-  // ── Handle parsed agent response ──────────────────────────────────────────
-  function handleAgentResponse(fullText) {
-    const parsed = parseAgentJSON(fullText);
+  // ── Handle final response from agentic loop (unwrapped from done envelope) ─
+  function handleAgentFinalResponse(response) {
+    if (!response) {
+      setMessages(prev => [...prev, { role: 'assistant', text: "I couldn't generate a response." }]);
+      return;
+    }
+
+    // Chat reply
+    if (response.chatReply) {
+      setMessages(prev => [...prev, { role: 'assistant', text: response.chatReply }]);
+      return;
+    }
+
+    // Proposal — pre-validate options before showing
+    if (response.proposal) {
+      const options = response.proposal.options || [];
+      const validOptions = options.filter(opt => {
+        if (!opt.action) return true; // no action = info-only option
+        const validation = preValidateAction(opt.action, {
+          deliverables: delivRef.current,
+          courseMap,
+        });
+        return validation.valid;
+      });
+
+      if (validOptions.length === 0 && options.length > 0) {
+        // All options invalid — ask agent to retry silently
+        sendAgentMessage(
+          `All proposal options were invalid (targeting non-existent or out-of-range deliverables). `
+          + `Please re-generate the proposal targeting deliverables that ARE generated (status "done") with valid lesson indices.`,
+          { silent: true },
+        );
+        return;
+      }
+
+      setMessages(prev => [...prev, {
+        role: 'proposal',
+        proposal: { ...response.proposal, options: validOptions },
+        status: 'pending',
+      }]);
+      return;
+    }
+
+    // Chart
+    if (response.chart) {
+      setMessages(prev => [...prev, {
+        role: 'chart',
+        chart: response.chart,
+        status: 'complete',
+      }]);
+      return;
+    }
+
+    // Diagram
+    if (response.diagram) {
+      setMessages(prev => [...prev, {
+        role: 'diagram',
+        diagram: response.diagram,
+        status: 'complete',
+      }]);
+      return;
+    }
+
+    // Image generation
+    if (response.imageSearch) {
+      setMessages(prev => [...prev, {
+        role: 'imageSearch',
+        imageSearch: response.imageSearch,
+        status: 'complete',
+        provider,
+        apiKey,
+      }]);
+      return;
+    }
+
+    // Fallback: try to extract any text
+    const text = response.chatReply || response.message || JSON.stringify(response);
+    setMessages(prev => [...prev, { role: 'assistant', text }]);
+  }
+
+  // ── Handle legacy JSON-in-text response (used only by research synthesis) ──
+  function handleLegacyResponse(fullText) {
+    // Simple JSON extraction for research synthesis streaming path
+    let parsed = null;
+    try {
+      let cleaned = (fullText || '').trim();
+      if (cleaned.startsWith('```')) cleaned = cleaned.replace(/^```(?:json)?\n?/, '').replace(/\n?```$/, '');
+      const start = cleaned.indexOf('{');
+      if (start >= 0) {
+        let depth = 0, end = -1, inStr = false, esc = false;
+        for (let i = start; i < cleaned.length; i++) {
+          const ch = cleaned[i];
+          if (esc) { esc = false; continue; }
+          if (ch === '\\' && inStr) { esc = true; continue; }
+          if (ch === '"') { inStr = !inStr; continue; }
+          if (inStr) continue;
+          if (ch === '{') depth++;
+          else if (ch === '}') { depth--; if (depth === 0) { end = i; break; } }
+        }
+        if (end >= 0) parsed = JSON.parse(cleaned.slice(start, end + 1));
+      }
+    } catch { /* ignore parse errors */ }
 
     if (!parsed) {
-      // Couldn't parse JSON — check if it looks like truncated structured output
-      const looksLikeJSON = fullText && fullText.trimStart().startsWith('{');
-      const fallbackText = looksLikeJSON
-        ? "My response was too complex to process. Let me try a simpler approach — could you ask for one thing at a time? For example, ask me to edit the course map first, then add quiz items separately."
-        : (fullText || "I couldn't generate a response. Please try rephrasing.");
+      const fallbackText = (fullText && !fullText.trimStart().startsWith('{'))
+        ? fullText
+        : "I wasn't able to complete that request. Could you try asking about one specific aspect?";
       setMessages(prev => {
         const updated = [...prev];
         updated[updated.length - 1] = { role: 'assistant', text: fallbackText };
@@ -688,245 +867,44 @@ export default function useChatRouter({
       return;
     }
 
-    // 1. Chat reply
-    if (parsed.chatReply && !parsed.proposal && !parsed.action && !parsed.patches) {
+    // Route parsed response to appropriate handler
+    if (parsed.chatReply) {
       setMessages(prev => {
         const updated = [...prev];
         updated[updated.length - 1] = { role: 'assistant', text: parsed.chatReply };
         return updated;
       });
-      return;
-    }
-
-    // 1.4. Chart response
-    if (parsed.chart) {
+    } else if (parsed.proposal) {
       setMessages(prev => {
         const updated = [...prev];
-        updated[updated.length - 1] = {
-          role: 'chart',
-          chart: parsed.chart,
-          status: 'complete',
-        };
+        updated[updated.length - 1] = { role: 'proposal', proposal: parsed.proposal, status: 'pending' };
         return updated;
       });
-      setIsStreaming(false);
-      return;
-    }
-
-    // 1.4. Image generation response
-    if (parsed.imageSearch) {
+    } else if (parsed.diagram) {
       setMessages(prev => {
         const updated = [...prev];
-        updated[updated.length - 1] = {
-          role: 'imageSearch',
-          imageSearch: parsed.imageSearch,
-          status: 'complete',
-          provider,
-          apiKey,
-        };
+        updated[updated.length - 1] = { role: 'diagram', diagram: parsed.diagram, status: 'complete' };
         return updated;
       });
-      setIsStreaming(false);
-      return;
-    }
-
-    // 1.5. Diagram response
-    if (parsed.diagram) {
+    } else if (parsed.chart) {
       setMessages(prev => {
         const updated = [...prev];
-        updated[updated.length - 1] = {
-          role: 'diagram',
-          diagram: parsed.diagram,
-          status: 'complete',
-        };
+        updated[updated.length - 1] = { role: 'chart', chart: parsed.chart, status: 'complete' };
         return updated;
       });
-      setIsStreaming(false);
-      return;
-    }
-
-    // 1.6. Research request — execute search, then re-call LLM with results
-    if (parsed.research && parsed.research.query) {
-      handleResearchRequest(parsed.research);
-      return;
-    }
-
-    // 2. Proposal
-    if (parsed.proposal) {
+    } else if (parsed.imageSearch) {
       setMessages(prev => {
         const updated = [...prev];
-        // Replace the thinking indicator with the proposal
-        updated[updated.length - 1] = {
-          role: 'proposal',
-          proposal: parsed.proposal,
-          status: 'pending',
-        };
+        updated[updated.length - 1] = { role: 'imageSearch', imageSearch: parsed.imageSearch, status: 'complete', provider, apiKey };
         return updated;
       });
-      return;
-    }
-
-    // 3. Direct action
-    if (parsed.action) {
-      const exec = executeActionRef.current;
-      if (!exec) {
-        setMessages(prev => {
-          const updated = [...prev];
-          updated[updated.length - 1] = { role: 'error', text: 'Action executor not available.' };
-          return updated;
-        });
-        return;
-      }
-      const result = exec(parsed.action);
-      if (result.success) {
-        const actionType = parsed.action.type === 'addItem' ? 'added'
-          : parsed.action.type === 'removeItem' ? 'removed' : 'edited';
-        setMessages(prev => {
-          const updated = [...prev];
-          updated[updated.length - 1] = {
-            role: 'changeSummary',
-            summary: {
-              changes: [{ type: actionType, featureId: parsed.action.featureId, count: 1 }],
-              message: parsed.message || result.message,
-            },
-          };
-          return updated;
-        });
-        maybeRunValidation();
-      } else {
-        setMessages(prev => {
-          const updated = [...prev];
-          updated[updated.length - 1] = { role: 'assistant', text: `Failed: ${result.message}` };
-          return updated;
-        });
-      }
-      return;
-    }
-
-    // 4. Batch actions (array of independent actions)
-    if (Array.isArray(parsed.actions) && parsed.actions.length > 0) {
-      const exec = executeActionRef.current;
-      if (!exec) {
-        setMessages(prev => {
-          const updated = [...prev];
-          updated[updated.length - 1] = { role: 'error', text: 'Action executor not available.' };
-          return updated;
-        });
-        return;
-      }
-
-      // Batch undo grouping: snapshot each affected featureId once before mutations
-      const snapshot = snapshotRef.current;
-      if (snapshot) {
-        const snappedFeatures = new Set();
-        for (const a of parsed.actions) {
-          const fid = a.featureId;
-          if (fid && !snappedFeatures.has(fid)) {
-            const entry = delivRef.current?.[fid];
-            if (entry?.data) { snapshot(fid, entry.data); snappedFeatures.add(fid); }
-          }
-        }
-      }
-
-      const total = parsed.actions.length;
-      let successCount = 0;
-      const failures = [];
-      const successActions = [];
-
-      for (let i = 0; i < total; i++) {
-        const result = exec(parsed.actions[i], { skipSnapshot: true });
-        if (result.success) {
-          successCount++;
-          successActions.push(parsed.actions[i]);
-        } else {
-          failures.push(result.message);
-        }
-        // Update progress every few actions
-        if ((i + 1) % 3 === 0 || i === total - 1) {
-          setMessages(prev => {
-            const updated = [...prev];
-            updated[updated.length - 1] = {
-              role: 'assistant',
-              text: `Applying ${i + 1} of ${total} changes...`,
-            };
-            return updated;
-          });
-        }
-      }
-
-      if (successCount > 0) {
-        // Group changes by type:featureId for structured summary
-        const changeCounts = {};
-        for (const a of successActions) {
-          const actionType = a.type === 'addItem' ? 'added'
-            : a.type === 'removeItem' ? 'removed' : 'edited';
-          const key = `${actionType}:${a.featureId}`;
-          if (!changeCounts[key]) changeCounts[key] = { type: actionType, featureId: a.featureId, count: 0 };
-          changeCounts[key].count++;
-        }
-
-        const failMsg = failures.length > 0
-          ? `${failures.length} failed: ${failures.slice(0, 2).join('; ')}`
-          : undefined;
-
-        setMessages(prev => {
-          const updated = [...prev];
-          updated[updated.length - 1] = {
-            role: 'changeSummary',
-            summary: {
-              changes: Object.values(changeCounts),
-              message: parsed.message || failMsg,
-            },
-          };
-          return updated;
-        });
-        maybeRunValidation();
-      } else {
-        setMessages(prev => {
-          const updated = [...prev];
-          updated[updated.length - 1] = {
-            role: 'assistant',
-            text: `All ${total} changes failed. ${failures[0] || ''}`,
-          };
-          return updated;
-        });
-      }
-      return;
-    }
-
-    // 5. Patches (backward compatible with revision system)
-    if (parsed.patches && onRevision) {
-      // Route through the existing revision handler
+    } else {
       setMessages(prev => {
         const updated = [...prev];
-        updated[updated.length - 1] = { role: 'assistant', text: 'Applying changes...' };
+        updated[updated.length - 1] = { role: 'assistant', text: parsed.chatReply || parsed.message || fullText };
         return updated;
       });
-      // We need to pass the patches through the revision handler
-      // For now, apply as a revision text that includes the patches
-      onRevision(JSON.stringify(parsed), messages.filter(m => m.role === 'user' || m.role === 'assistant').slice(-10))
-        .then(result => {
-          const reply = result?.chatReply || 'Changes applied! Review them in the workspace.';
-          setMessages(prev => {
-            const updated = [...prev];
-            // Find the "Applying changes..." message and replace it
-            const idx = updated.findLastIndex(m => m.role === 'assistant' && m.text === 'Applying changes...');
-            if (idx >= 0) updated[idx] = { role: 'assistant', text: reply };
-            return updated;
-          });
-        })
-        .catch(err => {
-          setMessages(prev => [...prev, { role: 'error', text: `Patch failed: ${err.message}` }]);
-        });
-      return;
     }
-
-    // Fallback: couldn't determine response type
-    setMessages(prev => {
-      const updated = [...prev];
-      updated[updated.length - 1] = { role: 'assistant', text: parsed.chatReply || parsed.message || fullText };
-      return updated;
-    });
   }
 
   // ── Handle research request — search, then re-call LLM ──────────────────
@@ -1039,7 +1017,8 @@ export default function useChatRouter({
       }
 
       // 6. Parse the synthesis response — guard against infinite loops
-      const synthParsed = parseAgentJSON(fullText);
+      let synthParsed = null;
+      try { synthParsed = JSON.parse(fullText.trim().replace(/^```(?:json)?\n?/, '').replace(/\n?```$/, '')); } catch { /* ignore */ }
       if (synthParsed?.research) {
         // LLM tried to research again — force chatReply fallback
         setMessages(prev => {
@@ -1054,7 +1033,7 @@ export default function useChatRouter({
       }
 
       // Normal handling of the synthesis response
-      handleAgentResponse(fullText);
+      handleLegacyResponse(fullText);
 
     } catch (err) {
       if (err.name === 'AbortError') {
@@ -1112,12 +1091,31 @@ export default function useChatRouter({
       return;
     }
 
+    // Pre-validate before executing
+    const validation = preValidateAction(option.action, {
+      deliverables: delivRef.current,
+      courseMap,
+    });
+    if (!validation.valid) {
+      // Auto-recover silently
+      setMessages(prev => {
+        const updated = [...prev];
+        updated[messageIndex] = { ...updated[messageIndex], status: 'dismissed' };
+        return updated;
+      });
+      sendAgentMessage(
+        `Option "${option.title}" is invalid: ${validation.reason}. `
+        + `Please propose a new option targeting valid deliverables.`,
+        { silent: true },
+      );
+      return;
+    }
+
     const result = exec(option.action);
 
-    setMessages(prev => {
-      const updated = [...prev];
-      if (result.success) {
-        // Success: mark selected, clear any previous failure, add changeSummary
+    if (result.success) {
+      setMessages(prev => {
+        const updated = [...prev];
         updated[messageIndex] = {
           ...updated[messageIndex],
           status: 'selected',
@@ -1134,18 +1132,29 @@ export default function useChatRouter({
             message: `Added "${option.title}" to your course.`,
           },
         });
-      } else {
-        // Failure: mark failed option but keep others clickable
+        return updated;
+      });
+      maybeRunValidation();
+    } else {
+      // Auto-recover: dismiss the broken proposal and ask the agent to fix the issue
+      const errorDetail = result.message || 'Unknown error';
+      const featureId = option.action?.featureId || 'unknown';
+      setMessages(prev => {
+        const updated = [...prev];
         updated[messageIndex] = {
           ...updated[messageIndex],
-          status: 'failed',
-          failedLabel: optionLabel,
-          failedMessage: result.message,
+          status: 'dismissed',
         };
-      }
-      return updated;
-    });
-    if (result.success) maybeRunValidation();
+        return updated;
+      });
+      // Send to agent to find an alternative approach (silently — no user bubble)
+      sendAgentMessage(
+        `I tried to apply "${option.title}" but it failed: ${errorDetail}. `
+        + `The deliverable "${featureId}" may not be available. `
+        + `Please find another way to accomplish this — target a deliverable that IS generated (status "done"), or suggest an alternative approach.`,
+        { silent: true },
+      );
+    }
   }
 
   // ── Revise mode (legacy): pass to revision handler ────────────────────────
@@ -1247,6 +1256,78 @@ export default function useChatRouter({
     ));
   }, []);
 
+  // ── Health Gate: auto-fix + skip ──────────────────────────────────────────
+
+  /** Trigger agent auto-fix loop for health findings.
+   *  @param {Array} findingsArg — if provided, use directly (silent mode). Otherwise read from healthGate card.
+   */
+  function triggerAutoFix(findingsArg) {
+    let findings = findingsArg || [];
+
+    // Fallback: read from healthGate card in messages (legacy / button-click path)
+    if (findings.length === 0) {
+      setMessages(prev => {
+        const gateIdx = prev.findIndex(m => m.role === 'progress' && m.data?.phase === 'healthGate');
+        if (gateIdx < 0) return prev;
+        findings = prev[gateIdx].data?.findings || [];
+        const updated = [...prev];
+        updated[gateIdx] = { ...updated[gateIdx], data: { ...updated[gateIdx].data, status: 'fixing' } };
+        return updated;
+      });
+    }
+
+    if (findings.length === 0) return;
+
+    const { autoFixable, needsDecision } = classifyFindings(findings);
+
+    // Build the synthetic auto-fix prompt
+    const parts = ['[AUTO-FIX MODE] The course health check found the following issues. Fix them now.\n'];
+
+    if (autoFixable.length > 0) {
+      parts.push(`## Auto-fixable issues (fix directly via edit_deliverables, NO proposal needed):`);
+      autoFixable.forEach((f, i) => {
+        parts.push(`${i + 1}. [${f.severity}] ${f.message}${f.suggestedPrompt ? ` — Hint: ${f.suggestedPrompt}` : ''}`);
+      });
+    }
+
+    if (needsDecision.length > 0) {
+      parts.push(`\n## Issues needing user decision (create proposals with 2-3 options):`);
+      needsDecision.forEach((f, i) => {
+        parts.push(`${i + 1}. [${f.severity}] ${f.message}${f.suggestedPrompt ? ` — Hint: ${f.suggestedPrompt}` : ''}`);
+      });
+    }
+
+    parts.push('\nAfter fixing, run validate_course to verify improvements. Summarize what was fixed and what needs user decisions.');
+
+    const prompt = parts.join('\n');
+    sendAgentMessage(prompt, { silent: true });
+  }
+
+  /** Skip health gate and show normal completion card */
+  function skipHealthGate(completionData) {
+    setMessages(prev => {
+      const updated = prev.map(m =>
+        m.role === 'progress' && m.data?.phase === 'healthGate'
+          ? { ...m, data: { ...m.data, status: 'skipped' } }
+          : m
+      );
+
+      // Add the normal completion card with greeting/starters
+      const opener = getChatOpener(courseMap, true, activeTab, delivRef.current);
+      updated.push({
+        role: 'progress',
+        data: {
+          ...completionData,
+          phase: 'complete',
+          greeting: opener.greeting,
+          starters: opener.starters,
+        },
+      });
+
+      return updated;
+    });
+  }
+
   return {
     messages,
     isStreaming, send, handleStop,
@@ -1254,5 +1335,6 @@ export default function useChatRouter({
     addProgressMessage,
     handleSelectProposal,
     pushSyncSuggestion, handleApproveSyncSuggestion, handleSkipSyncSuggestion,
+    triggerAutoFix, skipHealthGate,
   };
 }

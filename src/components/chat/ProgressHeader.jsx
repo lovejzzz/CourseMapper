@@ -31,6 +31,7 @@ export default function ProgressHeader({
   const delivDoneCount = delivRows.filter(r => r.status === 'done').length;
   const allDelivDone = delivRows.length > 0 && !isDelivGenerating && delivRows.every(r => r.status === 'done' || r.status === 'error');
   const everythingDone = isDone && (delivRows.length === 0 || allDelivDone);
+  const totalLessons = completenessInfo?.actual || 0;
 
   // Compute overall progress %
   const totalUnits = 1 + delivRows.length; // 1 for course map + N deliverables
@@ -254,10 +255,10 @@ export default function ProgressHeader({
                     }`}>
                       {row.label}
                     </span>
-                    {/* Chunk progress */}
-                    {pf && pf.chunksTotal > 1 && pf.status !== 'done' && isDelivGenerating && (
+                    {/* Lesson progress (derived from chunk progress) */}
+                    {pf && pf.chunksTotal > 1 && pf.status !== 'done' && isDelivGenerating && totalLessons > 0 && (
                       <span className="text-[11px] text-indigo-400 tabular-nums font-medium">
-                        {pf.chunksDone}/{pf.chunksTotal}
+                        {Math.min(Math.round((pf.chunksDone / pf.chunksTotal) * totalLessons), totalLessons)}/{totalLessons}
                       </span>
                     )}
                     {/* Done timing */}

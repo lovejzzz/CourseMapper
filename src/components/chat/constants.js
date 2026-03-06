@@ -42,7 +42,7 @@ const SUB_ARRAY_KEYS = { quizBank: 'qs', slideDecks: 'sl', courseFaq: 'qs', rubr
 function buildAdaptiveStarters(courseMap, activeTab, deliverables) {
   const starters = [];
   const lessons = courseMap?.lessons || [];
-  const courseTopic = courseMap?.courseName || 'your course topic';
+  const tabLabel = FEATURE_LABELS[activeTab] || activeTab;
 
   // 1. Health-based starters (top 2 findings by severity)
   if (deliverables && courseMap) {
@@ -59,9 +59,16 @@ function buildAdaptiveStarters(courseMap, activeTab, deliverables) {
     } catch { /* validator may fail on edge cases — fall through to defaults */ }
   }
 
-  // 2. Gap-based starters — find first lesson missing quiz/discussion
+  // 2. Gap-based starters — find first lesson missing content in any deliverable
   if (deliverables && starters.length < 3) {
-    for (const [featureId, subKey] of [['quizBank', 'qs'], ['discussions', null]]) {
+    const gapTargets = [
+      ['quizBank', 'qs', 'quiz questions'],
+      ['discussions', null, 'a discussion prompt'],
+      ['slideDecks', 'sl', 'slides'],
+      ['rubrics', 'cr', 'rubric criteria'],
+      ['studyGuides', null, 'study guide content'],
+    ];
+    for (const [featureId, subKey, label] of gapTargets) {
       if (starters.length >= 3) break;
       const entry = deliverables[featureId];
       if (!entry?.data) continue;
@@ -72,10 +79,9 @@ function buildAdaptiveStarters(courseMap, activeTab, deliverables) {
         const lesson = arr[i];
         const isEmpty = subKey
           ? !lesson[subKey] || lesson[subKey].length === 0
-          : !lesson || Object.keys(lesson).length <= 2; // lt + maybe one field
+          : !lesson || Object.keys(lesson).length <= 2;
         if (isEmpty) {
           const lessonTitle = lessons[i]?.title || `Lesson ${i + 1}`;
-          const label = featureId === 'quizBank' ? 'a quiz question' : 'a discussion prompt';
           starters.push({ text: `Add ${label} to ${lessonTitle}`, icon: 'plus' });
           break;
         }
@@ -83,17 +89,88 @@ function buildAdaptiveStarters(courseMap, activeTab, deliverables) {
     }
   }
 
-  // 3. Always include a research starter
-  if (starters.length < 4) {
-    starters.push({ text: `Find research on ${courseTopic}`, icon: 'search' });
+  // 3. Active-tab-specific starter — suggest action relevant to what user is viewing
+  if (starters.length < 4 && activeTab && activeTab !== 'courseMap' && deliverables?.[activeTab]?.status === 'done') {
+    const lesson = lessons[0];
+    const lessonTitle = lesson?.title || 'Lesson 1';
+    if (activeTab === 'quizBank') {
+      starters.push({ text: `Add quiz questions or assignments for ${lessonTitle} that align to the learning objectives`, icon: 'search' });
+    } else if (activeTab === 'discussions') {
+      starters.push({ text: `Review discussion prompts for Bloom's taxonomy alignment`, icon: 'search' });
+    } else if (activeTab === 'slideDecks') {
+      starters.push({ text: `Add speaker notes to the ${lessonTitle} slides`, icon: 'edit' });
+    } else if (activeTab === 'assignments') {
+      starters.push({ text: `Review assignment rubric alignment across all lessons`, icon: 'search' });
+    } else if (activeTab === 'lessonPlans') {
+      starters.push({ text: `Check if lesson plans cover all learning objectives`, icon: 'search' });
+    } else {
+      starters.push({ text: `Review ${tabLabel} for completeness`, icon: 'search' });
+    }
   }
 
-  // 4. Fill remaining with course-health review
-  if (starters.length < 4) {
-    starters.push({ text: 'Review my course for educational gaps', icon: 'search' });
+  // 4. Course-specific research starter
+  if (starters.length < 4 && lessons.length > 0) {
+    // Pick a specific lesson topic for the research starter
+    const midLesson = lessons[Math.floor(lessons.length / 2)];
+    const topic = midLesson?.title || courseMap?.courseName || 'your course topic';
+    starters.push({ text: `Find research on ${topic}`, icon: 'search' });
   }
 
   // Cap at 4
+  return starters.slice(0, 4);
+}
+
+// ── Course-specific starters for Tier 2 (course map ready, no deliverables) ──
+
+function buildCourseMapStarters(courseMap) {
+  const lessons = courseMap?.lessons || [];
+  const courseName = courseMap?.courseName || 'my course';
+  const starters = [];
+
+  // 1. Review a specific lesson that might have gaps (pick lesson with fewest objectives)
+  if (lessons.length > 0) {
+    // Find the lesson with the shortest objectives text — likely needs the most help
+    let targetLesson = lessons[0];
+    let targetIdx = 0;
+    for (let i = 1; i < lessons.length; i++) {
+      const objLen = (lessons[i]?.sections || [])
+        .reduce((sum, s) => sum + (s.learningObjectives?.length || 0), 0);
+      const curLen = (targetLesson?.sections || [])
+        .reduce((sum, s) => sum + (s.learningObjectives?.length || 0), 0);
+      if (objLen < curLen && objLen > 0) { targetLesson = lessons[i]; targetIdx = i; }
+    }
+    const title = targetLesson?.title || `Lesson ${targetIdx + 1}`;
+    starters.push({ text: `Review ${title} for any gaps`, icon: 'search' });
+  }
+
+  // 2. Objective specificity — reference the actual course
+  starters.push({
+    text: `Make the learning objectives in ${courseName} more measurable`,
+    icon: 'edit',
+  });
+
+  // 3. Difficulty/flow question about the actual lessons
+  if (lessons.length >= 3) {
+    starters.push({
+      text: `How does the difficulty progress across my ${lessons.length} lessons?`,
+      icon: 'chat',
+    });
+  } else {
+    starters.push({
+      text: 'What deliverables should I generate next?',
+      icon: 'chat',
+    });
+  }
+
+  // 4. Add content suggestion for a specific lesson
+  if (lessons.length > 1) {
+    const lastLesson = lessons[lessons.length - 1];
+    const lastTitle = lastLesson?.title || `Lesson ${lessons.length}`;
+    starters.push({ text: `Add an activity idea for ${lastTitle}`, icon: 'plus' });
+  } else {
+    starters.push({ text: 'How do I export to Google Docs?', icon: 'chat' });
+  }
+
   return starters.slice(0, 4);
 }
 
@@ -111,26 +188,11 @@ export function getChatOpener(courseMap, isAgentMode, activeTab, deliverables = 
 
   // Tier 2: Course map exists, no deliverables yet
   if (courseMap) {
+    const courseName = courseMap?.courseName || 'your course';
+    const lessonCount = courseMap?.lessons?.length || 0;
     return {
-      greeting: 'Your course map is ready! I can help you refine it or generate deliverables.',
-      starters: [
-        {
-          text: 'Review my course map for any gaps',
-          icon: 'search',
-        },
-        {
-          text: 'Make the learning objectives more specific',
-          icon: 'edit',
-        },
-        {
-          text: 'What deliverables should I generate?',
-          icon: 'chat',
-        },
-        {
-          text: 'How do I export to Google Docs?',
-          icon: 'chat',
-        },
-      ],
+      greeting: `Your ${courseName} course map is ready with ${lessonCount} lesson${lessonCount !== 1 ? 's' : ''}! I can help you refine it or generate deliverables.`,
+      starters: buildCourseMapStarters(courseMap),
     };
   }
 

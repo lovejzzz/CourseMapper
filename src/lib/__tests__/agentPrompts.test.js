@@ -59,11 +59,11 @@ describe('buildAgentSystemPrompt', () => {
     expect(prompt).toContain('Fall 2026');
   });
 
-  it('lists lessons with 0-based indices', () => {
+  it('lists lessons with 1-based display numbers and 0-based indices', () => {
     const prompt = buildAgentSystemPrompt(baseCourseMap, 'quizBank', baseDeliverables);
-    expect(prompt).toContain('0. Lesson 1: Linear Regression');
-    expect(prompt).toContain('1. Lesson 2: Classification');
-    expect(prompt).toContain('2. Lesson 3: Neural Networks');
+    expect(prompt).toContain('Lesson 1 (index 0): Lesson 1: Linear Regression');
+    expect(prompt).toContain('Lesson 2 (index 1): Lesson 2: Classification');
+    expect(prompt).toContain('Lesson 3 (index 2): Lesson 3: Neural Networks');
   });
 
   it('shows active tab name "Quiz & Exam Bank" for quizBank', () => {
@@ -131,18 +131,37 @@ describe('buildAgentSystemPrompt', () => {
     expect(prompt).toContain('imageSearch');
   });
 
-  it('contains all 9 response format descriptions', () => {
+  it('contains native tool-calling protocol and response formats', () => {
     const prompt = buildAgentSystemPrompt(baseCourseMap, 'quizBank', baseDeliverables);
-    // The 9 formats: chatReply, proposal, action, patches, actions (batch), research, diagram, chart, imageSearch
+    // Native tool-calling references the "respond" tool
+    expect(prompt).toContain('"respond"');
+    expect(prompt).toContain('Call tools');
+    // Final response formats referenced in respond tool description
     expect(prompt).toContain('chatReply');
     expect(prompt).toContain('proposal');
-    expect(prompt).toContain('"action"');
-    expect(prompt).toContain('"patches"');
-    expect(prompt).toContain('"actions"');
-    expect(prompt).toContain('"research"');
-    expect(prompt).toContain('"diagram"');
-    expect(prompt).toContain('"chart"');
-    expect(prompt).toContain('"imageSearch"');
+    expect(prompt).toContain('diagram');
+    expect(prompt).toContain('chart');
+    expect(prompt).toContain('imageSearch');
+    // Tool names referenced in decision rules (tools are now declared natively, not embedded)
+    expect(prompt).toContain('validate_course');
+    expect(prompt).toContain('check_grammar');
+    expect(prompt).toContain('search_research');
+    expect(prompt).toContain('read_deliverable');
+    expect(prompt).toContain('edit_course_map');
+    expect(prompt).toContain('edit_deliverables');
+  });
+
+  it('includes user preferences when provided', () => {
+    const prefs = { blooms_focus: 'higher-order', teaching_style: 'socratic' };
+    const prompt = buildAgentSystemPrompt(baseCourseMap, 'quizBank', baseDeliverables, null, prefs);
+    expect(prompt).toContain('USER PREFERENCES');
+    expect(prompt).toContain('blooms_focus: higher-order');
+    expect(prompt).toContain('teaching_style: socratic');
+  });
+
+  it('does not include user preferences section when prefs is null', () => {
+    const prompt = buildAgentSystemPrompt(baseCourseMap, 'quizBank', baseDeliverables, null, null);
+    expect(prompt).not.toContain('USER PREFERENCES');
   });
 
   it('shows "(none generated)" when deliverables is null', () => {

@@ -247,6 +247,7 @@ function execRemoveItem({ featureId, lessonIndex, itemIndex, subKey }, ctx) {
 function execEditItem({ featureId, path, value }, ctx) {
   const { deliverables, optimisticUpdate, snapshot, skipSnapshot } = ctx;
   if (!optimisticUpdate) return { success: false, message: 'Optimistic update not available' };
+  if (!Array.isArray(path) || path.length < 1) return { success: false, message: 'Invalid path — must be a non-empty array' };
 
   const entry = deliverables?.[featureId];
   if (!entry?.data) return { success: false, message: `${featureId} not generated yet` };
@@ -262,7 +263,9 @@ function execEditItem({ featureId, path, value }, ctx) {
     target = target[path[i]];
     if (target == null) return { success: false, message: `Invalid path at ${path[i]}` };
   }
-  target[path[path.length - 1]] = value;
+  const finalKey = path[path.length - 1];
+  if (target == null || typeof target !== 'object') return { success: false, message: `Invalid path — cannot set property on ${typeof target}` };
+  target[finalKey] = value;
 
   optimisticUpdate(featureId, data);
   return { success: true, message: `Updated ${featureId}` };
@@ -272,4 +275,83 @@ function execRegenerateLesson({ featureId, lessonIndex }, { regenerateLesson, co
   if (!regenerateLesson) return { success: false, message: 'Regenerate not available' };
   regenerateLesson(featureId, courseMap, lessonIndex);
   return { success: true, message: `Regenerating ${featureId} for Lesson ${lessonIndex + 1}` };
+}
+
+// ── Pre-validation (read-only check before execution) ───────────────────────
+
+/**
+ * Pre-validate an action without executing it.
+ * Mirrors the checks in execAddItem/execRemoveItem/execEditItem but is read-only.
+ *
+ * @param {object} action - The action to validate
+ * @param {object} ctx - { deliverables, courseMap }
+ * @returns {{ valid: boolean, reason?: string }}
+ */
+export function preValidateAction(action, ctx) {
+  if (!action?.type) return { valid: false, reason: 'Missing action type' };
+  const { deliverables, courseMap } = ctx;
+
+  // Deliverable actions require the deliverable to exist with data
+  if (['addItem', 'removeItem', 'editItem', 'regenerateLesson'].includes(action.type)) {
+    if (!action.featureId) return { valid: false, reason: 'Missing featureId' };
+    const entry = deliverables?.[action.featureId];
+    if (!entry?.data) return { valid: false, reason: `${action.featureId} not generated yet` };
+  }
+
+  // Course map actions require a course map
+  if (['editCell', 'editTitle', 'addLesson', 'deleteLesson'].includes(action.type)) {
+    if (!courseMap?.lessons) return { valid: false, reason: 'No course map loaded' };
+  }
+
+  // lessonIndex bounds check (skip for assignments which are flat arrays)
+  if (action.lessonIndex !== undefined && action.featureId && action.featureId !== 'assignments' && action.featureId !== 'syllabus') {
+    const entry = deliverables?.[action.featureId];
+    if (entry?.data) {
+      const arrKey = getArrayKey(action.featureId, entry.data);
+      const arr = entry.data[arrKey];
+      if (Array.isArray(arr) && (action.lessonIndex < 0 || action.lessonIndex >= arr.length)) {
+        return { valid: false, reason: `lessonIndex ${action.lessonIndex} out of range (0-${arr.length - 1})` };
+      }
+    }
+  }
+
+  // Course map lessonIndex bounds check
+  if (action.lessonIndex !== undefined && ['editCell', 'editTitle', 'deleteLesson'].includes(action.type)) {
+    const lessons = courseMap?.lessons || [];
+    if (action.lessonIndex < 0 || action.lessonIndex >= lessons.length) {
+      return { valid: false, reason: `lessonIndex ${action.lessonIndex} out of range (0-${lessons.length - 1})` };
+    }
+  }
+
+  // Cannot delete the only lesson
+  if (action.type === 'deleteLesson' && (courseMap?.lessons?.length ?? 0) <= 1) {
+    return { valid: false, reason: 'Cannot delete the only lesson' };
+  }
+
+  // Duplicate detection for addItem
+  if (action.type === 'addItem' && action.item && action.featureId) {
+    const dupField = DEDUP_FIELDS[action.featureId];
+    if (dupField && action.item[dupField]) {
+      const entry = deliverables?.[action.featureId];
+      if (entry?.data) {
+        const arrKey = getArrayKey(action.featureId, entry.data);
+        const arr = entry.data[arrKey];
+        if (Array.isArray(arr) && action.lessonIndex !== undefined && arr[action.lessonIndex]) {
+          const lessonItem = arr[action.lessonIndex];
+          const subArrayKey = SUB_ARRAY_KEYS[action.featureId];
+          if (subArrayKey && Array.isArray(lessonItem[subArrayKey])) {
+            const newText = (action.item[dupField] || '').toLowerCase().trim();
+            const isDupe = lessonItem[subArrayKey].some(existing =>
+              (existing[dupField] || '').toLowerCase().trim() === newText
+            );
+            if (isDupe) {
+              return { valid: false, reason: `Duplicate: item with same ${dupField === 'q' ? 'question' : 'text'} already exists` };
+            }
+          }
+        }
+      }
+    }
+  }
+
+  return { valid: true };
 }

@@ -146,13 +146,16 @@ Five pedagogical frameworks that shape all generated content:
 
 ### AI Teaching Agent
 
-- **Agentic assistant** — An AI agent embedded in the chat panel that takes direct action on your course materials instead of just giving advice. Say "add a quiz question about ethics to Lesson 3" and it generates the content and applies it.
+- **Native tool calling** — Uses each provider's native function-calling API (OpenAI, Anthropic, Google) instead of JSON-in-text parsing. Structured tool calls and responses through the API guarantee reliable execution.
+- **Parallel tool execution** — Agent executes multiple tools concurrently (e.g., reading 5 lessons at once) instead of sequentially, dramatically reducing response time.
 - **Proposal cards** — For content creation, the agent proposes 2–3 pedagogically distinct options as clickable cards. Pick one and it's instantly added to your deliverables.
+- **Pre-validation** — Every proposed action is validated against current deliverable state before being shown to the user. Invalid options are filtered out automatically.
 - **Batch actions** — "Add a discussion prompt to every lesson" executes across all lessons in one go with per-lesson unique content and progress feedback.
 - **Cross-deliverable edits** — "Add a quiz AND an assignment for Lesson 2" handles multiple deliverable types in a single request.
-- **Streaming feedback** — Live-streams chat replies and shows "Generating options..." / "Preparing changes..." status while the agent works.
-- **Error recovery** — If a proposed option fails, it highlights the error in red and keeps the other options clickable. Retry or pick a different option.
-- **Agent memory** — The agent remembers its own proposals, what you selected, and what failed within the session.
+- **Clean status UI** — Generation progress and agent tool steps are shown in a collapsible header area, keeping the chat timeline clean for conversation only. Repeated steps (like reading 15 lessons) are grouped into a single line.
+- **Silent auto-fix** — After deliverables generate, the agent runs a health check and auto-fixes issues without showing system prompts in the chat.
+- **Error recovery** — If a proposed option fails, the agent auto-recovers by silently re-invoking itself to find an alternative approach.
+- **User preferences** — Tell the agent your teaching preferences (Bloom's focus, difficulty level, style) and it remembers them across sessions via `save_preference`.
 - **Context-aware routing** — Messages auto-route: agent mode when deliverables exist, help mode during generation, revision mode for course map edits.
 - **Undo support** — Every agent action snapshots the previous state so you can undo with one click.
 
@@ -232,13 +235,21 @@ src/
     chat/
       ChatPanel.jsx         # Unified chat interface (progress, help, agent)
       ChatInput.jsx         # Message input with file upload
-      MessageList.jsx       # Scrollable message area + opener
+      MessageList.jsx       # Scrollable message area (clean chat only)
       MessageBubble.jsx     # Individual message rendering (markdown)
+      AgentProgressCard.jsx # Collapsible agent tool-step progress (fixed top area)
       ProposalCard.jsx      # AI proposal option cards with select/retry
-      ProgressCard.jsx      # Generation milestone cards + starters
-      ProgressHeader.jsx    # Collapsible generation progress bar
-      useChatRouter.js      # Chat state machine: routing, streaming, agent responses
-      constants.js          # Feature labels, step definitions, opener starters
+      ProgressCard.jsx      # Generation milestone cards (health gate, completion)
+      ProgressHeader.jsx    # Collapsible generation + deliverable progress bar
+      ChangeSummaryCard.jsx # Inline change summary after agent edits
+      ResearchCard.jsx      # Academic research results card
+      ValidationCard.jsx    # Course validation report card
+      DiagramCard.jsx       # AI-generated diagram display
+      ChartCard.jsx         # AI-generated chart display
+      ImageSearchCard.jsx   # Image search results card
+      SyncSuggestionCard.jsx# Cascade sync suggestion with approve/skip
+      useChatRouter.js      # Chat state machine: routing, streaming, native tool-calling agent loop
+      constants.js          # Feature labels, step definitions
   hooks/
     useGeneration.js        # Course map generation + stop/resume
     useDeliverables.js      # Deliverable generation (per-feature sequential, cross-feature parallel), surgical regen, restore
@@ -257,8 +268,10 @@ src/
     fileParser.js           # Multi-format file parsing
     importCourseMap.js      # Import course map from .xlsx/.csv
     prompts.js              # Course map generation prompts
+    agentProviders.js       # Provider abstraction for native tool calling (OpenAI/Anthropic/Google)
+    agentTools.js           # Agent tool definitions, execution, and result summarization
     agentPrompts.js         # Dynamic system prompt for the agentic teaching assistant
-    agentActions.js         # Action executor (addItem, editItem, removeItem, etc.)
+    agentActions.js         # Action executor + pre-validator (addItem, editItem, removeItem, etc.)
     streamProvider.js       # AI streaming across providers
     customDeliverableLibrary.js # localStorage CRUD for custom deliverable definitions
     parallelGenerator.js    # Chunking, merging, completeness-check, per-feature output budgets

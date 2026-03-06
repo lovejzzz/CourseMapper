@@ -1,35 +1,11 @@
 import React from 'react';
 import { resolveLabel } from './constants';
 
-// ── Starter icon (matches MessageList's StarterIcon) ──────────────────────────
-function StarterIcon({ type }) {
-  if (type === 'plus') return (
-    <svg className="w-3 h-3" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-      <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 4v16m8-8H4" />
-    </svg>
-  );
-  if (type === 'search') return (
-    <svg className="w-3 h-3" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-      <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z" />
-    </svg>
-  );
-  if (type === 'edit') return (
-    <svg className="w-3 h-3" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-      <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M11 5H6a2 2 0 00-2 2v11a2 2 0 002 2h11a2 2 0 002-2v-5m-1.414-9.414a2 2 0 112.828 2.828L11.828 15H9v-2.828l8.586-8.586z" />
-    </svg>
-  );
-  return (
-    <svg className="w-3 h-3" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-      <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M8 12h.01M12 12h.01M16 12h.01M21 12c0 4.418-4.03 8-9 8a9.863 9.863 0 01-4.255-.949L3 20l1.395-3.72C3.512 15.042 3 13.574 3 12c0-4.418 4.03-8 9-8s9 3.582 9 8z" />
-    </svg>
-  );
-}
-
 /**
  * ProgressCard — inline generation summary card shown in the chat timeline.
  * Rendered when generation completes or when a notable phase change occurs.
  */
-export default function ProgressCard({ data, onSuggestionClick }) {
+export default function ProgressCard({ data, onFixAllClick, onSkipHealthGate }) {
   if (!data) return null;
 
   const { phase, deliverables, totalTime, lessonCount, error } = data;
@@ -43,6 +19,99 @@ export default function ProgressCard({ data, onSuggestionClick }) {
             <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 8v4m0 4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z" />
           </svg>
           <span className="text-[13px] font-medium text-red-600">{error}</span>
+        </div>
+      </div>
+    );
+  }
+
+  // Health gate card — shown after generation when issues are found
+  if (phase === 'healthGate') {
+    const { findings = [], errorCount = 0, warningCount = 0, autoFixCount = 0, needsDecisionCount = 0, status } = data;
+
+    // Skipped state — collapsed one-liner
+    if (status === 'skipped') {
+      return (
+        <div className="mx-2 my-1 px-3.5 py-2 rounded-xl bg-slate-50/60 border border-slate-200/30 animate-spring-in">
+          <div className="flex items-center gap-2">
+            <svg className="w-3.5 h-3.5 text-slate-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M13 16h-1v-4h-1m1-4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z" />
+            </svg>
+            <span className="text-[12px] text-slate-500">Health check skipped — {errorCount} error{errorCount !== 1 ? 's' : ''}, {warningCount} warning{warningCount !== 1 ? 's' : ''}</span>
+          </div>
+        </div>
+      );
+    }
+
+    const isFix = status === 'fixing';
+    const top5 = findings.filter(f => f.severity !== 'info').slice(0, 5);
+    const totalIssues = errorCount + warningCount;
+
+    return (
+      <div className="mx-2 my-1 rounded-xl bg-amber-50/80 border border-amber-200/40 animate-spring-in overflow-hidden">
+        {/* Header */}
+        <div className="px-4 py-3">
+          <div className="flex items-center gap-2 mb-1.5">
+            <div className="w-5 h-5 rounded-full bg-amber-100 flex items-center justify-center">
+              <svg className="w-3 h-3 text-amber-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 9v2m0 4h.01m-6.938 4h13.856c1.54 0 2.502-1.667 1.732-2.5L13.732 4.5c-.77-.833-2.694-.833-3.464 0L3.34 16.5c-.77.833.192 2.5 1.732 2.5z" />
+              </svg>
+            </div>
+            <span className="text-[13px] font-semibold text-amber-800">
+              Course Health Check — {errorCount} error{errorCount !== 1 ? 's' : ''}, {warningCount} warning{warningCount !== 1 ? 's' : ''}
+            </span>
+          </div>
+          <p className="text-[12px] text-amber-700/80 ml-7">
+            Issues found in your deliverables. Fix them now or skip to review later.
+          </p>
+        </div>
+
+        {/* Findings preview */}
+        {top5.length > 0 && (
+          <div className="px-4 pb-2 space-y-1">
+            {top5.map((f, i) => (
+              <div key={i} className="flex items-start gap-2 text-[11px]">
+                <span className={`mt-1 w-1.5 h-1.5 rounded-full flex-shrink-0 ${
+                  f.severity === 'error' ? 'bg-red-400' : 'bg-amber-400'
+                }`} />
+                <span className="text-slate-600">{f.message}</span>
+              </div>
+            ))}
+            {findings.filter(f => f.severity !== 'info').length > 5 && (
+              <p className="text-[11px] text-amber-500 ml-3.5">
+                +{findings.filter(f => f.severity !== 'info').length - 5} more…
+              </p>
+            )}
+          </div>
+        )}
+
+        {/* Breakdown + actions */}
+        <div className="px-4 pb-3 flex items-center justify-between border-t border-amber-200/40 pt-2.5">
+          <div className="text-[11px] text-amber-600 space-x-3">
+            {autoFixCount > 0 && <span>{autoFixCount} auto-fixable</span>}
+            {needsDecisionCount > 0 && <span>{needsDecisionCount} need review</span>}
+          </div>
+          <div className="flex items-center gap-2">
+            <button
+              onClick={onSkipHealthGate}
+              disabled={isFix}
+              className="px-3 py-1.5 text-[11px] font-medium text-amber-600 hover:text-amber-800 transition-colors disabled:opacity-50"
+            >
+              Skip
+            </button>
+            <button
+              onClick={onFixAllClick}
+              disabled={isFix}
+              className="tactile px-3.5 py-1.5 rounded-lg text-[11px] font-semibold text-white bg-gradient-to-r from-amber-500 to-orange-500 hover:from-amber-600 hover:to-orange-600 shadow-sm transition-all disabled:opacity-50 flex items-center gap-1.5"
+            >
+              {isFix && (
+                <svg className="w-3 h-3 animate-spin" fill="none" viewBox="0 0 24 24">
+                  <circle className="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" strokeWidth="4" />
+                  <path className="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4z" />
+                </svg>
+              )}
+              {isFix ? 'Fixing…' : `Fix All ${totalIssues} Issue${totalIssues !== 1 ? 's' : ''}`}
+            </button>
+          </div>
         </div>
       </div>
     );
@@ -92,41 +161,11 @@ export default function ProgressCard({ data, onSuggestionClick }) {
           )}
         </div>
 
-        {/* Agent greeting + starters after completion summary */}
-        {data.greeting && (
-          <div className="flex items-start gap-2.5 mx-1 mt-2 mb-2">
-            <div className="w-6 h-6 mt-0.5 rounded-lg bg-gradient-to-br from-indigo-500/10 to-violet-500/10 flex items-center justify-center flex-shrink-0">
-              <svg className="w-3 h-3 text-indigo-500" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2}
-                  d="M9.663 17h4.673M12 3v1m6.364 1.636l-.707.707M21 12h-1M4 12H3m3.343-5.657l-.707-.707m2.828 9.9a5 5 0 117.072 0l-.548.547A3.374 3.374 0 0014 18.469V19a2 2 0 11-4 0v-.531c0-.895-.356-1.754-.988-2.386l-.548-.547z" />
-              </svg>
-            </div>
-            <div className="bg-white/60 border border-slate-200/30 rounded-xl rounded-tl-md px-3.5 py-2.5 shadow-glass max-w-[88%]">
-              <p className="text-[13px] text-slate-600 leading-snug">{data.greeting}</p>
-            </div>
-          </div>
-        )}
-        {data.starters?.length > 0 && onSuggestionClick && (
-          <div className="ml-9 flex flex-wrap gap-1.5">
-            {data.starters.map((s, i) => (
-              <button
-                key={i}
-                onClick={() => onSuggestionClick(s.text)}
-                className="tactile inline-flex items-center gap-1.5 px-3 py-1.5 text-[12px] font-medium text-slate-600 bg-white/50 border border-slate-200/40 rounded-full shadow-sm hover:bg-indigo-50/70 hover:border-indigo-200/50 hover:text-indigo-700 transition-all duration-200"
-              >
-                <span className="text-slate-400">
-                  <StarterIcon type={s.icon} />
-                </span>
-                {s.text}
-              </button>
-            ))}
-          </div>
-        )}
       </div>
     );
   }
 
-  // Course map ready card — includes greeting + starter prompts
+  // Course map ready card — includes greeting
   if (phase === 'courseMapReady') {
     return (
       <div className="mx-1 my-1 animate-spring-in">
@@ -142,38 +181,6 @@ export default function ProgressCard({ data, onSuggestionClick }) {
           </span>
         </div>
 
-        {/* Greeting bubble (like opener) */}
-        {data.greeting && (
-          <div className="flex items-start gap-2.5 mb-2">
-            <div className="w-6 h-6 mt-0.5 rounded-lg bg-gradient-to-br from-indigo-500/10 to-violet-500/10 flex items-center justify-center flex-shrink-0">
-              <svg className="w-3 h-3 text-indigo-500" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2}
-                  d="M9.663 17h4.673M12 3v1m6.364 1.636l-.707.707M21 12h-1M4 12H3m3.343-5.657l-.707-.707m2.828 9.9a5 5 0 117.072 0l-.548.547A3.374 3.374 0 0014 18.469V19a2 2 0 11-4 0v-.531c0-.895-.356-1.754-.988-2.386l-.548-.547z" />
-              </svg>
-            </div>
-            <div className="bg-white/60 border border-slate-200/30 rounded-xl rounded-tl-md px-3.5 py-2.5 shadow-glass max-w-[88%]">
-              <p className="text-[13px] text-slate-600 leading-snug">{data.greeting}</p>
-            </div>
-          </div>
-        )}
-
-        {/* Starter prompts */}
-        {data.starters?.length > 0 && onSuggestionClick && (
-          <div className="ml-8 flex flex-wrap gap-1.5">
-            {data.starters.map((s, i) => (
-              <button
-                key={i}
-                onClick={() => onSuggestionClick(s.text)}
-                className="tactile inline-flex items-center gap-1.5 px-3 py-1.5 text-[12px] font-medium text-slate-600 bg-white/50 border border-slate-200/40 rounded-full shadow-sm hover:bg-indigo-50/70 hover:border-indigo-200/50 hover:text-indigo-700 transition-all duration-200"
-              >
-                <span className="text-slate-400">
-                  <StarterIcon type={s.icon} />
-                </span>
-                {s.text}
-              </button>
-            ))}
-          </div>
-        )}
       </div>
     );
   }

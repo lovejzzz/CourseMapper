@@ -2,10 +2,11 @@ import React, { useEffect, useRef, useCallback } from 'react';
 import ProgressHeader from './ProgressHeader';
 import MessageList from './MessageList';
 import ChatInput from './ChatInput';
+import AgentProgressCard from './AgentProgressCard';
 import useChatRouter from './useChatRouter';
 import ExamReview from '../ExamReview';
 import { executeAction } from '../../lib/agentActions';
-import { getChatOpener } from './constants';
+import { generateCourseHealthReport } from '../../lib/pedagogicalValidator';
 
 /**
  * ChatPanel — Unified chat interface replacing ProgressPanel + RevisionChat + HelpDrawer.
@@ -85,57 +86,37 @@ export default function ChatPanel({
     }
   }, [pendingSyncSuggestion]); // eslint-disable-line react-hooks/exhaustive-deps
 
-  // ── Auto-insert progress cards on state transitions ─────────────────────
-  const prevStepRef = useRef(currentStep);  // init to current so mount doesn't trigger
-  // Init to current done count so remounts don't re-fire
+  // ── Auto health-fix after deliverables complete ─────────────────────────
   const initDone = deliverables
     ? Object.entries(deliverables).filter(([id]) => id !== 'courseMap').filter(([, s]) => s?.status === 'done').length
     : 0;
   const prevDelivDoneRef = useRef(initDone);
 
   useEffect(() => {
-    // Course map ready card — include opener starters so user sees actionable prompts
-    if (currentStep === 'done' && prevStepRef.current && prevStepRef.current !== 'done') {
-      const lessonCount = completenessInfo?.actual || courseMap?.lessons?.length || 0;
-      const opener = getChatOpener(courseMap, false, null, null); // Tier 2: course map exists
-      chat.addProgressMessage({
-        data: { phase: 'courseMapReady', lessonCount, greeting: opener.greeting, starters: opener.starters },
-      });
-    }
-    prevStepRef.current = currentStep;
-  }, [currentStep]); // eslint-disable-line react-hooks/exhaustive-deps
-
-  useEffect(() => {
-    // All deliverables done card
     const delivRows = deliverables
       ? Object.entries(deliverables).filter(([id]) => id !== 'courseMap')
       : [];
     const doneCount = delivRows.filter(([, s]) => s?.status === 'done').length;
-    const errorCount = delivRows.filter(([, s]) => s?.status === 'error').length;
     const allDone = delivRows.length > 0 && !isDelivGenerating &&
       delivRows.every(([, s]) => s?.status === 'done' || s?.status === 'error');
 
     if (allDone && doneCount > 0 && doneCount !== prevDelivDoneRef.current) {
-      // Calculate total time
-      const timings = delivTimings ? Object.values(delivTimings) : [];
-      const totalTime = timings.reduce((sum, t) => sum + (t.durationMs || 0), 0);
+      // Run health check — if issues found, auto-fix silently
+      const healthReport = (courseMap && deliverables)
+        ? generateCourseHealthReport(courseMap, deliverables)
+        : null;
 
-      const agentOpener = getChatOpener(courseMap, true, activeTab, deliverables); // Tier 3: agent mode
-      chat.addProgressMessage({
-        data: {
-          phase: 'complete',
-          lessonCount: completenessInfo?.actual || courseMap?.lessons?.length || 0,
-          totalTime,
-          deliverables: delivRows.map(([id, s]) => ({ id, status: s?.status })),
-          greeting: agentOpener.greeting,
-          starters: agentOpener.starters,
-        },
-      });
+      if (healthReport && (healthReport.errorCount > 0 || healthReport.warningCount > 0)) {
+        setTimeout(() => chat.triggerAutoFix(healthReport.findings), 300);
+      }
     }
     prevDelivDoneRef.current = doneCount;
   }, [deliverables, isDelivGenerating]); // eslint-disable-line react-hooks/exhaustive-deps
 
   const showProgressHeader = !!(currentStep || error);
+
+  // Extract latest agent progress for the fixed status area (not in chat scroll)
+  const latestAgentProgress = [...chat.messages].reverse().find(m => m.role === 'agentProgress');
 
   return (
     <div className="flex flex-col h-full bg-white/72 backdrop-blur-xl rounded-squircle shadow-glass overflow-hidden" data-print="hide">
@@ -152,7 +133,7 @@ export default function ChatPanel({
         </div>
       </div>
 
-      {/* ── Progress Header (collapsible) ── */}
+      {/* ── Progress Header (collapsible) — generation + deliverable status ── */}
       {showProgressHeader && (
         <ProgressHeader
           currentStep={currentStep}
@@ -178,6 +159,13 @@ export default function ChatPanel({
         />
       )}
 
+      {/* ── Agent Progress (fixed top, collapsible) — tool execution status ── */}
+      {latestAgentProgress && (
+        <div className="flex-shrink-0 border-b border-slate-200/40">
+          <AgentProgressCard steps={latestAgentProgress.steps} status={latestAgentProgress.status} />
+        </div>
+      )}
+
       {/* ── Exam Review (if pending) ── */}
       {(pendingExamPatches || (examChanges && examChanges.length > 0)) && (
         <div className="flex-shrink-0 border-b border-slate-200/40 px-4 py-2">
@@ -190,14 +178,10 @@ export default function ChatPanel({
         </div>
       )}
 
-      {/* ── Message List (scrollable) ── */}
+      {/* ── Message List (scrollable) — clean chat only ── */}
       <MessageList
         messages={chat.messages}
         isStreaming={chat.isStreaming}
-        courseMap={courseMap}
-        isAgentMode={isAgentMode}
-        activeTab={activeTab}
-        deliverables={deliverables}
         onSuggestionClick={(q) => chat.send(q)}
         onSelectProposal={chat.handleSelectProposal}
         onUndo={delivUndoFn}

@@ -617,3 +617,19 @@ export function generateCourseHealthReport(courseMap, deliverables) {
 
   return { findings, errorCount, warningCount, infoCount, summary };
 }
+
+// ── Auto-fix classification ─────────────────────────────────────────────────
+
+/** Categories that the agent can fix directly without user decision */
+export const AUTO_FIX_CATEGORIES = new Set(['readability', 'difficulty', 'grammar']);
+
+/**
+ * Classify findings into auto-fixable (agent can fix directly) vs
+ * needs-decision (user must choose from options).
+ */
+export function classifyFindings(findings) {
+  return {
+    autoFixable: findings.filter(f => AUTO_FIX_CATEGORIES.has(f.category) && f.suggestedPrompt),
+    needsDecision: findings.filter(f => !AUTO_FIX_CATEGORIES.has(f.category) && f.suggestedPrompt),
+  };
+}
