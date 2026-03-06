@@ -175,12 +175,19 @@ function parseAgentJSON(text) {
   // Find JSON start
   const start = cleaned.indexOf('{');
   if (start < 0) return null;
-  // Find matching end brace
+  // Find matching end brace, skipping braces inside strings
   let depth = 0;
   let end = -1;
+  let inString = false;
+  let escaped = false;
   for (let i = start; i < cleaned.length; i++) {
-    if (cleaned[i] === '{') depth++;
-    else if (cleaned[i] === '}') { depth--; if (depth === 0) { end = i; break; } }
+    const ch = cleaned[i];
+    if (escaped) { escaped = false; continue; }
+    if (ch === '\\' && inString) { escaped = true; continue; }
+    if (ch === '"') { inString = !inString; continue; }
+    if (inString) continue;
+    if (ch === '{') depth++;
+    else if (ch === '}') { depth--; if (depth === 0) { end = i; break; } }
   }
   if (end < 0) return null;
   try {
@@ -518,7 +525,7 @@ export default function useChatRouter({
       const systemPrompt = buildAgentSystemPrompt(courseMap, activeTab, delivRef.current, healthSummary);
       const { reader, parseChunk } = await streamChat(
         chatHistory, systemPrompt, controller.signal, apiKey, provider, modelId,
-        4096, // higher max tokens for structured output
+        16384, // high limit for structured output (proposals with embedded items)
       );
 
       const decoder = new TextDecoder();
@@ -668,10 +675,14 @@ export default function useChatRouter({
     const parsed = parseAgentJSON(fullText);
 
     if (!parsed) {
-      // Couldn't parse JSON — treat as plain text reply
+      // Couldn't parse JSON — check if it looks like truncated structured output
+      const looksLikeJSON = fullText && fullText.trimStart().startsWith('{');
+      const fallbackText = looksLikeJSON
+        ? "My response was too complex to process. Let me try a simpler approach — could you ask for one thing at a time? For example, ask me to edit the course map first, then add quiz items separately."
+        : (fullText || "I couldn't generate a response. Please try rephrasing.");
       setMessages(prev => {
         const updated = [...prev];
-        updated[updated.length - 1] = { role: 'assistant', text: fullText || "I couldn't generate a response. Please try rephrasing." };
+        updated[updated.length - 1] = { role: 'assistant', text: fallbackText };
         return updated;
       });
       return;
@@ -969,7 +980,7 @@ export default function useChatRouter({
       const systemPrompt = buildAgentSystemPrompt(courseMap, activeTab, delivRef.current);
       const { reader, parseChunk } = await streamChat(
         chatHistory, systemPrompt, controller.signal, apiKey, provider, modelId,
-        4096,
+        16384,
       );
 
       const decoder = new TextDecoder();
