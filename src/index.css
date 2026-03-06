@@ -228,8 +228,9 @@ body {
   border: 1px solid rgba(255, 255, 255, 0.08);
 }
 
-/* Header */
-.dark header {
+/* Header — only apply dark background to sticky/bordered workspace headers */
+.dark header[class*="border-b"],
+.dark header[class*="sticky"] {
   background: rgba(15, 17, 23, 0.85) !important;
   border-bottom-color: rgba(255, 255, 255, 0.07) !important;
 }
@@ -247,15 +248,39 @@ body {
 .dark [class*="bg-slate-100"] {
   background-color: #252836 !important;
 }
+.dark .bg-slate-200,
+.dark [class*="bg-slate-200\/"] {
+  background-color: rgba(255, 255, 255, 0.08) !important;
+}
 
-/* Text colors */
+/* Hardcoded Google brand colors → dark muted */
+.dark [class*="E8F0FE"],
+.dark [class*="D2E3FC"],
+.dark [class*="E6F4EA"],
+.dark [class*="CEEAD6"] {
+  background-color: rgba(255, 255, 255, 0.06) !important;
+}
+.dark [class*="1967D2"] { color: #8ab4f8 !important; }
+.dark [class*="188038"] { color: #81c995 !important; }
+.dark [class*="F4B400"] { color: #fcd34d !important; }
+.dark [class*="4285F4"] { border-color: rgba(66, 133, 244, 0.25) !important; }
+.dark [class*="34A853"] { border-color: rgba(52, 168, 83, 0.25) !important; }
+.dark [class*="FBBC04"] { border-color: rgba(251, 188, 4, 0.25) !important; }
+.dark [class*="FFF8E1"],
+.dark [class*="FFF0B3"] {
+  background-color: rgba(255, 255, 255, 0.06) !important;
+}
+
+/* Text colors — invert the full scale for dark mode */
 .dark .text-slate-900 { color: #f1f5f9 !important; }
 .dark .text-slate-800 { color: #e2e8f0 !important; }
 .dark .text-slate-700 { color: #cbd5e1 !important; }
 .dark .text-slate-600 { color: #94a3b8 !important; }
 .dark .text-slate-500 { color: #64748b !important; }
-.dark .text-slate-400 { color: #475569 !important; }
-.dark .text-slate-300 { color: #334155 !important; }
+.dark .text-slate-400 { color: #94a3b8 !important; }
+.dark .text-slate-300 { color: #64748b !important; }
+/* Slate-300/70 used in footers — keep visible but subtle */
+.dark [class*="text-slate-300\/"] { color: rgba(148, 163, 184, 0.5) !important; }
 
 /* Borders */
 .dark .border-slate-100 { border-color: rgba(255,255,255,0.06) !important; }
@@ -292,6 +317,218 @@ body {
 .dark [class*="bg-white\/95"],
 .dark [class*="bg-white\/97"] {
   background-color: rgba(26, 29, 39, 0.98) !important;
+}
+
+/* ── Colored tint backgrounds → dark muted equivalents ── */
+
+/* Indigo tints */
+.dark .bg-indigo-50,
+.dark [class*="bg-indigo-50\/"] {
+  background-color: rgba(99, 102, 241, 0.08) !important;
+}
+.dark .bg-indigo-100,
+.dark [class*="bg-indigo-100\/"] {
+  background-color: rgba(99, 102, 241, 0.12) !important;
+}
+
+/* Violet tints */
+.dark .bg-violet-50,
+.dark [class*="bg-violet-50\/"] {
+  background-color: rgba(139, 92, 246, 0.08) !important;
+}
+.dark .bg-violet-100,
+.dark [class*="bg-violet-100\/"] {
+  background-color: rgba(139, 92, 246, 0.12) !important;
+}
+
+/* Emerald tints */
+.dark .bg-emerald-50,
+.dark [class*="bg-emerald-50\/"] {
+  background-color: rgba(52, 211, 153, 0.08) !important;
+}
+.dark .bg-emerald-100,
+.dark [class*="bg-emerald-100\/"] {
+  background-color: rgba(52, 211, 153, 0.12) !important;
+}
+
+/* Sky/blue tints */
+.dark .bg-sky-50,
+.dark [class*="bg-sky-50\/"] {
+  background-color: rgba(56, 189, 248, 0.08) !important;
+}
+.dark .bg-sky-100,
+.dark [class*="bg-sky-100\/"] {
+  background-color: rgba(56, 189, 248, 0.12) !important;
+}
+.dark .bg-blue-50,
+.dark [class*="bg-blue-50\/"] {
+  background-color: rgba(59, 130, 246, 0.08) !important;
+}
+.dark .bg-blue-100 {
+  background-color: rgba(59, 130, 246, 0.12) !important;
+}
+
+/* Rose/red tints */
+.dark .bg-rose-50,
+.dark [class*="bg-rose-50\/"] {
+  background-color: rgba(244, 63, 94, 0.08) !important;
+}
+.dark .bg-rose-100,
+.dark [class*="bg-rose-100\/"] {
+  background-color: rgba(244, 63, 94, 0.12) !important;
+}
+.dark .bg-red-50,
+.dark [class*="bg-red-50\/"] {
+  background-color: rgba(239, 68, 68, 0.08) !important;
+}
+.dark .bg-red-100 {
+  background-color: rgba(239, 68, 68, 0.12) !important;
+}
+
+/* Amber/yellow tints */
+.dark .bg-amber-50,
+.dark [class*="bg-amber-50\/"] {
+  background-color: rgba(245, 158, 11, 0.08) !important;
+}
+.dark .bg-amber-100 {
+  background-color: rgba(245, 158, 11, 0.12) !important;
+}
+.dark .bg-yellow-50,
+.dark [class*="bg-yellow-50\/"] {
+  background-color: rgba(234, 179, 8, 0.08) !important;
+}
+
+/* Purple tints */
+.dark .bg-purple-50,
+.dark [class*="bg-purple-50\/"] {
+  background-color: rgba(168, 85, 247, 0.08) !important;
+}
+.dark .bg-purple-100 {
+  background-color: rgba(168, 85, 247, 0.12) !important;
+}
+
+/* Green tints */
+.dark .bg-green-50,
+.dark [class*="bg-green-50\/"] {
+  background-color: rgba(34, 197, 94, 0.08) !important;
+}
+.dark .bg-green-100 {
+  background-color: rgba(34, 197, 94, 0.12) !important;
+}
+
+/* Orange tints */
+.dark .bg-orange-50,
+.dark [class*="bg-orange-50\/"] {
+  background-color: rgba(249, 115, 22, 0.08) !important;
+}
+
+/* ── Colored borders → muted dark equivalents ── */
+.dark [class*="border-indigo-100"],
+.dark [class*="border-indigo-200"] {
+  border-color: rgba(99, 102, 241, 0.15) !important;
+}
+.dark [class*="border-violet-100"],
+.dark [class*="border-violet-200"] {
+  border-color: rgba(139, 92, 246, 0.15) !important;
+}
+.dark [class*="border-emerald-100"],
+.dark [class*="border-emerald-200"] {
+  border-color: rgba(52, 211, 153, 0.15) !important;
+}
+.dark [class*="border-sky-100"],
+.dark [class*="border-sky-200"] {
+  border-color: rgba(56, 189, 248, 0.15) !important;
+}
+.dark [class*="border-rose-100"],
+.dark [class*="border-rose-200"] {
+  border-color: rgba(244, 63, 94, 0.15) !important;
+}
+.dark [class*="border-amber-100"],
+.dark [class*="border-amber-200"] {
+  border-color: rgba(245, 158, 11, 0.15) !important;
+}
+.dark [class*="border-red-100"],
+.dark [class*="border-red-200"] {
+  border-color: rgba(239, 68, 68, 0.15) !important;
+}
+.dark [class*="border-blue-100"],
+.dark [class*="border-blue-200"] {
+  border-color: rgba(59, 130, 246, 0.15) !important;
+}
+.dark [class*="border-purple-100"],
+.dark [class*="border-purple-200"] {
+  border-color: rgba(168, 85, 247, 0.15) !important;
+}
+
+/* ── Colored text — keep readable on dark backgrounds ── */
+.dark .text-indigo-700 { color: #a5b4fc !important; }
+.dark .text-indigo-600 { color: #a5b4fc !important; }
+.dark .text-indigo-500 { color: #818cf8 !important; }
+.dark .text-violet-700 { color: #c4b5fd !important; }
+.dark .text-violet-600 { color: #c4b5fd !important; }
+.dark .text-emerald-700 { color: #6ee7b7 !important; }
+.dark .text-emerald-600 { color: #6ee7b7 !important; }
+.dark .text-sky-700 { color: #7dd3fc !important; }
+.dark .text-sky-600 { color: #7dd3fc !important; }
+.dark .text-rose-700 { color: #fda4af !important; }
+.dark .text-rose-600 { color: #fda4af !important; }
+.dark .text-amber-700 { color: #fcd34d !important; }
+.dark .text-amber-600 { color: #fcd34d !important; }
+.dark .text-red-700 { color: #fca5a5 !important; }
+.dark .text-red-600 { color: #fca5a5 !important; }
+.dark .text-red-500 { color: #f87171 !important; }
+.dark .text-blue-700 { color: #93c5fd !important; }
+.dark .text-blue-600 { color: #93c5fd !important; }
+.dark .text-purple-700 { color: #d8b4fe !important; }
+.dark .text-purple-600 { color: #d8b4fe !important; }
+.dark .text-green-700 { color: #86efac !important; }
+.dark .text-green-600 { color: #86efac !important; }
+.dark .text-orange-700 { color: #fdba74 !important; }
+.dark .text-orange-600 { color: #fdba74 !important; }
+
+/* ── Shadows → dark mode adjustments ── */
+.dark [class*="shadow-glass"] {
+  box-shadow: 0 0 0 1px rgba(255, 255, 255, 0.04), 0 2px 8px rgba(0, 0, 0, 0.3) !important;
+}
+.dark [class*="shadow-glow"] {
+  box-shadow: 0 0 0 1px rgba(255, 255, 255, 0.04), 0 0 16px rgba(99, 102, 241, 0.1) !important;
+}
+.dark .shadow-sm {
+  box-shadow: 0 1px 3px rgba(0, 0, 0, 0.3) !important;
+}
+.dark .shadow-md {
+  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.35) !important;
+}
+.dark .shadow-lg {
+  box-shadow: 0 4px 16px rgba(0, 0, 0, 0.4) !important;
+}
+
+/* ── Gradient backgrounds → dark equivalents ── */
+.dark [class*="from-slate-50"],
+.dark [class*="from-white"] {
+  --tw-gradient-from: #0f1117 !important;
+}
+.dark [class*="to-indigo-50"] {
+  --tw-gradient-to: rgba(99, 102, 241, 0.06) !important;
+}
+.dark [class*="to-violet-50"] {
+  --tw-gradient-to: rgba(139, 92, 246, 0.06) !important;
+}
+.dark [class*="via-white"] {
+  --tw-gradient-via: #13151d !important;
+}
+
+/* ── Rings → darker for dark mode ── */
+.dark [class*="ring-indigo"] {
+  --tw-ring-color: rgba(99, 102, 241, 0.3) !important;
+}
+.dark [class*="ring-violet"] {
+  --tw-ring-color: rgba(139, 92, 246, 0.3) !important;
+}
+
+/* ── Scroll fade gradient → dark ── */
+.dark .scroll-fade-right::after {
+  background: linear-gradient(to right, transparent, rgba(15, 17, 23, 0.85)) !important;
 }
 
 /* ══════════════════════════════════════════════════════════════
