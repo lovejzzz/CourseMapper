@@ -9,8 +9,94 @@ import React, { useState } from 'react';
  *   - error: red error banner
  */
 
+function formatDuration(seconds) {
+  if (!seconds) return '';
+  const m = Math.floor(seconds / 60);
+  const s = String(seconds % 60).padStart(2, '0');
+  return `${m}:${s}`;
+}
+
 function ResultItem({ item, source }) {
   const isWiki = source === 'Wikipedia';
+  const isYouTube = source === 'YouTube';
+  const isBooks = source === 'Open Library';
+
+  // ── YouTube video rendering ──
+  if (isYouTube) {
+    return (
+      <div className="flex gap-2 py-1.5 border-b border-slate-100/50 last:border-0">
+        {item.thumbnail && (
+          <img
+            src={item.thumbnail}
+            alt=""
+            className="w-[120px] h-[68px] rounded object-cover flex-shrink-0 bg-slate-100"
+            loading="lazy"
+          />
+        )}
+        <div className="flex-1 min-w-0">
+          <p className="text-[12px] font-medium text-slate-700 leading-snug line-clamp-2">
+            <a href={item.url} target="_blank" rel="noopener noreferrer" className="hover:text-red-600 hover:underline">
+              {item.title}
+            </a>
+          </p>
+          {item.author && (
+            <p className="text-[11px] text-slate-500 truncate">{item.author}</p>
+          )}
+          <div className="flex items-center gap-2 mt-0.5">
+            {item.lengthSeconds > 0 && (
+              <span className="text-[10px] bg-slate-800 text-white px-1 py-0.5 rounded font-mono leading-none">
+                {formatDuration(item.lengthSeconds)}
+              </span>
+            )}
+            {item.viewCount && (
+              <span className="text-[10px] text-slate-400 font-medium">
+                {typeof item.viewCount === 'number' ? item.viewCount.toLocaleString() + ' views' : item.viewCount}
+              </span>
+            )}
+          </div>
+        </div>
+      </div>
+    );
+  }
+
+  // ── Open Library book rendering ──
+  if (isBooks) {
+    return (
+      <div className="flex gap-2 py-1.5 border-b border-slate-100/50 last:border-0">
+        {item.coverUrl && (
+          <img
+            src={item.coverUrl}
+            alt=""
+            className="w-[40px] h-[60px] rounded object-cover flex-shrink-0 bg-slate-100"
+            loading="lazy"
+          />
+        )}
+        <div className="flex-1 min-w-0">
+          <p className="text-[12px] font-medium text-slate-700 leading-snug line-clamp-2">
+            <a href={item.url} target="_blank" rel="noopener noreferrer" className="hover:text-indigo-600 hover:underline">
+              {item.title}
+            </a>
+          </p>
+          {item.authors && (
+            <p className="text-[11px] text-slate-500 truncate">{item.authors}</p>
+          )}
+          <div className="flex items-center gap-2 mt-0.5">
+            {item.year && (
+              <span className="text-[10px] text-slate-400 font-medium">{item.year}</span>
+            )}
+            {item.publisher && (
+              <span className="text-[10px] text-slate-400">{item.publisher}</span>
+            )}
+            {item.isbn && (
+              <span className="text-[10px] text-indigo-500 font-medium">ISBN: {item.isbn}</span>
+            )}
+          </div>
+        </div>
+      </div>
+    );
+  }
+
+  // ── Default rendering (papers, Wikipedia, CrossRef) ──
   return (
     <div className="flex gap-2 py-1.5 border-b border-slate-100/50 last:border-0">
       <div className="flex-1 min-w-0">

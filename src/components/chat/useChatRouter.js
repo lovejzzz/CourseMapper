@@ -270,6 +270,12 @@ function buildAgentChatHistory(messages) {
         `${c.type} ${c.count} in ${c.featureId}${c.label ? ` (${c.label})` : ''}`
       ).join(', ');
       history.push({ role: 'assistant', content: `[Applied changes: ${desc}]` });
+    } else if (m.role === 'diagram') {
+      history.push({ role: 'assistant', content: `[Generated diagram: ${m.diagram?.title || 'concept diagram'}]` });
+    } else if (m.role === 'chart') {
+      history.push({ role: 'assistant', content: `[Generated chart: ${m.chart?.title || 'data visualization'}]` });
+    } else if (m.role === 'imageSearch') {
+      history.push({ role: 'assistant', content: `[Image search: ${m.imageSearch?.query || 'images'}]` });
     } else if (m.role === 'syncSuggestion') {
       const featureNames = (m.plan || []).map(p => p.featureId).join(', ');
       const statusText = m.status === 'done' ? 'synced' : m.status === 'skipped' ? 'skipped' : 'pending';
@@ -550,6 +556,9 @@ export default function useChatRouter({
                   else if (lower.includes('"action"')) detectedType = 'action';
                   else if (lower.includes('"patches"')) detectedType = 'patches';
                   else if (lower.includes('"research"')) detectedType = 'research';
+                  else if (lower.includes('"diagram"')) detectedType = 'diagram';
+                  else if (lower.includes('"chart"')) detectedType = 'chart';
+                  else if (lower.includes('"imagesearch"')) detectedType = 'imageSearch';
                 }
 
                 if (detectedType === 'chatReply') {
@@ -584,6 +593,30 @@ export default function useChatRouter({
                     const u = [...prev];
                     if (!u[u.length - 1].text || u[u.length - 1].text === 'Thinking...') {
                       u[u.length - 1] = { role: 'assistant', text: 'Searching academic sources...' };
+                    }
+                    return u;
+                  });
+                } else if (detectedType === 'diagram') {
+                  setMessages(prev => {
+                    const u = [...prev];
+                    if (!u[u.length - 1].text || u[u.length - 1].text === 'Thinking...') {
+                      u[u.length - 1] = { role: 'diagram', diagram: null, status: 'searching' };
+                    }
+                    return u;
+                  });
+                } else if (detectedType === 'chart') {
+                  setMessages(prev => {
+                    const u = [...prev];
+                    if (!u[u.length - 1].text || u[u.length - 1].text === 'Thinking...') {
+                      u[u.length - 1] = { role: 'chart', chart: null, status: 'searching' };
+                    }
+                    return u;
+                  });
+                } else if (detectedType === 'imageSearch') {
+                  setMessages(prev => {
+                    const u = [...prev];
+                    if (!u[u.length - 1].text || u[u.length - 1].text === 'Thinking...') {
+                      u[u.length - 1] = { role: 'imageSearch', imageSearch: null, status: 'searching' };
                     }
                     return u;
                   });
@@ -654,7 +687,52 @@ export default function useChatRouter({
       return;
     }
 
-    // 1.5. Research request — execute search, then re-call LLM with results
+    // 1.4. Chart response
+    if (parsed.chart) {
+      setMessages(prev => {
+        const updated = [...prev];
+        updated[updated.length - 1] = {
+          role: 'chart',
+          chart: parsed.chart,
+          status: 'complete',
+        };
+        return updated;
+      });
+      setIsStreaming(false);
+      return;
+    }
+
+    // 1.4. Image search response
+    if (parsed.imageSearch) {
+      setMessages(prev => {
+        const updated = [...prev];
+        updated[updated.length - 1] = {
+          role: 'imageSearch',
+          imageSearch: parsed.imageSearch,
+          status: 'complete',
+        };
+        return updated;
+      });
+      setIsStreaming(false);
+      return;
+    }
+
+    // 1.5. Diagram response
+    if (parsed.diagram) {
+      setMessages(prev => {
+        const updated = [...prev];
+        updated[updated.length - 1] = {
+          role: 'diagram',
+          diagram: parsed.diagram,
+          status: 'complete',
+        };
+        return updated;
+      });
+      setIsStreaming(false);
+      return;
+    }
+
+    // 1.6. Research request — execute search, then re-call LLM with results
     if (parsed.research && parsed.research.query) {
       handleResearchRequest(parsed.research);
       return;
@@ -925,6 +1003,9 @@ export default function useChatRouter({
                   else if (lower.includes('"proposal"')) detectedType = 'proposal';
                   else if (lower.includes('"actions"')) detectedType = 'batchAction';
                   else if (lower.includes('"action"')) detectedType = 'action';
+                  else if (lower.includes('"diagram"')) detectedType = 'diagram';
+                  else if (lower.includes('"chart"')) detectedType = 'chart';
+                  else if (lower.includes('"imagesearch"')) detectedType = 'imageSearch';
                 }
 
                 if (detectedType === 'chatReply') {

@@ -11,6 +11,7 @@
  */
 
 import { getArrayKey } from './syncDependencies';
+import readability from 'text-readability';
 
 // ── Bloom's Taxonomy ─────────────────────────────────────────────────────────
 
@@ -467,6 +468,113 @@ export function validateDifficultyProgression(deliverables) {
   return findings;
 }
 
+// ── 5. Readability Scoring ────────────────────────────────────────────────────
+
+const READABLE_NAMES = {
+  quizBank: 'Quiz & Exam Bank', discussions: 'Discussion Prompts',
+  lessonPlans: 'Lesson Plans', slideDecks: 'Slide Decks',
+  rubrics: 'Rubrics', assignments: 'Assignments',
+  studyGuides: 'Study Guides', courseFaq: 'Course FAQ',
+};
+
+function extractDeliverableText(deliverables, featureId) {
+  const deliv = deliverables?.[featureId];
+  if (!deliv || deliv.status !== 'done' || !deliv.data) return '';
+  let parsed = deliv.data;
+  if (typeof parsed === 'string') {
+    try { parsed = JSON.parse(parsed); } catch { return ''; }
+  }
+  const arrKey = getArrayKey(featureId, parsed);
+  if (!arrKey || !Array.isArray(parsed[arrKey])) return '';
+  // Collect all string values from items
+  const texts = [];
+  for (const item of parsed[arrKey]) {
+    if (typeof item === 'object' && item) {
+      for (const val of Object.values(item)) {
+        if (typeof val === 'string' && val.length > 20) texts.push(val);
+      }
+    }
+  }
+  return texts.join(' ');
+}
+
+export function validateReadability(courseMap, deliverables) {
+  const findings = [];
+  if (!deliverables) return findings;
+
+  // Determine if this is an intro-level course (heuristic: check course name)
+  const courseName = (courseMap?.courseName || '').toLowerCase();
+  const isIntro = /intro|101|100-level|foundations|beginning|fundamentals|principles of/i.test(courseName);
+
+  const featureIds = Object.keys(READABLE_NAMES);
+
+  for (const featureId of featureIds) {
+    const text = extractDeliverableText(deliverables, featureId);
+    if (!text || text.length < 100) continue; // need enough text for meaningful analysis
+
+    const grade = readability.fleschKincaidGrade(text);
+    const displayName = READABLE_NAMES[featureId];
+
+    // Error threshold: >14 for intro courses, >16 for any course
+    if ((isIntro && grade > 14) || grade > 16) {
+      findings.push({
+        id: `readability-error-${featureId}`,
+        severity: 'error',
+        category: 'readability',
+        message: `${displayName} readability is grade level ${grade.toFixed(1)} — too complex${isIntro ? ' for an introductory course' : ''}`,
+        lessonIndex: null,
+        featureId,
+        suggestedPrompt: `Simplify the language in ${displayName}. Current readability is grade ${grade.toFixed(1)}, which is too advanced${isIntro ? ' for intro-level students' : ''}. Use shorter sentences and simpler vocabulary.`,
+      });
+    } else if (grade > 12) {
+      findings.push({
+        id: `readability-warning-${featureId}`,
+        severity: 'warning',
+        category: 'readability',
+        message: `${displayName} readability is grade level ${grade.toFixed(1)} — may be difficult for some students`,
+        lessonIndex: null,
+        featureId,
+        suggestedPrompt: `Consider simplifying the language in ${displayName}. Current readability is grade ${grade.toFixed(1)}. Shorter sentences and clearer vocabulary would improve accessibility.`,
+      });
+    }
+  }
+
+  return findings;
+}
+
+// ── 6. Grammar Checking (async, called separately from health report) ────────
+// Uses LanguageTool API — async and rate-limited, so not included in the
+// synchronous generateCourseHealthReport(). Call independently when needed.
+
+export async function validateGrammarAsync(courseMap, deliverables) {
+  const findings = [];
+  const { checkGrammar } = await import('./grammarChecker');
+
+  for (const featureId of Object.keys(READABLE_NAMES)) {
+    const text = extractDeliverableText(deliverables, featureId);
+    if (!text || text.length < 50) continue;
+
+    try {
+      const { matches } = await checkGrammar(text);
+      if (matches.length > 0) {
+        const topIssues = matches.slice(0, 3).map(m => m.shortMessage || m.message).join('; ');
+        findings.push({
+          id: `grammar-${featureId}`,
+          severity: matches.length > 5 ? 'warning' : 'info',
+          category: 'grammar',
+          message: `${READABLE_NAMES[featureId]}: ${matches.length} grammar/style issue${matches.length !== 1 ? 's' : ''} found. Top: ${topIssues}`,
+          lessonIndex: null,
+          featureId,
+          suggestedPrompt: `Review and fix grammar issues in ${READABLE_NAMES[featureId]}`,
+        });
+      }
+    } catch (err) {
+      // Skip if grammar check fails — it's optional
+    }
+  }
+  return findings;
+}
+
 // ── Orchestrator ─────────────────────────────────────────────────────────────
 
 export function generateCourseHealthReport(courseMap, deliverables) {
@@ -479,6 +587,7 @@ export function generateCourseHealthReport(courseMap, deliverables) {
     ...validateObjectiveAlignment(courseMap, deliverables),
     ...assessCognitiveLoad(courseMap, deliverables),
     ...validateDifficultyProgression(deliverables),
+    ...validateReadability(courseMap, deliverables),
   ];
 
   // Deduplicate by id

@@ -6,6 +6,9 @@ import ResearchCard from './ResearchCard';
 import ValidationCard from './ValidationCard';
 import ChangeSummaryCard from './ChangeSummaryCard';
 import SyncSuggestionCard from './SyncSuggestionCard';
+import DiagramCard from './DiagramCard';
+import ChartCard from './ChartCard';
+import ImageSearchCard from './ImageSearchCard';
 import { getChatOpener } from './constants';
 
 // ── Starter icon components ─────────────────────────────────────────────────
@@ -129,6 +132,33 @@ export default function MessageList({ messages, isStreaming, courseMap, isAgentM
               suggestion={msg}
               onApprove={onApproveSyncSuggestion}
               onSkip={onSkipSyncSuggestion}
+            />
+          );
+        }
+        if (msg.role === 'diagram') {
+          return (
+            <DiagramCard
+              key={msg.id || i}
+              diagram={msg.diagram}
+              status={msg.status}
+            />
+          );
+        }
+        if (msg.role === 'chart') {
+          return (
+            <ChartCard
+              key={msg.id || i}
+              chart={msg.chart}
+              status={msg.status}
+            />
+          );
+        }
+        if (msg.role === 'imageSearch') {
+          return (
+            <ImageSearchCard
+              key={msg.id || i}
+              imageSearch={msg.imageSearch}
+              status={msg.status}
             />
           );
         }
