@@ -288,6 +288,7 @@ export const AGENT_TOOLS = {
         results.push({
           action: action.type,
           featureId: action.featureId,
+          lessonIndex: action.lessonIndex,
           success: result.success,
           message: result.message,
         });

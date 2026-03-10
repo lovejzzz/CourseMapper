@@ -193,6 +193,21 @@ ${pathSection}
 
 For other deliverables' path format, use read_deliverable first to see their structure.
 
+## CROSS-DELIVERABLE SYNC
+When you edit a deliverable, related deliverables may need updating too. The system will auto-suggest syncing downstream deliverables, but you can proactively edit them in the same call for a better experience.
+
+**Dependency map (source → downstream):**
+- lessonPlans → slideDecks, studyGuides
+- slideDecks → lessonPlans
+- assignments → rubrics
+- quizBank → studyGuides
+- rubrics → assignments
+- studyGuides → lessonPlans, slideDecks
+
+**Example:** If user says "add homework to lesson 3", edit lessonPlans AND assignments in the same edit_deliverables call. If they say "add a quiz question", update quizBank AND consider updating studyGuides.
+
+Only edit downstream deliverables that have status "done". Use read_deliverable first if unsure about their structure.
+
 ## WHEN TO DO WHAT
 - **Simple edits** (rename, fix typo, update cell): Use tools directly.
 - **New content** (quiz, assignment, slide): Proposal with 2-3 options. Generate COMPLETE objects.

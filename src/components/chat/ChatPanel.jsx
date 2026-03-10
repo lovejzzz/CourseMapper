@@ -38,7 +38,7 @@ export default function ChatPanel({
   // Agent phase 2: undo + highlight
   delivUndoSnapshot, delivUndoFn, delivCanUndo, onAgentHighlight,
   // Agent-mediated sync
-  pendingSyncSuggestion, clearPendingSyncSuggestion, executeSyncPlan,
+  pendingSyncSuggestion, clearPendingSyncSuggestion, executeSyncPlan, notifyEdit,
   // External ref for sending messages from outside (e.g., context menu)
   chatSendRef,
   // User ID for cloud sync
@@ -85,6 +85,7 @@ export default function ChatPanel({
     executeAction: execAction,
     delivUndoSnapshot,
     executeSyncPlan,
+    notifyEdit,
     uid,
   });
 

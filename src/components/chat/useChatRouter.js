@@ -322,6 +322,7 @@ export default function useChatRouter({
   deliverables, executeAction,
   delivUndoSnapshot,
   executeSyncPlan,
+  notifyEdit,
   uid,
 }) {
   const [messages, setMessages] = useState(savedMessages || []);
@@ -359,6 +360,8 @@ export default function useChatRouter({
   useEffect(() => { snapshotRef.current = delivUndoSnapshot; });
   const executeSyncPlanRef = useRef(executeSyncPlan);
   useEffect(() => { executeSyncPlanRef.current = executeSyncPlan; });
+  const notifyEditRef = useRef(notifyEdit);
+  useEffect(() => { notifyEditRef.current = notifyEdit; });
 
   // ── Post-action pedagogical validation ────────────────────────────────────
   // Disabled: validation is available on-demand via the "Review" button.
@@ -764,9 +767,10 @@ export default function useChatRouter({
               const summary = summarizeToolResult(tc.name, result);
               updateStepAt(stepIdx, { status: 'done', summary });
 
-              // If edit tool → also add a changeSummary to the chat
+              // If edit tool → add changeSummary + trigger sync cascade
               if ((tc.name === 'edit_course_map' || tc.name === 'edit_deliverables') && result.applied > 0) {
                 const changes = [];
+                const editedFeatures = new Set(); // track for sync cascade
                 for (const detail of (result.details || [])) {
                   if (detail.success) {
                     const featureId = detail.featureId || 'courseMap';
@@ -776,6 +780,10 @@ export default function useChatRouter({
                     const existing = changes.find(c => `${c.type}:${c.featureId}` === key);
                     if (existing) existing.count++;
                     else changes.push({ type: actionType, featureId, count: 1 });
+                    // Track which (featureId, lessonIndex) pairs were edited
+                    if (featureId !== 'courseMap') {
+                      editedFeatures.add(`${featureId}:${detail.lessonIndex ?? 0}`);
+                    }
                   }
                 }
                 if (changes.length > 0) {
@@ -784,6 +792,16 @@ export default function useChatRouter({
                     summary: { changes, message: `${result.applied} change${result.applied !== 1 ? 's' : ''} applied.` },
                   }]);
                 }
+
+                // Trigger sync cascade for downstream deliverables
+                if (notifyEditRef.current && editedFeatures.size > 0) {
+                  for (const entry of editedFeatures) {
+                    const [fid, lidx] = entry.split(':');
+                    const lessonIndex = lidx !== 'undefined' ? parseInt(lidx, 10) : null;
+                    notifyEditRef.current(lessonIndex, '_deliverableEdit', fid);
+                  }
+                }
+
                 maybeRunValidation();
               }
 

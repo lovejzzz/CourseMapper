@@ -1301,6 +1301,7 @@ export default function App() {
                 delivUndoFn={() => delivUndo.undo(deliv.setDeliverables)}
                 delivCanUndo={delivUndo.canUndo}
                 onAgentHighlight={triggerAgentHighlight}
+                notifyEdit={smartSync.notifyEdit}
                 chatSendRef={chatSendRef}
                 uid={user?.uid || null}
               />

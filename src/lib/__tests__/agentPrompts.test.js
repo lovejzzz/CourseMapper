@@ -204,4 +204,19 @@ describe('buildAgentSystemPrompt', () => {
     expect(prompt).toContain('validate_course for details');
     expect(prompt).not.toContain('Line 2');
   });
+
+  // ── Cross-deliverable sync tests ──
+
+  it('includes dependency map in system prompt', () => {
+    const prompt = buildAgentSystemPrompt(baseCourseMap, 'quizBank', baseDeliverables);
+    expect(prompt).toContain('CROSS-DELIVERABLE SYNC');
+    expect(prompt).toContain('lessonPlans → slideDecks, studyGuides');
+    expect(prompt).toContain('assignments → rubrics');
+    expect(prompt).toContain('quizBank → studyGuides');
+  });
+
+  it('dependency map instructs proactive editing of related deliverables', () => {
+    const prompt = buildAgentSystemPrompt(baseCourseMap, 'quizBank', baseDeliverables);
+    expect(prompt).toContain('proactively edit them in the same call');
+  });
 });
