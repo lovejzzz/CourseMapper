@@ -13,16 +13,24 @@
 import { getArrayKey } from './syncDependencies';
 import { buildMemoryContext } from './agentMemory';
 
-// ── Compact item schemas (one-line summaries of each deliverable's item shape) ──
+// ── Compact item schemas with key legends ──
 const ITEM_SCHEMAS = {
-  assignments: `{t,at,rl:[lessonTitles],dw,et,tp,pg,bl,ov,ob:[objectives],ins:[instructions],fr:{ln,fm,cs,sp,lp},dl:[deliverables],sm:[{ms,dd,de}],gc,sr:[resources],pt,ai,tg:[tags]}`,
-  quizBank: `Question: {ty:"multiple_choice"|"short_answer"|"essay",bl,df,em,pt,oa,q,op:[options],an,dr,ex,rh,sa}`,
-  discussions: `{lt,bl,fm,ed,cx,pr,er,fp:[followUps],ft:{op,is,id,cl},rs:[starters],ec:[criteria],eq,gl,tg}`,
-  slideDecks: `Slide: {t:"assertion title",ty:"title"|"content"|"activity"|"discussion"|"summary"|"closing",bu:[max 4 bullets],no:"speaker notes 4+ sentences",at,ti,bl,ol}`,
-  lessonPlans: `{lt,wk,dur,bls,ob,mt,wu:{dur,ty,pr,pu,fa},ol:[{tm,ac,ty,de,in,ir,gr,bl}],fc:{ty,pr,oa,ia},un:{rp,eg,ex},hw:{t,de,et,cn},ca,tg}`,
-  rubrics: `Criterion: {cn,oa,wt,pt,ex:"exemplary",pr:"proficient",dv:"developing",bg:"beginning"}`,
-  studyGuides: `KeyTerm:{tm,df,ex} | ReviewQuestion:{q,bl,ht} | Misconception:{mc,co}`,
-  courseFaq: `FAQ: {q:"student-voice question",an:"2-4 sentence answer",ca,rc:[concepts],df}`,
+  assignments: `{t,at,rl:[lessonTitles],dw,et,tp,pg,bl,ov,ob:[objectives],ins:[instructions],fr:{ln,fm,cs,sp,lp},dl:[deliverables],sm:[{ms,dd,de}],gc,sr:[resources],pt,ai,tg:[tags]}
+Keys: t=title, at=assignmentType, rl=relatedLessons, dw=dueWhen, et=estimatedTime, bl=bloomsLevel, ov=overview, ob=objectives, ins=instructions`,
+  quizBank: `Question: {ty:"multiple_choice"|"short_answer"|"essay",bl,df,em,pt,oa,q,op:[options],an,dr,ex,rh,sa}
+Keys: ty=type, bl=bloomsLevel, df=difficulty, q=question, op=options, an=answer, ex=explanation, pt=points`,
+  discussions: `{lt,bl,fm,ed,cx,pr,er,fp:[followUps],ft:{op,is,id,cl},rs:[starters],ec:[criteria],eq,gl,tg}
+Keys: lt=lessonTitle, pr=prompt, cx=context, er=expectedResponse, fp=followUps, bl=bloomsLevel`,
+  slideDecks: `Slide: {t:"assertion title",ty:"title"|"content"|"activity"|"discussion"|"summary"|"closing",bu:[max 4 bullets],no:"speaker notes 4+ sentences",at,ti,bl,ol}
+Keys: t=title, ty=type, bu=bullets, no=notes, bl=bloomsLevel`,
+  lessonPlans: `{lt,wk,dur,bls,ob,mt,wu:{dur,ty,pr,pu,fa},ol:[{tm,ac,ty,de,in,ir,gr,bl}],fc:{ty,pr,oa,ia},un:{rp,eg,ex},hw:{t,de,et,cn},ca,tg}
+Keys: lt=lessonTitle, ob=objectives, wu=warmup, ol=outline, hw=homework, fc=formativeCheck`,
+  rubrics: `Criterion: {cn,oa,wt,pt,ex:"exemplary",pr:"proficient",dv:"developing",bg:"beginning"}
+Keys: cn=criterionName, oa=objectiveAlignment, wt=weight, pt=points`,
+  studyGuides: `KeyTerm:{tm,df,ex} | ReviewQuestion:{q,bl,ht} | Misconception:{mc,co}
+Sub-arrays: kt=keyTerms, rq=reviewQuestions, cm=misconceptions. Keys: tm=term, df=definition, q=question, mc=misconception, co=correction`,
+  courseFaq: `FAQ: {q:"student-voice question",an:"2-4 sentence answer",ca,rc:[concepts],df}
+Keys: q=question, an=answer, ca=category, df=difficulty`,
 };
 
 // ── Path examples per deliverable (only shown for active tab) ────────────────
@@ -104,17 +112,16 @@ export function buildAgentSystemPrompt(courseMap, activeTab, deliverables, healt
     }
   }
 
-  // Deliverable status — compact one-liner
-  const delivStatusLines = deliverables
-    ? Object.entries(deliverables)
-        .filter(([id]) => id !== 'courseMap')
-        .map(([id, entry]) => {
-          const status = entry?.status || 'idle';
-          const mark = id === activeTab ? '*' : '';
-          return `${mark}${id}:${status}`;
-        })
-        .join(', ')
-    : 'none';
+  // Deliverable status — grouped by state for clarity
+  const delivEntries = deliverables
+    ? Object.entries(deliverables).filter(([id]) => id !== 'courseMap')
+    : [];
+  const doneIds = delivEntries.filter(([, e]) => e?.status === 'done').map(([id]) => id);
+  const otherIds = delivEntries.filter(([, e]) => e?.status && e.status !== 'done').map(([id, e]) => `${id}:${e.status}`);
+  const delivStatusLines = delivEntries.length === 0
+    ? 'none'
+    : (doneIds.length > 0 ? `Editable: ${doneIds.map(id => id === activeTab ? `*${id}` : id).join(', ')}` : '')
+      + (otherIds.length > 0 ? `${doneIds.length > 0 ? ' | ' : ''}Other: ${otherIds.join(', ')}` : '');
 
   // Item schema for active tab only
   const schema = ITEM_SCHEMAS[activeTab] || '';
@@ -236,7 +243,7 @@ Only edit downstream deliverables that have status "done". Use read_deliverable 
 ## COURSE
 **${courseMap?.courseName || 'Untitled'}** | ${courseMap?.semester || 'TBD'} | ${(courseMap?.lessons || []).length} lessons
 **Lessons (0-based index):**
-${lessonList || '  (none)'}
+${lessonList || '  (none)'}${(courseMap?.lessons || []).length === 0 ? '\n**Note:** No lessons yet — suggest the user create lessons or add them via addLesson.' : ''}
 **Fields:** ${courseMapFields}
 **Active:** ${tabName} | **Status:** ${delivStatusLines}${delivContext}${schemaSection}${otherDoneNote}${healthSection}${prefsSection}${memorySection}`;
 }

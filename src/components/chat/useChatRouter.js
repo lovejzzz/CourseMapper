@@ -913,20 +913,25 @@ export default function useChatRouter({
     // Proposal — pre-validate options before showing
     if (response.proposal) {
       const options = response.proposal.options || [];
-      const validOptions = options.filter(opt => {
-        if (!opt.action) return true; // no action = info-only option
+      const validationResults = options.map(opt => {
+        if (!opt.action) return { opt, valid: true };
         const validation = preValidateAction(opt.action, {
           deliverables: delivRef.current,
           courseMap,
         });
-        return validation.valid;
+        return { opt, valid: validation.valid, reason: validation.reason };
       });
+      const validOptions = validationResults.filter(r => r.valid).map(r => r.opt);
 
       if (validOptions.length === 0 && options.length > 0) {
-        // All options invalid — ask agent to retry silently
+        // All options invalid — tell agent WHY each failed
+        const errors = validationResults
+          .filter(r => !r.valid)
+          .map(r => `${r.opt.label} "${r.opt.title}": ${r.reason}`)
+          .join('; ');
         sendAgentMessage(
-          `All proposal options were invalid (targeting non-existent or out-of-range deliverables). `
-          + `Please re-generate the proposal targeting deliverables that ARE generated (status "done") with valid lesson indices.`,
+          `All proposal options were invalid: ${errors}. `
+          + `Please re-generate targeting deliverables with status "done" and valid lesson indices.`,
           { silent: true },
         );
         return;

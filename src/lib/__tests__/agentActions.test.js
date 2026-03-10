@@ -173,3 +173,88 @@ describe('preValidateAction', () => {
     expect(result.reason).toContain('Duplicate');
   });
 });
+
+// ── addItem required-field validation (Bug 5) ────────────────────────────────
+describe('addItem required-field validation', () => {
+  const makeCtx = () => ({
+    deliverables: makeDeliverables(),
+    optimisticUpdate: () => {},
+    snapshot: () => {},
+  });
+
+  it('rejects assignment without title (t)', () => {
+    const result = executeAction(
+      { type: 'addItem', featureId: 'assignments', item: { at: 'essay' } },
+      makeCtx(),
+    );
+    expect(result.success).toBe(false);
+    expect(result.message).toContain('Missing required field "t"');
+    expect(result.message).toContain('title');
+  });
+
+  it('accepts assignment with title', () => {
+    const result = executeAction(
+      { type: 'addItem', featureId: 'assignments', item: { t: 'HW3' } },
+      makeCtx(),
+    );
+    expect(result.success).toBe(true);
+  });
+
+  it('rejects quizBank item without question (q)', () => {
+    const result = executeAction(
+      { type: 'addItem', featureId: 'quizBank', lessonIndex: 0, item: { ty: 'mc' } },
+      makeCtx(),
+    );
+    expect(result.success).toBe(false);
+    expect(result.message).toContain('Missing required field "q"');
+    expect(result.message).toContain('question');
+  });
+
+  it('accepts quizBank item with question', () => {
+    const result = executeAction(
+      { type: 'addItem', featureId: 'quizBank', lessonIndex: 0, item: { q: 'New Q' } },
+      makeCtx(),
+    );
+    expect(result.success).toBe(true);
+  });
+
+  it('rejects slideDecks item without title (t)', () => {
+    const ctx = makeCtx();
+    ctx.deliverables.slideDecks = {
+      status: 'done',
+      data: { slideDecks: [{ lt: 'L1', sl: [{ t: 'Slide 1' }] }] },
+    };
+    const result = executeAction(
+      { type: 'addItem', featureId: 'slideDecks', lessonIndex: 0, item: { ty: 'content' } },
+      ctx,
+    );
+    expect(result.success).toBe(false);
+    expect(result.message).toContain('Missing required field "t"');
+  });
+
+  it('accepts slideDecks item with title', () => {
+    const ctx = makeCtx();
+    ctx.deliverables.slideDecks = {
+      status: 'done',
+      data: { slideDecks: [{ lt: 'L1', sl: [{ t: 'Slide 1' }] }] },
+    };
+    const result = executeAction(
+      { type: 'addItem', featureId: 'slideDecks', lessonIndex: 0, item: { t: 'New Slide' } },
+      ctx,
+    );
+    expect(result.success).toBe(true);
+  });
+
+  it('does not validate required fields for deliverables without rules (e.g., discussions)', () => {
+    const ctx = makeCtx();
+    ctx.deliverables.discussions = {
+      status: 'done',
+      data: { discussions: [{ lt: 'L1', pr: 'Prompt' }] },
+    };
+    const result = executeAction(
+      { type: 'addItem', featureId: 'discussions', lessonIndex: 0, item: { pr: 'New prompt' } },
+      ctx,
+    );
+    expect(result.success).toBe(true);
+  });
+});

@@ -477,6 +477,39 @@ describe('Tool execute: read_lesson', () => {
     const result = AGENT_TOOLS.read_lesson.execute({ lessonIndex: 0 }, { courseMap: null });
     expect(result.error).toBe('No course map loaded.');
   });
+
+  // ── read_lesson size capping (Bug 16) ──
+
+  it('truncates large lesson data and adds truncation note', () => {
+    const longText = 'A'.repeat(2000);
+    const ctx = {
+      courseMap: {
+        lessons: [{
+          title: 'Big Lesson',
+          sections: [
+            { learningObjectives: longText, topicSection: longText, syncActivities: longText, asyncActivities: longText },
+          ],
+        }],
+      },
+    };
+    const result = AGENT_TOOLS.read_lesson.execute({ lessonIndex: 0 }, ctx);
+    expect(result.truncated).toBe(true);
+    expect(result.note).toContain('truncated');
+    // Each field should be capped at ~300 chars + ellipsis
+    for (const sec of result.sections) {
+      for (const [k, v] of Object.entries(sec)) {
+        if (typeof v === 'string' && k !== 'sectionIndex') {
+          expect(v.length).toBeLessThanOrEqual(302); // 300 + '…' (multi-byte)
+        }
+      }
+    }
+  });
+
+  it('does not truncate small lesson data', () => {
+    const result = AGENT_TOOLS.read_lesson.execute({ lessonIndex: 0 }, mockCtx);
+    expect(result.truncated).toBeUndefined();
+    expect(result.note).toBeUndefined();
+  });
 });
 
 describe('Tool execute: read_deliverable', () => {
@@ -782,6 +815,27 @@ describe('Tool execute: recall', () => {
     const result = AGENT_TOOLS.recall.execute({});
     expect(result.count).toBe(10);
     expect(result.total).toBe(15);
+  });
+
+  // ── recall truncation indicator (Bug 23) ──
+
+  it('adds truncated indicator when results exceed 10', async () => {
+    const { getMemories } = await import('../agentMemory');
+    const manyMemories = Array.from({ length: 20 }, (_, i) => ({
+      id: `mem_${i}`,
+      category: 'general',
+      content: `Memory ${i}`,
+      importance: 3,
+    }));
+    getMemories.mockReturnValueOnce(manyMemories);
+    const result = AGENT_TOOLS.recall.execute({});
+    expect(result.truncated).toContain('[truncated]');
+    expect(result.truncated).toContain('20');
+  });
+
+  it('does not add truncated indicator when results fit within limit', () => {
+    const result = AGENT_TOOLS.recall.execute({});
+    expect(result.truncated).toBeUndefined();
   });
 
   it('handles errors gracefully', async () => {

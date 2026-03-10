@@ -33,8 +33,14 @@ function resolveField(field, sections) {
   if (!field) return field;
   // If the field exists directly in any section, use it as-is
   if (sections?.some(sec => field in sec)) return field;
-  // Try alias mapping
-  return FIELD_ALIASES[field.toLowerCase()] || field;
+  // Try alias mapping — resolve to canonical name, then verify it exists
+  const aliased = FIELD_ALIASES[field.toLowerCase()];
+  if (aliased) {
+    // Verify the aliased field exists in sections (if sections available)
+    if (!sections || sections.some(sec => aliased in sec)) return aliased;
+    return aliased; // trust alias even without sections
+  }
+  return field;
 }
 
 // ── Action Types ─────────────────────────────────────────────────────────────
@@ -124,8 +130,12 @@ function execEditCell({ lessonIndex, sectionIndex, field, value }, { editor, cou
   if (!field) return { success: false, message: 'Missing field name' };
   // Resolve abbreviated field names to actual course map keys
   const sections = courseMap?.lessons?.[lessonIndex]?.sections;
+  const si = sectionIndex ?? 0;
+  if (sections && (si < 0 || si >= sections.length)) {
+    return { success: false, message: `sectionIndex ${si} out of range (0-${sections.length - 1})` };
+  }
   const resolvedField = resolveField(field, sections);
-  editor.handleCellEdit(lessonIndex, sectionIndex ?? 0, resolvedField, value);
+  editor.handleCellEdit(lessonIndex, si, resolvedField, value);
   return { success: true, message: `Updated ${resolvedField} in Lesson ${lessonIndex + 1}` };
 }
 
@@ -163,10 +173,27 @@ function execDeleteLesson({ lessonIndex }, { editor, courseMap }) {
 
 // ── Deliverable Actions ──────────────────────────────────────────────────────
 
+// ── Required-field validation for addItem ─────────────────────────────────
+const REQUIRED_FIELDS = {
+  assignments: { t: 'title' },
+  quizBank: { q: 'question' },
+  slideDecks: { t: 'title' },
+};
+
 function execAddItem({ featureId, lessonIndex, item, subKey }, ctx) {
   const { deliverables, optimisticUpdate, snapshot, skipSnapshot } = ctx;
   if (!optimisticUpdate) return { success: false, message: 'Optimistic update not available' };
   if (!featureId) return { success: false, message: 'Missing featureId' };
+
+  // Validate required fields before pushing
+  const reqFields = REQUIRED_FIELDS[featureId];
+  if (reqFields && item) {
+    for (const [key, label] of Object.entries(reqFields)) {
+      if (!item[key]) {
+        return { success: false, message: `Missing required field "${key}" (${label}) for ${featureId}` };
+      }
+    }
+  }
 
   const entry = deliverables?.[featureId];
   if (!entry?.data) return { success: false, message: `${featureId} not generated yet` };
@@ -253,7 +280,7 @@ function execRemoveItem({ featureId, lessonIndex, itemIndex, subKey }, ctx) {
   if (featureId === 'assignments') {
     // Flat array — remove by index
     if (!data[arrKey] || itemIndex < 0 || itemIndex >= data[arrKey].length) {
-      return { success: false, message: 'Item index out of range' };
+      return { success: false, message: `Item index ${itemIndex} out of range (0-${(data[arrKey]?.length ?? 1) - 1})` };
     }
     const removed = data[arrKey].splice(itemIndex, 1)[0];
     optimisticUpdate(featureId, data);
@@ -310,11 +337,18 @@ function execEditItem({ featureId, path, value }, ctx) {
     }
   }
 
-  // Walk the path and set the value
+  // Walk the path and set the value (with array bounds checking)
   let target = data;
   for (let i = 0; i < resolvedPath.length - 1; i++) {
-    target = target[resolvedPath[i]];
-    if (target == null) return { success: false, message: `Invalid path at ${resolvedPath[i]}` };
+    const seg = resolvedPath[i];
+    // Bounds check for array indices
+    if (Array.isArray(target) && typeof seg === 'number') {
+      if (seg < 0 || seg >= target.length) {
+        return { success: false, message: `Index ${seg} out of range at path[${i}] (array length ${target.length})` };
+      }
+    }
+    target = target[seg];
+    if (target == null) return { success: false, message: `Invalid path — nothing at "${seg}" (path[${i}])` };
   }
   const finalKey = resolvedPath[resolvedPath.length - 1];
   if (target == null || typeof target !== 'object') return { success: false, message: `Invalid path — cannot set property on ${typeof target}` };

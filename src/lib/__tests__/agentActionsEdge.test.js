@@ -1083,8 +1083,9 @@ describe('DEDUP_FIELDS — duplicate detection', () => {
 
   it('skips dedup when item has no value for the dedup field', () => {
     const ctx = makeCtx();
+    // Use courseFaq (has dedup on 'q' but no REQUIRED_FIELDS validation)
     const result = executeAction(
-      { type: 'addItem', featureId: 'quizBank', lessonIndex: 0, item: { ty: 'mc' } },
+      { type: 'addItem', featureId: 'courseFaq', lessonIndex: 0, item: { a: 'just an answer' } },
       ctx,
     );
     // No 'q' field on item → dedup is skipped, item is added

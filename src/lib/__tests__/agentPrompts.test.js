@@ -89,9 +89,10 @@ describe('buildAgentSystemPrompt', () => {
 
   it('lists deliverable statuses in compact format', () => {
     const prompt = buildAgentSystemPrompt(baseCourseMap, 'quizBank', baseDeliverables);
-    expect(prompt).toContain('quizBank:done');
+    expect(prompt).toContain('Editable:');
     expect(prompt).toContain('*quizBank'); // active tab marked
-    expect(prompt).toContain('assignments:done');
+    expect(prompt).toContain('assignments');
+    expect(prompt).toContain('slideDecks:idle'); // non-done shown in Other
   });
 
   it('injects health summary when provided', () => {
@@ -218,5 +219,24 @@ describe('buildAgentSystemPrompt', () => {
   it('dependency map instructs proactive editing of related deliverables', () => {
     const prompt = buildAgentSystemPrompt(baseCourseMap, 'quizBank', baseDeliverables);
     expect(prompt).toContain('proactively edit them in the same call');
+  });
+
+  // ── Empty lessons hint (Bug 1) ──
+
+  it('includes empty-lessons hint when course map has 0 lessons', () => {
+    const emptyCourseMap = { courseName: 'Empty Course', semester: 'Spring 2026', lessons: [] };
+    const prompt = buildAgentSystemPrompt(emptyCourseMap, 'courseMap', {});
+    expect(prompt).toContain('No lessons yet');
+    expect(prompt).toContain('addLesson');
+  });
+
+  it('does NOT include empty-lessons hint when course map has lessons', () => {
+    const prompt = buildAgentSystemPrompt(baseCourseMap, 'courseMap', {});
+    expect(prompt).not.toContain('No lessons yet');
+  });
+
+  it('includes empty-lessons hint when courseMap is null', () => {
+    const prompt = buildAgentSystemPrompt(null, 'courseMap', {});
+    expect(prompt).toContain('No lessons yet');
   });
 });

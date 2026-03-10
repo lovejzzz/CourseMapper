@@ -110,7 +110,7 @@ export const AGENT_TOOLS = {
       // Specific lesson requested
       if (args.lessonIndex !== undefined && arrKey && Array.isArray(data[arrKey])) {
         const item = data[arrKey][args.lessonIndex];
-        if (!item) return { error: `Lesson index ${args.lessonIndex} out of range (0-${data[arrKey].length - 1}).` };
+        if (!item) return { error: `Lesson index ${args.lessonIndex} out of range (valid: 0-${data[arrKey].length - 1}). Omit lessonIndex to see all items.` };
         // Build editItem path hints so agent knows how to edit fields
         const pathPrefix = `["${arrKey}", ${args.lessonIndex}`;
         const pathHints = [];
@@ -167,10 +167,23 @@ export const AGENT_TOOLS = {
       if (!lessons) return { error: 'No course map loaded.' };
       const lesson = lessons[args.lessonIndex];
       if (!lesson) return { error: `Lesson ${args.lessonIndex} not found (0-${lessons.length - 1}).` };
-      return {
+      const result = {
         title: lesson.title,
         sections: (lesson.sections || []).map((sec, i) => ({ sectionIndex: i, ...sec })),
       };
+      const str = JSON.stringify(result);
+      if (str.length > 8000) {
+        result.sections = result.sections.map(sec => {
+          const trimmed = {};
+          for (const [k, v] of Object.entries(sec)) {
+            trimmed[k] = typeof v === 'string' && v.length > 300 ? v.slice(0, 300) + '…' : v;
+          }
+          return trimmed;
+        });
+        result.note = 'Some fields were truncated due to size. Use read_deliverable for full details.';
+        result.truncated = true;
+      }
+      return result;
     },
   },
 
@@ -383,7 +396,9 @@ export const AGENT_TOOLS = {
           content: m.content,
           importance: m.importance,
         }));
-        return { count: top.length, total: results.length, memories: top };
+        const response = { count: top.length, total: results.length, memories: top };
+        if (results.length > 10) response.truncated = `[truncated] Showing 10 of ${results.length} results`;
+        return response;
       } catch (err) {
         return { error: `Failed to recall memories: ${err.message}` };
       }
