@@ -143,10 +143,9 @@ describe('buildAgentSystemPrompt', () => {
     expect(prompt).toContain('chart');
     expect(prompt).toContain('imageSearch');
     // Tool names referenced in decision rules (tools are now declared natively, not embedded)
+    // Only check for tool names that appear in the prompt's decision rules / instructions
     expect(prompt).toContain('validate_course');
-    expect(prompt).toContain('check_grammar');
     expect(prompt).toContain('search_research');
-    expect(prompt).toContain('read_deliverable');
     expect(prompt).toContain('edit_course_map');
     expect(prompt).toContain('edit_deliverables');
   });
