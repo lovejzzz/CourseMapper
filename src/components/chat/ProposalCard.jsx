@@ -56,6 +56,7 @@ export default function ProposalCard({ proposal, status, selectedLabel, failedLa
   const isSelected = status === 'selected';
   const isFailed = status === 'failed';
   const isDismissed = status === 'dismissed';
+  const isReviewing = status === 'reviewing';
 
   return (
     <div className="mx-1 my-1 animate-spring-in">
@@ -76,15 +77,17 @@ export default function ProposalCard({ proposal, status, selectedLabel, failedLa
       <div className="ml-8 space-y-2">
         {proposal.options.map((option) => {
           const isThisFailed = isFailed && option.label === failedLabel;
-          // Clickable if: pending, OR this is a non-failed option when another failed
-          const clickable = isPending || (isFailed && !isThisFailed);
+          const isThisReviewing = isReviewing && option.label === selectedLabel;
+          // Clickable if: pending, OR non-failed option when another failed, OR reviewing (change selection)
+          const clickable = isPending || (isFailed && !isThisFailed) || (isReviewing && !isThisReviewing);
 
           return (
             <OptionCard
               key={option.label}
               option={option}
               isPending={clickable}
-              isChosen={isSelected && option.label === selectedLabel}
+              isChosen={(isSelected || isReviewing) && option.label === selectedLabel}
+              isReviewing={isThisReviewing}
               isFailed={isThisFailed}
               failedMessage={isThisFailed ? failedMessage : null}
               isFaded={(isSelected && option.label !== selectedLabel) || isDismissed}
@@ -95,12 +98,21 @@ export default function ProposalCard({ proposal, status, selectedLabel, failedLa
       </div>
 
       {/* Status indicator */}
+      {isReviewing && (
+        <div className="ml-8 mt-2 text-[11px] text-amber-600 font-medium flex items-center gap-1.5">
+          <svg className="w-3 h-3 animate-spin" fill="none" viewBox="0 0 24 24">
+            <circle className="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" strokeWidth="4" />
+            <path className="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4z" />
+          </svg>
+          Reviewing option {selectedLabel}...
+        </div>
+      )}
       {isSelected && (
         <div className="ml-8 mt-2 text-[11px] text-emerald-600 font-medium flex items-center gap-1.5">
           <svg className="w-3 h-3" fill="none" stroke="currentColor" viewBox="0 0 24 24">
             <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M5 13l4 4L19 7" />
           </svg>
-          Option {selectedLabel} selected
+          Option {selectedLabel} applied
         </div>
       )}
       {isFailed && (
@@ -122,7 +134,7 @@ export default function ProposalCard({ proposal, status, selectedLabel, failedLa
 
 // ── Individual option card with expand/collapse ──────────────────────────────
 
-function OptionCard({ option, isPending, isChosen, isFailed, failedMessage, isFaded, onSelect }) {
+function OptionCard({ option, isPending, isChosen, isReviewing, isFailed, failedMessage, isFaded, onSelect }) {
   const [expanded, setExpanded] = useState(false);
   const [showPreview, setShowPreview] = useState(false);
   // Consider "long" if description exceeds ~100 chars (roughly 2 lines)
@@ -162,14 +174,21 @@ function OptionCard({ option, isPending, isChosen, isFailed, failedMessage, isFa
           flex-shrink-0 w-6 h-6 rounded-lg flex items-center justify-center text-[11px] font-bold mt-0.5
           ${isFailed
             ? 'bg-red-100/80 text-red-600'
-            : isPending
-              ? 'bg-indigo-100/80 text-indigo-600'
-              : isChosen
-                ? 'bg-emerald-100/80 text-emerald-700'
-                : 'bg-slate-100/60 text-slate-400'
+            : isReviewing
+              ? 'bg-amber-100/80 text-amber-600'
+              : isPending
+                ? 'bg-indigo-100/80 text-indigo-600'
+                : isChosen
+                  ? 'bg-emerald-100/80 text-emerald-700'
+                  : 'bg-slate-100/60 text-slate-400'
           }
         `}>
-          {isChosen ? (
+          {isReviewing ? (
+            <svg className="w-3.5 h-3.5 animate-spin" fill="none" viewBox="0 0 24 24">
+              <circle className="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" strokeWidth="4" />
+              <path className="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4z" />
+            </svg>
+          ) : isChosen ? (
             <svg className="w-3.5 h-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
               <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2.5} d="M5 13l4 4L19 7" />
             </svg>

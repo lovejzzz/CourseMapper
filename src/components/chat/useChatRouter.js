@@ -618,6 +618,18 @@ export default function useChatRouter({
       const MAX_ITERATIONS = 10;
       let usedTools = false;
 
+      // ── Loop detection: track tool call signatures to prevent infinite loops ──
+      const toolCallLog = []; // [{name, argsHash}]
+      function detectLoop(toolCalls) {
+        for (const tc of toolCalls) {
+          const sig = tc.name + ':' + JSON.stringify(tc.args || {});
+          toolCallLog.push(sig);
+          const count = toolCallLog.filter(s => s === sig).length;
+          if (count >= 3) return tc.name; // same tool+args called 3x
+        }
+        return null;
+      }
+
       // ── AGENTIC LOOP (native tool calling) ───────────────────────────────
       for (let iteration = 0; iteration < MAX_ITERATIONS; iteration++) {
         const { toolCalls, textContent, stopReason } = await fetchAgentResponseNative(
@@ -680,6 +692,17 @@ export default function useChatRouter({
         // ── TOOL CALLS (parallel execution) ─────────────────────────────
         const nonRespondCalls = toolCalls.filter(tc => tc.name !== 'respond');
         if (nonRespondCalls.length > 0) {
+          // Loop detection — stop if same tool+args repeated 3x
+          const loopedTool = detectLoop(nonRespondCalls);
+          if (loopedTool) {
+            updateProgress({ status: 'error' });
+            setMessages(prev => [...prev, {
+              role: 'assistant',
+              text: `I noticed I was repeating the same operation (${loopedTool}) without making progress. Could you rephrase your request or be more specific?`,
+            }]);
+            break;
+          }
+
           usedTools = true;
 
           // Add all steps to progress card at once — capture start index from latest state
@@ -714,11 +737,30 @@ export default function useChatRouter({
                 snapshot: snapshotRef.current,
                 uid,
               };
-              const toolPromise = AGENT_TOOLS[tc.name].execute(tc.args || {}, ctx, controller.signal);
-              const timeoutPromise = new Promise((_, reject) =>
-                setTimeout(() => reject(new Error(`Tool ${tc.name} timed out after ${TOOL_TIMEOUT / 1000}s`)), TOOL_TIMEOUT)
-              );
-              const result = await Promise.race([toolPromise, timeoutPromise]);
+
+              // Execute with timeout + 1 retry for transient network errors
+              async function execWithRetry(attempt = 0) {
+                const toolPromise = AGENT_TOOLS[tc.name].execute(tc.args || {}, ctx, controller.signal);
+                const timeoutPromise = new Promise((_, reject) =>
+                  setTimeout(() => reject(new Error(`Tool ${tc.name} timed out after ${TOOL_TIMEOUT / 1000}s`)), TOOL_TIMEOUT)
+                );
+                try {
+                  return await Promise.race([toolPromise, timeoutPromise]);
+                } catch (err) {
+                  // Retry once for transient errors (network, timeout)
+                  const isTransient = err.message?.includes('timed out') ||
+                    err.message?.includes('fetch') ||
+                    err.message?.includes('network') ||
+                    err.message?.includes('Failed to fetch');
+                  if (isTransient && attempt < 1) {
+                    updateStepAt(stepIdx, { summary: 'Retrying...' });
+                    return execWithRetry(attempt + 1);
+                  }
+                  throw err;
+                }
+              }
+
+              const result = await execWithRetry();
               const summary = summarizeToolResult(tc.name, result);
               updateStepAt(stepIdx, { status: 'done', summary });
 
@@ -1214,11 +1256,16 @@ export default function useChatRouter({
   }
 
   // ── Handle proposal selection → show diff review first ──────────────────
+  const proposalLockRef = useRef(false); // prevent concurrent selections
+
   function handleSelectProposal(messageIndex, optionLabel) {
+    // Guard: prevent concurrent proposal selections
+    if (proposalLockRef.current) return;
+
     const msg = messages[messageIndex];
     if (!msg || msg.role !== 'proposal') return;
-    // Allow selection when pending OR when retrying after a failure
-    if (msg.status !== 'pending' && msg.status !== 'failed') return;
+    // Allow selection when pending, failed, or reviewing (user picks different option)
+    if (msg.status !== 'pending' && msg.status !== 'failed' && msg.status !== 'reviewing') return;
 
     const option = msg.proposal?.options?.find(o => o.label === optionLabel);
     if (!option) return;
@@ -1229,18 +1276,26 @@ export default function useChatRouter({
       return;
     }
 
+    proposalLockRef.current = true;
+
     // Pre-validate before executing
     const validation = preValidateAction(option.action, {
       deliverables: delivRef.current,
       courseMap,
     });
     if (!validation.valid) {
-      // Auto-recover silently
+      // Mark as failed with specific error — not dismissed
       setMessages(prev => {
         const updated = [...prev];
-        updated[messageIndex] = { ...updated[messageIndex], status: 'dismissed' };
+        updated[messageIndex] = {
+          ...updated[messageIndex],
+          status: 'failed',
+          failedLabel: optionLabel,
+          failedMessage: validation.reason,
+        };
         return updated;
       });
+      proposalLockRef.current = false;
       sendAgentMessage(
         `Option "${option.title}" is invalid: ${validation.reason}. `
         + `Please propose a new option that addresses this issue.`,
@@ -1255,6 +1310,12 @@ export default function useChatRouter({
     // Mark proposal as "reviewing" and push a diffReview message
     setMessages(prev => {
       const updated = [...prev];
+      // Remove any existing pending diffReview for this proposal (user changed mind)
+      const existingDiffIdx = updated.findIndex(
+        m => m.role === 'diffReview' && m._proposalIndex === messageIndex && m.status === 'pending'
+      );
+      if (existingDiffIdx >= 0) updated.splice(existingDiffIdx, 1);
+
       updated[messageIndex] = {
         ...updated[messageIndex],
         status: 'reviewing',
@@ -1273,6 +1334,8 @@ export default function useChatRouter({
       });
       return updated;
     });
+
+    proposalLockRef.current = false;
   }
 
   // ── Accept diff → apply the change ────────────────────────────────────────
@@ -1324,8 +1387,14 @@ export default function useChatRouter({
       setMessages(prev => {
         const updated = [...prev];
         updated[diffMessageIndex] = { ...updated[diffMessageIndex], status: 'rejected' };
+        // Mark proposal as failed (not dismissed) — other options remain clickable
         if (proposalIndex != null && updated[proposalIndex]?.role === 'proposal') {
-          updated[proposalIndex] = { ...updated[proposalIndex], status: 'dismissed' };
+          updated[proposalIndex] = {
+            ...updated[proposalIndex],
+            status: 'failed',
+            failedLabel: optionLabel,
+            failedMessage: errorDetail,
+          };
         }
         return updated;
       });
