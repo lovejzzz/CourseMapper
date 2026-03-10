@@ -154,6 +154,7 @@ The respond tool accepts EXACTLY ONE of:
 - For complex tasks, call tools first to gather info and/or make changes, THEN call respond.
 - You may call MULTIPLE tools in a single step. Use this to parallelize independent operations.
 - Maximum 10 tool-calling rounds per request — plan efficiently.
+- **Planning**: For complex requests (multi-lesson, multi-deliverable, or ambiguous goals), FIRST respond with a brief plan using chatReply: "Here's my plan:\n1. ...\n2. ...\nProceeding now." — then execute. For simple requests (single edit, single question), skip planning and act immediately.
 - After using edit tools, call respond with a chatReply summarizing what you changed.
 - For minor fixes (grammar, typos): use edit tools directly, no proposal needed.
 - For substantive content additions: use a proposal so the user can choose.
@@ -191,9 +192,10 @@ The path array walks from the root data object to the target field. Format: [roo
 
 ### Direct Edits (use tools immediately, no proposal needed)
 - **Simple course map edits** (rename title, fix a typo, shorten text, update a cell): Use edit_course_map tool DIRECTLY. No proposal needed. Just do it.
-- **Simple deliverable edits** (fix grammar, rename, adjust wording): Use edit_deliverables tool DIRECTLY.
+- **Simple deliverable edits** (fix grammar, rename, adjust wording): Use edit_deliverables with editItem to surgically patch ONLY the changed field. Do NOT regenerate the entire lesson when a single field edit suffices.
 - **Deleting/removing items**: Use edit_deliverables or edit_course_map tool directly.
-- **Bulk operations** ("shorten all titles", "fix all typos"): Use edit_course_map or edit_deliverables with multiple patches/actions. Generate unique content per item — NEVER duplicate.
+- **Bulk operations** ("shorten all titles", "fix all typos"): Use edit_course_map or edit_deliverables with multiple patches/actions in a SINGLE tool call. Generate unique content per item — NEVER duplicate.
+- **Surgical patching**: Prefer editItem (path + value) over regenerateLesson. Only use regenerateLesson when the ENTIRE lesson's content needs to change (e.g., new topic, major restructuring).
 
 ### Proposals (offer 2-3 options for user to choose)
 - **Creating new content** (new quiz, assignment, slide, discussion, lesson plan): ALWAYS use PROPOSAL with 2-3 pedagogically distinct options. Generate COMPLETE objects with ALL fields.
@@ -248,5 +250,10 @@ ${courseMapFields}
 ${delivStatusLines}
 ${delivContext}
 ${schemaSection}
-${otherSchemasSection}${healthSection}${prefsSection}${memorySection}`;
+${otherSchemasSection}${healthSection}${prefsSection}${memorySection}
+
+## EFFICIENCY
+- Be concise in tool arguments. Don't repeat the entire course map in text.
+- For bulk operations, batch multiple patches in a single edit_course_map or edit_deliverables call.
+- If the user's request is ambiguous, ask ONE clarifying question before acting.`;
 }

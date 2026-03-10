@@ -479,3 +479,35 @@ export function summarizeToolResult(toolName, result) {
       return 'Done';
   }
 }
+
+// ── Request complexity classifier for smart model routing ──────────────────
+
+/**
+ * Classify a user request's complexity to help with model selection.
+ * Returns 'simple' | 'moderate' | 'complex'
+ */
+export function classifyRequestComplexity(text, deliverables) {
+  const lower = (text || '').toLowerCase();
+
+  // Simple: single-target, small edits
+  const simplePatterns = [
+    /fix\s+(the\s+)?typo/i, /rename/i, /change\s+the\s+title/i,
+    /shorten/i, /what\s+is/i, /explain/i, /delete\s+(this|the)/i,
+    /remove\s+(this|the)/i, /undo/i,
+  ];
+  if (simplePatterns.some(p => p.test(lower)) && lower.length < 100) return 'simple';
+
+  // Complex: multi-target, creative, bulk
+  const complexPatterns = [
+    /all\s+(lessons?|quizzes|slides|assignments|rubrics)/i,
+    /redesign/i, /rewrite\s+all/i, /review\s+(my\s+)?course/i,
+    /create\s+a\s+(full|complete)/i, /generate/i,
+    /align.*bloom/i, /entire\s+course/i,
+  ];
+  const doneCount = deliverables
+    ? Object.values(deliverables).filter(d => d?.status === 'done').length
+    : 0;
+  if (complexPatterns.some(p => p.test(lower)) || (lower.length > 300 && doneCount > 3)) return 'complex';
+
+  return 'moderate';
+}

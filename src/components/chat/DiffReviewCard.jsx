@@ -80,6 +80,46 @@ function DiffValue({ label, value, color }) {
   );
 }
 
+/** Word-level diff highlight between old and new text */
+function InlineDiff({ oldText, newText }) {
+  if (!oldText || !newText) return null;
+  const oldStr = String(oldText);
+  const newStr = String(newText);
+  if (oldStr === newStr) return null;
+
+  const oldWords = oldStr.split(/(\s+)/);
+  const newWords = newStr.split(/(\s+)/);
+
+  // Simple LCS-based diff
+  const parts = [];
+  let oi = 0, ni = 0;
+  while (oi < oldWords.length || ni < newWords.length) {
+    if (oi < oldWords.length && ni < newWords.length && oldWords[oi] === newWords[ni]) {
+      parts.push({ type: 'same', text: oldWords[oi] });
+      oi++; ni++;
+    } else if (ni < newWords.length && (oi >= oldWords.length || !oldWords.slice(oi).includes(newWords[ni]))) {
+      parts.push({ type: 'add', text: newWords[ni] });
+      ni++;
+    } else {
+      parts.push({ type: 'del', text: oldWords[oi] });
+      oi++;
+    }
+  }
+
+  return (
+    <div className="rounded-lg border border-slate-200/50 bg-white/60 px-3 py-2 text-xs leading-relaxed">
+      <span className="text-[10px] uppercase tracking-wider font-semibold opacity-60 block mb-1">Changes</span>
+      <span className="whitespace-pre-wrap break-words">
+        {parts.map((p, i) => (
+          p.type === 'del' ? <span key={i} className="bg-red-100 text-red-700 line-through">{p.text}</span>
+          : p.type === 'add' ? <span key={i} className="bg-emerald-100 text-emerald-700 font-medium">{p.text}</span>
+          : <span key={i}>{p.text}</span>
+        ))}
+      </span>
+    </div>
+  );
+}
+
 function ItemFields({ item, featureId }) {
   if (!item) return null;
   const entries = Object.entries(item).filter(([, v]) => v != null && v !== '');
@@ -166,9 +206,12 @@ export default function DiffReviewCard({ diff, status, onAccept, onReject }) {
           </div>
         )}
 
-        {/* Edit item/cell/title: show before → after */}
+        {/* Edit item/cell/title: show before → after with inline diff */}
         {(type === 'editItem' || type === 'editCell' || type === 'editTitle') && (
           <div className="space-y-1.5">
+            {preview?.oldValue != null && typeof preview.oldValue === 'string' && typeof (type === 'editTitle' ? action.newTitle : action.value) === 'string' && (
+              <InlineDiff oldText={preview.oldValue} newText={type === 'editTitle' ? action.newTitle : action.value} />
+            )}
             {preview?.oldValue != null && (
               <DiffValue label="Before" value={preview.oldValue} color="red" />
             )}

@@ -7,6 +7,8 @@ import { getChatOpener } from './constants';
 import { AGENT_TOOLS, TOOL_LABELS, summarizeToolResult } from '../../lib/agentTools';
 import { preValidateAction } from '../../lib/agentActions';
 import { getArrayKey } from '../../lib/syncDependencies';
+import { saveConversation, newConversationId } from '../../lib/chatPersistence';
+import { estimateTokens, getModelLimit, truncateToFit } from '../../lib/tokenEstimator';
 import {
   buildNativeTools, buildAgentRequest, parseAgentResponse as parseProviderResponse,
   formatAssistantToolCalls, batchToolResults,
@@ -339,6 +341,15 @@ export default function useChatRouter({
     if (onMessagesChangeRef.current) onMessagesChangeRef.current(messages);
   }, [messages]); // eslint-disable-line react-hooks/exhaustive-deps
 
+  // Auto-save conversation to persistence layer
+  const conversationIdRef = useRef(newConversationId());
+  useEffect(() => {
+    const visibleCount = messages.filter(m => m.role === 'user' || m.role === 'assistant').length;
+    if (visibleCount >= 2) {
+      saveConversation(conversationIdRef.current, messages);
+    }
+  }, [messages]);
+
   // Keep fresh refs for values used in callbacks
   const executeActionRef = useRef(executeAction);
   useEffect(() => { executeActionRef.current = executeAction; });
@@ -580,6 +591,23 @@ export default function useChatRouter({
         ? healthReport.summary
         : null;
       const systemPrompt = buildAgentSystemPrompt(courseMap, activeTab, delivRef.current, healthSummary, userPrefs);
+
+      // ── Context window awareness: trim if approaching limit ──
+      const totalContext = systemPrompt + chatHistory.map(m => m.content).join('') + fullMessage;
+      const estimatedTk = estimateTokens(totalContext);
+      const modelLimit = getModelLimit(modelId);
+      const usagePercent = Math.round((estimatedTk / modelLimit) * 100);
+
+      // If over 80% of context window, trim chat history
+      if (usagePercent > 80) {
+        const excess = estimatedTk - Math.floor(modelLimit * 0.75);
+        const charsToTrim = excess * 4;
+        let trimmed = 0;
+        while (chatHistory.length > 2 && trimmed < charsToTrim) {
+          const removed = chatHistory.shift();
+          trimmed += (removed.content || '').length;
+        }
+      }
 
       // Build native tools for provider
       const nativeTools = buildNativeTools(provider, AGENT_TOOLS);

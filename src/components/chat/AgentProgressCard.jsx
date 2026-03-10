@@ -60,6 +60,17 @@ export default function AgentProgressCard({ steps = [], status = 'running' }) {
   const prevStatusRef = useRef(status);
   const groupedSteps = groupSteps(steps);
 
+  // Timer for elapsed time
+  const [elapsed, setElapsed] = useState(0);
+  useEffect(() => {
+    if (status !== 'running') return;
+    const start = Date.now();
+    const timer = setInterval(() => setElapsed(Math.floor((Date.now() - start) / 1000)), 1000);
+    return () => clearInterval(timer);
+  }, [status]);
+
+  const formatTime = (s) => s < 60 ? `${s}s` : `${Math.floor(s/60)}m ${s%60}s`;
+
   // Auto-collapse when agent finishes — transition from running → complete/error
   useEffect(() => {
     if ((isComplete || isError) && prevStatusRef.current === 'running') {
@@ -106,10 +117,10 @@ export default function AgentProgressCard({ steps = [], status = 'running' }) {
         </div>
         <span className="text-[13px] font-semibold text-violet-700 flex-1 text-left">
           {isComplete
-            ? `Agent completed — ${groupedSteps.length} action${groupedSteps.length !== 1 ? 's' : ''}`
+            ? `Agent completed — ${groupedSteps.length} action${groupedSteps.length !== 1 ? 's' : ''} · ${formatTime(elapsed)}`
             : isError
               ? 'Agent encountered an error'
-              : `Agent working... (${groupedSteps.length} action${groupedSteps.length !== 1 ? 's' : ''})`
+              : `Agent working... (${groupedSteps.length} action${groupedSteps.length !== 1 ? 's' : ''}) · ${formatTime(elapsed)}`
           }
         </span>
         <svg

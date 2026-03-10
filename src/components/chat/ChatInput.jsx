@@ -121,11 +121,14 @@ export default function ChatInput({
                 </button>
               )}
 
-              {/* Agent mode indicator */}
+              {/* Agent mode indicator + input length */}
               {isAgentMode && (
-                <span className="text-[10px] font-semibold text-violet-500/70 flex items-center gap-0.5 select-none">
+                <span className="text-[10px] font-semibold text-violet-500/70 flex items-center gap-1 select-none">
                   <span className="text-[8px]">✦</span>
                   Agent
+                  {input.length > 100 && (
+                    <span className="text-slate-400 font-normal ml-1">{input.length} chars</span>
+                  )}
                 </span>
               )}
 
