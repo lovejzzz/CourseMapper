@@ -21,7 +21,7 @@ import { expandKeys } from '../keyMaps';
 import { extractEditContext } from '../editContextExtractor';
 
 // ── DeepSeek config ──
-const DEEPSEEK_KEY = 'REDACTED_DEEPSEEK_KEY';
+const DEEPSEEK_KEY = process.env.DEEPSEEK_API_KEY || '';
 const DEEPSEEK_URL = 'https://api.deepseek.com/v1/chat/completions';
 const DEEPSEEK_MODEL = 'deepseek-chat';
 
