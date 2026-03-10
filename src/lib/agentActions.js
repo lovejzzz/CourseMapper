@@ -120,6 +120,8 @@ export function executeAction(action, ctx) {
 
 function execEditCell({ lessonIndex, sectionIndex, field, value }, { editor, courseMap }) {
   if (!editor?.handleCellEdit) return { success: false, message: 'Editor not available' };
+  if (lessonIndex == null || lessonIndex < 0) return { success: false, message: `Invalid lessonIndex: ${lessonIndex}` };
+  if (!field) return { success: false, message: 'Missing field name' };
   // Resolve abbreviated field names to actual course map keys
   const sections = courseMap?.lessons?.[lessonIndex]?.sections;
   const resolvedField = resolveField(field, sections);
@@ -129,6 +131,8 @@ function execEditCell({ lessonIndex, sectionIndex, field, value }, { editor, cou
 
 function execEditTitle({ lessonIndex, newTitle }, { editor }) {
   if (!editor?.handleTitleEdit) return { success: false, message: 'Editor not available' };
+  if (lessonIndex == null || lessonIndex < 0) return { success: false, message: `Invalid lessonIndex: ${lessonIndex}` };
+  if (!newTitle) return { success: false, message: 'Missing newTitle' };
   editor.handleTitleEdit(lessonIndex, newTitle);
   return { success: true, message: `Renamed Lesson ${lessonIndex + 1}` };
 }
@@ -162,6 +166,7 @@ function execDeleteLesson({ lessonIndex }, { editor, courseMap }) {
 function execAddItem({ featureId, lessonIndex, item, subKey }, ctx) {
   const { deliverables, optimisticUpdate, snapshot, skipSnapshot } = ctx;
   if (!optimisticUpdate) return { success: false, message: 'Optimistic update not available' };
+  if (!featureId) return { success: false, message: 'Missing featureId' };
 
   const entry = deliverables?.[featureId];
   if (!entry?.data) return { success: false, message: `${featureId} not generated yet` };
@@ -234,6 +239,7 @@ function execAddItem({ featureId, lessonIndex, item, subKey }, ctx) {
 function execRemoveItem({ featureId, lessonIndex, itemIndex, subKey }, ctx) {
   const { deliverables, optimisticUpdate, snapshot, skipSnapshot } = ctx;
   if (!optimisticUpdate) return { success: false, message: 'Optimistic update not available' };
+  if (!featureId) return { success: false, message: 'Missing featureId' };
 
   const entry = deliverables?.[featureId];
   if (!entry?.data) return { success: false, message: `${featureId} not generated yet` };
@@ -256,8 +262,8 @@ function execRemoveItem({ featureId, lessonIndex, itemIndex, subKey }, ctx) {
 
   // Per-lesson deliverables
   const arr = data[arrKey];
-  if (!Array.isArray(arr) || lessonIndex >= arr.length) {
-    return { success: false, message: 'Lesson index out of range' };
+  if (!Array.isArray(arr) || lessonIndex < 0 || lessonIndex >= arr.length) {
+    return { success: false, message: `Lesson index ${lessonIndex} out of range (0-${Array.isArray(arr) ? arr.length - 1 : '?'})` };
   }
 
   const lessonItem = arr[lessonIndex];
@@ -280,7 +286,9 @@ function execRemoveItem({ featureId, lessonIndex, itemIndex, subKey }, ctx) {
 function execEditItem({ featureId, path, value }, ctx) {
   const { deliverables, optimisticUpdate, snapshot, skipSnapshot } = ctx;
   if (!optimisticUpdate) return { success: false, message: 'Optimistic update not available' };
-  if (!Array.isArray(path) || path.length < 1) return { success: false, message: 'Invalid path — must be a non-empty array' };
+  if (!featureId) return { success: false, message: 'Missing featureId' };
+  if (!Array.isArray(path)) return { success: false, message: `Invalid path — expected array, got ${path === null ? 'null' : typeof path}` };
+  if (path.length < 1) return { success: false, message: 'Invalid path — array cannot be empty' };
 
   const entry = deliverables?.[featureId];
   if (!entry?.data) return { success: false, message: `${featureId} not generated yet` };
@@ -297,6 +305,8 @@ function execEditItem({ featureId, path, value }, ctx) {
     const actualKey = getArrayKey(featureId, data);
     if (actualKey && data[actualKey] != null) {
       resolvedPath[0] = actualKey;
+    } else {
+      return { success: false, message: `Invalid path — "${resolvedPath[0]}" not found in ${featureId} data. Available keys: ${Object.keys(data).join(', ')}` };
     }
   }
 
@@ -316,6 +326,8 @@ function execEditItem({ featureId, path, value }, ctx) {
 
 function execRegenerateLesson({ featureId, lessonIndex }, { regenerateLesson, courseMap }) {
   if (!regenerateLesson) return { success: false, message: 'Regenerate not available' };
+  if (!featureId) return { success: false, message: 'Missing featureId' };
+  if (lessonIndex == null || lessonIndex < 0) return { success: false, message: `Invalid lessonIndex: ${lessonIndex}` };
   regenerateLesson(featureId, courseMap, lessonIndex);
   return { success: true, message: `Regenerating ${featureId} for Lesson ${lessonIndex + 1}` };
 }

@@ -697,7 +697,8 @@ export default function useChatRouter({
             return { ...card, steps: [...card.steps, ...newSteps] };
           });
 
-          // Execute all tools in parallel
+          // Execute all tools in parallel (with 30s per-tool timeout)
+          const TOOL_TIMEOUT = 30000;
           const toolResults = await Promise.all(nonRespondCalls.map(async (tc, i) => {
             const stepIdx = stepStartIndex + i;
             if (!AGENT_TOOLS[tc.name]) {
@@ -713,7 +714,11 @@ export default function useChatRouter({
                 snapshot: snapshotRef.current,
                 uid,
               };
-              const result = await AGENT_TOOLS[tc.name].execute(tc.args || {}, ctx, controller.signal);
+              const toolPromise = AGENT_TOOLS[tc.name].execute(tc.args || {}, ctx, controller.signal);
+              const timeoutPromise = new Promise((_, reject) =>
+                setTimeout(() => reject(new Error(`Tool ${tc.name} timed out after ${TOOL_TIMEOUT / 1000}s`)), TOOL_TIMEOUT)
+              );
+              const result = await Promise.race([toolPromise, timeoutPromise]);
               const summary = summarizeToolResult(tc.name, result);
               updateStepAt(stepIdx, { status: 'done', summary });
 
