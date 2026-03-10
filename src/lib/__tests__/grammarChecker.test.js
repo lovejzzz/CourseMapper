@@ -127,12 +127,54 @@ describe('checkGrammar', () => {
     expect(result.error).toContain('500');
   });
 
-  it('rethrows AbortError', async () => {
+  it('rethrows AbortError when caller signal is aborted', async () => {
+    const abortErr = new DOMException('Aborted', 'AbortError');
+    mockFetch.mockRejectedValueOnce(abortErr);
+    const controller = new AbortController();
+    controller.abort(); // simulate caller abort
+
+    await expect(
+      checkGrammar('This text is long enough to be checked by the grammar API.', 'en-US', controller.signal)
+    ).rejects.toThrow();
+  });
+
+  // ── Timeout handling (Bug 20) ──
+
+  it('returns graceful error when grammar check times out (no caller signal)', async () => {
     const abortErr = new DOMException('Aborted', 'AbortError');
     mockFetch.mockRejectedValueOnce(abortErr);
 
-    await expect(
-      checkGrammar('This text is long enough to be checked by the grammar API.')
-    ).rejects.toThrow();
+    // No caller signal provided, so AbortError is treated as a timeout
+    const result = await checkGrammar('This text is long enough to be checked by the grammar API.');
+    expect(result.matches).toEqual([]);
+    expect(result.error).toContain('timed out');
+  });
+
+  it('returns graceful error when timeout fires (caller signal not aborted)', async () => {
+    const abortErr = new DOMException('Aborted', 'AbortError');
+    mockFetch.mockRejectedValueOnce(abortErr);
+    const controller = new AbortController();
+    // caller signal is NOT aborted — only the internal timeout aborted
+
+    const result = await checkGrammar(
+      'This text is long enough to be checked by the grammar API.',
+      'en-US',
+      controller.signal,
+    );
+    expect(result.matches).toEqual([]);
+    expect(result.error).toContain('timed out');
+  });
+
+  it('passes signal to fetch for timeout abort', async () => {
+    mockFetch.mockResolvedValueOnce({
+      ok: true,
+      json: async () => ({ matches: [] }),
+    });
+
+    await checkGrammar('This text is long enough to be checked by the grammar API.', 'en-US');
+
+    const fetchOptions = mockFetch.mock.calls[0][1];
+    expect(fetchOptions.signal).toBeDefined();
+    expect(fetchOptions.signal).toBeInstanceOf(AbortSignal);
   });
 });

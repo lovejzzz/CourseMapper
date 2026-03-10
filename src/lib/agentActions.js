@@ -180,6 +180,11 @@ const REQUIRED_FIELDS = {
   slideDecks: { t: 'title' },
 };
 
+// ── Default field values for common deliverable items ───────────────────
+const DEFAULT_FIELDS = {
+  quizBank: { bl: 'Remember', df: 'medium', pt: 1 },
+};
+
 function execAddItem({ featureId, lessonIndex, item, subKey }, ctx) {
   const { deliverables, optimisticUpdate, snapshot, skipSnapshot } = ctx;
   if (!optimisticUpdate) return { success: false, message: 'Optimistic update not available' };
@@ -192,6 +197,14 @@ function execAddItem({ featureId, lessonIndex, item, subKey }, ctx) {
       if (!item[key]) {
         return { success: false, message: `Missing required field "${key}" (${label}) for ${featureId}` };
       }
+    }
+  }
+
+  // Merge sensible defaults for common optional fields
+  const defaults = DEFAULT_FIELDS[featureId];
+  if (defaults && item) {
+    for (const [key, val] of Object.entries(defaults)) {
+      if (item[key] === undefined) item[key] = val;
     }
   }
 
@@ -310,11 +323,25 @@ function execRemoveItem({ featureId, lessonIndex, itemIndex, subKey }, ctx) {
   return { success: false, message: `Cannot remove from ${featureId} — no sub-array` };
 }
 
-function execEditItem({ featureId, path, value }, ctx) {
+/**
+ * Parse a dot-notation string path into an array of segments.
+ * E.g. "quizzes.0.qs.1.q" → ["quizzes", 0, "qs", 1, "q"]
+ * Numeric segments are converted to numbers for correct array indexing.
+ */
+export function parsePath(pathInput) {
+  if (Array.isArray(pathInput)) return pathInput;
+  if (typeof pathInput !== 'string' || !pathInput) return null;
+  return pathInput.split('.').map(seg => /^\d+$/.test(seg) ? Number(seg) : seg);
+}
+
+function execEditItem({ featureId, path: rawPath, value }, ctx) {
   const { deliverables, optimisticUpdate, snapshot, skipSnapshot } = ctx;
   if (!optimisticUpdate) return { success: false, message: 'Optimistic update not available' };
   if (!featureId) return { success: false, message: 'Missing featureId' };
-  if (!Array.isArray(path)) return { success: false, message: `Invalid path — expected array, got ${path === null ? 'null' : typeof path}` };
+
+  // Accept both array and dot-notation string paths
+  const path = parsePath(rawPath);
+  if (!Array.isArray(path)) return { success: false, message: `Invalid path — expected array or dot-notation string, got ${rawPath === null ? 'null' : typeof rawPath}` };
   if (path.length < 1) return { success: false, message: 'Invalid path — array cannot be empty' };
 
   const entry = deliverables?.[featureId];

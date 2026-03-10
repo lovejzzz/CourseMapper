@@ -596,14 +596,19 @@ export default function useChatRouter({
       const systemPrompt = buildAgentSystemPrompt(courseMap, activeTab, delivRef.current, healthSummary, userPrefs);
 
       // ── Context window awareness: trim if approaching limit ──
-      const totalContext = systemPrompt + chatHistory.map(m => m.content).join('') + fullMessage;
-      const estimatedTk = estimateTokens(totalContext);
+      // Account for system prompt + tool definitions as irreducible overhead
+      const systemPromptTk = estimateTokens(systemPrompt);
+      const OUTPUT_RESERVE_TK = 4096; // reserve for model output
+      const chatContent = chatHistory.map(m => m.content).join('') + fullMessage;
+      const chatTk = estimateTokens(chatContent);
+      const estimatedTk = systemPromptTk + chatTk;
       const modelLimit = getModelLimit(modelId);
+      const availableForChat = modelLimit - systemPromptTk - OUTPUT_RESERVE_TK;
       const usagePercent = Math.round((estimatedTk / modelLimit) * 100);
 
-      // If over 80% of context window, trim chat history
-      if (usagePercent > 80) {
-        const excess = estimatedTk - Math.floor(modelLimit * 0.75);
+      // If chat messages exceed 80% of available budget (excluding system prompt), trim
+      if (chatTk > availableForChat * 0.8) {
+        const excess = chatTk - Math.floor(availableForChat * 0.75);
         const charsToTrim = excess * 4;
         let trimmed = 0;
         while (chatHistory.length > 2 && trimmed < charsToTrim) {

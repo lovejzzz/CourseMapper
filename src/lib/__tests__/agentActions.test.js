@@ -1,5 +1,5 @@
 import { describe, it, expect } from 'vitest';
-import { ACTION_TYPES, executeAction, preValidateAction } from '../agentActions';
+import { ACTION_TYPES, executeAction, preValidateAction, parsePath } from '../agentActions';
 
 // ── Test helpers ──
 const makeCourseMap = (lessonCount = 3) => ({
@@ -256,5 +256,130 @@ describe('addItem required-field validation', () => {
       ctx,
     );
     expect(result.success).toBe(true);
+  });
+});
+
+// ── parsePath — string path notation (Bug 7) ─────────────────────────────
+describe('parsePath', () => {
+  it('parses dot-notation string into array with numeric indices', () => {
+    expect(parsePath('quizzes.0.qs.1.q')).toEqual(['quizzes', 0, 'qs', 1, 'q']);
+  });
+
+  it('returns array input unchanged', () => {
+    const arr = ['quizzes', 0, 'qs'];
+    expect(parsePath(arr)).toBe(arr);
+  });
+
+  it('returns null for null input', () => {
+    expect(parsePath(null)).toBeNull();
+  });
+
+  it('returns null for undefined input', () => {
+    expect(parsePath(undefined)).toBeNull();
+  });
+
+  it('returns null for empty string', () => {
+    expect(parsePath('')).toBeNull();
+  });
+
+  it('handles single-segment path', () => {
+    expect(parsePath('syllabus')).toEqual(['syllabus']);
+  });
+
+  it('handles all-numeric segments', () => {
+    expect(parsePath('0.1.2')).toEqual([0, 1, 2]);
+  });
+
+  it('handles mixed segments', () => {
+    expect(parsePath('slideDecks.0.sl.2.no')).toEqual(['slideDecks', 0, 'sl', 2, 'no']);
+  });
+});
+
+// ── editItem with string path notation ───────────────────────────────────
+describe('editItem string path support', () => {
+  const makeCtx = () => ({
+    deliverables: makeDeliverables(),
+    optimisticUpdate: () => {},
+    snapshot: () => {},
+  });
+
+  it('accepts dot-notation string path and applies edit', () => {
+    const ctx = makeCtx();
+    ctx.optimisticUpdate = (fid, data) => {
+      expect(data.quizzes[0].qs[0].q).toBe('Updated Q');
+    };
+    const result = executeAction(
+      { type: 'editItem', featureId: 'quizBank', path: 'quizzes.0.qs.0.q', value: 'Updated Q' },
+      ctx,
+    );
+    expect(result.success).toBe(true);
+  });
+
+  it('still accepts array path as before', () => {
+    const ctx = makeCtx();
+    const result = executeAction(
+      { type: 'editItem', featureId: 'quizBank', path: ['quizzes', 0, 'qs', 0, 'q'], value: 'Updated Q' },
+      ctx,
+    );
+    expect(result.success).toBe(true);
+  });
+
+  it('returns error for non-string non-array path', () => {
+    const ctx = makeCtx();
+    const result = executeAction(
+      { type: 'editItem', featureId: 'quizBank', path: 123, value: 'x' },
+      ctx,
+    );
+    expect(result.success).toBe(false);
+    expect(result.message).toContain('Invalid path');
+  });
+});
+
+// ── addItem default field merging (Bug 8) ─────────────────────────────────
+describe('addItem default field merging', () => {
+  const makeCtx = () => ({
+    deliverables: makeDeliverables(),
+    optimisticUpdate: () => {},
+    snapshot: () => {},
+  });
+
+  it('merges bl, df, pt defaults for quizBank items', () => {
+    const ctx = makeCtx();
+    let savedData;
+    ctx.optimisticUpdate = (fid, data) => { savedData = data; };
+    const result = executeAction(
+      { type: 'addItem', featureId: 'quizBank', lessonIndex: 0, item: { q: 'Brand new Q?' } },
+      ctx,
+    );
+    expect(result.success).toBe(true);
+    const addedItem = savedData.quizzes[0].qs[savedData.quizzes[0].qs.length - 1];
+    expect(addedItem.bl).toBe('Remember');
+    expect(addedItem.df).toBe('medium');
+    expect(addedItem.pt).toBe(1);
+  });
+
+  it('does not override explicitly provided fields', () => {
+    const ctx = makeCtx();
+    let savedData;
+    ctx.optimisticUpdate = (fid, data) => { savedData = data; };
+    const result = executeAction(
+      { type: 'addItem', featureId: 'quizBank', lessonIndex: 0, item: { q: 'Custom Q?', bl: 'Apply', df: 'hard', pt: 5 } },
+      ctx,
+    );
+    expect(result.success).toBe(true);
+    const addedItem = savedData.quizzes[0].qs[savedData.quizzes[0].qs.length - 1];
+    expect(addedItem.bl).toBe('Apply');
+    expect(addedItem.df).toBe('hard');
+    expect(addedItem.pt).toBe(5);
+  });
+
+  it('does not merge defaults for non-quiz deliverables', () => {
+    const ctx = makeCtx();
+    const result = executeAction(
+      { type: 'addItem', featureId: 'assignments', item: { t: 'New HW' } },
+      ctx,
+    );
+    expect(result.success).toBe(true);
+    // assignments items should not get quiz defaults
   });
 });

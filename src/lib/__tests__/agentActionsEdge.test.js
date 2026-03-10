@@ -726,10 +726,21 @@ describe('executeAction edge cases', () => {
       expect(result.message).toContain('Invalid path');
     });
 
-    it('fails with non-array path', () => {
+    it('accepts dot-notation string path (Bug 7 fix)', () => {
       const ctx = makeCtx();
       const result = executeAction(
-        { type: 'editItem', featureId: 'quizBank', path: 'quizzes.0.qs', value: 'x' },
+        { type: 'editItem', featureId: 'quizBank', path: 'quizzes.0.qs.0.q', value: 'Updated via string path' },
+        ctx,
+      );
+      expect(result.success).toBe(true);
+      const data = ctx.optimisticUpdate.mock.calls[0][1];
+      expect(data.quizzes[0].qs[0].q).toBe('Updated via string path');
+    });
+
+    it('fails with non-string non-array path (e.g. number)', () => {
+      const ctx = makeCtx();
+      const result = executeAction(
+        { type: 'editItem', featureId: 'quizBank', path: 42, value: 'x' },
         ctx,
       );
       expect(result.success).toBe(false);
