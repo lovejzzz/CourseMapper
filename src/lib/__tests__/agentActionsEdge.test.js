@@ -1130,3 +1130,218 @@ describe('ACTION_TYPES', () => {
     expect(ACTION_TYPES[type]).toBe(type);
   });
 });
+
+// ─────────────────────────────────────────────────────────────────────────────
+// 7. Fix 9: regenerateLesson validates lessonIndex against deliverable data
+// ─────────────────────────────────────────────────────────────────────────────
+
+describe('Fix 9: regenerateLesson validates lessonIndex bounds', () => {
+  it('fails when lessonIndex exceeds deliverable data length', () => {
+    const ctx = makeCtx();
+    const result = executeAction(
+      { type: 'regenerateLesson', featureId: 'quizBank', lessonIndex: 99 },
+      ctx,
+    );
+    expect(result.success).toBe(false);
+    expect(result.message).toContain('out of range');
+    expect(ctx.regenerateLesson).not.toHaveBeenCalled();
+  });
+
+  it('fails when lessonIndex equals array length (off-by-one)', () => {
+    const ctx = makeCtx();
+    // quizBank has 2 lessons (indices 0, 1)
+    const result = executeAction(
+      { type: 'regenerateLesson', featureId: 'quizBank', lessonIndex: 2 },
+      ctx,
+    );
+    expect(result.success).toBe(false);
+    expect(result.message).toContain('out of range');
+    expect(ctx.regenerateLesson).not.toHaveBeenCalled();
+  });
+
+  it('succeeds when lessonIndex is within bounds', () => {
+    const ctx = makeCtx();
+    const result = executeAction(
+      { type: 'regenerateLesson', featureId: 'quizBank', lessonIndex: 1 },
+      ctx,
+    );
+    expect(result.success).toBe(true);
+    expect(ctx.regenerateLesson).toHaveBeenCalledWith('quizBank', ctx.courseMap, 1);
+  });
+
+  it('still works when deliverables context is missing (no bounds check possible)', () => {
+    const ctx = makeCtx({ deliverables: undefined });
+    const result = executeAction(
+      { type: 'regenerateLesson', featureId: 'quizBank', lessonIndex: 0 },
+      ctx,
+    );
+    expect(result.success).toBe(true);
+    expect(ctx.regenerateLesson).toHaveBeenCalled();
+  });
+});
+
+// ─────────────────────────────────────────────────────────────────────────────
+// 8. Fix 10: addItem for flat deliverables (no sub-array) handles gracefully
+// ─────────────────────────────────────────────────────────────────────────────
+
+describe('Fix 10: addItem for flat deliverables handles gracefully', () => {
+  it('merges item into discussions lesson entry without crashing', () => {
+    const deliverables = makeMockDeliverables();
+    deliverables.discussions = {
+      status: 'done',
+      data: {
+        discussions: [
+          { lt: 'L1', pr: 'Old prompt', rb: 'Old rubric' },
+          { lt: 'L2', pr: 'Prompt 2' },
+        ],
+      },
+    };
+    const ctx = makeCtx({ deliverables });
+    const result = executeAction(
+      { type: 'addItem', featureId: 'discussions', lessonIndex: 0, item: { pr: 'New prompt', tp: 'New topic' } },
+      ctx,
+    );
+    expect(result.success).toBe(true);
+    const data = ctx.optimisticUpdate.mock.calls[0][1];
+    // Old fields preserved, new fields merged
+    expect(data.discussions[0].lt).toBe('L1');
+    expect(data.discussions[0].pr).toBe('New prompt');
+    expect(data.discussions[0].tp).toBe('New topic');
+    expect(data.discussions[0].rb).toBe('Old rubric');
+  });
+
+  it('merges item into lessonPlans lesson entry', () => {
+    const ctx = makeCtx();
+    const result = executeAction(
+      { type: 'addItem', featureId: 'lessonPlans', lessonIndex: 0, item: { hw: 'New homework' } },
+      ctx,
+    );
+    expect(result.success).toBe(true);
+    const data = ctx.optimisticUpdate.mock.calls[0][1];
+    expect(data.lessonPlans[0].ob).toBe('Obj');
+    expect(data.lessonPlans[0].hw).toBe('New homework');
+  });
+
+  it('rejects null item for flat deliverable', () => {
+    const deliverables = makeMockDeliverables();
+    deliverables.discussions = {
+      status: 'done',
+      data: { discussions: [{ lt: 'L1', pr: 'Prompt' }] },
+    };
+    const ctx = makeCtx({ deliverables });
+    const result = executeAction(
+      { type: 'addItem', featureId: 'discussions', lessonIndex: 0, item: null },
+      ctx,
+    );
+    expect(result.success).toBe(false);
+    expect(result.message).toContain('Invalid item');
+  });
+
+  it('rejects non-object item for flat deliverable', () => {
+    const deliverables = makeMockDeliverables();
+    deliverables.discussions = {
+      status: 'done',
+      data: { discussions: [{ lt: 'L1', pr: 'Prompt' }] },
+    };
+    const ctx = makeCtx({ deliverables });
+    const result = executeAction(
+      { type: 'addItem', featureId: 'discussions', lessonIndex: 0, item: 'just a string' },
+      ctx,
+    );
+    expect(result.success).toBe(false);
+    expect(result.message).toContain('Invalid item');
+  });
+});
+
+// ─────────────────────────────────────────────────────────────────────────────
+// 9. Fix 11: editItem validates featureId matches deliverable data
+// ─────────────────────────────────────────────────────────────────────────────
+
+describe('Fix 11: editItem validates featureId exists in deliverables', () => {
+  it('returns clear error for completely unknown featureId', () => {
+    const ctx = makeCtx();
+    const result = executeAction(
+      { type: 'editItem', featureId: 'nonExistentFeature', path: ['data', 0], value: 'x' },
+      ctx,
+    );
+    expect(result.success).toBe(false);
+    expect(result.message).toContain('Unknown featureId');
+    expect(result.message).toContain('nonExistentFeature');
+  });
+
+  it('returns status-aware error when featureId exists but has no data', () => {
+    const ctx = makeCtx();
+    // discussions exists but has status: 'idle', data: null
+    const result = executeAction(
+      { type: 'editItem', featureId: 'discussions', path: ['discussions', 0, 'pr'], value: 'x' },
+      ctx,
+    );
+    expect(result.success).toBe(false);
+    expect(result.message).toContain('not generated yet');
+    expect(result.message).toContain('idle');
+  });
+
+  it('succeeds when featureId exists and has data', () => {
+    const ctx = makeCtx();
+    const result = executeAction(
+      { type: 'editItem', featureId: 'quizBank', path: ['quizzes', 0, 'qs', 0, 'q'], value: 'Updated' },
+      ctx,
+    );
+    expect(result.success).toBe(true);
+  });
+});
+
+// ─────────────────────────────────────────────────────────────────────────────
+// 10. Fix 12: removeItem validates itemIndex type and bounds
+// ─────────────────────────────────────────────────────────────────────────────
+
+describe('Fix 12: removeItem validates itemIndex', () => {
+  it('fails when itemIndex is null', () => {
+    const ctx = makeCtx();
+    const result = executeAction(
+      { type: 'removeItem', featureId: 'quizBank', lessonIndex: 0, itemIndex: null },
+      ctx,
+    );
+    expect(result.success).toBe(false);
+    expect(result.message).toContain('Invalid itemIndex');
+  });
+
+  it('fails when itemIndex is undefined', () => {
+    const ctx = makeCtx();
+    const result = executeAction(
+      { type: 'removeItem', featureId: 'quizBank', lessonIndex: 0 },
+      ctx,
+    );
+    expect(result.success).toBe(false);
+    expect(result.message).toContain('Invalid itemIndex');
+  });
+
+  it('fails when itemIndex is a string', () => {
+    const ctx = makeCtx();
+    const result = executeAction(
+      { type: 'removeItem', featureId: 'quizBank', lessonIndex: 0, itemIndex: '0' },
+      ctx,
+    );
+    expect(result.success).toBe(false);
+    expect(result.message).toContain('Invalid itemIndex');
+  });
+
+  it('fails when itemIndex is null for assignments', () => {
+    const ctx = makeCtx();
+    const result = executeAction(
+      { type: 'removeItem', featureId: 'assignments', itemIndex: null },
+      ctx,
+    );
+    expect(result.success).toBe(false);
+    expect(result.message).toContain('Invalid itemIndex');
+  });
+
+  it('succeeds with valid numeric itemIndex', () => {
+    const ctx = makeCtx();
+    const result = executeAction(
+      { type: 'removeItem', featureId: 'quizBank', lessonIndex: 0, itemIndex: 0 },
+      ctx,
+    );
+    expect(result.success).toBe(true);
+  });
+});

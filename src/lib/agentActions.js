@@ -267,7 +267,10 @@ function execAddItem({ featureId, lessonIndex, item, subKey }, ctx) {
     lessonItem[subKey] = [item];
   } else {
     // No sub-array — this is a per-lesson item type (discussions, etc.)
-    // Replace the entire lesson entry
+    // Fix 10: Gracefully handle flat deliverables — merge/replace the lesson entry
+    if (!item || typeof item !== 'object') {
+      return { success: false, message: `Invalid item for ${featureId} — expected an object to merge into the lesson entry` };
+    }
     arr[lessonIndex] = { ...lessonItem, ...item };
   }
 
@@ -283,6 +286,11 @@ function execRemoveItem({ featureId, lessonIndex, itemIndex, subKey }, ctx) {
 
   const entry = deliverables?.[featureId];
   if (!entry?.data) return { success: false, message: `${featureId} not generated yet` };
+
+  // Fix 12: Validate itemIndex is a valid number before splicing
+  if (itemIndex == null || typeof itemIndex !== 'number') {
+    return { success: false, message: `Invalid itemIndex: ${itemIndex} — expected a number` };
+  }
 
   // Snapshot for undo before mutating (skip during batch — caller snapshots once)
   if (snapshot && !skipSnapshot) snapshot(featureId, entry.data);
@@ -344,8 +352,10 @@ function execEditItem({ featureId, path: rawPath, value }, ctx) {
   if (!Array.isArray(path)) return { success: false, message: `Invalid path — expected array or dot-notation string, got ${rawPath === null ? 'null' : typeof rawPath}` };
   if (path.length < 1) return { success: false, message: 'Invalid path — array cannot be empty' };
 
+  // Fix 11: Validate featureId exists and has data before editing
   const entry = deliverables?.[featureId];
-  if (!entry?.data) return { success: false, message: `${featureId} not generated yet` };
+  if (!entry) return { success: false, message: `Unknown featureId: "${featureId}" — not found in deliverables` };
+  if (!entry.data) return { success: false, message: `${featureId} not generated yet (status: ${entry.status || 'unknown'})` };
 
   // Snapshot for undo before mutating (skip during batch — caller snapshots once)
   if (snapshot && !skipSnapshot) snapshot(featureId, entry.data);
@@ -385,10 +395,21 @@ function execEditItem({ featureId, path: rawPath, value }, ctx) {
   return { success: true, message: `Updated ${featureId}` };
 }
 
-function execRegenerateLesson({ featureId, lessonIndex }, { regenerateLesson, courseMap }) {
+function execRegenerateLesson({ featureId, lessonIndex }, { regenerateLesson, courseMap, deliverables }) {
   if (!regenerateLesson) return { success: false, message: 'Regenerate not available' };
   if (!featureId) return { success: false, message: 'Missing featureId' };
   if (lessonIndex == null || lessonIndex < 0) return { success: false, message: `Invalid lessonIndex: ${lessonIndex}` };
+
+  // Fix 9: Validate lessonIndex is within bounds of the deliverable data
+  const entry = deliverables?.[featureId];
+  if (entry?.data) {
+    const arrKey = getArrayKey(featureId, entry.data);
+    const arr = entry.data[arrKey];
+    if (Array.isArray(arr) && lessonIndex >= arr.length) {
+      return { success: false, message: `lessonIndex ${lessonIndex} out of range (0-${arr.length - 1}) for ${featureId}` };
+    }
+  }
+
   regenerateLesson(featureId, courseMap, lessonIndex);
   return { success: true, message: `Regenerating ${featureId} for Lesson ${lessonIndex + 1}` };
 }
