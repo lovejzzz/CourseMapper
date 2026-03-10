@@ -26,6 +26,11 @@ export default function ChatInput({
       e.preventDefault();
       handleSend();
     }
+    // Escape clears input
+    if (e.key === 'Escape' && input) {
+      e.preventDefault();
+      setInput('');
+    }
   }
 
   function handleSend() {
