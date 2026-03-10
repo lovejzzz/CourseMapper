@@ -9,10 +9,10 @@
  *
  * Run: npm test -- --run editProposal.integration
  *
- * NOTE: Found a bug during testing — the regex used to inject edit context
- *   into prompts (/\nReturn ONLY the JSON/) does not match the actual prompt
- *   text ("\n- Return ONLY the JSON") because of the leading "- ". The edit
- *   context block silently fails to inject. See deliverablePrompts.js lines 438-439.
+ * NOTE: Found and fixed a bug during testing — the regex used to inject edit
+ *   context into prompts (/\nReturn ONLY the JSON/) did not match the actual
+ *   prompt text ("\n- Return ONLY the JSON") because of the leading "- ".
+ *   Fixed in deliverablePrompts.js lines 438-439.
  */
 import { describe, it, expect } from 'vitest';
 import { getDeliverablePrompt } from '../deliverablePrompts';
@@ -147,9 +147,7 @@ describe('Edit → AI Proposal → Accept (DeepSeek Integration)', () => {
       sessionLength: '75 minutes',
     }, 'lecture');
     expect(prompts).not.toBeNull();
-    // NOTE: Same regex bug as editContext — config instructions also fail to inject
-    // via the regex match. However, the prompt template itself may mention duration.
-    // Just verify the prompt is non-empty and scoped to lesson 2.
+    // Config instructions are injected via the same regex (now fixed).
     expect(prompts.userPrompt).toContain('Classification');
     expect(prompts.userPrompt).toContain('SCOPE CONSTRAINT');
   });
@@ -172,17 +170,12 @@ describe('Edit → AI Proposal → Accept (DeepSeek Integration)', () => {
     expect(context).toContain('questions');
   });
 
-  // ── BUG: editContext injection regex does not match prompt text ──
-  // The regex /(\nReturn ONLY the JSON)/ in deliverablePrompts.js line 439
-  // does NOT match the actual prompt text which is "\n- Return ONLY the JSON".
-  // This means editContext is silently dropped. This test documents the bug.
-  it('BUG: editContext is NOT injected due to regex mismatch', () => {
+  // ── editContext injection (regex was fixed to match "- Return ONLY") ──
+  it('editContext IS injected into the prompt', () => {
     const editContext = 'question: "What is regression?" → "Explain mathematical foundations"';
     const prompts = getDeliverablePrompt('quizBank', TEST_COURSE_MAP, [0], {}, 'lecture', null, editContext);
-    // This SHOULD contain the edit context but doesn't due to the bug
     const hasEditContext = prompts.userPrompt.includes('INSTRUCTOR EDIT TO INCORPORATE');
-    // Documenting the bug: edit context is NOT injected
-    expect(hasEditContext).toBe(false);
+    expect(hasEditContext).toBe(true);
   });
 
   // ── API integration tests (require DeepSeek) ──

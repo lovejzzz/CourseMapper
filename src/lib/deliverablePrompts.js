@@ -436,10 +436,10 @@ export function getDeliverablePrompt(featureId, courseMap, scopeIndices = null, 
   // Inject edit context first (highest priority), then config instructions
   // Both are inserted right before the final "Return ONLY the JSON" instruction
   const withEdit = editContextBlock
-    ? baseUserPrompt.replace(/(\nReturn ONLY the JSON)/, `${editContextBlock}$1`)
+    ? baseUserPrompt.replace(/(\n- Return ONLY)/, `${editContextBlock}$1`)
     : baseUserPrompt;
   const withConfig = configInstructions
-    ? withEdit.replace(/(\nReturn ONLY the JSON)/, `\n\nADDITIONAL INSTRUCTOR REQUIREMENTS (must be followed, take priority over defaults):\n${configInstructions}$1`)
+    ? withEdit.replace(/(\n- Return ONLY)/, `\n\nADDITIONAL INSTRUCTOR REQUIREMENTS (must be followed, take priority over defaults):\n${configInstructions}$1`)
     : withEdit;
   // Append extra free-text instructions from the instructor if provided
   const withExtra = config.extraInstructions?.trim()
