@@ -214,6 +214,7 @@ export default function ChatPanel({
         activeTab={activeTab}
         deliverables={deliverables}
         isAgentMode={isAgentMode}
+        isGenerating={!!(currentStep && currentStep !== 'done')}
       />
 
       {/* ── Chat Input ── */}

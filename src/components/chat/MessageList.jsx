@@ -28,12 +28,14 @@ function stableKey(msg, fallback) {
  * Renders user/assistant bubbles, proposals, diff reviews, and content cards.
  * Status cards (progress, agent steps) are shown in the fixed top area instead.
  */
-export default function MessageList({ messages, isStreaming, onSuggestionClick, onSelectProposal, onAcceptDiff, onRejectDiff, onUndo, canUndo, onApproveSyncSuggestion, onSkipSyncSuggestion, courseMap, activeTab, deliverables, isAgentMode }) {
+export default function MessageList({ messages, isStreaming, onSuggestionClick, onSelectProposal, onAcceptDiff, onRejectDiff, onUndo, canUndo, onApproveSyncSuggestion, onSkipSyncSuggestion, courseMap, activeTab, deliverables, isAgentMode, isGenerating }) {
   const endRef = useRef(null);
   const prevCountRef = useRef(messages.length);
   const containerRef = useRef(null);
 
-  const opener = getChatOpener(courseMap, isAgentMode, activeTab, deliverables);
+  // Don't show "ready with N lessons" greeting while generation is still streaming —
+  // the courseMap is built incrementally and the lesson count would be misleading.
+  const opener = getChatOpener(isGenerating ? null : courseMap, isAgentMode, activeTab, deliverables);
   const { greeting, starters = [] } = opener || {};
 
   useEffect(() => {
@@ -56,7 +58,7 @@ export default function MessageList({ messages, isStreaming, onSuggestionClick, 
   const hasVisibleMessages = messages.some(m => m.role !== 'agentProgress' && m.role !== 'progress');
   if (!hasVisibleMessages) {
     return (
-      <div className="flex-1 overflow-y-auto px-4 py-4 flex flex-col justify-end" style={{ minHeight: 0 }}>
+      <div className="flex-1 overflow-y-auto px-4 py-4 flex flex-col justify-start" style={{ minHeight: 0 }}>
         <div className="space-y-3 mb-4">
           <div className="flex items-start gap-2.5">
             <div className="w-6 h-6 rounded-full bg-gradient-to-br from-slate-100 to-slate-200 flex items-center justify-center flex-shrink-0 shadow-sm">
