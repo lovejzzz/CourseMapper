@@ -44,80 +44,61 @@ function buildAdaptiveStarters(courseMap, activeTab, deliverables) {
   const lessons = courseMap?.lessons || [];
   const tabLabel = FEATURE_LABELS[activeTab] || activeTab;
 
-  // 1. Health-based starters (top 2 findings by severity)
-  if (deliverables && courseMap) {
-    try {
-      const report = generateCourseHealthReport(courseMap, deliverables);
-      if (report && report.findings.length > 0) {
-        const actionable = report.findings
-          .filter(f => f.suggestedPrompt)
-          .slice(0, 2);
-        for (const finding of actionable) {
-          starters.push({ text: finding.suggestedPrompt, icon: 'search' });
-        }
-      }
-    } catch { /* validator may fail on edge cases — fall through to defaults */ }
-  }
-
-  // 2. Gap-based starters — find first lesson missing content in any deliverable
-  if (deliverables && starters.length < 3) {
-    const gapTargets = [
-      ['quizBank', 'qs', 'quiz questions'],
-      ['discussions', null, 'a discussion prompt'],
-      ['slideDecks', 'sl', 'slides'],
-      ['rubrics', 'cr', 'rubric criteria'],
-      ['studyGuides', null, 'study guide content'],
-    ];
-    for (const [featureId, subKey, label] of gapTargets) {
-      if (starters.length >= 3) break;
-      const entry = deliverables[featureId];
-      if (!entry?.data) continue;
-      const arrKey = getArrayKey(featureId, entry.data);
-      const arr = arrKey && entry.data[arrKey];
-      if (!Array.isArray(arr)) continue;
-      for (let i = 0; i < arr.length && i < lessons.length; i++) {
-        const lesson = arr[i];
-        const isEmpty = subKey
-          ? !lesson[subKey] || lesson[subKey].length === 0
-          : !lesson || Object.keys(lesson).length <= 2;
-        if (isEmpty) {
-          const lessonTitle = lessons[i]?.title || `Lesson ${i + 1}`;
-          starters.push({ text: `Add ${label} to ${lessonTitle}`, icon: 'plus' });
-          break;
-        }
-      }
-    }
-  }
-
-  // 3. Active-tab-specific starter — suggest action relevant to what user is viewing
-  if (starters.length < 4 && activeTab && activeTab !== 'courseMap' && deliverables?.[activeTab]?.status === 'done') {
+  // 1. Active-tab-specific starter — prioritize what the user is currently viewing
+  if (activeTab && activeTab !== 'courseMap' && deliverables?.[activeTab]?.status === 'done') {
     const lesson = lessons[0];
     const lessonTitle = lesson?.title || 'Lesson 1';
     if (activeTab === 'quizBank') {
-      starters.push({ text: `Add quiz questions or assignments for ${lessonTitle} that align to the learning objectives`, icon: 'search' });
+      starters.push({ text: `Add more quiz questions for ${lessonTitle}`, icon: 'plus' });
     } else if (activeTab === 'discussions') {
-      starters.push({ text: `Review discussion prompts for Bloom's taxonomy alignment`, icon: 'search' });
+      starters.push({ text: `Improve discussion prompts for Bloom's alignment`, icon: 'edit' });
     } else if (activeTab === 'slideDecks') {
-      starters.push({ text: `Add speaker notes to the ${lessonTitle} slides`, icon: 'edit' });
+      starters.push({ text: `Add speaker notes to ${lessonTitle} slides`, icon: 'edit' });
     } else if (activeTab === 'assignments') {
-      starters.push({ text: `Review assignment rubric alignment across all lessons`, icon: 'search' });
+      starters.push({ text: `Review assignment rubric alignment`, icon: 'search' });
     } else if (activeTab === 'lessonPlans') {
-      starters.push({ text: `Check if lesson plans cover all learning objectives`, icon: 'search' });
+      starters.push({ text: `Check lesson plans cover all objectives`, icon: 'search' });
+    } else if (activeTab === 'studyGuides') {
+      starters.push({ text: `Add key terms to ${lessonTitle} study guide`, icon: 'plus' });
+    } else if (activeTab === 'rubrics') {
+      starters.push({ text: `Review rubric criteria for ${lessonTitle}`, icon: 'search' });
     } else {
       starters.push({ text: `Review ${tabLabel} for completeness`, icon: 'search' });
     }
+  } else if (activeTab === 'courseMap') {
+    // On course map tab — suggest course-level actions
+    if (lessons.length > 0) {
+      const weakLesson = lessons.reduce((best, l, i) => {
+        const objCount = (l?.sections || []).reduce((s, sec) => s + (sec.learningObjectives?.length || 0), 0);
+        return objCount < best.count ? { idx: i, count: objCount } : best;
+      }, { idx: 0, count: Infinity });
+      const title = lessons[weakLesson.idx]?.title || `Lesson ${weakLesson.idx + 1}`;
+      starters.push({ text: `Review ${title} for gaps`, icon: 'search' });
+    }
   }
 
-  // 4. Course-specific research starter
-  if (starters.length < 4 && lessons.length > 0) {
-    // Pick a specific lesson topic for the research starter
-    const midLesson = lessons[Math.floor(lessons.length / 2)];
-    const topic = midLesson?.title || courseMap?.courseName || 'your course topic';
-    starters.push({ text: `Find research on ${topic}`, icon: 'search' });
+  // 2. Health-based or gap-based — pick the most relevant one
+  if (starters.length < 2 && deliverables && courseMap) {
+    try {
+      const report = generateCourseHealthReport(courseMap, deliverables);
+      if (report?.findings?.length > 0) {
+        const finding = report.findings.find(f => f.suggestedPrompt);
+        if (finding) starters.push({ text: finding.suggestedPrompt, icon: 'search' });
+      }
+    } catch { /* fall through */ }
   }
 
-  // Cap at 4
-  return starters.slice(0, 4);
+  // 3. Fallback — generic but useful
+  if (starters.length < 2) {
+    if (lessons.length > 0) {
+      const topic = lessons[Math.floor(lessons.length / 2)]?.title || courseMap?.courseName || 'your course';
+      starters.push({ text: `Find research on ${topic}`, icon: 'search' });
+    } else {
+      starters.push({ text: 'What should I work on next?', icon: 'chat' });
+    }
+  }
+
+  return starters.slice(0, 2);
 }
 
 // ── Course-specific starters for Tier 2 (course map ready, no deliverables) ──
@@ -127,9 +108,8 @@ function buildCourseMapStarters(courseMap) {
   const courseName = courseMap?.courseName || 'my course';
   const starters = [];
 
-  // 1. Review a specific lesson that might have gaps (pick lesson with fewest objectives)
+  // 1. Review the weakest lesson
   if (lessons.length > 0) {
-    // Find the lesson with the shortest objectives text — likely needs the most help
     let targetLesson = lessons[0];
     let targetIdx = 0;
     for (let i = 1; i < lessons.length; i++) {
@@ -140,38 +120,16 @@ function buildCourseMapStarters(courseMap) {
       if (objLen < curLen && objLen > 0) { targetLesson = lessons[i]; targetIdx = i; }
     }
     const title = targetLesson?.title || `Lesson ${targetIdx + 1}`;
-    starters.push({ text: `Review ${title} for any gaps`, icon: 'search' });
+    starters.push({ text: `Review ${title} for gaps`, icon: 'search' });
   }
 
-  // 2. Objective specificity — reference the actual course
+  // 2. Actionable course-level suggestion
   starters.push({
-    text: `Make the learning objectives in ${courseName} more measurable`,
+    text: `Make learning objectives in ${courseName} more measurable`,
     icon: 'edit',
   });
 
-  // 3. Difficulty/flow question about the actual lessons
-  if (lessons.length >= 3) {
-    starters.push({
-      text: `How does the difficulty progress across my ${lessons.length} lessons?`,
-      icon: 'chat',
-    });
-  } else {
-    starters.push({
-      text: 'What deliverables should I generate next?',
-      icon: 'chat',
-    });
-  }
-
-  // 4. Add content suggestion for a specific lesson
-  if (lessons.length > 1) {
-    const lastLesson = lessons[lessons.length - 1];
-    const lastTitle = lastLesson?.title || `Lesson ${lessons.length}`;
-    starters.push({ text: `Add an activity idea for ${lastTitle}`, icon: 'plus' });
-  } else {
-    starters.push({ text: 'How do I export to Google Docs?', icon: 'chat' });
-  }
-
-  return starters.slice(0, 4);
+  return starters.slice(0, 2);
 }
 
 // ── Chat opener — context-aware starters ────────────────────────────────────
