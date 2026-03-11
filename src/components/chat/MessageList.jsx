@@ -52,44 +52,37 @@ export default function MessageList({ messages, isStreaming, onSuggestionClick, 
     }
   }, [messages]);
 
-  // Empty state — clean, minimal (also when only status messages exist)
-  const hasVisibleMessages = messages.some(m => m.role !== 'agentProgress' && m.role !== 'progress');
-  if (!hasVisibleMessages) {
-    return (
-      <div className="flex-1 overflow-y-auto px-4 py-4 flex flex-col justify-start" style={{ minHeight: 0 }}>
-        <div className="space-y-3 mb-4">
-          <div className="flex items-start gap-2.5">
-            <div className="w-6 h-6 rounded-full bg-gradient-to-br from-slate-100 to-slate-200 flex items-center justify-center flex-shrink-0 shadow-sm">
-              <svg className="w-3 h-3 text-indigo-500" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2}
-                  d="M9.663 17h4.673M12 3v1m6.364 1.636l-.707.707M21 12h-1M4 12H3m3.343-5.657l-.707-.707m2.828 9.9a5 5 0 117.072 0l-.548.547A3.374 3.374 0 0014 18.469V19a2 2 0 11-4 0v-.531c0-.895-.356-1.754-.988-2.386l-.548-.547z" />
-              </svg>
-            </div>
-            <p className="text-[13px] text-slate-600 leading-relaxed pt-0.5">
-              {greeting || 'How can I help with your course?'}
-            </p>
-          </div>
-          {starters.length > 0 && (
-            <div className="ml-8 flex flex-wrap gap-2">
-              {starters.map((s, i) => (
-                <button
-                  key={i}
-                  onClick={() => onSuggestionClick?.(s.text)}
-                  className="tactile text-[12px] px-3 py-1.5 rounded-full bg-white/60 border border-slate-200/40 text-slate-600 hover:bg-indigo-50/60 hover:border-indigo-300/40 hover:text-indigo-600 transition-all shadow-sm"
-                >
-                  {s.text}
-                </button>
-              ))}
-            </div>
-          )}
-        </div>
-      </div>
-    );
-  }
-
-  // Messages list
+  // Messages list — greeting + starters always shown as first item in the stream
   return (
     <div ref={containerRef} className="flex-1 overflow-y-auto px-4 py-3 space-y-3" style={{ minHeight: 0 }}>
+      {/* Greeting + suggestion starters — inline at the top of the chat stream */}
+      <div className="space-y-3">
+        <div className="flex items-start gap-2.5">
+          <div className="w-6 h-6 rounded-full bg-gradient-to-br from-slate-100 to-slate-200 flex items-center justify-center flex-shrink-0 shadow-sm">
+            <svg className="w-3 h-3 text-indigo-500" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2}
+                d="M9.663 17h4.673M12 3v1m6.364 1.636l-.707.707M21 12h-1M4 12H3m3.343-5.657l-.707-.707m2.828 9.9a5 5 0 117.072 0l-.548.547A3.374 3.374 0 0014 18.469V19a2 2 0 11-4 0v-.531c0-.895-.356-1.754-.988-2.386l-.548-.547z" />
+            </svg>
+          </div>
+          <p className="text-[13px] text-slate-600 leading-relaxed pt-0.5">
+            {greeting || 'How can I help with your course?'}
+          </p>
+        </div>
+        {starters.length > 0 && (
+          <div className="ml-8 flex flex-wrap gap-2">
+            {starters.map((s, i) => (
+              <button
+                key={i}
+                onClick={() => onSuggestionClick?.(s.text)}
+                className="tactile text-[12px] px-3 py-1.5 rounded-full bg-white/60 border border-slate-200/40 text-slate-600 hover:bg-indigo-50/60 hover:border-indigo-300/40 hover:text-indigo-600 transition-all shadow-sm"
+              >
+                {s.text}
+              </button>
+            ))}
+          </div>
+        )}
+      </div>
+
       {messages.map((msg, i) => {
         const key = stableKey(msg);
         // Status messages are shown in the fixed top area, not in chat
