@@ -132,6 +132,7 @@ export default function Landing({
     if (provider === 'openai') return `OpenAI · ${modelName || modelId || 'GPT'}`;
     if (provider === 'anthropic') return `Anthropic · ${modelName || modelId || 'Claude'}`;
     if (provider === 'google') return `Google · ${modelName || modelId || 'Gemini'}`;
+    if (provider === 'deepseek') return `DeepSeek · ${modelName || modelId || 'V3'}`;
     return modelName || modelId || provider || 'AI Model';
   })();
 

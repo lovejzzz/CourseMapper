@@ -276,6 +276,28 @@ function buildProviderRequest(provider, apiKey, modelId, systemPrompt, userPromp
     };
   }
 
+  if (provider === 'deepseek') {
+    return {
+      url: 'https://api.deepseek.com/v1/chat/completions',
+      headers: {
+        'Authorization': `Bearer ${apiKey}`,
+        'Content-Type': 'application/json',
+      },
+      body: {
+        model: modelId,
+        messages: [
+          { role: 'system', content: systemPrompt },
+          { role: 'user', content: userPrompt },
+        ],
+        response_format: { type: 'json_object' },
+        max_completion_tokens: maxOutputTokens,
+        ...(temp !== undefined && { temperature: temp }),
+        stream: true,
+      },
+      parseChunk: (parsed) => parsed.choices?.[0]?.delta?.content || null,
+    };
+  }
+
   if (provider === 'openrouter') {
     return {
       url: 'https://openrouter.ai/api/v1/chat/completions',
@@ -423,6 +445,21 @@ export async function fetchModelsFromProvider(provider, apiKey) {
       .filter((m) => { if (gSeen.has(m.name)) return false; gSeen.add(m.name); return true; });
     if (models.length === 0) throw new Error('No Gemini models available');
     return models;
+  }
+
+  if (provider === 'deepseek') {
+    const response = await fetch('https://api.deepseek.com/v1/models', {
+      headers: { 'Authorization': `Bearer ${apiKey}` },
+    });
+    if (!response.ok) throw new Error('Invalid API key');
+    const data = await response.json();
+    return (data.data || [])
+      .filter((m) => m.id.includes('deepseek'))
+      .map((m) => ({
+        id: m.id,
+        name: m.id === 'deepseek-chat' ? 'DeepSeek V3' : m.id === 'deepseek-reasoner' ? 'DeepSeek R1' : m.id,
+        maxOutputTokens: 8192,
+      }));
   }
 
   throw new Error('Invalid provider.');

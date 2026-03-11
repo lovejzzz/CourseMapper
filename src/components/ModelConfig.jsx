@@ -13,12 +13,13 @@ function detectProvider(key) {
   return null;
 }
 
-const PLACEHOLDER = { openai: 'sk-proj-...', anthropic: 'sk-ant-...', google: 'AIza... or Vertex AI key' };
+const PLACEHOLDER = { openai: 'sk-proj-...', anthropic: 'sk-ant-...', google: 'AIza... or Vertex AI key', deepseek: 'sk-...' };
 
 const API_KEY_URLS = {
   openai: 'https://platform.openai.com/api-keys',
   anthropic: 'https://console.anthropic.com/settings/keys',
   google: 'https://aistudio.google.com/apikey',
+  deepseek: 'https://platform.deepseek.com/api_keys',
 };
 
 export default function ModelConfig({
@@ -186,6 +187,7 @@ export default function ModelConfig({
             <option value="openai">OpenAI</option>
             <option value="anthropic">Anthropic</option>
             <option value="google">Google</option>
+            <option value="deepseek">DeepSeek</option>
           </select>
         </div>
 

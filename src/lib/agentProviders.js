@@ -133,7 +133,7 @@ export function buildNativeTools(provider, agentTools) {
   tools.push(RESPOND_TOOL);
 
   // Convert to provider-specific format
-  if (provider === 'openai') {
+  if (provider === 'openai' || provider === 'deepseek') {
     return tools.map(t => ({
       type: 'function',
       function: {
@@ -246,6 +246,27 @@ export function buildAgentRequest(provider, { model, systemPrompt, messages, too
     };
   }
 
+  if (provider === 'deepseek') {
+    return {
+      endpoint: 'https://api.deepseek.com/v1/chat/completions',
+      headers: {
+        'Authorization': `Bearer ${apiKey}`,
+        'Content-Type': 'application/json',
+      },
+      body: {
+        model,
+        messages: [
+          { role: 'system', content: systemPrompt },
+          ...messages.map(m => m._native ? stripNativeFlag(m) : { role: m.role, content: m.content }),
+        ],
+        tools,
+        tool_choice: 'auto',
+        max_completion_tokens: maxTokens,
+        ...tempSetting,
+      },
+    };
+  }
+
   throw new Error(`Unknown provider: ${provider}`);
 }
 
@@ -257,7 +278,7 @@ function stripNativeFlag(msg) {
 // ── Parse provider response → unified format ────────────────────────────────
 
 export function parseAgentResponse(provider, json) {
-  if (provider === 'openai') {
+  if (provider === 'openai' || provider === 'deepseek') {
     const choice = json.choices?.[0];
     const message = choice?.message;
     const toolCalls = (message?.tool_calls || []).map(tc => ({
@@ -313,7 +334,7 @@ function safeJsonParse(str) {
 // ── Format assistant tool-call message for history ──────────────────────────
 
 export function formatAssistantToolCalls(provider, toolCalls) {
-  if (provider === 'openai') {
+  if (provider === 'openai' || provider === 'deepseek') {
     return {
       _native: true,
       role: 'assistant',
@@ -359,7 +380,7 @@ export function formatToolResult(provider, toolCallId, toolName, result) {
   // Truncate large results
   const truncated = content.length > 4000 ? content.slice(0, 4000) + '...(truncated)' : content;
 
-  if (provider === 'openai') {
+  if (provider === 'openai' || provider === 'deepseek') {
     return {
       _native: true,
       role: 'tool',

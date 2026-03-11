@@ -141,12 +141,15 @@ async function streamChat(messages, systemPrompt, signal, apiKey, provider, mode
     };
   }
 
-  // OpenAI (default)
+  // OpenAI / DeepSeek (OpenAI-compatible)
+  const baseUrl = provider === 'deepseek'
+    ? 'https://api.deepseek.com/v1/chat/completions'
+    : 'https://api.openai.com/v1/chat/completions';
   const openaiMessages = [
     { role: 'system', content: systemPrompt },
     ...messages.map(m => ({ role: m.role, content: m.content })),
   ];
-  const response = await fetch('https://api.openai.com/v1/chat/completions', {
+  const response = await fetch(baseUrl, {
     method: 'POST',
     headers: {
       'Authorization': `Bearer ${apiKey}`,

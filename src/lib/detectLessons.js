@@ -223,6 +223,28 @@ ${text.slice(0, 8000)}`;
       const data = await res.json();
       responseText = data.candidates?.[0]?.content?.parts?.[0]?.text || '';
 
+    } else if (effectiveProvider === 'deepseek') {
+      const res = await fetch('https://api.deepseek.com/v1/chat/completions', {
+        method: 'POST',
+        headers: {
+          'Authorization': `Bearer ${apiKey}`,
+          'Content-Type': 'application/json',
+        },
+        body: JSON.stringify({
+          model: modelId,
+          messages: [
+            { role: 'system', content: systemPrompt },
+            { role: 'user', content: userPrompt },
+          ],
+          max_completion_tokens: 64,
+          temperature: 0,
+          stream: false,
+        }),
+      });
+      if (!res.ok) return null;
+      const data = await res.json();
+      responseText = data.choices?.[0]?.message?.content || '';
+
     } else if (effectiveProvider === 'openrouter') {
       const res = await fetch('https://openrouter.ai/api/v1/chat/completions', {
         method: 'POST',
