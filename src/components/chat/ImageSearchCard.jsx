@@ -60,6 +60,8 @@ export default function ImageSearchCard({ imageSearch, status, provider, apiKey 
       <button
         onClick={() => setCollapsed(v => !v)}
         className="w-full px-3.5 py-2 flex items-center gap-2 hover:bg-rose-50/80 transition-colors"
+        aria-expanded={!collapsed}
+        aria-label={collapsed ? 'Expand generated images' : 'Collapse generated images'}
       >
         <div className="w-5 h-5 rounded-full bg-rose-100 flex items-center justify-center flex-shrink-0">
           <svg className="w-3 h-3 text-rose-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
@@ -120,6 +122,8 @@ export default function ImageSearchCard({ imageSearch, status, provider, apiKey 
                   className={`relative rounded-lg overflow-hidden border-2 transition-all ${
                     selected === img.id ? 'border-rose-500 ring-2 ring-rose-300' : 'border-transparent hover:border-rose-200'
                   }`}
+                  aria-label={`${selected === img.id ? 'Deselect' : 'Select'} generated image`}
+                  aria-pressed={selected === img.id}
                 >
                   <img
                     src={img.url}

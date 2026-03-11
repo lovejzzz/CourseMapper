@@ -282,6 +282,7 @@ export default function CourseMapPreview({ courseMap, columns, isStreaming, oldC
               onClick={onDismissDiff}
               className="flex items-center gap-1 px-2.5 py-1.5 rounded-full text-[11px] font-medium text-slate-400 hover:text-slate-600 hover:bg-slate-100/60 transition-all duration-200"
               title="Dismiss diff"
+              aria-label="Dismiss diff view"
             >
               <svg className="w-3 h-3" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                 <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M6 18L18 6M6 6l12 12" />
@@ -408,17 +409,17 @@ export default function CourseMapPreview({ courseMap, columns, isStreaming, oldC
                         {!isStreaming && (
                           <div className="opacity-0 group-hover/row:opacity-100 mt-1.5 flex items-center gap-1 transition-opacity duration-150">
                             {!isLocked && onMoveLesson && li > 0 && (
-                              <button onClick={() => onMoveLesson(li, -1)} className="p-0.5 text-slate-300 hover:text-indigo-500 transition-colors" title="Move lesson up">
+                              <button onClick={() => onMoveLesson(li, -1)} className="p-0.5 text-slate-300 hover:text-indigo-500 transition-colors" title="Move lesson up" aria-label="Move lesson up">
                                 <svg className="w-3 h-3" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M5 15l7-7 7 7" /></svg>
                               </button>
                             )}
                             {!isLocked && onMoveLesson && li < courseMap.lessons.length - 1 && (
-                              <button onClick={() => onMoveLesson(li, 1)} className="p-0.5 text-slate-300 hover:text-indigo-500 transition-colors" title="Move lesson down">
+                              <button onClick={() => onMoveLesson(li, 1)} className="p-0.5 text-slate-300 hover:text-indigo-500 transition-colors" title="Move lesson down" aria-label="Move lesson down">
                                 <svg className="w-3 h-3" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M19 9l-7 7-7-7" /></svg>
                               </button>
                             )}
                             {!isLocked && onDeleteLesson && courseMap.lessons.length > 1 && (
-                              <button onClick={() => onDeleteLesson(li)} className="p-0.5 text-slate-300 hover:text-red-400 transition-colors" title="Delete lesson">
+                              <button onClick={() => onDeleteLesson(li)} className="p-0.5 text-slate-300 hover:text-red-400 transition-colors" title="Delete lesson" aria-label="Delete lesson">
                                 <svg className="w-3 h-3" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16" /></svg>
                               </button>
                             )}
@@ -427,6 +428,7 @@ export default function CourseMapPreview({ courseMap, columns, isStreaming, oldC
                                 onClick={() => onToggleLock(li)}
                                 className={`p-0.5 transition-colors ${isLocked ? 'text-amber-500 hover:text-amber-600' : 'text-slate-300 hover:text-amber-400'}`}
                                 title={isLocked ? 'Unlock lesson (allow AI edits)' : 'Lock lesson (protect from AI edits)'}
+                                aria-label={isLocked ? 'Unlock lesson' : 'Lock lesson'}
                               >
                                 {isLocked ? (
                                   <svg className="w-3 h-3" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 15v2m-6 4h12a2 2 0 002-2v-6a2 2 0 00-2-2H6a2 2 0 00-2 2v6a2 2 0 002 2zm10-10V7a4 4 0 00-8 0v4h8z" /></svg>
@@ -539,12 +541,12 @@ export default function CourseMapPreview({ courseMap, columns, isStreaming, oldC
                     <td className="px-1 py-2.5 align-top w-[60px]">
                       <div className="opacity-0 group-hover/row:opacity-100 flex flex-col items-center gap-0.5 transition-opacity duration-150">
                         {onAddSection && (
-                          <button onClick={() => onAddSection(li, si + 1)} className="p-1 text-slate-300 hover:text-emerald-500 transition-colors" title="Add section below">
+                          <button onClick={() => onAddSection(li, si + 1)} className="p-1 text-slate-300 hover:text-emerald-500 transition-colors" title="Add section below" aria-label="Add section below">
                             <svg className="w-3.5 h-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 4v16m8-8H4" /></svg>
                           </button>
                         )}
                         {onDeleteSection && (lesson.sections || []).length > 1 && (
-                          <button onClick={() => onDeleteSection(li, si)} className="p-1 text-slate-300 hover:text-red-400 transition-colors" title="Delete this section">
+                          <button onClick={() => onDeleteSection(li, si)} className="p-1 text-slate-300 hover:text-red-400 transition-colors" title="Delete this section" aria-label="Delete this section">
                             <svg className="w-3.5 h-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M6 18L18 6M6 6l12 12" /></svg>
                           </button>
                         )}

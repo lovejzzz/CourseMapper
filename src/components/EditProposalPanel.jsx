@@ -76,6 +76,7 @@ export default function EditProposalPanel({ proposal, featureId, onInsert, onReg
         <button
           onClick={onDismiss}
           title="Dismiss suggestion (keep your edit)"
+          aria-label="Dismiss suggestion"
           className={`flex-shrink-0 w-5 h-5 rounded flex items-center justify-center transition-colors ${isStreaming
               ? 'text-indigo-400 hover:text-indigo-600 hover:bg-indigo-100/60'
               : 'text-amber-400 hover:text-amber-700 hover:bg-amber-100/60'

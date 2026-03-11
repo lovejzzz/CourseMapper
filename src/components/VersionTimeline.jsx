@@ -40,6 +40,8 @@ export default function VersionTimeline({ versions, activeVersion, onJump }) {
                   : 'hover:bg-slate-50/60 border border-transparent'
               }`}
               title={v.label}
+              aria-label={`Jump to version ${realIdx + 1}: ${v.label}`}
+              aria-current={isActive ? 'true' : undefined}
             >
               <div className={`w-2 h-2 rounded-full flex-shrink-0 ${
                 isActive ? 'bg-indigo-500' : realIdx < activeVersion ? 'bg-emerald-400' : 'bg-slate-300'

@@ -11,7 +11,7 @@ export default function Header({ onOpenProjects, onOpenHelp, compact }) {
         <div className="absolute top-0 left-0 right-0 h-px bg-gradient-to-r from-transparent via-indigo-400/40 to-transparent" />
 
         <div className="flex items-center justify-between w-full">
-          <a href="#/" className="flex items-center">
+          <a href="#/" className="flex items-center" aria-label="Course Mapper home">
             {/* Crop the subtitle from the bottom of the logo image */}
             <div className={`overflow-hidden ${compact ? 'h-8' : 'h-16 sm:h-20 md:h-24'}`}>
               <img

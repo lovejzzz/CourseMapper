@@ -215,6 +215,9 @@ export default function ProgressPanel({
       prevSyncLenRef.current = syncLog.length;
       if (!syncExpanded) setSyncExpanded(true);
     }
+  // Intentionally depends only on syncLog length: we only want to auto-expand the
+  // sync section when new entries arrive. Including syncExpanded or setSyncExpanded
+  // would re-fire the effect every time the panel is toggled, defeating the purpose.
   }, [syncLog?.length]); // eslint-disable-line react-hooks/exhaustive-deps
 
   if (!currentStep && !error) return null;
@@ -295,6 +298,7 @@ export default function ProgressPanel({
         <button
           onClick={() => setSummaryCollapsed(false)}
           className="w-full p-4 flex items-center gap-3 hover:bg-white/20 transition-colors text-left"
+          aria-label="Expand generation progress"
         >
           <div className={`w-7 h-7 rounded-full flex items-center justify-center flex-shrink-0 ${isSyncing ? 'bg-amber-100/80' : 'bg-emerald-100/80'}`}>
             {isSyncing ? (
@@ -356,6 +360,7 @@ export default function ProgressPanel({
               onClick={() => setSummaryCollapsed(true)}
               className="p-1 rounded-lg text-slate-400 hover:text-slate-600 hover:bg-slate-100/60 transition-all"
               title="Collapse"
+              aria-label="Collapse generation progress"
             >
               <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                 <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M5 15l7-7 7 7" />
@@ -432,6 +437,8 @@ export default function ProgressPanel({
                 <button
                   onClick={() => setDelivExpanded(v => !v)}
                   className="flex items-center gap-2 w-full text-left mb-2"
+                  aria-expanded={delivExpanded}
+                  aria-label={delivExpanded ? 'Collapse deliverables list' : 'Expand deliverables list'}
                 >
                   <span className="text-[10px] font-bold text-slate-400 uppercase tracking-wider">
                     Deliverables
@@ -587,6 +594,8 @@ export default function ProgressPanel({
                       <button
                         onClick={() => setDelivLogExpanded(v => !v)}
                         className="flex items-center gap-1.5 text-[10px] font-bold text-slate-400 uppercase tracking-wider hover:text-slate-500 transition-colors"
+                        aria-expanded={delivLogExpanded}
+                        aria-label={delivLogExpanded ? 'Collapse activity log' : 'Expand activity log'}
                       >
                         <svg className={`w-2.5 h-2.5 transition-transform ${delivLogExpanded ? 'rotate-90' : ''}`} fill="none" stroke="currentColor" viewBox="0 0 24 24">
                           <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 5l7 7-7 7" />
@@ -656,6 +665,8 @@ export default function ProgressPanel({
                 <button
                   onClick={() => setSyncExpanded(v => !v)}
                   className="flex items-center gap-2 w-full text-left mb-1.5"
+                  aria-expanded={syncExpanded}
+                  aria-label={syncExpanded ? 'Collapse auto-sync activity' : 'Expand auto-sync activity'}
                 >
                   <span className="text-[10px] font-bold text-slate-400 uppercase tracking-wider">Auto-sync Activity</span>
                   {syncLog?.some(e => e.type === 'start') && (
@@ -744,6 +755,7 @@ export default function ProgressPanel({
                           onClick={() => onDeleteSnapshot && onDeleteSnapshot(snap.id)}
                           className="opacity-0 group-hover:opacity-100 p-0.5 text-slate-300 hover:text-red-400 transition-all"
                           title="Delete snapshot"
+                          aria-label={`Delete snapshot ${snap.label}`}
                         >
                           <svg className="w-3 h-3" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M6 18L18 6M6 6l12 12" /></svg>
                         </button>
@@ -762,6 +774,8 @@ export default function ProgressPanel({
                 <button
                   onClick={() => setHistoryExpanded(v => !v)}
                   className="flex items-center gap-2 w-full text-left mb-1.5"
+                  aria-expanded={historyExpanded}
+                  aria-label={historyExpanded ? 'Collapse version history' : 'Expand version history'}
                 >
                   <svg className="w-3 h-3 text-slate-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                     <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 8v4l3 3m6-3a9 9 0 11-18 0 9 9 0 0118 0z" />
@@ -964,6 +978,8 @@ export default function ProgressPanel({
                 <button
                   onClick={() => setSyncExpanded(v => !v)}
                   className="flex items-center gap-2 w-full text-left mb-1.5"
+                  aria-expanded={syncExpanded}
+                  aria-label={syncExpanded ? 'Collapse auto-sync activity' : 'Expand auto-sync activity'}
                 >
                   <span className="text-[10px] font-bold text-slate-400 uppercase tracking-wider">Auto-sync Activity</span>
                   <span className="w-1.5 h-1.5 rounded-full bg-indigo-400 animate-pulse flex-shrink-0" />

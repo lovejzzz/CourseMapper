@@ -25,7 +25,7 @@ export function QualityBadge({ quality }) {
         <div className="absolute right-0 top-full mt-1.5 w-64 bg-white/98 backdrop-blur-xl rounded-xl border border-slate-200/60 shadow-xl z-50 p-3 space-y-2 animate-spring-in">
           <div className="flex items-center justify-between mb-1">
             <span className="text-[10px] font-bold text-slate-700">Quality Scorecard</span>
-            <button onClick={() => setShowTips(false)} className="text-slate-400 hover:text-slate-600 text-[10px]">✕</button>
+            <button onClick={() => setShowTips(false)} className="text-slate-400 hover:text-slate-600 text-[10px]" aria-label="Close quality scorecard">✕</button>
           </div>
           <div className="space-y-1.5">
             {[
@@ -116,7 +116,7 @@ export function E({ value, path, onEdit, className = '', multiline = false, onAI
         }}
         className={`${editClass} bg-white text-slate-800 border border-indigo-200 rounded px-1.5 py-1 focus:outline-none focus:ring-2 focus:ring-indigo-300 resize-y w-full text-xs leading-relaxed`}
         rows={minRows}
-        style={{ minWidth: '120px', color: '#1e293b' }}
+        style={{ minWidth: '120px' }}
       />
     );
   }
@@ -270,9 +270,10 @@ export function ErrorState({ error, onRetry }) {
 
 export function WaitingState({ stage }) {
   return (
-    <div className="flex items-center justify-center py-20">
-      <div className="text-center space-y-4 max-w-sm">
-        <div className="w-12 h-12 rounded-full bg-indigo-50 flex items-center justify-center mx-auto">
+    <div className="py-10 space-y-6">
+      {/* Spinner + message */}
+      <div className="flex flex-col items-center text-center space-y-3">
+        <div className="w-12 h-12 rounded-full bg-indigo-50 dark:bg-indigo-950/50 flex items-center justify-center">
           <svg className="animate-spin w-5 h-5 text-indigo-500" fill="none" viewBox="0 0 24 24">
             <circle className="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" strokeWidth="4" />
             <path className="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4z" />
@@ -280,15 +281,15 @@ export function WaitingState({ stage }) {
         </div>
         {stage === 'courseMap' ? (
           <>
-            <p className="text-sm font-semibold text-slate-600">Building course structure...</p>
-            <p className="text-xs text-slate-400 leading-relaxed">
-              The course map is being generated first — it's the foundation for all your deliverables. This content will start appearing live once it begins.
+            <p className="text-sm font-semibold text-slate-600 dark:text-slate-300">Building course structure...</p>
+            <p className="text-xs text-slate-400 dark:text-slate-500 leading-relaxed max-w-sm">
+              The course map is being generated first — it's the foundation for all your deliverables. Content will appear live once it begins.
             </p>
           </>
         ) : (
           <>
-            <p className="text-sm font-semibold text-slate-600">Generating...</p>
-            <p className="text-xs text-slate-400 leading-relaxed">
+            <p className="text-sm font-semibold text-slate-600 dark:text-slate-300">Generating...</p>
+            <p className="text-xs text-slate-400 dark:text-slate-500 leading-relaxed max-w-sm">
               All deliverables are generating in parallel. Content will start streaming live shortly.
             </p>
           </>
@@ -297,6 +298,26 @@ export function WaitingState({ stage }) {
           <span className="w-1.5 h-1.5 rounded-full bg-indigo-400 animate-bounce" style={{ animationDelay: '0ms' }} />
           <span className="w-1.5 h-1.5 rounded-full bg-indigo-400 animate-bounce" style={{ animationDelay: '150ms' }} />
           <span className="w-1.5 h-1.5 rounded-full bg-indigo-400 animate-bounce" style={{ animationDelay: '300ms' }} />
+        </div>
+      </div>
+
+      {/* Skeleton table preview */}
+      <div className="mx-auto max-w-2xl px-4 animate-pulse">
+        <div className="rounded-xl border border-slate-200 dark:border-slate-700 overflow-hidden">
+          {/* Header row */}
+          <div className="flex gap-4 px-4 py-3 bg-slate-50 dark:bg-slate-800/60">
+            <div className="h-3 w-16 bg-slate-200 dark:bg-slate-700 rounded" />
+            <div className="h-3 flex-1 bg-slate-200 dark:bg-slate-700 rounded" />
+            <div className="h-3 w-24 bg-slate-200 dark:bg-slate-700 rounded" />
+          </div>
+          {/* Body rows */}
+          {[1, 2, 3, 4].map(row => (
+            <div key={row} className="flex gap-4 px-4 py-3 border-t border-slate-100 dark:border-slate-800">
+              <div className="h-3 w-16 bg-slate-100 dark:bg-slate-800 rounded" />
+              <div className={`h-3 flex-1 bg-slate-100 dark:bg-slate-800 rounded ${row % 2 === 0 ? 'max-w-[80%]' : ''}`} />
+              <div className="h-3 w-24 bg-slate-100 dark:bg-slate-800 rounded" />
+            </div>
+          ))}
         </div>
       </div>
     </div>
@@ -320,7 +341,7 @@ export function EmptyState({ featureId, onGenerate }) {
   const meta = featureId && FEATURE_META[featureId];
   if (!meta || !onGenerate) {
     return (
-      <div className="flex items-center justify-center py-20 text-slate-300">
+      <div className="flex items-center justify-center py-20 text-slate-300 dark:text-slate-600">
         <div className="text-center space-y-2">
           <p className="text-sm font-medium">Not yet generated</p>
           <p className="text-xs">This will be created after the course map is ready.</p>
@@ -333,8 +354,8 @@ export function EmptyState({ featureId, onGenerate }) {
       <div className="text-center max-w-xs space-y-4 animate-spring-up">
         <div className="text-5xl">{meta.emoji}</div>
         <div>
-          <p className="text-base font-semibold text-slate-700 mb-1">{meta.label}</p>
-          <p className="text-sm text-slate-400 leading-relaxed">{meta.desc}</p>
+          <p className="text-base font-semibold text-slate-700 dark:text-slate-200 mb-1">{meta.label}</p>
+          <p className="text-sm text-slate-400 dark:text-slate-500 leading-relaxed">{meta.desc}</p>
         </div>
         <button
           onClick={onGenerate}

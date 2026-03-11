@@ -1,4 +1,5 @@
 import React, { useState, useCallback, useMemo, useRef, useEffect } from 'react';
+import FocusTrap from 'focus-trap-react';
 import GenericDeliverableView from './GenericDeliverableView';
 import { QualityBadge, updatePath, StreamingBanner, ErrorState, WaitingState, EmptyState } from './deliverables/shared/SharedComponents';
 import LessonPlansView from './deliverables/LessonPlansView';
@@ -77,6 +78,7 @@ export default function DeliverableView({ featureId, data, status, error, regene
               onClick={() => setIsFullscreen(f => !f)}
               className="tactile p-1.5 rounded-lg text-slate-400 hover:text-indigo-500 hover:bg-white/60 transition-all"
               title={isFullscreen ? 'Exit full screen' : 'Full screen'}
+              aria-label={isFullscreen ? 'Exit full screen' : 'Full screen'}
             >
               {isFullscreen ? (
                 <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
@@ -233,7 +235,7 @@ export default function DeliverableView({ featureId, data, status, error, regene
   // Fullscreen modal for non-slide deliverables
   if (isFullscreen && !isSlides) {
     return (
-      <>
+      <FocusTrap focusTrapOptions={{ clickOutsideDeactivates: true }}>
         <div className="fixed inset-0 z-50 bg-white/98 backdrop-blur-lg overflow-y-auto">
           <div className="sticky top-0 z-10 bg-white/95 backdrop-blur-lg border-b border-slate-200/40 px-6 py-3 flex items-center justify-between">
             <h3 className="text-sm font-bold text-slate-800">
@@ -260,7 +262,7 @@ export default function DeliverableView({ featureId, data, status, error, regene
             {deliverableContent}
           </div>
         </div>
-      </>
+      </FocusTrap>
     );
   }
 

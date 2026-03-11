@@ -12,6 +12,7 @@ import {
   getFeatureChunkSize, getFeatureOutputBudget,
 } from '../lib/parallelGenerator';
 import { expandKeys } from '../lib/keyMaps';
+import { log, warn, error as logError } from '../lib/logger';
 
 // ── Post-process scoped deliverable output to fix lesson/week numbering ──
 // When the user generates a subset of lessons (e.g., lesson 6 only), the AI may
@@ -301,7 +302,7 @@ export default function useDeliverables({ provider, modelId, apiKey, maxOutputTo
           chunkResults[featureId].set(chunkIndex, parsed);
           const _k = getArrayKey(featureId, parsed);
           const _items = _k ? (parsed[_k] || []) : [];
-          console.log(`[CM] ✓ ${chunkLabel}: parsed ${_items.length} items`, _items.map(it => ({ title: it?.lessonTitle || it?.title || '?', items: it?.questions?.length || it?.slides?.length || '–' })));
+          log(`✓ ${chunkLabel}: parsed ${_items.length} items`, _items.map(it => ({ title: it?.lessonTitle || it?.title || '?', items: it?.questions?.length || it?.slides?.length || '–' })));
 
           // For whole-course features, dispatch done immediately
           if (isWholeCourse) {
@@ -326,7 +327,7 @@ export default function useDeliverables({ provider, modelId, apiKey, maxOutputTo
           appendLog(`✓ ${chunkLabel} — ${itemCount} item${itemCount !== 1 ? 's' : ''}${tokenDesc} (${durStr})`, 'done');
         } else {
           appendLog(`⚠ ${chunkLabel}: AI response could not be parsed (lessons ${chunkScope ? chunkScope.map(i => i + 1).join(', ') : '?'})`, 'warn');
-          console.warn(`[CM] ✗ ${chunkLabel}: PARSE FAILED. Response length: ${text?.length || 0} chars. First 500 chars:`, text?.slice(0, 500));
+          warn(`✗ ${chunkLabel}: PARSE FAILED. Response length: ${text?.length || 0} chars. First 500 chars:`, text?.slice(0, 500));
         }
       } catch (err) {
         if (err.name === 'AbortError') {
@@ -413,7 +414,7 @@ export default function useDeliverables({ provider, modelId, apiKey, maxOutputTo
       }
 
       // Merge chunks
-      console.log(`[CM] ── MERGE ${fid} ──`, { chunkCount: chunks.size, chunkKeys: [...chunks.keys()] });
+      log(`── MERGE ${fid} ──`, { chunkCount: chunks.size, chunkKeys: [...chunks.keys()] });
       let merged = mergeChunkResults(fid, chunks);
       if (!merged) {
         dispatch(actions.setDeliverableError(fid, 'Failed to merge chunks'));
@@ -424,7 +425,7 @@ export default function useDeliverables({ provider, modelId, apiKey, maxOutputTo
       const expectedCount = lessonIndices.length;
       const arrayKey = getArrayKey(fid, merged);
       let mergedArr = arrayKey ? (merged[arrayKey] || []) : [];
-      console.log(`[CM] ${fid}: merged ${mergedArr.length}/${expectedCount} items (key: ${arrayKey})`, mergedArr.map(it => ({ title: it?.lessonTitle || it?.title || '?', questions: it?.questions?.length, slides: it?.slides?.length })));
+      log(`${fid}: merged ${mergedArr.length}/${expectedCount} items (key: ${arrayKey})`, mergedArr.map(it => ({ title: it?.lessonTitle || it?.title || '?', questions: it?.questions?.length, slides: it?.slides?.length })));
 
       // ── Post-merge cleanup: prune near-empty items (parsing artifacts) ──
       // Items with < 30 words of JSON content are artifacts of failed chunk parsing
@@ -438,7 +439,7 @@ export default function useDeliverables({ provider, modelId, apiKey, maxOutputTo
         });
         if (mergedArr.length < emptyBefore) {
           const label = getFeatureLabel(fid);
-          console.warn(`[CM] ${fid}: PRUNED ${emptyBefore - mergedArr.length} near-empty items (< ${MIN_ITEM_WORDS} words)`);
+          warn(`${fid}: PRUNED ${emptyBefore - mergedArr.length} near-empty items (< ${MIN_ITEM_WORDS} words)`);
           appendLog(`⚠ ${label}: pruned ${emptyBefore - mergedArr.length} near-empty item(s)`, 'warn');
           merged = { ...merged, [arrayKey]: mergedArr };
         }
@@ -462,7 +463,7 @@ export default function useDeliverables({ provider, modelId, apiKey, maxOutputTo
         });
         if (oversizedIndices.length > 0) {
           const label = getFeatureLabel(fid);
-          console.warn(`[CM] ${fid}: OVERSIZED quiz items removed:`, oversizedIndices, `(>${HARD_CAP_QUESTIONS} questions)`);
+          warn(`${fid}: OVERSIZED quiz items removed:`, oversizedIndices, `(>${HARD_CAP_QUESTIONS} questions)`);
           appendLog(`⚠ ${label}: removed ${oversizedIndices.length} oversized item(s) (>${HARD_CAP_QUESTIONS} questions) — will retry individually`, 'warn');
           merged = { ...merged, [arrayKey]: mergedArr };
         }
@@ -481,7 +482,7 @@ export default function useDeliverables({ provider, modelId, apiKey, maxOutputTo
             return quiz;
           });
           if (trimmed > 0) {
-            console.log(`[CM] quizBank: trimmed ${trimmed} lesson(s) to ${targetQ} questions each for consistency`);
+            log(`quizBank: trimmed ${trimmed} lesson(s) to ${targetQ} questions each for consistency`);
             merged = { ...merged, [arrayKey]: mergedArr };
           }
         }
@@ -514,7 +515,7 @@ export default function useDeliverables({ provider, modelId, apiKey, maxOutputTo
 
         if (missingExplanations > 0 || missingDistractors > 0) {
           const label = getFeatureLabel(fid);
-          console.warn(`[CM] ${fid}: patched ${missingExplanations} missing explanations and ${missingDistractors} missing distractor rationales`);
+          warn(`${fid}: patched ${missingExplanations} missing explanations and ${missingDistractors} missing distractor rationales`);
           appendLog(`⚠ ${label}: patched ${missingExplanations} missing explanations and ${missingDistractors} missing distractors to meet quality standard`, 'warn');
           merged = { ...merged, [arrayKey]: mergedArr };
         }
@@ -564,7 +565,7 @@ export default function useDeliverables({ provider, modelId, apiKey, maxOutputTo
         });
         if (oversizedSlideIndices.length > 0) {
           const label = getFeatureLabel(fid);
-          console.warn(`[CM] ${fid}: OVERSIZED slide decks removed:`, oversizedSlideIndices, `(>${HARD_CAP_SLIDES} slides)`);
+          warn(`${fid}: OVERSIZED slide decks removed:`, oversizedSlideIndices, `(>${HARD_CAP_SLIDES} slides)`);
           appendLog(`⚠ ${label}: removed ${oversizedSlideIndices.length} oversized deck(s) (>${HARD_CAP_SLIDES} slides) — will retry individually`, 'warn');
           merged = { ...merged, [arrayKey]: mergedArr };
         }
@@ -621,7 +622,7 @@ export default function useDeliverables({ provider, modelId, apiKey, maxOutputTo
         while (mergedArr.length < adjustedExpected && retryRound < MAX_RETRY_ROUNDS) {
           retryRound++;
           const missing = findMissingIndices(mergedArr, lessonIndices);
-          console.warn(`[CM] ${fid}: RETRY round ${retryRound} — have ${mergedArr.length}/${adjustedExpected} (expected ${expectedCount}). Missing indices:`, missing);
+          warn(`${fid}: RETRY round ${retryRound} — have ${mergedArr.length}/${adjustedExpected} (expected ${expectedCount}). Missing indices:`, missing);
           appendLog(`⚠ ${label}: ${mergedArr.length}/${expectedCount} items — retrying ${missing.length} missing (round ${retryRound})`, 'warn');
 
           // Create retry tasks — use smaller chunks to reduce token pressure on retries
@@ -645,7 +646,7 @@ export default function useDeliverables({ provider, modelId, apiKey, maxOutputTo
 
             const _sysLen = prompts.systemPrompt?.length || 0;
             const _usrLen = prompts.userPrompt?.length || 0;
-            console.log(`[CM] ${retryLabel}: prompt sizes — system: ${_sysLen} chars (~${Math.round(_sysLen / 4)} tokens), user: ${_usrLen} chars (~${Math.round(_usrLen / 4)} tokens), total: ~${Math.round((_sysLen + _usrLen) / 4)} tokens`);
+            log(`${retryLabel}: prompt sizes — system: ${_sysLen} chars (~${Math.round(_sysLen / 4)} tokens), user: ${_usrLen} chars (~${Math.round(_usrLen / 4)} tokens), total: ~${Math.round((_sysLen + _usrLen) / 4)} tokens`);
 
             const controller = new AbortController();
             const retryAbortKey = `${fid}:retry${retryChunkIndex}`;
@@ -664,10 +665,10 @@ export default function useDeliverables({ provider, modelId, apiKey, maxOutputTo
                 chunkResults[fid].set(retryChunkIndex, parsed);
                 const _rk = getArrayKey(fid, parsed);
                 const _ritems = _rk ? (parsed[_rk] || []) : [];
-                console.log(`[CM] ✓ ${retryLabel}: parsed ${_ritems.length} items`, _ritems.map(it => ({ title: it?.lessonTitle || it?.title || '?', questions: it?.questions?.length, slides: it?.slides?.length })));
+                log(`✓ ${retryLabel}: parsed ${_ritems.length} items`, _ritems.map(it => ({ title: it?.lessonTitle || it?.title || '?', questions: it?.questions?.length, slides: it?.slides?.length })));
                 appendLog(`✓ ${retryLabel} complete`, 'done');
               } else {
-                console.warn(`[CM] ✗ ${retryLabel}: RETRY PARSE FAILED. Response length: ${text?.length || 0}. First 500 chars:`, text?.slice(0, 500));
+                warn(`✗ ${retryLabel}: RETRY PARSE FAILED. Response length: ${text?.length || 0}. First 500 chars:`, text?.slice(0, 500));
                 appendLog(`⚠ ${retryLabel}: parse failed`, 'warn');
               }
             } catch (err) {
@@ -726,7 +727,7 @@ export default function useDeliverables({ provider, modelId, apiKey, maxOutputTo
 
         if (coveredSet.size > 0 && missingLessons.length > 0 && missingLessons.length <= 8) {
           const label = getFeatureLabel(fid);
-          console.warn(`[CM] ${fid}: coverage retry — ${missingLessons.length} lesson(s) missing: ${missingLessons.join(', ')}`);
+          warn(`${fid}: coverage retry — ${missingLessons.length} lesson(s) missing: ${missingLessons.join(', ')}`);
           appendLog(`⚠ ${label}: retrying missing lesson(s): ${missingLessons.join(', ')}`, 'warn');
 
           const missingIndices = missingLessons.map(n => n - 1); // 0-based
@@ -771,10 +772,10 @@ export default function useDeliverables({ provider, modelId, apiKey, maxOutputTo
                 chunkResults[fid].set(retryChunkIndex, parsed);
                 const _rk = getArrayKey(fid, parsed);
                 const _ritems = _rk ? (parsed[_rk] || []) : [];
-                console.log(`[CM] ✓ ${retryLabel}: parsed ${_ritems.length} items`);
+                log(`✓ ${retryLabel}: parsed ${_ritems.length} items`);
                 appendLog(`✓ ${retryLabel} complete`, 'done');
               } else {
-                console.warn(`[CM] ✗ ${retryLabel}: parse failed`);
+                warn(`✗ ${retryLabel}: parse failed`);
               }
             } catch (err) {
               if (err.name !== 'AbortError') {
@@ -829,7 +830,7 @@ export default function useDeliverables({ provider, modelId, apiKey, maxOutputTo
           if (arrayKey && merged) {
             merged = { ...merged, [arrayKey]: mergedArr };
           }
-          console.log(`[CM] ${fid}: sorted items by lesson number`);
+          log(`${fid}: sorted items by lesson number`);
         }
       }
 
@@ -852,12 +853,12 @@ export default function useDeliverables({ provider, modelId, apiKey, maxOutputTo
         if (coveredLessons.size === 0 && isPerAssessment) {
           // Per-assessment items don't use lesson numbers in titles — this is correct.
           // Log without a MISSING warning to avoid false-alarm console noise.
-          console.log(`[CM] ${fid}: ${mergedArr.length} item${mergedArr.length !== 1 ? 's' : ''} (per-assessment — lesson coverage N/A, not linked by lesson number)`);
+          log(`${fid}: ${mergedArr.length} item${mergedArr.length !== 1 ? 's' : ''} (per-assessment — lesson coverage N/A, not linked by lesson number)`);
         } else if (missing.length > 0) {
-          console.warn(`[CM] ${fid}: MISSING lessons in output: ${missing.join(', ')} (have ${coveredLessons.size}/${expectedCount})`);
+          warn(`${fid}: MISSING lessons in output: ${missing.join(', ')} (have ${coveredLessons.size}/${expectedCount})`);
           appendLog(`⚠ ${getFeatureLabel(fid)}: lessons ${missing.join(', ')} not found in output`, 'warn');
         } else {
-          console.log(`[CM] ${fid}: all ${coveredLessons.size} lessons covered ✓`);
+          log(`${fid}: all ${coveredLessons.size} lessons covered ✓`);
         }
       }
 
@@ -874,7 +875,7 @@ export default function useDeliverables({ provider, modelId, apiKey, maxOutputTo
       if (featureTotalChunks > 1) {
         const totalItems = mergedArr.length;
         const featureDur = formatDuration(delivEndTime - (featureStartTimes[fid] || delivEndTime));
-        console.log(`[CM] ✓✓ ${fid} COMPLETE: ${totalItems} items in ${featureDur}`, mergedArr.map(it => it?.lessonTitle || it?.title || '?'));
+        log(`✓✓ ${fid} COMPLETE: ${totalItems} items in ${featureDur}`, mergedArr.map(it => it?.lessonTitle || it?.title || '?'));
         appendLog(`✓ ${getFeatureLabel(fid)} complete — ${totalItems} item${totalItems !== 1 ? 's' : ''} total (${featureDur})`, 'done');
       }
 
@@ -886,7 +887,7 @@ export default function useDeliverables({ provider, modelId, apiKey, maxOutputTo
         const quality = scoreHeuristic(fid, finalData);
         setQualityScores(prev => ({ ...prev, [fid]: quality }));
         const avg = computeAvgScore(quality);
-        console.log(`[CM] ${fid} quality: ${avg}/10`, quality);
+        log(`${fid} quality: ${avg}/10`, quality);
         if (avg !== null && avg < 6) {
           appendLog(`⚠ ${getFeatureLabel(fid)}: quality score ${avg}/10 — consider regenerating for better results`, 'warn');
         }

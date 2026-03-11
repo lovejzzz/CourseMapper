@@ -1,4 +1,5 @@
 import React, { useState } from 'react';
+import { useCourse } from '../contexts/CourseContext';
 import { safeImport } from '../lib/safeImport';
 import {
   exportDeliverableCsv,
@@ -302,14 +303,11 @@ async function exportAllAsZip(deliverables, courseMap, columns, courseName, less
 export default function ExportSidePanel({
   activeTab,
   activeTabLabel,
-  courseMap,
-  columns,
   deliverables,
-  selectedFeatures,
   onCourseMapExport,   // handleDownload from useExport
   onSaveProject,       // save full session as .coursemapper
-  slideTheme,          // user-selected theme index (or null for auto-rotate)
 }) {
+  const { courseMap, columns, selectedFeatures, slideTheme } = useCourse();
   const [scope, setScope] = useState('current'); // 'current' | 'all'
   const [busy, setBusy] = useState(null); // format string or 'zip'
   const [lastError, setLastError] = useState('');

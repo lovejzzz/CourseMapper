@@ -2,12 +2,58 @@
 @tailwind components;
 @tailwind utilities;
 
+/* ══════════════════════════════════════════════════════════════
+   CSS CUSTOM PROPERTIES — core palette
+   Switching these in .dark eliminates dozens of !important overrides.
+   ══════════════════════════════════════════════════════════════ */
+:root {
+  --color-body-bg:      #f7f8fc;
+  --color-surface:      #ffffff;
+  --color-surface-alt:  #f8fafc;          /* slate-50  */
+  --color-surface-alt2: #f1f5f9;          /* slate-100 */
+  --color-surface-dim:  rgba(0,0,0,0.04); /* slate-200 equiv */
+  --color-text:         #0f172a;          /* slate-900 */
+  --color-text-secondary: #1e293b;        /* slate-800 */
+  --color-text-tertiary:  #334155;        /* slate-700 */
+  --color-text-muted:   #64748b;          /* slate-500 */
+  --color-text-faint:   #6b7a8d;          /* slate-400 accessible */
+  --color-border:       rgba(0,0,0,0.06); /* slate-100 equiv */
+  --color-border-strong: rgba(0,0,0,0.08);/* slate-200 equiv */
+  --color-input-bg:     rgba(255,255,255,0.65);
+  --color-input-border: rgba(0,0,0,0.05);
+  --color-table-header: #f8fafc;
+  --color-table-hover:  rgba(99,102,241,0.04);
+  --color-placeholder:  #94a3b8;
+}
+
+.dark {
+  --color-body-bg:      #0f1117;
+  --color-surface:      #1a1d27;
+  --color-surface-alt:  #1e2130;
+  --color-surface-alt2: #252836;
+  --color-surface-dim:  rgba(255,255,255,0.08);
+  --color-text:         #f1f5f9;
+  --color-text-secondary: #e2e8f0;
+  --color-text-tertiary:  #cbd5e1;
+  --color-text-muted:   #94a3b8;
+  --color-text-faint:   #8898aa;
+  --color-border:       rgba(255,255,255,0.06);
+  --color-border-strong: rgba(255,255,255,0.08);
+  --color-input-bg:     rgba(30,34,50,0.8);
+  --color-input-border: rgba(255,255,255,0.1);
+  --color-table-header: rgba(20,24,38,0.9);
+  --color-table-hover:  rgba(99,102,241,0.05);
+  --color-placeholder:  #475569;
+}
+
 /* ── Base ── */
 body {
   font-family: 'Inter', -apple-system, BlinkMacSystemFont, 'SF Pro Display', 'Segoe UI', sans-serif;
   -webkit-font-smoothing: antialiased;
   -moz-osx-font-smoothing: grayscale;
   letter-spacing: -0.01em;
+  background-color: var(--color-body-bg);
+  color: var(--color-text-secondary);
 }
 
 /* ── Accessible text color overrides (light mode) ──
@@ -141,8 +187,8 @@ body {
 
 /* ── Input focus glow ── */
 .input-glass {
-  background: rgba(255, 255, 255, 0.65);
-  border: 1px solid rgba(0, 0, 0, 0.05);
+  background: var(--color-input-bg);
+  border: 1px solid var(--color-input-border);
   transition: all 0.3s cubic-bezier(0.22, 1, 0.36, 1);
 }
 .input-glass:focus {
@@ -207,13 +253,9 @@ body {
   color-scheme: dark;
 }
 
-/* Background layers */
-.dark body {
-  background-color: #0f1117;
-  color: #e2e8f0;
-}
+/* Background layers — body now inherits from custom properties above */
 .dark .mesh-bg {
-  background-color: #0f1117;
+  background-color: var(--color-body-bg);
   background-image:
     radial-gradient(ellipse 80% 50% at 5% 0%, rgba(99, 102, 241, 0.12) 0%, transparent 60%),
     radial-gradient(ellipse 60% 50% at 98% 0%, rgba(139, 92, 246, 0.08) 0%, transparent 55%),
@@ -237,26 +279,26 @@ body {
 /* Header — only apply dark background to sticky/bordered workspace headers */
 .dark header[class*="border-b"],
 .dark header[class*="sticky"] {
-  background: rgba(15, 17, 23, 0.85) !important;
-  border-bottom-color: rgba(255, 255, 255, 0.07) !important;
+  background: rgba(15, 17, 23, 0.85) !important; /* needs alpha transparency */
+  border-bottom-color: var(--color-border) !important;
 }
 
-/* Generic white/light backgrounds → dark */
+/* Generic white/light backgrounds → use custom properties */
 .dark .bg-white,
 .dark [class*="bg-white\/"] {
-  background-color: #1a1d27 !important;
+  background-color: var(--color-surface) !important;
 }
 .dark .bg-slate-50,
 .dark [class*="bg-slate-50"] {
-  background-color: #1e2130 !important;
+  background-color: var(--color-surface-alt) !important;
 }
 .dark .bg-slate-100,
 .dark [class*="bg-slate-100"] {
-  background-color: #252836 !important;
+  background-color: var(--color-surface-alt2) !important;
 }
 .dark .bg-slate-200,
 .dark [class*="bg-slate-200\/"] {
-  background-color: rgba(255, 255, 255, 0.08) !important;
+  background-color: var(--color-surface-dim) !important;
 }
 
 /* Hardcoded Google brand colors → dark muted */
@@ -278,39 +320,40 @@ body {
 }
 
 /* Text colors — invert the full scale for dark mode
-   All values pass WCAG AA (4.5:1) against dark bg #0f1117 */
-.dark .text-slate-900 { color: #f1f5f9 !important; }  /* ~18:1 */
-.dark .text-slate-800 { color: #e2e8f0 !important; }  /* ~15:1 */
-.dark .text-slate-700 { color: #cbd5e1 !important; }  /* ~12:1 */
-.dark .text-slate-600 { color: #94a3b8 !important; }  /* ~7.5:1 */
-.dark .text-slate-500 { color: #94a3b8 !important; }  /* ~7.5:1 — bumped from #64748b (4.2:1 FAIL) */
-.dark .text-slate-400 { color: #8898aa !important; }   /* ~6.1:1 — subtle but accessible */
-.dark .text-slate-300 { color: #7c8ca0 !important; }   /* ~5.1:1 — meets AA minimum */
+   All values pass WCAG AA (4.5:1) against dark bg #0f1117.
+   The top-level slots use custom properties; remaining slots keep direct values. */
+.dark .text-slate-900 { color: var(--color-text) !important; }          /* ~18:1 */
+.dark .text-slate-800 { color: var(--color-text-secondary) !important; } /* ~15:1 */
+.dark .text-slate-700 { color: var(--color-text-tertiary) !important; }  /* ~12:1 */
+.dark .text-slate-600 { color: var(--color-text-muted) !important; }     /* ~7.5:1 */
+.dark .text-slate-500 { color: var(--color-text-muted) !important; }     /* ~7.5:1 */
+.dark .text-slate-400 { color: var(--color-text-faint) !important; }     /* ~6.1:1 */
+.dark .text-slate-300 { color: #7c8ca0 !important; }                     /* ~5.1:1 — meets AA minimum */
 /* Slate-300/70 used in footers — keep visible but subtle */
 .dark [class*="text-slate-300\/"] { color: rgba(148, 163, 184, 0.6) !important; }
 
 /* Borders */
-.dark .border-slate-100 { border-color: rgba(255,255,255,0.06) !important; }
-.dark .border-slate-200 { border-color: rgba(255,255,255,0.08) !important; }
-.dark [class*="border-slate-200\/"] { border-color: rgba(255,255,255,0.06) !important; }
+.dark .border-slate-100 { border-color: var(--color-border) !important; }
+.dark .border-slate-200 { border-color: var(--color-border-strong) !important; }
+.dark [class*="border-slate-200\/"] { border-color: var(--color-border) !important; }
 
 /* Table */
-.dark table { color: #cbd5e1; }
-.dark thead { background: rgba(20, 24, 38, 0.9) !important; }
-.dark th { color: #94a3b8 !important; background: rgba(20, 24, 38, 0.9) !important; border-color: rgba(255,255,255,0.06) !important; }
-.dark td { border-color: rgba(255,255,255,0.06) !important; }
-.dark tbody tr:hover { background: rgba(99, 102, 241, 0.05) !important; }
+.dark table { color: var(--color-text-tertiary); }
+.dark thead { background: var(--color-table-header) !important; }
+.dark th { color: var(--color-text-muted) !important; background: var(--color-table-header) !important; border-color: var(--color-border) !important; }
+.dark td { border-color: var(--color-border) !important; }
+.dark tbody tr:hover { background: var(--color-table-hover) !important; }
 
 /* Inputs */
 .dark input, .dark textarea, .dark select {
-  background: rgba(30, 34, 50, 0.8) !important;
-  color: #e2e8f0 !important;
-  border-color: rgba(255, 255, 255, 0.1) !important;
+  background: var(--color-input-bg) !important;
+  color: var(--color-text-secondary) !important;
+  border-color: var(--color-input-border) !important;
 }
-.dark input::placeholder, .dark textarea::placeholder { color: #475569 !important; }
+.dark input::placeholder, .dark textarea::placeholder { color: var(--color-placeholder) !important; }
 .dark .input-glass {
   background: rgba(20, 24, 38, 0.7) !important;
-  border-color: rgba(255,255,255,0.08) !important;
+  border-color: var(--color-border-strong) !important;
 }
 .dark .input-glass:focus {
   background: rgba(20, 24, 38, 0.95) !important;
@@ -320,10 +363,10 @@ body {
 .dark ::-webkit-scrollbar-thumb { background: rgba(255,255,255,0.12); }
 .dark ::-webkit-scrollbar-thumb:hover { background: rgba(255,255,255,0.2); }
 
-/* Dropdowns and modals */
+/* Dropdowns and modals — opaque dark surface */
 .dark [class*="bg-white\/95"],
 .dark [class*="bg-white\/97"] {
-  background-color: rgba(26, 29, 39, 0.98) !important;
+  background-color: rgba(26, 29, 39, 0.98) !important; /* needs alpha, can't use var */
 }
 
 /* ── Colored tint backgrounds → dark muted equivalents ── */
@@ -552,7 +595,7 @@ body {
 /* ── Gradient backgrounds → dark equivalents ── */
 .dark [class*="from-slate-50"],
 .dark [class*="from-white"] {
-  --tw-gradient-from: #0f1117 !important;
+  --tw-gradient-from: var(--color-body-bg) !important;
 }
 .dark [class*="to-indigo-50"] {
   --tw-gradient-to: rgba(99, 102, 241, 0.06) !important;
@@ -686,6 +729,90 @@ body {
   a[href^="#"]:after,
   a[href^="javascript:"]:after {
     content: "";
+  }
+
+  /* ── Dark mode neutralisation for print ──
+     When .dark is active, its !important overrides fight print styles.
+     Force light colours regardless of dark mode setting. */
+  .dark body {
+    background-color: #fff !important;
+    color: #000 !important;
+  }
+  .dark .mesh-bg {
+    background-color: #fff !important;
+    background-image: none !important;
+  }
+  .dark .glass,
+  .dark .glass-light,
+  .dark .glass-heavy,
+  .dark .glass-dark {
+    background: #fff !important;
+    border: 1px solid #ddd !important;
+  }
+  .dark .bg-white,
+  .dark [class*="bg-white\/"],
+  .dark .bg-slate-50,
+  .dark [class*="bg-slate-50"],
+  .dark .bg-slate-100,
+  .dark [class*="bg-slate-100"],
+  .dark .bg-slate-200,
+  .dark [class*="bg-slate-200\/"] {
+    background-color: #fff !important;
+  }
+  .dark .text-slate-900,
+  .dark .text-slate-800,
+  .dark .text-slate-700 { color: #1e293b !important; }
+  .dark .text-slate-600,
+  .dark .text-slate-500,
+  .dark .text-slate-400,
+  .dark .text-slate-300,
+  .dark [class*="text-slate-300\/"] { color: #475569 !important; }
+  .dark .border-slate-100,
+  .dark .border-slate-200,
+  .dark [class*="border-slate-200\/"] { border-color: #e2e8f0 !important; }
+  .dark input, .dark textarea, .dark select {
+    background: #fff !important;
+    color: #000 !important;
+    border-color: #ccc !important;
+  }
+  .dark table { color: #000 !important; }
+  .dark thead { background: #f8fafc !important; }
+  .dark th { color: #334155 !important; background: #f8fafc !important; border-color: #ccc !important; }
+  .dark td { border-color: #ccc !important; }
+  .dark tbody tr:hover { background: transparent !important; }
+  /* Dark mode coloured text → dark grey for print */
+  .dark [class*="text-indigo"],
+  .dark [class*="text-violet"],
+  .dark [class*="text-emerald"],
+  .dark [class*="text-sky"],
+  .dark [class*="text-rose"],
+  .dark [class*="text-amber"],
+  .dark [class*="text-red"],
+  .dark [class*="text-blue"],
+  .dark [class*="text-purple"],
+  .dark [class*="text-green"],
+  .dark [class*="text-orange"],
+  .dark [class*="text-cyan"],
+  .dark [class*="text-teal"] { color: #333 !important; }
+  /* Dark mode coloured backgrounds → light grey for print */
+  .dark [class*="bg-indigo"],
+  .dark [class*="bg-violet"],
+  .dark [class*="bg-emerald"],
+  .dark [class*="bg-sky"],
+  .dark [class*="bg-rose"],
+  .dark [class*="bg-amber"],
+  .dark [class*="bg-red"],
+  .dark [class*="bg-blue"],
+  .dark [class*="bg-purple"],
+  .dark [class*="bg-green"],
+  .dark [class*="bg-orange"],
+  .dark [class*="bg-cyan"],
+  .dark [class*="bg-teal"] { background-color: #f0f0f0 !important; }
+  /* Dark mode shadows already removed by the wildcard rule above */
+  .dark header[class*="border-b"],
+  .dark header[class*="sticky"] {
+    background: transparent !important;
+    border-bottom-color: transparent !important;
   }
 
   /* Page margins */

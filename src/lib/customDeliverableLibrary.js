@@ -226,13 +226,15 @@ Pick the most fitting tone, style, length, icon, and color for "${trimmedName}".
       responseText = data.candidates?.[0]?.content?.parts?.[0]?.text || '';
 
     } else if (effectiveProvider === 'openrouter') {
-      const res = await fetch('https://openrouter.ai/api/v1/chat/completions', {
+      // Use user's own key directly, otherwise route through server proxy
+      const useProxy = !apiKey;
+      const url = useProxy ? '/api/proxy/openrouter' : 'https://openrouter.ai/api/v1/chat/completions';
+      const headers = useProxy
+        ? { 'Content-Type': 'application/json' }
+        : { 'Authorization': `Bearer ${apiKey}`, 'Content-Type': 'application/json', 'HTTP-Referer': window.location.origin };
+      const res = await fetch(url, {
         method: 'POST',
-        headers: {
-          'Authorization': `Bearer ${apiKey}`,
-          'Content-Type': 'application/json',
-          'HTTP-Referer': window.location.origin,
-        },
+        headers,
         body: JSON.stringify({
           model: modelId, max_tokens: 1500, temperature: 0, stream: false,
           messages: [{ role: 'system', content: sysPrompt }, { role: 'user', content: userPrompt }],

@@ -1,14 +1,23 @@
-import React, { useState, useEffect, useRef, useCallback } from 'react';
+import React, { useState, useEffect, useRef, useCallback, lazy, Suspense } from 'react';
 import { createPortal } from 'react-dom';
+import FocusTrap from 'focus-trap-react';
 import Header from './components/Header';
 import { DEFAULT_COLUMNS } from './components/ColumnEditor';
-import CourseMapPreview from './components/CourseMapPreview';
-import ChatPanel from './components/chat/ChatPanel';
-import ResizeHandle from './components/chat/ResizeHandle';
 import ErrorBoundary from './components/ErrorBoundary';
+import LoadingScreen, { ConfigSkeleton, WorkspaceSkeleton, CourseMapSkeleton } from './components/LoadingScreen';
 import Landing from './screens/Landing';
 import FeatureSelect from './screens/FeatureSelect';
-import Config from './screens/Config';
+
+// Lazy-load screens/components not needed on initial landing page
+const Config = lazy(() => import('./screens/Config'));
+const CourseMapPreview = lazy(() => import('./components/CourseMapPreview'));
+const ChatPanel = lazy(() => import('./components/chat/ChatPanel'));
+const ResizeHandle = lazy(() => import('./components/chat/ResizeHandle'));
+const DeliverableView = lazy(() => import('./components/DeliverableView'));
+const DependencyMap = lazy(() => import('./components/DependencyMap'));
+const CascadePreview = lazy(() => import('./components/CascadePreview'));
+const ExportSidePanel = lazy(() => import('./components/ExportSidePanel'));
+const AIContextMenu = lazy(() => import('./components/AIContextMenu'));
 import useVersionHistory from './hooks/useVersionHistory';
 import useExport from './hooks/useExport';
 import useGeneration from './hooks/useGeneration';
@@ -24,14 +33,13 @@ import { listCustomDeliverables, toFeatureEntry, saveCustomDeliverable, mergeClo
 import { mergeCloudProfile } from './lib/professorProfile';
 import { mergeCloudMemories, mergeCloudAgentPrefs } from './lib/agentMemory';
 import { useAuth } from './contexts/AuthContext';
+import { useAIConfig } from './contexts/AIConfigContext';
+import { useUI } from './contexts/UIContext';
+import { useCourse } from './contexts/CourseContext';
+import { log, warn, error as logError } from './lib/logger';
 // HelpDrawer removed — merged into ChatPanel
 import { saveProject as cloudSaveProject, loadProject as cloudLoadProject, loadProjectDeliverables, newProjectId } from './lib/cloudStorage';
 import ProjectPicker from './components/ProjectPicker';
-import DeliverableView from './components/DeliverableView';
-import DependencyMap from './components/DependencyMap';
-import CascadePreview from './components/CascadePreview';
-import ExportSidePanel from './components/ExportSidePanel';
-import AIContextMenu from './components/AIContextMenu';
 import { requestNotificationPermission } from './lib/notifyDone';
 import { importCourseMap } from './lib/importCourseMap';
 import { parseFiles } from './lib/fileParser';
@@ -128,75 +136,64 @@ function AddDeliverableButton({ unselected, showAddDeliverable, setShowAddDelive
 export default function App() {
   useEffect(() => { requestNotificationPermission(); }, []);
 
-  // ── Screen flow ──
-  const [screen, setScreen] = useState('landing');
-  const [selectedFeatures, setSelectedFeatures] = useState(['courseMap']);
-  const [promptText, setPromptText] = useState('');
-  const [hasSavedSession, setHasSavedSession] = useState(false);
-  const [showHelp, setShowHelp] = useState(false);
-  const [chatWidth, setChatWidth] = useState(() => {
-    try { return parseInt(localStorage.getItem('coursemapper-chat-width')) || 360; } catch { return 360; }
-  });
-  const [lessonScope, setLessonScope] = useState({ type: 'all' });
-  const [deliverableConfig, setDeliverableConfig] = useState({});
-  const [slideTheme, setSlideTheme] = useState(null); // null = auto-rotate, 0-4 = specific theme
+  // ── UI state (from UIContext) ──
+  const {
+    screen, setScreen,
+    activeTab, setActiveTab,
+    chatWidth, setChatWidth,
+    showHelp, setShowHelp,
+    showDiff, setShowDiff,
+    showAddDeliverable, setShowAddDeliverable,
+    showCustomBuilder, setShowCustomBuilder,
+    showDepMap, setShowDepMap,
+    newProjectConfirm, setNewProjectConfirm,
+    showProjectPicker, setShowProjectPicker,
+    dragTabIdx, setDragTabIdx,
+    cascadeHover, handleCascadeHover,
+    aiContextMenu, handleAIContextMenu, closeAIContextMenu,
+    unseenChanges, setUnseenChanges,
+    agentHighlight, triggerAgentHighlight,
+    addLessonsModal, setAddLessonsModal,
+  } = useUI();
 
-  // ── Model & File Config ──
-  const [provider, setProvider] = useState(() => {
-    try { return localStorage.getItem('coursemapper-provider') || 'anthropic'; } catch { return 'anthropic'; }
-  });
-  const [apiKey, setApiKey] = useState(() => {
-    try { return localStorage.getItem('coursemapper-apikey') || ''; } catch { return ''; }
-  });
-  const [apiStatus, setApiStatus] = useState('idle');
-  const [modelName, setModelName] = useState(() => {
-    try { return localStorage.getItem('coursemapper-modelname') || ''; } catch { return ''; }
-  });
-  const [modelId, setModelId] = useState(() => {
-    try { return localStorage.getItem('coursemapper-modelid') || ''; } catch { return ''; }
-  });
-  const [availableModels, setAvailableModels] = useState([]);
-  const [maxOutputTokens, setMaxOutputTokens] = useState(16384);
-  const [files, setFiles] = useState([]);
-  const [columns, setColumns] = useState([...DEFAULT_COLUMNS]);
+  // ── Course data state (from CourseContext) ──
+  const {
+    selectedFeatures, setSelectedFeatures,
+    deliverableConfig, setDeliverableConfig,
+    lessonScope, setLessonScope,
+    promptText, setPromptText,
+    files, setFiles,
+    columns, setColumns,
+    courseMap, setCourseMap,
+    oldCourseMap, setOldCourseMap,
+    userEdits, setUserEdits,
+    hasGenerated, setHasGenerated,
+    slideTheme, setSlideTheme,
+  } = useCourse();
+
+  const [hasSavedSession, setHasSavedSession] = useState(false);
+
+  // ── Model & File Config (from AIConfigContext) ──
+  const {
+    provider, setProvider, apiKey, setApiKey,
+    apiStatus, setApiStatus, modelName, setModelName,
+    modelId, setModelId, availableModels, setAvailableModels,
+    maxOutputTokens, setMaxOutputTokens,
+  } = useAIConfig();
 
   // ── Core Course Map State ──
-  const [courseMap, setCourseMap] = useState(null);
-  const [oldCourseMap, setOldCourseMap] = useState(null);
-  const [userEdits, setUserEdits] = useState([]);
-  const [hasGenerated, setHasGenerated] = useState(false);
-  const [showDiff, setShowDiff] = useState(false);
   const [restoredSession, setRestoredSession] = useState(false);
   const [chatHistory, setChatHistory] = useState([]);
 
   // ── Workspace tab ──
-  const [activeTab, setActiveTab] = useState('courseMap');
-  // + tab popover
-  const [showAddDeliverable, setShowAddDeliverable] = useState(false);
-  // Custom deliverable builder modal (from workspace + Add)
-  const [showCustomBuilder, setShowCustomBuilder] = useState(false);
-  // Drag-to-reorder tabs
-  const [dragTabIdx, setDragTabIdx] = useState(null);
-  // Add-lessons modal state: { lessonIndices: number[], mode: null|'asking' }
-  const [addLessonsModal, setAddLessonsModal] = useState(null);
-  // Dependency map modal
-  const [showDepMap, setShowDepMap] = useState(false);
-  // Cascade preview tooltip (hover state)
-  const [cascadeHover, setCascadeHover] = useState(null); // { featureId?, fieldKey?, position }
-  const cascadeTimerRef = useRef(null);
-  const handleCascadeHover = useCallback((info) => {
-    clearTimeout(cascadeTimerRef.current);
-    if (!info) { setCascadeHover(null); return; }
-    cascadeTimerRef.current = setTimeout(() => setCascadeHover(info), 150);
-  }, []);
-  // New Project confirmation modal
-  const [newProjectConfirm, setNewProjectConfirm] = useState(false);
+  // (activeTab, showAddDeliverable, showCustomBuilder, dragTabIdx,
+  //  addLessonsModal, showDepMap, cascadeHover, newProjectConfirm
+  //  moved to UIContext)
 
   // ── Cloud ──
   const { user } = useAuth();
   const [projectId, setProjectId] = useState(null); // Firestore project doc ID
   const projectIdRef = useRef(null); // Ref mirror to prevent race conditions in auto-save
-  const [showProjectPicker, setShowProjectPicker] = useState(false);
   const [cloudSaveStatus, setCloudSaveStatus] = useState('idle'); // 'idle' | 'saving' | 'saved' | 'error'
   const cloudSaveTimerRef = useRef(null);
   const cloudStatusTimerRef = useRef(null);
@@ -208,12 +205,6 @@ export default function App() {
 
   // ── AI Context Menu (inline AI editing) ──
   const chatSendRef = useRef(null);
-  const [aiContextMenu, setAiContextMenu] = useState(null); // { position: {x,y}, target: {...} }
-  const handleAIContextMenu = useCallback((e, target) => {
-    e.preventDefault();
-    setAiContextMenu({ position: { x: e.clientX, y: e.clientY }, target });
-  }, []);
-  const closeAIContextMenu = useCallback(() => setAiContextMenu(null), []);
   const handleAIAction = useCallback((prompt) => {
     // Handle "__FOCUS__" prefix — pre-fill chat with context but let user type
     if (prompt.startsWith('__FOCUS__')) {
@@ -229,8 +220,6 @@ export default function App() {
   }, []);
 
   // ── Cascade sync ──
-  // Track which tabs have unseen changes (show amber * badge)
-  const [unseenChanges, setUnseenChanges] = useState(new Set());
   // Always-fresh ref to courseMap for useSmartSync (avoids stale closure)
   const courseMapRef = useRef(courseMap);
   useEffect(() => { courseMapRef.current = courseMap; }, [courseMap]);
@@ -291,14 +280,7 @@ export default function App() {
   // ── Deliverable Undo/Redo ──
   const delivUndo = useDeliverableUndo();
 
-  // ── Agent action highlight (green ring on affected lesson card) ──
-  const [agentHighlight, setAgentHighlight] = useState(null);
-  const agentHighlightTimerRef = useRef(null);
-  const triggerAgentHighlight = useCallback((featureId, lessonIndex) => {
-    if (agentHighlightTimerRef.current) clearTimeout(agentHighlightTimerRef.current);
-    setAgentHighlight({ featureId, lessonIndex });
-    agentHighlightTimerRef.current = setTimeout(() => setAgentHighlight(null), 5000);
-  }, []);
+  // (agentHighlight + triggerAgentHighlight moved to UIContext)
 
   // ── Cascade Sync Engine ──
   const smartSync = useSmartSync({
@@ -332,45 +314,34 @@ export default function App() {
     optimisticUpdate: deliv.optimisticUpdate,
   });
 
-  // ── Persist API key, provider & model ──
-  useEffect(() => {
-    try {
-      if (apiKey) localStorage.setItem('coursemapper-apikey', apiKey);
-      else localStorage.removeItem('coursemapper-apikey');
-    } catch { }
-  }, [apiKey]);
-  useEffect(() => {
-    try { localStorage.setItem('coursemapper-provider', provider); } catch { }
-  }, [provider]);
-  useEffect(() => {
-    try {
-      if (modelId) localStorage.setItem('coursemapper-modelid', modelId);
-      if (modelName) localStorage.setItem('coursemapper-modelname', modelName);
-    } catch { }
-  }, [modelId, modelName]);
+  // ── Persist API key, provider & model — handled by AIConfigContext ──
 
-  // ── Save to localStorage (debounced) ──
+  // ── Shared project snapshot builder (used by localStorage, cloud save, and file export) ──
+  const buildProjectSnapshot = useCallback((extra = {}) => ({
+    formatVersion: 1,
+    courseMap, columns, hasGenerated: true,
+    provider, modelId, modelName, userEdits,
+    chatHistory: chatHistory.slice(-50),
+    fileNames: files.map(f => f.name),
+    versionHistory: version.versionHistory.slice(-30),
+    selectedFeatures, lessonScope, promptText, activeTab,
+    deliverables: deliv.deliverables,
+    slideTheme,
+    savedAt: Date.now(),
+    ...extra,
+  }), [courseMap, columns, provider, modelId, modelName, userEdits, chatHistory, files, version.versionHistory, selectedFeatures, lessonScope, promptText, activeTab, deliv.deliverables, slideTheme]);
+
+  // ── Save to localStorage (debounced 3s) ──
   useEffect(() => {
     if (!hasGenerated || !courseMap) return;
     clearTimeout(saveTimerRef.current);
     saveTimerRef.current = setTimeout(() => {
       try {
-        const state = {
-          courseMap, columns, hasGenerated: true,
-          provider, modelId, modelName, userEdits,
-          chatHistory: chatHistory.slice(-50),
-          fileNames: files.map(f => f.name),
-          versionHistory: version.versionHistory.slice(-30),
-          selectedFeatures, lessonScope, promptText, activeTab,
-          deliverables: deliv.deliverables,
-          slideTheme,
-          savedAt: Date.now(),
-        };
-        localStorage.setItem(STORAGE_KEY, JSON.stringify(state));
-      } catch (e) { console.warn('Save failed:', e); }
-    }, 1000);
+        localStorage.setItem(STORAGE_KEY, JSON.stringify(buildProjectSnapshot()));
+      } catch (e) { warn('Save failed:', e); }
+    }, 3000);
     return () => clearTimeout(saveTimerRef.current);
-  }, [courseMap, columns, hasGenerated, provider, modelId, modelName, userEdits, chatHistory, version.versionHistory, selectedFeatures, lessonScope, promptText, activeTab, deliv.deliverables, slideTheme]);
+  }, [hasGenerated, courseMap, buildProjectSnapshot]);
 
   // Keep projectId ref in sync to avoid race conditions
   useEffect(() => { projectIdRef.current = projectId; }, [projectId]);
@@ -389,34 +360,25 @@ export default function App() {
           projectIdRef.current = pid;
           setProjectId(pid);
         }
-        const state = {
+        const state = buildProjectSnapshot({
           courseName: courseMap?.courseName || 'Untitled',
           semester: courseMap?.semester || '',
-          courseMap, columns, hasGenerated: true,
-          provider, modelId, modelName, userEdits,
-          chatHistory: chatHistory.slice(-50),
-          fileNames: files.map(f => f.name),
-          versionHistory: version.versionHistory.slice(-30),
-          selectedFeatures, lessonScope, promptText, activeTab,
-          deliverables: deliv.deliverables,
-          slideTheme,
-          savedAt: Date.now(),
           version: '1.5',
-        };
+        });
         await cloudSaveProject(user.uid, pid, state);
         setCloudSaveStatus('saved');
         // Reset to idle after 3 seconds
         clearTimeout(cloudStatusTimerRef.current);
         cloudStatusTimerRef.current = setTimeout(() => setCloudSaveStatus('idle'), 3000);
       } catch (e) {
-        console.warn('[Cloud] auto-save failed:', e);
+        warn('[Cloud] auto-save failed:', e);
         setCloudSaveStatus('error');
         clearTimeout(cloudStatusTimerRef.current);
         cloudStatusTimerRef.current = setTimeout(() => setCloudSaveStatus('idle'), 5000);
       }
     }, 5000);
     return () => clearTimeout(cloudSaveTimerRef.current);
-  }, [user, courseMap, columns, hasGenerated, provider, modelId, modelName, userEdits, chatHistory, version.versionHistory, selectedFeatures, lessonScope, promptText, activeTab, deliv.deliverables, slideTheme]);
+  }, [user, hasGenerated, courseMap, buildProjectSnapshot]);
 
   // ── On sign-in: merge cloud data (custom deliverables + profile) ──
   const prevUserRef = useRef(null);
@@ -440,6 +402,9 @@ export default function App() {
       const saved = JSON.parse(raw);
       if (saved.courseMap) setHasSavedSession(true);
     } catch { }
+  // Intentionally runs only on mount: checks localStorage once for a saved session.
+  // STORAGE_KEY and setHasSavedSession are stable (constant / useState setter) so
+  // omitting them from deps is safe and avoids misleading the reader.
   }, []); // eslint-disable-line react-hooks/exhaustive-deps
 
   // ── Restore saved session ──
@@ -448,6 +413,8 @@ export default function App() {
       const raw = localStorage.getItem(STORAGE_KEY);
       if (!raw) return;
       const saved = JSON.parse(raw);
+      // Treat missing formatVersion as version 1 (backwards compatible)
+      if (!saved.formatVersion) saved.formatVersion = 1;
       if (!saved.courseMap) return;
       setCourseMap(saved.courseMap);
       setColumns(saved.columns || [...DEFAULT_COLUMNS]);
@@ -486,7 +453,7 @@ export default function App() {
         gen.setStatus('done');
       }
       setScreen('workspace');
-    } catch (e) { console.warn('Restore failed:', e); }
+    } catch (e) { warn('Restore failed:', e); }
   }
 
   // ── Derived ──
@@ -523,6 +490,8 @@ export default function App() {
       if (file.name.endsWith('.coursemapper')) {
         const text = await file.text();
         const saved = JSON.parse(text);
+        // Treat missing formatVersion as version 1 (backwards compatible)
+        if (!saved.formatVersion) saved.formatVersion = 1;
         if (!saved.courseMap) throw new Error('Invalid .coursemapper file');
         setCourseMap(saved.courseMap);
         setOldCourseMap(null);
@@ -571,27 +540,7 @@ export default function App() {
   function handleSaveProject() {
     try {
       const courseName = courseMap?.courseName || 'Course';
-      const state = {
-        courseMap,
-        columns,
-        hasGenerated: true,
-        provider,
-        modelId,
-        modelName,
-        userEdits,
-        chatHistory: chatHistory.slice(-50),
-        fileNames: files.map(f => f.name),
-        versionHistory: version.versionHistory.slice(-30),
-        selectedFeatures,
-        lessonScope,
-        promptText,
-        activeTab,
-        deliverables: deliv.deliverables,
-        slideTheme,
-        deliverableConfig,
-        savedAt: Date.now(),
-        version: '1.5',
-      };
+      const state = buildProjectSnapshot({ deliverableConfig, version: '1.5' });
       const blob = new Blob([JSON.stringify(state, null, 2)], { type: 'application/json' });
       const url = URL.createObjectURL(blob);
       const a = document.createElement('a');
@@ -612,6 +561,8 @@ export default function App() {
     try {
       const saved = await cloudLoadProject(user.uid, pid);
       if (!saved || !saved.courseMap) throw new Error('Project data not found');
+      // Treat missing formatVersion as version 1 (backwards compatible)
+      if (!saved.formatVersion) saved.formatVersion = 1;
       const deliverables = await loadProjectDeliverables(user.uid, pid);
       // Restore all state — same as doRestoreSession but from cloud
       setCourseMap(saved.courseMap);
@@ -650,7 +601,7 @@ export default function App() {
       }
       setScreen('workspace');
     } catch (e) {
-      console.error('[Cloud] open project failed:', e);
+      logError('[Cloud] open project failed:', e);
       gen.setError('Failed to open cloud project: ' + e.message);
       throw e; // Re-throw so ProjectPicker can catch and show error
     }
@@ -661,25 +612,16 @@ export default function App() {
     if (!user || !courseMap) return;
     try {
       const pid = newProjectId();
-      const state = {
+      const state = buildProjectSnapshot({
         courseName: courseMap?.courseName || 'Untitled',
         semester: courseMap?.semester || '',
-        courseMap, columns, hasGenerated: true,
-        provider, modelId, modelName, userEdits,
-        chatHistory: chatHistory.slice(-50),
-        fileNames: files.map(f => f.name),
-        versionHistory: version.versionHistory.slice(-30),
-        selectedFeatures, lessonScope, promptText, activeTab,
-        deliverables: deliv.deliverables,
-        slideTheme,
-        savedAt: Date.now(),
         version: '1.5',
-      };
+      });
       await cloudSaveProject(user.uid, pid, state);
       setProjectId(pid);
       projectIdRef.current = pid;
     } catch (e) {
-      console.error('[Cloud] save-as-new failed:', e);
+      logError('[Cloud] save-as-new failed:', e);
       gen.setError('Failed to save project to cloud: ' + e.message);
     }
   }
@@ -778,6 +720,10 @@ export default function App() {
         deliv.generateAll(courseMap, orderedFeatures, scopeIndices);
       }
     }
+  // Intentionally depends only on gen.progressStep: we want to trigger deliverable
+  // generation exactly once when the course-map step transitions to 'done'. Including
+  // courseMap, selectedFeatures, lessonScope, or deliv would re-fire the effect on every
+  // render during generation, causing duplicate or premature deliverable runs.
   }, [gen.progressStep]); // eslint-disable-line react-hooks/exhaustive-deps
 
   function onResume() { gen.handleResume(); }
@@ -834,8 +780,6 @@ export default function App() {
     return (
       <>
         <Landing
-          files={files} setFiles={setFiles}
-          promptText={promptText} setPromptText={setPromptText}
           onGenerate={handleLandingContinue}
           canGenerate={
             (files.length > 0 || promptText.trim().length > 0) &&
@@ -844,14 +788,6 @@ export default function App() {
             apiStatus === 'connected'
           }
           isGenerating={false}
-          provider={provider} setProvider={setProvider}
-          apiKey={apiKey} setApiKey={setApiKey}
-          modelId={modelId} setModelId={setModelId}
-          modelName={modelName} setModelName={setModelName}
-          availableModels={availableModels} setAvailableModels={setAvailableModels}
-          apiStatus={apiStatus} setApiStatus={setApiStatus}
-          setMaxOutputTokens={setMaxOutputTokens}
-          columns={columns} setColumns={setColumns}
           hasSavedSession={hasSavedSession}
           onRestoreSession={doRestoreSession}
           onDismissSavedSession={() => {
@@ -887,13 +823,9 @@ export default function App() {
   if (screen === 'features') {
     return (
       <FeatureSelect
-        selected={selectedFeatures}
-        setSelected={setSelectedFeatures}
         hasSyllabusFile={hasSyllabusFile}
         onBack={() => setScreen('landing')}
         onNext={() => setScreen('config')}
-        modelConfig={{ provider, apiKey, modelId }}
-        onOpenHelp={() => setShowHelp(true)}
       />
     );
   }
@@ -901,23 +833,16 @@ export default function App() {
   // ── Screen: Config ──
   if (screen === 'config') {
     return (
-      <Config
-        selected={selectedFeatures}
-        deliverableConfig={deliverableConfig}
-        setDeliverableConfig={setDeliverableConfig}
-        lessonScope={lessonScope}
-        setLessonScope={setLessonScope}
-        lessonCount={lessonCount}
-        isDetectingLessons={isDetectingLessons}
-        courseMap={courseMap}
-        deliverables={deliv.deliverables}
-        columns={columns}
-        setColumns={setColumns}
-        onBack={() => setScreen('features')}
-        onGenerate={onGenerate}
-        canGenerate={canGenerate}
-        onOpenHelp={() => setShowHelp(true)}
-      />
+      <Suspense fallback={<ConfigSkeleton />}>
+        <Config
+          lessonCount={lessonCount}
+          isDetectingLessons={isDetectingLessons}
+          deliverables={deliv.deliverables}
+          onBack={() => setScreen('features')}
+          onGenerate={onGenerate}
+          canGenerate={canGenerate}
+        />
+      </Suspense>
     );
   }
 
@@ -949,6 +874,7 @@ export default function App() {
   };
 
   return (
+    <Suspense fallback={<WorkspaceSkeleton />}>
     <div className="min-h-screen mesh-bg noise-overlay">
       <Header onOpenProjects={() => setShowProjectPicker(true)} />
 
@@ -987,11 +913,11 @@ export default function App() {
           {version.versionHistory.length > 1 && !gen.isStreaming && (
             <div className="flex items-center gap-1">
               <button onClick={version.undo} disabled={version.activeVersion <= 0}
-                className={`tactile p-2 rounded-full transition-all duration-200 ${version.activeVersion > 0 ? 'text-slate-500 hover:bg-white/60 hover:text-indigo-500' : 'text-slate-300 cursor-not-allowed'}`} title="Undo">
+                className={`tactile p-2 rounded-full transition-all duration-200 ${version.activeVersion > 0 ? 'text-slate-500 hover:bg-white/60 hover:text-indigo-500' : 'text-slate-300 cursor-not-allowed'}`} title="Undo" aria-label="Undo">
                 <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M3 10h10a5 5 0 015 5v2M3 10l4-4M3 10l4 4" /></svg>
               </button>
               <button onClick={version.redo} disabled={version.activeVersion >= version.versionHistory.length - 1}
-                className={`tactile p-2 rounded-full transition-all duration-200 ${version.activeVersion < version.versionHistory.length - 1 ? 'text-slate-500 hover:bg-white/60 hover:text-indigo-500' : 'text-slate-300 cursor-not-allowed'}`} title="Redo">
+                className={`tactile p-2 rounded-full transition-all duration-200 ${version.activeVersion < version.versionHistory.length - 1 ? 'text-slate-500 hover:bg-white/60 hover:text-indigo-500' : 'text-slate-300 cursor-not-allowed'}`} title="Redo" aria-label="Redo">
                 <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M21 10H11a5 5 0 00-5 5v2M21 10l-4-4M21 10l-4 4" /></svg>
               </button>
               <span className="text-[10px] font-medium text-slate-400">v{version.activeVersion + 1}/{version.versionHistory.length}</span>
@@ -1006,6 +932,7 @@ export default function App() {
               onClick={() => setShowDepMap(true)}
               className="tactile p-1.5 rounded-full text-slate-400 hover:bg-white/60 hover:text-indigo-500 transition-all duration-200"
               title="Dependency Map — see how deliverables connect"
+              aria-label="Open dependency map"
             >
               <svg className="w-3.5 h-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                 <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M4 6h16M4 12h8m-8 6h16M16 12l4-4m0 0l-4-4m4 4H12" />
@@ -1174,45 +1101,48 @@ export default function App() {
 
         {/* ── New Project Confirmation Modal ── */}
         {newProjectConfirm && (
-          <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/50 backdrop-blur-md">
-            <div className="bg-white rounded-2xl border border-slate-200/60 shadow-2xl p-6 max-w-sm w-full mx-4 animate-spring-scale">
-              <div className="flex items-center gap-3 mb-3">
-                <div className="w-9 h-9 rounded-xl bg-amber-100 flex items-center justify-center flex-shrink-0">
-                  <svg className="w-5 h-5 text-amber-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 9v2m0 4h.01m-6.938 4h13.856c1.54 0 2.502-1.667 1.732-3L13.732 4c-.77-1.333-2.694-1.333-3.464 0L3.34 16c-.77 1.333.192 3 1.732 3z" />
-                  </svg>
+          <FocusTrap focusTrapOptions={{ clickOutsideDeactivates: true }}>
+            <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/50 backdrop-blur-md">
+              <div className="bg-white rounded-2xl border border-slate-200/60 shadow-2xl p-6 max-w-sm w-full mx-4 animate-spring-scale">
+                <div className="flex items-center gap-3 mb-3">
+                  <div className="w-9 h-9 rounded-xl bg-amber-100 flex items-center justify-center flex-shrink-0">
+                    <svg className="w-5 h-5 text-amber-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                      <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 9v2m0 4h.01m-6.938 4h13.856c1.54 0 2.502-1.667 1.732-3L13.732 4c-.77-1.333-2.694-1.333-3.464 0L3.34 16c-.77 1.333.192 3 1.732 3z" />
+                    </svg>
+                  </div>
+                  <div>
+                    <h3 className="text-sm font-bold text-slate-800">Start a new project?</h3>
+                    <p className="text-[11px] text-slate-500 mt-0.5">Your current course map and all generated deliverables will be cleared.</p>
+                  </div>
                 </div>
-                <div>
-                  <h3 className="text-sm font-bold text-slate-800">Start a new project?</h3>
-                  <p className="text-[11px] text-slate-500 mt-0.5">Your current course map and all generated deliverables will be cleared.</p>
+                <p className="text-[11px] text-slate-400 mb-5 leading-relaxed">
+                  Save your work first using <span className="font-semibold text-slate-500">Export → All → Save .coursemapper</span> if you want to keep it.
+                </p>
+                <div className="flex items-center gap-2 justify-end">
+                  <button
+                    onClick={() => setNewProjectConfirm(false)}
+                    className="tactile px-4 py-2 rounded-lg text-xs font-semibold text-slate-600 bg-white border border-slate-200/60 hover:bg-slate-50 transition-all"
+                  >
+                    Cancel
+                  </button>
+                  <button
+                    onClick={() => { setNewProjectConfirm(false); handleNewProject(); }}
+                    className="tactile px-4 py-2 rounded-lg text-xs font-semibold text-white bg-red-500 hover:bg-red-600 transition-all"
+                  >
+                    Start New Project
+                  </button>
                 </div>
-              </div>
-              <p className="text-[11px] text-slate-400 mb-5 leading-relaxed">
-                Save your work first using <span className="font-semibold text-slate-500">Export → All → Save .coursemapper</span> if you want to keep it.
-              </p>
-              <div className="flex items-center gap-2 justify-end">
-                <button
-                  onClick={() => setNewProjectConfirm(false)}
-                  className="tactile px-4 py-2 rounded-lg text-xs font-semibold text-slate-600 bg-white border border-slate-200/60 hover:bg-slate-50 transition-all"
-                >
-                  Cancel
-                </button>
-                <button
-                  onClick={() => { setNewProjectConfirm(false); handleNewProject(); }}
-                  className="tactile px-4 py-2 rounded-lg text-xs font-semibold text-white bg-red-500 hover:bg-red-600 transition-all"
-                >
-                  Start New Project
-                </button>
               </div>
             </div>
-          </div>
+          </FocusTrap>
         )}
 
         {/* ── Add Lessons Modal ── */}
         {addLessonsModal && (
-          <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/30 backdrop-blur-sm">
-            <div className="bg-white/98 rounded-2xl border border-slate-200/60 shadow-2xl p-6 max-w-sm w-full mx-4 animate-spring-scale">
-              <h3 className="text-sm font-bold text-slate-800 mb-1">Generate Added Lessons</h3>
+          <FocusTrap focusTrapOptions={{ clickOutsideDeactivates: true }}>
+            <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/30 backdrop-blur-sm">
+              <div className="bg-white/98 rounded-2xl border border-slate-200/60 shadow-2xl p-6 max-w-sm w-full mx-4 animate-spring-scale">
+                <h3 className="text-sm font-bold text-slate-800 mb-1">Generate Added Lessons</h3>
               <p className="text-[11px] text-slate-500 mb-4 leading-relaxed">
                 {addLessonsModal.lessonIndices.length === 1
                   ? `Generate Lesson ${addLessonsModal.lessonIndices[0] + 1} for:`
@@ -1263,8 +1193,9 @@ export default function App() {
               >
                 Cancel
               </button>
+              </div>
             </div>
-          </div>
+          </FocusTrap>
         )}
 
         {/* ── Custom Deliverable Builder (from workspace + Add) ── */}
@@ -1280,7 +1211,6 @@ export default function App() {
             deliv.generateAll(courseMap, [saved.id], scopeIndices);
           }}
           editDef={null}
-          modelConfig={{ provider, apiKey, modelId }}
         />
 
         {/* ── Tab content + Chat panel + Export panel ── */}
@@ -1328,9 +1258,6 @@ export default function App() {
                 courseMap={courseMap}
                 chatHistory={chatHistory}
                 onChatHistoryChange={setChatHistory}
-                apiKey={apiKey}
-                provider={provider}
-                modelId={modelId}
                 pendingExamPatches={gen.pendingExamPatches}
                 examChanges={gen.examChanges}
                 onAcceptPatches={gen.onAcceptPatches}
@@ -1350,10 +1277,7 @@ export default function App() {
           </div>
 
           {/* ── Resize Handle ── */}
-          <ResizeHandle width={chatWidth} onWidthChange={(w) => {
-            setChatWidth(w);
-            try { localStorage.setItem('coursemapper-chat-width', String(w)); } catch {}
-          }} />
+          <ResizeHandle width={chatWidth} onWidthChange={setChatWidth} />
 
           {/* ── Main content area ── */}
           <div className="flex-1 min-w-0 space-y-4 px-4">
@@ -1373,7 +1297,7 @@ export default function App() {
                     </div>
                   </div>
                 )}
-                {(courseMap || gen.isStreaming) && (
+                {(courseMap || gen.isStreaming) ? (
                   <div className="w-full animate-spring-up">
                     <ErrorBoundary>
                       <CourseMapPreview
@@ -1400,6 +1324,8 @@ export default function App() {
                       />
                     </ErrorBoundary>
                   </div>
+                ) : !gen.error && gen.progressStep !== 'idle' && gen.progressStep !== 'done' && (
+                  <CourseMapSkeleton />
                 )}
               </>
             )}
@@ -1500,13 +1426,9 @@ export default function App() {
             <ExportSidePanel
               activeTab={activeTab}
               activeTabLabel={workspaceTabs.find(f => f.id === activeTab)?.label || activeTab}
-              courseMap={courseMap}
-              columns={columns}
               deliverables={deliv.deliverables}
-              selectedFeatures={selectedFeatures}
               onCourseMapExport={handleDownload}
               onSaveProject={handleSaveProject}
-              slideTheme={slideTheme}
             />
           )}
         </div>
@@ -1558,7 +1480,6 @@ export default function App() {
       <DependencyMap
         isOpen={showDepMap}
         onClose={() => setShowDepMap(false)}
-        selectedFeatures={selectedFeatures}
         deliverables={deliv.deliverables}
       />
 
@@ -1568,12 +1489,12 @@ export default function App() {
           fieldKey={cascadeHover.fieldKey}
           featureId={cascadeHover.featureId}
           position={cascadeHover.position}
-          selectedFeatures={selectedFeatures}
           deliverables={deliv.deliverables}
         />
       )}
 
     </div>
+    </Suspense>
   );
 }
 

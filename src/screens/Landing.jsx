@@ -1,6 +1,8 @@
 import React, { useState, useCallback, useEffect, useRef } from 'react';
 import ModelConfig from '../components/ModelConfig';
 import { useAuth } from '../contexts/AuthContext';
+import { useAIConfig } from '../contexts/AIConfigContext';
+import { useCourse } from '../contexts/CourseContext';
 import UserMenu from '../components/UserMenu';
 import DarkModeToggle from '../components/DarkModeToggle';
 
@@ -30,21 +32,9 @@ function formatSize(bytes) {
 }
 
 export default function Landing({
-  files, setFiles,
-  promptText, setPromptText,
   onGenerate,
   canGenerate,
   isGenerating,
-  // ModelConfig props
-  provider, setProvider,
-  apiKey, setApiKey,
-  modelId, setModelId,
-  modelName, setModelName,
-  availableModels, setAvailableModels,
-  apiStatus, setApiStatus,
-  setMaxOutputTokens,
-  // ColumnEditor props
-  columns, setColumns,
   // Session restore
   hasSavedSession, onRestoreSession, onDismissSavedSession,
   // Import course map
@@ -55,10 +45,10 @@ export default function Landing({
   onExampleSelect,
   // Cloud project management
   onOpenProjects,
-  // Legacy — no longer used in UI (mode is auto-detected from input)
-  inputMode, setInputMode,
 }) {
   const { user } = useAuth();
+  const { provider, apiKey, modelId, modelName, apiStatus } = useAIConfig();
+  const { files, setFiles, promptText, setPromptText, columns, setColumns } = useCourse();
   const [isDragging, setIsDragging] = useState(false);
   const [projectDragging, setProjectDragging] = useState(false);
 
@@ -211,6 +201,7 @@ export default function Landing({
                 onClick={onDismissSavedSession}
                 className="text-slate-300 hover:text-red-400 transition-colors flex-shrink-0 p-1"
                 title="Dismiss and start fresh"
+                aria-label="Dismiss saved session"
               >
                 <svg className="w-3.5 h-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                   <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M6 18L18 6M6 6l12 12" />
@@ -359,21 +350,7 @@ export default function Landing({
                   Collapse
                 </button>
               )}
-              <ModelConfig
-                provider={provider}
-                setProvider={setProvider}
-                apiKey={apiKey}
-                setApiKey={setApiKey}
-                modelId={modelId}
-                setModelId={setModelId}
-                availableModels={availableModels}
-                setAvailableModels={setAvailableModels}
-                apiStatus={apiStatus}
-                setApiStatus={setApiStatus}
-                modelName={modelName}
-                setModelName={setModelName}
-                setMaxOutputTokens={setMaxOutputTokens}
-              />
+              <ModelConfig />
             </div>
           )}
 

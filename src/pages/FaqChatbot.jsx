@@ -1,4 +1,6 @@
 import React, { useState, useRef, useEffect } from 'react';
+import FocusTrap from 'focus-trap-react';
+import { getSecure } from '../lib/secureStorage';
 
 function getSystemPrompt(courseMap, activeTab) {
   let contextSection = '';
@@ -127,7 +129,7 @@ function getSuggestedQuestions(courseMap) {
 // ── Read user's configured API key and provider from localStorage ──
 function getUserConfig() {
   try {
-    const apiKey = localStorage.getItem('coursemapper-apikey') || '';
+    const apiKey = getSecure('coursemapper-apikey') || '';
     let provider = 'google'; // default
     const raw = localStorage.getItem('coursemapper-project');
     if (raw) {
@@ -419,6 +421,7 @@ function ChatBody({ messages, input, setInput, isStreaming, sendMessage, handleS
             <button
               type="submit"
               disabled={!input.trim()}
+              aria-label="Send message"
               className={`tactile btn-glow ${compact ? 'p-2.5' : 'px-5 py-3.5'} rounded-pill text-sm font-semibold text-white bg-gradient-to-r from-indigo-500 via-violet-500 to-purple-600 shadow-lg shadow-indigo-500/20 hover:shadow-glow-violet hover:brightness-[1.06] transition-all duration-300 disabled:opacity-40 disabled:cursor-not-allowed`}
             >
               <svg className={compact ? 'w-3.5 h-3.5' : 'w-4 h-4'} fill="none" stroke="currentColor" viewBox="0 0 24 24">
@@ -450,11 +453,12 @@ export function HelpDrawer({ isOpen, onClose, courseMap, activeTab }) {
   if (!isOpen) return null;
 
   return (
-    <div className="fixed inset-0 z-[55] flex justify-end animate-spring-in" data-print="hide">
-      {/* Backdrop */}
-      <div className="absolute inset-0 bg-black/20 backdrop-blur-sm" onClick={onClose} />
-      {/* Panel */}
-      <div className="relative w-full max-w-md bg-white/95 backdrop-blur-xl border-l border-slate-200/60 shadow-2xl flex flex-col">
+    <FocusTrap focusTrapOptions={{ clickOutsideDeactivates: true }}>
+      <div className="fixed inset-0 z-[55] flex justify-end animate-spring-in" data-print="hide">
+        {/* Backdrop */}
+        <div className="absolute inset-0 bg-black/20 backdrop-blur-sm" onClick={onClose} />
+        {/* Panel */}
+        <div className="relative w-full max-w-md bg-white/95 backdrop-blur-xl border-l border-slate-200/60 shadow-2xl flex flex-col">
         {/* Header */}
         <div className="flex items-center justify-between px-4 py-3 border-b border-slate-100 flex-shrink-0">
           <div className="flex items-center gap-2.5">
@@ -471,6 +475,7 @@ export function HelpDrawer({ isOpen, onClose, courseMap, activeTab }) {
           </div>
           <button
             onClick={onClose}
+            aria-label="Close help drawer"
             className="p-1.5 rounded-lg text-slate-400 hover:text-slate-600 hover:bg-slate-100 transition-all"
           >
             <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
@@ -480,8 +485,9 @@ export function HelpDrawer({ isOpen, onClose, courseMap, activeTab }) {
         </div>
         {/* Chat body */}
         <ChatBody {...chat} compact courseMap={courseMap} />
+        </div>
       </div>
-    </div>
+    </FocusTrap>
   );
 }
 

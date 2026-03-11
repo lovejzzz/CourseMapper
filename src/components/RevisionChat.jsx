@@ -25,6 +25,9 @@ export default function RevisionChat({ onRevision, isRevising, savedMessages, on
   useEffect(() => { onMessagesChangeRef.current = onMessagesChange; });
   useEffect(() => {
     if (onMessagesChangeRef.current) onMessagesChangeRef.current(messages);
+  // Intentionally excludes onMessagesChangeRef: the ref is updated in the preceding
+  // effect so the callback is always current. Including it would cause an infinite loop
+  // if the parent doesn't memoize onMessagesChange.
   }, [messages]); // eslint-disable-line react-hooks/exhaustive-deps
 
   async function processFiles(fileList) {
@@ -213,7 +216,7 @@ export default function RevisionChat({ onRevision, isRevising, savedMessages, on
                 <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M15.172 7l-6.586 6.586a2 2 0 102.828 2.828l6.414-6.586a4 4 0 00-5.656-5.656l-6.415 6.585a6 6 0 108.486 8.486L20.5 13" />
               </svg>
               {f.name}
-              <button onClick={() => removeAttached(i)} className="ml-0.5 hover:text-red-500 transition-colors">
+              <button onClick={() => removeAttached(i)} className="ml-0.5 hover:text-red-500 transition-colors" aria-label={`Remove attached file ${f.name}`}>
                 <svg className="w-3 h-3" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                   <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M6 18L18 6M6 6l12 12" />
                 </svg>
@@ -260,6 +263,7 @@ export default function RevisionChat({ onRevision, isRevising, savedMessages, on
             disabled={isRevising}
             className="tactile p-1.5 rounded-lg text-slate-400 hover:text-indigo-500 hover:bg-indigo-50/50 transition-all duration-200"
             title="Attach files"
+            aria-label="Attach files"
           >
             <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
               <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M15.172 7l-6.586 6.586a2 2 0 102.828 2.828l6.414-6.586a4 4 0 00-5.656-5.656l-6.415 6.585a6 6 0 108.486 8.486L20.5 13" />

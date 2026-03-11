@@ -197,6 +197,8 @@ export default function ResearchCard({ research, status }) {
       <button
         onClick={() => setExpanded(v => !v)}
         className="w-full px-4 py-2.5 flex items-center gap-2.5 hover:bg-slate-50/50 transition-colors"
+        aria-expanded={expanded}
+        aria-label={expanded ? 'Collapse research results' : 'Expand research results'}
       >
         <svg className="w-4 h-4 text-violet-500 flex-shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24">
           <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2}

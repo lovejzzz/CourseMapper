@@ -1,5 +1,6 @@
 import React, { useState, useEffect, useRef } from 'react';
 import { fetchModelsFromProvider } from '../hooks/useStreamReader';
+import { useAIConfig } from '../contexts/AIConfigContext';
 
 /**
  * Detect provider from API key prefix and auto-switch if mismatched.
@@ -78,12 +79,13 @@ async function checkCredits(provider, apiKey, modelId) {
   }
 }
 
-export default function ModelConfig({
-  provider, setProvider, apiKey, setApiKey,
-  modelId, setModelId, availableModels, setAvailableModels,
-  apiStatus, setApiStatus, modelName, setModelName,
-  setMaxOutputTokens,
-}) {
+export default function ModelConfig() {
+  const {
+    provider, setProvider, apiKey, setApiKey,
+    modelId, setModelId, availableModels, setAvailableModels,
+    apiStatus, setApiStatus, modelName, setModelName,
+    maxOutputTokens, setMaxOutputTokens,
+  } = useAIConfig();
   const debounceRef = useRef(null);
   // Track the previous provider value to distinguish real changes from mount/remount.
   // This is more robust than an isFirstMount flag because it survives React 18

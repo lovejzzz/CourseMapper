@@ -81,6 +81,7 @@ function QuestionCard({ question, number, qPath, onEdit, onSaveToBank }) {
                 onClick={handleSave}
                 className={`ml-auto text-[9px] font-semibold px-1.5 py-0.5 rounded transition-all ${saved ? 'text-emerald-600 bg-emerald-50' : 'text-slate-400 hover:text-amber-600 hover:bg-amber-50'}`}
                 title="Save to Assessment Bank"
+                aria-label={saved ? 'Saved to Assessment Bank' : 'Save to Assessment Bank'}
               >
                 {saved ? '✓ Saved' : '💾'}
               </button>

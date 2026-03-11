@@ -1,13 +1,17 @@
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect, Suspense, lazy } from 'react';
 import ReactDOM from 'react-dom/client';
 import App from './App';
 // FaqChatbot removed — merged into ChatPanel
-import Changelog from './pages/Changelog';
-import PrivacyPolicy from './pages/PrivacyPolicy';
-import TermsOfService from './pages/TermsOfService';
+const Changelog = lazy(() => import('./pages/Changelog'));
+const PrivacyPolicy = lazy(() => import('./pages/PrivacyPolicy'));
+const TermsOfService = lazy(() => import('./pages/TermsOfService'));
 import { CourseStoreProvider } from './model/courseStore';
 import { AuthProvider } from './contexts/AuthContext';
+import { AIConfigProvider } from './contexts/AIConfigContext';
+import { UIProvider } from './contexts/UIContext';
+import { CourseProvider } from './contexts/CourseContext';
 import ErrorBoundary from './components/ErrorBoundary';
+import { PageSkeleton } from './components/LoadingScreen';
 import './index.css';
 
 function Router() {
@@ -33,9 +37,11 @@ function Router() {
   return (
     <>
       <div style={{ display: page === 'app' ? 'block' : 'none' }}><App /></div>
-      {page === 'changelog' && <Changelog />}
-      {page === 'privacy' && <PrivacyPolicy />}
-      {page === 'terms' && <TermsOfService />}
+      <Suspense fallback={<PageSkeleton />}>
+        {page === 'changelog' && <Changelog />}
+        {page === 'privacy' && <PrivacyPolicy />}
+        {page === 'terms' && <TermsOfService />}
+      </Suspense>
     </>
   );
 }
@@ -50,11 +56,17 @@ if (!container._reactRoot) {
 container._reactRoot.render(
   <React.StrictMode>
     <AuthProvider>
-      <CourseStoreProvider>
-        <ErrorBoundary>
-          <Router />
-        </ErrorBoundary>
-      </CourseStoreProvider>
+      <AIConfigProvider>
+        <UIProvider>
+          <CourseProvider>
+            <CourseStoreProvider>
+              <ErrorBoundary>
+              <Router />
+              </ErrorBoundary>
+            </CourseStoreProvider>
+          </CourseProvider>
+        </UIProvider>
+      </AIConfigProvider>
     </AuthProvider>
   </React.StrictMode>
 );

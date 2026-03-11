@@ -52,6 +52,8 @@ export default function ChartCard({ chart, status }) {
       <button
         onClick={() => setCollapsed(v => !v)}
         className="w-full px-3.5 py-2 flex items-center gap-2 hover:bg-violet-50/80 transition-colors"
+        aria-expanded={!collapsed}
+        aria-label={collapsed ? 'Expand chart card' : 'Collapse chart card'}
       >
         <div className="w-5 h-5 rounded-full bg-violet-100 flex items-center justify-center flex-shrink-0">
           <svg className="w-3 h-3 text-violet-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">

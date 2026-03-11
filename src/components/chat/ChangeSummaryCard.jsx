@@ -18,6 +18,8 @@ export default function ChangeSummaryCard({ summary, onUndo, canUndo }) {
       <button
         onClick={() => setCollapsed(v => !v)}
         className="w-full px-3.5 py-2 flex items-center gap-2 hover:bg-emerald-50/80 transition-colors"
+        aria-expanded={!collapsed}
+        aria-label={collapsed ? 'Expand change summary' : 'Collapse change summary'}
       >
         <div className="w-5 h-5 rounded-full bg-emerald-100 flex items-center justify-center flex-shrink-0">
           <svg className="w-3 h-3 text-emerald-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">

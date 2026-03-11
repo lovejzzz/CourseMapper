@@ -59,6 +59,8 @@ export default function GenerationLogPanel({ entries, defaultCollapsed = false }
         <button
           onClick={() => setCollapsed(!collapsed)}
           className="w-full px-3 py-1.5 border-b border-slate-200/40 flex items-center gap-1.5 hover:bg-slate-100/40 transition-colors duration-150"
+          aria-label={collapsed ? 'Expand generation log' : 'Collapse generation log'}
+          aria-expanded={!collapsed}
         >
           <svg className="w-3 h-3 text-slate-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
             <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 5H7a2 2 0 00-2 2v12a2 2 0 002 2h10a2 2 0 002-2V7a2 2 0 00-2-2h-2M9 5a2 2 0 002 2h2a2 2 0 002-2M9 5a2 2 0 012-2h2a2 2 0 012 2" />
@@ -87,6 +89,7 @@ export default function GenerationLogPanel({ entries, defaultCollapsed = false }
               URL.revokeObjectURL(url);
             }}
             title="Download generation log as JSON"
+            aria-label="Download generation log as JSON"
             className="ml-1 p-0.5 rounded hover:bg-slate-200/60 transition-colors duration-150 text-slate-400 hover:text-slate-600"
           >
             <svg className="w-3 h-3" fill="none" stroke="currentColor" viewBox="0 0 24 24">

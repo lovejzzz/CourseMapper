@@ -39,6 +39,8 @@ export default function SyncSuggestionCard({ suggestion, onApprove, onSkip }) {
       <button
         onClick={() => setCollapsed(v => !v)}
         className={`w-full px-3.5 py-2 flex items-center gap-2 hover:${theme.bg} transition-colors`}
+        aria-expanded={!collapsed}
+        aria-label={collapsed ? 'Expand sync suggestion' : 'Collapse sync suggestion'}
       >
         <div className={`w-5 h-5 rounded-full ${theme.iconBg} flex items-center justify-center flex-shrink-0`}>
           {isDone ? (

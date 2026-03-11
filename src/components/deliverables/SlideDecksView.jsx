@@ -612,6 +612,8 @@ export default function SlideDecksView({ data, isStreaming, onEdit, slideTheme, 
               key={ti}
               onClick={() => onSlideThemeChange?.(ti)}
               title={t.name}
+              aria-label={`Select ${t.name} theme`}
+              aria-pressed={themeIndex === ti}
               className={`w-5 h-5 rounded-full border-2 transition-all flex-shrink-0 ${
                 themeIndex === ti
                   ? 'ring-2 ring-offset-1 ring-indigo-400 scale-110'
@@ -677,6 +679,8 @@ export default function SlideDecksView({ data, isStreaming, onEdit, slideTheme, 
               <button
                 key={j}
                 onClick={() => setActiveSlide(j)}
+                aria-label={`Go to slide ${j + 1}${s.title ? ': ' + s.title : ''}`}
+                aria-current={isActive ? 'true' : undefined}
                 className={`w-full text-left transition-all group ${
                   isActive ? '' : 'opacity-70 hover:opacity-100'
                 }`}
@@ -706,7 +710,7 @@ export default function SlideDecksView({ data, isStreaming, onEdit, slideTheme, 
         </div>
 
         {/* Right: Slide preview + notes */}
-        <div className="flex-1 flex flex-col min-w-0" style={{ background: 'linear-gradient(135deg, #e8eaee 0%, #dfe1e6 100%)' }}>
+        <div className="flex-1 flex flex-col min-w-0 bg-slate-200 dark:bg-slate-800">
           {/* Slide canvas area */}
           <div className="flex-1 flex items-center justify-center p-8 min-h-0">
             {slide ? (
@@ -764,6 +768,8 @@ export default function SlideDecksView({ data, isStreaming, onEdit, slideTheme, 
               <button
                 onClick={() => setShowNotes(!showNotes)}
                 className="w-full flex items-center gap-2 px-5 py-2 text-left hover:bg-slate-50/80 transition-colors"
+                aria-expanded={showNotes}
+                aria-label={showNotes ? 'Collapse speaker notes' : 'Expand speaker notes'}
               >
                 <svg className="w-3.5 h-3.5 text-slate-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                   <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M19 11a7 7 0 01-7 7m0 0a7 7 0 01-7-7m7 7v4m0 0H8m4 0h4m-4-8a3 3 0 01-3-3V5a3 3 0 116 0v6a3 3 0 01-3 3z" />

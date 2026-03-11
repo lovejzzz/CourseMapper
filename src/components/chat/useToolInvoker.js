@@ -1,0 +1,374 @@
+/**
+ * useToolInvoker.js — Agent tool execution: agentic loop, parallel tool calling,
+ * retry logic, loop detection, and progress card management.
+ *
+ * Extracted from useChatRouter.js (Issue #5) to reduce file size.
+ */
+
+import { buildAgentSystemPrompt } from '../../lib/agentPrompts';
+import { generateCourseHealthReport } from '../../lib/pedagogicalValidator';
+import { AGENT_TOOLS, TOOL_LABELS, summarizeToolResult } from '../../lib/agentTools';
+import { preValidateAction } from '../../lib/agentActions';
+import { estimateTokens, getModelLimit } from '../../lib/tokenEstimator';
+import {
+  buildNativeTools,
+  formatAssistantToolCalls, batchToolResults,
+} from '../../lib/agentProviders';
+import {
+  fetchAgentResponseNative, buildAgentChatHistory,
+} from './useStreamProcessor';
+
+/**
+ * Execute the multi-step agentic loop with native tool calling.
+ *
+ * This is a plain async function (not a hook) called from useChatRouter.
+ * All React state is passed in via the `ctx` parameter so this module
+ * stays free of React imports.
+ *
+ * @param {string} fullMessage  - The user (or synthetic) message to send
+ * @param {Object} opts
+ * @param {boolean}  opts.silent - If true, suppress user-facing messages
+ * @param {Object}  ctx         - Shared context from useChatRouter
+ */
+export async function runAgentLoop(fullMessage, { silent = false }, ctx) {
+  const {
+    messages,
+    setMessages,
+    setStreaming,
+    abortRef,
+    apiKey, provider, modelId,
+    courseMap, activeTab,
+    delivRef, executeActionRef, snapshotRef, notifyEditRef,
+    uid,
+    maybeRunValidation,
+    handleAgentFinalResponse,
+  } = ctx;
+
+  // Helper: update the progress card
+  const updateProgress = (updater) => {
+    setMessages(prev => {
+      const updated = [...prev];
+      const idx = updated.findLastIndex(m => m.role === 'agentProgress');
+      if (idx >= 0) updated[idx] = typeof updater === 'function' ? updater(updated[idx]) : { ...updated[idx], ...updater };
+      return updated;
+    });
+  };
+
+  // Helper: update a specific step by index
+  const updateStepAt = (stepIndex, updates) => {
+    updateProgress(card => {
+      const steps = [...card.steps];
+      if (stepIndex >= 0 && stepIndex < steps.length) {
+        steps[stepIndex] = { ...steps[stepIndex], ...updates };
+      }
+      return { ...card, steps };
+    });
+  };
+
+  try {
+    abortRef.current?.abort();
+    const controller = new AbortController();
+    abortRef.current = controller;
+
+    // Load user preferences
+    let userPrefs = null;
+    try { userPrefs = JSON.parse(localStorage.getItem('coursemapper-agent-prefs') || 'null'); } catch { /* ignore */ }
+
+    // Build context
+    const chatHistory = buildAgentChatHistory(messages);
+    const healthReport = (courseMap && delivRef.current)
+      ? generateCourseHealthReport(courseMap, delivRef.current)
+      : null;
+    const healthSummary = (healthReport && (healthReport.errorCount > 0 || healthReport.warningCount > 0))
+      ? healthReport.summary
+      : null;
+    const systemPrompt = buildAgentSystemPrompt(courseMap, activeTab, delivRef.current, healthSummary, userPrefs);
+
+    // ── Context window awareness: trim if approaching limit ──
+    const systemPromptTk = estimateTokens(systemPrompt);
+    const OUTPUT_RESERVE_TK = 4096;
+    const chatContent = chatHistory.map(m => m.content).join('') + fullMessage;
+    const chatTk = estimateTokens(chatContent);
+    const modelLimit = getModelLimit(modelId);
+    const availableForChat = modelLimit - systemPromptTk - OUTPUT_RESERVE_TK;
+
+    if (chatTk > availableForChat * 0.8) {
+      const excess = chatTk - Math.floor(availableForChat * 0.75);
+      const charsToTrim = excess * 4;
+      let trimmed = 0;
+      while (chatHistory.length > 2 && trimmed < charsToTrim) {
+        const removed = chatHistory.shift();
+        trimmed += (removed.content || '').length;
+      }
+    }
+
+    // Build native tools for provider
+    const nativeTools = buildNativeTools(provider, AGENT_TOOLS);
+
+    // Loop messages (internal to this turn — separate from chat history)
+    const loopMessages = [...chatHistory, { role: 'user', content: fullMessage }];
+
+    const MAX_ITERATIONS = 10;
+    let usedTools = false;
+
+    // ── Loop detection: track tool call signatures to prevent infinite loops ──
+    const toolCallLog = [];
+    function detectLoop(toolCalls) {
+      for (const tc of toolCalls) {
+        const sig = tc.name + ':' + JSON.stringify(tc.args || {});
+        toolCallLog.push(sig);
+        const count = toolCallLog.filter(s => s === sig).length;
+        if (count >= 3) return tc.name;
+      }
+      return null;
+    }
+
+    // ── AGENTIC LOOP (native tool calling) ───────────────────────────────
+    for (let iteration = 0; iteration < MAX_ITERATIONS; iteration++) {
+      const { toolCalls, textContent, stopReason } = await fetchAgentResponseNative(
+        loopMessages, systemPrompt, controller.signal, apiKey, provider, modelId, nativeTools,
+      );
+
+      // ── RESPOND TOOL (final answer) ──────────────────────────────────
+      if (toolCalls) {
+        const respondCall = toolCalls.find(tc => tc.name === 'respond');
+        if (respondCall) {
+          if (silent) {
+            setMessages(prev => {
+              const updated = [...prev];
+              const progressIdx = updated.findLastIndex(m => m.role === 'agentProgress');
+              if (progressIdx >= 0) updated.splice(progressIdx, 1);
+              return updated;
+            });
+          } else if (usedTools) {
+            updateProgress({ status: 'complete' });
+          } else {
+            setMessages(prev => {
+              const updated = [...prev];
+              const progressIdx = updated.findLastIndex(m => m.role === 'agentProgress');
+              if (progressIdx >= 0) updated.splice(progressIdx, 1);
+              return updated;
+            });
+          }
+          handleAgentFinalResponse(respondCall.args);
+          break;
+        }
+      }
+
+      // ── NO TOOL CALLS: text-only fallback ───────────────────────────
+      if (!toolCalls) {
+        const fallbackText = textContent || "I wasn't able to complete that request. Could you try asking about one specific aspect?";
+        if (silent) {
+          setMessages(prev => {
+            const updated = [...prev];
+            const progressIdx = updated.findLastIndex(m => m.role === 'agentProgress');
+            if (progressIdx >= 0) updated.splice(progressIdx, 1);
+            return updated;
+          });
+        } else if (usedTools) {
+          updateProgress({ status: 'complete' });
+          setMessages(prev => [...prev, { role: 'assistant', text: fallbackText }]);
+        } else {
+          setMessages(prev => {
+            const updated = [...prev];
+            const progressIdx = updated.findLastIndex(m => m.role === 'agentProgress');
+            if (progressIdx >= 0) updated[progressIdx] = { role: 'assistant', text: fallbackText };
+            return updated;
+          });
+        }
+        break;
+      }
+
+      // ── TOOL CALLS (parallel execution) ─────────────────────────────
+      const nonRespondCalls = toolCalls.filter(tc => tc.name !== 'respond');
+      if (nonRespondCalls.length > 0) {
+        const loopedTool = detectLoop(nonRespondCalls);
+        if (loopedTool) {
+          updateProgress({ status: 'error' });
+          setMessages(prev => [...prev, {
+            role: 'assistant',
+            text: `I noticed I was repeating the same operation (${loopedTool}) without making progress. Could you rephrase your request or be more specific?`,
+          }]);
+          break;
+        }
+
+        usedTools = true;
+
+        let stepStartIndex = 0;
+        const newSteps = nonRespondCalls.map(tc => ({
+          tool: tc.name,
+          label: TOOL_LABELS[tc.name] || tc.name,
+          thought: '',
+          status: 'running',
+          summary: '',
+        }));
+
+        updateProgress(card => {
+          stepStartIndex = card.steps.length;
+          return { ...card, steps: [...card.steps, ...newSteps] };
+        });
+
+        // Execute all tools in parallel (with 30s per-tool timeout)
+        const TOOL_TIMEOUT = 30000;
+        const toolResults = await Promise.all(nonRespondCalls.map(async (tc, i) => {
+          const stepIdx = stepStartIndex + i;
+          if (!AGENT_TOOLS[tc.name]) {
+            updateStepAt(stepIdx, { status: 'error', summary: `Unknown tool: ${tc.name}` });
+            return { toolCallId: tc.id, toolName: tc.name, result: { error: `Unknown tool: ${tc.name}. Available: ${Object.keys(AGENT_TOOLS).join(', ')}` } };
+          }
+
+          try {
+            const toolCtx = {
+              courseMap,
+              deliverables: delivRef.current,
+              executeAction: executeActionRef.current,
+              snapshot: snapshotRef.current,
+              uid,
+            };
+
+            async function execWithRetry(attempt = 0) {
+              const toolPromise = AGENT_TOOLS[tc.name].execute(tc.args || {}, toolCtx, controller.signal);
+              const timeoutPromise = new Promise((_, reject) =>
+                setTimeout(() => reject(new Error(`Tool ${tc.name} timed out after ${TOOL_TIMEOUT / 1000}s`)), TOOL_TIMEOUT)
+              );
+              try {
+                return await Promise.race([toolPromise, timeoutPromise]);
+              } catch (err) {
+                const isTransient = err.message?.includes('timed out') ||
+                  err.message?.includes('fetch') ||
+                  err.message?.includes('network') ||
+                  err.message?.includes('Failed to fetch');
+                if (isTransient && attempt < 1) {
+                  updateStepAt(stepIdx, { summary: 'Retrying...' });
+                  return execWithRetry(attempt + 1);
+                }
+                throw err;
+              }
+            }
+
+            const result = await execWithRetry();
+            const summary = summarizeToolResult(tc.name, result);
+            updateStepAt(stepIdx, { status: 'done', summary });
+
+            // If edit tool -> add changeSummary + trigger sync cascade
+            if ((tc.name === 'edit_course_map' || tc.name === 'edit_deliverables') && result.applied > 0) {
+              const changes = [];
+              const editedFeatures = new Set();
+              for (const detail of (result.details || [])) {
+                if (detail.success) {
+                  const featureId = detail.featureId || 'courseMap';
+                  const actionType = detail.action === 'addItem' ? 'added'
+                    : detail.action === 'removeItem' ? 'removed' : 'edited';
+                  const key = `${actionType}:${featureId}`;
+                  const existing = changes.find(c => `${c.type}:${c.featureId}` === key);
+                  if (existing) existing.count++;
+                  else changes.push({ type: actionType, featureId, count: 1 });
+                  if (featureId !== 'courseMap') {
+                    editedFeatures.add(`${featureId}:${detail.lessonIndex ?? 0}`);
+                  }
+                }
+              }
+              if (changes.length > 0) {
+                setMessages(prev => [...prev, {
+                  role: 'changeSummary',
+                  summary: { changes, message: `${result.applied} change${result.applied !== 1 ? 's' : ''} applied.` },
+                }]);
+              }
+
+              if (notifyEditRef.current && editedFeatures.size > 0) {
+                for (const entry of editedFeatures) {
+                  const [fid, lidx] = entry.split(':');
+                  const lessonIndex = lidx !== 'undefined' ? parseInt(lidx, 10) : null;
+                  notifyEditRef.current(lessonIndex, '_deliverableEdit', fid);
+                }
+              }
+
+              maybeRunValidation();
+            }
+
+            return { toolCallId: tc.id, toolName: tc.name, result };
+          } catch (toolErr) {
+            if (toolErr.name === 'AbortError') throw toolErr;
+            updateStepAt(stepIdx, { status: 'error', summary: toolErr.message });
+            return { toolCallId: tc.id, toolName: tc.name, result: { error: toolErr.message } };
+          }
+        }));
+
+        // Add assistant tool-call turn + all tool results to loop messages
+        loopMessages.push(formatAssistantToolCalls(provider, nonRespondCalls));
+        const resultMessages = batchToolResults(provider, toolResults);
+        loopMessages.push(...resultMessages);
+
+        continue;
+      }
+    }
+
+    // Post-loop cleanup
+    if (silent) {
+      setMessages(prev => {
+        const updated = [...prev];
+        const progressIdx = updated.findLastIndex(m => m.role === 'agentProgress');
+        if (progressIdx >= 0) updated.splice(progressIdx, 1);
+        return updated;
+      });
+    } else if (!usedTools) {
+      setMessages(prev => {
+        const updated = [...prev];
+        const progressIdx = updated.findLastIndex(m => m.role === 'agentProgress');
+        if (progressIdx >= 0) updated.splice(progressIdx, 1);
+        return updated;
+      });
+    } else {
+      updateProgress({ status: 'complete' });
+    }
+    if (!silent) {
+      setMessages(prev => {
+        const lastMsg = prev[prev.length - 1];
+        if (lastMsg?.role === 'assistant' || lastMsg?.role === 'proposal' || lastMsg?.role === 'changeSummary') return prev;
+        return [...prev, { role: 'assistant', text: "I've completed several steps but couldn't fully finish. Could you try a more specific request?" }];
+      });
+    }
+  } catch (err) {
+    if (err.name === 'AbortError') {
+      if (silent) {
+        setMessages(prev => {
+          const updated = [...prev];
+          const progressIdx = updated.findLastIndex(m => m.role === 'agentProgress');
+          if (progressIdx >= 0) updated.splice(progressIdx, 1);
+          return updated;
+        });
+      } else {
+        updateProgress({ status: 'complete' });
+      }
+      return;
+    }
+    const isNoKey = err.message === 'NO_API_KEY';
+    const isNoModel = err.message === 'NO_MODEL_SELECTED';
+    if (silent) {
+      setMessages(prev => {
+        const updated = [...prev];
+        const progressIdx = updated.findLastIndex(m => m.role === 'agentProgress');
+        if (progressIdx >= 0) updated.splice(progressIdx, 1);
+        return updated;
+      });
+    } else {
+      setMessages(prev => {
+        const updated = [...prev];
+        const progressIdx = updated.findLastIndex(m => m.role === 'agentProgress');
+        const errMsg = {
+          role: 'assistant',
+          text: isNoKey
+            ? 'To use the agent, please configure your AI provider and API key first.'
+            : isNoModel
+            ? 'No AI model selected. Please select a model on the landing page first.'
+            : "Sorry, I couldn't process that request. Please check your API key and try again.",
+        };
+        if (progressIdx >= 0) updated[progressIdx] = errMsg;
+        else updated.push(errMsg);
+        return updated;
+      });
+    }
+  } finally {
+    setStreaming(false);
+  }
+}

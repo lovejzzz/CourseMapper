@@ -97,6 +97,7 @@ export default function FileUpload({ files, setFiles }) {
                   removeFile(index);
                 }}
                 className="tactile text-slate-300 hover:text-red-400 transition-colors ml-2 flex-shrink-0"
+                aria-label={`Remove file ${file.name}`}
               >
                 <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                   <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M6 18L18 6M6 6l12 12" />

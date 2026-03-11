@@ -212,6 +212,7 @@ export default function MessageBubble({ role, text, isLast, isStreaming }) {
               onClick={handleCopy}
               className="absolute -top-2 -right-2 opacity-0 group-hover/msg:opacity-100 transition-opacity p-1 rounded-md bg-white border border-slate-200/60 shadow-sm hover:bg-slate-50 text-slate-400 hover:text-slate-600"
               title="Copy to clipboard"
+              aria-label={copied ? 'Copied to clipboard' : 'Copy to clipboard'}
             >
               {copied ? (
                 <svg className="w-3 h-3 text-emerald-500" fill="none" stroke="currentColor" viewBox="0 0 24 24">

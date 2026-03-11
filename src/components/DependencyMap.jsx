@@ -1,7 +1,9 @@
 import React, { useState, useMemo } from 'react';
 import { createPortal } from 'react-dom';
+import FocusTrap from 'focus-trap-react';
 import { DELIVERABLE_OUTBOUND_MAP } from '../lib/syncDependencies';
 import { FEATURES, COLOR_MAP } from '../screens/FeatureSelect';
+import { useCourse } from '../contexts/CourseContext';
 
 // ── Node layout (fixed positions in SVG viewBox 360×400) ────────────────────
 const NODE_W = 90;
@@ -49,7 +51,8 @@ function statusColor(deliverables, id) {
   return '#cbd5e1';
 }
 
-export default function DependencyMap({ isOpen, onClose, selectedFeatures, deliverables }) {
+export default function DependencyMap({ isOpen, onClose, deliverables }) {
+  const { selectedFeatures } = useCourse();
   const [focused, setFocused] = useState(null);
 
   // Build inbound map (reverse of outbound)
@@ -96,18 +99,19 @@ export default function DependencyMap({ isOpen, onClose, selectedFeatures, deliv
   const visibleNodes = Object.keys(NODE_POSITIONS);
 
   return createPortal(
-    <div className="fixed inset-0 z-[9998] bg-black/20 backdrop-blur-sm flex items-center justify-center" onClick={onClose}>
-      <div
-        className="bg-white/95 backdrop-blur-lg rounded-2xl shadow-2xl border border-slate-200/60 p-6 w-full max-w-lg animate-spring-in"
-        onClick={e => e.stopPropagation()}
-      >
+    <FocusTrap focusTrapOptions={{ clickOutsideDeactivates: true }}>
+      <div className="fixed inset-0 z-[9998] bg-black/20 backdrop-blur-sm flex items-center justify-center" onClick={onClose}>
+        <div
+          className="bg-white/95 backdrop-blur-lg rounded-2xl shadow-2xl border border-slate-200/60 p-6 w-full max-w-lg animate-spring-in"
+          onClick={e => e.stopPropagation()}
+        >
         {/* Header */}
         <div className="flex items-center justify-between mb-4">
           <div>
             <h3 className="text-base font-bold text-slate-800">Dependency Map</h3>
             <p className="text-[10px] text-slate-400 mt-0.5">Click a node to see what it feeds and what feeds it</p>
           </div>
-          <button onClick={onClose} className="tactile p-2 rounded-full text-slate-400 hover:bg-slate-100 hover:text-slate-600 transition-all">
+          <button onClick={onClose} className="tactile p-2 rounded-full text-slate-400 hover:bg-slate-100 hover:text-slate-600 transition-all" aria-label="Close dependency map">
             <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M6 18L18 6M6 6l12 12" /></svg>
           </button>
         </div>
@@ -256,8 +260,9 @@ export default function DependencyMap({ isOpen, onClose, selectedFeatures, deliv
             </div>
           </div>
         )}
+        </div>
       </div>
-    </div>,
+    </FocusTrap>,
     document.body
   );
 }

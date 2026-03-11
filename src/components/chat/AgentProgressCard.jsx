@@ -102,6 +102,8 @@ export default function AgentProgressCard({ steps = [], status = 'running' }) {
       <button
         onClick={() => setExpanded(v => !v)}
         className="w-full px-3.5 py-2 flex items-center gap-2 hover:bg-violet-50/80 transition-colors"
+        aria-expanded={showSteps}
+        aria-label={showSteps ? 'Collapse agent progress' : 'Expand agent progress'}
       >
         <div className="w-5 h-5 rounded-full bg-violet-100 flex items-center justify-center flex-shrink-0">
           {status === 'running' ? (

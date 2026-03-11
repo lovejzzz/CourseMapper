@@ -66,6 +66,130 @@ function getProvider(req) {
   return req.session?.provider || req.body?.provider;
 }
 
+// ── OpenRouter proxy (keeps OPENROUTER_KEY server-side only) ──
+
+// Streaming proxy for OpenRouter chat completions
+app.post('/api/proxy/openrouter/stream', async (req, res) => {
+  const serverKey = process.env.OPENROUTER_KEY;
+  if (!serverKey) {
+    return res.status(503).json({ error: 'OpenRouter proxy is not configured on this server.' });
+  }
+
+  const { model, messages, max_tokens, temperature, provider: providerHint } = req.body;
+  if (!model || !messages) {
+    return res.status(400).json({ error: 'model and messages are required.' });
+  }
+
+  res.setHeader('Content-Type', 'text/event-stream');
+  res.setHeader('Cache-Control', 'no-cache');
+  res.setHeader('Connection', 'keep-alive');
+  res.flushHeaders();
+
+  try {
+    const response = await fetch('https://openrouter.ai/api/v1/chat/completions', {
+      method: 'POST',
+      headers: {
+        'Authorization': `Bearer ${serverKey}`,
+        'Content-Type': 'application/json',
+      },
+      body: JSON.stringify({
+        model,
+        messages,
+        max_tokens: max_tokens || 16384,
+        ...(temperature !== undefined && { temperature }),
+        stream: true,
+        provider: providerHint || { data_collection: 'allow' },
+      }),
+    });
+
+    if (!response.ok) {
+      const err = await response.json().catch(() => ({}));
+      res.write(`data: ${JSON.stringify({ error: err.error?.message || `OpenRouter API error: ${response.status}` })}\n\n`);
+      res.write('data: [DONE]\n\n');
+      res.end();
+      return;
+    }
+
+    const reader = response.body.getReader();
+    const decoder = new TextDecoder();
+    let buffer = '';
+
+    while (true) {
+      const { done, value } = await reader.read();
+      if (done) break;
+
+      buffer += decoder.decode(value, { stream: true });
+      const lines = buffer.split('\n');
+      buffer = lines.pop() || '';
+
+      for (const line of lines) {
+        const trimmed = line.trim();
+        if (!trimmed) continue;
+        // Pass through SSE lines as-is to the client
+        res.write(trimmed + '\n\n');
+        if (trimmed === 'data: [DONE]') {
+          res.end();
+          return;
+        }
+      }
+    }
+
+    res.write('data: [DONE]\n\n');
+    res.end();
+  } catch (err) {
+    console.error('OpenRouter proxy stream error:', err.message);
+    res.write(`data: ${JSON.stringify({ error: err.message })}\n\n`);
+    res.write('data: [DONE]\n\n');
+    res.end();
+  }
+});
+
+// Non-streaming proxy for OpenRouter chat completions
+app.post('/api/proxy/openrouter', async (req, res) => {
+  const serverKey = process.env.OPENROUTER_KEY;
+  if (!serverKey) {
+    return res.status(503).json({ error: 'OpenRouter proxy is not configured on this server.' });
+  }
+
+  const { model, messages, max_tokens, temperature } = req.body;
+  if (!model || !messages) {
+    return res.status(400).json({ error: 'model and messages are required.' });
+  }
+
+  try {
+    const response = await fetch('https://openrouter.ai/api/v1/chat/completions', {
+      method: 'POST',
+      headers: {
+        'Authorization': `Bearer ${serverKey}`,
+        'Content-Type': 'application/json',
+      },
+      body: JSON.stringify({
+        model,
+        messages,
+        max_tokens: max_tokens || 16384,
+        ...(temperature !== undefined && { temperature }),
+        stream: false,
+      }),
+    });
+
+    if (!response.ok) {
+      const err = await response.json().catch(() => ({}));
+      return res.status(response.status).json({ error: err.error?.message || `OpenRouter API error: ${response.status}` });
+    }
+
+    const data = await response.json();
+    res.json(data);
+  } catch (err) {
+    console.error('OpenRouter proxy error:', err.message);
+    res.status(500).json({ error: err.message });
+  }
+});
+
+// Check if the server has an OpenRouter key configured (no key value exposed)
+app.get('/api/proxy/openrouter/status', (req, res) => {
+  res.json({ available: !!process.env.OPENROUTER_KEY });
+});
+
 // Serve static files in production
 if (process.env.NODE_ENV === 'production') {
   app.use(express.static(join(__dirname, 'dist')));

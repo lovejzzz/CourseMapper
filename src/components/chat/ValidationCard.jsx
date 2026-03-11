@@ -93,6 +93,8 @@ export default function ValidationCard({ report, onFixClick }) {
       <button
         onClick={() => setExpanded(v => !v)}
         className={`w-full px-4 py-2.5 flex items-center gap-2.5 hover:bg-slate-50/50 transition-colors rounded-t-xl ${headerBg}`}
+        aria-expanded={expanded}
+        aria-label={expanded ? 'Collapse validation results' : 'Expand validation results'}
       >
         {/* Shield icon */}
         <svg className={`w-4 h-4 ${headerIcon} flex-shrink-0`} fill="none" stroke="currentColor" viewBox="0 0 24 24">

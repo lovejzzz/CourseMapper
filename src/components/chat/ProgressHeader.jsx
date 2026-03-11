@@ -79,6 +79,8 @@ export default function ProgressHeader({
       <button
         onClick={() => setExpanded(v => !v)}
         className="w-full px-4 py-2.5 flex items-center gap-3 hover:bg-slate-50/50 transition-colors text-left"
+        aria-expanded={expanded}
+        aria-label={expanded ? 'Collapse generation progress' : 'Expand generation progress'}
       >
         {/* Progress bar */}
         <div className="flex-1 h-1.5 bg-slate-100 rounded-full overflow-hidden min-w-0">

@@ -17,6 +17,10 @@ export default function ChatInput({
   const [input, setInput] = useState('');
   const [isDragOver, setIsDragOver] = useState(false);
   const fileInputRef = useRef(null);
+  const lastSendTimeRef = useRef(0);
+
+  // Cooldown in ms between chat sends to prevent rapid-fire API calls
+  const SEND_COOLDOWN_MS = 1500;
 
   const isDeliverableTab = activeTab && activeTab !== 'courseMap';
   const delivLabel = isDeliverableTab ? resolveLabel(activeTab) : null;
@@ -35,6 +39,10 @@ export default function ChatInput({
 
   function handleSend() {
     if ((!input.trim() && (!attachedFiles || attachedFiles.length === 0)) || isStreaming || isRevising) return;
+    // Rate-limit: enforce cooldown between sends
+    const now = Date.now();
+    if (now - lastSendTimeRef.current < SEND_COOLDOWN_MS) return;
+    lastSendTimeRef.current = now;
     onSend(input);
     setInput('');
   }
@@ -68,7 +76,7 @@ export default function ChatInput({
                 <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M15.172 7l-6.586 6.586a2 2 0 102.828 2.828l6.414-6.586a4 4 0 00-5.656-5.656l-6.415 6.585a6 6 0 108.486 8.486L20.5 13" />
               </svg>
               {f.name}
-              <button onClick={() => onRemoveAttached(i)} className="ml-0.5 hover:text-red-500 transition-colors">
+              <button onClick={() => onRemoveAttached(i)} className="ml-0.5 hover:text-red-500 transition-colors" aria-label={`Remove ${f.name}`}>
                 <svg className="w-3 h-3" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                   <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M6 18L18 6M6 6l12 12" />
                 </svg>
@@ -119,6 +127,7 @@ export default function ChatInput({
                   disabled={busy}
                   className="tactile p-1 rounded-lg text-slate-400 hover:text-indigo-500 hover:bg-indigo-50/50 transition-all"
                   title="Attach files"
+                  aria-label="Attach files"
                 >
                   <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                     <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M15.172 7l-6.586 6.586a2 2 0 102.828 2.828l6.414-6.586a4 4 0 00-5.656-5.656l-6.415 6.585a6 6 0 108.486 8.486L20.5 13" />
@@ -141,6 +150,9 @@ export default function ChatInput({
               {isAgentMode && !busy && (
                 <button
                   onClick={() => {
+                    const now = Date.now();
+                    if (now - lastSendTimeRef.current < SEND_COOLDOWN_MS) return;
+                    lastSendTimeRef.current = now;
                     onSend('Review my course. Run validate_course, then scan all generated deliverables for: (1) weak learning objectives that use lower Bloom\'s verbs like "understand" or "know" — suggest upgrades, (2) misalignment between assessments and stated objectives, (3) missing or vague content in any deliverable, (4) readability issues. For each issue found, explain what\'s wrong and propose a specific fix using edit_deliverables or edit_course_map.');
                     setInput('');
                   }}
@@ -176,6 +188,7 @@ export default function ChatInput({
                 type="button"
                 onClick={onStop}
                 className="tactile px-3 py-1 rounded-lg text-[12px] font-semibold text-red-500 hover:bg-red-50 transition-all"
+                aria-label="Stop generation"
               >
                 {isRevising ? (
                   <span className="flex items-center gap-1.5">
@@ -192,6 +205,7 @@ export default function ChatInput({
                 onClick={handleSend}
                 disabled={!input.trim() && (!attachedFiles || attachedFiles.length === 0)}
                 className="tactile p-1.5 rounded-lg text-white bg-gradient-to-r from-indigo-500 to-violet-500 shadow-sm hover:brightness-110 transition-all disabled:opacity-30 disabled:cursor-not-allowed"
+                aria-label="Send message"
               >
                 <svg className="w-3.5 h-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                   <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M5 10l7-7m0 0l7 7m-7-7v18" />

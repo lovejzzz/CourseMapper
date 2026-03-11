@@ -1,4 +1,5 @@
 import React, { useState, useEffect, useRef } from 'react';
+import DOMPurify from 'dompurify';
 
 export default function DiagramCard({ diagram, status }) {
   const [collapsed, setCollapsed] = useState(false);
@@ -73,6 +74,8 @@ export default function DiagramCard({ diagram, status }) {
       <button
         onClick={() => setCollapsed(v => !v)}
         className="w-full px-3.5 py-2 flex items-center gap-2 hover:bg-indigo-50/80 transition-colors"
+        aria-expanded={!collapsed}
+        aria-label={collapsed ? 'Expand diagram card' : 'Collapse diagram card'}
       >
         <div className="w-5 h-5 rounded-full bg-indigo-100 flex items-center justify-center flex-shrink-0">
           <svg className="w-3 h-3 text-indigo-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
@@ -102,7 +105,7 @@ export default function DiagramCard({ diagram, status }) {
             <div
               ref={containerRef}
               className="bg-white rounded-lg border border-indigo-100/60 p-3 overflow-x-auto"
-              dangerouslySetInnerHTML={{ __html: svgHtml }}
+              dangerouslySetInnerHTML={{ __html: DOMPurify.sanitize(svgHtml, { USE_PROFILES: { svg: true, svgFilters: true } }) }}
             />
           )}
 

@@ -305,13 +305,33 @@ function buildProviderRequest(provider, apiKey, modelId, systemPrompt, userPromp
   }
 
   if (provider === 'openrouter') {
+    // If user provided their own key, call OpenRouter directly;
+    // otherwise route through server proxy (keeps server key private).
+    if (apiKey) {
+      return {
+        url: 'https://openrouter.ai/api/v1/chat/completions',
+        headers: {
+          'Authorization': `Bearer ${apiKey}`,
+          'Content-Type': 'application/json',
+          'HTTP-Referer': window.location.origin,
+        },
+        body: {
+          model: modelId,
+          messages: [
+            { role: 'system', content: systemPrompt },
+            { role: 'user', content: userPrompt },
+          ],
+          max_tokens: maxOutputTokens,
+          ...(temp !== undefined && { temperature: temp }),
+          stream: true,
+          provider: { data_collection: 'allow' },
+        },
+        parseChunk: (parsed) => parsed.choices?.[0]?.delta?.content || null,
+      };
+    }
     return {
-      url: 'https://openrouter.ai/api/v1/chat/completions',
-      headers: {
-        'Authorization': `Bearer ${apiKey}`,
-        'Content-Type': 'application/json',
-        'HTTP-Referer': window.location.origin,
-      },
+      url: '/api/proxy/openrouter/stream',
+      headers: { 'Content-Type': 'application/json' },
       body: {
         model: modelId,
         messages: [
@@ -320,8 +340,6 @@ function buildProviderRequest(provider, apiKey, modelId, systemPrompt, userPromp
         ],
         max_tokens: maxOutputTokens,
         ...(temp !== undefined && { temperature: temp }),
-        stream: true,
-        provider: { data_collection: 'allow' },
       },
       parseChunk: (parsed) => parsed.choices?.[0]?.delta?.content || null,
     };

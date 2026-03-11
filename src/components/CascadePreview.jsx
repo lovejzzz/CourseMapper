@@ -2,6 +2,7 @@ import React, { useMemo } from 'react';
 import { createPortal } from 'react-dom';
 import { DELIVERABLE_OUTBOUND_MAP, getAffectedFeatures, getOutboundTargets } from '../lib/syncDependencies';
 import { FEATURES, COLOR_MAP } from '../screens/FeatureSelect';
+import { useCourse } from '../contexts/CourseContext';
 
 const TOOLTIP_W = 260;
 const TOOLTIP_MAX_H = 140;
@@ -23,7 +24,8 @@ function getFeature(id) {
  * Exactly one of `fieldKey` (course map column hover) or `featureId` (tab hover)
  * should be set at a time.
  */
-export default function CascadePreview({ fieldKey, featureId, position, selectedFeatures, deliverables }) {
+export default function CascadePreview({ fieldKey, featureId, position, deliverables }) {
+  const { selectedFeatures } = useCourse();
   const affected = useMemo(() => {
     if (fieldKey) {
       // Course map cell hover — use FIELD_DEPENDENCY_MAP via public API

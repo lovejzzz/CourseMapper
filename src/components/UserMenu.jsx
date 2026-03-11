@@ -79,6 +79,8 @@ export default function UserMenu({ onOpenProjects }) {
       <button
         onClick={() => setOpen((v) => !v)}
         className="tactile flex items-center gap-2 rounded-pill pl-1 pr-3 py-1 text-[11px] font-semibold text-slate-600 bg-white/50 border border-slate-200/40 hover:bg-indigo-50/70 hover:border-indigo-200/50 shadow-glass transition-all duration-300"
+        aria-label="User menu"
+        aria-expanded={open}
       >
         {avatarUrl ? (
           <img

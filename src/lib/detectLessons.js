@@ -246,13 +246,15 @@ ${text.slice(0, 8000)}`;
       responseText = data.choices?.[0]?.message?.content || '';
 
     } else if (effectiveProvider === 'openrouter') {
-      const res = await fetch('https://openrouter.ai/api/v1/chat/completions', {
+      // Use user's own key directly, otherwise route through server proxy
+      const useProxy = !apiKey;
+      const url = useProxy ? '/api/proxy/openrouter' : 'https://openrouter.ai/api/v1/chat/completions';
+      const headers = useProxy
+        ? { 'Content-Type': 'application/json' }
+        : { 'Authorization': `Bearer ${apiKey}`, 'Content-Type': 'application/json', 'HTTP-Referer': window.location.origin };
+      const res = await fetch(url, {
         method: 'POST',
-        headers: {
-          'Authorization': `Bearer ${apiKey}`,
-          'Content-Type': 'application/json',
-          'HTTP-Referer': window.location.origin,
-        },
+        headers,
         body: JSON.stringify({
           model: modelId,
           messages: [

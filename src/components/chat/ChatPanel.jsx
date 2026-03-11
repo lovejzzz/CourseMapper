@@ -29,8 +29,6 @@ export default function ChatPanel({
   activeTab, courseMap,
   // Chat state
   chatHistory, onChatHistoryChange,
-  // Help AI config
-  apiKey, provider, modelId,
   // Exam review
   pendingExamPatches, examChanges, onAcceptPatches, onRejectPatch,
   // Agent: course map editor + deliverable update
@@ -74,7 +72,6 @@ export default function ChatPanel({
   }, [editor, optimisticUpdate, regenerateLesson, delivUndoSnapshot, onAgentHighlight]);
 
   const chat = useChatRouter({
-    apiKey, provider, modelId,
     courseMap, activeTab,
     onRevision, onDeliverableRevision,
     isStopped, onResume,
@@ -100,6 +97,9 @@ export default function ChatPanel({
       chat.pushSyncSuggestion(pendingSyncSuggestion);
       clearPendingSyncSuggestion?.();
     }
+  // Intentionally depends only on pendingSyncSuggestion: chat.pushSyncSuggestion and
+  // clearPendingSyncSuggestion are stable refs/callbacks. Including them would trigger
+  // spurious re-fires when the chat object identity changes during re-renders.
   }, [pendingSyncSuggestion]); // eslint-disable-line react-hooks/exhaustive-deps
 
   // Auto health-fix removed — users can trigger validation manually via "Review Course" button

@@ -1,5 +1,9 @@
 import React, { useState, useRef } from 'react';
+import FocusTrap from 'focus-trap-react';
 import { useAuth } from '../contexts/AuthContext';
+import { useAIConfig } from '../contexts/AIConfigContext';
+import { useUI } from '../contexts/UIContext';
+import { useCourse } from '../contexts/CourseContext';
 import { listCustomDeliverables, saveCustomDeliverable, deleteCustomDeliverable, toFeatureEntry, autoFillCustomDeliverable } from '../lib/customDeliverableLibrary';
 
 // ── Color choices for custom deliverables ────────────────────────────────────
@@ -135,7 +139,9 @@ export { FEATURES, COLOR_MAP };
 
 // ── Custom Deliverable Builder Modal ─────────────────────────────────────────
 
-export function CustomDeliverableBuilder({ isOpen, onClose, onSave, editDef, modelConfig }) {
+export function CustomDeliverableBuilder({ isOpen, onClose, onSave, editDef }) {
+  const { provider, apiKey, modelId } = useAIConfig();
+  const modelConfig = { provider, apiKey, modelId };
   const [name, setName] = useState(editDef?.name || '');
   const [description, setDescription] = useState(editDef?.description || '');
   const [color, setColor] = useState(editDef?.color || 'violet');
@@ -206,15 +212,16 @@ export function CustomDeliverableBuilder({ isOpen, onClose, onSave, editDef, mod
   const LENGTH_OPTS = ['Brief', 'Standard', 'Detailed', 'Comprehensive'];
 
   return (
-    <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/50 backdrop-blur-md">
-      <div className="bg-white rounded-2xl border border-slate-200/60 shadow-2xl max-w-lg w-full mx-4 animate-spring-scale max-h-[90vh] overflow-y-auto">
+    <FocusTrap focusTrapOptions={{ clickOutsideDeactivates: true }}>
+      <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/50 backdrop-blur-md">
+        <div className="bg-white rounded-2xl border border-slate-200/60 shadow-2xl max-w-lg w-full mx-4 animate-spring-scale max-h-[90vh] overflow-y-auto">
         {/* Header */}
         <div className="px-6 pt-5 pb-3 border-b border-slate-100/60">
           <div className="flex items-center justify-between">
             <h2 className="text-lg font-bold text-slate-800">
               {editDef?.id ? 'Edit Custom Deliverable' : 'Create Custom Deliverable'}
             </h2>
-            <button onClick={onClose} className="text-slate-400 hover:text-slate-600 transition-colors">
+            <button onClick={onClose} className="text-slate-400 hover:text-slate-600 transition-colors" aria-label="Close dialog">
               <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                 <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M6 18L18 6M6 6l12 12" />
               </svg>
@@ -293,6 +300,8 @@ export function CustomDeliverableBuilder({ isOpen, onClose, onSave, editDef, mod
                         className={`w-8 h-8 rounded-lg ${cm.iconBg} border-2 transition-all ${color === c ? `${cm.activeBorder} ring-2 ${cm.ring} scale-110` : 'border-transparent hover:scale-105'
                           }`}
                         title={c}
+                        aria-label={`Select ${c} color`}
+                        aria-pressed={color === c}
                       />
                     );
                   })}
@@ -310,6 +319,8 @@ export function CustomDeliverableBuilder({ isOpen, onClose, onSave, editDef, mod
                         className={`w-9 h-9 rounded-lg ${cm.iconBg} flex items-center justify-center border-2 transition-all ${iconIdx === i ? `${cm.activeBorder} ring-2 ${cm.ring} scale-110` : 'border-transparent hover:scale-105'
                           }`}
                         title={ic.label}
+                        aria-label={`Select ${ic.label} icon`}
+                        aria-pressed={iconIdx === i}
                       >
                         <svg className={`w-4 h-4 ${cm.iconText}`} fill="none" stroke="currentColor" viewBox="0 0 24 24">
                           <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={1.5} d={ic.path} />
@@ -416,14 +427,17 @@ export function CustomDeliverableBuilder({ isOpen, onClose, onSave, editDef, mod
               >{editDef?.id ? 'Save Changes' : 'Create Deliverable'}</button>
             )}
           </div>
+          </div>
         </div>
       </div>
-    </div>
+    </FocusTrap>
   );
 }
 
-export default function FeatureSelect({ selected, setSelected, onNext, onBack, hasSyllabusFile, modelConfig, onOpenHelp }) {
+export default function FeatureSelect({ onNext, onBack, hasSyllabusFile }) {
   const { user } = useAuth();
+  const { setShowHelp } = useUI();
+  const { selectedFeatures: selected, setSelectedFeatures: setSelected } = useCourse();
   const [hoveredId, setHoveredId] = useState(null);
   const [showBuilder, setShowBuilder] = useState(false);
   const [editingCustom, setEditingCustom] = useState(null); // custom def being edited
@@ -501,7 +515,7 @@ export default function FeatureSelect({ selected, setSelected, onNext, onBack, h
           Back
         </button>
         <button
-          onClick={onOpenHelp}
+          onClick={() => setShowHelp(true)}
           className="tactile flex items-center gap-1.5 text-[11px] font-semibold text-slate-400 hover:text-indigo-600 transition-colors"
         >
           <svg className="w-3.5 h-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
@@ -587,18 +601,26 @@ export default function FeatureSelect({ selected, setSelected, onNext, onBack, h
                   {isCustom && (
                     <div className="absolute bottom-3 right-3 flex gap-1 opacity-0 group-hover:opacity-100 transition-opacity duration-200">
                       <span
+                        role="button"
+                        tabIndex={0}
                         onClick={(e) => handleEditCustom(e, feature.id)}
+                        onKeyDown={(e) => { if (e.key === 'Enter' || e.key === ' ') handleEditCustom(e, feature.id); }}
                         className="w-5 h-5 rounded-md bg-white/80 border border-slate-200/60 flex items-center justify-center text-slate-400 hover:text-indigo-500 cursor-pointer transition-colors"
                         title="Edit"
+                        aria-label={`Edit ${feature.label}`}
                       >
                         <svg className="w-3 h-3" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                           <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M11 5H6a2 2 0 00-2 2v11a2 2 0 002 2h11a2 2 0 002-2v-5m-1.414-9.414a2 2 0 112.828 2.828L11.828 15H9v-2.828l8.586-8.586z" />
                         </svg>
                       </span>
                       <span
+                        role="button"
+                        tabIndex={0}
                         onClick={(e) => handleDeleteCustom(e, feature.id)}
+                        onKeyDown={(e) => { if (e.key === 'Enter' || e.key === ' ') handleDeleteCustom(e, feature.id); }}
                         className="w-5 h-5 rounded-md bg-white/80 border border-slate-200/60 flex items-center justify-center text-slate-400 hover:text-red-500 cursor-pointer transition-colors"
                         title="Delete"
+                        aria-label={`Delete ${feature.label}`}
                       >
                         <svg className="w-3 h-3" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                           <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16" />
@@ -690,7 +712,6 @@ export default function FeatureSelect({ selected, setSelected, onNext, onBack, h
         onClose={() => { setShowBuilder(false); setEditingCustom(null); }}
         onSave={handleSaveCustom}
         editDef={editingCustom}
-        modelConfig={modelConfig}
       />
     </div>
   );

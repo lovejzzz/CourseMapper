@@ -6,6 +6,7 @@ import { detectExpectedLessons } from '../lib/detectLessons';
 import useStreamReader from './useStreamReader';
 
 import applyPatches from '../lib/applyPatches';
+import { log, warn, error as logError } from '../lib/logger';
 import { getModeSystemAddition, getModeCourseMapNote } from '../lib/pedagogicalModes';
 import { validateCourseMap } from '../lib/validateCourseMap';
 
@@ -226,7 +227,7 @@ export default function useGeneration({
             setOldCourseMap(null);
           }
         } else {
-          console.warn(`Examine returned ${patchResult.lessons.length} lessons vs current ${currentLessonCount} — skipping`);
+          warn(`Examine returned ${patchResult.lessons.length} lessons vs current ${currentLessonCount} — skipping`);
           setOldCourseMap(null);
         }
       } else {
@@ -462,9 +463,20 @@ Generate lessons ${actual + 1} through ${expectedCount} now as JSON:`;
     return workingMap;
   }
 
+  // ── In-flight guard to prevent rapid-fire generate calls ──
+  const generateInFlightRef = useRef(false);
+
   // ── Main Generate ──
   // scopeOverride: if provided, uses this instead of the lessonScope from props (avoids async state lag)
   const handleGenerate = useCallback(async (scopeOverride) => {
+    // Prevent duplicate calls while a generation is already in progress
+    if (generateInFlightRef.current) {
+      log('[useGeneration] Generate call blocked — already in flight');
+      return;
+    }
+    generateInFlightRef.current = true;
+
+    try {
     setError('');
     setCourseMap(null);
     setRetryInfo(null);
@@ -733,6 +745,9 @@ Generate lessons ${actual + 1} through ${expectedCount} now as JSON:`;
       setStreamDetail('');
       setStreamProgress(0);
     }
+    } finally {
+      generateInFlightRef.current = false;
+    }
   }, [provider, modelId, apiKey, maxOutputTokens, files, columns, promptText, lessonScope, pedagogicalMode, setCourseMap, setOldCourseMap, pushVersion, setUserEdits, streamProvider, parsePartialJSON]);
 
   // ── Resume Generation ──
@@ -852,7 +867,7 @@ Generate lessons ${actual + 1} through ${expectedCount} now as JSON:`;
       } else if (newPart && newPart.lessons && newPart.lessons.length > 0) {
         finalResult = { ...existingMap, lessons: [...completeLessons, ...newPart.lessons] };
       } else if (existingMap && existingMap.lessons && existingMap.lessons.length > 0) {
-        console.warn('[Resume] AI did not produce new lessons, keeping existing map');
+        warn('[Resume] AI did not produce new lessons, keeping existing map');
         finalResult = existingMap;
       } else {
         throw new Error('Invalid response structure from AI.');
