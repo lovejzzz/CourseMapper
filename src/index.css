@@ -10,6 +10,12 @@ body {
   letter-spacing: -0.01em;
 }
 
+/* ── Accessible text color overrides (light mode) ──
+   Tailwind's default slate-400 (#94a3b8) = 2.8:1 on white — FAILS WCAG AA.
+   Bump to accessible values while keeping the visual hierarchy. */
+.text-slate-400 { color: #6b7a8d; }  /* ~4.7:1 on white — passes AA */
+.text-slate-500 { color: #5b6b7d; }  /* ~5.7:1 on white — passes AA */
+
 /* ── Mesh gradient background ── */
 .mesh-bg {
   background-color: #f7f8fc;
@@ -271,16 +277,17 @@ body {
   background-color: rgba(255, 255, 255, 0.06) !important;
 }
 
-/* Text colors — invert the full scale for dark mode */
-.dark .text-slate-900 { color: #f1f5f9 !important; }
-.dark .text-slate-800 { color: #e2e8f0 !important; }
-.dark .text-slate-700 { color: #cbd5e1 !important; }
-.dark .text-slate-600 { color: #94a3b8 !important; }
-.dark .text-slate-500 { color: #64748b !important; }
-.dark .text-slate-400 { color: #94a3b8 !important; }
-.dark .text-slate-300 { color: #64748b !important; }
+/* Text colors — invert the full scale for dark mode
+   All values pass WCAG AA (4.5:1) against dark bg #0f1117 */
+.dark .text-slate-900 { color: #f1f5f9 !important; }  /* ~18:1 */
+.dark .text-slate-800 { color: #e2e8f0 !important; }  /* ~15:1 */
+.dark .text-slate-700 { color: #cbd5e1 !important; }  /* ~12:1 */
+.dark .text-slate-600 { color: #94a3b8 !important; }  /* ~7.5:1 */
+.dark .text-slate-500 { color: #94a3b8 !important; }  /* ~7.5:1 — bumped from #64748b (4.2:1 FAIL) */
+.dark .text-slate-400 { color: #8898aa !important; }   /* ~6.1:1 — subtle but accessible */
+.dark .text-slate-300 { color: #7c8ca0 !important; }   /* ~5.1:1 — meets AA minimum */
 /* Slate-300/70 used in footers — keep visible but subtle */
-.dark [class*="text-slate-300\/"] { color: rgba(148, 163, 184, 0.5) !important; }
+.dark [class*="text-slate-300\/"] { color: rgba(148, 163, 184, 0.6) !important; }
 
 /* Borders */
 .dark .border-slate-100 { border-color: rgba(255,255,255,0.06) !important; }

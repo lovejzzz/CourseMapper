@@ -1,49 +1,24 @@
 import React from 'react';
+import Header from '../components/Header';
 
 const LAST_UPDATED = 'February 14, 2026';
 
 export default function TermsOfService() {
   return (
     <div className="min-h-screen mesh-bg noise-overlay">
-      <header className="relative pt-8 pb-6 px-8 max-w-3xl mx-auto w-full">
-        <div className="absolute top-0 left-0 right-0 h-[2px] bg-gradient-to-r from-transparent via-indigo-400/60 to-transparent" />
-        <div className="flex items-center justify-between">
-          <div className="flex items-center gap-4">
-            <a href="#/" className="relative group">
-              <div className="absolute -inset-1 bg-gradient-to-br from-indigo-500/20 to-violet-500/20 rounded-2xl blur-lg opacity-0 group-hover:opacity-100 transition-opacity duration-500" />
-              <div className="relative w-10 h-10 rounded-[12px] bg-gradient-to-br from-indigo-500 via-violet-500 to-purple-600 flex items-center justify-center shadow-lg shadow-indigo-500/20">
-                <svg className="w-5 h-5 text-white/95" viewBox="0 0 24 24" fill="none">
-                  <path d="M4 5a1 1 0 011-1h14a1 1 0 011 1v2a1 1 0 01-1 1H5a1 1 0 01-1-1V5z" stroke="currentColor" strokeWidth={1.6} strokeLinecap="round"/>
-                  <path d="M4 12a1 1 0 011-1h8a1 1 0 011 1v2a1 1 0 01-1 1H5a1 1 0 01-1-1v-2z" stroke="currentColor" strokeWidth={1.6} strokeLinecap="round"/>
-                  <path d="M4 19a1 1 0 011-1h5a1 1 0 011 1v1a1 1 0 01-1 1H5a1 1 0 01-1-1v-1z" stroke="currentColor" strokeWidth={1.6} strokeLinecap="round"/>
-                  <path d="M19 14l-2 2 2 2" stroke="currentColor" strokeWidth={1.6} strokeLinecap="round" strokeLinejoin="round"/>
-                  <circle cx="18" cy="18" r="1" fill="currentColor" opacity="0.6"/>
-                </svg>
-              </div>
-            </a>
-            <div>
-              <h1 className="text-lg font-extrabold tracking-tight text-slate-800">
-                Terms of <span className="text-gradient">Service</span>
-              </h1>
-              <p className="text-slate-400 text-[12px] font-medium mt-0.5">
-                Last updated: {LAST_UPDATED}
-              </p>
-            </div>
-          </div>
-          <a
-            href="#/"
-            className="tactile group flex items-center gap-2 px-4 py-2 rounded-pill text-[11px] font-semibold text-slate-500 bg-white/50 border border-slate-200/40 hover:bg-white/70 hover:text-slate-700 shadow-glass hover:shadow-glass-lg transition-all duration-300"
-          >
-            <svg className="w-3.5 h-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M10 19l-7-7m0 0l7-7m-7 7h18" />
-            </svg>
-            Back to App
-          </a>
-        </div>
-      </header>
+      <Header compact />
 
       <main className="max-w-3xl mx-auto px-8 pb-16">
-        <div className="glass panel-glow rounded-squircle shadow-glass p-8 space-y-6 text-sm text-slate-600 leading-relaxed">
+        <div className="mb-6">
+          <h1 className="text-2xl font-extrabold tracking-tight text-slate-800">
+            Terms of <span className="text-gradient">Service</span>
+          </h1>
+          <p className="text-slate-600 text-[12px] font-medium mt-1">
+            Last updated: {LAST_UPDATED}
+          </p>
+        </div>
+
+        <div className="glass panel-glow rounded-squircle shadow-glass p-8 space-y-6 text-sm text-slate-700 leading-relaxed">
 
           <Section title="Acceptance of Terms">
             <p>

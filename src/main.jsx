@@ -22,7 +22,10 @@ function Router() {
   const [page, setPage] = useState(getPage);
 
   useEffect(() => {
-    const onHash = () => setPage(getPage());
+    const onHash = () => {
+      setPage(getPage());
+      window.scrollTo(0, 0);
+    };
     window.addEventListener('hashchange', onHash);
     return () => window.removeEventListener('hashchange', onHash);
   }, []);

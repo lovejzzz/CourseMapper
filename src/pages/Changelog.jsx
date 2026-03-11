@@ -1,4 +1,5 @@
 import React from 'react';
+import Header from '../components/Header';
 
 const releases = [
   {
@@ -262,42 +263,33 @@ const colorMap = {
     icon: 'text-amber-500',
   },
   slate: {
-    badge: 'bg-slate-50 text-slate-600 border-slate-200/60',
+    badge: 'bg-slate-100 text-slate-700 border-slate-200/60',
     dot: 'bg-slate-400',
-    icon: 'text-slate-500',
+    icon: 'text-slate-600',
+  },
+  violet: {
+    badge: 'bg-violet-50 text-violet-700 border-violet-200/60',
+    dot: 'bg-violet-500',
+    icon: 'text-violet-500',
+  },
+  emerald: {
+    badge: 'bg-emerald-50 text-emerald-700 border-emerald-200/60',
+    dot: 'bg-emerald-500',
+    icon: 'text-emerald-500',
   },
 };
 
 export default function Changelog() {
   return (
-    <div className="min-h-screen bg-gradient-to-br from-slate-50 via-white to-indigo-50/30">
-      {/* Header */}
-      <header className="sticky top-0 z-50 backdrop-blur-xl bg-white/70 border-b border-slate-200/50">
-        <div className="max-w-3xl mx-auto px-6 py-4 flex items-center justify-between">
-          <a
-            href="#/"
-            className="flex items-center gap-2 text-slate-500 hover:text-indigo-600 transition-colors text-sm font-medium"
-          >
-            <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M15 19l-7-7 7-7" />
-            </svg>
-            Back to Course Mapper
-          </a>
-          <a
-            href="#/faq"
-            className="text-slate-400 hover:text-indigo-600 transition-colors text-sm font-medium"
-          >
-            Help
-          </a>
-        </div>
-      </header>
+    <div className="min-h-screen mesh-bg noise-overlay">
+      <Header compact />
 
       {/* Content */}
-      <main className="max-w-3xl mx-auto px-6 pt-16 pb-24">
+      <main className="max-w-3xl mx-auto px-6 pt-8 pb-24">
         {/* Page title */}
         <div className="mb-16">
           <h1 className="text-3xl font-bold text-slate-900 tracking-tight">Changelog</h1>
-          <p className="mt-2 text-slate-500 text-sm">New features, improvements, and fixes for Course Mapper.</p>
+          <p className="mt-2 text-slate-600 text-sm">New features, improvements, and fixes for Course Mapper.</p>
         </div>
 
         {/* Releases */}
@@ -309,13 +301,13 @@ export default function Changelog() {
                 <span className="text-2xl font-bold text-slate-900 tracking-tight">
                   v{release.version}
                 </span>
-                <span className="text-sm text-slate-400 font-medium">{release.date}</span>
+                <span className="text-sm text-slate-600 font-medium">{release.date}</span>
               </div>
 
               {/* Highlights */}
               {release.highlights && (
                 <div className="mb-10 p-5 rounded-2xl bg-gradient-to-r from-indigo-50/80 to-violet-50/60 border border-indigo-100/60">
-                  <p className="text-xs font-semibold text-indigo-500 uppercase tracking-wider mb-3">Highlights</p>
+                  <p className="text-xs font-semibold text-indigo-600 uppercase tracking-wider mb-3">Highlights</p>
                   <ul className="space-y-2">
                     {release.highlights.map((h, i) => (
                       <li key={i} className="flex items-start gap-2.5 text-sm text-slate-700 leading-relaxed">
@@ -344,7 +336,7 @@ export default function Changelog() {
                       </div>
                       <ul className="space-y-2.5 pl-1">
                         {section.items.map((item, i) => (
-                          <li key={i} className="flex items-start gap-3 text-sm text-slate-600 leading-relaxed">
+                          <li key={i} className="flex items-start gap-3 text-sm text-slate-700 leading-relaxed">
                             <span className={`mt-[7px] w-1.5 h-1.5 rounded-full ${colors.dot} flex-shrink-0`} />
                             {item}
                           </li>
@@ -361,7 +353,7 @@ export default function Changelog() {
 
       {/* Footer */}
       <footer className="border-t border-slate-200/50 py-8">
-        <p className="text-center text-xs text-slate-400">
+        <p className="text-center text-xs text-slate-600">
           Course Mapper &mdash; Transform syllabi into structured course maps with AI.
         </p>
       </footer>

@@ -2,26 +2,29 @@ import React from 'react';
 import UserMenu from './UserMenu';
 import DarkModeToggle from './DarkModeToggle';
 
-export default function Header({ onOpenProjects, onOpenHelp }) {
+export default function Header({ onOpenProjects, onOpenHelp, compact }) {
 
   return (
     <>
-      <header className="relative pt-4 pb-2 px-8 max-w-7xl mx-auto">
+      <header className={`relative ${compact ? 'pt-3 pb-2 px-6' : 'pt-4 pb-2 px-8'} max-w-7xl mx-auto`}>
         {/* Decorative top accent — thinner, more refined */}
         <div className="absolute top-0 left-0 right-0 h-px bg-gradient-to-r from-transparent via-indigo-400/40 to-transparent" />
 
         <div className="flex items-center justify-between w-full">
-          <div className="flex items-center">
-            <img
-              src={`${import.meta.env.BASE_URL}CMlogo.png`}
-              alt="Course Mapper"
-              className="h-24 sm:h-32 md:h-40 w-auto object-contain"
-            />
-          </div>
+          <a href="#/" className="flex items-center">
+            {/* Crop the subtitle from the bottom of the logo image */}
+            <div className={`overflow-hidden ${compact ? 'h-8' : 'h-16 sm:h-20 md:h-24'}`}>
+              <img
+                src={`${import.meta.env.BASE_URL}CMlogo.png`}
+                alt="Course Mapper"
+                className={`${compact ? 'h-12' : 'h-24 sm:h-28 md:h-36'} w-auto object-contain object-top`}
+              />
+            </div>
+          </a>
 
           <div className="flex items-center gap-2">
             <DarkModeToggle />
-            <UserMenu onOpenProjects={onOpenProjects} />
+            {onOpenProjects && <UserMenu onOpenProjects={onOpenProjects} />}
             {onOpenHelp && (
               <button
                 onClick={onOpenHelp}
