@@ -910,6 +910,7 @@ export default function App() {
         lessonCount={lessonCount}
         isDetectingLessons={isDetectingLessons}
         courseMap={courseMap}
+        deliverables={deliv.deliverables}
         columns={columns}
         setColumns={setColumns}
         onBack={() => setScreen('features')}

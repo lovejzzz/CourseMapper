@@ -453,200 +453,309 @@ function AdvancedSection({ children }) {
 
 // ── Deliverable preview snippets ──────────────────────────────────────────────
 
-const PREVIEW_SNIPPETS = {
-  courseMap: {
-    label: 'Course Map Preview',
-    rows: [
-      ['Week 1: Foundations', 'Define key concepts', 'Students will identify…', 'Reading quiz'],
-      ['Week 2: Methods', 'Compare approaches', 'Students will analyze…', 'Case study'],
-    ],
-    headers: ['Week/Module', 'Learning Goals', 'Objectives', 'Assessments'],
-  },
-  lessonPlans: {
-    label: 'Lesson Plan Preview',
-    lines: [
-      { t: 'Warm-up', d: 'Think-Pair-Share: What is social justice?', time: '10 min' },
-      { t: 'Lecture', d: 'Key theories & frameworks', time: '25 min' },
-      { t: 'Activity', d: 'Small group case study analysis', time: '30 min' },
-      { t: 'Wrap-up', d: 'Exit ticket + homework overview', time: '10 min' },
-    ],
-  },
-  slideDecks: {
-    label: 'Slide Deck Preview',
-    slides: ['Title Slide', 'Learning Objectives', 'Key Concept 1', 'Discussion Activity', 'Summary & Next Steps'],
-  },
-  rubrics: {
-    label: 'Rubric Preview',
-    criteria: ['Critical Thinking', 'Evidence & Support', 'Organization'],
-    levels: ['Developing', 'Proficient', 'Mastery'],
-  },
-  quizBank: {
-    label: 'Quiz Bank Preview',
-    questions: [
-      { type: 'MC', q: 'Which theory best explains…?', opts: ['A) Social learning', 'B) Ecological', 'C) Systems'] },
-      { type: 'Short', q: 'Define "evidence-based practice" in your own words.' },
-    ],
-  },
-  discussions: {
-    label: 'Discussion Preview',
-    prompt: 'How might cultural competency frameworks apply to your field placement experience? Provide specific examples.',
-    followUp: 'Respond to at least two peers with constructive feedback.',
-  },
-  assignments: {
-    label: 'Assignment Preview',
-    title: 'Community Needs Assessment',
-    components: ['Problem statement (200 words)', 'Literature review (3 sources)', 'Methodology', 'Reflection'],
-  },
-  studyGuides: {
-    label: 'Study Guide Preview',
-    terms: [
-      { term: 'Evidence-Based Practice', def: 'Integration of best research with clinical expertise…' },
-      { term: 'Cultural Competency', def: 'Ability to understand and interact effectively…' },
-    ],
-  },
-  syllabus: {
-    label: 'Syllabus Preview',
-    sections: ['Course Description', 'Learning Outcomes', 'Required Texts', 'Grading Policy', 'Weekly Schedule'],
-  },
+const FEATURE_LABELS = {
+  courseMap: 'Course Map',
+  lessonPlans: 'Lesson Plans',
+  slideDecks: 'Slide Decks',
+  rubrics: 'Rubrics',
+  quizBank: 'Quiz & Exam Bank',
+  discussions: 'Discussion Prompts',
+  assignments: 'Assignment Briefs',
+  studyGuides: 'Study Guides',
+  syllabus: 'Syllabus',
 };
 
-function DeliverablePreview({ featureId }) {
-  const preview = PREVIEW_SNIPPETS[featureId];
+function DeliverablePreview({ featureId, delivData, courseMap, columns }) {
   const [fullscreen, setFullscreen] = useState(false);
-  if (!preview) return null;
+  const label = FEATURE_LABELS[featureId] || featureId;
 
-  const previewContent = (isFullscreen) => (
-    <div className={`${isFullscreen ? 'p-6 text-sm' : 'p-3 text-[10px]'} text-slate-500 leading-relaxed`}>
-      {/* Course Map — mini table */}
-      {preview.headers && (
-        <div className="overflow-hidden rounded border border-slate-200/40">
-          <div className="flex bg-slate-50/80">
-            {preview.headers.map(h => (
-              <div key={h} className={`flex-1 ${isFullscreen ? 'px-4 py-2' : 'px-2 py-1'} font-semibold text-slate-600 border-r border-slate-200/30 last:border-r-0`}>{h}</div>
-            ))}
-          </div>
-          {preview.rows.map((row, i) => (
-            <div key={i} className="flex border-t border-slate-200/30">
-              {row.map((cell, j) => (
-                <div key={j} className={`flex-1 ${isFullscreen ? 'px-4 py-2' : 'px-2 py-1'} border-r border-slate-200/30 last:border-r-0`}>{cell}</div>
-              ))}
-            </div>
-          ))}
-        </div>
-      )}
+  // Extract real content from deliverable data
+  const realContent = React.useMemo(() => {
+    if (featureId === 'courseMap' && courseMap?.lessons?.length > 0) {
+      const lessons = courseMap.lessons.slice(0, 3);
+      const cols = (columns || []).filter(c => c.enabled !== false).slice(0, 3);
+      return { type: 'courseMap', lessons, cols, total: courseMap.lessons.length };
+    }
+    if (!delivData) return null;
 
-      {/* Lesson Plans — timeline */}
-      {preview.lines && (
-        <div className={`${isFullscreen ? 'space-y-3' : 'space-y-1.5'}`}>
-          {preview.lines.map((line, i) => (
-            <div key={i} className="flex items-start gap-2">
-              <span className={`${isFullscreen ? 'w-14' : 'w-10'} flex-shrink-0 text-right font-mono text-indigo-400`}>{line.time}</span>
-              <div className={`${isFullscreen ? 'w-2 h-2 mt-1.5' : 'w-1 h-1 mt-1.5'} rounded-full bg-indigo-300 flex-shrink-0`} />
-              <span><strong className="text-slate-600">{line.t}:</strong> {line.d}</span>
-            </div>
-          ))}
-        </div>
-      )}
+    switch (featureId) {
+      case 'lessonPlans': {
+        const plans = delivData.plans || delivData.lessonPlans || [];
+        if (plans.length === 0) return null;
+        return { type: 'lessonPlans', items: plans.slice(0, 3), total: plans.length };
+      }
+      case 'slideDecks': {
+        const decks = delivData.decks || delivData.slideDecks || [];
+        if (decks.length === 0) return null;
+        return { type: 'slideDecks', items: decks.slice(0, 3), total: decks.length };
+      }
+      case 'rubrics': {
+        const rubrics = delivData.rubrics || [];
+        if (rubrics.length === 0) return null;
+        return { type: 'rubrics', items: rubrics.slice(0, 3), total: rubrics.length };
+      }
+      case 'quizBank': {
+        const quizzes = delivData.quizzes || delivData.quizBank || [];
+        if (quizzes.length === 0) return null;
+        return { type: 'quizBank', items: quizzes.slice(0, 2), total: quizzes.length };
+      }
+      case 'discussions': {
+        const discs = delivData.discussions || [];
+        if (discs.length === 0) return null;
+        return { type: 'discussions', items: discs.slice(0, 2), total: discs.length };
+      }
+      case 'assignments': {
+        const asgn = delivData.assignments || [];
+        if (asgn.length === 0) return null;
+        return { type: 'assignments', items: asgn.slice(0, 2), total: asgn.length };
+      }
+      case 'studyGuides': {
+        const guides = delivData.studyGuides || delivData.guides || [];
+        if (guides.length === 0) return null;
+        return { type: 'studyGuides', items: guides.slice(0, 2), total: guides.length };
+      }
+      case 'syllabus': {
+        const sections = delivData.sections || [];
+        if (sections.length === 0) return null;
+        return { type: 'syllabus', sections: sections.slice(0, 5), total: sections.length };
+      }
+      default: return null;
+    }
+  }, [featureId, delivData, courseMap, columns]);
 
-      {/* Slide Decks — slide strip */}
-      {preview.slides && (
-        <div className="flex gap-1.5 overflow-x-auto pb-1">
-          {preview.slides.map((s, i) => (
-            <div key={i} className={`flex-shrink-0 ${isFullscreen ? 'w-32 h-20' : 'w-20 h-14'} rounded border border-slate-200/50 bg-white/60 flex items-center justify-center p-1 text-center text-slate-500 leading-tight`}>
-              <span className={isFullscreen ? 'text-xs' : 'text-[9px]'}>{s}</span>
-            </div>
-          ))}
-        </div>
-      )}
+  if (!realContent) return null;
 
-      {/* Rubrics — mini grid */}
-      {preview.criteria && (
-        <div className="overflow-hidden rounded border border-slate-200/40">
-          <div className="flex bg-slate-50/80">
-            <div className={`${isFullscreen ? 'w-36 px-4 py-2' : 'w-24 px-2 py-1'} font-semibold text-slate-600 border-r border-slate-200/30`}>Criteria</div>
-            {preview.levels.map(l => (
-              <div key={l} className={`flex-1 ${isFullscreen ? 'px-4 py-2' : 'px-2 py-1'} font-semibold text-slate-600 border-r border-slate-200/30 last:border-r-0 text-center`}>{l}</div>
-            ))}
-          </div>
-          {preview.criteria.map((c, i) => (
-            <div key={i} className="flex border-t border-slate-200/30">
-              <div className={`${isFullscreen ? 'w-36 px-4 py-2' : 'w-24 px-2 py-1'} font-medium text-slate-600 border-r border-slate-200/30`}>{c}</div>
-              {preview.levels.map(l => (
-                <div key={l} className={`flex-1 ${isFullscreen ? 'px-4 py-2' : 'px-2 py-1'} border-r border-slate-200/30 last:border-r-0 text-center text-slate-400 italic`}>descriptor</div>
-              ))}
-            </div>
-          ))}
-        </div>
-      )}
+  const truncate = (str, len = 60) => {
+    if (!str) return '';
+    const s = Array.isArray(str) ? str.join(', ') : String(str);
+    return s.length > len ? s.slice(0, len) + '…' : s;
+  };
 
-      {/* Quiz Bank — questions */}
-      {preview.questions && (
-        <div className={`${isFullscreen ? 'space-y-4' : 'space-y-2'}`}>
-          {preview.questions.map((q, i) => (
-            <div key={i} className="space-y-0.5">
-              <div className="flex items-center gap-1.5">
-                <span className={`px-1.5 py-0.5 rounded bg-indigo-50/80 text-indigo-500 font-semibold ${isFullscreen ? 'text-xs' : 'text-[9px]'}`}>{q.type}</span>
-                <span className="text-slate-600">{q.q}</span>
+  const renderContent = (expanded) => {
+    const sz = expanded ? 'text-xs' : 'text-[10px]';
+    const pad = expanded ? 'px-4 py-2' : 'px-2 py-1';
+    const maxItems = expanded ? realContent.total : (realContent.items?.length || realContent.sections?.length || 3);
+
+    switch (realContent.type) {
+      case 'courseMap': {
+        const { lessons, cols } = realContent;
+        const showLessons = expanded ? courseMap.lessons : lessons;
+        return (
+          <div className="overflow-x-auto">
+            <div className="overflow-hidden rounded border border-slate-200/40 min-w-0">
+              <div className="flex bg-slate-50/80">
+                <div className={`${pad} font-semibold text-slate-600 border-r border-slate-200/30 flex-shrink-0 w-28`}>Week/Module</div>
+                {cols.map(c => (
+                  <div key={c.key} className={`flex-1 ${pad} font-semibold text-slate-600 border-r border-slate-200/30 last:border-r-0 min-w-0`}>{c.label}</div>
+                ))}
               </div>
-              {q.opts && (
-                <div className="ml-8 space-y-0.5">
-                  {q.opts.map((o, j) => <div key={j} className="text-slate-400">{o}</div>)}
+              {showLessons.map((lesson, i) => (
+                <div key={i} className="flex border-t border-slate-200/30">
+                  <div className={`${pad} text-slate-700 font-medium border-r border-slate-200/30 flex-shrink-0 w-28 truncate`}>{lesson.title || `Lesson ${i + 1}`}</div>
+                  {cols.map(c => {
+                    const sections = lesson.sections || [];
+                    const val = sections.map(s => s[c.key]).filter(Boolean).join('; ');
+                    return <div key={c.key} className={`flex-1 ${pad} border-r border-slate-200/30 last:border-r-0 min-w-0 truncate`}>{truncate(val, expanded ? 120 : 50)}</div>;
+                  })}
                 </div>
-              )}
+              ))}
             </div>
-          ))}
-        </div>
-      )}
-
-      {/* Discussions — prompt */}
-      {preview.prompt && (
-        <div className="space-y-1.5">
-          <p className="text-slate-600 italic">"{preview.prompt}"</p>
-          <p className="text-slate-400">{preview.followUp}</p>
-        </div>
-      )}
-
-      {/* Assignments — components list */}
-      {preview.components && (
-        <div className="space-y-1">
-          <p className="font-semibold text-slate-600">{preview.title}</p>
-          <ul className="list-disc list-inside space-y-0.5 ml-1">
-            {preview.components.map((c, i) => <li key={i}>{c}</li>)}
-          </ul>
-        </div>
-      )}
-
-      {/* Study Guides — term definitions */}
-      {preview.terms && (
-        <div className="space-y-1.5">
-          {preview.terms.map((t, i) => (
-            <div key={i}>
-              <span className="font-semibold text-slate-600">{t.term}:</span>{' '}
-              <span>{t.def}</span>
-            </div>
-          ))}
-        </div>
-      )}
-
-      {/* Syllabus — section list */}
-      {preview.sections && (
-        <div className={`${isFullscreen ? 'space-y-2' : 'space-y-1'}`}>
-          {preview.sections.map((s, i) => (
-            <div key={i} className="flex items-center gap-2">
-              <span className={`${isFullscreen ? 'w-6 h-6 text-xs' : 'w-4 h-4 text-[9px]'} rounded bg-cyan-50/80 text-cyan-500 flex items-center justify-center font-bold flex-shrink-0`}>{i + 1}</span>
-              <span className="text-slate-600">{s}</span>
-            </div>
-          ))}
-        </div>
-      )}
-    </div>
-  );
+            {!expanded && realContent.total > 3 && <p className="text-[9px] text-slate-400 mt-1 text-right">+ {realContent.total - 3} more lessons</p>}
+          </div>
+        );
+      }
+      case 'lessonPlans': {
+        const items = expanded ? (delivData.plans || delivData.lessonPlans || []) : realContent.items;
+        return (
+          <div className="space-y-2">
+            {items.map((plan, i) => {
+              const outline = plan.sessionOutline || plan.outline || [];
+              return (
+                <div key={i} className="rounded border border-slate-200/30 overflow-hidden">
+                  <div className={`${pad} bg-slate-50/60 font-semibold text-slate-700`}>{plan.lessonTitle || plan.title || `Lesson ${i + 1}`}</div>
+                  {outline.slice(0, expanded ? 8 : 3).map((seg, j) => (
+                    <div key={j} className={`${pad} border-t border-slate-200/20 flex items-start gap-2`}>
+                      <span className="font-mono text-indigo-400 flex-shrink-0 w-12 text-right">{seg.duration || seg.time || ''}</span>
+                      <div className="w-1 h-1 rounded-full bg-indigo-300 mt-1.5 flex-shrink-0" />
+                      <span><strong className="text-slate-600">{seg.activity || seg.section || ''}:</strong> {truncate(seg.description || seg.details || '', expanded ? 200 : 60)}</span>
+                    </div>
+                  ))}
+                  {!expanded && outline.length > 3 && <div className={`${pad} border-t border-slate-200/20 text-slate-400 italic`}>+ {outline.length - 3} more segments</div>}
+                </div>
+              );
+            })}
+            {!expanded && realContent.total > items.length && <p className="text-[9px] text-slate-400 text-right">+ {realContent.total - items.length} more plans</p>}
+          </div>
+        );
+      }
+      case 'slideDecks': {
+        const items = expanded ? (delivData.decks || delivData.slideDecks || []) : realContent.items;
+        return (
+          <div className="space-y-2">
+            {items.map((deck, i) => {
+              const slides = deck.slides || [];
+              return (
+                <div key={i}>
+                  <p className="font-semibold text-slate-700 mb-1">{deck.lessonTitle || deck.title || `Deck ${i + 1}`} ({slides.length} slides)</p>
+                  <div className="flex gap-1.5 overflow-x-auto pb-1">
+                    {slides.slice(0, expanded ? 12 : 5).map((s, j) => (
+                      <div key={j} className={`flex-shrink-0 ${expanded ? 'w-28 h-18' : 'w-20 h-14'} rounded border border-slate-200/50 bg-white/60 flex items-center justify-center p-1 text-center leading-tight`}>
+                        <span className="text-[9px] text-slate-500 line-clamp-2">{s.title || s.heading || `Slide ${j + 1}`}</span>
+                      </div>
+                    ))}
+                    {slides.length > (expanded ? 12 : 5) && <div className={`flex-shrink-0 ${expanded ? 'w-28 h-18' : 'w-20 h-14'} rounded border border-dashed border-slate-200/50 flex items-center justify-center text-[9px] text-slate-400`}>+{slides.length - (expanded ? 12 : 5)}</div>}
+                  </div>
+                </div>
+              );
+            })}
+          </div>
+        );
+      }
+      case 'rubrics': {
+        const items = expanded ? (delivData.rubrics || []) : realContent.items;
+        return (
+          <div className="space-y-2">
+            {items.map((rubric, i) => {
+              const criteria = rubric.criteria || [];
+              const levels = criteria[0]?.levels || [];
+              return (
+                <div key={i}>
+                  <p className="font-semibold text-slate-700 mb-1">{rubric.assignmentTitle || rubric.title || `Rubric ${i + 1}`}</p>
+                  <div className="overflow-hidden rounded border border-slate-200/40">
+                    <div className="flex bg-slate-50/80">
+                      <div className={`${pad} font-semibold text-slate-600 border-r border-slate-200/30 w-24 flex-shrink-0`}>Criteria</div>
+                      {levels.map((l, k) => (
+                        <div key={k} className={`flex-1 ${pad} font-semibold text-slate-600 border-r border-slate-200/30 last:border-r-0 text-center`}>{l.label || l.level || `Level ${k + 1}`}</div>
+                      ))}
+                    </div>
+                    {criteria.slice(0, expanded ? 8 : 3).map((c, k) => (
+                      <div key={k} className="flex border-t border-slate-200/30">
+                        <div className={`${pad} font-medium text-slate-600 border-r border-slate-200/30 w-24 flex-shrink-0 truncate`}>{c.name || c.criterion || ''}</div>
+                        {(c.levels || []).map((l, m) => (
+                          <div key={m} className={`flex-1 ${pad} border-r border-slate-200/30 last:border-r-0 text-center truncate`}>{truncate(l.description || '', expanded ? 80 : 30)}</div>
+                        ))}
+                      </div>
+                    ))}
+                  </div>
+                </div>
+              );
+            })}
+          </div>
+        );
+      }
+      case 'quizBank': {
+        const items = expanded ? (delivData.quizzes || delivData.quizBank || []) : realContent.items;
+        return (
+          <div className="space-y-2">
+            {items.map((quiz, i) => {
+              const questions = quiz.questions || [];
+              return (
+                <div key={i}>
+                  <p className="font-semibold text-slate-700 mb-1">{quiz.lessonTitle || quiz.title || `Quiz ${i + 1}`} ({questions.length} questions)</p>
+                  <div className="space-y-1">
+                    {questions.slice(0, expanded ? 10 : 3).map((q, j) => (
+                      <div key={j} className="flex items-start gap-1.5">
+                        <span className="px-1.5 py-0.5 rounded bg-indigo-50/80 text-indigo-500 font-semibold text-[9px] flex-shrink-0">{q.type || 'Q'}</span>
+                        <span className="text-slate-600">{truncate(q.question || q.prompt || '', expanded ? 200 : 80)}</span>
+                      </div>
+                    ))}
+                    {questions.length > (expanded ? 10 : 3) && <p className="text-slate-400 italic">+ {questions.length - (expanded ? 10 : 3)} more questions</p>}
+                  </div>
+                </div>
+              );
+            })}
+          </div>
+        );
+      }
+      case 'discussions': {
+        const items = expanded ? (delivData.discussions || []) : realContent.items;
+        return (
+          <div className="space-y-2">
+            {items.map((disc, i) => (
+              <div key={i} className="rounded border border-slate-200/30 overflow-hidden">
+                <div className={`${pad} bg-slate-50/60 font-semibold text-slate-700`}>{disc.lessonTitle || disc.title || `Discussion ${i + 1}`}</div>
+                <div className={`${pad} border-t border-slate-200/20`}>
+                  <p className="text-slate-600 italic">"{truncate(disc.prompt || disc.mainPrompt || '', expanded ? 300 : 100)}"</p>
+                  {disc.followUp && <p className="text-slate-400 mt-1">{truncate(disc.followUp || disc.responseGuidelines || '', expanded ? 200 : 80)}</p>}
+                </div>
+              </div>
+            ))}
+            {!expanded && realContent.total > items.length && <p className="text-[9px] text-slate-400 text-right">+ {realContent.total - items.length} more</p>}
+          </div>
+        );
+      }
+      case 'assignments': {
+        const items = expanded ? (delivData.assignments || []) : realContent.items;
+        return (
+          <div className="space-y-2">
+            {items.map((asgn, i) => (
+              <div key={i} className="rounded border border-slate-200/30 overflow-hidden">
+                <div className={`${pad} bg-slate-50/60 font-semibold text-slate-700`}>{asgn.title || `Assignment ${i + 1}`}</div>
+                <div className={`${pad} border-t border-slate-200/20 space-y-1`}>
+                  {asgn.description && <p className="text-slate-600">{truncate(asgn.description, expanded ? 300 : 100)}</p>}
+                  {asgn.components && (
+                    <ul className="list-disc list-inside space-y-0.5 ml-1">
+                      {(Array.isArray(asgn.components) ? asgn.components : []).slice(0, expanded ? 10 : 3).map((c, j) => <li key={j}>{truncate(typeof c === 'string' ? c : c.name || c.title || '', expanded ? 150 : 60)}</li>)}
+                    </ul>
+                  )}
+                </div>
+              </div>
+            ))}
+          </div>
+        );
+      }
+      case 'studyGuides': {
+        const items = expanded ? (delivData.studyGuides || delivData.guides || []) : realContent.items;
+        return (
+          <div className="space-y-2">
+            {items.map((guide, i) => {
+              const terms = guide.keyTerms || guide.terms || guide.vocabulary || [];
+              return (
+                <div key={i}>
+                  <p className="font-semibold text-slate-700 mb-1">{guide.lessonTitle || guide.title || `Guide ${i + 1}`}</p>
+                  <div className="space-y-1">
+                    {terms.slice(0, expanded ? 10 : 3).map((t, j) => (
+                      <div key={j}>
+                        <span className="font-semibold text-slate-600">{t.term || t.name || ''}:</span>{' '}
+                        <span>{truncate(t.definition || t.def || '', expanded ? 200 : 60)}</span>
+                      </div>
+                    ))}
+                    {terms.length > (expanded ? 10 : 3) && <p className="text-slate-400 italic">+ {terms.length - (expanded ? 10 : 3)} more terms</p>}
+                  </div>
+                </div>
+              );
+            })}
+          </div>
+        );
+      }
+      case 'syllabus': {
+        const sections = expanded ? (delivData.sections || []) : realContent.sections;
+        return (
+          <div className="space-y-1.5">
+            {sections.map((s, i) => (
+              <div key={i} className="rounded border border-slate-200/30 overflow-hidden">
+                <div className={`${pad} bg-slate-50/60 font-semibold text-slate-700 flex items-center gap-2`}>
+                  <span className="w-5 h-5 rounded bg-cyan-50/80 text-cyan-500 flex items-center justify-center text-[9px] font-bold flex-shrink-0">{i + 1}</span>
+                  {s.heading || s.title || `Section ${i + 1}`}
+                </div>
+                {s.content && <div className={`${pad} border-t border-slate-200/20 text-slate-600`}>{truncate(Array.isArray(s.content) ? s.content.join(' ') : s.content, expanded ? 300 : 100)}</div>}
+              </div>
+            ))}
+            {!expanded && realContent.total > sections.length && <p className="text-[9px] text-slate-400 text-right">+ {realContent.total - sections.length} more sections</p>}
+          </div>
+        );
+      }
+      default: return null;
+    }
+  };
 
   return (
     <>
       <div className="mb-4 rounded-lg border border-slate-200/40 overflow-hidden">
         <div className="px-3 py-1.5 bg-slate-50/60 border-b border-slate-200/40 flex items-center justify-between">
-          <p className="text-[10px] font-semibold text-slate-400 uppercase tracking-wider">{preview.label}</p>
+          <p className="text-[10px] font-semibold text-slate-400 uppercase tracking-wider">
+            {label} — {realContent.total || realContent.items?.length || 0} {featureId === 'courseMap' ? 'lessons' : 'items'}
+          </p>
           <button
             onClick={() => setFullscreen(true)}
             className="text-slate-300 hover:text-indigo-500 transition-colors"
@@ -657,31 +766,26 @@ function DeliverablePreview({ featureId }) {
             </svg>
           </button>
         </div>
-        {previewContent(false)}
+        <div className="p-3 text-[10px] text-slate-500 leading-relaxed max-h-48 overflow-y-auto">
+          {renderContent(false)}
+        </div>
       </div>
 
       {/* Fullscreen modal */}
       {fullscreen && (
-        <div
-          className="fixed inset-0 z-50 flex items-center justify-center bg-black/50 backdrop-blur-md"
-          onClick={() => setFullscreen(false)}
-        >
-          <div
-            className="bg-white/95 backdrop-blur-lg rounded-2xl shadow-2xl border border-slate-200/60 max-w-2xl w-full mx-4 animate-spring-scale max-h-[85vh] overflow-y-auto"
-            onClick={e => e.stopPropagation()}
-          >
-            <div className="sticky top-0 z-10 bg-white/95 backdrop-blur-lg px-6 py-4 border-b border-slate-200/40 flex items-center justify-between rounded-t-2xl">
-              <h3 className="text-sm font-bold text-slate-800">{preview.label}</h3>
-              <button
-                onClick={() => setFullscreen(false)}
-                className="text-slate-400 hover:text-slate-600 transition-colors"
-              >
+        <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/50 backdrop-blur-md" onClick={() => setFullscreen(false)}>
+          <div className="bg-white/95 backdrop-blur-lg rounded-2xl shadow-2xl border border-slate-200/60 max-w-3xl w-full mx-4 animate-spring-scale max-h-[85vh] flex flex-col" onClick={e => e.stopPropagation()}>
+            <div className="sticky top-0 z-10 bg-white/95 backdrop-blur-lg px-6 py-4 border-b border-slate-200/40 flex items-center justify-between rounded-t-2xl flex-shrink-0">
+              <h3 className="text-sm font-bold text-slate-800">{label} — {realContent.total || realContent.items?.length || 0} items</h3>
+              <button onClick={() => setFullscreen(false)} className="text-slate-400 hover:text-slate-600 transition-colors">
                 <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                   <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M6 18L18 6M6 6l12 12" />
                 </svg>
               </button>
             </div>
-            {previewContent(true)}
+            <div className="p-6 text-xs text-slate-500 leading-relaxed overflow-y-auto">
+              {renderContent(true)}
+            </div>
           </div>
         </div>
       )}
@@ -691,14 +795,14 @@ function DeliverablePreview({ featureId }) {
 
 // ── Per-deliverable config content ────────────────────────────────────────────
 
-function DeliverableConfigContent({ featureId, config, onChange, columns, setColumns }) {
+function DeliverableConfigContent({ featureId, config, onChange, columns, setColumns, delivData, courseMap }) {
   const set = (key, val) => onChange({ ...config, [key]: val });
 
   switch (featureId) {
     case 'courseMap':
       return (
         <div className="space-y-3">
-          <DeliverablePreview featureId="courseMap" />
+          <DeliverablePreview featureId="courseMap" delivData={courseMap} courseMap={courseMap} columns={columns} />
           <p className="text-[11px] text-slate-500">Click to enable/disable, drag to reorder, double-click to rename.</p>
           <ColumnEditor columns={columns} setColumns={setColumns} />
           <AdvancedSection>
@@ -710,7 +814,7 @@ function DeliverableConfigContent({ featureId, config, onChange, columns, setCol
     case 'lessonPlans':
       return (
         <div className="space-y-4">
-          <DeliverablePreview featureId="lessonPlans" />
+          <DeliverablePreview featureId="lessonPlans" delivData={delivData} />
           {/* Basic settings — always visible */}
           <Select
             label="Session length"
@@ -738,7 +842,7 @@ function DeliverableConfigContent({ featureId, config, onChange, columns, setCol
     case 'slideDecks':
       return (
         <div className="space-y-4">
-          <DeliverablePreview featureId="slideDecks" />
+          <DeliverablePreview featureId="slideDecks" delivData={delivData} />
           {/* Basic */}
           <NumberInput
             label="Slides per lesson"
@@ -764,7 +868,7 @@ function DeliverableConfigContent({ featureId, config, onChange, columns, setCol
     case 'rubrics':
       return (
         <div className="space-y-4">
-          <DeliverablePreview featureId="rubrics" />
+          <DeliverablePreview featureId="rubrics" delivData={delivData} />
           {/* Basic */}
           <NumberInput
             label="Criteria per rubric"
@@ -791,7 +895,7 @@ function DeliverableConfigContent({ featureId, config, onChange, columns, setCol
     case 'quizBank':
       return (
         <div className="space-y-4">
-          <DeliverablePreview featureId="quizBank" />
+          <DeliverablePreview featureId="quizBank" delivData={delivData} />
           {/* Basic */}
           <NumberInput
             label="Questions per lesson"
@@ -832,7 +936,7 @@ function DeliverableConfigContent({ featureId, config, onChange, columns, setCol
     case 'discussions':
       return (
         <div className="space-y-4">
-          <DeliverablePreview featureId="discussions" />
+          <DeliverablePreview featureId="discussions" delivData={delivData} />
           {/* Basic */}
           <Select
             label="Discussion format"
@@ -852,7 +956,7 @@ function DeliverableConfigContent({ featureId, config, onChange, columns, setCol
     case 'assignments':
       return (
         <div className="space-y-4">
-          <DeliverablePreview featureId="assignments" />
+          <DeliverablePreview featureId="assignments" delivData={delivData} />
           {/* Basic */}
           <MultiToggle
             label="Assignment types"
@@ -873,7 +977,7 @@ function DeliverableConfigContent({ featureId, config, onChange, columns, setCol
     case 'studyGuides':
       return (
         <div className="space-y-4">
-          <DeliverablePreview featureId="studyGuides" />
+          <DeliverablePreview featureId="studyGuides" delivData={delivData} />
           {/* Basic */}
           <NumberInput
             label="Key terms per guide"
@@ -895,7 +999,7 @@ function DeliverableConfigContent({ featureId, config, onChange, columns, setCol
     case 'syllabus':
       return (
         <div className="space-y-4">
-          <DeliverablePreview featureId="syllabus" />
+          <DeliverablePreview featureId="syllabus" delivData={delivData} />
           {/* Basic */}
           <Select
             label="Citation style"
@@ -943,6 +1047,7 @@ export default function Config({
   lessonCount,      // estimated from promptText + files before generation
   isDetectingLessons, // true while AI lesson-count detection is running
   courseMap,        // actual generated lessons (may be null on first run)
+  deliverables,    // generated deliverable data { featureId: { data, status } }
   columns,
   setColumns,
   onBack,
@@ -1026,6 +1131,7 @@ export default function Config({
                   const c = COLOR_MAP[feature.color] || COLOR_MAP.indigo;
                   const isExpanded = expandedId === feature.id;
 
+                  const delivData = deliverables?.[feature.id]?.data;
                   const panel = (
                     <DeliverableConfigContent
                       featureId={feature.id}
@@ -1033,6 +1139,8 @@ export default function Config({
                       onChange={(next) => setDeliverableConfig(prev => ({ ...prev, [feature.id]: next }))}
                       columns={columns}
                       setColumns={setColumns}
+                      delivData={delivData}
+                      courseMap={courseMap}
                     />
                   );
 
