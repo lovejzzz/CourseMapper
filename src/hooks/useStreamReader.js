@@ -103,7 +103,8 @@ export default function useStreamReader() {
   const streamProvider = useCallback(async (provider, apiKey, modelId, systemPrompt, userPrompt, opts = {}) => {
     const { onChunk, onRetry, maxRetries = 3, existingText = '', signal: externalSignal, maxOutputTokens } = opts;
 
-    const { url, headers, body, parseChunk } = buildProviderRequest(provider, apiKey, modelId, systemPrompt, userPrompt, maxOutputTokens);
+    let skipTemp = false;
+    let { url, headers, body, parseChunk } = buildProviderRequest(provider, apiKey, modelId, systemPrompt, userPrompt, maxOutputTokens, skipTemp);
 
     let fullText = existingText;
     let attempt = 0;
@@ -131,6 +132,15 @@ export default function useStreamReader() {
           const errData = await response.json().catch(() => ({}));
           const msg = errData.error?.message || errData.error || `API error: ${response.status}`;
           console.error(`[CM] API ${response.status} error:`, JSON.stringify(errData).slice(0, 500));
+
+          // If the model doesn't support custom temperature, retry without it
+          if (response.status === 400 && !skipTemp && /temperature/i.test(msg)) {
+            console.log('[CM] Model does not support custom temperature, retrying without it');
+            skipTemp = true;
+            ({ url, headers, body, parseChunk } = buildProviderRequest(provider, apiKey, modelId, systemPrompt, userPrompt, maxOutputTokens, true));
+            continue;
+          }
+
           throw new Error(`${msg} [${response.status}]`);
         }
 
@@ -197,13 +207,8 @@ export default function useStreamReader() {
 
 // ── Provider-specific request builders ──
 
-// Reasoning models (o1, o3, o4-mini, etc.) don't support custom temperature
-function isReasoningModel(id) {
-  return /^o[134]/.test(id);
-}
-
-function buildProviderRequest(provider, apiKey, modelId, systemPrompt, userPrompt, maxOutputTokens = 16384) {
-  const temp = isReasoningModel(modelId) ? undefined : 0.3;
+function buildProviderRequest(provider, apiKey, modelId, systemPrompt, userPrompt, maxOutputTokens = 16384, skipTemp = false) {
+  const temp = skipTemp ? undefined : 0.3;
   if (provider === 'openai') {
     return {
       url: 'https://api.openai.com/v1/chat/completions',

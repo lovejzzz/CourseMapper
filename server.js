@@ -172,9 +172,14 @@ app.post('/api/generate-stream', async (req, res) => {
   }
 });
 
-// Reasoning models (o1, o3, o4-mini, etc.) don't support custom temperature
+// Some models don't support custom temperature — omit when unsupported.
+// This is a best-effort heuristic; client-side code has auto-retry logic.
 function getTemp(modelId) {
-  return /^o[134]/.test(modelId) ? undefined : 0.3;
+  if (!modelId) return 0.3;
+  const id = modelId.toLowerCase();
+  // Known models that reject custom temperature
+  if (/^(o[134]|gpt-5)/.test(id)) return undefined;
+  return 0.3;
 }
 
 async function streamOpenAI(apiKey, systemPrompt, userPrompt, modelId, res) {

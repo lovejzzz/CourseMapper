@@ -176,30 +176,41 @@ async function fetchAgentResponseNative(loopMessages, systemPrompt, signal, apiK
   if (!apiKey) throw new Error('NO_API_KEY');
   if (!modelId) throw new Error('NO_MODEL_SELECTED');
 
-  const { endpoint, headers, body } = buildAgentRequest(provider, {
-    model: modelId,
-    systemPrompt,
-    messages: loopMessages,
-    tools: nativeTools,
-    maxTokens: 16384,
-    temperature: 0.4,
-    apiKey,
-  });
+  let temperature = 0.4;
 
-  const response = await fetch(endpoint, {
-    method: 'POST',
-    headers,
-    body: JSON.stringify(body),
-    signal,
-  });
+  for (let tempRetry = 0; tempRetry < 2; tempRetry++) {
+    const { endpoint, headers, body } = buildAgentRequest(provider, {
+      model: modelId,
+      systemPrompt,
+      messages: loopMessages,
+      tools: nativeTools,
+      maxTokens: 16384,
+      temperature,
+      apiKey,
+    });
 
-  if (!response.ok) {
-    const err = await response.json().catch(() => ({}));
-    throw new Error(err.error?.message || `API error: ${response.status}`);
+    const response = await fetch(endpoint, {
+      method: 'POST',
+      headers,
+      body: JSON.stringify(body),
+      signal,
+    });
+
+    if (!response.ok) {
+      const err = await response.json().catch(() => ({}));
+      const msg = err.error?.message || `API error: ${response.status}`;
+      // If model doesn't support custom temperature, retry with default (1)
+      if (response.status === 400 && tempRetry === 0 && /temperature/i.test(msg)) {
+        console.log('[CM] Model does not support custom temperature, retrying with default');
+        temperature = undefined;
+        continue;
+      }
+      throw new Error(msg);
+    }
+
+    const json = await response.json();
+    return parseProviderResponse(provider, json);
   }
-
-  const json = await response.json();
-  return parseProviderResponse(provider, json);
 }
 
 // ── Build chat history with agent memory ─────────────────────────────────────

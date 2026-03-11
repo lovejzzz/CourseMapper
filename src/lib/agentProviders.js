@@ -184,9 +184,7 @@ function googleSchemaFix(schema) {
 // ── Build API request ───────────────────────────────────────────────────────
 
 export function buildAgentRequest(provider, { model, systemPrompt, messages, tools, maxTokens = 16384, temperature = 0.4, apiKey }) {
-  // Reasoning models (o1, o3, o4-mini, etc.) don't support custom temperature
-  const isReasoning = /^o[134]/.test(model);
-  const tempSetting = isReasoning ? {} : { temperature };
+  const tempSetting = temperature !== undefined ? { temperature } : {};
 
   if (provider === 'openai') {
     return {
