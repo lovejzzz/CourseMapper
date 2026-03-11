@@ -465,62 +465,166 @@ const FEATURE_LABELS = {
   syllabus: 'Syllabus',
 };
 
+// ── Example preview data (shown before generation) ───────────────────────────
+const PREVIEW_EXAMPLES = {
+  courseMap: {
+    type: 'courseMap', isExample: true, total: 3,
+    lessons: [
+      { title: 'Week 1: Introduction', sections: [{ topics: 'Course overview, key concepts', objectives: 'Define core terms, identify scope', activities: 'Icebreaker discussion' }] },
+      { title: 'Week 2: Foundations', sections: [{ topics: 'Theoretical framework', objectives: 'Compare models, analyze assumptions', activities: 'Case study analysis' }] },
+      { title: 'Week 3: Applications', sections: [{ topics: 'Real-world applications', objectives: 'Apply concepts to scenarios', activities: 'Group project kickoff' }] },
+    ],
+    cols: [{ key: 'topics', label: 'Topics' }, { key: 'objectives', label: 'Objectives' }, { key: 'activities', label: 'Activities' }],
+  },
+  lessonPlans: {
+    type: 'lessonPlans', isExample: true, total: 2,
+    items: [
+      { lessonTitle: 'Lesson 1: Introduction', sessionOutline: [
+        { duration: '10 min', activity: 'Warm-Up', description: 'Review prior knowledge and set learning goals' },
+        { duration: '25 min', activity: 'Direct Instruction', description: 'Present core concepts with visual aids' },
+        { duration: '15 min', activity: 'Group Activity', description: 'Collaborative problem-solving exercise' },
+      ]},
+      { lessonTitle: 'Lesson 2: Deep Dive', sessionOutline: [
+        { duration: '5 min', activity: 'Recap', description: 'Quick review of previous lesson' },
+        { duration: '30 min', activity: 'Workshop', description: 'Hands-on practice with guided examples' },
+        { duration: '15 min', activity: 'Reflection', description: 'Exit ticket and self-assessment' },
+      ]},
+    ],
+  },
+  slideDecks: {
+    type: 'slideDecks', isExample: true, total: 2,
+    items: [
+      { lessonTitle: 'Lesson 1: Introduction', slides: [
+        { title: 'Welcome & Overview' }, { title: 'Learning Objectives' }, { title: 'Key Concepts' },
+        { title: 'Visual Example' }, { title: 'Discussion Prompt' }, { title: 'Summary & Next Steps' },
+      ]},
+      { lessonTitle: 'Lesson 2: Deep Dive', slides: [
+        { title: 'Recap' }, { title: 'New Framework' }, { title: 'Case Study' }, { title: 'Takeaways' },
+      ]},
+    ],
+  },
+  rubrics: {
+    type: 'rubrics', isExample: true, total: 1,
+    items: [{
+      assignmentTitle: 'Research Paper Rubric',
+      criteria: [
+        { name: 'Thesis', levels: [{ label: 'Excellent', description: 'Clear, arguable, well-supported' }, { label: 'Good', description: 'Clear thesis with some support' }, { label: 'Needs Work', description: 'Unclear or unsupported thesis' }] },
+        { name: 'Evidence', levels: [{ label: 'Excellent', description: 'Strong, relevant sources' }, { label: 'Good', description: 'Adequate sources' }, { label: 'Needs Work', description: 'Insufficient evidence' }] },
+        { name: 'Writing', levels: [{ label: 'Excellent', description: 'Polished, error-free prose' }, { label: 'Good', description: 'Generally clear writing' }, { label: 'Needs Work', description: 'Frequent errors' }] },
+      ],
+    }],
+  },
+  quizBank: {
+    type: 'quizBank', isExample: true, total: 1,
+    items: [{
+      lessonTitle: 'Lesson 1 Quiz',
+      questions: [
+        { type: 'MC', question: 'Which of the following best describes the primary function of...?' },
+        { type: 'T/F', question: 'The framework applies equally to all contexts regardless of scale.' },
+        { type: 'Short', question: 'Explain one real-world application of the concept discussed in class.' },
+      ],
+    }],
+  },
+  discussions: {
+    type: 'discussions', isExample: true, total: 2,
+    items: [
+      { lessonTitle: 'Week 1 Discussion', prompt: 'How does this concept connect to your own experience? Share a specific example and respond to at least one peer.', followUp: 'Consider alternative perspectives raised by your classmates.' },
+      { lessonTitle: 'Week 2 Discussion', prompt: 'Analyze the case study and argue for or against the proposed approach. Support your position with evidence from the readings.' },
+    ],
+  },
+  assignments: {
+    type: 'assignments', isExample: true, total: 1,
+    items: [{
+      title: 'Midterm Project: Case Analysis',
+      description: 'Select a real-world scenario and apply the course framework to analyze its key challenges and propose solutions.',
+      components: ['Problem identification (20%)', 'Framework application (30%)', 'Proposed solution (30%)', 'Reflection & references (20%)'],
+    }],
+  },
+  studyGuides: {
+    type: 'studyGuides', isExample: true, total: 1,
+    items: [{
+      lessonTitle: 'Lesson 1 Study Guide',
+      keyTerms: [
+        { term: 'Framework', definition: 'A structured approach for analyzing and solving problems within a domain' },
+        { term: 'Scope', definition: 'The boundaries and extent of a project or area of study' },
+        { term: 'Methodology', definition: 'A systematic set of methods used in a particular area of activity' },
+      ],
+    }],
+  },
+  syllabus: {
+    type: 'syllabus', isExample: true, total: 5,
+    sections: [
+      { heading: 'Course Description', content: 'This course introduces students to the foundational concepts and practical applications of...' },
+      { heading: 'Learning Objectives', content: 'By the end of this course, students will be able to analyze, evaluate, and apply...' },
+      { heading: 'Required Materials', content: 'Textbook (3rd edition), access to online learning platform, laptop for in-class activities' },
+      { heading: 'Grading Policy', content: 'Participation 10%, Assignments 30%, Midterm 25%, Final Project 35%' },
+      { heading: 'Course Schedule', content: 'Week 1: Introduction — Week 2: Foundations — Week 3: Applications — ...' },
+    ],
+  },
+};
+
 function DeliverablePreview({ featureId, delivData, courseMap, columns }) {
   const [fullscreen, setFullscreen] = useState(false);
   const label = FEATURE_LABELS[featureId] || featureId;
 
-  // Extract real content from deliverable data
-  const realContent = React.useMemo(() => {
+  // Extract real content from deliverable data, fall back to example
+  const { content: realContent, isExample } = React.useMemo(() => {
+    // Try real data first
     if (featureId === 'courseMap' && courseMap?.lessons?.length > 0) {
       const lessons = courseMap.lessons.slice(0, 3);
       const cols = (columns || []).filter(c => c.enabled !== false).slice(0, 3);
-      return { type: 'courseMap', lessons, cols, total: courseMap.lessons.length };
+      return { content: { type: 'courseMap', lessons, cols, total: courseMap.lessons.length }, isExample: false };
     }
-    if (!delivData) return null;
+    if (delivData) {
+      let parsed = null;
+      switch (featureId) {
+        case 'lessonPlans': {
+          const plans = delivData.plans || delivData.lessonPlans || [];
+          if (plans.length > 0) parsed = { type: 'lessonPlans', items: plans.slice(0, 3), total: plans.length };
+          break;
+        }
+        case 'slideDecks': {
+          const decks = delivData.decks || delivData.slideDecks || [];
+          if (decks.length > 0) parsed = { type: 'slideDecks', items: decks.slice(0, 3), total: decks.length };
+          break;
+        }
+        case 'rubrics': {
+          const rubrics = delivData.rubrics || [];
+          if (rubrics.length > 0) parsed = { type: 'rubrics', items: rubrics.slice(0, 3), total: rubrics.length };
+          break;
+        }
+        case 'quizBank': {
+          const quizzes = delivData.quizzes || delivData.quizBank || [];
+          if (quizzes.length > 0) parsed = { type: 'quizBank', items: quizzes.slice(0, 2), total: quizzes.length };
+          break;
+        }
+        case 'discussions': {
+          const discs = delivData.discussions || [];
+          if (discs.length > 0) parsed = { type: 'discussions', items: discs.slice(0, 2), total: discs.length };
+          break;
+        }
+        case 'assignments': {
+          const asgn = delivData.assignments || [];
+          if (asgn.length > 0) parsed = { type: 'assignments', items: asgn.slice(0, 2), total: asgn.length };
+          break;
+        }
+        case 'studyGuides': {
+          const guides = delivData.studyGuides || delivData.guides || [];
+          if (guides.length > 0) parsed = { type: 'studyGuides', items: guides.slice(0, 2), total: guides.length };
+          break;
+        }
+        case 'syllabus': {
+          const sections = delivData.sections || [];
+          if (sections.length > 0) parsed = { type: 'syllabus', sections: sections.slice(0, 5), total: sections.length };
+          break;
+        }
+      }
+      if (parsed) return { content: parsed, isExample: false };
+    }
 
-    switch (featureId) {
-      case 'lessonPlans': {
-        const plans = delivData.plans || delivData.lessonPlans || [];
-        if (plans.length === 0) return null;
-        return { type: 'lessonPlans', items: plans.slice(0, 3), total: plans.length };
-      }
-      case 'slideDecks': {
-        const decks = delivData.decks || delivData.slideDecks || [];
-        if (decks.length === 0) return null;
-        return { type: 'slideDecks', items: decks.slice(0, 3), total: decks.length };
-      }
-      case 'rubrics': {
-        const rubrics = delivData.rubrics || [];
-        if (rubrics.length === 0) return null;
-        return { type: 'rubrics', items: rubrics.slice(0, 3), total: rubrics.length };
-      }
-      case 'quizBank': {
-        const quizzes = delivData.quizzes || delivData.quizBank || [];
-        if (quizzes.length === 0) return null;
-        return { type: 'quizBank', items: quizzes.slice(0, 2), total: quizzes.length };
-      }
-      case 'discussions': {
-        const discs = delivData.discussions || [];
-        if (discs.length === 0) return null;
-        return { type: 'discussions', items: discs.slice(0, 2), total: discs.length };
-      }
-      case 'assignments': {
-        const asgn = delivData.assignments || [];
-        if (asgn.length === 0) return null;
-        return { type: 'assignments', items: asgn.slice(0, 2), total: asgn.length };
-      }
-      case 'studyGuides': {
-        const guides = delivData.studyGuides || delivData.guides || [];
-        if (guides.length === 0) return null;
-        return { type: 'studyGuides', items: guides.slice(0, 2), total: guides.length };
-      }
-      case 'syllabus': {
-        const sections = delivData.sections || [];
-        if (sections.length === 0) return null;
-        return { type: 'syllabus', sections: sections.slice(0, 5), total: sections.length };
-      }
-      default: return null;
-    }
+    // Fall back to example content
+    const example = PREVIEW_EXAMPLES[featureId];
+    return example ? { content: example, isExample: true } : { content: null, isExample: true };
   }, [featureId, delivData, courseMap, columns]);
 
   if (!realContent) return null;
@@ -539,7 +643,7 @@ function DeliverablePreview({ featureId, delivData, courseMap, columns }) {
     switch (realContent.type) {
       case 'courseMap': {
         const { lessons, cols } = realContent;
-        const showLessons = expanded ? courseMap.lessons : lessons;
+        const showLessons = expanded ? (courseMap?.lessons || lessons) : lessons;
         return (
           <div className="overflow-x-auto">
             <div className="overflow-hidden rounded border border-slate-200/40 min-w-0">
@@ -753,8 +857,9 @@ function DeliverablePreview({ featureId, delivData, courseMap, columns }) {
     <>
       <div className="mb-4 rounded-lg border border-slate-200/40 overflow-hidden">
         <div className="px-3 py-1.5 bg-slate-50/60 border-b border-slate-200/40 flex items-center justify-between">
-          <p className="text-[10px] font-semibold text-slate-400 uppercase tracking-wider">
+          <p className="text-[10px] font-semibold text-slate-400 uppercase tracking-wider flex items-center gap-1.5">
             {label} — {realContent.total || realContent.items?.length || 0} {featureId === 'courseMap' ? 'lessons' : 'items'}
+            {isExample && <span className="px-1.5 py-0.5 rounded bg-amber-50 text-amber-500 text-[9px] font-semibold normal-case tracking-normal">Example</span>}
           </p>
           <button
             onClick={() => setFullscreen(true)}
@@ -776,7 +881,10 @@ function DeliverablePreview({ featureId, delivData, courseMap, columns }) {
         <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/50 backdrop-blur-md" onClick={() => setFullscreen(false)}>
           <div className="bg-white/95 backdrop-blur-lg rounded-2xl shadow-2xl border border-slate-200/60 max-w-3xl w-full mx-4 animate-spring-scale max-h-[85vh] flex flex-col" onClick={e => e.stopPropagation()}>
             <div className="sticky top-0 z-10 bg-white/95 backdrop-blur-lg px-6 py-4 border-b border-slate-200/40 flex items-center justify-between rounded-t-2xl flex-shrink-0">
-              <h3 className="text-sm font-bold text-slate-800">{label} — {realContent.total || realContent.items?.length || 0} items</h3>
+              <h3 className="text-sm font-bold text-slate-800 flex items-center gap-2">
+                {label} — {realContent.total || realContent.items?.length || 0} items
+                {isExample && <span className="px-2 py-0.5 rounded-full bg-amber-50 text-amber-500 text-[10px] font-semibold">Example Preview</span>}
+              </h3>
               <button onClick={() => setFullscreen(false)} className="text-slate-400 hover:text-slate-600 transition-colors">
                 <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                   <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M6 18L18 6M6 6l12 12" />
