@@ -134,7 +134,7 @@ function buildCourseMapStarters(courseMap) {
 
 // ── Chat opener — context-aware starters ────────────────────────────────────
 
-export function getChatOpener(courseMap, isAgentMode, activeTab, deliverables = null, isGenerating = false) {
+export function getChatOpener(courseMap, isAgentMode, activeTab, deliverables = null, isGenerating = false, isDelivGenerating = false) {
   // Generation in progress — don't show premature lesson count or onboarding message
   if (isGenerating) {
     return {
@@ -143,7 +143,15 @@ export function getChatOpener(courseMap, isAgentMode, activeTab, deliverables = 
     };
   }
 
-  // Tier 3: Agent mode — deliverables generated, show adaptive starters
+  // Deliverables still generating — show progress message, not the agent greeting
+  if (isDelivGenerating) {
+    return {
+      greeting: 'Generating your deliverables — almost there!',
+      starters: [],
+    };
+  }
+
+  // Tier 3: Agent mode — all deliverables generated, show adaptive starters
   if (isAgentMode) {
     const starters = buildAdaptiveStarters(courseMap, activeTab, deliverables);
     return {
