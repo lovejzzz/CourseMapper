@@ -1,11 +1,13 @@
+import { safeImport } from './safeImport.js';
+
 // Lazy-loaded heavy dependencies
 let _docx, _saveAs;
 async function getDocx() {
-  if (!_docx) _docx = await import('docx');
+  if (!_docx) _docx = await safeImport(() => import('docx'));
   return _docx;
 }
 async function getSaveAs() {
-  if (!_saveAs) _saveAs = (await import('file-saver')).saveAs;
+  if (!_saveAs) _saveAs = (await safeImport(() => import('file-saver'))).saveAs;
   return _saveAs;
 }
 

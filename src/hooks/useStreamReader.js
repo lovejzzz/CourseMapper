@@ -23,6 +23,9 @@ function deepStripThinkTags(obj) {
   return obj;
 }
 
+// Module-level cache: models that don't support custom temperature
+const _noTempModels = new Set();
+
 /**
  * Shared SSE stream reader with auto-retry and exponential backoff.
  * Supports both server-proxy mode (streamSSE) and direct-provider mode (streamProvider).
@@ -103,7 +106,7 @@ export default function useStreamReader() {
   const streamProvider = useCallback(async (provider, apiKey, modelId, systemPrompt, userPrompt, opts = {}) => {
     const { onChunk, onRetry, maxRetries = 3, existingText = '', signal: externalSignal, maxOutputTokens } = opts;
 
-    let skipTemp = false;
+    let skipTemp = _noTempModels.has(modelId);
     let { url, headers, body, parseChunk } = buildProviderRequest(provider, apiKey, modelId, systemPrompt, userPrompt, maxOutputTokens, skipTemp);
 
     let fullText = existingText;
@@ -137,6 +140,7 @@ export default function useStreamReader() {
           if (response.status === 400 && !skipTemp && /temperature/i.test(msg)) {
             console.log('[CM] Model does not support custom temperature, retrying without it');
             skipTemp = true;
+            _noTempModels.add(modelId); // Remember for parallel & future calls
             ({ url, headers, body, parseChunk } = buildProviderRequest(provider, apiKey, modelId, systemPrompt, userPrompt, maxOutputTokens, true));
             continue;
           }
@@ -189,6 +193,8 @@ export default function useStreamReader() {
 
         if (attempt < maxRetries && isRetryableError(err)) {
           attempt++;
+          // Rebuild request with current skipTemp state so temperature fix persists across retries
+          ({ url, headers, body, parseChunk } = buildProviderRequest(provider, apiKey, modelId, systemPrompt, userPrompt, maxOutputTokens, skipTemp));
           const delay = Math.min(1000 * Math.pow(2, attempt - 1), 8000);
           if (onRetry) onRetry(attempt, maxRetries, delay);
           await sleep(delay);

@@ -1,6 +1,7 @@
 import { loadPdfLibs, getDocx, getSaveAs, resolveFeatureLabel } from './exporterUtils.js';
 import { exportDeliverableDocx } from './docxExporter.js';
 import { exportDeliverableCsv } from './csvExporter.js';
+import { safeImport } from '../safeImport.js';
 
 // GOOGLE DOCS / SHEETS
 // ════════════════════════════════════════════════════════════════
@@ -30,7 +31,7 @@ export async function exportDeliverableToGoogleSheets(featureId, data, courseNam
   updateTabStatus(preOpenedTab, 'build');
 
   // Build a styled XLSX workbook (matching course map quality)
-  const ExcelJS = (await import('exceljs')).default;
+  const ExcelJS = (await safeImport(() => import('exceljs'))).default;
   const workbook = new ExcelJS.Workbook();
   workbook.creator = 'Course Mapper';
   workbook.created = new Date();

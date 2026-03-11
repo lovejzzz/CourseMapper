@@ -4,9 +4,9 @@ import ColumnEditor from '../components/ColumnEditor';
 import { getCustomDeliverable, listCustomDeliverables, toFeatureEntry } from '../lib/customDeliverableLibrary';
 
 // ── Shared option lists for universal advanced settings ───────────────────────
-const TONE_OPTIONS = ['Academic', 'Professional', 'Conversational', 'Friendly', 'Formal', 'Encouraging'];
-const STYLE_OPTIONS = ['Bullet points', 'Paragraphs', 'Tables', 'Numbered lists', 'Mixed'];
-const LENGTH_OPTIONS = ['Brief', 'Standard', 'Detailed', 'Comprehensive'];
+const TONE_OPTIONS = ['Auto', 'Academic', 'Professional', 'Conversational', 'Friendly', 'Formal', 'Encouraging'];
+const STYLE_OPTIONS = ['Auto', 'Bullet points', 'Paragraphs', 'Tables', 'Numbered lists', 'Mixed'];
+const LENGTH_OPTIONS = ['Auto', 'Brief', 'Standard', 'Detailed', 'Comprehensive'];
 
 // ── Lesson scope selector ─────────────────────────────────────────────────────
 
@@ -163,18 +163,22 @@ function DeliverableExtras({ featureId, config, onChange }) {
         <label className="text-xs font-medium text-slate-700">Tone</label>
         <p className="text-[10px] text-slate-400">Sets the voice and register of the output.</p>
         <div className="flex flex-wrap gap-1.5 mt-1">
-          {TONE_OPTIONS.map(opt => (
-            <button
-              key={opt}
-              onClick={() => onChange({ ...config, tone: config.tone === opt ? null : opt })}
-              className={`tactile px-3 py-1.5 rounded-lg text-[11px] font-medium transition-all duration-150 ${config.tone === opt
-                  ? 'bg-indigo-500 text-white shadow-sm'
-                  : 'bg-white/60 text-slate-600 border border-slate-200/60 hover:bg-white/90'
-                }`}
-            >
-              {opt}
-            </button>
-          ))}
+          {TONE_OPTIONS.map(opt => {
+            const isAuto = opt === 'Auto';
+            const isActive = isAuto ? !config.tone || config.tone === 'Auto' : config.tone === opt;
+            return (
+              <button
+                key={opt}
+                onClick={() => onChange({ ...config, tone: isAuto ? null : (config.tone === opt ? null : opt) })}
+                className={`tactile px-3 py-1.5 rounded-lg text-[11px] font-medium transition-all duration-150 ${isActive
+                    ? 'bg-indigo-500 text-white shadow-sm'
+                    : 'bg-white/60 text-slate-600 border border-slate-200/60 hover:bg-white/90'
+                  }`}
+              >
+                {opt}
+              </button>
+            );
+          })}
         </div>
       </div>
 
@@ -183,18 +187,22 @@ function DeliverableExtras({ featureId, config, onChange }) {
         <label className="text-xs font-medium text-slate-700">Style & Format</label>
         <p className="text-[10px] text-slate-400">How the content is structured and presented.</p>
         <div className="flex flex-wrap gap-1.5 mt-1">
-          {STYLE_OPTIONS.map(opt => (
-            <button
-              key={opt}
-              onClick={() => onChange({ ...config, style: config.style === opt ? null : opt })}
-              className={`tactile px-3 py-1.5 rounded-lg text-[11px] font-medium transition-all duration-150 ${config.style === opt
-                  ? 'bg-indigo-500 text-white shadow-sm'
-                  : 'bg-white/60 text-slate-600 border border-slate-200/60 hover:bg-white/90'
-                }`}
-            >
-              {opt}
-            </button>
-          ))}
+          {STYLE_OPTIONS.map(opt => {
+            const isAuto = opt === 'Auto';
+            const isActive = isAuto ? !config.style || config.style === 'Auto' : config.style === opt;
+            return (
+              <button
+                key={opt}
+                onClick={() => onChange({ ...config, style: isAuto ? null : (config.style === opt ? null : opt) })}
+                className={`tactile px-3 py-1.5 rounded-lg text-[11px] font-medium transition-all duration-150 ${isActive
+                    ? 'bg-indigo-500 text-white shadow-sm'
+                    : 'bg-white/60 text-slate-600 border border-slate-200/60 hover:bg-white/90'
+                  }`}
+              >
+                {opt}
+              </button>
+            );
+          })}
         </div>
       </div>
 
@@ -203,18 +211,22 @@ function DeliverableExtras({ featureId, config, onChange }) {
         <label className="text-xs font-medium text-slate-700">Output Length</label>
         <p className="text-[10px] text-slate-400">Controls how much detail the AI generates.</p>
         <div className="flex flex-wrap gap-1.5 mt-1">
-          {LENGTH_OPTIONS.map(opt => (
-            <button
-              key={opt}
-              onClick={() => onChange({ ...config, outputLength: config.outputLength === opt ? null : opt })}
-              className={`tactile px-3 py-1.5 rounded-lg text-[11px] font-medium transition-all duration-150 ${config.outputLength === opt
-                  ? 'bg-indigo-500 text-white shadow-sm'
-                  : 'bg-white/60 text-slate-600 border border-slate-200/60 hover:bg-white/90'
-                }`}
-            >
-              {opt}
-            </button>
-          ))}
+          {LENGTH_OPTIONS.map(opt => {
+            const isAuto = opt === 'Auto';
+            const isActive = isAuto ? !config.outputLength || config.outputLength === 'Auto' : config.outputLength === opt;
+            return (
+              <button
+                key={opt}
+                onClick={() => onChange({ ...config, outputLength: isAuto ? null : (config.outputLength === opt ? null : opt) })}
+                className={`tactile px-3 py-1.5 rounded-lg text-[11px] font-medium transition-all duration-150 ${isActive
+                    ? 'bg-indigo-500 text-white shadow-sm'
+                    : 'bg-white/60 text-slate-600 border border-slate-200/60 hover:bg-white/90'
+                  }`}
+              >
+                {opt}
+              </button>
+            );
+          })}
         </div>
       </div>
 
@@ -439,6 +451,244 @@ function AdvancedSection({ children }) {
   );
 }
 
+// ── Deliverable preview snippets ──────────────────────────────────────────────
+
+const PREVIEW_SNIPPETS = {
+  courseMap: {
+    label: 'Course Map Preview',
+    rows: [
+      ['Week 1: Foundations', 'Define key concepts', 'Students will identify…', 'Reading quiz'],
+      ['Week 2: Methods', 'Compare approaches', 'Students will analyze…', 'Case study'],
+    ],
+    headers: ['Week/Module', 'Learning Goals', 'Objectives', 'Assessments'],
+  },
+  lessonPlans: {
+    label: 'Lesson Plan Preview',
+    lines: [
+      { t: 'Warm-up', d: 'Think-Pair-Share: What is social justice?', time: '10 min' },
+      { t: 'Lecture', d: 'Key theories & frameworks', time: '25 min' },
+      { t: 'Activity', d: 'Small group case study analysis', time: '30 min' },
+      { t: 'Wrap-up', d: 'Exit ticket + homework overview', time: '10 min' },
+    ],
+  },
+  slideDecks: {
+    label: 'Slide Deck Preview',
+    slides: ['Title Slide', 'Learning Objectives', 'Key Concept 1', 'Discussion Activity', 'Summary & Next Steps'],
+  },
+  rubrics: {
+    label: 'Rubric Preview',
+    criteria: ['Critical Thinking', 'Evidence & Support', 'Organization'],
+    levels: ['Developing', 'Proficient', 'Mastery'],
+  },
+  quizBank: {
+    label: 'Quiz Bank Preview',
+    questions: [
+      { type: 'MC', q: 'Which theory best explains…?', opts: ['A) Social learning', 'B) Ecological', 'C) Systems'] },
+      { type: 'Short', q: 'Define "evidence-based practice" in your own words.' },
+    ],
+  },
+  discussions: {
+    label: 'Discussion Preview',
+    prompt: 'How might cultural competency frameworks apply to your field placement experience? Provide specific examples.',
+    followUp: 'Respond to at least two peers with constructive feedback.',
+  },
+  assignments: {
+    label: 'Assignment Preview',
+    title: 'Community Needs Assessment',
+    components: ['Problem statement (200 words)', 'Literature review (3 sources)', 'Methodology', 'Reflection'],
+  },
+  studyGuides: {
+    label: 'Study Guide Preview',
+    terms: [
+      { term: 'Evidence-Based Practice', def: 'Integration of best research with clinical expertise…' },
+      { term: 'Cultural Competency', def: 'Ability to understand and interact effectively…' },
+    ],
+  },
+  syllabus: {
+    label: 'Syllabus Preview',
+    sections: ['Course Description', 'Learning Outcomes', 'Required Texts', 'Grading Policy', 'Weekly Schedule'],
+  },
+};
+
+function DeliverablePreview({ featureId }) {
+  const preview = PREVIEW_SNIPPETS[featureId];
+  const [fullscreen, setFullscreen] = useState(false);
+  if (!preview) return null;
+
+  const previewContent = (isFullscreen) => (
+    <div className={`${isFullscreen ? 'p-6 text-sm' : 'p-3 text-[10px]'} text-slate-500 leading-relaxed`}>
+      {/* Course Map — mini table */}
+      {preview.headers && (
+        <div className="overflow-hidden rounded border border-slate-200/40">
+          <div className="flex bg-slate-50/80">
+            {preview.headers.map(h => (
+              <div key={h} className={`flex-1 ${isFullscreen ? 'px-4 py-2' : 'px-2 py-1'} font-semibold text-slate-600 border-r border-slate-200/30 last:border-r-0`}>{h}</div>
+            ))}
+          </div>
+          {preview.rows.map((row, i) => (
+            <div key={i} className="flex border-t border-slate-200/30">
+              {row.map((cell, j) => (
+                <div key={j} className={`flex-1 ${isFullscreen ? 'px-4 py-2' : 'px-2 py-1'} border-r border-slate-200/30 last:border-r-0`}>{cell}</div>
+              ))}
+            </div>
+          ))}
+        </div>
+      )}
+
+      {/* Lesson Plans — timeline */}
+      {preview.lines && (
+        <div className={`${isFullscreen ? 'space-y-3' : 'space-y-1.5'}`}>
+          {preview.lines.map((line, i) => (
+            <div key={i} className="flex items-start gap-2">
+              <span className={`${isFullscreen ? 'w-14' : 'w-10'} flex-shrink-0 text-right font-mono text-indigo-400`}>{line.time}</span>
+              <div className={`${isFullscreen ? 'w-2 h-2 mt-1.5' : 'w-1 h-1 mt-1.5'} rounded-full bg-indigo-300 flex-shrink-0`} />
+              <span><strong className="text-slate-600">{line.t}:</strong> {line.d}</span>
+            </div>
+          ))}
+        </div>
+      )}
+
+      {/* Slide Decks — slide strip */}
+      {preview.slides && (
+        <div className="flex gap-1.5 overflow-x-auto pb-1">
+          {preview.slides.map((s, i) => (
+            <div key={i} className={`flex-shrink-0 ${isFullscreen ? 'w-32 h-20' : 'w-20 h-14'} rounded border border-slate-200/50 bg-white/60 flex items-center justify-center p-1 text-center text-slate-500 leading-tight`}>
+              <span className={isFullscreen ? 'text-xs' : 'text-[9px]'}>{s}</span>
+            </div>
+          ))}
+        </div>
+      )}
+
+      {/* Rubrics — mini grid */}
+      {preview.criteria && (
+        <div className="overflow-hidden rounded border border-slate-200/40">
+          <div className="flex bg-slate-50/80">
+            <div className={`${isFullscreen ? 'w-36 px-4 py-2' : 'w-24 px-2 py-1'} font-semibold text-slate-600 border-r border-slate-200/30`}>Criteria</div>
+            {preview.levels.map(l => (
+              <div key={l} className={`flex-1 ${isFullscreen ? 'px-4 py-2' : 'px-2 py-1'} font-semibold text-slate-600 border-r border-slate-200/30 last:border-r-0 text-center`}>{l}</div>
+            ))}
+          </div>
+          {preview.criteria.map((c, i) => (
+            <div key={i} className="flex border-t border-slate-200/30">
+              <div className={`${isFullscreen ? 'w-36 px-4 py-2' : 'w-24 px-2 py-1'} font-medium text-slate-600 border-r border-slate-200/30`}>{c}</div>
+              {preview.levels.map(l => (
+                <div key={l} className={`flex-1 ${isFullscreen ? 'px-4 py-2' : 'px-2 py-1'} border-r border-slate-200/30 last:border-r-0 text-center text-slate-400 italic`}>descriptor</div>
+              ))}
+            </div>
+          ))}
+        </div>
+      )}
+
+      {/* Quiz Bank — questions */}
+      {preview.questions && (
+        <div className={`${isFullscreen ? 'space-y-4' : 'space-y-2'}`}>
+          {preview.questions.map((q, i) => (
+            <div key={i} className="space-y-0.5">
+              <div className="flex items-center gap-1.5">
+                <span className={`px-1.5 py-0.5 rounded bg-indigo-50/80 text-indigo-500 font-semibold ${isFullscreen ? 'text-xs' : 'text-[9px]'}`}>{q.type}</span>
+                <span className="text-slate-600">{q.q}</span>
+              </div>
+              {q.opts && (
+                <div className="ml-8 space-y-0.5">
+                  {q.opts.map((o, j) => <div key={j} className="text-slate-400">{o}</div>)}
+                </div>
+              )}
+            </div>
+          ))}
+        </div>
+      )}
+
+      {/* Discussions — prompt */}
+      {preview.prompt && (
+        <div className="space-y-1.5">
+          <p className="text-slate-600 italic">"{preview.prompt}"</p>
+          <p className="text-slate-400">{preview.followUp}</p>
+        </div>
+      )}
+
+      {/* Assignments — components list */}
+      {preview.components && (
+        <div className="space-y-1">
+          <p className="font-semibold text-slate-600">{preview.title}</p>
+          <ul className="list-disc list-inside space-y-0.5 ml-1">
+            {preview.components.map((c, i) => <li key={i}>{c}</li>)}
+          </ul>
+        </div>
+      )}
+
+      {/* Study Guides — term definitions */}
+      {preview.terms && (
+        <div className="space-y-1.5">
+          {preview.terms.map((t, i) => (
+            <div key={i}>
+              <span className="font-semibold text-slate-600">{t.term}:</span>{' '}
+              <span>{t.def}</span>
+            </div>
+          ))}
+        </div>
+      )}
+
+      {/* Syllabus — section list */}
+      {preview.sections && (
+        <div className={`${isFullscreen ? 'space-y-2' : 'space-y-1'}`}>
+          {preview.sections.map((s, i) => (
+            <div key={i} className="flex items-center gap-2">
+              <span className={`${isFullscreen ? 'w-6 h-6 text-xs' : 'w-4 h-4 text-[9px]'} rounded bg-cyan-50/80 text-cyan-500 flex items-center justify-center font-bold flex-shrink-0`}>{i + 1}</span>
+              <span className="text-slate-600">{s}</span>
+            </div>
+          ))}
+        </div>
+      )}
+    </div>
+  );
+
+  return (
+    <>
+      <div className="mb-4 rounded-lg border border-slate-200/40 overflow-hidden">
+        <div className="px-3 py-1.5 bg-slate-50/60 border-b border-slate-200/40 flex items-center justify-between">
+          <p className="text-[10px] font-semibold text-slate-400 uppercase tracking-wider">{preview.label}</p>
+          <button
+            onClick={() => setFullscreen(true)}
+            className="text-slate-300 hover:text-indigo-500 transition-colors"
+            title="Full screen"
+          >
+            <svg className="w-3.5 h-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M4 8V4m0 0h4M4 4l5 5m11-1V4m0 0h-4m4 0l-5 5M4 16v4m0 0h4m-4 0l5-5m11 5v-4m0 4h-4m4 0l-5-5" />
+            </svg>
+          </button>
+        </div>
+        {previewContent(false)}
+      </div>
+
+      {/* Fullscreen modal */}
+      {fullscreen && (
+        <div
+          className="fixed inset-0 z-50 flex items-center justify-center bg-black/50 backdrop-blur-md"
+          onClick={() => setFullscreen(false)}
+        >
+          <div
+            className="bg-white/95 backdrop-blur-lg rounded-2xl shadow-2xl border border-slate-200/60 max-w-2xl w-full mx-4 animate-spring-scale max-h-[85vh] overflow-y-auto"
+            onClick={e => e.stopPropagation()}
+          >
+            <div className="sticky top-0 z-10 bg-white/95 backdrop-blur-lg px-6 py-4 border-b border-slate-200/40 flex items-center justify-between rounded-t-2xl">
+              <h3 className="text-sm font-bold text-slate-800">{preview.label}</h3>
+              <button
+                onClick={() => setFullscreen(false)}
+                className="text-slate-400 hover:text-slate-600 transition-colors"
+              >
+                <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M6 18L18 6M6 6l12 12" />
+                </svg>
+              </button>
+            </div>
+            {previewContent(true)}
+          </div>
+        </div>
+      )}
+    </>
+  );
+}
+
 // ── Per-deliverable config content ────────────────────────────────────────────
 
 function DeliverableConfigContent({ featureId, config, onChange, columns, setColumns }) {
@@ -448,6 +698,7 @@ function DeliverableConfigContent({ featureId, config, onChange, columns, setCol
     case 'courseMap':
       return (
         <div className="space-y-3">
+          <DeliverablePreview featureId="courseMap" />
           <p className="text-[11px] text-slate-500">Click to enable/disable, drag to reorder, double-click to rename.</p>
           <ColumnEditor columns={columns} setColumns={setColumns} />
           <AdvancedSection>
@@ -459,6 +710,7 @@ function DeliverableConfigContent({ featureId, config, onChange, columns, setCol
     case 'lessonPlans':
       return (
         <div className="space-y-4">
+          <DeliverablePreview featureId="lessonPlans" />
           {/* Basic settings — always visible */}
           <Select
             label="Session length"
@@ -486,6 +738,7 @@ function DeliverableConfigContent({ featureId, config, onChange, columns, setCol
     case 'slideDecks':
       return (
         <div className="space-y-4">
+          <DeliverablePreview featureId="slideDecks" />
           {/* Basic */}
           <NumberInput
             label="Slides per lesson"
@@ -511,6 +764,7 @@ function DeliverableConfigContent({ featureId, config, onChange, columns, setCol
     case 'rubrics':
       return (
         <div className="space-y-4">
+          <DeliverablePreview featureId="rubrics" />
           {/* Basic */}
           <NumberInput
             label="Criteria per rubric"
@@ -537,6 +791,7 @@ function DeliverableConfigContent({ featureId, config, onChange, columns, setCol
     case 'quizBank':
       return (
         <div className="space-y-4">
+          <DeliverablePreview featureId="quizBank" />
           {/* Basic */}
           <NumberInput
             label="Questions per lesson"
@@ -577,6 +832,7 @@ function DeliverableConfigContent({ featureId, config, onChange, columns, setCol
     case 'discussions':
       return (
         <div className="space-y-4">
+          <DeliverablePreview featureId="discussions" />
           {/* Basic */}
           <Select
             label="Discussion format"
@@ -596,6 +852,7 @@ function DeliverableConfigContent({ featureId, config, onChange, columns, setCol
     case 'assignments':
       return (
         <div className="space-y-4">
+          <DeliverablePreview featureId="assignments" />
           {/* Basic */}
           <MultiToggle
             label="Assignment types"
@@ -616,6 +873,7 @@ function DeliverableConfigContent({ featureId, config, onChange, columns, setCol
     case 'studyGuides':
       return (
         <div className="space-y-4">
+          <DeliverablePreview featureId="studyGuides" />
           {/* Basic */}
           <NumberInput
             label="Key terms per guide"
@@ -637,6 +895,7 @@ function DeliverableConfigContent({ featureId, config, onChange, columns, setCol
     case 'syllabus':
       return (
         <div className="space-y-4">
+          <DeliverablePreview featureId="syllabus" />
           {/* Basic */}
           <Select
             label="Citation style"

@@ -13,12 +13,13 @@
 
 import { autoFitFontSize, autoFitBullets, createElementTracker, SLIDE_W, SLIDE_H } from './slideTextFit.js';
 import { containsLatex, deckDataContainsLatex, processSlideText } from '../latexRenderer.js';
+import { safeImport } from '../safeImport.js';
 
 let _PptxGenJS;
 
 async function getPptxGen() {
   if (!_PptxGenJS) {
-    const mod = await import('pptxgenjs');
+    const mod = await safeImport(() => import('pptxgenjs'));
     _PptxGenJS = mod.default || mod;
   }
   return _PptxGenJS;
@@ -1112,7 +1113,7 @@ export async function buildSingleDeckPptxBlob(deck, deckIndex, courseName, theme
  * Download a single deck as its own .pptx file immediately.
  */
 export async function exportSingleDeckPptx(deck, deckIndex, courseName, themeIndex) {
-  const { saveAs } = await import('file-saver');
+  const { saveAs } = await safeImport(() => import('file-saver'));
   const blob = await buildSingleDeckPptxBlob(deck, deckIndex, courseName, themeIndex);
   const deckName = (deck.lessonTitle || `Deck ${deckIndex + 1}`).replace(/[/\\?%*:|"<>]/g, '-').trim();
   const lessonNumMatch = (deck.lessonTitle || '').match(/^(?:Lesson|Week)\s*(\d+)/i);

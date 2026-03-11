@@ -1,11 +1,13 @@
+import { safeImport } from './safeImport.js';
+
 // Lazy-loaded heavy dependencies
 let _ExcelJS, _saveAs;
 async function getExcelJS() {
-  if (!_ExcelJS) _ExcelJS = (await import('exceljs')).default;
+  if (!_ExcelJS) _ExcelJS = (await safeImport(() => import('exceljs'))).default;
   return _ExcelJS;
 }
 async function getSaveAs() {
-  if (!_saveAs) _saveAs = (await import('file-saver')).saveAs;
+  if (!_saveAs) _saveAs = (await safeImport(() => import('file-saver'))).saveAs;
   return _saveAs;
 }
 

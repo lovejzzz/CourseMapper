@@ -3,24 +3,25 @@
 // Google Docs, or Google Sheets.
 
 import { getCustomDeliverable } from './customDeliverableLibrary';
+import { safeImport } from './safeImport.js';
 
 let _jsPDF, _autoTable, _docx, _saveAs;
 
 async function loadPdfLibs() {
   if (!_jsPDF) {
-    const jsMod = await import('jspdf');
+    const jsMod = await safeImport(() => import('jspdf'));
     _jsPDF = jsMod.jsPDF;
-    const atMod = await import('jspdf-autotable');
+    const atMod = await safeImport(() => import('jspdf-autotable'));
     _autoTable = atMod.default || atMod.autoTable || atMod;
   }
   return { jsPDF: _jsPDF, autoTable: _autoTable };
 }
 async function getDocx() {
-  if (!_docx) _docx = await import('docx');
+  if (!_docx) _docx = await safeImport(() => import('docx'));
   return _docx;
 }
 async function getSaveAs() {
-  if (!_saveAs) _saveAs = (await import('file-saver')).saveAs;
+  if (!_saveAs) _saveAs = (await safeImport(() => import('file-saver'))).saveAs;
   return _saveAs;
 }
 
@@ -1096,7 +1097,7 @@ export async function exportDeliverableToGoogleSheets(featureId, data, courseNam
   updateTabStatus(preOpenedTab, 'build');
 
   // Build a styled XLSX workbook (matching course map quality)
-  const ExcelJS = (await import('exceljs')).default;
+  const ExcelJS = (await safeImport(() => import('exceljs'))).default;
   const workbook = new ExcelJS.Workbook();
   workbook.creator = 'Course Mapper';
   workbook.created = new Date();

@@ -428,6 +428,29 @@ body {
 .dark [class*="bg-orange-50\/"] {
   background-color: rgba(249, 115, 22, 0.08) !important;
 }
+.dark .bg-orange-100 {
+  background-color: rgba(249, 115, 22, 0.12) !important;
+}
+
+/* Cyan tints */
+.dark .bg-cyan-50,
+.dark [class*="bg-cyan-50\/"] {
+  background-color: rgba(34, 211, 238, 0.08) !important;
+}
+.dark .bg-cyan-100,
+.dark [class*="bg-cyan-100\/"] {
+  background-color: rgba(34, 211, 238, 0.12) !important;
+}
+
+/* Teal tints */
+.dark .bg-teal-50,
+.dark [class*="bg-teal-50\/"] {
+  background-color: rgba(45, 212, 191, 0.08) !important;
+}
+.dark .bg-teal-100,
+.dark [class*="bg-teal-100\/"] {
+  background-color: rgba(45, 212, 191, 0.12) !important;
+}
 
 /* ── Colored borders → muted dark equivalents ── */
 .dark [class*="border-indigo-100"],
@@ -466,6 +489,16 @@ body {
 .dark [class*="border-purple-200"] {
   border-color: rgba(168, 85, 247, 0.15) !important;
 }
+.dark [class*="border-cyan-100"],
+.dark [class*="border-cyan-200"],
+.dark .border-cyan-400 {
+  border-color: rgba(34, 211, 238, 0.15) !important;
+}
+.dark [class*="border-teal-100"],
+.dark [class*="border-teal-200"],
+.dark .border-teal-400 {
+  border-color: rgba(45, 212, 191, 0.15) !important;
+}
 
 /* ── Colored text — keep readable on dark backgrounds ── */
 .dark .text-indigo-700 { color: #a5b4fc !important; }
@@ -492,6 +525,12 @@ body {
 .dark .text-green-600 { color: #86efac !important; }
 .dark .text-orange-700 { color: #fdba74 !important; }
 .dark .text-orange-600 { color: #fdba74 !important; }
+.dark .text-cyan-700 { color: #67e8f9 !important; }
+.dark .text-cyan-600 { color: #67e8f9 !important; }
+.dark .text-cyan-500 { color: #22d3ee !important; }
+.dark .text-teal-700 { color: #5eead4 !important; }
+.dark .text-teal-600 { color: #5eead4 !important; }
+.dark .text-teal-500 { color: #2dd4bf !important; }
 
 /* ── Shadows → dark mode adjustments ── */
 .dark [class*="shadow-glass"] {

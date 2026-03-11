@@ -1,4 +1,5 @@
 import React, { useState } from 'react';
+import { safeImport } from '../lib/safeImport';
 import {
   exportDeliverableCsv,
   exportDeliverablePdf,
@@ -39,9 +40,9 @@ const CLOUD_FORMATS = [
 
 // ── Slide Deck PDF export (text-based, using jsPDF) ───────────────────────────
 async function exportSlideDeckPdf(data, courseName) {
-  const { jsPDF } = await import('jspdf');
-  const { autoTable } = await import('jspdf-autotable');
-  const { saveAs } = await import('file-saver');
+  const { jsPDF } = await safeImport(() => import('jspdf'));
+  const { autoTable } = await safeImport(() => import('jspdf-autotable'));
+  const { saveAs } = await safeImport(() => import('file-saver'));
 
   const doc = new jsPDF({ orientation: 'landscape', unit: 'mm', format: 'a4' });
   const pageW = 297;
@@ -210,14 +211,14 @@ function GDriveBtn({ fmt, label, disabled, busy, onClick }) {
 async function exportAllAsZip(deliverables, courseMap, columns, courseName, lessonFilter, slideTheme) {
   let JSZip;
   try {
-    JSZip = (await import('jszip')).default;
+    JSZip = (await safeImport(() => import('jszip'))).default;
   } catch {
     throw new Error('ZIP library unavailable — please export individually');
   }
 
-  const { buildDeliverableDocxBlob } = await import('../lib/deliverableExporters');
-  const { buildXlsxBuffer } = await import('../lib/xlsxGenerator');
-  const { saveAs } = await import('file-saver');
+  const { buildDeliverableDocxBlob } = await safeImport(() => import('../lib/deliverableExporters'));
+  const { buildXlsxBuffer } = await safeImport(() => import('../lib/xlsxGenerator'));
+  const { saveAs } = await safeImport(() => import('file-saver'));
 
   const zip = new JSZip();
   const name = courseName || 'Course';

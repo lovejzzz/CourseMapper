@@ -14,6 +14,7 @@ export default function DeliverableView({ featureId, data, status, error, regene
   // ── All hooks MUST come before any early returns (Rules of Hooks) ──
   // Feature 4.1 — Tier detection + toggle state
   const [activeTier, setActiveTier] = useState('standard'); // 'scaffolded' | 'standard' | 'extension'
+  const [isFullscreen, setIsFullscreen] = useState(false);
   const hasTiers = useMemo(() => {
     if (!data) return false;
     const TIERED_DELIVERABLES = ['lessonPlans', 'quizBank', 'discussions', 'assignments', 'studyGuides'];
@@ -65,12 +66,29 @@ export default function DeliverableView({ featureId, data, status, error, regene
     : (lessonScope === 'all' || !lessonScope ? allLessonCount : allLessonCount);
   const hasMissingLessons = onAddLessons && status === 'done' && Array.isArray(lessonScope) && lessonScope.length < allLessonCount;
 
-  return (
-    <div className={isSlides ? 'relative h-[calc(100vh-8rem)]' : 'relative'}>
-      {/* Feature 6.3 — Quality badge (shown when done and score available) */}
-      {status === 'done' && qualityScore && (
-        <div className="flex justify-end px-4 pt-2 pb-0">
-          <QualityBadge quality={qualityScore} />
+  const deliverableContent = (
+    <>
+      {/* Feature 6.3 — Quality badge + fullscreen toggle */}
+      {status === 'done' && (
+        <div className="flex items-center justify-end gap-2 px-4 pt-2 pb-0">
+          {qualityScore && <QualityBadge quality={qualityScore} />}
+          {!isSlides && (
+            <button
+              onClick={() => setIsFullscreen(f => !f)}
+              className="tactile p-1.5 rounded-lg text-slate-400 hover:text-indigo-500 hover:bg-white/60 transition-all"
+              title={isFullscreen ? 'Exit full screen' : 'Full screen'}
+            >
+              {isFullscreen ? (
+                <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 9L4 4m0 0h4M4 4v4m11 11l5 5m0 0h-4m4 0v-4M9 15l-5 5m0 0h4m-4 0v-4m11-11l5-5m0 0h-4m4 0v4" />
+                </svg>
+              ) : (
+                <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M4 8V4m0 0h4M4 4l5 5m11-1V4m0 0h-4m4 0l-5 5M4 16v4m0 0h4m-4 0l5-5m11 5v-4m0 4h-4m4 0l-5-5" />
+                </svg>
+              )}
+            </button>
+          )}
         </div>
       )}
       {/* Stale banner — shown when this deliverable is out of sync with recent edits */}
@@ -209,6 +227,46 @@ export default function DeliverableView({ featureId, data, status, error, regene
           </button>
         </div>
       )}
+    </>
+  );
+
+  // Fullscreen modal for non-slide deliverables
+  if (isFullscreen && !isSlides) {
+    return (
+      <>
+        <div className="fixed inset-0 z-50 bg-white/98 backdrop-blur-lg overflow-y-auto">
+          <div className="sticky top-0 z-10 bg-white/95 backdrop-blur-lg border-b border-slate-200/40 px-6 py-3 flex items-center justify-between">
+            <h3 className="text-sm font-bold text-slate-800">
+              {featureId === 'lessonPlans' ? 'Lesson Plans' :
+               featureId === 'rubrics' ? 'Rubrics' :
+               featureId === 'quizBank' ? 'Quiz & Exam Bank' :
+               featureId === 'discussions' ? 'Discussion Prompts' :
+               featureId === 'assignments' ? 'Assignment Briefs' :
+               featureId === 'studyGuides' ? 'Study Guides' :
+               featureId === 'syllabus' ? 'Syllabus' :
+               featureId}
+            </h3>
+            <button
+              onClick={() => setIsFullscreen(false)}
+              className="tactile flex items-center gap-1.5 px-3 py-1.5 rounded-lg text-xs font-medium text-slate-500 hover:text-slate-700 hover:bg-slate-100 transition-all"
+            >
+              <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 9L4 4m0 0h4M4 4v4m11 11l5 5m0 0h-4m4 0v-4M9 15l-5 5m0 0h4m-4 0v-4m11-11l5-5m0 0h-4m4 0v4" />
+              </svg>
+              Exit Full Screen
+            </button>
+          </div>
+          <div className="max-w-5xl mx-auto px-6 py-4">
+            {deliverableContent}
+          </div>
+        </div>
+      </>
+    );
+  }
+
+  return (
+    <div className={isSlides ? 'relative h-[calc(100vh-8rem)]' : 'relative'}>
+      {deliverableContent}
     </div>
   );
 }

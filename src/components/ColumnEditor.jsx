@@ -67,10 +67,14 @@ export default function ColumnEditor({ columns, setColumns }) {
 
   function addColumn() {
     const name = `New Column ${columns.length + 1}`;
+    const newIdx = columns.length;
     setColumns((prev) => [
       ...prev,
       { key: name.replace(/\s+/g, '_').toLowerCase(), label: name },
     ]);
+    // Auto-enter edit mode on the new column
+    setEditingIdx(newIdx);
+    setEditValue(name);
   }
 
   function handleKeyDown(e) {

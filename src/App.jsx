@@ -32,7 +32,6 @@ import DependencyMap from './components/DependencyMap';
 import CascadePreview from './components/CascadePreview';
 import ExportSidePanel from './components/ExportSidePanel';
 import AIContextMenu from './components/AIContextMenu';
-import ReadingLevelControl from './components/ReadingLevelControl';
 import { requestNotificationPermission } from './lib/notifyDone';
 import { importCourseMap } from './lib/importCourseMap';
 import { parseFiles } from './lib/fileParser';
@@ -1169,12 +1168,6 @@ export default function App() {
               </div>
             )}
 
-            {/* Reading Level Control */}
-            {courseMap && gen.progressStep === 'done' && (
-              <div className="ml-auto flex-shrink-0">
-                <ReadingLevelControl />
-              </div>
-            )}
           </div>
         )}
 
