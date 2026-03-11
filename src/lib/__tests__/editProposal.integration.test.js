@@ -129,7 +129,9 @@ if (typeof globalThis.localStorage === 'undefined') {
 
 // ── Tests ──
 
-describe('Edit → AI Proposal → Accept (DeepSeek Integration)', () => {
+const hasKey = !!DEEPSEEK_KEY;
+
+describe.skipIf(!hasKey)('Edit → AI Proposal → Accept (DeepSeek Integration)', () => {
   const canFetch = typeof fetch !== 'undefined';
 
   // ── Prompt building tests (no API call) ──

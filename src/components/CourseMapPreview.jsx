@@ -74,7 +74,7 @@ function FormattedText({ text }) {
   );
 }
 
-export default function CourseMapPreview({ courseMap, columns, isStreaming, oldCourseMap, onCellEdit, onTitleEdit, onCheckToggle, onAddSection, onDeleteSection, onAddLesson, onDeleteLesson, onMoveLesson, showDiff, onToggleDiff, onDismissDiff, lockedLessons, onToggleLock, moduleGroups, onModuleGroupsChange, onAIContextMenu }) {
+export default function CourseMapPreview({ courseMap, columns, isStreaming, oldCourseMap, onCellEdit, onTitleEdit, onCheckToggle, onAddSection, onDeleteSection, onAddLesson, onDeleteLesson, onMoveLesson, showDiff, onToggleDiff, onDismissDiff, lockedLessons, onToggleLock, moduleGroups, onModuleGroupsChange, onAIContextMenu, onCellHover }) {
   const tableRef = useRef(null);
   const wrapperRef = useRef(null);
   const mouseInsideRef = useRef(false);
@@ -500,7 +500,13 @@ export default function CourseMapPreview({ courseMap, columns, isStreaming, oldC
 
                     // Not streaming — editable cells with diff view
                     return (
-                      <td key={key} rowSpan={rowSpan} className={`px-3.5 py-2.5 align-top text-slate-600 max-w-[220px] transition-colors duration-500 ${showDiff && isChanged ? 'bg-emerald-50/60 border-l-2 border-emerald-400' : isChanged ? 'bg-emerald-50/40' : ''}`} style={{ wordBreak: 'break-word', overflowWrap: 'anywhere' }}>
+                      <td key={key} rowSpan={rowSpan} className={`px-3.5 py-2.5 align-top text-slate-600 max-w-[220px] transition-colors duration-500 ${showDiff && isChanged ? 'bg-emerald-50/60 border-l-2 border-emerald-400' : isChanged ? 'bg-emerald-50/40' : ''}`} style={{ wordBreak: 'break-word', overflowWrap: 'anywhere' }}
+                        onMouseEnter={onCellHover ? (e) => {
+                          const rect = e.currentTarget.getBoundingClientRect();
+                          onCellHover({ fieldKey: key, position: { x: rect.right + 8, y: rect.top } });
+                        } : undefined}
+                        onMouseLeave={onCellHover ? () => onCellHover(null) : undefined}
+                      >
                         {showDiff && isChanged && oldText ? (
                           <div>
                             <div className="text-[10px] text-red-400 line-through mb-1 pb-1 border-b border-red-100/60 leading-relaxed">

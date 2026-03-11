@@ -28,6 +28,8 @@ import { useAuth } from './contexts/AuthContext';
 import { saveProject as cloudSaveProject, loadProject as cloudLoadProject, loadProjectDeliverables, newProjectId } from './lib/cloudStorage';
 import ProjectPicker from './components/ProjectPicker';
 import DeliverableView from './components/DeliverableView';
+import DependencyMap from './components/DependencyMap';
+import CascadePreview from './components/CascadePreview';
 import ExportSidePanel from './components/ExportSidePanel';
 import AIContextMenu from './components/AIContextMenu';
 import ReadingLevelControl from './components/ReadingLevelControl';
@@ -172,6 +174,11 @@ export default function App() {
   const [dragTabIdx, setDragTabIdx] = useState(null);
   // Add-lessons modal state: { lessonIndices: number[], mode: null|'asking' }
   const [addLessonsModal, setAddLessonsModal] = useState(null);
+  // Dependency map modal
+  const [showDepMap, setShowDepMap] = useState(false);
+  // Cascade preview tooltip (hover state)
+  const [cascadeHover, setCascadeHover] = useState(null); // { featureId?, fieldKey?, position }
+  const cascadeTimerRef = useRef(null);
   // New Project confirmation modal
   const [newProjectConfirm, setNewProjectConfirm] = useState(false);
 
@@ -899,6 +906,13 @@ export default function App() {
   const featureMap = Object.fromEntries(allFeaturesForTabs.map(f => [f.id, f]));
   const workspaceTabs = selectedFeatures.map(id => featureMap[id]).filter(Boolean);
 
+  // Cascade preview hover (debounced)
+  const handleCascadeHover = useCallback((info) => {
+    clearTimeout(cascadeTimerRef.current);
+    if (!info) { setCascadeHover(null); return; }
+    cascadeTimerRef.current = setTimeout(() => setCascadeHover(info), 150);
+  }, []);
+
   // Drag-to-reorder tab handlers
   const handleTabDragStart = (idx) => (e) => {
     setDragTabIdx(idx);
@@ -973,6 +987,19 @@ export default function App() {
 
         {/* ── Deliverable tabs ── */}
         {workspaceTabs.length > 1 && (
+          <div className="flex items-center gap-1 mb-1">
+            <button
+              onClick={() => setShowDepMap(true)}
+              className="tactile p-1.5 rounded-full text-slate-400 hover:bg-white/60 hover:text-indigo-500 transition-all duration-200"
+              title="Dependency Map — see how deliverables connect"
+            >
+              <svg className="w-3.5 h-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M4 6h16M4 12h8m-8 6h16M16 12l4-4m0 0l-4-4m4 4H12" />
+              </svg>
+            </button>
+          </div>
+        )}
+        {workspaceTabs.length > 1 && (
           <div className="flex items-center gap-1 overflow-x-auto pb-1 scrollbar-hide">
             {workspaceTabs.map((feature, tabIdx) => {
               const isActive = activeTab === feature.id;
@@ -1007,6 +1034,12 @@ export default function App() {
                   onDragOver={handleTabDragOver(tabIdx)}
                   onDrop={handleTabDrop(tabIdx)}
                   onDragEnd={() => setDragTabIdx(null)}
+                  onMouseEnter={(e) => {
+                    if (feature.id === 'courseMap') return;
+                    const rect = e.currentTarget.getBoundingClientRect();
+                    handleCascadeHover({ featureId: feature.id, fieldKey: null, position: { x: rect.left, y: rect.bottom + 8 } });
+                  }}
+                  onMouseLeave={() => handleCascadeHover(null)}
                   onClick={() => {
                     setActiveTab(feature.id);
                     // Clear unseen badge when user clicks the tab
@@ -1352,6 +1385,10 @@ export default function App() {
                         onToggleDiff={() => setShowDiff(d => !d)}
                         onDismissDiff={() => { setOldCourseMap(null); setShowDiff(false); }}
                         onAIContextMenu={handleAIContextMenu}
+                        onCellHover={(info) => {
+                          if (!info) { handleCascadeHover(null); return; }
+                          handleCascadeHover({ featureId: null, fieldKey: info.fieldKey, position: info.position });
+                        }}
                       />
                     </ErrorBoundary>
                   </div>
@@ -1506,6 +1543,25 @@ export default function App() {
           target={aiContextMenu.target}
           onAction={handleAIAction}
           onClose={closeAIContextMenu}
+        />
+      )}
+
+      {/* ── Dependency Map modal ── */}
+      <DependencyMap
+        isOpen={showDepMap}
+        onClose={() => setShowDepMap(false)}
+        selectedFeatures={selectedFeatures}
+        deliverables={deliv.deliverables}
+      />
+
+      {/* ── Cascade Preview tooltip (tab hover) ── */}
+      {cascadeHover && (
+        <CascadePreview
+          fieldKey={cascadeHover.fieldKey}
+          featureId={cascadeHover.featureId}
+          position={cascadeHover.position}
+          selectedFeatures={selectedFeatures}
+          deliverables={deliv.deliverables}
         />
       )}
 
