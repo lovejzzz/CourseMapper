@@ -33,9 +33,7 @@ export default function MessageList({ messages, isStreaming, onSuggestionClick, 
   const prevCountRef = useRef(messages.length);
   const containerRef = useRef(null);
 
-  // Don't show "ready with N lessons" greeting while generation is still streaming —
-  // the courseMap is built incrementally and the lesson count would be misleading.
-  const opener = getChatOpener(isGenerating ? null : courseMap, isAgentMode, activeTab, deliverables);
+  const opener = getChatOpener(courseMap, isAgentMode, activeTab, deliverables, isGenerating);
   const { greeting, starters = [] } = opener || {};
 
   useEffect(() => {

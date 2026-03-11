@@ -176,7 +176,15 @@ function buildCourseMapStarters(courseMap) {
 
 // ── Chat opener — context-aware starters ────────────────────────────────────
 
-export function getChatOpener(courseMap, isAgentMode, activeTab, deliverables = null) {
+export function getChatOpener(courseMap, isAgentMode, activeTab, deliverables = null, isGenerating = false) {
+  // Generation in progress — don't show premature lesson count or onboarding message
+  if (isGenerating) {
+    return {
+      greeting: 'Generating your course map — hang tight!',
+      starters: [],
+    };
+  }
+
   // Tier 3: Agent mode — deliverables generated, show adaptive starters
   if (isAgentMode) {
     const starters = buildAdaptiveStarters(courseMap, activeTab, deliverables);
