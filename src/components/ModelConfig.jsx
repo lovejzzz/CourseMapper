@@ -202,13 +202,6 @@ export default function ModelConfig({
   return (
     <div className="glass panel-glow rounded-squircle shadow-glass p-7 animate-stagger-1">
       <h2 className="text-[15px] font-bold text-slate-800 mb-5 flex items-center gap-3">
-        <div className="w-8 h-8 rounded-[10px] bg-gradient-to-br from-indigo-500 to-violet-600 flex items-center justify-center flex-shrink-0 shadow-sm shadow-indigo-500/20">
-          <svg className="w-4 h-4 text-white" viewBox="0 0 24 24" fill="none">
-            <path d="M12 3v2m0 14v2m9-9h-2M5 12H3m15.364-6.364l-1.414 1.414M7.05 16.95l-1.414 1.414m12.728 0l-1.414-1.414M7.05 7.05L5.636 5.636" stroke="currentColor" strokeWidth={1.6} strokeLinecap="round"/>
-            <circle cx="12" cy="12" r="4" stroke="currentColor" strokeWidth={1.6}/>
-            <circle cx="12" cy="12" r="1.5" fill="currentColor" opacity="0.5"/>
-          </svg>
-        </div>
         AI Configuration
         {apiStatus === 'connected' && (
           <span className="ml-auto flex items-center gap-1.5 text-[10px] font-semibold text-emerald-600 bg-emerald-50/60 px-2.5 py-1 rounded-pill border border-emerald-100/50">
@@ -257,16 +250,21 @@ export default function ModelConfig({
           <label className="block text-xs font-medium text-slate-500 mb-1.5 tracking-wide uppercase">
             Provider
           </label>
-          <select
-            value={provider}
-            onChange={(e) => setProvider(e.target.value)}
-            className="input-glass w-full rounded-xl px-3.5 py-2.5 text-sm text-slate-700 focus:outline-none appearance-none cursor-pointer"
-          >
-            <option value="openai">OpenAI</option>
-            <option value="anthropic">Anthropic</option>
-            <option value="google">Google</option>
-            <option value="deepseek">DeepSeek</option>
-          </select>
+          <div className="relative">
+            <select
+              value={provider}
+              onChange={(e) => setProvider(e.target.value)}
+              className="input-glass w-full rounded-xl px-3.5 py-2.5 pr-9 text-sm text-slate-700 focus:outline-none appearance-none cursor-pointer"
+            >
+              <option value="openai">OpenAI</option>
+              <option value="anthropic">Anthropic</option>
+              <option value="google">Google</option>
+              <option value="deepseek">DeepSeek</option>
+            </select>
+            <svg className="pointer-events-none absolute right-3 top-1/2 -translate-y-1/2 w-4 h-4 text-slate-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M19 9l-7 7-7-7" />
+            </svg>
+          </div>
         </div>
 
         {/* API Key */}
