@@ -197,7 +197,13 @@ export default function useStreamReader() {
 
 // ── Provider-specific request builders ──
 
+// Reasoning models (o1, o3, o4-mini, etc.) don't support custom temperature
+function isReasoningModel(id) {
+  return /^o[134]/.test(id);
+}
+
 function buildProviderRequest(provider, apiKey, modelId, systemPrompt, userPrompt, maxOutputTokens = 16384) {
+  const temp = isReasoningModel(modelId) ? undefined : 0.3;
   if (provider === 'openai') {
     return {
       url: 'https://api.openai.com/v1/chat/completions',
@@ -213,7 +219,7 @@ function buildProviderRequest(provider, apiKey, modelId, systemPrompt, userPromp
         ],
         response_format: { type: 'json_object' },
         max_completion_tokens: maxOutputTokens,
-        temperature: 0.3,
+        ...(temp !== undefined && { temperature: temp }),
         stream: true,
       },
       parseChunk: (parsed) => parsed.choices?.[0]?.delta?.content || null,
@@ -232,7 +238,7 @@ function buildProviderRequest(provider, apiKey, modelId, systemPrompt, userPromp
       body: {
         model: modelId,
         max_tokens: maxOutputTokens,
-        temperature: 0.3,
+        ...(temp !== undefined && { temperature: temp }),
         stream: true,
         system: systemPrompt,
         messages: [{ role: 'user', content: userPrompt }],
@@ -256,7 +262,7 @@ function buildProviderRequest(provider, apiKey, modelId, systemPrompt, userPromp
         contents: [{ role: 'user', parts: [{ text: userPrompt }] }],
         systemInstruction: { parts: [{ text: systemPrompt }] },
         generationConfig: {
-          temperature: 0.3,
+          ...(temp !== undefined && { temperature: temp }),
           maxOutputTokens: maxOutputTokens,
           responseMimeType: 'application/json',
         },
@@ -280,7 +286,7 @@ function buildProviderRequest(provider, apiKey, modelId, systemPrompt, userPromp
           { role: 'user', content: userPrompt },
         ],
         max_tokens: maxOutputTokens,
-        temperature: 0.3,
+        ...(temp !== undefined && { temperature: temp }),
         stream: true,
         provider: { data_collection: 'allow' },
       },

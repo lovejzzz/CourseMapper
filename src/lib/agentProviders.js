@@ -184,6 +184,10 @@ function googleSchemaFix(schema) {
 // ── Build API request ───────────────────────────────────────────────────────
 
 export function buildAgentRequest(provider, { model, systemPrompt, messages, tools, maxTokens = 16384, temperature = 0.4, apiKey }) {
+  // Reasoning models (o1, o3, o4-mini, etc.) don't support custom temperature
+  const isReasoning = /^o[134]/.test(model);
+  const tempSetting = isReasoning ? {} : { temperature };
+
   if (provider === 'openai') {
     return {
       endpoint: 'https://api.openai.com/v1/chat/completions',
@@ -200,7 +204,7 @@ export function buildAgentRequest(provider, { model, systemPrompt, messages, too
         tools,
         tool_choice: 'auto',
         max_completion_tokens: maxTokens,
-        temperature,
+        ...tempSetting,
       },
     };
   }
@@ -217,7 +221,7 @@ export function buildAgentRequest(provider, { model, systemPrompt, messages, too
       body: {
         model,
         max_tokens: maxTokens,
-        temperature,
+        ...tempSetting,
         system: systemPrompt,
         tools,
         messages: messages.map(m => m._native ? stripNativeFlag(m) : { role: m.role, content: m.content }),
@@ -239,7 +243,7 @@ export function buildAgentRequest(provider, { model, systemPrompt, messages, too
           };
         }),
         tools,
-        generationConfig: { temperature, maxOutputTokens: maxTokens },
+        generationConfig: { ...tempSetting, maxOutputTokens: maxTokens },
       },
     };
   }

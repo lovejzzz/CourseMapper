@@ -179,6 +179,11 @@ export default function App() {
   // Cascade preview tooltip (hover state)
   const [cascadeHover, setCascadeHover] = useState(null); // { featureId?, fieldKey?, position }
   const cascadeTimerRef = useRef(null);
+  const handleCascadeHover = useCallback((info) => {
+    clearTimeout(cascadeTimerRef.current);
+    if (!info) { setCascadeHover(null); return; }
+    cascadeTimerRef.current = setTimeout(() => setCascadeHover(info), 150);
+  }, []);
   // New Project confirmation modal
   const [newProjectConfirm, setNewProjectConfirm] = useState(false);
 
@@ -905,13 +910,6 @@ export default function App() {
   const allFeaturesForTabs = [...FEATURES, ...listCustomDeliverables().map(toFeatureEntry)];
   const featureMap = Object.fromEntries(allFeaturesForTabs.map(f => [f.id, f]));
   const workspaceTabs = selectedFeatures.map(id => featureMap[id]).filter(Boolean);
-
-  // Cascade preview hover (debounced)
-  const handleCascadeHover = useCallback((info) => {
-    clearTimeout(cascadeTimerRef.current);
-    if (!info) { setCascadeHover(null); return; }
-    cascadeTimerRef.current = setTimeout(() => setCascadeHover(info), 150);
-  }, []);
 
   // Drag-to-reorder tab handlers
   const handleTabDragStart = (idx) => (e) => {

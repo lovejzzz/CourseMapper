@@ -172,6 +172,11 @@ app.post('/api/generate-stream', async (req, res) => {
   }
 });
 
+// Reasoning models (o1, o3, o4-mini, etc.) don't support custom temperature
+function getTemp(modelId) {
+  return /^o[134]/.test(modelId) ? undefined : 0.3;
+}
+
 async function streamOpenAI(apiKey, systemPrompt, userPrompt, modelId, res) {
   const response = await fetch('https://api.openai.com/v1/chat/completions', {
     method: 'POST',
@@ -187,7 +192,7 @@ async function streamOpenAI(apiKey, systemPrompt, userPrompt, modelId, res) {
       ],
       response_format: { type: 'json_object' },
       max_tokens: 16384,
-      temperature: 0.3,
+      ...(getTemp(modelId) !== undefined && { temperature: getTemp(modelId) }),
       stream: true,
     }),
   });
@@ -237,7 +242,7 @@ async function streamAnthropic(apiKey, systemPrompt, userPrompt, modelId, res) {
     body: JSON.stringify({
       model: modelId,
       max_tokens: 16384,
-      temperature: 0.3,
+      ...(getTemp(modelId) !== undefined && { temperature: getTemp(modelId) }),
       stream: true,
       system: systemPrompt,
       messages: [{ role: 'user', content: userPrompt }],
@@ -290,7 +295,7 @@ async function streamOpenRouter(apiKey, systemPrompt, userPrompt, modelId, res) 
         { role: 'user', content: userPrompt },
       ],
       max_tokens: 16384,
-      temperature: 0.3,
+      ...(getTemp(modelId) !== undefined && { temperature: getTemp(modelId) }),
       stream: true,
       provider: { data_collection: 'allow' },
     }),
@@ -371,7 +376,7 @@ async function streamGoogle(apiKey, systemPrompt, userPrompt, modelId, res) {
       contents: [{ role: 'user', parts: [{ text: userPrompt }] }],
       systemInstruction: { parts: [{ text: systemPrompt }] },
       generationConfig: {
-        temperature: 0.3,
+        ...(getTemp(modelId) !== undefined && { temperature: getTemp(modelId) }),
         maxOutputTokens: 16384,
         responseMimeType: 'application/json',
       },
@@ -456,7 +461,7 @@ async function callOpenAI(apiKey, systemPrompt, userPrompt, modelId = 'gpt-4o') 
       ],
       response_format: { type: 'json_object' },
       max_tokens: 16384,
-      temperature: 0.3,
+      ...(getTemp(modelId) !== undefined && { temperature: getTemp(modelId) }),
     }),
   });
 
@@ -483,7 +488,7 @@ async function callAnthropic(apiKey, systemPrompt, userPrompt, modelId = 'claude
     body: JSON.stringify({
       model: modelId,
       max_tokens: 16384,
-      temperature: 0.3,
+      ...(getTemp(modelId) !== undefined && { temperature: getTemp(modelId) }),
       system: systemPrompt,
       messages: [
         { role: 'user', content: userPrompt },
@@ -516,7 +521,7 @@ async function callGoogle(apiKey, systemPrompt, userPrompt, modelId = 'gemini-2.
       contents: [{ role: 'user', parts: [{ text: userPrompt }] }],
       systemInstruction: { parts: [{ text: systemPrompt }] },
       generationConfig: {
-        temperature: 0.3,
+        ...(getTemp(modelId) !== undefined && { temperature: getTemp(modelId) }),
         maxOutputTokens: 16384,
         responseMimeType: 'application/json',
       },
