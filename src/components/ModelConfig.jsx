@@ -22,6 +22,62 @@ const API_KEY_URLS = {
   deepseek: 'https://platform.deepseek.com/api_keys',
 };
 
+const BILLING_URLS = {
+  openai: 'https://platform.openai.com/settings/organization/billing/overview',
+  anthropic: 'https://console.anthropic.com/settings/plans',
+  google: 'https://aistudio.google.com/apikey',
+  deepseek: 'https://platform.deepseek.com/top_up',
+};
+
+/**
+ * Make a tiny test completion to verify the key has credits.
+ * Returns true if the key works, false if insufficient funds.
+ */
+async function checkCredits(provider, apiKey, modelId) {
+  try {
+    let res;
+    if (provider === 'openai' || provider === 'deepseek') {
+      const base = provider === 'deepseek' ? 'https://api.deepseek.com/v1' : 'https://api.openai.com/v1';
+      res = await fetch(`${base}/chat/completions`, {
+        method: 'POST',
+        headers: { 'Authorization': `Bearer ${apiKey}`, 'Content-Type': 'application/json' },
+        body: JSON.stringify({ model: modelId, messages: [{ role: 'user', content: 'Hi' }], max_tokens: 1 }),
+      });
+    } else if (provider === 'anthropic') {
+      res = await fetch('https://api.anthropic.com/v1/messages', {
+        method: 'POST',
+        headers: {
+          'x-api-key': apiKey, 'content-type': 'application/json',
+          'anthropic-version': '2023-06-01', 'anthropic-dangerous-direct-browser-access': 'true',
+        },
+        body: JSON.stringify({ model: modelId, max_tokens: 1, messages: [{ role: 'user', content: 'Hi' }] }),
+      });
+    } else if (provider === 'google') {
+      res = await fetch(
+        `https://generativelanguage.googleapis.com/v1beta/models/${modelId}:generateContent?key=${apiKey}`,
+        {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({ contents: [{ parts: [{ text: 'Hi' }] }], generationConfig: { maxOutputTokens: 1 } }),
+        }
+      );
+    } else {
+      return true;
+    }
+    if (res.ok) return true;
+    // Check for billing/quota errors
+    const err = await res.json().catch(() => ({}));
+    const msg = JSON.stringify(err).toLowerCase();
+    if (res.status === 402 || res.status === 429 || msg.includes('insufficient') || msg.includes('quota') || msg.includes('billing') || msg.includes('exceeded') || msg.includes('balance')) {
+      return false;
+    }
+    // Other errors (e.g. 400 for temperature) — key likely has credits
+    return true;
+  } catch {
+    return true; // Network error — don't block, assume credits OK
+  }
+}
+
 export default function ModelConfig({
   provider, setProvider, apiKey, setApiKey,
   modelId, setModelId, availableModels, setAvailableModels,
@@ -80,7 +136,7 @@ export default function ModelConfig({
     // skip re-validation entirely. This prevents StrictMode double-effects
     // from resetting apiStatus and triggering a re-collapse.
     if (!apiKeyChanged && !providerChanged) {
-      if (apiStatus === 'connected' && availableModels.length > 0) return;
+      if ((apiStatus === 'connected' || apiStatus === 'no_funds') && availableModels.length > 0) return;
       // First time ever (initial page load): allow validation to proceed
       if (hasRunOnceRef.current) return;
     }
@@ -110,7 +166,6 @@ export default function ModelConfig({
       try {
         const models = await fetchModelsFromProvider(provider, apiKey.trim());
         if (models && models.length > 0) {
-          setApiStatus('connected');
           setAvailableModels(models);
           // Prefer previously saved model if it exists in the list
           let saved;
@@ -120,6 +175,9 @@ export default function ModelConfig({
           setModelId(selected.id);
           setModelName(selected.name);
           if (setMaxOutputTokens) setMaxOutputTokens(selected.maxOutputTokens || 16384);
+          // Verify the key has credits with a tiny test call
+          const hasCredits = await checkCredits(provider, apiKey.trim(), selected.id);
+          setApiStatus(hasCredits ? 'connected' : 'no_funds');
         } else {
           setApiStatus('error');
         }
@@ -169,6 +227,21 @@ export default function ModelConfig({
             </svg>
             Validating...
           </span>
+        )}
+        {apiStatus === 'no_funds' && (
+          <a
+            href={BILLING_URLS[provider] || '#'}
+            target="_blank"
+            rel="noopener noreferrer"
+            title={`Add credits on ${provider.charAt(0).toUpperCase() + provider.slice(1)}`}
+            className="ml-auto flex items-center gap-1.5 text-[10px] font-semibold text-amber-600 bg-amber-50/60 px-2.5 py-1 rounded-pill border border-amber-100/50 hover:bg-amber-100/60 transition-colors cursor-pointer"
+          >
+            <span className="inline-flex rounded-full h-2 w-2 bg-amber-500"></span>
+            Insufficient Funds
+            <svg className="w-3 h-3 text-amber-500" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M10 6H6a2 2 0 00-2 2v10a2 2 0 002 2h10a2 2 0 002-2v-4M14 4h6m0 0v6m0-6L10 14" />
+            </svg>
+          </a>
         )}
         {apiStatus === 'error' && (
           <span className="ml-auto flex items-center gap-1.5 text-[10px] font-semibold text-red-500 bg-red-50/60 px-2.5 py-1 rounded-pill border border-red-100/50">
@@ -228,6 +301,8 @@ export default function ModelConfig({
               className={`input-glass w-full rounded-squircle-xs px-3.5 py-2.5 text-sm focus:outline-none pr-10 ${
                 apiStatus === 'connected'
                 ? '!border-emerald-300/60 !bg-emerald-50/30 text-slate-700'
+                : apiStatus === 'no_funds'
+                ? '!border-amber-300/60 !bg-amber-50/30 text-slate-700'
                 : apiStatus === 'error'
                 ? '!border-red-300/60 !bg-red-50/30 text-slate-700'
                 : 'text-slate-700'
@@ -237,6 +312,13 @@ export default function ModelConfig({
               <div className="absolute right-3 top-1/2 -translate-y-1/2">
                 <svg className="w-4 h-4 text-emerald-500" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                   <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2.5} d="M5 13l4 4L19 7" />
+                </svg>
+              </div>
+            )}
+            {apiStatus === 'no_funds' && (
+              <div className="absolute right-3 top-1/2 -translate-y-1/2">
+                <svg className="w-4 h-4 text-amber-500" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2.5} d="M12 9v2m0 4h.01m-6.938 4h13.856c1.54 0 2.502-1.667 1.732-3L13.732 4c-.77-1.333-2.694-1.333-3.464 0L3.34 16c-.77 1.333.192 3 1.732 3z" />
                 </svg>
               </div>
             )}
@@ -255,11 +337,13 @@ export default function ModelConfig({
           <label className="block text-xs font-medium text-slate-500 mb-1.5 tracking-wide uppercase">
             Model
           </label>
-          {apiStatus === 'connected' && availableModels.length > 0 ? (
+          {(apiStatus === 'connected' || apiStatus === 'no_funds') && availableModels.length > 0 ? (
             <select
               value={modelId}
               onChange={handleModelChange}
-              className="input-glass w-full rounded-squircle-xs px-3.5 py-2.5 text-sm text-slate-700 !border-emerald-300/60 !bg-emerald-50/30 focus:outline-none"
+              className={`input-glass w-full rounded-squircle-xs px-3.5 py-2.5 text-sm text-slate-700 focus:outline-none ${
+                apiStatus === 'connected' ? '!border-emerald-300/60 !bg-emerald-50/30' : '!border-amber-300/60 !bg-amber-50/30'
+              }`}
             >
               {availableModels.map((m) => (
                 <option key={m.id} value={m.id}>

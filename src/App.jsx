@@ -841,7 +841,8 @@ export default function App() {
           canGenerate={
             (files.length > 0 || promptText.trim().length > 0) &&
             apiKey.trim() &&
-            !!modelId
+            !!modelId &&
+            apiStatus === 'connected'
           }
           isGenerating={false}
           provider={provider} setProvider={setProvider}
