@@ -271,3 +271,227 @@ describe.skipIf(!hasKey)('Edit → AI Proposal → Accept (DeepSeek Integration)
     expect(proposedLesson[qKey].length).toBeGreaterThanOrEqual(1);
   }, 120000);
 });
+
+// ── Cascade Sync Integration Tests ──────────────────────────────────────────
+// Tests the full cascade flow: edit → identify affected deliverables → regenerate downstream
+
+import {
+  DELIVERABLE_OUTBOUND_MAP,
+  getOutboundTargets,
+  getAffectedFeatures,
+  buildSyncPlan,
+  computeStaleConfidence,
+} from '../syncDependencies';
+
+describe.skipIf(!hasKey)('Cascade Sync Integration (DeepSeek)', () => {
+
+  // ── Unit-level cascade logic (no API call) ──
+
+  it('DELIVERABLE_OUTBOUND_MAP: lessonPlans cascades to slideDecks and studyGuides', () => {
+    const targets = getOutboundTargets('lessonPlans');
+    expect(targets).toContain('slideDecks');
+    expect(targets).toContain('studyGuides');
+    expect(targets).not.toContain('lessonPlans'); // no self-reference
+  });
+
+  it('DELIVERABLE_OUTBOUND_MAP: assignments cascades to rubrics', () => {
+    expect(getOutboundTargets('assignments')).toEqual(['rubrics']);
+  });
+
+  it('DELIVERABLE_OUTBOUND_MAP: quizBank cascades to studyGuides', () => {
+    expect(getOutboundTargets('quizBank')).toEqual(['studyGuides']);
+  });
+
+  it('DELIVERABLE_OUTBOUND_MAP: discussions has no cascade targets', () => {
+    expect(getOutboundTargets('discussions')).toEqual([]);
+  });
+
+  it('FIELD_DEPENDENCY_MAP: learningObjectives affects 5 deliverables', () => {
+    const affected = getAffectedFeatures('learningObjectives');
+    expect(affected).toContain('lessonPlans');
+    expect(affected).toContain('slideDecks');
+    expect(affected).toContain('rubrics');
+    expect(affected).toContain('quizBank');
+    expect(affected).toContain('studyGuides');
+    expect(affected.length).toBe(5);
+  });
+
+  it('FIELD_DEPENDENCY_MAP: title affects all per-lesson deliverables', () => {
+    const affected = getAffectedFeatures('title');
+    expect(affected.length).toBeGreaterThanOrEqual(7);
+  });
+
+  it('FIELD_DEPENDENCY_MAP: weeklyAssessments affects rubrics, quizBank, assignments', () => {
+    const affected = getAffectedFeatures('weeklyAssessments');
+    expect(affected).toContain('rubrics');
+    expect(affected).toContain('quizBank');
+    expect(affected).toContain('assignments');
+  });
+
+  it('staleness confidence: learningObjectives edit → high confidence', () => {
+    const result = computeStaleConfidence(['learningObjectives']);
+    expect(result.level).toBe('high');
+    expect(result.maxWeight).toBe(1.0);
+  });
+
+  it('staleness confidence: semester edit → low confidence', () => {
+    const result = computeStaleConfidence(['semester']);
+    expect(result.level).toBe('low');
+    expect(result.maxWeight).toBe(0.2);
+  });
+
+  it('buildSyncPlan: course map edit generates correct plan', () => {
+    const pendingEdits = [
+      { lessonIdx: 0, key: 'learningObjectives', excludeFeatureId: null },
+    ];
+    const selectedFeatures = ['courseMap', 'lessonPlans', 'slideDecks', 'rubrics', 'quizBank', 'studyGuides'];
+    const deliverables = {
+      lessonPlans: { status: 'done', data: {} },
+      slideDecks: { status: 'done', data: {} },
+      rubrics: { status: 'done', data: {} },
+      quizBank: { status: 'done', data: {} },
+      studyGuides: { status: 'done', data: {} },
+    };
+
+    const plan = buildSyncPlan(pendingEdits, selectedFeatures, deliverables);
+    expect(plan.length).toBe(5); // all 5 affected features
+    const featureIds = plan.map(p => p.featureId);
+    expect(featureIds).toContain('lessonPlans');
+    expect(featureIds).toContain('slideDecks');
+    expect(featureIds).toContain('rubrics');
+    expect(featureIds).toContain('quizBank');
+    expect(featureIds).toContain('studyGuides');
+    // Each should have lessonIndices = [0]
+    plan.forEach(entry => {
+      expect(entry.lessonIndices).toEqual([0]);
+    });
+  });
+
+  it('buildSyncPlan: deliverable edit cascades to outbound targets only', () => {
+    const pendingEdits = [
+      { lessonIdx: 1, key: '_deliverableEdit', excludeFeatureId: 'lessonPlans' },
+    ];
+    const selectedFeatures = ['courseMap', 'lessonPlans', 'slideDecks', 'studyGuides', 'rubrics'];
+    const deliverables = {
+      lessonPlans: { status: 'done', data: {} },
+      slideDecks: { status: 'done', data: {} },
+      studyGuides: { status: 'done', data: {} },
+      rubrics: { status: 'done', data: {} },
+    };
+
+    const plan = buildSyncPlan(pendingEdits, selectedFeatures, deliverables, 'lessonPlans');
+    const featureIds = plan.map(p => p.featureId);
+    // lessonPlans → [slideDecks, studyGuides]
+    expect(featureIds).toContain('slideDecks');
+    expect(featureIds).toContain('studyGuides');
+    // Should NOT include lessonPlans itself (source) or rubrics (not downstream)
+    expect(featureIds).not.toContain('lessonPlans');
+    expect(featureIds).not.toContain('rubrics');
+  });
+
+  it('buildSyncPlan: skips features with status !== done', () => {
+    const pendingEdits = [
+      { lessonIdx: 0, key: 'learningObjectives', excludeFeatureId: null },
+    ];
+    const selectedFeatures = ['courseMap', 'lessonPlans', 'slideDecks', 'rubrics'];
+    const deliverables = {
+      lessonPlans: { status: 'done', data: {} },
+      slideDecks: { status: 'idle', data: null }, // not generated
+      rubrics: { status: 'done', data: {} },
+    };
+
+    const plan = buildSyncPlan(pendingEdits, selectedFeatures, deliverables);
+    const featureIds = plan.map(p => p.featureId);
+    expect(featureIds).toContain('lessonPlans');
+    expect(featureIds).toContain('rubrics');
+    expect(featureIds).not.toContain('slideDecks'); // skipped — not done
+  });
+
+  // ── Full cascade flow with DeepSeek (API call) ──
+
+  it('end-to-end: edit lesson plan objectives → cascade regenerates study guide', async () => {
+    // Step 1: Generate lesson plan for lesson 0
+    const lpPrompts = getDeliverablePrompt('lessonPlans', TEST_COURSE_MAP, [0], {
+      sessionLength: '75 minutes',
+    }, 'lecture');
+    const lpResponse = await callDeepSeek(lpPrompts.systemPrompt, lpPrompts.userPrompt, 4096);
+    const lpParsed = parseAIResponse(lpResponse);
+    expect(lpParsed).not.toBeNull();
+    const lpArrKey = getArrayKey('lessonPlans', lpParsed);
+    expect(lpArrKey).toBeTruthy();
+    expect(lpParsed[lpArrKey].length).toBeGreaterThanOrEqual(1);
+
+    // Step 2: Simulate editing the lesson plan (change objectives)
+    const originalPlan = lpParsed[lpArrKey][0];
+    const editContext = 'objectives changed: added "Apply gradient descent optimization" to lesson objectives';
+
+    // Step 3: Verify cascade targets
+    const cascadeTargets = getOutboundTargets('lessonPlans');
+    expect(cascadeTargets).toContain('studyGuides');
+
+    // Step 4: Generate downstream study guide WITH edit context
+    const sgPrompts = getDeliverablePrompt('studyGuides', TEST_COURSE_MAP, [0], {}, 'lecture', null, editContext);
+    expect(sgPrompts.userPrompt).toContain('INSTRUCTOR EDIT TO INCORPORATE');
+    expect(sgPrompts.userPrompt).toContain('gradient descent');
+
+    const sgResponse = await callDeepSeek(sgPrompts.systemPrompt, sgPrompts.userPrompt, 4096);
+    const sgParsed = parseAIResponse(sgResponse);
+    expect(sgParsed).not.toBeNull();
+
+    const sgArrKey = getArrayKey('studyGuides', sgParsed);
+    expect(sgArrKey).toBeTruthy();
+    expect(sgParsed[sgArrKey].length).toBeGreaterThanOrEqual(1);
+
+    // Step 5: Verify the study guide incorporated the edit
+    const sgText = JSON.stringify(sgParsed).toLowerCase();
+    expect(sgText).toContain('gradient descent');
+  }, 180000);
+
+  it('end-to-end: edit quiz bank → cascade regenerates study guide with quiz context', async () => {
+    // Step 1: Generate quiz for lesson 0
+    const qPrompts = getDeliverablePrompt('quizBank', TEST_COURSE_MAP, [0], {
+      questionsPerLesson: 3,
+    }, 'lecture');
+    const qResponse = await callDeepSeek(qPrompts.systemPrompt, qPrompts.userPrompt, 4096);
+    const qParsed = parseAIResponse(qResponse);
+    expect(qParsed).not.toBeNull();
+
+    // Step 2: Verify cascade: quizBank → studyGuides
+    expect(getOutboundTargets('quizBank')).toContain('studyGuides');
+
+    // Step 3: Generate study guide with edit context from quiz change
+    const editContext = 'quiz question added: "Derive the closed-form solution for OLS regression using matrix calculus"';
+    const sgPrompts = getDeliverablePrompt('studyGuides', TEST_COURSE_MAP, [0], {}, 'lecture', null, editContext);
+    expect(sgPrompts.userPrompt).toContain('INSTRUCTOR EDIT TO INCORPORATE');
+
+    const sgResponse = await callDeepSeek(sgPrompts.systemPrompt, sgPrompts.userPrompt, 4096);
+    const sgParsed = parseAIResponse(sgResponse);
+    expect(sgParsed).not.toBeNull();
+
+    // Study guide should reference the quiz topic
+    const sgText = JSON.stringify(sgParsed).toLowerCase();
+    expect(sgText.includes('ols') || sgText.includes('ordinary least squares') || sgText.includes('matrix') || sgText.includes('regression')).toBe(true);
+  }, 180000);
+
+  it('end-to-end: edit assignment → cascade regenerates rubric aligned to changes', async () => {
+    // Verify cascade: assignments → rubrics
+    expect(getOutboundTargets('assignments')).toEqual(['rubrics']);
+
+    // Generate rubric with edit context from assignment change
+    const editContext = 'assignment updated: added deliverable "peer code review report" with 20% weight';
+    const rPrompts = getDeliverablePrompt('rubrics', TEST_COURSE_MAP, [0], {}, 'lecture', null, editContext);
+    expect(rPrompts.userPrompt).toContain('INSTRUCTOR EDIT TO INCORPORATE');
+    expect(rPrompts.userPrompt).toContain('peer code review');
+
+    const rResponse = await callDeepSeek(rPrompts.systemPrompt, rPrompts.userPrompt, 4096);
+    const rParsed = parseAIResponse(rResponse);
+    expect(rParsed).not.toBeNull();
+
+    const rArrKey = getArrayKey('rubrics', rParsed);
+    expect(rArrKey).toBeTruthy();
+
+    // Rubric should include criteria for peer review
+    const rText = JSON.stringify(rParsed).toLowerCase();
+    expect(rText.includes('peer') || rText.includes('review') || rText.includes('code')).toBe(true);
+  }, 120000);
+});
