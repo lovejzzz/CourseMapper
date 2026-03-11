@@ -143,13 +143,19 @@ export default function App() {
   const [slideTheme, setSlideTheme] = useState(null); // null = auto-rotate, 0-4 = specific theme
 
   // ── Model & File Config ──
-  const [provider, setProvider] = useState('anthropic');
+  const [provider, setProvider] = useState(() => {
+    try { return localStorage.getItem('coursemapper-provider') || 'anthropic'; } catch { return 'anthropic'; }
+  });
   const [apiKey, setApiKey] = useState(() => {
     try { return localStorage.getItem('coursemapper-apikey') || ''; } catch { return ''; }
   });
   const [apiStatus, setApiStatus] = useState('idle');
-  const [modelName, setModelName] = useState('');
-  const [modelId, setModelId] = useState('');
+  const [modelName, setModelName] = useState(() => {
+    try { return localStorage.getItem('coursemapper-modelname') || ''; } catch { return ''; }
+  });
+  const [modelId, setModelId] = useState(() => {
+    try { return localStorage.getItem('coursemapper-modelid') || ''; } catch { return ''; }
+  });
   const [availableModels, setAvailableModels] = useState([]);
   const [maxOutputTokens, setMaxOutputTokens] = useState(16384);
   const [files, setFiles] = useState([]);
@@ -327,13 +333,22 @@ export default function App() {
     optimisticUpdate: deliv.optimisticUpdate,
   });
 
-  // ── Persist API key ──
+  // ── Persist API key, provider & model ──
   useEffect(() => {
     try {
       if (apiKey) localStorage.setItem('coursemapper-apikey', apiKey);
       else localStorage.removeItem('coursemapper-apikey');
     } catch { }
   }, [apiKey]);
+  useEffect(() => {
+    try { localStorage.setItem('coursemapper-provider', provider); } catch { }
+  }, [provider]);
+  useEffect(() => {
+    try {
+      if (modelId) localStorage.setItem('coursemapper-modelid', modelId);
+      if (modelName) localStorage.setItem('coursemapper-modelname', modelName);
+    } catch { }
+  }, [modelId, modelName]);
 
   // ── Save to localStorage (debounced) ──
   useEffect(() => {

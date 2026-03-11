@@ -112,9 +112,14 @@ export default function ModelConfig({
         if (models && models.length > 0) {
           setApiStatus('connected');
           setAvailableModels(models);
-          setModelId(models[0].id);
-          setModelName(models[0].name);
-          if (setMaxOutputTokens) setMaxOutputTokens(models[0].maxOutputTokens || 16384);
+          // Prefer previously saved model if it exists in the list
+          let saved;
+          try { saved = localStorage.getItem('coursemapper-modelid'); } catch { }
+          const match = saved ? models.find(m => m.id === saved) : null;
+          const selected = match || models[0];
+          setModelId(selected.id);
+          setModelName(selected.name);
+          if (setMaxOutputTokens) setMaxOutputTokens(selected.maxOutputTokens || 16384);
         } else {
           setApiStatus('error');
         }

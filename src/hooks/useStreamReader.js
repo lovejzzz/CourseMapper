@@ -458,6 +458,7 @@ export async function fetchModelsFromProvider(provider, apiKey) {
       .map((m) => ({
         id: m.id,
         name: m.id === 'deepseek-chat' ? 'DeepSeek V3' : m.id === 'deepseek-reasoner' ? 'DeepSeek R1' : m.id,
+        // DeepSeek /v1/models doesn't return token limits; values from docs
         maxOutputTokens: m.id === 'deepseek-reasoner' ? 32768 : 8192,
       }));
   }
