@@ -458,7 +458,7 @@ export default function App() {
 
   // ── Derived ──
   const canGenerate =
-    apiKey.trim() && modelId &&
+    (provider === 'webllm' || apiKey.trim()) && modelId &&
     (files.length > 0 || promptText.trim().length > 0) &&
     gen.status !== 'parsing' && gen.status !== 'generating' && !gen.isStopped;
 
@@ -783,7 +783,7 @@ export default function App() {
           onGenerate={handleLandingContinue}
           canGenerate={
             (files.length > 0 || promptText.trim().length > 0) &&
-            apiKey.trim() &&
+            (provider === 'webllm' || apiKey.trim()) &&
             !!modelId &&
             apiStatus === 'connected'
           }

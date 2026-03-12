@@ -267,6 +267,11 @@ export function buildAgentRequest(provider, { model, systemPrompt, messages, too
     };
   }
 
+  if (provider === 'webllm') {
+    // WebLLM doesn't use HTTP — handled separately in useStreamProcessor
+    return { endpoint: '', headers: {}, body: {} };
+  }
+
   throw new Error(`Unknown provider: ${provider}`);
 }
 

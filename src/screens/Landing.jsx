@@ -119,6 +119,7 @@ export default function Landing({
 
   // Build a summary label for the collapsed AI config bar
   const configSummaryLabel = (() => {
+    if (provider === 'webllm') return `Local AI · ${modelName || 'Qwen 3'}`;
     if (provider === 'openai') return `OpenAI · ${modelName || modelId || 'GPT'}`;
     if (provider === 'anthropic') return `Anthropic · ${modelName || modelId || 'Claude'}`;
     if (provider === 'google') return `Google · ${modelName || modelId || 'Gemini'}`;

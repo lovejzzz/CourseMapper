@@ -151,7 +151,7 @@ function getUserConfig() {
 // ── Simple streaming call to user's configured provider ──
 async function streamChat(messages, systemPrompt, signal) {
   const { apiKey, provider, modelId } = getUserConfig();
-  if (!apiKey) throw new Error('NO_API_KEY');
+  if (provider !== 'webllm' && !apiKey) throw new Error('NO_API_KEY');
 
   // Pick a lightweight model for chat if modelId isn't available
   const chatModel = modelId || (
@@ -159,6 +159,42 @@ async function streamChat(messages, systemPrompt, signal) {
       provider === 'anthropic' ? 'claude-3-5-haiku-20241022' :
         'gemini-2.0-flash'
   );
+
+  // WebLLM: local browser inference
+  if (provider === 'webllm') {
+    const { getEngine } = await import('../lib/webllm');
+    const engine = await getEngine(chatModel);
+    const llmMessages = [
+      { role: 'system', content: systemPrompt },
+      ...messages.map(m => ({ role: m.role, content: m.content })),
+    ];
+    const asyncIter = await engine.chat.completions.create({
+      messages: llmMessages,
+      temperature: 0.4,
+      max_tokens: 2048,
+      stream: true,
+    });
+    const encoder = new TextEncoder();
+    const stream = new ReadableStream({
+      async pull(controller) {
+        try {
+          const { value, done } = await asyncIter.next();
+          if (done) {
+            controller.enqueue(encoder.encode('data: [DONE]\n\n'));
+            controller.close();
+            return;
+          }
+          controller.enqueue(encoder.encode(`data: ${JSON.stringify(value)}\n\n`));
+        } catch (err) {
+          controller.error(err);
+        }
+      },
+    });
+    return {
+      reader: stream.getReader(),
+      parseChunk: (parsed) => parsed.choices?.[0]?.delta?.content || null,
+    };
+  }
 
   if (provider === 'google') {
     const geminiMessages = messages.map(m => ({

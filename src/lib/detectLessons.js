@@ -158,7 +158,15 @@ ${text.slice(0, 8000)}`;
   try {
     let responseText = '';
 
-    if (effectiveProvider === 'anthropic') {
+    if (effectiveProvider === 'webllm') {
+      const { completeLocal } = await import('./webllm');
+      const response = await completeLocal(modelId, [
+        { role: 'system', content: systemPrompt },
+        { role: 'user', content: userPrompt },
+      ], { temperature: 0, max_tokens: 64 });
+      responseText = response.choices?.[0]?.message?.content || '';
+
+    } else if (effectiveProvider === 'anthropic') {
       const res = await fetch('https://api.anthropic.com/v1/messages', {
         method: 'POST',
         headers: {

@@ -106,6 +106,21 @@ export default function useStreamReader() {
   const streamProvider = useCallback(async (provider, apiKey, modelId, systemPrompt, userPrompt, opts = {}) => {
     const { onChunk, onRetry, maxRetries = 3, existingText = '', signal: externalSignal, maxOutputTokens } = opts;
 
+    // WebLLM: run locally in browser, no network needed
+    if (provider === 'webllm') {
+      const { streamLocalChat } = await import('../lib/webllm');
+      const messages = [
+        { role: 'system', content: systemPrompt },
+        { role: 'user', content: userPrompt },
+      ];
+      return streamLocalChat(modelId, messages, {
+        temperature: 0.3,
+        max_tokens: maxOutputTokens || 4096,
+        onChunk: (text, count) => { if (onChunk) onChunk(existingText + text, count); },
+        signal: externalSignal,
+      }).then(result => ({ fullText: existingText + result.fullText }));
+    }
+
     let skipTemp = _noTempModels.has(modelId);
     let { url, headers, body, parseChunk } = buildProviderRequest(provider, apiKey, modelId, systemPrompt, userPrompt, maxOutputTokens, skipTemp);
 
@@ -399,6 +414,11 @@ function anthropicMaxOutput(id) {
  * that support streaming + JSON output.
  */
 export async function fetchModelsFromProvider(provider, apiKey) {
+  if (provider === 'webllm') {
+    // Models are handled directly in ModelConfig — return empty to avoid errors
+    return [];
+  }
+
   if (provider === 'openai') {
     const response = await fetch('https://api.openai.com/v1/models', {
       headers: { 'Authorization': `Bearer ${apiKey}` },

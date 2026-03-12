@@ -12,6 +12,7 @@
 import {
   buildAgentRequest, parseAgentResponse as parseProviderResponse,
 } from '../../lib/agentProviders';
+// webllm is dynamically imported when needed to avoid bundling ~7MB for non-local users
 
 // ── System prompt for Help / Tutor mode (extracted from FaqChatbot) ─────────
 export function getSystemPrompt(courseMap, activeTab) {
@@ -64,7 +65,8 @@ A free, browser-based tool that transforms syllabi into complete teaching materi
 - **Stop & Resume** — Pause and continue generation.
 - **.coursemapper** — Save/load portable project files.
 
-## AI API Keys
+## AI Providers
+- **Free (Local AI):** Runs Qwen 3 directly in the browser via WebGPU — no API key needed, no cost
 - **OpenAI:** https://platform.openai.com/api-keys
 - **Anthropic:** https://console.anthropic.com/settings/keys
 - **Google:** https://aistudio.google.com/apikey
@@ -76,10 +78,46 @@ A free, browser-based tool that transforms syllabi into complete teaching materi
 
 // ── Streaming call to user's configured provider ────────────────────────────
 export async function streamChat(messages, systemPrompt, signal, apiKey, provider, modelId, maxTokens = 2048) {
-  if (!apiKey) throw new Error('NO_API_KEY');
+  if (provider !== 'webllm' && !apiKey) throw new Error('NO_API_KEY');
   if (!modelId) throw new Error('NO_MODEL_SELECTED');
 
   const chatModel = modelId;
+
+  // WebLLM: local browser inference — emit SSE-formatted chunks via ReadableStream
+  if (provider === 'webllm') {
+    const { getEngine } = await import('../../lib/webllm');
+    const engine = await getEngine(chatModel);
+    const llmMessages = [
+      { role: 'system', content: systemPrompt },
+      ...messages.map(m => ({ role: m.role, content: m.content })),
+    ];
+    const asyncIter = await engine.chat.completions.create({
+      messages: llmMessages,
+      temperature: 0.4,
+      max_tokens: maxTokens,
+      stream: true,
+    });
+    const encoder = new TextEncoder();
+    const stream = new ReadableStream({
+      async pull(controller) {
+        try {
+          const { value, done } = await asyncIter.next();
+          if (done) {
+            controller.enqueue(encoder.encode('data: [DONE]\n\n'));
+            controller.close();
+            return;
+          }
+          controller.enqueue(encoder.encode(`data: ${JSON.stringify(value)}\n\n`));
+        } catch (err) {
+          controller.error(err);
+        }
+      },
+    });
+    return {
+      reader: stream.getReader(),
+      parseChunk: (parsed) => parsed.choices?.[0]?.delta?.content || null,
+    };
+  }
 
   if (provider === 'google') {
     const geminiMessages = messages.map(m => ({
@@ -175,8 +213,19 @@ export async function streamChat(messages, systemPrompt, signal, apiKey, provide
 
 // ── Native tool-calling LLM call for agentic loop ─────────────────────────
 export async function fetchAgentResponseNative(loopMessages, systemPrompt, signal, apiKey, provider, modelId, nativeTools) {
-  if (!apiKey) throw new Error('NO_API_KEY');
+  if (provider !== 'webllm' && !apiKey) throw new Error('NO_API_KEY');
   if (!modelId) throw new Error('NO_MODEL_SELECTED');
+
+  // WebLLM: local inference without tool calling — return text-only response
+  if (provider === 'webllm') {
+    const { completeLocal } = await import('../../lib/webllm');
+    const response = await completeLocal(modelId, [
+      { role: 'system', content: systemPrompt },
+      ...loopMessages.map(m => ({ role: m.role, content: m.content })),
+    ], { temperature: 0.4, max_tokens: 4096 });
+    const text = response.choices?.[0]?.message?.content || '';
+    return { toolCalls: null, textContent: text, stopReason: 'stop' };
+  }
 
   let temperature = 0.4;
 
