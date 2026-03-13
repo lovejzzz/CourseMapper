@@ -350,7 +350,7 @@ export default function ModelConfig() {
                   <svg className="w-4 h-4 text-emerald-500 shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                     <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2.5} d="M5 13l4 4L19 7" />
                   </svg>
-                  Model ready — runs in your browser
+                  Installed
                 </div>
               ) : apiStatus === 'error' ? (
                 <div className="w-full rounded-squircle-xs bg-red-50/40 border border-red-200/50 px-3.5 py-2.5 text-sm text-red-600">
