@@ -293,7 +293,7 @@ export default function CourseMapPreview({ courseMap, columns, isStreaming, oldC
       </h2>
       <div className="mb-5" />
 
-      <div ref={tableRef} onMouseEnter={handleMouseEnter} onMouseLeave={handleMouseLeave} className="overflow-auto rounded-squircle-sm max-h-[70vh] shadow-glass border border-white/30 scroll-fade-right">
+      <div ref={tableRef} onMouseEnter={handleMouseEnter} onMouseLeave={handleMouseLeave} className="overflow-auto rounded-squircle-sm max-h-[70vh] shadow-glass border border-white/30">
         <table className="min-w-full text-xs table-fixed" role="grid" aria-label="Course Map">
           <thead className="sticky top-0 z-10">
             <tr className="bg-gradient-to-r from-slate-800 to-slate-700 text-white">
