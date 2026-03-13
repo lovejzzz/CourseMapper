@@ -201,46 +201,63 @@ async function getOrCreateFolder(accessToken, folderName) {
  * silently produced empty content when converting PPTX → Google Slides.
  */
 async function uploadToDrive(accessToken, blob, fileName, targetMimeType, parentFolderId = null) {
-  const metadata = {
-    name: fileName.replace(/\.(docx|xlsx|pptx)$/, ''),
-    mimeType: targetMimeType,
+  const doUpload = async (folderId) => {
+    const metadata = {
+      name: fileName.replace(/\.(docx|xlsx|pptx)$/, ''),
+      mimeType: targetMimeType,
+    };
+    if (folderId) metadata.parents = [folderId];
+
+    const boundary = '===CourseMapper_Upload_Boundary===';
+    const metadataJson = JSON.stringify(metadata);
+
+    // Read the blob as an ArrayBuffer so we can build the raw multipart body
+    const fileBuffer = await blob.arrayBuffer();
+    const fileBytes = new Uint8Array(fileBuffer);
+
+    // Build the multipart/related body manually
+    const encoder = new TextEncoder();
+    const CRLF = '\r\n';
+    const preamble = encoder.encode(
+      `--${boundary}${CRLF}` +
+      `Content-Type: application/json; charset=UTF-8${CRLF}${CRLF}` +
+      metadataJson + CRLF +
+      `--${boundary}${CRLF}` +
+      `Content-Type: ${blob.type || 'application/octet-stream'}${CRLF}` +
+      `Content-Transfer-Encoding: binary${CRLF}${CRLF}`
+    );
+    const epilogue = encoder.encode(`${CRLF}--${boundary}--`);
+
+    // Combine: preamble + file bytes + epilogue
+    const body = new Uint8Array(preamble.length + fileBytes.length + epilogue.length);
+    body.set(preamble, 0);
+    body.set(fileBytes, preamble.length);
+    body.set(epilogue, preamble.length + fileBytes.length);
+
+    const res = await fetch('https://www.googleapis.com/upload/drive/v3/files?uploadType=multipart&fields=id,webViewLink', {
+      method: 'POST',
+      headers: {
+        Authorization: `Bearer ${accessToken}`,
+        'Content-Type': `multipart/related; boundary=${boundary}`,
+      },
+      body: body,
+    });
+
+    return res;
   };
-  if (parentFolderId) metadata.parents = [parentFolderId];
 
-  const boundary = '===CourseMapper_Upload_Boundary===';
-  const metadataJson = JSON.stringify(metadata);
+  let res = await doUpload(parentFolderId);
 
-  // Read the blob as an ArrayBuffer so we can build the raw multipart body
-  const fileBuffer = await blob.arrayBuffer();
-  const fileBytes = new Uint8Array(fileBuffer);
-
-  // Build the multipart/related body manually
-  const encoder = new TextEncoder();
-  const CRLF = '\r\n';
-  const preamble = encoder.encode(
-    `--${boundary}${CRLF}` +
-    `Content-Type: application/json; charset=UTF-8${CRLF}${CRLF}` +
-    metadataJson + CRLF +
-    `--${boundary}${CRLF}` +
-    `Content-Type: ${blob.type || 'application/octet-stream'}${CRLF}` +
-    `Content-Transfer-Encoding: binary${CRLF}${CRLF}`
-  );
-  const epilogue = encoder.encode(`${CRLF}--${boundary}--`);
-
-  // Combine: preamble + file bytes + epilogue
-  const body = new Uint8Array(preamble.length + fileBytes.length + epilogue.length);
-  body.set(preamble, 0);
-  body.set(fileBytes, preamble.length);
-  body.set(epilogue, preamble.length + fileBytes.length);
-
-  const res = await fetch('https://www.googleapis.com/upload/drive/v3/files?uploadType=multipart&fields=id,webViewLink', {
-    method: 'POST',
-    headers: {
-      Authorization: `Bearer ${accessToken}`,
-      'Content-Type': `multipart/related; boundary=${boundary}`,
-    },
-    body: body,
-  });
+  // If upload failed with 404 and we used a cached parent folder, the folder
+  // was likely trashed/deleted. Invalidate the cache and retry without a parent.
+  if (res.status === 404 && parentFolderId) {
+    // Remove the stale folder ID from cache
+    for (const [key, val] of folderCache) {
+      if (val === parentFolderId) { folderCache.delete(key); break; }
+    }
+    console.warn('Drive folder not found (possibly trashed) — retrying upload to root');
+    res = await doUpload(null);
+  }
 
   if (!res.ok) {
     const err = await res.json().catch(() => ({}));
