@@ -331,13 +331,12 @@ export default function Landing({
               {isReady && (
                 <button
                   onClick={() => setConfigCollapsed(true)}
-                  className="absolute top-3 right-3 z-10 tactile flex items-center gap-1 px-2.5 py-1 rounded-lg text-[11px] font-medium text-slate-400 hover:text-slate-600 hover:bg-slate-100/60 transition-all duration-200"
+                  className="absolute top-3 right-3 z-10 tactile flex items-center justify-center w-7 h-7 rounded-lg text-slate-400 hover:text-slate-600 hover:bg-slate-100/60 transition-all duration-200"
                   title="Collapse AI config"
                 >
                   <svg className="w-3.5 h-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                     <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M5 15l7-7 7 7" />
                   </svg>
-                  Collapse
                 </button>
               )}
               <ModelConfig />
