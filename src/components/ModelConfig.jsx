@@ -142,8 +142,9 @@ export default function ModelConfig() {
     setModelName(selected.name);
     if (setMaxOutputTokens) setMaxOutputTokens(selected.maxOutputTokens || 4096);
 
-    // Prevent double-init from StrictMode
+    // Prevent double-init from StrictMode or remount when already connected
     if (webllmInitRef.current) return;
+    if (apiStatus === 'connected') return;
     webllmInitRef.current = true;
 
     setApiStatus('validating');
