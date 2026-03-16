@@ -200,6 +200,23 @@ export default function ChatPanel({
         />
       )}
 
+      {/* ── Stale deliverables banner (persistent, above messages) ── */}
+      {(() => {
+        const staleCount = deliverables
+          ? Object.values(deliverables).filter(d => d?.stale === true).length
+          : 0;
+        if (staleCount === 0 || isSyncing) return null;
+        return (
+          <div className="flex-shrink-0 px-3.5 py-1.5 bg-amber-50/80 border-b border-amber-200/40 flex items-center gap-2">
+            <div className="w-2 h-2 rounded-full bg-amber-400 animate-pulse" />
+            <span className="text-[11px] font-medium text-amber-700">
+              {staleCount} deliverable{staleCount !== 1 ? 's' : ''} out of sync
+            </span>
+            <span className="text-[11px] text-amber-500">— check sync suggestions below</span>
+          </div>
+        );
+      })()}
+
       {/* ── Agent Progress (fixed top, collapsible) — tool execution status ── */}
       {latestAgentProgress && (
         <div className="flex-shrink-0 border-b border-slate-200/40">

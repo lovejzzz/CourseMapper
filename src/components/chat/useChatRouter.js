@@ -376,27 +376,45 @@ export default function useChatRouter({
     });
   }, []);
 
-  const handleApproveSyncSuggestion = useCallback(async (suggestionId) => {
+  const handleApproveSyncSuggestion = useCallback(async (suggestionId, selectedPlan = null) => {
     // Read plan from current messages before mutating state
     let plan, changedFieldsSummary;
     const currentMsgs = messagesRef.current;
     const matchMsg = currentMsgs.find(m => m.id === suggestionId);
     if (matchMsg) { plan = matchMsg.plan; changedFieldsSummary = matchMsg.changedFieldsSummary; }
 
+    // Use selectedPlan if provided (per-deliverable selection), otherwise use full plan
+    const effectivePlan = selectedPlan || plan;
+
     setMessages(prev =>
       prev.map(m => m.id === suggestionId ? { ...m, status: 'syncing' } : m)
     );
 
-    if (!plan) return;
+    if (!effectivePlan) return;
 
     try {
-      const completed = await executeSyncPlanRef.current?.(plan, changedFieldsSummary || '');
-      setMessages(prev => prev.map(m =>
-        m.id === suggestionId ? { ...m, status: 'done', completedFeatureIds: completed || [] } : m
-      ));
+      const completed = await executeSyncPlanRef.current?.(effectivePlan, changedFieldsSummary || '');
+      const completedIds = new Set(completed || []);
+      const failed = effectivePlan.filter(p => !completedIds.has(p.featureId));
+
+      if (failed.length > 0 && completed?.length > 0) {
+        // Partial failure — some succeeded, some didn't
+        setMessages(prev => prev.map(m =>
+          m.id === suggestionId ? { ...m, status: 'partialFail', failedItems: failed, completedFeatureIds: completed } : m
+        ));
+      } else if (failed.length > 0) {
+        // All failed
+        setMessages(prev => prev.map(m =>
+          m.id === suggestionId ? { ...m, status: 'partialFail', failedItems: failed } : m
+        ));
+      } else {
+        setMessages(prev => prev.map(m =>
+          m.id === suggestionId ? { ...m, status: 'done', completedFeatureIds: completed || [] } : m
+        ));
+      }
     } catch {
       setMessages(prev => prev.map(m =>
-        m.id === suggestionId ? { ...m, status: 'done', failedFeatureIds: (plan || []).map(p => p.featureId) } : m
+        m.id === suggestionId ? { ...m, status: 'partialFail', failedItems: effectivePlan } : m
       ));
     }
   }, []);
