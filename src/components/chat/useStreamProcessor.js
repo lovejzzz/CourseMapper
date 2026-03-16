@@ -260,9 +260,10 @@ export async function fetchAgentResponseNative(loopMessages, systemPrompt, signa
     if (!response.ok) {
       const err = await response.json().catch(() => ({}));
       const msg = err.error?.message || `API error: ${response.status}`;
-      if (response.status === 400 && tempRetry === 0 && /temperature/i.test(msg)) {
-        console.log('[CM] Model does not support custom temperature, retrying with default');
-        temperature = undefined;
+      // If model doesn't support custom temperature, retry with default (1)
+      if (tempRetry === 0 && /temperature/i.test(msg)) {
+        console.log('[CM] Model does not support custom temperature, retrying with default (1)');
+        temperature = 1;
         continue;
       }
       throw new Error(msg);
