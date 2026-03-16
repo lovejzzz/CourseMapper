@@ -95,20 +95,53 @@ export const AGENT_TOOLS = {
   },
 
   check_grammar: {
-    description: "Check grammar and spelling in a specific lesson's text content via LanguageTool.",
-    params: { lessonIndex: 'number — 0-based lesson index' },
+    description: "Check grammar and spelling in lesson text via LanguageTool. Omit lessonIndex to check ALL lessons at once.",
+    params: { lessonIndex: 'number (optional) — 0-based lesson index. Omit to check all lessons.' },
     execute: async (args, ctx, signal) => {
-      const text = extractLessonText(ctx.courseMap, args.lessonIndex);
-      if (!text || text.length < 20) return { matches: [], note: 'Not enough text to check.' };
-      const result = await checkGrammar(text, 'en-US', signal);
-      return {
-        matchCount: result.matches.length,
-        matches: result.matches.slice(0, 10).map(m => ({
+      const lessons = ctx.courseMap?.lessons || [];
+      if (lessons.length === 0) return { matches: [], note: 'No lessons in course map.' };
+
+      // Single lesson mode
+      if (args.lessonIndex != null) {
+        const text = extractLessonText(ctx.courseMap, args.lessonIndex);
+        if (!text || text.length < 20) return { matches: [], note: 'Not enough text to check.' };
+        const result = await checkGrammar(text, 'en-US', signal);
+        return {
+          lessonIndex: args.lessonIndex,
+          matchCount: result.matches.length,
+          matches: result.matches.slice(0, 10).map(m => ({
+            message: m.message,
+            context: m.context,
+            replacements: m.replacements,
+            rule: m.rule,
+          })),
+        };
+      }
+
+      // Batch mode: check all lessons, return per-lesson results
+      const allResults = [];
+      let totalMatches = 0;
+      for (let i = 0; i < lessons.length; i++) {
+        const text = extractLessonText(ctx.courseMap, i);
+        if (!text || text.length < 20) {
+          allResults.push({ lessonIndex: i, title: lessons[i].title, matchCount: 0, note: 'Not enough text' });
+          continue;
+        }
+        const result = await checkGrammar(text, 'en-US', signal);
+        const matches = result.matches.slice(0, 5).map(m => ({
           message: m.message,
           context: m.context,
           replacements: m.replacements,
           rule: m.rule,
-        })),
+        }));
+        totalMatches += result.matches.length;
+        allResults.push({ lessonIndex: i, title: lessons[i].title, matchCount: result.matches.length, matches });
+      }
+      return {
+        mode: 'batch',
+        lessonsChecked: allResults.length,
+        totalMatches,
+        lessons: allResults,
       };
     },
   },

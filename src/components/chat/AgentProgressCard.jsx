@@ -53,7 +53,7 @@ function groupSteps(steps) {
   });
 }
 
-export default function AgentProgressCard({ steps = [], status = 'running' }) {
+export default function AgentProgressCard({ steps = [], status = 'running', thinkingText = '' }) {
   const [expanded, setExpanded] = useState(true);
   const isComplete = status === 'complete';
   const isError = status === 'error';
@@ -81,7 +81,7 @@ export default function AgentProgressCard({ steps = [], status = 'running' }) {
 
   const showSteps = isComplete || isError ? expanded : true;
 
-  // If no steps yet, show "Thinking..."
+  // If no steps yet, show "Thinking..." with optional streaming text preview
   if (steps.length === 0 && status === 'running') {
     return (
       <div className="mx-2 my-1 rounded-xl bg-violet-50/60 border border-violet-200/30 shadow-glass p-3.5">
@@ -92,6 +92,11 @@ export default function AgentProgressCard({ steps = [], status = 'running' }) {
           </svg>
           <span className="text-[13px] font-semibold text-violet-700">Thinking...</span>
         </div>
+        {thinkingText && (
+          <p className="mt-1.5 ml-6 text-[11px] text-violet-500/70 italic line-clamp-2">
+            {thinkingText.slice(-150)}
+          </p>
+        )}
       </div>
     );
   }

@@ -436,6 +436,32 @@ describe('Tool execute: check_grammar', () => {
     expect(result.matches).toEqual([]);
     expect(result.note).toBe('Not enough text to check.');
   });
+
+  it('batch mode: checks all lessons when lessonIndex is omitted', async () => {
+    // Add long text to both lessons
+    mockCtx.courseMap.lessons[0].sections[0].topicSection = 'This is a sufficiently long topic section for grammar checking purposes.';
+    mockCtx.courseMap.lessons[1].sections[0].topicSection = 'Another sufficiently long topic section for grammar checking purposes.';
+    const result = await AGENT_TOOLS.check_grammar.execute({}, mockCtx);
+    expect(result.mode).toBe('batch');
+    expect(result.lessonsChecked).toBe(2);
+    expect(result.totalMatches).toBeGreaterThanOrEqual(0);
+    expect(result.lessons).toHaveLength(2);
+    expect(result.lessons[0].lessonIndex).toBe(0);
+    expect(result.lessons[1].lessonIndex).toBe(1);
+  });
+
+  it('batch mode: returns note for empty course', async () => {
+    mockCtx.courseMap.lessons = [];
+    const result = await AGENT_TOOLS.check_grammar.execute({}, mockCtx);
+    expect(result.note).toBe('No lessons in course map.');
+  });
+
+  it('single lesson mode: includes lessonIndex in result', async () => {
+    mockCtx.courseMap.lessons[0].sections[0].topicSection = 'This is a sufficiently long topic section for grammar checking purposes.';
+    const result = await AGENT_TOOLS.check_grammar.execute({ lessonIndex: 0 }, mockCtx);
+    expect(result.lessonIndex).toBe(0);
+    expect(result.matchCount).toBeDefined();
+  });
 });
 
 describe('Tool execute: search_research', () => {

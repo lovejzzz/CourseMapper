@@ -166,11 +166,16 @@ export async function runAgentLoop(fullMessage, { silent = false }, ctx) {
       return null;
     }
 
+    // ── Thinking text callback for streaming progress ──
+    const onThinkingText = (text) => {
+      updateProgress(card => ({ ...card, thinkingText: text }));
+    };
+
     // ── AGENTIC LOOP (native tool calling) ───────────────────────────────
     for (let iteration = 0; iteration < MAX_ITERATIONS; iteration++) {
       const { toolCalls, textContent, stopReason } = await fetchAgentResponseNative(
         loopMessages, systemPrompt, controller.signal, apiKey, provider, modelId, nativeTools,
-        { temperature: agentTemperature },
+        { temperature: agentTemperature, onThinkingText },
       );
 
       // ── RESPOND TOOL (final answer) ──────────────────────────────────

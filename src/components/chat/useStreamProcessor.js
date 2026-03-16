@@ -212,7 +212,7 @@ export async function streamChat(messages, systemPrompt, signal, apiKey, provide
 }
 
 // ── Native tool-calling LLM call for agentic loop ─────────────────────────
-export async function fetchAgentResponseNative(loopMessages, systemPrompt, signal, apiKey, provider, modelId, nativeTools, { temperature: tempOverride } = {}) {
+export async function fetchAgentResponseNative(loopMessages, systemPrompt, signal, apiKey, provider, modelId, nativeTools, { temperature: tempOverride, onThinkingText } = {}) {
   if (provider !== 'webllm' && !apiKey) throw new Error('NO_API_KEY');
   if (!modelId) throw new Error('NO_MODEL_SELECTED');
 
@@ -227,6 +227,9 @@ export async function fetchAgentResponseNative(loopMessages, systemPrompt, signa
     return { toolCalls: null, textContent: text, stopReason: 'stop' };
   }
 
+  // Streaming for OpenAI/DeepSeek — shows partial text while LLM is thinking
+  const useStreaming = onThinkingText && (provider === 'openai' || provider === 'deepseek');
+
   let temperature = tempOverride ?? 0.4;
 
   for (let tempRetry = 0; tempRetry < 2; tempRetry++) {
@@ -240,6 +243,8 @@ export async function fetchAgentResponseNative(loopMessages, systemPrompt, signa
       apiKey,
     });
 
+    if (useStreaming) body.stream = true;
+
     const response = await fetch(endpoint, {
       method: 'POST',
       headers,
@@ -250,7 +255,6 @@ export async function fetchAgentResponseNative(loopMessages, systemPrompt, signa
     if (!response.ok) {
       const err = await response.json().catch(() => ({}));
       const msg = err.error?.message || `API error: ${response.status}`;
-      // If model doesn't support custom temperature, retry with default (1)
       if (response.status === 400 && tempRetry === 0 && /temperature/i.test(msg)) {
         console.log('[CM] Model does not support custom temperature, retrying with default');
         temperature = undefined;
@@ -259,9 +263,90 @@ export async function fetchAgentResponseNative(loopMessages, systemPrompt, signa
       throw new Error(msg);
     }
 
+    // ── Streaming path: parse SSE chunks for OpenAI/DeepSeek ──
+    if (useStreaming) {
+      return parseStreamingToolResponse(response, onThinkingText);
+    }
+
     const json = await response.json();
     return parseProviderResponse(provider, json);
   }
+}
+
+/**
+ * Parse a streaming OpenAI/DeepSeek response that may contain tool calls.
+ * Emits partial text content via onThinkingText callback for live progress.
+ */
+async function parseStreamingToolResponse(response, onThinkingText) {
+  const reader = response.body.getReader();
+  const decoder = new TextDecoder();
+  let buffer = '';
+  let textContent = '';
+  // Accumulate tool calls: { index → { id, name, arguments } }
+  const toolCallMap = {};
+  let finishReason = null;
+
+  while (true) {
+    const { done, value } = await reader.read();
+    if (done) break;
+    buffer += decoder.decode(value, { stream: true });
+    const lines = buffer.split('\n');
+    buffer = lines.pop() || '';
+
+    for (const line of lines) {
+      const trimmed = line.trim();
+      if (!trimmed || !trimmed.startsWith('data: ')) continue;
+      const data = trimmed.slice(6);
+      if (data === '[DONE]') continue;
+
+      try {
+        const chunk = JSON.parse(data);
+        const delta = chunk.choices?.[0]?.delta;
+        finishReason = chunk.choices?.[0]?.finish_reason || finishReason;
+
+        if (!delta) continue;
+
+        // Accumulate text content
+        if (delta.content) {
+          textContent += delta.content;
+          onThinkingText(textContent);
+        }
+
+        // Accumulate tool calls (streamed incrementally by index)
+        if (delta.tool_calls) {
+          for (const tc of delta.tool_calls) {
+            const idx = tc.index ?? 0;
+            if (!toolCallMap[idx]) {
+              toolCallMap[idx] = { id: tc.id || '', name: '', arguments: '' };
+            }
+            if (tc.id) toolCallMap[idx].id = tc.id;
+            if (tc.function?.name) toolCallMap[idx].name += tc.function.name;
+            if (tc.function?.arguments) toolCallMap[idx].arguments += tc.function.arguments;
+          }
+        }
+      } catch { /* ignore malformed chunks */ }
+    }
+  }
+
+  // Build final result
+  const toolCalls = Object.values(toolCallMap);
+  const parsed = toolCalls.length > 0
+    ? toolCalls.map(tc => ({
+        id: tc.id,
+        name: tc.name,
+        args: safeJsonParse(tc.arguments),
+      }))
+    : null;
+
+  return {
+    toolCalls: parsed,
+    textContent: textContent || null,
+    stopReason: finishReason || 'stop',
+  };
+}
+
+function safeJsonParse(str) {
+  try { return JSON.parse(str); } catch { return {}; }
 }
 
 // ── Build chat history with agent memory ─────────────────────────────────────

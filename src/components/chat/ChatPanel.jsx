@@ -183,7 +183,7 @@ export default function ChatPanel({
       {/* ── Agent Progress (fixed top, collapsible) — tool execution status ── */}
       {latestAgentProgress && (
         <div className="flex-shrink-0 border-b border-slate-200/40">
-          <AgentProgressCard steps={latestAgentProgress.steps} status={latestAgentProgress.status} />
+          <AgentProgressCard steps={latestAgentProgress.steps} status={latestAgentProgress.status} thinkingText={latestAgentProgress.thinkingText} />
         </div>
       )}
 

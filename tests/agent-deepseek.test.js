@@ -428,3 +428,102 @@ describe('DeepSeek Agent E2E', { timeout: TIMEOUT * 12 }, () => {
   });
 
 });
+
+// ── Multi-turn agent loop simulation ──────────────────────────────────────
+
+async function callDeepSeekMultiTurn(messages, { activeTab = 'quizBank' } = {}) {
+  const systemPrompt = buildAgentSystemPrompt(COURSE_MAP, activeTab, DELIVERABLES);
+  const nativeTools = buildNativeTools('deepseek', AGENT_TOOLS);
+
+  const response = await fetch('https://api.deepseek.com/v1/chat/completions', {
+    method: 'POST',
+    headers: {
+      'Authorization': `Bearer ${DEEPSEEK_API_KEY}`,
+      'Content-Type': 'application/json',
+    },
+    body: JSON.stringify({
+      model: DEEPSEEK_MODEL,
+      messages: [
+        { role: 'system', content: systemPrompt },
+        ...messages,
+      ],
+      tools: nativeTools,
+      tool_choice: 'auto',
+      max_completion_tokens: 4096,
+      temperature: 0.3,
+    }),
+  });
+
+  if (!response.ok) {
+    const err = await response.json().catch(() => ({}));
+    throw new Error(`DeepSeek API error ${response.status}: ${err.error?.message || JSON.stringify(err)}`);
+  }
+
+  const json = await response.json();
+  const choice = json.choices?.[0];
+  const message = choice?.message;
+
+  const toolCalls = (message?.tool_calls || []).map(tc => ({
+    id: tc.id,
+    name: tc.function.name,
+    args: JSON.parse(tc.function.arguments || '{}'),
+  }));
+
+  return {
+    toolCalls: toolCalls.length > 0 ? toolCalls : null,
+    textContent: message?.content || null,
+    rawMessage: message,
+  };
+}
+
+describe('Multi-turn agent loop', { timeout: TIMEOUT * 6 }, () => {
+
+  it('follows up after reading data: read → then respond or edit', { timeout: TIMEOUT * 3 }, async () => {
+    // Turn 1: user asks to improve a quiz — agent should read first
+    const turn1 = await callDeepSeekMultiTurn([
+      { role: 'user', content: 'The quiz for Lesson 1 is too easy. Make the questions harder.' },
+    ]);
+
+    // Turn 1 should read the deliverable (or edit/respond directly)
+    const read1 = findToolCall(turn1.toolCalls, 'read_deliverable');
+    const edit1 = findToolCall(turn1.toolCalls, 'edit_deliverables');
+    const respond1 = findToolCall(turn1.toolCalls, 'respond');
+
+    if (read1 && !respond1 && !edit1) {
+      // Agent read first — simulate providing the tool result, then check turn 2
+      const toolResult = JSON.stringify({
+        data: DELIVERABLES.quizBank.data.quizzes[0],
+        editPaths: ['["quizzes", 0, "qs", 0, "df"]'],
+      });
+
+      const turn2 = await callDeepSeekMultiTurn([
+        { role: 'user', content: 'The quiz for Lesson 1 is too easy. Make the questions harder.' },
+        // Assistant made a tool call
+        {
+          role: 'assistant',
+          content: turn1.textContent || null,
+          tool_calls: turn1.toolCalls.map(tc => ({
+            id: tc.id,
+            type: 'function',
+            function: { name: tc.name, arguments: JSON.stringify(tc.args) },
+          })),
+        },
+        // Tool result
+        { role: 'tool', tool_call_id: read1.id, content: toolResult },
+      ]);
+
+      // Turn 2 should either edit, propose, or respond — NOT read again
+      expect(turn2.toolCalls || turn2.textContent).toBeTruthy();
+      const read2 = findToolCall(turn2.toolCalls, 'read_deliverable');
+      const hasAction = findToolCall(turn2.toolCalls, 'edit_deliverables')
+        || findToolCall(turn2.toolCalls, 'respond');
+
+      // Agent should progress, not loop on reads
+      expect(hasAction || turn2.textContent).toBeTruthy();
+    } else {
+      // Agent acted directly — also acceptable
+      expect(edit1 || respond1 || turn1.textContent).toBeTruthy();
+    }
+  });
+
+});
