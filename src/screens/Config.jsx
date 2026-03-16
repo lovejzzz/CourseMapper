@@ -6,8 +6,6 @@ import { getCustomDeliverable, listCustomDeliverables, toFeatureEntry } from '..
 import { PREVIEW_EXAMPLES } from '../lib/previewExamples';
 import { useUI } from '../contexts/UIContext';
 import { useCourse } from '../contexts/CourseContext';
-import { useAIConfig } from '../contexts/AIConfigContext';
-import { estimateGenerationCost } from '../lib/tokenEstimator';
 
 // ── Shared option lists for universal advanced settings ───────────────────────
 const TONE_OPTIONS = ['Auto', 'Academic', 'Professional', 'Conversational', 'Friendly', 'Formal', 'Encouraging'];
@@ -1066,7 +1064,6 @@ export default function Config({
   canGenerate,
 }) {
   const { setShowHelp } = useUI();
-  const { provider, modelId, modelName } = useAIConfig();
   const {
     selectedFeatures: selected,
     deliverableConfig, setDeliverableConfig,
@@ -1206,19 +1203,6 @@ export default function Config({
               {lessonScope.type === 'specific' && !scopeValid && (
                 <p className="text-center text-[11px] text-amber-500 mb-2">Select at least one lesson to continue.</p>
               )}
-              {/* Cost estimate */}
-              {canGenerate && scopeValid && (() => {
-                const effectiveLessons = lessonScope.type === 'specific' ? lessonScope.indices.length : (lessonCount || 0);
-                const delivCount = selected.filter(f => f !== 'courseMap').length;
-                const cost = estimateGenerationCost(effectiveLessons, delivCount, provider, modelId);
-                if (!cost.display) return null;
-                return (
-                  <p className="text-center text-[11px] text-slate-400 mb-2">
-                    Estimated API cost: <span className="font-medium text-slate-500">{cost.display}</span>
-                    {provider === 'webllm' ? '' : ` · ${modelName || modelId}`}
-                  </p>
-                );
-              })()}
               <button
                 onClick={onGenerate}
                 disabled={!canGenerate || !scopeValid}
