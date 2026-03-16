@@ -373,7 +373,23 @@ describeWithKey('Agent Response Quality', { timeout: TIMEOUT * 12 }, () => {
     }
   });
 
-  // ── 12. Tone: limited "I" usage ─────────────────────────────────────────
+  // ── 12. No parroting: don't repeat the user's question ─────────────────
+
+  it('no parrot: does not echo the user question back', { timeout: TIMEOUT }, async () => {
+    const question = 'How many quiz questions does Lesson 2 have?';
+    const r = await callAgent(question);
+
+    const text = r.chatReply || r.textContent || '';
+    if (text.length > 30) {
+      // Should NOT start with "You asked..." or repeat the question verbatim
+      expect(text).not.toMatch(/^You asked/i);
+      expect(text).not.toMatch(/^Your question/i);
+      // Should not contain the full question string
+      expect(text.toLowerCase()).not.toContain(question.toLowerCase());
+    }
+  });
+
+  // ── 13. Tone: limited "I" usage ────────────────────────────────────────
 
   it('tone: does not overuse "I" (max 3 per response)', { timeout: TIMEOUT }, async () => {
     const r = await callAgent('What issues does my course have?', { activeTab: 'courseMap' });
