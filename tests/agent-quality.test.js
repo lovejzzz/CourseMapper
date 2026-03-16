@@ -476,4 +476,21 @@ describeWithKey('Agent Response Quality', { timeout: TIMEOUT * 12 }, () => {
     expect(acted || (text && text.length > 30)).toBeTruthy();
   });
 
+  // ── 18. Markdown formatting in multi-point responses ──────────────────────
+
+  it('markdown: uses formatting in multi-point responses', { timeout: TIMEOUT }, async () => {
+    const r = await callAgent('What are the strengths and weaknesses of my course design?', { activeTab: 'courseMap' });
+
+    const text = r.chatReply || r.textContent || '';
+    if (text.length > 200) {
+      // Multi-point response (>200 chars) should use at least one markdown feature
+      const hasBold = /\*\*[^*]+\*\*/.test(text);
+      const hasBullets = /^[-*] /m.test(text);
+      const hasNumbered = /^\d+[\.\)]/m.test(text);
+      const hasHeaders = /^#{1,3} /m.test(text);
+      const hasFormatting = hasBold || hasBullets || hasNumbered || hasHeaders;
+      expect(hasFormatting).toBe(true);
+    }
+  });
+
 });
