@@ -475,6 +475,33 @@ export default function useChatRouter({
     });
   }
 
+  // ── Regenerate: re-send the user message that preceded a given assistant message
+  function regenerate(msgIndex) {
+    if (isStreamingRef.current) return;
+    const msgs = messagesRef.current;
+    // Find preceding user message
+    let userIdx = msgIndex - 1;
+    while (userIdx >= 0 && msgs[userIdx].role !== 'user') userIdx--;
+    if (userIdx < 0) return;
+    const userText = msgs[userIdx].text || msgs[userIdx].content || '';
+    if (!userText) return;
+    // Remove the old assistant message
+    setMessages(prev => prev.filter((_, i) => i !== msgIndex));
+    // Re-send
+    send(userText);
+  }
+
+  // ── Feedback: toggle thumbs up/down on an assistant message
+  function feedback(msgIndex, vote) {
+    setMessages(prev => {
+      const updated = [...prev];
+      const msg = updated[msgIndex];
+      if (!msg || msg.role !== 'assistant') return prev;
+      updated[msgIndex] = { ...msg, feedback: msg.feedback === vote ? null : vote };
+      return updated;
+    });
+  }
+
   return {
     messages,
     isStreaming, send, handleStop,
@@ -484,5 +511,6 @@ export default function useChatRouter({
     handleAcceptDiff, handleRejectDiff,
     pushSyncSuggestion, handleApproveSyncSuggestion, handleSkipSyncSuggestion,
     triggerAutoFix, skipHealthGate,
+    regenerate, feedback,
   };
 }

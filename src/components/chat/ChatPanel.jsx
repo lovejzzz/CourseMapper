@@ -211,6 +211,8 @@ export default function ChatPanel({
         canUndo={delivCanUndo}
         onApproveSyncSuggestion={chat.handleApproveSyncSuggestion}
         onSkipSyncSuggestion={chat.handleSkipSyncSuggestion}
+        onRegenerate={chat.regenerate}
+        onFeedback={chat.feedback}
         courseMap={courseMap}
         activeTab={activeTab}
         deliverables={deliverables}
