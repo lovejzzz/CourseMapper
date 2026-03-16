@@ -345,4 +345,30 @@ describeWithKey('Agent Response Quality', { timeout: TIMEOUT * 12 }, () => {
     }
   });
 
+  // ── 11. Tone: limited "I" usage ──────────────────────────────────────────
+
+  it('tone: does not overuse "I" (max 3 per response)', { timeout: TIMEOUT }, async () => {
+    const r = await callAgent('What issues does my course have?', { activeTab: 'courseMap' });
+
+    const text = r.chatReply || r.textContent || '';
+    if (text.length > 50) {
+      // Count sentences starting with "I " (the robotic pattern)
+      const iStarts = (text.match(/(?:^|\. |\.?\n)I [a-z]/g) || []).length;
+      expect(iStarts).toBeLessThanOrEqual(3);
+    }
+  });
+
+  // ── 12. Edit confirmation names what changed ─────────────────────────────
+
+  it('edit confirm: names what was changed, not generic', { timeout: TIMEOUT }, async () => {
+    const r = await callAgent('Rename Lesson 3 to "Neuroscience Fundamentals"', { activeTab: 'courseMap' });
+
+    if (r.chatReply) {
+      // Should mention the new name or "Lesson 3" — not just "Changes applied"
+      const mentionsChange = /Neuroscience|Lesson 3|renamed/i.test(r.chatReply);
+      expect(mentionsChange).toBe(true);
+      assertConcise(r.chatReply, 300);
+    }
+  });
+
 });
