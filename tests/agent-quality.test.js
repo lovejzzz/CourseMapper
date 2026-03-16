@@ -345,7 +345,35 @@ describeWithKey('Agent Response Quality', { timeout: TIMEOUT * 12 }, () => {
     }
   });
 
-  // ── 11. Tone: limited "I" usage ──────────────────────────────────────────
+  // ── 11. Review with fixes → proposal cards ────────────────────────────────
+
+  it('review fixes: offers fix strategies as proposal cards', { timeout: TIMEOUT }, async () => {
+    const r = await callAgent('Review the course and fix any problems you find', { activeTab: 'courseMap' });
+
+    // Agent should use tools first (validate, read)
+    const usedTools = r.toolCalls?.some(tc => tc.name !== 'respond');
+
+    if (r.respond) {
+      // If responding with fixes, should use proposal (not chatReply with A/B/C)
+      if (r.proposal) {
+        expect(r.proposal.options?.length).toBeGreaterThanOrEqual(2);
+        for (const opt of r.proposal.options) {
+          expect(opt.title.split(/\s+/).length).toBeLessThanOrEqual(7);
+          expect(opt.action).toBeTruthy();
+        }
+      }
+      // chatReply is also OK if it's a summary (the agent may have applied fixes directly)
+      if (r.chatReply && !r.proposal) {
+        assertNoJsonLeak(r.chatReply);
+        assertConcise(r.chatReply, 2000);
+      }
+    } else {
+      // Multi-turn: read/validate first — acceptable
+      expect(usedTools).toBe(true);
+    }
+  });
+
+  // ── 12. Tone: limited "I" usage ─────────────────────────────────────────
 
   it('tone: does not overuse "I" (max 3 per response)', { timeout: TIMEOUT }, async () => {
     const r = await callAgent('What issues does my course have?', { activeTab: 'courseMap' });
@@ -358,7 +386,7 @@ describeWithKey('Agent Response Quality', { timeout: TIMEOUT * 12 }, () => {
     }
   });
 
-  // ── 12. Edit confirmation names what changed ─────────────────────────────
+  // ── 13. Edit confirmation names what changed ─────────────────────────────
 
   it('edit confirm: names what was changed, not generic', { timeout: TIMEOUT }, async () => {
     const r = await callAgent('Rename Lesson 3 to "Neuroscience Fundamentals"', { activeTab: 'courseMap' });
