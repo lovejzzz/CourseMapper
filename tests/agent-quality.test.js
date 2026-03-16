@@ -493,4 +493,23 @@ describeWithKey('Agent Response Quality', { timeout: TIMEOUT * 12 }, () => {
     }
   });
 
+  // ── 19. Bulk edit confirmation has count + description ─────────────────────
+
+  it('bulk confirm: mentions what was changed and a count/scope', { timeout: TIMEOUT }, async () => {
+    const r = await callAgent('Change all quiz questions to hard difficulty');
+
+    const text = r.chatReply || r.textContent || '';
+    if (text && text.length > 20) {
+      // Should mention what was changed — difficulty, quiz, hard, or lesson references
+      const mentionsSubject = /quiz|question|difficult|hard/i.test(text);
+      expect(mentionsSubject).toBe(true);
+      // Should mention scope — a number, "all", lessons, or plural items
+      const mentionsScope = /\d|all|every|each|lesson|questions|quizzes|across/i.test(text);
+      expect(mentionsScope).toBe(true);
+      assertNoJsonLeak(text);
+      assertConcise(text, 800); // bulk confirmations may list multiple lessons
+    }
+    // If it used a proposal instead of directly editing, that's also fine
+  });
+
 });
