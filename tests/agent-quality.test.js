@@ -512,4 +512,21 @@ describeWithKey('Agent Response Quality', { timeout: TIMEOUT * 12 }, () => {
     // If it used a proposal instead of directly editing, that's also fine
   });
 
+  // ── 20. Conversational: no "I'll" / "Let me" announcements ────────────────
+
+  it('conversational: no pre-announcements in final response', { timeout: TIMEOUT }, async () => {
+    const r = await callAgent('More questions please');
+
+    // Only check chatReply (what user sees), not textContent (internal reasoning)
+    const text = r.chatReply || '';
+    if (text.length > 20) {
+      // Final response should not announce intent — just report results
+      expect(text).not.toMatch(/\bI'll\b/);
+      expect(text).not.toMatch(/\bLet me\b/i);
+      expect(text).not.toMatch(/\bI'm going to\b/i);
+    }
+    // Should have taken action (tool calls or proposal)
+    expect(r.toolCalls?.length > 0 || r.proposal || r.chatReply).toBeTruthy();
+  });
+
 });
