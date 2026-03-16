@@ -475,6 +475,16 @@ export default function useChatRouter({
     });
   }
 
+  // ── Edit and resend: replace a user message text and remove everything after it
+  function editAndResend(msgIndex, newText) {
+    if (isStreamingRef.current) return;
+    const msgs = messagesRef.current;
+    if (!msgs[msgIndex] || msgs[msgIndex].role !== 'user') return;
+    // Remove all messages from this index onward, then re-send with new text
+    setMessages(prev => prev.slice(0, msgIndex));
+    send(newText);
+  }
+
   // ── Regenerate: re-send the user message that preceded a given assistant message
   function regenerate(msgIndex) {
     if (isStreamingRef.current) return;
@@ -511,6 +521,6 @@ export default function useChatRouter({
     handleAcceptDiff, handleRejectDiff,
     pushSyncSuggestion, handleApproveSyncSuggestion, handleSkipSyncSuggestion,
     triggerAutoFix, skipHealthGate,
-    regenerate, feedback,
+    editAndResend, regenerate, feedback,
   };
 }

@@ -1,7 +1,43 @@
-import React, { useState, useMemo } from 'react';
+import React, { useState, useEffect, useRef, useMemo } from 'react';
 
-// ── Single-pass inline markdown tokenizer ────────────────────────────────────
-const INLINE_RE = /(\*\*[^*]+\*\*)|(\*[^*]+\*)|(_[^_]+_)|(`[^`]+`)|(\[(\d+)\])|(\[([^\]]+)\]\(([^)]+)\))/g;
+// ── Lazy KaTeX loader ────────────────────────────────────────────────────────
+let _katex = null;
+let _katexReady = false;
+
+async function ensureKatex() {
+  if (_katex) return _katex;
+  try {
+    const [mod] = await Promise.all([
+      import('katex'),
+      import('katex/dist/katex.min.css?inline').then(css => {
+        if (!document.querySelector('[data-katex-chat]')) {
+          const style = document.createElement('style');
+          style.textContent = css.default;
+          style.setAttribute('data-katex-chat', 'true');
+          document.head.appendChild(style);
+        }
+      }),
+    ]);
+    _katex = mod.default || mod;
+    _katexReady = true;
+    return _katex;
+  } catch { return null; }
+}
+
+// Pre-load KaTeX on first import (non-blocking)
+ensureKatex();
+
+/** Render a LaTeX string to HTML. Returns null if KaTeX isn't loaded. */
+function renderMath(expr, displayMode = false) {
+  if (!_katex) return null;
+  try {
+    return _katex.renderToString(expr, { displayMode, throwOnError: false, output: 'html' });
+  } catch { return null; }
+}
+
+// ── Single-pass inline markdown tokenizer (with math support) ────────────────
+// Order: display math → inline math → bold → italic → underscore italic → code → citation → link
+const INLINE_RE = /(\$\$[^$]+\$\$)|(\$[^$\n]+\$)|(\*\*[^*]+\*\*)|(\*[^*]+\*)|(_[^_]+_)|(`[^`]+`)|(\[(\d+)\])|(\[([^\]]+)\]\(([^)]+)\))/g;
 
 function formatInline(text) {
   const result = [];
@@ -16,30 +52,48 @@ function formatInline(text) {
     }
 
     if (match[1]) {
-      // **bold**
-      result.push(<strong key={key++} className="font-semibold text-slate-800">{match[1].slice(2, -2)}</strong>);
+      // $$display math$$
+      const expr = match[1].slice(2, -2).trim();
+      const html = renderMath(expr, true);
+      if (html) {
+        result.push(<span key={key++} className="block my-1 overflow-x-auto" dangerouslySetInnerHTML={{ __html: html }} />);
+      } else {
+        result.push(<code key={key++} className="px-1.5 py-0.5 rounded bg-violet-50 text-[12px] font-mono text-violet-700">{match[1]}</code>);
+      }
     } else if (match[2]) {
-      // *italic*
-      result.push(<em key={key++} className="italic text-slate-600">{match[2].slice(1, -1)}</em>);
+      // $inline math$
+      const expr = match[2].slice(1, -1).trim();
+      const html = renderMath(expr, false);
+      if (html) {
+        result.push(<span key={key++} className="inline-block align-middle" dangerouslySetInnerHTML={{ __html: html }} />);
+      } else {
+        result.push(<code key={key++} className="px-1 py-0.5 rounded bg-violet-50 text-[12px] font-mono text-violet-700">{match[2]}</code>);
+      }
     } else if (match[3]) {
-      // _italic_
-      result.push(<em key={key++} className="italic text-slate-600">{match[3].slice(1, -1)}</em>);
+      // **bold**
+      result.push(<strong key={key++} className="font-semibold text-slate-800">{match[3].slice(2, -2)}</strong>);
     } else if (match[4]) {
-      // `code`
-      result.push(<code key={key++} className="px-1.5 py-0.5 rounded bg-slate-100 text-[12px] font-mono text-indigo-600">{match[4].slice(1, -1)}</code>);
+      // *italic*
+      result.push(<em key={key++} className="italic text-slate-600">{match[4].slice(1, -1)}</em>);
     } else if (match[5]) {
+      // _italic_
+      result.push(<em key={key++} className="italic text-slate-600">{match[5].slice(1, -1)}</em>);
+    } else if (match[6]) {
+      // `code`
+      result.push(<code key={key++} className="px-1.5 py-0.5 rounded bg-slate-100 text-[12px] font-mono text-indigo-600">{match[6].slice(1, -1)}</code>);
+    } else if (match[7]) {
       // [N] citation badge
       result.push(
         <span key={key++} className="inline-flex items-center justify-center min-w-[1.25rem] h-5 rounded-full bg-indigo-100 text-indigo-600 text-[10px] font-bold mx-0.5 px-1 align-text-bottom">
-          {match[6]}
+          {match[8]}
         </span>
       );
-    } else if (match[7]) {
+    } else if (match[9]) {
       // [text](url) link
       result.push(
-        <a key={key++} href={match[9]} target="_blank" rel="noopener noreferrer"
+        <a key={key++} href={match[11]} target="_blank" rel="noopener noreferrer"
            className="text-indigo-600 hover:text-indigo-800 underline decoration-indigo-300 hover:decoration-indigo-500 transition-colors">
-          {match[8]}
+          {match[10]}
         </a>
       );
     }
@@ -69,7 +123,6 @@ function CodeBlock({ code, language }) {
 
   return (
     <div className="my-2 rounded-lg bg-slate-900 border border-slate-700/50 overflow-hidden">
-      {/* Header bar: language label + copy button */}
       <div className="flex items-center justify-between px-3 py-1.5 bg-slate-800/80 border-b border-slate-700/50">
         <span className="text-[11px] font-mono text-slate-400">{displayLang}</span>
         <button
@@ -94,7 +147,6 @@ function CodeBlock({ code, language }) {
           )}
         </button>
       </div>
-      {/* Code content */}
       <pre className="px-3 py-2.5 overflow-x-auto">
         <code className="text-[12px] font-mono text-slate-200 leading-relaxed whitespace-pre">
           {code}
@@ -113,6 +165,28 @@ function FormattedContent({ text }) {
   while (i < lines.length) {
     const line = lines[i];
 
+    // Display math block: $$ on its own line
+    if (line.trim().startsWith('$$') && !line.trim().endsWith('$$')) {
+      const mathLines = [line.trim().slice(2)];
+      i++;
+      while (i < lines.length && !lines[i].trim().endsWith('$$')) {
+        mathLines.push(lines[i]);
+        i++;
+      }
+      if (i < lines.length) {
+        mathLines.push(lines[i].trim().replace(/\$\$$/, ''));
+        i++;
+      }
+      const expr = mathLines.join('\n').trim();
+      const html = renderMath(expr, true);
+      if (html) {
+        elements.push(<div key={elements.length} className="my-2 overflow-x-auto text-center" dangerouslySetInnerHTML={{ __html: html }} />);
+      } else {
+        elements.push(<pre key={elements.length} className="my-2 px-3 py-2 rounded-lg bg-violet-50 border border-violet-200/30 text-[12px] font-mono text-violet-700 overflow-x-auto">{expr}</pre>);
+      }
+      continue;
+    }
+
     // Code blocks (triple backtick) with language detection
     if (line.trim().startsWith('```')) {
       const lang = line.trim().slice(3).trim() || '';
@@ -122,7 +196,7 @@ function FormattedContent({ text }) {
         codeLines.push(lines[i]);
         i++;
       }
-      if (i < lines.length) i++; // skip closing ```
+      if (i < lines.length) i++;
       elements.push(
         <CodeBlock key={elements.length} code={codeLines.join('\n')} language={lang} />
       );
@@ -137,7 +211,7 @@ function FormattedContent({ text }) {
         i++;
       }
       const rows = tableLines
-        .filter(l => !/^\|[\s\-:|]+\|$/.test(l)) // skip separator line
+        .filter(l => !/^\|[\s\-:|]+\|$/.test(l))
         .map(l => l.split('|').slice(1, -1).map(c => c.trim()));
       if (rows.length > 0) {
         const [header, ...body] = rows;
@@ -159,7 +233,6 @@ function FormattedContent({ text }) {
                     {row.map((cell, ci) => (
                       <td key={ci} className="px-3 py-1.5 text-slate-600">{formatInline(cell)}</td>
                     ))}
-                    {/* Pad if row has fewer cells than header */}
                     {row.length < header.length && Array.from({ length: header.length - row.length }, (_, ci) => (
                       <td key={`pad-${ci}`} className="px-3 py-1.5" />
                     ))}
@@ -242,8 +315,96 @@ function FormattedContent({ text }) {
   return <>{elements}</>;
 }
 
+// ── Editable user message ────────────────────────────────────────────────────
+function EditableUserMessage({ text, onEditSubmit }) {
+  const [isEditing, setIsEditing] = useState(false);
+  const [editText, setEditText] = useState(text);
+  const textareaRef = useRef(null);
+
+  useEffect(() => {
+    if (isEditing && textareaRef.current) {
+      textareaRef.current.focus();
+      textareaRef.current.selectionStart = textareaRef.current.value.length;
+    }
+  }, [isEditing]);
+
+  function handleSubmit() {
+    const trimmed = editText.trim();
+    if (!trimmed) return;
+    setIsEditing(false);
+    if (trimmed !== text) {
+      onEditSubmit(trimmed);
+    }
+  }
+
+  function handleKeyDown(e) {
+    if (e.key === 'Enter' && !e.shiftKey) {
+      e.preventDefault();
+      handleSubmit();
+    }
+    if (e.key === 'Escape') {
+      setIsEditing(false);
+      setEditText(text);
+    }
+  }
+
+  if (isEditing) {
+    return (
+      <div className="flex justify-end animate-spring-in">
+        <div className="max-w-[85%] w-full">
+          <textarea
+            ref={textareaRef}
+            value={editText}
+            onChange={e => setEditText(e.target.value)}
+            onKeyDown={handleKeyDown}
+            rows={Math.min(editText.split('\n').length + 1, 8)}
+            className="w-full px-3.5 py-2.5 text-[13px] rounded-2xl rounded-br-md bg-white border-2 border-indigo-400 text-slate-800 leading-relaxed resize-none focus:outline-none focus:ring-2 focus:ring-indigo-300"
+          />
+          <div className="flex justify-end gap-2 mt-1.5">
+            <button
+              onClick={() => { setIsEditing(false); setEditText(text); }}
+              className="px-3 py-1 text-[11px] font-medium text-slate-500 hover:text-slate-700 rounded-lg hover:bg-slate-100 transition-colors"
+            >
+              Cancel
+            </button>
+            <button
+              onClick={handleSubmit}
+              className="px-3 py-1 text-[11px] font-medium text-white bg-indigo-500 hover:bg-indigo-600 rounded-lg shadow-sm transition-colors"
+            >
+              Send
+            </button>
+          </div>
+        </div>
+      </div>
+    );
+  }
+
+  return (
+    <div className="flex justify-end animate-spring-in group/usermsg">
+      <div className="relative max-w-[85%]">
+        <div className="px-3.5 py-2.5 text-[13px] rounded-2xl rounded-br-md bg-gradient-to-r from-indigo-500 to-violet-500 text-white leading-relaxed shadow-lg shadow-indigo-500/10">
+          {text}
+        </div>
+        {/* Edit button — appears on hover */}
+        {onEditSubmit && (
+          <button
+            onClick={() => setIsEditing(true)}
+            className="absolute -bottom-1 -right-1 opacity-0 group-hover/usermsg:opacity-100 transition-opacity p-1 rounded-md bg-white border border-slate-200/60 shadow-sm hover:bg-slate-50 text-slate-400 hover:text-slate-600"
+            title="Edit message"
+            aria-label="Edit message"
+          >
+            <svg className="w-3 h-3" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M15.232 5.232l3.536 3.536m-2.036-5.036a2.5 2.5 0 113.536 3.536L6.5 21.036H3v-3.572L16.732 3.732z" />
+            </svg>
+          </button>
+        )}
+      </div>
+    </div>
+  );
+}
+
 // ═══════════════════════════════════════════════════════════════════════════
-export default function MessageBubble({ role, text, isLast, isStreaming, feedback, onRegenerate, onFeedback }) {
+export default function MessageBubble({ role, text, isLast, isStreaming, feedback, onRegenerate, onFeedback, onEditAndResend }) {
   const [copied, setCopied] = useState(false);
 
   function handleCopy() {
@@ -255,13 +416,7 @@ export default function MessageBubble({ role, text, isLast, isStreaming, feedbac
   }
 
   if (role === 'user') {
-    return (
-      <div className="flex justify-end animate-spring-in">
-        <div className="max-w-[85%] px-3.5 py-2.5 text-[13px] rounded-2xl rounded-br-md bg-gradient-to-r from-indigo-500 to-violet-500 text-white leading-relaxed shadow-lg shadow-indigo-500/10">
-          {text}
-        </div>
-      </div>
-    );
+    return <EditableUserMessage text={text} onEditSubmit={onEditAndResend} />;
   }
 
   if (role === 'error') {
@@ -305,74 +460,27 @@ export default function MessageBubble({ role, text, isLast, isStreaming, feedbac
           {/* Action bar — appears on hover below the message */}
           {showActions && (
             <div className="flex items-center gap-0.5 mt-1 ml-1 opacity-0 group-hover/msg:opacity-100 transition-opacity">
-              {/* Copy */}
-              <button
-                onClick={handleCopy}
-                className="p-1 rounded-md text-slate-400 hover:text-slate-600 hover:bg-slate-100/60 transition-colors"
-                title="Copy to clipboard"
-                aria-label={copied ? 'Copied' : 'Copy to clipboard'}
-              >
+              <button onClick={handleCopy} className="p-1 rounded-md text-slate-400 hover:text-slate-600 hover:bg-slate-100/60 transition-colors" title="Copy to clipboard" aria-label={copied ? 'Copied' : 'Copy to clipboard'}>
                 {copied ? (
-                  <svg className="w-3.5 h-3.5 text-emerald-500" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M5 13l4 4L19 7" />
-                  </svg>
+                  <svg className="w-3.5 h-3.5 text-emerald-500" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M5 13l4 4L19 7" /></svg>
                 ) : (
-                  <svg className="w-3.5 h-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M8 16H6a2 2 0 01-2-2V6a2 2 0 012-2h8a2 2 0 012 2v2m-6 12h8a2 2 0 002-2v-8a2 2 0 00-2-2h-8a2 2 0 00-2 2v8a2 2 0 002 2z" />
-                  </svg>
+                  <svg className="w-3.5 h-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M8 16H6a2 2 0 01-2-2V6a2 2 0 012-2h8a2 2 0 012 2v2m-6 12h8a2 2 0 002-2v-8a2 2 0 00-2-2h-8a2 2 0 00-2 2v8a2 2 0 002 2z" /></svg>
                 )}
               </button>
-
-              {/* Regenerate */}
               {onRegenerate && (
-                <button
-                  onClick={onRegenerate}
-                  className="p-1 rounded-md text-slate-400 hover:text-slate-600 hover:bg-slate-100/60 transition-colors"
-                  title="Regenerate response"
-                  aria-label="Regenerate response"
-                >
-                  <svg className="w-3.5 h-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M4 4v5h.582m15.356 2A8.001 8.001 0 004.582 9m0 0H9m11 11v-5h-.581m0 0a8.003 8.003 0 01-15.357-2m15.357 2H15" />
-                  </svg>
+                <button onClick={onRegenerate} className="p-1 rounded-md text-slate-400 hover:text-slate-600 hover:bg-slate-100/60 transition-colors" title="Regenerate response" aria-label="Regenerate response">
+                  <svg className="w-3.5 h-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M4 4v5h.582m15.356 2A8.001 8.001 0 004.582 9m0 0H9m11 11v-5h-.581m0 0a8.003 8.003 0 01-15.357-2m15.357 2H15" /></svg>
                 </button>
               )}
-
-              {/* Divider */}
               {onFeedback && <div className="w-px h-3 bg-slate-200/60 mx-0.5" />}
-
-              {/* Thumbs up */}
               {onFeedback && (
-                <button
-                  onClick={() => onFeedback(feedback === 'up' ? null : 'up')}
-                  className={`p-1 rounded-md transition-colors ${
-                    feedback === 'up'
-                      ? 'text-emerald-500 bg-emerald-50'
-                      : 'text-slate-400 hover:text-slate-600 hover:bg-slate-100/60'
-                  }`}
-                  title="Good response"
-                  aria-label="Good response"
-                >
-                  <svg className="w-3.5 h-3.5" fill={feedback === 'up' ? 'currentColor' : 'none'} stroke="currentColor" viewBox="0 0 24 24">
-                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M14 9V5a3 3 0 00-3-3l-4 9v11h11.28a2 2 0 002-1.7l1.38-9a2 2 0 00-2-2.3H14z M4 15h0a2 2 0 01-2-2V9a2 2 0 012-2h0" />
-                  </svg>
+                <button onClick={() => onFeedback(feedback === 'up' ? null : 'up')} className={`p-1 rounded-md transition-colors ${feedback === 'up' ? 'text-emerald-500 bg-emerald-50' : 'text-slate-400 hover:text-slate-600 hover:bg-slate-100/60'}`} title="Good response" aria-label="Good response">
+                  <svg className="w-3.5 h-3.5" fill={feedback === 'up' ? 'currentColor' : 'none'} stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M14 9V5a3 3 0 00-3-3l-4 9v11h11.28a2 2 0 002-1.7l1.38-9a2 2 0 00-2-2.3H14z M4 15h0a2 2 0 01-2-2V9a2 2 0 012-2h0" /></svg>
                 </button>
               )}
-
-              {/* Thumbs down */}
               {onFeedback && (
-                <button
-                  onClick={() => onFeedback(feedback === 'down' ? null : 'down')}
-                  className={`p-1 rounded-md transition-colors ${
-                    feedback === 'down'
-                      ? 'text-red-500 bg-red-50'
-                      : 'text-slate-400 hover:text-slate-600 hover:bg-slate-100/60'
-                  }`}
-                  title="Poor response"
-                  aria-label="Poor response"
-                >
-                  <svg className="w-3.5 h-3.5" fill={feedback === 'down' ? 'currentColor' : 'none'} stroke="currentColor" viewBox="0 0 24 24">
-                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M10 15v4a3 3 0 003 3l4-9V2H5.72a2 2 0 00-2 1.7l-1.38 9a2 2 0 002 2.3H10z M20 2h0a2 2 0 012 2v6a2 2 0 01-2 2h0" />
-                  </svg>
+                <button onClick={() => onFeedback(feedback === 'down' ? null : 'down')} className={`p-1 rounded-md transition-colors ${feedback === 'down' ? 'text-red-500 bg-red-50' : 'text-slate-400 hover:text-slate-600 hover:bg-slate-100/60'}`} title="Poor response" aria-label="Poor response">
+                  <svg className="w-3.5 h-3.5" fill={feedback === 'down' ? 'currentColor' : 'none'} stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M10 15v4a3 3 0 003 3l4-9V2H5.72a2 2 0 00-2 1.7l-1.38 9a2 2 0 002 2.3H10z M20 2h0a2 2 0 012 2v6a2 2 0 01-2 2h0" /></svg>
                 </button>
               )}
             </div>

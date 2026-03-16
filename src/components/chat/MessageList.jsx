@@ -28,7 +28,7 @@ function stableKey(msg, fallback) {
  * Renders user/assistant bubbles, proposals, diff reviews, and content cards.
  * Status cards (progress, agent steps) are shown in the fixed top area instead.
  */
-export default function MessageList({ messages, isStreaming, onSuggestionClick, onSelectProposal, onAcceptDiff, onRejectDiff, onUndo, canUndo, onApproveSyncSuggestion, onSkipSyncSuggestion, onRegenerate, onFeedback, courseMap, activeTab, deliverables, isAgentMode, isGenerating, isDelivGenerating }) {
+export default function MessageList({ messages, isStreaming, onSuggestionClick, onSelectProposal, onAcceptDiff, onRejectDiff, onUndo, canUndo, onApproveSyncSuggestion, onSkipSyncSuggestion, onRegenerate, onFeedback, onEditAndResend, courseMap, activeTab, deliverables, isAgentMode, isGenerating, isDelivGenerating }) {
   const endRef = useRef(null);
   const prevCountRef = useRef(messages.length);
   const containerRef = useRef(null);
@@ -175,6 +175,7 @@ export default function MessageList({ messages, isStreaming, onSuggestionClick, 
             feedback={msg.feedback}
             onRegenerate={msg.role === 'assistant' && !isStreaming ? () => onRegenerate?.(i) : undefined}
             onFeedback={msg.role === 'assistant' && !isStreaming ? (vote) => onFeedback?.(i, vote) : undefined}
+            onEditAndResend={msg.role === 'user' && !isStreaming ? (newText) => onEditAndResend?.(i, newText) : undefined}
           />
         );
       })}
