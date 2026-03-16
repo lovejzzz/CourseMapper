@@ -270,7 +270,13 @@ export async function fetchAgentResponseNative(loopMessages, systemPrompt, signa
 
     // ── Streaming path: parse SSE chunks for OpenAI/DeepSeek ──
     if (useStreaming) {
-      return parseStreamingToolResponse(response, onThinkingText);
+      try {
+        return await parseStreamingToolResponse(response, onThinkingText);
+      } catch (streamErr) {
+        // If streaming parse fails, fall back to non-streaming on next iteration
+        console.warn('[CM] Streaming parse failed, will retry non-streaming:', streamErr.message);
+        throw streamErr;
+      }
     }
 
     const json = await response.json();

@@ -425,6 +425,7 @@ export async function runAgentLoop(fullMessage, { silent = false }, ctx) {
     }
     const isNoKey = err.message === 'NO_API_KEY';
     const isNoModel = err.message === 'NO_MODEL_SELECTED';
+    console.error('[CM Agent] Error:', err.message, err);
     if (silent) {
       setMessages(prev => {
         const updated = [...prev];
@@ -433,6 +434,7 @@ export async function runAgentLoop(fullMessage, { silent = false }, ctx) {
         return updated;
       });
     } else {
+      const detail = !isNoKey && !isNoModel && err.message ? ` (${err.message})` : '';
       setMessages(prev => {
         const updated = [...prev];
         const progressIdx = updated.findLastIndex(m => m.role === 'agentProgress');
@@ -442,7 +444,7 @@ export async function runAgentLoop(fullMessage, { silent = false }, ctx) {
             ? 'To use the agent, please configure your AI provider and API key first.'
             : isNoModel
             ? 'No AI model selected. Please select a model on the landing page first.'
-            : "Sorry, I couldn't process that request. Please check your API key and try again.",
+            : `Sorry, I couldn't process that request.${detail}`,
         };
         if (progressIdx >= 0) updated[progressIdx] = errMsg;
         else updated.push(errMsg);
