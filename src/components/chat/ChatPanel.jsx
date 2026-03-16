@@ -103,7 +103,27 @@ export default function ChatPanel({
   // spurious re-fires when the chat object identity changes during re-renders.
   }, [pendingSyncSuggestion]); // eslint-disable-line react-hooks/exhaustive-deps
 
-  // Auto health-fix removed — users can trigger validation manually via "Review Course" button
+  // ── Proactive agent: auto-review after deliverable generation completes ──
+  const prevDelivGeneratingRef = useRef(isDelivGenerating);
+  const proactiveReviewDoneRef = useRef(false);
+  useEffect(() => {
+    const wasGenerating = prevDelivGeneratingRef.current;
+    prevDelivGeneratingRef.current = isDelivGenerating;
+
+    // Detect transition: generating → done (only trigger once per session)
+    if (wasGenerating && !isDelivGenerating && isAgentMode && !chat.isStreaming && !proactiveReviewDoneRef.current) {
+      const doneCount = deliverables
+        ? Object.values(deliverables).filter(d => d?.status === 'done').length
+        : 0;
+      if (doneCount >= 2) {
+        proactiveReviewDoneRef.current = true;
+        // Brief delay to let UI settle, then auto-review
+        setTimeout(() => {
+          chat.send('[AUTO-REVIEW] Generation complete. Run validate_course, summarize the top issues found, and propose fixes as proposal cards. If no issues, confirm the course looks good in 1-2 sentences.');
+        }, 2000);
+      }
+    }
+  }, [isDelivGenerating]); // eslint-disable-line react-hooks/exhaustive-deps
 
   const showProgressHeader = !!(currentStep || error);
 

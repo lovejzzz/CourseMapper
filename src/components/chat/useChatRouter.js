@@ -125,13 +125,20 @@ export default function useChatRouter({
       return;
     }
 
+    // Handle auto-review: show friendly display text, send full detailed prompt to agent
+    let agentPromptOverride = null;
+    if (trimmed.startsWith('[AUTO-REVIEW]')) {
+      agentPromptOverride = trimmed;
+      trimmed = 'Review my course';
+    }
+
     // Auto-route: agent (deliverables exist) → revision (course map only) → help (no course)
     const delivKeys = delivRef.current ? Object.keys(delivRef.current).filter(k => k !== 'courseMap') : [];
     const hasDeliverables = delivKeys.some(k => delivRef.current[k]?.status === 'done');
     const isGenerating = delivKeys.some(k => delivRef.current[k]?.status === 'generating');
 
     if (hasDeliverables && executeActionRef.current) {
-      await sendAgentMessage(trimmed);
+      await sendAgentMessage(trimmed, { agentPromptOverride });
     } else if (isGenerating) {
       // Deliverables are being generated — use help mode but with context
       // Don't route to revision (which could conflict with generation)
@@ -246,8 +253,8 @@ export default function useChatRouter({
   }
 
   // ── Agent mode: multi-step agentic loop (delegated to useToolInvoker) ────
-  async function sendAgentMessage(text, { silent = false } = {}) {
-    let fullMessage = text;
+  async function sendAgentMessage(text, { silent = false, agentPromptOverride = null } = {}) {
+    let fullMessage = agentPromptOverride || text;
     if (!silent && attachedFiles.length > 0) {
       const fileContents = attachedFiles
         .map(f => `=== Attached File: ${f.name} ===\n${f.text}`)
