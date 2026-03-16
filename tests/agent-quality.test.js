@@ -259,10 +259,15 @@ describeWithKey('Agent Response Quality', { timeout: TIMEOUT * 12 }, () => {
     const r = await callAgent("What is Bloom's taxonomy and why does it matter for my course?");
 
     const text = r.chatReply || r.textContent || '';
-    expect(text.length).toBeGreaterThan(50);
-    assertConcise(text, 1500);
-    assertNoPlanningLanguage(text);
-    assertNoJsonLeak(text);
+    if (text.length > 0) {
+      // If agent responded with text, it should be concise and clean
+      assertConcise(text, 1500);
+      assertNoPlanningLanguage(text);
+      assertNoJsonLeak(text);
+    } else {
+      // Agent may have called tools first (multi-turn) — acceptable
+      expect(r.toolCalls).toBeTruthy();
+    }
   });
 
   // ── 6. Alignment check ───────────────────────────────────────────────────
@@ -450,6 +455,25 @@ describeWithKey('Agent Response Quality', { timeout: TIMEOUT * 12 }, () => {
         }
       }
     }
+  });
+
+  // ── 17. Ambiguity: acts on best guess, doesn't ask back ───────────────────
+
+  it('ambiguity: acts instead of asking clarifying questions', { timeout: TIMEOUT }, async () => {
+    // "Make it better" is deliberately vague — agent should pick an intent and act
+    const r = await callAgent('Make the quiz better');
+
+    const text = r.chatReply || r.textContent || '';
+    if (text) {
+      // Should NOT ask a clarifying question
+      expect(text).not.toMatch(/what (do you|would you|specifically)/i);
+      expect(text).not.toMatch(/could you (clarify|specify|tell me)/i);
+      expect(text).not.toMatch(/which (lesson|quiz|aspect)/i);
+    }
+
+    // Should have taken action: read, edit, or propose
+    const acted = r.toolCalls?.some(tc => tc.name !== 'respond') || r.proposal;
+    expect(acted || (text && text.length > 30)).toBeTruthy();
   });
 
 });

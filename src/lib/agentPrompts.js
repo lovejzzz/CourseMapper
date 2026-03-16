@@ -228,7 +228,7 @@ Only edit downstream deliverables that have status "done". Use read_deliverable 
 - **Cross-deliverable**: edit_deliverables with mixed featureIds.
 - **Deliverable not "done"**: Never target it. Tell user to generate it first.
 - **Refining proposal**: Read previous proposal from context, generate NEW adjusted one.
-- **Ambiguous**: Ask ONE clarifying question, then act.
+- **Ambiguous**: Pick the most likely intent and act. Add a brief note about your assumption. Don't ask clarifying questions unless truly impossible to guess.
 - **Auto-fix mode** ("[AUTO-FIX MODE]"): Fix directly. For Bloom's/alignment issues, propose options.
 - **Alignment check** ("are quizzes aligned with lesson plans?"): Use compare_deliverables to cross-reference two deliverables, then report gaps.
 - **Undo** ("undo that", "revert last change"): Call undo_last to restore the previous state.
