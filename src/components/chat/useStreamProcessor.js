@@ -78,7 +78,7 @@ A free, browser-based tool that transforms syllabi into complete teaching materi
 
 // ── Streaming call to user's configured provider ────────────────────────────
 export async function streamChat(messages, systemPrompt, signal, apiKey, provider, modelId, maxTokens = 2048) {
-  if (provider !== 'webllm' && !apiKey) throw new Error('NO_API_KEY');
+  if (provider !== 'webllm' && provider !== 'openrouter' && !apiKey) throw new Error('NO_API_KEY');
   if (!modelId) throw new Error('NO_MODEL_SELECTED');
 
   const chatModel = modelId;
@@ -178,26 +178,31 @@ export async function streamChat(messages, systemPrompt, signal, apiKey, provide
     };
   }
 
-  // OpenAI / DeepSeek (OpenAI-compatible)
+  // OpenAI / DeepSeek / OpenRouter (OpenAI-compatible)
   const baseUrl = provider === 'deepseek'
     ? 'https://api.deepseek.com/v1/chat/completions'
-    : 'https://api.openai.com/v1/chat/completions';
+    : provider === 'openrouter'
+      ? (apiKey ? 'https://openrouter.ai/api/v1/chat/completions' : '/api/proxy/openrouter/stream')
+      : 'https://api.openai.com/v1/chat/completions';
   const openaiMessages = [
     { role: 'system', content: systemPrompt },
     ...messages.map(m => ({ role: m.role, content: m.content })),
   ];
+  const openaiHeaders = {
+    'Content-Type': 'application/json',
+    ...(apiKey ? { 'Authorization': `Bearer ${apiKey}` } : {}),
+    ...(provider === 'openrouter' ? { 'HTTP-Referer': window.location.origin } : {}),
+  };
   const response = await fetch(baseUrl, {
     method: 'POST',
-    headers: {
-      'Authorization': `Bearer ${apiKey}`,
-      'Content-Type': 'application/json',
-    },
+    headers: openaiHeaders,
     body: JSON.stringify({
       model: chatModel,
       messages: openaiMessages,
-      max_completion_tokens: maxTokens,
+      ...(provider === 'openrouter' ? { max_tokens: maxTokens } : { max_completion_tokens: maxTokens }),
       temperature: 0.4,
       stream: true,
+      ...(provider === 'openrouter' ? { provider: { data_collection: 'allow' } } : {}),
     }),
     signal,
   });
@@ -213,7 +218,7 @@ export async function streamChat(messages, systemPrompt, signal, apiKey, provide
 
 // ── Native tool-calling LLM call for agentic loop ─────────────────────────
 export async function fetchAgentResponseNative(loopMessages, systemPrompt, signal, apiKey, provider, modelId, nativeTools, { temperature: tempOverride, onThinkingText } = {}) {
-  if (provider !== 'webllm' && !apiKey) throw new Error('NO_API_KEY');
+  if (provider !== 'webllm' && provider !== 'openrouter' && !apiKey) throw new Error('NO_API_KEY');
   if (!modelId) throw new Error('NO_MODEL_SELECTED');
 
   // WebLLM: local inference without tool calling — return text-only response
@@ -228,7 +233,7 @@ export async function fetchAgentResponseNative(loopMessages, systemPrompt, signa
   }
 
   // Streaming for OpenAI/DeepSeek — shows partial text while LLM is thinking
-  const useStreaming = onThinkingText && (provider === 'openai' || provider === 'deepseek');
+  const useStreaming = onThinkingText && (provider === 'openai' || provider === 'deepseek' || provider === 'openrouter');
 
   let temperature = tempOverride ?? 0.4;
 

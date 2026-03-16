@@ -133,7 +133,7 @@ export function buildNativeTools(provider, agentTools) {
   tools.push(RESPOND_TOOL);
 
   // Convert to provider-specific format
-  if (provider === 'openai' || provider === 'deepseek') {
+  if (provider === 'openai' || provider === 'deepseek' || provider === 'openrouter') {
     return tools.map(t => ({
       type: 'function',
       function: {
@@ -267,6 +267,34 @@ export function buildAgentRequest(provider, { model, systemPrompt, messages, too
     };
   }
 
+  if (provider === 'openrouter') {
+    const headers = {
+      'Content-Type': 'application/json',
+      'HTTP-Referer': typeof window !== 'undefined' ? window.location.origin : '',
+    };
+    // If user has their own key, call OpenRouter directly; otherwise use server proxy
+    const useProxy = !apiKey;
+    if (!useProxy) headers['Authorization'] = `Bearer ${apiKey}`;
+    return {
+      endpoint: useProxy
+        ? '/api/proxy/openrouter/stream'
+        : 'https://openrouter.ai/api/v1/chat/completions',
+      headers,
+      body: {
+        model,
+        messages: [
+          { role: 'system', content: systemPrompt },
+          ...messages.map(m => m._native ? stripNativeFlag(m) : { role: m.role, content: m.content }),
+        ],
+        tools,
+        tool_choice: 'auto',
+        max_tokens: maxTokens,
+        ...tempSetting,
+        provider: { data_collection: 'allow' },
+      },
+    };
+  }
+
   if (provider === 'webllm') {
     // WebLLM doesn't use HTTP — handled separately in useStreamProcessor
     return { endpoint: '', headers: {}, body: {} };
@@ -283,7 +311,7 @@ function stripNativeFlag(msg) {
 // ── Parse provider response → unified format ────────────────────────────────
 
 export function parseAgentResponse(provider, json) {
-  if (provider === 'openai' || provider === 'deepseek') {
+  if (provider === 'openai' || provider === 'deepseek' || provider === 'openrouter') {
     const choice = json.choices?.[0];
     const message = choice?.message;
     const toolCalls = (message?.tool_calls || []).map(tc => ({
@@ -339,7 +367,7 @@ function safeJsonParse(str) {
 // ── Format assistant tool-call message for history ──────────────────────────
 
 export function formatAssistantToolCalls(provider, toolCalls) {
-  if (provider === 'openai' || provider === 'deepseek') {
+  if (provider === 'openai' || provider === 'deepseek' || provider === 'openrouter') {
     return {
       _native: true,
       role: 'assistant',
@@ -438,7 +466,7 @@ export function formatToolResult(provider, toolCallId, toolName, result) {
   // Smart truncation: produce valid JSON summary instead of broken mid-string cut
   const truncated = content.length > 4000 ? smartTruncate(result, content) : content;
 
-  if (provider === 'openai' || provider === 'deepseek') {
+  if (provider === 'openai' || provider === 'deepseek' || provider === 'openrouter') {
     return {
       _native: true,
       role: 'tool',
