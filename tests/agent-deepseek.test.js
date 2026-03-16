@@ -15,9 +15,12 @@ import { AGENT_TOOLS } from '../src/lib/agentTools.js';
 
 // ── Config ──────────────────────────────────────────────────────────────────
 
-const DEEPSEEK_API_KEY = 'sk-78e93cef8e9a46689c945e182b8b1d11';
+const DEEPSEEK_API_KEY = process.env.DEEPSEEK_API_KEY || '';
 const DEEPSEEK_MODEL = 'deepseek-chat';
 const TIMEOUT = 30_000;
+
+// Use describe.skipIf to skip all tests when no API key (CI-safe)
+const describeWithKey = DEEPSEEK_API_KEY ? describe : describe.skip;
 
 // ── Test fixtures ───────────────────────────────────────────────────────────
 
@@ -189,7 +192,7 @@ function findToolCall(toolCalls, name) {
 
 // ── Tests ───────────────────────────────────────────────────────────────────
 
-describe('DeepSeek Agent E2E', { timeout: TIMEOUT * 12 }, () => {
+describeWithKey('DeepSeek Agent E2E', { timeout: TIMEOUT * 12 }, () => {
 
   // ── 1. Simple question → respond with chatReply ──────────────────────────
 
@@ -476,7 +479,7 @@ async function callDeepSeekMultiTurn(messages, { activeTab = 'quizBank' } = {}) 
   };
 }
 
-describe('Multi-turn agent loop', { timeout: TIMEOUT * 6 }, () => {
+describeWithKey('Multi-turn agent loop', { timeout: TIMEOUT * 6 }, () => {
 
   it('follows up after reading data: read → then respond or edit', { timeout: TIMEOUT * 3 }, async () => {
     // Turn 1: user asks to improve a quiz — agent should read first
