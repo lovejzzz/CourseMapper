@@ -185,10 +185,10 @@ describe('buildAgentSystemPrompt', () => {
     expect(prompt).toContain('read_deliverable');
   });
 
-  it('prompt is compact (under 8500 chars for base case)', () => {
+  it('prompt is compact (under 9500 chars for base case)', () => {
     const prompt = buildAgentSystemPrompt(baseCourseMap, 'quizBank', baseDeliverables);
-    // Includes few-shot examples (~1200 chars) + schema + context
-    expect(prompt.length).toBeLessThan(8500);
+    // Includes few-shot examples, response style rules, schema + context
+    expect(prompt.length).toBeLessThan(9500);
   });
 
   it('shows path example for slideDecks when that tab is active', () => {
