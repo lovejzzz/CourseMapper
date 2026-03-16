@@ -133,15 +133,16 @@ export default function useChatRouter({
     }
 
     // Auto-route: agent (deliverables exist) → revision (course map only) → help (no course)
+    // SAFETY: never enter agent mode while any deliverable is still generating —
+    // agent edits could corrupt mid-stream deliverables.
     const delivKeys = delivRef.current ? Object.keys(delivRef.current).filter(k => k !== 'courseMap') : [];
     const hasDeliverables = delivKeys.some(k => delivRef.current[k]?.status === 'done');
     const isGenerating = delivKeys.some(k => delivRef.current[k]?.status === 'generating');
 
-    if (hasDeliverables && executeActionRef.current) {
+    if (hasDeliverables && !isGenerating && executeActionRef.current) {
       await sendAgentMessage(trimmed, { agentPromptOverride });
     } else if (isGenerating) {
-      // Deliverables are being generated — use help mode but with context
-      // Don't route to revision (which could conflict with generation)
+      // Deliverables are being generated — use help mode only (no edits)
       await sendHelpMessage(trimmed);
     } else if (courseMap) {
       await sendRevision(trimmed);
