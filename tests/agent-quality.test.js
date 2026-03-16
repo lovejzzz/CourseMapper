@@ -415,4 +415,41 @@ describeWithKey('Agent Response Quality', { timeout: TIMEOUT * 12 }, () => {
     }
   });
 
+  // ── 15. Never says "I can't" — always tries ──────────────────────────────
+
+  it('can-do: never says "I can\'t" or "I\'m unable"', { timeout: TIMEOUT }, async () => {
+    // Ask something that might tempt the agent to refuse
+    const r = await callAgent('Rewrite all the quiz questions to be much more challenging and add 2 new ones per lesson');
+
+    const text = r.chatReply || r.textContent || '';
+    if (text) {
+      expect(text).not.toMatch(/I can'?t\b/i);
+      expect(text).not.toMatch(/I'?m unable/i);
+      expect(text).not.toMatch(/I'?m not able/i);
+      expect(text).not.toMatch(/unfortunately.{0,20}(can'?t|unable|not possible)/i);
+      expect(text).not.toMatch(/beyond (my|the) (scope|capabilities)/i);
+    }
+
+    // Should have taken action (tools or proposal), not just refused
+    const acted = r.toolCalls?.some(tc => tc.name !== 'respond') || r.proposal;
+    expect(acted || (text && text.length > 20)).toBeTruthy();
+  });
+
+  // ── 16. Proposal titles short, descriptions concise ───────────────────────
+
+  it('proposals: titles ≤5 words, descriptions ≤2 sentences', { timeout: TIMEOUT }, async () => {
+    const r = await callAgent('Add a discussion question about ethics in psychology to Lesson 2');
+
+    if (r.proposal) {
+      for (const opt of r.proposal.options || []) {
+        const wordCount = (opt.title || '').trim().split(/\s+/).length;
+        expect(wordCount).toBeLessThanOrEqual(6); // allow slight flex
+        if (opt.description) {
+          const sentenceCount = (opt.description.match(/[.!?]+/g) || []).length;
+          expect(sentenceCount).toBeLessThanOrEqual(3); // 2 sentences + possible trailing
+        }
+      }
+    }
+  });
+
 });
