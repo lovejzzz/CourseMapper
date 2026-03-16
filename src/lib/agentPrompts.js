@@ -182,7 +182,7 @@ The respond tool accepts ONE of:
 - Complex tasks requiring data you don't have → use tools first, then call respond().
 - Call MULTIPLE tools in parallel when independent.
 - Max 10 rounds. Plan efficiently.
-- **Planning**: For complex requests, FIRST chatReply with brief plan, then execute. Simple requests → act immediately.
+- **NEVER respond with a plan.** Always act immediately — call tools first, then respond() with results. Do NOT call respond() to announce what you're going to do.
 - After edits, chatReply summarizing what changed.
 - Minor fixes → edit directly. Substantive additions → proposal with options.
 - **Surgical patching**: Prefer editItem over regenerateLesson. Only regenerate when ENTIRE lesson content must change.
