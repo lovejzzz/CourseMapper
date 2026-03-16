@@ -205,11 +205,37 @@ describe('formatToolResult', () => {
     expect(msg.parts[0].functionResponse.response.errorCount).toBe(0);
   });
 
-  it('truncates large results', () => {
+  it('truncates large string results', () => {
     const largeResult = 'x'.repeat(5000);
     const msg = formatToolResult('openai', 'call_1', 'test', largeResult);
     expect(msg.content.length).toBeLessThan(5000);
     expect(msg.content).toContain('(truncated)');
+  });
+
+  it('smart-truncates large object results to valid JSON', () => {
+    const largeResult = {
+      items: Array.from({ length: 50 }, (_, i) => ({
+        question: `Question ${i}: ${'A'.repeat(200)}`,
+        answer: `Answer ${i}`,
+      })),
+      totalCount: 50,
+    };
+    const msg = formatToolResult('openai', 'call_1', 'read_deliverable', largeResult);
+    expect(msg.content.length).toBeLessThanOrEqual(4100); // within budget
+    // Must be valid JSON
+    const parsed = JSON.parse(msg.content);
+    expect(parsed.totalCount).toBe(50);
+    // Array should be trimmed, not cut mid-item
+    expect(parsed.items.length).toBeLessThanOrEqual(5);
+    // Last item should be a truncation marker
+    const last = parsed.items[parsed.items.length - 1];
+    expect(last._truncated).toBeTruthy();
+  });
+
+  it('preserves small results unchanged', () => {
+    const smallResult = { data: [{ q: 'Hello?' }], count: 1 };
+    const msg = formatToolResult('openai', 'call_1', 'test', smallResult);
+    expect(JSON.parse(msg.content)).toEqual(smallResult);
   });
 });
 

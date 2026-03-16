@@ -7,7 +7,7 @@
 
 import { buildAgentSystemPrompt } from '../../lib/agentPrompts';
 import { generateCourseHealthReport } from '../../lib/pedagogicalValidator';
-import { AGENT_TOOLS, TOOL_LABELS, summarizeToolResult } from '../../lib/agentTools';
+import { AGENT_TOOLS, TOOL_LABELS, summarizeToolResult, classifyRequestComplexity } from '../../lib/agentTools';
 import { preValidateAction } from '../../lib/agentActions';
 import { estimateTokens, getModelLimit } from '../../lib/tokenEstimator';
 import {
@@ -17,6 +17,7 @@ import {
 import {
   fetchAgentResponseNative, buildAgentChatHistory,
 } from './useStreamProcessor';
+import { getMemories, MEMORY_CATEGORIES } from '../../lib/agentMemory';
 
 /**
  * Execute the multi-step agentic loop with native tool calling.
@@ -38,7 +39,7 @@ export async function runAgentLoop(fullMessage, { silent = false }, ctx) {
     abortRef,
     apiKey, provider, modelId,
     courseMap, activeTab,
-    delivRef, executeActionRef, snapshotRef, notifyEditRef,
+    delivRef, executeActionRef, snapshotRef, undoFnRef, notifyEditRef,
     uid,
     maybeRunValidation,
     handleAgentFinalResponse,
@@ -84,7 +85,7 @@ export async function runAgentLoop(fullMessage, { silent = false }, ctx) {
       : null;
     const systemPrompt = buildAgentSystemPrompt(courseMap, activeTab, delivRef.current, healthSummary, userPrefs);
 
-    // ── Context window awareness: trim if approaching limit ──
+    // ── Context window awareness: smart trim if approaching limit ──
     const systemPromptTk = estimateTokens(systemPrompt);
     const OUTPUT_RESERVE_TK = 4096;
     const chatContent = chatHistory.map(m => m.content).join('') + fullMessage;
@@ -95,21 +96,63 @@ export async function runAgentLoop(fullMessage, { silent = false }, ctx) {
     if (chatTk > availableForChat * 0.8) {
       const excess = chatTk - Math.floor(availableForChat * 0.75);
       const charsToTrim = excess * 4;
+      // Score messages: user messages and recent messages are more valuable
+      const scored = chatHistory.map((m, i) => ({
+        ...m,
+        _idx: i,
+        _keep: (m.role === 'user' ? 3 : 1) + (i >= chatHistory.length - 4 ? 5 : 0),
+      }));
+      scored.sort((a, b) => a._keep - b._keep);
       let trimmed = 0;
-      while (chatHistory.length > 2 && trimmed < charsToTrim) {
-        const removed = chatHistory.shift();
+      const toRemove = new Set();
+      while (trimmed < charsToTrim && scored.length > 2) {
+        const removed = scored.shift();
         trimmed += (removed.content || '').length;
+        toRemove.add(removed._idx);
       }
+      // Remove from chatHistory in reverse order to preserve indices
+      for (let i = chatHistory.length - 1; i >= 0; i--) {
+        if (toRemove.has(i)) chatHistory.splice(i, 1);
+      }
+    }
+
+    // ── Complexity-aware planning hint ──
+    const complexity = classifyRequestComplexity(fullMessage, delivRef.current);
+    let effectiveMessage = fullMessage;
+    if (complexity === 'complex') {
+      effectiveMessage = fullMessage + '\n\n[SYSTEM HINT: This is a complex request. Plan your approach: identify which deliverables and lessons to read/edit, then execute efficiently. Use parallel tool calls where possible.]';
     }
 
     // Build native tools for provider
     const nativeTools = buildNativeTools(provider, AGENT_TOOLS);
 
     // Loop messages (internal to this turn — separate from chat history)
-    const loopMessages = [...chatHistory, { role: 'user', content: fullMessage }];
+    const loopMessages = [...chatHistory, { role: 'user', content: effectiveMessage }];
+
+    // ── Auto-recall: on first conversation turn, surface memories as context ──
+    const isFirstTurn = chatHistory.filter(m => m.role === 'user').length === 0;
+    if (isFirstTurn) {
+      try {
+        const memories = getMemories();
+        if (memories.length > 0) {
+          const topMemories = memories.slice(0, 5).map(m =>
+            `[${MEMORY_CATEGORIES[m.category] || m.category}] ${m.content}`
+          ).join('\n');
+          loopMessages.push({
+            role: 'user',
+            content: `[SYSTEM — recalled from past sessions, use to inform your responses:\n${topMemories}\n]`,
+          });
+        }
+      } catch { /* non-critical — skip if memory read fails */ }
+    }
 
     const MAX_ITERATIONS = 10;
     let usedTools = false;
+
+    // ── Adaptive temperature: deterministic for simple edits, creative for complex tasks ──
+    const agentTemperature = complexity === 'simple' ? 0.2
+      : complexity === 'complex' ? 0.5
+      : 0.4;
 
     // ── Loop detection: track tool call signatures to prevent infinite loops ──
     const toolCallLog = [];
@@ -127,6 +170,7 @@ export async function runAgentLoop(fullMessage, { silent = false }, ctx) {
     for (let iteration = 0; iteration < MAX_ITERATIONS; iteration++) {
       const { toolCalls, textContent, stopReason } = await fetchAgentResponseNative(
         loopMessages, systemPrompt, controller.signal, apiKey, provider, modelId, nativeTools,
+        { temperature: agentTemperature },
       );
 
       // ── RESPOND TOOL (final answer) ──────────────────────────────────
@@ -223,6 +267,7 @@ export async function runAgentLoop(fullMessage, { silent = false }, ctx) {
               deliverables: delivRef.current,
               executeAction: executeActionRef.current,
               snapshot: snapshotRef.current,
+              undoFn: undoFnRef?.current || null,
               uid,
             };
 
@@ -298,6 +343,37 @@ export async function runAgentLoop(fullMessage, { silent = false }, ctx) {
         loopMessages.push(formatAssistantToolCalls(provider, nonRespondCalls));
         const resultMessages = batchToolResults(provider, toolResults);
         loopMessages.push(...resultMessages);
+
+        // ── Self-correction: inject recovery hints for failed tool calls ──
+        const failedResults = toolResults.filter(r => r.result?.error);
+        if (failedResults.length > 0) {
+          const hints = failedResults.map(r =>
+            `Tool "${r.toolName}" failed: ${r.result.error}. Try a different approach or correct the arguments.`
+          ).join(' ');
+          loopMessages.push({ role: 'user', content: `[SYSTEM] ${hints}` });
+        }
+
+        // ── Post-edit validation: check for new issues after edits ──
+        const editResults = toolResults.filter(r =>
+          (r.toolName === 'edit_course_map' || r.toolName === 'edit_deliverables') &&
+          r.result?.applied > 0
+        );
+        if (editResults.length > 0 && iteration < MAX_ITERATIONS - 2) {
+          try {
+            const postReport = generateCourseHealthReport(courseMap, delivRef.current);
+            if (postReport && postReport.errorCount > 0) {
+              const newErrors = postReport.findings
+                .filter(f => f.severity === 'error')
+                .slice(0, 3)
+                .map(f => f.message)
+                .join('; ');
+              loopMessages.push({
+                role: 'user',
+                content: `[SYSTEM] Post-edit validation found ${postReport.errorCount} error(s): ${newErrors}. Consider fixing these in your next tool call if possible, or mention them in your response.`,
+              });
+            }
+          } catch { /* validation is non-critical — don't block the loop */ }
+        }
 
         continue;
       }

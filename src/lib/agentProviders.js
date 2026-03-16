@@ -378,12 +378,65 @@ export function formatAssistantToolCalls(provider, toolCalls) {
   return { role: 'assistant', content: '' };
 }
 
+// ── Smart truncation for large tool results ─────────────────────────────────
+
+const MAX_RESULT_CHARS = 4000;
+
+/**
+ * Produce a valid, parseable summary when a tool result exceeds MAX_RESULT_CHARS.
+ * Instead of cutting mid-JSON (which breaks parsing), we:
+ * 1. For objects with arrays: keep first few items + a count summary
+ * 2. For strings: cut at a sentence boundary
+ * 3. Fallback: cut with a clean "...(truncated)" suffix
+ */
+function smartTruncate(result, serialized) {
+  // If result is a non-object, just cut the string cleanly
+  if (typeof result !== 'object' || result === null) {
+    return serialized.slice(0, MAX_RESULT_CHARS - 30) + '...(truncated)';
+  }
+
+  try {
+    // Deep-clone and trim arrays to fit
+    const trimmed = trimObject(structuredClone(result), MAX_RESULT_CHARS);
+    const output = JSON.stringify(trimmed);
+    if (output.length <= MAX_RESULT_CHARS) return output;
+  } catch { /* fall through to simple cut */ }
+
+  // Fallback: simple cut
+  return serialized.slice(0, MAX_RESULT_CHARS - 30) + '...(truncated)';
+}
+
+/** Recursively trim arrays and long strings in an object to fit a char budget. */
+function trimObject(obj, budget) {
+  if (typeof obj === 'string') {
+    return obj.length > 300 ? obj.slice(0, 297) + '...' : obj;
+  }
+  if (Array.isArray(obj)) {
+    // Keep first 3 items + summary
+    if (obj.length > 3) {
+      const kept = obj.slice(0, 3).map(item => trimObject(item, Math.floor(budget / 4)));
+      kept.push({ _truncated: `${obj.length - 3} more items omitted` });
+      return kept;
+    }
+    return obj.map(item => trimObject(item, Math.floor(budget / obj.length)));
+  }
+  if (typeof obj === 'object' && obj !== null) {
+    const entries = Object.entries(obj);
+    const result = {};
+    for (const [key, val] of entries) {
+      result[key] = trimObject(val, Math.floor(budget / Math.max(entries.length, 1)));
+    }
+    return result;
+  }
+  return obj;
+}
+
 // ── Format tool result message for history ──────────────────────────────────
 
 export function formatToolResult(provider, toolCallId, toolName, result) {
   const content = typeof result === 'string' ? result : JSON.stringify(result);
-  // Truncate large results
-  const truncated = content.length > 4000 ? content.slice(0, 4000) + '...(truncated)' : content;
+  // Smart truncation: produce valid JSON summary instead of broken mid-string cut
+  const truncated = content.length > 4000 ? smartTruncate(result, content) : content;
 
   if (provider === 'openai' || provider === 'deepseek') {
     return {

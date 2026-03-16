@@ -12,6 +12,7 @@
 import { useRef } from 'react';
 import { preValidateAction } from '../../lib/agentActions';
 import { getArrayKey } from '../../lib/syncDependencies';
+import { recordEditPattern } from '../../lib/agentMemory';
 
 /**
  * @param {Object} params
@@ -175,6 +176,13 @@ export default function useProposalHandler({
     const result = exec(action);
 
     if (result.success) {
+      // Record accepted edit pattern so agent learns user preferences
+      recordEditPattern({
+        featureId: action?.featureId || 'courseMap',
+        field: action?.type || 'proposal',
+        action: 'accepted',
+      });
+
       setMessages(prev => {
         const updated = [...prev];
         // Mark diff as accepted
@@ -236,6 +244,16 @@ export default function useProposalHandler({
     if (!msg || msg.role !== 'diffReview' || msg.status !== 'pending') return;
 
     const proposalIndex = msg._proposalIndex;
+
+    // Record rejected edit pattern so agent learns what user doesn't want
+    const action = msg.diff?.action;
+    if (action) {
+      recordEditPattern({
+        featureId: action.featureId || 'courseMap',
+        field: action.type || 'proposal',
+        action: 'rejected',
+      });
+    }
 
     setMessages(prev => {
       const updated = [...prev];

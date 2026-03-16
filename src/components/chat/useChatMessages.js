@@ -155,9 +155,20 @@ export function handleLegacyResponse(fullText, ctx) {
       return updated;
     });
   } else if (parsed.proposal) {
+    // Pre-validate proposal options (same as handleAgentFinalResponse)
+    const options = parsed.proposal.options || [];
+    const validOptions = options.filter(opt => {
+      if (!opt.action) return true;
+      const v = preValidateAction(opt.action, {
+        deliverables: ctx.delivRef?.current,
+        courseMap: ctx.courseMap,
+      });
+      return v.valid;
+    });
+    const finalOptions = validOptions.length > 0 ? validOptions : options; // fallback to all if none valid
     setMessages(prev => {
       const updated = [...prev];
-      updated[updated.length - 1] = { role: 'proposal', proposal: parsed.proposal, status: 'pending' };
+      updated[updated.length - 1] = { role: 'proposal', proposal: { ...parsed.proposal, options: finalOptions }, status: 'pending' };
       return updated;
     });
   } else if (parsed.diagram) {

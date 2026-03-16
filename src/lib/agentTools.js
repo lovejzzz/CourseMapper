@@ -34,6 +34,44 @@ function extractLessonText(courseMap, lessonIndex) {
   return texts.join('\n\n');
 }
 
+/** Compact summary of a single per-lesson deliverable item for comparison. */
+function summarizeDeliverableItem(featureId, item) {
+  if (!item) return null;
+  switch (featureId) {
+    case 'quizBank':
+      return { questionCount: item.qs?.length || 0, topics: (item.qs || []).slice(0, 3).map(q => q.q?.slice(0, 60)) };
+    case 'lessonPlans':
+      return { objectives: item.ob || '', outlineSteps: item.ol?.length || 0 };
+    case 'slideDecks':
+      return { slideCount: item.sl?.length || 0, titles: (item.sl || []).slice(0, 3).map(s => s.t) };
+    case 'rubrics':
+      return { criteriaCount: item.cr?.length || 0, criteria: (item.cr || []).slice(0, 3).map(c => c.cn) };
+    case 'discussions':
+      return { prompt: (item.pr || '').slice(0, 80) };
+    case 'studyGuides':
+      return { termCount: item.kt?.length || 0, questionCount: item.rq?.length || 0 };
+    case 'assignments':
+      return { title: item.t || '', type: item.at || '' };
+    default:
+      return { keys: Object.keys(item).slice(0, 5) };
+  }
+}
+
+/** Extract Bloom's taxonomy levels from a deliverable item. */
+function extractBlooms(featureId, item) {
+  if (!item) return [];
+  const levels = new Set();
+  if (item.bl) levels.add(item.bl);
+  const subArrays = { quizBank: 'qs', slideDecks: 'sl', rubrics: 'cr' };
+  const subKey = subArrays[featureId];
+  if (subKey && Array.isArray(item[subKey])) {
+    for (const sub of item[subKey]) {
+      if (sub.bl) levels.add(sub.bl);
+    }
+  }
+  return [...levels];
+}
+
 // ── Tool Registry ────────────────────────────────────────────────────────────
 
 export const AGENT_TOOLS = {
@@ -405,6 +443,103 @@ export const AGENT_TOOLS = {
     },
   },
 
+  compare_deliverables: {
+    description: 'Compare two deliverables for alignment across lessons. Returns per-lesson summaries highlighting gaps (e.g., quiz questions not covering lesson plan objectives).',
+    params: {
+      featureA: 'string — first deliverable ID',
+      featureB: 'string — second deliverable ID',
+      lessonIndex: 'number (optional) — compare only this lesson',
+    },
+    jsonSchema: {
+      type: 'object',
+      properties: {
+        featureA: { type: 'string', description: 'First deliverable: assignments, quizBank, discussions, slideDecks, lessonPlans, rubrics, studyGuides, courseFaq' },
+        featureB: { type: 'string', description: 'Second deliverable' },
+        lessonIndex: { type: 'number', description: '0-based lesson index (optional — omit to compare all)' },
+      },
+      required: ['featureA', 'featureB'],
+    },
+    execute: (args, ctx) => {
+      const { featureA, featureB } = args;
+      const entryA = ctx.deliverables?.[featureA];
+      const entryB = ctx.deliverables?.[featureB];
+      if (!entryA?.data) return { error: `${FEATURE_NAMES[featureA] || featureA} not generated yet.` };
+      if (!entryB?.data) return { error: `${FEATURE_NAMES[featureB] || featureB} not generated yet.` };
+
+      const arrKeyA = getArrayKey(featureA, entryA.data);
+      const arrKeyB = getArrayKey(featureB, entryB.data);
+      const arrA = arrKeyA ? entryA.data[arrKeyA] : null;
+      const arrB = arrKeyB ? entryB.data[arrKeyB] : null;
+      if (!Array.isArray(arrA) || !Array.isArray(arrB)) {
+        return { error: 'Cannot compare — one or both deliverables have no per-lesson array.' };
+      }
+
+      const maxLen = Math.max(arrA.length, arrB.length);
+      const startIdx = args.lessonIndex != null ? args.lessonIndex : 0;
+      const endIdx = args.lessonIndex != null ? args.lessonIndex + 1 : maxLen;
+
+      if (startIdx < 0 || startIdx >= maxLen) {
+        return { error: `lessonIndex ${startIdx} out of range (0-${maxLen - 1}).` };
+      }
+
+      const comparisons = [];
+      for (let i = startIdx; i < endIdx; i++) {
+        const itemA = arrA[i];
+        const itemB = arrB[i];
+        const lesson = {
+          lessonIndex: i,
+          title: itemA?.lt || itemB?.lt || ctx.courseMap?.lessons?.[i]?.title || `Lesson ${i + 1}`,
+        };
+
+        // Extract key content from each deliverable for this lesson
+        lesson[featureA] = summarizeDeliverableItem(featureA, itemA);
+        lesson[featureB] = summarizeDeliverableItem(featureB, itemB);
+
+        // Detect gaps
+        const gaps = [];
+        if (!itemA) gaps.push(`Missing in ${FEATURE_NAMES[featureA] || featureA}`);
+        if (!itemB) gaps.push(`Missing in ${FEATURE_NAMES[featureB] || featureB}`);
+
+        // Bloom's level comparison if both have it
+        const bloomsA = extractBlooms(featureA, itemA);
+        const bloomsB = extractBlooms(featureB, itemB);
+        if (bloomsA.length > 0 && bloomsB.length > 0) {
+          const missingInB = bloomsA.filter(b => !bloomsB.includes(b));
+          if (missingInB.length > 0) {
+            gaps.push(`${FEATURE_NAMES[featureB] || featureB} missing Bloom's levels: ${missingInB.join(', ')}`);
+          }
+        }
+
+        lesson.gaps = gaps;
+        comparisons.push(lesson);
+      }
+
+      const totalGaps = comparisons.reduce((s, c) => s + c.gaps.length, 0);
+      return {
+        featureA: FEATURE_NAMES[featureA] || featureA,
+        featureB: FEATURE_NAMES[featureB] || featureB,
+        lessonsCompared: comparisons.length,
+        totalGaps,
+        comparisons: comparisons.length > 8 ? comparisons.slice(0, 8) : comparisons,
+        ...(comparisons.length > 8 ? { truncated: `Showing 8 of ${comparisons.length} lessons` } : {}),
+      };
+    },
+  },
+
+  undo_last: {
+    description: 'Undo the most recent deliverable edit. Restores the previous version. Use when your last edit was wrong or the user asks to undo.',
+    params: {},
+    execute: (args, ctx) => {
+      if (!ctx.undoFn) return { error: 'Undo not available in this context.' };
+      try {
+        ctx.undoFn();
+        return { success: true, message: 'Last deliverable edit undone.' };
+      } catch (err) {
+        return { error: `Undo failed: ${err.message}` };
+      }
+    },
+  },
+
   forget: {
     description: 'Delete a specific memory that is no longer accurate or relevant.',
     params: {
@@ -441,6 +576,8 @@ export const TOOL_LABELS = {
   save_preference: 'Saving preference',
   remember: 'Remembering for next time',
   recall: 'Recalling past context',
+  compare_deliverables: 'Comparing deliverables',
+  undo_last: 'Undoing last edit',
   forget: 'Forgetting outdated info',
   respond: 'Preparing response',
 };
@@ -487,6 +624,10 @@ export function summarizeToolResult(toolName, result) {
       return result.saved ? `Remembered: ${result.content?.slice(0, 40)}…` : 'Failed';
     case 'recall':
       return `${result.count || 0} memories found`;
+    case 'compare_deliverables':
+      return `${result.lessonsCompared || 0} lessons compared, ${result.totalGaps || 0} gaps`;
+    case 'undo_last':
+      return result.success ? 'Edit undone' : 'Failed';
     case 'forget':
       return result.deleted ? 'Memory deleted' : 'Failed';
     case 'respond':

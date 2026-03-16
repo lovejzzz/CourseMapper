@@ -124,11 +124,11 @@ describe('AGENT_TOOLS registry', () => {
     'validate_course', 'check_grammar', 'search_research',
     'read_deliverable', 'read_lesson',
     'edit_course_map', 'edit_deliverables',
-    'save_preference', 'remember', 'recall', 'forget',
+    'save_preference', 'remember', 'recall', 'compare_deliverables', 'undo_last', 'forget',
   ];
 
-  it('contains exactly 11 tools', () => {
-    expect(Object.keys(AGENT_TOOLS)).toHaveLength(11);
+  it('contains exactly 13 tools', () => {
+    expect(Object.keys(AGENT_TOOLS)).toHaveLength(13);
   });
 
   it.each(EXPECTED_TOOLS)('has tool "%s" with description, params, and execute', (name) => {
@@ -868,5 +868,144 @@ describe('Tool execute: forget', () => {
     const result = AGENT_TOOLS.forget.execute({ id: 'nonexistent' }, mockCtx);
     expect(result.error).toContain('Failed to delete memory');
     expect(result.error).toContain('Memory not found');
+  });
+});
+
+// ══════════════════════════════════════════════════════════════════════════════
+// 8. compare_deliverables
+// ══════════════════════════════════════════════════════════════════════════════
+
+describe('Tool execute: compare_deliverables', () => {
+  it('compares two deliverables and returns per-lesson results', () => {
+    const ctx = {
+      ...mockCtx,
+      deliverables: {
+        quizBank: { status: 'done', data: { quizzes: [
+          { lt: 'L1', qs: [{ q: 'Q1?', bl: 'Remember' }] },
+        ] } },
+        lessonPlans: { status: 'done', data: { lessonPlans: [
+          { lt: 'L1', ob: 'Explain supervised learning', bl: 'Understand' },
+        ] } },
+      },
+    };
+    const result = AGENT_TOOLS.compare_deliverables.execute(
+      { featureA: 'quizBank', featureB: 'lessonPlans' }, ctx,
+    );
+    expect(result.lessonsCompared).toBe(1);
+    expect(result.comparisons).toHaveLength(1);
+    expect(result.comparisons[0].quizBank).toBeDefined();
+    expect(result.comparisons[0].lessonPlans).toBeDefined();
+    expect(result.comparisons[0].quizBank.questionCount).toBe(1);
+  });
+
+  it('returns error for non-existent deliverable', () => {
+    const result = AGENT_TOOLS.compare_deliverables.execute(
+      { featureA: 'quizBank', featureB: 'slideDecks' }, mockCtx,
+    );
+    expect(result.error).toContain('not generated yet');
+  });
+
+  it('detects Bloom\'s level gaps between deliverables', () => {
+    const ctx = {
+      ...mockCtx,
+      deliverables: {
+        quizBank: { status: 'done', data: { quizzes: [
+          { lt: 'L1', qs: [{ q: 'Q1?', bl: 'Remember' }, { q: 'Q2?', bl: 'Apply' }] },
+        ] } },
+        lessonPlans: { status: 'done', data: { lessonPlans: [
+          { lt: 'L1', ob: 'Apply concepts', bl: 'Understand' },
+        ] } },
+      },
+    };
+    const result = AGENT_TOOLS.compare_deliverables.execute(
+      { featureA: 'quizBank', featureB: 'lessonPlans' }, ctx,
+    );
+    expect(result.totalGaps).toBeGreaterThan(0);
+    // quizBank has Remember+Apply, lessonPlans has only Understand
+    // So lessonPlans is missing Remember and Apply
+    const gaps = result.comparisons[0].gaps;
+    expect(gaps.some(g => g.includes("Bloom's"))).toBe(true);
+  });
+
+  it('compares a single lesson when lessonIndex is provided', () => {
+    const ctx = {
+      ...mockCtx,
+      deliverables: {
+        quizBank: { status: 'done', data: { quizzes: [
+          { lt: 'L1', qs: [{ q: 'Q1?' }] },
+          { lt: 'L2', qs: [{ q: 'Q2?' }] },
+        ] } },
+        lessonPlans: { status: 'done', data: { lessonPlans: [
+          { lt: 'L1', ob: 'Obj1' },
+          { lt: 'L2', ob: 'Obj2' },
+        ] } },
+      },
+    };
+    const result = AGENT_TOOLS.compare_deliverables.execute(
+      { featureA: 'quizBank', featureB: 'lessonPlans', lessonIndex: 1 }, ctx,
+    );
+    expect(result.lessonsCompared).toBe(1);
+    expect(result.comparisons[0].lessonIndex).toBe(1);
+  });
+
+  it('returns error for out-of-range lessonIndex', () => {
+    const ctx = {
+      ...mockCtx,
+      deliverables: {
+        quizBank: { status: 'done', data: { quizzes: [{ lt: 'L1', qs: [] }] } },
+        lessonPlans: { status: 'done', data: { lessonPlans: [{ lt: 'L1', ob: '' }] } },
+      },
+    };
+    const result = AGENT_TOOLS.compare_deliverables.execute(
+      { featureA: 'quizBank', featureB: 'lessonPlans', lessonIndex: 99 }, ctx,
+    );
+    expect(result.error).toContain('out of range');
+  });
+});
+
+describe('summarizeToolResult: compare_deliverables', () => {
+  it('formats comparison summary', () => {
+    expect(summarizeToolResult('compare_deliverables', { lessonsCompared: 3, totalGaps: 2 }))
+      .toBe('3 lessons compared, 2 gaps');
+  });
+});
+
+// ══════════════════════════════════════════════════════════════════════════════
+// 9. undo_last
+// ══════════════════════════════════════════════════════════════════════════════
+
+describe('Tool execute: undo_last', () => {
+  it('calls undoFn and returns success', () => {
+    const undoFn = vi.fn();
+    const result = AGENT_TOOLS.undo_last.execute({}, { undoFn });
+    expect(undoFn).toHaveBeenCalledOnce();
+    expect(result.success).toBe(true);
+    expect(result.message).toContain('undone');
+  });
+
+  it('returns error when undoFn is not available', () => {
+    const result = AGENT_TOOLS.undo_last.execute({}, {});
+    expect(result.error).toContain('not available');
+  });
+
+  it('returns error when undoFn is null', () => {
+    const result = AGENT_TOOLS.undo_last.execute({}, { undoFn: null });
+    expect(result.error).toContain('not available');
+  });
+
+  it('catches undoFn exceptions', () => {
+    const undoFn = vi.fn(() => { throw new Error('Stack empty'); });
+    const result = AGENT_TOOLS.undo_last.execute({}, { undoFn });
+    expect(result.error).toContain('Stack empty');
+  });
+});
+
+describe('summarizeToolResult: undo_last', () => {
+  it('shows "Edit undone" on success', () => {
+    expect(summarizeToolResult('undo_last', { success: true })).toBe('Edit undone');
+  });
+
+  it('shows "Failed" on failure', () => {
+    expect(summarizeToolResult('undo_last', { success: false })).toBe('Failed');
   });
 });

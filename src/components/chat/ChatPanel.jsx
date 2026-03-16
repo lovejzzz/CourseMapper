@@ -81,6 +81,7 @@ export default function ChatPanel({
     deliverables,
     executeAction: execAction,
     delivUndoSnapshot,
+    delivUndoFn,
     executeSyncPlan,
     notifyEdit,
     uid,

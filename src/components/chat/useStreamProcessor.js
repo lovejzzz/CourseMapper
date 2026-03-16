@@ -212,7 +212,7 @@ export async function streamChat(messages, systemPrompt, signal, apiKey, provide
 }
 
 // ── Native tool-calling LLM call for agentic loop ─────────────────────────
-export async function fetchAgentResponseNative(loopMessages, systemPrompt, signal, apiKey, provider, modelId, nativeTools) {
+export async function fetchAgentResponseNative(loopMessages, systemPrompt, signal, apiKey, provider, modelId, nativeTools, { temperature: tempOverride } = {}) {
   if (provider !== 'webllm' && !apiKey) throw new Error('NO_API_KEY');
   if (!modelId) throw new Error('NO_MODEL_SELECTED');
 
@@ -222,12 +222,12 @@ export async function fetchAgentResponseNative(loopMessages, systemPrompt, signa
     const response = await completeLocal(modelId, [
       { role: 'system', content: systemPrompt },
       ...loopMessages.map(m => ({ role: m.role, content: m.content })),
-    ], { temperature: 0.4, max_tokens: 4096 });
+    ], { temperature: tempOverride ?? 0.4, max_tokens: 4096 });
     const text = response.choices?.[0]?.message?.content || '';
     return { toolCalls: null, textContent: text, stopReason: 'stop' };
   }
 
-  let temperature = 0.4;
+  let temperature = tempOverride ?? 0.4;
 
   for (let tempRetry = 0; tempRetry < 2; tempRetry++) {
     const { endpoint, headers, body } = buildAgentRequest(provider, {
@@ -367,6 +367,45 @@ export function buildAgentChatHistory(messages) {
     // Skip 'progress' messages — not relevant for AI context
   }
 
-  // Keep last 14 messages for context (enough for a few turns of proposals + confirmations)
-  return history.slice(-14);
+  // Smart trimming: keep the most valuable messages for context.
+  // Priority: user messages > recent messages > proposals/errors > status summaries.
+  const MAX_MESSAGES = 20;
+  const MAX_CHARS = 12000;
+
+  if (history.length <= MAX_MESSAGES) return history;
+
+  // Score each message: higher = more worth keeping
+  const scored = history.map((m, i) => {
+    let score = 0;
+    // User messages are high-value (contain instructions)
+    if (m.role === 'user') score += 5;
+    // Assistant messages with substance
+    else if (m.role === 'assistant' && m.content?.length > 50) score += 3;
+    // Short status lines are low-value
+    else score += 1;
+    // First user message is critical (original intent)
+    if (m.role === 'user' && i === history.findIndex(h => h.role === 'user')) score += 4;
+    // Recent messages are more relevant (last 6)
+    if (i >= history.length - 6) score += 4;
+    // Proposals and errors carry decision context
+    if (m.content?.startsWith('[PROPOSAL')) score += 2;
+    if (m.content?.includes('FAILED') || m.content?.includes('Error')) score += 2;
+    return { ...m, _idx: i, _score: score };
+  });
+
+  // Sort by score descending, keep top MAX_MESSAGES
+  const sorted = [...scored].sort((a, b) => b._score - a._score);
+  const kept = new Set(sorted.slice(0, MAX_MESSAGES).map(m => m._idx));
+
+  // Build result in original order, respecting char budget
+  const result = [];
+  let chars = 0;
+  for (let i = 0; i < history.length; i++) {
+    if (!kept.has(i)) continue;
+    const len = (history[i].content || '').length;
+    if (chars + len > MAX_CHARS && result.length >= 6) break;
+    result.push(history[i]);
+    chars += len;
+  }
+  return result;
 }

@@ -24,6 +24,7 @@ export default function useChatRouter({
   // Agent params
   deliverables, executeAction,
   delivUndoSnapshot,
+  delivUndoFn,
   executeSyncPlan,
   notifyEdit,
   uid,
@@ -65,6 +66,8 @@ export default function useChatRouter({
   useEffect(() => { delivRef.current = deliverables; });
   const snapshotRef = useRef(delivUndoSnapshot);
   useEffect(() => { snapshotRef.current = delivUndoSnapshot; });
+  const undoFnRef = useRef(delivUndoFn);
+  useEffect(() => { undoFnRef.current = delivUndoFn; });
   const executeSyncPlanRef = useRef(executeSyncPlan);
   useEffect(() => { executeSyncPlanRef.current = executeSyncPlan; });
   const notifyEditRef = useRef(notifyEdit);
@@ -233,7 +236,7 @@ export default function useChatRouter({
       abortRef,
       apiKey, provider, modelId,
       courseMap, activeTab,
-      delivRef, executeActionRef, snapshotRef, notifyEditRef,
+      delivRef, executeActionRef, snapshotRef, undoFnRef, notifyEditRef,
       uid,
       maybeRunValidation,
       sendAgentMessage,

@@ -71,13 +71,23 @@ export function getMemoriesByCategory(category) {
   return getMemories().filter(m => m.category === category);
 }
 
-/** Search memories by keyword (simple text match). */
+/** Search memories by keyword (fuzzy multi-token match with relevance scoring). */
 export function searchMemories(query) {
-  const q = query.toLowerCase();
-  return getMemories().filter(m =>
-    m.content?.toLowerCase().includes(q) ||
-    m.category?.toLowerCase().includes(q)
-  );
+  const tokens = query.toLowerCase().split(/\s+/).filter(t => t.length > 1);
+  if (tokens.length === 0) return getMemories();
+
+  return getMemories()
+    .map(m => {
+      const text = `${m.content || ''} ${m.category || ''}`.toLowerCase();
+      // Score: count matching tokens + bonus for exact substring match
+      let score = tokens.reduce((s, t) => s + (text.includes(t) ? 1 : 0), 0);
+      if (text.includes(query.toLowerCase())) score += 2; // exact phrase bonus
+      return { ...m, _score: score };
+    })
+    .filter(m => m._score > 0)
+    .sort((a, b) =>
+      b._score - a._score || (b.importance || 3) - (a.importance || 3)
+    );
 }
 
 /**

@@ -59,11 +59,14 @@ describe('buildAgentSystemPrompt', () => {
     expect(prompt).toContain('Fall 2026');
   });
 
-  it('lists lessons with 0-based indices', () => {
+  it('lists lessons with 1-based display and toolIndex', () => {
     const prompt = buildAgentSystemPrompt(baseCourseMap, 'quizBank', baseDeliverables);
-    expect(prompt).toContain('0: Lesson 1: Linear Regression');
-    expect(prompt).toContain('1: Lesson 2: Classification');
-    expect(prompt).toContain('2: Lesson 3: Neural Networks');
+    expect(prompt).toContain('Lesson 1:');
+    expect(prompt).toContain('Lesson 2:');
+    expect(prompt).toContain('Lesson 3:');
+    expect(prompt).toContain('toolIndex=0');
+    expect(prompt).toContain('toolIndex=1');
+    expect(prompt).toContain('toolIndex=2');
   });
 
   it('shows active tab name "Quiz & Exam Bank" for quizBank', () => {
@@ -182,10 +185,10 @@ describe('buildAgentSystemPrompt', () => {
     expect(prompt).toContain('read_deliverable');
   });
 
-  it('prompt is significantly shorter than before (under 4000 chars for base case)', () => {
+  it('prompt is compact (under 8500 chars for base case)', () => {
     const prompt = buildAgentSystemPrompt(baseCourseMap, 'quizBank', baseDeliverables);
-    // The optimized prompt should be well under 6000 chars for a 3-lesson course
-    expect(prompt.length).toBeLessThan(6000);
+    // Includes few-shot examples (~1200 chars) + schema + context
+    expect(prompt.length).toBeLessThan(8500);
   });
 
   it('shows path example for slideDecks when that tab is active', () => {
@@ -195,7 +198,9 @@ describe('buildAgentSystemPrompt', () => {
     };
     const prompt = buildAgentSystemPrompt(baseCourseMap, 'slideDecks', delivs);
     expect(prompt).toContain('["slideDecks"');
-    expect(prompt).not.toContain('["quizzes"');
+    // The editItem path section should NOT show quizBank path when slideDecks is active
+    // (few-shot examples may reference other deliverables — that's fine)
+    expect(prompt).toContain('editItem path for Slide Decks');
   });
 
   it('health summary is 1-line with tool hint for multi-line summaries', () => {

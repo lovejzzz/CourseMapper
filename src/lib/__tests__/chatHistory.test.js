@@ -132,7 +132,37 @@ function buildAgentChatHistory(messages) {
     }
   }
 
-  return history.slice(-14);
+  // Smart trimming: keep the most valuable messages for context.
+  const MAX_MESSAGES = 20;
+  const MAX_CHARS = 12000;
+
+  if (history.length <= MAX_MESSAGES) return history;
+
+  const scored = history.map((m, i) => {
+    let score = 0;
+    if (m.role === 'user') score += 5;
+    else if (m.role === 'assistant' && m.content?.length > 50) score += 3;
+    else score += 1;
+    if (m.role === 'user' && i === history.findIndex(h => h.role === 'user')) score += 4;
+    if (i >= history.length - 6) score += 4;
+    if (m.content?.startsWith('[PROPOSAL')) score += 2;
+    if (m.content?.includes('FAILED') || m.content?.includes('Error')) score += 2;
+    return { ...m, _idx: i, _score: score };
+  });
+
+  const sorted = [...scored].sort((a, b) => b._score - a._score);
+  const kept = new Set(sorted.slice(0, MAX_MESSAGES).map(m => m._idx));
+
+  const result = [];
+  let chars = 0;
+  for (let i = 0; i < history.length; i++) {
+    if (!kept.has(i)) continue;
+    const len = (history[i].content || '').length;
+    if (chars + len > MAX_CHARS && result.length >= 6) break;
+    result.push(history[i]);
+    chars += len;
+  }
+  return result;
 }
 
 // ─── Re-implement generateDiffPreview ────────────────────────────────────────
@@ -477,26 +507,82 @@ describe('buildAgentChatHistory', () => {
     expect(result).toEqual([]);
   });
 
-  // ── History truncation ─────────────────────────────────────────────────
+  // ── Smart history trimming ──────────────────────────────────────────────
 
-  it('truncates to last 14 messages', () => {
-    const messages = Array.from({ length: 20 }, (_, i) => ({
-      role: 'user',
+  it('returns all messages when under MAX_MESSAGES (20)', () => {
+    const messages = Array.from({ length: 18 }, (_, i) => ({
+      role: i % 2 === 0 ? 'user' : 'assistant',
       text: `msg-${i}`,
     }));
     const result = buildAgentChatHistory(messages);
-    expect(result).toHaveLength(14);
-    expect(result[0].content).toBe('msg-6');
-    expect(result[13].content).toBe('msg-19');
+    expect(result).toHaveLength(18);
   });
 
-  it('returns all messages when fewer than 14', () => {
+  it('returns all messages when exactly at the limit', () => {
     const messages = [
       { role: 'user', text: 'Hi' },
       { role: 'assistant', text: 'Hello' },
     ];
     const result = buildAgentChatHistory(messages);
     expect(result).toHaveLength(2);
+  });
+
+  it('trims to MAX_MESSAGES when exceeding 20 converted messages', () => {
+    // 25 user messages → all convert → should trim to 20
+    const messages = Array.from({ length: 25 }, (_, i) => ({
+      role: 'user',
+      text: `msg-${i}`,
+    }));
+    const result = buildAgentChatHistory(messages);
+    expect(result.length).toBeLessThanOrEqual(20);
+    expect(result.length).toBeGreaterThanOrEqual(6); // at least minimum kept
+  });
+
+  it('preserves the first user message (original intent)', () => {
+    const messages = [
+      { role: 'user', text: 'Create a full ML course' },
+      ...Array.from({ length: 24 }, (_, i) => ({
+        role: i % 2 === 0 ? 'assistant' : 'user',
+        text: `filler message ${i} — some padding text to give it substance`,
+      })),
+    ];
+    const result = buildAgentChatHistory(messages);
+    expect(result[0].content).toBe('Create a full ML course');
+  });
+
+  it('preserves recent messages (last 6)', () => {
+    const messages = Array.from({ length: 30 }, (_, i) => ({
+      role: i % 2 === 0 ? 'user' : 'assistant',
+      text: `msg-${i}`,
+    }));
+    const result = buildAgentChatHistory(messages);
+    // The last few messages should be present
+    const contents = result.map(r => r.content);
+    expect(contents).toContain('msg-29');
+    expect(contents).toContain('msg-28');
+  });
+
+  it('prioritizes user messages over assistant summaries during trim', () => {
+    const messages = [
+      { role: 'user', text: 'Design my course on data science' },
+      // Bunch of low-value assistant status messages
+      ...Array.from({ length: 15 }, (_, i) => ({
+        role: 'changeSummary',
+        summary: { changes: [{ type: 'edited', count: 1, featureId: `feat-${i}` }] },
+      })),
+      // A few more user messages
+      { role: 'user', text: 'Now add quizzes' },
+      { role: 'user', text: 'Make them harder' },
+      ...Array.from({ length: 5 }, (_, i) => ({
+        role: 'assistant',
+        text: `Response ${i}`,
+      })),
+    ];
+    const result = buildAgentChatHistory(messages);
+    const userContents = result.filter(r => r.role === 'user').map(r => r.content);
+    // Critical user messages should survive the trim
+    expect(userContents).toContain('Design my course on data science');
+    expect(userContents).toContain('Now add quizzes');
   });
 
   // ── Mixed message types ──────────────────────────────────────────────────
