@@ -18,6 +18,7 @@ import {
   fetchAgentResponseNative, buildAgentChatHistory,
 } from './useStreamProcessor';
 import { getMemories, MEMORY_CATEGORIES } from '../../lib/agentMemory';
+import { createSkillNudgeTracker, SKILL_NUDGE_HINT } from '../../lib/customAgentTools';
 
 /**
  * Execute the multi-step agentic loop with native tool calling.
@@ -177,6 +178,13 @@ export async function runAgentLoop(fullMessage, { silent = false }, ctx) {
       }
       return null;
     }
+
+    // ── Skill-creation nudge (Hermes-style agent-initiated macros) ─────────
+    // When this turn has chained several successful workflow tool calls,
+    // nudge the agent toward create_tool. Fires at most once per
+    // runAgentLoop call. Thresholds live in customAgentTools.js so runtime
+    // and the test harness can't drift.
+    const skillNudge = createSkillNudgeTracker();
 
     // ── Thinking text callback for streaming progress ──
     const onThinkingText = (text) => {
@@ -394,6 +402,19 @@ export async function runAgentLoop(fullMessage, { silent = false }, ctx) {
             `Tool "${r.toolName}" failed: ${r.result.error}. Try a different approach or correct the arguments.`
           ).join(' ');
           loopMessages.push({ role: 'user', content: `[SYSTEM] ${hints}` });
+        }
+
+        // ── Skill-creation nudge: propose saving a repeatable workflow ────
+        // Borrowed from Hermes Agent's "skills from experience" pattern. When
+        // the turn has chained enough workflow steps to look like a recurring
+        // pattern, hint the agent to consider create_tool. The agent is free
+        // to ignore it and just respond() — the nudge is advisory, not
+        // mandatory, and fires only once per turn.
+        // The tracker expects the {name, result} shape produced by our tool
+        // invoker; map from the internal (toolCallId, toolName, result) form.
+        const nudgeResults = toolResults.map(r => ({ name: r.toolName, result: r.result }));
+        if (skillNudge.update(nudgeResults)) {
+          loopMessages.push({ role: 'user', content: SKILL_NUDGE_HINT });
         }
 
         // ── Post-edit validation: check for new issues after edits ──

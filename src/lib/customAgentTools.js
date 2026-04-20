@@ -311,6 +311,69 @@ export function parseExportedTool(jsonText) {
   };
 }
 
+// ── Skill-creation nudge (Hermes-style "skills from experience") ───────────
+// Detects turns that look like a repeatable workflow: either ≥4 successful
+// tool calls from the workflow set, OR a single tool that applied ≥6 patches.
+// Shared by useToolInvoker.js and the multi-turn test harness so the two
+// codepaths can't drift.
+
+/** Tools whose successful invocation counts as "real work" toward the nudge. */
+export const SKILL_WORKFLOW_TOOLS = new Set([
+  'edit_course_map', 'edit_deliverables', 'validate_course', 'compare_deliverables',
+  'check_grammar', 'search_research', 'regenerateLesson',
+]);
+
+export const SKILL_NUDGE_CALL_THRESHOLD = 4;
+export const SKILL_NUDGE_ACTION_THRESHOLD = 6;
+
+/**
+ * Create a stateful nudge tracker. Call `update(toolResults)` after each tool
+ * batch; it returns `true` exactly once — the first time the running counts
+ * cross either threshold and the batch didn't already include create_tool /
+ * run_tool (which means the agent is already doing the macro thing, no nudge
+ * needed). Every call after that returns false.
+ *
+ * @param {Array} results — objects with `name` (tool name) and `result` (the
+ *   tool's return value). `result.error` disqualifies a call; `result.applied`
+ *   (if present) contributes to the per-call patch count.
+ */
+export function createSkillNudgeTracker() {
+  let fired = false;
+  let workflowCalls = 0;
+  let maxAppliedInOne = 0;
+  return {
+    get fired() { return fired; },
+    get workflowCalls() { return workflowCalls; },
+    get maxAppliedInOne() { return maxAppliedInOne; },
+    update(results) {
+      if (fired) return false;
+      // If the agent already created or ran a macro this batch, it's already
+      // on the skill-creation path — no nudge needed.
+      if (!Array.isArray(results)) return false;
+      if (results.some(r => r?.name === 'create_tool' || r?.name === 'run_tool')) return false;
+      for (const r of results) {
+        if (!r || r.result?.error) continue;
+        if (SKILL_WORKFLOW_TOOLS.has(r.name)) workflowCalls++;
+        const applied = r.result?.applied;
+        if (typeof applied === 'number' && applied > maxAppliedInOne) maxAppliedInOne = applied;
+      }
+      if (workflowCalls >= SKILL_NUDGE_CALL_THRESHOLD
+          || maxAppliedInOne >= SKILL_NUDGE_ACTION_THRESHOLD) {
+        fired = true;
+        return true;
+      }
+      return false;
+    },
+  };
+}
+
+/** The exact [SYSTEM] message the runtime / harness inject when the nudge fires. */
+export const SKILL_NUDGE_HINT =
+  '[SYSTEM] This turn chained multiple workflow steps. If this is a pattern the user will likely ' +
+  'repeat (e.g. periodic audits, batch Bloom\'s upgrades, consistent rubric alignment), consider ' +
+  'calling create_tool to save it as a named macro they can invoke later via run_tool. If this was ' +
+  'a one-off request, skip create_tool and proceed directly to respond().';
+
 /** JSON Schemas used by the AGENT_TOOLS wrappers. */
 export const CREATE_TOOL_JSON_SCHEMA = {
   type: 'object',

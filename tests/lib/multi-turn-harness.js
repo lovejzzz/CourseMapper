@@ -16,7 +16,9 @@ import { buildAgentSystemPromptParts } from '../../src/lib/agentPrompts.js';
 import { buildNativeTools, applyAnthropicCache } from '../../src/lib/agentProviders.js';
 import { AGENT_TOOLS } from '../../src/lib/agentTools.js';
 import { executeAction } from '../../src/lib/agentActions.js';
-import { createCustomToolRegistry } from '../../src/lib/customAgentTools.js';
+import {
+  createCustomToolRegistry, createSkillNudgeTracker, SKILL_NUDGE_HINT,
+} from '../../src/lib/customAgentTools.js';
 
 // ── Mutable fixture state + ctx wiring ──────────────────────────────────────
 
@@ -147,6 +149,8 @@ export async function runMultiTurn({
 
   let finalResponse = null;
   let loopBroken = null;
+  // Shared skill-creation nudge tracker — same thresholds as useToolInvoker.js.
+  const skillNudge = createSkillNudgeTracker();
   // Match useToolInvoker.js: build the system prompt ONCE and reuse it across
   // iterations. Rebuilding per-turn confused the agent post-edit — the state
   // block would show the new title and the model would decide the edit wasn't
@@ -240,6 +244,13 @@ export async function runMultiTurn({
         content: typeof r.result === 'string' ? r.result : JSON.stringify(r.result).slice(0, 4000),
       })),
     });
+
+    // Skill-creation nudge — fires at most once per turn after the agent has
+    // chained enough workflow steps that a macro would probably help.
+    const nudgeResults = toolResults.map(r => ({ name: r.name, result: r.result }));
+    if (skillNudge.update(nudgeResults)) {
+      loopMessages.push({ role: 'user', content: SKILL_NUDGE_HINT });
+    }
   }
 
   return {
@@ -250,5 +261,8 @@ export async function runMultiTurn({
     macroSteps,
     loopBroken,
     iterations: trace.length,
+    skillNudgeFired: skillNudge.fired,
+    skillWorkflowCalls: skillNudge.workflowCalls,
+    skillMaxAppliedInOne: skillNudge.maxAppliedInOne,
   };
 }

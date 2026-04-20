@@ -5,6 +5,8 @@ import { describe, it, expect, beforeEach, vi } from 'vitest';
 import {
   createCustomToolRegistry, substitute, runPlan,
   exportCustomTool, parseExportedTool,
+  createSkillNudgeTracker, SKILL_NUDGE_HINT,
+  SKILL_NUDGE_CALL_THRESHOLD, SKILL_NUDGE_ACTION_THRESHOLD,
   CREATE_TOOL_JSON_SCHEMA, RUN_TOOL_JSON_SCHEMA,
 } from '../customAgentTools';
 
@@ -288,5 +290,81 @@ describe('JSON schemas', () => {
   it('exposes valid CREATE_TOOL / RUN_TOOL schemas for native tool-calling', () => {
     expect(CREATE_TOOL_JSON_SCHEMA.required).toEqual(['name', 'description', 'plan']);
     expect(RUN_TOOL_JSON_SCHEMA.required).toEqual(['name']);
+  });
+});
+
+// ── Skill-creation nudge tracker (Hermes-style "skills from experience") ──
+
+describe('createSkillNudgeTracker', () => {
+  const edit = (applied = 1) => ({ name: 'edit_deliverables', result: { applied } });
+  const read = () => ({ name: 'read_deliverable', result: { totalItems: 3 } });
+  const validate = () => ({ name: 'validate_course', result: { errorCount: 0 } });
+  const failedEdit = () => ({ name: 'edit_deliverables', result: { error: 'boom' } });
+
+  it('does not fire for a single edit', () => {
+    const t = createSkillNudgeTracker();
+    expect(t.update([edit()])).toBe(false);
+    expect(t.fired).toBe(false);
+    expect(t.workflowCalls).toBe(1);
+  });
+
+  it('does not fire for pure reads, regardless of count', () => {
+    const t = createSkillNudgeTracker();
+    expect(t.update([read(), read(), read(), read(), read()])).toBe(false);
+    expect(t.fired).toBe(false);
+    expect(t.workflowCalls).toBe(0);
+  });
+
+  it(`fires once when workflow calls hit the ${SKILL_NUDGE_CALL_THRESHOLD} threshold across batches`, () => {
+    const t = createSkillNudgeTracker();
+    expect(t.update([edit(), edit()])).toBe(false);
+    expect(t.update([validate(), edit()])).toBe(true); // 4th workflow call — fires
+    expect(t.fired).toBe(true);
+    // Subsequent updates are inert.
+    expect(t.update([edit(), edit()])).toBe(false);
+  });
+
+  it(`fires when a single tool applies ≥${SKILL_NUDGE_ACTION_THRESHOLD} patches`, () => {
+    const t = createSkillNudgeTracker();
+    expect(t.update([edit(SKILL_NUDGE_ACTION_THRESHOLD)])).toBe(true);
+    expect(t.maxAppliedInOne).toBe(SKILL_NUDGE_ACTION_THRESHOLD);
+  });
+
+  it('does NOT count failed workflow calls', () => {
+    const t = createSkillNudgeTracker();
+    expect(t.update([failedEdit(), failedEdit(), failedEdit(), failedEdit()])).toBe(false);
+    expect(t.fired).toBe(false);
+    expect(t.workflowCalls).toBe(0);
+  });
+
+  it('does not fire if the agent already used create_tool / run_tool this batch', () => {
+    const t = createSkillNudgeTracker();
+    const results = [
+      { name: 'create_tool', result: { ok: true } },
+      edit(), edit(), edit(), edit(), edit(), // lots of edits
+    ];
+    expect(t.update(results)).toBe(false);
+    expect(t.fired).toBe(false);
+  });
+
+  it('fires at most once even if crossed on multiple dimensions', () => {
+    const t = createSkillNudgeTracker();
+    expect(t.update([edit(SKILL_NUDGE_ACTION_THRESHOLD + 5)])).toBe(true);
+    expect(t.update([edit(), edit(), edit(), edit()])).toBe(false); // no second fire
+  });
+
+  it('tolerates malformed input without throwing', () => {
+    const t = createSkillNudgeTracker();
+    expect(() => t.update(null)).not.toThrow();
+    expect(() => t.update([null, undefined, { garbage: true }])).not.toThrow();
+    expect(t.fired).toBe(false);
+  });
+
+  it('SKILL_NUDGE_HINT mentions create_tool and run_tool explicitly', () => {
+    // The prompt literal is the agent's only signal to take action; if it
+    // accidentally loses create_tool/run_tool references, the feature dies
+    // silently. Pin those tokens.
+    expect(SKILL_NUDGE_HINT).toMatch(/create_tool/);
+    expect(SKILL_NUDGE_HINT).toMatch(/run_tool/);
   });
 });
