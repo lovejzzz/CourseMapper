@@ -178,6 +178,7 @@ export default function ChatPanel({
             tools={chat.customTools}
             onDelete={chat.deleteCustomTool}
             onImport={chat.importCustomTool}
+            syncError={chat.customToolSyncError}
           />
         )}
       </div>

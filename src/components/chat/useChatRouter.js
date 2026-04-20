@@ -78,15 +78,34 @@ export default function useChatRouter({
   // mutates. The registry itself lives in a ref (stable identity), but the
   // React tree needs a dependency to re-read its contents.
   const [customToolsVersion, setCustomToolsVersion] = useState(0);
+  // Cloud-sync status surfaces to the UI via a "not synced" pill so users can
+  // tell when local writes failed to propagate (permission errors, network
+  // drops, etc). Each failure is tagged with the tool name + operation so the
+  // UI can show what didn't stick.
+  const [customToolSyncError, setCustomToolSyncError] = useState(null);
   const customToolRegistryRef = useRef(null);
   if (!customToolRegistryRef.current) {
     customToolRegistryRef.current = createCustomToolRegistry({
       onCloudSync: (tool, op) => {
         setCustomToolsVersion(v => v + 1);
         const currentUid = uidRef.current;
-        if (!currentUid) return; // anonymous: localStorage only
-        if (op === 'save') saveCustomTool(currentUid, tool).catch(() => {});
-        else if (op === 'delete') deleteCustomTool(currentUid, tool.name).catch(() => {});
+        if (!currentUid) return; // anonymous: localStorage only, no remote sync to track
+        const promise = op === 'save'
+          ? saveCustomTool(currentUid, tool)
+          : op === 'delete' ? deleteCustomTool(currentUid, tool.name) : Promise.resolve();
+        promise
+          .then(() => {
+            // Clear any prior error once a subsequent write succeeds.
+            setCustomToolSyncError(prev => prev && prev.name === tool.name ? null : prev);
+          })
+          .catch((err) => {
+            setCustomToolSyncError({
+              name: tool.name,
+              op,
+              message: err?.message || 'Cloud sync failed',
+              at: Date.now(),
+            });
+          });
       },
     });
   }
@@ -601,6 +620,6 @@ export default function useChatRouter({
     // Agent-created macros (create_tool / run_tool) — surfaced to the ChatPanel
     // header so users can see, delete, export, and import them.
     customTools, deleteCustomTool: deleteCustomToolByName,
-    importCustomTool,
+    importCustomTool, customToolSyncError,
   };
 }

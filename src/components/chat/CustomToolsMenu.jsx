@@ -6,7 +6,24 @@
 import React, { useState, useRef, useEffect, useMemo } from 'react';
 import { exportCustomTool } from '../../lib/customAgentTools';
 
-export default function CustomToolsMenu({ tools, onDelete, onImport }) {
+// Short example users can drop into the Import textarea so they're not
+// staring at an empty box wondering "what do I paste here?". Kept inline so
+// the chat bundle doesn't pull in a separate asset.
+const EXAMPLE_IMPORT_JSON = JSON.stringify({
+  kind: 'coursemapper-macro',
+  version: 1,
+  tool: {
+    name: 'audit_bloom_floor',
+    description: 'Validate the course and read a deliverable in one pass.',
+    params: { featureId: 'string — deliverable to inspect' },
+    plan: [
+      { id: 'v', tool: 'validate_course', args: {} },
+      { id: 'r', tool: 'read_deliverable', args: { featureId: '{{args.featureId}}' } },
+    ],
+  },
+}, null, 2);
+
+export default function CustomToolsMenu({ tools, onDelete, onImport, syncError }) {
   const [open, setOpen] = useState(false);
   const [expandedName, setExpandedName] = useState(null);
   const [importing, setImporting] = useState(false);
@@ -63,19 +80,29 @@ export default function CustomToolsMenu({ tools, onDelete, onImport }) {
     () => [...(tools || [])].sort((a, b) => (b.createdAt || 0) - (a.createdAt || 0)),
     [tools]
   );
+  // A sync error renders a small amber "!" pill next to the count so users
+  // can tell cloud sync failed (permission denied, offline, etc.) — hovering
+  // shows which macro and which op didn't persist.
+  const hasSyncError = !!syncError;
 
   return (
     <div className="relative" ref={menuRef}>
       <button
         onClick={() => setOpen(v => !v)}
         className={`tactile group flex items-center gap-1.5 px-2 py-1 rounded-full text-[10px] font-semibold border transition-all duration-200 ${
-          hasTools
-            ? 'text-violet-700 bg-violet-50/80 border-violet-200/60 hover:bg-violet-100'
-            : 'text-slate-400 bg-white/50 border-slate-200/40 hover:text-slate-600 hover:bg-slate-50'
+          hasSyncError
+            ? 'text-amber-700 bg-amber-50/80 border-amber-200/60 hover:bg-amber-100'
+            : hasTools
+              ? 'text-violet-700 bg-violet-50/80 border-violet-200/60 hover:bg-violet-100'
+              : 'text-slate-400 bg-white/50 border-slate-200/40 hover:text-slate-600 hover:bg-slate-50'
         }`}
-        aria-label={`Custom agent tools — ${count} registered`}
+        aria-label={`Custom agent tools — ${count} registered${hasSyncError ? ', cloud sync failed' : ''}`}
         aria-expanded={open}
-        title={hasTools ? `${count} agent-created macro${count === 1 ? '' : 's'}` : 'No macros yet'}
+        title={
+          hasSyncError
+            ? `Cloud sync failed for "${syncError.name}" (${syncError.op}): ${syncError.message}. Local copy is still usable.`
+            : hasTools ? `${count} agent-created macro${count === 1 ? '' : 's'}` : 'No macros yet'
+        }
       >
         {/* wand/sparkle icon */}
         <svg className="w-3 h-3" fill="none" stroke="currentColor" viewBox="0 0 24 24">
@@ -83,6 +110,11 @@ export default function CustomToolsMenu({ tools, onDelete, onImport }) {
             d="M5 3v4M3 5h4M6 17v4m-2-2h4m5-16l2.286 6.857L21 12l-5.714 2.143L13 21l-2.286-6.857L5 12l5.714-2.143L13 3z" />
         </svg>
         <span>{count}</span>
+        {hasSyncError && (
+          <span className="ml-0.5 w-3 h-3 rounded-full bg-amber-200 text-amber-800 text-[9px] flex items-center justify-center font-bold" aria-hidden="true">
+            !
+          </span>
+        )}
       </button>
 
       {open && (
@@ -109,6 +141,19 @@ export default function CustomToolsMenu({ tools, onDelete, onImport }) {
 
             {importing && (
               <div className="mt-2 space-y-2">
+                <div className="flex items-center justify-between gap-2">
+                  <p className="text-[10px] text-slate-500">
+                    Paste a macro JSON snippet someone shared, or use <code className="px-1 py-0.5 rounded bg-slate-100 text-slate-600 text-[10px]">Copy JSON</code> on one of your own.
+                  </p>
+                  <button
+                    type="button"
+                    onClick={() => { setImportText(EXAMPLE_IMPORT_JSON); setImportError(null); }}
+                    className="flex-shrink-0 text-[10px] text-indigo-500 hover:text-indigo-700 underline-offset-2 hover:underline"
+                    title="Fill the box with a minimal example macro"
+                  >
+                    Insert example
+                  </button>
+                </div>
                 <textarea
                   value={importText}
                   onChange={(e) => { setImportText(e.target.value); setImportError(null); }}
@@ -126,6 +171,15 @@ export default function CustomToolsMenu({ tools, onDelete, onImport }) {
                 >
                   Register macro
                 </button>
+              </div>
+            )}
+
+            {hasSyncError && (
+              <div className="mt-2 p-2 rounded-md bg-amber-50/80 border border-amber-200/60">
+                <p className="text-[10px] font-semibold text-amber-700">Cloud sync failed</p>
+                <p className="text-[10px] text-amber-600 mt-0.5">
+                  <code className="font-mono">{syncError.name}</code> ({syncError.op}) didn't reach the cloud: {syncError.message}. Local copy still works — any future macro save will retry.
+                </p>
               </div>
             )}
           </div>
