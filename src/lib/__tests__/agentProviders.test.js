@@ -293,7 +293,24 @@ describe('buildAgentRequest', () => {
     const req = buildAgentRequest('anthropic', { ...params, model: 'claude-sonnet-4-20250514' });
     expect(req.endpoint).toContain('anthropic.com');
     expect(req.headers['x-api-key']).toBe('test-key');
-    expect(req.body.system).toBe('You are a helpful assistant.');
+    // System prompt is now wrapped in a cache-control block so Anthropic's
+    // prompt cache can reuse it across turns (5-min TTL).
+    expect(Array.isArray(req.body.system)).toBe(true);
+    expect(req.body.system[0].type).toBe('text');
+    expect(req.body.system[0].text).toBe('You are a helpful assistant.');
+    expect(req.body.system[0].cache_control).toEqual({ type: 'ephemeral' });
+  });
+
+  it('caches the last tool definition for Anthropic', () => {
+    const toolsIn = [
+      { name: 'a', description: 'first', input_schema: {} },
+      { name: 'b', description: 'second', input_schema: {} },
+    ];
+    const req = buildAgentRequest('anthropic', { ...params, model: 'claude-sonnet-4-20250514', tools: toolsIn });
+    expect(req.body.tools).toHaveLength(2);
+    expect(req.body.tools[0].cache_control).toBeUndefined();
+    // Marking the last tool caches everything up to that point.
+    expect(req.body.tools[1].cache_control).toEqual({ type: 'ephemeral' });
   });
 
   it('builds Google request with API key in URL', () => {

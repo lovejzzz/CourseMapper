@@ -15,14 +15,78 @@ const MAX_STEPS = 8;
 const MAX_NESTED_DEPTH = 2;
 const NAME_RE = /^[a-z][a-z0-9_]{1,39}$/i;
 const RESERVED_NAMES = new Set(['respond', 'create_tool', 'run_tool']);
+const STORAGE_KEY = 'coursemapper-custom-tools';
 
-export function createCustomToolRegistry() {
-  const tools = {};
+// ── Local persistence (no-op outside the browser so Node tests still work) ─
+
+function hasLocalStorage() {
+  return typeof globalThis !== 'undefined' && !!globalThis.localStorage;
+}
+
+function loadLocal() {
+  if (!hasLocalStorage()) return {};
+  try {
+    const raw = globalThis.localStorage.getItem(STORAGE_KEY);
+    if (!raw) return {};
+    const parsed = JSON.parse(raw);
+    return (parsed && typeof parsed === 'object' && !Array.isArray(parsed)) ? parsed : {};
+  } catch {
+    return {};
+  }
+}
+
+function saveLocal(tools) {
+  if (!hasLocalStorage()) return;
+  try {
+    globalThis.localStorage.setItem(STORAGE_KEY, JSON.stringify(tools));
+  } catch {
+    /* localStorage full — silently ignore */
+  }
+}
+
+/**
+ * Create a session-scoped registry.
+ * @param {Object} opts
+ * @param {Object|Array} [opts.initial] — tools to preseed the registry with.
+ *   Accepts the object-of-tools shape (`{name: def}`) or an array of tool
+ *   definitions ({name, description, plan, params, createdAt}).
+ * @param {boolean} [opts.hydrateFromLocalStorage=true] — if true and no
+ *   `initial` is provided, load previously persisted tools on creation.
+ * @param {Function} [opts.onCloudSync] — optional (tool, op) callback invoked
+ *   on register/delete so the caller can fire cloud writes. `op` is 'save' or
+ *   'delete'; `tool` is the full def for save, or `{name}` for delete.
+ */
+export function createCustomToolRegistry(opts = {}) {
+  const hydrate = opts.hydrateFromLocalStorage !== false;
+  let tools = {};
+  if (opts.initial) {
+    if (Array.isArray(opts.initial)) {
+      for (const def of opts.initial) if (def?.name) tools[def.name] = def;
+    } else if (typeof opts.initial === 'object') {
+      tools = { ...opts.initial };
+    }
+  } else if (hydrate) {
+    tools = loadLocal();
+  }
+  const onCloudSync = opts.onCloudSync || (() => {});
+
   return {
     list: () => Object.entries(tools).map(([name, def]) => ({ name, ...def })),
     has: (name) => Object.prototype.hasOwnProperty.call(tools, name),
     get: (name) => tools[name],
-    clear: () => { for (const k of Object.keys(tools)) delete tools[k]; },
+    clear: () => {
+      const names = Object.keys(tools);
+      for (const k of names) delete tools[k];
+      saveLocal(tools);
+      for (const name of names) onCloudSync({ name }, 'delete');
+    },
+    delete(name) {
+      if (!tools[name]) return { ok: false, error: `No tool named "${name}"` };
+      delete tools[name];
+      saveLocal(tools);
+      onCloudSync({ name }, 'delete');
+      return { ok: true };
+    },
     register(def, { existingToolNames }) {
       if (!def?.name || typeof def.name !== 'string') return { ok: false, error: 'name required' };
       if (!NAME_RE.test(def.name)) {
@@ -50,15 +114,60 @@ export function createCustomToolRegistry() {
           return { ok: false, error: `step "${step.id}" references unknown tool "${step.tool}". Custom tools may only compose built-ins.` };
         }
       }
-      tools[def.name] = {
+      const toolDef = {
+        name: def.name,
         description: def.description || '',
         params: def.params || {},
         plan: def.plan,
         createdAt: Date.now(),
       };
+      tools[def.name] = toolDef;
+      saveLocal(tools);
+      onCloudSync(toolDef, 'save');
       return { ok: true };
     },
   };
+}
+
+/**
+ * Merge cloud-stored custom tools with local on sign-in. Cloud wins on conflict
+ * by `updatedAt` (Firestore timestamp beats the local millis integer on ties,
+ * which is the safe direction — cloud is the source of truth across devices).
+ */
+export async function mergeCloudCustomTools(uid) {
+  if (!uid) return;
+  let cloudLoad, cloudSave;
+  try {
+    ({ loadCustomTools: cloudLoad, saveCustomTool: cloudSave } = await import('./cloudStorage'));
+  } catch { return; }
+  try {
+    const cloudTools = await cloudLoad(uid);
+    if (!cloudTools || cloudTools.length === 0) {
+      // No cloud tools — push any local tools up so they survive this device dying.
+      const local = loadLocal();
+      for (const def of Object.values(local)) cloudSave(uid, def).catch(() => {});
+      return;
+    }
+    const local = loadLocal();
+    const merged = { ...local };
+    for (const cm of cloudTools) {
+      const localDef = merged[cm.name];
+      if (!localDef) {
+        merged[cm.name] = cm;
+      } else {
+        const cloudTime = cm.updatedAt?.toDate?.()?.getTime() ?? new Date(cm.updatedAt || 0).getTime();
+        const localTime = localDef.updatedAt || localDef.createdAt || 0;
+        if (cloudTime >= localTime) merged[cm.name] = { ...cm };
+      }
+    }
+    saveLocal(merged);
+    // Push any local-only tools up so this device's additions reach the cloud.
+    for (const [name, def] of Object.entries(merged)) {
+      if (!cloudTools.find(c => c.name === name)) cloudSave(uid, def).catch(() => {});
+    }
+  } catch (e) {
+    if (typeof console !== 'undefined') console.warn('[customAgentTools] cloud merge failed:', e?.message);
+  }
 }
 
 /** Walk a dotted path inside an object; undefined if any hop is missing. */

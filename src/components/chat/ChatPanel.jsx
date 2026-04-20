@@ -3,6 +3,7 @@ import ProgressHeader from './ProgressHeader';
 import MessageList from './MessageList';
 import ChatInput from './ChatInput';
 import AgentProgressCard from './AgentProgressCard';
+import CustomToolsMenu from './CustomToolsMenu';
 import useChatRouter from './useChatRouter';
 import ExamReview from '../ExamReview';
 import { executeAction } from '../../lib/agentActions';
@@ -171,6 +172,9 @@ export default function ChatPanel({
             <div className="w-2 h-2 rounded-full bg-violet-400 animate-pulse" />
             <span className="text-[10px] text-violet-500 font-medium">Working</span>
           </div>
+        )}
+        {isAgentMode && (
+          <CustomToolsMenu tools={chat.customTools} onDelete={chat.deleteCustomTool} />
         )}
       </div>
 

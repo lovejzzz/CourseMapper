@@ -13,7 +13,7 @@
  */
 
 import { buildAgentSystemPrompt } from '../../src/lib/agentPrompts.js';
-import { buildNativeTools } from '../../src/lib/agentProviders.js';
+import { buildNativeTools, applyAnthropicCache } from '../../src/lib/agentProviders.js';
 import { AGENT_TOOLS } from '../../src/lib/agentTools.js';
 import { executeAction } from '../../src/lib/agentActions.js';
 import { createCustomToolRegistry } from '../../src/lib/customAgentTools.js';
@@ -148,6 +148,9 @@ export async function runMultiTurn({
   // needed after all. Tool results remain the source of truth for "what changed".
   const systemPrompt = buildAgentSystemPrompt(state.courseMap, activeTab, state.deliverables);
 
+  // Apply prompt caching once — system prompt + tools are static across the loop.
+  const cached = applyAnthropicCache(systemPrompt, nativeTools);
+
   for (let iter = 0; iter < maxIterations; iter++) {
     const res = await fetch('https://api.anthropic.com/v1/messages', {
       method: 'POST',
@@ -160,8 +163,8 @@ export async function runMultiTurn({
         model,
         max_tokens: maxTokens,
         temperature,
-        system: systemPrompt,
-        tools: nativeTools,
+        system: cached.system,
+        tools: cached.tools,
         messages: loopMessages,
       }),
     });

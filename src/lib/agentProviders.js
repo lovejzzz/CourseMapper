@@ -208,6 +208,12 @@ export function buildAgentRequest(provider, { model, systemPrompt, messages, too
   }
 
   if (provider === 'anthropic') {
+    // Prompt caching: mark the system prompt and the last tool as ephemeral so
+    // Claude's cache can reuse them across turns within a ~5-minute window.
+    // The system prompt (~11K chars / ~3K tokens) + tool definitions are near-
+    // static per session, so cache hits pay back the first-turn write cost
+    // after 2-3 turns. Cache hit reads are ~0.1x the input-token cost.
+    const systemBlocks = applyAnthropicCache(systemPrompt, tools);
     return {
       endpoint: 'https://api.anthropic.com/v1/messages',
       headers: {
@@ -220,8 +226,8 @@ export function buildAgentRequest(provider, { model, systemPrompt, messages, too
         model,
         max_tokens: maxTokens,
         ...tempSetting,
-        system: systemPrompt,
-        tools,
+        system: systemBlocks.system,
+        tools: systemBlocks.tools,
         messages: messages.map(m => m._native ? stripNativeFlag(m) : { role: m.role, content: m.content }),
       },
     };
@@ -306,6 +312,31 @@ export function buildAgentRequest(provider, { model, systemPrompt, messages, too
 function stripNativeFlag(msg) {
   const { _native, ...rest } = msg;
   return rest;
+}
+
+/**
+ * Wrap Anthropic's system prompt + tool list with cache_control blocks so the
+ * provider can hit its prompt cache on subsequent turns. Two cache breakpoints
+ * are allowed per request; we use them on the two largest, most-static regions:
+ * the system prompt and the last tool definition (Anthropic caches tools as a
+ * single block up to the marker).
+ *
+ * Shared by buildAgentRequest and the multi-turn test harness so both paths
+ * benefit identically from caching.
+ */
+export function applyAnthropicCache(systemPrompt, tools) {
+  const system = [{
+    type: 'text',
+    text: systemPrompt,
+    cache_control: { type: 'ephemeral' },
+  }];
+  if (!Array.isArray(tools) || tools.length === 0) {
+    return { system, tools: tools || [] };
+  }
+  const cached = tools.map((t, i) =>
+    i === tools.length - 1 ? { ...t, cache_control: { type: 'ephemeral' } } : t
+  );
+  return { system, tools: cached };
 }
 
 // ── Parse provider response → unified format ────────────────────────────────

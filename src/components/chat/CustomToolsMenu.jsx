@@ -1,0 +1,136 @@
+/**
+ * CustomToolsMenu — dropdown in the ChatPanel header showing the registry of
+ * macros the agent has created (via create_tool). Lets the user inspect each
+ * macro's plan and delete the ones they don't want anymore.
+ */
+import React, { useState, useRef, useEffect, useMemo } from 'react';
+
+export default function CustomToolsMenu({ tools, onDelete }) {
+  const [open, setOpen] = useState(false);
+  const [expandedName, setExpandedName] = useState(null);
+  const menuRef = useRef(null);
+
+  useEffect(() => {
+    if (!open) return;
+    const onClick = (e) => {
+      if (menuRef.current && !menuRef.current.contains(e.target)) setOpen(false);
+    };
+    document.addEventListener('mousedown', onClick);
+    return () => document.removeEventListener('mousedown', onClick);
+  }, [open]);
+
+  const count = tools?.length || 0;
+  const hasTools = count > 0;
+  const sortedTools = useMemo(
+    () => [...(tools || [])].sort((a, b) => (b.createdAt || 0) - (a.createdAt || 0)),
+    [tools]
+  );
+
+  return (
+    <div className="relative" ref={menuRef}>
+      <button
+        onClick={() => setOpen(v => !v)}
+        className={`tactile group flex items-center gap-1.5 px-2 py-1 rounded-full text-[10px] font-semibold border transition-all duration-200 ${
+          hasTools
+            ? 'text-violet-700 bg-violet-50/80 border-violet-200/60 hover:bg-violet-100'
+            : 'text-slate-400 bg-white/50 border-slate-200/40 hover:text-slate-600 hover:bg-slate-50'
+        }`}
+        aria-label={`Custom agent tools — ${count} registered`}
+        aria-expanded={open}
+        title={hasTools ? `${count} agent-created macro${count === 1 ? '' : 's'}` : 'No macros yet'}
+      >
+        {/* wand/sparkle icon */}
+        <svg className="w-3 h-3" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+          <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2}
+            d="M5 3v4M3 5h4M6 17v4m-2-2h4m5-16l2.286 6.857L21 12l-5.714 2.143L13 21l-2.286-6.857L5 12l5.714-2.143L13 3z" />
+        </svg>
+        <span>{count}</span>
+      </button>
+
+      {open && (
+        <div className="absolute right-0 mt-2 w-80 max-h-[70vh] overflow-y-auto bg-white/95 backdrop-blur-lg rounded-xl shadow-xl border border-slate-200/60 z-50 animate-in fade-in slide-in-from-top-2 duration-200">
+          <div className="px-4 py-3 border-b border-slate-100">
+            <p className="text-[12px] font-semibold text-slate-700">Agent macros</p>
+            <p className="text-[10px] text-slate-400 mt-0.5">
+              Tools the agent built via <code className="px-1 py-0.5 rounded bg-slate-100 text-slate-600 text-[10px]">create_tool</code>. Session-scoped, synced to your account.
+            </p>
+          </div>
+
+          {!hasTools && (
+            <div className="px-4 py-6 text-center">
+              <p className="text-[11px] text-slate-500">No macros yet.</p>
+              <p className="text-[10px] text-slate-400 mt-1">
+                Ask the agent to "make a reusable tool for …" and it'll register one here.
+              </p>
+            </div>
+          )}
+
+          {hasTools && (
+            <ul className="py-1">
+              {sortedTools.map(tool => {
+                const isExpanded = expandedName === tool.name;
+                const steps = Array.isArray(tool.plan) ? tool.plan : [];
+                return (
+                  <li key={tool.name} className="border-b border-slate-100 last:border-b-0">
+                    <div className="px-4 py-2 hover:bg-indigo-50/60 transition-colors">
+                      <div className="flex items-start gap-2">
+                        <div className="flex-1 min-w-0">
+                          <button
+                            type="button"
+                            onClick={() => setExpandedName(isExpanded ? null : tool.name)}
+                            className="w-full text-left"
+                          >
+                            <div className="flex items-center gap-1.5">
+                              <code className="text-[11px] font-semibold text-violet-700 truncate">
+                                {tool.name}
+                              </code>
+                              <span className="text-[9px] text-slate-400 font-medium whitespace-nowrap">
+                                {steps.length} step{steps.length === 1 ? '' : 's'}
+                              </span>
+                            </div>
+                            {tool.description && (
+                              <p className="text-[10px] text-slate-500 mt-0.5 line-clamp-2">
+                                {tool.description}
+                              </p>
+                            )}
+                          </button>
+
+                          {isExpanded && steps.length > 0 && (
+                            <ol className="mt-2 pl-3 border-l-2 border-violet-200 space-y-1">
+                              {steps.map((s, i) => (
+                                <li key={s.id || i} className="text-[10px] text-slate-500">
+                                  <span className="font-semibold text-slate-600">{i + 1}.</span>{' '}
+                                  <code className="text-violet-600">{s.tool}</code>
+                                  {s.id && <span className="text-slate-400"> ({s.id})</span>}
+                                </li>
+                              ))}
+                            </ol>
+                          )}
+                        </div>
+
+                        <button
+                          type="button"
+                          onClick={() => {
+                            if (confirm(`Delete macro "${tool.name}"?`)) onDelete?.(tool.name);
+                          }}
+                          className="text-slate-400 hover:text-red-500 transition-colors flex-shrink-0 p-1"
+                          aria-label={`Delete macro ${tool.name}`}
+                          title="Delete macro"
+                        >
+                          <svg className="w-3 h-3" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                            <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2}
+                              d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6M1 7h22M8 7V5a2 2 0 012-2h4a2 2 0 012 2v2" />
+                          </svg>
+                        </button>
+                      </div>
+                    </div>
+                  </li>
+                );
+              })}
+            </ul>
+          )}
+        </div>
+      )}
+    </div>
+  );
+}

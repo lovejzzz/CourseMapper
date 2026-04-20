@@ -1,4 +1,4 @@
-import { useState, useRef, useEffect, useCallback } from 'react';
+import { useState, useRef, useEffect, useCallback, useMemo } from 'react';
 import { parseFiles } from '../../lib/fileParser';
 import { classifyFindings } from '../../lib/pedagogicalValidator';
 import { getChatOpener } from './constants';
@@ -12,7 +12,8 @@ import {
   handleAgentFinalResponse as _handleAgentFinalResponse,
 } from './useChatMessages';
 import { useAIConfig } from '../../contexts/AIConfigContext';
-import { createCustomToolRegistry } from '../../lib/customAgentTools';
+import { createCustomToolRegistry, mergeCloudCustomTools } from '../../lib/customAgentTools';
+import { saveCustomTool, deleteCustomTool } from '../../lib/cloudStorage';
 
 // ═══════════════════════════════════════════════════════════════════════════
 // useChatRouter — Unified hook for Ask (help AI) + Revise (agent/revision)
@@ -64,8 +65,40 @@ export default function useChatRouter({
   const executeActionRef = useRef(executeAction);
   useEffect(() => { executeActionRef.current = executeAction; });
   // Session-scoped registry for agent-created macros (create_tool / run_tool).
-  // Persists across user messages within this chat instance, resets on remount.
-  const customToolRegistryRef = useRef(createCustomToolRegistry());
+  // Hydrates from localStorage on mount so macros survive refreshes.
+  // `uid` may arrive asynchronously (after Firebase auth resolves) — capture it
+  // via a ref so the cloud-sync callback always uses the latest value without
+  // rebuilding the registry.
+  const uidRef = useRef(uid);
+  useEffect(() => { uidRef.current = uid; }, [uid]);
+  // A version counter lets us re-render the CustomToolsMenu when the registry
+  // mutates. The registry itself lives in a ref (stable identity), but the
+  // React tree needs a dependency to re-read its contents.
+  const [customToolsVersion, setCustomToolsVersion] = useState(0);
+  const customToolRegistryRef = useRef(null);
+  if (!customToolRegistryRef.current) {
+    customToolRegistryRef.current = createCustomToolRegistry({
+      onCloudSync: (tool, op) => {
+        setCustomToolsVersion(v => v + 1);
+        const currentUid = uidRef.current;
+        if (!currentUid) return; // anonymous: localStorage only
+        if (op === 'save') saveCustomTool(currentUid, tool).catch(() => {});
+        else if (op === 'delete') deleteCustomTool(currentUid, tool.name).catch(() => {});
+      },
+    });
+  }
+  // One-shot cloud merge on sign-in — pulls any tools created on other devices.
+  const mergedForUidRef = useRef(null);
+  useEffect(() => {
+    if (!uid || mergedForUidRef.current === uid) return;
+    mergedForUidRef.current = uid;
+    mergeCloudCustomTools(uid).then(() => setCustomToolsVersion(v => v + 1)).catch(() => {});
+  }, [uid]);
+  // eslint-disable-next-line react-hooks/exhaustive-deps
+  const customTools = useMemo(() => customToolRegistryRef.current.list(), [customToolsVersion]);
+  const deleteCustomToolByName = useCallback((name) => {
+    customToolRegistryRef.current.delete(name);
+  }, []);
   const delivRef = useRef(deliverables);
   useEffect(() => { delivRef.current = deliverables; });
   const snapshotRef = useRef(delivUndoSnapshot);
@@ -553,5 +586,8 @@ export default function useChatRouter({
     pushSyncSuggestion, handleApproveSyncSuggestion, handleSkipSyncSuggestion,
     triggerAutoFix, skipHealthGate,
     editAndResend, regenerate, feedback,
+    // Agent-created macros (create_tool / run_tool) — surfaced to the ChatPanel
+    // header so users can see and delete them.
+    customTools, deleteCustomTool: deleteCustomToolByName,
   };
 }
