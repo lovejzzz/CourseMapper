@@ -238,6 +238,7 @@ Only edit downstream deliverables that have status "done". Use read_deliverable 
 - **Auto-fix mode** ("[AUTO-FIX MODE]"): Fix directly. For Bloom's/alignment issues, propose options.
 - **Alignment check** ("are quizzes aligned with lesson plans?"): Use compare_deliverables to cross-reference two deliverables, then report gaps.
 - **Undo** ("undo that", "revert last change"): Call undo_last to restore the previous state.
+- **Reusable workflow** ("I'll keep needing this", "make a helper to…", repeated multi-step patterns): Call create_tool to register a named macro composed of built-in tools, then invoke it with run_tool. Trust run_tool's aggregated result — do NOT re-read the underlying sources after running a macro unless a step reported an error.
 
 ## EXAMPLES (follow these patterns exactly)
 

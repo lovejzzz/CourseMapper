@@ -41,6 +41,7 @@ export async function runAgentLoop(fullMessage, { silent = false }, ctx) {
     courseMap, activeTab,
     delivRef, executeActionRef, snapshotRef, undoFnRef, notifyEditRef,
     uid,
+    customToolRegistryRef,
     maybeRunValidation,
     handleAgentFinalResponse,
   } = ctx;
@@ -276,6 +277,21 @@ export async function runAgentLoop(fullMessage, { silent = false }, ctx) {
               snapshot: snapshotRef.current,
               undoFn: undoFnRef?.current || null,
               uid,
+              // customTools is wired here (not at ctx build time) so
+              // invokeBuiltin can close over the same toolCtx — otherwise a
+              // custom macro would run its builtins without edit access.
+              customTools: customToolRegistryRef ? {
+                registry: customToolRegistryRef.current,
+                invokeBuiltin: async (builtinName, builtinArgs, innerSignal) => {
+                  const builtin = AGENT_TOOLS[builtinName];
+                  if (!builtin) return { error: `Unknown tool in plan: ${builtinName}` };
+                  try {
+                    return await builtin.execute(builtinArgs || {}, toolCtx, innerSignal || controller.signal);
+                  } catch (err) {
+                    return { error: `builtin "${builtinName}" threw: ${err.message}` };
+                  }
+                },
+              } : null,
             };
 
             async function execWithRetry(attempt = 0) {

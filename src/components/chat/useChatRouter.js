@@ -12,6 +12,7 @@ import {
   handleAgentFinalResponse as _handleAgentFinalResponse,
 } from './useChatMessages';
 import { useAIConfig } from '../../contexts/AIConfigContext';
+import { createCustomToolRegistry } from '../../lib/customAgentTools';
 
 // ═══════════════════════════════════════════════════════════════════════════
 // useChatRouter — Unified hook for Ask (help AI) + Revise (agent/revision)
@@ -62,6 +63,9 @@ export default function useChatRouter({
   // Keep fresh refs for values used in callbacks
   const executeActionRef = useRef(executeAction);
   useEffect(() => { executeActionRef.current = executeAction; });
+  // Session-scoped registry for agent-created macros (create_tool / run_tool).
+  // Persists across user messages within this chat instance, resets on remount.
+  const customToolRegistryRef = useRef(createCustomToolRegistry());
   const delivRef = useRef(deliverables);
   useEffect(() => { delivRef.current = deliverables; });
   const snapshotRef = useRef(delivUndoSnapshot);
@@ -246,6 +250,7 @@ export default function useChatRouter({
       courseMap, activeTab,
       delivRef, executeActionRef, snapshotRef, undoFnRef, notifyEditRef,
       uid,
+      customToolRegistryRef,
       maybeRunValidation,
       sendAgentMessage,
       handleAgentFinalResponse: (response) =>

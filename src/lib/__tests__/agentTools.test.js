@@ -125,10 +125,12 @@ describe('AGENT_TOOLS registry', () => {
     'read_deliverable', 'read_lesson',
     'edit_course_map', 'edit_deliverables',
     'save_preference', 'remember', 'recall', 'compare_deliverables', 'undo_last', 'forget',
+    'create_tool', 'run_tool',
   ];
 
-  it('contains exactly 13 tools', () => {
-    expect(Object.keys(AGENT_TOOLS)).toHaveLength(13);
+  it('contains exactly 15 tools', () => {
+    // 13 domain tools + create_tool / run_tool meta-tools for session macros.
+    expect(Object.keys(AGENT_TOOLS)).toHaveLength(15);
   });
 
   it.each(EXPECTED_TOOLS)('has tool "%s" with description, params, and execute', (name) => {
