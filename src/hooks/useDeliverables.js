@@ -129,11 +129,24 @@ export default function useDeliverables({ provider, modelId, apiKey, maxOutputTo
     ? (lockedLessons instanceof Set ? lockedLessons : new Set(lockedLessons))
     : null;
 
-  const { streamProvider, parsePartialJSON } = useStreamReader();
+  const { streamProvider, parsePartialJSON, getLastParseRecovery } = useStreamReader();
 
   const appendLog = useCallback((message, type = 'info') => {
     setGenerationLog(prev => [...prev, { message, type, at: Date.now() }]);
   }, []);
+
+  /** Truncation canary — log when parsePartialJSON had to recover a chunk.
+   *  Called immediately after each parsePartialJSON invocation so the ref is
+   *  still fresh. Failure-mode signal only; no functional effect beyond log. */
+  const logIfRecovered = useCallback((featureId, context = '') => {
+    const r = getLastParseRecovery();
+    if (r?.recovered) {
+      appendLog(
+        `⚠ ${featureId}${context ? ` ${context}` : ''} truncated at ~${Math.round((r.bytes || 0) / 4)} tokens — recovered with parsePartialJSON (raise FEATURE_OUTPUT_BUDGETS[${featureId}] or drop FEATURE_CHUNK_SIZES[${featureId}])`,
+        'warn',
+      );
+    }
+  }, [getLastParseRecovery, appendLog]);
 
   // ═══════════════════════════════════════════════════════════════════════════
   // generateAll — Parallel Chunked Generation
@@ -290,6 +303,7 @@ export default function useDeliverables({ provider, modelId, apiKey, maxOutputTo
         // Parse final result and expand minified keys
         const text = result?.fullText || fullText;
         const parsed = expandKeys(featureId, parsePartialJSON(text));
+        logIfRecovered(featureId, '(initial chunk)');
 
         if (parsed) {
           // Discard if superseded by newer sync cycle
@@ -661,6 +675,7 @@ export default function useDeliverables({ provider, modelId, apiKey, maxOutputTo
               );
               const text = result?.fullText || fullText;
               const parsed = expandKeys(fid, parsePartialJSON(text));
+              logIfRecovered(fid, `(retry round ${retryRound + 1})`);
               if (parsed) {
                 chunkResults[fid].set(retryChunkIndex, parsed);
                 const _rk = getArrayKey(fid, parsed);
@@ -768,6 +783,7 @@ export default function useDeliverables({ provider, modelId, apiKey, maxOutputTo
               );
               const text = result?.fullText || fullText;
               const parsed = expandKeys(fid, parsePartialJSON(text));
+              logIfRecovered(fid, `(retry round ${retryRound + 1})`);
               if (parsed) {
                 chunkResults[fid].set(retryChunkIndex, parsed);
                 const _rk = getArrayKey(fid, parsed);
@@ -1075,6 +1091,7 @@ export default function useDeliverables({ provider, modelId, apiKey, maxOutputTo
       );
 
       const parsed = expandKeys(featureId, parsePartialJSON(fullText));
+      logIfRecovered(featureId, '(regenerate lesson)');
       if (parsed) {
         if (syncGenId !== null && syncGenId !== activeSyncGenRef.current) {
           appendLog(`⚠ ${label}: Lesson ${lessonIndex + 1} result discarded (superseded)`, 'warn');

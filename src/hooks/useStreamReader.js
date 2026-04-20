@@ -39,15 +39,28 @@ export default function useStreamReader() {
 
   /**
    * Parse partial/incomplete JSON by patching brackets and quotes.
+   *
+   * Sets `lastParseRecovery` to describe what happened on the most recent
+   * call — callers can surface this as a truncation signal. Shape:
+   *   { recovered: boolean, parseError?: string, bytes: number }
+   * Previously this was invisible: models that exceeded the output budget
+   * would silently fall through to the recovery path and the downstream
+   * completenessCheck retry was the only feedback. Now useDeliverables can
+   * log truncation cases so they're investigatable.
    */
+  const lastParseRecoveryRef = useRef({ recovered: false, bytes: 0 });
   const parsePartialJSON = useCallback((text) => {
+    const originalBytes = (text || '').length;
     let cleaned = stripThinkTags(text);
     const fenceStart = cleaned.indexOf('```');
     if (fenceStart !== -1) {
       cleaned = cleaned.slice(fenceStart).replace(/^```\w*\n?/, '').replace(/```\s*$/, '');
     }
     const start = cleaned.indexOf('{');
-    if (start === -1) return null;
+    if (start === -1) {
+      lastParseRecoveryRef.current = { recovered: false, bytes: originalBytes, parseError: 'no-json' };
+      return null;
+    }
     let jsonStr = cleaned.slice(start);
     // Strip any trailing text after the last } (e.g. markdown notes the model appended)
     const lastBrace = jsonStr.lastIndexOf('}');
@@ -59,8 +72,10 @@ export default function useStreamReader() {
       }
     }
     try {
-      return deepStripThinkTags(JSON.parse(jsonStr));
-    } catch {
+      const clean = deepStripThinkTags(JSON.parse(jsonStr));
+      lastParseRecoveryRef.current = { recovered: false, bytes: originalBytes };
+      return clean;
+    } catch (parseErr) {
       let patched = jsonStr;
       // Truncate any trailing broken string value (cut mid-value)
       const lastQuote = patched.lastIndexOf('"');
@@ -89,9 +104,19 @@ export default function useStreamReader() {
       for (let i = opens.length - 1; i >= 0; i--) {
         patched += opens[i] === '{' ? '}' : ']';
       }
-      try { return deepStripThinkTags(JSON.parse(patched)); } catch { return null; }
+      try {
+        const recovered = deepStripThinkTags(JSON.parse(patched));
+        lastParseRecoveryRef.current = { recovered: true, bytes: originalBytes, parseError: parseErr?.message };
+        return recovered;
+      } catch {
+        lastParseRecoveryRef.current = { recovered: false, bytes: originalBytes, parseError: parseErr?.message };
+        return null;
+      }
     }
   }, []);
+
+  /** Read-only accessor for the most recent parsePartialJSON outcome. */
+  const getLastParseRecovery = useCallback(() => lastParseRecoveryRef.current, []);
 
   /**
    * Stream directly from an AI provider API (no server proxy needed).
@@ -223,7 +248,7 @@ export default function useStreamReader() {
     throw new Error('Max retries exceeded.');
   }, []);
 
-  return { streamProvider, parsePartialJSON, abort, abortControllerRef };
+  return { streamProvider, parsePartialJSON, getLastParseRecovery, abort, abortControllerRef };
 }
 
 // ── Provider-specific request builders ──
