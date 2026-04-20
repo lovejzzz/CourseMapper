@@ -42,3 +42,50 @@ run('second identical call hits the prompt cache', { timeout: 120_000 }, async (
     expect(u2.cache_read_input_tokens, 'cache read should cover most of the static prompt').toBeGreaterThan(1000);
   }
 });
+
+run('static-prefix cache survives a course switch', { timeout: 120_000 }, async () => {
+  // Prime the cache with course A.
+  const r1 = await runMultiTurn({
+    apiKey: KEY, model: MODEL, courseMap: COURSE, deliverables: DELIV, maxIterations: 3,
+    userMessage: 'How many lessons?',
+  });
+  // Now swap to a different course and different deliverable content. The
+  // STATIC prefix (protocol, rules, examples) should still be the same bytes,
+  // so even though the dynamic tail is fresh, we should see a cache READ
+  // covering the prefix — NOT a full re-write.
+  const OTHER_COURSE = {
+    courseName: 'Organic Chemistry', semester: 'Sp27',
+    lessons: [
+      { title: 'Hydrocarbons', sections: [{ learningObjectives: 'classify alkanes' }] },
+      { title: 'Functional Groups', sections: [{ learningObjectives: 'identify -OH, -COOH' }] },
+      { title: 'Reactions', sections: [{ learningObjectives: 'predict products' }] },
+    ],
+  };
+  const OTHER_DELIV = { quizBank: { status: 'done', data: { quizzes: [
+    { lt: 'Hydrocarbons', qs: [{ q: 'alkane formula?', ty: 'short_answer', bl: 'Remember', df: 'easy', pt: 1, an: 'CnH2n+2' }] },
+    { lt: 'Functional Groups', qs: [{ q: 'what is -COOH?', ty: 'short_answer', bl: 'Remember', df: 'easy', pt: 1, an: 'carboxylic acid' }] },
+    { lt: 'Reactions', qs: [{ q: 'addition vs substitution?', ty: 'short_answer', bl: 'Understand', df: 'medium', pt: 2, an: '...' }] },
+  ]}}};
+  const r2 = await runMultiTurn({
+    apiKey: KEY, model: MODEL, courseMap: OTHER_COURSE, deliverables: OTHER_DELIV, maxIterations: 3,
+    userMessage: 'How many lessons?',
+  });
+
+  const u1 = r1.trace[0]?.usage || {};
+  const u2 = r2.trace[0]?.usage || {};
+  console.log('course-swap r1 usage:', JSON.stringify(u1));
+  console.log('course-swap r2 usage:', JSON.stringify(u2));
+
+  // The static prefix must appear as a cache READ in r2 — surviving the
+  // course swap. Threshold is generous (the static prefix alone is ~3k tokens
+  // after the split).
+  const staticRead = u2.cache_read_input_tokens || 0;
+  expect(staticRead, `static prefix should be reused. r2 read=${staticRead}`).toBeGreaterThan(3000);
+
+  // r2 should write only the dynamic tail (plus a tools marker), not the full
+  // system prompt. Cap at a loose multiple of the dynamic-tail size so this
+  // stays robust if course data grows.
+  const r2Write = u2.cache_creation_input_tokens || 0;
+  const DYNAMIC_TAIL_MAX = 1500;
+  expect(r2Write, `r2 should write only the dynamic tail, got ${r2Write}`).toBeLessThan(DYNAMIC_TAIL_MAX);
+});

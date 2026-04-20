@@ -12,7 +12,10 @@ import {
   handleAgentFinalResponse as _handleAgentFinalResponse,
 } from './useChatMessages';
 import { useAIConfig } from '../../contexts/AIConfigContext';
-import { createCustomToolRegistry, mergeCloudCustomTools } from '../../lib/customAgentTools';
+import { AGENT_TOOLS } from '../../lib/agentTools';
+import {
+  createCustomToolRegistry, mergeCloudCustomTools, parseExportedTool,
+} from '../../lib/customAgentTools';
 import { saveCustomTool, deleteCustomTool } from '../../lib/cloudStorage';
 
 // ═══════════════════════════════════════════════════════════════════════════
@@ -98,6 +101,15 @@ export default function useChatRouter({
   const customTools = useMemo(() => customToolRegistryRef.current.list(), [customToolsVersion]);
   const deleteCustomToolByName = useCallback((name) => {
     customToolRegistryRef.current.delete(name);
+  }, []);
+  // Import a macro from a pasted JSON snippet. Returns {ok, error?} so the
+  // CustomToolsMenu can render a per-attempt error without any global toast.
+  const importCustomTool = useCallback((jsonText) => {
+    const parsed = parseExportedTool(jsonText);
+    if (!parsed.ok) return { ok: false, error: parsed.error };
+    const existingToolNames = new Set(Object.keys(AGENT_TOOLS));
+    const res = customToolRegistryRef.current.register(parsed.def, { existingToolNames });
+    return res;
   }, []);
   const delivRef = useRef(deliverables);
   useEffect(() => { delivRef.current = deliverables; });
@@ -587,7 +599,8 @@ export default function useChatRouter({
     triggerAutoFix, skipHealthGate,
     editAndResend, regenerate, feedback,
     // Agent-created macros (create_tool / run_tool) — surfaced to the ChatPanel
-    // header so users can see and delete them.
+    // header so users can see, delete, export, and import them.
     customTools, deleteCustomTool: deleteCustomToolByName,
+    importCustomTool,
   };
 }

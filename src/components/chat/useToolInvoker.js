@@ -5,7 +5,7 @@
  * Extracted from useChatRouter.js (Issue #5) to reduce file size.
  */
 
-import { buildAgentSystemPrompt } from '../../lib/agentPrompts';
+import { buildAgentSystemPrompt, buildAgentSystemPromptParts } from '../../lib/agentPrompts';
 import { generateCourseHealthReport } from '../../lib/pedagogicalValidator';
 import { AGENT_TOOLS, TOOL_LABELS, summarizeToolResult, classifyRequestComplexity } from '../../lib/agentTools';
 import { preValidateAction } from '../../lib/agentActions';
@@ -84,10 +84,19 @@ export async function runAgentLoop(fullMessage, { silent = false }, ctx) {
     const healthSummary = (healthReport && (healthReport.errorCount > 0 || healthReport.warningCount > 0))
       ? healthReport.summary
       : null;
-    const systemPrompt = buildAgentSystemPrompt(courseMap, activeTab, delivRef.current, healthSummary, userPrefs);
+    // For Anthropic we pass the parts object so the provider builder can emit
+    // two cache breakpoints (static prefix + dynamic tail). Other providers
+    // receive the joined string — applyAnthropicCache / buildAgentRequest
+    // handle both shapes. Token estimation uses the joined text since models
+    // consume the concatenation regardless.
+    const systemParts = buildAgentSystemPromptParts(courseMap, activeTab, delivRef.current, healthSummary, userPrefs);
+    const systemPrompt = provider === 'anthropic'
+      ? systemParts
+      : buildAgentSystemPrompt(courseMap, activeTab, delivRef.current, healthSummary, userPrefs);
+    const systemPromptForTokens = (systemParts.staticPart || '') + (systemParts.dynamicPart || '');
 
     // ── Context window awareness: smart trim if approaching limit ──
-    const systemPromptTk = estimateTokens(systemPrompt);
+    const systemPromptTk = estimateTokens(systemPromptForTokens);
     const OUTPUT_RESERVE_TK = 4096;
     const chatContent = chatHistory.map(m => m.content).join('') + fullMessage;
     const chatTk = estimateTokens(chatContent);
@@ -290,6 +299,17 @@ export async function runAgentLoop(fullMessage, { silent = false }, ctx) {
                   } catch (err) {
                     return { error: `builtin "${builtinName}" threw: ${err.message}` };
                   }
+                },
+                // Stream plan progress into the agentProgress card so users see
+                // the macro working (otherwise run_tool looks opaque until done).
+                onStep: (event) => {
+                  if (tc.name !== 'run_tool') return;
+                  const label = event.status === 'error'
+                    ? `Step ${event.index + 1}/${event.total}: ${event.tool} ✗`
+                    : event.status === 'done'
+                    ? `Step ${event.index + 1}/${event.total}: ${event.tool} ✓`
+                    : `Step ${event.index + 1}/${event.total}: ${event.tool}…`;
+                  updateStepAt(stepIdx, { summary: label });
                 },
               } : null,
             };

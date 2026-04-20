@@ -73,7 +73,42 @@ const ADD_TARGETS = {
 
 // ── Build the agent system prompt ────────────────────────────────────────────
 
-export function buildAgentSystemPrompt(courseMap, activeTab, deliverables, healthSummary = null, userPrefs = null) {
+/**
+ * Returns the static prefix of the system prompt — protocol, rules, examples,
+ * response style, indexing reminders. Identical across all courses and active
+ * tabs, so it can sit behind its own Anthropic cache breakpoint and survive
+ * course/tab switches.
+ *
+ * Kept in a function (not a top-level constant) because the template body
+ * depends on a handful of module-level tables (ITEM_SCHEMAS, PATH_EXAMPLES,
+ * FEATURE_NAMES) that may be extended without updating every caller.
+ */
+export function buildStaticAgentSystemPrompt() {
+  return STATIC_AGENT_PROMPT;
+}
+
+/**
+ * Build the dynamic tail of the system prompt — course state, active-tab
+ * schema + path hints, memories, user prefs, health summary. Anything that
+ * changes when the user switches courses or tabs goes here so the static
+ * prefix's cache survives those transitions.
+ */
+export function buildDynamicAgentSystemPrompt(courseMap, activeTab, deliverables, healthSummary = null, userPrefs = null) {
+  return buildAgentSystemPrompt(courseMap, activeTab, deliverables, healthSummary, userPrefs, { onlyDynamic: true });
+}
+
+/**
+ * Convenience: returns both parts as an object, so provider builders can decide
+ * whether to concatenate (e.g. OpenAI) or wrap each in a cache block (Anthropic).
+ */
+export function buildAgentSystemPromptParts(courseMap, activeTab, deliverables, healthSummary = null, userPrefs = null) {
+  return {
+    staticPart: buildStaticAgentSystemPrompt(),
+    dynamicPart: buildDynamicAgentSystemPrompt(courseMap, activeTab, deliverables, healthSummary, userPrefs),
+  };
+}
+
+export function buildAgentSystemPrompt(courseMap, activeTab, deliverables, healthSummary = null, userPrefs = null, _opts = {}) {
   // Display 1-based lesson numbers but show 0-based index in parentheses for tool calls
   const lessonList = (courseMap?.lessons || [])
     .map((l, i) => `  Lesson ${i + 1}: "${l.title}" (toolIndex=${i})`)
@@ -162,7 +197,23 @@ export function buildAgentSystemPrompt(courseMap, activeTab, deliverables, healt
     ? `\n**Memories:** ${memoryContext}`
     : '';
 
-  return `You are the user's agentic teaching assistant in Course Mapper — an extension of their will over their entire course. When users ask you to do something, DO IT with tools. Never tell the user to do anything manually that you can do yourself.
+  const dynamic = `## COURSE
+**${courseMap?.courseName || 'Untitled'}** | ${courseMap?.semester || 'TBD'} | ${(courseMap?.lessons || []).length} lessons
+**Lessons:**
+${lessonList || '  (none)'}${(courseMap?.lessons || []).length === 0 ? '\n**Note:** No lessons yet — suggest the user create lessons or add them via addLesson.' : ''}
+**Fields:** ${courseMapFields}
+**Active:** ${tabName} | **Status:** ${delivStatusLines}${delivContext}${pathSection}${schemaSection}${otherDoneNote}${healthSection}${prefsSection}${memorySection}`;
+
+  if (_opts && _opts.onlyDynamic) return dynamic;
+  return STATIC_AGENT_PROMPT + '\n\n' + dynamic;
+}
+
+// ── Static agent prompt prefix ─────────────────────────────────────────────
+// Pulled out as a top-level constant so it's byte-identical across all
+// invocations — required for Anthropic prompt-cache hits to survive course /
+// active-tab / user-pref changes. Anything that varies by session state lives
+// in the dynamic tail built above.
+const STATIC_AGENT_PROMPT = `You are the user's agentic teaching assistant in Course Mapper — an extension of their will over their entire course. When users ask you to do something, DO IT with tools. Never tell the user to do anything manually that you can do yourself.
 
 You own every deliverable: course map, lessons, quizzes, slides, rubrics, assignments, discussions, study guides, FAQs. You can read, add, remove, edit, align, validate, research, visualize, and remember across all of them. You have full write access. Act with confidence.
 
@@ -206,9 +257,8 @@ The respond tool accepts ONE of:
 - removeItem: {type:"removeItem", featureId, lessonIndex, itemIndex}
 - editItem: {type:"editItem", featureId, path:[rootKey, lessonIdx, subKey?, itemIdx?, field], value}
 - regenerateLesson: {type:"regenerateLesson", featureId, lessonIndex}
-${pathSection}
 
-For other deliverables' path format, use read_deliverable first to see their structure.
+For the active-tab path example and schemas of other deliverables, see the COURSE STATE block at the end of this prompt. Use read_deliverable if you need a different deliverable's structure.
 
 ## CROSS-DELIVERABLE SYNC
 When you edit a deliverable, related deliverables may need updating too. The system will auto-suggest syncing downstream deliverables, but you can proactively edit them in the same call for a better experience.
@@ -286,12 +336,4 @@ Only edit downstream deliverables that have status "done". Use read_deliverable 
 - When the user says "Lesson N", use toolIndex = N-1 in ALL tool calls.
 - In user-facing text, always use 1-based numbers or lesson titles.
 - Generate pedagogically sound content matching course level and subject.
-- Proposal titles SHORT (5 words max), descriptions CONCISE (2 sentences).
-
-## COURSE
-**${courseMap?.courseName || 'Untitled'}** | ${courseMap?.semester || 'TBD'} | ${(courseMap?.lessons || []).length} lessons
-**Lessons:**
-${lessonList || '  (none)'}${(courseMap?.lessons || []).length === 0 ? '\n**Note:** No lessons yet — suggest the user create lessons or add them via addLesson.' : ''}
-**Fields:** ${courseMapFields}
-**Active:** ${tabName} | **Status:** ${delivStatusLines}${delivContext}${schemaSection}${otherDoneNote}${healthSection}${prefsSection}${memorySection}`;
-}
+- Proposal titles SHORT (5 words max), descriptions CONCISE (2 sentences).`;

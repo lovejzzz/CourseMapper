@@ -4,6 +4,7 @@
 import { describe, it, expect, beforeEach, vi } from 'vitest';
 import {
   createCustomToolRegistry, substitute, runPlan,
+  exportCustomTool, parseExportedTool,
   CREATE_TOOL_JSON_SCHEMA, RUN_TOOL_JSON_SCHEMA,
 } from '../customAgentTools';
 
@@ -201,6 +202,85 @@ describe('runPlan()', () => {
     const def = { plan: [] };
     const res = await runPlan({ def, runtimeArgs: {}, invokeBuiltin: async () => ({}), depth: 3 });
     expect(res.error).toMatch(/Nested tool depth exceeded/);
+  });
+
+  it('fires onStep with running + done events for each successful step', async () => {
+    const events = [];
+    const invokeBuiltin = async (name) => ({ ran: name });
+    const def = { plan: [
+      { id: 'a', tool: 'read_deliverable', args: {} },
+      { id: 'b', tool: 'validate_course', args: {} },
+    ]};
+    await runPlan({ def, runtimeArgs: {}, invokeBuiltin, onStep: (e) => events.push(e) });
+    // 2 steps * (running + done) = 4 events in order
+    expect(events.map(e => `${e.index}:${e.status}`)).toEqual(['0:running', '0:done', '1:running', '1:done']);
+    expect(events[3].total).toBe(2);
+  });
+
+  it('fires onStep with an error event when a step fails', async () => {
+    const events = [];
+    const invokeBuiltin = async () => ({ error: 'nope' });
+    const def = { plan: [{ id: 'v', tool: 'validate_course', args: {} }] };
+    await runPlan({ def, runtimeArgs: {}, invokeBuiltin, onStep: (e) => events.push(e) });
+    expect(events.map(e => e.status)).toEqual(['running', 'error']);
+    expect(events[1].error).toBe('nope');
+  });
+
+  it('never aborts the plan when onStep throws', async () => {
+    const invokeBuiltin = async () => ({ ok: true });
+    const def = { plan: [{ id: 'a', tool: 'validate_course', args: {} }] };
+    const res = await runPlan({
+      def, runtimeArgs: {}, invokeBuiltin,
+      onStep: () => { throw new Error('boom'); },
+    });
+    expect(res.ok).toBe(true);
+  });
+});
+
+describe('export / import round-trip', () => {
+  it('serializes a tool into a versioned JSON payload', () => {
+    const tool = { name: 'audit', description: 'd', params: { featureId: 'string' }, plan: VALID_PLAN, createdAt: 12345 };
+    const json = exportCustomTool(tool);
+    const parsed = JSON.parse(json);
+    expect(parsed.kind).toBe('coursemapper-macro');
+    expect(parsed.version).toBe(1);
+    expect(parsed.tool.name).toBe('audit');
+    expect(parsed.tool.plan).toEqual(VALID_PLAN);
+    // createdAt should NOT be carried over — import sets a fresh one.
+    expect(parsed.tool.createdAt).toBeUndefined();
+  });
+
+  it('throws when exporting a bad tool', () => {
+    expect(() => exportCustomTool(null)).toThrow();
+    expect(() => exportCustomTool({})).toThrow();
+  });
+
+  it('parseExportedTool accepts a valid payload and strips extras', () => {
+    const tool = { name: 'audit', description: 'd', params: {}, plan: VALID_PLAN };
+    const json = exportCustomTool(tool);
+    const parsed = parseExportedTool(json);
+    expect(parsed.ok).toBe(true);
+    expect(parsed.def.name).toBe('audit');
+    expect(parsed.def.plan).toEqual(VALID_PLAN);
+  });
+
+  it('parseExportedTool rejects malformed JSON', () => {
+    expect(parseExportedTool('not json').ok).toBe(false);
+    expect(parseExportedTool('{}').ok).toBe(false);
+    expect(parseExportedTool('{"kind":"wrong"}').ok).toBe(false);
+    expect(parseExportedTool(JSON.stringify({ kind: 'coursemapper-macro', version: 99 })).ok).toBe(false);
+    expect(parseExportedTool(JSON.stringify({ kind: 'coursemapper-macro', version: 1 })).ok).toBe(false);
+  });
+
+  it('round-trips through registry.register', () => {
+    const tool = { name: 'round_trip', description: 'd', params: {}, plan: VALID_PLAN };
+    const json = exportCustomTool(tool);
+    const reg = createCustomToolRegistry();
+    const parsed = parseExportedTool(json);
+    expect(parsed.ok).toBe(true);
+    const res = reg.register(parsed.def, { existingToolNames: BUILTINS });
+    expect(res.ok).toBe(true);
+    expect(reg.get('round_trip').plan).toEqual(VALID_PLAN);
   });
 });
 

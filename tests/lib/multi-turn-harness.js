@@ -12,7 +12,7 @@
  *   - returns a full trace + final state for assertions
  */
 
-import { buildAgentSystemPrompt } from '../../src/lib/agentPrompts.js';
+import { buildAgentSystemPromptParts } from '../../src/lib/agentPrompts.js';
 import { buildNativeTools, applyAnthropicCache } from '../../src/lib/agentProviders.js';
 import { AGENT_TOOLS } from '../../src/lib/agentTools.js';
 import { executeAction } from '../../src/lib/agentActions.js';
@@ -89,7 +89,7 @@ async function invokeTool(name, args, { execCtx, signal, toolCtx }) {
  * wired up in src/components/chat/useToolInvoker.js so production and harness
  * drive the exact same create_tool / run_tool paths.
  */
-function buildToolCtx(execCtx, registry) {
+function buildToolCtx(execCtx, registry, { onStep } = {}) {
   const toolCtx = {
     courseMap: execCtx.courseMap,
     deliverables: execCtx.deliverables,
@@ -108,6 +108,7 @@ function buildToolCtx(execCtx, registry) {
           return { error: `builtin "${builtinName}" threw: ${err.message}` };
         }
       },
+      onStep,
     },
   };
   return toolCtx;
@@ -129,8 +130,12 @@ export async function runMultiTurn({
 }) {
   if (!apiKey) throw new Error('apiKey required');
   const { state, execCtx } = createFixture(courseMap, deliverables);
-  const registry = createCustomToolRegistry();
-  const toolCtx = buildToolCtx(execCtx, registry);
+  const registry = createCustomToolRegistry({ hydrateFromLocalStorage: false });
+  // Capture macro step events so tests can assert on streaming behavior.
+  const macroSteps = [];
+  const toolCtx = buildToolCtx(execCtx, registry, {
+    onStep: (event) => { macroSteps.push(event); },
+  });
   const trace = [];
   const loopMessages = [{ role: 'user', content: userMessage }];
   const signatures = []; // loop detection
@@ -143,13 +148,14 @@ export async function runMultiTurn({
   let finalResponse = null;
   let loopBroken = null;
   // Match useToolInvoker.js: build the system prompt ONCE and reuse it across
-  // iterations. Rebuilding it per-turn confused the agent post-edit — the state
+  // iterations. Rebuilding per-turn confused the agent post-edit — the state
   // block would show the new title and the model would decide the edit wasn't
-  // needed after all. Tool results remain the source of truth for "what changed".
-  const systemPrompt = buildAgentSystemPrompt(state.courseMap, activeTab, state.deliverables);
+  // needed. Tool results remain the source of truth for "what changed".
+  // Using the parts-split form so Anthropic emits two cache breakpoints.
+  const systemParts = buildAgentSystemPromptParts(state.courseMap, activeTab, state.deliverables);
 
   // Apply prompt caching once — system prompt + tools are static across the loop.
-  const cached = applyAnthropicCache(systemPrompt, nativeTools);
+  const cached = applyAnthropicCache(systemParts, nativeTools);
 
   for (let iter = 0; iter < maxIterations; iter++) {
     const res = await fetch('https://api.anthropic.com/v1/messages', {
@@ -241,6 +247,7 @@ export async function runMultiTurn({
     trace,
     state,
     customTools: registry.list(),
+    macroSteps,
     loopBroken,
     iterations: trace.length,
   };

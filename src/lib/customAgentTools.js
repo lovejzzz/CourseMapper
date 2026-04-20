@@ -215,12 +215,21 @@ export function substitute(value, bindings) {
  * Execute a custom tool's plan. `invokeBuiltin(name, args)` is provided by the
  * caller — lets the harness and the React runtime share this logic while wiring
  * up different underlying tool-execution contexts.
+ *
+ * Optional `onStep({index, total, id, tool, status, result?, error?})` fires
+ * before each step starts (status='running'), after it succeeds
+ * (status='done'), and if it fails (status='error'). Callers use it to stream
+ * per-step progress into a UI.
  */
-export async function runPlan({ def, runtimeArgs, invokeBuiltin, depth = 0 }) {
+export async function runPlan({ def, runtimeArgs, invokeBuiltin, onStep, depth = 0 }) {
   if (depth > MAX_NESTED_DEPTH) return { error: 'Nested tool depth exceeded' };
   const bindings = { args: runtimeArgs || {}, steps: {} };
   const stepResults = [];
-  for (const step of def.plan) {
+  const total = def.plan.length;
+  for (let i = 0; i < def.plan.length; i++) {
+    const step = def.plan[i];
+    const stepMeta = { index: i, total, id: step.id, tool: step.tool };
+    try { onStep?.({ ...stepMeta, status: 'running' }); } catch { /* onStep must not break the plan */ }
     const resolvedArgs = substitute(step.args || {}, bindings);
     let result;
     try {
@@ -231,10 +240,75 @@ export async function runPlan({ def, runtimeArgs, invokeBuiltin, depth = 0 }) {
     bindings.steps[step.id] = result;
     stepResults.push({ id: step.id, tool: step.tool, result });
     if (result && result.error) {
+      try { onStep?.({ ...stepMeta, status: 'error', error: result.error }); } catch { /* ignore */ }
       return { error: `step "${step.id}" (${step.tool}) failed: ${result.error}`, stepResults };
     }
+    try { onStep?.({ ...stepMeta, status: 'done', result }); } catch { /* ignore */ }
   }
   return { ok: true, steps: stepResults };
+}
+
+// ── Portable export / import format ─────────────────────────────────────────
+// Shape written when exporting a macro and accepted on import. Versioned so we
+// can evolve the format later without breaking old snippets pasted into docs.
+const EXPORT_FORMAT_VERSION = 1;
+
+/**
+ * Serialize one macro into a portable JSON string users can paste into a team
+ * doc. Drops `createdAt` — a fresh timestamp is set on import.
+ */
+export function exportCustomTool(toolDef) {
+  if (!toolDef || typeof toolDef !== 'object' || !toolDef.name) {
+    throw new Error('exportCustomTool: invalid tool definition');
+  }
+  const payload = {
+    kind: 'coursemapper-macro',
+    version: EXPORT_FORMAT_VERSION,
+    tool: {
+      name: toolDef.name,
+      description: toolDef.description || '',
+      params: toolDef.params || {},
+      plan: toolDef.plan || [],
+    },
+  };
+  return JSON.stringify(payload, null, 2);
+}
+
+/**
+ * Parse a pasted JSON snippet into an unregistered macro definition. Returns
+ * `{ ok, def?, error? }`. Does NOT register — caller runs it through
+ * `registry.register()` so the usual validation (name conflicts, built-in tool
+ * references, etc.) fires normally.
+ */
+export function parseExportedTool(jsonText) {
+  let parsed;
+  try {
+    parsed = JSON.parse(String(jsonText || '').trim());
+  } catch (e) {
+    return { ok: false, error: `Not valid JSON: ${e.message}` };
+  }
+  if (!parsed || typeof parsed !== 'object') {
+    return { ok: false, error: 'Expected a JSON object.' };
+  }
+  if (parsed.kind !== 'coursemapper-macro') {
+    return { ok: false, error: 'Not a CourseMapper macro (missing `kind: "coursemapper-macro"`).' };
+  }
+  if (parsed.version !== EXPORT_FORMAT_VERSION) {
+    return { ok: false, error: `Unsupported macro version ${parsed.version} (expected ${EXPORT_FORMAT_VERSION}).` };
+  }
+  const t = parsed.tool;
+  if (!t || typeof t !== 'object' || !t.name) {
+    return { ok: false, error: 'Missing tool definition.' };
+  }
+  return {
+    ok: true,
+    def: {
+      name: t.name,
+      description: t.description || '',
+      params: t.params || {},
+      plan: Array.isArray(t.plan) ? t.plan : [],
+    },
+  };
 }
 
 /** JSON Schemas used by the AGENT_TOOLS wrappers. */

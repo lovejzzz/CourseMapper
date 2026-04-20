@@ -301,6 +301,28 @@ describe('buildAgentRequest', () => {
     expect(req.body.system[0].cache_control).toEqual({ type: 'ephemeral' });
   });
 
+  it('emits two cache breakpoints when Anthropic receives {staticPart, dynamicPart}', () => {
+    const parts = { staticPart: 'Protocol...', dynamicPart: 'Course X...' };
+    const req = buildAgentRequest('anthropic', {
+      ...params,
+      model: 'claude-sonnet-4-20250514',
+      systemPrompt: parts,
+    });
+    expect(req.body.system).toHaveLength(2);
+    expect(req.body.system[0].text).toBe('Protocol...');
+    expect(req.body.system[0].cache_control).toEqual({ type: 'ephemeral' });
+    expect(req.body.system[1].text).toBe('Course X...');
+    expect(req.body.system[1].cache_control).toEqual({ type: 'ephemeral' });
+  });
+
+  it('joins {staticPart, dynamicPart} into a plain string for non-Anthropic providers', () => {
+    const parts = { staticPart: 'HEADER', dynamicPart: 'FOOTER' };
+    const req = buildAgentRequest('openai', { ...params, systemPrompt: parts });
+    // OpenAI needs a plain string in the system role
+    expect(req.body.messages[0].role).toBe('system');
+    expect(req.body.messages[0].content).toBe('HEADER\n\nFOOTER');
+  });
+
   it('caches the last tool definition for Anthropic', () => {
     const toolsIn = [
       { name: 'a', description: 'first', input_schema: {} },

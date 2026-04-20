@@ -626,6 +626,7 @@ export const AGENT_TOOLS = {
         def,
         runtimeArgs: args?.args || {},
         invokeBuiltin: (toolName, toolArgs) => ctx.customTools.invokeBuiltin(toolName, toolArgs, signal),
+        onStep: ctx.customTools.onStep, // wired by the runtime to stream progress
       });
     },
   },

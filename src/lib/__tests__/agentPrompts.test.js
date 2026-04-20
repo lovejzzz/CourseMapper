@@ -185,11 +185,12 @@ describe('buildAgentSystemPrompt', () => {
     expect(prompt).toContain('read_deliverable');
   });
 
-  it('prompt is compact (under 12000 chars for base case)', () => {
+  it('prompt is compact (under 12500 chars for base case)', () => {
     const prompt = buildAgentSystemPrompt(baseCourseMap, 'quizBank', baseDeliverables);
     // Includes few-shot examples, response style rules, tone rules, quality rules, schema + context,
-    // plus the god-mode agency / self-heal / greeting rules added in the enhance-chatbot-godmode pass.
-    expect(prompt.length).toBeLessThan(12000);
+    // plus the god-mode agency / self-heal / greeting rules added in the enhance-chatbot-godmode pass
+    // and the split-cache refactor (which adds a small "\n\n" separator + the new ACTIONS cross-ref line).
+    expect(prompt.length).toBeLessThan(12500);
   });
 
   it('shows path example for slideDecks when that tab is active', () => {

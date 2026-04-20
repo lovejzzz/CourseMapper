@@ -174,7 +174,11 @@ export default function ChatPanel({
           </div>
         )}
         {isAgentMode && (
-          <CustomToolsMenu tools={chat.customTools} onDelete={chat.deleteCustomTool} />
+          <CustomToolsMenu
+            tools={chat.customTools}
+            onDelete={chat.deleteCustomTool}
+            onImport={chat.importCustomTool}
+          />
         )}
       </div>
 

@@ -186,6 +186,14 @@ function googleSchemaFix(schema) {
 export function buildAgentRequest(provider, { model, systemPrompt, messages, tools, maxTokens = 16384, temperature = 0.4, apiKey }) {
   const tempSetting = temperature !== undefined ? { temperature } : {};
 
+  // Callers may pass `systemPrompt` as a string (legacy) or as
+  // `{staticPart, dynamicPart}` for Anthropic two-breakpoint caching. The
+  // anthropic branch handles the object shape natively; every other provider
+  // needs a plain string, so we flatten here.
+  const joinedSystemPrompt = (systemPrompt && typeof systemPrompt === 'object' && !Array.isArray(systemPrompt))
+    ? [systemPrompt.staticPart, systemPrompt.dynamicPart].filter(Boolean).join('\n\n')
+    : String(systemPrompt || '');
+
   if (provider === 'openai') {
     return {
       endpoint: 'https://api.openai.com/v1/chat/completions',
@@ -196,7 +204,7 @@ export function buildAgentRequest(provider, { model, systemPrompt, messages, too
       body: {
         model,
         messages: [
-          { role: 'system', content: systemPrompt },
+          { role: 'system', content: joinedSystemPrompt },
           ...messages.map(m => m._native ? stripNativeFlag(m) : { role: m.role, content: m.content }),
         ],
         tools,
@@ -210,9 +218,9 @@ export function buildAgentRequest(provider, { model, systemPrompt, messages, too
   if (provider === 'anthropic') {
     // Prompt caching: mark the system prompt and the last tool as ephemeral so
     // Claude's cache can reuse them across turns within a ~5-minute window.
-    // The system prompt (~11K chars / ~3K tokens) + tool definitions are near-
-    // static per session, so cache hits pay back the first-turn write cost
-    // after 2-3 turns. Cache hit reads are ~0.1x the input-token cost.
+    // `systemPrompt` may be either a string (legacy) or `{staticPart,
+    // dynamicPart}` (preferred — yields two cache breakpoints so the static
+    // prefix survives course/tab switches).
     const systemBlocks = applyAnthropicCache(systemPrompt, tools);
     return {
       endpoint: 'https://api.anthropic.com/v1/messages',
@@ -238,7 +246,7 @@ export function buildAgentRequest(provider, { model, systemPrompt, messages, too
       endpoint: `https://generativelanguage.googleapis.com/v1beta/models/${model}:generateContent?key=${apiKey}`,
       headers: { 'Content-Type': 'application/json' },
       body: {
-        system_instruction: { parts: [{ text: systemPrompt }] },
+        system_instruction: { parts: [{ text: joinedSystemPrompt }] },
         contents: messages.map(m => {
           if (m._native) return stripNativeFlag(m);
           return {
@@ -262,7 +270,7 @@ export function buildAgentRequest(provider, { model, systemPrompt, messages, too
       body: {
         model,
         messages: [
-          { role: 'system', content: systemPrompt },
+          { role: 'system', content: joinedSystemPrompt },
           ...messages.map(m => m._native ? stripNativeFlag(m) : { role: m.role, content: m.content }),
         ],
         tools,
@@ -289,7 +297,7 @@ export function buildAgentRequest(provider, { model, systemPrompt, messages, too
       body: {
         model,
         messages: [
-          { role: 'system', content: systemPrompt },
+          { role: 'system', content: joinedSystemPrompt },
           ...messages.map(m => m._native ? stripNativeFlag(m) : { role: m.role, content: m.content }),
         ],
         tools,
@@ -316,20 +324,39 @@ function stripNativeFlag(msg) {
 
 /**
  * Wrap Anthropic's system prompt + tool list with cache_control blocks so the
- * provider can hit its prompt cache on subsequent turns. Two cache breakpoints
- * are allowed per request; we use them on the two largest, most-static regions:
- * the system prompt and the last tool definition (Anthropic caches tools as a
- * single block up to the marker).
+ * provider can hit its prompt cache on subsequent turns. Anthropic allows up
+ * to 4 breakpoints per request; we use up to 3 here:
+ *
+ *   1. Static system prefix — identical across all courses / tabs / users.
+ *      Survives course switches and (most) user-pref changes.
+ *   2. Dynamic system tail — course state, active tab, memories, prefs.
+ *      Invalidates when any of those change, but sits behind breakpoint 1
+ *      so prefix cache survives.
+ *   3. Last tool — tool list is static per session; caching it folds the
+ *      whole `tools` block into the hit.
+ *
+ * Accepts either a plain `systemPrompt` string (single breakpoint on the
+ * whole thing) or `{ staticPart, dynamicPart }` (two breakpoints).
  *
  * Shared by buildAgentRequest and the multi-turn test harness so both paths
  * benefit identically from caching.
  */
 export function applyAnthropicCache(systemPrompt, tools) {
-  const system = [{
-    type: 'text',
-    text: systemPrompt,
-    cache_control: { type: 'ephemeral' },
-  }];
+  let system;
+  if (systemPrompt && typeof systemPrompt === 'object' && !Array.isArray(systemPrompt)
+      && (typeof systemPrompt.staticPart === 'string' || typeof systemPrompt.dynamicPart === 'string')) {
+    const blocks = [];
+    if (systemPrompt.staticPart) {
+      blocks.push({ type: 'text', text: systemPrompt.staticPart, cache_control: { type: 'ephemeral' } });
+    }
+    if (systemPrompt.dynamicPart) {
+      blocks.push({ type: 'text', text: systemPrompt.dynamicPart, cache_control: { type: 'ephemeral' } });
+    }
+    // Defensive: always emit at least one block so the API doesn't reject.
+    system = blocks.length > 0 ? blocks : [{ type: 'text', text: '' }];
+  } else {
+    system = [{ type: 'text', text: String(systemPrompt || ''), cache_control: { type: 'ephemeral' } }];
+  }
   if (!Array.isArray(tools) || tools.length === 0) {
     return { system, tools: tools || [] };
   }
