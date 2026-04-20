@@ -146,7 +146,9 @@ export async function runAgentLoop(fullMessage, { silent = false }, ctx) {
       } catch { /* non-critical — skip if memory read fails */ }
     }
 
-    const MAX_ITERATIONS = 10;
+    // God-mode: allow deeper reasoning chains so the agent can plan → read →
+    // edit → validate → fix → verify in a single turn without punting to the user.
+    const MAX_ITERATIONS = 20;
     let usedTools = false;
 
     // ── Adaptive temperature: deterministic for simple edits, creative for complex tasks ──
@@ -403,9 +405,10 @@ export async function runAgentLoop(fullMessage, { silent = false }, ctx) {
       updateProgress({ status: 'complete' });
     }
     if (!silent) {
+      const FINAL_ROLES = new Set(['assistant', 'proposal', 'changeSummary', 'diagram', 'chart', 'imageSearch', 'research']);
       setMessages(prev => {
         const lastMsg = prev[prev.length - 1];
-        if (lastMsg?.role === 'assistant' || lastMsg?.role === 'proposal' || lastMsg?.role === 'changeSummary') return prev;
+        if (FINAL_ROLES.has(lastMsg?.role)) return prev;
         return [...prev, { role: 'assistant', text: "I've completed several steps but couldn't fully finish. Could you try a more specific request?" }];
       });
     }

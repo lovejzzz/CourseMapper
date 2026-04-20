@@ -108,7 +108,7 @@ export default function useChatRouter({
 
   // ── Send message ──────────────────────────────────────────────────────────
   async function send(text) {
-    const trimmed = text.trim();
+    let trimmed = text.trim();
     if ((!trimmed && attachedFiles.length === 0) || isStreamingRef.current) return;
 
     // Dismiss any pending or failed proposals

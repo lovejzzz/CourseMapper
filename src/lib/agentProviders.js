@@ -488,13 +488,25 @@ export function formatToolResult(provider, toolCallId, toolName, result) {
   }
 
   if (provider === 'google') {
+    // Always send the truncated payload so large tool results don't blow past
+    // Gemini's context window. Parse back to an object when possible so the
+    // API receives structured JSON (Gemini expects response to be an object).
+    let responsePayload;
+    try {
+      responsePayload = JSON.parse(truncated);
+      if (typeof responsePayload !== 'object' || responsePayload === null || Array.isArray(responsePayload)) {
+        responsePayload = { result: responsePayload };
+      }
+    } catch {
+      responsePayload = { result: truncated };
+    }
     return {
       _native: true,
       role: 'user',
       parts: [{
         functionResponse: {
           name: toolName,
-          response: typeof result === 'object' ? result : { result: truncated },
+          response: responsePayload,
         },
       }],
     };
