@@ -286,6 +286,8 @@ export default function ChatPanel({
         onRegenerate={chat.regenerate}
         onFeedback={chat.feedback}
         onEditAndResend={chat.editAndResend}
+        onRetryFailedEdits={chat.retryFailedEdits}
+        onKeepAppliedChanges={chat.keepAppliedChanges}
         courseMap={courseMap}
         activeTab={activeTab}
         deliverables={deliverables}

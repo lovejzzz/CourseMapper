@@ -28,7 +28,7 @@ function stableKey(msg, fallback) {
  * Renders user/assistant bubbles, proposals, diff reviews, and content cards.
  * Status cards (progress, agent steps) are shown in the fixed top area instead.
  */
-export default function MessageList({ messages, isStreaming, onSuggestionClick, onSelectProposal, onAcceptDiff, onRejectDiff, onUndo, canUndo, onApproveSyncSuggestion, onSkipSyncSuggestion, onRegenerate, onFeedback, onEditAndResend, courseMap, activeTab, deliverables, isAgentMode, isGenerating, isDelivGenerating }) {
+export default function MessageList({ messages, isStreaming, onSuggestionClick, onSelectProposal, onAcceptDiff, onRejectDiff, onUndo, canUndo, onApproveSyncSuggestion, onSkipSyncSuggestion, onRegenerate, onFeedback, onEditAndResend, onRetryFailedEdits, onKeepAppliedChanges, courseMap, activeTab, deliverables, isAgentMode, isGenerating, isDelivGenerating }) {
   const endRef = useRef(null);
   const prevCountRef = useRef(messages.length);
   const containerRef = useRef(null);
@@ -151,7 +151,17 @@ export default function MessageList({ messages, isStreaming, onSuggestionClick, 
           );
         }
         if (msg.role === 'changeSummary') {
-          return <ChangeSummaryCard key={key} summary={msg.summary} onUndo={onUndo} canUndo={canUndo} />;
+          return (
+            <ChangeSummaryCard
+              key={key}
+              summary={msg.summary}
+              status={msg.status}
+              onUndo={onUndo}
+              canUndo={canUndo}
+              onRetryFailed={onRetryFailedEdits ? (failedItems, toolName) => onRetryFailedEdits(i, failedItems, toolName) : undefined}
+              onKeep={onKeepAppliedChanges ? () => onKeepAppliedChanges(i) : undefined}
+            />
+          );
         }
         if (msg.role === 'syncSuggestion') {
           return (

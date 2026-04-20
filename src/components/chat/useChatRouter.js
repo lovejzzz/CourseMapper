@@ -545,6 +545,39 @@ export default function useChatRouter({
     sendAgentMessage(prompt, { silent: true });
   }
 
+  // ── Retry failed / Keep applied for partial-failure changeSummary cards ──
+  /**
+   * Build a targeted silent follow-up so the agent retries the exact patches
+   * that failed, with the error messages inline so it knows what to correct.
+   */
+  function retryFailedEdits(msgIndex, failedItems, toolName) {
+    if (!Array.isArray(failedItems) || failedItems.length === 0) return;
+    const lines = failedItems.map((f, i) => {
+      const feature = f.featureId || 'courseMap';
+      const lesson = typeof f.lessonIndex === 'number' ? ` (Lesson ${f.lessonIndex + 1})` : '';
+      const inputBlob = f.originalInput ? `\n    Previous args: ${JSON.stringify(f.originalInput)}` : '';
+      return `${i + 1}. ${f.action} on ${feature}${lesson} — failed: ${f.message}${inputBlob}`;
+    }).join('\n');
+    const tool = toolName === 'edit_course_map' ? 'edit_course_map' : 'edit_deliverables';
+    const prompt =
+      `[RETRY-FAILED] A previous ${tool} call partially failed. The applied changes should stay; ` +
+      `only retry the failures below, correcting whatever caused each error (bad lessonIndex, missing required ` +
+      `field, duplicate content, not-generated deliverable, etc). After retrying, respond() briefly confirming ` +
+      `what now succeeded and what couldn't be fixed and why.\n\n${lines}`;
+    // Mark the card as retrying so the UI updates immediately.
+    setMessages(prev => prev.map((m, i) =>
+      i === msgIndex && m.role === 'changeSummary' ? { ...m, status: 'retried' } : m
+    ));
+    sendAgentMessage(prompt, { silent: true });
+  }
+
+  /** Dismiss the failure panel — kept successes stay, no state mutation. */
+  function keepAppliedChanges(msgIndex) {
+    setMessages(prev => prev.map((m, i) =>
+      i === msgIndex && m.role === 'changeSummary' ? { ...m, status: 'kept' } : m
+    ));
+  }
+
   /** Skip health gate and show normal completion card */
   function skipHealthGate(completionData) {
     setMessages(prev => {
@@ -621,5 +654,7 @@ export default function useChatRouter({
     // header so users can see, delete, export, and import them.
     customTools, deleteCustomTool: deleteCustomToolByName,
     importCustomTool, customToolSyncError,
+    // Partial-failure recovery on changeSummary cards
+    retryFailedEdits, keepAppliedChanges,
   };
 }

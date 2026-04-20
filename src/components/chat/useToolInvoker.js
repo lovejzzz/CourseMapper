@@ -347,10 +347,18 @@ export async function runAgentLoop(fullMessage, { silent = false }, ctx) {
             updateStepAt(stepIdx, { status: 'done', summary });
 
             // If edit tool -> add changeSummary + trigger sync cascade
-            if ((tc.name === 'edit_course_map' || tc.name === 'edit_deliverables') && result.applied > 0) {
+            if (tc.name === 'edit_course_map' || tc.name === 'edit_deliverables') {
               const changes = [];
               const editedFeatures = new Set();
-              for (const detail of (result.details || [])) {
+              const failedItems = []; // carry full per-item failure info to the UI
+              // The agent's original tool args hold the exact patches/actions —
+              // we need them so a "Retry failed" button can reconstruct the
+              // requests, not the trimmed `details[]` which loses field values.
+              const originalInputs = tc.name === 'edit_course_map'
+                ? (tc.args?.patches || [])
+                : (tc.args?.actions || []);
+              for (let detailIdx = 0; detailIdx < (result.details || []).length; detailIdx++) {
+                const detail = result.details[detailIdx];
                 if (detail.success) {
                   const featureId = detail.featureId || 'courseMap';
                   const actionType = detail.action === 'addItem' ? 'added'
@@ -362,12 +370,36 @@ export async function runAgentLoop(fullMessage, { silent = false }, ctx) {
                   if (featureId !== 'courseMap') {
                     editedFeatures.add(`${featureId}:${detail.lessonIndex ?? 0}`);
                   }
+                } else {
+                  failedItems.push({
+                    index: detailIdx,
+                    action: detail.action || detail.patch || 'edit',
+                    featureId: detail.featureId || (tc.name === 'edit_course_map' ? 'courseMap' : undefined),
+                    lessonIndex: detail.lessonIndex,
+                    message: detail.message || 'Unknown failure',
+                    originalInput: originalInputs[detailIdx] || null,
+                  });
                 }
               }
-              if (changes.length > 0) {
+              // Fire a summary card when ANY outcome landed — successes, failures,
+              // or both. Pure no-op results (empty patches array) still skip.
+              if (changes.length > 0 || failedItems.length > 0) {
+                const message = failedItems.length === 0
+                  ? `${result.applied} change${result.applied !== 1 ? 's' : ''} applied.`
+                  : result.applied > 0
+                    ? `${result.applied} applied · ${failedItems.length} failed`
+                    : `${failedItems.length} change${failedItems.length !== 1 ? 's' : ''} failed`;
                 setMessages(prev => [...prev, {
                   role: 'changeSummary',
-                  summary: { changes, message: `${result.applied} change${result.applied !== 1 ? 's' : ''} applied.` },
+                  summary: {
+                    changes,
+                    applied: result.applied || 0,
+                    failed: failedItems.length,
+                    failedItems,
+                    toolName: tc.name,
+                    message,
+                  },
+                  status: 'pending', // tracks keep/retry/undo decisions on failures
                 }]);
               }
 
