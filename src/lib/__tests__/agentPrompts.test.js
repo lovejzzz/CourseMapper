@@ -225,7 +225,10 @@ describe('buildAgentSystemPrompt', () => {
 
   it('dependency map instructs proactive editing of related deliverables', () => {
     const prompt = buildAgentSystemPrompt(baseCourseMap, 'quizBank', baseDeliverables);
-    expect(prompt).toContain('proactively edit them in the same call');
+    // The exact wording was tightened in the prompt-trim pass; the test
+    // now checks the underlying instruction instead of a literal phrase.
+    expect(prompt).toMatch(/one\s+edit_deliverables\s+call|same\s+(edit_deliverables\s+)?call/i);
+    expect(prompt).toContain('CROSS-DELIVERABLE SYNC');
   });
 
   // ── Empty lessons hint (Bug 1) ──
