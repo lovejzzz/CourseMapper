@@ -191,9 +191,13 @@ describeWithKey(`Deliverable quality — quizBank (${MODEL})`, { timeout: 300_00
 // SLIDE DECKS
 // ──────────────────────────────────────────────────────────────────────────
 
-describeWithKey(`Deliverable quality — slideDecks (${MODEL})`, { timeout: 300_000 }, () => {
+describeWithKey(`Deliverable quality — slideDecks (${MODEL})`, { timeout: 600_000 }, () => {
   let data;
-  it('generates and returns 12–16 slides per deck', async () => {
+  // slideDecks is the heaviest generation in the suite: 3 decks × 12-16 slides
+  // × full assertion-evidence titles + 4-sentence speaker notes. Budget raised
+  // to 18K; generation takes 260-290s at steady state, so we give the wrap
+  // call 8 min of slack before counting it as a hang.
+  it('generates and returns 12–16 slides per deck', { timeout: 480_000 }, async () => {
     const r = await callClaude(slideDecksPrompt, { maxTokens: PROD_BUDGET('slideDecks') });
     data = r.data;
     expect(Array.isArray(data.decks), 'decks array must exist').toBe(true);
