@@ -27,6 +27,17 @@ import slideDecksPrompt from '../src/lib/prompts/slideDecks.js';
 import lessonPlansPrompt from '../src/lib/prompts/lessonPlans.js';
 import rubricsPrompt from '../src/lib/prompts/rubrics.js';
 import assignmentsPrompt from '../src/lib/prompts/assignments.js';
+// Import the production budget table so the audit exercises what prod actually
+// allocates — previously this test hardcoded budget values and drifted from
+// the real FEATURE_OUTPUT_BUDGETS. A fix in parallelGenerator.js had no
+// observable effect here until callers read the same function.
+import { getFeatureOutputBudget } from '../src/lib/parallelGenerator.js';
+
+// Effective budget for live calls — mirrors useDeliverables.js:261 which
+// passes Math.min(featureBudget, userGlobalMax). Using a generous global
+// (matches what a Sonnet-4.6 user would have after auto-adjust in
+// ModelConfig.jsx) so only the per-feature cap bites.
+const PROD_BUDGET = (featureId) => getFeatureOutputBudget(featureId, 64000);
 
 const KEY = process.env.ANTHROPIC_API_KEY || '';
 const MODEL = process.env.ANTHROPIC_MODEL || 'claude-sonnet-4-6';
@@ -102,7 +113,7 @@ async function callClaude(prompt, { maxTokens = 8192 } = {}) {
 describeWithKey(`Deliverable quality — quizBank (${MODEL})`, { timeout: 300_000 }, () => {
   let data;
   it('generates and returns structurally valid JSON', async () => {
-    const r = await callClaude(quizBankPrompt);
+    const r = await callClaude(quizBankPrompt, { maxTokens: PROD_BUDGET('quizBank') });
     data = r.data;
     expect(Array.isArray(data.quizzes), 'quizzes array must exist').toBe(true);
     expect(data.quizzes.length, `expected 3 quizzes (one per lesson), got ${data.quizzes.length}`).toBe(3);
@@ -183,7 +194,7 @@ describeWithKey(`Deliverable quality — quizBank (${MODEL})`, { timeout: 300_00
 describeWithKey(`Deliverable quality — slideDecks (${MODEL})`, { timeout: 300_000 }, () => {
   let data;
   it('generates and returns 12–16 slides per deck', async () => {
-    const r = await callClaude(slideDecksPrompt, { maxTokens: 12000 });
+    const r = await callClaude(slideDecksPrompt, { maxTokens: PROD_BUDGET('slideDecks') });
     data = r.data;
     expect(Array.isArray(data.decks), 'decks array must exist').toBe(true);
     expect(data.decks.length).toBe(3);
@@ -293,7 +304,7 @@ describeWithKey(`Deliverable quality — slideDecks (${MODEL})`, { timeout: 300_
 describeWithKey(`Deliverable quality — lessonPlans (${MODEL})`, { timeout: 300_000 }, () => {
   let data;
   it('generates one plan per lesson', async () => {
-    const r = await callClaude(lessonPlansPrompt, { maxTokens: 8000 });
+    const r = await callClaude(lessonPlansPrompt, { maxTokens: PROD_BUDGET('lessonPlans') });
     data = r.data;
     const plans = data.plans || data.lessonPlans || [];
     expect(plans.length, `expected 3 plans, got ${plans.length}`).toBe(3);
@@ -328,7 +339,7 @@ describeWithKey(`Deliverable quality — lessonPlans (${MODEL})`, { timeout: 300
 describeWithKey(`Deliverable quality — rubrics (${MODEL})`, { timeout: 300_000 }, () => {
   let data;
   it('generates rubrics with criteria arrays', async () => {
-    const r = await callClaude(rubricsPrompt, { maxTokens: 6000 });
+    const r = await callClaude(rubricsPrompt, { maxTokens: PROD_BUDGET('rubrics') });
     data = r.data;
     const rubrics = data.rubrics || [];
     expect(rubrics.length, `expected at least 1 rubric, got ${rubrics.length}`).toBeGreaterThanOrEqual(1);
@@ -358,7 +369,7 @@ describeWithKey(`Deliverable quality — rubrics (${MODEL})`, { timeout: 300_000
 describeWithKey(`Deliverable quality — assignments (${MODEL})`, { timeout: 300_000 }, () => {
   let data;
   it('generates at least 1 assignment with title + description + components', async () => {
-    const r = await callClaude(assignmentsPrompt, { maxTokens: 6000 });
+    const r = await callClaude(assignmentsPrompt, { maxTokens: PROD_BUDGET('assignments') });
     data = r.data;
     const asgns = data.assignments || [];
     expect(asgns.length).toBeGreaterThanOrEqual(1);
