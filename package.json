@@ -8,7 +8,10 @@
     "build": "vite build",
     "start": "NODE_ENV=production node server.js",
     "preview": "vite preview",
-    "test": "vitest run"
+    "test": "vitest run",
+    "test:offline": "vitest run src/",
+    "audit:deliverables": "vitest run tests/deliverable-quality-audit.test.js",
+    "audit:agent": "vitest run tests/agent-anthropic.test.js tests/agent-multi-turn.test.js tests/agent-quality-probe.test.js tests/agent-content-quality.test.js tests/agent-prose-regression.test.js tests/cache-smoke.test.js tests/agent-skill-nudge.test.js tests/partial-failure-recovery.test.js"
   },
   "dependencies": {
     "@mlc-ai/web-llm": "^0.2.81",
