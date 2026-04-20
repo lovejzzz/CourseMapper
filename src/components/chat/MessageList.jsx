@@ -1,4 +1,4 @@
-import React, { useRef, useEffect } from 'react';
+import React, { useRef, useEffect, useState, useCallback } from 'react';
 import MessageBubble from './MessageBubble';
 import ProposalCard from './ProposalCard';
 import DiffReviewCard from './DiffReviewCard';
@@ -32,28 +32,55 @@ export default function MessageList({ messages, isStreaming, onSuggestionClick, 
   const endRef = useRef(null);
   const prevCountRef = useRef(messages.length);
   const containerRef = useRef(null);
+  // Tracks whether the user is pinned to the bottom of the chat. When they
+  // scroll up to reread context, we stop auto-scrolling and surface a "Jump to
+  // latest" pill instead of silently scrolling new messages past them.
+  const [isAtBottom, setIsAtBottom] = useState(true);
+  const [pendingNewCount, setPendingNewCount] = useState(0);
 
   const opener = getChatOpener(courseMap, isAgentMode, activeTab, deliverables, isGenerating, isDelivGenerating);
   const { greeting, starters = [] } = opener || {};
 
-  useEffect(() => {
-    // Only auto-scroll when new messages are added (count increases),
-    // not when existing messages are mutated (e.g., status changes).
-    // Also scroll if user is already near the bottom.
-    const countChanged = messages.length !== prevCountRef.current;
-    prevCountRef.current = messages.length;
+  const scrollToBottom = useCallback((behavior = 'smooth') => {
+    endRef.current?.scrollIntoView({ behavior });
+    setPendingNewCount(0);
+  }, []);
 
-    if (countChanged) {
-      const container = containerRef.current;
-      const isNearBottom = !container || (container.scrollHeight - container.scrollTop - container.clientHeight < 120);
-      if (isNearBottom) {
-        endRef.current?.scrollIntoView({ behavior: 'smooth' });
-      }
+  // Watch scroll position — 120px of slack so tiny rubber-band scrolls don't
+  // flip the state. Same threshold the original auto-scroll used.
+  useEffect(() => {
+    const container = containerRef.current;
+    if (!container) return;
+    const onScroll = () => {
+      const dist = container.scrollHeight - container.scrollTop - container.clientHeight;
+      const atBottom = dist < 120;
+      setIsAtBottom(atBottom);
+      if (atBottom) setPendingNewCount(0);
+    };
+    container.addEventListener('scroll', onScroll, { passive: true });
+    return () => container.removeEventListener('scroll', onScroll);
+  }, []);
+
+  useEffect(() => {
+    // Only react to count changes — mutations of existing messages (status
+    // updates, streaming text) shouldn't trigger scroll or pill updates.
+    const prev = prevCountRef.current;
+    const countChanged = messages.length !== prev;
+    prevCountRef.current = messages.length;
+    if (!countChanged) return;
+
+    if (isAtBottom) {
+      endRef.current?.scrollIntoView({ behavior: 'smooth' });
+    } else {
+      // User is scrolled up — accumulate how many arrived while they're away.
+      const delta = messages.length - prev;
+      if (delta > 0) setPendingNewCount(c => c + delta);
     }
-  }, [messages]);
+  }, [messages, isAtBottom]);
 
   // Messages list — greeting + starters always shown as first item in the stream
   return (
+    <div className="relative flex-1 flex flex-col min-h-0">
     <div ref={containerRef} className="flex-1 overflow-y-auto px-4 py-3 space-y-3" style={{ minHeight: 0 }}>
       {/* Greeting + suggestion starters — inline at the top of the chat stream */}
       <div className="space-y-3">
@@ -180,6 +207,21 @@ export default function MessageList({ messages, isStreaming, onSuggestionClick, 
         );
       })}
       <div ref={endRef} />
+    </div>
+    {/* Sticky "Jump to latest" — only when user is scrolled up AND new content arrived */}
+    {!isAtBottom && pendingNewCount > 0 && (
+      <button
+        type="button"
+        onClick={() => scrollToBottom('smooth')}
+        className="absolute bottom-3 left-1/2 -translate-x-1/2 z-10 flex items-center gap-2 px-3 py-1.5 rounded-full bg-indigo-500 text-white text-[11px] font-semibold shadow-lg hover:bg-indigo-600 focus:outline-none focus:ring-2 focus:ring-indigo-300 transition-all animate-in fade-in slide-in-from-bottom-2 duration-200"
+        aria-label={`Jump to ${pendingNewCount} new message${pendingNewCount === 1 ? '' : 's'}`}
+      >
+        <svg className="w-3 h-3" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+          <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2.5} d="M19 14l-7 7m0 0l-7-7m7 7V3" />
+        </svg>
+        {pendingNewCount} new message{pendingNewCount === 1 ? '' : 's'}
+      </button>
+    )}
     </div>
   );
 }
