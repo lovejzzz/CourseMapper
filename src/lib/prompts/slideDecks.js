@@ -50,9 +50,14 @@ REQUIRED SEQUENCE:
 (N-1). summary — objectives returned as self-check questions: "Can you now [verb] [content]?"
 N. closing — homework + due date + preview of next session
 
-VARIETY:
+VARIETY (hard caps — enforce while building the deck):
 - ≥1 example slide, ≥1 activity OR discussion slide, ≥1 keyTerm slide per deck.
-- Never 3+ consecutive content slides — interleave with activity/example/keyTerm.
+- **Maximum 2 consecutive 'content' slides.** If the lesson has 3+ related
+  concepts to cover (e.g. three algorithms, three causes, three phases),
+  you MUST insert a keyTerm slide (defining one of them) OR an example
+  slide (applying one of them) between the 2nd and 3rd content slide.
+  Before returning, scan your `sl` array: if any window of 3 consecutive
+  entries is all ty='content', rewrite the middle one as keyTerm or example.
 
 CONTENT QUALITY:
 - Max 4 bullets per content slide (cognitive load).
