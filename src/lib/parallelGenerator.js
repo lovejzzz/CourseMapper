@@ -57,7 +57,7 @@ const FEATURE_OUTPUT_BUDGETS = {
   slideDecks: 18000,    // was 12000 — 12-16 slides × 4-sentence notes needed ~13.4K at 3 lessons
   quizBank: 14000,      // was 8000  — 5-7 questions × 3 lessons × full MC metadata (q/op/an/ex/dr/bl/df/em/pt/oa) needs ~12K; follow-up audit showed 10K still clipped at ~10.7K
   rubrics: 10000,       // was 6000  — whole-course 4-level matrix needed ~6.8K for a 3-lesson course
-  assignments: 10000,   // was 8000  — scaffolding + deliverables sections push past 8K
+  assignments: 14000,   // was 8000  — scaffolding + deliverables + rubric-link sections clip at 10K; observed truncation at ~10K
   discussions: 14000,   // was 12000 — follow-ups + starters often clip at 12K for larger courses
   studyGuides: 10000,   // was 8000  — key terms + practice + misconceptions
   courseFaq: 7000,      // was 5000  — FAQ per-chunk of 10 needs breathing room

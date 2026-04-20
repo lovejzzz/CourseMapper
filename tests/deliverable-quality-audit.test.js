@@ -231,7 +231,7 @@ describeWithKey(`Deliverable quality — slideDecks (${MODEL})`, { timeout: 600_
   });
 
   it('content slide titles are full declarative sentences (assertion-evidence model)', () => {
-    // Rule: content / bridge / example / keyTerm slide titles must be assertions,
+    // Rule: content / bridge / example slide titles must be assertions,
     // not topic phrases. Detecting "is this a full sentence vs a noun phrase"
     // via hard-coded verb lists fails on subject-specific action verbs
     // (illustrates, prevents, governs, partitions, constrains…). Instead use
@@ -240,7 +240,11 @@ describeWithKey(`Deliverable quality — slideDecks (${MODEL})`, { timeout: 600_
     // known copula — appearing AFTER a subject noun. Topic phrases like
     // "Decision Trees" or "Neural Network Architecture" fail (a) OR lack the
     // verb-shape marker in the right position.
-    const ASSERTION_TYPES = new Set(['content', 'bridge', 'example', 'keyTerm']);
+    // keyTerm slides are exempted: for those, the title IS the term itself
+    // ("Gini Impurity", "Activation Function") and the definition lives in
+    // the first bullet. This matches the prompt's per-type rule and real
+    // classroom deck UX.
+    const ASSERTION_TYPES = new Set(['content', 'bridge', 'example']);
     const COPULA_AUX = /^(is|are|was|were|be|been|being|has|have|had|can|must|should|will|shall|may|might|does|do|did)$/i;
     // A word is "verb-shaped" if it ends in a common verb suffix OR matches a copula/aux.
     const isVerbShape = (w) => COPULA_AUX.test(w) || /(?:s|es|ed|ing)$/.test(w);
