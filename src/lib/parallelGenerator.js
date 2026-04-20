@@ -55,7 +55,7 @@ export function getFeatureChunkSize(featureId) {
 const FEATURE_OUTPUT_BUDGETS = {
   lessonPlans: 10000,   // was 8000 — gives UDL notes and warm-up breathing room
   slideDecks: 18000,    // was 12000 — 12-16 slides × 4-sentence notes needed ~13.4K at 3 lessons
-  quizBank: 10000,      // was 8000  — 5-7 questions × MC rationale bundle needed ~8.7K at 3 lessons
+  quizBank: 14000,      // was 8000  — 5-7 questions × 3 lessons × full MC metadata (q/op/an/ex/dr/bl/df/em/pt/oa) needs ~12K; follow-up audit showed 10K still clipped at ~10.7K
   rubrics: 10000,       // was 6000  — whole-course 4-level matrix needed ~6.8K for a 3-lesson course
   assignments: 10000,   // was 8000  — scaffolding + deliverables sections push past 8K
   discussions: 14000,   // was 12000 — follow-ups + starters often clip at 12K for larger courses
