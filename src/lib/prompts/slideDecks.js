@@ -56,7 +56,7 @@ VARIETY (hard caps — enforce while building the deck):
   concepts to cover (e.g. three algorithms, three causes, three phases),
   you MUST insert a keyTerm slide (defining one of them) OR an example
   slide (applying one of them) between the 2nd and 3rd content slide.
-  Before returning, scan your `sl` array: if any window of 3 consecutive
+  Before returning, scan your sl array: if any window of 3 consecutive
   entries is all ty='content', rewrite the middle one as keyTerm or example.
 
 CONTENT QUALITY:
