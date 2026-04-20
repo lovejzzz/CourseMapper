@@ -20,12 +20,19 @@ export const CHUNK_SIZE = 5;           // default lessons per chunk
 export const MAX_CONCURRENT = 6;       // max simultaneous API calls (retries only)
 export const MAX_RETRY_ROUNDS = 2;     // max retry attempts for incomplete chunks
 
-/** Per-feature chunk sizes — simpler deliverables use larger chunks to reduce API calls */
+/** Per-feature chunk sizes — sized against the matching output budget below.
+ *  Heavy-per-lesson features (quizBank, slideDecks) drop to 3 lessons/chunk so
+ *  a single call doesn't exhaust its token budget when a lesson generates a
+ *  lot of content. Lighter features stay at 5. The deliverable-quality audit
+ *  (tests/deliverable-quality-audit.test.js) caught the previous 5-per-chunk
+ *  settings truncating quizBank (≥8.7K tokens), slideDecks (≥13.4K), and
+ *  rubrics (≥6.8K) — forcing silent parsePartialJSON recovery + retries.
+ */
 const FEATURE_CHUNK_SIZES = {
   lessonPlans: 5,
-  slideDecks: 5,
-  quizBank: 5,
-  rubrics: 5,
+  slideDecks: 3,
+  quizBank: 3,
+  rubrics: 5,      // rubrics is whole-course anyway; chunking unused
   assignments: 5,
   discussions: 8,
   studyGuides: 5,
@@ -38,16 +45,22 @@ export function getFeatureChunkSize(featureId) {
 }
 
 /** Per-feature max output token budgets — caps to prevent runaway responses.
- *  Uses Math.min(budget, globalMax) so models with small limits are not exceeded. */
+ *  Uses Math.min(budget, globalMax) so models with small limits are not exceeded.
+ *
+ *  Sized from live-audit observations against claude-sonnet-4-6. Each budget
+ *  carries headroom over the observed truncation point for the paired
+ *  chunk size above, so one call comfortably fits without triggering
+ *  parsePartialJSON recovery + a retry round.
+ */
 const FEATURE_OUTPUT_BUDGETS = {
-  lessonPlans: 8000,
-  slideDecks: 12000,
-  quizBank: 8000,
-  rubrics: 6000,
-  assignments: 8000,
-  discussions: 12000,
-  studyGuides: 8000,
-  courseFaq: 5000,
+  lessonPlans: 10000,   // was 8000 — gives UDL notes and warm-up breathing room
+  slideDecks: 18000,    // was 12000 — 12-16 slides × 4-sentence notes needed ~13.4K at 3 lessons
+  quizBank: 10000,      // was 8000  — 5-7 questions × MC rationale bundle needed ~8.7K at 3 lessons
+  rubrics: 10000,       // was 6000  — whole-course 4-level matrix needed ~6.8K for a 3-lesson course
+  assignments: 10000,   // was 8000  — scaffolding + deliverables sections push past 8K
+  discussions: 14000,   // was 12000 — follow-ups + starters often clip at 12K for larger courses
+  studyGuides: 10000,   // was 8000  — key terms + practice + misconceptions
+  courseFaq: 7000,      // was 5000  — FAQ per-chunk of 10 needs breathing room
 };
 
 /** Get the output token budget for a feature, capped by the global model limit */
@@ -60,7 +73,7 @@ export function getFeatureOutputBudget(featureId, globalMax) {
 /** Features that are whole-course (never chunked).
  *  Rubrics generate per-assessment (not per-lesson), so chunking them by lesson
  *  is wasteful — the AI needs full course context to identify all unique assessments.
- *  Output budget (6000 tokens) comfortably fits 4-6 rubrics (~2000-3600 tokens). */
+ *  Output budget (10000 tokens) comfortably fits 4-6 rubrics with full 4-level scales. */
 export const WHOLE_COURSE_FEATURES = new Set(['syllabus', 'rubrics']);
 
 // ── Concurrency Limiter ────────────────────────────────────────────────────────
