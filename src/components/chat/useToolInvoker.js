@@ -344,7 +344,23 @@ export async function runAgentLoop(fullMessage, { silent = false }, ctx) {
 
             const result = await execWithRetry();
             const summary = summarizeToolResult(tc.name, result);
-            updateStepAt(stepIdx, { status: 'done', summary });
+            // Classify the step outcome honestly — previously every non-throwing
+            // result painted the step green, which lied when the tool returned
+            // {applied:N, failed:M>0}. Now:
+            //   'done'    — tool ran cleanly
+            //   'partial' — some patches applied, some didn't (mixed outcome)
+            //   'error'   — result.error set OR all patches failed
+            let stepStatus = 'done';
+            if (result && typeof result === 'object') {
+              if (result.error) {
+                stepStatus = 'error';
+              } else if (tc.name === 'edit_course_map' || tc.name === 'edit_deliverables') {
+                const appliedN = result.applied || 0;
+                const failedN = result.failed || 0;
+                if (failedN > 0) stepStatus = appliedN > 0 ? 'partial' : 'error';
+              }
+            }
+            updateStepAt(stepIdx, { status: stepStatus, summary });
 
             // If edit tool -> add changeSummary + trigger sync cascade
             if (tc.name === 'edit_course_map' || tc.name === 'edit_deliverables') {
