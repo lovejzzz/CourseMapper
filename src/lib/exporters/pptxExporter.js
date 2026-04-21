@@ -976,9 +976,53 @@ async function buildSlideForDeck(pptx, deck, theme, slideIndex, totalSlides, opt
     console.warn(`[CM] Slide ${slideIndex + 1} (${slideType}) validation:`, warnings);
   }
 
-  // Speaker notes
-  if (s.notes || s.speakerNotes) {
-    slide.addNotes(s.notes || s.speakerNotes);
+  // Speaker notes — prepend a "Suggested visual" block (with alt text) when
+  // the slide carries a visual hint. This keeps the cue visible in the
+  // PPT's Notes Page view even if the instructor never looks at the on-
+  // slide placeholder below. Accepts both expanded (slide.visual) and
+  // abbreviated (slide.vi) shapes from the generator.
+  const vis = s.visual || s.vi;
+  const visKind = vis?.kind || vis?.k;
+  const hasVisual = vis && visKind && visKind !== 'none';
+  const visDesc = hasVisual ? (vis.description || vis.d || '') : '';
+  const visAlt = hasVisual ? (vis.altText || vis.at || '') : '';
+
+  const baseNotes = s.notes || s.speakerNotes || '';
+  const augmentedNotes = hasVisual
+    ? `SUGGESTED VISUAL (${visKind}): ${visDesc}${visAlt ? `\nALT TEXT: ${visAlt}` : ''}${baseNotes ? `\n\n---\n\n${baseNotes}` : ''}`
+    : baseNotes;
+  if (augmentedNotes) slide.addNotes(augmentedNotes);
+
+  // On-slide visual placeholder — a small dashed box in the bottom-right
+  // that signals "insert visual here" with the kind + 1-line description.
+  // Positioned to tuck under bullet content without fighting activity /
+  // example / keyTerm cards that fill the body region. Omitted for
+  // title / agenda / objectives / summary / closing slides where the
+  // layout doesn't leave room.
+  const PLACEHOLDER_TYPES = new Set(['content', 'bridge', 'example', 'keyTerm']);
+  if (hasVisual && PLACEHOLDER_TYPES.has(slideType)) {
+    const pw = 3.0, ph = 1.15;
+    const px = W - pw - 0.3;
+    const py = H - ph - 0.55; // above slide-number chip
+    const kindIcon = { diagram: '▲', chart: '📊', image: '🖼', table: '▦', code: '⌨', equation: '∑' }[visKind] || '◈';
+    slide.addShape(pptx.ShapeType.roundRect, {
+      x: px, y: py, w: pw, h: ph,
+      fill: { color: 'FFFFFF', transparency: 40 },
+      line: { color: theme.accent || theme.primary, dashType: 'dash', pt: 1 },
+      rectRadius: 0.08,
+      altText: `Visual placeholder — ${visKind}: ${visAlt || visDesc}`,
+    });
+    slide.addText(
+      [
+        { text: `${kindIcon} SUGGESTED VISUAL · ${visKind.toUpperCase()}\n`, options: { fontSize: 8, bold: true, color: theme.accent || theme.primary, fontFace: FONT_BODY } },
+        { text: visDesc, options: { fontSize: 9, color: '64748B', italic: true, fontFace: FONT_BODY } },
+      ],
+      {
+        x: px + 0.1, y: py + 0.05, w: pw - 0.2, h: ph - 0.1,
+        valign: 'top', align: 'left',
+        margin: 0.05,
+      }
+    );
   }
 }
 
