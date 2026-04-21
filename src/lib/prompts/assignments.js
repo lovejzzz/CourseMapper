@@ -41,8 +41,11 @@ Return a JSON object with exactly this structure:
       "sm": [
         {
           "ms": "string — milestone name, e.g. 'Topic Proposal'",
-          "dd": "string — e.g. 'Week 2, class time'",
-          "de": "string — what the student submits and what feedback they receive"
+          "dd": "string — specific due date or week, e.g. 'Week 2, class time' | 'Monday Week 3, 5pm'",
+          "de": "string — 1-2 sentences: what the student submits at this milestone (format + length + scope)",
+          "fb": "string — feedback channel: 'Instructor written feedback within 5 days' | 'Peer review (2 reviewers)' | 'Self-assessment checklist' | 'Office-hours discussion'",
+          "pt": "number — points this milestone contributes toward the assignment total (0 for formative-only)",
+          "ul": ["string"] — optional: 1-3 bullet upload/submission checklist so the student can verify readiness before the deadline
         }
       ],
       "gc": "string — brief rubric summary tying point distribution to criteria (full rubric is generated separately)",
@@ -60,7 +63,7 @@ REQUIREMENTS:
 - Extract 4–7 assignments from the course map's assessments — spanning different types
 - Each assignment must clearly connect to specific lessons and objectives
 - instructions must use numbered, imperative-voice steps (not paragraph prose)
-- scaffoldingMilestones must have at least 2 milestones for major assignments
+- scaffoldingMilestones: ≥2 milestones for major assignments (≥15% of grade); each milestone must name the feedback channel (fb) and specify points (pt, can be 0 for formative). Include an ul (upload checklist) on the FINAL milestone.
 - deliverables must be a checklist (students can tick off each item before submitting)
 - academicIntegrityStatement must be specific to this assignment (not a generic paragraph)
 - formatRequirements.latePolicy must state explicit point deduction or policy

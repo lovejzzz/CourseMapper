@@ -580,15 +580,24 @@ function DeliverablePreview({ featureId, delivData, courseMap, columns }) {
         return (
           <div className="space-y-2">
             {items.map((plan, i) => {
-              const outline = plan.sessionOutline || plan.outline || [];
+              const outline = plan.sessionOutline || plan.outline || plan.ol || [];
+              const blooms = plan.bloomsLevels || plan.bls;
               return (
                 <div key={i} className="rounded border border-slate-200/30 overflow-hidden">
-                  <div className={`${pad} bg-slate-50/60 font-semibold text-slate-700`}>{plan.lessonTitle || plan.title || `Lesson ${i + 1}`}</div>
+                  <div className={`${pad} bg-slate-50/60 flex items-center gap-1.5 flex-wrap`}>
+                    <span className="font-semibold text-slate-700">{plan.lessonTitle || plan.lt || plan.title || `Lesson ${i + 1}`}</span>
+                    {plan.duration && (
+                      <span className="text-[9px] text-slate-400">· {plan.duration}</span>
+                    )}
+                    {Array.isArray(blooms) && blooms.length > 0 && (
+                      <span className="text-[9px] text-indigo-400">· Bloom's: {blooms.join(' · ')}</span>
+                    )}
+                  </div>
                   {outline.slice(0, expanded ? 8 : 3).map((seg, j) => (
                     <div key={j} className={`${pad} border-t border-slate-200/20 flex items-start gap-2`}>
-                      <span className="font-mono text-indigo-400 flex-shrink-0 w-12 text-right">{seg.duration || seg.time || ''}</span>
+                      <span className="font-mono text-indigo-400 flex-shrink-0 w-12 text-right">{seg.duration || seg.time || seg.tm || ''}</span>
                       <div className="w-1 h-1 rounded-full bg-indigo-300 mt-1.5 flex-shrink-0" />
-                      <span><strong className="text-slate-600">{seg.activity || seg.section || ''}:</strong> {truncate(seg.description || seg.details || '', expanded ? 200 : 60)}</span>
+                      <span><strong className="text-slate-600">{seg.activity || seg.section || seg.ac || ''}:</strong> {truncate(seg.description || seg.details || seg.de || '', expanded ? 200 : 80)}</span>
                     </div>
                   ))}
                   {!expanded && outline.length > 3 && <div className={`${pad} border-t border-slate-200/20 text-slate-400 italic`}>+ {outline.length - 3} more segments</div>}
@@ -601,20 +610,69 @@ function DeliverablePreview({ featureId, delivData, courseMap, columns }) {
       }
       case 'slideDecks': {
         const items = expanded ? (delivData.decks || delivData.slideDecks || []) : realContent.items;
+        // Subtle tint per slide type so the deck shape reads at a glance.
+        const typeTone = {
+          title:      'bg-indigo-50/60 border-indigo-200/50',
+          agenda:     'bg-sky-50/60 border-sky-200/50',
+          objectives: 'bg-sky-50/60 border-sky-200/50',
+          bridge:     'bg-cyan-50/60 border-cyan-200/50',
+          content:    'bg-white/60 border-slate-200/50',
+          activity:   'bg-emerald-50/60 border-emerald-200/50',
+          discussion: 'bg-emerald-50/60 border-emerald-200/50',
+          example:    'bg-amber-50/60 border-amber-200/50',
+          keyTerm:    'bg-violet-50/60 border-violet-200/50',
+          summary:    'bg-rose-50/60 border-rose-200/50',
+          closing:    'bg-slate-50/60 border-slate-200/50',
+        };
         return (
           <div className="space-y-2">
             {items.map((deck, i) => {
-              const slides = deck.slides || [];
+              const slides = deck.slides || deck.sl || [];
               return (
                 <div key={i}>
-                  <p className="font-semibold text-slate-700 mb-1">{deck.lessonTitle || deck.title || `Deck ${i + 1}`} ({slides.length} slides)</p>
+                  <p className="font-semibold text-slate-700 mb-1">{deck.lessonTitle || deck.lt || deck.title || `Deck ${i + 1}`} ({slides.length} slides)</p>
                   <div className="flex gap-1.5 overflow-x-auto pb-1">
-                    {slides.slice(0, expanded ? 12 : 5).map((s, j) => (
-                      <div key={j} className={`flex-shrink-0 ${expanded ? 'w-28 h-18' : 'w-20 h-14'} rounded border border-slate-200/50 bg-white/60 flex items-center justify-center p-1 text-center leading-tight`}>
-                        <span className="text-[9px] text-slate-500 line-clamp-2">{s.title || s.heading || `Slide ${j + 1}`}</span>
-                      </div>
-                    ))}
-                    {slides.length > (expanded ? 12 : 5) && <div className={`flex-shrink-0 ${expanded ? 'w-28 h-18' : 'w-20 h-14'} rounded border border-dashed border-slate-200/50 flex items-center justify-center text-[9px] text-slate-400`}>+{slides.length - (expanded ? 12 : 5)}</div>}
+                    {slides.slice(0, expanded ? 12 : 5).map((s, j) => {
+                      const ty = s.type || s.ty;
+                      const firstBullet = Array.isArray(s.bullets || s.bu) ? (s.bullets || s.bu)[0] : null;
+                      const timing = s.timeEstimate || s.ti || s.timer;
+                      const vis = s.visual || s.vi;
+                      const visKind = vis && (vis.kind || vis.k);
+                      const hasVisual = visKind && visKind !== 'none';
+                      const visIcon = { diagram: '📐', chart: '📊', image: '🖼', table: '▦', code: '⌨', equation: '∑' }[visKind];
+                      return (
+                        <div
+                          key={j}
+                          className={`flex-shrink-0 ${expanded ? 'w-36 h-24' : 'w-24 h-16'} rounded border ${typeTone[ty] || typeTone.content} p-1.5 flex flex-col leading-tight overflow-hidden relative`}
+                          title={`${s.title || s.heading || `Slide ${j + 1}`}${timing ? ` · ${timing}` : ''}${hasVisual ? ` · visual: ${vis.description || vis.d || visKind}` : ''}`}
+                        >
+                          <div className="flex items-center justify-between gap-1">
+                            {ty && (
+                              <span className="text-[8px] font-semibold uppercase tracking-wider text-slate-400 truncate">
+                                {ty}
+                              </span>
+                            )}
+                            <div className="flex items-center gap-0.5 flex-shrink-0">
+                              {hasVisual && (
+                                <span className="text-[9px]" aria-hidden="true">{visIcon || '✦'}</span>
+                              )}
+                              {timing && (
+                                <span className="text-[8px] text-slate-400 font-mono">{timing}</span>
+                              )}
+                            </div>
+                          </div>
+                          <span className="text-[9px] text-slate-600 font-medium line-clamp-2 mt-0.5">
+                            {s.title || s.heading || s.t || `Slide ${j + 1}`}
+                          </span>
+                          {expanded && firstBullet && (
+                            <span className="text-[8px] text-slate-400 line-clamp-2 mt-auto">
+                              • {truncate(firstBullet, 70)}
+                            </span>
+                          )}
+                        </div>
+                      );
+                    })}
+                    {slides.length > (expanded ? 12 : 5) && <div className={`flex-shrink-0 ${expanded ? 'w-36 h-24' : 'w-24 h-16'} rounded border border-dashed border-slate-200/50 flex items-center justify-center text-[9px] text-slate-400`}>+{slides.length - (expanded ? 12 : 5)} more</div>}
                   </div>
                 </div>
               );
@@ -627,21 +685,38 @@ function DeliverablePreview({ featureId, delivData, courseMap, columns }) {
         return (
           <div className="space-y-2">
             {items.map((rubric, i) => {
-              const criteria = rubric.criteria || [];
+              const criteria = rubric.criteria || rubric.cr || [];
               const levels = criteria[0]?.levels || [];
+              const showWeight = criteria.some(c => c.weight || typeof c.points === 'number');
               return (
                 <div key={i}>
-                  <p className="font-semibold text-slate-700 mb-1">{rubric.assignmentTitle || rubric.title || `Rubric ${i + 1}`}</p>
+                  <div className="flex items-baseline gap-1.5 mb-1 flex-wrap">
+                    <p className="font-semibold text-slate-700">{rubric.assignmentTitle || rubric.lessonTitle || rubric.lt || rubric.title || `Rubric ${i + 1}`}</p>
+                    {typeof rubric.totalPoints === 'number' && (
+                      <span className="text-[9px] text-slate-400">· {rubric.totalPoints} pts total</span>
+                    )}
+                    {rubric.bloomsLevel && (
+                      <span className="text-[9px] text-indigo-400">· Bloom's: {rubric.bloomsLevel}</span>
+                    )}
+                  </div>
                   <div className="overflow-hidden rounded border border-slate-200/40">
                     <div className="flex bg-slate-50/80">
                       <div className={`${pad} font-semibold text-slate-600 border-r border-slate-200/30 w-24 flex-shrink-0`}>Criteria</div>
+                      {showWeight && (
+                        <div className={`${pad} font-semibold text-slate-600 border-r border-slate-200/30 w-14 flex-shrink-0 text-center`}>Weight</div>
+                      )}
                       {levels.map((l, k) => (
                         <div key={k} className={`flex-1 ${pad} font-semibold text-slate-600 border-r border-slate-200/30 last:border-r-0 text-center`}>{l.label || l.level || `Level ${k + 1}`}</div>
                       ))}
                     </div>
                     {criteria.slice(0, expanded ? 8 : 3).map((c, k) => (
                       <div key={k} className="flex border-t border-slate-200/30">
-                        <div className={`${pad} font-medium text-slate-600 border-r border-slate-200/30 w-24 flex-shrink-0 truncate`}>{c.name || c.criterion || ''}</div>
+                        <div className={`${pad} font-medium text-slate-600 border-r border-slate-200/30 w-24 flex-shrink-0 truncate`}>{c.name || c.criterion || c.cn || ''}</div>
+                        {showWeight && (
+                          <div className={`${pad} text-slate-500 border-r border-slate-200/30 w-14 flex-shrink-0 text-center`}>
+                            {c.weight || (typeof c.points === 'number' ? `${c.points} pts` : '—')}
+                          </div>
+                        )}
                         {(c.levels || []).map((l, m) => (
                           <div key={m} className={`flex-1 ${pad} border-r border-slate-200/30 last:border-r-0 text-center truncate`}>{truncate(l.description || '', expanded ? 80 : 30)}</div>
                         ))}
@@ -656,21 +731,60 @@ function DeliverablePreview({ featureId, delivData, courseMap, columns }) {
       }
       case 'quizBank': {
         const items = expanded ? (delivData.quizzes || delivData.quizBank || []) : realContent.items;
+        // Short-form type labels for the badge — keeps the row compact.
+        const typeShort = { multiple_choice: 'MC', short_answer: 'SA', essay: 'Essay' };
+        const diffTone = { Easy: 'text-emerald-600 bg-emerald-50', Medium: 'text-amber-600 bg-amber-50', Hard: 'text-red-600 bg-red-50' };
         return (
           <div className="space-y-2">
             {items.map((quiz, i) => {
-              const questions = quiz.questions || [];
+              const questions = quiz.questions || quiz.qs || [];
+              const blooms = quiz.bloomsCoverage || quiz.bc;
               return (
                 <div key={i}>
-                  <p className="font-semibold text-slate-700 mb-1">{quiz.lessonTitle || quiz.title || `Quiz ${i + 1}`} ({questions.length} questions)</p>
+                  <div className="flex items-center gap-1.5 mb-1 flex-wrap">
+                    <p className="font-semibold text-slate-700">{quiz.lessonTitle || quiz.lt || quiz.title || `Quiz ${i + 1}`}</p>
+                    <span className="text-slate-400">({questions.length} questions)</span>
+                    {Array.isArray(blooms) && blooms.length > 0 && (
+                      <span className="text-[9px] text-indigo-400">· Bloom's: {blooms.join(' · ')}</span>
+                    )}
+                  </div>
                   <div className="space-y-1">
                     {questions.slice(0, expanded ? 10 : 3).map((q, j) => (
-                      <div key={j} className="flex items-start gap-1.5">
-                        <span className="px-1.5 py-0.5 rounded bg-indigo-50/80 text-indigo-500 font-semibold text-[9px] flex-shrink-0">{q.type || 'Q'}</span>
-                        <span className="text-slate-600">{truncate(q.question || q.prompt || '', expanded ? 200 : 80)}</span>
+                      <div key={j} className="pl-1">
+                        <div className="flex items-start gap-1.5">
+                          <span className="px-1.5 py-0.5 rounded bg-indigo-50/80 text-indigo-500 font-semibold text-[9px] flex-shrink-0 mt-0.5">
+                            {typeShort[q.type] || q.type || q.ty || 'Q'}
+                          </span>
+                          {q.bloomsLevel && (
+                            <span className="px-1.5 py-0.5 rounded bg-violet-50/80 text-violet-500 font-semibold text-[9px] flex-shrink-0 mt-0.5">
+                              {q.bloomsLevel}
+                            </span>
+                          )}
+                          {q.difficulty && (
+                            <span className={`px-1.5 py-0.5 rounded font-semibold text-[9px] flex-shrink-0 mt-0.5 ${diffTone[q.difficulty] || 'text-slate-500 bg-slate-50'}`}>
+                              {q.difficulty}
+                            </span>
+                          )}
+                          {typeof q.points === 'number' && (
+                            <span className="text-[9px] text-slate-400 mt-0.5">{q.points} pt</span>
+                          )}
+                          <span className="text-slate-600 flex-1 min-w-0">{truncate(q.question || q.q || q.prompt || '', expanded ? 240 : 100)}</span>
+                        </div>
+                        {expanded && Array.isArray(q.options) && q.options.length > 0 && (
+                          <div className="mt-0.5 ml-8 space-y-0.5 text-slate-500">
+                            {q.options.slice(0, 4).map((opt, k) => {
+                              const isAnswer = q.answer && String(opt).trim().startsWith(String(q.answer).trim());
+                              return (
+                                <div key={k} className={isAnswer ? 'text-emerald-600 font-semibold' : ''}>
+                                  {truncate(opt, 100)}
+                                </div>
+                              );
+                            })}
+                          </div>
+                        )}
                       </div>
                     ))}
-                    {questions.length > (expanded ? 10 : 3) && <p className="text-slate-400 italic">+ {questions.length - (expanded ? 10 : 3)} more questions</p>}
+                    {questions.length > (expanded ? 10 : 3) && <p className="text-slate-400 italic pl-1">+ {questions.length - (expanded ? 10 : 3)} more questions</p>}
                   </div>
                 </div>
               );
@@ -682,15 +796,43 @@ function DeliverablePreview({ featureId, delivData, courseMap, columns }) {
         const items = expanded ? (delivData.discussions || []) : realContent.items;
         return (
           <div className="space-y-2">
-            {items.map((disc, i) => (
-              <div key={i} className="rounded border border-slate-200/30 overflow-hidden">
-                <div className={`${pad} bg-slate-50/60 font-semibold text-slate-700`}>{disc.lessonTitle || disc.title || `Discussion ${i + 1}`}</div>
-                <div className={`${pad} border-t border-slate-200/20`}>
-                  <p className="text-slate-600 italic">"{truncate(disc.prompt || disc.mainPrompt || '', expanded ? 300 : 100)}"</p>
-                  {disc.followUp && <p className="text-slate-400 mt-1">{truncate(disc.followUp || disc.responseGuidelines || '', expanded ? 200 : 80)}</p>}
+            {items.map((disc, i) => {
+              // followUp can be a string (legacy) or an array of prompts.
+              const followUps = Array.isArray(disc.followUp || disc.followUpProbes)
+                ? (disc.followUp || disc.followUpProbes)
+                : (disc.followUp ? [disc.followUp] : (disc.responseGuidelines ? [disc.responseGuidelines] : []));
+              return (
+                <div key={i} className="rounded border border-slate-200/30 overflow-hidden">
+                  <div className={`${pad} bg-slate-50/60 flex items-center gap-1.5 flex-wrap`}>
+                    <span className="font-semibold text-slate-700">{disc.lessonTitle || disc.lt || disc.title || `Discussion ${i + 1}`}</span>
+                    {disc.bloomsLevel && (
+                      <span className="text-[9px] px-1.5 py-0.5 rounded bg-violet-50/80 text-violet-500 font-semibold">
+                        Bloom's: {disc.bloomsLevel}
+                      </span>
+                    )}
+                    {disc.format && (
+                      <span className="text-[9px] text-slate-400">· {disc.format}</span>
+                    )}
+                    {disc.estimatedDuration && (
+                      <span className="text-[9px] text-slate-400">· {disc.estimatedDuration}</span>
+                    )}
+                  </div>
+                  <div className={`${pad} border-t border-slate-200/20`}>
+                    <p className="text-slate-600 italic">"{truncate(disc.prompt || disc.mainPrompt || '', expanded ? 320 : 120)}"</p>
+                    {followUps.length > 0 && (
+                      <div className="mt-1.5">
+                        <p className="text-[9px] font-semibold text-slate-400 uppercase tracking-wider mb-0.5">Follow-up prompts</p>
+                        <ul className="space-y-0.5 text-slate-500 list-disc list-inside ml-1">
+                          {followUps.slice(0, expanded ? 5 : 2).map((fu, k) => (
+                            <li key={k}>{truncate(fu, expanded ? 180 : 80)}</li>
+                          ))}
+                        </ul>
+                      </div>
+                    )}
+                  </div>
                 </div>
-              </div>
-            ))}
+              );
+            })}
             {!expanded && realContent.total > items.length && <p className="text-[9px] text-slate-400 text-right">+ {realContent.total - items.length} more</p>}
           </div>
         );
@@ -699,19 +841,81 @@ function DeliverablePreview({ featureId, delivData, courseMap, columns }) {
         const items = expanded ? (delivData.assignments || []) : realContent.items;
         return (
           <div className="space-y-2">
-            {items.map((asgn, i) => (
-              <div key={i} className="rounded border border-slate-200/30 overflow-hidden">
-                <div className={`${pad} bg-slate-50/60 font-semibold text-slate-700`}>{asgn.title || `Assignment ${i + 1}`}</div>
-                <div className={`${pad} border-t border-slate-200/20 space-y-1`}>
-                  {asgn.description && <p className="text-slate-600">{truncate(asgn.description, expanded ? 300 : 100)}</p>}
-                  {asgn.components && (
-                    <ul className="list-disc list-inside space-y-0.5 ml-1">
-                      {(Array.isArray(asgn.components) ? asgn.components : []).slice(0, expanded ? 10 : 3).map((c, j) => <li key={j}>{truncate(typeof c === 'string' ? c : c.name || c.title || '', expanded ? 150 : 60)}</li>)}
-                    </ul>
-                  )}
+            {items.map((asgn, i) => {
+              const deliverables = asgn.deliverables;
+              const components = Array.isArray(asgn.components) ? asgn.components : [];
+              return (
+                <div key={i} className="rounded border border-slate-200/30 overflow-hidden">
+                  <div className={`${pad} bg-slate-50/60 space-y-1`}>
+                    <div className="font-semibold text-slate-700">{asgn.title || asgn.t || `Assignment ${i + 1}`}</div>
+                    <div className="flex items-center gap-1.5 flex-wrap">
+                      {asgn.assignmentType && (
+                        <span className="text-[9px] text-slate-400">{asgn.assignmentType}</span>
+                      )}
+                      {asgn.bloomsLevel && (
+                        <span className="text-[9px] px-1.5 py-0.5 rounded bg-violet-50/80 text-violet-500 font-semibold">
+                          Bloom's: {asgn.bloomsLevel}
+                        </span>
+                      )}
+                      {asgn.estimatedTime && (
+                        <span className="text-[9px] text-slate-400">· ⏱ {asgn.estimatedTime}</span>
+                      )}
+                      {(typeof asgn.totalPoints === 'number' || asgn.percentOfGrade) && (
+                        <span className="text-[9px] text-slate-400">
+                          · {asgn.totalPoints ? `${asgn.totalPoints} pts` : ''}{asgn.totalPoints && asgn.percentOfGrade ? ' · ' : ''}{asgn.percentOfGrade || ''}
+                        </span>
+                      )}
+                    </div>
+                  </div>
+                  <div className={`${pad} border-t border-slate-200/20 space-y-1.5`}>
+                    {(asgn.description || asgn.overview || asgn.ov) && (
+                      <p className="text-slate-600">{truncate(asgn.description || asgn.overview || asgn.ov, expanded ? 320 : 120)}</p>
+                    )}
+                    {components.length > 0 && (
+                      <div>
+                        <p className="text-[9px] font-semibold text-slate-400 uppercase tracking-wider mb-0.5">Components</p>
+                        <ul className="list-disc list-inside space-y-0.5 ml-1 text-slate-500">
+                          {components.slice(0, expanded ? 10 : 3).map((c, j) =>
+                            <li key={j}>{truncate(typeof c === 'string' ? c : (c.name || c.title || ''), expanded ? 150 : 80)}</li>
+                          )}
+                        </ul>
+                      </div>
+                    )}
+                    {expanded && Array.isArray(deliverables) && deliverables.length > 0 && (
+                      <div>
+                        <p className="text-[9px] font-semibold text-slate-400 uppercase tracking-wider mb-0.5">Deliverables</p>
+                        <ul className="list-disc list-inside space-y-0.5 ml-1 text-slate-500">
+                          {deliverables.slice(0, 6).map((d, j) => <li key={j}>{truncate(typeof d === 'string' ? d : (d.name || d.title || ''), 120)}</li>)}
+                        </ul>
+                      </div>
+                    )}
+                    {expanded && Array.isArray(asgn.scaffoldingMilestones || asgn.sm) && (asgn.scaffoldingMilestones || asgn.sm).length > 0 && (
+                      <div>
+                        <p className="text-[9px] font-semibold text-slate-400 uppercase tracking-wider mb-0.5">Scaffolding Timeline</p>
+                        <ol className="space-y-1 ml-1 text-slate-500">
+                          {(asgn.scaffoldingMilestones || asgn.sm).slice(0, 6).map((m, j) => (
+                            <li key={j} className="flex items-start gap-1.5">
+                              <span className="font-mono text-indigo-400 flex-shrink-0 text-[9px]">
+                                {m.dueDate || m.dd || `#${j + 1}`}
+                              </span>
+                              <div className="flex-1 min-w-0">
+                                <span className="font-semibold text-slate-600">{m.milestone || m.ms || ''}</span>
+                                {m.feedback && (
+                                  <span className="text-violet-500/70 ml-1">↳ {m.feedback}</span>
+                                )}
+                                {typeof m.points === 'number' && m.points > 0 && (
+                                  <span className="text-[9px] text-slate-400 ml-1 font-mono">· {m.points} pt</span>
+                                )}
+                              </div>
+                            </li>
+                          ))}
+                        </ol>
+                      </div>
+                    )}
+                  </div>
                 </div>
-              </div>
-            ))}
+              );
+            })}
           </div>
         );
       }
@@ -720,27 +924,75 @@ function DeliverablePreview({ featureId, delivData, courseMap, columns }) {
         return (
           <div className="space-y-2">
             {items.map((guide, i) => {
-              const terms = guide.keyTerms || guide.terms || guide.vocabulary || [];
+              const terms = guide.keyTerms || guide.terms || guide.vocabulary || guide.kt || [];
+              const reviewQs = guide.reviewQuestions || guide.rq || [];
               return (
                 <div key={i}>
-                  <p className="font-semibold text-slate-700 mb-1">{guide.lessonTitle || guide.title || `Guide ${i + 1}`}</p>
-                  <div className="space-y-1">
+                  <p className="font-semibold text-slate-700 mb-1">{guide.lessonTitle || guide.lt || guide.title || `Guide ${i + 1}`}</p>
+                  {expanded && guide.summary && (
+                    <p className="text-slate-500 italic mb-1.5">{truncate(guide.summary, 240)}</p>
+                  )}
+                  <div className="space-y-1.5">
                     {terms.slice(0, expanded ? 10 : 3).map((t, j) => (
                       <div key={j}>
-                        <span className="font-semibold text-slate-600">{t.term || t.name || ''}:</span>{' '}
-                        <span>{truncate(t.definition || t.def || '', expanded ? 200 : 60)}</span>
+                        <div>
+                          <span className="font-semibold text-slate-600">{t.term || t.name || t.tm || ''}:</span>{' '}
+                          <span className="text-slate-500">{truncate(t.definition || t.def || t.df || '', expanded ? 200 : 70)}</span>
+                        </div>
+                        {expanded && (t.example || t.ex) && (
+                          <p className="ml-3 text-[10px] text-slate-400 italic">
+                            e.g. {truncate(t.example || t.ex, 150)}
+                          </p>
+                        )}
                       </div>
                     ))}
                     {terms.length > (expanded ? 10 : 3) && <p className="text-slate-400 italic">+ {terms.length - (expanded ? 10 : 3)} more terms</p>}
                   </div>
+                  {expanded && reviewQs.length > 0 && (
+                    <div className="mt-2 pt-2 border-t border-slate-200/30">
+                      <p className="text-[9px] font-semibold text-slate-400 uppercase tracking-wider mb-0.5">Review questions</p>
+                      <ul className="list-disc list-inside ml-1 text-slate-500 space-y-0.5">
+                        {reviewQs.slice(0, 5).map((q, k) => <li key={k}>{truncate(typeof q === 'string' ? q : q.q || q.question || '', 180)}</li>)}
+                      </ul>
+                    </div>
+                  )}
                 </div>
               );
             })}
           </div>
         );
       }
+      case 'courseFaq': {
+        // FAQ had no preview case — if a user selected "Course FAQ" in the
+        // Configure page before, the card would render the "Example" badge
+        // but no body. Now shows Q/A pairs with a category tag.
+        const items = expanded ? (delivData.faqs || delivData.courseFaq || []) : realContent.items;
+        return (
+          <div className="space-y-1.5">
+            {items.map((f, i) => (
+              <div key={i} className="rounded border border-slate-200/30 overflow-hidden">
+                <div className={`${pad} bg-slate-50/60 flex items-start gap-2`}>
+                  <span className="w-5 h-5 rounded bg-indigo-50/80 text-indigo-500 flex items-center justify-center text-[10px] font-bold flex-shrink-0">Q</span>
+                  <span className="font-semibold text-slate-700 flex-1">{truncate(f.question || f.q || '', expanded ? 220 : 100)}</span>
+                  {f.category && (
+                    <span className="text-[9px] px-1.5 py-0.5 rounded bg-slate-100 text-slate-500 font-semibold flex-shrink-0">
+                      {f.category}
+                    </span>
+                  )}
+                </div>
+                <div className={`${pad} border-t border-slate-200/20 flex items-start gap-2`}>
+                  <span className="w-5 h-5 rounded bg-emerald-50/80 text-emerald-500 flex items-center justify-center text-[10px] font-bold flex-shrink-0">A</span>
+                  <span className="text-slate-600 flex-1">{truncate(f.answer || f.an || '', expanded ? 320 : 120)}</span>
+                </div>
+              </div>
+            ))}
+            {!expanded && realContent.total > items.length && <p className="text-[9px] text-slate-400 text-right">+ {realContent.total - items.length} more FAQs</p>}
+          </div>
+        );
+      }
       case 'syllabus': {
         const sections = expanded ? (delivData.sections || []) : realContent.sections;
+        const matrix = (expanded ? delivData.outcomeAlignmentMatrix : realContent.outcomeAlignmentMatrix) || [];
         return (
           <div className="space-y-1.5">
             {sections.map((s, i) => (
@@ -752,6 +1004,41 @@ function DeliverablePreview({ featureId, delivData, courseMap, columns }) {
                 {s.content && <div className={`${pad} border-t border-slate-200/20 text-slate-600`}>{truncate(Array.isArray(s.content) ? s.content.join(' ') : s.content, expanded ? 300 : 100)}</div>}
               </div>
             ))}
+            {/* Outcome-alignment matrix preview — compact table, shown inline
+                under the text sections when the syllabus has matrix data.
+                Accreditation teams look for this; we surface it up front. */}
+            {matrix.length > 0 && (
+              <div className="mt-2 pt-1.5 border-t border-slate-200/30">
+                <p className="text-[9px] font-semibold text-slate-400 uppercase tracking-wider mb-1">Outcome ↔ Assessment</p>
+                <div className="overflow-x-auto">
+                  <table className="w-full text-[10px]">
+                    <thead>
+                      <tr className="bg-slate-50/60">
+                        <th className="text-left px-2 py-1 font-semibold text-slate-500">Outcome</th>
+                        <th className="text-left px-2 py-1 font-semibold text-slate-500 whitespace-nowrap">Assessed by</th>
+                      </tr>
+                    </thead>
+                    <tbody>
+                      {matrix.slice(0, expanded ? 8 : 3).map((row, i) => {
+                        const assessedBy = Array.isArray(row.assessedBy) ? row.assessedBy : [];
+                        const hasGap = assessedBy.length === 0 || (Array.isArray(row.practicedIn) && row.practicedIn.length === 0);
+                        return (
+                          <tr key={i} className={`border-t border-slate-100 ${hasGap ? 'bg-amber-50/40' : ''}`}>
+                            <td className="px-2 py-1 text-slate-600 align-top">{truncate(row.outcome, expanded ? 180 : 80)}</td>
+                            <td className="px-2 py-1 text-slate-500 align-top">
+                              {assessedBy.length > 0
+                                ? truncate(assessedBy.join(', '), expanded ? 140 : 60)
+                                : <span className="text-amber-600 italic">⚠ Unassessed</span>}
+                            </td>
+                          </tr>
+                        );
+                      })}
+                    </tbody>
+                  </table>
+                  {!expanded && matrix.length > 3 && <p className="text-[9px] text-slate-400 text-right mt-0.5">+ {matrix.length - 3} more outcomes</p>}
+                </div>
+              </div>
+            )}
             {!expanded && realContent.total > sections.length && <p className="text-[9px] text-slate-400 text-right">+ {realContent.total - sections.length} more sections</p>}
           </div>
         );

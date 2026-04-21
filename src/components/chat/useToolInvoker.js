@@ -5,7 +5,7 @@
  * Extracted from useChatRouter.js (Issue #5) to reduce file size.
  */
 
-import { buildAgentSystemPrompt } from '../../lib/agentPrompts';
+import { buildAgentSystemPrompt, buildAgentSystemPromptParts } from '../../lib/agentPrompts';
 import { generateCourseHealthReport } from '../../lib/pedagogicalValidator';
 import { AGENT_TOOLS, TOOL_LABELS, summarizeToolResult, classifyRequestComplexity } from '../../lib/agentTools';
 import { preValidateAction } from '../../lib/agentActions';
@@ -18,6 +18,7 @@ import {
   fetchAgentResponseNative, buildAgentChatHistory,
 } from './useStreamProcessor';
 import { getMemories, MEMORY_CATEGORIES } from '../../lib/agentMemory';
+import { createSkillNudgeTracker, SKILL_NUDGE_HINT } from '../../lib/customAgentTools';
 
 /**
  * Execute the multi-step agentic loop with native tool calling.
@@ -41,6 +42,7 @@ export async function runAgentLoop(fullMessage, { silent = false }, ctx) {
     courseMap, activeTab,
     delivRef, executeActionRef, snapshotRef, undoFnRef, notifyEditRef,
     uid,
+    customToolRegistryRef,
     maybeRunValidation,
     handleAgentFinalResponse,
   } = ctx;
@@ -83,10 +85,19 @@ export async function runAgentLoop(fullMessage, { silent = false }, ctx) {
     const healthSummary = (healthReport && (healthReport.errorCount > 0 || healthReport.warningCount > 0))
       ? healthReport.summary
       : null;
-    const systemPrompt = buildAgentSystemPrompt(courseMap, activeTab, delivRef.current, healthSummary, userPrefs);
+    // For Anthropic we pass the parts object so the provider builder can emit
+    // two cache breakpoints (static prefix + dynamic tail). Other providers
+    // receive the joined string — applyAnthropicCache / buildAgentRequest
+    // handle both shapes. Token estimation uses the joined text since models
+    // consume the concatenation regardless.
+    const systemParts = buildAgentSystemPromptParts(courseMap, activeTab, delivRef.current, healthSummary, userPrefs);
+    const systemPrompt = provider === 'anthropic'
+      ? systemParts
+      : buildAgentSystemPrompt(courseMap, activeTab, delivRef.current, healthSummary, userPrefs);
+    const systemPromptForTokens = (systemParts.staticPart || '') + (systemParts.dynamicPart || '');
 
     // ── Context window awareness: smart trim if approaching limit ──
-    const systemPromptTk = estimateTokens(systemPrompt);
+    const systemPromptTk = estimateTokens(systemPromptForTokens);
     const OUTPUT_RESERVE_TK = 4096;
     const chatContent = chatHistory.map(m => m.content).join('') + fullMessage;
     const chatTk = estimateTokens(chatContent);
@@ -146,7 +157,9 @@ export async function runAgentLoop(fullMessage, { silent = false }, ctx) {
       } catch { /* non-critical — skip if memory read fails */ }
     }
 
-    const MAX_ITERATIONS = 10;
+    // God-mode: allow deeper reasoning chains so the agent can plan → read →
+    // edit → validate → fix → verify in a single turn without punting to the user.
+    const MAX_ITERATIONS = 20;
     let usedTools = false;
 
     // ── Adaptive temperature: deterministic for simple edits, creative for complex tasks ──
@@ -165,6 +178,13 @@ export async function runAgentLoop(fullMessage, { silent = false }, ctx) {
       }
       return null;
     }
+
+    // ── Skill-creation nudge (Hermes-style agent-initiated macros) ─────────
+    // When this turn has chained several successful workflow tool calls,
+    // nudge the agent toward create_tool. Fires at most once per
+    // runAgentLoop call. Thresholds live in customAgentTools.js so runtime
+    // and the test harness can't drift.
+    const skillNudge = createSkillNudgeTracker();
 
     // ── Thinking text callback for streaming progress ──
     const onThinkingText = (text) => {
@@ -274,6 +294,32 @@ export async function runAgentLoop(fullMessage, { silent = false }, ctx) {
               snapshot: snapshotRef.current,
               undoFn: undoFnRef?.current || null,
               uid,
+              // customTools is wired here (not at ctx build time) so
+              // invokeBuiltin can close over the same toolCtx — otherwise a
+              // custom macro would run its builtins without edit access.
+              customTools: customToolRegistryRef ? {
+                registry: customToolRegistryRef.current,
+                invokeBuiltin: async (builtinName, builtinArgs, innerSignal) => {
+                  const builtin = AGENT_TOOLS[builtinName];
+                  if (!builtin) return { error: `Unknown tool in plan: ${builtinName}` };
+                  try {
+                    return await builtin.execute(builtinArgs || {}, toolCtx, innerSignal || controller.signal);
+                  } catch (err) {
+                    return { error: `builtin "${builtinName}" threw: ${err.message}` };
+                  }
+                },
+                // Stream plan progress into the agentProgress card so users see
+                // the macro working (otherwise run_tool looks opaque until done).
+                onStep: (event) => {
+                  if (tc.name !== 'run_tool') return;
+                  const label = event.status === 'error'
+                    ? `Step ${event.index + 1}/${event.total}: ${event.tool} ✗`
+                    : event.status === 'done'
+                    ? `Step ${event.index + 1}/${event.total}: ${event.tool} ✓`
+                    : `Step ${event.index + 1}/${event.total}: ${event.tool}…`;
+                  updateStepAt(stepIdx, { summary: label });
+                },
+              } : null,
             };
 
             async function execWithRetry(attempt = 0) {
@@ -298,13 +344,37 @@ export async function runAgentLoop(fullMessage, { silent = false }, ctx) {
 
             const result = await execWithRetry();
             const summary = summarizeToolResult(tc.name, result);
-            updateStepAt(stepIdx, { status: 'done', summary });
+            // Classify the step outcome honestly — previously every non-throwing
+            // result painted the step green, which lied when the tool returned
+            // {applied:N, failed:M>0}. Now:
+            //   'done'    — tool ran cleanly
+            //   'partial' — some patches applied, some didn't (mixed outcome)
+            //   'error'   — result.error set OR all patches failed
+            let stepStatus = 'done';
+            if (result && typeof result === 'object') {
+              if (result.error) {
+                stepStatus = 'error';
+              } else if (tc.name === 'edit_course_map' || tc.name === 'edit_deliverables') {
+                const appliedN = result.applied || 0;
+                const failedN = result.failed || 0;
+                if (failedN > 0) stepStatus = appliedN > 0 ? 'partial' : 'error';
+              }
+            }
+            updateStepAt(stepIdx, { status: stepStatus, summary });
 
             // If edit tool -> add changeSummary + trigger sync cascade
-            if ((tc.name === 'edit_course_map' || tc.name === 'edit_deliverables') && result.applied > 0) {
+            if (tc.name === 'edit_course_map' || tc.name === 'edit_deliverables') {
               const changes = [];
               const editedFeatures = new Set();
-              for (const detail of (result.details || [])) {
+              const failedItems = []; // carry full per-item failure info to the UI
+              // The agent's original tool args hold the exact patches/actions —
+              // we need them so a "Retry failed" button can reconstruct the
+              // requests, not the trimmed `details[]` which loses field values.
+              const originalInputs = tc.name === 'edit_course_map'
+                ? (tc.args?.patches || [])
+                : (tc.args?.actions || []);
+              for (let detailIdx = 0; detailIdx < (result.details || []).length; detailIdx++) {
+                const detail = result.details[detailIdx];
                 if (detail.success) {
                   const featureId = detail.featureId || 'courseMap';
                   const actionType = detail.action === 'addItem' ? 'added'
@@ -316,12 +386,36 @@ export async function runAgentLoop(fullMessage, { silent = false }, ctx) {
                   if (featureId !== 'courseMap') {
                     editedFeatures.add(`${featureId}:${detail.lessonIndex ?? 0}`);
                   }
+                } else {
+                  failedItems.push({
+                    index: detailIdx,
+                    action: detail.action || detail.patch || 'edit',
+                    featureId: detail.featureId || (tc.name === 'edit_course_map' ? 'courseMap' : undefined),
+                    lessonIndex: detail.lessonIndex,
+                    message: detail.message || 'Unknown failure',
+                    originalInput: originalInputs[detailIdx] || null,
+                  });
                 }
               }
-              if (changes.length > 0) {
+              // Fire a summary card when ANY outcome landed — successes, failures,
+              // or both. Pure no-op results (empty patches array) still skip.
+              if (changes.length > 0 || failedItems.length > 0) {
+                const message = failedItems.length === 0
+                  ? `${result.applied} change${result.applied !== 1 ? 's' : ''} applied.`
+                  : result.applied > 0
+                    ? `${result.applied} applied · ${failedItems.length} failed`
+                    : `${failedItems.length} change${failedItems.length !== 1 ? 's' : ''} failed`;
                 setMessages(prev => [...prev, {
                   role: 'changeSummary',
-                  summary: { changes, message: `${result.applied} change${result.applied !== 1 ? 's' : ''} applied.` },
+                  summary: {
+                    changes,
+                    applied: result.applied || 0,
+                    failed: failedItems.length,
+                    failedItems,
+                    toolName: tc.name,
+                    message,
+                  },
+                  status: 'pending', // tracks keep/retry/undo decisions on failures
                 }]);
               }
 
@@ -356,6 +450,19 @@ export async function runAgentLoop(fullMessage, { silent = false }, ctx) {
             `Tool "${r.toolName}" failed: ${r.result.error}. Try a different approach or correct the arguments.`
           ).join(' ');
           loopMessages.push({ role: 'user', content: `[SYSTEM] ${hints}` });
+        }
+
+        // ── Skill-creation nudge: propose saving a repeatable workflow ────
+        // Borrowed from Hermes Agent's "skills from experience" pattern. When
+        // the turn has chained enough workflow steps to look like a recurring
+        // pattern, hint the agent to consider create_tool. The agent is free
+        // to ignore it and just respond() — the nudge is advisory, not
+        // mandatory, and fires only once per turn.
+        // The tracker expects the {name, result} shape produced by our tool
+        // invoker; map from the internal (toolCallId, toolName, result) form.
+        const nudgeResults = toolResults.map(r => ({ name: r.toolName, result: r.result }));
+        if (skillNudge.update(nudgeResults)) {
+          loopMessages.push({ role: 'user', content: SKILL_NUDGE_HINT });
         }
 
         // ── Post-edit validation: check for new issues after edits ──
@@ -403,9 +510,10 @@ export async function runAgentLoop(fullMessage, { silent = false }, ctx) {
       updateProgress({ status: 'complete' });
     }
     if (!silent) {
+      const FINAL_ROLES = new Set(['assistant', 'proposal', 'changeSummary', 'diagram', 'chart', 'imageSearch', 'research']);
       setMessages(prev => {
         const lastMsg = prev[prev.length - 1];
-        if (lastMsg?.role === 'assistant' || lastMsg?.role === 'proposal' || lastMsg?.role === 'changeSummary') return prev;
+        if (FINAL_ROLES.has(lastMsg?.role)) return prev;
         return [...prev, { role: 'assistant', text: "I've completed several steps but couldn't fully finish. Could you try a more specific request?" }];
       });
     }

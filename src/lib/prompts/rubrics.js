@@ -30,10 +30,10 @@ Return a JSON object with exactly this structure:
           "oa": "string — which course learning objective this criterion maps to",
           "wt": number — percentage weight (all criteria must sum to 100),
           "pt": number — max points for this criterion (weight/100 × totalPoints),
-          "ex": "string — observable, behavioral description with concrete quality/quantity markers. What mastery looks like ABOVE the minimum standard.",
-          "pr": "string — meets the standard. Concrete descriptors. No vague words like 'good' or 'adequate'.",
-          "dv": "string — partially meets standard. Describes what IS present, not just what is missing.",
-          "bg": "string — does not yet meet standard. Still describes what the student has attempted, not purely negative."
+          "ex": "string — observable, behavioral description with concrete quality/quantity markers. What mastery looks like ABOVE the minimum standard. MUST end with ' e.g., [concrete 1-sentence example of student work at this level].'",
+          "pr": "string — meets the standard. Concrete descriptors. No vague words like 'good' or 'adequate'. MUST end with ' e.g., [concrete 1-sentence example of student work at this level].'",
+          "dv": "string — partially meets standard. Describes what IS present, not just what is missing. MUST end with ' e.g., [concrete 1-sentence example of student work at this level].'",
+          "bg": "string — does not yet meet standard. Still describes what the student has attempted, not purely negative. MUST end with ' e.g., [concrete 1-sentence example of student work at this level].'"
         }
       ],
       "gp": "string — how this rubric connects to the overall course grading policy: state the weight of this assessment in the final grade and which grading category it falls under (QM 3.3)",

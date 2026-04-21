@@ -26,12 +26,17 @@ Return a JSON object with exactly this structure:
       "lo": ["string"] — 2-5 objectives shown on the objectives slide,
       "sl": [
         {
-          "t": "string — for content/bridge/example/keyTerm slides: MUST be a full declarative sentence (assertion). Examples: 'Dopamine regulates motivation through reward prediction errors', 'Three factors determine housing policy effectiveness'. For title/agenda/objectives/activity/summary/closing slides: descriptive label is acceptable.",
+          "t": "string — for content/bridge/example slides: MUST be a full declarative sentence (assertion). Examples: 'Dopamine regulates motivation through reward prediction errors', 'Three factors determine housing policy effectiveness'. For keyTerm slides: use the term or concept itself as the title (e.g. 'Gini Impurity', 'Backpropagation') — the definition goes in the first bullet. For title/agenda/objectives/activity/discussion/summary/closing slides: descriptive label is acceptable.",
           "ty": "string — MUST be one of: 'title' | 'agenda' | 'objectives' | 'bridge' | 'content' | 'activity' | 'discussion' | 'example' | 'keyTerm' | 'summary' | 'closing'",
           "bu": ["string"] — max 4 concise bullets for content slides; title slides use 1 subtitle; activity/discussion 1-3 steps; summary recaps objectives as 'Can you now...?' questions; keyTerm slides: first bullet is the term/definition, remaining bullets explain it,
           "no": "string — full instructor script paragraph (minimum 4 sentences). Must include: (1) the main point in your own words, (2) a concrete real-world example or analogy, (3) an anticipated student question with your response, (4) TRANSITION: [explicit cue to next slide]. Each slide's notes must feel unique — never use the same phrasing patterns across slides.",
+          "vi": {
+            "k": "string — visual kind: 'none' | 'diagram' | 'chart' | 'image' | 'table' | 'code' | 'equation'. Use 'none' ONLY for title/agenda/objectives/closing slides; every content/example/keyTerm slide MUST have a visual (k != 'none').",
+            "d": "string — 1-sentence instructor-facing description of what the visual should show (e.g. 'Venn diagram showing supervised vs unsupervised overlap on labeled-data axis', 'Bar chart: accuracy of 3 models on test set')",
+            "at": "string — alt text for screen readers: concrete, full-sentence description of the visual's content, not a label ('Three concentric circles representing…' not 'Venn diagram')"
+          },
           "at": "string or null — for 'activity' and 'discussion' slides only: e.g. 'Think-Pair-Share' | 'Small Group Discussion' | 'Cold Call' | 'Poll' | 'Gallery Walk' | 'Jigsaw'",
-          "ti": "string or null — for activity/discussion slides: e.g. '5 min'",
+          "ti": "string — estimated minutes for this slide, e.g. '3 min' | '5 min'. REQUIRED on every slide. Sum across all slides must approximately equal the total session length shown on the agenda slide.",
           "bl": "string or null — for content/activity/discussion/example slides: the Bloom's level this slide targets",
           "ol": "string or null — for content/activity/discussion/example slides: which learning objective this slide supports (QM 4.1)"
         }
@@ -41,42 +46,49 @@ Return a JSON object with exactly this structure:
   ]
 }
 
-REQUIRED SLIDE SEQUENCE (every deck must follow this structure):
-1. Slide 1 — type: 'title' — lesson number, lesson title, course name
-2. Slide 2 — type: 'agenda' — today's segments with approximate times as bullets
-3. Slide 3 — type: 'objectives' — 2-5 Bloom's-level objectives (verb + content, no boilerplate stems)
-4. Slide 4 — type: 'bridge' — MUST reference specific content from the previous lesson (not generic). Bullets should be split: first half = "Last time we learned..." recap points, second half = "Today we'll..." preview points
-5-N. Body slides — mix of content, activity, discussion, example, and keyTerm slides
-N-1. type: 'summary' — return to objectives as self-check questions: "Can you now [verb] [content]?"
-N. type: 'closing' — homework reminder + due date + preview of next session
+REQUIRED SEQUENCE:
+1. title — lesson number + title + course name
+2. agenda — segments + approx times as bullets
+3. objectives — 2-5 Bloom's-level objectives (verb + content)
+4. bridge — reference SPECIFIC content from the previous lesson (not generic). First bullets = "Last time…" recap, second half = "Today we'll…" preview.
+5–(N-2). body — mix of content, activity, discussion, example, keyTerm
+(N-1). summary — objectives returned as self-check questions: "Can you now [verb] [content]?"
+N. closing — homework + due date + preview of next session
 
-SLIDE VARIETY RULES (critical for engagement):
-- Include at least 1 'example' slide per deck (real-world case study or scenario)
-- Include at least 1 'activity' or 'discussion' slide per deck
-- Include at least 1 'keyTerm' slide per deck when new vocabulary/concepts are introduced
-- NEVER have 3+ consecutive 'content' slides — break them up with activity, example, or keyTerm slides
-- Vary slide types to maintain cognitive engagement
+VARIETY (hard caps — enforce while building the deck):
+- ≥1 example slide, ≥1 activity OR discussion slide, ≥1 keyTerm slide per deck.
+- **Maximum 2 consecutive 'content' slides.** If the lesson has 3+ related
+  concepts to cover (e.g. three algorithms, three causes, three phases),
+  you MUST insert a keyTerm slide (defining one of them) OR an example
+  slide (applying one of them) between the 2nd and 3rd content slide.
+  Before returning, scan your sl array: if any window of 3 consecutive
+  entries is all ty='content', rewrite the middle one as keyTerm or example.
 
-CONTENT QUALITY RULES:
-- Maximum 4 bullets per content slide (cognitive load principle)
-- Every content slide title MUST be a full declarative sentence (assertion-evidence model)
-- Bridge slides MUST reference specific content from the previous lesson, not generic "last time we..."
-- Example slides: last bullet should be the key insight/takeaway
-- keyTerm slides: first bullet is the term or concept definition, remaining bullets provide explanation and context
+CONTENT QUALITY:
+- Max 4 bullets per content slide (cognitive load).
+- Content/bridge/example titles MUST be full declarative sentences (assertion-evidence).
+- keyTerm titles: use the term itself (e.g. "Gini Impurity"); definition goes in the first bullet.
+- Example slides: last bullet = key insight/takeaway.
+- keyTerm slides: first bullet = term/definition; remaining bullets explain it.
 
-SPEAKER NOTES RULES:
-- Minimum 4 sentences per slide
-- Must include a concrete example or analogy (not just restating bullets)
-- Must include an anticipated student question or common misconception
-- Last sentence MUST be "TRANSITION: [cue to next slide topic]"
-- Vary language — never start two consecutive notes the same way
-- Sound like a real professor, not a textbook
+VISUALS (every content/example/keyTerm slide needs one):
+- Set "vi.k" (visual kind) to one of: diagram, chart, image, table, code, equation — NOT 'none'.
+- "vi.d" describes what the visual shows in one concrete sentence (instructor-facing hint).
+- "vi.at" (alt text) is a full-sentence SR-friendly description of the visual's CONTENT, not just a label.
+- Title/agenda/objectives/closing slides may set vi.k='none' with empty d/at.
 
-REQUIREMENTS:
-- 12–16 slides per deck (more substantive than 10)
-- Agenda slide bullets show timing (e.g., "Case study discussion (10 min)")
-- Summary slide returns to the objectives slide content
-- QM ALIGNMENT: Use a variety of instructional materials within each deck: text, diagrams, examples, video references, and interactive elements (QM 4.5). Speaker notes must include accessibility considerations when relevant (QM 8.2-8.3). Each content/activity slide must clearly connect to a learning objective via the objectiveLink field (QM 4.1, 4.2).
-- HUMAN READABILITY: Each slide's notes must feel distinct and natural. Vary sentence structure. Do not copy-paste patterns across slides.
-- Return ONLY the JSON object, no prose, no markdown`,
+TIMING (every slide):
+- Set "ti" as a concrete minute estimate ('1 min', '3 min', '5 min', etc).
+- The sum across all slides should approximately match the session length implied by the agenda.
+
+SPEAKER NOTES:
+- ≥4 sentences per slide. Include a concrete example or analogy (not restated bullets) + an anticipated student question or common misconception.
+- Last sentence MUST be "TRANSITION: [cue to next slide]".
+- Vary language — never start two consecutive notes the same way. Sound like a real professor, not a textbook.
+
+OVERALL:
+- 12–16 slides per deck. Agenda bullets show timing ("Case study (10 min)"). Summary returns to objectives content.
+- QM: vary instructional materials — text, diagrams, examples, video references, interactive elements (QM 4.5). Include accessibility notes in speaker notes when relevant (QM 8.2-8.3). Every content/activity slide connects to an objective via ol (QM 4.1-4.2).
+- Each slide's notes feel distinct; vary sentence structure across slides.
+- Return ONLY the JSON object, no prose, no markdown.`,
   }

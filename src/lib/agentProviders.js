@@ -186,6 +186,14 @@ function googleSchemaFix(schema) {
 export function buildAgentRequest(provider, { model, systemPrompt, messages, tools, maxTokens = 16384, temperature = 0.4, apiKey }) {
   const tempSetting = temperature !== undefined ? { temperature } : {};
 
+  // Callers may pass `systemPrompt` as a string (legacy) or as
+  // `{staticPart, dynamicPart}` for Anthropic two-breakpoint caching. The
+  // anthropic branch handles the object shape natively; every other provider
+  // needs a plain string, so we flatten here.
+  const joinedSystemPrompt = (systemPrompt && typeof systemPrompt === 'object' && !Array.isArray(systemPrompt))
+    ? [systemPrompt.staticPart, systemPrompt.dynamicPart].filter(Boolean).join('\n\n')
+    : String(systemPrompt || '');
+
   if (provider === 'openai') {
     return {
       endpoint: 'https://api.openai.com/v1/chat/completions',
@@ -196,7 +204,7 @@ export function buildAgentRequest(provider, { model, systemPrompt, messages, too
       body: {
         model,
         messages: [
-          { role: 'system', content: systemPrompt },
+          { role: 'system', content: joinedSystemPrompt },
           ...messages.map(m => m._native ? stripNativeFlag(m) : { role: m.role, content: m.content }),
         ],
         tools,
@@ -208,6 +216,12 @@ export function buildAgentRequest(provider, { model, systemPrompt, messages, too
   }
 
   if (provider === 'anthropic') {
+    // Prompt caching: mark the system prompt and the last tool as ephemeral so
+    // Claude's cache can reuse them across turns within a ~5-minute window.
+    // `systemPrompt` may be either a string (legacy) or `{staticPart,
+    // dynamicPart}` (preferred — yields two cache breakpoints so the static
+    // prefix survives course/tab switches).
+    const systemBlocks = applyAnthropicCache(systemPrompt, tools);
     return {
       endpoint: 'https://api.anthropic.com/v1/messages',
       headers: {
@@ -220,8 +234,8 @@ export function buildAgentRequest(provider, { model, systemPrompt, messages, too
         model,
         max_tokens: maxTokens,
         ...tempSetting,
-        system: systemPrompt,
-        tools,
+        system: systemBlocks.system,
+        tools: systemBlocks.tools,
         messages: messages.map(m => m._native ? stripNativeFlag(m) : { role: m.role, content: m.content }),
       },
     };
@@ -232,7 +246,7 @@ export function buildAgentRequest(provider, { model, systemPrompt, messages, too
       endpoint: `https://generativelanguage.googleapis.com/v1beta/models/${model}:generateContent?key=${apiKey}`,
       headers: { 'Content-Type': 'application/json' },
       body: {
-        system_instruction: { parts: [{ text: systemPrompt }] },
+        system_instruction: { parts: [{ text: joinedSystemPrompt }] },
         contents: messages.map(m => {
           if (m._native) return stripNativeFlag(m);
           return {
@@ -256,7 +270,7 @@ export function buildAgentRequest(provider, { model, systemPrompt, messages, too
       body: {
         model,
         messages: [
-          { role: 'system', content: systemPrompt },
+          { role: 'system', content: joinedSystemPrompt },
           ...messages.map(m => m._native ? stripNativeFlag(m) : { role: m.role, content: m.content }),
         ],
         tools,
@@ -283,7 +297,7 @@ export function buildAgentRequest(provider, { model, systemPrompt, messages, too
       body: {
         model,
         messages: [
-          { role: 'system', content: systemPrompt },
+          { role: 'system', content: joinedSystemPrompt },
           ...messages.map(m => m._native ? stripNativeFlag(m) : { role: m.role, content: m.content }),
         ],
         tools,
@@ -306,6 +320,50 @@ export function buildAgentRequest(provider, { model, systemPrompt, messages, too
 function stripNativeFlag(msg) {
   const { _native, ...rest } = msg;
   return rest;
+}
+
+/**
+ * Wrap Anthropic's system prompt + tool list with cache_control blocks so the
+ * provider can hit its prompt cache on subsequent turns. Anthropic allows up
+ * to 4 breakpoints per request; we use up to 3 here:
+ *
+ *   1. Static system prefix — identical across all courses / tabs / users.
+ *      Survives course switches and (most) user-pref changes.
+ *   2. Dynamic system tail — course state, active tab, memories, prefs.
+ *      Invalidates when any of those change, but sits behind breakpoint 1
+ *      so prefix cache survives.
+ *   3. Last tool — tool list is static per session; caching it folds the
+ *      whole `tools` block into the hit.
+ *
+ * Accepts either a plain `systemPrompt` string (single breakpoint on the
+ * whole thing) or `{ staticPart, dynamicPart }` (two breakpoints).
+ *
+ * Shared by buildAgentRequest and the multi-turn test harness so both paths
+ * benefit identically from caching.
+ */
+export function applyAnthropicCache(systemPrompt, tools) {
+  let system;
+  if (systemPrompt && typeof systemPrompt === 'object' && !Array.isArray(systemPrompt)
+      && (typeof systemPrompt.staticPart === 'string' || typeof systemPrompt.dynamicPart === 'string')) {
+    const blocks = [];
+    if (systemPrompt.staticPart) {
+      blocks.push({ type: 'text', text: systemPrompt.staticPart, cache_control: { type: 'ephemeral' } });
+    }
+    if (systemPrompt.dynamicPart) {
+      blocks.push({ type: 'text', text: systemPrompt.dynamicPart, cache_control: { type: 'ephemeral' } });
+    }
+    // Defensive: always emit at least one block so the API doesn't reject.
+    system = blocks.length > 0 ? blocks : [{ type: 'text', text: '' }];
+  } else {
+    system = [{ type: 'text', text: String(systemPrompt || ''), cache_control: { type: 'ephemeral' } }];
+  }
+  if (!Array.isArray(tools) || tools.length === 0) {
+    return { system, tools: tools || [] };
+  }
+  const cached = tools.map((t, i) =>
+    i === tools.length - 1 ? { ...t, cache_control: { type: 'ephemeral' } } : t
+  );
+  return { system, tools: cached };
 }
 
 // ── Parse provider response → unified format ────────────────────────────────
@@ -488,13 +546,25 @@ export function formatToolResult(provider, toolCallId, toolName, result) {
   }
 
   if (provider === 'google') {
+    // Always send the truncated payload so large tool results don't blow past
+    // Gemini's context window. Parse back to an object when possible so the
+    // API receives structured JSON (Gemini expects response to be an object).
+    let responsePayload;
+    try {
+      responsePayload = JSON.parse(truncated);
+      if (typeof responsePayload !== 'object' || responsePayload === null || Array.isArray(responsePayload)) {
+        responsePayload = { result: responsePayload };
+      }
+    } catch {
+      responsePayload = { result: truncated };
+    }
     return {
       _native: true,
       role: 'user',
       parts: [{
         functionResponse: {
           name: toolName,
-          response: typeof result === 'object' ? result : { result: truncated },
+          response: responsePayload,
         },
       }],
     };

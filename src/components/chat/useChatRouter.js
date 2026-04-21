@@ -1,4 +1,4 @@
-import { useState, useRef, useEffect, useCallback } from 'react';
+import { useState, useRef, useEffect, useCallback, useMemo } from 'react';
 import { parseFiles } from '../../lib/fileParser';
 import { classifyFindings } from '../../lib/pedagogicalValidator';
 import { getChatOpener } from './constants';
@@ -12,6 +12,11 @@ import {
   handleAgentFinalResponse as _handleAgentFinalResponse,
 } from './useChatMessages';
 import { useAIConfig } from '../../contexts/AIConfigContext';
+import { AGENT_TOOLS } from '../../lib/agentTools';
+import {
+  createCustomToolRegistry, mergeCloudCustomTools, parseExportedTool,
+} from '../../lib/customAgentTools';
+import { saveCustomTool, deleteCustomTool } from '../../lib/cloudStorage';
 
 // ═══════════════════════════════════════════════════════════════════════════
 // useChatRouter — Unified hook for Ask (help AI) + Revise (agent/revision)
@@ -62,6 +67,69 @@ export default function useChatRouter({
   // Keep fresh refs for values used in callbacks
   const executeActionRef = useRef(executeAction);
   useEffect(() => { executeActionRef.current = executeAction; });
+  // Session-scoped registry for agent-created macros (create_tool / run_tool).
+  // Hydrates from localStorage on mount so macros survive refreshes.
+  // `uid` may arrive asynchronously (after Firebase auth resolves) — capture it
+  // via a ref so the cloud-sync callback always uses the latest value without
+  // rebuilding the registry.
+  const uidRef = useRef(uid);
+  useEffect(() => { uidRef.current = uid; }, [uid]);
+  // A version counter lets us re-render the CustomToolsMenu when the registry
+  // mutates. The registry itself lives in a ref (stable identity), but the
+  // React tree needs a dependency to re-read its contents.
+  const [customToolsVersion, setCustomToolsVersion] = useState(0);
+  // Cloud-sync status surfaces to the UI via a "not synced" pill so users can
+  // tell when local writes failed to propagate (permission errors, network
+  // drops, etc). Each failure is tagged with the tool name + operation so the
+  // UI can show what didn't stick.
+  const [customToolSyncError, setCustomToolSyncError] = useState(null);
+  const customToolRegistryRef = useRef(null);
+  if (!customToolRegistryRef.current) {
+    customToolRegistryRef.current = createCustomToolRegistry({
+      onCloudSync: (tool, op) => {
+        setCustomToolsVersion(v => v + 1);
+        const currentUid = uidRef.current;
+        if (!currentUid) return; // anonymous: localStorage only, no remote sync to track
+        const promise = op === 'save'
+          ? saveCustomTool(currentUid, tool)
+          : op === 'delete' ? deleteCustomTool(currentUid, tool.name) : Promise.resolve();
+        promise
+          .then(() => {
+            // Clear any prior error once a subsequent write succeeds.
+            setCustomToolSyncError(prev => prev && prev.name === tool.name ? null : prev);
+          })
+          .catch((err) => {
+            setCustomToolSyncError({
+              name: tool.name,
+              op,
+              message: err?.message || 'Cloud sync failed',
+              at: Date.now(),
+            });
+          });
+      },
+    });
+  }
+  // One-shot cloud merge on sign-in — pulls any tools created on other devices.
+  const mergedForUidRef = useRef(null);
+  useEffect(() => {
+    if (!uid || mergedForUidRef.current === uid) return;
+    mergedForUidRef.current = uid;
+    mergeCloudCustomTools(uid).then(() => setCustomToolsVersion(v => v + 1)).catch(() => {});
+  }, [uid]);
+  // eslint-disable-next-line react-hooks/exhaustive-deps
+  const customTools = useMemo(() => customToolRegistryRef.current.list(), [customToolsVersion]);
+  const deleteCustomToolByName = useCallback((name) => {
+    customToolRegistryRef.current.delete(name);
+  }, []);
+  // Import a macro from a pasted JSON snippet. Returns {ok, error?} so the
+  // CustomToolsMenu can render a per-attempt error without any global toast.
+  const importCustomTool = useCallback((jsonText) => {
+    const parsed = parseExportedTool(jsonText);
+    if (!parsed.ok) return { ok: false, error: parsed.error };
+    const existingToolNames = new Set(Object.keys(AGENT_TOOLS));
+    const res = customToolRegistryRef.current.register(parsed.def, { existingToolNames });
+    return res;
+  }, []);
   const delivRef = useRef(deliverables);
   useEffect(() => { delivRef.current = deliverables; });
   const snapshotRef = useRef(delivUndoSnapshot);
@@ -108,7 +176,7 @@ export default function useChatRouter({
 
   // ── Send message ──────────────────────────────────────────────────────────
   async function send(text) {
-    const trimmed = text.trim();
+    let trimmed = text.trim();
     if ((!trimmed && attachedFiles.length === 0) || isStreamingRef.current) return;
 
     // Dismiss any pending or failed proposals
@@ -246,6 +314,7 @@ export default function useChatRouter({
       courseMap, activeTab,
       delivRef, executeActionRef, snapshotRef, undoFnRef, notifyEditRef,
       uid,
+      customToolRegistryRef,
       maybeRunValidation,
       sendAgentMessage,
       handleAgentFinalResponse: (response) =>
@@ -476,6 +545,39 @@ export default function useChatRouter({
     sendAgentMessage(prompt, { silent: true });
   }
 
+  // ── Retry failed / Keep applied for partial-failure changeSummary cards ──
+  /**
+   * Build a targeted silent follow-up so the agent retries the exact patches
+   * that failed, with the error messages inline so it knows what to correct.
+   */
+  function retryFailedEdits(msgIndex, failedItems, toolName) {
+    if (!Array.isArray(failedItems) || failedItems.length === 0) return;
+    const lines = failedItems.map((f, i) => {
+      const feature = f.featureId || 'courseMap';
+      const lesson = typeof f.lessonIndex === 'number' ? ` (Lesson ${f.lessonIndex + 1})` : '';
+      const inputBlob = f.originalInput ? `\n    Previous args: ${JSON.stringify(f.originalInput)}` : '';
+      return `${i + 1}. ${f.action} on ${feature}${lesson} — failed: ${f.message}${inputBlob}`;
+    }).join('\n');
+    const tool = toolName === 'edit_course_map' ? 'edit_course_map' : 'edit_deliverables';
+    const prompt =
+      `[RETRY-FAILED] A previous ${tool} call partially failed. The applied changes should stay; ` +
+      `only retry the failures below, correcting whatever caused each error (bad lessonIndex, missing required ` +
+      `field, duplicate content, not-generated deliverable, etc). After retrying, respond() briefly confirming ` +
+      `what now succeeded and what couldn't be fixed and why.\n\n${lines}`;
+    // Mark the card as retrying so the UI updates immediately.
+    setMessages(prev => prev.map((m, i) =>
+      i === msgIndex && m.role === 'changeSummary' ? { ...m, status: 'retried' } : m
+    ));
+    sendAgentMessage(prompt, { silent: true });
+  }
+
+  /** Dismiss the failure panel — kept successes stay, no state mutation. */
+  function keepAppliedChanges(msgIndex) {
+    setMessages(prev => prev.map((m, i) =>
+      i === msgIndex && m.role === 'changeSummary' ? { ...m, status: 'kept' } : m
+    ));
+  }
+
   /** Skip health gate and show normal completion card */
   function skipHealthGate(completionData) {
     setMessages(prev => {
@@ -548,5 +650,11 @@ export default function useChatRouter({
     pushSyncSuggestion, handleApproveSyncSuggestion, handleSkipSyncSuggestion,
     triggerAutoFix, skipHealthGate,
     editAndResend, regenerate, feedback,
+    // Agent-created macros (create_tool / run_tool) — surfaced to the ChatPanel
+    // header so users can see, delete, export, and import them.
+    customTools, deleteCustomTool: deleteCustomToolByName,
+    importCustomTool, customToolSyncError,
+    // Partial-failure recovery on changeSummary cards
+    retryFailedEdits, keepAppliedChanges,
   };
 }

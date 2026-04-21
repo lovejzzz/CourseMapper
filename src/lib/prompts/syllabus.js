@@ -40,6 +40,8 @@ Return JSON in this exact structure:
 
   "learningOutcomes":["5-7 specific, measurable outcomes using observable action verbs from Bloom's taxonomy (analyze, design, evaluate, synthesize, critique) — avoid vague terms like 'understand' or 'appreciate'. Each should be 1 sentence."],
 
+  "outcomeAlignmentMatrix":[{"outcome":"paste each learningOutcome verbatim","bloomsLevel":"Apply|Analyze|Evaluate|Create","assessedBy":["names of the specific courseRequirements entries that measure this outcome — e.g. 'Midterm Project', 'Weekly Quizzes #2-4', 'Final Presentation'"],"practicedIn":["lesson titles from the course map where learners practice this outcome before being assessed"]}],
+
   "requiredTexts":[{"title":"...","author":"...","edition":"...","isbn":"...","note":"(optional — e.g., 'Available at campus bookstore' or 'Free PDF on course LMS')"}],
 
   "courseRequirements":[{"name":"Assignment category name","weight":"20%","description":"2-3 sentence description of what this entails, how it connects to learning outcomes, and what students should expect."}],
@@ -85,6 +87,7 @@ CRITICAL RULES:
 - courseRequirements weights MUST total exactly 100%
 - weeklySchedule MUST have one entry per lesson/week in the course map — match topics precisely
 - learningOutcomes must use specific Bloom's taxonomy verbs: analyze, evaluate, create, apply, compare, critique, design, formulate, integrate, synthesize
+- outcomeAlignmentMatrix MUST have one entry per learningOutcome (accreditation artifact). Every outcome must be assessedBy ≥1 courseRequirement AND practicedIn ≥1 lesson — if an outcome has no assessment, that's a gap the instructor needs to see.
 - requiredTexts: infer plausible real textbooks for this discipline if not specified — include full bibliographic detail
 - gradingScale: use the standard US university scale shown above unless professor profile provides a custom one
 - All policy sections must read like real university policies — professional, specific, and actionable

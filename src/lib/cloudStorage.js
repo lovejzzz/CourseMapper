@@ -181,6 +181,32 @@ export async function deleteAgentMemory(uid, id) {
   await deleteDoc(memoryDoc(uid, id));
 }
 
+/* ═══════════════════ Agent Custom Tools (Macros) ═══════════════════ */
+
+function customToolsCol(uid) { return collection(db, 'users', uid, 'agentData', 'customTools', 'entries'); }
+function customToolDoc(uid, name) { return doc(db, 'users', uid, 'agentData', 'customTools', 'entries', name); }
+
+export async function loadCustomTools(uid) {
+  if (!db) return [];
+  const snap = await getDocs(customToolsCol(uid));
+  return snap.docs.map(d => ({ name: d.id, ...d.data() }));
+}
+
+export async function saveCustomTool(uid, tool) {
+  if (!db) return;
+  // Use the tool name as the doc id so re-registering overwrites cleanly.
+  await setDoc(customToolDoc(uid, tool.name), {
+    ...tool,
+    updatedAt: serverTimestamp(),
+  });
+  return tool.name;
+}
+
+export async function deleteCustomTool(uid, name) {
+  if (!db) return;
+  await deleteDoc(customToolDoc(uid, name));
+}
+
 /* ═══════════════════ Generate unique project ID ═══════════════════ */
 
 export function newProjectId() {

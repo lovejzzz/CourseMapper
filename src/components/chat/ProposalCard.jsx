@@ -225,6 +225,7 @@ function OptionCard({ option, isPending, isChosen, isReviewing, isFailed, failed
             <span
               role="button"
               tabIndex={0}
+              aria-label={`Retry ${option.title || option.label}`}
               onClick={(e) => { e.stopPropagation(); onSelect(option.label); }}
               onKeyDown={(e) => { if (e.key === 'Enter' || e.key === ' ') { e.stopPropagation(); onSelect(option.label); } }}
               className="inline-flex items-center gap-0.5 text-[10px] font-semibold mt-1 text-indigo-400 hover:text-indigo-600 transition-colors"
@@ -241,6 +242,8 @@ function OptionCard({ option, isPending, isChosen, isReviewing, isFailed, failed
             <span
               role="button"
               tabIndex={0}
+              aria-label={expanded ? 'Show less description' : 'Show full description'}
+              aria-expanded={expanded}
               onClick={handleExpandToggle}
               onKeyDown={(e) => { if (e.key === 'Enter' || e.key === ' ') handleExpandToggle(e); }}
               className={`inline-flex items-center gap-0.5 text-[10px] font-semibold mt-1 transition-colors ${
@@ -261,6 +264,8 @@ function OptionCard({ option, isPending, isChosen, isReviewing, isFailed, failed
               <span
                 role="button"
                 tabIndex={0}
+                aria-label={showPreview ? 'Hide content preview' : 'Show content preview'}
+                aria-expanded={showPreview}
                 onClick={(e) => { e.stopPropagation(); setShowPreview(v => !v); }}
                 onKeyDown={(e) => { if (e.key === 'Enter' || e.key === ' ') { e.stopPropagation(); setShowPreview(v => !v); } }}
                 className={`inline-flex items-center gap-0.5 text-[10px] font-semibold mt-1 ${isLong ? 'ml-2' : ''} transition-colors ${

@@ -185,10 +185,12 @@ describe('buildAgentSystemPrompt', () => {
     expect(prompt).toContain('read_deliverable');
   });
 
-  it('prompt is compact (under 10500 chars for base case)', () => {
+  it('prompt is compact (under 12500 chars for base case)', () => {
     const prompt = buildAgentSystemPrompt(baseCourseMap, 'quizBank', baseDeliverables);
-    // Includes few-shot examples, response style rules, tone rules, quality rules, schema + context
-    expect(prompt.length).toBeLessThan(10500);
+    // Includes few-shot examples, response style rules, tone rules, quality rules, schema + context,
+    // plus the god-mode agency / self-heal / greeting rules added in the enhance-chatbot-godmode pass
+    // and the split-cache refactor (which adds a small "\n\n" separator + the new ACTIONS cross-ref line).
+    expect(prompt.length).toBeLessThan(12500);
   });
 
   it('shows path example for slideDecks when that tab is active', () => {
@@ -223,7 +225,10 @@ describe('buildAgentSystemPrompt', () => {
 
   it('dependency map instructs proactive editing of related deliverables', () => {
     const prompt = buildAgentSystemPrompt(baseCourseMap, 'quizBank', baseDeliverables);
-    expect(prompt).toContain('proactively edit them in the same call');
+    // The exact wording was tightened in the prompt-trim pass; the test
+    // now checks the underlying instruction instead of a literal phrase.
+    expect(prompt).toMatch(/one\s+edit_deliverables\s+call|same\s+(edit_deliverables\s+)?call/i);
+    expect(prompt).toContain('CROSS-DELIVERABLE SYNC');
   });
 
   // ── Empty lessons hint (Bug 1) ──

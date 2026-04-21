@@ -3,6 +3,7 @@ import ProgressHeader from './ProgressHeader';
 import MessageList from './MessageList';
 import ChatInput from './ChatInput';
 import AgentProgressCard from './AgentProgressCard';
+import CustomToolsMenu from './CustomToolsMenu';
 import useChatRouter from './useChatRouter';
 import ExamReview from '../ExamReview';
 import { executeAction } from '../../lib/agentActions';
@@ -106,6 +107,16 @@ export default function ChatPanel({
   // ── Proactive agent: auto-review after deliverable generation completes ──
   const prevDelivGeneratingRef = useRef(isDelivGenerating);
   const proactiveReviewDoneRef = useRef(false);
+  const autoReviewTimerRef = useRef(null);
+  // If the user types and sends during the 2s delay, we cancel the auto-review
+  // so we don't double-post a message on top of their own. Also keeps the
+  // proactiveReviewDoneRef flipped so we don't re-schedule later.
+  useEffect(() => {
+    if (chat.isStreaming && autoReviewTimerRef.current) {
+      clearTimeout(autoReviewTimerRef.current);
+      autoReviewTimerRef.current = null;
+    }
+  }, [chat.isStreaming]);
   useEffect(() => {
     const wasGenerating = prevDelivGeneratingRef.current;
     prevDelivGeneratingRef.current = isDelivGenerating;
@@ -117,13 +128,19 @@ export default function ChatPanel({
         : 0;
       if (doneCount >= 2) {
         proactiveReviewDoneRef.current = true;
-        // Brief delay to let UI settle, then auto-review
-        setTimeout(() => {
+        // Brief delay to let UI settle, then auto-review — but cancel if the
+        // user beats us to the punch by sending their own message.
+        autoReviewTimerRef.current = setTimeout(() => {
+          autoReviewTimerRef.current = null;
+          if (chat.isStreaming) return; // user already started something
           chat.send('[AUTO-REVIEW] Generation complete. Run validate_course, summarize the top issues found, and propose fixes as proposal cards. If no issues, confirm the course looks good in 1-2 sentences.');
         }, 2000);
       }
     }
   }, [isDelivGenerating]); // eslint-disable-line react-hooks/exhaustive-deps
+  useEffect(() => () => {
+    if (autoReviewTimerRef.current) clearTimeout(autoReviewTimerRef.current);
+  }, []);
 
   const showProgressHeader = !!(currentStep || error);
 
@@ -167,10 +184,28 @@ export default function ChatPanel({
           )}
         </div>
         {chat.isStreaming && (
-          <div className="flex items-center gap-1.5">
-            <div className="w-2 h-2 rounded-full bg-violet-400 animate-pulse" />
-            <span className="text-[10px] text-violet-500 font-medium">Working</span>
-          </div>
+          <button
+            type="button"
+            onClick={chat.handleStop}
+            className="group flex items-center gap-1.5 px-2 py-0.5 rounded-full text-[10px] font-medium text-violet-600 hover:text-red-600 hover:bg-red-50/80 border border-transparent hover:border-red-200/60 transition-all duration-150"
+            title="Stop generation"
+            aria-label="Stop generation"
+          >
+            <span className="relative w-2 h-2">
+              <span className="absolute inset-0 rounded-full bg-violet-400 group-hover:hidden animate-pulse" />
+              <span className="absolute inset-0 rounded-sm bg-red-500 hidden group-hover:block" />
+            </span>
+            <span className="group-hover:hidden">Working</span>
+            <span className="hidden group-hover:inline">Stop</span>
+          </button>
+        )}
+        {isAgentMode && (
+          <CustomToolsMenu
+            tools={chat.customTools}
+            onDelete={chat.deleteCustomTool}
+            onImport={chat.importCustomTool}
+            syncError={chat.customToolSyncError}
+          />
         )}
       </div>
 
@@ -251,6 +286,8 @@ export default function ChatPanel({
         onRegenerate={chat.regenerate}
         onFeedback={chat.feedback}
         onEditAndResend={chat.editAndResend}
+        onRetryFailedEdits={chat.retryFailedEdits}
+        onKeepAppliedChanges={chat.keepAppliedChanges}
         courseMap={courseMap}
         activeTab={activeTab}
         deliverables={deliverables}

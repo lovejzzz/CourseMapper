@@ -11,6 +11,9 @@ import { executeResearch } from './academicSearch';
 import { getArrayKey } from './syncDependencies';
 import { addMemory, searchMemories, deleteMemory, getMemories, MEMORY_CATEGORIES } from './agentMemory';
 import { saveAgentPrefs } from './cloudStorage';
+import {
+  CREATE_TOOL_JSON_SCHEMA, RUN_TOOL_JSON_SCHEMA, runPlan,
+} from './customAgentTools';
 
 // ── Helpers ──────────────────────────────────────────────────────────────────
 
@@ -573,6 +576,61 @@ export const AGENT_TOOLS = {
     },
   },
 
+  create_tool: {
+    description:
+      'Compose a new named tool from a sequence of existing tool invocations. ' +
+      'Use this when you realize you will need to repeat a multi-step workflow, or when a problem is ' +
+      'best expressed as a reusable macro (e.g. "audit any deliverable for Bloom\'s floor" = validate_course + read_deliverable). ' +
+      'The macro persists for the rest of this conversation and is invoked with run_tool. ' +
+      'Plans may only compose built-in tools (no recursion into other custom tools, no respond/create_tool/run_tool steps).',
+    params: {
+      name: 'string — identifier, 2-40 chars, [a-zA-Z][a-zA-Z0-9_]*',
+      description: 'string — short description of what the tool does, so you know when to use it later',
+      params: 'object (optional) — documenting runtime args',
+      plan: 'array — ordered steps; each step: {id, tool, args}. args may contain {{args.X}} or {{steps.<id>.<path>}} placeholders.',
+    },
+    jsonSchema: CREATE_TOOL_JSON_SCHEMA,
+    execute: (args, ctx) => {
+      if (!ctx?.customTools?.registry) {
+        return { error: 'Custom-tool registry not wired into this runtime.' };
+      }
+      const existingToolNames = new Set(Object.keys(AGENT_TOOLS));
+      const res = ctx.customTools.registry.register(args || {}, { existingToolNames });
+      if (!res.ok) return { error: res.error };
+      return {
+        ok: true,
+        name: args.name,
+        description: args.description,
+        plan_steps: args.plan.length,
+        invoke: `Call run_tool({name: "${args.name}", args: {...}}) to invoke it.`,
+      };
+    },
+  },
+
+  run_tool: {
+    description:
+      'Invoke a previously created custom tool (by name). Returns the aggregated output of its plan steps. ' +
+      'Prefer running the macro over re-reading its underlying sources — the step results are already the answer.',
+    params: {
+      name: 'string — name of a previously registered custom tool',
+      args: 'object (optional) — runtime args substituted into {{args.X}} placeholders',
+    },
+    jsonSchema: RUN_TOOL_JSON_SCHEMA,
+    execute: async (args, ctx, signal) => {
+      if (!ctx?.customTools?.registry || !ctx?.customTools?.invokeBuiltin) {
+        return { error: 'Custom-tool registry not wired into this runtime.' };
+      }
+      const def = ctx.customTools.registry.get(args?.name);
+      if (!def) return { error: `No custom tool named "${args?.name}". Create it first with create_tool.` };
+      return runPlan({
+        def,
+        runtimeArgs: args?.args || {},
+        invokeBuiltin: (toolName, toolArgs) => ctx.customTools.invokeBuiltin(toolName, toolArgs, signal),
+        onStep: ctx.customTools.onStep, // wired by the runtime to stream progress
+      });
+    },
+  },
+
   forget: {
     description: 'Delete a specific memory that is no longer accurate or relevant.',
     params: {
@@ -612,6 +670,8 @@ export const TOOL_LABELS = {
   compare_deliverables: 'Comparing deliverables',
   undo_last: 'Undoing last edit',
   forget: 'Forgetting outdated info',
+  create_tool: 'Building a custom macro',
+  run_tool: 'Running a custom macro',
   respond: 'Preparing response',
 };
 
@@ -663,6 +723,10 @@ export function summarizeToolResult(toolName, result) {
       return result.success ? 'Edit undone' : 'Failed';
     case 'forget':
       return result.deleted ? 'Memory deleted' : 'Failed';
+    case 'create_tool':
+      return result.ok ? `Created macro "${result.name}" (${result.plan_steps} steps)` : (result.error || 'Failed');
+    case 'run_tool':
+      return result.ok ? `Ran macro (${result.steps?.length || 0} steps)` : (result.error || 'Failed');
     case 'respond':
       return 'Response ready';
     default:

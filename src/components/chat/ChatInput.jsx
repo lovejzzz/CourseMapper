@@ -16,8 +16,10 @@ export default function ChatInput({
 }) {
   const [input, setInput] = useState('');
   const [isDragOver, setIsDragOver] = useState(false);
+  const [isCoolingDown, setIsCoolingDown] = useState(false);
   const fileInputRef = useRef(null);
   const lastSendTimeRef = useRef(0);
+  const cooldownTimerRef = useRef(null);
 
   // Cooldown in ms between chat sends to prevent rapid-fire API calls
   const SEND_COOLDOWN_MS = 1500;
@@ -37,26 +39,44 @@ export default function ChatInput({
     }
   }
 
+  function startCooldown() {
+    // Visible "just a moment" window instead of silently dropping the send.
+    setIsCoolingDown(true);
+    if (cooldownTimerRef.current) clearTimeout(cooldownTimerRef.current);
+    cooldownTimerRef.current = setTimeout(() => setIsCoolingDown(false), SEND_COOLDOWN_MS);
+  }
+
   function handleSend() {
     if ((!input.trim() && (!attachedFiles || attachedFiles.length === 0)) || isStreaming || isRevising) return;
-    // Rate-limit: enforce cooldown between sends
+    // Rate-limit: enforce cooldown between sends. If we're still inside the
+    // window, surface that visually (button goes dim + "Sending…" hint) rather
+    // than silently discarding the send.
     const now = Date.now();
-    if (now - lastSendTimeRef.current < SEND_COOLDOWN_MS) return;
+    if (now - lastSendTimeRef.current < SEND_COOLDOWN_MS) {
+      startCooldown();
+      return;
+    }
     lastSendTimeRef.current = now;
+    startCooldown();
     onSend(input);
     setInput('');
   }
 
-  // Context-aware placeholder
+  React.useEffect(() => () => {
+    if (cooldownTimerRef.current) clearTimeout(cooldownTimerRef.current);
+  }, []);
+
+  // Context-aware placeholder — keeps tone consistent: short, direct,
+  // second-person, no "ask me to…" chatbot-speak.
   const placeholder = isDragOver
-    ? 'Drop files here...'
+    ? 'Drop files here…'
     : hasPendingProposal
-    ? 'Pick an option above, or type something else...'
+    ? 'Pick an option above, or type something else…'
     : !courseMap
-    ? 'Ask a question...'
+    ? 'Ask a question about your course…'
     : isAgentMode
-    ? (delivLabel ? `Ask about ${delivLabel}, or request changes...` : 'Ask me to add, edit, or review items...')
-    : 'Ask a question or request changes...';
+    ? (delivLabel ? `Edit, review, or ask about ${delivLabel}…` : 'Edit, review, or ask about your deliverables…')
+    : 'Ask a question or request changes…';
 
   const busy = isStreaming || isRevising;
 
@@ -151,12 +171,17 @@ export default function ChatInput({
                 <button
                   onClick={() => {
                     const now = Date.now();
-                    if (now - lastSendTimeRef.current < SEND_COOLDOWN_MS) return;
+                    if (now - lastSendTimeRef.current < SEND_COOLDOWN_MS) {
+                      startCooldown();
+                      return;
+                    }
                     lastSendTimeRef.current = now;
+                    startCooldown();
                     onSend('Review my course. Run validate_course, then scan all generated deliverables for: (1) weak learning objectives that use lower Bloom\'s verbs like "understand" or "know" — suggest upgrades, (2) misalignment between assessments and stated objectives, (3) missing or vague content in any deliverable, (4) readability issues. For each issue found, explain what\'s wrong and propose a specific fix using edit_deliverables or edit_course_map.');
                     setInput('');
                   }}
-                  className="tactile flex items-center gap-1 px-2 py-0.5 rounded-lg text-[10px] font-semibold text-emerald-600 hover:bg-emerald-50/60 hover:text-emerald-700 transition-all duration-200"
+                  disabled={isCoolingDown}
+                  className="tactile flex items-center gap-1 px-2 py-0.5 rounded-lg text-[10px] font-semibold text-emerald-600 hover:bg-emerald-50/60 hover:text-emerald-700 transition-all duration-200 disabled:opacity-50 disabled:cursor-not-allowed"
                   title="AI reviews your course for alignment, readability, and completeness"
                 >
                   <svg className="w-3 h-3" fill="none" stroke="currentColor" viewBox="0 0 24 24">
@@ -203,13 +228,23 @@ export default function ChatInput({
             ) : (
               <button
                 onClick={handleSend}
-                disabled={!input.trim() && (!attachedFiles || attachedFiles.length === 0)}
-                className="tactile p-1.5 rounded-lg text-white bg-gradient-to-r from-indigo-500 to-violet-500 shadow-sm hover:brightness-110 transition-all disabled:opacity-30 disabled:cursor-not-allowed"
-                aria-label="Send message"
+                disabled={(!input.trim() && (!attachedFiles || attachedFiles.length === 0)) || isCoolingDown}
+                className={`tactile p-1.5 rounded-lg text-white bg-gradient-to-r from-indigo-500 to-violet-500 shadow-sm hover:brightness-110 transition-all disabled:cursor-not-allowed ${
+                  isCoolingDown ? 'opacity-60' : 'disabled:opacity-30'
+                }`}
+                aria-label={isCoolingDown ? 'Sending — please wait' : 'Send message'}
+                title={isCoolingDown ? 'Sending — give it a moment' : 'Send (Enter)'}
               >
-                <svg className="w-3.5 h-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M5 10l7-7m0 0l7 7m-7-7v18" />
-                </svg>
+                {isCoolingDown ? (
+                  <svg className="w-3.5 h-3.5 animate-spin" fill="none" viewBox="0 0 24 24" aria-hidden="true">
+                    <circle className="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" strokeWidth="4" />
+                    <path className="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4z" />
+                  </svg>
+                ) : (
+                  <svg className="w-3.5 h-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24" aria-hidden="true">
+                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M5 10l7-7m0 0l7 7m-7-7v18" />
+                  </svg>
+                )}
               </button>
             )}
           </div>

@@ -126,7 +126,10 @@ export default function AssignmentsView({ data, isStreaming, onEdit, regeneratin
                 </div>
               )}
 
-              {/* Scaffolding milestones */}
+              {/* Scaffolding milestones — now includes feedback channel,
+                  point value, and optional upload checklist per milestone.
+                  The feedback + points chips make the scaffolding read as a
+                  coaching timeline, not just a list of dates. */}
               {a.scaffoldingMilestones?.length > 0 && (
                 <div>
                   <SectionHeading>Scaffolding Milestones</SectionHeading>
@@ -135,10 +138,31 @@ export default function AssignmentsView({ data, isStreaming, onEdit, regeneratin
                       <div key={j} className="flex gap-3 items-start bg-indigo-50/30 rounded-lg px-3 py-2 border border-indigo-100/40">
                         <div className="flex-shrink-0 text-center">
                           <span className="text-[9px] font-bold text-indigo-600 block">{m.dueDate}</span>
+                          {typeof m.points === 'number' && (
+                            <span className="text-[9px] text-indigo-400 block mt-0.5 font-mono">{m.points} pt</span>
+                          )}
                         </div>
-                        <div className="flex-1">
+                        <div className="flex-1 min-w-0">
                           <span className="text-xs font-semibold text-indigo-800 block"><E value={m.milestone} path={['assignments', i, 'scaffoldingMilestones', j, 'milestone']} onEdit={onEdit} /></span>
                           {m.description && <p className="text-[11px] text-slate-500 mt-0.5 leading-relaxed"><E value={m.description} path={['assignments', i, 'scaffoldingMilestones', j, 'description']} onEdit={onEdit} /></p>}
+                          {m.feedback && (
+                            <div className="mt-1 inline-flex items-center gap-1 text-[10px] text-violet-600/80 bg-violet-50/60 rounded px-1.5 py-0.5">
+                              <svg className="w-2.5 h-2.5" fill="none" stroke="currentColor" viewBox="0 0 24 24" aria-hidden="true">
+                                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M8 10h.01M12 10h.01M16 10h.01M9 16H5a2 2 0 01-2-2V6a2 2 0 012-2h14a2 2 0 012 2v8a2 2 0 01-2 2h-5l-5 5v-5z" />
+                              </svg>
+                              <span>{m.feedback}</span>
+                            </div>
+                          )}
+                          {Array.isArray(m.uploadChecklist) && m.uploadChecklist.length > 0 && (
+                            <ul className="mt-1.5 space-y-0.5 text-[10px] text-slate-500">
+                              {m.uploadChecklist.map((item, k) => (
+                                <li key={k} className="flex items-start gap-1">
+                                  <span className="text-slate-300 flex-shrink-0 mt-0.5">☐</span>
+                                  <span>{item}</span>
+                                </li>
+                              ))}
+                            </ul>
+                          )}
                         </div>
                       </div>
                     ))}

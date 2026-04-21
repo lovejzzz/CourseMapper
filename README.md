@@ -274,6 +274,16 @@ npm run build
 
 The `dist/` folder can be served by any static file host. The entire app is client-side — no backend server required.
 
+### Testing
+
+```bash
+npm run test:offline      # unit + integration — no network, always safe
+npm run audit:agent       # live agent suite (needs ANTHROPIC_API_KEY)
+npm run audit:deliverables # live deliverable-quality audit (needs ANTHROPIC_API_KEY)
+```
+
+`audit:deliverables` drives the real production prompts (`src/lib/prompts/*`) through Anthropic against a fixed ML-course fixture and scores the output on schema fidelity, prompt-rule adherence (Bloom's distribution, slide sequence, speaker-note format, etc.), and content specificity. Run after any change to the prompts, `FEATURE_OUTPUT_BUDGETS`, or `FEATURE_CHUNK_SIZES` in `src/lib/parallelGenerator.js`. Expect ~12 minutes wall time and a handful of Sonnet calls per run.
+
 ### Deployment
 
 Hosted on GitHub Pages via GitHub Actions. Every push to `main` triggers a build and deploy.

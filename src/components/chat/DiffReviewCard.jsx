@@ -246,6 +246,8 @@ export default function DiffReviewCard({ diff, status, onAccept, onReject }) {
         <span
           role="button"
           tabIndex={0}
+          aria-label={expanded ? 'Hide raw action JSON' : 'Show raw action JSON'}
+          aria-expanded={expanded}
           onClick={() => setExpanded(v => !v)}
           onKeyDown={(e) => { if (e.key === 'Enter' || e.key === ' ') setExpanded(v => !v); }}
           className="inline-flex items-center gap-0.5 text-[10px] font-semibold text-slate-400 hover:text-slate-600 transition-colors cursor-pointer"
