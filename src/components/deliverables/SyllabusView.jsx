@@ -90,6 +90,59 @@ export default function SyllabusView({ data, isStreaming, onEdit }) {
         </div>
       )}
 
+      {/* ── Outcome ↔ Assessment Alignment Matrix ──────────────────
+          Accreditation artifact: every LO should be both practiced in
+          at least one lesson AND assessed by at least one graded
+          requirement. Missing either side reads as a red flag an
+          instructor should fix before the course starts. */}
+      {Array.isArray(syl.outcomeAlignmentMatrix) && syl.outcomeAlignmentMatrix.length > 0 && (
+        <div>
+          <h3 className="text-sm font-bold text-slate-700 mb-1.5">Outcome ↔ Assessment Alignment</h3>
+          <p className="text-[10px] text-slate-400 mb-2">
+            Every listed outcome is mapped to the graded artifacts that measure it and the lessons where students practice before being assessed.
+          </p>
+          <div className="overflow-x-auto">
+            <table className="w-full text-[11px] border-collapse">
+              <thead>
+                <tr className="border-b border-slate-200/60 bg-slate-50/40">
+                  <th className="text-left px-2 py-1.5 font-semibold text-slate-500 w-[40%]">Learning outcome</th>
+                  <th className="text-left px-2 py-1.5 font-semibold text-slate-500 w-16">Bloom's</th>
+                  <th className="text-left px-2 py-1.5 font-semibold text-slate-500">Practiced in</th>
+                  <th className="text-left px-2 py-1.5 font-semibold text-slate-500">Assessed by</th>
+                </tr>
+              </thead>
+              <tbody>
+                {syl.outcomeAlignmentMatrix.map((row, i) => {
+                  const assessedBy = Array.isArray(row.assessedBy) ? row.assessedBy : [];
+                  const practicedIn = Array.isArray(row.practicedIn) ? row.practicedIn : [];
+                  const hasGap = assessedBy.length === 0 || practicedIn.length === 0;
+                  return (
+                    <tr key={i} className={`border-b border-slate-100 ${hasGap ? 'bg-amber-50/40' : ''}`}>
+                      <td className="px-2 py-1.5 text-slate-700 leading-relaxed">
+                        <E value={row.outcome} path={['syllabus', 'outcomeAlignmentMatrix', i, 'outcome']} onEdit={onEdit} />
+                      </td>
+                      <td className="px-2 py-1.5">
+                        {row.bloomsLevel && <BloomsTag level={row.bloomsLevel} />}
+                      </td>
+                      <td className="px-2 py-1.5 text-slate-600 leading-relaxed">
+                        {practicedIn.length > 0
+                          ? practicedIn.map((p, k) => <div key={k}>• {p}</div>)
+                          : <span className="text-amber-600 italic">⚠ Not practiced in any lesson</span>}
+                      </td>
+                      <td className="px-2 py-1.5 text-slate-600 leading-relaxed">
+                        {assessedBy.length > 0
+                          ? assessedBy.map((a, k) => <div key={k}>• {a}</div>)
+                          : <span className="text-amber-600 italic">⚠ Not assessed</span>}
+                      </td>
+                    </tr>
+                  );
+                })}
+              </tbody>
+            </table>
+          </div>
+        </div>
+      )}
+
       {/* ── Required Texts & Materials ─────────────────────────── */}
       {syl.requiredTexts?.length > 0 && (
         <div>

@@ -327,6 +327,44 @@ describeWithKey(`Deliverable quality — slideDecks (${MODEL})`, { timeout: 600_
     const matches = blob.match(new RegExp(ML_VOCAB, 'gi')) || [];
     expect(matches.length, `slideDecks mentions ML vocab only ${matches.length}x`).toBeGreaterThan(20);
   });
+
+  it('every content / example / keyTerm slide specifies a visual', () => {
+    // New rule — content/example/keyTerm slides must have vi.k != 'none'
+    // with a non-empty description + alt text. title/agenda/objectives/
+    // closing may set k='none'. Catches regressions where the prompt emits
+    // visually-flat decks.
+    const NEEDS_VISUAL = new Set(['content', 'example', 'keyTerm']);
+    const missing = [];
+    for (const d of data.decks || []) {
+      for (const s of d.sl || d.slides || []) {
+        const ty = s.ty || s.type;
+        if (!NEEDS_VISUAL.has(ty)) continue;
+        const vis = s.vi || s.visual;
+        const kind = vis?.k || vis?.kind;
+        if (!vis || !kind || kind === 'none') {
+          missing.push(`[${d.lt || d.lessonTitle} / ${ty}] "${(s.t || s.title || '').slice(0, 40)}"`);
+          continue;
+        }
+        const desc = vis.d || vis.description || '';
+        const alt = vis.at || vis.altText || '';
+        if (desc.length < 10 || alt.length < 20) {
+          missing.push(`[${d.lt || d.lessonTitle} / ${ty}] thin visual (desc=${desc.length} altText=${alt.length})`);
+        }
+      }
+    }
+    expect(missing.length, `slides missing a proper visual:\n  ${missing.slice(0, 8).join('\n  ')}`).toBeLessThanOrEqual(1);
+  });
+
+  it('every slide has a time estimate that sums to roughly the session length', () => {
+    const missing = [];
+    for (const d of data.decks || []) {
+      for (const s of d.sl || d.slides || []) {
+        const t = s.ti || s.timeEstimate || s.timer;
+        if (!t) missing.push(`[${d.lt || d.lessonTitle} / ${s.ty || s.type}] "${(s.t || s.title || '').slice(0, 40)}"`);
+      }
+    }
+    expect(missing.length, `slides missing timeEstimate:\n  ${missing.slice(0, 6).join('\n  ')}`).toBeLessThanOrEqual(1);
+  });
 });
 
 // ──────────────────────────────────────────────────────────────────────────
@@ -392,6 +430,33 @@ describeWithKey(`Deliverable quality — rubrics (${MODEL})`, { timeout: 300_000
       }
     }
   });
+
+  it('every level description includes a concrete "e.g.," evidence example', () => {
+    // New rule — rubrics used to read like grading matrices; this turns each
+    // cell into a teaching artifact by requiring a concrete example of what
+    // student work at that level looks like. Detect via the "e.g." marker
+    // the prompt requires at the end of every level description.
+    const missing = [];
+    for (const rub of data.rubrics || []) {
+      for (const c of (rub.criteria || rub.cr || [])) {
+        // Flat {ex, pr, dv, bg} shape first
+        for (const key of ['ex', 'pr', 'dv', 'bg']) {
+          const txt = c[key];
+          if (typeof txt === 'string' && txt.length > 10 && !/\be\.\s*g\./i.test(txt)) {
+            missing.push(`[${c.name || c.cn} · ${key}]`);
+          }
+        }
+        // Nested levels[] shape
+        for (const l of (c.levels || [])) {
+          const txt = l.description || '';
+          if (txt.length > 10 && !/\be\.\s*g\./i.test(txt)) {
+            missing.push(`[${c.name || c.cn} · ${l.label || l.level}]`);
+          }
+        }
+      }
+    }
+    expect(missing.length, `rubric cells missing "e.g." evidence example:\n  ${missing.slice(0, 8).join('\n  ')}`).toBeLessThanOrEqual(2);
+  });
 });
 
 // ──────────────────────────────────────────────────────────────────────────
@@ -415,5 +480,24 @@ describeWithKey(`Deliverable quality — assignments (${MODEL})`, { timeout: 300
     const blob = JSON.stringify(data.assignments);
     const matches = blob.match(new RegExp(ML_VOCAB, 'gi')) || [];
     expect(matches.length, `assignments mentions ML vocab only ${matches.length}x`).toBeGreaterThan(3);
+  });
+
+  it('scaffolding milestones include feedback channel + point value', () => {
+    // New rule — scaffolding was previously (milestone, dueDate, description).
+    // Now every milestone must specify a feedback channel (fb/feedback) so
+    // the scaffolding reads as a coaching timeline, not just a list of due
+    // dates. Point value (pt/points) can be 0 for formative-only.
+    const bad = [];
+    for (const a of (data.assignments || [])) {
+      const ms = a.scaffoldingMilestones || a.sm || [];
+      if (ms.length === 0) continue;
+      for (const m of ms) {
+        const fb = m.feedback || m.fb;
+        const pt = m.points ?? m.pt;
+        if (!fb) bad.push(`[${a.title || a.t} → ${m.milestone || m.ms}] missing feedback channel`);
+        if (typeof pt !== 'number') bad.push(`[${a.title || a.t} → ${m.milestone || m.ms}] missing point value`);
+      }
+    }
+    expect(bad.length, `milestones missing feedback/points:\n  ${bad.slice(0, 6).join('\n  ')}`).toBeLessThanOrEqual(2);
   });
 });

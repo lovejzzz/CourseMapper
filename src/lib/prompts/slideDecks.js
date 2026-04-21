@@ -30,8 +30,13 @@ Return a JSON object with exactly this structure:
           "ty": "string — MUST be one of: 'title' | 'agenda' | 'objectives' | 'bridge' | 'content' | 'activity' | 'discussion' | 'example' | 'keyTerm' | 'summary' | 'closing'",
           "bu": ["string"] — max 4 concise bullets for content slides; title slides use 1 subtitle; activity/discussion 1-3 steps; summary recaps objectives as 'Can you now...?' questions; keyTerm slides: first bullet is the term/definition, remaining bullets explain it,
           "no": "string — full instructor script paragraph (minimum 4 sentences). Must include: (1) the main point in your own words, (2) a concrete real-world example or analogy, (3) an anticipated student question with your response, (4) TRANSITION: [explicit cue to next slide]. Each slide's notes must feel unique — never use the same phrasing patterns across slides.",
+          "vi": {
+            "k": "string — visual kind: 'none' | 'diagram' | 'chart' | 'image' | 'table' | 'code' | 'equation'. Use 'none' ONLY for title/agenda/objectives/closing slides; every content/example/keyTerm slide MUST have a visual (k != 'none').",
+            "d": "string — 1-sentence instructor-facing description of what the visual should show (e.g. 'Venn diagram showing supervised vs unsupervised overlap on labeled-data axis', 'Bar chart: accuracy of 3 models on test set')",
+            "at": "string — alt text for screen readers: concrete, full-sentence description of the visual's content, not a label ('Three concentric circles representing…' not 'Venn diagram')"
+          },
           "at": "string or null — for 'activity' and 'discussion' slides only: e.g. 'Think-Pair-Share' | 'Small Group Discussion' | 'Cold Call' | 'Poll' | 'Gallery Walk' | 'Jigsaw'",
-          "ti": "string or null — for activity/discussion slides: e.g. '5 min'",
+          "ti": "string — estimated minutes for this slide, e.g. '3 min' | '5 min'. REQUIRED on every slide. Sum across all slides must approximately equal the total session length shown on the agenda slide.",
           "bl": "string or null — for content/activity/discussion/example slides: the Bloom's level this slide targets",
           "ol": "string or null — for content/activity/discussion/example slides: which learning objective this slide supports (QM 4.1)"
         }
@@ -61,9 +66,20 @@ VARIETY (hard caps — enforce while building the deck):
 
 CONTENT QUALITY:
 - Max 4 bullets per content slide (cognitive load).
-- Content/bridge/example/keyTerm titles MUST be full declarative sentences (assertion-evidence).
+- Content/bridge/example titles MUST be full declarative sentences (assertion-evidence).
+- keyTerm titles: use the term itself (e.g. "Gini Impurity"); definition goes in the first bullet.
 - Example slides: last bullet = key insight/takeaway.
 - keyTerm slides: first bullet = term/definition; remaining bullets explain it.
+
+VISUALS (every content/example/keyTerm slide needs one):
+- Set "vi.k" (visual kind) to one of: diagram, chart, image, table, code, equation — NOT 'none'.
+- "vi.d" describes what the visual shows in one concrete sentence (instructor-facing hint).
+- "vi.at" (alt text) is a full-sentence SR-friendly description of the visual's CONTENT, not just a label.
+- Title/agenda/objectives/closing slides may set vi.k='none' with empty d/at.
+
+TIMING (every slide):
+- Set "ti" as a concrete minute estimate ('1 min', '3 min', '5 min', etc).
+- The sum across all slides should approximately match the session length implied by the agenda.
 
 SPEAKER NOTES:
 - ≥4 sentences per slide. Include a concrete example or analogy (not restated bullets) + an anticipated student question or common misconception.

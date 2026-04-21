@@ -762,8 +762,43 @@ export default function SlideDecksView({ data, isStreaming, onEdit, slideTheme, 
             )}
           </div>
 
+          {/* Visual-hint strip — shown when the slide has a `visual` field
+              (or the abbreviated `vi`) with a kind other than 'none'. Lets
+              instructors see the suggested diagram/chart/image without having
+              to open speaker notes. The strip renders an alt-text line so
+              screen-reader-facing metadata is visible on the canvas too. */}
+          {(() => {
+            const vis = slide?.visual || slide?.vi;
+            const kind = vis?.kind || vis?.k;
+            if (!vis || !kind || kind === 'none') return null;
+            const desc = vis.description || vis.d || '';
+            const alt = vis.altText || vis.at || '';
+            const kindIcon = {
+              diagram:  '📐', chart: '📊', image: '🖼️',
+              table:    '▦',  code:  '⌨',  equation: '∑',
+            }[kind] || '✦';
+            return (
+              <div className="px-5 py-2 bg-indigo-50/40 border-t border-indigo-200/40 flex items-start gap-2.5 flex-shrink-0">
+                <span className="text-base leading-tight flex-shrink-0 mt-0.5" aria-hidden="true">{kindIcon}</span>
+                <div className="flex-1 min-w-0">
+                  <p className="text-[10px] font-semibold text-indigo-500 uppercase tracking-wider">
+                    Suggested visual · {kind}
+                  </p>
+                  {desc && (
+                    <p className="text-xs text-slate-600 leading-snug mt-0.5">{desc}</p>
+                  )}
+                  {alt && (
+                    <p className="text-[10px] text-slate-400 leading-snug mt-1">
+                      <span className="font-semibold">Alt text:</span> {alt}
+                    </p>
+                  )}
+                </div>
+              </div>
+            );
+          })()}
+
           {/* Speaker notes panel */}
-          {(slide?.notes || slide?.activityType || slide?.bloomsLevel) && (
+          {(slide?.notes || slide?.activityType || slide?.bloomsLevel || slide?.timeEstimate || slide?.ti) && (
             <div className="border-t border-slate-300/40 bg-white flex-shrink-0">
               <button
                 onClick={() => setShowNotes(!showNotes)}
@@ -782,8 +817,10 @@ export default function SlideDecksView({ data, isStreaming, onEdit, slideTheme, 
                       <E value={slide.activityType} path={[key, activeDeck, 'slides', activeSlide, 'activityType']} onEdit={onEdit} className="text-[9px] font-semibold text-amber-700" />
                     </span>
                   )}
-                  {slide?.timer && (
-                    <span className="text-[9px] text-slate-400">⏱ <E value={slide.timer} path={[key, activeDeck, 'slides', activeSlide, 'timer']} onEdit={onEdit} className="text-[9px] text-slate-400" /></span>
+                  {(slide?.timeEstimate || slide?.ti || slide?.timer) && (
+                    <span className="text-[9px] text-slate-500 px-1.5 py-0.5 rounded bg-slate-50 font-mono">
+                      ⏱ {slide.timeEstimate || slide.ti || slide.timer}
+                    </span>
                   )}
                   {slide?.bloomsLevel && (
                     <span className="text-[9px] font-semibold px-1.5 py-0.5 rounded bg-violet-50 text-violet-600">

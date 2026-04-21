@@ -635,17 +635,32 @@ function DeliverablePreview({ featureId, delivData, courseMap, columns }) {
                     {slides.slice(0, expanded ? 12 : 5).map((s, j) => {
                       const ty = s.type || s.ty;
                       const firstBullet = Array.isArray(s.bullets || s.bu) ? (s.bullets || s.bu)[0] : null;
+                      const timing = s.timeEstimate || s.ti || s.timer;
+                      const vis = s.visual || s.vi;
+                      const visKind = vis && (vis.kind || vis.k);
+                      const hasVisual = visKind && visKind !== 'none';
+                      const visIcon = { diagram: '📐', chart: '📊', image: '🖼', table: '▦', code: '⌨', equation: '∑' }[visKind];
                       return (
                         <div
                           key={j}
-                          className={`flex-shrink-0 ${expanded ? 'w-36 h-24' : 'w-24 h-16'} rounded border ${typeTone[ty] || typeTone.content} p-1.5 flex flex-col leading-tight overflow-hidden`}
-                          title={s.title || s.heading || `Slide ${j + 1}`}
+                          className={`flex-shrink-0 ${expanded ? 'w-36 h-24' : 'w-24 h-16'} rounded border ${typeTone[ty] || typeTone.content} p-1.5 flex flex-col leading-tight overflow-hidden relative`}
+                          title={`${s.title || s.heading || `Slide ${j + 1}`}${timing ? ` · ${timing}` : ''}${hasVisual ? ` · visual: ${vis.description || vis.d || visKind}` : ''}`}
                         >
-                          {ty && (
-                            <span className="text-[8px] font-semibold uppercase tracking-wider text-slate-400 truncate">
-                              {ty}
-                            </span>
-                          )}
+                          <div className="flex items-center justify-between gap-1">
+                            {ty && (
+                              <span className="text-[8px] font-semibold uppercase tracking-wider text-slate-400 truncate">
+                                {ty}
+                              </span>
+                            )}
+                            <div className="flex items-center gap-0.5 flex-shrink-0">
+                              {hasVisual && (
+                                <span className="text-[9px]" aria-hidden="true">{visIcon || '✦'}</span>
+                              )}
+                              {timing && (
+                                <span className="text-[8px] text-slate-400 font-mono">{timing}</span>
+                              )}
+                            </div>
+                          </div>
                           <span className="text-[9px] text-slate-600 font-medium line-clamp-2 mt-0.5">
                             {s.title || s.heading || s.t || `Slide ${j + 1}`}
                           </span>
@@ -874,6 +889,29 @@ function DeliverablePreview({ featureId, delivData, courseMap, columns }) {
                         </ul>
                       </div>
                     )}
+                    {expanded && Array.isArray(asgn.scaffoldingMilestones || asgn.sm) && (asgn.scaffoldingMilestones || asgn.sm).length > 0 && (
+                      <div>
+                        <p className="text-[9px] font-semibold text-slate-400 uppercase tracking-wider mb-0.5">Scaffolding Timeline</p>
+                        <ol className="space-y-1 ml-1 text-slate-500">
+                          {(asgn.scaffoldingMilestones || asgn.sm).slice(0, 6).map((m, j) => (
+                            <li key={j} className="flex items-start gap-1.5">
+                              <span className="font-mono text-indigo-400 flex-shrink-0 text-[9px]">
+                                {m.dueDate || m.dd || `#${j + 1}`}
+                              </span>
+                              <div className="flex-1 min-w-0">
+                                <span className="font-semibold text-slate-600">{m.milestone || m.ms || ''}</span>
+                                {m.feedback && (
+                                  <span className="text-violet-500/70 ml-1">↳ {m.feedback}</span>
+                                )}
+                                {typeof m.points === 'number' && m.points > 0 && (
+                                  <span className="text-[9px] text-slate-400 ml-1 font-mono">· {m.points} pt</span>
+                                )}
+                              </div>
+                            </li>
+                          ))}
+                        </ol>
+                      </div>
+                    )}
                   </div>
                 </div>
               );
@@ -954,6 +992,7 @@ function DeliverablePreview({ featureId, delivData, courseMap, columns }) {
       }
       case 'syllabus': {
         const sections = expanded ? (delivData.sections || []) : realContent.sections;
+        const matrix = (expanded ? delivData.outcomeAlignmentMatrix : realContent.outcomeAlignmentMatrix) || [];
         return (
           <div className="space-y-1.5">
             {sections.map((s, i) => (
@@ -965,6 +1004,41 @@ function DeliverablePreview({ featureId, delivData, courseMap, columns }) {
                 {s.content && <div className={`${pad} border-t border-slate-200/20 text-slate-600`}>{truncate(Array.isArray(s.content) ? s.content.join(' ') : s.content, expanded ? 300 : 100)}</div>}
               </div>
             ))}
+            {/* Outcome-alignment matrix preview — compact table, shown inline
+                under the text sections when the syllabus has matrix data.
+                Accreditation teams look for this; we surface it up front. */}
+            {matrix.length > 0 && (
+              <div className="mt-2 pt-1.5 border-t border-slate-200/30">
+                <p className="text-[9px] font-semibold text-slate-400 uppercase tracking-wider mb-1">Outcome ↔ Assessment</p>
+                <div className="overflow-x-auto">
+                  <table className="w-full text-[10px]">
+                    <thead>
+                      <tr className="bg-slate-50/60">
+                        <th className="text-left px-2 py-1 font-semibold text-slate-500">Outcome</th>
+                        <th className="text-left px-2 py-1 font-semibold text-slate-500 whitespace-nowrap">Assessed by</th>
+                      </tr>
+                    </thead>
+                    <tbody>
+                      {matrix.slice(0, expanded ? 8 : 3).map((row, i) => {
+                        const assessedBy = Array.isArray(row.assessedBy) ? row.assessedBy : [];
+                        const hasGap = assessedBy.length === 0 || (Array.isArray(row.practicedIn) && row.practicedIn.length === 0);
+                        return (
+                          <tr key={i} className={`border-t border-slate-100 ${hasGap ? 'bg-amber-50/40' : ''}`}>
+                            <td className="px-2 py-1 text-slate-600 align-top">{truncate(row.outcome, expanded ? 180 : 80)}</td>
+                            <td className="px-2 py-1 text-slate-500 align-top">
+                              {assessedBy.length > 0
+                                ? truncate(assessedBy.join(', '), expanded ? 140 : 60)
+                                : <span className="text-amber-600 italic">⚠ Unassessed</span>}
+                            </td>
+                          </tr>
+                        );
+                      })}
+                    </tbody>
+                  </table>
+                  {!expanded && matrix.length > 3 && <p className="text-[9px] text-slate-400 text-right mt-0.5">+ {matrix.length - 3} more outcomes</p>}
+                </div>
+              </div>
+            )}
             {!expanded && realContent.total > sections.length && <p className="text-[9px] text-slate-400 text-right">+ {realContent.total - sections.length} more sections</p>}
           </div>
         );
