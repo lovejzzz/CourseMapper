@@ -77,6 +77,13 @@ function getSlideType(slide) {
     if (t === 'bridge') return 'bridge';
     if (t === 'example') return 'example';
     if (t === 'keyterm' || t === 'key_term' || t === 'definition') return 'keyTerm';
+    // Explicit 'content' (the most common emitted type) was previously
+    // missing from this list — the fallback heuristic below then
+    // misclassified any content slide whose title happened to contain
+    // words like "learn", "goal", "review", "agenda"… Now that slide.type
+    // is respected authoritatively, the heuristic is a pure fallback for
+    // slides with no type set.
+    if (t === 'content') return 'content';
   }
   const t = (slide.title || '').toLowerCase();
   if (/welcome|intro|title|overview/i.test(t)) return 'title';
