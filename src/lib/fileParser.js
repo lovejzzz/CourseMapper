@@ -1,5 +1,5 @@
 // Lazy-loaded heavy dependencies — only fetched when first needed
-let _mammoth, _pdfjsLib, _XLSX, _JSZip;
+let _mammoth, _pdfjsLib, _ExcelJS, _JSZip;
 
 async function getMammoth() {
   if (!_mammoth) _mammoth = (await import('mammoth')).default;
@@ -12,9 +12,12 @@ async function getPdfjs() {
   }
   return _pdfjsLib;
 }
-async function getXLSX() {
-  if (!_XLSX) _XLSX = await import('xlsx');
-  return _XLSX;
+async function getExcelJS() {
+  if (!_ExcelJS) {
+    const mod = await import('exceljs');
+    _ExcelJS = mod.default || mod;
+  }
+  return _ExcelJS;
 }
 async function getJSZip() {
   if (!_JSZip) _JSZip = (await import('jszip')).default;
@@ -44,8 +47,9 @@ export async function parseFile(file) {
     case 'htm':
       return parseHtml(file);
     case 'xlsx':
-    case 'xls':
       return parseXlsx(file);
+    case 'xls':
+      return parseLegacySpreadsheet(file);
     case 'pptx':
       return parsePptx(file);
     case 'ppt':
@@ -302,18 +306,85 @@ async function parseHtml(file) {
 
 // ── Excel (.xlsx/.xls) ──
 async function parseXlsx(file) {
-  const XLSX = await getXLSX();
+  const ExcelJS = await getExcelJS();
   const arrayBuffer = await file.arrayBuffer();
-  const workbook = XLSX.read(arrayBuffer, { type: 'array' });
-  const texts = [];
+  const workbook = new ExcelJS.Workbook();
+  await workbook.xlsx.load(arrayBuffer);
+  return workbookToCsvText(workbook);
+}
 
-  for (const sheetName of workbook.SheetNames) {
-    const sheet = workbook.Sheets[sheetName];
-    const csv = XLSX.utils.sheet_to_csv(sheet);
-    texts.push(`--- Sheet: ${sheetName} ---\n${csv}`);
+async function parseLegacySpreadsheet(file) {
+  const arrayBuffer = await file.arrayBuffer();
+  const bytes = new Uint8Array(arrayBuffer);
+  const chunks = [];
+  let current = '';
+
+  for (const byte of bytes) {
+    if (byte >= 32 && byte < 127) {
+      current += String.fromCharCode(byte);
+    } else if (byte === 10 || byte === 13 || byte === 9) {
+      current += byte === 9 ? '\t' : '\n';
+    } else {
+      if (current.trim().length >= 4) chunks.push(current.trim());
+      current = '';
+    }
+  }
+  if (current.trim().length >= 4) chunks.push(current.trim());
+
+  const text = chunks
+    .filter((chunk) => /[a-zA-Z0-9]/.test(chunk))
+    .join('\n')
+    .replace(/\n{3,}/g, '\n\n')
+    .trim();
+
+  if (!text || text.length < 20) {
+    throw new Error('Could not extract readable text from this legacy .xls file. Convert it to .xlsx or .csv first.');
   }
 
+  return text;
+}
+
+function workbookToCsvText(workbook) {
+  const texts = [];
+
+  workbook.eachSheet((worksheet) => {
+    const rows = [];
+    let maxCol = 0;
+
+    worksheet.eachRow({ includeEmpty: true }, (row) => {
+      maxCol = Math.max(maxCol, row.cellCount);
+      rows.push(row);
+    });
+
+    const csv = rows.map((row) => {
+      const values = [];
+      for (let col = 1; col <= maxCol; col += 1) {
+        values.push(csvEscape(formatCellValue(row.getCell(col).value)));
+      }
+      return values.join(',');
+    }).join('\n');
+
+    texts.push(`--- Sheet: ${worksheet.name} ---\n${csv}`);
+  });
+
   return texts.join('\n\n');
+}
+
+function formatCellValue(value) {
+  if (value === null || value === undefined) return '';
+  if (value instanceof Date) return value.toISOString().slice(0, 10);
+  if (typeof value !== 'object') return String(value);
+  if (Array.isArray(value.richText)) return value.richText.map((part) => part.text || '').join('');
+  if ('result' in value) return formatCellValue(value.result);
+  if ('text' in value) return formatCellValue(value.text);
+  if ('hyperlink' in value && value.hyperlink) return formatCellValue(value.hyperlink);
+  return String(value);
+}
+
+function csvEscape(value) {
+  const text = String(value ?? '');
+  if (/[",\n\r]/.test(text)) return `"${text.replace(/"/g, '""')}"`;
+  return text;
 }
 
 // ── PowerPoint (.pptx) — ZIP of XML slides ──
@@ -411,19 +482,29 @@ async function parseOdp(file) {
 
 // ── OpenDocument Spreadsheet (.ods) ──
 async function parseOds(file) {
-  // Use XLSX library which also handles .ods
-  const XLSX = await getXLSX();
   const arrayBuffer = await file.arrayBuffer();
-  const workbook = XLSX.read(arrayBuffer, { type: 'array' });
-  const texts = [];
+  const JSZip = await getJSZip();
+  const zip = await JSZip.loadAsync(arrayBuffer);
+  const contentXml = await zip.files['content.xml']?.async('text');
+  if (!contentXml) throw new Error('Invalid ODS file: no content.xml found.');
+  const rows = [];
+  const rowPattern = /<table:table-row\b[\s\S]*?<\/table:table-row>/gi;
+  const cellPattern = /<table:table-cell\b([^>]*)>([\s\S]*?)<\/table:table-cell>/gi;
+  let rowMatch;
 
-  for (const sheetName of workbook.SheetNames) {
-    const sheet = workbook.Sheets[sheetName];
-    const csv = XLSX.utils.sheet_to_csv(sheet);
-    texts.push(`--- Sheet: ${sheetName} ---\n${csv}`);
+  while ((rowMatch = rowPattern.exec(contentXml)) !== null) {
+    const cells = [];
+    let cellMatch;
+    while ((cellMatch = cellPattern.exec(rowMatch[0])) !== null) {
+      const repeat = Number(cellMatch[1].match(/table:number-columns-repeated="(\d+)"/i)?.[1] || 1);
+      const value = stripXmlTags(cellMatch[2]);
+      for (let i = 0; i < Math.min(repeat, 50); i += 1) cells.push(csvEscape(value));
+    }
+    if (cells.some(Boolean)) rows.push(cells.join(','));
   }
 
-  return texts.join('\n\n');
+  if (rows.length === 0) return stripXmlTags(contentXml);
+  return `--- Sheet: content ---\n${rows.join('\n')}`;
 }
 
 // ── EPUB ──

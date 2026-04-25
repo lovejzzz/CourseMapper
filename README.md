@@ -17,7 +17,7 @@ Course Mapper is a **purpose-built instructional design tool**, not a general ch
 5. **Cascade editing.** Edit one deliverable and the system automatically detects which other deliverables are affected and surgically regenerates just those lessons — no full regeneration.
 6. **Pedagogical validation.** Built-in Bloom's taxonomy alignment, objective coverage, cognitive load assessment, readability scoring, and difficulty progression checks — with auto-fix for common issues.
 7. **Full export pipeline.** Export each deliverable to DOCX, PDF, XLSX, CSV, PPTX, Google Docs, Google Sheets, Google Slides, and ZIP bundle. Save/load complete sessions as `.coursemapper` project files.
-8. **Multi-model support.** Supports OpenAI, Anthropic, and Google with native tool calling per provider. Auto-detects key format and auto-rotates through models on failure.
+8. **Multi-model support.** Supports OpenAI, Anthropic, Google, and DeepSeek with native tool calling per provider. Auto-detects key format and auto-rotates through models on failure.
 9. **Privacy-first.** 100% client-side. No backend server. No data stored anywhere. API keys go directly to providers.
 
 > **What Course Mapper does NOT claim:** It does not fact-check content or verify citations. It does not replace instructor expertise. It is a drafting and productivity tool — it generates the scaffold, the instructor refines it.
@@ -30,7 +30,7 @@ Course Mapper is a **purpose-built instructional design tool**, not a general ch
 
 Go to [edutool.dev](https://edutool.dev). On the landing page:
 
-- **Bring your own key** — Select your provider (OpenAI, Anthropic, or Google) and paste your API key. The app auto-detects key format and switches the provider dropdown.
+- **Bring your own key** — Select your provider (OpenAI, Anthropic, Google, or DeepSeek) and paste your API key. The app auto-detects key format and switches the provider dropdown.
 
 ### Step 2: Upload Your Materials
 
@@ -246,7 +246,7 @@ Five pedagogical frameworks that shape all generated content:
 
 ### AI & Privacy
 
-- **Multi-provider support** — OpenAI, Anthropic, and Google with native tool calling per provider. Your own API key (BYOK).
+- **Multi-provider support** — OpenAI, Anthropic, Google, and DeepSeek with native tool calling per provider. Your own API key (BYOK).
 - **Streaming generation** — Watch deliverables build in real time with stable per-feature sequential streaming (no preview flashing).
 - **Token-optimized prompts** — Minified JSON keys, adaptive chunk sizes, and compact continuation schemas reduce API costs by ~20% and cut total API calls by ~15–20%.
 - **AI self-examination** — The AI reviews and fixes its own structured output automatically.

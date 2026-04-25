@@ -26,6 +26,8 @@ export default function ChatInput({
 
   const isDeliverableTab = activeTab && activeTab !== 'courseMap';
   const delivLabel = isDeliverableTab ? resolveLabel(activeTab) : null;
+  const targetLabel = isAgentMode ? (delivLabel || 'Deliverables') : 'Course map';
+  const modeLabel = isAgentMode ? 'Apply directly' : 'Ask';
 
   function handleKeyDown(e) {
     if (e.key === 'Enter' && !e.shiftKey) {
@@ -127,6 +129,24 @@ export default function ChatInput({
           onChange={(e) => { onProcessFiles(e.target.files); e.target.value = ''; }}
         />
 
+        <div className="flex min-w-0 items-center gap-1.5 text-[10px]">
+          <span className="truncate rounded-full border border-slate-200/70 bg-white/60 px-2 py-0.5 font-semibold text-slate-500">
+            {targetLabel}
+          </span>
+          <span className={`shrink-0 rounded-full border px-2 py-0.5 font-semibold ${
+            isAgentMode
+              ? 'border-indigo-200/70 bg-indigo-50 text-indigo-600'
+              : 'border-slate-200/70 bg-white/60 text-slate-500'
+          }`}>
+            {modeLabel}
+          </span>
+          {isAgentMode && (
+            <span className="shrink-0 rounded-full border border-slate-200/70 bg-white/60 px-2 py-0.5 font-semibold text-slate-500">
+              Live status
+            </span>
+          )}
+        </div>
+
         <div className="relative">
           <textarea
             value={input}
@@ -155,14 +175,9 @@ export default function ChatInput({
                 </button>
               )}
 
-              {/* Agent mode indicator + input length */}
-              {isAgentMode && (
-                <span className="text-[10px] font-semibold text-violet-500/70 flex items-center gap-1 select-none">
-                  <span className="text-[8px]">✦</span>
-                  Agent
-                  {input.length > 100 && (
-                    <span className="text-slate-400 font-normal ml-1">{input.length} chars</span>
-                  )}
+              {input.length > 100 && (
+                <span className="text-[10px] font-medium text-slate-400 select-none">
+                  {input.length} chars
                 </span>
               )}
 

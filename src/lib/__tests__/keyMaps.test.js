@@ -30,6 +30,10 @@ describe('KEY_MAPS', () => {
     expect(KEY_MAPS.quizBank.ty).toBe('type');
     expect(KEY_MAPS.quizBank.df).toBe('difficulty');
   });
+
+  it('maps slide visual wrapper alias', () => {
+    expect(KEY_MAPS.slideDecks.vi).toBe('visual');
+  });
 });
 
 describe('expandKeys', () => {
@@ -98,5 +102,29 @@ describe('expandKeys', () => {
     const input = { ob: ['Objective 1', 'Objective 2'] };
     const result = expandKeys('lessonPlans', input);
     expect(result.objectives).toEqual(['Objective 1', 'Objective 2']);
+  });
+
+  it('expands slide visuals without confusing alt text for activity type', () => {
+    const input = {
+      decks: [{
+        lt: 'Lesson 1',
+        sl: [{
+          t: 'A model needs evidence',
+          ty: 'content',
+          at: null,
+          vi: { k: 'image', d: 'A model comparison visual', at: 'Two model cards compared side by side.' },
+        }],
+      }],
+    };
+    const result = expandKeys('slideDecks', input);
+    const slide = result.decks[0].slides[0];
+    expect(slide.title).toBe('A model needs evidence');
+    expect(slide.activityType).toBeNull();
+    expect(slide.visual).toEqual({
+      kind: 'image',
+      description: 'A model comparison visual',
+      altText: 'Two model cards compared side by side.',
+    });
+    expect(slide.visual.activityType).toBeUndefined();
   });
 });

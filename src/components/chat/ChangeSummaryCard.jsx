@@ -1,173 +1,165 @@
-import React, { useState } from 'react';
+import React, { useEffect, useMemo, useState } from 'react';
 import { resolveLabel } from './constants';
 
-/**
- * ChangeSummaryCard — shown after agent edit tools land. Three possible shapes
- * depending on how the batch went:
- *   - pure success  → emerald card, successes only, Undo button
- *   - pure failure  → red card, failure list, Retry-failed button
- *   - mixed         → amber card, both lists, Keep applied / Retry failed / Undo all
- *
- * Retry-failed emits a silent follow-up message so the agent self-corrects
- * using the exact originalInput for each failed patch. "Keep applied" just
- * dismisses the failure panel locally — no state mutation, the successful
- * edits already landed.
- */
 export default function ChangeSummaryCard({ summary, status, onUndo, canUndo, onRetryFailed, onKeep }) {
-  const [collapsed, setCollapsed] = useState(false);
-
-  if (!summary) return null;
+  const [collapsed, setCollapsed] = useState(true);
 
   const {
     changes = [],
     applied = 0,
     failed = 0,
+    pending = 0,
     failedItems = [],
     toolName,
     message,
-  } = summary;
+  } = summary || {};
 
-  const hasSuccesses = changes.length > 0;
+  const hasSuccesses = changes.length > 0 || applied > 0;
   const hasFailures = failed > 0 || failedItems.length > 0;
-  // Overall mood of the card — tints everything consistently.
+  const hasPending = pending > 0;
   const tone = !hasFailures ? 'success' : !hasSuccesses ? 'error' : 'mixed';
   const styles = TONES[tone];
-
-  // Keep / Retry only make sense while the user hasn't decided yet.
   const decided = status === 'retried' || status === 'kept';
 
+  useEffect(() => {
+    if (hasFailures) setCollapsed(false);
+  }, [hasFailures]);
+
+  const summaryText = useMemo(() => {
+    const parts = [];
+    if (applied > 0) parts.push(`${applied} applied`);
+    if (changes.length > 0 && applied === 0) parts.push(`${changes.length} changed`);
+    if (pending > 0) parts.push(`${pending} pending`);
+    if (failed > 0) parts.push(`${failed} failed`);
+    return parts.length ? parts.join(' · ') : message || 'No changes reported';
+  }, [applied, changes.length, failed, pending, message]);
+
+  const title = tone === 'success'
+    ? 'Changes applied'
+    : tone === 'error'
+      ? 'Changes failed'
+      : 'Changes partially applied';
+
+  if (!summary) return null;
+
   return (
-    <div className={`mx-2 my-1 rounded-xl border shadow-glass animate-spring-in overflow-hidden ${styles.container}`}>
-      {/* Header */}
-      <button
-        onClick={() => setCollapsed(v => !v)}
-        className={`w-full px-3.5 py-2 flex items-center gap-2 transition-colors ${styles.header}`}
-        aria-expanded={!collapsed}
-        aria-label={collapsed ? 'Expand change summary' : 'Collapse change summary'}
-      >
-        <div className={`w-5 h-5 rounded-full flex items-center justify-center flex-shrink-0 ${styles.iconBg}`}>
-          {tone === 'success' ? (
-            <svg className={`w-3 h-3 ${styles.iconFg}`} fill="none" stroke="currentColor" viewBox="0 0 24 24" aria-hidden="true">
-              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2.5} d="M5 13l4 4L19 7" />
-            </svg>
-          ) : (
-            <svg className={`w-3 h-3 ${styles.iconFg}`} fill="none" stroke="currentColor" viewBox="0 0 24 24" aria-hidden="true">
-              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 9v2m0 4h.01M5.07 19h13.86c1.54 0 2.5-1.67 1.73-3L13.73 4a2 2 0 00-3.46 0L3.34 16c-.77 1.33.19 3 1.73 3z" />
-            </svg>
-          )}
+    <div className={`ml-8 mr-1 rounded-lg border bg-white/75 shadow-sm animate-spring-in overflow-hidden ${styles.border}`}>
+      <div className="px-3 py-2">
+        <div className="flex items-start gap-2.5">
+          <div className={`mt-0.5 flex h-5 w-5 items-center justify-center rounded-full ${styles.iconBg}`}>
+            {tone === 'success' ? (
+              <svg className="h-3.5 w-3.5 text-emerald-500" fill="none" stroke="currentColor" viewBox="0 0 24 24" aria-hidden="true">
+                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2.4} d="m5 13 4 4L19 7" />
+              </svg>
+            ) : (
+              <svg className={`h-3.5 w-3.5 ${styles.iconText}`} fill="none" stroke="currentColor" viewBox="0 0 24 24" aria-hidden="true">
+                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2.2} d="M12 9v4m0 4h.01M4.93 19h14.14c1.54 0 2.5-1.67 1.73-3L13.73 4a2 2 0 00-3.46 0L3.2 16c-.77 1.33.19 3 1.73 3z" />
+              </svg>
+            )}
+          </div>
+
+          <div className="min-w-0 flex-1">
+            <div className="flex items-center gap-2">
+              <p className={`truncate text-[12px] font-semibold ${styles.title}`}>{title}</p>
+              <span className="truncate text-[10px] font-medium text-slate-400">{summaryText}</span>
+            </div>
+            {message && (
+              <p className="mt-0.5 line-clamp-2 text-[11px] leading-relaxed text-slate-500">{message}</p>
+            )}
+            {hasPending && !message && (
+              <p className="mt-0.5 text-[11px] leading-relaxed text-slate-500">
+                Preview updates when the background regeneration finishes.
+              </p>
+            )}
+          </div>
+
+          <div className="flex shrink-0 items-center gap-1">
+            {!decided && canUndo && onUndo && hasSuccesses && (
+              <button
+                type="button"
+                onClick={onUndo}
+                className="tactile rounded-md px-1.5 py-0.5 text-[10px] font-semibold text-slate-400 hover:bg-slate-100/80 hover:text-indigo-600"
+                aria-label={tone === 'mixed' ? 'Undo all changes' : 'Undo last change'}
+              >
+                Undo
+              </button>
+            )}
+            {(changes.length > 0 || failedItems.length > 0) && (
+              <button
+                type="button"
+                onClick={() => setCollapsed(value => !value)}
+                className="tactile rounded-md px-1.5 py-0.5 text-[10px] font-semibold text-slate-400 hover:bg-slate-100/80 hover:text-slate-600"
+                aria-expanded={!collapsed}
+                aria-label={collapsed ? 'Show change details' : 'Hide change details'}
+              >
+                {collapsed ? 'Details' : 'Hide'}
+              </button>
+            )}
+          </div>
         </div>
-        <span className={`text-[13px] font-semibold flex-1 text-left ${styles.title}`}>
-          {tone === 'success' ? 'Changes applied' : tone === 'error' ? 'Changes failed' : `${applied} applied · ${failed} failed`}
-        </span>
-        {/* Header-level action shortcut: whichever single action is most useful for the current mood */}
-        {!decided && canUndo && onUndo && hasSuccesses && (
-          <span
-            role="button"
-            tabIndex={0}
-            onClick={(e) => { e.stopPropagation(); onUndo(); }}
-            onKeyDown={(e) => { if (e.key === 'Enter' || e.key === ' ') { e.stopPropagation(); onUndo(); } }}
-            aria-label={tone === 'mixed' ? 'Undo all changes' : 'Undo last change'}
-            className="tactile flex items-center gap-1 px-2 py-0.5 rounded-lg text-[11px] font-semibold text-slate-500 hover:text-indigo-600 hover:bg-white/60 transition-all"
-          >
-            <svg className="w-3 h-3" fill="none" stroke="currentColor" viewBox="0 0 24 24" aria-hidden="true">
-              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M3 10h10a5 5 0 015 5v2M3 10l4-4M3 10l4 4" />
-            </svg>
-            {tone === 'mixed' ? 'Undo all' : 'Undo'}
-          </span>
-        )}
-        <svg
-          className={`w-3 h-3 transition-transform duration-200 ${styles.chevron} ${collapsed ? '' : 'rotate-180'}`}
-          fill="none" stroke="currentColor" viewBox="0 0 24 24" aria-hidden="true"
-        >
-          <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M19 9l-7 7-7-7" />
-        </svg>
-      </button>
+      </div>
 
-      {/* Body */}
       {!collapsed && (
-        <div className={`px-3.5 pb-2.5 border-t ${styles.body}`}>
-          {/* Success items */}
-          {changes.map((c, i) => (
-            <div key={`ok-${i}`} className={`flex items-center gap-2 text-[12px] py-0.5 ${styles.successLine}`}>
-              <span className="font-mono text-[11px] opacity-70">
-                {c.type === 'added' ? '+' : c.type === 'removed' ? '−' : '~'}
-              </span>
-              <span>
-                {c.type === 'added' ? 'Added' : c.type === 'removed' ? 'Removed' : 'Edited'}{' '}
-                {c.count} {resolveLabel(c.featureId)}
-                {c.label ? ` — ${c.label}` : ''}
-              </span>
-            </div>
-          ))}
+        <div className="border-t border-slate-200/50 px-3 py-2">
+          <div className="space-y-1.5">
+            {changes.map((change, index) => (
+              <div key={`ok-${index}`} className="flex items-start gap-2 text-[11px] leading-relaxed text-slate-600">
+                <span className="mt-1 h-1.5 w-1.5 rounded-full bg-emerald-500" aria-hidden="true" />
+                <span>
+                  <span className="font-medium">
+                    {change.type === 'added' ? 'Added' : change.type === 'removed' ? 'Removed' : change.type === 'generated' ? 'Generated' : 'Edited'}
+                  </span>{' '}
+                  {change.count} {resolveLabel(change.featureId)}
+                  {change.label ? ` · ${change.label}` : ''}
+                </span>
+              </div>
+            ))}
 
-          {/* Failure items — shown with their error message */}
-          {failedItems.length > 0 && (
-            <div className={`${hasSuccesses ? 'mt-2 pt-2 border-t' : 'mt-1'} ${styles.failSection}`}>
-              {hasSuccesses && (
-                <p className="text-[10px] font-semibold uppercase tracking-wider text-slate-500 mb-1">Didn't apply</p>
-              )}
-              <ul className="space-y-1">
-                {failedItems.map((f, i) => {
-                  const feature = f.featureId ? resolveLabel(f.featureId) : 'course map';
-                  const lessonHint = typeof f.lessonIndex === 'number' ? ` · Lesson ${f.lessonIndex + 1}` : '';
-                  return (
-                    <li key={`fail-${i}`} className="text-[11px] text-red-700 leading-relaxed">
-                      <span className="font-mono text-[10px] opacity-70 mr-1">✕</span>
-                      <span className="font-semibold">{f.action}</span>
-                      <span className="text-red-600/80"> — {feature}{lessonHint}</span>
-                      <span className="block ml-4 text-red-600/80">{f.message}</span>
-                    </li>
-                  );
-                })}
-              </ul>
-            </div>
-          )}
+            {failedItems.map((failure, index) => {
+              const feature = failure.featureId ? resolveLabel(failure.featureId) : 'course map';
+              const lessonHint = typeof failure.lessonIndex === 'number' ? ` · Lesson ${failure.lessonIndex + 1}` : '';
+              return (
+                <div key={`fail-${index}`} className="flex items-start gap-2 text-[11px] leading-relaxed text-red-700">
+                  <span className="mt-1 h-1.5 w-1.5 rounded-full bg-red-500" aria-hidden="true" />
+                  <span>
+                    <span className="font-medium">{failure.action}</span>
+                    <span className="text-red-600/80"> · {feature}{lessonHint}</span>
+                    <span className="block text-red-600/80">{failure.message}</span>
+                  </span>
+                </div>
+              );
+            })}
+          </div>
 
-          {/* Decision bar for mixed / failure states */}
           {hasFailures && !decided && (
-            <div className="mt-2.5 pt-2 border-t border-slate-200/30 flex flex-wrap items-center gap-1.5">
+            <div className="mt-2 flex flex-wrap items-center gap-1.5">
               {onRetryFailed && (
                 <button
                   type="button"
                   onClick={() => onRetryFailed(failedItems, toolName)}
-                  className="tactile px-2.5 py-1 rounded-lg text-[11px] font-semibold text-white bg-indigo-500 hover:bg-indigo-600 transition-all shadow-sm"
+                  className="tactile rounded-md bg-slate-900 px-2 py-1 text-[10px] font-semibold text-white hover:bg-slate-800"
                   aria-label={`Retry ${failedItems.length} failed ${failedItems.length === 1 ? 'change' : 'changes'}`}
                 >
-                  Retry {failedItems.length} failed
+                  Retry failed
                 </button>
               )}
               {hasSuccesses && onKeep && (
                 <button
                   type="button"
                   onClick={onKeep}
-                  className="tactile px-2.5 py-1 rounded-lg text-[11px] font-semibold text-slate-600 bg-white/70 border border-slate-200/50 hover:bg-white hover:border-slate-300 transition-all"
+                  className="tactile rounded-md px-2 py-1 text-[10px] font-semibold text-slate-500 hover:bg-slate-100/80"
                   aria-label="Keep the applied changes and dismiss the failures"
                 >
                   Keep applied
                 </button>
               )}
-              {canUndo && onUndo && hasSuccesses && (
-                <button
-                  type="button"
-                  onClick={onUndo}
-                  className="tactile px-2.5 py-1 rounded-lg text-[11px] font-semibold text-slate-600 hover:bg-white/60 transition-all"
-                  aria-label="Undo every change from this batch"
-                >
-                  Undo all
-                </button>
-              )}
             </div>
           )}
 
-          {/* Status footer — shows what decision was made */}
           {decided && (
-            <p className={`text-[10px] mt-1 ${status === 'retried' ? 'text-indigo-500' : 'text-slate-400'}`}>
-              {status === 'retried' ? 'Retrying failed changes…' : 'Kept the applied changes.'}
+            <p className="mt-2 text-[10px] text-slate-400">
+              {status === 'retried' ? 'Retrying failed changes...' : 'Kept the applied changes.'}
             </p>
-          )}
-
-          {message && !decided && (
-            <p className={`text-[10px] mt-1 ${styles.messageText}`}>{message}</p>
           )}
         </div>
       )}
@@ -177,39 +169,21 @@ export default function ChangeSummaryCard({ summary, status, onUndo, canUndo, on
 
 const TONES = {
   success: {
-    container: 'bg-emerald-50/60 border-emerald-200/30',
-    header: 'hover:bg-emerald-50/80',
-    iconBg: 'bg-emerald-100',
-    iconFg: 'text-emerald-600',
-    title: 'text-emerald-700',
-    chevron: 'text-emerald-400',
-    body: 'border-emerald-100/50',
-    successLine: 'text-emerald-700',
-    failSection: 'border-emerald-100/50',
-    messageText: 'text-emerald-600/70',
+    border: 'border-slate-200/70',
+    iconBg: 'bg-emerald-50',
+    iconText: 'text-emerald-500',
+    title: 'text-slate-700',
   },
   error: {
-    container: 'bg-red-50/60 border-red-200/40',
-    header: 'hover:bg-red-50/80',
-    iconBg: 'bg-red-100',
-    iconFg: 'text-red-600',
+    border: 'border-red-200/70',
+    iconBg: 'bg-red-50',
+    iconText: 'text-red-500',
     title: 'text-red-700',
-    chevron: 'text-red-400',
-    body: 'border-red-100/50',
-    successLine: 'text-red-700',
-    failSection: 'border-red-100/50',
-    messageText: 'text-red-600/70',
   },
   mixed: {
-    container: 'bg-amber-50/60 border-amber-200/40',
-    header: 'hover:bg-amber-50/80',
-    iconBg: 'bg-amber-100',
-    iconFg: 'text-amber-600',
+    border: 'border-amber-200/70',
+    iconBg: 'bg-amber-50',
+    iconText: 'text-amber-500',
     title: 'text-amber-800',
-    chevron: 'text-amber-400',
-    body: 'border-amber-100/50',
-    successLine: 'text-emerald-700',
-    failSection: 'border-amber-100/50',
-    messageText: 'text-amber-700/70',
   },
 };

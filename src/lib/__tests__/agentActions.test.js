@@ -188,7 +188,7 @@ describe('addItem required-field validation', () => {
       makeCtx(),
     );
     expect(result.success).toBe(false);
-    expect(result.message).toContain('Missing required field "t"');
+    expect(result.message).toContain('Missing required field (title)');
     expect(result.message).toContain('title');
   });
 
@@ -206,7 +206,7 @@ describe('addItem required-field validation', () => {
       makeCtx(),
     );
     expect(result.success).toBe(false);
-    expect(result.message).toContain('Missing required field "q"');
+    expect(result.message).toContain('Missing required field (question)');
     expect(result.message).toContain('question');
   });
 
@@ -229,7 +229,7 @@ describe('addItem required-field validation', () => {
       ctx,
     );
     expect(result.success).toBe(false);
-    expect(result.message).toContain('Missing required field "t"');
+    expect(result.message).toContain('Missing required field (title)');
   });
 
   it('accepts slideDecks item with title', () => {

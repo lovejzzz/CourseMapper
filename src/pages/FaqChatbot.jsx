@@ -1,6 +1,7 @@
 import React, { useState, useRef, useEffect } from 'react';
 import FocusTrap from 'focus-trap-react';
 import { getSecure } from '../lib/secureStorage';
+import { supportsCustomTemperature } from '../lib/agentProviders';
 
 function getSystemPrompt(courseMap, activeTab) {
   let contextSection = '';
@@ -49,7 +50,7 @@ Course Mapper is a free, browser-based tool that uses AI to transform course des
 - **Option A — type a course description:** Just describe your course (e.g. "Social Policy and Welfare, 14-week undergraduate course") and click Continue.
 - **Option B — upload a syllabus:** Drag-and-drop or browse to upload course files. The AI extracts the lesson count and structure automatically.
 - **Option C — try a sample:** Click one of the suggested prompts (e.g. "Intro to Psychology", "Research Methods", "Social Policy") to see a quick demo.
-- Choose an AI provider (OpenAI, Anthropic, or Google) and enter your API key.
+- Choose an AI provider (OpenAI, Anthropic, Google, or DeepSeek) and enter your API key.
 - Select which deliverables to generate (Course Map, Lesson Plans, Slide Decks, etc.)
 - Click Generate and watch everything build in real time.
 
@@ -65,11 +66,13 @@ You need to provide your own API key from one of these providers:
 - **OpenAI:** GPT-4o, GPT-4o-mini, o3-mini. Best for highest quality.
 - **Anthropic:** Claude 3.7 Sonnet, Claude 3.5 Haiku. Excellent at structured formatting.
 - **Google:** Gemini 2.5 Pro, Gemini 2.5 Flash. Best quality with Gemini 2.5 Pro.
+- **DeepSeek:** DeepSeek chat/reasoning models. Strong low-cost structured generation.
 
 To get an API key:
 - **OpenAI:** Visit https://platform.openai.com/api-keys
 - **Anthropic:** Visit https://console.anthropic.com/settings/keys
 - **Google:** Visit https://aistudio.google.com/apikey
+- **DeepSeek:** Visit https://platform.deepseek.com/api_keys
 
 ## Deliverables
 After generating the Course Map, Course Mapper can generate up to 8 additional deliverables:
@@ -157,6 +160,7 @@ async function streamChat(messages, systemPrompt, signal) {
   const chatModel = modelId || (
     provider === 'openai' ? 'gpt-4o-mini' :
       provider === 'anthropic' ? 'claude-3-5-haiku-20241022' :
+        provider === 'deepseek' ? 'deepseek-chat' :
         'gemini-2.0-flash'
   );
 
@@ -255,12 +259,14 @@ async function streamChat(messages, systemPrompt, signal) {
     };
   }
 
-  // OpenAI (default)
+  // OpenAI-compatible providers (OpenAI, DeepSeek)
   const openaiMessages = [
     { role: 'system', content: systemPrompt },
     ...messages.map(m => ({ role: m.role, content: m.content })),
   ];
-  const response = await fetch('https://api.openai.com/v1/chat/completions', {
+  const baseUrl = provider === 'deepseek' ? 'https://api.deepseek.com/v1' : 'https://api.openai.com/v1';
+  const tempSetting = supportsCustomTemperature(chatModel) ? { temperature: 0.4 } : {};
+  const response = await fetch(`${baseUrl}/chat/completions`, {
     method: 'POST',
     headers: {
       'Authorization': `Bearer ${apiKey}`,
@@ -269,8 +275,8 @@ async function streamChat(messages, systemPrompt, signal) {
     body: JSON.stringify({
       model: chatModel,
       messages: openaiMessages,
-      max_completion_tokens: 2048,
-      temperature: 0.4,
+      ...(provider === 'deepseek' ? { max_tokens: 2048 } : { max_completion_tokens: 2048 }),
+      ...tempSetting,
       stream: true,
     }),
     signal,
@@ -357,7 +363,7 @@ function useHelpChat(courseMap, activeTab) {
         updated[updated.length - 1] = {
           role: 'assistant',
           content: isNoKey
-            ? "To use the help chat, please configure your AI provider and API key first in the main app. You'll need an API key from OpenAI, Anthropic, or Google."
+            ? "To use the help chat, please configure your AI provider and API key first in the main app. You'll need an API key from OpenAI, Anthropic, Google, or DeepSeek."
             : "I'm sorry, I couldn't process that right now. Please check that your API key is valid and try again.",
         };
         return updated;

@@ -22,6 +22,7 @@
  */
 
 import { saveCustomDeliverable as cloudSave, deleteCustomDeliverable as cloudDelete, loadCustomDeliverables as cloudLoadAll } from './cloudStorage';
+import { supportsCustomTemperature } from './agentProviders';
 
 const STORAGE_KEY = 'coursemapper-custom-deliverables';
 
@@ -144,6 +145,7 @@ export async function autoFillCustomDeliverable(name, { provider, apiKey, modelI
   if (!name?.trim() || !modelId) return null;
 
   const effectiveProvider = provider;
+  const tempSetting = supportsCustomTemperature(modelId) ? { temperature: 0 } : {};
 
   const trimmedName = name.trim();
   const jsonKey = trimmedName.toLowerCase().replace(/\s+/g, '_');
@@ -185,7 +187,7 @@ Pick the most fitting tone, style, length, icon, and color for "${trimmedName}".
           'anthropic-dangerous-direct-browser-access': 'true',
         },
         body: JSON.stringify({
-          model: modelId, max_tokens: 1500, temperature: 0,
+          model: modelId, max_tokens: 1500, ...tempSetting,
           system: sysPrompt,
           messages: [{ role: 'user', content: userPrompt }],
         }),
@@ -199,7 +201,7 @@ Pick the most fitting tone, style, length, icon, and color for "${trimmedName}".
         method: 'POST',
         headers: { 'Authorization': `Bearer ${apiKey}`, 'Content-Type': 'application/json' },
         body: JSON.stringify({
-          model: modelId, max_completion_tokens: 1500, temperature: 0, stream: false,
+          model: modelId, max_completion_tokens: 1500, ...tempSetting, stream: false,
           response_format: { type: 'json_object' },
           messages: [{ role: 'system', content: sysPrompt }, { role: 'user', content: userPrompt }],
         }),
@@ -217,7 +219,7 @@ Pick the most fitting tone, style, length, icon, and color for "${trimmedName}".
           body: JSON.stringify({
             contents: [{ role: 'user', parts: [{ text: userPrompt }] }],
             systemInstruction: { parts: [{ text: sysPrompt }] },
-            generationConfig: { temperature: 0, maxOutputTokens: 1500, responseMimeType: 'application/json' },
+            generationConfig: { ...tempSetting, maxOutputTokens: 1500, responseMimeType: 'application/json' },
           }),
         }
       );
@@ -236,7 +238,7 @@ Pick the most fitting tone, style, length, icon, and color for "${trimmedName}".
         method: 'POST',
         headers,
         body: JSON.stringify({
-          model: modelId, max_tokens: 1500, temperature: 0, stream: false,
+          model: modelId, max_tokens: 1500, ...tempSetting, stream: false,
           messages: [{ role: 'system', content: sysPrompt }, { role: 'user', content: userPrompt }],
         }),
       });

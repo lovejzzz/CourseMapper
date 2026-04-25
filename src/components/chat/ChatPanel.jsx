@@ -2,11 +2,53 @@ import React, { useEffect, useRef, useCallback, useMemo } from 'react';
 import ProgressHeader from './ProgressHeader';
 import MessageList from './MessageList';
 import ChatInput from './ChatInput';
-import AgentProgressCard from './AgentProgressCard';
 import CustomToolsMenu from './CustomToolsMenu';
 import useChatRouter from './useChatRouter';
 import ExamReview from '../ExamReview';
 import { executeAction } from '../../lib/agentActions';
+
+function activeTabLabel(activeTab) {
+  if (!activeTab || activeTab === 'courseMap') return 'Course map';
+  if (activeTab === 'quizBank') return 'Quiz Bank';
+  if (activeTab === 'lessonPlans') return 'Lesson Plans';
+  if (activeTab === 'slideDecks') return 'Slide Decks';
+  if (activeTab === 'studyGuides') return 'Study Guides';
+  if (activeTab === 'courseFaq') return 'Course FAQ';
+  return activeTab.charAt(0).toUpperCase() + activeTab.slice(1);
+}
+
+function latestRunningStep(steps = []) {
+  for (let i = steps.length - 1; i >= 0; i--) {
+    if (steps[i]?.status === 'running') return steps[i];
+  }
+  return null;
+}
+
+function deriveAgentStatus(progress, isStreaming, isAgentMode) {
+  if (!isAgentMode) return { label: 'Ask', tone: 'slate', detail: 'Ready to help' };
+  if (!progress && !isStreaming) return { label: 'Ready', tone: 'emerald', detail: 'Can edit deliverables' };
+  if (progress?.status === 'error') return { label: 'Needs review', tone: 'red', detail: 'Check the latest turn' };
+  if (progress?.status === 'complete') {
+    const hasIssues = progress.steps?.some(step => step.status === 'error' || step.status === 'partial');
+    return hasIssues
+      ? { label: 'Review', tone: 'amber', detail: 'Finished with issues' }
+      : { label: 'Done', tone: 'emerald', detail: 'Last turn complete' };
+  }
+  const running = latestRunningStep(progress?.steps);
+  return {
+    label: running?.label || running?.tool || 'Working',
+    tone: 'indigo',
+    detail: progress?.steps?.length ? 'Live progress in chat' : 'Thinking',
+  };
+}
+
+const STATUS_TONES = {
+  slate: 'bg-slate-100 text-slate-500 border-slate-200/70',
+  emerald: 'bg-emerald-50 text-emerald-700 border-emerald-200/70',
+  amber: 'bg-amber-50 text-amber-700 border-amber-200/70',
+  red: 'bg-red-50 text-red-700 border-red-200/70',
+  indigo: 'bg-indigo-50 text-indigo-700 border-indigo-200/70',
+};
 
 /**
  * ChatPanel — Unified chat interface replacing ProgressPanel + RevisionChat + HelpDrawer.
@@ -27,7 +69,7 @@ export default function ChatPanel({
   isSyncing, pendingSyncCount, syncingFeatures,
   // Revision
   onRevision, onDeliverableRevision, isRevising,
-  activeTab, courseMap,
+  activeTab, courseMap, slideTheme,
   // Chat state
   chatHistory, onChatHistoryChange,
   // Exam review
@@ -81,10 +123,12 @@ export default function ChatPanel({
     // Agent params
     deliverables,
     executeAction: execAction,
+    optimisticUpdate,
     delivUndoSnapshot,
     delivUndoFn,
     executeSyncPlan,
     notifyEdit,
+    slideTheme,
     uid,
   });
 
@@ -151,18 +195,17 @@ export default function ChatPanel({
     }
     return null;
   }, [chat.messages]);
+  const agentStatus = deriveAgentStatus(latestAgentProgress, chat.isStreaming, isAgentMode);
 
   return (
     <div className="flex flex-col h-full bg-white/72 backdrop-blur-xl rounded-squircle shadow-glass overflow-hidden" data-print="hide">
       {/* ── Header ── */}
       <div className="flex items-center gap-2.5 px-4 py-2.5 border-b border-slate-200/40 flex-shrink-0">
         <div className={`w-7 h-7 rounded-xl flex items-center justify-center ${
-          isAgentMode
-            ? 'bg-gradient-to-br from-violet-500/15 to-indigo-500/15'
-            : 'bg-gradient-to-br from-indigo-500/10 to-violet-500/10'
+          isAgentMode ? 'bg-indigo-50' : 'bg-slate-100'
         }`}>
           {isAgentMode ? (
-            <svg className="w-3.5 h-3.5 text-violet-500" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+            <svg className="w-3.5 h-3.5 text-indigo-500" fill="none" stroke="currentColor" viewBox="0 0 24 24">
               <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2}
                 d="M9.663 17h4.673M12 3v1m6.364 1.636l-.707.707M21 12h-1M4 12H3m3.343-5.657l-.707-.707m2.828 9.9a5 5 0 117.072 0l-.548.547A3.374 3.374 0 0014 18.469V19a2 2 0 11-4 0v-.531c0-.895-.356-1.754-.988-2.386l-.548-.547z" />
             </svg>
@@ -174,14 +217,17 @@ export default function ChatPanel({
           )}
         </div>
         <div className="flex-1 min-w-0">
-          <h2 className="text-sm font-bold text-slate-800">
-            {isAgentMode ? 'Teaching Agent' : 'Teaching Assistant'}
-          </h2>
-          {isAgentMode && activeTab && activeTab !== 'courseMap' && (
-            <p className="text-[10px] text-slate-500 -mt-0.5 truncate">
-              Viewing {activeTab === 'quizBank' ? 'Quiz Bank' : activeTab === 'lessonPlans' ? 'Lesson Plans' : activeTab === 'slideDecks' ? 'Slide Decks' : activeTab === 'studyGuides' ? 'Study Guides' : activeTab === 'courseFaq' ? 'Course FAQ' : activeTab.charAt(0).toUpperCase() + activeTab.slice(1)}
-            </p>
-          )}
+          <div className="flex items-center gap-2 min-w-0">
+            <h2 className="text-sm font-semibold text-slate-800 truncate">
+              {isAgentMode ? 'Agent' : 'Assistant'}
+            </h2>
+            <span className={`max-w-[150px] truncate rounded-full border px-2 py-0.5 text-[10px] font-semibold ${STATUS_TONES[agentStatus.tone]}`}>
+              {agentStatus.label}
+            </span>
+          </div>
+          <p className="text-[10px] text-slate-500 -mt-0.5 truncate">
+            {isAgentMode ? `${activeTabLabel(activeTab)} · ${agentStatus.detail}` : agentStatus.detail}
+          </p>
         </div>
         {chat.isStreaming && (
           <button
@@ -251,13 +297,6 @@ export default function ChatPanel({
           </div>
         );
       })()}
-
-      {/* ── Agent Progress (fixed top, collapsible) — tool execution status ── */}
-      {latestAgentProgress && (
-        <div className="flex-shrink-0 border-b border-slate-200/40">
-          <AgentProgressCard steps={latestAgentProgress.steps} status={latestAgentProgress.status} thinkingText={latestAgentProgress.thinkingText} />
-        </div>
-      )}
 
       {/* ── Exam Review (if pending) ── */}
       {(pendingExamPatches || (examChanges && examChanges.length > 0)) && (

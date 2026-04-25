@@ -1,4 +1,6 @@
 import { describe, it, expect } from 'vitest';
+import ExcelJS from 'exceljs';
+import { importCourseMap } from '../importCourseMap';
 
 /**
  * fileParser — unit tests for the pure utility functions.
@@ -108,6 +110,24 @@ describe('parseFile routing', () => {
         const result = await parseFile(mockFile);
         expect(result).toContain('Name,Age');
     });
+
+    it('xlsx files are parsed through ExcelJS without the xlsx package', async () => {
+        const { parseFile } = await import('../fileParser');
+        const workbook = new ExcelJS.Workbook();
+        const sheet = workbook.addWorksheet('Schedule');
+        sheet.addRow(['Week', 'Topic']);
+        sheet.addRow(['Week 1', 'Data Ethics Foundations']);
+        const buffer = await workbook.xlsx.writeBuffer();
+        const file = new File([buffer], 'schedule.xlsx', {
+            type: 'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet',
+        });
+
+        const result = await parseFile(file);
+
+        expect(result).toContain('--- Sheet: Schedule ---');
+        expect(result).toContain('Week,Topic');
+        expect(result).toContain('Week 1,Data Ethics Foundations');
+    });
 });
 
 describe('parseFiles', () => {
@@ -129,5 +149,33 @@ describe('parseFiles', () => {
         expect(results[0].text).toBe('Hello');
         expect(results[0].error).toBeNull();
         expect(results[1].text).toBe('World');
+    });
+});
+
+describe('importCourseMap', () => {
+    it('imports a course map from xlsx via ExcelJS', async () => {
+        const workbook = new ExcelJS.Workbook();
+        const sheet = workbook.addWorksheet('Course Map');
+        sheet.addRow(['Week/Module', 'Learning Objectives', 'Topic', 'Assessments']);
+        sheet.addRow(['Week 1', 'Explain data ethics principles', 'Privacy and consent', 'Reflection']);
+        sheet.addRow(['Week 2', 'Apply ethical review practices', 'Bias and accountability', 'Case analysis']);
+        const buffer = await workbook.xlsx.writeBuffer();
+        const file = new File([buffer], 'Data Ethics Course Map.xlsx', {
+            type: 'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet',
+        });
+
+        const imported = await importCourseMap(file);
+
+        expect(imported.courseName).toBe('Data Ethics');
+        expect(imported.lessons).toHaveLength(2);
+        expect(imported.lessons[0].title).toBe('Week 1');
+        expect(imported.lessons[0].sections[0].learningObjectives).toContain('Explain data ethics');
+        expect(imported.lessons[1].sections[0].weeklyAssessments).toBe('Case analysis');
+    });
+
+    it('rejects legacy xls course-map imports with a clear conversion message', async () => {
+        const file = new File(['legacy'], 'legacy.xls', { type: 'application/vnd.ms-excel' });
+
+        await expect(importCourseMap(file)).rejects.toThrow(/Convert it to \.xlsx or \.csv/);
     });
 });

@@ -45,7 +45,7 @@ const PROMPTS = {
 
 const COMPACT_SCHEMAS = {
   lessonPlans: `{"plans":[{"lt":"str","wk":"str","dur":"str","bls":["str"],"ob":["str"],"mt":["str"],"wu":{"dur":"str","ty":"str","pr":"str","pu":"str","fa":"str"},"ol":[{"tm":"str","ac":"str","ty":"str","de":"str","in":"str","ir":"str","gr":"str","bl":"str"}],"fc":{"ty":"str","pr":"str","oa":"str","ia":"str"},"un":{"rp":"str","eg":"str","ex":"str"},"hw":{"t":"str","de":"str","et":"str","cn":"str"},"ca":"str","tg":["str"],"rd":"str","cg":"str"}]}`,
-  slideDecks: `{"decks":[{"lt":"str","ts":0,"lo":["str"],"sl":[{"t":"str","ty":"str","bu":["str"],"no":"str","at":"str|null","ti":"str|null","bl":"str|null","ol":"str|null"}],"tg":["str"]}]}`,
+  slideDecks: `{"decks":[{"lt":"str","ts":0,"lo":["str"],"sl":[{"t":"str","ty":"str","bu":["str"],"no":"str","vi":{"k":"none|diagram|chart|image|table|code|equation","d":"str","at":"str"},"at":"str|null","ti":"str|null","bl":"str|null","ol":"str|null"}],"tg":["str"]}]}`,
   quizBank: `{"quizzes":[{"lt":"str","tq":0,"bc":["str"],"fn":"str","qs":[{"ty":"str","bl":"str","df":"str","em":0,"pt":0,"oa":"str","q":"str","op":["str"],"an":"str","dr":"str","ex":"str","rh":"str","sa":"str"}],"tg":["str"]}]}`,
   rubrics: `{"rubrics":[{"t":"str","lt":"str","at":"str","tp":0,"bl":"str","gs":{"ex":"str","pr":"str","dv":"str","bg":"str"},"cr":[{"cn":"str","oa":"str","wt":0,"pt":0,"ex":"str","pr":"str","dv":"str","bg":"str"}],"gp":"str","tn":"str","tg":["str"]}]}`,
   assignments: `{"assignments":[{"t":"str","at":"str","rl":["str"],"dw":"str","et":"str","tp":0,"pg":"str","bl":"str","ov":"str","ob":["str"],"ins":["str"],"fr":{"ln":"str","fm":"str","cs":"str","sp":"str","lp":"str"},"dl":["str"],"sm":[{"ms":"str","dd":"str","de":"str"}],"gc":"str","sr":["str"],"pt":"str","ai":"str","tg":["str"]}]}`,
@@ -61,6 +61,7 @@ const CONTINUATION_REQUIREMENTS = {
 - Header format: "Lesson {N}: {Title}". Return ONLY JSON.`,
   slideDecks: `- 12-16 slides per deck. Sequence: title→agenda→objectives→bridge→body→summary→closing.
 - Content slide titles = declarative sentences (assertion-evidence). Max 4 bullets.
+- Every content/example/keyTerm slide needs vi.k != "none" with concrete vi.d and accessible vi.at.
 - Speaker notes: ≥4 sentences, include example + anticipated Q + TRANSITION cue. Never 3+ consecutive content slides.
 - Header format: "Lesson {N}: {Title}". Return ONLY JSON.`,
   quizBank: `- 5-7 questions per lesson. ≥3 MC, 1-2 short answer, 1 essay. ≥3 Bloom's levels per lesson.
@@ -181,6 +182,9 @@ function buildConfigInstructions(featureId, config, pedagogicalMode = 'lecture',
     if (config.includeActivities === false) lines.push('Minimize activity and discussion slides — focus on content and example slides. Only include an activity slide if it is essential.');
     if (config.speakerNotes === 'Minimal') lines.push('Speaker notes should be brief bullet reminders only — 1-2 sentences per slide, NOT full scripts.');
     if (config.speakerNotes === 'Full script') lines.push('Speaker notes must be full instructor scripts — at least 3 substantive sentences per slide with examples and transition cues.');
+    if (config.generateAiImages === true) {
+      lines.push('AI IMAGE ENRICHMENT ENABLED: For a small number of high-value concept, example, bridge, or activity slides, set vi.k to "image", "diagram", or "chart" and write vi.d as a concrete, safe image-generation prompt. Prefer educational diagrams, classroom-neutral scenes, process illustrations, or conceptual metaphors. Avoid copyrighted characters, real people, brand logos, and text-heavy images. Keep vi.at accurate and descriptive for accessibility.');
+    }
   }
   else if (featureId === 'rubrics') {
     if (config.criteriaCount) lines.push(`Each rubric must have exactly ${config.criteriaCount} criteria (ensure weights sum to 100%).`);

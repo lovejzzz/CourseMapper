@@ -6,9 +6,9 @@
  */
 
 import { generateCourseHealthReport } from './pedagogicalValidator';
-import { checkGrammar } from './grammarChecker';
 import { executeResearch } from './academicSearch';
 import { getArrayKey } from './syncDependencies';
+import { generateImages, OPENAI_SLIDE_IMAGE_MODEL } from './imageSearch';
 import { addMemory, searchMemories, deleteMemory, getMemories, MEMORY_CATEGORIES } from './agentMemory';
 import { saveAgentPrefs } from './cloudStorage';
 import {
@@ -23,6 +23,130 @@ const FEATURE_NAMES = {
   lessonPlans: 'Lesson Plans', rubrics: 'Rubrics',
   studyGuides: 'Study Guides', courseFaq: 'Course FAQ', syllabus: 'Syllabus',
 };
+
+async function runGrammarCheck(text, language, signal) {
+  const { checkGrammar } = await import('./grammarChecker');
+  return checkGrammar(text, language, signal);
+}
+
+function firstArray(item, keys) {
+  for (const key of keys) {
+    if (Array.isArray(item?.[key])) return item[key];
+  }
+  return [];
+}
+
+function firstText(item, keys) {
+  for (const key of keys) {
+    if (typeof item?.[key] === 'string') return item[key];
+  }
+  return '';
+}
+
+const IMAGE_WORTHY_SLIDE_TYPES = new Set(['content', 'bridge', 'example', 'keyTerm', 'activity']);
+const AI_GENERATABLE_VISUAL_KINDS = new Set(['image', 'diagram', 'chart']);
+
+function cloneData(data) {
+  return JSON.parse(JSON.stringify(data || {}));
+}
+
+function getSlideArray(deck) {
+  if (Array.isArray(deck?.slides)) return { key: 'slides', slides: deck.slides };
+  if (Array.isArray(deck?.sl)) return { key: 'sl', slides: deck.sl };
+  return { key: 'slides', slides: [] };
+}
+
+function getSlideVisualKey(slide) {
+  if (slide?.visual) return 'visual';
+  if (slide?.vi) return 'vi';
+  return 'visual';
+}
+
+function getSlideVisual(slide) {
+  return slide?.visual || slide?.vi || null;
+}
+
+function getGeneratedImage(visual) {
+  return visual?.generatedImage || visual?.image || visual?.img || null;
+}
+
+function getVisualKind(visual) {
+  return String(visual?.kind || visual?.k || '').trim();
+}
+
+function getSlideType(slide) {
+  return String(slide?.type || slide?.ty || '').trim();
+}
+
+function buildSlideImagePrompt(deck, slide, visual) {
+  const lessonTitle = deck?.lessonTitle || deck?.lt || 'course lesson';
+  const title = slide?.title || slide?.t || 'slide concept';
+  const desc = visual?.description || visual?.d || title;
+  const alt = visual?.altText || visual?.at || '';
+  const bullets = Array.isArray(slide?.bullets || slide?.bu)
+    ? (slide.bullets || slide.bu).slice(0, 4).join('; ')
+    : '';
+  return [
+    `Course lesson: ${lessonTitle}.`,
+    `Slide: ${title}.`,
+    `Visual direction: ${desc}.`,
+    bullets ? `Key ideas to represent: ${bullets}.` : '',
+    alt ? `Accessibility target: ${alt}.` : '',
+    'Style: clean presentation-ready illustration or diagram, high contrast, no brand logos, no copyrighted characters, no identifiable real people, minimal or no embedded text.',
+  ].filter(Boolean).join(' ');
+}
+
+function arrayBufferToBase64(buffer) {
+  const bytes = new Uint8Array(buffer);
+  const chunkSize = 0x8000;
+  let binary = '';
+  for (let i = 0; i < bytes.length; i += chunkSize) {
+    binary += String.fromCharCode(...bytes.subarray(i, i + chunkSize));
+  }
+  return btoa(binary);
+}
+
+async function makeImageUrlExportReady(url, signal) {
+  if (!url || typeof url !== 'string') return url;
+  if (url.startsWith('data:image/')) return url;
+  if (!/^https?:\/\//.test(url) || typeof fetch !== 'function') return url;
+
+  try {
+    const res = await fetch(url, { signal });
+    if (!res.ok) return url;
+    const contentType = res.headers.get('content-type') || 'image/png';
+    const buffer = await res.arrayBuffer();
+    return `data:${contentType};base64,${arrayBufferToBase64(buffer)}`;
+  } catch {
+    return url;
+  }
+}
+
+function collectSlideImageCandidates(data, { lessonIndex, force, maxImages }) {
+  const arrayKey = getArrayKey('slideDecks', data) || 'decks';
+  const decks = Array.isArray(data?.[arrayKey]) ? data[arrayKey] : [];
+  const candidates = [];
+  const max = Math.max(1, Math.min(12, Number(maxImages) || 4));
+
+  decks.forEach((deck, deckIndex) => {
+    if (lessonIndex != null && deckIndex !== Number(lessonIndex)) return;
+    const { key: slidesKey, slides } = getSlideArray(deck);
+    slides.forEach((slide, slideIndex) => {
+      if (candidates.length >= max) return;
+      const visualKey = getSlideVisualKey(slide);
+      const visual = getSlideVisual(slide);
+      if (!visual || typeof visual !== 'object') return;
+      if (!force && getGeneratedImage(visual)) return;
+      const kind = getVisualKind(visual);
+      if (!AI_GENERATABLE_VISUAL_KINDS.has(kind)) return;
+      const type = getSlideType(slide);
+      if (type && !IMAGE_WORTHY_SLIDE_TYPES.has(type)) return;
+      candidates.push({ deck, deckIndex, slide, slideIndex, slidesKey, visualKey, visual });
+    });
+  });
+
+  return { arrayKey, decks, candidates };
+}
 
 /** Extract concatenated text from a lesson's sections for grammar checking. */
 function extractLessonText(courseMap, lessonIndex) {
@@ -42,19 +166,28 @@ function summarizeDeliverableItem(featureId, item) {
   if (!item) return null;
   switch (featureId) {
     case 'quizBank':
-      return { questionCount: item.qs?.length || 0, topics: (item.qs || []).slice(0, 3).map(q => q.q?.slice(0, 60)) };
+      {
+        const questions = firstArray(item, ['questions', 'qs']);
+        return { questionCount: questions.length, topics: questions.slice(0, 3).map(q => firstText(q, ['question', 'q']).slice(0, 60)) };
+      }
     case 'lessonPlans':
-      return { objectives: item.ob || '', outlineSteps: item.ol?.length || 0 };
+      return { objectives: firstText(item, ['objectives', 'ob']), outlineSteps: firstArray(item, ['outline', 'ol']).length };
     case 'slideDecks':
-      return { slideCount: item.sl?.length || 0, titles: (item.sl || []).slice(0, 3).map(s => s.t) };
+      {
+        const slides = firstArray(item, ['slides', 'sl']);
+        return { slideCount: slides.length, titles: slides.slice(0, 3).map(s => firstText(s, ['title', 't'])) };
+      }
     case 'rubrics':
-      return { criteriaCount: item.cr?.length || 0, criteria: (item.cr || []).slice(0, 3).map(c => c.cn) };
+      {
+        const criteria = firstArray(item, ['criteria', 'cr']);
+        return { criteriaCount: criteria.length, criteria: criteria.slice(0, 3).map(c => firstText(c, ['criterion', 'cn'])) };
+      }
     case 'discussions':
-      return { prompt: (item.pr || '').slice(0, 80) };
+      return { prompt: firstText(item, ['prompt', 'pr']).slice(0, 80) };
     case 'studyGuides':
-      return { termCount: item.kt?.length || 0, questionCount: item.rq?.length || 0 };
+      return { termCount: firstArray(item, ['keyTerms', 'kt']).length, questionCount: firstArray(item, ['reviewQuestions', 'rq']).length };
     case 'assignments':
-      return { title: item.t || '', type: item.at || '' };
+      return { title: firstText(item, ['title', 't']), type: firstText(item, ['assignmentType', 'at']) };
     default:
       return { keys: Object.keys(item).slice(0, 5) };
   }
@@ -64,12 +197,15 @@ function summarizeDeliverableItem(featureId, item) {
 function extractBlooms(featureId, item) {
   if (!item) return [];
   const levels = new Set();
-  if (item.bl) levels.add(item.bl);
-  const subArrays = { quizBank: 'qs', slideDecks: 'sl', rubrics: 'cr' };
-  const subKey = subArrays[featureId];
-  if (subKey && Array.isArray(item[subKey])) {
-    for (const sub of item[subKey]) {
-      if (sub.bl) levels.add(sub.bl);
+  const itemLevel = firstText(item, ['bloomsLevel', 'bl']);
+  if (itemLevel) levels.add(itemLevel);
+  const subArrays = { quizBank: ['questions', 'qs'], slideDecks: ['slides', 'sl'], rubrics: ['criteria', 'cr'] };
+  const subKeys = subArrays[featureId];
+  const subItems = subKeys ? firstArray(item, subKeys) : [];
+  if (subItems.length > 0) {
+    for (const sub of subItems) {
+      const level = firstText(sub, ['bloomsLevel', 'bl']);
+      if (level) levels.add(level);
     }
   }
   return [...levels];
@@ -108,7 +244,7 @@ export const AGENT_TOOLS = {
       if (args.lessonIndex != null) {
         const text = extractLessonText(ctx.courseMap, args.lessonIndex);
         if (!text || text.length < 20) return { matches: [], note: 'Not enough text to check.' };
-        const result = await checkGrammar(text, 'en-US', signal);
+        const result = await runGrammarCheck(text, 'en-US', signal);
         return {
           lessonIndex: args.lessonIndex,
           matchCount: result.matches.length,
@@ -130,7 +266,7 @@ export const AGENT_TOOLS = {
           allResults.push({ lessonIndex: i, title: lessons[i].title, matchCount: 0, note: 'Not enough text' });
           continue;
         }
-        const result = await checkGrammar(text, 'en-US', signal);
+        const result = await runGrammarCheck(text, 'en-US', signal);
         const matches = result.matches.slice(0, 5).map(m => ({
           message: m.message,
           context: m.context,
@@ -215,13 +351,18 @@ export const AGENT_TOOLS = {
           totalItems: data[arrKey].length,
           items: data[arrKey].map((item, i) => {
             const summary = { index: i };
-            if (item.lt) summary.title = item.lt;
-            if (item.t) summary.title = item.t;
-            if (item.qs) summary.questionCount = item.qs.length;
-            if (item.sl) summary.slideCount = item.sl.length;
-            if (item.cr) summary.criteriaCount = item.cr.length;
-            if (item.rq) summary.reviewQuestionCount = item.rq.length;
-            if (item.kt) summary.keyTermCount = item.kt.length;
+            const title = firstText(item, ['lessonTitle', 'lt', 'title', 't']);
+            if (title) summary.title = title;
+            const questions = firstArray(item, ['questions', 'qs']);
+            const slides = firstArray(item, ['slides', 'sl']);
+            const criteria = firstArray(item, ['criteria', 'cr']);
+            const reviewQuestions = firstArray(item, ['reviewQuestions', 'rq']);
+            const keyTerms = firstArray(item, ['keyTerms', 'kt']);
+            if (questions.length > 0) summary.questionCount = questions.length;
+            if (slides.length > 0) summary.slideCount = slides.length;
+            if (criteria.length > 0) summary.criteriaCount = criteria.length;
+            if (reviewQuestions.length > 0) summary.reviewQuestionCount = reviewQuestions.length;
+            if (keyTerms.length > 0) summary.keyTermCount = keyTerms.length;
             return summary;
           }),
         };
@@ -324,7 +465,7 @@ export const AGENT_TOOLS = {
   },
 
   edit_deliverables: {
-    description: 'Add, edit, or remove deliverable items. Changes are applied immediately with undo support.',
+    description: 'Add, edit, or remove deliverable items. Changes are applied immediately with undo support. For slide decks, prefer expanded paths such as decks[].slides[].notes/visual; shorthand aliases are still accepted.',
     params: {
       actions: 'array — each: {type:"addItem"|"removeItem"|"editItem"|"regenerateLesson", featureId, lessonIndex, item?, itemIndex?, path?, value?}',
     },
@@ -343,8 +484,8 @@ export const AGENT_TOOLS = {
               lessonIndex: { type: 'number', description: '0-based lesson index' },
               item: { type: 'object', description: 'Item object to add (for addItem)' },
               itemIndex: { type: 'number', description: 'Index of item to remove (for removeItem)' },
-              subKey: { type: 'string', description: 'Sub-array key if needed (e.g., "qs", "sl", "cr")' },
-              path: { type: 'array', description: 'Path from data root to field. Examples: ["slideDecks",0,"sl",2,"no"] for slide notes, ["quizzes",0,"qs",1,"q"] for quiz question, ["discussions",0,"pr"] for discussion prompt. Format: [rootKey, lessonIdx, subArrayKey?, itemIdx?, field]', items: {} },
+              subKey: { type: 'string', description: 'Sub-array key if needed (e.g., "questions"/"qs", "slides"/"sl", "criteria"/"cr")' },
+              path: { type: 'array', description: 'Path from data root to field. Prefer expanded examples: ["decks",0,"slides",2,"notes"] for slide notes, ["decks",0,"slides",2,"visual","kind"] for a slide visual, ["quizzes",0,"questions",1,"question"] for a quiz question. Shorthand aliases are accepted: ["slideDecks",0,"sl",2,"no"], ["quizzes",0,"qs",1,"q"]. Format: [rootKey, lessonIdx, subArrayKey?, itemIdx?, field]', items: {} },
               value: { description: 'New value to set (for editItem)' },
             },
             required: ['type', 'featureId'],
@@ -377,15 +518,293 @@ export const AGENT_TOOLS = {
           featureId: action.featureId,
           lessonIndex: action.lessonIndex,
           success: result.success,
+          pending: result.pending,
           message: result.message,
         });
       }
 
       return {
-        applied: results.filter(r => r.success).length,
+        applied: results.filter(r => r.success && !r.pending).length,
+        pending: results.filter(r => r.success && r.pending).length,
         failed: results.filter(r => !r.success).length,
         details: results,
       };
+    },
+  },
+
+  generate_slide_images: {
+    description: 'Generate real OpenAI images for image-ready Slide Deck visuals and attach them to the slide data so the preview/export can render them. Use after slide visual metadata exists.',
+    params: {
+      lessonIndex: 'number (optional) — 0-based deck/lesson index. Omit to scan all slide decks.',
+      maxImages: 'number (optional) — maximum images to generate this run. Default 4, hard cap 12.',
+      force: 'boolean (optional) — regenerate even when a slide already has generatedImage/image/img.',
+      model: `string (optional) — preferred OpenAI image model. Default ${OPENAI_SLIDE_IMAGE_MODEL}; app fallback chain is used automatically.`,
+    },
+    jsonSchema: {
+      type: 'object',
+      properties: {
+        lessonIndex: { type: 'number', description: '0-based deck/lesson index. Omit to scan all slide decks.' },
+        maxImages: { type: 'number', minimum: 1, maximum: 12, description: 'Maximum images to generate this run. Default 4.' },
+        force: { type: 'boolean', description: 'Regenerate even when a slide already has an image.' },
+        model: { type: 'string', description: `Preferred OpenAI image model. Default ${OPENAI_SLIDE_IMAGE_MODEL}.` },
+      },
+    },
+    execute: async (args, ctx, signal) => {
+      if (ctx.provider && ctx.provider !== 'openai') {
+        return { error: 'Slide image generation requires OpenAI as the configured provider.' };
+      }
+      if (!ctx.apiKey) return { error: 'No OpenAI API key configured.' };
+      if (!ctx.optimisticUpdate) return { error: 'Deliverable updater is not available.' };
+
+      const entry = ctx.deliverables?.slideDecks;
+      if (!entry?.data) return { error: 'Slide Decks not generated yet.' };
+
+      const sourceData = entry.data;
+      const { arrayKey, decks, candidates } = collectSlideImageCandidates(sourceData, {
+        lessonIndex: args.lessonIndex,
+        force: args.force === true,
+        maxImages: args.maxImages,
+      });
+
+      if (args.lessonIndex != null && (!Array.isArray(decks) || args.lessonIndex < 0 || args.lessonIndex >= decks.length)) {
+        return { error: `lessonIndex ${args.lessonIndex} out of range (0-${Math.max(0, (decks?.length || 1) - 1)}) for Slide Decks.` };
+      }
+
+      if (candidates.length === 0) {
+        return {
+          applied: 0,
+          failed: 0,
+          candidateCount: 0,
+          details: [],
+          note: 'No image-ready slides found. Set slide visual.kind to image, diagram, or chart and add visual.description first.',
+        };
+      }
+
+      const nextData = cloneData(sourceData);
+      const results = [];
+      let applied = 0;
+      let failed = 0;
+      if (ctx.snapshot) ctx.snapshot('slideDecks', sourceData);
+
+      for (const candidate of candidates) {
+        const prompt = buildSlideImagePrompt(candidate.deck, candidate.slide, candidate.visual);
+        const generated = await generateImages(
+          prompt,
+          {
+            provider: 'openai',
+            apiKey: ctx.apiKey,
+            count: 1,
+            model: args.model || OPENAI_SLIDE_IMAGE_MODEL,
+            size: '1024x1024',
+            quality: 'low',
+          },
+          signal,
+        );
+
+        const image = generated.images?.[0];
+        if (!image) {
+          failed++;
+          results.push({
+            action: 'generateImage',
+            featureId: 'slideDecks',
+            lessonIndex: candidate.deckIndex,
+            slideIndex: candidate.slideIndex,
+            success: false,
+            message: generated.error || 'No image returned.',
+          });
+          continue;
+        }
+
+        const nextDeck = nextData[arrayKey]?.[candidate.deckIndex];
+        const nextSlides = nextDeck?.[candidate.slidesKey];
+        const nextSlide = nextSlides?.[candidate.slideIndex];
+        if (!nextSlide) {
+          failed++;
+          results.push({
+            action: 'generateImage',
+            featureId: 'slideDecks',
+            lessonIndex: candidate.deckIndex,
+            slideIndex: candidate.slideIndex,
+            success: false,
+            message: 'Slide disappeared before image could be attached.',
+          });
+          continue;
+        }
+        const visualKey = getSlideVisualKey(nextSlide);
+        const nextVisual = nextSlide[visualKey] && typeof nextSlide[visualKey] === 'object'
+          ? nextSlide[visualKey]
+          : {};
+        const exportReadyUrl = await makeImageUrlExportReady(image.url, signal);
+        nextVisual.generatedImage = {
+          url: exportReadyUrl,
+          provider: image.provider || args.model || OPENAI_SLIDE_IMAGE_MODEL,
+          model: image.provider || args.model || OPENAI_SLIDE_IMAGE_MODEL,
+          prompt,
+          revisedPrompt: image.revisedPrompt || prompt,
+          createdAt: Date.now(),
+        };
+        nextSlide[visualKey] = nextVisual;
+
+        applied++;
+        results.push({
+          action: 'generateImage',
+          featureId: 'slideDecks',
+          lessonIndex: candidate.deckIndex,
+          slideIndex: candidate.slideIndex,
+          success: true,
+          message: `Generated image for slide ${candidate.slideIndex + 1}`,
+          model: nextVisual.generatedImage.model,
+        });
+      }
+
+      if (applied > 0) {
+        ctx.optimisticUpdate('slideDecks', nextData);
+      }
+
+      return {
+        applied,
+        failed,
+        candidateCount: candidates.length,
+        details: results,
+        modelsUsed: [...new Set(results.filter(r => r.success && r.model).map(r => r.model))],
+      };
+    },
+  },
+
+  verify_slide_images: {
+    description: 'Verify Slide Deck image attachment state. Reports how many slide visuals have generated images, which slides are still missing them, and whether images are embedded data URLs or remote URLs.',
+    params: {
+      lessonIndex: 'number (optional) — 0-based deck/lesson index. Omit to scan all slide decks.',
+    },
+    jsonSchema: {
+      type: 'object',
+      properties: {
+        lessonIndex: { type: 'number', description: '0-based deck/lesson index. Omit to scan all slide decks.' },
+      },
+    },
+    execute: (args, ctx) => {
+      const entry = ctx.deliverables?.slideDecks;
+      if (!entry?.data) return { error: 'Slide Decks not generated yet.' };
+
+      const data = entry.data;
+      const arrayKey = getArrayKey('slideDecks', data) || 'decks';
+      const decks = Array.isArray(data?.[arrayKey]) ? data[arrayKey] : [];
+      if (args.lessonIndex != null && (args.lessonIndex < 0 || args.lessonIndex >= decks.length)) {
+        return { error: `lessonIndex ${args.lessonIndex} out of range (0-${Math.max(0, decks.length - 1)}) for Slide Decks.` };
+      }
+
+      const summary = [];
+      let imageReadySlides = 0;
+      let generatedSlides = 0;
+      let dataUrlImages = 0;
+      let remoteUrlImages = 0;
+      let missingGeneratedImages = 0;
+
+      decks.forEach((deck, deckIndex) => {
+        if (args.lessonIndex != null && deckIndex !== Number(args.lessonIndex)) return;
+        const { slides } = getSlideArray(deck);
+        slides.forEach((slide, slideIndex) => {
+          const visual = getSlideVisual(slide);
+          if (!visual) return;
+          const kind = getVisualKind(visual);
+          if (!AI_GENERATABLE_VISUAL_KINDS.has(kind)) return;
+          const image = getGeneratedImage(visual);
+          imageReadySlides++;
+          if (image?.url) {
+            generatedSlides++;
+            if (String(image.url).startsWith('data:image/')) dataUrlImages++;
+            else if (/^https?:\/\//.test(String(image.url))) remoteUrlImages++;
+          } else {
+            missingGeneratedImages++;
+          }
+          summary.push({
+            lessonIndex: deckIndex,
+            slideIndex,
+            title: firstText(slide, ['title', 't']) || `Slide ${slideIndex + 1}`,
+            visualKind: kind,
+            hasGeneratedImage: Boolean(image?.url),
+            imageStorage: image?.url?.startsWith?.('data:image/') ? 'dataUrl' : image?.url ? 'remoteUrl' : 'missing',
+            model: image?.model || image?.provider || null,
+          });
+        });
+      });
+
+      return {
+        decksChecked: args.lessonIndex != null ? 1 : decks.length,
+        imageReadySlides,
+        generatedSlides,
+        missingGeneratedImages,
+        dataUrlImages,
+        remoteUrlImages,
+        exportReadyImages: dataUrlImages,
+        slides: summary.slice(0, 30),
+        truncated: summary.length > 30,
+      };
+    },
+  },
+
+  verify_slide_export: {
+    description: 'Build a PPTX in memory and verify Slide Deck export integrity: slide XML count, embedded media files, and picture elements. Use after image generation when the user cares about the downloadable file.',
+    params: {
+      lessonIndex: 'number (optional) — 0-based deck/lesson index to export-check alone. Omit to check all decks.',
+    },
+    jsonSchema: {
+      type: 'object',
+      properties: {
+        lessonIndex: { type: 'number', description: '0-based deck/lesson index to export-check alone. Omit to check all decks.' },
+      },
+    },
+    execute: async (args, ctx) => {
+      const entry = ctx.deliverables?.slideDecks;
+      if (!entry?.data) return { error: 'Slide Decks not generated yet.' };
+
+      const sourceData = entry.data;
+      const arrayKey = getArrayKey('slideDecks', sourceData) || 'decks';
+      const decks = Array.isArray(sourceData?.[arrayKey]) ? sourceData[arrayKey] : [];
+      if (args.lessonIndex != null && (args.lessonIndex < 0 || args.lessonIndex >= decks.length)) {
+        return { error: `lessonIndex ${args.lessonIndex} out of range (0-${Math.max(0, decks.length - 1)}) for Slide Decks.` };
+      }
+
+      const exportData = args.lessonIndex == null
+        ? sourceData
+        : { ...sourceData, [arrayKey]: [decks[args.lessonIndex]] };
+
+      try {
+        const [{ buildSlideDeckPptxBlob }, JSZipModule] = await Promise.all([
+          import('./exporters/pptxExporter'),
+          import('jszip'),
+        ]);
+        const JSZip = JSZipModule.default || JSZipModule;
+        const blob = await buildSlideDeckPptxBlob(
+          exportData,
+          ctx.courseMap?.courseName || 'Course',
+          ctx.slideTheme,
+        );
+        const arrayBuffer = await blob.arrayBuffer();
+        const zip = await JSZip.loadAsync(arrayBuffer);
+        const fileNames = Object.keys(zip.files);
+        const slideXmlPaths = fileNames
+          .filter(name => /^ppt\/slides\/slide\d+\.xml$/.test(name))
+          .sort((a, b) => Number(a.match(/slide(\d+)\.xml$/)?.[1] || 0) - Number(b.match(/slide(\d+)\.xml$/)?.[1] || 0));
+        const mediaFiles = fileNames.filter(name => /^ppt\/media\/.+/.test(name) && !name.endsWith('/'));
+        const slideXmls = await Promise.all(slideXmlPaths.map(name => zip.files[name].async('string')));
+        const pictureElements = slideXmls.reduce((sum, xml) => sum + (xml.match(/<p:pic\b/g) || []).length, 0);
+        const relationshipFiles = fileNames.filter(name => /^ppt\/slides\/_rels\/slide\d+\.xml\.rels$/.test(name));
+
+        return {
+          ok: slideXmlPaths.length > 0,
+          pptxBytes: arrayBuffer.byteLength,
+          slidesExported: slideXmlPaths.length,
+          mediaFiles: mediaFiles.length,
+          pictureElements,
+          relationshipFiles: relationshipFiles.length,
+          hasEmbeddedMedia: mediaFiles.length > 0,
+          hasPicturesOnSlides: pictureElements > 0,
+          checkedScope: args.lessonIndex == null ? 'all decks' : `Lesson ${args.lessonIndex + 1}`,
+        };
+      } catch (err) {
+        return { error: `PPTX export verification failed: ${err.message || 'unknown error'}` };
+      }
     },
   },
 
@@ -524,7 +943,9 @@ export const AGENT_TOOLS = {
         const itemB = arrB[i];
         const lesson = {
           lessonIndex: i,
-          title: itemA?.lt || itemB?.lt || ctx.courseMap?.lessons?.[i]?.title || `Lesson ${i + 1}`,
+          title: firstText(itemA, ['lessonTitle', 'lt', 'title', 't'])
+            || firstText(itemB, ['lessonTitle', 'lt', 'title', 't'])
+            || ctx.courseMap?.lessons?.[i]?.title || `Lesson ${i + 1}`,
         };
 
         // Extract key content from each deliverable for this lesson
@@ -664,6 +1085,9 @@ export const TOOL_LABELS = {
   read_lesson: 'Reading lesson data',
   edit_course_map: 'Editing course map',
   edit_deliverables: 'Editing deliverables',
+  generate_slide_images: 'Generating slide images',
+  verify_slide_images: 'Verifying slide images',
+  verify_slide_export: 'Checking PPTX export',
   save_preference: 'Saving preference',
   remember: 'Remembering for next time',
   recall: 'Recalling past context',
@@ -710,7 +1134,15 @@ export function summarizeToolResult(toolName, result) {
     case 'edit_course_map':
       return `${result.applied || 0} applied, ${result.failed || 0} failed`;
     case 'edit_deliverables':
-      return `${result.applied || 0} applied, ${result.failed || 0} failed`;
+      return (result.pending || 0) > 0
+        ? `${result.applied || 0} applied, ${result.pending || 0} pending, ${result.failed || 0} failed`
+        : `${result.applied || 0} applied, ${result.failed || 0} failed`;
+    case 'generate_slide_images':
+      return `${result.applied || 0} image${(result.applied || 0) !== 1 ? 's' : ''} generated, ${result.failed || 0} failed`;
+    case 'verify_slide_images':
+      return `${result.generatedSlides || 0}/${result.imageReadySlides || 0} image-ready slides have images`;
+    case 'verify_slide_export':
+      return `${result.slidesExported || 0} slides, ${result.mediaFiles || 0} media files, ${result.pictureElements || 0} pictures`;
     case 'save_preference':
       return result.saved ? `Saved ${result.key}` : 'Failed';
     case 'remember':

@@ -21,8 +21,9 @@ Keys: t=title, at=assignmentType, rl=relatedLessons, dw=dueWhen, et=estimatedTim
 Keys: ty=type, bl=bloomsLevel, df=difficulty, q=question, op=options, an=answer, ex=explanation, pt=points`,
   discussions: `{lt,bl,fm,ed,cx,pr,er,fp:[followUps],ft:{op,is,id,cl},rs:[starters],ec:[criteria],eq,gl,tg}
 Keys: lt=lessonTitle, pr=prompt, cx=context, er=expectedResponse, fp=followUps, bl=bloomsLevel`,
-  slideDecks: `Slide: {t:"assertion title",ty:"title"|"content"|"activity"|"discussion"|"summary"|"closing",bu:[max 4 bullets],no:"speaker notes 4+ sentences",at,ti,bl,ol}
-Keys: t=title, ty=type, bu=bullets, no=notes, bl=bloomsLevel`,
+  slideDecks: `Preferred Slide: {title:"assertion title",type:"title"|"agenda"|"objectives"|"bridge"|"content"|"activity"|"discussion"|"example"|"keyTerm"|"summary"|"closing",bullets:[max 4],notes:"speaker notes 4+ sentences",visual:{kind:"none"|"diagram"|"chart"|"image"|"table"|"code"|"equation",description,altText},activityType,timer,bloomsLevel,objectiveLink}
+Accepted aliases: t/title, ty/type, bu/bullets, no/notes, sl/slides, vi/visual, k/kind, d/description, at/altText when inside visual.
+For "more images", edit visual.kind to "image" and add concrete visual.description + visual.altText, or add image-focused slides. Do not claim an image file was generated unless generatedImage/image.url exists.`,
   lessonPlans: `{lt,wk,dur,bls,ob,mt,wu:{dur,ty,pr,pu,fa},ol:[{tm,ac,ty,de,in,ir,gr,bl}],fc:{ty,pr,oa,ia},un:{rp,eg,ex},hw:{t,de,et,cn},ca,tg}
 Keys: lt=lessonTitle, ob=objectives, wu=warmup, ol=outline, hw=homework, fc=formativeCheck`,
   rubrics: `Criterion: {cn,oa,wt,pt,ex:"exemplary",pr:"proficient",dv:"developing",bg:"beginning"}
@@ -35,7 +36,7 @@ Keys: q=question, an=answer, ca=category, df=difficulty`,
 
 // ── Path examples per deliverable (only shown for active tab) ────────────────
 const PATH_EXAMPLES = {
-  slideDecks: `["slideDecks", 0, "sl", 2, "no"] — slide 3 notes in lesson 1. Fields: t, bu, no, ty`,
+  slideDecks: `Preferred: ["decks", 0, "slides", 2, "notes"] for slide 3 notes, ["decks", 0, "slides", 2, "visual", "kind"] for its visual type. Aliases also work: ["slideDecks", 0, "sl", 2, "no"].`,
   quizBank: `["quizzes", 0, "qs", 1, "q"] — question 2 text in lesson 1. Fields: q, op, an, ex`,
   courseFaq: `["faqs", 0, "qs", 0, "an"] — FAQ 1 answer in lesson 1. Fields: q, an`,
   rubrics: `["rubrics", 0, "cr", 1, "ex"] — criterion 2 exemplary in lesson 1. Fields: cn, ex, pr, dv, bg`,
@@ -61,15 +62,29 @@ const FEATURE_NAMES = {
 
 // ── Sub-array keys for "addItem" ─────────────────────────────────────────────
 const ADD_TARGETS = {
-  quizBank: { subKey: 'qs', itemName: 'question' },
-  slideDecks: { subKey: 'sl', itemName: 'slide' },
-  courseFaq: { subKey: 'qs', itemName: 'FAQ entry' },
-  rubrics: { subKey: 'cr', itemName: 'criterion' },
+  quizBank: { subKeys: ['questions', 'qs'], subKey: 'qs', itemName: 'question' },
+  slideDecks: { subKeys: ['slides', 'sl'], subKey: 'sl', itemName: 'slide' },
+  courseFaq: { subKeys: ['questions', 'qs'], subKey: 'qs', itemName: 'FAQ entry' },
+  rubrics: { subKeys: ['criteria', 'cr'], subKey: 'cr', itemName: 'criterion' },
   studyGuides: { subKey: null, itemName: 'key term / review question' },
   lessonPlans: { subKey: null, itemName: 'outline segment' },
   discussions: { subKey: null, itemName: 'discussion prompt' },
   assignments: { subKey: null, itemName: 'assignment' },
 };
+
+function firstArray(item, keys) {
+  for (const key of keys) {
+    if (Array.isArray(item?.[key])) return item[key];
+  }
+  return [];
+}
+
+function firstText(item, keys) {
+  for (const key of keys) {
+    if (typeof item?.[key] === 'string') return item[key];
+  }
+  return '';
+}
 
 // ── Build the agent system prompt ────────────────────────────────────────────
 
@@ -132,15 +147,14 @@ export function buildAgentSystemPrompt(courseMap, activeTab, deliverables, healt
       delivContext = `\n## CURRENT ${tabName.toUpperCase()} DATA (${arr.length} items)\n`;
       if (activeTab === 'assignments') {
         delivContext += arr.map((a, i) =>
-          `  [${i}] "${a.t}" — related: ${(a.rl || []).join(', ')}`
+          `  [${i}] "${firstText(a, ['title', 't'])}" — related: ${(a.relatedLessons || a.rl || []).join(', ')}`
         ).join('\n');
       } else {
         delivContext += arr.map((item, i) => {
           const addTarget = ADD_TARGETS[activeTab];
-          const subKey = addTarget?.subKey;
-          const subCount = subKey && Array.isArray(item[subKey]) ? item[subKey].length : 0;
-          const label = item.lt || item.t || `Item ${i}`;
-          return subKey
+          const subCount = addTarget?.subKeys ? firstArray(item, addTarget.subKeys).length : 0;
+          const label = firstText(item, ['lessonTitle', 'lt', 'title', 't']) || `Item ${i}`;
+          return addTarget?.subKey
             ? `  [${i}] ${label} — ${subCount} ${addTarget.itemName}s`
             : `  [${i}] ${label}`;
         }).join('\n');
@@ -162,7 +176,7 @@ export function buildAgentSystemPrompt(courseMap, activeTab, deliverables, healt
   // Item schema for active tab only
   const schema = ITEM_SCHEMAS[activeTab] || '';
   const schemaSection = schema
-    ? `\n## ITEM SCHEMA for ${tabName}\n${schema}\nUse these EXACT abbreviated key names when generating items.`
+    ? `\n## ITEM SCHEMA for ${tabName}\n${schema}\nPrefer the expanded key names shown above when editing existing generated data; accepted aliases are noted where relevant.`
     : '';
 
   // Path example for active tab only
@@ -233,6 +247,8 @@ The respond tool accepts ONE of:
 - **Visualization** (concept map, diagram, flowchart, timeline, graph): respond() with diagram or chart using course data from below — no reads needed.
 - **Greetings / small talk**: Go straight to respond() with a 1-sentence chatReply referencing the course by name. Don't recall, read, or validate for a hello.
 - **Simple edits** (rename, fix typo, update cell): Use the edit tool directly, then respond() with a confirmation like "Renamed Lesson 2 to 'X'" or "Updated difficulty to hard for 4 questions across all 3 lessons".
+- **Slide edits**: read slideDecks first when changing existing slides. Prefer paths that match preview data: decks → slides → title/bullets/notes/visual. For "more images", first update visual.kind/description/altText on existing slides or add image-focused slides, then call generate_slide_images in a later tool round after those edits succeed.
+- **Revise an existing deliverable** ("redo", "make it more visual", "improve", "change existing"): edit directly. Do not use proposals unless the user is asking for new options instead of an immediate revision.
 - **Substantive additions** (new quiz question, assignment, slide): Call respond() with a proposal of 2-3 options. Generate COMPLETE items with unique content. Vary Bloom's levels and topics across options.
 - **Bulk ops** ("fix all typos", "add a question to every lesson"): Batch into ONE edit_deliverables call with multiple actions — not one turn per lesson. Call independent reads in parallel.
 - **Review / alignment** ("are quizzes aligned?", "check my course"): Use validate_course or compare_deliverables, then respond() with top findings in plain English plus a proposal offering 2-3 fix strategies.
@@ -256,7 +272,10 @@ The respond tool accepts ONE of:
 - addItem: {type:"addItem", featureId, lessonIndex, item:{...}}
 - removeItem: {type:"removeItem", featureId, lessonIndex, itemIndex}
 - editItem: {type:"editItem", featureId, path:[rootKey, lessonIdx, subKey?, itemIdx?, field], value}
-- regenerateLesson: {type:"regenerateLesson", featureId, lessonIndex}
+- regenerateLesson: {type:"regenerateLesson", featureId, lessonIndex} starts async generation; report it as started/pending, not already visible.
+- generate_slide_images: generates actual image assets for existing slide visual hints and attaches generatedImage to the slide data. Use only after Slide Decks exists and visual metadata is ready; do not call in the same tool batch as edits that create the visual metadata.
+- verify_slide_images: checks whether generatedImage/image/img URLs exist on image-ready slides. Use after generate_slide_images before claiming images are visible/export-ready.
+- verify_slide_export: builds a PPTX in memory and checks embedded media/picture elements. Use after verify_slide_images when the user asks for an output/download/export-ready result.
 
 For the active-tab path example and schemas of other deliverables, see COURSE STATE. Use read_deliverable for unfamiliar structures.
 

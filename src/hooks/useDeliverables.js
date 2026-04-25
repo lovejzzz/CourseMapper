@@ -4,6 +4,7 @@ import { getDeliverablePrompt } from '../lib/deliverablePrompts';
 import { getArrayKey } from '../lib/syncDependencies';
 import { getCustomDeliverable } from '../lib/customDeliverableLibrary';
 import { scoreHeuristic, computeAvgScore } from '../lib/deliverableQualityScorer';
+import { generateImages, OPENAI_SLIDE_IMAGE_MODEL } from '../lib/imageSearch';
 import { notifyDone } from '../lib/notifyDone';
 import { CourseStateContext, CourseDispatchContext, actions } from '../model/courseStore.jsx';
 import {
@@ -79,6 +80,131 @@ function getFeatureLabel(featureId) {
     return custom?.name || featureId;
   }
   return featureId;
+}
+
+const IMAGE_WORTHY_SLIDE_TYPES = new Set(['content', 'bridge', 'example', 'keyTerm', 'activity']);
+const AI_GENERATABLE_VISUAL_KINDS = new Set(['image', 'diagram', 'chart']);
+
+function cloneDeliverableData(data) {
+  return JSON.parse(JSON.stringify(data || {}));
+}
+
+function getSlideVisual(slide) {
+  return slide?.visual || slide?.vi || null;
+}
+
+function getGeneratedImage(visual) {
+  return visual?.generatedImage || visual?.image || visual?.img || null;
+}
+
+function getVisualKind(visual) {
+  return visual?.kind || visual?.k || '';
+}
+
+function getSlideType(slide) {
+  return String(slide?.type || slide?.ty || '').trim();
+}
+
+function buildSlideImagePrompt(deck, slide, visual) {
+  const lessonTitle = deck?.lessonTitle || deck?.lt || 'course lesson';
+  const title = slide?.title || slide?.t || 'slide concept';
+  const desc = visual?.description || visual?.d || title;
+  const alt = visual?.altText || visual?.at || '';
+  const bullets = Array.isArray(slide?.bullets || slide?.bu)
+    ? (slide.bullets || slide.bu).slice(0, 4).join('; ')
+    : '';
+
+  return [
+    'Create a polished educational slide visual for a university course.',
+    `Lesson: ${lessonTitle}.`,
+    `Slide: ${title}.`,
+    `Visual direction: ${desc}.`,
+    bullets ? `Key ideas to represent: ${bullets}.` : '',
+    alt ? `Accessibility target: ${alt}.` : '',
+    'Style: clean presentation-ready illustration or diagram, high contrast, no brand logos, no copyrighted characters, no identifiable real people, minimal or no embedded text.',
+  ].filter(Boolean).join(' ');
+}
+
+async function enrichSlideDeckImages(data, config, { apiKey, appendLog, signal }) {
+  const maxTotal = Math.max(1, Math.min(4, Number(config?.aiImagesTotal) || 2));
+  const maxPerLesson = Math.max(1, Math.min(2, Number(config?.aiImagesPerLesson) || 1));
+  const arrayKey = getArrayKey('slideDecks', data) || 'decks';
+  const decks = data?.[arrayKey] || [];
+  if (!Array.isArray(decks) || decks.length === 0) return data;
+
+  const next = cloneDeliverableData(data);
+  const nextDecks = next[arrayKey] || [];
+  let generatedCount = 0;
+  let candidateCount = 0;
+
+  for (const deck of nextDecks) {
+    const slides = Array.isArray(deck?.slides || deck?.sl) ? (deck.slides || deck.sl) : [];
+    let deckCount = 0;
+    if (generatedCount >= maxTotal) break;
+
+    const candidates = slides
+      .map((slide, index) => ({ slide, index, visual: getSlideVisual(slide) }))
+      .filter(({ slide, visual }) => {
+        if (!visual || getGeneratedImage(visual)) return false;
+        const kind = getVisualKind(visual);
+        if (!AI_GENERATABLE_VISUAL_KINDS.has(kind)) return false;
+        const type = getSlideType(slide);
+        return !type || IMAGE_WORTHY_SLIDE_TYPES.has(type);
+      });
+    candidateCount += candidates.length;
+
+    for (const candidate of candidates) {
+      if (generatedCount >= maxTotal) break;
+      if (deckCount >= maxPerLesson) break;
+      const prompt = buildSlideImagePrompt(deck, candidate.slide, candidate.visual);
+      appendLog(`Generating GPT Image visual for ${deck.lessonTitle || deck.lt || 'slide deck'} slide ${candidate.index + 1}...`, 'progress');
+
+      const result = await generateImages(
+        prompt,
+        {
+          provider: 'openai',
+          apiKey,
+          count: 1,
+          model: config?.aiImageModel || OPENAI_SLIDE_IMAGE_MODEL,
+          size: '1024x1024',
+          quality: 'low',
+        },
+        signal,
+      );
+
+      const image = result.images?.[0];
+      if (!image) {
+        appendLog(`GPT Image skipped slide ${candidate.index + 1}: ${result.error || 'no image returned'}`, 'warn');
+        continue;
+      }
+
+      const imageMeta = {
+        url: image.url,
+        provider: image.provider || config?.aiImageModel || OPENAI_SLIDE_IMAGE_MODEL,
+        model: image.provider || config?.aiImageModel || OPENAI_SLIDE_IMAGE_MODEL,
+        prompt,
+        revisedPrompt: image.revisedPrompt || prompt,
+        createdAt: Date.now(),
+      };
+
+      if (candidate.slide.vi) {
+        candidate.slide.vi = { ...candidate.slide.vi, img: imageMeta };
+      } else {
+        candidate.slide.visual = { ...candidate.slide.visual, generatedImage: imageMeta };
+      }
+      deckCount++;
+      generatedCount++;
+    }
+  }
+
+  if (generatedCount > 0) {
+    appendLog(`Added ${generatedCount} GPT Image visual${generatedCount !== 1 ? 's' : ''} to Slide Decks`, 'done');
+  } else if (candidateCount === 0) {
+    appendLog('No GPT Image candidates found in Slide Decks. Add image, diagram, or chart visual cues and regenerate.', 'warn');
+  } else {
+    appendLog('No GPT Image visuals were added to Slide Decks.', 'warn');
+  }
+  return next;
 }
 
 /**
@@ -881,9 +1007,32 @@ export default function useDeliverables({ provider, modelId, apiKey, maxOutputTo
       // Apply scope numbering.
       // Skip rubrics and assignments — they are per-assessment (not 1 item per lesson),
       // so the index-based mapping in patchScopeNumbering would corrupt lessonTitle fields.
-      const finalData = (fid === 'rubrics' || fid === 'assignments')
+      let finalData = (fid === 'rubrics' || fid === 'assignments')
         ? merged
         : patchScopeNumbering(merged, fid, scopeIndices, courseMap);
+
+      const config = deliverableConfigRef.current?.[fid] || {};
+      if (fid === 'slideDecks' && provider === 'openai' && config.generateAiImages === true && apiKey) {
+        const imageController = new AbortController();
+        const imageAbortKey = `${fid}:images`;
+        abortMapRef.current.set(imageAbortKey, imageController);
+        try {
+          appendLog('Enriching Slide Decks with GPT Image visuals...', 'progress');
+          finalData = await enrichSlideDeckImages(finalData, config, {
+            apiKey,
+            appendLog,
+            signal: imageController.signal,
+          });
+        } catch (err) {
+          if (err.name === 'AbortError') {
+            appendLog('Slide Decks image generation stopped', 'warn');
+          } else {
+            appendLog(`GPT Image enrichment failed: ${err.message || 'image generation failed'}`, 'warn');
+          }
+        } finally {
+          abortMapRef.current.delete(imageAbortKey);
+        }
+      }
       const delivEndTime = Date.now();
 
       // Feature-level completion summary for multi-chunk features

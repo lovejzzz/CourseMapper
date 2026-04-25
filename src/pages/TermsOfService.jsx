@@ -39,8 +39,8 @@ export default function TermsOfService() {
           <Section title="Free Tier & API Keys">
             <ul className="list-disc list-inside space-y-1.5 ml-1">
               <li>Course Mapper offers a free tier powered by third-party AI providers. Free-tier models are shared among all users and subject to rate limits and availability.</li>
-              <li>You may optionally provide your own API key from OpenAI, Anthropic, or Google. You are responsible for any costs incurred through your own API key usage.</li>
-              <li>Course Mapper is not affiliated with OpenAI, Anthropic, Google, or OpenRouter. Your use of their APIs is subject to their respective terms of service.</li>
+              <li>You may optionally provide your own API key from OpenAI, Anthropic, Google, or DeepSeek. You are responsible for any costs incurred through your own API key usage.</li>
+              <li>Course Mapper is not affiliated with OpenAI, Anthropic, Google, DeepSeek, or OpenRouter. Your use of their APIs is subject to their respective terms of service.</li>
             </ul>
           </Section>
 

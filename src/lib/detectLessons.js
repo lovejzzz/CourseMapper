@@ -1,3 +1,5 @@
+import { supportsCustomTemperature } from './agentProviders';
+
 /**
  * Detect the expected number of lessons/weeks from syllabus text.
  * Scans for common patterns like "Week 1-15", "Module 12", schedule tables, etc.
@@ -137,6 +139,7 @@ export async function detectLessonsWithAI(text, { provider, apiKey, modelId }) {
   if (!text?.trim() || !modelId) return null;
 
   const effectiveProvider = provider;
+  const tempSetting = supportsCustomTemperature(modelId) ? { temperature: 0 } : {};
 
   const systemPrompt = 'You are a helpful assistant. Respond only with valid JSON — no markdown, no explanation.';
   const userPrompt = `Based on the course description below, determine:
@@ -178,7 +181,7 @@ ${text.slice(0, 8000)}`;
         body: JSON.stringify({
           model: modelId,
           max_tokens: 64,
-          temperature: 0,
+          ...tempSetting,
           system: systemPrompt,
           messages: [{ role: 'user', content: userPrompt }],
         }),
@@ -202,7 +205,7 @@ ${text.slice(0, 8000)}`;
           ],
           response_format: { type: 'json_object' },
           max_completion_tokens: 64,
-          temperature: 0,
+          ...tempSetting,
           stream: false,
         }),
       });
@@ -223,7 +226,7 @@ ${text.slice(0, 8000)}`;
           body: JSON.stringify({
             contents: [{ role: 'user', parts: [{ text: userPrompt }] }],
             systemInstruction: { parts: [{ text: systemPrompt }] },
-            generationConfig: { temperature: 0, maxOutputTokens: 64, responseMimeType: 'application/json' },
+            generationConfig: { ...tempSetting, maxOutputTokens: 64, responseMimeType: 'application/json' },
           }),
         }
       );
@@ -244,8 +247,8 @@ ${text.slice(0, 8000)}`;
             { role: 'system', content: systemPrompt },
             { role: 'user', content: userPrompt },
           ],
-          max_completion_tokens: 64,
-          temperature: 0,
+          max_tokens: 64,
+          ...tempSetting,
           stream: false,
         }),
       });
@@ -270,7 +273,7 @@ ${text.slice(0, 8000)}`;
             { role: 'user', content: userPrompt },
           ],
           max_tokens: 64,
-          temperature: 0,
+          ...tempSetting,
           stream: false,
         }),
       });

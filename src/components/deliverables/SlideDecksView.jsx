@@ -153,6 +153,37 @@ function ProgressDots({ slideIndex, totalSlides, theme, isDark }) {
   );
 }
 
+function getGeneratedSlideVisual(slide) {
+  const vis = slide?.visual || slide?.vi;
+  const generatedImage = vis?.generatedImage || vis?.image || vis?.img;
+  if (!generatedImage?.url) return null;
+  return {
+    url: generatedImage.url,
+    alt: vis.altText || vis.at || vis.description || vis.d || 'Generated slide visual',
+    kind: vis.kind || vis.k || 'image',
+  };
+}
+
+function GeneratedVisualOnSlide({ visual, type, theme }) {
+  if (!visual?.url) return null;
+  const isHero = type === 'title' || type === 'summary' || type === 'closing';
+  const frameStyle = isHero
+    ? { right: '6%', top: '18%', width: '32%', height: '46%', borderColor: 'rgba(255,255,255,0.24)' }
+    : { right: '5%', bottom: '9%', width: '30%', height: '34%', borderColor: `${theme.accent}66` };
+  return (
+    <div
+      className="absolute z-10 rounded-lg overflow-hidden shadow-xl border bg-white/90 pointer-events-none"
+      style={frameStyle}
+    >
+      <img
+        src={visual.url}
+        alt={visual.alt}
+        className="w-full h-full object-contain"
+      />
+    </div>
+  );
+}
+
 // ─── Individual slide renderer ───
 function SlideCanvas({ slide, slideIndex, totalSlides, deckTitle, dataKey, deckIndex, lessonNumber, onEdit, themeIndex }) {
   if (!slide) return null;
@@ -161,6 +192,7 @@ function SlideCanvas({ slide, slideIndex, totalSlides, deckTitle, dataKey, deckI
   const bulletsKey = slide.bullets ? 'bullets' : 'bulletPoints';
   const theme = themeIndex !== undefined && themeIndex !== null ? SLIDE_THEMES[themeIndex] : SLIDE_THEMES[(deckIndex || 0) % SLIDE_THEMES.length];
   const useTwoCol = type === 'content' && bullets.length >= 4;
+  const generatedVisual = getGeneratedSlideVisual(slide);
 
   const headingFont = "'Montserrat', 'Inter', system-ui, sans-serif";
   const bodyFont = "'Open Sans', 'Inter', system-ui, sans-serif";
@@ -188,6 +220,7 @@ function SlideCanvas({ slide, slideIndex, totalSlides, deckTitle, dataKey, deckI
           Course: <E value={deckTitle} path={[dataKey, deckIndex, 'lessonTitle']} onEdit={onEdit} className="text-[9px] tracking-widest uppercase font-medium" />
         </p>}
       </div>
+      <GeneratedVisualOnSlide visual={generatedVisual} type={type} theme={theme} />
       <ProgressDots slideIndex={slideIndex} totalSlides={totalSlides} theme={theme} isDark />
       <div className="absolute bottom-2.5 right-3.5 text-[9px] font-bold z-10 px-2 py-0.5 rounded" style={{ background: theme.accent, color: theme.primary }}>
         {slideIndex + 1} / {totalSlides}
@@ -235,6 +268,7 @@ function SlideCanvas({ slide, slideIndex, totalSlides, deckTitle, dataKey, deckI
           <AddBulletBtn dataKey={dataKey} deckIndex={deckIndex} slideIndex={slideIndex} bulletsKey={bulletsKey} currentCount={bullets.length} onEdit={onEdit} />
         </div>
       </div>
+      <GeneratedVisualOnSlide visual={generatedVisual} type={type} theme={theme} />
       <ProgressDots slideIndex={slideIndex} totalSlides={totalSlides} theme={theme} />
       <div className="absolute bottom-2.5 right-3.5 text-[8px] font-semibold z-10" style={{ color: theme.primary + 'B3' }}>{slideIndex + 1} / {totalSlides}</div>
     </div>
@@ -267,6 +301,7 @@ function SlideCanvas({ slide, slideIndex, totalSlides, deckTitle, dataKey, deckI
           <AddBulletBtn dataKey={dataKey} deckIndex={deckIndex} slideIndex={slideIndex} bulletsKey={bulletsKey} currentCount={bullets.length} onEdit={onEdit} />
         </div>
       </div>
+      <GeneratedVisualOnSlide visual={generatedVisual} type={type} theme={theme} />
       <ProgressDots slideIndex={slideIndex} totalSlides={totalSlides} theme={theme} />
       <div className="absolute bottom-2.5 right-3.5 text-[8px] font-semibold z-10" style={{ color: theme.primary + 'B3' }}>{slideIndex + 1} / {totalSlides}</div>
     </div>
@@ -314,6 +349,7 @@ function SlideCanvas({ slide, slideIndex, totalSlides, deckTitle, dataKey, deckI
           </ul>
         </div>
       </div>
+      <GeneratedVisualOnSlide visual={generatedVisual} type={type} theme={theme} />
       <ProgressDots slideIndex={slideIndex} totalSlides={totalSlides} theme={theme} />
       <div className="absolute bottom-2.5 right-3.5 text-[8px] font-semibold z-10" style={{ color: theme.primary + 'B3' }}>{slideIndex + 1} / {totalSlides}</div>
     </div>
@@ -356,6 +392,7 @@ function SlideCanvas({ slide, slideIndex, totalSlides, deckTitle, dataKey, deckI
           <AddBulletBtn dataKey={dataKey} deckIndex={deckIndex} slideIndex={slideIndex} bulletsKey={bulletsKey} currentCount={bullets.length} onEdit={onEdit} />
         </div>
       </div>
+      <GeneratedVisualOnSlide visual={generatedVisual} type={type} theme={theme} />
       <ProgressDots slideIndex={slideIndex} totalSlides={totalSlides} theme={theme} />
       <div className="absolute bottom-2.5 right-3.5 text-[8px] font-semibold z-10" style={{ color: theme.primary + 'B3' }}>{slideIndex + 1} / {totalSlides}</div>
     </div>
@@ -385,6 +422,7 @@ function SlideCanvas({ slide, slideIndex, totalSlides, deckTitle, dataKey, deckI
           </div>
         )}
       </div>
+      <GeneratedVisualOnSlide visual={generatedVisual} type={type} theme={theme} />
       <ProgressDots slideIndex={slideIndex} totalSlides={totalSlides} theme={theme} />
       <div className="absolute bottom-2.5 right-3.5 text-[8px] font-semibold z-10" style={{ color: theme.primary + 'B3' }}>{slideIndex + 1} / {totalSlides}</div>
     </div>
@@ -412,6 +450,7 @@ function SlideCanvas({ slide, slideIndex, totalSlides, deckTitle, dataKey, deckI
         </ul>
         <AddBulletBtn dataKey={dataKey} deckIndex={deckIndex} slideIndex={slideIndex} bulletsKey={bulletsKey} currentCount={bullets.length} onEdit={onEdit} />
       </div>
+      <GeneratedVisualOnSlide visual={generatedVisual} type={type} theme={theme} />
       <ProgressDots slideIndex={slideIndex} totalSlides={totalSlides} theme={theme} isDark />
       <div className="absolute bottom-2.5 right-3.5 text-[9px] font-bold z-10 px-2 py-0.5 rounded" style={{ background: theme.accent, color: theme.primary }}>
         {slideIndex + 1} / {totalSlides}
@@ -449,6 +488,7 @@ function SlideCanvas({ slide, slideIndex, totalSlides, deckTitle, dataKey, deckI
           <AddBulletBtn dataKey={dataKey} deckIndex={deckIndex} slideIndex={slideIndex} bulletsKey={bulletsKey} currentCount={bullets.length} onEdit={onEdit} />
         </div>
       </div>
+      <GeneratedVisualOnSlide visual={generatedVisual} type={type} theme={theme} />
       <ProgressDots slideIndex={slideIndex} totalSlides={totalSlides} theme={theme} />
       <div className="absolute bottom-2.5 right-3.5 text-[8px] font-semibold z-10" style={{ color: theme.primary + 'B3' }}>{slideIndex + 1} / {totalSlides}</div>
     </div>
@@ -487,6 +527,7 @@ function SlideCanvas({ slide, slideIndex, totalSlides, deckTitle, dataKey, deckI
           <AddBulletBtn dataKey={dataKey} deckIndex={deckIndex} slideIndex={slideIndex} bulletsKey={bulletsKey} currentCount={bullets.length} onEdit={onEdit} />
         </div>
       </div>
+      <GeneratedVisualOnSlide visual={generatedVisual} type={type} theme={theme} />
       <ProgressDots slideIndex={slideIndex} totalSlides={totalSlides} theme={theme} />
       <div className="absolute bottom-2.5 right-3.5 text-[8px] font-semibold z-10 px-2 py-0.5 rounded" style={{ background: theme.primary, color: '#FFFFFF' }}>
         {slideIndex + 1} / {totalSlides}
@@ -773,6 +814,7 @@ export default function SlideDecksView({ data, isStreaming, onEdit, slideTheme, 
             if (!vis || !kind || kind === 'none') return null;
             const desc = vis.description || vis.d || '';
             const alt = vis.altText || vis.at || '';
+            const generatedImage = vis.generatedImage || vis.image || vis.img;
             const kindIcon = {
               diagram:  '📐', chart: '📊', image: '🖼️',
               table:    '▦',  code:  '⌨',  equation: '∑',
@@ -780,9 +822,18 @@ export default function SlideDecksView({ data, isStreaming, onEdit, slideTheme, 
             return (
               <div className="px-5 py-2 bg-indigo-50/40 border-t border-indigo-200/40 flex items-start gap-2.5 flex-shrink-0">
                 <span className="text-base leading-tight flex-shrink-0 mt-0.5" aria-hidden="true">{kindIcon}</span>
+                {generatedImage?.url && (
+                  <div className="w-20 h-14 rounded-md overflow-hidden border border-indigo-100 bg-white flex-shrink-0">
+                    <img
+                      src={generatedImage.url}
+                      alt={alt || desc || 'Generated slide visual'}
+                      className="w-full h-full object-cover"
+                    />
+                  </div>
+                )}
                 <div className="flex-1 min-w-0">
                   <p className="text-[10px] font-semibold text-indigo-500 uppercase tracking-wider">
-                    Suggested visual · {kind}
+                    {generatedImage?.url ? 'Generated visual' : 'Suggested visual'} · {kind}
                   </p>
                   {desc && (
                     <p className="text-xs text-slate-600 leading-snug mt-0.5">{desc}</p>
@@ -846,4 +897,3 @@ export default function SlideDecksView({ data, isStreaming, onEdit, slideTheme, 
     </div>
   );
 }
-

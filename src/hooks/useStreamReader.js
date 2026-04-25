@@ -1,4 +1,5 @@
 import { useRef, useCallback } from 'react';
+import { supportsCustomTemperature } from '../lib/agentProviders';
 
 /**
  * Strip <think>...</think> tags from reasoning model output.
@@ -146,7 +147,7 @@ export default function useStreamReader() {
       }).then(result => ({ fullText: existingText + result.fullText }));
     }
 
-    let skipTemp = _noTempModels.has(modelId);
+    let skipTemp = _noTempModels.has(modelId) || !supportsCustomTemperature(modelId);
     let { url, headers, body, parseChunk } = buildProviderRequest(provider, apiKey, modelId, systemPrompt, userPrompt, maxOutputTokens, skipTemp);
 
     let fullText = existingText;
@@ -336,7 +337,7 @@ function buildProviderRequest(provider, apiKey, modelId, systemPrompt, userPromp
           { role: 'user', content: userPrompt },
         ],
         response_format: { type: 'json_object' },
-        max_completion_tokens: maxOutputTokens,
+        max_tokens: maxOutputTokens,
         ...(temp !== undefined && { temperature: temp }),
         stream: true,
       },

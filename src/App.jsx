@@ -194,9 +194,13 @@ export default function App() {
   const { user } = useAuth();
   const [projectId, setProjectId] = useState(null); // Firestore project doc ID
   const projectIdRef = useRef(null); // Ref mirror to prevent race conditions in auto-save
+  const [localSaveStatus, setLocalSaveStatus] = useState('idle'); // 'idle' | 'saving' | 'saved' | 'error'
   const [cloudSaveStatus, setCloudSaveStatus] = useState('idle'); // 'idle' | 'saving' | 'saved' | 'error'
   const cloudSaveTimerRef = useRef(null);
   const cloudStatusTimerRef = useRef(null);
+  const localStatusTimerRef = useRef(null);
+  const [isStartingNewProject, setIsStartingNewProject] = useState(false);
+  const [newProjectError, setNewProjectError] = useState('');
 
   // ── Misc ──
   const [downloadedFile, setDownloadedFile] = useState('');
@@ -324,24 +328,40 @@ export default function App() {
     chatHistory: chatHistory.slice(-50),
     fileNames: files.map(f => f.name),
     versionHistory: version.versionHistory.slice(-30),
-    selectedFeatures, lessonScope, promptText, activeTab,
+    selectedFeatures, deliverableConfig, lessonScope, promptText, activeTab,
     deliverables: deliv.deliverables,
     slideTheme,
     savedAt: Date.now(),
     ...extra,
-  }), [courseMap, columns, provider, modelId, modelName, userEdits, chatHistory, files, version.versionHistory, selectedFeatures, lessonScope, promptText, activeTab, deliv.deliverables, slideTheme]);
+  }), [courseMap, columns, provider, modelId, modelName, userEdits, chatHistory, files, version.versionHistory, selectedFeatures, deliverableConfig, lessonScope, promptText, activeTab, deliv.deliverables, slideTheme]);
+
+  const saveLocalProjectSnapshot = useCallback((extra = {}) => {
+    if (!hasGenerated || !courseMap) return false;
+    try {
+      setLocalSaveStatus('saving');
+      localStorage.setItem(STORAGE_KEY, JSON.stringify(buildProjectSnapshot(extra)));
+      setLocalSaveStatus('saved');
+      clearTimeout(localStatusTimerRef.current);
+      localStatusTimerRef.current = setTimeout(() => setLocalSaveStatus('idle'), 3000);
+      return true;
+    } catch (e) {
+      warn('Save failed:', e);
+      setLocalSaveStatus('error');
+      clearTimeout(localStatusTimerRef.current);
+      localStatusTimerRef.current = setTimeout(() => setLocalSaveStatus('idle'), 5000);
+      return false;
+    }
+  }, [buildProjectSnapshot, courseMap, hasGenerated]);
 
   // ── Save to localStorage (debounced 3s) ──
   useEffect(() => {
     if (!hasGenerated || !courseMap) return;
     clearTimeout(saveTimerRef.current);
     saveTimerRef.current = setTimeout(() => {
-      try {
-        localStorage.setItem(STORAGE_KEY, JSON.stringify(buildProjectSnapshot()));
-      } catch (e) { warn('Save failed:', e); }
+      saveLocalProjectSnapshot({ projectId: projectIdRef.current });
     }, 3000);
     return () => clearTimeout(saveTimerRef.current);
-  }, [hasGenerated, courseMap, buildProjectSnapshot]);
+  }, [hasGenerated, courseMap, buildProjectSnapshot, saveLocalProjectSnapshot]);
 
   // Keep projectId ref in sync to avoid race conditions
   useEffect(() => { projectIdRef.current = projectId; }, [projectId]);
@@ -361,11 +381,13 @@ export default function App() {
           setProjectId(pid);
         }
         const state = buildProjectSnapshot({
+          projectId: pid,
           courseName: courseMap?.courseName || 'Untitled',
           semester: courseMap?.semester || '',
           version: '1.5',
         });
         await cloudSaveProject(user.uid, pid, state);
+        saveLocalProjectSnapshot({ projectId: pid });
         setCloudSaveStatus('saved');
         // Reset to idle after 3 seconds
         clearTimeout(cloudStatusTimerRef.current);
@@ -378,7 +400,7 @@ export default function App() {
       }
     }, 5000);
     return () => clearTimeout(cloudSaveTimerRef.current);
-  }, [user, hasGenerated, courseMap, buildProjectSnapshot]);
+  }, [user, hasGenerated, courseMap, buildProjectSnapshot, saveLocalProjectSnapshot]);
 
   // ── On sign-in: merge cloud data (custom deliverables + profile) ──
   const prevUserRef = useRef(null);
@@ -437,6 +459,11 @@ export default function App() {
       if (saved.promptText !== undefined) setPromptText(saved.promptText);
       if (saved.activeTab) setActiveTab(saved.activeTab);
       if (saved.slideTheme !== undefined) setSlideTheme(saved.slideTheme);
+      if (saved.deliverableConfig) setDeliverableConfig(saved.deliverableConfig);
+      if (saved.projectId) {
+        setProjectId(saved.projectId);
+        projectIdRef.current = saved.projectId;
+      }
       if (saved.deliverables) {
         // ── Change #3: Migrate old stale:true entries that lack staleConfidence ──
         for (const [, entry] of Object.entries(saved.deliverables)) {
@@ -586,6 +613,7 @@ export default function App() {
       if (saved.promptText !== undefined) setPromptText(saved.promptText);
       if (saved.activeTab) setActiveTab(saved.activeTab);
       if (saved.slideTheme !== undefined) setSlideTheme(saved.slideTheme);
+      if (saved.deliverableConfig) setDeliverableConfig(saved.deliverableConfig);
       if (deliverables && Object.keys(deliverables).length > 0) {
         deliv.restoreDeliverables(deliverables);
       } else if (saved.deliverables) {
@@ -613,6 +641,7 @@ export default function App() {
     try {
       const pid = newProjectId();
       const state = buildProjectSnapshot({
+        projectId: pid,
         courseName: courseMap?.courseName || 'Untitled',
         semester: courseMap?.semester || '',
         version: '1.5',
@@ -634,6 +663,7 @@ export default function App() {
     clearTimeout(saveTimerRef.current);
     clearTimeout(cloudSaveTimerRef.current);
     clearTimeout(cloudStatusTimerRef.current);
+    clearTimeout(localStatusTimerRef.current);
     // 3. Remove persisted data before resetting state
     //    (prevents save-effects from re-writing stale data)
     try { localStorage.removeItem(STORAGE_KEY); } catch { }
@@ -662,8 +692,50 @@ export default function App() {
     setHasSavedSession(false);
     setProjectId(null);
     projectIdRef.current = null;
+    setLocalSaveStatus('idle');
     setCloudSaveStatus('idle');
+    setNewProjectError('');
     setScreen('landing');
+  }
+
+  async function handleConfirmNewProject() {
+    setNewProjectError('');
+    if (isStartingNewProject) return;
+    setIsStartingNewProject(true);
+    try {
+      clearTimeout(saveTimerRef.current);
+      if (courseMap && hasGenerated) {
+        saveLocalProjectSnapshot({ projectId: projectIdRef.current });
+      }
+
+      if (user && courseMap && hasGenerated) {
+        clearTimeout(cloudSaveTimerRef.current);
+        setCloudSaveStatus('saving');
+        let pid = projectIdRef.current;
+        if (!pid) {
+          pid = newProjectId();
+          projectIdRef.current = pid;
+          setProjectId(pid);
+        }
+        const state = buildProjectSnapshot({
+          projectId: pid,
+          courseName: courseMap?.courseName || 'Untitled',
+          semester: courseMap?.semester || '',
+          version: '1.5',
+        });
+        await cloudSaveProject(user.uid, pid, state);
+        setCloudSaveStatus('saved');
+      }
+
+      setNewProjectConfirm(false);
+      handleNewProject();
+    } catch (e) {
+      warn('[Cloud] final save before new project failed:', e);
+      setCloudSaveStatus('error');
+      setNewProjectError('We could not save this project to My Projects. Download a .coursemapper backup or try again before starting over.');
+    } finally {
+      setIsStartingNewProject(false);
+    }
   }
 
   const handleAddMaterials = useCallback(async (e) => {
@@ -841,6 +913,7 @@ export default function App() {
           onBack={() => setScreen('features')}
           onGenerate={onGenerate}
           canGenerate={canGenerate}
+          provider={provider}
         />
       </Suspense>
     );
@@ -884,7 +957,10 @@ export default function App() {
         {/* Top bar */}
         <div className="flex items-center gap-3 animate-spring-in pt-1">
           <button
-            onClick={() => setNewProjectConfirm(true)}
+            onClick={() => {
+              setNewProjectError('');
+              setNewProjectConfirm(true);
+            }}
             className="tactile group flex items-center gap-2 px-4 py-2 rounded-pill text-xs font-semibold text-slate-500 bg-white/50 border border-slate-200/40 hover:bg-white/70 hover:text-slate-700 shadow-glass transition-all duration-300"
           >
             <svg className="w-3.5 h-3.5 group-hover:rotate-90 transition-transform duration-300" fill="none" stroke="currentColor" viewBox="0 0 24 24">
@@ -908,6 +984,28 @@ export default function App() {
           {modelName && (
             <span className="ml-auto text-[10px] font-semibold text-indigo-500 bg-indigo-50/60 px-3 py-1 rounded-pill border border-indigo-100/50">
               {modelName}
+            </span>
+          )}
+          {courseMap && (
+            <span
+              className={`text-[10px] font-semibold px-3 py-1 rounded-pill border ${
+                cloudSaveStatus === 'error' || localSaveStatus === 'error'
+                  ? 'text-red-500 bg-red-50/60 border-red-100/70'
+                  : cloudSaveStatus === 'saving' || localSaveStatus === 'saving'
+                    ? 'text-slate-500 bg-white/60 border-slate-200/60'
+                    : user
+                      ? 'text-emerald-600 bg-emerald-50/60 border-emerald-100/70'
+                      : 'text-slate-500 bg-white/60 border-slate-200/60'
+              }`}
+              title={user
+                ? 'Signed-in projects autosave locally and to My Projects.'
+                : 'Anonymous projects autosave only in this browser. Export .coursemapper for a portable backup.'}
+            >
+              {cloudSaveStatus === 'saving' ? 'Saving to My Projects...'
+                : cloudSaveStatus === 'error' ? 'Cloud save failed'
+                  : localSaveStatus === 'saving' ? 'Saving locally...'
+                    : localSaveStatus === 'error' ? 'Local save failed'
+                      : user ? 'Autosaved to My Projects' : 'Autosaved in this browser'}
             </span>
           )}
           {version.versionHistory.length > 1 && !gen.isStreaming && (
@@ -1112,24 +1210,51 @@ export default function App() {
                   </div>
                   <div>
                     <h3 className="text-sm font-bold text-slate-800">Start a new project?</h3>
-                    <p className="text-[11px] text-slate-500 mt-0.5">Your current course map and all generated deliverables will be cleared.</p>
+                    <p className="text-[11px] text-slate-500 mt-0.5">
+                      This clears the current browser workspace.
+                    </p>
                   </div>
                 </div>
                 <p className="text-[11px] text-slate-400 mb-5 leading-relaxed">
-                  Save your work first using <span className="font-semibold text-slate-500">Export → All → Save .coursemapper</span> if you want to keep it.
+                  {user
+                    ? 'We will save this project to My Projects before starting over. If saving fails, your workspace will stay open.'
+                    : 'You are not signed in, so this browser autosave is the only in-app copy. Download a .coursemapper backup if you want to keep it.'}
                 </p>
+                <div className="mb-4 rounded-xl bg-slate-50/80 border border-slate-100 px-3 py-2 text-[10px] text-slate-500 leading-relaxed">
+                  {user
+                    ? 'Autosave: local browser backup plus My Projects sync.'
+                    : 'Autosave: local browser backup only. It is cleared when you start over.'}
+                </div>
+                {newProjectError && (
+                  <p className="mb-4 rounded-lg bg-red-50 px-3 py-2 text-[11px] text-red-600 leading-relaxed">
+                    {newProjectError}
+                  </p>
+                )}
                 <div className="flex items-center gap-2 justify-end">
+                  {courseMap && (
+                    <button
+                      onClick={handleSaveProject}
+                      disabled={isStartingNewProject}
+                      className="tactile px-4 py-2 rounded-lg text-xs font-semibold text-indigo-600 bg-indigo-50 border border-indigo-100/80 hover:bg-indigo-100 transition-all disabled:opacity-50"
+                    >
+                      Download backup
+                    </button>
+                  )}
                   <button
                     onClick={() => setNewProjectConfirm(false)}
+                    disabled={isStartingNewProject}
                     className="tactile px-4 py-2 rounded-lg text-xs font-semibold text-slate-600 bg-white border border-slate-200/60 hover:bg-slate-50 transition-all"
                   >
                     Cancel
                   </button>
                   <button
-                    onClick={() => { setNewProjectConfirm(false); handleNewProject(); }}
-                    className="tactile px-4 py-2 rounded-lg text-xs font-semibold text-white bg-red-500 hover:bg-red-600 transition-all"
+                    onClick={handleConfirmNewProject}
+                    disabled={isStartingNewProject}
+                    className="tactile px-4 py-2 rounded-lg text-xs font-semibold text-white bg-red-500 hover:bg-red-600 transition-all disabled:opacity-60 disabled:cursor-wait"
                   >
-                    Start New Project
+                    {isStartingNewProject ? (
+                      <span className="inline-flex items-center gap-1.5"><Spinner /> Saving...</span>
+                    ) : 'Start New Project'}
                   </button>
                 </div>
               </div>
@@ -1256,6 +1381,7 @@ export default function App() {
                 isRevising={rev.isRevising}
                 activeTab={activeTab}
                 courseMap={courseMap}
+                slideTheme={slideTheme}
                 chatHistory={chatHistory}
                 onChatHistoryChange={setChatHistory}
                 pendingExamPatches={gen.pendingExamPatches}

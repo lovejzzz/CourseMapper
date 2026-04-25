@@ -35,7 +35,7 @@ const BILLING_URLS = {
  * Make a tiny test completion to verify the key has credits.
  * Returns true if the key works, false if insufficient funds.
  */
-async function checkCredits(provider, apiKey, modelId) {
+export async function checkCredits(provider, apiKey, modelId) {
   try {
     let res;
     if (provider === 'openai' || provider === 'deepseek') {
@@ -43,7 +43,11 @@ async function checkCredits(provider, apiKey, modelId) {
       res = await fetch(`${base}/chat/completions`, {
         method: 'POST',
         headers: { 'Authorization': `Bearer ${apiKey}`, 'Content-Type': 'application/json' },
-        body: JSON.stringify({ model: modelId, messages: [{ role: 'user', content: 'Hi' }], max_tokens: 1 }),
+        body: JSON.stringify({
+          model: modelId,
+          messages: [{ role: 'user', content: 'Hi' }],
+          ...(provider === 'openai' ? { max_completion_tokens: 16 } : { max_tokens: 1 }),
+        }),
       });
     } else if (provider === 'anthropic') {
       res = await fetch('https://api.anthropic.com/v1/messages', {
@@ -174,7 +178,6 @@ export default function ModelConfig() {
   // When API key or provider changes, auto-detect provider and validate.
   const prevApiKeyRef = useRef(apiKey);
   const prevProviderRef = useRef(provider);
-  const hasRunOnceRef = useRef(false);
   useEffect(() => {
     const apiKeyChanged = apiKey !== prevApiKeyRef.current;
     const providerChanged = provider !== prevProviderRef.current;
@@ -188,9 +191,7 @@ export default function ModelConfig() {
     // skip re-validation entirely.
     if (!apiKeyChanged && !providerChanged) {
       if ((apiStatus === 'connected' || apiStatus === 'no_funds') && availableModels.length > 0) return;
-      if (hasRunOnceRef.current) return;
     }
-    hasRunOnceRef.current = true;
 
     setApiStatus('idle');
     setModelName('');

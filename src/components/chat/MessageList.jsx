@@ -5,6 +5,7 @@ import DiffReviewCard from './DiffReviewCard';
 import ResearchCard from './ResearchCard';
 import ValidationCard from './ValidationCard';
 import ChangeSummaryCard from './ChangeSummaryCard';
+import AgentProgressCard from './AgentProgressCard';
 import SyncSuggestionCard from './SyncSuggestionCard';
 import DiagramCard from './DiagramCard';
 import ChartCard from './ChartCard';
@@ -26,7 +27,8 @@ function stableKey(msg, fallback) {
 /**
  * MessageList — scrollable message area with auto-scroll.
  * Renders user/assistant bubbles, proposals, diff reviews, and content cards.
- * Status cards (progress, agent steps) are shown in the fixed top area instead.
+ * Progress cards render inline so long-running work stays anchored to the turn
+ * that started it.
  */
 export default function MessageList({ messages, isStreaming, onSuggestionClick, onSelectProposal, onAcceptDiff, onRejectDiff, onUndo, canUndo, onApproveSyncSuggestion, onSkipSyncSuggestion, onRegenerate, onFeedback, onEditAndResend, onRetryFailedEdits, onKeepAppliedChanges, courseMap, activeTab, deliverables, isAgentMode, isGenerating, isDelivGenerating }) {
   const endRef = useRef(null);
@@ -112,8 +114,18 @@ export default function MessageList({ messages, isStreaming, onSuggestionClick, 
 
       {messages.map((msg, i) => {
         const key = stableKey(msg);
-        // Status messages are shown in the fixed top area, not in chat
-        if (msg.role === 'agentProgress' || msg.role === 'progress') return null;
+        if (msg.role === 'agentProgress' || msg.role === 'progress') {
+          return (
+            <AgentProgressCard
+              key={key}
+              steps={msg.steps || []}
+              status={msg.status || 'running'}
+              thinkingText={msg.thinkingText || ''}
+              startedAt={msg.startedAt}
+              endedAt={msg.endedAt}
+            />
+          );
+        }
         if (msg.role === 'research') {
           return <ResearchCard key={key} research={msg.research} status={msg.status} />;
         }

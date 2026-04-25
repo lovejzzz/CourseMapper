@@ -22,12 +22,13 @@ import { saveCustomTool, deleteCustomTool } from '../../lib/cloudStorage';
 // useChatRouter — Unified hook for Ask (help AI) + Revise (agent/revision)
 // ═══════════════════════════════════════════════════════════════════════════
 export default function useChatRouter({
-  courseMap, activeTab,
+  courseMap, activeTab, slideTheme,
   onRevision, onDeliverableRevision,
   isStopped, onResume,
   savedMessages, onMessagesChange,
   // Agent params
   deliverables, executeAction,
+  optimisticUpdate,
   delivUndoSnapshot,
   delivUndoFn,
   executeSyncPlan,
@@ -132,6 +133,8 @@ export default function useChatRouter({
   }, []);
   const delivRef = useRef(deliverables);
   useEffect(() => { delivRef.current = deliverables; });
+  const optimisticUpdateRef = useRef(optimisticUpdate);
+  useEffect(() => { optimisticUpdateRef.current = optimisticUpdate; });
   const snapshotRef = useRef(delivUndoSnapshot);
   useEffect(() => { snapshotRef.current = delivUndoSnapshot; });
   const undoFnRef = useRef(delivUndoFn);
@@ -311,8 +314,8 @@ export default function useChatRouter({
       setStreaming,
       abortRef,
       apiKey, provider, modelId,
-      courseMap, activeTab,
-      delivRef, executeActionRef, snapshotRef, undoFnRef, notifyEditRef,
+      courseMap, activeTab, slideTheme,
+      delivRef, executeActionRef, optimisticUpdateRef, snapshotRef, undoFnRef, notifyEditRef,
       uid,
       customToolRegistryRef,
       maybeRunValidation,
@@ -340,15 +343,24 @@ export default function useChatRouter({
 
     if (!silent) setAttachedFiles([]);
 
+    const progressStartedAt = Date.now();
+    const progressCard = {
+      id: `agent-progress-${progressStartedAt}`,
+      role: 'agentProgress',
+      steps: [],
+      status: 'running',
+      startedAt: progressStartedAt,
+    };
+
     // Add user message + agentProgress card (silent mode: no user bubble)
     if (silent) {
       setMessages(prev => [...prev,
-        { role: 'agentProgress', steps: [], status: 'running' },
+        progressCard,
       ]);
     } else {
       setMessages(prev => [...prev,
         { role: 'user', text: displayText },
-        { role: 'agentProgress', steps: [], status: 'running' },
+        progressCard,
       ]);
     }
     setStreaming(true);
