@@ -1,4 +1,4 @@
-import React, { useState, useRef } from 'react';
+import React, { useEffect, useState, useRef } from 'react';
 import FocusTrap from 'focus-trap-react';
 import { FEATURES, COLOR_MAP } from './FeatureSelect';
 import ColumnEditor from '../components/ColumnEditor';
@@ -6,6 +6,8 @@ import { getCustomDeliverable, listCustomDeliverables, toFeatureEntry } from '..
 import { PREVIEW_EXAMPLES } from '../lib/previewExamples';
 import { useUI } from '../contexts/UIContext';
 import { useCourse } from '../contexts/CourseContext';
+import { useAIConfig } from '../contexts/AIConfigContext';
+import { fetchOpenAIImageModels, OPENAI_IMAGE_MODEL_FALLBACKS, OPENAI_SLIDE_IMAGE_MODEL } from '../lib/imageSearch';
 
 // ── Shared option lists for universal advanced settings ───────────────────────
 const TONE_OPTIONS = ['Auto', 'Academic', 'Professional', 'Conversational', 'Friendly', 'Formal', 'Encouraging'];
@@ -379,6 +381,26 @@ function Select({ label, value, onChange, options, description }) {
   );
 }
 
+function DropdownSelect({ label, value, onChange, options, description, disabled = false, status }) {
+  return (
+    <div className="space-y-1">
+      <label className="text-xs font-medium text-slate-700">{label}</label>
+      {description && <p className="text-[10px] text-slate-400">{description}</p>}
+      <select
+        value={value || ''}
+        onChange={(e) => onChange(e.target.value)}
+        disabled={disabled}
+        className="w-full h-8 rounded-lg border border-slate-200/70 bg-white/70 px-2.5 text-[11px] font-medium text-slate-700 shadow-sm outline-none transition-all focus:border-indigo-300 focus:ring-1 focus:ring-indigo-200 disabled:cursor-not-allowed disabled:opacity-60"
+      >
+        {options.map(opt => (
+          <option key={opt.value || opt} value={opt.value || opt}>{opt.label || opt}</option>
+        ))}
+      </select>
+      {status && <p className="text-[10px] text-slate-400 leading-snug">{status}</p>}
+    </div>
+  );
+}
+
 function NumberInput({ label, value, onChange, min, max, description }) {
   return (
     <div className="flex items-center justify-between gap-4">
@@ -428,6 +450,59 @@ function MultiToggle({ label, options, selected, onChange, description }) {
   );
 }
 
+function SlideImageModelSettings({ config, onChange, apiKey }) {
+  const [models, setModels] = useState(OPENAI_IMAGE_MODEL_FALLBACKS);
+  const [status, setStatus] = useState('Fetching available OpenAI image models...');
+
+  const set = (key, val) => onChange(prev => ({ ...prev, [key]: val }));
+  const selectedModel = config.aiImageModel || models[0] || OPENAI_SLIDE_IMAGE_MODEL;
+
+  useEffect(() => {
+    if (!apiKey?.trim()) {
+      setModels(OPENAI_IMAGE_MODEL_FALLBACKS);
+      setStatus('Enter an OpenAI API key to fetch the newest available image models.');
+      return undefined;
+    }
+
+    const controller = new AbortController();
+    setStatus('Fetching available OpenAI image models...');
+    fetchOpenAIImageModels(apiKey.trim(), controller.signal)
+      .then(fetched => {
+        const nextModels = fetched.length > 0 ? fetched : OPENAI_IMAGE_MODEL_FALLBACKS;
+        setModels(nextModels);
+        onChange(prev => {
+          const current = prev.aiImageModel;
+          if (current && nextModels.includes(current)) return prev;
+          return { ...prev, aiImageModel: nextModels[0] || OPENAI_SLIDE_IMAGE_MODEL };
+        });
+        setStatus(fetched.length > 0
+          ? 'Newest available image model is selected by default.'
+          : 'No image models were returned; using known OpenAI image model names.');
+      })
+      .catch(err => {
+        if (err.name === 'AbortError') return;
+        setModels(OPENAI_IMAGE_MODEL_FALLBACKS);
+        setStatus(`Could not fetch image models; using known defaults. ${err.message || ''}`.trim());
+      });
+
+    return () => controller.abort();
+  }, [apiKey]);
+
+  return (
+    <DropdownSelect
+      label="Image model"
+      value={selectedModel}
+      onChange={v => set('aiImageModel', v)}
+      options={models.map(model => ({
+        value: model,
+        label: model === OPENAI_SLIDE_IMAGE_MODEL ? `${model} (newest)` : model,
+      }))}
+      description="Auto-fetched from OpenAI when possible. Use a fallback model if your organization cannot access the newest one."
+      status={status}
+    />
+  );
+}
+
 // ── Advanced section toggle ───────────────────────────────────────────────────
 
 function AdvancedSection({ children }) {
@@ -474,7 +549,7 @@ function DeliverablePreview({ featureId, delivData, courseMap, columns }) {
   const [fullscreen, setFullscreen] = useState(false);
   const label = FEATURE_LABELS[featureId] || featureId;
 
-  // Extract real content from deliverable data, fall back to example
+  // Extract real content from deliverable data, fall back to sample layout content.
   const { content: realContent, isExample } = React.useMemo(() => {
     // Try real data first
     if (featureId === 'courseMap' && courseMap?.lessons?.length > 0) {
@@ -529,7 +604,7 @@ function DeliverablePreview({ featureId, delivData, courseMap, columns }) {
       if (parsed) return { content: parsed, isExample: false };
     }
 
-    // Fall back to example content
+    // Fall back to sample content that demonstrates structure only.
     const example = PREVIEW_EXAMPLES[featureId];
     return example ? { content: example, isExample: true } : { content: null, isExample: true };
   }, [featureId, delivData, courseMap, columns]);
@@ -1053,7 +1128,7 @@ function DeliverablePreview({ featureId, delivData, courseMap, columns }) {
         <div className="px-3 py-1.5 bg-slate-50/60 border-b border-slate-200/40 flex items-center justify-between">
           <p className="text-[10px] font-semibold text-slate-400 uppercase tracking-wider flex items-center gap-1.5">
             {label} — {realContent.total || realContent.items?.length || 0} {featureId === 'courseMap' ? 'lessons' : 'items'}
-            {isExample && <span className="px-1.5 py-0.5 rounded bg-amber-50 text-amber-500 text-[9px] font-semibold normal-case tracking-normal">Example</span>}
+            {isExample && <span className="px-1.5 py-0.5 rounded bg-amber-50 text-amber-500 text-[9px] font-semibold normal-case tracking-normal">Sample layout</span>}
           </p>
           <button
             onClick={() => setFullscreen(true)}
@@ -1065,6 +1140,11 @@ function DeliverablePreview({ featureId, delivData, courseMap, columns }) {
             </svg>
           </button>
         </div>
+        {isExample && (
+          <p className="px-3 pb-2 -mt-1 text-[10px] text-amber-600/80">
+            Illustrative content only. Your generated version will use the course prompt and files from the previous step.
+          </p>
+        )}
         <div className="p-3 text-[10px] text-slate-500 leading-relaxed max-h-48 overflow-y-auto">
           {renderContent(false)}
         </div>
@@ -1078,7 +1158,7 @@ function DeliverablePreview({ featureId, delivData, courseMap, columns }) {
               <div className="sticky top-0 z-10 bg-white/95 backdrop-blur-lg px-6 py-4 border-b border-slate-200/40 flex items-center justify-between rounded-t-2xl flex-shrink-0">
                 <h3 className="text-sm font-bold text-slate-800 flex items-center gap-2">
                   {label} — {realContent.total || realContent.items?.length || 0} items
-                  {isExample && <span className="px-2 py-0.5 rounded-full bg-amber-50 text-amber-500 text-[10px] font-semibold">Example Preview</span>}
+                  {isExample && <span className="px-2 py-0.5 rounded-full bg-amber-50 text-amber-500 text-[10px] font-semibold">Sample layout</span>}
                 </h3>
                 <button onClick={() => setFullscreen(false)} aria-label="Close fullscreen preview" className="text-slate-400 hover:text-slate-600 transition-colors">
                   <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
@@ -1087,6 +1167,11 @@ function DeliverablePreview({ featureId, delivData, courseMap, columns }) {
                 </button>
               </div>
               <div className="p-6 text-xs text-slate-500 leading-relaxed overflow-y-auto">
+                {isExample && (
+                  <p className="mb-4 text-[11px] font-medium text-amber-600">
+                    Illustrative content only. Your generated version will use the course prompt and files from the previous step.
+                  </p>
+                )}
                 {renderContent(true)}
               </div>
             </div>
@@ -1099,7 +1184,7 @@ function DeliverablePreview({ featureId, delivData, courseMap, columns }) {
 
 // ── Per-deliverable config content ────────────────────────────────────────────
 
-function DeliverableConfigContent({ featureId, config, onChange, columns, setColumns, delivData, courseMap }) {
+function DeliverableConfigContent({ featureId, config, onChange, columns, setColumns, delivData, courseMap, provider, apiKey }) {
   const set = (key, val) => onChange({ ...config, [key]: val });
 
   switch (featureId) {
@@ -1164,6 +1249,32 @@ function DeliverableConfigContent({ featureId, config, onChange, columns, setCol
           {/* Advanced */}
           <AdvancedSection>
             <Toggle label="Include activity slides" value={config.includeActivities !== false} onChange={v => set('includeActivities', v)} description="Think-Pair-Share, polls, discussions, etc." />
+            {provider === 'openai' ? (
+              <>
+                <Toggle
+                  label="Generate slide images with GPT Image"
+                  value={config.generateAiImages === true}
+                  onChange={v => set('generateAiImages', v)}
+                  description="Uses your OpenAI key after slide outlines are ready. Applies when Slide Decks are generated or regenerated."
+                />
+                {config.generateAiImages === true && (
+                  <>
+                    <SlideImageModelSettings config={config} onChange={onChange} apiKey={apiKey} />
+                    <NumberInput
+                      label="Max images total"
+                      value={config.aiImagesTotal || 2}
+                      onChange={v => set('aiImagesTotal', v)}
+                      min={1} max={4}
+                      description="Creates images for high-value image, diagram, and chart slide cues."
+                    />
+                  </>
+                )}
+              </>
+            ) : (
+              <p className="text-[10px] text-slate-400 leading-snug">
+                GPT Image slide visuals are available when the model provider is OpenAI.
+              </p>
+            )}
             <DeliverableExtras featureId={featureId} config={config} onChange={onChange} />
           </AdvancedSection>
         </div>
@@ -1349,8 +1460,10 @@ export default function Config({
   onBack,
   onGenerate,
   canGenerate,
+  provider,
 }) {
   const { setShowHelp } = useUI();
+  const { apiKey } = useAIConfig();
   const {
     selectedFeatures: selected,
     deliverableConfig, setDeliverableConfig,
@@ -1438,11 +1551,16 @@ export default function Config({
                     <DeliverableConfigContent
                       featureId={feature.id}
                       config={config}
-                      onChange={(next) => setDeliverableConfig(prev => ({ ...prev, [feature.id]: next }))}
+                      onChange={(next) => setDeliverableConfig(prev => ({
+                        ...prev,
+                        [feature.id]: typeof next === 'function' ? next(prev[feature.id] || {}) : next,
+                      }))}
                       columns={columns}
                       setColumns={setColumns}
                       delivData={delivData}
                       courseMap={courseMap}
+                      provider={provider}
+                      apiKey={apiKey}
                     />
                   );
 

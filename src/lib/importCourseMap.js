@@ -1,8 +1,11 @@
 // Lazy-loaded heavy dependency
-let _XLSX;
-async function getXLSX() {
-  if (!_XLSX) _XLSX = await import('xlsx');
-  return _XLSX;
+let _ExcelJS;
+async function getExcelJS() {
+  if (!_ExcelJS) {
+    const mod = await import('exceljs');
+    _ExcelJS = mod.default || mod;
+  }
+  return _ExcelJS;
 }
 
 /**
@@ -14,17 +17,15 @@ export async function importCourseMap(file) {
   const ext = file.name.split('.').pop().toLowerCase();
   let rows;
 
-  if (ext === 'xlsx' || ext === 'xls') {
-    const XLSX = await getXLSX();
-    const arrayBuffer = await file.arrayBuffer();
-    const workbook = XLSX.read(arrayBuffer, { type: 'array' });
-    const sheet = workbook.Sheets[workbook.SheetNames[0]];
-    rows = XLSX.utils.sheet_to_json(sheet, { header: 1, defval: '' });
+  if (ext === 'xlsx') {
+    rows = await parseXlsxRows(file);
+  } else if (ext === 'xls') {
+    throw new Error('Legacy .xls course-map import is not supported. Convert it to .xlsx or .csv first.');
   } else if (ext === 'csv') {
     const text = await file.text();
     rows = parseCSVRows(text);
   } else {
-    throw new Error('Unsupported import format. Use .xlsx, .xls, or .csv.');
+    throw new Error('Unsupported import format. Use .xlsx or .csv.');
   }
 
   if (!rows || rows.length < 2) {
@@ -102,6 +103,42 @@ export async function importCourseMap(file) {
     semester: 'TBD',
     lessons: validLessons,
   };
+}
+
+async function parseXlsxRows(file) {
+  const ExcelJS = await getExcelJS();
+  const arrayBuffer = await file.arrayBuffer();
+  const workbook = new ExcelJS.Workbook();
+  await workbook.xlsx.load(arrayBuffer);
+  const sheet = workbook.worksheets[0];
+  if (!sheet) return [];
+
+  const rows = [];
+  let maxCol = 0;
+  sheet.eachRow({ includeEmpty: true }, (row) => {
+    maxCol = Math.max(maxCol, row.cellCount);
+  });
+
+  sheet.eachRow({ includeEmpty: true }, (row) => {
+    const values = [];
+    for (let col = 1; col <= maxCol; col += 1) {
+      values.push(formatCellValue(row.getCell(col).value));
+    }
+    rows.push(values);
+  });
+
+  return rows;
+}
+
+function formatCellValue(value) {
+  if (value === null || value === undefined) return '';
+  if (value instanceof Date) return value.toISOString().slice(0, 10);
+  if (typeof value !== 'object') return String(value);
+  if (Array.isArray(value.richText)) return value.richText.map((part) => part.text || '').join('');
+  if ('result' in value) return formatCellValue(value.result);
+  if ('text' in value) return formatCellValue(value.text);
+  if ('hyperlink' in value && value.hyperlink) return formatCellValue(value.hyperlink);
+  return String(value);
 }
 
 // Map common header text to our internal column keys

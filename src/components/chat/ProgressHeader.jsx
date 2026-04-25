@@ -5,6 +5,20 @@ import { resolveLabel, STEPS } from './constants';
  * ProgressHeader — Compact collapsible progress bar at the top of the chat panel.
  * Shows overall generation progress + optional expanded deliverable list.
  */
+export function getDeliverableDoneCount({ delivRows = [], delivProgress = null, isDelivGenerating = false }) {
+  const progressDoneCount = delivProgress?.total
+    ? Math.min(delivProgress.done || 0, delivProgress.total)
+    : null;
+  const stateDoneCount = delivRows.filter(r => r.status === 'done').length;
+  return isDelivGenerating && progressDoneCount !== null
+    ? progressDoneCount
+    : stateDoneCount;
+}
+
+export function getProgressDisplayStatus(rowStatus, progressStatus) {
+  return progressStatus === 'done' ? 'done' : rowStatus;
+}
+
 export default function ProgressHeader({
   currentStep, modelName, streamProgress, streamDetail, completenessInfo,
   error, isStopped, retryInfo,
@@ -28,7 +42,7 @@ export default function ProgressHeader({
       }))
     : [];
 
-  const delivDoneCount = delivRows.filter(r => r.status === 'done').length;
+  const delivDoneCount = getDeliverableDoneCount({ delivRows, delivProgress, isDelivGenerating });
   const allDelivDone = delivRows.length > 0 && !isDelivGenerating && delivRows.every(r => r.status === 'done' || r.status === 'error');
   const everythingDone = isDone && (delivRows.length === 0 || allDelivDone);
   const totalLessons = completenessInfo?.actual || 0;
@@ -227,15 +241,17 @@ export default function ProgressHeader({
                 const isActive = currentDelivFeatures?.has(row.id) && isDelivGenerating;
                 const timing = delivTimings?.[row.id];
                 const pf = delivProgress?.perFeature?.[row.id];
+                const progressStatus = pf?.status;
+                const displayStatus = getProgressDisplayStatus(row.status, progressStatus);
                 const doneMs = timing?.durationMs;
                 return (
                   <div key={row.id} className="flex items-center gap-2 py-0.5">
                     {/* Status icon */}
-                    {row.status === 'done' ? (
+                    {displayStatus === 'done' ? (
                       <svg className="w-3.5 h-3.5 text-emerald-500 flex-shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                         <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2.5} d="M5 13l4 4L19 7" />
                       </svg>
-                    ) : isActive ? (
+                    ) : isActive || (isDelivGenerating && progressStatus === 'merging') ? (
                       <svg className="animate-spin w-3.5 h-3.5 text-indigo-500 flex-shrink-0" fill="none" viewBox="0 0 24 24">
                         <circle className="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" strokeWidth="4" />
                         <path className="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4z" />
@@ -251,7 +267,7 @@ export default function ProgressHeader({
                     )}
                     {/* Label */}
                     <span className={`text-[12px] font-medium truncate flex-1 ${
-                      row.status === 'done' ? 'text-emerald-700' :
+                      displayStatus === 'done' ? 'text-emerald-700' :
                       row.status === 'error' ? 'text-red-500' :
                       isActive ? 'text-indigo-600' : 'text-slate-400'
                     }`}>

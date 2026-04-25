@@ -98,6 +98,10 @@ function getSlideType(slide) {
   return 'content';
 }
 
+function getGeneratedVisualImage(visual) {
+  return visual?.generatedImage || visual?.image || visual?.img || null;
+}
+
 // ── Progress dot builder ───────────────────────────────────────────────────
 function addProgressDots(pptx, slide, theme, slideIndex, totalSlides, isDark) {
   const W = 10, H = 5.625;
@@ -993,6 +997,7 @@ async function buildSlideForDeck(pptx, deck, theme, slideIndex, totalSlides, opt
   const hasVisual = vis && visKind && visKind !== 'none';
   const visDesc = hasVisual ? (vis.description || vis.d || '') : '';
   const visAlt = hasVisual ? (vis.altText || vis.at || '') : '';
+  const generatedVisualImage = hasVisual ? getGeneratedVisualImage(vis) : null;
 
   const baseNotes = s.notes || s.speakerNotes || '';
   const augmentedNotes = hasVisual
@@ -1006,11 +1011,21 @@ async function buildSlideForDeck(pptx, deck, theme, slideIndex, totalSlides, opt
   // example / keyTerm cards that fill the body region. Omitted for
   // title / agenda / objectives / summary / closing slides where the
   // layout doesn't leave room.
-  const PLACEHOLDER_TYPES = new Set(['content', 'bridge', 'example', 'keyTerm']);
+  const PLACEHOLDER_TYPES = new Set(['content', 'bridge', 'example', 'keyTerm', 'activity']);
   if (hasVisual && PLACEHOLDER_TYPES.has(slideType)) {
     const pw = 3.0, ph = 1.15;
     const px = W - pw - 0.3;
     const py = H - ph - 0.55; // above slide-number chip
+    if (generatedVisualImage?.url?.startsWith('data:image/')) {
+      slide.addImage({
+        data: generatedVisualImage.url,
+        x: px, y: py, w: pw, h: ph,
+        altText: visAlt || visDesc || 'Generated slide visual',
+      });
+      tracker.add({ x: px, y: py, w: pw, h: ph, label: 'generated visual' });
+      return;
+    }
+
     const kindIcon = { diagram: '▲', chart: '📊', image: '🖼', table: '▦', code: '⌨', equation: '∑' }[visKind] || '◈';
     slide.addShape(pptx.ShapeType.roundRect, {
       x: px, y: py, w: pw, h: ph,

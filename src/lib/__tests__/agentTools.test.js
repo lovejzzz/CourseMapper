@@ -11,6 +11,7 @@ import {
   summarizeToolResult,
   classifyRequestComplexity,
 } from '../agentTools';
+import { generateImages } from '../imageSearch';
 
 // ── Mocks ──────────────────────────────────────────────────────────────────
 
@@ -49,6 +50,17 @@ vi.mock('../academicSearch', () => ({
   executeResearch: vi.fn(() => ({
     results: [{ items: [{ title: 'Paper 1' }, { title: 'Paper 2' }] }],
     formatted: '[1] Paper 1\n[2] Paper 2',
+  })),
+}));
+
+vi.mock('../imageSearch', () => ({
+  OPENAI_SLIDE_IMAGE_MODEL: 'gpt-image-2',
+  generateImages: vi.fn(() => Promise.resolve({
+    images: [{
+      url: 'data:image/png;base64,ZmFrZQ==',
+      provider: 'gpt-image-1.5',
+      revisedPrompt: 'revised prompt',
+    }],
   })),
 }));
 
@@ -123,14 +135,14 @@ describe('AGENT_TOOLS registry', () => {
   const EXPECTED_TOOLS = [
     'validate_course', 'check_grammar', 'search_research',
     'read_deliverable', 'read_lesson',
-    'edit_course_map', 'edit_deliverables',
+    'edit_course_map', 'edit_deliverables', 'generate_slide_images', 'verify_slide_images', 'verify_slide_export',
     'save_preference', 'remember', 'recall', 'compare_deliverables', 'undo_last', 'forget',
     'create_tool', 'run_tool',
   ];
 
-  it('contains exactly 15 tools', () => {
-    // 13 domain tools + create_tool / run_tool meta-tools for session macros.
-    expect(Object.keys(AGENT_TOOLS)).toHaveLength(15);
+  it('contains exactly 18 tools', () => {
+    // 16 domain tools + create_tool / run_tool meta-tools for session macros.
+    expect(Object.keys(AGENT_TOOLS)).toHaveLength(18);
   });
 
   it.each(EXPECTED_TOOLS)('has tool "%s" with description, params, and execute', (name) => {
@@ -297,6 +309,24 @@ describe('summarizeToolResult()', () => {
   describe('edit_deliverables', () => {
     it('formats applied/failed counts', () => {
       expect(summarizeToolResult('edit_deliverables', { applied: 2, failed: 0 })).toBe('2 applied, 0 failed');
+    });
+  });
+
+  describe('generate_slide_images', () => {
+    it('formats generated/failed counts', () => {
+      expect(summarizeToolResult('generate_slide_images', { applied: 2, failed: 1 })).toBe('2 images generated, 1 failed');
+    });
+  });
+
+  describe('verify_slide_images', () => {
+    it('formats generated image coverage', () => {
+      expect(summarizeToolResult('verify_slide_images', { generatedSlides: 2, imageReadySlides: 3 })).toBe('2/3 image-ready slides have images');
+    });
+  });
+
+  describe('verify_slide_export', () => {
+    it('formats export integrity counts', () => {
+      expect(summarizeToolResult('verify_slide_export', { slidesExported: 4, mediaFiles: 2, pictureElements: 2 })).toBe('4 slides, 2 media files, 2 pictures');
     });
   });
 
@@ -726,6 +756,132 @@ describe('Tool execute: edit_deliverables', () => {
       mockCtx,
     );
     expect(result.applied).toBe(1);
+  });
+});
+
+describe('Tool execute: generate_slide_images', () => {
+  function makeSlideImageCtx(overrides = {}) {
+    return {
+      ...mockCtx,
+      provider: 'openai',
+      apiKey: 'sk-test',
+      optimisticUpdate: vi.fn(),
+      deliverables: {
+        ...mockCtx.deliverables,
+        slideDecks: {
+          status: 'done',
+          data: {
+            decks: [{
+              lessonTitle: 'Lesson 1',
+              slides: [
+                {
+                  title: 'Visual Slide',
+                  type: 'content',
+                  bullets: ['A', 'B'],
+                  visual: {
+                    kind: 'image',
+                    description: 'Students mapping a course roadmap',
+                    altText: 'Students stand near a whiteboard roadmap.',
+                  },
+                },
+              ],
+            }],
+          },
+        },
+      },
+      ...overrides,
+    };
+  }
+
+  it('generates and attaches slide image metadata in one optimistic update', async () => {
+    const ctx = makeSlideImageCtx();
+    const result = await AGENT_TOOLS.generate_slide_images.execute({ maxImages: 1 }, ctx);
+
+    expect(result.applied).toBe(1);
+    expect(result.failed).toBe(0);
+    expect(result.modelsUsed).toEqual(['gpt-image-1.5']);
+    expect(generateImages).toHaveBeenCalledWith(
+      expect.stringContaining('Visual Slide'),
+      expect.objectContaining({ provider: 'openai', apiKey: 'sk-test', model: 'gpt-image-2' }),
+      undefined,
+    );
+    expect(ctx.snapshot).toHaveBeenCalledWith('slideDecks', ctx.deliverables.slideDecks.data);
+    expect(ctx.optimisticUpdate).toHaveBeenCalledTimes(1);
+    const patched = ctx.optimisticUpdate.mock.calls[0][1];
+    expect(patched.decks[0].slides[0].visual.generatedImage).toEqual(expect.objectContaining({
+      url: 'data:image/png;base64,ZmFrZQ==',
+      model: 'gpt-image-1.5',
+      revisedPrompt: 'revised prompt',
+    }));
+  });
+
+  it('returns a useful note when no image-ready slides exist', async () => {
+    const ctx = makeSlideImageCtx({
+      deliverables: {
+        slideDecks: {
+          status: 'done',
+          data: {
+            decks: [{
+              lessonTitle: 'Lesson 1',
+              slides: [{ title: 'Text Only', type: 'content', visual: { kind: 'none' } }],
+            }],
+          },
+        },
+      },
+    });
+    const result = await AGENT_TOOLS.generate_slide_images.execute({}, ctx);
+
+    expect(result.applied).toBe(0);
+    expect(result.candidateCount).toBe(0);
+    expect(result.note).toContain('No image-ready slides');
+    expect(ctx.optimisticUpdate).not.toHaveBeenCalled();
+  });
+});
+
+describe('Tool execute: verify_slide_images', () => {
+  it('reports generated image coverage and export-ready data URLs', () => {
+    const ctx = {
+      ...mockCtx,
+      deliverables: {
+        slideDecks: {
+          status: 'done',
+          data: {
+            decks: [{
+              lessonTitle: 'Lesson 1',
+              slides: [
+                {
+                  title: 'Generated',
+                  type: 'content',
+                  visual: {
+                    kind: 'image',
+                    generatedImage: { url: 'data:image/png;base64,abc', model: 'gpt-image-1.5' },
+                  },
+                },
+                {
+                  title: 'Missing',
+                  type: 'content',
+                  visual: { kind: 'diagram', description: 'Flow' },
+                },
+              ],
+            }],
+          },
+        },
+      },
+    };
+
+    const result = AGENT_TOOLS.verify_slide_images.execute({}, ctx);
+
+    expect(result.imageReadySlides).toBe(2);
+    expect(result.generatedSlides).toBe(1);
+    expect(result.missingGeneratedImages).toBe(1);
+    expect(result.dataUrlImages).toBe(1);
+    expect(result.exportReadyImages).toBe(1);
+    expect(result.slides[0]).toEqual(expect.objectContaining({
+      title: 'Generated',
+      hasGeneratedImage: true,
+      imageStorage: 'dataUrl',
+      model: 'gpt-image-1.5',
+    }));
   });
 });
 

@@ -118,6 +118,27 @@ describe('parseAgentResponse', () => {
     expect(result.textContent).toBe('Hello!');
   });
 
+  it('preserves DeepSeek reasoning content for the next tool-call turn', () => {
+    const json = {
+      choices: [{
+        message: {
+          role: 'assistant',
+          content: null,
+          reasoning_content: 'internal reasoning trace',
+          tool_calls: [
+            { id: 'call_1', type: 'function', function: { name: 'read_lesson', arguments: '{"lessonIndex":0}' } },
+          ],
+        },
+        finish_reason: 'tool_calls',
+      }],
+    };
+    const result = parseAgentResponse('deepseek', json);
+
+    expect(result.toolCalls).toHaveLength(1);
+    expect(result.assistantMessage.reasoning_content).toBe('internal reasoning trace');
+    expect(result.assistantMessage.tool_calls[0].id).toBe('call_1');
+  });
+
   it('parses Anthropic tool use response', () => {
     const json = {
       content: [
@@ -164,6 +185,25 @@ describe('formatAssistantToolCalls', () => {
     expect(msg._native).toBe(true);
     expect(msg.tool_calls).toHaveLength(2);
     expect(msg.tool_calls[0].function.name).toBe('validate_course');
+  });
+
+  it('formats DeepSeek tool-call history with reasoning_content when available', () => {
+    const assistantMessage = {
+      role: 'assistant',
+      content: null,
+      reasoning_content: 'internal reasoning trace',
+      tool_calls: [{
+        id: 'call_1',
+        type: 'function',
+        function: { name: 'validate_course', arguments: '{}' },
+      }],
+    };
+    const msg = formatAssistantToolCalls('deepseek', toolCalls, assistantMessage);
+
+    expect(msg.role).toBe('assistant');
+    expect(msg._native).toBe(true);
+    expect(msg.reasoning_content).toBe('internal reasoning trace');
+    expect(msg.tool_calls).toBe(assistantMessage.tool_calls);
   });
 
   it('formats for Anthropic', () => {
@@ -339,6 +379,14 @@ describe('buildAgentRequest', () => {
     const req = buildAgentRequest('google', { ...params, model: 'gemini-2.0-flash' });
     expect(req.endpoint).toContain('key=test-key');
     expect(req.body.system_instruction.parts[0].text).toBe('You are a helpful assistant.');
+  });
+
+  it('builds DeepSeek requests with max_tokens for OpenAI-compatible API', () => {
+    const req = buildAgentRequest('deepseek', { ...params, model: 'deepseek-chat', maxTokens: 1234 });
+
+    expect(req.endpoint).toContain('deepseek.com');
+    expect(req.body.max_tokens).toBe(1234);
+    expect(req.body.max_completion_tokens).toBeUndefined();
   });
 
   it('throws for unknown provider', () => {

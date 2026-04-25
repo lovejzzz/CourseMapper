@@ -8,7 +8,9 @@
     "build": "vite build",
     "start": "NODE_ENV=production node server.js",
     "preview": "vite preview",
-    "test": "vitest run",
+    "test": "vitest run --exclude tests/coursemapper.spec.js",
+    "test:unit": "vitest run --exclude tests/coursemapper.spec.js",
+    "test:e2e": "playwright test",
     "test:offline": "vitest run src/",
     "audit:deliverables": "vitest run tests/deliverable-quality-audit.test.js",
     "audit:agent": "vitest run tests/agent-anthropic.test.js tests/agent-multi-turn.test.js tests/agent-quality-probe.test.js tests/agent-content-quality.test.js tests/agent-prose-regression.test.js tests/cache-smoke.test.js tests/agent-skill-nudge.test.js tests/partial-failure-recovery.test.js"
@@ -17,33 +19,40 @@
     "@mlc-ai/web-llm": "^0.2.81",
     "citation-js": "^0.7.22",
     "docx": "^9.5.1",
-    "dompurify": "^3.3.3",
+    "dompurify": "^3.4.1",
     "exceljs": "^4.4.0",
     "file-saver": "^2.0.5",
-    "firebase": "^12.9.0",
+    "firebase": "^12.12.1",
     "focus-trap-react": "^12.0.0",
     "html2canvas": "^1.4.1",
-    "jspdf": "^4.1.0",
+    "jspdf": "^4.2.1",
     "jspdf-autotable": "^5.0.7",
     "jszip": "^3.10.1",
     "katex": "^0.16.35",
-    "mammoth": "^1.6.0",
-    "mermaid": "^11.12.3",
+    "mammoth": "^1.12.0",
+    "mermaid": "^11.14.0",
     "pdfjs-dist": "^4.0.379",
     "pptxgenjs": "^4.0.1",
     "react": "^18.2.0",
     "react-dom": "^18.2.0",
-    "text-readability": "^1.1.1",
-    "xlsx": "^0.18.5"
+    "text-readability": "^1.1.1"
   },
   "devDependencies": {
     "@playwright/test": "^1.58.2",
-    "@vitejs/plugin-react": "^4.2.1",
+    "@vitejs/plugin-react": "^6.0.1",
     "autoprefixer": "^10.4.17",
     "happy-dom": "^20.9.0",
     "postcss": "^8.4.33",
     "tailwindcss": "^3.4.1",
-    "vite": "^5.0.12",
-    "vitest": "^4.0.18"
+    "vite": "^8.0.10",
+    "vitest": "^4.1.5"
+  },
+  "overrides": {
+    "exceljs": {
+      "uuid": "^14.0.0"
+    },
+    "mermaid": {
+      "uuid": "^14.0.0"
+    }
   }
 }

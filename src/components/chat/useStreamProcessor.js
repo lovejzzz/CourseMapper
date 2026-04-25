@@ -10,7 +10,7 @@
  */
 
 import {
-  buildAgentRequest, parseAgentResponse as parseProviderResponse,
+  buildAgentRequest, parseAgentResponse as parseProviderResponse, supportsCustomTemperature,
 } from '../../lib/agentProviders';
 // webllm is dynamically imported when needed to avoid bundling ~7MB for non-local users
 
@@ -55,7 +55,7 @@ A free, browser-based tool that transforms syllabi into complete teaching materi
 
 ## Getting Started
 - Upload course files (PDF, DOCX, XLSX, PPTX, etc.) or type a description.
-- Choose an AI provider (OpenAI, Anthropic, or Google) and enter your API key.
+- Choose an AI provider (OpenAI, Anthropic, Google, or DeepSeek) and enter your API key.
 - Select deliverables and click Generate.
 
 ## Key Features
@@ -70,6 +70,7 @@ A free, browser-based tool that transforms syllabi into complete teaching materi
 - **OpenAI:** https://platform.openai.com/api-keys
 - **Anthropic:** https://console.anthropic.com/settings/keys
 - **Google:** https://aistudio.google.com/apikey
+- **DeepSeek:** https://platform.deepseek.com/api_keys
 
 ## Rules
 - Be concise, warm, and helpful. Use markdown formatting.
@@ -193,14 +194,15 @@ export async function streamChat(messages, systemPrompt, signal, apiKey, provide
     ...(apiKey ? { 'Authorization': `Bearer ${apiKey}` } : {}),
     ...(provider === 'openrouter' ? { 'HTTP-Referer': window.location.origin } : {}),
   };
+  const tempSetting = supportsCustomTemperature(chatModel) ? { temperature: 0.4 } : {};
   const response = await fetch(baseUrl, {
     method: 'POST',
     headers: openaiHeaders,
     body: JSON.stringify({
       model: chatModel,
       messages: openaiMessages,
-      ...(provider === 'openrouter' ? { max_tokens: maxTokens } : { max_completion_tokens: maxTokens }),
-      temperature: 0.4,
+      ...(provider === 'openai' ? { max_completion_tokens: maxTokens } : { max_tokens: maxTokens }),
+      ...tempSetting,
       stream: true,
       ...(provider === 'openrouter' ? { provider: { data_collection: 'allow' } } : {}),
     }),
@@ -235,7 +237,7 @@ export async function fetchAgentResponseNative(loopMessages, systemPrompt, signa
   // Streaming for OpenAI/DeepSeek — shows partial text while LLM is thinking
   const useStreaming = onThinkingText && (provider === 'openai' || provider === 'deepseek' || provider === 'openrouter');
 
-  let temperature = tempOverride ?? 0.4;
+  let temperature = supportsCustomTemperature(modelId) ? (tempOverride ?? 0.4) : undefined;
 
   for (let tempRetry = 0; tempRetry < 2; tempRetry++) {
     const { endpoint, headers, body } = buildAgentRequest(provider, {
@@ -260,10 +262,10 @@ export async function fetchAgentResponseNative(loopMessages, systemPrompt, signa
     if (!response.ok) {
       const err = await response.json().catch(() => ({}));
       const msg = err.error?.message || `API error: ${response.status}`;
-      // If model doesn't support custom temperature, retry with default (1)
+      // If model doesn't support custom temperature, retry with the provider default.
       if (tempRetry === 0 && /temperature/i.test(msg)) {
-        console.log('[CM] Model does not support custom temperature, retrying with default (1)');
-        temperature = 1;
+        console.log('[CM] Model does not support custom temperature, retrying without temperature');
+        temperature = undefined;
         continue;
       }
       throw new Error(msg);
@@ -294,6 +296,7 @@ async function parseStreamingToolResponse(response, onThinkingText) {
   const decoder = new TextDecoder();
   let buffer = '';
   let textContent = '';
+  let reasoningContent = '';
   // Accumulate tool calls: { index → { id, name, arguments } }
   const toolCallMap = {};
   let finishReason = null;
@@ -317,6 +320,12 @@ async function parseStreamingToolResponse(response, onThinkingText) {
         finishReason = chunk.choices?.[0]?.finish_reason || finishReason;
 
         if (!delta) continue;
+
+        // Accumulate DeepSeek thinking content for provider round-tripping.
+        // Keep this internal; it is not surfaced in the UI.
+        if (delta.reasoning_content) {
+          reasoningContent += delta.reasoning_content;
+        }
 
         // Accumulate text content
         if (delta.content) {
@@ -354,6 +363,16 @@ async function parseStreamingToolResponse(response, onThinkingText) {
     toolCalls: parsed,
     textContent: textContent || null,
     stopReason: finishReason || 'stop',
+    assistantMessage: parsed ? {
+      role: 'assistant',
+      content: textContent || null,
+      ...(reasoningContent ? { reasoning_content: reasoningContent } : {}),
+      tool_calls: toolCalls.map(tc => ({
+        id: tc.id,
+        type: 'function',
+        function: { name: tc.name, arguments: tc.arguments || '{}' },
+      })),
+    } : null,
   };
 }
 

@@ -95,7 +95,7 @@ async function callAgent(userMessage, { activeTab = 'quizBank' } = {}) {
       ],
       tools: nativeTools,
       tool_choice: 'auto',
-      max_completion_tokens: 4096,
+      max_tokens: 4096,
       temperature: 0.3,
     }),
   });

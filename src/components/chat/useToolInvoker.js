@@ -39,8 +39,8 @@ export async function runAgentLoop(fullMessage, { silent = false }, ctx) {
     setStreaming,
     abortRef,
     apiKey, provider, modelId,
-    courseMap, activeTab,
-    delivRef, executeActionRef, snapshotRef, undoFnRef, notifyEditRef,
+    courseMap, activeTab, slideTheme,
+    delivRef, executeActionRef, optimisticUpdateRef, snapshotRef, undoFnRef, notifyEditRef,
     uid,
     customToolRegistryRef,
     maybeRunValidation,
@@ -52,7 +52,18 @@ export async function runAgentLoop(fullMessage, { silent = false }, ctx) {
     setMessages(prev => {
       const updated = [...prev];
       const idx = updated.findLastIndex(m => m.role === 'agentProgress');
-      if (idx >= 0) updated[idx] = typeof updater === 'function' ? updater(updated[idx]) : { ...updated[idx], ...updater };
+      if (idx >= 0) {
+        const current = updated[idx];
+        const next = typeof updater === 'function' ? updater(current) : { ...current, ...updater };
+        const normalized = {
+          ...next,
+          startedAt: next.startedAt || current.startedAt || Date.now(),
+        };
+        if (current.status === 'running' && normalized.status && normalized.status !== 'running' && !normalized.endedAt) {
+          normalized.endedAt = Date.now();
+        }
+        updated[idx] = normalized;
+      }
       return updated;
     });
   };
@@ -62,7 +73,12 @@ export async function runAgentLoop(fullMessage, { silent = false }, ctx) {
     updateProgress(card => {
       const steps = [...card.steps];
       if (stepIndex >= 0 && stepIndex < steps.length) {
-        steps[stepIndex] = { ...steps[stepIndex], ...updates };
+        const current = steps[stepIndex];
+        const next = { ...current, ...updates };
+        if (current.status === 'running' && next.status && next.status !== 'running' && !next.endedAt) {
+          next.endedAt = Date.now();
+        }
+        steps[stepIndex] = next;
       }
       return { ...card, steps };
     });
@@ -193,7 +209,7 @@ export async function runAgentLoop(fullMessage, { silent = false }, ctx) {
 
     // ── AGENTIC LOOP (native tool calling) ───────────────────────────────
     for (let iteration = 0; iteration < MAX_ITERATIONS; iteration++) {
-      const { toolCalls, textContent, stopReason } = await fetchAgentResponseNative(
+      const { toolCalls, textContent, stopReason, assistantMessage } = await fetchAgentResponseNative(
         loopMessages, systemPrompt, controller.signal, apiKey, provider, modelId, nativeTools,
         { temperature: agentTemperature, onThinkingText },
       );
@@ -270,6 +286,7 @@ export async function runAgentLoop(fullMessage, { silent = false }, ctx) {
           thought: '',
           status: 'running',
           summary: '',
+          startedAt: Date.now(),
         }));
 
         updateProgress(card => {
@@ -291,6 +308,11 @@ export async function runAgentLoop(fullMessage, { silent = false }, ctx) {
               courseMap,
               deliverables: delivRef.current,
               executeAction: executeActionRef.current,
+              optimisticUpdate: optimisticUpdateRef?.current || null,
+              apiKey,
+              provider,
+              modelId,
+              slideTheme,
               snapshot: snapshotRef.current,
               undoFn: undoFnRef?.current || null,
               uid,
@@ -354,7 +376,7 @@ export async function runAgentLoop(fullMessage, { silent = false }, ctx) {
             if (result && typeof result === 'object') {
               if (result.error) {
                 stepStatus = 'error';
-              } else if (tc.name === 'edit_course_map' || tc.name === 'edit_deliverables') {
+              } else if (tc.name === 'edit_course_map' || tc.name === 'edit_deliverables' || tc.name === 'generate_slide_images') {
                 const appliedN = result.applied || 0;
                 const failedN = result.failed || 0;
                 if (failedN > 0) stepStatus = appliedN > 0 ? 'partial' : 'error';
@@ -363,7 +385,7 @@ export async function runAgentLoop(fullMessage, { silent = false }, ctx) {
             updateStepAt(stepIdx, { status: stepStatus, summary });
 
             // If edit tool -> add changeSummary + trigger sync cascade
-            if (tc.name === 'edit_course_map' || tc.name === 'edit_deliverables') {
+            if (tc.name === 'edit_course_map' || tc.name === 'edit_deliverables' || tc.name === 'generate_slide_images') {
               const changes = [];
               const editedFeatures = new Set();
               const failedItems = []; // carry full per-item failure info to the UI
@@ -372,18 +394,22 @@ export async function runAgentLoop(fullMessage, { silent = false }, ctx) {
               // requests, not the trimmed `details[]` which loses field values.
               const originalInputs = tc.name === 'edit_course_map'
                 ? (tc.args?.patches || [])
-                : (tc.args?.actions || []);
+                : tc.name === 'edit_deliverables'
+                ? (tc.args?.actions || [])
+                : (result.details || []).map(detail => ({ ...detail, toolArgs: tc.args || {} }));
               for (let detailIdx = 0; detailIdx < (result.details || []).length; detailIdx++) {
                 const detail = result.details[detailIdx];
                 if (detail.success) {
                   const featureId = detail.featureId || 'courseMap';
-                  const actionType = detail.action === 'addItem' ? 'added'
+                  const actionType = detail.pending ? 'regenerating'
+                    : detail.action === 'generateImage' ? 'generated'
+                    : detail.action === 'addItem' ? 'added'
                     : detail.action === 'removeItem' ? 'removed' : 'edited';
                   const key = `${actionType}:${featureId}`;
                   const existing = changes.find(c => `${c.type}:${c.featureId}` === key);
                   if (existing) existing.count++;
                   else changes.push({ type: actionType, featureId, count: 1 });
-                  if (featureId !== 'courseMap') {
+                  if (featureId !== 'courseMap' && !detail.pending) {
                     editedFeatures.add(`${featureId}:${detail.lessonIndex ?? 0}`);
                   }
                 } else {
@@ -400,16 +426,22 @@ export async function runAgentLoop(fullMessage, { silent = false }, ctx) {
               // Fire a summary card when ANY outcome landed — successes, failures,
               // or both. Pure no-op results (empty patches array) still skip.
               if (changes.length > 0 || failedItems.length > 0) {
+                const pendingCount = result.pending || changes
+                  .filter(c => c.type === 'regenerating')
+                  .reduce((sum, c) => sum + c.count, 0);
                 const message = failedItems.length === 0
-                  ? `${result.applied} change${result.applied !== 1 ? 's' : ''} applied.`
+                  ? pendingCount > 0 && (result.applied || 0) === 0
+                    ? `${pendingCount} regeneration${pendingCount !== 1 ? 's' : ''} started.`
+                    : `${result.applied || 0} change${(result.applied || 0) !== 1 ? 's' : ''} applied${pendingCount > 0 ? ` · ${pendingCount} pending` : ''}.`
                   : result.applied > 0
-                    ? `${result.applied} applied · ${failedItems.length} failed`
+                    ? `${result.applied} applied${pendingCount > 0 ? ` · ${pendingCount} pending` : ''} · ${failedItems.length} failed`
                     : `${failedItems.length} change${failedItems.length !== 1 ? 's' : ''} failed`;
                 setMessages(prev => [...prev, {
                   role: 'changeSummary',
                   summary: {
                     changes,
                     applied: result.applied || 0,
+                    pending: pendingCount,
                     failed: failedItems.length,
                     failedItems,
                     toolName: tc.name,
@@ -439,7 +471,7 @@ export async function runAgentLoop(fullMessage, { silent = false }, ctx) {
         }));
 
         // Add assistant tool-call turn + all tool results to loop messages
-        loopMessages.push(formatAssistantToolCalls(provider, nonRespondCalls));
+        loopMessages.push(formatAssistantToolCalls(provider, nonRespondCalls, assistantMessage));
         const resultMessages = batchToolResults(provider, toolResults);
         loopMessages.push(...resultMessages);
 

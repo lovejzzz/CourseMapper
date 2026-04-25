@@ -758,6 +758,78 @@ describe('executeAction edge cases', () => {
       expect(data.decks[0].sl[0].t).toBe('Renamed Slide');
     });
 
+    it('resolves shorthand slide paths against expanded preview data', () => {
+      const ctx = makeCtx({
+        deliverables: {
+          ...makeMockDeliverables(),
+          slideDecks: {
+            status: 'done',
+            data: {
+              decks: [
+                { lessonTitle: 'L1', totalSlides: 1, slides: [{ title: 'Slide 1', notes: 'Old notes' }] },
+              ],
+            },
+          },
+        },
+      });
+      const result = executeAction(
+        { type: 'editItem', featureId: 'slideDecks', path: ['slideDecks', 0, 'sl', 0, 'no'], value: 'New notes' },
+        ctx,
+      );
+      expect(result.success).toBe(true);
+      const data = ctx.optimisticUpdate.mock.calls[0][1];
+      expect(data.decks[0].slides[0].notes).toBe('New notes');
+      expect(data.decks[0].slides[0].no).toBeUndefined();
+    });
+
+    it('resolves visual aliases against expanded slide visual data', () => {
+      const ctx = makeCtx({
+        deliverables: {
+          ...makeMockDeliverables(),
+          slideDecks: {
+            status: 'done',
+            data: {
+              decks: [
+                { lessonTitle: 'L1', slides: [{ title: 'Slide 1', visual: { kind: 'diagram', description: 'Old', altText: 'Old alt' } }] },
+              ],
+            },
+          },
+        },
+      });
+      const result = executeAction(
+        { type: 'editItem', featureId: 'slideDecks', path: ['decks', 0, 'slides', 0, 'visual', 'k'], value: 'image' },
+        ctx,
+      );
+      expect(result.success).toBe(true);
+      const data = ctx.optimisticUpdate.mock.calls[0][1];
+      expect(data.decks[0].slides[0].visual.kind).toBe('image');
+      expect(data.decks[0].slides[0].visual.k).toBeUndefined();
+    });
+
+    it('resolves vi.at aliases against expanded slide visual alt text', () => {
+      const ctx = makeCtx({
+        deliverables: {
+          ...makeMockDeliverables(),
+          slideDecks: {
+            status: 'done',
+            data: {
+              decks: [
+                { lessonTitle: 'L1', slides: [{ title: 'Slide 1', visual: { kind: 'image', description: 'Old', altText: 'Old alt' } }] },
+              ],
+            },
+          },
+        },
+      });
+      const result = executeAction(
+        { type: 'editItem', featureId: 'slideDecks', path: ['decks', 0, 'slides', 0, 'vi', 'at'], value: 'New alt text.' },
+        ctx,
+      );
+      expect(result.success).toBe(true);
+      const data = ctx.optimisticUpdate.mock.calls[0][1];
+      expect(data.decks[0].slides[0].visual.altText).toBe('New alt text.');
+      expect(data.decks[0].slides[0].visual.at).toBeUndefined();
+    });
+
     it('works when root key matches data key directly', () => {
       const ctx = makeCtx();
       const result = executeAction(
@@ -1023,7 +1095,53 @@ describe('SUB_ARRAY_KEYS behavior — addItem pushes to correct sub-array', () =
       ctx,
     );
     const data = ctx.optimisticUpdate.mock.calls[0][1];
-    expect(data.decks[1].sl).toContainEqual(expect.objectContaining({ t: 'New Slide for L2' }));
+    expect(data.decks[1].sl).toContainEqual(expect.objectContaining({ title: 'New Slide for L2' }));
+  });
+
+  it('adds normalized slides to expanded preview data', () => {
+    const ctx = makeCtx({
+      deliverables: {
+        ...makeMockDeliverables(),
+        slideDecks: {
+          status: 'done',
+          data: {
+            decks: [
+              { lessonTitle: 'L1', totalSlides: 1, slides: [{ title: 'Slide 1' }] },
+            ],
+          },
+        },
+      },
+    });
+    executeAction(
+      {
+        type: 'addItem',
+        featureId: 'slideDecks',
+        lessonIndex: 0,
+        item: {
+          t: 'Image-rich example',
+          ty: 'example',
+          bu: ['One visible concept'],
+          no: 'Speaker notes',
+          vi: { k: 'image', d: 'A concrete classroom-neutral visual', at: 'A visual showing the concept.' },
+        },
+      },
+      ctx,
+    );
+    const data = ctx.optimisticUpdate.mock.calls[0][1];
+    const added = data.decks[0].slides[1];
+    expect(added).toMatchObject({
+      title: 'Image-rich example',
+      type: 'example',
+      bullets: ['One visible concept'],
+      notes: 'Speaker notes',
+      visual: {
+        kind: 'image',
+        description: 'A concrete classroom-neutral visual',
+        altText: 'A visual showing the concept.',
+      },
+    });
+    expect(added.t).toBeUndefined();
+    expect(added.vi).toBeUndefined();
   });
 
   it('courseFaq uses sub-key "qs"', () => {

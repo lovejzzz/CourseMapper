@@ -184,7 +184,7 @@ function googleSchemaFix(schema) {
 // ── Build API request ───────────────────────────────────────────────────────
 
 export function buildAgentRequest(provider, { model, systemPrompt, messages, tools, maxTokens = 16384, temperature = 0.4, apiKey }) {
-  const tempSetting = temperature !== undefined ? { temperature } : {};
+  const tempSetting = temperature !== undefined && supportsCustomTemperature(model) ? { temperature } : {};
 
   // Callers may pass `systemPrompt` as a string (legacy) or as
   // `{staticPart, dynamicPart}` for Anthropic two-breakpoint caching. The
@@ -275,7 +275,7 @@ export function buildAgentRequest(provider, { model, systemPrompt, messages, too
         ],
         tools,
         tool_choice: 'auto',
-        max_completion_tokens: maxTokens,
+        max_tokens: maxTokens,
         ...tempSetting,
       },
     };
@@ -315,6 +315,14 @@ export function buildAgentRequest(provider, { model, systemPrompt, messages, too
   }
 
   throw new Error(`Unknown provider: ${provider}`);
+}
+
+export function supportsCustomTemperature(modelId) {
+  if (!modelId) return true;
+  // Newer default-only OpenAI reasoning/chat models reject explicit
+  // temperature values. Omitting the field uses the provider default.
+  if (/^gpt-5\.5(?:-|$)/i.test(modelId)) return false;
+  return true;
 }
 
 function stripNativeFlag(msg) {
@@ -381,6 +389,7 @@ export function parseAgentResponse(provider, json) {
       toolCalls: toolCalls.length > 0 ? toolCalls : null,
       textContent: message?.content || null,
       stopReason: choice?.finish_reason || 'stop',
+      assistantMessage: provider === 'deepseek' ? message : null,
     };
   }
 
@@ -424,8 +433,19 @@ function safeJsonParse(str) {
 
 // ── Format assistant tool-call message for history ──────────────────────────
 
-export function formatAssistantToolCalls(provider, toolCalls) {
+export function formatAssistantToolCalls(provider, toolCalls, assistantMessage = null) {
   if (provider === 'openai' || provider === 'deepseek' || provider === 'openrouter') {
+    if (provider === 'deepseek' && assistantMessage?.tool_calls?.length) {
+      return {
+        _native: true,
+        role: 'assistant',
+        content: assistantMessage.content ?? null,
+        ...(assistantMessage.reasoning_content
+          ? { reasoning_content: assistantMessage.reasoning_content }
+          : {}),
+        tool_calls: assistantMessage.tool_calls,
+      };
+    }
     return {
       _native: true,
       role: 'assistant',

@@ -54,6 +54,7 @@ export default function PrivacyPolicy() {
               <li><strong>OpenAI</strong> — governed by <a href="https://openai.com/policies/privacy-policy" target="_blank" rel="noopener noreferrer" className="text-indigo-500 hover:text-indigo-700 underline">OpenAI's Privacy Policy</a></li>
               <li><strong>Anthropic</strong> — governed by <a href="https://www.anthropic.com/privacy" target="_blank" rel="noopener noreferrer" className="text-indigo-500 hover:text-indigo-700 underline">Anthropic's Privacy Policy</a></li>
               <li><strong>Google (Gemini)</strong> — governed by <a href="https://ai.google.dev/terms" target="_blank" rel="noopener noreferrer" className="text-indigo-500 hover:text-indigo-700 underline">Google AI Terms</a></li>
+              <li><strong>DeepSeek</strong> — governed by <a href="https://cdn.deepseek.com/policies/en-US/deepseek-terms-of-use.html" target="_blank" rel="noopener noreferrer" className="text-indigo-500 hover:text-indigo-700 underline">DeepSeek Terms of Use</a></li>
             </ul>
             <p className="mt-2">
               You provide your own API key to connect directly to your chosen provider. Course Mapper

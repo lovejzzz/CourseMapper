@@ -158,7 +158,7 @@ async function callDeepSeek(userMessage, { activeTab = 'quizBank', maxTokens = 4
       ],
       tools: nativeTools,
       tool_choice: 'auto',
-      max_completion_tokens: maxTokens,
+      max_tokens: maxTokens,
       temperature: 0.3,
     }),
   });
@@ -452,7 +452,7 @@ async function callDeepSeekMultiTurn(messages, { activeTab = 'quizBank' } = {}) 
       ],
       tools: nativeTools,
       tool_choice: 'auto',
-      max_completion_tokens: 4096,
+      max_tokens: 4096,
       temperature: 0.3,
     }),
   });
@@ -504,8 +504,11 @@ describeWithKey('Multi-turn agent loop', { timeout: TIMEOUT * 6 }, () => {
         // Assistant made a tool call
         {
           role: 'assistant',
-          content: turn1.textContent || null,
-          tool_calls: turn1.toolCalls.map(tc => ({
+          content: turn1.rawMessage?.content ?? turn1.textContent ?? null,
+          ...(turn1.rawMessage?.reasoning_content
+            ? { reasoning_content: turn1.rawMessage.reasoning_content }
+            : {}),
+          tool_calls: turn1.rawMessage?.tool_calls || turn1.toolCalls.map(tc => ({
             id: tc.id,
             type: 'function',
             function: { name: tc.name, arguments: JSON.stringify(tc.args) },

@@ -38,7 +38,7 @@ const lessonPlans = {
 
 const slideDecks = {
   lt: 'lessonTitle', ts: 'totalSlides', lo: 'learningObjectives',
-  sl: 'slides', tg: 'tags',
+  sl: 'slides', tg: 'tags', vi: 'visual',
   // nested: slides[]
   t: 'title', ty: 'type', bu: 'bullets', no: 'notes',
   at: 'activityType', ti: 'timer', bl: 'bloomsLevel', ol: 'objectiveLink',
@@ -136,6 +136,21 @@ function _expand(node, map) {
   return node; // primitives pass through
 }
 
+function _expandSlideDecks(node, inVisual = false) {
+  if (Array.isArray(node)) return node.map(item => _expandSlideDecks(item, inVisual));
+  if (node !== null && typeof node === 'object') {
+    const result = {};
+    for (const [key, value] of Object.entries(node)) {
+      const expandedKey = inVisual
+        ? ({ k: 'kind', d: 'description', at: 'altText' }[key] || key)
+        : (slideDecks[key] || key);
+      result[expandedKey] = _expandSlideDecks(value, !inVisual && expandedKey === 'visual');
+    }
+    return result;
+  }
+  return node;
+}
+
 /**
  * Recursively expand minified keys in a parsed AI response.
  * Safe for mixed responses (full keys pass through unchanged).
@@ -146,6 +161,7 @@ function _expand(node, map) {
  */
 export function expandKeys(featureId, data) {
   if (!data) return data;
+  if (featureId === 'slideDecks') return _expandSlideDecks(data);
   const map = KEY_MAPS[featureId];
   if (!map) return data; // no map → pass through (e.g., syllabus)
   return _expand(data, map);

@@ -1,5 +1,5 @@
 import { describe, it, expect, vi, beforeEach, afterEach } from 'vitest';
-import { generateImages } from '../imageSearch';
+import { fetchOpenAIImageModels, generateImages, OPENAI_SLIDE_IMAGE_MODEL } from '../imageSearch';
 
 describe('generateImages', () => {
   let originalFetch;
@@ -104,6 +104,99 @@ describe('generateImages', () => {
     expect(result.images[0].provider).toBe('dall-e-3');
     expect(result.images[1].provider).toBe('dall-e-3');
     expect(globalThis.fetch).toHaveBeenCalledTimes(2);
+  });
+
+  it('generates a slide image via OpenAI GPT Image', async () => {
+    globalThis.fetch = vi.fn().mockResolvedValue({
+      ok: true,
+      json: async () => ({
+        data: [{ b64_json: 'abc123', revised_prompt: 'revised slide prompt' }],
+      }),
+    });
+
+    const result = await generateImages('educational diagram', {
+      provider: 'openai',
+      apiKey: 'sk-test',
+      count: 1,
+      model: OPENAI_SLIDE_IMAGE_MODEL,
+    });
+
+    expect(result.images).toHaveLength(1);
+    expect(result.images[0]).toMatchObject({
+      url: 'data:image/png;base64,abc123',
+      revisedPrompt: 'revised slide prompt',
+      provider: OPENAI_SLIDE_IMAGE_MODEL,
+    });
+    expect(result.images[0].id).toMatch(/^gpt-image-/);
+
+    const body = JSON.parse(globalThis.fetch.mock.calls[0][1].body);
+    expect(body).toMatchObject({
+      model: OPENAI_SLIDE_IMAGE_MODEL,
+      prompt: 'educational diagram',
+      n: 1,
+      size: '1024x1024',
+    });
+    expect(body.response_format).toBeUndefined();
+  });
+
+  it('falls back when the selected GPT Image model is unavailable', async () => {
+    globalThis.fetch = vi.fn()
+      .mockResolvedValueOnce({
+        ok: false,
+        status: 403,
+        json: async () => ({
+          error: { message: 'Your organization must be verified to use the model `gpt-image-2`.' },
+        }),
+      })
+      .mockResolvedValueOnce({
+        ok: true,
+        json: async () => ({
+          data: [{ b64_json: 'fallback123', revised_prompt: 'fallback revised' }],
+        }),
+      });
+
+    const result = await generateImages('educational diagram', {
+      provider: 'openai',
+      apiKey: 'sk-test',
+      count: 1,
+      model: 'gpt-image-2',
+    });
+
+    expect(result.images).toHaveLength(1);
+    expect(result.images[0]).toMatchObject({
+      url: 'data:image/png;base64,fallback123',
+      revisedPrompt: 'fallback revised',
+      provider: 'gpt-image-1.5',
+    });
+    expect(globalThis.fetch).toHaveBeenCalledTimes(2);
+    expect(JSON.parse(globalThis.fetch.mock.calls[0][1].body).model).toBe('gpt-image-2');
+    expect(JSON.parse(globalThis.fetch.mock.calls[1][1].body).model).toBe('gpt-image-1.5');
+  });
+
+  it('fetches and sorts OpenAI image models with newest first', async () => {
+    globalThis.fetch = vi.fn().mockResolvedValue({
+      ok: true,
+      json: async () => ({
+        data: [
+          { id: 'gpt-5.4-mini' },
+          { id: 'dall-e-3' },
+          { id: 'gpt-image-1' },
+          { id: 'gpt-image-2' },
+          { id: 'gpt-image-2-2026-04-21' },
+          { id: 'gpt-image-1-mini' },
+        ],
+      }),
+    });
+
+    const models = await fetchOpenAIImageModels('sk-test');
+
+    expect(models).toEqual(['gpt-image-2', 'gpt-image-2-2026-04-21', 'gpt-image-1', 'gpt-image-1-mini', 'dall-e-3']);
+    expect(globalThis.fetch).toHaveBeenCalledWith(
+      'https://api.openai.com/v1/models',
+      expect.objectContaining({
+        headers: { Authorization: 'Bearer sk-test' },
+      })
+    );
   });
 
   // ── Google / Imagen 3 ────────────────────────────────────────────────
