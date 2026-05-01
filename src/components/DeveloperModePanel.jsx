@@ -1,5 +1,6 @@
 import React, { useEffect, useMemo, useRef, useState } from 'react';
 import FocusTrap from 'focus-trap-react';
+import { getDeliverablePrompt } from '../lib/deliverablePrompts.js';
 
 const CONFIG_KEYS = [
   'formatVersion',
@@ -524,6 +525,26 @@ export default function DeveloperModePanel({
     return isPlainObject(featureConfig) ? featureConfig : {};
   }
 
+  function getPromptPreview(featureId, promptConfig) {
+    if (!featureId) return { systemPrompt: '', userPrompt: '' };
+    try {
+      const config = getConfigDraft();
+      return getDeliverablePrompt(
+        featureId,
+        workingSnapshot.courseMap || { lessons: [] },
+        config.lessonScope || workingSnapshot.lessonScope || null,
+        promptConfig || {},
+        'lecture',
+        null,
+        null,
+        config.columns || workingSnapshot.columns || null,
+        config.deliverableConfig || workingSnapshot.deliverableConfig || null,
+      ) || { systemPrompt: '', userPrompt: '' };
+    } catch {
+      return { systemPrompt: '', userPrompt: '' };
+    }
+  }
+
   function updatePromptConfig(featureId, patch, message) {
     if (!featureId) return;
     const config = getConfigDraft();
@@ -536,6 +557,11 @@ export default function DeveloperModePanel({
     if (Object.keys(current).length === 0) delete deliverableConfig[featureId];
     else deliverableConfig[featureId] = current;
     updateConfigPatch({ deliverableConfig }, message);
+  }
+
+  function materializePromptOverride(featureId, key, value) {
+    if (!featureId || !value?.trim()) return;
+    updatePromptConfig(featureId, { [key]: value }, 'Built-in prompt copied into an editable override.');
   }
 
   function resetPromptOverrides(featureId) {
@@ -745,14 +771,19 @@ export default function DeveloperModePanel({
   function renderPrompts() {
     const selectedFeatureId = promptFeatureId || promptFeatureOptions[0]?.id || '';
     const promptConfig = selectedFeatureId ? getPromptConfig(selectedFeatureId) : {};
+    const promptPreview = selectedFeatureId ? getPromptPreview(selectedFeatureId, promptConfig) : {};
+    const hasSystemOverride = Boolean(promptConfig.customSystemPrompt?.trim());
+    const hasUserOverride = Boolean(promptConfig.customUserPrompt?.trim());
     const hasPromptOverride = Boolean(
-      promptConfig.customSystemPrompt?.trim()
-      || promptConfig.customUserPrompt?.trim()
+      hasSystemOverride
+      || hasUserOverride
       || promptConfig.extraInstructions?.trim()
     );
+    const systemPromptValue = hasSystemOverride ? promptConfig.customSystemPrompt : (promptPreview.systemPrompt || '');
+    const userPromptValue = hasUserOverride ? promptConfig.customUserPrompt : (promptPreview.userPrompt || '');
 
     return (
-      <div className="min-h-0 flex-1 overflow-y-auto px-4 py-4">
+      <div className="min-h-0 flex-1 overflow-x-hidden overflow-y-auto px-4 py-4">
         <section className="rounded-xl border border-slate-200/70 bg-white p-4 dark:border-slate-700 dark:bg-slate-900">
           <div className="flex flex-col gap-3 lg:flex-row lg:items-start lg:justify-between">
             <div className="min-w-0">
@@ -778,24 +809,40 @@ export default function DeveloperModePanel({
         </section>
 
         {selectedFeatureId ? (
-          <div className="mt-4 grid gap-4 xl:grid-cols-[minmax(0,1fr)_260px]">
-            <section className="space-y-4">
+          <div className="mt-4 grid min-w-0 gap-4 xl:grid-cols-[minmax(0,1fr)_minmax(220px,260px)]">
+            <section className="min-w-0 space-y-4">
               <div className="rounded-xl border border-slate-200/70 bg-white p-4 dark:border-slate-700 dark:bg-slate-900">
                 <div className="flex flex-wrap items-center justify-between gap-2">
                   <div>
                     <p className="text-[10px] font-bold uppercase tracking-wider text-slate-400">System Prompt Override</p>
-                    <h3 className="mt-1 text-sm font-bold text-slate-800 dark:text-slate-100">{fieldSummary(promptConfig.customSystemPrompt)}</h3>
+                    <h3 className="mt-1 text-sm font-bold text-slate-800 dark:text-slate-100">
+                      {hasSystemOverride ? `Override active · ${fieldSummary(promptConfig.customSystemPrompt)}` : `Built-in prompt · ${fieldSummary(systemPromptValue)}`}
+                    </h3>
                   </div>
-                  <span className="rounded-full bg-slate-100 px-2 py-1 text-[10px] font-bold text-slate-500 dark:bg-slate-800 dark:text-slate-300">
-                    customSystemPrompt
-                  </span>
+                  <div className="flex items-center gap-2">
+                    {!hasSystemOverride && (
+                      <button
+                        onClick={() => materializePromptOverride(selectedFeatureId, 'customSystemPrompt', systemPromptValue)}
+                        disabled={!systemPromptValue}
+                        className="tactile rounded-lg border border-indigo-200 bg-indigo-50 px-2.5 py-1.5 text-[10px] font-bold text-indigo-600 hover:bg-indigo-100 disabled:cursor-not-allowed disabled:opacity-50 dark:border-indigo-500/40 dark:bg-indigo-500/10 dark:text-indigo-300"
+                      >
+                        Customize
+                      </button>
+                    )}
+                    <span className="rounded-full bg-slate-100 px-2 py-1 text-[10px] font-bold text-slate-500 dark:bg-slate-800 dark:text-slate-300">
+                      {hasSystemOverride ? 'customSystemPrompt' : 'built-in'}
+                    </span>
+                  </div>
                 </div>
                 <textarea
-                  value={promptConfig.customSystemPrompt || ''}
+                  value={systemPromptValue}
+                  readOnly={!hasSystemOverride}
                   onChange={(e) => updatePromptConfig(selectedFeatureId, { customSystemPrompt: e.target.value }, 'System prompt override updated.')}
-                  placeholder="Optional. Replace the built-in system prompt for this deliverable."
+                  placeholder="No system prompt is available for this deliverable."
                   spellCheck={false}
-                  className="mt-3 min-h-[120px] w-full resize-y rounded-lg border border-slate-200 bg-slate-50 px-3 py-2 font-mono text-[12px] leading-5 text-slate-700 outline-none focus:border-indigo-300 dark:border-slate-700 dark:bg-slate-950 dark:text-slate-200"
+                  className={`mt-3 min-h-[140px] w-full resize-y rounded-lg border border-slate-200 px-3 py-2 font-mono text-[12px] leading-5 text-slate-700 outline-none focus:border-indigo-300 dark:border-slate-700 dark:text-slate-200 ${
+                    hasSystemOverride ? 'bg-slate-50 dark:bg-slate-950' : 'bg-slate-50/70 text-slate-500 dark:bg-slate-950/70 dark:text-slate-400'
+                  }`}
                 />
               </div>
 
@@ -803,26 +850,47 @@ export default function DeveloperModePanel({
                 <div className="flex flex-wrap items-center justify-between gap-2">
                   <div>
                     <p className="text-[10px] font-bold uppercase tracking-wider text-slate-400">User Prompt Template Override</p>
-                    <h3 className="mt-1 text-sm font-bold text-slate-800 dark:text-slate-100">{fieldSummary(promptConfig.customUserPrompt)}</h3>
+                    <h3 className="mt-1 text-sm font-bold text-slate-800 dark:text-slate-100">
+                      {hasUserOverride ? `Override active · ${fieldSummary(promptConfig.customUserPrompt)}` : `Current generated prompt · ${fieldSummary(userPromptValue)}`}
+                    </h3>
                   </div>
-                  <span className={`rounded-full px-2 py-1 text-[10px] font-bold ${
-                    promptConfig.customUserPrompt?.trim() && !promptConfig.customUserPrompt.includes('{{courseMap}}')
-                      ? 'bg-amber-50 text-amber-700 dark:bg-amber-500/10 dark:text-amber-300'
-                      : 'bg-slate-100 text-slate-500 dark:bg-slate-800 dark:text-slate-300'
-                  }`}>
-                    {'{{courseMap}}'}
-                  </span>
+                  <div className="flex items-center gap-2">
+                    {!hasUserOverride && (
+                      <button
+                        onClick={() => materializePromptOverride(selectedFeatureId, 'customUserPrompt', userPromptValue)}
+                        disabled={!userPromptValue}
+                        className="tactile rounded-lg border border-indigo-200 bg-indigo-50 px-2.5 py-1.5 text-[10px] font-bold text-indigo-600 hover:bg-indigo-100 disabled:cursor-not-allowed disabled:opacity-50 dark:border-indigo-500/40 dark:bg-indigo-500/10 dark:text-indigo-300"
+                      >
+                        Customize
+                      </button>
+                    )}
+                    <span className={`rounded-full px-2 py-1 text-[10px] font-bold ${
+                      hasUserOverride && !promptConfig.customUserPrompt.includes('{{courseMap}}')
+                        ? 'bg-amber-50 text-amber-700 dark:bg-amber-500/10 dark:text-amber-300'
+                        : 'bg-slate-100 text-slate-500 dark:bg-slate-800 dark:text-slate-300'
+                    }`}>
+                      {hasUserOverride ? '{{courseMap}}' : 'generated'}
+                    </span>
+                  </div>
                 </div>
                 <textarea
-                  value={promptConfig.customUserPrompt || ''}
+                  value={userPromptValue}
+                  readOnly={!hasUserOverride}
                   onChange={(e) => updatePromptConfig(selectedFeatureId, { customUserPrompt: e.target.value }, 'User prompt template updated.')}
-                  placeholder="Optional. Include {{courseMap}} where the condensed course map should be inserted."
+                  placeholder="No user prompt is available for this deliverable."
                   spellCheck={false}
-                  className="mt-3 min-h-[180px] w-full resize-y rounded-lg border border-slate-200 bg-slate-50 px-3 py-2 font-mono text-[12px] leading-5 text-slate-700 outline-none focus:border-indigo-300 dark:border-slate-700 dark:bg-slate-950 dark:text-slate-200"
+                  className={`mt-3 min-h-[220px] w-full resize-y rounded-lg border border-slate-200 px-3 py-2 font-mono text-[12px] leading-5 text-slate-700 outline-none focus:border-indigo-300 dark:border-slate-700 dark:text-slate-200 ${
+                    hasUserOverride ? 'bg-slate-50 dark:bg-slate-950' : 'bg-slate-50/70 text-slate-500 dark:bg-slate-950/70 dark:text-slate-400'
+                  }`}
                 />
-                {promptConfig.customUserPrompt?.trim() && !promptConfig.customUserPrompt.includes('{{courseMap}}') && (
+                {!hasUserOverride && (
+                  <p className="mt-2 rounded-lg border border-slate-200 bg-slate-50 px-3 py-2 text-[11px] leading-5 text-slate-500 dark:border-slate-700 dark:bg-slate-950 dark:text-slate-400">
+                    This preview shows the exact prompt for the current project, including course content. Click Customize to make it editable.
+                  </p>
+                )}
+                {hasUserOverride && !promptConfig.customUserPrompt.includes('{{courseMap}}') && (
                   <p className="mt-2 rounded-lg border border-amber-200 bg-amber-50 px-3 py-2 text-[11px] font-semibold text-amber-700 dark:border-amber-500/40 dark:bg-amber-500/10 dark:text-amber-300">
-                    Add {'{{courseMap}}'} to pass course content into this prompt.
+                    Add {'{{courseMap}}'} if this override should stay reusable across future projects.
                   </p>
                 )}
               </div>
@@ -846,21 +914,19 @@ export default function DeveloperModePanel({
               </div>
             </section>
 
-            <aside className="space-y-3">
-              <div className="rounded-xl border border-indigo-200/70 bg-indigo-50/60 p-4 dark:border-indigo-500/40 dark:bg-indigo-500/10">
+            <aside className="min-w-0 space-y-3">
+              <div className="min-w-0 rounded-xl border border-indigo-200/70 bg-indigo-50/60 p-4 dark:border-indigo-500/40 dark:bg-indigo-500/10">
                 <p className="text-[10px] font-bold uppercase tracking-wider text-indigo-500 dark:text-indigo-300">Current Path</p>
-                <p className="mt-2 font-mono text-[11px] leading-5 text-slate-600 dark:text-slate-300">
-                  deliverableConfig.{selectedFeatureId}.customSystemPrompt
-                  <br />
-                  deliverableConfig.{selectedFeatureId}.customUserPrompt
-                  <br />
-                  deliverableConfig.{selectedFeatureId}.extraInstructions
+                <p className="mt-2 space-y-1 font-mono text-[11px] leading-5 text-slate-600 dark:text-slate-300">
+                  <span className="block break-all">deliverableConfig.{selectedFeatureId}.customSystemPrompt</span>
+                  <span className="block break-all">deliverableConfig.{selectedFeatureId}.customUserPrompt</span>
+                  <span className="block break-all">deliverableConfig.{selectedFeatureId}.extraInstructions</span>
                 </p>
               </div>
-              <div className="rounded-xl border border-slate-200/70 bg-white p-4 dark:border-slate-700 dark:bg-slate-900">
+              <div className="min-w-0 rounded-xl border border-slate-200/70 bg-white p-4 dark:border-slate-700 dark:bg-slate-900">
                 <p className="text-[10px] font-bold uppercase tracking-wider text-slate-400">Behavior</p>
                 <p className="mt-2 text-[11px] leading-5 text-slate-500 dark:text-slate-400">
-                  System and user overrides replace the built-in prompt for this deliverable. Extra instructions are appended at high priority.
+                  Built-in prompts are read-only previews. Customize creates an override for this deliverable. Extra instructions are appended at high priority.
                 </p>
                 <button
                   onClick={() => resetPromptOverrides(selectedFeatureId)}
@@ -1056,7 +1122,7 @@ export default function DeveloperModePanel({
                   <button
                     key={section.id}
                     onClick={() => setActiveSection(section.id)}
-                    className={`min-w-[150px] rounded-xl border px-3 py-2 text-left transition-all ${
+                    className={`min-w-[120px] flex-1 rounded-xl border px-3 py-2 text-left transition-all ${
                       isActive
                         ? 'border-indigo-200 bg-white shadow-sm dark:border-indigo-500/50 dark:bg-slate-800'
                         : 'border-transparent bg-transparent hover:bg-white/70 dark:hover:bg-slate-800/70'
