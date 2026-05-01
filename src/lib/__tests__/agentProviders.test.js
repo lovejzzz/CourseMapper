@@ -6,6 +6,7 @@ import {
   formatAssistantToolCalls,
   formatToolResult,
   batchToolResults,
+  supportsCustomTemperature,
 } from '../agentProviders';
 
 // ── Minimal tool registry for testing ──────────────────────────────────────
@@ -387,6 +388,25 @@ describe('buildAgentRequest', () => {
     expect(req.endpoint).toContain('deepseek.com');
     expect(req.body.max_tokens).toBe(1234);
     expect(req.body.max_completion_tokens).toBeUndefined();
+  });
+
+  it('omits temperature for GPT-5 default-temperature models', () => {
+    const req = buildAgentRequest('openai', {
+      ...params,
+      model: 'gpt-5-mini',
+      temperature: 0.4,
+    });
+
+    expect(req.body.temperature).toBeUndefined();
+    expect(req.body.max_completion_tokens).toBe(16384);
+  });
+
+  it('detects GPT-5 family models as default-temperature only', () => {
+    expect(supportsCustomTemperature('gpt-5')).toBe(false);
+    expect(supportsCustomTemperature('gpt-5-mini')).toBe(false);
+    expect(supportsCustomTemperature('gpt-5.4-mini')).toBe(false);
+    expect(supportsCustomTemperature('gpt-5.5')).toBe(false);
+    expect(supportsCustomTemperature('gpt-4o')).toBe(true);
   });
 
   it('throws for unknown provider', () => {

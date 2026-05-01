@@ -321,7 +321,7 @@ export function supportsCustomTemperature(modelId) {
   if (!modelId) return true;
   // Newer default-only OpenAI reasoning/chat models reject explicit
   // temperature values. Omitting the field uses the provider default.
-  if (/^gpt-5\.5(?:-|$)/i.test(modelId)) return false;
+  if (/^gpt-5(?:[.-]|$)/i.test(modelId)) return false;
   return true;
 }
 
