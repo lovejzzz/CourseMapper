@@ -434,7 +434,14 @@ export function CustomDeliverableBuilder({ isOpen, onClose, onSave, editDef }) {
   );
 }
 
-export default function FeatureSelect({ onNext, onBack, hasSyllabusFile }) {
+export default function FeatureSelect({
+  onNext,
+  onBack,
+  hasSyllabusFile,
+  developerTemplates = [],
+  activeDeveloperTemplateId = '',
+  onApplyDeveloperTemplate,
+}) {
   const { user } = useAuth();
   const { setShowHelp } = useUI();
   const { selectedFeatures: selected, setSelectedFeatures: setSelected } = useCourse();
@@ -543,6 +550,38 @@ export default function FeatureSelect({ onNext, onBack, hasSyllabusFile }) {
               Pick what to generate. The more you choose, the more aligned everything will be.
             </p>
           </div>
+
+          {developerTemplates.length > 0 && (
+            <div className="mb-5 rounded-2xl border border-indigo-200/50 bg-white/70 px-4 py-3 shadow-glass backdrop-blur-xl">
+              <div className="flex flex-col gap-3 sm:flex-row sm:items-center sm:justify-between">
+                <div className="min-w-0">
+                  <div className="flex items-center gap-2">
+                    <span className="flex h-7 w-7 items-center justify-center rounded-xl bg-indigo-100 text-indigo-600">
+                      <svg className="h-3.5 w-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                        <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M8 9l-3 3 3 3m8-6l3 3-3 3M13 5l-2 14" />
+                      </svg>
+                    </span>
+                    <div>
+                      <p className="text-[12px] font-bold text-slate-700">Developer template</p>
+                      <p className="text-[10px] text-slate-400">Apply saved defaults before choosing deliverables.</p>
+                    </div>
+                  </div>
+                </div>
+                <select
+                  value={activeDeveloperTemplateId}
+                  onChange={(e) => onApplyDeveloperTemplate?.(e.target.value)}
+                  className="min-w-[240px] rounded-xl border border-indigo-200/70 bg-white px-3 py-2 text-[12px] font-semibold text-slate-600 outline-none transition-colors focus:border-indigo-400"
+                >
+                  <option value="">No template</option>
+                  {developerTemplates.map(template => (
+                    <option key={template.id} value={template.id}>
+                      {template.name}
+                    </option>
+                  ))}
+                </select>
+              </div>
+            </div>
+          )}
 
           {/* Select All / Deselect All */}
           <div className="flex items-center gap-2 mb-4">

@@ -21,6 +21,16 @@ import { saveCustomTool, deleteCustomTool } from '../../lib/cloudStorage';
 // ═══════════════════════════════════════════════════════════════════════════
 // useChatRouter — Unified hook for Ask (help AI) + Revise (agent/revision)
 // ═══════════════════════════════════════════════════════════════════════════
+export function prepareEditAndResendMessages(messages, msgIndex, newText) {
+  const trimmed = (newText || '').trim();
+  if (!trimmed) return null;
+  if (!messages[msgIndex] || messages[msgIndex].role !== 'user') return null;
+  return {
+    history: messages.slice(0, msgIndex),
+    text: trimmed,
+  };
+}
+
 export default function useChatRouter({
   courseMap, activeTab, slideTheme,
   onRevision, onDeliverableRevision,
@@ -619,10 +629,12 @@ export default function useChatRouter({
   function editAndResend(msgIndex, newText) {
     if (isStreamingRef.current) return;
     const msgs = messagesRef.current;
-    if (!msgs[msgIndex] || msgs[msgIndex].role !== 'user') return;
+    const prepared = prepareEditAndResendMessages(msgs, msgIndex, newText);
+    if (!prepared) return;
     // Remove all messages from this index onward, then re-send with new text
-    setMessages(prev => prev.slice(0, msgIndex));
-    send(newText);
+    messagesRef.current = prepared.history;
+    setMessages(prepared.history);
+    send(prepared.text);
   }
 
   // ── Regenerate: re-send the user message that preceded a given assistant message

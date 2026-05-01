@@ -332,9 +332,7 @@ function EditableUserMessage({ text, onEditSubmit }) {
     const trimmed = editText.trim();
     if (!trimmed) return;
     setIsEditing(false);
-    if (trimmed !== text) {
-      onEditSubmit(trimmed);
-    }
+    onEditSubmit(trimmed);
   }
 
   function handleKeyDown(e) {

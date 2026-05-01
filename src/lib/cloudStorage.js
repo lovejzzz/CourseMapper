@@ -4,6 +4,7 @@
  * Collections:
  *   users/{uid}                                  ← profile + settings
  *   users/{uid}/customDeliverables/{id}          ← custom deliverable defs
+ *   users/{uid}/developerTemplates/{id}          ← reusable developer template defs
  *   users/{uid}/projects/{projectId}             ← project metadata + courseMap
  *   users/{uid}/projects/{projectId}/deliverables/{featureId}  ← deliverable data
  */
@@ -23,6 +24,8 @@ function delivCol(uid, pid) { return collection(db, 'users', uid, 'projects', pi
 function delivDoc(uid, pid, fid) { return doc(db, 'users', uid, 'projects', pid, 'deliverables', fid); }
 function customDelCol(uid) { return collection(db, 'users', uid, 'customDeliverables'); }
 function customDelDoc(uid, id) { return doc(db, 'users', uid, 'customDeliverables', id); }
+function developerTemplateCol(uid) { return collection(db, 'users', uid, 'developerTemplates'); }
+function developerTemplateDoc(uid, id) { return doc(db, 'users', uid, 'developerTemplates', id); }
 
 /* ═══════════════════ Profile ═══════════════════ */
 
@@ -61,6 +64,29 @@ export async function saveCustomDeliverable(uid, id, def) {
 export async function deleteCustomDeliverable(uid, id) {
   if (!db) return;
   await deleteDoc(customDelDoc(uid, id));
+}
+
+/* ═══════════════════ Developer Templates ═══════════════════ */
+
+export async function loadDeveloperTemplates(uid) {
+  if (!db) return {};
+  const snap = await getDocs(developerTemplateCol(uid));
+  const map = {};
+  snap.forEach(d => { map[d.id] = d.data(); });
+  return map;
+}
+
+export async function saveDeveloperTemplate(uid, id, template) {
+  if (!db) return;
+  await setDoc(developerTemplateDoc(uid, id), {
+    ...template,
+    updatedAt: serverTimestamp(),
+  });
+}
+
+export async function deleteDeveloperTemplate(uid, id) {
+  if (!db) return;
+  await deleteDoc(developerTemplateDoc(uid, id));
 }
 
 /* ═══════════════════ Projects ═══════════════════ */

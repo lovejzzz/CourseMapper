@@ -108,7 +108,7 @@ export default function UserMenu({
       </button>
 
       {open && (
-        <div className="absolute right-0 mt-2 w-64 bg-white/95 backdrop-blur-lg rounded-xl shadow-xl border border-slate-200/60 py-2 z-50 animate-in fade-in slide-in-from-top-2 duration-200">
+        <div className="absolute right-0 mt-2 w-72 bg-white/95 backdrop-blur-lg rounded-xl shadow-xl border border-slate-200/60 py-2 z-50 animate-in fade-in slide-in-from-top-2 duration-200">
           {/* User info */}
           <div className="px-4 py-2 border-b border-slate-100">
             <p className="text-[12px] font-semibold text-slate-700 truncate">{user.displayName}</p>
@@ -141,15 +141,15 @@ export default function UserMenu({
                   role="switch"
                   aria-checked={developerMode}
                   onClick={() => onDeveloperModeChange(!developerMode)}
-                  className={`relative flex h-7 w-[104px] items-center rounded-full border p-0.5 text-[10px] font-bold transition-all ${
+                  className={`relative flex h-7 w-[94px] shrink-0 items-center overflow-hidden rounded-full border p-0.5 text-[10px] font-bold transition-all ${
                     developerMode
                       ? 'bg-indigo-500 border-indigo-400 text-white'
                       : 'bg-slate-100 border-slate-200 text-slate-500'
                   }`}
                 >
                   <span
-                    className={`absolute top-0.5 h-6 w-[50px] rounded-full bg-white shadow-sm transition-transform ${
-                      developerMode ? 'translate-x-[50px]' : 'translate-x-0'
+                    className={`absolute left-0.5 top-0.5 h-6 w-[44px] rounded-full bg-white shadow-sm transition-transform ${
+                      developerMode ? 'translate-x-[46px]' : 'translate-x-0'
                     }`}
                   />
                   <span className={`relative z-10 flex-1 text-center ${developerMode ? 'text-indigo-100' : 'text-slate-700'}`}>User</span>

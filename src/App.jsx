@@ -31,6 +31,11 @@ import useDeliverableUndo from './hooks/useDeliverableUndo';
 import { extractEditContext } from './lib/editContextExtractor';
 import { FEATURES, CustomDeliverableBuilder } from './screens/FeatureSelect';
 import { listCustomDeliverables, toFeatureEntry, saveCustomDeliverable, mergeCloudDeliverables } from './lib/customDeliverableLibrary';
+import {
+  listDeveloperTemplates,
+  saveDeveloperTemplateFromSnapshot,
+  mergeCloudDeveloperTemplates,
+} from './lib/developerTemplates';
 import { mergeCloudProfile } from './lib/professorProfile';
 import { mergeCloudMemories, mergeCloudAgentPrefs } from './lib/agentMemory';
 import { useAuth } from './contexts/AuthContext';
@@ -208,6 +213,10 @@ export default function App() {
     try { return localStorage.getItem('coursemapper-developer-mode') === 'true'; } catch { return false; }
   });
   const [showDeveloperPanel, setShowDeveloperPanel] = useState(false);
+  const [developerTemplates, setDeveloperTemplates] = useState(() => listDeveloperTemplates());
+  const [activeDeveloperTemplateId, setActiveDeveloperTemplateId] = useState(() => {
+    try { return localStorage.getItem('coursemapper-active-developer-template') || ''; } catch { return ''; }
+  });
 
   // ── Misc ──
   const [downloadedFile, setDownloadedFile] = useState('');
@@ -237,6 +246,13 @@ export default function App() {
     try { localStorage.setItem('coursemapper-developer-mode', developerMode ? 'true' : 'false'); } catch { }
     if (!developerMode) setShowDeveloperPanel(false);
   }, [developerMode]);
+
+  useEffect(() => {
+    try {
+      if (activeDeveloperTemplateId) localStorage.setItem('coursemapper-active-developer-template', activeDeveloperTemplateId);
+      else localStorage.removeItem('coursemapper-active-developer-template');
+    } catch { }
+  }, [activeDeveloperTemplateId]);
 
   // ── Cascade sync ──
   // Always-fresh ref to courseMap for useSmartSync (avoids stale closure)
@@ -411,6 +427,47 @@ export default function App() {
     setUserEdits,
   ]);
 
+  const saveDeveloperTemplateFromPanel = useCallback((snapshot, name) => {
+    const saved = saveDeveloperTemplateFromSnapshot(snapshot, name, user?.uid);
+    setDeveloperTemplates(listDeveloperTemplates());
+    setActiveDeveloperTemplateId(saved.id);
+    return saved;
+  }, [user]);
+
+  const applyDeveloperTemplate = useCallback((templateId) => {
+    if (!templateId) {
+      setActiveDeveloperTemplateId('');
+      return;
+    }
+    const template = developerTemplates.find(t => t.id === templateId);
+    if (!template?.data) return;
+    const data = template.data;
+    const nextFeatures = Array.isArray(data.selectedFeatures) && data.selectedFeatures.length > 0
+      ? ['courseMap', ...data.selectedFeatures.filter(id => id && id !== 'courseMap')]
+      : ['courseMap'];
+    setSelectedFeatures(nextFeatures);
+    setDeliverableConfig(data.deliverableConfig && typeof data.deliverableConfig === 'object' ? data.deliverableConfig : {});
+    setLessonScope(data.lessonScope && typeof data.lessonScope === 'object' ? data.lessonScope : { type: 'all' });
+    if (Array.isArray(data.columns)) setColumns(data.columns);
+    if (data.slideTheme !== undefined) setSlideTheme(data.slideTheme);
+    if (data.provider) setProvider(data.provider === 'free' ? 'openai' : data.provider);
+    if (data.modelId !== undefined) setModelId(data.modelId || '');
+    if (data.modelName !== undefined) setModelName(data.modelName || '');
+    setActiveTab(nextFeatures[0] || 'courseMap');
+    setActiveDeveloperTemplateId(template.id);
+  }, [
+    developerTemplates,
+    setActiveTab,
+    setColumns,
+    setDeliverableConfig,
+    setLessonScope,
+    setModelId,
+    setModelName,
+    setProvider,
+    setSelectedFeatures,
+    setSlideTheme,
+  ]);
+
   const saveLocalProjectSnapshot = useCallback((extra = {}) => {
     if (!hasGenerated || !courseMap) return false;
     try {
@@ -485,6 +542,7 @@ export default function App() {
       prevUserRef.current = user.uid;
       // Fire-and-forget cloud merge
       mergeCloudDeliverables(user.uid).catch(() => { });
+      mergeCloudDeveloperTemplates(user.uid).then(setDeveloperTemplates).catch(() => { });
       mergeCloudProfile(user.uid).catch(() => { });
       mergeCloudMemories(user.uid).catch(() => { });
       mergeCloudAgentPrefs(user.uid).catch(() => { });
@@ -774,6 +832,12 @@ export default function App() {
     setScreen('landing');
   }
 
+  useEffect(() => {
+    if (screen !== 'features' || !activeDeveloperTemplateId) return;
+    if (!developerTemplates.some(template => template.id === activeDeveloperTemplateId)) return;
+    applyDeveloperTemplate(activeDeveloperTemplateId);
+  }, [screen, activeDeveloperTemplateId, developerTemplates, applyDeveloperTemplate]);
+
   async function handleConfirmNewProject() {
     setNewProjectError('');
     if (isStartingNewProject) return;
@@ -970,6 +1034,7 @@ export default function App() {
           isOpen={developerMode && showDeveloperPanel}
           snapshot={buildProjectSnapshot({ mode: 'developer' })}
           onApply={applyDeveloperSnapshot}
+          onSaveTemplate={saveDeveloperTemplateFromPanel}
           onClose={() => setShowDeveloperPanel(false)}
         />
       </>
@@ -983,6 +1048,9 @@ export default function App() {
         hasSyllabusFile={hasSyllabusFile}
         onBack={() => setScreen('landing')}
         onNext={() => setScreen('config')}
+        developerTemplates={developerTemplates}
+        activeDeveloperTemplateId={activeDeveloperTemplateId}
+        onApplyDeveloperTemplate={applyDeveloperTemplate}
       />
     );
   }
@@ -1914,6 +1982,7 @@ export default function App() {
         isOpen={developerMode && showDeveloperPanel}
         snapshot={buildProjectSnapshot({ mode: 'developer' })}
         onApply={applyDeveloperSnapshot}
+        onSaveTemplate={saveDeveloperTemplateFromPanel}
         onClose={() => setShowDeveloperPanel(false)}
       />
 

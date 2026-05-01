@@ -201,13 +201,14 @@ function sectionStats(snapshot, activeSection) {
   return [`${Object.keys(snapshot || {}).length} keys`, snapshot.mode || 'workspace'];
 }
 
-export default function DeveloperModePanel({ isOpen, snapshot, onApply, onClose }) {
+export default function DeveloperModePanel({ isOpen, snapshot, onApply, onSaveTemplate, onClose }) {
   const [baseSnapshot, setBaseSnapshot] = useState(() => clone(snapshot));
   const [drafts, setDrafts] = useState(() => createDrafts(snapshot || {}));
   const [dirtySections, setDirtySections] = useState(() => new Set());
   const [activeSection, setActiveSection] = useState('courseMap');
   const [query, setQuery] = useState('');
   const [lastAppliedSnapshot, setLastAppliedSnapshot] = useState(null);
+  const [templateName, setTemplateName] = useState('');
   const [status, setStatus] = useState({
     type: 'idle',
     message: 'Edit a section, then apply to update the workspace preview.',
@@ -228,9 +229,22 @@ export default function DeveloperModePanel({ isOpen, snapshot, onApply, onClose 
       loadSnapshot(snapshot);
       setActiveSection('courseMap');
       setQuery('');
+      setTemplateName('');
     }
     wasOpenRef.current = isOpen;
   }, [isOpen, snapshot]);
+
+  useEffect(() => {
+    if (!isOpen) return undefined;
+    const previousOverflow = document.body.style.overflow;
+    const previousOverscroll = document.body.style.overscrollBehavior;
+    document.body.style.overflow = 'hidden';
+    document.body.style.overscrollBehavior = 'contain';
+    return () => {
+      document.body.style.overflow = previousOverflow;
+      document.body.style.overscrollBehavior = previousOverscroll;
+    };
+  }, [isOpen]);
 
   const activeDraft = drafts[activeSection] || '';
   const dirty = dirtySections.size > 0;
@@ -329,9 +343,22 @@ export default function DeveloperModePanel({ isOpen, snapshot, onApply, onClose 
     }
   }
 
+  function handleSaveTemplate() {
+    if (!onSaveTemplate) return;
+    try {
+      const source = proposed || buildProposedSnapshot(baseSnapshot, drafts, dirtySections);
+      const name = templateName.trim() || `Developer Template ${new Date().toLocaleDateString()}`;
+      const saved = onSaveTemplate(source, name);
+      setTemplateName(saved?.name || name);
+      setStatus({ type: 'success', message: `Saved "${saved?.name || name}" as a reusable template.` });
+    } catch (err) {
+      setStatus({ type: 'error', message: err.message || 'Template could not be saved.' });
+    }
+  }
+
   return (
     <FocusTrap focusTrapOptions={{ clickOutsideDeactivates: false }}>
-      <div className="fixed inset-0 z-[70] bg-slate-950/35 backdrop-blur-[2px]">
+      <div className="fixed inset-0 z-[70] overflow-hidden bg-slate-950/35 backdrop-blur-[2px]">
         <section className="absolute inset-x-3 top-3 bottom-3 ml-auto w-[min(1120px,calc(100vw-1.5rem))] rounded-2xl border border-slate-200/70 bg-white shadow-2xl flex flex-col overflow-hidden animate-spring-in dark:border-slate-700/70 dark:bg-slate-950">
           <div className="flex items-center justify-between gap-3 border-b border-slate-100 px-4 py-3 dark:border-slate-800">
             <div className="min-w-0">
@@ -455,6 +482,28 @@ export default function DeveloperModePanel({ isOpen, snapshot, onApply, onClose 
                   <p className="mt-2 text-[11px] text-slate-400">No pending workspace changes.</p>
                 )}
               </div>
+
+              {onSaveTemplate && (
+                <div className="rounded-xl border border-indigo-200/70 bg-indigo-50/60 px-3 py-3 dark:border-indigo-500/40 dark:bg-indigo-500/10">
+                  <p className="text-[10px] font-bold uppercase tracking-wider text-indigo-500 dark:text-indigo-300">Template</p>
+                  <p className="mt-2 text-[11px] leading-5 text-slate-500 dark:text-slate-400">
+                    Save this setup for future projects. Course content and generated outputs are not included.
+                  </p>
+                  <input
+                    value={templateName}
+                    onChange={(e) => setTemplateName(e.target.value)}
+                    className="mt-3 w-full rounded-lg border border-indigo-200 bg-white px-3 py-2 text-[11px] text-slate-700 outline-none focus:border-indigo-300 dark:border-slate-700 dark:bg-slate-900 dark:text-slate-200"
+                    placeholder="Template name"
+                  />
+                  <button
+                    onClick={handleSaveTemplate}
+                    disabled={!proposed}
+                    className="tactile mt-2 w-full rounded-lg bg-indigo-500 px-3 py-2 text-[11px] font-semibold text-white hover:bg-indigo-600 disabled:cursor-not-allowed disabled:opacity-50"
+                  >
+                    Save as Developer Template
+                  </button>
+                </div>
+              )}
 
               <div className="rounded-xl border border-slate-200/70 bg-slate-50 px-3 py-3 dark:border-slate-700 dark:bg-slate-900">
                 <p className="text-[10px] font-bold uppercase tracking-wider text-slate-400">Safety</p>
