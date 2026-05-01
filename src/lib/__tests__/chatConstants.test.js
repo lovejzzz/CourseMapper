@@ -209,6 +209,19 @@ describe('getChatOpener — Tier 3 (agent mode)', () => {
     const texts = result.starters.map(s => s.text);
     expect(texts.some(t => t.includes('Review') || t.includes('gaps'))).toBe(true);
   });
+
+  it('uses custom deliverable names in agent starters', () => {
+    const cm = makeCourseMap();
+    const deliverables = {
+      ...makeDoneDeliverables(),
+      custom_peerReview: { status: 'done', data: { peerReviews: [] } },
+    };
+    const result = getChatOpener(cm, true, 'custom_peerReview', deliverables);
+    const texts = result.starters.map(s => s.text);
+
+    expect(texts).toContain('Review Peer Review for completeness');
+    expect(texts.join(' ')).not.toContain('custom_peerReview');
+  });
 });
 
 // ═════════════════════════════════════════════════════════════════════════════

@@ -6,15 +6,11 @@ import CustomToolsMenu from './CustomToolsMenu';
 import useChatRouter from './useChatRouter';
 import ExamReview from '../ExamReview';
 import { executeAction } from '../../lib/agentActions';
+import { resolveLabel } from './constants';
 
 function activeTabLabel(activeTab) {
-  if (!activeTab || activeTab === 'courseMap') return 'Course map';
-  if (activeTab === 'quizBank') return 'Quiz Bank';
-  if (activeTab === 'lessonPlans') return 'Lesson Plans';
-  if (activeTab === 'slideDecks') return 'Slide Decks';
-  if (activeTab === 'studyGuides') return 'Study Guides';
-  if (activeTab === 'courseFaq') return 'Course FAQ';
-  return activeTab.charAt(0).toUpperCase() + activeTab.slice(1);
+  if (!activeTab) return 'Course Map';
+  return resolveLabel(activeTab);
 }
 
 function latestRunningStep(steps = []) {

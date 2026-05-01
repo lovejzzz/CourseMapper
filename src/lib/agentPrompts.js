@@ -12,6 +12,7 @@
 
 import { getArrayKey } from './syncDependencies';
 import { buildMemoryContext } from './agentMemory';
+import { getCustomDeliverable } from './customDeliverableLibrary';
 
 // ── Compact item schemas with key legends ──
 const ITEM_SCHEMAS = {
@@ -59,6 +60,15 @@ const FEATURE_NAMES = {
   syllabus: 'Syllabus',
   courseMap: 'Course Map',
 };
+
+function resolveFeatureName(featureId) {
+  if (FEATURE_NAMES[featureId]) return FEATURE_NAMES[featureId];
+  if (featureId?.startsWith('custom_')) {
+    const custom = getCustomDeliverable(featureId);
+    return custom?.name || 'Custom Deliverable';
+  }
+  return featureId;
+}
 
 // ── Sub-array keys for "addItem" ─────────────────────────────────────────────
 const ADD_TARGETS = {
@@ -135,7 +145,7 @@ export function buildAgentSystemPrompt(courseMap, activeTab, deliverables, healt
     ? Object.keys(sampleSection).filter(k => typeof sampleSection[k] === 'string').join(', ')
     : 'learningGoals, topicSection, learningObjectives, weeklyAssessments, asyncActivities, syncActivities, supportingResources, technologyNeeded, presentationFormat, evaluateDesign';
 
-  const tabName = FEATURE_NAMES[activeTab] || activeTab || 'Course Map';
+  const tabName = resolveFeatureName(activeTab) || 'Course Map';
 
   // Active deliverable context — what items already exist
   let delivContext = '';

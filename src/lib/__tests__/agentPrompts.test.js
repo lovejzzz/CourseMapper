@@ -17,6 +17,13 @@ vi.mock('../syncDependencies', () => ({
   },
 }));
 
+vi.mock('../customDeliverableLibrary', () => ({
+  getCustomDeliverable: vi.fn((id) => {
+    if (id === 'custom_peerReview') return { name: 'Peer Review' };
+    return null;
+  }),
+}));
+
 import { buildAgentSystemPrompt } from '../agentPrompts';
 
 // ── Fixtures ────────────────────────────────────────────────────────────────
@@ -121,6 +128,16 @@ describe('buildAgentSystemPrompt', () => {
   it('defaults active tab name to "Course Map" when activeTab is null', () => {
     const prompt = buildAgentSystemPrompt(baseCourseMap, null, baseDeliverables);
     expect(prompt).toContain('**Active:** Course Map');
+  });
+
+  it('uses custom deliverable names in active tab context', () => {
+    const prompt = buildAgentSystemPrompt(baseCourseMap, 'custom_peerReview', {
+      ...baseDeliverables,
+      custom_peerReview: { status: 'done', data: { peerReviews: [] } },
+    });
+
+    expect(prompt).toContain('**Active:** Peer Review');
+    expect(prompt).not.toContain('**Active:** custom_peerReview');
   });
 
   it('does NOT contain "Pixabay" anywhere', () => {

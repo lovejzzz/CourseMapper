@@ -4,6 +4,7 @@ import { getArrayKey } from '../../lib/syncDependencies';
 
 // ── Feature labels ──────────────────────────────────────────────────────────
 export const FEATURE_LABELS = {
+  courseMap: 'Course Map',
   lessonPlans: 'Lesson Plans',
   slideDecks: 'Slide Decks',
   rubrics: 'Rubrics',
@@ -42,7 +43,7 @@ const SUB_ARRAY_KEYS = { quizBank: 'qs', slideDecks: 'sl', courseFaq: 'qs', rubr
 function buildAdaptiveStarters(courseMap, activeTab, deliverables) {
   const starters = [];
   const lessons = courseMap?.lessons || [];
-  const tabLabel = FEATURE_LABELS[activeTab] || activeTab;
+  const tabLabel = resolveLabel(activeTab);
 
   // 1. Active-tab-specific starter — prioritize what the user is currently viewing
   if (activeTab && activeTab !== 'courseMap' && deliverables?.[activeTab]?.status === 'done') {

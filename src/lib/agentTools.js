@@ -11,6 +11,7 @@ import { getArrayKey } from './syncDependencies';
 import { generateImages, OPENAI_SLIDE_IMAGE_MODEL } from './imageSearch';
 import { addMemory, searchMemories, deleteMemory, getMemories, MEMORY_CATEGORIES } from './agentMemory';
 import { saveAgentPrefs } from './cloudStorage';
+import { getCustomDeliverable } from './customDeliverableLibrary';
 import {
   CREATE_TOOL_JSON_SCHEMA, RUN_TOOL_JSON_SCHEMA, runPlan,
 } from './customAgentTools';
@@ -23,6 +24,15 @@ const FEATURE_NAMES = {
   lessonPlans: 'Lesson Plans', rubrics: 'Rubrics',
   studyGuides: 'Study Guides', courseFaq: 'Course FAQ', syllabus: 'Syllabus',
 };
+
+function resolveFeatureName(featureId) {
+  if (FEATURE_NAMES[featureId]) return FEATURE_NAMES[featureId];
+  if (featureId?.startsWith('custom_')) {
+    const custom = getCustomDeliverable(featureId);
+    return custom?.name || 'Custom Deliverable';
+  }
+  return featureId;
+}
 
 async function runGrammarCheck(text, language, signal) {
   const { checkGrammar } = await import('./grammarChecker');
@@ -312,7 +322,8 @@ export const AGENT_TOOLS = {
     },
     execute: (args, ctx) => {
       const entry = ctx.deliverables?.[args.featureId];
-      if (!entry?.data) return { error: `${FEATURE_NAMES[args.featureId] || args.featureId} not generated yet.` };
+      const featureName = resolveFeatureName(args.featureId);
+      if (!entry?.data) return { error: `${featureName} not generated yet.` };
 
       const data = entry.data;
       const arrKey = getArrayKey(args.featureId, data);
@@ -347,7 +358,7 @@ export const AGENT_TOOLS = {
       if (arrKey && Array.isArray(data[arrKey])) {
         return {
           featureId: args.featureId,
-          name: FEATURE_NAMES[args.featureId],
+          name: featureName,
           totalItems: data[arrKey].length,
           items: data[arrKey].map((item, i) => {
             const summary = { index: i };
@@ -918,8 +929,10 @@ export const AGENT_TOOLS = {
       const { featureA, featureB } = args;
       const entryA = ctx.deliverables?.[featureA];
       const entryB = ctx.deliverables?.[featureB];
-      if (!entryA?.data) return { error: `${FEATURE_NAMES[featureA] || featureA} not generated yet.` };
-      if (!entryB?.data) return { error: `${FEATURE_NAMES[featureB] || featureB} not generated yet.` };
+      const featureNameA = resolveFeatureName(featureA);
+      const featureNameB = resolveFeatureName(featureB);
+      if (!entryA?.data) return { error: `${featureNameA} not generated yet.` };
+      if (!entryB?.data) return { error: `${featureNameB} not generated yet.` };
 
       const arrKeyA = getArrayKey(featureA, entryA.data);
       const arrKeyB = getArrayKey(featureB, entryB.data);
@@ -954,8 +967,8 @@ export const AGENT_TOOLS = {
 
         // Detect gaps
         const gaps = [];
-        if (!itemA) gaps.push(`Missing in ${FEATURE_NAMES[featureA] || featureA}`);
-        if (!itemB) gaps.push(`Missing in ${FEATURE_NAMES[featureB] || featureB}`);
+        if (!itemA) gaps.push(`Missing in ${featureNameA}`);
+        if (!itemB) gaps.push(`Missing in ${featureNameB}`);
 
         // Bloom's level comparison if both have it
         const bloomsA = extractBlooms(featureA, itemA);
@@ -963,7 +976,7 @@ export const AGENT_TOOLS = {
         if (bloomsA.length > 0 && bloomsB.length > 0) {
           const missingInB = bloomsA.filter(b => !bloomsB.includes(b));
           if (missingInB.length > 0) {
-            gaps.push(`${FEATURE_NAMES[featureB] || featureB} missing Bloom's levels: ${missingInB.join(', ')}`);
+            gaps.push(`${featureNameB} missing Bloom's levels: ${missingInB.join(', ')}`);
           }
         }
 
@@ -973,8 +986,8 @@ export const AGENT_TOOLS = {
 
       const totalGaps = comparisons.reduce((s, c) => s + c.gaps.length, 0);
       return {
-        featureA: FEATURE_NAMES[featureA] || featureA,
-        featureB: FEATURE_NAMES[featureB] || featureB,
+        featureA: featureNameA,
+        featureB: featureNameB,
         lessonsCompared: comparisons.length,
         totalGaps,
         comparisons: comparisons.length > 8 ? comparisons.slice(0, 8) : comparisons,
