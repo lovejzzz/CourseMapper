@@ -2,6 +2,7 @@ import React, { useState, useEffect, useRef, useCallback, lazy, Suspense } from 
 import { createPortal } from 'react-dom';
 import FocusTrap from 'focus-trap-react';
 import Header from './components/Header';
+import DeveloperModePanel from './components/DeveloperModePanel';
 import { DEFAULT_COLUMNS } from './components/ColumnEditor';
 import ErrorBoundary from './components/ErrorBoundary';
 import LoadingScreen, { ConfigSkeleton, WorkspaceSkeleton, CourseMapSkeleton } from './components/LoadingScreen';
@@ -203,6 +204,10 @@ export default function App() {
   const [newProjectError, setNewProjectError] = useState('');
   const [deleteTabConfirm, setDeleteTabConfirm] = useState(null);
   const [tabDrag, setTabDrag] = useState(null);
+  const [developerMode, setDeveloperMode] = useState(() => {
+    try { return localStorage.getItem('coursemapper-developer-mode') === 'true'; } catch { return false; }
+  });
+  const [showDeveloperPanel, setShowDeveloperPanel] = useState(false);
 
   // ── Misc ──
   const [downloadedFile, setDownloadedFile] = useState('');
@@ -227,6 +232,11 @@ export default function App() {
     }
     chatSendRef.current?.(prompt);
   }, []);
+
+  useEffect(() => {
+    try { localStorage.setItem('coursemapper-developer-mode', developerMode ? 'true' : 'false'); } catch { }
+    if (!developerMode) setShowDeveloperPanel(false);
+  }, [developerMode]);
 
   // ── Cascade sync ──
   // Always-fresh ref to courseMap for useSmartSync (avoids stale closure)
@@ -339,6 +349,67 @@ export default function App() {
     savedAt: Date.now(),
     ...extra,
   }), [courseMap, columns, provider, modelId, modelName, userEdits, chatHistory, files, version.versionHistory, selectedFeatures, deliverableConfig, lessonScope, promptText, activeTab, deliv.deliverables, slideTheme]);
+
+  const applyDeveloperSnapshot = useCallback((snapshot) => {
+    if (!snapshot || typeof snapshot !== 'object') {
+      throw new Error('Developer code must be a project JSON object.');
+    }
+    if (!snapshot.courseMap || !Array.isArray(snapshot.courseMap.lessons)) {
+      throw new Error('Cannot apply: courseMap.lessons must exist and be an array.');
+    }
+    if (snapshot.selectedFeatures !== undefined && !Array.isArray(snapshot.selectedFeatures)) {
+      throw new Error('Cannot apply: selectedFeatures must be an array.');
+    }
+
+    const nextSelected = Array.isArray(snapshot.selectedFeatures) && snapshot.selectedFeatures.length > 0
+      ? snapshot.selectedFeatures
+      : ['courseMap'];
+    const nextActive = typeof snapshot.activeTab === 'string' && nextSelected.includes(snapshot.activeTab)
+      ? snapshot.activeTab
+      : nextSelected[0] || 'courseMap';
+
+    setCourseMap(snapshot.courseMap);
+    setOldCourseMap(snapshot.oldCourseMap || null);
+    setColumns(Array.isArray(snapshot.columns) ? snapshot.columns : [...DEFAULT_COLUMNS]);
+    setHasGenerated(true);
+    setUserEdits(Array.isArray(snapshot.userEdits) ? snapshot.userEdits : []);
+    setChatHistory(Array.isArray(snapshot.chatHistory) ? snapshot.chatHistory : []);
+    setSelectedFeatures(nextSelected);
+    setDeliverableConfig(snapshot.deliverableConfig && typeof snapshot.deliverableConfig === 'object' ? snapshot.deliverableConfig : {});
+    setLessonScope(snapshot.lessonScope && typeof snapshot.lessonScope === 'object' ? snapshot.lessonScope : { type: 'all' });
+    setPromptText(typeof snapshot.promptText === 'string' ? snapshot.promptText : '');
+    setActiveTab(nextActive);
+    setSlideTheme(snapshot.slideTheme ?? null);
+    if (snapshot.provider) setProvider(snapshot.provider === 'free' ? 'openai' : snapshot.provider);
+    if (snapshot.modelId !== undefined) setModelId(snapshot.modelId || '');
+    if (snapshot.modelName !== undefined) setModelName(snapshot.modelName || '');
+    deliv.restoreDeliverables(snapshot.deliverables && typeof snapshot.deliverables === 'object' ? snapshot.deliverables : {});
+    if (!gen.restoreStoppedState()) {
+      gen.setProgressStep('done');
+      gen.setStatus('done');
+    }
+    setScreen('workspace');
+    setLocalSaveStatus('saving');
+    window.setTimeout(() => setLocalSaveStatus('saved'), 0);
+  }, [
+    deliv,
+    gen,
+    setActiveTab,
+    setColumns,
+    setCourseMap,
+    setDeliverableConfig,
+    setHasGenerated,
+    setLessonScope,
+    setModelId,
+    setModelName,
+    setOldCourseMap,
+    setPromptText,
+    setProvider,
+    setScreen,
+    setSelectedFeatures,
+    setSlideTheme,
+    setUserEdits,
+  ]);
 
   const saveLocalProjectSnapshot = useCallback((extra = {}) => {
     if (!hasGenerated || !courseMap) return false;
@@ -875,6 +946,9 @@ export default function App() {
           onOpenProject={handleOpenProject}
           onExampleSelect={(text) => setPromptText(text)}
           onOpenProjects={user ? () => setShowProjectPicker(true) : undefined}
+          developerMode={developerMode}
+          onDeveloperModeChange={setDeveloperMode}
+          onOpenDeveloperPanel={() => setShowDeveloperPanel(true)}
         />
         {/* Cloud project picker — available on landing when signed in */}
         <ProjectPicker
@@ -891,6 +965,12 @@ export default function App() {
               }
             }
           }}
+        />
+        <DeveloperModePanel
+          isOpen={developerMode && showDeveloperPanel}
+          snapshot={buildProjectSnapshot({ mode: 'developer' })}
+          onApply={applyDeveloperSnapshot}
+          onClose={() => setShowDeveloperPanel(false)}
         />
       </>
     );
@@ -1077,8 +1157,13 @@ export default function App() {
 
   return (
     <Suspense fallback={<WorkspaceSkeleton />}>
-    <div className="min-h-screen mesh-bg noise-overlay">
-      <Header onOpenProjects={() => setShowProjectPicker(true)} />
+      <div className="min-h-screen mesh-bg noise-overlay">
+        <Header
+          onOpenProjects={() => setShowProjectPicker(true)}
+          developerMode={developerMode}
+          onDeveloperModeChange={setDeveloperMode}
+          onOpenDeveloperPanel={() => setShowDeveloperPanel(true)}
+        />
 
       {/* Cloud save runs silently */}
 
@@ -1824,6 +1909,13 @@ export default function App() {
       />
 
       {/* Help merged into ChatPanel — HelpDrawer removed */}
+
+      <DeveloperModePanel
+        isOpen={developerMode && showDeveloperPanel}
+        snapshot={buildProjectSnapshot({ mode: 'developer' })}
+        onApply={applyDeveloperSnapshot}
+        onClose={() => setShowDeveloperPanel(false)}
+      />
 
       {/* AI Context Menu (right-click on cells/items for inline AI editing) */}
       {aiContextMenu && (

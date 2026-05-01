@@ -887,3 +887,10 @@ body {
     min-height: 36px;
   }
 }
+
+textarea.developer-code-editor {
+  background: #020617 !important;
+  color: #e2e8f0 !important;
+  border-color: transparent !important;
+  caret-color: #a5b4fc;
+}
