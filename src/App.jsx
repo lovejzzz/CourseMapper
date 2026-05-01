@@ -33,7 +33,9 @@ import { FEATURES, CustomDeliverableBuilder } from './screens/FeatureSelect';
 import { listCustomDeliverables, toFeatureEntry, saveCustomDeliverable, mergeCloudDeliverables } from './lib/customDeliverableLibrary';
 import {
   listDeveloperTemplates,
+  saveDeveloperTemplate,
   saveDeveloperTemplateFromSnapshot,
+  deleteDeveloperTemplate,
   mergeCloudDeveloperTemplates,
 } from './lib/developerTemplates';
 import { mergeCloudProfile } from './lib/professorProfile';
@@ -432,6 +434,32 @@ export default function App() {
     setDeveloperTemplates(listDeveloperTemplates());
     setActiveDeveloperTemplateId(saved.id);
     return saved;
+  }, [user]);
+
+  const renameDeveloperTemplate = useCallback((templateId, name) => {
+    const template = developerTemplates.find(t => t.id === templateId);
+    if (!template) return null;
+    const saved = saveDeveloperTemplate({ ...template, name }, user?.uid);
+    setDeveloperTemplates(listDeveloperTemplates());
+    return saved;
+  }, [developerTemplates, user]);
+
+  const duplicateDeveloperTemplate = useCallback((templateId) => {
+    const template = developerTemplates.find(t => t.id === templateId);
+    if (!template) return null;
+    const saved = saveDeveloperTemplate({
+      name: `${template.name || 'Developer Template'} Copy`,
+      data: template.data,
+    }, user?.uid);
+    setDeveloperTemplates(listDeveloperTemplates());
+    setActiveDeveloperTemplateId(saved.id);
+    return saved;
+  }, [developerTemplates, user]);
+
+  const removeDeveloperTemplate = useCallback((templateId) => {
+    deleteDeveloperTemplate(templateId, user?.uid);
+    setDeveloperTemplates(listDeveloperTemplates());
+    setActiveDeveloperTemplateId(prev => (prev === templateId ? '' : prev));
   }, [user]);
 
   const applyDeveloperTemplate = useCallback((templateId) => {
@@ -1033,8 +1061,13 @@ export default function App() {
         <DeveloperModePanel
           isOpen={developerMode && showDeveloperPanel}
           snapshot={buildProjectSnapshot({ mode: 'developer' })}
+          developerTemplates={developerTemplates}
+          activeDeveloperTemplateId={activeDeveloperTemplateId}
           onApply={applyDeveloperSnapshot}
           onSaveTemplate={saveDeveloperTemplateFromPanel}
+          onRenameTemplate={renameDeveloperTemplate}
+          onDuplicateTemplate={duplicateDeveloperTemplate}
+          onDeleteTemplate={removeDeveloperTemplate}
           onClose={() => setShowDeveloperPanel(false)}
         />
       </>
@@ -1981,8 +2014,13 @@ export default function App() {
       <DeveloperModePanel
         isOpen={developerMode && showDeveloperPanel}
         snapshot={buildProjectSnapshot({ mode: 'developer' })}
+        developerTemplates={developerTemplates}
+        activeDeveloperTemplateId={activeDeveloperTemplateId}
         onApply={applyDeveloperSnapshot}
         onSaveTemplate={saveDeveloperTemplateFromPanel}
+        onRenameTemplate={renameDeveloperTemplate}
+        onDuplicateTemplate={duplicateDeveloperTemplate}
+        onDeleteTemplate={removeDeveloperTemplate}
         onClose={() => setShowDeveloperPanel(false)}
       />
 
