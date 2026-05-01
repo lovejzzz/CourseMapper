@@ -36,6 +36,12 @@ function reducer(state, action) {
       return { ...state, deliverables: {} };
     case 'RESTORE_DELIVERABLES':
       return { ...state, deliverables: action.deliverables || {} };
+    case 'REMOVE_DELIVERABLE': {
+      if (!state.deliverables[action.featureId]) return state;
+      const next = { ...state.deliverables };
+      delete next[action.featureId];
+      return { ...state, deliverables: next };
+    }
     case 'MARK_ALL_STALE': {
       const updated = {};
       for (const [k, v] of Object.entries(state.deliverables)) {
@@ -139,6 +145,26 @@ describe('courseStore reducer', () => {
     it('handles null deliverables gracefully', () => {
       const state = reducer(initialState(), { type: 'RESTORE_DELIVERABLES', deliverables: null });
       expect(state.deliverables).toEqual({});
+    });
+  });
+
+  describe('REMOVE_DELIVERABLE', () => {
+    it('removes one deliverable without touching others', () => {
+      const state = {
+        deliverables: {
+          quizBank: { status: 'done', data: { q: 1 } },
+          slideDecks: { status: 'done', data: { decks: [] } },
+        },
+      };
+      const result = reducer(state, { type: 'REMOVE_DELIVERABLE', featureId: 'quizBank' });
+      expect(result.deliverables.quizBank).toBeUndefined();
+      expect(result.deliverables.slideDecks).toEqual(state.deliverables.slideDecks);
+    });
+
+    it('keeps state stable when the deliverable is missing', () => {
+      const state = { deliverables: { quizBank: { status: 'done', data: {} } } };
+      const result = reducer(state, { type: 'REMOVE_DELIVERABLE', featureId: 'missing' });
+      expect(result).toBe(state);
     });
   });
 

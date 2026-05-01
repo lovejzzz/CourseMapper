@@ -148,7 +148,7 @@ export default function App() {
     showDepMap, setShowDepMap,
     newProjectConfirm, setNewProjectConfirm,
     showProjectPicker, setShowProjectPicker,
-    dragTabIdx, setDragTabIdx,
+    setDragTabIdx,
     cascadeHover, handleCascadeHover,
     aiContextMenu, handleAIContextMenu, closeAIContextMenu,
     unseenChanges, setUnseenChanges,
@@ -186,7 +186,7 @@ export default function App() {
   const [chatHistory, setChatHistory] = useState([]);
 
   // ── Workspace tab ──
-  // (activeTab, showAddDeliverable, showCustomBuilder, dragTabIdx,
+  // (activeTab, showAddDeliverable, showCustomBuilder, tab drag,
   //  addLessonsModal, showDepMap, cascadeHover, newProjectConfirm
   //  moved to UIContext)
 
@@ -201,11 +201,16 @@ export default function App() {
   const localStatusTimerRef = useRef(null);
   const [isStartingNewProject, setIsStartingNewProject] = useState(false);
   const [newProjectError, setNewProjectError] = useState('');
+  const [deleteTabConfirm, setDeleteTabConfirm] = useState(null);
+  const [tabDrag, setTabDrag] = useState(null);
 
   // ── Misc ──
   const [downloadedFile, setDownloadedFile] = useState('');
   const saveTimerRef = useRef(null);
   const addMaterialInputRef = useRef(null);
+  const tabButtonRefs = useRef(new Map());
+  const trashDropRef = useRef(null);
+  const suppressTabClickRef = useRef(false);
 
   // ── AI Context Menu (inline AI editing) ──
   const chatSendRef = useRef(null);
@@ -925,25 +930,149 @@ export default function App() {
   const featureMap = Object.fromEntries(allFeaturesForTabs.map(f => [f.id, f]));
   const workspaceTabs = selectedFeatures.map(id => featureMap[id]).filter(Boolean);
 
-  // Drag-to-reorder tab handlers
-  const handleTabDragStart = (idx) => (e) => {
-    setDragTabIdx(idx);
-    e.dataTransfer.effectAllowed = 'move';
+  // Pointer-based tab drag: smoother than native HTML5 DnD and avoids clipped overlays.
+  const draggedTab = tabDrag ? workspaceTabs.find(f => f.id === tabDrag.id) : null;
+  const canDeleteDraggedTab = !!draggedTab && draggedTab.id !== 'courseMap';
+
+  const handleTabPointerDown = (feature, tabIdx) => (e) => {
+    if (e.button !== 0) return;
+    const rect = e.currentTarget.getBoundingClientRect();
+    setDragTabIdx(tabIdx);
+    setTabDrag({
+      id: feature.id,
+      label: feature.label,
+      index: tabIdx,
+      pointerId: e.pointerId,
+      startX: e.clientX,
+      startY: e.clientY,
+      pointerX: e.clientX,
+      pointerY: e.clientY,
+      originX: rect.left,
+      originY: rect.top,
+      x: rect.left,
+      y: rect.top,
+      width: rect.width,
+      height: rect.height,
+      overIndex: tabIdx,
+      overDelete: false,
+      moved: false,
+    });
+    handleCascadeHover(null);
+    e.currentTarget.setPointerCapture?.(e.pointerId);
   };
-  const handleTabDragOver = (idx) => (e) => {
-    e.preventDefault();
-    e.dataTransfer.dropEffect = 'move';
+
+  const handleTabPointerMove = (featureId) => (e) => {
+    setTabDrag(prev => {
+      if (!prev || prev.id !== featureId || prev.pointerId !== e.pointerId) return prev;
+      const dx = e.clientX - prev.startX;
+      const dy = e.clientY - prev.startY;
+      const moved = prev.moved || Math.hypot(dx, dy) > 4;
+      let overDelete = false;
+      let overIndex = prev.overIndex;
+
+      if (moved) {
+        const trashRect = trashDropRef.current?.getBoundingClientRect();
+        if (trashRect) {
+          overDelete = (
+            e.clientX >= trashRect.left - 12 &&
+            e.clientX <= trashRect.right + 12 &&
+            e.clientY >= trashRect.top - 12 &&
+            e.clientY <= trashRect.bottom + 12
+          );
+        }
+        if (!overDelete) {
+          let nearest = null;
+          for (const [id, el] of tabButtonRefs.current.entries()) {
+            if (!el || id === prev.id) continue;
+            const rect = el.getBoundingClientRect();
+            const yNear = e.clientY >= rect.top - 22 && e.clientY <= rect.bottom + 22;
+            if (!yNear) continue;
+            const centerX = rect.left + rect.width / 2;
+            const distance = Math.abs(e.clientX - centerX);
+            if (!nearest || distance < nearest.distance) {
+              const idx = workspaceTabs.findIndex(f => f.id === id);
+              nearest = { idx, distance };
+            }
+          }
+          if (nearest && nearest.idx >= 0) overIndex = nearest.idx;
+        }
+      }
+
+      return {
+        ...prev,
+        pointerX: e.clientX,
+        pointerY: e.clientY,
+        x: prev.originX + dx,
+        y: prev.originY + dy,
+        overIndex,
+        overDelete,
+        moved,
+      };
+    });
   };
-  const handleTabDrop = (dropIdx) => (e) => {
-    e.preventDefault();
-    if (dragTabIdx == null || dragTabIdx === dropIdx) { setDragTabIdx(null); return; }
+
+  const finishTabDrag = (drag) => {
+    setDragTabIdx(null);
+    setTabDrag(null);
+    if (!drag?.moved) return;
+
+    suppressTabClickRef.current = true;
+    window.setTimeout(() => { suppressTabClickRef.current = false; }, 0);
+
+    if (drag.overDelete && drag.id !== 'courseMap') {
+      setDeleteTabConfirm({ id: drag.id, label: drag.label });
+      return;
+    }
+    if (drag.overDelete) return;
+
+    const dropIdx = drag.overIndex;
+    if (dropIdx == null || dropIdx === drag.index) return;
     setSelectedFeatures(prev => {
+      const fromIdx = prev.indexOf(drag.id);
+      if (fromIdx < 0 || dropIdx < 0 || dropIdx >= prev.length || fromIdx === dropIdx) return prev;
       const next = [...prev];
-      const [moved] = next.splice(dragTabIdx, 1);
+      const [moved] = next.splice(fromIdx, 1);
       next.splice(dropIdx, 0, moved);
       return next;
     });
+  };
+
+  const handleTabPointerUp = (featureId) => (e) => {
+    if (!tabDrag || tabDrag.id !== featureId || tabDrag.pointerId !== e.pointerId) return;
+    finishTabDrag(tabDrag);
+  };
+
+  const handleTabPointerCancel = (featureId) => (e) => {
+    if (!tabDrag || tabDrag.id !== featureId || tabDrag.pointerId !== e.pointerId) return;
     setDragTabIdx(null);
+    setTabDrag(null);
+  };
+
+  const confirmDeleteDeliverable = () => {
+    const target = deleteTabConfirm;
+    if (!target || target.id === 'courseMap') return;
+
+    const deleteIdx = selectedFeatures.indexOf(target.id);
+    const nextFeatures = selectedFeatures.filter(id => id !== target.id);
+    const safeNextFeatures = nextFeatures.length > 0 ? nextFeatures : ['courseMap'];
+    if (activeTab === target.id) {
+      setActiveTab(safeNextFeatures[Math.min(Math.max(deleteIdx, 0), safeNextFeatures.length - 1)] || 'courseMap');
+    }
+    setSelectedFeatures(safeNextFeatures);
+    setDeliverableConfig(prev => {
+      if (!prev?.[target.id]) return prev;
+      const next = { ...prev };
+      delete next[target.id];
+      return next;
+    });
+    deliv.removeDeliverable(target.id);
+    setUnseenChanges(prev => {
+      if (!prev.has(target.id)) return prev;
+      const next = new Set(prev);
+      next.delete(target.id);
+      return next;
+    });
+    setDeleteTabConfirm(null);
   };
 
   return (
@@ -1025,7 +1154,7 @@ export default function App() {
 
         {/* ── Deliverable tabs ── */}
         {workspaceTabs.length > 1 && (
-          <div className="flex items-center gap-1 mb-1">
+          <div className="flex items-center gap-2 mb-1 min-h-9">
             <button
               onClick={() => setShowDepMap(true)}
               className="tactile p-1.5 rounded-full text-slate-400 hover:bg-white/60 hover:text-indigo-500 transition-all duration-200"
@@ -1036,9 +1165,28 @@ export default function App() {
                 <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M4 6h16M4 12h8m-8 6h16M16 12l4-4m0 0l-4-4m4 4H12" />
               </svg>
             </button>
+            {tabDrag && (
+              <div
+                ref={trashDropRef}
+                role="button"
+                aria-label={canDeleteDraggedTab ? `Drop to remove ${tabDrag.label || 'deliverable'}` : 'Course Map cannot be removed'}
+                className={`flex h-9 items-center justify-center gap-2 rounded-pill border px-4 text-[10px] font-bold shadow-glass backdrop-blur-xl transition-all duration-150 pointer-events-none ${
+                  canDeleteDraggedTab
+                    ? tabDrag.overDelete
+                      ? 'scale-105 border-red-300 bg-red-100/95 text-red-700 shadow-red-500/20'
+                      : 'border-red-200/80 bg-red-50/90 text-red-500'
+                    : 'border-slate-200/80 bg-white/70 text-slate-300'
+                }`}
+              >
+                <svg className={`h-3.5 w-3.5 transition-transform duration-150 ${tabDrag.overDelete ? 'scale-110' : ''}`} fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6M9 7V4a1 1 0 011-1h4a1 1 0 011 1v3m-8 0h10" />
+                </svg>
+                <span>{canDeleteDraggedTab ? 'Drop to delete' : 'Locked'}</span>
+              </div>
+            )}
           </div>
         )}
-        {workspaceTabs.length > 1 && (
+        {workspaceTabs.length > 0 && (
           <div className="flex items-center gap-1 overflow-x-auto pb-1 scrollbar-hide">
             {workspaceTabs.map((feature, tabIdx) => {
               const isActive = activeTab === feature.id;
@@ -1065,56 +1213,77 @@ export default function App() {
                 )
               );
 
+              const isDraggingThis = tabDrag?.id === feature.id;
+              const isDropTarget = tabDrag?.moved && !tabDrag?.overDelete && tabDrag?.overIndex === tabIdx && !isDraggingThis;
+              const markerAfter = isDropTarget && tabDrag.index < tabIdx;
+              const insertionMarker = (
+                <span
+                  aria-hidden="true"
+                  className="mx-0.5 h-7 w-1 flex-shrink-0 rounded-full bg-indigo-400 shadow-[0_0_0_4px_rgba(99,102,241,0.16)] animate-spring-in"
+                />
+              );
+
               return (
-                <button
-                  key={feature.id}
-                  draggable
-                  onDragStart={handleTabDragStart(tabIdx)}
-                  onDragOver={handleTabDragOver(tabIdx)}
-                  onDrop={handleTabDrop(tabIdx)}
-                  onDragEnd={() => setDragTabIdx(null)}
-                  onMouseEnter={(e) => {
-                    if (feature.id === 'courseMap') return;
-                    const rect = e.currentTarget.getBoundingClientRect();
-                    handleCascadeHover({ featureId: feature.id, fieldKey: null, position: { x: rect.left, y: rect.bottom + 8 } });
-                  }}
-                  onMouseLeave={() => handleCascadeHover(null)}
-                  onClick={() => {
-                    setActiveTab(feature.id);
-                    // Clear unseen badge when user clicks the tab
-                    if (hasUnseen) {
-                      setUnseenChanges(prev => {
-                        const next = new Set(prev);
-                        next.delete(feature.id);
-                        return next;
-                      });
-                    }
-                  }}
-                  className={`tactile flex items-center gap-2 px-4 py-2 rounded-pill text-xs font-semibold whitespace-nowrap transition-all duration-200 flex-shrink-0 cursor-grab active:cursor-grabbing ${dragTabIdx === tabIdx ? 'opacity-40' :
-                    isActive
-                      ? 'bg-white/80 text-slate-800 shadow-glass border border-slate-200/60'
-                      : 'text-slate-500 hover:bg-white/50 hover:text-slate-700'
+                <React.Fragment key={feature.id}>
+                  {isDropTarget && !markerAfter && insertionMarker}
+                  <button
+                    ref={(node) => {
+                      if (node) tabButtonRefs.current.set(feature.id, node);
+                      else tabButtonRefs.current.delete(feature.id);
+                    }}
+                    onPointerDown={handleTabPointerDown(feature, tabIdx)}
+                    onPointerMove={handleTabPointerMove(feature.id)}
+                    onPointerUp={handleTabPointerUp(feature.id)}
+                    onPointerCancel={handleTabPointerCancel(feature.id)}
+                    onMouseEnter={(e) => {
+                      if (tabDrag || feature.id === 'courseMap') return;
+                      const rect = e.currentTarget.getBoundingClientRect();
+                      handleCascadeHover({ featureId: feature.id, fieldKey: null, position: { x: rect.left, y: rect.bottom + 8 } });
+                    }}
+                    onMouseLeave={() => handleCascadeHover(null)}
+                    onClick={() => {
+                      if (suppressTabClickRef.current) return;
+                      setActiveTab(feature.id);
+                      // Clear unseen badge when user clicks the tab
+                      if (hasUnseen) {
+                        setUnseenChanges(prev => {
+                          const next = new Set(prev);
+                          next.delete(feature.id);
+                          return next;
+                        });
+                      }
+                    }}
+                    className={`tactile flex items-center gap-2 px-4 py-2 rounded-pill text-xs font-semibold whitespace-nowrap transition-all duration-200 flex-shrink-0 cursor-grab active:cursor-grabbing touch-none select-none ${
+                      isDraggingThis
+                        ? 'opacity-20 scale-95'
+                        : isDropTarget
+                          ? 'scale-[1.03] -translate-y-0.5 bg-indigo-50/70 text-indigo-600 shadow-glass border border-indigo-200/70'
+                          : isActive
+                            ? 'bg-white/80 text-slate-800 shadow-glass border border-slate-200/60'
+                            : 'text-slate-500 hover:bg-white/50 hover:text-slate-700'
                     }`}
-                >
-                  {/* Status dot — cascade sync takes priority for non-courseMap tabs */}
-                  {feature.id !== 'courseMap' && (
-                    <span className={`w-1.5 h-1.5 rounded-full flex-shrink-0 ${isSyncingThis ? 'bg-amber-400 animate-pulse' :
-                      isStaleTab && !isSyncingThis ? (staleConf?.level === 'high' ? 'bg-amber-400' : staleConf?.level === 'medium' ? 'bg-amber-300' : 'bg-amber-200') :
-                        hasUnseen ? 'bg-amber-400' :
-                          isStreaming ? 'bg-indigo-400 animate-pulse' :
-                            isDone ? 'bg-emerald-400' :
-                              isError ? 'bg-red-400' :
-                                'bg-slate-300'
-                      }`} />
-                  )}
-                  {feature.id === 'courseMap' && (
-                    <span className={`w-1.5 h-1.5 rounded-full flex-shrink-0 ${gen.isStreaming ? 'bg-indigo-400 animate-pulse' :
-                      isCourseMapDone ? 'bg-emerald-400' :
-                        'bg-slate-300'
-                      }`} />
-                  )}
-                  {feature.label}{isStaleTab && !isSyncingThis ? (staleConf?.level === 'high' ? ' ⚠' : ' ~') : hasUnseen ? ' *' : ''}
-                </button>
+                  >
+                    {/* Status dot — cascade sync takes priority for non-courseMap tabs */}
+                    {feature.id !== 'courseMap' && (
+                      <span className={`w-1.5 h-1.5 rounded-full flex-shrink-0 ${isSyncingThis ? 'bg-amber-400 animate-pulse' :
+                        isStaleTab && !isSyncingThis ? (staleConf?.level === 'high' ? 'bg-amber-400' : staleConf?.level === 'medium' ? 'bg-amber-300' : 'bg-amber-200') :
+                          hasUnseen ? 'bg-amber-400' :
+                            isStreaming ? 'bg-indigo-400 animate-pulse' :
+                              isDone ? 'bg-emerald-400' :
+                                isError ? 'bg-red-400' :
+                                  'bg-slate-300'
+                        }`} />
+                    )}
+                    {feature.id === 'courseMap' && (
+                      <span className={`w-1.5 h-1.5 rounded-full flex-shrink-0 ${gen.isStreaming ? 'bg-indigo-400 animate-pulse' :
+                        isCourseMapDone ? 'bg-emerald-400' :
+                          'bg-slate-300'
+                        }`} />
+                    )}
+                    {feature.label}{isStaleTab && !isSyncingThis ? (staleConf?.level === 'high' ? ' ⚠' : ' ~') : hasUnseen ? ' *' : ''}
+                  </button>
+                  {isDropTarget && markerAfter && insertionMarker}
+                </React.Fragment>
               );
             })}
 
@@ -1194,7 +1363,71 @@ export default function App() {
               </div>
             )}
 
-          </div>
+	          </div>
+	        )}
+
+	        {tabDrag && typeof document !== 'undefined' && createPortal(
+	            <div
+	              className={`fixed z-[10000] flex items-center gap-2 rounded-pill border px-4 py-2 text-xs font-bold shadow-2xl backdrop-blur-xl transition-[transform,background-color,border-color,color,box-shadow] duration-150 pointer-events-none ${
+	                tabDrag.overDelete
+	                  ? canDeleteDraggedTab
+	                    ? 'scale-105 border-red-300 bg-red-100/95 text-red-700 shadow-red-500/20'
+	                    : 'scale-105 border-slate-300 bg-slate-100/95 text-slate-400'
+	                  : 'border-indigo-200/80 bg-white/95 text-slate-800 shadow-indigo-500/20'
+	              }`}
+	              style={{
+	                left: tabDrag.x,
+	                top: tabDrag.y,
+	                width: tabDrag.width,
+	                minHeight: tabDrag.height,
+	                transform: tabDrag.moved ? 'translate3d(0,-6px,0) rotate(-1deg)' : 'translate3d(0,0,0)',
+	              }}
+	            >
+		              <span className={`w-1.5 h-1.5 rounded-full flex-shrink-0 ${tabDrag.id === 'courseMap' ? 'bg-emerald-400' : 'bg-indigo-400'}`} />
+		              <span className="truncate">{tabDrag.label}</span>
+		            </div>
+		          ,
+		          document.body
+		        )}
+
+	        {/* ── Delete Deliverable Confirmation Modal ── */}
+	        {deleteTabConfirm && (
+          <FocusTrap focusTrapOptions={{ clickOutsideDeactivates: true }}>
+            <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/40 backdrop-blur-sm">
+              <div className="bg-white rounded-2xl border border-slate-200/60 shadow-2xl p-6 max-w-sm w-full mx-4 animate-spring-scale">
+                <div className="flex items-center gap-3 mb-3">
+                  <div className="w-9 h-9 rounded-xl bg-red-100 flex items-center justify-center flex-shrink-0">
+                    <svg className="w-5 h-5 text-red-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                      <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6M9 7V4a1 1 0 011-1h4a1 1 0 011 1v3m-8 0h10" />
+                    </svg>
+                  </div>
+                  <div>
+                    <h3 className="text-sm font-bold text-slate-800">Remove deliverable?</h3>
+                    <p className="text-[11px] text-slate-500 mt-0.5">
+                      {deleteTabConfirm.label}
+                    </p>
+                  </div>
+                </div>
+                <p className="text-[11px] text-slate-500 mb-5 leading-relaxed">
+                  This removes the tab from this project and clears its generated content and settings. Your course map and other deliverables stay unchanged.
+                </p>
+                <div className="flex items-center gap-2 justify-end">
+                  <button
+                    onClick={() => setDeleteTabConfirm(null)}
+                    className="tactile px-4 py-2 rounded-lg text-xs font-semibold text-slate-600 bg-white border border-slate-200/60 hover:bg-slate-50 transition-all"
+                  >
+                    Cancel
+                  </button>
+                  <button
+                    onClick={confirmDeleteDeliverable}
+                    className="tactile px-4 py-2 rounded-lg text-xs font-semibold text-white bg-red-500 hover:bg-red-600 transition-all"
+                  >
+                    Remove
+                  </button>
+                </div>
+              </div>
+            </div>
+          </FocusTrap>
         )}
 
         {/* ── New Project Confirmation Modal ── */}

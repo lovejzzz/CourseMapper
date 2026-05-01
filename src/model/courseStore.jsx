@@ -37,6 +37,9 @@ export const actions = {
   restoreDeliverables: (deliverables) => ({
     type: 'RESTORE_DELIVERABLES', deliverables,
   }),
+  removeDeliverable: (featureId) => ({
+    type: 'REMOVE_DELIVERABLE', featureId,
+  }),
 };
 
 // ── Reducer ────────────────────────────────────────────────────────────────────
@@ -71,6 +74,12 @@ function reducer(state, action) {
       return { ...state, deliverables: {} };
     case 'RESTORE_DELIVERABLES':
       return { ...state, deliverables: action.deliverables || {} };
+    case 'REMOVE_DELIVERABLE': {
+      if (!state.deliverables[action.featureId]) return state;
+      const next = { ...state.deliverables };
+      delete next[action.featureId];
+      return { ...state, deliverables: next };
+    }
     case 'MARK_ALL_STALE': {
       const updated = {};
       for (const [k, v] of Object.entries(state.deliverables)) {

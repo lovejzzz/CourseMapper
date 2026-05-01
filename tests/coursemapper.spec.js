@@ -158,7 +158,104 @@ test.describe('Hash Routing', () => {
 });
 
 // ─────────────────────────────────────────────────────────────────────────────
-// 3. DARK MODE COMPREHENSIVE
+// 3. WORKSPACE DELIVERABLE TABS
+// ─────────────────────────────────────────────────────────────────────────────
+
+test.describe('Workspace Deliverable Tabs', () => {
+  async function restoreWorkspaceWithSlideDecks(page) {
+    await page.goto('/');
+    await page.evaluate(() => {
+      localStorage.clear();
+      sessionStorage.clear();
+      localStorage.setItem('coursemapper-project', JSON.stringify({
+        formatVersion: 1,
+        hasGenerated: true,
+        provider: 'openai',
+        modelId: 'gpt-4o-mini',
+        modelName: 'GPT-4o mini',
+        courseMap: {
+          courseName: 'Drag Test Course',
+          semester: 'Spring 2026',
+          lessons: [
+            {
+              title: 'Lesson 1',
+              learningGoals: ['Goal 1'],
+              topics: ['Topic 1'],
+              learningObjectives: ['Objective 1'],
+              weeklyAssessments: ['Assessment 1'],
+              asynchronousActivities: ['Activity 1'],
+              synchronousActivities: ['Discussion 1'],
+            },
+          ],
+        },
+        columns: [],
+        userEdits: [],
+        chatHistory: [],
+        fileNames: [],
+        versionHistory: [],
+        selectedFeatures: ['courseMap', 'slideDecks'],
+        deliverableConfig: { slideDecks: { slideCount: 3 } },
+        lessonScope: { type: 'all' },
+        promptText: 'Drag test course',
+        activeTab: 'slideDecks',
+        deliverables: {
+          slideDecks: {
+            status: 'done',
+            data: {
+              decks: [
+                {
+                  lessonTitle: 'Lesson 1',
+                  slides: [
+                    { title: 'Intro', bullets: ['A'] },
+                    { title: 'Practice', bullets: ['B'] },
+                  ],
+                },
+              ],
+            },
+            error: null,
+            stale: false,
+          },
+        },
+        savedAt: Date.now(),
+      }));
+    });
+    await page.reload();
+    await expect(page.locator('button:has-text("Resume")')).toBeVisible({ timeout: 10000 });
+    await page.locator('button:has-text("Resume")').click();
+    await expect(page.locator('button:has-text("Slide Decks")')).toBeVisible({ timeout: 10000 });
+  }
+
+  test('shows trash only while dragging and confirms deliverable deletion', async ({ page }) => {
+    await restoreWorkspaceWithSlideDecks(page);
+
+    await expect(page.locator('text=Drop to delete')).not.toBeVisible();
+
+    const slideTab = page.locator('button:has-text("Slide Decks")');
+    const tabBox = await slideTab.boundingBox();
+    expect(tabBox).not.toBeNull();
+    await page.mouse.move(tabBox.x + tabBox.width / 2, tabBox.y + tabBox.height / 2);
+    await page.mouse.down();
+    await page.mouse.move(tabBox.x + tabBox.width + 60, tabBox.y + tabBox.height / 2, { steps: 8 });
+
+    const trash = page.locator('[aria-label="Drop to remove Slide Decks"]');
+    await expect(trash).toBeVisible({ timeout: 5000 });
+    const trashBox = await trash.boundingBox();
+    expect(trashBox).not.toBeNull();
+    await page.mouse.move(trashBox.x + trashBox.width / 2, trashBox.y + trashBox.height / 2, { steps: 6 });
+    await page.mouse.up();
+
+    await expect(page.locator('text=Remove deliverable?')).toBeVisible({ timeout: 5000 });
+    await expect(page.locator('text=Slide Decks').first()).toBeVisible();
+    await page.locator('button:has-text("Remove")').click();
+
+    await expect(page.locator('button:has-text("Slide Decks")')).not.toBeVisible();
+    await expect(page.locator('button:has-text("Course Map")')).toBeVisible();
+    await expect(page.locator('text=Course Map Preview')).toBeVisible();
+  });
+});
+
+// ─────────────────────────────────────────────────────────────────────────────
+// 4. DARK MODE COMPREHENSIVE
 // ─────────────────────────────────────────────────────────────────────────────
 
 test.describe('Dark Mode', () => {

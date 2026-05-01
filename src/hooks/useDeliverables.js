@@ -1123,6 +1123,26 @@ export default function useDeliverables({ provider, modelId, apiKey, maxOutputTo
     startedRef.current = false;
   }, [stopGenerating, dispatch]);
 
+  const removeDeliverable = useCallback((featureId) => {
+    if (!featureId) return;
+    stopGenerating(featureId);
+    dispatch(actions.removeDeliverable(featureId));
+    setProgress(prev => {
+      const perFeature = { ...(prev.perFeature || {}) };
+      delete perFeature[featureId];
+      const entries = Object.values(perFeature);
+      const total = entries.length;
+      const done = entries.filter(entry => entry?.done === true || entry?.status === 'done').length;
+      return total > 0 ? { ...prev, done, total, perFeature } : { done: 0, total: 0, perFeature: {} };
+    });
+    setFreshLessons(prev => {
+      if (!prev?.[featureId]) return prev;
+      const next = { ...prev };
+      delete next[featureId];
+      return next;
+    });
+  }, [stopGenerating, dispatch]);
+
   const markAllStale = useCallback(() => {
     dispatch(actions.markAllStale());
   }, [dispatch]);
@@ -1379,6 +1399,7 @@ export default function useDeliverables({ provider, modelId, apiKey, maxOutputTo
     stopGenerating,
     resetDeliverables,
     restoreDeliverables,
+    removeDeliverable,
     markAllStale,
     resyncAll,
     regenerateLesson,
