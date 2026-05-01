@@ -1045,7 +1045,6 @@ export default function App() {
           onOpenProjects={user ? () => setShowProjectPicker(true) : undefined}
           developerMode={developerMode}
           onDeveloperModeChange={setDeveloperMode}
-          onOpenDeveloperPanel={() => setShowDeveloperPanel(true)}
         />
         {/* Cloud project picker — available on landing when signed in */}
         <ProjectPicker
@@ -1062,18 +1061,6 @@ export default function App() {
               }
             }
           }}
-        />
-        <DeveloperModePanel
-          isOpen={developerMode && showDeveloperPanel}
-          snapshot={buildProjectSnapshot({ mode: 'developer' })}
-          developerTemplates={developerTemplates}
-          activeDeveloperTemplateId={activeDeveloperTemplateId}
-          onApply={applyDeveloperSnapshot}
-          onSaveTemplate={saveDeveloperTemplateFromPanel}
-          onRenameTemplate={renameDeveloperTemplate}
-          onDuplicateTemplate={duplicateDeveloperTemplate}
-          onDeleteTemplate={removeDeveloperTemplate}
-          onClose={() => setShowDeveloperPanel(false)}
         />
       </>
     );
