@@ -354,19 +354,24 @@ export default function App() {
   // ── Persist API key, provider & model — handled by AIConfigContext ──
 
   // ── Shared project snapshot builder (used by localStorage, cloud save, and file export) ──
-  const buildProjectSnapshot = useCallback((extra = {}) => ({
-    formatVersion: 1,
-    courseMap, columns, hasGenerated: true,
-    provider, modelId, modelName, userEdits,
-    chatHistory: chatHistory.slice(-50),
-    fileNames: files.map(f => f.name),
-    versionHistory: version.versionHistory.slice(-30),
-    selectedFeatures, deliverableConfig, lessonScope, promptText, activeTab,
-    deliverables: deliv.deliverables,
-    slideTheme,
-    savedAt: Date.now(),
-    ...extra,
-  }), [courseMap, columns, provider, modelId, modelName, userEdits, chatHistory, files, version.versionHistory, selectedFeatures, deliverableConfig, lessonScope, promptText, activeTab, deliv.deliverables, slideTheme]);
+  const buildProjectSnapshot = useCallback((extra = {}) => {
+    const safeCourseMap = courseMap && typeof courseMap === 'object' && Array.isArray(courseMap.lessons)
+      ? courseMap
+      : { lessons: [] };
+    return {
+      formatVersion: 1,
+      courseMap: safeCourseMap, columns, hasGenerated: true,
+      provider, modelId, modelName, userEdits,
+      chatHistory: chatHistory.slice(-50),
+      fileNames: files.map(f => f.name),
+      versionHistory: version.versionHistory.slice(-30),
+      selectedFeatures, deliverableConfig, lessonScope, promptText, activeTab,
+      deliverables: deliv.deliverables,
+      slideTheme,
+      savedAt: Date.now(),
+      ...extra,
+    };
+  }, [courseMap, columns, provider, modelId, modelName, userEdits, chatHistory, files, version.versionHistory, selectedFeatures, deliverableConfig, lessonScope, promptText, activeTab, deliv.deliverables, slideTheme]);
 
   const applyDeveloperSnapshot = useCallback((snapshot) => {
     if (!snapshot || typeof snapshot !== 'object') {
