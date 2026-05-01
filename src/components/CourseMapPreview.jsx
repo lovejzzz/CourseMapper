@@ -238,7 +238,7 @@ export default function CourseMapPreview({ courseMap, columns, isStreaming, oldC
     : null;
 
   const colHeaders = enabledColumns
-    ? ['Week/Module [Topic]', ...enabledColumns.map((c) => c.label)]
+    ? ['Week/Module [Topic]', ...enabledColumns.map((c) => c.label || c.title || c.key)]
     : ['Week/Module', 'Learning Goals', 'Topic/Section', 'Learning Objectives',
        'Assessments', 'Async Activities', 'Sync Activities', 'Technology',
        'Format', 'Resources', 'Evaluate'];
@@ -307,7 +307,7 @@ export default function CourseMapPreview({ courseMap, columns, isStreaming, oldC
                   />
                 </th>
               ))}
-              {!isStreaming && <th className="px-2 py-3 text-center text-[11px] font-semibold tracking-wide uppercase w-[60px]" />}
+              {!isStreaming && <th key="row-actions" className="px-2 py-3 text-center text-[11px] font-semibold tracking-wide uppercase w-[60px]" />}
             </tr>
           </thead>
           <tbody>

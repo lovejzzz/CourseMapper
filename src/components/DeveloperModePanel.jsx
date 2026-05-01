@@ -26,6 +26,7 @@ const EDITOR_SECTIONS = [
 
 const TOOL_SECTIONS = [
   { id: 'themeLayout', label: 'Theme & Layout', note: 'Visual controls' },
+  { id: 'prompts', label: 'Prompts', note: 'Model instructions' },
   { id: 'templates', label: 'Templates', note: 'Saved setups' },
   { id: 'diagnostics', label: 'Diagnostics', note: 'Project health' },
 ];
@@ -199,6 +200,15 @@ function sectionStats(snapshot, activeSection) {
     const enabledColumns = Array.isArray(snapshot.columns) ? snapshot.columns.filter(column => column?.enabled !== false).length : 0;
     return [`${enabledColumns} enabled columns`, `Theme ${snapshot.slideTheme ?? 'Auto'}`];
   }
+  if (activeSection === 'prompts') {
+    const config = isPlainObject(snapshot.deliverableConfig) ? snapshot.deliverableConfig : {};
+    const overrideCount = Object.values(config).filter(item => (
+      item?.customSystemPrompt?.trim()
+      || item?.customUserPrompt?.trim()
+      || item?.extraInstructions?.trim()
+    )).length;
+    return [`${overrideCount} prompt overrides`, `${getPromptFeatureOptions(snapshot).length} deliverables`];
+  }
   if (activeSection === 'templates') {
     const features = Array.isArray(snapshot.selectedFeatures) ? snapshot.selectedFeatures.length : 0;
     return [`${features} reusable settings`, snapshot.modelName || snapshot.modelId || 'No model'];
@@ -232,6 +242,23 @@ function titleFromId(id) {
     .replace(/\s+/g, ' ')
     .trim()
     .replace(/\b\w/g, letter => letter.toUpperCase()) || id;
+}
+
+function getPromptFeatureOptions(snapshot) {
+  const ids = [];
+  const add = (id) => {
+    if (!id || id === 'courseMap' || ids.includes(id)) return;
+    ids.push(id);
+  };
+  (Array.isArray(snapshot.selectedFeatures) ? snapshot.selectedFeatures : []).forEach(add);
+  Object.keys(isPlainObject(snapshot.deliverableConfig) ? snapshot.deliverableConfig : {}).forEach(add);
+  Object.keys(isPlainObject(snapshot.deliverables) ? snapshot.deliverables : {}).forEach(add);
+  return ids.map(id => ({ id, label: titleFromId(id) }));
+}
+
+function fieldSummary(value) {
+  if (!value?.trim()) return 'Using default';
+  return `${value.trim().split(/\s+/).length} words`;
 }
 
 function formatDate(timestamp) {
@@ -298,6 +325,9 @@ export default function DeveloperModePanel({
   const [query, setQuery] = useState('');
   const [lastAppliedSnapshot, setLastAppliedSnapshot] = useState(null);
   const [templateName, setTemplateName] = useState('');
+  const [promptFeatureId, setPromptFeatureId] = useState('');
+  const [dragColumnIndex, setDragColumnIndex] = useState(null);
+  const [dragOverColumnIndex, setDragOverColumnIndex] = useState(null);
   const [status, setStatus] = useState({
     type: 'idle',
     message: 'Edit a section, then apply to update the workspace preview.',
@@ -367,6 +397,18 @@ export default function DeveloperModePanel({
   const workingSnapshot = proposed || baseSnapshot;
   const stats = sectionStats(workingSnapshot, activeSection);
   const matchCount = isEditorSection ? countMatches(activeDraft, query) : 0;
+  const promptFeatureOptions = useMemo(() => getPromptFeatureOptions(workingSnapshot), [workingSnapshot]);
+
+  useEffect(() => {
+    if (!isOpen || activeSection !== 'prompts') return;
+    if (promptFeatureOptions.length === 0) {
+      if (promptFeatureId) setPromptFeatureId('');
+      return;
+    }
+    if (!promptFeatureOptions.some(option => option.id === promptFeatureId)) {
+      setPromptFeatureId(promptFeatureOptions[0].id);
+    }
+  }, [activeSection, isOpen, promptFeatureId, promptFeatureOptions]);
 
   if (!isOpen) return null;
 
@@ -474,6 +516,72 @@ export default function DeveloperModePanel({
       enabled: columns[index]?.enabled === false,
     };
     updateConfigPatch({ columns }, 'Column visibility updated.');
+  }
+
+  function getPromptConfig(featureId) {
+    const deliverableConfig = getConfigDraft().deliverableConfig;
+    const featureConfig = deliverableConfig?.[featureId];
+    return isPlainObject(featureConfig) ? featureConfig : {};
+  }
+
+  function updatePromptConfig(featureId, patch, message) {
+    if (!featureId) return;
+    const config = getConfigDraft();
+    const deliverableConfig = isPlainObject(config.deliverableConfig) ? { ...config.deliverableConfig } : {};
+    const current = isPlainObject(deliverableConfig[featureId]) ? { ...deliverableConfig[featureId] } : {};
+    Object.entries(patch).forEach(([key, value]) => {
+      if (typeof value === 'string' && value.trim() === '') delete current[key];
+      else current[key] = value;
+    });
+    if (Object.keys(current).length === 0) delete deliverableConfig[featureId];
+    else deliverableConfig[featureId] = current;
+    updateConfigPatch({ deliverableConfig }, message);
+  }
+
+  function resetPromptOverrides(featureId) {
+    if (!featureId) return;
+    const confirmed = window.confirm(`Clear prompt overrides for ${titleFromId(featureId)}? The built-in prompt will be used again.`);
+    if (!confirmed) return;
+    const config = getConfigDraft();
+    const deliverableConfig = isPlainObject(config.deliverableConfig) ? { ...config.deliverableConfig } : {};
+    const current = isPlainObject(deliverableConfig[featureId]) ? { ...deliverableConfig[featureId] } : {};
+    delete current.customSystemPrompt;
+    delete current.customUserPrompt;
+    delete current.extraInstructions;
+    if (Object.keys(current).length === 0) delete deliverableConfig[featureId];
+    else deliverableConfig[featureId] = current;
+    updateConfigPatch({ deliverableConfig }, 'Prompt overrides cleared.');
+  }
+
+  function handleMoveColumn(fromIndex, toIndex) {
+    const columns = Array.isArray(getConfigDraft().columns) ? [...getConfigDraft().columns] : [];
+    if (fromIndex === toIndex || fromIndex < 0 || toIndex < 0 || fromIndex >= columns.length || toIndex >= columns.length) return;
+    const [moved] = columns.splice(fromIndex, 1);
+    columns.splice(toIndex, 0, moved);
+    updateConfigPatch({ columns }, 'Column order updated.');
+  }
+
+  function handleColumnDragStart(index) {
+    setDragColumnIndex(index);
+    setDragOverColumnIndex(index);
+  }
+
+  function handleColumnDragOver(e, index) {
+    e.preventDefault();
+    if (dragColumnIndex === null) return;
+    setDragOverColumnIndex(index);
+  }
+
+  function handleColumnDrop(e, index) {
+    e.preventDefault();
+    if (dragColumnIndex !== null) handleMoveColumn(dragColumnIndex, index);
+    setDragColumnIndex(null);
+    setDragOverColumnIndex(null);
+  }
+
+  function handleColumnDragEnd() {
+    setDragColumnIndex(null);
+    setDragOverColumnIndex(null);
   }
 
   function handleMoveFeature(featureId, direction) {
@@ -586,28 +694,189 @@ export default function DeveloperModePanel({
               Enable All
             </button>
           </div>
+          <p className="mt-2 text-[11px] text-slate-400 dark:text-slate-500">
+            Check columns to show or hide them. Drag cards to change their left-to-right order in the Course Map.
+          </p>
           <div className="mt-3 grid gap-2 md:grid-cols-2">
             {columns.length > 0 ? columns.map((column, index) => (
-              <label
+              <div
                 key={`${column.key || column.title || index}-${index}`}
-                className="flex cursor-pointer items-center gap-3 rounded-lg border border-slate-200/70 bg-slate-50 px-3 py-2 transition-colors hover:bg-slate-100 dark:border-slate-700 dark:bg-slate-950 dark:hover:bg-slate-800"
+                draggable
+                onDragStart={() => handleColumnDragStart(index)}
+                onDragOver={(e) => handleColumnDragOver(e, index)}
+                onDrop={(e) => handleColumnDrop(e, index)}
+                onDragEnd={handleColumnDragEnd}
+                className={`group flex cursor-grab items-center gap-3 rounded-lg border px-3 py-2 transition-all duration-150 active:cursor-grabbing dark:bg-slate-950 ${
+                  dragColumnIndex === index
+                    ? 'scale-[0.98] border-indigo-300 bg-indigo-50/70 opacity-60 shadow-sm dark:border-indigo-500/50 dark:bg-indigo-500/10'
+                    : dragOverColumnIndex === index
+                      ? 'border-indigo-300 bg-indigo-50/60 shadow-sm dark:border-indigo-500/50 dark:bg-indigo-500/10'
+                      : 'border-slate-200/70 bg-slate-50 hover:bg-slate-100 dark:border-slate-700 dark:hover:bg-slate-800'
+                }`}
               >
+                <svg className="h-4 w-4 shrink-0 text-slate-300 transition-colors group-hover:text-indigo-400 dark:text-slate-600" fill="none" stroke="currentColor" viewBox="0 0 24 24" aria-hidden="true">
+                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M8 7h.01M8 12h.01M8 17h.01M16 7h.01M16 12h.01M16 17h.01" />
+                </svg>
                 <input
                   type="checkbox"
                   checked={column.enabled !== false}
-                  onChange={() => handleToggleColumn(index)}
+                  onChange={(e) => {
+                    e.stopPropagation();
+                    handleToggleColumn(index);
+                  }}
+                  onClick={(e) => e.stopPropagation()}
+                  onDragStart={(e) => e.preventDefault()}
                   className="h-4 w-4 rounded border-slate-300 text-indigo-500 focus:ring-indigo-300"
                 />
                 <span className="min-w-0">
                   <span className="block truncate text-[12px] font-semibold text-slate-700 dark:text-slate-200">{column.title || titleFromId(column.key)}</span>
                   <span className="block truncate text-[10px] text-slate-400">{column.key || 'custom column'}</span>
                 </span>
-              </label>
+              </div>
             )) : (
               <p className="rounded-lg border border-dashed border-slate-200 px-3 py-4 text-[12px] text-slate-400 dark:border-slate-700">No columns are available in this project.</p>
             )}
           </div>
         </section>
+      </div>
+    );
+  }
+
+  function renderPrompts() {
+    const selectedFeatureId = promptFeatureId || promptFeatureOptions[0]?.id || '';
+    const promptConfig = selectedFeatureId ? getPromptConfig(selectedFeatureId) : {};
+    const hasPromptOverride = Boolean(
+      promptConfig.customSystemPrompt?.trim()
+      || promptConfig.customUserPrompt?.trim()
+      || promptConfig.extraInstructions?.trim()
+    );
+
+    return (
+      <div className="min-h-0 flex-1 overflow-y-auto px-4 py-4">
+        <section className="rounded-xl border border-slate-200/70 bg-white p-4 dark:border-slate-700 dark:bg-slate-900">
+          <div className="flex flex-col gap-3 lg:flex-row lg:items-start lg:justify-between">
+            <div className="min-w-0">
+              <p className="text-[10px] font-bold uppercase tracking-wider text-slate-400">Deliverable Prompt</p>
+              <h3 className="mt-1 text-sm font-bold text-slate-800 dark:text-slate-100">Override model instructions per deliverable</h3>
+              <p className="mt-2 max-w-2xl text-[11px] leading-5 text-slate-500 dark:text-slate-400">
+                These fields write to Config / deliverableConfig. Empty fields use the built-in prompt. User prompt templates should include {'{{courseMap}}'} so the model receives the course content.
+              </p>
+            </div>
+            <select
+              value={selectedFeatureId}
+              onChange={(e) => setPromptFeatureId(e.target.value)}
+              disabled={promptFeatureOptions.length === 0}
+              className="w-full rounded-lg border border-slate-200 bg-white px-3 py-2 text-[12px] font-semibold text-slate-700 outline-none focus:border-indigo-300 disabled:opacity-50 dark:border-slate-700 dark:bg-slate-950 dark:text-slate-200 lg:w-64"
+            >
+              {promptFeatureOptions.length > 0 ? promptFeatureOptions.map(option => (
+                <option key={option.id} value={option.id}>{option.label}</option>
+              )) : (
+                <option value="">Choose deliverables first</option>
+              )}
+            </select>
+          </div>
+        </section>
+
+        {selectedFeatureId ? (
+          <div className="mt-4 grid gap-4 xl:grid-cols-[minmax(0,1fr)_260px]">
+            <section className="space-y-4">
+              <div className="rounded-xl border border-slate-200/70 bg-white p-4 dark:border-slate-700 dark:bg-slate-900">
+                <div className="flex flex-wrap items-center justify-between gap-2">
+                  <div>
+                    <p className="text-[10px] font-bold uppercase tracking-wider text-slate-400">System Prompt Override</p>
+                    <h3 className="mt-1 text-sm font-bold text-slate-800 dark:text-slate-100">{fieldSummary(promptConfig.customSystemPrompt)}</h3>
+                  </div>
+                  <span className="rounded-full bg-slate-100 px-2 py-1 text-[10px] font-bold text-slate-500 dark:bg-slate-800 dark:text-slate-300">
+                    customSystemPrompt
+                  </span>
+                </div>
+                <textarea
+                  value={promptConfig.customSystemPrompt || ''}
+                  onChange={(e) => updatePromptConfig(selectedFeatureId, { customSystemPrompt: e.target.value }, 'System prompt override updated.')}
+                  placeholder="Optional. Replace the built-in system prompt for this deliverable."
+                  spellCheck={false}
+                  className="mt-3 min-h-[120px] w-full resize-y rounded-lg border border-slate-200 bg-slate-50 px-3 py-2 font-mono text-[12px] leading-5 text-slate-700 outline-none focus:border-indigo-300 dark:border-slate-700 dark:bg-slate-950 dark:text-slate-200"
+                />
+              </div>
+
+              <div className="rounded-xl border border-slate-200/70 bg-white p-4 dark:border-slate-700 dark:bg-slate-900">
+                <div className="flex flex-wrap items-center justify-between gap-2">
+                  <div>
+                    <p className="text-[10px] font-bold uppercase tracking-wider text-slate-400">User Prompt Template Override</p>
+                    <h3 className="mt-1 text-sm font-bold text-slate-800 dark:text-slate-100">{fieldSummary(promptConfig.customUserPrompt)}</h3>
+                  </div>
+                  <span className={`rounded-full px-2 py-1 text-[10px] font-bold ${
+                    promptConfig.customUserPrompt?.trim() && !promptConfig.customUserPrompt.includes('{{courseMap}}')
+                      ? 'bg-amber-50 text-amber-700 dark:bg-amber-500/10 dark:text-amber-300'
+                      : 'bg-slate-100 text-slate-500 dark:bg-slate-800 dark:text-slate-300'
+                  }`}>
+                    {'{{courseMap}}'}
+                  </span>
+                </div>
+                <textarea
+                  value={promptConfig.customUserPrompt || ''}
+                  onChange={(e) => updatePromptConfig(selectedFeatureId, { customUserPrompt: e.target.value }, 'User prompt template updated.')}
+                  placeholder="Optional. Include {{courseMap}} where the condensed course map should be inserted."
+                  spellCheck={false}
+                  className="mt-3 min-h-[180px] w-full resize-y rounded-lg border border-slate-200 bg-slate-50 px-3 py-2 font-mono text-[12px] leading-5 text-slate-700 outline-none focus:border-indigo-300 dark:border-slate-700 dark:bg-slate-950 dark:text-slate-200"
+                />
+                {promptConfig.customUserPrompt?.trim() && !promptConfig.customUserPrompt.includes('{{courseMap}}') && (
+                  <p className="mt-2 rounded-lg border border-amber-200 bg-amber-50 px-3 py-2 text-[11px] font-semibold text-amber-700 dark:border-amber-500/40 dark:bg-amber-500/10 dark:text-amber-300">
+                    Add {'{{courseMap}}'} to pass course content into this prompt.
+                  </p>
+                )}
+              </div>
+
+              <div className="rounded-xl border border-slate-200/70 bg-white p-4 dark:border-slate-700 dark:bg-slate-900">
+                <div className="flex flex-wrap items-center justify-between gap-2">
+                  <div>
+                    <p className="text-[10px] font-bold uppercase tracking-wider text-slate-400">Extra Instructions</p>
+                    <h3 className="mt-1 text-sm font-bold text-slate-800 dark:text-slate-100">{fieldSummary(promptConfig.extraInstructions)}</h3>
+                  </div>
+                  <span className="rounded-full bg-slate-100 px-2 py-1 text-[10px] font-bold text-slate-500 dark:bg-slate-800 dark:text-slate-300">
+                    extraInstructions
+                  </span>
+                </div>
+                <textarea
+                  value={promptConfig.extraInstructions || ''}
+                  onChange={(e) => updatePromptConfig(selectedFeatureId, { extraInstructions: e.target.value }, 'Extra instructions updated.')}
+                  placeholder="Optional. Add high-priority instructions without replacing the built-in prompt."
+                  className="mt-3 min-h-[120px] w-full resize-y rounded-lg border border-slate-200 bg-slate-50 px-3 py-2 text-[12px] leading-5 text-slate-700 outline-none focus:border-indigo-300 dark:border-slate-700 dark:bg-slate-950 dark:text-slate-200"
+                />
+              </div>
+            </section>
+
+            <aside className="space-y-3">
+              <div className="rounded-xl border border-indigo-200/70 bg-indigo-50/60 p-4 dark:border-indigo-500/40 dark:bg-indigo-500/10">
+                <p className="text-[10px] font-bold uppercase tracking-wider text-indigo-500 dark:text-indigo-300">Current Path</p>
+                <p className="mt-2 font-mono text-[11px] leading-5 text-slate-600 dark:text-slate-300">
+                  deliverableConfig.{selectedFeatureId}.customSystemPrompt
+                  <br />
+                  deliverableConfig.{selectedFeatureId}.customUserPrompt
+                  <br />
+                  deliverableConfig.{selectedFeatureId}.extraInstructions
+                </p>
+              </div>
+              <div className="rounded-xl border border-slate-200/70 bg-white p-4 dark:border-slate-700 dark:bg-slate-900">
+                <p className="text-[10px] font-bold uppercase tracking-wider text-slate-400">Behavior</p>
+                <p className="mt-2 text-[11px] leading-5 text-slate-500 dark:text-slate-400">
+                  System and user overrides replace the built-in prompt for this deliverable. Extra instructions are appended at high priority.
+                </p>
+                <button
+                  onClick={() => resetPromptOverrides(selectedFeatureId)}
+                  disabled={!hasPromptOverride}
+                  className="tactile mt-3 w-full rounded-lg border border-slate-200 bg-white px-3 py-2 text-[11px] font-semibold text-slate-600 hover:bg-slate-50 disabled:cursor-not-allowed disabled:opacity-50 dark:border-slate-700 dark:bg-slate-950 dark:text-slate-300 dark:hover:bg-slate-800"
+                >
+                  Clear Overrides
+                </button>
+              </div>
+            </aside>
+          </div>
+        ) : (
+          <p className="mt-4 rounded-xl border border-dashed border-slate-200 px-4 py-8 text-center text-[12px] text-slate-400 dark:border-slate-700">
+            No promptable deliverables yet. Choose deliverables first, or add prompt fields directly in Config JSON.
+          </p>
+        )}
       </div>
     );
   }
@@ -826,6 +1095,7 @@ export default function DeveloperModePanel({
               </div>
 
               {activeSection === 'themeLayout' && renderThemeLayout()}
+              {activeSection === 'prompts' && renderPrompts()}
               {activeSection === 'templates' && renderTemplates()}
               {activeSection === 'diagnostics' && renderDiagnostics()}
               {isEditorSection && (
