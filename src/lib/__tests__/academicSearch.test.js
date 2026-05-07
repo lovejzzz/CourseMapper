@@ -14,7 +14,9 @@ import {
 // Mock citation-js dynamic import
 vi.mock('citation-js', () => ({
   default: class {
-    format() { return 'Mock citation'; }
+    format() {
+      return 'Mock citation';
+    }
   },
 }));
 
@@ -62,10 +64,7 @@ describe('searchPapers', () => {
       {
         id: 'W123',
         display_name: 'Test Paper',
-        authorships: [
-          { author: { display_name: 'Alice' } },
-          { author: { display_name: 'Bob' } },
-        ],
+        authorships: [{ author: { display_name: 'Alice' } }, { author: { display_name: 'Bob' } }],
         publication_year: 2023,
         cited_by_count: 42,
         doi: 'https://doi.org/10.1234/test',
@@ -110,9 +109,7 @@ describe('searchWikipedia', () => {
       ok: true,
       json: async () => ({
         query: {
-          search: [
-            { title: 'Bloom Taxonomy', snippet: '<span class="highlight">Bloom</span> is great' },
-          ],
+          search: [{ title: 'Bloom Taxonomy', snippet: '<span class="highlight">Bloom</span> is great' }],
         },
       }),
     });
@@ -178,7 +175,7 @@ describe('searchVideos', () => {
   it('returns videos from first Invidious instance', async () => {
     mockFetch.mockResolvedValueOnce({
       ok: true,
-      json: async () => ([
+      json: async () => [
         {
           title: 'Test Video',
           author: 'Educator',
@@ -187,7 +184,7 @@ describe('searchVideos', () => {
           viewCountText: '1K views',
           videoThumbnails: [{ url: 'https://thumb.example.com/img.jpg' }],
         },
-      ]),
+      ],
     });
     const { videos } = await searchVideos('lesson');
     expect(videos).toHaveLength(1);
@@ -203,7 +200,7 @@ describe('searchVideos', () => {
     // Second instance succeeds
     mockFetch.mockResolvedValueOnce({
       ok: true,
-      json: async () => ([{ title: 'Fallback Video', author: 'Author2', videoId: 'def456', lengthSeconds: 120 }]),
+      json: async () => [{ title: 'Fallback Video', author: 'Author2', videoId: 'def456', lengthSeconds: 120 }],
     });
     const { videos } = await searchVideos('test');
     expect(videos).toHaveLength(1);
@@ -282,9 +279,7 @@ describe('searchGoogleBooks', () => {
               categories: ['Computers'],
               previewLink: 'https://books.google.com/preview',
               imageLinks: { thumbnail: 'https://thumb.google.com/img.jpg' },
-              industryIdentifiers: [
-                { type: 'ISBN_13', identifier: '9780987654321' },
-              ],
+              industryIdentifiers: [{ type: 'ISBN_13', identifier: '9780987654321' }],
             },
           },
         ],
@@ -311,9 +306,7 @@ describe('formatResearchResults', () => {
     const results = [
       {
         source: 'OpenAlex',
-        items: [
-          { title: 'My Paper', authors: 'A, B', year: 2023, citationCount: 10, abstract: 'Some abstract text' },
-        ],
+        items: [{ title: 'My Paper', authors: 'A, B', year: 2023, citationCount: 10, abstract: 'Some abstract text' }],
       },
     ];
     const output = formatResearchResults(results);
@@ -329,7 +322,13 @@ describe('formatResearchResults', () => {
       {
         source: 'YouTube',
         items: [
-          { title: 'Video Title', author: 'Chan', lengthSeconds: 125, viewCount: 5000, url: 'https://youtube.com/watch?v=x' },
+          {
+            title: 'Video Title',
+            author: 'Chan',
+            lengthSeconds: 125,
+            viewCount: 5000,
+            url: 'https://youtube.com/watch?v=x',
+          },
         ],
       },
     ];
@@ -342,9 +341,7 @@ describe('formatResearchResults', () => {
     const results = [
       {
         source: 'Open Library',
-        items: [
-          { title: 'OL Book', authors: 'Author X', year: 2018, publisher: 'Pub', isbn: '1234' },
-        ],
+        items: [{ title: 'OL Book', authors: 'Author X', year: 2018, publisher: 'Pub', isbn: '1234' }],
       },
     ];
     const output = formatResearchResults(results);
@@ -358,9 +355,7 @@ describe('formatResearchResults', () => {
     const results = [
       {
         source: 'Google Books',
-        items: [
-          { title: 'GB Book', authors: 'Auth', year: 2020, publisher: 'Pub', pageCount: 100, categories: 'CS' },
-        ],
+        items: [{ title: 'GB Book', authors: 'Auth', year: 2020, publisher: 'Pub', pageCount: 100, categories: 'CS' }],
       },
     ];
     const output = formatResearchResults(results);
@@ -373,9 +368,7 @@ describe('formatResearchResults', () => {
     const results = [
       {
         source: 'Wikipedia',
-        items: [
-          { title: 'Wiki Article', snippet: 'A short snippet' },
-        ],
+        items: [{ title: 'Wiki Article', snippet: 'A short snippet' }],
       },
     ];
     const output = formatResearchResults(results);
@@ -384,17 +377,13 @@ describe('formatResearchResults', () => {
   });
 
   it('handles error source', () => {
-    const results = [
-      { source: 'OpenAlex', items: [], error: 'timeout' },
-    ];
+    const results = [{ source: 'OpenAlex', items: [], error: 'timeout' }];
     const output = formatResearchResults(results);
     expect(output).toContain('[OpenAlex] Search failed: timeout');
   });
 
   it('handles empty source with no items', () => {
-    const results = [
-      { source: 'CrossRef', items: [] },
-    ];
+    const results = [{ source: 'CrossRef', items: [] }];
     const output = formatResearchResults(results);
     expect(output).toContain('[CrossRef] No results found.');
   });

@@ -118,7 +118,13 @@ export function buildStaticAgentSystemPrompt() {
  * changes when the user switches courses or tabs goes here so the static
  * prefix's cache survives those transitions.
  */
-export function buildDynamicAgentSystemPrompt(courseMap, activeTab, deliverables, healthSummary = null, userPrefs = null) {
+export function buildDynamicAgentSystemPrompt(
+  courseMap,
+  activeTab,
+  deliverables,
+  healthSummary = null,
+  userPrefs = null,
+) {
   return buildAgentSystemPrompt(courseMap, activeTab, deliverables, healthSummary, userPrefs, { onlyDynamic: true });
 }
 
@@ -126,14 +132,27 @@ export function buildDynamicAgentSystemPrompt(courseMap, activeTab, deliverables
  * Convenience: returns both parts as an object, so provider builders can decide
  * whether to concatenate (e.g. OpenAI) or wrap each in a cache block (Anthropic).
  */
-export function buildAgentSystemPromptParts(courseMap, activeTab, deliverables, healthSummary = null, userPrefs = null) {
+export function buildAgentSystemPromptParts(
+  courseMap,
+  activeTab,
+  deliverables,
+  healthSummary = null,
+  userPrefs = null,
+) {
   return {
     staticPart: buildStaticAgentSystemPrompt(),
     dynamicPart: buildDynamicAgentSystemPrompt(courseMap, activeTab, deliverables, healthSummary, userPrefs),
   };
 }
 
-export function buildAgentSystemPrompt(courseMap, activeTab, deliverables, healthSummary = null, userPrefs = null, _opts = {}) {
+export function buildAgentSystemPrompt(
+  courseMap,
+  activeTab,
+  deliverables,
+  healthSummary = null,
+  userPrefs = null,
+  _opts = {},
+) {
   // Display 1-based lesson numbers but show 0-based index in parentheses for tool calls
   const lessonList = (courseMap?.lessons || [])
     .map((l, i) => `  Lesson ${i + 1}: "${l.title}" (toolIndex=${i})`)
@@ -142,7 +161,9 @@ export function buildAgentSystemPrompt(courseMap, activeTab, deliverables, healt
   // Course map field names (from actual section keys)
   const sampleSection = courseMap?.lessons?.[0]?.sections?.[0];
   const courseMapFields = sampleSection
-    ? Object.keys(sampleSection).filter(k => typeof sampleSection[k] === 'string').join(', ')
+    ? Object.keys(sampleSection)
+        .filter((k) => typeof sampleSection[k] === 'string')
+        .join(', ')
     : 'learningGoals, topicSection, learningObjectives, weeklyAssessments, asyncActivities, syncActivities, supportingResources, technologyNeeded, presentationFormat, evaluateDesign';
 
   const tabName = resolveFeatureName(activeTab) || 'Course Map';
@@ -156,32 +177,36 @@ export function buildAgentSystemPrompt(courseMap, activeTab, deliverables, healt
       const arr = data[arrKey];
       delivContext = `\n## CURRENT ${tabName.toUpperCase()} DATA (${arr.length} items)\n`;
       if (activeTab === 'assignments') {
-        delivContext += arr.map((a, i) =>
-          `  [${i}] "${firstText(a, ['title', 't'])}" — related: ${(a.relatedLessons || a.rl || []).join(', ')}`
-        ).join('\n');
+        delivContext += arr
+          .map(
+            (a, i) =>
+              `  [${i}] "${firstText(a, ['title', 't'])}" — related: ${(a.relatedLessons || a.rl || []).join(', ')}`,
+          )
+          .join('\n');
       } else {
-        delivContext += arr.map((item, i) => {
-          const addTarget = ADD_TARGETS[activeTab];
-          const subCount = addTarget?.subKeys ? firstArray(item, addTarget.subKeys).length : 0;
-          const label = firstText(item, ['lessonTitle', 'lt', 'title', 't']) || `Item ${i}`;
-          return addTarget?.subKey
-            ? `  [${i}] ${label} — ${subCount} ${addTarget.itemName}s`
-            : `  [${i}] ${label}`;
-        }).join('\n');
+        delivContext += arr
+          .map((item, i) => {
+            const addTarget = ADD_TARGETS[activeTab];
+            const subCount = addTarget?.subKeys ? firstArray(item, addTarget.subKeys).length : 0;
+            const label = firstText(item, ['lessonTitle', 'lt', 'title', 't']) || `Item ${i}`;
+            return addTarget?.subKey ? `  [${i}] ${label} — ${subCount} ${addTarget.itemName}s` : `  [${i}] ${label}`;
+          })
+          .join('\n');
       }
     }
   }
 
   // Deliverable status — grouped by state for clarity
-  const delivEntries = deliverables
-    ? Object.entries(deliverables).filter(([id]) => id !== 'courseMap')
-    : [];
+  const delivEntries = deliverables ? Object.entries(deliverables).filter(([id]) => id !== 'courseMap') : [];
   const doneIds = delivEntries.filter(([, e]) => e?.status === 'done').map(([id]) => id);
-  const otherIds = delivEntries.filter(([, e]) => e?.status && e.status !== 'done').map(([id, e]) => `${id}:${e.status}`);
-  const delivStatusLines = delivEntries.length === 0
-    ? 'none'
-    : (doneIds.length > 0 ? `Editable: ${doneIds.map(id => id === activeTab ? `*${id}` : id).join(', ')}` : '')
-      + (otherIds.length > 0 ? `${doneIds.length > 0 ? ' | ' : ''}Other: ${otherIds.join(', ')}` : '');
+  const otherIds = delivEntries
+    .filter(([, e]) => e?.status && e.status !== 'done')
+    .map(([id, e]) => `${id}:${e.status}`);
+  const delivStatusLines =
+    delivEntries.length === 0
+      ? 'none'
+      : (doneIds.length > 0 ? `Editable: ${doneIds.map((id) => (id === activeTab ? `*${id}` : id)).join(', ')}` : '') +
+        (otherIds.length > 0 ? `${doneIds.length > 0 ? ' | ' : ''}Other: ${otherIds.join(', ')}` : '');
 
   // Item schema for active tab only
   const schema = ITEM_SCHEMAS[activeTab] || '';
@@ -191,9 +216,7 @@ export function buildAgentSystemPrompt(courseMap, activeTab, deliverables, healt
 
   // Path example for active tab only
   const pathExample = PATH_EXAMPLES[activeTab] || '';
-  const pathSection = pathExample
-    ? `\n**editItem path for ${tabName}:** ${pathExample}`
-    : '';
+  const pathSection = pathExample ? `\n**editItem path for ${tabName}:** ${pathExample}` : '';
 
   // List other done deliverables (names only — agent can read_deliverable for schemas)
   const otherDone = deliverables
@@ -201,9 +224,10 @@ export function buildAgentSystemPrompt(courseMap, activeTab, deliverables, healt
         .filter(([id, e]) => id !== 'courseMap' && id !== activeTab && e?.status === 'done')
         .map(([id]) => id)
     : [];
-  const otherDoneNote = otherDone.length > 0
-    ? `\nOther generated deliverables: ${otherDone.join(', ')}. Use read_deliverable to see their data/schemas before editing.`
-    : '';
+  const otherDoneNote =
+    otherDone.length > 0
+      ? `\nOther generated deliverables: ${otherDone.join(', ')}. Use read_deliverable to see their data/schemas before editing.`
+      : '';
 
   // Health — 1-line summary only (detail via validate_course tool)
   const healthSection = healthSummary
@@ -211,15 +235,16 @@ export function buildAgentSystemPrompt(courseMap, activeTab, deliverables, healt
     : '';
 
   // User preferences — compact
-  const prefsSection = userPrefs && Object.keys(userPrefs).length > 0
-    ? `\n**User prefs:** ${Object.entries(userPrefs).map(([k, v]) => `${k}=${v}`).join(', ')}`
-    : '';
+  const prefsSection =
+    userPrefs && Object.keys(userPrefs).length > 0
+      ? `\n**User prefs:** ${Object.entries(userPrefs)
+          .map(([k, v]) => `${k}=${v}`)
+          .join(', ')}`
+      : '';
 
   // Memory — compact, skip boilerplate when empty
   const memoryContext = buildMemoryContext();
-  const memorySection = memoryContext
-    ? `\n**Memories:** ${memoryContext}`
-    : '';
+  const memorySection = memoryContext ? `\n**Memories:** ${memoryContext}` : '';
 
   const dynamic = `## COURSE
 **${courseMap?.courseName || 'Untitled'}** | ${courseMap?.semester || 'TBD'} | ${(courseMap?.lessons || []).length} lessons

@@ -19,9 +19,20 @@ import {
 
 // ── Fixtures ──
 
-const ALL_FEATURES = ['courseMap', 'lessonPlans', 'slideDecks', 'rubrics', 'quizBank', 'discussions', 'assignments', 'studyGuides'];
+const ALL_FEATURES = [
+  'courseMap',
+  'lessonPlans',
+  'slideDecks',
+  'rubrics',
+  'quizBank',
+  'discussions',
+  'assignments',
+  'studyGuides',
+];
 
-const makeDoneDeliverables = (features = ['lessonPlans', 'slideDecks', 'rubrics', 'quizBank', 'discussions', 'assignments', 'studyGuides']) => {
+const makeDoneDeliverables = (
+  features = ['lessonPlans', 'slideDecks', 'rubrics', 'quizBank', 'discussions', 'assignments', 'studyGuides'],
+) => {
   const d = {};
   for (const f of features) d[f] = { status: 'done', data: {} };
   return d;
@@ -146,7 +157,7 @@ describe('buildSyncPlan — edit scenarios', () => {
       expect(entry.lessonIndices).toEqual([0]);
     }
     // Should include lessonPlans (affected by learningObjectives)
-    expect(plan.some(e => e.featureId === 'lessonPlans')).toBe(true);
+    expect(plan.some((e) => e.featureId === 'lessonPlans')).toBe(true);
   });
 
   it('multiple cell edits in different lessons → merged plan', () => {
@@ -155,7 +166,7 @@ describe('buildSyncPlan — edit scenarios', () => {
       { lessonIdx: 2, key: 'learningObjectives' },
     ];
     const plan = buildSyncPlan(edits, ALL_FEATURES, deliverables);
-    const lpEntry = plan.find(e => e.featureId === 'lessonPlans');
+    const lpEntry = plan.find((e) => e.featureId === 'lessonPlans');
     expect(lpEntry).toBeDefined();
     expect(lpEntry.lessonIndices).toEqual([0, 2]); // both lessons
   });
@@ -175,7 +186,7 @@ describe('buildSyncPlan — edit scenarios', () => {
       { lessonIdx: null, key: '_structural' },
     ];
     const plan = buildSyncPlan(edits, ALL_FEATURES, deliverables);
-    const lpEntry = plan.find(e => e.featureId === 'lessonPlans');
+    const lpEntry = plan.find((e) => e.featureId === 'lessonPlans');
     expect(lpEntry.lessonIndices).toBeNull(); // structural overrides
   });
 
@@ -183,7 +194,7 @@ describe('buildSyncPlan — edit scenarios', () => {
     const edits = [{ lessonIdx: 0, key: '_deliverableEdit', excludeFeatureId: 'lessonPlans' }];
     const plan = buildSyncPlan(edits, ALL_FEATURES, deliverables);
     // lessonPlans → slideDecks + studyGuides
-    const featureIds = plan.map(e => e.featureId);
+    const featureIds = plan.map((e) => e.featureId);
     expect(featureIds).toContain('slideDecks');
     expect(featureIds).toContain('studyGuides');
     // Should NOT include rubrics, quizBank, etc.
@@ -199,10 +210,10 @@ describe('buildSyncPlan — edit scenarios', () => {
     };
     const edits = [{ lessonIdx: 0, key: 'title' }];
     const plan = buildSyncPlan(edits, ALL_FEATURES, partialDelivs);
-    const featureIds = plan.map(e => e.featureId);
+    const featureIds = plan.map((e) => e.featureId);
     expect(featureIds).toContain('lessonPlans');
     expect(featureIds).not.toContain('slideDecks'); // idle
-    expect(featureIds).not.toContain('rubrics');     // error
+    expect(featureIds).not.toContain('rubrics'); // error
   });
 
   it('priorityFeatureId moves that feature to front of plan', () => {

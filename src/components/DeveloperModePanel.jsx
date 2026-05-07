@@ -1,4 +1,5 @@
 import React, { useEffect, useMemo, useRef, useState } from 'react';
+import DeveloperAgentLogPanel from './developer/DeveloperAgentLogPanel.jsx';
 import DeveloperCodeEditor from './developer/DeveloperCodeEditor.jsx';
 import DeveloperDiagnosticsPanel from './developer/DeveloperDiagnosticsPanel.jsx';
 import DeveloperModeShell from './developer/DeveloperModeShell.jsx';
@@ -6,9 +7,7 @@ import DeveloperModeSidebar from './developer/DeveloperModeSidebar.jsx';
 import DeveloperPromptsPanel from './developer/DeveloperPromptsPanel.jsx';
 import DeveloperTemplatesPanel from './developer/DeveloperTemplatesPanel.jsx';
 import DeveloperThemeLayoutPanel from './developer/DeveloperThemeLayoutPanel.jsx';
-import {
-  getDeveloperSectionFindings,
-} from '../lib/developerIdeDiagnostics.js';
+import { getDeveloperDestructiveDiffs, getDeveloperSectionFindings } from '../lib/developerIdeDiagnostics.js';
 import {
   buildProposedSnapshot,
   clone,
@@ -59,9 +58,11 @@ export default function DeveloperModePanel({
   const [activeSection, setActiveSection] = useState('courseMap');
   const [query, setQuery] = useState('');
   const [developerHistory, setDeveloperHistory] = useState(() => loadDeveloperHistory());
+  const [checkpointName, setCheckpointName] = useState('');
   const [templateName, setTemplateName] = useState('');
   const [promptFeatureId, setPromptFeatureId] = useState('');
   const [pendingPathSelection, setPendingPathSelection] = useState(null);
+  const [reviewedDestructiveSignature, setReviewedDestructiveSignature] = useState('');
   const [status, setStatus] = useState({
     type: 'idle',
     message: 'Edit a section, then apply to update the workspace preview.',
@@ -74,6 +75,7 @@ export default function DeveloperModePanel({
     setBaseSnapshot(cleanSnapshot);
     setDrafts(createDrafts(cleanSnapshot));
     setDirtySections(new Set());
+    setReviewedDestructiveSignature('');
     setStatus({ type: 'idle', message });
   }
 
@@ -82,6 +84,7 @@ export default function DeveloperModePanel({
       loadSnapshot(snapshot);
       setActiveSection('courseMap');
       setQuery('');
+      setCheckpointName('');
       setTemplateName('');
       setDeveloperHistory(loadDeveloperHistory());
     }
@@ -101,7 +104,7 @@ export default function DeveloperModePanel({
   }, [isOpen]);
 
   const isEditorSection = EDITOR_SECTION_IDS.has(activeSection);
-  const activeDraft = isEditorSection ? (drafts[activeSection] || '') : '';
+  const activeDraft = isEditorSection ? drafts[activeSection] || '' : '';
   const dirty = dirtySections.size > 0;
 
   const activeValidation = useMemo(() => {
@@ -111,13 +114,17 @@ export default function DeveloperModePanel({
     try {
       const parsed = JSON.parse(activeDraft);
       const findings = getDeveloperSectionFindings(activeSection, parsed);
-      const errors = findings.filter(finding => finding.level === 'error');
-      const warnings = findings.filter(finding => finding.level === 'warning');
+      const errors = findings.filter((finding) => finding.level === 'error');
+      const warnings = findings.filter((finding) => finding.level === 'warning');
       if (errors.length > 0) {
         return { ok: false, message: `${errors[0].path}: ${errors[0].message}`, findings };
       }
       if (warnings.length > 0) {
-        return { ok: true, message: `${warnings.length} schema warning${warnings.length === 1 ? '' : 's'} found.`, findings };
+        return {
+          ok: true,
+          message: `${warnings.length} schema warning${warnings.length === 1 ? '' : 's'} found.`,
+          findings,
+        };
       }
       return { ok: true, message: 'Current section is valid.', findings };
     } catch (err) {
@@ -138,6 +145,19 @@ export default function DeveloperModePanel({
     return summarizeDiff(baseSnapshot, proposed);
   }, [baseSnapshot, dirty, proposed]);
 
+  const destructiveChanges = useMemo(() => {
+    if (!proposed || !dirty) return [];
+    return getDeveloperDestructiveDiffs(baseSnapshot, proposed, { limit: 12 });
+  }, [baseSnapshot, dirty, proposed]);
+
+  const destructiveSignature = useMemo(
+    () => destructiveChanges.map((change) => `${change.type}:${change.path}`).join('|'),
+    [destructiveChanges],
+  );
+  const destructiveDeletesReviewed =
+    destructiveSignature.length > 0 && reviewedDestructiveSignature === destructiveSignature;
+  const destructiveDeletesNeedReview = destructiveSignature.length > 0 && !destructiveDeletesReviewed;
+
   const workingSnapshot = proposed || baseSnapshot;
   const stats = getDeveloperSectionStats(workingSnapshot, activeSection);
   const matchCount = isEditorSection ? countDeveloperSearchMatches(activeDraft, query) : 0;
@@ -147,6 +167,10 @@ export default function DeveloperModePanel({
     if (path?.startsWith('courseMap')) return 'courseMap';
     if (path?.startsWith('deliverables')) return 'deliverables';
     return 'config';
+  }
+
+  function editorPathForChange(path) {
+    return String(path || '').replace(/\.length$/, '');
   }
 
   function selectPathInEditor(path, sectionId = activeSection) {
@@ -167,13 +191,37 @@ export default function DeveloperModePanel({
     }
   }
 
+  async function handleCopyJsonPath(path) {
+    if (!path) return;
+    try {
+      if (globalThis.navigator?.clipboard?.writeText) {
+        await globalThis.navigator.clipboard.writeText(path);
+      } else {
+        const textarea = globalThis.document?.createElement?.('textarea');
+        if (!textarea || !globalThis.document?.body) throw new Error('Clipboard is unavailable.');
+        textarea.value = path;
+        textarea.setAttribute('readonly', '');
+        textarea.style.position = 'fixed';
+        textarea.style.opacity = '0';
+        globalThis.document.body.appendChild(textarea);
+        textarea.select();
+        const copied = globalThis.document.execCommand?.('copy');
+        textarea.remove();
+        if (!copied) throw new Error('Clipboard is unavailable.');
+      }
+      setStatus({ type: 'success', message: `Copied JSON path: ${path}` });
+    } catch {
+      setStatus({ type: 'error', message: `Could not copy JSON path: ${path}` });
+    }
+  }
+
   useEffect(() => {
     if (!isOpen || activeSection !== 'prompts') return;
     if (promptFeatureOptions.length === 0) {
       if (promptFeatureId) setPromptFeatureId('');
       return;
     }
-    if (!promptFeatureOptions.some(option => option.id === promptFeatureId)) {
+    if (!promptFeatureOptions.some((option) => option.id === promptFeatureId)) {
       setPromptFeatureId(promptFeatureOptions[0].id);
     }
   }, [activeSection, isOpen, promptFeatureId, promptFeatureOptions]);
@@ -188,7 +236,7 @@ export default function DeveloperModePanel({
   if (!isOpen) return null;
 
   function markDirty(sectionId, value) {
-    setDrafts(prev => ({ ...prev, [sectionId]: value }));
+    setDrafts((prev) => ({ ...prev, [sectionId]: value }));
     setDirtySections((prev) => {
       const next = new Set(prev);
       next.add(sectionId);
@@ -201,7 +249,7 @@ export default function DeveloperModePanel({
     try {
       const parsed = parseDraft(activeSection, activeDraft);
       markDirty(activeSection, pretty(parsed));
-      setStatus({ type: 'success', message: `${SECTIONS.find(s => s.id === activeSection)?.label} formatted.` });
+      setStatus({ type: 'success', message: `${SECTIONS.find((s) => s.id === activeSection)?.label} formatted.` });
     } catch (err) {
       setStatus({ type: 'error', message: err.message });
     }
@@ -213,13 +261,16 @@ export default function DeveloperModePanel({
 
   function resetSection(sectionId) {
     if (!EDITOR_SECTION_IDS.has(sectionId)) return;
-    setDrafts(prev => ({ ...prev, [sectionId]: pretty(extractSection(baseSnapshot, sectionId)) }));
+    setDrafts((prev) => ({ ...prev, [sectionId]: pretty(extractSection(baseSnapshot, sectionId)) }));
     setDirtySections((prev) => {
       const next = new Set(prev);
       next.delete(sectionId);
       return next;
     });
-    setStatus({ type: 'idle', message: `${SECTIONS.find(s => s.id === sectionId)?.label || 'Section'} reset to the last loaded workspace state.` });
+    setStatus({
+      type: 'idle',
+      message: `${SECTIONS.find((s) => s.id === sectionId)?.label || 'Section'} reset to the last loaded workspace state.`,
+    });
   }
 
   function handleFindNext() {
@@ -239,7 +290,7 @@ export default function DeveloperModePanel({
 
   function handleApplySections(sectionIds) {
     try {
-      const sectionSet = new Set(sectionIds.filter(sectionId => dirtySections.has(sectionId)));
+      const sectionSet = new Set(sectionIds.filter((sectionId) => dirtySections.has(sectionId)));
       if (sectionSet.size === 0) {
         setStatus({ type: 'idle', message: 'No staged developer edits to apply.' });
         return;
@@ -250,16 +301,30 @@ export default function DeveloperModePanel({
       }
 
       const next = buildProposedSnapshot(baseSnapshot, drafts, sectionSet);
+      const destructiveForApply = getDeveloperDestructiveDiffs(baseSnapshot, next, { limit: 12 });
+      if (destructiveForApply.length > 0 && !destructiveDeletesReviewed) {
+        setStatus({
+          type: 'error',
+          message: `Review ${destructiveForApply.length} destructive delete${destructiveForApply.length === 1 ? '' : 's'} before applying.`,
+        });
+        return;
+      }
+      const checkpointLabel = checkpointName.trim();
       const historyEntry = buildDeveloperHistoryEntry({
         beforeSnapshot: baseSnapshot,
         afterSnapshot: next,
         dirtySections: sectionSet,
+        label: checkpointLabel,
       });
       setDeveloperHistory(appendDeveloperHistoryEntry(historyEntry));
+      setCheckpointName('');
       onApply(next);
       if (sectionSet.has('raw') || sectionSet.size === dirtySections.size) {
-        loadSnapshot(next, 'Saved. Workspace preview updated.');
-        setStatus({ type: 'success', message: 'Saved. Workspace preview updated.' });
+        const message = checkpointLabel
+          ? `Saved checkpoint "${checkpointLabel}". Workspace preview updated.`
+          : 'Saved. Workspace preview updated.';
+        loadSnapshot(next, message);
+        setStatus({ type: 'success', message });
         return;
       }
 
@@ -273,13 +338,18 @@ export default function DeveloperModePanel({
       });
       setDirtySections((prev) => {
         const remaining = new Set(prev);
-        sectionSet.forEach(sectionId => remaining.delete(sectionId));
+        sectionSet.forEach((sectionId) => remaining.delete(sectionId));
         return remaining;
       });
       const label = Array.from(sectionSet)
-        .map(sectionId => SECTIONS.find(section => section.id === sectionId)?.label || sectionId)
+        .map((sectionId) => SECTIONS.find((section) => section.id === sectionId)?.label || sectionId)
         .join(', ');
-      setStatus({ type: 'success', message: `Saved ${label}. Other staged edits remain pending.` });
+      setStatus({
+        type: 'success',
+        message: checkpointLabel
+          ? `Saved checkpoint "${checkpointLabel}" (${label}). Other staged edits remain pending.`
+          : `Saved ${label}. Other staged edits remain pending.`,
+      });
     } catch (err) {
       setStatus({ type: 'error', message: err.message || 'This code cannot run in the workspace.' });
     }
@@ -362,11 +432,17 @@ export default function DeveloperModePanel({
     const patch = buildDeveloperTemplatePatch(template.data, mode, getConfigDraft());
     const changeCount = diffDeveloperTemplatePatch(getConfigDraft(), template.data, mode, 20).length;
     if (Object.keys(patch).length === 0 || changeCount === 0) {
-      setStatus({ type: 'idle', message: `"${template.name}" has no ${mode === 'all' ? '' : `${mode} `}changes to stage.` });
+      setStatus({
+        type: 'idle',
+        message: `"${template.name}" has no ${mode === 'all' ? '' : `${mode} `}changes to stage.`,
+      });
       return;
     }
-    const modeLabel = TEMPLATE_STAGE_MODES.find(item => item.id === mode)?.label || 'Template';
-    updateConfigPatch(patch, `Staged ${modeLabel.toLowerCase()} from "${template.name}". Review the config, then apply to update the workspace.`);
+    const modeLabel = TEMPLATE_STAGE_MODES.find((item) => item.id === mode)?.label || 'Template';
+    updateConfigPatch(
+      patch,
+      `Staged ${modeLabel.toLowerCase()} from "${template.name}". Review the config, then apply to update the workspace.`,
+    );
   }
 
   function handleDeleteTemplate(template) {
@@ -381,38 +457,47 @@ export default function DeveloperModePanel({
     const config = getConfigDraft();
     const features = Array.isArray(config.selectedFeatures)
       ? [...config.selectedFeatures]
-      : (Array.isArray(workingSnapshot.selectedFeatures) ? [...workingSnapshot.selectedFeatures] : []);
+      : Array.isArray(workingSnapshot.selectedFeatures)
+        ? [...workingSnapshot.selectedFeatures]
+        : [];
 
     if (issue.actionId === 'addCourseMapFeature') {
-      updateConfigPatch({
-        selectedFeatures: ['courseMap', ...features.filter(feature => feature !== 'courseMap')],
-      }, 'Course Map added to selected features.');
+      updateConfigPatch(
+        {
+          selectedFeatures: ['courseMap', ...features.filter((feature) => feature !== 'courseMap')],
+        },
+        'Course Map added to selected features.',
+      );
     }
 
     if (issue.actionId === 'addActiveTabFeature' && workingSnapshot.activeTab) {
-      updateConfigPatch({
-        selectedFeatures: [...features.filter(Boolean), workingSnapshot.activeTab]
-          .filter((feature, index, list) => list.indexOf(feature) === index),
-      }, 'Active tab added to selected features.');
+      updateConfigPatch(
+        {
+          selectedFeatures: [...features.filter(Boolean), workingSnapshot.activeTab].filter(
+            (feature, index, list) => list.indexOf(feature) === index,
+          ),
+        },
+        'Active tab added to selected features.',
+      );
     }
 
     if (issue.actionId === 'enableAllColumns') {
       const columns = Array.isArray(config.columns)
         ? config.columns
-        : (Array.isArray(workingSnapshot.columns) ? workingSnapshot.columns : []);
-      updateConfigPatch({
-        columns: columns.map(column => ({ ...column, enabled: true })),
-      }, 'All course map columns enabled.');
+        : Array.isArray(workingSnapshot.columns)
+          ? workingSnapshot.columns
+          : [];
+      updateConfigPatch(
+        {
+          columns: columns.map((column) => ({ ...column, enabled: true })),
+        },
+        'All course map columns enabled.',
+      );
     }
   }
 
   function renderThemeLayout() {
-    return (
-      <DeveloperThemeLayoutPanel
-        currentConfig={getConfigDraft()}
-        onUpdateConfigPatch={updateConfigPatch}
-      />
-    );
+    return <DeveloperThemeLayoutPanel currentConfig={getConfigDraft()} onUpdateConfigPatch={updateConfigPatch} />;
   }
 
   function renderPrompts() {
@@ -455,6 +540,7 @@ export default function DeveloperModePanel({
         dirtySections={dirtySections}
         onDiagnosticFix={handleDiagnosticFix}
         onDiagnosticPathClick={(path) => selectPathInEditor(path, sectionForPath(path))}
+        onDiagnosticPathCopy={handleCopyJsonPath}
       />
     );
   }
@@ -465,6 +551,7 @@ export default function DeveloperModePanel({
       {activeSection === 'prompts' && renderPrompts()}
       {activeSection === 'templates' && renderTemplates()}
       {activeSection === 'diagnostics' && renderDiagnostics()}
+      {activeSection === 'agentLog' && <DeveloperAgentLogPanel snapshot={workingSnapshot} />}
       {isEditorSection && (
         <DeveloperCodeEditor
           ref={editorRef}
@@ -472,10 +559,10 @@ export default function DeveloperModePanel({
           onChange={(value) => markDirty(activeSection, value)}
           onApply={handleApply}
           onFormat={handleFormat}
-          canApply={dirty && Boolean(proposed)}
+          canApply={dirty && Boolean(proposed) && !destructiveDeletesNeedReview}
           canFormat={isEditorSection}
           sectionId={activeSection}
-          sectionLabel={SECTIONS.find(s => s.id === activeSection)?.label}
+          sectionLabel={SECTIONS.find((s) => s.id === activeSection)?.label}
           diagnostics={activeValidation.findings}
         />
       )}
@@ -496,15 +583,30 @@ export default function DeveloperModePanel({
       onTemplateNameChange={setTemplateName}
       onSaveTemplate={handleSaveTemplate}
       canSaveTemplate={Boolean(proposed)}
+      checkpointName={checkpointName}
+      onCheckpointNameChange={setCheckpointName}
+      canNameCheckpoint={dirty && Boolean(proposed)}
       developerHistory={developerHistory}
       onRollback={handleRollback}
       onRestoreHistorySnapshot={restoreHistorySnapshot}
-      canRestoreHistorySnapshot={(entry, snapshotKey) => canRestoreDeveloperHistorySnapshot(entry, snapshotKey, workingSnapshot)}
+      canRestoreHistorySnapshot={(entry, snapshotKey) =>
+        canRestoreDeveloperHistorySnapshot(entry, snapshotKey, workingSnapshot)
+      }
       onClearHistory={handleClearHistory}
       dirtySections={dirtySections}
       onApplySection={(sectionId) => handleApplySections([sectionId])}
       onResetSectionById={resetSection}
+      destructiveChanges={destructiveChanges}
+      destructiveDeletesReviewed={destructiveDeletesReviewed}
+      onDestructiveDeletesReviewedChange={(reviewed) =>
+        setReviewedDestructiveSignature(reviewed ? destructiveSignature : '')
+      }
       onFindingClick={(finding) => selectPathInEditor(finding.path)}
+      onFindingPathCopy={(finding) => handleCopyJsonPath(finding.path)}
+      onChangeClick={(change) => {
+        const path = editorPathForChange(change.path);
+        selectPathInEditor(path, sectionForPath(path));
+      }}
     />
   );
 
@@ -524,7 +626,7 @@ export default function DeveloperModePanel({
       onFormat={handleFormat}
       canFormat={isEditorSection}
       onApply={handleApply}
-      canApply={dirty && Boolean(proposed)}
+      canApply={dirty && Boolean(proposed) && !destructiveDeletesNeedReview}
       mainContent={mainContent}
       sidebar={sidebar}
     />

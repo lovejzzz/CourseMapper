@@ -35,20 +35,24 @@ describe('developerSnapshotDrafts', () => {
 
     expect(JSON.parse(drafts.courseMap).lessons).toHaveLength(1);
     expect(JSON.parse(drafts.deliverables).lessonPlans.status).toBe('done');
-    expect(JSON.parse(drafts.config)).toEqual(expect.objectContaining({
-      selectedFeatures: ['courseMap', 'lessonPlans'],
-      provider: 'openai',
-    }));
+    expect(JSON.parse(drafts.config)).toEqual(
+      expect.objectContaining({
+        selectedFeatures: ['courseMap', 'lessonPlans'],
+        provider: 'openai',
+      }),
+    );
     expect(JSON.parse(drafts.raw).courseMap.lessons[0].title).toBe('Week 1');
   });
 
   it('extracts and merges config without project content fields', () => {
     const config = extractSection(snapshot(), 'config');
 
-    expect(config).toEqual(expect.objectContaining({
-      selectedFeatures: ['courseMap', 'lessonPlans'],
-      columns: [{ key: 'topic', label: 'Topic' }],
-    }));
+    expect(config).toEqual(
+      expect.objectContaining({
+        selectedFeatures: ['courseMap', 'lessonPlans'],
+        columns: [{ key: 'topic', label: 'Topic' }],
+      }),
+    );
     expect(config.courseMap).toBeUndefined();
 
     const merged = mergeSection(snapshot(), 'config', {
@@ -92,8 +96,8 @@ describe('developerSnapshotDrafts', () => {
     copied.courseMap.lessons[0].title = 'Changed';
 
     expect(base.courseMap.lessons[0].title).toBe('Week 1');
-    expect(summarizeDiff(base, copied)).toEqual(expect.arrayContaining([
-      expect.objectContaining({ path: 'courseMap.lessons[0].title' }),
-    ]));
+    expect(summarizeDiff(base, copied)).toEqual(
+      expect.arrayContaining([expect.objectContaining({ path: 'courseMap.lessons[0].title' })]),
+    );
   });
 });

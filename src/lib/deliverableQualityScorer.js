@@ -50,14 +50,17 @@ export function buildQualityScorePrompt(featureId, data) {
       case 'rubrics': {
         const rubrics = data.rubrics || [];
         const rub = rubrics[0] || {};
-        sample = `RUBRIC SAMPLE:\nTitle: ${rub.title || ''}\nCriteria: ${(rub.criteria || []).slice(0, 4).map(c => `${c.name} (${c.weight}%)`).join(', ')}`;
+        sample = `RUBRIC SAMPLE:\nTitle: ${rub.title || ''}\nCriteria: ${(rub.criteria || [])
+          .slice(0, 4)
+          .map((c) => `${c.name} (${c.weight}%)`)
+          .join(', ')}`;
         break;
       }
       case 'quizBank': {
         const quizzes = data.quizzes || data.quizBank || [];
         const lesson = quizzes[0] || {};
         const qs = (lesson.tiers?.standard || lesson.questions || []).slice(0, 3);
-        sample = `QUIZ SAMPLE:\n${qs.map(q => `Q: ${q.question?.slice(0, 80) || ''}`).join('\n')}`;
+        sample = `QUIZ SAMPLE:\n${qs.map((q) => `Q: ${q.question?.slice(0, 80) || ''}`).join('\n')}`;
         break;
       }
       case 'assignments': {
@@ -106,21 +109,30 @@ export function scoreHeuristic(featureId, data) {
     // More content = more specific
     if (charCount > 5000) specificity = 8;
     else if (charCount > 2000) specificity = 6;
-    else { specificity = 4; tips.push('Add more detail to each item for better specificity.'); }
+    else {
+      specificity = 4;
+      tips.push('Add more detail to each item for better specificity.');
+    }
 
     // Check for Bloom's keywords
     const bloomsKeywords = /analyze|evaluate|create|synthesize|apply|demonstrate|design|critique|assess/gi;
     const bloomsCount = (dataStr.match(bloomsKeywords) || []).length;
     if (bloomsCount >= 10) bloomsAlignment = 8;
     else if (bloomsCount >= 5) bloomsAlignment = 6;
-    else { bloomsAlignment = 4; tips.push('Add higher-order Bloom\'s activities (Analyze, Evaluate, Create).'); }
+    else {
+      bloomsAlignment = 4;
+      tips.push("Add higher-order Bloom's activities (Analyze, Evaluate, Create).");
+    }
 
     // Check for actionable markers
     const actionable = /rubric|criteria|points|minutes|words|pages|step|example|template/gi;
     const actionCount = (dataStr.match(actionable) || []).length;
     if (actionCount >= 10) actionability = 8;
     else if (actionCount >= 5) actionability = 6;
-    else { actionability = 4; tips.push('Add specific time estimates, word counts, or point values.'); }
+    else {
+      actionability = 4;
+      tips.push('Add specific time estimates, word counts, or point values.');
+    }
 
     // QM alignment check: objective alignment, variety, learner support, accessibility
     const alignmentMarkers = /objective|aligned|measurable|learner.centered|learning outcome/gi;
@@ -134,10 +146,15 @@ export function scoreHeuristic(featureId, data) {
     const qmTotal = alignCount + varietyCount + supportCount + interactionCount;
     if (qmTotal >= 15) qmAlignment = 8;
     else if (qmTotal >= 8) qmAlignment = 6;
-    else { qmAlignment = 4; tips.push('Strengthen objective alignment, learner support, and interaction.'); }
+    else {
+      qmAlignment = 4;
+      tips.push('Strengthen objective alignment, learner support, and interaction.');
+    }
 
     if (tips.length === 0) tips.push('Looks good! Consider peer review for final polish.');
-  } catch { /* noop */ }
+  } catch {
+    /* noop */
+  }
 
   return { bloomsAlignment, specificity, actionability, qmAlignment, tips: tips.slice(0, 3) };
 }
@@ -152,7 +169,7 @@ export function computeAvgScore(quality) {
   const hasQm = quality.qmAlignment !== undefined;
   const sum = bloomsAlignment + specificity + actionability + (hasQm ? qmAlignment : 0);
   const count = hasQm ? 4 : 3;
-  return Math.round(sum / count * 10) / 10;
+  return Math.round((sum / count) * 10) / 10;
 }
 
 /**

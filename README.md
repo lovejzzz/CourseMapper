@@ -65,26 +65,26 @@ An embedded multi-step AI agent with native tool calling, not a chatbot wrapper.
 
 **8 Agent Tools:**
 
-| Tool | What It Does |
-|------|-------------|
-| `validate_course` | Full pedagogical health check (Bloom's, alignment, cognitive load, readability, difficulty) |
-| `check_grammar` | Grammar and spelling check via LanguageTool for any lesson |
-| `search_research` | Academic search across 6 free sources (OpenAlex, Wikipedia, CrossRef, YouTube, Open Library, Google Books) |
-| `read_deliverable` | Reads current deliverable data (summary or per-lesson detail) |
-| `read_lesson` | Reads full course map lesson data (title, sections, all fields) |
-| `edit_course_map` | Edits cells, renames lesson titles, adds or removes lessons |
-| `edit_deliverables` | Adds, edits, or removes deliverable items with deduplication |
-| `save_preference` | Remembers teaching preferences across sessions |
+| Tool                | What It Does                                                                                               |
+| ------------------- | ---------------------------------------------------------------------------------------------------------- |
+| `validate_course`   | Full pedagogical health check (Bloom's, alignment, cognitive load, readability, difficulty)                |
+| `check_grammar`     | Grammar and spelling check via LanguageTool for any lesson                                                 |
+| `search_research`   | Academic search across 6 free sources (OpenAlex, Wikipedia, CrossRef, YouTube, Open Library, Google Books) |
+| `read_deliverable`  | Reads current deliverable data (summary or per-lesson detail)                                              |
+| `read_lesson`       | Reads full course map lesson data (title, sections, all fields)                                            |
+| `edit_course_map`   | Edits cells, renames lesson titles, adds or removes lessons                                                |
+| `edit_deliverables` | Adds, edits, or removes deliverable items with deduplication                                               |
+| `save_preference`   | Remembers teaching preferences across sessions                                                             |
 
 **5 Response Types:**
 
-| Type | Description |
-|------|-------------|
-| Chat reply | Markdown text responses with pedagogical guidance |
+| Type           | Description                                                                                              |
+| -------------- | -------------------------------------------------------------------------------------------------------- |
+| Chat reply     | Markdown text responses with pedagogical guidance                                                        |
 | Proposal cards | 2–3 pedagogically distinct options as clickable cards — pick one, review the diff, then accept or reject |
-| Diagrams | Mermaid.js visualizations (flowcharts, concept maps, sequence diagrams, Gantt charts, state diagrams) |
-| Charts | Data visualizations (bar, line, pie, doughnut, radar, polar area) via QuickChart |
-| Image search | AI-generated images via DALL-E 3 or Google Imagen 3 |
+| Diagrams       | Mermaid.js visualizations (flowcharts, concept maps, sequence diagrams, Gantt charts, state diagrams)    |
+| Charts         | Data visualizations (bar, line, pie, doughnut, radar, polar area) via QuickChart                         |
+| Image search   | AI-generated images via DALL-E 3 or Google Imagen 3                                                      |
 
 **Agent Capabilities:**
 
@@ -164,13 +164,13 @@ Nine built-in deliverable types, all cross-referenced and pedagogically consiste
 
 Set a target reading level for all AI-generated content. Five tiers match academic audiences:
 
-| Level | Grade Range | Description |
-|-------|------------|-------------|
-| Community College | 8–10 | Simple, accessible language |
-| Undergraduate | 10–12 | Standard academic register |
-| Upper Division | 12–14 | Advanced vocabulary, discipline-specific terms |
-| Graduate | 14–16 | Scholarly, assumes domain knowledge |
-| Professional | 16+ | Expert-level, specialized terminology |
+| Level             | Grade Range | Description                                    |
+| ----------------- | ----------- | ---------------------------------------------- |
+| Community College | 8–10        | Simple, accessible language                    |
+| Undergraduate     | 10–12       | Standard academic register                     |
+| Upper Division    | 12–14       | Advanced vocabulary, discipline-specific terms |
+| Graduate          | 14–16       | Scholarly, assumes domain knowledge            |
+| Professional      | 16+         | Expert-level, specialized terminology          |
 
 The current Flesch-Kincaid grade level is auto-detected and displayed as a badge. The target level is persisted and injected into all agent prompts.
 
@@ -211,11 +211,13 @@ Five pedagogical frameworks that shape all generated content:
 ### Export & Integration
 
 **Right-side Export Panel (Current tab):**
+
 - **Slide Decks:** `.pptx` (PowerPoint) or Google Slides
 - **Course Map:** `.xlsx`, `.docx`, `.pdf`, `.csv`, Google Sheets, or Google Docs
 - **Other deliverables:** `.pdf`, `.docx`, Google Docs (or Google Sheets where applicable)
 
 **Right-side Export Panel (All tab):**
+
 - **Download ZIP** — All deliverables in one download, organized by folder (Slide Decks as `.pptx`, others as `.docx`)
 - **Save .coursemapper** — Portable project file containing the complete session state — course map, all deliverables, settings, version history. Drag onto the landing page to restore.
 

@@ -55,7 +55,10 @@ export default function useStreamReader() {
     let cleaned = stripThinkTags(text);
     const fenceStart = cleaned.indexOf('```');
     if (fenceStart !== -1) {
-      cleaned = cleaned.slice(fenceStart).replace(/^```\w*\n?/, '').replace(/```\s*$/, '');
+      cleaned = cleaned
+        .slice(fenceStart)
+        .replace(/^```\w*\n?/, '')
+        .replace(/```\s*$/, '');
     }
     const start = cleaned.indexOf('{');
     if (start === -1) {
@@ -142,13 +145,23 @@ export default function useStreamReader() {
       return streamLocalChat(modelId, messages, {
         temperature: 0.3,
         max_tokens: maxOutputTokens || 4096,
-        onChunk: (text, count) => { if (onChunk) onChunk(existingText + text, count); },
+        onChunk: (text, count) => {
+          if (onChunk) onChunk(existingText + text, count);
+        },
         signal: externalSignal,
-      }).then(result => ({ fullText: existingText + result.fullText }));
+      }).then((result) => ({ fullText: existingText + result.fullText }));
     }
 
     let skipTemp = _noTempModels.has(modelId) || !supportsCustomTemperature(modelId);
-    let { url, headers, body, parseChunk } = buildProviderRequest(provider, apiKey, modelId, systemPrompt, userPrompt, maxOutputTokens, skipTemp);
+    let { url, headers, body, parseChunk } = buildProviderRequest(
+      provider,
+      apiKey,
+      modelId,
+      systemPrompt,
+      userPrompt,
+      maxOutputTokens,
+      skipTemp,
+    );
 
     let fullText = existingText;
     let attempt = 0;
@@ -182,7 +195,15 @@ export default function useStreamReader() {
             console.log('[CM] Model does not support custom temperature, retrying without it');
             skipTemp = true;
             _noTempModels.add(modelId); // Remember for parallel & future calls
-            ({ url, headers, body, parseChunk } = buildProviderRequest(provider, apiKey, modelId, systemPrompt, userPrompt, maxOutputTokens, true));
+            ({ url, headers, body, parseChunk } = buildProviderRequest(
+              provider,
+              apiKey,
+              modelId,
+              systemPrompt,
+              userPrompt,
+              maxOutputTokens,
+              true,
+            ));
             continue;
           }
 
@@ -228,14 +249,21 @@ export default function useStreamReader() {
         }
 
         return { fullText };
-
       } catch (err) {
         if (err.name === 'AbortError') throw err;
 
         if (attempt < maxRetries && isRetryableError(err)) {
           attempt++;
           // Rebuild request with current skipTemp state so temperature fix persists across retries
-          ({ url, headers, body, parseChunk } = buildProviderRequest(provider, apiKey, modelId, systemPrompt, userPrompt, maxOutputTokens, skipTemp));
+          ({ url, headers, body, parseChunk } = buildProviderRequest(
+            provider,
+            apiKey,
+            modelId,
+            systemPrompt,
+            userPrompt,
+            maxOutputTokens,
+            skipTemp,
+          ));
           const delay = Math.min(1000 * Math.pow(2, attempt - 1), 8000);
           if (onRetry) onRetry(attempt, maxRetries, delay);
           await sleep(delay);
@@ -254,13 +282,21 @@ export default function useStreamReader() {
 
 // ── Provider-specific request builders ──
 
-function buildProviderRequest(provider, apiKey, modelId, systemPrompt, userPrompt, maxOutputTokens = 16384, skipTemp = false) {
+function buildProviderRequest(
+  provider,
+  apiKey,
+  modelId,
+  systemPrompt,
+  userPrompt,
+  maxOutputTokens = 16384,
+  skipTemp = false,
+) {
   const temp = skipTemp ? undefined : 0.3;
   if (provider === 'openai') {
     return {
       url: 'https://api.openai.com/v1/chat/completions',
       headers: {
-        'Authorization': `Bearer ${apiKey}`,
+        Authorization: `Bearer ${apiKey}`,
         'Content-Type': 'application/json',
       },
       body: {
@@ -327,7 +363,7 @@ function buildProviderRequest(provider, apiKey, modelId, systemPrompt, userPromp
     return {
       url: 'https://api.deepseek.com/v1/chat/completions',
       headers: {
-        'Authorization': `Bearer ${apiKey}`,
+        Authorization: `Bearer ${apiKey}`,
         'Content-Type': 'application/json',
       },
       body: {
@@ -350,7 +386,7 @@ function buildProviderRequest(provider, apiKey, modelId, systemPrompt, userPromp
     return {
       url: 'https://openrouter.ai/api/v1/chat/completions',
       headers: {
-        'Authorization': `Bearer ${apiKey}`,
+        Authorization: `Bearer ${apiKey}`,
         'Content-Type': 'application/json',
         'HTTP-Referer': window.location.origin,
       },
@@ -373,7 +409,8 @@ function buildProviderRequest(provider, apiKey, modelId, systemPrompt, userPromp
 }
 
 // Exclude non-chat models that don't work for structured JSON generation
-const OPENAI_EXCLUDE = /sora|image|dall-e|whisper|tts|transcribe|realtime|audio|search|codex|chatgpt|oss|deep-research|embedding|moderation|babbage|davinci/i;
+const OPENAI_EXCLUDE =
+  /sora|image|dall-e|whisper|tts|transcribe|realtime|audio|search|codex|chatgpt|oss|deep-research|embedding|moderation|babbage|davinci/i;
 // Exclude dated snapshots, -chat-latest aliases, and -pro variants to deduplicate
 const OPENAI_SKIP_VARIANT = /\d{4}-\d{2}-\d{2}|-chat-latest|-pro$/;
 // Exclude non-text Google Gemini variants (image generation, TTS, live streaming, embeddings)
@@ -430,12 +467,17 @@ export async function fetchModelsFromProvider(provider, apiKey) {
 
   if (provider === 'openai') {
     const response = await fetch('https://api.openai.com/v1/models', {
-      headers: { 'Authorization': `Bearer ${apiKey}` },
+      headers: { Authorization: `Bearer ${apiKey}` },
     });
     if (!response.ok) throw new Error('Invalid API key');
     const data = await response.json();
     return data.data
-      .filter((m) => (m.id.startsWith('gpt-') || m.id.startsWith('o')) && !OPENAI_EXCLUDE.test(m.id) && !OPENAI_SKIP_VARIANT.test(m.id))
+      .filter(
+        (m) =>
+          (m.id.startsWith('gpt-') || m.id.startsWith('o')) &&
+          !OPENAI_EXCLUDE.test(m.id) &&
+          !OPENAI_SKIP_VARIANT.test(m.id),
+      )
       .sort((a, b) => (b.created || 0) - (a.created || 0))
       .map((m) => ({ id: m.id, name: cleanOpenAIName(m.id), maxOutputTokens: openaiMaxOutput(m.id) }));
   }
@@ -458,9 +500,18 @@ export async function fetchModelsFromProvider(provider, apiKey) {
     const seen = new Set();
     const models = (data.data || [])
       .filter((m) => m.id.includes('claude') && !/\d{8}$/.test(m.id))
-      .map((m) => ({ id: m.id, name: m.display_name || m.id, created: m.created_at || '', maxOutputTokens: anthropicMaxOutput(m.id) }))
+      .map((m) => ({
+        id: m.id,
+        name: m.display_name || m.id,
+        created: m.created_at || '',
+        maxOutputTokens: anthropicMaxOutput(m.id),
+      }))
       .sort((a, b) => (b.created || '').localeCompare(a.created || ''))
-      .filter((m) => { if (seen.has(m.name)) return false; seen.add(m.name); return true; });
+      .filter((m) => {
+        if (seen.has(m.name)) return false;
+        seen.add(m.name);
+        return true;
+      });
     if (models.length === 0) throw new Error('No models available');
     return models;
   }
@@ -471,9 +522,10 @@ export async function fetchModelsFromProvider(provider, apiKey) {
       const testRes = await fetch(
         `https://aiplatform.googleapis.com/v1/publishers/google/models/gemini-2.5-flash:countTokens?key=${apiKey}`,
         {
-          method: 'POST', headers: { 'Content-Type': 'application/json' },
-          body: JSON.stringify({ contents: [{ parts: [{ text: 'test' }] }] })
-        }
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({ contents: [{ parts: [{ text: 'test' }] }] }),
+        },
       );
       if (!testRes.ok) throw new Error('Invalid API key');
       return VERTEX_MODELS;
@@ -488,21 +540,31 @@ export async function fetchModelsFromProvider(provider, apiKey) {
     // Google: keep only base gemini models (no -exp, no dated suffixes), deduplicate
     const gSeen = new Set();
     const models = (data.models || [])
-      .filter((m) => m.supportedGenerationMethods?.includes('generateContent') && m.name.includes('gemini') && !m.name.includes('exp') && !GOOGLE_EXCLUDE.test(m.name))
+      .filter(
+        (m) =>
+          m.supportedGenerationMethods?.includes('generateContent') &&
+          m.name.includes('gemini') &&
+          !m.name.includes('exp') &&
+          !GOOGLE_EXCLUDE.test(m.name),
+      )
       .map((m) => ({
         id: m.name.replace('models/', ''),
         name: m.displayName || m.name.replace('models/', ''),
         maxOutputTokens: m.outputTokenLimit || 8192,
       }))
       .sort((a, b) => b.id.localeCompare(a.id))
-      .filter((m) => { if (gSeen.has(m.name)) return false; gSeen.add(m.name); return true; });
+      .filter((m) => {
+        if (gSeen.has(m.name)) return false;
+        gSeen.add(m.name);
+        return true;
+      });
     if (models.length === 0) throw new Error('No Gemini models available');
     return models;
   }
 
   if (provider === 'deepseek') {
     const response = await fetch('https://api.deepseek.com/v1/models', {
-      headers: { 'Authorization': `Bearer ${apiKey}` },
+      headers: { Authorization: `Bearer ${apiKey}` },
     });
     if (!response.ok) throw new Error('Invalid API key');
     const data = await response.json();

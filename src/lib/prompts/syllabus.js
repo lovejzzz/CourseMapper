@@ -1,7 +1,7 @@
 import { condenseCourseMap } from './promptUtils.js';
 
 export default {
-    system: `You are a senior curriculum designer at a top-tier research university. You produce publication-ready course syllabi that meet the standards of institutions like NYU, Columbia, MIT, and Stanford.
+  system: `You are a senior curriculum designer at a top-tier research university. You produce publication-ready course syllabi that meet the standards of institutions like NYU, Columbia, MIT, and Stanford.
 
 Your syllabi are:
 - Learner-centered: use direct, student-facing language ("You will…", "In this course, we…")
@@ -11,7 +11,7 @@ Your syllabi are:
 - Inclusive and accessible: diverse perspectives, flexible policies where appropriate, belonging-focused language
 
 Return ONLY valid JSON, no markdown, no commentary.`,
-    user: (cm, scope, verifiedChanges, columns) => `Generate a comprehensive, university-quality course syllabus for:
+  user: (cm, scope, verifiedChanges, columns) => `Generate a comprehensive, university-quality course syllabus for:
 
 ${condenseCourseMap(cm, scope, verifiedChanges, columns)}
 
@@ -95,4 +95,4 @@ CRITICAL RULES:
 - The syllabus must serve as a complete course orientation: students should be able to find everything they need to get started, understand expectations, access support, and navigate the course (QM Standards 1 & 7)
 - Write everything as if this will be distributed to students on the first day of class at a top university
 - Return ONLY the JSON object`,
-  }
+};

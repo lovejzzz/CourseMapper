@@ -10,12 +10,12 @@ const TOOLTIP_MAX_H = 140;
 function humanize(key) {
   return key
     .replace(/([A-Z])/g, ' $1')
-    .replace(/^./, c => c.toUpperCase())
+    .replace(/^./, (c) => c.toUpperCase())
     .trim();
 }
 
 function getFeature(id) {
-  return FEATURES.find(f => f.id === id);
+  return FEATURES.find((f) => f.id === id);
 }
 
 /**
@@ -29,27 +29,25 @@ export default function CascadePreview({ fieldKey, featureId, position, delivera
   const affected = useMemo(() => {
     if (fieldKey) {
       // Course map cell hover — use FIELD_DEPENDENCY_MAP via public API
-      return getAffectedFeatures(fieldKey, selectedFeatures)
-        .filter(f => f !== featureId); // don't show self
+      return getAffectedFeatures(fieldKey, selectedFeatures).filter((f) => f !== featureId); // don't show self
     }
     if (featureId && featureId !== 'courseMap') {
       // Deliverable tab hover — use DELIVERABLE_OUTBOUND_MAP
-      return getOutboundTargets(featureId)
-        .filter(f => selectedFeatures?.includes(f));
+      return getOutboundTargets(featureId).filter((f) => selectedFeatures?.includes(f));
     }
     return [];
   }, [fieldKey, featureId, selectedFeatures]);
 
   // Filter to only deliverables that are generated (done)
   const actionable = useMemo(() => {
-    return affected.filter(id => {
+    return affected.filter((id) => {
       const d = deliverables?.[id];
       return d?.status === 'done';
     });
   }, [affected, deliverables]);
 
   const staleOnes = useMemo(() => {
-    return affected.filter(id => deliverables?.[id]?.stale);
+    return affected.filter((id) => deliverables?.[id]?.stale);
   }, [affected, deliverables]);
 
   if (affected.length === 0) return null;
@@ -58,9 +56,7 @@ export default function CascadePreview({ fieldKey, featureId, position, delivera
   const clampedX = Math.min(position.x, window.innerWidth - TOOLTIP_W - 16);
   const clampedY = Math.min(position.y, window.innerHeight - TOOLTIP_MAX_H - 16);
 
-  const label = fieldKey
-    ? humanize(fieldKey)
-    : (getFeature(featureId)?.label || featureId);
+  const label = fieldKey ? humanize(fieldKey) : getFeature(featureId)?.label || featureId;
 
   return createPortal(
     <div
@@ -71,7 +67,7 @@ export default function CascadePreview({ fieldKey, featureId, position, delivera
         {fieldKey ? `Editing "${label}" will affect:` : `Editing ${label} cascades to:`}
       </p>
       <div className="flex flex-wrap gap-1.5">
-        {affected.map(id => {
+        {affected.map((id) => {
           const feat = getFeature(id);
           if (!feat) return null;
           const colors = COLOR_MAP[feat.color];
@@ -84,7 +80,9 @@ export default function CascadePreview({ fieldKey, featureId, position, delivera
               className={`${colors.badge} text-[10px] font-semibold px-2 py-0.5 rounded-full flex items-center gap-1`}
             >
               {/* Status micro-dot */}
-              <span className={`w-1.5 h-1.5 rounded-full ${isStale ? 'bg-amber-400' : isDone ? 'bg-emerald-400' : 'bg-slate-300'}`} />
+              <span
+                className={`w-1.5 h-1.5 rounded-full ${isStale ? 'bg-amber-400' : isDone ? 'bg-emerald-400' : 'bg-slate-300'}`}
+              />
               {feat.label}
             </span>
           );
@@ -96,6 +94,6 @@ export default function CascadePreview({ fieldKey, featureId, position, delivera
         </p>
       )}
     </div>,
-    document.body
+    document.body,
   );
 }

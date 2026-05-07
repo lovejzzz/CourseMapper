@@ -42,6 +42,39 @@ describe('ProgressHeader progress helpers', () => {
     expect(count).toBe(2);
   });
 
+  it('counts terminal error rows after generation', () => {
+    const delivRows = [
+      { id: 'lessonPlans', status: 'done' },
+      { id: 'quizBank', status: 'error' },
+      { id: 'rubrics', status: 'pending' },
+    ];
+    const count = getDeliverableDoneCount({
+      delivRows,
+      delivProgress: { done: 1, total: 3 },
+      isDelivGenerating: false,
+    });
+
+    expect(count).toBe(2);
+  });
+
+  it('counts live terminal errors without waiting for generation to stop', () => {
+    const count = getDeliverableDoneCount({
+      delivRows: [],
+      delivProgress: {
+        done: 1,
+        total: 3,
+        perFeature: {
+          lessonPlans: { status: 'done' },
+          quizBank: { status: 'error' },
+          rubrics: { status: 'generating' },
+        },
+      },
+      isDelivGenerating: true,
+    });
+
+    expect(count).toBe(2);
+  });
+
   it('shows a row as done when per-feature progress completes before state catches up', () => {
     expect(getProgressDisplayStatus('pending', 'done')).toBe('done');
     expect(getProgressDisplayStatus('error', 'merging')).toBe('error');

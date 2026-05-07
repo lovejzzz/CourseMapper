@@ -69,9 +69,7 @@ describe('parseBloomsFromObjectives', () => {
   });
 
   it('strips "Students will be able to" prefix', () => {
-    const result = parseBloomsFromObjectives(
-      'Students will be able to analyze the economic impacts of trade policy'
-    );
+    const result = parseBloomsFromObjectives('Students will be able to analyze the economic impacts of trade policy');
     expect(result).toHaveLength(1);
     expect(result[0].verb).toBe('analyze');
     expect(result[0].level).toBe(4);
@@ -94,9 +92,7 @@ describe('validateBloomsAlignment', () => {
       lessons: [
         {
           title: 'Lesson 1',
-          sections: [
-            { learningObjectives: 'Evaluate the role of ethics in AI development' },
-          ],
+          sections: [{ learningObjectives: 'Evaluate the role of ethics in AI development' }],
         },
       ],
     };
@@ -142,9 +138,7 @@ describe('validateObjectiveAlignment', () => {
       lessons: [
         {
           title: 'Lesson 1',
-          sections: [
-            { learningObjectives: 'Analyze the structure of DNA molecules' },
-          ],
+          sections: [{ learningObjectives: 'Analyze the structure of DNA molecules' }],
         },
       ],
     };
@@ -158,9 +152,7 @@ describe('validateObjectiveAlignment', () => {
     const findings = validateObjectiveAlignment(courseMap, deliverables);
     // Should have an error or warning about uncovered objectives
     expect(findings.length).toBeGreaterThanOrEqual(1);
-    const errorOrWarning = findings.filter(
-      (f) => f.severity === 'error' || f.severity === 'warning'
-    );
+    const errorOrWarning = findings.filter((f) => f.severity === 'error' || f.severity === 'warning');
     expect(errorOrWarning.length).toBeGreaterThanOrEqual(1);
   });
 
@@ -368,9 +360,7 @@ describe('generateCourseHealthReport', () => {
       lessons: [
         {
           title: 'Lesson 1',
-          sections: [
-            { learningObjectives: 'Evaluate the role of genetics in evolution' },
-          ],
+          sections: [{ learningObjectives: 'Evaluate the role of genetics in evolution' }],
         },
       ],
     };
@@ -401,9 +391,7 @@ describe('generateCourseHealthReport', () => {
       lessons: [
         {
           title: 'Lesson 1',
-          sections: [
-            { learningObjectives: 'Create a novel research design\nEvaluate existing approaches' },
-          ],
+          sections: [{ learningObjectives: 'Create a novel research design\nEvaluate existing approaches' }],
         },
       ],
     };
@@ -426,7 +414,7 @@ describe('generateCourseHealthReport', () => {
       const severityOrder = { error: 0, warning: 1, info: 2 };
       for (let i = 1; i < report.findings.length; i++) {
         expect(severityOrder[report.findings[i].severity]).toBeGreaterThanOrEqual(
-          severityOrder[report.findings[i - 1].severity]
+          severityOrder[report.findings[i - 1].severity],
         );
       }
     }

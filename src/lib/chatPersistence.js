@@ -17,7 +17,9 @@ export function listConversations() {
   try {
     const data = JSON.parse(localStorage.getItem(STORAGE_KEY) || '[]');
     return data.sort((a, b) => new Date(b.updatedAt) - new Date(a.updatedAt));
-  } catch { return []; }
+  } catch {
+    return [];
+  }
 }
 
 /**
@@ -30,15 +32,15 @@ export function saveConversation(id, messages, title) {
   try {
     const conversations = listConversations();
     const safeMessages = sanitizeMessagesForPersistence(messages);
-    const visibleMessages = safeMessages.filter(m => m.role === 'user' || m.role === 'assistant');
+    const visibleMessages = safeMessages.filter((m) => m.role === 'user' || m.role === 'assistant');
 
     // Auto-generate title from first user message
-    const autoTitle = title || visibleMessages.find(m => m.role === 'user')?.text?.slice(0, 60) || 'New conversation';
+    const autoTitle = title || visibleMessages.find((m) => m.role === 'user')?.text?.slice(0, 60) || 'New conversation';
 
     const preview = visibleMessages.slice(-1)[0]?.text?.slice(0, 100) || '';
     const now = new Date().toISOString();
 
-    const existing = conversations.findIndex(c => c.id === id);
+    const existing = conversations.findIndex((c) => c.id === id);
     const entry = {
       id,
       title: autoTitle,
@@ -86,7 +88,9 @@ export function loadConversation(id) {
       localStorage.setItem(`${STORAGE_KEY}:${id}`, JSON.stringify(safeMessages));
     }
     return safeMessages;
-  } catch { return null; }
+  } catch {
+    return null;
+  }
 }
 
 /**
@@ -95,10 +99,12 @@ export function loadConversation(id) {
  */
 export function deleteConversation(id) {
   try {
-    const conversations = listConversations().filter(c => c.id !== id);
+    const conversations = listConversations().filter((c) => c.id !== id);
     localStorage.setItem(STORAGE_KEY, JSON.stringify(conversations));
     localStorage.removeItem(`${STORAGE_KEY}:${id}`);
-  } catch { /* ignore */ }
+  } catch {
+    /* ignore */
+  }
 }
 
 /**
@@ -124,7 +130,9 @@ export function searchConversations(query) {
         const text = (m.text || m.content || '').toLowerCase();
         if (text.includes(lower)) matches++;
       }
-    } catch { /* ignore */ }
+    } catch {
+      /* ignore */
+    }
 
     if (matches > 0) results.push({ ...conv, matches });
   }

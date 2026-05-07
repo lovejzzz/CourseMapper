@@ -22,33 +22,63 @@ export default function SyncSuggestionCard({ suggestion, onApprove, onSkip }) {
   // Build edit description
   const fields = editSummary?.fields || [];
   const lessons = editSummary?.lessonIndices || [];
-  const lessonText = lessons.length > 0
-    ? ` in Lesson${lessons.length > 1 ? 's' : ''} ${lessons.map(n => n + 1).join(', ')}`
-    : '';
-  const editDesc = editSource === 'deliverable'
-    ? `Edited **${fields[0] || 'a deliverable'}**${lessonText}`
-    : `Edited **${fields.join(', ')}**${lessonText}`;
+  const lessonText =
+    lessons.length > 0 ? ` in Lesson${lessons.length > 1 ? 's' : ''} ${lessons.map((n) => n + 1).join(', ')}` : '';
+  const editDesc =
+    editSource === 'deliverable'
+      ? `Edited **${fields[0] || 'a deliverable'}**${lessonText}`
+      : `Edited **${fields.join(', ')}**${lessonText}`;
 
   // Theme colors by status
   const theme = isDone
-    ? { bg: 'bg-emerald-50/60', border: 'border-emerald-200/30', icon: 'text-emerald-600', iconBg: 'bg-emerald-100', text: 'text-emerald-700', subtext: 'text-emerald-600/70' }
+    ? {
+        bg: 'bg-emerald-50/60',
+        border: 'border-emerald-200/30',
+        icon: 'text-emerald-600',
+        iconBg: 'bg-emerald-100',
+        text: 'text-emerald-700',
+        subtext: 'text-emerald-600/70',
+      }
     : isSkipped
-    ? { bg: 'bg-slate-50/60', border: 'border-slate-200/30', icon: 'text-slate-400', iconBg: 'bg-slate-100', text: 'text-slate-500', subtext: 'text-slate-400' }
-    : isPartialFail
-    ? { bg: 'bg-red-50/60', border: 'border-red-200/30', icon: 'text-red-500', iconBg: 'bg-red-100', text: 'text-red-700', subtext: 'text-red-500/70' }
-    : { bg: 'bg-amber-50/60', border: 'border-amber-200/30', icon: 'text-amber-600', iconBg: 'bg-amber-100', text: 'text-amber-700', subtext: 'text-amber-600/70' };
+      ? {
+          bg: 'bg-slate-50/60',
+          border: 'border-slate-200/30',
+          icon: 'text-slate-400',
+          iconBg: 'bg-slate-100',
+          text: 'text-slate-500',
+          subtext: 'text-slate-400',
+        }
+      : isPartialFail
+        ? {
+            bg: 'bg-red-50/60',
+            border: 'border-red-200/30',
+            icon: 'text-red-500',
+            iconBg: 'bg-red-100',
+            text: 'text-red-700',
+            subtext: 'text-red-500/70',
+          }
+        : {
+            bg: 'bg-amber-50/60',
+            border: 'border-amber-200/30',
+            icon: 'text-amber-600',
+            iconBg: 'bg-amber-100',
+            text: 'text-amber-700',
+            subtext: 'text-amber-600/70',
+          };
 
   // Checkbox state
   const effectivePlan = plan || [];
-  const getChecked = (i) => checkedItems === null ? true : !!checkedItems[i];
+  const getChecked = (i) => (checkedItems === null ? true : !!checkedItems[i]);
   const anyChecked = checkedItems === null ? true : Object.values(checkedItems).some(Boolean);
 
   function toggleItem(i) {
-    setCheckedItems(prev => {
+    setCheckedItems((prev) => {
       if (prev === null) {
         // First toggle: initialize all as checked, then uncheck this one
         const init = {};
-        effectivePlan.forEach((_, idx) => { init[idx] = idx !== i; });
+        effectivePlan.forEach((_, idx) => {
+          init[idx] = idx !== i;
+        });
         return init;
       }
       return { ...prev, [i]: !prev[i] };
@@ -58,9 +88,7 @@ export default function SyncSuggestionCard({ suggestion, onApprove, onSkip }) {
   function handleApprove() {
     if (!anyChecked) return;
     // Filter plan to only checked items
-    const selectedPlan = checkedItems === null
-      ? effectivePlan
-      : effectivePlan.filter((_, i) => checkedItems[i]);
+    const selectedPlan = checkedItems === null ? effectivePlan : effectivePlan.filter((_, i) => checkedItems[i]);
     onApprove?.(id, selectedPlan);
   }
 
@@ -72,10 +100,12 @@ export default function SyncSuggestionCard({ suggestion, onApprove, onSkip }) {
   }
 
   return (
-    <div className={`mx-2 my-1 rounded-xl ${theme.bg} border ${theme.border} shadow-glass animate-spring-in overflow-hidden`}>
+    <div
+      className={`mx-2 my-1 rounded-xl ${theme.bg} border ${theme.border} shadow-glass animate-spring-in overflow-hidden`}
+    >
       {/* Header */}
       <button
-        onClick={() => setCollapsed(v => !v)}
+        onClick={() => setCollapsed((v) => !v)}
         className="w-full px-3.5 py-2 flex items-center gap-2 transition-colors"
         aria-expanded={!collapsed}
       >
@@ -91,24 +121,40 @@ export default function SyncSuggestionCard({ suggestion, onApprove, onSkip }) {
             </svg>
           ) : isPartialFail ? (
             <svg className="w-3 h-3 text-red-500" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 8v4m0 4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z" />
+              <path
+                strokeLinecap="round"
+                strokeLinejoin="round"
+                strokeWidth={2}
+                d="M12 8v4m0 4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z"
+              />
             </svg>
           ) : (
             <svg className={`w-3 h-3 ${theme.icon}`} fill="none" stroke="currentColor" viewBox="0 0 24 24">
-              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M4 4v5h.582m15.356 2A8.001 8.001 0 004.582 9m0 0H9m11 11v-5h-.581m0 0a8.003 8.003 0 01-15.357-2m15.357 2H15" />
+              <path
+                strokeLinecap="round"
+                strokeLinejoin="round"
+                strokeWidth={2}
+                d="M4 4v5h.582m15.356 2A8.001 8.001 0 004.582 9m0 0H9m11 11v-5h-.581m0 0a8.003 8.003 0 01-15.357-2m15.357 2H15"
+              />
             </svg>
           )}
         </div>
         <span className={`text-[13px] font-semibold ${theme.text} flex-1 text-left`}>
-          {isDone ? 'Sync Complete'
-            : isSyncing ? 'Syncing...'
-            : isSkipped ? 'Sync Skipped'
-            : isPartialFail ? 'Sync Partially Failed'
-            : `${effectivePlan.length} Deliverable${effectivePlan.length !== 1 ? 's' : ''} Need Syncing`}
+          {isDone
+            ? 'Sync Complete'
+            : isSyncing
+              ? 'Syncing...'
+              : isSkipped
+                ? 'Sync Skipped'
+                : isPartialFail
+                  ? 'Sync Partially Failed'
+                  : `${effectivePlan.length} Deliverable${effectivePlan.length !== 1 ? 's' : ''} Need Syncing`}
         </span>
         <svg
           className={`w-3 h-3 ${theme.subtext} transition-transform duration-200 ${collapsed ? '' : 'rotate-180'}`}
-          fill="none" stroke="currentColor" viewBox="0 0 24 24"
+          fill="none"
+          stroke="currentColor"
+          viewBox="0 0 24 24"
         >
           <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M19 9l-7 7-7-7" />
         </svg>
@@ -117,17 +163,15 @@ export default function SyncSuggestionCard({ suggestion, onApprove, onSkip }) {
       {/* Body */}
       {!collapsed && (
         <div className="px-3.5 pb-2.5 space-y-1.5 border-t border-amber-100/50">
-          <p className={`text-[12px] ${theme.subtext} pt-1.5`}>
-            {editDesc}
-          </p>
+          <p className={`text-[12px] ${theme.subtext} pt-1.5`}>{editDesc}</p>
 
           {/* Affected deliverables — with checkboxes when pending */}
           <div className="space-y-0.5">
             {effectivePlan.map((entry, i) => {
               const lessonDesc = entry.lessonIndices
-                ? `Lesson${entry.lessonIndices.length > 1 ? 's' : ''} ${entry.lessonIndices.map(n => n + 1).join(', ')}`
+                ? `Lesson${entry.lessonIndices.length > 1 ? 's' : ''} ${entry.lessonIndices.map((n) => n + 1).join(', ')}`
                 : 'full regeneration';
-              const isFailed = failedItems?.some(f => f.featureId === entry.featureId);
+              const isFailed = failedItems?.some((f) => f.featureId === entry.featureId);
 
               return (
                 <label
@@ -146,7 +190,9 @@ export default function SyncSuggestionCard({ suggestion, onApprove, onSkip }) {
                     />
                   )}
                   {!isPending && (
-                    <span className={`font-mono text-[11px] ${isFailed ? 'text-red-400' : isDone ? 'text-emerald-400' : 'text-slate-300'}`}>
+                    <span
+                      className={`font-mono text-[11px] ${isFailed ? 'text-red-400' : isDone ? 'text-emerald-400' : 'text-slate-300'}`}
+                    >
                       {isFailed ? '✗' : isDone ? '✓' : '•'}
                     </span>
                   )}
@@ -163,7 +209,10 @@ export default function SyncSuggestionCard({ suggestion, onApprove, onSkip }) {
           {isPending && (
             <div className="flex items-center gap-2 pt-1">
               <button
-                onClick={(e) => { e.stopPropagation(); handleApprove(); }}
+                onClick={(e) => {
+                  e.stopPropagation();
+                  handleApprove();
+                }}
                 disabled={!anyChecked}
                 className={`tactile px-3 py-1 rounded-lg text-[12px] font-semibold shadow-sm transition-colors ${
                   anyChecked
@@ -171,10 +220,14 @@ export default function SyncSuggestionCard({ suggestion, onApprove, onSkip }) {
                     : 'text-amber-300 bg-amber-200 cursor-not-allowed'
                 }`}
               >
-                Sync {checkedItems === null ? 'All' : `Selected (${Object.values(checkedItems).filter(Boolean).length})`}
+                Sync{' '}
+                {checkedItems === null ? 'All' : `Selected (${Object.values(checkedItems).filter(Boolean).length})`}
               </button>
               <button
-                onClick={(e) => { e.stopPropagation(); onSkip?.(id); }}
+                onClick={(e) => {
+                  e.stopPropagation();
+                  onSkip?.(id);
+                }}
                 className="tactile px-3 py-1 rounded-lg text-[12px] font-medium text-amber-600 hover:bg-amber-100/60 transition-colors"
               >
                 Skip
@@ -186,13 +239,19 @@ export default function SyncSuggestionCard({ suggestion, onApprove, onSkip }) {
           {isPartialFail && failedItems?.length > 0 && (
             <div className="flex items-center gap-2 pt-1">
               <button
-                onClick={(e) => { e.stopPropagation(); handleRetry(); }}
+                onClick={(e) => {
+                  e.stopPropagation();
+                  handleRetry();
+                }}
                 className="tactile px-3 py-1 rounded-lg text-[12px] font-semibold text-white bg-red-500 hover:bg-red-600 shadow-sm transition-colors"
               >
                 Retry Failed ({failedItems.length})
               </button>
               <button
-                onClick={(e) => { e.stopPropagation(); onSkip?.(id); }}
+                onClick={(e) => {
+                  e.stopPropagation();
+                  onSkip?.(id);
+                }}
                 className="tactile px-3 py-1 rounded-lg text-[12px] font-medium text-red-500 hover:bg-red-100/60 transition-colors"
               >
                 Dismiss

@@ -5,7 +5,7 @@ const releases = [
   {
     version: '0.5',
     date: 'March 5, 2026',
-    title: 'AI Teaching Agent — Act, Don\'t Advise',
+    title: "AI Teaching Agent — Act, Don't Advise",
     highlights: [
       'Agentic AI assistant that takes direct action on your course materials instead of just giving advice',
       'Batch actions across multiple lessons and cross-deliverable edits in a single request',
@@ -19,7 +19,7 @@ const releases = [
         items: [
           'Unified ChatPanel replaces the separate ProgressPanel, RevisionChat, and HelpDrawer with a single context-aware interface.',
           'Agent mode auto-activates when deliverables are generated — messages are routed to the agentic assistant automatically.',
-          'Proposal cards — the agent proposes 2–3 pedagogically distinct options as clickable cards with expand/collapse descriptions. Pick one and it\'s instantly applied.',
+          "Proposal cards — the agent proposes 2–3 pedagogically distinct options as clickable cards with expand/collapse descriptions. Pick one and it's instantly applied.",
           'Batch actions — "Add a quiz to every lesson" generates unique, lesson-specific content and applies changes with progress feedback (e.g., "Applying 5 of 12...").',
           'Cross-deliverable edits — "Add a quiz AND a discussion prompt for Lesson 2" handles multiple deliverable types in a single batch.',
           'Streaming progress detection — live-streams chatReply text and shows contextual status messages (Generating options, Preparing changes) while the agent works.',
@@ -105,7 +105,7 @@ const releases = [
         color: 'indigo',
         items: [
           'Bring Your Own Key (BYOK) — all AI calls now use your personal API key from OpenAI, Anthropic, or Google. No more shared free-tier keys.',
-          'Dynamic max output tokens — the system detects each model\'s actual output limit (e.g. 100K for O3, 32K for GPT-4.1, 8K for Claude 3.5) and uses it automatically. Previously hardcoded to 16K for all models.',
+          "Dynamic max output tokens — the system detects each model's actual output limit (e.g. 100K for O3, 32K for GPT-4.1, 8K for Claude 3.5) and uses it automatically. Previously hardcoded to 16K for all models.",
           'FAQ help chatbot now uses your configured provider and API key instead of a hardcoded Gemini key.',
         ],
       },
@@ -140,7 +140,7 @@ const releases = [
         items: [
           'Column enable/disable toggle — click any column pill in Config to toggle it on or off. Disabled columns are dimmed with strikethrough and excluded from AI generation, preview, and all exports (XLSX, DOCX, CSV, PDF, Google Docs/Sheets).',
           'Custom deliverables in workspace — the + Add dropdown now shows previously created custom deliverables under "Your Custom" and a "Create Custom..." button to build new ones without leaving the workspace.',
-          'AI auto-config for custom deliverables — when tone, style, or output length are not set, the AI automatically infers the best settings from the course context and other deliverables\' configuration.',
+          "AI auto-config for custom deliverables — when tone, style, or output length are not set, the AI automatically infers the best settings from the course context and other deliverables' configuration.",
           'Row merge in Course Map Preview — when sections within a lesson share identical values for a column, cells automatically merge (rowSpan) for a cleaner layout. Editing a merged cell updates all sections.',
           'FAQ chatbot updated with column configuration, custom deliverables, and AI auto-config knowledge.',
         ],
@@ -298,9 +298,7 @@ export default function Changelog() {
             <article key={release.version} className="relative">
               {/* Version header */}
               <div className="flex items-baseline gap-4 mb-8">
-                <span className="text-2xl font-bold text-slate-900 tracking-tight">
-                  v{release.version}
-                </span>
+                <span className="text-2xl font-bold text-slate-900 tracking-tight">v{release.version}</span>
                 <span className="text-sm text-slate-600 font-medium">{release.date}</span>
               </div>
 

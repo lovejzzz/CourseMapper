@@ -1,10 +1,11 @@
-import { diffDeveloperSnapshots } from './developerIdeDiagnostics.js';
+import { diffDeveloperSnapshots, formatDeveloperDiffItem } from './developerIdeDiagnostics.js';
 import { getDeveloperSecretFindings } from './developerSecretDiagnostics.js';
 
 const STORAGE_KEY = 'coursemapper-developer-ide-history';
 const DEFAULT_HISTORY_LIMIT = 8;
 const MAX_PATCHES = 120;
 const MAX_PATCH_BYTES = 180_000;
+const MAX_LABEL_LENGTH = 80;
 
 function cloneJson(value) {
   if (value === undefined) return undefined;
@@ -90,7 +91,7 @@ function walkPatch(before, after, path, patches, state, depth = 8) {
 
   if (isPlainObject(before) && isPlainObject(after)) {
     const keys = Array.from(new Set([...Object.keys(before), ...Object.keys(after)])).sort();
-    keys.forEach(key => walkPatch(before[key], after[key], [...path, key], patches, state, depth - 1));
+    keys.forEach((key) => walkPatch(before[key], after[key], [...path, key], patches, state, depth - 1));
     return;
   }
 
@@ -103,7 +104,8 @@ function walkPatch(before, after, path, patches, state, depth = 8) {
 }
 
 function buildSnapshotPatches(beforeSnapshot, afterSnapshot) {
-  const secretCount = getDeveloperSecretFindings(beforeSnapshot).length + getDeveloperSecretFindings(afterSnapshot).length;
+  const secretCount =
+    getDeveloperSecretFindings(beforeSnapshot).length + getDeveloperSecretFindings(afterSnapshot).length;
   if (secretCount > 0) {
     return {
       patches: [],
@@ -162,8 +164,10 @@ function normalizeEntry(entry) {
   const hasLegacySnapshots = entry.beforeSnapshot && entry.afterSnapshot;
   const hasPatches = Array.isArray(entry.patches);
   if (!hasLegacySnapshots && !hasPatches) return null;
+  const label = typeof entry.label === 'string' ? entry.label.trim().slice(0, MAX_LABEL_LENGTH) : '';
   return {
     id: entry.id || makeHistoryId(entry.createdAt || Date.now()),
+    label,
     createdAt: Number.isFinite(entry.createdAt) ? entry.createdAt : Date.now(),
     dirtySections: Array.isArray(entry.dirtySections) ? entry.dirtySections.filter(Boolean) : [],
     changes: Array.isArray(entry.changes) ? entry.changes : [],
@@ -173,10 +177,12 @@ function normalizeEntry(entry) {
     patchTruncated: Boolean(entry.patchTruncated),
     secretBlocked: Boolean(entry.secretBlocked),
     restorable: entry.restorable !== undefined ? Boolean(entry.restorable) : hasLegacySnapshots,
-    ...(hasLegacySnapshots ? {
-      beforeSnapshot: entry.beforeSnapshot,
-      afterSnapshot: entry.afterSnapshot,
-    } : {}),
+    ...(hasLegacySnapshots
+      ? {
+          beforeSnapshot: entry.beforeSnapshot,
+          afterSnapshot: entry.afterSnapshot,
+        }
+      : {}),
   };
 }
 
@@ -202,11 +208,15 @@ export function buildDeveloperHistoryEntry({
   beforeSnapshot,
   afterSnapshot,
   dirtySections = [],
+  label = '',
   createdAt = Date.now(),
 }) {
   const patchResult = buildSnapshotPatches(beforeSnapshot, afterSnapshot);
   return {
     id: makeHistoryId(createdAt),
+    label: String(label || '')
+      .trim()
+      .slice(0, MAX_LABEL_LENGTH),
     createdAt,
     dirtySections: Array.from(dirtySections).filter(Boolean),
     changes: diffDeveloperSnapshots(beforeSnapshot, afterSnapshot, { limit: 12 }),
@@ -225,10 +235,42 @@ export function loadDeveloperHistory(limit = DEFAULT_HISTORY_LIMIT) {
     .slice(0, limit);
 }
 
+function buildHistorySearchText(entry) {
+  const changes = Array.isArray(entry?.changes) ? entry.changes : [];
+  return [
+    entry?.id,
+    entry?.label,
+    entry?.createdAt,
+    ...(Array.isArray(entry?.dirtySections) ? entry.dirtySections : []),
+    entry?.restorable === false ? 'summary only restore unavailable' : 'restorable',
+    entry?.secretBlocked ? 'secret safe secret blocked' : '',
+    entry?.patchTruncated ? 'patch too large truncated' : '',
+    ...changes.flatMap((change) => [
+      change?.type,
+      change?.path,
+      change?.beforeSummary,
+      change?.afterSummary,
+      formatDeveloperDiffItem(change || {}),
+    ]),
+  ]
+    .filter((part) => part !== undefined && part !== null)
+    .join(' ')
+    .toLowerCase();
+}
+
+export function searchDeveloperHistory(entries = [], query = '') {
+  const terms = String(query).trim().toLowerCase().split(/\s+/).filter(Boolean);
+  if (terms.length === 0) return entries;
+  return entries.filter((entry) => {
+    const haystack = buildHistorySearchText(entry);
+    return terms.every((term) => haystack.includes(term));
+  });
+}
+
 export function appendDeveloperHistoryEntry(entry, limit = DEFAULT_HISTORY_LIMIT) {
   const normalized = normalizeEntry(entry);
   if (!normalized) return loadDeveloperHistory(limit);
-  const entries = [normalized, ...readEntries().filter(item => item.id !== normalized.id)]
+  const entries = [normalized, ...readEntries().filter((item) => item.id !== normalized.id)]
     .sort((a, b) => b.createdAt - a.createdAt)
     .slice(0, limit);
   writeEntries(entries);

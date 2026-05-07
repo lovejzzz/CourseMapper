@@ -33,12 +33,12 @@ const FIELD_ALIASES = {
 function resolveField(field, sections) {
   if (!field) return field;
   // If the field exists directly in any section, use it as-is
-  if (sections?.some(sec => field in sec)) return field;
+  if (sections?.some((sec) => field in sec)) return field;
   // Try alias mapping — resolve to canonical name, then verify it exists
   const aliased = FIELD_ALIASES[field.toLowerCase()];
   if (aliased) {
     // Verify the aliased field exists in sections (if sections available)
-    if (!sections || sections.some(sec => aliased in sec)) return aliased;
+    if (!sections || sections.some((sec) => aliased in sec)) return aliased;
     return aliased; // trust alias even without sections
   }
   return field;
@@ -61,11 +61,11 @@ export const ACTION_TYPES = {
 
 // ── Dedup: field to check for exact duplicates when adding items ─────────────
 const DEDUP_FIELDS = {
-  quizBank: ['q', 'question'],      // question text
-  discussions: ['pr', 'prompt'],    // prompt text
-  courseFaq: ['q', 'question'],     // FAQ question
-  rubrics: ['cn', 'criterion'],     // criterion name
-  slideDecks: ['t', 'title'],       // slide title
+  quizBank: ['q', 'question'], // question text
+  discussions: ['pr', 'prompt'], // prompt text
+  courseFaq: ['q', 'question'], // FAQ question
+  rubrics: ['cn', 'criterion'], // criterion name
+  slideDecks: ['t', 'title'], // slide title
 };
 
 const DEDUP_LABELS = {
@@ -84,11 +84,11 @@ const SUB_ARRAY_KEYS = {
   slideDecks: 'sl',
   courseFaq: 'qs',
   rubrics: 'cr',
-  studyGuides: null,     // complex — handled per-subfield (kt, rq, cm)
-  lessonPlans: null,     // complex — handled per-subfield (ol, hw, etc.)
-  discussions: null,     // one per lesson — replace entire item
-  assignments: null,     // flat array — push to root
-  syllabus: null,        // single object — not per-lesson
+  studyGuides: null, // complex — handled per-subfield (kt, rq, cm)
+  lessonPlans: null, // complex — handled per-subfield (ol, hw, etc.)
+  discussions: null, // one per lesson — replace entire item
+  assignments: null, // flat array — push to root
+  syllabus: null, // single object — not per-lesson
 };
 
 // ── Execute Action ───────────────────────────────────────────────────────────
@@ -160,7 +160,7 @@ function execAddLesson({ title, sections }, { editor, courseMap }) {
   if (!editor?.handleAddLesson) return { success: false, message: 'Editor not available' };
   // handleAddLesson appends a blank lesson, then we populate it
   editor.handleAddLesson();
-  const newIdx = (courseMap?.lessons?.length ?? 0); // index of newly added lesson
+  const newIdx = courseMap?.lessons?.length ?? 0; // index of newly added lesson
   if (title) editor.handleTitleEdit(newIdx, title);
   if (sections?.[0]) {
     const sec = sections[0];
@@ -202,12 +202,14 @@ function firstValue(obj, keys) {
 }
 
 function hasAnyField(obj, keys) {
-  return keys.some(key => obj?.[key] !== undefined && obj[key] !== '');
+  return keys.some((key) => obj?.[key] !== undefined && obj[key] !== '');
 }
 
 function getDedupeText(obj, keys) {
   const value = firstValue(obj, Array.isArray(keys) ? keys : [keys]);
-  return String(value || '').toLowerCase().trim();
+  return String(value || '')
+    .toLowerCase()
+    .trim();
 }
 
 function normalizeSlideVisual(visual) {
@@ -243,9 +245,10 @@ function normalizeDeliverableItem(featureId, item) {
 }
 
 function isVisualObject(obj) {
-  return !!obj && typeof obj === 'object' && (
-    'k' in obj || 'd' in obj || 'at' in obj ||
-    'kind' in obj || 'description' in obj || 'altText' in obj
+  return (
+    !!obj &&
+    typeof obj === 'object' &&
+    ('k' in obj || 'd' in obj || 'at' in obj || 'kind' in obj || 'description' in obj || 'altText' in obj)
   );
 }
 
@@ -340,11 +343,12 @@ function execAddItem({ featureId, lessonIndex, item, subKey }, ctx) {
     const dupField = DEDUP_FIELDS[featureId];
     if (dupField && getDedupeText(normalizedItem, dupField)) {
       const newText = getDedupeText(normalizedItem, dupField);
-      const isDupe = lessonItem[subArrayKey].some(existing =>
-        getDedupeText(existing, dupField) === newText
-      );
+      const isDupe = lessonItem[subArrayKey].some((existing) => getDedupeText(existing, dupField) === newText);
       if (isDupe) {
-        return { success: false, message: `Duplicate detected: an item with the same ${DEDUP_LABELS[featureId] || 'text'} already exists in this lesson.` };
+        return {
+          success: false,
+          message: `Duplicate detected: an item with the same ${DEDUP_LABELS[featureId] || 'text'} already exists in this lesson.`,
+        };
       }
     }
     // Has sub-array (quizBank.qs, slideDecks.sl, etc.) — push into it
@@ -359,13 +363,23 @@ function execAddItem({ featureId, lessonIndex, item, subKey }, ctx) {
     // No sub-array — this is a per-lesson item type (discussions, etc.)
     // Fix 10: Gracefully handle flat deliverables — merge/replace the lesson entry
     if (!normalizedItem || typeof normalizedItem !== 'object') {
-      return { success: false, message: `Invalid item for ${featureId} — expected an object to merge into the lesson entry` };
+      return {
+        success: false,
+        message: `Invalid item for ${featureId} — expected an object to merge into the lesson entry`,
+      };
     }
     arr[lessonIndex] = { ...lessonItem, ...normalizedItem };
   }
 
   optimisticUpdate(featureId, data);
-  const itemName = normalizedItem.title || normalizedItem.t || normalizedItem.question || normalizedItem.q || normalizedItem.tm || normalizedItem.cn || '';
+  const itemName =
+    normalizedItem.title ||
+    normalizedItem.t ||
+    normalizedItem.question ||
+    normalizedItem.q ||
+    normalizedItem.tm ||
+    normalizedItem.cn ||
+    '';
   return { success: true, message: `Added item${itemName ? ` "${itemName}"` : ''} to ${featureId}` };
 }
 
@@ -401,7 +415,10 @@ function execRemoveItem({ featureId, lessonIndex, itemIndex, subKey }, ctx) {
   // Per-lesson deliverables
   const arr = data[arrKey];
   if (!Array.isArray(arr) || lessonIndex < 0 || lessonIndex >= arr.length) {
-    return { success: false, message: `Lesson index ${lessonIndex} out of range (0-${Array.isArray(arr) ? arr.length - 1 : '?'})` };
+    return {
+      success: false,
+      message: `Lesson index ${lessonIndex} out of range (0-${Array.isArray(arr) ? arr.length - 1 : '?'})`,
+    };
   }
 
   const lessonItem = arr[lessonIndex];
@@ -430,7 +447,7 @@ function execRemoveItem({ featureId, lessonIndex, itemIndex, subKey }, ctx) {
 export function parsePath(pathInput) {
   if (Array.isArray(pathInput)) return pathInput;
   if (typeof pathInput !== 'string' || !pathInput) return null;
-  return pathInput.split('.').map(seg => /^\d+$/.test(seg) ? Number(seg) : seg);
+  return pathInput.split('.').map((seg) => (/^\d+$/.test(seg) ? Number(seg) : seg));
 }
 
 function execEditItem({ featureId, path: rawPath, value }, ctx) {
@@ -440,13 +457,18 @@ function execEditItem({ featureId, path: rawPath, value }, ctx) {
 
   // Accept both array and dot-notation string paths
   const path = parsePath(rawPath);
-  if (!Array.isArray(path)) return { success: false, message: `Invalid path — expected array or dot-notation string, got ${rawPath === null ? 'null' : typeof rawPath}` };
+  if (!Array.isArray(path))
+    return {
+      success: false,
+      message: `Invalid path — expected array or dot-notation string, got ${rawPath === null ? 'null' : typeof rawPath}`,
+    };
   if (path.length < 1) return { success: false, message: 'Invalid path — array cannot be empty' };
 
   // Fix 11: Validate featureId exists and has data before editing
   const entry = deliverables?.[featureId];
   if (!entry) return { success: false, message: `Unknown featureId: "${featureId}" — not found in deliverables` };
-  if (!entry.data) return { success: false, message: `${featureId} not generated yet (status: ${entry.status || 'unknown'})` };
+  if (!entry.data)
+    return { success: false, message: `${featureId} not generated yet (status: ${entry.status || 'unknown'})` };
 
   // Snapshot for undo before mutating (skip during batch — caller snapshots once)
   if (snapshot && !skipSnapshot) snapshot(featureId, entry.data);
@@ -461,7 +483,10 @@ function execEditItem({ featureId, path: rawPath, value }, ctx) {
     if (actualKey && data[actualKey] != null) {
       resolvedPath[0] = actualKey;
     } else {
-      return { success: false, message: `Invalid path — "${resolvedPath[0]}" not found in ${featureId} data. Available keys: ${Object.keys(data).join(', ')}` };
+      return {
+        success: false,
+        message: `Invalid path — "${resolvedPath[0]}" not found in ${featureId} data. Available keys: ${Object.keys(data).join(', ')}`,
+      };
     }
   }
 
@@ -481,7 +506,8 @@ function execEditItem({ featureId, path: rawPath, value }, ctx) {
     if (target == null) return { success: false, message: `Invalid path — nothing at "${seg}" (path[${i}])` };
   }
   const finalKey = resolveSegment(featureId, target, resolvedPath[resolvedPath.length - 1], { final: true });
-  if (target == null || typeof target !== 'object') return { success: false, message: `Invalid path — cannot set property on ${typeof target}` };
+  if (target == null || typeof target !== 'object')
+    return { success: false, message: `Invalid path — cannot set property on ${typeof target}` };
   target[finalKey] = value;
 
   optimisticUpdate(featureId, data);
@@ -499,7 +525,10 @@ function execRegenerateLesson({ featureId, lessonIndex }, { regenerateLesson, co
     const arrKey = getArrayKey(featureId, entry.data);
     const arr = entry.data[arrKey];
     if (Array.isArray(arr) && lessonIndex >= arr.length) {
-      return { success: false, message: `lessonIndex ${lessonIndex} out of range (0-${arr.length - 1}) for ${featureId}` };
+      return {
+        success: false,
+        message: `lessonIndex ${lessonIndex} out of range (0-${arr.length - 1}) for ${featureId}`,
+      };
     }
   }
 
@@ -538,7 +567,12 @@ export function preValidateAction(action, ctx) {
   }
 
   // lessonIndex bounds check (skip for assignments which are flat arrays)
-  if (action.lessonIndex !== undefined && action.featureId && action.featureId !== 'assignments' && action.featureId !== 'syllabus') {
+  if (
+    action.lessonIndex !== undefined &&
+    action.featureId &&
+    action.featureId !== 'assignments' &&
+    action.featureId !== 'syllabus'
+  ) {
     const entry = deliverables?.[action.featureId];
     if (entry?.data) {
       const arrKey = getArrayKey(action.featureId, entry.data);
@@ -573,14 +607,17 @@ export function preValidateAction(action, ctx) {
         const arr = entry.data[arrKey];
         if (Array.isArray(arr) && action.lessonIndex !== undefined && arr[action.lessonIndex]) {
           const lessonItem = arr[action.lessonIndex];
-          const subArrayKey = resolveSegment(action.featureId, lessonItem, SUB_ARRAY_KEYS[action.featureId], { final: true });
+          const subArrayKey = resolveSegment(action.featureId, lessonItem, SUB_ARRAY_KEYS[action.featureId], {
+            final: true,
+          });
           if (subArrayKey && Array.isArray(lessonItem[subArrayKey])) {
             const newText = getDedupeText(normalizedItem, dupField);
-            const isDupe = lessonItem[subArrayKey].some(existing =>
-              getDedupeText(existing, dupField) === newText
-            );
+            const isDupe = lessonItem[subArrayKey].some((existing) => getDedupeText(existing, dupField) === newText);
             if (isDupe) {
-              return { valid: false, reason: `Duplicate: item with same ${DEDUP_LABELS[action.featureId] || 'text'} already exists` };
+              return {
+                valid: false,
+                reason: `Duplicate: item with same ${DEDUP_LABELS[action.featureId] || 'text'} already exists`,
+              };
             }
           }
         }

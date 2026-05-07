@@ -7,10 +7,10 @@
  */
 
 // ── Constants ─────────────────────────────────────────────────────────────
-const DPI = 96;                    // CSS pixels per inch (browser standard)
-const PT_PER_INCH = 72;            // points per inch
-export const SLIDE_W = 10;         // inches (16:9)
-export const SLIDE_H = 5.625;      // inches (16:9)
+const DPI = 96; // CSS pixels per inch (browser standard)
+const PT_PER_INCH = 72; // points per inch
+export const SLIDE_W = 10; // inches (16:9)
+export const SLIDE_H = 5.625; // inches (16:9)
 
 // ── Canvas singleton ──────────────────────────────────────────────────────
 let _ctx = null;
@@ -42,7 +42,7 @@ function getContext() {
 export function measureTextWidth(text, fontFamily, fontSizePt) {
   if (!text) return 0;
   const ctx = getContext();
-  const fontSizePx = fontSizePt * DPI / PT_PER_INCH;
+  const fontSizePx = (fontSizePt * DPI) / PT_PER_INCH;
   ctx.font = `${fontSizePx}px "${fontFamily}"`;
   return ctx.measureText(text).width / DPI;
 }
@@ -61,7 +61,7 @@ export function measureTextWidth(text, fontFamily, fontSizePt) {
 export function estimateTextHeight(text, fontFamily, fontSizePt, maxWidthIn, lineSpacing = 1.4) {
   if (!text) return 0;
   const ctx = getContext();
-  const fontSizePx = fontSizePt * DPI / PT_PER_INCH;
+  const fontSizePx = (fontSizePt * DPI) / PT_PER_INCH;
   ctx.font = `${fontSizePx}px "${fontFamily}"`;
 
   const maxWidthPx = maxWidthIn * DPI;
@@ -69,7 +69,10 @@ export function estimateTextHeight(text, fontFamily, fontSizePt, maxWidthIn, lin
 
   const paragraphs = text.split('\n');
   for (const para of paragraphs) {
-    if (!para.trim()) { totalLines += 1; continue; }
+    if (!para.trim()) {
+      totalLines += 1;
+      continue;
+    }
     const words = para.split(/\s+/);
     let currentLineWidth = 0;
     let linesInPara = 1;
@@ -103,7 +106,15 @@ export function estimateTextHeight(text, fontFamily, fontSizePt, maxWidthIn, lin
  * @param {number} [lineSpacing=1.4] - Line spacing multiplier
  * @returns {number} Optimal font size in points (integer)
  */
-export function autoFitFontSize(text, maxWidthIn, maxHeightIn, fontFamily, startSizePt, minSizePt = 8, lineSpacing = 1.4) {
+export function autoFitFontSize(
+  text,
+  maxWidthIn,
+  maxHeightIn,
+  fontFamily,
+  startSizePt,
+  minSizePt = 8,
+  lineSpacing = 1.4,
+) {
   if (!text) return startSizePt;
 
   // Quick check: does it already fit?
@@ -143,7 +154,16 @@ export function autoFitFontSize(text, maxWidthIn, maxHeightIn, fontFamily, start
  * @param {number} [paraSpacePt=12] - Space after each bullet in points
  * @returns {number} Optimal shared font size
  */
-export function autoFitBullets(bullets, maxWidthIn, maxHeightIn, fontFamily, startSizePt, minSizePt = 10, lineSpacing = 1.5, paraSpacePt = 12) {
+export function autoFitBullets(
+  bullets,
+  maxWidthIn,
+  maxHeightIn,
+  fontFamily,
+  startSizePt,
+  minSizePt = 10,
+  lineSpacing = 1.5,
+  paraSpacePt = 12,
+) {
   if (!bullets?.length) return startSizePt;
 
   const combinedText = bullets.join('\n');
@@ -199,9 +219,9 @@ export function createElementTracker() {
       // 2. Overlap check (AABB intersection)
       for (let i = 0; i < elements.length; i++) {
         for (let j = i + 1; j < elements.length; j++) {
-          const a = elements[i], b = elements[j];
-          if (a.x < b.x + b.w && a.x + a.w > b.x &&
-              a.y < b.y + b.h && a.y + a.h > b.y) {
+          const a = elements[i],
+            b = elements[j];
+          if (a.x < b.x + b.w && a.x + a.w > b.x && a.y < b.y + b.h && a.y + a.h > b.y) {
             warnings.push(`[OVERLAP] "${a.label}" and "${b.label}"`);
           }
         }

@@ -14,7 +14,9 @@ export async function loadPdfLibs() {
 }
 
 export async function getDocx() {
-  if (!_docx) { _docx = await safeImport(() => import('docx')); }
+  if (!_docx) {
+    _docx = await safeImport(() => import('docx'));
+  }
   return _docx;
 }
 
@@ -43,5 +45,5 @@ export function resolveFeatureLabel(id) {
   if (FEATURE_LABELS[id]) return FEATURE_LABELS[id];
   const custom = getCustomDeliverable(id);
   if (custom) return custom.name;
-  return id.replace(/([A-Z])/g, ' $1').replace(/^./, str => str.toUpperCase());
+  return id.replace(/([A-Z])/g, ' $1').replace(/^./, (str) => str.toUpperCase());
 }

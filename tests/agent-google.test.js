@@ -30,38 +30,86 @@ const COURSE_MAP = {
   courseName: 'Introduction to Machine Learning',
   semester: 'Fall 2026',
   lessons: [
-    { title: 'Supervised Learning Basics', sections: [{
-      learningObjectives: 'Explain supervised vs unsupervised learning',
-      topicSection: 'Classification, Regression, Training Sets',
-    }]},
-    { title: 'Decision Trees and Random Forests', sections: [{
-      learningObjectives: 'Implement decision tree classifiers and explain overfitting',
-      topicSection: 'Decision Trees, Pruning, Ensemble Methods',
-    }]},
-    { title: 'Neural Networks Fundamentals', sections: [{
-      learningObjectives: 'Describe the architecture of a feedforward neural network',
-      topicSection: 'Perceptrons, Activation Functions, Backpropagation',
-    }]},
+    {
+      title: 'Supervised Learning Basics',
+      sections: [
+        {
+          learningObjectives: 'Explain supervised vs unsupervised learning',
+          topicSection: 'Classification, Regression, Training Sets',
+        },
+      ],
+    },
+    {
+      title: 'Decision Trees and Random Forests',
+      sections: [
+        {
+          learningObjectives: 'Implement decision tree classifiers and explain overfitting',
+          topicSection: 'Decision Trees, Pruning, Ensemble Methods',
+        },
+      ],
+    },
+    {
+      title: 'Neural Networks Fundamentals',
+      sections: [
+        {
+          learningObjectives: 'Describe the architecture of a feedforward neural network',
+          topicSection: 'Perceptrons, Activation Functions, Backpropagation',
+        },
+      ],
+    },
   ],
 };
 
 const DELIVERABLES = {
-  quizBank: { status: 'done', data: { quizzes: [
-    { lt: 'Supervised Learning Basics', qs: [
-      { q: 'What is supervised learning?', ty: 'multiple_choice', bl: 'Remember', df: 'easy', pt: 1, op: ['A','B','C','D'], an: 'A' },
-    ]},
-    { lt: 'Decision Trees and Random Forests', qs: [
-      { q: 'What prevents overfitting?', ty: 'multiple_choice', bl: 'Remember', df: 'easy', pt: 1, op: ['Pruning','A','B','C'], an: 'Pruning' },
-    ]},
-    { lt: 'Neural Networks Fundamentals', qs: [
-      { q: 'Activation function?', ty: 'short_answer', bl: 'Understand', df: 'medium', pt: 2, an: '...' },
-    ]},
-  ]}},
-  lessonPlans: { status: 'done', data: { lessonPlans: [
-    { lt: 'Supervised Learning Basics', ob: 'Explain supervised vs unsupervised' },
-    { lt: 'Decision Trees and Random Forests', ob: 'Implement decision tree classifiers' },
-    { lt: 'Neural Networks Fundamentals', ob: 'Describe feedforward architecture' },
-  ]}},
+  quizBank: {
+    status: 'done',
+    data: {
+      quizzes: [
+        {
+          lt: 'Supervised Learning Basics',
+          qs: [
+            {
+              q: 'What is supervised learning?',
+              ty: 'multiple_choice',
+              bl: 'Remember',
+              df: 'easy',
+              pt: 1,
+              op: ['A', 'B', 'C', 'D'],
+              an: 'A',
+            },
+          ],
+        },
+        {
+          lt: 'Decision Trees and Random Forests',
+          qs: [
+            {
+              q: 'What prevents overfitting?',
+              ty: 'multiple_choice',
+              bl: 'Remember',
+              df: 'easy',
+              pt: 1,
+              op: ['Pruning', 'A', 'B', 'C'],
+              an: 'Pruning',
+            },
+          ],
+        },
+        {
+          lt: 'Neural Networks Fundamentals',
+          qs: [{ q: 'Activation function?', ty: 'short_answer', bl: 'Understand', df: 'medium', pt: 2, an: '...' }],
+        },
+      ],
+    },
+  },
+  lessonPlans: {
+    status: 'done',
+    data: {
+      lessonPlans: [
+        { lt: 'Supervised Learning Basics', ob: 'Explain supervised vs unsupervised' },
+        { lt: 'Decision Trees and Random Forests', ob: 'Implement decision tree classifiers' },
+        { lt: 'Neural Networks Fundamentals', ob: 'Describe feedforward architecture' },
+      ],
+    },
+  },
 };
 
 async function callGemini(userMessage, { activeTab = 'quizBank', maxTokens = 4096 } = {}) {
@@ -89,13 +137,17 @@ async function callGemini(userMessage, { activeTab = 'quizBank', maxTokens = 409
   const candidate = json.candidates?.[0];
   const parts = candidate?.content?.parts || [];
   const toolCalls = parts
-    .filter(p => p.functionCall)
+    .filter((p) => p.functionCall)
     .map((p, i) => ({
       id: `google_${i}_${Date.now()}`,
       name: p.functionCall.name,
       args: p.functionCall.args || {},
     }));
-  const textContent = parts.filter(p => p.text).map(p => p.text).join('') || null;
+  const textContent =
+    parts
+      .filter((p) => p.text)
+      .map((p) => p.text)
+      .join('') || null;
   return {
     toolCalls: toolCalls.length > 0 ? toolCalls : null,
     textContent,
@@ -104,7 +156,9 @@ async function callGemini(userMessage, { activeTab = 'quizBank', maxTokens = 409
   };
 }
 
-function findToolCall(toolCalls, name) { return toolCalls?.find(tc => tc.name === name); }
+function findToolCall(toolCalls, name) {
+  return toolCalls?.find((tc) => tc.name === name);
+}
 
 describeWithKey(`Google (${GOOGLE_MODEL}) Agent E2E`, { timeout: TIMEOUT * 12 }, () => {
   it('answers a simple question correctly', { timeout: TIMEOUT }, async () => {
@@ -151,9 +205,10 @@ describeWithKey(`Google (${GOOGLE_MODEL}) Agent E2E`, { timeout: TIMEOUT * 12 },
 
   it('uses compare_deliverables for alignment questions', { timeout: TIMEOUT }, async () => {
     const r = await callGemini('Are the quiz questions aligned with the lesson plan objectives?');
-    const hadRelevantTool = findToolCall(r.toolCalls, 'compare_deliverables')
-      || findToolCall(r.toolCalls, 'validate_course')
-      || findToolCall(r.toolCalls, 'read_deliverable');
+    const hadRelevantTool =
+      findToolCall(r.toolCalls, 'compare_deliverables') ||
+      findToolCall(r.toolCalls, 'validate_course') ||
+      findToolCall(r.toolCalls, 'read_deliverable');
     expect(hadRelevantTool || r.textContent).toBeTruthy();
   });
 });

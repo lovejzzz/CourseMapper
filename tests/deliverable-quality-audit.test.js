@@ -51,36 +51,56 @@ const COURSE = {
   courseName: 'Introduction to Machine Learning',
   semester: 'Fall 2026',
   lessons: [
-    { title: 'Supervised Learning Basics', sections: [{
-      learningObjectives: 'Explain the difference between supervised and unsupervised learning; describe the bias-variance tradeoff.',
-      topicSection: 'Classification, Regression, Training/Test Split, Bias-Variance Tradeoff',
-      weeklyAssessments: 'In-class MCQ + short-answer quiz on supervised learning fundamentals',
-      asyncActivities: 'Read ISLR Ch. 1-2',
-      syncActivities: 'Hands-on scikit-learn notebook',
-    }]},
-    { title: 'Decision Trees and Random Forests', sections: [{
-      learningObjectives: 'Implement decision tree classifiers; explain overfitting and pruning; compare bagging vs boosting.',
-      topicSection: 'Decision Trees, Pruning, Gini/Entropy, Bagging, Boosting, Random Forests',
-      weeklyAssessments: 'Coding assignment: build a random forest classifier on a real dataset',
-      asyncActivities: 'Watch CS229 decision tree lecture',
-      syncActivities: 'Lab comparing tree models on Kaggle data',
-    }]},
-    { title: 'Neural Networks Fundamentals', sections: [{
-      learningObjectives: 'Describe the architecture of a feedforward neural network; derive backpropagation; explain activation functions.',
-      topicSection: 'Perceptrons, Activation Functions, Backpropagation, Gradient Descent',
-      weeklyAssessments: 'Written analysis comparing neural networks to tree-based methods',
-      asyncActivities: 'Complete 3Blue1Brown neural network series',
-      syncActivities: 'Build a perceptron from scratch in NumPy',
-    }]},
+    {
+      title: 'Supervised Learning Basics',
+      sections: [
+        {
+          learningObjectives:
+            'Explain the difference between supervised and unsupervised learning; describe the bias-variance tradeoff.',
+          topicSection: 'Classification, Regression, Training/Test Split, Bias-Variance Tradeoff',
+          weeklyAssessments: 'In-class MCQ + short-answer quiz on supervised learning fundamentals',
+          asyncActivities: 'Read ISLR Ch. 1-2',
+          syncActivities: 'Hands-on scikit-learn notebook',
+        },
+      ],
+    },
+    {
+      title: 'Decision Trees and Random Forests',
+      sections: [
+        {
+          learningObjectives:
+            'Implement decision tree classifiers; explain overfitting and pruning; compare bagging vs boosting.',
+          topicSection: 'Decision Trees, Pruning, Gini/Entropy, Bagging, Boosting, Random Forests',
+          weeklyAssessments: 'Coding assignment: build a random forest classifier on a real dataset',
+          asyncActivities: 'Watch CS229 decision tree lecture',
+          syncActivities: 'Lab comparing tree models on Kaggle data',
+        },
+      ],
+    },
+    {
+      title: 'Neural Networks Fundamentals',
+      sections: [
+        {
+          learningObjectives:
+            'Describe the architecture of a feedforward neural network; derive backpropagation; explain activation functions.',
+          topicSection: 'Perceptrons, Activation Functions, Backpropagation, Gradient Descent',
+          weeklyAssessments: 'Written analysis comparing neural networks to tree-based methods',
+          asyncActivities: 'Complete 3Blue1Brown neural network series',
+          syncActivities: 'Build a perceptron from scratch in NumPy',
+        },
+      ],
+    },
   ],
 };
 
 // Vocabulary that should show up in authentic ML content. Not exhaustive —
 // just enough to distinguish "real ML" from "generic framework filler".
-const ML_VOCAB = /gradient|loss|overfit|underfit|variance|bias|regulariz|ensemble|bagging|boosting|entropy|gini|prune|perceptron|activation|backprop|backpropagation|sigmoid|relu|softmax|classifier|regression|supervised|unsupervised|feature|training|test\s+set|cross[- ]valid|learning\s+rate|weight|neuron|layer/i;
+const ML_VOCAB =
+  /gradient|loss|overfit|underfit|variance|bias|regulariz|ensemble|bagging|boosting|entropy|gini|prune|perceptron|activation|backprop|backpropagation|sigmoid|relu|softmax|classifier|regression|supervised|unsupervised|feature|training|test\s+set|cross[- ]valid|learning\s+rate|weight|neuron|layer/i;
 
 // Red-flag placeholder/filler strings that should never appear in output.
-const PLACEHOLDER_RE = /\btbd\b|\bto\s+be\s+determined\b|\[insert[^\]]*\]|\[your\s+[^\]]+\]|lorem\s+ipsum|placeholder\s+(text|content)|example\s+(text|content|goes\s+here)|\.{3}\s*\.{3}/i;
+const PLACEHOLDER_RE =
+  /\btbd\b|\bto\s+be\s+determined\b|\[insert[^\]]*\]|\[your\s+[^\]]+\]|lorem\s+ipsum|placeholder\s+(text|content)|example\s+(text|content|goes\s+here)|\.{3}\s*\.{3}/i;
 
 async function callClaude(prompt, { maxTokens = 8192 } = {}) {
   const userText = prompt.user(COURSE, null, null, null);
@@ -97,12 +117,22 @@ async function callClaude(prompt, { maxTokens = 8192 } = {}) {
   });
   const json = await res.json();
   if (!res.ok) throw new Error(`Anthropic ${res.status}: ${json.error?.message || JSON.stringify(json)}`);
-  const text = (json.content || []).filter(b => b.type === 'text').map(b => b.text).join('');
+  const text = (json.content || [])
+    .filter((b) => b.type === 'text')
+    .map((b) => b.text)
+    .join('');
   // Strip markdown fences the model sometimes emits despite instructions.
-  const stripped = text.trim().replace(/^```(?:json)?\n?/, '').replace(/\n?```$/, '').trim();
+  const stripped = text
+    .trim()
+    .replace(/^```(?:json)?\n?/, '')
+    .replace(/\n?```$/, '')
+    .trim();
   let parsed;
-  try { parsed = JSON.parse(stripped); }
-  catch (e) { throw new Error(`JSON parse failed: ${e.message}\n---\n${stripped.slice(0, 300)}`); }
+  try {
+    parsed = JSON.parse(stripped);
+  } catch (e) {
+    throw new Error(`JSON parse failed: ${e.message}\n---\n${stripped.slice(0, 300)}`);
+  }
   return { data: parsed, raw: text, usage: json.usage };
 }
 
@@ -119,20 +149,26 @@ describeWithKey(`Deliverable quality — quizBank (${MODEL})`, { timeout: 300_00
     expect(data.quizzes.length, `expected 3 quizzes (one per lesson), got ${data.quizzes.length}`).toBe(3);
   });
 
-  it('every quiz has 5–7 questions spanning ≥3 Bloom\'s levels', () => {
+  it("every quiz has 5–7 questions spanning ≥3 Bloom's levels", () => {
     for (const quiz of data.quizzes || []) {
       const qs = quiz.qs || [];
       expect(qs.length, `"${quiz.lt}" has ${qs.length} questions; prompt requires 5–7`).toBeGreaterThanOrEqual(5);
       expect(qs.length).toBeLessThanOrEqual(7);
-      const blooms = new Set(qs.map(q => q.bl).filter(Boolean));
-      expect(blooms.size, `"${quiz.lt}" covers only ${[...blooms].join(', ')}; prompt requires ≥3 Bloom's levels`).toBeGreaterThanOrEqual(3);
+      const blooms = new Set(qs.map((q) => q.bl).filter(Boolean));
+      expect(
+        blooms.size,
+        `"${quiz.lt}" covers only ${[...blooms].join(', ')}; prompt requires ≥3 Bloom's levels`,
+      ).toBeGreaterThanOrEqual(3);
     }
   });
 
   it('every quiz includes at least one Evaluate or Create question (balance rule)', () => {
     for (const quiz of data.quizzes || []) {
-      const highLevel = (quiz.qs || []).filter(q => q.bl === 'Evaluate' || q.bl === 'Create');
-      expect(highLevel.length, `"${quiz.lt}" has ZERO Evaluate/Create questions (prompt marks this CRITICAL)`).toBeGreaterThanOrEqual(1);
+      const highLevel = (quiz.qs || []).filter((q) => q.bl === 'Evaluate' || q.bl === 'Create');
+      expect(
+        highLevel.length,
+        `"${quiz.lt}" has ZERO Evaluate/Create questions (prompt marks this CRITICAL)`,
+      ).toBeGreaterThanOrEqual(1);
     }
   });
 
@@ -153,11 +189,14 @@ describeWithKey(`Deliverable quality — quizBank (${MODEL})`, { timeout: 300_00
     for (const quiz of data.quizzes || []) {
       for (const q of quiz.qs || []) {
         if (q.ty === 'short_answer') {
-          expect(q.sa || q.an, `short_answer "${(q.q||'').slice(0,50)}..." missing model answer (sa or an)`).toBeTruthy();
+          expect(
+            q.sa || q.an,
+            `short_answer "${(q.q || '').slice(0, 50)}..." missing model answer (sa or an)`,
+          ).toBeTruthy();
         }
         if (q.ty === 'essay') {
-          expect(q.rh, `essay "${(q.q||'').slice(0,50)}..." missing rubricHints (rh)`).toBeTruthy();
-          expect(q.sa, `essay "${(q.q||'').slice(0,50)}..." missing sampleAnswer (sa)`).toBeTruthy();
+          expect(q.rh, `essay "${(q.q || '').slice(0, 50)}..." missing rubricHints (rh)`).toBeTruthy();
+          expect(q.sa, `essay "${(q.q || '').slice(0, 50)}..." missing sampleAnswer (sa)`).toBeTruthy();
           // Prompt says essay stem must include task verb + scope + constraints.
           expect(q.q.toLowerCase()).toMatch(/analyze|evaluate|argue|compare|critique|design|propose|explain/);
         }
@@ -168,19 +207,25 @@ describeWithKey(`Deliverable quality — quizBank (${MODEL})`, { timeout: 300_00
   it('no placeholder text (TBD, [insert], "example text") anywhere in quiz items', () => {
     for (const quiz of data.quizzes || []) {
       const blob = JSON.stringify(quiz);
-      expect(blob.match(PLACEHOLDER_RE), `"${quiz.lt}" contains placeholder text: ${blob.match(PLACEHOLDER_RE)?.[0]}`).toBeNull();
+      expect(
+        blob.match(PLACEHOLDER_RE),
+        `"${quiz.lt}" contains placeholder text: ${blob.match(PLACEHOLDER_RE)?.[0]}`,
+      ).toBeNull();
     }
   });
 
   it('content references real ML vocabulary, not generic filler', () => {
     const blob = JSON.stringify(data.quizzes);
     const vocabMatches = blob.match(new RegExp(ML_VOCAB, 'gi')) || [];
-    expect(vocabMatches.length, `quizBank output mentions ML vocabulary only ${vocabMatches.length}x across 3 lessons — expected substantial domain grounding`).toBeGreaterThan(8);
+    expect(
+      vocabMatches.length,
+      `quizBank output mentions ML vocabulary only ${vocabMatches.length}x across 3 lessons — expected substantial domain grounding`,
+    ).toBeGreaterThan(8);
   });
 
   it('question stems across a single quiz are actually distinct (no near-duplicates)', () => {
     for (const quiz of data.quizzes || []) {
-      const stems = (quiz.qs || []).map(q => (q.q || '').toLowerCase().slice(0, 60).trim());
+      const stems = (quiz.qs || []).map((q) => (q.q || '').toLowerCase().slice(0, 60).trim());
       const unique = new Set(stems);
       expect(unique.size, `"${quiz.lt}" has duplicate/near-duplicate stems: ${stems.join(' // ')}`).toBe(stems.length);
     }
@@ -217,16 +262,24 @@ describeWithKey(`Deliverable quality — slideDecks (${MODEL})`, { timeout: 600_
     const decks = data.decks || [];
     for (let i = 0; i < decks.length; i++) {
       const d = decks[i];
-      const types = (d.sl || []).map(s => s.ty);
+      const types = (d.sl || []).map((s) => s.ty);
       expect(types[0], `"${d.lt}" first slide is "${types[0]}", expected "title"`).toBe('title');
       expect(types[1], `"${d.lt}" second slide is "${types[1]}", expected "agenda"`).toBe('agenda');
       expect(types[2], `"${d.lt}" third slide is "${types[2]}", expected "objectives"`).toBe('objectives');
       if (i > 0) {
         // Deck for a later lesson — bridge expected at slide 4.
-        expect(types[3], `"${d.lt}" fourth slide is "${types[3]}", expected "bridge" (bridge is required for lessons 2+)`).toBe('bridge');
+        expect(
+          types[3],
+          `"${d.lt}" fourth slide is "${types[3]}", expected "bridge" (bridge is required for lessons 2+)`,
+        ).toBe('bridge');
       }
-      expect(types[types.length - 2], `"${d.lt}" second-to-last slide is "${types[types.length-2]}", expected "summary"`).toBe('summary');
-      expect(types[types.length - 1], `"${d.lt}" last slide is "${types[types.length-1]}", expected "closing"`).toBe('closing');
+      expect(
+        types[types.length - 2],
+        `"${d.lt}" second-to-last slide is "${types[types.length - 2]}", expected "summary"`,
+      ).toBe('summary');
+      expect(types[types.length - 1], `"${d.lt}" last slide is "${types[types.length - 1]}", expected "closing"`).toBe(
+        'closing',
+      );
     }
   });
 
@@ -245,7 +298,8 @@ describeWithKey(`Deliverable quality — slideDecks (${MODEL})`, { timeout: 600_
     // the first bullet. This matches the prompt's per-type rule and real
     // classroom deck UX.
     const ASSERTION_TYPES = new Set(['content', 'bridge', 'example']);
-    const COPULA_AUX = /^(is|are|was|were|be|been|being|has|have|had|can|must|should|will|shall|may|might|does|do|did)$/i;
+    const COPULA_AUX =
+      /^(is|are|was|were|be|been|being|has|have|had|can|must|should|will|shall|may|might|does|do|did)$/i;
     // A word is "verb-shaped" if it ends in a common verb suffix OR matches a copula/aux.
     const isVerbShape = (w) => COPULA_AUX.test(w) || /(?:s|es|ed|ing)$/.test(w);
     const violations = [];
@@ -259,11 +313,14 @@ describeWithKey(`Deliverable quality — slideDecks (${MODEL})`, { timeout: 600_
           continue;
         }
         // Look for verb-shaped word AFTER position 1 (subject typically first).
-        const hasVerb = words.slice(1).some(w => isVerbShape(w.replace(/[.,;:()]/g, '')));
+        const hasVerb = words.slice(1).some((w) => isVerbShape(w.replace(/[.,;:()]/g, '')));
         if (!hasVerb) violations.push(`[${d.lt} / ${s.ty}] "${t}"`);
       }
     }
-    expect(violations.length, `titles that aren't full assertions:\n  ${violations.slice(0, 6).join('\n  ')}`).toBeLessThanOrEqual(1);
+    expect(
+      violations.length,
+      `titles that aren't full assertions:\n  ${violations.slice(0, 6).join('\n  ')}`,
+    ).toBeLessThanOrEqual(1);
   });
 
   it('every speaker-notes block ends with a TRANSITION: cue (except the closing slide)', () => {
@@ -285,11 +342,15 @@ describeWithKey(`Deliverable quality — slideDecks (${MODEL})`, { timeout: 600_
     for (const d of data.decks || []) {
       for (const s of d.sl || []) {
         if (s.ty === 'title' || s.ty === 'agenda') continue; // short header notes are fine
-        const sentenceCount = (s.no || '').split(/(?<=[.!?])\s+/).filter(x => x.trim().length > 3).length;
-        if (sentenceCount < 4) shortNotes.push(`[${d.lt} / ${s.ty} "${(s.t||'').slice(0,40)}"] ${sentenceCount} sentences`);
+        const sentenceCount = (s.no || '').split(/(?<=[.!?])\s+/).filter((x) => x.trim().length > 3).length;
+        if (sentenceCount < 4)
+          shortNotes.push(`[${d.lt} / ${s.ty} "${(s.t || '').slice(0, 40)}"] ${sentenceCount} sentences`);
       }
     }
-    expect(shortNotes.length, `notes shorter than 4 sentences:\n  ${shortNotes.slice(0, 6).join('\n  ')}`).toBeLessThanOrEqual(2);
+    expect(
+      shortNotes.length,
+      `notes shorter than 4 sentences:\n  ${shortNotes.slice(0, 6).join('\n  ')}`,
+    ).toBeLessThanOrEqual(2);
   });
 
   it('bullets respect the "max 4 per content slide" cognitive-load rule', () => {
@@ -297,7 +358,8 @@ describeWithKey(`Deliverable quality — slideDecks (${MODEL})`, { timeout: 600_
     for (const d of data.decks || []) {
       for (const s of d.sl || []) {
         if (s.ty !== 'content') continue;
-        if ((s.bu || []).length > 4) overflowing.push(`[${d.lt} / "${(s.t||'').slice(0,40)}"] ${s.bu.length} bullets`);
+        if ((s.bu || []).length > 4)
+          overflowing.push(`[${d.lt} / "${(s.t || '').slice(0, 40)}"] ${s.bu.length} bullets`);
       }
     }
     expect(overflowing.length, `content slides with >4 bullets:\n  ${overflowing.join('\n  ')}`).toBe(0);
@@ -305,7 +367,7 @@ describeWithKey(`Deliverable quality — slideDecks (${MODEL})`, { timeout: 600_
 
   it('every deck includes at least one example, one activity-or-discussion, and one keyTerm slide', () => {
     for (const d of data.decks || []) {
-      const types = new Set((d.sl || []).map(s => s.ty));
+      const types = new Set((d.sl || []).map((s) => s.ty));
       expect(types.has('example'), `"${d.lt}" has no example slide`).toBe(true);
       expect(types.has('activity') || types.has('discussion'), `"${d.lt}" has no activity/discussion slide`).toBe(true);
       expect(types.has('keyTerm'), `"${d.lt}" has no keyTerm slide`).toBe(true);
@@ -352,7 +414,10 @@ describeWithKey(`Deliverable quality — slideDecks (${MODEL})`, { timeout: 600_
         }
       }
     }
-    expect(missing.length, `slides missing a proper visual:\n  ${missing.slice(0, 8).join('\n  ')}`).toBeLessThanOrEqual(1);
+    expect(
+      missing.length,
+      `slides missing a proper visual:\n  ${missing.slice(0, 8).join('\n  ')}`,
+    ).toBeLessThanOrEqual(1);
   });
 
   it('every slide has a time estimate that sums to roughly the session length', () => {
@@ -363,7 +428,9 @@ describeWithKey(`Deliverable quality — slideDecks (${MODEL})`, { timeout: 600_
         if (!t) missing.push(`[${d.lt || d.lessonTitle} / ${s.ty || s.type}] "${(s.t || s.title || '').slice(0, 40)}"`);
       }
     }
-    expect(missing.length, `slides missing timeEstimate:\n  ${missing.slice(0, 6).join('\n  ')}`).toBeLessThanOrEqual(1);
+    expect(missing.length, `slides missing timeEstimate:\n  ${missing.slice(0, 6).join('\n  ')}`).toBeLessThanOrEqual(
+      1,
+    );
   });
 });
 
@@ -384,7 +451,10 @@ describeWithKey(`Deliverable quality — lessonPlans (${MODEL})`, { timeout: 300
   it('each plan has non-trivial session outline with realistic timings', () => {
     for (const p of data.plans || []) {
       const outline = p.sessionOutline || p.outline || p.ol || [];
-      expect(outline.length, `"${p.lessonTitle || p.lt}" has only ${outline.length} outline segments`).toBeGreaterThanOrEqual(4);
+      expect(
+        outline.length,
+        `"${p.lessonTitle || p.lt}" has only ${outline.length} outline segments`,
+      ).toBeGreaterThanOrEqual(4);
       // Every segment should have both a duration and an activity label
       for (const seg of outline) {
         const dur = seg.duration || seg.dur || seg.tm;
@@ -421,9 +491,9 @@ describeWithKey(`Deliverable quality — rubrics (${MODEL})`, { timeout: 300_000
 
   it('every criterion has a full 4-level scale with descriptions', () => {
     for (const rub of data.rubrics || []) {
-      for (const c of (rub.criteria || rub.cr || [])) {
+      for (const c of rub.criteria || rub.cr || []) {
         const levels = c.levels || [];
-        const hasFlatLevels = ['ex', 'pr', 'dv', 'bg'].every(k => typeof c[k] === 'string' && c[k].length > 10);
+        const hasFlatLevels = ['ex', 'pr', 'dv', 'bg'].every((k) => typeof c[k] === 'string' && c[k].length > 10);
         if (!hasFlatLevels && levels.length < 3) {
           throw new Error(`criterion "${c.name || c.cn}" missing full scale. Got levels=${JSON.stringify(levels)}`);
         }
@@ -438,7 +508,7 @@ describeWithKey(`Deliverable quality — rubrics (${MODEL})`, { timeout: 300_000
     // the prompt requires at the end of every level description.
     const missing = [];
     for (const rub of data.rubrics || []) {
-      for (const c of (rub.criteria || rub.cr || [])) {
+      for (const c of rub.criteria || rub.cr || []) {
         // Flat {ex, pr, dv, bg} shape first
         for (const key of ['ex', 'pr', 'dv', 'bg']) {
           const txt = c[key];
@@ -447,7 +517,7 @@ describeWithKey(`Deliverable quality — rubrics (${MODEL})`, { timeout: 300_000
           }
         }
         // Nested levels[] shape
-        for (const l of (c.levels || [])) {
+        for (const l of c.levels || []) {
           const txt = l.description || '';
           if (txt.length > 10 && !/\be\.\s*g\./i.test(txt)) {
             missing.push(`[${c.name || c.cn} · ${l.label || l.level}]`);
@@ -455,7 +525,10 @@ describeWithKey(`Deliverable quality — rubrics (${MODEL})`, { timeout: 300_000
         }
       }
     }
-    expect(missing.length, `rubric cells missing "e.g." evidence example:\n  ${missing.slice(0, 8).join('\n  ')}`).toBeLessThanOrEqual(2);
+    expect(
+      missing.length,
+      `rubric cells missing "e.g." evidence example:\n  ${missing.slice(0, 8).join('\n  ')}`,
+    ).toBeLessThanOrEqual(2);
   });
 });
 
@@ -488,7 +561,7 @@ describeWithKey(`Deliverable quality — assignments (${MODEL})`, { timeout: 300
     // the scaffolding reads as a coaching timeline, not just a list of due
     // dates. Point value (pt/points) can be 0 for formative-only.
     const bad = [];
-    for (const a of (data.assignments || [])) {
+    for (const a of data.assignments || []) {
       const ms = a.scaffoldingMilestones || a.sm || [];
       if (ms.length === 0) continue;
       for (const m of ms) {

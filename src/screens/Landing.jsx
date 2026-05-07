@@ -7,9 +7,26 @@ import UserMenu from '../components/UserMenu';
 import DarkModeToggle from '../components/DarkModeToggle';
 
 const ACCEPTED_EXTENSIONS = [
-  '.doc', '.docx', '.pdf', '.txt', '.md', '.csv', '.rtf',
-  '.html', '.htm', '.xlsx', '.xls', '.ods',
-  '.ppt', '.pptx', '.odp', '.odt', '.epub', '.key', '.pages', '.zip',
+  '.doc',
+  '.docx',
+  '.pdf',
+  '.txt',
+  '.md',
+  '.csv',
+  '.rtf',
+  '.html',
+  '.htm',
+  '.xlsx',
+  '.xls',
+  '.ods',
+  '.ppt',
+  '.pptx',
+  '.odp',
+  '.odt',
+  '.epub',
+  '.key',
+  '.pages',
+  '.zip',
 ];
 
 const PROJECT_EXTENSIONS = ['.coursemapper', '.json'];
@@ -36,7 +53,9 @@ export default function Landing({
   canGenerate,
   isGenerating,
   // Session restore
-  hasSavedSession, onRestoreSession, onDismissSavedSession,
+  hasSavedSession,
+  onRestoreSession,
+  onDismissSavedSession,
   // Import course map
   onImportCourseMap,
   // Open full .coursemapper project file
@@ -69,25 +88,28 @@ export default function Landing({
     }
   }, [apiStatus]);
 
-  const handleDrop = useCallback((e) => {
-    e.preventDefault();
-    setIsDragging(false);
-    setProjectDragging(false);
-    const allFiles = Array.from(e.dataTransfer.files);
-    // If a .coursemapper file is dropped, open it as a full project
-    const projectFile = allFiles.find(isProjectFile);
-    if (projectFile && onOpenProject) {
-      onOpenProject(projectFile);
-      return;
-    }
-    const dropped = allFiles.filter(isValidFile);
-    if (dropped.length > 0) setFiles(prev => [...prev, ...dropped]);
-  }, [setFiles, onOpenProject]);
+  const handleDrop = useCallback(
+    (e) => {
+      e.preventDefault();
+      setIsDragging(false);
+      setProjectDragging(false);
+      const allFiles = Array.from(e.dataTransfer.files);
+      // If a .coursemapper file is dropped, open it as a full project
+      const projectFile = allFiles.find(isProjectFile);
+      if (projectFile && onOpenProject) {
+        onOpenProject(projectFile);
+        return;
+      }
+      const dropped = allFiles.filter(isValidFile);
+      if (dropped.length > 0) setFiles((prev) => [...prev, ...dropped]);
+    },
+    [setFiles, onOpenProject],
+  );
 
   const handleDragOver = useCallback((e) => {
     e.preventDefault();
     const files = Array.from(e.dataTransfer.items || []);
-    const hasProject = files.some(item => {
+    const hasProject = files.some((item) => {
       const name = item.getAsFile?.()?.name || '';
       return name.endsWith('.coursemapper') || name.endsWith('.json');
     });
@@ -101,23 +123,29 @@ export default function Landing({
     setProjectDragging(false);
   }, []);
 
-  const handleFileInput = useCallback((e) => {
-    const allFiles = Array.from(e.target.files);
-    // If a .coursemapper file is selected, open it as a full project
-    const projectFile = allFiles.find(isProjectFile);
-    if (projectFile && onOpenProject) {
-      onOpenProject(projectFile);
+  const handleFileInput = useCallback(
+    (e) => {
+      const allFiles = Array.from(e.target.files);
+      // If a .coursemapper file is selected, open it as a full project
+      const projectFile = allFiles.find(isProjectFile);
+      if (projectFile && onOpenProject) {
+        onOpenProject(projectFile);
+        e.target.value = '';
+        return;
+      }
+      const selected = allFiles.filter(isValidFile);
+      if (selected.length > 0) setFiles((prev) => [...prev, ...selected]);
       e.target.value = '';
-      return;
-    }
-    const selected = allFiles.filter(isValidFile);
-    if (selected.length > 0) setFiles(prev => [...prev, ...selected]);
-    e.target.value = '';
-  }, [setFiles, onOpenProject]);
+    },
+    [setFiles, onOpenProject],
+  );
 
-  const removeFile = useCallback((index) => {
-    setFiles(prev => prev.filter((_, i) => i !== index));
-  }, [setFiles]);
+  const removeFile = useCallback(
+    (index) => {
+      setFiles((prev) => prev.filter((_, i) => i !== index));
+    },
+    [setFiles],
+  );
 
   // Build a summary label for the collapsed AI config bar
   const configSummaryLabel = (() => {
@@ -168,13 +196,22 @@ export default function Landing({
             <div className="flex flex-wrap items-center justify-center gap-2 animate-fade-up">
               <span className="text-[10px] font-semibold text-slate-300 uppercase tracking-wider mr-1">Try:</span>
               {[
-                { label: '🧠 Intro to Psychology', text: 'Introduction to Psychology, 15-week undergraduate course. Covers history of psychology, research methods, biological bases of behavior, sensation and perception, states of consciousness, learning, memory, cognition, development, motivation, emotion, social psychology, and abnormal psychology.' },
-                { label: '📊 Research Methods', text: 'Research Methods in Social Sciences, 12-week graduate seminar. Covers qualitative and quantitative approaches, research design, survey methods, interviews, ethnography, statistical analysis, ethical considerations, and writing research proposals.' },
-                { label: '🌍 Social Policy', text: 'Social Policy and Welfare, 14-week undergraduate course. Covers history of social welfare, policy analysis frameworks, healthcare policy, housing policy, income support, child welfare, aging policy, and advocacy skills.' },
+                {
+                  label: '🧠 Intro to Psychology',
+                  text: 'Introduction to Psychology, 15-week undergraduate course. Covers history of psychology, research methods, biological bases of behavior, sensation and perception, states of consciousness, learning, memory, cognition, development, motivation, emotion, social psychology, and abnormal psychology.',
+                },
+                {
+                  label: '📊 Research Methods',
+                  text: 'Research Methods in Social Sciences, 12-week graduate seminar. Covers qualitative and quantitative approaches, research design, survey methods, interviews, ethnography, statistical analysis, ethical considerations, and writing research proposals.',
+                },
+                {
+                  label: '🌍 Social Policy',
+                  text: 'Social Policy and Welfare, 14-week undergraduate course. Covers history of social welfare, policy analysis frameworks, healthcare policy, housing policy, income support, child welfare, aging policy, and advocacy skills.',
+                },
               ].map(({ label, text }) => (
                 <button
                   key={label}
-                  onClick={() => onExampleSelect ? onExampleSelect(text) : setPromptText(text)}
+                  onClick={() => (onExampleSelect ? onExampleSelect(text) : setPromptText(text))}
                   className="tactile flex items-center gap-1.5 px-3 py-1.5 rounded-full bg-white/60 border border-slate-200/60 text-[11px] font-medium text-slate-500 hover:text-indigo-600 hover:border-indigo-200 hover:bg-indigo-50/40 transition-all duration-200"
                 >
                   {label}
@@ -188,7 +225,12 @@ export default function Landing({
             <div className="flex items-center gap-3 px-4 py-3 rounded-squircle-xs bg-white/50 border border-indigo-200/40 animate-spring-in">
               <div className="w-8 h-8 rounded-squircle-xs bg-indigo-100/80 flex items-center justify-center flex-shrink-0">
                 <svg className="w-4 h-4 text-indigo-500" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 8v4l3 3m6-3a9 9 0 11-18 0 9 9 0 0118 0z" />
+                  <path
+                    strokeLinecap="round"
+                    strokeLinejoin="round"
+                    strokeWidth={2}
+                    d="M12 8v4l3 3m6-3a9 9 0 11-18 0 9 9 0 0118 0z"
+                  />
                 </svg>
               </div>
               <div className="flex-1 min-w-0">
@@ -200,7 +242,12 @@ export default function Landing({
                 className="tactile flex items-center gap-1.5 px-3.5 py-2 rounded-lg text-[11px] font-semibold text-white bg-gradient-to-r from-indigo-500 to-violet-500 shadow-sm hover:brightness-[1.06] transition-all"
               >
                 <svg className="w-3.5 h-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M4 4v5h.582m15.356 2A8.001 8.001 0 004.582 9m0 0H9m11 11v-5h-.581m0 0a8.003 8.003 0 01-15.357-2m15.357 2H15" />
+                  <path
+                    strokeLinecap="round"
+                    strokeLinejoin="round"
+                    strokeWidth={2}
+                    d="M4 4v5h.582m15.356 2A8.001 8.001 0 004.582 9m0 0H9m11 11v-5h-.581m0 0a8.003 8.003 0 01-15.357-2m15.357 2H15"
+                  />
                 </svg>
                 Resume
               </button>
@@ -232,9 +279,10 @@ export default function Landing({
             <textarea
               value={promptText}
               onChange={(e) => setPromptText(e.target.value)}
-              placeholder={files.length > 0
-                ? 'Add any extra context or instructions... (optional)'
-                : 'Describe your course, or drop a syllabus above — e.g. "Intro to Psychology, 15 weeks, undergrad"'
+              placeholder={
+                files.length > 0
+                  ? 'Add any extra context or instructions... (optional)'
+                  : 'Describe your course, or drop a syllabus above — e.g. "Intro to Psychology, 15 weeks, undergrad"'
               }
               rows={files.length > 0 ? 2 : 4}
               className="w-full bg-transparent px-4 pt-4 pb-2 text-sm resize-none focus:outline-none placeholder:text-slate-400/60"
@@ -256,7 +304,10 @@ export default function Landing({
                       )}
                     </div>
                     <button
-                      onClick={(e) => { e.stopPropagation(); removeFile(i); }}
+                      onClick={(e) => {
+                        e.stopPropagation();
+                        removeFile(i);
+                      }}
                       className="text-slate-300 hover:text-red-400 transition-colors ml-2 flex-shrink-0"
                     >
                       <svg className="w-3 h-3" fill="none" stroke="currentColor" viewBox="0 0 24 24">
@@ -276,15 +327,28 @@ export default function Landing({
                 className="tactile flex items-center gap-1.5 px-3 py-1.5 rounded-lg text-[11px] font-medium text-slate-400 hover:text-indigo-600 hover:bg-indigo-50/50 transition-all duration-200"
               >
                 <svg className="w-3.5 h-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M15.172 7l-6.586 6.586a2 2 0 102.828 2.828l6.414-6.586a4 4 0 00-5.656-5.656l-6.415 6.585a6 6 0 108.486 8.486L20.5 13" />
+                  <path
+                    strokeLinecap="round"
+                    strokeLinejoin="round"
+                    strokeWidth={2}
+                    d="M15.172 7l-6.586 6.586a2 2 0 102.828 2.828l6.414-6.586a4 4 0 00-5.656-5.656l-6.415 6.585a6 6 0 108.486 8.486L20.5 13"
+                  />
                 </svg>
                 {files.length > 0 ? 'Add files' : 'Attach files'}
               </button>
               <span className="text-[10px] text-slate-300 text-right">
-                {isDragging
-                  ? 'Drop to attach'
-                  : <>.pdf .docx .xlsx .pptx .txt and more<br/><span className="text-slate-300/60">or drop a <span className="font-medium text-emerald-400/70">.coursemapper</span> file to resume a project</span></>
-                }
+                {isDragging ? (
+                  'Drop to attach'
+                ) : (
+                  <>
+                    .pdf .docx .xlsx .pptx .txt and more
+                    <br />
+                    <span className="text-slate-300/60">
+                      or drop a <span className="font-medium text-emerald-400/70">.coursemapper</span> file to resume a
+                      project
+                    </span>
+                  </>
+                )}
               </span>
             </div>
 
@@ -302,8 +366,12 @@ export default function Landing({
               <div className="absolute inset-0 rounded-squircle-sm bg-indigo-500/5 flex items-center justify-center pointer-events-none">
                 <div className="flex items-center gap-2 text-sm font-medium text-indigo-500">
                   <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={1.5}
-                      d="M7 16a4 4 0 01-.88-7.903A5 5 0 1115.9 6L16 6a5 5 0 011 9.9M15 13l-3-3m0 0l-3 3m3-3v12" />
+                    <path
+                      strokeLinecap="round"
+                      strokeLinejoin="round"
+                      strokeWidth={1.5}
+                      d="M7 16a4 4 0 01-.88-7.903A5 5 0 1115.9 6L16 6a5 5 0 011 9.9M15 13l-3-3m0 0l-3 3m3-3v12"
+                    />
                   </svg>
                   Drop course files or .coursemapper project
                 </div>
@@ -336,7 +404,12 @@ export default function Landing({
                 className="tactile flex items-center gap-1 text-indigo-500 hover:text-indigo-700 transition-colors duration-150"
               >
                 <svg className="w-3.5 h-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M15.232 5.232l3.536 3.536m-2.036-5.036a2.5 2.5 0 113.536 3.536L6.5 21.036H3v-3.572L16.732 3.732z" />
+                  <path
+                    strokeLinecap="round"
+                    strokeLinejoin="round"
+                    strokeWidth={2}
+                    d="M15.232 5.232l3.536 3.536m-2.036-5.036a2.5 2.5 0 113.536 3.536L6.5 21.036H3v-3.572L16.732 3.732z"
+                  />
                 </svg>
                 Edit
               </button>
@@ -395,11 +468,17 @@ export default function Landing({
           Built by the Educational Technology team at NYU Silver School of Social Work
         </p>
         <div className="flex items-center justify-center gap-3 text-[10px] text-slate-300/70">
-          <a href="#/changelog" className="font-medium hover:text-indigo-500 transition-colors duration-200">v0.5</a>
+          <a href="#/changelog" className="font-medium hover:text-indigo-500 transition-colors duration-200">
+            v0.5
+          </a>
           <span>·</span>
-          <a href="#/privacy" className="hover:text-indigo-500 transition-colors duration-200">Privacy</a>
+          <a href="#/privacy" className="hover:text-indigo-500 transition-colors duration-200">
+            Privacy
+          </a>
           <span>·</span>
-          <a href="#/terms" className="hover:text-indigo-500 transition-colors duration-200">Terms</a>
+          <a href="#/terms" className="hover:text-indigo-500 transition-colors duration-200">
+            Terms
+          </a>
         </div>
       </footer>
     </div>
@@ -408,18 +487,34 @@ export default function Landing({
 
 function FileIcon({ ext }) {
   const colors = {
-    doc: 'text-blue-500', docx: 'text-blue-500', odt: 'text-blue-400', rtf: 'text-blue-400',
-    pdf: 'text-red-500', txt: 'text-slate-500', md: 'text-slate-500', csv: 'text-slate-500',
-    html: 'text-orange-500', htm: 'text-orange-500',
-    xlsx: 'text-green-500', xls: 'text-green-500', ods: 'text-green-400',
-    ppt: 'text-amber-500', pptx: 'text-amber-500', odp: 'text-amber-400',
-    epub: 'text-purple-500', zip: 'text-slate-600',
+    doc: 'text-blue-500',
+    docx: 'text-blue-500',
+    odt: 'text-blue-400',
+    rtf: 'text-blue-400',
+    pdf: 'text-red-500',
+    txt: 'text-slate-500',
+    md: 'text-slate-500',
+    csv: 'text-slate-500',
+    html: 'text-orange-500',
+    htm: 'text-orange-500',
+    xlsx: 'text-green-500',
+    xls: 'text-green-500',
+    ods: 'text-green-400',
+    ppt: 'text-amber-500',
+    pptx: 'text-amber-500',
+    odp: 'text-amber-400',
+    epub: 'text-purple-500',
+    zip: 'text-slate-600',
   };
   return (
     <div className={`flex-shrink-0 ${colors[ext] || 'text-slate-400'}`}>
       <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-        <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={1.5}
-          d="M9 12h6m-6 4h6m2 5H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z" />
+        <path
+          strokeLinecap="round"
+          strokeLinejoin="round"
+          strokeWidth={1.5}
+          d="M9 12h6m-6 4h6m2 5H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z"
+        />
       </svg>
     </div>
   );

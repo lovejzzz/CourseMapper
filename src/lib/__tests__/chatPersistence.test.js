@@ -8,9 +8,15 @@ const localStorageMock = (() => {
   let store = {};
   return {
     getItem: vi.fn((key) => store[key] || null),
-    setItem: vi.fn((key, value) => { store[key] = String(value); }),
-    removeItem: vi.fn((key) => { delete store[key]; }),
-    clear: vi.fn(() => { store = {}; }),
+    setItem: vi.fn((key, value) => {
+      store[key] = String(value);
+    }),
+    removeItem: vi.fn((key) => {
+      delete store[key];
+    }),
+    clear: vi.fn(() => {
+      store = {};
+    }),
   };
 })();
 Object.defineProperty(globalThis, 'localStorage', { value: localStorageMock });
@@ -72,15 +78,14 @@ describe('saveConversation + loadConversation', () => {
   });
 
   it('sanitizes older saved conversations while loading them', () => {
-    localStorage.setItem('coursemapper-conversations:old-secret', JSON.stringify([
-      { role: 'imageSearch', apiKey: 'sk-old-secret', imageSearch: { query: 'loops' } },
-    ]));
+    localStorage.setItem(
+      'coursemapper-conversations:old-secret',
+      JSON.stringify([{ role: 'imageSearch', apiKey: 'sk-old-secret', imageSearch: { query: 'loops' } }]),
+    );
 
     const loaded = loadConversation('old-secret');
 
-    expect(loaded).toEqual([
-      { role: 'imageSearch', imageSearch: { query: 'loops' } },
-    ]);
+    expect(loaded).toEqual([{ role: 'imageSearch', imageSearch: { query: 'loops' } }]);
     expect(localStorage.getItem('coursemapper-conversations:old-secret')).not.toContain('sk-old-secret');
   });
 
@@ -93,11 +98,18 @@ describe('saveConversation + loadConversation', () => {
 
   it('updates existing conversation', () => {
     saveConversation('test-3', [{ role: 'user', text: 'v1' }], 'First');
-    saveConversation('test-3', [{ role: 'user', text: 'v1' }, { role: 'assistant', text: 'v2' }], 'Updated');
+    saveConversation(
+      'test-3',
+      [
+        { role: 'user', text: 'v1' },
+        { role: 'assistant', text: 'v2' },
+      ],
+      'Updated',
+    );
     const convs = listConversations();
-    expect(convs.filter(c => c.id === 'test-3')).toHaveLength(1);
-    expect(convs.find(c => c.id === 'test-3').title).toBe('Updated');
-    expect(convs.find(c => c.id === 'test-3').messageCount).toBe(2);
+    expect(convs.filter((c) => c.id === 'test-3')).toHaveLength(1);
+    expect(convs.find((c) => c.id === 'test-3').title).toBe('Updated');
+    expect(convs.find((c) => c.id === 'test-3').messageCount).toBe(2);
   });
 
   it('returns null for non-existent conversation', () => {
@@ -123,7 +135,7 @@ describe('deleteConversation', () => {
   it('removes a conversation', () => {
     saveConversation('del-1', [{ role: 'user', text: 'Delete me' }], 'To Delete');
     deleteConversation('del-1');
-    expect(listConversations().find(c => c.id === 'del-1')).toBeUndefined();
+    expect(listConversations().find((c) => c.id === 'del-1')).toBeUndefined();
     expect(loadConversation('del-1')).toBeNull();
   });
 });

@@ -19,9 +19,10 @@ export const PEDAGOGICAL_MODES = [
     name: 'Lecture-Based',
     label: 'Lecture-Based', // alias for backward compat
     icon: '\uD83C\uDF93',
-    description: 'Traditional instructor-led sessions. Standard outline format with lecture, activities, and assessments.',
+    description:
+      'Traditional instructor-led sessions. Standard outline format with lecture, activities, and assessments.',
     color: 'indigo',
-    systemPromptAddition: '',  // No addition — default behavior
+    systemPromptAddition: '', // No addition — default behavior
     lessonPlanStructureNote: '',
     courseMapNote: '',
   },
@@ -41,8 +42,7 @@ export const PEDAGOGICAL_MODES = [
       `Structure each lesson plan with two main sections: ` +
       `(1) PRE-CLASS CONTENT — what students watch/read/do before class (videos, readings, short assignments, mini-quizzes) and ` +
       `(2) IN-CLASS APPLICATION — active learning activities, problem-solving, peer teaching, and discussions that apply the pre-class content.`,
-    courseMapNote:
-      `Add "preClassContent" (string: pre-class assignment description) and "inClassApplication" (string: in-class activity description) fields to each section in the course map.`,
+    courseMapNote: `Add "preClassContent" (string: pre-class assignment description) and "inClassApplication" (string: in-class activity description) fields to each section in the course map.`,
   },
   {
     id: 'pbl',
@@ -64,8 +64,7 @@ export const PEDAGOGICAL_MODES = [
       `(3) INQUIRY QUESTIONS — what students need to find out ` +
       `(4) RESOURCES & INVESTIGATION — materials and approaches ` +
       `(5) SOLUTION SYNTHESIS — how groups present and discuss their findings`,
-    courseMapNote:
-      `Add "caseStudy" (string: the driving problem/case for this lesson) and "inquiryQuestions" (array of strings: guiding questions) to each lesson section.`,
+    courseMapNote: `Add "caseStudy" (string: the driving problem/case for this lesson) and "inquiryQuestions" (array of strings: guiding questions) to each lesson section.`,
   },
   {
     id: 'seminar',
@@ -87,8 +86,7 @@ export const PEDAGOGICAL_MODES = [
       `(3) DISCUSSION ARC — how the conversation will unfold (opening, development, synthesis, closing) ` +
       `(4) FACILITATION MOVES — instructor interventions and probing questions ` +
       `(5) POST-SEMINAR REFLECTION — individual or written synthesis`,
-    courseMapNote:
-      `Add "seminarReadings" (array of strings: required readings for this session) and "discussionArc" (string: how the seminar discussion will unfold) to each lesson section.`,
+    courseMapNote: `Add "seminarReadings" (array of strings: required readings for this session) and "discussionArc" (string: how the seminar discussion will unfold) to each lesson section.`,
   },
   {
     id: 'competency',
@@ -114,8 +112,7 @@ export const PEDAGOGICAL_MODES = [
       `(4) PRACTICE ATTEMPTS — low-stakes formative checks with feedback ` +
       `(5) MASTERY DEMONSTRATION — the summative assessment ` +
       `(6) REMEDIATION PLAN — alternative pathways for students who don't reach threshold`,
-    courseMapNote:
-      `Add "competencyStatement" (string), "masteryThreshold" (string: e.g., "80% on 3 attempts"), "assessmentMethod" (string), and "remediation" (string) to each lesson section. Remove or de-emphasize weekly time allocations.`,
+    courseMapNote: `Add "competencyStatement" (string), "masteryThreshold" (string: e.g., "80% on 3 attempts"), "assessmentMethod" (string), and "remediation" (string) to each lesson section. Remove or de-emphasize weekly time allocations.`,
   },
 ];
 
@@ -125,7 +122,7 @@ export const PEDAGOGICAL_MODES = [
  * @returns {object}
  */
 export function getMode(id) {
-  return PEDAGOGICAL_MODES.find(m => m.id === id) || PEDAGOGICAL_MODES[0];
+  return PEDAGOGICAL_MODES.find((m) => m.id === id) || PEDAGOGICAL_MODES[0];
 }
 
 /**

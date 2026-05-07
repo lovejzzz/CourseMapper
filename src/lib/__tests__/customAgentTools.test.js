@@ -3,20 +3,36 @@
  */
 import { describe, it, expect, beforeEach, vi } from 'vitest';
 import {
-  createCustomToolRegistry, substitute, runPlan,
-  exportCustomTool, parseExportedTool,
-  createSkillNudgeTracker, SKILL_NUDGE_HINT,
-  SKILL_NUDGE_CALL_THRESHOLD, SKILL_NUDGE_ACTION_THRESHOLD,
-  CREATE_TOOL_JSON_SCHEMA, RUN_TOOL_JSON_SCHEMA,
+  createCustomToolRegistry,
+  substitute,
+  runPlan,
+  exportCustomTool,
+  parseExportedTool,
+  createSkillNudgeTracker,
+  SKILL_NUDGE_HINT,
+  SKILL_NUDGE_CALL_THRESHOLD,
+  SKILL_NUDGE_ACTION_THRESHOLD,
+  CREATE_TOOL_JSON_SCHEMA,
+  RUN_TOOL_JSON_SCHEMA,
 } from '../customAgentTools';
 
 // Minimal localStorage polyfill so the registry's save/load path is exercised.
 class FakeStorage {
-  constructor() { this.store = {}; }
-  getItem(k) { return k in this.store ? this.store[k] : null; }
-  setItem(k, v) { this.store[k] = String(v); }
-  removeItem(k) { delete this.store[k]; }
-  clear() { this.store = {}; }
+  constructor() {
+    this.store = {};
+  }
+  getItem(k) {
+    return k in this.store ? this.store[k] : null;
+  }
+  setItem(k, v) {
+    this.store[k] = String(v);
+  }
+  removeItem(k) {
+    delete this.store[k];
+  }
+  clear() {
+    this.store = {};
+  }
 }
 
 beforeEach(() => {
@@ -35,7 +51,7 @@ describe('createCustomToolRegistry', () => {
     const reg = createCustomToolRegistry();
     const res = reg.register(
       { name: 'audit_bloom', description: 'd', plan: VALID_PLAN },
-      { existingToolNames: BUILTINS }
+      { existingToolNames: BUILTINS },
     );
     expect(res.ok).toBe(true);
     expect(reg.has('audit_bloom')).toBe(true);
@@ -45,27 +61,38 @@ describe('createCustomToolRegistry', () => {
   });
 
   it('hydrates from localStorage by default on creation', () => {
-    globalThis.localStorage.setItem('coursemapper-custom-tools', JSON.stringify({
-      foo: { name: 'foo', description: 'd', plan: VALID_PLAN, createdAt: 1 },
-    }));
+    globalThis.localStorage.setItem(
+      'coursemapper-custom-tools',
+      JSON.stringify({
+        foo: { name: 'foo', description: 'd', plan: VALID_PLAN, createdAt: 1 },
+      }),
+    );
     const reg = createCustomToolRegistry();
     expect(reg.has('foo')).toBe(true);
     expect(reg.list()).toHaveLength(1);
   });
 
   it('accepts an explicit initial array and skips localStorage', () => {
-    globalThis.localStorage.setItem('coursemapper-custom-tools', JSON.stringify({
-      old: { name: 'old', description: 'd', plan: VALID_PLAN, createdAt: 1 },
-    }));
-    const reg = createCustomToolRegistry({ initial: [{ name: 'new', description: 'd', plan: VALID_PLAN, createdAt: 2 }] });
+    globalThis.localStorage.setItem(
+      'coursemapper-custom-tools',
+      JSON.stringify({
+        old: { name: 'old', description: 'd', plan: VALID_PLAN, createdAt: 1 },
+      }),
+    );
+    const reg = createCustomToolRegistry({
+      initial: [{ name: 'new', description: 'd', plan: VALID_PLAN, createdAt: 2 }],
+    });
     expect(reg.has('old')).toBe(false);
     expect(reg.has('new')).toBe(true);
   });
 
   it('skips localStorage when hydrateFromLocalStorage is false', () => {
-    globalThis.localStorage.setItem('coursemapper-custom-tools', JSON.stringify({
-      foo: { name: 'foo', description: 'd', plan: VALID_PLAN, createdAt: 1 },
-    }));
+    globalThis.localStorage.setItem(
+      'coursemapper-custom-tools',
+      JSON.stringify({
+        foo: { name: 'foo', description: 'd', plan: VALID_PLAN, createdAt: 1 },
+      }),
+    );
     const reg = createCustomToolRegistry({ hydrateFromLocalStorage: false });
     expect(reg.list()).toEqual([]);
   });
@@ -95,7 +122,7 @@ describe('createCustomToolRegistry', () => {
     const reg = createCustomToolRegistry();
     const res = reg.register(
       { name: 'read_deliverable', description: 'd', plan: VALID_PLAN },
-      { existingToolNames: BUILTINS }
+      { existingToolNames: BUILTINS },
     );
     expect(res.ok).toBe(false);
     expect(res.error).toMatch(/built-in/i);
@@ -105,7 +132,7 @@ describe('createCustomToolRegistry', () => {
     const reg = createCustomToolRegistry();
     const res = reg.register(
       { name: 'bad', description: 'd', plan: [{ id: 's1', tool: 'nonexistent', args: {} }] },
-      { existingToolNames: BUILTINS }
+      { existingToolNames: BUILTINS },
     );
     expect(res.ok).toBe(false);
     expect(res.error).toMatch(/unknown tool/i);
@@ -114,11 +141,15 @@ describe('createCustomToolRegistry', () => {
   it('rejects duplicate step ids inside a plan', () => {
     const reg = createCustomToolRegistry();
     const res = reg.register(
-      { name: 'dup', description: 'd', plan: [
-        { id: 'a', tool: 'read_deliverable', args: {} },
-        { id: 'a', tool: 'validate_course', args: {} },
-      ]},
-      { existingToolNames: BUILTINS }
+      {
+        name: 'dup',
+        description: 'd',
+        plan: [
+          { id: 'a', tool: 'read_deliverable', args: {} },
+          { id: 'a', tool: 'validate_course', args: {} },
+        ],
+      },
+      { existingToolNames: BUILTINS },
     );
     expect(res.ok).toBe(false);
     expect(res.error).toMatch(/duplicate step id/i);
@@ -127,10 +158,7 @@ describe('createCustomToolRegistry', () => {
   it('enforces the 8-step plan cap', () => {
     const bigPlan = Array.from({ length: 9 }, (_, i) => ({ id: `s${i}`, tool: 'validate_course', args: {} }));
     const reg = createCustomToolRegistry();
-    const res = reg.register(
-      { name: 'big', description: 'd', plan: bigPlan },
-      { existingToolNames: BUILTINS }
-    );
+    const res = reg.register({ name: 'big', description: 'd', plan: bigPlan }, { existingToolNames: BUILTINS });
     expect(res.ok).toBe(false);
     expect(res.error).toMatch(/max 8/);
   });
@@ -194,7 +222,7 @@ describe('runPlan()', () => {
   });
 
   it('short-circuits and reports which step failed', async () => {
-    const invokeBuiltin = async (name) => name === 'validate_course' ? { error: 'boom' } : {};
+    const invokeBuiltin = async (name) => (name === 'validate_course' ? { error: 'boom' } : {});
     const def = { plan: [{ id: 'v', tool: 'validate_course', args: {} }] };
     const res = await runPlan({ def, runtimeArgs: {}, invokeBuiltin });
     expect(res.error).toMatch(/step "v" \(validate_course\) failed: boom/);
@@ -209,13 +237,15 @@ describe('runPlan()', () => {
   it('fires onStep with running + done events for each successful step', async () => {
     const events = [];
     const invokeBuiltin = async (name) => ({ ran: name });
-    const def = { plan: [
-      { id: 'a', tool: 'read_deliverable', args: {} },
-      { id: 'b', tool: 'validate_course', args: {} },
-    ]};
+    const def = {
+      plan: [
+        { id: 'a', tool: 'read_deliverable', args: {} },
+        { id: 'b', tool: 'validate_course', args: {} },
+      ],
+    };
     await runPlan({ def, runtimeArgs: {}, invokeBuiltin, onStep: (e) => events.push(e) });
     // 2 steps * (running + done) = 4 events in order
-    expect(events.map(e => `${e.index}:${e.status}`)).toEqual(['0:running', '0:done', '1:running', '1:done']);
+    expect(events.map((e) => `${e.index}:${e.status}`)).toEqual(['0:running', '0:done', '1:running', '1:done']);
     expect(events[3].total).toBe(2);
   });
 
@@ -224,7 +254,7 @@ describe('runPlan()', () => {
     const invokeBuiltin = async () => ({ error: 'nope' });
     const def = { plan: [{ id: 'v', tool: 'validate_course', args: {} }] };
     await runPlan({ def, runtimeArgs: {}, invokeBuiltin, onStep: (e) => events.push(e) });
-    expect(events.map(e => e.status)).toEqual(['running', 'error']);
+    expect(events.map((e) => e.status)).toEqual(['running', 'error']);
     expect(events[1].error).toBe('nope');
   });
 
@@ -232,8 +262,12 @@ describe('runPlan()', () => {
     const invokeBuiltin = async () => ({ ok: true });
     const def = { plan: [{ id: 'a', tool: 'validate_course', args: {} }] };
     const res = await runPlan({
-      def, runtimeArgs: {}, invokeBuiltin,
-      onStep: () => { throw new Error('boom'); },
+      def,
+      runtimeArgs: {},
+      invokeBuiltin,
+      onStep: () => {
+        throw new Error('boom');
+      },
     });
     expect(res.ok).toBe(true);
   });
@@ -241,7 +275,13 @@ describe('runPlan()', () => {
 
 describe('export / import round-trip', () => {
   it('serializes a tool into a versioned JSON payload', () => {
-    const tool = { name: 'audit', description: 'd', params: { featureId: 'string' }, plan: VALID_PLAN, createdAt: 12345 };
+    const tool = {
+      name: 'audit',
+      description: 'd',
+      params: { featureId: 'string' },
+      plan: VALID_PLAN,
+      createdAt: 12345,
+    };
     const json = exportCustomTool(tool);
     const parsed = JSON.parse(json);
     expect(parsed.kind).toBe('coursemapper-macro');
@@ -341,7 +381,11 @@ describe('createSkillNudgeTracker', () => {
     const t = createSkillNudgeTracker();
     const results = [
       { name: 'create_tool', result: { ok: true } },
-      edit(), edit(), edit(), edit(), edit(), // lots of edits
+      edit(),
+      edit(),
+      edit(),
+      edit(),
+      edit(), // lots of edits
     ];
     expect(t.update(results)).toBe(false);
     expect(t.fired).toBe(false);

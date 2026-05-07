@@ -39,17 +39,26 @@ function pathToLabel(path) {
   const fieldParts = path.slice(2);
   if (fieldParts.length === 0) return 'lesson';
 
-  return fieldParts.map((seg, i) => {
-    if (typeof seg === 'number') {
-      // Array index — attach to previous as [n] WITHOUT a space
-      return `[${seg}]`;
-    }
-    // Camel-case to space-separated label
-    const label = String(seg).replace(/([A-Z])/g, ' $1').replace(/^./, s => s.toLowerCase()).trim();
-    // If previous segment was a number, we need a space before the next property
-    const prevIsNumber = i > 0 && typeof fieldParts[i - 1] === 'number';
-    return i === 0 || prevIsNumber ? ` ${label}` : ` ${label}`;
-  }).join('').replace(/\s+/g, ' ').replace(/ \]/g, ']').replace(/\[ /g, '[').trim();
+  return fieldParts
+    .map((seg, i) => {
+      if (typeof seg === 'number') {
+        // Array index — attach to previous as [n] WITHOUT a space
+        return `[${seg}]`;
+      }
+      // Camel-case to space-separated label
+      const label = String(seg)
+        .replace(/([A-Z])/g, ' $1')
+        .replace(/^./, (s) => s.toLowerCase())
+        .trim();
+      // If previous segment was a number, we need a space before the next property
+      const prevIsNumber = i > 0 && typeof fieldParts[i - 1] === 'number';
+      return i === 0 || prevIsNumber ? ` ${label}` : ` ${label}`;
+    })
+    .join('')
+    .replace(/\s+/g, ' ')
+    .replace(/ \]/g, ']')
+    .replace(/\[ /g, '[')
+    .trim();
 }
 
 /**
@@ -115,10 +124,12 @@ export function extractEditContext(oldData, newData, path) {
         return full.length <= 200 ? full : full.slice(0, 199) + '…';
       }
       // Same length — check reorder: same items, different order
-      const oldJSON = oldVal.map(v => JSON.stringify(v));
-      const newJSON = newVal.map(v => JSON.stringify(v));
-      if ([...oldJSON].sort().join('\0') === [...newJSON].sort().join('\0') &&
-        oldJSON.join('\0') !== newJSON.join('\0')) {
+      const oldJSON = oldVal.map((v) => JSON.stringify(v));
+      const newJSON = newVal.map((v) => JSON.stringify(v));
+      if (
+        [...oldJSON].sort().join('\0') === [...newJSON].sort().join('\0') &&
+        oldJSON.join('\0') !== newJSON.join('\0')
+      ) {
         return `${label}: reordered ${newVal.length} items`;
       }
       // Same length, different content — find first changed item
@@ -138,9 +149,14 @@ export function extractEditContext(oldData, newData, path) {
     }
 
     // ── Object diffs ──
-    if (typeof newVal === 'object' && newVal !== null &&
-      typeof oldVal === 'object' && oldVal !== null &&
-      !Array.isArray(newVal) && !Array.isArray(oldVal)) {
+    if (
+      typeof newVal === 'object' &&
+      newVal !== null &&
+      typeof oldVal === 'object' &&
+      oldVal !== null &&
+      !Array.isArray(newVal) &&
+      !Array.isArray(oldVal)
+    ) {
       const leafDiff = diffFirstLeaf(oldVal, newVal);
       if (leafDiff) {
         const full = `${label}.${leafDiff}`;

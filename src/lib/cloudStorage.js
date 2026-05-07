@@ -11,21 +11,47 @@
 
 import { db } from './firebase';
 import {
-  doc, collection, getDoc, getDocs, setDoc, deleteDoc,
-  query, orderBy, serverTimestamp, writeBatch,
+  doc,
+  collection,
+  getDoc,
+  getDocs,
+  setDoc,
+  deleteDoc,
+  query,
+  orderBy,
+  serverTimestamp,
+  writeBatch,
 } from 'firebase/firestore';
 
 /* ═══════════════════════ helpers ═══════════════════════ */
 
-function userDoc(uid) { return doc(db, 'users', uid); }
-function projectsCol(uid) { return collection(db, 'users', uid, 'projects'); }
-function projectDoc(uid, pid) { return doc(db, 'users', uid, 'projects', pid); }
-function delivCol(uid, pid) { return collection(db, 'users', uid, 'projects', pid, 'deliverables'); }
-function delivDoc(uid, pid, fid) { return doc(db, 'users', uid, 'projects', pid, 'deliverables', fid); }
-function customDelCol(uid) { return collection(db, 'users', uid, 'customDeliverables'); }
-function customDelDoc(uid, id) { return doc(db, 'users', uid, 'customDeliverables', id); }
-function developerTemplateCol(uid) { return collection(db, 'users', uid, 'developerTemplates'); }
-function developerTemplateDoc(uid, id) { return doc(db, 'users', uid, 'developerTemplates', id); }
+function userDoc(uid) {
+  return doc(db, 'users', uid);
+}
+function projectsCol(uid) {
+  return collection(db, 'users', uid, 'projects');
+}
+function projectDoc(uid, pid) {
+  return doc(db, 'users', uid, 'projects', pid);
+}
+function delivCol(uid, pid) {
+  return collection(db, 'users', uid, 'projects', pid, 'deliverables');
+}
+function delivDoc(uid, pid, fid) {
+  return doc(db, 'users', uid, 'projects', pid, 'deliverables', fid);
+}
+function customDelCol(uid) {
+  return collection(db, 'users', uid, 'customDeliverables');
+}
+function customDelDoc(uid, id) {
+  return doc(db, 'users', uid, 'customDeliverables', id);
+}
+function developerTemplateCol(uid) {
+  return collection(db, 'users', uid, 'developerTemplates');
+}
+function developerTemplateDoc(uid, id) {
+  return doc(db, 'users', uid, 'developerTemplates', id);
+}
 
 /* ═══════════════════ Profile ═══════════════════ */
 
@@ -37,10 +63,14 @@ export async function loadProfile(uid) {
 
 export async function saveProfile(uid, profile) {
   if (!db) return;
-  await setDoc(userDoc(uid), {
-    ...profile,
-    updatedAt: serverTimestamp(),
-  }, { merge: true });
+  await setDoc(
+    userDoc(uid),
+    {
+      ...profile,
+      updatedAt: serverTimestamp(),
+    },
+    { merge: true },
+  );
 }
 
 /* ═══════════════════ Custom Deliverables ═══════════════════ */
@@ -49,7 +79,9 @@ export async function loadCustomDeliverables(uid) {
   if (!db) return {};
   const snap = await getDocs(customDelCol(uid));
   const map = {};
-  snap.forEach(d => { map[d.id] = d.data(); });
+  snap.forEach((d) => {
+    map[d.id] = d.data();
+  });
   return map;
 }
 
@@ -72,7 +104,9 @@ export async function loadDeveloperTemplates(uid) {
   if (!db) return {};
   const snap = await getDocs(developerTemplateCol(uid));
   const map = {};
-  snap.forEach(d => { map[d.id] = d.data(); });
+  snap.forEach((d) => {
+    map[d.id] = d.data();
+  });
   return map;
 }
 
@@ -95,7 +129,7 @@ export async function listProjects(uid) {
   if (!db) return [];
   const q = query(projectsCol(uid), orderBy('updatedAt', 'desc'));
   const snap = await getDocs(q);
-  return snap.docs.map(d => {
+  return snap.docs.map((d) => {
     const data = d.data();
     return {
       id: d.id,
@@ -118,11 +152,15 @@ export async function saveProject(uid, projectId, projectData) {
   if (!db) return;
   // Separate deliverables out — they go to a subcollection
   const { deliverables, ...meta } = projectData;
-  await setDoc(projectDoc(uid, projectId), {
-    ...meta,
-    updatedAt: serverTimestamp(),
-    createdAt: meta.createdAt || serverTimestamp(),
-  }, { merge: true });
+  await setDoc(
+    projectDoc(uid, projectId),
+    {
+      ...meta,
+      updatedAt: serverTimestamp(),
+      createdAt: meta.createdAt || serverTimestamp(),
+    },
+    { merge: true },
+  );
 
   // Save deliverables to subcollection
   if (deliverables && typeof deliverables === 'object') {
@@ -135,7 +173,7 @@ export async function deleteProject(uid, projectId) {
   // Delete deliverables subcollection first
   const dSnap = await getDocs(delivCol(uid, projectId));
   const batch = writeBatch(db);
-  dSnap.forEach(d => batch.delete(d.ref));
+  dSnap.forEach((d) => batch.delete(d.ref));
   batch.delete(projectDoc(uid, projectId));
   await batch.commit();
 }
@@ -158,13 +196,17 @@ export async function loadProjectDeliverables(uid, projectId) {
   if (!db) return {};
   const snap = await getDocs(delivCol(uid, projectId));
   const map = {};
-  snap.forEach(d => { map[d.id] = d.data(); });
+  snap.forEach((d) => {
+    map[d.id] = d.data();
+  });
   return map;
 }
 
 /* ═══════════════════ Agent Preferences ═══════════════════ */
 
-function agentPrefsDoc(uid) { return doc(db, 'users', uid, 'agentData', 'preferences'); }
+function agentPrefsDoc(uid) {
+  return doc(db, 'users', uid, 'agentData', 'preferences');
+}
 
 export async function loadAgentPrefs(uid) {
   if (!db) return null;
@@ -174,21 +216,29 @@ export async function loadAgentPrefs(uid) {
 
 export async function saveAgentPrefs(uid, prefs) {
   if (!db) return;
-  await setDoc(agentPrefsDoc(uid), {
-    ...prefs,
-    updatedAt: serverTimestamp(),
-  }, { merge: true });
+  await setDoc(
+    agentPrefsDoc(uid),
+    {
+      ...prefs,
+      updatedAt: serverTimestamp(),
+    },
+    { merge: true },
+  );
 }
 
 /* ═══════════════════ Agent Memory ═══════════════════ */
 
-function memoryCol(uid) { return collection(db, 'users', uid, 'agentData', 'memory', 'entries'); }
-function memoryDoc(uid, id) { return doc(db, 'users', uid, 'agentData', 'memory', 'entries', id); }
+function memoryCol(uid) {
+  return collection(db, 'users', uid, 'agentData', 'memory', 'entries');
+}
+function memoryDoc(uid, id) {
+  return doc(db, 'users', uid, 'agentData', 'memory', 'entries', id);
+}
 
 export async function loadAgentMemories(uid) {
   if (!db) return [];
   const snap = await getDocs(memoryCol(uid));
-  return snap.docs.map(d => ({ id: d.id, ...d.data() }));
+  return snap.docs.map((d) => ({ id: d.id, ...d.data() }));
 }
 
 export async function saveAgentMemory(uid, entry) {
@@ -209,13 +259,17 @@ export async function deleteAgentMemory(uid, id) {
 
 /* ═══════════════════ Agent Custom Tools (Macros) ═══════════════════ */
 
-function customToolsCol(uid) { return collection(db, 'users', uid, 'agentData', 'customTools', 'entries'); }
-function customToolDoc(uid, name) { return doc(db, 'users', uid, 'agentData', 'customTools', 'entries', name); }
+function customToolsCol(uid) {
+  return collection(db, 'users', uid, 'agentData', 'customTools', 'entries');
+}
+function customToolDoc(uid, name) {
+  return doc(db, 'users', uid, 'agentData', 'customTools', 'entries', name);
+}
 
 export async function loadCustomTools(uid) {
   if (!db) return [];
   const snap = await getDocs(customToolsCol(uid));
-  return snap.docs.map(d => ({ name: d.id, ...d.data() }));
+  return snap.docs.map((d) => ({ name: d.id, ...d.data() }));
 }
 
 export async function saveCustomTool(uid, tool) {
@@ -237,5 +291,5 @@ export async function deleteCustomTool(uid, name) {
 
 export function newProjectId() {
   if (!db) return crypto.randomUUID?.() || `local-${Date.now()}-${Math.random().toString(36).slice(2)}`;
-  return doc(collection(db, '_')).id;   // Firestore auto-ID
+  return doc(collection(db, '_')).id; // Firestore auto-ID
 }

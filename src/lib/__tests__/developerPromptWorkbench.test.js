@@ -43,19 +43,23 @@ describe('developerPromptWorkbench', () => {
       hasUserOverride: true,
     });
 
-    expect(analysis.findings).toEqual(expect.arrayContaining([
-      expect.objectContaining({
-        level: 'warning',
-        actionId: 'insertCourseMap',
-      }),
-    ]));
+    expect(analysis.findings).toEqual(
+      expect.arrayContaining([
+        expect.objectContaining({
+          level: 'warning',
+          actionId: 'insertCourseMap',
+        }),
+      ]),
+    );
   });
 
   it('summarizes built-in versus active prompt deltas', () => {
-    expect(summarizePromptDiff('short prompt', 'short prompt plus more')).toEqual(expect.objectContaining({
-      changed: true,
-      tokenDelta: expect.any(Number),
-      wordDelta: 2,
-    }));
+    expect(summarizePromptDiff('short prompt', 'short prompt plus more')).toEqual(
+      expect.objectContaining({
+        changed: true,
+        tokenDelta: expect.any(Number),
+        wordDelta: 2,
+      }),
+    );
   });
 });

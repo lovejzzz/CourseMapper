@@ -11,9 +11,7 @@
  */
 export function validateCourseMap(courseMap, columns) {
   const warnings = [];
-  const colKeys = (columns && columns.length > 0)
-    ? columns.map(c => c.key)
-    : [];
+  const colKeys = columns && columns.length > 0 ? columns.map((c) => c.key) : [];
 
   if (!courseMap || !courseMap.lessons || !Array.isArray(courseMap.lessons) || courseMap.lessons.length === 0) {
     return { valid: false, warnings: ['No lessons found in generated course map'] };
@@ -36,7 +34,7 @@ export function validateCourseMap(courseMap, columns) {
     if (!lesson || typeof lesson !== 'object') {
       courseMap.lessons[i] = {
         title: `Lesson ${i + 1}: Untitled`,
-        sections: [Object.fromEntries(colKeys.map(k => [k, '']))],
+        sections: [Object.fromEntries(colKeys.map((k) => [k, '']))],
       };
       warnings.push(`Lesson ${i + 1}: was not an object (replaced with empty lesson)`);
       continue;
@@ -51,7 +49,7 @@ export function validateCourseMap(courseMap, columns) {
     // Ensure sections array
     if (!Array.isArray(lesson.sections) || lesson.sections.length === 0) {
       // Check if lesson has flat keys (AI sometimes outputs flat instead of nested)
-      const hasFlat = colKeys.some(k => k in lesson);
+      const hasFlat = colKeys.some((k) => k in lesson);
       if (hasFlat) {
         // Convert flat lesson to sections format
         const section = {};
@@ -62,7 +60,7 @@ export function validateCourseMap(courseMap, columns) {
         lesson.sections = [section];
         warnings.push(`Lesson ${i + 1}: converted flat keys to sections format`);
       } else {
-        lesson.sections = [Object.fromEntries(colKeys.map(k => [k, '']))];
+        lesson.sections = [Object.fromEntries(colKeys.map((k) => [k, '']))];
         warnings.push(`Lesson ${i + 1}: missing sections (added empty section)`);
       }
     }
@@ -71,7 +69,7 @@ export function validateCourseMap(courseMap, columns) {
     for (let j = 0; j < lesson.sections.length; j++) {
       const section = lesson.sections[j];
       if (!section || typeof section !== 'object') {
-        lesson.sections[j] = Object.fromEntries(colKeys.map(k => [k, '']));
+        lesson.sections[j] = Object.fromEntries(colKeys.map((k) => [k, '']));
         warnings.push(`Lesson ${i + 1}, Section ${j + 1}: was not an object (replaced with empty section)`);
         continue;
       }

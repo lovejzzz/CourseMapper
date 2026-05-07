@@ -23,10 +23,25 @@ const ACCEPTED_TYPES = {
 };
 
 const ACCEPTED_EXTENSIONS = [
-  '.doc', '.docx', '.pdf', '.txt', '.md', '.csv', '.rtf',
-  '.html', '.htm', '.xlsx', '.xls', '.ods',
-  '.ppt', '.pptx', '.odp',
-  '.odt', '.epub', '.key', '.pages',
+  '.doc',
+  '.docx',
+  '.pdf',
+  '.txt',
+  '.md',
+  '.csv',
+  '.rtf',
+  '.html',
+  '.htm',
+  '.xlsx',
+  '.xls',
+  '.ods',
+  '.ppt',
+  '.pptx',
+  '.odp',
+  '.odt',
+  '.epub',
+  '.key',
+  '.pages',
   '.zip',
 ];
 
@@ -37,7 +52,7 @@ export default function FileUpload({ files, setFiles }) {
       const dropped = Array.from(e.dataTransfer.files).filter(isValidFile);
       setFiles((prev) => [...prev, ...dropped]);
     },
-    [setFiles]
+    [setFiles],
   );
 
   const handleDragOver = useCallback((e) => {
@@ -50,14 +65,14 @@ export default function FileUpload({ files, setFiles }) {
       setFiles((prev) => [...prev, ...selected]);
       e.target.value = '';
     },
-    [setFiles]
+    [setFiles],
   );
 
   const removeFile = useCallback(
     (index) => {
       setFiles((prev) => prev.filter((_, i) => i !== index));
     },
-    [setFiles]
+    [setFiles],
   );
 
   return (
@@ -65,9 +80,27 @@ export default function FileUpload({ files, setFiles }) {
       <h2 className="text-[15px] font-bold text-slate-800 mb-5 flex items-center gap-3">
         <div className="w-8 h-8 rounded-[10px] bg-gradient-to-br from-sky-500 to-blue-600 flex items-center justify-center flex-shrink-0 shadow-sm shadow-sky-500/20">
           <svg className="w-4 h-4 text-white" viewBox="0 0 24 24" fill="none">
-            <path d="M14 3v4a1 1 0 001 1h4" stroke="currentColor" strokeWidth={1.6} strokeLinecap="round" strokeLinejoin="round"/>
-            <path d="M17 21H7a2 2 0 01-2-2V5a2 2 0 012-2h7l5 5v11a2 2 0 01-2 2z" stroke="currentColor" strokeWidth={1.6} strokeLinecap="round" strokeLinejoin="round"/>
-            <path d="M12 11v6m0-6l-2.5 2.5M12 11l2.5 2.5" stroke="currentColor" strokeWidth={1.6} strokeLinecap="round" strokeLinejoin="round"/>
+            <path
+              d="M14 3v4a1 1 0 001 1h4"
+              stroke="currentColor"
+              strokeWidth={1.6}
+              strokeLinecap="round"
+              strokeLinejoin="round"
+            />
+            <path
+              d="M17 21H7a2 2 0 01-2-2V5a2 2 0 012-2h7l5 5v11a2 2 0 01-2 2z"
+              stroke="currentColor"
+              strokeWidth={1.6}
+              strokeLinecap="round"
+              strokeLinejoin="round"
+            />
+            <path
+              d="M12 11v6m0-6l-2.5 2.5M12 11l2.5 2.5"
+              stroke="currentColor"
+              strokeWidth={1.6}
+              strokeLinecap="round"
+              strokeLinejoin="round"
+            />
           </svg>
         </div>
         Upload Course Materials
@@ -83,12 +116,8 @@ export default function FileUpload({ files, setFiles }) {
               <div className="flex items-center gap-3 min-w-0">
                 <FileIcon ext={file.name.split('.').pop()} />
                 <div className="min-w-0">
-                  <p className="text-sm font-medium text-slate-700 truncate">
-                    {file.name}
-                  </p>
-                  <p className="text-[11px] text-slate-400">
-                    {formatSize(file.size)}
-                  </p>
+                  <p className="text-sm font-medium text-slate-700 truncate">{file.name}</p>
+                  <p className="text-[11px] text-slate-400">{formatSize(file.size)}</p>
                 </div>
               </div>
               <button
@@ -116,7 +145,12 @@ export default function FileUpload({ files, setFiles }) {
       >
         {files.length > 0 ? (
           <>
-            <svg className="w-4 h-4 text-slate-400 group-hover:text-indigo-500 transition-colors flex-shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+            <svg
+              className="w-4 h-4 text-slate-400 group-hover:text-indigo-500 transition-colors flex-shrink-0"
+              fill="none"
+              stroke="currentColor"
+              viewBox="0 0 24 24"
+            >
               <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={1.5} d="M12 4v16m8-8H4" />
             </svg>
             <p className="text-xs font-medium text-slate-500 group-hover:text-indigo-600 transition-colors">
@@ -126,13 +160,21 @@ export default function FileUpload({ files, setFiles }) {
         ) : (
           <>
             <div className="w-14 h-14 rounded-squircle-sm bg-slate-100/80 flex items-center justify-center mx-auto mb-4 group-hover:bg-indigo-100/60 group-hover:scale-105 transition-all duration-300">
-              <svg className="w-6 h-6 text-slate-400 group-hover:text-indigo-500 transition-colors" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={1.5} d="M9 13h6m-3-3v6m5 5H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z" />
+              <svg
+                className="w-6 h-6 text-slate-400 group-hover:text-indigo-500 transition-colors"
+                fill="none"
+                stroke="currentColor"
+                viewBox="0 0 24 24"
+              >
+                <path
+                  strokeLinecap="round"
+                  strokeLinejoin="round"
+                  strokeWidth={1.5}
+                  d="M9 13h6m-3-3v6m5 5H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z"
+                />
               </svg>
             </div>
-            <p className="text-sm font-medium text-slate-600">
-              Drop files here or click to browse
-            </p>
+            <p className="text-sm font-medium text-slate-600">Drop files here or click to browse</p>
             <p className="text-slate-400 text-xs mt-1.5">
               Documents, slides, spreadsheets, e-books, ZIP archives & more
             </p>
@@ -178,7 +220,12 @@ function FileIcon({ ext }) {
   return (
     <div className={`flex-shrink-0 ${colors[ext] || 'text-gray-500'}`}>
       <svg className="w-8 h-8" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-        <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={1.5} d="M9 12h6m-6 4h6m2 5H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z" />
+        <path
+          strokeLinecap="round"
+          strokeLinejoin="round"
+          strokeWidth={1.5}
+          d="M9 12h6m-6 4h6m2 5H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z"
+        />
       </svg>
     </div>
   );

@@ -32,7 +32,10 @@ function parseParamType(desc) {
 const RESPOND_TOOL_SCHEMA = {
   type: 'object',
   properties: {
-    chatReply: { type: 'string', description: 'Markdown text response for the user. Use for answers, summaries, explanations.' },
+    chatReply: {
+      type: 'string',
+      description: 'Markdown text response for the user. Use for answers, summaries, explanations.',
+    },
     proposal: {
       type: 'object',
       description: 'Content creation proposal with 2-3 options for the user to choose from.',
@@ -92,7 +95,8 @@ const RESPOND_TOOL_SCHEMA = {
 
 const RESPOND_TOOL = {
   name: 'respond',
-  description: 'Send your final response to the user. Call this when you are done using tools and ready to reply. Provide EXACTLY ONE of: chatReply, proposal, diagram, chart, or imageSearch.',
+  description:
+    'Send your final response to the user. Call this when you are done using tools and ready to reply. Provide EXACTLY ONE of: chatReply, proposal, diagram, chart, or imageSearch.',
   schema: RESPOND_TOOL_SCHEMA,
 };
 
@@ -134,7 +138,7 @@ export function buildNativeTools(provider, agentTools) {
 
   // Convert to provider-specific format
   if (provider === 'openai' || provider === 'deepseek' || provider === 'openrouter') {
-    return tools.map(t => ({
+    return tools.map((t) => ({
       type: 'function',
       function: {
         name: t.name,
@@ -145,7 +149,7 @@ export function buildNativeTools(provider, agentTools) {
   }
 
   if (provider === 'anthropic') {
-    return tools.map(t => ({
+    return tools.map((t) => ({
       name: t.name,
       description: t.description,
       input_schema: t.schema,
@@ -153,13 +157,15 @@ export function buildNativeTools(provider, agentTools) {
   }
 
   if (provider === 'google') {
-    return [{
-      functionDeclarations: tools.map(t => ({
-        name: t.name,
-        description: t.description,
-        parameters: googleSchemaFix(t.schema),
-      })),
-    }];
+    return [
+      {
+        functionDeclarations: tools.map((t) => ({
+          name: t.name,
+          description: t.description,
+          parameters: googleSchemaFix(t.schema),
+        })),
+      },
+    ];
   }
 
   return [];
@@ -183,29 +189,33 @@ function googleSchemaFix(schema) {
 
 // ── Build API request ───────────────────────────────────────────────────────
 
-export function buildAgentRequest(provider, { model, systemPrompt, messages, tools, maxTokens = 16384, temperature = 0.4, apiKey }) {
+export function buildAgentRequest(
+  provider,
+  { model, systemPrompt, messages, tools, maxTokens = 16384, temperature = 0.4, apiKey },
+) {
   const tempSetting = temperature !== undefined && supportsCustomTemperature(model) ? { temperature } : {};
 
   // Callers may pass `systemPrompt` as a string (legacy) or as
   // `{staticPart, dynamicPart}` for Anthropic two-breakpoint caching. The
   // anthropic branch handles the object shape natively; every other provider
   // needs a plain string, so we flatten here.
-  const joinedSystemPrompt = (systemPrompt && typeof systemPrompt === 'object' && !Array.isArray(systemPrompt))
-    ? [systemPrompt.staticPart, systemPrompt.dynamicPart].filter(Boolean).join('\n\n')
-    : String(systemPrompt || '');
+  const joinedSystemPrompt =
+    systemPrompt && typeof systemPrompt === 'object' && !Array.isArray(systemPrompt)
+      ? [systemPrompt.staticPart, systemPrompt.dynamicPart].filter(Boolean).join('\n\n')
+      : String(systemPrompt || '');
 
   if (provider === 'openai') {
     return {
       endpoint: 'https://api.openai.com/v1/chat/completions',
       headers: {
-        'Authorization': `Bearer ${apiKey}`,
+        Authorization: `Bearer ${apiKey}`,
         'Content-Type': 'application/json',
       },
       body: {
         model,
         messages: [
           { role: 'system', content: joinedSystemPrompt },
-          ...messages.map(m => m._native ? stripNativeFlag(m) : { role: m.role, content: m.content }),
+          ...messages.map((m) => (m._native ? stripNativeFlag(m) : { role: m.role, content: m.content })),
         ],
         tools,
         tool_choice: 'auto',
@@ -236,7 +246,7 @@ export function buildAgentRequest(provider, { model, systemPrompt, messages, too
         ...tempSetting,
         system: systemBlocks.system,
         tools: systemBlocks.tools,
-        messages: messages.map(m => m._native ? stripNativeFlag(m) : { role: m.role, content: m.content }),
+        messages: messages.map((m) => (m._native ? stripNativeFlag(m) : { role: m.role, content: m.content })),
       },
     };
   }
@@ -247,7 +257,7 @@ export function buildAgentRequest(provider, { model, systemPrompt, messages, too
       headers: { 'Content-Type': 'application/json' },
       body: {
         system_instruction: { parts: [{ text: joinedSystemPrompt }] },
-        contents: messages.map(m => {
+        contents: messages.map((m) => {
           if (m._native) return stripNativeFlag(m);
           return {
             role: m.role === 'assistant' ? 'model' : 'user',
@@ -264,14 +274,14 @@ export function buildAgentRequest(provider, { model, systemPrompt, messages, too
     return {
       endpoint: 'https://api.deepseek.com/v1/chat/completions',
       headers: {
-        'Authorization': `Bearer ${apiKey}`,
+        Authorization: `Bearer ${apiKey}`,
         'Content-Type': 'application/json',
       },
       body: {
         model,
         messages: [
           { role: 'system', content: joinedSystemPrompt },
-          ...messages.map(m => m._native ? stripNativeFlag(m) : { role: m.role, content: m.content }),
+          ...messages.map((m) => (m._native ? stripNativeFlag(m) : { role: m.role, content: m.content })),
         ],
         tools,
         tool_choice: 'auto',
@@ -286,7 +296,7 @@ export function buildAgentRequest(provider, { model, systemPrompt, messages, too
     const headers = {
       'Content-Type': 'application/json',
       'HTTP-Referer': typeof window !== 'undefined' ? window.location.origin : '',
-      'Authorization': `Bearer ${apiKey}`,
+      Authorization: `Bearer ${apiKey}`,
     };
     return {
       endpoint: 'https://openrouter.ai/api/v1/chat/completions',
@@ -295,7 +305,7 @@ export function buildAgentRequest(provider, { model, systemPrompt, messages, too
         model,
         messages: [
           { role: 'system', content: joinedSystemPrompt },
-          ...messages.map(m => m._native ? stripNativeFlag(m) : { role: m.role, content: m.content }),
+          ...messages.map((m) => (m._native ? stripNativeFlag(m) : { role: m.role, content: m.content })),
         ],
         tools,
         tool_choice: 'auto',
@@ -348,8 +358,12 @@ function stripNativeFlag(msg) {
  */
 export function applyAnthropicCache(systemPrompt, tools) {
   let system;
-  if (systemPrompt && typeof systemPrompt === 'object' && !Array.isArray(systemPrompt)
-      && (typeof systemPrompt.staticPart === 'string' || typeof systemPrompt.dynamicPart === 'string')) {
+  if (
+    systemPrompt &&
+    typeof systemPrompt === 'object' &&
+    !Array.isArray(systemPrompt) &&
+    (typeof systemPrompt.staticPart === 'string' || typeof systemPrompt.dynamicPart === 'string')
+  ) {
     const blocks = [];
     if (systemPrompt.staticPart) {
       blocks.push({ type: 'text', text: systemPrompt.staticPart, cache_control: { type: 'ephemeral' } });
@@ -365,9 +379,7 @@ export function applyAnthropicCache(systemPrompt, tools) {
   if (!Array.isArray(tools) || tools.length === 0) {
     return { system, tools: tools || [] };
   }
-  const cached = tools.map((t, i) =>
-    i === tools.length - 1 ? { ...t, cache_control: { type: 'ephemeral' } } : t
-  );
+  const cached = tools.map((t, i) => (i === tools.length - 1 ? { ...t, cache_control: { type: 'ephemeral' } } : t));
   return { system, tools: cached };
 }
 
@@ -377,7 +389,7 @@ export function parseAgentResponse(provider, json) {
   if (provider === 'openai' || provider === 'deepseek' || provider === 'openrouter') {
     const choice = json.choices?.[0];
     const message = choice?.message;
-    const toolCalls = (message?.tool_calls || []).map(tc => ({
+    const toolCalls = (message?.tool_calls || []).map((tc) => ({
       id: tc.id,
       name: tc.function.name,
       args: safeJsonParse(tc.function.arguments),
@@ -393,9 +405,12 @@ export function parseAgentResponse(provider, json) {
   if (provider === 'anthropic') {
     const content = json.content || [];
     const toolCalls = content
-      .filter(b => b.type === 'tool_use')
-      .map(b => ({ id: b.id, name: b.name, args: b.input || {} }));
-    const textBlocks = content.filter(b => b.type === 'text').map(b => b.text).join('');
+      .filter((b) => b.type === 'tool_use')
+      .map((b) => ({ id: b.id, name: b.name, args: b.input || {} }));
+    const textBlocks = content
+      .filter((b) => b.type === 'text')
+      .map((b) => b.text)
+      .join('');
     return {
       toolCalls: toolCalls.length > 0 ? toolCalls : null,
       textContent: textBlocks || null,
@@ -407,13 +422,16 @@ export function parseAgentResponse(provider, json) {
     const candidate = json.candidates?.[0];
     const parts = candidate?.content?.parts || [];
     const toolCalls = parts
-      .filter(p => p.functionCall)
+      .filter((p) => p.functionCall)
       .map((p, i) => ({
         id: `google_${i}_${Date.now()}`,
         name: p.functionCall.name,
         args: p.functionCall.args || {},
       }));
-    const textParts = parts.filter(p => p.text).map(p => p.text).join('');
+    const textParts = parts
+      .filter((p) => p.text)
+      .map((p) => p.text)
+      .join('');
     return {
       toolCalls: toolCalls.length > 0 ? toolCalls : null,
       textContent: textParts || null,
@@ -425,7 +443,11 @@ export function parseAgentResponse(provider, json) {
 }
 
 function safeJsonParse(str) {
-  try { return JSON.parse(str); } catch { return {}; }
+  try {
+    return JSON.parse(str);
+  } catch {
+    return {};
+  }
 }
 
 // ── Format assistant tool-call message for history ──────────────────────────
@@ -437,9 +459,7 @@ export function formatAssistantToolCalls(provider, toolCalls, assistantMessage =
         _native: true,
         role: 'assistant',
         content: assistantMessage.content ?? null,
-        ...(assistantMessage.reasoning_content
-          ? { reasoning_content: assistantMessage.reasoning_content }
-          : {}),
+        ...(assistantMessage.reasoning_content ? { reasoning_content: assistantMessage.reasoning_content } : {}),
         tool_calls: assistantMessage.tool_calls,
       };
     }
@@ -447,7 +467,7 @@ export function formatAssistantToolCalls(provider, toolCalls, assistantMessage =
       _native: true,
       role: 'assistant',
       content: null,
-      tool_calls: toolCalls.map(tc => ({
+      tool_calls: toolCalls.map((tc) => ({
         id: tc.id,
         type: 'function',
         function: { name: tc.name, arguments: JSON.stringify(tc.args || {}) },
@@ -459,7 +479,7 @@ export function formatAssistantToolCalls(provider, toolCalls, assistantMessage =
     return {
       _native: true,
       role: 'assistant',
-      content: toolCalls.map(tc => ({
+      content: toolCalls.map((tc) => ({
         type: 'tool_use',
         id: tc.id,
         name: tc.name,
@@ -472,7 +492,7 @@ export function formatAssistantToolCalls(provider, toolCalls, assistantMessage =
     return {
       _native: true,
       role: 'model',
-      parts: toolCalls.map(tc => ({
+      parts: toolCalls.map((tc) => ({
         functionCall: { name: tc.name, args: tc.args || {} },
       })),
     };
@@ -503,7 +523,9 @@ function smartTruncate(result, serialized) {
     const trimmed = trimObject(structuredClone(result), MAX_RESULT_CHARS);
     const output = JSON.stringify(trimmed);
     if (output.length <= MAX_RESULT_CHARS) return output;
-  } catch { /* fall through to simple cut */ }
+  } catch {
+    /* fall through to simple cut */
+  }
 
   // Fallback: simple cut
   return serialized.slice(0, MAX_RESULT_CHARS - 30) + '...(truncated)';
@@ -517,11 +539,11 @@ function trimObject(obj, budget) {
   if (Array.isArray(obj)) {
     // Keep first 3 items + summary
     if (obj.length > 3) {
-      const kept = obj.slice(0, 3).map(item => trimObject(item, Math.floor(budget / 4)));
+      const kept = obj.slice(0, 3).map((item) => trimObject(item, Math.floor(budget / 4)));
       kept.push({ _truncated: `${obj.length - 3} more items omitted` });
       return kept;
     }
-    return obj.map(item => trimObject(item, Math.floor(budget / obj.length)));
+    return obj.map((item) => trimObject(item, Math.floor(budget / obj.length)));
   }
   if (typeof obj === 'object' && obj !== null) {
     const entries = Object.entries(obj);
@@ -554,11 +576,13 @@ export function formatToolResult(provider, toolCallId, toolName, result) {
     return {
       _native: true,
       role: 'user',
-      content: [{
-        type: 'tool_result',
-        tool_use_id: toolCallId,
-        content: truncated,
-      }],
+      content: [
+        {
+          type: 'tool_result',
+          tool_use_id: toolCallId,
+          content: truncated,
+        },
+      ],
     };
   }
 
@@ -578,12 +602,14 @@ export function formatToolResult(provider, toolCallId, toolName, result) {
     return {
       _native: true,
       role: 'user',
-      parts: [{
-        functionResponse: {
-          name: toolName,
-          response: responsePayload,
+      parts: [
+        {
+          functionResponse: {
+            name: toolName,
+            response: responsePayload,
+          },
         },
-      }],
+      ],
     };
   }
 
@@ -595,7 +621,7 @@ export function formatToolResult(provider, toolCallId, toolName, result) {
 export function batchToolResults(provider, results) {
   if (provider === 'anthropic') {
     // Anthropic requires all tool_results in a single user message
-    const toolResults = results.map(r => {
+    const toolResults = results.map((r) => {
       const msg = formatToolResult(provider, r.toolCallId, r.toolName, r.result);
       return msg.content[0]; // Extract the tool_result block
     });
@@ -603,5 +629,5 @@ export function batchToolResults(provider, results) {
   }
 
   // OpenAI and Google: one message per result
-  return results.map(r => formatToolResult(provider, r.toolCallId, r.toolName, r.result));
+  return results.map((r) => formatToolResult(provider, r.toolCallId, r.toolName, r.result));
 }

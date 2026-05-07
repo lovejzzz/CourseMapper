@@ -8,8 +8,7 @@ export default function applyPatches(baseMap, patches) {
   // Sort: process removeLesson in descending index order first so that
   // earlier splices don't shift the indices of later patches.
   const sorted = [...patches].sort((a, b) => {
-    if (a.action === 'removeLesson' && b.action === 'removeLesson')
-      return (b.lessonIndex ?? 0) - (a.lessonIndex ?? 0);
+    if (a.action === 'removeLesson' && b.action === 'removeLesson') return (b.lessonIndex ?? 0) - (a.lessonIndex ?? 0);
     if (a.action === 'removeLesson') return -1;
     if (b.action === 'removeLesson') return 1;
     return 0;
@@ -39,7 +38,9 @@ export default function applyPatches(baseMap, patches) {
 
     // Section-level field patch
     if (
-      lessonIndex != null && sectionIndex != null && field &&
+      lessonIndex != null &&
+      sectionIndex != null &&
+      field &&
       updated.lessons[lessonIndex]?.sections?.[sectionIndex]
     ) {
       updated.lessons[lessonIndex].sections[sectionIndex][field] = value;
@@ -55,8 +56,14 @@ export default function applyPatches(baseMap, patches) {
     }
 
     // Course-level fields
-    if (field === 'courseName') { updated.courseName = value; continue; }
-    if (field === 'semester') { updated.semester = value; continue; }
+    if (field === 'courseName') {
+      updated.courseName = value;
+      continue;
+    }
+    if (field === 'semester') {
+      updated.semester = value;
+      continue;
+    }
   }
   return updated;
 }

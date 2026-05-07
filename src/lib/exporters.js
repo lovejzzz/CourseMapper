@@ -19,7 +19,7 @@ async function getSaveAs() {
 // Flatten a cell value to a plain string (handles arrays from AI responses)
 function toStr(val) {
   if (val == null) return '';
-  if (Array.isArray(val)) return val.map(v => String(v)).join('\n');
+  if (Array.isArray(val)) return val.map((v) => String(v)).join('\n');
   return String(val);
 }
 
@@ -27,21 +27,39 @@ function toStr(val) {
  * Export course map as CSV.
  */
 export async function generateCsv(courseMap, customColumns) {
-  const enabledColumns = customColumns && customColumns.length > 0
-    ? customColumns.filter(c => c.enabled !== false)
-    : null;
+  const enabledColumns =
+    customColumns && customColumns.length > 0 ? customColumns.filter((c) => c.enabled !== false) : null;
 
   const colKeys = enabledColumns
-    ? enabledColumns.map(c => c.key)
-    : ['learningGoals', 'topicSection', 'learningObjectives', 'weeklyAssessments',
-       'asyncActivities', 'syncActivities', 'technologyNeeded', 'presentationFormat',
-       'supportingResources', 'evaluateDesign'];
+    ? enabledColumns.map((c) => c.key)
+    : [
+        'learningGoals',
+        'topicSection',
+        'learningObjectives',
+        'weeklyAssessments',
+        'asyncActivities',
+        'syncActivities',
+        'technologyNeeded',
+        'presentationFormat',
+        'supportingResources',
+        'evaluateDesign',
+      ];
 
   const colHeaders = enabledColumns
-    ? ['Week/Module', ...enabledColumns.map(c => c.label)]
-    : ['Week/Module', 'Learning Goals', 'Topic/Section', 'Learning Objectives',
-       'Assessments', 'Async Activities', 'Sync Activities', 'Technology',
-       'Format', 'Resources', 'Evaluate'];
+    ? ['Week/Module', ...enabledColumns.map((c) => c.label)]
+    : [
+        'Week/Module',
+        'Learning Goals',
+        'Topic/Section',
+        'Learning Objectives',
+        'Assessments',
+        'Async Activities',
+        'Sync Activities',
+        'Technology',
+        'Format',
+        'Resources',
+        'Evaluate',
+      ];
 
   const escape = (val) => {
     const str = String(val || '').replace(/"/g, '""');
@@ -51,7 +69,7 @@ export async function generateCsv(courseMap, customColumns) {
   const rows = [colHeaders.map(escape).join(',')];
 
   for (const lesson of courseMap.lessons) {
-    const sections = (lesson.sections && lesson.sections.length > 0) ? lesson.sections : [{}];
+    const sections = lesson.sections && lesson.sections.length > 0 ? lesson.sections : [{}];
     for (let i = 0; i < sections.length; i++) {
       const section = sections[i];
       const weekModule = i === 0 ? lesson.title : '';
@@ -79,25 +97,43 @@ export async function generateCsv(courseMap, customColumns) {
  * Export course map as PDF.
  */
 export async function generatePdf(courseMap, customColumns) {
-  const enabledColumns = customColumns && customColumns.length > 0
-    ? customColumns.filter(c => c.enabled !== false)
-    : null;
+  const enabledColumns =
+    customColumns && customColumns.length > 0 ? customColumns.filter((c) => c.enabled !== false) : null;
 
   const colKeys = enabledColumns
-    ? enabledColumns.map(c => c.key)
-    : ['learningGoals', 'topicSection', 'learningObjectives', 'weeklyAssessments',
-       'asyncActivities', 'syncActivities', 'technologyNeeded', 'presentationFormat',
-       'supportingResources', 'evaluateDesign'];
+    ? enabledColumns.map((c) => c.key)
+    : [
+        'learningGoals',
+        'topicSection',
+        'learningObjectives',
+        'weeklyAssessments',
+        'asyncActivities',
+        'syncActivities',
+        'technologyNeeded',
+        'presentationFormat',
+        'supportingResources',
+        'evaluateDesign',
+      ];
 
   const colHeaders = enabledColumns
-    ? ['Week/Module', ...enabledColumns.map(c => c.label)]
-    : ['Week/Module', 'Learning Goals', 'Topic/Section', 'Learning Objectives',
-       'Assessments', 'Async Activities', 'Sync Activities', 'Technology',
-       'Format', 'Resources', 'Evaluate'];
+    ? ['Week/Module', ...enabledColumns.map((c) => c.label)]
+    : [
+        'Week/Module',
+        'Learning Goals',
+        'Topic/Section',
+        'Learning Objectives',
+        'Assessments',
+        'Async Activities',
+        'Sync Activities',
+        'Technology',
+        'Format',
+        'Resources',
+        'Evaluate',
+      ];
 
   const body = [];
   for (const lesson of courseMap.lessons) {
-    const sections = (lesson.sections && lesson.sections.length > 0) ? lesson.sections : [{}];
+    const sections = lesson.sections && lesson.sections.length > 0 ? lesson.sections : [{}];
     for (let i = 0; i < sections.length; i++) {
       const section = sections[i];
       const weekModule = i === 0 ? lesson.title : '';

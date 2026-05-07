@@ -20,12 +20,15 @@ export default function DeveloperModeShell({
   mainContent,
   sidebar,
 }) {
-  const activeSectionMeta = sections.find(section => section.id === activeSection);
+  const activeSectionMeta = sections.find((section) => section.id === activeSection);
 
   return (
     <FocusTrap focusTrapOptions={{ clickOutsideDeactivates: false }}>
       <div className="fixed inset-0 z-[70] overflow-hidden bg-slate-950/35 backdrop-blur-[2px]">
-        <section className="absolute inset-x-3 top-3 bottom-3 ml-auto w-[min(1120px,calc(100vw-1.5rem))] rounded-2xl border border-slate-200/70 bg-white shadow-2xl flex flex-col overflow-hidden animate-spring-in dark:border-slate-700/70 dark:bg-slate-950">
+        <section
+          data-testid="developer-mode-panel"
+          className="absolute inset-x-3 top-3 bottom-3 ml-auto w-[min(1120px,calc(100vw-1.5rem))] rounded-2xl border border-slate-200/70 bg-white shadow-2xl flex flex-col overflow-hidden animate-spring-in dark:border-slate-700/70 dark:bg-slate-950"
+        >
           <div className="flex items-center justify-between gap-3 border-b border-slate-100 px-4 py-3 dark:border-slate-800">
             <div className="min-w-0">
               <p className="text-[10px] font-bold uppercase tracking-wider text-indigo-500">Developer Mode</p>
@@ -58,6 +61,7 @@ export default function DeveloperModeShell({
                 return (
                   <button
                     key={section.id}
+                    data-testid={`developer-section-${section.id}`}
                     onClick={() => onSectionChange(section.id)}
                     className={`min-w-[120px] flex-1 rounded-xl border px-3 py-2 text-left transition-all ${
                       isActive
@@ -66,7 +70,9 @@ export default function DeveloperModeShell({
                     }`}
                   >
                     <span className="flex items-center justify-between gap-2">
-                      <span className={`text-[11px] font-bold ${isActive ? 'text-indigo-600 dark:text-indigo-300' : 'text-slate-600 dark:text-slate-300'}`}>
+                      <span
+                        className={`text-[11px] font-bold ${isActive ? 'text-indigo-600 dark:text-indigo-300' : 'text-slate-600 dark:text-slate-300'}`}
+                      >
                         {section.label}
                       </span>
                       {isDirty && <span className="h-1.5 w-1.5 rounded-full bg-amber-400" />}
@@ -84,15 +90,19 @@ export default function DeveloperModeShell({
                 <div className="min-w-0">
                   <p className="truncate text-[12px] font-bold text-slate-700 dark:text-slate-200">
                     {activeSectionMeta?.label}
-                    {dirtySections.has(activeSection) && <span className="ml-2 text-[10px] font-semibold text-amber-500">Unsaved</span>}
+                    {dirtySections.has(activeSection) && (
+                      <span className="ml-2 text-[10px] font-semibold text-amber-500">Unsaved</span>
+                    )}
                   </p>
                   <p className="text-[10px] text-slate-400 dark:text-slate-500">{stats.join(' · ')}</p>
                 </div>
-                <div className={`rounded-full px-2 py-1 text-[10px] font-bold ${
-                  activeValidation.ok
-                    ? 'bg-emerald-50 text-emerald-600 dark:bg-emerald-500/10 dark:text-emerald-300'
-                    : 'bg-red-50 text-red-600 dark:bg-red-500/10 dark:text-red-300'
-                }`}>
+                <div
+                  className={`rounded-full px-2 py-1 text-[10px] font-bold ${
+                    activeValidation.ok
+                      ? 'bg-emerald-50 text-emerald-600 dark:bg-emerald-500/10 dark:text-emerald-300'
+                      : 'bg-red-50 text-red-600 dark:bg-red-500/10 dark:text-red-300'
+                  }`}
+                >
                   {activeValidation.ok ? 'Valid' : 'Needs fix'}
                 </div>
               </div>
@@ -104,9 +114,16 @@ export default function DeveloperModeShell({
           </div>
 
           <div className="flex items-center justify-between gap-3 border-t border-slate-100 px-4 py-3 dark:border-slate-800">
-            <p className={`min-w-0 truncate text-[11px] ${
-              status.type === 'error' ? 'text-red-600 dark:text-red-300' : status.type === 'success' ? 'text-emerald-600 dark:text-emerald-300' : 'text-slate-500 dark:text-slate-400'
-            }`}>
+            <p
+              data-testid="developer-status"
+              className={`min-w-0 truncate text-[11px] ${
+                status.type === 'error'
+                  ? 'text-red-600 dark:text-red-300'
+                  : status.type === 'success'
+                    ? 'text-emerald-600 dark:text-emerald-300'
+                    : 'text-slate-500 dark:text-slate-400'
+              }`}
+            >
               {status.message}
             </p>
             <div className="flex shrink-0 items-center gap-2">

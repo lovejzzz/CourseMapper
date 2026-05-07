@@ -1,5 +1,11 @@
 import { describe, it, expect } from 'vitest';
-import { PEDAGOGICAL_MODES, getMode, getModeSystemAddition, getModeLessonPlanNote, getModeCourseMapNote } from '../pedagogicalModes';
+import {
+  PEDAGOGICAL_MODES,
+  getMode,
+  getModeSystemAddition,
+  getModeLessonPlanNote,
+  getModeCourseMapNote,
+} from '../pedagogicalModes';
 
 describe('PEDAGOGICAL_MODES', () => {
   it('contains exactly 5 modes', () => {
@@ -7,7 +13,7 @@ describe('PEDAGOGICAL_MODES', () => {
   });
 
   it('has all expected mode ids', () => {
-    const ids = PEDAGOGICAL_MODES.map(m => m.id);
+    const ids = PEDAGOGICAL_MODES.map((m) => m.id);
     expect(ids).toContain('lecture');
     expect(ids).toContain('flipped');
     expect(ids).toContain('pbl');
@@ -30,14 +36,14 @@ describe('PEDAGOGICAL_MODES', () => {
   });
 
   it('lecture mode has empty prompt additions (default)', () => {
-    const lecture = PEDAGOGICAL_MODES.find(m => m.id === 'lecture');
+    const lecture = PEDAGOGICAL_MODES.find((m) => m.id === 'lecture');
     expect(lecture.systemPromptAddition).toBe('');
     expect(lecture.lessonPlanStructureNote).toBe('');
     expect(lecture.courseMapNote).toBe('');
   });
 
   it('non-lecture modes have non-empty prompt additions', () => {
-    const nonLecture = PEDAGOGICAL_MODES.filter(m => m.id !== 'lecture');
+    const nonLecture = PEDAGOGICAL_MODES.filter((m) => m.id !== 'lecture');
     for (const mode of nonLecture) {
       expect(mode.systemPromptAddition.length).toBeGreaterThan(0);
       expect(mode.lessonPlanStructureNote.length).toBeGreaterThan(0);

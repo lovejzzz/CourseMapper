@@ -1,9 +1,5 @@
 import { describe, expect, it } from 'vitest';
-import {
-  applyEditorIndent,
-  getCursorPosition,
-  getLineCount,
-} from '../developerCodeEditor';
+import { applyEditorIndent, getCursorPosition, getLineCount } from '../developerCodeEditor';
 
 describe('developerCodeEditor', () => {
   it('counts lines and reports cursor position', () => {

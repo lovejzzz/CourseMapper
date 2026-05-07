@@ -14,9 +14,7 @@ const baseMap = {
     },
     {
       title: 'Lesson 2: Advanced',
-      sections: [
-        { learningGoals: 'Goal C', topicSection: 'Topic C' },
-      ],
+      sections: [{ learningGoals: 'Goal C', topicSection: 'Topic C' }],
     },
   ],
 };
@@ -32,9 +30,7 @@ describe('applyPatches', () => {
   });
 
   it('patches a lesson title', () => {
-    const result = applyPatches(baseMap, [
-      { lessonIndex: 1, field: 'title', value: 'Lesson 2: Expert' },
-    ]);
+    const result = applyPatches(baseMap, [{ lessonIndex: 1, field: 'title', value: 'Lesson 2: Expert' }]);
     expect(result.lessons[1].title).toBe('Lesson 2: Expert');
   });
 
@@ -49,17 +45,13 @@ describe('applyPatches', () => {
 
   it('adds a new lesson', () => {
     const newLesson = { title: 'Lesson 3: New', sections: [{ learningGoals: 'Goal D' }] };
-    const result = applyPatches(baseMap, [
-      { action: 'addLesson', lessonIndex: 2, lesson: newLesson },
-    ]);
+    const result = applyPatches(baseMap, [{ action: 'addLesson', lessonIndex: 2, lesson: newLesson }]);
     expect(result.lessons).toHaveLength(3);
     expect(result.lessons[2].title).toBe('Lesson 3: New');
   });
 
   it('removes a lesson', () => {
-    const result = applyPatches(baseMap, [
-      { action: 'removeLesson', lessonIndex: 0 },
-    ]);
+    const result = applyPatches(baseMap, [{ action: 'removeLesson', lessonIndex: 0 }]);
     expect(result.lessons).toHaveLength(1);
     expect(result.lessons[0].title).toBe('Lesson 2: Advanced');
   });
@@ -74,9 +66,7 @@ describe('applyPatches', () => {
   });
 
   it('does not mutate the original map', () => {
-    applyPatches(baseMap, [
-      { lessonIndex: 0, sectionIndex: 0, field: 'learningGoals', value: 'Mutated' },
-    ]);
+    applyPatches(baseMap, [{ lessonIndex: 0, sectionIndex: 0, field: 'learningGoals', value: 'Mutated' }]);
     expect(baseMap.lessons[0].sections[0].learningGoals).toBe('Goal A');
   });
 

@@ -11,7 +11,7 @@ export function buildChartUrl(spec, options = {}) {
     type: spec.type || 'bar',
     data: {
       labels: spec.labels || [],
-      datasets: (spec.datasets || []).map(ds => ({
+      datasets: (spec.datasets || []).map((ds) => ({
         label: ds.label || '',
         data: ds.data || [],
         backgroundColor: ds.backgroundColor || generateColors(ds.data?.length || 0, 0.6),
@@ -26,10 +26,13 @@ export function buildChartUrl(spec, options = {}) {
         title: spec.title ? { display: true, text: spec.title, font: { size: 16 } } : undefined,
         legend: { display: (spec.datasets || []).length > 1 },
       },
-      scales: spec.type !== 'pie' && spec.type !== 'doughnut' ? {
-        y: { beginAtZero: true, title: spec.yLabel ? { display: true, text: spec.yLabel } : undefined },
-        x: { title: spec.xLabel ? { display: true, text: spec.xLabel } : undefined },
-      } : undefined,
+      scales:
+        spec.type !== 'pie' && spec.type !== 'doughnut'
+          ? {
+              y: { beginAtZero: true, title: spec.yLabel ? { display: true, text: spec.yLabel } : undefined },
+              x: { title: spec.xLabel ? { display: true, text: spec.xLabel } : undefined },
+            }
+          : undefined,
     },
   };
 
@@ -40,14 +43,14 @@ export function buildChartUrl(spec, options = {}) {
 // Generate distinct colors for chart elements
 export function generateColors(count, alpha = 1) {
   const palette = [
-    `rgba(54, 162, 235, ${alpha})`,   // blue
-    `rgba(255, 99, 132, ${alpha})`,   // red
-    `rgba(75, 192, 192, ${alpha})`,   // teal
-    `rgba(255, 206, 86, ${alpha})`,   // yellow
-    `rgba(153, 102, 255, ${alpha})`,  // purple
-    `rgba(255, 159, 64, ${alpha})`,   // orange
-    `rgba(46, 204, 113, ${alpha})`,   // green
-    `rgba(231, 76, 60, ${alpha})`,    // dark red
+    `rgba(54, 162, 235, ${alpha})`, // blue
+    `rgba(255, 99, 132, ${alpha})`, // red
+    `rgba(75, 192, 192, ${alpha})`, // teal
+    `rgba(255, 206, 86, ${alpha})`, // yellow
+    `rgba(153, 102, 255, ${alpha})`, // purple
+    `rgba(255, 159, 64, ${alpha})`, // orange
+    `rgba(46, 204, 113, ${alpha})`, // green
+    `rgba(231, 76, 60, ${alpha})`, // dark red
   ];
   return Array.from({ length: count }, (_, i) => palette[i % palette.length]);
 }

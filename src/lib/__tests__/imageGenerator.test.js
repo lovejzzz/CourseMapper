@@ -57,7 +57,7 @@ describe('generateImages', () => {
         headers: expect.objectContaining({
           Authorization: 'Bearer sk-test',
         }),
-      })
+      }),
     );
   });
 
@@ -140,7 +140,8 @@ describe('generateImages', () => {
   });
 
   it('falls back when the selected GPT Image model is unavailable', async () => {
-    globalThis.fetch = vi.fn()
+    globalThis.fetch = vi
+      .fn()
       .mockResolvedValueOnce({
         ok: false,
         status: 403,
@@ -195,7 +196,7 @@ describe('generateImages', () => {
       'https://api.openai.com/v1/models',
       expect.objectContaining({
         headers: { Authorization: 'Bearer sk-test' },
-      })
+      }),
     );
   });
 
@@ -276,13 +277,9 @@ describe('generateImages', () => {
     const abortError = new DOMException('The operation was aborted', 'AbortError');
     globalThis.fetch = vi.fn().mockRejectedValue(abortError);
 
-    await expect(
-      generateImages('test', { provider: 'openai', apiKey: 'sk-test', count: 1 })
-    ).rejects.toThrow();
+    await expect(generateImages('test', { provider: 'openai', apiKey: 'sk-test', count: 1 })).rejects.toThrow();
 
     // Also test for Google provider
-    await expect(
-      generateImages('test', { provider: 'google', apiKey: 'goog-test', count: 1 })
-    ).rejects.toThrow();
+    await expect(generateImages('test', { provider: 'google', apiKey: 'goog-test', count: 1 })).rejects.toThrow();
   });
 });

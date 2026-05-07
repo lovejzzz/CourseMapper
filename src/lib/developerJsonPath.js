@@ -85,7 +85,10 @@ export function findJsonPathLocation(text, path, sectionId = 'raw') {
   }
 
   const keyPaths = collectKeyPaths(parsed, keyName);
-  const occurrenceIndex = Math.max(0, keyPaths.findIndex(candidate => samePath(candidate, segments)));
+  const occurrenceIndex = Math.max(
+    0,
+    keyPaths.findIndex((candidate) => samePath(candidate, segments)),
+  );
   let index = findNthKeyOffset(source, keyName, occurrenceIndex);
 
   if (index < 0) {

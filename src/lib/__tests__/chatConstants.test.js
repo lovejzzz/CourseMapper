@@ -18,9 +18,7 @@ vi.mock('../customDeliverableLibrary', () => ({
 
 vi.mock('../pedagogicalValidator', () => ({
   generateCourseHealthReport: vi.fn(() => ({
-    findings: [
-      { suggestedPrompt: 'Review Bloom\'s alignment for Lesson 3', severity: 'warning' },
-    ],
+    findings: [{ suggestedPrompt: "Review Bloom's alignment for Lesson 3", severity: 'warning' }],
   })),
 }));
 
@@ -35,10 +33,12 @@ const makeCourseMap = (lessonCount = 3) => ({
   semester: 'Fall 2026',
   lessons: Array.from({ length: lessonCount }, (_, i) => ({
     title: `Lesson ${i + 1}: Topic ${String.fromCharCode(65 + i)}`,
-    sections: [{
-      learningObjectives: i === 0 ? '' : `Objective for lesson ${i + 1} with enough content`,
-      topicSection: `Topic ${i + 1}`,
-    }],
+    sections: [
+      {
+        learningObjectives: i === 0 ? '' : `Objective for lesson ${i + 1} with enough content`,
+        topicSection: `Topic ${i + 1}`,
+      },
+    ],
   })),
 });
 
@@ -55,8 +55,15 @@ const makeDoneDeliverables = () => ({
 describe('FEATURE_LABELS', () => {
   it('contains all built-in feature IDs', () => {
     const expectedKeys = [
-      'lessonPlans', 'slideDecks', 'rubrics', 'quizBank',
-      'discussions', 'assignments', 'studyGuides', 'syllabus', 'courseFaq',
+      'lessonPlans',
+      'slideDecks',
+      'rubrics',
+      'quizBank',
+      'discussions',
+      'assignments',
+      'studyGuides',
+      'syllabus',
+      'courseFaq',
     ];
     for (const key of expectedKeys) {
       expect(FEATURE_LABELS[key]).toBeDefined();
@@ -79,7 +86,7 @@ describe('STEPS', () => {
   });
 
   it('includes parsing, generating, and done steps', () => {
-    const keys = STEPS.map(s => s.key);
+    const keys = STEPS.map((s) => s.key);
     expect(keys).toContain('parsing');
     expect(keys).toContain('generating');
     expect(keys).toContain('done');
@@ -123,15 +130,15 @@ describe('getChatOpener — Tier 1 (no course map)', () => {
 
   it('includes "How do I get started?" starter', () => {
     const result = getChatOpener(null, false, null);
-    const texts = result.starters.map(s => s.text);
+    const texts = result.starters.map((s) => s.text);
     expect(texts).toContain('How do I get started?');
   });
 
   it('includes starters about deliverables and API keys', () => {
     const result = getChatOpener(null, false, null);
-    const texts = result.starters.map(s => s.text);
-    expect(texts.some(t => t.includes('deliverables'))).toBe(true);
-    expect(texts.some(t => t.includes('API key'))).toBe(true);
+    const texts = result.starters.map((s) => s.text);
+    expect(texts.some((t) => t.includes('deliverables'))).toBe(true);
+    expect(texts.some((t) => t.includes('API key'))).toBe(true);
   });
 });
 
@@ -165,8 +172,8 @@ describe('getChatOpener — Tier 2 (course map, no deliverables)', () => {
     const cm = makeCourseMap(3);
     // Lesson 1 has empty objectives (weakest)
     const result = getChatOpener(cm, false, null);
-    const texts = result.starters.map(s => s.text);
-    expect(texts.some(t => t.includes('Review') && t.includes('gaps'))).toBe(true);
+    const texts = result.starters.map((s) => s.text);
+    expect(texts.some((t) => t.includes('Review') && t.includes('gaps'))).toBe(true);
   });
 });
 
@@ -191,23 +198,23 @@ describe('getChatOpener — Tier 3 (agent mode)', () => {
     const cm = makeCourseMap();
     const deliverables = makeDoneDeliverables();
     const result = getChatOpener(cm, true, 'quizBank', deliverables);
-    const texts = result.starters.map(s => s.text);
-    expect(texts.some(t => t.toLowerCase().includes('quiz'))).toBe(true);
+    const texts = result.starters.map((s) => s.text);
+    expect(texts.some((t) => t.toLowerCase().includes('quiz'))).toBe(true);
   });
 
   it('provides tab-specific starters for discussions', () => {
     const cm = makeCourseMap();
     const deliverables = { ...makeDoneDeliverables(), discussions: { status: 'done', data: { discussions: [] } } };
     const result = getChatOpener(cm, true, 'discussions', deliverables);
-    const texts = result.starters.map(s => s.text);
-    expect(texts.some(t => t.toLowerCase().includes('discussion'))).toBe(true);
+    const texts = result.starters.map((s) => s.text);
+    expect(texts.some((t) => t.toLowerCase().includes('discussion'))).toBe(true);
   });
 
   it('provides course map tab starters for "courseMap" activeTab', () => {
     const cm = makeCourseMap();
     const result = getChatOpener(cm, true, 'courseMap', makeDoneDeliverables());
-    const texts = result.starters.map(s => s.text);
-    expect(texts.some(t => t.includes('Review') || t.includes('gaps'))).toBe(true);
+    const texts = result.starters.map((s) => s.text);
+    expect(texts.some((t) => t.includes('Review') || t.includes('gaps'))).toBe(true);
   });
 
   it('uses custom deliverable names in agent starters', () => {
@@ -217,10 +224,23 @@ describe('getChatOpener — Tier 3 (agent mode)', () => {
       custom_peerReview: { status: 'done', data: { peerReviews: [] } },
     };
     const result = getChatOpener(cm, true, 'custom_peerReview', deliverables);
-    const texts = result.starters.map(s => s.text);
+    const texts = result.starters.map((s) => s.text);
 
     expect(texts).toContain('Review Peer Review for completeness');
     expect(texts.join(' ')).not.toContain('custom_peerReview');
+  });
+
+  it('shows configure action instead of edit starters when agent provider is unavailable', () => {
+    const cm = makeCourseMap();
+    const result = getChatOpener(cm, true, 'quizBank', makeDoneDeliverables(), false, false, false);
+
+    expect(result.greeting).toContain('Configure AI');
+    expect(result.starters).toEqual([
+      expect.objectContaining({
+        text: 'Configure AI to use agent',
+        action: 'configure-ai',
+      }),
+    ]);
   });
 });
 

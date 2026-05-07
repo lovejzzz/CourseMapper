@@ -16,9 +16,7 @@ import { buildAgentSystemPromptParts } from '../../src/lib/agentPrompts.js';
 import { buildNativeTools, applyAnthropicCache } from '../../src/lib/agentProviders.js';
 import { AGENT_TOOLS } from '../../src/lib/agentTools.js';
 import { executeAction } from '../../src/lib/agentActions.js';
-import {
-  createCustomToolRegistry, createSkillNudgeTracker, SKILL_NUDGE_HINT,
-} from '../../src/lib/customAgentTools.js';
+import { createCustomToolRegistry, createSkillNudgeTracker, SKILL_NUDGE_HINT } from '../../src/lib/customAgentTools.js';
 
 // ── Mutable fixture state + ctx wiring ──────────────────────────────────────
 
@@ -57,8 +55,12 @@ export function createFixture(initialCourseMap, initialDeliverables) {
   // executeAction ctx — matches the shape used by the real app.
   const execCtx = {
     editor,
-    get courseMap() { return state.courseMap; },
-    get deliverables() { return state.deliverables; },
+    get courseMap() {
+      return state.courseMap;
+    },
+    get deliverables() {
+      return state.deliverables;
+    },
     optimisticUpdate(featureId, patchedData) {
       if (!state.deliverables[featureId]) state.deliverables[featureId] = { status: 'done' };
       state.deliverables[featureId].data = patchedData;
@@ -136,7 +138,9 @@ export async function runMultiTurn({
   // Capture macro step events so tests can assert on streaming behavior.
   const macroSteps = [];
   const toolCtx = buildToolCtx(execCtx, registry, {
-    onStep: (event) => { macroSteps.push(event); },
+    onStep: (event) => {
+      macroSteps.push(event);
+    },
   });
   const trace = [];
   const loopMessages = [{ role: 'user', content: userMessage }];
@@ -184,17 +188,17 @@ export async function runMultiTurn({
     }
     const json = await res.json();
     const blocks = json.content || [];
-    const textBlocks = blocks.filter(b => b.type === 'text').map(b => b.text);
+    const textBlocks = blocks.filter((b) => b.type === 'text').map((b) => b.text);
     const toolCalls = blocks
-      .filter(b => b.type === 'tool_use')
-      .map(b => ({ id: b.id, name: b.name, args: b.input || {} }));
+      .filter((b) => b.type === 'tool_use')
+      .map((b) => ({ id: b.id, name: b.name, args: b.input || {} }));
 
     trace.push({
       iter,
       usage: json.usage,
       stop_reason: json.stop_reason,
       text: textBlocks.join(''),
-      calls: toolCalls.map(c => ({ name: c.name, args: c.args })),
+      calls: toolCalls.map((c) => ({ name: c.name, args: c.args })),
     });
     if (verbose) {
       console.log(`\n--- iter ${iter} (stop=${json.stop_reason}) ---`);
@@ -203,7 +207,7 @@ export async function runMultiTurn({
     }
 
     // Terminate on respond()
-    const respond = toolCalls.find(c => c.name === 'respond');
+    const respond = toolCalls.find((c) => c.name === 'respond');
     if (respond) {
       finalResponse = respond.args;
       break;
@@ -217,7 +221,7 @@ export async function runMultiTurn({
     for (const c of toolCalls) {
       const sig = c.name + ':' + JSON.stringify(c.args);
       signatures.push(sig);
-      const count = signatures.filter(s => s === sig).length;
+      const count = signatures.filter((s) => s === sig).length;
       if (count >= 3) {
         loopBroken = { tool: c.name, repeats: count };
       }
@@ -238,7 +242,7 @@ export async function runMultiTurn({
     });
     loopMessages.push({
       role: 'user',
-      content: toolResults.map(r => ({
+      content: toolResults.map((r) => ({
         type: 'tool_result',
         tool_use_id: r.id,
         content: typeof r.result === 'string' ? r.result : JSON.stringify(r.result).slice(0, 4000),
@@ -247,7 +251,7 @@ export async function runMultiTurn({
 
     // Skill-creation nudge — fires at most once per turn after the agent has
     // chained enough workflow steps that a macro would probably help.
-    const nudgeResults = toolResults.map(r => ({ name: r.name, result: r.result }));
+    const nudgeResults = toolResults.map((r) => ({ name: r.name, result: r.result }));
     if (skillNudge.update(nudgeResults)) {
       loopMessages.push({ role: 'user', content: SKILL_NUDGE_HINT });
     }

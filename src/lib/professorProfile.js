@@ -57,8 +57,9 @@ export function saveProfile(profile, uid) {
     console.warn('Professor profile save failed:', e);
   }
   if (uid) {
-    cloudSaveProfile(uid, { profile: { ...DEFAULTS, ...profile } })
-      .catch(e => console.warn('[Cloud] profile save failed:', e));
+    cloudSaveProfile(uid, { profile: { ...DEFAULTS, ...profile } }).catch((e) =>
+      console.warn('[Cloud] profile save failed:', e),
+    );
   }
 }
 

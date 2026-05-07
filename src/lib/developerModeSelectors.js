@@ -20,13 +20,15 @@ export function countDeveloperSearchMatches(text, query) {
 
 export function titleFromDeveloperId(id) {
   if (!id) return 'Untitled';
-  return String(id)
-    .replace(/^custom[_-]?/i, '')
-    .replace(/([a-z])([A-Z])/g, '$1 $2')
-    .replace(/[_-]+/g, ' ')
-    .replace(/\s+/g, ' ')
-    .trim()
-    .replace(/\b\w/g, letter => letter.toUpperCase()) || id;
+  return (
+    String(id)
+      .replace(/^custom[_-]?/i, '')
+      .replace(/([a-z])([A-Z])/g, '$1 $2')
+      .replace(/[_-]+/g, ' ')
+      .replace(/\s+/g, ' ')
+      .trim()
+      .replace(/\b\w/g, (letter) => letter.toUpperCase()) || id
+  );
 }
 
 export function getPromptFeatureOptions(snapshot = {}) {
@@ -38,21 +40,21 @@ export function getPromptFeatureOptions(snapshot = {}) {
   (Array.isArray(snapshot.selectedFeatures) ? snapshot.selectedFeatures : []).forEach(add);
   Object.keys(isPlainObject(snapshot.deliverableConfig) ? snapshot.deliverableConfig : {}).forEach(add);
   Object.keys(isPlainObject(snapshot.deliverables) ? snapshot.deliverables : {}).forEach(add);
-  return ids.map(id => ({ id, label: titleFromDeveloperId(id) }));
+  return ids.map((id) => ({ id, label: titleFromDeveloperId(id) }));
 }
 
 export function getDeveloperSectionStats(snapshot = {}, activeSection = '') {
   if (activeSection === 'themeLayout') {
-    const enabledColumns = Array.isArray(snapshot.columns) ? snapshot.columns.filter(column => column?.enabled !== false).length : 0;
+    const enabledColumns = Array.isArray(snapshot.columns)
+      ? snapshot.columns.filter((column) => column?.enabled !== false).length
+      : 0;
     return [`${enabledColumns} enabled columns`, `Theme ${snapshot.slideTheme ?? 'Auto'}`];
   }
   if (activeSection === 'prompts') {
     const config = isPlainObject(snapshot.deliverableConfig) ? snapshot.deliverableConfig : {};
-    const overrideCount = Object.values(config).filter(item => (
-      item?.customSystemPrompt?.trim()
-      || item?.customUserPrompt?.trim()
-      || item?.extraInstructions?.trim()
-    )).length;
+    const overrideCount = Object.values(config).filter(
+      (item) => item?.customSystemPrompt?.trim() || item?.customUserPrompt?.trim() || item?.extraInstructions?.trim(),
+    ).length;
     return [`${overrideCount} prompt overrides`, `${getPromptFeatureOptions(snapshot).length} deliverables`];
   }
   if (activeSection === 'templates') {

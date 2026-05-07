@@ -40,9 +40,7 @@ function copyKeys(source, keys) {
 }
 
 function buildPromptPatch(templateData, currentConfig) {
-  const incomingConfig = isPlainObject(templateData?.deliverableConfig)
-    ? templateData.deliverableConfig
-    : {};
+  const incomingConfig = isPlainObject(templateData?.deliverableConfig) ? templateData.deliverableConfig : {};
   const currentDeliverableConfig = isPlainObject(currentConfig?.deliverableConfig)
     ? cloneJson(currentConfig.deliverableConfig)
     : {};

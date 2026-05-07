@@ -79,7 +79,11 @@ export async function getEngine(modelId, onProgress) {
  */
 export async function resetEngine() {
   if (_engine) {
-    try { await _engine.unload(); } catch { /* ignore */ }
+    try {
+      await _engine.unload();
+    } catch {
+      /* ignore */
+    }
   }
   _engine = null;
   _loadingPromise = null;

@@ -8,20 +8,32 @@ function pLimit(concurrency) {
     if (active >= concurrency || queue.length === 0) return;
     active++;
     const { fn, resolve, reject } = queue.shift();
-    fn().then(resolve, reject).finally(() => { active--; next(); });
+    fn()
+      .then(resolve, reject)
+      .finally(() => {
+        active--;
+        next();
+      });
   }
-  return (fn) => new Promise((resolve, reject) => {
-    queue.push({ fn, resolve, reject });
-    next();
-  });
+  return (fn) =>
+    new Promise((resolve, reject) => {
+      queue.push({ fn, resolve, reject });
+      next();
+    });
 }
 import { buildSyncPlan, getOutboundTargets, computeStaleConfidence } from '../lib/syncDependencies';
 
 // Feature display names for sync suggestion cards
 const FEATURE_NAMES = {
-  assignments: 'Assignments', quizBank: 'Quiz & Exam Bank', discussions: 'Discussion Prompts',
-  slideDecks: 'Slide Decks', lessonPlans: 'Lesson Plans', rubrics: 'Rubrics',
-  studyGuides: 'Study Guides', courseFaq: 'Course FAQ', syllabus: 'Syllabus',
+  assignments: 'Assignments',
+  quizBank: 'Quiz & Exam Bank',
+  discussions: 'Discussion Prompts',
+  slideDecks: 'Slide Decks',
+  lessonPlans: 'Lesson Plans',
+  rubrics: 'Rubrics',
+  studyGuides: 'Study Guides',
+  courseFaq: 'Course FAQ',
+  syllabus: 'Syllabus',
 };
 
 /**
@@ -50,11 +62,11 @@ const FEATURE_NAMES = {
  *     pendingSyncSuggestion, clearPendingSyncSuggestion, executeSyncPlan }
  */
 export default function useSmartSync({
-  deliv,             // return value of useDeliverables
-  gen,               // return value of useGeneration (for gen.isStreaming guard)
-  courseMapRef,      // ref to current courseMap (always fresh)
+  deliv, // return value of useDeliverables
+  gen, // return value of useGeneration (for gen.isStreaming guard)
+  courseMapRef, // ref to current courseMap (always fresh)
   selectedFeatures,
-  onSyncComplete,    // callback(affectedFeatureIds[]) — called when sync batch done
+  onSyncComplete, // callback(affectedFeatureIds[]) — called when sync batch done
   onRequestProposal, // callback({ featureId, lessonIndex, editContext, courseMap })
   // — called when a deliverable body edit should show a proposal panel
 }) {
@@ -89,7 +101,7 @@ export default function useSmartSync({
   onRequestProposalRef.current = onRequestProposal;
 
   const appendSyncLog = useCallback((type, featureId, message) => {
-    setSyncLog(prev => [...prev, { type, featureId, message, at: Date.now() }]);
+    setSyncLog((prev) => [...prev, { type, featureId, message, at: Date.now() }]);
   }, []);
 
   /**
@@ -100,70 +112,81 @@ export default function useSmartSync({
    * @param {string} changedFieldsSummary — human-readable summary for logs
    * @returns {string[]} completedFeatureIds
    */
-  const executeSyncPlan = useCallback(async (plan, changedFieldsSummary = '') => {
-    const currentDeliv = delivRef.current;
-    const currentGen = genRef.current;
-    const currentCourseMap = courseMapRef?.current;
+  const executeSyncPlan = useCallback(
+    async (plan, changedFieldsSummary = '') => {
+      const currentDeliv = delivRef.current;
+      const currentGen = genRef.current;
+      const currentCourseMap = courseMapRef?.current;
 
-    if (currentGen?.isStreaming || currentDeliv?.isGenerating) return [];
-    if (!currentCourseMap || !plan || plan.length === 0) return [];
+      if (currentGen?.isStreaming || currentDeliv?.isGenerating) return [];
+      if (!currentCourseMap || !plan || plan.length === 0) return [];
 
-    syncGenIdRef.current += 1;
-    const currentGenId = syncGenIdRef.current;
+      syncGenIdRef.current += 1;
+      const currentGenId = syncGenIdRef.current;
 
-    isSyncingRef.current = true;
-    setIsSyncing(true);
-    setPendingSyncCount(plan.length);
+      isSyncingRef.current = true;
+      setIsSyncing(true);
+      setPendingSyncCount(plan.length);
 
-    const completedFeatureIds = [];
+      const completedFeatureIds = [];
 
-    const limit = pLimit(3);
-    const tasks = plan.map((entry) => limit(async () => {
-      const { featureId, lessonIndices } = entry;
+      const limit = pLimit(3);
+      const tasks = plan.map((entry) =>
+        limit(async () => {
+          const { featureId, lessonIndices } = entry;
 
-      setSyncingFeatures(prev => new Set([...prev, featureId]));
+          setSyncingFeatures((prev) => new Set([...prev, featureId]));
 
-      appendSyncLog('start', featureId, lessonIndices
-        ? `Lesson${lessonIndices.length > 1 ? 's' : ''} ${lessonIndices.map(n => n + 1).join(', ')} — ${changedFieldsSummary} changed`
-        : `Full update — ${changedFieldsSummary} changed`
+          appendSyncLog(
+            'start',
+            featureId,
+            lessonIndices
+              ? `Lesson${lessonIndices.length > 1 ? 's' : ''} ${lessonIndices.map((n) => n + 1).join(', ')} — ${changedFieldsSummary} changed`
+              : `Full update — ${changedFieldsSummary} changed`,
+          );
+
+          try {
+            if (lessonIndices === null) {
+              await delivRef.current.generateAll(currentCourseMap, [featureId], null, currentGenId);
+            } else {
+              for (const lessonIdx of lessonIndices) {
+                await delivRef.current.regenerateLesson(featureId, currentCourseMap, lessonIdx, currentGenId);
+              }
+            }
+            appendSyncLog(
+              'done',
+              featureId,
+              lessonIndices
+                ? `Lesson${lessonIndices.length > 1 ? 's' : ''} ${lessonIndices.map((n) => n + 1).join(', ')} synced ✓`
+                : 'All lessons synced ✓',
+            );
+            completedFeatureIds.push(featureId);
+          } catch (err) {
+            appendSyncLog('error', featureId, err.message || 'Sync failed');
+          } finally {
+            setSyncingFeatures((prev) => {
+              const next = new Set(prev);
+              next.delete(featureId);
+              return next;
+            });
+          }
+        }),
       );
 
-      try {
-        if (lessonIndices === null) {
-          await delivRef.current.generateAll(currentCourseMap, [featureId], null, currentGenId);
-        } else {
-          for (const lessonIdx of lessonIndices) {
-            await delivRef.current.regenerateLesson(featureId, currentCourseMap, lessonIdx, currentGenId);
-          }
-        }
-        appendSyncLog('done', featureId, lessonIndices
-          ? `Lesson${lessonIndices.length > 1 ? 's' : ''} ${lessonIndices.map(n => n + 1).join(', ')} synced ✓`
-          : 'All lessons synced ✓'
-        );
-        completedFeatureIds.push(featureId);
-      } catch (err) {
-        appendSyncLog('error', featureId, err.message || 'Sync failed');
-      } finally {
-        setSyncingFeatures(prev => {
-          const next = new Set(prev);
-          next.delete(featureId);
-          return next;
-        });
+      await Promise.all(tasks);
+
+      isSyncingRef.current = false;
+      setIsSyncing(false);
+      setPendingSyncCount(0);
+
+      if (completedFeatureIds.length > 0 && onSyncCompleteRef.current) {
+        onSyncCompleteRef.current(completedFeatureIds);
       }
-    }));
 
-    await Promise.all(tasks);
-
-    isSyncingRef.current = false;
-    setIsSyncing(false);
-    setPendingSyncCount(0);
-
-    if (completedFeatureIds.length > 0 && onSyncCompleteRef.current) {
-      onSyncCompleteRef.current(completedFeatureIds);
-    }
-
-    return completedFeatureIds;
-  }, [appendSyncLog, courseMapRef]);
+      return completedFeatureIds;
+    },
+    [appendSyncLog, courseMapRef],
+  );
 
   /**
    * The main sync planner — called after debounce expires.
@@ -198,15 +221,13 @@ export default function useSmartSync({
     // ── Deliverable body edits — proposal + stale path ───────────────────────
     // Separate out _deliverableEdit edits and handle them independently
     // (no entry in the sync plan — they bypass buildSyncPlan entirely).
-    const deliverableEdits = edits.filter(e => e.key === '_deliverableEdit' && e.excludeFeatureId);
-    const courseMapEdits = edits.filter(e => !(e.key === '_deliverableEdit' && e.excludeFeatureId));
+    const deliverableEdits = edits.filter((e) => e.key === '_deliverableEdit' && e.excludeFeatureId);
+    const courseMapEdits = edits.filter((e) => !(e.key === '_deliverableEdit' && e.excludeFeatureId));
 
     if (deliverableEdits.length > 0) {
       // Only the features that have 'done' status qualify for stale marking
       const doneFeatureIds = new Set(
-        (currentFeatures || []).filter(f =>
-          f !== 'courseMap' && currentDeliv?.deliverables?.[f]?.status === 'done'
-        )
+        (currentFeatures || []).filter((f) => f !== 'courseMap' && currentDeliv?.deliverables?.[f]?.status === 'done'),
       );
 
       // Group by source featureId — deduplicate (last edit wins for editContext)
@@ -230,9 +251,7 @@ export default function useSmartSync({
             editContext: edit.editContext || null,
             courseMap: currentCourseMap,
           });
-          appendSyncLog('start', sourceFeatureId,
-            `Lesson ${edit.lessonIdx + 1} — AI suggestion requested`
-          );
+          appendSyncLog('start', sourceFeatureId, `Lesson ${edit.lessonIdx + 1} — AI suggestion requested`);
         }
 
         // 2. Mark outbound tabs stale AND emit sync suggestion for chat
@@ -248,8 +267,10 @@ export default function useSmartSync({
               editKeys: ['_deliverableEdit'],
               sourceFeatureId: sourceFeatureId,
             });
-            appendSyncLog('pending', fId,
-              `Lesson ${edit.lessonIdx != null ? edit.lessonIdx + 1 : '?'} — marked out of sync`
+            appendSyncLog(
+              'pending',
+              fId,
+              `Lesson ${edit.lessonIdx != null ? edit.lessonIdx + 1 : '?'} — marked out of sync`,
             );
             downstreamPlan.push({
               featureId: fId,
@@ -287,27 +308,34 @@ export default function useSmartSync({
     // ── Course map edits — normal surgical regeneration path ─────────────────
     if (courseMapEdits.length === 0) return;
 
-    const priorityIds = new Set(courseMapEdits.map(e => e.excludeFeatureId).filter(Boolean));
-    const priorityFeatureId = priorityIds.size === 1 && courseMapEdits.every(e => e.excludeFeatureId)
-      ? [...priorityIds][0]
-      : null;
+    const priorityIds = new Set(courseMapEdits.map((e) => e.excludeFeatureId).filter(Boolean));
+    const priorityFeatureId =
+      priorityIds.size === 1 && courseMapEdits.every((e) => e.excludeFeatureId) ? [...priorityIds][0] : null;
 
     const plan = buildSyncPlan(courseMapEdits, currentFeatures, currentDeliv.deliverables, priorityFeatureId);
     if (plan.length === 0) return;
 
     // Build human-readable summary of changed fields
     const FIELD_LABELS = {
-      title: 'lesson title', learningObjectives: 'learning objectives',
-      weeklyAssessments: 'weekly assessments', topicSection: 'topic/section',
-      asyncActivities: 'async activities', syncActivities: 'sync activities',
-      supportingResources: 'supporting resources', presentationFormat: 'presentation format',
-      learningGoals: 'learning goals', technologyNeeded: 'technology needed',
-      evaluateDesign: 'evaluate design', _structural: 'lesson structure',
-      sections: 'sections', courseName: 'course name',
-      semester: 'semester', courseDescription: 'course description',
+      title: 'lesson title',
+      learningObjectives: 'learning objectives',
+      weeklyAssessments: 'weekly assessments',
+      topicSection: 'topic/section',
+      asyncActivities: 'async activities',
+      syncActivities: 'sync activities',
+      supportingResources: 'supporting resources',
+      presentationFormat: 'presentation format',
+      learningGoals: 'learning goals',
+      technologyNeeded: 'technology needed',
+      evaluateDesign: 'evaluate design',
+      _structural: 'lesson structure',
+      sections: 'sections',
+      courseName: 'course name',
+      semester: 'semester',
+      courseDescription: 'course description',
     };
-    const uniqueFields = [...new Set(courseMapEdits.map(e => FIELD_LABELS[e.key] || e.key))];
-    const uniqueLessons = [...new Set(courseMapEdits.filter(e => e.lessonIdx != null).map(e => e.lessonIdx))];
+    const uniqueFields = [...new Set(courseMapEdits.map((e) => FIELD_LABELS[e.key] || e.key))];
+    const uniqueLessons = [...new Set(courseMapEdits.filter((e) => e.lessonIdx != null).map((e) => e.lessonIdx))];
     const changedFieldsSummary = uniqueFields.slice(0, 3).join(', ') + (uniqueFields.length > 3 ? '…' : '');
 
     // ── Emit sync suggestion for the chat agent instead of auto-executing ──
@@ -323,8 +351,10 @@ export default function useSmartSync({
       changedFieldsSummary,
     });
 
-    appendSyncLog('pending', plan[0]?.featureId || 'sync',
-      `${plan.length} deliverable${plan.length > 1 ? 's' : ''} need syncing — waiting for approval`
+    appendSyncLog(
+      'pending',
+      plan[0]?.featureId || 'sync',
+      `${plan.length} deliverable${plan.length > 1 ? 's' : ''} need syncing — waiting for approval`,
     );
   }, [appendSyncLog, courseMapRef]);
 
@@ -338,17 +368,20 @@ export default function useSmartSync({
    * @param {string|null} excludeFeatureId — Source featureId when editing a deliverable body
    * @param {string|null} editContext      — Human-readable change summary ('homework: "3" → "4"')
    */
-  const notifyEdit = useCallback((lessonIdx, key, excludeFeatureId = null, editContext = null) => {
-    pendingEditsRef.current.push({ lessonIdx, key, excludeFeatureId, editContext });
+  const notifyEdit = useCallback(
+    (lessonIdx, key, excludeFeatureId = null, editContext = null) => {
+      pendingEditsRef.current.push({ lessonIdx, key, excludeFeatureId, editContext });
 
-    // Reset debounce timer
-    if (debounceTimerRef.current) clearTimeout(debounceTimerRef.current);
+      // Reset debounce timer
+      if (debounceTimerRef.current) clearTimeout(debounceTimerRef.current);
 
-    // If currently syncing, queue for after completion (handled in runSync)
-    if (isSyncingRef.current) return;
+      // If currently syncing, queue for after completion (handled in runSync)
+      if (isSyncingRef.current) return;
 
-    debounceTimerRef.current = setTimeout(runSync, 2000);
-  }, [runSync]);
+      debounceTimerRef.current = setTimeout(runSync, 2000);
+    },
+    [runSync],
+  );
 
   // ── Reactive idle-watcher (replaces 1.5s polling) ───────────────────────────
   // When generation finishes (isGenerating or isStreaming flips to false) and
@@ -369,7 +402,13 @@ export default function useSmartSync({
   }, []);
 
   return {
-    syncLog, isSyncing, pendingSyncCount, notifyEdit, syncingFeatures,
-    pendingSyncSuggestion, clearPendingSyncSuggestion, executeSyncPlan,
+    syncLog,
+    isSyncing,
+    pendingSyncCount,
+    notifyEdit,
+    syncingFeatures,
+    pendingSyncSuggestion,
+    clearPendingSyncSuggestion,
+    executeSyncPlan,
   };
 }

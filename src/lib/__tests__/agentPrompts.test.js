@@ -107,9 +107,7 @@ describe('buildAgentSystemPrompt', () => {
 
   it('injects health summary when provided', () => {
     const healthSummary = 'Course Health: 2 errors, 1 warning\n- ERROR: Bloom mismatch in Lesson 1';
-    const prompt = buildAgentSystemPrompt(
-      baseCourseMap, 'quizBank', baseDeliverables, healthSummary,
-    );
+    const prompt = buildAgentSystemPrompt(baseCourseMap, 'quizBank', baseDeliverables, healthSummary);
     expect(prompt).toContain('Course health:');
     expect(prompt).toContain('2 errors, 1 warning');
   });

@@ -36,8 +36,12 @@ function install2dContextStub() {
   const fakeCtxFactory = () => {
     let font = '12px sans';
     return {
-      get font() { return font; },
-      set font(v) { font = v; },
+      get font() {
+        return font;
+      },
+      set font(v) {
+        font = v;
+      },
       // Extract font size in px from the CSS font string and approximate
       // char width at ~0.55em — good enough for layout-tolerance checks.
       measureText(text) {
@@ -46,8 +50,13 @@ function install2dContextStub() {
         return { width: String(text || '').length * px * 0.55 };
       },
       // slideTextFit doesn't call these, but pptxgenjs may touch a few more.
-      fillText() {}, strokeText() {}, save() {}, restore() {},
-      translate() {}, scale() {}, rotate() {},
+      fillText() {},
+      strokeText() {},
+      save() {},
+      restore() {},
+      translate() {},
+      scale() {},
+      rotate() {},
       getImageData: () => ({ data: new Uint8ClampedArray(4) }),
     };
   };
@@ -70,43 +79,78 @@ function install2dContextStub() {
 // slide that has no visual at all, so we can assert both positives and
 // negatives in one export run.
 const FIXTURE = {
-  decks: [{
-    lessonTitle: 'Lesson 1: Supervised Learning Basics',
-    slides: [
-      // 1. title — has visual but exempt from on-slide placeholder
-      { title: 'Lesson 1', type: 'title', bullets: ['Week 1'], timeEstimate: '1 min',
-        speakerNotes: 'Kick off the lesson.',
-        visual: { kind: 'image', description: 'Course logo', altText: 'A stylized graduation cap sitting on a stack of books.' } },
+  decks: [
+    {
+      lessonTitle: 'Lesson 1: Supervised Learning Basics',
+      slides: [
+        // 1. title — has visual but exempt from on-slide placeholder
+        {
+          title: 'Lesson 1',
+          type: 'title',
+          bullets: ['Week 1'],
+          timeEstimate: '1 min',
+          speakerNotes: 'Kick off the lesson.',
+          visual: {
+            kind: 'image',
+            description: 'Course logo',
+            altText: 'A stylized graduation cap sitting on a stack of books.',
+          },
+        },
 
-      // 2. content — has visual, should get both placeholder + notes block
-      { title: 'Supervised learning maps labeled inputs to predictable outputs',
-        type: 'content',
-        bullets: ['Training data: (x, y) pairs', 'Goal: learn f such that f(x) ≈ y'],
-        timeEstimate: '5 min',
-        speakerNotes: 'Define the core setup.',
-        visual: { kind: 'diagram', description: 'Flowchart from labeled data through learner to prediction',
-                  altText: 'A four-step horizontal flow with labeled training data feeding into a learning algorithm box.' } },
+        // 2. content — has visual, should get both placeholder + notes block
+        {
+          title: 'Supervised learning maps labeled inputs to predictable outputs',
+          type: 'content',
+          bullets: ['Training data: (x, y) pairs', 'Goal: learn f such that f(x) ≈ y'],
+          timeEstimate: '5 min',
+          speakerNotes: 'Define the core setup.',
+          visual: {
+            kind: 'diagram',
+            description: 'Flowchart from labeled data through learner to prediction',
+            altText: 'A four-step horizontal flow with labeled training data feeding into a learning algorithm box.',
+          },
+        },
 
-      // 3. content — NO visual. Baseline: no placeholder, notes unchanged.
-      { title: 'Course cadence recap', type: 'content',
-        bullets: ['Quiz every Friday', 'Lab every Tuesday'], timeEstimate: '2 min',
-        speakerNotes: 'Remind about cadence.' },
+        // 3. content — NO visual. Baseline: no placeholder, notes unchanged.
+        {
+          title: 'Course cadence recap',
+          type: 'content',
+          bullets: ['Quiz every Friday', 'Lab every Tuesday'],
+          timeEstimate: '2 min',
+          speakerNotes: 'Remind about cadence.',
+        },
 
-      // 4. keyTerm — has visual, should get placeholder
-      { title: 'Bias–Variance Tradeoff', type: 'keyTerm',
-        bullets: ['The tension between fitting training data and generalizing'],
-        timeEstimate: '6 min',
-        speakerNotes: 'Core concept.',
-        visual: { kind: 'chart', description: 'U-shaped test error curve with bias and variance components',
-                  altText: 'Line chart with complexity on the x-axis and error on the y-axis, bias decreasing and variance increasing, summing to a U-shape.' } },
+        // 4. keyTerm — has visual, should get placeholder
+        {
+          title: 'Bias–Variance Tradeoff',
+          type: 'keyTerm',
+          bullets: ['The tension between fitting training data and generalizing'],
+          timeEstimate: '6 min',
+          speakerNotes: 'Core concept.',
+          visual: {
+            kind: 'chart',
+            description: 'U-shaped test error curve with bias and variance components',
+            altText:
+              'Line chart with complexity on the x-axis and error on the y-axis, bias decreasing and variance increasing, summing to a U-shape.',
+          },
+        },
 
-      // 5. closing — has visual but exempt (layout-exempt type)
-      { title: 'Before next time', type: 'closing',
-        bullets: ['Read ISLR Ch. 2'], timeEstimate: '2 min',
-        speakerNotes: 'Wrap up.',
-        visual: { kind: 'image', description: 'Weekend homework icon', altText: 'An open book with a pencil resting on the page.' } },
-    ],
-  }],
+        // 5. closing — has visual but exempt (layout-exempt type)
+        {
+          title: 'Before next time',
+          type: 'closing',
+          bullets: ['Read ISLR Ch. 2'],
+          timeEstimate: '2 min',
+          speakerNotes: 'Wrap up.',
+          visual: {
+            kind: 'image',
+            description: 'Weekend homework icon',
+            altText: 'An open book with a pencil resting on the page.',
+          },
+        },
+      ],
+    },
+  ],
 };
 
 // Distinctive marker strings from our exporter code — if these change, the
@@ -131,14 +175,14 @@ beforeAll(async () => {
   // Sort by the numeric suffix so slide1.xml comes before slide10.xml, etc.
   const numeric = (p) => parseInt(p.match(/(\d+)\.xml$/)?.[1] || '0', 10);
   const slidePaths = Object.keys(zip.files)
-    .filter(p => /^ppt\/slides\/slide\d+\.xml$/.test(p))
+    .filter((p) => /^ppt\/slides\/slide\d+\.xml$/.test(p))
     .sort((a, b) => numeric(a) - numeric(b));
   const notesPaths = Object.keys(zip.files)
-    .filter(p => /^ppt\/notesSlides\/notesSlide\d+\.xml$/.test(p))
+    .filter((p) => /^ppt\/notesSlides\/notesSlide\d+\.xml$/.test(p))
     .sort((a, b) => numeric(a) - numeric(b));
 
-  slideXmls = await Promise.all(slidePaths.map(p => zip.files[p].async('string')));
-  notesXmls = await Promise.all(notesPaths.map(p => zip.files[p].async('string')));
+  slideXmls = await Promise.all(slidePaths.map((p) => zip.files[p].async('string')));
+  notesXmls = await Promise.all(notesPaths.map((p) => zip.files[p].async('string')));
 }, 30_000);
 
 describe('PPTX export — visual placeholders', () => {

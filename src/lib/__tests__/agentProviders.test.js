@@ -38,7 +38,7 @@ describe('buildNativeTools', () => {
   it('converts tools to OpenAI format', () => {
     const tools = buildNativeTools('openai', testTools);
     expect(tools.length).toBeGreaterThanOrEqual(4); // 3 tools + respond
-    const validateTool = tools.find(t => t.function?.name === 'validate_course');
+    const validateTool = tools.find((t) => t.function?.name === 'validate_course');
     expect(validateTool).toBeDefined();
     expect(validateTool.type).toBe('function');
     expect(validateTool.function.description).toContain('validation');
@@ -46,7 +46,7 @@ describe('buildNativeTools', () => {
 
   it('converts tools to Anthropic format', () => {
     const tools = buildNativeTools('anthropic', testTools);
-    const readTool = tools.find(t => t.name === 'read_lesson');
+    const readTool = tools.find((t) => t.name === 'read_lesson');
     expect(readTool).toBeDefined();
     expect(readTool.input_schema).toBeDefined();
     expect(readTool.input_schema.properties.lessonIndex.type).toBe('number');
@@ -58,13 +58,13 @@ describe('buildNativeTools', () => {
     const declarations = tools[0].functionDeclarations;
     expect(declarations.length).toBeGreaterThanOrEqual(4);
     // Google uses uppercase types
-    const searchTool = declarations.find(d => d.name === 'search_research');
+    const searchTool = declarations.find((d) => d.name === 'search_research');
     expect(searchTool.parameters.type).toBe('OBJECT');
   });
 
   it('includes the respond tool', () => {
     const tools = buildNativeTools('openai', testTools);
-    const respondTool = tools.find(t => t.function?.name === 'respond');
+    const respondTool = tools.find((t) => t.function?.name === 'respond');
     expect(respondTool).toBeDefined();
     expect(respondTool.function.parameters.properties.chatReply).toBeDefined();
     expect(respondTool.function.parameters.properties.proposal).toBeDefined();
@@ -72,7 +72,7 @@ describe('buildNativeTools', () => {
 
   it('marks optional params as not required', () => {
     const tools = buildNativeTools('openai', testTools);
-    const searchTool = tools.find(t => t.function?.name === 'search_research');
+    const searchTool = tools.find((t) => t.function?.name === 'search_research');
     const required = searchTool.function.parameters.required;
     expect(required).toContain('query');
     expect(required).toContain('sources');
@@ -81,7 +81,7 @@ describe('buildNativeTools', () => {
 
   it('parses string[] params as array type', () => {
     const tools = buildNativeTools('anthropic', testTools);
-    const searchTool = tools.find(t => t.name === 'search_research');
+    const searchTool = tools.find((t) => t.name === 'search_research');
     expect(searchTool.input_schema.properties.sources.type).toBe('array');
     expect(searchTool.input_schema.properties.sources.items.type).toBe('string');
   });
@@ -92,16 +92,18 @@ describe('buildNativeTools', () => {
 describe('parseAgentResponse', () => {
   it('parses OpenAI tool call response', () => {
     const json = {
-      choices: [{
-        message: {
-          content: null,
-          tool_calls: [
-            { id: 'call_1', type: 'function', function: { name: 'validate_course', arguments: '{}' } },
-            { id: 'call_2', type: 'function', function: { name: 'read_lesson', arguments: '{"lessonIndex":0}' } },
-          ],
+      choices: [
+        {
+          message: {
+            content: null,
+            tool_calls: [
+              { id: 'call_1', type: 'function', function: { name: 'validate_course', arguments: '{}' } },
+              { id: 'call_2', type: 'function', function: { name: 'read_lesson', arguments: '{"lessonIndex":0}' } },
+            ],
+          },
+          finish_reason: 'tool_calls',
         },
-        finish_reason: 'tool_calls',
-      }],
+      ],
     };
     const result = parseAgentResponse('openai', json);
     expect(result.toolCalls).toHaveLength(2);
@@ -121,17 +123,19 @@ describe('parseAgentResponse', () => {
 
   it('preserves DeepSeek reasoning content for the next tool-call turn', () => {
     const json = {
-      choices: [{
-        message: {
-          role: 'assistant',
-          content: null,
-          reasoning_content: 'internal reasoning trace',
-          tool_calls: [
-            { id: 'call_1', type: 'function', function: { name: 'read_lesson', arguments: '{"lessonIndex":0}' } },
-          ],
+      choices: [
+        {
+          message: {
+            role: 'assistant',
+            content: null,
+            reasoning_content: 'internal reasoning trace',
+            tool_calls: [
+              { id: 'call_1', type: 'function', function: { name: 'read_lesson', arguments: '{"lessonIndex":0}' } },
+            ],
+          },
+          finish_reason: 'tool_calls',
         },
-        finish_reason: 'tool_calls',
-      }],
+      ],
     };
     const result = parseAgentResponse('deepseek', json);
 
@@ -156,14 +160,14 @@ describe('parseAgentResponse', () => {
 
   it('parses Google function call response', () => {
     const json = {
-      candidates: [{
-        content: {
-          parts: [
-            { functionCall: { name: 'read_lesson', args: { lessonIndex: 2 } } },
-          ],
+      candidates: [
+        {
+          content: {
+            parts: [{ functionCall: { name: 'read_lesson', args: { lessonIndex: 2 } } }],
+          },
+          finishReason: 'STOP',
         },
-        finishReason: 'STOP',
-      }],
+      ],
     };
     const result = parseAgentResponse('google', json);
     expect(result.toolCalls).toHaveLength(1);
@@ -193,11 +197,13 @@ describe('formatAssistantToolCalls', () => {
       role: 'assistant',
       content: null,
       reasoning_content: 'internal reasoning trace',
-      tool_calls: [{
-        id: 'call_1',
-        type: 'function',
-        function: { name: 'validate_course', arguments: '{}' },
-      }],
+      tool_calls: [
+        {
+          id: 'call_1',
+          type: 'function',
+          function: { name: 'validate_course', arguments: '{}' },
+        },
+      ],
     };
     const msg = formatAssistantToolCalls('deepseek', toolCalls, assistantMessage);
 

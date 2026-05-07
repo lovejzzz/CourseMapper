@@ -4,15 +4,7 @@ import { resolveLabel } from './constants';
 export default function ChangeSummaryCard({ summary, status, onUndo, canUndo, onRetryFailed, onKeep }) {
   const [collapsed, setCollapsed] = useState(true);
 
-  const {
-    changes = [],
-    applied = 0,
-    failed = 0,
-    pending = 0,
-    failedItems = [],
-    toolName,
-    message,
-  } = summary || {};
+  const { changes = [], applied = 0, failed = 0, pending = 0, failedItems = [], toolName, message } = summary || {};
 
   const hasSuccesses = changes.length > 0 || applied > 0;
   const hasFailures = failed > 0 || failedItems.length > 0;
@@ -34,26 +26,42 @@ export default function ChangeSummaryCard({ summary, status, onUndo, canUndo, on
     return parts.length ? parts.join(' · ') : message || 'No changes reported';
   }, [applied, changes.length, failed, pending, message]);
 
-  const title = tone === 'success'
-    ? 'Changes applied'
-    : tone === 'error'
-      ? 'Changes failed'
-      : 'Changes partially applied';
+  const title =
+    tone === 'success' ? 'Changes applied' : tone === 'error' ? 'Changes failed' : 'Changes partially applied';
 
   if (!summary) return null;
 
   return (
-    <div className={`ml-8 mr-1 rounded-lg border bg-white/75 shadow-sm animate-spring-in overflow-hidden ${styles.border}`}>
+    <div
+      className={`ml-8 mr-1 rounded-lg border bg-white/75 shadow-sm animate-spring-in overflow-hidden ${styles.border}`}
+    >
       <div className="px-3 py-2">
         <div className="flex items-start gap-2.5">
           <div className={`mt-0.5 flex h-5 w-5 items-center justify-center rounded-full ${styles.iconBg}`}>
             {tone === 'success' ? (
-              <svg className="h-3.5 w-3.5 text-emerald-500" fill="none" stroke="currentColor" viewBox="0 0 24 24" aria-hidden="true">
+              <svg
+                className="h-3.5 w-3.5 text-emerald-500"
+                fill="none"
+                stroke="currentColor"
+                viewBox="0 0 24 24"
+                aria-hidden="true"
+              >
                 <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2.4} d="m5 13 4 4L19 7" />
               </svg>
             ) : (
-              <svg className={`h-3.5 w-3.5 ${styles.iconText}`} fill="none" stroke="currentColor" viewBox="0 0 24 24" aria-hidden="true">
-                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2.2} d="M12 9v4m0 4h.01M4.93 19h14.14c1.54 0 2.5-1.67 1.73-3L13.73 4a2 2 0 00-3.46 0L3.2 16c-.77 1.33.19 3 1.73 3z" />
+              <svg
+                className={`h-3.5 w-3.5 ${styles.iconText}`}
+                fill="none"
+                stroke="currentColor"
+                viewBox="0 0 24 24"
+                aria-hidden="true"
+              >
+                <path
+                  strokeLinecap="round"
+                  strokeLinejoin="round"
+                  strokeWidth={2.2}
+                  d="M12 9v4m0 4h.01M4.93 19h14.14c1.54 0 2.5-1.67 1.73-3L13.73 4a2 2 0 00-3.46 0L3.2 16c-.77 1.33.19 3 1.73 3z"
+                />
               </svg>
             )}
           </div>
@@ -63,9 +71,7 @@ export default function ChangeSummaryCard({ summary, status, onUndo, canUndo, on
               <p className={`truncate text-[12px] font-semibold ${styles.title}`}>{title}</p>
               <span className="truncate text-[10px] font-medium text-slate-400">{summaryText}</span>
             </div>
-            {message && (
-              <p className="mt-0.5 line-clamp-2 text-[11px] leading-relaxed text-slate-500">{message}</p>
-            )}
+            {message && <p className="mt-0.5 line-clamp-2 text-[11px] leading-relaxed text-slate-500">{message}</p>}
             {hasPending && !message && (
               <p className="mt-0.5 text-[11px] leading-relaxed text-slate-500">
                 Preview updates when the background regeneration finishes.
@@ -87,7 +93,7 @@ export default function ChangeSummaryCard({ summary, status, onUndo, canUndo, on
             {(changes.length > 0 || failedItems.length > 0) && (
               <button
                 type="button"
-                onClick={() => setCollapsed(value => !value)}
+                onClick={() => setCollapsed((value) => !value)}
                 className="tactile rounded-md px-1.5 py-0.5 text-[10px] font-semibold text-slate-400 hover:bg-slate-100/80 hover:text-slate-600"
                 aria-expanded={!collapsed}
                 aria-label={collapsed ? 'Show change details' : 'Hide change details'}
@@ -107,7 +113,13 @@ export default function ChangeSummaryCard({ summary, status, onUndo, canUndo, on
                 <span className="mt-1 h-1.5 w-1.5 rounded-full bg-emerald-500" aria-hidden="true" />
                 <span>
                   <span className="font-medium">
-                    {change.type === 'added' ? 'Added' : change.type === 'removed' ? 'Removed' : change.type === 'generated' ? 'Generated' : 'Edited'}
+                    {change.type === 'added'
+                      ? 'Added'
+                      : change.type === 'removed'
+                        ? 'Removed'
+                        : change.type === 'generated'
+                          ? 'Generated'
+                          : 'Edited'}
                   </span>{' '}
                   {change.count} {resolveLabel(change.featureId)}
                   {change.label ? ` · ${change.label}` : ''}
@@ -123,7 +135,11 @@ export default function ChangeSummaryCard({ summary, status, onUndo, canUndo, on
                   <span className="mt-1 h-1.5 w-1.5 rounded-full bg-red-500" aria-hidden="true" />
                   <span>
                     <span className="font-medium">{failure.action}</span>
-                    <span className="text-red-600/80"> · {feature}{lessonHint}</span>
+                    <span className="text-red-600/80">
+                      {' '}
+                      · {feature}
+                      {lessonHint}
+                    </span>
                     <span className="block text-red-600/80">{failure.message}</span>
                   </span>
                 </div>

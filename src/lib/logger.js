@@ -8,6 +8,6 @@
 
 const noop = () => {};
 
-export const log   = import.meta.env.DEV ? (...args) => console.log('[CM]', ...args)   : noop;
-export const warn  = import.meta.env.DEV ? (...args) => console.warn('[CM]', ...args)  : noop;
+export const log = import.meta.env.DEV ? (...args) => console.log('[CM]', ...args) : noop;
+export const warn = import.meta.env.DEV ? (...args) => console.warn('[CM]', ...args) : noop;
 export const error = import.meta.env.DEV ? (...args) => console.error('[CM]', ...args) : noop;

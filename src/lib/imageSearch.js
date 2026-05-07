@@ -28,9 +28,9 @@ export async function fetchOpenAIImageModels(apiKey, signal) {
 
   const json = await res.json();
   const ids = (json.data || [])
-    .map(model => model?.id)
-    .filter(id => typeof id === 'string')
-    .filter(id => id.startsWith('gpt-image') || id.startsWith('dall-e'));
+    .map((model) => model?.id)
+    .filter((id) => typeof id === 'string')
+    .filter((id) => id.startsWith('gpt-image') || id.startsWith('dall-e'));
 
   const fallbackRank = new Map(OPENAI_IMAGE_MODEL_FALLBACKS.map((id, index) => [id, index * 10]));
   const rankModel = (id) => {
@@ -51,7 +51,11 @@ export async function fetchOpenAIImageModels(apiKey, signal) {
   });
 }
 
-export async function generateImages(query, { provider, apiKey, count = 2, model, size = '1024x1024', quality } = {}, signal) {
+export async function generateImages(
+  query,
+  { provider, apiKey, count = 2, model, size = '1024x1024', quality } = {},
+  signal,
+) {
   if (!apiKey) {
     return { images: [], error: 'No API key configured.' };
   }
@@ -69,17 +73,15 @@ export async function generateImages(query, { provider, apiKey, count = 2, model
   // Anthropic or unknown provider
   return {
     images: [],
-    error: 'Image generation is not supported with your current provider. Switch to OpenAI or Google to generate images.',
+    error:
+      'Image generation is not supported with your current provider. Switch to OpenAI or Google to generate images.',
   };
 }
 
 // ── OpenAI GPT Image ────────────────────────────────────────────────────────
 
 async function generateWithOpenAIImageFallbacks(query, apiKey, count, preferredModel, size, quality, signal) {
-  const models = [
-    preferredModel,
-    ...OPENAI_IMAGE_MODEL_FALLBACKS.filter(model => model !== preferredModel),
-  ];
+  const models = [preferredModel, ...OPENAI_IMAGE_MODEL_FALLBACKS.filter((model) => model !== preferredModel)];
   const errors = [];
 
   for (const model of models) {
@@ -92,9 +94,10 @@ async function generateWithOpenAIImageFallbacks(query, apiKey, count, preferredM
 
   return {
     images: [],
-    error: errors.length > 0
-      ? `OpenAI image generation failed for all fallback models. ${errors.join(' | ')}`
-      : 'OpenAI image generation failed for all fallback models.',
+    error:
+      errors.length > 0
+        ? `OpenAI image generation failed for all fallback models. ${errors.join(' | ')}`
+        : 'OpenAI image generation failed for all fallback models.',
   };
 }
 
@@ -107,7 +110,7 @@ async function generateWithOpenAIImageModel(query, apiKey, count, model, size, q
       const res = await fetch('https://api.openai.com/v1/images/generations', {
         method: 'POST',
         headers: {
-          'Authorization': `Bearer ${apiKey}`,
+          Authorization: `Bearer ${apiKey}`,
           'Content-Type': 'application/json',
         },
         body: JSON.stringify({
@@ -153,7 +156,7 @@ async function generateWithDallE(query, apiKey, count, signal) {
       const res = await fetch('https://api.openai.com/v1/images/generations', {
         method: 'POST',
         headers: {
-          'Authorization': `Bearer ${apiKey}`,
+          Authorization: `Bearer ${apiKey}`,
           'Content-Type': 'application/json',
         },
         body: JSON.stringify({
@@ -202,7 +205,7 @@ async function generateWithImagen(query, apiKey, count, signal) {
           parameters: { sampleCount: Math.min(count, 4) },
         }),
         signal,
-      }
+      },
     );
     if (!res.ok) {
       const err = await res.json().catch(() => ({}));

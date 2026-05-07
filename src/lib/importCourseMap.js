@@ -33,8 +33,8 @@ export async function importCourseMap(file) {
   }
 
   // First row is headers
-  const headers = rows[0].map(h => String(h || '').trim());
-  const dataRows = rows.slice(1).filter(r => r.some(cell => String(cell || '').trim()));
+  const headers = rows[0].map((h) => String(h || '').trim());
+  const dataRows = rows.slice(1).filter((r) => r.some((cell) => String(cell || '').trim()));
 
   if (dataRows.length === 0) {
     throw new Error('No data rows found after header.');
@@ -80,23 +80,24 @@ export async function importCourseMap(file) {
     }
 
     // Only add section if it has at least one non-empty field
-    if (Object.values(section).some(v => v && v !== false)) {
+    if (Object.values(section).some((v) => v && v !== false)) {
       currentLesson.sections.push(section);
     }
   }
 
   // Filter out lessons with no sections
-  const validLessons = lessons.filter(l => l.sections.length > 0);
+  const validLessons = lessons.filter((l) => l.sections.length > 0);
   if (validLessons.length === 0) {
     throw new Error('Could not parse any lessons from the file.');
   }
 
   // Try to extract course name from file name
-  const courseName = file.name
-    .replace(/\.(xlsx|xls|csv)$/i, '')
-    .replace(/Course\s*Map/i, '')
-    .replace(/\(.*?\)/g, '')
-    .trim() || 'Imported Course';
+  const courseName =
+    file.name
+      .replace(/\.(xlsx|xls|csv)$/i, '')
+      .replace(/Course\s*Map/i, '')
+      .replace(/\(.*?\)/g, '')
+      .trim() || 'Imported Course';
 
   return {
     courseName,
@@ -145,34 +146,35 @@ function formatCellValue(value) {
 const HEADER_MAPPINGS = {
   'learning goals': 'learningGoals',
   'learning goal': 'learningGoals',
-  'topic': 'topicSection',
+  topic: 'topicSection',
   'topic/section': 'topicSection',
   'topic section': 'topicSection',
   'learning objectives': 'learningObjectives',
   'learning objective': 'learningObjectives',
-  'objectives': 'learningObjectives',
-  'assessments': 'weeklyAssessments',
+  objectives: 'learningObjectives',
+  assessments: 'weeklyAssessments',
   'weekly assessments': 'weeklyAssessments',
-  'assessment': 'weeklyAssessments',
+  assessment: 'weeklyAssessments',
   'async activities': 'asyncActivities',
   'asynchronous activities': 'asyncActivities',
-  'asynchronous': 'asyncActivities',
+  asynchronous: 'asyncActivities',
   'sync activities': 'syncActivities',
   'synchronous activities': 'syncActivities',
-  'synchronous': 'syncActivities',
-  'technology': 'technologyNeeded',
+  synchronous: 'syncActivities',
+  technology: 'technologyNeeded',
   'technology needed': 'technologyNeeded',
-  'format': 'presentationFormat',
+  format: 'presentationFormat',
   'presentation format': 'presentationFormat',
-  'resources': 'supportingResources',
+  resources: 'supportingResources',
   'supporting resources': 'supportingResources',
-  'evaluate': 'evaluateDesign',
+  evaluate: 'evaluateDesign',
   'evaluate design': 'evaluateDesign',
 };
 
 function guessColumnKey(header) {
   if (!header) return null;
-  const lower = header.toLowerCase()
+  const lower = header
+    .toLowerCase()
     .replace(/[^a-z0-9\s/]/g, '')
     .trim();
 

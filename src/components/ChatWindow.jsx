@@ -28,14 +28,11 @@ export default function ChatWindow({ courseMap, onRevision, isRevising }) {
         ...prev,
         {
           role: 'assistant',
-          text: 'Done! I\'ve updated the course map based on your request. You can review the changes in the preview below.',
+          text: "Done! I've updated the course map based on your request. You can review the changes in the preview below.",
         },
       ]);
     } catch (err) {
-      setMessages((prev) => [
-        ...prev,
-        { role: 'error', text: `Revision failed: ${err.message}` },
-      ]);
+      setMessages((prev) => [...prev, { role: 'error', text: `Revision failed: ${err.message}` }]);
     }
   }
 
@@ -50,7 +47,12 @@ export default function ChatWindow({ courseMap, onRevision, isRevising }) {
     <div className="bg-white rounded-xl shadow-sm border border-gray-200 overflow-hidden">
       <div className="bg-gradient-to-r from-indigo-600 to-blue-600 px-5 py-3 flex items-center gap-2">
         <svg className="w-4 h-4 text-white/80" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-          <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M8 12h.01M12 12h.01M16 12h.01M21 12c0 4.418-4.03 8-9 8a9.863 9.863 0 01-4.255-.949L3 20l1.395-3.72C3.512 15.042 3 13.574 3 12c0-4.418 4.03-8 9-8s9 3.582 9 8z" />
+          <path
+            strokeLinecap="round"
+            strokeLinejoin="round"
+            strokeWidth={2}
+            d="M8 12h.01M12 12h.01M16 12h.01M21 12c0 4.418-4.03 8-9 8a9.863 9.863 0 01-4.255-.949L3 20l1.395-3.72C3.512 15.042 3 13.574 3 12c0-4.418 4.03-8 9-8s9 3.582 9 8z"
+          />
         </svg>
         <h3 className="text-sm font-semibold text-white">Revision Chat</h3>
       </div>
@@ -88,9 +90,7 @@ export default function ChatWindow({ courseMap, onRevision, isRevising }) {
           onClick={handleSend}
           disabled={!input.trim() || isRevising}
           className={`px-4 py-2 rounded-lg text-sm font-medium text-white transition-all flex-shrink-0 ${
-            input.trim() && !isRevising
-              ? 'bg-blue-600 hover:bg-blue-700'
-              : 'bg-gray-300 cursor-not-allowed'
+            input.trim() && !isRevising ? 'bg-blue-600 hover:bg-blue-700' : 'bg-gray-300 cursor-not-allowed'
           }`}
           aria-label="Send message"
         >
@@ -122,9 +122,7 @@ function MessageBubble({ message }) {
   if (message.role === 'user') {
     return (
       <div className="flex gap-2 justify-end">
-        <div className="bg-blue-600 text-white rounded-lg px-3 py-2 text-sm max-w-[85%]">
-          {message.text}
-        </div>
+        <div className="bg-blue-600 text-white rounded-lg px-3 py-2 text-sm max-w-[85%]">{message.text}</div>
       </div>
     );
   }
@@ -149,7 +147,12 @@ function MessageBubble({ message }) {
       <div className="flex gap-2">
         <div className="w-7 h-7 rounded-full bg-red-100 flex items-center justify-center flex-shrink-0 mt-0.5">
           <svg className="w-4 h-4 text-red-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-            <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 8v4m0 4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z" />
+            <path
+              strokeLinecap="round"
+              strokeLinejoin="round"
+              strokeWidth={2}
+              d="M12 8v4m0 4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z"
+            />
           </svg>
         </div>
         <div className="bg-red-50 border border-red-100 rounded-lg px-3 py-2 text-sm text-red-700 max-w-[85%]">

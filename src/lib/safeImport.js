@@ -9,8 +9,8 @@ export async function safeImport(importFn) {
     if (
       err.message &&
       (err.message.includes('Failed to fetch dynamically imported module') ||
-       err.message.includes('Loading chunk') ||
-       err.message.includes('Loading CSS chunk'))
+        err.message.includes('Loading chunk') ||
+        err.message.includes('Loading CSS chunk'))
     ) {
       // Check if we already tried reloading to avoid infinite loops
       const key = 'coursemapper-chunk-reload';

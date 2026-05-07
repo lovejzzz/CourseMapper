@@ -30,10 +30,14 @@ export async function searchPapers(query, limit = 5, signal) {
     const res = await fetch(url, { signal });
     if (!res.ok) throw new Error(`OpenAlex: ${res.status}`);
     const json = await res.json();
-    const papers = (json.results || []).map(p => ({
+    const papers = (json.results || []).map((p) => ({
       id: p.id,
       title: p.display_name || 'Untitled',
-      authors: (p.authorships || []).map(a => a.author?.display_name).filter(Boolean).slice(0, 3).join(', '),
+      authors: (p.authorships || [])
+        .map((a) => a.author?.display_name)
+        .filter(Boolean)
+        .slice(0, 3)
+        .join(', '),
       year: p.publication_year,
       citationCount: p.cited_by_count || 0,
       doi: p.doi || null,
@@ -56,7 +60,7 @@ export async function searchWikipedia(query, limit = 3, signal) {
     const res = await fetch(url, { signal });
     if (!res.ok) throw new Error(`Wikipedia: ${res.status}`);
     const json = await res.json();
-    const articles = (json.query?.search || []).map(r => ({
+    const articles = (json.query?.search || []).map((r) => ({
       title: r.title,
       snippet: (r.snippet || '').replace(/<[^>]*>/g, '').slice(0, 200),
       url: `https://en.wikipedia.org/wiki/${encodeURIComponent(r.title.replace(/ /g, '_'))}`,
@@ -77,9 +81,12 @@ export async function searchCrossRef(query, limit = 5, signal) {
     const res = await fetch(url, { signal });
     if (!res.ok) throw new Error(`CrossRef: ${res.status}`);
     const json = await res.json();
-    const works = (json.message?.items || []).map(item => ({
+    const works = (json.message?.items || []).map((item) => ({
       title: (item.title || [''])[0],
-      authors: (item.author || []).map(a => `${a.given || ''} ${a.family || ''}`.trim()).slice(0, 3).join(', '),
+      authors: (item.author || [])
+        .map((a) => `${a.given || ''} ${a.family || ''}`.trim())
+        .slice(0, 3)
+        .join(', '),
       year: item['published-print']?.['date-parts']?.[0]?.[0] || null,
       doi: item.DOI,
       citationCount: item['is-referenced-by-count'] || 0,
@@ -95,20 +102,16 @@ export async function searchCrossRef(query, limit = 5, signal) {
 
 // ── YouTube (via Invidious — free, no key, CORS-friendly) ───────────────────
 
-const INVIDIOUS_INSTANCES = [
-  'https://vid.puffyan.us',
-  'https://invidious.snopyta.org',
-  'https://yewtu.be',
-];
+const INVIDIOUS_INSTANCES = ['https://vid.puffyan.us', 'https://invidious.snopyta.org', 'https://yewtu.be'];
 
 export async function searchVideos(query, limit = 5, signal) {
   for (const instance of INVIDIOUS_INSTANCES) {
     try {
       const url = `${instance}/api/v1/search?q=${encodeURIComponent(query)}&type=video&sort=relevance&page=1`;
-      const res = await fetch(url, { signal, headers: { 'Accept': 'application/json' } });
+      const res = await fetch(url, { signal, headers: { Accept: 'application/json' } });
       if (!res.ok) continue;
       const json = await res.json();
-      const videos = (json || []).slice(0, limit).map(v => ({
+      const videos = (json || []).slice(0, limit).map((v) => ({
         title: v.title || 'Untitled',
         author: v.author || '',
         videoId: v.videoId,
@@ -135,7 +138,7 @@ export async function searchBooks(query, limit = 5, signal) {
     const res = await fetch(url, { signal });
     if (!res.ok) throw new Error(`OpenLibrary: ${res.status}`);
     const json = await res.json();
-    const books = (json.docs || []).map(b => ({
+    const books = (json.docs || []).map((b) => ({
       title: b.title || 'Untitled',
       authors: (b.author_name || []).slice(0, 3).join(', '),
       year: b.first_publish_year || null,
@@ -143,7 +146,9 @@ export async function searchBooks(query, limit = 5, signal) {
       isbn: (b.isbn || [])[0] || null,
       coverUrl: b.cover_i ? `https://covers.openlibrary.org/b/id/${b.cover_i}-M.jpg` : null,
       subjects: (b.subject || []).slice(0, 3).join(', '),
-      url: b.isbn?.[0] ? `https://openlibrary.org/isbn/${b.isbn[0]}` : `https://openlibrary.org/search?q=${encodeURIComponent(b.title)}`,
+      url: b.isbn?.[0]
+        ? `https://openlibrary.org/isbn/${b.isbn[0]}`
+        : `https://openlibrary.org/search?q=${encodeURIComponent(b.title)}`,
     }));
     return { books };
   } catch (err) {
@@ -161,7 +166,7 @@ export async function searchGoogleBooks(query, limit = 5, signal) {
     const res = await fetch(url, { signal });
     if (!res.ok) throw new Error(`Google Books: ${res.status}`);
     const json = await res.json();
-    const books = (json.items || []).map(item => {
+    const books = (json.items || []).map((item) => {
       const v = item.volumeInfo || {};
       return {
         title: v.title || 'Untitled',
@@ -173,8 +178,10 @@ export async function searchGoogleBooks(query, limit = 5, signal) {
         previewLink: v.previewLink || '',
         thumbnail: v.imageLinks?.thumbnail || null,
         maturityRating: v.maturityRating || '',
-        isbn: (v.industryIdentifiers || []).find(id => id.type === 'ISBN_13')?.identifier ||
-              (v.industryIdentifiers || []).find(id => id.type === 'ISBN_10')?.identifier || null,
+        isbn:
+          (v.industryIdentifiers || []).find((id) => id.type === 'ISBN_13')?.identifier ||
+          (v.industryIdentifiers || []).find((id) => id.type === 'ISBN_10')?.identifier ||
+          null,
       };
     });
     return { books };
@@ -213,7 +220,7 @@ const VALID_SOURCES = ['papers', 'wiki', 'crossref', 'videos', 'books', 'gbooks'
 export async function executeResearch({ query, sources = ['papers'], limit }, signal) {
   if (!query) return { results: [], formatted: 'No search query provided.' };
 
-  const requested = (sources || ['papers']).filter(s => VALID_SOURCES.includes(s));
+  const requested = (sources || ['papers']).filter((s) => VALID_SOURCES.includes(s));
   if (requested.length === 0) requested.push('papers');
 
   const promises = requested.map(async (source) => {
@@ -266,9 +273,14 @@ export async function executeResearch({ query, sources = ['papers'], limit }, si
     }
     if (dois.length > 0 && CiteClass) {
       const cite = new CiteClass(dois.slice(0, 5)); // limit to 5 for speed
-      citationBlock = '\n\n=== FORMATTED CITATIONS (APA) ===\n' + cite.format('bibliography', { format: 'text', template: 'apa', lang: 'en-US' }).trim() + '\n=== END CITATIONS ===';
+      citationBlock =
+        '\n\n=== FORMATTED CITATIONS (APA) ===\n' +
+        cite.format('bibliography', { format: 'text', template: 'apa', lang: 'en-US' }).trim() +
+        '\n=== END CITATIONS ===';
     }
-  } catch { /* citation formatting is optional */ }
+  } catch {
+    /* citation formatting is optional */
+  }
 
   return { results, formatted: formatResearchResults(results) + citationBlock };
 }
@@ -302,12 +314,16 @@ export function formatResearchResults(results) {
         const yearStr = item.year ? ` (${item.year})` : '';
         const pagesStr = item.pageCount ? ` — ${item.pageCount} pages` : '';
         const catStr = item.categories ? ` [${item.categories}]` : '';
-        lines.push(`[${refNum}] GBooks: "${item.title}" by ${item.authors || 'Unknown'}${yearStr}${pubStr}${pagesStr}${catStr}`);
+        lines.push(
+          `[${refNum}] GBooks: "${item.title}" by ${item.authors || 'Unknown'}${yearStr}${pubStr}${pagesStr}${catStr}`,
+        );
       } else if (source === 'YouTube') {
         const duration = item.lengthSeconds
           ? `${Math.floor(item.lengthSeconds / 60)}:${String(item.lengthSeconds % 60).padStart(2, '0')}`
           : '';
-        const views = item.viewCount ? ` — ${typeof item.viewCount === 'number' ? item.viewCount.toLocaleString() + ' views' : item.viewCount}` : '';
+        const views = item.viewCount
+          ? ` — ${typeof item.viewCount === 'number' ? item.viewCount.toLocaleString() + ' views' : item.viewCount}`
+          : '';
         lines.push(`[${refNum}] YouTube: "${item.title}" by ${item.author} (${duration})${views} — ${item.url}`);
       } else if (source === 'Wikipedia') {
         lines.push(`[${refNum}] Wikipedia: "${item.title}" — ${item.snippet}`);

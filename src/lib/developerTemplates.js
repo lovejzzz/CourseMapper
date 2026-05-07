@@ -49,7 +49,7 @@ function writeMap(map) {
 
 function cleanSelectedFeatures(value) {
   const features = Array.isArray(value) ? value.filter(Boolean) : [];
-  return ['courseMap', ...features.filter(id => id !== 'courseMap')];
+  return ['courseMap', ...features.filter((id) => id !== 'courseMap')];
 }
 
 function cleanObject(value) {
@@ -70,8 +70,7 @@ export function extractDeveloperTemplateData(snapshot = {}) {
 }
 
 export function listDeveloperTemplates() {
-  return Object.values(readMap())
-    .sort((a, b) => (b.updatedAt || 0) - (a.updatedAt || 0));
+  return Object.values(readMap()).sort((a, b) => (b.updatedAt || 0) - (a.updatedAt || 0));
 }
 
 export function getDeveloperTemplate(id) {
@@ -100,10 +99,13 @@ export function saveDeveloperTemplate(template, uid) {
 }
 
 export function saveDeveloperTemplateFromSnapshot(snapshot, name, uid) {
-  return saveDeveloperTemplate({
-    name,
-    data: extractDeveloperTemplateData(snapshot),
-  }, uid);
+  return saveDeveloperTemplate(
+    {
+      name,
+      data: extractDeveloperTemplateData(snapshot),
+    },
+    uid,
+  );
 }
 
 export function deleteDeveloperTemplate(id, uid) {

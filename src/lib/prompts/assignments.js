@@ -1,9 +1,14 @@
 import { condenseCourseMap } from './promptUtils.js';
 
 export default {
-    system: `You are an expert instructional designer specializing in university assignment design (Understanding by Design, Constructive Alignment). Every assignment demonstrably traces back to specific learning outcomes through backward design: the assignment measures outcomes, and scaffolding milestones prepare students for the assessment. Your assignment briefs are complete, classroom-ready documents that instructors can distribute directly to students. Every assignment includes learning objective alignment, scaffolding milestones, submission specifications, and an academic integrity statement. Return ONLY valid JSON, no markdown fences.`,
+  system: `You are an expert instructional designer specializing in university assignment design (Understanding by Design, Constructive Alignment). Every assignment demonstrably traces back to specific learning outcomes through backward design: the assignment measures outcomes, and scaffolding milestones prepare students for the assessment. Your assignment briefs are complete, classroom-ready documents that instructors can distribute directly to students. Every assignment includes learning objective alignment, scaffolding milestones, submission specifications, and an academic integrity statement. Return ONLY valid JSON, no markdown fences.`,
 
-    user: (cm, scope, verifiedChanges, columns) => `Generate university-standard, classroom-ready assignment briefs for this course:
+  user: (
+    cm,
+    scope,
+    verifiedChanges,
+    columns,
+  ) => `Generate university-standard, classroom-ready assignment briefs for this course:
 
 ${condenseCourseMap(cm, scope, verifiedChanges, columns)}
 
@@ -73,4 +78,4 @@ REQUIREMENTS:
 - HUMAN READABILITY: Each assignment should read as a unique document — vary the overview voice, instruction phrasing, and scaffolding descriptions. Avoid copy-paste language patterns across assignments.
 - GRADE WEIGHT (CRITICAL — enforced by post-processing): ${scope && cm?.lessons?.length ? `You are generating assignments for ${scope.length} of ${cm.lessons.length} total lessons. This chunk's "pg" (percentOfGrade) values MUST sum to approximately ${Math.round((scope.length / cm.lessons.length) * 100)}% (your chunk's proportional share of 100%).` : `The "pg" (percentOfGrade) values across ALL assignments must sum to exactly 100%.`} Distribute grade weight proportionally based on assignment complexity and learning impact. Post-processing WILL normalize deviations, so stay as close to the target as possible.
 - Return ONLY the JSON object, no prose, no markdown`,
-  }
+};

@@ -21,7 +21,11 @@
  * }
  */
 
-import { saveCustomDeliverable as cloudSave, deleteCustomDeliverable as cloudDelete, loadCustomDeliverables as cloudLoadAll } from './cloudStorage';
+import {
+  saveCustomDeliverable as cloudSave,
+  deleteCustomDeliverable as cloudDelete,
+  loadCustomDeliverables as cloudLoadAll,
+} from './cloudStorage';
 import { supportsCustomTemperature } from './agentProviders';
 
 const STORAGE_KEY = 'coursemapper-custom-deliverables';
@@ -118,7 +122,7 @@ Return ONLY a valid JSON object with this structure:
   map[id] = saved;
   writeAll(map);
   // Fire-and-forget cloud sync if user is logged in
-  if (uid) cloudSave(uid, id, saved).catch(e => console.warn('[Cloud] deliverable save failed:', e));
+  if (uid) cloudSave(uid, id, saved).catch((e) => console.warn('[Cloud] deliverable save failed:', e));
   return saved;
 }
 
@@ -129,7 +133,7 @@ export function deleteCustomDeliverable(id, uid) {
   delete map[id];
   writeAll(map);
   // Fire-and-forget cloud sync if user is logged in
-  if (uid) cloudDelete(uid, id).catch(e => console.warn('[Cloud] deliverable delete failed:', e));
+  if (uid) cloudDelete(uid, id).catch((e) => console.warn('[Cloud] deliverable delete failed:', e));
   return true;
 }
 
@@ -149,7 +153,8 @@ export async function autoFillCustomDeliverable(name, { provider, apiKey, modelI
 
   const trimmedName = name.trim();
   const jsonKey = trimmedName.toLowerCase().replace(/\s+/g, '_');
-  const sysPrompt = 'You are an expert instructional designer specializing in Quality Matters (QM) aligned course design. Return ONLY valid JSON — no markdown, no explanation.';
+  const sysPrompt =
+    'You are an expert instructional designer specializing in Quality Matters (QM) aligned course design. Return ONLY valid JSON — no markdown, no explanation.';
   const userPrompt = `A university instructor wants to create a custom course deliverable called "${trimmedName}".
 
 Generate a complete, professional configuration. Return JSON with these exact keys:
@@ -187,7 +192,9 @@ Pick the most fitting tone, style, length, icon, and color for "${trimmedName}".
           'anthropic-dangerous-direct-browser-access': 'true',
         },
         body: JSON.stringify({
-          model: modelId, max_tokens: 1500, ...tempSetting,
+          model: modelId,
+          max_tokens: 1500,
+          ...tempSetting,
           system: sysPrompt,
           messages: [{ role: 'user', content: userPrompt }],
         }),
@@ -195,21 +202,25 @@ Pick the most fitting tone, style, length, icon, and color for "${trimmedName}".
       if (!res.ok) return null;
       const data = await res.json();
       responseText = data.content?.[0]?.text || '';
-
     } else if (effectiveProvider === 'openai') {
       const res = await fetch('https://api.openai.com/v1/chat/completions', {
         method: 'POST',
-        headers: { 'Authorization': `Bearer ${apiKey}`, 'Content-Type': 'application/json' },
+        headers: { Authorization: `Bearer ${apiKey}`, 'Content-Type': 'application/json' },
         body: JSON.stringify({
-          model: modelId, max_completion_tokens: 1500, ...tempSetting, stream: false,
+          model: modelId,
+          max_completion_tokens: 1500,
+          ...tempSetting,
+          stream: false,
           response_format: { type: 'json_object' },
-          messages: [{ role: 'system', content: sysPrompt }, { role: 'user', content: userPrompt }],
+          messages: [
+            { role: 'system', content: sysPrompt },
+            { role: 'user', content: userPrompt },
+          ],
         }),
       });
       if (!res.ok) return null;
       const data = await res.json();
       responseText = data.choices?.[0]?.message?.content || '';
-
     } else if (effectiveProvider === 'google') {
       const res = await fetch(
         `https://generativelanguage.googleapis.com/v1beta/models/${modelId}:generateContent?key=${apiKey}`,
@@ -221,22 +232,31 @@ Pick the most fitting tone, style, length, icon, and color for "${trimmedName}".
             systemInstruction: { parts: [{ text: sysPrompt }] },
             generationConfig: { ...tempSetting, maxOutputTokens: 1500, responseMimeType: 'application/json' },
           }),
-        }
+        },
       );
       if (!res.ok) return null;
       const data = await res.json();
       responseText = data.candidates?.[0]?.content?.parts?.[0]?.text || '';
-
     } else if (effectiveProvider === 'openrouter') {
       if (!apiKey) return null;
       const url = 'https://openrouter.ai/api/v1/chat/completions';
-      const headers = { 'Authorization': `Bearer ${apiKey}`, 'Content-Type': 'application/json', 'HTTP-Referer': window.location.origin };
+      const headers = {
+        Authorization: `Bearer ${apiKey}`,
+        'Content-Type': 'application/json',
+        'HTTP-Referer': window.location.origin,
+      };
       const res = await fetch(url, {
         method: 'POST',
         headers,
         body: JSON.stringify({
-          model: modelId, max_tokens: 1500, ...tempSetting, stream: false,
-          messages: [{ role: 'system', content: sysPrompt }, { role: 'user', content: userPrompt }],
+          model: modelId,
+          max_tokens: 1500,
+          ...tempSetting,
+          stream: false,
+          messages: [
+            { role: 'system', content: sysPrompt },
+            { role: 'user', content: userPrompt },
+          ],
         }),
       });
       if (!res.ok) return null;
@@ -245,7 +265,10 @@ Pick the most fitting tone, style, length, icon, and color for "${trimmedName}".
     }
 
     if (!responseText) return null;
-    const cleaned = responseText.replace(/```json\s*/g, '').replace(/```\s*/g, '').trim();
+    const cleaned = responseText
+      .replace(/```json\s*/g, '')
+      .replace(/```\s*/g, '')
+      .trim();
     return JSON.parse(cleaned);
   } catch {
     return null;

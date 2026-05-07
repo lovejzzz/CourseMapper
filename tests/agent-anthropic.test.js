@@ -26,42 +26,48 @@ const COURSE_MAP = {
   lessons: [
     {
       title: 'Supervised Learning Basics',
-      sections: [{
-        learningObjectives: 'Explain the difference between supervised and unsupervised learning',
-        topicSection: 'Classification, Regression, Training Sets',
-        learningGoals: 'Understand the fundamental concepts of supervised learning',
-        weeklyAssessments: 'Quiz on supervised learning concepts',
-        asyncActivities: 'Read chapters 1-2 of ISLR textbook',
-        syncActivities: 'Hands-on coding exercise with scikit-learn',
-        supportingResources: 'ISLR textbook, scikit-learn documentation',
-        technologyNeeded: 'Python, Jupyter Notebook',
-      }],
+      sections: [
+        {
+          learningObjectives: 'Explain the difference between supervised and unsupervised learning',
+          topicSection: 'Classification, Regression, Training Sets',
+          learningGoals: 'Understand the fundamental concepts of supervised learning',
+          weeklyAssessments: 'Quiz on supervised learning concepts',
+          asyncActivities: 'Read chapters 1-2 of ISLR textbook',
+          syncActivities: 'Hands-on coding exercise with scikit-learn',
+          supportingResources: 'ISLR textbook, scikit-learn documentation',
+          technologyNeeded: 'Python, Jupyter Notebook',
+        },
+      ],
     },
     {
       title: 'Decision Trees and Random Forests',
-      sections: [{
-        learningObjectives: 'Implement decision tree classifiers and explain overfitting',
-        topicSection: 'Decision Trees, Pruning, Ensemble Methods',
-        learningGoals: 'Build and evaluate tree-based models',
-        weeklyAssessments: 'Coding assignment: build a random forest classifier',
-        asyncActivities: 'Watch Stanford CS229 lecture on decision trees',
-        syncActivities: 'Lab: comparing tree models on real datasets',
-        supportingResources: 'CS229 lecture notes, Kaggle datasets',
-        technologyNeeded: 'Python, scikit-learn, pandas',
-      }],
+      sections: [
+        {
+          learningObjectives: 'Implement decision tree classifiers and explain overfitting',
+          topicSection: 'Decision Trees, Pruning, Ensemble Methods',
+          learningGoals: 'Build and evaluate tree-based models',
+          weeklyAssessments: 'Coding assignment: build a random forest classifier',
+          asyncActivities: 'Watch Stanford CS229 lecture on decision trees',
+          syncActivities: 'Lab: comparing tree models on real datasets',
+          supportingResources: 'CS229 lecture notes, Kaggle datasets',
+          technologyNeeded: 'Python, scikit-learn, pandas',
+        },
+      ],
     },
     {
       title: 'Neural Networks Fundamentals',
-      sections: [{
-        learningObjectives: 'Describe the architecture of a feedforward neural network',
-        topicSection: 'Perceptrons, Activation Functions, Backpropagation',
-        learningGoals: 'Understand how neural networks learn through gradient descent',
-        weeklyAssessments: 'Written analysis: compare neural networks to traditional ML',
-        asyncActivities: 'Complete 3Blue1Brown neural network series',
-        syncActivities: 'Build a simple neural network from scratch in NumPy',
-        supportingResources: '3Blue1Brown videos, Deep Learning textbook ch.6',
-        technologyNeeded: 'Python, NumPy, TensorFlow',
-      }],
+      sections: [
+        {
+          learningObjectives: 'Describe the architecture of a feedforward neural network',
+          topicSection: 'Perceptrons, Activation Functions, Backpropagation',
+          learningGoals: 'Understand how neural networks learn through gradient descent',
+          weeklyAssessments: 'Written analysis: compare neural networks to traditional ML',
+          asyncActivities: 'Complete 3Blue1Brown neural network series',
+          syncActivities: 'Build a simple neural network from scratch in NumPy',
+          supportingResources: '3Blue1Brown videos, Deep Learning textbook ch.6',
+          technologyNeeded: 'Python, NumPy, TensorFlow',
+        },
+      ],
     },
   ],
 };
@@ -71,37 +77,114 @@ const DELIVERABLES = {
     status: 'done',
     data: {
       quizzes: [
-        { lt: 'Supervised Learning Basics', tq: 3, qs: [
-          { q: 'What is the main goal of supervised learning?', ty: 'multiple_choice', bl: 'Remember', df: 'easy', pt: 1, op: ['Predict outcomes from labeled data', 'Cluster unlabeled data', 'Reduce dimensionality', 'Generate new data'], an: 'Predict outcomes from labeled data' },
-          { q: 'Explain the bias-variance tradeoff in your own words.', ty: 'short_answer', bl: 'Understand', df: 'medium', pt: 2, an: 'Bias is error from erroneous assumptions; variance is sensitivity to training fluctuations.' },
-          { q: 'Given a dataset with continuous target variable, which algorithm family?', ty: 'multiple_choice', bl: 'Apply', df: 'medium', pt: 1, op: ['Regression', 'Classification', 'Clustering', 'Association'], an: 'Regression' },
-        ]},
-        { lt: 'Decision Trees and Random Forests', tq: 2, qs: [
-          { q: 'What prevents overfitting in decision trees?', ty: 'multiple_choice', bl: 'Remember', df: 'easy', pt: 1, op: ['Pruning', 'Boosting', 'Normalization', 'Tokenization'], an: 'Pruning' },
-          { q: 'Compare bagging and boosting ensemble methods.', ty: 'essay', bl: 'Analyze', df: 'hard', pt: 5, an: 'Bagging reduces variance via parallel training; boosting reduces bias via sequential correction.' },
-        ]},
-        { lt: 'Neural Networks Fundamentals', tq: 2, qs: [
-          { q: 'What is the purpose of an activation function?', ty: 'short_answer', bl: 'Understand', df: 'medium', pt: 2, an: 'Introduces non-linearity so the network can learn complex patterns.' },
-          { q: 'Describe the backpropagation algorithm step by step.', ty: 'essay', bl: 'Understand', df: 'hard', pt: 5, an: 'Forward pass, compute loss, backward pass computing gradients, update weights.' },
-        ]},
+        {
+          lt: 'Supervised Learning Basics',
+          tq: 3,
+          qs: [
+            {
+              q: 'What is the main goal of supervised learning?',
+              ty: 'multiple_choice',
+              bl: 'Remember',
+              df: 'easy',
+              pt: 1,
+              op: [
+                'Predict outcomes from labeled data',
+                'Cluster unlabeled data',
+                'Reduce dimensionality',
+                'Generate new data',
+              ],
+              an: 'Predict outcomes from labeled data',
+            },
+            {
+              q: 'Explain the bias-variance tradeoff in your own words.',
+              ty: 'short_answer',
+              bl: 'Understand',
+              df: 'medium',
+              pt: 2,
+              an: 'Bias is error from erroneous assumptions; variance is sensitivity to training fluctuations.',
+            },
+            {
+              q: 'Given a dataset with continuous target variable, which algorithm family?',
+              ty: 'multiple_choice',
+              bl: 'Apply',
+              df: 'medium',
+              pt: 1,
+              op: ['Regression', 'Classification', 'Clustering', 'Association'],
+              an: 'Regression',
+            },
+          ],
+        },
+        {
+          lt: 'Decision Trees and Random Forests',
+          tq: 2,
+          qs: [
+            {
+              q: 'What prevents overfitting in decision trees?',
+              ty: 'multiple_choice',
+              bl: 'Remember',
+              df: 'easy',
+              pt: 1,
+              op: ['Pruning', 'Boosting', 'Normalization', 'Tokenization'],
+              an: 'Pruning',
+            },
+            {
+              q: 'Compare bagging and boosting ensemble methods.',
+              ty: 'essay',
+              bl: 'Analyze',
+              df: 'hard',
+              pt: 5,
+              an: 'Bagging reduces variance via parallel training; boosting reduces bias via sequential correction.',
+            },
+          ],
+        },
+        {
+          lt: 'Neural Networks Fundamentals',
+          tq: 2,
+          qs: [
+            {
+              q: 'What is the purpose of an activation function?',
+              ty: 'short_answer',
+              bl: 'Understand',
+              df: 'medium',
+              pt: 2,
+              an: 'Introduces non-linearity so the network can learn complex patterns.',
+            },
+            {
+              q: 'Describe the backpropagation algorithm step by step.',
+              ty: 'essay',
+              bl: 'Understand',
+              df: 'hard',
+              pt: 5,
+              an: 'Forward pass, compute loss, backward pass computing gradients, update weights.',
+            },
+          ],
+        },
       ],
     },
   },
   lessonPlans: {
     status: 'done',
-    data: { lessonPlans: [
-      { lt: 'Supervised Learning Basics', ob: 'Explain supervised vs unsupervised learning' },
-      { lt: 'Decision Trees and Random Forests', ob: 'Implement decision tree classifiers' },
-      { lt: 'Neural Networks Fundamentals', ob: 'Describe feedforward neural network architecture' },
-    ]},
+    data: {
+      lessonPlans: [
+        { lt: 'Supervised Learning Basics', ob: 'Explain supervised vs unsupervised learning' },
+        { lt: 'Decision Trees and Random Forests', ob: 'Implement decision tree classifiers' },
+        { lt: 'Neural Networks Fundamentals', ob: 'Describe feedforward neural network architecture' },
+      ],
+    },
   },
   slideDecks: {
     status: 'done',
-    data: { slideDecks: [
-      { lt: 'Supervised Learning Basics', ts: 4, sl: [
-        { t: 'What is Machine Learning?', ty: 'title', bu: ['Automating pattern recognition'], no: 'Intro slide.' },
-      ]},
-    ]},
+    data: {
+      slideDecks: [
+        {
+          lt: 'Supervised Learning Basics',
+          ts: 4,
+          sl: [
+            { t: 'What is Machine Learning?', ty: 'title', bu: ['Automating pattern recognition'], no: 'Intro slide.' },
+          ],
+        },
+      ],
+    },
   },
 };
 
@@ -133,8 +216,14 @@ async function callClaude(userMessage, { activeTab = 'quizBank', maxTokens = 409
 
   const json = await response.json();
   const blocks = json.content || [];
-  const toolCalls = blocks.filter(b => b.type === 'tool_use').map(b => ({ id: b.id, name: b.name, args: b.input || {} }));
-  const textContent = blocks.filter(b => b.type === 'text').map(b => b.text).join('') || null;
+  const toolCalls = blocks
+    .filter((b) => b.type === 'tool_use')
+    .map((b) => ({ id: b.id, name: b.name, args: b.input || {} }));
+  const textContent =
+    blocks
+      .filter((b) => b.type === 'text')
+      .map((b) => b.text)
+      .join('') || null;
 
   return {
     toolCalls: toolCalls.length > 0 ? toolCalls : null,
@@ -145,7 +234,7 @@ async function callClaude(userMessage, { activeTab = 'quizBank', maxTokens = 409
 }
 
 function findToolCall(toolCalls, name) {
-  return toolCalls?.find(tc => tc.name === name);
+  return toolCalls?.find((tc) => tc.name === name);
 }
 
 describeWithKey(`Anthropic (${ANTHROPIC_MODEL}) Agent E2E`, { timeout: TIMEOUT * 12 }, () => {
@@ -253,7 +342,7 @@ describeWithKey(`Anthropic (${ANTHROPIC_MODEL}) Agent E2E`, { timeout: TIMEOUT *
     const result = await callClaude('Check grammar in Lesson 1 and also validate the entire course for issues');
     expect(result.toolCalls || result.textContent).toBeTruthy();
     if (result.toolCalls && result.toolCalls.length >= 2) {
-      const toolNames = result.toolCalls.map(tc => tc.name);
+      const toolNames = result.toolCalls.map((tc) => tc.name);
       expect(toolNames.includes('check_grammar') || toolNames.includes('validate_course')).toBe(true);
     }
   });

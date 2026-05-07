@@ -17,29 +17,28 @@ function groupSteps(steps) {
   }
   groups.push(current);
 
-  return groups.map(group => {
+  return groups.map((group) => {
     if (group.items.length === 1) return { ...group.items[0], _count: 1, label: group.label };
 
-    const doneCount = group.items.filter(step => step.status === 'done').length;
-    const errorCount = group.items.filter(step => step.status === 'error').length;
-    const partialCount = group.items.filter(step => step.status === 'partial').length;
-    const runningCount = group.items.filter(step => step.status === 'running').length;
+    const doneCount = group.items.filter((step) => step.status === 'done').length;
+    const errorCount = group.items.filter((step) => step.status === 'error').length;
+    const partialCount = group.items.filter((step) => step.status === 'partial').length;
+    const runningCount = group.items.filter((step) => step.status === 'running').length;
     const issueCount = errorCount + partialCount;
     const total = group.items.length;
-    const aggregateStatus = runningCount > 0 ? 'running'
-      : errorCount > 0 ? 'error'
-      : partialCount > 0 ? 'partial'
-      : 'done';
+    const aggregateStatus =
+      runningCount > 0 ? 'running' : errorCount > 0 ? 'error' : partialCount > 0 ? 'partial' : 'done';
 
     return {
       label: group.label,
       status: aggregateStatus,
-      summary: aggregateStatus === 'running'
-        ? `${doneCount}/${total} done`
-        : aggregateStatus === 'done'
-          ? `${total} items`
-          : `${issueCount} with issues`,
-      thought: group.items.find(step => step.status === 'running')?.thought,
+      summary:
+        aggregateStatus === 'running'
+          ? `${doneCount}/${total} done`
+          : aggregateStatus === 'done'
+            ? `${total} items`
+            : `${issueCount} with issues`,
+      thought: group.items.find((step) => step.status === 'running')?.thought,
       _count: total,
     };
   });
@@ -91,8 +90,19 @@ function StatusIcon({ status, tone }) {
   }
   if (tone === 'error') {
     return (
-      <svg className="h-3.5 w-3.5 text-red-500" fill="none" stroke="currentColor" viewBox="0 0 24 24" aria-hidden="true">
-        <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2.3} d="M12 9v4m0 4h.01M4.93 19h14.14c1.54 0 2.5-1.67 1.73-3L13.73 4a2 2 0 00-3.46 0L3.2 16c-.77 1.33.19 3 1.73 3z" />
+      <svg
+        className="h-3.5 w-3.5 text-red-500"
+        fill="none"
+        stroke="currentColor"
+        viewBox="0 0 24 24"
+        aria-hidden="true"
+      >
+        <path
+          strokeLinecap="round"
+          strokeLinejoin="round"
+          strokeWidth={2.3}
+          d="M12 9v4m0 4h.01M4.93 19h14.14c1.54 0 2.5-1.67 1.73-3L13.73 4a2 2 0 00-3.46 0L3.2 16c-.77 1.33.19 3 1.73 3z"
+        />
       </svg>
     );
   }
@@ -104,7 +114,13 @@ function StatusIcon({ status, tone }) {
     );
   }
   return (
-    <svg className="h-3.5 w-3.5 text-emerald-500" fill="none" stroke="currentColor" viewBox="0 0 24 24" aria-hidden="true">
+    <svg
+      className="h-3.5 w-3.5 text-emerald-500"
+      fill="none"
+      stroke="currentColor"
+      viewBox="0 0 24 24"
+      aria-hidden="true"
+    >
       <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2.4} d="m5 13 4 4L19 7" />
     </svg>
   );
@@ -139,14 +155,13 @@ export default function AgentProgressCard({ steps = [], status = 'running', thin
   }, [status]);
 
   const groupedSteps = useMemo(() => groupSteps(steps), [steps]);
-  const doneCount = steps.filter(step => step.status === 'done').length;
-  const issueCount = steps.filter(step => step.status === 'error' || step.status === 'partial').length;
+  const doneCount = steps.filter((step) => step.status === 'done').length;
+  const issueCount = steps.filter((step) => step.status === 'error' || step.status === 'partial').length;
   const current = latestStep(steps, status);
   const previousDone = previousDoneStep(steps);
   const isRunning = status === 'running';
-  const tone = status === 'error' || steps.some(step => step.status === 'error')
-    ? 'error'
-    : issueCount > 0 ? 'partial' : 'ok';
+  const tone =
+    status === 'error' || steps.some((step) => step.status === 'error') ? 'error' : issueCount > 0 ? 'partial' : 'ok';
   const title = statusTitle(status, tone, current);
   const styles = TONES[tone];
   const elapsed = getElapsedSeconds(effectiveStartedAt, status === 'running' ? now : endedAt || now);
@@ -165,7 +180,9 @@ export default function AgentProgressCard({ steps = [], status = 'running', thin
     : `${steps.length || groupedSteps.length || 1} step${(steps.length || groupedSteps.length || 1) === 1 ? '' : 's'} · ${formatTime(elapsed)}`;
 
   return (
-    <div className={`ml-8 mr-1 rounded-lg border ${styles.border} bg-white/70 shadow-sm animate-spring-in overflow-hidden`}>
+    <div
+      className={`ml-8 mr-1 rounded-lg border ${styles.border} bg-white/70 shadow-sm animate-spring-in overflow-hidden`}
+    >
       <div className="px-3 py-2">
         <div className="flex items-start gap-2.5">
           <div className={`mt-1 flex h-5 w-5 items-center justify-center rounded-full ${styles.iconBg}`}>
@@ -179,14 +196,13 @@ export default function AgentProgressCard({ steps = [], status = 'running', thin
               </p>
             </div>
 
-            <p className="mt-0.5 text-[10px] font-medium text-slate-400">
-              {progressMeta}
-            </p>
+            <p className="mt-0.5 text-[10px] font-medium text-slate-400">{progressMeta}</p>
 
             <p className="mt-0.5 line-clamp-3 text-[11px] leading-relaxed text-slate-500">
               {isRunning
                 ? currentSummary || 'Planning the next step...'
-                : currentSummary || (tone === 'ok' ? 'All requested actions finished.' : 'Review the details before continuing.')}
+                : currentSummary ||
+                  (tone === 'ok' ? 'All requested actions finished.' : 'Review the details before continuing.')}
             </p>
 
             {slow && previousDone && (
@@ -199,7 +215,7 @@ export default function AgentProgressCard({ steps = [], status = 'running', thin
           {(groupedSteps.length > 0 || thinkingText) && (
             <button
               type="button"
-              onClick={() => setExpanded(value => !value)}
+              onClick={() => setExpanded((value) => !value)}
               className="tactile mt-0.5 rounded-md px-1.5 py-0.5 text-[10px] font-semibold text-slate-400 hover:bg-slate-100/80 hover:text-slate-600"
               aria-expanded={expanded}
               aria-label={expanded ? 'Hide agent progress details' : 'Show agent progress details'}
@@ -219,7 +235,10 @@ export default function AgentProgressCard({ steps = [], status = 'running', thin
           )}
           <div className="space-y-1.5">
             {groupedSteps.map((step, index) => (
-              <div key={`${step.label || step.tool}-${index}`} className="flex items-start gap-2 text-[11px] leading-relaxed">
+              <div
+                key={`${step.label || step.tool}-${index}`}
+                className="flex items-start gap-2 text-[11px] leading-relaxed"
+              >
                 <StepIcon status={step.status} />
                 <div className="min-w-0 flex-1">
                   <span className="font-medium text-slate-600">{step.label || step.tool}</span>

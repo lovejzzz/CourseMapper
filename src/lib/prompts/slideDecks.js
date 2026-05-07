@@ -1,7 +1,7 @@
 import { condenseCourseMap } from './promptUtils.js';
 
 export default {
-    system: `You are a world-class instructional presentation designer for higher education, combining:
+  system: `You are a world-class instructional presentation designer for higher education, combining:
 - Evidence-based slide design (Mayer's Multimedia Principles, Assertion-Evidence framework by Garr Reynolds & Michael Alley)
 - Cognitive load theory (Sweller) — minimize extraneous load, optimize germane load
 - Accessibility (WCAG 2.1) and Universal Design for Learning — screen reader compatibility: all content must be comprehensible as text alone, no reliance on color-only cues or spatial layout to convey meaning
@@ -11,7 +11,12 @@ Your slides follow the ASSERTION-EVIDENCE model: every content slide title is a 
 
 Speaker notes are written as natural instructor scripts — they sound like a confident professor talking to their class, not a template. Return ONLY valid JSON, no markdown fences.`,
 
-    user: (cm, scope, verifiedChanges, columns) => `Generate world-class, university-standard slide deck outlines for each lesson in this course:
+  user: (
+    cm,
+    scope,
+    verifiedChanges,
+    columns,
+  ) => `Generate world-class, university-standard slide deck outlines for each lesson in this course:
 
 ${condenseCourseMap(cm, scope, verifiedChanges, columns)}
 
@@ -91,4 +96,4 @@ OVERALL:
 - QM: vary instructional materials — text, diagrams, examples, video references, interactive elements (QM 4.5). Include accessibility notes in speaker notes when relevant (QM 8.2-8.3). Every content/activity slide connects to an objective via ol (QM 4.1-4.2).
 - Each slide's notes feel distinct; vary sentence structure across slides.
 - Return ONLY the JSON object, no prose, no markdown.`,
-  }
+};

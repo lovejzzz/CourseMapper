@@ -10,7 +10,9 @@
  */
 
 import {
-  buildAgentRequest, parseAgentResponse as parseProviderResponse, supportsCustomTemperature,
+  buildAgentRequest,
+  parseAgentResponse as parseProviderResponse,
+  supportsCustomTemperature,
 } from '../../lib/agentProviders';
 // webllm is dynamically imported when needed to avoid bundling ~7MB for non-local users
 
@@ -90,7 +92,7 @@ export async function streamChat(messages, systemPrompt, signal, apiKey, provide
     const engine = await getEngine(chatModel);
     const llmMessages = [
       { role: 'system', content: systemPrompt },
-      ...messages.map(m => ({ role: m.role, content: m.content })),
+      ...messages.map((m) => ({ role: m.role, content: m.content })),
     ];
     const asyncIter = await engine.chat.completions.create({
       messages: llmMessages,
@@ -121,7 +123,7 @@ export async function streamChat(messages, systemPrompt, signal, apiKey, provide
   }
 
   if (provider === 'google') {
-    const geminiMessages = messages.map(m => ({
+    const geminiMessages = messages.map((m) => ({
       role: m.role === 'assistant' ? 'model' : 'user',
       parts: [{ text: m.content }],
     }));
@@ -147,7 +149,7 @@ export async function streamChat(messages, systemPrompt, signal, apiKey, provide
   }
 
   if (provider === 'anthropic') {
-    const anthropicMessages = messages.map(m => ({ role: m.role, content: m.content }));
+    const anthropicMessages = messages.map((m) => ({ role: m.role, content: m.content }));
     const response = await fetch('https://api.anthropic.com/v1/messages', {
       method: 'POST',
       headers: {
@@ -180,18 +182,19 @@ export async function streamChat(messages, systemPrompt, signal, apiKey, provide
   }
 
   // OpenAI / DeepSeek / OpenRouter (OpenAI-compatible)
-  const baseUrl = provider === 'deepseek'
-    ? 'https://api.deepseek.com/v1/chat/completions'
-    : provider === 'openrouter'
-      ? 'https://openrouter.ai/api/v1/chat/completions'
-      : 'https://api.openai.com/v1/chat/completions';
+  const baseUrl =
+    provider === 'deepseek'
+      ? 'https://api.deepseek.com/v1/chat/completions'
+      : provider === 'openrouter'
+        ? 'https://openrouter.ai/api/v1/chat/completions'
+        : 'https://api.openai.com/v1/chat/completions';
   const openaiMessages = [
     { role: 'system', content: systemPrompt },
-    ...messages.map(m => ({ role: m.role, content: m.content })),
+    ...messages.map((m) => ({ role: m.role, content: m.content })),
   ];
   const openaiHeaders = {
     'Content-Type': 'application/json',
-    ...(apiKey ? { 'Authorization': `Bearer ${apiKey}` } : {}),
+    ...(apiKey ? { Authorization: `Bearer ${apiKey}` } : {}),
     ...(provider === 'openrouter' ? { 'HTTP-Referer': window.location.origin } : {}),
   };
   const tempSetting = supportsCustomTemperature(chatModel) ? { temperature: 0.4 } : {};
@@ -219,23 +222,34 @@ export async function streamChat(messages, systemPrompt, signal, apiKey, provide
 }
 
 // ── Native tool-calling LLM call for agentic loop ─────────────────────────
-export async function fetchAgentResponseNative(loopMessages, systemPrompt, signal, apiKey, provider, modelId, nativeTools, { temperature: tempOverride, onThinkingText } = {}) {
+export async function fetchAgentResponseNative(
+  loopMessages,
+  systemPrompt,
+  signal,
+  apiKey,
+  provider,
+  modelId,
+  nativeTools,
+  { temperature: tempOverride, onThinkingText } = {},
+) {
   if (provider !== 'webllm' && !apiKey) throw new Error('NO_API_KEY');
   if (!modelId) throw new Error('NO_MODEL_SELECTED');
 
   // WebLLM: local inference without tool calling — return text-only response
   if (provider === 'webllm') {
     const { completeLocal } = await import('../../lib/webllm');
-    const response = await completeLocal(modelId, [
-      { role: 'system', content: systemPrompt },
-      ...loopMessages.map(m => ({ role: m.role, content: m.content })),
-    ], { temperature: tempOverride ?? 0.4, max_tokens: 4096 });
+    const response = await completeLocal(
+      modelId,
+      [{ role: 'system', content: systemPrompt }, ...loopMessages.map((m) => ({ role: m.role, content: m.content }))],
+      { temperature: tempOverride ?? 0.4, max_tokens: 4096 },
+    );
     const text = response.choices?.[0]?.message?.content || '';
     return { toolCalls: null, textContent: text, stopReason: 'stop' };
   }
 
   // Streaming for OpenAI/DeepSeek — shows partial text while LLM is thinking
-  const useStreaming = onThinkingText && (provider === 'openai' || provider === 'deepseek' || provider === 'openrouter');
+  const useStreaming =
+    onThinkingText && (provider === 'openai' || provider === 'deepseek' || provider === 'openrouter');
 
   let temperature = supportsCustomTemperature(modelId) ? (tempOverride ?? 0.4) : undefined;
 
@@ -345,39 +359,48 @@ async function parseStreamingToolResponse(response, onThinkingText) {
             if (tc.function?.arguments) toolCallMap[idx].arguments += tc.function.arguments;
           }
         }
-      } catch { /* ignore malformed chunks */ }
+      } catch {
+        /* ignore malformed chunks */
+      }
     }
   }
 
   // Build final result
   const toolCalls = Object.values(toolCallMap);
-  const parsed = toolCalls.length > 0
-    ? toolCalls.map(tc => ({
-        id: tc.id,
-        name: tc.name,
-        args: safeJsonParse(tc.arguments),
-      }))
-    : null;
+  const parsed =
+    toolCalls.length > 0
+      ? toolCalls.map((tc) => ({
+          id: tc.id,
+          name: tc.name,
+          args: safeJsonParse(tc.arguments),
+        }))
+      : null;
 
   return {
     toolCalls: parsed,
     textContent: textContent || null,
     stopReason: finishReason || 'stop',
-    assistantMessage: parsed ? {
-      role: 'assistant',
-      content: textContent || null,
-      ...(reasoningContent ? { reasoning_content: reasoningContent } : {}),
-      tool_calls: toolCalls.map(tc => ({
-        id: tc.id,
-        type: 'function',
-        function: { name: tc.name, arguments: tc.arguments || '{}' },
-      })),
-    } : null,
+    assistantMessage: parsed
+      ? {
+          role: 'assistant',
+          content: textContent || null,
+          ...(reasoningContent ? { reasoning_content: reasoningContent } : {}),
+          tool_calls: toolCalls.map((tc) => ({
+            id: tc.id,
+            type: 'function',
+            function: { name: tc.name, arguments: tc.arguments || '{}' },
+          })),
+        }
+      : null,
   };
 }
 
 function safeJsonParse(str) {
-  try { return JSON.parse(str); } catch { return {}; }
+  try {
+    return JSON.parse(str);
+  } catch {
+    return {};
+  }
 }
 
 // ── Build chat history with agent memory ─────────────────────────────────────
@@ -396,43 +419,41 @@ export function buildAgentChatHistory(messages) {
       // Serialize proposal into an assistant message the AI can understand
       const options = m.proposal?.options || [];
       // Check if this is the last proposal in the messages array
-      const isLastProposal = messages.findLastIndex(x => x.role === 'proposal') === messages.indexOf(m);
+      const isLastProposal = messages.findLastIndex((x) => x.role === 'proposal') === messages.indexOf(m);
 
       if (isLastProposal && m.status === 'pending') {
         // Full serialization for the most recent pending proposal — enables refinement
-        const optionDetails = options.map(o => {
-          const itemJson = o.action?.item ? JSON.stringify(o.action.item) : '';
-          return `${o.label}. "${o.title}" (${o.description || ''}) → ${o.action?.type} on ${o.action?.featureId || 'unknown'}${itemJson ? ` | item: ${itemJson}` : ''}`;
-        }).join('\n');
+        const optionDetails = options
+          .map((o) => {
+            const itemJson = o.action?.item ? JSON.stringify(o.action.item) : '';
+            return `${o.label}. "${o.title}" (${o.description || ''}) → ${o.action?.type} on ${o.action?.featureId || 'unknown'}${itemJson ? ` | item: ${itemJson}` : ''}`;
+          })
+          .join('\n');
         history.push({
           role: 'assistant',
           content: `[PROPOSAL (pending — user has not selected yet):\n${optionDetails}\n]`,
         });
       } else if (m.status === 'selected') {
-        const chosen = options.find(o => o.label === m.selectedLabel);
+        const chosen = options.find((o) => o.label === m.selectedLabel);
         history.push({
           role: 'assistant',
           content: `[I proposed options. User selected ${m.selectedLabel}: "${chosen?.title || '?'}". Applied successfully.]`,
         });
       } else if (m.status === 'failed') {
-        const failedOpt = options.find(o => o.label === m.failedLabel);
+        const failedOpt = options.find((o) => o.label === m.failedLabel);
         history.push({
           role: 'assistant',
           content: `[I proposed options. User tried ${m.failedLabel}: "${failedOpt?.title || '?'}" but FAILED: ${m.failedMessage || 'unknown error'}. Other options still available.]`,
         });
       } else if (m.status === 'dismissed') {
         // Include detail for dismissed proposals so AI can refine
-        const optionSummary = options.map(o =>
-          `${o.label}. "${o.title}" (${o.description || ''})`
-        ).join('; ');
+        const optionSummary = options.map((o) => `${o.label}. "${o.title}" (${o.description || ''})`).join('; ');
         history.push({
           role: 'assistant',
           content: `[I proposed: ${optionSummary}. User dismissed and asked for changes.]`,
         });
       } else {
-        const optionList = options.map(o =>
-          `${o.label}. "${o.title}" → ${o.action?.type}`
-        ).join('; ');
+        const optionList = options.map((o) => `${o.label}. "${o.title}" → ${o.action?.type}`).join('; ');
         history.push({
           role: 'assistant',
           content: `[I proposed: ${optionList}. Awaiting user selection.]`,
@@ -451,14 +472,17 @@ export function buildAgentChatHistory(messages) {
       if (r) {
         history.push({
           role: 'assistant',
-          content: `[Course health: ${r.errorCount} errors, ${r.warningCount} warnings. ${r.findings.slice(0, 3).map(f => f.message).join('; ')}]`,
+          content: `[Course health: ${r.errorCount} errors, ${r.warningCount} warnings. ${r.findings
+            .slice(0, 3)
+            .map((f) => f.message)
+            .join('; ')}]`,
         });
       }
     } else if (m.role === 'changeSummary') {
       const s = m.summary;
-      const desc = (s?.changes || []).map(c =>
-        `${c.type} ${c.count} in ${c.featureId}${c.label ? ` (${c.label})` : ''}`
-      ).join(', ');
+      const desc = (s?.changes || [])
+        .map((c) => `${c.type} ${c.count} in ${c.featureId}${c.label ? ` (${c.label})` : ''}`)
+        .join(', ');
       history.push({ role: 'assistant', content: `[Applied changes: ${desc}]` });
     } else if (m.role === 'diagram') {
       history.push({ role: 'assistant', content: `[Generated diagram: ${m.diagram?.title || 'concept diagram'}]` });
@@ -467,15 +491,18 @@ export function buildAgentChatHistory(messages) {
     } else if (m.role === 'imageSearch') {
       history.push({ role: 'assistant', content: `[Image search: ${m.imageSearch?.query || 'images'}]` });
     } else if (m.role === 'syncSuggestion') {
-      const featureNames = (m.plan || []).map(p => p.featureId).join(', ');
+      const featureNames = (m.plan || []).map((p) => p.featureId).join(', ');
       const statusText = m.status === 'done' ? 'synced' : m.status === 'skipped' ? 'skipped' : 'pending';
       history.push({ role: 'assistant', content: `[Sync suggestion: ${featureNames} — ${statusText}]` });
     } else if (m.role === 'agentProgress') {
       // Serialize agentic turn as a summary
       const steps = m.steps || [];
       if (steps.length > 0) {
-        const stepSummary = steps.map(s => `${s.tool}: ${s.summary || 'done'}`).join(', ');
-        history.push({ role: 'assistant', content: `[Agent used ${steps.length} tool${steps.length !== 1 ? 's' : ''}: ${stepSummary}]` });
+        const stepSummary = steps.map((s) => `${s.tool}: ${s.summary || 'done'}`).join(', ');
+        history.push({
+          role: 'assistant',
+          content: `[Agent used ${steps.length} tool${steps.length !== 1 ? 's' : ''}: ${stepSummary}]`,
+        });
       }
     } else if (m.role === 'error') {
       history.push({ role: 'assistant', content: `[Error: ${m.text || 'unknown error'}]` });
@@ -500,7 +527,7 @@ export function buildAgentChatHistory(messages) {
     // Short status lines are low-value
     else score += 1;
     // First user message is critical (original intent)
-    if (m.role === 'user' && i === history.findIndex(h => h.role === 'user')) score += 4;
+    if (m.role === 'user' && i === history.findIndex((h) => h.role === 'user')) score += 4;
     // Recent messages are more relevant (last 6)
     if (i >= history.length - 6) score += 4;
     // Proposals and errors carry decision context
@@ -511,7 +538,7 @@ export function buildAgentChatHistory(messages) {
 
   // Sort by score descending, keep top MAX_MESSAGES
   const sorted = [...scored].sort((a, b) => b._score - a._score);
-  const kept = new Set(sorted.slice(0, MAX_MESSAGES).map(m => m._idx));
+  const kept = new Set(sorted.slice(0, MAX_MESSAGES).map((m) => m._idx));
 
   // Build result in original order, respecting char budget
   const result = [];

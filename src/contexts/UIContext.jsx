@@ -12,11 +12,17 @@ export function UIProvider({ children }) {
 
   // ── Chat panel width (persisted to localStorage) ──
   const [chatWidth, setChatWidthRaw] = useState(() => {
-    try { return parseInt(localStorage.getItem('coursemapper-chat-width')) || 360; } catch { return 360; }
+    try {
+      return parseInt(localStorage.getItem('coursemapper-chat-width')) || 360;
+    } catch {
+      return 360;
+    }
   });
   const setChatWidth = useCallback((w) => {
     setChatWidthRaw(w);
-    try { localStorage.setItem('coursemapper-chat-width', String(w)); } catch {}
+    try {
+      localStorage.setItem('coursemapper-chat-width', String(w));
+    } catch {}
   }, []);
 
   // ── Help modal ──
@@ -48,7 +54,10 @@ export function UIProvider({ children }) {
   const cascadeTimerRef = useRef(null);
   const handleCascadeHover = useCallback((info) => {
     clearTimeout(cascadeTimerRef.current);
-    if (!info) { setCascadeHover(null); return; }
+    if (!info) {
+      setCascadeHover(null);
+      return;
+    }
     cascadeTimerRef.current = setTimeout(() => setCascadeHover(info), 150);
   }, []);
 
@@ -76,22 +85,39 @@ export function UIProvider({ children }) {
   const [addLessonsModal, setAddLessonsModal] = useState(null);
 
   const value = {
-    screen, setScreen,
-    activeTab, setActiveTab,
-    chatWidth, setChatWidth,
-    showHelp, setShowHelp,
-    showDiff, setShowDiff,
-    showAddDeliverable, setShowAddDeliverable,
-    showCustomBuilder, setShowCustomBuilder,
-    showDepMap, setShowDepMap,
-    newProjectConfirm, setNewProjectConfirm,
-    showProjectPicker, setShowProjectPicker,
-    dragTabIdx, setDragTabIdx,
-    cascadeHover, handleCascadeHover,
-    aiContextMenu, handleAIContextMenu, closeAIContextMenu,
-    unseenChanges, setUnseenChanges,
-    agentHighlight, triggerAgentHighlight,
-    addLessonsModal, setAddLessonsModal,
+    screen,
+    setScreen,
+    activeTab,
+    setActiveTab,
+    chatWidth,
+    setChatWidth,
+    showHelp,
+    setShowHelp,
+    showDiff,
+    setShowDiff,
+    showAddDeliverable,
+    setShowAddDeliverable,
+    showCustomBuilder,
+    setShowCustomBuilder,
+    showDepMap,
+    setShowDepMap,
+    newProjectConfirm,
+    setNewProjectConfirm,
+    showProjectPicker,
+    setShowProjectPicker,
+    dragTabIdx,
+    setDragTabIdx,
+    cascadeHover,
+    handleCascadeHover,
+    aiContextMenu,
+    handleAIContextMenu,
+    closeAIContextMenu,
+    unseenChanges,
+    setUnseenChanges,
+    agentHighlight,
+    triggerAgentHighlight,
+    addLessonsModal,
+    setAddLessonsModal,
   };
 
   return <UIContext.Provider value={value}>{children}</UIContext.Provider>;

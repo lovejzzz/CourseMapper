@@ -16,9 +16,9 @@ import { getArrayKey } from './syncDependencies';
 
 // ── Constants ──────────────────────────────────────────────────────────────────
 
-export const CHUNK_SIZE = 5;           // default lessons per chunk
-export const MAX_CONCURRENT = 6;       // max simultaneous API calls (retries only)
-export const MAX_RETRY_ROUNDS = 2;     // max retry attempts for incomplete chunks
+export const CHUNK_SIZE = 5; // default lessons per chunk
+export const MAX_CONCURRENT = 6; // max simultaneous API calls (retries only)
+export const MAX_RETRY_ROUNDS = 2; // max retry attempts for incomplete chunks
 
 /** Per-feature chunk sizes — sized against the matching output budget below.
  *  Heavy-per-lesson features (quizBank, slideDecks) drop to 3 lessons/chunk so
@@ -32,7 +32,7 @@ const FEATURE_CHUNK_SIZES = {
   lessonPlans: 5,
   slideDecks: 3,
   quizBank: 3,
-  rubrics: 5,      // rubrics is whole-course anyway; chunking unused
+  rubrics: 5, // rubrics is whole-course anyway; chunking unused
   assignments: 5,
   discussions: 8,
   studyGuides: 5,
@@ -53,14 +53,14 @@ export function getFeatureChunkSize(featureId) {
  *  parsePartialJSON recovery + a retry round.
  */
 const FEATURE_OUTPUT_BUDGETS = {
-  lessonPlans: 10000,   // was 8000 — gives UDL notes and warm-up breathing room
-  slideDecks: 18000,    // was 12000 — 12-16 slides × 4-sentence notes needed ~13.4K at 3 lessons
-  quizBank: 14000,      // was 8000  — 5-7 questions × 3 lessons × full MC metadata (q/op/an/ex/dr/bl/df/em/pt/oa) needs ~12K; follow-up audit showed 10K still clipped at ~10.7K
-  rubrics: 10000,       // was 6000  — whole-course 4-level matrix needed ~6.8K for a 3-lesson course
-  assignments: 14000,   // was 8000  — scaffolding + deliverables + rubric-link sections clip at 10K; observed truncation at ~10K
-  discussions: 14000,   // was 12000 — follow-ups + starters often clip at 12K for larger courses
-  studyGuides: 10000,   // was 8000  — key terms + practice + misconceptions
-  courseFaq: 7000,      // was 5000  — FAQ per-chunk of 10 needs breathing room
+  lessonPlans: 10000, // was 8000 — gives UDL notes and warm-up breathing room
+  slideDecks: 18000, // was 12000 — 12-16 slides × 4-sentence notes needed ~13.4K at 3 lessons
+  quizBank: 14000, // was 8000  — 5-7 questions × 3 lessons × full MC metadata (q/op/an/ex/dr/bl/df/em/pt/oa) needs ~12K; follow-up audit showed 10K still clipped at ~10.7K
+  rubrics: 10000, // was 6000  — whole-course 4-level matrix needed ~6.8K for a 3-lesson course
+  assignments: 14000, // was 8000  — scaffolding + deliverables + rubric-link sections clip at 10K; observed truncation at ~10K
+  discussions: 14000, // was 12000 — follow-ups + starters often clip at 12K for larger courses
+  studyGuides: 10000, // was 8000  — key terms + practice + misconceptions
+  courseFaq: 7000, // was 5000  — FAQ per-chunk of 10 needs breathing room
 };
 
 /** Get the output token budget for a feature, capped by the global model limit */
@@ -92,12 +92,18 @@ export function pLimit(concurrency) {
     if (active >= concurrency || queue.length === 0) return;
     active++;
     const { fn, resolve, reject } = queue.shift();
-    fn().then(resolve, reject).finally(() => { active--; next(); });
+    fn()
+      .then(resolve, reject)
+      .finally(() => {
+        active--;
+        next();
+      });
   }
-  return (fn) => new Promise((resolve, reject) => {
-    queue.push({ fn, resolve, reject });
-    next();
-  });
+  return (fn) =>
+    new Promise((resolve, reject) => {
+      queue.push({ fn, resolve, reject });
+      next();
+    });
 }
 
 // ── Chunk Utilities ────────────────────────────────────────────────────────────
@@ -250,7 +256,7 @@ export function findMissingIndices(mergedArray, expectedIndices) {
     }
     // Only use content-based matching if we found parseable lesson numbers
     if (presentNums.size > 0) {
-      const missing = expectedIndices.filter(i => !presentNums.has(i + 1));
+      const missing = expectedIndices.filter((i) => !presentNums.has(i + 1));
       // Return content-based result if we found gaps OR all expected are present
       if (missing.length > 0 || presentNums.size >= expectedIndices.length) return missing;
     }
@@ -308,7 +314,12 @@ export function extractCoverageLessonNumbers(item) {
  */
 export function getCoverageRetryMissingLessons(mergedArray, expectedCount) {
   const coveredSet = new Set();
-  if (!Array.isArray(mergedArray) || mergedArray.length === 0 || !Number.isFinite(expectedCount) || expectedCount <= 1) {
+  if (
+    !Array.isArray(mergedArray) ||
+    mergedArray.length === 0 ||
+    !Number.isFinite(expectedCount) ||
+    expectedCount <= 1
+  ) {
     return { coveredSet, missingLessons: [], missingIndices: [] };
   }
 
@@ -322,9 +333,8 @@ export function getCoverageRetryMissingLessons(mergedArray, expectedCount) {
     return { coveredSet, missingLessons: [], missingIndices: [] };
   }
 
-  const missingLessons = Array.from({ length: expectedCount }, (_, i) => i + 1)
-    .filter(n => !coveredSet.has(n));
-  const missingIndices = missingLessons.map(n => n - 1);
+  const missingLessons = Array.from({ length: expectedCount }, (_, i) => i + 1).filter((n) => !coveredSet.has(n));
+  const missingIndices = missingLessons.map((n) => n - 1);
   return { coveredSet, missingLessons, missingIndices };
 }
 

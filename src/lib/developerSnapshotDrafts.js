@@ -1,8 +1,4 @@
-import {
-  assertDeveloperSection,
-  assertDeveloperSnapshot,
-  diffDeveloperSnapshots,
-} from './developerIdeDiagnostics.js';
+import { assertDeveloperSection, assertDeveloperSnapshot, diffDeveloperSnapshots } from './developerIdeDiagnostics.js';
 
 export const CONFIG_KEYS = [
   'formatVersion',
@@ -32,10 +28,11 @@ export const TOOL_SECTIONS = [
   { id: 'prompts', label: 'Prompts', note: 'Model instructions' },
   { id: 'templates', label: 'Templates', note: 'Saved setups' },
   { id: 'diagnostics', label: 'Diagnostics', note: 'Project health' },
+  { id: 'agentLog', label: 'Agent Log', note: 'Runs and tool events' },
 ];
 
 export const SECTIONS = [...EDITOR_SECTIONS, ...TOOL_SECTIONS];
-export const EDITOR_SECTION_IDS = new Set(EDITOR_SECTIONS.map(section => section.id));
+export const EDITOR_SECTION_IDS = new Set(EDITOR_SECTIONS.map((section) => section.id));
 
 export function pretty(value) {
   return JSON.stringify(value ?? {}, null, 2);
@@ -100,11 +97,9 @@ export function parseDraft(sectionId, draft) {
 export function buildProposedSnapshot(baseSnapshot, drafts, dirtySections) {
   if (dirtySections.size === 0) return baseSnapshot;
 
-  let next = dirtySections.has('raw')
-    ? parseDraft('raw', drafts.raw)
-    : clone(baseSnapshot);
+  let next = dirtySections.has('raw') ? parseDraft('raw', drafts.raw) : clone(baseSnapshot);
 
-  EDITOR_SECTIONS.filter(section => section.id !== 'raw').forEach((section) => {
+  EDITOR_SECTIONS.filter((section) => section.id !== 'raw').forEach((section) => {
     if (!dirtySections.has(section.id)) return;
     next = mergeSection(next, section.id, parseDraft(section.id, drafts[section.id]));
   });

@@ -1,12 +1,8 @@
 // src/contexts/AuthContext.jsx — Firebase Auth state + React context
 import React, { createContext, useContext, useState, useEffect } from 'react';
 import { auth, googleProvider, hasConfig } from '../lib/firebase';
-import {
-  signInWithPopup,
-  onAuthStateChanged,
-  signOut as firebaseSignOut,
-} from 'firebase/auth';
-import { clearTokenCache } from '../lib/googleDrive';
+import { signInWithPopup, onAuthStateChanged, signOut as firebaseSignOut } from 'firebase/auth';
+import { clearTokenCache } from '../lib/googleTokenCache';
 
 const AuthContext = createContext({
   user: null,
@@ -17,21 +13,28 @@ const AuthContext = createContext({
 });
 
 export function AuthProvider({ children }) {
-  const [user, setUser]       = useState(null);
+  const [user, setUser] = useState(null);
   const [loading, setLoading] = useState(!!hasConfig); // only "loading" if Firebase is configured
-  const [error, setError]     = useState(null);
+  const [error, setError] = useState(null);
 
   /* ---- listen for auth state changes ---- */
   useEffect(() => {
-    if (!auth) { setLoading(false); return; }
-    const unsub = onAuthStateChanged(auth, (firebaseUser) => {
-      setUser(firebaseUser);
+    if (!auth) {
       setLoading(false);
-    }, (err) => {
-      console.error('[Auth] state listener error', err);
-      setError(err);
-      setLoading(false);
-    });
+      return;
+    }
+    const unsub = onAuthStateChanged(
+      auth,
+      (firebaseUser) => {
+        setUser(firebaseUser);
+        setLoading(false);
+      },
+      (err) => {
+        console.error('[Auth] state listener error', err);
+        setError(err);
+        setLoading(false);
+      },
+    );
     return unsub;
   }, []);
 
@@ -67,13 +70,15 @@ export function AuthProvider({ children }) {
   };
 
   return (
-    <AuthContext.Provider value={{
-      user,
-      loading,
-      error,
-      signInWithGoogle: handleSignIn,
-      signOut: handleSignOut,
-    }}>
+    <AuthContext.Provider
+      value={{
+        user,
+        loading,
+        error,
+        signInWithGoogle: handleSignIn,
+        signOut: handleSignOut,
+      }}
+    >
       {children}
     </AuthContext.Provider>
   );

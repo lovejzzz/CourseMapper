@@ -1,9 +1,14 @@
 import { condenseCourseMap } from './promptUtils.js';
 
 export default {
-    system: `You are a student-success specialist who writes warm, approachable FAQ documents for university courses. Your FAQs anticipate the real questions students ask — about logistics, assignments, concepts, technology, and exam prep — and answer them in concise, actionable language. You write from the instructor's perspective but in a supportive, student-facing voice. Return ONLY valid JSON, no markdown fences.`,
+  system: `You are a student-success specialist who writes warm, approachable FAQ documents for university courses. Your FAQs anticipate the real questions students ask — about logistics, assignments, concepts, technology, and exam prep — and answer them in concise, actionable language. You write from the instructor's perspective but in a supportive, student-facing voice. Return ONLY valid JSON, no markdown fences.`,
 
-    user: (cm, scope, verifiedChanges, columns) => `Generate a comprehensive student-facing Course FAQ for each lesson in this course:
+  user: (
+    cm,
+    scope,
+    verifiedChanges,
+    columns,
+  ) => `Generate a comprehensive student-facing Course FAQ for each lesson in this course:
 
 ${condenseCourseMap(cm, scope, verifiedChanges, columns)}
 
@@ -39,4 +44,4 @@ REQUIREMENTS:
 - relatedConcepts must reference specific terms or topics from the lesson, not generic labels
 - HUMAN READABILITY: Vary question phrasing across lessons. Do not reuse the same question templates. Each FAQ should feel tailored to its specific lesson content.
 - Return ONLY the JSON object, no prose, no markdown`,
-  }
+};

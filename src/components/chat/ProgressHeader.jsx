@@ -6,13 +6,16 @@ import { resolveLabel, STEPS } from './constants';
  * Shows overall generation progress + optional expanded deliverable list.
  */
 export function getDeliverableDoneCount({ delivRows = [], delivProgress = null, isDelivGenerating = false }) {
+  const progressTerminalCount = delivProgress?.perFeature
+    ? Object.values(delivProgress.perFeature).filter(
+        (feature) => feature?.status === 'done' || feature?.status === 'error',
+      ).length
+    : 0;
   const progressDoneCount = delivProgress?.total
-    ? Math.min(delivProgress.done || 0, delivProgress.total)
+    ? Math.min(Math.max(delivProgress.done || 0, progressTerminalCount), delivProgress.total)
     : null;
-  const stateDoneCount = delivRows.filter(r => r.status === 'done').length;
-  return isDelivGenerating && progressDoneCount !== null
-    ? progressDoneCount
-    : stateDoneCount;
+  const stateDoneCount = delivRows.filter((r) => r.status === 'done' || r.status === 'error').length;
+  return isDelivGenerating && progressDoneCount !== null ? progressDoneCount : stateDoneCount;
 }
 
 export function getProgressDisplayStatus(rowStatus, progressStatus) {
@@ -20,30 +23,51 @@ export function getProgressDisplayStatus(rowStatus, progressStatus) {
 }
 
 export default function ProgressHeader({
-  currentStep, modelName, streamProgress, streamDetail, completenessInfo,
-  error, isStopped, retryInfo,
-  deliverables, delivProgress, currentDelivFeatures, isDelivGenerating, delivTimings,
-  onStop, onResume, onClearAll, onStopDeliverables,
-  isSyncing, pendingSyncCount, syncingFeatures,
+  currentStep,
+  modelName,
+  streamProgress,
+  streamDetail,
+  completenessInfo,
+  error,
+  isStopped,
+  retryInfo,
+  deliverables,
+  delivProgress,
+  currentDelivFeatures,
+  isDelivGenerating,
+  delivTimings,
+  onStop,
+  onResume,
+  onClearAll,
+  onStopDeliverables,
+  isSyncing,
+  pendingSyncCount,
+  syncingFeatures,
 }) {
   const [expanded, setExpanded] = useState(false);
 
   const isDone = currentStep === 'done';
-  const showContinuing = completenessInfo && (
-    currentStep === 'continuing' || completenessInfo.status === 'continuing' || completenessInfo.continuationUsed
-  );
-  const visibleSteps = showContinuing ? STEPS : STEPS.filter(s => s.key !== 'continuing');
-  const currentIdx = visibleSteps.findIndex(s => s.key === currentStep);
+  const showContinuing =
+    completenessInfo &&
+    (currentStep === 'continuing' || completenessInfo.status === 'continuing' || completenessInfo.continuationUsed);
+  const visibleSteps = showContinuing ? STEPS : STEPS.filter((s) => s.key !== 'continuing');
+  const currentIdx = visibleSteps.findIndex((s) => s.key === currentStep);
 
   // Deliverable rows
   const delivRows = deliverables
-    ? Object.entries(deliverables).filter(([id]) => id !== 'courseMap').map(([id, state]) => ({
-        id, label: resolveLabel(id), status: state?.status, error: state?.error,
-      }))
+    ? Object.entries(deliverables)
+        .filter(([id]) => id !== 'courseMap')
+        .map(([id, state]) => ({
+          id,
+          label: resolveLabel(id),
+          status: state?.status,
+          error: state?.error,
+        }))
     : [];
 
   const delivDoneCount = getDeliverableDoneCount({ delivRows, delivProgress, isDelivGenerating });
-  const allDelivDone = delivRows.length > 0 && !isDelivGenerating && delivRows.every(r => r.status === 'done' || r.status === 'error');
+  const allDelivDone =
+    delivRows.length > 0 && !isDelivGenerating && delivRows.every((r) => r.status === 'done' || r.status === 'error');
   const everythingDone = isDone && (delivRows.length === 0 || allDelivDone);
   const totalLessons = completenessInfo?.actual || 0;
 
@@ -54,7 +78,8 @@ export default function ProgressHeader({
     progressFill = (1 + delivDoneCount) / totalUnits;
   } else {
     const stepFraction = currentIdx >= 0 ? currentIdx / visibleSteps.length : 0;
-    const cmProgress = streamProgress > 0 ? (stepFraction + (streamProgress / 100) * (1 / visibleSteps.length)) : stepFraction;
+    const cmProgress =
+      streamProgress > 0 ? stepFraction + (streamProgress / 100) * (1 / visibleSteps.length) : stepFraction;
     progressFill = cmProgress / totalUnits;
   }
   const progressPct = Math.min(Math.round(progressFill * 100), 100);
@@ -74,15 +99,21 @@ export default function ProgressHeader({
   else if (currentStep === 'continuing') phaseLabel = 'Completing missing lessons...';
 
   // Color scheme
-  const barColor = error ? 'from-red-400 to-red-500'
-    : isStopped ? 'from-amber-400 to-orange-500'
-    : everythingDone ? 'from-emerald-400 to-emerald-500'
-    : 'from-indigo-500 to-violet-500';
+  const barColor = error
+    ? 'from-red-400 to-red-500'
+    : isStopped
+      ? 'from-amber-400 to-orange-500'
+      : everythingDone
+        ? 'from-emerald-400 to-emerald-500'
+        : 'from-indigo-500 to-violet-500';
 
-  const textColor = error ? 'text-red-600'
-    : isStopped ? 'text-amber-600'
-    : everythingDone ? 'text-emerald-700'
-    : 'text-indigo-600';
+  const textColor = error
+    ? 'text-red-600'
+    : isStopped
+      ? 'text-amber-600'
+      : everythingDone
+        ? 'text-emerald-700'
+        : 'text-indigo-600';
 
   // Don't render if generation hasn't started
   if (!currentStep && !error) return null;
@@ -91,7 +122,7 @@ export default function ProgressHeader({
     <div className="flex-shrink-0 border-b border-slate-200/40">
       {/* Compact bar — always visible */}
       <button
-        onClick={() => setExpanded(v => !v)}
+        onClick={() => setExpanded((v) => !v)}
         className="w-full px-4 py-2.5 flex items-center gap-3 hover:bg-slate-50/50 transition-colors text-left"
         aria-expanded={expanded}
         aria-label={expanded ? 'Collapse generation progress' : 'Expand generation progress'}
@@ -104,11 +135,14 @@ export default function ProgressHeader({
           />
         </div>
         {/* Phase label + count */}
-        <span className={`text-[12px] font-semibold ${textColor} flex-shrink-0 whitespace-nowrap`}>
-          {phaseLabel}
-        </span>
+        <span className={`text-[12px] font-semibold ${textColor} flex-shrink-0 whitespace-nowrap`}>{phaseLabel}</span>
         {/* Expand chevron */}
-        <svg className={`w-3.5 h-3.5 text-slate-400 transition-transform flex-shrink-0 ${expanded ? 'rotate-180' : ''}`} fill="none" stroke="currentColor" viewBox="0 0 24 24">
+        <svg
+          className={`w-3.5 h-3.5 text-slate-400 transition-transform flex-shrink-0 ${expanded ? 'rotate-180' : ''}`}
+          fill="none"
+          stroke="currentColor"
+          viewBox="0 0 24 24"
+        >
           <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M19 9l-7 7-7-7" />
         </svg>
       </button>
@@ -117,9 +151,7 @@ export default function ProgressHeader({
       {expanded && (
         <div className="px-4 pb-3 space-y-2 animate-spring-in">
           {/* Stream detail text */}
-          {!isDone && streamDetail && (
-            <p className="text-[12px] text-indigo-400 truncate">{streamDetail}</p>
-          )}
+          {!isDone && streamDetail && <p className="text-[12px] text-indigo-400 truncate">{streamDetail}</p>}
 
           {/* Stopped controls */}
           {isStopped && (
@@ -128,7 +160,9 @@ export default function ProgressHeader({
                 onClick={onResume}
                 className="tactile flex items-center gap-1.5 px-4 py-1.5 rounded-xl text-[12px] font-semibold text-white bg-gradient-to-r from-indigo-500 to-violet-600 shadow-btn hover:brightness-110 transition-all"
               >
-                <svg className="w-3.5 h-3.5" fill="currentColor" viewBox="0 0 24 24"><path d="M8 5v14l11-7z" /></svg>
+                <svg className="w-3.5 h-3.5" fill="currentColor" viewBox="0 0 24 24">
+                  <path d="M8 5v14l11-7z" />
+                </svg>
                 Continue
               </button>
               <button
@@ -186,9 +220,13 @@ export default function ProgressHeader({
               </div>
               <span className="text-[12px] font-medium text-emerald-700">Course map ready</span>
               {completenessInfo && (
-                <span className={`text-[11px] font-semibold px-2 py-0.5 rounded-full ${
-                  completenessInfo.status === 'complete' ? 'text-emerald-600 bg-emerald-50/60' : 'text-amber-600 bg-amber-50/60'
-                }`}>
+                <span
+                  className={`text-[11px] font-semibold px-2 py-0.5 rounded-full ${
+                    completenessInfo.status === 'complete'
+                      ? 'text-emerald-600 bg-emerald-50/60'
+                      : 'text-amber-600 bg-amber-50/60'
+                  }`}
+                >
                   {completenessInfo.actual} lessons
                 </span>
               )}
@@ -209,11 +247,18 @@ export default function ProgressHeader({
               </div>
               {syncingFeatures && syncingFeatures.size > 0 && (
                 <div className="flex flex-wrap gap-1 mt-1.5">
-                  {[...syncingFeatures].map(fId => (
-                    <span key={fId} className="inline-flex items-center gap-1 px-1.5 py-0.5 rounded-md bg-amber-100/60 text-[11px] font-medium text-amber-700">
+                  {[...syncingFeatures].map((fId) => (
+                    <span
+                      key={fId}
+                      className="inline-flex items-center gap-1 px-1.5 py-0.5 rounded-md bg-amber-100/60 text-[11px] font-medium text-amber-700"
+                    >
                       <svg className="animate-spin w-2.5 h-2.5 text-amber-500" fill="none" viewBox="0 0 24 24">
                         <circle className="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" strokeWidth="4" />
-                        <path className="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4z" />
+                        <path
+                          className="opacity-75"
+                          fill="currentColor"
+                          d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4z"
+                        />
                       </svg>
                       {resolveLabel(fId)}
                     </span>
@@ -237,7 +282,7 @@ export default function ProgressHeader({
                   </button>
                 )}
               </div>
-              {delivRows.map(row => {
+              {delivRows.map((row) => {
                 const isActive = currentDelivFeatures?.has(row.id) && isDelivGenerating;
                 const timing = delivTimings?.[row.id];
                 const pf = delivProgress?.perFeature?.[row.id];
@@ -248,16 +293,34 @@ export default function ProgressHeader({
                   <div key={row.id} className="flex items-center gap-2 py-0.5">
                     {/* Status icon */}
                     {displayStatus === 'done' ? (
-                      <svg className="w-3.5 h-3.5 text-emerald-500 flex-shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                      <svg
+                        className="w-3.5 h-3.5 text-emerald-500 flex-shrink-0"
+                        fill="none"
+                        stroke="currentColor"
+                        viewBox="0 0 24 24"
+                      >
                         <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2.5} d="M5 13l4 4L19 7" />
                       </svg>
                     ) : isActive || (isDelivGenerating && progressStatus === 'merging') ? (
-                      <svg className="animate-spin w-3.5 h-3.5 text-indigo-500 flex-shrink-0" fill="none" viewBox="0 0 24 24">
+                      <svg
+                        className="animate-spin w-3.5 h-3.5 text-indigo-500 flex-shrink-0"
+                        fill="none"
+                        viewBox="0 0 24 24"
+                      >
                         <circle className="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" strokeWidth="4" />
-                        <path className="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4z" />
+                        <path
+                          className="opacity-75"
+                          fill="currentColor"
+                          d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4z"
+                        />
                       </svg>
                     ) : row.status === 'error' ? (
-                      <svg className="w-3.5 h-3.5 text-red-500 flex-shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                      <svg
+                        className="w-3.5 h-3.5 text-red-500 flex-shrink-0"
+                        fill="none"
+                        stroke="currentColor"
+                        viewBox="0 0 24 24"
+                      >
                         <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M6 18L18 6M6 6l12 12" />
                       </svg>
                     ) : (
@@ -266,17 +329,24 @@ export default function ProgressHeader({
                       </div>
                     )}
                     {/* Label */}
-                    <span className={`text-[12px] font-medium truncate flex-1 ${
-                      displayStatus === 'done' ? 'text-emerald-700' :
-                      row.status === 'error' ? 'text-red-500' :
-                      isActive ? 'text-indigo-600' : 'text-slate-400'
-                    }`}>
+                    <span
+                      className={`text-[12px] font-medium truncate flex-1 ${
+                        displayStatus === 'done'
+                          ? 'text-emerald-700'
+                          : row.status === 'error'
+                            ? 'text-red-500'
+                            : isActive
+                              ? 'text-indigo-600'
+                              : 'text-slate-400'
+                      }`}
+                    >
                       {row.label}
                     </span>
                     {/* Lesson progress (derived from chunk progress) */}
                     {pf && pf.chunksTotal > 1 && pf.status !== 'done' && isDelivGenerating && totalLessons > 0 && (
                       <span className="text-[11px] text-indigo-400 tabular-nums font-medium">
-                        {Math.min(Math.round((pf.chunksDone / pf.chunksTotal) * totalLessons), totalLessons)}/{totalLessons}
+                        {Math.min(Math.round((pf.chunksDone / pf.chunksTotal) * totalLessons), totalLessons)}/
+                        {totalLessons}
                       </span>
                     )}
                     {/* Done timing */}

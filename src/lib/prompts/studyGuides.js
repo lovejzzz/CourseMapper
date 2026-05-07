@@ -1,9 +1,14 @@
 import { condenseCourseMap } from './promptUtils.js';
 
 export default {
-    system: `You are an expert educator creating university-level student study materials based on cognitive science principles (spaced retrieval practice, interleaving, elaborative interrogation). Your study guides are structured to promote deep learning — not passive re-reading. They are designed for students preparing for exams and are organized to build schema, surface misconceptions, and guide self-assessment. Return ONLY valid JSON, no markdown fences.`,
+  system: `You are an expert educator creating university-level student study materials based on cognitive science principles (spaced retrieval practice, interleaving, elaborative interrogation). Your study guides are structured to promote deep learning — not passive re-reading. They are designed for students preparing for exams and are organized to build schema, surface misconceptions, and guide self-assessment. Return ONLY valid JSON, no markdown fences.`,
 
-    user: (cm, scope, verifiedChanges, columns) => `Generate comprehensive, university-standard study guides for each lesson in this course:
+  user: (
+    cm,
+    scope,
+    verifiedChanges,
+    columns,
+  ) => `Generate comprehensive, university-standard study guides for each lesson in this course:
 
 ${condenseCourseMap(cm, scope, verifiedChanges, columns)}
 
@@ -68,4 +73,4 @@ REQUIREMENTS:
 - HUMAN READABILITY: Write summaries, definitions, and review questions in varied, natural academic prose. Do not use the same sentence templates across lessons. Each guide should feel like it was written specifically for that lesson.
 - HEADER FORMAT: Use this exact format for the "lt" (lessonTitle) field: "Lesson {N}: {Title}" (e.g. "Lesson 3: Social Work Values & Ethics"). Do NOT include week numbers, parenthetical formats, or alternative conventions. Keep headers consistent across all items.
 - Return ONLY the JSON object, no prose, no markdown`,
-  }
+};

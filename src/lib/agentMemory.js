@@ -68,26 +68,27 @@ export function getMemories() {
 
 /** Get memories by category. */
 export function getMemoriesByCategory(category) {
-  return getMemories().filter(m => m.category === category);
+  return getMemories().filter((m) => m.category === category);
 }
 
 /** Search memories by keyword (fuzzy multi-token match with relevance scoring). */
 export function searchMemories(query) {
-  const tokens = query.toLowerCase().split(/\s+/).filter(t => t.length > 1);
+  const tokens = query
+    .toLowerCase()
+    .split(/\s+/)
+    .filter((t) => t.length > 1);
   if (tokens.length === 0) return getMemories();
 
   return getMemories()
-    .map(m => {
+    .map((m) => {
       const text = `${m.content || ''} ${m.category || ''}`.toLowerCase();
       // Score: count matching tokens + bonus for exact substring match
       let score = tokens.reduce((s, t) => s + (text.includes(t) ? 1 : 0), 0);
       if (text.includes(query.toLowerCase())) score += 2; // exact phrase bonus
       return { ...m, _score: score };
     })
-    .filter(m => m._score > 0)
-    .sort((a, b) =>
-      b._score - a._score || (b.importance || 3) - (a.importance || 3)
-    );
+    .filter((m) => m._score > 0)
+    .sort((a, b) => b._score - a._score || (b.importance || 3) - (a.importance || 3));
 }
 
 /**
@@ -98,9 +99,7 @@ export function addMemory({ category, content, importance = 3, uid = null }) {
   const memories = loadLocal();
 
   // Deduplicate: if a very similar memory exists, update it instead
-  const existing = memories.find(m =>
-    m.category === category && m.content === content
-  );
+  const existing = memories.find((m) => m.category === category && m.content === content);
   if (existing) {
     existing.accessCount = (existing.accessCount || 0) + 1;
     existing.importance = Math.max(existing.importance || 3, importance);
@@ -133,7 +132,7 @@ export function addMemory({ category, content, importance = 3, uid = null }) {
 /** Update an existing memory's content or importance. */
 export function updateMemory(id, updates, uid = null) {
   const memories = loadLocal();
-  const mem = memories.find(m => m.id === id);
+  const mem = memories.find((m) => m.id === id);
   if (!mem) return null;
 
   if (updates.content !== undefined) mem.content = updates.content;
@@ -149,7 +148,7 @@ export function updateMemory(id, updates, uid = null) {
 /** Delete a memory. */
 export function deleteMemory(id, uid = null) {
   const memories = loadLocal();
-  const filtered = memories.filter(m => m.id !== id);
+  const filtered = memories.filter((m) => m.id !== id);
   saveLocal(filtered);
   if (uid) cloudDelete(uid, id).catch(() => {});
   return true;
@@ -158,7 +157,7 @@ export function deleteMemory(id, uid = null) {
 /** Mark a memory as accessed (bumps accessCount for relevance scoring). */
 export function touchMemory(id) {
   const memories = loadLocal();
-  const mem = memories.find(m => m.id === id);
+  const mem = memories.find((m) => m.id === id);
   if (mem) {
     mem.accessCount = (mem.accessCount || 0) + 1;
     saveLocal(memories);
@@ -175,11 +174,12 @@ export function recordEditPattern({ featureId, field, action, uid = null }) {
 
   // Check for existing pattern memory
   const memories = loadLocal();
-  const existing = memories.find(m =>
-    m.category === category &&
-    m.meta?.featureId === featureId &&
-    m.meta?.field === field &&
-    m.meta?.action === action
+  const existing = memories.find(
+    (m) =>
+      m.category === category &&
+      m.meta?.featureId === featureId &&
+      m.meta?.field === field &&
+      m.meta?.action === action,
   );
 
   if (existing) {
@@ -242,7 +242,7 @@ export async function mergeCloudMemories(uid) {
     if (!cloudMemories || cloudMemories.length === 0) return;
 
     const local = loadLocal();
-    const localMap = new Map(local.map(m => [m.id, m]));
+    const localMap = new Map(local.map((m) => [m.id, m]));
 
     // Merge: cloud wins on same id (by updatedAt), add new cloud entries
     for (const cm of cloudMemories) {
@@ -263,7 +263,7 @@ export async function mergeCloudMemories(uid) {
 
     // Push any local-only memories to cloud
     for (const [id, mem] of localMap) {
-      if (!cloudMemories.find(cm => cm.id === id)) {
+      if (!cloudMemories.find((cm) => cm.id === id)) {
         cloudSave(uid, mem).catch(() => {});
       }
     }

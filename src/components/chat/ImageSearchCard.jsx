@@ -29,22 +29,26 @@ export default function ImageSearchCard({ imageSearch, status, provider }) {
           ? `Switch back to the ${provider} provider to retry this image generation.`
           : 'Configure an AI provider key to generate images.',
       );
-      return () => { cancelled = true; };
+      return () => {
+        cancelled = true;
+      };
     }
 
     generateImages(imageSearch.query, { provider: effectiveProvider, apiKey: effectiveApiKey })
-      .then(result => {
+      .then((result) => {
         if (cancelled) return;
         if (result.error) setError(result.error);
         setImages(result.images || []);
       })
-      .catch(err => {
+      .catch((err) => {
         if (!cancelled) setError(err.message);
       })
       .finally(() => {
         if (!cancelled) setLoading(false);
       });
-    return () => { cancelled = true; };
+    return () => {
+      cancelled = true;
+    };
   }, [imageSearch?.query, status, provider, configuredProvider, effectiveProvider, effectiveApiKey]);
 
   if (status === 'searching') {
@@ -63,7 +67,7 @@ export default function ImageSearchCard({ imageSearch, status, provider }) {
 
   if (!imageSearch) return null;
 
-  const selectedImage = images.find(i => i.id === selected);
+  const selectedImage = images.find((i) => i.id === selected);
 
   const handleCopyUrl = (url) => {
     navigator.clipboard?.writeText(url);
@@ -73,14 +77,19 @@ export default function ImageSearchCard({ imageSearch, status, provider }) {
     <div className="mx-2 my-1 rounded-xl bg-rose-50/60 border border-rose-200/30 shadow-glass animate-spring-in overflow-hidden">
       {/* Header */}
       <button
-        onClick={() => setCollapsed(v => !v)}
+        onClick={() => setCollapsed((v) => !v)}
         className="w-full px-3.5 py-2 flex items-center gap-2 hover:bg-rose-50/80 transition-colors"
         aria-expanded={!collapsed}
         aria-label={collapsed ? 'Expand generated images' : 'Collapse generated images'}
       >
         <div className="w-5 h-5 rounded-full bg-rose-100 flex items-center justify-center flex-shrink-0">
           <svg className="w-3 h-3 text-rose-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-            <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M4 16l4.586-4.586a2 2 0 012.828 0L16 16m-2-2l1.586-1.586a2 2 0 012.828 0L20 14m-6-6h.01M6 20h12a2 2 0 002-2V6a2 2 0 00-2-2H6a2 2 0 00-2 2v12a2 2 0 002 2z" />
+            <path
+              strokeLinecap="round"
+              strokeLinejoin="round"
+              strokeWidth={2}
+              d="M4 16l4.586-4.586a2 2 0 012.828 0L16 16m-2-2l1.586-1.586a2 2 0 012.828 0L20 14m-6-6h.01M6 20h12a2 2 0 002-2V6a2 2 0 00-2-2H6a2 2 0 00-2 2v12a2 2 0 002 2z"
+            />
           </svg>
         </div>
         <span className="text-[13px] font-semibold text-rose-700 flex-1 text-left">
@@ -88,7 +97,9 @@ export default function ImageSearchCard({ imageSearch, status, provider }) {
         </span>
         <svg
           className={`w-3 h-3 text-rose-400 transition-transform duration-200 ${collapsed ? '' : 'rotate-180'}`}
-          fill="none" stroke="currentColor" viewBox="0 0 24 24"
+          fill="none"
+          stroke="currentColor"
+          viewBox="0 0 24 24"
         >
           <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M19 9l-7 7-7-7" />
         </svg>
@@ -97,26 +108,26 @@ export default function ImageSearchCard({ imageSearch, status, provider }) {
       {/* Body */}
       {!collapsed && (
         <div className="px-3.5 pb-3 space-y-2 border-t border-rose-100/50 pt-2">
-          {loading && (
-            <p className="text-[12px] text-rose-600 animate-pulse">Generating images…</p>
-          )}
+          {loading && <p className="text-[12px] text-rose-600 animate-pulse">Generating images…</p>}
           {error && (
             <div className="flex items-center gap-2">
               <p className="text-[12px] text-red-500 flex-1">
                 {error.includes('server had an error') || error.includes('500')
                   ? 'Image generation failed — the AI provider had a temporary issue.'
-                  : error.length > 120 ? error.slice(0, 120) + '…' : error}
+                  : error.length > 120
+                    ? error.slice(0, 120) + '…'
+                    : error}
               </p>
               <button
                 onClick={() => {
                   setError(null);
                   setLoading(true);
                   generateImages(imageSearch.query, { provider: effectiveProvider, apiKey: effectiveApiKey })
-                    .then(result => {
+                    .then((result) => {
                       if (result.error) setError(result.error);
                       setImages(result.images || []);
                     })
-                    .catch(err => setError(err.message))
+                    .catch((err) => setError(err.message))
                     .finally(() => setLoading(false));
                 }}
                 className="tactile flex-shrink-0 px-2 py-0.5 rounded-md text-[11px] font-semibold text-rose-600 bg-rose-100/80 hover:bg-rose-200/80 transition-colors"
@@ -130,25 +141,27 @@ export default function ImageSearchCard({ imageSearch, status, provider }) {
           )}
           {images.length > 0 && (
             <div className="grid grid-cols-2 gap-1.5">
-              {images.map(img => (
+              {images.map((img) => (
                 <button
                   key={img.id}
                   onClick={() => setSelected(selected === img.id ? null : img.id)}
                   className={`relative rounded-lg overflow-hidden border-2 transition-all ${
-                    selected === img.id ? 'border-rose-500 ring-2 ring-rose-300' : 'border-transparent hover:border-rose-200'
+                    selected === img.id
+                      ? 'border-rose-500 ring-2 ring-rose-300'
+                      : 'border-transparent hover:border-rose-200'
                   }`}
                   aria-label={`${selected === img.id ? 'Deselect' : 'Select'} generated image`}
                   aria-pressed={selected === img.id}
                 >
-                  <img
-                    src={img.url}
-                    alt={imageSearch.query}
-                    className="w-full h-32 object-cover"
-                    loading="lazy"
-                  />
+                  <img src={img.url} alt={imageSearch.query} className="w-full h-32 object-cover" loading="lazy" />
                   {selected === img.id && (
                     <div className="absolute inset-0 bg-rose-500/20 flex items-center justify-center">
-                      <svg className="w-5 h-5 text-white drop-shadow" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                      <svg
+                        className="w-5 h-5 text-white drop-shadow"
+                        fill="none"
+                        stroke="currentColor"
+                        viewBox="0 0 24 24"
+                      >
                         <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2.5} d="M5 13l4 4L19 7" />
                       </svg>
                     </div>
@@ -175,9 +188,7 @@ export default function ImageSearchCard({ imageSearch, status, provider }) {
                   Copy Image URL
                 </button>
               )}
-              <span className="text-[11px] text-rose-400">
-                Generated by {selectedImage.provider || 'AI'}
-              </span>
+              <span className="text-[11px] text-rose-400">Generated by {selectedImage.provider || 'AI'}</span>
             </div>
           )}
         </div>

@@ -27,26 +27,86 @@ const MODEL = process.env.ANTHROPIC_MODEL || 'claude-sonnet-4-6';
 const describeWithKey = KEY ? describe : describe.skip;
 
 const COURSE = {
-  courseName: 'Introduction to Machine Learning', semester: 'Fall 2026',
+  courseName: 'Introduction to Machine Learning',
+  semester: 'Fall 2026',
   lessons: [
-    { title: 'Supervised Learning Basics', sections: [{ learningObjectives: 'Explain supervised vs unsupervised', topicSection: 'Classification, Regression' }]},
-    { title: 'Decision Trees and Random Forests', sections: [{ learningObjectives: 'Implement decision tree classifiers', topicSection: 'Trees, Pruning, Ensembles' }]},
-    { title: 'Neural Networks Fundamentals', sections: [{ learningObjectives: 'Describe feedforward architecture', topicSection: 'Perceptrons, Backprop' }]},
+    {
+      title: 'Supervised Learning Basics',
+      sections: [
+        { learningObjectives: 'Explain supervised vs unsupervised', topicSection: 'Classification, Regression' },
+      ],
+    },
+    {
+      title: 'Decision Trees and Random Forests',
+      sections: [
+        { learningObjectives: 'Implement decision tree classifiers', topicSection: 'Trees, Pruning, Ensembles' },
+      ],
+    },
+    {
+      title: 'Neural Networks Fundamentals',
+      sections: [{ learningObjectives: 'Describe feedforward architecture', topicSection: 'Perceptrons, Backprop' }],
+    },
   ],
 };
 const DELIV = {
-  quizBank: { status: 'done', data: { quizzes: [
-    { lt: 'Supervised Learning Basics', qs: [
-      { q: 'What is supervised learning?', ty: 'multiple_choice', bl: 'Remember', df: 'easy', pt: 1, op: ['A','B','C','D'], an: 'A' },
-    ]},
-    { lt: 'Decision Trees and Random Forests', qs: [{ q: 'What prevents overfitting?', ty: 'multiple_choice', bl: 'Remember', df: 'easy', pt: 1, op: ['Pruning','A','B','C'], an: 'Pruning' }]},
-    { lt: 'Neural Networks Fundamentals', qs: [{ q: 'Activation function?', ty: 'short_answer', bl: 'Remember', df: 'easy', pt: 2, an: 'makes things non-linear' }]},
-  ]}},
-  lessonPlans: { status: 'done', data: { lessonPlans: [
-    { lt: 'Supervised Learning Basics', ob: 'Explain supervised vs unsupervised' },
-    { lt: 'Decision Trees and Random Forests', ob: 'Implement decision tree classifiers' },
-    { lt: 'Neural Networks Fundamentals', ob: 'Describe feedforward architecture' },
-  ]}},
+  quizBank: {
+    status: 'done',
+    data: {
+      quizzes: [
+        {
+          lt: 'Supervised Learning Basics',
+          qs: [
+            {
+              q: 'What is supervised learning?',
+              ty: 'multiple_choice',
+              bl: 'Remember',
+              df: 'easy',
+              pt: 1,
+              op: ['A', 'B', 'C', 'D'],
+              an: 'A',
+            },
+          ],
+        },
+        {
+          lt: 'Decision Trees and Random Forests',
+          qs: [
+            {
+              q: 'What prevents overfitting?',
+              ty: 'multiple_choice',
+              bl: 'Remember',
+              df: 'easy',
+              pt: 1,
+              op: ['Pruning', 'A', 'B', 'C'],
+              an: 'Pruning',
+            },
+          ],
+        },
+        {
+          lt: 'Neural Networks Fundamentals',
+          qs: [
+            {
+              q: 'Activation function?',
+              ty: 'short_answer',
+              bl: 'Remember',
+              df: 'easy',
+              pt: 2,
+              an: 'makes things non-linear',
+            },
+          ],
+        },
+      ],
+    },
+  },
+  lessonPlans: {
+    status: 'done',
+    data: {
+      lessonPlans: [
+        { lt: 'Supervised Learning Basics', ob: 'Explain supervised vs unsupervised' },
+        { lt: 'Decision Trees and Random Forests', ob: 'Implement decision tree classifiers' },
+        { lt: 'Neural Networks Fundamentals', ob: 'Describe feedforward architecture' },
+      ],
+    },
+  },
 };
 
 // Direct single-turn call so we can inspect the RAW text + tool_use blocks.
@@ -57,16 +117,23 @@ async function rawCall(userMessage, { activeTab = 'quizBank' } = {}) {
     method: 'POST',
     headers: { 'x-api-key': KEY, 'content-type': 'application/json', 'anthropic-version': '2023-06-01' },
     body: JSON.stringify({
-      model: MODEL, max_tokens: 2048, temperature: 0.3,
-      system: systemPrompt, tools, messages: [{ role: 'user', content: userMessage }],
+      model: MODEL,
+      max_tokens: 2048,
+      temperature: 0.3,
+      system: systemPrompt,
+      tools,
+      messages: [{ role: 'user', content: userMessage }],
     }),
   });
   const json = await res.json();
   if (!res.ok) throw new Error(json.error?.message || JSON.stringify(json));
   const blocks = json.content || [];
   return {
-    text: blocks.filter(b => b.type === 'text').map(b => b.text).join(''),
-    calls: blocks.filter(b => b.type === 'tool_use').map(b => ({ name: b.name, args: b.input })),
+    text: blocks
+      .filter((b) => b.type === 'text')
+      .map((b) => b.text)
+      .join(''),
+    calls: blocks.filter((b) => b.type === 'tool_use').map((b) => ({ name: b.name, args: b.input })),
   };
 }
 
@@ -81,18 +148,25 @@ describeWithKey(`Prose regression probes (${MODEL})`, { timeout: 300_000 }, () =
     // So this test flags only prose in those two user-visible channels.
     const r = await rawCall('Fix the typo in the Lesson 1 quiz');
     const bannedPrefixes = /\b(let\s+me|i['’]ll|i\s+will|i['’]m\s+going\s+to|let\s+us|i'd\s+like\s+to)\b/i;
-    const chatReply = r.calls.find(c => c.name === 'respond')?.args?.chatReply || '';
+    const chatReply = r.calls.find((c) => c.name === 'respond')?.args?.chatReply || '';
     const hasToolCall = (r.calls || []).length > 0;
     // If there are no tool calls, the text block IS the user-visible answer.
-    const userVisible = hasToolCall ? chatReply : (r.text || '');
-    expect(userVisible.match(bannedPrefixes), `Banned prefix matched in user-visible output: ${JSON.stringify(userVisible.slice(0, 400))}`).toBeNull();
+    const userVisible = hasToolCall ? chatReply : r.text || '';
+    expect(
+      userVisible.match(bannedPrefixes),
+      `Banned prefix matched in user-visible output: ${JSON.stringify(userVisible.slice(0, 400))}`,
+    ).toBeNull();
   });
 
   it('Q-prose-2: declining an un-actionable request stays concise (≤2 sentences)', async () => {
     // rubrics is NOT in DELIV — agent should say so briefly, not launch into
     // a "Navigate to tab X, click button Y" UI tutorial.
     const r = await runMultiTurn({
-      apiKey: KEY, model: MODEL, courseMap: COURSE, deliverables: DELIV, maxIterations: 4,
+      apiKey: KEY,
+      model: MODEL,
+      courseMap: COURSE,
+      deliverables: DELIV,
+      maxIterations: 4,
       userMessage: 'Add a new rubric criterion about code quality to Lesson 2.',
     });
     const chatReply = r.finalResponse?.chatReply || '';
@@ -100,33 +174,39 @@ describeWithKey(`Prose regression probes (${MODEL})`, { timeout: 300_000 }, () =
     // Count sentences by looking at terminal punctuation. Tolerant: the agent
     // may include one follow-up sentence after explaining. Three+ is where it
     // starts reading as a tutorial.
-    const sentences = chatReply.split(/(?<=[.!?])\s+/).filter(s => s.trim().length > 4);
+    const sentences = chatReply.split(/(?<=[.!?])\s+/).filter((s) => s.trim().length > 4);
     expect(sentences.length, `expected ≤2 sentences, got ${sentences.length}: ${chatReply}`).toBeLessThanOrEqual(2);
     // And should not enumerate UI steps ("1.", "2.", "Navigate to")
     expect(chatReply, 'must not launch a UI tutorial').not.toMatch(/^\s*\d+\.\s/m);
-    expect(chatReply.toLowerCase(), 'must not prescribe clicking tabs').not.toMatch(/click\s+(the\s+)?(generate|create)\s+button|navigate\s+to\s+the/i);
+    expect(chatReply.toLowerCase(), 'must not prescribe clicking tabs').not.toMatch(
+      /click\s+(the\s+)?(generate|create)\s+button|navigate\s+to\s+the/i,
+    );
   });
 
   it('Q-prose-3: after run_tool returns, agent does not re-read the same deliverables', async () => {
     const r = await runMultiTurn({
-      apiKey: KEY, model: MODEL, courseMap: COURSE, deliverables: DELIV, maxIterations: 12,
+      apiKey: KEY,
+      model: MODEL,
+      courseMap: COURSE,
+      deliverables: DELIV,
+      maxIterations: 12,
       userMessage:
-        "Create a reusable tool called `audit_bloom_floor` that takes a featureId and runs " +
-        "validate_course plus read_deliverable on that feature. Then run it on quizBank. " +
+        'Create a reusable tool called `audit_bloom_floor` that takes a featureId and runs ' +
+        'validate_course plus read_deliverable on that feature. Then run it on quizBank. ' +
         "Trust the macro's output — do NOT re-read quizBank after running the macro.",
     });
     // Find the iteration where run_tool fired.
-    const runToolIter = r.trace.findIndex(t => t.calls.some(c => c.name === 'run_tool'));
+    const runToolIter = r.trace.findIndex((t) => t.calls.some((c) => c.name === 'run_tool'));
     expect(runToolIter, 'run_tool should have fired').toBeGreaterThanOrEqual(0);
 
     // In all iterations AFTER run_tool, there should be no read_deliverable
     // against quizBank — the macro already produced that result.
-    const subsequentReads = r.trace.slice(runToolIter + 1).flatMap(t =>
-      t.calls.filter(c => c.name === 'read_deliverable' && c.args?.featureId === 'quizBank')
-    );
+    const subsequentReads = r.trace
+      .slice(runToolIter + 1)
+      .flatMap((t) => t.calls.filter((c) => c.name === 'read_deliverable' && c.args?.featureId === 'quizBank'));
     expect(
       subsequentReads.length,
-      `agent re-read quizBank ${subsequentReads.length} times after run_tool. Trace: ${JSON.stringify(r.trace.map(t => t.calls.map(c => c.name)))}`,
+      `agent re-read quizBank ${subsequentReads.length} times after run_tool. Trace: ${JSON.stringify(r.trace.map((t) => t.calls.map((c) => c.name)))}`,
     ).toBe(0);
   });
 });

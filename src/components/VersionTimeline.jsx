@@ -10,7 +10,12 @@ export default function VersionTimeline({ versions, activeVersion, onJump }) {
       <div className="flex items-center justify-between mb-3">
         <h3 className="text-[10px] font-semibold text-slate-400 uppercase tracking-wider flex items-center gap-2">
           <svg className="w-3.5 h-3.5 text-slate-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-            <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 8v4l3 3m6-3a9 9 0 11-18 0 9 9 0 0118 0z" />
+            <path
+              strokeLinecap="round"
+              strokeLinejoin="round"
+              strokeWidth={2}
+              d="M12 8v4l3 3m6-3a9 9 0 11-18 0 9 9 0 0118 0z"
+            />
           </svg>
           History
           <span className="text-[9px] font-normal text-slate-300">({versions.length})</span>
@@ -43,9 +48,11 @@ export default function VersionTimeline({ versions, activeVersion, onJump }) {
               aria-label={`Jump to version ${realIdx + 1}: ${v.label}`}
               aria-current={isActive ? 'true' : undefined}
             >
-              <div className={`w-2 h-2 rounded-full flex-shrink-0 ${
-                isActive ? 'bg-indigo-500' : realIdx < activeVersion ? 'bg-emerald-400' : 'bg-slate-300'
-              }`} />
+              <div
+                className={`w-2 h-2 rounded-full flex-shrink-0 ${
+                  isActive ? 'bg-indigo-500' : realIdx < activeVersion ? 'bg-emerald-400' : 'bg-slate-300'
+                }`}
+              />
               <div className="flex-1 min-w-0">
                 <div className="flex items-center justify-between gap-1">
                   <span className={`text-[11px] font-semibold ${isActive ? 'text-indigo-700' : 'text-slate-500'}`}>
@@ -53,9 +60,7 @@ export default function VersionTimeline({ versions, activeVersion, onJump }) {
                   </span>
                   <span className="text-[9px] text-slate-300 flex-shrink-0">{timeStr}</span>
                 </div>
-                <span className="text-[10px] text-slate-400 truncate block">
-                  {v.label}
-                </span>
+                <span className="text-[10px] text-slate-400 truncate block">{v.label}</span>
               </div>
             </button>
           );

@@ -25,7 +25,9 @@ const SECRET_VALUE_PATTERNS = [
 ];
 
 function normalizeKey(key) {
-  return String(key || '').toLowerCase().replace(/[-_\s.]/g, '');
+  return String(key || '')
+    .toLowerCase()
+    .replace(/[-_\s.]/g, '');
 }
 
 function isSensitiveKey(key) {
@@ -39,7 +41,7 @@ function pathForChild(path, key) {
 
 function summarizeSecretKind(value) {
   const text = String(value || '');
-  const match = SECRET_VALUE_PATTERNS.find(item => item.pattern.test(text));
+  const match = SECRET_VALUE_PATTERNS.find((item) => item.pattern.test(text));
   return match?.label || 'secret-like value';
 }
 
@@ -75,7 +77,12 @@ export function getDeveloperSecretFindings(value, basePath = '') {
     if (typeof node === 'string') {
       const secretKind = summarizeSecretKind(node);
       if (secretKind !== 'secret-like value') {
-        addFinding(findings, path, `${secretKind} detected. Remove it before applying or saving developer state.`, 'secret-value');
+        addFinding(
+          findings,
+          path,
+          `${secretKind} detected. Remove it before applying or saving developer state.`,
+          'secret-value',
+        );
       }
       return;
     }

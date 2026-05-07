@@ -67,10 +67,12 @@ describe('deliverableToCsvRows — lessonPlans', () => {
 
   it('formats warmUp object', () => {
     const data = {
-      lessonPlans: [{
-        lessonTitle: 'L1',
-        warmUp: { type: 'Think-Pair-Share', prompt: 'What is AI?', purpose: 'Activate prior knowledge' },
-      }],
+      lessonPlans: [
+        {
+          lessonTitle: 'L1',
+          warmUp: { type: 'Think-Pair-Share', prompt: 'What is AI?', purpose: 'Activate prior knowledge' },
+        },
+      ],
     };
     const { rows } = deliverableToCsvRows('lessonPlans', data);
     expect(rows[0][4]).toContain('Think-Pair-Share');
@@ -79,10 +81,12 @@ describe('deliverableToCsvRows — lessonPlans', () => {
 
   it('formats formativeCheck object', () => {
     const data = {
-      lessonPlans: [{
-        lessonTitle: 'L1',
-        formativeCheck: { type: 'Exit ticket', prompt: 'Name 2 types', objectiveAligned: 'Obj 1' },
-      }],
+      lessonPlans: [
+        {
+          lessonTitle: 'L1',
+          formativeCheck: { type: 'Exit ticket', prompt: 'Name 2 types', objectiveAligned: 'Obj 1' },
+        },
+      ],
     };
     const { rows } = deliverableToCsvRows('lessonPlans', data);
     expect(rows[0][7]).toContain('Exit ticket');
@@ -91,10 +95,12 @@ describe('deliverableToCsvRows — lessonPlans', () => {
 
   it('formats UDL notes', () => {
     const data = {
-      lessonPlans: [{
-        lessonTitle: 'L1',
-        udlNotes: { representation: 'Visual aids', engagement: 'Group work', expression: 'Written essay' },
-      }],
+      lessonPlans: [
+        {
+          lessonTitle: 'L1',
+          udlNotes: { representation: 'Visual aids', engagement: 'Group work', expression: 'Written essay' },
+        },
+      ],
     };
     const { rows } = deliverableToCsvRows('lessonPlans', data);
     expect(rows[0][8]).toContain('Repr: Visual aids');
@@ -103,10 +109,12 @@ describe('deliverableToCsvRows — lessonPlans', () => {
 
   it('formats homework as object', () => {
     const data = {
-      lessonPlans: [{
-        lessonTitle: 'L1',
-        homework: { title: 'Read Ch.2', description: 'Focus on key terms', estimatedTime: '30 min' },
-      }],
+      lessonPlans: [
+        {
+          lessonTitle: 'L1',
+          homework: { title: 'Read Ch.2', description: 'Focus on key terms', estimatedTime: '30 min' },
+        },
+      ],
     };
     const { rows } = deliverableToCsvRows('lessonPlans', data);
     expect(rows[0][9]).toContain('Read Ch.2');
@@ -133,7 +141,14 @@ describe('deliverableToCsvRows — rubrics', () => {
           totalPoints: 100,
           assessmentType: 'Summative',
           criteria: [
-            { criterion: 'Thesis', weight: 30, excellent: 'Strong thesis', proficient: 'Clear thesis', developing: 'Weak thesis', beginning: 'No thesis' },
+            {
+              criterion: 'Thesis',
+              weight: 30,
+              excellent: 'Strong thesis',
+              proficient: 'Clear thesis',
+              developing: 'Weak thesis',
+              beginning: 'No thesis',
+            },
             { criterion: 'Evidence', weight: 40, excellent: 'Strong evidence', proficient: 'Some evidence' },
           ],
         },
@@ -200,8 +215,23 @@ describe('deliverableToCsvRows — quizBank', () => {
         {
           lessonTitle: 'Quiz 1',
           questions: [
-            { type: 'mc', bloomsLevel: 'Remember', difficulty: 'easy', question: 'What is ML?', options: ['A', 'B', 'C'], answer: 'A', explanation: 'ML is...', points: 5 },
-            { type: 'sa', bloomsLevel: 'Apply', difficulty: 'hard', question: 'Explain CNNs', sampleAnswer: 'CNNs are...' },
+            {
+              type: 'mc',
+              bloomsLevel: 'Remember',
+              difficulty: 'easy',
+              question: 'What is ML?',
+              options: ['A', 'B', 'C'],
+              answer: 'A',
+              explanation: 'ML is...',
+              points: 5,
+            },
+            {
+              type: 'sa',
+              bloomsLevel: 'Apply',
+              difficulty: 'hard',
+              question: 'Explain CNNs',
+              sampleAnswer: 'CNNs are...',
+            },
           ],
         },
       ],
@@ -308,7 +338,10 @@ describe('deliverableToCsvRows — studyGuides', () => {
           commonMisconceptions: [{ misconception: 'AI = ML', correction: 'ML is a subset of AI' }],
           reviewQuestions: [{ question: 'What is ML?' }],
           practiceActivities: [{ activity: 'Build a classifier' }],
-          examPrep: { keyTopicsToKnow: ['Supervised learning', 'Unsupervised learning'], reviewStrategy: 'Practice problems' },
+          examPrep: {
+            keyTopicsToKnow: ['Supervised learning', 'Unsupervised learning'],
+            reviewStrategy: 'Practice problems',
+          },
         },
       ],
     };
@@ -331,12 +364,14 @@ describe('deliverableToCsvRows — studyGuides', () => {
 
   it('handles string-typed misconceptions and review questions', () => {
     const data = {
-      studyGuides: [{
-        lessonTitle: 'L1',
-        commonMisconceptions: ['AI is magic'],
-        reviewQuestions: ['What is ML?'],
-        practiceActivities: ['Code a model'],
-      }],
+      studyGuides: [
+        {
+          lessonTitle: 'L1',
+          commonMisconceptions: ['AI is magic'],
+          reviewQuestions: ['What is ML?'],
+          practiceActivities: ['Code a model'],
+        },
+      ],
     };
     const { rows } = deliverableToCsvRows('studyGuides', data);
     expect(rows[0][4]).toBe('AI is magic');
@@ -363,16 +398,16 @@ describe('deliverableToCsvRows — syllabus', () => {
     };
     const { headers, rows } = deliverableToCsvRows('syllabus', data);
     expect(headers).toEqual(['Section', 'Content']);
-    expect(rows.find(r => r[0] === 'Course Title')[1]).toBe('CS 101');
-    expect(rows.find(r => r[0] === 'Instructor')[1]).toBe('Dr. Smith');
-    expect(rows.find(r => r[0] === 'Learning Outcomes')[1]).toContain('Understand algorithms');
-    expect(rows.find(r => r[0] === 'Attendance & Participation')[1]).toBe('Mandatory');
+    expect(rows.find((r) => r[0] === 'Course Title')[1]).toBe('CS 101');
+    expect(rows.find((r) => r[0] === 'Instructor')[1]).toBe('Dr. Smith');
+    expect(rows.find((r) => r[0] === 'Learning Outcomes')[1]).toContain('Understand algorithms');
+    expect(rows.find((r) => r[0] === 'Attendance & Participation')[1]).toBe('Mandatory');
   });
 
   it('handles syllabus without wrapper key', () => {
     const data = { courseTitle: 'Direct CS 101', semester: 'Spring 2026' };
     const { rows } = deliverableToCsvRows('syllabus', data);
-    expect(rows.find(r => r[0] === 'Course Title')[1]).toBe('Direct CS 101');
+    expect(rows.find((r) => r[0] === 'Course Title')[1]).toBe('Direct CS 101');
   });
 
   it('includes weekly schedule entries', () => {

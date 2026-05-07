@@ -77,9 +77,11 @@ describe('developerTemplatePatches', () => {
   it('reports diffs for a partial template patch', () => {
     const diffs = diffDeveloperTemplatePatch(currentConfig, templateData, 'columns', 5);
 
-    expect(diffs).toEqual(expect.arrayContaining([
-      expect.objectContaining({ path: 'columns[0].key' }),
-      expect.objectContaining({ path: 'columns[0].label' }),
-    ]));
+    expect(diffs).toEqual(
+      expect.arrayContaining([
+        expect.objectContaining({ path: 'columns[0].key' }),
+        expect.objectContaining({ path: 'columns[0].label' }),
+      ]),
+    );
   });
 });

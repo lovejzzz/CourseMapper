@@ -7,27 +7,36 @@ const makeCourseMap = (lessonCount = 3) => ({
   semester: 'Fall 2026',
   lessons: Array.from({ length: lessonCount }, (_, i) => ({
     title: `Lesson ${i + 1}: Topic ${i + 1}`,
-    sections: [{
-      topicSection: `Topic ${i + 1}`,
-      learningObjectives: `Objective ${i + 1}`,
-      weeklyAssessments: `Assessment ${i + 1}`,
-      asyncActivities: `Async ${i + 1}`,
-      syncActivities: `Sync ${i + 1}`,
-      supportingResources: `Resource ${i + 1}`,
-      technologyNeeded: `Tech ${i + 1}`,
-      presentationFormat: 'Lecture',
-      evaluateDesign: `Eval ${i + 1}`,
-      learningGoals: `Goal ${i + 1}`,
-    }],
+    sections: [
+      {
+        topicSection: `Topic ${i + 1}`,
+        learningObjectives: `Objective ${i + 1}`,
+        weeklyAssessments: `Assessment ${i + 1}`,
+        asyncActivities: `Async ${i + 1}`,
+        syncActivities: `Sync ${i + 1}`,
+        supportingResources: `Resource ${i + 1}`,
+        technologyNeeded: `Tech ${i + 1}`,
+        presentationFormat: 'Lecture',
+        evaluateDesign: `Eval ${i + 1}`,
+        learningGoals: `Goal ${i + 1}`,
+      },
+    ],
   })),
 });
 
 describe('COLUMN_EXTRACTORS', () => {
   it('has extractors for all standard column keys', () => {
     const expectedKeys = [
-      'topicSection', 'learningObjectives', 'weeklyAssessments',
-      'supportingResources', 'learningGoals', 'asyncActivities',
-      'syncActivities', 'technologyNeeded', 'presentationFormat', 'evaluateDesign',
+      'topicSection',
+      'learningObjectives',
+      'weeklyAssessments',
+      'supportingResources',
+      'learningGoals',
+      'asyncActivities',
+      'syncActivities',
+      'technologyNeeded',
+      'presentationFormat',
+      'evaluateDesign',
     ];
     for (const key of expectedKeys) {
       expect(COLUMN_EXTRACTORS).toHaveProperty(key);

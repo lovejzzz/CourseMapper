@@ -21,7 +21,7 @@ const AIContextMenu = lazy(() => import('./components/AIContextMenu'));
 const ProjectPicker = lazy(() => import('./components/ProjectPicker'));
 const DeveloperModePanel = lazy(() => import('./components/DeveloperModePanel'));
 const CustomDeliverableBuilder = lazy(() =>
-  import('./screens/FeatureSelect').then(module => ({ default: module.CustomDeliverableBuilder }))
+  import('./screens/FeatureSelect').then((module) => ({ default: module.CustomDeliverableBuilder })),
 );
 import useVersionHistory from './hooks/useVersionHistory';
 import useExport from './hooks/useExport';
@@ -34,7 +34,12 @@ import useEditProposal from './hooks/useEditProposal';
 import useDeliverableUndo from './hooks/useDeliverableUndo';
 import { extractEditContext } from './lib/editContextExtractor';
 import { FEATURES } from './lib/featureCatalog';
-import { listCustomDeliverables, toFeatureEntry, saveCustomDeliverable, mergeCloudDeliverables } from './lib/customDeliverableLibrary';
+import {
+  listCustomDeliverables,
+  toFeatureEntry,
+  saveCustomDeliverable,
+  mergeCloudDeliverables,
+} from './lib/customDeliverableLibrary';
 import {
   listDeveloperTemplates,
   saveDeveloperTemplate,
@@ -50,7 +55,12 @@ import { useUI } from './contexts/UIContext';
 import { useCourse } from './contexts/CourseContext';
 import { log, warn, error as logError } from './lib/logger';
 // HelpDrawer removed — merged into ChatPanel
-import { saveProject as cloudSaveProject, loadProject as cloudLoadProject, loadProjectDeliverables, newProjectId } from './lib/cloudStorage';
+import {
+  saveProject as cloudSaveProject,
+  loadProject as cloudLoadProject,
+  loadProjectDeliverables,
+  newProjectId,
+} from './lib/cloudStorage';
 import { requestNotificationPermission } from './lib/notifyDone';
 import { importCourseMap } from './lib/importCourseMap';
 import { parseFiles } from './lib/fileParser';
@@ -72,8 +82,8 @@ function AddDeliverableButton({ unselected, showAddDeliverable, setShowAddDelive
     setShowAddDeliverable(true);
   }
 
-  const builtIn = unselected.filter(f => !f.isCustom);
-  const custom = unselected.filter(f => f.isCustom);
+  const builtIn = unselected.filter((f) => !f.isCustom);
+  const custom = unselected.filter((f) => f.isCustom);
 
   return (
     <div className="flex-shrink-0">
@@ -88,57 +98,65 @@ function AddDeliverableButton({ unselected, showAddDeliverable, setShowAddDelive
         </svg>
         Add
       </button>
-      {showAddDeliverable && createPortal(
-        <>
-          <div className="fixed inset-0 z-[9998]" onClick={() => setShowAddDeliverable(false)} />
-          <div
-            className="fixed z-[9999] bg-white/95 backdrop-blur-xl rounded-xl border border-slate-200/60 shadow-xl p-2 min-w-[220px] max-h-[70vh] overflow-y-auto animate-spring-in"
-            style={{ top: dropPos.top, left: dropPos.left }}
-          >
-            {builtIn.length > 0 && (
-              <>
-                <p className="text-[9px] font-bold text-slate-400 uppercase tracking-wider px-2 pt-1 pb-1.5">Add Deliverable</p>
-                {builtIn.map(feature => (
-                  <button
-                    key={feature.id}
-                    onClick={() => onAdd(feature)}
-                    className="w-full text-left px-2 py-2 rounded-lg text-[11px] font-medium text-slate-600 hover:bg-indigo-50 hover:text-indigo-700 transition-colors"
-                  >
-                    {feature.label}
-                  </button>
-                ))}
-              </>
-            )}
-            {custom.length > 0 && (
-              <>
-                <div className="border-t border-slate-100/80 my-1.5" />
-                <p className="text-[9px] font-bold text-slate-400 uppercase tracking-wider px-2 pt-1 pb-1.5">Your Custom</p>
-                {custom.map(feature => (
-                  <button
-                    key={feature.id}
-                    onClick={() => onAdd(feature)}
-                    className="w-full text-left px-2 py-2 rounded-lg text-[11px] font-medium text-violet-600 hover:bg-violet-50 hover:text-violet-700 transition-colors"
-                  >
-                    {feature.label}
-                  </button>
-                ))}
-              </>
-            )}
-            {/* Create Custom option */}
-            {(builtIn.length > 0 || custom.length > 0) && <div className="border-t border-slate-100/80 my-1.5" />}
-            <button
-              onClick={() => { setShowAddDeliverable(false); onCreateCustom(); }}
-              className="w-full text-left px-2 py-2 rounded-lg text-[11px] font-medium text-indigo-500 hover:bg-indigo-50 hover:text-indigo-700 transition-colors flex items-center gap-1.5"
+      {showAddDeliverable &&
+        createPortal(
+          <>
+            <div className="fixed inset-0 z-[9998]" onClick={() => setShowAddDeliverable(false)} />
+            <div
+              className="fixed z-[9999] bg-white/95 backdrop-blur-xl rounded-xl border border-slate-200/60 shadow-xl p-2 min-w-[220px] max-h-[70vh] overflow-y-auto animate-spring-in"
+              style={{ top: dropPos.top, left: dropPos.left }}
             >
-              <svg className="w-3.5 h-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 4v16m8-8H4" />
-              </svg>
-              Create Custom...
-            </button>
-          </div>
-        </>,
-        document.body
-      )}
+              {builtIn.length > 0 && (
+                <>
+                  <p className="text-[9px] font-bold text-slate-400 uppercase tracking-wider px-2 pt-1 pb-1.5">
+                    Add Deliverable
+                  </p>
+                  {builtIn.map((feature) => (
+                    <button
+                      key={feature.id}
+                      onClick={() => onAdd(feature)}
+                      className="w-full text-left px-2 py-2 rounded-lg text-[11px] font-medium text-slate-600 hover:bg-indigo-50 hover:text-indigo-700 transition-colors"
+                    >
+                      {feature.label}
+                    </button>
+                  ))}
+                </>
+              )}
+              {custom.length > 0 && (
+                <>
+                  <div className="border-t border-slate-100/80 my-1.5" />
+                  <p className="text-[9px] font-bold text-slate-400 uppercase tracking-wider px-2 pt-1 pb-1.5">
+                    Your Custom
+                  </p>
+                  {custom.map((feature) => (
+                    <button
+                      key={feature.id}
+                      onClick={() => onAdd(feature)}
+                      className="w-full text-left px-2 py-2 rounded-lg text-[11px] font-medium text-violet-600 hover:bg-violet-50 hover:text-violet-700 transition-colors"
+                    >
+                      {feature.label}
+                    </button>
+                  ))}
+                </>
+              )}
+              {/* Create Custom option */}
+              {(builtIn.length > 0 || custom.length > 0) && <div className="border-t border-slate-100/80 my-1.5" />}
+              <button
+                onClick={() => {
+                  setShowAddDeliverable(false);
+                  onCreateCustom();
+                }}
+                className="w-full text-left px-2 py-2 rounded-lg text-[11px] font-medium text-indigo-500 hover:bg-indigo-50 hover:text-indigo-700 transition-colors flex items-center gap-1.5"
+              >
+                <svg className="w-3.5 h-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 4v16m8-8H4" />
+                </svg>
+                Create Custom...
+              </button>
+            </div>
+          </>,
+          document.body,
+        )}
     </div>
   );
 }
@@ -146,29 +164,47 @@ function AddDeliverableButton({ unselected, showAddDeliverable, setShowAddDelive
 // Screens: 'landing' | 'features' | 'config' | 'workspace'
 
 export default function AppFlow({ startupAction = null, onStartupHandled, onReturnToLanding } = {}) {
-  useEffect(() => { requestNotificationPermission(); }, []);
-  const [isHandlingStartupAction, setIsHandlingStartupAction] = useState(
-    () => Boolean(startupAction && startupAction.type !== 'continue')
+  useEffect(() => {
+    requestNotificationPermission();
+  }, []);
+  const [isHandlingStartupAction, setIsHandlingStartupAction] = useState(() =>
+    Boolean(startupAction && startupAction.type !== 'continue'),
   );
 
   // ── UI state (from UIContext) ──
   const {
-    screen, setScreen,
-    activeTab, setActiveTab,
-    chatWidth, setChatWidth,
-    showHelp, setShowHelp,
-    showDiff, setShowDiff,
-    showAddDeliverable, setShowAddDeliverable,
-    showCustomBuilder, setShowCustomBuilder,
-    showDepMap, setShowDepMap,
-    newProjectConfirm, setNewProjectConfirm,
-    showProjectPicker, setShowProjectPicker,
+    screen,
+    setScreen,
+    activeTab,
+    setActiveTab,
+    chatWidth,
+    setChatWidth,
+    showHelp,
+    setShowHelp,
+    showDiff,
+    setShowDiff,
+    showAddDeliverable,
+    setShowAddDeliverable,
+    showCustomBuilder,
+    setShowCustomBuilder,
+    showDepMap,
+    setShowDepMap,
+    newProjectConfirm,
+    setNewProjectConfirm,
+    showProjectPicker,
+    setShowProjectPicker,
     setDragTabIdx,
-    cascadeHover, handleCascadeHover,
-    aiContextMenu, handleAIContextMenu, closeAIContextMenu,
-    unseenChanges, setUnseenChanges,
-    agentHighlight, triggerAgentHighlight,
-    addLessonsModal, setAddLessonsModal,
+    cascadeHover,
+    handleCascadeHover,
+    aiContextMenu,
+    handleAIContextMenu,
+    closeAIContextMenu,
+    unseenChanges,
+    setUnseenChanges,
+    agentHighlight,
+    triggerAgentHighlight,
+    addLessonsModal,
+    setAddLessonsModal,
   } = useUI();
 
   useEffect(() => {
@@ -179,37 +215,63 @@ export default function AppFlow({ startupAction = null, onStartupHandled, onRetu
 
   // ── Course data state (from CourseContext) ──
   const {
-    selectedFeatures, setSelectedFeatures,
-    deliverableConfig, setDeliverableConfig,
-    lessonScope, setLessonScope,
-    promptText, setPromptText,
-    files, setFiles,
-    columns, setColumns,
-    courseMap, setCourseMap,
-    oldCourseMap, setOldCourseMap,
-    userEdits, setUserEdits,
-    hasGenerated, setHasGenerated,
-    slideTheme, setSlideTheme,
+    selectedFeatures,
+    setSelectedFeatures,
+    deliverableConfig,
+    setDeliverableConfig,
+    lessonScope,
+    setLessonScope,
+    promptText,
+    setPromptText,
+    files,
+    setFiles,
+    columns,
+    setColumns,
+    courseMap,
+    setCourseMap,
+    oldCourseMap,
+    setOldCourseMap,
+    userEdits,
+    setUserEdits,
+    hasGenerated,
+    setHasGenerated,
+    slideTheme,
+    setSlideTheme,
   } = useCourse();
 
   const [hasSavedSession, setHasSavedSession] = useState(false);
 
   // ── Model & File Config (from AIConfigContext) ──
   const {
-    provider, setProvider, apiKey, setApiKey,
-    apiStatus, setApiStatus, modelName, setModelName,
-    modelId, setModelId, availableModels, setAvailableModels,
-    maxOutputTokens, setMaxOutputTokens,
+    provider,
+    setProvider,
+    apiKey,
+    setApiKey,
+    apiStatus,
+    setApiStatus,
+    modelName,
+    setModelName,
+    modelId,
+    setModelId,
+    availableModels,
+    setAvailableModels,
+    maxOutputTokens,
+    setMaxOutputTokens,
   } = useAIConfig();
 
   // ── Core Course Map State ──
   const [restoredSession, setRestoredSession] = useState(false);
   const [chatHistory, setChatHistory] = useState([]);
+  const [mobileWorkspaceView, setMobileWorkspaceView] = useState('content');
 
   // ── Workspace tab ──
   // (activeTab, showAddDeliverable, showCustomBuilder, tab drag,
   //  addLessonsModal, showDepMap, cascadeHover, newProjectConfirm
   //  moved to UIContext)
+
+  useEffect(() => {
+    if (screen === 'workspace') setMobileWorkspaceView('content');
+  }, [screen, activeTab]);
 
   // ── Cloud ──
   const { user } = useAuth();
@@ -225,12 +287,20 @@ export default function AppFlow({ startupAction = null, onStartupHandled, onRetu
   const [deleteTabConfirm, setDeleteTabConfirm] = useState(null);
   const [tabDrag, setTabDrag] = useState(null);
   const [developerMode, setDeveloperMode] = useState(() => {
-    try { return localStorage.getItem('coursemapper-developer-mode') === 'true'; } catch { return false; }
+    try {
+      return localStorage.getItem('coursemapper-developer-mode') === 'true';
+    } catch {
+      return false;
+    }
   });
   const [showDeveloperPanel, setShowDeveloperPanel] = useState(false);
   const [developerTemplates, setDeveloperTemplates] = useState(() => listDeveloperTemplates());
   const [activeDeveloperTemplateId, setActiveDeveloperTemplateId] = useState(() => {
-    try { return localStorage.getItem('coursemapper-active-developer-template') || ''; } catch { return ''; }
+    try {
+      return localStorage.getItem('coursemapper-active-developer-template') || '';
+    } catch {
+      return '';
+    }
   });
 
   // ── Misc ──
@@ -258,46 +328,62 @@ export default function AppFlow({ startupAction = null, onStartupHandled, onRetu
   }, []);
 
   useEffect(() => {
-    try { localStorage.setItem('coursemapper-developer-mode', developerMode ? 'true' : 'false'); } catch { }
+    try {
+      localStorage.setItem('coursemapper-developer-mode', developerMode ? 'true' : 'false');
+    } catch {}
     if (!developerMode) setShowDeveloperPanel(false);
   }, [developerMode]);
 
   useEffect(() => {
     try {
-      if (activeDeveloperTemplateId) localStorage.setItem('coursemapper-active-developer-template', activeDeveloperTemplateId);
+      if (activeDeveloperTemplateId)
+        localStorage.setItem('coursemapper-active-developer-template', activeDeveloperTemplateId);
       else localStorage.removeItem('coursemapper-active-developer-template');
-    } catch { }
+    } catch {}
   }, [activeDeveloperTemplateId]);
 
   // ── Cascade sync ──
   // Always-fresh ref to courseMap for useSmartSync (avoids stale closure)
   const courseMapRef = useRef(courseMap);
-  useEffect(() => { courseMapRef.current = courseMap; }, [courseMap]);
+  useEffect(() => {
+    courseMapRef.current = courseMap;
+  }, [courseMap]);
   // Always-fresh ref to deliverables for onRequestProposal callback
   const deliverablesRef = useRef(null);
 
   const version = useVersionHistory(setCourseMap, setDownloadedFile);
 
   const gen = useGeneration({
-    provider, modelId, apiKey, maxOutputTokens, files, columns,
-    setCourseMap, setOldCourseMap,
+    provider,
+    modelId,
+    apiKey,
+    maxOutputTokens,
+    files,
+    columns,
+    setCourseMap,
+    setOldCourseMap,
     pushVersion: version.pushVersion,
-    userEdits, setUserEdits,
+    userEdits,
+    setUserEdits,
     promptText,
     pedagogicalMode: 'lecture', // Feature 4.2 — wired for when mode selector UI is added
     lessonScope: lessonScope.type === 'specific' ? lessonScope.indices : null,
     courseMapConfig: deliverableConfig['courseMap'],
   });
 
-  const {
-    handleDownload, resetExport,
-  } = useExport(courseMap, columns, gen.setError);
+  const { handleDownload, resetExport } = useExport(courseMap, columns, gen.setError);
 
   const rev = useRevision({
-    provider, modelId, apiKey, maxOutputTokens,
-    courseMap, setCourseMap, setOldCourseMap,
+    provider,
+    modelId,
+    apiKey,
+    maxOutputTokens,
+    courseMap,
+    setCourseMap,
+    setOldCourseMap,
     pushVersion: version.pushVersion,
-    userEdits, setUserEdits,
+    userEdits,
+    setUserEdits,
     setIsStreaming: gen.setIsStreaming,
     setStreamDetail: gen.setStreamDetail,
     setStreamProgress: gen.setStreamProgress,
@@ -309,7 +395,10 @@ export default function AppFlow({ startupAction = null, onStartupHandled, onRetu
   });
 
   const deliv = useDeliverables({
-    provider, modelId, apiKey, maxOutputTokens,
+    provider,
+    modelId,
+    apiKey,
+    maxOutputTokens,
     deliverableConfig,
     lockedLessons: lessonScope.type === 'specific' ? lessonScope.indices : null,
     pedagogicalMode: 'lecture',
@@ -321,7 +410,10 @@ export default function AppFlow({ startupAction = null, onStartupHandled, onRetu
 
   // ── Edit-Aware AI Proposal Engine ──
   const editProposal = useEditProposal({
-    provider, modelId, apiKey, maxOutputTokens,
+    provider,
+    modelId,
+    apiKey,
+    maxOutputTokens,
     deliverableConfig,
     pedagogicalMode: 'lecture',
     columns,
@@ -339,25 +431,28 @@ export default function AppFlow({ startupAction = null, onStartupHandled, onRetu
     courseMapRef,
     selectedFeatures,
     onSyncComplete: useCallback((featureIds) => {
-      setUnseenChanges(prev => {
+      setUnseenChanges((prev) => {
         const next = new Set(prev);
-        featureIds.forEach(id => next.add(id));
+        featureIds.forEach((id) => next.add(id));
         return next;
       });
     }, []),
-    onRequestProposal: useCallback(({ featureId, lessonIndex, editContext, courseMap: cm }) => {
-      // Use deliverablesRef so this callback stays stable and never reads stale data
-      editProposal.proposeLesson(
-        featureId, cm, lessonIndex, editContext,
-        deliverablesRef.current?.[featureId]?.data,
-      );
-    }, [editProposal.proposeLesson]),
+    onRequestProposal: useCallback(
+      ({ featureId, lessonIndex, editContext, courseMap: cm }) => {
+        // Use deliverablesRef so this callback stays stable and never reads stale data
+        editProposal.proposeLesson(featureId, cm, lessonIndex, editContext, deliverablesRef.current?.[featureId]?.data);
+      },
+      [editProposal.proposeLesson],
+    ),
   });
 
   // Wire editor with smartSync notifyEdit
   const editor = useCourseMapEditor({
-    courseMap, setCourseMap, columns,
-    setDownloadedFile, setUserEdits,
+    courseMap,
+    setCourseMap,
+    columns,
+    setDownloadedFile,
+    setUserEdits,
     pushVersion: version.pushVersion,
     onEdit: smartSync.notifyEdit,
     deliverables: deliv.deliverables,
@@ -367,170 +462,233 @@ export default function AppFlow({ startupAction = null, onStartupHandled, onRetu
   // ── Persist API key, provider & model — handled by AIConfigContext ──
 
   // ── Shared project snapshot builder (used by localStorage, cloud save, and file export) ──
-  const buildProjectSnapshot = useCallback((extra = {}) => {
-    const safeCourseMap = courseMap && typeof courseMap === 'object' && Array.isArray(courseMap.lessons)
-      ? courseMap
-      : { lessons: [] };
-    return {
-      formatVersion: 1,
-      courseMap: safeCourseMap, columns, hasGenerated: true,
-      provider, modelId, modelName, userEdits,
-      chatHistory: sanitizeMessagesForPersistence(chatHistory.slice(-50)),
-      fileNames: files.map(f => f.name),
-      versionHistory: version.versionHistory.slice(-30),
-      selectedFeatures, deliverableConfig, lessonScope, promptText, activeTab,
-      deliverables: deliv.deliverables,
+  const buildProjectSnapshot = useCallback(
+    (extra = {}) => {
+      const safeCourseMap =
+        courseMap && typeof courseMap === 'object' && Array.isArray(courseMap.lessons) ? courseMap : { lessons: [] };
+      return {
+        formatVersion: 1,
+        courseMap: safeCourseMap,
+        columns,
+        hasGenerated: true,
+        provider,
+        modelId,
+        modelName,
+        userEdits,
+        chatHistory: sanitizeMessagesForPersistence(chatHistory.slice(-50)),
+        fileNames: files.map((f) => f.name),
+        versionHistory: version.versionHistory.slice(-30),
+        selectedFeatures,
+        deliverableConfig,
+        lessonScope,
+        promptText,
+        activeTab,
+        deliverables: deliv.deliverables,
+        slideTheme,
+        savedAt: Date.now(),
+        ...extra,
+      };
+    },
+    [
+      courseMap,
+      columns,
+      provider,
+      modelId,
+      modelName,
+      userEdits,
+      chatHistory,
+      files,
+      version.versionHistory,
+      selectedFeatures,
+      deliverableConfig,
+      lessonScope,
+      promptText,
+      activeTab,
+      deliv.deliverables,
       slideTheme,
-      savedAt: Date.now(),
-      ...extra,
-    };
-  }, [courseMap, columns, provider, modelId, modelName, userEdits, chatHistory, files, version.versionHistory, selectedFeatures, deliverableConfig, lessonScope, promptText, activeTab, deliv.deliverables, slideTheme]);
+    ],
+  );
 
-  const applyDeveloperSnapshot = useCallback((snapshot) => {
-    if (!snapshot || typeof snapshot !== 'object') {
-      throw new Error('Developer code must be a project JSON object.');
-    }
-    if (!snapshot.courseMap || !Array.isArray(snapshot.courseMap.lessons)) {
-      throw new Error('Cannot apply: courseMap.lessons must exist and be an array.');
-    }
-    if (snapshot.selectedFeatures !== undefined && !Array.isArray(snapshot.selectedFeatures)) {
-      throw new Error('Cannot apply: selectedFeatures must be an array.');
-    }
+  const applyDeveloperSnapshot = useCallback(
+    (snapshot) => {
+      if (!snapshot || typeof snapshot !== 'object') {
+        throw new Error('Developer code must be a project JSON object.');
+      }
+      if (!snapshot.courseMap || !Array.isArray(snapshot.courseMap.lessons)) {
+        throw new Error('Cannot apply: courseMap.lessons must exist and be an array.');
+      }
+      if (snapshot.selectedFeatures !== undefined && !Array.isArray(snapshot.selectedFeatures)) {
+        throw new Error('Cannot apply: selectedFeatures must be an array.');
+      }
 
-    const nextSelected = Array.isArray(snapshot.selectedFeatures) && snapshot.selectedFeatures.length > 0
-      ? snapshot.selectedFeatures
-      : ['courseMap'];
-    const nextActive = typeof snapshot.activeTab === 'string' && nextSelected.includes(snapshot.activeTab)
-      ? snapshot.activeTab
-      : nextSelected[0] || 'courseMap';
+      const nextSelected =
+        Array.isArray(snapshot.selectedFeatures) && snapshot.selectedFeatures.length > 0
+          ? snapshot.selectedFeatures
+          : ['courseMap'];
+      const nextActive =
+        typeof snapshot.activeTab === 'string' && nextSelected.includes(snapshot.activeTab)
+          ? snapshot.activeTab
+          : nextSelected[0] || 'courseMap';
 
-    setCourseMap(snapshot.courseMap);
-    setOldCourseMap(snapshot.oldCourseMap || null);
-    setColumns(Array.isArray(snapshot.columns) ? snapshot.columns : [...DEFAULT_COLUMNS]);
-    setHasGenerated(true);
-    setUserEdits(Array.isArray(snapshot.userEdits) ? snapshot.userEdits : []);
-    setChatHistory(sanitizeMessagesForPersistence(snapshot.chatHistory));
-    setSelectedFeatures(nextSelected);
-    setDeliverableConfig(snapshot.deliverableConfig && typeof snapshot.deliverableConfig === 'object' ? snapshot.deliverableConfig : {});
-    setLessonScope(snapshot.lessonScope && typeof snapshot.lessonScope === 'object' ? snapshot.lessonScope : { type: 'all' });
-    setPromptText(typeof snapshot.promptText === 'string' ? snapshot.promptText : '');
-    setActiveTab(nextActive);
-    setSlideTheme(snapshot.slideTheme ?? null);
-    if (snapshot.provider) setProvider(snapshot.provider === 'free' ? 'openai' : snapshot.provider);
-    if (snapshot.modelId !== undefined) setModelId(snapshot.modelId || '');
-    if (snapshot.modelName !== undefined) setModelName(snapshot.modelName || '');
-    deliv.restoreDeliverables(snapshot.deliverables && typeof snapshot.deliverables === 'object' ? snapshot.deliverables : {});
-    if (!gen.restoreStoppedState()) {
-      gen.setProgressStep('done');
-      gen.setStatus('done');
-    }
-    setScreen('workspace');
-    setLocalSaveStatus('saving');
-    window.setTimeout(() => setLocalSaveStatus('saved'), 0);
-  }, [
-    deliv,
-    gen,
-    setActiveTab,
-    setColumns,
-    setCourseMap,
-    setDeliverableConfig,
-    setHasGenerated,
-    setLessonScope,
-    setModelId,
-    setModelName,
-    setOldCourseMap,
-    setPromptText,
-    setProvider,
-    setScreen,
-    setSelectedFeatures,
-    setSlideTheme,
-    setUserEdits,
-  ]);
-
-  const saveDeveloperTemplateFromPanel = useCallback((snapshot, name) => {
-    const saved = saveDeveloperTemplateFromSnapshot(snapshot, name, user?.uid);
-    setDeveloperTemplates(listDeveloperTemplates());
-    setActiveDeveloperTemplateId(saved.id);
-    return saved;
-  }, [user]);
-
-  const renameDeveloperTemplate = useCallback((templateId, name) => {
-    const template = developerTemplates.find(t => t.id === templateId);
-    if (!template) return null;
-    const saved = saveDeveloperTemplate({ ...template, name }, user?.uid);
-    setDeveloperTemplates(listDeveloperTemplates());
-    return saved;
-  }, [developerTemplates, user]);
-
-  const duplicateDeveloperTemplate = useCallback((templateId) => {
-    const template = developerTemplates.find(t => t.id === templateId);
-    if (!template) return null;
-    const saved = saveDeveloperTemplate({
-      name: `${template.name || 'Developer Template'} Copy`,
-      data: template.data,
-    }, user?.uid);
-    setDeveloperTemplates(listDeveloperTemplates());
-    setActiveDeveloperTemplateId(saved.id);
-    return saved;
-  }, [developerTemplates, user]);
-
-  const removeDeveloperTemplate = useCallback((templateId) => {
-    deleteDeveloperTemplate(templateId, user?.uid);
-    setDeveloperTemplates(listDeveloperTemplates());
-    setActiveDeveloperTemplateId(prev => (prev === templateId ? '' : prev));
-  }, [user]);
-
-  const applyDeveloperTemplate = useCallback((templateId) => {
-    if (!templateId) {
-      setActiveDeveloperTemplateId('');
-      return;
-    }
-    const template = developerTemplates.find(t => t.id === templateId);
-    if (!template?.data) return;
-    const data = template.data;
-    const nextFeatures = Array.isArray(data.selectedFeatures) && data.selectedFeatures.length > 0
-      ? ['courseMap', ...data.selectedFeatures.filter(id => id && id !== 'courseMap')]
-      : ['courseMap'];
-    setSelectedFeatures(nextFeatures);
-    setDeliverableConfig(data.deliverableConfig && typeof data.deliverableConfig === 'object' ? data.deliverableConfig : {});
-    setLessonScope(data.lessonScope && typeof data.lessonScope === 'object' ? data.lessonScope : { type: 'all' });
-    if (Array.isArray(data.columns)) setColumns(data.columns);
-    if (data.slideTheme !== undefined) setSlideTheme(data.slideTheme);
-    if (data.provider) setProvider(data.provider === 'free' ? 'openai' : data.provider);
-    if (data.modelId !== undefined) setModelId(data.modelId || '');
-    if (data.modelName !== undefined) setModelName(data.modelName || '');
-    setActiveTab(nextFeatures[0] || 'courseMap');
-    setActiveDeveloperTemplateId(template.id);
-  }, [
-    developerTemplates,
-    setActiveTab,
-    setColumns,
-    setDeliverableConfig,
-    setLessonScope,
-    setModelId,
-    setModelName,
-    setProvider,
-    setSelectedFeatures,
-    setSlideTheme,
-  ]);
-
-  const saveLocalProjectSnapshot = useCallback((extra = {}) => {
-    if (!hasGenerated || !courseMap) return false;
-    try {
+      setCourseMap(snapshot.courseMap);
+      setOldCourseMap(snapshot.oldCourseMap || null);
+      setColumns(Array.isArray(snapshot.columns) ? snapshot.columns : [...DEFAULT_COLUMNS]);
+      setHasGenerated(true);
+      setUserEdits(Array.isArray(snapshot.userEdits) ? snapshot.userEdits : []);
+      setChatHistory(sanitizeMessagesForPersistence(snapshot.chatHistory));
+      setSelectedFeatures(nextSelected);
+      setDeliverableConfig(
+        snapshot.deliverableConfig && typeof snapshot.deliverableConfig === 'object' ? snapshot.deliverableConfig : {},
+      );
+      setLessonScope(
+        snapshot.lessonScope && typeof snapshot.lessonScope === 'object' ? snapshot.lessonScope : { type: 'all' },
+      );
+      setPromptText(typeof snapshot.promptText === 'string' ? snapshot.promptText : '');
+      setActiveTab(nextActive);
+      setSlideTheme(snapshot.slideTheme ?? null);
+      if (snapshot.provider) setProvider(snapshot.provider === 'free' ? 'openai' : snapshot.provider);
+      if (snapshot.modelId !== undefined) setModelId(snapshot.modelId || '');
+      if (snapshot.modelName !== undefined) setModelName(snapshot.modelName || '');
+      deliv.restoreDeliverables(
+        snapshot.deliverables && typeof snapshot.deliverables === 'object' ? snapshot.deliverables : {},
+      );
+      if (!gen.restoreStoppedState()) {
+        gen.setProgressStep('done');
+        gen.setStatus('done');
+      }
+      setScreen('workspace');
       setLocalSaveStatus('saving');
-      localStorage.setItem(STORAGE_KEY, JSON.stringify(buildProjectSnapshot(extra)));
-      setLocalSaveStatus('saved');
-      clearTimeout(localStatusTimerRef.current);
-      localStatusTimerRef.current = setTimeout(() => setLocalSaveStatus('idle'), 3000);
-      return true;
-    } catch (e) {
-      warn('Save failed:', e);
-      setLocalSaveStatus('error');
-      clearTimeout(localStatusTimerRef.current);
-      localStatusTimerRef.current = setTimeout(() => setLocalSaveStatus('idle'), 5000);
-      return false;
-    }
-  }, [buildProjectSnapshot, courseMap, hasGenerated]);
+      window.setTimeout(() => setLocalSaveStatus('saved'), 0);
+    },
+    [
+      deliv,
+      gen,
+      setActiveTab,
+      setColumns,
+      setCourseMap,
+      setDeliverableConfig,
+      setHasGenerated,
+      setLessonScope,
+      setModelId,
+      setModelName,
+      setOldCourseMap,
+      setPromptText,
+      setProvider,
+      setScreen,
+      setSelectedFeatures,
+      setSlideTheme,
+      setUserEdits,
+    ],
+  );
+
+  const saveDeveloperTemplateFromPanel = useCallback(
+    (snapshot, name) => {
+      const saved = saveDeveloperTemplateFromSnapshot(snapshot, name, user?.uid);
+      setDeveloperTemplates(listDeveloperTemplates());
+      setActiveDeveloperTemplateId(saved.id);
+      return saved;
+    },
+    [user],
+  );
+
+  const renameDeveloperTemplate = useCallback(
+    (templateId, name) => {
+      const template = developerTemplates.find((t) => t.id === templateId);
+      if (!template) return null;
+      const saved = saveDeveloperTemplate({ ...template, name }, user?.uid);
+      setDeveloperTemplates(listDeveloperTemplates());
+      return saved;
+    },
+    [developerTemplates, user],
+  );
+
+  const duplicateDeveloperTemplate = useCallback(
+    (templateId) => {
+      const template = developerTemplates.find((t) => t.id === templateId);
+      if (!template) return null;
+      const saved = saveDeveloperTemplate(
+        {
+          name: `${template.name || 'Developer Template'} Copy`,
+          data: template.data,
+        },
+        user?.uid,
+      );
+      setDeveloperTemplates(listDeveloperTemplates());
+      setActiveDeveloperTemplateId(saved.id);
+      return saved;
+    },
+    [developerTemplates, user],
+  );
+
+  const removeDeveloperTemplate = useCallback(
+    (templateId) => {
+      deleteDeveloperTemplate(templateId, user?.uid);
+      setDeveloperTemplates(listDeveloperTemplates());
+      setActiveDeveloperTemplateId((prev) => (prev === templateId ? '' : prev));
+    },
+    [user],
+  );
+
+  const applyDeveloperTemplate = useCallback(
+    (templateId) => {
+      if (!templateId) {
+        setActiveDeveloperTemplateId('');
+        return;
+      }
+      const template = developerTemplates.find((t) => t.id === templateId);
+      if (!template?.data) return;
+      const data = template.data;
+      const nextFeatures =
+        Array.isArray(data.selectedFeatures) && data.selectedFeatures.length > 0
+          ? ['courseMap', ...data.selectedFeatures.filter((id) => id && id !== 'courseMap')]
+          : ['courseMap'];
+      setSelectedFeatures(nextFeatures);
+      setDeliverableConfig(
+        data.deliverableConfig && typeof data.deliverableConfig === 'object' ? data.deliverableConfig : {},
+      );
+      setLessonScope(data.lessonScope && typeof data.lessonScope === 'object' ? data.lessonScope : { type: 'all' });
+      if (Array.isArray(data.columns)) setColumns(data.columns);
+      if (data.slideTheme !== undefined) setSlideTheme(data.slideTheme);
+      if (data.provider) setProvider(data.provider === 'free' ? 'openai' : data.provider);
+      if (data.modelId !== undefined) setModelId(data.modelId || '');
+      if (data.modelName !== undefined) setModelName(data.modelName || '');
+      setActiveTab(nextFeatures[0] || 'courseMap');
+      setActiveDeveloperTemplateId(template.id);
+    },
+    [
+      developerTemplates,
+      setActiveTab,
+      setColumns,
+      setDeliverableConfig,
+      setLessonScope,
+      setModelId,
+      setModelName,
+      setProvider,
+      setSelectedFeatures,
+      setSlideTheme,
+    ],
+  );
+
+  const saveLocalProjectSnapshot = useCallback(
+    (extra = {}) => {
+      if (!hasGenerated || !courseMap) return false;
+      try {
+        setLocalSaveStatus('saving');
+        localStorage.setItem(STORAGE_KEY, JSON.stringify(buildProjectSnapshot(extra)));
+        setLocalSaveStatus('saved');
+        clearTimeout(localStatusTimerRef.current);
+        localStatusTimerRef.current = setTimeout(() => setLocalSaveStatus('idle'), 3000);
+        return true;
+      } catch (e) {
+        warn('Save failed:', e);
+        setLocalSaveStatus('error');
+        clearTimeout(localStatusTimerRef.current);
+        localStatusTimerRef.current = setTimeout(() => setLocalSaveStatus('idle'), 5000);
+        return false;
+      }
+    },
+    [buildProjectSnapshot, courseMap, hasGenerated],
+  );
 
   // ── Save to localStorage (debounced 3s) ──
   useEffect(() => {
@@ -543,7 +701,9 @@ export default function AppFlow({ startupAction = null, onStartupHandled, onRetu
   }, [hasGenerated, courseMap, buildProjectSnapshot, saveLocalProjectSnapshot]);
 
   // Keep projectId ref in sync to avoid race conditions
-  useEffect(() => { projectIdRef.current = projectId; }, [projectId]);
+  useEffect(() => {
+    projectIdRef.current = projectId;
+  }, [projectId]);
 
   // ── Cloud auto-save (debounced 5s, runs silently) ──
   useEffect(() => {
@@ -587,11 +747,13 @@ export default function AppFlow({ startupAction = null, onStartupHandled, onRetu
     if (user && user.uid !== prevUserRef.current) {
       prevUserRef.current = user.uid;
       // Fire-and-forget cloud merge
-      mergeCloudDeliverables(user.uid).catch(() => { });
-      mergeCloudDeveloperTemplates(user.uid).then(setDeveloperTemplates).catch(() => { });
-      mergeCloudProfile(user.uid).catch(() => { });
-      mergeCloudMemories(user.uid).catch(() => { });
-      mergeCloudAgentPrefs(user.uid).catch(() => { });
+      mergeCloudDeliverables(user.uid).catch(() => {});
+      mergeCloudDeveloperTemplates(user.uid)
+        .then(setDeveloperTemplates)
+        .catch(() => {});
+      mergeCloudProfile(user.uid).catch(() => {});
+      mergeCloudMemories(user.uid).catch(() => {});
+      mergeCloudAgentPrefs(user.uid).catch(() => {});
     }
     if (!user) prevUserRef.current = null;
   }, [user]);
@@ -603,10 +765,10 @@ export default function AppFlow({ startupAction = null, onStartupHandled, onRetu
       if (!raw) return;
       const saved = JSON.parse(raw);
       if (saved.courseMap) setHasSavedSession(true);
-    } catch { }
-  // Intentionally runs only on mount: checks localStorage once for a saved session.
-  // STORAGE_KEY and setHasSavedSession are stable (constant / useState setter) so
-  // omitting them from deps is safe and avoids misleading the reader.
+    } catch {}
+    // Intentionally runs only on mount: checks localStorage once for a saved session.
+    // STORAGE_KEY and setHasSavedSession are stable (constant / useState setter) so
+    // omitting them from deps is safe and avoids misleading the reader.
   }, []); // eslint-disable-line react-hooks/exhaustive-deps
 
   // ── Restore saved session ──
@@ -621,12 +783,12 @@ export default function AppFlow({ startupAction = null, onStartupHandled, onRetu
       setCourseMap(saved.courseMap);
       setColumns(saved.columns || [...DEFAULT_COLUMNS]);
       setHasGenerated(true);
-      setProvider(saved.provider === 'free' ? 'openai' : (saved.provider || 'openai'));
+      setProvider(saved.provider === 'free' ? 'openai' : saved.provider || 'openai');
       setModelId(saved.modelId || '');
       setModelName(saved.modelName || '');
       setUserEdits(saved.userEdits || []);
       if (saved.fileNames?.length > 0) {
-        setFiles(saved.fileNames.map(name => ({ name, size: 0, _restored: true })));
+        setFiles(saved.fileNames.map((name) => ({ name, size: 0, _restored: true })));
       }
       if (saved.versionHistory?.length > 0) {
         version.initHistory(saved.versionHistory);
@@ -660,17 +822,22 @@ export default function AppFlow({ startupAction = null, onStartupHandled, onRetu
         gen.setStatus('done');
       }
       setScreen('workspace');
-    } catch (e) { warn('Restore failed:', e); }
+    } catch (e) {
+      warn('Restore failed:', e);
+    }
   }
 
   // ── Derived ──
   const canGenerate =
-    (provider === 'webllm' || apiKey.trim()) && modelId &&
+    (provider === 'webllm' || apiKey.trim()) &&
+    modelId &&
     (files.length > 0 || promptText.trim().length > 0) &&
-    gen.status !== 'parsing' && gen.status !== 'generating' && !gen.isStopped;
+    gen.status !== 'parsing' &&
+    gen.status !== 'generating' &&
+    !gen.isStopped;
 
-  const hasSyllabusFile = files.some(f =>
-    ['pdf', 'doc', 'docx', 'odt', 'rtf'].includes(f.name.split('.').pop().toLowerCase())
+  const hasSyllabusFile = files.some((f) =>
+    ['pdf', 'doc', 'docx', 'odt', 'rtf'].includes(f.name.split('.').pop().toLowerCase()),
   );
 
   // Lesson count — estimated by regex first, then refined by AI when user proceeds
@@ -712,7 +879,7 @@ export default function AppFlow({ startupAction = null, onStartupHandled, onRetu
         if (saved.slideTheme !== undefined) setSlideTheme(saved.slideTheme);
         if (saved.deliverableConfig) setDeliverableConfig(saved.deliverableConfig);
         if (saved.fileNames?.length > 0) {
-          setFiles(saved.fileNames.map(n => ({ name: n, size: 0, _restored: true })));
+          setFiles(saved.fileNames.map((n) => ({ name: n, size: 0, _restored: true })));
         }
         if (saved.versionHistory?.length > 0) {
           version.initHistory(saved.versionHistory);
@@ -775,12 +942,12 @@ export default function AppFlow({ startupAction = null, onStartupHandled, onRetu
       setCourseMap(saved.courseMap);
       setColumns(saved.columns || [...DEFAULT_COLUMNS]);
       setHasGenerated(true);
-      setProvider(saved.provider === 'free' ? 'openai' : (saved.provider || 'openai'));
+      setProvider(saved.provider === 'free' ? 'openai' : saved.provider || 'openai');
       setModelId(saved.modelId || '');
       setModelName(saved.modelName || '');
       setUserEdits(saved.userEdits || []);
       if (saved.fileNames?.length > 0) {
-        setFiles(saved.fileNames.map(name => ({ name, size: 0, _restored: true })));
+        setFiles(saved.fileNames.map((name) => ({ name, size: 0, _restored: true })));
       }
       if (saved.versionHistory?.length > 0) {
         version.initHistory(saved.versionHistory);
@@ -846,7 +1013,9 @@ export default function AppFlow({ startupAction = null, onStartupHandled, onRetu
     clearTimeout(localStatusTimerRef.current);
     // 3. Remove persisted data before resetting state
     //    (prevents save-effects from re-writing stale data)
-    try { localStorage.removeItem(STORAGE_KEY); } catch { }
+    try {
+      localStorage.removeItem(STORAGE_KEY);
+    } catch {}
     // 4. Reset all state
     gen.resetGeneration();
     rev.resetRevision();
@@ -881,7 +1050,7 @@ export default function AppFlow({ startupAction = null, onStartupHandled, onRetu
 
   useEffect(() => {
     if (screen !== 'features' || !activeDeveloperTemplateId) return;
-    if (!developerTemplates.some(template => template.id === activeDeveloperTemplateId)) return;
+    if (!developerTemplates.some((template) => template.id === activeDeveloperTemplateId)) return;
     applyDeveloperTemplate(activeDeveloperTemplateId);
   }, [screen, activeDeveloperTemplateId, developerTemplates, applyDeveloperTemplate]);
 
@@ -919,39 +1088,44 @@ export default function AppFlow({ startupAction = null, onStartupHandled, onRetu
     } catch (e) {
       warn('[Cloud] final save before new project failed:', e);
       setCloudSaveStatus('error');
-      setNewProjectError('We could not save this project to My Projects. Download a .coursemapper backup or try again before starting over.');
+      setNewProjectError(
+        'We could not save this project to My Projects. Download a .coursemapper backup or try again before starting over.',
+      );
     } finally {
       setIsStartingNewProject(false);
     }
   }
 
-  const handleAddMaterials = useCallback(async (e) => {
-    const newFiles = Array.from(e.target.files);
-    if (newFiles.length === 0) return;
-    e.target.value = '';
-    setFiles(prev => [...prev, ...newFiles]);
-    let parsed;
-    try {
-      parsed = await parseFiles(newFiles);
-    } catch (err) {
-      gen.setError('Failed to parse new files: ' + err.message);
-      return;
-    }
-    const newText = parsed
-      .filter(f => f.text)
-      .map(f => `=== File: ${f.name} ===\n${f.text}`)
-      .join('\n\n');
-    if (!newText.trim()) {
-      gen.setError('No text content could be extracted from the new files.');
-      return;
-    }
-    const revisionMsg = `The instructor has provided additional course materials. Please review these materials and update the course map to incorporate any relevant content, topics, assessments, activities, or resources that are missing or need updating.\n\nNew materials:\n${newText.slice(0, 30000)}`;
-    try {
-      await rev.handleRevision(revisionMsg);
-    } catch (err) {
-      if (err.message) gen.setError('Material revision failed: ' + err.message);
-    }
-  }, [rev, gen, setFiles]);
+  const handleAddMaterials = useCallback(
+    async (e) => {
+      const newFiles = Array.from(e.target.files);
+      if (newFiles.length === 0) return;
+      e.target.value = '';
+      setFiles((prev) => [...prev, ...newFiles]);
+      let parsed;
+      try {
+        parsed = await parseFiles(newFiles);
+      } catch (err) {
+        gen.setError('Failed to parse new files: ' + err.message);
+        return;
+      }
+      const newText = parsed
+        .filter((f) => f.text)
+        .map((f) => `=== File: ${f.name} ===\n${f.text}`)
+        .join('\n\n');
+      if (!newText.trim()) {
+        gen.setError('No text content could be extracted from the new files.');
+        return;
+      }
+      const revisionMsg = `The instructor has provided additional course materials. Please review these materials and update the course map to incorporate any relevant content, topics, assessments, activities, or resources that are missing or need updating.\n\nNew materials:\n${newText.slice(0, 30000)}`;
+      try {
+        await rev.handleRevision(revisionMsg);
+      } catch (err) {
+        if (err.message) gen.setError('Material revision failed: ' + err.message);
+      }
+    },
+    [rev, gen, setFiles],
+  );
 
   async function onGenerate() {
     setHasGenerated(true);
@@ -972,21 +1146,25 @@ export default function AppFlow({ startupAction = null, onStartupHandled, onRetu
       // Use FEATURES canonical order so generation matches tab order
       const allFeats = [...FEATURES, ...listCustomDeliverables().map(toFeatureEntry)];
       const orderedFeatures = allFeats
-        .filter(f => selectedFeatures.includes(f.id) && f.id !== 'courseMap')
-        .map(f => f.id);
+        .filter((f) => selectedFeatures.includes(f.id) && f.id !== 'courseMap')
+        .map((f) => f.id);
       if (orderedFeatures.length > 0 && !deliv.isGenerating) {
         const scopeIndices = lessonScope.type === 'specific' ? lessonScope.indices : null;
         deliv.generateAll(courseMap, orderedFeatures, scopeIndices);
       }
     }
-  // Intentionally depends only on gen.progressStep: we want to trigger deliverable
-  // generation exactly once when the course-map step transitions to 'done'. Including
-  // courseMap, selectedFeatures, lessonScope, or deliv would re-fire the effect on every
-  // render during generation, causing duplicate or premature deliverable runs.
+    // Intentionally depends only on gen.progressStep: we want to trigger deliverable
+    // generation exactly once when the course-map step transitions to 'done'. Including
+    // courseMap, selectedFeatures, lessonScope, or deliv would re-fire the effect on every
+    // render during generation, causing duplicate or premature deliverable runs.
   }, [gen.progressStep]); // eslint-disable-line react-hooks/exhaustive-deps
 
-  function onResume() { gen.handleResume(); }
-  function onStop() { gen.handleStop(); }
+  function onResume() {
+    gen.handleResume();
+  }
+  function onStop() {
+    gen.handleStop();
+  }
 
   // ── Detect lesson count using AI when user proceeds from landing ──
   async function handleLandingContinue() {
@@ -1014,8 +1192,8 @@ export default function AppFlow({ startupAction = null, onStartupHandled, onRetu
           try {
             const parsed = await parseFiles(files);
             const fileText = parsed
-              .filter(f => f.text)
-              .map(f => f.text)
+              .filter((f) => f.text)
+              .map((f) => f.text)
               .join('\n\n')
               .slice(0, 20000);
             combinedText = [promptText, fileText].filter(Boolean).join('\n\n');
@@ -1024,13 +1202,18 @@ export default function AppFlow({ startupAction = null, onStartupHandled, onRetu
             if (combinedRegex.expected) setLessonCount(combinedRegex.expected);
             // If combined regex is high-confidence, trust it and skip AI
             if (combinedRegex.confidence === 'high') return;
-          } catch { /* file parse failed — use promptText only */ }
+          } catch {
+            /* file parse failed — use promptText only */
+          }
         }
         // Only call AI when regex couldn't confidently determine lesson count
         const aiCount = await detectLessonsWithAI(combinedText, { provider, apiKey, modelId });
         if (aiCount) setLessonCount(aiCount);
-      } catch { /* silent — regex fallback is fine */ }
-      finally { setIsDetectingLessons(false); }
+      } catch {
+        /* silent — regex fallback is fine */
+      } finally {
+        setIsDetectingLessons(false);
+      }
     }
   }
 
@@ -1065,8 +1248,10 @@ export default function AppFlow({ startupAction = null, onStartupHandled, onRetu
     }
 
     runStartupAction();
-    return () => { cancelled = true; };
-  // Startup actions intentionally run once when the lazy app flow mounts.
+    return () => {
+      cancelled = true;
+    };
+    // Startup actions intentionally run once when the lazy app flow mounts.
   }, []); // eslint-disable-line react-hooks/exhaustive-deps
 
   if (isHandlingStartupAction) {
@@ -1089,7 +1274,9 @@ export default function AppFlow({ startupAction = null, onStartupHandled, onRetu
           hasSavedSession={hasSavedSession}
           onRestoreSession={doRestoreSession}
           onDismissSavedSession={() => {
-            try { localStorage.removeItem(STORAGE_KEY); } catch { }
+            try {
+              localStorage.removeItem(STORAGE_KEY);
+            } catch {}
             setHasSavedSession(false);
           }}
           onImportCourseMap={handleImport}
@@ -1109,7 +1296,9 @@ export default function AppFlow({ startupAction = null, onStartupHandled, onRetu
               onSaveCurrentAsNew={null}
               onDeleteProject={(deletedId, remainingCount) => {
                 if (deletedId === projectIdRef.current || remainingCount === 0) {
-                  try { localStorage.removeItem(STORAGE_KEY); } catch { }
+                  try {
+                    localStorage.removeItem(STORAGE_KEY);
+                  } catch {}
                   setHasSavedSession(false);
                   if (deletedId === projectIdRef.current) {
                     setProjectId(null);
@@ -1159,11 +1348,16 @@ export default function AppFlow({ startupAction = null, onStartupHandled, onRetu
   // ── Screen: Workspace ──
   // Build ordered tab list from selected features — order follows selectedFeatures array
   const allFeaturesForTabs = [...FEATURES, ...listCustomDeliverables().map(toFeatureEntry)];
-  const featureMap = Object.fromEntries(allFeaturesForTabs.map(f => [f.id, f]));
-  const workspaceTabs = selectedFeatures.map(id => featureMap[id]).filter(Boolean);
+  const featureMap = Object.fromEntries(allFeaturesForTabs.map((f) => [f.id, f]));
+  const workspaceTabs = selectedFeatures.map((id) => featureMap[id]).filter(Boolean);
+  const mobileWorkspaceViews = [
+    { id: 'content', label: activeTab === 'courseMap' ? 'Course Map' : 'Content' },
+    { id: 'agent', label: 'Agent' },
+    ...(courseMap && gen.progressStep === 'done' ? [{ id: 'export', label: 'Export' }] : []),
+  ];
 
   // Pointer-based tab drag: smoother than native HTML5 DnD and avoids clipped overlays.
-  const draggedTab = tabDrag ? workspaceTabs.find(f => f.id === tabDrag.id) : null;
+  const draggedTab = tabDrag ? workspaceTabs.find((f) => f.id === tabDrag.id) : null;
   const canDeleteDraggedTab = !!draggedTab && draggedTab.id !== 'courseMap';
 
   const handleTabPointerDown = (feature, tabIdx) => (e) => {
@@ -1194,7 +1388,7 @@ export default function AppFlow({ startupAction = null, onStartupHandled, onRetu
   };
 
   const handleTabPointerMove = (featureId) => (e) => {
-    setTabDrag(prev => {
+    setTabDrag((prev) => {
       if (!prev || prev.id !== featureId || prev.pointerId !== e.pointerId) return prev;
       const dx = e.clientX - prev.startX;
       const dy = e.clientY - prev.startY;
@@ -1205,12 +1399,11 @@ export default function AppFlow({ startupAction = null, onStartupHandled, onRetu
       if (moved) {
         const trashRect = trashDropRef.current?.getBoundingClientRect();
         if (trashRect) {
-          overDelete = (
+          overDelete =
             e.clientX >= trashRect.left - 12 &&
             e.clientX <= trashRect.right + 12 &&
             e.clientY >= trashRect.top - 12 &&
-            e.clientY <= trashRect.bottom + 12
-          );
+            e.clientY <= trashRect.bottom + 12;
         }
         if (!overDelete) {
           let nearest = null;
@@ -1222,7 +1415,7 @@ export default function AppFlow({ startupAction = null, onStartupHandled, onRetu
             const centerX = rect.left + rect.width / 2;
             const distance = Math.abs(e.clientX - centerX);
             if (!nearest || distance < nearest.distance) {
-              const idx = workspaceTabs.findIndex(f => f.id === id);
+              const idx = workspaceTabs.findIndex((f) => f.id === id);
               nearest = { idx, distance };
             }
           }
@@ -1249,7 +1442,9 @@ export default function AppFlow({ startupAction = null, onStartupHandled, onRetu
     if (!drag?.moved) return;
 
     suppressTabClickRef.current = true;
-    window.setTimeout(() => { suppressTabClickRef.current = false; }, 0);
+    window.setTimeout(() => {
+      suppressTabClickRef.current = false;
+    }, 0);
 
     if (drag.overDelete && drag.id !== 'courseMap') {
       setDeleteTabConfirm({ id: drag.id, label: drag.label });
@@ -1259,7 +1454,7 @@ export default function AppFlow({ startupAction = null, onStartupHandled, onRetu
 
     const dropIdx = drag.overIndex;
     if (dropIdx == null || dropIdx === drag.index) return;
-    setSelectedFeatures(prev => {
+    setSelectedFeatures((prev) => {
       const fromIdx = prev.indexOf(drag.id);
       if (fromIdx < 0 || dropIdx < 0 || dropIdx >= prev.length || fromIdx === dropIdx) return prev;
       const next = [...prev];
@@ -1285,20 +1480,20 @@ export default function AppFlow({ startupAction = null, onStartupHandled, onRetu
     if (!target || target.id === 'courseMap') return;
 
     const deleteIdx = selectedFeatures.indexOf(target.id);
-    const nextFeatures = selectedFeatures.filter(id => id !== target.id);
+    const nextFeatures = selectedFeatures.filter((id) => id !== target.id);
     const safeNextFeatures = nextFeatures.length > 0 ? nextFeatures : ['courseMap'];
     if (activeTab === target.id) {
       setActiveTab(safeNextFeatures[Math.min(Math.max(deleteIdx, 0), safeNextFeatures.length - 1)] || 'courseMap');
     }
     setSelectedFeatures(safeNextFeatures);
-    setDeliverableConfig(prev => {
+    setDeliverableConfig((prev) => {
       if (!prev?.[target.id]) return prev;
       const next = { ...prev };
       delete next[target.id];
       return next;
     });
     deliv.removeDeliverable(target.id);
-    setUnseenChanges(prev => {
+    setUnseenChanges((prev) => {
       if (!prev.has(target.id)) return prev;
       const next = new Set(prev);
       next.delete(target.id);
@@ -1317,804 +1512,1021 @@ export default function AppFlow({ startupAction = null, onStartupHandled, onRetu
           onOpenDeveloperPanel={() => setShowDeveloperPanel(true)}
         />
 
-      {/* Cloud save runs silently */}
+        {/* Cloud save runs silently */}
 
-      <main className="w-full px-4 sm:px-6 pb-10 space-y-4">
-        {/* Top bar */}
-        <div className="flex items-center gap-3 animate-spring-in pt-1">
-          <button
-            onClick={() => {
-              setNewProjectError('');
-              setNewProjectConfirm(true);
-            }}
-            className="tactile group flex items-center gap-2 px-4 py-2 rounded-pill text-xs font-semibold text-slate-500 bg-white/50 border border-slate-200/40 hover:bg-white/70 hover:text-slate-700 shadow-glass transition-all duration-300"
-          >
-            <svg className="w-3.5 h-3.5 group-hover:rotate-90 transition-transform duration-300" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 4v16m8-8H4" />
-            </svg>
-            New Project
-          </button>
-          <button
-            onClick={() => addMaterialInputRef.current?.click()}
-            disabled={gen.isStreaming || rev.isRevising}
-            className="tactile group flex items-center gap-2 px-4 py-2 rounded-pill text-xs font-semibold text-sky-600 bg-sky-50/50 border border-sky-200/40 hover:bg-sky-100/70 shadow-glass transition-all duration-300 disabled:opacity-40 disabled:cursor-not-allowed"
-          >
-            <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M7 16a4 4 0 01-.88-7.903A5 5 0 1115.9 6L16 6a5 5 0 011 9.9M15 13l-3-3m0 0l-3 3m3-3v12" />
-            </svg>
-            Add Materials
-          </button>
-          <input ref={addMaterialInputRef} type="file" multiple
-            accept=".doc,.docx,.pdf,.txt,.md,.csv,.rtf,.html,.htm,.xlsx,.xls,.ods,.ppt,.pptx,.odp,.odt,.epub,.key,.pages,.zip"
-            onChange={handleAddMaterials} className="hidden" />
-          {modelName && (
-            <span className="ml-auto text-[10px] font-semibold text-indigo-500 bg-indigo-50/60 px-3 py-1 rounded-pill border border-indigo-100/50">
-              {modelName}
-            </span>
-          )}
-          {courseMap && (
-            <span
-              className={`text-[10px] font-semibold px-3 py-1 rounded-pill border ${
-                cloudSaveStatus === 'error' || localSaveStatus === 'error'
-                  ? 'text-red-500 bg-red-50/60 border-red-100/70'
-                  : cloudSaveStatus === 'saving' || localSaveStatus === 'saving'
-                    ? 'text-slate-500 bg-white/60 border-slate-200/60'
-                    : user
-                      ? 'text-emerald-600 bg-emerald-50/60 border-emerald-100/70'
-                      : 'text-slate-500 bg-white/60 border-slate-200/60'
-              }`}
-              title={user
-                ? 'Signed-in projects autosave locally and to My Projects.'
-                : 'Anonymous projects autosave only in this browser. Export .coursemapper for a portable backup.'}
-            >
-              {cloudSaveStatus === 'saving' ? 'Saving to My Projects...'
-                : cloudSaveStatus === 'error' ? 'Cloud save failed'
-                  : localSaveStatus === 'saving' ? 'Saving locally...'
-                    : localSaveStatus === 'error' ? 'Local save failed'
-                      : user ? 'Autosaved to My Projects' : 'Autosaved in this browser'}
-            </span>
-          )}
-          {version.versionHistory.length > 1 && !gen.isStreaming && (
-            <div className="flex items-center gap-1">
-              <button onClick={version.undo} disabled={version.activeVersion <= 0}
-                className={`tactile p-2 rounded-full transition-all duration-200 ${version.activeVersion > 0 ? 'text-slate-500 hover:bg-white/60 hover:text-indigo-500' : 'text-slate-300 cursor-not-allowed'}`} title="Undo" aria-label="Undo">
-                <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M3 10h10a5 5 0 015 5v2M3 10l4-4M3 10l4 4" /></svg>
-              </button>
-              <button onClick={version.redo} disabled={version.activeVersion >= version.versionHistory.length - 1}
-                className={`tactile p-2 rounded-full transition-all duration-200 ${version.activeVersion < version.versionHistory.length - 1 ? 'text-slate-500 hover:bg-white/60 hover:text-indigo-500' : 'text-slate-300 cursor-not-allowed'}`} title="Redo" aria-label="Redo">
-                <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M21 10H11a5 5 0 00-5 5v2M21 10l-4-4M21 10l-4 4" /></svg>
-              </button>
-              <span className="text-[10px] font-medium text-slate-400">v{version.activeVersion + 1}/{version.versionHistory.length}</span>
-            </div>
-          )}
-        </div>
-
-        {/* ── Deliverable tabs ── */}
-        {workspaceTabs.length > 1 && (
-          <div className="flex items-center gap-2 mb-1 min-h-9">
+        <main className="w-full px-4 sm:px-6 pb-10 space-y-4">
+          {/* Top bar */}
+          <div className="workspace-header-row flex flex-wrap items-center gap-2 sm:gap-3 animate-spring-in pt-1">
             <button
-              onClick={() => setShowDepMap(true)}
-              className="tactile p-1.5 rounded-full text-slate-400 hover:bg-white/60 hover:text-indigo-500 transition-all duration-200"
-              title="Dependency Map — see how deliverables connect"
-              aria-label="Open dependency map"
+              onClick={() => {
+                setNewProjectError('');
+                setNewProjectConfirm(true);
+              }}
+              className="tactile group flex items-center gap-2 px-3 sm:px-4 py-2 rounded-pill text-xs font-semibold text-slate-500 bg-white/50 border border-slate-200/40 hover:bg-white/70 hover:text-slate-700 shadow-glass transition-all duration-300"
             >
-              <svg className="w-3.5 h-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M4 6h16M4 12h8m-8 6h16M16 12l4-4m0 0l-4-4m4 4H12" />
-              </svg>
-            </button>
-            {tabDrag && (
-              <div
-                ref={trashDropRef}
-                role="button"
-                aria-label={canDeleteDraggedTab ? `Drop to remove ${tabDrag.label || 'deliverable'}` : 'Course Map cannot be removed'}
-                className={`flex h-9 items-center justify-center gap-2 rounded-pill border px-4 text-[10px] font-bold shadow-glass backdrop-blur-xl transition-all duration-150 pointer-events-none ${
-                  canDeleteDraggedTab
-                    ? tabDrag.overDelete
-                      ? 'scale-105 border-red-300 bg-red-100/95 text-red-700 shadow-red-500/20'
-                      : 'border-red-200/80 bg-red-50/90 text-red-500'
-                    : 'border-slate-200/80 bg-white/70 text-slate-300'
-                }`}
+              <svg
+                className="w-3.5 h-3.5 group-hover:rotate-90 transition-transform duration-300"
+                fill="none"
+                stroke="currentColor"
+                viewBox="0 0 24 24"
               >
-                <svg className={`h-3.5 w-3.5 transition-transform duration-150 ${tabDrag.overDelete ? 'scale-110' : ''}`} fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6M9 7V4a1 1 0 011-1h4a1 1 0 011 1v3m-8 0h10" />
-                </svg>
-                <span>{canDeleteDraggedTab ? 'Drop to delete' : 'Locked'}</span>
-              </div>
-            )}
-          </div>
-        )}
-        {workspaceTabs.length > 0 && (
-          <div className="flex items-center gap-1 overflow-x-auto pb-1 scrollbar-hide">
-            {workspaceTabs.map((feature, tabIdx) => {
-              const isActive = activeTab === feature.id;
-              const delivState = deliv.deliverables[feature.id];
-              const isStreaming = delivState?.status === 'streaming';
-              const isDone = delivState?.status === 'done';
-              const isError = delivState?.status === 'error';
-              const isCourseMapDone = feature.id === 'courseMap' && gen.progressStep === 'done';
-
-              // Cascade sync badges
-              const hasUnseen = unseenChanges.has(feature.id);
-              const isStaleTab = deliv.deliverables[feature.id]?.stale === true;
-              const staleConf = deliv.deliverables[feature.id]?.staleConfidence;
-              // isSyncingThis: either regenerateLesson set currentFeature, or
-              // the latest syncLog entry for this feature is a pending 'start'
-              const lastSyncEntry = smartSync.isSyncing && smartSync.syncLog.length > 0
-                ? [...smartSync.syncLog].reverse().find(e => e.featureId === feature.id)
-                : null;
-              // Change #1: Use syncingFeatures set for parallel-aware badge
-              const isSyncingThis = smartSync.syncingFeatures?.has(feature.id) || (
-                smartSync.isSyncing && (
-                  deliv.currentFeatures?.has(feature.id) ||
-                  (lastSyncEntry?.type === 'start')
-                )
-              );
-
-              const isDraggingThis = tabDrag?.id === feature.id;
-              const isDropTarget = tabDrag?.moved && !tabDrag?.overDelete && tabDrag?.overIndex === tabIdx && !isDraggingThis;
-              const markerAfter = isDropTarget && tabDrag.index < tabIdx;
-              const insertionMarker = (
-                <span
-                  aria-hidden="true"
-                  className="mx-0.5 h-7 w-1 flex-shrink-0 rounded-full bg-indigo-400 shadow-[0_0_0_4px_rgba(99,102,241,0.16)] animate-spring-in"
+                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 4v16m8-8H4" />
+              </svg>
+              New Project
+            </button>
+            <button
+              onClick={() => addMaterialInputRef.current?.click()}
+              disabled={gen.isStreaming || rev.isRevising}
+              className="tactile group flex items-center gap-2 px-3 sm:px-4 py-2 rounded-pill text-xs font-semibold text-sky-600 bg-sky-50/50 border border-sky-200/40 hover:bg-sky-100/70 shadow-glass transition-all duration-300 disabled:opacity-40 disabled:cursor-not-allowed"
+            >
+              <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                <path
+                  strokeLinecap="round"
+                  strokeLinejoin="round"
+                  strokeWidth={2}
+                  d="M7 16a4 4 0 01-.88-7.903A5 5 0 1115.9 6L16 6a5 5 0 011 9.9M15 13l-3-3m0 0l-3 3m3-3v12"
                 />
-              );
-
-              return (
-                <React.Fragment key={feature.id}>
-                  {isDropTarget && !markerAfter && insertionMarker}
-                  <button
-                    ref={(node) => {
-                      if (node) tabButtonRefs.current.set(feature.id, node);
-                      else tabButtonRefs.current.delete(feature.id);
-                    }}
-                    onPointerDown={handleTabPointerDown(feature, tabIdx)}
-                    onPointerMove={handleTabPointerMove(feature.id)}
-                    onPointerUp={handleTabPointerUp(feature.id)}
-                    onPointerCancel={handleTabPointerCancel(feature.id)}
-                    onMouseEnter={(e) => {
-                      if (tabDrag || feature.id === 'courseMap') return;
-                      const rect = e.currentTarget.getBoundingClientRect();
-                      handleCascadeHover({ featureId: feature.id, fieldKey: null, position: { x: rect.left, y: rect.bottom + 8 } });
-                    }}
-                    onMouseLeave={() => handleCascadeHover(null)}
-                    onClick={() => {
-                      if (suppressTabClickRef.current) return;
-                      setActiveTab(feature.id);
-                      // Clear unseen badge when user clicks the tab
-                      if (hasUnseen) {
-                        setUnseenChanges(prev => {
-                          const next = new Set(prev);
-                          next.delete(feature.id);
-                          return next;
-                        });
-                      }
-                    }}
-                    className={`tactile flex items-center gap-2 px-4 py-2 rounded-pill text-xs font-semibold whitespace-nowrap transition-all duration-200 flex-shrink-0 cursor-grab active:cursor-grabbing touch-none select-none ${
-                      isDraggingThis
-                        ? 'opacity-20 scale-95'
-                        : isDropTarget
-                          ? 'scale-[1.03] -translate-y-0.5 bg-indigo-50/70 text-indigo-600 shadow-glass border border-indigo-200/70'
-                          : isActive
-                            ? 'bg-white/80 text-slate-800 shadow-glass border border-slate-200/60'
-                            : 'text-slate-500 hover:bg-white/50 hover:text-slate-700'
-                    }`}
-                  >
-                    {/* Status dot — cascade sync takes priority for non-courseMap tabs */}
-                    {feature.id !== 'courseMap' && (
-                      <span className={`w-1.5 h-1.5 rounded-full flex-shrink-0 ${isSyncingThis ? 'bg-amber-400 animate-pulse' :
-                        isStaleTab && !isSyncingThis ? (staleConf?.level === 'high' ? 'bg-amber-400' : staleConf?.level === 'medium' ? 'bg-amber-300' : 'bg-amber-200') :
-                          hasUnseen ? 'bg-amber-400' :
-                            isStreaming ? 'bg-indigo-400 animate-pulse' :
-                              isDone ? 'bg-emerald-400' :
-                                isError ? 'bg-red-400' :
-                                  'bg-slate-300'
-                        }`} />
-                    )}
-                    {feature.id === 'courseMap' && (
-                      <span className={`w-1.5 h-1.5 rounded-full flex-shrink-0 ${gen.isStreaming ? 'bg-indigo-400 animate-pulse' :
-                        isCourseMapDone ? 'bg-emerald-400' :
-                          'bg-slate-300'
-                        }`} />
-                    )}
-                    {feature.label}{isStaleTab && !isSyncingThis ? (staleConf?.level === 'high' ? ' ⚠' : ' ~') : hasUnseen ? ' *' : ''}
-                  </button>
-                  {isDropTarget && markerAfter && insertionMarker}
-                </React.Fragment>
-              );
-            })}
-
-            {/* ── + Add deliverable button ── */}
-            {gen.progressStep === 'done' && (() => {
-              const allFeatsForAdd = [...FEATURES, ...listCustomDeliverables().map(toFeatureEntry)];
-              const unselected = allFeatsForAdd.filter(f => f.id !== 'courseMap' && !selectedFeatures.includes(f.id));
-              return (
-                <AddDeliverableButton
-                  unselected={unselected}
-                  showAddDeliverable={showAddDeliverable}
-                  setShowAddDeliverable={setShowAddDeliverable}
-                  onAdd={(feature) => {
-                    setSelectedFeatures(prev => [...prev, feature.id]);
-                    setActiveTab(feature.id);
-                    setShowAddDeliverable(false);
-                    const scopeIndices = lessonScope.type === 'specific' ? lessonScope.indices : null;
-                    deliv.generateAll(courseMap, [feature.id], scopeIndices);
-                  }}
-                  onCreateCustom={() => setShowCustomBuilder(true)}
-                />
-              );
-            })()}
-
-            {/* Deliverable generation progress */}
-            {deliv.isGenerating && (
-              <span className="ml-2 text-[10px] text-indigo-500 font-medium animate-pulse whitespace-nowrap flex-shrink-0">
-                Generating {deliv.progress.done}/{deliv.progress.total}…
+              </svg>
+              Add Materials
+            </button>
+            <input
+              ref={addMaterialInputRef}
+              type="file"
+              multiple
+              accept=".doc,.docx,.pdf,.txt,.md,.csv,.rtf,.html,.htm,.xlsx,.xls,.ods,.ppt,.pptx,.odp,.odt,.epub,.key,.pages,.zip"
+              onChange={handleAddMaterials}
+              className="hidden"
+            />
+            {modelName && (
+              <span className="ml-auto text-[10px] font-semibold text-indigo-500 bg-indigo-50/60 px-3 py-1 rounded-pill border border-indigo-100/50">
+                {modelName}
               </span>
             )}
-
-            {/* Sync All Stale button — appears when any deliverable is stale */}
-            {(() => {
-              const staleCount = selectedFeatures.filter(f =>
-                f !== 'courseMap' && deliv.deliverables[f]?.stale === true
-              ).length;
-              if (staleCount === 0 || deliv.isGenerating || smartSync.isSyncing) return null;
-              return (
+            {courseMap && (
+              <span
+                className={`text-[10px] font-semibold px-3 py-1 rounded-pill border ${
+                  cloudSaveStatus === 'error' || localSaveStatus === 'error'
+                    ? 'text-red-500 bg-red-50/60 border-red-100/70'
+                    : cloudSaveStatus === 'saving' || localSaveStatus === 'saving'
+                      ? 'text-slate-500 bg-white/60 border-slate-200/60'
+                      : user
+                        ? 'text-emerald-600 bg-emerald-50/60 border-emerald-100/70'
+                        : 'text-slate-500 bg-white/60 border-slate-200/60'
+                }`}
+                title={
+                  user
+                    ? 'Signed-in projects autosave locally and to My Projects.'
+                    : 'Anonymous projects autosave only in this browser. Export .coursemapper for a portable backup.'
+                }
+              >
+                {cloudSaveStatus === 'saving'
+                  ? 'Saving to My Projects...'
+                  : cloudSaveStatus === 'error'
+                    ? 'Cloud save failed'
+                    : localSaveStatus === 'saving'
+                      ? 'Saving locally...'
+                      : localSaveStatus === 'error'
+                        ? 'Local save failed'
+                        : user
+                          ? 'Autosaved to My Projects'
+                          : 'Autosaved in this browser'}
+              </span>
+            )}
+            {version.versionHistory.length > 1 && !gen.isStreaming && (
+              <div className="flex items-center gap-1">
                 <button
-                  onClick={() => {
-                    const staleIds = selectedFeatures.filter(f =>
-                      f !== 'courseMap' && deliv.deliverables[f]?.stale === true
-                    );
-                    for (const fid of staleIds) {
-                      const se = deliv.deliverables[fid]?.staleEdits;
-                      if (se?.lessonIndices?.length > 0) {
-                        for (const idx of se.lessonIndices) {
-                          deliv.regenerateLesson(fid, courseMap, idx);
-                        }
-                      } else {
-                        const scopeIndices = lessonScope.type === 'specific' ? lessonScope.indices : null;
-                        deliv.generateAll(courseMap, [fid], scopeIndices);
-                      }
-                    }
-                  }}
-                  className="tactile flex items-center gap-1.5 ml-2 px-3 py-1.5 rounded-pill text-[10px] font-semibold text-amber-700 bg-amber-50/70 border border-amber-200/60 hover:bg-amber-100 transition-all duration-200 whitespace-nowrap flex-shrink-0"
+                  onClick={version.undo}
+                  disabled={version.activeVersion <= 0}
+                  className={`tactile p-2 rounded-full transition-all duration-200 ${version.activeVersion > 0 ? 'text-slate-500 hover:bg-white/60 hover:text-indigo-500' : 'text-slate-300 cursor-not-allowed'}`}
+                  title="Undo"
+                  aria-label="Undo"
                 >
-                  <svg className="w-3 h-3" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M4 4v5h.582m15.356 2A8.001 8.001 0 004.582 9m0 0H9m11 11v-5h-.581m0 0a8.003 8.003 0 01-15.357-2m15.357 2H15" />
+                  <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <path
+                      strokeLinecap="round"
+                      strokeLinejoin="round"
+                      strokeWidth={2}
+                      d="M3 10h10a5 5 0 015 5v2M3 10l4-4M3 10l4 4"
+                    />
                   </svg>
-                  Sync all stale ({staleCount})
                 </button>
-              );
-            })()}
-
-            {/* Deliverable undo/redo — appears when deliverable edits have been made */}
-            {(delivUndo.canUndo || delivUndo.canRedo) && !gen.isStreaming && (
-              <div className="flex items-center gap-1 ml-2 flex-shrink-0">
-                <button onClick={() => delivUndo.undo(deliv.setDeliverables)} disabled={!delivUndo.canUndo}
-                  className={`tactile p-1.5 rounded-full transition-all duration-200 ${delivUndo.canUndo ? 'text-slate-500 hover:bg-white/60 hover:text-indigo-500' : 'text-slate-300 cursor-not-allowed'}`} title="Undo deliverable edit">
-                  <svg className="w-3.5 h-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M3 10h10a5 5 0 015 5v2M3 10l4-4M3 10l4 4" /></svg>
+                <button
+                  onClick={version.redo}
+                  disabled={version.activeVersion >= version.versionHistory.length - 1}
+                  className={`tactile p-2 rounded-full transition-all duration-200 ${version.activeVersion < version.versionHistory.length - 1 ? 'text-slate-500 hover:bg-white/60 hover:text-indigo-500' : 'text-slate-300 cursor-not-allowed'}`}
+                  title="Redo"
+                  aria-label="Redo"
+                >
+                  <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <path
+                      strokeLinecap="round"
+                      strokeLinejoin="round"
+                      strokeWidth={2}
+                      d="M21 10H11a5 5 0 00-5 5v2M21 10l-4-4M21 10l-4 4"
+                    />
+                  </svg>
                 </button>
-                <button onClick={() => delivUndo.redo(deliv.setDeliverables)} disabled={!delivUndo.canRedo}
-                  className={`tactile p-1.5 rounded-full transition-all duration-200 ${delivUndo.canRedo ? 'text-slate-500 hover:bg-white/60 hover:text-indigo-500' : 'text-slate-300 cursor-not-allowed'}`} title="Redo deliverable edit">
-                  <svg className="w-3.5 h-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M21 10H11a5 5 0 00-5 5v2M21 10l-4-4M21 10l-4 4" /></svg>
-                </button>
+                <span className="text-[10px] font-medium text-slate-400">
+                  v{version.activeVersion + 1}/{version.versionHistory.length}
+                </span>
               </div>
             )}
-
-	          </div>
-	        )}
-
-	        {tabDrag && typeof document !== 'undefined' && createPortal(
-	            <div
-	              className={`fixed z-[10000] flex items-center gap-2 rounded-pill border px-4 py-2 text-xs font-bold shadow-2xl backdrop-blur-xl transition-[transform,background-color,border-color,color,box-shadow] duration-150 pointer-events-none ${
-	                tabDrag.overDelete
-	                  ? canDeleteDraggedTab
-	                    ? 'scale-105 border-red-300 bg-red-100/95 text-red-700 shadow-red-500/20'
-	                    : 'scale-105 border-slate-300 bg-slate-100/95 text-slate-400'
-	                  : 'border-indigo-200/80 bg-white/95 text-slate-800 shadow-indigo-500/20'
-	              }`}
-	              style={{
-	                left: tabDrag.x,
-	                top: tabDrag.y,
-	                width: tabDrag.width,
-	                minHeight: tabDrag.height,
-	                transform: tabDrag.moved ? 'translate3d(0,-6px,0) rotate(-1deg)' : 'translate3d(0,0,0)',
-	              }}
-	            >
-		              <span className={`w-1.5 h-1.5 rounded-full flex-shrink-0 ${tabDrag.id === 'courseMap' ? 'bg-emerald-400' : 'bg-indigo-400'}`} />
-		              <span className="truncate">{tabDrag.label}</span>
-		            </div>
-		          ,
-		          document.body
-		        )}
-
-	        {/* ── Delete Deliverable Confirmation Modal ── */}
-	        {deleteTabConfirm && (
-          <FocusTrap focusTrapOptions={{ clickOutsideDeactivates: true }}>
-            <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/40 backdrop-blur-sm">
-              <div className="bg-white rounded-2xl border border-slate-200/60 shadow-2xl p-6 max-w-sm w-full mx-4 animate-spring-scale">
-                <div className="flex items-center gap-3 mb-3">
-                  <div className="w-9 h-9 rounded-xl bg-red-100 flex items-center justify-center flex-shrink-0">
-                    <svg className="w-5 h-5 text-red-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                      <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6M9 7V4a1 1 0 011-1h4a1 1 0 011 1v3m-8 0h10" />
-                    </svg>
-                  </div>
-                  <div>
-                    <h3 className="text-sm font-bold text-slate-800">Remove deliverable?</h3>
-                    <p className="text-[11px] text-slate-500 mt-0.5">
-                      {deleteTabConfirm.label}
-                    </p>
-                  </div>
-                </div>
-                <p className="text-[11px] text-slate-500 mb-5 leading-relaxed">
-                  This removes the tab from this project and clears its generated content and settings. Your course map and other deliverables stay unchanged.
-                </p>
-                <div className="flex items-center gap-2 justify-end">
-                  <button
-                    onClick={() => setDeleteTabConfirm(null)}
-                    className="tactile px-4 py-2 rounded-lg text-xs font-semibold text-slate-600 bg-white border border-slate-200/60 hover:bg-slate-50 transition-all"
-                  >
-                    Cancel
-                  </button>
-                  <button
-                    onClick={confirmDeleteDeliverable}
-                    className="tactile px-4 py-2 rounded-lg text-xs font-semibold text-white bg-red-500 hover:bg-red-600 transition-all"
-                  >
-                    Remove
-                  </button>
-                </div>
-              </div>
-            </div>
-          </FocusTrap>
-        )}
-
-        {/* ── New Project Confirmation Modal ── */}
-        {newProjectConfirm && (
-          <FocusTrap focusTrapOptions={{ clickOutsideDeactivates: true }}>
-            <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/50 backdrop-blur-md">
-              <div className="bg-white rounded-2xl border border-slate-200/60 shadow-2xl p-6 max-w-sm w-full mx-4 animate-spring-scale">
-                <div className="flex items-center gap-3 mb-3">
-                  <div className="w-9 h-9 rounded-xl bg-amber-100 flex items-center justify-center flex-shrink-0">
-                    <svg className="w-5 h-5 text-amber-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                      <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 9v2m0 4h.01m-6.938 4h13.856c1.54 0 2.502-1.667 1.732-3L13.732 4c-.77-1.333-2.694-1.333-3.464 0L3.34 16c-.77 1.333.192 3 1.732 3z" />
-                    </svg>
-                  </div>
-                  <div>
-                    <h3 className="text-sm font-bold text-slate-800">Start a new project?</h3>
-                    <p className="text-[11px] text-slate-500 mt-0.5">
-                      This clears the current browser workspace.
-                    </p>
-                  </div>
-                </div>
-                <p className="text-[11px] text-slate-400 mb-5 leading-relaxed">
-                  {user
-                    ? 'We will save this project to My Projects before starting over. If saving fails, your workspace will stay open.'
-                    : 'You are not signed in, so this browser autosave is the only in-app copy. Download a .coursemapper backup if you want to keep it.'}
-                </p>
-                <div className="mb-4 rounded-xl bg-slate-50/80 border border-slate-100 px-3 py-2 text-[10px] text-slate-500 leading-relaxed">
-                  {user
-                    ? 'Autosave: local browser backup plus My Projects sync.'
-                    : 'Autosave: local browser backup only. It is cleared when you start over.'}
-                </div>
-                {newProjectError && (
-                  <p className="mb-4 rounded-lg bg-red-50 px-3 py-2 text-[11px] text-red-600 leading-relaxed">
-                    {newProjectError}
-                  </p>
-                )}
-                <div className="flex items-center gap-2 justify-end">
-                  {courseMap && (
-                    <button
-                      onClick={handleSaveProject}
-                      disabled={isStartingNewProject}
-                      className="tactile px-4 py-2 rounded-lg text-xs font-semibold text-indigo-600 bg-indigo-50 border border-indigo-100/80 hover:bg-indigo-100 transition-all disabled:opacity-50"
-                    >
-                      Download backup
-                    </button>
-                  )}
-                  <button
-                    onClick={() => setNewProjectConfirm(false)}
-                    disabled={isStartingNewProject}
-                    className="tactile px-4 py-2 rounded-lg text-xs font-semibold text-slate-600 bg-white border border-slate-200/60 hover:bg-slate-50 transition-all"
-                  >
-                    Cancel
-                  </button>
-                  <button
-                    onClick={handleConfirmNewProject}
-                    disabled={isStartingNewProject}
-                    className="tactile px-4 py-2 rounded-lg text-xs font-semibold text-white bg-red-500 hover:bg-red-600 transition-all disabled:opacity-60 disabled:cursor-wait"
-                  >
-                    {isStartingNewProject ? (
-                      <span className="inline-flex items-center gap-1.5"><Spinner /> Saving...</span>
-                    ) : 'Start New Project'}
-                  </button>
-                </div>
-              </div>
-            </div>
-          </FocusTrap>
-        )}
-
-        {/* ── Add Lessons Modal ── */}
-        {addLessonsModal && (
-          <FocusTrap focusTrapOptions={{ clickOutsideDeactivates: true }}>
-            <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/30 backdrop-blur-sm">
-              <div className="bg-white/98 rounded-2xl border border-slate-200/60 shadow-2xl p-6 max-w-sm w-full mx-4 animate-spring-scale">
-                <h3 className="text-sm font-bold text-slate-800 mb-1">Generate Added Lessons</h3>
-              <p className="text-[11px] text-slate-500 mb-4 leading-relaxed">
-                {addLessonsModal.lessonIndices.length === 1
-                  ? `Generate Lesson ${addLessonsModal.lessonIndices[0] + 1} for:`
-                  : `Generate ${addLessonsModal.lessonIndices.length} new lessons for:`}
-              </p>
-              <div className="space-y-2">
-                <button
-                  onClick={() => {
-                    const { lessonIndices } = addLessonsModal;
-                    deliv.generateAll(courseMap, [activeTab], lessonIndices);
-                    setAddLessonsModal(null);
-                  }}
-                  className="w-full flex items-center gap-2 px-4 py-3 rounded-xl text-[12px] font-semibold text-indigo-700 bg-indigo-50 border border-indigo-200/60 hover:bg-indigo-100 transition-colors"
-                >
-                  <svg className="w-4 h-4 flex-shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 12h6m-6 4h6m2 5H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z" />
-                  </svg>
-                  <span className="text-left">
-                    <span className="block">Just this tab</span>
-                    <span className="block text-[10px] font-normal text-indigo-500 mt-0.5">
-                      {workspaceTabs.find(f => f.id === activeTab)?.label || activeTab} only
-                    </span>
-                  </span>
-                </button>
-                <button
-                  onClick={() => {
-                    const { lessonIndices } = addLessonsModal;
-                    const activeDelivFeatures = selectedFeatures.filter(f => f !== 'courseMap');
-                    deliv.generateAll(courseMap, activeDelivFeatures, lessonIndices);
-                    setAddLessonsModal(null);
-                  }}
-                  className="w-full flex items-center gap-2 px-4 py-3 rounded-xl text-[12px] font-semibold text-violet-700 bg-violet-50 border border-violet-200/60 hover:bg-violet-100 transition-colors"
-                >
-                  <svg className="w-4 h-4 flex-shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M4 6h16M4 10h16M4 14h16M4 18h16" />
-                  </svg>
-                  <span className="text-left">
-                    <span className="block">All deliverables</span>
-                    <span className="block text-[10px] font-normal text-violet-500 mt-0.5">
-                      {selectedFeatures.filter(f => f !== 'courseMap').map(id => FEATURES.find(f => f.id === id)?.label || id).join(', ')}
-                    </span>
-                  </span>
-                </button>
-              </div>
-              <button
-                onClick={() => setAddLessonsModal(null)}
-                className="mt-3 w-full py-2 text-[11px] text-slate-400 hover:text-slate-600 transition-colors"
-              >
-                Cancel
-              </button>
-              </div>
-            </div>
-          </FocusTrap>
-        )}
-
-        {/* ── Custom Deliverable Builder (from workspace + Add) ── */}
-        {showCustomBuilder && (
-          <Suspense fallback={null}>
-            <CustomDeliverableBuilder
-              isOpen={showCustomBuilder}
-              onClose={() => setShowCustomBuilder(false)}
-              onSave={(def) => {
-                const saved = saveCustomDeliverable(def, user?.uid);
-                setSelectedFeatures(prev => [...prev, saved.id]);
-                setActiveTab(saved.id);
-                setShowCustomBuilder(false);
-                const scopeIndices = lessonScope.type === 'specific' ? lessonScope.indices : null;
-                deliv.generateAll(courseMap, [saved.id], scopeIndices);
-              }}
-              editDef={null}
-            />
-          </Suspense>
-        )}
-
-        {/* ── Tab content + Chat panel + Export panel ── */}
-        <div className="flex gap-0 items-stretch" style={{ minHeight: 'calc(100vh - 220px)' }}>
-
-          {/* ── Left: Resizable Chat Panel ── */}
-          <div className="flex-shrink-0 sticky top-4" style={{ width: chatWidth, height: 'calc(100vh - 160px)' }}>
-            <ErrorBoundary>
-              <ChatPanel
-                currentStep={gen.progressStep}
-                modelName={gen.activeModelName || modelName}
-                error={gen.error || null}
-                streamDetail={gen.streamDetail}
-                streamProgress={gen.streamProgress}
-                completenessInfo={gen.completenessInfo}
-                isStopped={gen.isStopped}
-                retryInfo={gen.retryInfo}
-                generationLog={gen.generationLog}
-                onStop={gen.isStreaming ? onStop : null}
-                onResume={onResume}
-                onClearAll={gen.handleClearAll}
-                onRetryExamine={gen.handleRetryExamine}
-                deliverables={deliv.deliverables}
-                delivProgress={deliv.progress}
-                currentDelivFeatures={deliv.currentFeatures}
-                isDelivGenerating={deliv.isGenerating}
-                delivTimings={deliv.delivTimings}
-                onStopDeliverables={deliv.isGenerating ? deliv.stopGenerating : null}
-                isSyncing={smartSync.isSyncing}
-                pendingSyncCount={smartSync.pendingSyncCount}
-                syncingFeatures={smartSync.syncingFeatures}
-                pendingSyncSuggestion={smartSync.pendingSyncSuggestion}
-                clearPendingSyncSuggestion={smartSync.clearPendingSyncSuggestion}
-                executeSyncPlan={smartSync.executeSyncPlan}
-                onRevision={rev.handleRevision}
-                onDeliverableRevision={(msg, history) => {
-                  // For deliverable revisions, regenerate the active deliverable
-                  if (activeTab && activeTab !== 'courseMap') {
-                    const scopeIndices = lessonScope.type === 'specific' ? lessonScope.indices : null;
-                    deliv.generateAll(courseMap, [activeTab], scopeIndices);
-                  }
-                }}
-                isRevising={rev.isRevising}
-                activeTab={activeTab}
-                courseMap={courseMap}
-                slideTheme={slideTheme}
-                chatHistory={chatHistory}
-                onChatHistoryChange={setChatHistory}
-                pendingExamPatches={gen.pendingExamPatches}
-                examChanges={gen.examChanges}
-                onAcceptPatches={gen.onAcceptPatches}
-                onRejectPatch={gen.onRejectPatch}
-                editor={editor}
-                optimisticUpdate={deliv.optimisticUpdate}
-                regenerateLesson={deliv.regenerateLesson}
-                delivUndoSnapshot={delivUndo.snapshot}
-                delivUndoFn={() => delivUndo.undo(deliv.setDeliverables)}
-                delivCanUndo={delivUndo.canUndo}
-                onAgentHighlight={triggerAgentHighlight}
-                notifyEdit={smartSync.notifyEdit}
-                chatSendRef={chatSendRef}
-                uid={user?.uid || null}
-              />
-            </ErrorBoundary>
           </div>
 
-          {/* ── Resize Handle ── */}
-          <ResizeHandle width={chatWidth} onWidthChange={setChatWidth} />
+          {/* ── Deliverable tabs ── */}
+          {workspaceTabs.length > 1 && (
+            <div className="flex items-center gap-2 mb-1 min-h-9">
+              <button
+                onClick={() => setShowDepMap(true)}
+                className="tactile p-1.5 rounded-full text-slate-400 hover:bg-white/60 hover:text-indigo-500 transition-all duration-200"
+                title="Dependency Map — see how deliverables connect"
+                aria-label="Open dependency map"
+              >
+                <svg className="w-3.5 h-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                  <path
+                    strokeLinecap="round"
+                    strokeLinejoin="round"
+                    strokeWidth={2}
+                    d="M4 6h16M4 12h8m-8 6h16M16 12l4-4m0 0l-4-4m4 4H12"
+                  />
+                </svg>
+              </button>
+              {tabDrag && (
+                <div
+                  ref={trashDropRef}
+                  role="button"
+                  aria-label={
+                    canDeleteDraggedTab
+                      ? `Drop to remove ${tabDrag.label || 'deliverable'}`
+                      : 'Course Map cannot be removed'
+                  }
+                  className={`flex h-9 items-center justify-center gap-2 rounded-pill border px-4 text-[10px] font-bold shadow-glass backdrop-blur-xl transition-all duration-150 pointer-events-none ${
+                    canDeleteDraggedTab
+                      ? tabDrag.overDelete
+                        ? 'scale-105 border-red-300 bg-red-100/95 text-red-700 shadow-red-500/20'
+                        : 'border-red-200/80 bg-red-50/90 text-red-500'
+                      : 'border-slate-200/80 bg-white/70 text-slate-300'
+                  }`}
+                >
+                  <svg
+                    className={`h-3.5 w-3.5 transition-transform duration-150 ${tabDrag.overDelete ? 'scale-110' : ''}`}
+                    fill="none"
+                    stroke="currentColor"
+                    viewBox="0 0 24 24"
+                  >
+                    <path
+                      strokeLinecap="round"
+                      strokeLinejoin="round"
+                      strokeWidth={2}
+                      d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6M9 7V4a1 1 0 011-1h4a1 1 0 011 1v3m-8 0h10"
+                    />
+                  </svg>
+                  <span>{canDeleteDraggedTab ? 'Drop to delete' : 'Locked'}</span>
+                </div>
+              )}
+            </div>
+          )}
+          {workspaceTabs.length > 0 && (
+            <div
+              data-testid="workspace-deliverable-tabs"
+              className="flex items-center gap-1 overflow-x-auto pb-1 scrollbar-hide"
+            >
+              {workspaceTabs.map((feature, tabIdx) => {
+                const isActive = activeTab === feature.id;
+                const delivState = deliv.deliverables[feature.id];
+                const isStreaming = delivState?.status === 'streaming';
+                const isDone = delivState?.status === 'done';
+                const isError = delivState?.status === 'error';
+                const isCourseMapDone = feature.id === 'courseMap' && gen.progressStep === 'done';
 
-          {/* ── Main content area ── */}
-          <div className="flex-1 min-w-0 space-y-4 px-4">
+                // Cascade sync badges
+                const hasUnseen = unseenChanges.has(feature.id);
+                const isStaleTab = deliv.deliverables[feature.id]?.stale === true;
+                const staleConf = deliv.deliverables[feature.id]?.staleConfidence;
+                // isSyncingThis: either regenerateLesson set currentFeature, or
+                // the latest syncLog entry for this feature is a pending 'start'
+                const lastSyncEntry =
+                  smartSync.isSyncing && smartSync.syncLog.length > 0
+                    ? [...smartSync.syncLog].reverse().find((e) => e.featureId === feature.id)
+                    : null;
+                // Change #1: Use syncingFeatures set for parallel-aware badge
+                const isSyncingThis =
+                  smartSync.syncingFeatures?.has(feature.id) ||
+                  (smartSync.isSyncing && (deliv.currentFeatures?.has(feature.id) || lastSyncEntry?.type === 'start'));
 
-            {/* Course Map tab */}
-            {activeTab === 'courseMap' && (
-              <>
-                {gen.error && (
-                  <div className="glass rounded-squircle-sm p-5 animate-spring-in">
-                    <div className="flex items-start gap-3 text-red-600 text-sm">
-                      <div className="w-8 h-8 rounded-squircle-xs bg-red-100 flex items-center justify-center flex-shrink-0">
-                        <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                          <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 8v4m0 4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z" />
-                        </svg>
-                      </div>
-                      <p className="pt-1 whitespace-pre-line leading-relaxed">{gen.error}</p>
-                    </div>
-                  </div>
-                )}
-                {(courseMap || gen.isStreaming) ? (
-                  <div className="w-full animate-spring-up">
-                    <ErrorBoundary>
-                      <CourseMapPreview
-                        courseMap={courseMap}
-                        columns={columns}
-                        isStreaming={gen.isStreaming}
-                        oldCourseMap={oldCourseMap}
-                        onCellEdit={editor.handleCellEdit}
-                        onTitleEdit={editor.handleTitleEdit}
-                        onCheckToggle={editor.handleCheckToggle}
-                        onAddSection={editor.handleAddSection}
-                        onDeleteSection={editor.handleDeleteSection}
-                        onAddLesson={editor.handleAddLesson}
-                        onDeleteLesson={editor.handleDeleteLesson}
-                        onMoveLesson={editor.handleMoveLesson}
-                        showDiff={showDiff}
-                        onToggleDiff={() => setShowDiff(d => !d)}
-                        onDismissDiff={() => { setOldCourseMap(null); setShowDiff(false); }}
-                        onAIContextMenu={handleAIContextMenu}
-                        onCellHover={(info) => {
-                          if (!info) { handleCascadeHover(null); return; }
-                          handleCascadeHover({ featureId: null, fieldKey: info.fieldKey, position: info.position });
-                        }}
+                const isDraggingThis = tabDrag?.id === feature.id;
+                const isDropTarget =
+                  tabDrag?.moved && !tabDrag?.overDelete && tabDrag?.overIndex === tabIdx && !isDraggingThis;
+                const markerAfter = isDropTarget && tabDrag.index < tabIdx;
+                const insertionMarker = (
+                  <span
+                    aria-hidden="true"
+                    className="mx-0.5 h-7 w-1 flex-shrink-0 rounded-full bg-indigo-400 shadow-[0_0_0_4px_rgba(99,102,241,0.16)] animate-spring-in"
+                  />
+                );
+
+                return (
+                  <React.Fragment key={feature.id}>
+                    {isDropTarget && !markerAfter && insertionMarker}
+                    <button
+                      ref={(node) => {
+                        if (node) tabButtonRefs.current.set(feature.id, node);
+                        else tabButtonRefs.current.delete(feature.id);
+                      }}
+                      onPointerDown={handleTabPointerDown(feature, tabIdx)}
+                      onPointerMove={handleTabPointerMove(feature.id)}
+                      onPointerUp={handleTabPointerUp(feature.id)}
+                      onPointerCancel={handleTabPointerCancel(feature.id)}
+                      onMouseEnter={(e) => {
+                        if (tabDrag || feature.id === 'courseMap') return;
+                        const rect = e.currentTarget.getBoundingClientRect();
+                        handleCascadeHover({
+                          featureId: feature.id,
+                          fieldKey: null,
+                          position: { x: rect.left, y: rect.bottom + 8 },
+                        });
+                      }}
+                      onMouseLeave={() => handleCascadeHover(null)}
+                      onClick={() => {
+                        if (suppressTabClickRef.current) return;
+                        setActiveTab(feature.id);
+                        // Clear unseen badge when user clicks the tab
+                        if (hasUnseen) {
+                          setUnseenChanges((prev) => {
+                            const next = new Set(prev);
+                            next.delete(feature.id);
+                            return next;
+                          });
+                        }
+                      }}
+                      className={`tactile flex items-center gap-2 px-4 py-2 rounded-pill text-xs font-semibold whitespace-nowrap transition-all duration-200 flex-shrink-0 cursor-grab active:cursor-grabbing touch-none select-none ${
+                        isDraggingThis
+                          ? 'opacity-20 scale-95'
+                          : isDropTarget
+                            ? 'scale-[1.03] -translate-y-0.5 bg-indigo-50/70 text-indigo-600 shadow-glass border border-indigo-200/70'
+                            : isActive
+                              ? 'bg-white/80 text-slate-800 shadow-glass border border-slate-200/60'
+                              : 'text-slate-500 hover:bg-white/50 hover:text-slate-700'
+                      }`}
+                    >
+                      {/* Status dot — cascade sync takes priority for non-courseMap tabs */}
+                      {feature.id !== 'courseMap' && (
+                        <span
+                          className={`w-1.5 h-1.5 rounded-full flex-shrink-0 ${
+                            isSyncingThis
+                              ? 'bg-amber-400 animate-pulse'
+                              : isStaleTab && !isSyncingThis
+                                ? staleConf?.level === 'high'
+                                  ? 'bg-amber-400'
+                                  : staleConf?.level === 'medium'
+                                    ? 'bg-amber-300'
+                                    : 'bg-amber-200'
+                                : hasUnseen
+                                  ? 'bg-amber-400'
+                                  : isStreaming
+                                    ? 'bg-indigo-400 animate-pulse'
+                                    : isDone
+                                      ? 'bg-emerald-400'
+                                      : isError
+                                        ? 'bg-red-400'
+                                        : 'bg-slate-300'
+                          }`}
+                        />
+                      )}
+                      {feature.id === 'courseMap' && (
+                        <span
+                          className={`w-1.5 h-1.5 rounded-full flex-shrink-0 ${
+                            gen.isStreaming
+                              ? 'bg-indigo-400 animate-pulse'
+                              : isCourseMapDone
+                                ? 'bg-emerald-400'
+                                : 'bg-slate-300'
+                          }`}
+                        />
+                      )}
+                      {feature.label}
+                      {isStaleTab && !isSyncingThis
+                        ? staleConf?.level === 'high'
+                          ? ' ⚠'
+                          : ' ~'
+                        : hasUnseen
+                          ? ' *'
+                          : ''}
+                    </button>
+                    {isDropTarget && markerAfter && insertionMarker}
+                  </React.Fragment>
+                );
+              })}
+
+              {/* ── + Add deliverable button ── */}
+              {gen.progressStep === 'done' &&
+                (() => {
+                  const allFeatsForAdd = [...FEATURES, ...listCustomDeliverables().map(toFeatureEntry)];
+                  const unselected = allFeatsForAdd.filter(
+                    (f) => f.id !== 'courseMap' && !selectedFeatures.includes(f.id),
+                  );
+                  return (
+                    <AddDeliverableButton
+                      unselected={unselected}
+                      showAddDeliverable={showAddDeliverable}
+                      setShowAddDeliverable={setShowAddDeliverable}
+                      onAdd={(feature) => {
+                        setSelectedFeatures((prev) => [...prev, feature.id]);
+                        setActiveTab(feature.id);
+                        setShowAddDeliverable(false);
+                        const scopeIndices = lessonScope.type === 'specific' ? lessonScope.indices : null;
+                        deliv.generateAll(courseMap, [feature.id], scopeIndices);
+                      }}
+                      onCreateCustom={() => setShowCustomBuilder(true)}
+                    />
+                  );
+                })()}
+
+              {/* Deliverable generation progress */}
+              {deliv.isGenerating && (
+                <span className="ml-2 text-[10px] text-indigo-500 font-medium animate-pulse whitespace-nowrap flex-shrink-0">
+                  Generating {deliv.progress.done}/{deliv.progress.total}…
+                </span>
+              )}
+
+              {/* Sync All Stale button — appears when any deliverable is stale */}
+              {(() => {
+                const staleCount = selectedFeatures.filter(
+                  (f) => f !== 'courseMap' && deliv.deliverables[f]?.stale === true,
+                ).length;
+                if (staleCount === 0 || deliv.isGenerating || smartSync.isSyncing) return null;
+                return (
+                  <button
+                    onClick={() => {
+                      const staleIds = selectedFeatures.filter(
+                        (f) => f !== 'courseMap' && deliv.deliverables[f]?.stale === true,
+                      );
+                      for (const fid of staleIds) {
+                        const se = deliv.deliverables[fid]?.staleEdits;
+                        if (se?.lessonIndices?.length > 0) {
+                          for (const idx of se.lessonIndices) {
+                            deliv.regenerateLesson(fid, courseMap, idx);
+                          }
+                        } else {
+                          const scopeIndices = lessonScope.type === 'specific' ? lessonScope.indices : null;
+                          deliv.generateAll(courseMap, [fid], scopeIndices);
+                        }
+                      }
+                    }}
+                    className="tactile flex items-center gap-1.5 ml-2 px-3 py-1.5 rounded-pill text-[10px] font-semibold text-amber-700 bg-amber-50/70 border border-amber-200/60 hover:bg-amber-100 transition-all duration-200 whitespace-nowrap flex-shrink-0"
+                  >
+                    <svg className="w-3 h-3" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                      <path
+                        strokeLinecap="round"
+                        strokeLinejoin="round"
+                        strokeWidth={2}
+                        d="M4 4v5h.582m15.356 2A8.001 8.001 0 004.582 9m0 0H9m11 11v-5h-.581m0 0a8.003 8.003 0 01-15.357-2m15.357 2H15"
                       />
-                    </ErrorBoundary>
-                  </div>
-                ) : !gen.error && gen.progressStep !== 'idle' && gen.progressStep !== 'done' && (
-                  <CourseMapSkeleton />
-                )}
-              </>
+                    </svg>
+                    Sync all stale ({staleCount})
+                  </button>
+                );
+              })()}
+
+              {/* Deliverable undo/redo — appears when deliverable edits have been made */}
+              {(delivUndo.canUndo || delivUndo.canRedo) && !gen.isStreaming && (
+                <div className="flex items-center gap-1 ml-2 flex-shrink-0">
+                  <button
+                    onClick={() => delivUndo.undo(deliv.setDeliverables)}
+                    disabled={!delivUndo.canUndo}
+                    className={`tactile p-1.5 rounded-full transition-all duration-200 ${delivUndo.canUndo ? 'text-slate-500 hover:bg-white/60 hover:text-indigo-500' : 'text-slate-300 cursor-not-allowed'}`}
+                    title="Undo deliverable edit"
+                  >
+                    <svg className="w-3.5 h-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                      <path
+                        strokeLinecap="round"
+                        strokeLinejoin="round"
+                        strokeWidth={2}
+                        d="M3 10h10a5 5 0 015 5v2M3 10l4-4M3 10l4 4"
+                      />
+                    </svg>
+                  </button>
+                  <button
+                    onClick={() => delivUndo.redo(deliv.setDeliverables)}
+                    disabled={!delivUndo.canRedo}
+                    className={`tactile p-1.5 rounded-full transition-all duration-200 ${delivUndo.canRedo ? 'text-slate-500 hover:bg-white/60 hover:text-indigo-500' : 'text-slate-300 cursor-not-allowed'}`}
+                    title="Redo deliverable edit"
+                  >
+                    <svg className="w-3.5 h-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                      <path
+                        strokeLinecap="round"
+                        strokeLinejoin="round"
+                        strokeWidth={2}
+                        d="M21 10H11a5 5 0 00-5 5v2M21 10l-4-4M21 10l-4 4"
+                      />
+                    </svg>
+                  </button>
+                </div>
+              )}
+            </div>
+          )}
+
+          {tabDrag &&
+            typeof document !== 'undefined' &&
+            createPortal(
+              <div
+                className={`fixed z-[10000] flex items-center gap-2 rounded-pill border px-4 py-2 text-xs font-bold shadow-2xl backdrop-blur-xl transition-[transform,background-color,border-color,color,box-shadow] duration-150 pointer-events-none ${
+                  tabDrag.overDelete
+                    ? canDeleteDraggedTab
+                      ? 'scale-105 border-red-300 bg-red-100/95 text-red-700 shadow-red-500/20'
+                      : 'scale-105 border-slate-300 bg-slate-100/95 text-slate-400'
+                    : 'border-indigo-200/80 bg-white/95 text-slate-800 shadow-indigo-500/20'
+                }`}
+                style={{
+                  left: tabDrag.x,
+                  top: tabDrag.y,
+                  width: tabDrag.width,
+                  minHeight: tabDrag.height,
+                  transform: tabDrag.moved ? 'translate3d(0,-6px,0) rotate(-1deg)' : 'translate3d(0,0,0)',
+                }}
+              >
+                <span
+                  className={`w-1.5 h-1.5 rounded-full flex-shrink-0 ${tabDrag.id === 'courseMap' ? 'bg-emerald-400' : 'bg-indigo-400'}`}
+                />
+                <span className="truncate">{tabDrag.label}</span>
+              </div>,
+              document.body,
             )}
 
-            {/* Deliverable tabs */}
-            {activeTab !== 'courseMap' && (
-              <ErrorBoundary>
-                <DeliverableView
-                  featureId={activeTab}
-                  data={deliv.deliverables[activeTab]?.data ?? null}
-                  status={deliv.deliverables[activeTab]?.status ?? 'idle'}
-                  error={deliv.deliverables[activeTab]?.error ?? null}
-                  regeneratingIndex={deliv.deliverables[activeTab]?.regeneratingIndex ?? null}
-                  courseMap={courseMap}
-                  courseMapStatus={gen.progressStep}
-                  isDelivGenerating={deliv.isGenerating}
-                  currentDelivFeatures={deliv.currentFeatures}
-                  lessonScope={lessonScope.type === 'specific' ? lessonScope.indices : null}
-                  onRetry={() => {
-                    const scopeIndices = lessonScope.type === 'specific' ? lessonScope.indices : null;
-                    deliv.generateAll(courseMap, [activeTab], scopeIndices);
-                  }}
-                  onRegenerateLesson={(lessonIndex) => {
-                    deliv.regenerateLesson(activeTab, courseMap, lessonIndex);
-                  }}
-                  onDataChange={(newData, editPath) => {
-                    const oldData = deliv.deliverables[activeTab]?.data;
-                    // Snapshot for undo before applying the edit
-                    delivUndo.snapshot(activeTab, oldData);
-                    deliv.setDeliverables(prev => ({
-                      ...prev,
-                      [activeTab]: { ...prev[activeTab], data: newData },
-                    }));
-                    // Cascade sync: when user edits a deliverable's body text,
-                    // notify the sync engine so other deliverables stay consistent.
-                    // editPath shape: [arrayKey, lessonIdx, fieldName, ...]
-                    if (editPath && Array.isArray(editPath) && editPath.length >= 2) {
-                      const lessonIdx = typeof editPath[1] === 'number' ? editPath[1] : null;
-                      if (lessonIdx !== null) {
-                        // Extract a human-readable change summary for the AI proposal
-                        const ctx = extractEditContext(oldData, newData, editPath);
-                        // '_deliverableEdit' key: source tab gets AI proposal,
-                        // downstream tabs get stale badge + proposal (no auto-regen)
-                        smartSync.notifyEdit(lessonIdx, '_deliverableEdit', activeTab, ctx);
-                      }
-                    }
-                  }}
-                  onAddLessons={(lessonIndices) => {
-                    setAddLessonsModal({ lessonIndices });
-                  }}
-                  freshLessonIndices={(() => {
-                    const base = deliv.freshLessons?.[activeTab] ?? null;
-                    if (agentHighlight && agentHighlight.featureId === activeTab && agentHighlight.lessonIndex != null) {
-                      const merged = new Set(base || []);
-                      merged.add(agentHighlight.lessonIndex);
-                      return merged;
-                    }
-                    return base;
-                  })()}
-                  proposals={editProposal.proposals[activeTab] ?? {}}
-                  onAcceptProposal={(lessonIndex) => {
-                    editProposal.acceptProposal(
-                      activeTab, lessonIndex,
-                      deliv.deliverables[activeTab]?.data,
-                      deliv.setDeliverables,
-                    );
-                  }}
-                  onDismissProposal={(lessonIndex) => editProposal.dismissProposal(activeTab, lessonIndex)}
-                  onRegenerateProposal={(lessonIndex) => editProposal.regenerateProposal(
-                    activeTab, courseMap, lessonIndex,
-                    editProposal.proposals[activeTab]?.[lessonIndex]?.editContext,
-                    deliv.deliverables[activeTab]?.data,
+          {/* ── Delete Deliverable Confirmation Modal ── */}
+          {deleteTabConfirm && (
+            <FocusTrap focusTrapOptions={{ clickOutsideDeactivates: true }}>
+              <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/40 backdrop-blur-sm">
+                <div className="bg-white rounded-2xl border border-slate-200/60 shadow-2xl p-6 max-w-sm w-full mx-4 animate-spring-scale">
+                  <div className="flex items-center gap-3 mb-3">
+                    <div className="w-9 h-9 rounded-xl bg-red-100 flex items-center justify-center flex-shrink-0">
+                      <svg className="w-5 h-5 text-red-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                        <path
+                          strokeLinecap="round"
+                          strokeLinejoin="round"
+                          strokeWidth={2}
+                          d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6M9 7V4a1 1 0 011-1h4a1 1 0 011 1v3m-8 0h10"
+                        />
+                      </svg>
+                    </div>
+                    <div>
+                      <h3 className="text-sm font-bold text-slate-800">Remove deliverable?</h3>
+                      <p className="text-[11px] text-slate-500 mt-0.5">{deleteTabConfirm.label}</p>
+                    </div>
+                  </div>
+                  <p className="text-[11px] text-slate-500 mb-5 leading-relaxed">
+                    This removes the tab from this project and clears its generated content and settings. Your course
+                    map and other deliverables stay unchanged.
+                  </p>
+                  <div className="flex items-center gap-2 justify-end">
+                    <button
+                      onClick={() => setDeleteTabConfirm(null)}
+                      className="tactile px-4 py-2 rounded-lg text-xs font-semibold text-slate-600 bg-white border border-slate-200/60 hover:bg-slate-50 transition-all"
+                    >
+                      Cancel
+                    </button>
+                    <button
+                      onClick={confirmDeleteDeliverable}
+                      className="tactile px-4 py-2 rounded-lg text-xs font-semibold text-white bg-red-500 hover:bg-red-600 transition-all"
+                    >
+                      Remove
+                    </button>
+                  </div>
+                </div>
+              </div>
+            </FocusTrap>
+          )}
+
+          {/* ── New Project Confirmation Modal ── */}
+          {newProjectConfirm && (
+            <FocusTrap focusTrapOptions={{ clickOutsideDeactivates: true }}>
+              <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/50 backdrop-blur-md">
+                <div className="bg-white rounded-2xl border border-slate-200/60 shadow-2xl p-6 max-w-sm w-full mx-4 animate-spring-scale">
+                  <div className="flex items-center gap-3 mb-3">
+                    <div className="w-9 h-9 rounded-xl bg-amber-100 flex items-center justify-center flex-shrink-0">
+                      <svg className="w-5 h-5 text-amber-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                        <path
+                          strokeLinecap="round"
+                          strokeLinejoin="round"
+                          strokeWidth={2}
+                          d="M12 9v2m0 4h.01m-6.938 4h13.856c1.54 0 2.502-1.667 1.732-3L13.732 4c-.77-1.333-2.694-1.333-3.464 0L3.34 16c-.77 1.333.192 3 1.732 3z"
+                        />
+                      </svg>
+                    </div>
+                    <div>
+                      <h3 className="text-sm font-bold text-slate-800">Start a new project?</h3>
+                      <p className="text-[11px] text-slate-500 mt-0.5">This clears the current browser workspace.</p>
+                    </div>
+                  </div>
+                  <p className="text-[11px] text-slate-400 mb-5 leading-relaxed">
+                    {user
+                      ? 'We will save this project to My Projects before starting over. If saving fails, your workspace will stay open.'
+                      : 'You are not signed in, so this browser autosave is the only in-app copy. Download a .coursemapper backup if you want to keep it.'}
+                  </p>
+                  <div className="mb-4 rounded-xl bg-slate-50/80 border border-slate-100 px-3 py-2 text-[10px] text-slate-500 leading-relaxed">
+                    {user
+                      ? 'Autosave: local browser backup plus My Projects sync.'
+                      : 'Autosave: local browser backup only. It is cleared when you start over.'}
+                  </div>
+                  {newProjectError && (
+                    <p className="mb-4 rounded-lg bg-red-50 px-3 py-2 text-[11px] text-red-600 leading-relaxed">
+                      {newProjectError}
+                    </p>
                   )}
-                  isStale={deliv.deliverables[activeTab]?.stale === true}
-                  staleConfidence={deliv.deliverables[activeTab]?.staleConfidence}
-                  onSyncNow={() => {
-                    const staleEdits = deliv.deliverables[activeTab]?.staleEdits;
-                    if (staleEdits?.lessonIndices?.length > 0) {
-                      // Surgical: only regen the affected lessons
-                      for (const idx of staleEdits.lessonIndices) {
-                        deliv.regenerateLesson(activeTab, courseMap, idx);
-                      }
-                    } else {
-                      // Fallback: full regen
+                  <div className="flex items-center gap-2 justify-end">
+                    {courseMap && (
+                      <button
+                        onClick={handleSaveProject}
+                        disabled={isStartingNewProject}
+                        className="tactile px-4 py-2 rounded-lg text-xs font-semibold text-indigo-600 bg-indigo-50 border border-indigo-100/80 hover:bg-indigo-100 transition-all disabled:opacity-50"
+                      >
+                        Download backup
+                      </button>
+                    )}
+                    <button
+                      onClick={() => setNewProjectConfirm(false)}
+                      disabled={isStartingNewProject}
+                      className="tactile px-4 py-2 rounded-lg text-xs font-semibold text-slate-600 bg-white border border-slate-200/60 hover:bg-slate-50 transition-all"
+                    >
+                      Cancel
+                    </button>
+                    <button
+                      onClick={handleConfirmNewProject}
+                      disabled={isStartingNewProject}
+                      className="tactile px-4 py-2 rounded-lg text-xs font-semibold text-white bg-red-500 hover:bg-red-600 transition-all disabled:opacity-60 disabled:cursor-wait"
+                    >
+                      {isStartingNewProject ? (
+                        <span className="inline-flex items-center gap-1.5">
+                          <Spinner /> Saving...
+                        </span>
+                      ) : (
+                        'Start New Project'
+                      )}
+                    </button>
+                  </div>
+                </div>
+              </div>
+            </FocusTrap>
+          )}
+
+          {/* ── Add Lessons Modal ── */}
+          {addLessonsModal && (
+            <FocusTrap focusTrapOptions={{ clickOutsideDeactivates: true }}>
+              <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/30 backdrop-blur-sm">
+                <div className="bg-white/98 rounded-2xl border border-slate-200/60 shadow-2xl p-6 max-w-sm w-full mx-4 animate-spring-scale">
+                  <h3 className="text-sm font-bold text-slate-800 mb-1">Generate Added Lessons</h3>
+                  <p className="text-[11px] text-slate-500 mb-4 leading-relaxed">
+                    {addLessonsModal.lessonIndices.length === 1
+                      ? `Generate Lesson ${addLessonsModal.lessonIndices[0] + 1} for:`
+                      : `Generate ${addLessonsModal.lessonIndices.length} new lessons for:`}
+                  </p>
+                  <div className="space-y-2">
+                    <button
+                      onClick={() => {
+                        const { lessonIndices } = addLessonsModal;
+                        deliv.generateAll(courseMap, [activeTab], lessonIndices);
+                        setAddLessonsModal(null);
+                      }}
+                      className="w-full flex items-center gap-2 px-4 py-3 rounded-xl text-[12px] font-semibold text-indigo-700 bg-indigo-50 border border-indigo-200/60 hover:bg-indigo-100 transition-colors"
+                    >
+                      <svg className="w-4 h-4 flex-shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                        <path
+                          strokeLinecap="round"
+                          strokeLinejoin="round"
+                          strokeWidth={2}
+                          d="M9 12h6m-6 4h6m2 5H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z"
+                        />
+                      </svg>
+                      <span className="text-left">
+                        <span className="block">Just this tab</span>
+                        <span className="block text-[10px] font-normal text-indigo-500 mt-0.5">
+                          {workspaceTabs.find((f) => f.id === activeTab)?.label || activeTab} only
+                        </span>
+                      </span>
+                    </button>
+                    <button
+                      onClick={() => {
+                        const { lessonIndices } = addLessonsModal;
+                        const activeDelivFeatures = selectedFeatures.filter((f) => f !== 'courseMap');
+                        deliv.generateAll(courseMap, activeDelivFeatures, lessonIndices);
+                        setAddLessonsModal(null);
+                      }}
+                      className="w-full flex items-center gap-2 px-4 py-3 rounded-xl text-[12px] font-semibold text-violet-700 bg-violet-50 border border-violet-200/60 hover:bg-violet-100 transition-colors"
+                    >
+                      <svg className="w-4 h-4 flex-shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                        <path
+                          strokeLinecap="round"
+                          strokeLinejoin="round"
+                          strokeWidth={2}
+                          d="M4 6h16M4 10h16M4 14h16M4 18h16"
+                        />
+                      </svg>
+                      <span className="text-left">
+                        <span className="block">All deliverables</span>
+                        <span className="block text-[10px] font-normal text-violet-500 mt-0.5">
+                          {selectedFeatures
+                            .filter((f) => f !== 'courseMap')
+                            .map((id) => FEATURES.find((f) => f.id === id)?.label || id)
+                            .join(', ')}
+                        </span>
+                      </span>
+                    </button>
+                  </div>
+                  <button
+                    onClick={() => setAddLessonsModal(null)}
+                    className="mt-3 w-full py-2 text-[11px] text-slate-400 hover:text-slate-600 transition-colors"
+                  >
+                    Cancel
+                  </button>
+                </div>
+              </div>
+            </FocusTrap>
+          )}
+
+          {/* ── Custom Deliverable Builder (from workspace + Add) ── */}
+          {showCustomBuilder && (
+            <Suspense fallback={null}>
+              <CustomDeliverableBuilder
+                isOpen={showCustomBuilder}
+                onClose={() => setShowCustomBuilder(false)}
+                onSave={(def) => {
+                  const saved = saveCustomDeliverable(def, user?.uid);
+                  setSelectedFeatures((prev) => [...prev, saved.id]);
+                  setActiveTab(saved.id);
+                  setShowCustomBuilder(false);
+                  const scopeIndices = lessonScope.type === 'specific' ? lessonScope.indices : null;
+                  deliv.generateAll(courseMap, [saved.id], scopeIndices);
+                }}
+                editDef={null}
+              />
+            </Suspense>
+          )}
+
+          {/* Mobile workspace mode switcher */}
+          <div
+            data-testid="mobile-workspace-switcher"
+            className="lg:hidden sticky top-3 z-20 flex gap-1 rounded-2xl border border-slate-200/60 bg-white/85 p-1 shadow-glass backdrop-blur-xl"
+          >
+            {mobileWorkspaceViews.map((view) => (
+              <button
+                key={view.id}
+                type="button"
+                onClick={() => setMobileWorkspaceView(view.id)}
+                aria-pressed={mobileWorkspaceView === view.id}
+                className={`flex-1 rounded-xl px-3 py-2 text-[11px] font-bold transition-all ${
+                  mobileWorkspaceView === view.id
+                    ? 'bg-slate-900 text-white shadow-sm'
+                    : 'text-slate-500 hover:bg-slate-100/80 hover:text-slate-700'
+                }`}
+              >
+                {view.label}
+              </button>
+            ))}
+          </div>
+
+          {/* ── Tab content + Chat panel + Export panel ── */}
+          <div
+            data-testid="workspace-shell"
+            className="workspace-shell flex flex-col gap-3 items-stretch lg:flex-row lg:gap-0"
+            style={{ minHeight: 'calc(100vh - 220px)' }}
+          >
+            {/* ── Left: Resizable Chat Panel ── */}
+            <div
+              data-testid="workspace-agent-panel"
+              className={`workspace-chat-panel min-w-0 ${mobileWorkspaceView === 'agent' ? 'block' : 'hidden'} lg:block lg:flex-shrink-0 lg:sticky lg:top-4`}
+              style={{ '--workspace-chat-width': `${chatWidth}px` }}
+            >
+              <ErrorBoundary>
+                <ChatPanel
+                  currentStep={gen.progressStep}
+                  modelName={gen.activeModelName || modelName}
+                  error={gen.error || null}
+                  streamDetail={gen.streamDetail}
+                  streamProgress={gen.streamProgress}
+                  completenessInfo={gen.completenessInfo}
+                  isStopped={gen.isStopped}
+                  retryInfo={gen.retryInfo}
+                  generationLog={gen.generationLog}
+                  onStop={gen.isStreaming ? onStop : null}
+                  onResume={onResume}
+                  onClearAll={gen.handleClearAll}
+                  onRetryExamine={gen.handleRetryExamine}
+                  deliverables={deliv.deliverables}
+                  delivProgress={deliv.progress}
+                  currentDelivFeatures={deliv.currentFeatures}
+                  isDelivGenerating={deliv.isGenerating}
+                  delivTimings={deliv.delivTimings}
+                  onStopDeliverables={deliv.isGenerating ? deliv.stopGenerating : null}
+                  isSyncing={smartSync.isSyncing}
+                  pendingSyncCount={smartSync.pendingSyncCount}
+                  syncingFeatures={smartSync.syncingFeatures}
+                  pendingSyncSuggestion={smartSync.pendingSyncSuggestion}
+                  clearPendingSyncSuggestion={smartSync.clearPendingSyncSuggestion}
+                  executeSyncPlan={smartSync.executeSyncPlan}
+                  onRevision={rev.handleRevision}
+                  onDeliverableRevision={(msg, history) => {
+                    // For deliverable revisions, regenerate the active deliverable
+                    if (activeTab && activeTab !== 'courseMap') {
                       const scopeIndices = lessonScope.type === 'specific' ? lessonScope.indices : null;
                       deliv.generateAll(courseMap, [activeTab], scopeIndices);
                     }
                   }}
+                  isRevising={rev.isRevising}
+                  activeTab={activeTab}
+                  courseMap={courseMap}
                   slideTheme={slideTheme}
-                  onSlideThemeChange={setSlideTheme}
+                  chatHistory={chatHistory}
+                  onChatHistoryChange={setChatHistory}
+                  pendingExamPatches={gen.pendingExamPatches}
+                  examChanges={gen.examChanges}
+                  onAcceptPatches={gen.onAcceptPatches}
+                  onRejectPatch={gen.onRejectPatch}
+                  editor={editor}
+                  optimisticUpdate={deliv.optimisticUpdate}
+                  regenerateLesson={deliv.regenerateLesson}
+                  delivUndoSnapshot={delivUndo.snapshot}
+                  delivUndoFn={() => delivUndo.undo(deliv.setDeliverables)}
+                  delivCanUndo={delivUndo.canUndo}
+                  onAgentHighlight={triggerAgentHighlight}
+                  notifyEdit={smartSync.notifyEdit}
+                  chatSendRef={chatSendRef}
+                  uid={user?.uid || null}
+                  onConfigureAI={() => setScreen('landing')}
                 />
               </ErrorBoundary>
+            </div>
+
+            {/* ── Resize Handle ── */}
+            <div className="hidden lg:block self-stretch">
+              <ResizeHandle width={chatWidth} onWidthChange={setChatWidth} />
+            </div>
+
+            {/* ── Main content area ── */}
+            <div
+              data-testid="workspace-content-panel"
+              className={`${mobileWorkspaceView === 'content' ? 'block' : 'hidden'} lg:block flex-1 min-w-0 space-y-4 px-0 lg:px-4`}
+            >
+              {/* Course Map tab */}
+              {activeTab === 'courseMap' && (
+                <>
+                  {gen.error && (
+                    <div className="glass rounded-squircle-sm p-5 animate-spring-in">
+                      <div className="flex items-start gap-3 text-red-600 text-sm">
+                        <div className="w-8 h-8 rounded-squircle-xs bg-red-100 flex items-center justify-center flex-shrink-0">
+                          <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                            <path
+                              strokeLinecap="round"
+                              strokeLinejoin="round"
+                              strokeWidth={2}
+                              d="M12 8v4m0 4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z"
+                            />
+                          </svg>
+                        </div>
+                        <p className="pt-1 whitespace-pre-line leading-relaxed">{gen.error}</p>
+                      </div>
+                    </div>
+                  )}
+                  {courseMap || gen.isStreaming ? (
+                    <div className="w-full animate-spring-up">
+                      <ErrorBoundary>
+                        <CourseMapPreview
+                          courseMap={courseMap}
+                          columns={columns}
+                          isStreaming={gen.isStreaming}
+                          oldCourseMap={oldCourseMap}
+                          onCellEdit={editor.handleCellEdit}
+                          onTitleEdit={editor.handleTitleEdit}
+                          onCheckToggle={editor.handleCheckToggle}
+                          onAddSection={editor.handleAddSection}
+                          onDeleteSection={editor.handleDeleteSection}
+                          onAddLesson={editor.handleAddLesson}
+                          onDeleteLesson={editor.handleDeleteLesson}
+                          onMoveLesson={editor.handleMoveLesson}
+                          showDiff={showDiff}
+                          onToggleDiff={() => setShowDiff((d) => !d)}
+                          onDismissDiff={() => {
+                            setOldCourseMap(null);
+                            setShowDiff(false);
+                          }}
+                          onAIContextMenu={handleAIContextMenu}
+                          onCellHover={(info) => {
+                            if (!info) {
+                              handleCascadeHover(null);
+                              return;
+                            }
+                            handleCascadeHover({ featureId: null, fieldKey: info.fieldKey, position: info.position });
+                          }}
+                        />
+                      </ErrorBoundary>
+                    </div>
+                  ) : (
+                    !gen.error && gen.progressStep !== 'idle' && gen.progressStep !== 'done' && <CourseMapSkeleton />
+                  )}
+                </>
+              )}
+
+              {/* Deliverable tabs */}
+              {activeTab !== 'courseMap' && (
+                <ErrorBoundary>
+                  <DeliverableView
+                    featureId={activeTab}
+                    data={deliv.deliverables[activeTab]?.data ?? null}
+                    status={deliv.deliverables[activeTab]?.status ?? 'idle'}
+                    error={deliv.deliverables[activeTab]?.error ?? null}
+                    regeneratingIndex={deliv.deliverables[activeTab]?.regeneratingIndex ?? null}
+                    courseMap={courseMap}
+                    courseMapStatus={gen.progressStep}
+                    isDelivGenerating={deliv.isGenerating}
+                    currentDelivFeatures={deliv.currentFeatures}
+                    lessonScope={lessonScope.type === 'specific' ? lessonScope.indices : null}
+                    onRetry={() => {
+                      const scopeIndices = lessonScope.type === 'specific' ? lessonScope.indices : null;
+                      deliv.generateAll(courseMap, [activeTab], scopeIndices);
+                    }}
+                    onRegenerateLesson={(lessonIndex) => {
+                      deliv.regenerateLesson(activeTab, courseMap, lessonIndex);
+                    }}
+                    onDataChange={(newData, editPath) => {
+                      const oldData = deliv.deliverables[activeTab]?.data;
+                      // Snapshot for undo before applying the edit
+                      delivUndo.snapshot(activeTab, oldData);
+                      deliv.setDeliverables((prev) => ({
+                        ...prev,
+                        [activeTab]: { ...prev[activeTab], data: newData },
+                      }));
+                      // Cascade sync: when user edits a deliverable's body text,
+                      // notify the sync engine so other deliverables stay consistent.
+                      // editPath shape: [arrayKey, lessonIdx, fieldName, ...]
+                      if (editPath && Array.isArray(editPath) && editPath.length >= 2) {
+                        const lessonIdx = typeof editPath[1] === 'number' ? editPath[1] : null;
+                        if (lessonIdx !== null) {
+                          // Extract a human-readable change summary for the AI proposal
+                          const ctx = extractEditContext(oldData, newData, editPath);
+                          // '_deliverableEdit' key: source tab gets AI proposal,
+                          // downstream tabs get stale badge + proposal (no auto-regen)
+                          smartSync.notifyEdit(lessonIdx, '_deliverableEdit', activeTab, ctx);
+                        }
+                      }
+                    }}
+                    onAddLessons={(lessonIndices) => {
+                      setAddLessonsModal({ lessonIndices });
+                    }}
+                    freshLessonIndices={(() => {
+                      const base = deliv.freshLessons?.[activeTab] ?? null;
+                      if (
+                        agentHighlight &&
+                        agentHighlight.featureId === activeTab &&
+                        agentHighlight.lessonIndex != null
+                      ) {
+                        const merged = new Set(base || []);
+                        merged.add(agentHighlight.lessonIndex);
+                        return merged;
+                      }
+                      return base;
+                    })()}
+                    proposals={editProposal.proposals[activeTab] ?? {}}
+                    onAcceptProposal={(lessonIndex) => {
+                      editProposal.acceptProposal(
+                        activeTab,
+                        lessonIndex,
+                        deliv.deliverables[activeTab]?.data,
+                        deliv.setDeliverables,
+                      );
+                    }}
+                    onDismissProposal={(lessonIndex) => editProposal.dismissProposal(activeTab, lessonIndex)}
+                    onRegenerateProposal={(lessonIndex) =>
+                      editProposal.regenerateProposal(
+                        activeTab,
+                        courseMap,
+                        lessonIndex,
+                        editProposal.proposals[activeTab]?.[lessonIndex]?.editContext,
+                        deliv.deliverables[activeTab]?.data,
+                      )
+                    }
+                    isStale={deliv.deliverables[activeTab]?.stale === true}
+                    staleConfidence={deliv.deliverables[activeTab]?.staleConfidence}
+                    onSyncNow={() => {
+                      const staleEdits = deliv.deliverables[activeTab]?.staleEdits;
+                      if (staleEdits?.lessonIndices?.length > 0) {
+                        // Surgical: only regen the affected lessons
+                        for (const idx of staleEdits.lessonIndices) {
+                          deliv.regenerateLesson(activeTab, courseMap, idx);
+                        }
+                      } else {
+                        // Fallback: full regen
+                        const scopeIndices = lessonScope.type === 'specific' ? lessonScope.indices : null;
+                        deliv.generateAll(courseMap, [activeTab], scopeIndices);
+                      }
+                    }}
+                    slideTheme={slideTheme}
+                    onSlideThemeChange={setSlideTheme}
+                  />
+                </ErrorBoundary>
+              )}
+            </div>
+
+            {/* ── Export side panel (right) — shown once course map is ready ── */}
+            {courseMap && gen.progressStep === 'done' && (
+              <div
+                data-testid="workspace-export-panel"
+                className={`${mobileWorkspaceView === 'export' ? 'block' : 'hidden'} lg:block lg:flex-shrink-0 min-w-0`}
+              >
+                <ExportSidePanel
+                  activeTab={activeTab}
+                  activeTabLabel={workspaceTabs.find((f) => f.id === activeTab)?.label || activeTab}
+                  deliverables={deliv.deliverables}
+                  onCourseMapExport={handleDownload}
+                  onSaveProject={handleSaveProject}
+                />
+              </div>
             )}
           </div>
+        </main>
 
-          {/* ── Export side panel (right) — shown once course map is ready ── */}
-          {courseMap && gen.progressStep === 'done' && (
-            <ExportSidePanel
-              activeTab={activeTab}
-              activeTabLabel={workspaceTabs.find(f => f.id === activeTab)?.label || activeTab}
-              deliverables={deliv.deliverables}
-              onCourseMapExport={handleDownload}
-              onSaveProject={handleSaveProject}
-            />
-          )}
-        </div>
-      </main>
+        <footer className="w-full px-6 py-4 text-center space-y-1">
+          <p className="text-[10px] text-slate-300/70">
+            Built by the Educational Technology team at NYU Silver School of Social Work
+          </p>
+          <div className="flex items-center justify-center gap-3 text-[10px] text-slate-300/70">
+            <a href="#/changelog" className="font-medium hover:text-indigo-500 transition-colors duration-200">
+              v0.5
+            </a>
+            <span>·</span>
+            <a href="#/privacy" className="hover:text-indigo-500 transition-colors duration-200">
+              Privacy
+            </a>
+            <span>·</span>
+            <a href="#/terms" className="hover:text-indigo-500 transition-colors duration-200">
+              Terms
+            </a>
+          </div>
+        </footer>
 
-      <footer className="w-full px-6 py-4 text-center space-y-1">
-        <p className="text-[10px] text-slate-300/70">
-          Built by the Educational Technology team at NYU Silver School of Social Work
-        </p>
-        <div className="flex items-center justify-center gap-3 text-[10px] text-slate-300/70">
-          <a href="#/changelog" className="font-medium hover:text-indigo-500 transition-colors duration-200">v0.5</a>
-          <span>·</span>
-          <a href="#/privacy" className="hover:text-indigo-500 transition-colors duration-200">Privacy</a>
-          <span>·</span>
-          <a href="#/terms" className="hover:text-indigo-500 transition-colors duration-200">Terms</a>
-        </div>
-      </footer>
-
-      {/* Cloud Project Picker modal */}
-      {showProjectPicker && (
-        <Suspense fallback={null}>
-          <ProjectPicker
-            isOpen={showProjectPicker}
-            onClose={() => setShowProjectPicker(false)}
-            onOpenProject={handleOpenCloudProject}
-            onSaveCurrentAsNew={hasGenerated ? handleSaveCurrentAsNew : null}
-            onDeleteProject={(deletedId, remainingCount) => {
-              if (deletedId === projectIdRef.current || remainingCount === 0) {
-                try { localStorage.removeItem(STORAGE_KEY); } catch { }
-                setHasSavedSession(false);
-                if (deletedId === projectIdRef.current) {
-                  setProjectId(null);
+        {/* Cloud Project Picker modal */}
+        {showProjectPicker && (
+          <Suspense fallback={null}>
+            <ProjectPicker
+              isOpen={showProjectPicker}
+              onClose={() => setShowProjectPicker(false)}
+              onOpenProject={handleOpenCloudProject}
+              onSaveCurrentAsNew={hasGenerated ? handleSaveCurrentAsNew : null}
+              onDeleteProject={(deletedId, remainingCount) => {
+                if (deletedId === projectIdRef.current || remainingCount === 0) {
+                  try {
+                    localStorage.removeItem(STORAGE_KEY);
+                  } catch {}
+                  setHasSavedSession(false);
+                  if (deletedId === projectIdRef.current) {
+                    setProjectId(null);
+                  }
                 }
-              }
-            }}
+              }}
+            />
+          </Suspense>
+        )}
+
+        {/* Help merged into ChatPanel — HelpDrawer removed */}
+
+        {developerMode && showDeveloperPanel && (
+          <Suspense fallback={null}>
+            <DeveloperModePanel
+              isOpen={developerMode && showDeveloperPanel}
+              snapshot={buildProjectSnapshot({ mode: 'developer' })}
+              developerTemplates={developerTemplates}
+              activeDeveloperTemplateId={activeDeveloperTemplateId}
+              onApply={applyDeveloperSnapshot}
+              onSaveTemplate={saveDeveloperTemplateFromPanel}
+              onRenameTemplate={renameDeveloperTemplate}
+              onDuplicateTemplate={duplicateDeveloperTemplate}
+              onDeleteTemplate={removeDeveloperTemplate}
+              onClose={() => setShowDeveloperPanel(false)}
+            />
+          </Suspense>
+        )}
+
+        {/* AI Context Menu (right-click on cells/items for inline AI editing) */}
+        {aiContextMenu && (
+          <AIContextMenu
+            position={aiContextMenu.position}
+            target={aiContextMenu.target}
+            onAction={handleAIAction}
+            onClose={closeAIContextMenu}
           />
-        </Suspense>
-      )}
+        )}
 
-      {/* Help merged into ChatPanel — HelpDrawer removed */}
+        {/* ── Dependency Map modal ── */}
+        <DependencyMap isOpen={showDepMap} onClose={() => setShowDepMap(false)} deliverables={deliv.deliverables} />
 
-      {developerMode && showDeveloperPanel && (
-        <Suspense fallback={null}>
-          <DeveloperModePanel
-            isOpen={developerMode && showDeveloperPanel}
-            snapshot={buildProjectSnapshot({ mode: 'developer' })}
-            developerTemplates={developerTemplates}
-            activeDeveloperTemplateId={activeDeveloperTemplateId}
-            onApply={applyDeveloperSnapshot}
-            onSaveTemplate={saveDeveloperTemplateFromPanel}
-            onRenameTemplate={renameDeveloperTemplate}
-            onDuplicateTemplate={duplicateDeveloperTemplate}
-            onDeleteTemplate={removeDeveloperTemplate}
-            onClose={() => setShowDeveloperPanel(false)}
+        {/* ── Cascade Preview tooltip (tab hover) ── */}
+        {cascadeHover && (
+          <CascadePreview
+            fieldKey={cascadeHover.fieldKey}
+            featureId={cascadeHover.featureId}
+            position={cascadeHover.position}
+            deliverables={deliv.deliverables}
           />
-        </Suspense>
-      )}
-
-      {/* AI Context Menu (right-click on cells/items for inline AI editing) */}
-      {aiContextMenu && (
-        <AIContextMenu
-          position={aiContextMenu.position}
-          target={aiContextMenu.target}
-          onAction={handleAIAction}
-          onClose={closeAIContextMenu}
-        />
-      )}
-
-      {/* ── Dependency Map modal ── */}
-      <DependencyMap
-        isOpen={showDepMap}
-        onClose={() => setShowDepMap(false)}
-        deliverables={deliv.deliverables}
-      />
-
-      {/* ── Cascade Preview tooltip (tab hover) ── */}
-      {cascadeHover && (
-        <CascadePreview
-          fieldKey={cascadeHover.fieldKey}
-          featureId={cascadeHover.featureId}
-          position={cascadeHover.position}
-          deliverables={deliv.deliverables}
-        />
-      )}
-
-    </div>
+        )}
+      </div>
     </Suspense>
   );
 }

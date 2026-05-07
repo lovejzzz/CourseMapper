@@ -16,22 +16,80 @@ import readability from 'text-readability';
 // ── Bloom's Taxonomy ─────────────────────────────────────────────────────────
 
 const BLOOMS_LEVELS = {
-  Remember: 1, Understand: 2, Apply: 3, Analyze: 4, Evaluate: 5, Create: 6,
+  Remember: 1,
+  Understand: 2,
+  Apply: 3,
+  Analyze: 4,
+  Evaluate: 5,
+  Create: 6,
 };
 
 const BLOOMS_VERBS = {
   // L1 — Remember
-  define: 1, list: 1, recall: 1, identify: 1, name: 1, recognize: 1, state: 1, label: 1, match: 1, select: 1,
+  define: 1,
+  list: 1,
+  recall: 1,
+  identify: 1,
+  name: 1,
+  recognize: 1,
+  state: 1,
+  label: 1,
+  match: 1,
+  select: 1,
   // L2 — Understand
-  explain: 2, summarize: 2, interpret: 2, classify: 2, compare: 2, paraphrase: 2, describe: 2, discuss: 2, distinguish: 2, predict: 2,
+  explain: 2,
+  summarize: 2,
+  interpret: 2,
+  classify: 2,
+  compare: 2,
+  paraphrase: 2,
+  describe: 2,
+  discuss: 2,
+  distinguish: 2,
+  predict: 2,
   // L3 — Apply
-  apply: 3, demonstrate: 3, solve: 3, use: 3, implement: 3, calculate: 3, execute: 3, illustrate: 3, practice: 3, show: 3,
+  apply: 3,
+  demonstrate: 3,
+  solve: 3,
+  use: 3,
+  implement: 3,
+  calculate: 3,
+  execute: 3,
+  illustrate: 3,
+  practice: 3,
+  show: 3,
   // L4 — Analyze
-  analyze: 4, differentiate: 4, organize: 4, examine: 4, categorize: 4, deconstruct: 4, relate: 4, contrast: 4, investigate: 4,
+  analyze: 4,
+  differentiate: 4,
+  organize: 4,
+  examine: 4,
+  categorize: 4,
+  deconstruct: 4,
+  relate: 4,
+  contrast: 4,
+  investigate: 4,
   // L5 — Evaluate
-  evaluate: 5, assess: 5, critique: 5, justify: 5, judge: 5, argue: 5, defend: 5, appraise: 5, prioritize: 5, recommend: 5,
+  evaluate: 5,
+  assess: 5,
+  critique: 5,
+  justify: 5,
+  judge: 5,
+  argue: 5,
+  defend: 5,
+  appraise: 5,
+  prioritize: 5,
+  recommend: 5,
   // L6 — Create
-  create: 6, design: 6, develop: 6, construct: 6, formulate: 6, compose: 6, produce: 6, propose: 6, invent: 6, synthesize: 6,
+  create: 6,
+  design: 6,
+  develop: 6,
+  construct: 6,
+  formulate: 6,
+  compose: 6,
+  produce: 6,
+  propose: 6,
+  invent: 6,
+  synthesize: 6,
 };
 
 const LEVEL_NAMES = ['', 'Remember', 'Understand', 'Apply', 'Analyze', 'Evaluate', 'Create'];
@@ -44,11 +102,16 @@ const SEVERITY_ORDER = { error: 0, warning: 1, info: 2 };
 export function parseBloomsFromObjectives(text) {
   if (!text || typeof text !== 'string') return [];
   const results = [];
-  const lines = text.split('\n').map(l => l.trim()).filter(Boolean);
+  const lines = text
+    .split('\n')
+    .map((l) => l.trim())
+    .filter(Boolean);
 
   for (const line of lines) {
     // Strip numbered prefixes like "1a.", "2b.", "3.", "- "
-    const stripped = line.replace(/^\s*[-•]?\s*\d+[a-z]?\.\s*/i, '').replace(/^students?\s+will\s+be\s+able\s+to:?\s*/i, '');
+    const stripped = line
+      .replace(/^\s*[-•]?\s*\d+[a-z]?\.\s*/i, '')
+      .replace(/^students?\s+will\s+be\s+able\s+to:?\s*/i, '');
     if (!stripped) continue;
 
     // Extract the first word (the verb)
@@ -90,7 +153,10 @@ function getDelivArray(deliverables, featureId) {
 
 /** Normalize text for substring matching. */
 function norm(s) {
-  return (s || '').toLowerCase().replace(/[^a-z0-9\s]/g, '').trim();
+  return (s || '')
+    .toLowerCase()
+    .replace(/[^a-z0-9\s]/g, '')
+    .trim();
 }
 
 // ── 1. Bloom's Alignment ─────────────────────────────────────────────────────
@@ -107,8 +173,8 @@ export function validateBloomsAlignment(courseMap, deliverables) {
     const objLevels = getLessonObjectiveLevels(lesson);
     if (objLevels.length === 0) continue;
 
-    const maxObjLevel = Math.max(...objLevels.map(o => o.level));
-    const hasHighOrder = objLevels.some(o => o.level >= 5); // Evaluate or Create
+    const maxObjLevel = Math.max(...objLevels.map((o) => o.level));
+    const hasHighOrder = objLevels.some((o) => o.level >= 5); // Evaluate or Create
 
     // Collect assessment Bloom's levels for this lesson
     const assessmentLevels = [];
@@ -129,7 +195,7 @@ export function validateBloomsAlignment(courseMap, deliverables) {
       const lessonTitle = norm(lesson.title);
       for (const a of assignments) {
         const related = (a.rl || []).map(norm);
-        if (related.some(r => r.includes(lessonTitle) || lessonTitle.includes(r))) {
+        if (related.some((r) => r.includes(lessonTitle) || lessonTitle.includes(r))) {
           const lvl = resolveBloomsLevel(a.bl);
           if (lvl > 0) assessmentLevels.push(lvl);
         }
@@ -146,7 +212,7 @@ export function validateBloomsAlignment(courseMap, deliverables) {
     // Lesson plan segments
     const plans = getDelivArray(deliverables, 'lessonPlans');
     if (plans && plans[li]) {
-      for (const seg of (plans[li].ol || [])) {
+      for (const seg of plans[li].ol || []) {
         const lvl = resolveBloomsLevel(seg.bl);
         if (lvl > 0) assessmentLevels.push(lvl);
       }
@@ -155,7 +221,7 @@ export function validateBloomsAlignment(courseMap, deliverables) {
     // Study guide review questions
     const guides = getDelivArray(deliverables, 'studyGuides');
     if (guides && guides[li]) {
-      for (const rq of (guides[li].rq || [])) {
+      for (const rq of guides[li].rq || []) {
         const lvl = resolveBloomsLevel(rq.bl);
         if (lvl > 0) assessmentLevels.push(lvl);
       }
@@ -244,14 +310,14 @@ export function validateObjectiveAlignment(courseMap, deliverables) {
     const objParsed = getLessonObjectiveLevels(lesson);
     if (objParsed.length === 0) continue;
 
-    const objectives = objParsed.map(o => norm(o.objectiveText));
+    const objectives = objParsed.map((o) => norm(o.objectiveText));
 
     // Collect all assessment alignment texts for this lesson
     const assessmentAlignments = [];
 
     const quizzes = getDelivArray(deliverables, 'quizBank');
     if (quizzes && quizzes[li]) {
-      for (const q of (quizzes[li].qs || [])) {
+      for (const q of quizzes[li].qs || []) {
         if (q.oa) assessmentAlignments.push(norm(q.oa));
       }
     }
@@ -261,8 +327,8 @@ export function validateObjectiveAlignment(courseMap, deliverables) {
       const lessonTitle = norm(lesson.title);
       for (const a of assignments) {
         const related = (a.rl || []).map(norm);
-        if (related.some(r => r.includes(lessonTitle) || lessonTitle.includes(r))) {
-          for (const ob of (a.ob || [])) {
+        if (related.some((r) => r.includes(lessonTitle) || lessonTitle.includes(r))) {
+          for (const ob of a.ob || []) {
             assessmentAlignments.push(norm(ob));
           }
         }
@@ -271,7 +337,7 @@ export function validateObjectiveAlignment(courseMap, deliverables) {
 
     const rubrics = getDelivArray(deliverables, 'rubrics');
     if (rubrics && rubrics[li]) {
-      for (const cr of (rubrics[li].cr || [])) {
+      for (const cr of rubrics[li].cr || []) {
         if (cr.oa) assessmentAlignments.push(norm(cr.oa));
       }
     }
@@ -293,10 +359,8 @@ export function validateObjectiveAlignment(courseMap, deliverables) {
     for (let oi = 0; oi < objectives.length; oi++) {
       const obj = objectives[oi];
       // Substring match: does any assessment mention key words from the objective?
-      const objWords = obj.split(/\s+/).filter(w => w.length > 3); // significant words
-      const isMatched = assessmentAlignments.some(aa =>
-        objWords.some(w => aa.includes(w))
-      );
+      const objWords = obj.split(/\s+/).filter((w) => w.length > 3); // significant words
+      const isMatched = assessmentAlignments.some((aa) => objWords.some((w) => aa.includes(w)));
       if (!isMatched) {
         const shortObj = objParsed[oi].objectiveText.slice(0, 60);
         findings.push({
@@ -351,7 +415,7 @@ export function assessCognitiveLoad(courseMap, deliverables) {
       const lessonTitle = norm(lesson.title);
       for (const a of assignments) {
         const related = (a.rl || []).map(norm);
-        if (related.some(r => r.includes(lessonTitle) || lessonTitle.includes(r))) {
+        if (related.some((r) => r.includes(lessonTitle) || lessonTitle.includes(r))) {
           itemCount++;
           // Parse estimated time from 'et' field (e.g. "6-8 hours" → 420 min)
           const etMatch = (a.et || '').match(/(\d+)/);
@@ -419,7 +483,9 @@ export function validateDifficultyProgression(deliverables) {
     const qs = quizzes[li]?.qs || [];
     if (qs.length === 0) continue;
 
-    let easy = 0, medium = 0, hard = 0;
+    let easy = 0,
+      medium = 0,
+      hard = 0;
     for (const q of qs) {
       const score = DIFFICULTY_SCORES[q.df] || 0;
       if (score === 1) easy++;
@@ -471,10 +537,14 @@ export function validateDifficultyProgression(deliverables) {
 // ── 5. Readability Scoring ────────────────────────────────────────────────────
 
 const READABLE_NAMES = {
-  quizBank: 'Quiz & Exam Bank', discussions: 'Discussion Prompts',
-  lessonPlans: 'Lesson Plans', slideDecks: 'Slide Decks',
-  rubrics: 'Rubrics', assignments: 'Assignments',
-  studyGuides: 'Study Guides', courseFaq: 'Course FAQ',
+  quizBank: 'Quiz & Exam Bank',
+  discussions: 'Discussion Prompts',
+  lessonPlans: 'Lesson Plans',
+  slideDecks: 'Slide Decks',
+  rubrics: 'Rubrics',
+  assignments: 'Assignments',
+  studyGuides: 'Study Guides',
+  courseFaq: 'Course FAQ',
 };
 
 function extractDeliverableText(deliverables, featureId) {
@@ -482,7 +552,11 @@ function extractDeliverableText(deliverables, featureId) {
   if (!deliv || deliv.status !== 'done' || !deliv.data) return '';
   let parsed = deliv.data;
   if (typeof parsed === 'string') {
-    try { parsed = JSON.parse(parsed); } catch { return ''; }
+    try {
+      parsed = JSON.parse(parsed);
+    } catch {
+      return '';
+    }
   }
   const arrKey = getArrayKey(featureId, parsed);
   if (!arrKey || !Array.isArray(parsed[arrKey])) return '';
@@ -557,7 +631,10 @@ export async function validateGrammarAsync(courseMap, deliverables) {
     try {
       const { matches } = await checkGrammar(text);
       if (matches.length > 0) {
-        const topIssues = matches.slice(0, 3).map(m => m.shortMessage || m.message).join('; ');
+        const topIssues = matches
+          .slice(0, 3)
+          .map((m) => m.shortMessage || m.message)
+          .join('; ');
         findings.push({
           id: `grammar-${featureId}`,
           severity: matches.length > 5 ? 'warning' : 'info',
@@ -603,13 +680,15 @@ export function generateCourseHealthReport(courseMap, deliverables) {
   // Sort: error → warning → info
   findings.sort((a, b) => SEVERITY_ORDER[a.severity] - SEVERITY_ORDER[b.severity]);
 
-  const errorCount = findings.filter(f => f.severity === 'error').length;
-  const warningCount = findings.filter(f => f.severity === 'warning').length;
-  const infoCount = findings.filter(f => f.severity === 'info').length;
+  const errorCount = findings.filter((f) => f.severity === 'error').length;
+  const warningCount = findings.filter((f) => f.severity === 'warning').length;
+  const infoCount = findings.filter((f) => f.severity === 'info').length;
 
   // Build summary for prompt injection (top 3 issues, compact)
-  const topFindings = findings.filter(f => f.severity !== 'info').slice(0, 3);
-  const summaryLines = [`Course Health: ${errorCount} error${errorCount !== 1 ? 's' : ''}, ${warningCount} warning${warningCount !== 1 ? 's' : ''}`];
+  const topFindings = findings.filter((f) => f.severity !== 'info').slice(0, 3);
+  const summaryLines = [
+    `Course Health: ${errorCount} error${errorCount !== 1 ? 's' : ''}, ${warningCount} warning${warningCount !== 1 ? 's' : ''}`,
+  ];
   for (const f of topFindings) {
     summaryLines.push(`- ${f.severity.toUpperCase()}: ${f.message}`);
   }
@@ -629,7 +708,7 @@ export const AUTO_FIX_CATEGORIES = new Set(['readability', 'difficulty', 'gramma
  */
 export function classifyFindings(findings) {
   return {
-    autoFixable: findings.filter(f => AUTO_FIX_CATEGORIES.has(f.category) && f.suggestedPrompt),
-    needsDecision: findings.filter(f => !AUTO_FIX_CATEGORIES.has(f.category) && f.suggestedPrompt),
+    autoFixable: findings.filter((f) => AUTO_FIX_CATEGORIES.has(f.category) && f.suggestedPrompt),
+    needsDecision: findings.filter((f) => !AUTO_FIX_CATEGORIES.has(f.category) && f.suggestedPrompt),
   };
 }

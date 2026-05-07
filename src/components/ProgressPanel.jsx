@@ -25,7 +25,12 @@ const LOG_ICONS = {
   ),
   warn: (
     <svg className="w-3 h-3 text-amber-500 flex-shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-      <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 9v2m0 4h.01m-6.938 4h13.856c1.54 0 2.502-1.667 1.732-3L13.732 4c-.77-1.333-2.694-1.333-3.464 0L3.34 16c-.77 1.333.192 3 1.732 3z" />
+      <path
+        strokeLinecap="round"
+        strokeLinejoin="round"
+        strokeWidth={2}
+        d="M12 9v2m0 4h.01m-6.938 4h13.856c1.54 0 2.502-1.667 1.732-3L13.732 4c-.77-1.333-2.694-1.333-3.464 0L3.34 16c-.77 1.333.192 3 1.732 3z"
+      />
     </svg>
   ),
   error: (
@@ -35,7 +40,12 @@ const LOG_ICONS = {
   ),
   info: (
     <svg className="w-3 h-3 text-slate-400 flex-shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-      <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M13 16h-1v-4h-1m1-4h.01M12 2a10 10 0 100 20 10 10 0 000-20z" />
+      <path
+        strokeLinecap="round"
+        strokeLinejoin="round"
+        strokeWidth={2}
+        d="M13 16h-1v-4h-1m1-4h.01M12 2a10 10 0 100 20 10 10 0 000-20z"
+      />
     </svg>
   ),
 };
@@ -83,7 +93,8 @@ function ElapsedTimer({ startedAt, avgMs }) {
   const etaStr = avgMs ? (avgMs < 60000 ? `~${(avgMs / 1000).toFixed(0)}s` : `~${(avgMs / 60000).toFixed(1)}m`) : null;
   return (
     <span className="text-[9px] font-semibold text-indigo-400 animate-pulse tabular-nums">
-      {elStr}{etaStr && <span className="text-slate-400 font-normal"> / {etaStr}</span>}
+      {elStr}
+      {etaStr && <span className="text-slate-400 font-normal"> / {etaStr}</span>}
     </span>
   );
 }
@@ -144,26 +155,55 @@ const DELIV_LOG_STYLES = {
 };
 
 export default function ProgressPanel({
-  currentStep, modelName, error,
-  courseMap, activeTab, onRevision, onDeliverableRevision, isRevising,
-  streamDetail, streamProgress, onStop,
-  isStopped, onResume, onClearAll,
-  examChanges, pendingExamPatches, onAcceptPatches, onRejectPatch,
-  retryInfo, completenessInfo, generationLog, onRetryExamine,
-  chatHistory, onChatHistoryChange,
+  currentStep,
+  modelName,
+  error,
+  courseMap,
+  activeTab,
+  onRevision,
+  onDeliverableRevision,
+  isRevising,
+  streamDetail,
+  streamProgress,
+  onStop,
+  isStopped,
+  onResume,
+  onClearAll,
+  examChanges,
+  pendingExamPatches,
+  onAcceptPatches,
+  onRejectPatch,
+  retryInfo,
+  completenessInfo,
+  generationLog,
+  onRetryExamine,
+  chatHistory,
+  onChatHistoryChange,
   // Item 3: deliverable generation state
-  deliverables, delivProgress, currentDelivFeatures, isDelivGenerating,
-  delivGenerationLog, delivTimings,
+  deliverables,
+  delivProgress,
+  currentDelivFeatures,
+  isDelivGenerating,
+  delivGenerationLog,
+  delivTimings,
   // Item 6: cascade sync log
-  syncLog, isSyncing, pendingSyncCount, syncingFeatures,
+  syncLog,
+  isSyncing,
+  pendingSyncCount,
+  syncingFeatures,
   // Cloud save status (silent — shown inline, not as a separate banner)
   cloudSaveStatus,
   // Stop deliverable generation
   onStopDeliverables,
   // Version history (moved from ExportSidePanel)
-  versionHistory, activeVersion, onJumpVersion,
+  versionHistory,
+  activeVersion,
+  onJumpVersion,
   // Named snapshots (1.4)
-  namedSnapshots, onSaveSnapshot, onDeleteSnapshot, onLoadSnapshot,
+  namedSnapshots,
+  onSaveSnapshot,
+  onDeleteSnapshot,
+  onLoadSnapshot,
 }) {
   // Track start time for ETA calculation
   const startTimeRef = useRef(null);
@@ -186,7 +226,10 @@ export default function ProgressPanel({
   const isDeliverableTab = activeTab && activeTab !== 'courseMap';
 
   useEffect(() => {
-    if ((currentStep === 'generating' || currentStep === 'continuing' || currentStep === 'examining') && !startTimeRef.current) {
+    if (
+      (currentStep === 'generating' || currentStep === 'continuing' || currentStep === 'examining') &&
+      !startTimeRef.current
+    ) {
       startTimeRef.current = Date.now();
     }
     if (currentStep === 'done' || !currentStep) {
@@ -215,9 +258,9 @@ export default function ProgressPanel({
       prevSyncLenRef.current = syncLog.length;
       if (!syncExpanded) setSyncExpanded(true);
     }
-  // Intentionally depends only on syncLog length: we only want to auto-expand the
-  // sync section when new entries arrive. Including syncExpanded or setSyncExpanded
-  // would re-fire the effect every time the panel is toggled, defeating the purpose.
+    // Intentionally depends only on syncLog length: we only want to auto-expand the
+    // sync section when new entries arrive. Including syncExpanded or setSyncExpanded
+    // would re-fire the effect every time the panel is toggled, defeating the purpose.
   }, [syncLog?.length]); // eslint-disable-line react-hooks/exhaustive-deps
 
   // isDone = course map generation finished. isRevising (deliverables/revision) is shown BELOW,
@@ -225,22 +268,22 @@ export default function ProgressPanel({
   const isDone = currentStep === 'done';
 
   // Only show the 'continuing' step if auto-continuation is active or was used
-  const showContinuing = completenessInfo && (
-    currentStep === 'continuing' ||
-    completenessInfo.status === 'continuing' ||
-    completenessInfo.continuationUsed
-  );
-  const visibleSteps = showContinuing ? STEPS : STEPS.filter(s => s.key !== 'continuing');
+  const showContinuing =
+    completenessInfo &&
+    (currentStep === 'continuing' || completenessInfo.status === 'continuing' || completenessInfo.continuationUsed);
+  const visibleSteps = showContinuing ? STEPS : STEPS.filter((s) => s.key !== 'continuing');
   const currentIdx = visibleSteps.findIndex((s) => s.key === currentStep);
 
   // Deliverable rows to show (only non-courseMap)
   const delivRows = deliverables
     ? Object.entries(deliverables)
-      .filter(([id]) => id !== 'courseMap')
-      .map(([id, state]) => ({ id, label: resolveLabel(id), status: state?.status, error: state?.error }))
+        .filter(([id]) => id !== 'courseMap')
+        .map(([id, state]) => ({ id, label: resolveLabel(id), status: state?.status, error: state?.error }))
     : [];
 
-  const allDelivDone = delivRows.length === 0 || (delivRows.length > 0 && !isDelivGenerating && delivRows.every(r => r.status === 'done' || r.status === 'error'));
+  const allDelivDone =
+    delivRows.length === 0 ||
+    (delivRows.length > 0 && !isDelivGenerating && delivRows.every((r) => r.status === 'done' || r.status === 'error'));
   const everythingDone = isDone && allDelivDone;
 
   // Auto-collapse when fully done (with a short delay for the user to see the final state)
@@ -274,8 +317,8 @@ export default function ProgressPanel({
 
   // Build summary line for collapsed state
   const lessonCount = completenessInfo?.actual || courseMap?.lessons?.length || 0;
-  const delivDoneCount = delivRows.filter(r => r.status === 'done').length;
-  const delivErrorCount = delivRows.filter(r => r.status === 'error').length;
+  const delivDoneCount = delivRows.filter((r) => r.status === 'done').length;
+  const delivErrorCount = delivRows.filter((r) => r.status === 'error').length;
   let summaryText = `${lessonCount} lessons generated`;
   if (delivRows.length > 0) {
     if (delivErrorCount > 0) {
@@ -289,9 +332,8 @@ export default function ProgressPanel({
   if (isDone && summaryCollapsed) {
     // Determine the most informative sync status line
     const latestSyncEntry = syncLog && syncLog.length > 0 ? syncLog[syncLog.length - 1] : null;
-    const syncStatusLabel = isSyncing && latestSyncEntry
-      ? `Updating ${resolveLabel(latestSyncEntry.featureId)}…`
-      : null;
+    const syncStatusLabel =
+      isSyncing && latestSyncEntry ? `Updating ${resolveLabel(latestSyncEntry.featureId)}…` : null;
 
     return (
       <div className="glass rounded-squircle shadow-glass animate-spring-scale">
@@ -300,7 +342,9 @@ export default function ProgressPanel({
           className="w-full p-4 flex items-center gap-3 hover:bg-white/20 transition-colors text-left"
           aria-label="Expand generation progress"
         >
-          <div className={`w-7 h-7 rounded-full flex items-center justify-center flex-shrink-0 ${isSyncing ? 'bg-amber-100/80' : 'bg-emerald-100/80'}`}>
+          <div
+            className={`w-7 h-7 rounded-full flex items-center justify-center flex-shrink-0 ${isSyncing ? 'bg-amber-100/80' : 'bg-emerald-100/80'}`}
+          >
             {isSyncing ? (
               <svg className="animate-spin w-3.5 h-3.5 text-amber-500" fill="none" viewBox="0 0 24 24">
                 <circle className="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" strokeWidth="4" />
@@ -314,7 +358,11 @@ export default function ProgressPanel({
           </div>
           <div className="flex-1 min-w-0">
             <p className={`text-sm font-semibold ${isSyncing ? 'text-amber-600' : 'text-emerald-700'}`}>
-              {isSyncing ? (syncStatusLabel || 'Syncing changes…') : isDelivGenerating ? 'Generating deliverables…' : 'Generation complete'}
+              {isSyncing
+                ? syncStatusLabel || 'Syncing changes…'
+                : isDelivGenerating
+                  ? 'Generating deliverables…'
+                  : 'Generation complete'}
             </p>
             <p className="text-[11px] text-slate-400 truncate">{summaryText}</p>
           </div>
@@ -324,21 +372,36 @@ export default function ProgressPanel({
         </button>
 
         {/* Revision chat still accessible when collapsed */}
-        {(isDone || isStopped) && courseMap && (() => {
-          const delivLabel = resolveLabel(activeTab);
-          const revHandler = isDeliverableTab && onDeliverableRevision ? onDeliverableRevision : onRevision;
-          const placeholder = isDeliverableTab ? `Ask for revisions to ${delivLabel}…` : 'Ask for revisions or drop files…';
-          const tabBadge = isDeliverableTab ? delivLabel : 'Course Map';
-          return (
-            <div>
-              <div className="px-4 pt-1 pb-1 flex items-center gap-1.5">
-                <span className="text-[9px] font-bold text-slate-400 uppercase tracking-wider">Revising:</span>
-                <span className="text-[9px] font-bold px-2 py-0.5 rounded-full bg-indigo-50 text-indigo-600 border border-indigo-100 truncate max-w-[120px]">{tabBadge}</span>
+        {(isDone || isStopped) &&
+          courseMap &&
+          (() => {
+            const delivLabel = resolveLabel(activeTab);
+            const revHandler = isDeliverableTab && onDeliverableRevision ? onDeliverableRevision : onRevision;
+            const placeholder = isDeliverableTab
+              ? `Ask for revisions to ${delivLabel}…`
+              : 'Ask for revisions or drop files…';
+            const tabBadge = isDeliverableTab ? delivLabel : 'Course Map';
+            return (
+              <div>
+                <div className="px-4 pt-1 pb-1 flex items-center gap-1.5">
+                  <span className="text-[9px] font-bold text-slate-400 uppercase tracking-wider">Revising:</span>
+                  <span className="text-[9px] font-bold px-2 py-0.5 rounded-full bg-indigo-50 text-indigo-600 border border-indigo-100 truncate max-w-[120px]">
+                    {tabBadge}
+                  </span>
+                </div>
+                <RevisionChat
+                  onRevision={revHandler}
+                  isRevising={isRevising}
+                  savedMessages={chatHistory}
+                  onMessagesChange={onChatHistoryChange}
+                  placeholder={placeholder}
+                  courseMap={courseMap}
+                  isStopped={isStopped}
+                  onResume={onResume}
+                />
               </div>
-              <RevisionChat onRevision={revHandler} isRevising={isRevising} savedMessages={chatHistory} onMessagesChange={onChatHistoryChange} placeholder={placeholder} courseMap={courseMap} isStopped={isStopped} onResume={onResume} />
-            </div>
-          );
-        })()}
+            );
+          })()}
       </div>
     );
   }
@@ -350,7 +413,12 @@ export default function ProgressPanel({
         <div className="flex items-center gap-2.5 mb-4">
           <div className="w-8 h-8 rounded-squircle-xs bg-gradient-to-br from-cyan-500 to-blue-600 flex items-center justify-center flex-shrink-0">
             <svg className="w-4 h-4 text-white" viewBox="0 0 24 24" fill="none">
-              <path d="M12 2v4m0 12v4M4.93 4.93l2.83 2.83m8.48 8.48l2.83 2.83M2 12h4m12 0h4M4.93 19.07l2.83-2.83m8.48-8.48l2.83-2.83" stroke="currentColor" strokeWidth={1.6} strokeLinecap="round" />
+              <path
+                d="M12 2v4m0 12v4M4.93 4.93l2.83 2.83m8.48 8.48l2.83 2.83M2 12h4m12 0h4M4.93 19.07l2.83-2.83m8.48-8.48l2.83-2.83"
+                stroke="currentColor"
+                strokeWidth={1.6}
+                strokeLinecap="round"
+              />
               <circle cx="12" cy="12" r="3" stroke="currentColor" strokeWidth={1.6} />
             </svg>
           </div>
@@ -380,12 +448,15 @@ export default function ProgressPanel({
               </div>
               <span className="text-[11px] font-medium text-emerald-700">Course map ready</span>
               {completenessInfo && (
-                <span className={`flex-shrink-0 text-[10px] font-semibold px-2 py-0.5 rounded-pill ${completenessInfo.status === 'complete'
-                    ? 'text-emerald-600 bg-emerald-50/60 border border-emerald-100/50'
-                    : completenessInfo.status === 'incomplete'
-                      ? 'text-amber-600 bg-amber-50/60 border border-amber-100/50'
-                      : 'text-slate-500 bg-slate-50/60 border border-slate-200/50'
-                  }`}>
+                <span
+                  className={`flex-shrink-0 text-[10px] font-semibold px-2 py-0.5 rounded-pill ${
+                    completenessInfo.status === 'complete'
+                      ? 'text-emerald-600 bg-emerald-50/60 border border-emerald-100/50'
+                      : completenessInfo.status === 'incomplete'
+                        ? 'text-amber-600 bg-amber-50/60 border border-amber-100/50'
+                        : 'text-slate-500 bg-slate-50/60 border border-slate-200/50'
+                  }`}
+                >
                   {completenessInfo.status === 'complete' || completenessInfo.actual >= (completenessInfo.expected || 0)
                     ? `${completenessInfo.actual} lessons ✓`
                     : `${completenessInfo.actual}/${completenessInfo.expected || '?'} ⚠`}
@@ -412,11 +483,18 @@ export default function ProgressPanel({
                 {/* Per-feature queue: show which are active vs queued */}
                 {syncingFeatures && syncingFeatures.size > 0 && (
                   <div className="flex flex-wrap gap-1 mt-1">
-                    {[...syncingFeatures].map(fId => (
-                      <span key={fId} className="inline-flex items-center gap-1 px-1.5 py-0.5 rounded-md bg-amber-100/60 text-[9px] font-medium text-amber-700">
+                    {[...syncingFeatures].map((fId) => (
+                      <span
+                        key={fId}
+                        className="inline-flex items-center gap-1 px-1.5 py-0.5 rounded-md bg-amber-100/60 text-[9px] font-medium text-amber-700"
+                      >
                         <svg className="animate-spin w-2.5 h-2.5 text-amber-500" fill="none" viewBox="0 0 24 24">
                           <circle className="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" strokeWidth="4" />
-                          <path className="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4z" />
+                          <path
+                            className="opacity-75"
+                            fill="currentColor"
+                            d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4z"
+                          />
                         </svg>
                         {resolveLabel(fId)}
                       </span>
@@ -435,41 +513,60 @@ export default function ProgressPanel({
             {delivRows.length > 0 && (
               <div className="mt-3">
                 <button
-                  onClick={() => setDelivExpanded(v => !v)}
+                  onClick={() => setDelivExpanded((v) => !v)}
                   className="flex items-center gap-2 w-full text-left mb-2"
                   aria-expanded={delivExpanded}
                   aria-label={delivExpanded ? 'Collapse deliverables list' : 'Expand deliverables list'}
                 >
-                  <span className="text-[10px] font-bold text-slate-400 uppercase tracking-wider">
-                    Deliverables
-                  </span>
+                  <span className="text-[10px] font-bold text-slate-400 uppercase tracking-wider">Deliverables</span>
                   {isSyncing ? (
                     /* Cascade sync in progress — show amber syncing indicator, not done count */
                     <>
                       <span className="text-[10px] text-amber-500 font-semibold">syncing…</span>
-                      <svg className="animate-spin w-3 h-3 text-amber-400 flex-shrink-0" fill="none" viewBox="0 0 24 24">
+                      <svg
+                        className="animate-spin w-3 h-3 text-amber-400 flex-shrink-0"
+                        fill="none"
+                        viewBox="0 0 24 24"
+                      >
                         <circle className="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" strokeWidth="4" />
-                        <path className="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4z" />
+                        <path
+                          className="opacity-75"
+                          fill="currentColor"
+                          d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4z"
+                        />
                       </svg>
                     </>
                   ) : isDelivGenerating ? (
                     /* Initial generation — show indigo spinner + count + stop button */
                     <>
                       <span className="text-[10px] text-indigo-500 font-semibold">
-                        {delivRows.filter(r => r.status === 'done').length}/{delivRows.length} done
+                        {delivRows.filter((r) => r.status === 'done').length}/{delivRows.length} done
                       </span>
-                      <svg className="animate-spin w-3 h-3 text-indigo-400 flex-shrink-0" fill="none" viewBox="0 0 24 24">
+                      <svg
+                        className="animate-spin w-3 h-3 text-indigo-400 flex-shrink-0"
+                        fill="none"
+                        viewBox="0 0 24 24"
+                      >
                         <circle className="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" strokeWidth="4" />
-                        <path className="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4z" />
+                        <path
+                          className="opacity-75"
+                          fill="currentColor"
+                          d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4z"
+                        />
                       </svg>
                     </>
                   ) : (
                     /* All done — plain count */
                     <span className="text-[10px] text-slate-400">
-                      ({delivRows.filter(r => r.status === 'done').length}/{delivRows.length})
+                      ({delivRows.filter((r) => r.status === 'done').length}/{delivRows.length})
                     </span>
                   )}
-                  <svg className={`w-3 h-3 text-slate-400 transition-transform ml-auto ${delivExpanded ? 'rotate-180' : ''}`} fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                  <svg
+                    className={`w-3 h-3 text-slate-400 transition-transform ml-auto ${delivExpanded ? 'rotate-180' : ''}`}
+                    fill="none"
+                    stroke="currentColor"
+                    viewBox="0 0 24 24"
+                  >
                     <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M19 9l-7 7-7-7" />
                   </svg>
                 </button>
@@ -490,24 +587,38 @@ export default function ProgressPanel({
                 )}
                 {delivExpanded && (
                   <div className="space-y-1">
-                    {delivRows.map(row => {
+                    {delivRows.map((row) => {
                       const timing = delivTimings?.[row.id];
                       const doneMs = timing?.durationMs;
                       const isActive = currentDelivFeatures?.has(row.id) && isDelivGenerating;
                       const pf = delivProgress?.perFeature?.[row.id];
-                      const chunkPct = pf && pf.chunksTotal > 0 ? Math.round((pf.chunksDone / pf.chunksTotal) * 100) : 0;
+                      const chunkPct =
+                        pf && pf.chunksTotal > 0 ? Math.round((pf.chunksDone / pf.chunksTotal) * 100) : 0;
                       // Compute avg duration of completed deliverables for ETA
-                      const completedDurations = delivTimings ? Object.values(delivTimings).filter(t => t.durationMs).map(t => t.durationMs) : [];
-                      const avgMs = completedDurations.length > 0 ? completedDurations.reduce((a, b) => a + b, 0) / completedDurations.length : null;
+                      const completedDurations = delivTimings
+                        ? Object.values(delivTimings)
+                            .filter((t) => t.durationMs)
+                            .map((t) => t.durationMs)
+                        : [];
+                      const avgMs =
+                        completedDurations.length > 0
+                          ? completedDurations.reduce((a, b) => a + b, 0) / completedDurations.length
+                          : null;
                       return (
                         <div key={row.id} className="px-2 py-1 rounded-lg min-w-0">
                           <div className="flex items-center gap-2 min-w-0">
                             <DelivStatusIcon status={row.status} />
-                            <span className={`text-[11px] font-medium truncate flex-1 min-w-0 ${row.status === 'done' ? 'text-emerald-700'
-                                : row.status === 'error' ? 'text-red-500'
-                                  : row.status === 'streaming' || row.status === 'generating' ? 'text-indigo-600'
-                                    : 'text-slate-400'
-                              }`}>
+                            <span
+                              className={`text-[11px] font-medium truncate flex-1 min-w-0 ${
+                                row.status === 'done'
+                                  ? 'text-emerald-700'
+                                  : row.status === 'error'
+                                    ? 'text-red-500'
+                                    : row.status === 'streaming' || row.status === 'generating'
+                                      ? 'text-indigo-600'
+                                      : 'text-slate-400'
+                              }`}
+                            >
                               {row.label}
                             </span>
                             <span className="flex-shrink-0 flex items-center gap-1.5">
@@ -520,13 +631,18 @@ export default function ProgressPanel({
                               {/* Mini progress bar for active multi-chunk features */}
                               {isActive && pf && pf.chunksTotal > 1 && (
                                 <div className="w-12 h-1 bg-indigo-100 rounded-full overflow-hidden">
-                                  <div className="h-full bg-indigo-500 rounded-full transition-all duration-500" style={{ width: `${chunkPct}%` }} />
+                                  <div
+                                    className="h-full bg-indigo-500 rounded-full transition-all duration-500"
+                                    style={{ width: `${chunkPct}%` }}
+                                  />
                                 </div>
                               )}
                               {/* Time spent for completed deliverables */}
                               {doneMs && row.status === 'done' && (
                                 <span className="text-[9px] text-emerald-500 font-medium">
-                                  {doneMs < 60000 ? `${(doneMs / 1000).toFixed(1)}s` : `${(doneMs / 60000).toFixed(1)}m`}
+                                  {doneMs < 60000
+                                    ? `${(doneMs / 1000).toFixed(1)}s`
+                                    : `${(doneMs / 60000).toFixed(1)}m`}
                                 </span>
                               )}
                               {/* Elapsed timer for currently generating */}
@@ -548,14 +664,25 @@ export default function ProgressPanel({
 
                 {/* Cloud save status — subtle inline indicator */}
                 {cloudSaveStatus && cloudSaveStatus !== 'idle' && (
-                  <div className={`mt-2 flex items-center gap-1.5 px-2 py-1 rounded-md text-[10px] font-medium ${cloudSaveStatus === 'saving' ? 'text-slate-400' :
-                      cloudSaveStatus === 'saved' ? 'text-emerald-500' :
-                        cloudSaveStatus === 'error' ? 'text-red-400' : ''
-                    }`}>
+                  <div
+                    className={`mt-2 flex items-center gap-1.5 px-2 py-1 rounded-md text-[10px] font-medium ${
+                      cloudSaveStatus === 'saving'
+                        ? 'text-slate-400'
+                        : cloudSaveStatus === 'saved'
+                          ? 'text-emerald-500'
+                          : cloudSaveStatus === 'error'
+                            ? 'text-red-400'
+                            : ''
+                    }`}
+                  >
                     {cloudSaveStatus === 'saving' && (
                       <svg className="animate-spin w-3 h-3 flex-shrink-0" fill="none" viewBox="0 0 24 24">
                         <circle className="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" strokeWidth="4" />
-                        <path className="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4z" />
+                        <path
+                          className="opacity-75"
+                          fill="currentColor"
+                          d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4z"
+                        />
                       </svg>
                     )}
                     {cloudSaveStatus === 'saved' && (
@@ -568,17 +695,19 @@ export default function ProgressPanel({
                         <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 9v2m0 4h.01" />
                       </svg>
                     )}
-                    {cloudSaveStatus === 'saving' ? 'Saving project…' :
-                      cloudSaveStatus === 'saved' ? 'Project saved' :
-                        'Save failed'}
+                    {cloudSaveStatus === 'saving'
+                      ? 'Saving project…'
+                      : cloudSaveStatus === 'saved'
+                        ? 'Project saved'
+                        : 'Save failed'}
                   </div>
                 )}
 
                 {/* Activity Log — merges deliverable generation log + auto-sync entries */}
                 {(() => {
                   // Build a unified log: delivGenerationLog entries + syncLog entries (tagged _sync)
-                  const delivEntries = (delivGenerationLog || []).map(e => ({ ...e, _origin: 'deliv' }));
-                  const syncEntries = (syncLog || []).map(e => ({
+                  const delivEntries = (delivGenerationLog || []).map((e) => ({ ...e, _origin: 'deliv' }));
+                  const syncEntries = (syncLog || []).map((e) => ({
                     // Map sync log shape → activity log shape
                     type: e.type === 'done' ? 'done' : e.type === 'error' ? 'error' : 'progress',
                     message: `[Auto-sync] ${resolveLabel(e.featureId)}: ${e.message}`,
@@ -592,17 +721,24 @@ export default function ProgressPanel({
                   return (
                     <div className="mt-2">
                       <button
-                        onClick={() => setDelivLogExpanded(v => !v)}
+                        onClick={() => setDelivLogExpanded((v) => !v)}
                         className="flex items-center gap-1.5 text-[10px] font-bold text-slate-400 uppercase tracking-wider hover:text-slate-500 transition-colors"
                         aria-expanded={delivLogExpanded}
                         aria-label={delivLogExpanded ? 'Collapse activity log' : 'Expand activity log'}
                       >
-                        <svg className={`w-2.5 h-2.5 transition-transform ${delivLogExpanded ? 'rotate-90' : ''}`} fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                        <svg
+                          className={`w-2.5 h-2.5 transition-transform ${delivLogExpanded ? 'rotate-90' : ''}`}
+                          fill="none"
+                          stroke="currentColor"
+                          viewBox="0 0 24 24"
+                        >
                           <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 5l7 7-7 7" />
                         </svg>
                         Activity Log
                         {(isDelivGenerating || isSyncing) && (
-                          <span className={`w-1.5 h-1.5 rounded-full animate-pulse ml-1 ${isSyncing ? 'bg-amber-400' : 'bg-indigo-400'}`} />
+                          <span
+                            className={`w-1.5 h-1.5 rounded-full animate-pulse ml-1 ${isSyncing ? 'bg-amber-400' : 'bg-indigo-400'}`}
+                          />
                         )}
                         <span className="text-[9px] font-normal text-slate-300 ml-1">({combined.length})</span>
                       </button>
@@ -610,20 +746,26 @@ export default function ProgressPanel({
                         <div className="mt-1.5 space-y-px max-h-64 overflow-y-auto">
                           {combined.map((entry, i) => {
                             const isSyncEntry = entry._origin === 'sync';
-                            const syncIcon = entry._syncType === 'done' ? 'done' : entry._syncType === 'error' ? 'error' : 'progress';
-                            let entryType = isSyncEntry ? syncIcon : (entry.type || 'info');
+                            const syncIcon =
+                              entry._syncType === 'done' ? 'done' : entry._syncType === 'error' ? 'error' : 'progress';
+                            let entryType = isSyncEntry ? syncIcon : entry.type || 'info';
                             // When all generation is done, stop spinning icons for start/progress entries
-                            if (allDelivDone && !isDelivGenerating && !isSyncing && (entryType === 'start' || entryType === 'progress')) {
+                            if (
+                              allDelivDone &&
+                              !isDelivGenerating &&
+                              !isSyncing &&
+                              (entryType === 'start' || entryType === 'progress')
+                            ) {
                               entryType = 'done';
                             }
                             const style = isSyncEntry
-                              ? (entry._syncType === 'done' ? { text: 'text-amber-600', bg: 'bg-amber-50/40' }
-                                : entry._syncType === 'error' ? { text: 'text-red-500', bg: 'bg-red-50/40' }
-                                  : { text: 'text-amber-500', bg: 'bg-amber-50/30' })
-                              : (DELIV_LOG_STYLES[entry.type] || DELIV_LOG_STYLES.info);
-                            const icon = isSyncEntry
-                              ? LOG_ICONS[syncIcon]
-                              : (LOG_ICONS[entryType] || LOG_ICONS.info);
+                              ? entry._syncType === 'done'
+                                ? { text: 'text-amber-600', bg: 'bg-amber-50/40' }
+                                : entry._syncType === 'error'
+                                  ? { text: 'text-red-500', bg: 'bg-red-50/40' }
+                                  : { text: 'text-amber-500', bg: 'bg-amber-50/30' }
+                              : DELIV_LOG_STYLES[entry.type] || DELIV_LOG_STYLES.info;
+                            const icon = isSyncEntry ? LOG_ICONS[syncIcon] : LOG_ICONS[entryType] || LOG_ICONS.info;
                             return (
                               <div key={i} className={`flex items-start gap-2 px-2.5 py-1.5 rounded-md ${style.bg}`}>
                                 <div className="mt-0.5">{icon}</div>
@@ -632,7 +774,11 @@ export default function ProgressPanel({
                                 </span>
                                 {entry.at && (
                                   <span className="text-[9px] text-slate-300 flex-shrink-0 mt-0.5">
-                                    {new Date(entry.at).toLocaleTimeString([], { hour: '2-digit', minute: '2-digit', second: '2-digit' })}
+                                    {new Date(entry.at).toLocaleTimeString([], {
+                                      hour: '2-digit',
+                                      minute: '2-digit',
+                                      second: '2-digit',
+                                    })}
                                   </span>
                                 )}
                               </div>
@@ -663,16 +809,23 @@ export default function ProgressPanel({
             {recentSync.length > 0 && (!delivGenerationLog || delivGenerationLog.length === 0) && (
               <div className="mt-3">
                 <button
-                  onClick={() => setSyncExpanded(v => !v)}
+                  onClick={() => setSyncExpanded((v) => !v)}
                   className="flex items-center gap-2 w-full text-left mb-1.5"
                   aria-expanded={syncExpanded}
                   aria-label={syncExpanded ? 'Collapse auto-sync activity' : 'Expand auto-sync activity'}
                 >
-                  <span className="text-[10px] font-bold text-slate-400 uppercase tracking-wider">Auto-sync Activity</span>
-                  {syncLog?.some(e => e.type === 'start') && (
+                  <span className="text-[10px] font-bold text-slate-400 uppercase tracking-wider">
+                    Auto-sync Activity
+                  </span>
+                  {syncLog?.some((e) => e.type === 'start') && (
                     <span className="w-1.5 h-1.5 rounded-full bg-amber-400 animate-pulse flex-shrink-0" />
                   )}
-                  <svg className={`w-3 h-3 text-slate-400 transition-transform ${syncExpanded ? 'rotate-180' : ''}`} fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                  <svg
+                    className={`w-3 h-3 text-slate-400 transition-transform ${syncExpanded ? 'rotate-180' : ''}`}
+                    fill="none"
+                    stroke="currentColor"
+                    viewBox="0 0 24 24"
+                  >
                     <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M19 9l-7 7-7-7" />
                   </svg>
                 </button>
@@ -708,7 +861,10 @@ export default function ProgressPanel({
                     {namedSnapshots?.length > 0 && <span className="text-slate-300">({namedSnapshots.length})</span>}
                   </span>
                   <button
-                    onClick={() => { setShowSnapshotInput(v => !v); setSnapshotLabel(''); }}
+                    onClick={() => {
+                      setShowSnapshotInput((v) => !v);
+                      setSnapshotLabel('');
+                    }}
                     className="text-[10px] font-semibold text-indigo-500 hover:text-indigo-700 px-1.5 py-0.5 rounded hover:bg-indigo-50 transition-colors"
                   >
                     {showSnapshotInput ? 'Cancel' : '+ Name'}
@@ -720,10 +876,10 @@ export default function ProgressPanel({
                       autoFocus
                       type="text"
                       value={snapshotLabel}
-                      onChange={e => setSnapshotLabel(e.target.value)}
+                      onChange={(e) => setSnapshotLabel(e.target.value)}
                       placeholder={'e.g. Fall 2026'}
                       className="flex-1 text-[10px] border border-slate-200 rounded-md px-2 py-1 focus:outline-none focus:ring-1 focus:ring-indigo-400"
-                      onKeyDown={e => {
+                      onKeyDown={(e) => {
                         if (e.key === 'Enter') {
                           onSaveSnapshot(snapshotLabel);
                           setShowSnapshotInput(false);
@@ -732,7 +888,11 @@ export default function ProgressPanel({
                       }}
                     />
                     <button
-                      onClick={() => { onSaveSnapshot(snapshotLabel); setShowSnapshotInput(false); setSnapshotLabel(''); }}
+                      onClick={() => {
+                        onSaveSnapshot(snapshotLabel);
+                        setShowSnapshotInput(false);
+                        setSnapshotLabel('');
+                      }}
                       className="text-[10px] font-semibold text-white bg-indigo-500 hover:bg-indigo-600 px-2 py-1 rounded-md transition-colors"
                     >
                       Save
@@ -741,7 +901,7 @@ export default function ProgressPanel({
                 )}
                 {namedSnapshots?.length > 0 ? (
                   <div className="space-y-1 max-h-32 overflow-y-auto">
-                    {namedSnapshots.map(snap => (
+                    {namedSnapshots.map((snap) => (
                       <div key={snap.id} className="flex items-center gap-1.5 group">
                         <button
                           onClick={() => onLoadSnapshot && onLoadSnapshot(snap)}
@@ -749,7 +909,9 @@ export default function ProgressPanel({
                           title={`Restore: ${snap.label}`}
                         >
                           <span className="font-semibold">{snap.label}</span>
-                          <span className="ml-1.5 text-slate-400 font-normal">{new Date(snap.savedAt).toLocaleDateString()}</span>
+                          <span className="ml-1.5 text-slate-400 font-normal">
+                            {new Date(snap.savedAt).toLocaleDateString()}
+                          </span>
                         </button>
                         <button
                           onClick={() => onDeleteSnapshot && onDeleteSnapshot(snap.id)}
@@ -757,13 +919,22 @@ export default function ProgressPanel({
                           title="Delete snapshot"
                           aria-label={`Delete snapshot ${snap.label}`}
                         >
-                          <svg className="w-3 h-3" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M6 18L18 6M6 6l12 12" /></svg>
+                          <svg className="w-3 h-3" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                            <path
+                              strokeLinecap="round"
+                              strokeLinejoin="round"
+                              strokeWidth={2}
+                              d="M6 18L18 6M6 6l12 12"
+                            />
+                          </svg>
                         </button>
                       </div>
                     ))}
                   </div>
                 ) : (
-                  <p className="text-[9px] text-slate-400 italic">No saved versions yet. Click "+ Name" to pin the current state.</p>
+                  <p className="text-[9px] text-slate-400 italic">
+                    No saved versions yet. Click "+ Name" to pin the current state.
+                  </p>
                 )}
               </div>
             )}
@@ -772,38 +943,58 @@ export default function ProgressPanel({
             {versionHistory && versionHistory.length > 1 && (
               <div className="mt-3 pt-3 border-t border-slate-100/60">
                 <button
-                  onClick={() => setHistoryExpanded(v => !v)}
+                  onClick={() => setHistoryExpanded((v) => !v)}
                   className="flex items-center gap-2 w-full text-left mb-1.5"
                   aria-expanded={historyExpanded}
                   aria-label={historyExpanded ? 'Collapse version history' : 'Expand version history'}
                 >
                   <svg className="w-3 h-3 text-slate-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 8v4l3 3m6-3a9 9 0 11-18 0 9 9 0 0118 0z" />
+                    <path
+                      strokeLinecap="round"
+                      strokeLinejoin="round"
+                      strokeWidth={2}
+                      d="M12 8v4l3 3m6-3a9 9 0 11-18 0 9 9 0 0118 0z"
+                    />
                   </svg>
                   <span className="text-[10px] font-bold text-slate-400 uppercase tracking-wider">
                     Version History ({versionHistory.length})
                   </span>
-                  <svg className={`w-3 h-3 text-slate-400 transition-transform ml-auto ${historyExpanded ? 'rotate-180' : ''}`} fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                  <svg
+                    className={`w-3 h-3 text-slate-400 transition-transform ml-auto ${historyExpanded ? 'rotate-180' : ''}`}
+                    fill="none"
+                    stroke="currentColor"
+                    viewBox="0 0 24 24"
+                  >
                     <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M19 9l-7 7-7-7" />
                   </svg>
                 </button>
                 {historyExpanded && (
                   <div className="space-y-1 max-h-44 overflow-y-auto">
-                    {versionHistory.slice().reverse().map((v, ri) => {
-                      const idx = versionHistory.length - 1 - ri;
-                      const isActive = idx === activeVersion;
-                      return (
-                        <button
-                          key={idx}
-                          onClick={() => onJumpVersion && onJumpVersion(idx)}
-                          className={`w-full text-left px-2.5 py-1.5 rounded-lg text-[10px] transition-colors flex items-center gap-2 ${isActive ? 'bg-indigo-50 text-indigo-600 font-semibold' : 'text-slate-500 hover:bg-slate-50'}`}
-                        >
-                          <span className={`w-1.5 h-1.5 rounded-full flex-shrink-0 ${isActive ? 'bg-indigo-500' : 'bg-slate-300'}`} />
-                          <span className="truncate flex-1">{v.label || `v${idx + 1}`}</span>
-                          <span className="text-[9px] text-slate-400 flex-shrink-0">{new Date(v.savedAt || v.at || 0).toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })}</span>
-                        </button>
-                      );
-                    })}
+                    {versionHistory
+                      .slice()
+                      .reverse()
+                      .map((v, ri) => {
+                        const idx = versionHistory.length - 1 - ri;
+                        const isActive = idx === activeVersion;
+                        return (
+                          <button
+                            key={idx}
+                            onClick={() => onJumpVersion && onJumpVersion(idx)}
+                            className={`w-full text-left px-2.5 py-1.5 rounded-lg text-[10px] transition-colors flex items-center gap-2 ${isActive ? 'bg-indigo-50 text-indigo-600 font-semibold' : 'text-slate-500 hover:bg-slate-50'}`}
+                          >
+                            <span
+                              className={`w-1.5 h-1.5 rounded-full flex-shrink-0 ${isActive ? 'bg-indigo-500' : 'bg-slate-300'}`}
+                            />
+                            <span className="truncate flex-1">{v.label || `v${idx + 1}`}</span>
+                            <span className="text-[9px] text-slate-400 flex-shrink-0">
+                              {new Date(v.savedAt || v.at || 0).toLocaleTimeString([], {
+                                hour: '2-digit',
+                                minute: '2-digit',
+                              })}
+                            </span>
+                          </button>
+                        );
+                      })}
                   </div>
                 )}
               </div>
@@ -823,11 +1014,17 @@ export default function ProgressPanel({
                   <div key={step.key} className="flex items-center gap-3 py-1.5">
                     <StepIcon state={state} />
                     <div className="flex flex-col">
-                      <span className={`text-sm font-medium ${state === 'done' ? 'text-emerald-600'
-                          : state === 'active' ? 'text-indigo-600'
-                            : state === 'error' ? 'text-red-500'
-                              : 'text-slate-300'
-                        }`}>
+                      <span
+                        className={`text-sm font-medium ${
+                          state === 'done'
+                            ? 'text-emerald-600'
+                            : state === 'active'
+                              ? 'text-indigo-600'
+                              : state === 'error'
+                                ? 'text-red-500'
+                                : 'text-slate-300'
+                        }`}
+                      >
                         {step.key === 'generating' && modelName
                           ? `${modelName} is generating course map`
                           : step.key === 'continuing' && modelName
@@ -836,11 +1033,11 @@ export default function ProgressPanel({
                               ? `${modelName} is examining course map`
                               : step.label}
                       </span>
-                      {state === 'active' && (step.key === 'generating' || step.key === 'examining' || step.key === 'continuing') && streamDetail && (
-                        <span className="text-xs text-indigo-400 mt-0.5 truncate max-w-[320px]">
-                          {streamDetail}
-                        </span>
-                      )}
+                      {state === 'active' &&
+                        (step.key === 'generating' || step.key === 'examining' || step.key === 'continuing') &&
+                        streamDetail && (
+                          <span className="text-xs text-indigo-400 mt-0.5 truncate max-w-[320px]">{streamDetail}</span>
+                        )}
                     </div>
                   </div>
                 );
@@ -854,14 +1051,20 @@ export default function ProgressPanel({
                   Deliverables — generating after course map
                 </p>
                 <div className="space-y-1">
-                  {delivRows.map(row => (
+                  {delivRows.map((row) => (
                     <div key={row.id} className="flex items-center gap-2.5 px-2 py-1">
                       <DelivStatusIcon status={row.status} />
-                      <span className={`text-[11px] font-medium ${row.status === 'done' ? 'text-emerald-700'
-                          : row.status === 'streaming' || row.status === 'generating' ? 'text-indigo-600'
-                            : row.status === 'error' ? 'text-red-500'
-                              : 'text-slate-300'
-                        }`}>
+                      <span
+                        className={`text-[11px] font-medium ${
+                          row.status === 'done'
+                            ? 'text-emerald-700'
+                            : row.status === 'streaming' || row.status === 'generating'
+                              ? 'text-indigo-600'
+                              : row.status === 'error'
+                                ? 'text-red-500'
+                                : 'text-slate-300'
+                        }`}
+                      >
                         {row.label}
                       </span>
                       {currentDelivFeatures?.has(row.id) && isDelivGenerating && delivProgress && (
@@ -875,9 +1078,7 @@ export default function ProgressPanel({
               </div>
             )}
 
-            {generationLog && generationLog.length > 0 && (
-              <GenerationLogPanel entries={generationLog} />
-            )}
+            {generationLog && generationLog.length > 0 && <GenerationLogPanel entries={generationLog} />}
 
             {isStopped && (
               <div className="mt-4 flex items-center gap-3">
@@ -944,7 +1145,9 @@ export default function ProgressPanel({
                   <div className="flex-1 h-1.5 bg-slate-100/80 rounded-full overflow-hidden">
                     <div
                       className="h-full bg-gradient-to-r from-indigo-500 to-violet-500 rounded-full transition-all duration-500 ease-out"
-                      style={{ width: `${(currentStep === 'generating' || currentStep === 'continuing') && streamProgress > 0 ? streamProgress : Math.min(((currentIdx + 1) / visibleSteps.length) * 100, 20)}%` }}
+                      style={{
+                        width: `${(currentStep === 'generating' || currentStep === 'continuing') && streamProgress > 0 ? streamProgress : Math.min(((currentIdx + 1) / visibleSteps.length) * 100, 20)}%`,
+                      }}
                     />
                   </div>
                   {onStop && (
@@ -976,14 +1179,21 @@ export default function ProgressPanel({
             {recentSync.length > 0 && (
               <div className="mt-3 pt-3 border-t border-slate-100/60">
                 <button
-                  onClick={() => setSyncExpanded(v => !v)}
+                  onClick={() => setSyncExpanded((v) => !v)}
                   className="flex items-center gap-2 w-full text-left mb-1.5"
                   aria-expanded={syncExpanded}
                   aria-label={syncExpanded ? 'Collapse auto-sync activity' : 'Expand auto-sync activity'}
                 >
-                  <span className="text-[10px] font-bold text-slate-400 uppercase tracking-wider">Auto-sync Activity</span>
+                  <span className="text-[10px] font-bold text-slate-400 uppercase tracking-wider">
+                    Auto-sync Activity
+                  </span>
                   <span className="w-1.5 h-1.5 rounded-full bg-indigo-400 animate-pulse flex-shrink-0" />
-                  <svg className={`w-3 h-3 text-slate-400 transition-transform ${syncExpanded ? 'rotate-180' : ''}`} fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                  <svg
+                    className={`w-3 h-3 text-slate-400 transition-transform ${syncExpanded ? 'rotate-180' : ''}`}
+                    fill="none"
+                    stroke="currentColor"
+                    viewBox="0 0 24 24"
+                  >
                     <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M19 9l-7 7-7-7" />
                   </svg>
                 </button>
@@ -1013,42 +1223,41 @@ export default function ProgressPanel({
         )}
       </div>
 
-      {(isDone || isStopped) && courseMap && (() => {
-        // Determine which revision handler and label to use based on active tab
-        const delivLabel = resolveLabel(activeTab);
-        const revHandler = isDeliverableTab && onDeliverableRevision
-          ? onDeliverableRevision
-          : onRevision;
-        const placeholder = isDeliverableTab
-          ? `Ask for revisions to ${delivLabel}…`
-          : 'Ask for revisions or drop files…';
-        const tabBadge = isDeliverableTab ? delivLabel : 'Course Map';
-        return (
-          <div>
-            {/* Context label */}
-            <div className="px-4 pt-3 pb-1 flex items-center gap-1.5">
-              <span className="text-[9px] font-bold text-slate-400 uppercase tracking-wider">Revising:</span>
-              <span className="text-[9px] font-bold px-2 py-0.5 rounded-full bg-indigo-50 text-indigo-600 border border-indigo-100 truncate max-w-[120px]">
-                {tabBadge}
-              </span>
+      {(isDone || isStopped) &&
+        courseMap &&
+        (() => {
+          // Determine which revision handler and label to use based on active tab
+          const delivLabel = resolveLabel(activeTab);
+          const revHandler = isDeliverableTab && onDeliverableRevision ? onDeliverableRevision : onRevision;
+          const placeholder = isDeliverableTab
+            ? `Ask for revisions to ${delivLabel}…`
+            : 'Ask for revisions or drop files…';
+          const tabBadge = isDeliverableTab ? delivLabel : 'Course Map';
+          return (
+            <div>
+              {/* Context label */}
+              <div className="px-4 pt-3 pb-1 flex items-center gap-1.5">
+                <span className="text-[9px] font-bold text-slate-400 uppercase tracking-wider">Revising:</span>
+                <span className="text-[9px] font-bold px-2 py-0.5 rounded-full bg-indigo-50 text-indigo-600 border border-indigo-100 truncate max-w-[120px]">
+                  {tabBadge}
+                </span>
+              </div>
+              <RevisionChat
+                onRevision={revHandler}
+                isRevising={isRevising}
+                savedMessages={chatHistory}
+                onMessagesChange={onChatHistoryChange}
+                placeholder={placeholder}
+                courseMap={courseMap}
+                isStopped={isStopped}
+                onResume={onResume}
+              />
             </div>
-            <RevisionChat
-              onRevision={revHandler}
-              isRevising={isRevising}
-              savedMessages={chatHistory}
-              onMessagesChange={onChatHistoryChange}
-              placeholder={placeholder}
-              courseMap={courseMap}
-              isStopped={isStopped}
-              onResume={onResume}
-            />
-          </div>
-        );
-      })()}
+          );
+        })()}
     </div>
   );
 }
-
 
 function StepIcon({ state }) {
   if (state === 'done') {

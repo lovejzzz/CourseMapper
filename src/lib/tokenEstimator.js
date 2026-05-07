@@ -15,10 +15,10 @@ const MODEL_LIMITS = {
   'gpt-4': 8192,
   'gpt-4-32k': 32768,
   'gpt-3.5-turbo': 16385,
-  'o1': 200000,
+  o1: 200000,
   'o1-mini': 128000,
   'o1-preview': 128000,
-  'o3': 200000,
+  o3: 200000,
   'o3-mini': 200000,
   'o4-mini': 200000,
   // OpenAI GPT-5+
@@ -117,7 +117,7 @@ export function truncateToFit(text, modelId) {
 
   const targetChars = availableTokens * 4; // Convert back to chars
   const keepStart = Math.floor(targetChars * 0.7); // Keep 70% from start
-  const keepEnd = Math.floor(targetChars * 0.25);  // Keep 25% from end
+  const keepEnd = Math.floor(targetChars * 0.25); // Keep 25% from end
   // 5% for the truncation notice
 
   const truncated =

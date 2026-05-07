@@ -33,7 +33,9 @@ describe('classifyRequestComplexity', () => {
   });
 
   it('classifies redesign as complex', () => {
-    expect(classifyRequestComplexity('Redesign the rubrics for project-based learning', doneDeliverables)).toBe('complex');
+    expect(classifyRequestComplexity('Redesign the rubrics for project-based learning', doneDeliverables)).toBe(
+      'complex',
+    );
   });
 
   it('classifies moderate requests correctly', () => {
@@ -41,7 +43,9 @@ describe('classifyRequestComplexity', () => {
   });
 
   it('classifies long requests with many deliverables as complex', () => {
-    const longText = 'I need you to update the learning objectives across all lessons to better align with the program outcomes. Also update the assessments to match the new objectives and make sure the rubrics reflect the changes too. ' + 'x'.repeat(200);
+    const longText =
+      'I need you to update the learning objectives across all lessons to better align with the program outcomes. Also update the assessments to match the new objectives and make sure the rubrics reflect the changes too. ' +
+      'x'.repeat(200);
     expect(classifyRequestComplexity(longText, doneDeliverables)).toBe('complex');
   });
 

@@ -41,18 +41,23 @@ export default function App() {
   }, []);
 
   const setDeveloperMode = useCallback((nextValue) => {
-    setDeveloperModeState(previous => {
+    setDeveloperModeState((previous) => {
       const resolved = typeof nextValue === 'function' ? nextValue(previous) : nextValue;
-      try { localStorage.setItem('coursemapper-developer-mode', resolved ? 'true' : 'false'); } catch {}
+      try {
+        localStorage.setItem('coursemapper-developer-mode', resolved ? 'true' : 'false');
+      } catch {}
       return resolved;
     });
   }, []);
 
-  const startFlow = useCallback((action, targetScreen) => {
-    setStartupAction({ ...action, startedAt: Date.now() });
-    if (targetScreen) setScreen(targetScreen);
-    setFlowActive(true);
-  }, [setScreen]);
+  const startFlow = useCallback(
+    (action, targetScreen) => {
+      setStartupAction({ ...action, startedAt: Date.now() });
+      if (targetScreen) setScreen(targetScreen);
+      setFlowActive(true);
+    },
+    [setScreen],
+  );
 
   const handleContinue = useCallback(() => {
     startFlow({ type: 'continue' }, 'features');
@@ -62,18 +67,27 @@ export default function App() {
     startFlow({ type: 'restore' });
   }, [startFlow]);
 
-  const handleOpenProjectFile = useCallback((file) => {
-    startFlow({ type: 'openProjectFile', file });
-  }, [startFlow]);
+  const handleOpenProjectFile = useCallback(
+    (file) => {
+      startFlow({ type: 'openProjectFile', file });
+    },
+    [startFlow],
+  );
 
-  const handleImportCourseMap = useCallback((file) => {
-    startFlow({ type: 'importCourseMap', file });
-  }, [startFlow]);
+  const handleImportCourseMap = useCallback(
+    (file) => {
+      startFlow({ type: 'importCourseMap', file });
+    },
+    [startFlow],
+  );
 
-  const handleOpenCloudProject = useCallback(async (projectId) => {
-    setShowProjectPicker(false);
-    startFlow({ type: 'openCloudProject', projectId });
-  }, [setShowProjectPicker, startFlow]);
+  const handleOpenCloudProject = useCallback(
+    async (projectId) => {
+      setShowProjectPicker(false);
+      startFlow({ type: 'openCloudProject', projectId });
+    },
+    [setShowProjectPicker, startFlow],
+  );
 
   const handleReturnToLanding = useCallback(() => {
     setStartupAction(null);
@@ -89,7 +103,9 @@ export default function App() {
   }, [setScreen, setShowProjectPicker]);
 
   const handleDismissSavedSession = useCallback(() => {
-    try { localStorage.removeItem(STORAGE_KEY); } catch {}
+    try {
+      localStorage.removeItem(STORAGE_KEY);
+    } catch {}
     setHasSavedSession(false);
   }, []);
 

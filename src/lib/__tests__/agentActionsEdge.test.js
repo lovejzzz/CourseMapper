@@ -44,7 +44,14 @@ function makeMockDeliverables() {
       status: 'done',
       data: {
         quizzes: [
-          { lt: 'L1', tq: 2, qs: [{ q: 'What is X?', ty: 'mc' }, { q: 'Explain Y', ty: 'essay' }] },
+          {
+            lt: 'L1',
+            tq: 2,
+            qs: [
+              { q: 'What is X?', ty: 'mc' },
+              { q: 'Explain Y', ty: 'essay' },
+            ],
+          },
           { lt: 'L2', tq: 1, qs: [{ q: 'Define Z', ty: 'mc' }] },
         ],
       },
@@ -70,17 +77,13 @@ function makeMockDeliverables() {
     courseFaq: {
       status: 'done',
       data: {
-        faqs: [
-          { lt: 'L1', qs: [{ q: 'FAQ Q1', a: 'Answer 1' }] },
-        ],
+        faqs: [{ lt: 'L1', qs: [{ q: 'FAQ Q1', a: 'Answer 1' }] }],
       },
     },
     rubrics: {
       status: 'done',
       data: {
-        rubrics: [
-          { lt: 'L1', cr: [{ cn: 'Criterion A', wt: 10 }] },
-        ],
+        rubrics: [{ lt: 'L1', cr: [{ cn: 'Criterion A', wt: 10 }] }],
       },
     },
     discussions: {
@@ -90,9 +93,7 @@ function makeMockDeliverables() {
     assignments: {
       status: 'done',
       data: {
-        assignments: [
-          { t: 'HW1', desc: 'First homework' },
-        ],
+        assignments: [{ t: 'HW1', desc: 'First homework' }],
       },
     },
     syllabus: {
@@ -165,10 +166,7 @@ describe('FIELD_ALIASES resolution via editCell', () => {
 
   it('defaults sectionIndex to 0 when omitted', () => {
     const ctx = makeCtx();
-    executeAction(
-      { type: 'editCell', lessonIndex: 1, field: 'lo', value: 'val' },
-      ctx,
-    );
+    executeAction({ type: 'editCell', lessonIndex: 1, field: 'lo', value: 'val' }, ctx);
     expect(ctx.editor.handleCellEdit).toHaveBeenCalledWith(1, 0, 'learningObjectives', 'val');
   });
 });
@@ -219,10 +217,7 @@ describe('executeAction edge cases', () => {
 
     it('rejects missing field', () => {
       const ctx = makeCtx();
-      const result = executeAction(
-        { type: 'editCell', lessonIndex: 0, value: 'x' },
-        ctx,
-      );
+      const result = executeAction({ type: 'editCell', lessonIndex: 0, value: 'x' }, ctx);
       expect(result.success).toBe(false);
       expect(result.message).toContain('Missing field');
     });
@@ -244,20 +239,14 @@ describe('executeAction edge cases', () => {
 
   describe('editTitle', () => {
     it('fails when editor is missing', () => {
-      const result = executeAction(
-        { type: 'editTitle', lessonIndex: 0, newTitle: 'Hi' },
-        { editor: null },
-      );
+      const result = executeAction({ type: 'editTitle', lessonIndex: 0, newTitle: 'Hi' }, { editor: null });
       expect(result.success).toBe(false);
       expect(result.message).toContain('Editor not available');
     });
 
     it('rejects an empty string title', () => {
       const ctx = makeCtx();
-      const result = executeAction(
-        { type: 'editTitle', lessonIndex: 0, newTitle: '' },
-        ctx,
-      );
+      const result = executeAction({ type: 'editTitle', lessonIndex: 0, newTitle: '' }, ctx);
       expect(result.success).toBe(false);
       expect(result.message).toContain('Missing newTitle');
     });
@@ -265,10 +254,7 @@ describe('executeAction edge cases', () => {
     it('accepts special characters in title', () => {
       const ctx = makeCtx();
       const title = 'Lesson <1> & "Quotes" — émojis 🎉';
-      const result = executeAction(
-        { type: 'editTitle', lessonIndex: 0, newTitle: title },
-        ctx,
-      );
+      const result = executeAction({ type: 'editTitle', lessonIndex: 0, newTitle: title }, ctx);
       expect(result.success).toBe(true);
       expect(ctx.editor.handleTitleEdit).toHaveBeenCalledWith(0, title);
     });
@@ -278,10 +264,7 @@ describe('executeAction edge cases', () => {
 
   describe('addLesson', () => {
     it('fails when editor is missing', () => {
-      const result = executeAction(
-        { type: 'addLesson', title: 'New' },
-        { editor: null, courseMap: makeCourseMap() },
-      );
+      const result = executeAction({ type: 'addLesson', title: 'New' }, { editor: null, courseMap: makeCourseMap() });
       expect(result.success).toBe(false);
     });
 
@@ -304,10 +287,7 @@ describe('executeAction edge cases', () => {
 
     it('adds lesson without sections', () => {
       const ctx = makeCtx();
-      const result = executeAction(
-        { type: 'addLesson', title: 'Minimal' },
-        ctx,
-      );
+      const result = executeAction({ type: 'addLesson', title: 'Minimal' }, ctx);
       expect(result.success).toBe(true);
       expect(ctx.editor.handleAddLesson).toHaveBeenCalled();
       expect(ctx.editor.handleCellEdit).not.toHaveBeenCalled();
@@ -315,10 +295,7 @@ describe('executeAction edge cases', () => {
 
     it('adds lesson with null title — uses default label', () => {
       const ctx = makeCtx();
-      const result = executeAction(
-        { type: 'addLesson', title: null },
-        ctx,
-      );
+      const result = executeAction({ type: 'addLesson', title: null }, ctx);
       expect(result.success).toBe(true);
       expect(result.message).toContain('New Lesson');
       // handleTitleEdit should NOT be called when title is null/falsy
@@ -327,10 +304,7 @@ describe('executeAction edge cases', () => {
 
     it('skips section fields with falsy values', () => {
       const ctx = makeCtx();
-      executeAction(
-        { type: 'addLesson', title: 'T', sections: [{ learningObjectives: '', topicSection: 'TP' }] },
-        ctx,
-      );
+      executeAction({ type: 'addLesson', title: 'T', sections: [{ learningObjectives: '', topicSection: 'TP' }] }, ctx);
       // '' is falsy, so only topicSection should be set
       expect(ctx.editor.handleCellEdit).toHaveBeenCalledTimes(1);
       expect(ctx.editor.handleCellEdit).toHaveBeenCalledWith(3, 0, 'topicSection', 'TP');
@@ -342,20 +316,14 @@ describe('executeAction edge cases', () => {
   describe('deleteLesson', () => {
     it('fails when trying to delete the only lesson', () => {
       const ctx = makeCtx({ courseMap: makeCourseMap(1) });
-      const result = executeAction(
-        { type: 'deleteLesson', lessonIndex: 0 },
-        ctx,
-      );
+      const result = executeAction({ type: 'deleteLesson', lessonIndex: 0 }, ctx);
       expect(result.success).toBe(false);
       expect(result.message).toContain('Cannot delete the only lesson');
     });
 
     it('succeeds when there are multiple lessons', () => {
       const ctx = makeCtx();
-      const result = executeAction(
-        { type: 'deleteLesson', lessonIndex: 1 },
-        ctx,
-      );
+      const result = executeAction({ type: 'deleteLesson', lessonIndex: 1 }, ctx);
       expect(result.success).toBe(true);
       expect(ctx.editor.handleDeleteLesson).toHaveBeenCalledWith(1);
     });
@@ -471,20 +439,14 @@ describe('executeAction edge cases', () => {
 
     it('fails with out-of-range lessonIndex', () => {
       const ctx = makeCtx();
-      const result = executeAction(
-        { type: 'addItem', featureId: 'quizBank', lessonIndex: 99, item: { q: 'Q?' } },
-        ctx,
-      );
+      const result = executeAction({ type: 'addItem', featureId: 'quizBank', lessonIndex: 99, item: { q: 'Q?' } }, ctx);
       expect(result.success).toBe(false);
       expect(result.message).toContain('out of range');
     });
 
     it('fails with negative lessonIndex', () => {
       const ctx = makeCtx();
-      const result = executeAction(
-        { type: 'addItem', featureId: 'quizBank', lessonIndex: -1, item: { q: 'Q?' } },
-        ctx,
-      );
+      const result = executeAction({ type: 'addItem', featureId: 'quizBank', lessonIndex: -1, item: { q: 'Q?' } }, ctx);
       expect(result.success).toBe(false);
       expect(result.message).toContain('out of range');
     });
@@ -497,19 +459,17 @@ describe('executeAction edge cases', () => {
       );
       expect(result.success).toBe(true);
       expect(result.message).toContain('HW2');
-      expect(ctx.optimisticUpdate).toHaveBeenCalledWith('assignments', expect.objectContaining({
-        assignments: expect.arrayContaining([
-          expect.objectContaining({ t: 'HW2' }),
-        ]),
-      }));
+      expect(ctx.optimisticUpdate).toHaveBeenCalledWith(
+        'assignments',
+        expect.objectContaining({
+          assignments: expect.arrayContaining([expect.objectContaining({ t: 'HW2' })]),
+        }),
+      );
     });
 
     it('merges fields into syllabus object', () => {
       const ctx = makeCtx();
-      const result = executeAction(
-        { type: 'addItem', featureId: 'syllabus', item: { instructor: 'Dr. Y' } },
-        ctx,
-      );
+      const result = executeAction({ type: 'addItem', featureId: 'syllabus', item: { instructor: 'Dr. Y' } }, ctx);
       expect(result.success).toBe(true);
       expect(result.message).toContain('syllabus');
     });
@@ -520,9 +480,7 @@ describe('executeAction edge cases', () => {
       deliverables.discussions = {
         status: 'done',
         data: {
-          discussions: [
-            { lt: 'L1', pr: 'Old prompt', rb: 'Old rubric' },
-          ],
+          discussions: [{ lt: 'L1', pr: 'Old prompt', rb: 'Old rubric' }],
         },
       };
       const ctx = makeCtx({ deliverables });
@@ -583,10 +541,7 @@ describe('executeAction edge cases', () => {
 
     it('updates ts count after adding slide', () => {
       const ctx = makeCtx();
-      executeAction(
-        { type: 'addItem', featureId: 'slideDecks', lessonIndex: 0, item: { t: 'New Slide' } },
-        ctx,
-      );
+      executeAction({ type: 'addItem', featureId: 'slideDecks', lessonIndex: 0, item: { t: 'New Slide' } }, ctx);
       const data = ctx.optimisticUpdate.mock.calls[0][1];
       expect(data.decks[0].ts).toBe(2); // was 1, now 2
     });
@@ -605,89 +560,62 @@ describe('executeAction edge cases', () => {
 
     it('fails when deliverable has no data', () => {
       const ctx = makeCtx();
-      const result = executeAction(
-        { type: 'removeItem', featureId: 'discussions', lessonIndex: 0, itemIndex: 0 },
-        ctx,
-      );
+      const result = executeAction({ type: 'removeItem', featureId: 'discussions', lessonIndex: 0, itemIndex: 0 }, ctx);
       expect(result.success).toBe(false);
       expect(result.message).toContain('not generated yet');
     });
 
     it('fails with out-of-range itemIndex in sub-array', () => {
       const ctx = makeCtx();
-      const result = executeAction(
-        { type: 'removeItem', featureId: 'quizBank', lessonIndex: 0, itemIndex: 99 },
-        ctx,
-      );
+      const result = executeAction({ type: 'removeItem', featureId: 'quizBank', lessonIndex: 0, itemIndex: 99 }, ctx);
       expect(result.success).toBe(false);
       expect(result.message).toContain('out of range');
     });
 
     it('fails with negative itemIndex', () => {
       const ctx = makeCtx();
-      const result = executeAction(
-        { type: 'removeItem', featureId: 'quizBank', lessonIndex: 0, itemIndex: -1 },
-        ctx,
-      );
+      const result = executeAction({ type: 'removeItem', featureId: 'quizBank', lessonIndex: 0, itemIndex: -1 }, ctx);
       expect(result.success).toBe(false);
       expect(result.message).toContain('out of range');
     });
 
     it('fails with out-of-range lessonIndex', () => {
       const ctx = makeCtx();
-      const result = executeAction(
-        { type: 'removeItem', featureId: 'quizBank', lessonIndex: 99, itemIndex: 0 },
-        ctx,
-      );
+      const result = executeAction({ type: 'removeItem', featureId: 'quizBank', lessonIndex: 99, itemIndex: 0 }, ctx);
       expect(result.success).toBe(false);
       expect(result.message).toContain('out of range');
     });
 
     it('fails when deliverable has no sub-array (e.g., lessonPlans)', () => {
       const ctx = makeCtx();
-      const result = executeAction(
-        { type: 'removeItem', featureId: 'lessonPlans', lessonIndex: 0, itemIndex: 0 },
-        ctx,
-      );
+      const result = executeAction({ type: 'removeItem', featureId: 'lessonPlans', lessonIndex: 0, itemIndex: 0 }, ctx);
       expect(result.success).toBe(false);
       expect(result.message).toContain('no sub-array');
     });
 
     it('removes item from assignments flat array', () => {
       const ctx = makeCtx();
-      const result = executeAction(
-        { type: 'removeItem', featureId: 'assignments', itemIndex: 0 },
-        ctx,
-      );
+      const result = executeAction({ type: 'removeItem', featureId: 'assignments', itemIndex: 0 }, ctx);
       expect(result.success).toBe(true);
       expect(result.message).toContain('HW1');
     });
 
     it('fails removing from assignments with out-of-range index', () => {
       const ctx = makeCtx();
-      const result = executeAction(
-        { type: 'removeItem', featureId: 'assignments', itemIndex: 99 },
-        ctx,
-      );
+      const result = executeAction({ type: 'removeItem', featureId: 'assignments', itemIndex: 99 }, ctx);
       expect(result.success).toBe(false);
       expect(result.message).toContain('out of range');
     });
 
     it('fails removing from assignments with negative index', () => {
       const ctx = makeCtx();
-      const result = executeAction(
-        { type: 'removeItem', featureId: 'assignments', itemIndex: -1 },
-        ctx,
-      );
+      const result = executeAction({ type: 'removeItem', featureId: 'assignments', itemIndex: -1 }, ctx);
       expect(result.success).toBe(false);
     });
 
     it('successfully removes a quiz question and updates tq', () => {
       const ctx = makeCtx();
-      const result = executeAction(
-        { type: 'removeItem', featureId: 'quizBank', lessonIndex: 0, itemIndex: 0 },
-        ctx,
-      );
+      const result = executeAction({ type: 'removeItem', featureId: 'quizBank', lessonIndex: 0, itemIndex: 0 }, ctx);
       expect(result.success).toBe(true);
       const data = ctx.optimisticUpdate.mock.calls[0][1];
       expect(data.quizzes[0].tq).toBe(1); // was 2, removed 1
@@ -708,20 +636,14 @@ describe('executeAction edge cases', () => {
 
     it('fails with null path', () => {
       const ctx = makeCtx();
-      const result = executeAction(
-        { type: 'editItem', featureId: 'quizBank', path: null, value: 'x' },
-        ctx,
-      );
+      const result = executeAction({ type: 'editItem', featureId: 'quizBank', path: null, value: 'x' }, ctx);
       expect(result.success).toBe(false);
       expect(result.message).toContain('Invalid path');
     });
 
     it('fails with empty path array', () => {
       const ctx = makeCtx();
-      const result = executeAction(
-        { type: 'editItem', featureId: 'quizBank', path: [], value: 'x' },
-        ctx,
-      );
+      const result = executeAction({ type: 'editItem', featureId: 'quizBank', path: [], value: 'x' }, ctx);
       expect(result.success).toBe(false);
       expect(result.message).toContain('Invalid path');
     });
@@ -739,10 +661,7 @@ describe('executeAction edge cases', () => {
 
     it('fails with non-string non-array path (e.g. number)', () => {
       const ctx = makeCtx();
-      const result = executeAction(
-        { type: 'editItem', featureId: 'quizBank', path: 42, value: 'x' },
-        ctx,
-      );
+      const result = executeAction({ type: 'editItem', featureId: 'quizBank', path: 42, value: 'x' }, ctx);
       expect(result.success).toBe(false);
       expect(result.message).toContain('Invalid path');
     });
@@ -765,9 +684,7 @@ describe('executeAction edge cases', () => {
           slideDecks: {
             status: 'done',
             data: {
-              decks: [
-                { lessonTitle: 'L1', totalSlides: 1, slides: [{ title: 'Slide 1', notes: 'Old notes' }] },
-              ],
+              decks: [{ lessonTitle: 'L1', totalSlides: 1, slides: [{ title: 'Slide 1', notes: 'Old notes' }] }],
             },
           },
         },
@@ -790,7 +707,10 @@ describe('executeAction edge cases', () => {
             status: 'done',
             data: {
               decks: [
-                { lessonTitle: 'L1', slides: [{ title: 'Slide 1', visual: { kind: 'diagram', description: 'Old', altText: 'Old alt' } }] },
+                {
+                  lessonTitle: 'L1',
+                  slides: [{ title: 'Slide 1', visual: { kind: 'diagram', description: 'Old', altText: 'Old alt' } }],
+                },
               ],
             },
           },
@@ -814,14 +734,22 @@ describe('executeAction edge cases', () => {
             status: 'done',
             data: {
               decks: [
-                { lessonTitle: 'L1', slides: [{ title: 'Slide 1', visual: { kind: 'image', description: 'Old', altText: 'Old alt' } }] },
+                {
+                  lessonTitle: 'L1',
+                  slides: [{ title: 'Slide 1', visual: { kind: 'image', description: 'Old', altText: 'Old alt' } }],
+                },
               ],
             },
           },
         },
       });
       const result = executeAction(
-        { type: 'editItem', featureId: 'slideDecks', path: ['decks', 0, 'slides', 0, 'vi', 'at'], value: 'New alt text.' },
+        {
+          type: 'editItem',
+          featureId: 'slideDecks',
+          path: ['decks', 0, 'slides', 0, 'vi', 'at'],
+          value: 'New alt text.',
+        },
         ctx,
       );
       expect(result.success).toBe(true);
@@ -886,10 +814,7 @@ describe('executeAction edge cases', () => {
 
     it('succeeds and passes correct arguments', () => {
       const ctx = makeCtx();
-      const result = executeAction(
-        { type: 'regenerateLesson', featureId: 'quizBank', lessonIndex: 1 },
-        ctx,
-      );
+      const result = executeAction({ type: 'regenerateLesson', featureId: 'quizBank', lessonIndex: 1 }, ctx);
       expect(result.success).toBe(true);
       expect(ctx.regenerateLesson).toHaveBeenCalledWith('quizBank', ctx.courseMap, 1);
       expect(result.message).toContain('Lesson 2');
@@ -1046,10 +971,7 @@ describe('preValidateAction', () => {
   });
 
   it('returns valid for addLesson (no lessonIndex needed)', () => {
-    const result = preValidateAction(
-      { type: 'addLesson' },
-      { courseMap: makeCourseMap(), deliverables: {} },
-    );
+    const result = preValidateAction({ type: 'addLesson' }, { courseMap: makeCourseMap(), deliverables: {} });
     expect(result.valid).toBe(true);
   });
 
@@ -1090,10 +1012,7 @@ describe('SUB_ARRAY_KEYS behavior — addItem pushes to correct sub-array', () =
 
   it('slideDecks uses sub-key "sl"', () => {
     const ctx = makeCtx();
-    executeAction(
-      { type: 'addItem', featureId: 'slideDecks', lessonIndex: 1, item: { t: 'New Slide for L2' } },
-      ctx,
-    );
+    executeAction({ type: 'addItem', featureId: 'slideDecks', lessonIndex: 1, item: { t: 'New Slide for L2' } }, ctx);
     const data = ctx.optimisticUpdate.mock.calls[0][1];
     expect(data.decks[1].sl).toContainEqual(expect.objectContaining({ title: 'New Slide for L2' }));
   });
@@ -1105,9 +1024,7 @@ describe('SUB_ARRAY_KEYS behavior — addItem pushes to correct sub-array', () =
         slideDecks: {
           status: 'done',
           data: {
-            decks: [
-              { lessonTitle: 'L1', totalSlides: 1, slides: [{ title: 'Slide 1' }] },
-            ],
+            decks: [{ lessonTitle: 'L1', totalSlides: 1, slides: [{ title: 'Slide 1' }] }],
           },
         },
       },
@@ -1242,8 +1159,14 @@ describe('ACTION_TYPES', () => {
   });
 
   it.each([
-    'editCell', 'editTitle', 'addLesson', 'deleteLesson',
-    'addItem', 'removeItem', 'editItem', 'regenerateLesson',
+    'editCell',
+    'editTitle',
+    'addLesson',
+    'deleteLesson',
+    'addItem',
+    'removeItem',
+    'editItem',
+    'regenerateLesson',
   ])('contains action type "%s"', (type) => {
     expect(ACTION_TYPES[type]).toBe(type);
   });
@@ -1256,10 +1179,7 @@ describe('ACTION_TYPES', () => {
 describe('Fix 9: regenerateLesson validates lessonIndex bounds', () => {
   it('fails when lessonIndex exceeds deliverable data length', () => {
     const ctx = makeCtx();
-    const result = executeAction(
-      { type: 'regenerateLesson', featureId: 'quizBank', lessonIndex: 99 },
-      ctx,
-    );
+    const result = executeAction({ type: 'regenerateLesson', featureId: 'quizBank', lessonIndex: 99 }, ctx);
     expect(result.success).toBe(false);
     expect(result.message).toContain('out of range');
     expect(ctx.regenerateLesson).not.toHaveBeenCalled();
@@ -1268,10 +1188,7 @@ describe('Fix 9: regenerateLesson validates lessonIndex bounds', () => {
   it('fails when lessonIndex equals array length (off-by-one)', () => {
     const ctx = makeCtx();
     // quizBank has 2 lessons (indices 0, 1)
-    const result = executeAction(
-      { type: 'regenerateLesson', featureId: 'quizBank', lessonIndex: 2 },
-      ctx,
-    );
+    const result = executeAction({ type: 'regenerateLesson', featureId: 'quizBank', lessonIndex: 2 }, ctx);
     expect(result.success).toBe(false);
     expect(result.message).toContain('out of range');
     expect(ctx.regenerateLesson).not.toHaveBeenCalled();
@@ -1279,20 +1196,14 @@ describe('Fix 9: regenerateLesson validates lessonIndex bounds', () => {
 
   it('succeeds when lessonIndex is within bounds', () => {
     const ctx = makeCtx();
-    const result = executeAction(
-      { type: 'regenerateLesson', featureId: 'quizBank', lessonIndex: 1 },
-      ctx,
-    );
+    const result = executeAction({ type: 'regenerateLesson', featureId: 'quizBank', lessonIndex: 1 }, ctx);
     expect(result.success).toBe(true);
     expect(ctx.regenerateLesson).toHaveBeenCalledWith('quizBank', ctx.courseMap, 1);
   });
 
   it('still works when deliverables context is missing (no bounds check possible)', () => {
     const ctx = makeCtx({ deliverables: undefined });
-    const result = executeAction(
-      { type: 'regenerateLesson', featureId: 'quizBank', lessonIndex: 0 },
-      ctx,
-    );
+    const result = executeAction({ type: 'regenerateLesson', featureId: 'quizBank', lessonIndex: 0 }, ctx);
     expect(result.success).toBe(true);
     expect(ctx.regenerateLesson).toHaveBeenCalled();
   });
@@ -1347,10 +1258,7 @@ describe('Fix 10: addItem for flat deliverables handles gracefully', () => {
       data: { discussions: [{ lt: 'L1', pr: 'Prompt' }] },
     };
     const ctx = makeCtx({ deliverables });
-    const result = executeAction(
-      { type: 'addItem', featureId: 'discussions', lessonIndex: 0, item: null },
-      ctx,
-    );
+    const result = executeAction({ type: 'addItem', featureId: 'discussions', lessonIndex: 0, item: null }, ctx);
     expect(result.success).toBe(false);
     expect(result.message).toContain('Invalid item');
   });
@@ -1416,50 +1324,35 @@ describe('Fix 11: editItem validates featureId exists in deliverables', () => {
 describe('Fix 12: removeItem validates itemIndex', () => {
   it('fails when itemIndex is null', () => {
     const ctx = makeCtx();
-    const result = executeAction(
-      { type: 'removeItem', featureId: 'quizBank', lessonIndex: 0, itemIndex: null },
-      ctx,
-    );
+    const result = executeAction({ type: 'removeItem', featureId: 'quizBank', lessonIndex: 0, itemIndex: null }, ctx);
     expect(result.success).toBe(false);
     expect(result.message).toContain('Invalid itemIndex');
   });
 
   it('fails when itemIndex is undefined', () => {
     const ctx = makeCtx();
-    const result = executeAction(
-      { type: 'removeItem', featureId: 'quizBank', lessonIndex: 0 },
-      ctx,
-    );
+    const result = executeAction({ type: 'removeItem', featureId: 'quizBank', lessonIndex: 0 }, ctx);
     expect(result.success).toBe(false);
     expect(result.message).toContain('Invalid itemIndex');
   });
 
   it('fails when itemIndex is a string', () => {
     const ctx = makeCtx();
-    const result = executeAction(
-      { type: 'removeItem', featureId: 'quizBank', lessonIndex: 0, itemIndex: '0' },
-      ctx,
-    );
+    const result = executeAction({ type: 'removeItem', featureId: 'quizBank', lessonIndex: 0, itemIndex: '0' }, ctx);
     expect(result.success).toBe(false);
     expect(result.message).toContain('Invalid itemIndex');
   });
 
   it('fails when itemIndex is null for assignments', () => {
     const ctx = makeCtx();
-    const result = executeAction(
-      { type: 'removeItem', featureId: 'assignments', itemIndex: null },
-      ctx,
-    );
+    const result = executeAction({ type: 'removeItem', featureId: 'assignments', itemIndex: null }, ctx);
     expect(result.success).toBe(false);
     expect(result.message).toContain('Invalid itemIndex');
   });
 
   it('succeeds with valid numeric itemIndex', () => {
     const ctx = makeCtx();
-    const result = executeAction(
-      { type: 'removeItem', featureId: 'quizBank', lessonIndex: 0, itemIndex: 0 },
-      ctx,
-    );
+    const result = executeAction({ type: 'removeItem', featureId: 'quizBank', lessonIndex: 0, itemIndex: 0 }, ctx);
     expect(result.success).toBe(true);
   });
 });

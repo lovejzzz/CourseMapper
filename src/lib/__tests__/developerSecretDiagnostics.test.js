@@ -1,8 +1,5 @@
 import { describe, expect, it } from 'vitest';
-import {
-  assertNoDeveloperSecrets,
-  getDeveloperSecretFindings,
-} from '../developerSecretDiagnostics';
+import { assertNoDeveloperSecrets, getDeveloperSecretFindings } from '../developerSecretDiagnostics';
 
 describe('developerSecretDiagnostics', () => {
   it('flags sensitive field names recursively', () => {
@@ -14,13 +11,15 @@ describe('developerSecretDiagnostics', () => {
       },
     });
 
-    expect(findings).toEqual(expect.arrayContaining([
-      expect.objectContaining({
-        level: 'error',
-        path: 'deliverableConfig.slideDecks.apiKey',
-        kind: 'sensitive-field',
-      }),
-    ]));
+    expect(findings).toEqual(
+      expect.arrayContaining([
+        expect.objectContaining({
+          level: 'error',
+          path: 'deliverableConfig.slideDecks.apiKey',
+          kind: 'sensitive-field',
+        }),
+      ]),
+    );
   });
 
   it('flags key-like string values even under neutral fields', () => {
@@ -28,12 +27,14 @@ describe('developerSecretDiagnostics', () => {
       notes: 'Use sk-proj-abcdefghijklmnopqrstuvwxyz123456 for the demo',
     });
 
-    expect(findings).toEqual(expect.arrayContaining([
-      expect.objectContaining({
-        path: 'notes',
-        kind: 'secret-value',
-      }),
-    ]));
+    expect(findings).toEqual(
+      expect.arrayContaining([
+        expect.objectContaining({
+          path: 'notes',
+          kind: 'secret-value',
+        }),
+      ]),
+    );
   });
 
   it('throws with a precise path for unsafe developer data', () => {

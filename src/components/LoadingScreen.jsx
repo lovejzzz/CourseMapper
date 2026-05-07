@@ -13,9 +13,7 @@ export default function LoadingScreen({ message = 'Loading…' }) {
           <div className="w-10 h-10 rounded-full border-4 border-slate-200 dark:border-slate-700" />
           <div className="absolute inset-0 w-10 h-10 rounded-full border-4 border-transparent border-t-indigo-500 animate-spin" />
         </div>
-        <p className="text-sm font-medium text-slate-500 dark:text-slate-400 animate-pulse">
-          {message}
-        </p>
+        <p className="text-sm font-medium text-slate-500 dark:text-slate-400 animate-pulse">{message}</p>
       </div>
     </div>
   );
@@ -37,7 +35,7 @@ export function ConfigSkeleton() {
 
         {/* Form fields */}
         <div className="space-y-4">
-          {[1, 2, 3].map(i => (
+          {[1, 2, 3].map((i) => (
             <div key={i} className="space-y-2">
               <div className="h-4 w-32 bg-slate-200 dark:bg-slate-700 rounded" />
               <div className="h-10 w-full bg-slate-100 dark:bg-slate-800 rounded-lg border border-slate-200 dark:border-slate-700" />
@@ -76,8 +74,11 @@ export function WorkspaceSkeleton() {
 
         {/* Tabs */}
         <div className="flex gap-2 border-b border-slate-200 dark:border-slate-700 pb-2">
-          {[1, 2, 3, 4].map(i => (
-            <div key={i} className={`h-8 rounded-lg ${i === 1 ? 'w-28 bg-indigo-100 dark:bg-indigo-900/40' : 'w-24 bg-slate-100 dark:bg-slate-800'}`} />
+          {[1, 2, 3, 4].map((i) => (
+            <div
+              key={i}
+              className={`h-8 rounded-lg ${i === 1 ? 'w-28 bg-indigo-100 dark:bg-indigo-900/40' : 'w-24 bg-slate-100 dark:bg-slate-800'}`}
+            />
           ))}
         </div>
 
@@ -85,14 +86,14 @@ export function WorkspaceSkeleton() {
         <div className="rounded-xl border border-slate-200 dark:border-slate-700 overflow-hidden">
           {/* Table header */}
           <div className="flex gap-4 px-4 py-3 bg-slate-50 dark:bg-slate-800">
-            {[1, 2, 3].map(i => (
+            {[1, 2, 3].map((i) => (
               <div key={i} className="h-4 flex-1 bg-slate-200 dark:bg-slate-700 rounded" />
             ))}
           </div>
           {/* Table rows */}
-          {[1, 2, 3, 4, 5].map(row => (
+          {[1, 2, 3, 4, 5].map((row) => (
             <div key={row} className="flex gap-4 px-4 py-3 border-t border-slate-100 dark:border-slate-800">
-              {[1, 2, 3].map(col => (
+              {[1, 2, 3].map((col) => (
                 <div key={col} className="h-4 flex-1 bg-slate-100 dark:bg-slate-800 rounded" />
               ))}
             </div>
@@ -116,9 +117,7 @@ export function CourseMapSkeleton() {
           <div className="w-10 h-10 rounded-full border-4 border-slate-200 dark:border-slate-700" />
           <div className="absolute inset-0 w-10 h-10 rounded-full border-4 border-transparent border-t-indigo-500 animate-spin" />
         </div>
-        <p className="text-sm font-medium text-slate-500 dark:text-slate-400">
-          Preparing course map...
-        </p>
+        <p className="text-sm font-medium text-slate-500 dark:text-slate-400">Preparing course map...</p>
       </div>
 
       {/* Skeleton table */}
@@ -136,11 +135,16 @@ export function CourseMapSkeleton() {
           <div className="h-3 w-20 bg-slate-200 dark:bg-slate-700 rounded" />
         </div>
         {/* Rows */}
-        {[1, 2, 3, 4, 5, 6].map(row => (
-          <div key={row} className="flex gap-4 px-4 py-3 border-b border-slate-100 dark:border-slate-800 last:border-b-0">
+        {[1, 2, 3, 4, 5, 6].map((row) => (
+          <div
+            key={row}
+            className="flex gap-4 px-4 py-3 border-b border-slate-100 dark:border-slate-800 last:border-b-0"
+          >
             <div className="h-3 w-8 bg-slate-100 dark:bg-slate-800 rounded" />
             <div className={`h-3 w-24 bg-slate-100 dark:bg-slate-800 rounded`} />
-            <div className={`h-3 flex-1 bg-slate-100 dark:bg-slate-800 rounded ${row % 3 === 0 ? 'max-w-[70%]' : ''}`} />
+            <div
+              className={`h-3 flex-1 bg-slate-100 dark:bg-slate-800 rounded ${row % 3 === 0 ? 'max-w-[70%]' : ''}`}
+            />
             <div className="h-3 w-32 bg-slate-100 dark:bg-slate-800 rounded" />
             <div className="h-3 w-20 bg-slate-100 dark:bg-slate-800 rounded" />
           </div>
@@ -159,13 +163,13 @@ export function PageSkeleton() {
       <div className="max-w-2xl mx-auto space-y-6 animate-pulse">
         <div className="h-8 w-48 bg-slate-200 dark:bg-slate-700 rounded-lg" />
         <div className="space-y-3">
-          {[1, 2, 3, 4, 5, 6].map(i => (
+          {[1, 2, 3, 4, 5, 6].map((i) => (
             <div key={i} className={`h-4 bg-slate-100 dark:bg-slate-800 rounded ${i % 3 === 0 ? 'w-3/4' : 'w-full'}`} />
           ))}
         </div>
         <div className="h-6 w-40 bg-slate-200 dark:bg-slate-700 rounded-lg" />
         <div className="space-y-3">
-          {[1, 2, 3, 4].map(i => (
+          {[1, 2, 3, 4].map((i) => (
             <div key={i} className={`h-4 bg-slate-100 dark:bg-slate-800 rounded ${i % 2 === 0 ? 'w-5/6' : 'w-full'}`} />
           ))}
         </div>

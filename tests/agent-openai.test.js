@@ -31,38 +31,86 @@ const COURSE_MAP = {
   courseName: 'Introduction to Machine Learning',
   semester: 'Fall 2026',
   lessons: [
-    { title: 'Supervised Learning Basics', sections: [{
-      learningObjectives: 'Explain supervised vs unsupervised learning',
-      topicSection: 'Classification, Regression, Training Sets',
-    }]},
-    { title: 'Decision Trees and Random Forests', sections: [{
-      learningObjectives: 'Implement decision tree classifiers and explain overfitting',
-      topicSection: 'Decision Trees, Pruning, Ensemble Methods',
-    }]},
-    { title: 'Neural Networks Fundamentals', sections: [{
-      learningObjectives: 'Describe the architecture of a feedforward neural network',
-      topicSection: 'Perceptrons, Activation Functions, Backpropagation',
-    }]},
+    {
+      title: 'Supervised Learning Basics',
+      sections: [
+        {
+          learningObjectives: 'Explain supervised vs unsupervised learning',
+          topicSection: 'Classification, Regression, Training Sets',
+        },
+      ],
+    },
+    {
+      title: 'Decision Trees and Random Forests',
+      sections: [
+        {
+          learningObjectives: 'Implement decision tree classifiers and explain overfitting',
+          topicSection: 'Decision Trees, Pruning, Ensemble Methods',
+        },
+      ],
+    },
+    {
+      title: 'Neural Networks Fundamentals',
+      sections: [
+        {
+          learningObjectives: 'Describe the architecture of a feedforward neural network',
+          topicSection: 'Perceptrons, Activation Functions, Backpropagation',
+        },
+      ],
+    },
   ],
 };
 
 const DELIVERABLES = {
-  quizBank: { status: 'done', data: { quizzes: [
-    { lt: 'Supervised Learning Basics', qs: [
-      { q: 'What is supervised learning?', ty: 'multiple_choice', bl: 'Remember', df: 'easy', pt: 1, op: ['A','B','C','D'], an: 'A' },
-    ]},
-    { lt: 'Decision Trees and Random Forests', qs: [
-      { q: 'What prevents overfitting?', ty: 'multiple_choice', bl: 'Remember', df: 'easy', pt: 1, op: ['Pruning','A','B','C'], an: 'Pruning' },
-    ]},
-    { lt: 'Neural Networks Fundamentals', qs: [
-      { q: 'Activation function?', ty: 'short_answer', bl: 'Understand', df: 'medium', pt: 2, an: '...' },
-    ]},
-  ]}},
-  lessonPlans: { status: 'done', data: { lessonPlans: [
-    { lt: 'Supervised Learning Basics', ob: 'Explain supervised vs unsupervised' },
-    { lt: 'Decision Trees and Random Forests', ob: 'Implement decision tree classifiers' },
-    { lt: 'Neural Networks Fundamentals', ob: 'Describe feedforward architecture' },
-  ]}},
+  quizBank: {
+    status: 'done',
+    data: {
+      quizzes: [
+        {
+          lt: 'Supervised Learning Basics',
+          qs: [
+            {
+              q: 'What is supervised learning?',
+              ty: 'multiple_choice',
+              bl: 'Remember',
+              df: 'easy',
+              pt: 1,
+              op: ['A', 'B', 'C', 'D'],
+              an: 'A',
+            },
+          ],
+        },
+        {
+          lt: 'Decision Trees and Random Forests',
+          qs: [
+            {
+              q: 'What prevents overfitting?',
+              ty: 'multiple_choice',
+              bl: 'Remember',
+              df: 'easy',
+              pt: 1,
+              op: ['Pruning', 'A', 'B', 'C'],
+              an: 'Pruning',
+            },
+          ],
+        },
+        {
+          lt: 'Neural Networks Fundamentals',
+          qs: [{ q: 'Activation function?', ty: 'short_answer', bl: 'Understand', df: 'medium', pt: 2, an: '...' }],
+        },
+      ],
+    },
+  },
+  lessonPlans: {
+    status: 'done',
+    data: {
+      lessonPlans: [
+        { lt: 'Supervised Learning Basics', ob: 'Explain supervised vs unsupervised' },
+        { lt: 'Decision Trees and Random Forests', ob: 'Implement decision tree classifiers' },
+        { lt: 'Neural Networks Fundamentals', ob: 'Describe feedforward architecture' },
+      ],
+    },
+  },
 };
 
 async function callOpenAI(userMessage, { activeTab = 'quizBank', maxTokens = 4096 } = {}) {
@@ -72,7 +120,7 @@ async function callOpenAI(userMessage, { activeTab = 'quizBank', maxTokens = 409
   const response = await fetch('https://api.openai.com/v1/chat/completions', {
     method: 'POST',
     headers: {
-      'Authorization': `Bearer ${OPENAI_API_KEY}`,
+      Authorization: `Bearer ${OPENAI_API_KEY}`,
       'Content-Type': 'application/json',
     },
     body: JSON.stringify({
@@ -95,7 +143,7 @@ async function callOpenAI(userMessage, { activeTab = 'quizBank', maxTokens = 409
 
   const json = await response.json();
   const message = json.choices?.[0]?.message;
-  const toolCalls = (message?.tool_calls || []).map(tc => ({
+  const toolCalls = (message?.tool_calls || []).map((tc) => ({
     id: tc.id,
     name: tc.function.name,
     args: safeJson(tc.function.arguments),
@@ -108,8 +156,16 @@ async function callOpenAI(userMessage, { activeTab = 'quizBank', maxTokens = 409
   };
 }
 
-function safeJson(str) { try { return JSON.parse(str || '{}'); } catch { return {}; } }
-function findToolCall(toolCalls, name) { return toolCalls?.find(tc => tc.name === name); }
+function safeJson(str) {
+  try {
+    return JSON.parse(str || '{}');
+  } catch {
+    return {};
+  }
+}
+function findToolCall(toolCalls, name) {
+  return toolCalls?.find((tc) => tc.name === name);
+}
 
 describeWithKey(`OpenAI (${OPENAI_MODEL}) Agent E2E`, { timeout: TIMEOUT * 12 }, () => {
   it('answers a simple question correctly', { timeout: TIMEOUT }, async () => {
@@ -162,9 +218,10 @@ describeWithKey(`OpenAI (${OPENAI_MODEL}) Agent E2E`, { timeout: TIMEOUT * 12 },
 
   it('uses compare_deliverables for alignment questions', { timeout: TIMEOUT }, async () => {
     const r = await callOpenAI('Are the quiz questions aligned with the lesson plan objectives?');
-    const hadRelevantTool = findToolCall(r.toolCalls, 'compare_deliverables')
-      || findToolCall(r.toolCalls, 'validate_course')
-      || findToolCall(r.toolCalls, 'read_deliverable');
+    const hadRelevantTool =
+      findToolCall(r.toolCalls, 'compare_deliverables') ||
+      findToolCall(r.toolCalls, 'validate_course') ||
+      findToolCall(r.toolCalls, 'read_deliverable');
     expect(hadRelevantTool || r.textContent).toBeTruthy();
   });
 });

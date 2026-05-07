@@ -55,13 +55,17 @@ vi.mock('../academicSearch', () => ({
 
 vi.mock('../imageSearch', () => ({
   OPENAI_SLIDE_IMAGE_MODEL: 'gpt-image-2',
-  generateImages: vi.fn(() => Promise.resolve({
-    images: [{
-      url: 'data:image/png;base64,ZmFrZQ==',
-      provider: 'gpt-image-1.5',
-      revisedPrompt: 'revised prompt',
-    }],
-  })),
+  generateImages: vi.fn(() =>
+    Promise.resolve({
+      images: [
+        {
+          url: 'data:image/png;base64,ZmFrZQ==',
+          provider: 'gpt-image-1.5',
+          revisedPrompt: 'revised prompt',
+        },
+      ],
+    }),
+  ),
 }));
 
 vi.mock('../agentMemory', () => ({
@@ -104,9 +108,15 @@ beforeEach(() => {
   // Provide a minimal localStorage stub for save_preference
   globalThis.localStorage = {
     _store: {},
-    getItem(key) { return this._store[key] ?? null; },
-    setItem(key, val) { this._store[key] = val; },
-    removeItem(key) { delete this._store[key]; },
+    getItem(key) {
+      return this._store[key] ?? null;
+    },
+    setItem(key, val) {
+      this._store[key] = val;
+    },
+    removeItem(key) {
+      delete this._store[key];
+    },
   };
 
   mockCtx = {
@@ -133,11 +143,24 @@ beforeEach(() => {
 
 describe('AGENT_TOOLS registry', () => {
   const EXPECTED_TOOLS = [
-    'validate_course', 'check_grammar', 'search_research',
-    'read_deliverable', 'read_lesson',
-    'edit_course_map', 'edit_deliverables', 'generate_slide_images', 'verify_slide_images', 'verify_slide_export',
-    'save_preference', 'remember', 'recall', 'compare_deliverables', 'undo_last', 'forget',
-    'create_tool', 'run_tool',
+    'validate_course',
+    'check_grammar',
+    'search_research',
+    'read_deliverable',
+    'read_lesson',
+    'edit_course_map',
+    'edit_deliverables',
+    'generate_slide_images',
+    'verify_slide_images',
+    'verify_slide_export',
+    'save_preference',
+    'remember',
+    'recall',
+    'compare_deliverables',
+    'undo_last',
+    'forget',
+    'create_tool',
+    'run_tool',
   ];
 
   it('contains exactly 18 tools', () => {
@@ -314,19 +337,25 @@ describe('summarizeToolResult()', () => {
 
   describe('generate_slide_images', () => {
     it('formats generated/failed counts', () => {
-      expect(summarizeToolResult('generate_slide_images', { applied: 2, failed: 1 })).toBe('2 images generated, 1 failed');
+      expect(summarizeToolResult('generate_slide_images', { applied: 2, failed: 1 })).toBe(
+        '2 images generated, 1 failed',
+      );
     });
   });
 
   describe('verify_slide_images', () => {
     it('formats generated image coverage', () => {
-      expect(summarizeToolResult('verify_slide_images', { generatedSlides: 2, imageReadySlides: 3 })).toBe('2/3 image-ready slides have images');
+      expect(summarizeToolResult('verify_slide_images', { generatedSlides: 2, imageReadySlides: 3 })).toBe(
+        '2/3 image-ready slides have images',
+      );
     });
   });
 
   describe('verify_slide_export', () => {
     it('formats export integrity counts', () => {
-      expect(summarizeToolResult('verify_slide_export', { slidesExported: 4, mediaFiles: 2, pictureElements: 2 })).toBe('4 slides, 2 media files, 2 pictures');
+      expect(summarizeToolResult('verify_slide_export', { slidesExported: 4, mediaFiles: 2, pictureElements: 2 })).toBe(
+        '4 slides, 2 media files, 2 pictures',
+      );
     });
   });
 
@@ -342,7 +371,10 @@ describe('summarizeToolResult()', () => {
 
   describe('remember', () => {
     it('shows truncated content on success', () => {
-      const result = { saved: true, content: 'User prefers project-based assessments over exams and quizzes for measuring understanding' };
+      const result = {
+        saved: true,
+        content: 'User prefers project-based assessments over exams and quizzes for measuring understanding',
+      };
       const summary = summarizeToolResult('remember', result);
       expect(summary).toContain('Remembered:');
       // Content is sliced to 40 chars
@@ -401,7 +433,7 @@ describe('classifyRequestComplexity()', () => {
   });
 
   it('returns "complex" for bulk operations', () => {
-    expect(classifyRequestComplexity('rewrite all quizzes to align with Bloom\'s', {})).toBe('complex');
+    expect(classifyRequestComplexity("rewrite all quizzes to align with Bloom's", {})).toBe('complex');
     expect(classifyRequestComplexity('review my course for alignment issues', {})).toBe('complex');
     expect(classifyRequestComplexity('redesign the assessment strategy', {})).toBe('complex');
   });
@@ -448,7 +480,8 @@ describe('Tool execute: check_grammar', () => {
   it('returns matches for a lesson with sufficient text', async () => {
     // Lesson 0 sections have short strings (< 10 chars for values), so we need
     // to add longer content to pass the 20-char threshold.
-    mockCtx.courseMap.lessons[0].sections[0].topicSection = 'This is a sufficiently long topic section for grammar checking purposes.';
+    mockCtx.courseMap.lessons[0].sections[0].topicSection =
+      'This is a sufficiently long topic section for grammar checking purposes.';
     const result = await AGENT_TOOLS.check_grammar.execute({ lessonIndex: 0 }, mockCtx);
     expect(result.matchCount).toBe(2);
     expect(result.matches).toHaveLength(2);
@@ -471,8 +504,10 @@ describe('Tool execute: check_grammar', () => {
 
   it('batch mode: checks all lessons when lessonIndex is omitted', async () => {
     // Add long text to both lessons
-    mockCtx.courseMap.lessons[0].sections[0].topicSection = 'This is a sufficiently long topic section for grammar checking purposes.';
-    mockCtx.courseMap.lessons[1].sections[0].topicSection = 'Another sufficiently long topic section for grammar checking purposes.';
+    mockCtx.courseMap.lessons[0].sections[0].topicSection =
+      'This is a sufficiently long topic section for grammar checking purposes.';
+    mockCtx.courseMap.lessons[1].sections[0].topicSection =
+      'Another sufficiently long topic section for grammar checking purposes.';
     const result = await AGENT_TOOLS.check_grammar.execute({}, mockCtx);
     expect(result.mode).toBe('batch');
     expect(result.lessonsChecked).toBe(2);
@@ -489,7 +524,8 @@ describe('Tool execute: check_grammar', () => {
   });
 
   it('single lesson mode: includes lessonIndex in result', async () => {
-    mockCtx.courseMap.lessons[0].sections[0].topicSection = 'This is a sufficiently long topic section for grammar checking purposes.';
+    mockCtx.courseMap.lessons[0].sections[0].topicSection =
+      'This is a sufficiently long topic section for grammar checking purposes.';
     const result = await AGENT_TOOLS.check_grammar.execute({ lessonIndex: 0 }, mockCtx);
     expect(result.lessonIndex).toBe(0);
     expect(result.matchCount).toBeDefined();
@@ -509,10 +545,7 @@ describe('Tool execute: search_research', () => {
   it('defaults sources to ["papers"] when not provided', async () => {
     const { executeResearch } = await import('../academicSearch');
     await AGENT_TOOLS.search_research.execute({ query: 'test' }, mockCtx);
-    expect(executeResearch).toHaveBeenCalledWith(
-      expect.objectContaining({ sources: ['papers'] }),
-      undefined,
-    );
+    expect(executeResearch).toHaveBeenCalledWith(expect.objectContaining({ sources: ['papers'] }), undefined);
   });
 });
 
@@ -542,12 +575,19 @@ describe('Tool execute: read_lesson', () => {
     const longText = 'A'.repeat(2000);
     const ctx = {
       courseMap: {
-        lessons: [{
-          title: 'Big Lesson',
-          sections: [
-            { learningObjectives: longText, topicSection: longText, syncActivities: longText, asyncActivities: longText },
-          ],
-        }],
+        lessons: [
+          {
+            title: 'Big Lesson',
+            sections: [
+              {
+                learningObjectives: longText,
+                topicSection: longText,
+                syncActivities: longText,
+                asyncActivities: longText,
+              },
+            ],
+          },
+        ],
       },
     };
     const result = AGENT_TOOLS.read_lesson.execute({ lessonIndex: 0 }, ctx);
@@ -645,10 +685,7 @@ describe('Tool execute: edit_course_map', () => {
   });
 
   it('maps title patches to editTitle action type', () => {
-    AGENT_TOOLS.edit_course_map.execute(
-      { patches: [{ lessonIndex: 0, field: 'title', value: 'Renamed' }] },
-      mockCtx,
-    );
+    AGENT_TOOLS.edit_course_map.execute({ patches: [{ lessonIndex: 0, field: 'title', value: 'Renamed' }] }, mockCtx);
     expect(mockCtx.executeAction).toHaveBeenCalledWith({
       type: 'editTitle',
       lessonIndex: 0,
@@ -667,10 +704,7 @@ describe('Tool execute: edit_course_map', () => {
   });
 
   it('maps removeLesson patches correctly', () => {
-    AGENT_TOOLS.edit_course_map.execute(
-      { patches: [{ action: 'removeLesson', lessonIndex: 1 }] },
-      mockCtx,
-    );
+    AGENT_TOOLS.edit_course_map.execute({ patches: [{ action: 'removeLesson', lessonIndex: 1 }] }, mockCtx);
     expect(mockCtx.executeAction).toHaveBeenCalledWith({
       type: 'deleteLesson',
       lessonIndex: 1,
@@ -695,13 +729,8 @@ describe('Tool execute: edit_course_map', () => {
   });
 
   it('defaults sectionIndex to 0 when not provided', () => {
-    AGENT_TOOLS.edit_course_map.execute(
-      { patches: [{ lessonIndex: 0, field: 'topicSection', value: 'X' }] },
-      mockCtx,
-    );
-    expect(mockCtx.executeAction).toHaveBeenCalledWith(
-      expect.objectContaining({ sectionIndex: 0 }),
-    );
+    AGENT_TOOLS.edit_course_map.execute({ patches: [{ lessonIndex: 0, field: 'topicSection', value: 'X' }] }, mockCtx);
+    expect(mockCtx.executeAction).toHaveBeenCalledWith(expect.objectContaining({ sectionIndex: 0 }));
   });
 });
 
@@ -742,10 +771,7 @@ describe('Tool execute: edit_deliverables', () => {
   });
 
   it('skips snapshot for features without data', () => {
-    AGENT_TOOLS.edit_deliverables.execute(
-      { actions: [{ type: 'editItem', featureId: 'rubrics' }] },
-      mockCtx,
-    );
+    AGENT_TOOLS.edit_deliverables.execute({ actions: [{ type: 'editItem', featureId: 'rubrics' }] }, mockCtx);
     expect(mockCtx.snapshot).not.toHaveBeenCalled();
   });
 
@@ -771,21 +797,23 @@ describe('Tool execute: generate_slide_images', () => {
         slideDecks: {
           status: 'done',
           data: {
-            decks: [{
-              lessonTitle: 'Lesson 1',
-              slides: [
-                {
-                  title: 'Visual Slide',
-                  type: 'content',
-                  bullets: ['A', 'B'],
-                  visual: {
-                    kind: 'image',
-                    description: 'Students mapping a course roadmap',
-                    altText: 'Students stand near a whiteboard roadmap.',
+            decks: [
+              {
+                lessonTitle: 'Lesson 1',
+                slides: [
+                  {
+                    title: 'Visual Slide',
+                    type: 'content',
+                    bullets: ['A', 'B'],
+                    visual: {
+                      kind: 'image',
+                      description: 'Students mapping a course roadmap',
+                      altText: 'Students stand near a whiteboard roadmap.',
+                    },
                   },
-                },
-              ],
-            }],
+                ],
+              },
+            ],
           },
         },
       },
@@ -808,11 +836,13 @@ describe('Tool execute: generate_slide_images', () => {
     expect(ctx.snapshot).toHaveBeenCalledWith('slideDecks', ctx.deliverables.slideDecks.data);
     expect(ctx.optimisticUpdate).toHaveBeenCalledTimes(1);
     const patched = ctx.optimisticUpdate.mock.calls[0][1];
-    expect(patched.decks[0].slides[0].visual.generatedImage).toEqual(expect.objectContaining({
-      url: 'data:image/png;base64,ZmFrZQ==',
-      model: 'gpt-image-1.5',
-      revisedPrompt: 'revised prompt',
-    }));
+    expect(patched.decks[0].slides[0].visual.generatedImage).toEqual(
+      expect.objectContaining({
+        url: 'data:image/png;base64,ZmFrZQ==',
+        model: 'gpt-image-1.5',
+        revisedPrompt: 'revised prompt',
+      }),
+    );
   });
 
   it('returns a useful note when no image-ready slides exist', async () => {
@@ -821,10 +851,12 @@ describe('Tool execute: generate_slide_images', () => {
         slideDecks: {
           status: 'done',
           data: {
-            decks: [{
-              lessonTitle: 'Lesson 1',
-              slides: [{ title: 'Text Only', type: 'content', visual: { kind: 'none' } }],
-            }],
+            decks: [
+              {
+                lessonTitle: 'Lesson 1',
+                slides: [{ title: 'Text Only', type: 'content', visual: { kind: 'none' } }],
+              },
+            ],
           },
         },
       },
@@ -846,24 +878,26 @@ describe('Tool execute: verify_slide_images', () => {
         slideDecks: {
           status: 'done',
           data: {
-            decks: [{
-              lessonTitle: 'Lesson 1',
-              slides: [
-                {
-                  title: 'Generated',
-                  type: 'content',
-                  visual: {
-                    kind: 'image',
-                    generatedImage: { url: 'data:image/png;base64,abc', model: 'gpt-image-1.5' },
+            decks: [
+              {
+                lessonTitle: 'Lesson 1',
+                slides: [
+                  {
+                    title: 'Generated',
+                    type: 'content',
+                    visual: {
+                      kind: 'image',
+                      generatedImage: { url: 'data:image/png;base64,abc', model: 'gpt-image-1.5' },
+                    },
                   },
-                },
-                {
-                  title: 'Missing',
-                  type: 'content',
-                  visual: { kind: 'diagram', description: 'Flow' },
-                },
-              ],
-            }],
+                  {
+                    title: 'Missing',
+                    type: 'content',
+                    visual: { kind: 'diagram', description: 'Flow' },
+                  },
+                ],
+              },
+            ],
           },
         },
       },
@@ -876,21 +910,20 @@ describe('Tool execute: verify_slide_images', () => {
     expect(result.missingGeneratedImages).toBe(1);
     expect(result.dataUrlImages).toBe(1);
     expect(result.exportReadyImages).toBe(1);
-    expect(result.slides[0]).toEqual(expect.objectContaining({
-      title: 'Generated',
-      hasGeneratedImage: true,
-      imageStorage: 'dataUrl',
-      model: 'gpt-image-1.5',
-    }));
+    expect(result.slides[0]).toEqual(
+      expect.objectContaining({
+        title: 'Generated',
+        hasGeneratedImage: true,
+        imageStorage: 'dataUrl',
+        model: 'gpt-image-1.5',
+      }),
+    );
   });
 });
 
 describe('Tool execute: save_preference', () => {
   it('saves preference to localStorage and returns success', () => {
-    const result = AGENT_TOOLS.save_preference.execute(
-      { key: 'blooms_focus', value: 'apply' },
-      mockCtx,
-    );
+    const result = AGENT_TOOLS.save_preference.execute({ key: 'blooms_focus', value: 'apply' }, mockCtx);
     expect(result.saved).toBe(true);
     expect(result.key).toBe('blooms_focus');
     expect(result.value).toBe('apply');
@@ -907,8 +940,12 @@ describe('Tool execute: save_preference', () => {
 
   it('returns error on localStorage failure', () => {
     globalThis.localStorage = {
-      getItem() { throw new Error('quota exceeded'); },
-      setItem() { throw new Error('quota exceeded'); },
+      getItem() {
+        throw new Error('quota exceeded');
+      },
+      setItem() {
+        throw new Error('quota exceeded');
+      },
     };
     const result = AGENT_TOOLS.save_preference.execute({ key: 'k', value: 'v' }, mockCtx);
     expect(result.error).toContain('Failed to save preference');
@@ -930,33 +967,22 @@ describe('Tool execute: remember', () => {
 
   it('defaults importance to 3 when not provided', async () => {
     const { addMemory } = await import('../agentMemory');
-    AGENT_TOOLS.remember.execute(
-      { content: 'Something', category: 'general' },
-      mockCtx,
-    );
-    expect(addMemory).toHaveBeenCalledWith(
-      expect.objectContaining({ importance: 3 }),
-    );
+    AGENT_TOOLS.remember.execute({ content: 'Something', category: 'general' }, mockCtx);
+    expect(addMemory).toHaveBeenCalledWith(expect.objectContaining({ importance: 3 }));
   });
 
   it('passes uid from ctx', async () => {
     const { addMemory } = await import('../agentMemory');
-    AGENT_TOOLS.remember.execute(
-      { content: 'Test', category: 'general' },
-      mockCtx,
-    );
-    expect(addMemory).toHaveBeenCalledWith(
-      expect.objectContaining({ uid: 'test-user' }),
-    );
+    AGENT_TOOLS.remember.execute({ content: 'Test', category: 'general' }, mockCtx);
+    expect(addMemory).toHaveBeenCalledWith(expect.objectContaining({ uid: 'test-user' }));
   });
 
   it('handles addMemory throwing (dedup detection returns error)', async () => {
     const { addMemory } = await import('../agentMemory');
-    addMemory.mockImplementationOnce(() => { throw new Error('Storage full'); });
-    const result = AGENT_TOOLS.remember.execute(
-      { content: 'Test', category: 'general' },
-      mockCtx,
-    );
+    addMemory.mockImplementationOnce(() => {
+      throw new Error('Storage full');
+    });
+    const result = AGENT_TOOLS.remember.execute({ content: 'Test', category: 'general' }, mockCtx);
     expect(result.error).toContain('Failed to save memory');
     expect(result.error).toContain('Storage full');
   });
@@ -1024,7 +1050,9 @@ describe('Tool execute: recall', () => {
 
   it('handles errors gracefully', async () => {
     const { getMemories } = await import('../agentMemory');
-    getMemories.mockImplementationOnce(() => { throw new Error('Corrupt data'); });
+    getMemories.mockImplementationOnce(() => {
+      throw new Error('Corrupt data');
+    });
     const result = AGENT_TOOLS.recall.execute({});
     expect(result.error).toContain('Failed to recall memories');
   });
@@ -1048,7 +1076,9 @@ describe('Tool execute: forget', () => {
 
   it('returns error when deleteMemory throws (nonexistent)', async () => {
     const { deleteMemory } = await import('../agentMemory');
-    deleteMemory.mockImplementationOnce(() => { throw new Error('Memory not found'); });
+    deleteMemory.mockImplementationOnce(() => {
+      throw new Error('Memory not found');
+    });
     const result = AGENT_TOOLS.forget.execute({ id: 'nonexistent' }, mockCtx);
     expect(result.error).toContain('Failed to delete memory');
     expect(result.error).toContain('Memory not found');
@@ -1064,17 +1094,14 @@ describe('Tool execute: compare_deliverables', () => {
     const ctx = {
       ...mockCtx,
       deliverables: {
-        quizBank: { status: 'done', data: { quizzes: [
-          { lt: 'L1', qs: [{ q: 'Q1?', bl: 'Remember' }] },
-        ] } },
-        lessonPlans: { status: 'done', data: { lessonPlans: [
-          { lt: 'L1', ob: 'Explain supervised learning', bl: 'Understand' },
-        ] } },
+        quizBank: { status: 'done', data: { quizzes: [{ lt: 'L1', qs: [{ q: 'Q1?', bl: 'Remember' }] }] } },
+        lessonPlans: {
+          status: 'done',
+          data: { lessonPlans: [{ lt: 'L1', ob: 'Explain supervised learning', bl: 'Understand' }] },
+        },
       },
     };
-    const result = AGENT_TOOLS.compare_deliverables.execute(
-      { featureA: 'quizBank', featureB: 'lessonPlans' }, ctx,
-    );
+    const result = AGENT_TOOLS.compare_deliverables.execute({ featureA: 'quizBank', featureB: 'lessonPlans' }, ctx);
     expect(result.lessonsCompared).toBe(1);
     expect(result.comparisons).toHaveLength(1);
     expect(result.comparisons[0].quizBank).toBeDefined();
@@ -1083,50 +1110,66 @@ describe('Tool execute: compare_deliverables', () => {
   });
 
   it('returns error for non-existent deliverable', () => {
-    const result = AGENT_TOOLS.compare_deliverables.execute(
-      { featureA: 'quizBank', featureB: 'slideDecks' }, mockCtx,
-    );
+    const result = AGENT_TOOLS.compare_deliverables.execute({ featureA: 'quizBank', featureB: 'slideDecks' }, mockCtx);
     expect(result.error).toContain('not generated yet');
   });
 
-  it('detects Bloom\'s level gaps between deliverables', () => {
+  it("detects Bloom's level gaps between deliverables", () => {
     const ctx = {
       ...mockCtx,
       deliverables: {
-        quizBank: { status: 'done', data: { quizzes: [
-          { lt: 'L1', qs: [{ q: 'Q1?', bl: 'Remember' }, { q: 'Q2?', bl: 'Apply' }] },
-        ] } },
-        lessonPlans: { status: 'done', data: { lessonPlans: [
-          { lt: 'L1', ob: 'Apply concepts', bl: 'Understand' },
-        ] } },
+        quizBank: {
+          status: 'done',
+          data: {
+            quizzes: [
+              {
+                lt: 'L1',
+                qs: [
+                  { q: 'Q1?', bl: 'Remember' },
+                  { q: 'Q2?', bl: 'Apply' },
+                ],
+              },
+            ],
+          },
+        },
+        lessonPlans: { status: 'done', data: { lessonPlans: [{ lt: 'L1', ob: 'Apply concepts', bl: 'Understand' }] } },
       },
     };
-    const result = AGENT_TOOLS.compare_deliverables.execute(
-      { featureA: 'quizBank', featureB: 'lessonPlans' }, ctx,
-    );
+    const result = AGENT_TOOLS.compare_deliverables.execute({ featureA: 'quizBank', featureB: 'lessonPlans' }, ctx);
     expect(result.totalGaps).toBeGreaterThan(0);
     // quizBank has Remember+Apply, lessonPlans has only Understand
     // So lessonPlans is missing Remember and Apply
     const gaps = result.comparisons[0].gaps;
-    expect(gaps.some(g => g.includes("Bloom's"))).toBe(true);
+    expect(gaps.some((g) => g.includes("Bloom's"))).toBe(true);
   });
 
   it('compares a single lesson when lessonIndex is provided', () => {
     const ctx = {
       ...mockCtx,
       deliverables: {
-        quizBank: { status: 'done', data: { quizzes: [
-          { lt: 'L1', qs: [{ q: 'Q1?' }] },
-          { lt: 'L2', qs: [{ q: 'Q2?' }] },
-        ] } },
-        lessonPlans: { status: 'done', data: { lessonPlans: [
-          { lt: 'L1', ob: 'Obj1' },
-          { lt: 'L2', ob: 'Obj2' },
-        ] } },
+        quizBank: {
+          status: 'done',
+          data: {
+            quizzes: [
+              { lt: 'L1', qs: [{ q: 'Q1?' }] },
+              { lt: 'L2', qs: [{ q: 'Q2?' }] },
+            ],
+          },
+        },
+        lessonPlans: {
+          status: 'done',
+          data: {
+            lessonPlans: [
+              { lt: 'L1', ob: 'Obj1' },
+              { lt: 'L2', ob: 'Obj2' },
+            ],
+          },
+        },
       },
     };
     const result = AGENT_TOOLS.compare_deliverables.execute(
-      { featureA: 'quizBank', featureB: 'lessonPlans', lessonIndex: 1 }, ctx,
+      { featureA: 'quizBank', featureB: 'lessonPlans', lessonIndex: 1 },
+      ctx,
     );
     expect(result.lessonsCompared).toBe(1);
     expect(result.comparisons[0].lessonIndex).toBe(1);
@@ -1141,7 +1184,8 @@ describe('Tool execute: compare_deliverables', () => {
       },
     };
     const result = AGENT_TOOLS.compare_deliverables.execute(
-      { featureA: 'quizBank', featureB: 'lessonPlans', lessonIndex: 99 }, ctx,
+      { featureA: 'quizBank', featureB: 'lessonPlans', lessonIndex: 99 },
+      ctx,
     );
     expect(result.error).toContain('out of range');
   });
@@ -1149,8 +1193,9 @@ describe('Tool execute: compare_deliverables', () => {
 
 describe('summarizeToolResult: compare_deliverables', () => {
   it('formats comparison summary', () => {
-    expect(summarizeToolResult('compare_deliverables', { lessonsCompared: 3, totalGaps: 2 }))
-      .toBe('3 lessons compared, 2 gaps');
+    expect(summarizeToolResult('compare_deliverables', { lessonsCompared: 3, totalGaps: 2 })).toBe(
+      '3 lessons compared, 2 gaps',
+    );
   });
 });
 
@@ -1178,7 +1223,9 @@ describe('Tool execute: undo_last', () => {
   });
 
   it('catches undoFn exceptions', () => {
-    const undoFn = vi.fn(() => { throw new Error('Stack empty'); });
+    const undoFn = vi.fn(() => {
+      throw new Error('Stack empty');
+    });
     const result = AGENT_TOOLS.undo_last.execute({}, { undoFn });
     expect(result.error).toContain('Stack empty');
   });

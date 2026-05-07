@@ -53,87 +53,187 @@ export function deckDataContainsLatex(data) {
 /** LaTeX commands → Unicode characters */
 const LATEX_UNICODE_MAP = {
   // Greek lowercase
-  '\\alpha': '\u03B1',   '\\beta': '\u03B2',    '\\gamma': '\u03B3',
-  '\\delta': '\u03B4',   '\\epsilon': '\u03B5',  '\\varepsilon': '\u03B5',
-  '\\zeta': '\u03B6',    '\\eta': '\u03B7',      '\\theta': '\u03B8',
-  '\\iota': '\u03B9',    '\\kappa': '\u03BA',    '\\lambda': '\u03BB',
-  '\\mu': '\u03BC',      '\\nu': '\u03BD',       '\\xi': '\u03BE',
-  '\\pi': '\u03C0',      '\\rho': '\u03C1',      '\\sigma': '\u03C3',
-  '\\tau': '\u03C4',     '\\upsilon': '\u03C5',  '\\phi': '\u03C6',
-  '\\varphi': '\u03C6',  '\\chi': '\u03C7',      '\\psi': '\u03C8',
+  '\\alpha': '\u03B1',
+  '\\beta': '\u03B2',
+  '\\gamma': '\u03B3',
+  '\\delta': '\u03B4',
+  '\\epsilon': '\u03B5',
+  '\\varepsilon': '\u03B5',
+  '\\zeta': '\u03B6',
+  '\\eta': '\u03B7',
+  '\\theta': '\u03B8',
+  '\\iota': '\u03B9',
+  '\\kappa': '\u03BA',
+  '\\lambda': '\u03BB',
+  '\\mu': '\u03BC',
+  '\\nu': '\u03BD',
+  '\\xi': '\u03BE',
+  '\\pi': '\u03C0',
+  '\\rho': '\u03C1',
+  '\\sigma': '\u03C3',
+  '\\tau': '\u03C4',
+  '\\upsilon': '\u03C5',
+  '\\phi': '\u03C6',
+  '\\varphi': '\u03C6',
+  '\\chi': '\u03C7',
+  '\\psi': '\u03C8',
   '\\omega': '\u03C9',
   // Greek uppercase
-  '\\Gamma': '\u0393',   '\\Delta': '\u0394',    '\\Theta': '\u0398',
-  '\\Lambda': '\u039B',  '\\Xi': '\u039E',       '\\Pi': '\u03A0',
-  '\\Sigma': '\u03A3',   '\\Phi': '\u03A6',      '\\Psi': '\u03A8',
+  '\\Gamma': '\u0393',
+  '\\Delta': '\u0394',
+  '\\Theta': '\u0398',
+  '\\Lambda': '\u039B',
+  '\\Xi': '\u039E',
+  '\\Pi': '\u03A0',
+  '\\Sigma': '\u03A3',
+  '\\Phi': '\u03A6',
+  '\\Psi': '\u03A8',
   '\\Omega': '\u03A9',
   // Operators and relations
-  '\\times': '\u00D7',   '\\div': '\u00F7',      '\\pm': '\u00B1',
-  '\\mp': '\u2213',      '\\cdot': '\u00B7',     '\\leq': '\u2264',
-  '\\le': '\u2264',      '\\geq': '\u2265',      '\\ge': '\u2265',
-  '\\neq': '\u2260',     '\\ne': '\u2260',       '\\approx': '\u2248',
-  '\\equiv': '\u2261',   '\\sim': '\u223C',      '\\propto': '\u221D',
-  '\\infty': '\u221E',   '\\partial': '\u2202',  '\\nabla': '\u2207',
-  '\\forall': '\u2200',  '\\exists': '\u2203',   '\\nexists': '\u2204',
-  '\\in': '\u2208',      '\\notin': '\u2209',    '\\ni': '\u220B',
-  '\\subset': '\u2282',  '\\supset': '\u2283',   '\\subseteq': '\u2286',
-  '\\supseteq': '\u2287','\\cup': '\u222A',       '\\cap': '\u2229',
-  '\\emptyset': '\u2205','\\varnothing': '\u2205',
+  '\\times': '\u00D7',
+  '\\div': '\u00F7',
+  '\\pm': '\u00B1',
+  '\\mp': '\u2213',
+  '\\cdot': '\u00B7',
+  '\\leq': '\u2264',
+  '\\le': '\u2264',
+  '\\geq': '\u2265',
+  '\\ge': '\u2265',
+  '\\neq': '\u2260',
+  '\\ne': '\u2260',
+  '\\approx': '\u2248',
+  '\\equiv': '\u2261',
+  '\\sim': '\u223C',
+  '\\propto': '\u221D',
+  '\\infty': '\u221E',
+  '\\partial': '\u2202',
+  '\\nabla': '\u2207',
+  '\\forall': '\u2200',
+  '\\exists': '\u2203',
+  '\\nexists': '\u2204',
+  '\\in': '\u2208',
+  '\\notin': '\u2209',
+  '\\ni': '\u220B',
+  '\\subset': '\u2282',
+  '\\supset': '\u2283',
+  '\\subseteq': '\u2286',
+  '\\supseteq': '\u2287',
+  '\\cup': '\u222A',
+  '\\cap': '\u2229',
+  '\\emptyset': '\u2205',
+  '\\varnothing': '\u2205',
   // Arrows
-  '\\to': '\u2192',      '\\rightarrow': '\u2192','\\leftarrow': '\u2190',
-  '\\Rightarrow': '\u21D2','\\Leftarrow': '\u21D0',
-  '\\leftrightarrow': '\u2194','\\Leftrightarrow': '\u21D4',
-  '\\mapsto': '\u21A6',  '\\uparrow': '\u2191',  '\\downarrow': '\u2193',
+  '\\to': '\u2192',
+  '\\rightarrow': '\u2192',
+  '\\leftarrow': '\u2190',
+  '\\Rightarrow': '\u21D2',
+  '\\Leftarrow': '\u21D0',
+  '\\leftrightarrow': '\u2194',
+  '\\Leftrightarrow': '\u21D4',
+  '\\mapsto': '\u21A6',
+  '\\uparrow': '\u2191',
+  '\\downarrow': '\u2193',
   // Misc symbols
-  '\\sqrt': '\u221A',    '\\sum': '\u2211',      '\\prod': '\u220F',
-  '\\int': '\u222B',     '\\oint': '\u222E',     '\\iint': '\u222C',
-  '\\therefore': '\u2234','\\because': '\u2235',  '\\angle': '\u2220',
-  '\\degree': '\u00B0',  '\\circ': '\u2218',     '\\bullet': '\u2022',
-  '\\ldots': '\u2026',   '\\cdots': '\u22EF',    '\\vdots': '\u22EE',
-  '\\ddots': '\u22F1',   '\\star': '\u22C6',     '\\dagger': '\u2020',
-  '\\ell': '\u2113',     '\\hbar': '\u210F',     '\\Re': '\u211C',
-  '\\Im': '\u2111',      '\\aleph': '\u2135',
+  '\\sqrt': '\u221A',
+  '\\sum': '\u2211',
+  '\\prod': '\u220F',
+  '\\int': '\u222B',
+  '\\oint': '\u222E',
+  '\\iint': '\u222C',
+  '\\therefore': '\u2234',
+  '\\because': '\u2235',
+  '\\angle': '\u2220',
+  '\\degree': '\u00B0',
+  '\\circ': '\u2218',
+  '\\bullet': '\u2022',
+  '\\ldots': '\u2026',
+  '\\cdots': '\u22EF',
+  '\\vdots': '\u22EE',
+  '\\ddots': '\u22F1',
+  '\\star': '\u22C6',
+  '\\dagger': '\u2020',
+  '\\ell': '\u2113',
+  '\\hbar': '\u210F',
+  '\\Re': '\u211C',
+  '\\Im': '\u2111',
+  '\\aleph': '\u2135',
   // Spacing & formatting
-  '\\quad': '  ',        '\\qquad': '    ',      '\\,': ' ',
-  '\\;': ' ',            '\\!': '',              '\\text': '',
+  '\\quad': '  ',
+  '\\qquad': '    ',
+  '\\,': ' ',
+  '\\;': ' ',
+  '\\!': '',
+  '\\text': '',
 };
 
 /** Superscript character mapping */
 const SUPERSCRIPT_MAP = {
-  '0': '\u2070', '1': '\u00B9', '2': '\u00B2', '3': '\u00B3',
-  '4': '\u2074', '5': '\u2075', '6': '\u2076', '7': '\u2077',
-  '8': '\u2078', '9': '\u2079', '+': '\u207A', '-': '\u207B',
-  '=': '\u207C', '(': '\u207D', ')': '\u207E', 'n': '\u207F',
-  'i': '\u2071',
+  0: '\u2070',
+  1: '\u00B9',
+  2: '\u00B2',
+  3: '\u00B3',
+  4: '\u2074',
+  5: '\u2075',
+  6: '\u2076',
+  7: '\u2077',
+  8: '\u2078',
+  9: '\u2079',
+  '+': '\u207A',
+  '-': '\u207B',
+  '=': '\u207C',
+  '(': '\u207D',
+  ')': '\u207E',
+  n: '\u207F',
+  i: '\u2071',
 };
 
 /** Subscript character mapping */
 const SUBSCRIPT_MAP = {
-  '0': '\u2080', '1': '\u2081', '2': '\u2082', '3': '\u2083',
-  '4': '\u2084', '5': '\u2085', '6': '\u2086', '7': '\u2087',
-  '8': '\u2088', '9': '\u2089', '+': '\u208A', '-': '\u208B',
-  '=': '\u208C', '(': '\u208D', ')': '\u208E',
-  'a': '\u2090', 'e': '\u2091', 'o': '\u2092', 'x': '\u2093',
-  'h': '\u2095', 'k': '\u2096', 'l': '\u2097', 'm': '\u2098',
-  'n': '\u2099', 'p': '\u209A', 's': '\u209B', 't': '\u209C',
+  0: '\u2080',
+  1: '\u2081',
+  2: '\u2082',
+  3: '\u2083',
+  4: '\u2084',
+  5: '\u2085',
+  6: '\u2086',
+  7: '\u2087',
+  8: '\u2088',
+  9: '\u2089',
+  '+': '\u208A',
+  '-': '\u208B',
+  '=': '\u208C',
+  '(': '\u208D',
+  ')': '\u208E',
+  a: '\u2090',
+  e: '\u2091',
+  o: '\u2092',
+  x: '\u2093',
+  h: '\u2095',
+  k: '\u2096',
+  l: '\u2097',
+  m: '\u2098',
+  n: '\u2099',
+  p: '\u209A',
+  s: '\u209B',
+  t: '\u209C',
 };
 
 // ── Complexity Detection ──────────────────────────────────────────────────
 
 /** Patterns that require image rendering (Tier 2) */
 const COMPLEX_PATTERNS = [
-  /\\frac\s*\{/,            // fractions
-  /\\dfrac\s*\{/,           // display fractions
-  /\\sqrt\s*\[/,            // nth roots
-  /\\begin\s*\{/,           // environments (matrix, cases, etc.)
-  /\\int\s*[_^]/,           // integrals with limits
-  /\\sum\s*[_^]/,           // sums with limits
-  /\\prod\s*[_^]/,          // products with limits
-  /\\lim\b/,                // limits
-  /\\binom\s*\{/,           // binomial coefficients
-  /\\underset|\\overset/,   // under/over annotations
+  /\\frac\s*\{/, // fractions
+  /\\dfrac\s*\{/, // display fractions
+  /\\sqrt\s*\[/, // nth roots
+  /\\begin\s*\{/, // environments (matrix, cases, etc.)
+  /\\int\s*[_^]/, // integrals with limits
+  /\\sum\s*[_^]/, // sums with limits
+  /\\prod\s*[_^]/, // products with limits
+  /\\lim\b/, // limits
+  /\\binom\s*\{/, // binomial coefficients
+  /\\underset|\\overset/, // under/over annotations
   /\\hat\{|\\bar\{|\\vec\{|\\dot\{|\\tilde\{/, // accents
-  /\\mathbb\{|\\mathcal\{|\\mathfrak\{/,        // special fonts
+  /\\mathbb\{|\\mathcal\{|\\mathfrak\{/, // special fonts
   /\\overbrace|\\underbrace/,
   /\\stackrel/,
 ];
@@ -144,7 +244,7 @@ const COMPLEX_PATTERNS = [
  * @returns {boolean}
  */
 export function isSimpleLatex(expr) {
-  return !COMPLEX_PATTERNS.some(re => re.test(expr));
+  return !COMPLEX_PATTERNS.some((re) => re.test(expr));
 }
 
 /**
@@ -163,20 +263,12 @@ export function latexToUnicode(expr) {
   }
 
   // 2. Convert superscripts: ^{content} or ^single_char
-  result = result.replace(/\^{([^}]+)}/g, (_, content) =>
-    [...content].map(c => SUPERSCRIPT_MAP[c] || c).join('')
-  );
-  result = result.replace(/\^([0-9a-z+\-=()ni])/g, (_, c) =>
-    SUPERSCRIPT_MAP[c] || `^${c}`
-  );
+  result = result.replace(/\^{([^}]+)}/g, (_, content) => [...content].map((c) => SUPERSCRIPT_MAP[c] || c).join(''));
+  result = result.replace(/\^([0-9a-z+\-=()ni])/g, (_, c) => SUPERSCRIPT_MAP[c] || `^${c}`);
 
   // 3. Convert subscripts: _{content} or _single_char
-  result = result.replace(/_{([^}]+)}/g, (_, content) =>
-    [...content].map(c => SUBSCRIPT_MAP[c] || c).join('')
-  );
-  result = result.replace(/_([0-9a-z+\-=()])/g, (_, c) =>
-    SUBSCRIPT_MAP[c] || `_${c}`
-  );
+  result = result.replace(/_{([^}]+)}/g, (_, content) => [...content].map((c) => SUBSCRIPT_MAP[c] || c).join(''));
+  result = result.replace(/_([0-9a-z+\-=()])/g, (_, c) => SUBSCRIPT_MAP[c] || `_${c}`);
 
   // 4. Clean up braces and extra whitespace
   result = result.replace(/[{}]/g, '');
@@ -282,7 +374,7 @@ export async function processSlideText(text, { color = '#000000', fontSizePt = 1
 
   const images = [];
   let processedText = text;
-  const fontSizePx = fontSizePt * 96 / 72;
+  const fontSizePx = (fontSizePt * 96) / 72;
 
   // 1. Handle display math ($$...$$) — always render as image
   DISPLAY_MATH_RE.lastIndex = 0;

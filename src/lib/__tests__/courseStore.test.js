@@ -45,7 +45,11 @@ function reducer(state, action) {
     case 'MARK_ALL_STALE': {
       const updated = {};
       for (const [k, v] of Object.entries(state.deliverables)) {
-        updated[k] = { ...v, stale: true, staleConfidence: v.staleConfidence || { level: 'high', maxWeight: 1.0, dominantField: '_structural' } };
+        updated[k] = {
+          ...v,
+          stale: true,
+          staleConfidence: v.staleConfidence || { level: 'high', maxWeight: 1.0, dominantField: '_structural' },
+        };
       }
       return { ...state, deliverables: updated };
     }
@@ -54,10 +58,7 @@ function reducer(state, action) {
       if (!existing) return state;
       let mergedEdits = action.staleEdits || null;
       if (existing.staleEdits && mergedEdits) {
-        const combined = new Set([
-          ...(existing.staleEdits.lessonIndices || []),
-          ...(mergedEdits.lessonIndices || []),
-        ]);
+        const combined = new Set([...(existing.staleEdits.lessonIndices || []), ...(mergedEdits.lessonIndices || [])]);
         mergedEdits = { ...mergedEdits, lessonIndices: [...combined].sort((a, b) => a - b) };
       }
       return {
@@ -120,7 +121,11 @@ describe('courseStore reducer', () => {
 
   describe('SET_DELIVERABLE_ERROR', () => {
     it('sets error state', () => {
-      const state = reducer(initialState(), { type: 'SET_DELIVERABLE_ERROR', featureId: 'quizBank', error: 'API failed' });
+      const state = reducer(initialState(), {
+        type: 'SET_DELIVERABLE_ERROR',
+        featureId: 'quizBank',
+        error: 'API failed',
+      });
       expect(state.deliverables.quizBank.status).toBe('error');
       expect(state.deliverables.quizBank.error).toBe('API failed');
       expect(state.deliverables.quizBank.data).toBeNull();
@@ -185,7 +190,9 @@ describe('courseStore reducer', () => {
       const state = { deliverables: { quizBank: { status: 'done', staleConfidence: null } } };
       const result = reducer(state, { type: 'MARK_ALL_STALE' });
       expect(result.deliverables.quizBank.staleConfidence).toEqual({
-        level: 'high', maxWeight: 1.0, dominantField: '_structural',
+        level: 'high',
+        maxWeight: 1.0,
+        dominantField: '_structural',
       });
     });
   });

@@ -12,17 +12,20 @@ import { generateImages, OPENAI_SLIDE_IMAGE_MODEL } from './imageSearch';
 import { addMemory, searchMemories, deleteMemory, getMemories, MEMORY_CATEGORIES } from './agentMemory';
 import { saveAgentPrefs } from './cloudStorage';
 import { getCustomDeliverable } from './customDeliverableLibrary';
-import {
-  CREATE_TOOL_JSON_SCHEMA, RUN_TOOL_JSON_SCHEMA, runPlan,
-} from './customAgentTools';
+import { CREATE_TOOL_JSON_SCHEMA, RUN_TOOL_JSON_SCHEMA, runPlan } from './customAgentTools';
 
 // ── Helpers ──────────────────────────────────────────────────────────────────
 
 const FEATURE_NAMES = {
-  assignments: 'Assignments', quizBank: 'Quiz & Exam Bank',
-  discussions: 'Discussion Prompts', slideDecks: 'Slide Decks',
-  lessonPlans: 'Lesson Plans', rubrics: 'Rubrics',
-  studyGuides: 'Study Guides', courseFaq: 'Course FAQ', syllabus: 'Syllabus',
+  assignments: 'Assignments',
+  quizBank: 'Quiz & Exam Bank',
+  discussions: 'Discussion Prompts',
+  slideDecks: 'Slide Decks',
+  lessonPlans: 'Lesson Plans',
+  rubrics: 'Rubrics',
+  studyGuides: 'Study Guides',
+  courseFaq: 'Course FAQ',
+  syllabus: 'Syllabus',
 };
 
 function resolveFeatureName(featureId) {
@@ -93,9 +96,7 @@ function buildSlideImagePrompt(deck, slide, visual) {
   const title = slide?.title || slide?.t || 'slide concept';
   const desc = visual?.description || visual?.d || title;
   const alt = visual?.altText || visual?.at || '';
-  const bullets = Array.isArray(slide?.bullets || slide?.bu)
-    ? (slide.bullets || slide.bu).slice(0, 4).join('; ')
-    : '';
+  const bullets = Array.isArray(slide?.bullets || slide?.bu) ? (slide.bullets || slide.bu).slice(0, 4).join('; ') : '';
   return [
     `Course lesson: ${lessonTitle}.`,
     `Slide: ${title}.`,
@@ -103,7 +104,9 @@ function buildSlideImagePrompt(deck, slide, visual) {
     bullets ? `Key ideas to represent: ${bullets}.` : '',
     alt ? `Accessibility target: ${alt}.` : '',
     'Style: clean presentation-ready illustration or diagram, high contrast, no brand logos, no copyrighted characters, no identifiable real people, minimal or no embedded text.',
-  ].filter(Boolean).join(' ');
+  ]
+    .filter(Boolean)
+    .join(' ');
 }
 
 function arrayBufferToBase64(buffer) {
@@ -163,7 +166,7 @@ function extractLessonText(courseMap, lessonIndex) {
   const lesson = courseMap?.lessons?.[lessonIndex];
   if (!lesson) return '';
   const texts = [lesson.title || ''];
-  for (const section of (lesson.sections || [])) {
+  for (const section of lesson.sections || []) {
     for (const val of Object.values(section)) {
       if (typeof val === 'string' && val.length > 10) texts.push(val);
     }
@@ -175,27 +178,36 @@ function extractLessonText(courseMap, lessonIndex) {
 function summarizeDeliverableItem(featureId, item) {
   if (!item) return null;
   switch (featureId) {
-    case 'quizBank':
-      {
-        const questions = firstArray(item, ['questions', 'qs']);
-        return { questionCount: questions.length, topics: questions.slice(0, 3).map(q => firstText(q, ['question', 'q']).slice(0, 60)) };
-      }
+    case 'quizBank': {
+      const questions = firstArray(item, ['questions', 'qs']);
+      return {
+        questionCount: questions.length,
+        topics: questions.slice(0, 3).map((q) => firstText(q, ['question', 'q']).slice(0, 60)),
+      };
+    }
     case 'lessonPlans':
-      return { objectives: firstText(item, ['objectives', 'ob']), outlineSteps: firstArray(item, ['outline', 'ol']).length };
-    case 'slideDecks':
-      {
-        const slides = firstArray(item, ['slides', 'sl']);
-        return { slideCount: slides.length, titles: slides.slice(0, 3).map(s => firstText(s, ['title', 't'])) };
-      }
-    case 'rubrics':
-      {
-        const criteria = firstArray(item, ['criteria', 'cr']);
-        return { criteriaCount: criteria.length, criteria: criteria.slice(0, 3).map(c => firstText(c, ['criterion', 'cn'])) };
-      }
+      return {
+        objectives: firstText(item, ['objectives', 'ob']),
+        outlineSteps: firstArray(item, ['outline', 'ol']).length,
+      };
+    case 'slideDecks': {
+      const slides = firstArray(item, ['slides', 'sl']);
+      return { slideCount: slides.length, titles: slides.slice(0, 3).map((s) => firstText(s, ['title', 't'])) };
+    }
+    case 'rubrics': {
+      const criteria = firstArray(item, ['criteria', 'cr']);
+      return {
+        criteriaCount: criteria.length,
+        criteria: criteria.slice(0, 3).map((c) => firstText(c, ['criterion', 'cn'])),
+      };
+    }
     case 'discussions':
       return { prompt: firstText(item, ['prompt', 'pr']).slice(0, 80) };
     case 'studyGuides':
-      return { termCount: firstArray(item, ['keyTerms', 'kt']).length, questionCount: firstArray(item, ['reviewQuestions', 'rq']).length };
+      return {
+        termCount: firstArray(item, ['keyTerms', 'kt']).length,
+        questionCount: firstArray(item, ['reviewQuestions', 'rq']).length,
+      };
     case 'assignments':
       return { title: firstText(item, ['title', 't']), type: firstText(item, ['assignmentType', 'at']) };
     default:
@@ -225,7 +237,8 @@ function extractBlooms(featureId, item) {
 
 export const AGENT_TOOLS = {
   validate_course: {
-    description: "Run pedagogical validation (Bloom's alignment, readability, cognitive load, difficulty progression). Returns errors, warnings, and info.",
+    description:
+      "Run pedagogical validation (Bloom's alignment, readability, cognitive load, difficulty progression). Returns errors, warnings, and info.",
     params: {},
     execute: async (args, ctx) => {
       const report = generateCourseHealthReport(ctx.courseMap, ctx.deliverables);
@@ -233,7 +246,7 @@ export const AGENT_TOOLS = {
         errorCount: report.errorCount,
         warningCount: report.warningCount,
         infoCount: report.infoCount,
-        findings: report.findings.map(f => ({
+        findings: report.findings.map((f) => ({
           severity: f.severity,
           category: f.category,
           message: f.message,
@@ -244,7 +257,8 @@ export const AGENT_TOOLS = {
   },
 
   check_grammar: {
-    description: "Check grammar and spelling in lesson text via LanguageTool. Omit lessonIndex to check ALL lessons at once.",
+    description:
+      'Check grammar and spelling in lesson text via LanguageTool. Omit lessonIndex to check ALL lessons at once.',
     params: { lessonIndex: 'number (optional) — 0-based lesson index. Omit to check all lessons.' },
     execute: async (args, ctx, signal) => {
       const lessons = ctx.courseMap?.lessons || [];
@@ -258,7 +272,7 @@ export const AGENT_TOOLS = {
         return {
           lessonIndex: args.lessonIndex,
           matchCount: result.matches.length,
-          matches: result.matches.slice(0, 10).map(m => ({
+          matches: result.matches.slice(0, 10).map((m) => ({
             message: m.message,
             context: m.context,
             replacements: m.replacements,
@@ -277,7 +291,7 @@ export const AGENT_TOOLS = {
           continue;
         }
         const result = await runGrammarCheck(text, 'en-US', signal);
-        const matches = result.matches.slice(0, 5).map(m => ({
+        const matches = result.matches.slice(0, 5).map((m) => ({
           message: m.message,
           context: m.context,
           replacements: m.replacements,
@@ -317,8 +331,9 @@ export const AGENT_TOOLS = {
   read_deliverable: {
     description: 'Read current data for a deliverable. Use to see what exists before making changes.',
     params: {
-      featureId: 'string — one of: assignments, quizBank, discussions, slideDecks, lessonPlans, rubrics, studyGuides, courseFaq, syllabus',
-      lessonIndex: 'number (optional) — return only that lesson\'s data',
+      featureId:
+        'string — one of: assignments, quizBank, discussions, slideDecks, lessonPlans, rubrics, studyGuides, courseFaq, syllabus',
+      lessonIndex: "number (optional) — return only that lesson's data",
     },
     execute: (args, ctx) => {
       const entry = ctx.deliverables?.[args.featureId];
@@ -331,7 +346,10 @@ export const AGENT_TOOLS = {
       // Specific lesson requested
       if (args.lessonIndex !== undefined && arrKey && Array.isArray(data[arrKey])) {
         const item = data[arrKey][args.lessonIndex];
-        if (!item) return { error: `Lesson index ${args.lessonIndex} out of range (valid: 0-${data[arrKey].length - 1}). Omit lessonIndex to see all items.` };
+        if (!item)
+          return {
+            error: `Lesson index ${args.lessonIndex} out of range (valid: 0-${data[arrKey].length - 1}). Omit lessonIndex to see all items.`,
+          };
         // Build editItem path hints so agent knows how to edit fields
         const pathPrefix = `["${arrKey}", ${args.lessonIndex}`;
         const pathHints = [];
@@ -399,7 +417,7 @@ export const AGENT_TOOLS = {
       };
       const str = JSON.stringify(result);
       if (str.length > 8000) {
-        result.sections = result.sections.map(sec => {
+        result.sections = result.sections.map((sec) => {
           const trimmed = {};
           for (const [k, v] of Object.entries(sec)) {
             trimmed[k] = typeof v === 'string' && v.length > 300 ? v.slice(0, 300) + '…' : v;
@@ -414,9 +432,11 @@ export const AGENT_TOOLS = {
   },
 
   edit_course_map: {
-    description: 'Edit course map: rename lesson titles, edit cells (objectives, activities, topics, etc.), add or remove lessons. Changes are applied immediately. For title renames, set field to "title".',
+    description:
+      'Edit course map: rename lesson titles, edit cells (objectives, activities, topics, etc.), add or remove lessons. Changes are applied immediately. For title renames, set field to "title".',
     params: {
-      patches: 'array — each: {lessonIndex, sectionIndex?, field, value} for cells, {lessonIndex, field:"title", value} for rename, {action:"addLesson", title, sections?} to add, {action:"removeLesson", lessonIndex} to remove',
+      patches:
+        'array — each: {lessonIndex, sectionIndex?, field, value} for cells, {lessonIndex, field:"title", value} for rename, {action:"addLesson", title, sections?} to add, {action:"removeLesson", lessonIndex} to remove',
     },
     // Explicit JSON Schema for better LLM tool-calling accuracy
     jsonSchema: {
@@ -430,7 +450,11 @@ export const AGENT_TOOLS = {
             properties: {
               lessonIndex: { type: 'number', description: '0-based lesson index' },
               sectionIndex: { type: 'number', description: '0-based section index (default 0)' },
-              field: { type: 'string', description: 'Field to edit: "title" for lesson title, or cell field name: "learningGoals", "learningObjectives", "topicSection", "weeklyAssessments", "asyncActivities", "syncActivities", "supportingResources", "technologyNeeded", "presentationFormat", "evaluateDesign". Abbreviations also accepted: "lo", "lg", "tp", "as", "ac", "rs"' },
+              field: {
+                type: 'string',
+                description:
+                  'Field to edit: "title" for lesson title, or cell field name: "learningGoals", "learningObjectives", "topicSection", "weeklyAssessments", "asyncActivities", "syncActivities", "supportingResources", "technologyNeeded", "presentationFormat", "evaluateDesign". Abbreviations also accepted: "lo", "lg", "tp", "as", "ac", "rs"',
+              },
               value: { type: 'string', description: 'New value for the field' },
               action: { type: 'string', description: 'Special action: "addLesson" or "removeLesson"' },
               title: { type: 'string', description: 'Title for new lesson (when action is "addLesson")' },
@@ -449,7 +473,11 @@ export const AGENT_TOOLS = {
       for (const patch of patches) {
         let action;
         if (patch.action === 'addLesson') {
-          action = { type: 'addLesson', title: patch.title || patch.lesson?.title, sections: patch.sections || patch.lesson?.sections };
+          action = {
+            type: 'addLesson',
+            title: patch.title || patch.lesson?.title,
+            sections: patch.sections || patch.lesson?.sections,
+          };
         } else if (patch.action === 'removeLesson') {
           action = { type: 'deleteLesson', lessonIndex: patch.lessonIndex };
         } else if (patch.field === 'title') {
@@ -468,17 +496,19 @@ export const AGENT_TOOLS = {
       }
 
       return {
-        applied: results.filter(r => r.success).length,
-        failed: results.filter(r => !r.success).length,
+        applied: results.filter((r) => r.success).length,
+        failed: results.filter((r) => !r.success).length,
         details: results,
       };
     },
   },
 
   edit_deliverables: {
-    description: 'Add, edit, or remove deliverable items. Changes are applied immediately with undo support. For slide decks, prefer expanded paths such as decks[].slides[].notes/visual; shorthand aliases are still accepted.',
+    description:
+      'Add, edit, or remove deliverable items. Changes are applied immediately with undo support. For slide decks, prefer expanded paths such as decks[].slides[].notes/visual; shorthand aliases are still accepted.',
     params: {
-      actions: 'array — each: {type:"addItem"|"removeItem"|"editItem"|"regenerateLesson", featureId, lessonIndex, item?, itemIndex?, path?, value?}',
+      actions:
+        'array — each: {type:"addItem"|"removeItem"|"editItem"|"regenerateLesson", featureId, lessonIndex, item?, itemIndex?, path?, value?}',
     },
     // Explicit JSON Schema for better LLM tool-calling accuracy
     jsonSchema: {
@@ -490,13 +520,28 @@ export const AGENT_TOOLS = {
           items: {
             type: 'object',
             properties: {
-              type: { type: 'string', description: 'Action type: "addItem", "removeItem", "editItem", or "regenerateLesson"' },
-              featureId: { type: 'string', description: 'Deliverable ID: assignments, quizBank, discussions, slideDecks, lessonPlans, rubrics, studyGuides, courseFaq, syllabus' },
+              type: {
+                type: 'string',
+                description: 'Action type: "addItem", "removeItem", "editItem", or "regenerateLesson"',
+              },
+              featureId: {
+                type: 'string',
+                description:
+                  'Deliverable ID: assignments, quizBank, discussions, slideDecks, lessonPlans, rubrics, studyGuides, courseFaq, syllabus',
+              },
               lessonIndex: { type: 'number', description: '0-based lesson index' },
               item: { type: 'object', description: 'Item object to add (for addItem)' },
               itemIndex: { type: 'number', description: 'Index of item to remove (for removeItem)' },
-              subKey: { type: 'string', description: 'Sub-array key if needed (e.g., "questions"/"qs", "slides"/"sl", "criteria"/"cr")' },
-              path: { type: 'array', description: 'Path from data root to field. Prefer expanded examples: ["decks",0,"slides",2,"notes"] for slide notes, ["decks",0,"slides",2,"visual","kind"] for a slide visual, ["quizzes",0,"questions",1,"question"] for a quiz question. Shorthand aliases are accepted: ["slideDecks",0,"sl",2,"no"], ["quizzes",0,"qs",1,"q"]. Format: [rootKey, lessonIdx, subArrayKey?, itemIdx?, field]', items: {} },
+              subKey: {
+                type: 'string',
+                description: 'Sub-array key if needed (e.g., "questions"/"qs", "slides"/"sl", "criteria"/"cr")',
+              },
+              path: {
+                type: 'array',
+                description:
+                  'Path from data root to field. Prefer expanded examples: ["decks",0,"slides",2,"notes"] for slide notes, ["decks",0,"slides",2,"visual","kind"] for a slide visual, ["quizzes",0,"questions",1,"question"] for a quiz question. Shorthand aliases are accepted: ["slideDecks",0,"sl",2,"no"], ["quizzes",0,"qs",1,"q"]. Format: [rootKey, lessonIdx, subArrayKey?, itemIdx?, field]',
+                items: {},
+              },
               value: { description: 'New value to set (for editItem)' },
             },
             required: ['type', 'featureId'],
@@ -516,7 +561,10 @@ export const AGENT_TOOLS = {
           const fid = a.featureId;
           if (fid && !snapped.has(fid)) {
             const entry = ctx.deliverables?.[fid];
-            if (entry?.data) { ctx.snapshot(fid, entry.data); snapped.add(fid); }
+            if (entry?.data) {
+              ctx.snapshot(fid, entry.data);
+              snapped.add(fid);
+            }
           }
         }
       }
@@ -535,16 +583,17 @@ export const AGENT_TOOLS = {
       }
 
       return {
-        applied: results.filter(r => r.success && !r.pending).length,
-        pending: results.filter(r => r.success && r.pending).length,
-        failed: results.filter(r => !r.success).length,
+        applied: results.filter((r) => r.success && !r.pending).length,
+        pending: results.filter((r) => r.success && r.pending).length,
+        failed: results.filter((r) => !r.success).length,
         details: results,
       };
     },
   },
 
   generate_slide_images: {
-    description: 'Generate real OpenAI images for image-ready Slide Deck visuals and attach them to the slide data so the preview/export can render them. Use after slide visual metadata exists.',
+    description:
+      'Generate real OpenAI images for image-ready Slide Deck visuals and attach them to the slide data so the preview/export can render them. Use after slide visual metadata exists.',
     params: {
       lessonIndex: 'number (optional) — 0-based deck/lesson index. Omit to scan all slide decks.',
       maxImages: 'number (optional) — maximum images to generate this run. Default 4, hard cap 12.',
@@ -555,7 +604,12 @@ export const AGENT_TOOLS = {
       type: 'object',
       properties: {
         lessonIndex: { type: 'number', description: '0-based deck/lesson index. Omit to scan all slide decks.' },
-        maxImages: { type: 'number', minimum: 1, maximum: 12, description: 'Maximum images to generate this run. Default 4.' },
+        maxImages: {
+          type: 'number',
+          minimum: 1,
+          maximum: 12,
+          description: 'Maximum images to generate this run. Default 4.',
+        },
         force: { type: 'boolean', description: 'Regenerate even when a slide already has an image.' },
         model: { type: 'string', description: `Preferred OpenAI image model. Default ${OPENAI_SLIDE_IMAGE_MODEL}.` },
       },
@@ -577,8 +631,13 @@ export const AGENT_TOOLS = {
         maxImages: args.maxImages,
       });
 
-      if (args.lessonIndex != null && (!Array.isArray(decks) || args.lessonIndex < 0 || args.lessonIndex >= decks.length)) {
-        return { error: `lessonIndex ${args.lessonIndex} out of range (0-${Math.max(0, (decks?.length || 1) - 1)}) for Slide Decks.` };
+      if (
+        args.lessonIndex != null &&
+        (!Array.isArray(decks) || args.lessonIndex < 0 || args.lessonIndex >= decks.length)
+      ) {
+        return {
+          error: `lessonIndex ${args.lessonIndex} out of range (0-${Math.max(0, (decks?.length || 1) - 1)}) for Slide Decks.`,
+        };
       }
 
       if (candidates.length === 0) {
@@ -642,9 +701,7 @@ export const AGENT_TOOLS = {
           continue;
         }
         const visualKey = getSlideVisualKey(nextSlide);
-        const nextVisual = nextSlide[visualKey] && typeof nextSlide[visualKey] === 'object'
-          ? nextSlide[visualKey]
-          : {};
+        const nextVisual = nextSlide[visualKey] && typeof nextSlide[visualKey] === 'object' ? nextSlide[visualKey] : {};
         const exportReadyUrl = await makeImageUrlExportReady(image.url, signal);
         nextVisual.generatedImage = {
           url: exportReadyUrl,
@@ -677,13 +734,14 @@ export const AGENT_TOOLS = {
         failed,
         candidateCount: candidates.length,
         details: results,
-        modelsUsed: [...new Set(results.filter(r => r.success && r.model).map(r => r.model))],
+        modelsUsed: [...new Set(results.filter((r) => r.success && r.model).map((r) => r.model))],
       };
     },
   },
 
   verify_slide_images: {
-    description: 'Verify Slide Deck image attachment state. Reports how many slide visuals have generated images, which slides are still missing them, and whether images are embedded data URLs or remote URLs.',
+    description:
+      'Verify Slide Deck image attachment state. Reports how many slide visuals have generated images, which slides are still missing them, and whether images are embedded data URLs or remote URLs.',
     params: {
       lessonIndex: 'number (optional) — 0-based deck/lesson index. Omit to scan all slide decks.',
     },
@@ -701,7 +759,9 @@ export const AGENT_TOOLS = {
       const arrayKey = getArrayKey('slideDecks', data) || 'decks';
       const decks = Array.isArray(data?.[arrayKey]) ? data[arrayKey] : [];
       if (args.lessonIndex != null && (args.lessonIndex < 0 || args.lessonIndex >= decks.length)) {
-        return { error: `lessonIndex ${args.lessonIndex} out of range (0-${Math.max(0, decks.length - 1)}) for Slide Decks.` };
+        return {
+          error: `lessonIndex ${args.lessonIndex} out of range (0-${Math.max(0, decks.length - 1)}) for Slide Decks.`,
+        };
       }
 
       const summary = [];
@@ -755,14 +815,18 @@ export const AGENT_TOOLS = {
   },
 
   verify_slide_export: {
-    description: 'Build a PPTX in memory and verify Slide Deck export integrity: slide XML count, embedded media files, and picture elements. Use after image generation when the user cares about the downloadable file.',
+    description:
+      'Build a PPTX in memory and verify Slide Deck export integrity: slide XML count, embedded media files, and picture elements. Use after image generation when the user cares about the downloadable file.',
     params: {
       lessonIndex: 'number (optional) — 0-based deck/lesson index to export-check alone. Omit to check all decks.',
     },
     jsonSchema: {
       type: 'object',
       properties: {
-        lessonIndex: { type: 'number', description: '0-based deck/lesson index to export-check alone. Omit to check all decks.' },
+        lessonIndex: {
+          type: 'number',
+          description: '0-based deck/lesson index to export-check alone. Omit to check all decks.',
+        },
       },
     },
     execute: async (args, ctx) => {
@@ -773,12 +837,13 @@ export const AGENT_TOOLS = {
       const arrayKey = getArrayKey('slideDecks', sourceData) || 'decks';
       const decks = Array.isArray(sourceData?.[arrayKey]) ? sourceData[arrayKey] : [];
       if (args.lessonIndex != null && (args.lessonIndex < 0 || args.lessonIndex >= decks.length)) {
-        return { error: `lessonIndex ${args.lessonIndex} out of range (0-${Math.max(0, decks.length - 1)}) for Slide Decks.` };
+        return {
+          error: `lessonIndex ${args.lessonIndex} out of range (0-${Math.max(0, decks.length - 1)}) for Slide Decks.`,
+        };
       }
 
-      const exportData = args.lessonIndex == null
-        ? sourceData
-        : { ...sourceData, [arrayKey]: [decks[args.lessonIndex]] };
+      const exportData =
+        args.lessonIndex == null ? sourceData : { ...sourceData, [arrayKey]: [decks[args.lessonIndex]] };
 
       try {
         const [{ buildSlideDeckPptxBlob }, JSZipModule] = await Promise.all([
@@ -786,21 +851,19 @@ export const AGENT_TOOLS = {
           import('jszip'),
         ]);
         const JSZip = JSZipModule.default || JSZipModule;
-        const blob = await buildSlideDeckPptxBlob(
-          exportData,
-          ctx.courseMap?.courseName || 'Course',
-          ctx.slideTheme,
-        );
+        const blob = await buildSlideDeckPptxBlob(exportData, ctx.courseMap?.courseName || 'Course', ctx.slideTheme);
         const arrayBuffer = await blob.arrayBuffer();
         const zip = await JSZip.loadAsync(arrayBuffer);
         const fileNames = Object.keys(zip.files);
         const slideXmlPaths = fileNames
-          .filter(name => /^ppt\/slides\/slide\d+\.xml$/.test(name))
-          .sort((a, b) => Number(a.match(/slide(\d+)\.xml$/)?.[1] || 0) - Number(b.match(/slide(\d+)\.xml$/)?.[1] || 0));
-        const mediaFiles = fileNames.filter(name => /^ppt\/media\/.+/.test(name) && !name.endsWith('/'));
-        const slideXmls = await Promise.all(slideXmlPaths.map(name => zip.files[name].async('string')));
+          .filter((name) => /^ppt\/slides\/slide\d+\.xml$/.test(name))
+          .sort(
+            (a, b) => Number(a.match(/slide(\d+)\.xml$/)?.[1] || 0) - Number(b.match(/slide(\d+)\.xml$/)?.[1] || 0),
+          );
+        const mediaFiles = fileNames.filter((name) => /^ppt\/media\/.+/.test(name) && !name.endsWith('/'));
+        const slideXmls = await Promise.all(slideXmlPaths.map((name) => zip.files[name].async('string')));
         const pictureElements = slideXmls.reduce((sum, xml) => sum + (xml.match(/<p:pic\b/g) || []).length, 0);
-        const relationshipFiles = fileNames.filter(name => /^ppt\/slides\/_rels\/slide\d+\.xml\.rels$/.test(name));
+        const relationshipFiles = fileNames.filter((name) => /^ppt\/slides\/_rels\/slide\d+\.xml\.rels$/.test(name));
 
         return {
           ok: slideXmlPaths.length > 0,
@@ -820,7 +883,8 @@ export const AGENT_TOOLS = {
   },
 
   save_preference: {
-    description: 'Save a user teaching preference for future sessions (e.g., preferred Bloom\'s level, strictness, teaching style). Syncs to cloud if signed in.',
+    description:
+      "Save a user teaching preference for future sessions (e.g., preferred Bloom's level, strictness, teaching style). Syncs to cloud if signed in.",
     params: {
       key: 'string — preference name (blooms_focus, difficulty_level, teaching_style, formality, etc.)',
       value: 'string — preference value',
@@ -840,7 +904,8 @@ export const AGENT_TOOLS = {
   },
 
   remember: {
-    description: 'Save a persistent memory about this user for future sessions. Use this to remember teaching philosophy, preferred pedagogy, course patterns, institutional context, or any user preference the agent should recall later.',
+    description:
+      'Save a persistent memory about this user for future sessions. Use this to remember teaching philosophy, preferred pedagogy, course patterns, institutional context, or any user preference the agent should recall later.',
     params: {
       content: 'string — what to remember (1-2 sentences, specific and actionable)',
       category: 'string — one of: teaching_style, assessment, course_design, feedback, institutional, general',
@@ -850,7 +915,10 @@ export const AGENT_TOOLS = {
       type: 'object',
       properties: {
         content: { type: 'string', description: 'What to remember about this user' },
-        category: { type: 'string', enum: ['teaching_style', 'assessment', 'course_design', 'feedback', 'institutional', 'general'] },
+        category: {
+          type: 'string',
+          enum: ['teaching_style', 'assessment', 'course_design', 'feedback', 'institutional', 'general'],
+        },
         importance: { type: 'number', minimum: 1, maximum: 5, description: 'Importance 1-5 (default 3)' },
       },
       required: ['content', 'category'],
@@ -871,16 +939,21 @@ export const AGENT_TOOLS = {
   },
 
   recall: {
-    description: 'Search saved memories about this user. Use to recall teaching preferences, past decisions, institutional context, or feedback patterns before making recommendations.',
+    description:
+      'Search saved memories about this user. Use to recall teaching preferences, past decisions, institutional context, or feedback patterns before making recommendations.',
     params: {
       query: 'string (optional) — search term. If omitted, returns top memories by importance.',
-      category: 'string (optional) — filter by category: teaching_style, assessment, course_design, feedback, institutional, general',
+      category:
+        'string (optional) — filter by category: teaching_style, assessment, course_design, feedback, institutional, general',
     },
     jsonSchema: {
       type: 'object',
       properties: {
         query: { type: 'string', description: 'Search term to find relevant memories' },
-        category: { type: 'string', enum: ['teaching_style', 'assessment', 'course_design', 'feedback', 'institutional', 'general'] },
+        category: {
+          type: 'string',
+          enum: ['teaching_style', 'assessment', 'course_design', 'feedback', 'institutional', 'general'],
+        },
       },
     },
     execute: (args) => {
@@ -889,12 +962,12 @@ export const AGENT_TOOLS = {
         if (args.query) {
           results = searchMemories(args.query);
         } else if (args.category) {
-          results = getMemories().filter(m => m.category === args.category);
+          results = getMemories().filter((m) => m.category === args.category);
         } else {
           results = getMemories();
         }
         // Return top 10 most relevant
-        const top = results.slice(0, 10).map(m => ({
+        const top = results.slice(0, 10).map((m) => ({
           id: m.id,
           category: MEMORY_CATEGORIES[m.category] || m.category,
           content: m.content,
@@ -910,7 +983,8 @@ export const AGENT_TOOLS = {
   },
 
   compare_deliverables: {
-    description: 'Compare two deliverables for alignment across lessons. Returns per-lesson summaries highlighting gaps (e.g., quiz questions not covering lesson plan objectives).',
+    description:
+      'Compare two deliverables for alignment across lessons. Returns per-lesson summaries highlighting gaps (e.g., quiz questions not covering lesson plan objectives).',
     params: {
       featureA: 'string — first deliverable ID',
       featureB: 'string — second deliverable ID',
@@ -919,7 +993,11 @@ export const AGENT_TOOLS = {
     jsonSchema: {
       type: 'object',
       properties: {
-        featureA: { type: 'string', description: 'First deliverable: assignments, quizBank, discussions, slideDecks, lessonPlans, rubrics, studyGuides, courseFaq' },
+        featureA: {
+          type: 'string',
+          description:
+            'First deliverable: assignments, quizBank, discussions, slideDecks, lessonPlans, rubrics, studyGuides, courseFaq',
+        },
         featureB: { type: 'string', description: 'Second deliverable' },
         lessonIndex: { type: 'number', description: '0-based lesson index (optional — omit to compare all)' },
       },
@@ -956,9 +1034,11 @@ export const AGENT_TOOLS = {
         const itemB = arrB[i];
         const lesson = {
           lessonIndex: i,
-          title: firstText(itemA, ['lessonTitle', 'lt', 'title', 't'])
-            || firstText(itemB, ['lessonTitle', 'lt', 'title', 't'])
-            || ctx.courseMap?.lessons?.[i]?.title || `Lesson ${i + 1}`,
+          title:
+            firstText(itemA, ['lessonTitle', 'lt', 'title', 't']) ||
+            firstText(itemB, ['lessonTitle', 'lt', 'title', 't']) ||
+            ctx.courseMap?.lessons?.[i]?.title ||
+            `Lesson ${i + 1}`,
         };
 
         // Extract key content from each deliverable for this lesson
@@ -974,7 +1054,7 @@ export const AGENT_TOOLS = {
         const bloomsA = extractBlooms(featureA, itemA);
         const bloomsB = extractBlooms(featureB, itemB);
         if (bloomsA.length > 0 && bloomsB.length > 0) {
-          const missingInB = bloomsA.filter(b => !bloomsB.includes(b));
+          const missingInB = bloomsA.filter((b) => !bloomsB.includes(b));
           if (missingInB.length > 0) {
             gaps.push(`${featureNameB} missing Bloom's levels: ${missingInB.join(', ')}`);
           }
@@ -997,7 +1077,8 @@ export const AGENT_TOOLS = {
   },
 
   undo_last: {
-    description: 'Undo the most recent deliverable edit. Restores the previous version. Use when your last edit was wrong or the user asks to undo.',
+    description:
+      'Undo the most recent deliverable edit. Restores the previous version. Use when your last edit was wrong or the user asks to undo.',
     params: {},
     execute: (args, ctx) => {
       if (!ctx.undoFn) return { error: 'Undo not available in this context.' };
@@ -1118,9 +1199,10 @@ export function buildToolDescriptions() {
   const lines = [];
   for (const [name, tool] of Object.entries(AGENT_TOOLS)) {
     const paramEntries = Object.entries(tool.params);
-    const paramStr = paramEntries.length > 0
-      ? '\n    Args: ' + paramEntries.map(([k, v]) => `${k} (${v})`).join(', ')
-      : '\n    Args: none';
+    const paramStr =
+      paramEntries.length > 0
+        ? '\n    Args: ' + paramEntries.map(([k, v]) => `${k} (${v})`).join(', ')
+        : '\n    Args: none';
     lines.push(`  - **${name}**: ${tool.description}${paramStr}`);
   }
   return lines.join('\n');
@@ -1169,9 +1251,9 @@ export function summarizeToolResult(toolName, result) {
     case 'forget':
       return result.deleted ? 'Memory deleted' : 'Failed';
     case 'create_tool':
-      return result.ok ? `Created macro "${result.name}" (${result.plan_steps} steps)` : (result.error || 'Failed');
+      return result.ok ? `Created macro "${result.name}" (${result.plan_steps} steps)` : result.error || 'Failed';
     case 'run_tool':
-      return result.ok ? `Ran macro (${result.steps?.length || 0} steps)` : (result.error || 'Failed');
+      return result.ok ? `Ran macro (${result.steps?.length || 0} steps)` : result.error || 'Failed';
     case 'respond':
       return 'Response ready';
     default:
@@ -1190,23 +1272,31 @@ export function classifyRequestComplexity(text, deliverables) {
 
   // Simple: single-target, small edits
   const simplePatterns = [
-    /fix\s+(the\s+)?typo/i, /rename/i, /change\s+the\s+title/i,
-    /shorten/i, /what\s+is/i, /explain/i, /delete\s+(this|the)/i,
-    /remove\s+(this|the)/i, /undo/i,
+    /fix\s+(the\s+)?typo/i,
+    /rename/i,
+    /change\s+the\s+title/i,
+    /shorten/i,
+    /what\s+is/i,
+    /explain/i,
+    /delete\s+(this|the)/i,
+    /remove\s+(this|the)/i,
+    /undo/i,
   ];
-  if (simplePatterns.some(p => p.test(lower)) && lower.length < 100) return 'simple';
+  if (simplePatterns.some((p) => p.test(lower)) && lower.length < 100) return 'simple';
 
   // Complex: multi-target, creative, bulk
   const complexPatterns = [
     /all\s+(lessons?|quizzes|slides|assignments|rubrics)/i,
-    /redesign/i, /rewrite\s+all/i, /review\s+(my\s+)?course/i,
-    /create\s+a\s+(full|complete)/i, /generate/i,
-    /align.*bloom/i, /entire\s+course/i,
+    /redesign/i,
+    /rewrite\s+all/i,
+    /review\s+(my\s+)?course/i,
+    /create\s+a\s+(full|complete)/i,
+    /generate/i,
+    /align.*bloom/i,
+    /entire\s+course/i,
   ];
-  const doneCount = deliverables
-    ? Object.values(deliverables).filter(d => d?.status === 'done').length
-    : 0;
-  if (complexPatterns.some(p => p.test(lower)) || (lower.length > 300 && doneCount > 3)) return 'complex';
+  const doneCount = deliverables ? Object.values(deliverables).filter((d) => d?.status === 'done').length : 0;
+  if (complexPatterns.some((p) => p.test(lower)) || (lower.length > 300 && doneCount > 3)) return 'complex';
 
   return 'moderate';
 }

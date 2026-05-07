@@ -47,10 +47,15 @@ export async function exportDeliverableToGoogleSheets(featureId, data, courseNam
   });
 
   // ── Styling constants (matching xlsxGenerator.js) ──
-  const HEADER_FILL  = { type: 'pattern', pattern: 'solid', fgColor: { argb: 'FF4472C4' } };
-  const HEADER_FONT  = { name: 'Inter', size: 10, bold: true, color: { argb: 'FFFFFFFF' } };
-  const DATA_FONT    = { name: 'Inter', size: 10 };
-  const BORDER       = { top: { style: 'thin', color: { argb: 'FFB4C6E7' } }, left: { style: 'thin', color: { argb: 'FFB4C6E7' } }, bottom: { style: 'thin', color: { argb: 'FFB4C6E7' } }, right: { style: 'thin', color: { argb: 'FFB4C6E7' } } };
+  const HEADER_FILL = { type: 'pattern', pattern: 'solid', fgColor: { argb: 'FF4472C4' } };
+  const HEADER_FONT = { name: 'Inter', size: 10, bold: true, color: { argb: 'FFFFFFFF' } };
+  const DATA_FONT = { name: 'Inter', size: 10 };
+  const BORDER = {
+    top: { style: 'thin', color: { argb: 'FFB4C6E7' } },
+    left: { style: 'thin', color: { argb: 'FFB4C6E7' } },
+    bottom: { style: 'thin', color: { argb: 'FFB4C6E7' } },
+    right: { style: 'thin', color: { argb: 'FFB4C6E7' } },
+  };
   const ALT_ROW_FILL = { type: 'pattern', pattern: 'solid', fgColor: { argb: 'FFF2F6FC' } };
 
   // ── Header row ──

@@ -1,9 +1,14 @@
 import { condenseCourseMap } from './promptUtils.js';
 
 export default {
-    system: `You are an expert in facilitating higher-order academic discussions in university classrooms. Your prompts follow Socratic seminar principles and are designed to elicit Bloom's levels 4–6 (Analyze, Evaluate, Create). All prompts require students to engage with course material — not just share personal opinions. You include full facilitation guides for instructors. Return ONLY valid JSON, no markdown fences.`,
+  system: `You are an expert in facilitating higher-order academic discussions in university classrooms. Your prompts follow Socratic seminar principles and are designed to elicit Bloom's levels 4–6 (Analyze, Evaluate, Create). All prompts require students to engage with course material — not just share personal opinions. You include full facilitation guides for instructors. Return ONLY valid JSON, no markdown fences.`,
 
-    user: (cm, scope, verifiedChanges, columns) => `Generate university-standard academic discussion prompts for each lesson in this course:
+  user: (
+    cm,
+    scope,
+    verifiedChanges,
+    columns,
+  ) => `Generate university-standard academic discussion prompts for each lesson in this course:
 
 ${condenseCourseMap(cm, scope, verifiedChanges, columns)}
 
@@ -53,4 +58,4 @@ REQUIREMENTS:
 - QM ALIGNMENT: Learner interaction requirements must be explicit: minimum number of posts, response expectations, substantive reply criteria, and deadlines (QM 5.4). Discussion activities must provide genuine opportunities for learner-to-learner interaction that supports active learning — not just posting and forgetting (QM 5.2).
 - HUMAN READABILITY: Each discussion prompt and its supporting text should feel unique. Vary the opening hooks, probe structures, and facilitation advice. Do not use the same sentence patterns for every lesson.
 - Return ONLY the JSON object, no prose, no markdown`,
-  }
+};

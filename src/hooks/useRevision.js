@@ -8,13 +8,24 @@ import { getProfile } from '../lib/professorProfile';
  * Handles course map revision with patch-based edits, stop/resume, and retry.
  */
 export default function useRevision({
-  provider, modelId, apiKey, maxOutputTokens,
-  courseMap, setCourseMap, setOldCourseMap,
+  provider,
+  modelId,
+  apiKey,
+  maxOutputTokens,
+  courseMap,
+  setCourseMap,
+  setOldCourseMap,
   pushVersion,
-  userEdits, setUserEdits,
+  userEdits,
+  setUserEdits,
   // Shared streaming state from useGeneration
-  setIsStreaming, setStreamDetail, setStreamProgress,
-  setProgressStep, setIsStopped, setStatus, setError,
+  setIsStreaming,
+  setStreamDetail,
+  setStreamProgress,
+  setProgressStep,
+  setIsStopped,
+  setStatus,
+  setError,
   setRetryInfo,
   lockedLessons, // Feature 1.3: Set<number>
 }) {
@@ -29,166 +40,198 @@ export default function useRevision({
   const { streamProvider, parsePartialJSON, abort, abortControllerRef } = useStreamReader();
 
   // ── Main Revision ──
-  const handleRevision = useCallback(async (userMessage, chatHistory) => {
-    if (!courseMap) throw new Error('No course map to revise.');
-    setIsRevising(true);
-    setIsStreaming(true);
-    setError('');
-    setProgressStep('generating');
-    setStreamDetail('Revising course map...');
-    setStreamProgress(0);
-    setRetryInfo(null);
+  const handleRevision = useCallback(
+    async (userMessage, chatHistory) => {
+      if (!courseMap) throw new Error('No course map to revise.');
+      setIsRevising(true);
+      setIsStreaming(true);
+      setError('');
+      setProgressStep('generating');
+      setStreamDetail('Revising course map...');
+      setStreamProgress(0);
+      setRetryInfo(null);
 
-    const oldMap = structuredClone(courseMap);
-    setOldCourseMap(oldMap);
+      const oldMap = structuredClone(courseMap);
+      setOldCourseMap(oldMap);
 
-    fullTextRef.current = '';
+      fullTextRef.current = '';
 
-    try {
-      const lockedIndices = lockedLessons ? [...lockedLessons] : [];
-      const revisionUserPrompt = buildRevisionUserPrompt(
-        courseMap,
-        userMessage,
-        userEdits.length > 0 ? userEdits : undefined,
-        chatHistory && chatHistory.length > 1 ? chatHistory.slice(0, -1) : undefined,
-        lockedIndices,
-      );
+      try {
+        const lockedIndices = lockedLessons ? [...lockedLessons] : [];
+        const revisionUserPrompt = buildRevisionUserPrompt(
+          courseMap,
+          userMessage,
+          userEdits.length > 0 ? userEdits : undefined,
+          chatHistory && chatHistory.length > 1 ? chatHistory.slice(0, -1) : undefined,
+          lockedIndices,
+        );
 
-      // Feature 8.3 — inject assistant persona into system prompt
-      const profile = getProfile();
-      const assistantName = profile.assistantName || 'Aria';
-      const toneMap = {
-        formal: 'formal, precise, and academic',
-        collegial: 'collegial, warm, and encouraging',
-        socratic: 'Socratic, inquiry-based, and thought-provoking',
-      };
-      const toneDesc = toneMap[profile.assistantTone || 'collegial'];
-      const focusLine = profile.assistantFocus ? ` specializing in ${profile.assistantFocus}` : '';
-      const personaPrefix = `You are ${assistantName}, a ${toneDesc} instructional design assistant${focusLine}. When responding conversationally, use this persona. When returning patches, still return only valid JSON.\n\n`;
-      const personaSystemPrompt = personaPrefix + REVISION_SYSTEM_PROMPT;
+        // Feature 8.3 — inject assistant persona into system prompt
+        const profile = getProfile();
+        const assistantName = profile.assistantName || 'Aria';
+        const toneMap = {
+          formal: 'formal, precise, and academic',
+          collegial: 'collegial, warm, and encouraging',
+          socratic: 'Socratic, inquiry-based, and thought-provoking',
+        };
+        const toneDesc = toneMap[profile.assistantTone || 'collegial'];
+        const focusLine = profile.assistantFocus ? ` specializing in ${profile.assistantFocus}` : '';
+        const personaPrefix = `You are ${assistantName}, a ${toneDesc} instructional design assistant${focusLine}. When responding conversationally, use this persona. When returning patches, still return only valid JSON.\n\n`;
+        const personaSystemPrompt = personaPrefix + REVISION_SYSTEM_PROMPT;
 
-      const result = await streamProvider(provider, apiKey, modelId, personaSystemPrompt, revisionUserPrompt, {
-        maxOutputTokens,
-        onChunk: (text, count) => {
-          fullTextRef.current = text;
-          const now = performance.now();
-          if (now - lastUIUpdateRef.current < 150) return;
-          lastUIUpdateRef.current = now;
+        const result = await streamProvider(provider, apiKey, modelId, personaSystemPrompt, revisionUserPrompt, {
+          maxOutputTokens,
+          onChunk: (text, count) => {
+            fullTextRef.current = text;
+            const now = performance.now();
+            if (now - lastUIUpdateRef.current < 150) return;
+            lastUIUpdateRef.current = now;
 
-          // Try to parse as patches first
-          const partial = parsePartialJSON(text);
-          if (partial && partial.patches) {
-            // Patch mode — apply incrementally
-            try {
-              const patched = applyPatches(oldMap, partial.patches);
-              setCourseMap({ ...patched });
-              setStreamDetail(`Applying ${partial.patches.length} change${partial.patches.length > 1 ? 's' : ''}...`);
-              const estTotal = Math.max(text.length * 1.3, 2000);
-              setStreamProgress(Math.min(Math.round((text.length / estTotal) * 90), 90));
-            } catch { /* partial patches, keep going */ }
-          } else if (partial && partial.lessons) {
-            // Full map mode (fallback)
-            setCourseMap({ ...partial });
-            const lessons = partial.lessons;
-            const lastLesson = lessons[lessons.length - 1];
-            if (lastLesson) {
-              const sections = lastLesson.sections || [];
-              const lastSection = sections[sections.length - 1];
-              const lessonNum = lessons.length;
-              const estTotal = Math.max(text.length * 1.3, 8000);
-              setStreamProgress(Math.min(Math.round((text.length / estTotal) * 90), 90));
-              if (lastSection) {
-                const filledKeys = Object.keys(lastSection).filter(k => lastSection[k]);
-                const lastKey = filledKeys[filledKeys.length - 1];
-                const keyLabel = lastKey ? lastKey.replace(/([A-Z])/g, ' $1').replace(/^./, s => s.toUpperCase()).trim() : '';
-                setStreamDetail(`Revising Lesson ${lessonNum} ${keyLabel}...`);
-              } else {
-                setStreamDetail(`Revising Lesson ${lessonNum}...`);
+            // Try to parse as patches first
+            const partial = parsePartialJSON(text);
+            if (partial && partial.patches) {
+              // Patch mode — apply incrementally
+              try {
+                const patched = applyPatches(oldMap, partial.patches);
+                setCourseMap({ ...patched });
+                setStreamDetail(`Applying ${partial.patches.length} change${partial.patches.length > 1 ? 's' : ''}...`);
+                const estTotal = Math.max(text.length * 1.3, 2000);
+                setStreamProgress(Math.min(Math.round((text.length / estTotal) * 90), 90));
+              } catch {
+                /* partial patches, keep going */
+              }
+            } else if (partial && partial.lessons) {
+              // Full map mode (fallback)
+              setCourseMap({ ...partial });
+              const lessons = partial.lessons;
+              const lastLesson = lessons[lessons.length - 1];
+              if (lastLesson) {
+                const sections = lastLesson.sections || [];
+                const lastSection = sections[sections.length - 1];
+                const lessonNum = lessons.length;
+                const estTotal = Math.max(text.length * 1.3, 8000);
+                setStreamProgress(Math.min(Math.round((text.length / estTotal) * 90), 90));
+                if (lastSection) {
+                  const filledKeys = Object.keys(lastSection).filter((k) => lastSection[k]);
+                  const lastKey = filledKeys[filledKeys.length - 1];
+                  const keyLabel = lastKey
+                    ? lastKey
+                        .replace(/([A-Z])/g, ' $1')
+                        .replace(/^./, (s) => s.toUpperCase())
+                        .trim()
+                    : '';
+                  setStreamDetail(`Revising Lesson ${lessonNum} ${keyLabel}...`);
+                } else {
+                  setStreamDetail(`Revising Lesson ${lessonNum}...`);
+                }
               }
             }
-          }
-        },
-        onRetry: (attempt, max, delay) => {
-          setRetryInfo({ attempt, max, delay });
-          setStreamDetail(`Connection lost — retrying (${attempt}/${max})...`);
-        },
-      });
+          },
+          onRetry: (attempt, max, delay) => {
+            setRetryInfo({ attempt, max, delay });
+            setStreamDetail(`Connection lost — retrying (${attempt}/${max})...`);
+          },
+        });
 
-      setRetryInfo(null);
-      const fullText = result.fullText;
-      fullTextRef.current = fullText;
+        setRetryInfo(null);
+        const fullText = result.fullText;
+        fullTextRef.current = fullText;
 
-      // Final parse
-      const finalResult = parsePartialJSON(fullText);
+        // Final parse
+        const finalResult = parsePartialJSON(fullText);
 
-      // Chat reply (not a revision)
-      if (finalResult && finalResult.chatReply && !finalResult.lessons && !finalResult.patches) {
-        setIsRevising(false);
+        // Chat reply (not a revision)
+        if (finalResult && finalResult.chatReply && !finalResult.lessons && !finalResult.patches) {
+          setIsRevising(false);
+          setIsStreaming(false);
+          setStreamDetail('');
+          setStreamProgress(100);
+          setProgressStep('done');
+          setStatus('done');
+          setIsStopped(false);
+          setOldCourseMap(null);
+          return { chatReply: finalResult.chatReply };
+        }
+
+        // Patch-based response
+        if (finalResult && finalResult.patches && Array.isArray(finalResult.patches)) {
+          const patched = applyPatches(oldMap, finalResult.patches);
+          setCourseMap(patched);
+          setIsStreaming(false);
+          setStreamDetail('');
+          setStreamProgress(100);
+          setProgressStep('done');
+          setStatus('done');
+          setIsStopped(false);
+          pushVersion(patched, 'Revision');
+          setUserEdits([]);
+          return patched;
+        }
+
+        // Full map response (fallback)
+        if (!finalResult || !finalResult.lessons) {
+          throw new Error('Invalid revision response from AI.');
+        }
+
+        setCourseMap(finalResult);
         setIsStreaming(false);
         setStreamDetail('');
         setStreamProgress(100);
         setProgressStep('done');
         setStatus('done');
         setIsStopped(false);
-        setOldCourseMap(null);
-        return { chatReply: finalResult.chatReply };
-      }
-
-      // Patch-based response
-      if (finalResult && finalResult.patches && Array.isArray(finalResult.patches)) {
-        const patched = applyPatches(oldMap, finalResult.patches);
-        setCourseMap(patched);
-        setIsStreaming(false);
-        setStreamDetail('');
-        setStreamProgress(100);
-        setProgressStep('done');
-        setStatus('done');
-        setIsStopped(false);
-        pushVersion(patched, 'Revision');
+        pushVersion(finalResult, 'Revision');
         setUserEdits([]);
-        return patched;
-      }
-
-      // Full map response (fallback)
-      if (!finalResult || !finalResult.lessons) {
-        throw new Error('Invalid revision response from AI.');
-      }
-
-      setCourseMap(finalResult);
-      setIsStreaming(false);
-      setStreamDetail('');
-      setStreamProgress(100);
-      setProgressStep('done');
-      setStatus('done');
-      setIsStopped(false);
-      pushVersion(finalResult, 'Revision');
-      setUserEdits([]);
-      return finalResult;
-    } catch (err) {
-      setRetryInfo(null);
-      if (err.name === 'AbortError') {
-        stoppedRevisionTextRef.current = fullTextRef.current;
-        stoppedRevisionMsgRef.current = userMessage;
-        stoppedRevisionOldMapRef.current = oldMap;
-        const partial = parsePartialJSON(fullTextRef.current);
-        if (partial && partial.lessons) setCourseMap(partial);
-        setIsStreaming(false);
+        return finalResult;
+      } catch (err) {
+        setRetryInfo(null);
+        if (err.name === 'AbortError') {
+          stoppedRevisionTextRef.current = fullTextRef.current;
+          stoppedRevisionMsgRef.current = userMessage;
+          stoppedRevisionOldMapRef.current = oldMap;
+          const partial = parsePartialJSON(fullTextRef.current);
+          if (partial && partial.lessons) setCourseMap(partial);
+          setIsStreaming(false);
+          setIsRevising(false);
+          setStreamDetail('');
+          setIsStopped(true);
+          setStatus('stopped');
+          return;
+        }
+        setError('Revision failed: ' + err.message);
+        setOldCourseMap(null);
+        setProgressStep('done');
+        throw err;
+      } finally {
         setIsRevising(false);
+        setIsStreaming(false);
         setStreamDetail('');
-        setIsStopped(true);
-        setStatus('stopped');
-        return;
       }
-      setError('Revision failed: ' + err.message);
-      setOldCourseMap(null);
-      setProgressStep('done');
-      throw err;
-    } finally {
-      setIsRevising(false);
-      setIsStreaming(false);
-      setStreamDetail('');
-    }
-  }, [provider, modelId, apiKey, maxOutputTokens, courseMap, userEdits, setCourseMap, setOldCourseMap, pushVersion, setUserEdits, streamProvider, parsePartialJSON, setIsStreaming, setStreamDetail, setStreamProgress, setProgressStep, setIsStopped, setStatus, setError, setRetryInfo, lockedLessons]);
+    },
+    [
+      provider,
+      modelId,
+      apiKey,
+      maxOutputTokens,
+      courseMap,
+      userEdits,
+      setCourseMap,
+      setOldCourseMap,
+      pushVersion,
+      setUserEdits,
+      streamProvider,
+      parsePartialJSON,
+      setIsStreaming,
+      setStreamDetail,
+      setStreamProgress,
+      setProgressStep,
+      setIsStopped,
+      setStatus,
+      setError,
+      setRetryInfo,
+      lockedLessons,
+    ],
+  );
 
   // ── Resume Revision ──
   const handleResumeRevision = useCallback(async () => {
@@ -268,7 +311,27 @@ export default function useRevision({
       setIsRevising(false);
       setIsStreaming(false);
     }
-  }, [provider, modelId, apiKey, maxOutputTokens, courseMap, setCourseMap, setOldCourseMap, pushVersion, setUserEdits, streamProvider, parsePartialJSON, setIsStreaming, setStreamDetail, setStreamProgress, setProgressStep, setIsStopped, setStatus, setError, setRetryInfo]);
+  }, [
+    provider,
+    modelId,
+    apiKey,
+    maxOutputTokens,
+    courseMap,
+    setCourseMap,
+    setOldCourseMap,
+    pushVersion,
+    setUserEdits,
+    streamProvider,
+    parsePartialJSON,
+    setIsStreaming,
+    setStreamDetail,
+    setStreamProgress,
+    setProgressStep,
+    setIsStopped,
+    setStatus,
+    setError,
+    setRetryInfo,
+  ]);
 
   const resetRevision = useCallback(() => {
     setIsRevising(false);

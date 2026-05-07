@@ -4,7 +4,9 @@ import { handleAgentFinalResponse, handleLegacyResponse } from '../../components
 function createMessageHarness(initialMessages = []) {
   let messages = initialMessages;
   return {
-    get messages() { return messages; },
+    get messages() {
+      return messages;
+    },
     setMessages(updater) {
       messages = typeof updater === 'function' ? updater(messages) : updater;
     },
@@ -26,10 +28,7 @@ describe('image search chat messages', () => {
   it('does not store apiKey from native agent imageSearch responses', () => {
     const harness = createMessageHarness();
 
-    handleAgentFinalResponse(
-      { imageSearch: { query: 'photosynthesis diagram' } },
-      createContext(harness),
-    );
+    handleAgentFinalResponse({ imageSearch: { query: 'photosynthesis diagram' } }, createContext(harness));
 
     expect(harness.messages).toEqual([
       {

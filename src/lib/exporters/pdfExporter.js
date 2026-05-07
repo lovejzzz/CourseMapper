@@ -14,10 +14,15 @@ export async function exportDeliverablePdf(featureId, data, courseName) {
     const doc = new jsPDF({ orientation: 'portrait', unit: 'mm', format: 'a4' });
     const syl = data.syllabus || data;
     let y = 15;
-    const lm = 14, rm = 196, pageH = 280;
+    const lm = 14,
+      rm = 196,
+      pageH = 280;
 
     const checkPage = (needed = 10) => {
-      if (y + needed > pageH) { doc.addPage(); y = 15; }
+      if (y + needed > pageH) {
+        doc.addPage();
+        y = 15;
+      }
     };
 
     const drawSectionHeading = (text) => {
@@ -37,7 +42,7 @@ export async function exportDeliverablePdf(featureId, data, courseName) {
       doc.setFontSize(9);
       doc.setFont('helvetica', 'normal');
       const lines = doc.splitTextToSize(text || '', rm - lm - indent);
-      lines.forEach(line => {
+      lines.forEach((line) => {
         checkPage(5);
         doc.text(line, lm + indent, y);
         y += 5;
@@ -73,11 +78,17 @@ export async function exportDeliverablePdf(featureId, data, courseName) {
     doc.setFont('helvetica', 'bold');
     doc.setTextColor(43, 87, 154);
     const titleLines = doc.splitTextToSize(syl.courseTitle || courseName || 'Course Syllabus', rm - lm);
-    titleLines.forEach(line => { doc.text(line, lm, y); y += 7; });
+    titleLines.forEach((line) => {
+      doc.text(line, lm, y);
+      y += 7;
+    });
     y += 1;
     doc.setFontSize(10);
     doc.setTextColor(80, 80, 80);
-    if (syl.semester) { doc.text(syl.semester, lm, y); y += 5; }
+    if (syl.semester) {
+      doc.text(syl.semester, lm, y);
+      y += 5;
+    }
     const metaLines = [
       syl.credits && `Credits: ${syl.credits}`,
       syl.meetingPattern && `Meeting: ${syl.meetingPattern}`,
@@ -86,7 +97,10 @@ export async function exportDeliverablePdf(featureId, data, courseName) {
       syl.prerequisites && `Prerequisites: ${syl.prerequisites}`,
     ].filter(Boolean);
     doc.setFontSize(9);
-    metaLines.forEach(l => { doc.text(l, lm, y); y += 4.5; });
+    metaLines.forEach((l) => {
+      doc.text(l, lm, y);
+      y += 4.5;
+    });
     doc.setTextColor(0, 0, 0);
     y += 3;
 
@@ -99,7 +113,7 @@ export async function exportDeliverablePdf(featureId, data, courseName) {
     ].filter(Boolean);
     if (instrLines.length) {
       drawSectionHeading('Instructor Information');
-      instrLines.forEach(l => drawBoldLabel(l.split(': ')[0], l.split(': ').slice(1).join(': ')));
+      instrLines.forEach((l) => drawBoldLabel(l.split(': ')[0], l.split(': ').slice(1).join(': ')));
       y += 3;
     }
 
@@ -121,9 +135,14 @@ export async function exportDeliverablePdf(featureId, data, courseName) {
     // ── Required Texts ──
     if (syl.requiredTexts?.length) {
       drawSectionHeading('Required Texts & Materials');
-      syl.requiredTexts.forEach(t => {
-        if (typeof t === 'string') { drawBodyText(`• ${t}`, 4); return; }
-        const parts = [t.author, t.title, t.edition && `(${t.edition})`, t.isbn && `ISBN: ${t.isbn}`, t.note].filter(Boolean);
+      syl.requiredTexts.forEach((t) => {
+        if (typeof t === 'string') {
+          drawBodyText(`• ${t}`, 4);
+          return;
+        }
+        const parts = [t.author, t.title, t.edition && `(${t.edition})`, t.isbn && `ISBN: ${t.isbn}`, t.note].filter(
+          Boolean,
+        );
         drawBodyText(`• ${parts.join('. ')}`, 4);
       });
       y += 3;
@@ -134,11 +153,11 @@ export async function exportDeliverablePdf(featureId, data, courseName) {
     if (reqs.length) {
       drawSectionHeading('Course Requirements & Grading');
       checkPage(20);
-      const hasDesc = reqs.some(r => r.description);
+      const hasDesc = reqs.some((r) => r.description);
       if (hasDesc) {
         autoTable(doc, {
           head: [['Component', 'Weight', 'Description']],
-          body: reqs.map(g => [g.name || g.component || '', g.weight || '', g.description || '']),
+          body: reqs.map((g) => [g.name || g.component || '', g.weight || '', g.description || '']),
           startY: y,
           styles: { fontSize: 8, cellPadding: 2, overflow: 'linebreak', valign: 'top' },
           headStyles: { fillColor: [68, 114, 196], textColor: 255, fontStyle: 'bold' },
@@ -149,7 +168,7 @@ export async function exportDeliverablePdf(featureId, data, courseName) {
       } else {
         autoTable(doc, {
           head: [['Component', 'Weight']],
-          body: reqs.map(g => [g.name || g.component || '', g.weight || '']),
+          body: reqs.map((g) => [g.name || g.component || '', g.weight || '']),
           startY: y,
           styles: { fontSize: 8, cellPadding: 2, overflow: 'linebreak', valign: 'top' },
           headStyles: { fillColor: [68, 114, 196], textColor: 255, fontStyle: 'bold' },
@@ -164,7 +183,7 @@ export async function exportDeliverablePdf(featureId, data, courseName) {
     // ── Grading Scale ──
     if (syl.gradingScale?.length) {
       drawSectionHeading('Grading Scale');
-      const scaleText = syl.gradingScale.map(g => `${g.grade}: ${g.range}`).join('   |   ');
+      const scaleText = syl.gradingScale.map((g) => `${g.grade}: ${g.range}`).join('   |   ');
       drawBodyText(scaleText);
       y += 3;
     }
@@ -173,22 +192,34 @@ export async function exportDeliverablePdf(featureId, data, courseName) {
     if (syl.weeklySchedule?.length) {
       drawSectionHeading('Course Schedule');
       checkPage(20);
-      const hasDates = syl.weeklySchedule.some(w => w.dates);
+      const hasDates = syl.weeklySchedule.some((w) => w.dates);
       if (hasDates) {
         autoTable(doc, {
           head: [['Week', 'Dates', 'Topic', 'Readings', 'Assignments']],
-          body: syl.weeklySchedule.map(w => [w.week || '', w.dates || '', w.topic || '', w.readings || '', w.assignments || '']),
+          body: syl.weeklySchedule.map((w) => [
+            w.week || '',
+            w.dates || '',
+            w.topic || '',
+            w.readings || '',
+            w.assignments || '',
+          ]),
           startY: y,
           styles: { fontSize: 7.5, cellPadding: 2, overflow: 'linebreak', valign: 'top' },
           headStyles: { fillColor: [68, 114, 196], textColor: 255, fontStyle: 'bold' },
           alternateRowStyles: { fillColor: [245, 247, 252] },
-          columnStyles: { 0: { cellWidth: 13 }, 1: { cellWidth: 22 }, 2: { cellWidth: 45 }, 3: { cellWidth: 48 }, 4: { cellWidth: 48 } },
+          columnStyles: {
+            0: { cellWidth: 13 },
+            1: { cellWidth: 22 },
+            2: { cellWidth: 45 },
+            3: { cellWidth: 48 },
+            4: { cellWidth: 48 },
+          },
           margin: { left: lm, right: 14 },
         });
       } else {
         autoTable(doc, {
           head: [['Week', 'Topic', 'Readings', 'Assignments']],
-          body: syl.weeklySchedule.map(w => [w.week || '', w.topic || '', w.readings || '', w.assignments || '']),
+          body: syl.weeklySchedule.map((w) => [w.week || '', w.topic || '', w.readings || '', w.assignments || '']),
           startY: y,
           styles: { fontSize: 7.5, cellPadding: 2, overflow: 'linebreak', valign: 'top' },
           headStyles: { fillColor: [68, 114, 196], textColor: 255, fontStyle: 'bold' },
@@ -217,7 +248,7 @@ export async function exportDeliverablePdf(featureId, data, courseName) {
     // ── Important Dates ──
     if (syl.importantDates?.length) {
       drawSectionHeading('Important Dates');
-      syl.importantDates.forEach(d => drawBoldLabel(d.date || '', d.event || ''));
+      syl.importantDates.forEach((d) => drawBoldLabel(d.date || '', d.event || ''));
     }
 
     const fileName = `${courseName || 'Course'} - Syllabus.pdf`;
@@ -240,7 +271,14 @@ export async function exportDeliverablePdf(featureId, data, courseName) {
     head: [headers],
     body: rows,
     startY: 22,
-    styles: { fontSize: 7, cellPadding: 2, overflow: 'linebreak', lineWidth: 0.1, lineColor: [180, 198, 231], valign: 'top' },
+    styles: {
+      fontSize: 7,
+      cellPadding: 2,
+      overflow: 'linebreak',
+      lineWidth: 0.1,
+      lineColor: [180, 198, 231],
+      valign: 'top',
+    },
     headStyles: { fillColor: [68, 114, 196], textColor: 255, fontStyle: 'bold', fontSize: 7.5 },
     alternateRowStyles: { fillColor: [245, 247, 252] },
     margin: { top: 22, left: 8, right: 8 },

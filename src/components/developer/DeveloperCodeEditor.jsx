@@ -1,42 +1,28 @@
-import React, {
-  forwardRef,
-  useEffect,
-  useImperativeHandle,
-  useMemo,
-  useRef,
-  useState,
-} from 'react';
-import {
-  applyEditorIndent,
-  getCursorPosition,
-  getLineCount,
-} from '../../lib/developerCodeEditor.js';
-import {
-  findJsonPathLocation,
-  offsetToLineColumn,
-} from '../../lib/developerJsonPath.js';
+import React, { forwardRef, useEffect, useImperativeHandle, useMemo, useRef, useState } from 'react';
+import { applyEditorIndent, getCursorPosition, getLineCount } from '../../lib/developerCodeEditor.js';
+import { findJsonPathLocation, offsetToLineColumn } from '../../lib/developerJsonPath.js';
 
-const DeveloperCodeEditor = forwardRef(function DeveloperCodeEditor({
-  value,
-  onChange,
-  onApply,
-  onFormat,
-  canApply = false,
-  canFormat = true,
-  sectionLabel = 'JSON',
-  sectionId = 'raw',
-  diagnostics = [],
-}, forwardedRef) {
+const DeveloperCodeEditor = forwardRef(function DeveloperCodeEditor(
+  {
+    value,
+    onChange,
+    onApply,
+    onFormat,
+    canApply = false,
+    canFormat = true,
+    sectionLabel = 'JSON',
+    sectionId = 'raw',
+    diagnostics = [],
+  },
+  forwardedRef,
+) {
   const textareaRef = useRef(null);
   const cmViewRef = useRef(null);
   const lineNumberRef = useRef(null);
   const [cursor, setCursor] = useState(() => getCursorPosition(value, 0));
   const [codeMirror, setCodeMirror] = useState(null);
   const lineCount = getLineCount(value);
-  const lineNumbers = useMemo(
-    () => Array.from({ length: lineCount }, (_, index) => index + 1).join('\n'),
-    [lineCount],
-  );
+  const lineNumbers = useMemo(() => Array.from({ length: lineCount }, (_, index) => index + 1).join('\n'), [lineCount]);
 
   useEffect(() => {
     let mounted = true;
@@ -63,7 +49,9 @@ const DeveloperCodeEditor = forwardRef(function DeveloperCodeEditor({
       .catch(() => {
         if (mounted) setCodeMirror(null);
       });
-    return () => { mounted = false; };
+    return () => {
+      mounted = false;
+    };
   }, []);
 
   function selectRange(selectionStart, selectionEnd = selectionStart) {
@@ -116,12 +104,9 @@ const DeveloperCodeEditor = forwardRef(function DeveloperCodeEditor({
   function handleKeyDown(e) {
     if (e.key === 'Tab') {
       e.preventDefault();
-      setValueWithSelection(applyEditorIndent(
-        value,
-        e.currentTarget.selectionStart,
-        e.currentTarget.selectionEnd,
-        { outdent: e.shiftKey },
-      ));
+      setValueWithSelection(
+        applyEditorIndent(value, e.currentTarget.selectionStart, e.currentTarget.selectionEnd, { outdent: e.shiftKey }),
+      );
       return;
     }
 
@@ -149,21 +134,22 @@ const DeveloperCodeEditor = forwardRef(function DeveloperCodeEditor({
 
   const cmExtensions = useMemo(() => {
     if (!codeMirror) return [];
-    const diagnosticSource = () => diagnostics
-      .map((finding) => {
-        try {
-          const location = findJsonPathLocation(value, finding.path, sectionId);
-          return {
-            from: location.index,
-            to: Math.max(location.endIndex, location.index + 1),
-            severity: finding.level === 'error' ? 'error' : 'warning',
-            message: `${finding.path}: ${finding.message}`,
-          };
-        } catch {
-          return null;
-        }
-      })
-      .filter(Boolean);
+    const diagnosticSource = () =>
+      diagnostics
+        .map((finding) => {
+          try {
+            const location = findJsonPathLocation(value, finding.path, sectionId);
+            return {
+              from: location.index,
+              to: Math.max(location.endIndex, location.index + 1),
+              severity: finding.level === 'error' ? 'error' : 'warning',
+              message: `${finding.path}: ${finding.message}`,
+            };
+          } catch {
+            return null;
+          }
+        })
+        .filter(Boolean);
 
     return [
       codeMirror.json(),
@@ -195,25 +181,37 @@ const DeveloperCodeEditor = forwardRef(function DeveloperCodeEditor({
       ]),
       codeMirror.EditorView.theme({
         '&': { height: '100%', backgroundColor: '#020617', color: '#e2e8f0' },
-        '.cm-scroller': { fontFamily: 'ui-monospace, SFMono-Regular, Menlo, Monaco, Consolas, monospace', fontSize: '12px', lineHeight: '20px' },
+        '.cm-scroller': {
+          fontFamily: 'ui-monospace, SFMono-Regular, Menlo, Monaco, Consolas, monospace',
+          fontSize: '12px',
+          lineHeight: '20px',
+        },
         '.cm-content': { padding: '12px 0' },
         '.cm-gutters': { backgroundColor: '#0f172a', color: '#64748b', borderRightColor: '#1e293b' },
         '.cm-activeLineGutter': { backgroundColor: '#111827' },
         '.cm-activeLine': { backgroundColor: 'rgba(99, 102, 241, 0.08)' },
-        '.cm-selectionBackground, &.cm-focused .cm-selectionBackground': { backgroundColor: 'rgba(99, 102, 241, 0.35)' },
+        '.cm-selectionBackground, &.cm-focused .cm-selectionBackground': {
+          backgroundColor: 'rgba(99, 102, 241, 0.35)',
+        },
       }),
     ];
   }, [canApply, canFormat, codeMirror, diagnostics, onApply, onFormat, sectionId, value]);
 
   return (
-    <div className="flex min-h-[360px] flex-1 flex-col bg-slate-950">
+    <div
+      data-testid={`developer-code-editor-${sectionId}`}
+      data-section={sectionId}
+      className="flex min-h-[360px] flex-1 flex-col bg-slate-950"
+    >
       <div className="flex items-center justify-between border-b border-slate-800 bg-slate-900 px-3 py-2">
         <div className="min-w-0">
           <p className="truncate text-[11px] font-bold text-slate-200">{sectionLabel}</p>
           <p className="text-[10px] text-slate-500">{lineCount} lines</p>
         </div>
         <div className="flex items-center gap-2 text-[10px] font-semibold text-slate-500">
-          <span>Ln {cursor.line}, Col {cursor.column}</span>
+          <span data-testid="developer-code-cursor">
+            Ln {cursor.line}, Col {cursor.column}
+          </span>
           <span className="hidden rounded-md border border-slate-700 px-2 py-1 sm:inline">Tab indents</span>
           <span className="hidden rounded-md border border-slate-700 px-2 py-1 sm:inline">Cmd+S saves</span>
         </div>

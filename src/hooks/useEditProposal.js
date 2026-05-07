@@ -26,7 +26,15 @@ import { getArrayKey } from '../lib/syncDependencies';
  * Exposes:
  *   { proposals, proposeLesson, acceptProposal, dismissProposal, regenerateProposal }
  */
-export default function useEditProposal({ provider, modelId, apiKey, maxOutputTokens, deliverableConfig, pedagogicalMode, columns }) {
+export default function useEditProposal({
+  provider,
+  modelId,
+  apiKey,
+  maxOutputTokens,
+  deliverableConfig,
+  pedagogicalMode,
+  columns,
+}) {
   const [proposals, setProposals] = useState({});
   const { streamProvider, parsePartialJSON } = useStreamReader();
 
@@ -42,7 +50,7 @@ export default function useEditProposal({ provider, modelId, apiKey, maxOutputTo
    * Set a single proposal entry immutably.
    */
   const setProposal = useCallback((featureId, lessonIndex, update) => {
-    setProposals(prev => {
+    setProposals((prev) => {
       const featureProposals = prev[featureId] || {};
       const existing = featureProposals[lessonIndex] || {};
       return {
@@ -59,7 +67,7 @@ export default function useEditProposal({ provider, modelId, apiKey, maxOutputTo
    * Remove a proposal entry entirely.
    */
   const clearProposal = useCallback((featureId, lessonIndex) => {
-    setProposals(prev => {
+    setProposals((prev) => {
       const featureProposals = { ...(prev[featureId] || {}) };
       delete featureProposals[lessonIndex];
       return { ...prev, [featureId]: featureProposals };
@@ -75,100 +83,122 @@ export default function useEditProposal({ provider, modelId, apiKey, maxOutputTo
    * @param {string|null} editContext    — human-readable change summary
    * @param {object|null} existingData   — current full deliverable data (for merge)
    */
-  const proposeLesson = useCallback(async (featureId, courseMap, lessonIndex, editContext, existingData) => {
-    if (!courseMap || lessonIndex == null) return;
+  const proposeLesson = useCallback(
+    async (featureId, courseMap, lessonIndex, editContext, existingData) => {
+      if (!courseMap || lessonIndex == null) return;
 
-    const streamKey = `${featureId}:${lessonIndex}`;
+      const streamKey = `${featureId}:${lessonIndex}`;
 
-    // Abort any existing stream for this lesson
-    if (activeStreamsRef.current.has(streamKey)) {
-      activeStreamsRef.current.get(streamKey).abort();
-    }
-    const controller = new AbortController();
-    activeStreamsRef.current.set(streamKey, controller);
+      // Abort any existing stream for this lesson
+      if (activeStreamsRef.current.has(streamKey)) {
+        activeStreamsRef.current.get(streamKey).abort();
+      }
+      const controller = new AbortController();
+      activeStreamsRef.current.set(streamKey, controller);
 
-    // Mark as streaming immediately so the panel appears
-    setProposal(featureId, lessonIndex, {
-      status: 'streaming',
-      proposedData: null,
-      editContext: editContext || null,
-    });
-
-    const config = deliverableConfig?.[featureId] || {};
-    const mode = pedagogicalMode || 'lecture';
-
-    // Build prompt with edit context injected as the highest-priority constraint
-    const prompts = getDeliverablePrompt(
-      featureId, courseMap, [lessonIndex], config, mode, null, editContext, columnsRef.current, deliverableConfig
-    );
-
-    if (!prompts) {
-      clearProposal(featureId, lessonIndex);
-      activeStreamsRef.current.delete(streamKey);
-      return;
-    }
-
-    // Capture existing array for merge context
-    const existingKey = getArrayKey(featureId, existingData);
-    const existingArr = existingData?.[existingKey] || [];
-
-    try {
-      let fullText = '';
-      let lastParseTime = 0;
-
-      await streamProvider(provider, apiKey, modelId, prompts.systemPrompt, prompts.userPrompt, {
-        maxOutputTokens,
-        signal: controller.signal,
-        onChunk: (accumulatedText) => {
-          fullText = accumulatedText;
-          const now = Date.now();
-          if (now - lastParseTime > 150) {
-            lastParseTime = now;
-            const partial = parsePartialJSON(fullText);
-            if (partial) {
-              // Extract the proposed lesson from the partial result
-              const partialKey = getArrayKey(featureId, partial);
-              const partialArr = partialKey ? (partial[partialKey] || []) : [];
-              if (partialArr.length > 0) {
-                // The AI returns 1 lesson (the scoped one); grab it
-                const proposedLesson = partialArr[0];
-                setProposal(featureId, lessonIndex, {
-                  status: 'streaming',
-                  proposedData: proposedLesson,
-                  editContext: editContext || null,
-                });
-              }
-            }
-          }
-        },
-        maxRetries: 1,
+      // Mark as streaming immediately so the panel appears
+      setProposal(featureId, lessonIndex, {
+        status: 'streaming',
+        proposedData: null,
+        editContext: editContext || null,
       });
 
-      // Finalize
-      const finalParsed = parsePartialJSON(fullText);
-      if (finalParsed) {
-        const finalKey = getArrayKey(featureId, finalParsed);
-        const finalArr = finalKey ? (finalParsed[finalKey] || []) : [];
-        const proposedLesson = finalArr[0] || null;
-        setProposal(featureId, lessonIndex, {
-          status: 'ready',
-          proposedData: proposedLesson,
-          editContext: editContext || null,
+      const config = deliverableConfig?.[featureId] || {};
+      const mode = pedagogicalMode || 'lecture';
+
+      // Build prompt with edit context injected as the highest-priority constraint
+      const prompts = getDeliverablePrompt(
+        featureId,
+        courseMap,
+        [lessonIndex],
+        config,
+        mode,
+        null,
+        editContext,
+        columnsRef.current,
+        deliverableConfig,
+      );
+
+      if (!prompts) {
+        clearProposal(featureId, lessonIndex);
+        activeStreamsRef.current.delete(streamKey);
+        return;
+      }
+
+      // Capture existing array for merge context
+      const existingKey = getArrayKey(featureId, existingData);
+      const existingArr = existingData?.[existingKey] || [];
+
+      try {
+        let fullText = '';
+        let lastParseTime = 0;
+
+        await streamProvider(provider, apiKey, modelId, prompts.systemPrompt, prompts.userPrompt, {
+          maxOutputTokens,
+          signal: controller.signal,
+          onChunk: (accumulatedText) => {
+            fullText = accumulatedText;
+            const now = Date.now();
+            if (now - lastParseTime > 150) {
+              lastParseTime = now;
+              const partial = parsePartialJSON(fullText);
+              if (partial) {
+                // Extract the proposed lesson from the partial result
+                const partialKey = getArrayKey(featureId, partial);
+                const partialArr = partialKey ? partial[partialKey] || [] : [];
+                if (partialArr.length > 0) {
+                  // The AI returns 1 lesson (the scoped one); grab it
+                  const proposedLesson = partialArr[0];
+                  setProposal(featureId, lessonIndex, {
+                    status: 'streaming',
+                    proposedData: proposedLesson,
+                    editContext: editContext || null,
+                  });
+                }
+              }
+            }
+          },
+          maxRetries: 1,
         });
-      } else {
-        // Stream completed but couldn't parse — clear silently
-        clearProposal(featureId, lessonIndex);
+
+        // Finalize
+        const finalParsed = parsePartialJSON(fullText);
+        if (finalParsed) {
+          const finalKey = getArrayKey(featureId, finalParsed);
+          const finalArr = finalKey ? finalParsed[finalKey] || [] : [];
+          const proposedLesson = finalArr[0] || null;
+          setProposal(featureId, lessonIndex, {
+            status: 'ready',
+            proposedData: proposedLesson,
+            editContext: editContext || null,
+          });
+        } else {
+          // Stream completed but couldn't parse — clear silently
+          clearProposal(featureId, lessonIndex);
+        }
+      } catch (err) {
+        if (err.name !== 'AbortError') {
+          console.warn(`[useEditProposal] proposeLesson failed for ${featureId}[${lessonIndex}]:`, err);
+          // Clear proposal on failure — don't leave a broken panel
+          clearProposal(featureId, lessonIndex);
+        }
+      } finally {
+        activeStreamsRef.current.delete(streamKey);
       }
-    } catch (err) {
-      if (err.name !== 'AbortError') {
-        console.warn(`[useEditProposal] proposeLesson failed for ${featureId}[${lessonIndex}]:`, err);
-        // Clear proposal on failure — don't leave a broken panel
-        clearProposal(featureId, lessonIndex);
-      }
-    } finally {
-      activeStreamsRef.current.delete(streamKey);
-    }
-  }, [provider, modelId, apiKey, maxOutputTokens, deliverableConfig, pedagogicalMode, streamProvider, parsePartialJSON, setProposal, clearProposal]);
+    },
+    [
+      provider,
+      modelId,
+      apiKey,
+      maxOutputTokens,
+      deliverableConfig,
+      pedagogicalMode,
+      streamProvider,
+      parsePartialJSON,
+      setProposal,
+      clearProposal,
+    ],
+  );
 
   /**
    * acceptProposal — merge the proposed lesson into the full deliverable data
@@ -188,7 +218,7 @@ export default function useEditProposal({ provider, modelId, apiKey, maxOutputTo
       activeStreamsRef.current.delete(streamKey);
     }
 
-    setProposals(prev => {
+    setProposals((prev) => {
       const proposal = prev[featureId]?.[lessonIndex];
       if (!proposal || proposal.status !== 'ready' || !proposal.proposedData) return prev;
 
@@ -205,7 +235,7 @@ export default function useEditProposal({ provider, modelId, apiKey, maxOutputTo
         const mergedData = { ...currentFullData, [existingKey]: merged };
 
         // Update the deliverable store
-        setDeliverables(prev2 => ({
+        setDeliverables((prev2) => ({
           ...prev2,
           [featureId]: { ...prev2[featureId], data: mergedData, status: 'done', stale: false },
         }));
@@ -241,23 +271,29 @@ export default function useEditProposal({ provider, modelId, apiKey, maxOutputTo
   /**
    * dismissProposal — discard the proposal, preserve the user's raw edit.
    */
-  const dismissProposal = useCallback((featureId, lessonIndex) => {
-    // Abort any active stream
-    const streamKey = `${featureId}:${lessonIndex}`;
-    if (activeStreamsRef.current.has(streamKey)) {
-      activeStreamsRef.current.get(streamKey).abort();
-    }
-    // Animate out: set dismissed, then clear after 300ms
-    setProposal(featureId, lessonIndex, { status: 'dismissed' });
-    setTimeout(() => clearProposal(featureId, lessonIndex), 300);
-  }, [setProposal, clearProposal]);
+  const dismissProposal = useCallback(
+    (featureId, lessonIndex) => {
+      // Abort any active stream
+      const streamKey = `${featureId}:${lessonIndex}`;
+      if (activeStreamsRef.current.has(streamKey)) {
+        activeStreamsRef.current.get(streamKey).abort();
+      }
+      // Animate out: set dismissed, then clear after 300ms
+      setProposal(featureId, lessonIndex, { status: 'dismissed' });
+      setTimeout(() => clearProposal(featureId, lessonIndex), 300);
+    },
+    [setProposal, clearProposal],
+  );
 
   /**
    * regenerateProposal — re-run proposeLesson with the same edit context.
    */
-  const regenerateProposal = useCallback((featureId, courseMap, lessonIndex, editContext, existingData) => {
-    proposeLesson(featureId, courseMap, lessonIndex, editContext, existingData);
-  }, [proposeLesson]);
+  const regenerateProposal = useCallback(
+    (featureId, courseMap, lessonIndex, editContext, existingData) => {
+      proposeLesson(featureId, courseMap, lessonIndex, editContext, existingData);
+    },
+    [proposeLesson],
+  );
 
   return { proposals, proposeLesson, acceptProposal, dismissProposal, regenerateProposal };
 }

@@ -1,8 +1,5 @@
 import { describe, expect, it } from 'vitest';
-import {
-  findJsonPathLocation,
-  parseJsonPath,
-} from '../developerJsonPath';
+import { findJsonPathLocation, parseJsonPath } from '../developerJsonPath';
 
 describe('developerJsonPath', () => {
   it('parses dotted and indexed JSON paths', () => {
@@ -10,13 +7,13 @@ describe('developerJsonPath', () => {
   });
 
   it('finds the matching repeated key occurrence in section JSON', () => {
-    const text = JSON.stringify({
-      lessons: [
-        { title: 'One' },
-        { title: 'Two' },
-        { title: 'Three' },
-      ],
-    }, null, 2);
+    const text = JSON.stringify(
+      {
+        lessons: [{ title: 'One' }, { title: 'Two' }, { title: 'Three' }],
+      },
+      null,
+      2,
+    );
 
     const location = findJsonPathLocation(text, 'courseMap.lessons[2].title', 'courseMap');
 

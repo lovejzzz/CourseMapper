@@ -14,13 +14,18 @@ import React, { createContext, useReducer } from 'react';
 
 export const actions = {
   setDeliverableStreaming: (featureId) => ({
-    type: 'SET_DELIVERABLE_STREAMING', featureId,
+    type: 'SET_DELIVERABLE_STREAMING',
+    featureId,
   }),
   setDeliverableDone: (featureId, data) => ({
-    type: 'SET_DELIVERABLE_DONE', featureId, data,
+    type: 'SET_DELIVERABLE_DONE',
+    featureId,
+    data,
   }),
   setDeliverableError: (featureId, error) => ({
-    type: 'SET_DELIVERABLE_ERROR', featureId, error,
+    type: 'SET_DELIVERABLE_ERROR',
+    featureId,
+    error,
   }),
   resetDeliverables: () => ({
     type: 'RESET_DELIVERABLES',
@@ -29,16 +34,26 @@ export const actions = {
     type: 'MARK_ALL_STALE',
   }),
   markFeatureStale: (featureId, staleConfidence = null, staleEdits = null) => ({
-    type: 'MARK_FEATURE_STALE', featureId, staleConfidence, staleEdits,
+    type: 'MARK_FEATURE_STALE',
+    featureId,
+    staleConfidence,
+    staleEdits,
   }),
   setDeliverable: (featureId, status, data, error, stale) => ({
-    type: 'SET_DELIVERABLE', featureId, status, data, error, stale,
+    type: 'SET_DELIVERABLE',
+    featureId,
+    status,
+    data,
+    error,
+    stale,
   }),
   restoreDeliverables: (deliverables) => ({
-    type: 'RESTORE_DELIVERABLES', deliverables,
+    type: 'RESTORE_DELIVERABLES',
+    deliverables,
   }),
   removeDeliverable: (featureId) => ({
-    type: 'REMOVE_DELIVERABLE', featureId,
+    type: 'REMOVE_DELIVERABLE',
+    featureId,
   }),
 };
 
@@ -83,7 +98,11 @@ function reducer(state, action) {
     case 'MARK_ALL_STALE': {
       const updated = {};
       for (const [k, v] of Object.entries(state.deliverables)) {
-        updated[k] = { ...v, stale: true, staleConfidence: v.staleConfidence || { level: 'high', maxWeight: 1.0, dominantField: '_structural' } };
+        updated[k] = {
+          ...v,
+          stale: true,
+          staleConfidence: v.staleConfidence || { level: 'high', maxWeight: 1.0, dominantField: '_structural' },
+        };
       }
       return { ...state, deliverables: updated };
     }
@@ -93,10 +112,7 @@ function reducer(state, action) {
       // Merge staleEdits: accumulate lesson indices from repeated edits
       let mergedEdits = action.staleEdits || null;
       if (existing.staleEdits && mergedEdits) {
-        const combined = new Set([
-          ...(existing.staleEdits.lessonIndices || []),
-          ...(mergedEdits.lessonIndices || []),
-        ]);
+        const combined = new Set([...(existing.staleEdits.lessonIndices || []), ...(mergedEdits.lessonIndices || [])]);
         mergedEdits = {
           ...mergedEdits,
           lessonIndices: [...combined].sort((a, b) => a - b),
@@ -142,7 +158,7 @@ function reducer(state, action) {
           ...state.deliverables,
           [action.featureId]: {
             ...cur,
-            status: 'streaming',   // show streaming indicator immediately
+            status: 'streaming', // show streaming indicator immediately
             stale: false,
             staleConfidence: null,
             error: null,
@@ -168,9 +184,7 @@ export function CourseStoreProvider({ children }) {
   const [state, dispatch] = useReducer(reducer, { deliverables: {} });
   return (
     <CourseStateContext.Provider value={state}>
-      <CourseDispatchContext.Provider value={dispatch}>
-        {children}
-      </CourseDispatchContext.Provider>
+      <CourseDispatchContext.Provider value={dispatch}>{children}</CourseDispatchContext.Provider>
     </CourseStateContext.Provider>
   );
 }

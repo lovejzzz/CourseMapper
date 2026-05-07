@@ -36,14 +36,14 @@ describe('createElementTracker — bounds', () => {
     const tracker = createElementTracker();
     tracker.add({ x: 8, y: 0, w: 3, h: 1, label: 'wide box' });
     const warnings = tracker.validate();
-    expect(warnings.some(w => w.includes('[OOB]') && w.includes('wide box') && w.includes('right'))).toBe(true);
+    expect(warnings.some((w) => w.includes('[OOB]') && w.includes('wide box') && w.includes('right'))).toBe(true);
   });
 
   it('detects element extending past bottom edge', () => {
     const tracker = createElementTracker();
     tracker.add({ x: 0, y: 4, w: 2, h: 2, label: 'tall box' });
     const warnings = tracker.validate();
-    expect(warnings.some(w => w.includes('[OOB]') && w.includes('tall box') && w.includes('below'))).toBe(true);
+    expect(warnings.some((w) => w.includes('[OOB]') && w.includes('tall box') && w.includes('below'))).toBe(true);
   });
 
   it('allows elements exactly at the boundary (within 0.05 tolerance)', () => {
@@ -66,7 +66,7 @@ describe('createElementTracker — bounds', () => {
     const tracker = createElementTracker();
     tracker.add({ x: 9, y: 5, w: 2, h: 2, label: 'corner box' });
     const warnings = tracker.validate();
-    expect(warnings.filter(w => w.includes('[OOB]'))).toHaveLength(2);
+    expect(warnings.filter((w) => w.includes('[OOB]'))).toHaveLength(2);
   });
 });
 
@@ -80,7 +80,7 @@ describe('createElementTracker — overlap', () => {
     tracker.add({ x: 0, y: 0, w: 5, h: 3, label: 'box A' });
     tracker.add({ x: 4, y: 2, w: 5, h: 3, label: 'box B' });
     const warnings = tracker.validate();
-    expect(warnings.some(w => w.includes('[OVERLAP]') && w.includes('box A') && w.includes('box B'))).toBe(true);
+    expect(warnings.some((w) => w.includes('[OVERLAP]') && w.includes('box A') && w.includes('box B'))).toBe(true);
   });
 
   it('does not flag non-overlapping elements', () => {
@@ -88,7 +88,7 @@ describe('createElementTracker — overlap', () => {
     tracker.add({ x: 0, y: 0, w: 3, h: 2, label: 'left' });
     tracker.add({ x: 5, y: 0, w: 3, h: 2, label: 'right' });
     const warnings = tracker.validate();
-    expect(warnings.filter(w => w.includes('[OVERLAP]'))).toHaveLength(0);
+    expect(warnings.filter((w) => w.includes('[OVERLAP]'))).toHaveLength(0);
   });
 
   it('does not flag elements that share an edge but do not overlap', () => {
@@ -96,7 +96,7 @@ describe('createElementTracker — overlap', () => {
     tracker.add({ x: 0, y: 0, w: 5, h: 3, label: 'left' });
     tracker.add({ x: 5, y: 0, w: 5, h: 3, label: 'right' });
     const warnings = tracker.validate();
-    expect(warnings.filter(w => w.includes('[OVERLAP]'))).toHaveLength(0);
+    expect(warnings.filter((w) => w.includes('[OVERLAP]'))).toHaveLength(0);
   });
 
   it('detects complete containment as overlap', () => {
@@ -104,7 +104,7 @@ describe('createElementTracker — overlap', () => {
     tracker.add({ x: 1, y: 1, w: 8, h: 3, label: 'outer' });
     tracker.add({ x: 3, y: 2, w: 2, h: 1, label: 'inner' });
     const warnings = tracker.validate();
-    expect(warnings.some(w => w.includes('[OVERLAP]'))).toBe(true);
+    expect(warnings.some((w) => w.includes('[OVERLAP]'))).toBe(true);
   });
 
   it('detects all pairwise overlaps among multiple elements', () => {
@@ -113,7 +113,7 @@ describe('createElementTracker — overlap', () => {
     tracker.add({ x: 4, y: 0, w: 5, h: 5, label: 'B' });
     tracker.add({ x: 2, y: 2, w: 3, h: 3, label: 'C' });
     const warnings = tracker.validate();
-    const overlaps = warnings.filter(w => w.includes('[OVERLAP]'));
+    const overlaps = warnings.filter((w) => w.includes('[OVERLAP]'));
     // A-B overlap, A-C overlap, B-C overlap = 3 pairs
     expect(overlaps).toHaveLength(3);
   });

@@ -15,9 +15,15 @@ const localStorageMock = (() => {
   let store = {};
   return {
     getItem: vi.fn((key) => store[key] || null),
-    setItem: vi.fn((key, value) => { store[key] = String(value); }),
-    removeItem: vi.fn((key) => { delete store[key]; }),
-    clear: vi.fn(() => { store = {}; }),
+    setItem: vi.fn((key, value) => {
+      store[key] = String(value);
+    }),
+    removeItem: vi.fn((key) => {
+      delete store[key];
+    }),
+    clear: vi.fn(() => {
+      store = {};
+    }),
     _store: () => store,
   };
 })();
@@ -96,7 +102,7 @@ describe('getMemoriesByCategory', () => {
     addMemory({ category: 'teaching_style', content: 'C' });
     const result = getMemoriesByCategory('teaching_style');
     expect(result).toHaveLength(2);
-    expect(result.every(m => m.category === 'teaching_style')).toBe(true);
+    expect(result.every((m) => m.category === 'teaching_style')).toBe(true);
   });
 });
 
@@ -132,7 +138,7 @@ describe('deleteMemory', () => {
   it('removes a memory', () => {
     const mem = addMemory({ category: 'general', content: 'To delete' });
     deleteMemory(mem.id);
-    expect(getMemories().find(m => m.id === mem.id)).toBeUndefined();
+    expect(getMemories().find((m) => m.id === mem.id)).toBeUndefined();
   });
 });
 
@@ -141,7 +147,7 @@ describe('touchMemory', () => {
     const mem = addMemory({ category: 'general', content: 'Touched' });
     touchMemory(mem.id);
     touchMemory(mem.id);
-    const found = getMemories().find(m => m.id === mem.id);
+    const found = getMemories().find((m) => m.id === mem.id);
     expect(found.accessCount).toBe(2);
   });
 });
@@ -158,7 +164,7 @@ describe('recordEditPattern', () => {
     for (let i = 0; i < 6; i++) {
       recordEditPattern({ featureId: 'rubrics', field: 'criteria', action: 'edits' });
     }
-    const memories = getMemories().filter(m => m.meta?.featureId === 'rubrics');
+    const memories = getMemories().filter((m) => m.meta?.featureId === 'rubrics');
     expect(memories[0].importance).toBe(4); // >= 5 occurrences
   });
 });

@@ -1,13 +1,9 @@
-const SECRET_FIELD_NAMES = new Set([
-  'apikey',
-  'accesstoken',
-  'refreshtoken',
-  'idtoken',
-  'authorization',
-]);
+const SECRET_FIELD_NAMES = new Set(['apikey', 'accesstoken', 'refreshtoken', 'idtoken', 'authorization']);
 
 function normalizeKey(key) {
-  return String(key || '').toLowerCase().replace(/[-_\s]/g, '');
+  return String(key || '')
+    .toLowerCase()
+    .replace(/[-_\s]/g, '');
 }
 
 export function stripMessageSecrets(value) {

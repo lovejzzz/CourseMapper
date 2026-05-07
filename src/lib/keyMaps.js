@@ -19,94 +19,205 @@
 // ── Per-feature short→full key maps ────────────────────────────────────────────
 
 const lessonPlans = {
-  lt: 'lessonTitle', wk: 'weekNumber', dur: 'duration', bls: 'bloomsLevels',
-  ob: 'objectives', mt: 'materials', wu: 'warmUp', ol: 'outline',
-  fc: 'formativeCheck', un: 'udlNotes', hw: 'homework', ca: 'closingActivity',
-  tg: 'tags', rd: 'suggestedReviewDate', cg: 'contentOwnerGroup',
+  lt: 'lessonTitle',
+  wk: 'weekNumber',
+  dur: 'duration',
+  bls: 'bloomsLevels',
+  ob: 'objectives',
+  mt: 'materials',
+  wu: 'warmUp',
+  ol: 'outline',
+  fc: 'formativeCheck',
+  un: 'udlNotes',
+  hw: 'homework',
+  ca: 'closingActivity',
+  tg: 'tags',
+  rd: 'suggestedReviewDate',
+  cg: 'contentOwnerGroup',
   // nested: warmUp
-  ty: 'type', pr: 'prompt', pu: 'purpose', fa: 'facilitation',
+  ty: 'type',
+  pr: 'prompt',
+  pu: 'purpose',
+  fa: 'facilitation',
   // nested: outline
-  tm: 'time', ac: 'activity', de: 'description', in: 'instructorNotes',
-  ir: 'instructorRole', gr: 'grouping', bl: 'bloomsLevel',
+  tm: 'time',
+  ac: 'activity',
+  de: 'description',
+  in: 'instructorNotes',
+  ir: 'instructorRole',
+  gr: 'grouping',
+  bl: 'bloomsLevel',
   // nested: formativeCheck
-  oa: 'objectiveAligned', ia: 'instructorAction',
+  oa: 'objectiveAligned',
+  ia: 'instructorAction',
   // nested: udlNotes
-  rp: 'representation', eg: 'engagement', ex: 'expression',
+  rp: 'representation',
+  eg: 'engagement',
+  ex: 'expression',
   // nested: homework
-  t: 'title', et: 'estimatedTime', cn: 'connectionToNext',
+  t: 'title',
+  et: 'estimatedTime',
+  cn: 'connectionToNext',
 };
 
 const slideDecks = {
-  lt: 'lessonTitle', ts: 'totalSlides', lo: 'learningObjectives',
-  sl: 'slides', tg: 'tags', vi: 'visual',
+  lt: 'lessonTitle',
+  ts: 'totalSlides',
+  lo: 'learningObjectives',
+  sl: 'slides',
+  tg: 'tags',
+  vi: 'visual',
   // nested: slides[]
-  t: 'title', ty: 'type', bu: 'bullets', no: 'notes',
-  at: 'activityType', ti: 'timer', bl: 'bloomsLevel', ol: 'objectiveLink',
+  t: 'title',
+  ty: 'type',
+  bu: 'bullets',
+  no: 'notes',
+  at: 'activityType',
+  ti: 'timer',
+  bl: 'bloomsLevel',
+  ol: 'objectiveLink',
 };
 
 const rubrics = {
-  t: 'title', lt: 'lessonTitle', at: 'assessmentType', tp: 'totalPoints',
-  bl: 'bloomsLevel', gs: 'gradingScale', cr: 'criteria',
-  gp: 'gradePolicyConnection', tn: 'teacherNotes', tg: 'tags',
+  t: 'title',
+  lt: 'lessonTitle',
+  at: 'assessmentType',
+  tp: 'totalPoints',
+  bl: 'bloomsLevel',
+  gs: 'gradingScale',
+  cr: 'criteria',
+  gp: 'gradePolicyConnection',
+  tn: 'teacherNotes',
+  tg: 'tags',
   // nested: gradingScale + criteria levels
-  ex: 'exemplary', pr: 'proficient', dv: 'developing', bg: 'beginning',
+  ex: 'exemplary',
+  pr: 'proficient',
+  dv: 'developing',
+  bg: 'beginning',
   // nested: criteria[]
-  cn: 'criterion', oa: 'objectiveAligned', wt: 'weight', pt: 'points',
+  cn: 'criterion',
+  oa: 'objectiveAligned',
+  wt: 'weight',
+  pt: 'points',
 };
 
 const quizBank = {
-  lt: 'lessonTitle', tq: 'totalQuestions', bc: 'bloomsCoverage',
-  fn: 'formativeFeedbackNote', qs: 'questions', tg: 'tags',
+  lt: 'lessonTitle',
+  tq: 'totalQuestions',
+  bc: 'bloomsCoverage',
+  fn: 'formativeFeedbackNote',
+  qs: 'questions',
+  tg: 'tags',
   // nested: questions[]
-  ty: 'type', bl: 'bloomsLevel', df: 'difficulty', em: 'estimatedMinutes',
-  pt: 'points', oa: 'objectiveAligned', q: 'question', op: 'options',
-  an: 'answer', dr: 'distractorRationale', ex: 'explanation',
-  rh: 'rubricHints', sa: 'sampleAnswer',
+  ty: 'type',
+  bl: 'bloomsLevel',
+  df: 'difficulty',
+  em: 'estimatedMinutes',
+  pt: 'points',
+  oa: 'objectiveAligned',
+  q: 'question',
+  op: 'options',
+  an: 'answer',
+  dr: 'distractorRationale',
+  ex: 'explanation',
+  rh: 'rubricHints',
+  sa: 'sampleAnswer',
 };
 
 const assignments = {
-  t: 'title', at: 'assignmentType', rl: 'relatedLessons', dw: 'dueWeek',
-  et: 'estimatedTime', tp: 'totalPoints', pg: 'percentOfGrade',
-  bl: 'bloomsLevel', ov: 'overview', ob: 'objectives', ins: 'instructions',
-  fr: 'formatRequirements', dl: 'deliverables', sm: 'scaffoldingMilestones',
-  gc: 'gradingCriteria', sr: 'supportResources', pt: 'progressTracking',
-  ai: 'academicIntegrityStatement', tg: 'tags',
+  t: 'title',
+  at: 'assignmentType',
+  rl: 'relatedLessons',
+  dw: 'dueWeek',
+  et: 'estimatedTime',
+  tp: 'totalPoints',
+  pg: 'percentOfGrade',
+  bl: 'bloomsLevel',
+  ov: 'overview',
+  ob: 'objectives',
+  ins: 'instructions',
+  fr: 'formatRequirements',
+  dl: 'deliverables',
+  sm: 'scaffoldingMilestones',
+  gc: 'gradingCriteria',
+  sr: 'supportResources',
+  pt: 'progressTracking',
+  ai: 'academicIntegrityStatement',
+  tg: 'tags',
   // nested: formatRequirements
-  ln: 'length', fm: 'format', cs: 'citationStyle',
-  sp: 'submissionPlatform', lp: 'latePolicy',
+  ln: 'length',
+  fm: 'format',
+  cs: 'citationStyle',
+  sp: 'submissionPlatform',
+  lp: 'latePolicy',
   // nested: scaffoldingMilestones[]
-  ms: 'milestone', dd: 'dueDate', de: 'description',
+  ms: 'milestone',
+  dd: 'dueDate',
+  de: 'description',
 };
 
 const discussions = {
-  lt: 'lessonTitle', bl: 'bloomsLevel', fm: 'format',
-  ed: 'estimatedDuration', cx: 'context', pr: 'prompt',
-  er: 'evidenceRequirement', fp: 'followUpProbes', ft: 'facilitationTips',
-  rs: 'responseStarters', ec: 'evaluationCriteria',
-  eq: 'equityConsiderations', gl: 'guidelines', tg: 'tags',
+  lt: 'lessonTitle',
+  bl: 'bloomsLevel',
+  fm: 'format',
+  ed: 'estimatedDuration',
+  cx: 'context',
+  pr: 'prompt',
+  er: 'evidenceRequirement',
+  fp: 'followUpProbes',
+  ft: 'facilitationTips',
+  rs: 'responseStarters',
+  ec: 'evaluationCriteria',
+  eq: 'equityConsiderations',
+  gl: 'guidelines',
+  tg: 'tags',
   // nested: facilitationTips
-  op: 'opening', is: 'ifStalls', id: 'ifDominates', cl: 'closure',
+  op: 'opening',
+  is: 'ifStalls',
+  id: 'ifDominates',
+  cl: 'closure',
 };
 
 const studyGuides = {
-  lt: 'lessonTitle', es: 'examScope', su: 'summary', kt: 'keyTerms',
-  cc: 'conceptConnections', cm: 'commonMisconceptions', rq: 'reviewQuestions',
-  pa: 'practiceActivities', ep: 'examPrep', sr: 'supportResources', tg: 'tags',
+  lt: 'lessonTitle',
+  es: 'examScope',
+  su: 'summary',
+  kt: 'keyTerms',
+  cc: 'conceptConnections',
+  cm: 'commonMisconceptions',
+  rq: 'reviewQuestions',
+  pa: 'practiceActivities',
+  ep: 'examPrep',
+  sr: 'supportResources',
+  tg: 'tags',
   // nested: keyTerms[]
-  tm: 'term', df: 'definition', ex: 'example',
+  tm: 'term',
+  df: 'definition',
+  ex: 'example',
   // nested: commonMisconceptions[]
-  mc: 'misconception', co: 'correction',
+  mc: 'misconception',
+  co: 'correction',
   // nested: reviewQuestions[]
-  q: 'question', bl: 'bloomsLevel', ht: 'hint',
+  q: 'question',
+  bl: 'bloomsLevel',
+  ht: 'hint',
   // nested: examPrep
-  kk: 'keyTopicsToKnow', tl: 'timeManagement', ce: 'commonErrors', rv: 'reviewStrategy',
+  kk: 'keyTopicsToKnow',
+  tl: 'timeManagement',
+  ce: 'commonErrors',
+  rv: 'reviewStrategy',
 };
 
 const courseFaq = {
-  lt: 'lessonTitle', qs: 'questions', tg: 'tags',
+  lt: 'lessonTitle',
+  qs: 'questions',
+  tg: 'tags',
   // nested: questions[]
-  q: 'question', an: 'answer', ca: 'category',
-  rc: 'relatedConcepts', df: 'difficulty',
+  q: 'question',
+  an: 'answer',
+  ca: 'category',
+  rc: 'relatedConcepts',
+  df: 'difficulty',
 };
 
 export const KEY_MAPS = {
@@ -124,7 +235,7 @@ export const KEY_MAPS = {
 // ── Recursive key expansion ────────────────────────────────────────────────────
 
 function _expand(node, map) {
-  if (Array.isArray(node)) return node.map(item => _expand(item, map));
+  if (Array.isArray(node)) return node.map((item) => _expand(item, map));
   if (node !== null && typeof node === 'object') {
     const result = {};
     for (const [key, value] of Object.entries(node)) {
@@ -137,13 +248,13 @@ function _expand(node, map) {
 }
 
 function _expandSlideDecks(node, inVisual = false) {
-  if (Array.isArray(node)) return node.map(item => _expandSlideDecks(item, inVisual));
+  if (Array.isArray(node)) return node.map((item) => _expandSlideDecks(item, inVisual));
   if (node !== null && typeof node === 'object') {
     const result = {};
     for (const [key, value] of Object.entries(node)) {
       const expandedKey = inVisual
-        ? ({ k: 'kind', d: 'description', at: 'altText' }[key] || key)
-        : (slideDecks[key] || key);
+        ? { k: 'kind', d: 'description', at: 'altText' }[key] || key
+        : slideDecks[key] || key;
       result[expandedKey] = _expandSlideDecks(value, !inVisual && expandedKey === 'visual');
     }
     return result;

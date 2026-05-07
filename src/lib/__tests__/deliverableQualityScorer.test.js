@@ -61,12 +61,15 @@ describe('scoreHeuristic', () => {
 
   it('scores higher for detailed content with Blooms keywords', () => {
     const richData = {
-      lessonPlans: [{
-        objectives: ['Students will analyze data', 'Students will evaluate results', 'Students will create models'],
-        activities: ['Demonstrate the technique', 'Design a rubric', 'Assess the criteria', 'Critique the approach'],
-        assessment: 'Students will synthesize findings using rubric criteria with points and minutes allocated per step',
-        extra: 'A'.repeat(3000), // bulk up to get high specificity
-      }],
+      lessonPlans: [
+        {
+          objectives: ['Students will analyze data', 'Students will evaluate results', 'Students will create models'],
+          activities: ['Demonstrate the technique', 'Design a rubric', 'Assess the criteria', 'Critique the approach'],
+          assessment:
+            'Students will synthesize findings using rubric criteria with points and minutes allocated per step',
+          extra: 'A'.repeat(3000), // bulk up to get high specificity
+        },
+      ],
     };
     const result = scoreHeuristic('lessonPlans', richData);
     expect(result.bloomsAlignment).toBeGreaterThanOrEqual(6);

@@ -10,7 +10,13 @@ import React, { useState } from 'react';
  *   onRejectPatch       (index: number) => void
  *   onRetryExamine      () => Promise<void>  (only shown on failure)
  */
-export default function ExamReview({ pendingExamPatches, examChanges, onAcceptPatches, onRejectPatch, onRetryExamine }) {
+export default function ExamReview({
+  pendingExamPatches,
+  examChanges,
+  onAcceptPatches,
+  onRejectPatch,
+  onRetryExamine,
+}) {
   const [retrying, setRetrying] = useState(false);
   const [expanded, setExpanded] = useState(false);
 
@@ -22,13 +28,25 @@ export default function ExamReview({ pendingExamPatches, examChanges, onAcceptPa
       <div className="mt-3 ml-6 animate-spring-in flex items-center gap-2 flex-wrap">
         <span className="flex items-center gap-2 text-xs font-semibold text-amber-700 bg-amber-50/80 px-3 py-1.5 rounded-squircle-xs border border-amber-200/50">
           <svg className="w-3.5 h-3.5 flex-shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-            <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 9v2m0 4h.01m-6.938 4h13.856c1.54 0 2.502-1.667 1.732-3L13.732 4c-.77-1.333-2.694-1.333-3.464 0L3.34 16c-.77 1.333.192 3 1.732 3z" />
+            <path
+              strokeLinecap="round"
+              strokeLinejoin="round"
+              strokeWidth={2}
+              d="M12 9v2m0 4h.01m-6.938 4h13.856c1.54 0 2.502-1.667 1.732-3L13.732 4c-.77-1.333-2.694-1.333-3.464 0L3.34 16c-.77 1.333.192 3 1.732 3z"
+            />
           </svg>
           Examination skipped{failReason ? `: ${failReason}` : ''}
         </span>
         {onRetryExamine && (
           <button
-            onClick={async () => { setRetrying(true); try { await onRetryExamine(); } finally { setRetrying(false); } }}
+            onClick={async () => {
+              setRetrying(true);
+              try {
+                await onRetryExamine();
+              } finally {
+                setRetrying(false);
+              }
+            }}
             disabled={retrying}
             className="flex items-center gap-1.5 text-xs font-semibold text-indigo-600 bg-indigo-50/80 px-3 py-1.5 rounded-squircle-xs border border-indigo-200/50 hover:bg-indigo-100/80 transition-colors duration-150 disabled:opacity-50"
           >
@@ -39,7 +57,12 @@ export default function ExamReview({ pendingExamPatches, examChanges, onAcceptPa
               </svg>
             ) : (
               <svg className="w-3 h-3" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M4 4v5h.582m15.356 2A8.001 8.001 0 004.582 9m0 0H9m11 11v-5h-.581m0 0a8.003 8.003 0 01-15.357-2m15.357 2H15" />
+                <path
+                  strokeLinecap="round"
+                  strokeLinejoin="round"
+                  strokeWidth={2}
+                  d="M4 4v5h.582m15.356 2A8.001 8.001 0 004.582 9m0 0H9m11 11v-5h-.581m0 0a8.003 8.003 0 01-15.357-2m15.357 2H15"
+                />
               </svg>
             )}
             {retrying ? 'Retrying...' : 'Retry'}
@@ -58,7 +81,12 @@ export default function ExamReview({ pendingExamPatches, examChanges, onAcceptPa
         <div className="flex items-center gap-1.5 flex-wrap mb-2">
           <span className="flex items-center gap-1.5 text-[11px] font-semibold text-violet-700 bg-violet-50/80 px-2.5 py-1.5 rounded-squircle-xs border border-violet-200/50">
             <svg className="w-3 h-3 flex-shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z" />
+              <path
+                strokeLinecap="round"
+                strokeLinejoin="round"
+                strokeWidth={2}
+                d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z"
+              />
             </svg>
             {patches.length} suggestion{patches.length !== 1 ? 's' : ''} to review
           </span>
@@ -96,8 +124,8 @@ export default function ExamReview({ pendingExamPatches, examChanges, onAcceptPa
   // ── Settled state (accepted / rejected summary) ──
   if (!examChanges || examChanges.length === 0) return null;
 
-  const accepted = examChanges.filter(c => !c.startsWith('__REJECTED__:'));
-  const rejected = examChanges.filter(c => c.startsWith('__REJECTED__:')).map(c => c.replace('__REJECTED__:', ''));
+  const accepted = examChanges.filter((c) => !c.startsWith('__REJECTED__:'));
+  const rejected = examChanges.filter((c) => c.startsWith('__REJECTED__:')).map((c) => c.replace('__REJECTED__:', ''));
   const allRejected = accepted.length === 0;
 
   if (allRejected) {
@@ -123,7 +151,12 @@ export default function ExamReview({ pendingExamPatches, examChanges, onAcceptPa
           <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M5 13l4 4L19 7" />
         </svg>
         {accepted.length} accepted{rejected.length > 0 ? `, ${rejected.length} kept yours` : ''}
-        <svg className={`w-3 h-3 transition-transform duration-200 ${expanded ? 'rotate-180' : ''}`} fill="none" stroke="currentColor" viewBox="0 0 24 24">
+        <svg
+          className={`w-3 h-3 transition-transform duration-200 ${expanded ? 'rotate-180' : ''}`}
+          fill="none"
+          stroke="currentColor"
+          viewBox="0 0 24 24"
+        >
           <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M19 9l-7 7-7-7" />
         </svg>
       </button>
@@ -192,17 +225,16 @@ function PatchCard({ patch, index, onAccept, onReject }) {
         </div>
       )}
       {/* Reason */}
-      {patch.reason && (
-        <div className="text-slate-500 italic leading-relaxed break-words">
-          {patch.reason}
-        </div>
-      )}
+      {patch.reason && <div className="text-slate-500 italic leading-relaxed break-words">{patch.reason}</div>}
     </li>
   );
 }
 
 function buildLabel(p) {
-  const label = (p.field || '').replace(/([A-Z])/g, ' $1').replace(/^./, s => s.toUpperCase()).trim();
+  const label = (p.field || '')
+    .replace(/([A-Z])/g, ' $1')
+    .replace(/^./, (s) => s.toUpperCase())
+    .trim();
   if (p.action === 'addLesson') return `Add Lesson ${(p.lessonIndex || 0) + 1}`;
   if (p.action === 'addSection') return `Add section in Lesson ${(p.lessonIndex || 0) + 1}`;
   if (p.action === 'removeLesson') return `Remove Lesson ${(p.lessonIndex || 0) + 1}`;

@@ -29,7 +29,7 @@ function loadLocal() {
     const raw = globalThis.localStorage.getItem(STORAGE_KEY);
     if (!raw) return {};
     const parsed = JSON.parse(raw);
-    return (parsed && typeof parsed === 'object' && !Array.isArray(parsed)) ? parsed : {};
+    return parsed && typeof parsed === 'object' && !Array.isArray(parsed) ? parsed : {};
   } catch {
     return {};
   }
@@ -95,7 +95,10 @@ export function createCustomToolRegistry(opts = {}) {
       if (RESERVED_NAMES.has(def.name)) return { ok: false, error: `"${def.name}" is reserved` };
       if (existingToolNames?.has(def.name)) return { ok: false, error: `"${def.name}" collides with a built-in tool` };
       if (Object.keys(tools).length >= MAX_TOOLS && !tools[def.name]) {
-        return { ok: false, error: `custom tool limit reached (${MAX_TOOLS}). Delete one first or reuse an existing macro.` };
+        return {
+          ok: false,
+          error: `custom tool limit reached (${MAX_TOOLS}). Delete one first or reuse an existing macro.`,
+        };
       }
       if (!Array.isArray(def.plan) || def.plan.length === 0) {
         return { ok: false, error: 'plan must be a non-empty array' };
@@ -109,9 +112,13 @@ export function createCustomToolRegistry(opts = {}) {
         if (!step.id || typeof step.id !== 'string') return { ok: false, error: 'each step needs a string "id"' };
         if (seenIds.has(step.id)) return { ok: false, error: `duplicate step id "${step.id}"` };
         seenIds.add(step.id);
-        if (!step.tool || typeof step.tool !== 'string') return { ok: false, error: `step "${step.id}" needs a "tool" name` };
+        if (!step.tool || typeof step.tool !== 'string')
+          return { ok: false, error: `step "${step.id}" needs a "tool" name` };
         if (!existingToolNames?.has(step.tool)) {
-          return { ok: false, error: `step "${step.id}" references unknown tool "${step.tool}". Custom tools may only compose built-ins.` };
+          return {
+            ok: false,
+            error: `step "${step.id}" references unknown tool "${step.tool}". Custom tools may only compose built-ins.`,
+          };
         }
       }
       const toolDef = {
@@ -139,7 +146,9 @@ export async function mergeCloudCustomTools(uid) {
   let cloudLoad, cloudSave;
   try {
     ({ loadCustomTools: cloudLoad, saveCustomTool: cloudSave } = await import('./cloudStorage'));
-  } catch { return; }
+  } catch {
+    return;
+  }
   try {
     const cloudTools = await cloudLoad(uid);
     if (!cloudTools || cloudTools.length === 0) {
@@ -163,7 +172,7 @@ export async function mergeCloudCustomTools(uid) {
     saveLocal(merged);
     // Push any local-only tools up so this device's additions reach the cloud.
     for (const [name, def] of Object.entries(merged)) {
-      if (!cloudTools.find(c => c.name === name)) cloudSave(uid, def).catch(() => {});
+      if (!cloudTools.find((c) => c.name === name)) cloudSave(uid, def).catch(() => {});
     }
   } catch (e) {
     if (typeof console !== 'undefined') console.warn('[customAgentTools] cloud merge failed:', e?.message);
@@ -202,7 +211,7 @@ export function substitute(value, bindings) {
       return typeof v === 'string' ? v : JSON.stringify(v);
     });
   }
-  if (Array.isArray(value)) return value.map(v => substitute(v, bindings));
+  if (Array.isArray(value)) return value.map((v) => substitute(v, bindings));
   if (value && typeof value === 'object') {
     const out = {};
     for (const [k, v] of Object.entries(value)) out[k] = substitute(v, bindings);
@@ -229,7 +238,11 @@ export async function runPlan({ def, runtimeArgs, invokeBuiltin, onStep, depth =
   for (let i = 0; i < def.plan.length; i++) {
     const step = def.plan[i];
     const stepMeta = { index: i, total, id: step.id, tool: step.tool };
-    try { onStep?.({ ...stepMeta, status: 'running' }); } catch { /* onStep must not break the plan */ }
+    try {
+      onStep?.({ ...stepMeta, status: 'running' });
+    } catch {
+      /* onStep must not break the plan */
+    }
     const resolvedArgs = substitute(step.args || {}, bindings);
     let result;
     try {
@@ -240,10 +253,18 @@ export async function runPlan({ def, runtimeArgs, invokeBuiltin, onStep, depth =
     bindings.steps[step.id] = result;
     stepResults.push({ id: step.id, tool: step.tool, result });
     if (result && result.error) {
-      try { onStep?.({ ...stepMeta, status: 'error', error: result.error }); } catch { /* ignore */ }
+      try {
+        onStep?.({ ...stepMeta, status: 'error', error: result.error });
+      } catch {
+        /* ignore */
+      }
       return { error: `step "${step.id}" (${step.tool}) failed: ${result.error}`, stepResults };
     }
-    try { onStep?.({ ...stepMeta, status: 'done', result }); } catch { /* ignore */ }
+    try {
+      onStep?.({ ...stepMeta, status: 'done', result });
+    } catch {
+      /* ignore */
+    }
   }
   return { ok: true, steps: stepResults };
 }
@@ -319,8 +340,13 @@ export function parseExportedTool(jsonText) {
 
 /** Tools whose successful invocation counts as "real work" toward the nudge. */
 export const SKILL_WORKFLOW_TOOLS = new Set([
-  'edit_course_map', 'edit_deliverables', 'validate_course', 'compare_deliverables',
-  'check_grammar', 'search_research', 'regenerateLesson',
+  'edit_course_map',
+  'edit_deliverables',
+  'validate_course',
+  'compare_deliverables',
+  'check_grammar',
+  'search_research',
+  'regenerateLesson',
 ]);
 
 export const SKILL_NUDGE_CALL_THRESHOLD = 4;
@@ -342,23 +368,28 @@ export function createSkillNudgeTracker() {
   let workflowCalls = 0;
   let maxAppliedInOne = 0;
   return {
-    get fired() { return fired; },
-    get workflowCalls() { return workflowCalls; },
-    get maxAppliedInOne() { return maxAppliedInOne; },
+    get fired() {
+      return fired;
+    },
+    get workflowCalls() {
+      return workflowCalls;
+    },
+    get maxAppliedInOne() {
+      return maxAppliedInOne;
+    },
     update(results) {
       if (fired) return false;
       // If the agent already created or ran a macro this batch, it's already
       // on the skill-creation path — no nudge needed.
       if (!Array.isArray(results)) return false;
-      if (results.some(r => r?.name === 'create_tool' || r?.name === 'run_tool')) return false;
+      if (results.some((r) => r?.name === 'create_tool' || r?.name === 'run_tool')) return false;
       for (const r of results) {
         if (!r || r.result?.error) continue;
         if (SKILL_WORKFLOW_TOOLS.has(r.name)) workflowCalls++;
         const applied = r.result?.applied;
         if (typeof applied === 'number' && applied > maxAppliedInOne) maxAppliedInOne = applied;
       }
-      if (workflowCalls >= SKILL_NUDGE_CALL_THRESHOLD
-          || maxAppliedInOne >= SKILL_NUDGE_ACTION_THRESHOLD) {
+      if (workflowCalls >= SKILL_NUDGE_CALL_THRESHOLD || maxAppliedInOne >= SKILL_NUDGE_ACTION_THRESHOLD) {
         fired = true;
         return true;
       }
@@ -370,7 +401,7 @@ export function createSkillNudgeTracker() {
 /** The exact [SYSTEM] message the runtime / harness inject when the nudge fires. */
 export const SKILL_NUDGE_HINT =
   '[SYSTEM] This turn chained multiple workflow steps. If this is a pattern the user will likely ' +
-  'repeat (e.g. periodic audits, batch Bloom\'s upgrades, consistent rubric alignment), consider ' +
+  "repeat (e.g. periodic audits, batch Bloom's upgrades, consistent rubric alignment), consider " +
   'calling create_tool to save it as a named macro they can invoke later via run_tool. If this was ' +
   'a one-off request, skip create_tool and proceed directly to respond().';
 
@@ -379,11 +410,15 @@ export const CREATE_TOOL_JSON_SCHEMA = {
   type: 'object',
   properties: {
     name: { type: 'string', description: 'Identifier: must start with a letter, 2-40 chars of [a-zA-Z0-9_].' },
-    description: { type: 'string', description: 'Short description of what the macro does — so you (the agent) can decide when to use it later.' },
+    description: {
+      type: 'string',
+      description: 'Short description of what the macro does — so you (the agent) can decide when to use it later.',
+    },
     params: { type: 'object', description: 'Optional {paramName: "type — description"} map documenting runtime args.' },
     plan: {
       type: 'array',
-      description: 'Ordered steps composing built-in tools. Each: {id, tool, args}. args may reference {{args.X}} or {{steps.<id>.<path>}}.',
+      description:
+        'Ordered steps composing built-in tools. Each: {id, tool, args}. args may reference {{args.X}} or {{steps.<id>.<path>}}.',
       items: {
         type: 'object',
         properties: {

@@ -21,7 +21,10 @@ function isAppFlowRequest(url) {
 test.describe('Landing Page', () => {
   test.beforeEach(async ({ page }) => {
     await page.goto('/');
-    await page.evaluate(() => { localStorage.clear(); sessionStorage.clear(); });
+    await page.evaluate(() => {
+      localStorage.clear();
+      sessionStorage.clear();
+    });
     await page.reload();
     await expect(page.locator('h1')).toBeVisible({ timeout: 10000 });
   });
@@ -88,7 +91,7 @@ test.describe('Landing Page', () => {
     expect(await page.locator('html').getAttribute('class')).toContain('dark');
 
     await toggle.click();
-    expect(await page.locator('html').getAttribute('class') || '').not.toContain('dark');
+    expect((await page.locator('html').getAttribute('class')) || '').not.toContain('dark');
   });
 
   test('dark mode persists across page reload', async ({ page }) => {
@@ -124,23 +127,27 @@ test.describe('Landing Page', () => {
 
 test.describe('Lazy Shell', () => {
   test('keeps AppFlow off the landing page until Continue is clicked', async ({ page }) => {
-    await page.route('https://api.openai.com/v1/models', route => route.fulfill({
-      status: 200,
-      contentType: 'application/json',
-      body: JSON.stringify({
-        data: [{ id: 'gpt-4o-mini', created: 1 }],
+    await page.route('https://api.openai.com/v1/models', (route) =>
+      route.fulfill({
+        status: 200,
+        contentType: 'application/json',
+        body: JSON.stringify({
+          data: [{ id: 'gpt-4o-mini', created: 1 }],
+        }),
       }),
-    }));
-    await page.route('https://api.openai.com/v1/chat/completions', route => route.fulfill({
-      status: 200,
-      contentType: 'application/json',
-      body: JSON.stringify({
-        choices: [{ message: { content: 'ok' } }],
+    );
+    await page.route('https://api.openai.com/v1/chat/completions', (route) =>
+      route.fulfill({
+        status: 200,
+        contentType: 'application/json',
+        body: JSON.stringify({
+          choices: [{ message: { content: 'ok' } }],
+        }),
       }),
-    }));
+    );
 
     const appFlowRequests = [];
-    page.on('request', request => {
+    page.on('request', (request) => {
       if (isAppFlowRequest(request.url())) appFlowRequests.push(request.url());
     });
 
@@ -205,7 +212,9 @@ test.describe('Hash Routing', () => {
   test('footer link navigates to changelog', async ({ page }) => {
     await loadApp(page);
     await page.locator('a[href="#/changelog"]').first().click();
-    await expect(page.locator('text=AI Teaching Agent').or(page.locator('text=0.5')).first()).toBeVisible({ timeout: 5000 });
+    await expect(page.locator('text=AI Teaching Agent').or(page.locator('text=0.5')).first()).toBeVisible({
+      timeout: 5000,
+    });
   });
 });
 
@@ -219,62 +228,69 @@ test.describe('Workspace Deliverable Tabs', () => {
     await page.evaluate(() => {
       localStorage.clear();
       sessionStorage.clear();
-      localStorage.setItem('coursemapper-project', JSON.stringify({
-        formatVersion: 1,
-        hasGenerated: true,
-        provider: 'openai',
-        modelId: 'gpt-4o-mini',
-        modelName: 'GPT-4o mini',
-        courseMap: {
-          courseName: 'Drag Test Course',
-          semester: 'Spring 2026',
-          lessons: [
-            {
-              title: 'Lesson 1',
-              learningGoals: ['Goal 1'],
-              topics: ['Topic 1'],
-              learningObjectives: ['Objective 1'],
-              weeklyAssessments: ['Assessment 1'],
-              asynchronousActivities: ['Activity 1'],
-              synchronousActivities: ['Discussion 1'],
-            },
-          ],
-        },
-        columns: [],
-        userEdits: [],
-        chatHistory: [],
-        fileNames: [],
-        versionHistory: [],
-        selectedFeatures: ['courseMap', 'slideDecks'],
-        deliverableConfig: { slideDecks: { slideCount: 3 } },
-        lessonScope: { type: 'all' },
-        promptText: 'Drag test course',
-        activeTab: 'slideDecks',
-        deliverables: {
-          slideDecks: {
-            status: 'done',
-            data: {
-              decks: [
-                {
-                  lessonTitle: 'Lesson 1',
-                  slides: [
-                    { title: 'Intro', bullets: ['A'] },
-                    { title: 'Practice', bullets: ['B'] },
-                  ],
-                },
-              ],
-            },
-            error: null,
-            stale: false,
+      localStorage.setItem(
+        'coursemapper-project',
+        JSON.stringify({
+          formatVersion: 1,
+          hasGenerated: true,
+          provider: 'openai',
+          modelId: 'gpt-4o-mini',
+          modelName: 'GPT-4o mini',
+          courseMap: {
+            courseName: 'Drag Test Course',
+            semester: 'Spring 2026',
+            lessons: [
+              {
+                title: 'Lesson 1',
+                learningGoals: ['Goal 1'],
+                topics: ['Topic 1'],
+                learningObjectives: ['Objective 1'],
+                weeklyAssessments: ['Assessment 1'],
+                asynchronousActivities: ['Activity 1'],
+                synchronousActivities: ['Discussion 1'],
+              },
+            ],
           },
-        },
-        savedAt: Date.now(),
-      }));
+          columns: [],
+          userEdits: [],
+          chatHistory: [],
+          fileNames: [],
+          versionHistory: [],
+          selectedFeatures: ['courseMap', 'slideDecks'],
+          deliverableConfig: { slideDecks: { slideCount: 3 } },
+          lessonScope: { type: 'all' },
+          promptText: 'Drag test course',
+          activeTab: 'slideDecks',
+          deliverables: {
+            slideDecks: {
+              status: 'done',
+              data: {
+                decks: [
+                  {
+                    lessonTitle: 'Lesson 1',
+                    slides: [
+                      { title: 'Intro', bullets: ['A'] },
+                      { title: 'Practice', bullets: ['B'] },
+                    ],
+                  },
+                ],
+              },
+              error: null,
+              stale: false,
+            },
+          },
+          savedAt: Date.now(),
+        }),
+      );
     });
     await page.reload();
     await expect(page.locator('button:has-text("Resume")')).toBeVisible({ timeout: 10000 });
     await page.locator('button:has-text("Resume")').click();
-    await expect(page.locator('button:has-text("Slide Decks")')).toBeVisible({ timeout: 10000 });
+    await expect(
+      page.getByTestId('workspace-deliverable-tabs').getByRole('button', { name: /Slide Decks/ }),
+    ).toBeVisible({
+      timeout: 10000,
+    });
   }
 
   test('shows trash only while dragging and confirms deliverable deletion', async ({ page }) => {
@@ -282,7 +298,8 @@ test.describe('Workspace Deliverable Tabs', () => {
 
     await expect(page.locator('text=Drop to delete')).not.toBeVisible();
 
-    const slideTab = page.locator('button:has-text("Slide Decks")');
+    const deliverableTabs = page.getByTestId('workspace-deliverable-tabs');
+    const slideTab = deliverableTabs.getByRole('button', { name: /Slide Decks/ });
     const tabBox = await slideTab.boundingBox();
     expect(tabBox).not.toBeNull();
     await page.mouse.move(tabBox.x + tabBox.width / 2, tabBox.y + tabBox.height / 2);
@@ -300,8 +317,8 @@ test.describe('Workspace Deliverable Tabs', () => {
     await expect(page.locator('text=Slide Decks').first()).toBeVisible();
     await page.locator('button:has-text("Remove")').click();
 
-    await expect(page.locator('button:has-text("Slide Decks")')).not.toBeVisible();
-    await expect(page.locator('button:has-text("Course Map")')).toBeVisible();
+    await expect(deliverableTabs.getByRole('button', { name: /Slide Decks/ })).not.toBeVisible();
+    await expect(deliverableTabs.getByRole('button', { name: 'Course Map', exact: true })).toBeVisible();
     await expect(page.locator('text=Course Map Preview')).toBeVisible();
   });
 });
@@ -317,7 +334,7 @@ test.describe('Dark Mode', () => {
     await page.reload();
     await expect(page.locator('h1')).toBeVisible({ timeout: 10000 });
 
-    expect(await page.locator('html').getAttribute('class') || '').not.toContain('dark');
+    expect((await page.locator('html').getAttribute('class')) || '').not.toContain('dark');
     await page.locator('button[aria-label*="mode"]').click();
     expect(await page.locator('html').getAttribute('class')).toContain('dark');
   });
@@ -349,7 +366,7 @@ test.describe('Dark Mode', () => {
     await page.reload();
     await expect(page.locator('h1')).toBeVisible({ timeout: 10000 });
 
-    expect(await page.locator('html').getAttribute('class') || '').not.toContain('dark');
+    expect((await page.locator('html').getAttribute('class')) || '').not.toContain('dark');
   });
 });
 
@@ -491,22 +508,22 @@ test.describe('Accessibility', () => {
 test.describe('Error Handling', () => {
   test('no console errors on initial page load', async ({ page }) => {
     const errors = [];
-    page.on('console', msg => {
+    page.on('console', (msg) => {
       if (msg.type() === 'error') errors.push(msg.text());
     });
 
     await loadApp(page);
     await page.waitForTimeout(2000);
 
-    const realErrors = errors.filter(e =>
-      !e.includes('favicon') && !e.includes('net::ERR') && !e.includes('Failed to load resource')
+    const realErrors = errors.filter(
+      (e) => !e.includes('favicon') && !e.includes('net::ERR') && !e.includes('Failed to load resource'),
     );
     expect(realErrors).toEqual([]);
   });
 
   test('no unhandled promise rejections on load', async ({ page }) => {
     const rejections = [];
-    page.on('pageerror', error => rejections.push(error.message));
+    page.on('pageerror', (error) => rejections.push(error.message));
 
     await loadApp(page);
     await page.waitForTimeout(2000);
@@ -539,7 +556,7 @@ test.describe('Layout & Visual', () => {
     const logo = page.locator('img[alt="Course Mapper"]');
     await expect(logo).toBeVisible();
     // Check the image actually loaded (naturalWidth > 0)
-    const loaded = await logo.evaluate(img => img.naturalWidth > 0);
+    const loaded = await logo.evaluate((img) => img.naturalWidth > 0);
     expect(loaded).toBe(true);
   });
 

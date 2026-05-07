@@ -6,7 +6,7 @@ export const DEVELOPER_TEMPLATE_BUNDLE_VERSION = 1;
 
 function cleanSelectedFeatures(value) {
   const features = Array.isArray(value) ? value.filter(Boolean).map(String) : [];
-  return ['courseMap', ...features.filter(id => id !== 'courseMap')];
+  return ['courseMap', ...features.filter((id) => id !== 'courseMap')];
 }
 
 function cleanObject(value) {
@@ -73,7 +73,7 @@ export function parseDeveloperTemplateBundle(raw) {
 
   const templates = normalizeTemplateInput(parsed)
     .map(cleanTemplate)
-    .filter(template => template.data.selectedFeatures.length > 0);
+    .filter((template) => template.data.selectedFeatures.length > 0);
 
   if (templates.length === 0) {
     throw new Error('Template import did not contain any reusable developer templates.');

@@ -14,7 +14,14 @@ const makeDeliverables = () => ({
     status: 'done',
     data: {
       quizzes: [
-        { lt: 'Lesson 1', tq: 2, qs: [{ q: 'Q1', ty: 'mc' }, { q: 'Q2', ty: 'sa' }] },
+        {
+          lt: 'Lesson 1',
+          tq: 2,
+          qs: [
+            { q: 'Q1', ty: 'mc' },
+            { q: 'Q2', ty: 'sa' },
+          ],
+        },
         { lt: 'Lesson 2', tq: 1, qs: [{ q: 'Q3', ty: 'mc' }] },
       ],
     },
@@ -62,11 +69,16 @@ describe('executeAction', () => {
     let editedArgs = null;
     const ctx = {
       editor: {
-        handleCellEdit: (...args) => { editedArgs = args; },
+        handleCellEdit: (...args) => {
+          editedArgs = args;
+        },
       },
       courseMap: makeCourseMap(),
     };
-    const result = executeAction({ type: 'editCell', lessonIndex: 0, field: 'learningObjectives', value: 'New obj' }, ctx);
+    const result = executeAction(
+      { type: 'editCell', lessonIndex: 0, field: 'learningObjectives', value: 'New obj' },
+      ctx,
+    );
     expect(result.success).toBe(true);
     expect(editedArgs[0]).toBe(0); // lessonIndex
     expect(editedArgs[2]).toBe('learningObjectives'); // field
@@ -77,7 +89,9 @@ describe('executeAction', () => {
     let editedField = null;
     const ctx = {
       editor: {
-        handleCellEdit: (_, __, field) => { editedField = field; },
+        handleCellEdit: (_, __, field) => {
+          editedField = field;
+        },
       },
       courseMap: makeCourseMap(),
     };
@@ -88,7 +102,11 @@ describe('executeAction', () => {
   it('editTitle calls editor.handleTitleEdit', () => {
     let titleArgs = null;
     const ctx = {
-      editor: { handleTitleEdit: (...args) => { titleArgs = args; } },
+      editor: {
+        handleTitleEdit: (...args) => {
+          titleArgs = args;
+        },
+      },
     };
     const result = executeAction({ type: 'editTitle', lessonIndex: 1, newTitle: 'New Title' }, ctx);
     expect(result.success).toBe(true);
@@ -148,10 +166,7 @@ describe('preValidateAction', () => {
   });
 
   it('requires deliverable to be generated', () => {
-    const result = preValidateAction(
-      { type: 'addItem', featureId: 'slideDecks' },
-      { deliverables: {} },
-    );
+    const result = preValidateAction({ type: 'addItem', featureId: 'slideDecks' }, { deliverables: {} });
     expect(result.valid).toBe(false);
     expect(result.reason).toContain('not generated yet');
   });
@@ -183,20 +198,14 @@ describe('addItem required-field validation', () => {
   });
 
   it('rejects assignment without title (t)', () => {
-    const result = executeAction(
-      { type: 'addItem', featureId: 'assignments', item: { at: 'essay' } },
-      makeCtx(),
-    );
+    const result = executeAction({ type: 'addItem', featureId: 'assignments', item: { at: 'essay' } }, makeCtx());
     expect(result.success).toBe(false);
     expect(result.message).toContain('Missing required field (title)');
     expect(result.message).toContain('title');
   });
 
   it('accepts assignment with title', () => {
-    const result = executeAction(
-      { type: 'addItem', featureId: 'assignments', item: { t: 'HW3' } },
-      makeCtx(),
-    );
+    const result = executeAction({ type: 'addItem', featureId: 'assignments', item: { t: 'HW3' } }, makeCtx());
     expect(result.success).toBe(true);
   });
 
@@ -326,10 +335,7 @@ describe('editItem string path support', () => {
 
   it('returns error for non-string non-array path', () => {
     const ctx = makeCtx();
-    const result = executeAction(
-      { type: 'editItem', featureId: 'quizBank', path: 123, value: 'x' },
-      ctx,
-    );
+    const result = executeAction({ type: 'editItem', featureId: 'quizBank', path: 123, value: 'x' }, ctx);
     expect(result.success).toBe(false);
     expect(result.message).toContain('Invalid path');
   });
@@ -346,7 +352,9 @@ describe('addItem default field merging', () => {
   it('merges bl, df, pt defaults for quizBank items', () => {
     const ctx = makeCtx();
     let savedData;
-    ctx.optimisticUpdate = (fid, data) => { savedData = data; };
+    ctx.optimisticUpdate = (fid, data) => {
+      savedData = data;
+    };
     const result = executeAction(
       { type: 'addItem', featureId: 'quizBank', lessonIndex: 0, item: { q: 'Brand new Q?' } },
       ctx,
@@ -361,9 +369,16 @@ describe('addItem default field merging', () => {
   it('does not override explicitly provided fields', () => {
     const ctx = makeCtx();
     let savedData;
-    ctx.optimisticUpdate = (fid, data) => { savedData = data; };
+    ctx.optimisticUpdate = (fid, data) => {
+      savedData = data;
+    };
     const result = executeAction(
-      { type: 'addItem', featureId: 'quizBank', lessonIndex: 0, item: { q: 'Custom Q?', bl: 'Apply', df: 'hard', pt: 5 } },
+      {
+        type: 'addItem',
+        featureId: 'quizBank',
+        lessonIndex: 0,
+        item: { q: 'Custom Q?', bl: 'Apply', df: 'hard', pt: 5 },
+      },
       ctx,
     );
     expect(result.success).toBe(true);
@@ -375,10 +390,7 @@ describe('addItem default field merging', () => {
 
   it('does not merge defaults for non-quiz deliverables', () => {
     const ctx = makeCtx();
-    const result = executeAction(
-      { type: 'addItem', featureId: 'assignments', item: { t: 'New HW' } },
-      ctx,
-    );
+    const result = executeAction({ type: 'addItem', featureId: 'assignments', item: { t: 'New HW' } }, ctx);
     expect(result.success).toBe(true);
     // assignments items should not get quiz defaults
   });

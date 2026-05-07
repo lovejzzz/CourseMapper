@@ -45,7 +45,12 @@ describe('saveCustomTool', () => {
     });
     expect(firestore.doc).toHaveBeenCalledWith(
       { _kind: 'fake-db' },
-      'users', 'user-42', 'agentData', 'customTools', 'entries', 'audit_bloom',
+      'users',
+      'user-42',
+      'agentData',
+      'customTools',
+      'entries',
+      'audit_bloom',
     );
     expect(firestore.setDoc).toHaveBeenCalledTimes(1);
     const [docRef, payload] = firestore.setDoc.mock.calls[0];
@@ -87,7 +92,11 @@ describe('loadCustomTools', () => {
     const result = await load('user-42');
     expect(firestore.collection).toHaveBeenCalledWith(
       { _kind: 'fake-db' },
-      'users', 'user-42', 'agentData', 'customTools', 'entries',
+      'users',
+      'user-42',
+      'agentData',
+      'customTools',
+      'entries',
     );
     expect(result).toEqual([
       { name: 'tool_a', description: 'A', plan: [{ id: 's1', tool: 'validate_course' }] },
@@ -112,7 +121,12 @@ describe('deleteCustomTool', () => {
     await del('user-42', 'audit_bloom');
     expect(firestore.doc).toHaveBeenCalledWith(
       { _kind: 'fake-db' },
-      'users', 'user-42', 'agentData', 'customTools', 'entries', 'audit_bloom',
+      'users',
+      'user-42',
+      'agentData',
+      'customTools',
+      'entries',
+      'audit_bloom',
     );
     expect(firestore.deleteDoc).toHaveBeenCalledTimes(1);
     const [docRef] = firestore.deleteDoc.mock.calls[0];

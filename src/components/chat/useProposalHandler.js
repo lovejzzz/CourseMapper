@@ -51,7 +51,7 @@ export default function useProposalHandler({
         const deliv = delivRef.current;
         const entry = deliv?.[action.featureId];
         if (entry?.data) {
-          const arrKey = Object.keys(entry.data).find(k => Array.isArray(entry.data[k]));
+          const arrKey = Object.keys(entry.data).find((k) => Array.isArray(entry.data[k]));
           if (arrKey) {
             const lessonItems = entry.data[arrKey]?.[action.lessonIndex];
             const items = Array.isArray(lessonItems) ? lessonItems : lessonItems?.items;
@@ -79,7 +79,9 @@ export default function useProposalHandler({
         const lesson = courseMap?.lessons?.[action.lessonIndex];
         preview.lessonTitle = lesson?.title ?? `Lesson ${(action.lessonIndex ?? 0) + 1}`;
       }
-    } catch { /* preview is best-effort */ }
+    } catch {
+      /* preview is best-effort */
+    }
     return preview;
   }
 
@@ -91,12 +93,12 @@ export default function useProposalHandler({
     if (!msg || msg.role !== 'proposal') return;
     if (msg.status !== 'pending' && msg.status !== 'failed' && msg.status !== 'reviewing') return;
 
-    const option = msg.proposal?.options?.find(o => o.label === optionLabel);
+    const option = msg.proposal?.options?.find((o) => o.label === optionLabel);
     if (!option) return;
 
     const exec = executeActionRef.current;
     if (!exec) {
-      setMessages(prev => [...prev, { role: 'error', text: 'Action executor not available.' }]);
+      setMessages((prev) => [...prev, { role: 'error', text: 'Action executor not available.' }]);
       return;
     }
 
@@ -108,7 +110,7 @@ export default function useProposalHandler({
       courseMap,
     });
     if (!validation.valid) {
-      setMessages(prev => {
+      setMessages((prev) => {
         const updated = [...prev];
         updated[messageIndex] = {
           ...updated[messageIndex],
@@ -120,8 +122,8 @@ export default function useProposalHandler({
       });
       proposalLockRef.current = false;
       sendAgentMessage(
-        `Option "${option.title}" is invalid: ${validation.reason}. `
-        + `Please propose a new option that addresses this issue.`,
+        `Option "${option.title}" is invalid: ${validation.reason}. ` +
+          `Please propose a new option that addresses this issue.`,
         { silent: true },
       );
       return;
@@ -131,11 +133,11 @@ export default function useProposalHandler({
     const preview = generateDiffPreview(option.action);
 
     // Mark proposal as "reviewing" and push a diffReview message
-    setMessages(prev => {
+    setMessages((prev) => {
       const updated = [...prev];
       // Remove any existing pending diffReview for this proposal (user changed mind)
       const existingDiffIdx = updated.findIndex(
-        m => m.role === 'diffReview' && m._proposalIndex === messageIndex && m.status === 'pending'
+        (m) => m.role === 'diffReview' && m._proposalIndex === messageIndex && m.status === 'pending',
       );
       if (existingDiffIdx >= 0) updated.splice(existingDiffIdx, 1);
 
@@ -183,7 +185,7 @@ export default function useProposalHandler({
         action: 'accepted',
       });
 
-      setMessages(prev => {
+      setMessages((prev) => {
         const updated = [...prev];
         // Mark diff as accepted
         updated[diffMessageIndex] = { ...updated[diffMessageIndex], status: 'accepted' };
@@ -198,8 +200,12 @@ export default function useProposalHandler({
           };
         }
         // Add change summary
-        const actionType = (action?.type === 'addItem' || action?.type === 'addLesson') ? 'added'
-          : (action?.type === 'removeItem' || action?.type === 'deleteLesson') ? 'removed' : 'edited';
+        const actionType =
+          action?.type === 'addItem' || action?.type === 'addLesson'
+            ? 'added'
+            : action?.type === 'removeItem' || action?.type === 'deleteLesson'
+              ? 'removed'
+              : 'edited';
         const target = action?.featureId || 'courseMap';
         updated.push({
           role: 'changeSummary',
@@ -214,7 +220,7 @@ export default function useProposalHandler({
     } else {
       const errorDetail = result.message || 'Unknown error';
       const isCourseMapAction = ['editCell', 'editTitle', 'addLesson', 'deleteLesson'].includes(action?.type);
-      setMessages(prev => {
+      setMessages((prev) => {
         const updated = [...prev];
         updated[diffMessageIndex] = { ...updated[diffMessageIndex], status: 'rejected' };
         // Mark proposal as failed (not dismissed) — other options remain clickable
@@ -229,10 +235,10 @@ export default function useProposalHandler({
         return updated;
       });
       sendAgentMessage(
-        `I tried to apply "${optionTitle}" but it failed: ${errorDetail}. `
-        + (isCourseMapAction
-          ? `The course map edit could not be applied. Please try a different approach.`
-          : `The deliverable "${action?.featureId || 'unknown'}" may not be available. Please target a deliverable that IS generated (status "done"), or suggest an alternative approach.`),
+        `I tried to apply "${optionTitle}" but it failed: ${errorDetail}. ` +
+          (isCourseMapAction
+            ? `The course map edit could not be applied. Please try a different approach.`
+            : `The deliverable "${action?.featureId || 'unknown'}" may not be available. Please target a deliverable that IS generated (status "done"), or suggest an alternative approach.`),
         { silent: true },
       );
     }
@@ -255,7 +261,7 @@ export default function useProposalHandler({
       });
     }
 
-    setMessages(prev => {
+    setMessages((prev) => {
       const updated = [...prev];
       updated[diffMessageIndex] = { ...updated[diffMessageIndex], status: 'rejected' };
       // Restore parent proposal to pending so user can pick another option

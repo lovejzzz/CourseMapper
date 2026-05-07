@@ -15,7 +15,12 @@ function detectProvider(key) {
   return null;
 }
 
-const PLACEHOLDER = { openai: 'sk-proj-...', anthropic: 'sk-ant-...', google: 'AIza... or Vertex AI key', deepseek: 'sk-...' };
+const PLACEHOLDER = {
+  openai: 'sk-proj-...',
+  anthropic: 'sk-ant-...',
+  google: 'AIza... or Vertex AI key',
+  deepseek: 'sk-...',
+};
 
 const API_KEY_URLS = {
   openai: 'https://platform.openai.com/api-keys',
@@ -42,7 +47,7 @@ export async function checkCredits(provider, apiKey, modelId) {
       const base = provider === 'deepseek' ? 'https://api.deepseek.com/v1' : 'https://api.openai.com/v1';
       res = await fetch(`${base}/chat/completions`, {
         method: 'POST',
-        headers: { 'Authorization': `Bearer ${apiKey}`, 'Content-Type': 'application/json' },
+        headers: { Authorization: `Bearer ${apiKey}`, 'Content-Type': 'application/json' },
         body: JSON.stringify({
           model: modelId,
           messages: [{ role: 'user', content: 'Hi' }],
@@ -53,8 +58,10 @@ export async function checkCredits(provider, apiKey, modelId) {
       res = await fetch('https://api.anthropic.com/v1/messages', {
         method: 'POST',
         headers: {
-          'x-api-key': apiKey, 'content-type': 'application/json',
-          'anthropic-version': '2023-06-01', 'anthropic-dangerous-direct-browser-access': 'true',
+          'x-api-key': apiKey,
+          'content-type': 'application/json',
+          'anthropic-version': '2023-06-01',
+          'anthropic-dangerous-direct-browser-access': 'true',
         },
         body: JSON.stringify({ model: modelId, max_tokens: 1, messages: [{ role: 'user', content: 'Hi' }] }),
       });
@@ -65,7 +72,7 @@ export async function checkCredits(provider, apiKey, modelId) {
           method: 'POST',
           headers: { 'Content-Type': 'application/json' },
           body: JSON.stringify({ contents: [{ parts: [{ text: 'Hi' }] }], generationConfig: { maxOutputTokens: 1 } }),
-        }
+        },
       );
     } else {
       return true;
@@ -74,7 +81,15 @@ export async function checkCredits(provider, apiKey, modelId) {
     // Check for billing/quota errors
     const err = await res.json().catch(() => ({}));
     const msg = JSON.stringify(err).toLowerCase();
-    if (res.status === 402 || res.status === 429 || msg.includes('insufficient') || msg.includes('quota') || msg.includes('billing') || msg.includes('exceeded') || msg.includes('balance')) {
+    if (
+      res.status === 402 ||
+      res.status === 429 ||
+      msg.includes('insufficient') ||
+      msg.includes('quota') ||
+      msg.includes('billing') ||
+      msg.includes('exceeded') ||
+      msg.includes('balance')
+    ) {
       return false;
     }
     // Other errors (e.g. 400 for temperature) — key likely has credits
@@ -86,10 +101,20 @@ export async function checkCredits(provider, apiKey, modelId) {
 
 export default function ModelConfig() {
   const {
-    provider, setProvider, apiKey, setApiKey,
-    modelId, setModelId, availableModels, setAvailableModels,
-    apiStatus, setApiStatus, modelName, setModelName,
-    maxOutputTokens, setMaxOutputTokens,
+    provider,
+    setProvider,
+    apiKey,
+    setApiKey,
+    modelId,
+    setModelId,
+    availableModels,
+    setAvailableModels,
+    apiStatus,
+    setApiStatus,
+    modelName,
+    setModelName,
+    maxOutputTokens,
+    setMaxOutputTokens,
   } = useAIConfig();
   const debounceRef = useRef(null);
   const prevProviderValueRef = useRef(provider);
@@ -134,13 +159,15 @@ export default function ModelConfig() {
       return;
     }
     // Set models list immediately
-    const models = WEBLLM_MODELS.map(m => ({ id: m.id, name: m.name, maxOutputTokens: m.maxTokens, size: m.size }));
+    const models = WEBLLM_MODELS.map((m) => ({ id: m.id, name: m.name, maxOutputTokens: m.maxTokens, size: m.size }));
     setAvailableModels(models);
 
     // Prefer previously saved model or default
     let saved;
-    try { saved = localStorage.getItem('coursemapper-modelid'); } catch { }
-    const match = saved ? models.find(m => m.id === saved) : null;
+    try {
+      saved = localStorage.getItem('coursemapper-modelid');
+    } catch {}
+    const match = saved ? models.find((m) => m.id === saved) : null;
     const selected = match || models[0];
     setModelId(selected.id);
     setModelName(selected.name);
@@ -155,24 +182,26 @@ export default function ModelConfig() {
     setWebllmError(null);
     setWebllmProgress({ text: 'Initializing WebGPU...', progress: 0 });
 
-    import('../lib/webllm').then(({ getEngine, isEngineReady }) => {
-      if (isEngineReady()) {
-        setApiStatus('connected');
+    import('../lib/webllm')
+      .then(({ getEngine, isEngineReady }) => {
+        if (isEngineReady()) {
+          setApiStatus('connected');
+          setWebllmProgress(null);
+          return;
+        }
+        return getEngine(selected.id, (report) => {
+          setWebllmProgress({ text: report.text, progress: report.progress });
+        }).then(() => {
+          setApiStatus('connected');
+          setWebllmProgress(null);
+        });
+      })
+      .catch((err) => {
+        setApiStatus('error');
+        setWebllmError(err.message || 'Failed to load model');
         setWebllmProgress(null);
-        return;
-      }
-      return getEngine(selected.id, (report) => {
-        setWebllmProgress({ text: report.text, progress: report.progress });
-      }).then(() => {
-        setApiStatus('connected');
-        setWebllmProgress(null);
+        webllmInitRef.current = false;
       });
-    }).catch((err) => {
-      setApiStatus('error');
-      setWebllmError(err.message || 'Failed to load model');
-      setWebllmProgress(null);
-      webllmInitRef.current = false;
-    });
   }, [provider]);
 
   // When API key or provider changes, auto-detect provider and validate.
@@ -220,8 +249,10 @@ export default function ModelConfig() {
           setAvailableModels(models);
           // Prefer previously saved model if it exists in the list
           let saved;
-          try { saved = localStorage.getItem('coursemapper-modelid'); } catch { }
-          const match = saved ? models.find(m => m.id === saved) : null;
+          try {
+            saved = localStorage.getItem('coursemapper-modelid');
+          } catch {}
+          const match = saved ? models.find((m) => m.id === saved) : null;
           const selected = match || models[0];
           setModelId(selected.id);
           setModelName(selected.name);
@@ -255,18 +286,21 @@ export default function ModelConfig() {
       setWebllmError(null);
       setWebllmProgress({ text: 'Loading model...', progress: 0 });
       webllmInitRef.current = true;
-      import('../lib/webllm').then(({ getEngine }) =>
-        getEngine(id, (report) => {
-          setWebllmProgress({ text: report.text, progress: report.progress });
+      import('../lib/webllm')
+        .then(({ getEngine }) =>
+          getEngine(id, (report) => {
+            setWebllmProgress({ text: report.text, progress: report.progress });
+          }),
+        )
+        .then(() => {
+          setApiStatus('connected');
+          setWebllmProgress(null);
         })
-      ).then(() => {
-        setApiStatus('connected');
-        setWebllmProgress(null);
-      }).catch((err) => {
-        setApiStatus('error');
-        setWebllmError(err.message || 'Failed to load model');
-        setWebllmProgress(null);
-      });
+        .catch((err) => {
+          setApiStatus('error');
+          setWebllmError(err.message || 'Failed to load model');
+          setWebllmProgress(null);
+        });
     }
   }
 
@@ -303,7 +337,12 @@ export default function ModelConfig() {
             <span className="inline-flex rounded-full h-2 w-2 bg-amber-500"></span>
             Insufficient Funds
             <svg className="w-3 h-3 text-amber-500" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M10 6H6a2 2 0 00-2 2v10a2 2 0 002 2h10a2 2 0 002-2v-4M14 4h6m0 0v6m0-6L10 14" />
+              <path
+                strokeLinecap="round"
+                strokeLinejoin="round"
+                strokeWidth={2}
+                d="M10 6H6a2 2 0 00-2 2v10a2 2 0 002 2h10a2 2 0 002-2v-4M14 4h6m0 0v6m0-6L10 14"
+              />
             </svg>
           </a>
         )}
@@ -318,9 +357,7 @@ export default function ModelConfig() {
       <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
         {/* Provider */}
         <div>
-          <label className="block text-xs font-medium text-slate-500 mb-1.5 tracking-wide uppercase">
-            Provider
-          </label>
+          <label className="block text-xs font-medium text-slate-500 mb-1.5 tracking-wide uppercase">Provider</label>
           <div className="relative">
             <select
               value={provider}
@@ -333,7 +370,12 @@ export default function ModelConfig() {
               <option value="google">Google</option>
               <option value="deepseek">DeepSeek</option>
             </select>
-            <svg className="pointer-events-none absolute right-3 top-1/2 -translate-y-1/2 w-4 h-4 text-slate-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+            <svg
+              className="pointer-events-none absolute right-3 top-1/2 -translate-y-1/2 w-4 h-4 text-slate-400"
+              fill="none"
+              stroke="currentColor"
+              viewBox="0 0 24 24"
+            >
               <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M19 9l-7 7-7-7" />
             </svg>
           </div>
@@ -348,7 +390,12 @@ export default function ModelConfig() {
               </label>
               {apiStatus === 'connected' ? (
                 <div className="w-full rounded-squircle-xs bg-emerald-50/40 border border-emerald-200/50 px-3.5 py-2.5 text-sm text-emerald-700 flex items-center gap-2">
-                  <svg className="w-4 h-4 text-emerald-500 shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                  <svg
+                    className="w-4 h-4 text-emerald-500 shrink-0"
+                    fill="none"
+                    stroke="currentColor"
+                    viewBox="0 0 24 24"
+                  >
                     <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2.5} d="M5 13l4 4L19 7" />
                   </svg>
                   Installed
@@ -406,7 +453,12 @@ export default function ModelConfig() {
                     className="inline-flex items-center text-indigo-400 hover:text-indigo-600 transition-colors"
                   >
                     <svg className="w-3.5 h-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                      <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M13 16h-1v-4h-1m1-4h.01M12 2a10 10 0 100 20 10 10 0 000-20z" />
+                      <path
+                        strokeLinecap="round"
+                        strokeLinejoin="round"
+                        strokeWidth={2}
+                        d="M13 16h-1v-4h-1m1-4h.01M12 2a10 10 0 100 20 10 10 0 000-20z"
+                      />
                     </svg>
                   </a>
                 )}
@@ -424,12 +476,12 @@ export default function ModelConfig() {
                   placeholder={PLACEHOLDER[provider] || 'Enter API key...'}
                   className={`input-glass w-full rounded-squircle-xs px-3.5 py-2.5 text-sm focus:outline-none pr-10 ${
                     apiStatus === 'connected'
-                    ? '!border-emerald-300/60 !bg-emerald-50/30 text-slate-700'
-                    : apiStatus === 'no_funds'
-                    ? '!border-amber-300/60 !bg-amber-50/30 text-slate-700'
-                    : apiStatus === 'error'
-                    ? '!border-red-300/60 !bg-red-50/30 text-slate-700'
-                    : 'text-slate-700'
+                      ? '!border-emerald-300/60 !bg-emerald-50/30 text-slate-700'
+                      : apiStatus === 'no_funds'
+                        ? '!border-amber-300/60 !bg-amber-50/30 text-slate-700'
+                        : apiStatus === 'error'
+                          ? '!border-red-300/60 !bg-red-50/30 text-slate-700'
+                          : 'text-slate-700'
                   }`}
                 />
                 {apiStatus === 'connected' && (
@@ -442,7 +494,12 @@ export default function ModelConfig() {
                 {apiStatus === 'no_funds' && (
                   <div className="absolute right-3 top-1/2 -translate-y-1/2">
                     <svg className="w-4 h-4 text-amber-500" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                      <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2.5} d="M12 9v2m0 4h.01m-6.938 4h13.856c1.54 0 2.502-1.667 1.732-3L13.732 4c-.77-1.333-2.694-1.333-3.464 0L3.34 16c-.77 1.333.192 3 1.732 3z" />
+                      <path
+                        strokeLinecap="round"
+                        strokeLinejoin="round"
+                        strokeWidth={2.5}
+                        d="M12 9v2m0 4h.01m-6.938 4h13.856c1.54 0 2.502-1.667 1.732-3L13.732 4c-.77-1.333-2.694-1.333-3.464 0L3.34 16c-.77 1.333.192 3 1.732 3z"
+                      />
                     </svg>
                   </div>
                 )}
@@ -460,20 +517,21 @@ export default function ModelConfig() {
 
         {/* Model dropdown */}
         <div>
-          <label className="block text-xs font-medium text-slate-500 mb-1.5 tracking-wide uppercase">
-            Model
-          </label>
+          <label className="block text-xs font-medium text-slate-500 mb-1.5 tracking-wide uppercase">Model</label>
           {(apiStatus === 'connected' || apiStatus === 'no_funds') && availableModels.length > 0 ? (
             <select
               value={modelId}
               onChange={handleModelChange}
               className={`input-glass w-full rounded-squircle-xs px-3.5 py-2.5 text-sm text-slate-700 focus:outline-none ${
-                apiStatus === 'connected' ? '!border-emerald-300/60 !bg-emerald-50/30' : '!border-amber-300/60 !bg-amber-50/30'
+                apiStatus === 'connected'
+                  ? '!border-emerald-300/60 !bg-emerald-50/30'
+                  : '!border-amber-300/60 !bg-amber-50/30'
               }`}
             >
               {availableModels.map((m) => (
                 <option key={m.id} value={m.id}>
-                  {m.name}{m.size ? ` (${m.size})` : ''}
+                  {m.name}
+                  {m.size ? ` (${m.size})` : ''}
                 </option>
               ))}
             </select>

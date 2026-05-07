@@ -24,13 +24,13 @@ const RULES = readFileSync(RULES_PATH, 'utf8');
 // cloudStorage.js — if a new collection is introduced, add it here so the
 // rule-coverage check fires.
 const PATHS_UNDER_RULES = [
-  'users/{uid}',                                             // profile
-  'users/{uid}/projects/{projectId}',                        // project metadata
-  'users/{uid}/projects/{projectId}/deliverables/{fid}',     // per-project deliverable data
-  'users/{uid}/customDeliverables/{id}',                     // custom deliverable defs
-  'users/{uid}/agentData/preferences',                       // agent prefs
-  'users/{uid}/agentData/memory/entries/{id}',               // agent memories
-  'users/{uid}/agentData/customTools/entries/{name}',        // NEW: agent-created macros
+  'users/{uid}', // profile
+  'users/{uid}/projects/{projectId}', // project metadata
+  'users/{uid}/projects/{projectId}/deliverables/{fid}', // per-project deliverable data
+  'users/{uid}/customDeliverables/{id}', // custom deliverable defs
+  'users/{uid}/agentData/preferences', // agent prefs
+  'users/{uid}/agentData/memory/entries/{id}', // agent memories
+  'users/{uid}/agentData/customTools/entries/{name}', // NEW: agent-created macros
 ];
 
 describe('firestore.rules', () => {
@@ -51,19 +51,16 @@ describe('firestore.rules', () => {
     expect(RULES).not.toMatch(/request\.resource\.size/);
   });
 
-  it.each(PATHS_UNDER_RULES)(
-    'path "%s" is covered by the recursive users/{userId} rule',
-    (path) => {
-      // The rule covers everything under /users/{userId}/** — we just need to
-      // confirm the path starts with users/{uid}/ (or is users/{uid} itself).
-      expect(path === 'users/{uid}' || path.startsWith('users/{uid}/')).toBe(true);
-    }
-  );
+  it.each(PATHS_UNDER_RULES)('path "%s" is covered by the recursive users/{userId} rule', (path) => {
+    // The rule covers everything under /users/{userId}/** — we just need to
+    // confirm the path starts with users/{uid}/ (or is users/{uid} itself).
+    expect(path === 'users/{uid}' || path.startsWith('users/{uid}/')).toBe(true);
+  });
 
   it('does NOT silently allow writes outside /users', () => {
     // Sanity: there must be no top-level match block that opens anything up.
     // If a future change adds `match /public/...` we want to know.
-    const topLevelMatches = [...RULES.matchAll(/^\s*match\s+\/([a-zA-Z_]+)/gm)].map(m => m[1]);
+    const topLevelMatches = [...RULES.matchAll(/^\s*match\s+\/([a-zA-Z_]+)/gm)].map((m) => m[1]);
     for (const collection of topLevelMatches) {
       expect(['databases', 'users']).toContain(collection);
     }

@@ -40,17 +40,19 @@ export default function DeveloperPromptsPanel({
   function getPromptPreview(featureId, promptConfig) {
     if (!featureId) return { systemPrompt: '', userPrompt: '' };
     try {
-      return getDeliverablePrompt(
-        featureId,
-        workingSnapshot.courseMap || { lessons: [] },
-        currentConfig.lessonScope || workingSnapshot.lessonScope || null,
-        promptConfig || {},
-        'lecture',
-        null,
-        null,
-        currentConfig.columns || workingSnapshot.columns || null,
-        currentConfig.deliverableConfig || workingSnapshot.deliverableConfig || null,
-      ) || { systemPrompt: '', userPrompt: '' };
+      return (
+        getDeliverablePrompt(
+          featureId,
+          workingSnapshot.courseMap || { lessons: [] },
+          currentConfig.lessonScope || workingSnapshot.lessonScope || null,
+          promptConfig || {},
+          'lecture',
+          null,
+          null,
+          currentConfig.columns || workingSnapshot.columns || null,
+          currentConfig.deliverableConfig || workingSnapshot.deliverableConfig || null,
+        ) || { systemPrompt: '', userPrompt: '' }
+      );
     } catch {
       return { systemPrompt: '', userPrompt: '' };
     }
@@ -58,7 +60,9 @@ export default function DeveloperPromptsPanel({
 
   function updatePromptConfig(featureId, patch, message) {
     if (!featureId) return;
-    const deliverableConfig = isPlainObject(currentConfig.deliverableConfig) ? { ...currentConfig.deliverableConfig } : {};
+    const deliverableConfig = isPlainObject(currentConfig.deliverableConfig)
+      ? { ...currentConfig.deliverableConfig }
+      : {};
     const current = isPlainObject(deliverableConfig[featureId]) ? { ...deliverableConfig[featureId] } : {};
     Object.entries(patch).forEach(([key, value]) => {
       if (typeof value === 'string' && value.trim() === '') delete current[key];
@@ -76,10 +80,12 @@ export default function DeveloperPromptsPanel({
 
   function resetPromptOverrides(featureId) {
     if (!featureId) return;
-    const label = promptFeatureOptions.find(option => option.id === featureId)?.label || featureId;
+    const label = promptFeatureOptions.find((option) => option.id === featureId)?.label || featureId;
     const confirmed = window.confirm(`Clear prompt overrides for ${label}? The built-in prompt will be used again.`);
     if (!confirmed) return;
-    const deliverableConfig = isPlainObject(currentConfig.deliverableConfig) ? { ...currentConfig.deliverableConfig } : {};
+    const deliverableConfig = isPlainObject(currentConfig.deliverableConfig)
+      ? { ...currentConfig.deliverableConfig }
+      : {};
     const current = isPlainObject(deliverableConfig[featureId]) ? { ...deliverableConfig[featureId] } : {};
     delete current.customSystemPrompt;
     delete current.customUserPrompt;
@@ -109,13 +115,9 @@ export default function DeveloperPromptsPanel({
   const promptPreview = activeFeatureId ? getPromptPreview(activeFeatureId, promptConfig) : {};
   const hasSystemOverride = Boolean(promptConfig.customSystemPrompt?.trim());
   const hasUserOverride = Boolean(promptConfig.customUserPrompt?.trim());
-  const hasPromptOverride = Boolean(
-    hasSystemOverride
-    || hasUserOverride
-    || promptConfig.extraInstructions?.trim()
-  );
-  const systemPromptValue = hasSystemOverride ? promptConfig.customSystemPrompt : (promptPreview.systemPrompt || '');
-  const userPromptValue = hasUserOverride ? promptConfig.customUserPrompt : (promptPreview.userPrompt || '');
+  const hasPromptOverride = Boolean(hasSystemOverride || hasUserOverride || promptConfig.extraInstructions?.trim());
+  const systemPromptValue = hasSystemOverride ? promptConfig.customSystemPrompt : promptPreview.systemPrompt || '';
+  const userPromptValue = hasUserOverride ? promptConfig.customUserPrompt : promptPreview.userPrompt || '';
   const promptAnalysis = analyzeDeveloperPrompt({
     systemPrompt: systemPromptValue,
     userPrompt: userPromptValue,
@@ -125,7 +127,10 @@ export default function DeveloperPromptsPanel({
     hasSystemOverride,
     hasUserOverride,
   });
-  const systemPromptDiff = summarizePromptDiff(builtInPromptPreview.systemPrompt || '', promptPreview.systemPrompt || '');
+  const systemPromptDiff = summarizePromptDiff(
+    builtInPromptPreview.systemPrompt || '',
+    promptPreview.systemPrompt || '',
+  );
   const userPromptDiff = summarizePromptDiff(builtInPromptPreview.userPrompt || '', promptPreview.userPrompt || '');
 
   return (
@@ -134,9 +139,12 @@ export default function DeveloperPromptsPanel({
         <div className="flex flex-col gap-3 lg:flex-row lg:items-start lg:justify-between">
           <div className="min-w-0">
             <p className="text-[10px] font-bold uppercase tracking-wider text-slate-400">Deliverable Prompt</p>
-            <h3 className="mt-1 text-sm font-bold text-slate-800 dark:text-slate-100">Override model instructions per deliverable</h3>
+            <h3 className="mt-1 text-sm font-bold text-slate-800 dark:text-slate-100">
+              Override model instructions per deliverable
+            </h3>
             <p className="mt-2 max-w-2xl text-[11px] leading-5 text-slate-500 dark:text-slate-400">
-              These fields write to Config / deliverableConfig. Empty fields use the built-in prompt. User prompt templates should include {COURSE_MAP_PLACEHOLDER} so the model receives the course content.
+              These fields write to Config / deliverableConfig. Empty fields use the built-in prompt. User prompt
+              templates should include {COURSE_MAP_PLACEHOLDER} so the model receives the course content.
             </p>
           </div>
           <select
@@ -145,9 +153,13 @@ export default function DeveloperPromptsPanel({
             disabled={promptFeatureOptions.length === 0}
             className="w-full rounded-lg border border-slate-200 bg-white px-3 py-2 text-[12px] font-semibold text-slate-700 outline-none focus:border-indigo-300 disabled:opacity-50 dark:border-slate-700 dark:bg-slate-950 dark:text-slate-200 lg:w-64"
           >
-            {promptFeatureOptions.length > 0 ? promptFeatureOptions.map(option => (
-              <option key={option.id} value={option.id}>{option.label}</option>
-            )) : (
+            {promptFeatureOptions.length > 0 ? (
+              promptFeatureOptions.map((option) => (
+                <option key={option.id} value={option.id}>
+                  {option.label}
+                </option>
+              ))
+            ) : (
               <option value="">Choose deliverables first</option>
             )}
           </select>
@@ -160,15 +172,21 @@ export default function DeveloperPromptsPanel({
             <div className="rounded-xl border border-slate-200/70 bg-white p-4 dark:border-slate-700 dark:bg-slate-900">
               <div className="flex flex-wrap items-center justify-between gap-2">
                 <div>
-                  <p className="text-[10px] font-bold uppercase tracking-wider text-slate-400">System Prompt Override</p>
+                  <p className="text-[10px] font-bold uppercase tracking-wider text-slate-400">
+                    System Prompt Override
+                  </p>
                   <h3 className="mt-1 text-sm font-bold text-slate-800 dark:text-slate-100">
-                    {hasSystemOverride ? `Override active - ${fieldSummary(promptConfig.customSystemPrompt)}` : `Built-in prompt - ${fieldSummary(systemPromptValue)}`}
+                    {hasSystemOverride
+                      ? `Override active - ${fieldSummary(promptConfig.customSystemPrompt)}`
+                      : `Built-in prompt - ${fieldSummary(systemPromptValue)}`}
                   </h3>
                 </div>
                 <div className="flex items-center gap-2">
                   {!hasSystemOverride && (
                     <button
-                      onClick={() => materializePromptOverride(activeFeatureId, 'customSystemPrompt', systemPromptValue)}
+                      onClick={() =>
+                        materializePromptOverride(activeFeatureId, 'customSystemPrompt', systemPromptValue)
+                      }
                       disabled={!systemPromptValue}
                       className="tactile rounded-lg border border-indigo-200 bg-indigo-50 px-2.5 py-1.5 text-[10px] font-bold text-indigo-600 hover:bg-indigo-100 disabled:cursor-not-allowed disabled:opacity-50 dark:border-indigo-500/40 dark:bg-indigo-500/10 dark:text-indigo-300"
                     >
@@ -183,11 +201,19 @@ export default function DeveloperPromptsPanel({
               <textarea
                 value={systemPromptValue}
                 readOnly={!hasSystemOverride}
-                onChange={(e) => updatePromptConfig(activeFeatureId, { customSystemPrompt: e.target.value }, 'System prompt override updated.')}
+                onChange={(e) =>
+                  updatePromptConfig(
+                    activeFeatureId,
+                    { customSystemPrompt: e.target.value },
+                    'System prompt override updated.',
+                  )
+                }
                 placeholder="No system prompt is available for this deliverable."
                 spellCheck={false}
                 className={`mt-3 min-h-[140px] w-full resize-y rounded-lg border border-slate-200 px-3 py-2 font-mono text-[12px] leading-5 text-slate-700 outline-none focus:border-indigo-300 dark:border-slate-700 dark:text-slate-200 ${
-                  hasSystemOverride ? 'bg-slate-50 dark:bg-slate-950' : 'bg-slate-50/70 text-slate-500 dark:bg-slate-950/70 dark:text-slate-400'
+                  hasSystemOverride
+                    ? 'bg-slate-50 dark:bg-slate-950'
+                    : 'bg-slate-50/70 text-slate-500 dark:bg-slate-950/70 dark:text-slate-400'
                 }`}
               />
             </div>
@@ -195,9 +221,13 @@ export default function DeveloperPromptsPanel({
             <div className="rounded-xl border border-slate-200/70 bg-white p-4 dark:border-slate-700 dark:bg-slate-900">
               <div className="flex flex-wrap items-center justify-between gap-2">
                 <div>
-                  <p className="text-[10px] font-bold uppercase tracking-wider text-slate-400">User Prompt Template Override</p>
+                  <p className="text-[10px] font-bold uppercase tracking-wider text-slate-400">
+                    User Prompt Template Override
+                  </p>
                   <h3 className="mt-1 text-sm font-bold text-slate-800 dark:text-slate-100">
-                    {hasUserOverride ? `Override active - ${fieldSummary(promptConfig.customUserPrompt)}` : `Current generated prompt - ${fieldSummary(userPromptValue)}`}
+                    {hasUserOverride
+                      ? `Override active - ${fieldSummary(promptConfig.customUserPrompt)}`
+                      : `Current generated prompt - ${fieldSummary(userPromptValue)}`}
                   </h3>
                 </div>
                 <div className="flex items-center gap-2">
@@ -210,11 +240,13 @@ export default function DeveloperPromptsPanel({
                       Customize
                     </button>
                   )}
-                  <span className={`rounded-full px-2 py-1 text-[10px] font-bold ${
-                    hasUserOverride && !promptConfig.customUserPrompt.includes(COURSE_MAP_PLACEHOLDER)
-                      ? 'bg-amber-50 text-amber-700 dark:bg-amber-500/10 dark:text-amber-300'
-                      : 'bg-slate-100 text-slate-500 dark:bg-slate-800 dark:text-slate-300'
-                  }`}>
+                  <span
+                    className={`rounded-full px-2 py-1 text-[10px] font-bold ${
+                      hasUserOverride && !promptConfig.customUserPrompt.includes(COURSE_MAP_PLACEHOLDER)
+                        ? 'bg-amber-50 text-amber-700 dark:bg-amber-500/10 dark:text-amber-300'
+                        : 'bg-slate-100 text-slate-500 dark:bg-slate-800 dark:text-slate-300'
+                    }`}
+                  >
                     {hasUserOverride ? COURSE_MAP_PLACEHOLDER : 'generated'}
                   </span>
                 </div>
@@ -222,16 +254,25 @@ export default function DeveloperPromptsPanel({
               <textarea
                 value={userPromptValue}
                 readOnly={!hasUserOverride}
-                onChange={(e) => updatePromptConfig(activeFeatureId, { customUserPrompt: e.target.value }, 'User prompt template updated.')}
+                onChange={(e) =>
+                  updatePromptConfig(
+                    activeFeatureId,
+                    { customUserPrompt: e.target.value },
+                    'User prompt template updated.',
+                  )
+                }
                 placeholder="No user prompt is available for this deliverable."
                 spellCheck={false}
                 className={`mt-3 min-h-[220px] w-full resize-y rounded-lg border border-slate-200 px-3 py-2 font-mono text-[12px] leading-5 text-slate-700 outline-none focus:border-indigo-300 dark:border-slate-700 dark:text-slate-200 ${
-                  hasUserOverride ? 'bg-slate-50 dark:bg-slate-950' : 'bg-slate-50/70 text-slate-500 dark:bg-slate-950/70 dark:text-slate-400'
+                  hasUserOverride
+                    ? 'bg-slate-50 dark:bg-slate-950'
+                    : 'bg-slate-50/70 text-slate-500 dark:bg-slate-950/70 dark:text-slate-400'
                 }`}
               />
               {!hasUserOverride && (
                 <p className="mt-2 rounded-lg border border-slate-200 bg-slate-50 px-3 py-2 text-[11px] leading-5 text-slate-500 dark:border-slate-700 dark:bg-slate-950 dark:text-slate-400">
-                  This preview shows the exact prompt for the current project, including course content. Click Customize to make it editable.
+                  This preview shows the exact prompt for the current project, including course content. Click Customize
+                  to make it editable.
                 </p>
               )}
               {hasUserOverride && !promptConfig.customUserPrompt.includes(COURSE_MAP_PLACEHOLDER) && (
@@ -251,7 +292,9 @@ export default function DeveloperPromptsPanel({
               <div className="flex flex-wrap items-center justify-between gap-2">
                 <div>
                   <p className="text-[10px] font-bold uppercase tracking-wider text-slate-400">Extra Instructions</p>
-                  <h3 className="mt-1 text-sm font-bold text-slate-800 dark:text-slate-100">{fieldSummary(promptConfig.extraInstructions)}</h3>
+                  <h3 className="mt-1 text-sm font-bold text-slate-800 dark:text-slate-100">
+                    {fieldSummary(promptConfig.extraInstructions)}
+                  </h3>
                 </div>
                 <span className="rounded-full bg-slate-100 px-2 py-1 text-[10px] font-bold text-slate-500 dark:bg-slate-800 dark:text-slate-300">
                   extraInstructions
@@ -259,7 +302,13 @@ export default function DeveloperPromptsPanel({
               </div>
               <textarea
                 value={promptConfig.extraInstructions || ''}
-                onChange={(e) => updatePromptConfig(activeFeatureId, { extraInstructions: e.target.value }, 'Extra instructions updated.')}
+                onChange={(e) =>
+                  updatePromptConfig(
+                    activeFeatureId,
+                    { extraInstructions: e.target.value },
+                    'Extra instructions updated.',
+                  )
+                }
                 placeholder="Optional. Add high-priority instructions without replacing the built-in prompt."
                 className="mt-3 min-h-[120px] w-full resize-y rounded-lg border border-slate-200 bg-slate-50 px-3 py-2 text-[12px] leading-5 text-slate-700 outline-none focus:border-indigo-300 dark:border-slate-700 dark:bg-slate-950 dark:text-slate-200"
               />
@@ -272,28 +321,39 @@ export default function DeveloperPromptsPanel({
               <div className="mt-3 grid grid-cols-2 gap-2">
                 <div className="rounded-lg border border-slate-200 bg-slate-50 px-2.5 py-2 dark:border-slate-700 dark:bg-slate-950">
                   <p className="text-[10px] font-semibold text-slate-400">Template</p>
-                  <p className="mt-1 text-sm font-bold text-slate-700 dark:text-slate-200">{formatTokenCount(promptAnalysis.stats.templateTokens)}</p>
+                  <p className="mt-1 text-sm font-bold text-slate-700 dark:text-slate-200">
+                    {formatTokenCount(promptAnalysis.stats.templateTokens)}
+                  </p>
                 </div>
                 <div className="rounded-lg border border-slate-200 bg-slate-50 px-2.5 py-2 dark:border-slate-700 dark:bg-slate-950">
                   <p className="text-[10px] font-semibold text-slate-400">Sent</p>
-                  <p className="mt-1 text-sm font-bold text-slate-700 dark:text-slate-200">{formatTokenCount(promptAnalysis.stats.effectiveTokens)}</p>
+                  <p className="mt-1 text-sm font-bold text-slate-700 dark:text-slate-200">
+                    {formatTokenCount(promptAnalysis.stats.effectiveTokens)}
+                  </p>
                 </div>
               </div>
               <p className="mt-2 text-[10px] text-slate-400">Estimated tokens before model output.</p>
               {promptAnalysis.findings.length > 0 ? (
                 <ul className="mt-3 space-y-2">
                   {promptAnalysis.findings.map((finding, index) => (
-                    <li key={`${finding.message}-${index}`} className="rounded-lg border border-slate-200 bg-slate-50 px-2.5 py-2 dark:border-slate-700 dark:bg-slate-950">
+                    <li
+                      key={`${finding.message}-${index}`}
+                      className="rounded-lg border border-slate-200 bg-slate-50 px-2.5 py-2 dark:border-slate-700 dark:bg-slate-950"
+                    >
                       <div className="flex items-start justify-between gap-2">
                         <div className="min-w-0">
-                          <p className={`text-[10px] font-bold uppercase tracking-wide ${
-                            finding.level === 'warning'
-                              ? 'text-amber-500 dark:text-amber-300'
-                              : 'text-indigo-500 dark:text-indigo-300'
-                          }`}>
+                          <p
+                            className={`text-[10px] font-bold uppercase tracking-wide ${
+                              finding.level === 'warning'
+                                ? 'text-amber-500 dark:text-amber-300'
+                                : 'text-indigo-500 dark:text-indigo-300'
+                            }`}
+                          >
                             {finding.level}
                           </p>
-                          <p className="mt-1 text-[11px] leading-4 text-slate-500 dark:text-slate-400">{finding.message}</p>
+                          <p className="mt-1 text-[11px] leading-4 text-slate-500 dark:text-slate-400">
+                            {finding.message}
+                          </p>
                         </div>
                         {finding.actionId === 'insertCourseMap' && (
                           <button
@@ -342,7 +402,7 @@ export default function DeveloperPromptsPanel({
               <p className="text-[10px] font-bold uppercase tracking-wider text-slate-400">Placeholders</p>
               {promptAnalysis.placeholders.length > 0 ? (
                 <div className="mt-3 flex flex-wrap gap-2">
-                  {promptAnalysis.placeholders.map(placeholder => (
+                  {promptAnalysis.placeholders.map((placeholder) => (
                     <span
                       key={`${placeholder.raw}-${placeholder.name}`}
                       className={`rounded-full px-2 py-1 font-mono text-[10px] font-bold ${
@@ -365,7 +425,9 @@ export default function DeveloperPromptsPanel({
             </div>
 
             <div className="min-w-0 rounded-xl border border-indigo-200/70 bg-indigo-50/60 p-4 dark:border-indigo-500/40 dark:bg-indigo-500/10">
-              <p className="text-[10px] font-bold uppercase tracking-wider text-indigo-500 dark:text-indigo-300">Current Path</p>
+              <p className="text-[10px] font-bold uppercase tracking-wider text-indigo-500 dark:text-indigo-300">
+                Current Path
+              </p>
               <p className="mt-2 space-y-1 font-mono text-[11px] leading-5 text-slate-600 dark:text-slate-300">
                 <span className="block break-all">deliverableConfig.{activeFeatureId}.customSystemPrompt</span>
                 <span className="block break-all">deliverableConfig.{activeFeatureId}.customUserPrompt</span>
@@ -375,7 +437,8 @@ export default function DeveloperPromptsPanel({
             <div className="min-w-0 rounded-xl border border-slate-200/70 bg-white p-4 dark:border-slate-700 dark:bg-slate-900">
               <p className="text-[10px] font-bold uppercase tracking-wider text-slate-400">Behavior</p>
               <p className="mt-2 text-[11px] leading-5 text-slate-500 dark:text-slate-400">
-                Built-in prompts are read-only previews. Customize creates an override for this deliverable. Extra instructions are appended at high priority.
+                Built-in prompts are read-only previews. Customize creates an override for this deliverable. Extra
+                instructions are appended at high priority.
               </p>
               <button
                 onClick={() => resetPromptOverrides(activeFeatureId)}

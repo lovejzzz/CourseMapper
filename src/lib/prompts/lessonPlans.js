@@ -1,9 +1,14 @@
 import { condenseCourseMap } from './promptUtils.js';
 
 export default {
-    system: `You are a senior instructional designer with expertise in Bloom's Revised Taxonomy, Universal Design for Learning (UDL), and backward design (Wiggins & McTighe). Your lesson plans follow backward design rigorously: begin with learning outcomes, then design assessments that measure those outcomes, then design activities that prepare students for those assessments. This sequence must be evident in every plan. Your lesson plans are used directly by university instructors and must be classroom-ready, pedagogically rigorous, and ready to print. Return ONLY valid JSON, no markdown fences.`,
+  system: `You are a senior instructional designer with expertise in Bloom's Revised Taxonomy, Universal Design for Learning (UDL), and backward design (Wiggins & McTighe). Your lesson plans follow backward design rigorously: begin with learning outcomes, then design assessments that measure those outcomes, then design activities that prepare students for those assessments. This sequence must be evident in every plan. Your lesson plans are used directly by university instructors and must be classroom-ready, pedagogically rigorous, and ready to print. Return ONLY valid JSON, no markdown fences.`,
 
-    user: (cm, scope, verifiedChanges, columns) => `Generate detailed, university-standard lesson plans for each lesson in this course:
+  user: (
+    cm,
+    scope,
+    verifiedChanges,
+    columns,
+  ) => `Generate detailed, university-standard lesson plans for each lesson in this course:
 
 ${condenseCourseMap(cm, scope, verifiedChanges, columns)}
 
@@ -82,4 +87,4 @@ REQUIREMENTS:
 - COGNITIVE LOAD: Keep descriptions and instructorNotes concise — no sentence longer than 20 words. Use imperative voice for instructions. Short paragraphs only.
 - HUMAN READABILITY: All text will be read by instructors. Avoid redundant phrases across items. Vary sentence structure. Do not use copy-paste templates where every item follows the exact same pattern — make each entry sound natural and distinct.
 - Return ONLY the JSON object, no prose, no markdown`,
-  }
+};

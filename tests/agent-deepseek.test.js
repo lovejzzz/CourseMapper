@@ -30,42 +30,48 @@ const COURSE_MAP = {
   lessons: [
     {
       title: 'Supervised Learning Basics',
-      sections: [{
-        learningObjectives: 'Explain the difference between supervised and unsupervised learning',
-        topicSection: 'Classification, Regression, Training Sets',
-        learningGoals: 'Understand the fundamental concepts of supervised learning',
-        weeklyAssessments: 'Quiz on supervised learning concepts',
-        asyncActivities: 'Read chapters 1-2 of ISLR textbook',
-        syncActivities: 'Hands-on coding exercise with scikit-learn',
-        supportingResources: 'ISLR textbook, scikit-learn documentation',
-        technologyNeeded: 'Python, Jupyter Notebook',
-      }],
+      sections: [
+        {
+          learningObjectives: 'Explain the difference between supervised and unsupervised learning',
+          topicSection: 'Classification, Regression, Training Sets',
+          learningGoals: 'Understand the fundamental concepts of supervised learning',
+          weeklyAssessments: 'Quiz on supervised learning concepts',
+          asyncActivities: 'Read chapters 1-2 of ISLR textbook',
+          syncActivities: 'Hands-on coding exercise with scikit-learn',
+          supportingResources: 'ISLR textbook, scikit-learn documentation',
+          technologyNeeded: 'Python, Jupyter Notebook',
+        },
+      ],
     },
     {
       title: 'Decision Trees and Random Forests',
-      sections: [{
-        learningObjectives: 'Implement decision tree classifiers and explain overfitting',
-        topicSection: 'Decision Trees, Pruning, Ensemble Methods',
-        learningGoals: 'Build and evaluate tree-based models',
-        weeklyAssessments: 'Coding assignment: build a random forest classifier',
-        asyncActivities: 'Watch Stanford CS229 lecture on decision trees',
-        syncActivities: 'Lab: comparing tree models on real datasets',
-        supportingResources: 'CS229 lecture notes, Kaggle datasets',
-        technologyNeeded: 'Python, scikit-learn, pandas',
-      }],
+      sections: [
+        {
+          learningObjectives: 'Implement decision tree classifiers and explain overfitting',
+          topicSection: 'Decision Trees, Pruning, Ensemble Methods',
+          learningGoals: 'Build and evaluate tree-based models',
+          weeklyAssessments: 'Coding assignment: build a random forest classifier',
+          asyncActivities: 'Watch Stanford CS229 lecture on decision trees',
+          syncActivities: 'Lab: comparing tree models on real datasets',
+          supportingResources: 'CS229 lecture notes, Kaggle datasets',
+          technologyNeeded: 'Python, scikit-learn, pandas',
+        },
+      ],
     },
     {
       title: 'Neural Networks Fundamentals',
-      sections: [{
-        learningObjectives: 'Describe the architecture of a feedforward neural network',
-        topicSection: 'Perceptrons, Activation Functions, Backpropagation',
-        learningGoals: 'Understand how neural networks learn through gradient descent',
-        weeklyAssessments: 'Written analysis: compare neural networks to traditional ML',
-        asyncActivities: 'Complete 3Blue1Brown neural network series',
-        syncActivities: 'Build a simple neural network from scratch in NumPy',
-        supportingResources: '3Blue1Brown videos, Deep Learning textbook ch.6',
-        technologyNeeded: 'Python, NumPy, TensorFlow',
-      }],
+      sections: [
+        {
+          learningObjectives: 'Describe the architecture of a feedforward neural network',
+          topicSection: 'Perceptrons, Activation Functions, Backpropagation',
+          learningGoals: 'Understand how neural networks learn through gradient descent',
+          weeklyAssessments: 'Written analysis: compare neural networks to traditional ML',
+          asyncActivities: 'Complete 3Blue1Brown neural network series',
+          syncActivities: 'Build a simple neural network from scratch in NumPy',
+          supportingResources: '3Blue1Brown videos, Deep Learning textbook ch.6',
+          technologyNeeded: 'Python, NumPy, TensorFlow',
+        },
+      ],
     },
   ],
 };
@@ -79,25 +85,84 @@ const DELIVERABLES = {
           lt: 'Supervised Learning Basics',
           tq: 3,
           qs: [
-            { q: 'What is the main goal of supervised learning?', ty: 'multiple_choice', bl: 'Remember', df: 'easy', pt: 1, op: ['Predict outcomes from labeled data', 'Cluster unlabeled data', 'Reduce dimensionality', 'Generate new data'], an: 'Predict outcomes from labeled data', ex: 'Supervised learning uses labeled training data to learn a mapping function.' },
-            { q: 'Explain the bias-variance tradeoff in your own words.', ty: 'short_answer', bl: 'Understand', df: 'medium', pt: 2, an: 'Bias is the error from erroneous assumptions; variance is sensitivity to training data fluctuations.', ex: 'A good model balances both.' },
-            { q: 'Given a dataset with continuous target variable, which algorithm family would you choose?', ty: 'multiple_choice', bl: 'Apply', df: 'medium', pt: 1, op: ['Regression', 'Classification', 'Clustering', 'Association'], an: 'Regression' },
+            {
+              q: 'What is the main goal of supervised learning?',
+              ty: 'multiple_choice',
+              bl: 'Remember',
+              df: 'easy',
+              pt: 1,
+              op: [
+                'Predict outcomes from labeled data',
+                'Cluster unlabeled data',
+                'Reduce dimensionality',
+                'Generate new data',
+              ],
+              an: 'Predict outcomes from labeled data',
+              ex: 'Supervised learning uses labeled training data to learn a mapping function.',
+            },
+            {
+              q: 'Explain the bias-variance tradeoff in your own words.',
+              ty: 'short_answer',
+              bl: 'Understand',
+              df: 'medium',
+              pt: 2,
+              an: 'Bias is the error from erroneous assumptions; variance is sensitivity to training data fluctuations.',
+              ex: 'A good model balances both.',
+            },
+            {
+              q: 'Given a dataset with continuous target variable, which algorithm family would you choose?',
+              ty: 'multiple_choice',
+              bl: 'Apply',
+              df: 'medium',
+              pt: 1,
+              op: ['Regression', 'Classification', 'Clustering', 'Association'],
+              an: 'Regression',
+            },
           ],
         },
         {
           lt: 'Decision Trees and Random Forests',
           tq: 2,
           qs: [
-            { q: 'What technique prevents overfitting in decision trees?', ty: 'multiple_choice', bl: 'Remember', df: 'easy', pt: 1, op: ['Pruning', 'Boosting', 'Normalization', 'Tokenization'], an: 'Pruning' },
-            { q: 'Compare bagging and boosting ensemble methods.', ty: 'essay', bl: 'Analyze', df: 'hard', pt: 5, an: 'Bagging reduces variance through parallel training; boosting reduces bias through sequential correction.' },
+            {
+              q: 'What technique prevents overfitting in decision trees?',
+              ty: 'multiple_choice',
+              bl: 'Remember',
+              df: 'easy',
+              pt: 1,
+              op: ['Pruning', 'Boosting', 'Normalization', 'Tokenization'],
+              an: 'Pruning',
+            },
+            {
+              q: 'Compare bagging and boosting ensemble methods.',
+              ty: 'essay',
+              bl: 'Analyze',
+              df: 'hard',
+              pt: 5,
+              an: 'Bagging reduces variance through parallel training; boosting reduces bias through sequential correction.',
+            },
           ],
         },
         {
           lt: 'Neural Networks Fundamentals',
           tq: 2,
           qs: [
-            { q: 'What is the purpose of an activation function?', ty: 'short_answer', bl: 'Understand', df: 'medium', pt: 2, an: 'Introduces non-linearity so the network can learn complex patterns.' },
-            { q: 'Describe the backpropagation algorithm step by step.', ty: 'essay', bl: 'Understand', df: 'hard', pt: 5, an: 'Forward pass, compute loss, backward pass computing gradients, update weights.' },
+            {
+              q: 'What is the purpose of an activation function?',
+              ty: 'short_answer',
+              bl: 'Understand',
+              df: 'medium',
+              pt: 2,
+              an: 'Introduces non-linearity so the network can learn complex patterns.',
+            },
+            {
+              q: 'Describe the backpropagation algorithm step by step.',
+              ty: 'essay',
+              bl: 'Understand',
+              df: 'hard',
+              pt: 5,
+              an: 'Forward pass, compute loss, backward pass computing gradients, update weights.',
+            },
           ],
         },
       ],
@@ -107,9 +172,24 @@ const DELIVERABLES = {
     status: 'done',
     data: {
       lessonPlans: [
-        { lt: 'Supervised Learning Basics', ob: 'Explain supervised vs unsupervised learning', wu: { dur: '10 min', pr: 'Quick poll: name an ML application you use daily' }, ol: [{ tm: '30 min', ac: 'Lecture: supervised learning concepts' }] },
-        { lt: 'Decision Trees and Random Forests', ob: 'Implement decision tree classifiers', wu: { dur: '5 min', pr: 'Review: what makes a good split?' }, ol: [{ tm: '40 min', ac: 'Lab: build decision tree in scikit-learn' }] },
-        { lt: 'Neural Networks Fundamentals', ob: 'Describe feedforward neural network architecture', wu: { dur: '10 min', pr: 'Discuss: what problems need neural networks?' }, ol: [{ tm: '35 min', ac: 'Interactive: build perceptron step-by-step' }] },
+        {
+          lt: 'Supervised Learning Basics',
+          ob: 'Explain supervised vs unsupervised learning',
+          wu: { dur: '10 min', pr: 'Quick poll: name an ML application you use daily' },
+          ol: [{ tm: '30 min', ac: 'Lecture: supervised learning concepts' }],
+        },
+        {
+          lt: 'Decision Trees and Random Forests',
+          ob: 'Implement decision tree classifiers',
+          wu: { dur: '5 min', pr: 'Review: what makes a good split?' },
+          ol: [{ tm: '40 min', ac: 'Lab: build decision tree in scikit-learn' }],
+        },
+        {
+          lt: 'Neural Networks Fundamentals',
+          ob: 'Describe feedforward neural network architecture',
+          wu: { dur: '10 min', pr: 'Discuss: what problems need neural networks?' },
+          ol: [{ tm: '35 min', ac: 'Interactive: build perceptron step-by-step' }],
+        },
       ],
     },
   },
@@ -117,22 +197,84 @@ const DELIVERABLES = {
     status: 'done',
     data: {
       slideDecks: [
-        { lt: 'Supervised Learning Basics', ts: 4, sl: [
-          { t: 'What is Machine Learning?', ty: 'title', bu: ['Automating pattern recognition', 'Learning from data'], no: 'Welcome students and introduce the course theme.' },
-          { t: 'Supervised vs Unsupervised', ty: 'content', bu: ['Labeled data → supervised', 'Unlabeled data → unsupervised'], no: 'Use Venn diagram to compare.' },
-          { t: 'Classification vs Regression', ty: 'content', bu: ['Discrete outputs → classification', 'Continuous outputs → regression'], no: 'Show concrete examples.' },
-          { t: 'Key Takeaways', ty: 'summary', bu: ['Supervised learning needs labels', 'Choose algorithm based on output type'], no: 'Recap main points.' },
-        ]},
-        { lt: 'Decision Trees and Random Forests', ts: 3, sl: [
-          { t: 'How Trees Decide', ty: 'title', bu: ['Splitting criteria', 'Information gain'], no: 'Introduction slide.' },
-          { t: 'Overfitting and Pruning', ty: 'content', bu: ['Deep trees memorize noise', 'Pruning reduces complexity'], no: 'Show overfitting example.' },
-          { t: 'Ensemble Methods', ty: 'content', bu: ['Bagging: parallel trees', 'Boosting: sequential correction'], no: 'Compare the two approaches.' },
-        ]},
-        { lt: 'Neural Networks Fundamentals', ts: 3, sl: [
-          { t: 'The Perceptron', ty: 'title', bu: ['Simplest neural unit', 'Weighted inputs + activation'], no: 'Historical context: Rosenblatt 1958.' },
-          { t: 'Activation Functions', ty: 'content', bu: ['ReLU, Sigmoid, Tanh', 'Non-linearity enables learning'], no: 'Compare activation function shapes.' },
-          { t: 'Backpropagation', ty: 'content', bu: ['Chain rule of calculus', 'Gradient descent optimization'], no: 'Walk through the math step-by-step.' },
-        ]},
+        {
+          lt: 'Supervised Learning Basics',
+          ts: 4,
+          sl: [
+            {
+              t: 'What is Machine Learning?',
+              ty: 'title',
+              bu: ['Automating pattern recognition', 'Learning from data'],
+              no: 'Welcome students and introduce the course theme.',
+            },
+            {
+              t: 'Supervised vs Unsupervised',
+              ty: 'content',
+              bu: ['Labeled data → supervised', 'Unlabeled data → unsupervised'],
+              no: 'Use Venn diagram to compare.',
+            },
+            {
+              t: 'Classification vs Regression',
+              ty: 'content',
+              bu: ['Discrete outputs → classification', 'Continuous outputs → regression'],
+              no: 'Show concrete examples.',
+            },
+            {
+              t: 'Key Takeaways',
+              ty: 'summary',
+              bu: ['Supervised learning needs labels', 'Choose algorithm based on output type'],
+              no: 'Recap main points.',
+            },
+          ],
+        },
+        {
+          lt: 'Decision Trees and Random Forests',
+          ts: 3,
+          sl: [
+            {
+              t: 'How Trees Decide',
+              ty: 'title',
+              bu: ['Splitting criteria', 'Information gain'],
+              no: 'Introduction slide.',
+            },
+            {
+              t: 'Overfitting and Pruning',
+              ty: 'content',
+              bu: ['Deep trees memorize noise', 'Pruning reduces complexity'],
+              no: 'Show overfitting example.',
+            },
+            {
+              t: 'Ensemble Methods',
+              ty: 'content',
+              bu: ['Bagging: parallel trees', 'Boosting: sequential correction'],
+              no: 'Compare the two approaches.',
+            },
+          ],
+        },
+        {
+          lt: 'Neural Networks Fundamentals',
+          ts: 3,
+          sl: [
+            {
+              t: 'The Perceptron',
+              ty: 'title',
+              bu: ['Simplest neural unit', 'Weighted inputs + activation'],
+              no: 'Historical context: Rosenblatt 1958.',
+            },
+            {
+              t: 'Activation Functions',
+              ty: 'content',
+              bu: ['ReLU, Sigmoid, Tanh', 'Non-linearity enables learning'],
+              no: 'Compare activation function shapes.',
+            },
+            {
+              t: 'Backpropagation',
+              ty: 'content',
+              bu: ['Chain rule of calculus', 'Gradient descent optimization'],
+              no: 'Walk through the math step-by-step.',
+            },
+          ],
+        },
       ],
     },
   },
@@ -147,7 +289,7 @@ async function callDeepSeek(userMessage, { activeTab = 'quizBank', maxTokens = 4
   const response = await fetch('https://api.deepseek.com/v1/chat/completions', {
     method: 'POST',
     headers: {
-      'Authorization': `Bearer ${DEEPSEEK_API_KEY}`,
+      Authorization: `Bearer ${DEEPSEEK_API_KEY}`,
       'Content-Type': 'application/json',
     },
     body: JSON.stringify({
@@ -172,7 +314,7 @@ async function callDeepSeek(userMessage, { activeTab = 'quizBank', maxTokens = 4
   const choice = json.choices?.[0];
   const message = choice?.message;
 
-  const toolCalls = (message?.tool_calls || []).map(tc => ({
+  const toolCalls = (message?.tool_calls || []).map((tc) => ({
     id: tc.id,
     name: tc.function.name,
     args: JSON.parse(tc.function.arguments || '{}'),
@@ -187,13 +329,12 @@ async function callDeepSeek(userMessage, { activeTab = 'quizBank', maxTokens = 4
 }
 
 function findToolCall(toolCalls, name) {
-  return toolCalls?.find(tc => tc.name === name);
+  return toolCalls?.find((tc) => tc.name === name);
 }
 
 // ── Tests ───────────────────────────────────────────────────────────────────
 
 describeWithKey('DeepSeek Agent E2E', { timeout: TIMEOUT * 12 }, () => {
-
   // ── 1. Simple question → respond with chatReply ──────────────────────────
 
   it('answers a simple question correctly', { timeout: TIMEOUT }, async () => {
@@ -228,9 +369,7 @@ describeWithKey('DeepSeek Agent E2E', { timeout: TIMEOUT * 12 }, () => {
   // ── 3. Edit request → uses edit tool or proposes ─────────────────────────
 
   it('takes action when asked to add a new quiz question', { timeout: TIMEOUT }, async () => {
-    const result = await callDeepSeek(
-      'Add a new multiple choice question about gradient descent to Lesson 3'
-    );
+    const result = await callDeepSeek('Add a new multiple choice question about gradient descent to Lesson 3');
     expect(result.toolCalls || result.textContent).toBeTruthy();
 
     const hasEdit = findToolCall(result.toolCalls, 'edit_deliverables');
@@ -272,7 +411,7 @@ describeWithKey('DeepSeek Agent E2E', { timeout: TIMEOUT * 12 }, () => {
 
   it('searches academic sources when asked for research', { timeout: TIMEOUT }, async () => {
     const result = await callDeepSeek(
-      'Find me some research papers about active learning in computer science education'
+      'Find me some research papers about active learning in computer science education',
     );
     expect(result.toolCalls).toBeTruthy();
 
@@ -285,10 +424,7 @@ describeWithKey('DeepSeek Agent E2E', { timeout: TIMEOUT * 12 }, () => {
   // ── 6. Course map edit → calls edit_course_map ───────────────────────────
 
   it('edits course map when asked to rename a lesson', { timeout: TIMEOUT }, async () => {
-    const result = await callDeepSeek(
-      'Rename Lesson 2 to "Tree-Based Learning Methods"',
-      { activeTab: 'courseMap' }
-    );
+    const result = await callDeepSeek('Rename Lesson 2 to "Tree-Based Learning Methods"', { activeTab: 'courseMap' });
     expect(result.toolCalls || result.textContent).toBeTruthy();
 
     const edit = findToolCall(result.toolCalls, 'edit_course_map');
@@ -310,9 +446,7 @@ describeWithKey('DeepSeek Agent E2E', { timeout: TIMEOUT * 12 }, () => {
   // ── 7. Bulk edit request → handles batch operations ──────────────────────
 
   it('handles bulk edit requests across multiple lessons', { timeout: TIMEOUT }, async () => {
-    const result = await callDeepSeek(
-      'Add an "Apply" level question to every lesson in the quiz bank'
-    );
+    const result = await callDeepSeek('Add an "Apply" level question to every lesson in the quiz bank');
     expect(result.toolCalls).toBeTruthy();
 
     // May read first, propose, or directly edit — check for sensible tool usage
@@ -330,14 +464,14 @@ describeWithKey('DeepSeek Agent E2E', { timeout: TIMEOUT * 12 }, () => {
   it('reads relevant deliverables before cross-deliverable edits', { timeout: TIMEOUT }, async () => {
     const result = await callDeepSeek(
       'The quiz for Lesson 1 should better align with the lesson plan objectives. Fix it.',
-      { activeTab: 'quizBank' }
+      { activeTab: 'quizBank' },
     );
     expect(result.toolCalls).toBeTruthy();
 
     // Should read lesson plans (or quiz data) to understand alignment before editing
-    const tools = (result.toolCalls || []).map(tc => tc.name);
-    const readsOrEdits = tools.some(t =>
-      ['read_deliverable', 'read_lesson', 'edit_deliverables', 'validate_course'].includes(t)
+    const tools = (result.toolCalls || []).map((tc) => tc.name);
+    const readsOrEdits = tools.some((t) =>
+      ['read_deliverable', 'read_lesson', 'edit_deliverables', 'validate_course'].includes(t),
     );
     expect(readsOrEdits).toBe(true);
   });
@@ -345,9 +479,7 @@ describeWithKey('DeepSeek Agent E2E', { timeout: TIMEOUT * 12 }, () => {
   // ── 9. Memory: save preference ───────────────────────────────────────────
 
   it('saves teaching preference when told to remember', { timeout: TIMEOUT }, async () => {
-    const result = await callDeepSeek(
-      'Remember that I always want Bloom\'s level "Apply" or higher for assessments'
-    );
+    const result = await callDeepSeek('Remember that I always want Bloom\'s level "Apply" or higher for assessments');
     expect(result.toolCalls).toBeTruthy();
 
     const remember = findToolCall(result.toolCalls, 'remember');
@@ -365,9 +497,7 @@ describeWithKey('DeepSeek Agent E2E', { timeout: TIMEOUT * 12 }, () => {
   // ── 10. Diagram request → respond with diagram ──────────────────────────
 
   it('generates a diagram when asked to visualize', { timeout: TIMEOUT }, async () => {
-    const result = await callDeepSeek(
-      'Create a concept map showing how the three lessons connect to each other'
-    );
+    const result = await callDeepSeek('Create a concept map showing how the three lessons connect to each other');
     expect(result.toolCalls || result.textContent).toBeTruthy();
 
     const respond = findToolCall(result.toolCalls, 'respond');
@@ -386,9 +516,7 @@ describeWithKey('DeepSeek Agent E2E', { timeout: TIMEOUT * 12 }, () => {
   // ── 11. Alignment check → uses compare_deliverables ─────────────────────
 
   it('uses compare_deliverables for alignment questions', { timeout: TIMEOUT }, async () => {
-    const result = await callDeepSeek(
-      'Are the quiz questions aligned with the lesson plan objectives?'
-    );
+    const result = await callDeepSeek('Are the quiz questions aligned with the lesson plan objectives?');
     expect(result.toolCalls || result.textContent).toBeTruthy();
 
     const compare = findToolCall(result.toolCalls, 'compare_deliverables');
@@ -415,21 +543,18 @@ describeWithKey('DeepSeek Agent E2E', { timeout: TIMEOUT * 12 }, () => {
   // ── 13. Parallel tool calls for independent operations ──────────────────
 
   it('calls multiple tools in parallel for bulk operations', { timeout: TIMEOUT }, async () => {
-    const result = await callDeepSeek(
-      'Check the grammar in Lesson 1 and also validate the entire course for issues'
-    );
+    const result = await callDeepSeek('Check the grammar in Lesson 1 and also validate the entire course for issues');
     expect(result.toolCalls || result.textContent).toBeTruthy();
 
     if (result.toolCalls && result.toolCalls.length >= 2) {
       // Best case: parallel calls
-      const toolNames = result.toolCalls.map(tc => tc.name);
+      const toolNames = result.toolCalls.map((tc) => tc.name);
       const hasGrammar = toolNames.includes('check_grammar');
       const hasValidate = toolNames.includes('validate_course');
       expect(hasGrammar || hasValidate).toBe(true);
     }
     // Any response is acceptable — this tests that the agent doesn't refuse
   });
-
 });
 
 // ── Multi-turn agent loop simulation ──────────────────────────────────────
@@ -441,15 +566,12 @@ async function callDeepSeekMultiTurn(messages, { activeTab = 'quizBank' } = {}) 
   const response = await fetch('https://api.deepseek.com/v1/chat/completions', {
     method: 'POST',
     headers: {
-      'Authorization': `Bearer ${DEEPSEEK_API_KEY}`,
+      Authorization: `Bearer ${DEEPSEEK_API_KEY}`,
       'Content-Type': 'application/json',
     },
     body: JSON.stringify({
       model: DEEPSEEK_MODEL,
-      messages: [
-        { role: 'system', content: systemPrompt },
-        ...messages,
-      ],
+      messages: [{ role: 'system', content: systemPrompt }, ...messages],
       tools: nativeTools,
       tool_choice: 'auto',
       max_tokens: 4096,
@@ -466,7 +588,7 @@ async function callDeepSeekMultiTurn(messages, { activeTab = 'quizBank' } = {}) 
   const choice = json.choices?.[0];
   const message = choice?.message;
 
-  const toolCalls = (message?.tool_calls || []).map(tc => ({
+  const toolCalls = (message?.tool_calls || []).map((tc) => ({
     id: tc.id,
     name: tc.function.name,
     args: JSON.parse(tc.function.arguments || '{}'),
@@ -480,7 +602,6 @@ async function callDeepSeekMultiTurn(messages, { activeTab = 'quizBank' } = {}) 
 }
 
 describeWithKey('Multi-turn agent loop', { timeout: TIMEOUT * 6 }, () => {
-
   it('follows up after reading data: read → then respond or edit', { timeout: TIMEOUT * 3 }, async () => {
     // Turn 1: user asks to improve a quiz — agent should read first
     const turn1 = await callDeepSeekMultiTurn([
@@ -505,14 +626,14 @@ describeWithKey('Multi-turn agent loop', { timeout: TIMEOUT * 6 }, () => {
         {
           role: 'assistant',
           content: turn1.rawMessage?.content ?? turn1.textContent ?? null,
-          ...(turn1.rawMessage?.reasoning_content
-            ? { reasoning_content: turn1.rawMessage.reasoning_content }
-            : {}),
-          tool_calls: turn1.rawMessage?.tool_calls || turn1.toolCalls.map(tc => ({
-            id: tc.id,
-            type: 'function',
-            function: { name: tc.name, arguments: JSON.stringify(tc.args) },
-          })),
+          ...(turn1.rawMessage?.reasoning_content ? { reasoning_content: turn1.rawMessage.reasoning_content } : {}),
+          tool_calls:
+            turn1.rawMessage?.tool_calls ||
+            turn1.toolCalls.map((tc) => ({
+              id: tc.id,
+              type: 'function',
+              function: { name: tc.name, arguments: JSON.stringify(tc.args) },
+            })),
         },
         // Tool result
         { role: 'tool', tool_call_id: read1.id, content: toolResult },
@@ -521,8 +642,7 @@ describeWithKey('Multi-turn agent loop', { timeout: TIMEOUT * 6 }, () => {
       // Turn 2 should either edit, propose, or respond — NOT read again
       expect(turn2.toolCalls || turn2.textContent).toBeTruthy();
       const read2 = findToolCall(turn2.toolCalls, 'read_deliverable');
-      const hasAction = findToolCall(turn2.toolCalls, 'edit_deliverables')
-        || findToolCall(turn2.toolCalls, 'respond');
+      const hasAction = findToolCall(turn2.toolCalls, 'edit_deliverables') || findToolCall(turn2.toolCalls, 'respond');
 
       // Agent should progress, not loop on reads
       expect(hasAction || turn2.textContent).toBeTruthy();
@@ -531,5 +651,4 @@ describeWithKey('Multi-turn agent loop', { timeout: TIMEOUT * 6 }, () => {
       expect(edit1 || respond1 || turn1.textContent).toBeTruthy();
     }
   });
-
 });

@@ -8,7 +8,7 @@ describe('extractEditContext', () => {
     expect(extractEditContext({}, null, ['a', 0])).toBeNull();
     expect(extractEditContext({}, {}, null)).toBeNull();
     expect(extractEditContext({}, {}, [])).toBeNull();
-    expect(extractEditContext({}, {}, ['a'])).toBeNull();  // path < 2
+    expect(extractEditContext({}, {}, ['a'])).toBeNull(); // path < 2
   });
 
   // ── Primitive diffs ──

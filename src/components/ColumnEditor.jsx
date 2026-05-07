@@ -36,9 +36,7 @@ export default function ColumnEditor({ columns, setColumns }) {
 
   function toggleColumn(idx) {
     if (dragIdx !== null) return;
-    setColumns((prev) =>
-      prev.map((c, i) => i === idx ? { ...c, enabled: c.enabled === false ? true : false } : c)
-    );
+    setColumns((prev) => prev.map((c, i) => (i === idx ? { ...c, enabled: c.enabled === false ? true : false } : c)));
   }
 
   function startEdit(idx) {
@@ -52,9 +50,7 @@ export default function ColumnEditor({ columns, setColumns }) {
     const val = editValue.trim();
     if (val) {
       setColumns((prev) =>
-        prev.map((c, i) =>
-          i === editingIdx ? { ...c, label: val, key: val.replace(/\s+/g, '_').toLowerCase() } : c
-        )
+        prev.map((c, i) => (i === editingIdx ? { ...c, label: val, key: val.replace(/\s+/g, '_').toLowerCase() } : c)),
       );
     }
     setEditingIdx(null);
@@ -68,10 +64,7 @@ export default function ColumnEditor({ columns, setColumns }) {
   function addColumn() {
     const name = `New Column ${columns.length + 1}`;
     const newIdx = columns.length;
-    setColumns((prev) => [
-      ...prev,
-      { key: name.replace(/\s+/g, '_').toLowerCase(), label: name },
-    ]);
+    setColumns((prev) => [...prev, { key: name.replace(/\s+/g, '_').toLowerCase(), label: name }]);
     // Auto-enter edit mode on the new column
     setEditingIdx(newIdx);
     setEditValue(name);
@@ -86,75 +79,84 @@ export default function ColumnEditor({ columns, setColumns }) {
   }
 
   // ── Pointer-based drag-and-drop with smooth animation ──
-  const handlePointerDown = useCallback((e, idx) => {
-    if (editingIdx !== null) return;
-    // Only start drag on primary button
-    if (e.button !== 0) return;
-    e.preventDefault();
-    e.currentTarget.setPointerCapture(e.pointerId);
+  const handlePointerDown = useCallback(
+    (e, idx) => {
+      if (editingIdx !== null) return;
+      // Only start drag on primary button
+      if (e.button !== 0) return;
+      e.preventDefault();
+      e.currentTarget.setPointerCapture(e.pointerId);
 
-    // Snapshot all item rects for hit testing
-    const container = containerRef.current;
-    if (container) {
-      const items = container.querySelectorAll('[data-col-idx]');
-      itemRectsRef.current = Array.from(items).map(el => el.getBoundingClientRect());
-    }
-
-    const rect = e.currentTarget.getBoundingClientRect();
-    ghostOffset.current = { x: e.clientX - rect.left, y: e.clientY - rect.top };
-    dragOriginIdx.current = idx;
-    setDragIdx(idx);
-    setGhostPos({ x: e.clientX - ghostOffset.current.x, y: e.clientY - ghostOffset.current.y });
-    setLiveColumns([...columns]);
-  }, [columns, editingIdx]);
-
-  const handlePointerMove = useCallback((e) => {
-    if (dragIdx === null) return;
-    e.preventDefault();
-    const x = e.clientX - ghostOffset.current.x;
-    const y = e.clientY - ghostOffset.current.y;
-    setGhostPos({ x, y });
-
-    // Find which item we're hovering over
-    const cx = e.clientX;
-    const cy = e.clientY;
-    let hoverIdx = -1;
-    for (let i = 0; i < itemRectsRef.current.length; i++) {
-      const r = itemRectsRef.current[i];
-      if (cx >= r.left && cx <= r.right && cy >= r.top && cy <= r.bottom) {
-        hoverIdx = i;
-        break;
+      // Snapshot all item rects for hit testing
+      const container = containerRef.current;
+      if (container) {
+        const items = container.querySelectorAll('[data-col-idx]');
+        itemRectsRef.current = Array.from(items).map((el) => el.getBoundingClientRect());
       }
-    }
 
-    if (hoverIdx >= 0 && hoverIdx !== dragIdx) {
-      // Reorder live columns smoothly
-      setLiveColumns(prev => {
-        const next = [...prev];
-        const [moved] = next.splice(dragIdx, 1);
-        next.splice(hoverIdx, 0, moved);
-        return next;
-      });
-      setDragIdx(hoverIdx);
+      const rect = e.currentTarget.getBoundingClientRect();
+      ghostOffset.current = { x: e.clientX - rect.left, y: e.clientY - rect.top };
+      dragOriginIdx.current = idx;
+      setDragIdx(idx);
+      setGhostPos({ x: e.clientX - ghostOffset.current.x, y: e.clientY - ghostOffset.current.y });
+      setLiveColumns([...columns]);
+    },
+    [columns, editingIdx],
+  );
 
-      // Re-snapshot rects after reorder (next frame)
-      requestAnimationFrame(() => {
-        const container = containerRef.current;
-        if (container) {
-          const items = container.querySelectorAll('[data-col-idx]');
-          itemRectsRef.current = Array.from(items).map(el => el.getBoundingClientRect());
+  const handlePointerMove = useCallback(
+    (e) => {
+      if (dragIdx === null) return;
+      e.preventDefault();
+      const x = e.clientX - ghostOffset.current.x;
+      const y = e.clientY - ghostOffset.current.y;
+      setGhostPos({ x, y });
+
+      // Find which item we're hovering over
+      const cx = e.clientX;
+      const cy = e.clientY;
+      let hoverIdx = -1;
+      for (let i = 0; i < itemRectsRef.current.length; i++) {
+        const r = itemRectsRef.current[i];
+        if (cx >= r.left && cx <= r.right && cy >= r.top && cy <= r.bottom) {
+          hoverIdx = i;
+          break;
         }
-      });
-    }
-  }, [dragIdx]);
+      }
 
-  const handlePointerUp = useCallback((e) => {
-    if (dragIdx === null) return;
-    // Commit the reorder
-    setColumns([...liveColumns]);
-    setDragIdx(null);
-    dragOriginIdx.current = null;
-  }, [dragIdx, liveColumns, setColumns]);
+      if (hoverIdx >= 0 && hoverIdx !== dragIdx) {
+        // Reorder live columns smoothly
+        setLiveColumns((prev) => {
+          const next = [...prev];
+          const [moved] = next.splice(dragIdx, 1);
+          next.splice(hoverIdx, 0, moved);
+          return next;
+        });
+        setDragIdx(hoverIdx);
+
+        // Re-snapshot rects after reorder (next frame)
+        requestAnimationFrame(() => {
+          const container = containerRef.current;
+          if (container) {
+            const items = container.querySelectorAll('[data-col-idx]');
+            itemRectsRef.current = Array.from(items).map((el) => el.getBoundingClientRect());
+          }
+        });
+      }
+    },
+    [dragIdx],
+  );
+
+  const handlePointerUp = useCallback(
+    (e) => {
+      if (dragIdx === null) return;
+      // Commit the reorder
+      setColumns([...liveColumns]);
+      setDragIdx(null);
+      dragOriginIdx.current = null;
+    },
+    [dragIdx, liveColumns, setColumns],
+  );
 
   // Cleanup if pointer leaves window
   useEffect(() => {
@@ -176,8 +178,14 @@ export default function ColumnEditor({ columns, setColumns }) {
       <h2 className="text-[15px] font-bold text-slate-800 mb-1.5 flex items-center gap-3">
         <div className="w-8 h-8 rounded-[10px] bg-gradient-to-br from-emerald-500 to-green-600 flex items-center justify-center flex-shrink-0 shadow-sm shadow-emerald-500/20">
           <svg className="w-4 h-4 text-white" viewBox="0 0 24 24" fill="none">
-            <path d="M3 6h18M3 12h12M3 18h8" stroke="currentColor" strokeWidth={1.6} strokeLinecap="round"/>
-            <path d="M19 14l2 2-2 2" stroke="currentColor" strokeWidth={1.6} strokeLinecap="round" strokeLinejoin="round"/>
+            <path d="M3 6h18M3 12h12M3 18h8" stroke="currentColor" strokeWidth={1.6} strokeLinecap="round" />
+            <path
+              d="M19 14l2 2-2 2"
+              stroke="currentColor"
+              strokeWidth={1.6}
+              strokeLinecap="round"
+              strokeLinejoin="round"
+            />
           </svg>
         </div>
         Course Map Columns
@@ -191,7 +199,11 @@ export default function ColumnEditor({ columns, setColumns }) {
         <span className="inline-flex items-center gap-1.5 px-3.5 py-2 rounded-squircle-xs text-xs font-semibold bg-indigo-100/60 text-indigo-700 border border-indigo-200/40">
           Week/Module [Topic]
           <svg className="w-3 h-3 text-indigo-400" fill="currentColor" viewBox="0 0 20 20">
-            <path fillRule="evenodd" d="M5 9V7a5 5 0 0110 0v2a2 2 0 012 2v5a2 2 0 01-2 2H5a2 2 0 01-2-2v-5a2 2 0 012-2zm8-2v2H7V7a3 3 0 016 0z" clipRule="evenodd" />
+            <path
+              fillRule="evenodd"
+              d="M5 9V7a5 5 0 0110 0v2a2 2 0 012 2v5a2 2 0 01-2 2H5a2 2 0 01-2-2v-5a2 2 0 012-2zm8-2v2H7V7a3 3 0 016 0z"
+              clipRule="evenodd"
+            />
           </svg>
         </span>
 
@@ -233,7 +245,12 @@ export default function ColumnEditor({ columns, setColumns }) {
                     : 'bg-indigo-100/60 text-indigo-700 border-indigo-200/40 hover:bg-indigo-100/80 hover:border-indigo-300/50'
                 }`}
               >
-                <svg className={`w-3 h-3 flex-shrink-0 ${col.enabled === false ? 'text-slate-300' : 'text-indigo-400'}`} fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                <svg
+                  className={`w-3 h-3 flex-shrink-0 ${col.enabled === false ? 'text-slate-300' : 'text-indigo-400'}`}
+                  fill="none"
+                  stroke="currentColor"
+                  viewBox="0 0 24 24"
+                >
                   <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M4 8h16M4 16h16" />
                 </svg>
                 {col.label}
@@ -278,7 +295,12 @@ export default function ColumnEditor({ columns, setColumns }) {
           }}
         >
           <span className="inline-flex items-center gap-1.5 px-3.5 py-2 rounded-squircle-xs text-xs font-medium bg-indigo-50 text-indigo-700 border border-indigo-300 shadow-xl shadow-indigo-500/25 scale-105 rotate-[2deg]">
-            <svg className="w-3 h-3 text-indigo-400 flex-shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+            <svg
+              className="w-3 h-3 text-indigo-400 flex-shrink-0"
+              fill="none"
+              stroke="currentColor"
+              viewBox="0 0 24 24"
+            >
               <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M4 8h16M4 16h16" />
             </svg>
             {displayColumns[dragIdx].label}

@@ -6,29 +6,32 @@ const MAX_WIDTH = 500;
 export default function ResizeHandle({ onWidthChange }) {
   const draggingRef = useRef(false);
 
-  const onMouseDown = useCallback((e) => {
-    e.preventDefault();
-    draggingRef.current = true;
-    document.body.style.cursor = 'col-resize';
-    document.body.style.userSelect = 'none';
+  const onMouseDown = useCallback(
+    (e) => {
+      e.preventDefault();
+      draggingRef.current = true;
+      document.body.style.cursor = 'col-resize';
+      document.body.style.userSelect = 'none';
 
-    const onMouseMove = (e) => {
-      if (!draggingRef.current) return;
-      const newWidth = Math.min(MAX_WIDTH, Math.max(MIN_WIDTH, e.clientX));
-      onWidthChange(newWidth);
-    };
+      const onMouseMove = (e) => {
+        if (!draggingRef.current) return;
+        const newWidth = Math.min(MAX_WIDTH, Math.max(MIN_WIDTH, e.clientX));
+        onWidthChange(newWidth);
+      };
 
-    const onMouseUp = () => {
-      draggingRef.current = false;
-      document.body.style.cursor = '';
-      document.body.style.userSelect = '';
-      document.removeEventListener('mousemove', onMouseMove);
-      document.removeEventListener('mouseup', onMouseUp);
-    };
+      const onMouseUp = () => {
+        draggingRef.current = false;
+        document.body.style.cursor = '';
+        document.body.style.userSelect = '';
+        document.removeEventListener('mousemove', onMouseMove);
+        document.removeEventListener('mouseup', onMouseUp);
+      };
 
-    document.addEventListener('mousemove', onMouseMove);
-    document.addEventListener('mouseup', onMouseUp);
-  }, [onWidthChange]);
+      document.addEventListener('mousemove', onMouseMove);
+      document.addEventListener('mouseup', onMouseUp);
+    },
+    [onWidthChange],
+  );
 
   return (
     <div

@@ -99,8 +99,25 @@ export async function parseFiles(files) {
 
 // Supported extensions for files inside ZIP archives
 const SUPPORTED_EXTENSIONS = new Set([
-  'doc', 'docx', 'pdf', 'txt', 'md', 'csv', 'rtf', 'html', 'htm',
-  'xlsx', 'xls', 'ods', 'ppt', 'pptx', 'odp', 'odt', 'epub', 'key', 'pages',
+  'doc',
+  'docx',
+  'pdf',
+  'txt',
+  'md',
+  'csv',
+  'rtf',
+  'html',
+  'htm',
+  'xlsx',
+  'xls',
+  'ods',
+  'ppt',
+  'pptx',
+  'odp',
+  'odt',
+  'epub',
+  'key',
+  'pages',
 ]);
 
 /**
@@ -111,21 +128,26 @@ const SUPPORTED_EXTENSIONS = new Set([
  */
 function sanitizeForAI(text) {
   if (!text) return '';
-  return text
-    // Remove null bytes and most control characters (keep \n \r \t)
-    .replace(/[\x00-\x08\x0B\x0C\x0E-\x1F\x7F]/g, '')
-    // Normalize line endings to \n
-    .replace(/\r\n/g, '\n').replace(/\r/g, '\n')
-    // Remove non-printable unicode (replacement chars, BOM, etc)
-    .replace(/[\uFFFD\uFEFF\uFFF0-\uFFFF]/g, '')
-    // Collapse runs of whitespace on a single line (preserve newlines)
-    .replace(/[^\S\n]+/g, ' ')
-    // Collapse 3+ blank lines into 2
-    .replace(/\n{4,}/g, '\n\n\n')
-    // Trim leading/trailing whitespace per line
-    .split('\n').map(l => l.trim()).join('\n')
-    // Final trim
-    .trim();
+  return (
+    text
+      // Remove null bytes and most control characters (keep \n \r \t)
+      .replace(/[\x00-\x08\x0B\x0C\x0E-\x1F\x7F]/g, '')
+      // Normalize line endings to \n
+      .replace(/\r\n/g, '\n')
+      .replace(/\r/g, '\n')
+      // Remove non-printable unicode (replacement chars, BOM, etc)
+      .replace(/[\uFFFD\uFEFF\uFFF0-\uFFFF]/g, '')
+      // Collapse runs of whitespace on a single line (preserve newlines)
+      .replace(/[^\S\n]+/g, ' ')
+      // Collapse 3+ blank lines into 2
+      .replace(/\n{4,}/g, '\n\n\n')
+      // Trim leading/trailing whitespace per line
+      .split('\n')
+      .map((l) => l.trim())
+      .join('\n')
+      // Final trim
+      .trim()
+  );
 }
 
 /**
@@ -157,7 +179,10 @@ function htmlToStructuredText(html) {
   text = text.replace(/<[^>]+>/g, '');
   // Decode common HTML entities
   text = text.replace(/&amp;/g, '&').replace(/&lt;/g, '<').replace(/&gt;/g, '>');
-  text = text.replace(/&quot;/g, '"').replace(/&#39;/g, "'").replace(/&nbsp;/g, ' ');
+  text = text
+    .replace(/&quot;/g, '"')
+    .replace(/&#39;/g, "'")
+    .replace(/&nbsp;/g, ' ');
   // Collapse excessive whitespace
   text = text.replace(/\n{3,}/g, '\n\n').trim();
   return text;
@@ -201,11 +226,11 @@ async function parseDoc(file) {
     while (i < bytes.length - 1) {
       const lo = bytes[i];
       const hi = bytes[i + 1];
-      if (hi === 0 && lo >= 0x20 && lo < 0x7F) {
+      if (hi === 0 && lo >= 0x20 && lo < 0x7f) {
         run += String.fromCharCode(lo);
         i += 2;
-      } else if (hi === 0 && (lo === 0x0A || lo === 0x0D || lo === 0x09)) {
-        run += lo === 0x0A ? '\n' : lo === 0x0D ? '' : '\t';
+      } else if (hi === 0 && (lo === 0x0a || lo === 0x0d || lo === 0x09)) {
+        run += lo === 0x0a ? '\n' : lo === 0x0d ? '' : '\t';
         i += 2;
       } else {
         break;
@@ -228,8 +253,8 @@ async function parseDoc(file) {
       let run = '';
       while (j < bytes.length) {
         const b = bytes[j];
-        if ((b >= 0x20 && b < 0x7F) || b === 0x0A || b === 0x0D || b === 0x09) {
-          run += b === 0x0D ? '' : String.fromCharCode(b);
+        if ((b >= 0x20 && b < 0x7f) || b === 0x0a || b === 0x0d || b === 0x09) {
+          run += b === 0x0d ? '' : String.fromCharCode(b);
           j++;
         } else {
           break;
@@ -284,15 +309,15 @@ async function parseRtf(file) {
   const text = await file.text();
   // Strip RTF control words and groups, extract plain text
   return text
-    .replace(/\{\\[^{}]*\}/g, '')       // remove nested groups like {\fonttbl...}
-    .replace(/\\pard[^\\]*/g, '\n')     // paragraph breaks
-    .replace(/\\par\b/g, '\n')          // \par = newline
-    .replace(/\\line\b/g, '\n')         // \line = newline
-    .replace(/\\tab\b/g, '\t')          // \tab
+    .replace(/\{\\[^{}]*\}/g, '') // remove nested groups like {\fonttbl...}
+    .replace(/\\pard[^\\]*/g, '\n') // paragraph breaks
+    .replace(/\\par\b/g, '\n') // \par = newline
+    .replace(/\\line\b/g, '\n') // \line = newline
+    .replace(/\\tab\b/g, '\t') // \tab
     .replace(/\\'([0-9a-fA-F]{2})/g, (_, hex) => String.fromCharCode(parseInt(hex, 16)))
-    .replace(/\\[a-z]+\d*\s?/gi, '')    // strip remaining control words
-    .replace(/[{}]/g, '')               // strip braces
-    .replace(/\n{3,}/g, '\n\n')         // collapse blank lines
+    .replace(/\\[a-z]+\d*\s?/gi, '') // strip remaining control words
+    .replace(/[{}]/g, '') // strip braces
+    .replace(/\n{3,}/g, '\n\n') // collapse blank lines
     .trim();
 }
 
@@ -356,13 +381,15 @@ function workbookToCsvText(workbook) {
       rows.push(row);
     });
 
-    const csv = rows.map((row) => {
-      const values = [];
-      for (let col = 1; col <= maxCol; col += 1) {
-        values.push(csvEscape(formatCellValue(row.getCell(col).value)));
-      }
-      return values.join(',');
-    }).join('\n');
+    const csv = rows
+      .map((row) => {
+        const values = [];
+        for (let col = 1; col <= maxCol; col += 1) {
+          values.push(csvEscape(formatCellValue(row.getCell(col).value)));
+        }
+        return values.join(',');
+      })
+      .join('\n');
 
     texts.push(`--- Sheet: ${worksheet.name} ---\n${csv}`);
   });
@@ -413,8 +440,7 @@ async function parsePptx(file) {
   }
 
   // Also extract from notes
-  const noteFiles = Object.keys(zip.files)
-    .filter((name) => /^ppt\/notesSlides\/notesSlide\d+\.xml$/i.test(name));
+  const noteFiles = Object.keys(zip.files).filter((name) => /^ppt\/notesSlides\/notesSlide\d+\.xml$/i.test(name));
 
   for (const notePath of noteFiles) {
     const xml = await zip.files[notePath].async('text');
@@ -574,9 +600,7 @@ async function parsePages(file) {
 // ── ZIP archive (.zip) — extract and recursively parse contained files ──
 async function parseZip(file) {
   const results = await parseZipToResults(file);
-  const texts = results
-    .filter(r => r.text)
-    .map(r => `=== ${r.name} ===\n${r.text}`);
+  const texts = results.filter((r) => r.text).map((r) => `=== ${r.name} ===\n${r.text}`);
   if (texts.length === 0) throw new Error('No supported files found inside ZIP archive.');
   return texts.join('\n\n');
 }

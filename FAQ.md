@@ -86,9 +86,10 @@ Yes. Use the **Undo** and **Redo** buttons. You can also jump to any previous ve
 ### How do I ask the AI to make specific changes?
 
 In the progress panel, there's a chat box labeled "Ask for revisions." Type your request in plain English, for example:
-- *"Add more group activities to Lesson 3"*
-- *"Change all technology references to Canvas"*
-- *"Make the assessments more specific and measurable"*
+
+- _"Add more group activities to Lesson 3"_
+- _"Change all technology references to Canvas"_
+- _"Make the assessments more specific and measurable"_
 
 The AI will update the course map based on your instructions.
 
@@ -99,12 +100,14 @@ The AI will update the course map based on your instructions.
 ### What export formats are available?
 
 **Download to your computer:**
+
 - **.xlsx** — Excel spreadsheet (the original table format)
 - **.docx** — Word document (reorganized into a readable narrative format)
 - **.pdf** — PDF document (table format, good for printing)
 - **.csv** — Comma-separated values (for importing into other tools)
 
 **Save to Google Drive:**
+
 - **Google Sheets** — uploads directly to your Google Drive as a native Google Sheet
 - **Google Docs** — uploads directly to your Google Drive as a native Google Doc (readable format)
 
@@ -115,6 +118,7 @@ When you click one of these buttons, a Google sign-in popup will appear. Sign in
 ### I get an error when trying to save to Google Drive. What's wrong?
 
 This can happen if:
+
 - **You blocked the popup** — allow popups for this site in your browser settings
 - **You didn't grant permission** — the Google sign-in dialog asks for permission to create files in your Drive. You need to click "Allow."
 - **The app is in testing mode** — if you see "This app isn't verified," click "Advanced" → "Go to Course Mapper (unsafe)" to proceed. This is normal for apps that haven't completed Google's verification process.

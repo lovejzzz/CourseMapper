@@ -17,16 +17,25 @@ You must return ONLY valid JSON. No markdown, no explanation—just the JSON obj
 
 // Default column definitions used when no custom columns are provided
 const DEFAULT_COLUMN_DEFS = {
-  learningGoals: 'The big ideas and questions to be addressed. Derived from values, knowledge, skills, behaviors, and competencies outlined in the syllabus. When there are multiple goals, number them (1, 2, 3…) so objectives can reference them.',
+  learningGoals:
+    'The big ideas and questions to be addressed. Derived from values, knowledge, skills, behaviors, and competencies outlined in the syllabus. When there are multiple goals, number them (1, 2, 3…) so objectives can reference them.',
   topicSection: 'A numbered subsection title (e.g., "1.1: Historical Overview of Immigration Policy").',
-  learningObjectives: 'Write the stem "Students will be able to:" ONCE at the top, then list each objective on its own numbered line using ONLY a Bloom\'s action verb + content — do NOT repeat the stem. Use the goal number prefix (1a, 1b, 2a) when goals are numbered. Every objective must be measurable and consistent with course-level learning goals (QM 2.1, 2.2). Objectives must be suited to the level of the course (QM 2.5). Example:\\n"Students will be able to:\\n1a. Analyze the impact of immigration policy on communities\\n1b. Compare federal and state policy frameworks\\n2a. Evaluate the effectiveness of advocacy strategies"',
-  weeklyAssessments: 'How students demonstrate learning. Each assessment must explicitly connect to stated learning objectives (QM 3.1). Include a variety of assessment types across lessons (QM 3.4). List each assessment on its own line with a numbered prefix (e.g., "1. Reflection Paper: Analyze the impact of...\\n2. Discussion Post: Compare two theories...").',
-  asyncActivities: 'What students do on their own time. Activities must directly help learners achieve stated objectives (QM 5.1) and provide opportunities for interaction and active learning (QM 5.2). List each activity on its own line with a numbered prefix (e.g., "1. Read: Chapter 5 on policy frameworks\\n2. Watch: Immigration documentary (45 min)\\n3. Complete: Reflection worksheet").',
-  syncActivities: 'What students do together in real-time. Activities must directly help learners achieve stated objectives (QM 5.1) and provide opportunities for interaction and active learning (QM 5.2). List each activity on its own line with a numbered prefix (e.g., "1. Discussion: Debate immigration policy impacts\\n2. Group Work: Case study analysis\\n3. Activity: Role-play exercise").',
-  technologyNeeded: 'Specific platforms or tool types needed. Tools must support learning objectives (QM 6.1) and promote learner engagement (QM 6.2). Use a variety of technologies across lessons (QM 6.3). Where possible, note the vendor\'s accessibility statement or VPAT availability for each tool (QM 8.7). List each on its own line with a bullet or number if multiple (e.g., "1. NYU Brightspace (submission)\\n2. Zoom (synchronous session)\\n3. Google Docs (collaboration)").',
-  presentationFormat: 'The primary media/delivery format for that section\'s instructional material (e.g., Text, Video, Podcast, Multimedia, Simulation, Discussion, Presentation).',
-  supportingResources: 'Specific readings, articles, videos, textbook chapters, and other materials. Use a variety of instructional materials (QM 4.5). Materials must contribute to achievement of learning objectives (QM 4.1). The relationship between materials and learning activities should be clear (QM 4.2). Note copyright status or open-access availability where known (QM 4.3). Prefer current, up-to-date sources that represent contemporary theory and practice in the discipline (QM 4.4). Extract directly from the syllabus when available. List each resource on its own line with a numbered prefix (e.g., "1. Nazario, S. (2020). Chapter 3...\\n2. Gillen et al. (2024). Article title...").',
-  evaluateDesign: 'Self-check: Are objectives measurable and suited to course level? Do assessments measure the stated objectives? Do activities help achieve those objectives? Is the relationship between objectives, activities, and assessments clear? Do instructional materials support the objectives? (QM 2.1–2.5, 3.1, 4.1, 5.1)',
+  learningObjectives:
+    'Write the stem "Students will be able to:" ONCE at the top, then list each objective on its own numbered line using ONLY a Bloom\'s action verb + content — do NOT repeat the stem. Use the goal number prefix (1a, 1b, 2a) when goals are numbered. Every objective must be measurable and consistent with course-level learning goals (QM 2.1, 2.2). Objectives must be suited to the level of the course (QM 2.5). Example:\\n"Students will be able to:\\n1a. Analyze the impact of immigration policy on communities\\n1b. Compare federal and state policy frameworks\\n2a. Evaluate the effectiveness of advocacy strategies"',
+  weeklyAssessments:
+    'How students demonstrate learning. Each assessment must explicitly connect to stated learning objectives (QM 3.1). Include a variety of assessment types across lessons (QM 3.4). List each assessment on its own line with a numbered prefix (e.g., "1. Reflection Paper: Analyze the impact of...\\n2. Discussion Post: Compare two theories...").',
+  asyncActivities:
+    'What students do on their own time. Activities must directly help learners achieve stated objectives (QM 5.1) and provide opportunities for interaction and active learning (QM 5.2). List each activity on its own line with a numbered prefix (e.g., "1. Read: Chapter 5 on policy frameworks\\n2. Watch: Immigration documentary (45 min)\\n3. Complete: Reflection worksheet").',
+  syncActivities:
+    'What students do together in real-time. Activities must directly help learners achieve stated objectives (QM 5.1) and provide opportunities for interaction and active learning (QM 5.2). List each activity on its own line with a numbered prefix (e.g., "1. Discussion: Debate immigration policy impacts\\n2. Group Work: Case study analysis\\n3. Activity: Role-play exercise").',
+  technologyNeeded:
+    'Specific platforms or tool types needed. Tools must support learning objectives (QM 6.1) and promote learner engagement (QM 6.2). Use a variety of technologies across lessons (QM 6.3). Where possible, note the vendor\'s accessibility statement or VPAT availability for each tool (QM 8.7). List each on its own line with a bullet or number if multiple (e.g., "1. NYU Brightspace (submission)\\n2. Zoom (synchronous session)\\n3. Google Docs (collaboration)").',
+  presentationFormat:
+    "The primary media/delivery format for that section's instructional material (e.g., Text, Video, Podcast, Multimedia, Simulation, Discussion, Presentation).",
+  supportingResources:
+    'Specific readings, articles, videos, textbook chapters, and other materials. Use a variety of instructional materials (QM 4.5). Materials must contribute to achievement of learning objectives (QM 4.1). The relationship between materials and learning activities should be clear (QM 4.2). Note copyright status or open-access availability where known (QM 4.3). Prefer current, up-to-date sources that represent contemporary theory and practice in the discipline (QM 4.4). Extract directly from the syllabus when available. List each resource on its own line with a numbered prefix (e.g., "1. Nazario, S. (2020). Chapter 3...\\n2. Gillen et al. (2024). Article title...").',
+  evaluateDesign:
+    'Self-check: Are objectives measurable and suited to course level? Do assessments measure the stated objectives? Do activities help achieve those objectives? Is the relationship between objectives, activities, and assessments clear? Do instructional materials support the objectives? (QM 2.1–2.5, 3.1, 4.1, 5.1)',
 };
 
 export const EXAMINE_SYSTEM_PROMPT = `You are an expert instructional designer performing a quality assurance review of a Course Map.
@@ -74,11 +83,14 @@ SEMESTER FIELD RULES (read carefully):
 - Course length/duration information (e.g., "15-week course") belongs in the course description, NOT the semester field.`;
 
 export function buildExamineUserPrompt(courseMap, syllabusText, scopeIndices = null) {
-  const scopeNote = Array.isArray(scopeIndices) && scopeIndices.length > 0
-    ? `\n\n⚠️ SCOPE CONSTRAINT: The instructor intentionally selected ONLY ${scopeIndices.length} lesson(s) to generate (lessons ${scopeIndices.map(i => i + 1).join(', ')}). Do NOT suggest adding lessons outside this scope. Do NOT flag missing lessons that are outside the selected scope. Only examine the lessons present in the course map.`
-    : '';
+  const scopeNote =
+    Array.isArray(scopeIndices) && scopeIndices.length > 0
+      ? `\n\n⚠️ SCOPE CONSTRAINT: The instructor intentionally selected ONLY ${scopeIndices.length} lesson(s) to generate (lessons ${scopeIndices.map((i) => i + 1).join(', ')}). Do NOT suggest adding lessons outside this scope. Do NOT flag missing lessons that are outside the selected scope. Only examine the lessons present in the course map.`
+      : '';
   return `Here is the Course Map to examine:\n\n${JSON.stringify(courseMap)}${
-    syllabusText ? `\n\nHere is the original syllabus/course material for reference:\n\n${syllabusText.slice(0, 30000)}` : ''
+    syllabusText
+      ? `\n\nHere is the original syllabus/course material for reference:\n\n${syllabusText.slice(0, 30000)}`
+      : ''
   }${scopeNote}\n\nExamine this course map thoroughly. Return ONLY a JSON patches object for cells that need fixing. If nothing needs fixing, return {"patches": []}:`;
 }
 
@@ -118,7 +130,8 @@ PATCH RULES:
 export function buildRevisionUserPrompt(courseMap, userMessage, userEdits, chatHistory, lockedIndices = []) {
   let editsContext = '';
   if (userEdits && userEdits.length > 0) {
-    editsContext = '\n\nIMPORTANT — The user has manually edited some cells since the last AI generation. Respect and preserve these manual changes unless the user explicitly asks to change them:\n';
+    editsContext =
+      '\n\nIMPORTANT — The user has manually edited some cells since the last AI generation. Respect and preserve these manual changes unless the user explicitly asks to change them:\n';
     for (const edit of userEdits) {
       if (edit.key === 'title') {
         editsContext += `- Lesson ${edit.lessonIdx + 1} title changed from "${edit.oldValue}" to "${edit.newValue}"\n`;
@@ -130,16 +143,18 @@ export function buildRevisionUserPrompt(courseMap, userMessage, userEdits, chatH
 
   let historyContext = '';
   if (chatHistory && chatHistory.length > 0) {
-    historyContext = '\n\nPrevious conversation (for context — do NOT repeat these changes, they are already applied):\n';
+    historyContext =
+      '\n\nPrevious conversation (for context — do NOT repeat these changes, they are already applied):\n';
     for (const msg of chatHistory) {
       const prefix = msg.role === 'user' ? 'User' : 'Assistant';
       historyContext += `${prefix}: ${msg.text}\n`;
     }
   }
 
-  const lockNote = lockedIndices.length > 0
-    ? `\n\nLOCKED LESSONS (DO NOT MODIFY — user has locked these): Lesson indices [${lockedIndices.join(', ')}] (0-based). These lessons must remain EXACTLY as-is in the output, even if the user's request would normally change them.`
-    : '';
+  const lockNote =
+    lockedIndices.length > 0
+      ? `\n\nLOCKED LESSONS (DO NOT MODIFY — user has locked these): Lesson indices [${lockedIndices.join(', ')}] (0-based). These lessons must remain EXACTLY as-is in the output, even if the user's request would normally change them.`
+      : '';
 
   return `Here is the current Course Map JSON:\n\n${JSON.stringify(courseMap)}${editsContext}${historyContext}${lockNote}\n\nUser's latest request:\n${userMessage}\n\nReturn ONLY the JSON patches object:`;
 }
@@ -157,11 +172,16 @@ function segmentSyllabus(text) {
   return parts.map((part, i) => `\n--- SEGMENT ${i + 1} ---\n${part.trim()}`).join('\n');
 }
 
-export function buildUserPrompt(syllabusText, columns, scopeIndices, isReconstruct = false, expectedLessons = null, confidence = null) {
+export function buildUserPrompt(
+  syllabusText,
+  columns,
+  scopeIndices,
+  isReconstruct = false,
+  expectedLessons = null,
+  confidence = null,
+) {
   // Filter to only enabled columns (enabled defaults to true when field is missing)
-  const enabledColumns = columns && columns.length > 0
-    ? columns.filter(c => c.enabled !== false)
-    : columns;
+  const enabledColumns = columns && columns.length > 0 ? columns.filter((c) => c.enabled !== false) : columns;
 
   // Build column definitions dynamically from the columns array
   let columnDefs = '';
@@ -170,7 +190,9 @@ export function buildUserPrompt(syllabusText, columns, scopeIndices, isReconstru
 
   if (enabledColumns && enabledColumns.length > 0) {
     for (const col of enabledColumns) {
-      const desc = DEFAULT_COLUMN_DEFS[col.key] || `Content for "${col.label}". Generate thoughtful, pedagogically sound content for this field.`;
+      const desc =
+        DEFAULT_COLUMN_DEFS[col.key] ||
+        `Content for "${col.label}". Generate thoughtful, pedagogically sound content for this field.`;
       columnDefs += `- ${col.key}: ${desc}\n`;
       const sampleVal = DEFAULT_COLUMN_DEFS[col.key]
         ? `"Example content for ${col.label}..."`
@@ -190,7 +212,7 @@ export function buildUserPrompt(syllabusText, columns, scopeIndices, isReconstru
   // Build lesson scope instruction
   let lessonScopeInstruction;
   if (Array.isArray(scopeIndices) && scopeIndices.length > 0) {
-    const lessonNumbers = scopeIndices.map(i => i + 1).join(', ');
+    const lessonNumbers = scopeIndices.map((i) => i + 1).join(', ');
     lessonScopeInstruction = `2. Generate ONLY the following lesson numbers from the syllabus: ${lessonNumbers} (1-indexed). Do NOT generate any other lessons. The "lessons" array in your JSON must contain EXACTLY ${scopeIndices.length} lesson(s) corresponding to these positions in the syllabus.`;
   } else if (expectedLessons && confidence === 'high') {
     lessonScopeInstruction = `2. The syllabus contains approximately ${expectedLessons} lessons/weeks. Generate exactly that many lessons. If you detect a slightly different structure, match the syllabus but aim for ${expectedLessons} total.`;
@@ -271,19 +293,30 @@ Rules:
  */
 export function buildGapFillPrompt(courseMap, colKeys = []) {
   const lessons = courseMap?.lessons || [];
-  const keysToCheck = colKeys.length > 0 ? colKeys : [
-    'learningGoals', 'topicSection', 'learningObjectives',
-    'weeklyAssessments', 'asyncActivities', 'syncActivities',
-    'technologyNeeded', 'supportingResources',
-  ];
+  const keysToCheck =
+    colKeys.length > 0
+      ? colKeys
+      : [
+          'learningGoals',
+          'topicSection',
+          'learningObjectives',
+          'weeklyAssessments',
+          'asyncActivities',
+          'syncActivities',
+          'technologyNeeded',
+          'supportingResources',
+        ];
 
   const gaps = [];
   lessons.forEach((lesson, li) => {
     const sections = lesson.sections && lesson.sections.length > 0 ? lesson.sections : [{}];
     sections.forEach((section, si) => {
-      keysToCheck.forEach(key => {
+      keysToCheck.forEach((key) => {
         const val = section[key];
-        const isEmpty = val == null || val === '' || (typeof val === 'string' && (val.trim().length < 5 || /^(tbd|todo|n\/a|\?)$/i.test(val.trim())));
+        const isEmpty =
+          val == null ||
+          val === '' ||
+          (typeof val === 'string' && (val.trim().length < 5 || /^(tbd|todo|n\/a|\?)$/i.test(val.trim())));
         if (isEmpty) {
           gaps.push({ lessonIndex: li, sectionIndex: si, key, lessonTitle: lesson.title || `Lesson ${li + 1}` });
         }
@@ -295,9 +328,10 @@ export function buildGapFillPrompt(courseMap, colKeys = []) {
     return 'All fields are already filled. Return [].';
   }
 
-  const gapList = gaps.slice(0, 30).map(g =>
-    `L${g.lessonIndex + 1}S${g.sectionIndex + 1} "${g.lessonTitle}" — field: "${g.key}"`
-  ).join('\n');
+  const gapList = gaps
+    .slice(0, 30)
+    .map((g) => `L${g.lessonIndex + 1}S${g.sectionIndex + 1} "${g.lessonTitle}" — field: "${g.key}"`)
+    .join('\n');
 
   return `Course: ${courseMap.courseName || 'Unknown'}
 Semester: ${courseMap.semester || ''}
@@ -316,18 +350,30 @@ Return JSON patches to fill these gaps (array of {lessonIndex, sectionIndex, key
  */
 export function countGaps(courseMap, colKeys = []) {
   const lessons = courseMap?.lessons || [];
-  const keysToCheck = colKeys.length > 0 ? colKeys : [
-    'learningGoals', 'topicSection', 'learningObjectives',
-    'weeklyAssessments', 'asyncActivities', 'syncActivities',
-    'technologyNeeded', 'supportingResources',
-  ];
+  const keysToCheck =
+    colKeys.length > 0
+      ? colKeys
+      : [
+          'learningGoals',
+          'topicSection',
+          'learningObjectives',
+          'weeklyAssessments',
+          'asyncActivities',
+          'syncActivities',
+          'technologyNeeded',
+          'supportingResources',
+        ];
   let count = 0;
-  lessons.forEach(lesson => {
+  lessons.forEach((lesson) => {
     const sections = lesson.sections && lesson.sections.length > 0 ? lesson.sections : [{}];
-    sections.forEach(section => {
-      keysToCheck.forEach(key => {
+    sections.forEach((section) => {
+      keysToCheck.forEach((key) => {
         const val = section[key];
-        if (val == null || val === '' || (typeof val === 'string' && (val.trim().length < 5 || /^(tbd|todo|n\/a|\?)$/i.test(val.trim())))) {
+        if (
+          val == null ||
+          val === '' ||
+          (typeof val === 'string' && (val.trim().length < 5 || /^(tbd|todo|n\/a|\?)$/i.test(val.trim())))
+        ) {
           count++;
         }
       });

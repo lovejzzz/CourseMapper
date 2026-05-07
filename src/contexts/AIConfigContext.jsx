@@ -6,17 +6,33 @@ const AIConfigContext = createContext(null);
 
 export function AIConfigProvider({ children }) {
   const [provider, setProvider] = useState(() => {
-    try { return localStorage.getItem('coursemapper-provider') || 'anthropic'; } catch { return 'anthropic'; }
+    try {
+      return localStorage.getItem('coursemapper-provider') || 'anthropic';
+    } catch {
+      return 'anthropic';
+    }
   });
   const [apiKey, setApiKey] = useState(() => {
-    try { return getSecure('coursemapper-apikey') || ''; } catch { return ''; }
+    try {
+      return getSecure('coursemapper-apikey') || '';
+    } catch {
+      return '';
+    }
   });
   const [apiStatus, setApiStatus] = useState('idle');
   const [modelName, setModelName] = useState(() => {
-    try { return localStorage.getItem('coursemapper-modelname') || ''; } catch { return ''; }
+    try {
+      return localStorage.getItem('coursemapper-modelname') || '';
+    } catch {
+      return '';
+    }
   });
   const [modelId, setModelId] = useState(() => {
-    try { return localStorage.getItem('coursemapper-modelid') || ''; } catch { return ''; }
+    try {
+      return localStorage.getItem('coursemapper-modelid') || '';
+    } catch {
+      return '';
+    }
   });
   const [availableModels, setAvailableModels] = useState([]);
   const [maxOutputTokens, setMaxOutputTokens] = useState(16384);
@@ -26,30 +42,41 @@ export function AIConfigProvider({ children }) {
     try {
       if (apiKey) setSecure('coursemapper-apikey', apiKey);
       else removeSecure('coursemapper-apikey');
-    } catch { }
+    } catch {}
   }, [apiKey]);
 
   useEffect(() => {
-    try { localStorage.setItem('coursemapper-provider', provider); } catch { }
+    try {
+      localStorage.setItem('coursemapper-provider', provider);
+    } catch {}
   }, [provider]);
 
   useEffect(() => {
     try {
       if (modelId) localStorage.setItem('coursemapper-modelid', modelId);
       if (modelName) localStorage.setItem('coursemapper-modelname', modelName);
-    } catch { }
+    } catch {}
   }, [modelId, modelName]);
 
   return (
-    <AIConfigContext.Provider value={{
-      provider, setProvider,
-      apiKey, setApiKey,
-      apiStatus, setApiStatus,
-      modelName, setModelName,
-      modelId, setModelId,
-      availableModels, setAvailableModels,
-      maxOutputTokens, setMaxOutputTokens,
-    }}>
+    <AIConfigContext.Provider
+      value={{
+        provider,
+        setProvider,
+        apiKey,
+        setApiKey,
+        apiStatus,
+        setApiStatus,
+        modelName,
+        setModelName,
+        modelId,
+        setModelId,
+        availableModels,
+        setAvailableModels,
+        maxOutputTokens,
+        setMaxOutputTokens,
+      }}
+    >
       {children}
     </AIConfigContext.Provider>
   );

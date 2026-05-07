@@ -64,12 +64,39 @@ function deliverableToCsvRows(featureId, data) {
     case 'lessonPlans': {
       const key = data.plans ? 'plans' : 'lessonPlans';
       const plans = data[key] || [];
-      const headers = ['Lesson', 'Duration', 'Bloom\'s Levels', 'Objectives', 'Warm-Up', 'Materials', 'Outline', 'Formative Assessment', 'UDL Notes', 'Homework', 'Closing Activity'];
-      const rows = plans.map(p => {
+      const headers = [
+        'Lesson',
+        'Duration',
+        "Bloom's Levels",
+        'Objectives',
+        'Warm-Up',
+        'Materials',
+        'Outline',
+        'Formative Assessment',
+        'UDL Notes',
+        'Homework',
+        'Closing Activity',
+      ];
+      const rows = plans.map((p) => {
         const warmUp = p.warmUp ? [p.warmUp.type, p.warmUp.prompt, p.warmUp.purpose].filter(Boolean).join(' — ') : '';
-        const formative = p.formativeCheck ? [p.formativeCheck.type, p.formativeCheck.prompt, p.formativeCheck.objectiveAligned].filter(Boolean).join(' — ') : '';
-        const udl = p.udlNotes ? ['Repr: ' + (p.udlNotes.representation || ''), 'Engage: ' + (p.udlNotes.engagement || ''), 'Expr: ' + (p.udlNotes.expression || '')].filter(v => !v.endsWith(': ')).join('; ') : '';
-        const hw = typeof p.homework === 'object' ? [p.homework.title, p.homework.description, p.homework.estimatedTime].filter(Boolean).join(' — ') : (p.homework || '');
+        const formative = p.formativeCheck
+          ? [p.formativeCheck.type, p.formativeCheck.prompt, p.formativeCheck.objectiveAligned]
+              .filter(Boolean)
+              .join(' — ')
+          : '';
+        const udl = p.udlNotes
+          ? [
+              'Repr: ' + (p.udlNotes.representation || ''),
+              'Engage: ' + (p.udlNotes.engagement || ''),
+              'Expr: ' + (p.udlNotes.expression || ''),
+            ]
+              .filter((v) => !v.endsWith(': '))
+              .join('; ')
+          : '';
+        const hw =
+          typeof p.homework === 'object'
+            ? [p.homework.title, p.homework.description, p.homework.estimatedTime].filter(Boolean).join(' — ')
+            : p.homework || '';
         return [
           p.lessonTitle || p.title || '',
           p.duration || '',
@@ -77,7 +104,12 @@ function deliverableToCsvRows(featureId, data) {
           (p.objectives || []).join('; '),
           warmUp,
           (p.materials || []).join('; '),
-          (p.outline || []).map(o => `${o.time || ''} - ${o.activity || ''}: ${o.description || ''}${o.instructorNotes ? ' [Note: ' + o.instructorNotes + ']' : ''}`).join('\n'),
+          (p.outline || [])
+            .map(
+              (o) =>
+                `${o.time || ''} - ${o.activity || ''}: ${o.description || ''}${o.instructorNotes ? ' [Note: ' + o.instructorNotes + ']' : ''}`,
+            )
+            .join('\n'),
           formative,
           udl,
           hw,
@@ -88,14 +120,30 @@ function deliverableToCsvRows(featureId, data) {
     }
     case 'rubrics': {
       const rubrics = data.rubrics || [];
-      const headers = ['Rubric', 'Points', 'Type', 'Criterion', 'Weight', 'Excellent', 'Proficient', 'Developing', 'Beginning'];
+      const headers = [
+        'Rubric',
+        'Points',
+        'Type',
+        'Criterion',
+        'Weight',
+        'Excellent',
+        'Proficient',
+        'Developing',
+        'Beginning',
+      ];
       const rows = [];
       for (const r of rubrics) {
-        for (const c of (r.criteria || [])) {
+        for (const c of r.criteria || []) {
           rows.push([
-            r.title || '', String(r.totalPoints || ''), r.assessmentType || '',
-            c.criterion || c.name || '', String(c.weight || ''),
-            c.excellent || c.exemplary || '', c.proficient || '', c.developing || '', c.beginning || '',
+            r.title || '',
+            String(r.totalPoints || ''),
+            r.assessmentType || '',
+            c.criterion || c.name || '',
+            String(c.weight || ''),
+            c.excellent || c.exemplary || '',
+            c.proficient || '',
+            c.developing || '',
+            c.beginning || '',
           ]);
         }
       }
@@ -110,8 +158,11 @@ function deliverableToCsvRows(featureId, data) {
         for (let j = 0; j < (d.slides || []).length; j++) {
           const s = d.slides[j];
           rows.push([
-            d.lessonTitle || '', String(j + 1), s.title || '',
-            (s.bullets || []).join('; '), s.speakerNotes || '',
+            d.lessonTitle || '',
+            String(j + 1),
+            s.title || '',
+            (s.bullets || []).join('; '),
+            s.speakerNotes || '',
           ]);
         }
       }
@@ -120,14 +171,30 @@ function deliverableToCsvRows(featureId, data) {
     case 'quizBank': {
       const key = data.quizzes ? 'quizzes' : 'quizBank';
       const quizzes = data[key] || [];
-      const headers = ['Lesson', 'Type', 'Bloom\'s', 'Difficulty', 'Question', 'Options', 'Answer', 'Explanation', 'Points', 'Sample Answer'];
+      const headers = [
+        'Lesson',
+        'Type',
+        "Bloom's",
+        'Difficulty',
+        'Question',
+        'Options',
+        'Answer',
+        'Explanation',
+        'Points',
+        'Sample Answer',
+      ];
       const rows = [];
       for (const quiz of quizzes) {
-        for (const q of (quiz.questions || [])) {
+        for (const q of quiz.questions || []) {
           rows.push([
-            quiz.lessonTitle || '', q.type || '', q.bloomsLevel || '', q.difficulty || '',
+            quiz.lessonTitle || '',
+            q.type || '',
+            q.bloomsLevel || '',
+            q.difficulty || '',
             q.question || '',
-            (q.options || []).join('; '), q.answer || '', q.explanation || '',
+            (q.options || []).join('; '),
+            q.answer || '',
+            q.explanation || '',
             String(q.points || ''),
             q.sampleAnswer || '',
           ]);
@@ -137,32 +204,73 @@ function deliverableToCsvRows(featureId, data) {
     }
     case 'discussions': {
       const discussions = data.discussions || [];
-      const headers = ['Lesson', 'Bloom\'s', 'Format', 'Prompt', 'Context', 'Follow-Up Probes', 'Response Starters', 'Evaluation Criteria', 'Facilitation Tips', 'Guidelines'];
-      const rows = discussions.map(d => [
-        d.lessonTitle || '', d.bloomsLevel || '', d.format || '',
-        d.prompt || '', d.context || '',
+      const headers = [
+        'Lesson',
+        "Bloom's",
+        'Format',
+        'Prompt',
+        'Context',
+        'Follow-Up Probes',
+        'Response Starters',
+        'Evaluation Criteria',
+        'Facilitation Tips',
+        'Guidelines',
+      ];
+      const rows = discussions.map((d) => [
+        d.lessonTitle || '',
+        d.bloomsLevel || '',
+        d.format || '',
+        d.prompt || '',
+        d.context || '',
         (d.followUpProbes || []).join('; '),
         (d.responseStarters || []).join('; '),
         (d.evaluationCriteria || []).join('; '),
-        d.facilitationTips ? [d.facilitationTips.opening, d.facilitationTips.ifStalls, d.facilitationTips.closure].filter(Boolean).join('; ') : '',
+        d.facilitationTips
+          ? [d.facilitationTips.opening, d.facilitationTips.ifStalls, d.facilitationTips.closure]
+              .filter(Boolean)
+              .join('; ')
+          : '',
         d.guidelines || '',
       ]);
       return { headers, rows };
     }
     case 'assignments': {
       const assignments = data.assignments || [];
-      const headers = ['Title', 'Type', 'Bloom\'s', 'Due', 'Est. Time', 'Points', 'Overview', 'Objectives', 'Instructions', 'Deliverables', 'Format Requirements', 'Grading Criteria', 'Milestones'];
-      const rows = assignments.map(a => {
-        const fmt = a.formatRequirements ? [a.formatRequirements.length, a.formatRequirements.format, a.formatRequirements.citationStyle].filter(Boolean).join('; ') : '';
-        const milestones = (a.scaffoldingMilestones || []).map(m => `${m.milestone || m.name || ''}: ${m.description || ''}`).join('; ');
+      const headers = [
+        'Title',
+        'Type',
+        "Bloom's",
+        'Due',
+        'Est. Time',
+        'Points',
+        'Overview',
+        'Objectives',
+        'Instructions',
+        'Deliverables',
+        'Format Requirements',
+        'Grading Criteria',
+        'Milestones',
+      ];
+      const rows = assignments.map((a) => {
+        const fmt = a.formatRequirements
+          ? [a.formatRequirements.length, a.formatRequirements.format, a.formatRequirements.citationStyle]
+              .filter(Boolean)
+              .join('; ')
+          : '';
+        const milestones = (a.scaffoldingMilestones || [])
+          .map((m) => `${m.milestone || m.name || ''}: ${m.description || ''}`)
+          .join('; ');
         return [
-          a.title || '', a.assignmentType || '', a.bloomsLevel || '',
-          a.dueWeek || a.dueDate || '', a.estimatedTime || '',
+          a.title || '',
+          a.assignmentType || '',
+          a.bloomsLevel || '',
+          a.dueWeek || a.dueDate || '',
+          a.estimatedTime || '',
           a.totalPoints ? String(a.totalPoints) : '',
           a.overview || a.description || '',
           (a.objectives || []).join('; '),
-          (a.instructions || []).map(inst => typeof inst === 'string' ? inst : inst.step || '').join('; '),
-          (a.deliverables || []).map(d => typeof d === 'string' ? d : d.name || '').join('; '),
+          (a.instructions || []).map((inst) => (typeof inst === 'string' ? inst : inst.step || '')).join('; '),
+          (a.deliverables || []).map((d) => (typeof d === 'string' ? d : d.name || '')).join('; '),
           fmt,
           a.gradingCriteria || '',
           milestones,
@@ -173,21 +281,41 @@ function deliverableToCsvRows(featureId, data) {
     case 'studyGuides': {
       const key = data.guides ? 'guides' : 'studyGuides';
       const guides = data[key] || [];
-      const headers = ['Lesson', 'Summary', 'Key Terms', 'Concept Connections', 'Common Misconceptions', 'Review Questions', 'Practice Activities', 'Exam Prep'];
-      const rows = guides.map(g => {
-        const misconceptions = (g.commonMisconceptions || []).map(m => typeof m === 'string' ? m : `${m.misconception || ''} → ${m.correction || ''}`).join('; ');
-        const reviewQs = (g.reviewQuestions || []).map(q => typeof q === 'string' ? q : (q.question || q)).join('; ');
-        const examPrep = g.examPrep ? [
-          g.examPrep.keyTopicsToKnow?.length && `Topics: ${g.examPrep.keyTopicsToKnow.join(', ')}`,
-          g.examPrep.reviewStrategy && `Strategy: ${g.examPrep.reviewStrategy}`,
-        ].filter(Boolean).join('; ') : (g.examTips || '');
+      const headers = [
+        'Lesson',
+        'Summary',
+        'Key Terms',
+        'Concept Connections',
+        'Common Misconceptions',
+        'Review Questions',
+        'Practice Activities',
+        'Exam Prep',
+      ];
+      const rows = guides.map((g) => {
+        const misconceptions = (g.commonMisconceptions || [])
+          .map((m) => (typeof m === 'string' ? m : `${m.misconception || ''} → ${m.correction || ''}`))
+          .join('; ');
+        const reviewQs = (g.reviewQuestions || []).map((q) => (typeof q === 'string' ? q : q.question || q)).join('; ');
+        const examPrep = g.examPrep
+          ? [
+              g.examPrep.keyTopicsToKnow?.length && `Topics: ${g.examPrep.keyTopicsToKnow.join(', ')}`,
+              g.examPrep.reviewStrategy && `Strategy: ${g.examPrep.reviewStrategy}`,
+            ]
+              .filter(Boolean)
+              .join('; ')
+          : g.examTips || '';
         return [
-          g.lessonTitle || '', g.summary || '',
-          (g.keyTerms || []).map(t => `${t.term}: ${t.definition}${t.example ? ' (e.g., ' + t.example + ')' : ''}`).join('; '),
-          (g.conceptConnections || []).map(c => typeof c === 'string' ? c : `${c.from || ''} ↔ ${c.to || ''}`).join('; '),
+          g.lessonTitle || '',
+          g.summary || '',
+          (g.keyTerms || [])
+            .map((t) => `${t.term}: ${t.definition}${t.example ? ' (e.g., ' + t.example + ')' : ''}`)
+            .join('; '),
+          (g.conceptConnections || [])
+            .map((c) => (typeof c === 'string' ? c : `${c.from || ''} ↔ ${c.to || ''}`))
+            .join('; '),
           misconceptions,
           reviewQs,
-          (g.practiceActivities || []).map(a => typeof a === 'string' ? a : a.activity || '').join('; '),
+          (g.practiceActivities || []).map((a) => (typeof a === 'string' ? a : a.activity || '')).join('; '),
           examPrep,
         ];
       });
@@ -210,10 +338,18 @@ function deliverableToCsvRows(featureId, data) {
       if (syl.officeLocation) rows.push(['Office Location', syl.officeLocation]);
       if (syl.courseDescription) rows.push(['Course Description', syl.courseDescription]);
       if (syl.learningOutcomes?.length) rows.push(['Learning Outcomes', syl.learningOutcomes.join('; ')]);
-      if (syl.requiredTexts?.length) rows.push(['Required Texts', syl.requiredTexts.map(t => typeof t === 'string' ? t : [t.author, t.title, t.edition].filter(Boolean).join('. ')).join('; ')]);
+      if (syl.requiredTexts?.length)
+        rows.push([
+          'Required Texts',
+          syl.requiredTexts
+            .map((t) => (typeof t === 'string' ? t : [t.author, t.title, t.edition].filter(Boolean).join('. ')))
+            .join('; '),
+        ]);
       const reqs = syl.courseRequirements || syl.gradingPolicy || [];
-      if (reqs.length) rows.push(['Course Requirements', reqs.map(g => `${g.name || g.component}: ${g.weight}`).join('; ')]);
-      if (syl.gradingScale?.length) rows.push(['Grading Scale', syl.gradingScale.map(g => `${g.grade}: ${g.range}`).join('; ')]);
+      if (reqs.length)
+        rows.push(['Course Requirements', reqs.map((g) => `${g.name || g.component}: ${g.weight}`).join('; ')]);
+      if (syl.gradingScale?.length)
+        rows.push(['Grading Scale', syl.gradingScale.map((g) => `${g.grade}: ${g.range}`).join('; ')]);
       if (syl.attendancePolicy) rows.push(['Attendance & Participation', syl.attendancePolicy]);
       if (syl.latePolicy) rows.push(['Late Work Policy', syl.latePolicy]);
       if (syl.communicationPolicy) rows.push(['Communication Policy', syl.communicationPolicy]);
@@ -238,7 +374,7 @@ function deliverableToCsvRows(featureId, data) {
     }
     default: {
       // Generic handler for custom deliverables
-      const arrKey = Object.keys(data).find(k => Array.isArray(data[k]) && data[k].length > 0);
+      const arrKey = Object.keys(data).find((k) => Array.isArray(data[k]) && data[k].length > 0);
       if (!arrKey) return { headers: [], rows: [] };
       const items = data[arrKey];
       // Collect all unique keys across items
@@ -246,18 +382,23 @@ function deliverableToCsvRows(featureId, data) {
       const seen = new Set();
       for (const item of items) {
         for (const k of Object.keys(item)) {
-          if (!seen.has(k)) { seen.add(k); allKeys.push(k); }
+          if (!seen.has(k)) {
+            seen.add(k);
+            allKeys.push(k);
+          }
         }
       }
-      const headers = allKeys.map(k => k.replace(/([a-z])([A-Z])/g, '$1 $2').replace(/^./, s => s.toUpperCase()));
-      const rows = items.map(item => allKeys.map(k => {
-        const v = item[k];
-        if (v == null) return '';
-        if (typeof v === 'string') return v;
-        if (Array.isArray(v)) return v.map(x => typeof x === 'string' ? x : JSON.stringify(x)).join('; ');
-        if (typeof v === 'object') return JSON.stringify(v);
-        return String(v);
-      }));
+      const headers = allKeys.map((k) => k.replace(/([a-z])([A-Z])/g, '$1 $2').replace(/^./, (s) => s.toUpperCase()));
+      const rows = items.map((item) =>
+        allKeys.map((k) => {
+          const v = item[k];
+          if (v == null) return '';
+          if (typeof v === 'string') return v;
+          if (Array.isArray(v)) return v.map((x) => (typeof x === 'string' ? x : JSON.stringify(x))).join('; ');
+          if (typeof v === 'object') return JSON.stringify(v);
+          return String(v);
+        }),
+      );
       return { headers, rows };
     }
   }
@@ -266,7 +407,7 @@ function deliverableToCsvRows(featureId, data) {
 export async function exportDeliverableCsv(featureId, data, courseName) {
   const { headers, rows } = deliverableToCsvRows(featureId, data);
   if (rows.length === 0) throw new Error('No data to export');
-  const csv = [headers.map(esc).join(','), ...rows.map(r => r.map(esc).join(','))].join('\n');
+  const csv = [headers.map(esc).join(','), ...rows.map((r) => r.map(esc).join(','))].join('\n');
   const saveAs = await getSaveAs();
   const fileName = `${courseName || 'Course'} - ${resolveFeatureLabel(featureId)}.csv`;
   saveAs(new Blob(['\uFEFF' + csv], { type: 'text/csv;charset=utf-8;' }), fileName);
@@ -287,10 +428,15 @@ export async function exportDeliverablePdf(featureId, data, courseName) {
     const doc = new jsPDF({ orientation: 'portrait', unit: 'mm', format: 'a4' });
     const syl = data.syllabus || data;
     let y = 15;
-    const lm = 14, rm = 196, pageH = 280;
+    const lm = 14,
+      rm = 196,
+      pageH = 280;
 
     const checkPage = (needed = 10) => {
-      if (y + needed > pageH) { doc.addPage(); y = 15; }
+      if (y + needed > pageH) {
+        doc.addPage();
+        y = 15;
+      }
     };
 
     const drawSectionHeading = (text) => {
@@ -310,7 +456,7 @@ export async function exportDeliverablePdf(featureId, data, courseName) {
       doc.setFontSize(9);
       doc.setFont('helvetica', 'normal');
       const lines = doc.splitTextToSize(text || '', rm - lm - indent);
-      lines.forEach(line => {
+      lines.forEach((line) => {
         checkPage(5);
         doc.text(line, lm + indent, y);
         y += 5;
@@ -346,11 +492,17 @@ export async function exportDeliverablePdf(featureId, data, courseName) {
     doc.setFont('helvetica', 'bold');
     doc.setTextColor(43, 87, 154);
     const titleLines = doc.splitTextToSize(syl.courseTitle || courseName || 'Course Syllabus', rm - lm);
-    titleLines.forEach(line => { doc.text(line, lm, y); y += 7; });
+    titleLines.forEach((line) => {
+      doc.text(line, lm, y);
+      y += 7;
+    });
     y += 1;
     doc.setFontSize(10);
     doc.setTextColor(80, 80, 80);
-    if (syl.semester) { doc.text(syl.semester, lm, y); y += 5; }
+    if (syl.semester) {
+      doc.text(syl.semester, lm, y);
+      y += 5;
+    }
     const metaLines = [
       syl.credits && `Credits: ${syl.credits}`,
       syl.meetingPattern && `Meeting: ${syl.meetingPattern}`,
@@ -359,7 +511,10 @@ export async function exportDeliverablePdf(featureId, data, courseName) {
       syl.prerequisites && `Prerequisites: ${syl.prerequisites}`,
     ].filter(Boolean);
     doc.setFontSize(9);
-    metaLines.forEach(l => { doc.text(l, lm, y); y += 4.5; });
+    metaLines.forEach((l) => {
+      doc.text(l, lm, y);
+      y += 4.5;
+    });
     doc.setTextColor(0, 0, 0);
     y += 3;
 
@@ -372,7 +527,7 @@ export async function exportDeliverablePdf(featureId, data, courseName) {
     ].filter(Boolean);
     if (instrLines.length) {
       drawSectionHeading('Instructor Information');
-      instrLines.forEach(l => drawBoldLabel(l.split(': ')[0], l.split(': ').slice(1).join(': ')));
+      instrLines.forEach((l) => drawBoldLabel(l.split(': ')[0], l.split(': ').slice(1).join(': ')));
       y += 3;
     }
 
@@ -394,9 +549,14 @@ export async function exportDeliverablePdf(featureId, data, courseName) {
     // ── Required Texts ──
     if (syl.requiredTexts?.length) {
       drawSectionHeading('Required Texts & Materials');
-      syl.requiredTexts.forEach(t => {
-        if (typeof t === 'string') { drawBodyText(`• ${t}`, 4); return; }
-        const parts = [t.author, t.title, t.edition && `(${t.edition})`, t.isbn && `ISBN: ${t.isbn}`, t.note].filter(Boolean);
+      syl.requiredTexts.forEach((t) => {
+        if (typeof t === 'string') {
+          drawBodyText(`• ${t}`, 4);
+          return;
+        }
+        const parts = [t.author, t.title, t.edition && `(${t.edition})`, t.isbn && `ISBN: ${t.isbn}`, t.note].filter(
+          Boolean,
+        );
         drawBodyText(`• ${parts.join('. ')}`, 4);
       });
       y += 3;
@@ -407,11 +567,11 @@ export async function exportDeliverablePdf(featureId, data, courseName) {
     if (reqs.length) {
       drawSectionHeading('Course Requirements & Grading');
       checkPage(20);
-      const hasDesc = reqs.some(r => r.description);
+      const hasDesc = reqs.some((r) => r.description);
       if (hasDesc) {
         autoTable(doc, {
           head: [['Component', 'Weight', 'Description']],
-          body: reqs.map(g => [g.name || g.component || '', g.weight || '', g.description || '']),
+          body: reqs.map((g) => [g.name || g.component || '', g.weight || '', g.description || '']),
           startY: y,
           styles: { fontSize: 8, cellPadding: 2, overflow: 'linebreak', valign: 'top' },
           headStyles: { fillColor: [68, 114, 196], textColor: 255, fontStyle: 'bold' },
@@ -422,7 +582,7 @@ export async function exportDeliverablePdf(featureId, data, courseName) {
       } else {
         autoTable(doc, {
           head: [['Component', 'Weight']],
-          body: reqs.map(g => [g.name || g.component || '', g.weight || '']),
+          body: reqs.map((g) => [g.name || g.component || '', g.weight || '']),
           startY: y,
           styles: { fontSize: 8, cellPadding: 2, overflow: 'linebreak', valign: 'top' },
           headStyles: { fillColor: [68, 114, 196], textColor: 255, fontStyle: 'bold' },
@@ -437,7 +597,7 @@ export async function exportDeliverablePdf(featureId, data, courseName) {
     // ── Grading Scale ──
     if (syl.gradingScale?.length) {
       drawSectionHeading('Grading Scale');
-      const scaleText = syl.gradingScale.map(g => `${g.grade}: ${g.range}`).join('   |   ');
+      const scaleText = syl.gradingScale.map((g) => `${g.grade}: ${g.range}`).join('   |   ');
       drawBodyText(scaleText);
       y += 3;
     }
@@ -446,22 +606,34 @@ export async function exportDeliverablePdf(featureId, data, courseName) {
     if (syl.weeklySchedule?.length) {
       drawSectionHeading('Course Schedule');
       checkPage(20);
-      const hasDates = syl.weeklySchedule.some(w => w.dates);
+      const hasDates = syl.weeklySchedule.some((w) => w.dates);
       if (hasDates) {
         autoTable(doc, {
           head: [['Week', 'Dates', 'Topic', 'Readings', 'Assignments']],
-          body: syl.weeklySchedule.map(w => [w.week || '', w.dates || '', w.topic || '', w.readings || '', w.assignments || '']),
+          body: syl.weeklySchedule.map((w) => [
+            w.week || '',
+            w.dates || '',
+            w.topic || '',
+            w.readings || '',
+            w.assignments || '',
+          ]),
           startY: y,
           styles: { fontSize: 7.5, cellPadding: 2, overflow: 'linebreak', valign: 'top' },
           headStyles: { fillColor: [68, 114, 196], textColor: 255, fontStyle: 'bold' },
           alternateRowStyles: { fillColor: [245, 247, 252] },
-          columnStyles: { 0: { cellWidth: 13 }, 1: { cellWidth: 22 }, 2: { cellWidth: 45 }, 3: { cellWidth: 48 }, 4: { cellWidth: 48 } },
+          columnStyles: {
+            0: { cellWidth: 13 },
+            1: { cellWidth: 22 },
+            2: { cellWidth: 45 },
+            3: { cellWidth: 48 },
+            4: { cellWidth: 48 },
+          },
           margin: { left: lm, right: 14 },
         });
       } else {
         autoTable(doc, {
           head: [['Week', 'Topic', 'Readings', 'Assignments']],
-          body: syl.weeklySchedule.map(w => [w.week || '', w.topic || '', w.readings || '', w.assignments || '']),
+          body: syl.weeklySchedule.map((w) => [w.week || '', w.topic || '', w.readings || '', w.assignments || '']),
           startY: y,
           styles: { fontSize: 7.5, cellPadding: 2, overflow: 'linebreak', valign: 'top' },
           headStyles: { fillColor: [68, 114, 196], textColor: 255, fontStyle: 'bold' },
@@ -490,7 +662,7 @@ export async function exportDeliverablePdf(featureId, data, courseName) {
     // ── Important Dates ──
     if (syl.importantDates?.length) {
       drawSectionHeading('Important Dates');
-      syl.importantDates.forEach(d => drawBoldLabel(d.date || '', d.event || ''));
+      syl.importantDates.forEach((d) => drawBoldLabel(d.date || '', d.event || ''));
     }
 
     const fileName = `${courseName || 'Course'} - Syllabus.pdf`;
@@ -513,7 +685,14 @@ export async function exportDeliverablePdf(featureId, data, courseName) {
     head: [headers],
     body: rows,
     startY: 22,
-    styles: { fontSize: 7, cellPadding: 2, overflow: 'linebreak', lineWidth: 0.1, lineColor: [180, 198, 231], valign: 'top' },
+    styles: {
+      fontSize: 7,
+      cellPadding: 2,
+      overflow: 'linebreak',
+      lineWidth: 0.1,
+      lineColor: [180, 198, 231],
+      valign: 'top',
+    },
     headStyles: { fillColor: [68, 114, 196], textColor: 255, fontStyle: 'bold', fontSize: 7.5 },
     alternateRowStyles: { fillColor: [245, 247, 252] },
     margin: { top: 22, left: 8, right: 8 },
@@ -543,79 +722,125 @@ const SINGLE_SP = 240;
  * Generates comprehensive content matching ALL fields shown in the UI.
  */
 function _buildDocxContentShared(featureId, data, children, docx) {
-  const { Paragraph, TextRun, HeadingLevel, Table, TableRow, TableCell, WidthType, ShadingType, TableLayoutType, BorderStyle, THIN_BORDER } = docx;
+  const {
+    Paragraph,
+    TextRun,
+    HeadingLevel,
+    Table,
+    TableRow,
+    TableCell,
+    WidthType,
+    ShadingType,
+    TableLayoutType,
+    BorderStyle,
+    THIN_BORDER,
+  } = docx;
 
-  const makeHeading = (text) => new Paragraph({
-    heading: HeadingLevel.HEADING_2,
-    keepNext: true,
-    spacing: { line: LINE_SP, before: 300, after: 120 },
-    children: [new TextRun({ text, bold: true, size: H2_SIZE, font: FONT, color: ACCENT })],
-  });
-  const makeSubHeading = (text) => new Paragraph({
-    keepNext: true,
-    spacing: { line: SINGLE_SP, before: 160, after: 60 },
-    children: [new TextRun({ text, bold: true, size: H3_SIZE, font: FONT, color: '444444' })],
-  });
-  const makeText = (text) => new Paragraph({
-    spacing: { line: SINGLE_SP, before: 40, after: 40 },
-    children: [new TextRun({ text: text || '', size: BODY_SIZE, font: FONT })],
-  });
-  const makeBold = (label, text) => new Paragraph({
-    spacing: { line: SINGLE_SP, before: 40, after: 40 },
-    children: [
-      new TextRun({ text: label + ': ', bold: true, size: BODY_SIZE, font: FONT, color: '333333' }),
-      new TextRun({ text: text || '', size: BODY_SIZE, font: FONT }),
-    ],
-  });
-  const makeBullet = (text) => new Paragraph({
-    spacing: { line: SINGLE_SP, before: 20, after: 20 },
-    indent: { left: 360 },
-    children: [new TextRun({ text: `• ${text || ''}`, size: BODY_SIZE, font: FONT })],
-  });
-  const makeItalic = (text) => new Paragraph({
-    spacing: { line: SINGLE_SP, before: 20, after: 20 },
-    indent: { left: 360 },
-    children: [new TextRun({ text: text || '', italics: true, size: BODY_SIZE, font: FONT, color: '666666' })],
-  });
-  const makeNumbered = (num, text) => new Paragraph({
-    spacing: { line: SINGLE_SP, before: 20, after: 20 },
-    indent: { left: 360 },
-    children: [
-      new TextRun({ text: `${num}. `, bold: true, size: BODY_SIZE, font: FONT }),
-      new TextRun({ text: text || '', size: BODY_SIZE, font: FONT }),
-    ],
-  });
+  const makeHeading = (text) =>
+    new Paragraph({
+      heading: HeadingLevel.HEADING_2,
+      keepNext: true,
+      spacing: { line: LINE_SP, before: 300, after: 120 },
+      children: [new TextRun({ text, bold: true, size: H2_SIZE, font: FONT, color: ACCENT })],
+    });
+  const makeSubHeading = (text) =>
+    new Paragraph({
+      keepNext: true,
+      spacing: { line: SINGLE_SP, before: 160, after: 60 },
+      children: [new TextRun({ text, bold: true, size: H3_SIZE, font: FONT, color: '444444' })],
+    });
+  const makeText = (text) =>
+    new Paragraph({
+      spacing: { line: SINGLE_SP, before: 40, after: 40 },
+      children: [new TextRun({ text: text || '', size: BODY_SIZE, font: FONT })],
+    });
+  const makeBold = (label, text) =>
+    new Paragraph({
+      spacing: { line: SINGLE_SP, before: 40, after: 40 },
+      children: [
+        new TextRun({ text: label + ': ', bold: true, size: BODY_SIZE, font: FONT, color: '333333' }),
+        new TextRun({ text: text || '', size: BODY_SIZE, font: FONT }),
+      ],
+    });
+  const makeBullet = (text) =>
+    new Paragraph({
+      spacing: { line: SINGLE_SP, before: 20, after: 20 },
+      indent: { left: 360 },
+      children: [new TextRun({ text: `• ${text || ''}`, size: BODY_SIZE, font: FONT })],
+    });
+  const makeItalic = (text) =>
+    new Paragraph({
+      spacing: { line: SINGLE_SP, before: 20, after: 20 },
+      indent: { left: 360 },
+      children: [new TextRun({ text: text || '', italics: true, size: BODY_SIZE, font: FONT, color: '666666' })],
+    });
+  const makeNumbered = (num, text) =>
+    new Paragraph({
+      spacing: { line: SINGLE_SP, before: 20, after: 20 },
+      indent: { left: 360 },
+      children: [
+        new TextRun({ text: `${num}. `, bold: true, size: BODY_SIZE, font: FONT }),
+        new TextRun({ text: text || '', size: BODY_SIZE, font: FONT }),
+      ],
+    });
   const makeTableFn = (colDXA, headerTexts, dataRows) => {
     const hdr = new TableRow({
-      children: headerTexts.map((h, idx) =>
-        new TableCell({ width: { size: colDXA[idx], type: WidthType.DXA }, shading: { type: ShadingType.CLEAR, fill: 'D6E4F0' }, children: [new Paragraph({ children: [new TextRun({ text: h, bold: true, size: BODY_SIZE, font: FONT })] })] })
+      children: headerTexts.map(
+        (h, idx) =>
+          new TableCell({
+            width: { size: colDXA[idx], type: WidthType.DXA },
+            shading: { type: ShadingType.CLEAR, fill: 'D6E4F0' },
+            children: [
+              new Paragraph({ children: [new TextRun({ text: h, bold: true, size: BODY_SIZE, font: FONT })] }),
+            ],
+          }),
       ),
     });
-    const rows = dataRows.map(row =>
-      new TableRow({
-        children: row.map((v, idx) =>
-          new TableCell({ width: { size: colDXA[idx], type: WidthType.DXA }, children: [new Paragraph({ children: [new TextRun({ text: String(v || ''), size: BODY_SIZE, font: FONT })] })] })
-        ),
-      })
+    const rows = dataRows.map(
+      (row) =>
+        new TableRow({
+          children: row.map(
+            (v, idx) =>
+              new TableCell({
+                width: { size: colDXA[idx], type: WidthType.DXA },
+                children: [
+                  new Paragraph({ children: [new TextRun({ text: String(v || ''), size: BODY_SIZE, font: FONT })] }),
+                ],
+              }),
+          ),
+        }),
     );
-    return new Table({ layout: TableLayoutType.FIXED, width: { size: 9360, type: WidthType.DXA }, columnWidths: colDXA, borders: { top: THIN_BORDER, bottom: THIN_BORDER, left: THIN_BORDER, right: THIN_BORDER, insideHorizontal: THIN_BORDER, insideVertical: THIN_BORDER }, rows: [hdr, ...rows] });
+    return new Table({
+      layout: TableLayoutType.FIXED,
+      width: { size: 9360, type: WidthType.DXA },
+      columnWidths: colDXA,
+      borders: {
+        top: THIN_BORDER,
+        bottom: THIN_BORDER,
+        left: THIN_BORDER,
+        right: THIN_BORDER,
+        insideHorizontal: THIN_BORDER,
+        insideVertical: THIN_BORDER,
+      },
+      rows: [hdr, ...rows],
+    });
   };
 
   switch (featureId) {
     // ─── LESSON PLANS ───────────────────────────────────────────
     case 'lessonPlans': {
       const key = data.plans ? 'plans' : 'lessonPlans';
-      for (const p of (data[key] || [])) {
+      for (const p of data[key] || []) {
         children.push(makeHeading(p.lessonTitle || p.title || 'Lesson'));
         // Meta line
         const meta = [p.duration, p.weekNumber].filter(Boolean);
         if (meta.length) children.push(makeText(meta.join(' · ')));
         // Bloom's levels
-        if (p.bloomsLevels?.length) children.push(makeBold('Bloom\'s Levels', p.bloomsLevels.join(', ')));
+        if (p.bloomsLevels?.length) children.push(makeBold("Bloom's Levels", p.bloomsLevels.join(', ')));
         // Objectives
         if (p.objectives?.length) {
           children.push(makeSubHeading('Learning Objectives'));
-          p.objectives.forEach(o => children.push(makeBullet(o)));
+          p.objectives.forEach((o) => children.push(makeBullet(o)));
         }
         // Warm-Up
         if (p.warmUp) {
@@ -629,13 +854,13 @@ function _buildDocxContentShared(featureId, data, children, docx) {
         // Materials
         if (p.materials?.length) {
           children.push(makeSubHeading('Materials & Resources'));
-          p.materials.forEach(m => children.push(makeBullet(m)));
+          p.materials.forEach((m) => children.push(makeBullet(m)));
         }
         // Session Outline — as a table
         if (p.outline?.length) {
           children.push(makeSubHeading('Session Outline'));
           const colDXA = [1100, 2000, 6260]; // Time, Activity, Description
-          const outlineRows = p.outline.map(row => {
+          const outlineRows = p.outline.map((row) => {
             let desc = row.description || '';
             if (row.grouping) desc += ` [${row.grouping}]`;
             if (row.instructorNotes || row.notes) desc += `\nInstructor Notes: ${row.instructorNotes || row.notes}`;
@@ -651,8 +876,10 @@ function _buildDocxContentShared(featureId, data, children, docx) {
           children.push(makeSubHeading('Formative Assessment'));
           if (p.formativeCheck.type) children.push(makeBold('Type', p.formativeCheck.type));
           if (p.formativeCheck.prompt) children.push(makeItalic(`"${p.formativeCheck.prompt}"`));
-          if (p.formativeCheck.objectiveAligned) children.push(makeBold('Aligns to', p.formativeCheck.objectiveAligned));
-          if (p.formativeCheck.instructorAction) children.push(makeItalic(`Instructor Action: ${p.formativeCheck.instructorAction}`));
+          if (p.formativeCheck.objectiveAligned)
+            children.push(makeBold('Aligns to', p.formativeCheck.objectiveAligned));
+          if (p.formativeCheck.instructorAction)
+            children.push(makeItalic(`Instructor Action: ${p.formativeCheck.instructorAction}`));
         }
         // UDL Notes
         if (p.udlNotes && (p.udlNotes.representation || p.udlNotes.engagement || p.udlNotes.expression)) {
@@ -668,7 +895,8 @@ function _buildDocxContentShared(featureId, data, children, docx) {
             if (p.homework.title) children.push(makeBold('Title', p.homework.title));
             if (p.homework.description) children.push(makeText(p.homework.description));
             if (p.homework.estimatedTime) children.push(makeBold('Estimated Time', p.homework.estimatedTime));
-            if (p.homework.connectionToNext) children.push(makeBold('Connection to Next Lesson', p.homework.connectionToNext));
+            if (p.homework.connectionToNext)
+              children.push(makeBold('Connection to Next Lesson', p.homework.connectionToNext));
           } else {
             children.push(makeText(String(p.homework)));
           }
@@ -687,15 +915,27 @@ function _buildDocxContentShared(featureId, data, children, docx) {
     // ─── RUBRICS ────────────────────────────────────────────────
     case 'rubrics': {
       const COL_DXA = [2060, 750, 1640, 1640, 1640, 1630];
-      for (const r of (data.rubrics || [])) {
+      for (const r of data.rubrics || []) {
         children.push(makeHeading(r.lessonTitle || r.title || 'Rubric'));
         if (r.title && r.lessonTitle) children.push(makeBold('Assessment', r.title));
         const rMeta = [r.totalPoints && `${r.totalPoints} points`, r.assessmentType, r.bloomsLevel].filter(Boolean);
         if (rMeta.length) children.push(makeText(rMeta.join(' · ')));
         const criteria = r.criteria || [];
         if (criteria.length > 0) {
-          children.push(makeTableFn(COL_DXA, ['Criterion', 'Weight', 'Excellent', 'Proficient', 'Developing', 'Beginning'],
-            criteria.map(c => [c.criterion || c.name || '', String(c.weight || ''), c.excellent || c.exemplary || '', c.proficient || '', c.developing || '', c.beginning || ''])));
+          children.push(
+            makeTableFn(
+              COL_DXA,
+              ['Criterion', 'Weight', 'Excellent', 'Proficient', 'Developing', 'Beginning'],
+              criteria.map((c) => [
+                c.criterion || c.name || '',
+                String(c.weight || ''),
+                c.excellent || c.exemplary || '',
+                c.proficient || '',
+                c.developing || '',
+                c.beginning || '',
+              ]),
+            ),
+          );
         }
         children.push(new Paragraph({ spacing: { before: 200, after: 100 }, children: [] }));
       }
@@ -705,12 +945,12 @@ function _buildDocxContentShared(featureId, data, children, docx) {
     // ─── SLIDE DECKS ────────────────────────────────────────────
     case 'slideDecks': {
       const key = data.decks ? 'decks' : 'slideDecks';
-      for (const d of (data[key] || [])) {
+      for (const d of data[key] || []) {
         children.push(makeHeading(d.lessonTitle || 'Deck'));
         for (let j = 0; j < (d.slides || []).length; j++) {
           const s = d.slides[j];
           children.push(makeBold(`Slide ${j + 1}`, s.title || ''));
-          (s.bullets || []).forEach(b => children.push(makeBullet(b)));
+          (s.bullets || []).forEach((b) => children.push(makeBullet(b)));
           if (s.speakerNotes) children.push(makeItalic(`Speaker Notes: ${s.speakerNotes}`));
         }
         children.push(new Paragraph({ spacing: { before: 200, after: 100 }, children: [] }));
@@ -721,14 +961,20 @@ function _buildDocxContentShared(featureId, data, children, docx) {
     // ─── QUIZ BANK ──────────────────────────────────────────────
     case 'quizBank': {
       const key = data.quizzes ? 'quizzes' : 'quizBank';
-      for (const quiz of (data[key] || [])) {
+      for (const quiz of data[key] || []) {
         children.push(makeHeading(quiz.lessonTitle || 'Quiz'));
-        if (quiz.bloomsCoverage?.length) children.push(makeBold('Bloom\'s Coverage', quiz.bloomsCoverage.join(', ')));
+        if (quiz.bloomsCoverage?.length) children.push(makeBold("Bloom's Coverage", quiz.bloomsCoverage.join(', ')));
         for (let j = 0; j < (quiz.questions || []).length; j++) {
           const q = quiz.questions[j];
-          const qMeta = [q.type, q.bloomsLevel, q.difficulty, q.points && `${q.points} pts`, q.estimatedMinutes && `~${q.estimatedMinutes} min`].filter(Boolean);
+          const qMeta = [
+            q.type,
+            q.bloomsLevel,
+            q.difficulty,
+            q.points && `${q.points} pts`,
+            q.estimatedMinutes && `~${q.estimatedMinutes} min`,
+          ].filter(Boolean);
           children.push(makeBold(`Q${j + 1}` + (qMeta.length ? ` (${qMeta.join(', ')})` : ''), q.question || ''));
-          if (q.options) q.options.forEach(o => children.push(makeBullet(o)));
+          if (q.options) q.options.forEach((o) => children.push(makeBullet(o)));
           if (q.answer) children.push(makeBold('Answer', q.answer));
           if (q.explanation) children.push(makeBold('Explanation', q.explanation));
           if (q.objectiveAligned) children.push(makeItalic(`Aligns to: ${q.objectiveAligned}`));
@@ -744,7 +990,7 @@ function _buildDocxContentShared(featureId, data, children, docx) {
 
     // ─── DISCUSSIONS ────────────────────────────────────────────
     case 'discussions': {
-      for (const d of (data.discussions || [])) {
+      for (const d of data.discussions || []) {
         children.push(makeHeading(d.lessonTitle || 'Discussion'));
         const dMeta = [d.bloomsLevel, d.format, d.estimatedDuration].filter(Boolean);
         if (dMeta.length) children.push(makeText(dMeta.join(' · ')));
@@ -754,7 +1000,7 @@ function _buildDocxContentShared(featureId, data, children, docx) {
         // Follow-up probes
         if (d.followUpProbes?.length) {
           children.push(makeSubHeading('Follow-Up Probes'));
-          d.followUpProbes.forEach(p => children.push(makeBullet(p)));
+          d.followUpProbes.forEach((p) => children.push(makeBullet(p)));
         }
         // Facilitation tips
         if (d.facilitationTips) {
@@ -767,12 +1013,12 @@ function _buildDocxContentShared(featureId, data, children, docx) {
         // Response starters
         if (d.responseStarters?.length) {
           children.push(makeSubHeading('Response Starters'));
-          d.responseStarters.forEach(s => children.push(makeBullet(s)));
+          d.responseStarters.forEach((s) => children.push(makeBullet(s)));
         }
         // Evaluation criteria
         if (d.evaluationCriteria?.length) {
           children.push(makeSubHeading('Evaluation Criteria'));
-          d.evaluationCriteria.forEach(c => children.push(makeBullet(c)));
+          d.evaluationCriteria.forEach((c) => children.push(makeBullet(c)));
         }
         if (d.equityConsiderations) children.push(makeBold('Equity Considerations', d.equityConsiderations));
         if (d.guidelines) children.push(makeBold('Guidelines', d.guidelines));
@@ -784,16 +1030,23 @@ function _buildDocxContentShared(featureId, data, children, docx) {
 
     // ─── ASSIGNMENTS ────────────────────────────────────────────
     case 'assignments': {
-      for (const a of (data.assignments || [])) {
+      for (const a of data.assignments || []) {
         children.push(makeHeading(a.title || 'Assignment'));
-        const aMeta = [a.assignmentType, a.bloomsLevel, a.dueWeek || a.dueDate, a.estimatedTime, a.totalPoints && `${a.totalPoints} pts`, a.percentOfGrade].filter(Boolean);
+        const aMeta = [
+          a.assignmentType,
+          a.bloomsLevel,
+          a.dueWeek || a.dueDate,
+          a.estimatedTime,
+          a.totalPoints && `${a.totalPoints} pts`,
+          a.percentOfGrade,
+        ].filter(Boolean);
         if (aMeta.length) children.push(makeText(aMeta.join(' · ')));
         if (a.relatedLessons?.length) children.push(makeBold('Related Lessons', a.relatedLessons.join(', ')));
         if (a.overview) children.push(makeBold('Overview', a.overview));
         if (a.description) children.push(makeBold('Description', a.description));
         if (a.objectives?.length) {
           children.push(makeSubHeading('Learning Objectives'));
-          a.objectives.forEach(o => children.push(makeBullet(o)));
+          a.objectives.forEach((o) => children.push(makeBullet(o)));
         }
         if (a.instructions?.length) {
           children.push(makeSubHeading('Instructions'));
@@ -816,14 +1069,14 @@ function _buildDocxContentShared(featureId, data, children, docx) {
         }
         if (a.deliverables?.length) {
           children.push(makeSubHeading('Deliverables'));
-          a.deliverables.forEach(d => children.push(makeBullet(typeof d === 'string' ? d : d.name || '')));
+          a.deliverables.forEach((d) => children.push(makeBullet(typeof d === 'string' ? d : d.name || '')));
         }
         if (a.submissionFormat) children.push(makeBold('Submission Format', a.submissionFormat));
         if (a.gradingCriteria) children.push(makeBold('Grading Criteria', a.gradingCriteria));
         // Scaffolding milestones
         if (a.scaffoldingMilestones?.length) {
           children.push(makeSubHeading('Scaffolding Milestones'));
-          a.scaffoldingMilestones.forEach(m => {
+          a.scaffoldingMilestones.forEach((m) => {
             const parts = [m.milestone || m.name || '', m.dueDate ? `(${m.dueDate})` : ''].filter(Boolean);
             children.push(makeBold(parts.join(' '), m.description || ''));
           });
@@ -831,7 +1084,7 @@ function _buildDocxContentShared(featureId, data, children, docx) {
         // Support resources
         if (a.supportResources?.length) {
           children.push(makeSubHeading('Support Resources'));
-          a.supportResources.forEach(r => children.push(makeBullet(typeof r === 'string' ? r : r.name || '')));
+          a.supportResources.forEach((r) => children.push(makeBullet(typeof r === 'string' ? r : r.name || '')));
         }
         if (a.academicIntegrityStatement) children.push(makeBold('Academic Integrity', a.academicIntegrityStatement));
         children.push(new Paragraph({ spacing: { before: 200, after: 100 }, children: [] }));
@@ -842,7 +1095,7 @@ function _buildDocxContentShared(featureId, data, children, docx) {
     // ─── STUDY GUIDES ───────────────────────────────────────────
     case 'studyGuides': {
       const key = data.guides ? 'guides' : 'studyGuides';
-      for (const g of (data[key] || [])) {
+      for (const g of data[key] || []) {
         children.push(makeHeading(g.lessonTitle || 'Study Guide'));
         if (g.examScope) children.push(makeText(g.examScope));
         if (g.summary) {
@@ -851,7 +1104,7 @@ function _buildDocxContentShared(featureId, data, children, docx) {
         }
         if (g.keyTerms?.length) {
           children.push(makeSubHeading('Key Terms'));
-          g.keyTerms.forEach(t => {
+          g.keyTerms.forEach((t) => {
             const parts = [t.definition || ''];
             if (t.example) parts.push(`Example: ${t.example}`);
             children.push(makeBold(t.term || '', parts.join(' — ')));
@@ -860,13 +1113,20 @@ function _buildDocxContentShared(featureId, data, children, docx) {
         // Concept connections
         if (g.conceptConnections?.length) {
           children.push(makeSubHeading('Concept Connections'));
-          g.conceptConnections.forEach(c => children.push(makeBullet(typeof c === 'string' ? c : `${c.from || ''} ↔ ${c.to || ''}: ${c.relationship || ''}`)));
+          g.conceptConnections.forEach((c) =>
+            children.push(
+              makeBullet(typeof c === 'string' ? c : `${c.from || ''} ↔ ${c.to || ''}: ${c.relationship || ''}`),
+            ),
+          );
         }
         // Common misconceptions
         if (g.commonMisconceptions?.length) {
           children.push(makeSubHeading('Common Misconceptions'));
-          g.commonMisconceptions.forEach(m => {
-            if (typeof m === 'string') { children.push(makeBullet(m)); return; }
+          g.commonMisconceptions.forEach((m) => {
+            if (typeof m === 'string') {
+              children.push(makeBullet(m));
+              return;
+            }
             children.push(makeBold('Misconception', m.misconception || ''));
             if (m.correction) children.push(makeItalic(`Correction: ${m.correction}`));
           });
@@ -875,7 +1135,10 @@ function _buildDocxContentShared(featureId, data, children, docx) {
         if (g.reviewQuestions?.length) {
           children.push(makeSubHeading('Review Questions'));
           g.reviewQuestions.forEach((q, j) => {
-            if (typeof q === 'string') { children.push(makeNumbered(j + 1, q)); return; }
+            if (typeof q === 'string') {
+              children.push(makeNumbered(j + 1, q));
+              return;
+            }
             const qMeta = [q.bloomsLevel].filter(Boolean);
             children.push(makeNumbered(j + 1, (q.question || q) + (qMeta.length ? ` [${qMeta.join(', ')}]` : '')));
             if (q.hint) children.push(makeItalic(`Hint: ${q.hint}`));
@@ -884,23 +1147,43 @@ function _buildDocxContentShared(featureId, data, children, docx) {
         // Practice activities
         if (g.practiceActivities?.length) {
           children.push(makeSubHeading('Practice Activities'));
-          g.practiceActivities.forEach(a => children.push(makeBullet(typeof a === 'string' ? a : a.activity || '')));
+          g.practiceActivities.forEach((a) => children.push(makeBullet(typeof a === 'string' ? a : a.activity || '')));
         }
         // Exam prep
         if (g.examPrep) {
           children.push(makeSubHeading('Exam Preparation'));
           if (Array.isArray(g.examPrep.keyTopicsToKnow) && g.examPrep.keyTopicsToKnow.length) {
             children.push(makeBold('Key Topics', ''));
-            g.examPrep.keyTopicsToKnow.forEach(t => children.push(makeBullet(typeof t === 'string' ? t : JSON.stringify(t))));
+            g.examPrep.keyTopicsToKnow.forEach((t) =>
+              children.push(makeBullet(typeof t === 'string' ? t : JSON.stringify(t))),
+            );
           }
           if (Array.isArray(g.examPrep.commonErrors) && g.examPrep.commonErrors.length) {
             children.push(makeBold('Common Errors', ''));
-            g.examPrep.commonErrors.forEach(e => children.push(makeBullet(typeof e === 'string' ? e : JSON.stringify(e))));
+            g.examPrep.commonErrors.forEach((e) =>
+              children.push(makeBullet(typeof e === 'string' ? e : JSON.stringify(e))),
+            );
           } else if (typeof g.examPrep.commonErrors === 'string') {
             children.push(makeBold('Common Errors', g.examPrep.commonErrors));
           }
-          if (g.examPrep.reviewStrategy) children.push(makeBold('Review Strategy', typeof g.examPrep.reviewStrategy === 'string' ? g.examPrep.reviewStrategy : JSON.stringify(g.examPrep.reviewStrategy)));
-          if (g.examPrep.timeManagement) children.push(makeBold('Time Management', typeof g.examPrep.timeManagement === 'string' ? g.examPrep.timeManagement : JSON.stringify(g.examPrep.timeManagement)));
+          if (g.examPrep.reviewStrategy)
+            children.push(
+              makeBold(
+                'Review Strategy',
+                typeof g.examPrep.reviewStrategy === 'string'
+                  ? g.examPrep.reviewStrategy
+                  : JSON.stringify(g.examPrep.reviewStrategy),
+              ),
+            );
+          if (g.examPrep.timeManagement)
+            children.push(
+              makeBold(
+                'Time Management',
+                typeof g.examPrep.timeManagement === 'string'
+                  ? g.examPrep.timeManagement
+                  : JSON.stringify(g.examPrep.timeManagement),
+              ),
+            );
         }
         // Legacy examTips
         if (g.examTips && !g.examPrep) children.push(makeBold('Exam Tips', g.examTips));
@@ -915,36 +1198,102 @@ function _buildDocxContentShared(featureId, data, children, docx) {
     case 'syllabus': {
       const syl = data.syllabus || data;
       // Course info
-      const infoLines = [syl.semester && `Semester: ${syl.semester}`, syl.credits && `Credits: ${syl.credits}`, syl.meetingPattern && `Meeting: ${syl.meetingPattern}`, syl.location && `Location: ${syl.location}`, syl.deliveryMode && `Delivery: ${syl.deliveryMode}`, syl.prerequisites && `Prerequisites: ${syl.prerequisites}`].filter(Boolean);
-      if (infoLines.length) infoLines.forEach(l => children.push(makeText(l)));
+      const infoLines = [
+        syl.semester && `Semester: ${syl.semester}`,
+        syl.credits && `Credits: ${syl.credits}`,
+        syl.meetingPattern && `Meeting: ${syl.meetingPattern}`,
+        syl.location && `Location: ${syl.location}`,
+        syl.deliveryMode && `Delivery: ${syl.deliveryMode}`,
+        syl.prerequisites && `Prerequisites: ${syl.prerequisites}`,
+      ].filter(Boolean);
+      if (infoLines.length) infoLines.forEach((l) => children.push(makeText(l)));
       // Instructor info
-      const instrLines = [syl.instructor && `Instructor: ${syl.instructor}`, syl.instructorEmail && `Email: ${syl.instructorEmail}`, syl.officeHours && `Office Hours: ${syl.officeHours}`, syl.officeLocation && `Office: ${syl.officeLocation}`].filter(Boolean);
-      if (instrLines.length) { children.push(makeHeading('Instructor Information')); instrLines.forEach(l => children.push(makeText(l))); }
-      if (syl.courseDescription) { children.push(makeHeading('Course Description')); children.push(makeText(syl.courseDescription)); }
-      if (syl.learningOutcomes?.length) { children.push(makeHeading('Student Learning Outcomes')); children.push(makeText('Upon successful completion of this course, students will be able to:')); syl.learningOutcomes.forEach((o, i) => children.push(makeBullet(`${i + 1}. ${o}`))); }
-      if (syl.requiredTexts?.length) { children.push(makeHeading('Required Texts & Materials')); syl.requiredTexts.forEach(t => { if (typeof t === 'string') { children.push(makeBullet(t)); return; } const parts = [t.author, t.title, t.edition && `(${t.edition})`, t.isbn && `ISBN: ${t.isbn}`, t.note].filter(Boolean); children.push(makeBullet(parts.join('. '))); }); }
+      const instrLines = [
+        syl.instructor && `Instructor: ${syl.instructor}`,
+        syl.instructorEmail && `Email: ${syl.instructorEmail}`,
+        syl.officeHours && `Office Hours: ${syl.officeHours}`,
+        syl.officeLocation && `Office: ${syl.officeLocation}`,
+      ].filter(Boolean);
+      if (instrLines.length) {
+        children.push(makeHeading('Instructor Information'));
+        instrLines.forEach((l) => children.push(makeText(l)));
+      }
+      if (syl.courseDescription) {
+        children.push(makeHeading('Course Description'));
+        children.push(makeText(syl.courseDescription));
+      }
+      if (syl.learningOutcomes?.length) {
+        children.push(makeHeading('Student Learning Outcomes'));
+        children.push(makeText('Upon successful completion of this course, students will be able to:'));
+        syl.learningOutcomes.forEach((o, i) => children.push(makeBullet(`${i + 1}. ${o}`)));
+      }
+      if (syl.requiredTexts?.length) {
+        children.push(makeHeading('Required Texts & Materials'));
+        syl.requiredTexts.forEach((t) => {
+          if (typeof t === 'string') {
+            children.push(makeBullet(t));
+            return;
+          }
+          const parts = [t.author, t.title, t.edition && `(${t.edition})`, t.isbn && `ISBN: ${t.isbn}`, t.note].filter(
+            Boolean,
+          );
+          children.push(makeBullet(parts.join('. ')));
+        });
+      }
       // Course Requirements
       const reqs = syl.courseRequirements || syl.gradingPolicy || [];
       if (reqs.length) {
         children.push(makeHeading('Course Requirements & Grading'));
-        const hasDesc = reqs.some(r => r.description);
+        const hasDesc = reqs.some((r) => r.description);
         if (hasDesc) {
-          children.push(makeTableFn([2810, 1120, 5430], ['Component', 'Weight', 'Description'], reqs.map(g => [g.name || g.component || '', g.weight || '', g.description || ''])));
+          children.push(
+            makeTableFn(
+              [2810, 1120, 5430],
+              ['Component', 'Weight', 'Description'],
+              reqs.map((g) => [g.name || g.component || '', g.weight || '', g.description || '']),
+            ),
+          );
         } else {
-          children.push(makeTableFn([7020, 2340], ['Component', 'Weight'], reqs.map(g => [g.name || g.component || '', g.weight || ''])));
+          children.push(
+            makeTableFn(
+              [7020, 2340],
+              ['Component', 'Weight'],
+              reqs.map((g) => [g.name || g.component || '', g.weight || '']),
+            ),
+          );
         }
       }
-      if (syl.gradingScale?.length) { children.push(makeHeading('Grading Scale')); children.push(makeText(syl.gradingScale.map(g => `${g.grade}: ${g.range}`).join('   |   '))); }
+      if (syl.gradingScale?.length) {
+        children.push(makeHeading('Grading Scale'));
+        children.push(makeText(syl.gradingScale.map((g) => `${g.grade}: ${g.range}`).join('   |   ')));
+      }
       // Course Schedule
       if (syl.weeklySchedule?.length) {
         children.push(makeHeading('Course Schedule'));
-        const hasDates = syl.weeklySchedule.some(w => w.dates);
-        const headers = hasDates ? ['Week', 'Dates', 'Topic', 'Readings', 'Assignments'] : ['Week', 'Topic', 'Readings', 'Assignments'];
+        const hasDates = syl.weeklySchedule.some((w) => w.dates);
+        const headers = hasDates
+          ? ['Week', 'Dates', 'Topic', 'Readings', 'Assignments']
+          : ['Week', 'Topic', 'Readings', 'Assignments'];
         const wsDXA = hasDates ? [780, 1200, 2500, 2440, 2440] : [936, 2995, 2810, 2619];
-        children.push(makeTableFn(wsDXA, headers, syl.weeklySchedule.map(w => hasDates ? [w.week || '', w.dates || '', w.topic || '', w.readings || '', w.assignments || ''] : [w.week || '', w.topic || '', w.readings || '', w.assignments || ''])));
+        children.push(
+          makeTableFn(
+            wsDXA,
+            headers,
+            syl.weeklySchedule.map((w) =>
+              hasDates
+                ? [w.week || '', w.dates || '', w.topic || '', w.readings || '', w.assignments || '']
+                : [w.week || '', w.topic || '', w.readings || '', w.assignments || ''],
+            ),
+          ),
+        );
       }
       // Policies
-      const policySection = (heading, text) => { if (text) { children.push(makeHeading(heading)); children.push(makeText(text)); } };
+      const policySection = (heading, text) => {
+        if (text) {
+          children.push(makeHeading(heading));
+          children.push(makeText(text));
+        }
+      };
       policySection('Attendance & Participation', syl.attendancePolicy);
       policySection('Late Work Policy', syl.latePolicy);
       policySection('Communication Policy', syl.communicationPolicy);
@@ -955,7 +1304,10 @@ function _buildDocxContentShared(featureId, data, children, docx) {
       policySection('Mental Health & Wellness Resources', syl.mentalHealth);
       policySection('Title IX / Non-Discrimination', syl.titleIX);
       policySection('Student Support Services', syl.supportServices);
-      if (syl.importantDates?.length) { children.push(makeHeading('Important Dates')); syl.importantDates.forEach(d => children.push(makeBold(d.date || '', d.event || ''))); }
+      if (syl.importantDates?.length) {
+        children.push(makeHeading('Important Dates'));
+        syl.importantDates.forEach((d) => children.push(makeBold(d.date || '', d.event || '')));
+      }
       break;
     }
 
@@ -985,10 +1337,10 @@ function _buildDocxContentShared(featureId, data, children, docx) {
 
     // ─── CUSTOM DELIVERABLES (generic) ───────────────────────────
     default: {
-      const arrKey = Object.keys(data).find(k => Array.isArray(data[k]) && data[k].length > 0);
+      const arrKey = Object.keys(data).find((k) => Array.isArray(data[k]) && data[k].length > 0);
       const items = arrKey ? data[arrKey] : [data];
       const headerKeys = new Set(['lessonTitle', 'title', 'name', 'weekNumber', 'week', 'tiers']);
-      const toLabel = (k) => k.replace(/([a-z])([A-Z])/g, '$1 $2').replace(/^./, s => s.toUpperCase());
+      const toLabel = (k) => k.replace(/([a-z])([A-Z])/g, '$1 $2').replace(/^./, (s) => s.toUpperCase());
 
       for (const item of items) {
         const title = item.lessonTitle || item.title || item.name || 'Item';
@@ -1007,18 +1359,21 @@ function _buildDocxContentShared(featureId, data, children, docx) {
             }
           } else if (Array.isArray(v)) {
             children.push(makeSubHeading(label));
-            v.forEach(el => {
+            v.forEach((el) => {
               if (typeof el === 'string') {
                 children.push(makeBullet(el));
               } else if (typeof el === 'object' && el !== null) {
-                const parts = Object.entries(el).filter(([, val]) => val != null && val !== '').map(([ek, ev]) => `${toLabel(ek)}: ${typeof ev === 'string' ? ev : JSON.stringify(ev)}`);
+                const parts = Object.entries(el)
+                  .filter(([, val]) => val != null && val !== '')
+                  .map(([ek, ev]) => `${toLabel(ek)}: ${typeof ev === 'string' ? ev : JSON.stringify(ev)}`);
                 children.push(makeBullet(parts.join(' · ')));
               }
             });
           } else if (typeof v === 'object') {
             children.push(makeSubHeading(label));
             for (const [sk, sv] of Object.entries(v)) {
-              if (sv != null && sv !== '') children.push(makeBold(toLabel(sk), typeof sv === 'string' ? sv : JSON.stringify(sv)));
+              if (sv != null && sv !== '')
+                children.push(makeBold(toLabel(sk), typeof sv === 'string' ? sv : JSON.stringify(sv)));
             }
           } else {
             children.push(makeBold(label, String(v)));
@@ -1032,8 +1387,19 @@ function _buildDocxContentShared(featureId, data, children, docx) {
 
 export async function exportDeliverableDocx(featureId, data, courseName) {
   const {
-    Document, Packer, Paragraph, TextRun, HeadingLevel, AlignmentType,
-    Table, TableRow, TableCell, WidthType, BorderStyle, ShadingType, TableLayoutType,
+    Document,
+    Packer,
+    Paragraph,
+    TextRun,
+    HeadingLevel,
+    AlignmentType,
+    Table,
+    TableRow,
+    TableCell,
+    WidthType,
+    BorderStyle,
+    ShadingType,
+    TableLayoutType,
   } = await getDocx();
   const saveAs = await getSaveAs();
 
@@ -1042,20 +1408,44 @@ export async function exportDeliverableDocx(featureId, data, courseName) {
   const children = [];
 
   // Title
-  children.push(new Paragraph({
-    alignment: AlignmentType.CENTER,
-    spacing: { line: LINE_SP, after: 120 },
-    children: [new TextRun({ text: `${courseName || 'Course'} — ${label}`, bold: true, size: H1_SIZE, font: FONT, color: ACCENT })],
-  }));
-  children.push(new Paragraph({
-    alignment: AlignmentType.CENTER,
-    spacing: { after: 300 },
-    border: { bottom: { style: BorderStyle.SINGLE, size: 6, color: 'CCCCCC', space: 8 } },
-    children: [],
-  }));
+  children.push(
+    new Paragraph({
+      alignment: AlignmentType.CENTER,
+      spacing: { line: LINE_SP, after: 120 },
+      children: [
+        new TextRun({
+          text: `${courseName || 'Course'} — ${label}`,
+          bold: true,
+          size: H1_SIZE,
+          font: FONT,
+          color: ACCENT,
+        }),
+      ],
+    }),
+  );
+  children.push(
+    new Paragraph({
+      alignment: AlignmentType.CENTER,
+      spacing: { after: 300 },
+      border: { bottom: { style: BorderStyle.SINGLE, size: 6, color: 'CCCCCC', space: 8 } },
+      children: [],
+    }),
+  );
 
   // Build content using shared helper
-  _buildDocxContentShared(featureId, data, children, { Paragraph, TextRun, HeadingLevel, Table, TableRow, TableCell, WidthType, ShadingType, TableLayoutType, BorderStyle, THIN_BORDER });
+  _buildDocxContentShared(featureId, data, children, {
+    Paragraph,
+    TextRun,
+    HeadingLevel,
+    Table,
+    TableRow,
+    TableCell,
+    WidthType,
+    ShadingType,
+    TableLayoutType,
+    BorderStyle,
+    THIN_BORDER,
+  });
 
   const doc = new Document({
     styles: { default: { document: { run: { font: FONT, size: BODY_SIZE } } } },
@@ -1113,10 +1503,15 @@ export async function exportDeliverableToGoogleSheets(featureId, data, courseNam
   });
 
   // ── Styling constants (matching xlsxGenerator.js) ──
-  const HEADER_FILL  = { type: 'pattern', pattern: 'solid', fgColor: { argb: 'FF4472C4' } };
-  const HEADER_FONT  = { name: 'Inter', size: 10, bold: true, color: { argb: 'FFFFFFFF' } };
-  const DATA_FONT    = { name: 'Inter', size: 10 };
-  const BORDER       = { top: { style: 'thin', color: { argb: 'FFB4C6E7' } }, left: { style: 'thin', color: { argb: 'FFB4C6E7' } }, bottom: { style: 'thin', color: { argb: 'FFB4C6E7' } }, right: { style: 'thin', color: { argb: 'FFB4C6E7' } } };
+  const HEADER_FILL = { type: 'pattern', pattern: 'solid', fgColor: { argb: 'FF4472C4' } };
+  const HEADER_FONT = { name: 'Inter', size: 10, bold: true, color: { argb: 'FFFFFFFF' } };
+  const DATA_FONT = { name: 'Inter', size: 10 };
+  const BORDER = {
+    top: { style: 'thin', color: { argb: 'FFB4C6E7' } },
+    left: { style: 'thin', color: { argb: 'FFB4C6E7' } },
+    bottom: { style: 'thin', color: { argb: 'FFB4C6E7' } },
+    right: { style: 'thin', color: { argb: 'FFB4C6E7' } },
+  };
   const ALT_ROW_FILL = { type: 'pattern', pattern: 'solid', fgColor: { argb: 'FFF2F6FC' } };
 
   // ── Header row ──
@@ -1170,7 +1565,9 @@ export async function exportAllDeliverables(format, deliverables, courseName, co
         const { generateDocx } = await import('./docxGenerator.js');
         results.push(await generateDocx(courseMap, columns));
       }
-    } catch (e) { console.warn('Course map export failed:', e); }
+    } catch (e) {
+      console.warn('Course map export failed:', e);
+    }
   }
 
   for (const [featureId, entry] of Object.entries(deliverables)) {
@@ -1180,8 +1577,11 @@ export async function exportAllDeliverables(format, deliverables, courseName, co
       else if (format === 'pdf') results.push(await exportDeliverablePdf(featureId, entry.data, courseName));
       else if (format === 'docx') results.push(await exportDeliverableDocx(featureId, entry.data, courseName));
       else if (format === 'gdocs') results.push(await exportDeliverableToGoogleDocs(featureId, entry.data, courseName));
-      else if (format === 'gsheets') results.push(await exportDeliverableToGoogleSheets(featureId, entry.data, courseName));
-    } catch (e) { console.warn(`Export ${featureId} failed:`, e); }
+      else if (format === 'gsheets')
+        results.push(await exportDeliverableToGoogleSheets(featureId, entry.data, courseName));
+    } catch (e) {
+      console.warn(`Export ${featureId} failed:`, e);
+    }
   }
   return results;
 }
@@ -1196,8 +1596,19 @@ export async function exportAllDeliverables(format, deliverables, courseName, co
  */
 export async function buildDeliverableDocxBlob(featureId, data, courseName) {
   const {
-    Document, Packer, Paragraph, TextRun, HeadingLevel, AlignmentType,
-    Table, TableRow, TableCell, WidthType, BorderStyle, ShadingType, TableLayoutType,
+    Document,
+    Packer,
+    Paragraph,
+    TextRun,
+    HeadingLevel,
+    AlignmentType,
+    Table,
+    TableRow,
+    TableCell,
+    WidthType,
+    BorderStyle,
+    ShadingType,
+    TableLayoutType,
   } = await getDocx();
 
   const label = resolveFeatureLabel(featureId);
@@ -1205,20 +1616,44 @@ export async function buildDeliverableDocxBlob(featureId, data, courseName) {
   const children = [];
 
   // Title header (same as exportDeliverableDocx)
-  children.push(new Paragraph({
-    alignment: AlignmentType.CENTER,
-    spacing: { line: LINE_SP, after: 120 },
-    children: [new TextRun({ text: `${courseName || 'Course'} — ${label}`, bold: true, size: H1_SIZE, font: FONT, color: ACCENT })],
-  }));
-  children.push(new Paragraph({
-    alignment: AlignmentType.CENTER,
-    spacing: { after: 300 },
-    border: { bottom: { style: BorderStyle.SINGLE, size: 6, color: 'CCCCCC', space: 8 } },
-    children: [],
-  }));
+  children.push(
+    new Paragraph({
+      alignment: AlignmentType.CENTER,
+      spacing: { line: LINE_SP, after: 120 },
+      children: [
+        new TextRun({
+          text: `${courseName || 'Course'} — ${label}`,
+          bold: true,
+          size: H1_SIZE,
+          font: FONT,
+          color: ACCENT,
+        }),
+      ],
+    }),
+  );
+  children.push(
+    new Paragraph({
+      alignment: AlignmentType.CENTER,
+      spacing: { after: 300 },
+      border: { bottom: { style: BorderStyle.SINGLE, size: 6, color: 'CCCCCC', space: 8 } },
+      children: [],
+    }),
+  );
 
   // Build content using shared helper
-  _buildDocxContentShared(featureId, data, children, { Paragraph, TextRun, HeadingLevel, Table, TableRow, TableCell, WidthType, ShadingType, TableLayoutType, BorderStyle, THIN_BORDER });
+  _buildDocxContentShared(featureId, data, children, {
+    Paragraph,
+    TextRun,
+    HeadingLevel,
+    Table,
+    TableRow,
+    TableCell,
+    WidthType,
+    ShadingType,
+    TableLayoutType,
+    BorderStyle,
+    THIN_BORDER,
+  });
 
   const doc = new Document({
     styles: { default: { document: { run: { font: FONT, size: BODY_SIZE } } } },
@@ -1251,17 +1686,17 @@ export function exportRubricGradebook(rubricData, studentCount = 30) {
     const title = rubric.title || `Rubric ${ri + 1}`;
 
     // Row 1: rubric metadata
-    const metaRow = [`${title} (Metadata)`, 'Max Points', ...criteria.map(c => c.points ?? ''), '', ''];
+    const metaRow = [`${title} (Metadata)`, 'Max Points', ...criteria.map((c) => c.points ?? ''), '', ''];
     rows.push(metaRow);
 
     // Row 2: weights sub-header
-    const weightRow = ['', 'Weight %', ...criteria.map(c => `${c.weight ?? ''}%`), '', ''];
+    const weightRow = ['', 'Weight %', ...criteria.map((c) => `${c.weight ?? ''}%`), '', ''];
     rows.push(weightRow);
 
     // Row 3: column headers
     const headerRow = [
       'Student Name',
-      ...criteria.map(c => c.criterion || c.name || `Criterion ${criteria.indexOf(c) + 1}`),
+      ...criteria.map((c) => c.criterion || c.name || `Criterion ${criteria.indexOf(c) + 1}`),
       'Total Score',
       'Feedback',
     ];
@@ -1269,12 +1704,7 @@ export function exportRubricGradebook(rubricData, studentCount = 30) {
 
     // Student rows
     for (let s = 0; s < studentCount; s++) {
-      const studentRow = [
-        `Student ${s + 1}`,
-        ...criteria.map(() => ''),
-        '',
-        '',
-      ];
+      const studentRow = [`Student ${s + 1}`, ...criteria.map(() => ''), '', ''];
       rows.push(studentRow);
     }
 
@@ -1282,15 +1712,19 @@ export function exportRubricGradebook(rubricData, studentCount = 30) {
     rows.push([]);
   });
 
-  const csvContent = rows.map(row =>
-    row.map(cell => {
-      const s = String(cell ?? '');
-      if (s.includes(',') || s.includes('"') || s.includes('\n')) {
-        return '"' + s.replace(/"/g, '""') + '"';
-      }
-      return s;
-    }).join(',')
-  ).join('\r\n');
+  const csvContent = rows
+    .map((row) =>
+      row
+        .map((cell) => {
+          const s = String(cell ?? '');
+          if (s.includes(',') || s.includes('"') || s.includes('\n')) {
+            return '"' + s.replace(/"/g, '""') + '"';
+          }
+          return s;
+        })
+        .join(','),
+    )
+    .join('\r\n');
 
   const blob = new Blob([csvContent], { type: 'text/csv;charset=utf-8;' });
   const url = URL.createObjectURL(blob);

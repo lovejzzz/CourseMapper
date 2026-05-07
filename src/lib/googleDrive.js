@@ -1,28 +1,11 @@
 import { buildDocxBlob } from './docxGenerator';
+import { cacheToken, getCachedToken, hasValidToken, clearTokenCache } from './googleTokenCache';
 
 const CLIENT_ID = '64961514263-r4lb3mg64v3j40csb3s764sgleo7ngbf.apps.googleusercontent.com';
 const SCOPES = 'https://www.googleapis.com/auth/drive.file';
 
-let tokenClient = null;
 let gisLoaded = false;
-
-// ── Token cache (in-memory only) ──
-let cachedToken = null;
-let tokenExpiry = 0;
-
-function cacheToken(token) {
-  cachedToken = token;
-  tokenExpiry = Date.now() + 3600_000; // 1 hour
-}
-
-export function clearTokenCache() {
-  cachedToken = null;
-  tokenExpiry = 0;
-}
-
-export function hasValidToken() {
-  return !!(cachedToken && Date.now() < tokenExpiry - 300_000);
-}
+let tokenClient = null;
 
 /**
  * Inject an access token obtained from Firebase Google sign-in.
@@ -45,7 +28,10 @@ function loadGIS() {
     if (document.getElementById('gis-script')) {
       // Script tag exists, wait for it to load
       const existing = document.getElementById('gis-script');
-      existing.addEventListener('load', () => { gisLoaded = true; resolve(); });
+      existing.addEventListener('load', () => {
+        gisLoaded = true;
+        resolve();
+      });
       existing.addEventListener('error', () => reject(new Error('Failed to load Google Identity Services')));
       return;
     }
@@ -54,7 +40,10 @@ function loadGIS() {
     script.src = 'https://accounts.google.com/gsi/client';
     script.async = true;
     script.defer = true;
-    script.onload = () => { gisLoaded = true; resolve(); };
+    script.onload = () => {
+      gisLoaded = true;
+      resolve();
+    };
     script.onerror = () => reject(new Error('Failed to load Google Identity Services'));
     document.head.appendChild(script);
   });
@@ -72,9 +61,8 @@ function loadGIS() {
  */
 function getAccessToken() {
   // Return cached token if still valid (5 min buffer)
-  if (cachedToken && Date.now() < tokenExpiry - 300_000) {
-    return Promise.resolve(cachedToken);
-  }
+  const cachedToken = getCachedToken();
+  if (cachedToken) return Promise.resolve(cachedToken);
 
   return new Promise((resolve, reject) => {
     if (!window.google?.accounts?.oauth2) {
@@ -93,7 +81,12 @@ function getAccessToken() {
           didRespond = true;
           if (response.error) {
             // If silent attempt failed because user interaction is required, retry with account picker
-            if (prompt === '' && (response.error === 'interaction_required' || response.error === 'consent_required' || response.error === 'login_required')) {
+            if (
+              prompt === '' &&
+              (response.error === 'interaction_required' ||
+                response.error === 'consent_required' ||
+                response.error === 'login_required')
+            ) {
               tryRequest('select_account');
             } else {
               reject(new Error(response.error_description || response.error));
@@ -137,10 +130,12 @@ async function getOrCreateFolder(accessToken, folderName) {
   if (folderCache.has(folderName)) return folderCache.get(folderName);
 
   // Search for existing folder
-  const query = encodeURIComponent(`name='${folderName}' and mimeType='application/vnd.google-apps.folder' and trashed=false`);
+  const query = encodeURIComponent(
+    `name='${folderName}' and mimeType='application/vnd.google-apps.folder' and trashed=false`,
+  );
   const searchRes = await fetch(
     `https://www.googleapis.com/drive/v3/files?q=${query}&fields=files(id,name)&pageSize=1`,
-    { headers: { Authorization: `Bearer ${accessToken}` } }
+    { headers: { Authorization: `Bearer ${accessToken}` } },
   );
   if (searchRes.ok) {
     const { files } = await searchRes.json();
@@ -201,11 +196,12 @@ async function uploadToDrive(accessToken, blob, fileName, targetMimeType, parent
     const CRLF = '\r\n';
     const preamble = encoder.encode(
       `--${boundary}${CRLF}` +
-      `Content-Type: application/json; charset=UTF-8${CRLF}${CRLF}` +
-      metadataJson + CRLF +
-      `--${boundary}${CRLF}` +
-      `Content-Type: ${blob.type || 'application/octet-stream'}${CRLF}` +
-      `Content-Transfer-Encoding: binary${CRLF}${CRLF}`
+        `Content-Type: application/json; charset=UTF-8${CRLF}${CRLF}` +
+        metadataJson +
+        CRLF +
+        `--${boundary}${CRLF}` +
+        `Content-Type: ${blob.type || 'application/octet-stream'}${CRLF}` +
+        `Content-Transfer-Encoding: binary${CRLF}${CRLF}`,
     );
     const epilogue = encoder.encode(`${CRLF}--${boundary}--`);
 
@@ -215,14 +211,17 @@ async function uploadToDrive(accessToken, blob, fileName, targetMimeType, parent
     body.set(fileBytes, preamble.length);
     body.set(epilogue, preamble.length + fileBytes.length);
 
-    const res = await fetch('https://www.googleapis.com/upload/drive/v3/files?uploadType=multipart&fields=id,webViewLink', {
-      method: 'POST',
-      headers: {
-        Authorization: `Bearer ${accessToken}`,
-        'Content-Type': `multipart/related; boundary=${boundary}`,
+    const res = await fetch(
+      'https://www.googleapis.com/upload/drive/v3/files?uploadType=multipart&fields=id,webViewLink',
+      {
+        method: 'POST',
+        headers: {
+          Authorization: `Bearer ${accessToken}`,
+          'Content-Type': `multipart/related; boundary=${boundary}`,
+        },
+        body: body,
       },
-      body: body,
-    });
+    );
 
     return res;
   };
@@ -234,7 +233,10 @@ async function uploadToDrive(accessToken, blob, fileName, targetMimeType, parent
   if (res.status === 404 && parentFolderId) {
     // Remove the stale folder ID from cache
     for (const [key, val] of folderCache) {
-      if (val === parentFolderId) { folderCache.delete(key); break; }
+      if (val === parentFolderId) {
+        folderCache.delete(key);
+        break;
+      }
     }
     console.warn('Drive folder not found (possibly trashed) — retrying upload to root');
     res = await doUpload(null);
@@ -296,7 +298,9 @@ export function openTabNow() {
 </div>
 </div></body></html>`);
     tab.document.close();
-  } catch { /* cross-origin or closed — ignore */ }
+  } catch {
+    /* cross-origin or closed — ignore */
+  }
   return tab;
 }
 
@@ -313,16 +317,27 @@ export function updateTabStatus(tab, stepId, status = 'active') {
       const allSteps = tab.document.querySelectorAll('.step');
       let found = false;
       for (const s of allSteps) {
-        if (s === stepEl) { found = true; break; }
+        if (s === stepEl) {
+          found = true;
+          break;
+        }
         s.className = 'step done';
       }
       stepEl.className = `step ${status}`;
     }
     // Update main status text
     const statusEl = tab.document.getElementById('status');
-    const labels = { auth: 'Signing in to Google…', build: 'Building file…', folder: 'Creating Drive folder…', upload: 'Uploading to Google Drive…', open: 'Opening file…' };
+    const labels = {
+      auth: 'Signing in to Google…',
+      build: 'Building file…',
+      folder: 'Creating Drive folder…',
+      upload: 'Uploading to Google Drive…',
+      open: 'Opening file…',
+    };
     if (statusEl && labels[stepId]) statusEl.textContent = labels[stepId];
-  } catch { /* cross-origin or closed — ignore */ }
+  } catch {
+    /* cross-origin or closed — ignore */
+  }
 }
 
 function redirectTab(tab, url) {
@@ -399,7 +414,13 @@ export async function saveToGoogleDocsBlob(blob, fileName, courseName, preOpened
     const folderId = courseName ? await getOrCreateFolder(accessToken, `CourseMapper – ${courseName}`) : null;
 
     updateTabStatus(tab, 'upload');
-    const result = await uploadToDrive(accessToken, blob, `${fileName}.docx`, 'application/vnd.google-apps.document', folderId);
+    const result = await uploadToDrive(
+      accessToken,
+      blob,
+      `${fileName}.docx`,
+      'application/vnd.google-apps.document',
+      folderId,
+    );
 
     updateTabStatus(tab, 'open', 'done');
     if (result.webViewLink) redirectTab(tab, result.webViewLink);
@@ -435,7 +456,13 @@ export async function saveToGoogleSheets(xlsxBuffer, fileName, courseName, preOp
     const folderId = courseName ? await getOrCreateFolder(accessToken, `CourseMapper – ${courseName}`) : null;
 
     updateTabStatus(tab, 'upload');
-    const result = await uploadToDrive(accessToken, blob, fileName, 'application/vnd.google-apps.spreadsheet', folderId);
+    const result = await uploadToDrive(
+      accessToken,
+      blob,
+      fileName,
+      'application/vnd.google-apps.spreadsheet',
+      folderId,
+    );
 
     updateTabStatus(tab, 'open', 'done');
     if (result.webViewLink) redirectTab(tab, result.webViewLink);
@@ -473,7 +500,13 @@ export async function saveToGoogleSlides(pptxBlob, fileName, courseName, preOpen
     const folderId = courseName ? await getOrCreateFolder(accessToken, `CourseMapper – ${courseName}`) : null;
 
     updateTabStatus(tab, 'upload');
-    const result = await uploadToDrive(accessToken, blob, `${fileName}.pptx`, 'application/vnd.google-apps.presentation', folderId);
+    const result = await uploadToDrive(
+      accessToken,
+      blob,
+      `${fileName}.pptx`,
+      'application/vnd.google-apps.presentation',
+      folderId,
+    );
 
     updateTabStatus(tab, 'open', 'done');
     if (result.webViewLink) redirectTab(tab, result.webViewLink);

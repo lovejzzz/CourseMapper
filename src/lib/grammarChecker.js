@@ -36,13 +36,13 @@ export async function checkGrammar(text, language = 'en-US', signal) {
     const json = await res.json();
 
     return {
-      matches: (json.matches || []).map(m => ({
+      matches: (json.matches || []).map((m) => ({
         message: m.message,
         shortMessage: m.shortMessage || m.message,
         offset: m.offset,
         length: m.length,
         context: m.context?.text || '',
-        replacements: (m.replacements || []).slice(0, 3).map(r => r.value),
+        replacements: (m.replacements || []).slice(0, 3).map((r) => r.value),
         rule: m.rule?.id || '',
         category: m.rule?.category?.name || 'Grammar',
       })),

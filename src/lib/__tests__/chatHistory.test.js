@@ -33,7 +33,7 @@ function getArrayKey(featureId, parsed) {
     }
   }
   // Fallback: first array key
-  const arrKey = Object.keys(parsed).find(k => Array.isArray(parsed[k]));
+  const arrKey = Object.keys(parsed).find((k) => Array.isArray(parsed[k]));
   return arrKey || null;
 }
 
@@ -50,41 +50,39 @@ function buildAgentChatHistory(messages) {
       if (text) history.push({ role: 'assistant', content: text });
     } else if (m.role === 'proposal') {
       const options = m.proposal?.options || [];
-      const isLastProposal = messages.findLastIndex(x => x.role === 'proposal') === messages.indexOf(m);
+      const isLastProposal = messages.findLastIndex((x) => x.role === 'proposal') === messages.indexOf(m);
 
       if (isLastProposal && m.status === 'pending') {
-        const optionDetails = options.map(o => {
-          const itemJson = o.action?.item ? JSON.stringify(o.action.item) : '';
-          return `${o.label}. "${o.title}" (${o.description || ''}) → ${o.action?.type} on ${o.action?.featureId || 'unknown'}${itemJson ? ` | item: ${itemJson}` : ''}`;
-        }).join('\n');
+        const optionDetails = options
+          .map((o) => {
+            const itemJson = o.action?.item ? JSON.stringify(o.action.item) : '';
+            return `${o.label}. "${o.title}" (${o.description || ''}) → ${o.action?.type} on ${o.action?.featureId || 'unknown'}${itemJson ? ` | item: ${itemJson}` : ''}`;
+          })
+          .join('\n');
         history.push({
           role: 'assistant',
           content: `[PROPOSAL (pending — user has not selected yet):\n${optionDetails}\n]`,
         });
       } else if (m.status === 'selected') {
-        const chosen = options.find(o => o.label === m.selectedLabel);
+        const chosen = options.find((o) => o.label === m.selectedLabel);
         history.push({
           role: 'assistant',
           content: `[I proposed options. User selected ${m.selectedLabel}: "${chosen?.title || '?'}". Applied successfully.]`,
         });
       } else if (m.status === 'failed') {
-        const failedOpt = options.find(o => o.label === m.failedLabel);
+        const failedOpt = options.find((o) => o.label === m.failedLabel);
         history.push({
           role: 'assistant',
           content: `[I proposed options. User tried ${m.failedLabel}: "${failedOpt?.title || '?'}" but FAILED: ${m.failedMessage || 'unknown error'}. Other options still available.]`,
         });
       } else if (m.status === 'dismissed') {
-        const optionSummary = options.map(o =>
-          `${o.label}. "${o.title}" (${o.description || ''})`
-        ).join('; ');
+        const optionSummary = options.map((o) => `${o.label}. "${o.title}" (${o.description || ''})`).join('; ');
         history.push({
           role: 'assistant',
           content: `[I proposed: ${optionSummary}. User dismissed and asked for changes.]`,
         });
       } else {
-        const optionList = options.map(o =>
-          `${o.label}. "${o.title}" → ${o.action?.type}`
-        ).join('; ');
+        const optionList = options.map((o) => `${o.label}. "${o.title}" → ${o.action?.type}`).join('; ');
         history.push({
           role: 'assistant',
           content: `[I proposed: ${optionList}. Awaiting user selection.]`,
@@ -102,14 +100,17 @@ function buildAgentChatHistory(messages) {
       if (r) {
         history.push({
           role: 'assistant',
-          content: `[Course health: ${r.errorCount} errors, ${r.warningCount} warnings. ${r.findings.slice(0, 3).map(f => f.message).join('; ')}]`,
+          content: `[Course health: ${r.errorCount} errors, ${r.warningCount} warnings. ${r.findings
+            .slice(0, 3)
+            .map((f) => f.message)
+            .join('; ')}]`,
         });
       }
     } else if (m.role === 'changeSummary') {
       const s = m.summary;
-      const desc = (s?.changes || []).map(c =>
-        `${c.type} ${c.count} in ${c.featureId}${c.label ? ` (${c.label})` : ''}`
-      ).join(', ');
+      const desc = (s?.changes || [])
+        .map((c) => `${c.type} ${c.count} in ${c.featureId}${c.label ? ` (${c.label})` : ''}`)
+        .join(', ');
       history.push({ role: 'assistant', content: `[Applied changes: ${desc}]` });
     } else if (m.role === 'diagram') {
       history.push({ role: 'assistant', content: `[Generated diagram: ${m.diagram?.title || 'concept diagram'}]` });
@@ -118,14 +119,17 @@ function buildAgentChatHistory(messages) {
     } else if (m.role === 'imageSearch') {
       history.push({ role: 'assistant', content: `[Image search: ${m.imageSearch?.query || 'images'}]` });
     } else if (m.role === 'syncSuggestion') {
-      const featureNames = (m.plan || []).map(p => p.featureId).join(', ');
+      const featureNames = (m.plan || []).map((p) => p.featureId).join(', ');
       const statusText = m.status === 'done' ? 'synced' : m.status === 'skipped' ? 'skipped' : 'pending';
       history.push({ role: 'assistant', content: `[Sync suggestion: ${featureNames} — ${statusText}]` });
     } else if (m.role === 'agentProgress') {
       const steps = m.steps || [];
       if (steps.length > 0) {
-        const stepSummary = steps.map(s => `${s.tool}: ${s.summary || 'done'}`).join(', ');
-        history.push({ role: 'assistant', content: `[Agent used ${steps.length} tool${steps.length !== 1 ? 's' : ''}: ${stepSummary}]` });
+        const stepSummary = steps.map((s) => `${s.tool}: ${s.summary || 'done'}`).join(', ');
+        history.push({
+          role: 'assistant',
+          content: `[Agent used ${steps.length} tool${steps.length !== 1 ? 's' : ''}: ${stepSummary}]`,
+        });
       }
     } else if (m.role === 'error') {
       history.push({ role: 'assistant', content: `[Error: ${m.text || 'unknown error'}]` });
@@ -143,7 +147,7 @@ function buildAgentChatHistory(messages) {
     if (m.role === 'user') score += 5;
     else if (m.role === 'assistant' && m.content?.length > 50) score += 3;
     else score += 1;
-    if (m.role === 'user' && i === history.findIndex(h => h.role === 'user')) score += 4;
+    if (m.role === 'user' && i === history.findIndex((h) => h.role === 'user')) score += 4;
     if (i >= history.length - 6) score += 4;
     if (m.content?.startsWith('[PROPOSAL')) score += 2;
     if (m.content?.includes('FAILED') || m.content?.includes('Error')) score += 2;
@@ -151,7 +155,7 @@ function buildAgentChatHistory(messages) {
   });
 
   const sorted = [...scored].sort((a, b) => b._score - a._score);
-  const kept = new Set(sorted.slice(0, MAX_MESSAGES).map(m => m._idx));
+  const kept = new Set(sorted.slice(0, MAX_MESSAGES).map((m) => m._idx));
 
   const result = [];
   let chars = 0;
@@ -181,7 +185,7 @@ function generateDiffPreview(action, courseMap, deliverables) {
     } else if (type === 'removeItem') {
       const entry = deliverables?.[action.featureId];
       if (entry?.data) {
-        const arrKey = Object.keys(entry.data).find(k => Array.isArray(entry.data[k]));
+        const arrKey = Object.keys(entry.data).find((k) => Array.isArray(entry.data[k]));
         if (arrKey) {
           const lessonItems = entry.data[arrKey]?.[action.lessonIndex];
           const items = Array.isArray(lessonItems) ? lessonItems : lessonItems?.items;
@@ -207,7 +211,9 @@ function generateDiffPreview(action, courseMap, deliverables) {
       const lesson = courseMap?.lessons?.[action.lessonIndex];
       preview.lessonTitle = lesson?.title ?? `Lesson ${(action.lessonIndex ?? 0) + 1}`;
     }
-  } catch { /* preview is best-effort */ }
+  } catch {
+    /* preview is best-effort */
+  }
   return preview;
 }
 
@@ -247,20 +253,22 @@ describe('buildAgentChatHistory', () => {
 
   describe('proposal — pending (last proposal)', () => {
     it('serializes with full option details', () => {
-      const messages = [{
-        role: 'proposal',
-        status: 'pending',
-        proposal: {
-          options: [
-            {
-              label: 'A',
-              title: 'Add quiz',
-              description: 'Adds a quiz to lesson 1',
-              action: { type: 'addItem', featureId: 'quizBank', item: { question: 'What is AI?' } },
-            },
-          ],
+      const messages = [
+        {
+          role: 'proposal',
+          status: 'pending',
+          proposal: {
+            options: [
+              {
+                label: 'A',
+                title: 'Add quiz',
+                description: 'Adds a quiz to lesson 1',
+                action: { type: 'addItem', featureId: 'quizBank', item: { question: 'What is AI?' } },
+              },
+            ],
+          },
         },
-      }];
+      ];
       const result = buildAgentChatHistory(messages);
       expect(result).toHaveLength(1);
       expect(result[0].role).toBe('assistant');
@@ -274,17 +282,19 @@ describe('buildAgentChatHistory', () => {
 
   describe('proposal — selected', () => {
     it('shows which option was chosen', () => {
-      const messages = [{
-        role: 'proposal',
-        status: 'selected',
-        selectedLabel: 'B',
-        proposal: {
-          options: [
-            { label: 'A', title: 'Option A', action: { type: 'addItem' } },
-            { label: 'B', title: 'Option B', action: { type: 'editItem' } },
-          ],
+      const messages = [
+        {
+          role: 'proposal',
+          status: 'selected',
+          selectedLabel: 'B',
+          proposal: {
+            options: [
+              { label: 'A', title: 'Option A', action: { type: 'addItem' } },
+              { label: 'B', title: 'Option B', action: { type: 'editItem' } },
+            ],
+          },
         },
-      }];
+      ];
       const result = buildAgentChatHistory(messages);
       expect(result[0].content).toContain('User selected B');
       expect(result[0].content).toContain('Option B');
@@ -294,15 +304,17 @@ describe('buildAgentChatHistory', () => {
 
   describe('proposal — failed', () => {
     it('shows failure message', () => {
-      const messages = [{
-        role: 'proposal',
-        status: 'failed',
-        failedLabel: 'A',
-        failedMessage: 'Index out of range',
-        proposal: {
-          options: [{ label: 'A', title: 'Delete row', action: { type: 'removeItem' } }],
+      const messages = [
+        {
+          role: 'proposal',
+          status: 'failed',
+          failedLabel: 'A',
+          failedMessage: 'Index out of range',
+          proposal: {
+            options: [{ label: 'A', title: 'Delete row', action: { type: 'removeItem' } }],
+          },
         },
-      }];
+      ];
       const result = buildAgentChatHistory(messages);
       expect(result[0].content).toContain('FAILED');
       expect(result[0].content).toContain('Index out of range');
@@ -312,16 +324,18 @@ describe('buildAgentChatHistory', () => {
 
   describe('proposal — dismissed', () => {
     it('shows dismissed text with option summary', () => {
-      const messages = [{
-        role: 'proposal',
-        status: 'dismissed',
-        proposal: {
-          options: [
-            { label: 'A', title: 'Plan A', description: 'first plan', action: { type: 'addItem' } },
-            { label: 'B', title: 'Plan B', description: 'second plan', action: { type: 'editItem' } },
-          ],
+      const messages = [
+        {
+          role: 'proposal',
+          status: 'dismissed',
+          proposal: {
+            options: [
+              { label: 'A', title: 'Plan A', description: 'first plan', action: { type: 'addItem' } },
+              { label: 'B', title: 'Plan B', description: 'second plan', action: { type: 'editItem' } },
+            ],
+          },
         },
-      }];
+      ];
       const result = buildAgentChatHistory(messages);
       expect(result[0].content).toContain('dismissed');
       expect(result[0].content).toContain('Plan A');
@@ -333,16 +347,15 @@ describe('buildAgentChatHistory', () => {
 
   describe('research', () => {
     it('shows query and total result count', () => {
-      const messages = [{
-        role: 'research',
-        research: {
-          query: 'bloom taxonomy',
-          results: [
-            { items: [{ title: 'A' }, { title: 'B' }] },
-            { items: [{ title: 'C' }] },
-          ],
+      const messages = [
+        {
+          role: 'research',
+          research: {
+            query: 'bloom taxonomy',
+            results: [{ items: [{ title: 'A' }, { title: 'B' }] }, { items: [{ title: 'C' }] }],
+          },
         },
-      }];
+      ];
       const result = buildAgentChatHistory(messages);
       expect(result[0].content).toContain('bloom taxonomy');
       expect(result[0].content).toContain('3 results');
@@ -357,18 +370,16 @@ describe('buildAgentChatHistory', () => {
 
   describe('validation', () => {
     it('shows error and warning counts', () => {
-      const messages = [{
-        role: 'validation',
-        report: {
-          errorCount: 2,
-          warningCount: 5,
-          findings: [
-            { message: 'Missing title' },
-            { message: 'Empty section' },
-            { message: 'No objectives' },
-          ],
+      const messages = [
+        {
+          role: 'validation',
+          report: {
+            errorCount: 2,
+            warningCount: 5,
+            findings: [{ message: 'Missing title' }, { message: 'Empty section' }, { message: 'No objectives' }],
+          },
         },
-      }];
+      ];
       const result = buildAgentChatHistory(messages);
       expect(result[0].content).toContain('2 errors');
       expect(result[0].content).toContain('5 warnings');
@@ -383,15 +394,17 @@ describe('buildAgentChatHistory', () => {
 
   describe('changeSummary', () => {
     it('shows change details', () => {
-      const messages = [{
-        role: 'changeSummary',
-        summary: {
-          changes: [
-            { type: 'added', count: 3, featureId: 'quizBank', label: 'Quiz Bank' },
-            { type: 'edited', count: 1, featureId: 'syllabus' },
-          ],
+      const messages = [
+        {
+          role: 'changeSummary',
+          summary: {
+            changes: [
+              { type: 'added', count: 3, featureId: 'quizBank', label: 'Quiz Bank' },
+              { type: 'edited', count: 1, featureId: 'syllabus' },
+            ],
+          },
         },
-      }];
+      ];
       const result = buildAgentChatHistory(messages);
       expect(result[0].content).toContain('added 3 in quizBank (Quiz Bank)');
       expect(result[0].content).toContain('edited 1 in syllabus');
@@ -432,53 +445,63 @@ describe('buildAgentChatHistory', () => {
 
   describe('syncSuggestion', () => {
     it('shows feature names and status', () => {
-      const result = buildAgentChatHistory([{
-        role: 'syncSuggestion',
-        plan: [{ featureId: 'quizBank' }, { featureId: 'rubrics' }],
-        status: 'done',
-      }]);
+      const result = buildAgentChatHistory([
+        {
+          role: 'syncSuggestion',
+          plan: [{ featureId: 'quizBank' }, { featureId: 'rubrics' }],
+          status: 'done',
+        },
+      ]);
       expect(result[0].content).toContain('quizBank, rubrics');
       expect(result[0].content).toContain('synced');
     });
 
     it('maps "skipped" status', () => {
-      const result = buildAgentChatHistory([{
-        role: 'syncSuggestion',
-        plan: [{ featureId: 'quizBank' }],
-        status: 'skipped',
-      }]);
+      const result = buildAgentChatHistory([
+        {
+          role: 'syncSuggestion',
+          plan: [{ featureId: 'quizBank' }],
+          status: 'skipped',
+        },
+      ]);
       expect(result[0].content).toContain('skipped');
     });
 
     it('maps unknown status to "pending"', () => {
-      const result = buildAgentChatHistory([{
-        role: 'syncSuggestion',
-        plan: [{ featureId: 'quizBank' }],
-        status: 'waiting',
-      }]);
+      const result = buildAgentChatHistory([
+        {
+          role: 'syncSuggestion',
+          plan: [{ featureId: 'quizBank' }],
+          status: 'waiting',
+        },
+      ]);
       expect(result[0].content).toContain('pending');
     });
   });
 
   describe('agentProgress', () => {
     it('shows tool summary', () => {
-      const result = buildAgentChatHistory([{
-        role: 'agentProgress',
-        steps: [
-          { tool: 'search', summary: 'found 5 results' },
-          { tool: 'edit', summary: 'updated quiz' },
-        ],
-      }]);
+      const result = buildAgentChatHistory([
+        {
+          role: 'agentProgress',
+          steps: [
+            { tool: 'search', summary: 'found 5 results' },
+            { tool: 'edit', summary: 'updated quiz' },
+          ],
+        },
+      ]);
       expect(result[0].content).toContain('Agent used 2 tools');
       expect(result[0].content).toContain('search: found 5 results');
       expect(result[0].content).toContain('edit: updated quiz');
     });
 
     it('uses singular "tool" for 1 step', () => {
-      const result = buildAgentChatHistory([{
-        role: 'agentProgress',
-        steps: [{ tool: 'search', summary: 'done' }],
-      }]);
+      const result = buildAgentChatHistory([
+        {
+          role: 'agentProgress',
+          steps: [{ tool: 'search', summary: 'done' }],
+        },
+      ]);
       expect(result[0].content).toContain('1 tool:');
     });
 
@@ -557,7 +580,7 @@ describe('buildAgentChatHistory', () => {
     }));
     const result = buildAgentChatHistory(messages);
     // The last few messages should be present
-    const contents = result.map(r => r.content);
+    const contents = result.map((r) => r.content);
     expect(contents).toContain('msg-29');
     expect(contents).toContain('msg-28');
   });
@@ -579,7 +602,7 @@ describe('buildAgentChatHistory', () => {
       })),
     ];
     const result = buildAgentChatHistory(messages);
-    const userContents = result.filter(r => r.role === 'user').map(r => r.content);
+    const userContents = result.filter((r) => r.role === 'user').map((r) => r.content);
     // Critical user messages should survive the trim
     expect(userContents).toContain('Design my course on data science');
     expect(userContents).toContain('Now add quizzes');
@@ -627,9 +650,7 @@ describe('generateDiffPreview', () => {
       },
       {
         title: 'Neural Networks',
-        sections: [
-          { topic: 'Perceptrons', objectives: 'Build simple models' },
-        ],
+        sections: [{ topic: 'Perceptrons', objectives: 'Build simple models' }],
       },
     ],
   };
@@ -645,16 +666,12 @@ describe('generateDiffPreview', () => {
     },
     slideDecks: {
       data: {
-        decks: [
-          [{ title: 'Slide 1', content: 'Intro' }],
-        ],
+        decks: [[{ title: 'Slide 1', content: 'Intro' }]],
       },
     },
     discussions: {
       data: {
-        discussions: [
-          [{ prompt: 'Discuss ML ethics' }],
-        ],
+        discussions: [[{ prompt: 'Discuss ML ethics' }]],
       },
     },
   };
@@ -728,9 +745,7 @@ describe('generateDiffPreview', () => {
       const deliverables = {
         quizBank: {
           data: {
-            quizzes: [
-              { items: [{ question: 'Q1' }, { question: 'Q2' }] },
-            ],
+            quizzes: [{ items: [{ question: 'Q1' }, { question: 'Q2' }] }],
           },
         },
       };

@@ -69,10 +69,13 @@ function buildAdaptiveStarters(courseMap, activeTab, deliverables) {
   } else if (activeTab === 'courseMap') {
     // On course map tab — suggest course-level actions
     if (lessons.length > 0) {
-      const weakLesson = lessons.reduce((best, l, i) => {
-        const objCount = (l?.sections || []).reduce((s, sec) => s + (sec.learningObjectives?.length || 0), 0);
-        return objCount < best.count ? { idx: i, count: objCount } : best;
-      }, { idx: 0, count: Infinity });
+      const weakLesson = lessons.reduce(
+        (best, l, i) => {
+          const objCount = (l?.sections || []).reduce((s, sec) => s + (sec.learningObjectives?.length || 0), 0);
+          return objCount < best.count ? { idx: i, count: objCount } : best;
+        },
+        { idx: 0, count: Infinity },
+      );
       const title = lessons[weakLesson.idx]?.title || `Lesson ${weakLesson.idx + 1}`;
       starters.push({ text: `Review ${title} for gaps`, icon: 'search' });
     }
@@ -83,10 +86,12 @@ function buildAdaptiveStarters(courseMap, activeTab, deliverables) {
     try {
       const report = generateCourseHealthReport(courseMap, deliverables);
       if (report?.findings?.length > 0) {
-        const finding = report.findings.find(f => f.suggestedPrompt);
+        const finding = report.findings.find((f) => f.suggestedPrompt);
         if (finding) starters.push({ text: finding.suggestedPrompt, icon: 'search' });
       }
-    } catch { /* fall through */ }
+    } catch {
+      /* fall through */
+    }
   }
 
   // 3. Fallback — generic but useful
@@ -114,11 +119,12 @@ function buildCourseMapStarters(courseMap) {
     let targetLesson = lessons[0];
     let targetIdx = 0;
     for (let i = 1; i < lessons.length; i++) {
-      const objLen = (lessons[i]?.sections || [])
-        .reduce((sum, s) => sum + (s.learningObjectives?.length || 0), 0);
-      const curLen = (targetLesson?.sections || [])
-        .reduce((sum, s) => sum + (s.learningObjectives?.length || 0), 0);
-      if (objLen < curLen && objLen > 0) { targetLesson = lessons[i]; targetIdx = i; }
+      const objLen = (lessons[i]?.sections || []).reduce((sum, s) => sum + (s.learningObjectives?.length || 0), 0);
+      const curLen = (targetLesson?.sections || []).reduce((sum, s) => sum + (s.learningObjectives?.length || 0), 0);
+      if (objLen < curLen && objLen > 0) {
+        targetLesson = lessons[i];
+        targetIdx = i;
+      }
     }
     const title = targetLesson?.title || `Lesson ${targetIdx + 1}`;
     starters.push({ text: `Review ${title} for gaps`, icon: 'search' });
@@ -135,7 +141,15 @@ function buildCourseMapStarters(courseMap) {
 
 // ── Chat opener — context-aware starters ────────────────────────────────────
 
-export function getChatOpener(courseMap, isAgentMode, activeTab, deliverables = null, isGenerating = false, isDelivGenerating = false) {
+export function getChatOpener(
+  courseMap,
+  isAgentMode,
+  activeTab,
+  deliverables = null,
+  isGenerating = false,
+  isDelivGenerating = false,
+  isAgentProviderReady = true,
+) {
   // Generation in progress — don't show premature lesson count or onboarding message
   if (isGenerating) {
     return {
@@ -154,6 +168,18 @@ export function getChatOpener(courseMap, isAgentMode, activeTab, deliverables = 
 
   // Tier 3: Agent mode — all deliverables generated, show adaptive starters
   if (isAgentMode) {
+    if (!isAgentProviderReady) {
+      return {
+        greeting: 'Your generated workspace is ready. Configure AI to use the agent.',
+        starters: [
+          {
+            text: 'Configure AI to use agent',
+            icon: 'settings',
+            action: 'configure-ai',
+          },
+        ],
+      };
+    }
     const starters = buildAdaptiveStarters(courseMap, activeTab, deliverables);
     return {
       greeting: 'I can edit your course materials directly. Try asking me to:',
@@ -173,7 +199,7 @@ export function getChatOpener(courseMap, isAgentMode, activeTab, deliverables = 
 
   // Tier 1: No course map — onboarding
   return {
-    greeting: 'I\'m your teaching assistant. Upload a syllabus or describe your course to get started.',
+    greeting: "I'm your teaching assistant. Upload a syllabus or describe your course to get started.",
     starters: [
       {
         text: 'How do I get started?',

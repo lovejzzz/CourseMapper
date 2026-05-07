@@ -21,17 +21,17 @@ export function exportRubricGradebook(rubricData, studentCount = 30) {
     const title = rubric.title || `Rubric ${ri + 1}`;
 
     // Row 1: rubric metadata
-    const metaRow = [`${title} (Metadata)`, 'Max Points', ...criteria.map(c => c.points ?? ''), '', ''];
+    const metaRow = [`${title} (Metadata)`, 'Max Points', ...criteria.map((c) => c.points ?? ''), '', ''];
     rows.push(metaRow);
 
     // Row 2: weights sub-header
-    const weightRow = ['', 'Weight %', ...criteria.map(c => `${c.weight ?? ''}%`), '', ''];
+    const weightRow = ['', 'Weight %', ...criteria.map((c) => `${c.weight ?? ''}%`), '', ''];
     rows.push(weightRow);
 
     // Row 3: column headers
     const headerRow = [
       'Student Name',
-      ...criteria.map(c => c.criterion || c.name || `Criterion ${criteria.indexOf(c) + 1}`),
+      ...criteria.map((c) => c.criterion || c.name || `Criterion ${criteria.indexOf(c) + 1}`),
       'Total Score',
       'Feedback',
     ];
@@ -39,12 +39,7 @@ export function exportRubricGradebook(rubricData, studentCount = 30) {
 
     // Student rows
     for (let s = 0; s < studentCount; s++) {
-      const studentRow = [
-        `Student ${s + 1}`,
-        ...criteria.map(() => ''),
-        '',
-        '',
-      ];
+      const studentRow = [`Student ${s + 1}`, ...criteria.map(() => ''), '', ''];
       rows.push(studentRow);
     }
 
@@ -52,15 +47,19 @@ export function exportRubricGradebook(rubricData, studentCount = 30) {
     rows.push([]);
   });
 
-  const csvContent = rows.map(row =>
-    row.map(cell => {
-      const s = String(cell ?? '');
-      if (s.includes(',') || s.includes('"') || s.includes('\n')) {
-        return '"' + s.replace(/"/g, '""') + '"';
-      }
-      return s;
-    }).join(',')
-  ).join('\r\n');
+  const csvContent = rows
+    .map((row) =>
+      row
+        .map((cell) => {
+          const s = String(cell ?? '');
+          if (s.includes(',') || s.includes('"') || s.includes('\n')) {
+            return '"' + s.replace(/"/g, '""') + '"';
+          }
+          return s;
+        })
+        .join(','),
+    )
+    .join('\r\n');
 
   const blob = new Blob([csvContent], { type: 'text/csv;charset=utf-8;' });
   const url = URL.createObjectURL(blob);

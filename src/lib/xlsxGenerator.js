@@ -13,23 +13,29 @@ async function getSaveAs() {
 
 // Default header descriptions for known column keys
 const DEFAULT_HEADERS = {
-  learningGoals: 'Learning Goals\n\nWhat are the big ideas and questions to be addressed in the course? (Derived from Values, Knowledge, Skills, Behaviors and Competencies outlined in syllabus)',
+  learningGoals:
+    'Learning Goals\n\nWhat are the big ideas and questions to be addressed in the course? (Derived from Values, Knowledge, Skills, Behaviors and Competencies outlined in syllabus)',
   topicSection: 'Topic/Section',
-  learningObjectives: "Learning Objectives\n\nStudents will be able to...\n\n[Learning Objective: Describe what students will need to be able to know and do using active verbs from Revised Bloom's taxonomy]",
-  weeklyAssessments: 'Weekly Assessments\n\n...by doing or demonstrating through some kind of task or activity...\n\nState the Evidence that student has achieved to demonstrate the desired learning objective.',
-  asyncActivities: 'ASYNCHRONOUS Activities & Instructional Strategies\n\nWhat must students do or see demonstrated in order to perform effectively and achieve desired results?',
-  syncActivities: 'SYNCHRONOUS Activities & Instructional Strategies\n\nWhat must students do or see demonstrated in order to perform effectively and achieve desired results?',
-  technologyNeeded: 'Technology Needed\n\nIdentify specific platforms or types of technology that will be needed to facilitate the assessments and activities.',
-  presentationFormat: 'Presentation Format of Instructional Material\n\nWhat kind of media or delivery format will be most effective for communicating the instructional material?',
-  supportingResources: 'Supporting Resources\n\nWhat additional materials and resources are best suited to accomplish these goals?\n\n[Provide supporting resources for the content & instruction]',
+  learningObjectives:
+    "Learning Objectives\n\nStudents will be able to...\n\n[Learning Objective: Describe what students will need to be able to know and do using active verbs from Revised Bloom's taxonomy]",
+  weeklyAssessments:
+    'Weekly Assessments\n\n...by doing or demonstrating through some kind of task or activity...\n\nState the Evidence that student has achieved to demonstrate the desired learning objective.',
+  asyncActivities:
+    'ASYNCHRONOUS Activities & Instructional Strategies\n\nWhat must students do or see demonstrated in order to perform effectively and achieve desired results?',
+  syncActivities:
+    'SYNCHRONOUS Activities & Instructional Strategies\n\nWhat must students do or see demonstrated in order to perform effectively and achieve desired results?',
+  technologyNeeded:
+    'Technology Needed\n\nIdentify specific platforms or types of technology that will be needed to facilitate the assessments and activities.',
+  presentationFormat:
+    'Presentation Format of Instructional Material\n\nWhat kind of media or delivery format will be most effective for communicating the instructional material?',
+  supportingResources:
+    'Supporting Resources\n\nWhat additional materials and resources are best suited to accomplish these goals?\n\n[Provide supporting resources for the content & instruction]',
   evaluateDesign: 'Evaluate Design\n\n[Ask yourself: Is everything in this row aligned and coherent?]',
 };
 
 function buildColumns(customColumns) {
   // Always start with the Week/Module column
-  const cols = [
-    { key: 'weekModule', header: 'Week or Module [Topic]', width: 28 },
-  ];
+  const cols = [{ key: 'weekModule', header: 'Week or Module [Topic]', width: 28 }];
 
   if (customColumns && customColumns.length > 0) {
     for (const col of customColumns) {
@@ -43,7 +49,11 @@ function buildColumns(customColumns) {
   } else {
     // Fallback to all defaults
     for (const [key, header] of Object.entries(DEFAULT_HEADERS)) {
-      cols.push({ key, header, width: key === 'evaluateDesign' ? 18 : key === 'technologyNeeded' ? 25 : key === 'presentationFormat' ? 22 : 35 });
+      cols.push({
+        key,
+        header,
+        width: key === 'evaluateDesign' ? 18 : key === 'technologyNeeded' ? 25 : key === 'presentationFormat' ? 22 : 35,
+      });
     }
   }
 
@@ -84,7 +94,7 @@ const LESSON_FILL = {
 // Flatten a cell value to a plain string (handles arrays from AI responses)
 function toStr(val) {
   if (val == null) return '';
-  if (Array.isArray(val)) return val.map(v => String(v)).join('\n');
+  if (Array.isArray(val)) return val.map((v) => String(v)).join('\n');
   return String(val);
 }
 
@@ -93,7 +103,7 @@ function stripEmptyColumns(columns, courseMap) {
   if (!courseMap?.lessons?.length) return columns;
   const populated = new Set(['weekModule']); // always keep the lesson title column
   for (const lesson of courseMap.lessons) {
-    for (const section of (lesson.sections?.length ? lesson.sections : [{}])) {
+    for (const section of lesson.sections?.length ? lesson.sections : [{}]) {
       for (const col of columns) {
         if (populated.has(col.key)) continue;
         const val = section[col.key];
@@ -103,7 +113,7 @@ function stripEmptyColumns(columns, courseMap) {
       }
     }
   }
-  return columns.filter(col => populated.has(col.key));
+  return columns.filter((col) => populated.has(col.key));
 }
 
 /**
@@ -137,7 +147,7 @@ export async function generateXlsx(courseMap, customColumns) {
     COLUMNS.reduce((obj, col) => {
       obj[col.key] = col.header;
       return obj;
-    }, {})
+    }, {}),
   );
 
   // Style header row
@@ -155,7 +165,7 @@ export async function generateXlsx(courseMap, customColumns) {
   for (const lesson of courseMap.lessons) {
     const startRow = currentRow;
 
-    const sections = (lesson.sections && lesson.sections.length > 0) ? lesson.sections : [{}];
+    const sections = lesson.sections && lesson.sections.length > 0 ? lesson.sections : [{}];
     for (const section of sections) {
       const rowData = { weekModule: section === sections[0] ? lesson.title : '' };
       for (const col of COLUMNS) {
@@ -226,7 +236,10 @@ export async function buildXlsxBuffer(courseMap, customColumns) {
   worksheet.columns = COLUMNS.map((col) => ({ key: col.key, width: col.width }));
 
   const headerRow = worksheet.addRow(
-    COLUMNS.reduce((obj, col) => { obj[col.key] = col.header; return obj; }, {})
+    COLUMNS.reduce((obj, col) => {
+      obj[col.key] = col.header;
+      return obj;
+    }, {}),
   );
   headerRow.height = 120;
   headerRow.eachCell((cell) => {
@@ -239,7 +252,7 @@ export async function buildXlsxBuffer(courseMap, customColumns) {
   let currentRow = 2;
   for (const lesson of courseMap.lessons) {
     const startRow = currentRow;
-    const sections = (lesson.sections && lesson.sections.length > 0) ? lesson.sections : [{}];
+    const sections = lesson.sections && lesson.sections.length > 0 ? lesson.sections : [{}];
     for (const section of sections) {
       const rowData = { weekModule: section === sections[0] ? lesson.title : '' };
       for (const col of COLUMNS) {

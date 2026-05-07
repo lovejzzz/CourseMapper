@@ -11,16 +11,29 @@ const MODEL = 'claude-sonnet-4-6';
 const run = KEY ? test : test.skip;
 
 const COURSE = {
-  courseName: 'ML', semester: 'F26',
+  courseName: 'ML',
+  semester: 'F26',
   lessons: [
     { title: 'L1', sections: [{ learningObjectives: 'x' }] },
     { title: 'L2', sections: [{ learningObjectives: 'y' }] },
   ],
 };
-const DELIV = { quizBank: { status: 'done', data: { quizzes: [
-  { lt: 'L1', qs: [{ q: 'q1', ty: 'multiple_choice', bl: 'Remember', df: 'easy', pt: 1, op: ['a','b','c','d'], an: 'a' }] },
-  { lt: 'L2', qs: [{ q: 'q2', ty: 'short_answer', bl: 'Understand', df: 'medium', pt: 2, an: '...' }] },
-]}}};
+const DELIV = {
+  quizBank: {
+    status: 'done',
+    data: {
+      quizzes: [
+        {
+          lt: 'L1',
+          qs: [
+            { q: 'q1', ty: 'multiple_choice', bl: 'Remember', df: 'easy', pt: 1, op: ['a', 'b', 'c', 'd'], an: 'a' },
+          ],
+        },
+        { lt: 'L2', qs: [{ q: 'q2', ty: 'short_answer', bl: 'Understand', df: 'medium', pt: 2, an: '...' }] },
+      ],
+    },
+  },
+};
 
 run('second identical call hits the prompt cache', { timeout: 120_000 }, async () => {
   const ctx = { apiKey: KEY, model: MODEL, courseMap: COURSE, deliverables: DELIV, maxIterations: 3 };
@@ -36,7 +49,9 @@ run('second identical call hits the prompt cache', { timeout: 120_000 }, async (
   const wrote = (u1.cache_creation_input_tokens || 0) > 0;
   // Second call should read from it
   const read = (u2.cache_read_input_tokens || 0) > 0;
-  expect(wrote || read, `Cache should be written or read. r1=${JSON.stringify(u1)} r2=${JSON.stringify(u2)}`).toBe(true);
+  expect(wrote || read, `Cache should be written or read. r1=${JSON.stringify(u1)} r2=${JSON.stringify(u2)}`).toBe(
+    true,
+  );
   // And the second call's cached-read count should be substantial (the bulk of the system prompt)
   if (read) {
     expect(u2.cache_read_input_tokens, 'cache read should cover most of the static prompt').toBeGreaterThan(1000);
@@ -46,7 +61,11 @@ run('second identical call hits the prompt cache', { timeout: 120_000 }, async (
 run('static-prefix cache survives a course switch', { timeout: 120_000 }, async () => {
   // Prime the cache with course A.
   const r1 = await runMultiTurn({
-    apiKey: KEY, model: MODEL, courseMap: COURSE, deliverables: DELIV, maxIterations: 3,
+    apiKey: KEY,
+    model: MODEL,
+    courseMap: COURSE,
+    deliverables: DELIV,
+    maxIterations: 3,
     userMessage: 'How many lessons?',
   });
   // Now swap to a different course and different deliverable content. The
@@ -54,20 +73,43 @@ run('static-prefix cache survives a course switch', { timeout: 120_000 }, async 
   // so even though the dynamic tail is fresh, we should see a cache READ
   // covering the prefix — NOT a full re-write.
   const OTHER_COURSE = {
-    courseName: 'Organic Chemistry', semester: 'Sp27',
+    courseName: 'Organic Chemistry',
+    semester: 'Sp27',
     lessons: [
       { title: 'Hydrocarbons', sections: [{ learningObjectives: 'classify alkanes' }] },
       { title: 'Functional Groups', sections: [{ learningObjectives: 'identify -OH, -COOH' }] },
       { title: 'Reactions', sections: [{ learningObjectives: 'predict products' }] },
     ],
   };
-  const OTHER_DELIV = { quizBank: { status: 'done', data: { quizzes: [
-    { lt: 'Hydrocarbons', qs: [{ q: 'alkane formula?', ty: 'short_answer', bl: 'Remember', df: 'easy', pt: 1, an: 'CnH2n+2' }] },
-    { lt: 'Functional Groups', qs: [{ q: 'what is -COOH?', ty: 'short_answer', bl: 'Remember', df: 'easy', pt: 1, an: 'carboxylic acid' }] },
-    { lt: 'Reactions', qs: [{ q: 'addition vs substitution?', ty: 'short_answer', bl: 'Understand', df: 'medium', pt: 2, an: '...' }] },
-  ]}}};
+  const OTHER_DELIV = {
+    quizBank: {
+      status: 'done',
+      data: {
+        quizzes: [
+          {
+            lt: 'Hydrocarbons',
+            qs: [{ q: 'alkane formula?', ty: 'short_answer', bl: 'Remember', df: 'easy', pt: 1, an: 'CnH2n+2' }],
+          },
+          {
+            lt: 'Functional Groups',
+            qs: [{ q: 'what is -COOH?', ty: 'short_answer', bl: 'Remember', df: 'easy', pt: 1, an: 'carboxylic acid' }],
+          },
+          {
+            lt: 'Reactions',
+            qs: [
+              { q: 'addition vs substitution?', ty: 'short_answer', bl: 'Understand', df: 'medium', pt: 2, an: '...' },
+            ],
+          },
+        ],
+      },
+    },
+  };
   const r2 = await runMultiTurn({
-    apiKey: KEY, model: MODEL, courseMap: OTHER_COURSE, deliverables: OTHER_DELIV, maxIterations: 3,
+    apiKey: KEY,
+    model: MODEL,
+    courseMap: OTHER_COURSE,
+    deliverables: OTHER_DELIV,
+    maxIterations: 3,
     userMessage: 'How many lessons?',
   });
 

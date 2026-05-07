@@ -15,7 +15,7 @@ export function QualityBadge({ quality }) {
   return (
     <div className="relative inline-block">
       <button
-        onClick={() => setShowTips(v => !v)}
+        onClick={() => setShowTips((v) => !v)}
         className={`flex items-center gap-1.5 text-[9px] font-bold px-2 py-0.5 rounded-full border ${colors.bg} ${colors.text} ${colors.border} hover:opacity-80 transition-opacity`}
         title="Quality score — click for tips"
       >
@@ -25,7 +25,13 @@ export function QualityBadge({ quality }) {
         <div className="absolute right-0 top-full mt-1.5 w-64 bg-white/98 backdrop-blur-xl rounded-xl border border-slate-200/60 shadow-xl z-50 p-3 space-y-2 animate-spring-in">
           <div className="flex items-center justify-between mb-1">
             <span className="text-[10px] font-bold text-slate-700">Quality Scorecard</span>
-            <button onClick={() => setShowTips(false)} className="text-slate-400 hover:text-slate-600 text-[10px]" aria-label="Close quality scorecard">✕</button>
+            <button
+              onClick={() => setShowTips(false)}
+              className="text-slate-400 hover:text-slate-600 text-[10px]"
+              aria-label="Close quality scorecard"
+            >
+              ✕
+            </button>
           </div>
           <div className="space-y-1.5">
             {[
@@ -39,7 +45,10 @@ export function QualityBadge({ quality }) {
                 <div key={label} className="flex items-center gap-2">
                   <span className="text-[9px] text-slate-500 w-28 flex-shrink-0">{label}</span>
                   <div className="flex-1 h-1 bg-slate-100 rounded-full overflow-hidden">
-                    <div className={`h-1 rounded-full ${c.bg.replace('bg-', 'bg-').replace('-100', '-400')}`} style={{ width: `${score * 10}%` }} />
+                    <div
+                      className={`h-1 rounded-full ${c.bg.replace('bg-', 'bg-').replace('-100', '-400')}`}
+                      style={{ width: `${score * 10}%` }}
+                    />
                   </div>
                   <span className={`text-[9px] font-bold ${c.text}`}>{score}</span>
                 </div>
@@ -50,7 +59,9 @@ export function QualityBadge({ quality }) {
             <div className="pt-2 border-t border-slate-100 space-y-1">
               <p className="text-[9px] font-bold text-slate-400 uppercase tracking-wider">Improvement Tips</p>
               {tips.map((tip, i) => (
-                <p key={i} className="text-[10px] text-slate-600 leading-snug">• {tip}</p>
+                <p key={i} className="text-[10px] text-slate-600 leading-snug">
+                  • {tip}
+                </p>
               ))}
             </div>
           )}
@@ -92,7 +103,13 @@ export function E({ value, path, onEdit, className = '', multiline = false, onAI
   if (editing) {
     // Determine a reasonable minimum height based on content length
     const textLen = (draft || '').length;
-    const minRows = multiline ? Math.max(3, (draft || '').split('\n').length) : (textLen > 100 ? 3 : textLen > 40 ? 2 : 1);
+    const minRows = multiline
+      ? Math.max(3, (draft || '').split('\n').length)
+      : textLen > 100
+        ? 3
+        : textLen > 40
+          ? 2
+          : 1;
     // Strip white/light text classes so text is always visible on the white bg textarea
     const editClass = className
       .replace(/\btext-white\b/g, '')
@@ -103,16 +120,26 @@ export function E({ value, path, onEdit, className = '', multiline = false, onAI
         ref={textareaRef}
         autoFocus
         value={draft}
-        onChange={e => {
+        onChange={(e) => {
           setDraft(e.target.value);
           // Auto-resize on typing
           e.target.style.height = 'auto';
           e.target.style.height = Math.max(e.target.scrollHeight, 32) + 'px';
         }}
-        onBlur={() => { if (draft !== (value || '')) onEdit(path, draft); setEditing(false); }}
-        onKeyDown={e => {
-          if (e.key === 'Escape') { setDraft(value || ''); setEditing(false); }
-          if (e.key === 'Enter' && !multiline && !e.shiftKey) { e.preventDefault(); if (draft !== (value || '')) onEdit(path, draft); setEditing(false); }
+        onBlur={() => {
+          if (draft !== (value || '')) onEdit(path, draft);
+          setEditing(false);
+        }}
+        onKeyDown={(e) => {
+          if (e.key === 'Escape') {
+            setDraft(value || '');
+            setEditing(false);
+          }
+          if (e.key === 'Enter' && !multiline && !e.shiftKey) {
+            e.preventDefault();
+            if (draft !== (value || '')) onEdit(path, draft);
+            setEditing(false);
+          }
         }}
         className={`${editClass} bg-white text-slate-800 border border-indigo-200 rounded px-1.5 py-1 focus:outline-none focus:ring-2 focus:ring-indigo-300 resize-y w-full text-xs leading-relaxed`}
         rows={minRows}
@@ -128,7 +155,10 @@ export function E({ value, path, onEdit, className = '', multiline = false, onAI
 
   return (
     <span
-      onClick={() => { setDraft(value || ''); setEditing(true); }}
+      onClick={() => {
+        setDraft(value || '');
+        setEditing(true);
+      }}
       onContextMenu={handleCtxMenu}
       className={`${className} cursor-text hover:bg-white/20 rounded px-0.5 -mx-0.5 transition-colors inline-block min-w-[2em]`}
       title="Click to edit · Right-click for AI"
@@ -144,23 +174,26 @@ export function ResizableTh({ children, width, onResize, className = '' }) {
   const startX = useRef(0);
   const startW = useRef(0);
 
-  const onMouseDown = useCallback((e) => {
-    e.preventDefault();
-    startX.current = e.clientX;
-    startW.current = thRef.current?.offsetWidth || width || 100;
+  const onMouseDown = useCallback(
+    (e) => {
+      e.preventDefault();
+      startX.current = e.clientX;
+      startW.current = thRef.current?.offsetWidth || width || 100;
 
-    const onMouseMove = (ev) => {
-      const delta = ev.clientX - startX.current;
-      const newW = Math.max(40, startW.current + delta);
-      if (onResize) onResize(newW);
-    };
-    const onMouseUp = () => {
-      document.removeEventListener('mousemove', onMouseMove);
-      document.removeEventListener('mouseup', onMouseUp);
-    };
-    document.addEventListener('mousemove', onMouseMove);
-    document.addEventListener('mouseup', onMouseUp);
-  }, [width, onResize]);
+      const onMouseMove = (ev) => {
+        const delta = ev.clientX - startX.current;
+        const newW = Math.max(40, startW.current + delta);
+        if (onResize) onResize(newW);
+      };
+      const onMouseUp = () => {
+        document.removeEventListener('mousemove', onMouseMove);
+        document.removeEventListener('mouseup', onMouseUp);
+      };
+      document.addEventListener('mousemove', onMouseMove);
+      document.addEventListener('mouseup', onMouseUp);
+    },
+    [width, onResize],
+  );
 
   return (
     <th
@@ -197,7 +230,6 @@ export function SaveToBankButton({ onClick }) {
   );
 }
 
-
 export function StreamingBanner() {
   return (
     <div className="sticky top-0 z-10 mx-4 mt-2 mb-1 flex items-center gap-2.5 px-4 py-2 rounded-squircle-xs bg-indigo-50/80 border border-indigo-200/40 backdrop-blur-sm">
@@ -205,7 +237,9 @@ export function StreamingBanner() {
         <span className="animate-ping absolute inline-flex h-full w-full rounded-full bg-indigo-400 opacity-75"></span>
         <span className="relative inline-flex rounded-full h-2 w-2 bg-indigo-500"></span>
       </span>
-      <p className="text-[11px] font-medium text-indigo-600">Writing content live — items appear as they're generated...</p>
+      <p className="text-[11px] font-medium text-indigo-600">
+        Writing content live — items appear as they're generated...
+      </p>
     </div>
   );
 }
@@ -228,16 +262,17 @@ export function ErrorState({ error, onRetry }) {
       <div className="glass rounded-squircle-sm p-6 max-w-md text-center space-y-4">
         <div className="w-10 h-10 rounded-full bg-red-100 flex items-center justify-center mx-auto">
           <svg className="w-5 h-5 text-red-500" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-            <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 8v4m0 4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z" />
+            <path
+              strokeLinecap="round"
+              strokeLinejoin="round"
+              strokeWidth={2}
+              d="M12 8v4m0 4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z"
+            />
           </svg>
         </div>
         <div>
           <p className="text-sm text-red-600 font-semibold">Generation failed</p>
-          {error && (
-            <p className="text-xs text-red-400/80 mt-1.5 leading-relaxed max-w-[280px] mx-auto">
-              {error}
-            </p>
-          )}
+          {error && <p className="text-xs text-red-400/80 mt-1.5 leading-relaxed max-w-[280px] mx-auto">{error}</p>}
         </div>
         {onRetry && (
           <button
@@ -256,7 +291,12 @@ export function ErrorState({ error, onRetry }) {
             ) : (
               <>
                 <svg className="w-3 h-3" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M4 4v5h.582m15.356 2A8.001 8.001 0 004.582 9m0 0H9m11 11v-5h-.581m0 0a8.003 8.003 0 01-15.357-2m15.357 2H15" />
+                  <path
+                    strokeLinecap="round"
+                    strokeLinejoin="round"
+                    strokeWidth={2}
+                    d="M4 4v5h.582m15.356 2A8.001 8.001 0 004.582 9m0 0H9m11 11v-5h-.581m0 0a8.003 8.003 0 01-15.357-2m15.357 2H15"
+                  />
                 </svg>
                 Retry generation
               </>
@@ -283,7 +323,8 @@ export function WaitingState({ stage }) {
           <>
             <p className="text-sm font-semibold text-slate-600 dark:text-slate-300">Building course structure...</p>
             <p className="text-xs text-slate-400 dark:text-slate-500 leading-relaxed max-w-sm">
-              The course map is being generated first — it's the foundation for all your deliverables. Content will appear live once it begins.
+              The course map is being generated first — it's the foundation for all your deliverables. Content will
+              appear live once it begins.
             </p>
           </>
         ) : (
@@ -311,10 +352,12 @@ export function WaitingState({ stage }) {
             <div className="h-3 w-24 bg-slate-200 dark:bg-slate-700 rounded" />
           </div>
           {/* Body rows */}
-          {[1, 2, 3, 4].map(row => (
+          {[1, 2, 3, 4].map((row) => (
             <div key={row} className="flex gap-4 px-4 py-3 border-t border-slate-100 dark:border-slate-800">
               <div className="h-3 w-16 bg-slate-100 dark:bg-slate-800 rounded" />
-              <div className={`h-3 flex-1 bg-slate-100 dark:bg-slate-800 rounded ${row % 2 === 0 ? 'max-w-[80%]' : ''}`} />
+              <div
+                className={`h-3 flex-1 bg-slate-100 dark:bg-slate-800 rounded ${row % 2 === 0 ? 'max-w-[80%]' : ''}`}
+              />
               <div className="h-3 w-24 bg-slate-100 dark:bg-slate-800 rounded" />
             </div>
           ))}
@@ -325,16 +368,56 @@ export function WaitingState({ stage }) {
 }
 
 export const FEATURE_META = {
-  lessonPlans: { emoji: '📝', label: 'Lesson Plans', desc: 'Detailed week-by-week lesson plans with activities, objectives, and timing.' },
-  rubrics: { emoji: '📊', label: 'Rubrics', desc: 'Assessment rubrics aligned to Bloom\'s taxonomy levels for each assignment.' },
-  slideDecks: { emoji: '🖥️', label: 'Slide Decks', desc: 'Presentation outlines with key concepts, discussion prompts, and slide notes.' },
-  quizBank: { emoji: '❓', label: 'Quiz Bank', desc: 'Multiple-choice, short-answer, and essay questions organized by lesson.' },
-  discussions: { emoji: '💬', label: 'Discussion Prompts', desc: 'Socratic discussion questions and response guides for each lesson.' },
-  assignments: { emoji: '📋', label: 'Assignments', desc: 'Assignment briefs with learning objectives, instructions, and grading criteria.' },
-  studyGuides: { emoji: '📖', label: 'Study Guides', desc: 'Student-facing study guides with key concepts, review questions, and exam prep.' },
-  teachingGuides: { emoji: '🧭', label: 'Teaching Guides', desc: 'Instructor notes with pedagogical tips, common misconceptions, and pacing.' },
-  syllabus: { emoji: '📄', label: 'Syllabus', desc: 'Complete course syllabus with policies, schedule, and grading breakdown.' },
-  courseFaq: { emoji: '❔', label: 'Course FAQ', desc: 'Student-facing FAQ with answers to common questions about the course.' },
+  lessonPlans: {
+    emoji: '📝',
+    label: 'Lesson Plans',
+    desc: 'Detailed week-by-week lesson plans with activities, objectives, and timing.',
+  },
+  rubrics: {
+    emoji: '📊',
+    label: 'Rubrics',
+    desc: "Assessment rubrics aligned to Bloom's taxonomy levels for each assignment.",
+  },
+  slideDecks: {
+    emoji: '🖥️',
+    label: 'Slide Decks',
+    desc: 'Presentation outlines with key concepts, discussion prompts, and slide notes.',
+  },
+  quizBank: {
+    emoji: '❓',
+    label: 'Quiz Bank',
+    desc: 'Multiple-choice, short-answer, and essay questions organized by lesson.',
+  },
+  discussions: {
+    emoji: '💬',
+    label: 'Discussion Prompts',
+    desc: 'Socratic discussion questions and response guides for each lesson.',
+  },
+  assignments: {
+    emoji: '📋',
+    label: 'Assignments',
+    desc: 'Assignment briefs with learning objectives, instructions, and grading criteria.',
+  },
+  studyGuides: {
+    emoji: '📖',
+    label: 'Study Guides',
+    desc: 'Student-facing study guides with key concepts, review questions, and exam prep.',
+  },
+  teachingGuides: {
+    emoji: '🧭',
+    label: 'Teaching Guides',
+    desc: 'Instructor notes with pedagogical tips, common misconceptions, and pacing.',
+  },
+  syllabus: {
+    emoji: '📄',
+    label: 'Syllabus',
+    desc: 'Complete course syllabus with policies, schedule, and grading breakdown.',
+  },
+  courseFaq: {
+    emoji: '❔',
+    label: 'Course FAQ',
+    desc: 'Student-facing FAQ with answers to common questions about the course.',
+  },
 };
 
 export function EmptyState({ featureId, onGenerate }) {
@@ -371,19 +454,33 @@ export function EmptyState({ featureId, onGenerate }) {
   );
 }
 
-export function CollapsibleCard({ title, subtitle, defaultOpen = false, accent = 'indigo', streaming = false, regenerating = false, fresh = false, onRegenerate, onTitleEdit, children }) {
+export function CollapsibleCard({
+  title,
+  subtitle,
+  defaultOpen = false,
+  accent = 'indigo',
+  streaming = false,
+  regenerating = false,
+  fresh = false,
+  onRegenerate,
+  onTitleEdit,
+  children,
+}) {
   const [open, setOpen] = useState(defaultOpen);
   const [editingTitle, setEditingTitle] = useState(false);
   const [titleDraft, setTitleDraft] = useState('');
   const titleInputRef = useRef(null);
 
-  const startTitleEdit = useCallback((e) => {
-    if (!onTitleEdit) return;
-    e.stopPropagation();
-    e.preventDefault();
-    setTitleDraft(title || '');
-    setEditingTitle(true);
-  }, [onTitleEdit, title]);
+  const startTitleEdit = useCallback(
+    (e) => {
+      if (!onTitleEdit) return;
+      e.stopPropagation();
+      e.preventDefault();
+      setTitleDraft(title || '');
+      setEditingTitle(true);
+    },
+    [onTitleEdit, title],
+  );
 
   useEffect(() => {
     if (editingTitle && titleInputRef.current) {
@@ -400,7 +497,9 @@ export function CollapsibleCard({ title, subtitle, defaultOpen = false, accent =
   }, [titleDraft, title, onTitleEdit]);
 
   return (
-    <div className={`glass rounded-squircle-xs overflow-hidden transition-all duration-500 ${streaming ? 'animate-pulse-subtle' : ''} ${regenerating ? 'ring-2 ring-violet-300/60' : ''} ${fresh && !regenerating ? 'ring-2 ring-emerald-400/70 bg-emerald-50/20' : ''}`}>
+    <div
+      className={`glass rounded-squircle-xs overflow-hidden transition-all duration-500 ${streaming ? 'animate-pulse-subtle' : ''} ${regenerating ? 'ring-2 ring-violet-300/60' : ''} ${fresh && !regenerating ? 'ring-2 ring-emerald-400/70 bg-emerald-50/20' : ''}`}
+    >
       <div className="flex items-center">
         {/* Chevron toggle — only this controls collapse/expand */}
         <button
@@ -408,7 +507,12 @@ export function CollapsibleCard({ title, subtitle, defaultOpen = false, accent =
           className={`flex-shrink-0 flex items-center justify-center w-10 h-10 ml-2 rounded-md hover:bg-white/40 transition-colors`}
           title={open ? 'Collapse' : 'Expand'}
         >
-          <svg className={`w-4 h-4 text-${accent}-500 transition-transform duration-200 ${open ? 'rotate-90' : ''}`} fill="none" stroke="currentColor" viewBox="0 0 24 24">
+          <svg
+            className={`w-4 h-4 text-${accent}-500 transition-transform duration-200 ${open ? 'rotate-90' : ''}`}
+            fill="none"
+            stroke="currentColor"
+            viewBox="0 0 24 24"
+          >
             <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 5l7 7-7 7" />
           </svg>
         </button>
@@ -419,11 +523,16 @@ export function CollapsibleCard({ title, subtitle, defaultOpen = false, accent =
               <input
                 ref={titleInputRef}
                 value={titleDraft}
-                onChange={e => setTitleDraft(e.target.value)}
+                onChange={(e) => setTitleDraft(e.target.value)}
                 onBlur={commitTitle}
-                onKeyDown={e => {
-                  if (e.key === 'Enter') { e.preventDefault(); commitTitle(); }
-                  if (e.key === 'Escape') { setEditingTitle(false); }
+                onKeyDown={(e) => {
+                  if (e.key === 'Enter') {
+                    e.preventDefault();
+                    commitTitle();
+                  }
+                  if (e.key === 'Escape') {
+                    setEditingTitle(false);
+                  }
                 }}
                 className="text-sm font-semibold text-slate-800 bg-white border border-indigo-200 rounded px-1.5 py-0.5 w-full focus:outline-none focus:ring-2 focus:ring-indigo-300"
               />
@@ -435,7 +544,9 @@ export function CollapsibleCard({ title, subtitle, defaultOpen = false, accent =
               >
                 {title}
                 {fresh && !regenerating && (
-                  <span className="ml-2 text-[9px] font-bold text-emerald-500 bg-emerald-50 border border-emerald-200 px-1.5 py-0.5 rounded-full align-middle">✦ new</span>
+                  <span className="ml-2 text-[9px] font-bold text-emerald-500 bg-emerald-50 border border-emerald-200 px-1.5 py-0.5 rounded-full align-middle">
+                    ✦ new
+                  </span>
                 )}
               </h3>
             )}
@@ -457,7 +568,10 @@ export function CollapsibleCard({ title, subtitle, defaultOpen = false, accent =
         {/* Per-lesson regenerate button */}
         {onRegenerate && !streaming && (
           <button
-            onClick={(e) => { e.stopPropagation(); onRegenerate(); }}
+            onClick={(e) => {
+              e.stopPropagation();
+              onRegenerate();
+            }}
             disabled={regenerating}
             title="Regenerate this lesson"
             className="flex-shrink-0 flex items-center gap-1 px-3 py-3.5 text-[10px] font-semibold text-slate-400 hover:text-violet-600 hover:bg-violet-50/40 transition-all disabled:opacity-40 border-l border-slate-100/60"
@@ -469,7 +583,12 @@ export function CollapsibleCard({ title, subtitle, defaultOpen = false, accent =
               </svg>
             ) : (
               <svg className="w-3 h-3" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M4 4v5h.582m15.356 2A8.001 8.001 0 004.582 9m0 0H9m11 11v-5h-.581m0 0a8.003 8.003 0 01-15.357-2m15.357 2H15" />
+                <path
+                  strokeLinecap="round"
+                  strokeLinejoin="round"
+                  strokeWidth={2}
+                  d="M4 4v5h.582m15.356 2A8.001 8.001 0 004.582 9m0 0H9m11 11v-5h-.581m0 0a8.003 8.003 0 01-15.357-2m15.357 2H15"
+                />
               </svg>
             )}
             {regenerating ? 'Regen…' : 'Regen'}
@@ -483,7 +602,9 @@ export function CollapsibleCard({ title, subtitle, defaultOpen = false, accent =
 
 export function Badge({ children, color = 'indigo' }) {
   return (
-    <span className={`inline-block text-[10px] font-semibold px-2 py-0.5 rounded-full bg-${color}-100/80 text-${color}-700`}>
+    <span
+      className={`inline-block text-[10px] font-semibold px-2 py-0.5 rounded-full bg-${color}-100/80 text-${color}-700`}
+    >
       {children}
     </span>
   );
@@ -513,7 +634,6 @@ export function SectionHeading({ children }) {
   return <h4 className="text-[11px] font-bold text-slate-500 uppercase tracking-wider mb-1.5">{children}</h4>;
 }
 
-
 // ── Feature 4.1: Tiered Differentiation Inline Toggle ──
 export function TierToggle({ activeTier, onChange }) {
   const tiers = [
@@ -527,9 +647,15 @@ export function TierToggle({ activeTier, onChange }) {
       {tiers.map(({ id, label, color }) => (
         <button
           key={id}
-          onClick={(e) => { e.stopPropagation(); onChange(id); }}
-          className={`px-3 py-1 rounded-md text-[10px] font-semibold transition-all border ${activeTier === id ? color + ' shadow-sm' : 'text-slate-400 bg-transparent border-transparent hover:text-slate-600'
-            }`}
+          onClick={(e) => {
+            e.stopPropagation();
+            onChange(id);
+          }}
+          className={`px-3 py-1 rounded-md text-[10px] font-semibold transition-all border ${
+            activeTier === id
+              ? color + ' shadow-sm'
+              : 'text-slate-400 bg-transparent border-transparent hover:text-slate-600'
+          }`}
         >
           {label}
         </button>

@@ -20,25 +20,29 @@ function stripThinkTags(text) {
   return result;
 }
 
-app.use(cors({
-  origin: true,
-  credentials: true,
-}));
+app.use(
+  cors({
+    origin: true,
+    credentials: true,
+  }),
+);
 app.use(express.json({ limit: '50mb' }));
 
 // Session middleware — stores API key server-side, sends only httpOnly cookie to client
-app.use(session({
-  secret: crypto.randomBytes(32).toString('hex'),
-  resave: false,
-  saveUninitialized: false,
-  name: 'cm_sid',
-  cookie: {
-    httpOnly: true,
-    sameSite: 'lax',
-    secure: process.env.NODE_ENV === 'production',
-    maxAge: 24 * 60 * 60 * 1000, // 24 hours
-  },
-}));
+app.use(
+  session({
+    secret: crypto.randomBytes(32).toString('hex'),
+    resave: false,
+    saveUninitialized: false,
+    name: 'cm_sid',
+    cookie: {
+      httpOnly: true,
+      sameSite: 'lax',
+      secure: process.env.NODE_ENV === 'production',
+      maxAge: 24 * 60 * 60 * 1000, // 24 hours
+    },
+  }),
+);
 
 // ── Store API key in server-side session ──
 app.post('/api/session/set-key', (req, res) => {
@@ -89,7 +93,7 @@ app.post('/api/proxy/openrouter/stream', async (req, res) => {
     const response = await fetch('https://openrouter.ai/api/v1/chat/completions', {
       method: 'POST',
       headers: {
-        'Authorization': `Bearer ${serverKey}`,
+        Authorization: `Bearer ${serverKey}`,
         'Content-Type': 'application/json',
       },
       body: JSON.stringify({
@@ -104,7 +108,9 @@ app.post('/api/proxy/openrouter/stream', async (req, res) => {
 
     if (!response.ok) {
       const err = await response.json().catch(() => ({}));
-      res.write(`data: ${JSON.stringify({ error: err.error?.message || `OpenRouter API error: ${response.status}` })}\n\n`);
+      res.write(
+        `data: ${JSON.stringify({ error: err.error?.message || `OpenRouter API error: ${response.status}` })}\n\n`,
+      );
       res.write('data: [DONE]\n\n');
       res.end();
       return;
@@ -160,7 +166,7 @@ app.post('/api/proxy/openrouter', async (req, res) => {
     const response = await fetch('https://openrouter.ai/api/v1/chat/completions', {
       method: 'POST',
       headers: {
-        'Authorization': `Bearer ${serverKey}`,
+        Authorization: `Bearer ${serverKey}`,
         'Content-Type': 'application/json',
       },
       body: JSON.stringify({
@@ -174,7 +180,9 @@ app.post('/api/proxy/openrouter', async (req, res) => {
 
     if (!response.ok) {
       const err = await response.json().catch(() => ({}));
-      return res.status(response.status).json({ error: err.error?.message || `OpenRouter API error: ${response.status}` });
+      return res
+        .status(response.status)
+        .json({ error: err.error?.message || `OpenRouter API error: ${response.status}` });
     }
 
     const data = await response.json();
@@ -207,7 +215,7 @@ app.post('/api/models', async (req, res) => {
   try {
     if (provider === 'openai') {
       const response = await fetch('https://api.openai.com/v1/models', {
-        headers: { 'Authorization': `Bearer ${apiKey}` },
+        headers: { Authorization: `Bearer ${apiKey}` },
       });
       if (!response.ok) throw new Error('Invalid API key');
       const data = await response.json();
@@ -310,7 +318,7 @@ async function streamOpenAI(apiKey, systemPrompt, userPrompt, modelId, res) {
   const response = await fetch('https://api.openai.com/v1/chat/completions', {
     method: 'POST',
     headers: {
-      'Authorization': `Bearer ${apiKey}`,
+      Authorization: `Bearer ${apiKey}`,
       'Content-Type': 'application/json',
     },
     body: JSON.stringify({
@@ -355,7 +363,7 @@ async function streamOpenAI(apiKey, systemPrompt, userPrompt, modelId, res) {
         if (content) {
           res.write(`data: ${JSON.stringify({ chunk: content })}\n\n`);
         }
-      } catch { }
+      } catch {}
     }
   }
 }
@@ -405,7 +413,7 @@ async function streamAnthropic(apiKey, systemPrompt, userPrompt, modelId, res) {
         if (parsed.type === 'content_block_delta' && parsed.delta?.text) {
           res.write(`data: ${JSON.stringify({ chunk: parsed.delta.text })}\n\n`);
         }
-      } catch { }
+      } catch {}
     }
   }
 }
@@ -414,7 +422,7 @@ async function streamOpenRouter(apiKey, systemPrompt, userPrompt, modelId, res) 
   const response = await fetch('https://openrouter.ai/api/v1/chat/completions', {
     method: 'POST',
     headers: {
-      'Authorization': `Bearer ${apiKey}`,
+      Authorization: `Bearer ${apiKey}`,
       'Content-Type': 'application/json',
     },
     body: JSON.stringify({
@@ -491,7 +499,7 @@ async function streamOpenRouter(apiKey, systemPrompt, userPrompt, modelId, res) 
             accumulated = '';
           }
         }
-      } catch { }
+      } catch {}
     }
   }
 }
@@ -540,7 +548,7 @@ async function streamGoogle(apiKey, systemPrompt, userPrompt, modelId, res) {
         if (text) {
           res.write(`data: ${JSON.stringify({ chunk: text })}\n\n`);
         }
-      } catch { }
+      } catch {}
     }
   }
 }
@@ -579,7 +587,7 @@ async function callOpenAI(apiKey, systemPrompt, userPrompt, modelId = 'gpt-4o') 
   const response = await fetch('https://api.openai.com/v1/chat/completions', {
     method: 'POST',
     headers: {
-      'Authorization': `Bearer ${apiKey}`,
+      Authorization: `Bearer ${apiKey}`,
       'Content-Type': 'application/json',
     },
     body: JSON.stringify({
@@ -619,9 +627,7 @@ async function callAnthropic(apiKey, systemPrompt, userPrompt, modelId = 'claude
       max_tokens: 16384,
       ...(getTemp(modelId) !== undefined && { temperature: getTemp(modelId) }),
       system: systemPrompt,
-      messages: [
-        { role: 'user', content: userPrompt },
-      ],
+      messages: [{ role: 'user', content: userPrompt }],
     }),
   });
 
@@ -720,8 +726,11 @@ Return a JSON object with a "patches" array. Each patch targets a specific cell:
 - Every patch MUST have a "reason" string. No exceptions.
 - Return ONLY the JSON object, no explanation or commentary.`;
 
-  const userPrompt = `Here is the Course Map to examine:\n\n${JSON.stringify(courseMap)}${syllabusText ? `\n\nHere is the original syllabus/course material for reference:\n\n${syllabusText.slice(0, 30000)}` : ''
-    }\n\nExamine this course map thoroughly. Return ONLY a JSON patches object for cells that need fixing. If nothing needs fixing, return {"patches": []}:`;
+  const userPrompt = `Here is the Course Map to examine:\n\n${JSON.stringify(courseMap)}${
+    syllabusText
+      ? `\n\nHere is the original syllabus/course material for reference:\n\n${syllabusText.slice(0, 30000)}`
+      : ''
+  }\n\nExamine this course map thoroughly. Return ONLY a JSON patches object for cells that need fixing. If nothing needs fixing, return {"patches": []}:`;
 
   res.setHeader('Content-Type', 'text/event-stream');
   res.setHeader('Cache-Control', 'no-cache');
@@ -794,7 +803,8 @@ PATCH RULES:
 
   let editsContext = '';
   if (userEdits && userEdits.length > 0) {
-    editsContext = '\n\nIMPORTANT — The user has manually edited some cells since the last AI generation. Respect and preserve these manual changes unless the user explicitly asks to change them:\n';
+    editsContext =
+      '\n\nIMPORTANT — The user has manually edited some cells since the last AI generation. Respect and preserve these manual changes unless the user explicitly asks to change them:\n';
     for (const edit of userEdits) {
       if (edit.key === 'title') {
         editsContext += `- Lesson ${edit.lessonIdx + 1} title changed from "${edit.oldValue}" to "${edit.newValue}"\n`;
@@ -807,7 +817,8 @@ PATCH RULES:
   // Build conversation history context
   let historyContext = '';
   if (chatHistory && chatHistory.length > 0) {
-    historyContext = '\n\nPrevious conversation (for context — do NOT repeat these changes, they are already applied):\n';
+    historyContext =
+      '\n\nPrevious conversation (for context — do NOT repeat these changes, they are already applied):\n';
     for (const msg of chatHistory) {
       const prefix = msg.role === 'user' ? 'User' : 'Assistant';
       historyContext += `${prefix}: ${msg.text}\n`;

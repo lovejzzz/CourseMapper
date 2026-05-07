@@ -106,15 +106,19 @@ describe('expandKeys', () => {
 
   it('expands slide visuals without confusing alt text for activity type', () => {
     const input = {
-      decks: [{
-        lt: 'Lesson 1',
-        sl: [{
-          t: 'A model needs evidence',
-          ty: 'content',
-          at: null,
-          vi: { k: 'image', d: 'A model comparison visual', at: 'Two model cards compared side by side.' },
-        }],
-      }],
+      decks: [
+        {
+          lt: 'Lesson 1',
+          sl: [
+            {
+              t: 'A model needs evidence',
+              ty: 'content',
+              at: null,
+              vi: { k: 'image', d: 'A model comparison visual', at: 'Two model cards compared side by side.' },
+            },
+          ],
+        },
+      ],
     };
     const result = expandKeys('slideDecks', input);
     const slide = result.decks[0].slides[0];

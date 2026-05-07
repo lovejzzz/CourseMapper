@@ -71,7 +71,12 @@ function validateCourseMap(courseMap, findings, basePath = 'courseMap') {
 
     lesson.sections.forEach((section, sectionIndex) => {
       if (!isPlainObject(section)) {
-        addFinding(findings, 'error', indexPath(childPath(lessonPath, 'sections'), sectionIndex), 'Section must be an object.');
+        addFinding(
+          findings,
+          'error',
+          indexPath(childPath(lessonPath, 'sections'), sectionIndex),
+          'Section must be an object.',
+        );
       }
     });
   });
@@ -117,7 +122,12 @@ function validateDeliverables(deliverables, findings, basePath = 'deliverables')
     }
 
     if (output.status !== undefined && !VALID_DELIVERABLE_STATUSES.has(output.status)) {
-      addFinding(findings, 'warning', childPath(outputPath, 'status'), `Unknown deliverable status "${output.status}".`);
+      addFinding(
+        findings,
+        'warning',
+        childPath(outputPath, 'status'),
+        `Unknown deliverable status "${output.status}".`,
+      );
     }
     if (output.status === 'done' && output.data === undefined) {
       addFinding(findings, 'warning', childPath(outputPath, 'data'), 'Done deliverable has no data.');
@@ -149,9 +159,11 @@ function validateDeliverableConfig(deliverableConfig, findings, basePath = 'deli
       }
     });
 
-    if (typeof config.customUserPrompt === 'string'
-      && config.customUserPrompt.trim()
-      && !config.customUserPrompt.includes(COURSE_MAP_PLACEHOLDER)) {
+    if (
+      typeof config.customUserPrompt === 'string' &&
+      config.customUserPrompt.trim() &&
+      !config.customUserPrompt.includes(COURSE_MAP_PLACEHOLDER)
+    ) {
       addFinding(
         findings,
         'warning',
@@ -186,7 +198,12 @@ function validateLessonScope(lessonScope, findings, lessonCount, basePath = 'les
       if (!Number.isInteger(index) || index < 0) {
         addFinding(findings, 'error', indexPath(indicesPath, offset), 'Lesson index must be a non-negative integer.');
       } else if (Number.isInteger(lessonCount) && lessonCount > 0 && index >= lessonCount) {
-        addFinding(findings, 'warning', indexPath(indicesPath, offset), 'Lesson index is outside the current course map.');
+        addFinding(
+          findings,
+          'warning',
+          indexPath(indicesPath, offset),
+          'Lesson index is outside the current course map.',
+        );
       }
     });
   }
@@ -228,26 +245,38 @@ function validateColumns(columns, findings, basePath = 'columns') {
 
 function addCrossFieldFindings(snapshot, findings) {
   const selectedFeatures = Array.isArray(snapshot.selectedFeatures)
-    ? snapshot.selectedFeatures.filter(feature => typeof feature === 'string')
+    ? snapshot.selectedFeatures.filter((feature) => typeof feature === 'string')
     : [];
   const deliverables = isPlainObject(snapshot.deliverables) ? snapshot.deliverables : {};
   const deliverableConfig = isPlainObject(snapshot.deliverableConfig) ? snapshot.deliverableConfig : {};
 
-  if (typeof snapshot.activeTab === 'string'
-    && selectedFeatures.length > 0
-    && !selectedFeatures.includes(snapshot.activeTab)) {
+  if (
+    typeof snapshot.activeTab === 'string' &&
+    selectedFeatures.length > 0 &&
+    !selectedFeatures.includes(snapshot.activeTab)
+  ) {
     addFinding(findings, 'warning', 'activeTab', `"${snapshot.activeTab}" is not selected.`);
   }
 
   Object.keys(deliverableConfig).forEach((featureId) => {
     if (selectedFeatures.length > 0 && !selectedFeatures.includes(featureId)) {
-      addFinding(findings, 'info', childPath('deliverableConfig', featureId), 'Config exists for a deliverable that is not selected.');
+      addFinding(
+        findings,
+        'info',
+        childPath('deliverableConfig', featureId),
+        'Config exists for a deliverable that is not selected.',
+      );
     }
   });
 
   Object.keys(deliverables).forEach((featureId) => {
     if (featureId !== 'courseMap' && selectedFeatures.length > 0 && !selectedFeatures.includes(featureId)) {
-      addFinding(findings, 'info', childPath('deliverables', featureId), 'Generated output exists for a deliverable that is not selected.');
+      addFinding(
+        findings,
+        'info',
+        childPath('deliverables', featureId),
+        'Generated output exists for a deliverable that is not selected.',
+      );
     }
   });
 }
@@ -299,10 +328,12 @@ export function getDeveloperSectionFindings(sectionId, value) {
     validateDeliverableConfig(value.deliverableConfig, findings, 'deliverableConfig');
     validateLessonScope(value.lessonScope, findings, null, 'lessonScope');
     validateColumns(value.columns, findings, 'columns');
-    if (typeof value.activeTab === 'string'
-      && Array.isArray(value.selectedFeatures)
-      && value.selectedFeatures.length > 0
-      && !value.selectedFeatures.includes(value.activeTab)) {
+    if (
+      typeof value.activeTab === 'string' &&
+      Array.isArray(value.selectedFeatures) &&
+      value.selectedFeatures.length > 0 &&
+      !value.selectedFeatures.includes(value.activeTab)
+    ) {
       addFinding(findings, 'warning', 'activeTab', `"${value.activeTab}" is not selected.`);
     }
     return findings;
@@ -312,14 +343,14 @@ export function getDeveloperSectionFindings(sectionId, value) {
 }
 
 export function assertDeveloperSnapshot(snapshot) {
-  const error = getDeveloperSnapshotFindings(snapshot).find(finding => finding.level === 'error');
+  const error = getDeveloperSnapshotFindings(snapshot).find((finding) => finding.level === 'error');
   if (error) {
     throw new Error(`${error.path}: ${error.message}`);
   }
 }
 
 export function assertDeveloperSection(sectionId, value) {
-  const error = getDeveloperSectionFindings(sectionId, value).find(finding => finding.level === 'error');
+  const error = getDeveloperSectionFindings(sectionId, value).find((finding) => finding.level === 'error');
   if (error) {
     throw new Error(`${error.path}: ${error.message}`);
   }
@@ -415,6 +446,22 @@ export function diffDeveloperSnapshots(before, after, options = {}) {
   const depth = options.depth ?? 7;
   walkDiff(before, after, diffs, '', depth);
   return diffs.slice(0, options.limit ?? 20);
+}
+
+export function isDeveloperDestructiveDiff(diff) {
+  if (!diff) return false;
+  if (diff.type === 'removed') return true;
+  if (diff.type !== 'changed' || !String(diff.path || '').endsWith('.length')) return false;
+  const beforeLength = Number(diff.beforeSummary);
+  const afterLength = Number(diff.afterSummary);
+  return Number.isFinite(beforeLength) && Number.isFinite(afterLength) && afterLength < beforeLength;
+}
+
+export function getDeveloperDestructiveDiffs(before, after, options = {}) {
+  return diffDeveloperSnapshots(before, after, {
+    limit: options.limit ?? MAX_DIFF_ITEMS,
+    depth: options.depth ?? 7,
+  }).filter(isDeveloperDestructiveDiff);
 }
 
 export function formatDeveloperDiffItem(diff) {

@@ -17,7 +17,10 @@ import './index.css';
 function Router() {
   const getPage = () => {
     const h = window.location.hash;
-    if (h === '#/faq') { window.location.hash = '#/'; return 'app'; } // redirect old bookmarks
+    if (h === '#/faq') {
+      window.location.hash = '#/';
+      return 'app';
+    } // redirect old bookmarks
     if (h === '#/changelog') return 'changelog';
     if (h === '#/privacy') return 'privacy';
     if (h === '#/terms') return 'terms';
@@ -36,7 +39,9 @@ function Router() {
 
   return (
     <>
-      <div style={{ display: page === 'app' ? 'block' : 'none' }}><App /></div>
+      <div style={{ display: page === 'app' ? 'block' : 'none' }}>
+        <App />
+      </div>
       <Suspense fallback={<PageSkeleton />}>
         {page === 'changelog' && <Changelog />}
         {page === 'privacy' && <PrivacyPolicy />}
@@ -61,12 +66,12 @@ container._reactRoot.render(
           <CourseProvider>
             <CourseStoreProvider>
               <ErrorBoundary>
-              <Router />
+                <Router />
               </ErrorBoundary>
             </CourseStoreProvider>
           </CourseProvider>
         </UIProvider>
       </AIConfigProvider>
     </AuthProvider>
-  </React.StrictMode>
+  </React.StrictMode>,
 );

@@ -8,7 +8,7 @@ function camelToLabel(key) {
   return key
     .replace(/([a-z])([A-Z])/g, '$1 $2')
     .replace(/([A-Z]+)([A-Z][a-z])/g, '$1 $2')
-    .replace(/^./, s => s.toUpperCase());
+    .replace(/^./, (s) => s.toUpperCase());
 }
 
 /** Keys already used for card header — skip when rendering fields */
@@ -62,15 +62,15 @@ function renderValue(value, label = null, depth = 0) {
       return (
         <div key={label} className="mt-2">
           <span className="text-[10px] font-bold text-violet-700 uppercase tracking-wide">{label}:</span>
-          <p className="text-[11px] text-slate-700 leading-relaxed mt-0.5 whitespace-pre-line border-l-2 border-violet-100 pl-2 ml-1">{String(value)}</p>
+          <p className="text-[11px] text-slate-700 leading-relaxed mt-0.5 whitespace-pre-line border-l-2 border-violet-100 pl-2 ml-1">
+            {String(value)}
+          </p>
         </div>
       );
     }
 
     // Array element primitive
-    return (
-      <span className="text-[11px] text-slate-700 leading-relaxed">{String(value)}</span>
-    );
+    return <span className="text-[11px] text-slate-700 leading-relaxed">{String(value)}</span>;
   }
 
   // 3. Arrays
@@ -134,16 +134,14 @@ function renderValue(value, label = null, depth = 0) {
 
   // 4. Objects
   if (typeof value === 'object' && value !== null) {
-    const entries = Object.entries(value).filter(([k, v]) => (!label && depth === 0 ? !HEADER_KEYS.has(k) : true) && v != null && v !== '');
+    const entries = Object.entries(value).filter(
+      ([k, v]) => (!label && depth === 0 ? !HEADER_KEYS.has(k) : true) && v != null && v !== '',
+    );
     if (entries.length === 0) return null;
 
     // Depth 0 Object
     if (depth === 0) {
-      return (
-        <div className="space-y-4 pt-2">
-          {entries.map(([k, v]) => renderValue(v, camelToLabel(k), depth))}
-        </div>
-      );
+      return <div className="space-y-4 pt-2">{entries.map(([k, v]) => renderValue(v, camelToLabel(k), depth))}</div>;
     }
 
     // Depth > 0 Object (Nested dictionary)
@@ -162,12 +160,17 @@ function renderValue(value, label = null, depth = 0) {
 
 // ── Main Component ──
 
-export default function GenericDeliverableView({ featureId, data, isStreaming, regeneratingIndex, onRegenerateLesson, onEdit }) {
+export default function GenericDeliverableView({
+  featureId,
+  data,
+  isStreaming,
+  regeneratingIndex,
+  onRegenerateLesson,
+  onEdit,
+}) {
   if (!data && !isStreaming) {
     return (
-      <div className="glass rounded-squircle-sm p-8 text-center text-slate-400 text-sm">
-        No content generated yet.
-      </div>
+      <div className="glass rounded-squircle-sm p-8 text-center text-slate-400 text-sm">No content generated yet.</div>
     );
   }
 
@@ -200,9 +203,7 @@ export default function GenericDeliverableView({ featureId, data, isStreaming, r
 
   if (!items || items.length === 0) {
     return (
-      <div className="glass rounded-squircle-sm p-8 text-center text-slate-400 text-sm">
-        No content generated yet.
-      </div>
+      <div className="glass rounded-squircle-sm p-8 text-center text-slate-400 text-sm">No content generated yet.</div>
     );
   }
 

@@ -19,8 +19,16 @@ vi.mock('../customDeliverableLibrary', () => ({
 describe('FEATURE_LABELS', () => {
   it('contains all built-in deliverable types', () => {
     const expectedKeys = [
-      'courseMap', 'lessonPlans', 'rubrics', 'slideDecks', 'quizBank',
-      'discussions', 'assignments', 'studyGuides', 'syllabus', 'courseFaq',
+      'courseMap',
+      'lessonPlans',
+      'rubrics',
+      'slideDecks',
+      'quizBank',
+      'discussions',
+      'assignments',
+      'studyGuides',
+      'syllabus',
+      'courseFaq',
     ];
     for (const key of expectedKeys) {
       expect(FEATURE_LABELS[key]).toBeDefined();

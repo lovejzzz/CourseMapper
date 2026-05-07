@@ -30,19 +30,21 @@ describe('developerTemplateExchange', () => {
       kind: DEVELOPER_TEMPLATE_BUNDLE_KIND,
       formatVersion: 1,
       exportedAt: 123,
-      templates: [{
-        name: 'Slides Setup',
-        data: {
-          selectedFeatures: ['courseMap', 'slideDecks'],
-          deliverableConfig: { slideDecks: { extraInstructions: 'Visual' } },
-          lessonScope: { type: 'all' },
-          slideTheme: 2,
-          provider: 'openai',
-          modelId: 'gpt-5.4-mini',
-          modelName: 'GPT-5.4 Mini',
-          columns: [{ key: 'topic' }],
+      templates: [
+        {
+          name: 'Slides Setup',
+          data: {
+            selectedFeatures: ['courseMap', 'slideDecks'],
+            deliverableConfig: { slideDecks: { extraInstructions: 'Visual' } },
+            lessonScope: { type: 'all' },
+            slideTheme: 2,
+            provider: 'openai',
+            modelId: 'gpt-5.4-mini',
+            modelName: 'GPT-5.4 Mini',
+            columns: [{ key: 'topic' }],
+          },
         },
-      }],
+      ],
     });
   });
 
@@ -63,12 +65,14 @@ describe('developerTemplateExchange', () => {
       deliverableConfig: {},
     });
 
-    expect(parsed.templates[0]).toEqual(expect.objectContaining({
-      name: 'Single',
-      data: expect.objectContaining({
-        selectedFeatures: ['courseMap', 'quizBank'],
+    expect(parsed.templates[0]).toEqual(
+      expect.objectContaining({
+        name: 'Single',
+        data: expect.objectContaining({
+          selectedFeatures: ['courseMap', 'quizBank'],
+        }),
       }),
-    }));
+    );
   });
 
   it('rejects invalid or empty imports', () => {
@@ -77,14 +81,16 @@ describe('developerTemplateExchange', () => {
   });
 
   it('rejects imported templates containing secrets', () => {
-    expect(() => parseDeveloperTemplateBundle({
-      name: 'Unsafe',
-      selectedFeatures: ['slideDecks'],
-      deliverableConfig: {
-        slideDecks: {
-          apiKey: 'sk-secret-value',
+    expect(() =>
+      parseDeveloperTemplateBundle({
+        name: 'Unsafe',
+        selectedFeatures: ['slideDecks'],
+        deliverableConfig: {
+          slideDecks: {
+            apiKey: 'sk-secret-value',
+          },
         },
-      },
-    })).toThrow('contains a secret');
+      }),
+    ).toThrow('contains a secret');
   });
 });

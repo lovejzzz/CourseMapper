@@ -24,20 +24,20 @@ function addRisk(risks, level, title, message, path = '') {
 
 function titleFromId(id) {
   if (!id) return 'Untitled';
-  return String(id)
-    .replace(/^custom[_-]?/i, '')
-    .replace(/([a-z])([A-Z])/g, '$1 $2')
-    .replace(/[_-]+/g, ' ')
-    .replace(/\s+/g, ' ')
-    .trim()
-    .replace(/\b\w/g, letter => letter.toUpperCase()) || id;
+  return (
+    String(id)
+      .replace(/^custom[_-]?/i, '')
+      .replace(/([a-z])([A-Z])/g, '$1 $2')
+      .replace(/[_-]+/g, ' ')
+      .replace(/\s+/g, ' ')
+      .trim()
+      .replace(/\b\w/g, (letter) => letter.toUpperCase()) || id
+  );
 }
 
 function hasPromptOverride(config) {
   return Boolean(
-    config?.customSystemPrompt?.trim()
-    || config?.customUserPrompt?.trim()
-    || config?.extraInstructions?.trim()
+    config?.customSystemPrompt?.trim() || config?.customUserPrompt?.trim() || config?.extraInstructions?.trim(),
   );
 }
 
@@ -52,7 +52,7 @@ export function getDeveloperRuntimeDiagnostics(snapshot = {}, dirtyCount = 0) {
   const deliverables = isPlainObject(snapshot.deliverables) ? snapshot.deliverables : {};
   const deliverableConfig = isPlainObject(snapshot.deliverableConfig) ? snapshot.deliverableConfig : {};
   const columns = Array.isArray(snapshot.columns) ? snapshot.columns : [];
-  const selectedDeliverables = selectedFeatures.filter(feature => feature !== 'courseMap');
+  const selectedDeliverables = selectedFeatures.filter((feature) => feature !== 'courseMap');
   const deliverableEntries = Object.entries(deliverables);
   const statusCounts = deliverableEntries.reduce((counts, [, output]) => {
     const status = output?.status || 'idle';
@@ -65,19 +65,19 @@ export function getDeveloperRuntimeDiagnostics(snapshot = {}, dirtyCount = 0) {
   const generatingIds = deliverableEntries
     .filter(([, output]) => output?.status === 'generating' || output?.status === 'streaming')
     .map(([featureId]) => featureId);
-  const staleIds = deliverableEntries
-    .filter(([, output]) => output?.stale === true)
-    .map(([featureId]) => featureId);
-  const missingSelectedIds = selectedDeliverables.filter(featureId => !deliverables[featureId]);
-  const doneSelectedIds = selectedDeliverables.filter(featureId => deliverables[featureId]?.status === 'done');
+  const staleIds = deliverableEntries.filter(([, output]) => output?.stale === true).map(([featureId]) => featureId);
+  const missingSelectedIds = selectedDeliverables.filter((featureId) => !deliverables[featureId]);
+  const doneSelectedIds = selectedDeliverables.filter((featureId) => deliverables[featureId]?.status === 'done');
   const promptOverrideIds = Object.entries(deliverableConfig)
     .filter(([, config]) => hasPromptOverride(config))
     .map(([featureId]) => featureId);
   const promptRiskIds = Object.entries(deliverableConfig)
-    .filter(([, config]) => config?.customUserPrompt?.trim() && !config.customUserPrompt.includes(COURSE_MAP_PLACEHOLDER))
+    .filter(
+      ([, config]) => config?.customUserPrompt?.trim() && !config.customUserPrompt.includes(COURSE_MAP_PLACEHOLDER),
+    )
     .map(([featureId]) => featureId);
   const snapshotBytes = byteSize(snapshot);
-  const enabledColumns = columns.filter(column => column?.enabled !== false).length;
+  const enabledColumns = columns.filter((column) => column?.enabled !== false).length;
   const risks = [];
 
   if (!snapshot.provider) {
@@ -87,30 +87,78 @@ export function getDeveloperRuntimeDiagnostics(snapshot = {}, dirtyCount = 0) {
     addRisk(risks, 'warning', 'Model Missing', 'No model is selected for generation.', 'modelId');
   }
   if (errorIds.length > 0) {
-    addRisk(risks, 'error', 'Generation Errors', `${errorIds.map(titleFromId).join(', ')} need attention.`, 'deliverables');
+    addRisk(
+      risks,
+      'error',
+      'Generation Errors',
+      `${errorIds.map(titleFromId).join(', ')} need attention.`,
+      'deliverables',
+    );
   }
   if (staleIds.length > 0) {
-    addRisk(risks, 'warning', 'Stale Outputs', `${staleIds.length} generated output${staleIds.length === 1 ? '' : 's'} may be out of sync.`, 'deliverables');
+    addRisk(
+      risks,
+      'warning',
+      'Stale Outputs',
+      `${staleIds.length} generated output${staleIds.length === 1 ? '' : 's'} may be out of sync.`,
+      'deliverables',
+    );
   }
   if (generatingIds.length > 0) {
-    addRisk(risks, 'info', 'Generation In Progress', `${generatingIds.map(titleFromId).join(', ')} still running.`, 'deliverables');
+    addRisk(
+      risks,
+      'info',
+      'Generation In Progress',
+      `${generatingIds.map(titleFromId).join(', ')} still running.`,
+      'deliverables',
+    );
   }
   if (missingSelectedIds.length > 0) {
-    addRisk(risks, 'info', 'Missing Outputs', `${missingSelectedIds.map(titleFromId).join(', ')} selected but not generated.`, 'deliverables');
+    addRisk(
+      risks,
+      'info',
+      'Missing Outputs',
+      `${missingSelectedIds.map(titleFromId).join(', ')} selected but not generated.`,
+      'deliverables',
+    );
   }
   if (promptRiskIds.length > 0) {
-    addRisk(risks, 'warning', 'Prompt Placeholder Risk', `${promptRiskIds.map(titleFromId).join(', ')} override missing ${COURSE_MAP_PLACEHOLDER}.`, 'deliverableConfig');
+    addRisk(
+      risks,
+      'warning',
+      'Prompt Placeholder Risk',
+      `${promptRiskIds.map(titleFromId).join(', ')} override missing ${COURSE_MAP_PLACEHOLDER}.`,
+      'deliverableConfig',
+    );
   }
   if (columns.length > 0 && enabledColumns === 0) {
     addRisk(risks, 'error', 'Columns Disabled', 'Every course map column is currently disabled.', 'columns');
   }
   if (dirtyCount > 0) {
-    addRisk(risks, 'info', 'Pending Developer Edits', `${dirtyCount} edited section${dirtyCount === 1 ? '' : 's'} not applied yet.`, 'drafts');
+    addRisk(
+      risks,
+      'info',
+      'Pending Developer Edits',
+      `${dirtyCount} edited section${dirtyCount === 1 ? '' : 's'} not applied yet.`,
+      'drafts',
+    );
   }
   if (snapshotBytes >= STORAGE_DANGER_BYTES) {
-    addRisk(risks, 'error', 'Large Snapshot', `${formatBytes(snapshotBytes)} snapshot may exceed browser storage limits.`, 'localStorage');
+    addRisk(
+      risks,
+      'error',
+      'Large Snapshot',
+      `${formatBytes(snapshotBytes)} snapshot may exceed browser storage limits.`,
+      'localStorage',
+    );
   } else if (snapshotBytes >= STORAGE_WARNING_BYTES) {
-    addRisk(risks, 'warning', 'Large Snapshot', `${formatBytes(snapshotBytes)} snapshot is approaching browser storage limits.`, 'localStorage');
+    addRisk(
+      risks,
+      'warning',
+      'Large Snapshot',
+      `${formatBytes(snapshotBytes)} snapshot is approaching browser storage limits.`,
+      'localStorage',
+    );
   }
 
   return {

@@ -21,12 +21,20 @@ import studyGuides from '../prompts/studyGuides.js';
 import syllabus from '../prompts/syllabus.js';
 
 const MODULES = {
-  assignments, courseFaq, discussions, lessonPlans, quizBank,
-  rubrics, slideDecks, studyGuides, syllabus,
+  assignments,
+  courseFaq,
+  discussions,
+  lessonPlans,
+  quizBank,
+  rubrics,
+  slideDecks,
+  studyGuides,
+  syllabus,
 };
 
 const COURSE = {
-  courseName: 'Test Course', semester: 'Fall 2026',
+  courseName: 'Test Course',
+  semester: 'Fall 2026',
   lessons: [
     { title: 'L1', sections: [{ learningObjectives: 'x', topicSection: 'y' }] },
     { title: 'L2', sections: [{ learningObjectives: 'x', topicSection: 'y' }] },
@@ -58,7 +66,8 @@ describe('prompt modules — parse + shape', () => {
     const mod = MODULES[name];
     const out = mod.user(COURSE, null, null, null);
     const combined = (mod.system + ' ' + out).toLowerCase();
-    expect(combined, `${name} never tells the model to return only JSON`)
-      .toMatch(/only\s+(valid\s+)?json|no\s+prose|no\s+markdown/);
+    expect(combined, `${name} never tells the model to return only JSON`).toMatch(
+      /only\s+(valid\s+)?json|no\s+prose|no\s+markdown/,
+    );
   });
 });

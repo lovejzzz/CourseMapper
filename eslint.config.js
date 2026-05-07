@@ -61,6 +61,15 @@ export default [
     },
   },
   {
+    files: ['scripts/**/*.mjs'],
+    languageOptions: {
+      globals: {
+        ...globals.node,
+        ...globals.es2021,
+      },
+    },
+  },
+  {
     files: ['**/*.{test,spec}.{js,jsx}', 'tests/**/*.js'],
     languageOptions: {
       globals: {

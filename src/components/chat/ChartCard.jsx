@@ -50,22 +50,27 @@ export default function ChartCard({ chart, status }) {
     <div className="mx-2 my-1 rounded-xl bg-violet-50/60 border border-violet-200/30 shadow-glass animate-spring-in overflow-hidden">
       {/* Header */}
       <button
-        onClick={() => setCollapsed(v => !v)}
+        onClick={() => setCollapsed((v) => !v)}
         className="w-full px-3.5 py-2 flex items-center gap-2 hover:bg-violet-50/80 transition-colors"
         aria-expanded={!collapsed}
         aria-label={collapsed ? 'Expand chart card' : 'Collapse chart card'}
       >
         <div className="w-5 h-5 rounded-full bg-violet-100 flex items-center justify-center flex-shrink-0">
           <svg className="w-3 h-3 text-violet-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-            <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 19v-6a2 2 0 00-2-2H5a2 2 0 00-2 2v6a2 2 0 002 2h2a2 2 0 002-2zm0 0V9a2 2 0 012-2h2a2 2 0 012 2v10m-6 0a2 2 0 002 2h2a2 2 0 002-2m0 0V5a2 2 0 012-2h2a2 2 0 012 2v14a2 2 0 01-2 2h-2a2 2 0 01-2-2z" />
+            <path
+              strokeLinecap="round"
+              strokeLinejoin="round"
+              strokeWidth={2}
+              d="M9 19v-6a2 2 0 00-2-2H5a2 2 0 00-2 2v6a2 2 0 002 2h2a2 2 0 002-2zm0 0V9a2 2 0 012-2h2a2 2 0 012 2v10m-6 0a2 2 0 002 2h2a2 2 0 002-2m0 0V5a2 2 0 012-2h2a2 2 0 012 2v14a2 2 0 01-2 2h-2a2 2 0 01-2-2z"
+            />
           </svg>
         </div>
-        <span className="text-[13px] font-semibold text-violet-700 flex-1 text-left">
-          {chart.title || 'Chart'}
-        </span>
+        <span className="text-[13px] font-semibold text-violet-700 flex-1 text-left">{chart.title || 'Chart'}</span>
         <svg
           className={`w-3 h-3 text-violet-400 transition-transform duration-200 ${collapsed ? '' : 'rotate-180'}`}
-          fill="none" stroke="currentColor" viewBox="0 0 24 24"
+          fill="none"
+          stroke="currentColor"
+          viewBox="0 0 24 24"
         >
           <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M19 9l-7 7-7-7" />
         </svg>
@@ -74,9 +79,7 @@ export default function ChartCard({ chart, status }) {
       {/* Body */}
       {!collapsed && (
         <div className="px-3.5 pb-3 space-y-2 border-t border-violet-100/50">
-          {chart.description && (
-            <p className="text-[12px] text-violet-800 pt-2">{chart.description}</p>
-          )}
+          {chart.description && <p className="text-[12px] text-violet-800 pt-2">{chart.description}</p>}
 
           {/* Chart image */}
           <div className="bg-white rounded-lg border border-violet-100 p-2 flex items-center justify-center">

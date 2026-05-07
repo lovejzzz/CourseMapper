@@ -10,13 +10,16 @@ export default function useVersionHistory(setCourseMap, setDownloadedFile) {
   const activeRef = useRef(-1);
   const historyRef = useRef([]);
 
-  const syncActive = (val) => { activeRef.current = val; setActiveVersion(val); };
+  const syncActive = (val) => {
+    activeRef.current = val;
+    setActiveVersion(val);
+  };
 
   const pushVersion = useCallback((map, label) => {
     if (!map) return;
     const snapshot = structuredClone(map);
     const entry = { courseMap: snapshot, timestamp: Date.now(), label };
-    setVersionHistory(prev => {
+    setVersionHistory((prev) => {
       const next = [...prev, entry];
       historyRef.current = next;
       syncActive(next.length - 1);
@@ -24,14 +27,17 @@ export default function useVersionHistory(setCourseMap, setDownloadedFile) {
     });
   }, []);
 
-  const jumpToVersion = useCallback((idx) => {
-    const hist = historyRef.current;
-    if (idx < 0 || idx >= hist.length) return;
-    const version = hist[idx];
-    setCourseMap(structuredClone(version.courseMap));
-    syncActive(idx);
-    setDownloadedFile('');
-  }, [setCourseMap, setDownloadedFile]);
+  const jumpToVersion = useCallback(
+    (idx) => {
+      const hist = historyRef.current;
+      if (idx < 0 || idx >= hist.length) return;
+      const version = hist[idx];
+      setCourseMap(structuredClone(version.courseMap));
+      syncActive(idx);
+      setDownloadedFile('');
+    },
+    [setCourseMap, setDownloadedFile],
+  );
 
   const undo = useCallback(() => {
     const cur = activeRef.current;

@@ -157,12 +157,15 @@ async function streamChat(messages, systemPrompt, signal) {
   if (provider !== 'webllm' && !apiKey) throw new Error('NO_API_KEY');
 
   // Pick a lightweight model for chat if modelId isn't available
-  const chatModel = modelId || (
-    provider === 'openai' ? 'gpt-4o-mini' :
-      provider === 'anthropic' ? 'claude-3-5-haiku-20241022' :
-        provider === 'deepseek' ? 'deepseek-chat' :
-        'gemini-2.0-flash'
-  );
+  const chatModel =
+    modelId ||
+    (provider === 'openai'
+      ? 'gpt-4o-mini'
+      : provider === 'anthropic'
+        ? 'claude-3-5-haiku-20241022'
+        : provider === 'deepseek'
+          ? 'deepseek-chat'
+          : 'gemini-2.0-flash');
 
   // WebLLM: local browser inference
   if (provider === 'webllm') {
@@ -170,7 +173,7 @@ async function streamChat(messages, systemPrompt, signal) {
     const engine = await getEngine(chatModel);
     const llmMessages = [
       { role: 'system', content: systemPrompt },
-      ...messages.map(m => ({ role: m.role, content: m.content })),
+      ...messages.map((m) => ({ role: m.role, content: m.content })),
     ];
     const asyncIter = await engine.chat.completions.create({
       messages: llmMessages,
@@ -201,7 +204,7 @@ async function streamChat(messages, systemPrompt, signal) {
   }
 
   if (provider === 'google') {
-    const geminiMessages = messages.map(m => ({
+    const geminiMessages = messages.map((m) => ({
       role: m.role === 'assistant' ? 'model' : 'user',
       parts: [{ text: m.content }],
     }));
@@ -227,7 +230,7 @@ async function streamChat(messages, systemPrompt, signal) {
   }
 
   if (provider === 'anthropic') {
-    const anthropicMessages = messages.map(m => ({ role: m.role, content: m.content }));
+    const anthropicMessages = messages.map((m) => ({ role: m.role, content: m.content }));
     const response = await fetch('https://api.anthropic.com/v1/messages', {
       method: 'POST',
       headers: {
@@ -262,14 +265,14 @@ async function streamChat(messages, systemPrompt, signal) {
   // OpenAI-compatible providers (OpenAI, DeepSeek)
   const openaiMessages = [
     { role: 'system', content: systemPrompt },
-    ...messages.map(m => ({ role: m.role, content: m.content })),
+    ...messages.map((m) => ({ role: m.role, content: m.content })),
   ];
   const baseUrl = provider === 'deepseek' ? 'https://api.deepseek.com/v1' : 'https://api.openai.com/v1';
   const tempSetting = supportsCustomTemperature(chatModel) ? { temperature: 0.4 } : {};
   const response = await fetch(`${baseUrl}/chat/completions`, {
     method: 'POST',
     headers: {
-      'Authorization': `Bearer ${apiKey}`,
+      Authorization: `Bearer ${apiKey}`,
       'Content-Type': 'application/json',
     },
     body: JSON.stringify({
@@ -334,18 +337,18 @@ function useHelpChat(courseMap, activeTab) {
             const chunk = parseChunk(parsed);
             if (chunk) {
               fullText += chunk;
-              setMessages(prev => {
+              setMessages((prev) => {
                 const updated = [...prev];
                 updated[updated.length - 1] = { role: 'assistant', content: fullText };
                 return updated;
               });
             }
-          } catch { }
+          } catch {}
         }
       }
     } catch (err) {
       if (err.name === 'AbortError') {
-        setMessages(prev => {
+        setMessages((prev) => {
           const last = prev[prev.length - 1];
           if (last?.role === 'assistant' && !last.content) return prev.slice(0, -1);
           if (last?.role === 'assistant') {
@@ -358,7 +361,7 @@ function useHelpChat(courseMap, activeTab) {
         return;
       }
       const isNoKey = err.message === 'NO_API_KEY';
-      setMessages(prev => {
+      setMessages((prev) => {
         const updated = [...prev];
         updated[updated.length - 1] = {
           role: 'assistant',
@@ -406,11 +409,24 @@ function ChatBody({ messages, input, setInput, isStreaming, sendMessage, handleS
     <div className="flex flex-col h-full min-h-0">
       <div className="flex-1 overflow-y-auto pr-2 space-y-3 pb-3 px-4" style={{ minHeight: 0 }}>
         {messages.length === 0 ? (
-          <div className={`flex flex-col items-center justify-center h-full ${compact ? 'pt-8' : 'pt-16'} animate-fade-up`}>
-            <div className={`${compact ? 'w-10 h-10 mb-3' : 'w-16 h-16 mb-6'} rounded-2xl bg-gradient-to-br from-indigo-500/10 to-violet-500/10 flex items-center justify-center`}>
-              <svg className={`${compact ? 'w-5 h-5' : 'w-8 h-8'} text-indigo-400`} fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={1.5}
-                  d="M8.228 9c.549-1.165 2.03-2 3.772-2 2.21 0 4 1.343 4 3 0 1.4-1.278 2.575-3.006 2.907-.542.104-.994.54-.994 1.093m0 3h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z" />
+          <div
+            className={`flex flex-col items-center justify-center h-full ${compact ? 'pt-8' : 'pt-16'} animate-fade-up`}
+          >
+            <div
+              className={`${compact ? 'w-10 h-10 mb-3' : 'w-16 h-16 mb-6'} rounded-2xl bg-gradient-to-br from-indigo-500/10 to-violet-500/10 flex items-center justify-center`}
+            >
+              <svg
+                className={`${compact ? 'w-5 h-5' : 'w-8 h-8'} text-indigo-400`}
+                fill="none"
+                stroke="currentColor"
+                viewBox="0 0 24 24"
+              >
+                <path
+                  strokeLinecap="round"
+                  strokeLinejoin="round"
+                  strokeWidth={1.5}
+                  d="M8.228 9c.549-1.165 2.03-2 3.772-2 2.21 0 4 1.343 4 3 0 1.4-1.278 2.575-3.006 2.907-.542.104-.994.54-.994 1.093m0 3h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z"
+                />
               </svg>
             </div>
             <h2 className={`${compact ? 'text-sm' : 'text-lg'} font-bold text-slate-700 mb-1.5`}>How can I help?</h2>
@@ -421,7 +437,9 @@ function ChatBody({ messages, input, setInput, isStreaming, sendMessage, handleS
               {suggestedQuestions.map((q, i) => (
                 <button
                   key={i}
-                  onClick={() => { sendMessage(q); }}
+                  onClick={() => {
+                    sendMessage(q);
+                  }}
                   className={`tactile text-left ${compact ? 'px-3 py-2 rounded-lg text-[11px]' : 'px-4 py-3 rounded-xl text-xs'} font-medium text-slate-500 bg-white/50 border border-slate-200/30 hover:bg-indigo-50/60 hover:border-indigo-200/40 hover:text-indigo-600 shadow-glass hover:shadow-glow-indigo transition-all duration-300`}
                 >
                   {q}
@@ -432,7 +450,14 @@ function ChatBody({ messages, input, setInput, isStreaming, sendMessage, handleS
         ) : (
           <>
             {messages.map((msg, i) => (
-              <ChatBubble key={i} role={msg.role} content={msg.content} isLast={i === messages.length - 1} isStreaming={isStreaming} compact={compact} />
+              <ChatBubble
+                key={i}
+                role={msg.role}
+                content={msg.content}
+                isLast={i === messages.length - 1}
+                isStreaming={isStreaming}
+                compact={compact}
+              />
             ))}
             <div ref={messagesEndRef} />
           </>
@@ -446,7 +471,7 @@ function ChatBody({ messages, input, setInput, isStreaming, sendMessage, handleS
             ref={inputRef}
             type="text"
             value={input}
-            onChange={e => setInput(e.target.value)}
+            onChange={(e) => setInput(e.target.value)}
             placeholder="Type your question..."
             disabled={isStreaming}
             className={`flex-1 ${compact ? 'px-3 py-2.5 text-[12px]' : 'px-5 py-3.5 text-sm'} rounded-pill text-slate-700 bg-white/60 border border-slate-200/40 focus:border-indigo-400/40 focus:ring-2 focus:ring-indigo-500/10 focus:bg-white/90 focus:outline-none shadow-glass transition-all duration-300 placeholder:text-slate-400 disabled:opacity-60`}
@@ -466,8 +491,18 @@ function ChatBody({ messages, input, setInput, isStreaming, sendMessage, handleS
               aria-label="Send message"
               className={`tactile btn-glow ${compact ? 'p-2.5' : 'px-5 py-3.5'} rounded-pill text-sm font-semibold text-white bg-gradient-to-r from-indigo-500 via-violet-500 to-purple-600 shadow-lg shadow-indigo-500/20 hover:shadow-glow-violet hover:brightness-[1.06] transition-all duration-300 disabled:opacity-40 disabled:cursor-not-allowed`}
             >
-              <svg className={compact ? 'w-3.5 h-3.5' : 'w-4 h-4'} fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 19l9 2-9-18-9 18 9-2zm0 0v-8" />
+              <svg
+                className={compact ? 'w-3.5 h-3.5' : 'w-4 h-4'}
+                fill="none"
+                stroke="currentColor"
+                viewBox="0 0 24 24"
+              >
+                <path
+                  strokeLinecap="round"
+                  strokeLinejoin="round"
+                  strokeWidth={2}
+                  d="M12 19l9 2-9-18-9 18 9-2zm0 0v-8"
+                />
               </svg>
             </button>
           )}
@@ -487,7 +522,9 @@ export function HelpDrawer({ isOpen, onClose, courseMap, activeTab }) {
   // Close on Escape
   useEffect(() => {
     if (!isOpen) return;
-    const handler = (e) => { if (e.key === 'Escape') onClose(); };
+    const handler = (e) => {
+      if (e.key === 'Escape') onClose();
+    };
     document.addEventListener('keydown', handler);
     return () => document.removeEventListener('keydown', handler);
   }, [isOpen, onClose]);
@@ -501,32 +538,36 @@ export function HelpDrawer({ isOpen, onClose, courseMap, activeTab }) {
         <div className="absolute inset-0 bg-black/20 backdrop-blur-sm" onClick={onClose} />
         {/* Panel */}
         <div className="relative w-full max-w-md bg-white/95 backdrop-blur-xl border-l border-slate-200/60 shadow-2xl flex flex-col">
-        {/* Header */}
-        <div className="flex items-center justify-between px-4 py-3 border-b border-slate-100 flex-shrink-0">
-          <div className="flex items-center gap-2.5">
-            <div className="w-7 h-7 rounded-lg bg-gradient-to-br from-indigo-500/10 to-violet-500/10 flex items-center justify-center">
-              <svg className="w-3.5 h-3.5 text-indigo-500" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2}
-                  d="M8.228 9c.549-1.165 2.03-2 3.772-2 2.21 0 4 1.343 4 3 0 1.4-1.278 2.575-3.006 2.907-.542.104-.994.54-.994 1.093m0 3h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z" />
+          {/* Header */}
+          <div className="flex items-center justify-between px-4 py-3 border-b border-slate-100 flex-shrink-0">
+            <div className="flex items-center gap-2.5">
+              <div className="w-7 h-7 rounded-lg bg-gradient-to-br from-indigo-500/10 to-violet-500/10 flex items-center justify-center">
+                <svg className="w-3.5 h-3.5 text-indigo-500" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                  <path
+                    strokeLinecap="round"
+                    strokeLinejoin="round"
+                    strokeWidth={2}
+                    d="M8.228 9c.549-1.165 2.03-2 3.772-2 2.21 0 4 1.343 4 3 0 1.4-1.278 2.575-3.006 2.907-.542.104-.994.54-.994 1.093m0 3h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z"
+                  />
+                </svg>
+              </div>
+              <div>
+                <h2 className="text-sm font-bold text-slate-800">Help</h2>
+                <p className="text-[10px] text-slate-400">Ask anything about Course Mapper</p>
+              </div>
+            </div>
+            <button
+              onClick={onClose}
+              aria-label="Close help drawer"
+              className="p-1.5 rounded-lg text-slate-400 hover:text-slate-600 hover:bg-slate-100 transition-all"
+            >
+              <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M6 18L18 6M6 6l12 12" />
               </svg>
-            </div>
-            <div>
-              <h2 className="text-sm font-bold text-slate-800">Help</h2>
-              <p className="text-[10px] text-slate-400">Ask anything about Course Mapper</p>
-            </div>
+            </button>
           </div>
-          <button
-            onClick={onClose}
-            aria-label="Close help drawer"
-            className="p-1.5 rounded-lg text-slate-400 hover:text-slate-600 hover:bg-slate-100 transition-all"
-          >
-            <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M6 18L18 6M6 6l12 12" />
-            </svg>
-          </button>
-        </div>
-        {/* Chat body */}
-        <ChatBody {...chat} compact courseMap={courseMap} />
+          {/* Chat body */}
+          <ChatBody {...chat} compact courseMap={courseMap} />
         </div>
       </div>
     </FocusTrap>
@@ -548,10 +589,31 @@ export default function FaqChatbot() {
               <div className="absolute -inset-1 bg-gradient-to-br from-indigo-500/20 to-violet-500/20 rounded-2xl blur-lg opacity-0 group-hover:opacity-100 transition-opacity duration-500" />
               <div className="relative w-10 h-10 rounded-[12px] bg-gradient-to-br from-indigo-500 via-violet-500 to-purple-600 flex items-center justify-center shadow-lg shadow-indigo-500/20">
                 <svg className="w-5 h-5 text-white/95" viewBox="0 0 24 24" fill="none">
-                  <path d="M4 5a1 1 0 011-1h14a1 1 0 011 1v2a1 1 0 01-1 1H5a1 1 0 01-1-1V5z" stroke="currentColor" strokeWidth={1.6} strokeLinecap="round" />
-                  <path d="M4 12a1 1 0 011-1h8a1 1 0 011 1v2a1 1 0 01-1 1H5a1 1 0 01-1-1v-2z" stroke="currentColor" strokeWidth={1.6} strokeLinecap="round" />
-                  <path d="M4 19a1 1 0 011-1h5a1 1 0 011 1v1a1 1 0 01-1 1H5a1 1 0 01-1-1v-1z" stroke="currentColor" strokeWidth={1.6} strokeLinecap="round" />
-                  <path d="M19 14l-2 2 2 2" stroke="currentColor" strokeWidth={1.6} strokeLinecap="round" strokeLinejoin="round" />
+                  <path
+                    d="M4 5a1 1 0 011-1h14a1 1 0 011 1v2a1 1 0 01-1 1H5a1 1 0 01-1-1V5z"
+                    stroke="currentColor"
+                    strokeWidth={1.6}
+                    strokeLinecap="round"
+                  />
+                  <path
+                    d="M4 12a1 1 0 011-1h8a1 1 0 011 1v2a1 1 0 01-1 1H5a1 1 0 01-1-1v-2z"
+                    stroke="currentColor"
+                    strokeWidth={1.6}
+                    strokeLinecap="round"
+                  />
+                  <path
+                    d="M4 19a1 1 0 011-1h5a1 1 0 011 1v1a1 1 0 01-1 1H5a1 1 0 01-1-1v-1z"
+                    stroke="currentColor"
+                    strokeWidth={1.6}
+                    strokeLinecap="round"
+                  />
+                  <path
+                    d="M19 14l-2 2 2 2"
+                    stroke="currentColor"
+                    strokeWidth={1.6}
+                    strokeLinecap="round"
+                    strokeLinejoin="round"
+                  />
                   <circle cx="18" cy="18" r="1" fill="currentColor" opacity="0.6" />
                 </svg>
               </div>
@@ -560,9 +622,7 @@ export default function FaqChatbot() {
               <h1 className="text-lg font-extrabold tracking-tight text-slate-800">
                 Course Mapper <span className="text-gradient">Help</span>
               </h1>
-              <p className="text-slate-400 text-[12px] font-medium mt-0.5">
-                Ask me anything about using Course Mapper
-              </p>
+              <p className="text-slate-400 text-[12px] font-medium mt-0.5">Ask me anything about using Course Mapper</p>
             </div>
           </div>
           <a
@@ -594,7 +654,9 @@ function ChatBubble({ role, content, isLast, isStreaming, compact = false }) {
   if (role === 'user') {
     return (
       <div className="flex justify-end animate-spring-in">
-        <div className={`max-w-[80%] ${compact ? 'px-3 py-2 text-[12px]' : 'px-4 py-3 text-sm'} rounded-2xl rounded-br-md bg-gradient-to-r from-indigo-500 to-violet-500 text-white leading-relaxed shadow-lg shadow-indigo-500/10`}>
+        <div
+          className={`max-w-[80%] ${compact ? 'px-3 py-2 text-[12px]' : 'px-4 py-3 text-sm'} rounded-2xl rounded-br-md bg-gradient-to-r from-indigo-500 to-violet-500 text-white leading-relaxed shadow-lg shadow-indigo-500/10`}
+        >
           {content}
         </div>
       </div>
@@ -604,20 +666,42 @@ function ChatBubble({ role, content, isLast, isStreaming, compact = false }) {
   return (
     <div className="flex justify-start animate-spring-in">
       <div className={`flex gap-2.5 max-w-[85%]`}>
-        <div className={`${compact ? 'w-6 h-6' : 'w-7 h-7'} rounded-full bg-gradient-to-br from-slate-100 to-slate-200 flex items-center justify-center flex-shrink-0 mt-1 shadow-sm`}>
-          <svg className={`${compact ? 'w-3 h-3' : 'w-3.5 h-3.5'} text-indigo-500`} fill="none" stroke="currentColor" viewBox="0 0 24 24">
-            <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2}
-              d="M9.663 17h4.673M12 3v1m6.364 1.636l-.707.707M21 12h-1M4 12H3m3.343-5.657l-.707-.707m2.828 9.9a5 5 0 117.072 0l-.548.547A3.374 3.374 0 0014 18.469V19a2 2 0 11-4 0v-.531c0-.895-.356-1.754-.988-2.386l-.548-.547z" />
+        <div
+          className={`${compact ? 'w-6 h-6' : 'w-7 h-7'} rounded-full bg-gradient-to-br from-slate-100 to-slate-200 flex items-center justify-center flex-shrink-0 mt-1 shadow-sm`}
+        >
+          <svg
+            className={`${compact ? 'w-3 h-3' : 'w-3.5 h-3.5'} text-indigo-500`}
+            fill="none"
+            stroke="currentColor"
+            viewBox="0 0 24 24"
+          >
+            <path
+              strokeLinecap="round"
+              strokeLinejoin="round"
+              strokeWidth={2}
+              d="M9.663 17h4.673M12 3v1m6.364 1.636l-.707.707M21 12h-1M4 12H3m3.343-5.657l-.707-.707m2.828 9.9a5 5 0 117.072 0l-.548.547A3.374 3.374 0 0014 18.469V19a2 2 0 11-4 0v-.531c0-.895-.356-1.754-.988-2.386l-.548-.547z"
+            />
           </svg>
         </div>
-        <div className={`${compact ? 'px-3 py-2 text-[12px]' : 'px-4 py-3 text-sm'} rounded-2xl rounded-bl-md bg-white/70 border border-slate-200/40 shadow-glass text-slate-700 leading-relaxed`}>
+        <div
+          className={`${compact ? 'px-3 py-2 text-[12px]' : 'px-4 py-3 text-sm'} rounded-2xl rounded-bl-md bg-white/70 border border-slate-200/40 shadow-glass text-slate-700 leading-relaxed`}
+        >
           {content ? (
             <FormattedContent text={content} />
           ) : isLast && isStreaming ? (
             <div className="flex items-center gap-1.5">
-              <div className="w-1.5 h-1.5 rounded-full bg-indigo-400 animate-bounce" style={{ animationDelay: '0ms' }} />
-              <div className="w-1.5 h-1.5 rounded-full bg-indigo-400 animate-bounce" style={{ animationDelay: '150ms' }} />
-              <div className="w-1.5 h-1.5 rounded-full bg-indigo-400 animate-bounce" style={{ animationDelay: '300ms' }} />
+              <div
+                className="w-1.5 h-1.5 rounded-full bg-indigo-400 animate-bounce"
+                style={{ animationDelay: '0ms' }}
+              />
+              <div
+                className="w-1.5 h-1.5 rounded-full bg-indigo-400 animate-bounce"
+                style={{ animationDelay: '150ms' }}
+              />
+              <div
+                className="w-1.5 h-1.5 rounded-full bg-indigo-400 animate-bounce"
+                style={{ animationDelay: '300ms' }}
+              />
             </div>
           ) : null}
           {isLast && isStreaming && content && (
@@ -641,7 +725,7 @@ function FormattedContent({ text }) {
       elements.push(
         <div key={i} className="font-bold text-slate-800 mt-2 mb-1">
           {formatInline(cleaned)}
-        </div>
+        </div>,
       );
       continue;
     }
@@ -652,7 +736,7 @@ function FormattedContent({ text }) {
         <div key={i} className="flex gap-2 ml-1">
           <span className="text-indigo-400 mt-0.5 flex-shrink-0">•</span>
           <span>{formatInline(cleaned)}</span>
-        </div>
+        </div>,
       );
       continue;
     }
@@ -664,7 +748,7 @@ function FormattedContent({ text }) {
         <div key={i} className="flex gap-2 ml-1">
           <span className="text-indigo-400 font-semibold flex-shrink-0">{num}.</span>
           <span>{formatInline(cleaned)}</span>
-        </div>
+        </div>,
       );
       continue;
     }
@@ -684,12 +768,20 @@ function formatInline(text) {
   const parts = text.split(/(\*\*[^*]+\*\*)/g);
   return parts.map((part, i) => {
     if (part.startsWith('**') && part.endsWith('**')) {
-      return <strong key={i} className="font-semibold text-slate-800">{part.slice(2, -2)}</strong>;
+      return (
+        <strong key={i} className="font-semibold text-slate-800">
+          {part.slice(2, -2)}
+        </strong>
+      );
     }
     const codeParts = part.split(/(`[^`]+`)/g);
     return codeParts.map((cp, j) => {
       if (cp.startsWith('`') && cp.endsWith('`')) {
-        return <code key={`${i}-${j}`} className="px-1.5 py-0.5 rounded bg-slate-100 text-[12px] font-mono text-indigo-600">{cp.slice(1, -1)}</code>;
+        return (
+          <code key={`${i}-${j}`} className="px-1.5 py-0.5 rounded bg-slate-100 text-[12px] font-mono text-indigo-600">
+            {cp.slice(1, -1)}
+          </code>
+        );
       }
       return <span key={`${i}-${j}`}>{cp}</span>;
     });

@@ -3,7 +3,16 @@ import { parseFiles } from '../lib/fileParser';
 import { generateSuggestions } from '../lib/revisionSuggestions';
 import { getProfile } from '../lib/professorProfile';
 
-export default function RevisionChat({ onRevision, isRevising, savedMessages, onMessagesChange, placeholder, courseMap, isStopped, onResume }) {
+export default function RevisionChat({
+  onRevision,
+  isRevising,
+  savedMessages,
+  onMessagesChange,
+  placeholder,
+  courseMap,
+  isStopped,
+  onResume,
+}) {
   // Feature 8.3: load assistant persona for placeholder
   const assistantProfile = getProfile();
   const [messages, setMessages] = useState(savedMessages || []);
@@ -22,12 +31,14 @@ export default function RevisionChat({ onRevision, isRevising, savedMessages, on
   // Sync messages to parent for persistence — only when messages actually change,
   // not when the callback reference changes (avoids infinite-loop if parent isn't memoized)
   const onMessagesChangeRef = useRef(onMessagesChange);
-  useEffect(() => { onMessagesChangeRef.current = onMessagesChange; });
+  useEffect(() => {
+    onMessagesChangeRef.current = onMessagesChange;
+  });
   useEffect(() => {
     if (onMessagesChangeRef.current) onMessagesChangeRef.current(messages);
-  // Intentionally excludes onMessagesChangeRef: the ref is updated in the preceding
-  // effect so the callback is always current. Including it would cause an infinite loop
-  // if the parent doesn't memoize onMessagesChange.
+    // Intentionally excludes onMessagesChangeRef: the ref is updated in the preceding
+    // effect so the callback is always current. Including it would cause an infinite loop
+    // if the parent doesn't memoize onMessagesChange.
   }, [messages]); // eslint-disable-line react-hooks/exhaustive-deps
 
   async function processFiles(fileList) {
@@ -36,19 +47,22 @@ export default function RevisionChat({ onRevision, isRevising, savedMessages, on
     setIsParsing(true);
     try {
       const parsed = await parseFiles(files);
-      const successful = parsed.filter(f => f.text);
+      const successful = parsed.filter((f) => f.text);
       if (successful.length > 0) {
-        setAttachedFiles(prev => [...prev, ...successful]);
+        setAttachedFiles((prev) => [...prev, ...successful]);
       }
-      const failed = parsed.filter(f => f.error);
+      const failed = parsed.filter((f) => f.error);
       if (failed.length > 0) {
-        setMessages(prev => [...prev, {
-          role: 'error',
-          text: `Could not parse: ${failed.map(f => f.name).join(', ')}`,
-        }]);
+        setMessages((prev) => [
+          ...prev,
+          {
+            role: 'error',
+            text: `Could not parse: ${failed.map((f) => f.name).join(', ')}`,
+          },
+        ]);
       }
     } catch (err) {
-      setMessages(prev => [...prev, { role: 'error', text: `File parse error: ${err.message}` }]);
+      setMessages((prev) => [...prev, { role: 'error', text: `File parse error: ${err.message}` }]);
     }
     setIsParsing(false);
   }
@@ -70,7 +84,7 @@ export default function RevisionChat({ onRevision, isRevising, savedMessages, on
   }
 
   function removeAttached(idx) {
-    setAttachedFiles(prev => prev.filter((_, i) => i !== idx));
+    setAttachedFiles((prev) => prev.filter((_, i) => i !== idx));
   }
 
   async function handleSend() {
@@ -82,24 +96,21 @@ export default function RevisionChat({ onRevision, isRevising, savedMessages, on
     // they know how to continue from where they left off.
     if (isStopped && onResume && attachedFiles.length === 0) {
       setInput('');
-      setMessages(prev => [...prev, { role: 'user', text }, { role: 'assistant', text: 'Resuming…' }]);
+      setMessages((prev) => [...prev, { role: 'user', text }, { role: 'assistant', text: 'Resuming…' }]);
       onResume();
       return;
     }
 
     let fullMessage = text;
     if (attachedFiles.length > 0) {
-      const fileContents = attachedFiles
-        .map(f => `=== Attached File: ${f.name} ===\n${f.text}`)
-        .join('\n\n');
+      const fileContents = attachedFiles.map((f) => `=== Attached File: ${f.name} ===\n${f.text}`).join('\n\n');
       fullMessage = text
         ? `${text}\n\nThe user also attached these additional reference files:\n\n${fileContents}`
         : `Please incorporate the following additional reference files into the course map:\n\n${fileContents}`;
     }
 
-    const displayText = text + (attachedFiles.length > 0
-      ? ` [+${attachedFiles.length} file${attachedFiles.length > 1 ? 's' : ''}]`
-      : '');
+    const displayText =
+      text + (attachedFiles.length > 0 ? ` [+${attachedFiles.length} file${attachedFiles.length > 1 ? 's' : ''}]` : '');
 
     setInput('');
     setAttachedFiles([]);
@@ -107,9 +118,7 @@ export default function RevisionChat({ onRevision, isRevising, savedMessages, on
     setMessages(updatedMessages);
 
     // Pass chat history (last 10 user/assistant messages) so AI remembers context
-    const chatHistory = updatedMessages
-      .filter(m => m.role === 'user' || m.role === 'assistant')
-      .slice(-10);
+    const chatHistory = updatedMessages.filter((m) => m.role === 'user' || m.role === 'assistant').slice(-10);
 
     setSuggestions([]); // clear old suggestions when new message sent
     try {
@@ -117,16 +126,10 @@ export default function RevisionChat({ onRevision, isRevising, savedMessages, on
       let assistantReply;
       if (result && result.chatReply) {
         assistantReply = result.chatReply;
-        setMessages((prev) => [
-          ...prev,
-          { role: 'assistant', text: result.chatReply },
-        ]);
+        setMessages((prev) => [...prev, { role: 'assistant', text: result.chatReply }]);
       } else {
         assistantReply = 'Updated! Review the changes below.';
-        setMessages((prev) => [
-          ...prev,
-          { role: 'assistant', text: assistantReply },
-        ]);
+        setMessages((prev) => [...prev, { role: 'assistant', text: assistantReply }]);
       }
       // ── Feature 6.2: Generate suggestion chips after revision ──
       if (courseMap) {
@@ -134,10 +137,7 @@ export default function RevisionChat({ onRevision, isRevising, savedMessages, on
         setSuggestions(chips);
       }
     } catch (err) {
-      setMessages((prev) => [
-        ...prev,
-        { role: 'error', text: `Failed: ${err.message}` },
-      ]);
+      setMessages((prev) => [...prev, { role: 'error', text: `Failed: ${err.message}` }]);
     }
   }
 
@@ -165,13 +165,15 @@ export default function RevisionChat({ onRevision, isRevising, savedMessages, on
         <div className="max-h-48 overflow-y-auto px-4 py-3 space-y-2 bg-slate-50/30">
           {messages.map((msg, i) => (
             <div key={i} className={`flex ${msg.role === 'user' ? 'justify-end' : 'justify-start'} animate-spring-in`}>
-              <div className={`px-3.5 py-2 rounded-squircle-xs text-xs max-w-[85%] ${
-                msg.role === 'user'
-                  ? 'bg-gradient-to-r from-indigo-500 to-violet-600 text-white shadow-btn'
-                  : msg.role === 'error'
-                  ? 'bg-red-50/80 text-red-600 border border-red-200/40'
-                  : 'bg-emerald-50/80 text-emerald-700 border border-emerald-200/40'
-              }`}>
+              <div
+                className={`px-3.5 py-2 rounded-squircle-xs text-xs max-w-[85%] ${
+                  msg.role === 'user'
+                    ? 'bg-gradient-to-r from-indigo-500 to-violet-600 text-white shadow-btn'
+                    : msg.role === 'error'
+                      ? 'bg-red-50/80 text-red-600 border border-red-200/40'
+                      : 'bg-emerald-50/80 text-emerald-700 border border-emerald-200/40'
+                }`}
+              >
                 {msg.text}
               </div>
             </div>
@@ -211,12 +213,24 @@ export default function RevisionChat({ onRevision, isRevising, savedMessages, on
       {attachedFiles.length > 0 && (
         <div className="px-4 pt-2 flex flex-wrap gap-1.5">
           {attachedFiles.map((f, i) => (
-            <span key={i} className="inline-flex items-center gap-1 px-2.5 py-1 bg-indigo-50/80 text-indigo-700 text-[10px] font-semibold rounded-full border border-indigo-200/40">
+            <span
+              key={i}
+              className="inline-flex items-center gap-1 px-2.5 py-1 bg-indigo-50/80 text-indigo-700 text-[10px] font-semibold rounded-full border border-indigo-200/40"
+            >
               <svg className="w-3 h-3" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M15.172 7l-6.586 6.586a2 2 0 102.828 2.828l6.414-6.586a4 4 0 00-5.656-5.656l-6.415 6.585a6 6 0 108.486 8.486L20.5 13" />
+                <path
+                  strokeLinecap="round"
+                  strokeLinejoin="round"
+                  strokeWidth={2}
+                  d="M15.172 7l-6.586 6.586a2 2 0 102.828 2.828l6.414-6.586a4 4 0 00-5.656-5.656l-6.415 6.585a6 6 0 108.486 8.486L20.5 13"
+                />
               </svg>
               {f.name}
-              <button onClick={() => removeAttached(i)} className="ml-0.5 hover:text-red-500 transition-colors" aria-label={`Remove attached file ${f.name}`}>
+              <button
+                onClick={() => removeAttached(i)}
+                className="ml-0.5 hover:text-red-500 transition-colors"
+                aria-label={`Remove attached file ${f.name}`}
+              >
                 <svg className="w-3 h-3" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                   <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M6 18L18 6M6 6l12 12" />
                 </svg>
@@ -244,14 +258,17 @@ export default function RevisionChat({ onRevision, isRevising, savedMessages, on
           className="hidden"
           multiple
           accept=".doc,.docx,.pdf,.txt,.md,.csv,.rtf,.html,.htm,.xlsx,.xls,.ods,.ppt,.pptx,.odp,.odt,.epub,.key,.pages,.zip"
-          onChange={(e) => { processFiles(e.target.files); e.target.value = ''; }}
+          onChange={(e) => {
+            processFiles(e.target.files);
+            e.target.value = '';
+          }}
         />
         {/* Rectangular textarea */}
         <textarea
           value={input}
           onChange={(e) => setInput(e.target.value)}
           onKeyDown={handleKeyDown}
-          placeholder={isDragOver ? 'Drop files here...' : (placeholder || `Ask for revisions or drop files…`)}
+          placeholder={isDragOver ? 'Drop files here...' : placeholder || `Ask for revisions or drop files…`}
           rows={3}
           className="input-glass w-full rounded-lg px-3 py-2.5 text-xs text-slate-700 focus:outline-none resize-none leading-relaxed"
           disabled={isRevising}
@@ -266,7 +283,12 @@ export default function RevisionChat({ onRevision, isRevising, savedMessages, on
             aria-label="Attach files"
           >
             <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M15.172 7l-6.586 6.586a2 2 0 102.828 2.828l6.414-6.586a4 4 0 00-5.656-5.656l-6.415 6.585a6 6 0 108.486 8.486L20.5 13" />
+              <path
+                strokeLinecap="round"
+                strokeLinejoin="round"
+                strokeWidth={2}
+                d="M15.172 7l-6.586 6.586a2 2 0 102.828 2.828l6.414-6.586a4 4 0 00-5.656-5.656l-6.415 6.585a6 6 0 108.486 8.486L20.5 13"
+              />
             </svg>
           </button>
           <button
@@ -286,7 +308,9 @@ export default function RevisionChat({ onRevision, isRevising, savedMessages, on
                 </svg>
                 Sending…
               </span>
-            ) : 'Send'}
+            ) : (
+              'Send'
+            )}
           </button>
         </div>
       </div>
@@ -294,7 +318,12 @@ export default function RevisionChat({ onRevision, isRevising, savedMessages, on
       {isDragOver && (
         <div className="absolute inset-0 bg-indigo-500/5 border-2 border-dashed border-indigo-400/50 rounded-squircle flex flex-col items-center justify-center pointer-events-none z-10 gap-1">
           <svg className="w-5 h-5 text-indigo-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-            <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={1.8} d="M15.172 7l-6.586 6.586a2 2 0 102.828 2.828l6.414-6.586a4 4 0 00-5.656-5.656l-6.415 6.585a6 6 0 108.486 8.486L20.5 13" />
+            <path
+              strokeLinecap="round"
+              strokeLinejoin="round"
+              strokeWidth={1.8}
+              d="M15.172 7l-6.586 6.586a2 2 0 102.828 2.828l6.414-6.586a4 4 0 00-5.656-5.656l-6.415 6.585a6 6 0 108.486 8.486L20.5 13"
+            />
           </svg>
           <span className="text-sm font-semibold text-indigo-500">Drop files to attach</span>
           <span className="text-[10px] text-indigo-400/70">PDF, Word, Excel, PowerPoint, CSV, and more</span>

@@ -25,53 +25,182 @@ const COURSE_MAP = {
   courseName: 'Introduction to Psychology',
   semester: 'Fall 2026',
   lessons: [
-    { title: 'History of Psychology', sections: [{ learningObjectives: 'Understand the origins of psychology', topicSection: 'Structuralism, Functionalism, Behaviorism', learningGoals: 'Understand major schools of thought' }] },
-    { title: 'Research Methods', sections: [{ learningObjectives: 'Know how to design experiments', topicSection: 'Variables, Hypotheses, Ethics', learningGoals: 'Master research methodology' }] },
-    { title: 'The Brain and Behavior', sections: [{ learningObjectives: 'Understand neural structures', topicSection: 'Neurons, Neurotransmitters, Brain Regions', learningGoals: 'Understand the biological basis of behavior' }] },
+    {
+      title: 'History of Psychology',
+      sections: [
+        {
+          learningObjectives: 'Understand the origins of psychology',
+          topicSection: 'Structuralism, Functionalism, Behaviorism',
+          learningGoals: 'Understand major schools of thought',
+        },
+      ],
+    },
+    {
+      title: 'Research Methods',
+      sections: [
+        {
+          learningObjectives: 'Know how to design experiments',
+          topicSection: 'Variables, Hypotheses, Ethics',
+          learningGoals: 'Master research methodology',
+        },
+      ],
+    },
+    {
+      title: 'The Brain and Behavior',
+      sections: [
+        {
+          learningObjectives: 'Understand neural structures',
+          topicSection: 'Neurons, Neurotransmitters, Brain Regions',
+          learningGoals: 'Understand the biological basis of behavior',
+        },
+      ],
+    },
   ],
 };
 
 const DELIVERABLES = {
   quizBank: {
     status: 'done',
-    data: { quizzes: [
-      { lt: 'History of Psychology', tq: 2, qs: [
-        { q: 'Who founded the first psychology lab?', ty: 'multiple_choice', bl: 'Remember', df: 'easy', pt: 1, op: ['Wundt', 'Freud', 'James', 'Skinner'], an: 'Wundt' },
-        { q: 'Explain the difference between structuralism and functionalism.', ty: 'short_answer', bl: 'Understand', df: 'medium', pt: 2, an: 'Structuralism focused on breaking down mental processes; functionalism focused on their purpose.' },
-      ]},
-      { lt: 'Research Methods', tq: 1, qs: [
-        { q: 'What is a confounding variable?', ty: 'short_answer', bl: 'Remember', df: 'easy', pt: 1, an: 'A variable that influences both the independent and dependent variable.' },
-      ]},
-      { lt: 'The Brain and Behavior', tq: 1, qs: [
-        { q: 'What neurotransmitter is associated with reward?', ty: 'multiple_choice', bl: 'Remember', df: 'easy', pt: 1, op: ['Dopamine', 'Serotonin', 'GABA', 'Acetylcholine'], an: 'Dopamine' },
-      ]},
-    ]},
+    data: {
+      quizzes: [
+        {
+          lt: 'History of Psychology',
+          tq: 2,
+          qs: [
+            {
+              q: 'Who founded the first psychology lab?',
+              ty: 'multiple_choice',
+              bl: 'Remember',
+              df: 'easy',
+              pt: 1,
+              op: ['Wundt', 'Freud', 'James', 'Skinner'],
+              an: 'Wundt',
+            },
+            {
+              q: 'Explain the difference between structuralism and functionalism.',
+              ty: 'short_answer',
+              bl: 'Understand',
+              df: 'medium',
+              pt: 2,
+              an: 'Structuralism focused on breaking down mental processes; functionalism focused on their purpose.',
+            },
+          ],
+        },
+        {
+          lt: 'Research Methods',
+          tq: 1,
+          qs: [
+            {
+              q: 'What is a confounding variable?',
+              ty: 'short_answer',
+              bl: 'Remember',
+              df: 'easy',
+              pt: 1,
+              an: 'A variable that influences both the independent and dependent variable.',
+            },
+          ],
+        },
+        {
+          lt: 'The Brain and Behavior',
+          tq: 1,
+          qs: [
+            {
+              q: 'What neurotransmitter is associated with reward?',
+              ty: 'multiple_choice',
+              bl: 'Remember',
+              df: 'easy',
+              pt: 1,
+              op: ['Dopamine', 'Serotonin', 'GABA', 'Acetylcholine'],
+              an: 'Dopamine',
+            },
+          ],
+        },
+      ],
+    },
   },
   lessonPlans: {
     status: 'done',
-    data: { lessonPlans: [
-      { lt: 'History of Psychology', ob: 'Understand the origins of psychology', wu: { dur: '10 min', pr: 'What comes to mind when you hear psychology?' } },
-      { lt: 'Research Methods', ob: 'Know how to design experiments', wu: { dur: '5 min', pr: 'Discuss: can you prove something with one experiment?' } },
-      { lt: 'The Brain and Behavior', ob: 'Understand neural structures', wu: { dur: '10 min', pr: 'Draw what you think a brain looks like' } },
-    ]},
+    data: {
+      lessonPlans: [
+        {
+          lt: 'History of Psychology',
+          ob: 'Understand the origins of psychology',
+          wu: { dur: '10 min', pr: 'What comes to mind when you hear psychology?' },
+        },
+        {
+          lt: 'Research Methods',
+          ob: 'Know how to design experiments',
+          wu: { dur: '5 min', pr: 'Discuss: can you prove something with one experiment?' },
+        },
+        {
+          lt: 'The Brain and Behavior',
+          ob: 'Understand neural structures',
+          wu: { dur: '10 min', pr: 'Draw what you think a brain looks like' },
+        },
+      ],
+    },
   },
   slideDecks: {
     status: 'done',
-    data: { slideDecks: [
-      { lt: 'History of Psychology', ts: 3, sl: [
-        { t: 'What is Psychology?', ty: 'title', bu: ['Scientific study of mind and behavior'], no: 'Welcome students.' },
-        { t: 'Major Schools', ty: 'content', bu: ['Structuralism', 'Functionalism', 'Behaviorism'], no: 'Compare the three approaches.' },
-        { t: 'Key Takeaways', ty: 'summary', bu: ['Psychology evolved through many schools'], no: 'Recap.' },
-      ]},
-      { lt: 'Research Methods', ts: 2, sl: [
-        { t: 'The Scientific Method', ty: 'title', bu: ['Observe, hypothesize, test, conclude'], no: 'Overview of method.' },
-        { t: 'Ethics in Research', ty: 'content', bu: ['Informed consent', 'IRB approval'], no: 'Discuss ethical guidelines.' },
-      ]},
-      { lt: 'The Brain and Behavior', ts: 2, sl: [
-        { t: 'Neurons', ty: 'title', bu: ['Basic building blocks', '100 billion in the brain'], no: 'Introduce neurons.' },
-        { t: 'Neurotransmitters', ty: 'content', bu: ['Dopamine', 'Serotonin', 'GABA'], no: 'Explain chemical messengers.' },
-      ]},
-    ]},
+    data: {
+      slideDecks: [
+        {
+          lt: 'History of Psychology',
+          ts: 3,
+          sl: [
+            {
+              t: 'What is Psychology?',
+              ty: 'title',
+              bu: ['Scientific study of mind and behavior'],
+              no: 'Welcome students.',
+            },
+            {
+              t: 'Major Schools',
+              ty: 'content',
+              bu: ['Structuralism', 'Functionalism', 'Behaviorism'],
+              no: 'Compare the three approaches.',
+            },
+            { t: 'Key Takeaways', ty: 'summary', bu: ['Psychology evolved through many schools'], no: 'Recap.' },
+          ],
+        },
+        {
+          lt: 'Research Methods',
+          ts: 2,
+          sl: [
+            {
+              t: 'The Scientific Method',
+              ty: 'title',
+              bu: ['Observe, hypothesize, test, conclude'],
+              no: 'Overview of method.',
+            },
+            {
+              t: 'Ethics in Research',
+              ty: 'content',
+              bu: ['Informed consent', 'IRB approval'],
+              no: 'Discuss ethical guidelines.',
+            },
+          ],
+        },
+        {
+          lt: 'The Brain and Behavior',
+          ts: 2,
+          sl: [
+            {
+              t: 'Neurons',
+              ty: 'title',
+              bu: ['Basic building blocks', '100 billion in the brain'],
+              no: 'Introduce neurons.',
+            },
+            {
+              t: 'Neurotransmitters',
+              ty: 'content',
+              bu: ['Dopamine', 'Serotonin', 'GABA'],
+              no: 'Explain chemical messengers.',
+            },
+          ],
+        },
+      ],
+    },
   },
 };
 
@@ -84,7 +213,7 @@ async function callAgent(userMessage, { activeTab = 'quizBank' } = {}) {
   const response = await fetch('https://api.deepseek.com/v1/chat/completions', {
     method: 'POST',
     headers: {
-      'Authorization': `Bearer ${DEEPSEEK_API_KEY}`,
+      Authorization: `Bearer ${DEEPSEEK_API_KEY}`,
       'Content-Type': 'application/json',
     },
     body: JSON.stringify({
@@ -108,12 +237,12 @@ async function callAgent(userMessage, { activeTab = 'quizBank' } = {}) {
   const json = await response.json();
   const msg = json.choices?.[0]?.message;
 
-  const toolCalls = (msg?.tool_calls || []).map(tc => ({
+  const toolCalls = (msg?.tool_calls || []).map((tc) => ({
     name: tc.function.name,
     args: JSON.parse(tc.function.arguments || '{}'),
   }));
 
-  const respond = toolCalls.find(tc => tc.name === 'respond');
+  const respond = toolCalls.find((tc) => tc.name === 'respond');
 
   return {
     toolCalls: toolCalls.length > 0 ? toolCalls : null,
@@ -131,11 +260,11 @@ function assertNoJsonLeak(text) {
   if (!text) return;
   // Should not contain raw JSON objects, array paths, or tool syntax
   const jsonPatterns = [
-    /\{"(type|featureId|lessonIndex|patches|actions)":/,  // raw action JSON
-    /\["(quizzes|slideDecks|lessonPlans|rubrics|assignments|discussions|studyGuides|faqs)",\s*\d/,  // array paths
-    /edit_course_map\(\{/,  // tool call syntax
+    /\{"(type|featureId|lessonIndex|patches|actions)":/, // raw action JSON
+    /\["(quizzes|slideDecks|lessonPlans|rubrics|assignments|discussions|studyGuides|faqs)",\s*\d/, // array paths
+    /edit_course_map\(\{/, // tool call syntax
     /edit_deliverables\(\{/,
-    /"field"\s*:\s*"/,  // field names in JSON
+    /"field"\s*:\s*"/, // field names in JSON
   ];
   for (const pat of jsonPatterns) {
     if (pat.test(text)) {
@@ -173,14 +302,13 @@ function assertNoPlanningLanguage(text) {
 // ═════════════════════════════════════════════════════════════════════════════
 
 describeWithKey('Agent Response Quality', { timeout: TIMEOUT * 12 }, () => {
-
   // ── 1. Review course ──────────────────────────────────────────────────────
 
   it('review: concise summary + proposal (not text wall)', { timeout: TIMEOUT }, async () => {
     const r = await callAgent('Review my course for issues', { activeTab: 'courseMap' });
 
     // Should call validate_course first (not just respond)
-    const usedTools = r.toolCalls?.some(tc => tc.name !== 'respond');
+    const usedTools = r.toolCalls?.some((tc) => tc.name !== 'respond');
     expect(usedTools || r.respond).toBeTruthy();
 
     if (r.chatReply) {
@@ -201,7 +329,7 @@ describeWithKey('Agent Response Quality', { timeout: TIMEOUT * 12 }, () => {
   it('rename: direct edit + short confirmation', { timeout: TIMEOUT }, async () => {
     const r = await callAgent('Rename Lesson 1 to "Foundations of Psychology"', { activeTab: 'courseMap' });
 
-    const edit = r.toolCalls?.find(tc => tc.name === 'edit_course_map');
+    const edit = r.toolCalls?.find((tc) => tc.name === 'edit_course_map');
     if (edit) {
       // Correct: edited directly
       expect(edit.args.patches?.[0]?.lessonIndex).toBe(0);
@@ -242,9 +370,7 @@ describeWithKey('Agent Response Quality', { timeout: TIMEOUT * 12 }, () => {
     const r = await callAgent('How many lessons are in this course?');
 
     // Should NOT call read tools for info already in prompt
-    const unnecessaryReads = r.toolCalls?.filter(tc =>
-      tc.name === 'read_lesson' || tc.name === 'read_deliverable'
-    );
+    const unnecessaryReads = r.toolCalls?.filter((tc) => tc.name === 'read_lesson' || tc.name === 'read_deliverable');
     expect(unnecessaryReads?.length || 0).toBe(0);
 
     // Response should mention "3"
@@ -276,8 +402,8 @@ describeWithKey('Agent Response Quality', { timeout: TIMEOUT * 12 }, () => {
     const r = await callAgent('Are the quizzes aligned with the lesson plan objectives?');
 
     // Should use compare_deliverables or validate_course
-    const usedAnalysis = r.toolCalls?.some(tc =>
-      ['compare_deliverables', 'validate_course', 'read_deliverable'].includes(tc.name)
+    const usedAnalysis = r.toolCalls?.some((tc) =>
+      ['compare_deliverables', 'validate_course', 'read_deliverable'].includes(tc.name),
     );
     expect(usedAnalysis || r.respond).toBeTruthy();
 
@@ -292,7 +418,7 @@ describeWithKey('Agent Response Quality', { timeout: TIMEOUT * 12 }, () => {
   it('undo: calls undo_last + short confirmation', { timeout: TIMEOUT }, async () => {
     const r = await callAgent('Undo the last change');
 
-    const undo = r.toolCalls?.find(tc => tc.name === 'undo_last');
+    const undo = r.toolCalls?.find((tc) => tc.name === 'undo_last');
     expect(undo || r.respond).toBeTruthy();
 
     if (r.chatReply) {
@@ -327,7 +453,7 @@ describeWithKey('Agent Response Quality', { timeout: TIMEOUT * 12 }, () => {
     }
 
     // Should have called tools (read or edit)
-    const actedOrProposed = r.toolCalls?.some(tc => tc.name !== 'respond') || r.proposal;
+    const actedOrProposed = r.toolCalls?.some((tc) => tc.name !== 'respond') || r.proposal;
     expect(actedOrProposed || r.chatReply).toBeTruthy();
   });
 
@@ -356,7 +482,7 @@ describeWithKey('Agent Response Quality', { timeout: TIMEOUT * 12 }, () => {
     const r = await callAgent('Review the course and fix any problems you find', { activeTab: 'courseMap' });
 
     // Agent should use tools first (validate, read)
-    const usedTools = r.toolCalls?.some(tc => tc.name !== 'respond');
+    const usedTools = r.toolCalls?.some((tc) => tc.name !== 'respond');
 
     if (r.respond) {
       // If responding with fixes, should use proposal (not chatReply with A/B/C)
@@ -424,7 +550,9 @@ describeWithKey('Agent Response Quality', { timeout: TIMEOUT * 12 }, () => {
 
   it('can-do: never says "I can\'t" or "I\'m unable"', { timeout: TIMEOUT }, async () => {
     // Ask something that might tempt the agent to refuse
-    const r = await callAgent('Rewrite all the quiz questions to be much more challenging and add 2 new ones per lesson');
+    const r = await callAgent(
+      'Rewrite all the quiz questions to be much more challenging and add 2 new ones per lesson',
+    );
 
     const text = r.chatReply || r.textContent || '';
     if (text) {
@@ -436,7 +564,7 @@ describeWithKey('Agent Response Quality', { timeout: TIMEOUT * 12 }, () => {
     }
 
     // Should have taken action (tools or proposal), not just refused
-    const acted = r.toolCalls?.some(tc => tc.name !== 'respond') || r.proposal;
+    const acted = r.toolCalls?.some((tc) => tc.name !== 'respond') || r.proposal;
     expect(acted || (text && text.length > 20)).toBeTruthy();
   });
 
@@ -472,7 +600,7 @@ describeWithKey('Agent Response Quality', { timeout: TIMEOUT * 12 }, () => {
     }
 
     // Should have taken action: read, edit, or propose
-    const acted = r.toolCalls?.some(tc => tc.name !== 'respond') || r.proposal;
+    const acted = r.toolCalls?.some((tc) => tc.name !== 'respond') || r.proposal;
     expect(acted || (text && text.length > 30)).toBeTruthy();
   });
 
@@ -528,5 +656,4 @@ describeWithKey('Agent Response Quality', { timeout: TIMEOUT * 12 }, () => {
     // Should have taken action (tool calls or proposal)
     expect(r.toolCalls?.length > 0 || r.proposal || r.chatReply).toBeTruthy();
   });
-
 });

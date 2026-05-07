@@ -1,32 +1,93 @@
-
 export // Map from column keys to how they are extracted and labeled in the condensed payload.
 const COLUMN_EXTRACTORS = {
-  topicSection: { key: 'topics', extract: (sections) => sections.map(s => s.topicSection || '').filter(Boolean) },
-  learningObjectives: { key: 'objectives', extract: (sections) => sections.map(s => s.learningObjectives || '').filter(Boolean).join(' | ') },
-  weeklyAssessments: { key: 'assessments', extract: (sections) => sections.map(s => s.weeklyAssessments || '').filter(Boolean).join('; ') },
-  supportingResources: { key: 'resources', extract: (sections) => sections.map(s => s.supportingResources || '').filter(Boolean).join('; ') },
-  learningGoals: { key: 'learningGoals', extract: (sections) => sections.map(s => s.learningGoals || '').filter(Boolean).join(' | ') },
-  asyncActivities: { key: 'activities_async', extract: (sections) => sections.map(s => s.asyncActivities || '').filter(Boolean).join('; ') },
-  syncActivities: { key: 'activities_sync', extract: (sections) => sections.map(s => s.syncActivities || '').filter(Boolean).join('; ') },
-  technologyNeeded: { key: 'technology', extract: (sections) => sections.map(s => s.technologyNeeded || '').filter(Boolean).join('; ') },
-  presentationFormat: { key: 'format', extract: (sections) => sections.map(s => s.presentationFormat || '').filter(Boolean).join('; ') },
-  evaluateDesign: { key: 'evaluateDesign', extract: (sections) => sections.map(s => s.evaluateDesign || '').filter(Boolean).join('; ') },
+  topicSection: { key: 'topics', extract: (sections) => sections.map((s) => s.topicSection || '').filter(Boolean) },
+  learningObjectives: {
+    key: 'objectives',
+    extract: (sections) =>
+      sections
+        .map((s) => s.learningObjectives || '')
+        .filter(Boolean)
+        .join(' | '),
+  },
+  weeklyAssessments: {
+    key: 'assessments',
+    extract: (sections) =>
+      sections
+        .map((s) => s.weeklyAssessments || '')
+        .filter(Boolean)
+        .join('; '),
+  },
+  supportingResources: {
+    key: 'resources',
+    extract: (sections) =>
+      sections
+        .map((s) => s.supportingResources || '')
+        .filter(Boolean)
+        .join('; '),
+  },
+  learningGoals: {
+    key: 'learningGoals',
+    extract: (sections) =>
+      sections
+        .map((s) => s.learningGoals || '')
+        .filter(Boolean)
+        .join(' | '),
+  },
+  asyncActivities: {
+    key: 'activities_async',
+    extract: (sections) =>
+      sections
+        .map((s) => s.asyncActivities || '')
+        .filter(Boolean)
+        .join('; '),
+  },
+  syncActivities: {
+    key: 'activities_sync',
+    extract: (sections) =>
+      sections
+        .map((s) => s.syncActivities || '')
+        .filter(Boolean)
+        .join('; '),
+  },
+  technologyNeeded: {
+    key: 'technology',
+    extract: (sections) =>
+      sections
+        .map((s) => s.technologyNeeded || '')
+        .filter(Boolean)
+        .join('; '),
+  },
+  presentationFormat: {
+    key: 'format',
+    extract: (sections) =>
+      sections
+        .map((s) => s.presentationFormat || '')
+        .filter(Boolean)
+        .join('; '),
+  },
+  evaluateDesign: {
+    key: 'evaluateDesign',
+    extract: (sections) =>
+      sections
+        .map((s) => s.evaluateDesign || '')
+        .filter(Boolean)
+        .join('; '),
+  },
 };
 
 export function condenseCourseMap(courseMap, scopeIndices = null, verifiedChanges = null, columns = null) {
   const allLessons = courseMap.lessons || [];
 
   // Determine which columns are enabled. If columns is provided, only include those that are enabled.
-  const enabledKeys = columns && columns.length > 0
-    ? new Set(columns.filter(c => c.enabled !== false).map(c => c.key))
-    : null; // null = include all (backwards compat)
+  const enabledKeys =
+    columns && columns.length > 0 ? new Set(columns.filter((c) => c.enabled !== false).map((c) => c.key)) : null; // null = include all (backwards compat)
 
   // Determine which lessons to include and their original indices.
   let indexedLessons;
   if (scopeIndices && scopeIndices.length > 0) {
-    const inRange = scopeIndices.filter(i => i < allLessons.length);
+    const inRange = scopeIndices.filter((i) => i < allLessons.length);
     if (inRange.length > 0) {
-      indexedLessons = inRange.map(i => ({ lesson: allLessons[i], originalIndex: i }));
+      indexedLessons = inRange.map((i) => ({ lesson: allLessons[i], originalIndex: i }));
     } else {
       indexedLessons = allLessons.map((lesson, i) => ({
         lesson,
@@ -40,7 +101,9 @@ export function condenseCourseMap(courseMap, scopeIndices = null, verifiedChange
   const maxOrigIdx = indexedLessons.reduce((mx, il) => Math.max(mx, il.originalIndex), 0);
   const totalForDisplay = Math.max(allLessons.length, maxOrigIdx + 1);
 
-  const acceptedChanges = (verifiedChanges || []).filter(c => typeof c === 'string' && !c.startsWith('__REJECTED__:'));
+  const acceptedChanges = (verifiedChanges || []).filter(
+    (c) => typeof c === 'string' && !c.startsWith('__REJECTED__:'),
+  );
 
   const payload = {
     courseName: courseMap.courseName,
@@ -78,7 +141,10 @@ export function condenseCourseMap(courseMap, scopeIndices = null, verifiedChange
         for (const colKey of enabledKeys) {
           if (!COLUMN_EXTRACTORS[colKey]) {
             // Custom column — extract raw values from sections
-            const vals = sections.map(s => s[colKey] || '').filter(Boolean).join('; ');
+            const vals = sections
+              .map((s) => s[colKey] || '')
+              .filter(Boolean)
+              .join('; ');
             if (vals) entry[colKey] = vals;
           }
         }
@@ -90,11 +156,10 @@ export function condenseCourseMap(courseMap, scopeIndices = null, verifiedChange
 
   if (acceptedChanges.length > 0) {
     payload._verifiedByExamination = {
-      note: 'The following fields were fact-checked against the instructor\'s original uploaded syllabus and confirmed or corrected by the AI examiner. Treat these as authoritative.',
+      note: "The following fields were fact-checked against the instructor's original uploaded syllabus and confirmed or corrected by the AI examiner. Treat these as authoritative.",
       verifiedItems: acceptedChanges,
     };
   }
 
   return JSON.stringify(payload);
 }
-

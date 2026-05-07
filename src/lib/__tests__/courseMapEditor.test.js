@@ -17,13 +17,20 @@ function setAtPath(obj, path, value) {
 function getArrayKey(featureId, parsed) {
   if (!parsed || typeof parsed !== 'object') return null;
   const KNOWN_KEYS = {
-    lessonPlans: 'lessonPlans', slideDecks: 'slideDecks', rubrics: 'rubrics',
-    quizBank: 'quizzes', discussions: 'discussions', assignments: 'assignments',
-    studyGuides: 'studyGuides', courseFaq: 'faqs',
+    lessonPlans: 'lessonPlans',
+    slideDecks: 'slideDecks',
+    rubrics: 'rubrics',
+    quizBank: 'quizzes',
+    discussions: 'discussions',
+    assignments: 'assignments',
+    studyGuides: 'studyGuides',
+    courseFaq: 'faqs',
   };
   const ALIASES = {
-    slideDecks: ['decks', 'slides'], lessonPlans: ['plans', 'lessons'],
-    studyGuides: ['guides'], courseFaq: ['faq', 'courseFAQ'],
+    slideDecks: ['decks', 'slides'],
+    lessonPlans: ['plans', 'lessons'],
+    studyGuides: ['guides'],
+    courseFaq: ['faq', 'courseFAQ'],
   };
   const known = KNOWN_KEYS[featureId];
   if (known && parsed[known]) return known;
@@ -123,9 +130,7 @@ describe('optimisticTitleReplace', () => {
 
   it('replaces title in quiz bank (uses "quizzes" key)', () => {
     const data = {
-      quizzes: [
-        { lessonTitle: 'Quiz 1', questions: [] },
-      ],
+      quizzes: [{ lessonTitle: 'Quiz 1', questions: [] }],
     };
     const result = optimisticTitleReplace(data, 'quizBank', 0, 'Quiz 1', 'Quiz 1: Updated');
     expect(result.quizzes[0].lessonTitle).toBe('Quiz 1: Updated');

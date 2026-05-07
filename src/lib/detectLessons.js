@@ -21,7 +21,8 @@ export function detectExpectedLessons(text) {
   }
 
   // Pattern 1b: "X week course/semester/seminar/program/class/workshop"
-  const weekCoursePat = /(\d{1,2})\s*week\s*(?:course|semester|seminar|program|class|workshop|curriculum|sequence|series|training|bootcamp)/i;
+  const weekCoursePat =
+    /(\d{1,2})\s*week\s*(?:course|semester|seminar|program|class|workshop|curriculum|sequence|series|training|bootcamp)/i;
   const m1 = text.match(weekCoursePat);
   if (m1) {
     const n = parseInt(m1[1], 10);
@@ -59,10 +60,7 @@ export function detectExpectedLessons(text) {
     /(?:^|\n)\s*class\s*(\d{1,2})\b/gi,
     /(?:^|\n)\s*lesson\s*(\d{1,2})\b/gi,
   ];
-  const moduleLikePatterns = [
-    /(?:^|\n)\s*module\s*(\d{1,2})\b/gi,
-    /(?:^|\n)\s*unit\s*(\d{1,2})\b/gi,
-  ];
+  const moduleLikePatterns = [/(?:^|\n)\s*module\s*(\d{1,2})\b/gi, /(?:^|\n)\s*unit\s*(\d{1,2})\b/gi];
 
   const weekLikeNums = new Set();
   const moduleLikeNums = new Set();
@@ -91,8 +89,7 @@ export function detectExpectedLessons(text) {
       const isModuleOnly = moduleLikeNums.size > 0 && weekLikeNums.size === 0;
       return {
         expected: highest,
-        confidence: isModuleOnly ? 'medium'
-          : weekNumbers.size >= highest * 0.6 ? 'high' : 'medium',
+        confidence: isModuleOnly ? 'medium' : weekNumbers.size >= highest * 0.6 ? 'high' : 'medium',
         source: isModuleOnly
           ? `Found ${moduleLikeNums.size} module/unit headers (may not match weekly sessions)`
           : `Found ${weekNumbers.size} distinct week/lesson headers (up to ${highest})`,
@@ -163,12 +160,15 @@ ${text.slice(0, 8000)}`;
 
     if (effectiveProvider === 'webllm') {
       const { completeLocal } = await import('./webllm');
-      const response = await completeLocal(modelId, [
-        { role: 'system', content: systemPrompt },
-        { role: 'user', content: userPrompt },
-      ], { temperature: 0, max_tokens: 64 });
+      const response = await completeLocal(
+        modelId,
+        [
+          { role: 'system', content: systemPrompt },
+          { role: 'user', content: userPrompt },
+        ],
+        { temperature: 0, max_tokens: 64 },
+      );
       responseText = response.choices?.[0]?.message?.content || '';
-
     } else if (effectiveProvider === 'anthropic') {
       const res = await fetch('https://api.anthropic.com/v1/messages', {
         method: 'POST',
@@ -189,12 +189,11 @@ ${text.slice(0, 8000)}`;
       if (!res.ok) return null;
       const data = await res.json();
       responseText = data.content?.[0]?.text || '';
-
     } else if (effectiveProvider === 'openai') {
       const res = await fetch('https://api.openai.com/v1/chat/completions', {
         method: 'POST',
         headers: {
-          'Authorization': `Bearer ${apiKey}`,
+          Authorization: `Bearer ${apiKey}`,
           'Content-Type': 'application/json',
         },
         body: JSON.stringify({
@@ -212,33 +211,28 @@ ${text.slice(0, 8000)}`;
       if (!res.ok) return null;
       const data = await res.json();
       responseText = data.choices?.[0]?.message?.content || '';
-
     } else if (effectiveProvider === 'google') {
       const vertex = apiKey && !apiKey.startsWith('AIza') && apiKey.length > 39;
       const baseUrl = vertex
         ? `https://aiplatform.googleapis.com/v1/publishers/google/models/${modelId}`
         : `https://generativelanguage.googleapis.com/v1beta/models/${modelId}`;
-      const res = await fetch(
-        `${baseUrl}:generateContent?key=${apiKey}`,
-        {
-          method: 'POST',
-          headers: { 'Content-Type': 'application/json' },
-          body: JSON.stringify({
-            contents: [{ role: 'user', parts: [{ text: userPrompt }] }],
-            systemInstruction: { parts: [{ text: systemPrompt }] },
-            generationConfig: { ...tempSetting, maxOutputTokens: 64, responseMimeType: 'application/json' },
-          }),
-        }
-      );
+      const res = await fetch(`${baseUrl}:generateContent?key=${apiKey}`, {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({
+          contents: [{ role: 'user', parts: [{ text: userPrompt }] }],
+          systemInstruction: { parts: [{ text: systemPrompt }] },
+          generationConfig: { ...tempSetting, maxOutputTokens: 64, responseMimeType: 'application/json' },
+        }),
+      });
       if (!res.ok) return null;
       const data = await res.json();
       responseText = data.candidates?.[0]?.content?.parts?.[0]?.text || '';
-
     } else if (effectiveProvider === 'deepseek') {
       const res = await fetch('https://api.deepseek.com/v1/chat/completions', {
         method: 'POST',
         headers: {
-          'Authorization': `Bearer ${apiKey}`,
+          Authorization: `Bearer ${apiKey}`,
           'Content-Type': 'application/json',
         },
         body: JSON.stringify({
@@ -255,11 +249,14 @@ ${text.slice(0, 8000)}`;
       if (!res.ok) return null;
       const data = await res.json();
       responseText = data.choices?.[0]?.message?.content || '';
-
     } else if (effectiveProvider === 'openrouter') {
       if (!apiKey) return null;
       const url = 'https://openrouter.ai/api/v1/chat/completions';
-      const headers = { 'Authorization': `Bearer ${apiKey}`, 'Content-Type': 'application/json', 'HTTP-Referer': window.location.origin };
+      const headers = {
+        Authorization: `Bearer ${apiKey}`,
+        'Content-Type': 'application/json',
+        'HTTP-Referer': window.location.origin,
+      };
       const res = await fetch(url, {
         method: 'POST',
         headers,
@@ -295,7 +292,6 @@ ${text.slice(0, 8000)}`;
     if (!Number.isFinite(n) || n < 1) n = parseInt(parsed.lessonCount, 10);
     if (Number.isFinite(n) && n >= 1 && n <= 104) return n;
     return null;
-
   } catch {
     return null;
   }

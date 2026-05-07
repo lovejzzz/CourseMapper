@@ -1,9 +1,14 @@
 import { condenseCourseMap } from './promptUtils.js';
 
 export default {
-    system: `You are an expert in educational assessment and analytic rubric design for higher education. Your rubrics follow best practices from Walvoord & Anderson and meet Quality Matters (QM) Higher Education Rubric standards. Rubrics must provide specific and descriptive criteria whose connection to the course grading policy is clearly explained (QM 3.3). Each criterion uses observable, behavioral language with concrete quantity/quality markers. Rubrics are distributed to students before the assignment and are aligned to course learning objectives. Return ONLY valid JSON, no markdown fences.`,
+  system: `You are an expert in educational assessment and analytic rubric design for higher education. Your rubrics follow best practices from Walvoord & Anderson and meet Quality Matters (QM) Higher Education Rubric standards. Rubrics must provide specific and descriptive criteria whose connection to the course grading policy is clearly explained (QM 3.3). Each criterion uses observable, behavioral language with concrete quantity/quality markers. Rubrics are distributed to students before the assignment and are aligned to course learning objectives. Return ONLY valid JSON, no markdown fences.`,
 
-    user: (cm, scope, verifiedChanges, columns) => `Generate professional, university-standard analytic grading rubrics for the assessments in this course:
+  user: (
+    cm,
+    scope,
+    verifiedChanges,
+    columns,
+  ) => `Generate professional, university-standard analytic grading rubrics for the assessments in this course:
 
 ${condenseCourseMap(cm, scope, verifiedChanges, columns)}
 
@@ -56,4 +61,4 @@ REQUIREMENTS:
 - HUMAN READABILITY: Vary wording across rubric cells — do not use identical sentence patterns for every criterion level. Each cell should sound distinct and specific to that criterion.
 - RUBRIC COUNT: Generate exactly ONE rubric per unique, explicitly named assessment found in the course map. Do not create rubrics for implicit activities (class participation, attendance) or assessments that are not clearly defined as graded assignments. Your rubric count should match the number of distinct graded assignments in the course.
 - Return ONLY the JSON object, no prose, no markdown`,
-  }
+};

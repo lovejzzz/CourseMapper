@@ -6,6 +6,7 @@ import {
   clearDeveloperHistory,
   loadDeveloperHistory,
   restoreDeveloperHistorySnapshot,
+  searchDeveloperHistory,
 } from '../developerIdeHistory';
 
 class FakeStorage {
@@ -45,17 +46,19 @@ describe('developerIdeHistory', () => {
       beforeSnapshot: snapshot('Before'),
       afterSnapshot: snapshot('After'),
       dirtySections: new Set(['courseMap']),
+      label: 'Before release cleanup',
       createdAt: 100,
     });
 
+    expect(entry.label).toBe('Before release cleanup');
     expect(entry.dirtySections).toEqual(['courseMap']);
     expect(entry.beforeSnapshot).toBeUndefined();
     expect(entry.afterSnapshot).toBeUndefined();
     expect(entry.restorable).toBe(true);
     expect(entry.patches.length).toBeGreaterThan(0);
-    expect(entry.changes).toEqual(expect.arrayContaining([
-      expect.objectContaining({ path: 'courseMap.lessons[0].title' }),
-    ]));
+    expect(entry.changes).toEqual(
+      expect.arrayContaining([expect.objectContaining({ path: 'courseMap.lessons[0].title' })]),
+    );
   });
 
   it('restores compact history entries relative to the current snapshot', () => {
@@ -73,11 +76,13 @@ describe('developerIdeHistory', () => {
   });
 
   it('does not persist full snapshots to localStorage', () => {
-    appendDeveloperHistoryEntry(buildDeveloperHistoryEntry({
-      beforeSnapshot: snapshot('Before'),
-      afterSnapshot: snapshot('After'),
-      createdAt: 1,
-    }));
+    appendDeveloperHistoryEntry(
+      buildDeveloperHistoryEntry({
+        beforeSnapshot: snapshot('Before'),
+        afterSnapshot: snapshot('After'),
+        createdAt: 1,
+      }),
+    );
 
     const raw = localStorage.getItem('coursemapper-developer-ide-history');
     expect(raw).not.toContain('beforeSnapshot');
@@ -99,27 +104,70 @@ describe('developerIdeHistory', () => {
 
   it('keeps newest history entries up to the configured limit', () => {
     [1, 2, 3].forEach((createdAt) => {
-      appendDeveloperHistoryEntry(buildDeveloperHistoryEntry({
-        beforeSnapshot: snapshot(`Before ${createdAt}`),
-        afterSnapshot: snapshot(`After ${createdAt}`),
-        createdAt,
-      }), 2);
+      appendDeveloperHistoryEntry(
+        buildDeveloperHistoryEntry({
+          beforeSnapshot: snapshot(`Before ${createdAt}`),
+          afterSnapshot: snapshot(`After ${createdAt}`),
+          createdAt,
+        }),
+        2,
+      );
     });
 
     const history = loadDeveloperHistory(5);
     expect(history).toHaveLength(2);
-    expect(history.map(entry => entry.createdAt)).toEqual([3, 2]);
+    expect(history.map((entry) => entry.createdAt)).toEqual([3, 2]);
   });
 
   it('can clear persisted history', () => {
-    appendDeveloperHistoryEntry(buildDeveloperHistoryEntry({
-      beforeSnapshot: snapshot('Before'),
-      afterSnapshot: snapshot('After'),
-      createdAt: 1,
-    }));
+    appendDeveloperHistoryEntry(
+      buildDeveloperHistoryEntry({
+        beforeSnapshot: snapshot('Before'),
+        afterSnapshot: snapshot('After'),
+        createdAt: 1,
+      }),
+    );
 
     expect(loadDeveloperHistory()).toHaveLength(1);
     expect(clearDeveloperHistory()).toEqual([]);
     expect(loadDeveloperHistory()).toEqual([]);
+  });
+
+  it('searches history by section, path, and safety metadata', () => {
+    const entries = [
+      {
+        id: 'one',
+        createdAt: 1,
+        dirtySections: ['courseMap'],
+        changes: [
+          { type: 'changed', path: 'courseMap.lessons[0].title', beforeSummary: 'Before', afterSummary: 'After' },
+        ],
+        patches: [],
+        restorable: true,
+      },
+      {
+        id: 'two',
+        createdAt: 2,
+        dirtySections: ['config'],
+        changes: [
+          {
+            type: 'added',
+            path: 'deliverableConfig.quizBank.customUserPrompt',
+            afterSummary: 'Prompt override',
+          },
+        ],
+        patches: [],
+        secretBlocked: true,
+        restorable: false,
+      },
+    ];
+
+    expect(
+      searchDeveloperHistory([{ ...entries[0], label: 'Course map checkpoint' }, entries[1]], 'checkpoint'),
+    ).toEqual([expect.objectContaining({ id: 'one' })]);
+    expect(searchDeveloperHistory(entries, 'courseMap title')).toEqual([entries[0]]);
+    expect(searchDeveloperHistory(entries, 'quizBank prompt')).toEqual([entries[1]]);
+    expect(searchDeveloperHistory(entries, 'secret summary')).toEqual([entries[1]]);
+    expect(searchDeveloperHistory(entries, 'missing')).toEqual([]);
   });
 });

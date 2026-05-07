@@ -15,27 +15,91 @@ import { exportSlideDeckPptx, buildSlideDeckPptxBlob } from '../lib/exporters/pp
 // ── Which formats each deliverable supports ─────────────────────────────────
 // courseMap handled separately via useExport (xlsx, csv, pdf, docx, gsheets, gdocs)
 const FORMAT_SUPPORT = {
-  courseMap:    { xlsx: true,  csv: true,  pdf: true,  docx: true,  gdocs: true,  gsheets: true,  pptx: false, slidepdf: false },
-  syllabus:     { xlsx: false, csv: false, pdf: true,  docx: true,  gdocs: true,  gsheets: false, pptx: false, slidepdf: false },
-  lessonPlans:  { xlsx: false, csv: true,  pdf: true,  docx: true,  gdocs: true,  gsheets: true,  pptx: false, slidepdf: false },
-  slideDecks:   { xlsx: false, csv: false, pdf: false, docx: false, gdocs: false, gsheets: false, pptx: true,  slidepdf: true, gslides: true },
-  assignments:  { xlsx: false, csv: true,  pdf: true,  docx: true,  gdocs: true,  gsheets: true,  pptx: false, slidepdf: false },
-  rubrics:      { xlsx: false, csv: true,  pdf: true,  docx: true,  gdocs: true,  gsheets: true,  pptx: false, slidepdf: false },
-  discussions:  { xlsx: false, csv: true,  pdf: true,  docx: true,  gdocs: true,  gsheets: true,  pptx: false, slidepdf: false },
-  quizBank:     { xlsx: false, csv: true,  pdf: true,  docx: true,  gdocs: true,  gsheets: true,  pptx: false, slidepdf: false },
-  studyGuides:  { xlsx: false, csv: true,  pdf: true,  docx: true,  gdocs: true,  gsheets: true,  pptx: false, slidepdf: false },
-  courseFaq:    { xlsx: false, csv: true,  pdf: true,  docx: true,  gdocs: true,  gsheets: true,  pptx: false, slidepdf: false },
+  courseMap: { xlsx: true, csv: true, pdf: true, docx: true, gdocs: true, gsheets: true, pptx: false, slidepdf: false },
+  syllabus: {
+    xlsx: false,
+    csv: false,
+    pdf: true,
+    docx: true,
+    gdocs: true,
+    gsheets: false,
+    pptx: false,
+    slidepdf: false,
+  },
+  lessonPlans: {
+    xlsx: false,
+    csv: true,
+    pdf: true,
+    docx: true,
+    gdocs: true,
+    gsheets: true,
+    pptx: false,
+    slidepdf: false,
+  },
+  slideDecks: {
+    xlsx: false,
+    csv: false,
+    pdf: false,
+    docx: false,
+    gdocs: false,
+    gsheets: false,
+    pptx: true,
+    slidepdf: true,
+    gslides: true,
+  },
+  assignments: {
+    xlsx: false,
+    csv: true,
+    pdf: true,
+    docx: true,
+    gdocs: true,
+    gsheets: true,
+    pptx: false,
+    slidepdf: false,
+  },
+  rubrics: { xlsx: false, csv: true, pdf: true, docx: true, gdocs: true, gsheets: true, pptx: false, slidepdf: false },
+  discussions: {
+    xlsx: false,
+    csv: true,
+    pdf: true,
+    docx: true,
+    gdocs: true,
+    gsheets: true,
+    pptx: false,
+    slidepdf: false,
+  },
+  quizBank: { xlsx: false, csv: true, pdf: true, docx: true, gdocs: true, gsheets: true, pptx: false, slidepdf: false },
+  studyGuides: {
+    xlsx: false,
+    csv: true,
+    pdf: true,
+    docx: true,
+    gdocs: true,
+    gsheets: true,
+    pptx: false,
+    slidepdf: false,
+  },
+  courseFaq: {
+    xlsx: false,
+    csv: true,
+    pdf: true,
+    docx: true,
+    gdocs: true,
+    gsheets: true,
+    pptx: false,
+    slidepdf: false,
+  },
 };
 
 // Formats for non-slideDecks current tab
 const DOWNLOAD_FORMATS = [
   { id: 'xlsx', label: '.xlsx', color: 'emerald' },
-  { id: 'docx', label: '.docx', color: 'blue'    },
-  { id: 'pdf',  label: '.pdf',  color: 'red'     },
-  { id: 'csv',  label: '.csv',  color: 'slate'   },
+  { id: 'docx', label: '.docx', color: 'blue' },
+  { id: 'pdf', label: '.pdf', color: 'red' },
+  { id: 'csv', label: '.csv', color: 'slate' },
 ];
 const CLOUD_FORMATS = [
-  { id: 'gdocs',   label: 'Google Docs',   color: 'gdocs'   },
+  { id: 'gdocs', label: 'Google Docs', color: 'gdocs' },
   { id: 'gsheets', label: 'Google Sheets', color: 'gsheets' },
 ];
 
@@ -91,7 +155,7 @@ async function exportSlideDeckPdf(data, courseName) {
         doc.setFontSize(9);
         doc.setFont('helvetica', 'normal');
         doc.setTextColor(30, 30, 30);
-        bullets.forEach(bullet => {
+        bullets.forEach((bullet) => {
           const lines = doc.splitTextToSize(`• ${bullet}`, contentW);
           if (y + lines.length * 5 > pageH - 28) return; // skip if overflow
           doc.text(lines, margin, y);
@@ -138,19 +202,20 @@ function Spin() {
 // Cloud (Google) buttons retain their brand colors via GDriveBtn.
 function FmtBtn({ fmt, label, disabled, busy, onClick }) {
   const colorMap = {
-    emerald:  'text-slate-600 bg-white/60 border border-slate-200/50 hover:bg-white/80',
-    blue:     'text-slate-600 bg-white/60 border border-slate-200/50 hover:bg-white/80',
-    red:      'text-slate-600 bg-white/60 border border-slate-200/50 hover:bg-white/80',
-    slate:    'text-slate-600 bg-white/60 border border-slate-200/50 hover:bg-white/80',
-    gdocs:    'text-[#1967D2] bg-[#E8F0FE]/80 border border-[#4285F4]/20 hover:bg-[#D2E3FC]',
-    gsheets:  'text-[#188038] bg-[#E6F4EA]/80 border border-[#34A853]/20 hover:bg-[#CEEAD6]',
-    pptx:     'text-slate-600 bg-white/60 border border-slate-200/50 hover:bg-white/80',
-    gslides:  'text-[#F4B400] bg-[#FFF8E1]/80 border border-[#FBBC04]/30 hover:bg-[#FFF0B3]',
+    emerald: 'text-slate-600 bg-white/60 border border-slate-200/50 hover:bg-white/80',
+    blue: 'text-slate-600 bg-white/60 border border-slate-200/50 hover:bg-white/80',
+    red: 'text-slate-600 bg-white/60 border border-slate-200/50 hover:bg-white/80',
+    slate: 'text-slate-600 bg-white/60 border border-slate-200/50 hover:bg-white/80',
+    gdocs: 'text-[#1967D2] bg-[#E8F0FE]/80 border border-[#4285F4]/20 hover:bg-[#D2E3FC]',
+    gsheets: 'text-[#188038] bg-[#E6F4EA]/80 border border-[#34A853]/20 hover:bg-[#CEEAD6]',
+    pptx: 'text-slate-600 bg-white/60 border border-slate-200/50 hover:bg-white/80',
+    gslides: 'text-[#F4B400] bg-[#FFF8E1]/80 border border-[#FBBC04]/30 hover:bg-[#FFF0B3]',
     slidepdf: 'text-slate-600 bg-white/60 border border-slate-200/50 hover:bg-white/80',
   };
   const displayLabel = label || fmt.label;
   return (
     <button
+      data-testid={`export-format-${fmt.id}`}
       onClick={onClick}
       disabled={disabled || busy}
       className={`tactile flex items-center justify-center gap-1.5 px-3 py-2 rounded-lg text-[11px] font-semibold transition-all duration-200 w-full
@@ -176,32 +241,33 @@ function GDriveBtn({ fmt, label, disabled, busy, onClick }) {
       : 'text-[#1967D2] bg-[#E8F0FE]/80 border border-[#4285F4]/20 hover:bg-[#D2E3FC]';
   return (
     <button
+      data-testid={`export-format-${fmt.id}`}
       onClick={onClick}
       disabled={disabled || busy}
       className={`tactile flex items-center gap-2 px-3 py-2 rounded-lg text-[11px] font-semibold transition-all duration-200 w-full
         ${disabled ? 'opacity-30 cursor-not-allowed bg-slate-100 text-slate-400 border border-slate-200/40' : btnClass}`}
       title={disabled ? 'Not available for this deliverable' : ''}
     >
-      {busy ? <Spin /> : (
-        isSlides ? (
-          // Google Slides icon (presentation)
-          <svg className="w-3.5 h-3.5 flex-shrink-0" viewBox="0 0 24 24" fill="none">
-            <rect x="3" y="4" width="18" height="14" rx="2" fill="#FBBC04" fillOpacity="0.25"/>
-            <rect x="3" y="4" width="18" height="14" rx="2" stroke="#F4B400" strokeWidth="1.2"/>
-            <path d="M8 8l5 4-5 4V8z" fill="#F4B400"/>
-          </svg>
-        ) : isSheets ? (
-          <svg className="w-3.5 h-3.5 flex-shrink-0" viewBox="0 0 24 24" fill="none">
-            <rect x="4" y="3" width="16" height="18" rx="2" fill="#34A853" fillOpacity="0.15"/>
-            <path d="M4 9h16M4 13h16M4 17h16M10 9v12M15 9v12" stroke="#34A853" strokeWidth="1" strokeLinecap="round"/>
-          </svg>
-        ) : (
-          <svg className="w-3.5 h-3.5 flex-shrink-0" viewBox="0 0 24 24" fill="none">
-            <path d="M6 3a2 2 0 00-2 2v14a2 2 0 002 2h12a2 2 0 002-2V9l-6-6H6z" fill="#4285F4" fillOpacity="0.15"/>
-            <path d="M14 3l6 6h-4a2 2 0 01-2-2V3z" fill="#4285F4" fillOpacity="0.3"/>
-            <path d="M7 12h10M7 15h7" stroke="#4285F4" strokeWidth="1.2" strokeLinecap="round"/>
-          </svg>
-        )
+      {busy ? (
+        <Spin />
+      ) : isSlides ? (
+        // Google Slides icon (presentation)
+        <svg className="w-3.5 h-3.5 flex-shrink-0" viewBox="0 0 24 24" fill="none">
+          <rect x="3" y="4" width="18" height="14" rx="2" fill="#FBBC04" fillOpacity="0.25" />
+          <rect x="3" y="4" width="18" height="14" rx="2" stroke="#F4B400" strokeWidth="1.2" />
+          <path d="M8 8l5 4-5 4V8z" fill="#F4B400" />
+        </svg>
+      ) : isSheets ? (
+        <svg className="w-3.5 h-3.5 flex-shrink-0" viewBox="0 0 24 24" fill="none">
+          <rect x="4" y="3" width="16" height="18" rx="2" fill="#34A853" fillOpacity="0.15" />
+          <path d="M4 9h16M4 13h16M4 17h16M10 9v12M15 9v12" stroke="#34A853" strokeWidth="1" strokeLinecap="round" />
+        </svg>
+      ) : (
+        <svg className="w-3.5 h-3.5 flex-shrink-0" viewBox="0 0 24 24" fill="none">
+          <path d="M6 3a2 2 0 00-2 2v14a2 2 0 002 2h12a2 2 0 002-2V9l-6-6H6z" fill="#4285F4" fillOpacity="0.15" />
+          <path d="M14 3l6 6h-4a2 2 0 01-2-2V3z" fill="#4285F4" fillOpacity="0.3" />
+          <path d="M7 12h10M7 15h7" stroke="#4285F4" strokeWidth="1.2" strokeLinecap="round" />
+        </svg>
       )}
       {displayLabel}
     </button>
@@ -238,7 +304,9 @@ async function exportAllAsZip(deliverables, courseMap, columns, courseName, less
   try {
     const buf = await buildXlsxBuffer(filteredCourseMap, columns);
     cmFolder.file(`${name} - Course Map.xlsx`, buf);
-  } catch (e) { console.warn('CM xlsx failed', e); }
+  } catch (e) {
+    console.warn('CM xlsx failed', e);
+  }
 
   // ── Each deliverable in its own folder ──
   for (const [featureId, entry] of Object.entries(deliverables)) {
@@ -267,7 +335,10 @@ async function exportAllAsZip(deliverables, courseMap, columns, courseName, less
       } else if (featureId === 'slideDecks') {
         const deckKey = filteredData.decks ? 'decks' : 'slideDecks';
         if (Array.isArray(filteredData[deckKey])) {
-          filteredData = { ...filteredData, [deckKey]: filteredData[deckKey].filter((_, i) => lessonFilter.includes(i)) };
+          filteredData = {
+            ...filteredData,
+            [deckKey]: filteredData[deckKey].filter((_, i) => lessonFilter.includes(i)),
+          };
         }
       } else if (featureId === 'quizBank') {
         const qKey = filteredData.quizBank ? 'quizBank' : 'quizzes';
@@ -282,14 +353,18 @@ async function exportAllAsZip(deliverables, courseMap, columns, courseName, less
       try {
         const blob = await buildSlideDeckPptxBlob(filteredData, name, slideTheme);
         folder.file(`${name} - ${label}.pptx`, blob);
-      } catch (e) { console.warn(`${featureId} pptx blob failed`, e); }
+      } catch (e) {
+        console.warn(`${featureId} pptx blob failed`, e);
+      }
     } else {
       // DOCX for other deliverables
       if (support.docx) {
         try {
           const blob = await buildDeliverableDocxBlob(featureId, filteredData, name);
           folder.file(`${name} - ${label}.docx`, blob);
-        } catch (e) { console.warn(`${featureId} docx blob failed`, e); }
+        } catch (e) {
+          console.warn(`${featureId} docx blob failed`, e);
+        }
       }
       // CSV (skipped in ZIP — export individually if needed)
     }
@@ -304,8 +379,8 @@ export default function ExportSidePanel({
   activeTab,
   activeTabLabel,
   deliverables,
-  onCourseMapExport,   // handleDownload from useExport
-  onSaveProject,       // save full session as .coursemapper
+  onCourseMapExport, // handleDownload from useExport
+  onSaveProject, // save full session as .coursemapper
 }) {
   const { courseMap, columns, selectedFeatures, slideTheme } = useCourse();
   const [scope, setScope] = useState('current'); // 'current' | 'all'
@@ -327,13 +402,22 @@ export default function ExportSidePanel({
   const currentHasData = isCurrentDeliverable && currentDeliverable?.status === 'done' && currentDeliverable?.data;
 
   // Format support for current tab (custom deliverables get csv/pdf/docx/gdocs)
-  const CUSTOM_FORMAT_SUPPORT = { xlsx: false, csv: true, pdf: true, docx: true, gdocs: true, gsheets: true, pptx: false, slidepdf: false };
+  const CUSTOM_FORMAT_SUPPORT = {
+    xlsx: false,
+    csv: true,
+    pdf: true,
+    docx: true,
+    gdocs: true,
+    gsheets: true,
+    pptx: false,
+    slidepdf: false,
+  };
   const currentSupport = FORMAT_SUPPORT[activeTab] || (activeTab?.startsWith('custom_') ? CUSTOM_FORMAT_SUPPORT : {});
 
   // Count ready deliverables for "All" mode
-  const allReadyCount = Object.entries(deliverables || {})
-    .filter(([id, e]) => id !== 'courseMap' && e?.status === 'done').length
-    + (courseMap ? 1 : 0);
+  const allReadyCount =
+    Object.entries(deliverables || {}).filter(([id, e]) => id !== 'courseMap' && e?.status === 'done').length +
+    (courseMap ? 1 : 0);
 
   // Effective lesson filter for ZIP
   const effectiveLessonFilter = selectedLessons; // null means no filter (all)
@@ -372,11 +456,13 @@ export default function ExportSidePanel({
           }
         } else {
           if (!currentDeliverable?.data) throw new Error('No data yet');
-          if (format === 'csv')     await exportDeliverableCsv(activeTab, currentDeliverable.data, courseName);
-          if (format === 'pdf')     await exportDeliverablePdf(activeTab, currentDeliverable.data, courseName);
-          if (format === 'docx')    await exportDeliverableDocx(activeTab, currentDeliverable.data, courseName);
-          if (format === 'gdocs')   await exportDeliverableToGoogleDocs(activeTab, currentDeliverable.data, courseName, preTab);
-          if (format === 'gsheets') await exportDeliverableToGoogleSheets(activeTab, currentDeliverable.data, courseName, preTab);
+          if (format === 'csv') await exportDeliverableCsv(activeTab, currentDeliverable.data, courseName);
+          if (format === 'pdf') await exportDeliverablePdf(activeTab, currentDeliverable.data, courseName);
+          if (format === 'docx') await exportDeliverableDocx(activeTab, currentDeliverable.data, courseName);
+          if (format === 'gdocs')
+            await exportDeliverableToGoogleDocs(activeTab, currentDeliverable.data, courseName, preTab);
+          if (format === 'gsheets')
+            await exportDeliverableToGoogleSheets(activeTab, currentDeliverable.data, courseName, preTab);
         }
         setLastOk('Done!');
       }
@@ -385,7 +471,10 @@ export default function ExportSidePanel({
       setLastError(err.message || 'Export failed');
     } finally {
       setBusy(null);
-      setTimeout(() => { setLastOk(''); setLastError(''); }, 4000);
+      setTimeout(() => {
+        setLastOk('');
+        setLastError('');
+      }, 4000);
     }
   }
 
@@ -400,18 +489,19 @@ export default function ExportSidePanel({
     return !currentSupport[formatId];
   }
 
-  const tabLabel = activeTabLabel || (activeTab === 'courseMap' ? 'Course Map' : (FEATURE_LABELS[activeTab] || activeTab));
+  const tabLabel =
+    activeTabLabel || (activeTab === 'courseMap' ? 'Course Map' : FEATURE_LABELS[activeTab] || activeTab);
 
   // Toggle a lesson in/out of selectedLessons
   function toggleLesson(idx) {
-    setSelectedLessons(prev => {
+    setSelectedLessons((prev) => {
       if (prev === null) {
         // Currently all selected — deselect just this one
-        return allLessons.map((_, i) => i).filter(i => i !== idx);
+        return allLessons.map((_, i) => i).filter((i) => i !== idx);
       }
       if (prev.includes(idx)) {
         // Deselect — allow empty array (all unchecked)
-        const next = prev.filter(i => i !== idx);
+        const next = prev.filter((i) => i !== idx);
         return next.length === allLessons.length ? null : next;
       } else {
         // Select — if now all selected, normalize to null
@@ -425,15 +515,22 @@ export default function ExportSidePanel({
   const selectedCount = selectedLessons === null ? allLessons.length : selectedLessons.length;
 
   return (
-    <div className="flex flex-col gap-4 w-56 flex-shrink-0">
+    <div
+      data-testid="export-side-panel"
+      className="export-side-panel flex flex-col gap-4 w-full lg:w-56 lg:flex-shrink-0"
+    >
       {/* ── Panel card ── */}
       <div className="glass rounded-squircle-sm shadow-glass p-4 space-y-4 animate-spring-in">
-
         {/* Header */}
         <div className="flex items-center gap-2">
           <div className="w-6 h-6 rounded-lg bg-gradient-to-br from-indigo-500 to-violet-600 flex items-center justify-center flex-shrink-0 shadow-sm">
             <svg className="w-3.5 h-3.5 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 10v6m0 0l-3-3m3 3l3-3m2 8H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z" />
+              <path
+                strokeLinecap="round"
+                strokeLinejoin="round"
+                strokeWidth={2}
+                d="M12 10v6m0 0l-3-3m3 3l3-3m2 8H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z"
+              />
             </svg>
           </div>
           <span className="text-xs font-bold text-slate-700">Export</span>
@@ -443,15 +540,14 @@ export default function ExportSidePanel({
         <div className="flex items-center bg-slate-100/80 rounded-lg p-0.5 gap-0.5">
           {[
             { id: 'current', label: 'Current' },
-            { id: 'all',     label: 'All' },
-          ].map(s => (
+            { id: 'all', label: 'All' },
+          ].map((s) => (
             <button
               key={s.id}
+              data-testid={`export-scope-${s.id}`}
               onClick={() => setScope(s.id)}
               className={`flex-1 py-1.5 rounded-md text-[11px] font-semibold transition-all duration-200 ${
-                scope === s.id
-                  ? 'bg-white text-slate-800 shadow-sm'
-                  : 'text-slate-400 hover:text-slate-600'
+                scope === s.id ? 'bg-white text-slate-800 shadow-sm' : 'text-slate-400 hover:text-slate-600'
               }`}
             >
               {s.label}
@@ -461,10 +557,18 @@ export default function ExportSidePanel({
 
         {/* Scope description */}
         <p className="text-[10px] text-slate-400 leading-snug -mt-1">
-          {scope === 'current'
-            ? <><span className="font-semibold text-indigo-500">{tabLabel}</span> only</>
-            : <><span className="font-semibold text-indigo-500">{allReadyCount} item{allReadyCount !== 1 ? 's' : ''}</span> ready</>
-          }
+          {scope === 'current' ? (
+            <>
+              <span className="font-semibold text-indigo-500">{tabLabel}</span> only
+            </>
+          ) : (
+            <>
+              <span className="font-semibold text-indigo-500">
+                {allReadyCount} item{allReadyCount !== 1 ? 's' : ''}
+              </span>{' '}
+              ready
+            </>
+          )}
         </p>
 
         {/* ────────────────────────────────────────────────────────────── */}
@@ -493,14 +597,14 @@ export default function ExportSidePanel({
                         key={idx}
                         onClick={() => toggleLesson(idx)}
                         className={`w-full flex items-center gap-1.5 px-2 py-1 rounded-md text-[10px] text-left transition-colors ${
-                          isOn
-                            ? 'bg-indigo-50 text-indigo-700'
-                            : 'text-slate-400 hover:bg-slate-50'
+                          isOn ? 'bg-indigo-50 text-indigo-700' : 'text-slate-400 hover:bg-slate-50'
                         }`}
                       >
-                        <span className={`w-3.5 h-3.5 rounded flex-shrink-0 border flex items-center justify-center ${
-                          isOn ? 'bg-indigo-500 border-indigo-500' : 'border-slate-300'
-                        }`}>
+                        <span
+                          className={`w-3.5 h-3.5 rounded flex-shrink-0 border flex items-center justify-center ${
+                            isOn ? 'bg-indigo-500 border-indigo-500' : 'border-slate-300'
+                          }`}
+                        >
                           {isOn && (
                             <svg className="w-2 h-2 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                               <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={3} d="M5 13l4 4L19 7" />
@@ -523,14 +627,24 @@ export default function ExportSidePanel({
             <div>
               <p className="text-[9px] font-bold text-slate-400 uppercase tracking-wider mb-1.5">Download</p>
               <button
+                data-testid="export-download-zip"
                 onClick={() => doExport('zip')}
                 disabled={!!busy || allReadyCount === 0 || (selectedLessons !== null && selectedLessons.length === 0)}
-                title={selectedLessons !== null && selectedLessons.length === 0 ? 'Select at least one lesson' : undefined}
+                title={
+                  selectedLessons !== null && selectedLessons.length === 0 ? 'Select at least one lesson' : undefined
+                }
                 className="tactile flex items-center justify-center gap-2 w-full py-2.5 rounded-lg text-[12px] font-bold text-white bg-gradient-to-r from-indigo-500 to-violet-600 shadow-sm hover:brightness-110 transition-all disabled:opacity-40 disabled:cursor-not-allowed"
               >
-                {busy === 'zip' ? <Spin /> : (
+                {busy === 'zip' ? (
+                  <Spin />
+                ) : (
                   <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M4 16v1a3 3 0 003 3h10a3 3 0 003-3v-1m-4-4l-4 4m0 0l-4-4m4 4V4" />
+                    <path
+                      strokeLinecap="round"
+                      strokeLinejoin="round"
+                      strokeWidth={2}
+                      d="M4 16v1a3 3 0 003 3h10a3 3 0 003-3v-1m-4-4l-4 4m0 0l-4-4m4 4V4"
+                    />
                   </svg>
                 )}
                 Download ZIP
@@ -544,12 +658,18 @@ export default function ExportSidePanel({
                 Save session to reopen later — includes all generated content.
               </p>
               <button
+                data-testid="export-save-project"
                 onClick={onSaveProject}
                 disabled={!!busy}
                 className="tactile flex items-center justify-center gap-2 w-full py-2.5 rounded-lg text-[11px] font-semibold text-slate-600 bg-white/60 border border-slate-200/50 hover:bg-white/80 transition-all disabled:opacity-40 disabled:cursor-not-allowed"
               >
                 <svg className="w-3.5 h-3.5 flex-shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M8 7H5a2 2 0 00-2 2v9a2 2 0 002 2h14a2 2 0 002-2V9a2 2 0 00-2-2h-3m-1 4l-3 3m0 0l-3-3m3 3V4" />
+                  <path
+                    strokeLinecap="round"
+                    strokeLinejoin="round"
+                    strokeWidth={2}
+                    d="M8 7H5a2 2 0 00-2 2v9a2 2 0 002 2h14a2 2 0 002-2V9a2 2 0 00-2-2h-3m-1 4l-3 3m0 0l-3-3m3 3V4"
+                  />
                 </svg>
                 Save .coursemapper
               </button>
@@ -597,7 +717,7 @@ export default function ExportSidePanel({
             <div className="space-y-2">
               <p className="text-[9px] font-bold text-slate-400 uppercase tracking-wider">Download</p>
               <div className="grid grid-cols-2 gap-1.5">
-                {DOWNLOAD_FORMATS.map(fmt => (
+                {DOWNLOAD_FORMATS.map((fmt) => (
                   <FmtBtn
                     key={fmt.id}
                     fmt={fmt}
@@ -611,7 +731,7 @@ export default function ExportSidePanel({
             <div className="space-y-2">
               <p className="text-[9px] font-bold text-slate-400 uppercase tracking-wider">Google Drive</p>
               <div className="flex flex-col gap-1.5">
-                {CLOUD_FORMATS.map(fmt => (
+                {CLOUD_FORMATS.map((fmt) => (
                   <GDriveBtn
                     key={fmt.id}
                     fmt={fmt}
@@ -633,7 +753,7 @@ export default function ExportSidePanel({
             <div className="space-y-2">
               <p className="text-[9px] font-bold text-slate-400 uppercase tracking-wider">Download</p>
               <div className="grid grid-cols-2 gap-1.5">
-                {DOWNLOAD_FORMATS.map(fmt => (
+                {DOWNLOAD_FORMATS.map((fmt) => (
                   <FmtBtn
                     key={fmt.id}
                     fmt={fmt}
@@ -647,7 +767,7 @@ export default function ExportSidePanel({
             <div className="space-y-2">
               <p className="text-[9px] font-bold text-slate-400 uppercase tracking-wider">Google Drive</p>
               <div className="flex flex-col gap-1.5">
-                {CLOUD_FORMATS.filter(fmt => !isDisabled(fmt.id)).map(fmt => (
+                {CLOUD_FORMATS.filter((fmt) => !isDisabled(fmt.id)).map((fmt) => (
                   <GDriveBtn
                     key={fmt.id}
                     fmt={fmt}
@@ -656,7 +776,7 @@ export default function ExportSidePanel({
                     onClick={() => doExport(fmt.id)}
                   />
                 ))}
-                {CLOUD_FORMATS.every(fmt => isDisabled(fmt.id)) && (
+                {CLOUD_FORMATS.every((fmt) => isDisabled(fmt.id)) && (
                   <p className="text-[10px] text-slate-300 italic">No cloud export available</p>
                 )}
               </div>
@@ -666,12 +786,18 @@ export default function ExportSidePanel({
 
         {/* ── Feedback ── */}
         {lastOk && (
-          <p className="text-[10px] font-semibold text-emerald-600 bg-emerald-50 rounded-lg px-2 py-1.5 animate-spring-in">
+          <p
+            data-testid="export-success"
+            className="text-[10px] font-semibold text-emerald-600 bg-emerald-50 rounded-lg px-2 py-1.5 animate-spring-in"
+          >
             ✓ {lastOk}
           </p>
         )}
         {lastError && (
-          <p className="text-[10px] font-semibold text-red-500 bg-red-50 rounded-lg px-2 py-1.5 animate-spring-in">
+          <p
+            data-testid="export-error"
+            className="text-[10px] font-semibold text-red-500 bg-red-50 rounded-lg px-2 py-1.5 animate-spring-in"
+          >
             ✗ {lastError}
           </p>
         )}

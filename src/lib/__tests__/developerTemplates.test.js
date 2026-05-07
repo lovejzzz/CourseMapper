@@ -65,10 +65,13 @@ describe('developerTemplates', () => {
   });
 
   it('saves and lists templates from local storage', () => {
-    const saved = saveDeveloperTemplateFromSnapshot({
-      selectedFeatures: ['slideDecks'],
-      deliverableConfig: {},
-    }, 'Slides first');
+    const saved = saveDeveloperTemplateFromSnapshot(
+      {
+        selectedFeatures: ['slideDecks'],
+        deliverableConfig: {},
+      },
+      'Slides first',
+    );
 
     expect(saved.name).toBe('Slides first');
     expect(saved.data.selectedFeatures).toEqual(['courseMap', 'slideDecks']);
@@ -76,14 +79,19 @@ describe('developerTemplates', () => {
   });
 
   it('rejects templates that would persist secrets', () => {
-    expect(() => saveDeveloperTemplateFromSnapshot({
-      selectedFeatures: ['slideDecks'],
-      deliverableConfig: {
-        slideDecks: {
-          accessToken: 'secret-token',
+    expect(() =>
+      saveDeveloperTemplateFromSnapshot(
+        {
+          selectedFeatures: ['slideDecks'],
+          deliverableConfig: {
+            slideDecks: {
+              accessToken: 'secret-token',
+            },
+          },
         },
-      },
-    }, 'Unsafe')).toThrow('contains a secret');
+        'Unsafe',
+      ),
+    ).toThrow('contains a secret');
 
     expect(listDeveloperTemplates()).toHaveLength(0);
   });

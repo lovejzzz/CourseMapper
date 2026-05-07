@@ -31,19 +31,32 @@ export function CourseProvider({ children }) {
   const [slideTheme, setSlideTheme] = useState(null); // null = auto-rotate, 0-4 = specific theme
 
   return (
-    <CourseContext.Provider value={{
-      selectedFeatures, setSelectedFeatures,
-      deliverableConfig, setDeliverableConfig,
-      lessonScope, setLessonScope,
-      promptText, setPromptText,
-      files, setFiles,
-      columns, setColumns,
-      courseMap, setCourseMap,
-      oldCourseMap, setOldCourseMap,
-      userEdits, setUserEdits,
-      hasGenerated, setHasGenerated,
-      slideTheme, setSlideTheme,
-    }}>
+    <CourseContext.Provider
+      value={{
+        selectedFeatures,
+        setSelectedFeatures,
+        deliverableConfig,
+        setDeliverableConfig,
+        lessonScope,
+        setLessonScope,
+        promptText,
+        setPromptText,
+        files,
+        setFiles,
+        columns,
+        setColumns,
+        courseMap,
+        setCourseMap,
+        oldCourseMap,
+        setOldCourseMap,
+        userEdits,
+        setUserEdits,
+        hasGenerated,
+        setHasGenerated,
+        slideTheme,
+        setSlideTheme,
+      }}
+    >
       {children}
     </CourseContext.Provider>
   );

@@ -1,17 +1,8 @@
 import { afterAll, beforeAll, beforeEach, describe, expect, it } from 'vitest';
 import { readFileSync } from 'node:fs';
 import { resolve } from 'node:path';
-import {
-  assertFails,
-  assertSucceeds,
-  initializeTestEnvironment,
-} from '@firebase/rules-unit-testing';
-import {
-  deleteDoc,
-  doc,
-  getDoc,
-  setDoc,
-} from 'firebase/firestore';
+import { assertFails, assertSucceeds, initializeTestEnvironment } from '@firebase/rules-unit-testing';
+import { deleteDoc, doc, getDoc, setDoc } from 'firebase/firestore';
 
 const hasEmulator = Boolean(process.env.FIRESTORE_EMULATOR_HOST);
 const describeWithEmulator = hasEmulator ? describe : describe.skip;

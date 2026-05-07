@@ -16,29 +16,33 @@ const makeFilledCourseMap = () => ({
   lessons: [
     {
       title: 'Lesson 1: Intro to CS',
-      sections: [{
-        learningGoals: 'Understand the basics of computer science',
-        topicSection: 'Introduction to algorithms',
-        learningObjectives: 'Students will be able to define an algorithm',
-        weeklyAssessments: 'Quiz on algorithm definitions',
-        asyncActivities: 'Read Chapter 1 of the textbook',
-        syncActivities: 'In-class algorithm design exercise',
-        technologyNeeded: 'Python IDE',
-        supportingResources: 'Textbook Chapter 1',
-      }],
+      sections: [
+        {
+          learningGoals: 'Understand the basics of computer science',
+          topicSection: 'Introduction to algorithms',
+          learningObjectives: 'Students will be able to define an algorithm',
+          weeklyAssessments: 'Quiz on algorithm definitions',
+          asyncActivities: 'Read Chapter 1 of the textbook',
+          syncActivities: 'In-class algorithm design exercise',
+          technologyNeeded: 'Python IDE',
+          supportingResources: 'Textbook Chapter 1',
+        },
+      ],
     },
     {
       title: 'Lesson 2: Data Structures',
-      sections: [{
-        learningGoals: 'Learn about arrays and linked lists',
-        topicSection: 'Arrays and linked lists',
-        learningObjectives: 'Students will be able to implement arrays',
-        weeklyAssessments: 'Lab assignment on arrays',
-        asyncActivities: 'Watch data structures video',
-        syncActivities: 'Pair programming exercise',
-        technologyNeeded: 'Python IDE',
-        supportingResources: 'Textbook Chapter 2',
-      }],
+      sections: [
+        {
+          learningGoals: 'Learn about arrays and linked lists',
+          topicSection: 'Arrays and linked lists',
+          learningObjectives: 'Students will be able to implement arrays',
+          weeklyAssessments: 'Lab assignment on arrays',
+          asyncActivities: 'Watch data structures video',
+          syncActivities: 'Pair programming exercise',
+          technologyNeeded: 'Python IDE',
+          supportingResources: 'Textbook Chapter 2',
+        },
+      ],
     },
   ],
 });
@@ -49,29 +53,33 @@ const makeGappyCourseMap = () => ({
   lessons: [
     {
       title: 'Lesson 1: Intro',
-      sections: [{
-        learningGoals: 'Understand CS basics',
-        topicSection: '',
-        learningObjectives: 'TBD',
-        weeklyAssessments: '',
-        asyncActivities: null,
-        syncActivities: 'ok',  // short but >= 5 chars — not a gap with >= 5 chars? No, "ok" is 2 chars < 5
-        technologyNeeded: 'N/A',
-        supportingResources: 'TODO',
-      }],
+      sections: [
+        {
+          learningGoals: 'Understand CS basics',
+          topicSection: '',
+          learningObjectives: 'TBD',
+          weeklyAssessments: '',
+          asyncActivities: null,
+          syncActivities: 'ok', // short but >= 5 chars — not a gap with >= 5 chars? No, "ok" is 2 chars < 5
+          technologyNeeded: 'N/A',
+          supportingResources: 'TODO',
+        },
+      ],
     },
     {
       title: 'Lesson 2: Data',
-      sections: [{
-        learningGoals: '',
-        topicSection: 'Arrays',  // valid, 6 chars
-        learningObjectives: '?',
-        weeklyAssessments: 'Lab',  // 3 chars < 5 → gap
-        asyncActivities: 'Read Chapter 2 thoroughly',  // valid
-        syncActivities: '',
-        technologyNeeded: '',
-        supportingResources: '',
-      }],
+      sections: [
+        {
+          learningGoals: '',
+          topicSection: 'Arrays', // valid, 6 chars
+          learningObjectives: '?',
+          weeklyAssessments: 'Lab', // 3 chars < 5 → gap
+          asyncActivities: 'Read Chapter 2 thoroughly', // valid
+          syncActivities: '',
+          technologyNeeded: '',
+          supportingResources: '',
+        },
+      ],
     },
   ],
 });
@@ -87,14 +95,18 @@ describe('countGaps', () => {
 
   it('counts empty strings as gaps', () => {
     const cm = {
-      lessons: [{
-        title: 'L1',
-        sections: [{
-          learningGoals: '',
-          topicSection: 'Valid topic content here',
-          learningObjectives: '',
-        }],
-      }],
+      lessons: [
+        {
+          title: 'L1',
+          sections: [
+            {
+              learningGoals: '',
+              topicSection: 'Valid topic content here',
+              learningObjectives: '',
+            },
+          ],
+        },
+      ],
     };
     // Only checks default keys; learningGoals and learningObjectives are empty
     expect(countGaps(cm)).toBeGreaterThan(0);
@@ -102,58 +114,70 @@ describe('countGaps', () => {
 
   it('counts null values as gaps', () => {
     const cm = {
-      lessons: [{
-        title: 'L1',
-        sections: [{ learningGoals: null, topicSection: 'Valid content here' }],
-      }],
+      lessons: [
+        {
+          title: 'L1',
+          sections: [{ learningGoals: null, topicSection: 'Valid content here' }],
+        },
+      ],
     };
     expect(countGaps(cm)).toBeGreaterThan(0);
   });
 
   it('counts "TBD", "TODO", "N/A", "?" as gaps', () => {
     const cm = {
-      lessons: [{
-        title: 'L1',
-        sections: [{
-          learningGoals: 'TBD',
-          topicSection: 'TODO',
-          learningObjectives: 'N/A',
-          weeklyAssessments: '?',
-          asyncActivities: 'Real content with enough length',
-          syncActivities: 'Real activities described here',
-          technologyNeeded: 'Python IDE setup needed',
-          supportingResources: 'Textbook and course reader',
-        }],
-      }],
+      lessons: [
+        {
+          title: 'L1',
+          sections: [
+            {
+              learningGoals: 'TBD',
+              topicSection: 'TODO',
+              learningObjectives: 'N/A',
+              weeklyAssessments: '?',
+              asyncActivities: 'Real content with enough length',
+              syncActivities: 'Real activities described here',
+              technologyNeeded: 'Python IDE setup needed',
+              supportingResources: 'Textbook and course reader',
+            },
+          ],
+        },
+      ],
     };
     expect(countGaps(cm)).toBe(4);
   });
 
   it('counts strings shorter than 5 chars as gaps', () => {
     const cm = {
-      lessons: [{
-        title: 'L1',
-        sections: [{
-          learningGoals: 'ok',    // 2 chars < 5
-          topicSection: 'This is a real topic section',
-          learningObjectives: 'Learn about important concepts',
-          weeklyAssessments: 'Lab',   // 3 chars < 5
-          asyncActivities: 'Read the required textbook chapter',
-          syncActivities: 'Group discussion on today topic',
-          technologyNeeded: 'hi',    // 2 chars < 5
-          supportingResources: 'Complete reference list available',
-        }],
-      }],
+      lessons: [
+        {
+          title: 'L1',
+          sections: [
+            {
+              learningGoals: 'ok', // 2 chars < 5
+              topicSection: 'This is a real topic section',
+              learningObjectives: 'Learn about important concepts',
+              weeklyAssessments: 'Lab', // 3 chars < 5
+              asyncActivities: 'Read the required textbook chapter',
+              syncActivities: 'Group discussion on today topic',
+              technologyNeeded: 'hi', // 2 chars < 5
+              supportingResources: 'Complete reference list available',
+            },
+          ],
+        },
+      ],
     };
     expect(countGaps(cm)).toBe(3);
   });
 
   it('uses custom column keys when provided', () => {
     const cm = {
-      lessons: [{
-        title: 'L1',
-        sections: [{ customField: '', anotherField: 'Valid custom content' }],
-      }],
+      lessons: [
+        {
+          title: 'L1',
+          sections: [{ customField: '', anotherField: 'Valid custom content' }],
+        },
+      ],
     };
     expect(countGaps(cm, ['customField', 'anotherField'])).toBe(1);
   });
@@ -212,12 +236,14 @@ describe('buildGapFillPrompt', () => {
       semester: 'FA26',
       lessons: Array.from({ length: 10 }, (_, i) => ({
         title: `Lesson ${i + 1}`,
-        sections: [{
-          learningGoals: '',
-          topicSection: '',
-          learningObjectives: '',
-          weeklyAssessments: '',
-        }],
+        sections: [
+          {
+            learningGoals: '',
+            topicSection: '',
+            learningObjectives: '',
+            weeklyAssessments: '',
+          },
+        ],
       })),
     };
     const prompt = buildGapFillPrompt(cm, ['learningGoals', 'topicSection', 'learningObjectives', 'weeklyAssessments']);

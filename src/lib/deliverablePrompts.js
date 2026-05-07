@@ -14,7 +14,6 @@ import { getProfile } from './professorProfile.js';
 import { getModeLessonPlanNote } from './pedagogicalModes.js';
 import { getSections, buildSectionsContext } from './courseSections.js';
 
-
 import { condenseCourseMap } from './prompts/promptUtils.js';
 import lessonPlans from './prompts/lessonPlans.js';
 import rubrics from './prompts/rubrics.js';
@@ -35,7 +34,7 @@ const PROMPTS = {
   assignments,
   studyGuides,
   syllabus,
-  courseFaq
+  courseFaq,
 };
 
 // ── Schema Abbreviation for Chunks 1+ ──────────────────────────────────────────
@@ -126,7 +125,9 @@ function buildConfigInstructions(featureId, config, pedagogicalMode = 'lecture',
     if (parts.length > 0) lines.push(`Instructor context: ${parts.join(', ')}.`);
   }
   if (featureId === 'lessonPlans' && profile.defaultSessionLength && !config?.sessionLength) {
-    lines.push(`Each class session is ${profile.defaultSessionLength} — adjust ALL time estimates in the outline to match this duration exactly.`);
+    lines.push(
+      `Each class session is ${profile.defaultSessionLength} — adjust ALL time estimates in the outline to match this duration exactly.`,
+    );
   }
   if (featureId === 'syllabus' && profile.citationStyle && !config?.citationStyle) {
     lines.push(`Use ${profile.citationStyle} citation format throughout the syllabus.`);
@@ -170,110 +171,166 @@ function buildConfigInstructions(featureId, config, pedagogicalMode = 'lecture',
   if (!config || Object.keys(config).length === 0) return lines.join('\n');
 
   if (featureId === 'lessonPlans') {
-    if (config.sessionLength) lines.push(`Each class session is ${config.sessionLength} — adjust ALL time estimates in the outline to match this duration exactly.`);
-    if (config.detailLevel === 'Brief') lines.push('Keep content concise — use short bullet points, minimal elaboration. Prioritize actionability over depth.');
-    if (config.detailLevel === 'Detailed') lines.push('Be highly detailed and rich — elaborate each section with multiple examples, instructor guidance, and pedagogical rationale.');
-    if (config.includeWarmUp === false) lines.push('Do NOT include a warm-up activity — set the "wu" (warmUp) field to null.');
+    if (config.sessionLength)
+      lines.push(
+        `Each class session is ${config.sessionLength} — adjust ALL time estimates in the outline to match this duration exactly.`,
+      );
+    if (config.detailLevel === 'Brief')
+      lines.push(
+        'Keep content concise — use short bullet points, minimal elaboration. Prioritize actionability over depth.',
+      );
+    if (config.detailLevel === 'Detailed')
+      lines.push(
+        'Be highly detailed and rich — elaborate each section with multiple examples, instructor guidance, and pedagogical rationale.',
+      );
+    if (config.includeWarmUp === false)
+      lines.push('Do NOT include a warm-up activity — set the "wu" (warmUp) field to null.');
     if (config.includeUDL === false) lines.push('Do NOT include UDL notes — set the "un" (udlNotes) field to null.');
-    if (config.includeHomework === false) lines.push('Do NOT include a homework section — set the "hw" (homework) field to null.');
-  }
-  else if (featureId === 'slideDecks') {
-    if (config.slidesPerLesson) lines.push(`Target ${config.slidesPerLesson} slides per deck (including title, agenda, objectives, bridge, content slides, and closing).`);
-    if (config.includeActivities === false) lines.push('Minimize activity and discussion slides — focus on content and example slides. Only include an activity slide if it is essential.');
-    if (config.speakerNotes === 'Minimal') lines.push('Speaker notes should be brief bullet reminders only — 1-2 sentences per slide, NOT full scripts.');
-    if (config.speakerNotes === 'Full script') lines.push('Speaker notes must be full instructor scripts — at least 3 substantive sentences per slide with examples and transition cues.');
+    if (config.includeHomework === false)
+      lines.push('Do NOT include a homework section — set the "hw" (homework) field to null.');
+  } else if (featureId === 'slideDecks') {
+    if (config.slidesPerLesson)
+      lines.push(
+        `Target ${config.slidesPerLesson} slides per deck (including title, agenda, objectives, bridge, content slides, and closing).`,
+      );
+    if (config.includeActivities === false)
+      lines.push(
+        'Minimize activity and discussion slides — focus on content and example slides. Only include an activity slide if it is essential.',
+      );
+    if (config.speakerNotes === 'Minimal')
+      lines.push('Speaker notes should be brief bullet reminders only — 1-2 sentences per slide, NOT full scripts.');
+    if (config.speakerNotes === 'Full script')
+      lines.push(
+        'Speaker notes must be full instructor scripts — at least 3 substantive sentences per slide with examples and transition cues.',
+      );
     if (config.generateAiImages === true) {
-      lines.push('AI IMAGE ENRICHMENT ENABLED: For a small number of high-value concept, example, bridge, or activity slides, set vi.k to "image", "diagram", or "chart" and write vi.d as a concrete, safe image-generation prompt. Prefer educational diagrams, classroom-neutral scenes, process illustrations, or conceptual metaphors. Avoid copyrighted characters, real people, brand logos, and text-heavy images. Keep vi.at accurate and descriptive for accessibility.');
+      lines.push(
+        'AI IMAGE ENRICHMENT ENABLED: For a small number of high-value concept, example, bridge, or activity slides, set vi.k to "image", "diagram", or "chart" and write vi.d as a concrete, safe image-generation prompt. Prefer educational diagrams, classroom-neutral scenes, process illustrations, or conceptual metaphors. Avoid copyrighted characters, real people, brand logos, and text-heavy images. Keep vi.at accurate and descriptive for accessibility.',
+      );
     }
-  }
-  else if (featureId === 'rubrics') {
-    if (config.criteriaCount) lines.push(`Each rubric must have exactly ${config.criteriaCount} criteria (ensure weights sum to 100%).`);
-    if (config.performanceLevels === '3 levels') lines.push('Use exactly 3 performance levels: Developing, Proficient, and Mastery. Do NOT include a "Beginning" level. Adjust the gradingScale accordingly.');
-    if (config.includeTeacherNotes === false) lines.push('Do NOT include the "tn" (teacherNotes) field — omit it entirely from the JSON.');
-  }
-  else if (featureId === 'quizBank') {
-    if (config.questionsPerLesson) lines.push(`Generate ${config.questionsPerLesson} questions per lesson. Distribute them across the allowed question types.`);
+  } else if (featureId === 'rubrics') {
+    if (config.criteriaCount)
+      lines.push(`Each rubric must have exactly ${config.criteriaCount} criteria (ensure weights sum to 100%).`);
+    if (config.performanceLevels === '3 levels')
+      lines.push(
+        'Use exactly 3 performance levels: Developing, Proficient, and Mastery. Do NOT include a "Beginning" level. Adjust the gradingScale accordingly.',
+      );
+    if (config.includeTeacherNotes === false)
+      lines.push('Do NOT include the "tn" (teacherNotes) field — omit it entirely from the JSON.');
+  } else if (featureId === 'quizBank') {
+    if (config.questionsPerLesson)
+      lines.push(
+        `Generate ${config.questionsPerLesson} questions per lesson. Distribute them across the allowed question types.`,
+      );
     const excluded = [];
     if (config.includeMultipleChoice === false) excluded.push('multiple_choice');
     if (config.includeShortAnswer === false) excluded.push('short_answer');
     if (config.includeEssay === false) excluded.push('essay');
-    if (excluded.length > 0) lines.push(`Do NOT generate questions of these types: ${excluded.join(', ')}. Only use the remaining types.`);
-    if (config.difficultyDist === 'Mostly Easy/Medium') lines.push('Weight questions toward Easy and Medium difficulty — at most 1 Hard question per lesson.');
-    if (config.difficultyDist === 'Mostly Medium/Hard') lines.push('Weight questions toward Medium and Hard difficulty — at most 1 Easy question per lesson.');
-  }
-  else if (featureId === 'discussions') {
-    if (config.formatPreference && config.formatPreference !== 'Any') lines.push(`Use "${config.formatPreference}" as the discussion format for ALL lessons.`);
-    if (config.includeFacilitation === false) lines.push('Do NOT include the "ft" (facilitationTips) field — omit it entirely.');
-    if (config.includeEquity === false) lines.push('Do NOT include the "eq" (equityConsiderations) field — omit it entirely.');
-  }
-  else if (featureId === 'assignments') {
+    if (excluded.length > 0)
+      lines.push(`Do NOT generate questions of these types: ${excluded.join(', ')}. Only use the remaining types.`);
+    if (config.difficultyDist === 'Mostly Easy/Medium')
+      lines.push('Weight questions toward Easy and Medium difficulty — at most 1 Hard question per lesson.');
+    if (config.difficultyDist === 'Mostly Medium/Hard')
+      lines.push('Weight questions toward Medium and Hard difficulty — at most 1 Easy question per lesson.');
+  } else if (featureId === 'discussions') {
+    if (config.formatPreference && config.formatPreference !== 'Any')
+      lines.push(`Use "${config.formatPreference}" as the discussion format for ALL lessons.`);
+    if (config.includeFacilitation === false)
+      lines.push('Do NOT include the "ft" (facilitationTips) field — omit it entirely.');
+    if (config.includeEquity === false)
+      lines.push('Do NOT include the "eq" (equityConsiderations) field — omit it entirely.');
+  } else if (featureId === 'assignments') {
     if (config.assignmentTypes?.length > 0 && config.assignmentTypes.length < 6) {
-      lines.push(`Only create assignments of these types: ${config.assignmentTypes.join(', ')}. Do not create other assignment types.`);
+      lines.push(
+        `Only create assignments of these types: ${config.assignmentTypes.join(', ')}. Do not create other assignment types.`,
+      );
     }
-    if (config.includeScaffolding === false) lines.push('Do NOT include "sm" (scaffoldingMilestones) — omit the field entirely.');
-    if (config.includeIntegrity === false) lines.push('Do NOT include the "ai" (academicIntegrityStatement) field — omit it entirely.');
-  }
-  else if (featureId === 'studyGuides') {
-    if (config.keyTermsCount) lines.push(`Include exactly ${config.keyTermsCount} key terms per guide — each with definition AND example.`);
-    if (config.includeMisconceptions === false) lines.push('Do NOT include the "cm" (commonMisconceptions) field — omit it entirely.');
+    if (config.includeScaffolding === false)
+      lines.push('Do NOT include "sm" (scaffoldingMilestones) — omit the field entirely.');
+    if (config.includeIntegrity === false)
+      lines.push('Do NOT include the "ai" (academicIntegrityStatement) field — omit it entirely.');
+  } else if (featureId === 'studyGuides') {
+    if (config.keyTermsCount)
+      lines.push(`Include exactly ${config.keyTermsCount} key terms per guide — each with definition AND example.`);
+    if (config.includeMisconceptions === false)
+      lines.push('Do NOT include the "cm" (commonMisconceptions) field — omit it entirely.');
     if (config.includeExamPrep === false) lines.push('Do NOT include the "ep" (examPrep) field — omit it entirely.');
-    if (config.includePractice === false) lines.push('Do NOT include the "pa" (practiceActivities) field — omit it entirely.');
-  }
-  else if (featureId === 'syllabus') {
-    if (config.citationStyle) lines.push(`Use ${config.citationStyle} citation format throughout the syllabus (reference list, in-text citations, and all examples).`);
-    if (config.includeWeeklySchedule === false) lines.push('Do NOT include the weeklySchedule array — omit it entirely.');
-    if (config.latePolicyTone === 'Strict') lines.push('Late work policy must be strict: no late work accepted without documented emergency or prior instructor approval.');
-    if (config.latePolicyTone === 'Flexible') lines.push('Late work policy should be flexible and student-supportive, reflecting a growth mindset and understanding of student challenges.');
+    if (config.includePractice === false)
+      lines.push('Do NOT include the "pa" (practiceActivities) field — omit it entirely.');
+  } else if (featureId === 'syllabus') {
+    if (config.citationStyle)
+      lines.push(
+        `Use ${config.citationStyle} citation format throughout the syllabus (reference list, in-text citations, and all examples).`,
+      );
+    if (config.includeWeeklySchedule === false)
+      lines.push('Do NOT include the weeklySchedule array — omit it entirely.');
+    if (config.latePolicyTone === 'Strict')
+      lines.push(
+        'Late work policy must be strict: no late work accepted without documented emergency or prior instructor approval.',
+      );
+    if (config.latePolicyTone === 'Flexible')
+      lines.push(
+        'Late work policy should be flexible and student-supportive, reflecting a growth mindset and understanding of student challenges.',
+      );
   }
 
   // Feature 4.1 — Tiered Differentiation
   if (config.enableTiers) {
     lines.push(
       `TIERED DIFFERENTIATION REQUIRED: For EVERY item in this deliverable, generate three differentiated versions stored in a "tiers" object:\n` +
-      `  - tiers.scaffolded: Designed for struggling students — add sentence starters, worked examples, simplified vocabulary, step-by-step breakdowns, and additional scaffolds.\n` +
-      `  - tiers.standard: The regular version (same content quality as without tiering enabled).\n` +
-      `  - tiers.extension: Designed for advanced/fast-finishing students — add challenge questions, independent research prompts, higher-order thinking tasks, and real-world application extensions.\n` +
-      `The "tiers" object must be included alongside (not replacing) the standard fields for each item. Do not omit any standard fields.`
+        `  - tiers.scaffolded: Designed for struggling students — add sentence starters, worked examples, simplified vocabulary, step-by-step breakdowns, and additional scaffolds.\n` +
+        `  - tiers.standard: The regular version (same content quality as without tiering enabled).\n` +
+        `  - tiers.extension: Designed for advanced/fast-finishing students — add challenge questions, independent research prompts, higher-order thinking tasks, and real-world application extensions.\n` +
+        `The "tiers" object must be included alongside (not replacing) the standard fields for each item. Do not omit any standard fields.`,
     );
   }
 
   // ── Universal advanced settings (apply to all deliverables) ──
   if (config.tone) {
-    lines.push(`TONE: Write all content in a ${config.tone.toLowerCase()} tone. Adjust vocabulary, sentence structure, and formality level to match a ${config.tone.toLowerCase()} register.`);
+    lines.push(
+      `TONE: Write all content in a ${config.tone.toLowerCase()} tone. Adjust vocabulary, sentence structure, and formality level to match a ${config.tone.toLowerCase()} register.`,
+    );
   }
   if (config.style) {
     const styleMap = {
-      'Bullet points': 'Use bullet points as the primary formatting structure. Prefer concise, scannable lists over long paragraphs.',
-      'Paragraphs': 'Use full paragraphs as the primary formatting structure. Write in flowing, connected prose.',
-      'Tables': 'Where possible, organize information into tables with clear headers and rows.',
+      'Bullet points':
+        'Use bullet points as the primary formatting structure. Prefer concise, scannable lists over long paragraphs.',
+      Paragraphs: 'Use full paragraphs as the primary formatting structure. Write in flowing, connected prose.',
+      Tables: 'Where possible, organize information into tables with clear headers and rows.',
       'Numbered lists': 'Use numbered lists as the primary formatting structure for sequential or prioritized content.',
-      'Mixed': 'Use a mix of bullet points, paragraphs, and tables as appropriate for each section.',
+      Mixed: 'Use a mix of bullet points, paragraphs, and tables as appropriate for each section.',
     };
     lines.push(`STYLE & FORMAT: ${styleMap[config.style] || `Format content as ${config.style.toLowerCase()}.`}`);
   }
   if (config.outputLength) {
     const lengthMap = {
-      'Brief': 'Keep output concise and minimal — prioritize brevity. Use the shortest effective phrasing. Reduce sections to essentials only.',
-      'Standard': 'Use standard detail level — balanced between brevity and depth.',
-      'Detailed': 'Be highly detailed — elaborate each section with examples, rationale, and thorough coverage.',
-      'Comprehensive': 'Be maximally comprehensive — leave nothing out. Include extensive examples, edge cases, alternative approaches, and deep explanations for every section.',
+      Brief:
+        'Keep output concise and minimal — prioritize brevity. Use the shortest effective phrasing. Reduce sections to essentials only.',
+      Standard: 'Use standard detail level — balanced between brevity and depth.',
+      Detailed: 'Be highly detailed — elaborate each section with examples, rationale, and thorough coverage.',
+      Comprehensive:
+        'Be maximally comprehensive — leave nothing out. Include extensive examples, edge cases, alternative approaches, and deep explanations for every section.',
     };
-    lines.push(`OUTPUT LENGTH: ${lengthMap[config.outputLength] || `Adjust output length to be ${config.outputLength.toLowerCase()}.`}`);
+    lines.push(
+      `OUTPUT LENGTH: ${lengthMap[config.outputLength] || `Adjust output length to be ${config.outputLength.toLowerCase()}.`}`,
+    );
   }
 
   if (config.extraInstructions?.trim()) {
-    lines.push(`SPECIAL INSTRUCTOR REQUIREMENTS (highest priority — must be followed): ${config.extraInstructions.trim()}`);
+    lines.push(
+      `SPECIAL INSTRUCTOR REQUIREMENTS (highest priority — must be followed): ${config.extraInstructions.trim()}`,
+    );
   }
 
   // Cross-chunk style consistency: inject exemplar from chunk 0 into later chunks
   if (styleExemplar) {
     lines.push(
       `\nCROSS-CHUNK CONSISTENCY (mandatory — match exactly):\n` +
-      `This is part of a multi-chunk generation. You MUST replicate the exact formatting, ` +
-      `structure, numbering style, citation format, header conventions, and voice of the first chunk. ` +
-      `Do NOT introduce new formatting patterns, abbreviation styles, or structural changes.\n` +
-      `Here is the first item from chunk 1 as your style reference — replicate its format for every item:\n` +
-      `--- STYLE EXEMPLAR ---\n${styleExemplar}\n--- END EXEMPLAR ---`
+        `This is part of a multi-chunk generation. You MUST replicate the exact formatting, ` +
+        `structure, numbering style, citation format, header conventions, and voice of the first chunk. ` +
+        `Do NOT introduce new formatting patterns, abbreviation styles, or structural changes.\n` +
+        `Here is the first item from chunk 1 as your style reference — replicate its format for every item:\n` +
+        `--- STYLE EXEMPLAR ---\n${styleExemplar}\n--- END EXEMPLAR ---`,
     );
   }
 
@@ -281,9 +338,9 @@ function buildConfigInstructions(featureId, config, pedagogicalMode = 'lecture',
   if (config.referenceFileText?.trim()) {
     lines.push(
       `\nSTYLE & FORMAT REFERENCE (very important — match this as closely as possible):\n` +
-      `The instructor has provided the following example document to define the desired tone, structure, and formatting. ` +
-      `Study it carefully and replicate its style, voice, section organization, and level of detail as closely as possible:\n` +
-      `--- REFERENCE EXAMPLE START ---\n${config.referenceFileText.slice(0, 3000)}\n--- REFERENCE EXAMPLE END ---`
+        `The instructor has provided the following example document to define the desired tone, structure, and formatting. ` +
+        `Study it carefully and replicate its style, voice, section organization, and level of detail as closely as possible:\n` +
+        `--- REFERENCE EXAMPLE START ---\n${config.referenceFileText.slice(0, 3000)}\n--- REFERENCE EXAMPLE END ---`,
     );
   }
 
@@ -300,11 +357,11 @@ function buildScopePreamble(courseMap, scopeIndices) {
   // produce only 1 lesson at index 0.  scopeIndices=[4] but allLessons.length=1,
   // so filtering by index gives an empty list.  In that case, pair each lesson in the
   // already-scoped course map with its original scope index for correct labeling.
-  const inRange = scopeIndices.filter(i => i < allLessons.length);
+  const inRange = scopeIndices.filter((i) => i < allLessons.length);
   let titleLines;
   if (inRange.length > 0) {
     // Normal case: course map has all lessons, filter by scope
-    titleLines = inRange.map(i => `- Lesson ${i + 1} (Week ${i + 1}): ${allLessons[i]?.title || ''}`);
+    titleLines = inRange.map((i) => `- Lesson ${i + 1} (Week ${i + 1}): ${allLessons[i]?.title || ''}`);
   } else {
     // Already-scoped case: course map only has the scoped lessons
     titleLines = allLessons.map((l, i) => {
@@ -329,7 +386,19 @@ function buildScopePreamble(courseMap, scopeIndices) {
  *   highest-priority constraint so the AI incorporates the edit precisely.
  * @param {Array|null}  columns — Active column definitions from ColumnEditor.
  */
-export function getDeliverablePrompt(featureId, courseMap, scopeIndices = null, config = {}, pedagogicalMode = 'lecture', examChanges = null, editContext = null, columns = null, allConfigs = null, styleExemplar = null, chunkIndex = 0) {
+export function getDeliverablePrompt(
+  featureId,
+  courseMap,
+  scopeIndices = null,
+  config = {},
+  pedagogicalMode = 'lecture',
+  examChanges = null,
+  editContext = null,
+  columns = null,
+  allConfigs = null,
+  styleExemplar = null,
+  chunkIndex = 0,
+) {
   const template = PROMPTS[featureId];
   const scopePreamble = buildScopePreamble(courseMap, scopeIndices);
 
@@ -348,7 +417,8 @@ export function getDeliverablePrompt(featureId, courseMap, scopeIndices = null, 
       // 1) Fall back to the custom deliverable's own defaultConfig
       if (!enrichedConfig.tone && dc.tone) enrichedConfig.tone = dc.tone;
       if (!enrichedConfig.style && dc.style) enrichedConfig.style = dc.style;
-      if (!enrichedConfig.outputLength && (dc.length || dc.outputLength)) enrichedConfig.outputLength = dc.length || dc.outputLength;
+      if (!enrichedConfig.outputLength && (dc.length || dc.outputLength))
+        enrichedConfig.outputLength = dc.length || dc.outputLength;
 
       // 2) If still missing, infer from other deliverables' configs
       if (allConfigs && (!enrichedConfig.tone || !enrichedConfig.style || !enrichedConfig.outputLength)) {
@@ -356,36 +426,48 @@ export function getDeliverablePrompt(featureId, courseMap, scopeIndices = null, 
           if (otherId === featureId || !otherCfg) continue;
           if (!enrichedConfig.tone && otherCfg.tone) enrichedConfig.tone = otherCfg.tone;
           if (!enrichedConfig.style && otherCfg.style) enrichedConfig.style = otherCfg.style;
-          if (!enrichedConfig.outputLength && otherCfg.outputLength) enrichedConfig.outputLength = otherCfg.outputLength;
+          if (!enrichedConfig.outputLength && otherCfg.outputLength)
+            enrichedConfig.outputLength = otherCfg.outputLength;
           if (enrichedConfig.tone && enrichedConfig.style && enrichedConfig.outputLength) break;
         }
       }
 
       // 3) If STILL missing after all fallbacks, inject AI auto-decide instruction
       const autoDecideHints = [];
-      if (!enrichedConfig.tone) autoDecideHints.push('tone (e.g. Academic, Professional, Conversational, or Friendly — pick what best fits the course and deliverable type)');
-      if (!enrichedConfig.style) autoDecideHints.push('formatting style (e.g. bullet points, paragraphs, tables, numbered lists, or a mix — pick what best fits this deliverable type)');
-      if (!enrichedConfig.outputLength) autoDecideHints.push('output length/detail level (e.g. Brief, Standard, Detailed, or Comprehensive — pick what best fits this deliverable type)');
+      if (!enrichedConfig.tone)
+        autoDecideHints.push(
+          'tone (e.g. Academic, Professional, Conversational, or Friendly — pick what best fits the course and deliverable type)',
+        );
+      if (!enrichedConfig.style)
+        autoDecideHints.push(
+          'formatting style (e.g. bullet points, paragraphs, tables, numbered lists, or a mix — pick what best fits this deliverable type)',
+        );
+      if (!enrichedConfig.outputLength)
+        autoDecideHints.push(
+          'output length/detail level (e.g. Brief, Standard, Detailed, or Comprehensive — pick what best fits this deliverable type)',
+        );
 
       const condensed = condenseCourseMap(courseMap, scopeIndices, examChanges, columns);
-      const baseUserPrompt = (config.customUserPrompt?.trim() || custom.userPromptTemplate).replace('{{courseMap}}', condensed);
+      const baseUserPrompt = (config.customUserPrompt?.trim() || custom.userPromptTemplate).replace(
+        '{{courseMap}}',
+        condensed,
+      );
       const configInstructions = buildConfigInstructions(featureId, enrichedConfig, pedagogicalMode, styleExemplar);
 
-      const autoDecideBlock = autoDecideHints.length > 0
-        ? `\n\nAUTO-DECIDE INSTRUCTIONS (the instructor has not specified these settings — use your best judgment):\nBased on the course content, deliverable type ("${custom.name}"), and pedagogical context, automatically decide the most appropriate:\n${autoDecideHints.map(h => `- ${h}`).join('\n')}\nApply your chosen settings consistently throughout the output.`
-        : '';
+      const autoDecideBlock =
+        autoDecideHints.length > 0
+          ? `\n\nAUTO-DECIDE INSTRUCTIONS (the instructor has not specified these settings — use your best judgment):\nBased on the course content, deliverable type ("${custom.name}"), and pedagogical context, automatically decide the most appropriate:\n${autoDecideHints.map((h) => `- ${h}`).join('\n')}\nApply your chosen settings consistently throughout the output.`
+          : '';
 
       const withEdit = editContextBlock
         ? baseUserPrompt.replace(/(\nReturn ONLY)/, `${editContextBlock}$1`)
         : baseUserPrompt;
-      const withAutoDecide = autoDecideBlock
-        ? withEdit.replace(/(\nReturn ONLY)/, `${autoDecideBlock}$1`)
-        : withEdit;
+      const withAutoDecide = autoDecideBlock ? withEdit.replace(/(\nReturn ONLY)/, `${autoDecideBlock}$1`) : withEdit;
       const withConfig = configInstructions
         ? withAutoDecide.replace(
-          /(\nReturn ONLY)/,
-          `\n\nADDITIONAL INSTRUCTOR REQUIREMENTS (must be followed, take priority over defaults):\n${configInstructions}$1`
-        )
+            /(\nReturn ONLY)/,
+            `\n\nADDITIONAL INSTRUCTOR REQUIREMENTS (must be followed, take priority over defaults):\n${configInstructions}$1`,
+          )
         : withAutoDecide;
       const withExtra = config.extraInstructions?.trim()
         ? withConfig + `\n\nINSTRUCTOR EXTRA INSTRUCTIONS:\n${config.extraInstructions.trim()}`
@@ -411,11 +493,17 @@ export function getDeliverablePrompt(featureId, courseMap, scopeIndices = null, 
   // This saves ~400-700 input tokens per subsequent chunk by replacing the full
   // verbose schema + inline descriptions with a compact skeleton + brief requirements.
   const useContinuation = chunkIndex > 0 && !config.customUserPrompt?.trim() && !editContext;
-  const continuationPrompt = useContinuation ? buildContinuationPrompt(featureId, courseMap, scopeIndices, examChanges, columns) : null;
+  const continuationPrompt = useContinuation
+    ? buildContinuationPrompt(featureId, courseMap, scopeIndices, examChanges, columns)
+    : null;
 
-  const baseUserPrompt = continuationPrompt
-    || (config.customUserPrompt?.trim()
-      ? config.customUserPrompt.replace('{{courseMap}}', condenseCourseMap(courseMap, scopeIndices, examChanges, columns))
+  const baseUserPrompt =
+    continuationPrompt ||
+    (config.customUserPrompt?.trim()
+      ? config.customUserPrompt.replace(
+          '{{courseMap}}',
+          condenseCourseMap(courseMap, scopeIndices, examChanges, columns),
+        )
       : template.user(courseMap, scopeIndices, examChanges, columns));
   const configInstructions = buildConfigInstructions(featureId, config, pedagogicalMode, styleExemplar);
 
@@ -443,7 +531,10 @@ export function getDeliverablePrompt(featureId, courseMap, scopeIndices = null, 
     ? baseUserPrompt.replace(/(\n- Return ONLY)/, `${editContextBlock}$1`)
     : baseUserPrompt;
   const withConfig = configInstructions
-    ? withEdit.replace(/(\n- Return ONLY)/, `\n\nADDITIONAL INSTRUCTOR REQUIREMENTS (must be followed, take priority over defaults):\n${configInstructions}$1`)
+    ? withEdit.replace(
+        /(\n- Return ONLY)/,
+        `\n\nADDITIONAL INSTRUCTOR REQUIREMENTS (must be followed, take priority over defaults):\n${configInstructions}$1`,
+      )
     : withEdit;
   // Append extra free-text instructions from the instructor if provided
   const withExtra = config.extraInstructions?.trim()

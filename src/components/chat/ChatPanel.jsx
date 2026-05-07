@@ -20,12 +20,13 @@ function latestRunningStep(steps = []) {
   return null;
 }
 
-function deriveAgentStatus(progress, isStreaming, isAgentMode) {
+function deriveAgentStatus(progress, isStreaming, isAgentMode, agentDryRun = false) {
   if (!isAgentMode) return { label: 'Ask', tone: 'slate', detail: 'Ready to help' };
+  if (agentDryRun && !progress && !isStreaming) return { label: 'Dry run', tone: 'slate', detail: 'Analysis only' };
   if (!progress && !isStreaming) return { label: 'Ready', tone: 'emerald', detail: 'Can edit deliverables' };
   if (progress?.status === 'error') return { label: 'Needs review', tone: 'red', detail: 'Check the latest turn' };
   if (progress?.status === 'complete') {
-    const hasIssues = progress.steps?.some(step => step.status === 'error' || step.status === 'partial');
+    const hasIssues = progress.steps?.some((step) => step.status === 'error' || step.status === 'partial');
     return hasIssues
       ? { label: 'Review', tone: 'amber', detail: 'Finished with issues' }
       : { label: 'Done', tone: 'emerald', detail: 'Last turn complete' };
@@ -53,38 +54,70 @@ const STATUS_TONES = {
  */
 export default function ChatPanel({
   // Generation state
-  currentStep, modelName, error,
-  streamDetail, streamProgress, completenessInfo,
-  isStopped, retryInfo, generationLog,
+  currentStep,
+  modelName,
+  error,
+  streamDetail,
+  streamProgress,
+  completenessInfo,
+  isStopped,
+  retryInfo,
+  generationLog,
   // Generation controls
-  onStop, onResume, onClearAll, onRetryExamine,
+  onStop,
+  onResume,
+  onClearAll,
+  onRetryExamine,
   // Deliverable state
-  deliverables, delivProgress, currentDelivFeatures, isDelivGenerating, delivTimings,
+  deliverables,
+  delivProgress,
+  currentDelivFeatures,
+  isDelivGenerating,
+  delivTimings,
   onStopDeliverables,
   // Sync state
-  isSyncing, pendingSyncCount, syncingFeatures,
+  isSyncing,
+  pendingSyncCount,
+  syncingFeatures,
   // Revision
-  onRevision, onDeliverableRevision, isRevising,
-  activeTab, courseMap, slideTheme,
+  onRevision,
+  onDeliverableRevision,
+  isRevising,
+  activeTab,
+  courseMap,
+  slideTheme,
   // Chat state
-  chatHistory, onChatHistoryChange,
+  chatHistory,
+  onChatHistoryChange,
   // Exam review
-  pendingExamPatches, examChanges, onAcceptPatches, onRejectPatch,
+  pendingExamPatches,
+  examChanges,
+  onAcceptPatches,
+  onRejectPatch,
   // Agent: course map editor + deliverable update
-  editor, optimisticUpdate, regenerateLesson,
+  editor,
+  optimisticUpdate,
+  regenerateLesson,
   // Agent phase 2: undo + highlight
-  delivUndoSnapshot, delivUndoFn, delivCanUndo, onAgentHighlight,
+  delivUndoSnapshot,
+  delivUndoFn,
+  delivCanUndo,
+  onAgentHighlight,
   // Agent-mediated sync
-  pendingSyncSuggestion, clearPendingSyncSuggestion, executeSyncPlan, notifyEdit,
+  pendingSyncSuggestion,
+  clearPendingSyncSuggestion,
+  executeSyncPlan,
+  notifyEdit,
   // External ref for sending messages from outside (e.g., context menu)
   chatSendRef,
   // User ID for cloud sync
   uid,
+  onConfigureAI,
 }) {
   // Detect agent mode: deliverables with done status exist
-  const isAgentMode = !!(deliverables && Object.keys(deliverables).some(
-    k => k !== 'courseMap' && deliverables[k]?.status === 'done'
-  ));
+  const isAgentMode = !!(
+    deliverables && Object.keys(deliverables).some((k) => k !== 'courseMap' && deliverables[k]?.status === 'done')
+  );
 
   // Keep refs for values that can change between parallel tool calls in the same agent turn
   const delivRef = useRef(deliverables);
@@ -93,27 +126,33 @@ export default function ChatPanel({
   courseMapRef.current = courseMap;
 
   // Build the action executor that agent mode uses
-  const execAction = useCallback((action, opts = {}) => {
-    const result = executeAction(action, {
-      editor,
-      deliverables: delivRef.current,
-      optimisticUpdate,
-      courseMap: courseMapRef.current,
-      regenerateLesson,
-      snapshot: delivUndoSnapshot,
-      skipSnapshot: opts.skipSnapshot || false,
-    });
-    // Trigger visual highlight on success
-    if (result.success && onAgentHighlight && action.featureId) {
-      onAgentHighlight(action.featureId, action.lessonIndex ?? null);
-    }
-    return result;
-  }, [editor, optimisticUpdate, regenerateLesson, delivUndoSnapshot, onAgentHighlight]);
+  const execAction = useCallback(
+    (action, opts = {}) => {
+      const result = executeAction(action, {
+        editor,
+        deliverables: delivRef.current,
+        optimisticUpdate,
+        courseMap: courseMapRef.current,
+        regenerateLesson,
+        snapshot: delivUndoSnapshot,
+        skipSnapshot: opts.skipSnapshot || false,
+      });
+      // Trigger visual highlight on success
+      if (result.success && onAgentHighlight && action.featureId) {
+        onAgentHighlight(action.featureId, action.lessonIndex ?? null);
+      }
+      return result;
+    },
+    [editor, optimisticUpdate, regenerateLesson, delivUndoSnapshot, onAgentHighlight],
+  );
 
   const chat = useChatRouter({
-    courseMap, activeTab,
-    onRevision, onDeliverableRevision,
-    isStopped, onResume,
+    courseMap,
+    activeTab,
+    onRevision,
+    onDeliverableRevision,
+    isStopped,
+    onResume,
     savedMessages: chatHistory,
     onMessagesChange: onChatHistoryChange,
     // Agent params
@@ -139,9 +178,9 @@ export default function ChatPanel({
       chat.pushSyncSuggestion(pendingSyncSuggestion);
       clearPendingSyncSuggestion?.();
     }
-  // Intentionally depends only on pendingSyncSuggestion: chat.pushSyncSuggestion and
-  // clearPendingSyncSuggestion are stable refs/callbacks. Including them would trigger
-  // spurious re-fires when the chat object identity changes during re-renders.
+    // Intentionally depends only on pendingSyncSuggestion: chat.pushSyncSuggestion and
+    // clearPendingSyncSuggestion are stable refs/callbacks. Including them would trigger
+    // spurious re-fires when the chat object identity changes during re-renders.
   }, [pendingSyncSuggestion]); // eslint-disable-line react-hooks/exhaustive-deps
 
   // ── Proactive agent: auto-review after deliverable generation completes ──
@@ -162,10 +201,15 @@ export default function ChatPanel({
     prevDelivGeneratingRef.current = isDelivGenerating;
 
     // Detect transition: generating → done (only trigger once per session)
-    if (wasGenerating && !isDelivGenerating && isAgentMode && !chat.isStreaming && !proactiveReviewDoneRef.current) {
-      const doneCount = deliverables
-        ? Object.values(deliverables).filter(d => d?.status === 'done').length
-        : 0;
+    if (
+      wasGenerating &&
+      !isDelivGenerating &&
+      isAgentMode &&
+      chat.isAgentProviderReady &&
+      !chat.isStreaming &&
+      !proactiveReviewDoneRef.current
+    ) {
+      const doneCount = deliverables ? Object.values(deliverables).filter((d) => d?.status === 'done').length : 0;
       if (doneCount >= 2) {
         proactiveReviewDoneRef.current = true;
         // Brief delay to let UI settle, then auto-review — but cancel if the
@@ -173,14 +217,19 @@ export default function ChatPanel({
         autoReviewTimerRef.current = setTimeout(() => {
           autoReviewTimerRef.current = null;
           if (chat.isStreaming) return; // user already started something
-          chat.send('[AUTO-REVIEW] Generation complete. Run validate_course, summarize the top issues found, and propose fixes as proposal cards. If no issues, confirm the course looks good in 1-2 sentences.');
+          chat.send(
+            '[AUTO-REVIEW] Generation complete. Run validate_course, summarize the top issues found, and propose fixes as proposal cards. If no issues, confirm the course looks good in 1-2 sentences.',
+          );
         }, 2000);
       }
     }
   }, [isDelivGenerating]); // eslint-disable-line react-hooks/exhaustive-deps
-  useEffect(() => () => {
-    if (autoReviewTimerRef.current) clearTimeout(autoReviewTimerRef.current);
-  }, []);
+  useEffect(
+    () => () => {
+      if (autoReviewTimerRef.current) clearTimeout(autoReviewTimerRef.current);
+    },
+    [],
+  );
 
   const showProgressHeader = !!(currentStep || error);
 
@@ -191,33 +240,49 @@ export default function ChatPanel({
     }
     return null;
   }, [chat.messages]);
-  const agentStatus = deriveAgentStatus(latestAgentProgress, chat.isStreaming, isAgentMode);
+  const agentStatus =
+    isAgentMode && !chat.isAgentProviderReady
+      ? { label: 'Configure', tone: 'amber', detail: 'Provider/key required' }
+      : deriveAgentStatus(latestAgentProgress, chat.isStreaming, isAgentMode, chat.agentDryRun);
 
   return (
-    <div className="flex flex-col h-full bg-white/72 backdrop-blur-xl rounded-squircle shadow-glass overflow-hidden" data-print="hide">
+    <div
+      className="flex flex-col h-full bg-white/72 backdrop-blur-xl rounded-squircle shadow-glass overflow-hidden"
+      data-print="hide"
+    >
       {/* ── Header ── */}
       <div className="flex items-center gap-2.5 px-4 py-2.5 border-b border-slate-200/40 flex-shrink-0">
-        <div className={`w-7 h-7 rounded-xl flex items-center justify-center ${
-          isAgentMode ? 'bg-indigo-50' : 'bg-slate-100'
-        }`}>
+        <div
+          className={`w-7 h-7 rounded-xl flex items-center justify-center ${
+            isAgentMode ? 'bg-indigo-50' : 'bg-slate-100'
+          }`}
+        >
           {isAgentMode ? (
             <svg className="w-3.5 h-3.5 text-indigo-500" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2}
-                d="M9.663 17h4.673M12 3v1m6.364 1.636l-.707.707M21 12h-1M4 12H3m3.343-5.657l-.707-.707m2.828 9.9a5 5 0 117.072 0l-.548.547A3.374 3.374 0 0014 18.469V19a2 2 0 11-4 0v-.531c0-.895-.356-1.754-.988-2.386l-.548-.547z" />
+              <path
+                strokeLinecap="round"
+                strokeLinejoin="round"
+                strokeWidth={2}
+                d="M9.663 17h4.673M12 3v1m6.364 1.636l-.707.707M21 12h-1M4 12H3m3.343-5.657l-.707-.707m2.828 9.9a5 5 0 117.072 0l-.548.547A3.374 3.374 0 0014 18.469V19a2 2 0 11-4 0v-.531c0-.895-.356-1.754-.988-2.386l-.548-.547z"
+              />
             </svg>
           ) : (
             <svg className="w-3.5 h-3.5 text-indigo-500" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2}
-                d="M8.228 9c.549-1.165 2.03-2 3.772-2 2.21 0 4 1.343 4 3 0 1.4-1.278 2.575-3.006 2.907-.542.104-.994.54-.994 1.093m0 3h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z" />
+              <path
+                strokeLinecap="round"
+                strokeLinejoin="round"
+                strokeWidth={2}
+                d="M8.228 9c.549-1.165 2.03-2 3.772-2 2.21 0 4 1.343 4 3 0 1.4-1.278 2.575-3.006 2.907-.542.104-.994.54-.994 1.093m0 3h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z"
+              />
             </svg>
           )}
         </div>
         <div className="flex-1 min-w-0">
           <div className="flex items-center gap-2 min-w-0">
-            <h2 className="text-sm font-semibold text-slate-800 truncate">
-              {isAgentMode ? 'Agent' : 'Assistant'}
-            </h2>
-            <span className={`max-w-[150px] truncate rounded-full border px-2 py-0.5 text-[10px] font-semibold ${STATUS_TONES[agentStatus.tone]}`}>
+            <h2 className="text-sm font-semibold text-slate-800 truncate">{isAgentMode ? 'Agent' : 'Assistant'}</h2>
+            <span
+              className={`max-w-[150px] truncate rounded-full border px-2 py-0.5 text-[10px] font-semibold ${STATUS_TONES[agentStatus.tone]}`}
+            >
               {agentStatus.label}
             </span>
           </div>
@@ -279,9 +344,7 @@ export default function ChatPanel({
 
       {/* ── Stale deliverables banner (persistent, above messages) ── */}
       {(() => {
-        const staleCount = deliverables
-          ? Object.values(deliverables).filter(d => d?.stale === true).length
-          : 0;
+        const staleCount = deliverables ? Object.values(deliverables).filter((d) => d?.stale === true).length : 0;
         if (staleCount === 0 || isSyncing) return null;
         return (
           <div className="flex-shrink-0 px-3.5 py-1.5 bg-amber-50/80 border-b border-amber-200/40 flex items-center gap-2">
@@ -311,6 +374,7 @@ export default function ChatPanel({
         messages={chat.messages}
         isStreaming={chat.isStreaming}
         onSuggestionClick={(q) => chat.send(q)}
+        onConfigureAI={onConfigureAI}
         onSelectProposal={chat.handleSelectProposal}
         onAcceptDiff={chat.handleAcceptDiff}
         onRejectDiff={chat.handleRejectDiff}
@@ -327,6 +391,7 @@ export default function ChatPanel({
         activeTab={activeTab}
         deliverables={deliverables}
         isAgentMode={isAgentMode}
+        isAgentProviderReady={chat.isAgentProviderReady}
         isGenerating={!!(currentStep && currentStep !== 'done')}
         isDelivGenerating={!!isDelivGenerating}
       />
@@ -344,8 +409,12 @@ export default function ChatPanel({
         activeTab={activeTab}
         courseMap={courseMap}
         isStopped={isStopped}
-        hasPendingProposal={chat.messages.some(m => m.role === 'proposal' && m.status === 'pending')}
+        hasPendingProposal={chat.messages.some((m) => m.role === 'proposal' && m.status === 'pending')}
         isAgentMode={isAgentMode}
+        isAgentProviderReady={chat.isAgentProviderReady}
+        agentDryRun={chat.agentDryRun}
+        onAgentDryRunChange={chat.setAgentDryRun}
+        onConfigureAI={onConfigureAI}
         onUndo={delivUndoFn}
         canUndo={delivCanUndo}
       />

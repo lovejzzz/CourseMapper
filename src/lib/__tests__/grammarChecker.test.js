@@ -56,10 +56,7 @@ describe('checkGrammar', () => {
             offset: 5,
             length: 5,
             context: { text: 'Over there house is big.' },
-            replacements: [
-              { value: 'their' },
-              { value: "they're" },
-            ],
+            replacements: [{ value: 'their' }, { value: "they're" }],
             rule: { id: 'THEIR_THERE', category: { name: 'Commonly Confused Words' } },
           },
         ],
@@ -87,13 +84,7 @@ describe('checkGrammar', () => {
             message: 'Possible alternatives',
             offset: 0,
             length: 4,
-            replacements: [
-              { value: 'a' },
-              { value: 'b' },
-              { value: 'c' },
-              { value: 'd' },
-              { value: 'e' },
-            ],
+            replacements: [{ value: 'a' }, { value: 'b' }, { value: 'c' }, { value: 'd' }, { value: 'e' }],
             rule: { id: 'TEST_RULE', category: { name: 'Test' } },
           },
         ],
@@ -134,7 +125,7 @@ describe('checkGrammar', () => {
     controller.abort(); // simulate caller abort
 
     await expect(
-      checkGrammar('This text is long enough to be checked by the grammar API.', 'en-US', controller.signal)
+      checkGrammar('This text is long enough to be checked by the grammar API.', 'en-US', controller.signal),
     ).rejects.toThrow();
   });
 

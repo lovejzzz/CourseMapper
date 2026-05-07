@@ -162,11 +162,11 @@ A resizable panel (default 360 pixels wide, draggable border to adjust, width pe
 
 The chat panel has several regions:
 
-*Progress Header:* A collapsible section at the top showing generation progress — percentage complete, current step name, per-deliverable progress bars, stop button, and estimated time remaining. This appears only during active generation.
+_Progress Header:_ A collapsible section at the top showing generation progress — percentage complete, current step name, per-deliverable progress bars, stop button, and estimated time remaining. This appears only during active generation.
 
-*Message History:* A scrollable list of chat messages rendered in markdown. Messages come from the user, the AI assistant, and the system. The list auto-scrolls to the latest message.
+_Message History:_ A scrollable list of chat messages rendered in markdown. Messages come from the user, the AI assistant, and the system. The list auto-scrolls to the latest message.
 
-*Special Message Cards:* The chat can display rich, interactive cards:
+_Special Message Cards:_ The chat can display rich, interactive cards:
 
 - **Proposal Cards** show 2-3 options as clickable cards (for example, tone variants for a rewrite). The user picks one, sees a before/after diff preview, and accepts or rejects.
 - **Diff Review Cards** show a side-by-side comparison of what will change, with checkmark and X buttons to accept or reject.
@@ -179,7 +179,7 @@ The chat panel has several regions:
 - **Sync Suggestion Cards** appear when the user edits the course map and affected deliverables are detected — "Lesson 2 changed. Want to regenerate slides and quizzes?" with Approve/Skip buttons.
 - **Agent Progress Cards** pin to the top during multi-tool operations, showing which tools are executing with checkmarks as each completes.
 
-*Chat Input:* A text input area with file attachment support (drag-drop or click), a send button, and a stop button during streaming. The empty state shows a hint: "Ask me to revise, validate, research, generate diagrams, or improve the course."
+_Chat Input:_ A text input area with file attachment support (drag-drop or click), a send button, and a stop button during streaming. The empty state shows a hint: "Ask me to revise, validate, research, generate diagrams, or improve the course."
 
 ---
 
@@ -318,6 +318,7 @@ University-quality presentation slides with themed visual design and speaker not
 - Bloom's taxonomy level
 
 **Five Color Themes:**
+
 1. Navy & Gold — Classic university palette
 2. Forest & Amber — Natural, warm tones
 3. Purple & Orange — Modern, energetic
@@ -453,6 +454,7 @@ A slide-out panel on the right side of the workspace with two modes:
 **Current Tab mode**: Exports only the active deliverable in its supported formats. Buttons for each format are shown with icons.
 
 **All mode**: Exports everything at once. Two options:
+
 - "Download ZIP" creates a ZIP archive with an organized folder structure containing all deliverables in their native formats
 - "Save .coursemapper" creates a portable project file containing the complete session state
 
@@ -692,6 +694,7 @@ The application uses a glassmorphism design language: semi-transparent cards wit
 ### Color System
 
 Each deliverable type has a distinct color from the Tailwind CSS palette:
+
 - Course Map: Indigo
 - Syllabus: Cyan
 - Lesson Plans: Violet

@@ -22,7 +22,9 @@ export async function exportAllDeliverables(format, deliverables, courseName, co
         const { generateDocx } = await import('../docxGenerator.js');
         results.push(await generateDocx(courseMap, columns));
       }
-    } catch (e) { console.warn('Course map export failed:', e); }
+    } catch (e) {
+      console.warn('Course map export failed:', e);
+    }
   }
 
   for (const [featureId, entry] of Object.entries(deliverables)) {
@@ -32,9 +34,11 @@ export async function exportAllDeliverables(format, deliverables, courseName, co
       else if (format === 'pdf') results.push(await exportDeliverablePdf(featureId, entry.data, courseName));
       else if (format === 'docx') results.push(await exportDeliverableDocx(featureId, entry.data, courseName));
       else if (format === 'gdocs') results.push(await exportDeliverableToGoogleDocs(featureId, entry.data, courseName));
-      else if (format === 'gsheets') results.push(await exportDeliverableToGoogleSheets(featureId, entry.data, courseName));
-    } catch (e) { console.warn(`Export ${featureId} failed:`, e); }
+      else if (format === 'gsheets')
+        results.push(await exportDeliverableToGoogleSheets(featureId, entry.data, courseName));
+    } catch (e) {
+      console.warn(`Export ${featureId} failed:`, e);
+    }
   }
   return results;
 }
-

@@ -52,8 +52,13 @@ export function getArrayKey(featureId, parsed) {
 // 'title' → ALL per-lesson deliverables.
 
 const PER_LESSON_ALL = [
-  'lessonPlans', 'slideDecks', 'rubrics', 'quizBank',
-  'discussions', 'assignments', 'studyGuides',
+  'lessonPlans',
+  'slideDecks',
+  'rubrics',
+  'quizBank',
+  'discussions',
+  'assignments',
+  'studyGuides',
 ];
 
 // ── Per-deliverable outbound cascade map ────────────────────────────────────
@@ -103,7 +108,7 @@ const FIELD_DEPENDENCY_MAP = {
   // The _deliverableEdit key is special: buildSyncPlan receives the source featureId
   // (via excludeFeatureId/priorityFeatureId) and looks it up in DELIVERABLE_OUTBOUND_MAP
   // instead of using this fallback. This entry is a safety fallback only.
-  _deliverableEdit: [],   // resolved dynamically via DELIVERABLE_OUTBOUND_MAP in buildSyncPlan
+  _deliverableEdit: [], // resolved dynamically via DELIVERABLE_OUTBOUND_MAP in buildSyncPlan
 
   // Lesson title change → everything needs updating (most deliverables reference the title)
   title: PER_LESSON_ALL,
@@ -218,7 +223,7 @@ export function getAffectedFeatures(editKey, selectedFeatures = null) {
   // new columns automatically sync everything the user actually has, rather than
   // silently missing deliverables that aren't lessonPlans/slideDecks.
   if (selectedFeatures && selectedFeatures.length > 0) {
-    return selectedFeatures.filter(f => f !== 'courseMap' && f !== 'syllabus');
+    return selectedFeatures.filter((f) => f !== 'courseMap' && f !== 'syllabus');
   }
   // Last-resort hardcoded fallback (no selectedFeatures context available)
   return ['lessonPlans', 'slideDecks'];
@@ -248,10 +253,7 @@ export function buildSyncPlan(pendingEdits, selectedFeatures, deliverables, prio
 
   // Only sync features that are currently 'done' (have generated data)
   const doneFeatures = new Set(
-    selectedFeatures.filter(f =>
-      f !== 'courseMap' &&
-      deliverables?.[f]?.status === 'done'
-    )
+    selectedFeatures.filter((f) => f !== 'courseMap' && deliverables?.[f]?.status === 'done'),
   );
 
   if (doneFeatures.size === 0) return [];
@@ -304,7 +306,7 @@ export function buildSyncPlan(pendingEdits, selectedFeatures, deliverables, prio
   }
 
   if (priorityFeatureId) {
-    const priorityIdx = plan.findIndex(p => p.featureId === priorityFeatureId);
+    const priorityIdx = plan.findIndex((p) => p.featureId === priorityFeatureId);
     if (priorityIdx > 0) {
       const [priorityEntry] = plan.splice(priorityIdx, 1);
       plan.unshift(priorityEntry);
