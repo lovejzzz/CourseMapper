@@ -1,6 +1,6 @@
-import { loadPdfLibs, getDocx, getSaveAs, resolveFeatureLabel } from './exporterUtils.js';
-import { exportDeliverableDocx } from './docxExporter.js';
-import { exportDeliverableCsv } from './csvExporter.js';
+import { resolveFeatureLabel } from './exporterUtils.js';
+import { buildDeliverableDocxBlob } from './bulkDocxExporter.js';
+import { deliverableToCsvRows } from './csvExporter.js';
 import { safeImport } from '../safeImport.js';
 
 // GOOGLE DOCS / SHEETS
@@ -84,4 +84,3 @@ export async function exportDeliverableToGoogleSheets(featureId, data, courseNam
   const fileName = `${courseName || 'Course'} - ${label} (${stamp}).xlsx`;
   return await saveToGoogleSheets(buffer, fileName, courseName, preOpenedTab);
 }
-

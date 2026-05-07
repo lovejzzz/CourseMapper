@@ -1,11 +1,15 @@
 import React, { useState, useEffect } from 'react';
 import { generateImages } from '../../lib/imageSearch';
+import { useAIConfig } from '../../contexts/AIConfigContext';
 
 /**
  * ImageSearchCard — Shows AI-generated images in a grid.
  * Uses the user's configured provider (OpenAI DALL-E 3 or Google Imagen 3).
  */
-export default function ImageSearchCard({ imageSearch, status, provider, apiKey }) {
+export default function ImageSearchCard({ imageSearch, status, provider }) {
+  const { provider: configuredProvider, apiKey } = useAIConfig();
+  const effectiveProvider = provider || configuredProvider;
+  const effectiveApiKey = configuredProvider === effectiveProvider ? apiKey : '';
   const [images, setImages] = useState([]);
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState(null);
@@ -17,7 +21,18 @@ export default function ImageSearchCard({ imageSearch, status, provider, apiKey 
     let cancelled = false;
     setLoading(true);
     setError(null);
-    generateImages(imageSearch.query, { provider, apiKey })
+
+    if (!effectiveApiKey) {
+      setLoading(false);
+      setError(
+        provider && configuredProvider !== provider
+          ? `Switch back to the ${provider} provider to retry this image generation.`
+          : 'Configure an AI provider key to generate images.',
+      );
+      return () => { cancelled = true; };
+    }
+
+    generateImages(imageSearch.query, { provider: effectiveProvider, apiKey: effectiveApiKey })
       .then(result => {
         if (cancelled) return;
         if (result.error) setError(result.error);
@@ -30,7 +45,7 @@ export default function ImageSearchCard({ imageSearch, status, provider, apiKey 
         if (!cancelled) setLoading(false);
       });
     return () => { cancelled = true; };
-  }, [imageSearch?.query, status, provider, apiKey]);
+  }, [imageSearch?.query, status, provider, configuredProvider, effectiveProvider, effectiveApiKey]);
 
   if (status === 'searching') {
     return (
@@ -96,7 +111,7 @@ export default function ImageSearchCard({ imageSearch, status, provider, apiKey 
                 onClick={() => {
                   setError(null);
                   setLoading(true);
-                  generateImages(imageSearch.query, { provider, apiKey })
+                  generateImages(imageSearch.query, { provider: effectiveProvider, apiKey: effectiveApiKey })
                     .then(result => {
                       if (result.error) setError(result.error);
                       setImages(result.images || []);

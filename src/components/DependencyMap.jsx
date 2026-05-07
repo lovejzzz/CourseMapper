@@ -2,7 +2,7 @@ import React, { useState, useMemo } from 'react';
 import { createPortal } from 'react-dom';
 import FocusTrap from 'focus-trap-react';
 import { DELIVERABLE_OUTBOUND_MAP } from '../lib/syncDependencies';
-import { FEATURES, COLOR_MAP } from '../screens/FeatureSelect';
+import { FEATURES, COLOR_MAP } from '../lib/featureCatalog';
 import { useCourse } from '../contexts/CourseContext';
 
 // ── Node layout (fixed positions in SVG viewBox 360×400) ────────────────────

@@ -1,311 +1,45 @@
 import React, { useEffect, useMemo, useRef, useState } from 'react';
-import FocusTrap from 'focus-trap-react';
-import { getDeliverablePrompt } from '../lib/deliverablePrompts.js';
-
-const CONFIG_KEYS = [
-  'formatVersion',
-  'provider',
-  'modelId',
-  'modelName',
-  'selectedFeatures',
-  'deliverableConfig',
-  'lessonScope',
-  'promptText',
-  'activeTab',
-  'slideTheme',
-  'columns',
-  'fileNames',
-  'mode',
-];
-
-const EDITOR_SECTIONS = [
-  { id: 'courseMap', label: 'Course Map', note: 'Lessons and map content' },
-  { id: 'deliverables', label: 'Deliverables', note: 'Generated outputs' },
-  { id: 'config', label: 'Config', note: 'Models, tabs, settings' },
-  { id: 'raw', label: 'Raw JSON', note: 'Full project snapshot' },
-];
-
-const TOOL_SECTIONS = [
-  { id: 'themeLayout', label: 'Theme & Layout', note: 'Visual controls' },
-  { id: 'prompts', label: 'Prompts', note: 'Model instructions' },
-  { id: 'templates', label: 'Templates', note: 'Saved setups' },
-  { id: 'diagnostics', label: 'Diagnostics', note: 'Project health' },
-];
-
-const SECTIONS = [...EDITOR_SECTIONS, ...TOOL_SECTIONS];
-const EDITOR_SECTION_IDS = new Set(EDITOR_SECTIONS.map(section => section.id));
-
-function pretty(value) {
-  return JSON.stringify(value ?? {}, null, 2);
-}
-
-function clone(value) {
-  return JSON.parse(JSON.stringify(value ?? {}));
-}
-
-function isPlainObject(value) {
-  return Boolean(value) && typeof value === 'object' && !Array.isArray(value);
-}
-
-function validateSnapshot(value) {
-  if (!isPlainObject(value)) {
-    throw new Error('Project code must be a JSON object.');
-  }
-  if (!isPlainObject(value.courseMap)) {
-    throw new Error('courseMap must be an object.');
-  }
-  if (!Array.isArray(value.courseMap.lessons)) {
-    throw new Error('courseMap.lessons must be an array.');
-  }
-  if (value.selectedFeatures !== undefined && !Array.isArray(value.selectedFeatures)) {
-    throw new Error('selectedFeatures must be an array.');
-  }
-  if (value.deliverables !== undefined && !isPlainObject(value.deliverables)) {
-    throw new Error('deliverables must be an object.');
-  }
-  if (value.deliverableConfig !== undefined && !isPlainObject(value.deliverableConfig)) {
-    throw new Error('deliverableConfig must be an object.');
-  }
-  if (value.lessonScope !== undefined && !isPlainObject(value.lessonScope)) {
-    throw new Error('lessonScope must be an object.');
-  }
-  if (value.columns !== undefined && !Array.isArray(value.columns)) {
-    throw new Error('columns must be an array.');
-  }
-}
-
-function extractSection(snapshot, sectionId) {
-  if (sectionId === 'courseMap') return snapshot.courseMap || { lessons: [] };
-  if (sectionId === 'deliverables') return snapshot.deliverables || {};
-  if (sectionId === 'config') {
-    return CONFIG_KEYS.reduce((acc, key) => {
-      if (Object.prototype.hasOwnProperty.call(snapshot, key)) acc[key] = snapshot[key];
-      return acc;
-    }, {});
-  }
-  return snapshot;
-}
-
-function validateSection(sectionId, value) {
-  if (sectionId === 'raw') {
-    validateSnapshot(value);
-    return;
-  }
-  if (sectionId === 'courseMap') {
-    if (!isPlainObject(value)) throw new Error('Course Map must be a JSON object.');
-    if (!Array.isArray(value.lessons)) throw new Error('Course Map needs a lessons array.');
-    return;
-  }
-  if (sectionId === 'deliverables') {
-    if (!isPlainObject(value)) throw new Error('Deliverables must be a JSON object.');
-    return;
-  }
-  if (sectionId === 'config') {
-    if (!isPlainObject(value)) throw new Error('Config must be a JSON object.');
-    if (value.selectedFeatures !== undefined && !Array.isArray(value.selectedFeatures)) {
-      throw new Error('Config selectedFeatures must be an array.');
-    }
-    if (value.deliverableConfig !== undefined && !isPlainObject(value.deliverableConfig)) {
-      throw new Error('Config deliverableConfig must be an object.');
-    }
-    if (value.lessonScope !== undefined && !isPlainObject(value.lessonScope)) {
-      throw new Error('Config lessonScope must be an object.');
-    }
-    if (value.columns !== undefined && !Array.isArray(value.columns)) {
-      throw new Error('Config columns must be an array.');
-    }
-  }
-}
-
-function mergeSection(snapshot, sectionId, value) {
-  if (sectionId === 'raw') return value;
-  const next = clone(snapshot);
-  if (sectionId === 'courseMap') next.courseMap = value;
-  if (sectionId === 'deliverables') next.deliverables = value;
-  if (sectionId === 'config') {
-    CONFIG_KEYS.forEach((key) => {
-      if (Object.prototype.hasOwnProperty.call(value, key)) next[key] = value[key];
-      else delete next[key];
-    });
-  }
-  return next;
-}
-
-function createDrafts(snapshot) {
-  return EDITOR_SECTIONS.reduce((acc, section) => {
-    acc[section.id] = pretty(extractSection(snapshot, section.id));
-    return acc;
-  }, {});
-}
-
-function parseDraft(sectionId, draft) {
-  let parsed;
-  try {
-    parsed = JSON.parse(draft);
-  } catch (err) {
-    throw new Error(`JSON syntax error: ${err.message}`);
-  }
-  validateSection(sectionId, parsed);
-  return parsed;
-}
-
-function buildProposedSnapshot(baseSnapshot, drafts, dirtySections) {
-  if (dirtySections.size === 0) return baseSnapshot;
-
-  let next = dirtySections.has('raw')
-    ? parseDraft('raw', drafts.raw)
-    : clone(baseSnapshot);
-
-  EDITOR_SECTIONS.filter(section => section.id !== 'raw').forEach((section) => {
-    if (!dirtySections.has(section.id)) return;
-    next = mergeSection(next, section.id, parseDraft(section.id, drafts[section.id]));
-  });
-
-  validateSnapshot(next);
-  return next;
-}
-
-function summarizeDiff(before, after) {
-  const keys = Array.from(new Set([
-    ...Object.keys(before || {}),
-    ...Object.keys(after || {}),
-  ]));
-  return keys
-    .filter(key => pretty(before?.[key]) !== pretty(after?.[key]))
-    .map((key) => {
-      if (before?.[key] === undefined) return `Added ${key}`;
-      if (after?.[key] === undefined) return `Removed ${key}`;
-      return `Changed ${key}`;
-    })
-    .slice(0, 10);
-}
-
-function countMatches(text, query) {
-  if (!query.trim()) return 0;
-  const haystack = text.toLowerCase();
-  const needle = query.toLowerCase();
-  let count = 0;
-  let index = 0;
-  while (index !== -1) {
-    index = haystack.indexOf(needle, index);
-    if (index !== -1) {
-      count += 1;
-      index += needle.length || 1;
-    }
-  }
-  return count;
-}
-
-function sectionStats(snapshot, activeSection) {
-  if (activeSection === 'themeLayout') {
-    const enabledColumns = Array.isArray(snapshot.columns) ? snapshot.columns.filter(column => column?.enabled !== false).length : 0;
-    return [`${enabledColumns} enabled columns`, `Theme ${snapshot.slideTheme ?? 'Auto'}`];
-  }
-  if (activeSection === 'prompts') {
-    const config = isPlainObject(snapshot.deliverableConfig) ? snapshot.deliverableConfig : {};
-    const overrideCount = Object.values(config).filter(item => (
-      item?.customSystemPrompt?.trim()
-      || item?.customUserPrompt?.trim()
-      || item?.extraInstructions?.trim()
-    )).length;
-    return [`${overrideCount} prompt overrides`, `${getPromptFeatureOptions(snapshot).length} deliverables`];
-  }
-  if (activeSection === 'templates') {
-    const features = Array.isArray(snapshot.selectedFeatures) ? snapshot.selectedFeatures.length : 0;
-    return [`${features} reusable settings`, snapshot.modelName || snapshot.modelId || 'No model'];
-  }
-  if (activeSection === 'diagnostics') {
-    const lessons = snapshot.courseMap?.lessons?.length || 0;
-    const outputs = Object.keys(snapshot.deliverables || {}).length;
-    return [`${lessons} lessons`, `${outputs} outputs`];
-  }
-  if (activeSection === 'courseMap') {
-    const lessons = snapshot.courseMap?.lessons?.length || 0;
-    return [`${lessons} lessons`, `${snapshot.columns?.length || 0} columns`];
-  }
-  if (activeSection === 'deliverables') {
-    const count = Object.keys(snapshot.deliverables || {}).length;
-    return [`${count} outputs`, `${snapshot.activeTab || 'courseMap'} active`];
-  }
-  if (activeSection === 'config') {
-    const features = Array.isArray(snapshot.selectedFeatures) ? snapshot.selectedFeatures.length : 0;
-    return [`${features} tabs`, snapshot.modelName || snapshot.modelId || 'No model'];
-  }
-  return [`${Object.keys(snapshot || {}).length} keys`, snapshot.mode || 'workspace'];
-}
-
-function titleFromId(id) {
-  if (!id) return 'Untitled';
-  return String(id)
-    .replace(/^custom[_-]?/i, '')
-    .replace(/([a-z])([A-Z])/g, '$1 $2')
-    .replace(/[_-]+/g, ' ')
-    .replace(/\s+/g, ' ')
-    .trim()
-    .replace(/\b\w/g, letter => letter.toUpperCase()) || id;
-}
-
-function getPromptFeatureOptions(snapshot) {
-  const ids = [];
-  const add = (id) => {
-    if (!id || id === 'courseMap' || ids.includes(id)) return;
-    ids.push(id);
-  };
-  (Array.isArray(snapshot.selectedFeatures) ? snapshot.selectedFeatures : []).forEach(add);
-  Object.keys(isPlainObject(snapshot.deliverableConfig) ? snapshot.deliverableConfig : {}).forEach(add);
-  Object.keys(isPlainObject(snapshot.deliverables) ? snapshot.deliverables : {}).forEach(add);
-  return ids.map(id => ({ id, label: titleFromId(id) }));
-}
-
-function fieldSummary(value) {
-  if (!value?.trim()) return 'Using default';
-  return `${value.trim().split(/\s+/).length} words`;
-}
-
-function formatDate(timestamp) {
-  if (!timestamp) return 'Never';
-  try {
-    return new Date(timestamp).toLocaleDateString(undefined, { month: 'short', day: 'numeric', year: 'numeric' });
-  } catch {
-    return 'Unknown';
-  }
-}
-
-function buildDiagnostics(snapshot, dirtySections) {
-  const lessons = Array.isArray(snapshot.courseMap?.lessons) ? snapshot.courseMap.lessons : [];
-  const features = Array.isArray(snapshot.selectedFeatures) ? snapshot.selectedFeatures : [];
-  const deliverables = isPlainObject(snapshot.deliverables) ? snapshot.deliverables : {};
-  const columns = Array.isArray(snapshot.columns) ? snapshot.columns : [];
-  const issues = [];
-
-  if (lessons.length === 0) issues.push({ level: 'error', message: 'Course map has no lessons.' });
-  if (!features.includes('courseMap')) issues.push({ level: 'warning', message: 'Course Map is not included in selected features.' });
-  if (snapshot.activeTab && features.length > 0 && !features.includes(snapshot.activeTab)) {
-    issues.push({ level: 'warning', message: `Active tab "${titleFromId(snapshot.activeTab)}" is not in selected features.` });
-  }
-  features
-    .filter(feature => feature !== 'courseMap')
-    .forEach((feature) => {
-      const output = deliverables[feature];
-      if (!output) issues.push({ level: 'info', message: `${titleFromId(feature)} is selected but has not been generated yet.` });
-      if (output?.status === 'error') issues.push({ level: 'error', message: `${titleFromId(feature)} has a generation error.` });
-      if (output?.status === 'generating') issues.push({ level: 'info', message: `${titleFromId(feature)} is still generating.` });
-    });
-  if (columns.length === 0) issues.push({ level: 'warning', message: 'No course map columns are configured.' });
-  if (columns.length > 0 && columns.every(column => column?.enabled === false)) {
-    issues.push({ level: 'error', message: 'All course map columns are disabled.' });
-  }
-  if (!snapshot.modelId && !snapshot.modelName) issues.push({ level: 'warning', message: 'No AI model is selected.' });
-  if (dirtySections.size > 0) issues.push({ level: 'info', message: 'Developer edits are pending and have not been applied.' });
-
-  return {
-    lessons: lessons.length,
-    selectedFeatures: features.length,
-    deliverables: Object.keys(deliverables).length,
-    enabledColumns: columns.filter(column => column?.enabled !== false).length,
-    issues,
-  };
-}
+import DeveloperCodeEditor from './developer/DeveloperCodeEditor.jsx';
+import DeveloperDiagnosticsPanel from './developer/DeveloperDiagnosticsPanel.jsx';
+import DeveloperModeShell from './developer/DeveloperModeShell.jsx';
+import DeveloperModeSidebar from './developer/DeveloperModeSidebar.jsx';
+import DeveloperPromptsPanel from './developer/DeveloperPromptsPanel.jsx';
+import DeveloperTemplatesPanel from './developer/DeveloperTemplatesPanel.jsx';
+import DeveloperThemeLayoutPanel from './developer/DeveloperThemeLayoutPanel.jsx';
+import {
+  getDeveloperSectionFindings,
+} from '../lib/developerIdeDiagnostics.js';
+import {
+  buildProposedSnapshot,
+  clone,
+  createDrafts,
+  EDITOR_SECTION_IDS,
+  extractSection,
+  parseDraft,
+  pretty,
+  SECTIONS,
+  summarizeDiff,
+  validateSnapshot,
+} from '../lib/developerSnapshotDrafts.js';
+import {
+  appendDeveloperHistoryEntry,
+  buildDeveloperHistoryEntry,
+  canRestoreDeveloperHistorySnapshot,
+  clearDeveloperHistory,
+  loadDeveloperHistory,
+  restoreDeveloperHistorySnapshot,
+} from '../lib/developerIdeHistory.js';
+import {
+  buildDeveloperTemplatePatch,
+  diffDeveloperTemplatePatch,
+  TEMPLATE_STAGE_MODES,
+} from '../lib/developerTemplatePatches.js';
+import {
+  countDeveloperSearchMatches,
+  getDeveloperSectionStats,
+  getPromptFeatureOptions,
+} from '../lib/developerModeSelectors.js';
+import { findJsonPathLocation } from '../lib/developerJsonPath.js';
 
 export default function DeveloperModePanel({
   isOpen,
@@ -324,16 +58,15 @@ export default function DeveloperModePanel({
   const [dirtySections, setDirtySections] = useState(() => new Set());
   const [activeSection, setActiveSection] = useState('courseMap');
   const [query, setQuery] = useState('');
-  const [lastAppliedSnapshot, setLastAppliedSnapshot] = useState(null);
+  const [developerHistory, setDeveloperHistory] = useState(() => loadDeveloperHistory());
   const [templateName, setTemplateName] = useState('');
   const [promptFeatureId, setPromptFeatureId] = useState('');
-  const [dragColumnIndex, setDragColumnIndex] = useState(null);
-  const [dragOverColumnIndex, setDragOverColumnIndex] = useState(null);
+  const [pendingPathSelection, setPendingPathSelection] = useState(null);
   const [status, setStatus] = useState({
     type: 'idle',
     message: 'Edit a section, then apply to update the workspace preview.',
   });
-  const textareaRef = useRef(null);
+  const editorRef = useRef(null);
   const wasOpenRef = useRef(false);
 
   function loadSnapshot(nextSnapshot, message = 'Loaded current workspace code.') {
@@ -350,6 +83,7 @@ export default function DeveloperModePanel({
       setActiveSection('courseMap');
       setQuery('');
       setTemplateName('');
+      setDeveloperHistory(loadDeveloperHistory());
     }
     wasOpenRef.current = isOpen;
   }, [isOpen, snapshot]);
@@ -372,13 +106,22 @@ export default function DeveloperModePanel({
 
   const activeValidation = useMemo(() => {
     if (!isEditorSection) {
-      return { ok: true, message: 'Tool controls update validated workspace settings.' };
+      return { ok: true, message: 'Tool controls update validated workspace settings.', findings: [] };
     }
     try {
-      parseDraft(activeSection, activeDraft);
-      return { ok: true, message: 'Current section is valid.' };
+      const parsed = JSON.parse(activeDraft);
+      const findings = getDeveloperSectionFindings(activeSection, parsed);
+      const errors = findings.filter(finding => finding.level === 'error');
+      const warnings = findings.filter(finding => finding.level === 'warning');
+      if (errors.length > 0) {
+        return { ok: false, message: `${errors[0].path}: ${errors[0].message}`, findings };
+      }
+      if (warnings.length > 0) {
+        return { ok: true, message: `${warnings.length} schema warning${warnings.length === 1 ? '' : 's'} found.`, findings };
+      }
+      return { ok: true, message: 'Current section is valid.', findings };
     } catch (err) {
-      return { ok: false, message: err.message };
+      return { ok: false, message: `JSON syntax error: ${err.message}`, findings: [] };
     }
   }, [activeDraft, activeSection]);
 
@@ -396,9 +139,33 @@ export default function DeveloperModePanel({
   }, [baseSnapshot, dirty, proposed]);
 
   const workingSnapshot = proposed || baseSnapshot;
-  const stats = sectionStats(workingSnapshot, activeSection);
-  const matchCount = isEditorSection ? countMatches(activeDraft, query) : 0;
+  const stats = getDeveloperSectionStats(workingSnapshot, activeSection);
+  const matchCount = isEditorSection ? countDeveloperSearchMatches(activeDraft, query) : 0;
   const promptFeatureOptions = useMemo(() => getPromptFeatureOptions(workingSnapshot), [workingSnapshot]);
+
+  function sectionForPath(path) {
+    if (path?.startsWith('courseMap')) return 'courseMap';
+    if (path?.startsWith('deliverables')) return 'deliverables';
+    return 'config';
+  }
+
+  function selectPathInEditor(path, sectionId = activeSection) {
+    const targetSection = EDITOR_SECTION_IDS.has(sectionId) ? sectionId : sectionForPath(path);
+    if (targetSection !== activeSection) {
+      setPendingPathSelection({ path, sectionId: targetSection });
+      setActiveSection(targetSection);
+      return;
+    }
+
+    const draft = drafts[targetSection] || '';
+    try {
+      const location = findJsonPathLocation(draft, path, targetSection);
+      editorRef.current?.selectRange(location.index, location.endIndex);
+      setStatus({ type: 'idle', message: `Selected ${path} at line ${location.line}.` });
+    } catch (err) {
+      setStatus({ type: 'error', message: `Could not locate ${path}: ${err.message}` });
+    }
+  }
 
   useEffect(() => {
     if (!isOpen || activeSection !== 'prompts') return;
@@ -410,6 +177,13 @@ export default function DeveloperModePanel({
       setPromptFeatureId(promptFeatureOptions[0].id);
     }
   }, [activeSection, isOpen, promptFeatureId, promptFeatureOptions]);
+
+  useEffect(() => {
+    if (!pendingPathSelection || activeSection !== pendingPathSelection.sectionId) return;
+    const selection = pendingPathSelection;
+    setPendingPathSelection(null);
+    requestAnimationFrame(() => selectPathInEditor(selection.path, selection.sectionId));
+  }, [activeSection, drafts, pendingPathSelection]); // eslint-disable-line react-hooks/exhaustive-deps
 
   if (!isOpen) return null;
 
@@ -434,50 +208,111 @@ export default function DeveloperModePanel({
   }
 
   function handleResetSection() {
-    setDrafts(prev => ({ ...prev, [activeSection]: pretty(extractSection(baseSnapshot, activeSection)) }));
+    resetSection(activeSection);
+  }
+
+  function resetSection(sectionId) {
+    if (!EDITOR_SECTION_IDS.has(sectionId)) return;
+    setDrafts(prev => ({ ...prev, [sectionId]: pretty(extractSection(baseSnapshot, sectionId)) }));
     setDirtySections((prev) => {
       const next = new Set(prev);
-      next.delete(activeSection);
+      next.delete(sectionId);
       return next;
     });
-    setStatus({ type: 'idle', message: 'Section reset to the last loaded workspace state.' });
+    setStatus({ type: 'idle', message: `${SECTIONS.find(s => s.id === sectionId)?.label || 'Section'} reset to the last loaded workspace state.` });
   }
 
   function handleFindNext() {
-    if (!query.trim() || !textareaRef.current) return;
-    const textarea = textareaRef.current;
+    if (!query.trim() || !editorRef.current) return;
     const haystack = activeDraft.toLowerCase();
     const needle = query.toLowerCase();
-    const from = textarea.selectionEnd || 0;
+    const from = editorRef.current.getSelectionEnd?.() || 0;
     let index = haystack.indexOf(needle, from);
     if (index === -1) index = haystack.indexOf(needle, 0);
     if (index === -1) return;
-    textarea.focus();
-    textarea.setSelectionRange(index, index + needle.length);
+    editorRef.current.selectRange?.(index, index + needle.length);
   }
 
   function handleApply() {
+    handleApplySections(Array.from(dirtySections));
+  }
+
+  function handleApplySections(sectionIds) {
     try {
-      const next = buildProposedSnapshot(baseSnapshot, drafts, dirtySections);
-      setLastAppliedSnapshot(baseSnapshot);
+      const sectionSet = new Set(sectionIds.filter(sectionId => dirtySections.has(sectionId)));
+      if (sectionSet.size === 0) {
+        setStatus({ type: 'idle', message: 'No staged developer edits to apply.' });
+        return;
+      }
+      if (dirtySections.has('raw') && !sectionSet.has('raw')) {
+        setStatus({ type: 'error', message: 'Apply or reset Raw JSON before applying individual sections.' });
+        return;
+      }
+
+      const next = buildProposedSnapshot(baseSnapshot, drafts, sectionSet);
+      const historyEntry = buildDeveloperHistoryEntry({
+        beforeSnapshot: baseSnapshot,
+        afterSnapshot: next,
+        dirtySections: sectionSet,
+      });
+      setDeveloperHistory(appendDeveloperHistoryEntry(historyEntry));
       onApply(next);
-      loadSnapshot(next, 'Saved. Workspace preview updated.');
-      setStatus({ type: 'success', message: 'Saved. Workspace preview updated.' });
+      if (sectionSet.has('raw') || sectionSet.size === dirtySections.size) {
+        loadSnapshot(next, 'Saved. Workspace preview updated.');
+        setStatus({ type: 'success', message: 'Saved. Workspace preview updated.' });
+        return;
+      }
+
+      setBaseSnapshot(next);
+      setDrafts((prev) => {
+        const freshDrafts = createDrafts(next);
+        dirtySections.forEach((sectionId) => {
+          if (!sectionSet.has(sectionId)) freshDrafts[sectionId] = prev[sectionId];
+        });
+        return freshDrafts;
+      });
+      setDirtySections((prev) => {
+        const remaining = new Set(prev);
+        sectionSet.forEach(sectionId => remaining.delete(sectionId));
+        return remaining;
+      });
+      const label = Array.from(sectionSet)
+        .map(sectionId => SECTIONS.find(section => section.id === sectionId)?.label || sectionId)
+        .join(', ');
+      setStatus({ type: 'success', message: `Saved ${label}. Other staged edits remain pending.` });
     } catch (err) {
       setStatus({ type: 'error', message: err.message || 'This code cannot run in the workspace.' });
     }
   }
 
   function handleRollback() {
-    if (!lastAppliedSnapshot) return;
-    try {
-      onApply(lastAppliedSnapshot);
-      loadSnapshot(lastAppliedSnapshot, 'Rolled back to the previous developer save.');
-      setLastAppliedSnapshot(null);
-      setStatus({ type: 'success', message: 'Rolled back to the previous developer save.' });
-    } catch (err) {
-      setStatus({ type: 'error', message: err.message || 'Rollback failed.' });
+    const latest = developerHistory[0];
+    if (!latest) return;
+    restoreHistorySnapshot(latest, 'beforeSnapshot', 'Rolled back to the previous developer save.');
+  }
+
+  function restoreHistorySnapshot(entry, snapshotKey, successMessage) {
+    if (dirtySections.size > 0) {
+      const confirmed = window.confirm('Restoring history will discard pending developer edits. Continue?');
+      if (!confirmed) return;
     }
+    try {
+      const target = restoreDeveloperHistorySnapshot(entry, snapshotKey, workingSnapshot);
+      validateSnapshot(target);
+      onApply(target);
+      loadSnapshot(target, successMessage);
+      setStatus({ type: 'success', message: successMessage });
+    } catch (err) {
+      setStatus({ type: 'error', message: err.message || 'History restore failed.' });
+    }
+  }
+
+  function handleClearHistory() {
+    if (developerHistory.length === 0) return;
+    const confirmed = window.confirm('Clear developer save history on this device?');
+    if (!confirmed) return;
+    setDeveloperHistory(clearDeveloperHistory());
+    setStatus({ type: 'success', message: 'Developer save history cleared.' });
   }
 
   function handleSaveTemplate() {
@@ -510,116 +345,6 @@ export default function DeveloperModePanel({
     setStatus({ type: 'idle', message });
   }
 
-  function handleToggleColumn(index) {
-    const columns = Array.isArray(getConfigDraft().columns) ? [...getConfigDraft().columns] : [];
-    columns[index] = {
-      ...columns[index],
-      enabled: columns[index]?.enabled === false,
-    };
-    updateConfigPatch({ columns }, 'Column visibility updated.');
-  }
-
-  function getPromptConfig(featureId) {
-    const deliverableConfig = getConfigDraft().deliverableConfig;
-    const featureConfig = deliverableConfig?.[featureId];
-    return isPlainObject(featureConfig) ? featureConfig : {};
-  }
-
-  function getPromptPreview(featureId, promptConfig) {
-    if (!featureId) return { systemPrompt: '', userPrompt: '' };
-    try {
-      const config = getConfigDraft();
-      return getDeliverablePrompt(
-        featureId,
-        workingSnapshot.courseMap || { lessons: [] },
-        config.lessonScope || workingSnapshot.lessonScope || null,
-        promptConfig || {},
-        'lecture',
-        null,
-        null,
-        config.columns || workingSnapshot.columns || null,
-        config.deliverableConfig || workingSnapshot.deliverableConfig || null,
-      ) || { systemPrompt: '', userPrompt: '' };
-    } catch {
-      return { systemPrompt: '', userPrompt: '' };
-    }
-  }
-
-  function updatePromptConfig(featureId, patch, message) {
-    if (!featureId) return;
-    const config = getConfigDraft();
-    const deliverableConfig = isPlainObject(config.deliverableConfig) ? { ...config.deliverableConfig } : {};
-    const current = isPlainObject(deliverableConfig[featureId]) ? { ...deliverableConfig[featureId] } : {};
-    Object.entries(patch).forEach(([key, value]) => {
-      if (typeof value === 'string' && value.trim() === '') delete current[key];
-      else current[key] = value;
-    });
-    if (Object.keys(current).length === 0) delete deliverableConfig[featureId];
-    else deliverableConfig[featureId] = current;
-    updateConfigPatch({ deliverableConfig }, message);
-  }
-
-  function materializePromptOverride(featureId, key, value) {
-    if (!featureId || !value?.trim()) return;
-    updatePromptConfig(featureId, { [key]: value }, 'Built-in prompt copied into an editable override.');
-  }
-
-  function resetPromptOverrides(featureId) {
-    if (!featureId) return;
-    const confirmed = window.confirm(`Clear prompt overrides for ${titleFromId(featureId)}? The built-in prompt will be used again.`);
-    if (!confirmed) return;
-    const config = getConfigDraft();
-    const deliverableConfig = isPlainObject(config.deliverableConfig) ? { ...config.deliverableConfig } : {};
-    const current = isPlainObject(deliverableConfig[featureId]) ? { ...deliverableConfig[featureId] } : {};
-    delete current.customSystemPrompt;
-    delete current.customUserPrompt;
-    delete current.extraInstructions;
-    if (Object.keys(current).length === 0) delete deliverableConfig[featureId];
-    else deliverableConfig[featureId] = current;
-    updateConfigPatch({ deliverableConfig }, 'Prompt overrides cleared.');
-  }
-
-  function handleMoveColumn(fromIndex, toIndex) {
-    const columns = Array.isArray(getConfigDraft().columns) ? [...getConfigDraft().columns] : [];
-    if (fromIndex === toIndex || fromIndex < 0 || toIndex < 0 || fromIndex >= columns.length || toIndex >= columns.length) return;
-    const [moved] = columns.splice(fromIndex, 1);
-    columns.splice(toIndex, 0, moved);
-    updateConfigPatch({ columns }, 'Column order updated.');
-  }
-
-  function handleColumnDragStart(index) {
-    setDragColumnIndex(index);
-    setDragOverColumnIndex(index);
-  }
-
-  function handleColumnDragOver(e, index) {
-    e.preventDefault();
-    if (dragColumnIndex === null) return;
-    setDragOverColumnIndex(index);
-  }
-
-  function handleColumnDrop(e, index) {
-    e.preventDefault();
-    if (dragColumnIndex !== null) handleMoveColumn(dragColumnIndex, index);
-    setDragColumnIndex(null);
-    setDragOverColumnIndex(null);
-  }
-
-  function handleColumnDragEnd() {
-    setDragColumnIndex(null);
-    setDragOverColumnIndex(null);
-  }
-
-  function handleMoveFeature(featureId, direction) {
-    const config = getConfigDraft();
-    const features = Array.isArray(config.selectedFeatures) ? [...config.selectedFeatures] : ['courseMap'];
-    const index = features.indexOf(featureId);
-    const nextIndex = index + direction;
-    if (index < 0 || nextIndex < 0 || nextIndex >= features.length) return;
-    [features[index], features[nextIndex]] = [features[nextIndex], features[index]];
-    updateConfigPatch({ selectedFeatures: features }, 'Deliverable tab order updated.');
-  }
-
   function handleRenameTemplate(template, name) {
     if (!onRenameTemplate || !name.trim()) return;
     const saved = onRenameTemplate(template.id, name.trim());
@@ -632,9 +357,16 @@ export default function DeveloperModePanel({
     if (saved) setStatus({ type: 'success', message: `Duplicated "${template.name}".` });
   }
 
-  function handleStageTemplate(template) {
+  function handleStageTemplate(template, mode = 'all') {
     if (!template?.data) return;
-    updateConfigPatch(template.data, `Staged "${template.name}". Review the config, then apply to update the workspace.`);
+    const patch = buildDeveloperTemplatePatch(template.data, mode, getConfigDraft());
+    const changeCount = diffDeveloperTemplatePatch(getConfigDraft(), template.data, mode, 20).length;
+    if (Object.keys(patch).length === 0 || changeCount === 0) {
+      setStatus({ type: 'idle', message: `"${template.name}" has no ${mode === 'all' ? '' : `${mode} `}changes to stage.` });
+      return;
+    }
+    const modeLabel = TEMPLATE_STAGE_MODES.find(item => item.id === mode)?.label || 'Template';
+    updateConfigPatch(patch, `Staged ${modeLabel.toLowerCase()} from "${template.name}". Review the config, then apply to update the workspace.`);
   }
 
   function handleDeleteTemplate(template) {
@@ -645,651 +377,156 @@ export default function DeveloperModePanel({
     setStatus({ type: 'success', message: `Deleted "${template.name}".` });
   }
 
-  function renderThemeLayout() {
+  function handleDiagnosticFix(issue) {
     const config = getConfigDraft();
-    const columns = Array.isArray(config.columns) ? config.columns : [];
-    const features = Array.isArray(config.selectedFeatures) ? config.selectedFeatures : [];
-    const slideThemeValue = config.slideTheme ?? '';
+    const features = Array.isArray(config.selectedFeatures)
+      ? [...config.selectedFeatures]
+      : (Array.isArray(workingSnapshot.selectedFeatures) ? [...workingSnapshot.selectedFeatures] : []);
 
+    if (issue.actionId === 'addCourseMapFeature') {
+      updateConfigPatch({
+        selectedFeatures: ['courseMap', ...features.filter(feature => feature !== 'courseMap')],
+      }, 'Course Map added to selected features.');
+    }
+
+    if (issue.actionId === 'addActiveTabFeature' && workingSnapshot.activeTab) {
+      updateConfigPatch({
+        selectedFeatures: [...features.filter(Boolean), workingSnapshot.activeTab]
+          .filter((feature, index, list) => list.indexOf(feature) === index),
+      }, 'Active tab added to selected features.');
+    }
+
+    if (issue.actionId === 'enableAllColumns') {
+      const columns = Array.isArray(config.columns)
+        ? config.columns
+        : (Array.isArray(workingSnapshot.columns) ? workingSnapshot.columns : []);
+      updateConfigPatch({
+        columns: columns.map(column => ({ ...column, enabled: true })),
+      }, 'All course map columns enabled.');
+    }
+  }
+
+  function renderThemeLayout() {
     return (
-      <div className="min-h-0 flex-1 overflow-y-auto px-4 py-4">
-        <div className="grid gap-4 xl:grid-cols-[minmax(0,0.9fr)_minmax(0,1.1fr)]">
-          <section className="rounded-xl border border-slate-200/70 bg-white p-4 dark:border-slate-700 dark:bg-slate-900">
-            <p className="text-[10px] font-bold uppercase tracking-wider text-slate-400">Theme</p>
-            <h3 className="mt-1 text-sm font-bold text-slate-800 dark:text-slate-100">Slide visual preset</h3>
-            <select
-              value={slideThemeValue}
-              onChange={(e) => updateConfigPatch({ slideTheme: e.target.value === '' ? null : Number(e.target.value) }, 'Slide theme updated.')}
-              className="mt-3 w-full rounded-lg border border-slate-200 bg-white px-3 py-2 text-[12px] font-semibold text-slate-700 outline-none focus:border-indigo-300 dark:border-slate-700 dark:bg-slate-950 dark:text-slate-200"
-            >
-              <option value="">Auto</option>
-              {[0, 1, 2, 3, 4, 5].map(theme => (
-                <option key={theme} value={theme}>Theme {theme + 1}</option>
-              ))}
-            </select>
-            <p className="mt-3 text-[11px] leading-5 text-slate-500 dark:text-slate-400">
-              This becomes the default visual style for generated slide deliverables and future templates saved from this IDE.
-            </p>
-          </section>
-
-          <section className="rounded-xl border border-slate-200/70 bg-white p-4 dark:border-slate-700 dark:bg-slate-900">
-            <div className="flex items-start justify-between gap-3">
-              <div>
-                <p className="text-[10px] font-bold uppercase tracking-wider text-slate-400">Navigation</p>
-                <h3 className="mt-1 text-sm font-bold text-slate-800 dark:text-slate-100">Deliverable tab order</h3>
-              </div>
-            </div>
-            <div className="mt-3 space-y-2">
-              {features.length > 0 ? features.map((feature, index) => (
-                <div key={`${feature}-${index}`} className="flex items-center gap-2 rounded-lg border border-slate-200/70 bg-slate-50 px-3 py-2 dark:border-slate-700 dark:bg-slate-950">
-                  <span className="flex h-6 w-6 items-center justify-center rounded-md bg-white text-[10px] font-bold text-slate-500 dark:bg-slate-900 dark:text-slate-300">{index + 1}</span>
-                  <span className="min-w-0 flex-1 truncate text-[12px] font-semibold text-slate-700 dark:text-slate-200">{titleFromId(feature)}</span>
-                  <button
-                    onClick={() => handleMoveFeature(feature, -1)}
-                    disabled={index === 0}
-                    className="tactile rounded-md border border-slate-200 bg-white px-2 py-1 text-[11px] font-bold text-slate-500 disabled:opacity-40 dark:border-slate-700 dark:bg-slate-900 dark:text-slate-300"
-                  >
-                    Up
-                  </button>
-                  <button
-                    onClick={() => handleMoveFeature(feature, 1)}
-                    disabled={index === features.length - 1}
-                    className="tactile rounded-md border border-slate-200 bg-white px-2 py-1 text-[11px] font-bold text-slate-500 disabled:opacity-40 dark:border-slate-700 dark:bg-slate-900 dark:text-slate-300"
-                  >
-                    Down
-                  </button>
-                </div>
-              )) : (
-                <p className="rounded-lg border border-dashed border-slate-200 px-3 py-4 text-[12px] text-slate-400 dark:border-slate-700">No deliverable tabs selected.</p>
-              )}
-            </div>
-          </section>
-        </div>
-
-        <section className="mt-4 rounded-xl border border-slate-200/70 bg-white p-4 dark:border-slate-700 dark:bg-slate-900">
-          <div className="flex flex-wrap items-center justify-between gap-3">
-            <div>
-              <p className="text-[10px] font-bold uppercase tracking-wider text-slate-400">Course Map Layout</p>
-              <h3 className="mt-1 text-sm font-bold text-slate-800 dark:text-slate-100">Visible columns</h3>
-            </div>
-            <button
-              onClick={() => updateConfigPatch({ columns: columns.map(column => ({ ...column, enabled: true })) }, 'All course map columns enabled.')}
-              disabled={columns.length === 0}
-              className="tactile rounded-lg border border-slate-200 bg-white px-3 py-2 text-[11px] font-semibold text-slate-600 hover:bg-slate-50 disabled:opacity-50 dark:border-slate-700 dark:bg-slate-950 dark:text-slate-300 dark:hover:bg-slate-800"
-            >
-              Enable All
-            </button>
-          </div>
-          <p className="mt-2 text-[11px] text-slate-400 dark:text-slate-500">
-            Check columns to show or hide them. Drag cards to change their left-to-right order in the Course Map.
-          </p>
-          <div className="mt-3 grid gap-2 md:grid-cols-2">
-            {columns.length > 0 ? columns.map((column, index) => (
-              <div
-                key={`${column.key || column.title || index}-${index}`}
-                draggable
-                onDragStart={() => handleColumnDragStart(index)}
-                onDragOver={(e) => handleColumnDragOver(e, index)}
-                onDrop={(e) => handleColumnDrop(e, index)}
-                onDragEnd={handleColumnDragEnd}
-                className={`group flex cursor-grab items-center gap-3 rounded-lg border px-3 py-2 transition-all duration-150 active:cursor-grabbing dark:bg-slate-950 ${
-                  dragColumnIndex === index
-                    ? 'scale-[0.98] border-indigo-300 bg-indigo-50/70 opacity-60 shadow-sm dark:border-indigo-500/50 dark:bg-indigo-500/10'
-                    : dragOverColumnIndex === index
-                      ? 'border-indigo-300 bg-indigo-50/60 shadow-sm dark:border-indigo-500/50 dark:bg-indigo-500/10'
-                      : 'border-slate-200/70 bg-slate-50 hover:bg-slate-100 dark:border-slate-700 dark:hover:bg-slate-800'
-                }`}
-              >
-                <svg className="h-4 w-4 shrink-0 text-slate-300 transition-colors group-hover:text-indigo-400 dark:text-slate-600" fill="none" stroke="currentColor" viewBox="0 0 24 24" aria-hidden="true">
-                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M8 7h.01M8 12h.01M8 17h.01M16 7h.01M16 12h.01M16 17h.01" />
-                </svg>
-                <input
-                  type="checkbox"
-                  checked={column.enabled !== false}
-                  onChange={(e) => {
-                    e.stopPropagation();
-                    handleToggleColumn(index);
-                  }}
-                  onClick={(e) => e.stopPropagation()}
-                  onDragStart={(e) => e.preventDefault()}
-                  className="h-4 w-4 rounded border-slate-300 text-indigo-500 focus:ring-indigo-300"
-                />
-                <span className="min-w-0">
-                  <span className="block truncate text-[12px] font-semibold text-slate-700 dark:text-slate-200">{column.title || titleFromId(column.key)}</span>
-                  <span className="block truncate text-[10px] text-slate-400">{column.key || 'custom column'}</span>
-                </span>
-              </div>
-            )) : (
-              <p className="rounded-lg border border-dashed border-slate-200 px-3 py-4 text-[12px] text-slate-400 dark:border-slate-700">No columns are available in this project.</p>
-            )}
-          </div>
-        </section>
-      </div>
+      <DeveloperThemeLayoutPanel
+        currentConfig={getConfigDraft()}
+        onUpdateConfigPatch={updateConfigPatch}
+      />
     );
   }
 
   function renderPrompts() {
-    const selectedFeatureId = promptFeatureId || promptFeatureOptions[0]?.id || '';
-    const promptConfig = selectedFeatureId ? getPromptConfig(selectedFeatureId) : {};
-    const promptPreview = selectedFeatureId ? getPromptPreview(selectedFeatureId, promptConfig) : {};
-    const hasSystemOverride = Boolean(promptConfig.customSystemPrompt?.trim());
-    const hasUserOverride = Boolean(promptConfig.customUserPrompt?.trim());
-    const hasPromptOverride = Boolean(
-      hasSystemOverride
-      || hasUserOverride
-      || promptConfig.extraInstructions?.trim()
-    );
-    const systemPromptValue = hasSystemOverride ? promptConfig.customSystemPrompt : (promptPreview.systemPrompt || '');
-    const userPromptValue = hasUserOverride ? promptConfig.customUserPrompt : (promptPreview.userPrompt || '');
-
     return (
-      <div className="min-h-0 flex-1 overflow-x-hidden overflow-y-auto px-4 py-4">
-        <section className="rounded-xl border border-slate-200/70 bg-white p-4 dark:border-slate-700 dark:bg-slate-900">
-          <div className="flex flex-col gap-3 lg:flex-row lg:items-start lg:justify-between">
-            <div className="min-w-0">
-              <p className="text-[10px] font-bold uppercase tracking-wider text-slate-400">Deliverable Prompt</p>
-              <h3 className="mt-1 text-sm font-bold text-slate-800 dark:text-slate-100">Override model instructions per deliverable</h3>
-              <p className="mt-2 max-w-2xl text-[11px] leading-5 text-slate-500 dark:text-slate-400">
-                These fields write to Config / deliverableConfig. Empty fields use the built-in prompt. User prompt templates should include {'{{courseMap}}'} so the model receives the course content.
-              </p>
-            </div>
-            <select
-              value={selectedFeatureId}
-              onChange={(e) => setPromptFeatureId(e.target.value)}
-              disabled={promptFeatureOptions.length === 0}
-              className="w-full rounded-lg border border-slate-200 bg-white px-3 py-2 text-[12px] font-semibold text-slate-700 outline-none focus:border-indigo-300 disabled:opacity-50 dark:border-slate-700 dark:bg-slate-950 dark:text-slate-200 lg:w-64"
-            >
-              {promptFeatureOptions.length > 0 ? promptFeatureOptions.map(option => (
-                <option key={option.id} value={option.id}>{option.label}</option>
-              )) : (
-                <option value="">Choose deliverables first</option>
-              )}
-            </select>
-          </div>
-        </section>
-
-        {selectedFeatureId ? (
-          <div className="mt-4 grid min-w-0 gap-4 xl:grid-cols-[minmax(0,1fr)_minmax(220px,260px)]">
-            <section className="min-w-0 space-y-4">
-              <div className="rounded-xl border border-slate-200/70 bg-white p-4 dark:border-slate-700 dark:bg-slate-900">
-                <div className="flex flex-wrap items-center justify-between gap-2">
-                  <div>
-                    <p className="text-[10px] font-bold uppercase tracking-wider text-slate-400">System Prompt Override</p>
-                    <h3 className="mt-1 text-sm font-bold text-slate-800 dark:text-slate-100">
-                      {hasSystemOverride ? `Override active · ${fieldSummary(promptConfig.customSystemPrompt)}` : `Built-in prompt · ${fieldSummary(systemPromptValue)}`}
-                    </h3>
-                  </div>
-                  <div className="flex items-center gap-2">
-                    {!hasSystemOverride && (
-                      <button
-                        onClick={() => materializePromptOverride(selectedFeatureId, 'customSystemPrompt', systemPromptValue)}
-                        disabled={!systemPromptValue}
-                        className="tactile rounded-lg border border-indigo-200 bg-indigo-50 px-2.5 py-1.5 text-[10px] font-bold text-indigo-600 hover:bg-indigo-100 disabled:cursor-not-allowed disabled:opacity-50 dark:border-indigo-500/40 dark:bg-indigo-500/10 dark:text-indigo-300"
-                      >
-                        Customize
-                      </button>
-                    )}
-                    <span className="rounded-full bg-slate-100 px-2 py-1 text-[10px] font-bold text-slate-500 dark:bg-slate-800 dark:text-slate-300">
-                      {hasSystemOverride ? 'customSystemPrompt' : 'built-in'}
-                    </span>
-                  </div>
-                </div>
-                <textarea
-                  value={systemPromptValue}
-                  readOnly={!hasSystemOverride}
-                  onChange={(e) => updatePromptConfig(selectedFeatureId, { customSystemPrompt: e.target.value }, 'System prompt override updated.')}
-                  placeholder="No system prompt is available for this deliverable."
-                  spellCheck={false}
-                  className={`mt-3 min-h-[140px] w-full resize-y rounded-lg border border-slate-200 px-3 py-2 font-mono text-[12px] leading-5 text-slate-700 outline-none focus:border-indigo-300 dark:border-slate-700 dark:text-slate-200 ${
-                    hasSystemOverride ? 'bg-slate-50 dark:bg-slate-950' : 'bg-slate-50/70 text-slate-500 dark:bg-slate-950/70 dark:text-slate-400'
-                  }`}
-                />
-              </div>
-
-              <div className="rounded-xl border border-slate-200/70 bg-white p-4 dark:border-slate-700 dark:bg-slate-900">
-                <div className="flex flex-wrap items-center justify-between gap-2">
-                  <div>
-                    <p className="text-[10px] font-bold uppercase tracking-wider text-slate-400">User Prompt Template Override</p>
-                    <h3 className="mt-1 text-sm font-bold text-slate-800 dark:text-slate-100">
-                      {hasUserOverride ? `Override active · ${fieldSummary(promptConfig.customUserPrompt)}` : `Current generated prompt · ${fieldSummary(userPromptValue)}`}
-                    </h3>
-                  </div>
-                  <div className="flex items-center gap-2">
-                    {!hasUserOverride && (
-                      <button
-                        onClick={() => materializePromptOverride(selectedFeatureId, 'customUserPrompt', userPromptValue)}
-                        disabled={!userPromptValue}
-                        className="tactile rounded-lg border border-indigo-200 bg-indigo-50 px-2.5 py-1.5 text-[10px] font-bold text-indigo-600 hover:bg-indigo-100 disabled:cursor-not-allowed disabled:opacity-50 dark:border-indigo-500/40 dark:bg-indigo-500/10 dark:text-indigo-300"
-                      >
-                        Customize
-                      </button>
-                    )}
-                    <span className={`rounded-full px-2 py-1 text-[10px] font-bold ${
-                      hasUserOverride && !promptConfig.customUserPrompt.includes('{{courseMap}}')
-                        ? 'bg-amber-50 text-amber-700 dark:bg-amber-500/10 dark:text-amber-300'
-                        : 'bg-slate-100 text-slate-500 dark:bg-slate-800 dark:text-slate-300'
-                    }`}>
-                      {hasUserOverride ? '{{courseMap}}' : 'generated'}
-                    </span>
-                  </div>
-                </div>
-                <textarea
-                  value={userPromptValue}
-                  readOnly={!hasUserOverride}
-                  onChange={(e) => updatePromptConfig(selectedFeatureId, { customUserPrompt: e.target.value }, 'User prompt template updated.')}
-                  placeholder="No user prompt is available for this deliverable."
-                  spellCheck={false}
-                  className={`mt-3 min-h-[220px] w-full resize-y rounded-lg border border-slate-200 px-3 py-2 font-mono text-[12px] leading-5 text-slate-700 outline-none focus:border-indigo-300 dark:border-slate-700 dark:text-slate-200 ${
-                    hasUserOverride ? 'bg-slate-50 dark:bg-slate-950' : 'bg-slate-50/70 text-slate-500 dark:bg-slate-950/70 dark:text-slate-400'
-                  }`}
-                />
-                {!hasUserOverride && (
-                  <p className="mt-2 rounded-lg border border-slate-200 bg-slate-50 px-3 py-2 text-[11px] leading-5 text-slate-500 dark:border-slate-700 dark:bg-slate-950 dark:text-slate-400">
-                    This preview shows the exact prompt for the current project, including course content. Click Customize to make it editable.
-                  </p>
-                )}
-                {hasUserOverride && !promptConfig.customUserPrompt.includes('{{courseMap}}') && (
-                  <p className="mt-2 rounded-lg border border-amber-200 bg-amber-50 px-3 py-2 text-[11px] font-semibold text-amber-700 dark:border-amber-500/40 dark:bg-amber-500/10 dark:text-amber-300">
-                    Add {'{{courseMap}}'} if this override should stay reusable across future projects.
-                  </p>
-                )}
-              </div>
-
-              <div className="rounded-xl border border-slate-200/70 bg-white p-4 dark:border-slate-700 dark:bg-slate-900">
-                <div className="flex flex-wrap items-center justify-between gap-2">
-                  <div>
-                    <p className="text-[10px] font-bold uppercase tracking-wider text-slate-400">Extra Instructions</p>
-                    <h3 className="mt-1 text-sm font-bold text-slate-800 dark:text-slate-100">{fieldSummary(promptConfig.extraInstructions)}</h3>
-                  </div>
-                  <span className="rounded-full bg-slate-100 px-2 py-1 text-[10px] font-bold text-slate-500 dark:bg-slate-800 dark:text-slate-300">
-                    extraInstructions
-                  </span>
-                </div>
-                <textarea
-                  value={promptConfig.extraInstructions || ''}
-                  onChange={(e) => updatePromptConfig(selectedFeatureId, { extraInstructions: e.target.value }, 'Extra instructions updated.')}
-                  placeholder="Optional. Add high-priority instructions without replacing the built-in prompt."
-                  className="mt-3 min-h-[120px] w-full resize-y rounded-lg border border-slate-200 bg-slate-50 px-3 py-2 text-[12px] leading-5 text-slate-700 outline-none focus:border-indigo-300 dark:border-slate-700 dark:bg-slate-950 dark:text-slate-200"
-                />
-              </div>
-            </section>
-
-            <aside className="min-w-0 space-y-3">
-              <div className="min-w-0 rounded-xl border border-indigo-200/70 bg-indigo-50/60 p-4 dark:border-indigo-500/40 dark:bg-indigo-500/10">
-                <p className="text-[10px] font-bold uppercase tracking-wider text-indigo-500 dark:text-indigo-300">Current Path</p>
-                <p className="mt-2 space-y-1 font-mono text-[11px] leading-5 text-slate-600 dark:text-slate-300">
-                  <span className="block break-all">deliverableConfig.{selectedFeatureId}.customSystemPrompt</span>
-                  <span className="block break-all">deliverableConfig.{selectedFeatureId}.customUserPrompt</span>
-                  <span className="block break-all">deliverableConfig.{selectedFeatureId}.extraInstructions</span>
-                </p>
-              </div>
-              <div className="min-w-0 rounded-xl border border-slate-200/70 bg-white p-4 dark:border-slate-700 dark:bg-slate-900">
-                <p className="text-[10px] font-bold uppercase tracking-wider text-slate-400">Behavior</p>
-                <p className="mt-2 text-[11px] leading-5 text-slate-500 dark:text-slate-400">
-                  Built-in prompts are read-only previews. Customize creates an override for this deliverable. Extra instructions are appended at high priority.
-                </p>
-                <button
-                  onClick={() => resetPromptOverrides(selectedFeatureId)}
-                  disabled={!hasPromptOverride}
-                  className="tactile mt-3 w-full rounded-lg border border-slate-200 bg-white px-3 py-2 text-[11px] font-semibold text-slate-600 hover:bg-slate-50 disabled:cursor-not-allowed disabled:opacity-50 dark:border-slate-700 dark:bg-slate-950 dark:text-slate-300 dark:hover:bg-slate-800"
-                >
-                  Clear Overrides
-                </button>
-              </div>
-            </aside>
-          </div>
-        ) : (
-          <p className="mt-4 rounded-xl border border-dashed border-slate-200 px-4 py-8 text-center text-[12px] text-slate-400 dark:border-slate-700">
-            No promptable deliverables yet. Choose deliverables first, or add prompt fields directly in Config JSON.
-          </p>
-        )}
-      </div>
+      <DeveloperPromptsPanel
+        promptFeatureOptions={promptFeatureOptions}
+        selectedFeatureId={promptFeatureId}
+        currentConfig={getConfigDraft()}
+        workingSnapshot={workingSnapshot}
+        onSelectedFeatureChange={setPromptFeatureId}
+        onUpdateConfigPatch={updateConfigPatch}
+      />
     );
   }
 
   function renderTemplates() {
     return (
-      <div className="min-h-0 flex-1 overflow-y-auto px-4 py-4">
-        <section className="rounded-xl border border-indigo-200/70 bg-indigo-50/60 p-4 dark:border-indigo-500/40 dark:bg-indigo-500/10">
-          <p className="text-[10px] font-bold uppercase tracking-wider text-indigo-500 dark:text-indigo-300">Save Current Setup</p>
-          <h3 className="mt-1 text-sm font-bold text-slate-800 dark:text-slate-100">Create a reusable developer template</h3>
-          <div className="mt-3 flex flex-col gap-2 sm:flex-row">
-            <input
-              value={templateName}
-              onChange={(e) => setTemplateName(e.target.value)}
-              className="min-w-0 flex-1 rounded-lg border border-indigo-200 bg-white px-3 py-2 text-[12px] text-slate-700 outline-none focus:border-indigo-300 dark:border-slate-700 dark:bg-slate-900 dark:text-slate-200"
-              placeholder="Template name"
-            />
-            <button
-              onClick={handleSaveTemplate}
-              disabled={!onSaveTemplate || !proposed}
-              className="tactile rounded-lg bg-indigo-500 px-4 py-2 text-[12px] font-semibold text-white hover:bg-indigo-600 disabled:cursor-not-allowed disabled:opacity-50"
-            >
-              Save Template
-            </button>
-          </div>
-        </section>
-
-        <section className="mt-4 rounded-xl border border-slate-200/70 bg-white p-4 dark:border-slate-700 dark:bg-slate-900">
-          <div className="flex items-center justify-between gap-3">
-            <div>
-              <p className="text-[10px] font-bold uppercase tracking-wider text-slate-400">Template Manager</p>
-              <h3 className="mt-1 text-sm font-bold text-slate-800 dark:text-slate-100">{developerTemplates.length} saved templates</h3>
-            </div>
-          </div>
-          <div className="mt-3 space-y-2">
-            {developerTemplates.length > 0 ? developerTemplates.map(template => (
-              <div key={template.id} className={`rounded-xl border p-3 ${template.id === activeDeveloperTemplateId ? 'border-indigo-300 bg-indigo-50/60 dark:border-indigo-500/50 dark:bg-indigo-500/10' : 'border-slate-200/70 bg-slate-50 dark:border-slate-700 dark:bg-slate-950'}`}>
-                <div className="flex flex-col gap-2 sm:flex-row sm:items-center">
-                  <input
-                    defaultValue={template.name}
-                    onBlur={(e) => {
-                      if (e.target.value.trim() !== template.name) handleRenameTemplate(template, e.target.value);
-                    }}
-                    className="min-w-0 flex-1 rounded-lg border border-slate-200 bg-white px-3 py-2 text-[12px] font-semibold text-slate-700 outline-none focus:border-indigo-300 dark:border-slate-700 dark:bg-slate-900 dark:text-slate-200"
-                    aria-label={`Rename ${template.name}`}
-                  />
-                  <div className="flex shrink-0 gap-2">
-                    <button
-                      onClick={() => handleStageTemplate(template)}
-                      className="tactile rounded-lg bg-indigo-500 px-3 py-2 text-[11px] font-semibold text-white hover:bg-indigo-600"
-                    >
-                      Stage
-                    </button>
-                    <button
-                      onClick={() => handleDuplicateTemplate(template)}
-                      className="tactile rounded-lg border border-slate-200 bg-white px-3 py-2 text-[11px] font-semibold text-slate-600 hover:bg-slate-50 dark:border-slate-700 dark:bg-slate-900 dark:text-slate-300"
-                    >
-                      Duplicate
-                    </button>
-                    <button
-                      onClick={() => handleDeleteTemplate(template)}
-                      className="tactile rounded-lg border border-red-200 bg-white px-3 py-2 text-[11px] font-semibold text-red-600 hover:bg-red-50 dark:border-red-500/40 dark:bg-slate-900 dark:text-red-300"
-                    >
-                      Delete
-                    </button>
-                  </div>
-                </div>
-                <div className="mt-2 flex flex-wrap gap-2 text-[10px] font-semibold text-slate-400">
-                  <span>{(template.data?.selectedFeatures || []).length} tabs</span>
-                  <span>{(template.data?.columns || []).length} columns</span>
-                  <span>{template.data?.modelName || template.data?.modelId || 'No model'}</span>
-                  <span>Updated {formatDate(template.updatedAt)}</span>
-                </div>
-              </div>
-            )) : (
-              <p className="rounded-lg border border-dashed border-slate-200 px-3 py-8 text-center text-[12px] text-slate-400 dark:border-slate-700">
-                No developer templates yet. Save the current setup to make it available when creating future projects.
-              </p>
-            )}
-          </div>
-        </section>
-      </div>
+      <DeveloperTemplatesPanel
+        templateName={templateName}
+        onTemplateNameChange={setTemplateName}
+        onCreateTemplate={handleSaveTemplate}
+        canCreateTemplate={Boolean(onSaveTemplate && proposed)}
+        developerTemplates={developerTemplates}
+        activeDeveloperTemplateId={activeDeveloperTemplateId}
+        currentConfig={getConfigDraft()}
+        onStageTemplate={handleStageTemplate}
+        onRenameTemplate={handleRenameTemplate}
+        onDuplicateTemplate={handleDuplicateTemplate}
+        onDeleteTemplate={handleDeleteTemplate}
+        onImportTemplate={onSaveTemplate}
+        onStatus={(type, message) => setStatus({ type, message })}
+      />
     );
   }
 
   function renderDiagnostics() {
-    const diagnostics = buildDiagnostics(workingSnapshot, dirtySections);
-    const cards = [
-      ['Lessons', diagnostics.lessons],
-      ['Selected Tabs', diagnostics.selectedFeatures],
-      ['Generated Outputs', diagnostics.deliverables],
-      ['Enabled Columns', diagnostics.enabledColumns],
-    ];
-
     return (
-      <div className="min-h-0 flex-1 overflow-y-auto px-4 py-4">
-        <div className="grid gap-3 sm:grid-cols-2 xl:grid-cols-4">
-          {cards.map(([label, value]) => (
-            <div key={label} className="rounded-xl border border-slate-200/70 bg-white p-4 dark:border-slate-700 dark:bg-slate-900">
-              <p className="text-[10px] font-bold uppercase tracking-wider text-slate-400">{label}</p>
-              <p className="mt-2 text-2xl font-bold text-slate-800 dark:text-slate-100">{value}</p>
-            </div>
-          ))}
-        </div>
-
-        <section className="mt-4 rounded-xl border border-slate-200/70 bg-white p-4 dark:border-slate-700 dark:bg-slate-900">
-          <p className="text-[10px] font-bold uppercase tracking-wider text-slate-400">Health Check</p>
-          <h3 className="mt-1 text-sm font-bold text-slate-800 dark:text-slate-100">
-            {diagnostics.issues.length === 0 ? 'No issues found' : `${diagnostics.issues.length} findings`}
-          </h3>
-          <div className="mt-3 space-y-2">
-            {diagnostics.issues.length > 0 ? diagnostics.issues.map((issue, index) => (
-              <div key={`${issue.message}-${index}`} className="flex gap-3 rounded-lg border border-slate-200/70 bg-slate-50 px-3 py-2 dark:border-slate-700 dark:bg-slate-950">
-                <span className={`mt-1 h-2 w-2 shrink-0 rounded-full ${
-                  issue.level === 'error' ? 'bg-red-500' : issue.level === 'warning' ? 'bg-amber-400' : 'bg-indigo-400'
-                }`} />
-                <div>
-                  <p className="text-[11px] font-bold uppercase tracking-wide text-slate-400">{issue.level}</p>
-                  <p className="text-[12px] leading-5 text-slate-600 dark:text-slate-300">{issue.message}</p>
-                </div>
-              </div>
-            )) : (
-              <p className="rounded-lg border border-emerald-200 bg-emerald-50 px-3 py-3 text-[12px] font-semibold text-emerald-700 dark:border-emerald-500/30 dark:bg-emerald-500/10 dark:text-emerald-300">
-                Project structure, deliverable selection, and layout settings look ready.
-              </p>
-            )}
-          </div>
-        </section>
-
-        <section className="mt-4 rounded-xl border border-slate-200/70 bg-white p-4 dark:border-slate-700 dark:bg-slate-900">
-          <p className="text-[10px] font-bold uppercase tracking-wider text-slate-400">Runtime</p>
-          <div className="mt-3 grid gap-2 text-[12px] text-slate-600 dark:text-slate-300 sm:grid-cols-2">
-            <p><span className="font-bold text-slate-800 dark:text-slate-100">Provider:</span> {workingSnapshot.provider || 'Not set'}</p>
-            <p><span className="font-bold text-slate-800 dark:text-slate-100">Model:</span> {workingSnapshot.modelName || workingSnapshot.modelId || 'Not set'}</p>
-            <p><span className="font-bold text-slate-800 dark:text-slate-100">Active tab:</span> {titleFromId(workingSnapshot.activeTab)}</p>
-            <p><span className="font-bold text-slate-800 dark:text-slate-100">Pending edits:</span> {dirtySections.size}</p>
-          </div>
-        </section>
-      </div>
+      <DeveloperDiagnosticsPanel
+        snapshot={workingSnapshot}
+        dirtySections={dirtySections}
+        onDiagnosticFix={handleDiagnosticFix}
+        onDiagnosticPathClick={(path) => selectPathInEditor(path, sectionForPath(path))}
+      />
     );
   }
 
+  const mainContent = (
+    <>
+      {activeSection === 'themeLayout' && renderThemeLayout()}
+      {activeSection === 'prompts' && renderPrompts()}
+      {activeSection === 'templates' && renderTemplates()}
+      {activeSection === 'diagnostics' && renderDiagnostics()}
+      {isEditorSection && (
+        <DeveloperCodeEditor
+          ref={editorRef}
+          value={activeDraft}
+          onChange={(value) => markDirty(activeSection, value)}
+          onApply={handleApply}
+          onFormat={handleFormat}
+          canApply={dirty && Boolean(proposed)}
+          canFormat={isEditorSection}
+          sectionId={activeSection}
+          sectionLabel={SECTIONS.find(s => s.id === activeSection)?.label}
+          diagnostics={activeValidation.findings}
+        />
+      )}
+    </>
+  );
+
+  const sidebar = (
+    <DeveloperModeSidebar
+      isEditorSection={isEditorSection}
+      query={query}
+      onQueryChange={setQuery}
+      onFindNext={handleFindNext}
+      matchCount={matchCount}
+      activeValidation={activeValidation}
+      changes={changes}
+      canShowTemplateSave={Boolean(onSaveTemplate)}
+      templateName={templateName}
+      onTemplateNameChange={setTemplateName}
+      onSaveTemplate={handleSaveTemplate}
+      canSaveTemplate={Boolean(proposed)}
+      developerHistory={developerHistory}
+      onRollback={handleRollback}
+      onRestoreHistorySnapshot={restoreHistorySnapshot}
+      canRestoreHistorySnapshot={(entry, snapshotKey) => canRestoreDeveloperHistorySnapshot(entry, snapshotKey, workingSnapshot)}
+      onClearHistory={handleClearHistory}
+      dirtySections={dirtySections}
+      onApplySection={(sectionId) => handleApplySections([sectionId])}
+      onResetSectionById={resetSection}
+      onFindingClick={(finding) => selectPathInEditor(finding.path)}
+    />
+  );
+
   return (
-    <FocusTrap focusTrapOptions={{ clickOutsideDeactivates: false }}>
-      <div className="fixed inset-0 z-[70] overflow-hidden bg-slate-950/35 backdrop-blur-[2px]">
-        <section className="absolute inset-x-3 top-3 bottom-3 ml-auto w-[min(1120px,calc(100vw-1.5rem))] rounded-2xl border border-slate-200/70 bg-white shadow-2xl flex flex-col overflow-hidden animate-spring-in dark:border-slate-700/70 dark:bg-slate-950">
-          <div className="flex items-center justify-between gap-3 border-b border-slate-100 px-4 py-3 dark:border-slate-800">
-            <div className="min-w-0">
-              <p className="text-[10px] font-bold uppercase tracking-wider text-indigo-500">Developer Mode</p>
-              <h2 className="text-sm font-bold text-slate-800 dark:text-slate-100">Workspace IDE</h2>
-            </div>
-            <div className="flex items-center gap-2">
-              <button
-                onClick={() => loadSnapshot(snapshot, 'Reloaded current workspace code.')}
-                className="tactile px-3 py-2 rounded-lg text-[11px] font-semibold text-slate-600 bg-white border border-slate-200/70 hover:bg-slate-50 transition-colors dark:bg-slate-900 dark:text-slate-300 dark:border-slate-700 dark:hover:bg-slate-800"
-              >
-                Reload
-              </button>
-              <button
-                onClick={onClose}
-                className="tactile p-2 rounded-lg text-slate-400 hover:bg-slate-100 hover:text-slate-600 transition-colors dark:hover:bg-slate-800 dark:hover:text-slate-200"
-                aria-label="Close developer mode"
-              >
-                <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M6 18L18 6M6 6l12 12" />
-                </svg>
-              </button>
-            </div>
-          </div>
-
-          <div className="border-b border-slate-100 bg-slate-50/80 px-4 py-3 dark:border-slate-800 dark:bg-slate-900/70">
-            <div className="flex gap-2 overflow-x-auto">
-              {SECTIONS.map((section) => {
-                const isActive = section.id === activeSection;
-                const isDirty = dirtySections.has(section.id);
-                return (
-                  <button
-                    key={section.id}
-                    onClick={() => setActiveSection(section.id)}
-                    className={`min-w-[120px] flex-1 rounded-xl border px-3 py-2 text-left transition-all ${
-                      isActive
-                        ? 'border-indigo-200 bg-white shadow-sm dark:border-indigo-500/50 dark:bg-slate-800'
-                        : 'border-transparent bg-transparent hover:bg-white/70 dark:hover:bg-slate-800/70'
-                    }`}
-                  >
-                    <span className="flex items-center justify-between gap-2">
-                      <span className={`text-[11px] font-bold ${isActive ? 'text-indigo-600 dark:text-indigo-300' : 'text-slate-600 dark:text-slate-300'}`}>
-                        {section.label}
-                      </span>
-                      {isDirty && <span className="h-1.5 w-1.5 rounded-full bg-amber-400" />}
-                    </span>
-                    <span className="mt-0.5 block text-[10px] text-slate-400 dark:text-slate-500">{section.note}</span>
-                  </button>
-                );
-              })}
-            </div>
-          </div>
-
-          <div className="grid min-h-0 flex-1 grid-cols-1 lg:grid-cols-[minmax(0,1fr)_290px]">
-            <div className="flex min-h-0 flex-col border-r border-slate-100 dark:border-slate-800">
-              <div className="flex items-center justify-between gap-3 border-b border-slate-100 px-4 py-2 dark:border-slate-800">
-                <div className="min-w-0">
-                  <p className="truncate text-[12px] font-bold text-slate-700 dark:text-slate-200">
-                    {SECTIONS.find(s => s.id === activeSection)?.label}
-                    {dirtySections.has(activeSection) && <span className="ml-2 text-[10px] font-semibold text-amber-500">Unsaved</span>}
-                  </p>
-                  <p className="text-[10px] text-slate-400 dark:text-slate-500">{stats.join(' · ')}</p>
-                </div>
-                <div className={`rounded-full px-2 py-1 text-[10px] font-bold ${
-                  activeValidation.ok
-                    ? 'bg-emerald-50 text-emerald-600 dark:bg-emerald-500/10 dark:text-emerald-300'
-                    : 'bg-red-50 text-red-600 dark:bg-red-500/10 dark:text-red-300'
-                }`}>
-                  {activeValidation.ok ? 'Valid' : 'Needs fix'}
-                </div>
-              </div>
-
-              {activeSection === 'themeLayout' && renderThemeLayout()}
-              {activeSection === 'prompts' && renderPrompts()}
-              {activeSection === 'templates' && renderTemplates()}
-              {activeSection === 'diagnostics' && renderDiagnostics()}
-              {isEditorSection && (
-                <textarea
-                  ref={textareaRef}
-                  value={activeDraft}
-                  spellCheck={false}
-                  onChange={(e) => markDirty(activeSection, e.target.value)}
-                  className="developer-code-editor min-h-[360px] flex-1 resize-none px-4 py-3 font-mono text-[12px] leading-5 outline-none selection:bg-indigo-500/40"
-                />
-              )}
-            </div>
-
-            <aside className="flex min-h-0 flex-col gap-3 overflow-y-auto bg-white px-4 py-4 dark:bg-slate-950">
-              {isEditorSection && (
-              <div>
-                <p className="text-[10px] font-bold uppercase tracking-wider text-slate-400">Search</p>
-                <div className="mt-2 flex gap-2">
-                  <input
-                    value={query}
-                    onChange={(e) => setQuery(e.target.value)}
-                    className="min-w-0 flex-1 rounded-lg border border-slate-200 bg-white px-3 py-2 text-[11px] text-slate-700 outline-none focus:border-indigo-300 dark:border-slate-700 dark:bg-slate-900 dark:text-slate-200"
-                    placeholder="Find in section"
-                  />
-                  <button
-                    onClick={handleFindNext}
-                    className="tactile rounded-lg border border-slate-200 bg-white px-3 py-2 text-[11px] font-semibold text-slate-600 hover:bg-slate-50 dark:border-slate-700 dark:bg-slate-900 dark:text-slate-300 dark:hover:bg-slate-800"
-                  >
-                    Find
-                  </button>
-                </div>
-                <p className="mt-1 text-[10px] text-slate-400">{query.trim() ? `${matchCount} matches` : 'Search the active editor'}</p>
-              </div>
-              )}
-
-              <div className="rounded-xl border border-slate-200/70 bg-slate-50 px-3 py-3 dark:border-slate-700 dark:bg-slate-900">
-                <p className="text-[10px] font-bold uppercase tracking-wider text-slate-400">Validation</p>
-                <p className={`mt-2 text-[11px] leading-5 ${activeValidation.ok ? 'text-slate-600 dark:text-slate-300' : 'text-red-600 dark:text-red-300'}`}>
-                  {activeValidation.message}
-                </p>
-              </div>
-
-              <div className="rounded-xl border border-slate-200/70 bg-slate-50 px-3 py-3 dark:border-slate-700 dark:bg-slate-900">
-                <p className="text-[10px] font-bold uppercase tracking-wider text-slate-400">Changes</p>
-                {changes.length > 0 ? (
-                  <ul className="mt-2 space-y-1.5">
-                    {changes.map(change => (
-                      <li key={change} className="flex items-center gap-2 text-[11px] text-slate-600 dark:text-slate-300">
-                        <span className="h-1.5 w-1.5 rounded-full bg-indigo-400" />
-                        <span>{change}</span>
-                      </li>
-                    ))}
-                  </ul>
-                ) : (
-                  <p className="mt-2 text-[11px] text-slate-400">No pending workspace changes.</p>
-                )}
-              </div>
-
-              {onSaveTemplate && (
-                <div className="rounded-xl border border-indigo-200/70 bg-indigo-50/60 px-3 py-3 dark:border-indigo-500/40 dark:bg-indigo-500/10">
-                  <p className="text-[10px] font-bold uppercase tracking-wider text-indigo-500 dark:text-indigo-300">Template</p>
-                  <p className="mt-2 text-[11px] leading-5 text-slate-500 dark:text-slate-400">
-                    Save this setup for future projects. Course content and generated outputs are not included.
-                  </p>
-                  <input
-                    value={templateName}
-                    onChange={(e) => setTemplateName(e.target.value)}
-                    className="mt-3 w-full rounded-lg border border-indigo-200 bg-white px-3 py-2 text-[11px] text-slate-700 outline-none focus:border-indigo-300 dark:border-slate-700 dark:bg-slate-900 dark:text-slate-200"
-                    placeholder="Template name"
-                  />
-                  <button
-                    onClick={handleSaveTemplate}
-                    disabled={!proposed}
-                    className="tactile mt-2 w-full rounded-lg bg-indigo-500 px-3 py-2 text-[11px] font-semibold text-white hover:bg-indigo-600 disabled:cursor-not-allowed disabled:opacity-50"
-                  >
-                    Save as Developer Template
-                  </button>
-                </div>
-              )}
-
-              <div className="rounded-xl border border-slate-200/70 bg-slate-50 px-3 py-3 dark:border-slate-700 dark:bg-slate-900">
-                <p className="text-[10px] font-bold uppercase tracking-wider text-slate-400">Safety</p>
-                <p className="mt-2 text-[11px] leading-5 text-slate-500 dark:text-slate-400">
-                  Saves validate JSON shape first. A failed save keeps your current workspace unchanged.
-                </p>
-                <button
-                  onClick={handleRollback}
-                  disabled={!lastAppliedSnapshot}
-                  className="tactile mt-3 w-full rounded-lg border border-slate-200 bg-white px-3 py-2 text-[11px] font-semibold text-slate-600 hover:bg-slate-50 disabled:cursor-not-allowed disabled:opacity-50 dark:border-slate-700 dark:bg-slate-950 dark:text-slate-300 dark:hover:bg-slate-800"
-                >
-                  Rollback Last Save
-                </button>
-              </div>
-            </aside>
-          </div>
-
-          <div className="flex items-center justify-between gap-3 border-t border-slate-100 px-4 py-3 dark:border-slate-800">
-            <p className={`min-w-0 truncate text-[11px] ${
-              status.type === 'error' ? 'text-red-600 dark:text-red-300' : status.type === 'success' ? 'text-emerald-600 dark:text-emerald-300' : 'text-slate-500 dark:text-slate-400'
-            }`}>
-              {status.message}
-            </p>
-            <div className="flex shrink-0 items-center gap-2">
-              <button
-                onClick={handleResetSection}
-                disabled={!isEditorSection || !dirtySections.has(activeSection)}
-                className="tactile px-3 py-2 rounded-lg text-[11px] font-semibold text-slate-600 bg-white border border-slate-200/70 hover:bg-slate-50 disabled:opacity-50 disabled:cursor-not-allowed transition-colors dark:bg-slate-900 dark:text-slate-300 dark:border-slate-700 dark:hover:bg-slate-800"
-              >
-                Reset Section
-              </button>
-              <button
-                onClick={handleFormat}
-                disabled={!isEditorSection}
-                className="tactile px-3 py-2 rounded-lg text-[11px] font-semibold text-slate-600 bg-white border border-slate-200/70 hover:bg-slate-50 transition-colors dark:bg-slate-900 dark:text-slate-300 dark:border-slate-700 dark:hover:bg-slate-800"
-              >
-                Format
-              </button>
-              <button
-                onClick={handleApply}
-                disabled={!dirty || !proposed}
-                className="tactile px-4 py-2 rounded-lg text-[11px] font-semibold text-white bg-indigo-500 hover:bg-indigo-600 disabled:opacity-50 disabled:cursor-not-allowed transition-colors"
-              >
-                Apply & Save
-              </button>
-            </div>
-          </div>
-        </section>
-      </div>
-    </FocusTrap>
+    <DeveloperModeShell
+      sections={SECTIONS}
+      activeSection={activeSection}
+      dirtySections={dirtySections}
+      stats={stats}
+      activeValidation={activeValidation}
+      status={status}
+      onSectionChange={setActiveSection}
+      onReload={() => loadSnapshot(snapshot, 'Reloaded current workspace code.')}
+      onClose={onClose}
+      onResetSection={handleResetSection}
+      canResetSection={isEditorSection && dirtySections.has(activeSection)}
+      onFormat={handleFormat}
+      canFormat={isEditorSection}
+      onApply={handleApply}
+      canApply={dirty && Boolean(proposed)}
+      mainContent={mainContent}
+      sidebar={sidebar}
+    />
   );
 }

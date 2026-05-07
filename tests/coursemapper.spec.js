@@ -10,6 +10,10 @@ async function loadApp(page) {
   await expect(page.locator('h1')).toBeVisible({ timeout: 10000 });
 }
 
+function isAppFlowRequest(url) {
+  return /\/src\/AppFlow\.jsx(?:$|\?)/.test(url) || /\/assets\/AppFlow-[^/]+\.js$/.test(url);
+}
+
 // ─────────────────────────────────────────────────────────────────────────────
 // 1. LANDING PAGE
 // ─────────────────────────────────────────────────────────────────────────────
@@ -115,7 +119,55 @@ test.describe('Landing Page', () => {
 });
 
 // ─────────────────────────────────────────────────────────────────────────────
-// 2. HASH ROUTING
+// 2. LAZY SHELL
+// ─────────────────────────────────────────────────────────────────────────────
+
+test.describe('Lazy Shell', () => {
+  test('keeps AppFlow off the landing page until Continue is clicked', async ({ page }) => {
+    await page.route('https://api.openai.com/v1/models', route => route.fulfill({
+      status: 200,
+      contentType: 'application/json',
+      body: JSON.stringify({
+        data: [{ id: 'gpt-4o-mini', created: 1 }],
+      }),
+    }));
+    await page.route('https://api.openai.com/v1/chat/completions', route => route.fulfill({
+      status: 200,
+      contentType: 'application/json',
+      body: JSON.stringify({
+        choices: [{ message: { content: 'ok' } }],
+      }),
+    }));
+
+    const appFlowRequests = [];
+    page.on('request', request => {
+      if (isAppFlowRequest(request.url())) appFlowRequests.push(request.url());
+    });
+
+    await page.addInitScript(() => {
+      localStorage.clear();
+      sessionStorage.clear();
+      localStorage.setItem('coursemapper-provider', 'openai');
+      localStorage.setItem('coursemapper-apikey', 'sk-proj-test1234567890123456789012345678901234567890123456');
+      localStorage.setItem('coursemapper-modelid', 'gpt-4o-mini');
+      localStorage.setItem('coursemapper-modelname', 'GPT-4o mini');
+    });
+
+    await page.goto('/');
+    await expect(page.locator('h1:has-text("Everything you need")')).toBeVisible({ timeout: 10000 });
+    await expect(page.locator('text=Connected').first()).toBeVisible({ timeout: 10000 });
+    await page.waitForTimeout(250);
+    expect(appFlowRequests.length, 'AppFlow should not be requested on initial landing load').toBe(0);
+
+    await page.locator('button:has-text("Intro to Psychology")').click();
+    await page.locator('button:has-text("Continue")').click();
+    await expect(page.locator('text=Choose deliverables')).toBeVisible({ timeout: 10000 });
+    expect(appFlowRequests.length, 'AppFlow should be requested after leaving landing').toBeGreaterThan(0);
+  });
+});
+
+// ─────────────────────────────────────────────────────────────────────────────
+// 3. HASH ROUTING
 // ─────────────────────────────────────────────────────────────────────────────
 
 test.describe('Hash Routing', () => {
@@ -158,7 +210,7 @@ test.describe('Hash Routing', () => {
 });
 
 // ─────────────────────────────────────────────────────────────────────────────
-// 3. WORKSPACE DELIVERABLE TABS
+// 4. WORKSPACE DELIVERABLE TABS
 // ─────────────────────────────────────────────────────────────────────────────
 
 test.describe('Workspace Deliverable Tabs', () => {

@@ -24,8 +24,17 @@ jobs:
           node-version: 20
           cache: npm
 
+      - uses: actions/setup-java@v4
+        with:
+          distribution: temurin
+          java-version: 21
+
       - run: npm ci
+      - run: npm run lint
+      - run: npm test
+      - run: npm run test:rules
       - run: npm run build
+      - run: npm run test:e2e
 
       - uses: actions/upload-pages-artifact@v3
         with:

@@ -6,37 +6,18 @@ const SCOPES = 'https://www.googleapis.com/auth/drive.file';
 let tokenClient = null;
 let gisLoaded = false;
 
-// ── Token cache (in-memory + localStorage) ──
+// ── Token cache (in-memory only) ──
 let cachedToken = null;
 let tokenExpiry = 0;
-const TOKEN_STORAGE_KEY = 'coursemapper-google-token';
-
-function loadCachedToken() {
-  try {
-    const stored = localStorage.getItem(TOKEN_STORAGE_KEY);
-    if (stored) {
-      const { token, expiry } = JSON.parse(stored);
-      if (token && expiry && Date.now() < expiry - 300_000) {
-        cachedToken = token;
-        tokenExpiry = expiry;
-      }
-    }
-  } catch { /* ignore corrupt data */ }
-}
-loadCachedToken(); // attempt on module load
 
 function cacheToken(token) {
   cachedToken = token;
   tokenExpiry = Date.now() + 3600_000; // 1 hour
-  try {
-    localStorage.setItem(TOKEN_STORAGE_KEY, JSON.stringify({ token, expiry: tokenExpiry }));
-  } catch { /* localStorage full — ignore */ }
 }
 
 export function clearTokenCache() {
   cachedToken = null;
   tokenExpiry = 0;
-  try { localStorage.removeItem(TOKEN_STORAGE_KEY); } catch { /* ignore */ }
 }
 
 export function hasValidToken() {

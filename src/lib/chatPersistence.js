@@ -4,6 +4,8 @@
  * Each conversation has a title, messages, and metadata.
  */
 
+import { sanitizeMessagesForPersistence } from './messageSanitizer';
+
 const STORAGE_KEY = 'coursemapper-conversations';
 const MAX_CONVERSATIONS = 50;
 
@@ -27,7 +29,8 @@ export function listConversations() {
 export function saveConversation(id, messages, title) {
   try {
     const conversations = listConversations();
-    const visibleMessages = messages.filter(m => m.role === 'user' || m.role === 'assistant');
+    const safeMessages = sanitizeMessagesForPersistence(messages);
+    const visibleMessages = safeMessages.filter(m => m.role === 'user' || m.role === 'assistant');
 
     // Auto-generate title from first user message
     const autoTitle = title || visibleMessages.find(m => m.role === 'user')?.text?.slice(0, 60) || 'New conversation';
@@ -59,7 +62,7 @@ export function saveConversation(id, messages, title) {
 
     localStorage.setItem(STORAGE_KEY, JSON.stringify(conversations));
     // Store messages separately to keep index lightweight
-    localStorage.setItem(`${STORAGE_KEY}:${id}`, JSON.stringify(messages));
+    localStorage.setItem(`${STORAGE_KEY}:${id}`, JSON.stringify(safeMessages));
 
     return entry;
   } catch (err) {
@@ -76,7 +79,13 @@ export function saveConversation(id, messages, title) {
 export function loadConversation(id) {
   try {
     const data = localStorage.getItem(`${STORAGE_KEY}:${id}`);
-    return data ? JSON.parse(data) : null;
+    if (!data) return null;
+    const parsed = JSON.parse(data);
+    const safeMessages = sanitizeMessagesForPersistence(parsed);
+    if (JSON.stringify(safeMessages) !== JSON.stringify(parsed)) {
+      localStorage.setItem(`${STORAGE_KEY}:${id}`, JSON.stringify(safeMessages));
+    }
+    return safeMessages;
   } catch { return null; }
 }
 

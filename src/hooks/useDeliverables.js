@@ -10,7 +10,8 @@ import { CourseStateContext, CourseDispatchContext, actions } from '../model/cou
 import {
   pLimit, createChunkPlan, mergeChunkResults, findMissingIndices,
   chunkArray, CHUNK_SIZE, MAX_CONCURRENT, MAX_RETRY_ROUNDS,
-  getFeatureChunkSize, getFeatureOutputBudget,
+  getFeatureChunkSize, getFeatureOutputBudget, getCoverageRetryMissingLessons,
+  extractCoverageLessonNumbers,
 } from '../lib/parallelGenerator';
 import { expandKeys } from '../lib/keyMaps';
 import { log, warn, error as logError } from '../lib/logger';
@@ -801,7 +802,7 @@ export default function useDeliverables({ provider, modelId, apiKey, maxOutputTo
               );
               const text = result?.fullText || fullText;
               const parsed = expandKeys(fid, parsePartialJSON(text));
-              logIfRecovered(fid, `(retry round ${retryRound + 1})`);
+              logIfRecovered(fid, `(retry round ${retryRound})`);
               if (parsed) {
                 chunkResults[fid].set(retryChunkIndex, parsed);
                 const _rk = getArrayKey(fid, parsed);
@@ -836,42 +837,19 @@ export default function useDeliverables({ provider, modelId, apiKey, maxOutputTo
       // NOTE: rubrics/assignments are per-assessment (not per-lesson), so their items
       // may not have lesson numbers at all — the coveredLessons check below handles this
       // gracefully (size===0 → per-assessment warning, not a retry loop).
-      const extractLessonNum = (item) => {
-        const title = item?.lessonTitle || item?.title || item?.lesson || '';
-        const m = title.match(/(?:Lesson|Week)\s*(\d+)/i);
-        if (m) return parseInt(m[1], 10);
-        // For per-assessment items (assignments/rubrics), check relatedLessons/lessonNumber
-        const related = item?.relatedLessons || item?.relatedLesson || '';
-        const relM = String(related).match(/(\d+)/g);
-        if (relM && relM.length > 0) return parseInt(relM[0], 10);
-        if (item?.lessonNumber) return parseInt(item.lessonNumber, 10);
-        if (item?.week) return parseInt(item.week, 10);
-        return null;
-      };
+      const extractLessonNum = (item) => extractCoverageLessonNumbers(item)[0] ?? null;
 
       // Coverage retry is allowed for all deliverables, including rubrics/assignments.
       // For per-assessment deliverables, it only fires when specific lesson numbers ARE
       // present in the output (coveredSet.size > 0) and some are missing.
       if (mergedArr.length > 0 && expectedCount > 1) {
-        const coveredSet = new Set();
-        mergedArr.forEach(item => {
-          // Check multiple fields for lesson number
-          const num = extractLessonNum(item);
-          if (num !== null) coveredSet.add(num);
-          // Catch additional related lessons for assignments that span multiple weeks
-          const related = item?.relatedLessons || item?.relatedLesson || '';
-          const relM = String(related).match(/(\d+)/g);
-          if (relM) relM.forEach(n => coveredSet.add(parseInt(n, 10)));
-        });
-        const missingLessons = Array.from({ length: expectedCount }, (_, i) => i + 1)
-          .filter(n => !coveredSet.has(n));
+        const { coveredSet, missingLessons, missingIndices } = getCoverageRetryMissingLessons(mergedArr, expectedCount);
 
         if (coveredSet.size > 0 && missingLessons.length > 0 && missingLessons.length <= 8) {
           const label = getFeatureLabel(fid);
           warn(`${fid}: coverage retry — ${missingLessons.length} lesson(s) missing: ${missingLessons.join(', ')}`);
           appendLog(`⚠ ${label}: retrying missing lesson(s): ${missingLessons.join(', ')}`, 'warn');
 
-          const missingIndices = missingLessons.map(n => n - 1); // 0-based
           const retryLimit = pLimit(MAX_CONCURRENT);
           const retryPromises = missingIndices.map((idx) => retryLimit(async () => {
             const retryChunkIndex = chunks.size + 500 + idx;
@@ -909,7 +887,7 @@ export default function useDeliverables({ provider, modelId, apiKey, maxOutputTo
               );
               const text = result?.fullText || fullText;
               const parsed = expandKeys(fid, parsePartialJSON(text));
-              logIfRecovered(fid, `(retry round ${retryRound + 1})`);
+              logIfRecovered(fid, '(coverage retry)');
               if (parsed) {
                 chunkResults[fid].set(retryChunkIndex, parsed);
                 const _rk = getArrayKey(fid, parsed);
@@ -980,15 +958,7 @@ export default function useDeliverables({ provider, modelId, apiKey, maxOutputTo
       if (mergedArr.length > 0 && expectedCount > 1) {
         const coveredLessons = new Set();
         mergedArr.forEach(item => {
-          // Check multiple fields for lesson number
-          const num = extractLessonNum(item);
-          if (num !== null) { coveredLessons.add(num); return; }
-          // For per-assessment items (assignments), check relatedLessons/lessonNumber
-          const related = item?.relatedLessons || item?.relatedLesson || '';
-          const relM = String(related).match(/(\d+)/g);
-          if (relM) relM.forEach(n => coveredLessons.add(parseInt(n, 10)));
-          if (item?.lessonNumber) coveredLessons.add(parseInt(item.lessonNumber, 10));
-          if (item?.week) coveredLessons.add(parseInt(item.week, 10));
+          extractCoverageLessonNumbers(item).forEach(num => coveredLessons.add(num));
         });
         const allExpected = Array.from({ length: expectedCount }, (_, i) => i + 1);
         const missing = allExpected.filter(n => !coveredLessons.has(n));

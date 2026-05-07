@@ -79,7 +79,7 @@ A free, browser-based tool that transforms syllabi into complete teaching materi
 
 // ── Streaming call to user's configured provider ────────────────────────────
 export async function streamChat(messages, systemPrompt, signal, apiKey, provider, modelId, maxTokens = 2048) {
-  if (provider !== 'webllm' && provider !== 'openrouter' && !apiKey) throw new Error('NO_API_KEY');
+  if (provider !== 'webllm' && !apiKey) throw new Error('NO_API_KEY');
   if (!modelId) throw new Error('NO_MODEL_SELECTED');
 
   const chatModel = modelId;
@@ -183,7 +183,7 @@ export async function streamChat(messages, systemPrompt, signal, apiKey, provide
   const baseUrl = provider === 'deepseek'
     ? 'https://api.deepseek.com/v1/chat/completions'
     : provider === 'openrouter'
-      ? (apiKey ? 'https://openrouter.ai/api/v1/chat/completions' : '/api/proxy/openrouter/stream')
+      ? 'https://openrouter.ai/api/v1/chat/completions'
       : 'https://api.openai.com/v1/chat/completions';
   const openaiMessages = [
     { role: 'system', content: systemPrompt },
@@ -220,7 +220,7 @@ export async function streamChat(messages, systemPrompt, signal, apiKey, provide
 
 // ── Native tool-calling LLM call for agentic loop ─────────────────────────
 export async function fetchAgentResponseNative(loopMessages, systemPrompt, signal, apiKey, provider, modelId, nativeTools, { temperature: tempOverride, onThinkingText } = {}) {
-  if (provider !== 'webllm' && provider !== 'openrouter' && !apiKey) throw new Error('NO_API_KEY');
+  if (provider !== 'webllm' && !apiKey) throw new Error('NO_API_KEY');
   if (!modelId) throw new Error('NO_MODEL_SELECTED');
 
   // WebLLM: local inference without tool calling — return text-only response

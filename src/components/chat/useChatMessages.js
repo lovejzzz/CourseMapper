@@ -21,11 +21,10 @@ import {
  * @param {Object}   ctx.delivRef
  * @param {Object}   ctx.courseMap
  * @param {string}   ctx.provider
- * @param {string}   ctx.apiKey
  * @param {Function} ctx.sendAgentMessage
  */
 export function handleAgentFinalResponse(response, ctx) {
-  const { setMessages, delivRef, courseMap, provider, apiKey, sendAgentMessage } = ctx;
+  const { setMessages, delivRef, courseMap, provider, sendAgentMessage } = ctx;
 
   if (!response) {
     setMessages(prev => [...prev, { role: 'assistant', text: "I couldn't generate a response." }]);
@@ -99,7 +98,6 @@ export function handleAgentFinalResponse(response, ctx) {
       imageSearch: response.imageSearch,
       status: 'complete',
       provider,
-      apiKey,
     }]);
     return;
   }
@@ -113,7 +111,7 @@ export function handleAgentFinalResponse(response, ctx) {
  * Handle legacy JSON-in-text response (used only by research synthesis).
  */
 export function handleLegacyResponse(fullText, ctx) {
-  const { setMessages, provider, apiKey } = ctx;
+  const { setMessages, provider } = ctx;
 
   let parsed = null;
   try {
@@ -186,7 +184,7 @@ export function handleLegacyResponse(fullText, ctx) {
   } else if (parsed.imageSearch) {
     setMessages(prev => {
       const updated = [...prev];
-      updated[updated.length - 1] = { role: 'imageSearch', imageSearch: parsed.imageSearch, status: 'complete', provider, apiKey };
+      updated[updated.length - 1] = { role: 'imageSearch', imageSearch: parsed.imageSearch, status: 'complete', provider };
       return updated;
     });
   } else {

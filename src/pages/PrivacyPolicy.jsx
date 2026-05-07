@@ -1,7 +1,7 @@
 import React from 'react';
 import Header from '../components/Header';
 
-const LAST_UPDATED = 'February 14, 2026';
+const LAST_UPDATED = 'May 6, 2026';
 
 export default function PrivacyPolicy() {
   return (
@@ -29,11 +29,12 @@ export default function PrivacyPolicy() {
             </p>
           </Section>
 
-          <Section title="No Backend Server">
+          <Section title="Static App and Optional Cloud Sync">
             <p>
-              Course Mapper runs entirely in your web browser. There is no backend server, no database,
-              and no server-side storage. All processing happens locally on your device. When you close
-              the browser tab, no data remains on any server operated by Course Mapper.
+              Course Mapper is a static browser app with no Course Mapper-operated application backend.
+              Core processing runs in your browser. Your work is saved in browser storage by default, and
+              if you sign in, selected project and profile data can sync to Firebase services for your
+              account. Google Drive exports upload directly from your browser to your Google Drive.
             </p>
           </Section>
 
@@ -41,7 +42,7 @@ export default function PrivacyPolicy() {
             <ul className="list-disc list-inside space-y-1.5 ml-1">
               <li><strong>Syllabus files</strong> — uploaded files are read locally in your browser and never sent to Course Mapper servers (there are none). File contents are sent to your chosen AI provider for processing.</li>
               <li><strong>API keys</strong> — if you use a paid AI provider, your API key is stored in your browser's local storage and sent directly to the provider's API. Course Mapper never sees, transmits, or stores your key on any server.</li>
-              <li><strong>Course map data</strong> — generated course maps are stored in your browser's local storage for auto-save. They are not transmitted anywhere except when you explicitly export.</li>
+              <li><strong>Course map data</strong> — generated course maps are stored in your browser's local storage for auto-save. If you sign in, project data and profile settings may also sync to Firebase for your account. They are otherwise not transmitted except when you explicitly export.</li>
             </ul>
           </Section>
 
@@ -79,8 +80,8 @@ export default function PrivacyPolicy() {
             <p>
               Course Mapper uses your browser's local storage to save your work automatically. This includes
               your course map, chat history, version history, column configuration, and selected AI provider.
-              This data stays on your device and is never transmitted to any server. You can clear it at any
-              time by clicking "New Project" or clearing your browser data.
+              This data stays on your device unless you choose sign-in cloud sync or export. You can clear
+              local data at any time by clicking "New Project" or clearing your browser data.
             </p>
           </Section>
 
@@ -101,13 +102,13 @@ export default function PrivacyPolicy() {
 
           <Section title="Data Security">
             <p>
-              Because Course Mapper has no backend server and stores no data remotely, the primary security
-              boundary is your web browser. We recommend:
+              Because Course Mapper is a static browser app, the primary security boundary is your browser
+              and any third-party services you choose to connect. We recommend:
             </p>
             <ul className="list-disc list-inside space-y-1.5 ml-1 mt-2">
               <li>Using a modern, up-to-date browser.</li>
               <li>Not sharing your device with untrusted users if you have API keys stored in local storage.</li>
-              <li>Using your own API key (rather than the free tier) for sensitive course materials.</li>
+              <li>Using your own API key or a local browser model for sensitive course materials.</li>
               <li>Exporting your finished course map and clearing local storage when done.</li>
             </ul>
           </Section>

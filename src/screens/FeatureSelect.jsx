@@ -5,6 +5,7 @@ import { useAIConfig } from '../contexts/AIConfigContext';
 import { useUI } from '../contexts/UIContext';
 import { useCourse } from '../contexts/CourseContext';
 import { listCustomDeliverables, saveCustomDeliverable, deleteCustomDeliverable, toFeatureEntry, autoFillCustomDeliverable } from '../lib/customDeliverableLibrary';
+import { FEATURES, COLOR_MAP } from '../lib/featureCatalog';
 
 // ── Color choices for custom deliverables ────────────────────────────────────
 const CUSTOM_COLOR_CHOICES = ['violet', 'indigo', 'sky', 'teal', 'emerald', 'amber', 'orange', 'rose', 'cyan'];
@@ -20,120 +21,6 @@ const CUSTOM_ICON_CHOICES = [
   { label: 'Puzzle', path: 'M11 4a2 2 0 114 0v1a1 1 0 001 1h3a1 1 0 011 1v3a1 1 0 01-1 1h-1a2 2 0 100 4h1a1 1 0 011 1v3a1 1 0 01-1 1h-3a1 1 0 01-1-1v-1a2 2 0 10-4 0v1a1 1 0 01-1 1H7a1 1 0 01-1-1v-3a1 1 0 00-1-1H4a2 2 0 110-4h1a1 1 0 001-1V7a1 1 0 011-1h3a1 1 0 001-1V4z' },
   { label: 'Beaker', path: 'M19.428 15.428a2 2 0 00-1.022-.547l-2.387-.477a6 6 0 00-3.86.517l-.318.158a6 6 0 01-3.86.517L6.05 15.21a2 2 0 00-1.806.547M8 4h8l-1 1v5.172a2 2 0 00.586 1.414l5 5c1.26 1.26.367 3.414-1.415 3.414H4.828c-1.782 0-2.674-2.154-1.414-3.414l5-5A2 2 0 009 10.172V5L8 4z' },
 ];
-
-// Teacher-priority order:
-// No syllabus file → syllabus goes first (teacher needs it to share with students)
-// Has syllabus file → syllabus goes last (already have one, treat as supplement)
-const FEATURES_BASE = [
-  {
-    id: 'courseMap',
-    label: 'Course Map',
-    description: 'Complete week-by-week structure with learning goals, objectives, assessments, activities, and resources.',
-    icon: 'M3 10h18M3 14h18M3 18h18M3 6h18',
-    available: true,
-    category: 'foundation',
-    color: 'indigo',
-  },
-  {
-    id: 'syllabus',
-    label: 'Syllabus',
-    description: 'Complete, professional course syllabus with policies, grading, schedule, and outcomes.',
-    icon: 'M9 12h6m-6 4h6m2 5H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2zM15 2v5a1 1 0 001 1h5',
-    available: true,
-    category: 'foundation',
-    color: 'cyan',
-    syllabusFirst: true, // show first when no file, last when file exists
-  },
-  {
-    id: 'lessonPlans',
-    label: 'Lesson Plans',
-    description: 'Detailed session-by-session plans with timing, warm-ups, activities, and instructor notes.',
-    icon: 'M12 6.253v13m0-13C10.832 5.477 9.246 5 7.5 5S4.168 5.477 3 6.253v13C4.168 18.477 5.754 18 7.5 18s3.332.477 4.5 1.253m0-13C13.168 5.477 14.754 5 16.5 5c1.747 0 3.332.477 4.5 1.253v13C19.832 18.477 18.247 18 16.5 18c-1.746 0-3.332.477-4.5 1.253',
-    available: true,
-    category: 'instruction',
-    color: 'violet',
-  },
-  {
-    id: 'slideDecks',
-    label: 'Slide Decks',
-    description: 'Ready-to-use presentation slides with key concepts, visual cues, and speaker notes.',
-    icon: 'M7 4v16M17 4v16M3 8h4m10 0h4M3 12h18M3 16h4m10 0h4M4 20h16a1 1 0 001-1V5a1 1 0 00-1-1H4a1 1 0 00-1 1v14a1 1 0 001 1z',
-    available: true,
-    category: 'instruction',
-    color: 'amber',
-  },
-  {
-    id: 'assignments',
-    label: 'Assignment Briefs',
-    description: 'Clear assignment descriptions with objectives, deliverables, and submission guidelines.',
-    icon: 'M9 12h6m-6 4h6m2 5H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z',
-    available: true,
-    category: 'assessment',
-    color: 'orange',
-  },
-  {
-    id: 'rubrics',
-    label: 'Rubrics',
-    description: 'Detailed grading rubrics with criteria, performance levels, and descriptors for every assessment.',
-    icon: 'M9 5H7a2 2 0 00-2 2v12a2 2 0 002 2h10a2 2 0 002-2V7a2 2 0 00-2-2h-2M9 5a2 2 0 002 2h2a2 2 0 002-2M9 5a2 2 0 012-2h2a2 2 0 012 2m-6 9l2 2 4-4',
-    available: true,
-    category: 'assessment',
-    color: 'emerald',
-  },
-  {
-    id: 'discussions',
-    label: 'Discussion Prompts',
-    description: 'Engaging discussion prompts and response frameworks aligned to each lesson\'s objectives.',
-    icon: 'M17 8h2a2 2 0 012 2v6a2 2 0 01-2 2h-2v4l-4-4H9a1.994 1.994 0 01-1.414-.586m0 0L11 14h4a2 2 0 002-2V6a2 2 0 00-2-2H5a2 2 0 00-2 2v6a2 2 0 002 2h2v4l.586-.586z',
-    available: true,
-    category: 'engagement',
-    color: 'rose',
-  },
-  {
-    id: 'quizBank',
-    label: 'Quiz & Exam Bank',
-    description: 'Multiple choice, short answer, and essay questions organized by lesson and difficulty.',
-    icon: 'M8.228 9c.549-1.165 2.03-2 3.772-2 2.21 0 4 1.343 4 3 0 1.4-1.278 2.575-3.006 2.907-.542.104-.994.54-.994 1.093m0 3h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z',
-    available: true,
-    category: 'assessment',
-    color: 'sky',
-  },
-  {
-    id: 'studyGuides',
-    label: 'Study Guides',
-    description: 'Student-facing review materials with key concepts, vocabulary, and exam prep tips.',
-    icon: 'M12 14l9-5-9-5-9 5 9 5zm0 0l6.16-3.422a12.083 12.083 0 01.665 6.479A11.952 11.952 0 0012 20.055a11.952 11.952 0 00-6.824-2.998 12.078 12.078 0 01.665-6.479L12 14zm-4 6v-7.5l4-2.222',
-    available: true,
-    category: 'student',
-    color: 'teal',
-  },
-  {
-    id: 'courseFaq',
-    label: 'Course FAQ',
-    description: 'Student-facing FAQ with answers to common questions about logistics, concepts, and assessments.',
-    icon: 'M8.228 9c.549-1.165 2.03-2 3.772-2 2.21 0 4 1.343 4 3 0 1.4-1.278 2.575-3.006 2.907-.542.104-.994.54-.994 1.093m0 3h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z',
-    available: true,
-    category: 'student',
-    color: 'cyan',
-  },
-];
-
-// Reorder: if no syllabus file, syllabus comes right after courseMap (index 1).
-// If syllabus file exists, syllabus is hidden (filtered out in render).
-// We export FEATURES as the base array; ordering is handled in the component.
-const FEATURES = FEATURES_BASE;
-
-const COLOR_MAP = {
-  indigo: { bg: 'bg-indigo-50/60', border: 'border-indigo-200/50', activeBorder: 'border-indigo-400', activeBg: 'bg-indigo-50/80', iconBg: 'bg-indigo-100', iconText: 'text-indigo-600', badge: 'bg-indigo-100 text-indigo-700', ring: 'ring-indigo-400/30' },
-  violet: { bg: 'bg-violet-50/60', border: 'border-violet-200/50', activeBorder: 'border-violet-400', activeBg: 'bg-violet-50/80', iconBg: 'bg-violet-100', iconText: 'text-violet-600', badge: 'bg-violet-100 text-violet-700', ring: 'ring-violet-400/30' },
-  amber: { bg: 'bg-amber-50/60', border: 'border-amber-200/50', activeBorder: 'border-amber-400', activeBg: 'bg-amber-50/80', iconBg: 'bg-amber-100', iconText: 'text-amber-600', badge: 'bg-amber-100 text-amber-700', ring: 'ring-amber-400/30' },
-  emerald: { bg: 'bg-emerald-50/60', border: 'border-emerald-200/50', activeBorder: 'border-emerald-400', activeBg: 'bg-emerald-50/80', iconBg: 'bg-emerald-100', iconText: 'text-emerald-600', badge: 'bg-emerald-100 text-emerald-700', ring: 'ring-emerald-400/30' },
-  sky: { bg: 'bg-sky-50/60', border: 'border-sky-200/50', activeBorder: 'border-sky-400', activeBg: 'bg-sky-50/80', iconBg: 'bg-sky-100', iconText: 'text-sky-600', badge: 'bg-sky-100 text-sky-700', ring: 'ring-sky-400/30' },
-  rose: { bg: 'bg-rose-50/60', border: 'border-rose-200/50', activeBorder: 'border-rose-400', activeBg: 'bg-rose-50/80', iconBg: 'bg-rose-100', iconText: 'text-rose-600', badge: 'bg-rose-100 text-rose-700', ring: 'ring-rose-400/30' },
-  orange: { bg: 'bg-orange-50/60', border: 'border-orange-200/50', activeBorder: 'border-orange-400', activeBg: 'bg-orange-50/80', iconBg: 'bg-orange-100', iconText: 'text-orange-600', badge: 'bg-orange-100 text-orange-700', ring: 'ring-orange-400/30' },
-  teal: { bg: 'bg-teal-50/60', border: 'border-teal-200/50', activeBorder: 'border-teal-400', activeBg: 'bg-teal-50/80', iconBg: 'bg-teal-100', iconText: 'text-teal-600', badge: 'bg-teal-100 text-teal-700', ring: 'ring-teal-400/30' },
-  cyan: { bg: 'bg-cyan-50/60', border: 'border-cyan-200/50', activeBorder: 'border-cyan-400', activeBg: 'bg-cyan-50/80', iconBg: 'bg-cyan-100', iconText: 'text-cyan-600', badge: 'bg-cyan-100 text-cyan-700', ring: 'ring-cyan-400/30' },
-};
 
 export { FEATURES, COLOR_MAP };
 

@@ -38,11 +38,17 @@ describe('firestore.rules', () => {
     expect(RULES).toMatch(/match\s+\/users\/\{userId\}\/\{document=\*\*\}/);
   });
 
-  it('the recursive wildcard rule gates both read and write on auth', () => {
-    // Write-path must also include the 1MB size guard the repo already enforces.
-    expect(RULES).toMatch(/allow\s+read:\s*if\s+request\.auth\s*!=\s*null/);
-    expect(RULES).toMatch(/allow\s+write:\s*if\s+request\.auth\s*!=\s*null/);
-    expect(RULES).toMatch(/request\.resource\.size\s*<\s*1048576/);
+  it('the recursive wildcard rule gates access through owner helpers', () => {
+    expect(RULES).toMatch(/function\s+isOwner\s*\(\s*userId\s*\)/);
+    expect(RULES).toMatch(/request\.auth\.uid\s*==\s*userId/);
+    expect(RULES).toMatch(/allow\s+read:\s*if\s+isOwner\(userId\)/);
+    expect(RULES).toMatch(/allow\s+create,\s*update:\s*if\s+isOwner\(userId\)\s*&&\s*hasReasonableFieldCount\(\)/);
+    expect(RULES).toMatch(/allow\s+delete:\s*if\s+isOwner\(userId\)/);
+  });
+
+  it('uses request.resource.data for write validation', () => {
+    expect(RULES).toMatch(/request\.resource\.data\.keys\(\)\.size\(\)\s*<=\s*80/);
+    expect(RULES).not.toMatch(/request\.resource\.size/);
   });
 
   it.each(PATHS_UNDER_RULES)(

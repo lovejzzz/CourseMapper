@@ -11,6 +11,7 @@ import {
   saveDeveloperTemplate as cloudSaveDeveloperTemplate,
   deleteDeveloperTemplate as cloudDeleteDeveloperTemplate,
 } from './cloudStorage';
+import { assertNoDeveloperSecrets } from './developerSecretDiagnostics';
 
 const STORAGE_KEY = 'coursemapper-developer-templates';
 
@@ -81,12 +82,14 @@ export function saveDeveloperTemplate(template, uid) {
   const map = readMap();
   const id = template.id || makeId();
   const previous = map[id] || {};
+  const data = extractDeveloperTemplateData(template.data || {});
+  assertNoDeveloperSecrets(data, 'Developer template');
   const saved = {
     ...previous,
     ...template,
     id,
     name: (template.name || previous.name || 'Developer Template').trim(),
-    data: extractDeveloperTemplateData(template.data || {}),
+    data,
     createdAt: previous.createdAt || template.createdAt || now(),
     updatedAt: now(),
   };

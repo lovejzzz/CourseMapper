@@ -31,19 +31,28 @@ function formatTextEntry(t) {
 }
 
 export default function SyllabusView({ data, isStreaming, onEdit }) {
+  const syl = data?.syllabus || data || {};
+  const hasDates = syl.weeklySchedule?.[0]?.dates;
+  const defaultSchedWidths = useMemo(() => (
+    hasDates ? [60, 70, 180, 200, 200] : [60, 200, 220, 220]
+  ), [hasDates]);
+  const [schedColWidths, setSchedColWidths] = useState(null);
+  const activeSchedColWidths = schedColWidths?.length === defaultSchedWidths.length
+    ? schedColWidths
+    : defaultSchedWidths;
+  const updateSchedCol = useCallback((idx, w) => {
+    setSchedColWidths(prev => {
+      const base = prev?.length === defaultSchedWidths.length ? prev : defaultSchedWidths;
+      return base.map((v, i) => i === idx ? w : v);
+    });
+  }, [defaultSchedWidths]);
+
   if (!data) return isStreaming ? <StreamingBanner /> : <EmptyState />;
-  const syl = data.syllabus || data;
   if (!syl.courseTitle && !syl.courseDescription) return <EmptyState />;
 
   // Backward compat: old schema had gradingPolicy, new has courseRequirements
   const requirements = syl.courseRequirements || syl.gradingPolicy || [];
   const hasDescription = requirements.some(r => r.description);
-
-  // Resizable column widths for schedule table
-  const hasDates = syl.weeklySchedule?.[0]?.dates;
-  const defaultSchedWidths = hasDates ? [60, 70, 180, 200, 200] : [60, 200, 220, 220];
-  const [schedColWidths, setSchedColWidths] = useState(defaultSchedWidths);
-  const updateSchedCol = useCallback((idx, w) => setSchedColWidths(prev => prev.map((v, i) => i === idx ? w : v)), []);
 
   return (
     <div className="max-w-3xl mx-auto p-6 space-y-6">
@@ -212,13 +221,13 @@ export default function SyllabusView({ data, isStreaming, onEdit }) {
           <div>
             <h3 className="text-sm font-bold text-slate-700 mb-1.5">Course Schedule</h3>
             <div className="rounded-lg border border-slate-200/60 overflow-x-auto">
-              <table className="text-xs" style={{ tableLayout: 'fixed', width: schedColWidths.reduce((a, b) => a + b, 0) + 'px' }}>
+              <table className="text-xs" style={{ tableLayout: 'fixed', width: activeSchedColWidths.reduce((a, b) => a + b, 0) + 'px' }}>
                 <thead>
                   <tr className="bg-slate-50">
                     {headers.map((h, idx) => (
                       <ResizableTh
                         key={h}
-                        width={schedColWidths[idx]}
+                        width={activeSchedColWidths[idx]}
                         onResize={(w) => updateSchedCol(idx, w)}
                         className="text-left px-3 py-2 font-semibold text-slate-600"
                       >
@@ -246,7 +255,7 @@ export default function SyllabusView({ data, isStreaming, onEdit }) {
                     return (
                       <tr key={i} className="border-t border-slate-100 align-top">
                         {cells.map((c, ci) => (
-                          <td key={c.key} className={`px-3 py-1.5 ${c.cls}`} style={{ width: schedColWidths[ci] + 'px', wordBreak: 'break-word' }}>
+                          <td key={c.key} className={`px-3 py-1.5 ${c.cls}`} style={{ width: activeSchedColWidths[ci] + 'px', wordBreak: 'break-word' }}>
                             <E value={c.val} path={['syllabus', 'weeklySchedule', i, c.key]} onEdit={onEdit} multiline />
                           </td>
                         ))}

@@ -282,17 +282,14 @@ export function buildAgentRequest(provider, { model, systemPrompt, messages, too
   }
 
   if (provider === 'openrouter') {
+    if (!apiKey) throw new Error('NO_API_KEY');
     const headers = {
       'Content-Type': 'application/json',
       'HTTP-Referer': typeof window !== 'undefined' ? window.location.origin : '',
+      'Authorization': `Bearer ${apiKey}`,
     };
-    // If user has their own key, call OpenRouter directly; otherwise use server proxy
-    const useProxy = !apiKey;
-    if (!useProxy) headers['Authorization'] = `Bearer ${apiKey}`;
     return {
-      endpoint: useProxy
-        ? '/api/proxy/openrouter/stream'
-        : 'https://openrouter.ai/api/v1/chat/completions',
+      endpoint: 'https://openrouter.ai/api/v1/chat/completions',
       headers,
       body: {
         model,

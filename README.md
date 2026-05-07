@@ -18,7 +18,7 @@ Course Mapper is a **purpose-built instructional design tool**, not a general ch
 6. **Pedagogical validation.** Built-in Bloom's taxonomy alignment, objective coverage, cognitive load assessment, readability scoring, and difficulty progression checks — with auto-fix for common issues.
 7. **Full export pipeline.** Export each deliverable to DOCX, PDF, XLSX, CSV, PPTX, Google Docs, Google Sheets, Google Slides, and ZIP bundle. Save/load complete sessions as `.coursemapper` project files.
 8. **Multi-model support.** Supports OpenAI, Anthropic, Google, and DeepSeek with native tool calling per provider. Auto-detects key format and auto-rotates through models on failure.
-9. **Privacy-first.** 100% client-side. No backend server. No data stored anywhere. API keys go directly to providers.
+9. **Privacy-first.** Static BYOK app by default. There is no Course Mapper backend server; project data is stored in your browser unless you explicitly sign in for Firebase cloud sync or export to Google Drive. API keys go directly to providers.
 
 > **What Course Mapper does NOT claim:** It does not fact-check content or verify citations. It does not replace instructor expertise. It is a drafting and productivity tool — it generates the scaffold, the instructor refines it.
 
@@ -250,7 +250,7 @@ Five pedagogical frameworks that shape all generated content:
 - **Streaming generation** — Watch deliverables build in real time with stable per-feature sequential streaming (no preview flashing).
 - **Token-optimized prompts** — Minified JSON keys, adaptive chunk sizes, and compact continuation schemas reduce API costs by ~20% and cut total API calls by ~15–20%.
 - **AI self-examination** — The AI reviews and fixes its own structured output automatically.
-- **100% client-side** — No backend server. All data stays in your browser.
+- **Static BYOK architecture** — No Course Mapper backend server. Work is stored in browser local storage by default, with optional Firebase cloud sync when you sign in.
 - **Google OAuth verified** — Clean consent screen for Google Drive export.
 
 ---
@@ -264,7 +264,7 @@ npm install
 npm run dev
 ```
 
-Opens at [http://localhost:5173/CourseMapper/](http://localhost:5173/CourseMapper/).
+Opens at [http://localhost:5173/](http://localhost:5173/).
 
 ### Build for Production
 
@@ -277,7 +277,13 @@ The `dist/` folder can be served by any static file host. The entire app is clie
 ### Testing
 
 ```bash
+npm run lint              # ESLint baseline; warnings track existing cleanup debt
+npm run format            # Prettier write mode
+npm run format:check      # Prettier check mode; currently flags legacy formatting until a baseline pass is accepted
 npm run test:offline      # unit + integration — no network, always safe
+npm run test:rules        # Firestore security rules through the Firebase emulator
+npm run test:e2e          # Playwright end-to-end suite
+npm run audit:agent:openai # live OpenAI agent probe suite (needs OPENAI_API_KEY)
 npm run audit:agent       # live agent suite (needs ANTHROPIC_API_KEY)
 npm run audit:deliverables # live deliverable-quality audit (needs ANTHROPIC_API_KEY)
 ```
@@ -292,13 +298,13 @@ Hosted on GitHub Pages via GitHub Actions. Every push to `main` triggers a build
 
 - **Frontend** — React 18, Vite, TailwindCSS
 - **State** — useReducer + Context (two-context pattern: state + dispatch via `courseStore.jsx`)
-- **AI providers** — OpenAI, Anthropic, Google (BYOK) with native tool calling per provider
+- **AI providers** — OpenAI, Anthropic, Google, DeepSeek, and local WebLLM where supported
 - **Auth & Cloud** — Firebase Auth (Google OAuth), Firestore (project cloud storage, professor profiles)
 - **File parsing** — mammoth (docx), pdfjs-dist (pdf), SheetJS (xlsx), JSZip
 - **Export** — ExcelJS (xlsx), docx (Word), jsPDF + jspdf-autotable (pdf), pptxgenjs (PowerPoint), file-saver, JSZip (ZIP bundle)
 - **Google Workspace** — Drive API v3 via OAuth2 (Docs, Sheets, Slides)
 - **Validation** — text-readability (Flesch-Kincaid), citation-js (APA 7), KaTeX (LaTeX math)
-- **Testing** — Vitest (13 test modules)
+- **Testing** — Vitest, Playwright, and Firebase Emulator Suite rules tests
 
 ### Project Structure
 

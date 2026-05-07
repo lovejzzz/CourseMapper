@@ -262,6 +262,72 @@ export function findMissingIndices(mergedArray, expectedIndices) {
   return expectedIndices.slice(got);
 }
 
+export function extractCoverageLessonNumbers(item) {
+  const nums = new Set();
+  const addNumber = (value) => {
+    const parsed = parseInt(value, 10);
+    if (Number.isFinite(parsed) && parsed > 0) nums.add(parsed);
+  };
+  const addLessonLabels = (value) => {
+    if (value == null) return;
+    const text = String(value);
+    for (const match of text.matchAll(/(?:Lesson|Week)\s*(\d+)/gi)) {
+      addNumber(match[1]);
+    }
+  };
+  const addRelatedLessons = (value) => {
+    if (value == null) return;
+    const text = String(value);
+    for (const match of text.matchAll(/\d+/g)) {
+      addNumber(match[0]);
+    }
+  };
+
+  addLessonLabels(item?.lessonTitle);
+  addLessonLabels(item?.title);
+  addLessonLabels(item?.lesson);
+  addRelatedLessons(item?.relatedLessons);
+  addRelatedLessons(item?.relatedLesson);
+  addNumber(item?.lessonNumber);
+  addNumber(item?.week);
+
+  return [...nums];
+}
+
+/**
+ * Detect missing lesson coverage after chunks are merged.
+ *
+ * This complements length-based retries: a model can return the expected number
+ * of items while still skipping a specific lesson and duplicating another.
+ * If no lesson numbers are present, returns no missing lessons so
+ * per-assessment outputs are not retried indefinitely.
+ *
+ * @param {Array} mergedArray — the merged lesson/assessment array
+ * @param {number} expectedCount — expected total lesson count
+ * @returns {{ coveredSet: Set<number>, missingLessons: number[], missingIndices: number[] }}
+ */
+export function getCoverageRetryMissingLessons(mergedArray, expectedCount) {
+  const coveredSet = new Set();
+  if (!Array.isArray(mergedArray) || mergedArray.length === 0 || !Number.isFinite(expectedCount) || expectedCount <= 1) {
+    return { coveredSet, missingLessons: [], missingIndices: [] };
+  }
+
+  for (const item of mergedArray) {
+    for (const num of extractCoverageLessonNumbers(item)) {
+      if (num <= expectedCount) coveredSet.add(num);
+    }
+  }
+
+  if (coveredSet.size === 0) {
+    return { coveredSet, missingLessons: [], missingIndices: [] };
+  }
+
+  const missingLessons = Array.from({ length: expectedCount }, (_, i) => i + 1)
+    .filter(n => !coveredSet.has(n));
+  const missingIndices = missingLessons.map(n => n - 1);
+  return { coveredSet, missingLessons, missingIndices };
+}
+
 /**
  * Get the total number of chunks a feature will be split into.
  *

@@ -1,7 +1,7 @@
 import React, { useMemo } from 'react';
 import { createPortal } from 'react-dom';
 import { DELIVERABLE_OUTBOUND_MAP, getAffectedFeatures, getOutboundTargets } from '../lib/syncDependencies';
-import { FEATURES, COLOR_MAP } from '../screens/FeatureSelect';
+import { FEATURES, COLOR_MAP } from '../lib/featureCatalog';
 import { useCourse } from '../contexts/CourseContext';
 
 const TOOLTIP_W = 260;

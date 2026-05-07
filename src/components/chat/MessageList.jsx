@@ -210,7 +210,6 @@ export default function MessageList({ messages, isStreaming, onSuggestionClick, 
               imageSearch={msg.imageSearch}
               status={msg.status}
               provider={msg.provider}
-              apiKey={msg.apiKey}
             />
           );
         }

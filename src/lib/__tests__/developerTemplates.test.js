@@ -74,4 +74,17 @@ describe('developerTemplates', () => {
     expect(saved.data.selectedFeatures).toEqual(['courseMap', 'slideDecks']);
     expect(listDeveloperTemplates()).toHaveLength(1);
   });
+
+  it('rejects templates that would persist secrets', () => {
+    expect(() => saveDeveloperTemplateFromSnapshot({
+      selectedFeatures: ['slideDecks'],
+      deliverableConfig: {
+        slideDecks: {
+          accessToken: 'secret-token',
+        },
+      },
+    }, 'Unsafe')).toThrow('contains a secret');
+
+    expect(listDeveloperTemplates()).toHaveLength(0);
+  });
 });

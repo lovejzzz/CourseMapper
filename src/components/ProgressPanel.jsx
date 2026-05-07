@@ -220,8 +220,6 @@ export default function ProgressPanel({
   // would re-fire the effect every time the panel is toggled, defeating the purpose.
   }, [syncLog?.length]); // eslint-disable-line react-hooks/exhaustive-deps
 
-  if (!currentStep && !error) return null;
-
   // isDone = course map generation finished. isRevising (deliverables/revision) is shown BELOW,
   // but should NOT revert the progress panel back to the "generating steps" view.
   const isDone = currentStep === 'done';
@@ -268,6 +266,8 @@ export default function ProgressPanel({
     }
     prevIsSyncingRef.current = !!isSyncing;
   }, [isSyncing]);
+
+  if (!currentStep && !error) return null;
 
   // Recent sync entries (last 5)
   const recentSync = syncLog ? [...syncLog].reverse().slice(0, 5) : [];

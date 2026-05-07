@@ -1,5 +1,11 @@
 import { describe, it, expect } from 'vitest';
-import { mergeChunkResults, findMissingIndices, chunkArray, createChunkPlan } from '../parallelGenerator';
+import {
+    mergeChunkResults,
+    findMissingIndices,
+    getCoverageRetryMissingLessons,
+    chunkArray,
+    createChunkPlan,
+} from '../parallelGenerator';
 
 describe('mergeChunkResults', () => {
     it('merges two chunks in order', () => {
@@ -108,6 +114,50 @@ describe('findMissingIndices', () => {
         const arr = [{ title: 'Reflection Paper' }, { title: 'Case Study' }];
         const missing = findMissingIndices(arr, [0, 1, 2, 3]);
         expect(missing).toEqual([2, 3]);
+    });
+});
+
+describe('getCoverageRetryMissingLessons', () => {
+    it('detects skipped lessons even when the item count is high enough', () => {
+        const arr = [
+            { lessonTitle: 'Lesson 1: Intro' },
+            { lessonTitle: 'Lesson 3: Ethics' },
+            { lessonTitle: 'Lesson 3: Ethics Review' },
+            { lessonTitle: 'Lesson 5: Wrap-up' },
+        ];
+
+        const result = getCoverageRetryMissingLessons(arr, 5);
+
+        expect([...result.coveredSet].sort((a, b) => a - b)).toEqual([1, 3, 5]);
+        expect(result.missingLessons).toEqual([2, 4]);
+        expect(result.missingIndices).toEqual([1, 3]);
+    });
+
+    it('counts relatedLessons for per-assessment outputs', () => {
+        const arr = [
+            { title: 'Reflection Paper', relatedLessons: 'Lessons 1 and 2' },
+            { title: 'Case Study', relatedLesson: 'Week 4' },
+            { title: 'Practice Quiz', lessonNumber: 5 },
+        ];
+
+        const result = getCoverageRetryMissingLessons(arr, 5);
+
+        expect([...result.coveredSet].sort((a, b) => a - b)).toEqual([1, 2, 4, 5]);
+        expect(result.missingLessons).toEqual([3]);
+        expect(result.missingIndices).toEqual([2]);
+    });
+
+    it('does not request coverage retries when no lesson numbers are present', () => {
+        const arr = [
+            { title: 'Reflection Paper' },
+            { title: 'Group Presentation' },
+        ];
+
+        const result = getCoverageRetryMissingLessons(arr, 4);
+
+        expect(result.coveredSet.size).toBe(0);
+        expect(result.missingLessons).toEqual([]);
+        expect(result.missingIndices).toEqual([]);
     });
 });
 

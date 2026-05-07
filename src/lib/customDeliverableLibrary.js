@@ -228,12 +228,9 @@ Pick the most fitting tone, style, length, icon, and color for "${trimmedName}".
       responseText = data.candidates?.[0]?.content?.parts?.[0]?.text || '';
 
     } else if (effectiveProvider === 'openrouter') {
-      // Use user's own key directly, otherwise route through server proxy
-      const useProxy = !apiKey;
-      const url = useProxy ? '/api/proxy/openrouter' : 'https://openrouter.ai/api/v1/chat/completions';
-      const headers = useProxy
-        ? { 'Content-Type': 'application/json' }
-        : { 'Authorization': `Bearer ${apiKey}`, 'Content-Type': 'application/json', 'HTTP-Referer': window.location.origin };
+      if (!apiKey) return null;
+      const url = 'https://openrouter.ai/api/v1/chat/completions';
+      const headers = { 'Authorization': `Bearer ${apiKey}`, 'Content-Type': 'application/json', 'HTTP-Referer': window.location.origin };
       const res = await fetch(url, {
         method: 'POST',
         headers,

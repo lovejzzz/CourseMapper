@@ -50,6 +50,40 @@ describe('saveConversation + loadConversation', () => {
     expect(loaded).toEqual(messages);
   });
 
+  it('strips API keys before saving messages', () => {
+    const messages = [
+      { role: 'user', text: 'Generate images' },
+      {
+        role: 'imageSearch',
+        apiKey: 'sk-secret-should-not-persist',
+        imageSearch: { query: 'cells', accessToken: 'token-secret' },
+      },
+    ];
+
+    saveConversation('test-secret', messages, 'Secret Test');
+
+    const raw = localStorage.getItem('coursemapper-conversations:test-secret');
+    expect(raw).not.toContain('sk-secret-should-not-persist');
+    expect(raw).not.toContain('token-secret');
+    expect(loadConversation('test-secret')).toEqual([
+      { role: 'user', text: 'Generate images' },
+      { role: 'imageSearch', imageSearch: { query: 'cells' } },
+    ]);
+  });
+
+  it('sanitizes older saved conversations while loading them', () => {
+    localStorage.setItem('coursemapper-conversations:old-secret', JSON.stringify([
+      { role: 'imageSearch', apiKey: 'sk-old-secret', imageSearch: { query: 'loops' } },
+    ]));
+
+    const loaded = loadConversation('old-secret');
+
+    expect(loaded).toEqual([
+      { role: 'imageSearch', imageSearch: { query: 'loops' } },
+    ]);
+    expect(localStorage.getItem('coursemapper-conversations:old-secret')).not.toContain('sk-old-secret');
+  });
+
   it('auto-generates title from first user message', () => {
     const messages = [{ role: 'user', text: 'Add a quiz about regression' }];
     saveConversation('test-2', messages);

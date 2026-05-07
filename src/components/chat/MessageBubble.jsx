@@ -38,6 +38,21 @@ function renderMath(expr, displayMode = false) {
 // ── Single-pass inline markdown tokenizer (with math support) ────────────────
 // Order: display math → inline math → bold → italic → underscore italic → code → citation → link
 const INLINE_RE = /(\$\$[^$]+\$\$)|(\$[^$\n]+\$)|(\*\*[^*]+\*\*)|(\*[^*]+\*)|(_[^_]+_)|(`[^`]+`)|(\[(\d+)\])|(\[([^\]]+)\]\(([^)]+)\))/g;
+const SAFE_LINK_PROTOCOLS = new Set(['http:', 'https:', 'mailto:']);
+
+function sanitizeMarkdownHref(rawHref) {
+  const href = String(rawHref || '').trim();
+  if (!href) return null;
+
+  try {
+    const base = typeof window !== 'undefined' ? window.location.origin : 'https://coursemapper.local';
+    const parsed = new URL(href, base);
+    if (!SAFE_LINK_PROTOCOLS.has(parsed.protocol)) return null;
+    return parsed.href;
+  } catch {
+    return null;
+  }
+}
 
 function formatInline(text) {
   const result = [];
@@ -90,11 +105,16 @@ function formatInline(text) {
       );
     } else if (match[9]) {
       // [text](url) link
+      const href = sanitizeMarkdownHref(match[11]);
       result.push(
-        <a key={key++} href={match[11]} target="_blank" rel="noopener noreferrer"
-           className="text-indigo-600 hover:text-indigo-800 underline decoration-indigo-300 hover:decoration-indigo-500 transition-colors">
-          {match[10]}
-        </a>
+        href ? (
+          <a key={key++} href={href} target="_blank" rel="noopener noreferrer"
+             className="text-indigo-600 hover:text-indigo-800 underline decoration-indigo-300 hover:decoration-indigo-500 transition-colors">
+            {match[10]}
+          </a>
+        ) : (
+          <span key={key++}>{match[10]}</span>
+        )
       );
     }
 

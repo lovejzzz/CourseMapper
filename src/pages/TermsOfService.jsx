@@ -1,7 +1,7 @@
 import React from 'react';
 import Header from '../components/Header';
 
-const LAST_UPDATED = 'February 14, 2026';
+const LAST_UPDATED = 'May 6, 2026';
 
 export default function TermsOfService() {
   return (
@@ -31,15 +31,15 @@ export default function TermsOfService() {
           <Section title="Description of Service">
             <p>
               Course Mapper is a free, browser-based tool that uses artificial intelligence to help
-              educators transform course syllabi into structured Course Map spreadsheets. The tool runs
-              entirely in your web browser with no backend server.
+              educators transform course syllabi into structured Course Map spreadsheets. The core tool
+              is a static browser app with no Course Mapper-operated application backend.
             </p>
           </Section>
 
-          <Section title="Free Tier & API Keys">
+          <Section title="Local AI & API Keys">
             <ul className="list-disc list-inside space-y-1.5 ml-1">
-              <li>Course Mapper offers a free tier powered by third-party AI providers. Free-tier models are shared among all users and subject to rate limits and availability.</li>
-              <li>You may optionally provide your own API key from OpenAI, Anthropic, Google, or DeepSeek. You are responsible for any costs incurred through your own API key usage.</li>
+              <li>Course Mapper may offer local browser models that run on your device when your browser supports them.</li>
+              <li>You may provide your own API key from OpenAI, Anthropic, Google, DeepSeek, or another supported provider. You are responsible for any costs incurred through your own API key usage.</li>
               <li>Course Mapper is not affiliated with OpenAI, Anthropic, Google, DeepSeek, or OpenRouter. Your use of their APIs is subject to their respective terms of service.</li>
             </ul>
           </Section>
@@ -81,8 +81,8 @@ export default function TermsOfService() {
             <p>You agree not to:</p>
             <ul className="list-disc list-inside space-y-1.5 ml-1 mt-2">
               <li>Use Course Mapper for any unlawful purpose.</li>
-              <li>Attempt to reverse-engineer, extract, or misuse embedded API keys.</li>
-              <li>Abuse the free tier by automated or excessive requests that degrade service for other users.</li>
+              <li>Attempt to extract, misuse, or exfiltrate credentials, access tokens, or other private data.</li>
+              <li>Use automation to abuse third-party services or violate provider rate limits and terms.</li>
               <li>Misrepresent AI-generated content as verified, peer-reviewed, or officially endorsed academic material.</li>
             </ul>
           </Section>
