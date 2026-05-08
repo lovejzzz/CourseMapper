@@ -38,6 +38,8 @@ const forbiddenInitialChunks = [
   /pptxExporter/i,
 ];
 
+const forbiddenRuntimeDependencies = ['@mlc-ai/web-llm', '@citation-js/core', '@citation-js/plugin-bibtex', 'exceljs'];
+
 function toKiB(bytes) {
   return bytes / kib;
 }
@@ -80,6 +82,13 @@ async function findChunkByPrefix(prefix) {
 
 async function main() {
   const failures = [];
+  const packageJson = JSON.parse(await fs.readFile(path.resolve(process.cwd(), 'package.json'), 'utf8'));
+  for (const dependency of forbiddenRuntimeDependencies) {
+    if (packageJson.dependencies?.[dependency]) {
+      failures.push(`Forbidden heavy runtime dependency is installed: ${dependency}`);
+    }
+  }
+
   const indexHtml = await fs.readFile(path.join(distDir, 'index.html'), 'utf8');
   const initialFiles = parseInitialJsFiles(indexHtml);
   if (initialFiles.length === 0) failures.push('No initial JS files found in dist/index.html.');

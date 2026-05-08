@@ -1,5 +1,7 @@
+import { readXlsxSheets } from './lightweightXlsx.js';
+
 // Lazy-loaded heavy dependencies — only fetched when first needed
-let _mammoth, _pdfjsLib, _ExcelJS, _JSZip;
+let _mammoth, _pdfjsLib, _JSZip;
 
 async function getMammoth() {
   if (!_mammoth) _mammoth = (await import('mammoth')).default;
@@ -11,13 +13,6 @@ async function getPdfjs() {
     _pdfjsLib.GlobalWorkerOptions.workerSrc = `https://cdnjs.cloudflare.com/ajax/libs/pdf.js/${_pdfjsLib.version}/pdf.worker.min.mjs`;
   }
   return _pdfjsLib;
-}
-async function getExcelJS() {
-  if (!_ExcelJS) {
-    const mod = await import('exceljs');
-    _ExcelJS = mod.default || mod;
-  }
-  return _ExcelJS;
 }
 async function getJSZip() {
   if (!_JSZip) _JSZip = (await import('jszip')).default;
@@ -331,11 +326,8 @@ async function parseHtml(file) {
 
 // ── Excel (.xlsx/.xls) ──
 async function parseXlsx(file) {
-  const ExcelJS = await getExcelJS();
-  const arrayBuffer = await file.arrayBuffer();
-  const workbook = new ExcelJS.Workbook();
-  await workbook.xlsx.load(arrayBuffer);
-  return workbookToCsvText(workbook);
+  const sheets = await readXlsxSheets(file);
+  return workbookToCsvText(sheets);
 }
 
 async function parseLegacySpreadsheet(file) {
@@ -369,43 +361,13 @@ async function parseLegacySpreadsheet(file) {
   return text;
 }
 
-function workbookToCsvText(workbook) {
-  const texts = [];
-
-  workbook.eachSheet((worksheet) => {
-    const rows = [];
-    let maxCol = 0;
-
-    worksheet.eachRow({ includeEmpty: true }, (row) => {
-      maxCol = Math.max(maxCol, row.cellCount);
-      rows.push(row);
-    });
-
-    const csv = rows
-      .map((row) => {
-        const values = [];
-        for (let col = 1; col <= maxCol; col += 1) {
-          values.push(csvEscape(formatCellValue(row.getCell(col).value)));
-        }
-        return values.join(',');
-      })
-      .join('\n');
-
-    texts.push(`--- Sheet: ${worksheet.name} ---\n${csv}`);
-  });
-
-  return texts.join('\n\n');
-}
-
-function formatCellValue(value) {
-  if (value === null || value === undefined) return '';
-  if (value instanceof Date) return value.toISOString().slice(0, 10);
-  if (typeof value !== 'object') return String(value);
-  if (Array.isArray(value.richText)) return value.richText.map((part) => part.text || '').join('');
-  if ('result' in value) return formatCellValue(value.result);
-  if ('text' in value) return formatCellValue(value.text);
-  if ('hyperlink' in value && value.hyperlink) return formatCellValue(value.hyperlink);
-  return String(value);
+function workbookToCsvText(sheets) {
+  return sheets
+    .map((sheet) => {
+      const csv = sheet.rows.map((row) => row.map((value) => csvEscape(value)).join(',')).join('\n');
+      return `--- Sheet: ${sheet.name} ---\n${csv}`;
+    })
+    .join('\n\n');
 }
 
 function csvEscape(value) {

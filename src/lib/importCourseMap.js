@@ -1,12 +1,4 @@
-// Lazy-loaded heavy dependency
-let _ExcelJS;
-async function getExcelJS() {
-  if (!_ExcelJS) {
-    const mod = await import('exceljs');
-    _ExcelJS = mod.default || mod;
-  }
-  return _ExcelJS;
-}
+import { readFirstXlsxSheetRows } from './lightweightXlsx.js';
 
 /**
  * Import a course map from an .xlsx or .csv file.
@@ -107,39 +99,7 @@ export async function importCourseMap(file) {
 }
 
 async function parseXlsxRows(file) {
-  const ExcelJS = await getExcelJS();
-  const arrayBuffer = await file.arrayBuffer();
-  const workbook = new ExcelJS.Workbook();
-  await workbook.xlsx.load(arrayBuffer);
-  const sheet = workbook.worksheets[0];
-  if (!sheet) return [];
-
-  const rows = [];
-  let maxCol = 0;
-  sheet.eachRow({ includeEmpty: true }, (row) => {
-    maxCol = Math.max(maxCol, row.cellCount);
-  });
-
-  sheet.eachRow({ includeEmpty: true }, (row) => {
-    const values = [];
-    for (let col = 1; col <= maxCol; col += 1) {
-      values.push(formatCellValue(row.getCell(col).value));
-    }
-    rows.push(values);
-  });
-
-  return rows;
-}
-
-function formatCellValue(value) {
-  if (value === null || value === undefined) return '';
-  if (value instanceof Date) return value.toISOString().slice(0, 10);
-  if (typeof value !== 'object') return String(value);
-  if (Array.isArray(value.richText)) return value.richText.map((part) => part.text || '').join('');
-  if ('result' in value) return formatCellValue(value.result);
-  if ('text' in value) return formatCellValue(value.text);
-  if ('hyperlink' in value && value.hyperlink) return formatCellValue(value.hyperlink);
-  return String(value);
+  return await readFirstXlsxSheetRows(file);
 }
 
 // Map common header text to our internal column keys

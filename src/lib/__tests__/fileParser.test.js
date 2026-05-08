@@ -1,6 +1,6 @@
 import { describe, it, expect } from 'vitest';
-import ExcelJS from 'exceljs';
 import { importCourseMap } from '../importCourseMap';
+import { buildXlsxWorkbook } from '../lightweightXlsx';
 
 /**
  * fileParser — unit tests for the pure utility functions.
@@ -114,13 +114,19 @@ describe('parseFile routing', () => {
     expect(result).toContain('Name,Age');
   });
 
-  it('xlsx files are parsed through ExcelJS without the xlsx package', async () => {
+  it('xlsx files are parsed without the ExcelJS or xlsx packages', async () => {
     const { parseFile } = await import('../fileParser');
-    const workbook = new ExcelJS.Workbook();
-    const sheet = workbook.addWorksheet('Schedule');
-    sheet.addRow(['Week', 'Topic']);
-    sheet.addRow(['Week 1', 'Data Ethics Foundations']);
-    const buffer = await workbook.xlsx.writeBuffer();
+    const buffer = await buildXlsxWorkbook({
+      sheets: [
+        {
+          name: 'Schedule',
+          rows: [
+            ['Week', 'Topic'],
+            ['Week 1', 'Data Ethics Foundations'],
+          ],
+        },
+      ],
+    });
     const file = new File([buffer], 'schedule.xlsx', {
       type: 'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet',
     });
@@ -156,13 +162,19 @@ describe('parseFiles', () => {
 });
 
 describe('importCourseMap', () => {
-  it('imports a course map from xlsx via ExcelJS', async () => {
-    const workbook = new ExcelJS.Workbook();
-    const sheet = workbook.addWorksheet('Course Map');
-    sheet.addRow(['Week/Module', 'Learning Objectives', 'Topic', 'Assessments']);
-    sheet.addRow(['Week 1', 'Explain data ethics principles', 'Privacy and consent', 'Reflection']);
-    sheet.addRow(['Week 2', 'Apply ethical review practices', 'Bias and accountability', 'Case analysis']);
-    const buffer = await workbook.xlsx.writeBuffer();
+  it('imports a course map from xlsx without ExcelJS', async () => {
+    const buffer = await buildXlsxWorkbook({
+      sheets: [
+        {
+          name: 'Course Map',
+          rows: [
+            ['Week/Module', 'Learning Objectives', 'Topic', 'Assessments'],
+            ['Week 1', 'Explain data ethics principles', 'Privacy and consent', 'Reflection'],
+            ['Week 2', 'Apply ethical review practices', 'Bias and accountability', 'Case analysis'],
+          ],
+        },
+      ],
+    });
     const file = new File([buffer], 'Data Ethics Course Map.xlsx', {
       type: 'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet',
     });
