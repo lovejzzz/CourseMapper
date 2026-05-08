@@ -11,6 +11,7 @@ import {
 } from '../lib/deliverableExporters';
 import { openTabNow, saveToGoogleSlides } from '../lib/googleDrive';
 import { exportSlideDeckPptx, buildSlideDeckPptxBlob } from '../lib/exporters/pptxExporter';
+import { loadPdfRuntime } from '../lib/pdfRuntime';
 
 // ── Which formats each deliverable supports ─────────────────────────────────
 // courseMap handled separately via useExport (xlsx, csv, pdf, docx, gsheets, gdocs)
@@ -105,8 +106,7 @@ const CLOUD_FORMATS = [
 
 // ── Slide Deck PDF export (text-based, using jsPDF) ───────────────────────────
 async function exportSlideDeckPdf(data, courseName) {
-  const { jsPDF } = await safeImport(() => import('jspdf'));
-  const { autoTable } = await safeImport(() => import('jspdf-autotable'));
+  const { jsPDF, autoTable } = await loadPdfRuntime();
   const { saveAs } = await safeImport(() => import('file-saver'));
 
   const doc = new jsPDF({ orientation: 'landscape', unit: 'mm', format: 'a4' });

@@ -1,15 +1,10 @@
 import { safeImport } from './safeImport.js';
+import { loadPdfRuntime } from './pdfRuntime.js';
 
 // Lazy-loaded heavy dependencies
-let _jsPDF, _autoTable, _saveAs;
+let _saveAs;
 async function loadPdfLibs() {
-  if (!_jsPDF) {
-    const jsMod = await safeImport(() => import('jspdf'));
-    _jsPDF = jsMod.jsPDF;
-    const atMod = await safeImport(() => import('jspdf-autotable'));
-    _autoTable = atMod.default || atMod.autoTable || atMod;
-  }
-  return { jsPDF: _jsPDF, autoTable: _autoTable };
+  return await loadPdfRuntime();
 }
 async function getSaveAs() {
   if (!_saveAs) _saveAs = (await safeImport(() => import('file-saver'))).saveAs;

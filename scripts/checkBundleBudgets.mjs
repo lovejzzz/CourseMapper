@@ -44,6 +44,8 @@ const forbiddenRuntimeDependencies = [
   '@citation-js/plugin-bibtex',
   'exceljs',
   'html2canvas',
+  'jspdf',
+  'jspdf-autotable',
   'katex',
   'mermaid',
 ];

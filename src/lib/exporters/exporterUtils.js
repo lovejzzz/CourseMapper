@@ -1,16 +1,11 @@
 import { getCustomDeliverable } from '../customDeliverableLibrary.js';
+import { loadPdfRuntime } from '../pdfRuntime.js';
 import { safeImport } from '../safeImport.js';
 
-let _jsPDF, _autoTable, _docx, _saveAs;
+let _docx, _saveAs;
 
 export async function loadPdfLibs() {
-  if (!_jsPDF) {
-    const jspdfModule = await safeImport(() => import('jspdf'));
-    _jsPDF = jspdfModule.jsPDF || jspdfModule.default;
-    const autoTableModule = await safeImport(() => import('jspdf-autotable'));
-    _autoTable = autoTableModule.default || autoTableModule;
-  }
-  return { jsPDF: _jsPDF, autoTable: _autoTable };
+  return await loadPdfRuntime();
 }
 
 export async function getDocx() {

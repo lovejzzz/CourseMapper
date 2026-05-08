@@ -4,18 +4,13 @@
 
 import { getCustomDeliverable } from './customDeliverableLibrary';
 import { buildXlsxWorkbook } from './lightweightXlsx.js';
+import { loadPdfRuntime } from './pdfRuntime.js';
 import { safeImport } from './safeImport.js';
 
-let _jsPDF, _autoTable, _docx, _saveAs;
+let _docx, _saveAs;
 
 async function loadPdfLibs() {
-  if (!_jsPDF) {
-    const jsMod = await safeImport(() => import('jspdf'));
-    _jsPDF = jsMod.jsPDF;
-    const atMod = await safeImport(() => import('jspdf-autotable'));
-    _autoTable = atMod.default || atMod.autoTable || atMod;
-  }
-  return { jsPDF: _jsPDF, autoTable: _autoTable };
+  return await loadPdfRuntime();
 }
 async function getDocx() {
   if (!_docx) _docx = await safeImport(() => import('docx'));
