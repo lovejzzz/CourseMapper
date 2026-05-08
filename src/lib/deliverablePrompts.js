@@ -257,6 +257,26 @@ function buildConfigInstructions(featureId, config, pedagogicalMode = 'lecture',
     if (config.includeExamPrep === false) lines.push('Do NOT include the "ep" (examPrep) field — omit it entirely.');
     if (config.includePractice === false)
       lines.push('Do NOT include the "pa" (practiceActivities) field — omit it entirely.');
+  } else if (featureId === 'courseFaq') {
+    if (config.questionsPerLesson)
+      lines.push(`Generate exactly ${config.questionsPerLesson} FAQ questions per lesson.`);
+    if (config.categories?.length > 0 && config.categories.length < 5) {
+      lines.push(`Use only these Course FAQ categories in the "ca" field: ${config.categories.join(', ')}.`);
+    }
+    if (config.answerDepth === 'Quick answers')
+      lines.push('Keep each FAQ answer very brief: 1-2 concise sentences with a clear next action.');
+    if (config.answerDepth === 'Detailed')
+      lines.push(
+        'Make each FAQ answer more detailed: 3-4 sentences with context, examples, and a concrete next action.',
+      );
+    if (config.includeResourcePointers === false) {
+      lines.push(
+        'Do not invent campus resource names, offices, or technology tools. Reference only resources explicitly present in the course map; otherwise give general course-based guidance.',
+      );
+    }
+    if (config.useFirstPersonQuestions === false) {
+      lines.push('Questions may use neutral student-facing wording rather than first-person phrasing.');
+    }
   } else if (featureId === 'syllabus') {
     if (config.citationStyle)
       lines.push(

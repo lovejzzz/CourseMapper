@@ -14,6 +14,13 @@ import { fetchOpenAIImageModels, OPENAI_IMAGE_MODEL_FALLBACKS, OPENAI_SLIDE_IMAG
 const TONE_OPTIONS = ['Auto', 'Academic', 'Professional', 'Conversational', 'Friendly', 'Formal', 'Encouraging'];
 const STYLE_OPTIONS = ['Auto', 'Bullet points', 'Paragraphs', 'Tables', 'Numbered lists', 'Mixed'];
 const LENGTH_OPTIONS = ['Auto', 'Brief', 'Standard', 'Detailed', 'Comprehensive'];
+const FAQ_CATEGORY_OPTIONS = [
+  'Course Logistics',
+  'Assignment Clarification',
+  'Concept Explanation',
+  'Technical Help',
+  'Assessment Prep',
+];
 
 // ── DeliverableExtras — reference file + extra instructions ───────────────────
 
@@ -458,6 +465,7 @@ const FEATURE_LABELS = {
   discussions: 'Discussion Prompts',
   assignments: 'Assignment Briefs',
   studyGuides: 'Study Guides',
+  courseFaq: 'Course FAQ',
   syllabus: 'Syllabus',
 };
 
@@ -1574,6 +1582,52 @@ function DeliverableConfigContent({
               label="Include practice activities"
               value={config.includePractice !== false}
               onChange={(v) => set('includePractice', v)}
+            />
+            <DeliverableExtras featureId={featureId} config={config} onChange={onChange} />
+          </AdvancedSection>
+        </div>
+      );
+
+    case 'courseFaq':
+      return (
+        <div className="space-y-4">
+          <DeliverablePreview featureId="courseFaq" delivData={delivData} />
+          {/* Basic */}
+          <NumberInput
+            label="Questions per lesson"
+            value={config.questionsPerLesson || 5}
+            onChange={(v) => set('questionsPerLesson', v)}
+            min={3}
+            max={8}
+            description="Keeps the FAQ useful without overwhelming students."
+          />
+          <MultiToggle
+            label="Question categories"
+            options={FAQ_CATEGORY_OPTIONS}
+            selected={config.categories?.length > 0 ? config.categories : FAQ_CATEGORY_OPTIONS}
+            onChange={(v) => set('categories', v.length > 0 ? v : FAQ_CATEGORY_OPTIONS)}
+            description="Controls which student question types appear in the FAQ."
+          />
+          <Select
+            label="Answer depth"
+            value={config.answerDepth || 'Standard'}
+            onChange={(v) => set('answerDepth', v)}
+            options={['Quick answers', 'Standard', 'Detailed']}
+            description="Sets how much explanation each answer includes."
+          />
+          {/* Advanced */}
+          <AdvancedSection>
+            <Toggle
+              label="Include resource pointers"
+              value={config.includeResourcePointers !== false}
+              onChange={(v) => set('includeResourcePointers', v)}
+              description="References readings, assignments, campus resources, or course tools when appropriate."
+            />
+            <Toggle
+              label="Use first-person student questions"
+              value={config.useFirstPersonQuestions !== false}
+              onChange={(v) => set('useFirstPersonQuestions', v)}
+              description='Writes questions like "How should I prepare?" instead of neutral headings.'
             />
             <DeliverableExtras featureId={featureId} config={config} onChange={onChange} />
           </AdvancedSection>

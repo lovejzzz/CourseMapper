@@ -174,7 +174,60 @@ test.describe('Lazy Shell', () => {
 });
 
 // ─────────────────────────────────────────────────────────────────────────────
-// 3. HASH ROUTING
+// 3. CONFIGURE GENERATION
+// ─────────────────────────────────────────────────────────────────────────────
+
+test.describe('Configure Generation', () => {
+  test('shows Course FAQ settings when expanded', async ({ page }) => {
+    await page.route('https://api.openai.com/v1/models', (route) =>
+      route.fulfill({
+        status: 200,
+        contentType: 'application/json',
+        body: JSON.stringify({
+          data: [{ id: 'gpt-4o-mini', created: 1 }],
+        }),
+      }),
+    );
+    await page.route('https://api.openai.com/v1/chat/completions', (route) =>
+      route.fulfill({
+        status: 200,
+        contentType: 'application/json',
+        body: JSON.stringify({
+          choices: [{ message: { content: 'ok' } }],
+        }),
+      }),
+    );
+
+    await page.addInitScript(() => {
+      localStorage.clear();
+      sessionStorage.clear();
+      localStorage.setItem('coursemapper-provider', 'openai');
+      localStorage.setItem('coursemapper-apikey', 'sk-proj-test1234567890123456789012345678901234567890123456');
+      localStorage.setItem('coursemapper-modelid', 'gpt-4o-mini');
+      localStorage.setItem('coursemapper-modelname', 'GPT-4o mini');
+    });
+
+    await page.goto('/');
+    await expect(page.locator('text=Connected').first()).toBeVisible({ timeout: 10000 });
+    await page.locator('textarea').fill('Build a 12-lesson course with a student FAQ.');
+    await page.getByRole('button', { name: 'Continue' }).click();
+
+    await expect(page.locator('text=Choose deliverables')).toBeVisible({ timeout: 10000 });
+    await page.getByRole('button', { name: /Course FAQ/ }).click();
+    await page.getByRole('button', { name: /Configure & Generate/ }).click();
+
+    await expect(page.locator('h1:has-text("Configure generation")')).toBeVisible({ timeout: 10000 });
+    await page.getByRole('button', { name: 'Expand Course FAQ settings' }).click();
+
+    await expect(page.getByText('Questions per lesson')).toBeVisible();
+    await expect(page.getByText('Question categories')).toBeVisible();
+    await expect(page.getByText('Answer depth')).toBeVisible();
+    await expect(page.getByRole('button', { name: 'Course Logistics' })).toBeVisible();
+  });
+});
+
+// ─────────────────────────────────────────────────────────────────────────────
+// 4. HASH ROUTING
 // ─────────────────────────────────────────────────────────────────────────────
 
 test.describe('Hash Routing', () => {

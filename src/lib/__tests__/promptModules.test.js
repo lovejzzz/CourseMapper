@@ -19,6 +19,7 @@ import rubrics from '../prompts/rubrics.js';
 import slideDecks from '../prompts/slideDecks.js';
 import studyGuides from '../prompts/studyGuides.js';
 import syllabus from '../prompts/syllabus.js';
+import { getDeliverablePrompt } from '../deliverablePrompts.js';
 
 const MODULES = {
   assignments,
@@ -69,5 +70,21 @@ describe('prompt modules — parse + shape', () => {
     expect(combined, `${name} never tells the model to return only JSON`).toMatch(
       /only\s+(valid\s+)?json|no\s+prose|no\s+markdown/,
     );
+  });
+
+  it('courseFaq config injects FAQ-specific instructions', () => {
+    const prompts = getDeliverablePrompt('courseFaq', COURSE, null, {
+      questionsPerLesson: 3,
+      categories: ['Concept Explanation', 'Assessment Prep'],
+      answerDepth: 'Detailed',
+      includeResourcePointers: false,
+      useFirstPersonQuestions: false,
+    });
+
+    expect(prompts.userPrompt).toContain('Generate exactly 3 FAQ questions per lesson');
+    expect(prompts.userPrompt).toContain('Concept Explanation, Assessment Prep');
+    expect(prompts.userPrompt).toContain('3-4 sentences');
+    expect(prompts.userPrompt).toContain('Do not invent campus resource names');
+    expect(prompts.userPrompt).toContain('neutral student-facing wording');
   });
 });
