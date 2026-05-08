@@ -1,7 +1,7 @@
 import React, { useMemo, useState } from 'react';
 import { useCourse } from '../contexts/CourseContext';
 import { safeImport } from '../lib/safeImport';
-import { evaluateWorkspaceReadiness, summarizeReadiness } from '../lib/deliverableReadiness';
+import { buildReadinessReport, evaluateWorkspaceReadiness, summarizeReadiness } from '../lib/deliverableReadiness';
 import {
   exportDeliverableCsv,
   exportDeliverablePdf,
@@ -285,8 +285,8 @@ function ReadinessPanel({ readiness }) {
     ? {
         wrap: 'border-red-100 bg-red-50/70 text-red-700',
         icon: 'bg-red-100 text-red-600',
-        title: 'Fix before export',
-        meta: `${readiness.blockers.length} blocker${readiness.blockers.length === 1 ? '' : 's'}`,
+        title: 'Review before export',
+        meta: `${readiness.blockers.length} critical issue${readiness.blockers.length === 1 ? '' : 's'}`,
       }
     : hasWarnings
       ? {
@@ -337,8 +337,57 @@ function ReadinessPanel({ readiness }) {
   );
 }
 
+function ReadinessConfirm({ pendingExport, onCancel, onConfirm }) {
+  if (!pendingExport?.readiness) return null;
+  const { readiness } = pendingExport;
+  const issues = readiness.issues.slice(0, 5);
+
+  return (
+    <div
+      data-testid="readiness-confirm"
+      className="rounded-xl border border-amber-200 bg-amber-50/80 px-3 py-3 text-amber-800"
+    >
+      <p className="text-[11px] font-bold">Readiness issues found</p>
+      <p className="mt-1 text-[10px] leading-snug">
+        You can review the materials first, or export this draft anyway. The ZIP will include a readiness report.
+      </p>
+      <ul className="mt-2 space-y-1">
+        {issues.map((issue, index) => (
+          <li key={`${issue.featureId}-${issue.message}-${index}`} className="text-[10px] leading-snug">
+            <span className="font-semibold">{issue.label}:</span> {issue.message}
+          </li>
+        ))}
+      </ul>
+      {readiness.issues.length > issues.length && (
+        <p className="mt-1 text-[10px] font-semibold opacity-70">
+          +{readiness.issues.length - issues.length} more issue
+          {readiness.issues.length - issues.length === 1 ? '' : 's'}
+        </p>
+      )}
+      <div className="mt-2 grid grid-cols-2 gap-1.5">
+        <button
+          type="button"
+          data-testid="readiness-review-materials"
+          onClick={onCancel}
+          className="rounded-lg border border-amber-200 bg-white/70 px-2 py-1.5 text-[10px] font-bold text-amber-700 hover:bg-white"
+        >
+          Review materials
+        </button>
+        <button
+          type="button"
+          data-testid="readiness-export-anyway"
+          onClick={onConfirm}
+          className="rounded-lg bg-amber-500 px-2 py-1.5 text-[10px] font-bold text-white shadow-sm hover:brightness-105"
+        >
+          Export anyway
+        </button>
+      </div>
+    </div>
+  );
+}
+
 // ── ZIP export (all deliverables) ─────────────────────────────────────────────
-async function exportAllAsZip(deliverables, courseMap, columns, courseName, lessonFilter, slideTheme) {
+async function exportAllAsZip(deliverables, courseMap, columns, courseName, lessonFilter, slideTheme, readiness) {
   let JSZip;
   try {
     JSZip = (await safeImport(() => import('jszip'))).default;
@@ -352,6 +401,10 @@ async function exportAllAsZip(deliverables, courseMap, columns, courseName, less
 
   const zip = new JSZip();
   const name = courseName || 'Course';
+
+  if (readiness?.issues?.length > 0) {
+    zip.file('READINESS_REPORT.txt', buildReadinessReport(readiness, { courseName: name }));
+  }
 
   // Apply lesson filter to courseMap if needed
   let filteredCourseMap = courseMap;
@@ -450,6 +503,7 @@ export default function ExportSidePanel({
   const [busy, setBusy] = useState(null); // format string or 'zip'
   const [lastError, setLastError] = useState('');
   const [lastOk, setLastOk] = useState('');
+  const [pendingReadinessExport, setPendingReadinessExport] = useState(null);
 
   // All-tab lesson filter (null = all lessons)
   const allLessons = courseMap?.lessons || [];
@@ -507,21 +561,21 @@ export default function ExportSidePanel({
     [activeTab, columns, courseMap, deliverables, effectiveLessonFilter],
   );
   const activeReadiness = scope === 'all' ? workspaceReadiness : currentReadiness;
-  const zipBlocked = scope === 'all' && workspaceReadiness.isBlocked;
-  const currentBlocked = scope === 'current' && currentReadiness.isBlocked;
 
-  function blockExportIfNeeded(format) {
+  function requestReadinessConfirmation(format) {
     const readiness = scope === 'all' ? workspaceReadiness : currentReadiness;
-    if ((format === 'zip' || scope === 'current') && readiness.isBlocked) {
-      const message = `Resolve readiness blockers before export: ${summarizeReadiness(readiness)}`;
-      setLastError(message);
+    if (readiness.issues.length > 0) {
+      setPendingReadinessExport({ format, readiness, scope });
+      setLastError('');
+      setLastOk('');
       return true;
     }
     return false;
   }
 
-  async function doExport(format) {
-    if (blockExportIfNeeded(format)) return;
+  async function doExport(format, { skipReadinessConfirmation = false } = {}) {
+    if (!skipReadinessConfirmation && requestReadinessConfirmation(format)) return;
+    setPendingReadinessExport(null);
     // For Google exports we must open a tab BEFORE any await (popup blocker)
     // Course map exports open their own tab internally via useExport → saveToGoogleDocs/Sheets
     const needsTab = (format === 'gdocs' || format === 'gsheets' || format === 'gslides') && activeTab !== 'courseMap';
@@ -534,7 +588,15 @@ export default function ExportSidePanel({
       if (scope === 'all') {
         // All mode: only ZIP is available
         if (format === 'zip') {
-          await exportAllAsZip(deliverables || {}, courseMap, columns, courseName, effectiveLessonFilter, slideTheme);
+          await exportAllAsZip(
+            deliverables || {},
+            courseMap,
+            columns,
+            courseName,
+            effectiveLessonFilter,
+            slideTheme,
+            workspaceReadiness,
+          );
           setLastOk('ZIP downloaded!');
         }
       } else {
@@ -579,13 +641,12 @@ export default function ExportSidePanel({
 
   // What's disabled in "current" mode
   function isDisabled(formatId) {
-    if (activeTab === 'courseMap') return !FORMAT_SUPPORT.courseMap[formatId] || currentBlocked;
+    if (activeTab === 'courseMap') return !FORMAT_SUPPORT.courseMap[formatId] || !courseMap;
     if (activeTab === 'slideDecks') {
-      if (formatId === 'pptx' || formatId === 'slidepdf' || formatId === 'gslides')
-        return !currentHasData || currentBlocked;
+      if (formatId === 'pptx' || formatId === 'slidepdf' || formatId === 'gslides') return !currentHasData;
       return true; // other formats not supported for slide decks
     }
-    if (!currentHasData || currentBlocked) return true;
+    if (!currentHasData) return true;
     return !currentSupport[formatId];
   }
 
@@ -594,6 +655,7 @@ export default function ExportSidePanel({
 
   // Toggle a lesson in/out of selectedLessons
   function toggleLesson(idx) {
+    setPendingReadinessExport(null);
     setSelectedLessons((prev) => {
       if (prev === null) {
         // Currently all selected — deselect just this one
@@ -645,7 +707,10 @@ export default function ExportSidePanel({
             <button
               key={s.id}
               data-testid={`export-scope-${s.id}`}
-              onClick={() => setScope(s.id)}
+              onClick={() => {
+                setScope(s.id);
+                setPendingReadinessExport(null);
+              }}
               className={`flex-1 py-1.5 rounded-md text-[11px] font-semibold transition-all duration-200 ${
                 scope === s.id ? 'bg-white text-slate-800 shadow-sm' : 'text-slate-400 hover:text-slate-600'
               }`}
@@ -672,6 +737,14 @@ export default function ExportSidePanel({
         </p>
 
         <ReadinessPanel readiness={activeReadiness} />
+
+        <ReadinessConfirm
+          pendingExport={pendingReadinessExport}
+          onCancel={() => setPendingReadinessExport(null)}
+          onConfirm={() =>
+            pendingReadinessExport && doExport(pendingReadinessExport.format, { skipReadinessConfirmation: true })
+          }
+        />
 
         {/* ────────────────────────────────────────────────────────────── */}
         {/* ALL MODE: Lesson scope + ZIP download + Save Project file     */}
@@ -734,12 +807,12 @@ export default function ExportSidePanel({
                 disabled={
                   !!busy ||
                   allReadyCount === 0 ||
-                  zipBlocked ||
+                  !courseMap ||
                   (selectedLessons !== null && selectedLessons.length === 0)
                 }
                 title={
-                  zipBlocked
-                    ? summarizeReadiness(workspaceReadiness)
+                  !courseMap
+                    ? 'Course map is required for ZIP export'
                     : selectedLessons !== null && selectedLessons.length === 0
                       ? 'Select at least one lesson'
                       : undefined

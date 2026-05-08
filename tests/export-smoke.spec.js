@@ -120,27 +120,32 @@ function exportFixture() {
                 {
                   title: 'Export Reliability',
                   bullets: ['Downloads must complete', 'Files need meaningful names'],
-                  speakerNotes: 'Introduce the smoke test goals.',
+                  speakerNotes:
+                    'Introduce the smoke test goals and explain why each exported artifact needs a quick inspection.',
                 },
                 {
                   title: 'Regression Coverage',
                   bullets: ['Course map', 'Lesson plans', 'Slide decks', 'ZIP bundle'],
-                  speakerNotes: 'Connect each button to a format risk.',
+                  speakerNotes:
+                    'Connect each export button to a concrete format risk that instructors would notice during handoff.',
                 },
                 {
                   title: 'Local Downloads',
                   bullets: ['XLSX for maps', 'CSV for tabular deliverables'],
-                  speakerNotes: 'Discuss data handoff formats.',
+                  speakerNotes:
+                    'Discuss how spreadsheet formats support sorting, filtering, and comparison across generated course rows.',
                 },
                 {
                   title: 'Rich Documents',
                   bullets: ['PDF for reading', 'DOCX for editing'],
-                  speakerNotes: 'Discuss instructor review workflows.',
+                  speakerNotes:
+                    'Discuss why prose-heavy materials need editable document exports before students receive them.',
                 },
                 {
                   title: 'Bundle Export',
                   bullets: ['ZIP combines generated materials', 'Project backup keeps source state'],
-                  speakerNotes: 'Close with backup and portability expectations.',
+                  speakerNotes:
+                    'Close by connecting ZIP downloads and project backups to reliable course portability workflows.',
                 },
               ],
             },
@@ -150,27 +155,32 @@ function exportFixture() {
                 {
                   title: 'Portable Materials',
                   bullets: ['Shareable formats', 'Cloud handoff', 'Offline backup'],
-                  speakerNotes: 'Discuss instructor workflows.',
+                  speakerNotes:
+                    'Discuss the instructor workflow differences between shareable exports, cloud handoff, and offline backup.',
                 },
                 {
                   title: 'Format Selection',
                   bullets: ['Choose files by audience', 'Keep source state versioned'],
-                  speakerNotes: 'Frame export choices as operational decisions.',
+                  speakerNotes:
+                    'Frame export choices as operational decisions based on reviewer needs and future revision paths.',
                 },
                 {
                   title: 'Cloud Export Path',
                   bullets: ['Needs Google auth', 'Must report clear errors'],
-                  speakerNotes: 'Explain why the test mocks a Google script failure.',
+                  speakerNotes:
+                    'Explain why the test mocks a Google script failure and expects a clear recovery message.',
                 },
                 {
                   title: 'Download Verification',
                   bullets: ['Assert file extension', 'Assert non-empty file size'],
-                  speakerNotes: 'Describe the smoke test assertions.',
+                  speakerNotes:
+                    'Describe how extension, filename, size, and content assertions catch export regressions quickly.',
                 },
                 {
                   title: 'Release Gate',
                   bullets: ['Run before production release', 'Keep heavy exporters lazy'],
-                  speakerNotes: 'Connect export coverage to release readiness.',
+                  speakerNotes:
+                    'Connect export coverage to release readiness by naming the risks each automated check reduces.',
                 },
               ],
             },
@@ -391,7 +401,7 @@ test.describe('Export smoke', () => {
     });
   });
 
-  test('blocks ZIP export when selected generated materials fail readiness checks', async ({ page }) => {
+  test('warns before ZIP export when selected generated materials fail readiness checks', async ({ page }) => {
     await restoreExportWorkspace(page, (snapshot) => {
       snapshot.selectedFeatures = ['courseMap', 'quizBank'];
       snapshot.deliverables = {
@@ -419,9 +429,23 @@ test.describe('Export smoke', () => {
     });
 
     await page.getByTestId('export-scope-all').click();
-    await expect(page.getByTestId('readiness-status')).toContainText('Fix before export');
+    await expect(page.getByTestId('readiness-status')).toContainText('Review before export');
     await expect(page.getByTestId('readiness-panel')).toContainText('Quiz & Exam Bank');
     await expect(page.getByTestId('readiness-panel')).toContainText('fewer than 5 questions');
-    await expect(page.getByTestId('export-download-zip')).toBeDisabled();
+    await expect(page.getByTestId('export-download-zip')).toBeEnabled();
+    await page.getByTestId('export-download-zip').click();
+    await expect(page.getByTestId('readiness-confirm')).toBeVisible();
+    await expect(page.getByTestId('readiness-confirm')).toContainText('Export anyway');
+
+    const zipDownload = await expectDownload(page, () => page.getByTestId('readiness-export-anyway').click(), {
+      extension: 'zip',
+      nameIncludes: 'Export Smoke Course',
+      minBytes: 1000,
+    });
+    const JSZip = (await import('jszip')).default;
+    const zip = await JSZip.loadAsync(await fs.readFile(zipDownload.path));
+    const report = await zip.file('READINESS_REPORT.txt')?.async('string');
+    expect(report).toContain('Quiz & Exam Bank');
+    expect(report).toContain('fewer than 5 questions');
   });
 });

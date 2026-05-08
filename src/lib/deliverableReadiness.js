@@ -443,3 +443,40 @@ export function summarizeReadiness(readiness) {
   if (readiness.warnings?.length > 0) return readiness.warnings[0].message;
   return 'All selected materials passed readiness checks.';
 }
+
+export function buildReadinessReport(readiness, { courseName = 'Course' } = {}) {
+  const lines = [
+    `${courseName} - Readiness Report`,
+    `Generated: ${new Date().toISOString()}`,
+    '',
+    `Status: ${readiness?.status || 'unknown'}`,
+    `Checked sections: ${readiness?.doneFeatureCount ?? 0}/${readiness?.featureCount ?? 0}`,
+    `Lessons in scope: ${readiness?.lessonCount ?? 0}`,
+    '',
+  ];
+
+  const blockers = readiness?.blockers || [];
+  const warnings = readiness?.warnings || [];
+
+  if (blockers.length === 0 && warnings.length === 0) {
+    lines.push('No readiness issues were found.');
+    return lines.join('\n');
+  }
+
+  if (blockers.length > 0) {
+    lines.push(`Critical issues (${blockers.length})`);
+    blockers.forEach((issue, index) => {
+      lines.push(`${index + 1}. ${issue.label}: ${issue.message}`);
+    });
+    lines.push('');
+  }
+
+  if (warnings.length > 0) {
+    lines.push(`Warnings (${warnings.length})`);
+    warnings.forEach((issue, index) => {
+      lines.push(`${index + 1}. ${issue.label}: ${issue.message}`);
+    });
+  }
+
+  return lines.join('\n');
+}

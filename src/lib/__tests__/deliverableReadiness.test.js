@@ -1,5 +1,5 @@
 import { describe, expect, it } from 'vitest';
-import { evaluateWorkspaceReadiness } from '../deliverableReadiness';
+import { buildReadinessReport, evaluateWorkspaceReadiness } from '../deliverableReadiness';
 
 const courseMap = {
   courseName: 'Readiness Course',
@@ -68,7 +68,7 @@ describe('evaluateWorkspaceReadiness', () => {
     expect(readiness.blockers).toHaveLength(0);
   });
 
-  it('blocks export when a selected deliverable is stale', () => {
+  it('flags a selected deliverable that is stale', () => {
     const readiness = evaluateWorkspaceReadiness({
       courseMap,
       columns,
@@ -86,7 +86,7 @@ describe('evaluateWorkspaceReadiness', () => {
     expect(readiness.blockers.map((issue) => issue.message).join(' ')).toContain('out of sync');
   });
 
-  it('blocks export when quiz bank lesson coverage is underfilled', () => {
+  it('flags quiz bank lesson coverage that is underfilled', () => {
     const readiness = evaluateWorkspaceReadiness({
       courseMap,
       columns,
@@ -108,7 +108,7 @@ describe('evaluateWorkspaceReadiness', () => {
     expect(readiness.blockers[0].message).toContain('fewer than 5 questions');
   });
 
-  it('blocks export when rubrics miss assessed lessons', () => {
+  it('flags rubrics that miss assessed lessons', () => {
     const readiness = evaluateWorkspaceReadiness({
       courseMap,
       columns,
@@ -126,5 +126,28 @@ describe('evaluateWorkspaceReadiness', () => {
     expect(readiness.isBlocked).toBe(true);
     expect(readiness.blockers[0].message).toContain('missing assessed lesson');
     expect(readiness.blockers[0].message).toContain('2');
+  });
+
+  it('builds a portable readiness report for exported drafts', () => {
+    const readiness = evaluateWorkspaceReadiness({
+      courseMap,
+      columns,
+      selectedFeatures: ['quizBank'],
+      deliverables: {
+        quizBank: {
+          status: 'done',
+          data: {
+            quizzes: [{ lessonTitle: 'Lesson 1: Questions', questions: makeQuestions(2) }],
+          },
+        },
+      },
+    });
+
+    const report = buildReadinessReport(readiness, { courseName: 'Readiness Course' });
+
+    expect(report).toContain('Readiness Course - Readiness Report');
+    expect(report).toContain('Critical issues');
+    expect(report).toContain('Quiz & Exam Bank');
+    expect(report).toContain('fewer than 5 questions');
   });
 });
