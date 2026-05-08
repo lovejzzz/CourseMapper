@@ -154,6 +154,8 @@ const assignments = {
   ms: 'milestone',
   dd: 'dueDate',
   de: 'description',
+  fb: 'feedbackChannel',
+  ul: 'uploadChecklist',
 };
 
 const discussions = {
@@ -262,6 +264,51 @@ function _expandSlideDecks(node, inVisual = false) {
   return node;
 }
 
+const ASSIGNMENT_FORMAT_MAP = {
+  ln: 'length',
+  fm: 'format',
+  cs: 'citationStyle',
+  sp: 'submissionPlatform',
+  lp: 'latePolicy',
+};
+
+const ASSIGNMENT_MILESTONE_MAP = {
+  ms: 'milestone',
+  dd: 'dueDate',
+  de: 'description',
+  fb: 'feedbackChannel',
+  pt: 'points',
+  ul: 'uploadChecklist',
+};
+
+function _expandAssignments(node, context = 'root') {
+  if (Array.isArray(node)) {
+    const childContext = context === 'scaffoldingMilestones' ? 'milestone' : context;
+    return node.map((item) => _expandAssignments(item, childContext));
+  }
+  if (node !== null && typeof node === 'object') {
+    const result = {};
+    for (const [key, value] of Object.entries(node)) {
+      const contextMap =
+        context === 'formatRequirements'
+          ? ASSIGNMENT_FORMAT_MAP
+          : context === 'milestone'
+            ? ASSIGNMENT_MILESTONE_MAP
+            : assignments;
+      const expandedKey = contextMap[key] || assignments[key] || key;
+      const childContext =
+        expandedKey === 'formatRequirements'
+          ? 'formatRequirements'
+          : expandedKey === 'scaffoldingMilestones'
+            ? 'scaffoldingMilestones'
+            : 'root';
+      result[expandedKey] = _expandAssignments(value, childContext);
+    }
+    return result;
+  }
+  return node;
+}
+
 /**
  * Recursively expand minified keys in a parsed AI response.
  * Safe for mixed responses (full keys pass through unchanged).
@@ -273,6 +320,7 @@ function _expandSlideDecks(node, inVisual = false) {
 export function expandKeys(featureId, data) {
   if (!data) return data;
   if (featureId === 'slideDecks') return _expandSlideDecks(data);
+  if (featureId === 'assignments') return _expandAssignments(data);
   const map = KEY_MAPS[featureId];
   if (!map) return data; // no map → pass through (e.g., syllabus)
   return _expand(data, map);

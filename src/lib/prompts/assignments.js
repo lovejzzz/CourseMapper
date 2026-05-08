@@ -66,9 +66,12 @@ Return a JSON object with exactly this structure:
 
 REQUIREMENTS:
 - Extract 4–7 assignments from the course map's assessments — spanning different types
+- Each assignments[] item must be a complete brief for a specific graded deliverable. Do not output generic "Lesson X Assignment Brief" wrappers, bundled lesson summaries, or lesson-by-lesson task lists.
 - Each assignment must clearly connect to specific lessons and objectives
 - instructions must use numbered, imperative-voice steps (not paragraph prose)
 - scaffoldingMilestones: ≥2 milestones for major assignments (≥15% of grade); each milestone must name the feedback channel (fb) and specify points (pt, can be 0 for formative). Include an ul (upload checklist) on the FINAL milestone.
+- Keep field meanings stable in every chunk: readings/resources go only in sr, submission mechanics go only in fr, grading summary goes only in gc, and progress checkpoints go only in pt.
+- Avoid institution-specific claims unless present in the course map or instructor profile. Do not invent LMS folder paths, office names, support links, tool licenses, or institutional policies.
 - deliverables must be a checklist (students can tick off each item before submitting)
 - academicIntegrityStatement must be specific to this assignment (not a generic paragraph)
 - formatRequirements.latePolicy must state explicit point deduction or policy

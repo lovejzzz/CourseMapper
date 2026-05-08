@@ -25,10 +25,10 @@ Return JSON in this exact structure:
   "deliveryMode":"In-Person",
   "prerequisites":"[Required prior knowledge in the discipline and/or specific competencies — derive from course level, or 'None' (QM 1.7)]",
 
-  "instructor":"[Instructor Name]",
-  "instructorEmail":"[Email]",
-  "officeHours":"[e.g., Wednesdays 1:00–3:00 PM, or by appointment]",
-  "officeLocation":"[TBD]",
+  "instructor":"Use professor profile name if supplied; otherwise use exactly '[Instructor name]'",
+  "instructorEmail":"Use professor profile email if supplied; otherwise use exactly '[Instructor email]'",
+  "officeHours":"Use professor profile office hours if supplied; otherwise use exactly '[Office hours]'",
+  "officeLocation":"Use professor profile office location if supplied; otherwise use exactly '[Office location]'",
 
   "instructorBio":"Welcoming 3-4 sentence instructor introduction: academic background, teaching philosophy, what excites them about this course, and an approachable invitation for students to connect during office hours or by email (QM 1.8)",
 
@@ -42,7 +42,7 @@ Return JSON in this exact structure:
 
   "outcomeAlignmentMatrix":[{"outcome":"paste each learningOutcome verbatim","bloomsLevel":"Apply|Analyze|Evaluate|Create","assessedBy":["names of the specific courseRequirements entries that measure this outcome — e.g. 'Midterm Project', 'Weekly Quizzes #2-4', 'Final Presentation'"],"practicedIn":["lesson titles from the course map where learners practice this outcome before being assessed"]}],
 
-  "requiredTexts":[{"title":"...","author":"...","edition":"...","isbn":"...","note":"(optional — e.g., 'Available at campus bookstore' or 'Free PDF on course LMS')"}],
+  "requiredTexts":[{"title":"...","author":"...","edition":"...","isbn":"Use a real ISBN only if known from the course map; otherwise '[Verify ISBN]'","note":"State whether this is required, optional, or instructor-provided. Do not claim bookstore, library, or LMS availability unless provided."}],
 
   "courseRequirements":[{"name":"Assignment category name","weight":"20%","description":"2-3 sentence description of what this entails, how it connects to learning outcomes, and what students should expect."}],
 
@@ -88,10 +88,12 @@ CRITICAL RULES:
 - weeklySchedule MUST have one entry per lesson/week in the course map — match topics precisely
 - learningOutcomes must use specific Bloom's taxonomy verbs: analyze, evaluate, create, apply, compare, critique, design, formulate, integrate, synthesize
 - outcomeAlignmentMatrix MUST have one entry per learningOutcome (accreditation artifact). Every outcome must be assessedBy ≥1 courseRequirement AND practicedIn ≥1 lesson — if an outcome has no assessment, that's a gap the instructor needs to see.
-- requiredTexts: infer plausible real textbooks for this discipline if not specified — include full bibliographic detail
+- requiredTexts: infer plausible, discipline-appropriate textbook titles only when the course map provides no texts. Mark inferred texts as "suggested - verify before adoption"; do not invent exact ISBNs, bookstore availability, library access, or LMS availability.
 - gradingScale: use the standard US university scale shown above unless professor profile provides a custom one
 - All policy sections must read like real university policies — professional, specific, and actionable
 - importantDates: include midterm exam, final exam, major project deadlines, registration deadlines, and academic calendar dates
+- Never invent instructor identity, instructor contact details, campus office emails, support phone numbers, office locations, institutional URLs, registration dates, add/drop dates, withdrawal dates, room numbers, or tool licenses. Use bracketed placeholders such as [Verify academic calendar date] or [Institutional support link] for unknown local facts.
+- Do not invent named LMS folders, campus services, or institution-specific resource names. Use generic wording such as "the course site", "your institution's accessibility office", "library research support", or "technical support" unless the course map/profile names the resource.
 - The syllabus must serve as a complete course orientation: students should be able to find everything they need to get started, understand expectations, access support, and navigate the course (QM Standards 1 & 7)
 - Write everything as if this will be distributed to students on the first day of class at a top university
 - Return ONLY the JSON object`,

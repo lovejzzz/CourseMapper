@@ -47,7 +47,7 @@ const COMPACT_SCHEMAS = {
   slideDecks: `{"decks":[{"lt":"str","ts":0,"lo":["str"],"sl":[{"t":"str","ty":"str","bu":["str"],"no":"str","vi":{"k":"none|diagram|chart|image|table|code|equation","d":"str","at":"str"},"at":"str|null","ti":"str|null","bl":"str|null","ol":"str|null"}],"tg":["str"]}]}`,
   quizBank: `{"quizzes":[{"lt":"str","tq":0,"bc":["str"],"fn":"str","qs":[{"ty":"str","bl":"str","df":"str","em":0,"pt":0,"oa":"str","q":"str","op":["str"],"an":"str","dr":"str","ex":"str","rh":"str","sa":"str"}],"tg":["str"]}]}`,
   rubrics: `{"rubrics":[{"t":"str","lt":"str","at":"str","tp":0,"bl":"str","gs":{"ex":"str","pr":"str","dv":"str","bg":"str"},"cr":[{"cn":"str","oa":"str","wt":0,"pt":0,"ex":"str","pr":"str","dv":"str","bg":"str"}],"gp":"str","tn":"str","tg":["str"]}]}`,
-  assignments: `{"assignments":[{"t":"str","at":"str","rl":["str"],"dw":"str","et":"str","tp":0,"pg":"str","bl":"str","ov":"str","ob":["str"],"ins":["str"],"fr":{"ln":"str","fm":"str","cs":"str","sp":"str","lp":"str"},"dl":["str"],"sm":[{"ms":"str","dd":"str","de":"str"}],"gc":"str","sr":["str"],"pt":"str","ai":"str","tg":["str"]}]}`,
+  assignments: `{"assignments":[{"t":"str","at":"str","rl":["str"],"dw":"str","et":"str","tp":0,"pg":"str","bl":"str","ov":"str","ob":["str"],"ins":["str"],"fr":{"ln":"str","fm":"str","cs":"str","sp":"str","lp":"str"},"dl":["str"],"sm":[{"ms":"str","dd":"str","de":"str","fb":"str","pt":0,"ul":["str"]}],"gc":"str","sr":["str"],"pt":"str","ai":"str","tg":["str"]}]}`,
   discussions: `{"discussions":[{"lt":"str","bl":"str","fm":"str","ed":"str","cx":"str","pr":"str","er":"str","fp":["str"],"ft":{"op":"str","is":"str","id":"str","cl":"str"},"rs":["str"],"ec":["str"],"eq":"str","gl":"str","tg":["str"]}]}`,
   studyGuides: `{"guides":[{"lt":"str","es":"str","su":"str","kt":[{"tm":"str","df":"str","ex":"str"}],"cc":["str"],"cm":[{"mc":"str","co":"str"}],"rq":[{"q":"str","bl":"str","ht":"str"}],"pa":["str"],"ep":{"kk":["str"],"tl":"str","ce":"str","rv":"str"},"sr":"str","tg":["str"]}]}`,
   courseFaq: `{"faqs":[{"lt":"str","qs":[{"q":"str","an":"str","ca":"str","rc":["str"],"df":"str"}],"tg":["str"]}]}`,
@@ -71,7 +71,10 @@ const CONTINUATION_REQUIREMENTS = {
 - Observable behavioral language. No vague qualifiers. Exemplary = above minimum.
 - Include gradePolicyConnection and teacherNotes. Return ONLY JSON.`,
   assignments: `- 4-7 assignments spanning different types. Imperative-voice numbered instructions.
-- ≥2 scaffolding milestones for major assignments. Checklist deliverables.
+- Each item must be an assignment brief, not a generic "Lesson X Assignment Brief" wrapper.
+- Match the first chunk's structure exactly: unique assignment title, overview, objectives, concise numbered instructions, formatRequirements, checklist deliverables, scaffoldingMilestones, supportResources, progressTracking, and academicIntegrityStatement.
+- ≥2 scaffolding milestones for major assignments. Each milestone includes ms, dd, de, fb, pt, and final milestone ul.
+- Never swap fields: readings/resources belong in sr, submission rules belong in fr, grading summary belongs in gc.
 - percentOfGrade values sum proportionally. Return ONLY JSON.`,
   discussions: `- One per lesson. Target Bloom's 4-6. Main prompt = open-ended, no single answer.
 - ≥6 distinct formats across all lessons. Substantive follow-up probes.
@@ -80,7 +83,7 @@ const CONTINUATION_REQUIREMENTS = {
 - 8-12 key terms with definition AND example. ≥1 cross-lesson connection.
 - 2-4 misconceptions. 4-6 review questions spanning ≥3 Bloom's levels.
 - Header format: "Lesson {N}: {Title}". Return ONLY JSON.`,
-  courseFaq: `- 4-6 questions per lesson. ≥3 different categories.
+  courseFaq: `- Exactly 5 questions per lesson unless Additional Instructor Requirements specify a different exact count. ≥3 different categories.
 - Questions in first-person student voice. Answers concise (2-4 sentences), actionable.
 - Header format: "Lesson {N}: {Title}". Return ONLY JSON.`,
 };
@@ -167,6 +170,18 @@ function buildConfigInstructions(featureId, config, pedagogicalMode = 'lecture',
 - Position the instructor as the expert; content is their tool, not a mandate.
 - Avoid walls of text: short paragraphs (≤5 sentences), clear section breaks, scannable formatting.
 - Content must be screen-reader accessible: avoid color-only references, describe visual concepts textually.`);
+
+  lines.push(`SOURCE AND PLACEHOLDER RULES (apply to all generated content):
+- Do not invent instructor names, emails, phone numbers, office locations, office hours, department names, LMS folder names, campus office contacts, support phone numbers, bookstore/library availability, licenses, or institutional deadlines.
+- Use bracketed placeholders for unknown local facts, such as [Instructor name], [Instructor email], [Office hours], [Institutional policy link], or [Verify academic calendar date].
+- Named third-party tools are allowed only when present in the course map/profile or framed as optional examples. Prefer generic labels like "course site", "survey platform", "spreadsheet", or "statistical software" when the source does not specify a tool.
+- Do not imply that a resource exists in the instructor's institution unless the course map, profile, or instructor instructions explicitly provide it.`);
+
+  if (featureId === 'courseFaq') {
+    const rawCount = Number(config?.questionsPerLesson);
+    const questionCount = Number.isFinite(rawCount) ? Math.max(3, Math.min(8, Math.round(rawCount))) : 5;
+    lines.push(`Generate exactly ${questionCount} FAQ questions per lesson.`);
+  }
 
   if (!config || Object.keys(config).length === 0) return lines.join('\n');
 
@@ -258,8 +273,6 @@ function buildConfigInstructions(featureId, config, pedagogicalMode = 'lecture',
     if (config.includePractice === false)
       lines.push('Do NOT include the "pa" (practiceActivities) field — omit it entirely.');
   } else if (featureId === 'courseFaq') {
-    if (config.questionsPerLesson)
-      lines.push(`Generate exactly ${config.questionsPerLesson} FAQ questions per lesson.`);
     if (config.categories?.length > 0 && config.categories.length < 5) {
       lines.push(`Use only these Course FAQ categories in the "ca" field: ${config.categories.join(', ')}.`);
     }

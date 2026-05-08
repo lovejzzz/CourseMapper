@@ -131,4 +131,29 @@ describe('expandKeys', () => {
     });
     expect(slide.visual.activityType).toBeUndefined();
   });
+
+  it('expands assignment milestone pt as points without clobbering assignment progressTracking', () => {
+    const input = {
+      assignments: [
+        {
+          t: 'Research Proposal',
+          pt: 'Use draft checkpoints and peer review to monitor progress.',
+          sm: [{ ms: 'Draft', dd: 'Week 4', de: 'Submit a draft.', fb: 'Peer review', pt: 10, ul: ['Draft PDF'] }],
+        },
+      ],
+    };
+
+    const result = expandKeys('assignments', input);
+    const assignment = result.assignments[0];
+    expect(assignment.title).toBe('Research Proposal');
+    expect(assignment.progressTracking).toBe('Use draft checkpoints and peer review to monitor progress.');
+    expect(assignment.scaffoldingMilestones[0]).toEqual({
+      milestone: 'Draft',
+      dueDate: 'Week 4',
+      description: 'Submit a draft.',
+      feedbackChannel: 'Peer review',
+      points: 10,
+      uploadChecklist: ['Draft PDF'],
+    });
+  });
 });

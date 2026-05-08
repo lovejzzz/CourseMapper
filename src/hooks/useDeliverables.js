@@ -24,6 +24,7 @@ import {
 import { expandKeys } from '../lib/keyMaps';
 import { log, warn, error as logError } from '../lib/logger';
 import { buildDeliverableTimeoutError, runDeliverableFeatureWithTimeout } from '../lib/deliverableTimeouts';
+import { normalizeCourseFaqQuestionCounts } from '../lib/deliverablePostProcess';
 
 // ── Post-process scoped deliverable output to fix lesson/week numbering ──
 // When the user generates a subset of lessons (e.g., lesson 6 only), the AI may
@@ -826,6 +827,35 @@ export default function useDeliverables({
           }
         }
 
+        // Course FAQ validation: the UI default is 5 questions per lesson.
+        // Treat underfilled lessons like truncated chunks so they get regenerated,
+        // and trim overfilled lessons for consistent student-facing exports.
+        if (fid === 'courseFaq' && mergedArr.length > 0) {
+          const config = deliverableConfigRef.current?.[fid] || {};
+          const normalized = normalizeCourseFaqQuestionCounts(merged, config);
+          merged = normalized.data;
+          mergedArr = normalized.arrayKey ? merged[normalized.arrayKey] || [] : mergedArr;
+
+          if (normalized.trimmedQuestions > 0) {
+            appendLog(
+              `⚠ ${getFeatureLabel(fid)}: trimmed ${normalized.trimmedQuestions} extra FAQ question(s) to ${normalized.target} per lesson`,
+              'warn',
+            );
+          }
+
+          if (normalized.underfilledIndices.length > 0) {
+            const underfilledLessonIndices = normalized.underfilledIndices.map((i) => lessonIndices[i] ?? i);
+            appendLog(
+              `⚠ ${getFeatureLabel(fid)}: ${underfilledLessonIndices.length} lesson(s) have fewer than ${normalized.target} FAQ questions — retrying`,
+              'warn',
+            );
+            mergedArr = mergedArr.filter((_, i) => !normalized.underfilledIndices.includes(i));
+            if (normalized.arrayKey) {
+              merged = { ...merged, [normalized.arrayKey]: mergedArr };
+            }
+          }
+        }
+
         // Per-lesson completeness: for slide decks, detect truncated lessons using dynamic threshold
         if (fid === 'slideDecks' && mergedArr.length > 0) {
           // Dynamic threshold: 50% of median slide count (min 6) to catch partial generations
@@ -1035,6 +1065,13 @@ export default function useDeliverables({
             // Re-merge with retry results
             merged = mergeChunkResults(fid, chunkResults[fid]);
             mergedArr = merged && arrayKey ? merged[arrayKey] || [] : [];
+
+            if (fid === 'courseFaq' && mergedArr.length > 0) {
+              const config = deliverableConfigRef.current?.[fid] || {};
+              const normalized = normalizeCourseFaqQuestionCounts(merged, config);
+              merged = normalized.data;
+              mergedArr = normalized.arrayKey ? merged[normalized.arrayKey] || [] : mergedArr;
+            }
           }
         }
 
@@ -1169,6 +1206,13 @@ export default function useDeliverables({
 
             merged = mergeChunkResults(fid, chunkResults[fid]);
             mergedArr = merged && arrayKey ? merged[arrayKey] || [] : [];
+
+            if (fid === 'courseFaq' && mergedArr.length > 0) {
+              const config = deliverableConfigRef.current?.[fid] || {};
+              const normalized = normalizeCourseFaqQuestionCounts(merged, config);
+              merged = normalized.data;
+              mergedArr = normalized.arrayKey ? merged[normalized.arrayKey] || [] : mergedArr;
+            }
           }
         }
 

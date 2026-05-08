@@ -87,4 +87,27 @@ describe('prompt modules — parse + shape', () => {
     expect(prompts.userPrompt).toContain('Do not invent campus resource names');
     expect(prompts.userPrompt).toContain('neutral student-facing wording');
   });
+
+  it('courseFaq defaults to exactly five questions per lesson', () => {
+    const prompts = getDeliverablePrompt('courseFaq', COURSE, null, {});
+
+    expect(prompts.userPrompt).toContain('Generate exactly 5 FAQ questions per lesson');
+  });
+
+  it('deliverable prompts include anti-fabrication source rules', () => {
+    const prompts = getDeliverablePrompt('syllabus', COURSE, null, {});
+
+    expect(prompts.userPrompt).toContain('Do not invent instructor names');
+    expect(prompts.userPrompt).toContain('[Instructor name]');
+    expect(prompts.userPrompt).toContain('Do not invent named LMS folders');
+  });
+
+  it('assignment continuation prompts preserve milestone feedback schema', () => {
+    const prompts = getDeliverablePrompt('assignments', COURSE, [1], {}, 'lecture', null, null, null, null, null, 1);
+
+    expect(prompts.userPrompt).toContain('"fb":"str"');
+    expect(prompts.userPrompt).toContain('"pt":0');
+    expect(prompts.userPrompt).toContain('"ul":["str"]');
+    expect(prompts.userPrompt).toContain('Never swap fields');
+  });
 });

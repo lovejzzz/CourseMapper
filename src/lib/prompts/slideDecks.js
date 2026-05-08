@@ -81,6 +81,7 @@ VISUALS (every content/example/keyTerm slide needs one):
 - "vi.d" describes what the visual shows in one concrete sentence (instructor-facing hint).
 - "vi.at" (alt text) is a full-sentence SR-friendly description of the visual's CONTENT, not just a label.
 - Title/agenda/objectives/closing slides may set vi.k='none' with empty d/at.
+- Title slides should use the lesson/course framing as their only subtitle. Do not add instructor name, contact, office-hours, department, or institution placeholders unless the instructor profile explicitly provides them.
 
 TIMING (every slide):
 - Set "ti" as a concrete minute estimate ('1 min', '3 min', '5 min', etc).

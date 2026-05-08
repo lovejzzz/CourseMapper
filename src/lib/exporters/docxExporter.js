@@ -368,12 +368,23 @@ export function _buildDocxContentShared(featureId, data, children, docx) {
         }
         if (a.submissionFormat) children.push(makeBold('Submission Format', a.submissionFormat));
         if (a.gradingCriteria) children.push(makeBold('Grading Criteria', a.gradingCriteria));
+        if (a.progressTracking) children.push(makeBold('Progress Tracking', a.progressTracking));
         // Scaffolding milestones
         if (a.scaffoldingMilestones?.length) {
           children.push(makeSubHeading('Scaffolding Milestones'));
           a.scaffoldingMilestones.forEach((m) => {
             const parts = [m.milestone || m.name || '', m.dueDate ? `(${m.dueDate})` : ''].filter(Boolean);
-            children.push(makeBold(parts.join(' '), m.description || ''));
+            const details = [
+              m.description || '',
+              m.feedbackChannel ? `Feedback: ${m.feedbackChannel}` : '',
+              m.points !== undefined && m.points !== null ? `Points: ${m.points}` : '',
+            ]
+              .filter(Boolean)
+              .join(' ');
+            children.push(makeBold(parts.join(' '), details));
+            if (Array.isArray(m.uploadChecklist) && m.uploadChecklist.length > 0) {
+              m.uploadChecklist.forEach((item) => children.push(makeBullet(item)));
+            }
           });
         }
         // Support resources
