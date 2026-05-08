@@ -4,7 +4,8 @@ export default defineConfig({
   testDir: './tests',
   testMatch: '**/*.spec.js',
   timeout: 30000,
-  retries: 0,
+  retries: process.env.CI ? 1 : 0,
+  workers: process.env.CI ? 2 : undefined,
   use: {
     baseURL: 'http://localhost:5173',
     headless: true,
