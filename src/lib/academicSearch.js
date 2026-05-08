@@ -192,22 +192,107 @@ export async function searchGoogleBooks(query, limit = 5, signal) {
   }
 }
 
-// ── Citation Formatting (APA via citation-js) ────────────────────────────────
+// ── Citation Formatting (lightweight APA-style fallback) ────────────────────
 
-let Cite = null;
-async function loadCitationJs() {
-  if (!Cite) {
-    const mod = await import('citation-js');
-    Cite = mod.default || mod.Cite;
-  }
-  return Cite;
+function normalizeDoi(value) {
+  const raw = String(value || '').trim();
+  if (!raw) return '';
+  return raw
+    .replace(/^https?:\/\/(?:dx\.)?doi\.org\//i, '')
+    .replace(/^doi:\s*/i, '')
+    .trim();
 }
 
-export async function formatCitation(doi) {
+function initials(given) {
+  return String(given || '')
+    .split(/\s+/)
+    .filter(Boolean)
+    .map((part) => `${part[0].toUpperCase()}.`)
+    .join(' ');
+}
+
+function formatAuthorName(author) {
+  if (!author) return '';
+  if (typeof author === 'string') return formatFreeTextAuthorName(author);
+  const family = author.family || '';
+  const givenInitials = initials(author.given);
+  if (family && givenInitials) return `${family}, ${givenInitials}`;
+  return family || author.name || '';
+}
+
+function formatFreeTextAuthorName(name) {
+  const parts = String(name || '')
+    .trim()
+    .split(/\s+/)
+    .filter(Boolean);
+  if (parts.length < 2) return parts[0] || '';
+  const family = parts[parts.length - 1];
+  const given = parts.slice(0, -1).join(' ');
+  return `${family}, ${initials(given)}`;
+}
+
+function formatAuthorsApa(authors) {
+  const list = Array.isArray(authors)
+    ? authors.map(formatAuthorName).filter(Boolean)
+    : String(authors || '')
+        .split(/\s*,\s*/)
+        .map(formatFreeTextAuthorName)
+        .filter(Boolean);
+
+  if (list.length === 0) return 'Unknown author';
+  if (list.length === 1) return list[0];
+  if (list.length === 2) return `${list[0]} & ${list[1]}`;
+  return `${list.slice(0, -1).join(', ')}, & ${list[list.length - 1]}`;
+}
+
+function pickYear(item) {
+  return (
+    item?.year ||
+    item?.publication_year ||
+    item?.['published-print']?.['date-parts']?.[0]?.[0] ||
+    item?.['published-online']?.['date-parts']?.[0]?.[0] ||
+    item?.issued?.['date-parts']?.[0]?.[0] ||
+    null
+  );
+}
+
+function pickTitle(item) {
+  const title = item?.title || item?.display_name || '';
+  return Array.isArray(title) ? title[0] || '' : String(title || '');
+}
+
+export function formatCitationFromMetadata(item) {
+  if (!item) return null;
+  const doi = normalizeDoi(item.doi || item.DOI);
+  const title = pickTitle(item);
+  if (!title && !doi) return null;
+
+  const authorText = formatAuthorsApa(
+    item.author || item.authors || item.authorships?.map((a) => a.author?.display_name),
+  );
+  const year = pickYear(item) || 'n.d.';
+  const titlePart = title ? `${title.replace(/[.。]\s*$/, '')}.` : '';
+  const publisherPart = item.publisher ? ` ${item.publisher.replace(/[.。]\s*$/, '')}.` : '';
+  const doiPart = doi ? ` https://doi.org/${doi}` : '';
+  return `${authorText} (${year}). ${titlePart}${publisherPart}${doiPart}`.replace(/\s+/g, ' ').trim();
+}
+
+async function loadCrossRefWorkByDoi(doi, signal) {
+  const normalized = normalizeDoi(doi);
+  if (!normalized) return null;
+  const url = `https://api.crossref.org/works/${encodeURIComponent(normalized)}?select=DOI,title,author,published-print,published-online,issued,publisher&mailto=coursemapper@nyu.edu`;
+  const res = await fetch(url, { signal });
+  if (!res.ok) return null;
+  const json = await res.json();
+  return json.message || null;
+}
+
+export async function formatCitation(doi, metadata = null, signal) {
   try {
-    const CiteClass = await loadCitationJs();
-    const cite = new CiteClass(doi);
-    return cite.format('bibliography', { format: 'text', template: 'apa', lang: 'en-US' }).trim();
+    const direct = formatCitationFromMetadata({ ...(metadata || {}), doi });
+    if (direct && metadata) return direct;
+    const work = await loadCrossRefWorkByDoi(doi, signal);
+    return formatCitationFromMetadata(work) || direct;
   } catch {
     return null;
   }
@@ -261,26 +346,18 @@ export async function executeResearch({ query, sources = ['papers'], limit }, si
 
   const results = await Promise.all(promises);
 
-  // Try to format APA citations for items with DOIs
-  let citationBlock = '';
-  try {
-    const CiteClass = await loadCitationJs();
-    const dois = [];
-    for (const { items } of results) {
-      for (const item of items || []) {
-        if (item.doi) dois.push(item.doi);
-      }
+  const citations = [];
+  for (const { items } of results) {
+    for (const item of items || []) {
+      if (!item.doi) continue;
+      const formatted = formatCitationFromMetadata(item);
+      if (formatted) citations.push(formatted);
+      if (citations.length >= 5) break;
     }
-    if (dois.length > 0 && CiteClass) {
-      const cite = new CiteClass(dois.slice(0, 5)); // limit to 5 for speed
-      citationBlock =
-        '\n\n=== FORMATTED CITATIONS (APA) ===\n' +
-        cite.format('bibliography', { format: 'text', template: 'apa', lang: 'en-US' }).trim() +
-        '\n=== END CITATIONS ===';
-    }
-  } catch {
-    /* citation formatting is optional */
+    if (citations.length >= 5) break;
   }
+  const citationBlock =
+    citations.length > 0 ? `\n\n=== FORMATTED CITATIONS (APA) ===\n${citations.join('\n')}\n=== END CITATIONS ===` : '';
 
   return { results, formatted: formatResearchResults(results) + citationBlock };
 }

@@ -7,18 +7,11 @@ import {
   searchVideos,
   searchBooks,
   searchGoogleBooks,
+  formatCitation,
+  formatCitationFromMetadata,
   formatResearchResults,
   executeResearch,
 } from '../academicSearch';
-
-// Mock citation-js dynamic import
-vi.mock('citation-js', () => ({
-  default: class {
-    format() {
-      return 'Mock citation';
-    }
-  },
-}));
 
 // Mock global fetch
 const mockFetch = vi.fn();
@@ -299,6 +292,46 @@ describe('searchGoogleBooks', () => {
   });
 });
 
+// ── citation formatting ──────────────────────────────────────────────────────
+
+describe('citation formatting', () => {
+  it('formats CrossRef metadata without loading a large citation library', () => {
+    const citation = formatCitationFromMetadata({
+      title: ['Teaching for Transfer'],
+      author: [
+        { given: 'Jane', family: 'Doe' },
+        { given: 'Max', family: 'Nguyen' },
+      ],
+      'published-print': { 'date-parts': [[2022]] },
+      DOI: '10.1000/transfer',
+      publisher: 'Learning Press',
+    });
+
+    expect(citation).toBe(
+      'Doe, J. & Nguyen, M. (2022). Teaching for Transfer. Learning Press. https://doi.org/10.1000/transfer',
+    );
+  });
+
+  it('fetches CrossRef metadata when only a DOI is provided', async () => {
+    mockFetch.mockResolvedValueOnce({
+      ok: true,
+      json: async () => ({
+        message: {
+          title: ['Retrieved Citation'],
+          author: [{ given: 'Alex', family: 'Rivera' }],
+          issued: { 'date-parts': [[2021]] },
+          DOI: '10.2000/retrieved',
+        },
+      }),
+    });
+
+    await expect(formatCitation('https://doi.org/10.2000/retrieved')).resolves.toBe(
+      'Rivera, A. (2021). Retrieved Citation. https://doi.org/10.2000/retrieved',
+    );
+    expect(mockFetch.mock.calls[0][0]).toContain('api.crossref.org/works/10.2000%2Fretrieved');
+  });
+});
+
 // ── formatResearchResults ────────────────────────────────────────────────────
 
 describe('formatResearchResults', () => {
@@ -431,5 +464,32 @@ describe('executeResearch', () => {
     const result = await executeResearch({ query: 'test' });
     expect(result.results).toHaveLength(1);
     expect(result.results[0].source).toBe('OpenAlex');
+  });
+
+  it('includes formatted citations for DOI-backed results without extra network calls', async () => {
+    mockFetch.mockResolvedValueOnce({
+      ok: true,
+      json: async () => ({
+        message: {
+          items: [
+            {
+              title: ['CrossRef Paper Title'],
+              author: [{ given: 'Jane', family: 'Doe' }],
+              'published-print': { 'date-parts': [[2021]] },
+              DOI: '10.5678/cr-test',
+              'is-referenced-by-count': 15,
+              publisher: 'Springer',
+            },
+          ],
+        },
+      }),
+    });
+
+    const result = await executeResearch({ query: 'education', sources: ['crossref'] });
+    expect(result.formatted).toContain('=== FORMATTED CITATIONS (APA) ===');
+    expect(result.formatted).toContain(
+      'Doe, J. (2021). CrossRef Paper Title. Springer. https://doi.org/10.5678/cr-test',
+    );
+    expect(mockFetch).toHaveBeenCalledTimes(1);
   });
 });
