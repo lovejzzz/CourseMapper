@@ -19,6 +19,7 @@ const lazyChunkBudgets = [
   { prefix: 'DeliverableView-', rawKiB: 170, gzipKiB: 35 },
   { prefix: 'DeveloperModePanel-', rawKiB: 130, gzipKiB: 35 },
   { prefix: 'ExportSidePanel-', rawKiB: 35, gzipKiB: 12 },
+  { prefix: 'webllm-', rawKiB: 5, gzipKiB: 2 },
 ];
 
 const forbiddenInitialChunks = [

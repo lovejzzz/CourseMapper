@@ -1,6 +1,7 @@
 /**
  * webllmConstants.js — Static constants for WebLLM integration.
- * Kept separate from webllm.js so importing these doesn't pull in the ~7MB WebLLM library.
+ * Kept separate from webllm.js so importing these doesn't touch the external
+ * Local AI runtime loader.
  */
 
 export const WEBLLM_MODELS = [

@@ -4,20 +4,49 @@
  * Provides a singleton engine that downloads, caches, and runs
  * Qwen3-4B locally using WebGPU. No API key needed.
  *
- * This file is dynamically imported to avoid bundling ~7MB of WebLLM
- * for users who don't use the Free (Local AI) provider.
+ * This file is dynamically imported to avoid touching Local AI code for BYOK
+ * users. The WebLLM runtime itself is loaded from a pinned CDN module only
+ * after the user selects Free (Local AI), so the static app does not ship a
+ * multi-megabyte webllm asset to everyone.
  */
-import * as webllm from '@mlc-ai/web-llm';
 import { WEBLLM_DEFAULT_MODEL, WEBLLM_MAX_TOKENS } from './webllmConstants';
 
 // Re-export constants for convenience
 export { WEBLLM_MODELS, WEBLLM_DEFAULT_MODEL, WEBLLM_MAX_TOKENS, isWebGPUSupported } from './webllmConstants';
 
+export const WEBLLM_MODULE_URL = 'https://esm.sh/@mlc-ai/web-llm@0.2.81?bundle';
+
 // ── Singleton engine ────────────────────────────────────────────────────────
+let _webllm = null;
+let _runtimePromise = null;
 let _engine = null;
 let _loadingPromise = null;
 let _isReady = false;
 let _loadedModelId = null;
+
+/**
+ * Load the WebLLM runtime from an external pinned ESM bundle.
+ * Vite must not rewrite this dynamic import; otherwise production builds would
+ * include the 6 MB runtime chunk again.
+ */
+async function loadWebLLMRuntime() {
+  if (_webllm) return _webllm;
+  if (_runtimePromise) return _runtimePromise;
+
+  _runtimePromise = import(/* @vite-ignore */ WEBLLM_MODULE_URL)
+    .then((mod) => {
+      _webllm = mod;
+      return _webllm;
+    })
+    .catch((err) => {
+      _runtimePromise = null;
+      throw new Error(
+        `Failed to load the Local AI runtime. Check your network connection and try again. ${err?.message || ''}`.trim(),
+      );
+    });
+
+  return _runtimePromise;
+}
 
 /**
  * Get the current engine status.
@@ -49,6 +78,7 @@ export async function getEngine(modelId, onProgress) {
 
   _loadingPromise = (async () => {
     try {
+      const webllm = await loadWebLLMRuntime();
       _engine = await webllm.CreateMLCEngine(targetModel, {
         initProgressCallback: (report) => {
           if (onProgress) {

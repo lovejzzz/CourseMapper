@@ -14,7 +14,7 @@ import {
   parseAgentResponse as parseProviderResponse,
   supportsCustomTemperature,
 } from '../../lib/agentProviders';
-// webllm is dynamically imported when needed to avoid bundling ~7MB for non-local users
+// webllm is dynamically imported when needed; its runtime is loaded externally for Local AI users only.
 
 // ── System prompt for Help / Tutor mode (extracted from FaqChatbot) ─────────
 export function getSystemPrompt(courseMap, activeTab) {
