@@ -7,6 +7,8 @@ export default function UserMenu({
   developerMode = false,
   onDeveloperModeChange,
   onOpenDeveloperPanel,
+  developerIdeDisabled = false,
+  developerIdeDisabledReason = 'Developer IDE is locked while generation is running.',
 }) {
   const { user, loading, error, signInWithGoogle, signOut } = useAuth();
   const [open, setOpen] = useState(false);
@@ -151,11 +153,15 @@ export default function UserMenu({
 
                 {developerMode && onOpenDeveloperPanel && (
                   <button
+                    type="button"
+                    disabled={developerIdeDisabled}
+                    title={developerIdeDisabled ? developerIdeDisabledReason : 'Open Developer IDE'}
                     onClick={() => {
+                      if (developerIdeDisabled) return;
                       setOpen(false);
                       onOpenDeveloperPanel();
                     }}
-                    className="w-full text-left px-4 py-2 text-[11px] text-indigo-600 hover:bg-indigo-50 hover:text-indigo-700 transition-colors flex items-center gap-2"
+                    className="w-full text-left px-4 py-2 text-[11px] text-indigo-600 hover:bg-indigo-50 hover:text-indigo-700 transition-colors flex items-center gap-2 disabled:cursor-not-allowed disabled:text-slate-400 disabled:hover:bg-transparent"
                   >
                     <svg className="w-3.5 h-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                       <path
@@ -281,11 +287,15 @@ export default function UserMenu({
 
           {developerMode && onOpenDeveloperPanel && (
             <button
+              type="button"
+              disabled={developerIdeDisabled}
+              title={developerIdeDisabled ? developerIdeDisabledReason : 'Open Developer IDE'}
               onClick={() => {
+                if (developerIdeDisabled) return;
                 setOpen(false);
                 onOpenDeveloperPanel();
               }}
-              className="w-full text-left px-4 py-2 text-[11px] text-indigo-600 hover:bg-indigo-50 hover:text-indigo-700 transition-colors flex items-center gap-2"
+              className="w-full text-left px-4 py-2 text-[11px] text-indigo-600 hover:bg-indigo-50 hover:text-indigo-700 transition-colors flex items-center gap-2 disabled:cursor-not-allowed disabled:text-slate-400 disabled:hover:bg-transparent"
             >
               <svg className="w-3.5 h-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                 <path

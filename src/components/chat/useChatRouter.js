@@ -31,6 +31,18 @@ export function prepareEditAndResendMessages(messages, msgIndex, newText) {
   };
 }
 
+export function prepareAutoReviewSend(text) {
+  const trimmed = (text || '').trim();
+  if (!trimmed.startsWith('[AUTO-REVIEW]')) {
+    return { text: trimmed, agentPromptOverride: null, silent: false };
+  }
+  return {
+    text: 'Review my course',
+    agentPromptOverride: trimmed,
+    silent: true,
+  };
+}
+
 export default function useChatRouter({
   courseMap,
   activeTab,
@@ -270,12 +282,8 @@ export default function useChatRouter({
       return;
     }
 
-    // Handle auto-review: show friendly display text, send full detailed prompt to agent
-    let agentPromptOverride = null;
-    if (trimmed.startsWith('[AUTO-REVIEW]')) {
-      agentPromptOverride = trimmed;
-      trimmed = 'Review my course';
-    }
+    const preparedSend = prepareAutoReviewSend(trimmed);
+    trimmed = preparedSend.text;
 
     // Auto-route: agent (deliverables exist) → revision (course map only) → help (no course)
     // SAFETY: never enter agent mode while any deliverable is still generating —
@@ -284,12 +292,19 @@ export default function useChatRouter({
     const hasDeliverables = delivKeys.some((k) => delivRef.current[k]?.status === 'done');
     const isGenerating = delivKeys.some((k) => delivRef.current[k]?.status === 'generating');
 
+    if (preparedSend.silent && (!hasDeliverables || isGenerating || !executeActionRef.current)) {
+      return;
+    }
+
     if (hasDeliverables && !isGenerating && executeActionRef.current) {
       if (!agentProviderReady) {
-        appendAgentUnavailableMessage(trimmed);
+        if (!preparedSend.silent) appendAgentUnavailableMessage(trimmed);
         return;
       }
-      await sendAgentMessage(trimmed, { agentPromptOverride });
+      await sendAgentMessage(trimmed, {
+        agentPromptOverride: preparedSend.agentPromptOverride,
+        silent: preparedSend.silent,
+      });
     } else if (isGenerating) {
       // Deliverables are being generated — use help mode only (no edits)
       await sendHelpMessage(trimmed);

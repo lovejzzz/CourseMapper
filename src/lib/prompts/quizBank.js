@@ -35,7 +35,7 @@ Return a JSON object with exactly this structure:
           "op": ["string"] — MC ONLY: exactly 4 options as 'A. ...', 'B. ...', 'C. ...', 'D. ...' (omit for short_answer/essay),
           "an": "string — MC: the letter only (e.g. 'B'); short_answer: model answer with key required elements (omit for essay)",
           "dr": "string — MC ONLY: explain why each wrong option is plausible, format: 'A: [reason]; C: [reason]; D: [reason]' (omit for short_answer/essay)",
-          "ex": "string — MC: 'The correct answer is [X] because [reason]'; short_answer: full model response + 2 alternative acceptable phrasings (omit for essay)",
+          "ex": "string — REQUIRED for every question. MC: 'The correct answer is [X] because [reason]'; short_answer: full model response + 2 alternative acceptable phrasings; essay: concise instructor scoring note that explains what a strong response must do.",
           "rh": "string — ESSAY ONLY: 3-4 criteria that a strong response must include (omit for MC/short_answer)",
           "sa": "string — short_answer & essay ONLY: full exemplary response (omit for MC)"
         }
@@ -51,7 +51,7 @@ Rules:
 - MC: complete-sentence or scenario stems (no fill-in-the-blank); exactly 4 options; similar-length options; no "All/None of the above"; distractors reflect common student misconceptions (not absurd wrong answers).
 - short_answer: specify expected length (e.g., "In 2-3 sentences…").
 - essay: include task verb + scope + constraints.
-- Every question has oa (objectiveAligned). Every MC has non-null ex (starting "The correct answer is [letter] because…") and dr ("A: …; C: …; D: …") — required for accreditation.
+- Every question has oa (objectiveAligned) and ex (explanation). Every MC has non-null ex (starting "The correct answer is [letter] because…") and dr ("A: …; C: …; D: …") — required for accreditation.
 - Sequence from lower to higher Bloom's as the course progresses (QM 3.4). Include diagnostic questions that help learners identify review areas (QM 3.5). Each quiz includes fn guidance on common errors and timely feedback (QM 3.5).
 - Vary phrasing across lessons — no repeated stem patterns. Explanations in natural prose.
 - Return ONLY the JSON object, no prose, no markdown.`,

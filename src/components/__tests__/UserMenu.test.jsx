@@ -100,4 +100,28 @@ describe('UserMenu signed-out developer controls', () => {
 
     expect(onOpenDeveloperPanel).toHaveBeenCalledTimes(1);
   });
+
+  it('locks the signed-out Developer IDE action when generation is running', () => {
+    const onOpenDeveloperPanel = vi.fn();
+
+    renderMenu({
+      developerMode: true,
+      onDeveloperModeChange: vi.fn(),
+      onOpenDeveloperPanel,
+      developerIdeDisabled: true,
+      developerIdeDisabledReason: 'Deliverables are still generating.',
+    });
+
+    click(container.querySelector('[data-testid="signed-out-advanced-menu"]'));
+
+    const openButton = [...container.querySelectorAll('button')].find((button) =>
+      button.textContent.includes('Open Developer IDE'),
+    );
+    expect(openButton.disabled).toBe(true);
+    expect(openButton.getAttribute('title')).toBe('Deliverables are still generating.');
+
+    click(openButton);
+
+    expect(onOpenDeveloperPanel).not.toHaveBeenCalled();
+  });
 });

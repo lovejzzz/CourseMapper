@@ -180,13 +180,27 @@ const DeveloperCodeEditor = forwardRef(function DeveloperCodeEditor(
         codeMirror.indentWithTab,
       ]),
       codeMirror.EditorView.theme({
-        '&': { height: '100%', backgroundColor: '#020617', color: '#e2e8f0' },
+        '&': { height: '100%', minHeight: 0, backgroundColor: '#020617', color: '#e2e8f0' },
+        '.cm-editor': { height: '100%', backgroundColor: '#020617' },
         '.cm-scroller': {
+          overflow: 'auto',
+          backgroundColor: '#020617',
           fontFamily: 'ui-monospace, SFMono-Regular, Menlo, Monaco, Consolas, monospace',
           fontSize: '12px',
           lineHeight: '20px',
+          scrollbarColor: '#64748b #0f172a',
+          scrollbarWidth: 'thin',
         },
-        '.cm-content': { padding: '12px 0' },
+        '.cm-scroller::-webkit-scrollbar': { width: '12px', height: '12px' },
+        '.cm-scroller::-webkit-scrollbar-track': { backgroundColor: '#0f172a' },
+        '.cm-scroller::-webkit-scrollbar-thumb': {
+          backgroundColor: '#64748b',
+          border: '3px solid #0f172a',
+          borderRadius: '999px',
+        },
+        '.cm-scroller::-webkit-scrollbar-thumb:hover': { backgroundColor: '#94a3b8' },
+        '.cm-content': { minHeight: '100%', padding: '12px 0 32px', backgroundColor: '#020617' },
+        '.cm-line': { color: '#e2e8f0' },
         '.cm-gutters': { backgroundColor: '#0f172a', color: '#64748b', borderRightColor: '#1e293b' },
         '.cm-activeLineGutter': { backgroundColor: '#111827' },
         '.cm-activeLine': { backgroundColor: 'rgba(99, 102, 241, 0.08)' },
@@ -201,7 +215,7 @@ const DeveloperCodeEditor = forwardRef(function DeveloperCodeEditor(
     <div
       data-testid={`developer-code-editor-${sectionId}`}
       data-section={sectionId}
-      className="flex min-h-[360px] flex-1 flex-col bg-slate-950"
+      className="flex min-h-0 flex-1 flex-col bg-slate-950"
     >
       <div className="flex items-center justify-between border-b border-slate-800 bg-slate-900 px-3 py-2">
         <div className="min-w-0">
@@ -218,10 +232,12 @@ const DeveloperCodeEditor = forwardRef(function DeveloperCodeEditor(
       </div>
       <div className="grid min-h-0 flex-1 grid-cols-[3.5rem_minmax(0,1fr)]">
         {codeMirror ? (
-          <div className="col-span-2 min-h-0 overflow-hidden bg-slate-950">
+          <div className="col-span-2 min-h-0 overflow-hidden bg-slate-950 [&_.cm-editor]:h-full [&_.cm-scroller]:overflow-auto">
             <codeMirror.CodeMirror
               value={value}
               height="100%"
+              className="h-full"
+              theme="dark"
               basicSetup
               extensions={cmExtensions}
               onCreateEditor={(view) => {
@@ -255,7 +271,8 @@ const DeveloperCodeEditor = forwardRef(function DeveloperCodeEditor(
               onKeyUp={(e) => updateCursor(e.currentTarget)}
               onKeyDown={handleKeyDown}
               onScroll={handleScroll}
-              className="developer-code-editor h-full min-h-0 w-full resize-none px-4 py-3 font-mono text-[12px] leading-5 outline-none selection:bg-indigo-500/40"
+              className="developer-code-editor h-full min-h-0 w-full resize-none overflow-auto px-4 py-3 font-mono text-[12px] leading-5 outline-none selection:bg-indigo-500/40"
+              style={{ scrollbarColor: '#64748b #0f172a', scrollbarWidth: 'thin' }}
             />
           </>
         )}

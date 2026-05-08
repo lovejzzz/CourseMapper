@@ -9,6 +9,8 @@ export default function Header({
   developerMode = false,
   onDeveloperModeChange,
   onOpenDeveloperPanel,
+  developerIdeDisabled = false,
+  developerIdeDisabledReason = 'Developer IDE is locked while generation is running.',
 }) {
   return (
     <>
@@ -33,7 +35,9 @@ export default function Header({
             {developerMode && onOpenDeveloperPanel && (
               <button
                 onClick={onOpenDeveloperPanel}
-                className="tactile hidden sm:flex items-center gap-1.5 px-3 py-2 rounded-pill text-[11px] font-semibold text-indigo-600 bg-indigo-50/80 border border-indigo-200/50 hover:bg-indigo-100/80 hover:border-indigo-300/60 shadow-glass transition-all duration-300"
+                disabled={developerIdeDisabled}
+                title={developerIdeDisabled ? developerIdeDisabledReason : 'Open Developer IDE'}
+                className="tactile hidden sm:flex items-center gap-1.5 px-3 py-2 rounded-pill text-[11px] font-semibold text-indigo-600 bg-indigo-50/80 border border-indigo-200/50 hover:bg-indigo-100/80 hover:border-indigo-300/60 shadow-glass transition-all duration-300 disabled:cursor-not-allowed disabled:border-slate-200 disabled:bg-slate-100 disabled:text-slate-400 disabled:shadow-none"
               >
                 <svg className="w-3.5 h-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                   <path
@@ -52,6 +56,8 @@ export default function Header({
                 developerMode={developerMode}
                 onDeveloperModeChange={onDeveloperModeChange}
                 onOpenDeveloperPanel={onOpenDeveloperPanel}
+                developerIdeDisabled={developerIdeDisabled}
+                developerIdeDisabledReason={developerIdeDisabledReason}
               />
             )}
             {onOpenHelp && (

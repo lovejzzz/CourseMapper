@@ -162,7 +162,7 @@ function deliverableToCsvRows(featureId, data) {
             String(j + 1),
             s.title || '',
             (s.bullets || []).join('; '),
-            s.speakerNotes || '',
+            s.speakerNotes || s.notes || '',
           ]);
         }
       }
@@ -862,12 +862,12 @@ function _buildDocxContentShared(featureId, data, children, docx) {
           const colDXA = [1100, 2000, 6260]; // Time, Activity, Description
           const outlineRows = p.outline.map((row) => {
             let desc = row.description || '';
-            if (row.grouping) desc += ` [${row.grouping}]`;
+            if (row.grouping) desc += `${desc ? '\n' : ''}Grouping: ${row.grouping}`;
             if (row.instructorNotes || row.notes) desc += `\nInstructor Notes: ${row.instructorNotes || row.notes}`;
             const actParts = [row.activity || ''];
-            if (row.type) actParts.push(`(${row.type})`);
-            if (row.bloomsLevel) actParts.push(`[${row.bloomsLevel}]`);
-            return [row.time || '', actParts.join(' '), desc];
+            if (row.type) actParts.push(row.type);
+            if (row.bloomsLevel) actParts.push(`Bloom: ${row.bloomsLevel}`);
+            return [row.time || '', actParts.filter(Boolean).join(' · '), desc];
           });
           children.push(makeTableFn(colDXA, ['Time', 'Activity', 'Description & Notes'], outlineRows));
         }
@@ -951,7 +951,8 @@ function _buildDocxContentShared(featureId, data, children, docx) {
           const s = d.slides[j];
           children.push(makeBold(`Slide ${j + 1}`, s.title || ''));
           (s.bullets || []).forEach((b) => children.push(makeBullet(b)));
-          if (s.speakerNotes) children.push(makeItalic(`Speaker Notes: ${s.speakerNotes}`));
+          const speakerNotes = s.speakerNotes || s.notes;
+          if (speakerNotes) children.push(makeItalic(`Speaker Notes: ${speakerNotes}`));
         }
         children.push(new Paragraph({ spacing: { before: 200, after: 100 }, children: [] }));
       }
@@ -1150,8 +1151,8 @@ function _buildDocxContentShared(featureId, data, children, docx) {
               children.push(makeNumbered(j + 1, q));
               return;
             }
-            const qMeta = [q.bloomsLevel].filter(Boolean);
-            children.push(makeNumbered(j + 1, (q.question || q) + (qMeta.length ? ` [${qMeta.join(', ')}]` : '')));
+            const bloomLabel = q.bloomsLevel ? ` (Bloom: ${q.bloomsLevel})` : '';
+            children.push(makeNumbered(j + 1, `${q.question || q}${bloomLabel}`));
             if (q.hint) children.push(makeItalic(`Hint: ${q.hint}`));
           });
         }

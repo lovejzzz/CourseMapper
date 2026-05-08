@@ -1,5 +1,5 @@
 import { describe, expect, it } from 'vitest';
-import { prepareEditAndResendMessages } from '../useChatRouter';
+import { prepareAutoReviewSend, prepareEditAndResendMessages } from '../useChatRouter';
 
 describe('prepareEditAndResendMessages', () => {
   it('resends even when the edited text matches the original message', () => {
@@ -40,5 +40,25 @@ describe('prepareEditAndResendMessages', () => {
 
     expect(prepareEditAndResendMessages(messages, 0, '   ')).toBeNull();
     expect(prepareEditAndResendMessages(messages, 1, 'Retry')).toBeNull();
+  });
+});
+
+describe('prepareAutoReviewSend', () => {
+  it('keeps auto-review prompts silent while preserving the full agent prompt', () => {
+    const result = prepareAutoReviewSend('[AUTO-REVIEW] Generation complete. Run validate_course.');
+
+    expect(result).toEqual({
+      text: 'Review my course',
+      agentPromptOverride: '[AUTO-REVIEW] Generation complete. Run validate_course.',
+      silent: true,
+    });
+  });
+
+  it('leaves normal user prompts visible', () => {
+    expect(prepareAutoReviewSend('Review my course')).toEqual({
+      text: 'Review my course',
+      agentPromptOverride: null,
+      silent: false,
+    });
   });
 });

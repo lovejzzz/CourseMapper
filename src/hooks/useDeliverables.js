@@ -24,7 +24,11 @@ import {
 import { expandKeys } from '../lib/keyMaps';
 import { log, warn, error as logError } from '../lib/logger';
 import { buildDeliverableTimeoutError, runDeliverableFeatureWithTimeout } from '../lib/deliverableTimeouts';
-import { normalizeCourseFaqQuestionCounts } from '../lib/deliverablePostProcess';
+import {
+  normalizeCourseFaqQuestionCounts,
+  normalizeQuizBankRationales,
+  normalizeSlideDeckSpeakerNotes,
+} from '../lib/deliverablePostProcess';
 
 // ── Post-process scoped deliverable output to fix lesson/week numbering ──
 // When the user generates a subset of lessons (e.g., lesson 6 only), the AI may
@@ -788,42 +792,21 @@ export default function useDeliverables({
             }
           }
 
-          // Quiz validation: enforce explanations and distractor rationale
-          let missingExplanations = 0;
-          let missingDistractors = 0;
-          mergedArr = mergedArr.map((quiz) => {
-            if (!quiz?.questions) return quiz;
-            const questions = quiz.questions.map((q) => {
-              const isMC = q.type === 'multiple_choice';
-              let patched = { ...q };
+          // Quiz validation: enforce publishable explanations/rationales without
+          // leaking internal repair placeholders into exported banks.
+          const normalizedQuiz = normalizeQuizBankRationales(merged);
+          merged = normalizedQuiz.data;
+          mergedArr = normalizedQuiz.arrayKey ? merged[normalizedQuiz.arrayKey] || [] : mergedArr;
 
-              if (!patched.explanation || patched.explanation.trim() === '') {
-                missingExplanations++;
-                patched.explanation = isMC
-                  ? `The correct answer is ${patched.answer || '?'} because... [Explanation needed - review this question]`
-                  : `[Explanation needed - model response required]`;
-              }
-
-              if (isMC && (!patched.distractorRationale || patched.distractorRationale.trim() === '')) {
-                missingDistractors++;
-                patched.distractorRationale = `[Distractor rationale needed to explain why incorrect options are plausible]`;
-              }
-
-              return patched;
-            });
-            return { ...quiz, questions };
-          });
-
-          if (missingExplanations > 0 || missingDistractors > 0) {
+          if (normalizedQuiz.patchedExplanations > 0 || normalizedQuiz.patchedDistractorRationales > 0) {
             const label = getFeatureLabel(fid);
             warn(
-              `${fid}: patched ${missingExplanations} missing explanations and ${missingDistractors} missing distractor rationales`,
+              `${fid}: patched ${normalizedQuiz.patchedExplanations} missing explanations and ${normalizedQuiz.patchedDistractorRationales} missing distractor rationales`,
             );
             appendLog(
-              `⚠ ${label}: patched ${missingExplanations} missing explanations and ${missingDistractors} missing distractors to meet quality standard`,
+              `⚠ ${label}: filled ${normalizedQuiz.patchedExplanations} explanation(s) and ${normalizedQuiz.patchedDistractorRationales} distractor rationale(s) from existing answer data`,
               'warn',
             );
-            merged = { ...merged, [arrayKey]: mergedArr };
           }
         }
 
@@ -1257,6 +1240,30 @@ export default function useDeliverables({
         // Apply scope numbering.
         // Skip rubrics and assignments — they are per-assessment (not 1 item per lesson),
         // so the index-based mapping in patchScopeNumbering would corrupt lessonTitle fields.
+        if (fid === 'quizBank') {
+          const normalizedQuiz = normalizeQuizBankRationales(merged);
+          merged = normalizedQuiz.data;
+          mergedArr = normalizedQuiz.arrayKey ? merged[normalizedQuiz.arrayKey] || [] : mergedArr;
+          if (normalizedQuiz.patchedExplanations > 0 || normalizedQuiz.patchedDistractorRationales > 0) {
+            appendLog(
+              `⚠ ${getFeatureLabel(fid)}: filled ${normalizedQuiz.patchedExplanations} explanation(s) and ${normalizedQuiz.patchedDistractorRationales} distractor rationale(s) after retry`,
+              'warn',
+            );
+          }
+        }
+
+        if (fid === 'slideDecks') {
+          const normalizedSlides = normalizeSlideDeckSpeakerNotes(merged);
+          merged = normalizedSlides.data;
+          mergedArr = normalizedSlides.arrayKey ? merged[normalizedSlides.arrayKey] || [] : mergedArr;
+          if (normalizedSlides.patchedNotes > 0) {
+            appendLog(
+              `⚠ ${getFeatureLabel(fid)}: filled ${normalizedSlides.patchedNotes} missing speaker note(s) before export`,
+              'warn',
+            );
+          }
+        }
+
         let finalData =
           fid === 'rubrics' || fid === 'assignments'
             ? merged

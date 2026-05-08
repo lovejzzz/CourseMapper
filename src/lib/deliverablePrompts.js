@@ -65,7 +65,7 @@ const CONTINUATION_REQUIREMENTS = {
 - Header format: "Lesson {N}: {Title}". Return ONLY JSON.`,
   quizBank: `- 5-7 questions per lesson. ≥3 MC, 1-2 short answer, 1 essay. ≥3 Bloom's levels per lesson.
 - MC: 4 options (A-D), complete sentence stems, similar length. Omit inapplicable fields (no nulls).
-- Mandatory: explanation + distractorRationale for every MC question.
+- Mandatory: explanation for every question; distractorRationale for every MC question.
 - Header format: "Lesson {N}: {Title}". Return ONLY JSON.`,
   rubrics: `- One rubric per unique assessment. 4-6 criteria, weights sum to 100.
 - Observable behavioral language. No vague qualifiers. Exemplary = above minimum.

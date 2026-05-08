@@ -1359,6 +1359,16 @@ export default function AppFlow({ startupAction = null, onStartupHandled, onRetu
   // Pointer-based tab drag: smoother than native HTML5 DnD and avoids clipped overlays.
   const draggedTab = tabDrag ? workspaceTabs.find((f) => f.id === tabDrag.id) : null;
   const canDeleteDraggedTab = !!draggedTab && draggedTab.id !== 'courseMap';
+  const developerIdeDisabledReason = gen.isStreaming
+    ? 'Course map generation is still running.'
+    : deliv.isGenerating
+      ? 'Deliverables are still generating.'
+      : rev.isRevising
+        ? 'Course revision is still applying.'
+        : smartSync.isSyncing
+          ? 'Workspace sync is still applying.'
+          : '';
+  const developerIdeDisabled = Boolean(developerIdeDisabledReason);
 
   const handleTabPointerDown = (feature, tabIdx) => (e) => {
     if (e.button !== 0) return;
@@ -1509,7 +1519,11 @@ export default function AppFlow({ startupAction = null, onStartupHandled, onRetu
           onOpenProjects={() => setShowProjectPicker(true)}
           developerMode={developerMode}
           onDeveloperModeChange={setDeveloperMode}
-          onOpenDeveloperPanel={() => setShowDeveloperPanel(true)}
+          onOpenDeveloperPanel={() => {
+            if (!developerIdeDisabled) setShowDeveloperPanel(true);
+          }}
+          developerIdeDisabled={developerIdeDisabled}
+          developerIdeDisabledReason={developerIdeDisabledReason}
         />
 
         {/* Cloud save runs silently */}
