@@ -1,35 +1,19 @@
 import React, { useState, useEffect, useRef, useMemo } from 'react';
+import { loadKatexRuntime } from '../../lib/katexRuntime.js';
 
 // ── Lazy KaTeX loader ────────────────────────────────────────────────────────
 let _katex = null;
 let _katexReady = false;
-let _katexPromise = null;
 
 async function ensureKatex() {
   if (_katex) return _katex;
-  if (_katexPromise) return _katexPromise;
-  _katexPromise = (async () => {
-    try {
-      const [mod] = await Promise.all([
-        import('katex'),
-        import('katex/dist/katex.min.css?inline').then((css) => {
-          if (!document.querySelector('[data-katex-chat]')) {
-            const style = document.createElement('style');
-            style.textContent = css.default;
-            style.setAttribute('data-katex-chat', 'true');
-            document.head.appendChild(style);
-          }
-        }),
-      ]);
-      _katex = mod.default || mod;
-      _katexReady = true;
-      return _katex;
-    } catch {
-      _katexPromise = null;
-      return null;
-    }
-  })();
-  return _katexPromise;
+  try {
+    _katex = await loadKatexRuntime();
+    _katexReady = true;
+    return _katex;
+  } catch {
+    return null;
+  }
 }
 
 /** Render a LaTeX string to HTML. Returns null if KaTeX isn't loaded. */

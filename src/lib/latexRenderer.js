@@ -8,6 +8,8 @@
  * KaTeX is lazy-loaded only when complex expressions are detected during export.
  */
 
+import { loadHtml2CanvasRuntime, loadKatexRuntime } from './katexRuntime.js';
+
 // ── LaTeX Detection ───────────────────────────────────────────────────────
 
 /** Match display math: $$...$$ */
@@ -279,34 +281,6 @@ export function latexToUnicode(expr) {
 
 // ── Tier 2: KaTeX Image Rendering ─────────────────────────────────────────
 
-let _katex = null;
-let _katexCssInjected = false;
-
-/** Lazy-load KaTeX + inject its CSS into the document. */
-async function loadKatex() {
-  if (_katex) return _katex;
-
-  const [katexModule] = await Promise.all([
-    import('katex'),
-    (async () => {
-      if (_katexCssInjected) return;
-      try {
-        const cssModule = await import('katex/dist/katex.min.css?inline');
-        const style = document.createElement('style');
-        style.textContent = cssModule.default;
-        style.setAttribute('data-katex', 'true');
-        document.head.appendChild(style);
-        _katexCssInjected = true;
-      } catch (e) {
-        console.warn('[CM] Could not load KaTeX CSS:', e);
-      }
-    })(),
-  ]);
-
-  _katex = katexModule.default || katexModule;
-  return _katex;
-}
-
 /**
  * Render a LaTeX expression to a base64 PNG image using KaTeX + html2canvas.
  *
@@ -318,8 +292,8 @@ async function loadKatex() {
  * @returns {Promise<{ base64: string, widthIn: number, heightIn: number }>}
  */
 export async function renderLatexToImage(expr, { displayMode = false, fontSizePx = 24, color = '#000000' } = {}) {
-  const katex = await loadKatex();
-  const html2canvas = (await import('html2canvas')).default;
+  const katex = await loadKatexRuntime();
+  const html2canvas = await loadHtml2CanvasRuntime();
 
   const container = document.createElement('div');
   container.style.cssText = `

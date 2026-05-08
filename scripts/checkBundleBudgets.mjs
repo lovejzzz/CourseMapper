@@ -43,6 +43,8 @@ const forbiddenRuntimeDependencies = [
   '@citation-js/core',
   '@citation-js/plugin-bibtex',
   'exceljs',
+  'html2canvas',
+  'katex',
   'mermaid',
 ];
 
