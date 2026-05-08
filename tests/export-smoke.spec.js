@@ -285,8 +285,9 @@ function exportFixture() {
   };
 }
 
-async function restoreExportWorkspace(page) {
+async function restoreExportWorkspace(page, mutateSnapshot = null) {
   const snapshot = exportFixture();
+  if (mutateSnapshot) mutateSnapshot(snapshot);
   await page.addInitScript((projectSnapshot) => {
     localStorage.clear();
     sessionStorage.clear();
@@ -325,6 +326,9 @@ test.describe('Export smoke', () => {
   }) => {
     test.setTimeout(120000);
     await restoreExportWorkspace(page);
+
+    await expect(page.getByTestId('readiness-panel')).toBeVisible({ timeout: 10000 });
+    await expect(page.getByTestId('readiness-status')).toContainText('Ready');
 
     await expectDownload(page, () => page.getByTestId('export-format-xlsx').click(), {
       extension: 'xlsx',
@@ -385,5 +389,39 @@ test.describe('Export smoke', () => {
       nameIncludes: 'Export Smoke Course',
       minBytes: 1000,
     });
+  });
+
+  test('blocks ZIP export when selected generated materials fail readiness checks', async ({ page }) => {
+    await restoreExportWorkspace(page, (snapshot) => {
+      snapshot.selectedFeatures = ['courseMap', 'quizBank'];
+      snapshot.deliverables = {
+        quizBank: {
+          status: 'done',
+          data: {
+            quizzes: [
+              {
+                lessonTitle: 'Lesson 1: Export Reliability',
+                questions: [
+                  {
+                    type: 'multiple_choice',
+                    difficulty: 'Easy',
+                    estimatedMinutes: 2,
+                    question: 'Only one question?',
+                  },
+                ],
+              },
+            ],
+          },
+          error: null,
+          stale: false,
+        },
+      };
+    });
+
+    await page.getByTestId('export-scope-all').click();
+    await expect(page.getByTestId('readiness-status')).toContainText('Fix before export');
+    await expect(page.getByTestId('readiness-panel')).toContainText('Quiz & Exam Bank');
+    await expect(page.getByTestId('readiness-panel')).toContainText('fewer than 5 questions');
+    await expect(page.getByTestId('export-download-zip')).toBeDisabled();
   });
 });

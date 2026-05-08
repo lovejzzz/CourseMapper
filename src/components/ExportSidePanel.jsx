@@ -1,6 +1,7 @@
-import React, { useState } from 'react';
+import React, { useMemo, useState } from 'react';
 import { useCourse } from '../contexts/CourseContext';
 import { safeImport } from '../lib/safeImport';
+import { evaluateWorkspaceReadiness, summarizeReadiness } from '../lib/deliverableReadiness';
 import {
   exportDeliverableCsv,
   exportDeliverablePdf,
@@ -274,6 +275,68 @@ function GDriveBtn({ fmt, label, disabled, busy, onClick }) {
   );
 }
 
+function ReadinessPanel({ readiness }) {
+  if (!readiness || readiness.featureCount === 0) return null;
+
+  const isBlocked = readiness.blockers.length > 0;
+  const hasWarnings = readiness.warnings.length > 0;
+  const issuesToShow = isBlocked ? readiness.blockers.slice(0, 3) : readiness.warnings.slice(0, 3);
+  const tone = isBlocked
+    ? {
+        wrap: 'border-red-100 bg-red-50/70 text-red-700',
+        icon: 'bg-red-100 text-red-600',
+        title: 'Fix before export',
+        meta: `${readiness.blockers.length} blocker${readiness.blockers.length === 1 ? '' : 's'}`,
+      }
+    : hasWarnings
+      ? {
+          wrap: 'border-amber-100 bg-amber-50/70 text-amber-700',
+          icon: 'bg-amber-100 text-amber-600',
+          title: 'Ready with warnings',
+          meta: `${readiness.warnings.length} warning${readiness.warnings.length === 1 ? '' : 's'}`,
+        }
+      : {
+          wrap: 'border-emerald-100 bg-emerald-50/70 text-emerald-700',
+          icon: 'bg-emerald-100 text-emerald-600',
+          title: 'Ready to export',
+          meta: `${readiness.doneFeatureCount}/${readiness.featureCount} sections checked`,
+        };
+
+  return (
+    <div data-testid="readiness-panel" className={`rounded-xl border px-3 py-2.5 ${tone.wrap}`}>
+      <div className="flex items-start gap-2">
+        <span
+          className={`mt-0.5 flex h-5 w-5 flex-shrink-0 items-center justify-center rounded-full text-[11px] ${tone.icon}`}
+        >
+          {isBlocked ? '!' : hasWarnings ? '•' : '✓'}
+        </span>
+        <div className="min-w-0 flex-1">
+          <div className="flex flex-wrap items-center gap-x-2 gap-y-0.5">
+            <p data-testid="readiness-status" className="text-[11px] font-bold">
+              {tone.title}
+            </p>
+            <span className="text-[9px] font-semibold opacity-70">{tone.meta}</span>
+          </div>
+          <p className="mt-0.5 text-[10px] leading-snug opacity-80">{summarizeReadiness(readiness)}</p>
+          {issuesToShow.length > 0 && (
+            <ul className="mt-1.5 space-y-1">
+              {issuesToShow.map((issue, index) => (
+                <li
+                  key={`${issue.featureId}-${issue.message}-${index}`}
+                  data-testid="readiness-issue"
+                  className="text-[10px] leading-snug"
+                >
+                  <span className="font-semibold">{issue.label}:</span> {issue.message}
+                </li>
+              ))}
+            </ul>
+          )}
+        </div>
+      </div>
+    </div>
+  );
+}
+
 // ── ZIP export (all deliverables) ─────────────────────────────────────────────
 async function exportAllAsZip(deliverables, courseMap, columns, courseName, lessonFilter, slideTheme) {
   let JSZip;
@@ -421,8 +484,44 @@ export default function ExportSidePanel({
 
   // Effective lesson filter for ZIP
   const effectiveLessonFilter = selectedLessons; // null means no filter (all)
+  const workspaceReadiness = useMemo(
+    () =>
+      evaluateWorkspaceReadiness({
+        courseMap,
+        deliverables,
+        selectedFeatures,
+        columns,
+        lessonFilter: effectiveLessonFilter,
+      }),
+    [columns, courseMap, deliverables, effectiveLessonFilter, selectedFeatures],
+  );
+  const currentReadiness = useMemo(
+    () =>
+      evaluateWorkspaceReadiness({
+        courseMap,
+        deliverables,
+        selectedFeatures: [activeTab],
+        columns,
+        lessonFilter: effectiveLessonFilter,
+      }),
+    [activeTab, columns, courseMap, deliverables, effectiveLessonFilter],
+  );
+  const activeReadiness = scope === 'all' ? workspaceReadiness : currentReadiness;
+  const zipBlocked = scope === 'all' && workspaceReadiness.isBlocked;
+  const currentBlocked = scope === 'current' && currentReadiness.isBlocked;
+
+  function blockExportIfNeeded(format) {
+    const readiness = scope === 'all' ? workspaceReadiness : currentReadiness;
+    if ((format === 'zip' || scope === 'current') && readiness.isBlocked) {
+      const message = `Resolve readiness blockers before export: ${summarizeReadiness(readiness)}`;
+      setLastError(message);
+      return true;
+    }
+    return false;
+  }
 
   async function doExport(format) {
+    if (blockExportIfNeeded(format)) return;
     // For Google exports we must open a tab BEFORE any await (popup blocker)
     // Course map exports open their own tab internally via useExport → saveToGoogleDocs/Sheets
     const needsTab = (format === 'gdocs' || format === 'gsheets' || format === 'gslides') && activeTab !== 'courseMap';
@@ -480,12 +579,13 @@ export default function ExportSidePanel({
 
   // What's disabled in "current" mode
   function isDisabled(formatId) {
-    if (activeTab === 'courseMap') return !FORMAT_SUPPORT.courseMap[formatId];
+    if (activeTab === 'courseMap') return !FORMAT_SUPPORT.courseMap[formatId] || currentBlocked;
     if (activeTab === 'slideDecks') {
-      if (formatId === 'pptx' || formatId === 'slidepdf' || formatId === 'gslides') return !currentHasData;
+      if (formatId === 'pptx' || formatId === 'slidepdf' || formatId === 'gslides')
+        return !currentHasData || currentBlocked;
       return true; // other formats not supported for slide decks
     }
-    if (!currentHasData) return true;
+    if (!currentHasData || currentBlocked) return true;
     return !currentSupport[formatId];
   }
 
@@ -571,6 +671,8 @@ export default function ExportSidePanel({
           )}
         </p>
 
+        <ReadinessPanel readiness={activeReadiness} />
+
         {/* ────────────────────────────────────────────────────────────── */}
         {/* ALL MODE: Lesson scope + ZIP download + Save Project file     */}
         {/* ────────────────────────────────────────────────────────────── */}
@@ -629,9 +731,18 @@ export default function ExportSidePanel({
               <button
                 data-testid="export-download-zip"
                 onClick={() => doExport('zip')}
-                disabled={!!busy || allReadyCount === 0 || (selectedLessons !== null && selectedLessons.length === 0)}
+                disabled={
+                  !!busy ||
+                  allReadyCount === 0 ||
+                  zipBlocked ||
+                  (selectedLessons !== null && selectedLessons.length === 0)
+                }
                 title={
-                  selectedLessons !== null && selectedLessons.length === 0 ? 'Select at least one lesson' : undefined
+                  zipBlocked
+                    ? summarizeReadiness(workspaceReadiness)
+                    : selectedLessons !== null && selectedLessons.length === 0
+                      ? 'Select at least one lesson'
+                      : undefined
                 }
                 className="tactile flex items-center justify-center gap-2 w-full py-2.5 rounded-lg text-[12px] font-bold text-white bg-gradient-to-r from-indigo-500 to-violet-600 shadow-sm hover:brightness-110 transition-all disabled:opacity-40 disabled:cursor-not-allowed"
               >

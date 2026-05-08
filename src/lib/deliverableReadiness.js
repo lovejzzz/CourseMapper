@@ -1,0 +1,445 @@
+import { getArrayKey } from './syncDependencies';
+
+export const READINESS_BLOCKER = 'blocker';
+export const READINESS_WARNING = 'warning';
+
+export const READINESS_FEATURE_LABELS = {
+  courseMap: 'Course Map',
+  syllabus: 'Syllabus',
+  lessonPlans: 'Lesson Plans',
+  slideDecks: 'Slide Decks',
+  assignments: 'Assignment Briefs',
+  rubrics: 'Rubrics',
+  discussions: 'Discussion Prompts',
+  quizBank: 'Quiz & Exam Bank',
+  studyGuides: 'Study Guides',
+  courseFaq: 'Course FAQ',
+};
+
+const PER_LESSON_FEATURES = new Set([
+  'lessonPlans',
+  'slideDecks',
+  'discussions',
+  'quizBank',
+  'studyGuides',
+  'courseFaq',
+]);
+
+const DEFAULT_FEATURES = [
+  'courseMap',
+  'lessonPlans',
+  'slideDecks',
+  'assignments',
+  'rubrics',
+  'discussions',
+  'quizBank',
+  'studyGuides',
+  'courseFaq',
+  'syllabus',
+];
+
+const FAQ_CATEGORIES = new Set([
+  'Course Logistics',
+  'Assignment Clarification',
+  'Concept Explanation',
+  'Technical Help',
+  'Assessment Prep',
+]);
+
+function labelFor(featureId) {
+  return READINESS_FEATURE_LABELS[featureId] || (featureId?.startsWith('custom_') ? 'Custom Deliverable' : featureId);
+}
+
+function makeIssue(severity, featureId, message, details = {}) {
+  return { severity, featureId, label: labelFor(featureId), message, ...details };
+}
+
+function asArray(value) {
+  return Array.isArray(value) ? value : [];
+}
+
+function text(value) {
+  if (Array.isArray(value)) return value.filter(Boolean).join(' ');
+  return String(value || '');
+}
+
+function getFeatureArray(featureId, data) {
+  if (!data || typeof data !== 'object') return [];
+  const directKey = getArrayKey(featureId, data);
+  if (directKey && Array.isArray(data[directKey])) return data[directKey];
+
+  const aliases = {
+    lessonPlans: ['lessonPlans', 'plans'],
+    slideDecks: ['decks', 'slideDecks'],
+    discussions: ['discussions'],
+    quizBank: ['quizzes', 'quizBank'],
+    studyGuides: ['studyGuides', 'guides'],
+    courseFaq: ['faqs', 'courseFaq'],
+    assignments: ['assignments'],
+    rubrics: ['rubrics'],
+  };
+
+  for (const key of aliases[featureId] || []) {
+    if (Array.isArray(data[key])) return data[key];
+  }
+  return [];
+}
+
+function getSelectedFeatureIds(selectedFeatures, deliverables = {}) {
+  const selected = Array.isArray(selectedFeatures) && selectedFeatures.length > 0 ? selectedFeatures : null;
+  if (selected) return [...new Set(selected)];
+  const generated = Object.entries(deliverables)
+    .filter(([, entry]) => entry?.status === 'done')
+    .map(([featureId]) => featureId);
+  return [...new Set(['courseMap', ...generated.filter((id) => DEFAULT_FEATURES.includes(id))])];
+}
+
+function getLessonIndices(courseMap, lessonFilter) {
+  const lessons = asArray(courseMap?.lessons);
+  if (Array.isArray(lessonFilter) && lessonFilter.length > 0) {
+    return lessonFilter.filter((index) => index >= 0 && index < lessons.length);
+  }
+  return lessons.map((_, index) => index);
+}
+
+function enabledColumnKeys(columns) {
+  return asArray(columns)
+    .filter((column) => column?.enabled !== false)
+    .map((column) => column.key)
+    .filter(Boolean);
+}
+
+function hasMeaningfulValue(value) {
+  const raw = text(value).trim();
+  return raw.length >= 5 && !/^(tbd|todo|n\/a|\?|to be determined)$/i.test(raw);
+}
+
+function extractLessonNumbersFromText(value) {
+  const numbers = new Set();
+  const raw = text(value);
+  for (const match of raw.matchAll(/\b(?:lesson|week|module|unit|session)\s*(\d{1,2})\b/gi)) {
+    numbers.add(Number(match[1]));
+  }
+  return [...numbers].filter(Number.isFinite);
+}
+
+function itemLessonNumbers(item) {
+  return extractLessonNumbersFromText([
+    item?.lessonTitle,
+    item?.title,
+    item?.weekNumber,
+    item?.dueWeek,
+    ...(Array.isArray(item?.relatedLessons) ? item.relatedLessons : []),
+    ...(Array.isArray(item?.tags) ? item.tags : []),
+  ]);
+}
+
+function getExpectedItemForLesson(items, lessonIndex, lessonIndices) {
+  const lessonNumber = lessonIndex + 1;
+  const explicit = items.find((item) => itemLessonNumbers(item).includes(lessonNumber));
+  if (explicit) return explicit;
+
+  if (items.length >= Math.max(...lessonIndices, 0) + 1) return items[lessonIndex] || null;
+  const localIndex = lessonIndices.indexOf(lessonIndex);
+  return localIndex >= 0 ? items[localIndex] || null : null;
+}
+
+function lessonAssessmentText(lesson) {
+  return asArray(lesson?.sections)
+    .map((section) => text(section?.weeklyAssessments || section?.assessment))
+    .filter(Boolean)
+    .join('\n');
+}
+
+function lessonHasAssessment(lesson) {
+  const assessment = lessonAssessmentText(lesson);
+  if (!assessment.trim()) return false;
+  if (/\b(no assessment|none|n\/a|not applicable|optional only)\b/i.test(assessment)) return false;
+  return /\b(assignment|paper|project|presentation|exam|quiz|test|portfolio|brief|report|case study|problem set|reflection|proposal|analysis|essay|final|midterm|checklist)\b/i.test(
+    assessment,
+  );
+}
+
+function countQuestions(item) {
+  return asArray(item?.questions || item?.qs).length;
+}
+
+function countSlides(item) {
+  return asArray(item?.slides || item?.sl).length;
+}
+
+function getSlideNotes(slide) {
+  return text(slide?.speakerNotes || slide?.notes || slide?.no).trim();
+}
+
+function getPercent(value) {
+  const number = Number(text(value).match(/\d+(?:\.\d+)?/)?.[0]);
+  return Number.isFinite(number) ? number : 0;
+}
+
+function checkCourseMap(courseMap, columns, lessonIndices, issues) {
+  const lessons = asArray(courseMap?.lessons);
+  if (lessons.length === 0) {
+    issues.push(makeIssue(READINESS_BLOCKER, 'courseMap', 'Course Map has no lessons.'));
+    return;
+  }
+
+  const columnsToCheck = enabledColumnKeys(columns);
+  for (const lessonIndex of lessonIndices) {
+    const lesson = lessons[lessonIndex];
+    const label = lesson?.title || `Lesson ${lessonIndex + 1}`;
+    if (!text(lesson?.title).trim()) {
+      issues.push(makeIssue(READINESS_BLOCKER, 'courseMap', `Lesson ${lessonIndex + 1} is missing a title.`));
+    }
+    const sections = asArray(lesson?.sections);
+    if (sections.length === 0) {
+      issues.push(makeIssue(READINESS_BLOCKER, 'courseMap', `${label} has no course-map sections.`));
+      continue;
+    }
+    for (const key of columnsToCheck) {
+      const hasValue = sections.some((section) => hasMeaningfulValue(section?.[key]));
+      if (!hasValue) {
+        issues.push(makeIssue(READINESS_WARNING, 'courseMap', `${label} has an empty ${key} field.`));
+      }
+    }
+  }
+}
+
+function checkPerLessonFeature(featureId, data, courseMap, lessonIndices, issues) {
+  const items = getFeatureArray(featureId, data);
+  if (items.length === 0) {
+    issues.push(makeIssue(READINESS_BLOCKER, featureId, `${labelFor(featureId)} has no generated lesson items.`));
+    return;
+  }
+
+  const lessons = asArray(courseMap?.lessons);
+  for (const lessonIndex of lessonIndices) {
+    const lessonTitle = lessons[lessonIndex]?.title || `Lesson ${lessonIndex + 1}`;
+    const item = getExpectedItemForLesson(items, lessonIndex, lessonIndices);
+    if (!item) {
+      issues.push(makeIssue(READINESS_BLOCKER, featureId, `${labelFor(featureId)} is missing ${lessonTitle}.`));
+      continue;
+    }
+
+    if (featureId === 'slideDecks') {
+      const slides = asArray(item.slides || item.sl);
+      if (slides.length < 3) {
+        issues.push(makeIssue(READINESS_BLOCKER, featureId, `${lessonTitle} slide deck has fewer than 3 slides.`));
+      }
+      const missingNotes = slides.filter((slide) => !getSlideNotes(slide)).length;
+      if (slides.length > 0 && missingNotes > 0) {
+        const severity = missingNotes === slides.length ? READINESS_BLOCKER : READINESS_WARNING;
+        issues.push(
+          makeIssue(
+            severity,
+            featureId,
+            `${lessonTitle} has ${missingNotes} slide${missingNotes === 1 ? '' : 's'} with missing or very short speaker notes.`,
+          ),
+        );
+      }
+      const shortNotes = slides.filter((slide) => {
+        const notes = getSlideNotes(slide);
+        return notes && notes.split(/\s+/).filter(Boolean).length < 10;
+      }).length;
+      if (shortNotes > 0) {
+        issues.push(
+          makeIssue(
+            READINESS_WARNING,
+            featureId,
+            `${lessonTitle} has ${shortNotes} slide${shortNotes === 1 ? '' : 's'} with very short speaker notes.`,
+          ),
+        );
+      }
+    }
+
+    if (featureId === 'quizBank') {
+      const questions = asArray(item.questions || item.qs);
+      if (questions.length < 5) {
+        issues.push(makeIssue(READINESS_BLOCKER, featureId, `${lessonTitle} quiz bank has fewer than 5 questions.`));
+      }
+      const metadataDrift = questions.filter(
+        (question) => !question.type || !question.difficulty || !Number.isFinite(Number(question.estimatedMinutes)),
+      ).length;
+      if (metadataDrift > 0) {
+        issues.push(
+          makeIssue(READINESS_WARNING, featureId, `${lessonTitle} has ${metadataDrift} quiz question metadata gap(s).`),
+        );
+      }
+    }
+
+    if (featureId === 'courseFaq') {
+      const questions = asArray(item.questions || item.qs);
+      if (questions.length < 3) {
+        issues.push(makeIssue(READINESS_BLOCKER, featureId, `${lessonTitle} FAQ has fewer than 3 questions.`));
+      } else if (questions.length < 5) {
+        issues.push(makeIssue(READINESS_WARNING, featureId, `${lessonTitle} FAQ has fewer than 5 questions.`));
+      }
+      const badCategories = questions.filter(
+        (question) => !FAQ_CATEGORIES.has(text(question.category || question.ca)),
+      ).length;
+      if (badCategories > 0) {
+        issues.push(
+          makeIssue(
+            READINESS_WARNING,
+            featureId,
+            `${lessonTitle} has ${badCategories} unsupported FAQ categor${badCategories === 1 ? 'y' : 'ies'}.`,
+          ),
+        );
+      }
+    }
+  }
+}
+
+function checkRubrics(data, courseMap, lessonIndices, issues) {
+  const rubrics = getFeatureArray('rubrics', data);
+  const lessons = asArray(courseMap?.lessons);
+  const assessedLessonNumbers = lessonIndices
+    .filter((lessonIndex) => lessonHasAssessment(lessons[lessonIndex]))
+    .map((lessonIndex) => lessonIndex + 1);
+
+  if (assessedLessonNumbers.length === 0) return;
+  if (rubrics.length === 0) {
+    issues.push(makeIssue(READINESS_BLOCKER, 'rubrics', 'Rubrics are missing for assessed lessons.'));
+    return;
+  }
+
+  const covered = new Set();
+  rubrics.forEach((rubric) => itemLessonNumbers(rubric).forEach((number) => covered.add(number)));
+  if (covered.size === 0 && rubrics.length >= assessedLessonNumbers.length) return;
+
+  const missing = assessedLessonNumbers.filter((lessonNumber) => !covered.has(lessonNumber));
+  if (missing.length > 0) {
+    issues.push(
+      makeIssue(READINESS_BLOCKER, 'rubrics', `Rubrics are missing assessed lesson(s): ${missing.join(', ')}.`),
+    );
+  }
+}
+
+function checkAssignments(data, courseMap, lessonIndices, issues) {
+  const assignments = getFeatureArray('assignments', data);
+  const lessons = asArray(courseMap?.lessons);
+  const hasAssessments = lessonIndices.some((lessonIndex) => lessonHasAssessment(lessons[lessonIndex]));
+  if (hasAssessments && assignments.length === 0) {
+    issues.push(makeIssue(READINESS_BLOCKER, 'assignments', 'Assignment Briefs have no generated assignments.'));
+    return;
+  }
+
+  const gradeTotal = assignments.reduce(
+    (sum, assignment) => sum + getPercent(assignment.percentOfGrade || assignment.pg),
+    0,
+  );
+  if (gradeTotal > 0 && (gradeTotal < 95 || gradeTotal > 105)) {
+    issues.push(
+      makeIssue(
+        READINESS_WARNING,
+        'assignments',
+        `Assignment grade weights sum to ${Math.round(gradeTotal)}%, not about 100%.`,
+      ),
+    );
+  }
+
+  const missingLessonLinks = assignments.filter(
+    (assignment) => asArray(assignment.relatedLessons || assignment.rl).length === 0,
+  ).length;
+  if (missingLessonLinks > 0) {
+    issues.push(
+      makeIssue(
+        READINESS_WARNING,
+        'assignments',
+        `${missingLessonLinks} assignment${missingLessonLinks === 1 ? '' : 's'} missing related lesson links.`,
+      ),
+    );
+  }
+}
+
+function checkSyllabus(data, issues) {
+  if (!data || typeof data !== 'object') {
+    issues.push(makeIssue(READINESS_BLOCKER, 'syllabus', 'Syllabus has no generated data.'));
+    return;
+  }
+  if (
+    !hasMeaningfulValue(data.courseDescription || data.description) &&
+    !hasMeaningfulValue(data.schedule || data.weeklySchedule)
+  ) {
+    issues.push(
+      makeIssue(READINESS_WARNING, 'syllabus', 'Syllabus may be missing course description or schedule details.'),
+    );
+  }
+}
+
+export function evaluateWorkspaceReadiness({
+  courseMap,
+  deliverables = {},
+  selectedFeatures = null,
+  columns = [],
+  lessonFilter = null,
+} = {}) {
+  const issues = [];
+  const featureIds = getSelectedFeatureIds(selectedFeatures, deliverables);
+  const lessonIndices = getLessonIndices(courseMap, lessonFilter);
+
+  if (featureIds.includes('courseMap')) {
+    checkCourseMap(courseMap, columns, lessonIndices, issues);
+  }
+
+  for (const featureId of featureIds) {
+    if (featureId === 'courseMap') continue;
+    const entry = deliverables?.[featureId];
+
+    if (!entry) {
+      issues.push(makeIssue(READINESS_BLOCKER, featureId, `${labelFor(featureId)} has not been generated.`));
+      continue;
+    }
+    if (entry.status === 'error') {
+      issues.push(makeIssue(READINESS_BLOCKER, featureId, `${labelFor(featureId)} failed to generate.`));
+      continue;
+    }
+    if (entry.status !== 'done') {
+      issues.push(
+        makeIssue(READINESS_BLOCKER, featureId, `${labelFor(featureId)} is still ${entry.status || 'pending'}.`),
+      );
+      continue;
+    }
+    if (!entry.data) {
+      issues.push(makeIssue(READINESS_BLOCKER, featureId, `${labelFor(featureId)} has no generated data.`));
+      continue;
+    }
+    if (entry.stale) {
+      issues.push(makeIssue(READINESS_BLOCKER, featureId, `${labelFor(featureId)} is out of sync after edits.`));
+    }
+
+    if (PER_LESSON_FEATURES.has(featureId)) {
+      checkPerLessonFeature(featureId, entry.data, courseMap, lessonIndices, issues);
+    } else if (featureId === 'rubrics') {
+      checkRubrics(entry.data, courseMap, lessonIndices, issues);
+    } else if (featureId === 'assignments') {
+      checkAssignments(entry.data, courseMap, lessonIndices, issues);
+    } else if (featureId === 'syllabus') {
+      checkSyllabus(entry.data, issues);
+    }
+  }
+
+  const blockers = issues.filter((issue) => issue.severity === READINESS_BLOCKER);
+  const warnings = issues.filter((issue) => issue.severity === READINESS_WARNING);
+  const doneFeatures = featureIds.filter(
+    (featureId) => featureId === 'courseMap' || deliverables?.[featureId]?.status === 'done',
+  );
+
+  return {
+    status: blockers.length > 0 ? 'blocked' : warnings.length > 0 ? 'warnings' : 'ready',
+    isBlocked: blockers.length > 0,
+    blockers,
+    warnings,
+    issues,
+    lessonCount: lessonIndices.length,
+    featureCount: featureIds.length,
+    doneFeatureCount: doneFeatures.length,
+  };
+}
+
+export function summarizeReadiness(readiness) {
+  if (!readiness) return 'Readiness unavailable.';
+  if (readiness.blockers?.length > 0) return readiness.blockers[0].message;
+  if (readiness.warnings?.length > 0) return readiness.warnings[0].message;
+  return 'All selected materials passed readiness checks.';
+}
