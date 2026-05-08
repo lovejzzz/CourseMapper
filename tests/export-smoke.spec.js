@@ -1,5 +1,6 @@
 import { expect, test } from '@playwright/test';
 import fs from 'node:fs/promises';
+import { auditCourseMaterialsZip } from './lib/exportQualityAudit.js';
 
 function exportFixture() {
   return {
@@ -55,10 +56,11 @@ function exportFixture() {
     chatHistory: [],
     fileNames: [],
     versionHistory: [],
-    selectedFeatures: ['courseMap', 'lessonPlans', 'slideDecks'],
+    selectedFeatures: ['courseMap', 'lessonPlans', 'slideDecks', 'courseFaq'],
     deliverableConfig: {
       lessonPlans: {},
       slideDecks: { slideCount: 4 },
+      courseFaq: {},
     },
     lessonScope: { type: 'all' },
     promptText: 'Export smoke course',
@@ -177,6 +179,107 @@ function exportFixture() {
         error: null,
         stale: false,
       },
+      courseFaq: {
+        status: 'done',
+        data: {
+          faqs: [
+            {
+              lessonTitle: 'Lesson 1: Export Reliability',
+              questions: [
+                {
+                  question: 'How do I confirm a course map export worked?',
+                  answer:
+                    'Open the exported workbook and verify that each lesson row, enabled column, and course title is present.',
+                  category: 'Course Logistics',
+                  relatedConcepts: ['Course Map', 'Export QA'],
+                  difficulty: 'Basic',
+                },
+                {
+                  question: 'Why does the export smoke test include multiple file formats?',
+                  answer:
+                    'Each format exercises a different exporter, so the test catches regressions in tabular, document, and slide pipelines.',
+                  category: 'Technical Help',
+                  relatedConcepts: ['Regression Coverage'],
+                  difficulty: 'Intermediate',
+                },
+                {
+                  question: 'What should an instructor do when a cloud export fails?',
+                  answer:
+                    'Use the local download first, then reconnect Google Drive after reviewing the displayed authentication error.',
+                  category: 'Course Logistics',
+                  relatedConcepts: ['Google Drive', 'Fallback Export'],
+                  difficulty: 'Basic',
+                },
+                {
+                  question: 'How can exported materials support a teaching-team handoff?',
+                  answer:
+                    'They package the course plan in editable files that instructors can inspect, revise, and archive outside the app.',
+                  category: 'Assignment Clarification',
+                  relatedConcepts: ['Course Operations'],
+                  difficulty: 'Intermediate',
+                },
+                {
+                  question: 'What is the strongest signal that ZIP export is production-ready?',
+                  answer:
+                    'The ZIP contains every selected deliverable folder with readable files and no draft markers or empty notes.',
+                  category: 'Assessment Prep',
+                  relatedConcepts: ['ZIP Audit'],
+                  difficulty: 'Advanced',
+                },
+              ],
+              tags: ['export', 'quality assurance'],
+            },
+            {
+              lessonTitle: 'Lesson 2: Portable Course Materials',
+              questions: [
+                {
+                  question: 'Which export format is best for spreadsheet review?',
+                  answer:
+                    'Use XLSX or CSV when the reviewer needs rows, columns, sorting, or quick comparison across lessons.',
+                  category: 'Technical Help',
+                  relatedConcepts: ['XLSX', 'CSV'],
+                  difficulty: 'Basic',
+                },
+                {
+                  question: 'Which export format is best for instructor editing?',
+                  answer:
+                    'Use DOCX when instructors need to revise prose-heavy materials before sharing them with students.',
+                  category: 'Course Logistics',
+                  relatedConcepts: ['DOCX'],
+                  difficulty: 'Basic',
+                },
+                {
+                  question: 'Why should slide speaker notes be audited?',
+                  answer:
+                    'Speaker notes carry teaching guidance that is invisible on slides, so empty notes weaken classroom usability.',
+                  category: 'Concept Explanation',
+                  relatedConcepts: ['Slide Decks', 'Speaker Notes'],
+                  difficulty: 'Intermediate',
+                },
+                {
+                  question: 'How should teams archive a generated workspace?',
+                  answer:
+                    'Download the project file alongside the exported materials so the source state can be reopened later.',
+                  category: 'Course Logistics',
+                  relatedConcepts: ['Project Backup'],
+                  difficulty: 'Intermediate',
+                },
+                {
+                  question: 'What does a ZIP quality audit catch that size checks miss?',
+                  answer:
+                    'It inspects file contents for missing folders, leaked draft markers, short notes, and FAQ count regressions.',
+                  category: 'Assessment Prep',
+                  relatedConcepts: ['Content Audit'],
+                  difficulty: 'Advanced',
+                },
+              ],
+              tags: ['portable formats', 'course archive'],
+            },
+          ],
+        },
+        error: null,
+        stale: false,
+      },
     },
     savedAt: Date.now(),
   };
@@ -207,7 +310,7 @@ async function expectDownload(page, click, { extension, nameIncludes, minBytes =
   const path = await download.path();
   const stat = await fs.stat(path);
   expect(stat.size).toBeGreaterThan(minBytes);
-  return { fileName, size: stat.size };
+  return { fileName, path, size: stat.size };
 }
 
 async function switchWorkspaceTab(page, label) {
@@ -261,12 +364,22 @@ test.describe('Export smoke', () => {
     });
 
     await page.getByTestId('export-scope-all').click();
-    await expect(page.getByTestId('export-side-panel')).toContainText('3 items ready');
-    await expectDownload(page, () => page.getByTestId('export-download-zip').click(), {
+    await expect(page.getByTestId('export-side-panel')).toContainText('4 items ready');
+    const zipDownload = await expectDownload(page, () => page.getByTestId('export-download-zip').click(), {
       extension: 'zip',
       nameIncludes: 'Export Smoke Course',
       minBytes: 1000,
     });
+    const audit = await auditCourseMaterialsZip(zipDownload.path, {
+      expectedFolders: ['Course Map', 'Lesson Plans', 'Slide Decks', 'Course FAQ'],
+      expectedFaqQuestionsPerLesson: {
+        'Lesson 1: Export Reliability': 5,
+        'Lesson 2: Portable Course Materials': 5,
+      },
+      minSpeakerNoteWords: 20,
+    });
+    expect(audit.issues).toEqual([]);
+
     await expectDownload(page, () => page.getByTestId('export-save-project').click(), {
       extension: 'coursemapper',
       nameIncludes: 'Export Smoke Course',

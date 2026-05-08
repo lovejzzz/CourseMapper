@@ -132,6 +132,27 @@ function getGeneratedVisualImage(visual) {
   return visual?.generatedImage || visual?.image || visual?.img || null;
 }
 
+function countSpeakerNoteWords(value) {
+  return (String(value || '').match(/[A-Za-z][A-Za-z'-]*/g) || []).length;
+}
+
+function buildFallbackSpeakerNotes(deck, slide, slideIndex, totalSlides) {
+  const lessonTitle = deck.lessonTitle || deck.title || `Lesson ${deck._deckIndex + 1 || 1}`;
+  const slideTitle = slide.title || `Slide ${slideIndex + 1}`;
+  const rawBullets = Array.isArray(slide.bullets) ? slide.bullets : Array.isArray(slide.content) ? slide.content : [];
+  const bullets = rawBullets
+    .slice(0, 3)
+    .map((bullet) => String(bullet).trim())
+    .filter(Boolean)
+    .join('; ');
+  const focus = bullets || 'the central concept on this slide';
+  return [
+    `Use this slide in ${lessonTitle} to frame "${slideTitle}" as part ${slideIndex + 1} of ${totalSlides}.`,
+    `Connect the visual message to the lesson objective, then walk through ${focus}.`,
+    'Ask students to name one implication, misconception, or application before moving to the next slide.',
+  ].join(' ');
+}
+
 // ── Progress dot builder ───────────────────────────────────────────────────
 function addProgressDots(pptx, slide, theme, slideIndex, totalSlides, isDark) {
   const W = 10,
@@ -1421,7 +1442,11 @@ async function buildSlideForDeck(pptx, deck, theme, slideIndex, totalSlides, opt
   const visAlt = hasVisual ? vis.altText || vis.at || '' : '';
   const generatedVisualImage = hasVisual ? getGeneratedVisualImage(vis) : null;
 
-  const baseNotes = s.notes || s.speakerNotes || '';
+  const rawNotes = s.notes || s.speakerNotes || '';
+  const baseNotes =
+    countSpeakerNoteWords(rawNotes) >= 20
+      ? rawNotes
+      : [rawNotes, buildFallbackSpeakerNotes(deck, s, slideIndex, totalSlides)].filter(Boolean).join('\n\n');
   const augmentedNotes = hasVisual
     ? `SUGGESTED VISUAL (${visKind}): ${visDesc}${visAlt ? `\nALT TEXT: ${visAlt}` : ''}${baseNotes ? `\n\n---\n\n${baseNotes}` : ''}`
     : baseNotes;
@@ -1559,6 +1584,13 @@ async function createPptxWithDecks(data, courseName, themeIndex) {
         charSpacing: 4,
         align: 'center',
       });
+      divider.addNotes(
+        [
+          `Use this transition slide to reset attention before ${deck.lessonTitle || `Lesson ${di + 1}`}.`,
+          'Preview the lesson focus, connect it to the previous deck, and invite students to name one question they are bringing forward.',
+          'Move quickly so the divider supports pacing without becoming a content slide.',
+        ].join(' '),
+      );
     }
 
     for (let si = 0; si < slides.length; si++) {

@@ -50,6 +50,8 @@ function lessonPlansFixture() {
 }
 
 async function installMockOpenAI(page) {
+  let delayedLessonPlansOnce = false;
+
   await page.route('https://api.openai.com/v1/models', (route) =>
     route.fulfill({
       status: 200,
@@ -74,6 +76,10 @@ async function installMockOpenAI(page) {
     if (/quality assurance review/i.test(system)) {
       content = JSON.stringify({ patches: [] });
     } else if (/lesson plans/i.test(system)) {
+      if (!delayedLessonPlansOnce) {
+        delayedLessonPlansOnce = true;
+        await new Promise((resolve) => setTimeout(resolve, 2500));
+      }
       content = JSON.stringify(lessonPlansFixture());
     } else if (/study guides/i.test(system)) {
       content = 'intentionally invalid study guide response with no JSON object';
@@ -97,6 +103,7 @@ test.describe('All-deliverables terminal states', () => {
       localStorage.setItem('coursemapper-apikey', 'sk-proj-terminal-state-test-key');
       localStorage.setItem('coursemapper-modelid', 'gpt-4o-mini');
       localStorage.setItem('coursemapper-modelname', 'GPT-4o mini');
+      localStorage.setItem('coursemapper-developer-mode', 'true');
     });
 
     await page.goto('/');
@@ -113,6 +120,12 @@ test.describe('All-deliverables terminal states', () => {
     await page.getByRole('button', { name: /Generate/ }).click();
 
     await expect(page.getByTestId('workspace-shell')).toBeVisible({ timeout: 10000 });
+    const ideButton = page.getByRole('button', { name: 'IDE', exact: true });
+    await expect(ideButton).toBeDisabled({ timeout: 5000 });
+    await expect(ideButton).toHaveAttribute('title', /Deliverables are still generating/i);
+    await ideButton.click({ force: true });
+    await expect(page.getByTestId('developer-mode-panel')).toHaveCount(0);
+
     await expect(page.getByTestId('workspace-agent-panel').getByText('Complete')).toBeVisible({ timeout: 20000 });
 
     await page.getByLabel('Expand generation progress').click();

@@ -3,31 +3,34 @@ import React, { useState, useEffect, useRef, useMemo } from 'react';
 // ── Lazy KaTeX loader ────────────────────────────────────────────────────────
 let _katex = null;
 let _katexReady = false;
+let _katexPromise = null;
 
 async function ensureKatex() {
   if (_katex) return _katex;
-  try {
-    const [mod] = await Promise.all([
-      import('katex'),
-      import('katex/dist/katex.min.css?inline').then((css) => {
-        if (!document.querySelector('[data-katex-chat]')) {
-          const style = document.createElement('style');
-          style.textContent = css.default;
-          style.setAttribute('data-katex-chat', 'true');
-          document.head.appendChild(style);
-        }
-      }),
-    ]);
-    _katex = mod.default || mod;
-    _katexReady = true;
-    return _katex;
-  } catch {
-    return null;
-  }
+  if (_katexPromise) return _katexPromise;
+  _katexPromise = (async () => {
+    try {
+      const [mod] = await Promise.all([
+        import('katex'),
+        import('katex/dist/katex.min.css?inline').then((css) => {
+          if (!document.querySelector('[data-katex-chat]')) {
+            const style = document.createElement('style');
+            style.textContent = css.default;
+            style.setAttribute('data-katex-chat', 'true');
+            document.head.appendChild(style);
+          }
+        }),
+      ]);
+      _katex = mod.default || mod;
+      _katexReady = true;
+      return _katex;
+    } catch {
+      _katexPromise = null;
+      return null;
+    }
+  })();
+  return _katexPromise;
 }
-
-// Pre-load KaTeX on first import (non-blocking)
-ensureKatex();
 
 /** Render a LaTeX string to HTML. Returns null if KaTeX isn't loaded. */
 function renderMath(expr, displayMode = false) {
@@ -37,6 +40,10 @@ function renderMath(expr, displayMode = false) {
   } catch {
     return null;
   }
+}
+
+function textContainsMath(text) {
+  return /\$\$[^$]+\$\$|\$[^$\n]+\$/.test(text || '');
 }
 
 // ── Single-pass inline markdown tokenizer (with math support) ────────────────
@@ -225,6 +232,19 @@ function CodeBlock({ code, language }) {
 
 // ── Block-level markdown formatter ───────────────────────────────────────────
 function FormattedContent({ text }) {
+  const [, rerenderForMath] = useState(0);
+
+  useEffect(() => {
+    if (_katexReady || !textContainsMath(text)) return undefined;
+    let active = true;
+    ensureKatex().then(() => {
+      if (active) rerenderForMath((version) => version + 1);
+    });
+    return () => {
+      active = false;
+    };
+  }, [text]);
+
   const lines = text.split('\n');
   const elements = [];
   let i = 0;
@@ -477,7 +497,7 @@ function EditableUserMessage({ text, onEditSubmit }) {
   }
 
   return (
-    <div className="flex justify-end animate-spring-in group/usermsg">
+    <div data-testid="chat-message-user" className="flex justify-end animate-spring-in group/usermsg">
       <div className="relative max-w-[85%]">
         <div className="px-3.5 py-2.5 text-[13px] rounded-2xl rounded-br-md bg-gradient-to-r from-indigo-500 to-violet-500 text-white leading-relaxed shadow-lg shadow-indigo-500/10">
           {text}
@@ -539,7 +559,10 @@ export default function MessageBubble({
     // that this is an error, not just a red-styled message.
     return (
       <div className="flex justify-start animate-spring-in" role="alert" aria-live="assertive">
-        <div className="flex items-start gap-2 max-w-[85%] px-3.5 py-2.5 text-[13px] rounded-2xl rounded-bl-md bg-red-50/80 text-red-700 border border-red-200/40 leading-relaxed">
+        <div
+          data-testid="chat-message-error"
+          className="flex items-start gap-2 max-w-[85%] px-3.5 py-2.5 text-[13px] rounded-2xl rounded-bl-md bg-red-50/80 text-red-700 border border-red-200/40 leading-relaxed"
+        >
           <svg
             className="w-4 h-4 flex-shrink-0 mt-0.5 text-red-500"
             fill="none"
@@ -564,7 +587,7 @@ export default function MessageBubble({
   const showActions = text && !isStreaming;
 
   return (
-    <div className="flex justify-start animate-spring-in group/msg">
+    <div data-testid="chat-message-assistant" className="flex justify-start animate-spring-in group/msg">
       <div className="flex gap-2.5 max-w-[90%]">
         <div className="w-6 h-6 rounded-full bg-gradient-to-br from-slate-100 to-slate-200 flex items-center justify-center flex-shrink-0 mt-1 shadow-sm">
           <svg className="w-3 h-3 text-indigo-500" fill="none" stroke="currentColor" viewBox="0 0 24 24">
