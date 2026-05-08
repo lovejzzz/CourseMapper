@@ -564,7 +564,7 @@ export default function ExportSidePanel({
           ) : (
             <>
               <span className="font-semibold text-indigo-500">
-                {allReadyCount} item{allReadyCount !== 1 ? 's' : ''}
+                {allReadyCount} deliverable{allReadyCount !== 1 ? 's' : ''}
               </span>{' '}
               ready
             </>
@@ -580,7 +580,7 @@ export default function ExportSidePanel({
             {allLessons.length > 0 && (
               <div>
                 <div className="flex items-center justify-between mb-1.5">
-                  <p className="text-[9px] font-bold text-slate-400 uppercase tracking-wider">Lessons in ZIP</p>
+                  <p className="text-[9px] font-bold text-slate-400 uppercase tracking-wider">Lesson scope</p>
                   <button
                     onClick={() => setSelectedLessons(allSelected ? [] : null)}
                     className="text-[9px] font-semibold text-indigo-500 hover:text-indigo-700 transition-colors"

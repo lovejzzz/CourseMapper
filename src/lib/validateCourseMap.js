@@ -9,6 +9,31 @@
  * @param {Array}  columns  - Array of column objects with .key property
  * @returns {{ valid: boolean, warnings: string[] }}
  */
+
+function isBlank(value) {
+  return value == null || (typeof value === 'string' && value.trim() === '');
+}
+
+function inferPresentationFormat(section = {}) {
+  const text = [
+    section.presentationFormat,
+    section.syncActivities,
+    section.asyncActivities,
+    section.topicSection,
+    section.supportingResources,
+  ]
+    .filter(Boolean)
+    .join(' ')
+    .toLowerCase();
+
+  if (/\b(simulation|lab|workshop|studio|practice)\b/.test(text)) return 'Simulation workshop';
+  if (/\b(case|debate|discussion|seminar|socratic)\b/.test(text)) return 'Case discussion';
+  if (/\b(video|lecture|recorded|watch)\b/.test(text)) return 'Video lecture + guided notes';
+  if (/\b(presentation|present|critique|peer review)\b/.test(text)) return 'Presentation + peer critique';
+  if (/\b(read|article|chapter|text)\b/.test(text)) return 'Reading + guided discussion';
+  return 'Interactive seminar';
+}
+
 export function validateCourseMap(courseMap, columns) {
   const warnings = [];
   const colKeys = columns && columns.length > 0 ? columns.map((c) => c.key) : [];
@@ -75,8 +100,13 @@ export function validateCourseMap(courseMap, columns) {
       }
       for (const key of colKeys) {
         if (!(key in section)) {
-          section[key] = '';
-          warnings.push(`Lesson ${i + 1}, Section ${j + 1}: missing '${key}' (set to empty)`);
+          section[key] = key === 'presentationFormat' ? inferPresentationFormat(section) : '';
+          warnings.push(
+            `Lesson ${i + 1}, Section ${j + 1}: missing '${key}' (${key === 'presentationFormat' ? 'auto-filled' : 'set to empty'})`,
+          );
+        } else if (key === 'presentationFormat' && isBlank(section[key])) {
+          section[key] = inferPresentationFormat(section);
+          warnings.push(`Lesson ${i + 1}, Section ${j + 1}: blank presentationFormat (auto-filled)`);
         }
       }
     }

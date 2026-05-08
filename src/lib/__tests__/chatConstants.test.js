@@ -202,6 +202,16 @@ describe('getChatOpener — Tier 3 (agent mode)', () => {
     expect(texts.some((t) => t.toLowerCase().includes('quiz'))).toBe(true);
   });
 
+  it('keeps the second starter relevant to the active deliverable tab', () => {
+    const cm = makeCourseMap();
+    const deliverables = makeDoneDeliverables();
+    const result = getChatOpener(cm, true, 'slideDecks', deliverables);
+    const texts = result.starters.map((s) => s.text);
+
+    expect(texts).toContain('Audit slide speaker notes and activities');
+    expect(texts.join(' ')).not.toContain("Review Bloom's alignment");
+  });
+
   it('provides tab-specific starters for discussions', () => {
     const cm = makeCourseMap();
     const deliverables = { ...makeDoneDeliverables(), discussions: { status: 'done', data: { discussions: [] } } };

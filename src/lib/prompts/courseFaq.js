@@ -36,6 +36,7 @@ Return a JSON object with exactly this structure:
 REQUIREMENTS:
 - Exactly 5 questions per lesson
 - Each lesson must cover at least 3 different categories from: Course Logistics, Assignment Clarification, Concept Explanation, Technical Help, Assessment Prep
+- ca must be exactly one of the five category labels above. Do not put rationale sentences, objective alignment, or explanatory prose in ca.
 - Questions must sound like real student questions — use first-person voice and natural phrasing
 - Answers must be actionable: tell the student exactly what to do, where to go, or what to review
 - Answers must be concise (2-4 sentences max) — students skim FAQs, they don't read essays

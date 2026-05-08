@@ -145,6 +145,29 @@ describe('CourseFaqView', () => {
     expect(container.querySelector('[data-testid="course-faq-category-assignment-clarification"]')).not.toBeNull();
   });
 
+  it('displays repaired FAQ category labels instead of model rationale text', () => {
+    renderView({
+      data: {
+        faqs: [
+          {
+            lt: 'Exam Prep',
+            qs: [
+              {
+                q: 'How should I study for the final exam?',
+                an: 'Use the study guide and practice questions.',
+                ca: 'This supports the objective by helping students review.',
+              },
+            ],
+          },
+        ],
+      },
+    });
+
+    expect(container.textContent).toContain('Assessment Prep');
+    expect(container.textContent).not.toContain('This supports the objective');
+    expect(container.querySelector('[data-testid="course-faq-category-assessment-prep"]')).not.toBeNull();
+  });
+
   it('supports lesson-scoped regeneration actions', () => {
     const onRegenerateLesson = vi.fn();
     renderView({ onRegenerateLesson });

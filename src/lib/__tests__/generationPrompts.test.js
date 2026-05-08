@@ -25,6 +25,7 @@ const makeFilledCourseMap = () => ({
           asyncActivities: 'Read Chapter 1 of the textbook',
           syncActivities: 'In-class algorithm design exercise',
           technologyNeeded: 'Python IDE',
+          presentationFormat: 'Interactive workshop',
           supportingResources: 'Textbook Chapter 1',
         },
       ],
@@ -40,6 +41,7 @@ const makeFilledCourseMap = () => ({
           asyncActivities: 'Watch data structures video',
           syncActivities: 'Pair programming exercise',
           technologyNeeded: 'Python IDE',
+          presentationFormat: 'Video lecture + lab',
           supportingResources: 'Textbook Chapter 2',
         },
       ],
@@ -62,6 +64,7 @@ const makeGappyCourseMap = () => ({
           asyncActivities: null,
           syncActivities: 'ok', // short but >= 5 chars — not a gap with >= 5 chars? No, "ok" is 2 chars < 5
           technologyNeeded: 'N/A',
+          presentationFormat: '',
           supportingResources: 'TODO',
         },
       ],
@@ -77,6 +80,7 @@ const makeGappyCourseMap = () => ({
           asyncActivities: 'Read Chapter 2 thoroughly', // valid
           syncActivities: '',
           technologyNeeded: '',
+          presentationFormat: '',
           supportingResources: '',
         },
       ],
@@ -138,6 +142,7 @@ describe('countGaps', () => {
               asyncActivities: 'Real content with enough length',
               syncActivities: 'Real activities described here',
               technologyNeeded: 'Python IDE setup needed',
+              presentationFormat: 'Interactive seminar',
               supportingResources: 'Textbook and course reader',
             },
           ],
@@ -161,6 +166,7 @@ describe('countGaps', () => {
               asyncActivities: 'Read the required textbook chapter',
               syncActivities: 'Group discussion on today topic',
               technologyNeeded: 'hi', // 2 chars < 5
+              presentationFormat: 'Case discussion',
               supportingResources: 'Complete reference list available',
             },
           ],

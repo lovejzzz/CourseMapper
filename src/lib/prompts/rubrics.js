@@ -49,7 +49,8 @@ Return a JSON object with exactly this structure:
 }
 
 REQUIREMENTS:
-- Create one rubric per unique assessment type found in the course map
+- Create one rubric for every lesson in the requested scope that contains a clearly graded assessment. If a lesson has multiple explicitly named graded assessments, create one rubric for each distinct assessment.
+- The "lt" value must include the exact lesson number/title from the course map, such as "Lesson 8: Data Analysis Workshop". Never omit late-course lessons just because an earlier assessment type already appeared.
 - 4–6 criteria per rubric
 - Criterion weights must sum to exactly 100
 - ALL cell descriptions must use third-person, present-tense observable language (e.g., "The student provides..." or declarative "Argument is supported by 4+ peer-reviewed sources")
@@ -59,6 +60,6 @@ REQUIREMENTS:
 - gradingScale should reflect the institution's typical grading thresholds
 - QM ALIGNMENT: Each rubric must include gradePolicyConnection explaining how it connects to the course grading policy and the weight of this assessment in the final grade (QM 3.3). teacherNotes must include a reminder to distribute the rubric to students BEFORE the assignment (QM 3.3). Include guidance for students on how to uphold academic integrity for this assessment type (QM 3.6).
 - HUMAN READABILITY: Vary wording across rubric cells — do not use identical sentence patterns for every criterion level. Each cell should sound distinct and specific to that criterion.
-- RUBRIC COUNT: Generate exactly ONE rubric per unique, explicitly named assessment found in the course map. Do not create rubrics for implicit activities (class participation, attendance) or assessments that are not clearly defined as graded assignments. Your rubric count should match the number of distinct graded assignments in the course.
+- RUBRIC COUNT: For the requested scope, cover every explicit graded assessment in weeklyAssessments. Do not create rubrics for ungraded implicit activities (attendance, optional participation, informal checks), but do create coverage for quizzes, exams, papers, projects, presentations, reports, portfolios, and graded reflections/problem sets when they appear in a lesson.
 - Return ONLY the JSON object, no prose, no markdown`,
 };

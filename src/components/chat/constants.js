@@ -40,6 +40,21 @@ export const STEPS = [
 
 const SUB_ARRAY_KEYS = { quizBank: 'qs', slideDecks: 'sl', courseFaq: 'qs', rubrics: 'cr' };
 
+function buildActiveTabSecondaryStarter(activeTab, tabLabel) {
+  const starters = {
+    quizBank: { text: 'Check quiz timing and difficulty balance', icon: 'search' },
+    discussions: { text: 'Add stronger follow-up probes to discussions', icon: 'plus' },
+    slideDecks: { text: 'Audit slide speaker notes and activities', icon: 'search' },
+    assignments: { text: 'Check assignment sequence and due weeks', icon: 'search' },
+    lessonPlans: { text: 'Tighten lesson timing and facilitation notes', icon: 'edit' },
+    studyGuides: { text: 'Check study guides against quiz coverage', icon: 'search' },
+    rubrics: { text: 'Check rubric coverage for each graded assessment', icon: 'search' },
+    courseFaq: { text: 'Check FAQ categories and unanswered student questions', icon: 'search' },
+    syllabus: { text: 'Review syllabus policies for gaps', icon: 'search' },
+  };
+  return starters[activeTab] || { text: `Find gaps in ${tabLabel}`, icon: 'search' };
+}
+
 function buildAdaptiveStarters(courseMap, activeTab, deliverables) {
   const starters = [];
   const lessons = courseMap?.lessons || [];
@@ -66,6 +81,7 @@ function buildAdaptiveStarters(courseMap, activeTab, deliverables) {
     } else {
       starters.push({ text: `Review ${tabLabel} for completeness`, icon: 'search' });
     }
+    starters.push(buildActiveTabSecondaryStarter(activeTab, tabLabel));
   } else if (activeTab === 'courseMap') {
     // On course map tab — suggest course-level actions
     if (lessons.length > 0) {
@@ -82,7 +98,7 @@ function buildAdaptiveStarters(courseMap, activeTab, deliverables) {
   }
 
   // 2. Health-based or gap-based — pick the most relevant one
-  if (starters.length < 2 && deliverables && courseMap) {
+  if (starters.length < 2 && deliverables && courseMap && (!activeTab || activeTab === 'courseMap')) {
     try {
       const report = generateCourseHealthReport(courseMap, deliverables);
       if (report?.findings?.length > 0) {

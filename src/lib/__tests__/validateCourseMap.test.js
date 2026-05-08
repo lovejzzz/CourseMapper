@@ -84,6 +84,34 @@ describe('validateCourseMap', () => {
     expect(warnings.some((w) => w.includes("missing 'topicSection'"))).toBe(true);
   });
 
+  it('auto-fills blank presentationFormat with an inferred delivery label', () => {
+    const map = {
+      courseName: 'CS101',
+      semester: 'FA25',
+      lessons: [
+        {
+          title: 'L1',
+          sections: [
+            {
+              learningGoals: 'A',
+              topicSection: 'Case analysis',
+              learningObjectives: 'C',
+              syncActivities: 'Debate a case in seminar',
+              presentationFormat: '',
+            },
+          ],
+        },
+      ],
+    };
+    const formatColumns = [...columns, { key: 'presentationFormat', label: 'Presentation Format' }];
+
+    const { valid, warnings } = validateCourseMap(map, formatColumns);
+
+    expect(valid).toBe(true);
+    expect(map.lessons[0].sections[0].presentationFormat).toBe('Case discussion');
+    expect(warnings.some((w) => w.includes('blank presentationFormat'))).toBe(true);
+  });
+
   it('replaces non-object lesson with empty lesson', () => {
     const map = {
       courseName: 'CS101',

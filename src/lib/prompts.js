@@ -31,7 +31,7 @@ const DEFAULT_COLUMN_DEFS = {
   technologyNeeded:
     'Specific platforms or tool types needed. Tools must support learning objectives (QM 6.1) and promote learner engagement (QM 6.2). Use a variety of technologies across lessons (QM 6.3). Where possible, note the vendor\'s accessibility statement or VPAT availability for each tool (QM 8.7). List each on its own line with a bullet or number if multiple (e.g., "1. NYU Brightspace (submission)\\n2. Zoom (synchronous session)\\n3. Google Docs (collaboration)").',
   presentationFormat:
-    "The primary media/delivery format for that section's instructional material (e.g., Text, Video, Podcast, Multimedia, Simulation, Discussion, Presentation).",
+    "The primary media/delivery format for that section's instructional material. This must never be blank. Use a short concrete label such as 'Interactive seminar + reading', 'Video lecture + quiz', 'Case discussion', 'Simulation workshop', or 'Presentation + peer critique'.",
   supportingResources:
     'Specific readings, articles, videos, textbook chapters, and other materials. Use a variety of instructional materials (QM 4.5). Materials must contribute to achievement of learning objectives (QM 4.1). The relationship between materials and learning activities should be clear (QM 4.2). Note copyright status or open-access availability where known (QM 4.3). Prefer current, up-to-date sources that represent contemporary theory and practice in the discipline (QM 4.4). Extract directly from the syllabus when available. List each resource on its own line with a numbered prefix (e.g., "1. Nazario, S. (2020). Chapter 3...\\n2. Gillen et al. (2024). Article title...").',
   evaluateDesign:
@@ -242,7 +242,7 @@ ${lessonScopeInstruction}
 3. For each week/lesson, create 2-5 topic subsections.
 ${guideline4}
 ${guideline5}
-6. Do NOT leave any field empty — always provide meaningful content.
+6. Do NOT leave any field empty — always provide meaningful content. presentationFormat in particular must be a short concrete delivery label, never "" or "TBD".
 7. Each section MUST contain ALL of the following keys: ${colKeys.join(', ')}.
 8. When a section has multiple learning goals, number them sequentially (1, 2, 3… — never skip a number). Then prefix each learning objective with the goal number it maps to (e.g., 1a, 1b, 2a, 2b). If there is only one goal, no numbering is needed.
 9. CRITICAL — For learningObjectives: Write "Students will be able to:" ONCE as the opening stem, then list each objective starting directly with a Bloom's verb. Do NOT repeat "Students will be able to" on every line. Example: "Students will be able to:\\n1a. Analyze the impact of policy...\\n1b. Compare federal and state frameworks...\\n2a. Evaluate advocacy strategies..."
@@ -304,6 +304,7 @@ export function buildGapFillPrompt(courseMap, colKeys = []) {
           'asyncActivities',
           'syncActivities',
           'technologyNeeded',
+          'presentationFormat',
           'supportingResources',
         ];
 
@@ -361,6 +362,7 @@ export function countGaps(courseMap, colKeys = []) {
           'asyncActivities',
           'syncActivities',
           'technologyNeeded',
+          'presentationFormat',
           'supportingResources',
         ];
   let count = 0;

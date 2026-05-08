@@ -1,4 +1,5 @@
 import React, { useMemo, useState } from 'react';
+import { normalizeCourseFaqCategories } from '../../lib/deliverablePostProcess';
 import { CollapsibleCard, E, EmptyState, SectionHeading, StreamingBanner } from './shared/SharedComponents';
 
 const CATEGORY_STYLES = {
@@ -109,11 +110,12 @@ export default function CourseFaqView({
 }) {
   const [activeCategory, setActiveCategory] = useState('All');
   const [query, setQuery] = useState('');
-  const lessons = useMemo(() => normalizeCourseFaq(data), [data]);
+  const normalizedData = useMemo(() => normalizeCourseFaqCategories(data).data, [data]);
+  const lessons = useMemo(() => normalizeCourseFaq(normalizedData), [normalizedData]);
   const normalizedQuery = query.trim().toLowerCase();
 
-  if (!data && isStreaming) return <StreamingBanner />;
-  if (!data || lessons.length === 0) return <EmptyState featureId="courseFaq" />;
+  if (!normalizedData && isStreaming) return <StreamingBanner />;
+  if (!normalizedData || lessons.length === 0) return <EmptyState featureId="courseFaq" />;
 
   const categoryCounts = lessons.reduce((counts, lesson) => {
     lesson.questions.forEach((question) => {

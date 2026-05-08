@@ -25,8 +25,12 @@ import { expandKeys } from '../lib/keyMaps';
 import { log, warn, error as logError } from '../lib/logger';
 import { buildDeliverableTimeoutError, runDeliverableFeatureWithTimeout } from '../lib/deliverableTimeouts';
 import {
+  normalizeAssignmentLessonAlignment,
+  normalizeCourseFaqCategories,
   normalizeCourseFaqQuestionCounts,
+  normalizeQuizBankQuestions,
   normalizeQuizBankRationales,
+  normalizeRubricCoverage,
   normalizeSlideDeckSpeakerNotes,
 } from '../lib/deliverablePostProcess';
 
@@ -792,8 +796,24 @@ export default function useDeliverables({
             }
           }
 
-          // Quiz validation: enforce publishable explanations/rationales without
-          // leaking internal repair placeholders into exported banks.
+          // Quiz validation: normalize schema drift and enforce publishable
+          // explanations/rationales without leaking repair placeholders into exports.
+          const normalizedQuizShape = normalizeQuizBankQuestions(merged);
+          merged = normalizedQuizShape.data;
+          mergedArr = normalizedQuizShape.arrayKey ? merged[normalizedQuizShape.arrayKey] || [] : mergedArr;
+
+          if (
+            normalizedQuizShape.patchedTypes > 0 ||
+            normalizedQuizShape.patchedDifficulties > 0 ||
+            normalizedQuizShape.patchedEstimatedMinutes > 0 ||
+            normalizedQuizShape.patchedBloomLevels > 0
+          ) {
+            appendLog(
+              `⚠ ${getFeatureLabel(fid)}: normalized ${normalizedQuizShape.patchedTypes} type(s), ${normalizedQuizShape.patchedDifficulties} difficulty label(s), ${normalizedQuizShape.patchedEstimatedMinutes} timing value(s), and ${normalizedQuizShape.patchedBloomLevels} Bloom label(s)`,
+              'warn',
+            );
+          }
+
           const normalizedQuiz = normalizeQuizBankRationales(merged);
           merged = normalizedQuiz.data;
           mergedArr = normalizedQuiz.arrayKey ? merged[normalizedQuiz.arrayKey] || [] : mergedArr;
@@ -822,6 +842,17 @@ export default function useDeliverables({
           if (normalized.trimmedQuestions > 0) {
             appendLog(
               `⚠ ${getFeatureLabel(fid)}: trimmed ${normalized.trimmedQuestions} extra FAQ question(s) to ${normalized.target} per lesson`,
+              'warn',
+            );
+          }
+
+          const normalizedCategories = normalizeCourseFaqCategories(merged);
+          merged = normalizedCategories.data;
+          mergedArr = normalizedCategories.arrayKey ? merged[normalizedCategories.arrayKey] || [] : mergedArr;
+
+          if (normalizedCategories.normalizedCategories > 0) {
+            appendLog(
+              `⚠ ${getFeatureLabel(fid)}: normalized ${normalizedCategories.normalizedCategories} FAQ categor${normalizedCategories.normalizedCategories === 1 ? 'y' : 'ies'} to supported labels`,
               'warn',
             );
           }
@@ -1054,6 +1085,9 @@ export default function useDeliverables({
               const normalized = normalizeCourseFaqQuestionCounts(merged, config);
               merged = normalized.data;
               mergedArr = normalized.arrayKey ? merged[normalized.arrayKey] || [] : mergedArr;
+              const normalizedCategories = normalizeCourseFaqCategories(merged);
+              merged = normalizedCategories.data;
+              mergedArr = normalizedCategories.arrayKey ? merged[normalizedCategories.arrayKey] || [] : mergedArr;
             }
           }
         }
@@ -1195,7 +1229,38 @@ export default function useDeliverables({
               const normalized = normalizeCourseFaqQuestionCounts(merged, config);
               merged = normalized.data;
               mergedArr = normalized.arrayKey ? merged[normalized.arrayKey] || [] : mergedArr;
+              const normalizedCategories = normalizeCourseFaqCategories(merged);
+              merged = normalizedCategories.data;
+              mergedArr = normalizedCategories.arrayKey ? merged[normalizedCategories.arrayKey] || [] : mergedArr;
             }
+          }
+        }
+
+        // Deterministic final repair for deliverables that can pass count checks
+        // while still being pedagogically incomplete or misordered.
+        if (fid === 'rubrics' && mergedArr.length > 0) {
+          const normalizedRubrics = normalizeRubricCoverage(merged, courseMap);
+          merged = normalizedRubrics.data;
+          mergedArr = normalizedRubrics.arrayKey ? merged[normalizedRubrics.arrayKey] || [] : mergedArr;
+
+          if (normalizedRubrics.addedRubrics > 0) {
+            appendLog(
+              `⚠ ${getFeatureLabel(fid)}: added fallback rubric coverage for lesson(s) ${normalizedRubrics.missingLessonNumbers.join(', ')}`,
+              'warn',
+            );
+          }
+        }
+
+        if (fid === 'assignments' && mergedArr.length > 0) {
+          const normalizedAssignments = normalizeAssignmentLessonAlignment(merged, courseMap);
+          merged = normalizedAssignments.data;
+          mergedArr = normalizedAssignments.arrayKey ? merged[normalizedAssignments.arrayKey] || [] : mergedArr;
+
+          if (normalizedAssignments.patchedRelatedLessons > 0 || normalizedAssignments.reorderedAssignments) {
+            appendLog(
+              `⚠ ${getFeatureLabel(fid)}: repaired lesson links and chronological ordering for generated briefs`,
+              'warn',
+            );
           }
         }
 
@@ -1241,6 +1306,18 @@ export default function useDeliverables({
         // Skip rubrics and assignments — they are per-assessment (not 1 item per lesson),
         // so the index-based mapping in patchScopeNumbering would corrupt lessonTitle fields.
         if (fid === 'quizBank') {
+          const normalizedQuizShape = normalizeQuizBankQuestions(merged);
+          merged = normalizedQuizShape.data;
+          mergedArr = normalizedQuizShape.arrayKey ? merged[normalizedQuizShape.arrayKey] || [] : mergedArr;
+          if (
+            normalizedQuizShape.patchedTypes > 0 ||
+            normalizedQuizShape.patchedDifficulties > 0 ||
+            normalizedQuizShape.patchedEstimatedMinutes > 0 ||
+            normalizedQuizShape.patchedBloomLevels > 0
+          ) {
+            appendLog(`⚠ ${getFeatureLabel(fid)}: normalized quiz schema and timing after retry`, 'warn');
+          }
+
           const normalizedQuiz = normalizeQuizBankRationales(merged);
           merged = normalizedQuiz.data;
           mergedArr = normalizedQuiz.arrayKey ? merged[normalizedQuiz.arrayKey] || [] : mergedArr;

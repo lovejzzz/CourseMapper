@@ -67,7 +67,8 @@ Return a JSON object with exactly this structure:
 REQUIREMENTS:
 - Extract 4–7 assignments from the course map's assessments — spanning different types
 - Each assignments[] item must be a complete brief for a specific graded deliverable. Do not output generic "Lesson X Assignment Brief" wrappers, bundled lesson summaries, or lesson-by-lesson task lists.
-- Each assignment must clearly connect to specific lessons and objectives
+- Output assignments in chronological order by the first lesson/week they relate to. A final project or oral presentation due late in the course must appear near its late-course lesson, not directly after Lesson 1.
+- Each assignment must clearly connect to specific lessons and objectives. The "rl" array must contain full lesson titles from the course map, not objective codes such as "1a" or "2b".
 - instructions must use numbered, imperative-voice steps (not paragraph prose)
 - scaffoldingMilestones: ≥2 milestones for major assignments (≥15% of grade); each milestone must name the feedback channel (fb) and specify points (pt, can be 0 for formative). Include an ul (upload checklist) on the FINAL milestone.
 - Keep field meanings stable in every chunk: readings/resources go only in sr, submission mechanics go only in fr, grading summary goes only in gc, and progress checkpoints go only in pt.

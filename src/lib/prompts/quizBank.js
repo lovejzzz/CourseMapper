@@ -51,6 +51,7 @@ Rules:
 - MC: complete-sentence or scenario stems (no fill-in-the-blank); exactly 4 options; similar-length options; no "All/None of the above"; distractors reflect common student misconceptions (not absurd wrong answers).
 - short_answer: specify expected length (e.g., "In 2-3 sentences…").
 - essay: include task verb + scope + constraints.
+- ty must be exactly multiple_choice, short_answer, or essay. df must be exactly Easy, Medium, or Hard. em is minutes, never seconds: use 1-3 for multiple_choice, 3-6 for short_answer, and 8-15 for essay.
 - Every question has oa (objectiveAligned) and ex (explanation). Every MC has non-null ex (starting "The correct answer is [letter] because…") and dr ("A: …; C: …; D: …") — required for accreditation.
 - Sequence from lower to higher Bloom's as the course progresses (QM 3.4). Include diagnostic questions that help learners identify review areas (QM 3.5). Each quiz includes fn guidance on common errors and timely feedback (QM 3.5).
 - Vary phrasing across lessons — no repeated stem patterns. Explanations in natural prose.
