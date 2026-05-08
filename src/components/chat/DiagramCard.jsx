@@ -1,5 +1,6 @@
 import React, { useState, useEffect, useRef } from 'react';
 import DOMPurify from 'dompurify';
+import { loadMermaidRuntime } from '../../lib/mermaidRuntime.js';
 
 export default function DiagramCard({ diagram, status }) {
   const [collapsed, setCollapsed] = useState(false);
@@ -20,7 +21,7 @@ export default function DiagramCard({ diagram, status }) {
 
     (async () => {
       try {
-        const mermaid = (await import('mermaid')).default;
+        const mermaid = await loadMermaidRuntime();
         mermaid.initialize({
           startOnLoad: false,
           theme: 'neutral',

@@ -38,7 +38,13 @@ const forbiddenInitialChunks = [
   /pptxExporter/i,
 ];
 
-const forbiddenRuntimeDependencies = ['@mlc-ai/web-llm', '@citation-js/core', '@citation-js/plugin-bibtex', 'exceljs'];
+const forbiddenRuntimeDependencies = [
+  '@mlc-ai/web-llm',
+  '@citation-js/core',
+  '@citation-js/plugin-bibtex',
+  'exceljs',
+  'mermaid',
+];
 
 function toKiB(bytes) {
   return bytes / kib;
