@@ -5,6 +5,8 @@ import {
   extractCoverageLessonNumbers,
   getCoverageRetryMissingLessons,
   getSlideDeckSlideCount,
+  getQuizBankQuestionCount,
+  trimQuizBankQuestions,
   chunkArray,
   createChunkPlan,
 } from '../parallelGenerator';
@@ -218,6 +220,30 @@ describe('getSlideDeckSlideCount', () => {
 
   it('prefers the full slide array when both shapes are present', () => {
     expect(getSlideDeckSlideCount({ slides: [{ title: 'Canonical' }], sl: [{ t: 'Stale' }, { t: 'Extra' }] })).toBe(1);
+  });
+});
+
+describe('quiz bank question helpers', () => {
+  it('counts full and compact quiz question arrays for generation quality checks', () => {
+    expect(getQuizBankQuestionCount({ questions: [{ q: 'One' }, { q: 'Two' }] })).toBe(2);
+    expect(getQuizBankQuestionCount({ qs: [{ q: 'One' }, { q: 'Two' }, { q: 'Three' }] })).toBe(3);
+  });
+
+  it('prefers the full question array when both shapes are present', () => {
+    expect(getQuizBankQuestionCount({ questions: [{ q: 'Canonical' }], qs: [{ q: 'Stale' }, { q: 'Extra' }] })).toBe(1);
+  });
+
+  it('trims compact quiz questions without expanding compact shape', () => {
+    const result = trimQuizBankQuestions(
+      {
+        lt: 'Lesson 1: Intro',
+        qs: [{ q: 'One' }, { q: 'Two' }, { q: 'Three' }],
+      },
+      2,
+    );
+
+    expect(result.qs).toHaveLength(2);
+    expect(result.questions).toBeUndefined();
   });
 });
 

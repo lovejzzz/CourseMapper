@@ -21,6 +21,8 @@ import {
   getCoverageRetryMissingLessons,
   extractCoverageLessonNumbers,
   getSlideDeckSlideCount,
+  getQuizBankQuestionCount,
+  trimQuizBankQuestions,
 } from '../lib/parallelGenerator';
 import { expandKeys } from '../lib/keyMaps';
 import { log, warn, error as logError } from '../lib/logger';
@@ -554,8 +556,13 @@ export default function useDeliverables({
             log(
               `✓ ${chunkLabel}: parsed ${_items.length} items`,
               _items.map((it) => ({
-                title: it?.lessonTitle || it?.title || '?',
-                items: it?.questions?.length || it?.slides?.length || '–',
+                title: it?.lessonTitle || it?.lt || it?.title || it?.t || '?',
+                items:
+                  featureId === 'quizBank'
+                    ? getQuizBankQuestionCount(it) || '–'
+                    : featureId === 'slideDecks'
+                      ? getSlideDeckSlideCount(it) || '–'
+                      : it?.questions?.length || it?.slides?.length || '–',
               })),
             );
 
@@ -728,8 +735,8 @@ export default function useDeliverables({
         log(
           `${fid}: merged ${mergedArr.length}/${expectedCount} items (key: ${arrayKey})`,
           mergedArr.map((it) => ({
-            title: it?.lessonTitle || it?.title || '?',
-            questions: it?.questions?.length,
+            title: it?.lessonTitle || it?.lt || it?.title || it?.t || '?',
+            questions: fid === 'quizBank' ? getQuizBankQuestionCount(it) : it?.questions?.length,
             slides: fid === 'slideDecks' ? getSlideDeckSlideCount(it) : it?.slides?.length,
           })),
         );
@@ -761,7 +768,7 @@ export default function useDeliverables({
           const HARD_CAP_QUESTIONS = 10;
           const oversizedIndices = [];
           mergedArr = mergedArr.filter((quiz, i) => {
-            const qc = quiz?.questions?.length || 0;
+            const qc = getQuizBankQuestionCount(quiz);
             if (qc > HARD_CAP_QUESTIONS) {
               oversizedIndices.push(lessonIndices[i] ?? i);
               return false;
@@ -779,15 +786,15 @@ export default function useDeliverables({
           }
 
           // Enforce consistent question count per lesson: trim to median
-          const qCounts = mergedArr.map((q) => q?.questions?.length || 0).filter((c) => c > 0);
+          const qCounts = mergedArr.map((q) => getQuizBankQuestionCount(q)).filter((c) => c > 0);
           if (qCounts.length > 0) {
             const sorted = [...qCounts].sort((a, b) => a - b);
             const targetQ = sorted[Math.floor(sorted.length / 2)]; // median
             let trimmed = 0;
             mergedArr = mergedArr.map((quiz) => {
-              if (quiz?.questions && quiz.questions.length > targetQ) {
+              if (getQuizBankQuestionCount(quiz) > targetQ) {
                 trimmed++;
-                return { ...quiz, questions: quiz.questions.slice(0, targetQ) };
+                return trimQuizBankQuestions(quiz, targetQ);
               }
               return quiz;
             });
@@ -930,7 +937,7 @@ export default function useDeliverables({
           const minQuestions = 5;
           const truncatedQuizIndices = [];
           mergedArr.forEach((quiz, i) => {
-            const qCount = quiz?.questions?.length || 0;
+            const qCount = getQuizBankQuestionCount(quiz);
             if (qCount > 0 && qCount < minQuestions) {
               truncatedQuizIndices.push(lessonIndices[i]);
             }
@@ -943,7 +950,7 @@ export default function useDeliverables({
             );
             // Remove truncated lessons so the retry loop below will re-generate them
             mergedArr = mergedArr.filter((quiz) => {
-              const qCount = quiz?.questions?.length || 0;
+              const qCount = getQuizBankQuestionCount(quiz);
               return qCount === 0 || qCount >= minQuestions;
             });
             merged = { ...merged, [arrayKey]: mergedArr };
@@ -1051,9 +1058,9 @@ export default function useDeliverables({
                     log(
                       `✓ ${retryLabel}: parsed ${_ritems.length} items`,
                       _ritems.map((it) => ({
-                        title: it?.lessonTitle || it?.title || '?',
-                        questions: it?.questions?.length,
-                        slides: it?.slides?.length,
+                        title: it?.lessonTitle || it?.lt || it?.title || it?.t || '?',
+                        questions: fid === 'quizBank' ? getQuizBankQuestionCount(it) : it?.questions?.length,
+                        slides: fid === 'slideDecks' ? getSlideDeckSlideCount(it) : it?.slides?.length,
                       })),
                     );
                     appendLog(`✓ ${retryLabel} complete`, 'done');

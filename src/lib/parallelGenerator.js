@@ -280,6 +280,21 @@ export function getSlideDeckSlideCount(deck) {
   return slides.length;
 }
 
+function getQuizBankQuestionKey(quiz) {
+  return Array.isArray(quiz?.questions) ? 'questions' : Array.isArray(quiz?.qs) ? 'qs' : null;
+}
+
+export function getQuizBankQuestionCount(quiz) {
+  const key = getQuizBankQuestionKey(quiz);
+  return key ? quiz[key].length : 0;
+}
+
+export function trimQuizBankQuestions(quiz, targetCount) {
+  const key = getQuizBankQuestionKey(quiz);
+  if (!key || !Number.isFinite(targetCount) || quiz[key].length <= targetCount) return quiz;
+  return { ...quiz, [key]: quiz[key].slice(0, targetCount) };
+}
+
 export function extractCoverageLessonNumbers(item) {
   const nums = new Set();
   const addNumber = (value) => {
