@@ -858,10 +858,11 @@ export function normalizeSlideDeckSpeakerNotes(data) {
   const decks = arrayKey ? data?.[arrayKey] : null;
 
   if (!Array.isArray(decks) || decks.length === 0) {
-    return { data, arrayKey, patchedNotes: 0 };
+    return { data, arrayKey, patchedNotes: 0, patchedSlideTotals: 0 };
   }
 
   let patchedNotes = 0;
+  let patchedSlideTotals = 0;
   const nextDecks = decks.map((deck) => {
     const slideKey = Array.isArray(deck?.slides) ? 'slides' : Array.isArray(deck?.sl) ? 'sl' : null;
     if (!slideKey) return deck;
@@ -881,12 +882,25 @@ export function normalizeSlideDeckSpeakerNotes(data) {
               : 'notes';
       return { ...slide, [noteKey]: buildFallbackSlideNotes(deck, slide, index) };
     });
-    return deckChanged ? { ...deck, [slideKey]: slides } : deck;
+    const totalKey =
+      deck?.totalSlides !== undefined
+        ? 'totalSlides'
+        : deck?.ts !== undefined || slideKey === 'sl'
+          ? 'ts'
+          : 'totalSlides';
+    const nextDeck = deckChanged ? { ...deck, [slideKey]: slides } : { ...deck };
+    if (nextDeck[totalKey] !== slides.length) {
+      patchedSlideTotals++;
+      nextDeck[totalKey] = slides.length;
+      deckChanged = true;
+    }
+    return deckChanged ? nextDeck : deck;
   });
 
   return {
-    data: patchedNotes > 0 ? { ...data, [arrayKey]: nextDecks } : data,
+    data: patchedNotes > 0 || patchedSlideTotals > 0 ? { ...data, [arrayKey]: nextDecks } : data,
     arrayKey,
     patchedNotes,
+    patchedSlideTotals,
   };
 }

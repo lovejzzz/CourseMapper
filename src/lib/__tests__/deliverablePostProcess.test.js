@@ -454,6 +454,7 @@ describe('Slide Deck post-processing', () => {
     expect(result.data.decks[0].slides[0].notes).toContain('TRANSITION:');
     expect(result.data.decks[0].slides[0].notes.split(/\s+/).length).toBeGreaterThan(40);
     expect(result.data.decks[0].slides[1].notes).toBe(data.decks[0].slides[1].notes);
+    expect(result.data.decks[0].totalSlides).toBe(2);
   });
 
   it('fills compact slide speaker notes without expanding the slide array or note key', () => {
@@ -461,6 +462,7 @@ describe('Slide Deck post-processing', () => {
       decks: [
         {
           lt: 'Lesson 2: Sampling Strategies',
+          ts: 99,
           sl: [
             {
               t: 'Sampling strategy shapes credible evidence',
@@ -482,10 +484,45 @@ describe('Slide Deck post-processing', () => {
     const result = normalizeSlideDeckSpeakerNotes(data);
 
     expect(result.patchedNotes).toBe(1);
+    expect(result.patchedSlideTotals).toBe(1);
+    expect(result.data.decks[0].ts).toBe(2);
     expect(result.data.decks[0].sl[0].no).toContain('TRANSITION:');
     expect(result.data.decks[0].sl[0].no).toContain('Sampling strategy shapes credible evidence');
     expect(result.data.decks[0].sl[0].notes).toBeUndefined();
+    expect(result.data.decks[0].totalSlides).toBeUndefined();
     expect(result.data.decks[0].slides).toBeUndefined();
     expect(result.data.decks[0].sl[1].no).toBe(data.decks[0].sl[1].no);
+  });
+
+  it('adds compact slide totals when the model omits count metadata', () => {
+    const data = {
+      decks: [
+        {
+          lt: 'Lesson 3: Interview Protocols',
+          sl: [
+            {
+              t: 'Interview protocols reduce measurement drift',
+              ty: 'content',
+              bu: ['Shared prompts keep participant responses comparable.'],
+              no: 'These compact speaker notes are already long enough to keep without deterministic repair work.',
+            },
+            {
+              t: 'Practice protocol revision',
+              ty: 'activity',
+              bu: ['Revise one question for neutrality.'],
+              no: 'Guide students to compare question wording and identify where a leading phrase changes the evidence they collect.',
+            },
+          ],
+        },
+      ],
+    };
+
+    const result = normalizeSlideDeckSpeakerNotes(data);
+
+    expect(result.patchedNotes).toBe(0);
+    expect(result.patchedSlideTotals).toBe(1);
+    expect(result.data.decks[0].ts).toBe(2);
+    expect(result.data.decks[0].totalSlides).toBeUndefined();
+    expect(result.data.decks[0].sl).toHaveLength(2);
   });
 });

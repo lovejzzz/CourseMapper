@@ -1339,6 +1339,12 @@ export default function useDeliverables({
               'warn',
             );
           }
+          if (normalizedSlides.patchedSlideTotals > 0) {
+            appendLog(
+              `⚠ ${getFeatureLabel(fid)}: repaired ${normalizedSlides.patchedSlideTotals} slide-count value(s) before export`,
+              'warn',
+            );
+          }
         }
 
         let finalData =
