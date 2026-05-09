@@ -158,6 +158,44 @@ describe('Quiz Bank post-processing', () => {
     expect(mc.distractorRationale).toContain('A:');
     expect(JSON.stringify(result.data)).not.toMatch(/Explanation needed|rationale needed|model response required/i);
   });
+
+  it('repairs compact quiz rationale placeholders without expanding compact shape', () => {
+    const data = {
+      quizzes: [
+        {
+          lt: 'Lesson 1',
+          qs: [
+            {
+              ty: 'multiple_choice',
+              q: 'Which export check best catches thin quiz rationales?',
+              op: ['A. File naming audit', 'B. Placeholder audit', 'C. Color contrast check', 'D. Login smoke test'],
+              an: 'B',
+              ex: '[Explanation needed - model response required]',
+              dr: '[Distractor rationale needed]',
+              oa: 'Evaluate generated assessment readiness.',
+            },
+            {
+              ty: 'short_answer',
+              q: 'In 2-3 sentences, explain why readiness reports matter.',
+              an: 'They disclose draft quality issues before materials are shared.',
+              ex: '',
+            },
+          ],
+        },
+      ],
+    };
+
+    const result = normalizeQuizBankRationales(data);
+    const [mc, shortAnswer] = result.data.quizzes[0].qs;
+
+    expect(result.patchedExplanations).toBe(2);
+    expect(result.patchedDistractorRationales).toBe(1);
+    expect(result.data.quizzes[0].questions).toBeUndefined();
+    expect(mc.ex).toContain('B. Placeholder audit');
+    expect(mc.dr).toContain('A:');
+    expect(shortAnswer.ex).toContain('They disclose draft quality issues');
+    expect(JSON.stringify(result.data)).not.toMatch(/Explanation needed|rationale needed|model response required/i);
+  });
 });
 
 describe('Rubric and assignment post-processing', () => {

@@ -134,11 +134,12 @@ function isBlankOrRepairPlaceholder(value) {
 }
 
 function getAnswerOptionText(question) {
-  const answer = String(question?.answer || '').trim();
-  if (!answer || !Array.isArray(question?.options)) return answer;
+  const answer = String(question?.answer || question?.an || '').trim();
+  const options = question?.options || question?.op;
+  if (!answer || !Array.isArray(options)) return answer;
   const answerLetter = answer.match(/^[A-D]/i)?.[0]?.toUpperCase();
   if (!answerLetter) return answer;
-  const option = question.options.find((value) =>
+  const option = options.find((value) =>
     String(value || '')
       .trim()
       .toUpperCase()
@@ -148,11 +149,11 @@ function getAnswerOptionText(question) {
 }
 
 function buildQuizExplanation(question) {
-  const type = String(question?.type || '').trim();
-  const objective = String(question?.objectiveAligned || '').trim();
-  const answer = String(question?.answer || '').trim();
-  const sampleAnswer = String(question?.sampleAnswer || '').trim();
-  const rubricHints = String(question?.rubricHints || '').trim();
+  const type = String(question?.type || question?.ty || '').trim();
+  const objective = String(question?.objectiveAligned || question?.oa || '').trim();
+  const answer = String(question?.answer || question?.an || '').trim();
+  const sampleAnswer = String(question?.sampleAnswer || question?.sa || '').trim();
+  const rubricHints = String(question?.rubricHints || question?.rh || '').trim();
 
   if (type === 'multiple_choice') {
     const answerText = getAnswerOptionText(question);
@@ -179,12 +180,13 @@ function buildQuizExplanation(question) {
 }
 
 function buildDistractorRationale(question) {
-  const answerLetter = String(question?.answer || '')
+  const answerLetter = String(question?.answer || question?.an || '')
     .trim()
     .match(/^[A-D]/i)?.[0]
     ?.toUpperCase();
-  const wrongOptions = Array.isArray(question?.options)
-    ? question.options
+  const options = question?.options || question?.op;
+  const wrongOptions = Array.isArray(options)
+    ? options
         .map((option) => String(option || '').trim())
         .filter((option) => option && (!answerLetter || !option.toUpperCase().startsWith(`${answerLetter}.`)))
     : [];
@@ -413,27 +415,48 @@ export function normalizeQuizBankRationales(data) {
   let patchedExplanations = 0;
   let patchedDistractorRationales = 0;
   const nextQuizzes = quizzes.map((quiz) => {
-    if (!Array.isArray(quiz?.questions)) return quiz;
+    const questionKey = Array.isArray(quiz?.questions) ? 'questions' : Array.isArray(quiz?.qs) ? 'qs' : null;
+    if (!questionKey) return quiz;
     let quizChanged = false;
-    const questions = quiz.questions.map((question) => {
+    const questions = quiz[questionKey].map((question) => {
       const nextQuestion = { ...question };
-      const isMc = nextQuestion.type === 'multiple_choice';
+      const isCompactQuestion =
+        nextQuestion.ex !== undefined ||
+        nextQuestion.dr !== undefined ||
+        nextQuestion.ty !== undefined ||
+        nextQuestion.op !== undefined ||
+        nextQuestion.an !== undefined;
+      const explanationKey =
+        nextQuestion.explanation !== undefined
+          ? 'explanation'
+          : nextQuestion.ex !== undefined
+            ? 'ex'
+            : isCompactQuestion
+              ? 'ex'
+              : 'explanation';
+      const distractorKey =
+        nextQuestion.distractorRationale !== undefined
+          ? 'distractorRationale'
+          : nextQuestion.dr !== undefined || isCompactQuestion
+            ? 'dr'
+            : 'distractorRationale';
+      const isMc = normalizeQuizType(nextQuestion) === 'multiple_choice';
 
-      if (isBlankOrRepairPlaceholder(nextQuestion.explanation)) {
+      if (isBlankOrRepairPlaceholder(nextQuestion[explanationKey])) {
         patchedExplanations++;
         quizChanged = true;
-        nextQuestion.explanation = buildQuizExplanation(nextQuestion);
+        nextQuestion[explanationKey] = buildQuizExplanation(nextQuestion);
       }
 
-      if (isMc && isBlankOrRepairPlaceholder(nextQuestion.distractorRationale)) {
+      if (isMc && isBlankOrRepairPlaceholder(nextQuestion[distractorKey])) {
         patchedDistractorRationales++;
         quizChanged = true;
-        nextQuestion.distractorRationale = buildDistractorRationale(nextQuestion);
+        nextQuestion[distractorKey] = buildDistractorRationale(nextQuestion);
       }
 
       return nextQuestion;
     });
-    return quizChanged ? { ...quiz, questions } : quiz;
+    return quizChanged ? { ...quiz, [questionKey]: questions } : quiz;
   });
 
   return {
