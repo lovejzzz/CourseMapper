@@ -347,6 +347,24 @@ describe('Rubric and assignment post-processing', () => {
     expect(result.data.rubrics[2].criteria).toHaveLength(4);
   });
 
+  it('does not add fallback rubrics when compact rubrics already cover assessed lessons', () => {
+    const data = {
+      rubrics: [
+        { t: 'Reflection Rubric', lt: 'Lesson 1: Research Questions', cr: [] },
+        { t: 'Quiz Rubric', lt: 'Lesson 2: Sampling', cr: [] },
+        { t: 'Presentation Rubric', lt: 'Lesson 3: Presentations', cr: [] },
+      ],
+    };
+
+    const result = normalizeRubricCoverage(data, courseMap);
+
+    expect(result.addedRubrics).toBe(0);
+    expect(result.missingLessonNumbers).toEqual([]);
+    expect(result.data).toBe(data);
+    expect(result.data.rubrics).toHaveLength(3);
+    expect(result.data.rubrics[0].lessonTitle).toBeUndefined();
+  });
+
   it('sorts assignment briefs chronologically and repairs objective-code lesson links', () => {
     const data = {
       assignments: [

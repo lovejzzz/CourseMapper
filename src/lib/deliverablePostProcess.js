@@ -532,9 +532,13 @@ function lessonHasRubricWorthyAssessment(lesson) {
 function extractLessonNumbersFromRubric(rubric) {
   const haystack = [
     rubric?.lessonTitle,
+    rubric?.lt,
     rubric?.title,
+    rubric?.t,
     rubric?.assessmentType,
+    rubric?.at,
     ...(Array.isArray(rubric?.tags) ? rubric.tags : []),
+    ...(Array.isArray(rubric?.tg) ? rubric.tg : []),
   ].join(' ');
   const explicit = getLessonNumberFromText(haystack);
   return explicit ? [explicit] : [];
