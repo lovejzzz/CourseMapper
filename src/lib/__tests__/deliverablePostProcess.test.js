@@ -455,4 +455,37 @@ describe('Slide Deck post-processing', () => {
     expect(result.data.decks[0].slides[0].notes.split(/\s+/).length).toBeGreaterThan(40);
     expect(result.data.decks[0].slides[1].notes).toBe(data.decks[0].slides[1].notes);
   });
+
+  it('fills compact slide speaker notes without expanding the slide array or note key', () => {
+    const data = {
+      decks: [
+        {
+          lt: 'Lesson 2: Sampling Strategies',
+          sl: [
+            {
+              t: 'Sampling strategy shapes credible evidence',
+              ty: 'content',
+              bu: ['Representative samples make claims more defensible.'],
+              no: 'Too short.',
+            },
+            {
+              t: 'Exit reflection',
+              ty: 'closing',
+              bu: ['Name the sampling risk in your draft design.'],
+              no: 'This compact note is already detailed enough for the instructor to use during class and should remain unchanged.',
+            },
+          ],
+        },
+      ],
+    };
+
+    const result = normalizeSlideDeckSpeakerNotes(data);
+
+    expect(result.patchedNotes).toBe(1);
+    expect(result.data.decks[0].sl[0].no).toContain('TRANSITION:');
+    expect(result.data.decks[0].sl[0].no).toContain('Sampling strategy shapes credible evidence');
+    expect(result.data.decks[0].sl[0].notes).toBeUndefined();
+    expect(result.data.decks[0].slides).toBeUndefined();
+    expect(result.data.decks[0].sl[1].no).toBe(data.decks[0].sl[1].no);
+  });
 });

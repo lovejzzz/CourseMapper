@@ -863,16 +863,25 @@ export function normalizeSlideDeckSpeakerNotes(data) {
 
   let patchedNotes = 0;
   const nextDecks = decks.map((deck) => {
-    if (!Array.isArray(deck?.slides)) return deck;
+    const slideKey = Array.isArray(deck?.slides) ? 'slides' : Array.isArray(deck?.sl) ? 'sl' : null;
+    if (!slideKey) return deck;
     let deckChanged = false;
-    const slides = deck.slides.map((slide, index) => {
-      const notes = String(slide?.notes || slide?.speakerNotes || '').trim();
+    const slides = deck[slideKey].map((slide, index) => {
+      const notes = String(slide?.notes || slide?.speakerNotes || slide?.no || '').trim();
       if (notes.length >= 40) return slide;
       patchedNotes++;
       deckChanged = true;
-      return { ...slide, notes: buildFallbackSlideNotes(deck, slide, index) };
+      const noteKey =
+        slide?.notes !== undefined
+          ? 'notes'
+          : slide?.speakerNotes !== undefined
+            ? 'speakerNotes'
+            : slide?.no !== undefined
+              ? 'no'
+              : 'notes';
+      return { ...slide, [noteKey]: buildFallbackSlideNotes(deck, slide, index) };
     });
-    return deckChanged ? { ...deck, slides } : deck;
+    return deckChanged ? { ...deck, [slideKey]: slides } : deck;
   });
 
   return {
