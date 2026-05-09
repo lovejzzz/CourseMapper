@@ -374,6 +374,36 @@ describe('Rubric and assignment post-processing', () => {
     expect(result.data.assignments[1].title).toBe('Oral Presentation');
     expect(result.data.assignments[1].relatedLessons).toEqual(['Lesson 3: Presentations']);
   });
+
+  it('repairs compact assignment lesson links without expanding the compact shape', () => {
+    const data = {
+      assignments: [
+        {
+          t: 'Oral Presentation',
+          dw: 'Week 3, class time',
+          rl: ['1a', '2a', '3a'],
+          ov: 'Defend a study design.',
+        },
+        {
+          t: 'Research Question Reflection',
+          dw: 'Week 1, Friday',
+          rl: ['1a'],
+          ov: 'Draft and justify a research question.',
+        },
+      ],
+    };
+
+    const result = normalizeAssignmentLessonAlignment(data, courseMap);
+
+    expect(result.reorderedAssignments).toBe(true);
+    expect(result.patchedRelatedLessons).toBe(2);
+    expect(result.data.assignments[0].t).toBe('Research Question Reflection');
+    expect(result.data.assignments[0].rl).toEqual(['Lesson 1: Research Questions']);
+    expect(result.data.assignments[0].relatedLessons).toBeUndefined();
+    expect(result.data.assignments[1].t).toBe('Oral Presentation');
+    expect(result.data.assignments[1].rl).toEqual(['Lesson 3: Presentations']);
+    expect(result.data.assignments[1].relatedLessons).toBeUndefined();
+  });
 });
 
 describe('Slide Deck post-processing', () => {

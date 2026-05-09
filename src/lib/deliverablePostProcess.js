@@ -727,20 +727,25 @@ function tokenize(value) {
 }
 
 function scoreAssignmentLesson(assignment, lesson, index) {
-  const related = Array.isArray(assignment?.relatedLessons) ? assignment.relatedLessons.join(' ') : '';
+  const related = Array.isArray(assignment?.relatedLessons)
+    ? assignment.relatedLessons.join(' ')
+    : Array.isArray(assignment?.rl)
+      ? assignment.rl.join(' ')
+      : '';
   const explicit =
     getLessonNumberFromText(related) ||
-    getLessonNumberFromText(assignment?.dueWeek) ||
-    getLessonNumberFromText(assignment?.title);
+    getLessonNumberFromText(assignment?.dueWeek || assignment?.dw) ||
+    getLessonNumberFromText(assignment?.title || assignment?.t);
   if (explicit === index + 1) return 1000;
 
   const assignmentText = [
-    assignment?.title,
-    assignment?.assignmentType,
-    assignment?.overview,
-    assignment?.gradingCriteria,
+    assignment?.title || assignment?.t,
+    assignment?.assignmentType || assignment?.at,
+    assignment?.overview || assignment?.ov,
+    assignment?.gradingCriteria || assignment?.gc,
     related,
     ...(Array.isArray(assignment?.objectives) ? assignment.objectives : []),
+    ...(Array.isArray(assignment?.ob) ? assignment.ob : []),
   ].join(' ');
   const tokens = tokenize(assignmentText);
   const haystack = getCourseLessonHaystack(lesson);
@@ -755,10 +760,15 @@ function inferAssignmentLessonIndex(assignment, courseMap) {
   const lessons = Array.isArray(courseMap?.lessons) ? courseMap.lessons : [];
   if (lessons.length === 0) return null;
 
+  const related = Array.isArray(assignment?.relatedLessons)
+    ? assignment.relatedLessons.join(' ')
+    : Array.isArray(assignment?.rl)
+      ? assignment.rl.join(' ')
+      : '';
   const explicit =
-    getLessonNumberFromText(Array.isArray(assignment?.relatedLessons) ? assignment.relatedLessons.join(' ') : '') ||
-    getLessonNumberFromText(assignment?.dueWeek) ||
-    getLessonNumberFromText(assignment?.title);
+    getLessonNumberFromText(related) ||
+    getLessonNumberFromText(assignment?.dueWeek || assignment?.dw) ||
+    getLessonNumberFromText(assignment?.title || assignment?.t);
   if (explicit && explicit >= 1 && explicit <= lessons.length) return explicit - 1;
 
   let best = { index: null, score: 0 };
@@ -790,9 +800,16 @@ export function normalizeAssignmentLessonAlignment(data, courseMap) {
   const withSortKeys = assignments.map((assignment, originalIndex) => {
     const lessonIndex = inferAssignmentLessonIndex(assignment, courseMap);
     let nextAssignment = assignment;
-    if (lessonIndex !== null && relatedLessonsNeedRepair(assignment?.relatedLessons)) {
+    const relatedLessons = Array.isArray(assignment?.relatedLessons) ? assignment.relatedLessons : assignment?.rl;
+    if (lessonIndex !== null && relatedLessonsNeedRepair(relatedLessons)) {
       patchedRelatedLessons++;
-      nextAssignment = { ...assignment, relatedLessons: [getLessonTitle(courseMap, lessonIndex)] };
+      const relatedLessonsKey =
+        assignment?.relatedLessons !== undefined
+          ? 'relatedLessons'
+          : assignment?.rl !== undefined
+            ? 'rl'
+            : 'relatedLessons';
+      nextAssignment = { ...assignment, [relatedLessonsKey]: [getLessonTitle(courseMap, lessonIndex)] };
     }
     return { assignment: nextAssignment, lessonIndex, originalIndex };
   });
