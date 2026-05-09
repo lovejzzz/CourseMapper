@@ -102,8 +102,9 @@ export function deliverableToCsvRows(featureId, data) {
       return { headers, rows };
     }
     case 'slideDecks': {
-      const key = data.decks ? 'decks' : 'slideDecks';
-      const decks = data[key] || [];
+      const expanded = expandKeys('slideDecks', data);
+      const key = expanded.decks ? 'decks' : 'slideDecks';
+      const decks = expanded[key] || [];
       const headers = ['Lesson', 'Slide #', 'Title', 'Bullets', 'Speaker Notes'];
       const rows = [];
       for (const d of decks) {
@@ -114,7 +115,7 @@ export function deliverableToCsvRows(featureId, data) {
             String(j + 1),
             s.title || '',
             (s.bullets || []).join('; '),
-            s.speakerNotes || '',
+            s.speakerNotes || s.notes || '',
           ]);
         }
       }

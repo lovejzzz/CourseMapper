@@ -265,4 +265,33 @@ describe('PPTX export — visual placeholders', () => {
     // altText value reached the exported PPTX, not just the marker label.
     expect(notes).toContain('four-step horizontal flow');
   });
+
+  it('expands compact slide deck keys before building the PPTX artifact', async () => {
+    const blob = await buildSlideDeckPptxBlob(
+      {
+        decks: [
+          {
+            lt: 'Lesson 1: Compact Export Coverage',
+            sl: [
+              {
+                t: 'Compact slide titles render',
+                ty: 'content',
+                bu: ['Compact bullets render', 'Instructor notes stay attached'],
+                no: 'Use this slide to verify compact generated speaker notes survive the PowerPoint export.',
+              },
+            ],
+          },
+        ],
+      },
+      'Compact Course',
+      0,
+    );
+    const zip = await JSZip.loadAsync(await blob.arrayBuffer());
+    const slideXml = await zip.file('ppt/slides/slide1.xml').async('string');
+    const notesXml = await zip.file('ppt/notesSlides/notesSlide1.xml').async('string');
+
+    expect(slideXml).toContain('Compact slide titles render');
+    expect(slideXml).toContain('Compact bullets render');
+    expect(notesXml).toContain('compact generated speaker notes');
+  });
 });

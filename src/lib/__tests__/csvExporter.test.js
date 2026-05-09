@@ -202,6 +202,34 @@ describe('deliverableToCsvRows — slideDecks', () => {
     const { rows } = deliverableToCsvRows('slideDecks', data);
     expect(rows).toHaveLength(1);
   });
+
+  it('expands compact slide deck keys before building rows', () => {
+    const data = {
+      decks: [
+        {
+          lt: 'Lesson 1: Compact Slides',
+          sl: [
+            {
+              t: 'Export evidence should survive',
+              bu: ['Compact titles appear', 'Compact bullets appear'],
+              no: 'Speaker notes explain how the export should be reviewed by an instructor.',
+            },
+          ],
+        },
+      ],
+    };
+    const { rows } = deliverableToCsvRows('slideDecks', data);
+
+    expect(rows).toEqual([
+      [
+        'Lesson 1: Compact Slides',
+        '1',
+        'Export evidence should survive',
+        'Compact titles appear; Compact bullets appear',
+        'Speaker notes explain how the export should be reviewed by an instructor.',
+      ],
+    ]);
+  });
 });
 
 // ═════════════════════════════════════════════════════════════════════════════

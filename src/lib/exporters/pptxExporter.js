@@ -13,6 +13,7 @@
 
 import { autoFitFontSize, autoFitBullets, createElementTracker, SLIDE_W, SLIDE_H } from './slideTextFit.js';
 import { containsLatex, deckDataContainsLatex, processSlideText } from '../latexRenderer.js';
+import { expandKeys } from '../keyMaps.js';
 import { safeImport } from '../safeImport.js';
 
 let _PptxGenJS;
@@ -1523,6 +1524,7 @@ function resolveTheme(deckIndex, themeIndex) {
  * Create a pptx instance with all decks.
  */
 async function createPptxWithDecks(data, courseName, themeIndex) {
+  const expanded = expandKeys('slideDecks', data);
   const PptxGenJS = await getPptxGen();
   const pptx = new PptxGenJS();
 
@@ -1531,11 +1533,11 @@ async function createPptxWithDecks(data, courseName, themeIndex) {
   pptx.author = 'CourseMapper';
   pptx.title = courseName || 'Slide Decks';
 
-  const key = data.decks ? 'decks' : 'slideDecks';
-  const decks = (data[key] || []).map((d, i) => ({ ...d, _deckIndex: i }));
+  const key = expanded.decks ? 'decks' : 'slideDecks';
+  const decks = (expanded[key] || []).map((d, i) => ({ ...d, _deckIndex: i }));
 
   // One-time LaTeX scan across all decks
-  const hasLatex = deckDataContainsLatex(data);
+  const hasLatex = deckDataContainsLatex(expanded);
   if (hasLatex) {
     console.log('[CM] PPTX: LaTeX detected in deck data — enabling math rendering');
   }
@@ -1644,19 +1646,20 @@ export async function buildSlideDeckPptxBlob(data, courseName, themeIndex) {
  * Build a PPTX blob for a single slide deck (one lesson).
  */
 export async function buildSingleDeckPptxBlob(deck, deckIndex, courseName, themeIndex) {
+  const expandedDeck = expandKeys('slideDecks', { decks: [deck] })?.decks?.[0] || deck;
   const PptxGenJS = await getPptxGen();
   const pptx = new PptxGenJS();
 
   pptx.layout = 'LAYOUT_16x9';
   pptx.lang = 'en-US';
-  pptx.title = deck.lessonTitle || courseName || 'Slide Deck';
+  pptx.title = expandedDeck.lessonTitle || courseName || 'Slide Deck';
 
   const theme = resolveTheme(deckIndex, themeIndex);
-  const deckWithIndex = { ...deck, _deckIndex: deckIndex };
-  const slides = deck.slides || [];
+  const deckWithIndex = { ...expandedDeck, _deckIndex: deckIndex };
+  const slides = expandedDeck.slides || [];
 
   // Check for LaTeX in this single deck
-  const hasLatex = deckDataContainsLatex({ decks: [deck] });
+  const hasLatex = deckDataContainsLatex({ decks: [expandedDeck] });
 
   for (let si = 0; si < slides.length; si++) {
     await buildSlideForDeck(pptx, deckWithIndex, theme, si, slides.length, { hasLatex });

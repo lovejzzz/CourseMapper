@@ -1,5 +1,6 @@
 import { expect, test } from '@playwright/test';
 import fs from 'node:fs/promises';
+import JSZip from 'jszip';
 import { auditCourseMaterialsZip } from './lib/exportQualityAudit.js';
 
 function exportFixture() {
@@ -468,6 +469,55 @@ test.describe('Export smoke', () => {
     expect(csv).toContain('Which audit catches compact quiz rows in a CSV export?');
     expect(csv).toContain('CSV row inspection confirms generated questions survive the export path.');
     expect(csv).toContain('Name export verification step 5.');
+  });
+
+  test('exports compact slide decks to current-tab PPTX', async ({ page }) => {
+    await restoreExportWorkspace(page, (snapshot) => {
+      snapshot.selectedFeatures = ['courseMap', 'slideDecks'];
+      snapshot.activeTab = 'slideDecks';
+      snapshot.deliverableConfig = { slideDecks: { slideCount: 3 } };
+      snapshot.deliverables = {
+        slideDecks: {
+          status: 'done',
+          data: {
+            decks: snapshot.courseMap.lessons.map((lesson, lessonIndex) => ({
+              lt: lesson.title,
+              sl: Array.from({ length: 3 }, (_, slideIndex) => ({
+                t:
+                  lessonIndex === 0 && slideIndex === 0
+                    ? 'Compact slide title survives export'
+                    : `Compact slide ${lessonIndex + 1}.${slideIndex + 1}`,
+                ty: slideIndex === 0 ? 'content' : 'activity',
+                bu:
+                  lessonIndex === 0 && slideIndex === 0
+                    ? ['Compact bullet survives export', 'PowerPoint output remains reviewable']
+                    : ['Review exported deck', 'Confirm speaker notes are present'],
+                no:
+                  lessonIndex === 0 && slideIndex === 0
+                    ? 'These compact speaker notes should appear in the downloaded PowerPoint notes pane for artifact review.'
+                    : 'Use these speaker notes to guide the instructor through the exported compact slide deck.',
+              })),
+            })),
+          },
+          error: null,
+          stale: false,
+        },
+      };
+    });
+
+    await expect(page.getByTestId('readiness-status')).toContainText('Ready');
+    const download = await expectDownload(page, () => page.getByTestId('export-format-pptx').click(), {
+      extension: 'pptx',
+      nameIncludes: 'Export Smoke Course',
+      minBytes: 1000,
+    });
+    const zip = await JSZip.loadAsync(await fs.readFile(download.path));
+    const slideXml = await zip.file('ppt/slides/slide1.xml').async('string');
+    const notesXml = await zip.file('ppt/notesSlides/notesSlide1.xml').async('string');
+
+    expect(slideXml).toContain('Compact slide title survives export');
+    expect(slideXml).toContain('Compact bullet survives export');
+    expect(notesXml).toContain('compact speaker notes');
   });
 
   test('allows ZIP export with confirmation when selected generated materials only have warnings', async ({ page }) => {

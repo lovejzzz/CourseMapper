@@ -18,6 +18,7 @@ import {
 } from '../lib/deliverableExporters';
 import { openTabNow, saveToGoogleSlides } from '../lib/googleDrive';
 import { exportSlideDeckPptx, buildSlideDeckPptxBlob } from '../lib/exporters/pptxExporter';
+import { expandKeys } from '../lib/keyMaps';
 import { loadPdfRuntime } from '../lib/pdfRuntime';
 
 // ── Which formats each deliverable supports ─────────────────────────────────
@@ -122,7 +123,8 @@ async function exportSlideDeckPdf(data, courseName) {
   const margin = 12;
   const contentW = pageW - margin * 2;
 
-  const decks = data.slideDecks || data.decks || [];
+  const expanded = expandKeys('slideDecks', data);
+  const decks = expanded.slideDecks || expanded.decks || [];
 
   decks.forEach((deck, deckIdx) => {
     const slides = deck.slides || [];
@@ -171,7 +173,8 @@ async function exportSlideDeckPdf(data, courseName) {
       }
 
       // Speaker notes
-      if (slide.speakerNotes) {
+      const speakerNotes = slide.speakerNotes || slide.notes;
+      if (speakerNotes) {
         const notesY = pageH - 24;
         doc.setFillColor(248, 250, 252);
         doc.rect(0, notesY - 4, pageW, pageH - notesY + 4, 'F');
@@ -184,7 +187,7 @@ async function exportSlideDeckPdf(data, courseName) {
         doc.text('Speaker Notes:', margin, notesY);
         doc.setFont('helvetica', 'normal');
         doc.setTextColor(71, 85, 105);
-        const noteLines = doc.splitTextToSize(slide.speakerNotes, contentW);
+        const noteLines = doc.splitTextToSize(speakerNotes, contentW);
         doc.text(noteLines.slice(0, 2), margin, notesY + 5);
       }
     });
