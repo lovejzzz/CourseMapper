@@ -520,6 +520,86 @@ test.describe('Export smoke', () => {
     expect(notesXml).toContain('compact speaker notes');
   });
 
+  test('exports compact assignment briefs to current-tab CSV and DOCX', async ({ page }) => {
+    await restoreExportWorkspace(page, (snapshot) => {
+      snapshot.selectedFeatures = ['courseMap', 'assignments'];
+      snapshot.activeTab = 'assignments';
+      snapshot.deliverableConfig = { assignments: {} };
+      snapshot.deliverables = {
+        assignments: {
+          status: 'done',
+          data: {
+            assignments: [
+              {
+                t: 'Compact Assignment Export Audit',
+                at: 'Project',
+                rl: ['Lesson 1: Export Reliability'],
+                dw: 'Week 4',
+                et: '3 hours',
+                tp: 50,
+                pg: '50%',
+                bl: 'Evaluate',
+                ov: 'Audit exported course materials for instructor handoff readiness.',
+                ob: ['Verify assignment artifacts', 'Document remaining readiness warnings'],
+                ins: ['Open each exported file.', { step: 'Record any missing assignment details.' }],
+                fr: { ln: '2 pages', fm: 'Memo', cs: 'APA 7th', sp: 'LMS upload' },
+                dl: ['Audit memo', { name: 'Evidence checklist' }],
+                sm: [{ ms: 'Draft audit', dd: 'Week 3', de: 'Submit initial export findings.' }],
+                gc: 'Specific evidence and actionable recommendations.',
+                sr: ['Export checklist'],
+                ai: 'Use generated materials only as reviewed course evidence.',
+              },
+              {
+                t: 'Portable Materials Reflection',
+                at: 'Reflection',
+                rl: ['Lesson 2: Portable Course Materials'],
+                dw: 'Week 5',
+                et: '2 hours',
+                tp: 50,
+                pg: '50%',
+                bl: 'Apply',
+                ov: 'Recommend the best export package for a teaching-team handoff.',
+                ob: ['Compare export formats'],
+                ins: ['Choose a format bundle.', 'Justify your recommendation.'],
+                fr: { ln: '1 page', fm: 'Brief' },
+                dl: ['Recommendation brief'],
+                gc: 'Clear fit between format choice and reviewer workflow.',
+              },
+            ],
+          },
+          error: null,
+          stale: false,
+        },
+      };
+    });
+
+    await switchWorkspaceTab(page, 'Assignment Briefs');
+    await expect(page.getByTestId('readiness-status')).toContainText('Ready');
+
+    const csvDownload = await expectDownload(page, () => page.getByTestId('export-format-csv').click(), {
+      extension: 'csv',
+      nameIncludes: 'Export Smoke Course',
+      minBytes: 100,
+    });
+    const csv = await fs.readFile(csvDownload.path, 'utf8');
+    expect(csv).toContain('Compact Assignment Export Audit');
+    expect(csv).toContain('Evidence checklist');
+    expect(csv).toContain('APA 7th');
+    expect(csv).not.toContain('Record any missing assignment details.,,,');
+
+    const docxDownload = await expectDownload(page, () => page.getByTestId('export-format-docx').click(), {
+      extension: 'docx',
+      nameIncludes: 'Export Smoke Course',
+      minBytes: 1000,
+    });
+    const docx = await JSZip.loadAsync(await fs.readFile(docxDownload.path));
+    const documentXml = await docx.file('word/document.xml').async('string');
+    expect(documentXml).toContain('Compact Assignment Export Audit');
+    expect(documentXml).toContain('Record any missing assignment details.');
+    expect(documentXml).toContain('Evidence checklist');
+    expect(documentXml).toContain('Specific evidence and actionable recommendations.');
+  });
+
   test('allows ZIP export with confirmation when selected generated materials only have warnings', async ({ page }) => {
     await restoreExportWorkspace(page, (snapshot) => {
       snapshot.selectedFeatures = ['courseMap', 'courseFaq'];

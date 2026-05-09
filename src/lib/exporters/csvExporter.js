@@ -189,7 +189,8 @@ export function deliverableToCsvRows(featureId, data) {
       return { headers, rows };
     }
     case 'assignments': {
-      const assignments = data.assignments || [];
+      const expanded = expandKeys('assignments', data);
+      const assignments = expanded.assignments || [];
       const headers = [
         'Title',
         'Type',

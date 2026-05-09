@@ -329,7 +329,8 @@ export function _buildDocxContentShared(featureId, data, children, docx) {
 
     // ─── ASSIGNMENTS ────────────────────────────────────────────
     case 'assignments': {
-      for (const a of data.assignments || []) {
+      const expanded = expandKeys('assignments', data);
+      for (const a of expanded.assignments || []) {
         children.push(makeHeading(a.title || 'Assignment'));
         const aMeta = [
           a.assignmentType,

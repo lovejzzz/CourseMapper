@@ -387,6 +387,44 @@ describe('deliverableToCsvRows — assignments', () => {
     expect(rows[0][10]).toContain('APA 7th');
     expect(rows[0][12]).toContain('Proposal');
   });
+
+  it('expands compact assignment keys before building rows', () => {
+    const data = {
+      assignments: [
+        {
+          t: 'Compact Export Review Brief',
+          at: 'Project',
+          rl: ['Lesson 1: Export Reliability'],
+          dw: 'Week 4',
+          et: '3 hours',
+          tp: 50,
+          pg: '25%',
+          bl: 'Evaluate',
+          ov: 'Audit exported course materials for instructor handoff readiness.',
+          ob: ['Verify assignment artifacts', 'Document remaining readiness warnings'],
+          ins: ['Open each exported file.', { step: 'Record any missing assignment details.' }],
+          fr: { ln: '2 pages', fm: 'Memo', cs: 'APA 7th', sp: 'LMS upload' },
+          dl: ['Audit memo', { name: 'Evidence checklist' }],
+          sm: [{ ms: 'Draft audit', dd: 'Week 3', de: 'Submit initial export findings.' }],
+          gc: 'Specific evidence and actionable recommendations.',
+        },
+      ],
+    };
+
+    const { rows } = deliverableToCsvRows('assignments', data);
+
+    expect(rows).toHaveLength(1);
+    expect(rows[0][0]).toBe('Compact Export Review Brief');
+    expect(rows[0][1]).toBe('Project');
+    expect(rows[0][2]).toBe('Evaluate');
+    expect(rows[0][5]).toBe('50');
+    expect(rows[0][6]).toBe('Audit exported course materials for instructor handoff readiness.');
+    expect(rows[0][7]).toContain('Verify assignment artifacts');
+    expect(rows[0][8]).toContain('Record any missing assignment details.');
+    expect(rows[0][9]).toContain('Evidence checklist');
+    expect(rows[0][10]).toContain('APA 7th');
+    expect(rows[0][12]).toContain('Draft audit: Submit initial export findings.');
+  });
 });
 
 // ═════════════════════════════════════════════════════════════════════════════

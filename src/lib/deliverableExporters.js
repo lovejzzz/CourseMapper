@@ -234,7 +234,8 @@ function deliverableToCsvRows(featureId, data) {
       return { headers, rows };
     }
     case 'assignments': {
-      const assignments = data.assignments || [];
+      const expanded = expandKeys('assignments', data);
+      const assignments = expanded.assignments || [];
       const headers = [
         'Title',
         'Type',
@@ -1051,7 +1052,8 @@ function _buildDocxContentShared(featureId, data, children, docx) {
 
     // ─── ASSIGNMENTS ────────────────────────────────────────────
     case 'assignments': {
-      for (const a of data.assignments || []) {
+      const expanded = expandKeys('assignments', data);
+      for (const a of expanded.assignments || []) {
         children.push(makeHeading(a.title || 'Assignment'));
         const aMeta = [
           a.assignmentType,
