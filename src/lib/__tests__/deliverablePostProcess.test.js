@@ -122,6 +122,75 @@ describe('Quiz Bank post-processing', () => {
     expect(essay.estimatedMinutes).toBe(8);
   });
 
+  it('persists derived Bloom coverage when coverage is the only quiz repair', () => {
+    const data = {
+      quizzes: [
+        {
+          lessonTitle: 'Lesson 1',
+          questions: [
+            {
+              type: 'multiple_choice',
+              difficulty: 'Medium',
+              estimatedMinutes: 2,
+              bloomsLevel: 'Analyze',
+              question: 'Which design choice is strongest?',
+            },
+            {
+              type: 'short_answer',
+              difficulty: 'Medium',
+              estimatedMinutes: 4,
+              bloomsLevel: 'Evaluate',
+              question: 'Justify the selected design choice.',
+            },
+          ],
+        },
+      ],
+    };
+
+    const result = normalizeQuizBankQuestions(data);
+
+    expect(result.patchedTypes).toBe(0);
+    expect(result.patchedDifficulties).toBe(0);
+    expect(result.patchedEstimatedMinutes).toBe(0);
+    expect(result.patchedBloomLevels).toBe(0);
+    expect(result.patchedBloomCoverages).toBe(1);
+    expect(result.data.quizzes[0].bloomsCoverage).toEqual(['Analyze', 'Evaluate']);
+  });
+
+  it('repairs compact Bloom coverage without expanding compact quiz shape', () => {
+    const data = {
+      quizzes: [
+        {
+          lt: 'Lesson 1',
+          bc: [],
+          qs: [
+            {
+              ty: 'multiple_choice',
+              df: 'Medium',
+              em: 2,
+              bl: 'Analyze',
+              q: 'Which export check catches compact coverage?',
+            },
+            {
+              ty: 'short_answer',
+              df: 'Medium',
+              em: 4,
+              bl: 'Apply',
+              q: 'Explain how coverage should survive post-processing.',
+            },
+          ],
+        },
+      ],
+    };
+
+    const result = normalizeQuizBankQuestions(data);
+
+    expect(result.patchedBloomCoverages).toBe(1);
+    expect(result.data.quizzes[0].bc).toEqual(['Analyze', 'Apply']);
+    expect(result.data.quizzes[0].bloomsCoverage).toBeUndefined();
+    expect(result.data.quizzes[0].questions).toBeUndefined();
+  });
+
   it('replaces repair placeholders with publishable guidance from existing answer data', () => {
     const data = {
       quizzes: [

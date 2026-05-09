@@ -296,6 +296,16 @@ function normalizeBloomLevel(value, type) {
   return 'Understand';
 }
 
+function getQuizBloomCoverage(questions) {
+  return [...new Set(questions.map((question) => question.bloomsLevel || question.bl).filter(Boolean))];
+}
+
+function sameStringArray(left, right) {
+  if (!Array.isArray(left) || !Array.isArray(right)) return false;
+  if (left.length !== right.length) return false;
+  return left.every((value, index) => value === right[index]);
+}
+
 export function normalizeQuizBankQuestions(data) {
   const arrayKey = getArrayKey('quizBank', data) || (data?.quizzes ? 'quizzes' : data?.quizBank ? 'quizBank' : null);
   const quizzes = arrayKey ? data?.[arrayKey] : null;
@@ -309,6 +319,7 @@ export function normalizeQuizBankQuestions(data) {
       patchedEstimatedMinutes: 0,
       patchedBloomLevels: 0,
       patchedTotals: 0,
+      patchedBloomCoverages: 0,
     };
   }
 
@@ -317,6 +328,7 @@ export function normalizeQuizBankQuestions(data) {
   let patchedEstimatedMinutes = 0;
   let patchedBloomLevels = 0;
   let patchedTotals = 0;
+  let patchedBloomCoverages = 0;
 
   const nextQuizzes = quizzes.map((quiz) => {
     const questionKey = Array.isArray(quiz?.questions) ? 'questions' : Array.isArray(quiz?.qs) ? 'qs' : null;
@@ -378,8 +390,17 @@ export function normalizeQuizBankQuestions(data) {
       nextQuiz[totalKey] = questions.length;
       quizChanged = true;
     }
-    if (Array.isArray(nextQuiz.bloomsCoverage) && nextQuiz.bloomsCoverage.length === 0) {
-      nextQuiz.bloomsCoverage = [...new Set(questions.map((q) => q.bloomsLevel || q.bl).filter(Boolean))];
+
+    const coverage = getQuizBloomCoverage(questions);
+    const coverageKey =
+      nextQuiz.bloomsCoverage !== undefined
+        ? 'bloomsCoverage'
+        : nextQuiz.bc !== undefined || questionKey === 'qs'
+          ? 'bc'
+          : 'bloomsCoverage';
+    if (coverage.length > 0 && !sameStringArray(nextQuiz[coverageKey], coverage)) {
+      patchedBloomCoverages++;
+      nextQuiz[coverageKey] = coverage;
       quizChanged = true;
     }
 
@@ -391,7 +412,8 @@ export function normalizeQuizBankQuestions(data) {
     patchedDifficulties > 0 ||
     patchedEstimatedMinutes > 0 ||
     patchedBloomLevels > 0 ||
-    patchedTotals > 0;
+    patchedTotals > 0 ||
+    patchedBloomCoverages > 0;
 
   return {
     data: changed ? { ...data, [arrayKey]: nextQuizzes } : data,
@@ -401,6 +423,7 @@ export function normalizeQuizBankQuestions(data) {
     patchedEstimatedMinutes,
     patchedBloomLevels,
     patchedTotals,
+    patchedBloomCoverages,
   };
 }
 
