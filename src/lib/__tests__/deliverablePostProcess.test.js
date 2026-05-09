@@ -40,6 +40,25 @@ describe('Course FAQ post-processing', () => {
     expect(result.data.faqs[1].questions).toHaveLength(4);
   });
 
+  it('trims and reports compact FAQ question arrays before export', () => {
+    const data = {
+      faqs: [
+        {
+          lt: 'Lesson 1',
+          qs: [{ q: '1' }, { q: '2' }, { q: '3' }, { q: '4' }, { q: '5' }, { q: '6' }],
+        },
+        { lt: 'Lesson 2', qs: [{ q: '1' }, { q: '2' }, { q: '3' }, { q: '4' }] },
+      ],
+    };
+
+    const result = normalizeCourseFaqQuestionCounts(data);
+    expect(result.trimmedQuestions).toBe(1);
+    expect(result.underfilledIndices).toEqual([1]);
+    expect(result.data.faqs[0].qs).toHaveLength(5);
+    expect(result.data.faqs[0].questions).toBeUndefined();
+    expect(result.data.faqs[1].qs).toHaveLength(4);
+  });
+
   it('repairs prose-style FAQ categories to supported labels', () => {
     const data = {
       faqs: [

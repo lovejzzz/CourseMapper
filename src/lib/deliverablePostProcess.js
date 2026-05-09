@@ -31,10 +31,11 @@ export function normalizeCourseFaqQuestionCounts(data, config = {}) {
   let trimmedQuestions = 0;
   const underfilledIndices = [];
   const nextLessons = lessons.map((lesson, index) => {
-    const questions = Array.isArray(lesson?.questions) ? lesson.questions : [];
+    const questionKey = Array.isArray(lesson?.questions) ? 'questions' : Array.isArray(lesson?.qs) ? 'qs' : null;
+    const questions = questionKey ? lesson[questionKey] : [];
     if (questions.length > target) {
       trimmedQuestions += questions.length - target;
-      return { ...lesson, questions: questions.slice(0, target) };
+      return { ...lesson, [questionKey]: questions.slice(0, target) };
     }
     if (questions.length > 0 && questions.length < target) {
       underfilledIndices.push(index);
