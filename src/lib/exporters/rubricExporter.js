@@ -1,4 +1,5 @@
 // ─── Feature 7.4: Rubric → Gradebook CSV ────────────────────────────────────
+import { expandKeys } from '../keyMaps.js';
 
 /**
  * Export rubric data as a Gradebook CSV for Canvas/Gradescope.
@@ -11,7 +12,8 @@
  * @param {number} studentCount — how many blank student rows to include (default 30)
  */
 export function exportRubricGradebook(rubricData, studentCount = 30) {
-  const rubrics = rubricData?.rubrics || [];
+  const expanded = expandKeys('rubrics', rubricData || {});
+  const rubrics = expanded.rubrics || [];
   if (rubrics.length === 0) return;
 
   const rows = [];

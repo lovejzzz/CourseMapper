@@ -71,7 +71,8 @@ export function deliverableToCsvRows(featureId, data) {
       return { headers, rows };
     }
     case 'rubrics': {
-      const rubrics = data.rubrics || [];
+      const expanded = expandKeys('rubrics', data);
+      const rubrics = expanded.rubrics || [];
       const headers = [
         'Rubric',
         'Points',

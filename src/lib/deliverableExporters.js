@@ -116,7 +116,8 @@ function deliverableToCsvRows(featureId, data) {
       return { headers, rows };
     }
     case 'rubrics': {
-      const rubrics = data.rubrics || [];
+      const expanded = expandKeys('rubrics', data);
+      const rubrics = expanded.rubrics || [];
       const headers = [
         'Rubric',
         'Points',
@@ -946,8 +947,9 @@ function _buildDocxContentShared(featureId, data, children, docx) {
 
     // ─── RUBRICS ────────────────────────────────────────────────
     case 'rubrics': {
+      const expanded = expandKeys('rubrics', data);
       const COL_DXA = [2060, 750, 1640, 1640, 1640, 1630];
-      for (const r of data.rubrics || []) {
+      for (const r of expanded.rubrics || []) {
         children.push(makeHeading(r.lessonTitle || r.title || 'Rubric'));
         if (r.title && r.lessonTitle) children.push(makeBold('Assessment', r.title));
         const rMeta = [r.totalPoints && `${r.totalPoints} points`, r.assessmentType, r.bloomsLevel].filter(Boolean);
@@ -1692,7 +1694,8 @@ export async function buildDeliverableDocxBlob(featureId, data, courseName) {
  * @param {number} studentCount — how many blank student rows to include (default 30)
  */
 export function exportRubricGradebook(rubricData, studentCount = 30) {
-  const rubrics = rubricData?.rubrics || [];
+  const expanded = expandKeys('rubrics', rubricData || {});
+  const rubrics = expanded.rubrics || [];
   if (rubrics.length === 0) return;
 
   const rows = [];

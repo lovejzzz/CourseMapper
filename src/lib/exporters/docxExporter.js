@@ -210,8 +210,9 @@ export function _buildDocxContentShared(featureId, data, children, docx) {
 
     // ─── RUBRICS ────────────────────────────────────────────────
     case 'rubrics': {
+      const expanded = expandKeys('rubrics', data);
       const COL_DXA = [2060, 750, 1640, 1640, 1640, 1630];
-      for (const r of data.rubrics || []) {
+      for (const r of expanded.rubrics || []) {
         children.push(makeHeading(r.lessonTitle || r.title || 'Rubric'));
         if (r.title && r.lessonTitle) children.push(makeBold('Assessment', r.title));
         const rMeta = [r.totalPoints && `${r.totalPoints} points`, r.assessmentType, r.bloomsLevel].filter(Boolean);

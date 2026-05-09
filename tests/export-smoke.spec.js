@@ -520,6 +520,79 @@ test.describe('Export smoke', () => {
     expect(notesXml).toContain('compact speaker notes');
   });
 
+  test('exports compact rubrics to current-tab CSV and DOCX', async ({ page }) => {
+    await restoreExportWorkspace(page, (snapshot) => {
+      snapshot.selectedFeatures = ['courseMap', 'rubrics'];
+      snapshot.activeTab = 'rubrics';
+      snapshot.deliverableConfig = { rubrics: {} };
+      snapshot.deliverables = {
+        rubrics: {
+          status: 'done',
+          data: {
+            rubrics: snapshot.courseMap.lessons.map((lesson, lessonIndex) => ({
+              t: lessonIndex === 0 ? 'Compact Rubric Export Audit' : 'Portable Materials Rubric',
+              lt: lesson.title,
+              at: 'Project',
+              tp: 100,
+              bl: 'Evaluate',
+              cr: [
+                {
+                  cn: lessonIndex === 0 ? 'Artifact evidence' : 'Format decision evidence',
+                  oa: 'Export verification workflow',
+                  wt: 40,
+                  pt: 40,
+                  ex:
+                    lessonIndex === 0
+                      ? 'Specific evidence from CSV and DOCX artifacts.'
+                      : 'Specific evidence from portable export comparisons.',
+                  pr: 'Names relevant exported files and one quality signal.',
+                  dv: 'Mentions an export but gives little artifact evidence.',
+                  bg: 'Does not inspect exported materials.',
+                },
+                {
+                  cn: 'Recommendation quality',
+                  oa: 'Instructor handoff decision',
+                  wt: 60,
+                  pt: 60,
+                  ex: 'Recommendation clearly matches the instructor handoff workflow.',
+                  pr: 'Recommendation is usable but misses one workflow constraint.',
+                  dv: 'Recommendation is generic and weakly connected to export evidence.',
+                  bg: 'No actionable recommendation is provided.',
+                },
+              ],
+            })),
+          },
+          error: null,
+          stale: false,
+        },
+      };
+    });
+
+    await switchWorkspaceTab(page, 'Rubrics');
+    await expect(page.getByTestId('readiness-status')).toContainText('Ready');
+
+    const csvDownload = await expectDownload(page, () => page.getByTestId('export-format-csv').click(), {
+      extension: 'csv',
+      nameIncludes: 'Export Smoke Course',
+      minBytes: 100,
+    });
+    const csv = await fs.readFile(csvDownload.path, 'utf8');
+    expect(csv).toContain('Compact Rubric Export Audit');
+    expect(csv).toContain('Artifact evidence');
+    expect(csv).toContain('Specific evidence from CSV and DOCX artifacts.');
+
+    const docxDownload = await expectDownload(page, () => page.getByTestId('export-format-docx').click(), {
+      extension: 'docx',
+      nameIncludes: 'Export Smoke Course',
+      minBytes: 1000,
+    });
+    const docx = await JSZip.loadAsync(await fs.readFile(docxDownload.path));
+    const documentXml = await docx.file('word/document.xml').async('string');
+    expect(documentXml).toContain('Compact Rubric Export Audit');
+    expect(documentXml).toContain('Artifact evidence');
+    expect(documentXml).toContain('Specific evidence from CSV and DOCX artifacts.');
+  });
+
   test('exports compact assignment briefs to current-tab CSV and DOCX', async ({ page }) => {
     await restoreExportWorkspace(page, (snapshot) => {
       snapshot.selectedFeatures = ['courseMap', 'assignments'];

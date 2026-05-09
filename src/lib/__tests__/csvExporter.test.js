@@ -168,6 +168,47 @@ describe('deliverableToCsvRows — rubrics', () => {
     const { rows } = deliverableToCsvRows('rubrics', data);
     expect(rows).toHaveLength(0);
   });
+
+  it('expands compact rubric keys before building rows', () => {
+    const data = {
+      rubrics: [
+        {
+          t: 'Compact Rubric Export Audit',
+          lt: 'Lesson 1: Export Reliability',
+          at: 'Project',
+          tp: 100,
+          bl: 'Evaluate',
+          cr: [
+            {
+              cn: 'Artifact evidence',
+              wt: 40,
+              pt: 40,
+              ex: 'Specific evidence from CSV and DOCX artifacts.',
+              pr: 'Names relevant exported files and one quality signal.',
+              dv: 'Mentions an export but gives little artifact evidence.',
+              bg: 'Does not inspect exported materials.',
+            },
+          ],
+        },
+      ],
+    };
+
+    const { rows } = deliverableToCsvRows('rubrics', data);
+
+    expect(rows).toEqual([
+      [
+        'Compact Rubric Export Audit',
+        '100',
+        'Project',
+        'Artifact evidence',
+        '40',
+        'Specific evidence from CSV and DOCX artifacts.',
+        'Names relevant exported files and one quality signal.',
+        'Mentions an export but gives little artifact evidence.',
+        'Does not inspect exported materials.',
+      ],
+    ]);
+  });
 });
 
 // ═════════════════════════════════════════════════════════════════════════════
