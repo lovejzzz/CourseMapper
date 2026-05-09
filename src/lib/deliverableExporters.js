@@ -59,8 +59,9 @@ function deliverableToCsvRows(featureId, data) {
 
   switch (featureId) {
     case 'lessonPlans': {
-      const key = data.plans ? 'plans' : 'lessonPlans';
-      const plans = data[key] || [];
+      const expanded = expandKeys('lessonPlans', data);
+      const key = expanded.plans ? 'plans' : 'lessonPlans';
+      const plans = expanded[key] || [];
       const headers = [
         'Lesson',
         'Duration',
@@ -862,8 +863,9 @@ function _buildDocxContentShared(featureId, data, children, docx) {
   switch (featureId) {
     // ─── LESSON PLANS ───────────────────────────────────────────
     case 'lessonPlans': {
-      const key = data.plans ? 'plans' : 'lessonPlans';
-      for (const p of data[key] || []) {
+      const expanded = expandKeys('lessonPlans', data);
+      const key = expanded.plans ? 'plans' : 'lessonPlans';
+      for (const p of expanded[key] || []) {
         children.push(makeHeading(p.lessonTitle || p.title || 'Lesson'));
         // Meta line
         const meta = [p.duration, p.weekNumber].filter(Boolean);

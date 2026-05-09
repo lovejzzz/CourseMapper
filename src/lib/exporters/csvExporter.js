@@ -14,8 +14,9 @@ export function deliverableToCsvRows(featureId, data) {
 
   switch (featureId) {
     case 'lessonPlans': {
-      const key = data.plans ? 'plans' : 'lessonPlans';
-      const plans = data[key] || [];
+      const expanded = expandKeys('lessonPlans', data);
+      const key = expanded.plans ? 'plans' : 'lessonPlans';
+      const plans = expanded[key] || [];
       const headers = [
         'Lesson',
         'Duration',

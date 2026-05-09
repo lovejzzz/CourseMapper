@@ -126,6 +126,70 @@ describe('deliverableToCsvRows — lessonPlans', () => {
     const { rows } = deliverableToCsvRows('lessonPlans', data);
     expect(rows[0][9]).toBe('Read chapter 3');
   });
+
+  it('expands compact lesson plan keys before building rows', () => {
+    const data = {
+      plans: [
+        {
+          lt: 'Compact Lesson Export Audit',
+          wk: 'Week 2',
+          dur: '75 minutes',
+          bls: ['Analyze', 'Evaluate'],
+          ob: ['Verify compact plan exports', 'Inspect instructor handoff artifacts'],
+          mt: ['Export checklist', 'Generated workspace'],
+          wu: {
+            dur: '10 minutes',
+            ty: 'Think-Pair-Share',
+            pr: 'Which lesson-plan field is easiest to lose during export?',
+            pu: 'Activate artifact-review criteria.',
+          },
+          ol: [
+            {
+              tm: '20 min',
+              ac: 'CSV audit',
+              ty: 'Workshop',
+              de: 'Inspect the downloaded CSV for compact lesson-plan content.',
+              in: 'Confirm objectives, warm-up, and homework survived.',
+              gr: 'Pairs',
+              bl: 'Analyze',
+            },
+          ],
+          fc: {
+            ty: 'Exit ticket',
+            pr: 'Name one exported lesson-plan field that needs review.',
+            oa: 'Verify compact plan exports',
+          },
+          un: {
+            rp: 'Provide a checklist and example artifact.',
+            eg: 'Let students choose CSV or DOCX evidence.',
+            ex: 'Students submit a short audit note.',
+          },
+          hw: {
+            t: 'Review the DOCX plan',
+            de: 'Compare the DOCX lesson plan against the workspace.',
+            et: '30 minutes',
+            cn: 'Feeds the next export-readiness discussion.',
+          },
+          ca: 'Collect one concrete exporter quality risk.',
+        },
+      ],
+    };
+
+    const { rows } = deliverableToCsvRows('lessonPlans', data);
+
+    expect(rows).toHaveLength(1);
+    expect(rows[0][0]).toBe('Compact Lesson Export Audit');
+    expect(rows[0][2]).toBe('Analyze, Evaluate');
+    expect(rows[0][3]).toContain('Verify compact plan exports');
+    expect(rows[0][4]).toContain('Which lesson-plan field is easiest to lose during export?');
+    expect(rows[0][5]).toContain('Generated workspace');
+    expect(rows[0][6]).toContain('20 min - CSV audit: Inspect the downloaded CSV for compact lesson-plan content.');
+    expect(rows[0][6]).toContain('[Note: Confirm objectives, warm-up, and homework survived.]');
+    expect(rows[0][7]).toContain('Name one exported lesson-plan field that needs review.');
+    expect(rows[0][8]).toContain('Provide a checklist and example artifact.');
+    expect(rows[0][9]).toContain('Review the DOCX plan');
+    expect(rows[0][10]).toBe('Collect one concrete exporter quality risk.');
+  });
 });
 
 // ═════════════════════════════════════════════════════════════════════════════

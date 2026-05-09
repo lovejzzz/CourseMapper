@@ -402,6 +402,100 @@ test.describe('Export smoke', () => {
     });
   });
 
+  test('exports compact lesson plans to current-tab CSV and DOCX', async ({ page }) => {
+    await restoreExportWorkspace(page, (snapshot) => {
+      snapshot.selectedFeatures = ['courseMap', 'lessonPlans'];
+      snapshot.activeTab = 'lessonPlans';
+      snapshot.deliverableConfig = { lessonPlans: {} };
+      snapshot.deliverables = {
+        lessonPlans: {
+          status: 'done',
+          data: {
+            plans: snapshot.courseMap.lessons.map((lesson, lessonIndex) => ({
+              lt: lesson.title,
+              wk: `Week ${lessonIndex + 1}`,
+              dur: '75 minutes',
+              bls: lessonIndex === 0 ? ['Analyze', 'Evaluate'] : ['Apply'],
+              ob:
+                lessonIndex === 0
+                  ? ['Verify compact lesson-plan exports', 'Inspect instructor handoff artifacts']
+                  : ['Match export formats to reviewer workflows'],
+              mt: lessonIndex === 0 ? ['Export checklist', 'Generated workspace'] : ['Portable format matrix'],
+              wu: {
+                dur: '10 minutes',
+                ty: 'Think-Pair-Share',
+                pr:
+                  lessonIndex === 0
+                    ? 'Which lesson-plan field is easiest to lose during export?'
+                    : 'Which file format would you inspect first?',
+                pu: 'Activate artifact-review criteria.',
+              },
+              ol: [
+                {
+                  tm: '20 min',
+                  ac: lessonIndex === 0 ? 'CSV audit' : 'DOCX review',
+                  ty: 'Workshop',
+                  de:
+                    lessonIndex === 0
+                      ? 'Inspect the downloaded CSV for compact lesson-plan content.'
+                      : 'Compare exported lesson-plan prose against the workspace.',
+                  in: 'Confirm objectives, warm-up, and homework survived.',
+                  gr: 'Pairs',
+                  bl: lessonIndex === 0 ? 'Analyze' : 'Apply',
+                },
+              ],
+              fc: {
+                ty: 'Exit ticket',
+                pr: 'Name one exported lesson-plan field that needs review.',
+                oa: lessonIndex === 0 ? 'Verify compact lesson-plan exports' : 'Match export formats',
+              },
+              un: {
+                rp: 'Provide a checklist and example artifact.',
+                eg: 'Let students choose CSV or DOCX evidence.',
+                ex: 'Students submit a short audit note.',
+              },
+              hw: {
+                t: lessonIndex === 0 ? 'Review the DOCX plan' : 'Revise the handoff checklist',
+                de: 'Compare the DOCX lesson plan against the workspace.',
+                et: '30 minutes',
+                cn: 'Feeds the next export-readiness discussion.',
+              },
+              ca: 'Collect one concrete exporter quality risk.',
+            })),
+          },
+          error: null,
+          stale: false,
+        },
+      };
+    });
+
+    await switchWorkspaceTab(page, 'Lesson Plans');
+    await expect(page.getByTestId('readiness-status')).toContainText('Ready');
+
+    const csvDownload = await expectDownload(page, () => page.getByTestId('export-format-csv').click(), {
+      extension: 'csv',
+      nameIncludes: 'Export Smoke Course',
+      minBytes: 100,
+    });
+    const csv = await fs.readFile(csvDownload.path, 'utf8');
+    expect(csv).toContain('Verify compact lesson-plan exports');
+    expect(csv).toContain('Which lesson-plan field is easiest to lose during export?');
+    expect(csv).toContain('Inspect the downloaded CSV for compact lesson-plan content.');
+    expect(csv).toContain('Review the DOCX plan');
+
+    const docxDownload = await expectDownload(page, () => page.getByTestId('export-format-docx').click(), {
+      extension: 'docx',
+      nameIncludes: 'Export Smoke Course',
+      minBytes: 1000,
+    });
+    const docx = await JSZip.loadAsync(await fs.readFile(docxDownload.path));
+    const documentXml = await docx.file('word/document.xml').async('string');
+    expect(documentXml).toContain('Verify compact lesson-plan exports');
+    expect(documentXml).toContain('Which lesson-plan field is easiest to lose during export?');
+    expect(documentXml).toContain('Inspect the downloaded CSV for compact lesson-plan content.');
+    expect(documentXml).toContain('Review the DOCX plan');
+  });
+
   test('exports compact quiz-bank questions to current-tab CSV', async ({ page }) => {
     await restoreExportWorkspace(page, (snapshot) => {
       snapshot.selectedFeatures = ['courseMap', 'quizBank'];
