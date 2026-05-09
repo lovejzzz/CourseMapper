@@ -45,6 +45,15 @@ function makeQuestions(count) {
   }));
 }
 
+function makeCompactQuestions(count) {
+  return Array.from({ length: count }, (_, index) => ({
+    ty: 'multiple_choice',
+    df: 'Medium',
+    em: 2,
+    q: `Question ${index + 1}?`,
+  }));
+}
+
 describe('evaluateWorkspaceReadiness', () => {
   it('passes a structurally complete selected workspace', () => {
     const readiness = evaluateWorkspaceReadiness({
@@ -108,6 +117,29 @@ describe('evaluateWorkspaceReadiness', () => {
     expect(readiness.status).toBe('warnings');
     expect(readiness.isBlocked).toBe(false);
     expect(readiness.warnings[0].message).toContain('fewer than 5 questions');
+  });
+
+  it('does not warn on complete compact quiz metadata', () => {
+    const readiness = evaluateWorkspaceReadiness({
+      courseMap,
+      columns,
+      selectedFeatures: ['courseMap', 'quizBank'],
+      deliverables: {
+        quizBank: {
+          status: 'done',
+          data: {
+            quizzes: [
+              { lt: 'Lesson 1: Questions', qs: makeCompactQuestions(5) },
+              { lt: 'Lesson 2: Sampling', qs: makeCompactQuestions(5) },
+            ],
+          },
+        },
+      },
+    });
+
+    expect(readiness.status).toBe('ready');
+    expect(readiness.isBlocked).toBe(false);
+    expect(readiness.warnings.map((issue) => issue.message).join(' ')).not.toContain('metadata gap');
   });
 
   it('warns on rubrics that miss assessed lessons', () => {

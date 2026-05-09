@@ -217,6 +217,13 @@ function getSlideNotes(slide) {
   return text(slide?.speakerNotes || slide?.notes || slide?.no).trim();
 }
 
+function hasQuizMetadata(question) {
+  const type = text(question?.type || question?.ty).trim();
+  const difficulty = text(question?.difficulty || question?.df).trim();
+  const estimatedMinutes = Number(question?.estimatedMinutes ?? question?.em);
+  return Boolean(type && difficulty && Number.isFinite(estimatedMinutes));
+}
+
 function getPercent(value) {
   const number = Number(text(value).match(/\d+(?:\.\d+)?/)?.[0]);
   return Number.isFinite(number) ? number : 0;
@@ -314,9 +321,7 @@ function checkPerLessonFeature(featureId, data, courseMap, lessonIndices, issues
       if (questions.length < 5) {
         issues.push(makeIssue(READINESS_WARNING, featureId, `${lessonTitle} quiz bank has fewer than 5 questions.`));
       }
-      const metadataDrift = questions.filter(
-        (question) => !question.type || !question.difficulty || !Number.isFinite(Number(question.estimatedMinutes)),
-      ).length;
+      const metadataDrift = questions.filter((question) => !hasQuizMetadata(question)).length;
       if (metadataDrift > 0) {
         issues.push(
           makeIssue(READINESS_WARNING, featureId, `${lessonTitle} has ${metadataDrift} quiz question metadata gap(s).`),
