@@ -420,6 +420,82 @@ describe('deliverableToCsvRows — studyGuides', () => {
 });
 
 // ═════════════════════════════════════════════════════════════════════════════
+// Course FAQ
+// ═════════════════════════════════════════════════════════════════════════════
+
+describe('deliverableToCsvRows — courseFaq', () => {
+  it('creates one row per FAQ question', () => {
+    const data = {
+      faqs: [
+        {
+          lessonTitle: 'Lesson 1',
+          questions: [
+            {
+              category: 'Course Logistics',
+              question: 'How do I verify an export?',
+              answer: 'Open the downloaded file and confirm the expected rows.',
+              relatedConcepts: ['CSV', 'Readiness'],
+              difficulty: 'Basic',
+            },
+            {
+              category: 'Technical Help',
+              question: 'Which format supports spreadsheet review?',
+              answer: 'CSV or XLSX works best for row-level review.',
+              relatedConcepts: ['Google Sheets'],
+              difficulty: 'Intermediate',
+            },
+          ],
+        },
+      ],
+    };
+    const { headers, rows } = deliverableToCsvRows('courseFaq', data);
+
+    expect(headers).toEqual(['Lesson', 'Category', 'Question', 'Answer', 'Related Concepts', 'Difficulty']);
+    expect(rows).toHaveLength(2);
+    expect(rows[0]).toEqual([
+      'Lesson 1',
+      'Course Logistics',
+      'How do I verify an export?',
+      'Open the downloaded file and confirm the expected rows.',
+      'CSV; Readiness',
+      'Basic',
+    ]);
+    expect(rows[1][2]).toBe('Which format supports spreadsheet review?');
+  });
+
+  it('expands compact FAQ keys before building rows', () => {
+    const data = {
+      faqs: [
+        {
+          lt: 'Lesson 2',
+          qs: [
+            {
+              ca: 'Assessment Prep',
+              q: 'What should I study before the quiz?',
+              an: 'Review the lesson objectives and practice questions.',
+              rc: ['Quiz Bank', 'Study Guide'],
+              df: 'Basic',
+            },
+          ],
+        },
+      ],
+    };
+    const { rows } = deliverableToCsvRows('courseFaq', data);
+
+    expect(rows).toEqual([
+      [
+        'Lesson 2',
+        'Assessment Prep',
+        'What should I study before the quiz?',
+        'Review the lesson objectives and practice questions.',
+        'Quiz Bank; Study Guide',
+        'Basic',
+      ],
+    ]);
+  });
+});
+
+// ═════════════════════════════════════════════════════════════════════════════
 // Syllabus
 // ═════════════════════════════════════════════════════════════════════════════
 

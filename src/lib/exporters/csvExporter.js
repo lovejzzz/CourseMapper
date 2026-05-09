@@ -274,6 +274,25 @@ export function deliverableToCsvRows(featureId, data) {
       });
       return { headers, rows };
     }
+    case 'courseFaq': {
+      const expanded = expandKeys('courseFaq', data);
+      const faqs = expanded.faqs || expanded.courseFaq || [];
+      const headers = ['Lesson', 'Category', 'Question', 'Answer', 'Related Concepts', 'Difficulty'];
+      const rows = [];
+      for (const lesson of faqs) {
+        for (const q of lesson.questions || []) {
+          rows.push([
+            lesson.lessonTitle || lesson.title || '',
+            q.category || '',
+            q.question || '',
+            q.answer || '',
+            (q.relatedConcepts || []).join('; '),
+            q.difficulty || '',
+          ]);
+        }
+      }
+      return { headers, rows };
+    }
     case 'syllabus': {
       const syl = data.syllabus || data;
       const headers = ['Section', 'Content'];

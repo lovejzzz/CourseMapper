@@ -815,11 +815,20 @@ test.describe('Export smoke', () => {
     await expect(page.getByTestId('readiness-status')).toContainText('Ready');
     await expect(page.getByTestId('readiness-panel')).not.toContainText('Select at least one lesson before exporting.');
 
-    await expectDownload(page, () => page.getByTestId('export-format-csv').click(), {
+    const csvDownload = await expectDownload(page, () => page.getByTestId('export-format-csv').click(), {
       extension: 'csv',
       nameIncludes: 'Export Smoke Course',
       minBytes: 100,
     });
+    const csv = await fs.readFile(csvDownload.path, 'utf8');
+    const normalized = csv.replace(/^\uFEFF/, '');
+
+    expect(normalized.split(/\r?\n/)[0]).toBe('Lesson,Category,Question,Answer,Related Concepts,Difficulty');
+    expect(normalized).toContain(
+      'Lesson 1: Export Reliability,Course Logistics,How do I confirm a course map export worked?',
+    );
+    expect(normalized).toContain('Course Map; Export QA');
+    expect(normalized).not.toContain('{"question"');
   });
 
   test('allows ZIP export with confirmation when syllabus still has publishability placeholders', async ({ page }) => {
