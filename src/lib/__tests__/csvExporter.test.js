@@ -346,8 +346,53 @@ describe('deliverableToCsvRows — discussions', () => {
     expect(rows).toHaveLength(1);
     expect(rows[0][0]).toBe('Week 1 Discussion');
     expect(rows[0][3]).toBe('Is AI ethical?');
-    expect(rows[0][5]).toContain('What about bias?');
-    expect(rows[0][8]).toContain('Start with video');
+    expect(rows[0][6]).toContain('What about bias?');
+    expect(rows[0][9]).toContain('Start with video');
+  });
+
+  it('expands compact discussion keys before building rows', () => {
+    const data = {
+      discussions: [
+        {
+          lt: 'Lesson 1: Compact Discussion',
+          bl: 'Evaluate',
+          fm: 'Small groups',
+          ed: '20 minutes',
+          cx: 'Students have just inspected exported materials.',
+          pr: 'Which export artifact would you trust for instructor handoff, and why?',
+          er: 'Cite one concrete file-quality signal from the exported materials.',
+          fp: ['What would change your recommendation?', 'Which artifact needs another review pass?'],
+          ft: {
+            op: 'Ask students to name the artifact first.',
+            is: 'Compare CSV and DOCX review workflows.',
+            id: 'Invite quieter groups to report a different format.',
+            cl: 'Collect one export-quality criterion.',
+          },
+          rs: ['I would trust...', 'The strongest evidence is...'],
+          ec: ['Uses artifact evidence', 'Explains tradeoffs'],
+          eq: 'Offer a written response option for students who need processing time.',
+          gl: 'Keep recommendations grounded in downloaded files.',
+        },
+      ],
+    };
+
+    const { rows } = deliverableToCsvRows('discussions', data);
+
+    expect(rows).toHaveLength(1);
+    expect(rows[0]).toEqual([
+      'Lesson 1: Compact Discussion',
+      'Evaluate',
+      'Small groups',
+      'Which export artifact would you trust for instructor handoff, and why?',
+      'Students have just inspected exported materials.',
+      'Cite one concrete file-quality signal from the exported materials.',
+      'What would change your recommendation?; Which artifact needs another review pass?',
+      'I would trust...; The strongest evidence is...',
+      'Uses artifact evidence; Explains tradeoffs',
+      'Ask students to name the artifact first.; Compare CSV and DOCX review workflows.; Invite quieter groups to report a different format.; Collect one export-quality criterion.',
+      'Offer a written response option for students who need processing time.',
+      'Keep recommendations grounded in downloaded files.',
+    ]);
   });
 });
 

@@ -202,17 +202,20 @@ function deliverableToCsvRows(featureId, data) {
       return { headers, rows };
     }
     case 'discussions': {
-      const discussions = data.discussions || [];
+      const expanded = expandKeys('discussions', data);
+      const discussions = expanded.discussions || [];
       const headers = [
         'Lesson',
         "Bloom's",
         'Format',
         'Prompt',
         'Context',
+        'Evidence Requirement',
         'Follow-Up Probes',
         'Response Starters',
         'Evaluation Criteria',
         'Facilitation Tips',
+        'Equity Considerations',
         'Guidelines',
       ];
       const rows = discussions.map((d) => [
@@ -221,14 +224,21 @@ function deliverableToCsvRows(featureId, data) {
         d.format || '',
         d.prompt || '',
         d.context || '',
+        d.evidenceRequirement || '',
         (d.followUpProbes || []).join('; '),
         (d.responseStarters || []).join('; '),
         (d.evaluationCriteria || []).join('; '),
         d.facilitationTips
-          ? [d.facilitationTips.opening, d.facilitationTips.ifStalls, d.facilitationTips.closure]
+          ? [
+              d.facilitationTips.opening,
+              d.facilitationTips.ifStalls,
+              d.facilitationTips.ifDominates,
+              d.facilitationTips.closure,
+            ]
               .filter(Boolean)
               .join('; ')
           : '',
+        d.equityConsiderations || '',
         d.guidelines || '',
       ]);
       return { headers, rows };
@@ -1012,7 +1022,8 @@ function _buildDocxContentShared(featureId, data, children, docx) {
 
     // ─── DISCUSSIONS ────────────────────────────────────────────
     case 'discussions': {
-      for (const d of data.discussions || []) {
+      const expanded = expandKeys('discussions', data);
+      for (const d of expanded.discussions || []) {
         children.push(makeHeading(d.lessonTitle || 'Discussion'));
         const dMeta = [d.bloomsLevel, d.format, d.estimatedDuration].filter(Boolean);
         if (dMeta.length) children.push(makeText(dMeta.join(' · ')));

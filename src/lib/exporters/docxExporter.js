@@ -289,7 +289,8 @@ export function _buildDocxContentShared(featureId, data, children, docx) {
 
     // ─── DISCUSSIONS ────────────────────────────────────────────
     case 'discussions': {
-      for (const d of data.discussions || []) {
+      const expanded = expandKeys('discussions', data);
+      for (const d of expanded.discussions || []) {
         children.push(makeHeading(d.lessonTitle || 'Discussion'));
         const dMeta = [d.bloomsLevel, d.format, d.estimatedDuration].filter(Boolean);
         if (dMeta.length) children.push(makeText(dMeta.join(' · ')));

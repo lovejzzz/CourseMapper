@@ -600,6 +600,87 @@ test.describe('Export smoke', () => {
     expect(documentXml).toContain('Specific evidence and actionable recommendations.');
   });
 
+  test('exports compact discussion prompts to current-tab CSV and DOCX', async ({ page }) => {
+    await restoreExportWorkspace(page, (snapshot) => {
+      snapshot.selectedFeatures = ['courseMap', 'discussions'];
+      snapshot.activeTab = 'discussions';
+      snapshot.deliverableConfig = { discussions: {} };
+      snapshot.deliverables = {
+        discussions: {
+          status: 'done',
+          data: {
+            discussions: [
+              {
+                lt: 'Lesson 1: Export Reliability',
+                bl: 'Evaluate',
+                fm: 'Small groups',
+                ed: '20 minutes',
+                cx: 'Students have just inspected exported materials.',
+                pr: 'Which export artifact would you trust for instructor handoff?',
+                er: 'Cite one concrete file-quality signal from the exported materials.',
+                fp: ['What would change your recommendation?', 'Which artifact needs another review pass?'],
+                ft: {
+                  op: 'Ask students to name the artifact first.',
+                  is: 'Compare CSV and DOCX review workflows.',
+                  id: 'Invite quieter groups to report a different format.',
+                  cl: 'Collect one export-quality criterion.',
+                },
+                rs: ['I would trust...', 'The strongest evidence is...'],
+                ec: ['Uses artifact evidence', 'Explains tradeoffs'],
+                eq: 'Offer a written response option for students who need processing time.',
+                gl: 'Keep recommendations grounded in downloaded files.',
+              },
+              {
+                lt: 'Lesson 2: Portable Course Materials',
+                bl: 'Analyze',
+                fm: 'Threaded discussion',
+                ed: '25 minutes',
+                cx: 'Students compare portable export formats.',
+                pr: 'How should a teaching team choose between CSV and DOCX handoff files?',
+                er: 'Reference the reviewer workflow and one artifact limitation.',
+                fp: ['Who is the reviewer?', 'What later revision is likely?'],
+                ft: {
+                  op: 'Start with a quick format poll.',
+                  is: 'Ask for the next file the reviewer would open.',
+                  cl: 'Summarize tradeoffs by audience.',
+                },
+                rs: ['For spreadsheet review...', 'For prose revision...'],
+                ec: ['Names the audience', 'Justifies the format'],
+                gl: 'Compare concrete workflows, not personal preferences.',
+              },
+            ],
+          },
+          error: null,
+          stale: false,
+        },
+      };
+    });
+
+    await switchWorkspaceTab(page, 'Discussion Prompts');
+    await expect(page.getByTestId('readiness-status')).toContainText('Ready');
+
+    const csvDownload = await expectDownload(page, () => page.getByTestId('export-format-csv').click(), {
+      extension: 'csv',
+      nameIncludes: 'Export Smoke Course',
+      minBytes: 100,
+    });
+    const csv = await fs.readFile(csvDownload.path, 'utf8');
+    expect(csv).toContain('Which export artifact would you trust for instructor handoff?');
+    expect(csv).toContain('Cite one concrete file-quality signal from the exported materials.');
+    expect(csv).toContain('Invite quieter groups to report a different format.');
+
+    const docxDownload = await expectDownload(page, () => page.getByTestId('export-format-docx').click(), {
+      extension: 'docx',
+      nameIncludes: 'Export Smoke Course',
+      minBytes: 1000,
+    });
+    const docx = await JSZip.loadAsync(await fs.readFile(docxDownload.path));
+    const documentXml = await docx.file('word/document.xml').async('string');
+    expect(documentXml).toContain('Which export artifact would you trust for instructor handoff?');
+    expect(documentXml).toContain('Cite one concrete file-quality signal from the exported materials.');
+    expect(documentXml).toContain('Invite quieter groups to report a different format.');
+  });
+
   test('allows ZIP export with confirmation when selected generated materials only have warnings', async ({ page }) => {
     await restoreExportWorkspace(page, (snapshot) => {
       snapshot.selectedFeatures = ['courseMap', 'courseFaq'];
