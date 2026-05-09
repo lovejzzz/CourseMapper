@@ -3,6 +3,7 @@
 // Google Docs, or Google Sheets.
 
 import { getCustomDeliverable } from './customDeliverableLibrary';
+import { expandKeys } from './keyMaps';
 import { buildXlsxWorkbook } from './lightweightXlsx.js';
 import { loadPdfRuntime } from './pdfRuntime.js';
 import { safeImport } from './safeImport.js';
@@ -165,8 +166,9 @@ function deliverableToCsvRows(featureId, data) {
       return { headers, rows };
     }
     case 'quizBank': {
-      const key = data.quizzes ? 'quizzes' : 'quizBank';
-      const quizzes = data[key] || [];
+      const expanded = expandKeys('quizBank', data);
+      const key = expanded.quizzes ? 'quizzes' : 'quizBank';
+      const quizzes = expanded[key] || [];
       const headers = [
         'Lesson',
         'Type',
@@ -957,8 +959,9 @@ function _buildDocxContentShared(featureId, data, children, docx) {
 
     // ─── QUIZ BANK ──────────────────────────────────────────────
     case 'quizBank': {
-      const key = data.quizzes ? 'quizzes' : 'quizBank';
-      for (const quiz of data[key] || []) {
+      const expanded = expandKeys('quizBank', data);
+      const key = expanded.quizzes ? 'quizzes' : 'quizBank';
+      for (const quiz of expanded[key] || []) {
         children.push(makeHeading(quiz.lessonTitle || 'Quiz'));
         if (quiz.bloomsCoverage?.length) children.push(makeBold("Bloom's Coverage", quiz.bloomsCoverage.join(', ')));
         for (let j = 0; j < (quiz.questions || []).length; j++) {
@@ -1321,7 +1324,8 @@ function _buildDocxContentShared(featureId, data, children, docx) {
 
     // ─── COURSE FAQ ───────────────────────────────────────────────
     case 'courseFaq': {
-      const faqs = data.faqs || data.courseFaq || [];
+      const expanded = expandKeys('courseFaq', data);
+      const faqs = expanded.faqs || expanded.courseFaq || [];
       for (const lesson of faqs) {
         const title = lesson.lessonTitle || lesson.title || 'FAQ';
         children.push(makeHeading(title));

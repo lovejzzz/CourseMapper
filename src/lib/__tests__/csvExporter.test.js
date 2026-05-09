@@ -251,6 +251,45 @@ describe('deliverableToCsvRows — quizBank', () => {
     const { rows } = deliverableToCsvRows('quizBank', data);
     expect(rows).toHaveLength(1);
   });
+
+  it('expands compact quiz-bank keys before building rows', () => {
+    const data = {
+      quizzes: [
+        {
+          lt: 'Lesson 1: Compact Quiz',
+          qs: [
+            {
+              ty: 'multiple_choice',
+              bl: 'Analyze',
+              df: 'Medium',
+              q: 'Which export check catches missing quiz rows?',
+              op: ['A. Readiness only', 'B. CSV row inspection', 'C. Theme preview', 'D. Login check'],
+              an: 'B',
+              ex: 'CSV row inspection verifies the delivered artifact contains each compact question.',
+              pt: 2,
+              sa: 'Inspect the downloaded CSV.',
+            },
+          ],
+        },
+      ],
+    };
+
+    const { rows } = deliverableToCsvRows('quizBank', data);
+
+    expect(rows).toHaveLength(1);
+    expect(rows[0]).toEqual([
+      'Lesson 1: Compact Quiz',
+      'multiple_choice',
+      'Analyze',
+      'Medium',
+      'Which export check catches missing quiz rows?',
+      'A. Readiness only; B. CSV row inspection; C. Theme preview; D. Login check',
+      'B',
+      'CSV row inspection verifies the delivered artifact contains each compact question.',
+      '2',
+      'Inspect the downloaded CSV.',
+    ]);
+  });
 });
 
 // ═════════════════════════════════════════════════════════════════════════════

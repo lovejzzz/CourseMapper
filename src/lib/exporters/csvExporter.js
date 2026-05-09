@@ -1,4 +1,5 @@
 import { loadPdfLibs, getDocx, getSaveAs, resolveFeatureLabel } from './exporterUtils.js';
+import { expandKeys } from '../keyMaps.js';
 
 // CSV EXPORT
 // ════════════════════════════════════════════════════════════════
@@ -120,8 +121,9 @@ export function deliverableToCsvRows(featureId, data) {
       return { headers, rows };
     }
     case 'quizBank': {
-      const key = data.quizzes ? 'quizzes' : 'quizBank';
-      const quizzes = data[key] || [];
+      const expanded = expandKeys('quizBank', data);
+      const key = expanded.quizzes ? 'quizzes' : 'quizBank';
+      const quizzes = expanded[key] || [];
       const headers = [
         'Lesson',
         'Type',

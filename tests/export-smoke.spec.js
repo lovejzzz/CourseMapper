@@ -401,6 +401,75 @@ test.describe('Export smoke', () => {
     });
   });
 
+  test('exports compact quiz-bank questions to current-tab CSV', async ({ page }) => {
+    await restoreExportWorkspace(page, (snapshot) => {
+      snapshot.selectedFeatures = ['courseMap', 'quizBank'];
+      snapshot.activeTab = 'quizBank';
+      snapshot.deliverableConfig = { quizBank: {} };
+      snapshot.deliverables = {
+        quizBank: {
+          status: 'done',
+          data: {
+            quizzes: [
+              {
+                lessonTitle: 'Lesson 1: Export Reliability',
+                qs: Array.from({ length: 5 }, (_, index) => ({
+                  type: index === 0 ? 'multiple_choice' : 'short_answer',
+                  bloomsLevel: index === 0 ? 'Analyze' : 'Apply',
+                  difficulty: 'Medium',
+                  estimatedMinutes: 3,
+                  question:
+                    index === 0
+                      ? 'Which audit catches compact quiz rows in a CSV export?'
+                      : `Name export verification step ${index + 1}.`,
+                  options:
+                    index === 0
+                      ? ['A. Theme preview', 'B. CSV row inspection', 'C. Login retry', 'D. Palette scan']
+                      : undefined,
+                  answer: index === 0 ? 'B' : `Verification step ${index + 1}`,
+                  explanation:
+                    index === 0
+                      ? 'CSV row inspection confirms generated questions survive the export path.'
+                      : `The step checks artifact content ${index + 1}.`,
+                  points: 2,
+                })),
+              },
+              {
+                lessonTitle: 'Lesson 2: Portable Course Materials',
+                qs: Array.from({ length: 5 }, (_, index) => ({
+                  type: 'short_answer',
+                  bloomsLevel: 'Apply',
+                  difficulty: 'Medium',
+                  estimatedMinutes: 3,
+                  question: `How should instructors inspect portable export ${index + 1}?`,
+                  answer: `Open the artifact and compare portable export ${index + 1} with the workspace.`,
+                  explanation: `This confirms the portable export preserved lesson content ${index + 1}.`,
+                  points: 2,
+                })),
+              },
+            ],
+          },
+          error: null,
+          stale: false,
+        },
+      };
+    });
+
+    await switchWorkspaceTab(page, 'Quiz & Exam Bank');
+    await expect(page.getByTestId('readiness-status')).toContainText('Ready');
+
+    const csvDownload = await expectDownload(page, () => page.getByTestId('export-format-csv').click(), {
+      extension: 'csv',
+      nameIncludes: 'Export Smoke Course',
+      minBytes: 100,
+    });
+    const csv = await fs.readFile(csvDownload.path, 'utf8');
+
+    expect(csv).toContain('Which audit catches compact quiz rows in a CSV export?');
+    expect(csv).toContain('CSV row inspection confirms generated questions survive the export path.');
+    expect(csv).toContain('Name export verification step 5.');
+  });
+
   test('allows ZIP export with confirmation when selected generated materials only have warnings', async ({ page }) => {
     await restoreExportWorkspace(page, (snapshot) => {
       snapshot.selectedFeatures = ['courseMap', 'courseFaq'];

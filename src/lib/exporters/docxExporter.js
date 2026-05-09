@@ -1,4 +1,5 @@
 import { loadPdfLibs, getDocx, getSaveAs, resolveFeatureLabel } from './exporterUtils.js';
+import { expandKeys } from '../keyMaps.js';
 
 // DOCX EXPORT
 // ════════════════════════════════════════════════════════════════
@@ -256,8 +257,9 @@ export function _buildDocxContentShared(featureId, data, children, docx) {
 
     // ─── QUIZ BANK ──────────────────────────────────────────────
     case 'quizBank': {
-      const key = data.quizzes ? 'quizzes' : 'quizBank';
-      for (const quiz of data[key] || []) {
+      const expanded = expandKeys('quizBank', data);
+      const key = expanded.quizzes ? 'quizzes' : 'quizBank';
+      for (const quiz of expanded[key] || []) {
         children.push(makeHeading(quiz.lessonTitle || 'Quiz'));
         if (quiz.bloomsCoverage?.length) children.push(makeBold("Bloom's Coverage", quiz.bloomsCoverage.join(', ')));
         for (let j = 0; j < (quiz.questions || []).length; j++) {
@@ -620,7 +622,8 @@ export function _buildDocxContentShared(featureId, data, children, docx) {
 
     // ─── COURSE FAQ ───────────────────────────────────────────────
     case 'courseFaq': {
-      const faqs = data.faqs || data.courseFaq || [];
+      const expanded = expandKeys('courseFaq', data);
+      const faqs = expanded.faqs || expanded.courseFaq || [];
       for (const lesson of faqs) {
         const title = lesson.lessonTitle || lesson.title || 'FAQ';
         children.push(makeHeading(title));
