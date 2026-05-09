@@ -20,6 +20,7 @@ import {
   getFeatureOutputBudget,
   getCoverageRetryMissingLessons,
   extractCoverageLessonNumbers,
+  getSlideDeckSlideCount,
 } from '../lib/parallelGenerator';
 import { expandKeys } from '../lib/keyMaps';
 import { log, warn, error as logError } from '../lib/logger';
@@ -729,7 +730,7 @@ export default function useDeliverables({
           mergedArr.map((it) => ({
             title: it?.lessonTitle || it?.title || '?',
             questions: it?.questions?.length,
-            slides: it?.slides?.length,
+            slides: fid === 'slideDecks' ? getSlideDeckSlideCount(it) : it?.slides?.length,
           })),
         );
 
@@ -874,7 +875,7 @@ export default function useDeliverables({
         if (fid === 'slideDecks' && mergedArr.length > 0) {
           // Dynamic threshold: 50% of median slide count (min 6) to catch partial generations
           const slideCounts = mergedArr
-            .map((d) => d?.slides?.length || 0)
+            .map((d) => getSlideDeckSlideCount(d))
             .filter((c) => c > 0)
             .sort((a, b) => a - b);
           const median = slideCounts.length > 0 ? slideCounts[Math.floor(slideCounts.length / 2)] : 10;
@@ -882,7 +883,7 @@ export default function useDeliverables({
 
           const truncatedIndices = [];
           mergedArr.forEach((deck, i) => {
-            const slideCount = deck?.slides?.length || 0;
+            const slideCount = getSlideDeckSlideCount(deck);
             if (slideCount > 0 && slideCount < truncThreshold) {
               truncatedIndices.push(lessonIndices[i]);
             }
@@ -894,7 +895,7 @@ export default function useDeliverables({
               'warn',
             );
             mergedArr = mergedArr.filter((deck) => {
-              const slideCount = deck?.slides?.length || 0;
+              const slideCount = getSlideDeckSlideCount(deck);
               return slideCount === 0 || slideCount >= truncThreshold;
             });
             merged = { ...merged, [arrayKey]: mergedArr };
@@ -906,7 +907,7 @@ export default function useDeliverables({
           const HARD_CAP_SLIDES = 25;
           const oversizedSlideIndices = [];
           mergedArr = mergedArr.filter((deck, i) => {
-            const sc = deck?.slides?.length || 0;
+            const sc = getSlideDeckSlideCount(deck);
             if (sc > HARD_CAP_SLIDES) {
               oversizedSlideIndices.push(lessonIndices[i] ?? i);
               return false;

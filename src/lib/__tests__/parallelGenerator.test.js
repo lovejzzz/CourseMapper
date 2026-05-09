@@ -3,6 +3,7 @@ import {
   mergeChunkResults,
   findMissingIndices,
   getCoverageRetryMissingLessons,
+  getSlideDeckSlideCount,
   chunkArray,
   createChunkPlan,
 } from '../parallelGenerator';
@@ -157,6 +158,17 @@ describe('getCoverageRetryMissingLessons', () => {
     expect(result.coveredSet.size).toBe(0);
     expect(result.missingLessons).toEqual([]);
     expect(result.missingIndices).toEqual([]);
+  });
+});
+
+describe('getSlideDeckSlideCount', () => {
+  it('counts full and compact slide arrays for generation quality checks', () => {
+    expect(getSlideDeckSlideCount({ slides: [{ title: 'One' }, { title: 'Two' }] })).toBe(2);
+    expect(getSlideDeckSlideCount({ sl: [{ t: 'One' }, { t: 'Two' }, { t: 'Three' }] })).toBe(3);
+  });
+
+  it('prefers the full slide array when both shapes are present', () => {
+    expect(getSlideDeckSlideCount({ slides: [{ title: 'Canonical' }], sl: [{ t: 'Stale' }, { t: 'Extra' }] })).toBe(1);
   });
 });
 

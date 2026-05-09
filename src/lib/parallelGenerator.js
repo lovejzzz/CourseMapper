@@ -268,6 +268,11 @@ export function findMissingIndices(mergedArray, expectedIndices) {
   return expectedIndices.slice(got);
 }
 
+export function getSlideDeckSlideCount(deck) {
+  const slides = Array.isArray(deck?.slides) ? deck.slides : Array.isArray(deck?.sl) ? deck.sl : [];
+  return slides.length;
+}
+
 export function extractCoverageLessonNumbers(item) {
   const nums = new Set();
   const addNumber = (value) => {
