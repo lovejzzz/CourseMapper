@@ -785,7 +785,11 @@ test.describe('Export smoke', () => {
                 cx: 'Students have just inspected exported materials.',
                 pr: 'Which export artifact would you trust for instructor handoff?',
                 er: 'Cite one concrete file-quality signal from the exported materials.',
-                fp: ['What would change your recommendation?', 'Which artifact needs another review pass?'],
+                fp: [
+                  'What would change your recommendation?',
+                  'Which artifact needs another review pass?',
+                  'How would you document the final handoff decision?',
+                ],
                 ft: {
                   op: 'Ask students to name the artifact first.',
                   is: 'Compare CSV and DOCX review workflows.',
@@ -805,7 +809,11 @@ test.describe('Export smoke', () => {
                 cx: 'Students compare portable export formats.',
                 pr: 'How should a teaching team choose between CSV and DOCX handoff files?',
                 er: 'Reference the reviewer workflow and one artifact limitation.',
-                fp: ['Who is the reviewer?', 'What later revision is likely?'],
+                fp: [
+                  'Who is the reviewer?',
+                  'What later revision is likely?',
+                  'Which format best supports that revision?',
+                ],
                 ft: {
                   op: 'Start with a quick format poll.',
                   is: 'Ask for the next file the reviewer would open.',
