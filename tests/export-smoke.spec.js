@@ -1254,6 +1254,75 @@ test.describe('Export smoke', () => {
     expect(report).toContain('missing answer guidance');
   });
 
+  test('allows ZIP export with confirmation when discussion guidance is thin', async ({ page }) => {
+    await restoreExportWorkspace(page, (snapshot) => {
+      snapshot.selectedFeatures = ['courseMap', 'discussions'];
+      snapshot.deliverables = {
+        discussions: {
+          status: 'done',
+          data: {
+            discussions: [
+              {
+                lt: 'Lesson 1: Export Reliability',
+                bl: 'Evaluate',
+                fm: 'Small groups',
+                ed: '20 minutes',
+                cx: 'Students compare exported materials for instructor handoff.',
+                pr: 'Which export artifact would you trust first, and why?',
+                fp: ['What evidence supports that choice?'],
+                ft: { op: 'Ask students to name the artifact first.' },
+                ec: ['Uses artifact evidence'],
+                gl: 'Keep recommendations grounded in downloaded files.',
+              },
+              {
+                lt: 'Lesson 2: Portable Course Materials',
+                bl: 'Analyze',
+                fm: 'Threaded discussion',
+                ed: '25 minutes',
+                cx: 'Students compare portable export formats.',
+                pr: 'How should a teaching team choose between CSV and DOCX handoff files?',
+                er: 'Reference the reviewer workflow and one artifact limitation.',
+                fp: ['Who is the reviewer?', 'What later revision is likely?', 'Which file would you open next?'],
+                ft: {
+                  op: 'Start with a quick format poll.',
+                  is: 'Ask for the next file the reviewer would open.',
+                  cl: 'Summarize tradeoffs by audience.',
+                },
+                ec: ['Names the audience', 'Justifies the format'],
+                eq: 'Offer a written response option before group share-out.',
+                gl: 'Compare concrete workflows, not personal preferences.',
+              },
+            ],
+          },
+          error: null,
+          stale: false,
+        },
+      };
+    });
+
+    await page.getByTestId('export-scope-all').click();
+    await expect(page.getByTestId('readiness-status')).toContainText('Ready with warnings');
+    await expect(page.getByTestId('readiness-panel')).toContainText('Discussion Prompts');
+    await expect(page.getByTestId('readiness-panel')).toContainText('missing instructor guidance');
+    await page.getByTestId('export-download-zip').click();
+    await expect(page.getByTestId('readiness-confirm')).toBeVisible();
+    await expect(page.getByTestId('readiness-confirm')).toContainText('Export anyway');
+    await expect(page.getByTestId('readiness-export-anyway')).toBeVisible();
+
+    const zipDownload = await expectDownload(page, () => page.getByTestId('readiness-export-anyway').click(), {
+      extension: 'zip',
+      nameIncludes: 'Export Smoke Course',
+      minBytes: 1000,
+    });
+    const JSZip = (await import('jszip')).default;
+    const zip = await JSZip.loadAsync(await fs.readFile(zipDownload.path));
+    const report = await zip.file('READINESS_REPORT.txt')?.async('string');
+    expect(report).toContain('Discussion Prompts');
+    expect(report).toContain('missing instructor guidance');
+    expect(report).toContain('fewer than 3 follow-up probes');
+    expect(report).toContain('incomplete facilitation tips');
+  });
+
   test('requires confirmation before non-ZIP export with warnings without promising a readiness report', async ({
     page,
   }) => {

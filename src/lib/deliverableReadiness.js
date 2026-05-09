@@ -248,6 +248,35 @@ function hasQuizAnswerGuidance(question) {
   return guidance.some(hasMeaningfulValue);
 }
 
+function meaningfulArrayCount(value) {
+  return asArray(value).filter(hasMeaningfulValue).length;
+}
+
+function collectDiscussionGuidanceGaps(item) {
+  const gaps = [];
+  if (!hasMeaningfulValue(item?.evidenceRequirement || item?.er)) {
+    gaps.push('evidence requirement');
+  }
+
+  if (meaningfulArrayCount(item?.followUpProbes || item?.fp) < 3) {
+    gaps.push('fewer than 3 follow-up probes');
+  }
+
+  if (meaningfulArrayCount(item?.evaluationCriteria || item?.ec) < 2) {
+    gaps.push('fewer than 2 evaluation criteria');
+  }
+
+  const tips = item?.facilitationTips || item?.ft || {};
+  const hasOpening = hasMeaningfulValue(tips.opening || tips.op);
+  const hasStallPlan = hasMeaningfulValue(tips.ifStalls || tips.is);
+  const hasClosure = hasMeaningfulValue(tips.closure || tips.cl);
+  if (!hasOpening || !hasStallPlan || !hasClosure) {
+    gaps.push('incomplete facilitation tips');
+  }
+
+  return gaps;
+}
+
 function getPercent(value) {
   const number = Number(text(value).match(/\d+(?:\.\d+)?/)?.[0]);
   return Number.isFinite(number) ? number : 0;
@@ -379,6 +408,19 @@ function checkPerLessonFeature(featureId, data, courseMap, lessonIndices, issues
             READINESS_WARNING,
             featureId,
             `${lessonTitle} has ${badCategories} unsupported FAQ categor${badCategories === 1 ? 'y' : 'ies'}.`,
+          ),
+        );
+      }
+    }
+
+    if (featureId === 'discussions') {
+      const gaps = collectDiscussionGuidanceGaps(item);
+      if (gaps.length > 0) {
+        issues.push(
+          makeIssue(
+            READINESS_WARNING,
+            featureId,
+            `${lessonTitle} discussion prompt is missing instructor guidance: ${gaps.join(', ')}.`,
           ),
         );
       }

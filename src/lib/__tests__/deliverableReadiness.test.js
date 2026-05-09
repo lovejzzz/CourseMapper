@@ -56,6 +56,34 @@ function makeCompactQuestions(count) {
   }));
 }
 
+function makeCompactDiscussion(override = {}) {
+  return {
+    lt: 'Lesson 1: Questions',
+    bl: 'Evaluate',
+    fm: 'Socratic Seminar',
+    ed: '20 minutes',
+    cx: 'Students compare two research-question examples from the lesson.',
+    pr: 'Which question is stronger for a social-science study, and why?',
+    er: 'Cite one lesson criterion and one example question in your response.',
+    fp: [
+      'What evidence from the lesson supports that judgment?',
+      'How would the answer change for a different population?',
+      'Which limitation should the researcher acknowledge?',
+    ],
+    ft: {
+      op: 'Give students two minutes to annotate both sample questions.',
+      is: 'Ask pairs to rank the strongest criterion before sharing.',
+      id: 'Redirect repeated speakers by asking for an unvoiced criterion.',
+      cl: 'Close by listing the criteria students will reuse in the next draft.',
+    },
+    rs: ['The strongest criterion is...', 'A limitation I notice is...'],
+    ec: ['Uses lesson criteria', 'Supports claims with specific evidence'],
+    eq: 'Offer silent annotation time before calling on volunteers.',
+    gl: 'Post an initial evidence-based response before replying to peers.',
+    ...override,
+  };
+}
+
 describe('evaluateWorkspaceReadiness', () => {
   it('passes a structurally complete selected workspace', () => {
     const readiness = evaluateWorkspaceReadiness({
@@ -170,6 +198,39 @@ describe('evaluateWorkspaceReadiness', () => {
     expect(readiness.warnings.map((issue) => issue.message).join(' ')).toContain(
       '5 quiz questions missing answer guidance',
     );
+  });
+
+  it('warns when compact discussion prompts are missing instructor guidance', () => {
+    const readiness = evaluateWorkspaceReadiness({
+      courseMap,
+      columns,
+      selectedFeatures: ['discussions'],
+      deliverables: {
+        discussions: {
+          status: 'done',
+          data: {
+            discussions: [
+              makeCompactDiscussion({
+                er: '',
+                fp: ['What evidence from the lesson supports that judgment?'],
+                ft: { op: 'Ask students to annotate the sample question.' },
+                ec: ['Uses lesson criteria'],
+              }),
+              makeCompactDiscussion({ lt: 'Lesson 2: Sampling' }),
+            ],
+          },
+        },
+      },
+    });
+
+    const messages = readiness.warnings.map((issue) => issue.message).join(' ');
+    expect(readiness.status).toBe('warnings');
+    expect(readiness.isBlocked).toBe(false);
+    expect(messages).toContain('discussion prompt is missing instructor guidance');
+    expect(messages).toContain('evidence requirement');
+    expect(messages).toContain('fewer than 3 follow-up probes');
+    expect(messages).toContain('fewer than 2 evaluation criteria');
+    expect(messages).toContain('incomplete facilitation tips');
   });
 
   it('warns on rubrics that miss assessed lessons', () => {
