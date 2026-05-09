@@ -163,6 +163,29 @@ describe('evaluateWorkspaceReadiness', () => {
     expect(readiness.warnings[0].message).toContain('2');
   });
 
+  it('does not warn when compact rubrics cover assessed lessons', () => {
+    const readiness = evaluateWorkspaceReadiness({
+      courseMap,
+      columns,
+      selectedFeatures: ['rubrics'],
+      deliverables: {
+        rubrics: {
+          status: 'done',
+          data: {
+            rubrics: [
+              { t: 'Question Quality Rubric', lt: 'Lesson 1: Questions', cr: [] },
+              { t: 'Sampling Critique Rubric', lt: 'Lesson 2: Sampling', cr: [] },
+            ],
+          },
+        },
+      },
+    });
+
+    expect(readiness.status).toBe('ready');
+    expect(readiness.isBlocked).toBe(false);
+    expect(readiness.warnings.map((issue) => issue.message).join(' ')).not.toContain('missing assessed lesson');
+  });
+
   it('blocks readiness when lesson scope is empty', () => {
     const readiness = evaluateWorkspaceReadiness({
       courseMap,

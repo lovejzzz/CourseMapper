@@ -171,11 +171,17 @@ function extractLessonNumbersFromText(value) {
 function itemLessonNumbers(item) {
   return extractLessonNumbersFromText([
     item?.lessonTitle,
+    item?.lt,
     item?.title,
+    item?.t,
     item?.weekNumber,
+    item?.wk,
     item?.dueWeek,
+    item?.dw,
     ...(Array.isArray(item?.relatedLessons) ? item.relatedLessons : []),
+    ...(Array.isArray(item?.rl) ? item.rl : []),
     ...(Array.isArray(item?.tags) ? item.tags : []),
+    ...(Array.isArray(item?.tg) ? item.tg : []),
   ]);
 }
 
