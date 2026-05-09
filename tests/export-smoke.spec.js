@@ -401,22 +401,111 @@ test.describe('Export smoke', () => {
     });
   });
 
-  test('warns before ZIP export when selected generated materials fail readiness checks', async ({ page }) => {
+  test('allows ZIP export with confirmation when selected generated materials only have warnings', async ({ page }) => {
     await restoreExportWorkspace(page, (snapshot) => {
-      snapshot.selectedFeatures = ['courseMap', 'quizBank'];
+      snapshot.selectedFeatures = ['courseMap', 'courseFaq'];
       snapshot.deliverables = {
-        quizBank: {
+        courseFaq: {
           status: 'done',
           data: {
-            quizzes: [
+            faqs: [
               {
                 lessonTitle: 'Lesson 1: Export Reliability',
                 questions: [
                   {
-                    type: 'multiple_choice',
-                    difficulty: 'Easy',
-                    estimatedMinutes: 2,
-                    question: 'Only one question?',
+                    question: 'How do I verify an export?',
+                    answer: 'Check the downloaded file for the expected content.',
+                    category: 'Course Logistics',
+                  },
+                  {
+                    question: 'Which format is best for editing?',
+                    answer: 'DOCX works well for prose edits.',
+                    category: 'Technical Help',
+                  },
+                  {
+                    question: 'What if a download fails?',
+                    answer: 'Retry the export and review the error message.',
+                    category: 'Course Logistics',
+                  },
+                  {
+                    question: 'Why keep a project backup?',
+                    answer: 'It preserves the editable workspace outside the browser.',
+                    category: 'Assignment Clarification',
+                  },
+                ],
+              },
+              {
+                lessonTitle: 'Lesson 2: Portable Course Materials',
+                questions: [
+                  {
+                    question: 'When should I use CSV?',
+                    answer: 'Use CSV for simple spreadsheet review and imports.',
+                    category: 'Technical Help',
+                  },
+                  {
+                    question: 'When should I use PDF?',
+                    answer: 'Use PDF for read-only review and sharing.',
+                    category: 'Course Logistics',
+                  },
+                  {
+                    question: 'Why export slide decks separately?',
+                    answer: 'Slides need their own presentation-specific format.',
+                    category: 'Assessment Prep',
+                  },
+                  {
+                    question: 'What should I archive after release?',
+                    answer: 'Archive both the exported files and the project backup.',
+                    category: 'Course Logistics',
+                  },
+                ],
+              },
+              {
+                lessonTitle: 'Lesson 2: Portable Course Materials',
+                questions: [
+                  {
+                    question: 'When should I use CSV?',
+                    answer: 'Use CSV for simple spreadsheet review and imports.',
+                    category: 'Technical Help',
+                  },
+                  {
+                    question: 'When should I use PDF?',
+                    answer: 'Use PDF for read-only review and sharing.',
+                    category: 'Course Logistics',
+                  },
+                  {
+                    question: 'Why export slide decks separately?',
+                    answer: 'Slides need their own presentation-specific format.',
+                    category: 'Assessment Prep',
+                  },
+                  {
+                    question: 'What should I archive after release?',
+                    answer: 'Archive both the exported files and the project backup.',
+                    category: 'Course Logistics',
+                  },
+                ],
+              },
+              {
+                lessonTitle: 'Lesson 2: Portable Course Materials',
+                questions: [
+                  {
+                    question: 'When should I use CSV?',
+                    answer: 'Use CSV for simple spreadsheet review and imports.',
+                    category: 'Technical Help',
+                  },
+                  {
+                    question: 'When should I use PDF?',
+                    answer: 'Use PDF for read-only review and sharing.',
+                    category: 'Course Logistics',
+                  },
+                  {
+                    question: 'Why export slide decks separately?',
+                    answer: 'Slides need their own presentation-specific format.',
+                    category: 'Assessment Prep',
+                  },
+                  {
+                    question: 'What should I archive after release?',
+                    answer: 'Archive both the exported files and the project backup.',
+                    category: 'Course Logistics',
                   },
                 ],
               },
@@ -429,8 +518,8 @@ test.describe('Export smoke', () => {
     });
 
     await page.getByTestId('export-scope-all').click();
-    await expect(page.getByTestId('readiness-status')).toContainText('Review before export');
-    await expect(page.getByTestId('readiness-panel')).toContainText('Quiz & Exam Bank');
+    await expect(page.getByTestId('readiness-status')).toContainText('Ready with warnings');
+    await expect(page.getByTestId('readiness-panel')).toContainText('Course FAQ');
     await expect(page.getByTestId('readiness-panel')).toContainText('fewer than 5 questions');
     await expect(page.getByTestId('export-download-zip')).toBeEnabled();
     await page.getByTestId('export-download-zip').click();
@@ -445,7 +534,310 @@ test.describe('Export smoke', () => {
     const JSZip = (await import('jszip')).default;
     const zip = await JSZip.loadAsync(await fs.readFile(zipDownload.path));
     const report = await zip.file('READINESS_REPORT.txt')?.async('string');
+    expect(report).toContain('Course FAQ');
+    expect(report).toContain('fewer than 5 questions');
+  });
+
+  test('allows ZIP export with confirmation when generated quiz content is thin', async ({ page }) => {
+    await restoreExportWorkspace(page, (snapshot) => {
+      snapshot.selectedFeatures = ['courseMap', 'quizBank'];
+      snapshot.deliverables = {
+        quizBank: {
+          status: 'done',
+          data: {
+            quizzes: [
+              {
+                lessonTitle: 'Lesson 1: Export Reliability',
+                questions: [
+                  {
+                    type: 'multiple_choice',
+                    difficulty: 'Easy',
+                    estimatedMinutes: 2,
+                    question: 'Which export format bundles all selected materials?',
+                    options: ['ZIP', 'CSV', 'PDF', 'TXT'],
+                    answer: 'ZIP',
+                  },
+                  {
+                    type: 'short_answer',
+                    difficulty: 'Medium',
+                    estimatedMinutes: 4,
+                    question: 'Name one reason to inspect a readiness report.',
+                    answer: 'It documents known issues before sharing draft materials.',
+                  },
+                ],
+              },
+              {
+                lessonTitle: 'Lesson 2: Portable Course Materials',
+                questions: Array.from({ length: 5 }, (_, index) => ({
+                  type: 'multiple_choice',
+                  difficulty: 'Medium',
+                  estimatedMinutes: 3,
+                  question: `Portable format question ${index + 1}?`,
+                  options: ['DOCX', 'PPTX', 'XLSX', 'PDF'],
+                  answer: 'DOCX',
+                })),
+              },
+            ],
+          },
+          error: null,
+          stale: false,
+        },
+      };
+    });
+
+    await page.getByTestId('export-scope-all').click();
+    await expect(page.getByTestId('readiness-status')).toContainText('Ready with warnings');
+    await expect(page.getByTestId('readiness-panel')).toContainText('Quiz & Exam Bank');
+    await expect(page.getByTestId('readiness-panel')).toContainText('fewer than 5 questions');
+    await expect(page.getByTestId('export-download-zip')).toBeEnabled();
+    await page.getByTestId('export-download-zip').click();
+    await expect(page.getByTestId('readiness-confirm')).toBeVisible();
+    await expect(page.getByTestId('readiness-confirm')).toContainText('Export anyway');
+    await expect(page.getByTestId('readiness-export-anyway')).toBeVisible();
+
+    const zipDownload = await expectDownload(page, () => page.getByTestId('readiness-export-anyway').click(), {
+      extension: 'zip',
+      nameIncludes: 'Export Smoke Course',
+      minBytes: 1000,
+    });
+    const JSZip = (await import('jszip')).default;
+    const zip = await JSZip.loadAsync(await fs.readFile(zipDownload.path));
+    const report = await zip.file('READINESS_REPORT.txt')?.async('string');
     expect(report).toContain('Quiz & Exam Bank');
     expect(report).toContain('fewer than 5 questions');
+  });
+
+  test('requires confirmation before non-ZIP export with warnings without promising a readiness report', async ({
+    page,
+  }) => {
+    await restoreExportWorkspace(page, (snapshot) => {
+      snapshot.selectedFeatures = ['courseMap', 'courseFaq'];
+      snapshot.courseMap.lessons = snapshot.courseMap.lessons.slice(0, 1);
+      snapshot.deliverables = {
+        courseFaq: {
+          status: 'done',
+          data: {
+            faqs: [
+              {
+                lessonTitle: 'Lesson 1: Export Reliability',
+                questions: [
+                  {
+                    question: 'How do I verify an export?',
+                    answer: 'Check the downloaded file for the expected content.',
+                    category: 'Course Logistics',
+                  },
+                  {
+                    question: 'Which format is best for editing?',
+                    answer: 'DOCX works well for prose edits.',
+                    category: 'Technical Help',
+                  },
+                  {
+                    question: 'What if a download fails?',
+                    answer: 'Retry the export and review the error message.',
+                    category: 'Course Logistics',
+                  },
+                  {
+                    question: 'Why keep a project backup?',
+                    answer: 'It preserves the editable workspace outside the browser.',
+                    category: 'Assignment Clarification',
+                  },
+                ],
+              },
+            ],
+          },
+          error: null,
+          stale: false,
+        },
+      };
+    });
+
+    await switchWorkspaceTab(page, 'Course FAQ');
+    await expect(page.getByTestId('readiness-status')).toContainText('Ready with warnings');
+    await page.getByTestId('export-format-csv').click();
+    await expect(page.getByTestId('readiness-confirm')).toBeVisible();
+    await expect(page.getByTestId('readiness-confirm')).toContainText(
+      'This format will not include a readiness report.',
+    );
+    await expect(page.getByTestId('readiness-confirm')).not.toContainText('The ZIP will include a readiness report.');
+
+    await expectDownload(page, () => page.getByTestId('readiness-export-anyway').click(), {
+      extension: 'csv',
+      nameIncludes: 'Export Smoke Course',
+      minBytes: 100,
+    });
+  });
+
+  test('exports a selected clean lesson without inheriting unselected placeholder blockers', async ({ page }) => {
+    await restoreExportWorkspace(page, (snapshot) => {
+      snapshot.selectedFeatures = ['courseMap', 'courseFaq'];
+      snapshot.deliverables = {
+        courseFaq: {
+          status: 'done',
+          data: {
+            faqs: [
+              {
+                lessonTitle: 'Lesson 1: Export Reliability',
+                questions: Array.from({ length: 5 }, (_, index) => ({
+                  question: `Lesson 1 question ${index + 1}`,
+                  answer: `Lesson 1 answer ${index + 1}`,
+                  category: 'Course Logistics',
+                })),
+              },
+              {
+                lessonTitle: 'Lesson 2: Portable Course Materials',
+                questions: Array.from({ length: 5 }, (_, index) => ({
+                  question: `Lesson 2 question ${index + 1}`,
+                  answer:
+                    index === 0 ? 'Replace this placeholder content before release.' : `Lesson 2 answer ${index + 1}`,
+                  category: 'Course Logistics',
+                })),
+              },
+            ],
+          },
+          error: null,
+          stale: false,
+        },
+      };
+    });
+
+    await page.getByTestId('export-scope-all').click();
+    await page.getByRole('button', { name: 'Uncheck all' }).click();
+    await page.getByRole('button', { name: 'Lesson 1: Export Reliability' }).click();
+    await expect(page.getByText('1 of 2 lessons selected')).toBeVisible();
+    await expect(page.getByTestId('readiness-status')).toContainText('Ready');
+    await expect(page.getByTestId('readiness-panel')).not.toContainText('placeholder content');
+    await expect(page.getByTestId('export-download-zip')).toBeEnabled();
+
+    const zipDownload = await expectDownload(page, () => page.getByTestId('export-download-zip').click(), {
+      extension: 'zip',
+      nameIncludes: 'Export Smoke Course',
+      minBytes: 1000,
+    });
+    const audit = await auditCourseMaterialsZip(zipDownload.path, {
+      expectedFolders: ['Course Map', 'Course FAQ'],
+      expectedFaqQuestionsPerLesson: {
+        'Lesson 1: Export Reliability': 5,
+      },
+    });
+    expect(audit.issues).toEqual([]);
+  });
+
+  test('blocks all-export readiness when no lessons are selected', async ({ page }) => {
+    await restoreExportWorkspace(page);
+
+    await page.getByTestId('export-scope-all').click();
+    await expect(page.getByTestId('readiness-status')).toContainText('Ready');
+    await page.getByRole('button', { name: 'Uncheck all' }).click();
+    await expect(page.getByText('0 of 2 lessons selected')).toBeVisible();
+    await expect(page.getByTestId('readiness-status')).toContainText('Review before export');
+    await expect(page.getByTestId('readiness-panel')).toContainText('Select at least one lesson before exporting.');
+    await expect(page.getByTestId('export-download-zip')).toBeDisabled();
+  });
+
+  test('keeps current-tab export independent from the all-export lesson scope', async ({ page }) => {
+    await restoreExportWorkspace(page);
+
+    await page.getByTestId('export-scope-all').click();
+    await page.getByRole('button', { name: 'Uncheck all' }).click();
+    await expect(page.getByTestId('readiness-panel')).toContainText('Select at least one lesson before exporting.');
+
+    await page.getByTestId('export-scope-current').click();
+    await switchWorkspaceTab(page, 'Course FAQ');
+    await expect(page.getByTestId('readiness-status')).toContainText('Ready');
+    await expect(page.getByTestId('readiness-panel')).not.toContainText('Select at least one lesson before exporting.');
+
+    await expectDownload(page, () => page.getByTestId('export-format-csv').click(), {
+      extension: 'csv',
+      nameIncludes: 'Export Smoke Course',
+      minBytes: 100,
+    });
+  });
+
+  test('allows ZIP export with confirmation when syllabus still has publishability placeholders', async ({ page }) => {
+    await restoreExportWorkspace(page, (snapshot) => {
+      snapshot.selectedFeatures = ['courseMap', 'syllabus'];
+      snapshot.deliverables = {
+        syllabus: {
+          status: 'done',
+          data: {
+            courseTitle: 'Export Smoke Course',
+            courseDescription: 'Students learn how to inspect and ship publishable course materials.',
+            weeklySchedule: [
+              {
+                week: 'Week 1',
+                dates: '[Verify time]',
+                topic: 'Readiness review',
+                readings: 'Release checklist',
+                assignments: 'Fix unresolved placeholders',
+              },
+            ],
+            instructor: '[Instructor name]',
+          },
+          error: null,
+          stale: false,
+        },
+      };
+    });
+
+    await page.getByTestId('export-scope-all').click();
+    await expect(page.getByTestId('readiness-status')).toContainText('Ready with warnings');
+    await expect(page.getByTestId('readiness-panel')).toContainText('Syllabus');
+    await expect(page.getByTestId('readiness-panel')).toContainText('[Instructor name]');
+    await expect(page.getByTestId('readiness-panel')).toContainText('[Verify time]');
+    await page.getByTestId('export-download-zip').click();
+    await expect(page.getByTestId('readiness-confirm')).toBeVisible();
+    await expect(page.getByTestId('readiness-confirm')).toContainText('Export anyway');
+    await expect(page.getByTestId('readiness-confirm')).toContainText('[Instructor name]');
+    await expect(page.getByTestId('readiness-confirm')).toContainText('[Verify time]');
+    await expect(page.getByTestId('readiness-export-anyway')).toBeVisible();
+
+    const zipDownload = await expectDownload(page, () => page.getByTestId('readiness-export-anyway').click(), {
+      extension: 'zip',
+      nameIncludes: 'Export Smoke Course',
+      minBytes: 1000,
+    });
+    const JSZip = (await import('jszip')).default;
+    const zip = await JSZip.loadAsync(await fs.readFile(zipDownload.path));
+    const report = await zip.file('READINESS_REPORT.txt')?.async('string');
+    expect(report).toContain('Warnings');
+    expect(report).toContain('[Instructor name]');
+    expect(report).toContain('[Verify time]');
+  });
+
+  test('requires confirmation before ZIP export when syllabus still contains generic placeholder copy', async ({
+    page,
+  }) => {
+    await restoreExportWorkspace(page, (snapshot) => {
+      snapshot.selectedFeatures = ['courseMap', 'syllabus'];
+      snapshot.deliverables = {
+        syllabus: {
+          status: 'done',
+          data: {
+            courseTitle: 'Export Smoke Course',
+            courseDescription: 'Replace this placeholder content before sharing the syllabus with students.',
+            weeklySchedule: [
+              {
+                week: 'Week 1',
+                dates: 'Jan 20',
+                topic: 'Release review',
+                readings: 'Publishing checklist',
+                assignments: 'Revise the final draft',
+              },
+            ],
+            instructor: 'Prof. Example',
+          },
+          error: null,
+          stale: false,
+        },
+      };
+    });
+
+    await page.getByTestId('export-scope-all').click();
+    await expect(page.getByTestId('readiness-status')).toContainText('Ready with warnings');
+    await expect(page.getByTestId('readiness-panel')).toContainText('placeholder content');
+    await page.getByTestId('export-download-zip').click();
+    await expect(page.getByTestId('readiness-confirm')).toBeVisible();
+    await expect(page.getByTestId('readiness-confirm')).toContainText('placeholder content');
+    await expect(page.getByTestId('readiness-export-anyway')).toBeVisible();
   });
 });

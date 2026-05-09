@@ -1,7 +1,13 @@
 import React, { useMemo, useState } from 'react';
 import { useCourse } from '../contexts/CourseContext';
 import { safeImport } from '../lib/safeImport';
-import { buildReadinessReport, evaluateWorkspaceReadiness, summarizeReadiness } from '../lib/deliverableReadiness';
+import {
+  buildReadinessReport,
+  evaluateWorkspaceReadiness,
+  scopeCourseMapToLessons,
+  scopeDeliverableDataToLessons,
+  summarizeReadiness,
+} from '../lib/deliverableReadiness';
 import {
   exportDeliverableCsv,
   exportDeliverablePdf,
@@ -340,17 +346,33 @@ function ReadinessPanel({ readiness }) {
 function ReadinessConfirm({ pendingExport, onCancel, onConfirm }) {
   if (!pendingExport?.readiness) return null;
   const { readiness } = pendingExport;
-  const issues = readiness.issues.slice(0, 5);
+  const isBlocked = readiness.blockers.length > 0;
+  const isZipExport = pendingExport.format === 'zip';
+  const issues = (isBlocked ? readiness.blockers : readiness.issues).slice(0, 5);
+  const tone = isBlocked
+    ? {
+        wrap: 'border-red-200 bg-red-50/80 text-red-800',
+        reviewButton: 'border-red-200 text-red-700',
+        confirmButton: 'bg-red-500',
+        title: 'Resolve critical issues before export',
+        description: isZipExport
+          ? 'ZIP export is blocked until the critical readiness issues below are fixed.'
+          : 'This export is blocked until the critical readiness issues below are fixed.',
+      }
+    : {
+        wrap: 'border-amber-200 bg-amber-50/80 text-amber-800',
+        reviewButton: 'border-amber-200 text-amber-700',
+        confirmButton: 'bg-amber-500',
+        title: 'Readiness warnings found',
+        description: isZipExport
+          ? 'You can review the materials first, or export this draft anyway. The ZIP will include a readiness report.'
+          : 'You can review the materials first, or export this draft anyway. This format will not include a readiness report.',
+      };
 
   return (
-    <div
-      data-testid="readiness-confirm"
-      className="rounded-xl border border-amber-200 bg-amber-50/80 px-3 py-3 text-amber-800"
-    >
-      <p className="text-[11px] font-bold">Readiness issues found</p>
-      <p className="mt-1 text-[10px] leading-snug">
-        You can review the materials first, or export this draft anyway. The ZIP will include a readiness report.
-      </p>
+    <div data-testid="readiness-confirm" className={`rounded-xl border px-3 py-3 ${tone.wrap}`}>
+      <p className="text-[11px] font-bold">{tone.title}</p>
+      <p className="mt-1 text-[10px] leading-snug">{tone.description}</p>
       <ul className="mt-2 space-y-1">
         {issues.map((issue, index) => (
           <li key={`${issue.featureId}-${issue.message}-${index}`} className="text-[10px] leading-snug">
@@ -364,23 +386,25 @@ function ReadinessConfirm({ pendingExport, onCancel, onConfirm }) {
           {readiness.issues.length - issues.length === 1 ? '' : 's'}
         </p>
       )}
-      <div className="mt-2 grid grid-cols-2 gap-1.5">
+      <div className={`mt-2 grid gap-1.5 ${isBlocked ? 'grid-cols-1' : 'grid-cols-2'}`}>
         <button
           type="button"
           data-testid="readiness-review-materials"
           onClick={onCancel}
-          className="rounded-lg border border-amber-200 bg-white/70 px-2 py-1.5 text-[10px] font-bold text-amber-700 hover:bg-white"
+          className={`rounded-lg border bg-white/70 px-2 py-1.5 text-[10px] font-bold hover:bg-white ${tone.reviewButton}`}
         >
           Review materials
         </button>
-        <button
-          type="button"
-          data-testid="readiness-export-anyway"
-          onClick={onConfirm}
-          className="rounded-lg bg-amber-500 px-2 py-1.5 text-[10px] font-bold text-white shadow-sm hover:brightness-105"
-        >
-          Export anyway
-        </button>
+        {!isBlocked && (
+          <button
+            type="button"
+            data-testid="readiness-export-anyway"
+            onClick={onConfirm}
+            className={`rounded-lg px-2 py-1.5 text-[10px] font-bold text-white shadow-sm hover:brightness-105 ${tone.confirmButton}`}
+          >
+            Export anyway
+          </button>
+        )}
       </div>
     </div>
   );
@@ -407,13 +431,7 @@ async function exportAllAsZip(deliverables, courseMap, columns, courseName, less
   }
 
   // Apply lesson filter to courseMap if needed
-  let filteredCourseMap = courseMap;
-  if (lessonFilter && lessonFilter.length > 0 && courseMap?.lessons) {
-    filteredCourseMap = {
-      ...courseMap,
-      lessons: courseMap.lessons.filter((_, i) => lessonFilter.includes(i)),
-    };
-  }
+  const filteredCourseMap = scopeCourseMapToLessons(courseMap, lessonFilter);
 
   // ── Course Map folder ──
   const cmFolder = zip.folder('Course Map');
@@ -432,37 +450,7 @@ async function exportAllAsZip(deliverables, courseMap, columns, courseName, less
     const support = FORMAT_SUPPORT[featureId] || {};
 
     // Filter deliverable data by lesson indices if needed
-    let filteredData = entry.data;
-    if (lessonFilter && lessonFilter.length > 0) {
-      const arrayKeys = {
-        lessonPlans: 'lessonPlans',
-        slideDecks: 'slideDecks',
-        rubrics: 'rubrics',
-        quizBank: 'quizzes',
-        discussions: 'discussions',
-        assignments: 'assignments',
-        studyGuides: 'studyGuides',
-        syllabus: null,
-      };
-      const key = arrayKeys[featureId];
-      if (key && Array.isArray(filteredData[key])) {
-        filteredData = { ...filteredData, [key]: filteredData[key].filter((_, i) => lessonFilter.includes(i)) };
-        // Also handle alternate keys
-      } else if (featureId === 'slideDecks') {
-        const deckKey = filteredData.decks ? 'decks' : 'slideDecks';
-        if (Array.isArray(filteredData[deckKey])) {
-          filteredData = {
-            ...filteredData,
-            [deckKey]: filteredData[deckKey].filter((_, i) => lessonFilter.includes(i)),
-          };
-        }
-      } else if (featureId === 'quizBank') {
-        const qKey = filteredData.quizBank ? 'quizBank' : 'quizzes';
-        if (Array.isArray(filteredData[qKey])) {
-          filteredData = { ...filteredData, [qKey]: filteredData[qKey].filter((_, i) => lessonFilter.includes(i)) };
-        }
-      }
-    }
+    const filteredData = scopeDeliverableDataToLessons(featureId, entry.data, lessonFilter);
 
     // Slide Decks → PPTX
     if (featureId === 'slideDecks' && support.pptx) {
@@ -556,15 +544,15 @@ export default function ExportSidePanel({
         deliverables,
         selectedFeatures: [activeTab],
         columns,
-        lessonFilter: effectiveLessonFilter,
+        lessonFilter: null,
       }),
-    [activeTab, columns, courseMap, deliverables, effectiveLessonFilter],
+    [activeTab, columns, courseMap, deliverables],
   );
   const activeReadiness = scope === 'all' ? workspaceReadiness : currentReadiness;
 
   function requestReadinessConfirmation(format) {
     const readiness = scope === 'all' ? workspaceReadiness : currentReadiness;
-    if (readiness.issues.length > 0) {
+    if (readiness.blockers.length > 0 || readiness.warnings.length > 0) {
       setPendingReadinessExport({ format, readiness, scope });
       setLastError('');
       setLastOk('');

@@ -68,7 +68,7 @@ describe('evaluateWorkspaceReadiness', () => {
     expect(readiness.blockers).toHaveLength(0);
   });
 
-  it('flags a selected deliverable that is stale', () => {
+  it('warns on a selected deliverable that is stale', () => {
     const readiness = evaluateWorkspaceReadiness({
       courseMap,
       columns,
@@ -82,11 +82,12 @@ describe('evaluateWorkspaceReadiness', () => {
       },
     });
 
-    expect(readiness.isBlocked).toBe(true);
-    expect(readiness.blockers.map((issue) => issue.message).join(' ')).toContain('out of sync');
+    expect(readiness.status).toBe('warnings');
+    expect(readiness.isBlocked).toBe(false);
+    expect(readiness.warnings.map((issue) => issue.message).join(' ')).toContain('out of sync');
   });
 
-  it('flags quiz bank lesson coverage that is underfilled', () => {
+  it('warns on quiz bank lesson coverage that is underfilled', () => {
     const readiness = evaluateWorkspaceReadiness({
       courseMap,
       columns,
@@ -104,11 +105,12 @@ describe('evaluateWorkspaceReadiness', () => {
       },
     });
 
-    expect(readiness.isBlocked).toBe(true);
-    expect(readiness.blockers[0].message).toContain('fewer than 5 questions');
+    expect(readiness.status).toBe('warnings');
+    expect(readiness.isBlocked).toBe(false);
+    expect(readiness.warnings[0].message).toContain('fewer than 5 questions');
   });
 
-  it('flags rubrics that miss assessed lessons', () => {
+  it('warns on rubrics that miss assessed lessons', () => {
     const readiness = evaluateWorkspaceReadiness({
       courseMap,
       columns,
@@ -123,9 +125,131 @@ describe('evaluateWorkspaceReadiness', () => {
       },
     });
 
+    expect(readiness.status).toBe('warnings');
+    expect(readiness.isBlocked).toBe(false);
+    expect(readiness.warnings[0].message).toContain('missing assessed lesson');
+    expect(readiness.warnings[0].message).toContain('2');
+  });
+
+  it('blocks readiness when lesson scope is empty', () => {
+    const readiness = evaluateWorkspaceReadiness({
+      courseMap,
+      columns,
+      selectedFeatures: ['courseMap', 'quizBank'],
+      lessonFilter: [],
+      deliverables: {
+        quizBank: {
+          status: 'done',
+          data: {
+            quizzes: [
+              { lessonTitle: 'Lesson 1: Questions', questions: makeQuestions(5) },
+              { lessonTitle: 'Lesson 2: Sampling', questions: makeQuestions(5) },
+            ],
+          },
+        },
+      },
+    });
+
     expect(readiness.isBlocked).toBe(true);
-    expect(readiness.blockers[0].message).toContain('missing assessed lesson');
-    expect(readiness.blockers[0].message).toContain('2');
+    expect(readiness.lessonCount).toBe(0);
+    expect(readiness.blockers.map((issue) => issue.message).join(' ')).toContain(
+      'Select at least one lesson before exporting.',
+    );
+  });
+
+  it('warns on syllabus exports that still contain unresolved publishability placeholders', () => {
+    const readiness = evaluateWorkspaceReadiness({
+      courseMap,
+      columns,
+      selectedFeatures: ['syllabus'],
+      deliverables: {
+        syllabus: {
+          status: 'done',
+          data: {
+            courseTitle: 'Readiness Course',
+            courseDescription: 'A complete description for the course.',
+            weeklySchedule: [
+              {
+                week: 'Week 1',
+                dates: '[Verify time]',
+                topic: 'Questions',
+                readings: 'Article',
+                assignments: 'Memo',
+              },
+            ],
+            instructor: '[Instructor name]',
+          },
+        },
+      },
+    });
+
+    expect(readiness.status).toBe('warnings');
+    expect(readiness.isBlocked).toBe(false);
+    expect(readiness.warnings.map((issue) => issue.message).join(' ')).toContain('[Instructor name]');
+    expect(readiness.warnings.map((issue) => issue.message).join(' ')).toContain('[Verify time]');
+  });
+
+  it('warns when generic placeholder copy would fail the ZIP quality audit', () => {
+    const readiness = evaluateWorkspaceReadiness({
+      courseMap,
+      columns,
+      selectedFeatures: ['syllabus'],
+      deliverables: {
+        syllabus: {
+          status: 'done',
+          data: {
+            courseTitle: 'Readiness Course',
+            courseDescription: 'Replace this placeholder content before release.',
+            weeklySchedule: [
+              { week: 'Week 1', dates: 'Jan 20', topic: 'Questions', readings: 'Article', assignments: 'Memo' },
+            ],
+            instructor: 'Prof. Example',
+          },
+        },
+      },
+    });
+
+    expect(readiness.status).toBe('warnings');
+    expect(readiness.isBlocked).toBe(false);
+    expect(readiness.warnings[0].message).toContain('placeholder content');
+  });
+
+  it('ignores placeholder warnings that only exist outside the selected lesson scope', () => {
+    const readiness = evaluateWorkspaceReadiness({
+      courseMap,
+      columns,
+      selectedFeatures: ['courseMap', 'courseFaq'],
+      lessonFilter: [0],
+      deliverables: {
+        courseFaq: {
+          status: 'done',
+          data: {
+            faqs: [
+              {
+                lessonTitle: 'Lesson 1: Questions',
+                questions: Array.from({ length: 5 }, (_, index) => ({
+                  question: `Question ${index + 1}`,
+                  answer: `Answer ${index + 1}`,
+                  category: 'Course Logistics',
+                })),
+              },
+              {
+                lessonTitle: 'Lesson 2: Sampling',
+                questions: Array.from({ length: 5 }, (_, index) => ({
+                  question: `Question ${index + 1}`,
+                  answer: index === 0 ? 'Replace this placeholder content before release.' : `Answer ${index + 1}`,
+                  category: 'Course Logistics',
+                })),
+              },
+            ],
+          },
+        },
+      },
+    });
+
+    expect(readiness.status).toBe('ready');
+    expect(readiness.isBlocked).toBe(false);
+    expect(readiness.issues.map((issue) => issue.message).join(' ')).not.toContain('placeholder content');
   });
 
   it('builds a portable readiness report for exported drafts', () => {
@@ -146,7 +270,7 @@ describe('evaluateWorkspaceReadiness', () => {
     const report = buildReadinessReport(readiness, { courseName: 'Readiness Course' });
 
     expect(report).toContain('Readiness Course - Readiness Report');
-    expect(report).toContain('Critical issues');
+    expect(report).toContain('Warnings');
     expect(report).toContain('Quiz & Exam Bank');
     expect(report).toContain('fewer than 5 questions');
   });

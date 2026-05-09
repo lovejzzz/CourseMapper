@@ -1,4 +1,5 @@
 import { getArrayKey } from './syncDependencies';
+import { findPublishabilityPlaceholders } from './publishabilityPlaceholders';
 
 export const READINESS_BLOCKER = 'blocker';
 export const READINESS_WARNING = 'warning';
@@ -96,10 +97,54 @@ function getSelectedFeatureIds(selectedFeatures, deliverables = {}) {
 
 function getLessonIndices(courseMap, lessonFilter) {
   const lessons = asArray(courseMap?.lessons);
-  if (Array.isArray(lessonFilter) && lessonFilter.length > 0) {
+  if (Array.isArray(lessonFilter)) {
     return lessonFilter.filter((index) => index >= 0 && index < lessons.length);
   }
   return lessons.map((_, index) => index);
+}
+
+function filterLessonArray(items, lessonIndices) {
+  if (!Array.isArray(items)) return items;
+  return items.filter((_, index) => lessonIndices.includes(index));
+}
+
+export function scopeCourseMapToLessons(courseMap, lessonFilter) {
+  if (!Array.isArray(lessonFilter) || !courseMap?.lessons) return courseMap;
+  return {
+    ...courseMap,
+    lessons: filterLessonArray(courseMap.lessons, lessonFilter),
+  };
+}
+
+export function scopeDeliverableDataToLessons(featureId, data, lessonFilter) {
+  if (!Array.isArray(lessonFilter) || !data || typeof data !== 'object') return data;
+
+  const scopedArrayKeys = {
+    lessonPlans: ['lessonPlans', 'plans'],
+    slideDecks: ['decks', 'slideDecks'],
+    rubrics: ['rubrics'],
+    quizBank: ['quizzes', 'quizBank'],
+    discussions: ['discussions'],
+    assignments: ['assignments'],
+    studyGuides: ['studyGuides', 'guides'],
+    courseFaq: ['faqs', 'courseFaq'],
+  };
+
+  const keys = scopedArrayKeys[featureId];
+  if (!keys) return data;
+
+  let scopedData = data;
+  let changed = false;
+  for (const key of keys) {
+    if (!Array.isArray(scopedData[key])) continue;
+    scopedData = {
+      ...scopedData,
+      [key]: filterLessonArray(scopedData[key], lessonFilter),
+    };
+    changed = true;
+  }
+
+  return changed ? scopedData : data;
 }
 
 function enabledColumnKeys(columns) {
@@ -177,6 +222,19 @@ function getPercent(value) {
   return Number.isFinite(number) ? number : 0;
 }
 
+function checkPublishabilityPlaceholders(featureId, value, issues) {
+  const placeholders = findPublishabilityPlaceholders(value);
+  placeholders.forEach((placeholder) => {
+    issues.push(
+      makeIssue(
+        READINESS_WARNING,
+        featureId,
+        `${labelFor(featureId)} still contains unresolved placeholder text (${placeholder}).`,
+      ),
+    );
+  });
+}
+
 function checkCourseMap(courseMap, columns, lessonIndices, issues) {
   const lessons = asArray(courseMap?.lessons);
   if (lessons.length === 0) {
@@ -217,21 +275,20 @@ function checkPerLessonFeature(featureId, data, courseMap, lessonIndices, issues
     const lessonTitle = lessons[lessonIndex]?.title || `Lesson ${lessonIndex + 1}`;
     const item = getExpectedItemForLesson(items, lessonIndex, lessonIndices);
     if (!item) {
-      issues.push(makeIssue(READINESS_BLOCKER, featureId, `${labelFor(featureId)} is missing ${lessonTitle}.`));
+      issues.push(makeIssue(READINESS_WARNING, featureId, `${labelFor(featureId)} is missing ${lessonTitle}.`));
       continue;
     }
 
     if (featureId === 'slideDecks') {
       const slides = asArray(item.slides || item.sl);
       if (slides.length < 3) {
-        issues.push(makeIssue(READINESS_BLOCKER, featureId, `${lessonTitle} slide deck has fewer than 3 slides.`));
+        issues.push(makeIssue(READINESS_WARNING, featureId, `${lessonTitle} slide deck has fewer than 3 slides.`));
       }
       const missingNotes = slides.filter((slide) => !getSlideNotes(slide)).length;
       if (slides.length > 0 && missingNotes > 0) {
-        const severity = missingNotes === slides.length ? READINESS_BLOCKER : READINESS_WARNING;
         issues.push(
           makeIssue(
-            severity,
+            READINESS_WARNING,
             featureId,
             `${lessonTitle} has ${missingNotes} slide${missingNotes === 1 ? '' : 's'} with missing or very short speaker notes.`,
           ),
@@ -255,7 +312,7 @@ function checkPerLessonFeature(featureId, data, courseMap, lessonIndices, issues
     if (featureId === 'quizBank') {
       const questions = asArray(item.questions || item.qs);
       if (questions.length < 5) {
-        issues.push(makeIssue(READINESS_BLOCKER, featureId, `${lessonTitle} quiz bank has fewer than 5 questions.`));
+        issues.push(makeIssue(READINESS_WARNING, featureId, `${lessonTitle} quiz bank has fewer than 5 questions.`));
       }
       const metadataDrift = questions.filter(
         (question) => !question.type || !question.difficulty || !Number.isFinite(Number(question.estimatedMinutes)),
@@ -270,7 +327,7 @@ function checkPerLessonFeature(featureId, data, courseMap, lessonIndices, issues
     if (featureId === 'courseFaq') {
       const questions = asArray(item.questions || item.qs);
       if (questions.length < 3) {
-        issues.push(makeIssue(READINESS_BLOCKER, featureId, `${lessonTitle} FAQ has fewer than 3 questions.`));
+        issues.push(makeIssue(READINESS_WARNING, featureId, `${lessonTitle} FAQ has fewer than 3 questions.`));
       } else if (questions.length < 5) {
         issues.push(makeIssue(READINESS_WARNING, featureId, `${lessonTitle} FAQ has fewer than 5 questions.`));
       }
@@ -310,7 +367,7 @@ function checkRubrics(data, courseMap, lessonIndices, issues) {
   const missing = assessedLessonNumbers.filter((lessonNumber) => !covered.has(lessonNumber));
   if (missing.length > 0) {
     issues.push(
-      makeIssue(READINESS_BLOCKER, 'rubrics', `Rubrics are missing assessed lesson(s): ${missing.join(', ')}.`),
+      makeIssue(READINESS_WARNING, 'rubrics', `Rubrics are missing assessed lesson(s): ${missing.join(', ')}.`),
     );
   }
 }
@@ -377,9 +434,20 @@ export function evaluateWorkspaceReadiness({
   const issues = [];
   const featureIds = getSelectedFeatureIds(selectedFeatures, deliverables);
   const lessonIndices = getLessonIndices(courseMap, lessonFilter);
+  const scopedCourseMap = scopeCourseMapToLessons(courseMap, lessonIndices);
+
+  if (Array.isArray(lessonFilter) && lessonIndices.length === 0) {
+    issues.push(makeIssue(READINESS_BLOCKER, 'courseMap', 'Select at least one lesson before exporting.'));
+  }
 
   if (featureIds.includes('courseMap')) {
-    checkCourseMap(courseMap, columns, lessonIndices, issues);
+    checkCourseMap(
+      scopedCourseMap,
+      columns,
+      lessonIndices.map((_, index) => index),
+      issues,
+    );
+    checkPublishabilityPlaceholders('courseMap', scopedCourseMap, issues);
   }
 
   for (const featureId of featureIds) {
@@ -405,17 +473,21 @@ export function evaluateWorkspaceReadiness({
       continue;
     }
     if (entry.stale) {
-      issues.push(makeIssue(READINESS_BLOCKER, featureId, `${labelFor(featureId)} is out of sync after edits.`));
+      issues.push(makeIssue(READINESS_WARNING, featureId, `${labelFor(featureId)} is out of sync after edits.`));
     }
 
+    const scopedData = scopeDeliverableDataToLessons(featureId, entry.data, lessonIndices);
+
+    checkPublishabilityPlaceholders(featureId, scopedData, issues);
+
     if (PER_LESSON_FEATURES.has(featureId)) {
-      checkPerLessonFeature(featureId, entry.data, courseMap, lessonIndices, issues);
+      checkPerLessonFeature(featureId, scopedData, courseMap, lessonIndices, issues);
     } else if (featureId === 'rubrics') {
-      checkRubrics(entry.data, courseMap, lessonIndices, issues);
+      checkRubrics(scopedData, courseMap, lessonIndices, issues);
     } else if (featureId === 'assignments') {
-      checkAssignments(entry.data, courseMap, lessonIndices, issues);
+      checkAssignments(scopedData, courseMap, lessonIndices, issues);
     } else if (featureId === 'syllabus') {
-      checkSyllabus(entry.data, issues);
+      checkSyllabus(scopedData, issues);
     }
   }
 

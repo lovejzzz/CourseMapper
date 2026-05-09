@@ -1,16 +1,6 @@
 import fs from 'node:fs/promises';
 import JSZip from 'jszip';
-
-const PLACEHOLDER_PATTERNS = [
-  /\bTODO\b/i,
-  /\bTBD\b/i,
-  /lorem ipsum/i,
-  /placeholder/i,
-  /explanation needed/i,
-  /distractor rationale needed/i,
-  /model response required/i,
-  /\[(?:remember|understand|apply|analyze|evaluate|create)(?:[^\]]*)\]/i,
-];
+import { findPublishabilityPlaceholders } from '../../src/lib/publishabilityPlaceholders.js';
 
 function decodeXmlEntities(value) {
   return String(value || '')
@@ -99,11 +89,8 @@ async function extractPptxTextAndNotes(buffer) {
 }
 
 function checkPlaceholders(issues, fileName, text) {
-  for (const pattern of PLACEHOLDER_PATTERNS) {
-    const match = text.match(pattern);
-    if (match) {
-      issues.push(`${fileName}: leaked placeholder or authoring metadata "${match[0]}"`);
-    }
+  for (const placeholder of findPublishabilityPlaceholders(text, { limit: 10 })) {
+    issues.push(`${fileName}: leaked placeholder or authoring metadata "${placeholder}"`);
   }
 }
 
