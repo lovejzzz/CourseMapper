@@ -210,7 +210,7 @@ export function mergeChunkResults(featureId, chunkMap) {
   // Normalizes titles like "Lesson 3: Social Work Values & Ethics" to "lesson_3"
   // so slight title variations between chunks still dedup correctly.
   const normalizeKey = (item) => {
-    const raw = item?.lessonTitle || item?.title || item?.name || '';
+    const raw = getLessonLabelCandidates(item)[0] || item?.name || '';
     const m = raw.match(/(?:Lesson|Week)\s*(\d+)/i);
     return m ? `lesson_${m[1]}` : raw;
   };
@@ -250,9 +250,10 @@ export function findMissingIndices(mergedArray, expectedIndices) {
   if (mergedArray?.length > 0) {
     const presentNums = new Set();
     for (const item of mergedArray) {
-      const title = item?.lessonTitle || item?.title || '';
-      const m = title.match(/(?:Lesson|Week)\s*(\d+)/i);
-      if (m) presentNums.add(parseInt(m[1], 10));
+      for (const title of getLessonLabelCandidates(item)) {
+        const m = title.match(/(?:Lesson|Week)\s*(\d+)/i);
+        if (m) presentNums.add(parseInt(m[1], 10));
+      }
     }
     // Only use content-based matching if we found parseable lesson numbers
     if (presentNums.size > 0) {
@@ -266,6 +267,12 @@ export function findMissingIndices(mergedArray, expectedIndices) {
   const got = mergedArray?.length || 0;
   if (got >= expectedIndices.length) return [];
   return expectedIndices.slice(got);
+}
+
+function getLessonLabelCandidates(item) {
+  return [item?.lessonTitle, item?.lt, item?.title, item?.t, item?.lesson, item?.week, item?.wk]
+    .filter((value) => value != null && value !== '')
+    .map((value) => String(value));
 }
 
 export function getSlideDeckSlideCount(deck) {
@@ -294,13 +301,17 @@ export function extractCoverageLessonNumbers(item) {
     }
   };
 
-  addLessonLabels(item?.lessonTitle);
-  addLessonLabels(item?.title);
-  addLessonLabels(item?.lesson);
+  getLessonLabelCandidates(item).forEach(addLessonLabels);
   addRelatedLessons(item?.relatedLessons);
   addRelatedLessons(item?.relatedLesson);
+  addRelatedLessons(item?.rl);
+  addRelatedLessons(item?.tags);
+  addRelatedLessons(item?.tg);
   addNumber(item?.lessonNumber);
   addNumber(item?.week);
+  addNumber(item?.wk);
+  addNumber(item?.dueWeek);
+  addNumber(item?.dw);
 
   return [...nums];
 }

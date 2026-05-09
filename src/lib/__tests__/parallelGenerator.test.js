@@ -2,6 +2,7 @@ import { describe, it, expect } from 'vitest';
 import {
   mergeChunkResults,
   findMissingIndices,
+  extractCoverageLessonNumbers,
   getCoverageRetryMissingLessons,
   getSlideDeckSlideCount,
   chunkArray,
@@ -64,6 +65,31 @@ describe('mergeChunkResults', () => {
     expect(result.guides.find((g) => /Lesson 5/.test(g.lessonTitle)).lessonTitle).toContain('Revised');
   });
 
+  it('deduplicates compact retry output by lesson title', () => {
+    const map = new Map([
+      [
+        0,
+        {
+          guides: [
+            { lt: 'Lesson 2: Evidence Review', su: 'Earlier compact draft' },
+            { lt: 'Lesson 3: Synthesis', su: 'Keep this lesson' },
+          ],
+        },
+      ],
+      [
+        100,
+        {
+          guides: [{ lt: 'Lesson 2: Evidence Review (Regenerated)', su: 'Retry compact draft' }],
+        },
+      ],
+    ]);
+
+    const result = mergeChunkResults('studyGuides', map);
+
+    expect(result.guides).toHaveLength(2);
+    expect(result.guides.find((guide) => /Lesson 2/.test(guide.lt)).su).toBe('Retry compact draft');
+  });
+
   it('handles items without lesson numbers (rubric assessment titles)', () => {
     const map = new Map([
       [
@@ -113,6 +139,11 @@ describe('findMissingIndices', () => {
     expect(findMissingIndices(arr, [0, 1, 2])).toEqual([]);
   });
 
+  it('finds missing lessons from compact lesson titles', () => {
+    const arr = [{ lt: 'Lesson 1: A' }, { lt: 'Lesson 3: C' }];
+    expect(findMissingIndices(arr, [0, 1, 2])).toEqual([1]);
+  });
+
   it('falls back to tail detection when no lesson numbers', () => {
     const arr = [{ title: 'Reflection Paper' }, { title: 'Case Study' }];
     const missing = findMissingIndices(arr, [0, 1, 2, 3]);
@@ -150,6 +181,16 @@ describe('getCoverageRetryMissingLessons', () => {
     expect(result.missingIndices).toEqual([2]);
   });
 
+  it('counts compact lesson links for coverage retries', () => {
+    const arr = [{ lt: 'Lesson 1: Intro' }, { rl: 'Lessons 2 and 3' }, { tg: ['Week 5', 'portfolio'] }];
+
+    const result = getCoverageRetryMissingLessons(arr, 5);
+
+    expect([...result.coveredSet].sort((a, b) => a - b)).toEqual([1, 2, 3, 5]);
+    expect(result.missingLessons).toEqual([4]);
+    expect(result.missingIndices).toEqual([3]);
+  });
+
   it('does not request coverage retries when no lesson numbers are present', () => {
     const arr = [{ title: 'Reflection Paper' }, { title: 'Group Presentation' }];
 
@@ -158,6 +199,14 @@ describe('getCoverageRetryMissingLessons', () => {
     expect(result.coveredSet.size).toBe(0);
     expect(result.missingLessons).toEqual([]);
     expect(result.missingIndices).toEqual([]);
+  });
+});
+
+describe('extractCoverageLessonNumbers', () => {
+  it('extracts compact lesson, week, related lesson, and tag fields', () => {
+    expect(extractCoverageLessonNumbers({ lt: 'Lesson 2: Methods', wk: 'Week 4', rl: 'Lessons 1 and 3' })).toEqual([
+      2, 4, 1, 3,
+    ]);
   });
 });
 
