@@ -383,7 +383,12 @@ export function normalizeQuizBankQuestions(data) {
       return nextQuestion;
     });
 
-    const totalKey = quiz.totalQuestions !== undefined ? 'totalQuestions' : quiz.tq !== undefined ? 'tq' : null;
+    const totalKey =
+      quiz.totalQuestions !== undefined
+        ? 'totalQuestions'
+        : quiz.tq !== undefined || questionKey === 'qs'
+          ? 'tq'
+          : 'totalQuestions';
     const nextQuiz = quizChanged ? { ...quiz, [questionKey]: questions } : { ...quiz };
     if (totalKey && nextQuiz[totalKey] !== questions.length) {
       patchedTotals++;

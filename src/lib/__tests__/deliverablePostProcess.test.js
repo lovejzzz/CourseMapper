@@ -153,8 +153,35 @@ describe('Quiz Bank post-processing', () => {
     expect(result.patchedDifficulties).toBe(0);
     expect(result.patchedEstimatedMinutes).toBe(0);
     expect(result.patchedBloomLevels).toBe(0);
+    expect(result.patchedTotals).toBe(1);
     expect(result.patchedBloomCoverages).toBe(1);
+    expect(result.data.quizzes[0].totalQuestions).toBe(2);
     expect(result.data.quizzes[0].bloomsCoverage).toEqual(['Analyze', 'Evaluate']);
+  });
+
+  it('persists full quiz totals when total metadata is missing', () => {
+    const data = {
+      quizzes: [
+        {
+          lessonTitle: 'Lesson 1',
+          questions: [
+            {
+              type: 'multiple_choice',
+              difficulty: 'Medium',
+              estimatedMinutes: 2,
+              bloomsLevel: 'Analyze',
+              question: 'Which count should be reflected in metadata?',
+            },
+          ],
+        },
+      ],
+    };
+
+    const result = normalizeQuizBankQuestions(data);
+
+    expect(result.patchedTotals).toBe(1);
+    expect(result.data.quizzes[0].totalQuestions).toBe(1);
+    expect(result.data.quizzes[0].tq).toBeUndefined();
   });
 
   it('repairs compact Bloom coverage without expanding compact quiz shape', () => {
@@ -186,7 +213,10 @@ describe('Quiz Bank post-processing', () => {
     const result = normalizeQuizBankQuestions(data);
 
     expect(result.patchedBloomCoverages).toBe(1);
+    expect(result.patchedTotals).toBe(1);
+    expect(result.data.quizzes[0].tq).toBe(2);
     expect(result.data.quizzes[0].bc).toEqual(['Analyze', 'Apply']);
+    expect(result.data.quizzes[0].totalQuestions).toBeUndefined();
     expect(result.data.quizzes[0].bloomsCoverage).toBeUndefined();
     expect(result.data.quizzes[0].questions).toBeUndefined();
   });
