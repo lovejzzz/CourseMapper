@@ -1234,6 +1234,7 @@ test.describe('Export smoke', () => {
     await expect(page.getByTestId('readiness-status')).toContainText('Ready with warnings');
     await expect(page.getByTestId('readiness-panel')).toContainText('Quiz & Exam Bank');
     await expect(page.getByTestId('readiness-panel')).toContainText('fewer than 5 questions');
+    await expect(page.getByTestId('readiness-panel')).toContainText('missing answer guidance');
     await expect(page.getByTestId('export-download-zip')).toBeEnabled();
     await page.getByTestId('export-download-zip').click();
     await expect(page.getByTestId('readiness-confirm')).toBeVisible();
@@ -1250,6 +1251,7 @@ test.describe('Export smoke', () => {
     const report = await zip.file('READINESS_REPORT.txt')?.async('string');
     expect(report).toContain('Quiz & Exam Bank');
     expect(report).toContain('fewer than 5 questions');
+    expect(report).toContain('missing answer guidance');
   });
 
   test('requires confirmation before non-ZIP export with warnings without promising a readiness report', async ({

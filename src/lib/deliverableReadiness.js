@@ -230,6 +230,24 @@ function hasQuizMetadata(question) {
   return Boolean(type && difficulty && Number.isFinite(estimatedMinutes));
 }
 
+function hasQuizAnswerGuidance(question) {
+  const type = text(question?.type || question?.ty)
+    .trim()
+    .toLowerCase();
+  const guidance = [
+    question?.explanation,
+    question?.ex,
+    question?.feedback,
+    question?.fb,
+    question?.sampleAnswer,
+    question?.sa,
+  ];
+  if (type === 'multiple_choice') {
+    guidance.push(question?.distractorRationale, question?.dr);
+  }
+  return guidance.some(hasMeaningfulValue);
+}
+
 function getPercent(value) {
   const number = Number(text(value).match(/\d+(?:\.\d+)?/)?.[0]);
   return Number.isFinite(number) ? number : 0;
@@ -331,6 +349,16 @@ function checkPerLessonFeature(featureId, data, courseMap, lessonIndices, issues
       if (metadataDrift > 0) {
         issues.push(
           makeIssue(READINESS_WARNING, featureId, `${lessonTitle} has ${metadataDrift} quiz question metadata gap(s).`),
+        );
+      }
+      const missingGuidance = questions.filter((question) => !hasQuizAnswerGuidance(question)).length;
+      if (missingGuidance > 0) {
+        issues.push(
+          makeIssue(
+            READINESS_WARNING,
+            featureId,
+            `${lessonTitle} has ${missingGuidance} quiz question${missingGuidance === 1 ? '' : 's'} missing answer guidance.`,
+          ),
         );
       }
     }

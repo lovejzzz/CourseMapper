@@ -42,6 +42,7 @@ function makeQuestions(count) {
     difficulty: 'Medium',
     estimatedMinutes: 2,
     question: `Question ${index + 1}?`,
+    explanation: `Explanation ${index + 1} connects the answer to the lesson objective.`,
   }));
 }
 
@@ -51,6 +52,7 @@ function makeCompactQuestions(count) {
     df: 'Medium',
     em: 2,
     q: `Question ${index + 1}?`,
+    ex: `Explanation ${index + 1} connects the answer to the lesson objective.`,
   }));
 }
 
@@ -140,6 +142,34 @@ describe('evaluateWorkspaceReadiness', () => {
     expect(readiness.status).toBe('ready');
     expect(readiness.isBlocked).toBe(false);
     expect(readiness.warnings.map((issue) => issue.message).join(' ')).not.toContain('metadata gap');
+  });
+
+  it('warns when compact quiz questions are missing answer guidance', () => {
+    const readiness = evaluateWorkspaceReadiness({
+      courseMap,
+      columns,
+      selectedFeatures: ['quizBank'],
+      deliverables: {
+        quizBank: {
+          status: 'done',
+          data: {
+            quizzes: [
+              {
+                lt: 'Lesson 1: Questions',
+                qs: makeCompactQuestions(5).map(({ ex, ...question }) => question),
+              },
+              { lt: 'Lesson 2: Sampling', qs: makeCompactQuestions(5) },
+            ],
+          },
+        },
+      },
+    });
+
+    expect(readiness.status).toBe('warnings');
+    expect(readiness.isBlocked).toBe(false);
+    expect(readiness.warnings.map((issue) => issue.message).join(' ')).toContain(
+      '5 quiz questions missing answer guidance',
+    );
   });
 
   it('warns on rubrics that miss assessed lessons', () => {
