@@ -406,8 +406,9 @@ export function _buildDocxContentShared(featureId, data, children, docx) {
 
     // ─── STUDY GUIDES ───────────────────────────────────────────
     case 'studyGuides': {
-      const key = data.guides ? 'guides' : 'studyGuides';
-      for (const g of data[key] || []) {
+      const expanded = expandKeys('studyGuides', data);
+      const key = expanded.guides ? 'guides' : 'studyGuides';
+      for (const g of expanded[key] || []) {
         children.push(makeHeading(g.lessonTitle || 'Study Guide'));
         if (g.examScope) children.push(makeText(g.examScope));
         if (g.summary) {

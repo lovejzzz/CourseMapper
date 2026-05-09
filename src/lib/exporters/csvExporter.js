@@ -244,8 +244,9 @@ export function deliverableToCsvRows(featureId, data) {
       return { headers, rows };
     }
     case 'studyGuides': {
-      const key = data.guides ? 'guides' : 'studyGuides';
-      const guides = data[key] || [];
+      const expanded = expandKeys('studyGuides', data);
+      const key = expanded.guides ? 'guides' : 'studyGuides';
+      const guides = expanded[key] || [];
       const headers = [
         'Lesson',
         'Summary',
@@ -264,6 +265,8 @@ export function deliverableToCsvRows(featureId, data) {
         const examPrep = g.examPrep
           ? [
               g.examPrep.keyTopicsToKnow?.length && `Topics: ${g.examPrep.keyTopicsToKnow.join(', ')}`,
+              g.examPrep.timeManagement && `Time: ${g.examPrep.timeManagement}`,
+              g.examPrep.commonErrors && `Errors: ${g.examPrep.commonErrors}`,
               g.examPrep.reviewStrategy && `Strategy: ${g.examPrep.reviewStrategy}`,
             ]
               .filter(Boolean)

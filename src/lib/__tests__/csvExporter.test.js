@@ -528,6 +528,61 @@ describe('deliverableToCsvRows — studyGuides', () => {
     expect(rows[0][5]).toBe('What is ML?');
     expect(rows[0][6]).toBe('Code a model');
   });
+
+  it('expands compact study guide keys before building rows', () => {
+    const data = {
+      guides: [
+        {
+          lt: 'Lesson 1: Compact Study Guide',
+          es: 'Covers export verification vocabulary and review workflows.',
+          su: 'Students use this guide to inspect whether generated artifacts are ready for instructor handoff.',
+          kt: [
+            {
+              tm: 'Artifact audit',
+              df: 'A structured check of downloaded course materials.',
+              ex: 'Opening a CSV to confirm compact study guide terms appear.',
+            },
+          ],
+          cc: ['Readiness warnings connect to later revision planning.'],
+          cm: [
+            {
+              mc: 'A completed download means the content is complete.',
+              co: 'Reviewers still need to inspect fields.',
+            },
+          ],
+          rq: [
+            {
+              q: 'Which field proves a compact guide survived export?',
+              bl: 'Analyze',
+              ht: 'Look for lesson-specific terms.',
+            },
+          ],
+          pa: ['Close the app and reconstruct the export checklist from memory.'],
+          ep: {
+            kk: ['Artifact audit', 'Readiness report'],
+            tl: 'Spend two minutes on each exported file before deeper review.',
+            ce: 'Students often skip speaker notes and study guide prompts.',
+            rv: 'Use spaced retrieval to revisit each export-quality signal.',
+          },
+        },
+      ],
+    };
+
+    const { rows } = deliverableToCsvRows('studyGuides', data);
+
+    expect(rows).toHaveLength(1);
+    expect(rows[0][0]).toBe('Lesson 1: Compact Study Guide');
+    expect(rows[0][1]).toContain('generated artifacts are ready');
+    expect(rows[0][2]).toContain('Artifact audit: A structured check');
+    expect(rows[0][3]).toContain('Readiness warnings connect');
+    expect(rows[0][4]).toContain('Reviewers still need to inspect fields.');
+    expect(rows[0][5]).toContain('Which field proves a compact guide survived export?');
+    expect(rows[0][6]).toContain('reconstruct the export checklist');
+    expect(rows[0][7]).toContain('Topics: Artifact audit, Readiness report');
+    expect(rows[0][7]).toContain('Time: Spend two minutes');
+    expect(rows[0][7]).toContain('Errors: Students often skip speaker notes');
+    expect(rows[0][7]).toContain('Strategy: Use spaced retrieval');
+  });
 });
 
 // ═════════════════════════════════════════════════════════════════════════════

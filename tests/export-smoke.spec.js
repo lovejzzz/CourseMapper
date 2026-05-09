@@ -681,6 +681,113 @@ test.describe('Export smoke', () => {
     expect(documentXml).toContain('Invite quieter groups to report a different format.');
   });
 
+  test('exports compact study guides to current-tab CSV and DOCX', async ({ page }) => {
+    await restoreExportWorkspace(page, (snapshot) => {
+      snapshot.selectedFeatures = ['courseMap', 'studyGuides'];
+      snapshot.activeTab = 'studyGuides';
+      snapshot.deliverableConfig = { studyGuides: {} };
+      snapshot.deliverables = {
+        studyGuides: {
+          status: 'done',
+          data: {
+            guides: [
+              {
+                lt: 'Lesson 1: Export Reliability',
+                es: 'Covers export verification vocabulary and review workflows.',
+                su: 'Students use this guide to inspect whether generated artifacts are ready for instructor handoff.',
+                kt: [
+                  {
+                    tm: 'Artifact audit',
+                    df: 'A structured check of downloaded course materials.',
+                    ex: 'Opening a CSV to confirm compact study guide terms appear.',
+                  },
+                ],
+                cc: ['Readiness warnings connect to later revision planning.'],
+                cm: [
+                  {
+                    mc: 'A completed download means the content is complete.',
+                    co: 'Reviewers still need to inspect fields.',
+                  },
+                ],
+                rq: [
+                  {
+                    q: 'Which field proves a compact guide survived export?',
+                    bl: 'Analyze',
+                    ht: 'Look for lesson-specific terms.',
+                  },
+                ],
+                pa: ['Close the app and reconstruct the export checklist from memory.'],
+                ep: {
+                  kk: ['Artifact audit', 'Readiness report'],
+                  tl: 'Spend two minutes on each exported file before deeper review.',
+                  ce: 'Students often skip speaker notes and study guide prompts.',
+                  rv: 'Use spaced retrieval to revisit each export-quality signal.',
+                },
+              },
+              {
+                lt: 'Lesson 2: Portable Course Materials',
+                es: 'Covers portable file review choices.',
+                su: 'Students compare exported formats and explain which file supports each teaching workflow.',
+                kt: [
+                  {
+                    tm: 'Portable handoff',
+                    df: 'A package that lets another instructor inspect and revise course materials.',
+                    ex: 'Sharing a DOCX study guide with editable review questions.',
+                  },
+                ],
+                cc: ['CSV review supports the same evidence check as DOCX review.'],
+                cm: [
+                  {
+                    mc: 'Every format serves the same reviewer.',
+                    co: 'Different formats support different review tasks.',
+                  },
+                ],
+                rq: [
+                  { q: 'When should a reviewer choose DOCX over CSV?', bl: 'Apply', ht: 'Think about prose revision.' },
+                ],
+                pa: ['Match three export formats to three reviewer needs.'],
+                ep: {
+                  kk: ['Portable handoff', 'Reviewer workflow'],
+                  tl: 'Start with the format that answers the review question.',
+                  ce: 'Students often ignore who will revise the artifact.',
+                  rv: 'Practice explaining the reviewer workflow aloud.',
+                },
+              },
+            ],
+          },
+          error: null,
+          stale: false,
+        },
+      };
+    });
+
+    await switchWorkspaceTab(page, 'Study Guides');
+    await expect(page.getByTestId('readiness-status')).toContainText('Ready');
+
+    const csvDownload = await expectDownload(page, () => page.getByTestId('export-format-csv').click(), {
+      extension: 'csv',
+      nameIncludes: 'Export Smoke Course',
+      minBytes: 100,
+    });
+    const csv = await fs.readFile(csvDownload.path, 'utf8');
+    expect(csv).toContain('Artifact audit: A structured check of downloaded course materials.');
+    expect(csv).toContain('Which field proves a compact guide survived export?');
+    expect(csv).toContain('Time: Spend two minutes on each exported file before deeper review.');
+    expect(csv).toContain('Errors: Students often skip speaker notes and study guide prompts.');
+
+    const docxDownload = await expectDownload(page, () => page.getByTestId('export-format-docx').click(), {
+      extension: 'docx',
+      nameIncludes: 'Export Smoke Course',
+      minBytes: 1000,
+    });
+    const docx = await JSZip.loadAsync(await fs.readFile(docxDownload.path));
+    const documentXml = await docx.file('word/document.xml').async('string');
+    expect(documentXml).toContain('Artifact audit');
+    expect(documentXml).toContain('Which field proves a compact guide survived export?');
+    expect(documentXml).toContain('Spend two minutes on each exported file before deeper review.');
+    expect(documentXml).toContain('Students often skip speaker notes and study guide prompts.');
+  });
+
   test('allows ZIP export with confirmation when selected generated materials only have warnings', async ({ page }) => {
     await restoreExportWorkspace(page, (snapshot) => {
       snapshot.selectedFeatures = ['courseMap', 'courseFaq'];
