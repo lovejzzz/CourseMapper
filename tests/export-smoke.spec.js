@@ -955,6 +955,97 @@ test.describe('Export smoke', () => {
     expect(documentXml).toContain('Students often skip speaker notes and study guide prompts.');
   });
 
+  test('exports syllabus orientation and alignment fields to current-tab CSV and DOCX', async ({ page }) => {
+    await restoreExportWorkspace(page, (snapshot) => {
+      snapshot.selectedFeatures = ['courseMap', 'syllabus'];
+      snapshot.activeTab = 'syllabus';
+      snapshot.deliverableConfig = { syllabus: {} };
+      snapshot.deliverables = {
+        syllabus: {
+          status: 'done',
+          data: {
+            courseTitle: 'Export Smoke Course',
+            semester: 'Spring 2026',
+            instructor: 'Prof. Example',
+            instructorBio: 'Prof. Example helps instructors inspect course handoff artifacts before publication.',
+            courseDescription: 'Students learn to review generated course materials before sharing them.',
+            gettingStarted: 'Open the course site, find the syllabus, and post one export-readiness question.',
+            learnerIntroActivity: 'Record a short introduction that names one export format you use often.',
+            learningOutcomes: ['Analyze generated course materials for publication readiness.'],
+            outcomeAlignmentMatrix: [
+              {
+                outcome: 'Analyze generated course materials for publication readiness.',
+                bloomsLevel: 'Analyze',
+                practicedIn: ['Lesson 1: Export Reliability'],
+                assessedBy: ['Artifact audit memo'],
+              },
+            ],
+            requiredTexts: [
+              {
+                author: 'Rivera',
+                title: 'Course Export Review',
+                edition: '2nd ed.',
+                isbn: '9780000000002',
+                note: 'Suggested - verify before adoption',
+              },
+            ],
+            courseRequirements: [
+              {
+                name: 'Artifact audit memo',
+                weight: '25%',
+                description: 'Students explain whether exported materials are ready to publish.',
+              },
+            ],
+            weeklySchedule: [
+              {
+                week: 'Week 1',
+                dates: 'Jan 20',
+                topic: 'Export readiness review',
+                readings: 'Course Export Review, chapter 1',
+                assignments: 'Artifact audit memo draft',
+              },
+            ],
+            technicalSkills: 'Upload a DOCX file and inspect CSV downloads.',
+            technicalSupport: 'Use institutional technical support for LMS access issues.',
+            dataPrivacy: 'Student data remains protected under institutional privacy policies.',
+            suggestedReviewDate: 'Review by Fall 2027',
+            contentOwnerGroup: 'Curriculum Operations',
+          },
+          error: null,
+          stale: false,
+        },
+      };
+    });
+
+    await switchWorkspaceTab(page, 'Syllabus');
+    await expect(page.getByTestId('readiness-status')).toContainText('Ready');
+
+    const csvDownload = await expectDownload(page, () => page.getByTestId('export-format-csv').click(), {
+      extension: 'csv',
+      nameIncludes: 'Export Smoke Course',
+      minBytes: 100,
+    });
+    const csv = await fs.readFile(csvDownload.path, 'utf8');
+    expect(csv).toContain('Getting Started');
+    expect(csv).toContain('Artifact audit memo');
+    expect(csv).toContain('ISBN: 9780000000002');
+    expect(csv).toContain('Data Privacy');
+    expect(csv).toContain('Review by Fall 2027');
+
+    const docxDownload = await expectDownload(page, () => page.getByTestId('export-format-docx').click(), {
+      extension: 'docx',
+      nameIncludes: 'Export Smoke Course',
+      minBytes: 1000,
+    });
+    const docx = await JSZip.loadAsync(await fs.readFile(docxDownload.path));
+    const documentXml = await docx.file('word/document.xml').async('string');
+    expect(documentXml).toContain('Getting Started');
+    expect(documentXml).toContain('Artifact audit memo');
+    expect(documentXml).toContain('Technical Support');
+    expect(documentXml).toContain('Data Privacy');
+    expect(documentXml).toContain('Review by Fall 2027');
+  });
+
   test('allows ZIP export with confirmation when selected generated materials only have warnings', async ({ page }) => {
     await restoreExportWorkspace(page, (snapshot) => {
       snapshot.selectedFeatures = ['courseMap', 'courseFaq'];

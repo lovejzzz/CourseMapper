@@ -27,11 +27,11 @@ const FORMAT_SUPPORT = {
   courseMap: { xlsx: true, csv: true, pdf: true, docx: true, gdocs: true, gsheets: true, pptx: false, slidepdf: false },
   syllabus: {
     xlsx: false,
-    csv: false,
+    csv: true,
     pdf: true,
     docx: true,
     gdocs: true,
-    gsheets: false,
+    gsheets: true,
     pptx: false,
     slidepdf: false,
   },

@@ -1,5 +1,6 @@
 import { loadPdfLibs, getDocx, getSaveAs, resolveFeatureLabel } from './exporterUtils.js';
 import { expandKeys } from '../keyMaps.js';
+import { buildSyllabusCsvRows } from './syllabusExportUtils.js';
 
 // CSV EXPORT
 // ════════════════════════════════════════════════════════════════
@@ -311,55 +312,7 @@ export function deliverableToCsvRows(featureId, data) {
       return { headers, rows };
     }
     case 'syllabus': {
-      const syl = data.syllabus || data;
-      const headers = ['Section', 'Content'];
-      const rows = [];
-      if (syl.courseTitle) rows.push(['Course Title', syl.courseTitle]);
-      if (syl.semester) rows.push(['Semester', syl.semester]);
-      if (syl.credits) rows.push(['Credits', syl.credits]);
-      if (syl.meetingPattern) rows.push(['Meeting', syl.meetingPattern]);
-      if (syl.location) rows.push(['Location', syl.location]);
-      if (syl.deliveryMode) rows.push(['Delivery Mode', syl.deliveryMode]);
-      if (syl.prerequisites) rows.push(['Prerequisites', syl.prerequisites]);
-      if (syl.instructor) rows.push(['Instructor', syl.instructor]);
-      if (syl.instructorEmail) rows.push(['Email', syl.instructorEmail]);
-      if (syl.officeHours) rows.push(['Office Hours', syl.officeHours]);
-      if (syl.officeLocation) rows.push(['Office Location', syl.officeLocation]);
-      if (syl.courseDescription) rows.push(['Course Description', syl.courseDescription]);
-      if (syl.learningOutcomes?.length) rows.push(['Learning Outcomes', syl.learningOutcomes.join('; ')]);
-      if (syl.requiredTexts?.length)
-        rows.push([
-          'Required Texts',
-          syl.requiredTexts
-            .map((t) => (typeof t === 'string' ? t : [t.author, t.title, t.edition].filter(Boolean).join('. ')))
-            .join('; '),
-        ]);
-      const reqs = syl.courseRequirements || syl.gradingPolicy || [];
-      if (reqs.length)
-        rows.push(['Course Requirements', reqs.map((g) => `${g.name || g.component}: ${g.weight}`).join('; ')]);
-      if (syl.gradingScale?.length)
-        rows.push(['Grading Scale', syl.gradingScale.map((g) => `${g.grade}: ${g.range}`).join('; ')]);
-      if (syl.attendancePolicy) rows.push(['Attendance & Participation', syl.attendancePolicy]);
-      if (syl.latePolicy) rows.push(['Late Work Policy', syl.latePolicy]);
-      if (syl.communicationPolicy) rows.push(['Communication Policy', syl.communicationPolicy]);
-      if (syl.technologyPolicy) rows.push(['Technology Policy', syl.technologyPolicy]);
-      if (syl.aiPolicy) rows.push(['AI Policy', syl.aiPolicy]);
-      if (syl.academicIntegrity) rows.push(['Academic Integrity', syl.academicIntegrity]);
-      if (syl.accommodations) rows.push(['Accommodations', syl.accommodations]);
-      if (syl.mentalHealth) rows.push(['Mental Health', syl.mentalHealth]);
-      if (syl.titleIX) rows.push(['Title IX', syl.titleIX]);
-      if (syl.supportServices) rows.push(['Support Services', syl.supportServices]);
-      if (syl.weeklySchedule?.length) {
-        for (const w of syl.weeklySchedule) {
-          rows.push([w.week || '', `${w.topic || ''} | ${w.readings || ''} | ${w.assignments || ''}`]);
-        }
-      }
-      if (syl.importantDates?.length) {
-        for (const d of syl.importantDates) {
-          rows.push([d.date || '', d.event || '']);
-        }
-      }
-      return { headers, rows };
+      return buildSyllabusCsvRows(data);
     }
     default: {
       // Generic handler for custom deliverables

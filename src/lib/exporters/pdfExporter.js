@@ -1,5 +1,6 @@
 import { loadPdfLibs, getDocx, getSaveAs, resolveFeatureLabel } from './exporterUtils.js';
 import { deliverableToCsvRows } from './csvExporter.js';
+import { formatOutcomeAlignment, formatRequiredText } from './syllabusExportUtils.js';
 
 // PDF EXPORT
 // ════════════════════════════════════════════════════════════════
@@ -116,6 +117,7 @@ export async function exportDeliverablePdf(featureId, data, courseName) {
       instrLines.forEach((l) => drawBoldLabel(l.split(': ')[0], l.split(': ').slice(1).join(': ')));
       y += 3;
     }
+    drawPolicySection('Instructor Bio', syl.instructorBio);
 
     // ── Course Description ──
     if (syl.courseDescription) {
@@ -123,6 +125,8 @@ export async function exportDeliverablePdf(featureId, data, courseName) {
       drawBodyText(syl.courseDescription);
       y += 3;
     }
+    drawPolicySection('Getting Started', syl.gettingStarted);
+    drawPolicySection('Learner Introduction Activity', syl.learnerIntroActivity);
 
     // ── Learning Outcomes ──
     if (syl.learningOutcomes?.length) {
@@ -131,20 +135,16 @@ export async function exportDeliverablePdf(featureId, data, courseName) {
       syl.learningOutcomes.forEach((o, i) => drawBodyText(`${i + 1}. ${o}`, 4));
       y += 3;
     }
+    if (syl.outcomeAlignmentMatrix?.length) {
+      drawSectionHeading('Outcome & Assessment Alignment');
+      syl.outcomeAlignmentMatrix.forEach((row) => drawBodyText(`• ${formatOutcomeAlignment(row)}`, 4));
+      y += 3;
+    }
 
     // ── Required Texts ──
     if (syl.requiredTexts?.length) {
       drawSectionHeading('Required Texts & Materials');
-      syl.requiredTexts.forEach((t) => {
-        if (typeof t === 'string') {
-          drawBodyText(`• ${t}`, 4);
-          return;
-        }
-        const parts = [t.author, t.title, t.edition && `(${t.edition})`, t.isbn && `ISBN: ${t.isbn}`, t.note].filter(
-          Boolean,
-        );
-        drawBodyText(`• ${parts.join('. ')}`, 4);
-      });
+      syl.requiredTexts.forEach((t) => drawBodyText(`• ${formatRequiredText(t)}`, 4));
       y += 3;
     }
 
@@ -236,19 +236,27 @@ export async function exportDeliverablePdf(featureId, data, courseName) {
     drawPolicySection('Late Work Policy', syl.latePolicy);
     drawPolicySection('Communication Policy', syl.communicationPolicy);
     drawPolicySection('Technology & Device Policy', syl.technologyPolicy);
+    drawPolicySection('Technical Skills', syl.technicalSkills);
     drawPolicySection('Generative AI Policy', syl.aiPolicy);
 
     // ── University Policies & Resources ──
     drawPolicySection('Academic Integrity', syl.academicIntegrity);
+    drawPolicySection('Technical Support', syl.technicalSupport);
     drawPolicySection('Disability & Accessibility Accommodations', syl.accommodations);
     drawPolicySection('Mental Health & Wellness Resources', syl.mentalHealth);
     drawPolicySection('Title IX / Non-Discrimination', syl.titleIX);
     drawPolicySection('Student Support Services', syl.supportServices);
+    drawPolicySection('Data Privacy', syl.dataPrivacy);
 
     // ── Important Dates ──
     if (syl.importantDates?.length) {
       drawSectionHeading('Important Dates');
       syl.importantDates.forEach((d) => drawBoldLabel(d.date || '', d.event || ''));
+    }
+    if (syl.suggestedReviewDate || syl.contentOwnerGroup) {
+      drawSectionHeading('Maintenance Notes');
+      if (syl.suggestedReviewDate) drawBoldLabel('Suggested Review Date', syl.suggestedReviewDate);
+      if (syl.contentOwnerGroup) drawBoldLabel('Content Owner Group', syl.contentOwnerGroup);
     }
 
     const fileName = `${courseName || 'Course'} - Syllabus.pdf`;

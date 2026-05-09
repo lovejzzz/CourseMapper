@@ -810,6 +810,58 @@ describe('deliverableToCsvRows — syllabus', () => {
     expect(rows[0][0]).toBe('Week 1');
     expect(rows[0][1]).toContain('Intro');
   });
+
+  it('preserves syllabus orientation, alignment, support, and maintenance fields', () => {
+    const data = {
+      syllabus: {
+        instructorBio: 'I help students connect export reviews to teaching workflows.',
+        gettingStarted: 'Open the course site, read the schedule, and post your first question.',
+        learnerIntroActivity: 'Post a short introduction in the week-one discussion.',
+        learningOutcomes: ['Analyze generated course materials for readiness.'],
+        outcomeAlignmentMatrix: [
+          {
+            outcome: 'Analyze generated course materials for readiness.',
+            bloomsLevel: 'Analyze',
+            practicedIn: ['Lesson 1: Export Reliability'],
+            assessedBy: ['Artifact audit memo'],
+          },
+        ],
+        requiredTexts: [
+          {
+            author: 'Rivera',
+            title: 'Course Export Review',
+            edition: '2nd ed.',
+            isbn: '9780000000002',
+            note: 'Suggested - verify before adoption',
+          },
+        ],
+        courseRequirements: [
+          {
+            name: 'Artifact audit memo',
+            weight: '25%',
+            description: 'Students explain whether a generated syllabus is ready to publish.',
+          },
+        ],
+        technicalSkills: 'Upload a DOCX file and inspect a CSV download.',
+        technicalSupport: 'Contact institutional technical support for LMS access issues.',
+        dataPrivacy: 'Student data remains protected under institutional privacy policies.',
+        tags: ['syllabus', 'artifact audit'],
+        suggestedReviewDate: 'Review by Fall 2027',
+        contentOwnerGroup: 'Curriculum Operations',
+      },
+    };
+
+    const { rows } = deliverableToCsvRows('syllabus', data);
+    expect(rows.find((r) => r[0] === 'Getting Started')[1]).toContain('read the schedule');
+    expect(rows.find((r) => r[0] === 'Learner Introduction Activity')[1]).toContain('week-one discussion');
+    expect(rows.find((r) => r[0] === 'Outcome Alignment 1')[1]).toContain('Artifact audit memo');
+    expect(rows.find((r) => r[0] === 'Required Texts')[1]).toContain('ISBN: 9780000000002');
+    expect(rows.find((r) => r[0] === 'Course Requirements')[1]).toContain('generated syllabus is ready');
+    expect(rows.find((r) => r[0] === 'Technical Support')[1]).toContain('LMS access');
+    expect(rows.find((r) => r[0] === 'Data Privacy')[1]).toContain('institutional privacy');
+    expect(rows.find((r) => r[0] === 'Suggested Review Date')[1]).toBe('Review by Fall 2027');
+    expect(rows.find((r) => r[0] === 'Content Owner Group')[1]).toBe('Curriculum Operations');
+  });
 });
 
 // ═════════════════════════════════════════════════════════════════════════════

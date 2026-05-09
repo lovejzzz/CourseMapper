@@ -1,5 +1,6 @@
 import { loadPdfLibs, getDocx, getSaveAs, resolveFeatureLabel } from './exporterUtils.js';
 import { expandKeys } from '../keyMaps.js';
+import { formatOutcomeAlignment, formatRequiredText } from './syllabusExportUtils.js';
 
 // DOCX EXPORT
 // ════════════════════════════════════════════════════════════════
@@ -533,27 +534,34 @@ export function _buildDocxContentShared(featureId, data, children, docx) {
         children.push(makeHeading('Instructor Information'));
         instrLines.forEach((l) => children.push(makeText(l)));
       }
+      if (syl.instructorBio) {
+        children.push(makeSubHeading('Instructor Bio'));
+        children.push(makeText(syl.instructorBio));
+      }
       if (syl.courseDescription) {
         children.push(makeHeading('Course Description'));
         children.push(makeText(syl.courseDescription));
+      }
+      if (syl.gettingStarted) {
+        children.push(makeHeading('Getting Started'));
+        children.push(makeText(syl.gettingStarted));
+      }
+      if (syl.learnerIntroActivity) {
+        children.push(makeHeading('Learner Introduction Activity'));
+        children.push(makeText(syl.learnerIntroActivity));
       }
       if (syl.learningOutcomes?.length) {
         children.push(makeHeading('Student Learning Outcomes'));
         children.push(makeText('Upon successful completion of this course, students will be able to:'));
         syl.learningOutcomes.forEach((o, i) => children.push(makeBullet(`${i + 1}. ${o}`)));
       }
+      if (syl.outcomeAlignmentMatrix?.length) {
+        children.push(makeHeading('Outcome & Assessment Alignment'));
+        syl.outcomeAlignmentMatrix.forEach((row) => children.push(makeBullet(formatOutcomeAlignment(row))));
+      }
       if (syl.requiredTexts?.length) {
         children.push(makeHeading('Required Texts & Materials'));
-        syl.requiredTexts.forEach((t) => {
-          if (typeof t === 'string') {
-            children.push(makeBullet(t));
-            return;
-          }
-          const parts = [t.author, t.title, t.edition && `(${t.edition})`, t.isbn && `ISBN: ${t.isbn}`, t.note].filter(
-            Boolean,
-          );
-          children.push(makeBullet(parts.join('. ')));
-        });
+        syl.requiredTexts.forEach((t) => children.push(makeBullet(formatRequiredText(t))));
       }
       // Course Requirements
       const reqs = syl.courseRequirements || syl.gradingPolicy || [];
@@ -613,15 +621,24 @@ export function _buildDocxContentShared(featureId, data, children, docx) {
       policySection('Late Work Policy', syl.latePolicy);
       policySection('Communication Policy', syl.communicationPolicy);
       policySection('Technology & Device Policy', syl.technologyPolicy);
+      policySection('Technical Skills', syl.technicalSkills);
       policySection('Generative AI Policy', syl.aiPolicy);
       policySection('Academic Integrity', syl.academicIntegrity);
+      policySection('Technical Support', syl.technicalSupport);
       policySection('Disability & Accessibility Accommodations', syl.accommodations);
       policySection('Mental Health & Wellness Resources', syl.mentalHealth);
       policySection('Title IX / Non-Discrimination', syl.titleIX);
       policySection('Student Support Services', syl.supportServices);
+      policySection('Data Privacy', syl.dataPrivacy);
       if (syl.importantDates?.length) {
         children.push(makeHeading('Important Dates'));
         syl.importantDates.forEach((d) => children.push(makeBold(d.date || '', d.event || '')));
+      }
+      const maintenance = [syl.suggestedReviewDate, syl.contentOwnerGroup].filter(Boolean);
+      if (maintenance.length) {
+        children.push(makeHeading('Maintenance Notes'));
+        if (syl.suggestedReviewDate) children.push(makeBold('Suggested Review Date', syl.suggestedReviewDate));
+        if (syl.contentOwnerGroup) children.push(makeBold('Content Owner Group', syl.contentOwnerGroup));
       }
       break;
     }

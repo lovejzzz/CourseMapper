@@ -3,6 +3,7 @@
 // Google Docs, or Google Sheets.
 
 import { getCustomDeliverable } from './customDeliverableLibrary';
+import { buildSyllabusCsvRows, formatOutcomeAlignment, formatRequiredText } from './exporters/syllabusExportUtils.js';
 import { expandKeys } from './keyMaps';
 import { buildXlsxWorkbook } from './lightweightXlsx.js';
 import { loadPdfRuntime } from './pdfRuntime.js';
@@ -356,55 +357,7 @@ function deliverableToCsvRows(featureId, data) {
       return { headers, rows };
     }
     case 'syllabus': {
-      const syl = data.syllabus || data;
-      const headers = ['Section', 'Content'];
-      const rows = [];
-      if (syl.courseTitle) rows.push(['Course Title', syl.courseTitle]);
-      if (syl.semester) rows.push(['Semester', syl.semester]);
-      if (syl.credits) rows.push(['Credits', syl.credits]);
-      if (syl.meetingPattern) rows.push(['Meeting', syl.meetingPattern]);
-      if (syl.location) rows.push(['Location', syl.location]);
-      if (syl.deliveryMode) rows.push(['Delivery Mode', syl.deliveryMode]);
-      if (syl.prerequisites) rows.push(['Prerequisites', syl.prerequisites]);
-      if (syl.instructor) rows.push(['Instructor', syl.instructor]);
-      if (syl.instructorEmail) rows.push(['Email', syl.instructorEmail]);
-      if (syl.officeHours) rows.push(['Office Hours', syl.officeHours]);
-      if (syl.officeLocation) rows.push(['Office Location', syl.officeLocation]);
-      if (syl.courseDescription) rows.push(['Course Description', syl.courseDescription]);
-      if (syl.learningOutcomes?.length) rows.push(['Learning Outcomes', syl.learningOutcomes.join('; ')]);
-      if (syl.requiredTexts?.length)
-        rows.push([
-          'Required Texts',
-          syl.requiredTexts
-            .map((t) => (typeof t === 'string' ? t : [t.author, t.title, t.edition].filter(Boolean).join('. ')))
-            .join('; '),
-        ]);
-      const reqs = syl.courseRequirements || syl.gradingPolicy || [];
-      if (reqs.length)
-        rows.push(['Course Requirements', reqs.map((g) => `${g.name || g.component}: ${g.weight}`).join('; ')]);
-      if (syl.gradingScale?.length)
-        rows.push(['Grading Scale', syl.gradingScale.map((g) => `${g.grade}: ${g.range}`).join('; ')]);
-      if (syl.attendancePolicy) rows.push(['Attendance & Participation', syl.attendancePolicy]);
-      if (syl.latePolicy) rows.push(['Late Work Policy', syl.latePolicy]);
-      if (syl.communicationPolicy) rows.push(['Communication Policy', syl.communicationPolicy]);
-      if (syl.technologyPolicy) rows.push(['Technology Policy', syl.technologyPolicy]);
-      if (syl.aiPolicy) rows.push(['AI Policy', syl.aiPolicy]);
-      if (syl.academicIntegrity) rows.push(['Academic Integrity', syl.academicIntegrity]);
-      if (syl.accommodations) rows.push(['Accommodations', syl.accommodations]);
-      if (syl.mentalHealth) rows.push(['Mental Health', syl.mentalHealth]);
-      if (syl.titleIX) rows.push(['Title IX', syl.titleIX]);
-      if (syl.supportServices) rows.push(['Support Services', syl.supportServices]);
-      if (syl.weeklySchedule?.length) {
-        for (const w of syl.weeklySchedule) {
-          rows.push([w.week || '', `${w.topic || ''} | ${w.readings || ''} | ${w.assignments || ''}`]);
-        }
-      }
-      if (syl.importantDates?.length) {
-        for (const d of syl.importantDates) {
-          rows.push([d.date || '', d.event || '']);
-        }
-      }
-      return { headers, rows };
+      return buildSyllabusCsvRows(data);
     }
     default: {
       // Generic handler for custom deliverables
@@ -564,6 +517,7 @@ export async function exportDeliverablePdf(featureId, data, courseName) {
       instrLines.forEach((l) => drawBoldLabel(l.split(': ')[0], l.split(': ').slice(1).join(': ')));
       y += 3;
     }
+    drawPolicySection('Instructor Bio', syl.instructorBio);
 
     // ── Course Description ──
     if (syl.courseDescription) {
@@ -571,6 +525,8 @@ export async function exportDeliverablePdf(featureId, data, courseName) {
       drawBodyText(syl.courseDescription);
       y += 3;
     }
+    drawPolicySection('Getting Started', syl.gettingStarted);
+    drawPolicySection('Learner Introduction Activity', syl.learnerIntroActivity);
 
     // ── Learning Outcomes ──
     if (syl.learningOutcomes?.length) {
@@ -579,20 +535,16 @@ export async function exportDeliverablePdf(featureId, data, courseName) {
       syl.learningOutcomes.forEach((o, i) => drawBodyText(`${i + 1}. ${o}`, 4));
       y += 3;
     }
+    if (syl.outcomeAlignmentMatrix?.length) {
+      drawSectionHeading('Outcome & Assessment Alignment');
+      syl.outcomeAlignmentMatrix.forEach((row) => drawBodyText(`• ${formatOutcomeAlignment(row)}`, 4));
+      y += 3;
+    }
 
     // ── Required Texts ──
     if (syl.requiredTexts?.length) {
       drawSectionHeading('Required Texts & Materials');
-      syl.requiredTexts.forEach((t) => {
-        if (typeof t === 'string') {
-          drawBodyText(`• ${t}`, 4);
-          return;
-        }
-        const parts = [t.author, t.title, t.edition && `(${t.edition})`, t.isbn && `ISBN: ${t.isbn}`, t.note].filter(
-          Boolean,
-        );
-        drawBodyText(`• ${parts.join('. ')}`, 4);
-      });
+      syl.requiredTexts.forEach((t) => drawBodyText(`• ${formatRequiredText(t)}`, 4));
       y += 3;
     }
 
@@ -684,19 +636,27 @@ export async function exportDeliverablePdf(featureId, data, courseName) {
     drawPolicySection('Late Work Policy', syl.latePolicy);
     drawPolicySection('Communication Policy', syl.communicationPolicy);
     drawPolicySection('Technology & Device Policy', syl.technologyPolicy);
+    drawPolicySection('Technical Skills', syl.technicalSkills);
     drawPolicySection('Generative AI Policy', syl.aiPolicy);
 
     // ── University Policies & Resources ──
     drawPolicySection('Academic Integrity', syl.academicIntegrity);
+    drawPolicySection('Technical Support', syl.technicalSupport);
     drawPolicySection('Disability & Accessibility Accommodations', syl.accommodations);
     drawPolicySection('Mental Health & Wellness Resources', syl.mentalHealth);
     drawPolicySection('Title IX / Non-Discrimination', syl.titleIX);
     drawPolicySection('Student Support Services', syl.supportServices);
+    drawPolicySection('Data Privacy', syl.dataPrivacy);
 
     // ── Important Dates ──
     if (syl.importantDates?.length) {
       drawSectionHeading('Important Dates');
       syl.importantDates.forEach((d) => drawBoldLabel(d.date || '', d.event || ''));
+    }
+    if (syl.suggestedReviewDate || syl.contentOwnerGroup) {
+      drawSectionHeading('Maintenance Notes');
+      if (syl.suggestedReviewDate) drawBoldLabel('Suggested Review Date', syl.suggestedReviewDate);
+      if (syl.contentOwnerGroup) drawBoldLabel('Content Owner Group', syl.contentOwnerGroup);
     }
 
     const fileName = `${courseName || 'Course'} - Syllabus.pdf`;
@@ -1271,27 +1231,34 @@ function _buildDocxContentShared(featureId, data, children, docx) {
         children.push(makeHeading('Instructor Information'));
         instrLines.forEach((l) => children.push(makeText(l)));
       }
+      if (syl.instructorBio) {
+        children.push(makeSubHeading('Instructor Bio'));
+        children.push(makeText(syl.instructorBio));
+      }
       if (syl.courseDescription) {
         children.push(makeHeading('Course Description'));
         children.push(makeText(syl.courseDescription));
+      }
+      if (syl.gettingStarted) {
+        children.push(makeHeading('Getting Started'));
+        children.push(makeText(syl.gettingStarted));
+      }
+      if (syl.learnerIntroActivity) {
+        children.push(makeHeading('Learner Introduction Activity'));
+        children.push(makeText(syl.learnerIntroActivity));
       }
       if (syl.learningOutcomes?.length) {
         children.push(makeHeading('Student Learning Outcomes'));
         children.push(makeText('Upon successful completion of this course, students will be able to:'));
         syl.learningOutcomes.forEach((o, i) => children.push(makeBullet(`${i + 1}. ${o}`)));
       }
+      if (syl.outcomeAlignmentMatrix?.length) {
+        children.push(makeHeading('Outcome & Assessment Alignment'));
+        syl.outcomeAlignmentMatrix.forEach((row) => children.push(makeBullet(formatOutcomeAlignment(row))));
+      }
       if (syl.requiredTexts?.length) {
         children.push(makeHeading('Required Texts & Materials'));
-        syl.requiredTexts.forEach((t) => {
-          if (typeof t === 'string') {
-            children.push(makeBullet(t));
-            return;
-          }
-          const parts = [t.author, t.title, t.edition && `(${t.edition})`, t.isbn && `ISBN: ${t.isbn}`, t.note].filter(
-            Boolean,
-          );
-          children.push(makeBullet(parts.join('. ')));
-        });
+        syl.requiredTexts.forEach((t) => children.push(makeBullet(formatRequiredText(t))));
       }
       // Course Requirements
       const reqs = syl.courseRequirements || syl.gradingPolicy || [];
@@ -1351,15 +1318,24 @@ function _buildDocxContentShared(featureId, data, children, docx) {
       policySection('Late Work Policy', syl.latePolicy);
       policySection('Communication Policy', syl.communicationPolicy);
       policySection('Technology & Device Policy', syl.technologyPolicy);
+      policySection('Technical Skills', syl.technicalSkills);
       policySection('Generative AI Policy', syl.aiPolicy);
       policySection('Academic Integrity', syl.academicIntegrity);
+      policySection('Technical Support', syl.technicalSupport);
       policySection('Disability & Accessibility Accommodations', syl.accommodations);
       policySection('Mental Health & Wellness Resources', syl.mentalHealth);
       policySection('Title IX / Non-Discrimination', syl.titleIX);
       policySection('Student Support Services', syl.supportServices);
+      policySection('Data Privacy', syl.dataPrivacy);
       if (syl.importantDates?.length) {
         children.push(makeHeading('Important Dates'));
         syl.importantDates.forEach((d) => children.push(makeBold(d.date || '', d.event || '')));
+      }
+      const maintenance = [syl.suggestedReviewDate, syl.contentOwnerGroup].filter(Boolean);
+      if (maintenance.length) {
+        children.push(makeHeading('Maintenance Notes'));
+        if (syl.suggestedReviewDate) children.push(makeBold('Suggested Review Date', syl.suggestedReviewDate));
+        if (syl.contentOwnerGroup) children.push(makeBold('Content Owner Group', syl.contentOwnerGroup));
       }
       break;
     }
