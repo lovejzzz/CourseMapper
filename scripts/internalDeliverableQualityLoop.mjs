@@ -14,6 +14,12 @@ import studyGuides from '../src/lib/prompts/studyGuides.js';
 import syllabus from '../src/lib/prompts/syllabus.js';
 import { computeAvgScore, scoreHeuristic } from '../src/lib/deliverableQualityScorer.js';
 import { findPublishabilityPlaceholders } from '../src/lib/publishabilityPlaceholders.js';
+import {
+  appendActivityEntry,
+  buildRunSummary,
+  summarizeQualityResults,
+  writeQualityDashboard,
+} from './qualityDashboard.mjs';
 
 const ROOT = process.cwd();
 const OUTPUT_DIR = path.join(ROOT, 'verification-output', 'internal-quality-loop');
@@ -401,6 +407,7 @@ function parseArgs(argv) {
     iterations: 1,
     target: 90,
     features: null,
+    summary: process.env.COURSEMAPPER_QUALITY_SUMMARY || '',
     projects: parseCsvValues(
       process.env.COURSEMAPPER_QUALITY_PROJECTS,
       PROJECTS.map((project) => project.id),
@@ -416,6 +423,7 @@ function parseArgs(argv) {
     else if (arg === '--parallel') args.parallel = Number(argv[++i]) || args.parallel;
     else if (arg === '--scopes') args.scopes = parseCsvNumbers(argv[++i], args.scopes);
     else if (arg === '--projects') args.projects = parseCsvValues(argv[++i], args.projects);
+    else if (arg === '--summary') args.summary = argv[++i] || '';
     else if (arg === '--features') {
       args.features = argv[++i]
         ?.split(',')
@@ -693,12 +701,14 @@ function letter(score) {
   return 'below C';
 }
 
-async function writeOutputs(results, meta) {
+async function writeOutputs(results, meta, summary) {
   await fs.mkdir(OUTPUT_DIR, { recursive: true });
+  const generatedAt = new Date().toISOString();
+  const latestPayload = { meta: { ...meta, generatedAt }, results };
   const report = [
     '# CourseMapper Internal Deliverable Quality Loop',
     '',
-    `Generated: ${new Date().toISOString()}`,
+    `Generated: ${generatedAt}`,
     `Provider: ${meta.provider}`,
     `Model: ${meta.model}`,
     `Projects: ${meta.projects.join(', ')}`,
@@ -734,12 +744,29 @@ async function writeOutputs(results, meta) {
   ].join('\n');
 
   await fs.writeFile(path.join(OUTPUT_DIR, 'latest.md'), report);
-  await fs.writeFile(path.join(OUTPUT_DIR, 'latest.json'), JSON.stringify({ meta, results }, null, 2));
+  await fs.writeFile(path.join(OUTPUT_DIR, 'latest.json'), JSON.stringify(latestPayload, null, 2));
   for (const result of results) {
     const scopeDir = path.join(OUTPUT_DIR, result.projectId, `scope-${result.scope}`);
     await fs.mkdir(scopeDir, { recursive: true });
     await fs.writeFile(path.join(scopeDir, `${result.featureId}.json`), JSON.stringify(result.data, null, 2));
   }
+
+  const activityLog = await appendActivityEntry(OUTPUT_DIR, {
+    timestamp: generatedAt,
+    type: 'quality-run',
+    summary: summary?.trim() || buildRunSummary(results, meta.target),
+    stats: summarizeQualityResults(results, meta.target),
+    meta: {
+      provider: meta.provider,
+      model: meta.model,
+      target: meta.target,
+      projects: meta.projects,
+      scopes: meta.scopes,
+      features: meta.features,
+      parallel: meta.parallel,
+    },
+  });
+  await writeQualityDashboard(OUTPUT_DIR, latestPayload, activityLog);
 }
 
 async function runQualityJob({ project, scope, featureId, args, provider, key, model }) {
@@ -832,17 +859,23 @@ async function main() {
       features.indexOf(a.featureId) - features.indexOf(b.featureId),
   );
 
-  await writeOutputs(results, {
-    provider,
-    model,
-    target: args.target,
-    iterations: args.iterations,
-    projects: projects.map((project) => project.id),
-    scopes: args.scopes,
-    parallel: args.parallel,
-  });
+  await writeOutputs(
+    results,
+    {
+      provider,
+      model,
+      target: args.target,
+      iterations: args.iterations,
+      projects: projects.map((project) => project.id),
+      scopes: args.scopes,
+      features,
+      parallel: args.parallel,
+    },
+    args.summary,
+  );
   const allA = results.every((result) => result.score >= args.target);
   console.log(`Wrote ${path.relative(ROOT, OUTPUT_DIR)}/latest.md`);
+  console.log(`Wrote ${path.relative(ROOT, OUTPUT_DIR)}/dashboard.html`);
   if (!allA) process.exitCode = 2;
 }
 
