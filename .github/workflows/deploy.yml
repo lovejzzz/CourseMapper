@@ -1,8 +1,10 @@
 name: Deploy to GitHub Pages
 
 on:
-  push:
-    branches: [main]
+  workflow_run:
+    workflows: [CI]
+    types: [completed]
+  workflow_dispatch:
 
 permissions:
   contents: read
@@ -15,9 +17,12 @@ concurrency:
 
 jobs:
   build:
+    if: ${{ github.event_name == 'workflow_dispatch' || (github.event.workflow_run.conclusion == 'success' && github.event.workflow_run.head_branch == 'main') }}
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v4
+        with:
+          ref: ${{ github.event.workflow_run.head_sha || github.sha }}
 
       - uses: actions/setup-node@v4
         with:
@@ -30,14 +35,7 @@ jobs:
           java-version: 21
 
       - run: npm ci
-      - run: npx playwright install --with-deps chromium
-      - run: npm run format:check
-      - run: npm run lint
-      - run: npm test
-      - run: npm run test:rules
       - run: npm run build
-      - run: npm run bundle:check
-      - run: npm run test:e2e
 
       - uses: actions/upload-pages-artifact@v3
         with:
