@@ -14,7 +14,7 @@ const DEFAULT_HEADERS = {
     'Learning Goals\n\nWhat are the big ideas and questions to be addressed in the course? (Derived from Values, Knowledge, Skills, Behaviors and Competencies outlined in syllabus)',
   topicSection: 'Topic/Section',
   learningObjectives:
-    "Learning Objectives\n\nStudents will be able to...\n\n[Learning Objective: Describe what students will need to be able to know and do using active verbs from Revised Bloom's taxonomy]",
+    "Learning Objectives\n\nWhat students will know or be able to do by the end of the lesson, using active verbs from Revised Bloom's taxonomy.",
   weeklyAssessments:
     'Weekly Assessments\n\n...by doing or demonstrating through some kind of task or activity...\n\nState the Evidence that student has achieved to demonstrate the desired learning objective.',
   asyncActivities:
@@ -26,13 +26,13 @@ const DEFAULT_HEADERS = {
   presentationFormat:
     'Presentation Format of Instructional Material\n\nWhat kind of media or delivery format will be most effective for communicating the instructional material?',
   supportingResources:
-    'Supporting Resources\n\nWhat additional materials and resources are best suited to accomplish these goals?\n\n[Provide supporting resources for the content & instruction]',
-  evaluateDesign: 'Evaluate Design\n\n[Ask yourself: Is everything in this row aligned and coherent?]',
+    'Supporting Resources\n\nAdditional materials and resources aligned to the lesson goals, activities, and assessments.',
+  evaluateDesign: 'Evaluate Design\n\nAlignment check for goals, objectives, assessments, activities, and resources.',
 };
 
 function buildColumns(customColumns) {
   // Always start with the Week/Module column
-  const cols = [{ key: 'weekModule', header: 'Week or Module [Topic]', width: 28 }];
+  const cols = [{ key: 'weekModule', header: 'Week or Module', width: 28 }];
 
   if (customColumns && customColumns.length > 0) {
     for (const col of customColumns) {

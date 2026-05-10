@@ -15,6 +15,10 @@ export const PUBLISHABILITY_PLACEHOLDER_PATTERNS = [
   /\[semester year\]/i,
   /\[institutional [^\]]+\]/i,
   /\[(?:remember|understand|apply|analyze|evaluate|create)(?:[^\]]*)\]/i,
+  /Week or Module \[Topic\]/i,
+  /Learning Objective:\s*Describe what students will need/i,
+  /Provide supporting resources for the content\s*&\s*instruction/i,
+  /Ask yourself:\s*Is everything in this row aligned and coherent\?/i,
 ];
 
 function globalize(pattern) {

@@ -8,7 +8,9 @@ import {
   normalizeQuizBankRationales,
   normalizeRubricCoverage,
   normalizeSlideDeckSpeakerNotes,
+  normalizeSyllabusPublishability,
 } from '../deliverablePostProcess.js';
+import { findPublishabilityPlaceholders } from '../publishabilityPlaceholders.js';
 
 describe('Course FAQ post-processing', () => {
   it('defaults the Course FAQ target to five questions per lesson', () => {
@@ -294,6 +296,38 @@ describe('Quiz Bank post-processing', () => {
     expect(mc.dr).toContain('A:');
     expect(shortAnswer.ex).toContain('They disclose draft quality issues');
     expect(JSON.stringify(result.data)).not.toMatch(/Explanation needed|rationale needed|model response required/i);
+  });
+});
+
+describe('Syllabus post-processing', () => {
+  it('replaces unresolved local-fact placeholders with student-facing confirmation language', () => {
+    const result = normalizeSyllabusPublishability({
+      syllabus: {
+        courseTitle: 'Research Methods',
+        semester: '[Semester Year]',
+        instructor: '[Instructor name]',
+        instructorEmail: '[Instructor email]',
+        officeHours: '[Office hours]',
+        officeLocation: '[Office location]',
+        requiredTexts: [
+          {
+            title: 'Research Design',
+            author: 'Example',
+            isbn: '[Verify ISBN]',
+            note: '[Suggested - verify before adoption]',
+          },
+        ],
+        weeklySchedule: [{ week: 'Week 1', dates: '[Verify academic calendar date]', assignments: 'TBD' }],
+        importantDates: [{ date: '[Verify academic calendar date]', event: 'Final project' }],
+      },
+    });
+
+    const serialized = JSON.stringify(result.data);
+    expect(result.patchedFields).toBeGreaterThan(0);
+    expect(findPublishabilityPlaceholders(serialized, { limit: 10 })).toEqual([]);
+    expect(result.data.syllabus.instructor).toBe('Instructor to be announced');
+    expect(result.data.syllabus.requiredTexts[0].isbn).toBe('');
+    expect(result.data.syllabus.weeklySchedule[0].dates).toBe('Date to be confirmed');
   });
 });
 

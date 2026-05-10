@@ -98,8 +98,9 @@ describe('prompt modules — parse + shape', () => {
     const prompts = getDeliverablePrompt('syllabus', COURSE, null, {});
 
     expect(prompts.userPrompt).toContain('Do not invent instructor names');
-    expect(prompts.userPrompt).toContain('[Instructor name]');
+    expect(prompts.userPrompt).toContain('Never emit bracketed placeholders');
     expect(prompts.userPrompt).toContain('Do not invent named LMS folders');
+    expect(prompts.userPrompt).toContain('Instructor to be announced');
   });
 
   it('assignment continuation prompts preserve milestone feedback schema', () => {

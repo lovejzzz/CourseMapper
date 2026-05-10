@@ -173,7 +173,8 @@ function buildConfigInstructions(featureId, config, pedagogicalMode = 'lecture',
 
   lines.push(`SOURCE AND PLACEHOLDER RULES (apply to all generated content):
 - Do not invent instructor names, emails, phone numbers, office locations, office hours, department names, LMS folder names, campus office contacts, support phone numbers, bookstore/library availability, licenses, or institutional deadlines.
-- Use bracketed placeholders for unknown local facts, such as [Instructor name], [Instructor email], [Office hours], [Institutional policy link], or [Verify academic calendar date].
+- Never emit bracketed placeholders, TODO, TBD, "[Verify ...]", "[Instructor ...]", "[Office ...]", or other unfinished authoring markers.
+- If a local fact is unknown, either omit the optional field or use neutral student-facing wording such as "to be confirmed" or "will be announced in the course site".
 - Named third-party tools are allowed only when present in the course map/profile or framed as optional examples. Prefer generic labels like "course site", "survey platform", "spreadsheet", or "statistical software" when the source does not specify a tool.
 - Do not imply that a resource exists in the instructor's institution unless the course map, profile, or instructor instructions explicitly provide it.`);
 

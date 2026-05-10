@@ -1,4 +1,5 @@
 import { getArrayKey } from './syncDependencies';
+import { findPublishabilityPlaceholders } from './publishabilityPlaceholders';
 
 export const COURSE_FAQ_CATEGORIES = [
   'Course Logistics',
@@ -903,4 +904,124 @@ export function normalizeSlideDeckSpeakerNotes(data) {
     patchedNotes,
     patchedSlideTotals,
   };
+}
+
+function hasPublishabilityMarker(value) {
+  const raw = String(value || '').trim();
+  if (!raw) return false;
+  return findPublishabilityPlaceholders(raw, { limit: 1 }).length > 0 || /\[[^\]]+\]/.test(raw);
+}
+
+function cleanSyllabusText(value, fallback = '') {
+  const raw = String(value || '').trim();
+  if (!raw) return raw;
+  const withoutBrackets = raw
+    .replace(/\[[^\]]+\]/g, '')
+    .replace(/\bTBD\b/gi, '')
+    .replace(/\bTODO\b/gi, '')
+    .replace(/\s{2,}/g, ' ')
+    .trim();
+  if (!withoutBrackets || hasPublishabilityMarker(withoutBrackets)) return fallback;
+  return withoutBrackets;
+}
+
+function patchSyllabusField(syllabus, key, fallback) {
+  if (!hasPublishabilityMarker(syllabus[key])) return { syllabus, patched: 0 };
+  return { syllabus: { ...syllabus, [key]: cleanSyllabusText(syllabus[key], fallback) }, patched: 1 };
+}
+
+export function normalizeSyllabusPublishability(data) {
+  const wrapperKey = data?.syllabus && typeof data.syllabus === 'object' ? 'syllabus' : null;
+  let syllabus = wrapperKey ? data.syllabus : data;
+
+  if (!syllabus || typeof syllabus !== 'object' || Array.isArray(syllabus)) {
+    return { data, patchedFields: 0 };
+  }
+
+  let patchedFields = 0;
+  const patch = (key, fallback) => {
+    const result = patchSyllabusField(syllabus, key, fallback);
+    syllabus = result.syllabus;
+    patchedFields += result.patched;
+  };
+
+  patch('semester', 'Term to be confirmed');
+  patch('credits', '3 credits');
+  patch('meetingPattern', 'Meeting pattern to be confirmed');
+  patch('location', 'Location to be confirmed');
+  patch('prerequisites', 'No formal prerequisites listed; students should review program requirements.');
+  patch('instructor', 'Instructor to be announced');
+  patch('instructorEmail', 'Use the contact method listed in the course site.');
+  patch('officeHours', 'Office hours will be announced in the course site.');
+  patch('officeLocation', 'Office location or meeting link will be announced in the course site.');
+  patch('suggestedReviewDate', 'Review before the next offering.');
+
+  if (Array.isArray(syllabus.requiredTexts)) {
+    let changed = false;
+    const requiredTexts = syllabus.requiredTexts.map((text) => {
+      if (!text || typeof text !== 'object') return text;
+      let next = text;
+      if (hasPublishabilityMarker(text.isbn)) {
+        next = { ...next, isbn: '' };
+        changed = true;
+      }
+      if (hasPublishabilityMarker(text.note) || /suggested\s*-\s*verify/i.test(String(text.note || ''))) {
+        next = {
+          ...next,
+          note: 'Suggested text; instructor should verify adoption before assigning.',
+        };
+        changed = true;
+      }
+      return next;
+    });
+    if (changed) {
+      syllabus = { ...syllabus, requiredTexts };
+      patchedFields++;
+    }
+  }
+
+  if (Array.isArray(syllabus.weeklySchedule)) {
+    let changed = false;
+    const weeklySchedule = syllabus.weeklySchedule.map((week) => {
+      if (!week || typeof week !== 'object') return week;
+      let next = week;
+      if (hasPublishabilityMarker(week.dates)) {
+        next = { ...next, dates: 'Date to be confirmed' };
+        changed = true;
+      }
+      if (hasPublishabilityMarker(week.assignments)) {
+        next = { ...next, assignments: cleanSyllabusText(week.assignments, 'Course milestone to be confirmed') };
+        changed = true;
+      }
+      return next;
+    });
+    if (changed) {
+      syllabus = { ...syllabus, weeklySchedule };
+      patchedFields++;
+    }
+  }
+
+  if (Array.isArray(syllabus.importantDates)) {
+    let changed = false;
+    const importantDates = syllabus.importantDates.map((date) => {
+      if (!date || typeof date !== 'object') return date;
+      let next = date;
+      if (hasPublishabilityMarker(date.date)) {
+        next = { ...next, date: 'Date to be confirmed' };
+        changed = true;
+      }
+      if (hasPublishabilityMarker(date.event)) {
+        next = { ...next, event: cleanSyllabusText(date.event, 'Course milestone') };
+        changed = true;
+      }
+      return next;
+    });
+    if (changed) {
+      syllabus = { ...syllabus, importantDates };
+      patchedFields++;
+    }
+  }
+
+  const normalized = wrapperKey ? { ...data, [wrapperKey]: syllabus } : syllabus;
+  return { data: patchedFields > 0 ? normalized : data, patchedFields };
 }

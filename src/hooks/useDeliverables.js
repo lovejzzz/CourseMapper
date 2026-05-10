@@ -35,6 +35,7 @@ import {
   normalizeQuizBankRationales,
   normalizeRubricCoverage,
   normalizeSlideDeckSpeakerNotes,
+  normalizeSyllabusPublishability,
 } from '../lib/deliverablePostProcess';
 
 // ── Post-process scoped deliverable output to fix lesson/week numbering ──
@@ -568,7 +569,17 @@ export default function useDeliverables({
 
             // For whole-course features, dispatch done immediately
             if (isWholeCourse) {
-              const finalData = patchScopeNumbering(parsed, featureId, chunkScope, courseMap);
+              let finalData = patchScopeNumbering(parsed, featureId, chunkScope, courseMap);
+              if (featureId === 'syllabus') {
+                const normalizedSyllabus = normalizeSyllabusPublishability(finalData);
+                finalData = normalizedSyllabus.data;
+                if (normalizedSyllabus.patchedFields > 0) {
+                  appendLog(
+                    `⚠ ${getFeatureLabel(featureId)}: replaced ${normalizedSyllabus.patchedFields} unresolved local-fact placeholder field(s)`,
+                    'warn',
+                  );
+                }
+              }
               dispatch(actions.setDeliverableDone(featureId, finalData));
               try {
                 const quality = scoreHeuristic(featureId, finalData);

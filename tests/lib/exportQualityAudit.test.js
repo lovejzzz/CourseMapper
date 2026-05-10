@@ -23,6 +23,16 @@ async function buildDocxBuffer(documentText) {
   return docx.generateAsync({ type: 'nodebuffer' });
 }
 
+async function buildXlsxBuffer(sharedText) {
+  const xlsx = new JSZip();
+  xlsx.file('xl/sharedStrings.xml', `<?xml version="1.0" encoding="UTF-8"?><sst><si><t>${sharedText}</t></si></sst>`);
+  xlsx.file(
+    'xl/worksheets/sheet1.xml',
+    '<?xml version="1.0" encoding="UTF-8"?><worksheet><sheetData><row><c t="s"><v>0</v></c></row></sheetData></worksheet>',
+  );
+  return xlsx.generateAsync({ type: 'nodebuffer' });
+}
+
 afterEach(async () => {
   await Promise.all(tempPaths.splice(0).map((target) => fs.rm(target, { force: true })));
 });
@@ -55,5 +65,22 @@ describe('auditCourseMaterialsZip', () => {
     expect(audit.issues.join(' ')).toContain('[Verify time]');
     expect(audit.issues.join(' ')).toContain('[Verify deadline]');
     expect(audit.issues.join(' ')).toContain('[Office location]');
+  });
+
+  it('flags course-map spreadsheet authoring guidance that leaks into exports', async () => {
+    const outerZip = new JSZip();
+    outerZip.file(
+      'Course Map/Placeholder Course - Course Map.xlsx',
+      await buildXlsxBuffer(
+        "Week or Module [Topic] [Learning Objective: Describe what students will need to be able to know and do using active verbs from Revised Bloom's taxonomy] [Ask yourself: Is everything in this row aligned and coherent?]",
+      ),
+    );
+
+    const zipPath = await writeTempZip('coursemapper-export-quality-audit-xlsx.zip', outerZip);
+    const audit = await auditCourseMaterialsZip(zipPath);
+
+    expect(audit.issues.join(' ')).toContain('Week or Module [Topic]');
+    expect(audit.issues.join(' ')).toContain('Learning Objective: Describe');
+    expect(audit.issues.join(' ')).toContain('Ask yourself');
   });
 });
