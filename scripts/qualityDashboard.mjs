@@ -5,6 +5,19 @@ const ACTIVITY_LOG_FILE = 'activity-log.json';
 const DASHBOARD_FILE = 'dashboard.html';
 const ACTIVITY_LOG_LIMIT = 200;
 
+function summarizeResultIdentity(result) {
+  if (!result) return null;
+  return {
+    projectId: result.projectId,
+    scope: result.scope,
+    featureId: result.featureId,
+    score: result.score,
+    letter: result.letter || letterForScore(Number(result.score)),
+    findings: result.findings || [],
+    latestDiff: result.iterations?.at?.(-1)?.diff || '',
+  };
+}
+
 export async function readJsonFile(filePath, fallback) {
   try {
     return JSON.parse(await fs.readFile(filePath, 'utf8'));
@@ -51,8 +64,8 @@ export function summarizeQualityResults(results = [], target = 90) {
     failing: failing.length,
     average,
     target,
-    worst,
-    failingFocus: failing.slice(0, 5),
+    worst: summarizeResultIdentity(worst),
+    failingFocus: failing.slice(0, 5).map(summarizeResultIdentity),
   };
 }
 
@@ -78,7 +91,7 @@ export async function appendActivityEntry(outputDir, entry) {
   await fs.mkdir(outputDir, { recursive: true });
   const currentLog = await readActivityLog(outputDir);
   const nextLog = [
-    ...currentLog,
+    ...currentLog.map(compactActivityEntry),
     {
       timestamp: new Date().toISOString(),
       type: 'note',
@@ -86,8 +99,24 @@ export async function appendActivityEntry(outputDir, entry) {
       ...entry,
     },
   ].slice(-ACTIVITY_LOG_LIMIT);
-  await fs.writeFile(path.join(outputDir, ACTIVITY_LOG_FILE), JSON.stringify(nextLog, null, 2));
-  return nextLog;
+  const compactLog = nextLog.map(compactActivityEntry);
+  await fs.writeFile(path.join(outputDir, ACTIVITY_LOG_FILE), JSON.stringify(compactLog, null, 2));
+  return compactLog;
+}
+
+function compactActivityEntry(entry) {
+  return {
+    ...entry,
+    stats: entry?.stats ? compactStats(entry.stats) : entry?.stats,
+  };
+}
+
+function compactStats(stats) {
+  return {
+    ...stats,
+    worst: summarizeResultIdentity(stats.worst),
+    failingFocus: Array.isArray(stats.failingFocus) ? stats.failingFocus.map(summarizeResultIdentity) : [],
+  };
 }
 
 function safeJsonScript(data) {
