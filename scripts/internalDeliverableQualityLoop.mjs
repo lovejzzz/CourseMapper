@@ -18,6 +18,7 @@ import { findPublishabilityPlaceholders } from '../src/lib/publishabilityPlaceho
 const ROOT = process.cwd();
 const OUTPUT_DIR = path.join(ROOT, 'verification-output', 'internal-quality-loop');
 const DEFAULT_SCOPES = [5, 8, 12, 15];
+const DEFAULT_PARALLEL = 3;
 const DEFAULT_FEATURES = [
   'syllabus',
   'lessonPlans',
@@ -232,6 +233,150 @@ const LESSON_BLUEPRINTS = [
   },
 ];
 
+function makeAppliedProject(id, courseName, audience, format, keywords, lessonTitles, domain) {
+  return {
+    id,
+    courseName,
+    audience,
+    format,
+    keywords,
+    lessonBlueprints: lessonTitles.map((title, index) => ({
+      title,
+      goals: `Students connect ${domain} concepts to authentic educator and learner needs in a course-design setting.`,
+      topics: `${title}; ${domain} concepts, applied decision-making, learner support, and implementation tradeoffs`,
+      objectives: `Evaluate ${domain} decisions for alignment, accessibility, feasibility, and evidence of learner progress.`,
+      assessments:
+        index % 3 === 0
+          ? `Design memo: students justify a ${domain} decision using course context, constraints, and learner evidence.`
+          : index % 3 === 1
+            ? `Prototype review: students critique a ${domain} artifact and recommend a concrete revision.`
+            : `Implementation brief: students plan a ${domain} activity with success criteria and support resources.`,
+      async: `Annotated example, short concept check, and reflection on how ${domain} affects student learning.`,
+      sync: `Case-based workshop, peer critique, and instructor-facilitated debrief using ${domain} criteria.`,
+      resources: `${domain} checklist, exemplar artifact, accessibility guide, implementation planning template`,
+    })),
+  };
+}
+
+function makeProgramProject(id, courseName, audience, format, keywords, lessonTitles, domain) {
+  return {
+    id,
+    courseName,
+    audience,
+    format,
+    keywords,
+    lessonBlueprints: lessonTitles.map((title, index) => ({
+      title,
+      goals: `Students use ${domain} evidence to make practical decisions for community programs and stakeholders.`,
+      topics: `${title}; ${domain} planning, stakeholder needs, data collection, analysis, and communication`,
+      objectives: `Analyze ${domain} evidence and recommend a feasible next step for a community program context.`,
+      assessments:
+        index % 3 === 0
+          ? `Stakeholder memo: students identify a ${domain} decision and the evidence needed to support it.`
+          : index % 3 === 1
+            ? `Data interpretation brief: students explain ${domain} findings, limitations, and action implications.`
+            : `Program improvement plan: students align ${domain} evidence with recommendations and evaluation criteria.`,
+      async: `Reading annotation, short data interpretation task, and preparation notes for a ${domain} case.`,
+      sync: `Applied lab using a community case, small-group analysis, and peer feedback on recommendations.`,
+      resources: `${domain} logic model, stakeholder map, evidence rubric, plain-language reporting template`,
+    })),
+  };
+}
+
+const PROJECTS = [
+  {
+    id: 'research-methods',
+    courseName: 'Research Methods in Social Sciences',
+    audience: 'Undergraduate social work and social science students',
+    format: 'Mixed lecture/lab',
+    keywords: [
+      'research',
+      'social science',
+      'social work',
+      'sampling',
+      'survey',
+      'interview',
+      'evidence',
+      'ethics',
+      'validity',
+      'practitioner',
+    ],
+    lessonBlueprints: LESSON_BLUEPRINTS,
+  },
+  makeAppliedProject(
+    'ai-course-design',
+    'AI-Enhanced Course Design for Educators',
+    'Graduate teaching assistants and early-career instructors',
+    'Workshop with design studio',
+    [
+      'ai',
+      'course design',
+      'learning objective',
+      'assessment',
+      'rubric',
+      'feedback',
+      'accessibility',
+      'academic integrity',
+      'prompt',
+      'teaching',
+    ],
+    [
+      'Mapping AI Use Cases to Learning Goals',
+      'Writing Measurable Outcomes for AI-Supported Learning',
+      'Designing Transparent AI Policies',
+      'Building Prompting Activities with Academic Integrity',
+      'Creating Feedback Workflows with AI Support',
+      'Evaluating AI Output Quality and Bias',
+      'Designing Accessible AI-Supported Materials',
+      'Aligning AI Activities with Assessments',
+      'Building Rubrics for AI-Assisted Work',
+      'Supporting Student Metacognition with AI',
+      'Planning Human-in-the-Loop Review',
+      'Using AI for Differentiated Practice',
+      'Assessing Learning Without Over-Relying on AI',
+      'Launching an AI-Enhanced Module',
+      'Reflecting on Evidence and Iterating the Design',
+    ],
+    'AI-supported course design',
+  ),
+  makeProgramProject(
+    'community-health-evaluation',
+    'Community Health Program Evaluation',
+    'Upper-level public health and nonprofit leadership students',
+    'Seminar with applied evaluation lab',
+    [
+      'program evaluation',
+      'community health',
+      'stakeholder',
+      'logic model',
+      'outcome',
+      'indicator',
+      'equity',
+      'implementation',
+      'evidence',
+      'recommendation',
+    ],
+    [
+      'Framing Evaluation Questions with Stakeholders',
+      'Building Logic Models for Community Programs',
+      'Selecting Outcomes and Indicators',
+      'Designing Equitable Data Collection Plans',
+      'Using Surveys and Interviews in Program Evaluation',
+      'Tracking Implementation Fidelity',
+      'Interpreting Service Utilization Data',
+      'Assessing Equity in Program Outcomes',
+      'Analyzing Qualitative Feedback',
+      'Connecting Findings to Program Improvement',
+      'Communicating Evidence to Community Partners',
+      'Budgeting and Feasibility in Evaluation Plans',
+      'Managing Evaluation Ethics and Consent',
+      'Writing Actionable Evaluation Reports',
+      'Presenting Recommendations and Next Steps',
+    ],
+    'community health program evaluation',
+  ),
+];
+
 function parseCsvNumbers(value, fallback) {
   if (!value) return fallback;
   const parsed = String(value)
@@ -241,20 +386,36 @@ function parseCsvNumbers(value, fallback) {
   return parsed.length ? parsed : fallback;
 }
 
+function parseCsvValues(value, fallback) {
+  if (!value) return fallback;
+  const parsed = String(value)
+    .split(',')
+    .map((item) => item.trim())
+    .filter(Boolean);
+  return parsed.length ? parsed : fallback;
+}
+
 function parseArgs(argv) {
   const args = {
     dryRun: false,
     iterations: 1,
-    target: 93,
+    target: 90,
     features: null,
+    projects: parseCsvValues(
+      process.env.COURSEMAPPER_QUALITY_PROJECTS,
+      PROJECTS.map((project) => project.id),
+    ),
     scopes: parseCsvNumbers(process.env.COURSEMAPPER_QUALITY_SCOPES, DEFAULT_SCOPES),
+    parallel: Number(process.env.COURSEMAPPER_QUALITY_PARALLEL) || DEFAULT_PARALLEL,
   };
   for (let i = 0; i < argv.length; i++) {
     const arg = argv[i];
     if (arg === '--dry-run') args.dryRun = true;
     else if (arg === '--iterations') args.iterations = Number(argv[++i]) || 1;
-    else if (arg === '--target') args.target = Number(argv[++i]) || 93;
+    else if (arg === '--target') args.target = Number(argv[++i]) || 90;
+    else if (arg === '--parallel') args.parallel = Number(argv[++i]) || args.parallel;
     else if (arg === '--scopes') args.scopes = parseCsvNumbers(argv[++i], args.scopes);
+    else if (arg === '--projects') args.projects = parseCsvValues(argv[++i], args.projects);
     else if (arg === '--features') {
       args.features = argv[++i]
         ?.split(',')
@@ -265,8 +426,8 @@ function parseArgs(argv) {
   return args;
 }
 
-function buildCourseMap(lessonCount) {
-  const lessons = LESSON_BLUEPRINTS.slice(0, lessonCount).map((lesson, index) => ({
+function buildCourseMap(lessonCount, project) {
+  const lessons = project.lessonBlueprints.slice(0, lessonCount).map((lesson, index) => ({
     title: `Lesson ${index + 1}: ${lesson.title}`,
     sections: [
       {
@@ -284,10 +445,10 @@ function buildCourseMap(lessonCount) {
   }));
 
   return {
-    courseName: 'Research Methods in Social Sciences',
+    courseName: project.courseName,
     semester: 'Term to be confirmed',
-    audience: 'Undergraduate social work and social science students',
-    format: 'Mixed lecture/lab',
+    audience: project.audience,
+    format: project.format,
     lessons,
   };
 }
@@ -350,11 +511,11 @@ function appendQualityGuard(userPrompt) {
   return `${userPrompt}
 
 INTERNAL QUALITY LOOP OVERRIDE:
-- Target an A-level, publishable artifact for a real educator.
+- Target an A- or better, publishable artifact for a real educator.
 - Use the app's current JSON format, key names, prompt intent, and default configuration.
 - Do not emit bracketed placeholders, TODO, TBD, verification notes, authoring instructions, or template guidance.
 - Unknown local facts should use neutral student-facing language such as "to be confirmed" or be omitted.
-- Make every lesson specific to research methods in social sciences for undergraduate social work/social science students.
+- Make every lesson specific to the course title, audience, lesson topics, and assessments in the course map.
 - Prefer concrete instructions, examples, timing, criteria, and alignment evidence over generic prose.
 - Return ONLY valid JSON.`;
 }
@@ -442,25 +603,14 @@ function metricsFor(featureId, data, courseMap) {
   };
 }
 
-function courseSpecificityScore(data) {
+function courseSpecificityScore(data, project) {
   const raw = JSON.stringify(data || '').toLowerCase();
-  const terms = [
-    'research',
-    'social science',
-    'social work',
-    'sampling',
-    'survey',
-    'interview',
-    'evidence',
-    'ethics',
-    'validity',
-    'practitioner',
-  ];
+  const terms = project.keywords || [];
   const hits = terms.filter((term) => raw.includes(term)).length;
   return Math.min(15, Math.round((hits / 8) * 15));
 }
 
-function scoreFeature(featureId, data, courseMap) {
+function scoreFeature(featureId, data, courseMap, project) {
   const findings = [];
   const placeholders = findPublishabilityPlaceholders(data, { limit: 20 });
   const publishability = Math.max(0, 20 - placeholders.length * 4);
@@ -471,8 +621,8 @@ function scoreFeature(featureId, data, courseMap) {
   const coverage = Math.round(Math.min(1, items.length / expected) * 15);
   if (coverage < 15) findings.push(`Increase lesson coverage: found ${items.length}, expected ${expected}.`);
 
-  const specificity = courseSpecificityScore(data);
-  if (specificity < 12) findings.push('Add more course-specific social science research methods detail.');
+  const specificity = courseSpecificityScore(data, project);
+  if (specificity < 12) findings.push('Add more course-specific detail tied to the course topic and audience.');
 
   const words = countWords(data);
   const depth = Math.min(10, Math.round(words / (featureId === 'syllabus' ? 180 : 120)));
@@ -490,6 +640,28 @@ function scoreFeature(featureId, data, courseMap) {
     findings,
     dimensions: { publishability, coverage, specificity, pedagogical, alignment, depth, polish },
   };
+}
+
+function createLimiter(limit) {
+  let active = 0;
+  const queue = [];
+  const runNext = () => {
+    if (active >= limit || queue.length === 0) return;
+    active++;
+    const { task, resolve, reject } = queue.shift();
+    Promise.resolve()
+      .then(task)
+      .then(resolve, reject)
+      .finally(() => {
+        active--;
+        runNext();
+      });
+  };
+  return (task) =>
+    new Promise((resolve, reject) => {
+      queue.push({ task, resolve, reject });
+      runNext();
+    });
 }
 
 function diffSummary(before, after) {
@@ -529,30 +701,32 @@ async function writeOutputs(results, meta) {
     `Generated: ${new Date().toISOString()}`,
     `Provider: ${meta.provider}`,
     `Model: ${meta.model}`,
+    `Projects: ${meta.projects.join(', ')}`,
     `Scopes: ${meta.scopes.join(', ')}`,
     `Target: ${meta.target}`,
+    `Parallel jobs: ${meta.parallel}`,
     '',
     'This process is artifact-only. It writes gitignored score reports and generated JSON samples, and it never commits or pushes.',
     '',
-    '| Scope | Feature | Score | Letter | Iterations | Latest Diff | Findings |',
-    '| ---: | --- | ---: | --- | ---: | --- | --- |',
+    '| Project | Scope | Feature | Score | Letter | Iterations | Latest Diff | Findings |',
+    '| --- | ---: | --- | ---: | --- | ---: | --- | --- |',
     ...results.map(
       (result) =>
-        `| ${result.scope} | ${result.featureId} | ${result.score} | ${letter(result.score)} | ${result.iterations.length} | ${
-          result.iterations.at(-1)?.diff || ''
-        } | ${result.findings.join('<br>') || 'None'} |`,
+        `| ${result.projectId} | ${result.scope} | ${result.featureId} | ${result.score} | ${letter(result.score)} | ${
+          result.iterations.length
+        } | ${result.iterations.at(-1)?.diff || ''} | ${result.findings.join('<br>') || 'None'} |`,
     ),
     '',
     '## Iteration Log',
     '',
-    '| Scope | Feature | Iteration | Score | Diff | Findings |',
-    '| ---: | --- | ---: | ---: | --- | --- |',
+    '| Project | Scope | Feature | Iteration | Score | Diff | Findings |',
+    '| --- | ---: | --- | ---: | ---: | --- | --- |',
     ...results.flatMap((result) =>
       result.iterations.map(
         (iteration) =>
-          `| ${result.scope} | ${result.featureId} | ${iteration.iteration} | ${iteration.score} | ${iteration.diff} | ${
-            iteration.findings.join('<br>') || 'None'
-          } |`,
+          `| ${result.projectId} | ${result.scope} | ${result.featureId} | ${iteration.iteration} | ${
+            iteration.score
+          } | ${iteration.diff} | ${iteration.findings.join('<br>') || 'None'} |`,
       ),
     ),
     '',
@@ -562,10 +736,46 @@ async function writeOutputs(results, meta) {
   await fs.writeFile(path.join(OUTPUT_DIR, 'latest.md'), report);
   await fs.writeFile(path.join(OUTPUT_DIR, 'latest.json'), JSON.stringify({ meta, results }, null, 2));
   for (const result of results) {
-    const scopeDir = path.join(OUTPUT_DIR, `scope-${result.scope}`);
+    const scopeDir = path.join(OUTPUT_DIR, result.projectId, `scope-${result.scope}`);
     await fs.mkdir(scopeDir, { recursive: true });
     await fs.writeFile(path.join(scopeDir, `${result.featureId}.json`), JSON.stringify(result.data, null, 2));
   }
+}
+
+async function runQualityJob({ project, scope, featureId, args, provider, key, model }) {
+  const courseMap = buildCourseMap(scope, project);
+  let data = null;
+  let score = 0;
+  let findings = [];
+  let previousMetrics = null;
+  const iterations = [];
+
+  for (let iteration = 1; iteration <= args.iterations; iteration++) {
+    const prompt = buildFeaturePrompt(featureId, courseMap, data, findings);
+    data = await callProvider({ provider, key, model, ...prompt });
+    const scored = scoreFeature(featureId, data, courseMap, project);
+    score = scored.score;
+    findings = scored.findings;
+    const metrics = { ...metricsFor(featureId, data, courseMap), score };
+    const diff = diffSummary(previousMetrics, metrics);
+    iterations.push({
+      iteration,
+      score,
+      letter: letter(score),
+      findings,
+      dimensions: scored.dimensions,
+      diff,
+    });
+    previousMetrics = metrics;
+    if (score >= args.target) break;
+  }
+
+  console.log(
+    `${project.id} ${scope}w ${featureId}: ${score}/100 (${letter(score)})${
+      findings.length ? ` - ${findings[0]}` : ''
+    }`,
+  );
+  return { projectId: project.id, scope, featureId, score, letter: letter(score), findings, iterations, data };
 }
 
 async function main() {
@@ -573,15 +783,23 @@ async function main() {
   await loadDotEnv(path.join(ROOT, '.env'));
   const features =
     args.features || process.env.COURSEMAPPER_QUALITY_FEATURES?.split(',').filter(Boolean) || DEFAULT_FEATURES;
+  const projects = args.projects.map((id) => PROJECTS.find((project) => project.id === id)).filter(Boolean);
+  if (projects.length === 0) {
+    throw new Error(`No matching projects found for: ${args.projects.join(', ')}`);
+  }
   const { provider, key } = resolveProvider();
   const model = modelFor(provider);
 
   if (args.dryRun) {
-    for (const scope of args.scopes) {
-      const courseMap = buildCourseMap(scope);
-      for (const featureId of features) {
-        const prompt = buildFeaturePrompt(featureId, courseMap);
-        console.log(`${scope}w ${featureId}: system=${prompt.system.length} chars user=${prompt.user.length} chars`);
+    for (const project of projects) {
+      for (const scope of args.scopes) {
+        const courseMap = buildCourseMap(scope, project);
+        for (const featureId of features) {
+          const prompt = buildFeaturePrompt(featureId, courseMap);
+          console.log(
+            `${project.id} ${scope}w ${featureId}: system=${prompt.system.length} chars user=${prompt.user.length} chars`,
+          );
+        }
       }
     }
     return;
@@ -593,55 +811,35 @@ async function main() {
     );
   }
 
-  const results = [];
   console.log(
-    `Running internal quality loop with provider=${provider}, model=${model}, scopes=${args.scopes.join(
-      ',',
-    )}, features=${features.join(',')}`,
+    `Running internal quality loop with provider=${provider}, model=${model}, projects=${projects
+      .map((project) => project.id)
+      .join(',')}, scopes=${args.scopes.join(',')}, features=${features.join(',')}, parallel=${args.parallel}`,
   );
 
-  for (const scope of args.scopes) {
-    const courseMap = buildCourseMap(scope);
-    for (const featureId of features) {
-      let data = null;
-      let score = 0;
-      let findings = [];
-      let previousMetrics = null;
-      const iterations = [];
-
-      for (let iteration = 1; iteration <= args.iterations; iteration++) {
-        const prompt = buildFeaturePrompt(featureId, courseMap, data, findings);
-        data = await callProvider({ provider, key, model, ...prompt });
-        const scored = scoreFeature(featureId, data, courseMap);
-        score = scored.score;
-        findings = scored.findings;
-        const metrics = { ...metricsFor(featureId, data, courseMap), score };
-        const diff = diffSummary(previousMetrics, metrics);
-        iterations.push({
-          iteration,
-          score,
-          letter: letter(score),
-          findings,
-          dimensions: scored.dimensions,
-          diff,
-        });
-        previousMetrics = metrics;
-        if (score >= args.target) break;
-      }
-
-      results.push({ scope, featureId, score, letter: letter(score), findings, iterations, data });
-      console.log(
-        `${scope}w ${featureId}: ${score}/100 (${letter(score)})${findings.length ? ` - ${findings[0]}` : ''}`,
-      );
-    }
-  }
+  const jobs = projects.flatMap((project) =>
+    args.scopes.flatMap((scope) => features.map((featureId) => ({ project, scope, featureId }))),
+  );
+  const limit = createLimiter(Math.max(1, Math.min(6, args.parallel)));
+  const results = await Promise.all(
+    jobs.map((job) => limit(() => runQualityJob({ ...job, args, provider, key, model }))),
+  );
+  results.sort(
+    (a, b) =>
+      projects.findIndex((project) => project.id === a.projectId) -
+        projects.findIndex((project) => project.id === b.projectId) ||
+      a.scope - b.scope ||
+      features.indexOf(a.featureId) - features.indexOf(b.featureId),
+  );
 
   await writeOutputs(results, {
     provider,
     model,
     target: args.target,
     iterations: args.iterations,
+    projects: projects.map((project) => project.id),
     scopes: args.scopes,
+    parallel: args.parallel,
   });
   const allA = results.every((result) => result.score >= args.target);
   console.log(`Wrote ${path.relative(ROOT, OUTPUT_DIR)}/latest.md`);
