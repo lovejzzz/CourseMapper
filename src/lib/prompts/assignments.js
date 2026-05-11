@@ -59,6 +59,11 @@ Return a JSON object with exactly this structure:
       ],
       "pt": "string — how students will receive feedback and track their progress on this assignment: interim feedback points, self-assessment checkpoints, peer review milestones, and expected turnaround time for instructor feedback (QM 3.5)",
       "ai": "string — assignment-specific guidance on how to uphold academic integrity for THIS assignment type: what is/is not permitted (collaboration, AI tools, reuse of prior work), reference to institution policy, and consequences for violation (QM 3.6)",
+      "ud": "string — accessibility and UDL guidance specific to this assignment: alternate formats, scaffolded supports, and accommodation-friendly submission options that preserve criteria",
+      "sar": [
+        "string — student self-assessment criterion phrased as a checklist item tied to this exact assignment"
+      ],
+      "fl": "string — how feedback from this assignment should feed forward into the next assignment, exam, discussion, or project milestone",
       "tg": ["string — 5-8 keywords for LMS discoverability: include assignment type, skill area, Bloom's level, and related lesson topics"]
     }
   ]
@@ -76,6 +81,8 @@ REQUIREMENTS:
 - deliverables must be a checklist (students can tick off each item before submitting)
 - academicIntegrityStatement must be specific to this assignment (not a generic paragraph)
 - formatRequirements.latePolicy must state explicit point deduction or policy
+- accessibilityAndUDL, selfAssessmentRubric, and feedbackLoop are required. They must be specific to the assignment type and course topic, not repeated boilerplate across briefs.
+- selfAssessmentRubric must contain 3-5 checklist items students can use before submission.
 - RUBRIC CROSS-REFERENCE (CRITICAL): Each assignment MUST include in its gradingCriteria field a sentence like: "See Rubric for [Assignment Title] for full grading criteria and point breakdown." This tells students where to find the detailed rubric.
 - QM ALIGNMENT: Assignments must be sequenced and suited to the course level — earlier assignments should scaffold toward later, more complex ones (QM 3.4). Include opportunities for learners to track their progress via the progressTracking field: interim feedback points, self-assessment checkpoints, or peer review milestones (QM 3.5). The academicIntegrityStatement must provide specific guidance on how to uphold integrity for THIS assignment type (QM 3.6).
 - COGNITIVE LOAD: Instructions must be imperative, concise, and scannable. No instruction step longer than 25 words. Each step describes one action only.

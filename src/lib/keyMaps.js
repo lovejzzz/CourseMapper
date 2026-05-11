@@ -32,6 +32,7 @@ const lessonPlans = {
   hw: 'homework',
   ca: 'closingActivity',
   tg: 'tags',
+  rts: 'readyToTeachSupport',
   rd: 'suggestedReviewDate',
   cg: 'contentOwnerGroup',
   // nested: warmUp
@@ -66,6 +67,7 @@ const slideDecks = {
   lo: 'learningObjectives',
   sl: 'slides',
   tg: 'tags',
+  sg: 'slideDeckSequenceGuide',
   vi: 'visual',
   // nested: slides[]
   t: 'title',
@@ -89,6 +91,10 @@ const rubrics = {
   gp: 'gradePolicyConnection',
   tn: 'teacherNotes',
   tg: 'tags',
+  td: 'taskDirections',
+  ifn: 'instructorFacilitationNote',
+  udl: 'accessibilityAndUDL',
+  ax: 'anchorExamples',
   // nested: gradingScale + criteria levels
   ex: 'exemplary',
   pr: 'proficient',
@@ -122,6 +128,8 @@ const quizBank = {
   ex: 'explanation',
   rh: 'rubricHints',
   sa: 'sampleAnswer',
+  iu: 'intendedUse',
+  sg: 'scoringGuidance',
 };
 
 const assignments = {
@@ -143,6 +151,9 @@ const assignments = {
   sr: 'supportResources',
   pt: 'progressTracking',
   ai: 'academicIntegrityStatement',
+  ud: 'accessibilityAndUDL',
+  sar: 'selfAssessmentRubric',
+  fl: 'feedbackLoop',
   tg: 'tags',
   // nested: formatRequirements
   ln: 'length',
@@ -220,6 +231,11 @@ const courseFaq = {
   ca: 'category',
   rc: 'relatedConcepts',
   df: 'difficulty',
+  sa: 'studentAction',
+  in: 'instructorNote',
+  ac: 'assessmentConnection',
+  ud: 'accessibilitySupport',
+  ce: 'concreteExample',
 };
 
 export const KEY_MAPS = {

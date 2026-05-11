@@ -496,6 +496,127 @@ export function normalizeQuizBankRationales(data) {
   };
 }
 
+function slugifyId(value, fallback = 'item') {
+  const slug = String(value || '')
+    .toLowerCase()
+    .replace(/[^a-z0-9]+/g, '-')
+    .replace(/^-+|-+$/g, '')
+    .slice(0, 42);
+  return slug || fallback;
+}
+
+export function normalizeQuizBankIndex(data) {
+  const arrayKey = getArrayKey('quizBank', data) || (data?.quizzes ? 'quizzes' : data?.quizBank ? 'quizBank' : null);
+  const quizzes = arrayKey ? data?.[arrayKey] : null;
+
+  if (!Array.isArray(quizzes) || quizzes.length === 0) {
+    return { data, arrayKey, addedIds: 0, addedQuestionTags: 0, addedIntendedUses: 0, rebuiltIndex: false };
+  }
+
+  let addedIds = 0;
+  let addedQuestionTags = 0;
+  let addedIntendedUses = 0;
+  let changed = false;
+
+  const bankIndex = [];
+  const nextQuizzes = quizzes.map((quiz, quizIndex) => {
+    const questionKey = Array.isArray(quiz?.questions) ? 'questions' : Array.isArray(quiz?.qs) ? 'qs' : null;
+    if (!questionKey) return quiz;
+
+    const isCompact = questionKey === 'qs';
+    const lessonTitle = quiz?.lessonTitle || quiz?.lt || `Lesson ${quizIndex + 1}`;
+    const lessonId = slugifyId(lessonTitle, `lesson-${quizIndex + 1}`);
+    const quizTags = Array.isArray(quiz?.tags) ? quiz.tags : Array.isArray(quiz?.tg) ? quiz.tg : [];
+    let quizChanged = false;
+
+    const questions = quiz[questionKey].map((question, questionIndex) => {
+      const nextQuestion = { ...question };
+      const idKey = nextQuestion.id !== undefined ? 'id' : 'id';
+      const tagKey =
+        nextQuestion.tags !== undefined ? 'tags' : nextQuestion.tg !== undefined ? 'tg' : isCompact ? 'tg' : 'tags';
+      const useKey =
+        nextQuestion.intendedUse !== undefined
+          ? 'intendedUse'
+          : nextQuestion.iu !== undefined
+            ? 'iu'
+            : isCompact
+              ? 'iu'
+              : 'intendedUse';
+      const type = nextQuestion.type || nextQuestion.ty || 'short_answer';
+      const bloom = nextQuestion.bloomsLevel || nextQuestion.bl || '';
+      const difficulty = nextQuestion.difficulty || nextQuestion.df || '';
+      const id = nextQuestion[idKey] || `${lessonId}-q${questionIndex + 1}`;
+
+      if (!nextQuestion[idKey]) {
+        nextQuestion[idKey] = id;
+        addedIds++;
+        quizChanged = true;
+      }
+
+      const tags = [
+        ...quizTags,
+        type,
+        bloom,
+        difficulty,
+        lessonTitle,
+        questionIndex < 2 ? 'retrieval practice' : 'exam preparation',
+      ]
+        .filter(Boolean)
+        .map((tag) => String(tag).trim())
+        .filter(Boolean);
+      const uniqueTags = [...new Set(tags)].slice(0, 8);
+      if (!Array.isArray(nextQuestion[tagKey]) || nextQuestion[tagKey].length === 0) {
+        nextQuestion[tagKey] = uniqueTags;
+        addedQuestionTags++;
+        quizChanged = true;
+      }
+
+      if (!String(nextQuestion[useKey] || '').trim()) {
+        nextQuestion[useKey] =
+          type === 'essay'
+            ? `Use as a summative or exam-prep prompt after ${lessonTitle}; score with the provided rubric hints.`
+            : `Use as retrieval practice after ${lessonTitle}; review explanations before moving to higher-stakes assessment.`;
+        addedIntendedUses++;
+        quizChanged = true;
+      }
+
+      bankIndex.push({
+        id,
+        lessonTitle,
+        type,
+        bloomsLevel: bloom,
+        difficulty,
+        estimatedMinutes: nextQuestion.estimatedMinutes || nextQuestion.em || null,
+        intendedUse: nextQuestion[useKey],
+        tags: Array.isArray(nextQuestion[tagKey]) ? nextQuestion[tagKey] : uniqueTags,
+      });
+
+      return quizChanged ? nextQuestion : question;
+    });
+
+    if (quizChanged) changed = true;
+    return quizChanged ? { ...quiz, [questionKey]: questions } : quiz;
+  });
+
+  const existingIndex = Array.isArray(data?.bankIndex) ? data.bankIndex : null;
+  const rebuiltIndex =
+    bankIndex.length > 0 &&
+    (!existingIndex ||
+      existingIndex.length !== bankIndex.length ||
+      existingIndex.some((entry, index) => entry?.id !== bankIndex[index]?.id));
+
+  if (rebuiltIndex) changed = true;
+
+  return {
+    data: changed ? { ...data, [arrayKey]: nextQuizzes, bankIndex } : data,
+    arrayKey,
+    addedIds,
+    addedQuestionTags,
+    addedIntendedUses,
+    rebuiltIndex,
+  };
+}
+
 function stripObjectiveCodes(value) {
   return String(value || '')
     .replace(/\b\d+[a-z]\b/gi, ' ')
@@ -690,6 +811,75 @@ export function normalizeRubricCoverage(data, courseMap) {
     arrayKey,
     addedRubrics: fallbackRubrics.length,
     missingLessonNumbers,
+  };
+}
+
+function moveAlias(source, target, aliases) {
+  for (const alias of aliases) {
+    if (source[target] === undefined && source[alias] !== undefined) {
+      source[target] = source[alias];
+      delete source[alias];
+      return true;
+    }
+  }
+  return false;
+}
+
+export function normalizeRubricSupport(data) {
+  const arrayKey = getArrayKey('rubrics', data) || (data?.rubrics ? 'rubrics' : null);
+  const rubrics = arrayKey ? data?.[arrayKey] : null;
+
+  if (!Array.isArray(rubrics) || rubrics.length === 0) {
+    return { data, arrayKey, normalizedSupportFields: 0, patchedCriterionPoints: 0 };
+  }
+
+  let normalizedSupportFields = 0;
+  let patchedCriterionPoints = 0;
+  const nextRubrics = rubrics.map((rubric) => {
+    const nextRubric = { ...rubric };
+    let changed = false;
+
+    if (moveAlias(nextRubric, 'taskDirections', ['td'])) {
+      normalizedSupportFields++;
+      changed = true;
+    }
+    if (moveAlias(nextRubric, 'instructorFacilitationNote', ['ifn', 'ia'])) {
+      normalizedSupportFields++;
+      changed = true;
+    }
+    if (moveAlias(nextRubric, 'accessibilityAndUDL', ['udl', 'au'])) {
+      normalizedSupportFields++;
+      changed = true;
+    }
+    if (moveAlias(nextRubric, 'anchorExamples', ['ax'])) {
+      normalizedSupportFields++;
+      changed = true;
+    }
+
+    const criteriaKey = Array.isArray(nextRubric.criteria) ? 'criteria' : Array.isArray(nextRubric.cr) ? 'cr' : null;
+    const totalPoints = Number(nextRubric.totalPoints || nextRubric.tp);
+    if (criteriaKey && Number.isFinite(totalPoints) && totalPoints > 0) {
+      const criteria = nextRubric[criteriaKey].map((criterion) => {
+        const weight = Number(criterion?.weight || criterion?.wt);
+        if (!Number.isFinite(weight) || weight <= 0) return criterion;
+        const pointsKey = criterion.points !== undefined ? 'points' : criterion.pt !== undefined ? 'pt' : 'points';
+        const expectedPoints = Math.round((weight / 100) * totalPoints);
+        if (criterion[pointsKey] === expectedPoints) return criterion;
+        patchedCriterionPoints++;
+        changed = true;
+        return { ...criterion, [pointsKey]: expectedPoints };
+      });
+      nextRubric[criteriaKey] = criteria;
+    }
+
+    return changed ? nextRubric : rubric;
+  });
+
+  return {
+    data: normalizedSupportFields > 0 || patchedCriterionPoints > 0 ? { ...data, [arrayKey]: nextRubrics } : data,
+    arrayKey,
+    normalizedSupportFields,
+    patchedCriterionPoints,
   };
 }
 
@@ -903,6 +1093,251 @@ export function normalizeSlideDeckSpeakerNotes(data) {
     arrayKey,
     patchedNotes,
     patchedSlideTotals,
+  };
+}
+
+function isDuePlaceholder(value) {
+  return /\b(to be confirmed|tbd|to be announced|date to be confirmed|due date)\b/i.test(String(value || ''));
+}
+
+function cleanDuePlaceholder(value) {
+  return String(value || '').replace(
+    /\b(?:due date\s*)?(?:to be confirmed|tbd|to be announced|date to be confirmed)\b/gi,
+    'set by the instructor in the local LMS',
+  );
+}
+
+function buildSlideAltText(deck, slide) {
+  const title = slide?.title || slide?.t || 'this slide';
+  const kind = slide?.visual?.kind || slide?.visual?.k || slide?.vi?.k || 'visual';
+  const description = slide?.visual?.description || slide?.visual?.d || slide?.vi?.d || '';
+  if (description) return `${description} This visual supports the slide titled "${title}".`;
+  return `Text-only ${kind} slide for "${title}"; all instructional content is available in the slide title, bullets, and speaker notes.`;
+}
+
+export function normalizeSlideDeckAccessibility(data) {
+  const arrayKey = getArrayKey('slideDecks', data) || (data?.decks ? 'decks' : data?.slideDecks ? 'slideDecks' : null);
+  const decks = arrayKey ? data?.[arrayKey] : null;
+
+  if (!Array.isArray(decks) || decks.length === 0) {
+    return { data, arrayKey, patchedAltText: 0, patchedDuePlaceholders: 0, addedSequenceGuides: 0 };
+  }
+
+  let patchedAltText = 0;
+  let patchedDuePlaceholders = 0;
+  let addedSequenceGuides = 0;
+  const nextDecks = decks.map((deck) => {
+    const slideKey = Array.isArray(deck?.slides) ? 'slides' : Array.isArray(deck?.sl) ? 'sl' : null;
+    if (!slideKey) return deck;
+
+    let deckChanged = false;
+    const slides = deck[slideKey].map((slide) => {
+      let nextSlide = slide;
+      const visualKey = slide?.visual !== undefined ? 'visual' : slide?.vi !== undefined ? 'vi' : null;
+      if (visualKey && slide[visualKey] && typeof slide[visualKey] === 'object') {
+        const visual = slide[visualKey];
+        const altKey = visual.altText !== undefined ? 'altText' : visual.at !== undefined ? 'at' : 'altText';
+        if (!String(visual[altKey] || '').trim()) {
+          patchedAltText++;
+          deckChanged = true;
+          nextSlide = {
+            ...nextSlide,
+            [visualKey]: {
+              ...visual,
+              [altKey]: buildSlideAltText(deck, slide),
+            },
+          };
+        }
+      }
+
+      const fields = ['title', 't', 'notes', 'speakerNotes', 'no'];
+      for (const field of fields) {
+        if (nextSlide[field] !== undefined && isDuePlaceholder(nextSlide[field])) {
+          nextSlide = { ...nextSlide, [field]: cleanDuePlaceholder(nextSlide[field]) };
+          patchedDuePlaceholders++;
+          deckChanged = true;
+        }
+      }
+
+      const bulletKey = Array.isArray(nextSlide?.bullets) ? 'bullets' : Array.isArray(nextSlide?.bu) ? 'bu' : null;
+      if (bulletKey) {
+        let bulletChanged = false;
+        const bullets = nextSlide[bulletKey].map((bullet) => {
+          if (!isDuePlaceholder(bullet)) return bullet;
+          bulletChanged = true;
+          patchedDuePlaceholders++;
+          return cleanDuePlaceholder(bullet);
+        });
+        if (bulletChanged) {
+          nextSlide = { ...nextSlide, [bulletKey]: bullets };
+          deckChanged = true;
+        }
+      }
+
+      return nextSlide;
+    });
+
+    const guideKey = deck.slideDeckSequenceGuide !== undefined ? 'slideDeckSequenceGuide' : 'slideDeckSequenceGuide';
+    const needsGuide = !deck[guideKey] || typeof deck[guideKey] !== 'object';
+    if (needsGuide) {
+      addedSequenceGuides++;
+      deckChanged = true;
+    }
+
+    return deckChanged
+      ? {
+          ...deck,
+          [slideKey]: slides,
+          ...(needsGuide
+            ? {
+                [guideKey]: {
+                  accessibilityStandards:
+                    'All instructional content is available as text for screen readers. Visual suggestions include alt text and should not rely on color alone.',
+                  cumulativeAssessmentMap:
+                    'Use the objectives, practice slides, and closing prompts as checkpoints before related quizzes, assignments, or exams.',
+                },
+              }
+            : {}),
+        }
+      : deck;
+  });
+
+  return {
+    data:
+      patchedAltText > 0 || patchedDuePlaceholders > 0 || addedSequenceGuides > 0
+        ? { ...data, [arrayKey]: nextDecks }
+        : data,
+    arrayKey,
+    patchedAltText,
+    patchedDuePlaceholders,
+    addedSequenceGuides,
+  };
+}
+
+export function normalizeStudyGuideQuestions(data) {
+  const arrayKey =
+    getArrayKey('studyGuides', data) || (data?.guides ? 'guides' : data?.studyGuides ? 'studyGuides' : null);
+  const guides = arrayKey ? data?.[arrayKey] : null;
+
+  if (!Array.isArray(guides) || guides.length === 0) {
+    return { data, arrayKey, splitCombinedQuestions: 0 };
+  }
+
+  let splitCombinedQuestions = 0;
+  const nextGuides = guides.map((guide) => {
+    const questionKey = Array.isArray(guide?.reviewQuestions)
+      ? 'reviewQuestions'
+      : Array.isArray(guide?.rq)
+        ? 'rq'
+        : null;
+    if (!questionKey) return guide;
+    let changed = false;
+    const questions = [];
+
+    guide[questionKey].forEach((question) => {
+      if (!question || typeof question !== 'object' || Array.isArray(question)) {
+        questions.push(question);
+        return;
+      }
+
+      const secondQuestion = question.q2 || question.question2;
+      if (!secondQuestion) {
+        questions.push(question);
+        return;
+      }
+
+      const first = { ...question };
+      delete first.q2;
+      delete first.question2;
+      delete first.bl2;
+      delete first.bloomsLevel2;
+      delete first.ht2;
+      delete first.hint2;
+
+      const usesCompact = question.q !== undefined || question.bl !== undefined || question.ht !== undefined;
+      const second = usesCompact
+        ? {
+            q: secondQuestion,
+            bl: question.bl2 || question.bloomsLevel2 || question.bl || question.bloomsLevel || 'Apply',
+            ht:
+              question.ht2 ||
+              question.hint2 ||
+              question.ht ||
+              question.hint ||
+              'Identify the concept, then explain how the evidence supports it.',
+          }
+        : {
+            question: secondQuestion,
+            bloomsLevel: question.bl2 || question.bloomsLevel2 || question.bloomsLevel || 'Apply',
+            hint:
+              question.ht2 ||
+              question.hint2 ||
+              question.hint ||
+              'Identify the concept, then explain how the evidence supports it.',
+          };
+
+      questions.push(first, second);
+      splitCombinedQuestions++;
+      changed = true;
+    });
+
+    return changed ? { ...guide, [questionKey]: questions } : guide;
+  });
+
+  return {
+    data: splitCombinedQuestions > 0 ? { ...data, [arrayKey]: nextGuides } : data,
+    arrayKey,
+    splitCombinedQuestions,
+  };
+}
+
+export function normalizeLessonPlanPublishability(data) {
+  const arrayKey =
+    getArrayKey('lessonPlans', data) || (data?.plans ? 'plans' : data?.lessonPlans ? 'lessonPlans' : null);
+  const plans = arrayKey ? data?.[arrayKey] : null;
+
+  if (!Array.isArray(plans) || plans.length === 0) {
+    return { data, arrayKey, patchedReviewDates: 0, patchedOwnerGroups: 0 };
+  }
+
+  let patchedReviewDates = 0;
+  let patchedOwnerGroups = 0;
+  const nextPlans = plans.map((plan) => {
+    let nextPlan = plan;
+    const reviewKey =
+      plan?.suggestedReviewDate !== undefined ? 'suggestedReviewDate' : plan?.rd !== undefined ? 'rd' : null;
+    const ownerKey = plan?.contentOwnerGroup !== undefined ? 'contentOwnerGroup' : plan?.cg !== undefined ? 'cg' : null;
+
+    if (
+      reviewKey &&
+      /fall\s+\d{4}|spring\s+\d{4}|summer\s+\d{4}|\b\d{4}\b|tbd|to be confirmed/i.test(plan[reviewKey])
+    ) {
+      nextPlan = {
+        ...nextPlan,
+        [reviewKey]: 'Instructor confirms the local review cycle before publishing this lesson plan.',
+      };
+      patchedReviewDates++;
+    }
+
+    if (
+      ownerKey &&
+      /\bdepartment of|school of|college of|program office|content team|tbd|to be confirmed/i.test(plan[ownerKey])
+    ) {
+      nextPlan = {
+        ...nextPlan,
+        [ownerKey]: 'Instructor-selected program, course team, or department owner.',
+      };
+      patchedOwnerGroups++;
+    }
+
+    return nextPlan;
+  });
+
+  return {
+    data: patchedReviewDates > 0 || patchedOwnerGroups > 0 ? { ...data, [arrayKey]: nextPlans } : data,
+    arrayKey,
+    patchedReviewDates,
+    patchedOwnerGroups,
   };
 }
 

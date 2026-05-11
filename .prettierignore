@@ -6,3 +6,16 @@ test-results
 verification-output
 .firebase
 package-lock.json
+scripts/internalDeliverableQualityLoop.mjs
+scripts/internalJudge12WeekCourse.mjs
+scripts/internalRepairJudgeTarget.mjs
+scripts/internalRepairLessonPlansChunked.mjs
+scripts/internalRepairQuizBankChunked.mjs
+scripts/internalRepairRubricsChunked.mjs
+scripts/normalizeAssignmentsRepair.mjs
+scripts/normalizeLessonPlansRepair.mjs
+scripts/normalizeQuizBankRepair.mjs
+scripts/normalizeRubricsRepair.mjs
+scripts/normalizeSlideDecksRepair.mjs
+scripts/runInternalQualityNextCell.mjs
+scripts/updateQualityDashboard.mjs

@@ -25,22 +25,38 @@ Return a JSON object with exactly this structure:
       "fn": "string — guidance for the instructor: common errors students make on this material, how to return results quickly, and how students should use quiz results to identify areas needing review (QM 3.5)",
       "qs": [
         {
+          "id": "string — stable item id such as 'lesson-3-q4'",
           "ty": "string — MUST be one of: 'multiple_choice' | 'short_answer' | 'essay'",
           "bl": "string — exact Bloom's level: 'Remember' | 'Understand' | 'Apply' | 'Analyze' | 'Evaluate' | 'Create'",
           "df": "string — 'Easy' | 'Medium' | 'Hard'",
           "em": number — integer time to answer,
           "pt": number — integer point value,
           "oa": "string — which lesson learning objective this question assesses",
+          "iu": "string — intended use: retrieval practice, formative quiz, exam review, or summative assessment; include when and how an instructor should deploy it",
           "q": "string — for MC: complete interrogative sentence or scenario stem; for short answer: includes expected length ('In 2-3 sentences...'); for essay: includes task verb (analyze/evaluate/argue), scope, and constraints",
           "op": ["string"] — MC ONLY: exactly 4 options as 'A. ...', 'B. ...', 'C. ...', 'D. ...' (omit for short_answer/essay),
           "an": "string — MC: the letter only (e.g. 'B'); short_answer: model answer with key required elements (omit for essay)",
           "dr": "string — MC ONLY: explain why each wrong option is plausible, format: 'A: [reason]; C: [reason]; D: [reason]' (omit for short_answer/essay)",
           "ex": "string — REQUIRED for every question. MC: 'The correct answer is [X] because [reason]'; short_answer: full model response + 2 alternative acceptable phrasings; essay: concise instructor scoring note that explains what a strong response must do.",
           "rh": "string — ESSAY ONLY: 3-4 criteria that a strong response must include (omit for MC/short_answer)",
-          "sa": "string — short_answer & essay ONLY: full exemplary response (omit for MC)"
+          "sa": "string — short_answer & essay ONLY: full exemplary response (omit for MC)",
+          "sg": "string — scoring guidance for constructed responses: minimum acceptable evidence, common partial-credit boundary, and one common misconception to flag",
+          "tg": ["string"] — 4-8 tags: lesson topic, question type, Bloom's level, difficulty, and assessment use
         }
       ],
       "tg": ["string — 5-8 keywords for LMS discoverability: include assessment type, Bloom's levels tested, and key topic areas"]
+    }
+  ],
+  "bankIndex": [
+    {
+      "id": "string — matches a question id",
+      "lessonTitle": "string",
+      "type": "string",
+      "bloomsLevel": "string",
+      "difficulty": "string",
+      "estimatedMinutes": number,
+      "intendedUse": "string",
+      "tags": ["string"]
     }
   ]
 }
@@ -53,6 +69,8 @@ Rules:
 - essay: include task verb + scope + constraints.
 - ty must be exactly multiple_choice, short_answer, or essay. df must be exactly Easy, Medium, or Hard. em is minutes, never seconds: use 1-3 for multiple_choice, 3-6 for short_answer, and 8-15 for essay.
 - Every question has oa (objectiveAligned) and ex (explanation). Every MC has non-null ex (starting "The correct answer is [letter] because…") and dr ("A: …; C: …; D: …") — required for accreditation.
+- Every question must have id, iu, and tg. Every non-MC question must have sg with concrete partial-credit guidance; MC may omit sg if ex and dr are complete.
+- bankIndex must include one row per question so instructors can filter by lesson, Bloom's level, difficulty, and intended use.
 - Sequence from lower to higher Bloom's as the course progresses (QM 3.4). Include diagnostic questions that help learners identify review areas (QM 3.5). Each quiz includes fn guidance on common errors and timely feedback (QM 3.5).
 - Vary phrasing across lessons — no repeated stem patterns. Explanations in natural prose.
 - Return ONLY the JSON object, no prose, no markdown.`,

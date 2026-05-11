@@ -916,6 +916,14 @@ function _buildDocxContentShared(featureId, data, children, docx) {
         if (r.title && r.lessonTitle) children.push(makeBold('Assessment', r.title));
         const rMeta = [r.totalPoints && `${r.totalPoints} points`, r.assessmentType, r.bloomsLevel].filter(Boolean);
         if (rMeta.length) children.push(makeText(rMeta.join(' · ')));
+        if (r.taskDirections) children.push(makeBold('Task Directions', r.taskDirections));
+        if (r.instructorFacilitationNote)
+          children.push(makeBold('Instructor Facilitation', r.instructorFacilitationNote));
+        if (r.accessibilityAndUDL) children.push(makeBold('Accessibility & UDL', r.accessibilityAndUDL));
+        if (Array.isArray(r.anchorExamples) && r.anchorExamples.length > 0) {
+          children.push(makeSubHeading('Anchor Examples'));
+          r.anchorExamples.forEach((example) => children.push(makeBullet(example)));
+        }
         const criteria = r.criteria || [];
         if (criteria.length > 0) {
           children.push(
@@ -944,10 +952,19 @@ function _buildDocxContentShared(featureId, data, children, docx) {
       const key = expanded.decks ? 'decks' : 'slideDecks';
       for (const d of expanded[key] || []) {
         children.push(makeHeading(d.lessonTitle || 'Deck'));
+        if (d.slideDeckSequenceGuide) {
+          const guide = d.slideDeckSequenceGuide;
+          children.push(makeSubHeading('Deck Sequence Guide'));
+          if (guide.accessibilityStandards)
+            children.push(makeBold('Accessibility Standards', guide.accessibilityStandards));
+          if (guide.cumulativeAssessmentMap)
+            children.push(makeBold('Cumulative Assessment Map', guide.cumulativeAssessmentMap));
+        }
         for (let j = 0; j < (d.slides || []).length; j++) {
           const s = d.slides[j];
           children.push(makeBold(`Slide ${j + 1}`, s.title || ''));
           (s.bullets || []).forEach((b) => children.push(makeBullet(b)));
+          if (s.visual?.altText) children.push(makeItalic(`Alt text: ${s.visual.altText}`));
           const speakerNotes = s.speakerNotes || s.notes;
           if (speakerNotes) children.push(makeItalic(`Speaker Notes: ${speakerNotes}`));
         }
@@ -980,6 +997,9 @@ function _buildDocxContentShared(featureId, data, children, docx) {
           if (q.distractorRationale) children.push(makeItalic(`Distractor Rationale: ${q.distractorRationale}`));
           if (q.sampleAnswer) children.push(makeBold('Sample Answer', q.sampleAnswer));
           if (q.rubricHints) children.push(makeBold('Rubric Hints', q.rubricHints));
+          if (q.scoringGuidance) children.push(makeBold('Scoring Guidance', q.scoringGuidance));
+          if (q.intendedUse) children.push(makeItalic(`Intended use: ${q.intendedUse}`));
+          if (q.tags?.length) children.push(makeItalic(`Tags: ${q.tags.join(', ')}`));
           if (q.feedback) children.push(makeItalic(`Feedback: ${q.feedback}`));
         }
         children.push(new Paragraph({ spacing: { before: 200, after: 100 }, children: [] }));
@@ -1075,6 +1095,12 @@ function _buildDocxContentShared(featureId, data, children, docx) {
         if (a.submissionFormat) children.push(makeBold('Submission Format', a.submissionFormat));
         if (a.gradingCriteria) children.push(makeBold('Grading Criteria', a.gradingCriteria));
         if (a.progressTracking) children.push(makeBold('Progress Tracking', a.progressTracking));
+        if (a.accessibilityAndUDL) children.push(makeBold('Accessibility & UDL', a.accessibilityAndUDL));
+        if (a.selfAssessmentRubric?.length) {
+          children.push(makeSubHeading('Student Self-Assessment'));
+          a.selfAssessmentRubric.forEach((item) => children.push(makeBullet(item)));
+        }
+        if (a.feedbackLoop) children.push(makeBold('Feedback Loop', a.feedbackLoop));
         // Scaffolding milestones
         if (a.scaffoldingMilestones?.length) {
           children.push(makeSubHeading('Scaffolding Milestones'));
@@ -1355,6 +1381,11 @@ function _buildDocxContentShared(featureId, data, children, docx) {
           children.push(makeBold(`Q${qi + 1}`, q.question || ''));
           // Answer text
           children.push(makeText(q.answer || ''));
+          if (q.studentAction) children.push(makeBold('Student Action', q.studentAction));
+          if (q.assessmentConnection) children.push(makeItalic(`Assessment connection: ${q.assessmentConnection}`));
+          if (q.accessibilitySupport) children.push(makeItalic(`Support: ${q.accessibilitySupport}`));
+          if (q.concreteExample) children.push(makeItalic(`Example: ${q.concreteExample}`));
+          if (q.instructorNote) children.push(makeItalic(`Instructor note: ${q.instructorNote}`));
           // Related concepts as "See also:" for student-facing professionalism
           if (Array.isArray(q.relatedConcepts) && q.relatedConcepts.length > 0) {
             children.push(makeItalic(`See also: ${q.relatedConcepts.join(', ')}`));

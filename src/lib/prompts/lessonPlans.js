@@ -66,8 +66,15 @@ Return a JSON object with exactly this structure:
       },
       "ca": "string — 2-3 sentence description of how the lesson wraps up (synthesis, preview of next class, homework reminder)",
       "tg": ["string — 5-8 keywords for LMS discoverability: include synonyms, acronyms, and colloquial terms relevant to this lesson"],
-      "rd": "string — date by which this lesson plan should be reviewed for updates, e.g. 'Review by Fall 2027'",
-      "cg": "string — department or team responsible for maintaining this content, e.g. 'Department of Social Work'"
+      "rts": {
+        "workedExample": "string — concrete mini example, dataset, case excerpt, calculation, or model response the instructor can use in class",
+        "methodSpecificMiniRubric": "string — 3-4 quick look-fors for evaluating the main in-class activity or homework",
+        "studentHandout": "string — concise handout prompt or checklist students can use without rewriting by the instructor",
+        "instructorPrep": "string — what the instructor should prepare before class, including materials, timing, and likely misconception",
+        "accessibilityAndUDL": "string — lesson-specific accommodations or alternate participation paths that preserve the objective"
+      },
+      "rd": "string — publishing guidance only, e.g. 'Instructor confirms the local review cycle before publishing this lesson plan.' Do NOT invent semester dates.",
+      "cg": "string — publishing owner guidance only, e.g. 'Instructor-selected program, course team, or department owner.' Do NOT invent a department or institution."
     }
   ]
 }
@@ -83,6 +90,8 @@ REQUIREMENTS:
 - formativeCheck MUST map to a specific objective
 - UDL notes must be substantive (not generic) — specific to this lesson's content
 - Homework must have an explicit connection to the NEXT session
+- Ready-to-teach support must include one concrete worked example or classroom artifact, not a generic reminder.
+- Do NOT invent review dates, department names, instructor names, institutions, or content-owner teams. Use instructor-confirmed publishing guidance for rd/cg.
 - QM ALIGNMENT: Each plan must describe the instructor's plan for substantive interaction with learners — the instructorRole field must explain how the instructor engages during each activity segment (QM 5.3). Learner interaction requirements must be clearly stated: specify when students work individually vs. collaboratively, what peer interaction looks like, and participation expectations (QM 5.4). Activities must provide opportunities for interaction that supports active learning — avoid passive lecture-only segments longer than 15 min without an interaction break (QM 5.2).
 - COGNITIVE LOAD: Keep descriptions and instructorNotes concise — no sentence longer than 20 words. Use imperative voice for instructions. Short paragraphs only.
 - HUMAN READABILITY: All text will be read by instructors. Avoid redundant phrases across items. Vary sentence structure. Do not use copy-paste templates where every item follows the exact same pattern — make each entry sound natural and distinct.

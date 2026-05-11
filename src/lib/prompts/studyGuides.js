@@ -66,6 +66,7 @@ REQUIREMENTS:
 - conceptConnections must include at least one cross-lesson link to prior or upcoming material
 - 2–4 commonMisconceptions — these are the highest-value exam targets; be specific
 - 4–6 reviewQuestions spanning at least 3 different Bloom's levels
+- Each reviewQuestions object must contain exactly one q/bl/ht trio. Never use q2, bl2, ht2, question2, or multiple questions inside one object.
 - practiceActivities must involve active retrieval (not passive re-reading suggestions)
 - examPrep.keyTopicsToKnow should reflect what an instructor would actually test
 - QM ALIGNMENT: Include a supportResources field per guide pointing students to relevant help: office hours, tutoring, study groups, writing center — so students know where to turn when stuck (QM 7.3). Reference specific instructional materials (readings, videos, slides) for each key concept, making the relationship between study materials and learning activities clear (QM 4.2).

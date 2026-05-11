@@ -46,6 +46,10 @@ Return a JSON object with exactly this structure:
           "ol": "string or null — for content/activity/discussion/example slides: which learning objective this slide supports (QM 4.1)"
         }
       ],
+      "sg": {
+        "accessibilityStandards": "string — how the deck remains usable with screen readers, captions, keyboard navigation, and text-only review",
+        "cumulativeAssessmentMap": "string — how objectives, practice slides, and closing prompts prepare students for related quizzes, assignments, or exams"
+      },
       "tg": ["string — 5-8 keywords for LMS discoverability: include topic synonyms, key concepts, and activity types featured in this deck"]
     }
   ]
@@ -58,7 +62,7 @@ REQUIRED SEQUENCE:
 4. bridge — reference SPECIFIC content from the previous lesson (not generic). First bullets = "Last time…" recap, second half = "Today we'll…" preview.
 5–(N-2). body — mix of content, activity, discussion, example, keyTerm
 (N-1). summary — objectives returned as self-check questions: "Can you now [verb] [content]?"
-N. closing — homework + due date + preview of next session
+N. closing — homework + deadline guidance + preview of next session. If the course map lacks an exact due date, write "set by the instructor in the local LMS" rather than "TBD" or "to be confirmed".
 
 VARIETY (hard caps — enforce while building the deck):
 - ≥1 example slide, ≥1 activity OR discussion slide, ≥1 keyTerm slide per deck.
@@ -82,6 +86,7 @@ VISUALS (every content/example/keyTerm slide needs one):
 - "vi.at" (alt text) is a full-sentence SR-friendly description of the visual's CONTENT, not just a label.
 - Title/agenda/objectives/closing slides may set vi.k='none' with empty d/at.
 - Title slides should use the lesson/course framing as their only subtitle. Do not add instructor name, contact, office-hours, department, or institution placeholders unless the instructor profile explicitly provides them.
+- Include slideDeckSequenceGuide with accessibilityStandards and cumulativeAssessmentMap for every deck.
 
 TIMING (every slide):
 - Set "ti" as a concrete minute estimate ('1 min', '3 min', '5 min', etc).
@@ -95,6 +100,7 @@ SPEAKER NOTES:
 OVERALL:
 - 12–16 slides per deck. Agenda bullets show timing ("Case study (10 min)"). Summary returns to objectives content.
 - QM: vary instructional materials — text, diagrams, examples, video references, interactive elements (QM 4.5). Include accessibility notes in speaker notes when relevant (QM 8.2-8.3). Every content/activity slide connects to an objective via ol (QM 4.1-4.2).
+- Never output placeholder dates such as "TBD", "to be announced", or "to be confirmed".
 - Each slide's notes feel distinct; vary sentence structure across slides.
 - Return ONLY the JSON object, no prose, no markdown.`,
 };

@@ -31,10 +31,15 @@ import {
   normalizeAssignmentLessonAlignment,
   normalizeCourseFaqCategories,
   normalizeCourseFaqQuestionCounts,
+  normalizeLessonPlanPublishability,
+  normalizeQuizBankIndex,
   normalizeQuizBankQuestions,
   normalizeQuizBankRationales,
   normalizeRubricCoverage,
+  normalizeRubricSupport,
+  normalizeSlideDeckAccessibility,
   normalizeSlideDeckSpeakerNotes,
+  normalizeStudyGuideQuestions,
   normalizeSyllabusPublishability,
 } from '../lib/deliverablePostProcess';
 
@@ -847,6 +852,21 @@ export default function useDeliverables({
               'warn',
             );
           }
+
+          const normalizedQuizIndex = normalizeQuizBankIndex(merged);
+          merged = normalizedQuizIndex.data;
+          mergedArr = normalizedQuizIndex.arrayKey ? merged[normalizedQuizIndex.arrayKey] || [] : mergedArr;
+          if (
+            normalizedQuizIndex.addedIds > 0 ||
+            normalizedQuizIndex.addedQuestionTags > 0 ||
+            normalizedQuizIndex.addedIntendedUses > 0 ||
+            normalizedQuizIndex.rebuiltIndex
+          ) {
+            appendLog(
+              `⚠ ${getFeatureLabel(fid)}: added quiz item IDs, retrieval tags, and an instructor-facing bank index`,
+              'warn',
+            );
+          }
         }
 
         // Course FAQ validation: the UI default is 5 questions per lesson.
@@ -1268,6 +1288,20 @@ export default function useDeliverables({
               'warn',
             );
           }
+
+          const normalizedRubricSupport = normalizeRubricSupport(merged);
+          merged = normalizedRubricSupport.data;
+          mergedArr = normalizedRubricSupport.arrayKey ? merged[normalizedRubricSupport.arrayKey] || [] : mergedArr;
+
+          if (
+            normalizedRubricSupport.normalizedSupportFields > 0 ||
+            normalizedRubricSupport.patchedCriterionPoints > 0
+          ) {
+            appendLog(
+              `⚠ ${getFeatureLabel(fid)}: normalized rubric support fields and criterion point totals before export`,
+              'warn',
+            );
+          }
         }
 
         if (fid === 'assignments' && mergedArr.length > 0) {
@@ -1278,6 +1312,32 @@ export default function useDeliverables({
           if (normalizedAssignments.patchedRelatedLessons > 0 || normalizedAssignments.reorderedAssignments) {
             appendLog(
               `⚠ ${getFeatureLabel(fid)}: repaired lesson links and chronological ordering for generated briefs`,
+              'warn',
+            );
+          }
+        }
+
+        if (fid === 'lessonPlans' && mergedArr.length > 0) {
+          const normalizedLessonPlans = normalizeLessonPlanPublishability(merged);
+          merged = normalizedLessonPlans.data;
+          mergedArr = normalizedLessonPlans.arrayKey ? merged[normalizedLessonPlans.arrayKey] || [] : mergedArr;
+
+          if (normalizedLessonPlans.patchedReviewDates > 0 || normalizedLessonPlans.patchedOwnerGroups > 0) {
+            appendLog(
+              `⚠ ${getFeatureLabel(fid)}: replaced invented review/ownership placeholders with instructor-confirmed publishing guidance`,
+              'warn',
+            );
+          }
+        }
+
+        if (fid === 'studyGuides' && mergedArr.length > 0) {
+          const normalizedStudyGuides = normalizeStudyGuideQuestions(merged);
+          merged = normalizedStudyGuides.data;
+          mergedArr = normalizedStudyGuides.arrayKey ? merged[normalizedStudyGuides.arrayKey] || [] : mergedArr;
+
+          if (normalizedStudyGuides.splitCombinedQuestions > 0) {
+            appendLog(
+              `⚠ ${getFeatureLabel(fid)}: split ${normalizedStudyGuides.splitCombinedQuestions} combined review question(s) before export`,
               'warn',
             );
           }
@@ -1346,6 +1406,21 @@ export default function useDeliverables({
               'warn',
             );
           }
+
+          const normalizedQuizIndex = normalizeQuizBankIndex(merged);
+          merged = normalizedQuizIndex.data;
+          mergedArr = normalizedQuizIndex.arrayKey ? merged[normalizedQuizIndex.arrayKey] || [] : mergedArr;
+          if (
+            normalizedQuizIndex.addedIds > 0 ||
+            normalizedQuizIndex.addedQuestionTags > 0 ||
+            normalizedQuizIndex.addedIntendedUses > 0 ||
+            normalizedQuizIndex.rebuiltIndex
+          ) {
+            appendLog(
+              `⚠ ${getFeatureLabel(fid)}: refreshed quiz item IDs, retrieval tags, and instructor-facing bank index after retry`,
+              'warn',
+            );
+          }
         }
 
         if (fid === 'slideDecks') {
@@ -1361,6 +1436,22 @@ export default function useDeliverables({
           if (normalizedSlides.patchedSlideTotals > 0) {
             appendLog(
               `⚠ ${getFeatureLabel(fid)}: repaired ${normalizedSlides.patchedSlideTotals} slide-count value(s) before export`,
+              'warn',
+            );
+          }
+
+          const normalizedSlideAccessibility = normalizeSlideDeckAccessibility(merged);
+          merged = normalizedSlideAccessibility.data;
+          mergedArr = normalizedSlideAccessibility.arrayKey
+            ? merged[normalizedSlideAccessibility.arrayKey] || []
+            : mergedArr;
+          if (
+            normalizedSlideAccessibility.patchedAltText > 0 ||
+            normalizedSlideAccessibility.patchedDuePlaceholders > 0 ||
+            normalizedSlideAccessibility.addedSequenceGuides > 0
+          ) {
+            appendLog(
+              `⚠ ${getFeatureLabel(fid)}: repaired slide alt text, deadline placeholders, and deck-level accessibility guidance`,
               'warn',
             );
           }

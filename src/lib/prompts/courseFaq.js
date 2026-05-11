@@ -19,13 +19,20 @@ Return a JSON object with exactly this structure:
   "faqs": [
     {
       "lt": "string — full lesson title",
+      "studentOverview": "string — 2-3 sentences that orient students to why this lesson matters and how to use the FAQ",
+      "instructorOverview": "string — 2-3 sentences for instructors: likely friction points, which answers to emphasize, and where to customize local details",
       "qs": [
         {
           "q": "string — a realistic question a student would ask, written in first-person student voice (e.g., 'How should I prepare for the midterm on this material?')",
           "an": "string — concise, actionable answer in 2-4 sentences. Be specific: reference assignments, readings, or named course resources only when they appear in the course map. Use warm, supportive tone.",
           "ca": "string — one of: 'Course Logistics' | 'Assignment Clarification' | 'Concept Explanation' | 'Technical Help' | 'Assessment Prep'",
           "rc": ["string — 1-3 key concepts or topics this Q&A relates to"],
-          "df": "string — 'Basic' | 'Intermediate' | 'Advanced' — how conceptually challenging the question is"
+          "df": "string — 'Basic' | 'Intermediate' | 'Advanced' — how conceptually challenging the question is",
+          "sa": "string — the concrete next action a student should take after reading the answer",
+          "in": "string — instructor-facing note about how to preempt or address this issue without inventing local policy",
+          "ac": "string — how this question connects to an assignment, quiz, discussion, or exam when present in the course map",
+          "ud": "string — accessibility/support guidance such as alternate formats, captions, scaffolds, office hours, tutoring, or writing support",
+          "ce": "string — a concrete example tied to the lesson topic; avoid generic examples"
         }
       ],
       "tg": ["string — 5-8 keywords for LMS discoverability: include lesson topic, question categories covered, and key concepts"]
@@ -40,10 +47,12 @@ REQUIREMENTS:
 - Questions must sound like real student questions — use first-person voice and natural phrasing
 - Answers must be actionable: tell the student exactly what to do, where to go, or what to review
 - Answers must be concise (2-4 sentences max) — students skim FAQs, they don't read essays
+- Keep "an" student-facing and concise. Put instructor-only guidance in "in"; do not pretend the instructor note is part of the student answer.
 - Do NOT invent LMS folder names, campus offices, instructor contact details, institutional tools, licenses, support links, or due dates. If the course map does not name a resource, use generic wording such as "the course site", "the assignment page", "your notes", or "the posted rubric".
 - Named third-party tools are allowed only when the course map names them or when framed as optional examples, not required institutional resources.
 - Include at least 1 Concept Explanation question per lesson that clarifies a common point of confusion
 - Include at least 1 Assessment Prep question for lessons with exams or major assignments due
+- Every FAQ item must include studentAction, instructorNote, assessmentConnection, accessibilitySupport, and concreteExample.
 - relatedConcepts must reference specific terms or topics from the lesson, not generic labels
 - HUMAN READABILITY: Vary question phrasing across lessons. Do not reuse the same question templates. Each FAQ should feel tailored to its specific lesson content.
 - Return ONLY the JSON object, no prose, no markdown`,

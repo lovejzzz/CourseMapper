@@ -4,10 +4,15 @@ import {
   normalizeAssignmentLessonAlignment,
   normalizeCourseFaqCategories,
   normalizeCourseFaqQuestionCounts,
+  normalizeLessonPlanPublishability,
+  normalizeQuizBankIndex,
   normalizeQuizBankQuestions,
   normalizeQuizBankRationales,
   normalizeRubricCoverage,
+  normalizeRubricSupport,
+  normalizeSlideDeckAccessibility,
   normalizeSlideDeckSpeakerNotes,
+  normalizeStudyGuideQuestions,
   normalizeSyllabusPublishability,
 } from '../deliverablePostProcess.js';
 import { findPublishabilityPlaceholders } from '../publishabilityPlaceholders.js';
@@ -297,6 +302,39 @@ describe('Quiz Bank post-processing', () => {
     expect(shortAnswer.ex).toContain('They disclose draft quality issues');
     expect(JSON.stringify(result.data)).not.toMatch(/Explanation needed|rationale needed|model response required/i);
   });
+
+  it('adds stable quiz ids, retrieval tags, intended use metadata, and a bank index', () => {
+    const data = {
+      quizzes: [
+        {
+          lessonTitle: 'Lesson 4: Validity Threats',
+          tags: ['validity', 'methods'],
+          questions: [
+            {
+              type: 'short_answer',
+              bloomsLevel: 'Analyze',
+              difficulty: 'Medium',
+              estimatedMinutes: 4,
+              question: 'In 2-3 sentences, explain a validity threat.',
+            },
+          ],
+        },
+      ],
+    };
+
+    const result = normalizeQuizBankIndex(data);
+    const question = result.data.quizzes[0].questions[0];
+
+    expect(result.addedIds).toBe(1);
+    expect(result.addedQuestionTags).toBe(1);
+    expect(result.addedIntendedUses).toBe(1);
+    expect(result.rebuiltIndex).toBe(true);
+    expect(question.id).toBe('lesson-4-validity-threats-q1');
+    expect(question.tags).toContain('Analyze');
+    expect(question.intendedUse).toContain('retrieval practice');
+    expect(result.data.bankIndex).toHaveLength(1);
+    expect(result.data.bankIndex[0].id).toBe(question.id);
+  });
 });
 
 describe('Syllabus post-processing', () => {
@@ -328,6 +366,27 @@ describe('Syllabus post-processing', () => {
     expect(result.data.syllabus.instructor).toBe('Instructor to be announced');
     expect(result.data.syllabus.requiredTexts[0].isbn).toBe('');
     expect(result.data.syllabus.weeklySchedule[0].dates).toBe('Date to be confirmed');
+  });
+});
+
+describe('Lesson plan post-processing', () => {
+  it('replaces invented review dates and owner groups with publishing guidance', () => {
+    const data = {
+      plans: [
+        {
+          lt: 'Lesson 1: Research Questions',
+          rd: 'Review by Fall 2027',
+          cg: 'Department of Social Work',
+        },
+      ],
+    };
+
+    const result = normalizeLessonPlanPublishability(data);
+
+    expect(result.patchedReviewDates).toBe(1);
+    expect(result.patchedOwnerGroups).toBe(1);
+    expect(result.data.plans[0].rd).toContain('local review cycle');
+    expect(result.data.plans[0].cg).toContain('Instructor-selected');
   });
 });
 
@@ -397,6 +456,30 @@ describe('Rubric and assignment post-processing', () => {
     expect(result.data).toBe(data);
     expect(result.data.rubrics).toHaveLength(3);
     expect(result.data.rubrics[0].lessonTitle).toBeUndefined();
+  });
+
+  it('normalizes rubric support aliases and repairs criterion points from weights', () => {
+    const data = {
+      rubrics: [
+        {
+          t: 'Sampling Quiz Rubric',
+          tp: 100,
+          td: 'Complete the quiz using course terminology.',
+          ifn: 'Calibrate one sample response before grading.',
+          udl: 'Allow accessible document formats.',
+          ax: ['Exemplary responses justify the sampling choice with evidence.'],
+          cr: [{ cn: 'Evidence quality', wt: 30, pt: 99 }],
+        },
+      ],
+    };
+
+    const result = normalizeRubricSupport(data);
+
+    expect(result.normalizedSupportFields).toBe(4);
+    expect(result.patchedCriterionPoints).toBe(1);
+    expect(result.data.rubrics[0].taskDirections).toContain('Complete the quiz');
+    expect(result.data.rubrics[0].td).toBeUndefined();
+    expect(result.data.rubrics[0].cr[0].pt).toBe(30);
   });
 
   it('sorts assignment briefs chronologically and repairs objective-code lesson links', () => {
@@ -558,5 +641,63 @@ describe('Slide Deck post-processing', () => {
     expect(result.data.decks[0].ts).toBe(2);
     expect(result.data.decks[0].totalSlides).toBeUndefined();
     expect(result.data.decks[0].sl).toHaveLength(2);
+  });
+
+  it('fills slide alt text, sanitizes deadline placeholders, and adds a sequence guide', () => {
+    const data = {
+      decks: [
+        {
+          lt: 'Lesson 5: Data Collection',
+          sl: [
+            {
+              t: 'Closing',
+              ty: 'closing',
+              bu: ['Homework due date to be confirmed'],
+              no: 'Submit the reflection when the due date is TBD.',
+              vi: { k: 'none', d: '', at: '' },
+            },
+          ],
+        },
+      ],
+    };
+
+    const result = normalizeSlideDeckAccessibility(data);
+
+    expect(result.patchedAltText).toBe(1);
+    expect(result.patchedDuePlaceholders).toBe(2);
+    expect(result.addedSequenceGuides).toBe(1);
+    expect(result.data.decks[0].sl[0].vi.at).toContain('Text-only');
+    expect(JSON.stringify(result.data)).not.toMatch(/TBD|to be confirmed/i);
+    expect(result.data.decks[0].slideDeckSequenceGuide.accessibilityStandards).toContain('screen readers');
+  });
+});
+
+describe('Study guide post-processing', () => {
+  it('splits model-emitted q2 review questions into separate entries', () => {
+    const data = {
+      guides: [
+        {
+          lt: 'Lesson 1: Research Questions',
+          rq: [
+            {
+              q: 'What makes a question researchable?',
+              bl: 'Understand',
+              ht: 'Define the key terms first.',
+              q2: 'How would you improve a vague question?',
+              bl2: 'Apply',
+              ht2: 'Name the weakness before revising.',
+            },
+          ],
+        },
+      ],
+    };
+
+    const result = normalizeStudyGuideQuestions(data);
+
+    expect(result.splitCombinedQuestions).toBe(1);
+    expect(result.data.guides[0].rq).toHaveLength(2);
+    expect(result.data.guides[0].rq[0].q2).toBeUndefined();
+    expect(result.data.guides[0].rq[1].q).toBe('How would you improve a vague question?');
+    expect(result.data.guides[0].rq[1].bl).toBe('Apply');
   });
 });
