@@ -8,6 +8,7 @@ export default function DeveloperModeShell({
   stats,
   activeValidation,
   status,
+  workspaceSnapshotChanged = false,
   onSectionChange,
   onReload,
   onClose,
@@ -37,9 +38,13 @@ export default function DeveloperModeShell({
             <div className="flex items-center gap-2">
               <button
                 onClick={onReload}
-                className="tactile px-3 py-2 rounded-lg text-[11px] font-semibold text-slate-600 bg-white border border-slate-200/70 hover:bg-slate-50 transition-colors dark:bg-slate-900 dark:text-slate-300 dark:border-slate-700 dark:hover:bg-slate-800"
+                className={`tactile px-3 py-2 rounded-lg text-[11px] font-semibold border transition-colors ${
+                  workspaceSnapshotChanged
+                    ? 'border-amber-300 bg-amber-50 text-amber-700 hover:bg-amber-100 dark:border-amber-500/40 dark:bg-amber-500/10 dark:text-amber-200 dark:hover:bg-amber-500/20'
+                    : 'border-slate-200/70 bg-white text-slate-600 hover:bg-slate-50 dark:bg-slate-900 dark:text-slate-300 dark:border-slate-700 dark:hover:bg-slate-800'
+                }`}
               >
-                Reload
+                Reload Current
               </button>
               <button
                 onClick={onClose}
@@ -52,6 +57,16 @@ export default function DeveloperModeShell({
               </button>
             </div>
           </div>
+
+          {workspaceSnapshotChanged && (
+            <div
+              data-testid="developer-workspace-stale"
+              className="border-b border-amber-200 bg-amber-50 px-4 py-2 text-[11px] font-semibold text-amber-800 dark:border-amber-500/40 dark:bg-amber-500/10 dark:text-amber-100"
+            >
+              Workspace changed after this IDE snapshot loaded. Reload current workspace before applying so stale JSON
+              cannot overwrite newer generated content.
+            </div>
+          )}
 
           <div className="border-b border-slate-100 bg-slate-50/80 px-4 py-3 dark:border-slate-800 dark:bg-slate-900/70">
             <div className="flex gap-2 overflow-x-auto">

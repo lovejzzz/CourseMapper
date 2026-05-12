@@ -3,6 +3,76 @@ import Header from '../components/Header';
 
 const releases = [
   {
+    version: '0.6',
+    date: 'May 12, 2026',
+    title: 'Quality-Gated Deliverables and Developer IDE Hardening',
+    highlights: [
+      'Production generation now validates empty outputs, missing lesson coverage, and broken scoring math before export',
+      'Lesson Plans and Assignment Briefs use the stronger internally tested prompt patterns for more classroom-ready materials',
+      'Developer Mode, exports, CI, and browser regression coverage were hardened across the full Course Mapper workflow',
+    ],
+    sections: [
+      {
+        label: 'Deliverable Quality',
+        icon: '✦',
+        color: 'indigo',
+        items: [
+          'Added production validation guards that reject empty JSON, missing deliverable arrays, near-empty items, incomplete lesson counts, underfilled Course FAQ outputs, and Quiz Bank scoring mismatches.',
+          'Generation now retries invalid whole-course outputs before marking a deliverable complete, so empty rubrics or syllabus responses no longer silently pass.',
+          'Final deliverable validation runs before completion, blocking invalid generated materials from being treated as export-ready.',
+          'Quiz Bank post-processing repairs missing question points, incorrect totalPoints values, and point-plan math before export.',
+          'Rubrics now receive deterministic coverage and support normalization in the whole-course finalization path.',
+        ],
+      },
+      {
+        label: 'Prompt Improvements',
+        icon: '⚡',
+        color: 'amber',
+        items: [
+          'Lesson Plans now require student-facing before/during/after guidance, submitted artifacts, artifact length, prerequisite knowledge, misconceptions, weekly submission criteria, local-case replacement notes, assessment criteria, and grading calibration cues.',
+          'Lesson Plans include a course sequence overview and assessment progression map so instructors can see how weekly artifacts build over the full course.',
+          'Assignment Briefs now include a course assignment map, portfolio connection, expected submission file, high-value success criteria, instructor feedback priority, and assignment-specific performance bands.',
+          'Assignment prompts now discourage disconnected case tours and push every major task toward a coherent course portfolio sequence.',
+          'Additional prompt hardening was added across syllabus, slide decks, rubrics, discussions, quiz bank, study guides, and Course FAQ to reduce boilerplate and improve publication readiness.',
+        ],
+      },
+      {
+        label: 'Developer IDE',
+        icon: '⚙',
+        color: 'violet',
+        items: [
+          'Developer Mode was split into maintainable panels for prompts, templates, diagnostics, layout, sidebar, and agent logs.',
+          'JSON editing moved to a stronger CodeMirror shell with line numbers, JSON highlighting, diagnostics, keyboard shortcuts, and safer scrolling behavior.',
+          'Secret diagnostics flag API keys, access tokens, authorization headers, and similar sensitive values before applying or saving snapshots.',
+          'Clickable diagnostics map JSON paths to editor locations so issues can be found quickly.',
+          'Template and history workflows gained safer import/export, partial patch handling, compressed/bounded storage, and clearer runtime risk diagnostics.',
+        ],
+      },
+      {
+        label: 'Exports and Readiness',
+        icon: '🛡️',
+        color: 'emerald',
+        items: [
+          'Export readiness checks now make completeness problems visible before download.',
+          'Critical blockers prevent silent bad exports, while warning-only materials can still be exported after explicit user confirmation.',
+          'ZIP and current-tab export smoke tests cover representative formats for syllabus, lesson plans, slide decks, assignments, rubrics, discussions, quiz bank, and study guides.',
+          'Agent auto-review now runs in the background without pretending the user typed “Review my course.”',
+        ],
+      },
+      {
+        label: 'Testing and Deployment',
+        icon: '⚙',
+        color: 'slate',
+        items: [
+          'Added CI gates for formatting, linting, unit tests, production build, bundle budgets, Playwright E2E tests, and Firebase emulator rules tests.',
+          'GitHub Pages deployment now waits for CI to pass on main before publishing the live site.',
+          'Added permanent E2E coverage for the lazy landing shell, generated workspace mobile layout, Developer IDE diagnostics, agent no-key behavior, all-deliverables terminal states, and export warning flows.',
+          'Landing page code now lazy-loads the workspace app so generation hooks, agent tooling, cloud sync, and deliverable machinery do not load until needed.',
+        ],
+      },
+    ],
+  },
+  {
     version: '0.5',
     date: 'March 5, 2026',
     title: "AI Teaching Agent — Act, Don't Advise",

@@ -40,6 +40,14 @@ import {
 } from '../lib/developerModeSelectors.js';
 import { findJsonPathLocation } from '../lib/developerJsonPath.js';
 
+function getSnapshotSignature(value) {
+  try {
+    return JSON.stringify(value || {});
+  } catch {
+    return '';
+  }
+}
+
 export default function DeveloperModePanel({
   isOpen,
   snapshot,
@@ -63,12 +71,15 @@ export default function DeveloperModePanel({
   const [promptFeatureId, setPromptFeatureId] = useState('');
   const [pendingPathSelection, setPendingPathSelection] = useState(null);
   const [reviewedDestructiveSignature, setReviewedDestructiveSignature] = useState('');
+  const [loadedSnapshotSignature, setLoadedSnapshotSignature] = useState(() => getSnapshotSignature(snapshot));
+  const [workspaceSnapshotChanged, setWorkspaceSnapshotChanged] = useState(false);
   const [status, setStatus] = useState({
     type: 'idle',
     message: 'Edit a section, then apply to update the workspace preview.',
   });
   const editorRef = useRef(null);
   const wasOpenRef = useRef(false);
+  const currentSnapshotSignature = useMemo(() => getSnapshotSignature(snapshot), [snapshot]);
 
   function loadSnapshot(nextSnapshot, message = 'Loaded current workspace code.') {
     const cleanSnapshot = clone(nextSnapshot || {});
@@ -76,6 +87,8 @@ export default function DeveloperModePanel({
     setDrafts(createDrafts(cleanSnapshot));
     setDirtySections(new Set());
     setReviewedDestructiveSignature('');
+    setLoadedSnapshotSignature(getSnapshotSignature(cleanSnapshot));
+    setWorkspaceSnapshotChanged(false);
     setStatus({ type: 'idle', message });
   }
 
@@ -90,6 +103,27 @@ export default function DeveloperModePanel({
     }
     wasOpenRef.current = isOpen;
   }, [isOpen, snapshot]);
+
+  useEffect(() => {
+    if (!isOpen || !wasOpenRef.current) return;
+    if (currentSnapshotSignature === loadedSnapshotSignature) {
+      if (workspaceSnapshotChanged) setWorkspaceSnapshotChanged(false);
+      return;
+    }
+
+    if (dirtySections.size === 0) {
+      loadSnapshot(snapshot, 'Synced to the current workspace code.');
+      return;
+    }
+
+    if (!workspaceSnapshotChanged) {
+      setWorkspaceSnapshotChanged(true);
+      setStatus({
+        type: 'error',
+        message: 'Workspace changed outside Developer Mode. Reload current workspace before applying these edits.',
+      });
+    }
+  }, [currentSnapshotSignature, dirtySections, isOpen, loadedSnapshotSignature, snapshot, workspaceSnapshotChanged]);
 
   useEffect(() => {
     if (!isOpen) return undefined;
@@ -290,6 +324,14 @@ export default function DeveloperModePanel({
 
   function handleApplySections(sectionIds) {
     try {
+      if (workspaceSnapshotChanged) {
+        setStatus({
+          type: 'error',
+          message:
+            'Reload current workspace before applying. This prevents stale developer JSON from overwriting newer app state.',
+        });
+        return;
+      }
       const sectionSet = new Set(sectionIds.filter((sectionId) => dirtySections.has(sectionId)));
       if (sectionSet.size === 0) {
         setStatus({ type: 'idle', message: 'No staged developer edits to apply.' });
@@ -353,6 +395,14 @@ export default function DeveloperModePanel({
     } catch (err) {
       setStatus({ type: 'error', message: err.message || 'This code cannot run in the workspace.' });
     }
+  }
+
+  function handleReloadCurrentWorkspace() {
+    if (dirtySections.size > 0) {
+      const confirmed = window.confirm('Reload the current workspace code and discard pending developer edits?');
+      if (!confirmed) return;
+    }
+    loadSnapshot(snapshot, 'Reloaded current workspace code.');
   }
 
   function handleRollback() {
@@ -618,15 +668,16 @@ export default function DeveloperModePanel({
       stats={stats}
       activeValidation={activeValidation}
       status={status}
+      workspaceSnapshotChanged={workspaceSnapshotChanged}
       onSectionChange={setActiveSection}
-      onReload={() => loadSnapshot(snapshot, 'Reloaded current workspace code.')}
+      onReload={handleReloadCurrentWorkspace}
       onClose={onClose}
       onResetSection={handleResetSection}
       canResetSection={isEditorSection && dirtySections.has(activeSection)}
       onFormat={handleFormat}
       canFormat={isEditorSection}
       onApply={handleApply}
-      canApply={dirty && Boolean(proposed) && !destructiveDeletesNeedReview}
+      canApply={dirty && Boolean(proposed) && !destructiveDeletesNeedReview && !workspaceSnapshotChanged}
       mainContent={mainContent}
       sidebar={sidebar}
     />
