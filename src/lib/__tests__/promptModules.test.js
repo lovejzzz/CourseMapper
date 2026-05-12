@@ -100,7 +100,8 @@ describe('prompt modules — parse + shape', () => {
     expect(prompts.userPrompt).toContain('Do not invent instructor names');
     expect(prompts.userPrompt).toContain('Never emit bracketed placeholders');
     expect(prompts.userPrompt).toContain('Do not invent named LMS folders');
-    expect(prompts.userPrompt).toContain('Instructor to be announced');
+    expect(prompts.userPrompt).toContain('Course instructor');
+    expect(prompts.userPrompt).toContain('course-relative language');
   });
 
   it('assignment continuation prompts preserve milestone feedback schema', () => {
@@ -110,5 +111,25 @@ describe('prompt modules — parse + shape', () => {
     expect(prompts.userPrompt).toContain('"pt":0');
     expect(prompts.userPrompt).toContain('"ul":["str"]');
     expect(prompts.userPrompt).toContain('Never swap fields');
+  });
+
+  it('production prompts include proven A-quality benchmark instructions', () => {
+    const prompts = getDeliverablePrompt('lessonPlans', COURSE, null, {});
+
+    expect(prompts.userPrompt).toContain('A-QUALITY BENCHMARK');
+    expect(prompts.userPrompt).toContain('what strong work looks like');
+    expect(prompts.userPrompt).toContain('shared course throughline');
+    expect(prompts.userPrompt).toContain('assessmentProgressionMap');
+    expect(prompts.userPrompt).toContain('student-facing summaries');
+    expect(prompts.userPrompt).toContain('grading calibration cues');
+  });
+
+  it('assignment prompts include the proven portfolio map and performance-band fields', () => {
+    const prompts = getDeliverablePrompt('assignments', COURSE, null, {});
+
+    expect(prompts.userPrompt).toContain('courseAssignmentMap');
+    expect(prompts.userPrompt).toContain('portfolioConnection');
+    expect(prompts.userPrompt).toContain('expectedSubmissionFile');
+    expect(prompts.userPrompt).toContain('performanceBands');
   });
 });

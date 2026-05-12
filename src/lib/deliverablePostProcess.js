@@ -13,6 +13,100 @@ const CATEGORY_SET = new Set(COURSE_FAQ_CATEGORIES);
 const QUIZ_TYPES = new Set(['multiple_choice', 'short_answer', 'essay']);
 const QUIZ_DIFFICULTIES = new Set(['Easy', 'Medium', 'Hard']);
 const BLOOMS_LEVELS = ['Remember', 'Understand', 'Apply', 'Analyze', 'Evaluate', 'Create'];
+const QUIZ_NOISE_KEYS = new Set([
+  'blm',
+  'blt',
+  'bls',
+  'blm2',
+  'qg',
+  'cs',
+  'hint',
+  'tag',
+  'lev',
+  'oa2',
+  'an2',
+  'dr2',
+  'qv',
+]);
+const ARRAY_DELIVERABLES = new Set([
+  'lessonPlans',
+  'slideDecks',
+  'rubrics',
+  'quizBank',
+  'discussions',
+  'assignments',
+  'studyGuides',
+  'courseFaq',
+]);
+const STRICT_LESSON_COUNT_DELIVERABLES = new Set([
+  'lessonPlans',
+  'slideDecks',
+  'quizBank',
+  'discussions',
+  'studyGuides',
+  'courseFaq',
+]);
+const MIN_GENERATED_ITEM_WORDS = 30;
+
+function isPlainObject(value) {
+  return Boolean(value && typeof value === 'object' && !Array.isArray(value));
+}
+
+function getMeaningfulWordCount(value) {
+  return (JSON.stringify(value || {}).match(/[A-Za-z0-9]+/g) || []).length;
+}
+
+function getPrimaryArray(featureId, data) {
+  const arrayKey = getArrayKey(featureId, data);
+  const items = arrayKey && Array.isArray(data?.[arrayKey]) ? data[arrayKey] : null;
+  return { arrayKey, items };
+}
+
+function getQuestionKey(quiz) {
+  return Array.isArray(quiz?.questions) ? 'questions' : Array.isArray(quiz?.qs) ? 'qs' : null;
+}
+
+function getNumericValue(value) {
+  if (typeof value === 'number' && Number.isFinite(value)) return value;
+  const parsed = Number(String(value ?? '').replace(/[^0-9.-]/g, ''));
+  return Number.isFinite(parsed) ? parsed : null;
+}
+
+function getDefaultQuizPoints(type) {
+  if (type === 'multiple_choice') return 2;
+  if (type === 'essay') return 8;
+  return 4;
+}
+
+function getQuestionPoints(question) {
+  const key = question?.points !== undefined ? 'points' : question?.pt !== undefined ? 'pt' : null;
+  return key ? getNumericValue(question[key]) : null;
+}
+
+function getQuizTotalPoints(quiz) {
+  const key = quiz?.totalPoints !== undefined ? 'totalPoints' : quiz?.tp !== undefined ? 'tp' : null;
+  return key ? getNumericValue(quiz[key]) : null;
+}
+
+function summarizeQuizPointPlan(questions, sum) {
+  const groups = new Map();
+  questions.forEach((question) => {
+    const type = normalizeQuizType(question);
+    const points = getQuestionPoints(question);
+    const key = `${type}:${points ?? 'unscored'}`;
+    const current = groups.get(key) || { type, points, count: 0, total: 0 };
+    current.count += 1;
+    current.total += Number(points || 0);
+    groups.set(key, current);
+  });
+
+  const parts = [...groups.values()].map((group) => {
+    const label = group.type.replace(/_/g, ' ');
+    if (!Number.isFinite(group.points)) return `${group.count} ${label} item(s) without point values`;
+    return `${group.count} ${label} x ${group.points} = ${group.total}`;
+  });
+  return `Point check: ${parts.join('; ')}; total = ${sum}.`;
+}
 
 export function getCourseFaqQuestionTarget(config = {}) {
   const raw = Number(config?.questionsPerLesson);
@@ -203,6 +297,29 @@ function buildDistractorRationale(question) {
   }
 
   return 'Each incorrect option should map to a common misconception and should be reviewed against the keyed answer before publishing.';
+}
+
+function getLetterOption(options, letter) {
+  if (!Array.isArray(options)) return null;
+  const index = letter.toUpperCase().charCodeAt(0) - 'A'.charCodeAt(0);
+  if (index < 0 || index >= options.length) return null;
+  return (
+    String(options[index] || '')
+      .replace(/^[A-D]\.\s*/i, '')
+      .trim() || null
+  );
+}
+
+function hasLabeledOptions(options) {
+  return Array.isArray(options) && options.some((option) => /^[A-D]\.\s+/i.test(String(option || '').trim()));
+}
+
+function buildQuizObjective(quiz, question) {
+  const lessonTitle = String(quiz?.lessonTitle || quiz?.lt || 'the lesson')
+    .replace(/^Lesson\s+\d+:\s*/i, '')
+    .trim();
+  const bloom = normalizeBloomLevel(question?.bloomsLevel || question?.bl, normalizeQuizType(question)).toLowerCase();
+  return `Use ${lessonTitle || 'the lesson'} concepts to ${bloom} the scenario, choose defensible evidence, and explain the method decision.`;
 }
 
 function normalizeQuizType(question = {}) {
@@ -433,16 +550,174 @@ export function normalizeQuizBankQuestions(data) {
   };
 }
 
+export function normalizeQuizBankPointTotals(data) {
+  const arrayKey = getArrayKey('quizBank', data) || (data?.quizzes ? 'quizzes' : data?.quizBank ? 'quizBank' : null);
+  const quizzes = arrayKey ? data?.[arrayKey] : null;
+
+  if (!Array.isArray(quizzes) || quizzes.length === 0) {
+    return { data, arrayKey, patchedQuestionPoints: 0, patchedQuizTotals: 0, patchedPointPlans: 0 };
+  }
+
+  let patchedQuestionPoints = 0;
+  let patchedQuizTotals = 0;
+  let patchedPointPlans = 0;
+
+  const nextQuizzes = quizzes.map((quiz) => {
+    const questionKey = getQuestionKey(quiz);
+    if (!questionKey) return quiz;
+
+    let quizChanged = false;
+    const questions = quiz[questionKey].map((question) => {
+      const pointKey = question.points !== undefined ? 'points' : question.pt !== undefined ? 'pt' : 'points';
+      const currentPoints = getQuestionPoints(question);
+      if (currentPoints !== null && currentPoints > 0) return question;
+
+      patchedQuestionPoints++;
+      quizChanged = true;
+      return { ...question, [pointKey]: getDefaultQuizPoints(normalizeQuizType(question)) };
+    });
+
+    const pointSum = questions.reduce((sum, question) => sum + Number(getQuestionPoints(question) || 0), 0);
+    const totalKey = quiz.totalPoints !== undefined ? 'totalPoints' : quiz.tp !== undefined ? 'tp' : 'totalPoints';
+    const currentTotal = getQuizTotalPoints(quiz);
+    const nextQuiz = quizChanged ? { ...quiz, [questionKey]: questions } : { ...quiz };
+    if (pointSum > 0 && currentTotal !== pointSum) {
+      nextQuiz[totalKey] = pointSum;
+      patchedQuizTotals++;
+      quizChanged = true;
+    }
+
+    const pointPlanKey =
+      nextQuiz.pointPlan !== undefined ? 'pointPlan' : nextQuiz.pp !== undefined ? 'pp' : 'pointPlan';
+    const pointPlan = String(nextQuiz[pointPlanKey] || '').trim();
+    const expectedPlan = summarizeQuizPointPlan(questions, pointSum);
+    if (pointSum > 0 && (!pointPlan || !String(pointPlan).includes(String(pointSum)))) {
+      nextQuiz[pointPlanKey] = expectedPlan;
+      patchedPointPlans++;
+      quizChanged = true;
+    }
+
+    return quizChanged ? nextQuiz : quiz;
+  });
+
+  const changed = patchedQuestionPoints > 0 || patchedQuizTotals > 0 || patchedPointPlans > 0;
+  return {
+    data: changed ? { ...data, [arrayKey]: nextQuizzes } : data,
+    arrayKey,
+    patchedQuestionPoints,
+    patchedQuizTotals,
+    patchedPointPlans,
+  };
+}
+
+export function validateDeliverableGeneration(featureId, data, options = {}) {
+  const expectedLessonCount = Number(options.expectedLessonCount) || 0;
+  const config = options.config || {};
+  const blockers = [];
+  const warnings = [];
+  const retryableLessonIndices = [];
+
+  if (!isPlainObject(data)) {
+    blockers.push('No usable JSON object was returned.');
+    return { valid: false, blockers, warnings, retryableLessonIndices, arrayKey: null, itemCount: 0 };
+  }
+
+  if (Object.keys(data).length === 0 || getMeaningfulWordCount(data) < 4) {
+    blockers.push('The generated JSON object is empty.');
+    return { valid: false, blockers, warnings, retryableLessonIndices, arrayKey: null, itemCount: 0 };
+  }
+
+  if (!ARRAY_DELIVERABLES.has(featureId)) {
+    return { valid: true, blockers, warnings, retryableLessonIndices, arrayKey: null, itemCount: 0 };
+  }
+
+  const { arrayKey, items } = getPrimaryArray(featureId, data);
+  if (!arrayKey || !Array.isArray(items)) {
+    blockers.push(`Missing the required ${featureId} item array.`);
+    return { valid: false, blockers, warnings, retryableLessonIndices, arrayKey, itemCount: 0 };
+  }
+
+  if (items.length === 0) {
+    blockers.push(`The ${featureId} item array is empty.`);
+    return { valid: false, blockers, warnings, retryableLessonIndices, arrayKey, itemCount: 0 };
+  }
+
+  const nearEmpty = items
+    .map((item, index) => ({ index, words: getMeaningfulWordCount(item) }))
+    .filter(({ words }) => words < MIN_GENERATED_ITEM_WORDS);
+  if (nearEmpty.length > 0) {
+    blockers.push(`${nearEmpty.length} generated item(s) are too thin to publish.`);
+    nearEmpty.forEach(({ index }) => retryableLessonIndices.push(index));
+  }
+
+  if (
+    STRICT_LESSON_COUNT_DELIVERABLES.has(featureId) &&
+    expectedLessonCount > 0 &&
+    items.length < expectedLessonCount
+  ) {
+    const missingCount = expectedLessonCount - items.length;
+    blockers.push(`Expected ${expectedLessonCount} lesson item(s), but received ${items.length}.`);
+    for (let i = items.length; i < expectedLessonCount; i++) retryableLessonIndices.push(i);
+    warnings.push(`${missingCount} lesson item(s) need retry.`);
+  }
+
+  if (featureId === 'courseFaq') {
+    const target = getCourseFaqQuestionTarget(config);
+    items.forEach((lesson, index) => {
+      const questionKey = Array.isArray(lesson?.questions) ? 'questions' : Array.isArray(lesson?.qs) ? 'qs' : null;
+      const questions = questionKey ? lesson[questionKey] : [];
+      if (questions.length < target) {
+        blockers.push(`FAQ lesson ${index + 1} has ${questions.length}/${target} question(s).`);
+        retryableLessonIndices.push(index);
+      }
+    });
+  }
+
+  if (featureId === 'quizBank') {
+    items.forEach((quiz, index) => {
+      const questionKey = getQuestionKey(quiz);
+      const questions = questionKey ? quiz[questionKey] : [];
+      const points = questions.map(getQuestionPoints);
+      const hasMissingPoints = points.some((point) => point === null || point <= 0);
+      const pointSum = points.reduce((sum, point) => sum + Number(point || 0), 0);
+      const total = getQuizTotalPoints(quiz);
+      if (hasMissingPoints) {
+        blockers.push(`Quiz lesson ${index + 1} has question(s) without valid point values.`);
+        retryableLessonIndices.push(index);
+      } else if (total !== null && pointSum > 0 && total !== pointSum) {
+        blockers.push(`Quiz lesson ${index + 1} point total is ${total}, but questions sum to ${pointSum}.`);
+        retryableLessonIndices.push(index);
+      }
+    });
+  }
+
+  return {
+    valid: blockers.length === 0,
+    blockers: [...new Set(blockers)],
+    warnings: [...new Set(warnings)],
+    retryableLessonIndices: [...new Set(retryableLessonIndices)].sort((a, b) => a - b),
+    arrayKey,
+    itemCount: items.length,
+  };
+}
+
 export function normalizeQuizBankRationales(data) {
   const arrayKey = getArrayKey('quizBank', data) || (data?.quizzes ? 'quizzes' : data?.quizBank ? 'quizBank' : null);
   const quizzes = arrayKey ? data?.[arrayKey] : null;
 
   if (!Array.isArray(quizzes) || quizzes.length === 0) {
-    return { data, arrayKey, patchedExplanations: 0, patchedDistractorRationales: 0 };
+    return {
+      data,
+      arrayKey,
+      patchedExplanations: 0,
+      patchedDistractorRationales: 0,
+      patchedConstructedResponseGuidance: 0,
+    };
   }
 
   let patchedExplanations = 0;
   let patchedDistractorRationales = 0;
+  let patchedConstructedResponseGuidance = 0;
   const nextQuizzes = quizzes.map((quiz) => {
     const questionKey = Array.isArray(quiz?.questions) ? 'questions' : Array.isArray(quiz?.qs) ? 'qs' : null;
     if (!questionKey) return quiz;
@@ -470,6 +745,14 @@ export function normalizeQuizBankRationales(data) {
             ? 'dr'
             : 'distractorRationale';
       const isMc = normalizeQuizType(nextQuestion) === 'multiple_choice';
+      const type = normalizeQuizType(nextQuestion);
+      const answerKey = nextQuestion.answer !== undefined ? 'answer' : nextQuestion.an !== undefined ? 'an' : 'an';
+      const sampleAnswerKey =
+        nextQuestion.sampleAnswer !== undefined ? 'sampleAnswer' : nextQuestion.sa !== undefined ? 'sa' : 'sa';
+      const rubricHintsKey =
+        nextQuestion.rubricHints !== undefined ? 'rubricHints' : nextQuestion.rh !== undefined ? 'rh' : 'rh';
+      const scoringGuidanceKey =
+        nextQuestion.scoringGuidance !== undefined ? 'scoringGuidance' : nextQuestion.sg !== undefined ? 'sg' : 'sg';
 
       if (isBlankOrRepairPlaceholder(nextQuestion[explanationKey])) {
         patchedExplanations++;
@@ -483,16 +766,131 @@ export function normalizeQuizBankRationales(data) {
         nextQuestion[distractorKey] = buildDistractorRationale(nextQuestion);
       }
 
+      if (type === 'short_answer') {
+        if (isBlankOrRepairPlaceholder(nextQuestion[answerKey])) {
+          patchedConstructedResponseGuidance++;
+          quizChanged = true;
+          nextQuestion[answerKey] =
+            nextQuestion[sampleAnswerKey] ||
+            `A complete response should name the method decision, justify it with lesson evidence, and state one limitation.`;
+        }
+        if (isBlankOrRepairPlaceholder(nextQuestion[sampleAnswerKey])) {
+          patchedConstructedResponseGuidance++;
+          quizChanged = true;
+          nextQuestion[sampleAnswerKey] = String(nextQuestion[answerKey] || '').trim();
+        }
+        if (isBlankOrRepairPlaceholder(nextQuestion[scoringGuidanceKey])) {
+          patchedConstructedResponseGuidance++;
+          quizChanged = true;
+          nextQuestion[scoringGuidanceKey] =
+            'Award full credit for a specific method claim, accurate evidence, and a clear limitation; partial credit requires at least two of those elements.';
+        }
+      }
+
+      if (type === 'essay') {
+        if (isBlankOrRepairPlaceholder(nextQuestion[rubricHintsKey])) {
+          patchedConstructedResponseGuidance++;
+          quizChanged = true;
+          nextQuestion[rubricHintsKey] =
+            'Score the essay for methodological accuracy, evidence use, ethical reasoning, limitation awareness, and clarity of recommendation.';
+        }
+        if (isBlankOrRepairPlaceholder(nextQuestion[sampleAnswerKey])) {
+          patchedConstructedResponseGuidance++;
+          quizChanged = true;
+          nextQuestion[sampleAnswerKey] =
+            'A strong response makes a defensible claim, cites the relevant course method, explains the evidence needed, addresses one limitation, and connects the decision to the research question.';
+        }
+        if (isBlankOrRepairPlaceholder(nextQuestion[scoringGuidanceKey])) {
+          patchedConstructedResponseGuidance++;
+          quizChanged = true;
+          nextQuestion[scoringGuidanceKey] =
+            'Use the rubric hints as required elements; give partial credit for accurate method choice plus incomplete evidence or limitation discussion.';
+        }
+      }
+
       return nextQuestion;
     });
     return quizChanged ? { ...quiz, [questionKey]: questions } : quiz;
   });
 
   return {
-    data: patchedExplanations > 0 || patchedDistractorRationales > 0 ? { ...data, [arrayKey]: nextQuizzes } : data,
+    data:
+      patchedExplanations > 0 || patchedDistractorRationales > 0 || patchedConstructedResponseGuidance > 0
+        ? { ...data, [arrayKey]: nextQuizzes }
+        : data,
     arrayKey,
     patchedExplanations,
     patchedDistractorRationales,
+    patchedConstructedResponseGuidance,
+  };
+}
+
+export function normalizeQuizBankPublishability(data) {
+  const arrayKey = getArrayKey('quizBank', data) || (data?.quizzes ? 'quizzes' : data?.quizBank ? 'quizBank' : null);
+  const quizzes = arrayKey ? data?.[arrayKey] : null;
+
+  if (!Array.isArray(quizzes) || quizzes.length === 0) {
+    return { data, arrayKey, removedNoiseFields: 0, normalizedAnswerKeys: 0, patchedObjectiveAlignment: 0 };
+  }
+
+  let removedNoiseFields = 0;
+  let normalizedAnswerKeys = 0;
+  let patchedObjectiveAlignment = 0;
+  const nextQuizzes = quizzes.map((quiz) => {
+    const questionKey = Array.isArray(quiz?.questions) ? 'questions' : Array.isArray(quiz?.qs) ? 'qs' : null;
+    if (!questionKey) return quiz;
+
+    let quizChanged = false;
+    const questions = quiz[questionKey].map((question) => {
+      if (!question || typeof question !== 'object' || Array.isArray(question)) return question;
+      const nextQuestion = { ...question };
+      let questionChanged = false;
+
+      Object.keys(nextQuestion).forEach((key) => {
+        if (QUIZ_NOISE_KEYS.has(key)) {
+          delete nextQuestion[key];
+          removedNoiseFields++;
+          questionChanged = true;
+        }
+      });
+
+      const type = normalizeQuizType(nextQuestion);
+      const answerKey = nextQuestion.answer !== undefined ? 'answer' : nextQuestion.an !== undefined ? 'an' : null;
+      const options = nextQuestion.options || nextQuestion.op;
+      const answer = answerKey ? String(nextQuestion[answerKey] || '').trim() : '';
+      const answerLetter = answer.match(/^[A-D]$/i)?.[0];
+      if (type === 'multiple_choice' && answerKey && answerLetter && !hasLabeledOptions(options)) {
+        const optionText = getLetterOption(options, answerLetter);
+        if (optionText && optionText !== answer) {
+          nextQuestion[answerKey] = optionText;
+          normalizedAnswerKeys++;
+          questionChanged = true;
+        }
+      }
+
+      const objectiveKey =
+        nextQuestion.objectiveAligned !== undefined ? 'objectiveAligned' : nextQuestion.oa !== undefined ? 'oa' : null;
+      const objective = objectiveKey ? String(nextQuestion[objectiveKey] || '').trim() : '';
+      if (objectiveKey && /^[A-D]$/i.test(objective)) {
+        nextQuestion[objectiveKey] = buildQuizObjective(quiz, nextQuestion);
+        patchedObjectiveAlignment++;
+        questionChanged = true;
+      }
+
+      if (questionChanged) quizChanged = true;
+      return questionChanged ? nextQuestion : question;
+    });
+
+    return quizChanged ? { ...quiz, [questionKey]: questions } : quiz;
+  });
+
+  const changed = removedNoiseFields > 0 || normalizedAnswerKeys > 0 || patchedObjectiveAlignment > 0;
+  return {
+    data: changed ? { ...data, [arrayKey]: nextQuizzes } : data,
+    arrayKey,
+    removedNoiseFields,
+    normalizedAnswerKeys,
+    patchedObjectiveAlignment,
   };
 }
 
@@ -1220,10 +1618,11 @@ export function normalizeStudyGuideQuestions(data) {
   const guides = arrayKey ? data?.[arrayKey] : null;
 
   if (!Array.isArray(guides) || guides.length === 0) {
-    return { data, arrayKey, splitCombinedQuestions: 0 };
+    return { data, arrayKey, splitCombinedQuestions: 0, deduplicatedQuestions: 0 };
   }
 
   let splitCombinedQuestions = 0;
+  let deduplicatedQuestions = 0;
   const nextGuides = guides.map((guide) => {
     const questionKey = Array.isArray(guide?.reviewQuestions)
       ? 'reviewQuestions'
@@ -1232,7 +1631,7 @@ export function normalizeStudyGuideQuestions(data) {
         : null;
     if (!questionKey) return guide;
     let changed = false;
-    const questions = [];
+    let questions = [];
 
     guide[questionKey].forEach((question) => {
       if (!question || typeof question !== 'object' || Array.isArray(question)) {
@@ -1281,14 +1680,317 @@ export function normalizeStudyGuideQuestions(data) {
       changed = true;
     });
 
+    const seen = new Map();
+    questions = questions.map((question, questionIndex) => {
+      if (!question || typeof question !== 'object' || Array.isArray(question)) return question;
+      const key = question.q !== undefined ? 'q' : question.question !== undefined ? 'question' : null;
+      if (!key) return question;
+      const normalized = normalizeQuestionText(question[key]);
+      if (!normalized) return question;
+      const previousCount = seen.get(normalized) || 0;
+      seen.set(normalized, previousCount + 1);
+      if (previousCount === 0) return question;
+
+      const usesCompact = question.q !== undefined || question.bl !== undefined || question.ht !== undefined;
+      deduplicatedQuestions++;
+      changed = true;
+      return {
+        ...question,
+        ...(usesCompact
+          ? {
+              q: buildReplacementReviewQuestion(guide, questionIndex),
+              bl: question.bl || 'Analyze',
+              ht:
+                question.ht ||
+                'Name the method decision first, then explain the evidence or assumption that supports it.',
+            }
+          : {
+              question: buildReplacementReviewQuestion(guide, questionIndex),
+              bloomsLevel: question.bloomsLevel || 'Analyze',
+              hint:
+                question.hint ||
+                'Name the method decision first, then explain the evidence or assumption that supports it.',
+            }),
+      };
+    });
+
     return changed ? { ...guide, [questionKey]: questions } : guide;
   });
 
   return {
-    data: splitCombinedQuestions > 0 ? { ...data, [arrayKey]: nextGuides } : data,
+    data: splitCombinedQuestions > 0 || deduplicatedQuestions > 0 ? { ...data, [arrayKey]: nextGuides } : data,
     arrayKey,
     splitCombinedQuestions,
+    deduplicatedQuestions,
   };
+}
+
+function normalizeQuestionText(value) {
+  return String(value || '')
+    .toLowerCase()
+    .replace(/[^\p{Letter}\p{Number}]+/gu, ' ')
+    .replace(/\s+/g, ' ')
+    .trim();
+}
+
+function buildReplacementReviewQuestion(guide, questionIndex) {
+  const title = String(guide?.lessonTitle || guide?.lt || 'this lesson')
+    .replace(/^Lesson\s+\d+:\s*/i, '')
+    .trim();
+  const focus = title || 'the lesson concept';
+  const prompts = [
+    `Apply ${focus} to a new course case: what decision would you make, and what evidence would justify it?`,
+    `Compare two possible choices in ${focus}; which is stronger, and what limitation would you name?`,
+    `Use ${focus} to diagnose a likely student error, then write one correction strategy.`,
+  ];
+  return prompts[questionIndex % prompts.length];
+}
+
+function looksLikeResourceFragment(value) {
+  const text = String(value || '').trim();
+  if (!text) return true;
+  if (/[.!?]\s*$/.test(text) && text.split(/\s+/).length >= 18) return false;
+  return text.length < 120 && text.split(',').length >= 2 && !/\b(use|bring|ask|review|practice|support)\b/i.test(text);
+}
+
+function buildStudyGuideSupport(guide) {
+  const title = String(guide?.lessonTitle || guide?.lt || 'this lesson')
+    .replace(/^Lesson\s+\d+:\s*/i, '')
+    .trim();
+  const resources = String(guide?.studyResources || guide?.sr || '')
+    .split(',')
+    .map((part) => part.trim())
+    .filter(Boolean)
+    .slice(0, 3);
+  const resourceText =
+    resources.length > 0
+      ? resources.join(', ')
+      : 'the course site examples, lesson checklist, and instructor-provided practice materials';
+  return `Use ${resourceText} as your first supports while reviewing ${title || 'this lesson'}. Bring one draft answer, note, or question to office hours or a study group so you can test your reasoning against course criteria. If you need an alternate format, convert the guide to text-to-speech or a screen-reader-friendly document and use the checklist to review one step at a time.`;
+}
+
+export function normalizeStudyGuideSupport(data) {
+  const arrayKey =
+    getArrayKey('studyGuides', data) || (data?.guides ? 'guides' : data?.studyGuides ? 'studyGuides' : null);
+  const guides = arrayKey ? data?.[arrayKey] : null;
+
+  if (!Array.isArray(guides) || guides.length === 0) {
+    return { data, arrayKey, patchedSupportGuidance: 0 };
+  }
+
+  let patchedSupportGuidance = 0;
+  const nextGuides = guides.map((guide) => {
+    if (!guide || typeof guide !== 'object' || Array.isArray(guide)) return guide;
+    const supportKey = guide.studyResources !== undefined ? 'studyResources' : guide.sr !== undefined ? 'sr' : null;
+    if (!supportKey || !looksLikeResourceFragment(guide[supportKey])) return guide;
+    patchedSupportGuidance++;
+    return { ...guide, [supportKey]: buildStudyGuideSupport(guide) };
+  });
+
+  return {
+    data: patchedSupportGuidance > 0 ? { ...data, [arrayKey]: nextGuides } : data,
+    arrayKey,
+    patchedSupportGuidance,
+  };
+}
+
+function looksLikeEquityList(value) {
+  if (!Array.isArray(value) || value.length === 0) return false;
+  const joined = value.join(' ').toLowerCase();
+  const equityHits = (
+    joined.match(/\b(equity|equitable|diverse|support|invite|quieter|perspectives|identity|access|participation)\b/g) ||
+    []
+  ).length;
+  const criteriaHits = (
+    joined.match(/\b(criteria|evidence|reasoning|peer|respond|specific|course concept|method|analysis|claim)\b/g) || []
+  ).length;
+  return equityHits >= 2 && criteriaHits <= 2;
+}
+
+function looksLikeTagList(value) {
+  if (!Array.isArray(value) || value.length === 0) return false;
+  const shortItems = value.filter(
+    (item) =>
+      String(item || '')
+        .trim()
+        .split(/\s+/).length <= 4,
+  ).length;
+  const sentenceItems = value.filter((item) => /[.!?]\s*$/.test(String(item || '').trim())).length;
+  return shortItems >= Math.max(3, Math.ceil(value.length * 0.75)) && sentenceItems === 0;
+}
+
+function buildDiscussionCriteria(discussion) {
+  const prompt = String(discussion?.prompt || discussion?.pr || 'the discussion prompt').trim();
+  return [
+    `Uses specific evidence from the lesson case, reading, or activity to answer: ${prompt}`,
+    'Explains the methodological reasoning behind the claim instead of only stating an opinion.',
+    'Responds to at least one peer by extending, questioning, or refining the evidence used.',
+    'Names one limitation, ethical concern, alternative interpretation, or next revision step.',
+  ];
+}
+
+function buildDiscussionGuidelines(discussion) {
+  const format = String(discussion?.format || discussion?.fm || 'discussion').trim();
+  const duration = String(discussion?.estimatedDuration || discussion?.ed || '20-25 min').trim();
+  return `Use this as a ${format} lasting about ${duration}. Prepare one evidence-based initial response before speaking or posting, cite at least one course concept or scenario detail, and make one substantive peer response that extends the analysis rather than simply agreeing. Keep examples de-identified and respectful, and connect your final comment to one method decision or revision you would make.`;
+}
+
+function mergeEquityGuidance(existing, movedCriteria) {
+  const base = String(existing || '').trim();
+  const moved = Array.isArray(movedCriteria) ? movedCriteria.join(' ') : '';
+  const combined = [base, moved].filter(Boolean).join(' ');
+  return (
+    combined ||
+    'Begin with two minutes of written think time, invite multiple participation modes, and provide sentence frames so students can enter the discussion with evidence.'
+  );
+}
+
+export function normalizeDiscussionPromptFields(data) {
+  const arrayKey =
+    getArrayKey('discussions', data) ||
+    (data?.discussions ? 'discussions' : data?.discussionPrompts ? 'discussionPrompts' : null);
+  const discussions = arrayKey ? data?.[arrayKey] : null;
+
+  if (!Array.isArray(discussions) || discussions.length === 0) {
+    return { data, arrayKey, patchedCriteria: 0, patchedGuidelines: 0, patchedEquity: 0, patchedLanguageArtifacts: 0 };
+  }
+
+  let patchedCriteria = 0;
+  let patchedGuidelines = 0;
+  let patchedEquity = 0;
+  let patchedLanguageArtifacts = 0;
+  const nextDiscussions = discussions.map((discussion) => {
+    if (!discussion || typeof discussion !== 'object' || Array.isArray(discussion)) return discussion;
+    const nextDiscussion = { ...discussion };
+    let changed = false;
+
+    const criteriaKey =
+      nextDiscussion.evaluationCriteria !== undefined
+        ? 'evaluationCriteria'
+        : nextDiscussion.ec !== undefined
+          ? 'ec'
+          : null;
+    const equityKey =
+      nextDiscussion.equityConsiderations !== undefined
+        ? 'equityConsiderations'
+        : nextDiscussion.eq !== undefined
+          ? 'eq'
+          : null;
+    const guidelinesKey =
+      nextDiscussion.guidelines !== undefined ? 'guidelines' : nextDiscussion.gl !== undefined ? 'gl' : null;
+
+    if (criteriaKey && looksLikeEquityList(nextDiscussion[criteriaKey])) {
+      if (equityKey) {
+        nextDiscussion[equityKey] = mergeEquityGuidance(nextDiscussion[equityKey], nextDiscussion[criteriaKey]);
+        patchedEquity++;
+      }
+      nextDiscussion[criteriaKey] = buildDiscussionCriteria(nextDiscussion);
+      patchedCriteria++;
+      changed = true;
+    }
+
+    if (
+      guidelinesKey &&
+      (looksLikeTagList(nextDiscussion[guidelinesKey]) || Array.isArray(nextDiscussion[guidelinesKey]))
+    ) {
+      nextDiscussion[guidelinesKey] = buildDiscussionGuidelines(nextDiscussion);
+      patchedGuidelines++;
+      changed = true;
+    }
+
+    const cleaned = cleanDiscussionLanguageArtifacts(nextDiscussion);
+    if (cleaned.patched > 0) {
+      patchedLanguageArtifacts += cleaned.patched;
+      changed = true;
+      return cleaned.value;
+    }
+
+    return changed ? nextDiscussion : discussion;
+  });
+
+  return {
+    data:
+      patchedCriteria > 0 || patchedGuidelines > 0 || patchedEquity > 0 || patchedLanguageArtifacts > 0
+        ? { ...data, [arrayKey]: nextDiscussions }
+        : data,
+    arrayKey,
+    patchedCriteria,
+    patchedGuidelines,
+    patchedEquity,
+    patchedLanguageArtifacts,
+  };
+}
+
+function cleanDiscussionLanguageArtifacts(value) {
+  if (typeof value === 'string') {
+    const cleaned = value
+      .replace(/\bmore\s+निर्णितive\b/gi, 'more decisive')
+      .replace(/\bनिर्णितive\b/gi, 'decisive')
+      .replace(/\uFFFD/g, '');
+    return { value: cleaned, patched: cleaned === value ? 0 : 1 };
+  }
+  if (Array.isArray(value)) {
+    let patched = 0;
+    const next = value.map((item) => {
+      const result = cleanDiscussionLanguageArtifacts(item);
+      patched += result.patched;
+      return result.value;
+    });
+    return { value: patched > 0 ? next : value, patched };
+  }
+  if (value && typeof value === 'object') {
+    let patched = 0;
+    const next = {};
+    for (const [key, item] of Object.entries(value)) {
+      const result = cleanDiscussionLanguageArtifacts(item);
+      patched += result.patched;
+      next[key] = result.value;
+    }
+    return { value: patched > 0 ? next : value, patched };
+  }
+  return { value, patched: 0 };
+}
+
+function looksLikeLessonClosureFragment(value) {
+  const text = String(value || '').trim();
+  if (!text) return true;
+  if (/^short lecture,\s*guided lab,\s*structured peer review,\s*and applied case discussion\.?$/i.test(text)) {
+    return true;
+  }
+  return text.length < 90 && text.split(',').length >= 2 && !/\b(close|end|preview|remind|ask|connect)\b/i.test(text);
+}
+
+function buildLessonClosure(plan, index, plans) {
+  const title = String(plan?.lessonTitle || plan?.lt || `Lesson ${index + 1}`)
+    .replace(/^Lesson\s+\d+:\s*/i, '')
+    .trim();
+  const nextTitle = plans?.[index + 1]?.lessonTitle || plans?.[index + 1]?.lt || '';
+  const nextCue = nextTitle
+    ? ` Preview that the next lesson moves into ${String(nextTitle)
+        .replace(/^Lesson\s+\d+:\s*/i, '')
+        .trim()}.`
+    : ' Preview how this work carries into the final course evidence package.';
+  return `Close by asking students to name one ${title || 'lesson'} method decision they can defend with evidence and one point that still needs peer or instructor feedback.${nextCue} Remind students to use the homework artifact as evidence of progress, not just as a completion task.`;
+}
+
+function isToolTag(value) {
+  return /\b(course site|shared document|spreadsheet|library database|statistical software|template|handout|slide|video|software)\b/i.test(
+    String(value || ''),
+  );
+}
+
+function buildLessonTags(plan) {
+  const source = [
+    plan?.lessonTitle || plan?.lt,
+    ...(Array.isArray(plan?.objectives) ? plan.objectives : []),
+    ...(Array.isArray(plan?.ob) ? plan.ob : []),
+    ...(Array.isArray(plan?.outline) ? plan.outline.map((item) => item?.activity || item?.ac) : []),
+    ...(Array.isArray(plan?.ol) ? plan.ol.map((item) => item?.activity || item?.ac) : []),
+  ]
+    .filter(Boolean)
+    .join(' ');
+  const tokens = tokenize(source);
+  return [...tokens].slice(0, 8);
 }
 
 export function normalizeLessonPlanPublishability(data) {
@@ -1297,47 +1999,79 @@ export function normalizeLessonPlanPublishability(data) {
   const plans = arrayKey ? data?.[arrayKey] : null;
 
   if (!Array.isArray(plans) || plans.length === 0) {
-    return { data, arrayKey, patchedReviewDates: 0, patchedOwnerGroups: 0 };
+    return {
+      data,
+      arrayKey,
+      patchedReviewDates: 0,
+      patchedOwnerGroups: 0,
+      removedPublishingMetadata: 0,
+      patchedClosures: 0,
+      patchedTags: 0,
+    };
   }
 
   let patchedReviewDates = 0;
   let patchedOwnerGroups = 0;
-  const nextPlans = plans.map((plan) => {
-    let nextPlan = plan;
-    const reviewKey =
-      plan?.suggestedReviewDate !== undefined ? 'suggestedReviewDate' : plan?.rd !== undefined ? 'rd' : null;
-    const ownerKey = plan?.contentOwnerGroup !== undefined ? 'contentOwnerGroup' : plan?.cg !== undefined ? 'cg' : null;
-
-    if (
-      reviewKey &&
-      /fall\s+\d{4}|spring\s+\d{4}|summer\s+\d{4}|\b\d{4}\b|tbd|to be confirmed/i.test(plan[reviewKey])
-    ) {
-      nextPlan = {
-        ...nextPlan,
-        [reviewKey]: 'Instructor confirms the local review cycle before publishing this lesson plan.',
-      };
-      patchedReviewDates++;
+  let removedPublishingMetadata = 0;
+  let patchedClosures = 0;
+  let patchedTags = 0;
+  const nextPlans = plans.map((plan, index) => {
+    if (!plan || typeof plan !== 'object' || Array.isArray(plan)) return plan;
+    const nextPlan = { ...plan };
+    let changed = false;
+    for (const key of ['suggestedReviewDate', 'rd']) {
+      if (Object.prototype.hasOwnProperty.call(nextPlan, key)) {
+        delete nextPlan[key];
+        patchedReviewDates++;
+        removedPublishingMetadata++;
+        changed = true;
+      }
+    }
+    for (const key of ['contentOwnerGroup', 'cg']) {
+      if (Object.prototype.hasOwnProperty.call(nextPlan, key)) {
+        delete nextPlan[key];
+        patchedOwnerGroups++;
+        removedPublishingMetadata++;
+        changed = true;
+      }
     }
 
-    if (
-      ownerKey &&
-      /\bdepartment of|school of|college of|program office|content team|tbd|to be confirmed/i.test(plan[ownerKey])
-    ) {
-      nextPlan = {
-        ...nextPlan,
-        [ownerKey]: 'Instructor-selected program, course team, or department owner.',
-      };
-      patchedOwnerGroups++;
+    const closureKey =
+      nextPlan.closureAssessment !== undefined ? 'closureAssessment' : nextPlan.ca !== undefined ? 'ca' : null;
+    if (closureKey && looksLikeLessonClosureFragment(nextPlan[closureKey])) {
+      nextPlan[closureKey] = buildLessonClosure(nextPlan, index, plans);
+      patchedClosures++;
+      changed = true;
     }
 
-    return nextPlan;
+    const tagsKey = Array.isArray(nextPlan.tags) ? 'tags' : Array.isArray(nextPlan.tg) ? 'tg' : null;
+    if (tagsKey) {
+      const tags = nextPlan[tagsKey].map((tag) => String(tag || '').trim()).filter(Boolean);
+      const toolTagCount = tags.filter(isToolTag).length;
+      if (tags.length > 0 && toolTagCount >= Math.max(2, Math.ceil(tags.length / 2))) {
+        const nextTags = buildLessonTags(nextPlan);
+        if (nextTags.length > 0) {
+          nextPlan[tagsKey] = nextTags;
+          patchedTags++;
+          changed = true;
+        }
+      }
+    }
+
+    return changed ? nextPlan : plan;
   });
 
   return {
-    data: patchedReviewDates > 0 || patchedOwnerGroups > 0 ? { ...data, [arrayKey]: nextPlans } : data,
+    data:
+      removedPublishingMetadata > 0 || patchedClosures > 0 || patchedTags > 0
+        ? { ...data, [arrayKey]: nextPlans }
+        : data,
     arrayKey,
     patchedReviewDates,
     patchedOwnerGroups,
+    removedPublishingMetadata,
+    patchedClosures,
+    patchedTags,
   };
 }
 
@@ -1380,16 +2114,27 @@ export function normalizeSyllabusPublishability(data) {
     patchedFields += result.patched;
   };
 
-  patch('semester', 'Term to be confirmed');
+  patch('semester', '12-week term');
   patch('credits', '3 credits');
-  patch('meetingPattern', 'Meeting pattern to be confirmed');
-  patch('location', 'Location to be confirmed');
+  patch('meetingPattern', 'Weekly course meeting pattern listed in the official course schedule.');
+  patch('location', 'Official course site and assigned class meeting space.');
   patch('prerequisites', 'No formal prerequisites listed; students should review program requirements.');
-  patch('instructor', 'Instructor to be announced');
+  patch('instructor', 'Course instructor');
   patch('instructorEmail', 'Use the contact method listed in the course site.');
-  patch('officeHours', 'Office hours will be announced in the course site.');
-  patch('officeLocation', 'Office location or meeting link will be announced in the course site.');
-  patch('suggestedReviewDate', 'Review before the next offering.');
+  patch('officeHours', 'Office hours are available through the course communication channel.');
+  patch('officeLocation', 'Office hours location or meeting link is available in the course site.');
+  if (Object.prototype.hasOwnProperty.call(syllabus, 'suggestedReviewDate')) {
+    const { suggestedReviewDate, ...rest } = syllabus;
+    void suggestedReviewDate;
+    syllabus = rest;
+    patchedFields++;
+  }
+  if (Object.prototype.hasOwnProperty.call(syllabus, 'contentOwnerGroup')) {
+    const { contentOwnerGroup, ...rest } = syllabus;
+    void contentOwnerGroup;
+    syllabus = rest;
+    patchedFields++;
+  }
 
   if (Array.isArray(syllabus.requiredTexts)) {
     let changed = false;
@@ -1403,7 +2148,7 @@ export function normalizeSyllabusPublishability(data) {
       if (hasPublishabilityMarker(text.note) || /suggested\s*-\s*verify/i.test(String(text.note || ''))) {
         next = {
           ...next,
-          note: 'Suggested text; instructor should verify adoption before assigning.',
+          note: 'Suggested alternative text for instructor adoption.',
         };
         changed = true;
       }
@@ -1421,7 +2166,7 @@ export function normalizeSyllabusPublishability(data) {
       if (!week || typeof week !== 'object') return week;
       let next = week;
       if (hasPublishabilityMarker(week.dates)) {
-        next = { ...next, dates: 'Date to be confirmed' };
+        next = { ...next, dates: String(week.week || '').trim() || 'Course week' };
         changed = true;
       }
       if (hasPublishabilityMarker(week.assignments)) {
@@ -1442,7 +2187,14 @@ export function normalizeSyllabusPublishability(data) {
       if (!date || typeof date !== 'object') return date;
       let next = date;
       if (hasPublishabilityMarker(date.date)) {
-        next = { ...next, date: 'Date to be confirmed' };
+        next = {
+          ...next,
+          date: String(date.event || '')
+            .toLowerCase()
+            .includes('final')
+            ? 'Final week'
+            : 'Course milestone week',
+        };
         changed = true;
       }
       if (hasPublishabilityMarker(date.event)) {

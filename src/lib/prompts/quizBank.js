@@ -22,7 +22,7 @@ Return a JSON object with exactly this structure:
       "lt": "string — full lesson title",
       "tq": number — integer count,
       "bc": ["string"] — Bloom's levels covered in this quiz set,
-      "fn": "string — guidance for the instructor: common errors students make on this material, how to return results quickly, and how students should use quiz results to identify areas needing review (QM 3.5)",
+      "fn": "string — instructor guide: when to administer this set, common errors, feedback turnaround, accessibility/accommodation note, and how students should use results to identify review areas (QM 3.5)",
       "qs": [
         {
           "id": "string — stable item id such as 'lesson-3-q4'",
@@ -44,6 +44,7 @@ Return a JSON object with exactly this structure:
           "tg": ["string"] — 4-8 tags: lesson topic, question type, Bloom's level, difficulty, and assessment use
         }
       ],
+      "bp": "string — brief assessment blueprint for this lesson: objectives covered, item mix, intended use, estimated total time, and how results inform teaching",
       "tg": ["string — 5-8 keywords for LMS discoverability: include assessment type, Bloom's levels tested, and key topic areas"]
     }
   ],
@@ -68,8 +69,11 @@ Rules:
 - short_answer: specify expected length (e.g., "In 2-3 sentences…").
 - essay: include task verb + scope + constraints.
 - ty must be exactly multiple_choice, short_answer, or essay. df must be exactly Easy, Medium, or Hard. em is minutes, never seconds: use 1-3 for multiple_choice, 3-6 for short_answer, and 8-15 for essay.
-- Every question has oa (objectiveAligned) and ex (explanation). Every MC has non-null ex (starting "The correct answer is [letter] because…") and dr ("A: …; C: …; D: …") — required for accreditation.
+- Every question has oa (objectiveAligned) and ex (explanation). Every MC has non-empty an, ex (starting "The correct answer is [letter] because…"), and dr ("A: …; C: …; D: …") — required for accreditation.
+- Every short_answer question must have non-empty an, sa, ex, and sg. Every essay question must have non-empty rh, sa, ex, and sg. Never leave answer, rationale, scoring, or exemplar fields empty.
 - Every question must have id, iu, and tg. Every non-MC question must have sg with concrete partial-credit guidance; MC may omit sg if ex and dr are complete.
+- Every quiz set must include bp and fn. bp must map the lesson objective(s) to item types, Bloom levels, estimated time, and diagnostic/formative/summative use.
+- Accessibility: fn must include one concrete accessibility or accommodation support, such as screen-reader-friendly formatting, plain-language directions, extended-time planning, or alternate response format guidance.
 - bankIndex must include one row per question so instructors can filter by lesson, Bloom's level, difficulty, and intended use.
 - Sequence from lower to higher Bloom's as the course progresses (QM 3.4). Include diagnostic questions that help learners identify review areas (QM 3.5). Each quiz includes fn guidance on common errors and timely feedback (QM 3.5).
 - Vary phrasing across lessons — no repeated stem patterns. Explanations in natural prose.

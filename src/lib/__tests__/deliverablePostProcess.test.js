@@ -4,8 +4,11 @@ import {
   normalizeAssignmentLessonAlignment,
   normalizeCourseFaqCategories,
   normalizeCourseFaqQuestionCounts,
+  normalizeDiscussionPromptFields,
   normalizeLessonPlanPublishability,
   normalizeQuizBankIndex,
+  normalizeQuizBankPointTotals,
+  normalizeQuizBankPublishability,
   normalizeQuizBankQuestions,
   normalizeQuizBankRationales,
   normalizeRubricCoverage,
@@ -13,7 +16,9 @@ import {
   normalizeSlideDeckAccessibility,
   normalizeSlideDeckSpeakerNotes,
   normalizeStudyGuideQuestions,
+  normalizeStudyGuideSupport,
   normalizeSyllabusPublishability,
+  validateDeliverableGeneration,
 } from '../deliverablePostProcess.js';
 import { findPublishabilityPlaceholders } from '../publishabilityPlaceholders.js';
 
@@ -86,6 +91,85 @@ describe('Course FAQ post-processing', () => {
 
     expect(result.normalizedCategories).toBe(1);
     expect(result.data.faqs[0].questions[0].category).toBe('Assessment Prep');
+  });
+});
+
+describe('Discussion prompt post-processing', () => {
+  it('repairs swapped evaluation criteria and tag-like participation guidelines', () => {
+    const data = {
+      discussions: [
+        {
+          lt: 'Lesson 5: Observation and Field Notes',
+          fm: 'Structured Case Comparison',
+          ed: '25 min',
+          pr: 'Which observation record better protects participant dignity?',
+          ec: [
+            'Use examples that avoid mocking or hidden identity judgments.',
+            'Invite multiple perspectives when students notice different details.',
+            'Support students who have fieldwork experience and students new to the topic.',
+          ],
+          eq: 'Use two minutes of written warm-up.',
+          gl: ['behavior', 'context', 'reflexive note', 'observer effect'],
+        },
+      ],
+    };
+
+    const result = normalizeDiscussionPromptFields(data);
+    const discussion = result.data.discussions[0];
+
+    expect(result.patchedCriteria).toBe(1);
+    expect(result.patchedEquity).toBe(1);
+    expect(result.patchedGuidelines).toBe(1);
+    expect(discussion.ec[0]).toContain('Uses specific evidence');
+    expect(discussion.eq).toContain('Use two minutes');
+    expect(discussion.eq).toContain('Invite multiple perspectives');
+    expect(discussion.gl).toContain('evidence-based initial response');
+  });
+
+  it('cleans known corrupted language artifacts in discussion criteria', () => {
+    const data = {
+      discussions: [
+        {
+          lt: 'Lesson 12: Evidence Recommendations',
+          ec: ['The response uses more निर्णितive evidence from the methods memo.'],
+        },
+      ],
+    };
+
+    const result = normalizeDiscussionPromptFields(data);
+
+    expect(result.patchedLanguageArtifacts).toBe(1);
+    expect(result.data.discussions[0].ec[0]).toContain('more decisive evidence');
+  });
+});
+
+describe('Study guide post-processing', () => {
+  it('replaces duplicate review questions with a distinct applied question', () => {
+    const data = {
+      guides: [
+        {
+          lt: 'Lesson 10: Mixed Methods Integration',
+          rq: [
+            {
+              q: 'How should the study combine interview and survey evidence?',
+              bl: 'Analyze',
+              ht: 'Compare evidence.',
+            },
+            {
+              q: 'How should the study combine interview and survey evidence?',
+              bl: 'Analyze',
+              ht: 'Compare evidence.',
+            },
+          ],
+        },
+      ],
+    };
+
+    const result = normalizeStudyGuideQuestions(data);
+
+    expect(result.deduplicatedQuestions).toBe(1);
+    expect(result.data.guides[0].rq[1].q).not.toBe(result.data.guides[0].rq[0].q);
+    expect(result.data.guides[0].rq[1].q).toContain('Mixed Methods Integration');
   });
 });
 
@@ -303,6 +387,47 @@ describe('Quiz Bank post-processing', () => {
     expect(JSON.stringify(result.data)).not.toMatch(/Explanation needed|rationale needed|model response required/i);
   });
 
+  it('removes leaked quiz helper fields and normalizes compact answer metadata', () => {
+    const data = {
+      quizzes: [
+        {
+          lt: 'Lesson 5: Observation and Field Notes',
+          qs: [
+            {
+              ty: 'multiple_choice',
+              bl: 'Apply',
+              df: 'Medium',
+              q: 'Which entry best separates observation from interpretation?',
+              op: [
+                'Records exact words spoken',
+                'Labels the participant as careless',
+                'Predicts intent',
+                'Skips context',
+              ],
+              an: 'A',
+              oa: 'B',
+              blm: 'extra stem',
+              qg: 'helper text',
+              hint: 'duplicate hint',
+            },
+          ],
+        },
+      ],
+    };
+
+    const result = normalizeQuizBankPublishability(data);
+    const question = result.data.quizzes[0].qs[0];
+
+    expect(result.removedNoiseFields).toBe(3);
+    expect(result.normalizedAnswerKeys).toBe(1);
+    expect(result.patchedObjectiveAlignment).toBe(1);
+    expect(question.an).toBe('Records exact words spoken');
+    expect(question.oa).toContain('Observation and Field Notes');
+    expect(question).not.toHaveProperty('blm');
+    expect(question).not.toHaveProperty('qg');
+    expect(question).not.toHaveProperty('hint');
+  });
+
   it('adds stable quiz ids, retrieval tags, intended use metadata, and a bank index', () => {
     const data = {
       quizzes: [
@@ -335,10 +460,116 @@ describe('Quiz Bank post-processing', () => {
     expect(result.data.bankIndex).toHaveLength(1);
     expect(result.data.bankIndex[0].id).toBe(question.id);
   });
+
+  it('repairs quiz point totals and emits a point-plan math check', () => {
+    const data = {
+      quizzes: [
+        {
+          lessonTitle: 'Lesson 9: Qualitative Coding',
+          totalPoints: 20,
+          questions: [
+            { type: 'multiple_choice', points: 2, question: 'A?' },
+            { type: 'multiple_choice', points: 2, question: 'B?' },
+            { type: 'short_answer', points: 3, question: 'C?' },
+          ],
+        },
+      ],
+    };
+
+    const result = normalizeQuizBankPointTotals(data);
+
+    expect(result.patchedQuizTotals).toBe(1);
+    expect(result.patchedPointPlans).toBe(1);
+    expect(result.data.quizzes[0].totalPoints).toBe(7);
+    expect(result.data.quizzes[0].pointPlan).toContain('total = 7');
+  });
+});
+
+describe('Deliverable generation validation', () => {
+  it('blocks empty whole-course array deliverables before they are marked done', () => {
+    const result = validateDeliverableGeneration('rubrics', {}, { expectedLessonCount: 12 });
+
+    expect(result.valid).toBe(false);
+    expect(result.blockers.join(' ')).toMatch(/empty/i);
+  });
+
+  it('blocks incomplete per-lesson outputs with retryable lesson indices', () => {
+    const result = validateDeliverableGeneration(
+      'lessonPlans',
+      {
+        plans: [
+          {
+            lessonTitle: 'Week 1: Questions',
+            objectives: ['Analyze a research question for feasibility.'],
+            outline: [
+              {
+                activity: 'Practice narrowing questions with evidence.',
+                description:
+                  'Students compare broad concerns, bounded empirical questions, evidence sources, and limitation statements before revising one question.',
+              },
+            ],
+            readyToTeachSupport: {
+              workedExample:
+                'Compare a broad concern with a bounded question, then point to the population, unit of analysis, evidence source, and limitation.',
+            },
+          },
+        ],
+      },
+      { expectedLessonCount: 3 },
+    );
+
+    expect(result.valid).toBe(false);
+    expect(result.blockers.join(' ')).toContain('Expected 3 lesson item');
+    expect(result.retryableLessonIndices).toEqual([1, 2]);
+  });
+
+  it('blocks underfilled Course FAQ lessons', () => {
+    const result = validateDeliverableGeneration(
+      'courseFaq',
+      {
+        faqs: [
+          {
+            lessonTitle: 'Week 1',
+            questions: [
+              { question: 'One?', answer: 'Answer.' },
+              { question: 'Two?', answer: 'Answer.' },
+            ],
+          },
+        ],
+      },
+      { expectedLessonCount: 1, config: { questionsPerLesson: 5 } },
+    );
+
+    expect(result.valid).toBe(false);
+    expect(result.blockers.join(' ')).toContain('2/5');
+    expect(result.retryableLessonIndices).toEqual([0]);
+  });
+
+  it('blocks quiz-bank scoring math mismatches that post-processing has not repaired', () => {
+    const result = validateDeliverableGeneration(
+      'quizBank',
+      {
+        quizzes: [
+          {
+            lessonTitle: 'Week 1',
+            totalPoints: 20,
+            questions: [
+              { type: 'multiple_choice', points: 2, question: 'A?' },
+              { type: 'short_answer', points: 4, question: 'B?' },
+            ],
+          },
+        ],
+      },
+      { expectedLessonCount: 1 },
+    );
+
+    expect(result.valid).toBe(false);
+    expect(result.blockers.join(' ')).toContain('questions sum to 6');
+  });
 });
 
 describe('Syllabus post-processing', () => {
-  it('replaces unresolved local-fact placeholders with student-facing confirmation language', () => {
+  it('replaces unresolved local-fact placeholders with finished course-relative language', () => {
     const result = normalizeSyllabusPublishability({
       syllabus: {
         courseTitle: 'Research Methods',
@@ -357,20 +588,22 @@ describe('Syllabus post-processing', () => {
         ],
         weeklySchedule: [{ week: 'Week 1', dates: '[Verify academic calendar date]', assignments: 'TBD' }],
         importantDates: [{ date: '[Verify academic calendar date]', event: 'Final project' }],
+        contentOwnerGroup: 'Department of Social Work',
       },
     });
 
     const serialized = JSON.stringify(result.data);
     expect(result.patchedFields).toBeGreaterThan(0);
     expect(findPublishabilityPlaceholders(serialized, { limit: 10 })).toEqual([]);
-    expect(result.data.syllabus.instructor).toBe('Instructor to be announced');
+    expect(result.data.syllabus.instructor).toBe('Course instructor');
     expect(result.data.syllabus.requiredTexts[0].isbn).toBe('');
-    expect(result.data.syllabus.weeklySchedule[0].dates).toBe('Date to be confirmed');
+    expect(result.data.syllabus.weeklySchedule[0].dates).toBe('Week 1');
+    expect(result.data.syllabus).not.toHaveProperty('contentOwnerGroup');
   });
 });
 
 describe('Lesson plan post-processing', () => {
-  it('replaces invented review dates and owner groups with publishing guidance', () => {
+  it('removes publishing metadata from lesson plans', () => {
     const data = {
       plans: [
         {
@@ -385,8 +618,34 @@ describe('Lesson plan post-processing', () => {
 
     expect(result.patchedReviewDates).toBe(1);
     expect(result.patchedOwnerGroups).toBe(1);
-    expect(result.data.plans[0].rd).toContain('local review cycle');
-    expect(result.data.plans[0].cg).toContain('Instructor-selected');
+    expect(result.removedPublishingMetadata).toBe(2);
+    expect(result.data.plans[0]).not.toHaveProperty('rd');
+    expect(result.data.plans[0]).not.toHaveProperty('cg');
+  });
+
+  it('repairs closure fragments and tool-only tags in compact lesson plans', () => {
+    const data = {
+      plans: [
+        {
+          lt: 'Lesson 9: Coding Qualitative Data',
+          ob: ['Apply open coding to interview excerpts', 'Create one analytic memo'],
+          ca: 'Short lecture, guided lab, structured peer review, and applied case discussion',
+          tg: ['Course site', 'Shared document', 'Spreadsheet', 'Library database access'],
+        },
+        {
+          lt: 'Lesson 10: Integrating Quantitative and Qualitative Findings',
+        },
+      ],
+    };
+
+    const result = normalizeLessonPlanPublishability(data);
+
+    expect(result.patchedClosures).toBe(1);
+    expect(result.patchedTags).toBe(1);
+    expect(result.data.plans[0].ca).toContain('Close by asking students');
+    expect(result.data.plans[0].ca).toContain('Integrating Quantitative and Qualitative Findings');
+    expect(result.data.plans[0].tg).toContain('coding');
+    expect(result.data.plans[0].tg).not.toContain('Course site');
   });
 });
 
@@ -699,5 +958,23 @@ describe('Study guide post-processing', () => {
     expect(result.data.guides[0].rq[0].q2).toBeUndefined();
     expect(result.data.guides[0].rq[1].q).toBe('How would you improve a vague question?');
     expect(result.data.guides[0].rq[1].bl).toBe('Apply');
+  });
+
+  it('expands bare resource fragments into complete study support guidance', () => {
+    const data = {
+      guides: [
+        {
+          lt: 'Lesson 9: Coding Qualitative Data',
+          sr: 'Codebook template, memo model, interview excerpt',
+        },
+      ],
+    };
+
+    const result = normalizeStudyGuideSupport(data);
+
+    expect(result.patchedSupportGuidance).toBe(1);
+    expect(result.data.guides[0].sr).toContain('Use Codebook template, memo model, interview excerpt');
+    expect(result.data.guides[0].sr).toContain('office hours or a study group');
+    expect(result.data.guides[0].sr).toContain('alternate format');
   });
 });

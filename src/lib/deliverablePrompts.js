@@ -43,11 +43,11 @@ const PROMPTS = {
 // This saves ~400-700 input tokens per subsequent chunk call.
 
 const COMPACT_SCHEMAS = {
-  lessonPlans: `{"plans":[{"lt":"str","wk":"str","dur":"str","bls":["str"],"ob":["str"],"mt":["str"],"wu":{"dur":"str","ty":"str","pr":"str","pu":"str","fa":"str"},"ol":[{"tm":"str","ac":"str","ty":"str","de":"str","in":"str","ir":"str","gr":"str","bl":"str"}],"fc":{"ty":"str","pr":"str","oa":"str","ia":"str"},"un":{"rp":"str","eg":"str","ex":"str"},"hw":{"t":"str","de":"str","et":"str","cn":"str"},"ca":"str","tg":["str"],"rd":"str","cg":"str"}]}`,
+  lessonPlans: `{"plans":[{"lt":"str","wk":"str","dur":"str","sfs":{"beforeClass":"str","duringClass":"str","afterClass":"str","submittedArtifact":"str"},"al":"str","pk":"str","cms":["str"],"wsc":"str","lcr":"str","acs":["str"],"cc":"str","bls":["str"],"ob":["str"],"mt":["str"],"wu":{"dur":"str","ty":"str","pr":"str","pu":"str","fa":"str"},"ol":[{"tm":"str","ac":"str","ty":"str","de":"str","in":"str","ir":"str","gr":"str","bl":"str"}],"fc":{"ty":"str","pr":"str","oa":"str","ia":"str"},"un":{"rp":"str","eg":"str","ex":"str"},"hw":{"t":"str","de":"str","et":"str","cn":"str"},"ca":"str","tg":["str"],"rts":{"workedExample":"str","methodSpecificMiniRubric":"str","studentHandout":"str","instructorPrep":"str","accessibilityAndUDL":"str"}}]}`,
   slideDecks: `{"decks":[{"lt":"str","ts":0,"lo":["str"],"sl":[{"t":"str","ty":"str","bu":["str"],"no":"str","vi":{"k":"none|diagram|chart|image|table|code|equation","d":"str","at":"str"},"at":"str|null","ti":"str|null","bl":"str|null","ol":"str|null"}],"tg":["str"]}]}`,
-  quizBank: `{"quizzes":[{"lt":"str","tq":0,"bc":["str"],"fn":"str","qs":[{"ty":"str","bl":"str","df":"str","em":0,"pt":0,"oa":"str","q":"str","op":["str"],"an":"str","dr":"str","ex":"str","rh":"str","sa":"str"}],"tg":["str"]}]}`,
+  quizBank: `{"quizzes":[{"lt":"str","tq":0,"bc":["str"],"fn":"str","bp":"str","qs":[{"ty":"str","bl":"str","df":"str","em":0,"pt":0,"oa":"str","q":"str","op":["str"],"an":"str","dr":"str","ex":"str","rh":"str","sa":"str","sg":"str"}],"tg":["str"]}]}`,
   rubrics: `{"rubrics":[{"t":"str","lt":"str","at":"str","tp":0,"bl":"str","gs":{"ex":"str","pr":"str","dv":"str","bg":"str"},"cr":[{"cn":"str","oa":"str","wt":0,"pt":0,"ex":"str","pr":"str","dv":"str","bg":"str"}],"gp":"str","tn":"str","tg":["str"]}]}`,
-  assignments: `{"assignments":[{"t":"str","at":"str","rl":["str"],"dw":"str","et":"str","tp":0,"pg":"str","bl":"str","ov":"str","ob":["str"],"ins":["str"],"fr":{"ln":"str","fm":"str","cs":"str","sp":"str","lp":"str"},"dl":["str"],"sm":[{"ms":"str","dd":"str","de":"str","fb":"str","pt":0,"ul":["str"]}],"gc":"str","sr":["str"],"pt":"str","ai":"str","tg":["str"]}]}`,
+  assignments: `{"courseAssignmentMap":[{"week":0,"artifact":"str","expectedFile":"str","length":"str","nextPortfolioUse":"str"}],"assignments":[{"t":"str","at":"str","rl":["str"],"dw":"str","et":"str","tp":0,"pg":"str","bl":"str","pc":"str","esf":"str","hsc":["str"],"ifp":"str","pb":{"exc":"str","prof":"str","rev":"str"},"ov":"str","ob":["str"],"ins":["str"],"fr":{"ln":"str","fm":"str","cs":"str","sp":"str","lp":"str"},"dl":["str"],"sm":[{"ms":"str","dd":"str","de":"str","fb":"str","pt":0,"ul":["str"]}],"gc":"str","sr":["str"],"pt":"str","ai":"str","ud":"str","sar":["str"],"fl":"str","tg":["str"]}]}`,
   discussions: `{"discussions":[{"lt":"str","bl":"str","fm":"str","ed":"str","cx":"str","pr":"str","er":"str","fp":["str"],"ft":{"op":"str","is":"str","id":"str","cl":"str"},"rs":["str"],"ec":["str"],"eq":"str","gl":"str","tg":["str"]}]}`,
   studyGuides: `{"guides":[{"lt":"str","es":"str","su":"str","kt":[{"tm":"str","df":"str","ex":"str"}],"cc":["str"],"cm":[{"mc":"str","co":"str"}],"rq":[{"q":"str","bl":"str","ht":"str"}],"pa":["str"],"ep":{"kk":["str"],"tl":"str","ce":"str","rv":"str"},"sr":"str","tg":["str"]}]}`,
   courseFaq: `{"faqs":[{"lt":"str","qs":[{"q":"str","an":"str","ca":"str","rc":["str"],"df":"str"}],"tg":["str"]}]}`,
@@ -57,6 +57,9 @@ const CONTINUATION_REQUIREMENTS = {
   lessonPlans: `- One plan per lesson. ≥5 outline segments with times summing to session duration.
 - Bloom's verbs for objectives. Materials include tech + handout.
 - WarmUp connects to objective. FormativeCheck maps to objective. UDL specific to lesson.
+- Include rts with workedExample, methodSpecificMiniRubric, studentHandout, instructorPrep, and accessibilityAndUDL.
+- Include sfs, al, pk, cms, wsc, lcr, acs, and cc so each week has a student-facing summary, artifact length, prerequisite knowledge, misconception checks, submission criteria, local-case replacement note, assessment criteria, and grading calibration cue.
+- Do not include publishing metadata fields such as rd, cg, suggestedReviewDate, or contentOwnerGroup.
 - Header format: "Lesson {N}: {Title}". Return ONLY JSON.`,
   slideDecks: `- 12-16 slides per deck. Sequence: title→agenda→objectives→bridge→body→summary→closing.
 - Content slide titles = declarative sentences (assertion-evidence). Max 4 bullets.
@@ -66,18 +69,24 @@ const CONTINUATION_REQUIREMENTS = {
   quizBank: `- 5-7 questions per lesson. ≥3 MC, 1-2 short answer, 1 essay. ≥3 Bloom's levels per lesson.
 - MC: 4 options (A-D), complete sentence stems, similar length. Omit inapplicable fields (no nulls).
 - Mandatory: explanation for every question; distractorRationale for every MC question.
+- Short answer and essay items must have non-empty scoring guidance and model/exemplar response fields.
+- Each quiz set includes bp assessment blueprint and fn accessibility/feedback guidance.
 - Header format: "Lesson {N}: {Title}". Return ONLY JSON.`,
   rubrics: `- One rubric per unique assessment. 4-6 criteria, weights sum to 100.
 - Observable behavioral language. No vague qualifiers. Exemplary = above minimum.
 - Include gradePolicyConnection and teacherNotes. Return ONLY JSON.`,
   assignments: `- 4-7 assignments spanning different types. Imperative-voice numbered instructions.
 - Each item must be an assignment brief, not a generic "Lesson X Assignment Brief" wrapper.
-- Match the first chunk's structure exactly: unique assignment title, overview, objectives, concise numbered instructions, formatRequirements, checklist deliverables, scaffoldingMilestones, supportResources, progressTracking, and academicIntegrityStatement.
+- Match the first chunk's structure exactly: unique assignment title, overview, objectives, concise numbered instructions, formatRequirements, checklist deliverables, scaffoldingMilestones, supportResources, progressTracking, academicIntegrityStatement, accessibilityAndUDL, selfAssessmentRubric, and feedbackLoop.
+- Include courseAssignmentMap when generating the first chunk or whole set. Each assignment must include pc, esf, hsc, ifp, and pb so portfolio connection, expected file, high-value criteria, feedback priority, and performance bands are visible.
 - ≥2 scaffolding milestones for major assignments. Each milestone includes ms, dd, de, fb, pt, and final milestone ul.
 - Never swap fields: readings/resources belong in sr, submission rules belong in fr, grading summary belongs in gc.
 - percentOfGrade values sum proportionally. Return ONLY JSON.`,
   discussions: `- One per lesson. Target Bloom's 4-6. Main prompt = open-ended, no single answer.
 - ≥6 distinct formats across all lessons. Substantive follow-up probes.
+- Do not swap discussion fields: ec = assessment criteria, eq = equity/access guidance, gl = student participation instructions, tg = searchable tags.
+- ec must be 3-4 observable criteria (evidence use, reasoning, peer engagement, ethical/method fit). gl must be full student-facing guidance, never tags.
+- Lessons in later chunks must preserve the same depth as early lessons; never compress Lessons 9-12 into thinner or more generic discussion entries.
 - Include equityConsiderations and participation guidelines. Return ONLY JSON.`,
   studyGuides: `- One guide per lesson. Summary = 2-3 paragraphs in clear prose.
 - 8-12 key terms with definition AND example. ≥1 cross-lesson connection.
@@ -174,9 +183,24 @@ function buildConfigInstructions(featureId, config, pedagogicalMode = 'lecture',
   lines.push(`SOURCE AND PLACEHOLDER RULES (apply to all generated content):
 - Do not invent instructor names, emails, phone numbers, office locations, office hours, department names, LMS folder names, campus office contacts, support phone numbers, bookstore/library availability, licenses, or institutional deadlines.
 - Never emit bracketed placeholders, TODO, TBD, "[Verify ...]", "[Instructor ...]", "[Office ...]", or other unfinished authoring markers.
-- If a local fact is unknown, either omit the optional field or use neutral student-facing wording such as "to be confirmed" or "will be announced in the course site".
+- If a local fact is unknown, avoid placeholder/status phrases such as "to be confirmed", "to be announced", "TBD", or "verify before adoption". Prefer course-relative, finished wording such as "Week 1", "the course site", "the official course communication channel", or omit optional fields when the schema allows it.
 - Named third-party tools are allowed only when present in the course map/profile or framed as optional examples. Prefer generic labels like "course site", "survey platform", "spreadsheet", or "statistical software" when the source does not specify a tool.
 - Do not imply that a resource exists in the instructor's institution unless the course map, profile, or instructor instructions explicitly provide it.`);
+
+  lines.push(`COURSE COHERENCE AND PUBLISHABILITY (apply to all generated content):
+- Treat the course as one coherent learning experience, not a collection of disconnected sample artifacts.
+- Use one recurring course domain, research portfolio, client case, dataset family, or clearly linked family of cases unless the course map explicitly requires unrelated topics.
+- If multiple cases are pedagogically necessary, explain the shared throughline in the artifact and connect each case to the same course outcomes and assessment arc.
+- Do not rotate unrelated civic, health, education, policy, and community examples across weeks without an explicit bridge.
+- Write finished student- or instructor-facing materials, not internal planning notes, schema explanations, or generated-content wrappers.
+- Prefer fewer, stronger examples with clear reuse across deliverables over many unrelated examples that weaken course identity.`);
+
+  lines.push(`A-QUALITY BENCHMARK (apply to all generated content):
+- Every deliverable must make the course arc visible: where this item sits, what students produce, how feedback is used, and how it prepares the next assessed task.
+- Each lesson-level item must include a concrete "what strong work looks like" signal: observable criteria, a mini-checklist, a model move, or an anchor example tied to that exact lesson.
+- Do not rely on generic "course site" or "posted materials" references. When a resource is unknown, name the instructor-prep action or the course-relative artifact students should use.
+- Add accessibility and UDL guidance as task-specific alternatives that preserve the same criteria, not as repeated policy boilerplate.
+- Keep common policies concise and avoid repeating the same wording in every item. Use shared course-level guidance when the schema permits, then make each lesson item specific.`);
 
   if (featureId === 'courseFaq') {
     const rawCount = Number(config?.questionsPerLesson);
@@ -187,6 +211,9 @@ function buildConfigInstructions(featureId, config, pedagogicalMode = 'lecture',
   if (!config || Object.keys(config).length === 0) return lines.join('\n');
 
   if (featureId === 'lessonPlans') {
+    lines.push(
+      'LESSON PLAN A-QUALITY: Include a course-level assessment progression map or equivalent top-level overview when the JSON schema permits it. Each lesson must state the weekly artifact, grading/use criteria, instructor prep materials, and one case or dataset connection that fits the shared course throughline.',
+    );
     if (config.sessionLength)
       lines.push(
         `Each class session is ${config.sessionLength} — adjust ALL time estimates in the outline to match this duration exactly.`,
@@ -249,6 +276,12 @@ function buildConfigInstructions(featureId, config, pedagogicalMode = 'lecture',
     if (config.difficultyDist === 'Mostly Medium/Hard')
       lines.push('Weight questions toward Medium and Hard difficulty — at most 1 Easy question per lesson.');
   } else if (featureId === 'discussions') {
+    lines.push(
+      'DISCUSSION A-QUALITY: Separate student-facing prompts from instructor-only facilitation. Each discussion must include required evidence, a visible time/post structure, 3-4 observable scoring criteria, and a rubric bridge that names method reasoning, evidence use, peer response, and revision or limitation awareness.',
+    );
+    lines.push(
+      'DISCUSSION LANGUAGE QUALITY: Use polished English only. Do not emit corrupted mixed-language fragments, encoding artifacts, or stray non-English words unless the course map explicitly asks for multilingual content.',
+    );
     if (config.formatPreference && config.formatPreference !== 'Any')
       lines.push(`Use "${config.formatPreference}" as the discussion format for ALL lessons.`);
     if (config.includeFacilitation === false)
@@ -256,6 +289,15 @@ function buildConfigInstructions(featureId, config, pedagogicalMode = 'lecture',
     if (config.includeEquity === false)
       lines.push('Do NOT include the "eq" (equityConsiderations) field — omit it entirely.');
   } else if (featureId === 'assignments') {
+    lines.push(
+      'ASSIGNMENT SEQUENCE COHERENCE: Build assignments as a connected course portfolio. Reuse a consistent domain, dataset family, scenario thread, or client/project context across assignments unless the course map explicitly provides a different case sequence. Do not create a tour of unrelated social-science contexts.',
+    );
+    lines.push(
+      'ASSIGNMENT OUTCOME WORDING: When referencing course outcomes, include the full outcome text or a concise paraphrase, not only labels such as LO1 or Objective 2.',
+    );
+    lines.push(
+      'ASSIGNMENT SCHEMA STABILITY: Every assignment must keep the same field meanings and include accessibilityAndUDL, selfAssessmentRubric, and feedbackLoop when those fields are in the schema. Do not introduce alternate names for timing, submission rules, or instructor notes in later chunks.',
+    );
     if (config.assignmentTypes?.length > 0 && config.assignmentTypes.length < 6) {
       lines.push(
         `Only create assignments of these types: ${config.assignmentTypes.join(', ')}. Do not create other assignment types.`,
@@ -266,6 +308,12 @@ function buildConfigInstructions(featureId, config, pedagogicalMode = 'lecture',
     if (config.includeIntegrity === false)
       lines.push('Do NOT include the "ai" (academicIntegrityStatement) field — omit it entirely.');
   } else if (featureId === 'studyGuides') {
+    lines.push(
+      'STUDY GUIDE A-QUALITY: Add a course-level workflow or equivalent overview when the JSON schema permits it. Each practice activity must name expected output, estimated time, success criteria, and the graded artifact or portfolio skill it supports.',
+    );
+    lines.push(
+      'STUDY GUIDE QUESTION QUALITY: Never duplicate review questions within the same guide. Vary Bloom levels and make every hint point to a reasoning strategy, not the answer.',
+    );
     if (config.keyTermsCount)
       lines.push(`Include exactly ${config.keyTermsCount} key terms per guide — each with definition AND example.`);
     if (config.includeMisconceptions === false)
@@ -274,6 +322,9 @@ function buildConfigInstructions(featureId, config, pedagogicalMode = 'lecture',
     if (config.includePractice === false)
       lines.push('Do NOT include the "pa" (practiceActivities) field — omit it entirely.');
   } else if (featureId === 'courseFaq') {
+    lines.push(
+      'COURSE FAQ A-QUALITY: Include a concise top-level FAQ guide or equivalent navigation overview when the JSON schema permits it. Each weekly FAQ must include at least one concrete success checklist or "what strong work looks like" cue tied to the assessment or discussion for that lesson.',
+    );
     if (config.categories?.length > 0 && config.categories.length < 5) {
       lines.push(`Use only these Course FAQ categories in the "ca" field: ${config.categories.join(', ')}.`);
     }
@@ -292,6 +343,12 @@ function buildConfigInstructions(featureId, config, pedagogicalMode = 'lecture',
       lines.push('Questions may use neutral student-facing wording rather than first-person phrasing.');
     }
   } else if (featureId === 'syllabus') {
+    lines.push(
+      'SYLLABUS A-QUALITY: Add a concise course-at-a-glance table and an assessment calendar when the JSON schema permits it. Weekly schedule entries must include in-class activity timing, expected student output, feedback use, success criteria, and the specific outcome or requirement they support.',
+    );
+    lines.push(
+      'SYLLABUS PLACEHOLDER POLICY: If local instructor, room, support link, or institutional details are unknown, use finished course-relative wording or omit optional local fields. Do not make unknown local facts look like unresolved publication placeholders.',
+    );
     if (config.citationStyle)
       lines.push(
         `Use ${config.citationStyle} citation format throughout the syllabus (reference list, in-text citations, and all examples).`,

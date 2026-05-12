@@ -16,6 +16,11 @@ Use abbreviated JSON keys to minimize output size. Each key's meaning is describ
 
 Return a JSON object with exactly this structure:
 {
+  "studyGuideWorkflow": {
+    "courseArc": "string — how the guides build from foundational concepts to final evidence-based recommendation work",
+    "recommendedRoutine": "string — how students should use each guide before class, after class, and before assessment",
+    "assessmentConnection": "string — how guide tasks connect to quizzes, assignments, rubrics, discussions, or the final product"
+  },
   "guides": [
     {
       "lt": "string — full lesson title",
@@ -53,7 +58,7 @@ Return a JSON object with exactly this structure:
         "ce": "string — what students typically lose points on for this topic and how to avoid it",
         "rv": "string — recommended study approach (e.g., 'Complete the practice problems before reading the solutions; use spaced retrieval over 3 days')"
       },
-      "sr": "string — 2-3 sentences pointing students to relevant support for this topic: office hours, tutoring availability, study group suggestions, relevant library resources, and writing center services (QM 7.3)",
+      "sr": "string — 2-3 complete sentences pointing students to relevant support for this topic: office hours, tutoring availability, study group suggestions, relevant library resources, writing center services, and one accessibility/alternate-format support (QM 7.3). Never output only a resource list fragment.",
       "tg": ["string — 5-8 keywords for LMS discoverability: include key terms, topic area, study strategies, and related lesson titles"]
     }
   ]
@@ -61,15 +66,23 @@ Return a JSON object with exactly this structure:
 
 REQUIREMENTS:
 - One guide per lesson
+- Include studyGuideWorkflow once at the top level. It should orient students to the cumulative course arc and how the guides support graded work.
 - summary must be 2-3 full paragraphs (not bullet points) — written in clear academic prose
 - 8–12 key terms per guide, with BOTH definition AND example for each term
 - conceptConnections must include at least one cross-lesson link to prior or upcoming material
 - 2–4 commonMisconceptions — these are the highest-value exam targets; be specific
 - 4–6 reviewQuestions spanning at least 3 different Bloom's levels
 - Each reviewQuestions object must contain exactly one q/bl/ht trio. Never use q2, bl2, ht2, question2, or multiple questions inside one object.
+- Never duplicate reviewQuestions within the same guide. Vary stems, Bloom levels, and reasoning strategies.
 - practiceActivities must involve active retrieval (not passive re-reading suggestions)
-- examPrep.keyTopicsToKnow should reflect what an instructor would actually test
+- Each practiceActivities item must name the expected student output, estimated time, a quick self-check criterion, and the graded artifact or course skill it supports.
+- examPrep.keyTopicsToKnow should reflect what an instructor would actually test. examPrep.commonErrors must name specific mistakes and how to avoid them.
 - QM ALIGNMENT: Include a supportResources field per guide pointing students to relevant help: office hours, tutoring, study groups, writing center — so students know where to turn when stuck (QM 7.3). Reference specific instructional materials (readings, videos, slides) for each key concept, making the relationship between study materials and learning activities clear (QM 4.2).
+- ACCESSIBILITY: Include plain-language study advice and at least one alternate study path for students who need audio, visual, text-only, low-bandwidth, or screen-reader-friendly materials. Put this guidance in supportResources or practiceActivities without adding new schema fields.
+- INSTRUCTOR USE: Include timing, completion-check, or debrief cues inside practiceActivities or examPrep so an instructor can assign the guide without writing a separate implementation note.
+- ASSESSMENT BRIDGE: Include mini-rubric language in practiceActivities or examPrep so instructors can tell what counts as complete, accurate, and strong work.
+- SUPPORT RESOURCES: supportResources must be a finished paragraph, not a comma-separated list copied from supporting resources.
+- SCHEMA STABILITY: Do not duplicate object keys. Do not combine two review questions into one object. Do not emit nested rq, q2, bl2, ht2, or repeated misconception keys.
 - COGNITIVE LOAD: Limit sentences to 20 words maximum. Paragraphs to 5 sentences maximum. Use whitespace and clear section breaks to prevent wall-of-text fatigue.
 - HUMAN READABILITY: Write summaries, definitions, and review questions in varied, natural academic prose. Do not use the same sentence templates across lessons. Each guide should feel like it was written specifically for that lesson.
 - HEADER FORMAT: Use this exact format for the "lt" (lessonTitle) field: "Lesson {N}: {Title}" (e.g. "Lesson 3: Social Work Values & Ethics"). Do NOT include week numbers, parenthetical formats, or alternative conventions. Keep headers consistent across all items.

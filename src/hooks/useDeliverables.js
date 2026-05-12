@@ -31,8 +31,11 @@ import {
   normalizeAssignmentLessonAlignment,
   normalizeCourseFaqCategories,
   normalizeCourseFaqQuestionCounts,
+  normalizeDiscussionPromptFields,
   normalizeLessonPlanPublishability,
   normalizeQuizBankIndex,
+  normalizeQuizBankPointTotals,
+  normalizeQuizBankPublishability,
   normalizeQuizBankQuestions,
   normalizeQuizBankRationales,
   normalizeRubricCoverage,
@@ -40,7 +43,9 @@ import {
   normalizeSlideDeckAccessibility,
   normalizeSlideDeckSpeakerNotes,
   normalizeStudyGuideQuestions,
+  normalizeStudyGuideSupport,
   normalizeSyllabusPublishability,
+  validateDeliverableGeneration,
 } from '../lib/deliverablePostProcess';
 
 // ── Post-process scoped deliverable output to fix lesson/week numbering ──
@@ -555,10 +560,37 @@ export default function useDeliverables({
               return;
             }
 
+            let parsedForChunk = parsed;
+            if (isWholeCourse && featureId === 'syllabus') {
+              const normalizedSyllabus = normalizeSyllabusPublishability(parsedForChunk);
+              parsedForChunk = normalizedSyllabus.data;
+              if (normalizedSyllabus.patchedFields > 0) {
+                appendLog(
+                  `⚠ ${getFeatureLabel(featureId)}: replaced ${normalizedSyllabus.patchedFields} unresolved local-fact placeholder field(s)`,
+                  'warn',
+                );
+              }
+            }
+
+            const initialValidation = isWholeCourse
+              ? validateDeliverableGeneration(featureId, parsedForChunk, {
+                  expectedLessonCount: lessonIndices.length,
+                  config,
+                })
+              : { valid: true, blockers: [] };
+            if (!initialValidation.valid) {
+              appendLog(
+                `⚠ ${chunkLabel}: ${initialValidation.blockers.join(' ')} Retrying instead of marking complete.`,
+                'warn',
+              );
+              warn(`${chunkLabel}: rejected invalid whole-course output`, initialValidation);
+              return;
+            }
+
             // Store chunk result
-            chunkResults[featureId].set(chunkIndex, parsed);
-            const _k = getArrayKey(featureId, parsed);
-            const _items = _k ? parsed[_k] || [] : [];
+            chunkResults[featureId].set(chunkIndex, parsedForChunk);
+            const _k = getArrayKey(featureId, parsedForChunk);
+            const _items = _k ? parsedForChunk[_k] || [] : [];
             log(
               `✓ ${chunkLabel}: parsed ${_items.length} items`,
               _items.map((it) => ({
@@ -574,17 +606,7 @@ export default function useDeliverables({
 
             // For whole-course features, dispatch done immediately
             if (isWholeCourse) {
-              let finalData = patchScopeNumbering(parsed, featureId, chunkScope, courseMap);
-              if (featureId === 'syllabus') {
-                const normalizedSyllabus = normalizeSyllabusPublishability(finalData);
-                finalData = normalizedSyllabus.data;
-                if (normalizedSyllabus.patchedFields > 0) {
-                  appendLog(
-                    `⚠ ${getFeatureLabel(featureId)}: replaced ${normalizedSyllabus.patchedFields} unresolved local-fact placeholder field(s)`,
-                    'warn',
-                  );
-                }
-              }
+              const finalData = patchScopeNumbering(parsedForChunk, featureId, chunkScope, courseMap);
               dispatch(actions.setDeliverableDone(featureId, finalData));
               try {
                 const quality = scoreHeuristic(featureId, finalData);
@@ -701,9 +723,134 @@ export default function useDeliverables({
 
         const chunks = chunkResults[fid];
         const featureTasks = tasks.filter((t) => t.featureId === fid);
+        const expectedCount = lessonIndices.length;
 
-        // Whole-course features were already dispatched as done
-        if (featureTasks.length === 1 && featureTasks[0].isWholeCourse) {
+        const isWholeCourseFeature = featureTasks.length === 1 && featureTasks[0].isWholeCourse;
+
+        // Whole-course features still need validation. In particular, rubrics can
+        // parse as "{}" and would otherwise be marked done before any retry guard.
+        if (isWholeCourseFeature) {
+          const label = getFeatureLabel(fid);
+          const config = deliverableConfigRef.current?.[fid] || {};
+          let finalData = mergeChunkResults(fid, chunks);
+          let validation = validateDeliverableGeneration(fid, finalData, {
+            expectedLessonCount: expectedCount,
+            config,
+          });
+          let retryRound = 0;
+
+          while (!validation.valid && retryRound < MAX_RETRY_ROUNDS) {
+            retryRound++;
+            appendLog(
+              `⚠ ${label}: ${validation.blockers.join(' ')} Retrying whole deliverable (round ${retryRound}/${MAX_RETRY_ROUNDS})`,
+              'warn',
+            );
+
+            const prompts = getDeliverablePrompt(
+              fid,
+              courseMap,
+              null,
+              config,
+              pedagogicalModeRef.current,
+              examChangesRef.current,
+              null,
+              columnsRef.current,
+              deliverableConfigRef.current,
+            );
+            if (!prompts) break;
+
+            const controller = new AbortController();
+            const retryAbortKey = `${fid}:wholeRetry${retryRound}`;
+            abortMapRef.current.set(retryAbortKey, controller);
+            try {
+              let fullText = '';
+              const result = await streamProvider(provider, apiKey, modelId, prompts.systemPrompt, prompts.userPrompt, {
+                maxOutputTokens: getFeatureOutputBudget(fid, maxOutputTokens),
+                onChunk: (t) => {
+                  fullText = t;
+                },
+                maxRetries: 3,
+                signal: controller.signal,
+              });
+              const text = result?.fullText || fullText;
+              const parsed = expandKeys(fid, parsePartialJSON(text));
+              logIfRecovered(fid, `(whole-course retry ${retryRound})`);
+              if (parsed) {
+                let candidate = parsed;
+                if (fid === 'syllabus') {
+                  candidate = normalizeSyllabusPublishability(candidate).data;
+                }
+                const candidateValidation = validateDeliverableGeneration(fid, candidate, {
+                  expectedLessonCount: expectedCount,
+                  config,
+                });
+                if (candidateValidation.valid) {
+                  chunkResults[fid].clear();
+                  chunkResults[fid].set(1000 + retryRound, candidate);
+                  finalData = candidate;
+                  validation = candidateValidation;
+                  appendLog(`✓ ${label}: whole-deliverable retry produced a valid result`, 'done');
+                  break;
+                }
+                validation = candidateValidation;
+              }
+            } catch (err) {
+              if (err.name !== 'AbortError') {
+                appendLog(`✗ ${label}: whole-deliverable retry failed: ${err.message}`, 'error');
+              }
+            } finally {
+              abortMapRef.current.delete(retryAbortKey);
+            }
+          }
+
+          if (!validation.valid) {
+            dispatch(actions.setDeliverableError(fid, validation.blockers.join(' ')));
+            setProgress((prev) => ({
+              ...prev,
+              perFeature: {
+                ...prev.perFeature,
+                [fid]: { ...prev.perFeature[fid], status: 'error' },
+              },
+            }));
+            continue;
+          }
+
+          if (fid === 'rubrics') {
+            const normalizedRubrics = normalizeRubricCoverage(finalData, courseMap);
+            finalData = normalizedRubrics.data;
+
+            if (normalizedRubrics.addedRubrics > 0) {
+              appendLog(
+                `⚠ ${label}: added fallback rubric coverage for lesson(s) ${normalizedRubrics.missingLessonNumbers.join(', ')}`,
+                'warn',
+              );
+            }
+
+            const normalizedRubricSupport = normalizeRubricSupport(finalData);
+            finalData = normalizedRubricSupport.data;
+
+            if (
+              normalizedRubricSupport.normalizedSupportFields > 0 ||
+              normalizedRubricSupport.patchedCriterionPoints > 0
+            ) {
+              appendLog(
+                `⚠ ${label}: normalized rubric support fields and criterion point totals before export`,
+                'warn',
+              );
+            }
+          }
+
+          if (fid === 'syllabus') {
+            finalData = normalizeSyllabusPublishability(finalData).data;
+          }
+
+          dispatch(actions.setDeliverableDone(fid, finalData));
+          try {
+            const quality = scoreHeuristic(fid, finalData);
+            setQualityScores((prev) => ({ ...prev, [fid]: quality }));
+          } catch {
+            /* ignore */
+          }
           const delivEndTime = Date.now();
           setDelivTimings((prev) => ({
             ...prev,
@@ -745,7 +892,6 @@ export default function useDeliverables({
         }
 
         // Completeness check + retry
-        const expectedCount = lessonIndices.length;
         const arrayKey = getArrayKey(fid, merged);
         let mergedArr = arrayKey ? merged[arrayKey] || [] : [];
         log(
@@ -849,6 +995,36 @@ export default function useDeliverables({
             );
             appendLog(
               `⚠ ${label}: filled ${normalizedQuiz.patchedExplanations} explanation(s) and ${normalizedQuiz.patchedDistractorRationales} distractor rationale(s) from existing answer data`,
+              'warn',
+            );
+          }
+
+          const normalizedQuizPoints = normalizeQuizBankPointTotals(merged);
+          merged = normalizedQuizPoints.data;
+          mergedArr = normalizedQuizPoints.arrayKey ? merged[normalizedQuizPoints.arrayKey] || [] : mergedArr;
+          if (
+            normalizedQuizPoints.patchedQuestionPoints > 0 ||
+            normalizedQuizPoints.patchedQuizTotals > 0 ||
+            normalizedQuizPoints.patchedPointPlans > 0
+          ) {
+            appendLog(
+              `⚠ ${getFeatureLabel(fid)}: repaired quiz point values, total points, or point-plan math`,
+              'warn',
+            );
+          }
+
+          const normalizedQuizPublishability = normalizeQuizBankPublishability(merged);
+          merged = normalizedQuizPublishability.data;
+          mergedArr = normalizedQuizPublishability.arrayKey
+            ? merged[normalizedQuizPublishability.arrayKey] || []
+            : mergedArr;
+          if (
+            normalizedQuizPublishability.removedNoiseFields > 0 ||
+            normalizedQuizPublishability.normalizedAnswerKeys > 0 ||
+            normalizedQuizPublishability.patchedObjectiveAlignment > 0
+          ) {
+            appendLog(
+              `⚠ ${getFeatureLabel(fid)}: cleaned quiz helper fields, answer keys, and objective alignment metadata`,
               'warn',
             );
           }
@@ -1322,9 +1498,14 @@ export default function useDeliverables({
           merged = normalizedLessonPlans.data;
           mergedArr = normalizedLessonPlans.arrayKey ? merged[normalizedLessonPlans.arrayKey] || [] : mergedArr;
 
-          if (normalizedLessonPlans.patchedReviewDates > 0 || normalizedLessonPlans.patchedOwnerGroups > 0) {
+          if (
+            normalizedLessonPlans.patchedReviewDates > 0 ||
+            normalizedLessonPlans.patchedOwnerGroups > 0 ||
+            normalizedLessonPlans.patchedClosures > 0 ||
+            normalizedLessonPlans.patchedTags > 0
+          ) {
             appendLog(
-              `⚠ ${getFeatureLabel(fid)}: replaced invented review/ownership placeholders with instructor-confirmed publishing guidance`,
+              `⚠ ${getFeatureLabel(fid)}: cleaned publishing metadata, closure fragments, and tool-only tags`,
               'warn',
             );
           }
@@ -1338,6 +1519,41 @@ export default function useDeliverables({
           if (normalizedStudyGuides.splitCombinedQuestions > 0) {
             appendLog(
               `⚠ ${getFeatureLabel(fid)}: split ${normalizedStudyGuides.splitCombinedQuestions} combined review question(s) before export`,
+              'warn',
+            );
+          }
+          if (normalizedStudyGuides.deduplicatedQuestions > 0) {
+            appendLog(
+              `⚠ ${getFeatureLabel(fid)}: replaced ${normalizedStudyGuides.deduplicatedQuestions} duplicate review question(s) before export`,
+              'warn',
+            );
+          }
+
+          const normalizedStudySupport = normalizeStudyGuideSupport(merged);
+          merged = normalizedStudySupport.data;
+          mergedArr = normalizedStudySupport.arrayKey ? merged[normalizedStudySupport.arrayKey] || [] : mergedArr;
+          if (normalizedStudySupport.patchedSupportGuidance > 0) {
+            appendLog(
+              `⚠ ${getFeatureLabel(fid)}: expanded ${normalizedStudySupport.patchedSupportGuidance} resource fragment(s) into study support guidance`,
+              'warn',
+            );
+          }
+        }
+
+        if (fid === 'discussions' && mergedArr.length > 0) {
+          const normalizedDiscussionFields = normalizeDiscussionPromptFields(merged);
+          merged = normalizedDiscussionFields.data;
+          mergedArr = normalizedDiscussionFields.arrayKey
+            ? merged[normalizedDiscussionFields.arrayKey] || []
+            : mergedArr;
+          if (
+            normalizedDiscussionFields.patchedCriteria > 0 ||
+            normalizedDiscussionFields.patchedGuidelines > 0 ||
+            normalizedDiscussionFields.patchedEquity > 0 ||
+            normalizedDiscussionFields.patchedLanguageArtifacts > 0
+          ) {
+            appendLog(
+              `⚠ ${getFeatureLabel(fid)}: repaired criteria, equity, guideline, or language artifact fields`,
               'warn',
             );
           }
@@ -1407,6 +1623,30 @@ export default function useDeliverables({
             );
           }
 
+          const normalizedQuizPoints = normalizeQuizBankPointTotals(merged);
+          merged = normalizedQuizPoints.data;
+          mergedArr = normalizedQuizPoints.arrayKey ? merged[normalizedQuizPoints.arrayKey] || [] : mergedArr;
+          if (
+            normalizedQuizPoints.patchedQuestionPoints > 0 ||
+            normalizedQuizPoints.patchedQuizTotals > 0 ||
+            normalizedQuizPoints.patchedPointPlans > 0
+          ) {
+            appendLog(`⚠ ${getFeatureLabel(fid)}: repaired quiz point math after retry`, 'warn');
+          }
+
+          const normalizedQuizPublishability = normalizeQuizBankPublishability(merged);
+          merged = normalizedQuizPublishability.data;
+          mergedArr = normalizedQuizPublishability.arrayKey
+            ? merged[normalizedQuizPublishability.arrayKey] || []
+            : mergedArr;
+          if (
+            normalizedQuizPublishability.removedNoiseFields > 0 ||
+            normalizedQuizPublishability.normalizedAnswerKeys > 0 ||
+            normalizedQuizPublishability.patchedObjectiveAlignment > 0
+          ) {
+            appendLog(`⚠ ${getFeatureLabel(fid)}: cleaned quiz publishability issues after retry`, 'warn');
+          }
+
           const normalizedQuizIndex = normalizeQuizBankIndex(merged);
           merged = normalizedQuizIndex.data;
           mergedArr = normalizedQuizIndex.arrayKey ? merged[normalizedQuizIndex.arrayKey] || [] : mergedArr;
@@ -1463,6 +1703,23 @@ export default function useDeliverables({
             : patchScopeNumbering(merged, fid, scopeIndices, courseMap);
 
         const config = deliverableConfigRef.current?.[fid] || {};
+        const finalValidation = validateDeliverableGeneration(fid, finalData, {
+          expectedLessonCount: expectedCount,
+          config,
+        });
+        if (!finalValidation.valid) {
+          appendLog(`✗ ${getFeatureLabel(fid)}: ${finalValidation.blockers.join(' ')}`, 'error');
+          dispatch(actions.setDeliverableError(fid, finalValidation.blockers.join(' ')));
+          setProgress((prev) => ({
+            ...prev,
+            perFeature: {
+              ...prev.perFeature,
+              [fid]: { ...prev.perFeature[fid], status: 'error' },
+            },
+          }));
+          continue;
+        }
+
         if (fid === 'slideDecks' && provider === 'openai' && config.generateAiImages === true && apiKey) {
           const imageController = new AbortController();
           const imageAbortKey = `${fid}:images`;

@@ -9,7 +9,7 @@ export default {
 
 Your slides follow the ASSERTION-EVIDENCE model: every content slide title is a FULL DECLARATIVE SENTENCE stating the key claim (the "assertion"), and the body provides visual/textual evidence supporting it. This is proven to increase student learning by 15-20% compared to traditional topic-phrase titles (Alley & Neeley, 2005).
 
-Speaker notes are written as natural instructor scripts — they sound like a confident professor talking to their class, not a template. Return ONLY valid JSON, no markdown fences.`,
+Speaker notes are concise teaching notes — they sound like a confident professor's usable cue sheet, not a full transcript or template. Return ONLY valid JSON, no markdown fences.`,
 
   user: (
     cm,
@@ -34,7 +34,7 @@ Return a JSON object with exactly this structure:
           "t": "string — for content/bridge/example slides: MUST be a full declarative sentence (assertion). Examples: 'Dopamine regulates motivation through reward prediction errors', 'Three factors determine housing policy effectiveness'. For keyTerm slides: use the term or concept itself as the title (e.g. 'Gini Impurity', 'Backpropagation') — the definition goes in the first bullet. For title/agenda/objectives/activity/discussion/summary/closing slides: descriptive label is acceptable.",
           "ty": "string — MUST be one of: 'title' | 'agenda' | 'objectives' | 'bridge' | 'content' | 'activity' | 'discussion' | 'example' | 'keyTerm' | 'summary' | 'closing'",
           "bu": ["string"] — max 4 concise bullets for content slides; title slides use 1 subtitle; activity/discussion 1-3 steps; summary recaps objectives as 'Can you now...?' questions; keyTerm slides: first bullet is the term/definition, remaining bullets explain it,
-          "no": "string — full instructor script paragraph (minimum 4 sentences). Must include: (1) the main point in your own words, (2) a concrete real-world example or analogy, (3) an anticipated student question with your response, (4) TRANSITION: [explicit cue to next slide]. Each slide's notes must feel unique — never use the same phrasing patterns across slides.",
+          "no": "string — concise instructor note, 2-4 sentences. Include the main point, one concrete example or likely misconception, and a short transition cue. Do not write a full transcript or repeat formulaic 'TRANSITION:' language on every slide.",
           "vi": {
             "k": "string — visual kind: 'none' | 'diagram' | 'chart' | 'image' | 'table' | 'code' | 'equation'. Use 'none' ONLY for title/agenda/objectives/closing slides; every content/example/keyTerm slide MUST have a visual (k != 'none').",
             "d": "string — 1-sentence instructor-facing description of what the visual should show (e.g. 'Venn diagram showing supervised vs unsupervised overlap on labeled-data axis', 'Bar chart: accuracy of 3 models on test set')",
@@ -48,7 +48,7 @@ Return a JSON object with exactly this structure:
       ],
       "sg": {
         "accessibilityStandards": "string — how the deck remains usable with screen readers, captions, keyboard navigation, and text-only review",
-        "cumulativeAssessmentMap": "string — how objectives, practice slides, and closing prompts prepare students for related quizzes, assignments, or exams"
+        "cumulativeAssessmentMap": "string — explicit assessment map: what students practice in this deck, what they submit or prepare next, and which rubric/criteria the deck supports"
       },
       "tg": ["string — 5-8 keywords for LMS discoverability: include topic synonyms, key concepts, and activity types featured in this deck"]
     }
@@ -92,10 +92,14 @@ TIMING (every slide):
 - Set "ti" as a concrete minute estimate ('1 min', '3 min', '5 min', etc).
 - The sum across all slides should approximately match the session length implied by the agenda.
 
+ASSESSMENT MAP:
+- Every deck's sg.cumulativeAssessmentMap must name the related weekly assessment, expected student output, and 1-2 success criteria.
+- Closing slides must state what students submit or prepare next, the expected scope/length when derivable, and how feedback carries forward.
+
 SPEAKER NOTES:
-- ≥4 sentences per slide. Include a concrete example or analogy (not restated bullets) + an anticipated student question or common misconception.
-- Last sentence MUST be "TRANSITION: [cue to next slide]".
-- Vary language — never start two consecutive notes the same way. Sound like a real professor, not a textbook.
+- 2-4 concise sentences per slide. Include a concrete example, likely misconception, or facilitation cue, not a full lecture script.
+- Use transition cues naturally; do not repeat the exact "TRANSITION:" pattern across every slide.
+- Vary language — never start two consecutive notes the same way. Sound like a real professor's cue sheet, not a textbook.
 
 OVERALL:
 - 12–16 slides per deck. Agenda bullets show timing ("Case study (10 min)"). Summary returns to objectives content.

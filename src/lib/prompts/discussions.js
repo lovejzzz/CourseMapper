@@ -16,6 +16,11 @@ Use abbreviated JSON keys to minimize output size. Each key's meaning is describ
 
 Return a JSON object with exactly this structure:
 {
+  "discussionDesign": {
+    "courseThroughline": "string — how discussions build the same research-methods arc across the course",
+    "sharedParticipationNorms": "string — concise reusable norms for evidence use, peer response, respectful disagreement, accessibility, and deadlines",
+    "scoringApproach": "string — compact explanation of how discussion quality is judged across weeks"
+  },
   "discussions": [
     {
       "lt": "string — full lesson title",
@@ -49,13 +54,21 @@ Return a JSON object with exactly this structure:
 
 REQUIREMENTS:
 - One discussion per lesson
+- Include discussionDesign once at the top level. Keep common participation rules there so weekly prompts can stay concise and lesson-specific.
 - Prompts MUST target Bloom's levels 4-6 — not recall or comprehension
 - The main prompt must have no single correct answer — multiple defensible positions are possible
 - followUpProbes must be substantive Socratic questions, not just "Can you say more about that?"
 - evaluationCriteria must be specific and shareable with students before the discussion
+- evaluationCriteria must name observable learning evidence, not just participation. Include evidence use, method reasoning, peer response quality, and one limitation/revision move.
+- Every prompt must separate student-facing task language from instructor facilitation notes. Do not let grading criteria dominate or obscure the actual question students answer.
+- Every prompt must name the exact artifact locator students should use when relevant, such as row numbers, excerpt labels, codebook lines, variable names, or memo sections.
 - equityConsiderations must be concrete, not generic ("allow think time" → specify duration)
+- Never swap fields: "ec" must contain assessment criteria, "eq" must contain equity/access guidance, "gl" must contain complete student participation instructions, and "tg" must contain searchable tags. Do not put equity language in "ec" or tag lists in "gl".
 - FORMAT VARIETY (CRITICAL): Use at least 6 DISTINCT discussion formats across all lessons. Choose from: 'Socratic Seminar', 'Think-Pair-Share', 'Fishbowl', 'Jigsaw', 'Gallery Walk', 'Debate / Structured Academic Controversy', 'Case-Based Discussion', 'Role Play / Simulation', 'Small Group then Share-Out', 'Whole-Class Discussion', 'Asynchronous Online'. Do NOT repeat the same format for more than 2 consecutive lessons. Rotate formats to keep student engagement high.
 - QM ALIGNMENT: Learner interaction requirements must be explicit: minimum number of posts, response expectations, substantive reply criteria, and deadlines (QM 5.4). Discussion activities must provide genuine opportunities for learner-to-learner interaction that supports active learning — not just posting and forgetting (QM 5.2).
 - HUMAN READABILITY: Each discussion prompt and its supporting text should feel unique. Vary the opening hooks, probe structures, and facilitation advice. Do not use the same sentence patterns for every lesson.
+- LANGUAGE POLISH: Output polished English only. Remove corrupted mixed-language fragments, encoding artifacts, and stray template language before returning JSON.
+- LATE-WEEK DEPTH: Lessons near the end of the course must be at least as complete and specific as early lessons. Do not compress Lessons 9-12. Each late-week discussion needs full context, probes, criteria, equity/access guidance, and student-facing participation instructions.
+- BROAD SOCIAL SCIENCE FIT: Use examples that work across social sciences unless the course map explicitly narrows the discipline. Avoid over-centering one field such as social work when the course title is broader.
 - Return ONLY the JSON object, no prose, no markdown`,
 };
