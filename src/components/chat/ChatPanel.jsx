@@ -7,6 +7,7 @@ import useChatRouter from './useChatRouter';
 import ExamReview from '../ExamReview';
 import { executeAction } from '../../lib/agentActions';
 import { resolveLabel } from './constants';
+import { evaluateWorkspaceReadiness, repairWorkspaceReadiness } from '../../lib/deliverableReadiness';
 
 function activeTabLabel(activeTab) {
   if (!activeTab) return 'Course Map';
@@ -70,6 +71,10 @@ export default function ChatPanel({
   onRetryExamine,
   // Deliverable state
   deliverables,
+  selectedFeatures,
+  columns,
+  deliverableConfig,
+  lessonScope,
   delivProgress,
   currentDelivFeatures,
   isDelivGenerating,
@@ -157,6 +162,10 @@ export default function ChatPanel({
     onMessagesChange: onChatHistoryChange,
     // Agent params
     deliverables,
+    selectedFeatures,
+    columns,
+    deliverableConfig,
+    lessonScope,
     executeAction: execAction,
     optimisticUpdate,
     delivUndoSnapshot,
@@ -187,6 +196,40 @@ export default function ChatPanel({
   const prevDelivGeneratingRef = useRef(isDelivGenerating);
   const proactiveReviewDoneRef = useRef(false);
   const autoReviewTimerRef = useRef(null);
+  const applyDeterministicReadinessRepairs = useCallback(() => {
+    if (!optimisticUpdate || chat.agentDryRun) return { changed: false, deliverables };
+    let result;
+    try {
+      result = repairWorkspaceReadiness({
+        courseMap,
+        deliverables,
+        selectedFeatures,
+        deliverableConfig,
+      });
+    } catch (err) {
+      console.warn('[CM Agent] Safe readiness repair skipped:', err);
+      return { changed: false, deliverables, error: err?.message || 'repair failed' };
+    }
+    if (!result.changed) return result;
+
+    result.repairs.forEach((repair) => {
+      const nextData = result.deliverables?.[repair.featureId]?.data;
+      const previousData = deliverables?.[repair.featureId]?.data;
+      if (!nextData) return;
+      if (previousData && delivUndoSnapshot) delivUndoSnapshot(repair.featureId, previousData);
+      optimisticUpdate(repair.featureId, nextData);
+    });
+
+    return result;
+  }, [
+    chat.agentDryRun,
+    courseMap,
+    deliverables,
+    selectedFeatures,
+    deliverableConfig,
+    optimisticUpdate,
+    delivUndoSnapshot,
+  ]);
   // If the user types and sends during the 2s delay, we cancel the auto-review
   // so we don't double-post a message on top of their own. Also keeps the
   // proactiveReviewDoneRef flipped so we don't re-schedule later.
@@ -212,13 +255,29 @@ export default function ChatPanel({
       const doneCount = deliverables ? Object.values(deliverables).filter((d) => d?.status === 'done').length : 0;
       if (doneCount >= 2) {
         proactiveReviewDoneRef.current = true;
+        const repairResult = applyDeterministicReadinessRepairs();
+        const repairedDeliverables = repairResult?.deliverables || deliverables;
+        const lessonFilter = lessonScope?.type === 'specific' ? lessonScope.indices : null;
+        const readiness = evaluateWorkspaceReadiness({
+          courseMap,
+          deliverables: repairedDeliverables,
+          selectedFeatures,
+          columns,
+          lessonFilter,
+        });
+        const repairNote =
+          repairResult?.changed && repairResult.repairs?.length
+            ? `Safe deterministic repairs already applied: ${repairResult.repairs
+                .map((repair) => `${repair.label}: ${repair.changes.join('; ')}`)
+                .join(' | ')}.`
+            : 'No deterministic readiness repair was needed before the agent review.';
         // Brief delay to let UI settle, then auto-review — but cancel if the
         // user beats us to the punch by sending their own message.
         autoReviewTimerRef.current = setTimeout(() => {
           autoReviewTimerRef.current = null;
           if (chat.isStreaming) return; // user already started something
           chat.send(
-            '[AUTO-REVIEW] Generation complete. Run validate_course, summarize the top issues found, and propose fixes as proposal cards. If no issues, confirm the course looks good in 1-2 sentences.',
+            `[AUTO-REVIEW] Generation complete. ${repairNote} Current readiness after safe repairs: ${readiness.status} with ${readiness.blockers.length} blocker(s) and ${readiness.warnings.length} warning(s). Before the user reviews or exports, run repair_package_readiness, then review_package_readiness and validate_course. Fix any remaining safe concrete problems directly with edit_deliverables. Only use proposal cards for pedagogical choices requiring instructor judgment. Finish with a concise readiness summary.`,
           );
         }, 2000);
       }

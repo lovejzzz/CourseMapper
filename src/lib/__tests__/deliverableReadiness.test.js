@@ -1,5 +1,5 @@
 import { describe, expect, it } from 'vitest';
-import { buildReadinessReport, evaluateWorkspaceReadiness } from '../deliverableReadiness';
+import { buildReadinessReport, evaluateWorkspaceReadiness, repairWorkspaceReadiness } from '../deliverableReadiness';
 
 const courseMap = {
   courseName: 'Readiness Course',
@@ -419,5 +419,69 @@ describe('evaluateWorkspaceReadiness', () => {
     expect(report).toContain('Warnings');
     expect(report).toContain('Quiz & Exam Bank');
     expect(report).toContain('fewer than 5 questions');
+  });
+});
+
+describe('repairWorkspaceReadiness', () => {
+  it('applies safe package repairs before user review', () => {
+    const deliverables = {
+      quizBank: {
+        status: 'done',
+        data: {
+          quizzes: [
+            {
+              lt: 'Lesson 1: Questions',
+              qs: [
+                {
+                  ty: 'mc',
+                  df: '',
+                  em: 0,
+                  q: 'Which question is strongest?',
+                  op: ['A. Broad question', 'B. Focused empirical question', 'C. Opinion prompt', 'D. Topic'],
+                  an: 'B',
+                  pt: 0,
+                  ex: '',
+                },
+              ],
+              tp: 99,
+            },
+          ],
+        },
+      },
+      courseFaq: {
+        status: 'done',
+        data: {
+          faqs: [
+            {
+              lt: 'Lesson 1: Questions',
+              qs: [
+                { q: 'How do I submit?', an: 'Submit in the LMS.', ca: 'This answer explains the LMS.' },
+                { q: 'What is a variable?', an: 'A variable is an observed concept.', ca: 'Concept Explanation' },
+                { q: 'Do I need software?', an: 'Use the assigned course tools.', ca: 'Course Logistics' },
+                { q: 'How is this graded?', an: 'Use the rubric.', ca: 'Assessment Prep' },
+              ],
+            },
+          ],
+        },
+      },
+    };
+
+    const result = repairWorkspaceReadiness({
+      courseMap,
+      selectedFeatures: ['quizBank', 'courseFaq'],
+      deliverables,
+      deliverableConfig: { courseFaq: { questionsPerLesson: 3 } },
+    });
+
+    expect(result.changed).toBe(true);
+    expect(result.repairedFeatureIds).toEqual(['quizBank', 'courseFaq']);
+    const quiz = result.deliverables.quizBank.data.quizzes[0];
+    expect(quiz.qs[0].ty).toBe('multiple_choice');
+    expect(quiz.qs[0].pt).toBe(2);
+    expect(quiz.tp).toBe(2);
+    expect(quiz.qs[0].ex).toContain('correct answer');
+    const faqQuestions = result.deliverables.courseFaq.data.faqs[0].qs;
+    expect(faqQuestions).toHaveLength(3);
+    expect(faqQuestions[0].ca).toBe('Technical Help');
   });
 });

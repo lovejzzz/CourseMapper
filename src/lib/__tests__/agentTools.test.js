@@ -132,6 +132,10 @@ beforeEach(() => {
       lessonPlans: { status: 'done', data: { lessonPlans: [{ lt: 'L1', ob: 'Obj' }] } },
     },
     executeAction: vi.fn(() => ({ success: true, message: 'Applied' })),
+    optimisticUpdate: vi.fn(),
+    setCurrentDeliverables: vi.fn((next) => {
+      mockCtx.deliverables = next;
+    }),
     snapshot: vi.fn(),
     uid: 'test-user',
   };
@@ -144,6 +148,8 @@ beforeEach(() => {
 describe('AGENT_TOOLS registry', () => {
   const EXPECTED_TOOLS = [
     'validate_course',
+    'review_package_readiness',
+    'repair_package_readiness',
     'check_grammar',
     'search_research',
     'read_deliverable',
@@ -163,9 +169,9 @@ describe('AGENT_TOOLS registry', () => {
     'run_tool',
   ];
 
-  it('contains exactly 18 tools', () => {
-    // 16 domain tools + create_tool / run_tool meta-tools for session macros.
-    expect(Object.keys(AGENT_TOOLS)).toHaveLength(18);
+  it('contains exactly 20 tools', () => {
+    // Domain tools + create_tool / run_tool meta-tools for session macros.
+    expect(Object.keys(AGENT_TOOLS)).toHaveLength(20);
   });
 
   it.each(EXPECTED_TOOLS)('has tool "%s" with description, params, and execute', (name) => {
@@ -275,6 +281,22 @@ describe('summarizeToolResult()', () => {
 
     it('handles zero counts', () => {
       expect(summarizeToolResult('validate_course', {})).toBe('0 errors, 0 warnings, 0 info');
+    });
+  });
+
+  describe('package readiness tools', () => {
+    it('formats readiness review status', () => {
+      expect(
+        summarizeToolResult('review_package_readiness', {
+          status: 'warnings',
+          blockerCount: 1,
+          warningCount: 2,
+        }),
+      ).toBe('warnings: 1 blockers, 2 warnings');
+    });
+
+    it('formats readiness repair counts', () => {
+      expect(summarizeToolResult('repair_package_readiness', { applied: 2, failed: 1 })).toBe('2 repaired, 1 failed');
     });
   });
 
@@ -473,6 +495,54 @@ describe('Tool execute: validate_course', () => {
       message: 'Misaligned objectives',
       lessonIndex: 0,
     });
+  });
+});
+
+describe('Tool execute: package readiness', () => {
+  it('reviews readiness with compact blocker and warning counts', async () => {
+    mockCtx.selectedFeatures = ['courseMap', 'quizBank'];
+    const result = await AGENT_TOOLS.review_package_readiness.execute({}, mockCtx);
+
+    expect(result.status).toBe('warnings');
+    expect(result.warningCount).toBeGreaterThan(0);
+    expect(result.checkedSections).toBe('2/2');
+    expect(result.warnings[0]).toHaveProperty('message');
+  });
+
+  it('repairs safe readiness issues through optimistic update', async () => {
+    mockCtx.deliverables = {
+      quizBank: {
+        status: 'done',
+        data: {
+          quizzes: [
+            {
+              lt: 'Lesson 1',
+              qs: [
+                {
+                  ty: 'mc',
+                  df: '',
+                  em: 0,
+                  q: 'Which option is strongest?',
+                  op: ['A. One', 'B. Two', 'C. Three', 'D. Four'],
+                  an: 'B',
+                  pt: 0,
+                  ex: '',
+                },
+              ],
+              tp: 99,
+            },
+          ],
+        },
+      },
+    };
+    mockCtx.selectedFeatures = ['quizBank'];
+
+    const result = await AGENT_TOOLS.repair_package_readiness.execute({}, mockCtx);
+
+    expect(result.applied).toBe(1);
+    expect(mockCtx.snapshot).toHaveBeenCalledWith('quizBank', expect.any(Object));
+    expect(mockCtx.optimisticUpdate).toHaveBeenCalledWith('quizBank', expect.any(Object));
+    expect(mockCtx.deliverables.quizBank.data.quizzes[0].tp).toBe(2);
   });
 });
 

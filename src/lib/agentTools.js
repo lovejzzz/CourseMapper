@@ -13,6 +13,7 @@ import { addMemory, searchMemories, deleteMemory, getMemories, MEMORY_CATEGORIES
 import { saveAgentPrefs } from './cloudStorage';
 import { getCustomDeliverable } from './customDeliverableLibrary';
 import { CREATE_TOOL_JSON_SCHEMA, RUN_TOOL_JSON_SCHEMA, runPlan } from './customAgentTools';
+import { evaluateWorkspaceReadiness, repairWorkspaceReadiness } from './deliverableReadiness';
 
 // ── Helpers ──────────────────────────────────────────────────────────────────
 
@@ -252,6 +253,93 @@ export const AGENT_TOOLS = {
           message: f.message,
           lessonIndex: f.lessonIndex,
         })),
+      };
+    },
+  },
+
+  review_package_readiness: {
+    description:
+      'Run export/package readiness checks across the selected course map and generated deliverables. Use before telling the user materials are ready.',
+    params: {},
+    execute: async (args, ctx) => {
+      const readiness = evaluateWorkspaceReadiness({
+        courseMap: ctx.courseMap,
+        deliverables: ctx.deliverables,
+        selectedFeatures: ctx.selectedFeatures,
+        columns: ctx.columns,
+        lessonFilter: ctx.lessonFilter,
+      });
+      const compact = (issue) => ({
+        severity: issue.severity,
+        featureId: issue.featureId,
+        label: issue.label,
+        message: issue.message,
+      });
+      return {
+        status: readiness.status,
+        isBlocked: readiness.isBlocked,
+        blockerCount: readiness.blockers.length,
+        warningCount: readiness.warnings.length,
+        issueCount: readiness.issues.length,
+        lessonCount: readiness.lessonCount,
+        checkedSections: `${readiness.doneFeatureCount}/${readiness.featureCount}`,
+        blockers: readiness.blockers.slice(0, 20).map(compact),
+        warnings: readiness.warnings.slice(0, 20).map(compact),
+      };
+    },
+  },
+
+  repair_package_readiness: {
+    description:
+      'Apply safe deterministic repairs to generated deliverables before user review/export: quiz scoring metadata, FAQ categories/counts, slide notes/accessibility, rubric coverage, study guide cleanup, and publishability placeholders. Does not make pedagogical judgment calls.',
+    params: {},
+    execute: async (args, ctx) => {
+      if (!ctx.optimisticUpdate) {
+        return { error: 'Deliverable update API is not available in this workspace.' };
+      }
+
+      const result = repairWorkspaceReadiness({
+        courseMap: ctx.courseMap,
+        deliverables: ctx.deliverables,
+        selectedFeatures: ctx.selectedFeatures,
+        deliverableConfig: ctx.deliverableConfig,
+      });
+
+      if (!result.changed) {
+        return { applied: 0, failed: 0, repairs: [], message: 'No safe deterministic package repairs were needed.' };
+      }
+
+      const details = [];
+      for (const repair of result.repairs) {
+        const entry = result.deliverables?.[repair.featureId];
+        if (!entry?.data) {
+          details.push({ featureId: repair.featureId, success: false, message: 'No repaired data produced.' });
+          continue;
+        }
+        const previous = ctx.deliverables?.[repair.featureId]?.data;
+        if (previous && ctx.snapshot) ctx.snapshot(repair.featureId, previous);
+        ctx.optimisticUpdate(repair.featureId, entry.data);
+        details.push({
+          featureId: repair.featureId,
+          label: repair.label,
+          success: true,
+          changes: repair.changes,
+          message: repair.message,
+        });
+      }
+
+      ctx.setCurrentDeliverables?.(result.deliverables);
+
+      const applied = details.filter((detail) => detail.success).length;
+      const failed = details.length - applied;
+      return {
+        applied,
+        failed,
+        repairs: details,
+        message:
+          applied > 0
+            ? `${applied} deliverable${applied === 1 ? '' : 's'} received safe readiness repairs.`
+            : 'No repairs were applied.',
       };
     },
   },
@@ -1173,6 +1261,8 @@ export const AGENT_TOOLS = {
 
 export const TOOL_LABELS = {
   validate_course: 'Validating course health',
+  review_package_readiness: 'Reviewing package readiness',
+  repair_package_readiness: 'Repairing package readiness',
   check_grammar: 'Checking grammar',
   search_research: 'Searching academic sources',
   read_deliverable: 'Reading deliverable data',
@@ -1217,6 +1307,10 @@ export function summarizeToolResult(toolName, result) {
   switch (toolName) {
     case 'validate_course':
       return `${result.errorCount || 0} errors, ${result.warningCount || 0} warnings, ${result.infoCount || 0} info`;
+    case 'review_package_readiness':
+      return `${result.status || 'unknown'}: ${result.blockerCount || 0} blockers, ${result.warningCount || 0} warnings`;
+    case 'repair_package_readiness':
+      return `${result.applied || 0} repaired, ${result.failed || 0} failed`;
     case 'check_grammar':
       return `${result.matchCount || 0} grammar issue${(result.matchCount || 0) !== 1 ? 's' : ''} found`;
     case 'search_research':

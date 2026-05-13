@@ -45,6 +45,10 @@ export async function runAgentLoop(fullMessage, { silent = false, dryRun = false
     courseMap,
     activeTab,
     slideTheme,
+    selectedFeatures,
+    columns,
+    deliverableConfig,
+    lessonFilter,
     delivRef,
     executeActionRef,
     optimisticUpdateRef,
@@ -357,8 +361,15 @@ export async function runAgentLoop(fullMessage, { silent = false, dryRun = false
               const toolCtx = {
                 courseMap,
                 deliverables: delivRef.current,
+                selectedFeatures,
+                columns,
+                deliverableConfig,
+                lessonFilter,
                 executeAction: executeActionRef.current,
                 optimisticUpdate: optimisticUpdateRef?.current || null,
+                setCurrentDeliverables: (nextDeliverables) => {
+                  if (nextDeliverables) delivRef.current = nextDeliverables;
+                },
                 apiKey,
                 provider,
                 modelId,
@@ -437,7 +448,8 @@ export async function runAgentLoop(fullMessage, { silent = false, dryRun = false
                 } else if (
                   tc.name === 'edit_course_map' ||
                   tc.name === 'edit_deliverables' ||
-                  tc.name === 'generate_slide_images'
+                  tc.name === 'generate_slide_images' ||
+                  tc.name === 'repair_package_readiness'
                 ) {
                   const appliedN = result.applied || 0;
                   const failedN = result.failed || 0;

@@ -1,5 +1,24 @@
 import { getArrayKey } from './syncDependencies';
 import { findPublishabilityPlaceholders } from './publishabilityPlaceholders';
+import {
+  normalizeAssignmentLessonAlignment,
+  normalizeCourseFaqCategories,
+  normalizeCourseFaqQuestionCounts,
+  normalizeDiscussionPromptFields,
+  normalizeLessonPlanPublishability,
+  normalizeQuizBankIndex,
+  normalizeQuizBankPointTotals,
+  normalizeQuizBankPublishability,
+  normalizeQuizBankQuestions,
+  normalizeQuizBankRationales,
+  normalizeRubricCoverage,
+  normalizeRubricSupport,
+  normalizeSlideDeckAccessibility,
+  normalizeSlideDeckSpeakerNotes,
+  normalizeStudyGuideQuestions,
+  normalizeStudyGuideSupport,
+  normalizeSyllabusPublishability,
+} from './deliverablePostProcess';
 
 export const READINESS_BLOCKER = 'blocker';
 export const READINESS_WARNING = 'warning';
@@ -145,6 +164,149 @@ export function scopeDeliverableDataToLessons(featureId, data, lessonFilter) {
   }
 
   return changed ? scopedData : data;
+}
+
+function stableJson(value) {
+  try {
+    return JSON.stringify(value ?? null);
+  } catch {
+    return '';
+  }
+}
+
+function humanizeRepairKey(key) {
+  return String(key || '')
+    .replace(/([a-z0-9])([A-Z])/g, '$1 $2')
+    .replace(/[_-]+/g, ' ')
+    .toLowerCase();
+}
+
+function summarizeRepairResult(result) {
+  if (!result || typeof result !== 'object') return [];
+  return Object.entries(result)
+    .filter(([key]) => key !== 'data' && key !== 'arrayKey' && key !== 'target')
+    .flatMap(([key, value]) => {
+      if (typeof value === 'number' && value > 0) return [`${humanizeRepairKey(key)}: ${value}`];
+      if (typeof value === 'boolean' && value) return [humanizeRepairKey(key)];
+      if (Array.isArray(value) && value.length > 0) return [`${humanizeRepairKey(key)}: ${value.join(', ')}`];
+      return [];
+    });
+}
+
+function applyRepair(current, summaries, label, repairFn, ...args) {
+  const before = stableJson(current);
+  const result = repairFn(current, ...args);
+  const next = result?.data ?? current;
+  if (stableJson(next) !== before) {
+    const details = summarizeRepairResult(result);
+    summaries.push(details.length > 0 ? `${label} (${details.join('; ')})` : label);
+  }
+  return next;
+}
+
+function repairFeatureData(featureId, data, { courseMap, config } = {}) {
+  let current = data;
+  const summaries = [];
+
+  switch (featureId) {
+    case 'syllabus':
+      current = applyRepair(current, summaries, 'cleaned syllabus placeholders', normalizeSyllabusPublishability);
+      break;
+    case 'lessonPlans':
+      current = applyRepair(
+        current,
+        summaries,
+        'cleaned lesson plan publishability',
+        normalizeLessonPlanPublishability,
+      );
+      break;
+    case 'slideDecks':
+      current = applyRepair(current, summaries, 'filled slide speaker notes', normalizeSlideDeckSpeakerNotes);
+      current = applyRepair(current, summaries, 'improved slide accessibility', normalizeSlideDeckAccessibility);
+      break;
+    case 'assignments':
+      current = applyRepair(
+        current,
+        summaries,
+        'aligned assignments to lessons',
+        normalizeAssignmentLessonAlignment,
+        courseMap,
+      );
+      break;
+    case 'rubrics':
+      current = applyRepair(current, summaries, 'filled assessed-lesson rubrics', normalizeRubricCoverage, courseMap);
+      current = applyRepair(current, summaries, 'normalized rubric support', normalizeRubricSupport);
+      break;
+    case 'discussions':
+      current = applyRepair(current, summaries, 'normalized discussion guidance', normalizeDiscussionPromptFields);
+      break;
+    case 'quizBank':
+      current = applyRepair(current, summaries, 'normalized quiz question metadata', normalizeQuizBankQuestions);
+      current = applyRepair(current, summaries, 'filled quiz answer guidance', normalizeQuizBankRationales);
+      current = applyRepair(current, summaries, 'fixed quiz point totals', normalizeQuizBankPointTotals);
+      current = applyRepair(current, summaries, 'cleaned quiz publishability', normalizeQuizBankPublishability);
+      current = applyRepair(current, summaries, 'rebuilt quiz index', normalizeQuizBankIndex);
+      break;
+    case 'studyGuides':
+      current = applyRepair(current, summaries, 'cleaned study-guide questions', normalizeStudyGuideQuestions);
+      current = applyRepair(current, summaries, 'filled study-guide support', normalizeStudyGuideSupport);
+      break;
+    case 'courseFaq':
+      current = applyRepair(current, summaries, 'normalized FAQ categories', normalizeCourseFaqCategories);
+      current = applyRepair(
+        current,
+        summaries,
+        'trimmed FAQ question counts',
+        normalizeCourseFaqQuestionCounts,
+        config,
+      );
+      break;
+    default:
+      break;
+  }
+
+  return { data: current, summaries };
+}
+
+export function repairWorkspaceReadiness({
+  courseMap,
+  deliverables = {},
+  selectedFeatures = null,
+  deliverableConfig = {},
+} = {}) {
+  const featureIds = getSelectedFeatureIds(selectedFeatures, deliverables).filter(
+    (featureId) => featureId !== 'courseMap',
+  );
+  let nextDeliverables = deliverables;
+  const repairs = [];
+
+  for (const featureId of featureIds) {
+    const entry = deliverables?.[featureId];
+    if (entry?.status !== 'done' || !entry.data) continue;
+
+    const { data, summaries } = repairFeatureData(featureId, entry.data, {
+      courseMap,
+      config: deliverableConfig?.[featureId] || {},
+    });
+    if (summaries.length === 0 || stableJson(data) === stableJson(entry.data)) continue;
+
+    if (nextDeliverables === deliverables) nextDeliverables = { ...deliverables };
+    nextDeliverables[featureId] = { ...entry, data };
+    repairs.push({
+      featureId,
+      label: labelFor(featureId),
+      changes: summaries,
+      message: `${labelFor(featureId)} repaired: ${summaries.join('; ')}`,
+    });
+  }
+
+  return {
+    changed: repairs.length > 0,
+    applied: repairs.length,
+    repairs,
+    repairedFeatureIds: repairs.map((repair) => repair.featureId),
+    deliverables: nextDeliverables,
+  };
 }
 
 function enabledColumnKeys(columns) {
