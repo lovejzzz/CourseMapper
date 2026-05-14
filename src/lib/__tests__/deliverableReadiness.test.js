@@ -1,5 +1,10 @@
 import { describe, expect, it } from 'vitest';
-import { buildReadinessReport, evaluateWorkspaceReadiness, repairWorkspaceReadiness } from '../deliverableReadiness';
+import {
+  buildReadinessReport,
+  evaluateWorkspaceReadiness,
+  repairCourseMapReadiness,
+  repairWorkspaceReadiness,
+} from '../deliverableReadiness';
 
 const courseMap = {
   courseName: 'Readiness Course',
@@ -447,6 +452,47 @@ describe('evaluateWorkspaceReadiness', () => {
 });
 
 describe('repairWorkspaceReadiness', () => {
+  it('repairs course map placeholders before warnings reach export', () => {
+    const placeholderMap = {
+      courseName: 'Psychology 101',
+      lessons: [
+        {
+          title: 'TBD',
+          sections: [
+            {
+              learningGoals: 'TBD',
+              topicSection: 'Scientific method',
+              learningObjectives: '',
+              weeklyAssessments: 'To be determined',
+            },
+          ],
+        },
+      ],
+    };
+
+    const result = repairCourseMapReadiness({
+      courseMap: placeholderMap,
+      columns,
+    });
+
+    expect(result.changed).toBe(true);
+    expect(result.repairedFields).toEqual([
+      'Lesson 1 title',
+      'Lesson 1, Section 1 Learning Goals',
+      'Lesson 1, Section 1 Learning Objectives',
+      'Lesson 1, Section 1 Weekly Assessments',
+    ]);
+
+    const readiness = evaluateWorkspaceReadiness({
+      courseMap: result.courseMap,
+      columns,
+      selectedFeatures: ['courseMap'],
+      deliverables: {},
+    });
+
+    expect(readiness.warnings.map((issue) => issue.message).join(' ')).not.toContain('placeholder');
+  });
+
   it('applies safe package repairs before user review', () => {
     const deliverables = {
       quizBank: {

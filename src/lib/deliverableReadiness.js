@@ -206,6 +206,91 @@ function applyRepair(current, summaries, label, repairFn, ...args) {
   return next;
 }
 
+function getCourseMapTopic(courseMap, lesson, section, lessonIndex) {
+  const raw = text(
+    section?.topicSection || section?.topic || lesson?.title || courseMap?.courseName || `Lesson ${lessonIndex + 1}`,
+  )
+    .replace(/^lesson\s*\d+\s*:\s*/i, '')
+    .trim();
+  return raw || `Lesson ${lessonIndex + 1}`;
+}
+
+function getCourseMapFallbackValue(key, courseMap, lesson, section, lessonIndex) {
+  const topic = getCourseMapTopic(courseMap, lesson, section, lessonIndex);
+  const fieldFallbacks = {
+    learningGoals: `Build a working understanding of ${topic} and connect it to the course outcomes.`,
+    topicSection: topic,
+    learningObjectives: `Students will explain key ideas from ${topic} and apply them in course activities.`,
+    weeklyAssessments: `Low-stakes check for understanding aligned to ${topic}.`,
+    asyncActivities: `Review assigned materials and prepare notes on ${topic}.`,
+    syncActivities: `Discuss examples and practice applying ${topic}.`,
+    technologyNeeded: 'Course LMS and standard document tools.',
+    presentationFormat: 'Brief instructor framing, guided practice, and discussion.',
+    supportingResources: `Assigned readings, instructor notes, and course examples related to ${topic}.`,
+    evaluateDesign: 'Activities, resources, and assessments align to the stated goals and objectives.',
+  };
+  return fieldFallbacks[key] || `Instructor-confirmed material for ${topic}.`;
+}
+
+function needsCourseMapFieldRepair(value) {
+  return !hasMeaningfulValue(value) || findPublishabilityPlaceholders(value, { limit: 1 }).length > 0;
+}
+
+export function repairCourseMapReadiness({ courseMap, columns = [], lessonFilter = null } = {}) {
+  const lessons = asArray(courseMap?.lessons);
+  if (!courseMap || typeof courseMap !== 'object' || lessons.length === 0) {
+    return { changed: false, courseMap, repairedFields: [] };
+  }
+
+  const lessonIndices = getLessonIndices(courseMap, lessonFilter);
+  const columnsToRepair = enabledColumnKeys(columns);
+  const repairedFields = [];
+  let changed = false;
+
+  const nextLessons = lessons.map((lesson, lessonIndex) => {
+    if (!lessonIndices.includes(lessonIndex)) return lesson;
+    let nextLesson = lesson;
+
+    if (needsCourseMapFieldRepair(lesson?.title)) {
+      const titleTopic = getCourseMapTopic(courseMap, lesson, asArray(lesson?.sections)[0], lessonIndex);
+      nextLesson = {
+        ...nextLesson,
+        title: `Lesson ${lessonIndex + 1}: ${titleTopic}`,
+      };
+      repairedFields.push(`Lesson ${lessonIndex + 1} title`);
+      changed = true;
+    }
+
+    if (!Array.isArray(nextLesson.sections) || nextLesson.sections.length === 0 || columnsToRepair.length === 0) {
+      return nextLesson;
+    }
+
+    let sectionsChanged = false;
+    const sections = nextLesson.sections.map((section, sectionIndex) => {
+      let nextSection = section;
+      for (const key of columnsToRepair) {
+        if (!needsCourseMapFieldRepair(nextSection?.[key])) continue;
+        nextSection = {
+          ...nextSection,
+          [key]: getCourseMapFallbackValue(key, courseMap, nextLesson, nextSection, lessonIndex),
+        };
+        repairedFields.push(`Lesson ${lessonIndex + 1}, Section ${sectionIndex + 1} ${columnLabel(columns, key)}`);
+        sectionsChanged = true;
+        changed = true;
+      }
+      return nextSection;
+    });
+
+    return sectionsChanged ? { ...nextLesson, sections } : nextLesson;
+  });
+
+  return {
+    changed,
+    courseMap: changed ? { ...courseMap, lessons: nextLessons } : courseMap,
+    repairedFields,
+  };
+}
+
 function repairFeatureData(featureId, data, { courseMap, config } = {}) {
   let current = data;
   const summaries = [];

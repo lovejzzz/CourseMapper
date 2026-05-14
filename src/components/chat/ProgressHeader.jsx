@@ -36,6 +36,7 @@ export default function ProgressHeader({
   currentDelivFeatures,
   isDelivGenerating,
   delivTimings,
+  packageQualityPass,
   onStop,
   onResume,
   onClearAll,
@@ -68,7 +69,10 @@ export default function ProgressHeader({
   const delivDoneCount = getDeliverableDoneCount({ delivRows, delivProgress, isDelivGenerating });
   const allDelivDone =
     delivRows.length > 0 && !isDelivGenerating && delivRows.every((r) => r.status === 'done' || r.status === 'error');
-  const everythingDone = isDone && (delivRows.length === 0 || allDelivDone);
+  const isPackageQualityRunning = packageQualityPass?.status === 'running';
+  const hasPackageQualityIssues =
+    packageQualityPass?.status === 'blocked' || packageQualityPass?.blockers > 0 || packageQualityPass?.warnings > 0;
+  const everythingDone = isDone && (delivRows.length === 0 || allDelivDone) && !isPackageQualityRunning;
   const totalLessons = completenessInfo?.actual || 0;
 
   // Compute overall progress %
@@ -89,6 +93,8 @@ export default function ProgressHeader({
   if (error) phaseLabel = 'Error';
   else if (isStopped) phaseLabel = 'Paused';
   else if (isSyncing) phaseLabel = 'Syncing...';
+  else if (isPackageQualityRunning) phaseLabel = 'Final quality pass...';
+  else if (hasPackageQualityIssues) phaseLabel = 'Ready with warnings';
   else if (everythingDone) phaseLabel = 'Complete';
   else if (isDone && isDelivGenerating) phaseLabel = `Deliverables ${delivDoneCount}/${delivRows.length}`;
   else if (isDone) phaseLabel = 'Course map ready';
@@ -103,17 +109,23 @@ export default function ProgressHeader({
     ? 'from-red-400 to-red-500'
     : isStopped
       ? 'from-amber-400 to-orange-500'
-      : everythingDone
-        ? 'from-emerald-400 to-emerald-500'
-        : 'from-indigo-500 to-violet-500';
+      : hasPackageQualityIssues
+        ? 'from-amber-400 to-orange-500'
+        : everythingDone
+          ? 'from-emerald-400 to-emerald-500'
+          : 'from-indigo-500 to-violet-500';
 
   const textColor = error
     ? 'text-red-600'
     : isStopped
       ? 'text-amber-600'
-      : everythingDone
-        ? 'text-emerald-700'
-        : 'text-indigo-600';
+      : isPackageQualityRunning
+        ? 'text-indigo-600'
+        : hasPackageQualityIssues
+          ? 'text-amber-600'
+          : everythingDone
+            ? 'text-emerald-700'
+            : 'text-indigo-600';
 
   // Don't render if generation hasn't started
   if (!currentStep && !error) return null;
@@ -135,7 +147,12 @@ export default function ProgressHeader({
           />
         </div>
         {/* Phase label + count */}
-        <span className={`text-[12px] font-semibold ${textColor} flex-shrink-0 whitespace-nowrap`}>{phaseLabel}</span>
+        <span
+          data-testid="progress-phase-label"
+          className={`text-[12px] font-semibold ${textColor} flex-shrink-0 whitespace-nowrap`}
+        >
+          {phaseLabel}
+        </span>
         {/* Expand chevron */}
         <svg
           className={`w-3.5 h-3.5 text-slate-400 transition-transform flex-shrink-0 ${expanded ? 'rotate-180' : ''}`}
@@ -265,6 +282,28 @@ export default function ProgressHeader({
                   ))}
                 </div>
               )}
+            </div>
+          )}
+
+          {packageQualityPass?.message && (
+            <div
+              className={`px-2.5 py-2 rounded-lg border ${
+                isPackageQualityRunning
+                  ? 'bg-indigo-50/80 border-indigo-100/70 text-indigo-700'
+                  : hasPackageQualityIssues
+                    ? 'bg-amber-50/80 border-amber-100/70 text-amber-700'
+                    : 'bg-emerald-50/80 border-emerald-100/70 text-emerald-700'
+              }`}
+            >
+              <div className="flex items-center gap-2">
+                {isPackageQualityRunning && (
+                  <svg className="animate-spin w-3 h-3 text-indigo-500 flex-shrink-0" fill="none" viewBox="0 0 24 24">
+                    <circle className="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" strokeWidth="4" />
+                    <path className="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4z" />
+                  </svg>
+                )}
+                <span className="text-[12px] font-semibold">{packageQualityPass.message}</span>
+              </div>
             </div>
           )}
 

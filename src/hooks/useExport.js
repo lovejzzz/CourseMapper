@@ -17,34 +17,35 @@ export default function useExport(courseMap, columns, setError) {
   }, []);
 
   const handleDownload = useCallback(
-    async (format) => {
-      if (!courseMap) return;
+    async (format, courseMapOverride = null) => {
+      const exportCourseMap = courseMapOverride || courseMap;
+      if (!exportCourseMap) return;
       setShowExportMenu(false);
       try {
         if (format === 'csv') {
           const { generateCsv } = await import('../lib/exporters');
-          await generateCsv(courseMap, columns);
+          await generateCsv(exportCourseMap, columns);
         } else if (format === 'pdf') {
           const { generatePdf } = await import('../lib/exporters');
-          await generatePdf(courseMap, columns);
+          await generatePdf(exportCourseMap, columns);
         } else if (format === 'docx') {
           const { generateDocx } = await import('../lib/docxGenerator');
-          await generateDocx(courseMap, columns);
+          await generateDocx(exportCourseMap, columns);
         } else if (format === 'gdocs') {
           const { saveToGoogleDocs } = await import('../lib/googleDrive');
-          await saveToGoogleDocs(courseMap, columns);
+          await saveToGoogleDocs(exportCourseMap, columns);
         } else if (format === 'gsheets') {
           const { buildXlsxBuffer } = await import('../lib/xlsxGenerator');
           const { saveToGoogleSheets } = await import('../lib/googleDrive');
-          const buffer = await buildXlsxBuffer(courseMap, columns);
-          const cName = courseMap.courseName || 'Course';
-          const semester = courseMap.semester || 'TBD';
+          const buffer = await buildXlsxBuffer(exportCourseMap, columns);
+          const cName = exportCourseMap.courseName || 'Course';
+          const semester = exportCourseMap.semester || 'TBD';
           const stamp = new Date().toLocaleDateString('en-US', { month: 'short', day: 'numeric', year: 'numeric' });
           const fileName = `${cName} Course Map (${semester}) – ${stamp}.xlsx`;
           await saveToGoogleSheets(buffer, fileName, cName);
         } else {
           const { generateXlsx } = await import('../lib/xlsxGenerator');
-          await generateXlsx(courseMap, columns);
+          await generateXlsx(exportCourseMap, columns);
         }
       } catch (err) {
         setError('Failed to export: ' + err.message);

@@ -400,6 +400,12 @@ function ReadinessConfirm({ pendingExport, onCancel, onConfirm, onIssueClick, co
     <div ref={confirmRef} data-testid="readiness-confirm" className={`rounded-xl border px-3 py-3 ${tone.wrap}`}>
       <p className="text-[11px] font-bold">{tone.title}</p>
       <p className="mt-1 text-[10px] leading-snug">{tone.description}</p>
+      {pendingExport.repairsApplied > 0 && (
+        <p className="mt-1 text-[10px] font-semibold">
+          Auto-fixed {pendingExport.repairsApplied} repairable issue
+          {pendingExport.repairsApplied === 1 ? '' : 's'} before this check.
+        </p>
+      )}
       <ul className="mt-2 space-y-1">
         {issues.map((issue, index) => (
           <li key={`${issue.featureId}-${issue.message}-${index}`} className="text-[10px] leading-snug">
@@ -532,6 +538,8 @@ export default function ExportSidePanel({
   onCourseMapExport, // handleDownload from useExport
   onSaveProject, // save full session as .coursemapper
   onReadinessIssueClick,
+  onAutoRepairReadiness,
+  packageQualityPass,
 }) {
   const { courseMap, columns, selectedFeatures, slideTheme } = useCourse();
   const [scope, setScope] = useState('current'); // 'current' | 'all'
@@ -541,6 +549,7 @@ export default function ExportSidePanel({
   const [lastNotice, setLastNotice] = useState('');
   const [pendingReadinessExport, setPendingReadinessExport] = useState(null);
   const readinessConfirmRef = useRef(null);
+  const isPackageQualityRunning = packageQualityPass?.status === 'running';
 
   // All-tab lesson filter (null = all lessons)
   const allLessons = courseMap?.lessons || [];
@@ -605,20 +614,22 @@ export default function ExportSidePanel({
     readinessConfirmRef.current?.scrollIntoView({ block: 'nearest', behavior: 'smooth' });
   }, [pendingReadinessExport]);
 
-  function requestReadinessConfirmation(format) {
-    const readiness = scope === 'all' ? workspaceReadiness : currentReadiness;
-    if (readiness.blockers.length > 0 || readiness.warnings.length > 0) {
-      setPendingReadinessExport({ format, readiness, scope });
-      setLastError('');
-      setLastOk('');
-      setLastNotice(
-        format === 'zip'
-          ? 'Choose Review materials or Export anyway above to continue the ZIP download.'
-          : 'Choose Review materials or Export anyway above to continue the export.',
-      );
-      return true;
-    }
-    return false;
+  function getExportFeatureIds(exportScope = scope) {
+    return exportScope === 'all' ? selectedFeatures : [activeTab];
+  }
+
+  function getReadinessSnapshot({
+    exportScope = scope,
+    exportCourseMap = courseMap,
+    exportDeliverables = deliverables,
+  } = {}) {
+    return evaluateWorkspaceReadiness({
+      courseMap: exportCourseMap,
+      deliverables: exportDeliverables,
+      selectedFeatures: getExportFeatureIds(exportScope),
+      columns,
+      lessonFilter: exportScope === 'all' ? effectiveLessonFilter : null,
+    });
   }
 
   function clearPendingReadinessExport() {
@@ -626,10 +637,54 @@ export default function ExportSidePanel({
     setLastNotice('');
   }
 
-  async function doExport(format, { skipReadinessConfirmation = false } = {}) {
-    if (!skipReadinessConfirmation && requestReadinessConfirmation(format)) return;
+  async function doExport(format, { skipReadinessConfirmation = false, pendingExport = null } = {}) {
+    if (isPackageQualityRunning) {
+      setLastNotice('Final quality pass is finishing automatic repairs before export.');
+      return;
+    }
+
+    let exportCourseMap = pendingExport?.courseMap || courseMap;
+    let exportDeliverables = pendingExport?.deliverables || deliverables || {};
+    let exportReadiness =
+      pendingExport?.readiness || getReadinessSnapshot({ exportCourseMap, exportDeliverables, exportScope: scope });
+    let repairsApplied = pendingExport?.repairsApplied || 0;
+
+    if (!skipReadinessConfirmation && typeof onAutoRepairReadiness === 'function') {
+      const repairResult = onAutoRepairReadiness({
+        selectedFeatureIds: getExportFeatureIds(scope),
+        lessonFilter: scope === 'all' ? effectiveLessonFilter : null,
+      });
+      repairsApplied = repairResult?.applied || 0;
+      exportCourseMap = repairResult?.courseMap || exportCourseMap;
+      exportDeliverables = repairResult?.deliverables || exportDeliverables;
+      exportReadiness = getReadinessSnapshot({ exportCourseMap, exportDeliverables, exportScope: scope });
+    }
+
+    if (!skipReadinessConfirmation && (exportReadiness.blockers.length > 0 || exportReadiness.warnings.length > 0)) {
+      setPendingReadinessExport({
+        format,
+        readiness: exportReadiness,
+        scope,
+        courseMap: exportCourseMap,
+        deliverables: exportDeliverables,
+        repairsApplied,
+      });
+      setLastError('');
+      setLastOk('');
+      setLastNotice(
+        `${repairsApplied > 0 ? `Auto-fixed ${repairsApplied} issue${repairsApplied === 1 ? '' : 's'}. ` : ''}${
+          format === 'zip'
+            ? 'Choose Review materials or Export anyway above to continue the ZIP download.'
+            : 'Choose Review materials or Export anyway above to continue the export.'
+        }`,
+      );
+      return;
+    }
+
     setPendingReadinessExport(null);
-    setLastNotice('');
+    setLastNotice(
+      repairsApplied > 0 ? `Auto-fixed ${repairsApplied} issue${repairsApplied === 1 ? '' : 's'} before export.` : '',
+    );
     // For Google exports we must open a tab BEFORE any await (popup blocker)
     // Course map exports open their own tab internally via useExport → saveToGoogleDocs/Sheets
     const needsTab = (format === 'gdocs' || format === 'gsheets' || format === 'gslides') && activeTab !== 'courseMap';
@@ -643,41 +698,65 @@ export default function ExportSidePanel({
         // All mode: only ZIP is available
         if (format === 'zip') {
           await exportAllAsZip(
-            deliverables || {},
-            courseMap,
+            exportDeliverables || {},
+            exportCourseMap,
             columns,
-            courseName,
+            exportCourseMap?.courseName || courseName,
             effectiveLessonFilter,
             slideTheme,
-            workspaceReadiness,
+            exportReadiness,
           );
           setLastOk('ZIP downloaded!');
         }
       } else {
         // Current tab
         if (activeTab === 'courseMap') {
-          await onCourseMapExport(format);
+          await onCourseMapExport(format, exportCourseMap);
         } else if (activeTab === 'slideDecks') {
           // Slide decks: pptx, pdf, or google slides
-          if (!currentDeliverable?.data) throw new Error('No slide data yet');
+          const exportDeliverable = exportDeliverables?.[activeTab] || currentDeliverable;
+          if (!exportDeliverable?.data) throw new Error('No slide data yet');
           if (format === 'pptx') {
-            await exportSlideDeckPptx(currentDeliverable.data, courseName, slideTheme);
+            await exportSlideDeckPptx(exportDeliverable.data, exportCourseMap?.courseName || courseName, slideTheme);
           } else if (format === 'slidepdf') {
-            await exportSlideDeckPdf(currentDeliverable.data, courseName);
+            await exportSlideDeckPdf(exportDeliverable.data, exportCourseMap?.courseName || courseName);
           } else if (format === 'gslides') {
-            const blob = await buildSlideDeckPptxBlob(currentDeliverable.data, courseName, slideTheme);
+            const blob = await buildSlideDeckPptxBlob(
+              exportDeliverable.data,
+              exportCourseMap?.courseName || courseName,
+              slideTheme,
+            );
             const stamp = new Date().toLocaleDateString('en-US', { month: 'short', day: 'numeric', year: 'numeric' });
-            await saveToGoogleSlides(blob, `${courseName} - Slide Decks (${stamp})`, courseName, preTab);
+            await saveToGoogleSlides(
+              blob,
+              `${exportCourseMap?.courseName || courseName} - Slide Decks (${stamp})`,
+              exportCourseMap?.courseName || courseName,
+              preTab,
+            );
           }
         } else {
-          if (!currentDeliverable?.data) throw new Error('No data yet');
-          if (format === 'csv') await exportDeliverableCsv(activeTab, currentDeliverable.data, courseName);
-          if (format === 'pdf') await exportDeliverablePdf(activeTab, currentDeliverable.data, courseName);
-          if (format === 'docx') await exportDeliverableDocx(activeTab, currentDeliverable.data, courseName);
+          const exportDeliverable = exportDeliverables?.[activeTab] || currentDeliverable;
+          if (!exportDeliverable?.data) throw new Error('No data yet');
+          if (format === 'csv')
+            await exportDeliverableCsv(activeTab, exportDeliverable.data, exportCourseMap?.courseName || courseName);
+          if (format === 'pdf')
+            await exportDeliverablePdf(activeTab, exportDeliverable.data, exportCourseMap?.courseName || courseName);
+          if (format === 'docx')
+            await exportDeliverableDocx(activeTab, exportDeliverable.data, exportCourseMap?.courseName || courseName);
           if (format === 'gdocs')
-            await exportDeliverableToGoogleDocs(activeTab, currentDeliverable.data, courseName, preTab);
+            await exportDeliverableToGoogleDocs(
+              activeTab,
+              exportDeliverable.data,
+              exportCourseMap?.courseName || courseName,
+              preTab,
+            );
           if (format === 'gsheets')
-            await exportDeliverableToGoogleSheets(activeTab, currentDeliverable.data, courseName, preTab);
+            await exportDeliverableToGoogleSheets(
+              activeTab,
+              exportDeliverable.data,
+              exportCourseMap?.courseName || courseName,
+              preTab,
+            );
         }
         setLastOk('Done!');
       }
@@ -689,6 +768,7 @@ export default function ExportSidePanel({
       setTimeout(() => {
         setLastOk('');
         setLastError('');
+        setLastNotice('');
       }, 4000);
     }
   }
@@ -796,11 +876,21 @@ export default function ExportSidePanel({
           pendingExport={pendingReadinessExport}
           onCancel={clearPendingReadinessExport}
           onConfirm={() =>
-            pendingReadinessExport && doExport(pendingReadinessExport.format, { skipReadinessConfirmation: true })
+            pendingReadinessExport &&
+            doExport(pendingReadinessExport.format, {
+              skipReadinessConfirmation: true,
+              pendingExport: pendingReadinessExport,
+            })
           }
           onIssueClick={onReadinessIssueClick}
           confirmRef={readinessConfirmRef}
         />
+
+        {isPackageQualityRunning && (
+          <p className="rounded-lg bg-indigo-50 px-2 py-1.5 text-[10px] font-semibold text-indigo-700">
+            Final quality pass is repairing and re-checking the package before export.
+          </p>
+        )}
 
         {/* ────────────────────────────────────────────────────────────── */}
         {/* ALL MODE: Lesson scope + ZIP download + Save Project file     */}
@@ -862,6 +952,7 @@ export default function ExportSidePanel({
                 onClick={() => doExport('zip')}
                 disabled={
                   !!busy ||
+                  isPackageQualityRunning ||
                   zipPendingReadiness ||
                   allReadyCount === 0 ||
                   !courseMap ||
@@ -870,11 +961,13 @@ export default function ExportSidePanel({
                 title={
                   zipPendingReadiness
                     ? 'Choose Review materials or Export anyway above'
-                    : !courseMap
-                      ? 'Course map is required for ZIP export'
-                      : selectedLessons !== null && selectedLessons.length === 0
-                        ? 'Select at least one lesson'
-                        : undefined
+                    : isPackageQualityRunning
+                      ? 'Final quality pass is finishing'
+                      : !courseMap
+                        ? 'Course map is required for ZIP export'
+                        : selectedLessons !== null && selectedLessons.length === 0
+                          ? 'Select at least one lesson'
+                          : undefined
                 }
                 className="tactile flex items-center justify-center gap-2 w-full py-2.5 rounded-lg text-[12px] font-bold text-white bg-gradient-to-r from-indigo-500 to-violet-600 shadow-sm hover:brightness-110 transition-all disabled:opacity-40 disabled:cursor-not-allowed"
               >
@@ -903,7 +996,7 @@ export default function ExportSidePanel({
               <button
                 data-testid="export-save-project"
                 onClick={onSaveProject}
-                disabled={!!busy}
+                disabled={!!busy || isPackageQualityRunning}
                 className="tactile flex items-center justify-center gap-2 w-full py-2.5 rounded-lg text-[11px] font-semibold text-slate-600 bg-white/60 border border-slate-200/50 hover:bg-white/80 transition-all disabled:opacity-40 disabled:cursor-not-allowed"
               >
                 <svg className="w-3.5 h-3.5 flex-shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24">
@@ -929,13 +1022,13 @@ export default function ExportSidePanel({
               <p className="text-[9px] font-bold text-slate-400 uppercase tracking-wider">Download</p>
               <FmtBtn
                 fmt={{ id: 'pptx', label: '.pptx', color: 'pptx' }}
-                disabled={isDisabled('pptx')}
+                disabled={isPackageQualityRunning || isDisabled('pptx')}
                 busy={busy === 'pptx'}
                 onClick={() => doExport('pptx')}
               />
               <FmtBtn
                 fmt={{ id: 'slidepdf', label: '.pdf', color: 'slidepdf' }}
-                disabled={isDisabled('slidepdf')}
+                disabled={isPackageQualityRunning || isDisabled('slidepdf')}
                 busy={busy === 'slidepdf'}
                 onClick={() => doExport('slidepdf')}
               />
@@ -944,7 +1037,7 @@ export default function ExportSidePanel({
               <p className="text-[9px] font-bold text-slate-400 uppercase tracking-wider">Google Drive</p>
               <GDriveBtn
                 fmt={{ id: 'gslides', label: 'Google Slides' }}
-                disabled={isDisabled('gslides')}
+                disabled={isPackageQualityRunning || isDisabled('gslides')}
                 busy={busy === 'gslides'}
                 onClick={() => doExport('gslides')}
               />
@@ -964,7 +1057,7 @@ export default function ExportSidePanel({
                   <FmtBtn
                     key={fmt.id}
                     fmt={fmt}
-                    disabled={isDisabled(fmt.id)}
+                    disabled={isPackageQualityRunning || isDisabled(fmt.id)}
                     busy={busy === fmt.id}
                     onClick={() => doExport(fmt.id)}
                   />
@@ -978,7 +1071,7 @@ export default function ExportSidePanel({
                   <GDriveBtn
                     key={fmt.id}
                     fmt={fmt}
-                    disabled={isDisabled(fmt.id)}
+                    disabled={isPackageQualityRunning || isDisabled(fmt.id)}
                     busy={busy === fmt.id}
                     onClick={() => doExport(fmt.id)}
                   />
@@ -1000,7 +1093,7 @@ export default function ExportSidePanel({
                   <FmtBtn
                     key={fmt.id}
                     fmt={fmt}
-                    disabled={isDisabled(fmt.id)}
+                    disabled={isPackageQualityRunning || isDisabled(fmt.id)}
                     busy={busy === fmt.id}
                     onClick={() => doExport(fmt.id)}
                   />
@@ -1014,7 +1107,7 @@ export default function ExportSidePanel({
                   <GDriveBtn
                     key={fmt.id}
                     fmt={fmt}
-                    disabled={false}
+                    disabled={isPackageQualityRunning}
                     busy={busy === fmt.id}
                     onClick={() => doExport(fmt.id)}
                   />

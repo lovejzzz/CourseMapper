@@ -152,10 +152,33 @@ function applyReadinessRepairsToContext(ctx) {
     };
   }
 
-  const result = repairWorkspaceReadiness({
+  const currentReadiness = evaluateWorkspaceReadiness({
     courseMap: ctx.courseMap,
     deliverables: ctx.deliverables,
     selectedFeatures: ctx.selectedFeatures,
+    columns: ctx.columns,
+    lessonFilter: ctx.lessonFilter,
+  });
+  const repairableFeatureIds = [
+    ...new Set(
+      currentReadiness.issues.map((issue) => issue.featureId).filter((featureId) => featureId !== 'courseMap'),
+    ),
+  ];
+
+  if (repairableFeatureIds.length === 0) {
+    return {
+      applied: 0,
+      failed: 0,
+      repairs: [],
+      deliverables: ctx.deliverables,
+      message: 'No safe deterministic package repairs were needed.',
+    };
+  }
+
+  const result = repairWorkspaceReadiness({
+    courseMap: ctx.courseMap,
+    deliverables: ctx.deliverables,
+    selectedFeatures: repairableFeatureIds,
     deliverableConfig: ctx.deliverableConfig,
   });
 

@@ -1249,6 +1249,7 @@ test.describe('Export smoke', () => {
     await expect(page.getByTestId('export-download-zip')).toBeEnabled();
     await page.getByTestId('export-download-zip').click();
     await expect(page.getByTestId('readiness-confirm')).toBeVisible();
+    await expect(page.getByTestId('readiness-confirm')).toContainText('Auto-fixed 1 repairable issue');
     await expect(page.getByTestId('readiness-confirm')).toContainText('Export anyway');
     await expect(page.getByTestId('readiness-export-anyway')).toBeVisible();
 
@@ -1262,7 +1263,7 @@ test.describe('Export smoke', () => {
     const report = await zip.file('READINESS_REPORT.txt')?.async('string');
     expect(report).toContain('Quiz & Exam Bank');
     expect(report).toContain('fewer than 5 questions');
-    expect(report).toContain('missing answer guidance');
+    expect(report).not.toContain('missing answer guidance');
   });
 
   test('allows ZIP export with confirmation when discussion guidance is thin', async ({ page }) => {
@@ -1489,7 +1490,7 @@ test.describe('Export smoke', () => {
     expect(normalized).not.toContain('{"question"');
   });
 
-  test('allows ZIP export with confirmation when syllabus still has publishability placeholders', async ({ page }) => {
+  test('auto-fixes syllabus publishability placeholders before ZIP export', async ({ page }) => {
     await restoreExportWorkspace(page, (snapshot) => {
       snapshot.selectedFeatures = ['courseMap', 'syllabus'];
       snapshot.deliverables = {
@@ -1520,14 +1521,8 @@ test.describe('Export smoke', () => {
     await expect(page.getByTestId('readiness-panel')).toContainText('Syllabus');
     await expect(page.getByTestId('readiness-panel')).toContainText('[Instructor name]');
     await expect(page.getByTestId('readiness-panel')).toContainText('[Verify time]');
-    await page.getByTestId('export-download-zip').click();
-    await expect(page.getByTestId('readiness-confirm')).toBeVisible();
-    await expect(page.getByTestId('readiness-confirm')).toContainText('Export anyway');
-    await expect(page.getByTestId('readiness-confirm')).toContainText('[Instructor name]');
-    await expect(page.getByTestId('readiness-confirm')).toContainText('[Verify time]');
-    await expect(page.getByTestId('readiness-export-anyway')).toBeVisible();
 
-    const zipDownload = await expectDownload(page, () => page.getByTestId('readiness-export-anyway').click(), {
+    const zipDownload = await expectDownload(page, () => page.getByTestId('export-download-zip').click(), {
       extension: 'zip',
       nameIncludes: 'Export Smoke Course',
       minBytes: 1000,
@@ -1535,14 +1530,17 @@ test.describe('Export smoke', () => {
     const JSZip = (await import('jszip')).default;
     const zip = await JSZip.loadAsync(await fs.readFile(zipDownload.path));
     const report = await zip.file('READINESS_REPORT.txt')?.async('string');
-    expect(report).toContain('Warnings');
-    expect(report).toContain('[Instructor name]');
-    expect(report).toContain('[Verify time]');
+    expect(report || '').not.toContain('[Instructor name]');
+    expect(report || '').not.toContain('[Verify time]');
+    const syllabusPath = Object.keys(zip.files).find((name) => /Syllabus\.docx$/.test(name));
+    expect(syllabusPath).toBeTruthy();
+    const syllabusDocx = await JSZip.loadAsync(await zip.file(syllabusPath).async('nodebuffer'));
+    const documentXml = await syllabusDocx.file('word/document.xml').async('string');
+    expect(documentXml).not.toContain('[Instructor name]');
+    expect(documentXml).not.toContain('[Verify time]');
   });
 
-  test('requires confirmation before ZIP export when syllabus still contains generic placeholder copy', async ({
-    page,
-  }) => {
+  test('auto-fixes generic syllabus placeholder copy before ZIP export', async ({ page }) => {
     await restoreExportWorkspace(page, (snapshot) => {
       snapshot.selectedFeatures = ['courseMap', 'syllabus'];
       snapshot.deliverables = {
@@ -1571,9 +1569,20 @@ test.describe('Export smoke', () => {
     await page.getByTestId('export-scope-all').click();
     await expect(page.getByTestId('readiness-status')).toContainText('Ready with warnings');
     await expect(page.getByTestId('readiness-panel')).toContainText('placeholder content');
-    await page.getByTestId('export-download-zip').click();
-    await expect(page.getByTestId('readiness-confirm')).toBeVisible();
-    await expect(page.getByTestId('readiness-confirm')).toContainText('placeholder content');
-    await expect(page.getByTestId('readiness-export-anyway')).toBeVisible();
+
+    const zipDownload = await expectDownload(page, () => page.getByTestId('export-download-zip').click(), {
+      extension: 'zip',
+      nameIncludes: 'Export Smoke Course',
+      minBytes: 1000,
+    });
+    const JSZip = (await import('jszip')).default;
+    const zip = await JSZip.loadAsync(await fs.readFile(zipDownload.path));
+    const report = await zip.file('READINESS_REPORT.txt')?.async('string');
+    expect(report || '').not.toContain('placeholder content');
+    const syllabusPath = Object.keys(zip.files).find((name) => /Syllabus\.docx$/.test(name));
+    expect(syllabusPath).toBeTruthy();
+    const syllabusDocx = await JSZip.loadAsync(await zip.file(syllabusPath).async('nodebuffer'));
+    const documentXml = await syllabusDocx.file('word/document.xml').async('string');
+    expect(documentXml).not.toContain('placeholder content');
   });
 });

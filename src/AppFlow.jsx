@@ -66,6 +66,11 @@ import { importCourseMap } from './lib/importCourseMap';
 import { parseFiles } from './lib/fileParser';
 import { detectExpectedLessons, detectLessonsWithAI } from './lib/detectLessons';
 import { sanitizeMessagesForPersistence } from './lib/messageSanitizer';
+import {
+  evaluateWorkspaceReadiness,
+  repairCourseMapReadiness,
+  repairWorkspaceReadiness,
+} from './lib/deliverableReadiness';
 
 const STORAGE_KEY = 'coursemapper-project';
 
@@ -459,6 +464,98 @@ export default function AppFlow({ startupAction = null, onStartupHandled, onRetu
 
   // ── Deliverable Undo/Redo ──
   const delivUndo = useDeliverableUndo();
+  const [packageQualityPass, setPackageQualityPass] = useState({
+    status: 'idle',
+    message: '',
+    repairsApplied: 0,
+    warnings: 0,
+    blockers: 0,
+  });
+
+  const applyPackageReadinessRepairs = useCallback(
+    ({ selectedFeatureIds = selectedFeatures, lessonFilter = null } = {}) => {
+      let nextCourseMap = courseMap;
+      let nextDeliverables = deliv.deliverables;
+      const repairs = [];
+      const currentReadiness = evaluateWorkspaceReadiness({
+        courseMap,
+        deliverables: deliv.deliverables,
+        selectedFeatures: selectedFeatureIds,
+        columns,
+        lessonFilter,
+      });
+      const repairableFeatureIds = new Set(currentReadiness.issues.map((issue) => issue.featureId));
+
+      if (repairableFeatureIds.size === 0) {
+        return {
+          changed: false,
+          applied: 0,
+          repairs: [],
+          courseMap: nextCourseMap,
+          deliverables: nextDeliverables,
+        };
+      }
+
+      if (repairableFeatureIds.has('courseMap')) {
+        const courseMapRepair = repairCourseMapReadiness({
+          courseMap,
+          columns,
+          lessonFilter,
+        });
+        if (courseMapRepair.changed) {
+          nextCourseMap = courseMapRepair.courseMap;
+          setCourseMap(courseMapRepair.courseMap);
+          repairs.push({
+            featureId: 'courseMap',
+            label: 'Course Map',
+            changes: courseMapRepair.repairedFields,
+            message: `Course Map repaired: ${courseMapRepair.repairedFields.join('; ')}`,
+          });
+        }
+      }
+
+      const deliverableFeatureIds = selectedFeatureIds.filter(
+        (featureId) => featureId !== 'courseMap' && repairableFeatureIds.has(featureId),
+      );
+      const deliverableRepair =
+        deliverableFeatureIds.length > 0
+          ? repairWorkspaceReadiness({
+              courseMap: nextCourseMap,
+              deliverables: deliv.deliverables,
+              selectedFeatures: deliverableFeatureIds,
+              deliverableConfig,
+            })
+          : { changed: false, repairs: [], deliverables: deliv.deliverables };
+
+      if (deliverableRepair.changed) {
+        nextDeliverables = deliverableRepair.deliverables;
+        for (const repair of deliverableRepair.repairs) {
+          const previousData = deliv.deliverables?.[repair.featureId]?.data;
+          if (previousData) delivUndo.snapshot(repair.featureId, previousData);
+        }
+        deliv.setDeliverables(deliverableRepair.deliverables);
+        repairs.push(...deliverableRepair.repairs);
+      }
+
+      return {
+        changed: repairs.length > 0,
+        applied: repairs.length,
+        repairs,
+        courseMap: nextCourseMap,
+        deliverables: nextDeliverables,
+      };
+    },
+    [
+      columns,
+      courseMap,
+      deliv.deliverables,
+      deliv.setDeliverables,
+      deliverableConfig,
+      delivUndo.snapshot,
+      selectedFeatures,
+      setCourseMap,
+    ],
+  );
 
   // (agentHighlight + triggerAgentHighlight moved to UIContext)
 
@@ -1167,6 +1264,13 @@ export default function AppFlow({ startupAction = null, onStartupHandled, onRetu
 
   async function onGenerate() {
     setHasGenerated(true);
+    setPackageQualityPass({
+      status: 'idle',
+      message: '',
+      repairsApplied: 0,
+      warnings: 0,
+      blockers: 0,
+    });
     setDownloadedFile('');
     setActiveTab('courseMap');
     deliv.resetDeliverables();
@@ -2272,7 +2376,10 @@ export default function AppFlow({ startupAction = null, onStartupHandled, onRetu
                   currentDelivFeatures={deliv.currentFeatures}
                   isDelivGenerating={deliv.isGenerating}
                   delivTimings={deliv.delivTimings}
+                  packageQualityPass={packageQualityPass}
                   onStopDeliverables={deliv.isGenerating ? deliv.stopGenerating : null}
+                  onPackageQualityPassUpdate={setPackageQualityPass}
+                  onAutoRepairReadiness={applyPackageReadinessRepairs}
                   isSyncing={smartSync.isSyncing}
                   pendingSyncCount={smartSync.pendingSyncCount}
                   syncingFeatures={smartSync.syncingFeatures}
@@ -2495,6 +2602,8 @@ export default function AppFlow({ startupAction = null, onStartupHandled, onRetu
                   onCourseMapExport={handleDownload}
                   onSaveProject={handleSaveProject}
                   onReadinessIssueClick={focusCourseMapTarget}
+                  onAutoRepairReadiness={applyPackageReadinessRepairs}
+                  packageQualityPass={packageQualityPass}
                 />
               </div>
             )}

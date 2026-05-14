@@ -1,5 +1,4 @@
-import React, { useEffect, useRef, useCallback, useMemo } from 'react';
-import ProgressHeader from './ProgressHeader';
+import React, { lazy, Suspense, useEffect, useRef, useCallback, useMemo } from 'react';
 import MessageList from './MessageList';
 import ChatInput from './ChatInput';
 import CustomToolsMenu from './CustomToolsMenu';
@@ -7,7 +6,9 @@ import useChatRouter from './useChatRouter';
 import ExamReview from '../ExamReview';
 import { executeAction } from '../../lib/agentActions';
 import { resolveLabel } from './constants';
-import { evaluateWorkspaceReadiness, repairWorkspaceReadiness } from '../../lib/deliverableReadiness';
+import { evaluateWorkspaceReadiness } from '../../lib/deliverableReadiness';
+
+const ProgressHeader = lazy(() => import('./ProgressHeader'));
 
 function activeTabLabel(activeTab) {
   if (!activeTab) return 'Course Map';
@@ -38,6 +39,19 @@ function deriveAgentStatus(progress, isStreaming, isAgentMode, agentDryRun = fal
     tone: 'indigo',
     detail: progress?.steps?.length ? 'Live progress in chat' : 'Thinking',
   };
+}
+
+function summarizePackageQuality(readiness, repairsApplied = 0) {
+  const repairText =
+    repairsApplied > 0 ? `Auto-fixed ${repairsApplied} repairable issue${repairsApplied === 1 ? '' : 's'}. ` : '';
+  if (!readiness) return `${repairText}Final quality pass complete.`;
+  if (readiness.blockers?.length > 0) {
+    return `${repairText}${readiness.blockers.length} critical issue${readiness.blockers.length === 1 ? '' : 's'} still need review.`;
+  }
+  if (readiness.warnings?.length > 0) {
+    return `${repairText}${readiness.warnings.length} warning${readiness.warnings.length === 1 ? '' : 's'} remain.`;
+  }
+  return `${repairText}Workspace is ready to export.`;
 }
 
 const STATUS_TONES = {
@@ -79,7 +93,10 @@ export default function ChatPanel({
   currentDelivFeatures,
   isDelivGenerating,
   delivTimings,
+  packageQualityPass,
   onStopDeliverables,
+  onPackageQualityPassUpdate,
+  onAutoRepairReadiness,
   // Sync state
   isSyncing,
   pendingSyncCount,
@@ -130,6 +147,10 @@ export default function ChatPanel({
   delivRef.current = deliverables;
   const courseMapRef = useRef(courseMap);
   courseMapRef.current = courseMap;
+  const autoRepairReadinessRef = useRef(onAutoRepairReadiness);
+  autoRepairReadinessRef.current = onAutoRepairReadiness;
+  const packageQualityPassUpdateRef = useRef(onPackageQualityPassUpdate);
+  packageQualityPassUpdateRef.current = onPackageQualityPassUpdate;
 
   // Build the action executor that agent mode uses
   const execAction = useCallback(
@@ -198,39 +219,20 @@ export default function ChatPanel({
   const proactiveReviewDoneRef = useRef(false);
   const autoReviewTimerRef = useRef(null);
   const applyDeterministicReadinessRepairs = useCallback(() => {
-    if (!optimisticUpdate || chat.agentDryRun) return { changed: false, deliverables };
-    let result;
-    try {
-      result = repairWorkspaceReadiness({
-        courseMap,
-        deliverables,
-        selectedFeatures,
-        deliverableConfig,
-      });
-    } catch (err) {
-      console.warn('[CM Agent] Safe readiness repair skipped:', err);
-      return { changed: false, deliverables, error: err?.message || 'repair failed' };
+    if (chat.agentDryRun || typeof autoRepairReadinessRef.current !== 'function') {
+      return {
+        changed: false,
+        applied: 0,
+        repairs: [],
+        courseMap: courseMapRef.current,
+        deliverables: delivRef.current,
+      };
     }
-    if (!result.changed) return result;
-
-    result.repairs.forEach((repair) => {
-      const nextData = result.deliverables?.[repair.featureId]?.data;
-      const previousData = deliverables?.[repair.featureId]?.data;
-      if (!nextData) return;
-      if (previousData && delivUndoSnapshot) delivUndoSnapshot(repair.featureId, previousData);
-      optimisticUpdate(repair.featureId, nextData);
+    return autoRepairReadinessRef.current({
+      selectedFeatureIds: selectedFeatures,
+      lessonFilter: lessonScope?.type === 'specific' ? lessonScope.indices : null,
     });
-
-    return result;
-  }, [
-    chat.agentDryRun,
-    courseMap,
-    deliverables,
-    selectedFeatures,
-    deliverableConfig,
-    optimisticUpdate,
-    delivUndoSnapshot,
-  ]);
+  }, [chat.agentDryRun, selectedFeatures, lessonScope]);
   // If the user types and sends during the 2s delay, we cancel the auto-review
   // so we don't double-post a message on top of their own. Also keeps the
   // proactiveReviewDoneRef flipped so we don't re-schedule later.
@@ -238,29 +240,40 @@ export default function ChatPanel({
     if (chat.isStreaming && autoReviewTimerRef.current) {
       clearTimeout(autoReviewTimerRef.current);
       autoReviewTimerRef.current = null;
+      packageQualityPassUpdateRef.current?.({
+        status: 'idle',
+        message: 'Manual agent work started before the automatic final pass.',
+        repairsApplied: 0,
+        warnings: 0,
+        blockers: 0,
+      });
     }
   }, [chat.isStreaming]);
   useEffect(() => {
     const wasGenerating = prevDelivGeneratingRef.current;
     prevDelivGeneratingRef.current = isDelivGenerating;
+    if (!wasGenerating && isDelivGenerating) {
+      proactiveReviewDoneRef.current = false;
+    }
 
     // Detect transition: generating → done (only trigger once per session)
-    if (
-      wasGenerating &&
-      !isDelivGenerating &&
-      isAgentMode &&
-      chat.isAgentProviderReady &&
-      !chat.isStreaming &&
-      !proactiveReviewDoneRef.current
-    ) {
+    if (wasGenerating && !isDelivGenerating && isAgentMode && !chat.isStreaming && !proactiveReviewDoneRef.current) {
       const doneCount = deliverables ? Object.values(deliverables).filter((d) => d?.status === 'done').length : 0;
       if (doneCount >= 2) {
         proactiveReviewDoneRef.current = true;
+        packageQualityPassUpdateRef.current?.({
+          status: 'running',
+          message: 'Final package-quality pass is repairing and reviewing materials...',
+          repairsApplied: 0,
+          warnings: 0,
+          blockers: 0,
+        });
         const repairResult = applyDeterministicReadinessRepairs();
+        const repairedCourseMap = repairResult?.courseMap || courseMap;
         const repairedDeliverables = repairResult?.deliverables || deliverables;
         const lessonFilter = lessonScope?.type === 'specific' ? lessonScope.indices : null;
         const readiness = evaluateWorkspaceReadiness({
-          courseMap,
+          courseMap: repairedCourseMap,
           deliverables: repairedDeliverables,
           selectedFeatures,
           columns,
@@ -274,12 +287,52 @@ export default function ChatPanel({
             : 'No deterministic readiness repair was needed before the agent review.';
         // Brief delay to let UI settle, then auto-review — but cancel if the
         // user beats us to the punch by sending their own message.
-        autoReviewTimerRef.current = setTimeout(() => {
+        autoReviewTimerRef.current = setTimeout(async () => {
           autoReviewTimerRef.current = null;
-          if (chat.isStreaming) return; // user already started something
-          chat.send(
-            `[AUTO-REVIEW] Generation done. ${repairNote} Readiness: ${readiness.status}, ${readiness.blockers.length} blocker(s), ${readiness.warnings.length} warning(s). Run finalize_package. If repairQueue.retryActionCount > 0, call retry_package_weak_spots; otherwise fix concrete data issues. Finalize again, then summarize. Say classroom-ready only when Excellent and classroomReadiness.status is ready.`,
-          );
+          if (chat.isStreaming) {
+            packageQualityPassUpdateRef.current?.({
+              status: readiness.status,
+              message: summarizePackageQuality(readiness, repairResult?.applied || 0),
+              repairsApplied: repairResult?.applied || 0,
+              warnings: readiness.warnings.length,
+              blockers: readiness.blockers.length,
+            });
+            return;
+          }
+          if (!chat.isAgentProviderReady) {
+            packageQualityPassUpdateRef.current?.({
+              status: readiness.status,
+              message: summarizePackageQuality(readiness, repairResult?.applied || 0),
+              repairsApplied: repairResult?.applied || 0,
+              warnings: readiness.warnings.length,
+              blockers: readiness.blockers.length,
+            });
+            return;
+          }
+          try {
+            await chat.send(
+              `[AUTO-REVIEW] Generation done. ${repairNote} Readiness: ${readiness.status}, ${readiness.blockers.length} blocker(s), ${readiness.warnings.length} warning(s). Run finalize_package. If repairQueue.retryActionCount > 0, call retry_package_weak_spots; otherwise fix concrete data issues. Finalize again, then summarize. Say classroom-ready only when Excellent and classroomReadiness.status is ready.`,
+            );
+          } finally {
+            const finalRepair = applyDeterministicReadinessRepairs();
+            const finalReadiness = evaluateWorkspaceReadiness({
+              courseMap: finalRepair?.courseMap || courseMapRef.current,
+              deliverables: finalRepair?.deliverables || delivRef.current,
+              selectedFeatures,
+              columns,
+              lessonFilter,
+            });
+            packageQualityPassUpdateRef.current?.({
+              status: finalReadiness.status,
+              message: summarizePackageQuality(
+                finalReadiness,
+                (repairResult?.applied || 0) + (finalRepair?.applied || 0),
+              ),
+              repairsApplied: (repairResult?.applied || 0) + (finalRepair?.applied || 0),
+              warnings: finalReadiness.warnings.length,
+              blockers: finalReadiness.blockers.length,
+            });
+          }
         }, 2000);
       }
     }
@@ -378,28 +431,31 @@ export default function ChatPanel({
 
       {/* ── Progress Header (collapsible) — generation + deliverable status ── */}
       {showProgressHeader && (
-        <ProgressHeader
-          currentStep={currentStep}
-          modelName={modelName}
-          streamProgress={streamProgress}
-          streamDetail={streamDetail}
-          completenessInfo={completenessInfo}
-          error={error}
-          isStopped={isStopped}
-          retryInfo={retryInfo}
-          deliverables={deliverables}
-          delivProgress={delivProgress}
-          currentDelivFeatures={currentDelivFeatures}
-          isDelivGenerating={isDelivGenerating}
-          delivTimings={delivTimings}
-          onStop={onStop}
-          onResume={onResume}
-          onClearAll={onClearAll}
-          onStopDeliverables={onStopDeliverables}
-          isSyncing={isSyncing}
-          pendingSyncCount={pendingSyncCount}
-          syncingFeatures={syncingFeatures}
-        />
+        <Suspense fallback={null}>
+          <ProgressHeader
+            currentStep={currentStep}
+            modelName={modelName}
+            streamProgress={streamProgress}
+            streamDetail={streamDetail}
+            completenessInfo={completenessInfo}
+            error={error}
+            isStopped={isStopped}
+            retryInfo={retryInfo}
+            deliverables={deliverables}
+            delivProgress={delivProgress}
+            currentDelivFeatures={currentDelivFeatures}
+            isDelivGenerating={isDelivGenerating}
+            delivTimings={delivTimings}
+            packageQualityPass={packageQualityPass}
+            onStop={onStop}
+            onResume={onResume}
+            onClearAll={onClearAll}
+            onStopDeliverables={onStopDeliverables}
+            isSyncing={isSyncing}
+            pendingSyncCount={pendingSyncCount}
+            syncingFeatures={syncingFeatures}
+          />
+        </Suspense>
       )}
 
       {/* ── Stale deliverables banner (persistent, above messages) ── */}

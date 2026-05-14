@@ -193,7 +193,7 @@ test.describe('Agent auto-review', () => {
 
     await expect(page.getByTestId('workspace-shell')).toBeVisible({ timeout: 10000 });
     const agentPanel = page.getByTestId('workspace-agent-panel');
-    await expect(agentPanel.getByText('Complete')).toBeVisible({ timeout: 30000 });
+    await expect(agentPanel.getByTestId('progress-phase-label')).toHaveText('Complete', { timeout: 30000 });
 
     await expect.poll(() => agentRequests.length, { timeout: 15000 }).toBe(1);
     expect(agentRequests[0].messages.some((message) => String(message.content || '').includes('[AUTO-REVIEW]'))).toBe(

@@ -200,6 +200,10 @@ export default function useChatRouter({
   useEffect(() => {
     delivRef.current = deliverables;
   });
+  const courseMapRef = useRef(courseMap);
+  useEffect(() => {
+    courseMapRef.current = courseMap;
+  });
   const optimisticUpdateRef = useRef(optimisticUpdate);
   useEffect(() => {
     optimisticUpdateRef.current = optimisticUpdate;
@@ -427,7 +431,7 @@ export default function useChatRouter({
       apiKey,
       provider,
       modelId,
-      courseMap,
+      courseMap: courseMapRef.current,
       activeTab,
       slideTheme,
       selectedFeatures,
