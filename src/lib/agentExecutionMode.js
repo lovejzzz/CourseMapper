@@ -8,6 +8,7 @@ export const AGENT_EXECUTION_MODE_STORAGE_KEY = 'coursemapper-agent-execution-mo
 export const AGENT_DRY_RUN_BLOCKED_TOOLS = new Set([
   'edit_course_map',
   'edit_deliverables',
+  'finalize_package',
   'repair_package_readiness',
   'generate_slide_images',
   'save_preference',
@@ -21,7 +22,7 @@ export const AGENT_DRY_RUN_BLOCKED_TOOLS = new Set([
 export const AGENT_DRY_RUN_INSTRUCTIONS = `## CURRENT AGENT MODE: DRY RUN / READ-ONLY
 - Do not mutate course maps, generated deliverables, memories, preferences, custom tools, or slide image assets.
 - Available behavior: read, validate, compare, verify, search, and then respond with analysis or user-approved proposal cards.
-- Do not call edit_course_map, edit_deliverables, repair_package_readiness, generate_slide_images, save_preference, remember, forget, undo_last, create_tool, or run_tool.
+- Do not call edit_course_map, edit_deliverables, finalize_package, repair_package_readiness, generate_slide_images, save_preference, remember, forget, undo_last, create_tool, or run_tool.
 - If the user asks for a change, describe the exact recommended change or return proposal options; do not apply anything automatically.`;
 
 export function normalizeAgentExecutionMode(mode) {

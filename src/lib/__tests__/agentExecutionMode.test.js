@@ -14,6 +14,7 @@ describe('agentExecutionMode', () => {
     read_deliverable: { description: 'read' },
     edit_course_map: { description: 'write' },
     edit_deliverables: { description: 'write' },
+    finalize_package: { description: 'write' },
     repair_package_readiness: { description: 'write' },
     generate_slide_images: { description: 'write' },
     respond: { description: 'final' },
@@ -31,6 +32,7 @@ describe('agentExecutionMode', () => {
     expect(filtered.read_deliverable).toBe(tools.read_deliverable);
     expect(filtered.edit_course_map).toBeUndefined();
     expect(filtered.edit_deliverables).toBeUndefined();
+    expect(filtered.finalize_package).toBeUndefined();
     expect(filtered.repair_package_readiness).toBeUndefined();
     expect(filtered.generate_slide_images).toBeUndefined();
   });
@@ -41,6 +43,7 @@ describe('agentExecutionMode', () => {
 
   it('marks mutating tools as blocked', () => {
     expect(isAgentToolBlockedInDryRun('edit_course_map')).toBe(true);
+    expect(isAgentToolBlockedInDryRun('finalize_package')).toBe(true);
     expect(isAgentToolBlockedInDryRun('repair_package_readiness')).toBe(true);
     expect(isAgentToolBlockedInDryRun('remember')).toBe(true);
     expect(isAgentToolBlockedInDryRun('validate_course')).toBe(false);

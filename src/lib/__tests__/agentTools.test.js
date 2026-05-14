@@ -148,6 +148,7 @@ beforeEach(() => {
 describe('AGENT_TOOLS registry', () => {
   const EXPECTED_TOOLS = [
     'validate_course',
+    'finalize_package',
     'review_package_readiness',
     'repair_package_readiness',
     'check_grammar',
@@ -169,9 +170,9 @@ describe('AGENT_TOOLS registry', () => {
     'run_tool',
   ];
 
-  it('contains exactly 20 tools', () => {
+  it('contains exactly 21 tools', () => {
     // Domain tools + create_tool / run_tool meta-tools for session macros.
-    expect(Object.keys(AGENT_TOOLS)).toHaveLength(20);
+    expect(Object.keys(AGENT_TOOLS)).toHaveLength(21);
   });
 
   it.each(EXPECTED_TOOLS)('has tool "%s" with description, params, and execute', (name) => {
@@ -285,6 +286,16 @@ describe('summarizeToolResult()', () => {
   });
 
   describe('package readiness tools', () => {
+    it('formats package finalizer confidence', () => {
+      expect(
+        summarizeToolResult('finalize_package', {
+          confidence: 'Good with assumptions',
+          repairsApplied: 2,
+          readiness: { blockerCount: 0, warningCount: 3 },
+        }),
+      ).toBe('Good with assumptions: 2 repaired, 0 blockers, 3 warnings');
+    });
+
     it('formats readiness review status', () => {
       expect(
         summarizeToolResult('review_package_readiness', {
@@ -499,6 +510,44 @@ describe('Tool execute: validate_course', () => {
 });
 
 describe('Tool execute: package readiness', () => {
+  it('finalizes a package with safe repairs, readiness, and validation confidence', async () => {
+    mockCtx.deliverables = {
+      quizBank: {
+        status: 'done',
+        data: {
+          quizzes: [
+            {
+              lt: 'Lesson 1',
+              qs: [
+                {
+                  ty: 'mc',
+                  df: '',
+                  em: 0,
+                  q: 'Which option is strongest?',
+                  op: ['A. One', 'B. Two', 'C. Three', 'D. Four'],
+                  an: 'B',
+                  pt: 0,
+                  ex: '',
+                },
+              ],
+              tp: 99,
+            },
+          ],
+        },
+      },
+    };
+    mockCtx.selectedFeatures = ['quizBank'];
+
+    const result = await AGENT_TOOLS.finalize_package.execute({}, mockCtx);
+
+    expect(result.confidence).toBe('Needs attention');
+    expect(result.repairsApplied).toBe(1);
+    expect(result.readiness.warningCount).toBeGreaterThan(0);
+    expect(result.validation.errorCount).toBe(2);
+    expect(mockCtx.optimisticUpdate).toHaveBeenCalledWith('quizBank', expect.any(Object));
+    expect(mockCtx.deliverables.quizBank.data.quizzes[0].tp).toBe(2);
+  });
+
   it('reviews readiness with compact blocker and warning counts', async () => {
     mockCtx.selectedFeatures = ['courseMap', 'quizBank'];
     const result = await AGENT_TOOLS.review_package_readiness.execute({}, mockCtx);

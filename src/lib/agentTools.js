@@ -64,6 +64,94 @@ function cloneData(data) {
   return JSON.parse(JSON.stringify(data || {}));
 }
 
+function compactReadinessIssue(issue) {
+  return {
+    severity: issue.severity,
+    featureId: issue.featureId,
+    label: issue.label,
+    message: issue.message,
+  };
+}
+
+function getPackageConfidence(readiness, healthReport) {
+  if (readiness?.blockers?.length > 0 || (healthReport?.errorCount || 0) > 0) return 'Needs attention';
+  if (readiness?.warnings?.length > 0 || (healthReport?.warningCount || 0) > 0) return 'Good with assumptions';
+  return 'Excellent';
+}
+
+function getPackageNextAction(confidence) {
+  if (confidence === 'Excellent') {
+    return 'Package is ready to present and export.';
+  }
+  if (confidence === 'Good with assumptions') {
+    return 'Present the package with the remaining assumptions; use proposals only for instructor-specific judgment calls.';
+  }
+  return 'Fix the remaining blockers before presenting the package as done.';
+}
+
+function applyReadinessRepairsToContext(ctx) {
+  if (!ctx.optimisticUpdate) {
+    return {
+      applied: 0,
+      failed: 0,
+      repairs: [],
+      deliverables: ctx.deliverables,
+      error: 'Deliverable update API is not available in this workspace.',
+    };
+  }
+
+  const result = repairWorkspaceReadiness({
+    courseMap: ctx.courseMap,
+    deliverables: ctx.deliverables,
+    selectedFeatures: ctx.selectedFeatures,
+    deliverableConfig: ctx.deliverableConfig,
+  });
+
+  if (!result.changed) {
+    return {
+      applied: 0,
+      failed: 0,
+      repairs: [],
+      deliverables: ctx.deliverables,
+      message: 'No safe deterministic package repairs were needed.',
+    };
+  }
+
+  const details = [];
+  for (const repair of result.repairs) {
+    const entry = result.deliverables?.[repair.featureId];
+    if (!entry?.data) {
+      details.push({ featureId: repair.featureId, success: false, message: 'No repaired data produced.' });
+      continue;
+    }
+    const previous = ctx.deliverables?.[repair.featureId]?.data;
+    if (previous && ctx.snapshot) ctx.snapshot(repair.featureId, previous);
+    ctx.optimisticUpdate(repair.featureId, entry.data);
+    details.push({
+      featureId: repair.featureId,
+      label: repair.label,
+      success: true,
+      changes: repair.changes,
+      message: repair.message,
+    });
+  }
+
+  ctx.setCurrentDeliverables?.(result.deliverables);
+
+  const applied = details.filter((detail) => detail.success).length;
+  const failed = details.length - applied;
+  return {
+    applied,
+    failed,
+    repairs: details,
+    deliverables: result.deliverables,
+    message:
+      applied > 0
+        ? `${applied} deliverable${applied === 1 ? '' : 's'} received safe readiness repairs.`
+        : 'No repairs were applied.',
+  };
+}
+
 function getSlideArray(deck) {
   if (Array.isArray(deck?.slides)) return { key: 'slides', slides: deck.slides };
   if (Array.isArray(deck?.sl)) return { key: 'sl', slides: deck.sl };
@@ -257,6 +345,58 @@ export const AGENT_TOOLS = {
     },
   },
 
+  finalize_package: {
+    description:
+      'One-step background package finalizer. Applies safe readiness repairs, reruns export readiness and pedagogical validation, and returns the final delivery confidence before presenting the package to the user.',
+    params: {},
+    execute: async (args, ctx) => {
+      const repairResult = applyReadinessRepairsToContext(ctx);
+      if (repairResult.error) return { error: repairResult.error };
+
+      const finalDeliverables = repairResult.deliverables || ctx.deliverables;
+      const readiness = evaluateWorkspaceReadiness({
+        courseMap: ctx.courseMap,
+        deliverables: finalDeliverables,
+        selectedFeatures: ctx.selectedFeatures,
+        columns: ctx.columns,
+        lessonFilter: ctx.lessonFilter,
+      });
+      const healthReport = generateCourseHealthReport(ctx.courseMap, finalDeliverables);
+      const confidence = getPackageConfidence(readiness, healthReport);
+
+      return {
+        confidence,
+        ready: confidence === 'Excellent',
+        nextAction: getPackageNextAction(confidence),
+        repairsApplied: repairResult.applied || 0,
+        repairsFailed: repairResult.failed || 0,
+        repairs: repairResult.repairs || [],
+        readiness: {
+          status: readiness.status,
+          isBlocked: readiness.isBlocked,
+          blockerCount: readiness.blockers.length,
+          warningCount: readiness.warnings.length,
+          issueCount: readiness.issues.length,
+          lessonCount: readiness.lessonCount,
+          checkedSections: `${readiness.doneFeatureCount}/${readiness.featureCount}`,
+          blockers: readiness.blockers.slice(0, 20).map(compactReadinessIssue),
+          warnings: readiness.warnings.slice(0, 20).map(compactReadinessIssue),
+        },
+        validation: {
+          errorCount: healthReport.errorCount,
+          warningCount: healthReport.warningCount,
+          infoCount: healthReport.infoCount,
+          findings: healthReport.findings.slice(0, 20).map((finding) => ({
+            severity: finding.severity,
+            category: finding.category,
+            message: finding.message,
+            lessonIndex: finding.lessonIndex,
+          })),
+        },
+      };
+    },
+  },
+
   review_package_readiness: {
     description:
       'Run export/package readiness checks across the selected course map and generated deliverables. Use before telling the user materials are ready.',
@@ -269,12 +409,6 @@ export const AGENT_TOOLS = {
         columns: ctx.columns,
         lessonFilter: ctx.lessonFilter,
       });
-      const compact = (issue) => ({
-        severity: issue.severity,
-        featureId: issue.featureId,
-        label: issue.label,
-        message: issue.message,
-      });
       return {
         status: readiness.status,
         isBlocked: readiness.isBlocked,
@@ -283,8 +417,8 @@ export const AGENT_TOOLS = {
         issueCount: readiness.issues.length,
         lessonCount: readiness.lessonCount,
         checkedSections: `${readiness.doneFeatureCount}/${readiness.featureCount}`,
-        blockers: readiness.blockers.slice(0, 20).map(compact),
-        warnings: readiness.warnings.slice(0, 20).map(compact),
+        blockers: readiness.blockers.slice(0, 20).map(compactReadinessIssue),
+        warnings: readiness.warnings.slice(0, 20).map(compactReadinessIssue),
       };
     },
   },
@@ -294,53 +428,11 @@ export const AGENT_TOOLS = {
       'Apply safe deterministic repairs to generated deliverables before user review/export: quiz scoring metadata, FAQ categories/counts, slide notes/accessibility, rubric coverage, study guide cleanup, and publishability placeholders. Does not make pedagogical judgment calls.',
     params: {},
     execute: async (args, ctx) => {
-      if (!ctx.optimisticUpdate) {
-        return { error: 'Deliverable update API is not available in this workspace.' };
-      }
-
-      const result = repairWorkspaceReadiness({
-        courseMap: ctx.courseMap,
-        deliverables: ctx.deliverables,
-        selectedFeatures: ctx.selectedFeatures,
-        deliverableConfig: ctx.deliverableConfig,
-      });
-
-      if (!result.changed) {
-        return { applied: 0, failed: 0, repairs: [], message: 'No safe deterministic package repairs were needed.' };
-      }
-
-      const details = [];
-      for (const repair of result.repairs) {
-        const entry = result.deliverables?.[repair.featureId];
-        if (!entry?.data) {
-          details.push({ featureId: repair.featureId, success: false, message: 'No repaired data produced.' });
-          continue;
-        }
-        const previous = ctx.deliverables?.[repair.featureId]?.data;
-        if (previous && ctx.snapshot) ctx.snapshot(repair.featureId, previous);
-        ctx.optimisticUpdate(repair.featureId, entry.data);
-        details.push({
-          featureId: repair.featureId,
-          label: repair.label,
-          success: true,
-          changes: repair.changes,
-          message: repair.message,
-        });
-      }
-
-      ctx.setCurrentDeliverables?.(result.deliverables);
-
-      const applied = details.filter((detail) => detail.success).length;
-      const failed = details.length - applied;
-      return {
-        applied,
-        failed,
-        repairs: details,
-        message:
-          applied > 0
-            ? `${applied} deliverable${applied === 1 ? '' : 's'} received safe readiness repairs.`
-            : 'No repairs were applied.',
-      };
+      const result = applyReadinessRepairsToContext(ctx);
+      if (result.error) return { error: result.error };
+      const { deliverables: _deliverables, ...publicResult } = result;
+      void _deliverables;
+      return publicResult;
     },
   },
 
@@ -1261,6 +1353,7 @@ export const AGENT_TOOLS = {
 
 export const TOOL_LABELS = {
   validate_course: 'Validating course health',
+  finalize_package: 'Finalizing course package',
   review_package_readiness: 'Reviewing package readiness',
   repair_package_readiness: 'Repairing package readiness',
   check_grammar: 'Checking grammar',
@@ -1307,6 +1400,8 @@ export function summarizeToolResult(toolName, result) {
   switch (toolName) {
     case 'validate_course':
       return `${result.errorCount || 0} errors, ${result.warningCount || 0} warnings, ${result.infoCount || 0} info`;
+    case 'finalize_package':
+      return `${result.confidence || 'Unknown'}: ${result.repairsApplied || 0} repaired, ${result.readiness?.blockerCount || 0} blockers, ${result.readiness?.warningCount || 0} warnings`;
     case 'review_package_readiness':
       return `${result.status || 'unknown'}: ${result.blockerCount || 0} blockers, ${result.warningCount || 0} warnings`;
     case 'repair_package_readiness':
