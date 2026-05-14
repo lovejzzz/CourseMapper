@@ -3,6 +3,58 @@ import Header from '../components/Header';
 
 const releases = [
   {
+    version: '0.7',
+    date: 'May 14, 2026',
+    title: 'Autonomous Package Finalizer',
+    highlights: [
+      'Agent finalization now verifies exports, readiness, validation, and safe repairs before handing a package to the user',
+      'Localized weak sections can be retried automatically instead of regenerating or asking about the whole course',
+      'The main agent path now feels closer to “consider it done”: finish, verify, repair, and hand off',
+    ],
+    sections: [
+      {
+        label: 'God-Mode Package Flow',
+        icon: '✦',
+        color: 'indigo',
+        items: [
+          'Added a one-step package finalizer that applies safe readiness repairs, verifies export paths, runs package readiness checks, and reruns pedagogical validation before claiming a package is ready.',
+          'The final handoff card now reports delivery confidence, safe repairs, readiness blockers, export status, lesson count, and remaining assumptions without exposing internal judge scores.',
+          'The agent starter now includes a direct “finish and verify my course package” path from the generated workspace.',
+        ],
+      },
+      {
+        label: 'Autonomous Repair',
+        icon: '⚡',
+        color: 'amber',
+        items: [
+          'Added targeted retry for localized weak generated sections, so the agent can regenerate only the affected lesson/deliverable slice when validation finds a concrete local failure.',
+          'Auto-review instructions now route through finalization first, then targeted retry or direct safe edits, then finalization again after the updated package lands.',
+          'Targeted retry progress is classified honestly in the agent status UI as started, pending, partial, or failed.',
+        ],
+      },
+      {
+        label: 'Export Verification',
+        icon: '🛡️',
+        color: 'emerald',
+        items: [
+          'Added in-memory export smoke checks for course-map XLSX, deliverable CSV/DOCX, and slide-deck PPTX generation before the agent marks a package ready.',
+          'Export failures now downgrade package confidence to Needs attention instead of allowing a polished but non-exportable handoff.',
+          'The export verifier lazy-loads heavy exporters so bundle budgets remain intact.',
+        ],
+      },
+      {
+        label: 'Model Routing and Safety',
+        icon: '⚙',
+        color: 'slate',
+        items: [
+          'Added model-routing advice for the agent: stay on the configured low-cost model first, then escalate only after targeted retry cannot clear concrete blockers.',
+          'Dry-run mode now blocks targeted retry alongside other mutating tools while keeping read-only export verification available.',
+          'Regression tests cover the finalizer, export verifier, package card, auto-review prompt, dry-run filtering, and model-routing advice.',
+        ],
+      },
+    ],
+  },
+  {
     version: '0.6',
     date: 'May 12, 2026',
     title: 'Quality-Gated Deliverables and Developer IDE Hardening',

@@ -19,12 +19,14 @@ describe('packageFinalizerSummary', () => {
         warnings: [],
       },
       validation: { errorCount: 0, warningCount: 0, findings: [] },
+      exportVerification: { status: 'passed', checked: 4, failed: 0, warningCount: 0, checks: [] },
       nextAction: 'Package is ready to present and export.',
     });
 
     expect(summary.ready).toBe(true);
     expect(summary.tone).toBe('excellent');
     expect(summary.repairsApplied).toBe(2);
+    expect(summary.exportChecked).toBe(4);
     expect(summary.topIssues).toEqual([]);
   });
 
@@ -32,6 +34,9 @@ describe('packageFinalizerSummary', () => {
     expect(classifyFinalizePackageStepStatus({ confidence: 'Excellent' })).toBe('done');
     expect(classifyFinalizePackageStepStatus({ confidence: 'Good with assumptions' })).toBe('partial');
     expect(classifyFinalizePackageStepStatus({ confidence: 'Needs attention' })).toBe('error');
+    expect(classifyFinalizePackageStepStatus({ confidence: 'Excellent', exportVerification: { failed: 1 } })).toBe(
+      'error',
+    );
     expect(classifyFinalizePackageStepStatus({ error: 'No update API' })).toBe('error');
   });
 
@@ -41,12 +46,14 @@ describe('packageFinalizerSummary', () => {
       repairsApplied: 1,
       readiness: { blockerCount: 0, warningCount: 2 },
       validation: { errorCount: 0, warningCount: 1 },
+      exportVerification: { status: 'warnings', checked: 3, failed: 0, warningCount: 1 },
     });
 
     const history = formatPackageSummaryForHistory(summary);
 
     expect(history).toContain('Good with assumptions');
     expect(history).toContain('1 safe repair');
+    expect(history).toContain('3 export check');
     expect(history).not.toMatch(/\bscore\b/i);
   });
 });

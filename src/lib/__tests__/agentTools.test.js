@@ -98,6 +98,37 @@ vi.mock('../cloudStorage', () => ({
   saveAgentPrefs: vi.fn(() => Promise.resolve()),
 }));
 
+vi.mock('../packageExportVerifier', () => ({
+  verifyPackageExports: vi.fn(() =>
+    Promise.resolve({
+      status: 'passed',
+      checked: 3,
+      passed: 3,
+      failed: 0,
+      warningCount: 0,
+      checks: [
+        {
+          featureId: 'courseMap',
+          label: 'Course Map',
+          format: 'xlsx',
+          status: 'passed',
+          message: 'Course map spreadsheet can be generated.',
+        },
+      ],
+    }),
+  ),
+}));
+
+vi.mock('../agentModelRouting', () => ({
+  getModelRoutingAdvice: vi.fn(() => ({
+    mode: 'stay-on-current-model',
+    currentModel: 'gpt-5.4-mini',
+    nextModel: 'gpt-5.4-mini',
+    shouldEscalate: false,
+    reason: 'Use targeted retry before changing models.',
+  })),
+}));
+
 // ── Shared ctx ─────────────────────────────────────────────────────────────
 
 let mockCtx;
@@ -149,8 +180,10 @@ describe('AGENT_TOOLS registry', () => {
   const EXPECTED_TOOLS = [
     'validate_course',
     'finalize_package',
+    'verify_package_exports',
     'review_package_readiness',
     'repair_package_readiness',
+    'retry_package_weak_spots',
     'check_grammar',
     'search_research',
     'read_deliverable',
@@ -170,9 +203,9 @@ describe('AGENT_TOOLS registry', () => {
     'run_tool',
   ];
 
-  it('contains exactly 21 tools', () => {
+  it('contains exactly 23 tools', () => {
     // Domain tools + create_tool / run_tool meta-tools for session macros.
-    expect(Object.keys(AGENT_TOOLS)).toHaveLength(21);
+    expect(Object.keys(AGENT_TOOLS)).toHaveLength(23);
   });
 
   it.each(EXPECTED_TOOLS)('has tool "%s" with description, params, and execute', (name) => {
@@ -292,8 +325,15 @@ describe('summarizeToolResult()', () => {
           confidence: 'Good with assumptions',
           repairsApplied: 2,
           readiness: { blockerCount: 0, warningCount: 3 },
+          exportVerification: { status: 'passed' },
         }),
-      ).toBe('Good with assumptions: 2 repaired, 0 blockers, 3 warnings');
+      ).toBe('Good with assumptions: 2 repaired, 0 blockers, 3 warnings, passed');
+    });
+
+    it('formats export verification checks', () => {
+      expect(summarizeToolResult('verify_package_exports', { status: 'passed', passed: 4, checked: 4 })).toBe(
+        'passed: 4/4 export checks passed',
+      );
     });
 
     it('formats readiness review status', () => {
@@ -308,6 +348,12 @@ describe('summarizeToolResult()', () => {
 
     it('formats readiness repair counts', () => {
       expect(summarizeToolResult('repair_package_readiness', { applied: 2, failed: 1 })).toBe('2 repaired, 1 failed');
+    });
+
+    it('formats targeted retry counts', () => {
+      expect(summarizeToolResult('retry_package_weak_spots', { started: 2, pending: 2, failed: 0 })).toBe(
+        '2 retries started, 2 pending',
+      );
     });
   });
 
@@ -544,8 +590,23 @@ describe('Tool execute: package readiness', () => {
     expect(result.repairsApplied).toBe(1);
     expect(result.readiness.warningCount).toBeGreaterThan(0);
     expect(result.validation.errorCount).toBe(2);
+    expect(result.exportVerification.status).toBe('passed');
+    expect(result.modelRouting.currentModel).toBe('gpt-5.4-mini');
     expect(mockCtx.optimisticUpdate).toHaveBeenCalledWith('quizBank', expect.any(Object));
     expect(mockCtx.deliverables.quizBank.data.quizzes[0].tp).toBe(2);
+  });
+
+  it('verifies package exports without downloading files', async () => {
+    const result = await AGENT_TOOLS.verify_package_exports.execute({}, mockCtx);
+
+    expect(result.status).toBe('passed');
+    expect(result.checked).toBe(3);
+    expect(result.checks[0]).toEqual(
+      expect.objectContaining({
+        featureId: 'courseMap',
+        format: 'xlsx',
+      }),
+    );
   });
 
   it('reviews readiness with compact blocker and warning counts', async () => {
@@ -592,6 +653,28 @@ describe('Tool execute: package readiness', () => {
     expect(mockCtx.snapshot).toHaveBeenCalledWith('quizBank', expect.any(Object));
     expect(mockCtx.optimisticUpdate).toHaveBeenCalledWith('quizBank', expect.any(Object));
     expect(mockCtx.deliverables.quizBank.data.quizzes[0].tp).toBe(2);
+  });
+
+  it('starts targeted retries for localized weak generated sections', async () => {
+    mockCtx.deliverables = {
+      slideDecks: {
+        status: 'done',
+        data: {
+          decks: [{ lt: 'Lesson 1', sl: [{ t: 'Only slide' }] }],
+        },
+      },
+    };
+    mockCtx.selectedFeatures = ['slideDecks'];
+    mockCtx.executeAction = vi.fn(() => ({ success: true, pending: true, message: 'Regenerating' }));
+
+    const result = await AGENT_TOOLS.retry_package_weak_spots.execute({ maxActions: 2 }, mockCtx);
+
+    expect(result.started).toBe(1);
+    expect(result.pending).toBe(1);
+    expect(mockCtx.executeAction).toHaveBeenCalledWith(
+      { type: 'regenerateLesson', featureId: 'slideDecks', lessonIndex: 0 },
+      { skipSnapshot: true },
+    );
   });
 });
 

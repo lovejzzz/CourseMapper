@@ -58,6 +58,14 @@ export default function PackageSummaryCard({ summary }) {
       : summary.warningCount > 0
         ? `${summary.warningCount} assumption${summary.warningCount === 1 ? '' : 's'} to review`
         : 'No readiness blockers';
+  const exportText =
+    summary.exportChecked > 0
+      ? summary.exportFailed > 0
+        ? `${summary.exportFailed} export issue${summary.exportFailed === 1 ? '' : 's'}`
+        : summary.exportWarningCount > 0
+          ? `${summary.exportWarningCount} export warning${summary.exportWarningCount === 1 ? '' : 's'}`
+          : 'Exports verified'
+      : null;
 
   return (
     <div className={`ml-8 mr-1 rounded-lg border ${tone.wrapper} shadow-sm animate-spring-in overflow-hidden`}>
@@ -77,6 +85,7 @@ export default function PackageSummaryCard({ summary }) {
             <div className="mt-2 flex flex-wrap gap-1.5 text-[10px] font-medium">
               <span className="rounded-full bg-white/60 px-2 py-0.5 text-slate-600">{repairText}</span>
               <span className="rounded-full bg-white/60 px-2 py-0.5 text-slate-600">{issueText}</span>
+              {exportText && <span className="rounded-full bg-white/60 px-2 py-0.5 text-slate-600">{exportText}</span>}
               {summary.checkedSections && (
                 <span className="rounded-full bg-white/60 px-2 py-0.5 text-slate-600">
                   {summary.checkedSections} sections checked

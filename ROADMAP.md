@@ -36,4 +36,10 @@ Goal: make CourseMapper credible for real classroom pilots while keeping the age
 
 ## Current v0.7 Focus
 
-Implement a built-in package finalizer that the agent can call in one step: repair safe issues, rerun readiness, rerun course health validation, and return a concise delivery confidence state before presenting anything to the user.
+Complete the autonomous package loop in production:
+
+- Built-in finalizer repairs safe issues, reruns readiness, runs export smoke tests, validates course health, and returns a simple confidence state.
+- Targeted retry regenerates only localized weak generated sections when the finalizer finds a concrete lesson-level problem.
+- Package handoff card shows delivery confidence, safe repairs, export readiness, and remaining assumptions without exposing internal judge scores.
+- Agent model routing advice keeps low-cost models first and escalates only after targeted retry cannot clear concrete blockers.
+- Main agent starter now supports a single "finish and verify my course package" path while advanced controls remain available.

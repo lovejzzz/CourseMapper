@@ -3,6 +3,9 @@ import { expect, test } from '@playwright/test';
 const MUTATING_AGENT_TOOLS = [
   'edit_course_map',
   'edit_deliverables',
+  'finalize_package',
+  'repair_package_readiness',
+  'retry_package_weak_spots',
   'generate_slide_images',
   'save_preference',
   'remember',

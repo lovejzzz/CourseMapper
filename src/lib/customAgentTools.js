@@ -343,9 +343,12 @@ export const SKILL_WORKFLOW_TOOLS = new Set([
   'edit_course_map',
   'edit_deliverables',
   'validate_course',
+  'finalize_package',
+  'verify_package_exports',
   'compare_deliverables',
   'check_grammar',
   'search_research',
+  'retry_package_weak_spots',
   'regenerateLesson',
 ]);
 

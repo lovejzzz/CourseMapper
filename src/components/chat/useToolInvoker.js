@@ -453,9 +453,10 @@ export async function runAgentLoop(fullMessage, { silent = false, dryRun = false
                   tc.name === 'edit_course_map' ||
                   tc.name === 'edit_deliverables' ||
                   tc.name === 'generate_slide_images' ||
-                  tc.name === 'repair_package_readiness'
+                  tc.name === 'repair_package_readiness' ||
+                  tc.name === 'retry_package_weak_spots'
                 ) {
-                  const appliedN = result.applied || 0;
+                  const appliedN = result.applied || result.started || 0;
                   const failedN = result.failed || 0;
                   if (failedN > 0) stepStatus = appliedN > 0 ? 'partial' : 'error';
                 }
@@ -483,7 +484,8 @@ export async function runAgentLoop(fullMessage, { silent = false, dryRun = false
               if (
                 tc.name === 'edit_course_map' ||
                 tc.name === 'edit_deliverables' ||
-                tc.name === 'generate_slide_images'
+                tc.name === 'generate_slide_images' ||
+                tc.name === 'retry_package_weak_spots'
               ) {
                 const changes = [];
                 const editedFeatures = new Set();
@@ -536,11 +538,11 @@ export async function runAgentLoop(fullMessage, { silent = false, dryRun = false
                     changes.filter((c) => c.type === 'regenerating').reduce((sum, c) => sum + c.count, 0);
                   const message =
                     failedItems.length === 0
-                      ? pendingCount > 0 && (result.applied || 0) === 0
+                      ? pendingCount > 0 && (result.applied || result.started || 0) === 0
                         ? `${pendingCount} regeneration${pendingCount !== 1 ? 's' : ''} started.`
-                        : `${result.applied || 0} change${(result.applied || 0) !== 1 ? 's' : ''} applied${pendingCount > 0 ? ` · ${pendingCount} pending` : ''}.`
-                      : result.applied > 0
-                        ? `${result.applied} applied${pendingCount > 0 ? ` · ${pendingCount} pending` : ''} · ${failedItems.length} failed`
+                        : `${result.applied || result.started || 0} change${(result.applied || result.started || 0) !== 1 ? 's' : ''} applied${pendingCount > 0 ? ` · ${pendingCount} pending` : ''}.`
+                      : (result.applied || result.started || 0) > 0
+                        ? `${result.applied || result.started || 0} applied${pendingCount > 0 ? ` · ${pendingCount} pending` : ''} · ${failedItems.length} failed`
                         : `${failedItems.length} change${failedItems.length !== 1 ? 's' : ''} failed`;
                   setMessages((prev) => [
                     ...prev,
@@ -548,7 +550,7 @@ export async function runAgentLoop(fullMessage, { silent = false, dryRun = false
                       role: 'changeSummary',
                       summary: {
                         changes,
-                        applied: result.applied || 0,
+                        applied: result.applied || result.started || 0,
                         pending: pendingCount,
                         failed: failedItems.length,
                         failedItems,

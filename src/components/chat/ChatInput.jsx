@@ -113,8 +113,8 @@ export default function ChatInput({
 
   const busy = isStreaming || isRevising;
   const reviewPrompt = agentDryRun
-    ? 'Review my course. Run validate_course, then scan all generated deliverables for: (1) weak learning objectives that use lower Bloom\'s verbs like "understand" or "know" — suggest upgrades, (2) misalignment between assessments and stated objectives, (3) missing or vague content in any deliverable, (4) readability issues. For each issue found, explain what\'s wrong and propose a specific fix. Do not apply changes.'
-    : 'Review my course. Run validate_course, then scan all generated deliverables for: (1) weak learning objectives that use lower Bloom\'s verbs like "understand" or "know" — suggest upgrades, (2) misalignment between assessments and stated objectives, (3) missing or vague content in any deliverable, (4) readability issues. For each issue found, explain what\'s wrong and propose a specific fix using edit_deliverables or edit_course_map.';
+    ? 'Review this course package without applying changes. Run read-only readiness, export, and validation checks; identify concrete blockers, assumptions, and the exact safe fixes you would apply. Do not apply changes.'
+    : 'Finish and verify this course package. Run finalize_package first. If it finds localized weak generated sections, use retry_package_weak_spots and finalize again after those updates land. If it finds safe concrete data issues, fix them directly, then finalize again. Finish with a concise package handoff.';
 
   return (
     <div

@@ -29,6 +29,17 @@ const FEATURE_NAMES = {
   syllabus: 'Syllabus',
 };
 
+const RETRYABLE_FEATURES = new Set([
+  'assignments',
+  'quizBank',
+  'discussions',
+  'slideDecks',
+  'lessonPlans',
+  'rubrics',
+  'studyGuides',
+  'courseFaq',
+]);
+
 function resolveFeatureName(featureId) {
   if (FEATURE_NAMES[featureId]) return FEATURE_NAMES[featureId];
   if (featureId?.startsWith('custom_')) {
@@ -73,13 +84,38 @@ function compactReadinessIssue(issue) {
   };
 }
 
-function getPackageConfidence(readiness, healthReport) {
+function compactExportCheck(check) {
+  return {
+    featureId: check.featureId,
+    label: check.label,
+    format: check.format,
+    status: check.status,
+    message: check.message,
+  };
+}
+
+async function runPackageExportVerification(options) {
+  const { verifyPackageExports } = await import('./packageExportVerifier');
+  return verifyPackageExports(options);
+}
+
+async function getRuntimeModelRoutingAdvice(options) {
+  const { getModelRoutingAdvice } = await import('./agentModelRouting');
+  return getModelRoutingAdvice(options);
+}
+
+function getPackageConfidence(readiness, healthReport, exportVerification) {
+  if (exportVerification?.status === 'failed') return 'Needs attention';
   if (readiness?.blockers?.length > 0 || (healthReport?.errorCount || 0) > 0) return 'Needs attention';
+  if (exportVerification?.status === 'warnings') return 'Good with assumptions';
   if (readiness?.warnings?.length > 0 || (healthReport?.warningCount || 0) > 0) return 'Good with assumptions';
   return 'Excellent';
 }
 
-function getPackageNextAction(confidence) {
+function getPackageNextAction(confidence, exportVerification) {
+  if (exportVerification?.status === 'failed') {
+    return 'Fix export blockers before presenting the package as done.';
+  }
   if (confidence === 'Excellent') {
     return 'Package is ready to present and export.';
   }
@@ -150,6 +186,128 @@ function applyReadinessRepairsToContext(ctx) {
         ? `${applied} deliverable${applied === 1 ? '' : 's'} received safe readiness repairs.`
         : 'No repairs were applied.',
   };
+}
+
+function getDeliverableArray(featureId, data) {
+  const key = getArrayKey(featureId, data);
+  if (key && Array.isArray(data?.[key])) return { key, items: data[key] };
+  const fallbackKeys = [
+    'items',
+    'plans',
+    'lessonPlans',
+    'decks',
+    'rubrics',
+    'quizzes',
+    'guides',
+    'faqs',
+    'assignments',
+  ];
+  for (const fallbackKey of fallbackKeys) {
+    if (Array.isArray(data?.[fallbackKey])) return { key: fallbackKey, items: data[fallbackKey] };
+  }
+  return { key: null, items: [] };
+}
+
+function normalizeForMatch(value) {
+  return String(value || '')
+    .toLowerCase()
+    .replace(/\s+/g, ' ')
+    .trim();
+}
+
+function inferLessonIndicesFromText(courseMap, text) {
+  const indices = new Set();
+  const message = String(text || '');
+  const lessons = courseMap?.lessons || [];
+  const lessonRegex = /\blesson\s+(\d+)\b/gi;
+  let match = lessonRegex.exec(message);
+  while (match) {
+    const index = Number(match[1]) - 1;
+    if (Number.isInteger(index) && index >= 0 && index < lessons.length) indices.add(index);
+    match = lessonRegex.exec(message);
+  }
+
+  if (/missing assessed lesson/i.test(message)) {
+    const numberMatches = message.match(/\b\d+\b/g) || [];
+    for (const raw of numberMatches) {
+      const index = Number(raw) - 1;
+      if (Number.isInteger(index) && index >= 0 && index < lessons.length) indices.add(index);
+    }
+  }
+
+  const normalizedMessage = normalizeForMatch(message);
+  lessons.forEach((lesson, index) => {
+    const title = normalizeForMatch(lesson?.title);
+    if (title && normalizedMessage.includes(title)) indices.add(index);
+  });
+
+  return [...indices];
+}
+
+function addRetryCandidate(candidates, skipped, ctx, { featureId, lessonIndex, source, message }) {
+  if (!featureId || !RETRYABLE_FEATURES.has(featureId)) {
+    if (featureId) skipped.push({ featureId, message, reason: 'Feature is not safe for per-lesson retry.' });
+    return;
+  }
+
+  const entry = ctx.deliverables?.[featureId];
+  const { items } = getDeliverableArray(featureId, entry?.data);
+  if (entry?.status !== 'done' || !items.length) {
+    skipped.push({ featureId, message, reason: 'Deliverable is not generated yet.' });
+    return;
+  }
+
+  if (!Number.isInteger(lessonIndex) || lessonIndex < 0 || lessonIndex >= items.length) {
+    skipped.push({
+      featureId,
+      lessonIndex,
+      message,
+      reason: 'Issue needs whole-feature repair because the lesson item is missing or out of range.',
+    });
+    return;
+  }
+
+  const key = `${featureId}:${lessonIndex}`;
+  if (!candidates.has(key)) {
+    candidates.set(key, { featureId, lessonIndex, source, message, label: resolveFeatureName(featureId) });
+  }
+}
+
+function buildTargetedRetryActions({ ctx, readiness, healthReport, maxActions }) {
+  const candidates = new Map();
+  const skipped = [];
+  const issues = [...(readiness?.blockers || []), ...(readiness?.warnings || [])];
+
+  for (const issue of issues) {
+    const lessonIndices = inferLessonIndicesFromText(ctx.courseMap, issue.message);
+    for (const lessonIndex of lessonIndices) {
+      addRetryCandidate(candidates, skipped, ctx, {
+        featureId: issue.featureId,
+        lessonIndex,
+        source: 'readiness',
+        message: issue.message,
+      });
+    }
+  }
+
+  for (const finding of healthReport?.findings || []) {
+    if (finding?.severity !== 'error' && finding?.severity !== 'warning') continue;
+    const lessonIndices =
+      Number.isInteger(finding.lessonIndex) && finding.lessonIndex >= 0
+        ? [finding.lessonIndex]
+        : inferLessonIndicesFromText(ctx.courseMap, finding.message);
+    for (const lessonIndex of lessonIndices) {
+      addRetryCandidate(candidates, skipped, ctx, {
+        featureId: finding.featureId,
+        lessonIndex,
+        source: 'validation',
+        message: finding.message,
+      });
+    }
+  }
+
+  const limit = Math.max(1, Math.min(8, Number(maxActions) || 4));
+  return { actions: [...candidates.values()].slice(0, limit), skipped: skipped.slice(0, 12) };
 }
 
 function getSlideArray(deck) {
@@ -362,12 +520,41 @@ export const AGENT_TOOLS = {
         lessonFilter: ctx.lessonFilter,
       });
       const healthReport = generateCourseHealthReport(ctx.courseMap, finalDeliverables);
-      const confidence = getPackageConfidence(readiness, healthReport);
+      const exportVerification = await runPackageExportVerification({
+        courseMap: ctx.courseMap,
+        deliverables: finalDeliverables,
+        selectedFeatures: ctx.selectedFeatures,
+        columns: ctx.columns,
+        lessonFilter: ctx.lessonFilter,
+        slideTheme: ctx.slideTheme,
+      }).catch((err) => ({
+        status: 'failed',
+        checked: 0,
+        passed: 0,
+        failed: 1,
+        warningCount: 0,
+        checks: [
+          {
+            featureId: 'package',
+            label: 'Package',
+            format: 'export',
+            status: 'failed',
+            message: err.message || 'Export verification failed.',
+          },
+        ],
+      }));
+      const confidence = getPackageConfidence(readiness, healthReport, exportVerification);
+      const modelRouting = await getRuntimeModelRoutingAdvice({
+        provider: ctx.provider,
+        modelId: ctx.modelId,
+        confidence,
+        exportStatus: exportVerification.status,
+      });
 
       return {
         confidence,
         ready: confidence === 'Excellent',
-        nextAction: getPackageNextAction(confidence),
+        nextAction: getPackageNextAction(confidence, exportVerification),
         repairsApplied: repairResult.applied || 0,
         repairsFailed: repairResult.failed || 0,
         repairs: repairResult.repairs || [],
@@ -393,6 +580,39 @@ export const AGENT_TOOLS = {
             lessonIndex: finding.lessonIndex,
           })),
         },
+        exportVerification: {
+          status: exportVerification.status,
+          checked: exportVerification.checked,
+          passed: exportVerification.passed,
+          failed: exportVerification.failed,
+          warningCount: exportVerification.warningCount,
+          checks: exportVerification.checks.slice(0, 20).map(compactExportCheck),
+        },
+        modelRouting,
+      };
+    },
+  },
+
+  verify_package_exports: {
+    description:
+      'Run in-memory export smoke tests for the selected package without downloading files. Verifies spreadsheet, CSV, DOCX, and PPTX generation before the agent says the package is ready.',
+    params: {},
+    execute: async (args, ctx) => {
+      const result = await runPackageExportVerification({
+        courseMap: ctx.courseMap,
+        deliverables: ctx.deliverables,
+        selectedFeatures: ctx.selectedFeatures,
+        columns: ctx.columns,
+        lessonFilter: ctx.lessonFilter,
+        slideTheme: ctx.slideTheme,
+      });
+      return {
+        status: result.status,
+        checked: result.checked,
+        passed: result.passed,
+        failed: result.failed,
+        warningCount: result.warningCount,
+        checks: result.checks.slice(0, 20).map(compactExportCheck),
       };
     },
   },
@@ -433,6 +653,70 @@ export const AGENT_TOOLS = {
       const { deliverables: _deliverables, ...publicResult } = result;
       void _deliverables;
       return publicResult;
+    },
+  },
+
+  retry_package_weak_spots: {
+    description:
+      'Regenerate localized weak or incomplete deliverable sections found by readiness/validation checks. Use after finalize_package reports concrete lesson-level issues; it does not ask the user and it does not repair broad pedagogical preferences.',
+    params: { maxActions: 'number (optional) — maximum lesson-level retries to start, default 4, max 8' },
+    execute: async (args, ctx) => {
+      if (!ctx.executeAction) return { error: 'Deliverable action API is not available in this workspace.' };
+
+      const readiness = evaluateWorkspaceReadiness({
+        courseMap: ctx.courseMap,
+        deliverables: ctx.deliverables,
+        selectedFeatures: ctx.selectedFeatures,
+        columns: ctx.columns,
+        lessonFilter: ctx.lessonFilter,
+      });
+      const healthReport = generateCourseHealthReport(ctx.courseMap, ctx.deliverables);
+      const { actions, skipped } = buildTargetedRetryActions({
+        ctx,
+        readiness,
+        healthReport,
+        maxActions: args.maxActions,
+      });
+
+      if (actions.length === 0) {
+        return {
+          started: 0,
+          pending: 0,
+          failed: 0,
+          skipped,
+          nextAction:
+            'No localized generated section was safe to retry. Use edit_deliverables for targeted content repairs.',
+        };
+      }
+
+      const details = [];
+      for (const action of actions) {
+        const result = await ctx.executeAction(
+          { type: 'regenerateLesson', featureId: action.featureId, lessonIndex: action.lessonIndex },
+          { skipSnapshot: true },
+        );
+        details.push({
+          ...action,
+          success: !!result?.success,
+          pending: !!result?.pending,
+          message: result?.message || '',
+        });
+      }
+
+      const started = details.filter((detail) => detail.success).length;
+      const pending = details.filter((detail) => detail.pending).length;
+      const failed = details.length - started;
+      return {
+        started,
+        pending,
+        failed,
+        details,
+        skipped,
+        nextAction:
+          pending > 0
+            ? 'Weak sections are regenerating; finalize the package again after the updates land.'
+            : 'Run finalize_package again to verify the regenerated sections.',
+      };
     },
   },
 
@@ -1354,8 +1638,10 @@ export const AGENT_TOOLS = {
 export const TOOL_LABELS = {
   validate_course: 'Validating course health',
   finalize_package: 'Finalizing course package',
+  verify_package_exports: 'Verifying package exports',
   review_package_readiness: 'Reviewing package readiness',
   repair_package_readiness: 'Repairing package readiness',
+  retry_package_weak_spots: 'Retrying weak sections',
   check_grammar: 'Checking grammar',
   search_research: 'Searching academic sources',
   read_deliverable: 'Reading deliverable data',
@@ -1401,11 +1687,17 @@ export function summarizeToolResult(toolName, result) {
     case 'validate_course':
       return `${result.errorCount || 0} errors, ${result.warningCount || 0} warnings, ${result.infoCount || 0} info`;
     case 'finalize_package':
-      return `${result.confidence || 'Unknown'}: ${result.repairsApplied || 0} repaired, ${result.readiness?.blockerCount || 0} blockers, ${result.readiness?.warningCount || 0} warnings`;
+      return `${result.confidence || 'Unknown'}: ${result.repairsApplied || 0} repaired, ${result.readiness?.blockerCount || 0} blockers, ${result.readiness?.warningCount || 0} warnings, ${result.exportVerification?.status || 'exports unknown'}`;
+    case 'verify_package_exports':
+      return `${result.status || 'unknown'}: ${result.passed || 0}/${result.checked || 0} export checks passed`;
     case 'review_package_readiness':
       return `${result.status || 'unknown'}: ${result.blockerCount || 0} blockers, ${result.warningCount || 0} warnings`;
     case 'repair_package_readiness':
       return `${result.applied || 0} repaired, ${result.failed || 0} failed`;
+    case 'retry_package_weak_spots':
+      return (result.pending || 0) > 0
+        ? `${result.started || 0} retries started, ${result.pending || 0} pending`
+        : `${result.started || 0} retries started, ${result.failed || 0} failed`;
     case 'check_grammar':
       return `${result.matchCount || 0} grammar issue${(result.matchCount || 0) !== 1 ? 's' : ''} found`;
     case 'search_research':

@@ -16,6 +16,8 @@ describe('agentExecutionMode', () => {
     edit_deliverables: { description: 'write' },
     finalize_package: { description: 'write' },
     repair_package_readiness: { description: 'write' },
+    retry_package_weak_spots: { description: 'write' },
+    verify_package_exports: { description: 'read' },
     generate_slide_images: { description: 'write' },
     respond: { description: 'final' },
   };
@@ -34,6 +36,8 @@ describe('agentExecutionMode', () => {
     expect(filtered.edit_deliverables).toBeUndefined();
     expect(filtered.finalize_package).toBeUndefined();
     expect(filtered.repair_package_readiness).toBeUndefined();
+    expect(filtered.retry_package_weak_spots).toBeUndefined();
+    expect(filtered.verify_package_exports).toBe(tools.verify_package_exports);
     expect(filtered.generate_slide_images).toBeUndefined();
   });
 
@@ -45,7 +49,9 @@ describe('agentExecutionMode', () => {
     expect(isAgentToolBlockedInDryRun('edit_course_map')).toBe(true);
     expect(isAgentToolBlockedInDryRun('finalize_package')).toBe(true);
     expect(isAgentToolBlockedInDryRun('repair_package_readiness')).toBe(true);
+    expect(isAgentToolBlockedInDryRun('retry_package_weak_spots')).toBe(true);
     expect(isAgentToolBlockedInDryRun('remember')).toBe(true);
+    expect(isAgentToolBlockedInDryRun('verify_package_exports')).toBe(false);
     expect(isAgentToolBlockedInDryRun('validate_course')).toBe(false);
   });
 

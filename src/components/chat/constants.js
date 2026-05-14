@@ -59,9 +59,16 @@ function buildAdaptiveStarters(courseMap, activeTab, deliverables) {
   const starters = [];
   const lessons = courseMap?.lessons || [];
   const tabLabel = resolveLabel(activeTab);
+  const doneFeatureCount = Object.values(deliverables || {}).filter(
+    (entry) => entry?.status === 'done' && entry?.data,
+  ).length;
+
+  if (doneFeatureCount > 0 && (!activeTab || activeTab === 'courseMap')) {
+    starters.push({ text: 'Finish and verify my course package', icon: 'search' });
+  }
 
   // 1. Active-tab-specific starter — prioritize what the user is currently viewing
-  if (activeTab && activeTab !== 'courseMap' && deliverables?.[activeTab]?.status === 'done') {
+  if (starters.length < 2 && activeTab && activeTab !== 'courseMap' && deliverables?.[activeTab]?.status === 'done') {
     const lesson = lessons[0];
     const lessonTitle = lesson?.title || 'Lesson 1';
     if (activeTab === 'quizBank') {
@@ -82,7 +89,7 @@ function buildAdaptiveStarters(courseMap, activeTab, deliverables) {
       starters.push({ text: `Review ${tabLabel} for completeness`, icon: 'search' });
     }
     starters.push(buildActiveTabSecondaryStarter(activeTab, tabLabel));
-  } else if (activeTab === 'courseMap') {
+  } else if (starters.length < 2 && activeTab === 'courseMap') {
     // On course map tab — suggest course-level actions
     if (lessons.length > 0) {
       const weakLesson = lessons.reduce(

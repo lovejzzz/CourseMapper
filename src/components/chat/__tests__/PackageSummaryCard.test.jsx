@@ -15,6 +15,9 @@ describe('PackageSummaryCard', () => {
           repairsApplied: 3,
           blockerCount: 0,
           warningCount: 0,
+          exportChecked: 4,
+          exportFailed: 0,
+          exportWarningCount: 0,
           checkedSections: '8/8',
           lessonCount: 12,
           topIssues: [],
@@ -25,6 +28,7 @@ describe('PackageSummaryCard', () => {
     expect(html).toContain('Package readiness');
     expect(html).toContain('Excellent');
     expect(html).toContain('3 safe repairs applied');
+    expect(html).toContain('Exports verified');
     expect(html).toContain('8/8 sections checked');
     expect(html).not.toMatch(/\bscore\b/i);
   });
