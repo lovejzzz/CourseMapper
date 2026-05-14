@@ -9,7 +9,7 @@
  * handful of Anthropic calls. This test catches the same class of typo
  * instantly, offline.
  */
-import { describe, it, expect } from 'vitest';
+import { describe, it, expect, vi } from 'vitest';
 import assignments from '../prompts/assignments.js';
 import courseFaq from '../prompts/courseFaq.js';
 import discussions from '../prompts/discussions.js';
@@ -41,6 +41,25 @@ const COURSE = {
     { title: 'L2', sections: [{ learningObjectives: 'x', topicSection: 'y' }] },
   ],
 };
+
+function withProfile(profile, callback) {
+  const originalDescriptor = Object.getOwnPropertyDescriptor(globalThis, 'localStorage');
+  Object.defineProperty(globalThis, 'localStorage', {
+    configurable: true,
+    value: {
+      getItem: vi.fn((key) => (key === 'coursemapper-professorProfile' ? JSON.stringify(profile) : null)),
+      setItem: vi.fn(),
+      removeItem: vi.fn(),
+    },
+  });
+
+  try {
+    return callback();
+  } finally {
+    if (originalDescriptor) Object.defineProperty(globalThis, 'localStorage', originalDescriptor);
+    else delete globalThis.localStorage;
+  }
+}
 
 describe('prompt modules — parse + shape', () => {
   it.each(Object.keys(MODULES))('%s exports { system: string, user: fn }', (name) => {
@@ -102,6 +121,30 @@ describe('prompt modules — parse + shape', () => {
     expect(prompts.userPrompt).toContain('Do not invent named LMS folders');
     expect(prompts.userPrompt).toContain('Course instructor');
     expect(prompts.userPrompt).toContain('course-relative language');
+  });
+
+  it('syllabus prompts inject institution profile logistics and policy defaults', () => {
+    withProfile(
+      {
+        institution: 'NYU Silver',
+        department: 'Social Sciences',
+        email: 'course@example.edu',
+        meetingPattern: 'Weekly seminar and lab',
+        aiPolicy: 'Students may use AI for brainstorming but must cite substantial assistance.',
+        attendancePolicy: 'Students should attend each synchronous meeting and notify the instructor when absent.',
+        policyGradeScale: 'A 93-100; A- 90-92; B+ 87-89',
+      },
+      () => {
+        const prompts = getDeliverablePrompt('syllabus', COURSE, null, {});
+
+        expect(prompts.userPrompt).toContain('INSTITUTION PROFILE DEFAULTS');
+        expect(prompts.userPrompt).toContain('course@example.edu');
+        expect(prompts.userPrompt).toContain('Weekly seminar and lab');
+        expect(prompts.userPrompt).toContain('Generative AI policy');
+        expect(prompts.userPrompt).toContain('Attendance policy');
+        expect(prompts.userPrompt).toContain('A 93-100; A- 90-92; B+ 87-89');
+      },
+    );
   });
 
   it('assignment continuation prompts preserve milestone feedback schema', () => {

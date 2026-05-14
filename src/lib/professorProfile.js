@@ -14,14 +14,30 @@ const STORAGE_KEY = 'coursemapper-professorProfile';
 
 const DEFAULTS = {
   name: '',
+  email: '',
   institution: '',
   department: '',
+  officeHours: '',
+  officeLocation: '',
+  meetingPattern: '',
+  courseLocation: '',
+  deliveryMode: '',
   defaultSessionLength: '75 min',
   citationStyle: 'APA 7',
+  gradingLanguage: '',
   lateWorkPolicy: '',
+  attendancePolicy: '',
+  communicationPolicy: '',
+  technologyPolicy: '',
+  technicalSkills: '',
+  aiPolicy: '',
   accommodationStatement: '',
+  accessibilityDefaults: '',
   academicIntegrityStatement: '',
   mentalHealthStatement: '',
+  technicalSupport: '',
+  supportServices: '',
+  dataPrivacy: '',
   // Feature 3.1 — Institution policy fields
   institutionTemplateId: '',
   policyTitleIX: '',
@@ -31,6 +47,22 @@ const DEFAULTS = {
   assistantTone: 'collegial',
   assistantFocus: '',
 };
+
+const COMPLETENESS_FIELDS = [
+  'institution',
+  'department',
+  'lateWorkPolicy',
+  'attendancePolicy',
+  'communicationPolicy',
+  'aiPolicy',
+  'academicIntegrityStatement',
+  'accommodationStatement',
+  'policyGradeScale',
+];
+
+function clean(value) {
+  return typeof value === 'string' ? value.trim() : '';
+}
 
 /**
  * Load the professor's profile from localStorage.
@@ -44,6 +76,57 @@ export function getProfile() {
   } catch {
     return { ...DEFAULTS };
   }
+}
+
+export function getInstitutionProfileCompleteness(profile = getProfile()) {
+  const completed = COMPLETENESS_FIELDS.filter((field) => clean(profile[field])).length;
+  return {
+    completed,
+    total: COMPLETENESS_FIELDS.length,
+    percent: Math.round((completed / COMPLETENESS_FIELDS.length) * 100),
+  };
+}
+
+export function buildInstitutionProfileSummary(profile = getProfile()) {
+  const items = [];
+  const identity = [profile.name, profile.email, profile.department, profile.institution].map(clean).filter(Boolean);
+  if (identity.length > 0) items.push(`Instructor/profile: ${identity.join(' | ')}`);
+
+  const logistics = [
+    profile.meetingPattern && `meeting ${profile.meetingPattern}`,
+    profile.courseLocation && `location ${profile.courseLocation}`,
+    profile.deliveryMode && `delivery ${profile.deliveryMode}`,
+    profile.officeHours && `office hours ${profile.officeHours}`,
+    profile.officeLocation && `office location ${profile.officeLocation}`,
+  ]
+    .map(clean)
+    .filter(Boolean);
+  if (logistics.length > 0) items.push(`Course logistics: ${logistics.join('; ')}`);
+
+  const policyPairs = [
+    ['Late work', profile.lateWorkPolicy],
+    ['Attendance', profile.attendancePolicy],
+    ['Communication', profile.communicationPolicy],
+    ['Technology', profile.technologyPolicy],
+    ['Required skills', profile.technicalSkills],
+    ['AI use', profile.aiPolicy],
+    ['Academic integrity', profile.academicIntegrityStatement],
+    ['Accommodations', profile.accommodationStatement],
+    ['Accessibility defaults', profile.accessibilityDefaults],
+    ['Mental health', profile.mentalHealthStatement],
+    ['Technical support', profile.technicalSupport],
+    ['Student support', profile.supportServices],
+    ['Data privacy', profile.dataPrivacy],
+    ['Title IX', profile.policyTitleIX],
+    ['Grade scale', profile.policyGradeScale],
+    ['Grading language', profile.gradingLanguage],
+  ];
+  policyPairs.forEach(([label, value]) => {
+    const text = clean(value);
+    if (text) items.push(`${label}: ${text}`);
+  });
+
+  return items;
 }
 
 /**

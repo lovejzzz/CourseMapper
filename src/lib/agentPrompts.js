@@ -13,6 +13,7 @@
 import { getArrayKey } from './syncDependencies';
 import { buildMemoryContext } from './agentMemory';
 import { getCustomDeliverable } from './customDeliverableLibrary';
+import { buildInstitutionProfileSummary, getProfile } from './professorProfile';
 
 // ── Compact item schemas with key legends ──
 const ITEM_SCHEMAS = {
@@ -245,13 +246,18 @@ export function buildAgentSystemPrompt(
   // Memory — compact, skip boilerplate when empty
   const memoryContext = buildMemoryContext();
   const memorySection = memoryContext ? `\n**Memories:** ${memoryContext}` : '';
+  const institutionContext = buildInstitutionProfileSummary(getProfile()).slice(0, 12);
+  const institutionSection =
+    institutionContext.length > 0
+      ? `\n**Institution/profile defaults:** ${institutionContext.join(' | ')}. Apply these silently when editing, reviewing, or repairing matching fields.`
+      : '';
 
   const dynamic = `## COURSE
 **${courseMap?.courseName || 'Untitled'}** | ${courseMap?.semester || 'TBD'} | ${(courseMap?.lessons || []).length} lessons
 **Lessons:**
 ${lessonList || '  (none)'}${(courseMap?.lessons || []).length === 0 ? '\n**Note:** No lessons yet — suggest the user create lessons or add them via addLesson.' : ''}
 **Fields:** ${courseMapFields}
-**Active:** ${tabName} | **Status:** ${delivStatusLines}${delivContext}${pathSection}${schemaSection}${otherDoneNote}${healthSection}${prefsSection}${memorySection}`;
+**Active:** ${tabName} | **Status:** ${delivStatusLines}${delivContext}${pathSection}${schemaSection}${otherDoneNote}${healthSection}${prefsSection}${memorySection}${institutionSection}`;
 
   if (_opts && _opts.onlyDynamic) return dynamic;
   return STATIC_AGENT_PROMPT + '\n\n' + dynamic;
@@ -286,11 +292,11 @@ The respond tool accepts ONE of:
 - **Revise an existing deliverable** ("redo", "make it more visual", "improve", "change existing"): edit directly. Do not use proposals unless the user is asking for new options instead of an immediate revision.
 - **Substantive additions** (new quiz question, assignment, slide): Call respond() with a proposal of 2-3 options. Generate COMPLETE items with unique content. Vary Bloom's levels and topics across options.
 - **Bulk ops** ("fix all typos", "add a question to every lesson"): Batch into ONE edit_deliverables call with multiple actions — not one turn per lesson. Call independent reads in parallel.
-- **Review / alignment** ("are quizzes aligned?", "check my course"): Use finalize_package first. It repairs safe readiness issues, verifies exports, and returns confidence. If it reports concrete lesson-level weak spots, use retry_package_weak_spots; if issues remain broad, use review_package_readiness plus validate_course or compare_deliverables. Respond with top remaining findings in plain English and only use proposal cards for instructor judgment calls.
+- **Review / alignment** ("are quizzes aligned?", "check my course"): Use finalize_package first. It repairs, verifies exports, audits classroom readiness, and returns confidence plus repairQueue. If repairQueue.retryActionCount > 0, call retry_package_weak_spots; if broad issues remain, edit concrete data or report the assumption. Respond only after the queue is empty or no safe fix remains.
 - **Research** ("find a paper on X"): Call search_research, then synthesize the response with [N] citations.
 - **Deliverable not "done"**: Never edit or read it. Respond() explaining the user needs to generate it first.
 - **Ambiguous request**: Pick the most likely intent, act, and note the assumption in your reply. Don't punt with "should I do X?" questions when you can just do it.
-- **Auto-review mode** ("[AUTO-REVIEW]"): This runs silently after generation. Run finalize_package first. If the package is Excellent, respond with a concise done-package summary. If it reports localized weak sections, call retry_package_weak_spots and wait for those updates before finalizing again. If it is Good with assumptions or Needs attention for safe concrete data issues, fix them directly before the user sees a summary, then run finalize_package again. Do not call finalize_package in the same tool batch as edit_deliverables or retry_package_weak_spots; finalization must inspect the updated package.
+- **Auto-review mode** ("[AUTO-REVIEW]"): Run finalize_package first. If Excellent and classroomReadiness.status is ready, summarize. If repairQueue.retryActionCount > 0, call retry_package_weak_spots, wait, then finalize again. For concrete broad issues, read/edit before summarizing. Do not batch finalize_package with edit_deliverables or retry_package_weak_spots.
 - **Auto-fix mode** ("[AUTO-FIX MODE]"): Fix directly. Only use proposals for Bloom's / alignment issues that need pedagogical judgment.
 - **Undo** ("undo that", "revert last change"): Call undo_last.
 - **Reusable workflow** ("I'll keep needing this", "make a helper to…"): Call create_tool to register a named macro of built-in tools, then run_tool to invoke it. Trust run_tool's aggregated result — do NOT re-read sources after the macro unless a step reported an error.

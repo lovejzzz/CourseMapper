@@ -15,6 +15,10 @@ describe('PackageSummaryCard', () => {
           repairsApplied: 3,
           blockerCount: 0,
           warningCount: 0,
+          classroomStatus: 'ready',
+          classroomBlockerCount: 0,
+          classroomWarningCount: 0,
+          classroomCheckedFeatureCount: 8,
           exportChecked: 4,
           exportFailed: 0,
           exportWarningCount: 0,
@@ -28,6 +32,7 @@ describe('PackageSummaryCard', () => {
     expect(html).toContain('Package readiness');
     expect(html).toContain('Excellent');
     expect(html).toContain('3 safe repairs applied');
+    expect(html).toContain('Classroom audit ready');
     expect(html).toContain('Exports verified');
     expect(html).toContain('8/8 sections checked');
     expect(html).not.toMatch(/\bscore\b/i);
@@ -44,6 +49,9 @@ describe('PackageSummaryCard', () => {
           repairsApplied: 0,
           blockerCount: 1,
           warningCount: 2,
+          classroomStatus: 'warnings',
+          classroomBlockerCount: 0,
+          classroomWarningCount: 1,
           topIssues: [
             {
               severity: 'error',
@@ -57,6 +65,7 @@ describe('PackageSummaryCard', () => {
 
     expect(html).toContain('Needs attention');
     expect(html).toContain('1 blocker remaining');
+    expect(html).toContain('1 classroom warning');
     expect(html).toContain('Agent attention list');
     expect(html).toContain('Quiz Bank');
   });

@@ -81,6 +81,7 @@ function compactReadinessIssue(issue) {
     featureId: issue.featureId,
     label: issue.label,
     message: issue.message,
+    classroomCriterion: issue.classroomCriterion,
   };
 }
 
@@ -104,23 +105,38 @@ async function getRuntimeModelRoutingAdvice(options) {
   return getModelRoutingAdvice(options);
 }
 
-function getPackageConfidence(readiness, healthReport, exportVerification) {
+async function runClassroomReadiness(options) {
+  const { evaluateClassroomReadiness } = await import('./classroomReadiness');
+  return evaluateClassroomReadiness(options);
+}
+
+async function runPackageRepairQueue(options) {
+  const { buildPackageRepairQueue } = await import('./classroomReadiness');
+  return buildPackageRepairQueue(options);
+}
+
+function getPackageConfidence(readiness, healthReport, exportVerification, classroomReadiness) {
   if (exportVerification?.status === 'failed') return 'Needs attention';
+  if (classroomReadiness?.blockers?.length > 0) return 'Needs attention';
   if (readiness?.blockers?.length > 0 || (healthReport?.errorCount || 0) > 0) return 'Needs attention';
   if (exportVerification?.status === 'warnings') return 'Good with assumptions';
+  if (classroomReadiness?.warnings?.length > 0) return 'Good with assumptions';
   if (readiness?.warnings?.length > 0 || (healthReport?.warningCount || 0) > 0) return 'Good with assumptions';
   return 'Excellent';
 }
 
-function getPackageNextAction(confidence, exportVerification) {
+function getPackageNextAction(confidence, exportVerification, classroomReadiness) {
   if (exportVerification?.status === 'failed') {
     return 'Fix export blockers before presenting the package as done.';
   }
+  if (classroomReadiness?.blockers?.length > 0) {
+    return 'Fix classroom-readiness blockers before presenting the package as done.';
+  }
   if (confidence === 'Excellent') {
-    return 'Package is ready to present and export.';
+    return 'Package is checked, repaired, export-verified, and ready for classroom review/export.';
   }
   if (confidence === 'Good with assumptions') {
-    return 'Present the package with the remaining assumptions; use proposals only for instructor-specific judgment calls.';
+    return 'Package is usable with listed assumptions; fix concrete issues automatically and leave instructor judgment calls visible.';
   }
   return 'Fix the remaining blockers before presenting the package as done.';
 }
@@ -273,10 +289,15 @@ function addRetryCandidate(candidates, skipped, ctx, { featureId, lessonIndex, s
   }
 }
 
-function buildTargetedRetryActions({ ctx, readiness, healthReport, maxActions }) {
+function buildTargetedRetryActions({ ctx, readiness, classroomReadiness, healthReport, maxActions }) {
   const candidates = new Map();
   const skipped = [];
-  const issues = [...(readiness?.blockers || []), ...(readiness?.warnings || [])];
+  const issues = [
+    ...(readiness?.blockers || []),
+    ...(readiness?.warnings || []),
+    ...(classroomReadiness?.blockers || []),
+    ...(classroomReadiness?.warnings || []),
+  ];
 
   for (const issue of issues) {
     const lessonIndices = inferLessonIndicesFromText(ctx.courseMap, issue.message);
@@ -519,6 +540,12 @@ export const AGENT_TOOLS = {
         columns: ctx.columns,
         lessonFilter: ctx.lessonFilter,
       });
+      const classroomReadiness = await runClassroomReadiness({
+        courseMap: ctx.courseMap,
+        deliverables: finalDeliverables,
+        selectedFeatures: ctx.selectedFeatures,
+        lessonFilter: ctx.lessonFilter,
+      });
       const healthReport = generateCourseHealthReport(ctx.courseMap, finalDeliverables);
       const exportVerification = await runPackageExportVerification({
         courseMap: ctx.courseMap,
@@ -543,7 +570,14 @@ export const AGENT_TOOLS = {
           },
         ],
       }));
-      const confidence = getPackageConfidence(readiness, healthReport, exportVerification);
+      const confidence = getPackageConfidence(readiness, healthReport, exportVerification, classroomReadiness);
+      const repairQueue = await runPackageRepairQueue({
+        courseMap: ctx.courseMap,
+        deliverables: finalDeliverables,
+        readiness,
+        classroomReadiness,
+        healthReport,
+      });
       const modelRouting = await getRuntimeModelRoutingAdvice({
         provider: ctx.provider,
         modelId: ctx.modelId,
@@ -554,7 +588,10 @@ export const AGENT_TOOLS = {
       return {
         confidence,
         ready: confidence === 'Excellent',
-        nextAction: getPackageNextAction(confidence, exportVerification),
+        nextAction:
+          confidence === 'Excellent'
+            ? getPackageNextAction(confidence, exportVerification, classroomReadiness)
+            : repairQueue.nextAction || getPackageNextAction(confidence, exportVerification, classroomReadiness),
         repairsApplied: repairResult.applied || 0,
         repairsFailed: repairResult.failed || 0,
         repairs: repairResult.repairs || [],
@@ -568,6 +605,18 @@ export const AGENT_TOOLS = {
           checkedSections: `${readiness.doneFeatureCount}/${readiness.featureCount}`,
           blockers: readiness.blockers.slice(0, 20).map(compactReadinessIssue),
           warnings: readiness.warnings.slice(0, 20).map(compactReadinessIssue),
+        },
+        classroomReadiness: {
+          status: classroomReadiness.status,
+          isBlocked: classroomReadiness.isBlocked,
+          blockerCount: classroomReadiness.blockers.length,
+          warningCount: classroomReadiness.warnings.length,
+          issueCount: classroomReadiness.issues.length,
+          lessonCount: classroomReadiness.lessonCount,
+          checkedFeatureCount: classroomReadiness.checkedFeatureCount,
+          checkedFeatures: classroomReadiness.checkedFeatures,
+          blockers: classroomReadiness.blockers.slice(0, 20).map(compactReadinessIssue),
+          warnings: classroomReadiness.warnings.slice(0, 20).map(compactReadinessIssue),
         },
         validation: {
           errorCount: healthReport.errorCount,
@@ -588,6 +637,7 @@ export const AGENT_TOOLS = {
           warningCount: exportVerification.warningCount,
           checks: exportVerification.checks.slice(0, 20).map(compactExportCheck),
         },
+        repairQueue,
         modelRouting,
       };
     },
@@ -629,6 +679,12 @@ export const AGENT_TOOLS = {
         columns: ctx.columns,
         lessonFilter: ctx.lessonFilter,
       });
+      const classroomReadiness = await runClassroomReadiness({
+        courseMap: ctx.courseMap,
+        deliverables: ctx.deliverables,
+        selectedFeatures: ctx.selectedFeatures,
+        lessonFilter: ctx.lessonFilter,
+      });
       return {
         status: readiness.status,
         isBlocked: readiness.isBlocked,
@@ -639,6 +695,18 @@ export const AGENT_TOOLS = {
         checkedSections: `${readiness.doneFeatureCount}/${readiness.featureCount}`,
         blockers: readiness.blockers.slice(0, 20).map(compactReadinessIssue),
         warnings: readiness.warnings.slice(0, 20).map(compactReadinessIssue),
+        classroomReadiness: {
+          status: classroomReadiness.status,
+          isBlocked: classroomReadiness.isBlocked,
+          blockerCount: classroomReadiness.blockers.length,
+          warningCount: classroomReadiness.warnings.length,
+          issueCount: classroomReadiness.issues.length,
+          lessonCount: classroomReadiness.lessonCount,
+          checkedFeatureCount: classroomReadiness.checkedFeatureCount,
+          checkedFeatures: classroomReadiness.checkedFeatures,
+          blockers: classroomReadiness.blockers.slice(0, 20).map(compactReadinessIssue),
+          warnings: classroomReadiness.warnings.slice(0, 20).map(compactReadinessIssue),
+        },
       };
     },
   },
@@ -670,10 +738,17 @@ export const AGENT_TOOLS = {
         columns: ctx.columns,
         lessonFilter: ctx.lessonFilter,
       });
+      const classroomReadiness = await runClassroomReadiness({
+        courseMap: ctx.courseMap,
+        deliverables: ctx.deliverables,
+        selectedFeatures: ctx.selectedFeatures,
+        lessonFilter: ctx.lessonFilter,
+      });
       const healthReport = generateCourseHealthReport(ctx.courseMap, ctx.deliverables);
       const { actions, skipped } = buildTargetedRetryActions({
         ctx,
         readiness,
+        classroomReadiness,
         healthReport,
         maxActions: args.maxActions,
       });
@@ -1687,11 +1762,11 @@ export function summarizeToolResult(toolName, result) {
     case 'validate_course':
       return `${result.errorCount || 0} errors, ${result.warningCount || 0} warnings, ${result.infoCount || 0} info`;
     case 'finalize_package':
-      return `${result.confidence || 'Unknown'}: ${result.repairsApplied || 0} repaired, ${result.readiness?.blockerCount || 0} blockers, ${result.readiness?.warningCount || 0} warnings, ${result.exportVerification?.status || 'exports unknown'}`;
+      return `${result.confidence || 'Unknown'}: ${result.repairsApplied || 0} repaired, ${result.readiness?.blockerCount || 0} blockers, ${result.readiness?.warningCount || 0} warnings${result.classroomReadiness ? `, ${result.classroomReadiness.warningCount || 0} classroom warnings` : ''}, ${result.exportVerification?.status || 'exports unknown'}`;
     case 'verify_package_exports':
       return `${result.status || 'unknown'}: ${result.passed || 0}/${result.checked || 0} export checks passed`;
     case 'review_package_readiness':
-      return `${result.status || 'unknown'}: ${result.blockerCount || 0} blockers, ${result.warningCount || 0} warnings`;
+      return `${result.status || 'unknown'}: ${result.blockerCount || 0} blockers, ${result.warningCount || 0} warnings${result.classroomReadiness ? `, ${result.classroomReadiness.warningCount || 0} classroom warnings` : ''}`;
     case 'repair_package_readiness':
       return `${result.applied || 0} repaired, ${result.failed || 0} failed`;
     case 'retry_package_weak_spots':

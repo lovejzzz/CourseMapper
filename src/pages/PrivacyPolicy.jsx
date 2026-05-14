@@ -1,7 +1,7 @@
 import React from 'react';
 import Header from '../components/Header';
 
-const LAST_UPDATED = 'May 6, 2026';
+const LAST_UPDATED = 'May 14, 2026';
 
 export default function PrivacyPolicy() {
   return (
@@ -50,6 +50,10 @@ export default function PrivacyPolicy() {
                 <strong>Course map data</strong> — generated course maps are stored in your browser's local storage for
                 auto-save. If you sign in, project data and profile settings may also sync to Firebase for your account.
                 They are otherwise not transmitted except when you explicitly export.
+              </li>
+              <li>
+                <strong>Institution profile defaults</strong> — optional instructor, classroom logistics, and reusable
+                policy text are stored in your browser and may sync to Firebase if you sign in.
               </li>
             </ul>
           </Section>
@@ -142,9 +146,9 @@ export default function PrivacyPolicy() {
           <Section title="Local Storage">
             <p>
               Course Mapper uses your browser's local storage to save your work automatically. This includes your course
-              map, chat history, version history, column configuration, and selected AI provider. This data stays on
-              your device unless you choose sign-in cloud sync or export. You can clear local data at any time by
-              clicking "New Project" or clearing your browser data.
+              map, chat history, version history, column configuration, institution profile defaults, and selected AI
+              provider. This data stays on your device unless you choose sign-in cloud sync or export. You can clear
+              local data at any time by clicking "New Project" or clearing your browser data.
             </p>
           </Section>
 

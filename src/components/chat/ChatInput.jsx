@@ -114,7 +114,7 @@ export default function ChatInput({
   const busy = isStreaming || isRevising;
   const reviewPrompt = agentDryRun
     ? 'Review this course package without applying changes. Run read-only readiness, export, and validation checks; identify concrete blockers, assumptions, and the exact safe fixes you would apply. Do not apply changes.'
-    : 'Finish and verify this course package. Run finalize_package first. If it finds localized weak generated sections, use retry_package_weak_spots and finalize again after those updates land. If it finds safe concrete data issues, fix them directly, then finalize again. Finish with a concise package handoff.';
+    : 'Finish and verify this course package. Run finalize_package first. If repairQueue has localized weak sections, use retry_package_weak_spots, then finalize again. Fix concrete data issues directly. Finish with a concise package handoff.';
 
   return (
     <div

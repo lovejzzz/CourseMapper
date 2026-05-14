@@ -224,6 +224,58 @@ test.describe('Configure Generation', () => {
     await expect(page.getByText('Answer depth')).toBeVisible();
     await expect(page.getByRole('button', { name: 'Course Logistics' })).toBeVisible();
   });
+
+  test('saves institution profile defaults from the configure screen', async ({ page }) => {
+    await page.route('https://api.openai.com/v1/models', (route) =>
+      route.fulfill({
+        status: 200,
+        contentType: 'application/json',
+        body: JSON.stringify({
+          data: [{ id: 'gpt-4o-mini', created: 1 }],
+        }),
+      }),
+    );
+    await page.route('https://api.openai.com/v1/chat/completions', (route) =>
+      route.fulfill({
+        status: 200,
+        contentType: 'application/json',
+        body: JSON.stringify({
+          choices: [{ message: { content: 'ok' } }],
+        }),
+      }),
+    );
+
+    await page.addInitScript(() => {
+      localStorage.clear();
+      sessionStorage.clear();
+      localStorage.setItem('coursemapper-provider', 'openai');
+      localStorage.setItem('coursemapper-apikey', 'sk-proj-test1234567890123456789012345678901234567890123456');
+      localStorage.setItem('coursemapper-modelid', 'gpt-4o-mini');
+      localStorage.setItem('coursemapper-modelname', 'GPT-4o mini');
+    });
+
+    await page.goto('/');
+    await page.locator('textarea').fill('Build a 12-lesson course with reusable institution policies.');
+    await page.getByRole('button', { name: 'Continue' }).click();
+
+    await expect(page.locator('text=Choose deliverables')).toBeVisible({ timeout: 10000 });
+    await page.getByRole('button', { name: /Course FAQ/ }).click();
+    await page.getByRole('button', { name: /Configure & Generate/ }).click();
+
+    await expect(page.locator('h1:has-text("Configure generation")')).toBeVisible({ timeout: 10000 });
+    await expect(page.getByTestId('institution-profile-card')).toBeVisible();
+    await page.getByRole('button', { name: /Institution profile/ }).click();
+
+    await page.getByLabel('Institution').fill('NYU Silver');
+    await page.getByLabel('AI Use').fill('Students may use AI for brainstorming but must cite substantial assistance.');
+
+    await expect
+      .poll(() =>
+        page.evaluate(() => JSON.parse(localStorage.getItem('coursemapper-professorProfile') || '{}').institution),
+      )
+      .toBe('NYU Silver');
+    await expect(page.getByTestId('institution-profile-card')).toContainText('Saved');
+  });
 });
 
 // ─────────────────────────────────────────────────────────────────────────────

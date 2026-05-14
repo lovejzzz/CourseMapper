@@ -201,7 +201,8 @@ test.describe('Agent auto-review', () => {
     );
     const autoReviewPrompt = agentRequests[0].messages.map((message) => String(message.content || '')).join('\n');
     expect(autoReviewPrompt).toContain('finalize_package');
-    expect(autoReviewPrompt).toContain('export verification');
+    expect(autoReviewPrompt).toContain('repairQueue');
+    expect(autoReviewPrompt).toContain('classroom-ready');
     expect(autoReviewPrompt).toContain('retry_package_weak_spots');
     await expect(agentPanel.getByTestId('chat-message-user').filter({ hasText: 'Review my course' })).toHaveCount(0);
   });

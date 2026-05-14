@@ -53,6 +53,25 @@ const baseDeliverables = {
   assignments: { status: 'done', data: { assignments: [{ t: 'HW1', rl: ['Lesson 1'] }] } },
 };
 
+function withProfile(profile, callback) {
+  const originalDescriptor = Object.getOwnPropertyDescriptor(globalThis, 'localStorage');
+  Object.defineProperty(globalThis, 'localStorage', {
+    configurable: true,
+    value: {
+      getItem: vi.fn((key) => (key === 'coursemapper-professorProfile' ? JSON.stringify(profile) : null)),
+      setItem: vi.fn(),
+      removeItem: vi.fn(),
+    },
+  });
+
+  try {
+    return callback();
+  } finally {
+    if (originalDescriptor) Object.defineProperty(globalThis, 'localStorage', originalDescriptor);
+    else delete globalThis.localStorage;
+  }
+}
+
 // ── Tests ───────────────────────────────────────────────────────────────────
 
 describe('buildAgentSystemPrompt', () => {
@@ -168,6 +187,24 @@ describe('buildAgentSystemPrompt', () => {
     expect(prompt).toContain('User prefs:');
     expect(prompt).toContain('blooms_focus=higher-order');
     expect(prompt).toContain('teaching_style=socratic');
+  });
+
+  it('includes institution profile defaults for autonomous repair decisions', () => {
+    withProfile(
+      {
+        institution: 'NYU Silver',
+        aiPolicy: 'Students may use AI for brainstorming but must cite substantial assistance.',
+        lateWorkPolicy: 'Late work requires prior instructor approval.',
+      },
+      () => {
+        const prompt = buildAgentSystemPrompt(baseCourseMap, 'assignments', baseDeliverables);
+
+        expect(prompt).toContain('Institution/profile defaults');
+        expect(prompt).toContain('NYU Silver');
+        expect(prompt).toContain('Late work requires prior instructor approval');
+        expect(prompt).toContain('cite substantial assistance');
+      },
+    );
   });
 
   it('does not include user preferences section when prefs is null', () => {

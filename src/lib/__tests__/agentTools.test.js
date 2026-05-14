@@ -589,11 +589,43 @@ describe('Tool execute: package readiness', () => {
     expect(result.confidence).toBe('Needs attention');
     expect(result.repairsApplied).toBe(1);
     expect(result.readiness.warningCount).toBeGreaterThan(0);
+    expect(result.classroomReadiness.warningCount).toBeGreaterThan(0);
+    expect(result.repairQueue.retryActionCount).toBeGreaterThan(0);
+    expect(result.repairQueue.nextTool).toBe('retry_package_weak_spots');
     expect(result.validation.errorCount).toBe(2);
     expect(result.exportVerification.status).toBe('passed');
     expect(result.modelRouting.currentModel).toBe('gpt-5.4-mini');
     expect(mockCtx.optimisticUpdate).toHaveBeenCalledWith('quizBank', expect.any(Object));
     expect(mockCtx.deliverables.quizBank.data.quizzes[0].tp).toBe(2);
+  });
+
+  it('returns a repair queue from finalize_package for localized weak sections', async () => {
+    mockCtx.deliverables = {
+      slideDecks: {
+        status: 'done',
+        data: {
+          decks: [{ lt: 'Lesson 1', sl: [{ t: 'Only slide' }] }],
+        },
+      },
+    };
+    mockCtx.selectedFeatures = ['slideDecks'];
+
+    const result = await AGENT_TOOLS.finalize_package.execute({}, mockCtx);
+
+    expect(result.repairQueue).toEqual(
+      expect.objectContaining({
+        nextTool: 'retry_package_weak_spots',
+        retryActionCount: 2,
+      }),
+    );
+    expect(result.repairQueue.retryActions[0]).toEqual(
+      expect.objectContaining({
+        featureId: 'slideDecks',
+        lessonIndex: 0,
+        lessonNumber: 1,
+      }),
+    );
+    expect(result.nextAction).toContain('Regenerate 2 localized weak sections');
   });
 
   it('verifies package exports without downloading files', async () => {
@@ -615,6 +647,7 @@ describe('Tool execute: package readiness', () => {
 
     expect(result.status).toBe('warnings');
     expect(result.warningCount).toBeGreaterThan(0);
+    expect(result.classroomReadiness.warningCount).toBeGreaterThan(0);
     expect(result.checkedSections).toBe('2/2');
     expect(result.warnings[0]).toHaveProperty('message');
   });

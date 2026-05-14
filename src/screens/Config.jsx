@@ -2,9 +2,11 @@ import React, { useEffect, useState, useRef } from 'react';
 import FocusTrap from 'focus-trap-react';
 import { FEATURES, COLOR_MAP } from '../lib/featureCatalog';
 import ColumnEditor from '../components/ColumnEditor';
+import InstitutionProfileCard from '../components/config/InstitutionProfileCard';
 import LessonScopeSelector from '../components/config/LessonScopeSelector';
 import { getCustomDeliverable, listCustomDeliverables, toFeatureEntry } from '../lib/customDeliverableLibrary';
 import { PREVIEW_EXAMPLES } from '../lib/previewExamples';
+import { useAuth } from '../contexts/AuthContext';
 import { useUI } from '../contexts/UIContext';
 import { useCourse } from '../contexts/CourseContext';
 import { useAIConfig } from '../contexts/AIConfigContext';
@@ -1686,6 +1688,7 @@ export default function Config({
   provider,
 }) {
   const { setShowHelp } = useUI();
+  const { user } = useAuth();
   const { apiKey } = useAIConfig();
   const {
     selectedFeatures: selected,
@@ -1769,6 +1772,8 @@ export default function Config({
               lessonScope={lessonScope}
               setLessonScope={setLessonScope}
             />
+
+            <InstitutionProfileCard uid={user?.uid || null} />
 
             {/* ── Deliverable configs ── */}
             {configurableFeatures.length > 0 && (
@@ -1877,7 +1882,7 @@ export default function Config({
         <footer className="py-4 text-center">
           <div className="flex items-center justify-center gap-3 text-[10px] text-slate-300/70">
             <a href="#/changelog" className="font-medium hover:text-indigo-500 transition-colors duration-200">
-              v0.6
+              v0.7
             </a>
             <span>·</span>
             <a href="#/privacy" className="hover:text-indigo-500 transition-colors duration-200">

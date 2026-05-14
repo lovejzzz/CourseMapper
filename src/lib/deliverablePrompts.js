@@ -10,7 +10,7 @@
  */
 
 import { getCustomDeliverable } from './customDeliverableLibrary.js';
-import { getProfile } from './professorProfile.js';
+import { buildInstitutionProfileSummary, getProfile } from './professorProfile.js';
 import { getModeLessonPlanNote } from './pedagogicalModes.js';
 import { getSections, buildSectionsContext } from './courseSections.js';
 
@@ -132,9 +132,21 @@ function buildConfigInstructions(featureId, config, pedagogicalMode = 'lecture',
 
   // ── Base layer: professor profile defaults (lowest priority) ──
   const profile = getProfile();
+  const profileSummary = buildInstitutionProfileSummary(profile);
+  if (profileSummary.length > 0) {
+    lines.push(`INSTITUTION PROFILE DEFAULTS (use when the deliverable has a matching field; do not force boilerplate into unrelated sections):
+- ${profileSummary.join('\n- ')}`);
+  }
   if (profile.name || profile.institution || profile.department) {
-    const parts = [profile.name, profile.department, profile.institution].filter(Boolean);
+    const parts = [profile.name, profile.email, profile.department, profile.institution].filter(Boolean);
     if (parts.length > 0) lines.push(`Instructor context: ${parts.join(', ')}.`);
+  }
+  if (featureId === 'syllabus') {
+    if (profile.officeHours) lines.push(`Office hours: "${profile.officeHours}"`);
+    if (profile.officeLocation) lines.push(`Office hours location: "${profile.officeLocation}"`);
+    if (profile.meetingPattern) lines.push(`Meeting pattern: "${profile.meetingPattern}"`);
+    if (profile.courseLocation) lines.push(`Course location/modality: "${profile.courseLocation}"`);
+    if (profile.deliveryMode) lines.push(`Delivery mode: "${profile.deliveryMode}"`);
   }
   if (featureId === 'lessonPlans' && profile.defaultSessionLength && !config?.sessionLength) {
     lines.push(
@@ -147,14 +159,49 @@ function buildConfigInstructions(featureId, config, pedagogicalMode = 'lecture',
   if ((featureId === 'syllabus' || featureId === 'assignments') && profile.lateWorkPolicy) {
     lines.push(`Late work policy (use exactly, do not rewrite): "${profile.lateWorkPolicy}"`);
   }
+  if ((featureId === 'syllabus' || featureId === 'assignments' || featureId === 'courseFaq') && profile.aiPolicy) {
+    lines.push(`Generative AI policy (use exactly where relevant): "${profile.aiPolicy}"`);
+  }
+  if (featureId === 'syllabus' && profile.attendancePolicy) {
+    lines.push(`Attendance policy (use exactly, do not rewrite): "${profile.attendancePolicy}"`);
+  }
+  if (featureId === 'syllabus' && profile.communicationPolicy) {
+    lines.push(`Communication policy (use exactly, do not rewrite): "${profile.communicationPolicy}"`);
+  }
+  if (featureId === 'syllabus' && profile.technologyPolicy) {
+    lines.push(`Technology policy (use exactly, do not rewrite): "${profile.technologyPolicy}"`);
+  }
+  if (featureId === 'syllabus' && profile.technicalSkills) {
+    lines.push(`Technical skill expectations (use exactly, do not rewrite): "${profile.technicalSkills}"`);
+  }
   if ((featureId === 'syllabus' || featureId === 'rubrics') && profile.academicIntegrityStatement) {
     lines.push(`Academic integrity statement (use exactly, do not rewrite): "${profile.academicIntegrityStatement}"`);
   }
   if (featureId === 'syllabus' && profile.accommodationStatement) {
     lines.push(`Accommodation statement (use exactly, do not rewrite): "${profile.accommodationStatement}"`);
   }
+  if (
+    (featureId === 'lessonPlans' ||
+      featureId === 'assignments' ||
+      featureId === 'rubrics' ||
+      featureId === 'studyGuides') &&
+    profile.accessibilityDefaults
+  ) {
+    lines.push(
+      `Accessibility defaults: incorporate these as task-specific options, not repeated boilerplate: "${profile.accessibilityDefaults}"`,
+    );
+  }
   if (featureId === 'syllabus' && profile.mentalHealthStatement) {
     lines.push(`Mental health resources statement (use exactly, do not rewrite): "${profile.mentalHealthStatement}"`);
+  }
+  if (featureId === 'syllabus' && profile.technicalSupport) {
+    lines.push(`Technical support statement (use exactly, do not rewrite): "${profile.technicalSupport}"`);
+  }
+  if (featureId === 'syllabus' && profile.supportServices) {
+    lines.push(`Student support services statement (use exactly, do not rewrite): "${profile.supportServices}"`);
+  }
+  if (featureId === 'syllabus' && profile.dataPrivacy) {
+    lines.push(`Data privacy statement (use exactly, do not rewrite): "${profile.dataPrivacy}"`);
   }
   // Feature 3.1 — Institution-level policies (injected as non-overridable blocks)
   if (featureId === 'syllabus' && profile.policyTitleIX) {
@@ -162,6 +209,9 @@ function buildConfigInstructions(featureId, config, pedagogicalMode = 'lecture',
   }
   if (featureId === 'syllabus' && profile.policyGradeScale) {
     lines.push(`Grade scale (use exactly this scale in the grading section): ${profile.policyGradeScale}`);
+  }
+  if ((featureId === 'assignments' || featureId === 'rubrics') && profile.gradingLanguage) {
+    lines.push(`Grading language for assessment criteria: "${profile.gradingLanguage}"`);
   }
   // Feature 7.2 — Multi-Section Mode: inject section info into syllabus prompt
   if (featureId === 'syllabus') {

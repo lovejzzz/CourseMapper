@@ -277,7 +277,7 @@ export default function ChatPanel({
           autoReviewTimerRef.current = null;
           if (chat.isStreaming) return; // user already started something
           chat.send(
-            `[AUTO-REVIEW] Generation complete. ${repairNote} Current readiness after safe repairs: ${readiness.status} with ${readiness.blockers.length} blocker(s) and ${readiness.warnings.length} warning(s). Before the user reviews or exports, run finalize_package, which wraps safe readiness repair, export verification, readiness review, and validation. If confidence is not Excellent because of localized weak sections, use retry_package_weak_spots and finalize again after those updates land. If confidence is not Excellent because of safe concrete data issues, fix them directly with edit_deliverables, then finalize again. Only use proposal cards for pedagogical choices requiring instructor judgment. Finish with a concise done-package summary.`,
+            `[AUTO-REVIEW] Generation done. ${repairNote} Readiness: ${readiness.status}, ${readiness.blockers.length} blocker(s), ${readiness.warnings.length} warning(s). Run finalize_package. If repairQueue.retryActionCount > 0, call retry_package_weak_spots; otherwise fix concrete data issues. Finalize again, then summarize. Say classroom-ready only when Excellent and classroomReadiness.status is ready.`,
           );
         }, 2000);
       }

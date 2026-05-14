@@ -19,11 +19,18 @@ function mapIssue(issue, fallbackSeverity = 'warning') {
 export function normalizePackageSummary(result = {}) {
   const confidence = result.confidence || (result.error ? 'Needs attention' : 'Good with assumptions');
   const readiness = result.readiness || {};
+  const classroomReadiness = result.classroomReadiness || {};
   const validation = result.validation || {};
   const exportVerification = result.exportVerification || {};
   const blockers = Array.isArray(readiness.blockers) ? readiness.blockers.map((issue) => mapIssue(issue, 'error')) : [];
   const warnings = Array.isArray(readiness.warnings)
     ? readiness.warnings.map((issue) => mapIssue(issue, 'warning'))
+    : [];
+  const classroomBlockers = Array.isArray(classroomReadiness.blockers)
+    ? classroomReadiness.blockers.map((issue) => mapIssue(issue, 'error'))
+    : [];
+  const classroomWarnings = Array.isArray(classroomReadiness.warnings)
+    ? classroomReadiness.warnings.map((issue) => mapIssue(issue, 'warning'))
     : [];
   const findings = Array.isArray(validation.findings)
     ? validation.findings
@@ -55,6 +62,11 @@ export function normalizePackageSummary(result = {}) {
     repairsFailed: count(result.repairsFailed),
     blockerCount: count(readiness.blockerCount),
     warningCount: count(readiness.warningCount),
+    classroomStatus: classroomReadiness.status || null,
+    classroomBlockerCount: count(classroomReadiness.blockerCount),
+    classroomWarningCount: count(classroomReadiness.warningCount),
+    classroomCheckedFeatureCount: count(classroomReadiness.checkedFeatureCount),
+    classroomCheckedFeatures: classroomReadiness.checkedFeatures || null,
     validationErrorCount: count(validation.errorCount),
     validationWarningCount: count(validation.warningCount),
     exportStatus: exportVerification.status || null,
@@ -63,7 +75,14 @@ export function normalizePackageSummary(result = {}) {
     exportWarningCount: count(exportVerification.warningCount),
     checkedSections: readiness.checkedSections || null,
     lessonCount: readiness.lessonCount || null,
-    topIssues: [...blockers, ...exportIssues, ...warnings, ...findings].slice(0, 4),
+    topIssues: [
+      ...blockers,
+      ...classroomBlockers,
+      ...exportIssues,
+      ...classroomWarnings,
+      ...warnings,
+      ...findings,
+    ].slice(0, 4),
   };
 }
 
@@ -85,10 +104,13 @@ export function formatPackageSummaryForHistory(summary = {}) {
     summary.validationErrorCount || summary.validationWarningCount
       ? `${summary.validationErrorCount || 0} validation error(s), ${summary.validationWarningCount || 0} validation warning(s)`
       : 'no validation errors';
+  const classroomText =
+    summary.classroomBlockerCount || summary.classroomWarningCount
+      ? `${summary.classroomBlockerCount || 0} classroom blocker(s), ${summary.classroomWarningCount || 0} classroom warning(s)`
+      : 'classroom audit clear';
   const exportText =
     summary.exportChecked > 0
       ? `${summary.exportChecked || 0} export check(s), ${summary.exportFailed || 0} failed`
       : 'exports not checked';
-
-  return `[Package readiness: ${summary.confidence || 'Unknown'}; ${summary.repairsApplied || 0} safe repair(s); ${issueText}; ${validationText}; ${exportText}.]`;
+  return `[Package readiness: ${summary.confidence || 'Unknown'}; ${summary.repairsApplied || 0} safe repair(s); ${issueText}; ${classroomText}; ${validationText}; ${exportText}.]`;
 }
