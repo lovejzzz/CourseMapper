@@ -16,6 +16,7 @@ export default function ExamReview({
   onAcceptPatches,
   onRejectPatch,
   onRetryExamine,
+  onFocusPatch,
 }) {
   const [retrying, setRetrying] = useState(false);
   const [expanded, setExpanded] = useState(false);
@@ -79,7 +80,13 @@ export default function ExamReview({
       <div className="mt-3 ml-6 animate-spring-in">
         {/* Header row — wraps if too narrow */}
         <div className="flex items-center gap-1.5 flex-wrap mb-2">
-          <span className="flex items-center gap-1.5 text-[11px] font-semibold text-violet-700 bg-violet-50/80 px-2.5 py-1.5 rounded-squircle-xs border border-violet-200/50">
+          <button
+            type="button"
+            data-testid="exam-review-summary"
+            onClick={() => onFocusPatch?.(patches[0])}
+            className="flex items-center gap-1.5 text-[11px] font-semibold text-violet-700 bg-violet-50/80 px-2.5 py-1.5 rounded-squircle-xs border border-violet-200/50 hover:bg-violet-100/80 transition-colors duration-150"
+            title={onFocusPatch ? 'Jump to the first suggested change' : undefined}
+          >
             <svg className="w-3 h-3 flex-shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24">
               <path
                 strokeLinecap="round"
@@ -89,7 +96,7 @@ export default function ExamReview({
               />
             </svg>
             {patches.length} suggestion{patches.length !== 1 ? 's' : ''} to review
-          </span>
+          </button>
           {/* Batch actions */}
           <button
             onClick={() => onAcceptPatches(null)}
@@ -111,9 +118,10 @@ export default function ExamReview({
             <PatchCard
               key={i}
               patch={patch}
-              index={i}
+              baseMap={pendingExamPatches.baseMap}
               onAccept={() => onAcceptPatches([i])}
               onReject={() => onRejectPatch(i)}
+              onFocus={onFocusPatch ? () => onFocusPatch(patch) : null}
             />
           ))}
         </ul>
@@ -193,16 +201,30 @@ export default function ExamReview({
 }
 
 // ── Individual patch card ──
-function PatchCard({ patch, index, onAccept, onReject }) {
+function PatchCard({ patch, baseMap, onAccept, onReject, onFocus }) {
   const label = buildLabel(patch);
   const newVal = formatValue(patch.value);
+  const oldVal = formatValue(getPatchCurrentValue(patch, baseMap));
+  const canShowDiff = oldVal != null && newVal != null && oldVal !== newVal;
 
   return (
-    <li className="flex flex-col gap-1.5 bg-white/70 rounded-squircle-xs border border-violet-100/80 px-2.5 py-2 text-[10px] min-w-0 overflow-hidden">
+    <li
+      data-testid="exam-review-patch"
+      className="flex flex-col gap-1.5 bg-white/70 rounded-squircle-xs border border-violet-100/80 px-2.5 py-2 text-[10px] min-w-0 overflow-hidden"
+    >
       {/* Location + buttons */}
       <div className="flex items-start justify-between gap-1.5">
         <span className="font-semibold text-slate-700 leading-snug break-words min-w-0">{label}</span>
         <div className="flex items-center gap-1 flex-shrink-0">
+          {onFocus && (
+            <button
+              type="button"
+              onClick={onFocus}
+              className="text-[9px] font-semibold text-violet-700 bg-violet-50 px-1.5 py-0.5 rounded border border-violet-200/60 hover:bg-violet-100 transition-colors duration-100 whitespace-nowrap"
+            >
+              Review
+            </button>
+          )}
           <button
             onClick={onAccept}
             className="text-[9px] font-semibold text-emerald-700 bg-emerald-50 px-1.5 py-0.5 rounded border border-emerald-200/60 hover:bg-emerald-100 transition-colors duration-100 whitespace-nowrap"
@@ -217,8 +239,20 @@ function PatchCard({ patch, index, onAccept, onReject }) {
           </button>
         </div>
       </div>
+      {canShowDiff && (
+        <div className="grid gap-1 rounded border border-slate-100 bg-slate-50/70 p-2 leading-relaxed">
+          <div>
+            <span className="block text-[9px] font-bold uppercase tracking-wide text-slate-400">Current</span>
+            <span className="text-slate-500 line-through decoration-red-300">{oldVal}</span>
+          </div>
+          <div>
+            <span className="block text-[9px] font-bold uppercase tracking-wide text-violet-400">Suggested</span>
+            <span className="text-violet-700">{newVal}</span>
+          </div>
+        </div>
+      )}
       {/* Proposed value */}
-      {newVal && (
+      {newVal && !canShowDiff && (
         <div className="text-violet-700 bg-violet-50/60 rounded px-2 py-1 leading-relaxed border border-violet-100/50 break-words">
           <span className="text-violet-400 font-semibold mr-1">AI suggests:</span>
           {newVal}
@@ -228,6 +262,16 @@ function PatchCard({ patch, index, onAccept, onReject }) {
       {patch.reason && <div className="text-slate-500 italic leading-relaxed break-words">{patch.reason}</div>}
     </li>
   );
+}
+
+function getPatchCurrentValue(patch, baseMap) {
+  if (!patch || !baseMap) return null;
+  if (patch.field === 'courseName') return baseMap.courseName ?? '';
+  if (patch.field === 'semester') return baseMap.semester ?? '';
+  const lesson = baseMap.lessons?.[patch.lessonIndex];
+  if (patch.field === 'title') return lesson?.title ?? '';
+  if (patch.sectionIndex != null && patch.field) return lesson?.sections?.[patch.sectionIndex]?.[patch.field] ?? '';
+  return null;
 }
 
 function buildLabel(p) {

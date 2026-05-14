@@ -360,6 +360,30 @@ describe('evaluateWorkspaceReadiness', () => {
     expect(readiness.warnings[0].message).toContain('placeholder content');
   });
 
+  it('adds a clickable target for course-map placeholder warnings', () => {
+    const readiness = evaluateWorkspaceReadiness({
+      courseMap: {
+        ...courseMap,
+        lessons: [
+          {
+            ...courseMap.lessons[0],
+            sections: [{ ...courseMap.lessons[0].sections[0], learningGoals: 'TBD' }],
+          },
+        ],
+      },
+      columns,
+      selectedFeatures: ['courseMap'],
+    });
+
+    expect(readiness.status).toBe('warnings');
+    const placeholderIssue = readiness.warnings.find((issue) => issue.message.includes('TBD'));
+    expect(placeholderIssue).toMatchObject({
+      featureId: 'courseMap',
+      message: 'Lesson 1, Section 1 — Learning Goals contains unresolved placeholder text (TBD).',
+      target: { type: 'courseMapCell', lessonIndex: 0, sectionIndex: 0, field: 'learningGoals' },
+    });
+  });
+
   it('ignores placeholder warnings that only exist outside the selected lesson scope', () => {
     const readiness = evaluateWorkspaceReadiness({
       courseMap,
@@ -483,5 +507,50 @@ describe('repairWorkspaceReadiness', () => {
     const faqQuestions = result.deliverables.courseFaq.data.faqs[0].qs;
     expect(faqQuestions).toHaveLength(3);
     expect(faqQuestions[0].ca).toBe('Technical Help');
+  });
+
+  it('repairs syllabus completeness and assignment weight totals before warnings reach export', () => {
+    const deliverables = {
+      syllabus: {
+        status: 'done',
+        data: { syllabus: { courseTitle: 'Readiness Course' } },
+      },
+      assignments: {
+        status: 'done',
+        data: {
+          assignments: [
+            { t: 'Question Memo', pg: '20%', dw: 'Week 1', rl: ['Lesson 1: Questions'] },
+            { t: 'Sampling Critique', pg: '47%', dw: 'Week 2', rl: ['Lesson 2: Sampling'] },
+          ],
+        },
+      },
+    };
+
+    const repaired = repairWorkspaceReadiness({
+      courseMap,
+      columns,
+      selectedFeatures: ['syllabus', 'assignments'],
+      deliverables,
+    });
+
+    expect(repaired.changed).toBe(true);
+    expect(repaired.repairedFeatureIds).toEqual(['syllabus', 'assignments']);
+    expect(repaired.deliverables.syllabus.data.syllabus.courseDescription).toContain('Readiness Course is organized');
+    expect(repaired.deliverables.syllabus.data.syllabus.weeklySchedule).toHaveLength(2);
+    expect(repaired.deliverables.assignments.data.assignments.map((assignment) => assignment.pg)).toEqual([
+      '30%',
+      '70%',
+    ]);
+
+    const readiness = evaluateWorkspaceReadiness({
+      courseMap,
+      columns,
+      selectedFeatures: ['syllabus', 'assignments'],
+      deliverables: repaired.deliverables,
+    });
+
+    const warningText = readiness.warnings.map((issue) => issue.message).join(' ');
+    expect(warningText).not.toContain('Syllabus may be missing');
+    expect(warningText).not.toContain('grade weights sum');
   });
 });

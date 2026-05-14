@@ -273,6 +273,44 @@ export default function AppFlow({ startupAction = null, onStartupHandled, onRetu
     if (screen === 'workspace') setMobileWorkspaceView('content');
   }, [screen, activeTab]);
 
+  const focusCourseMapTarget = useCallback(
+    (targetOrIssue) => {
+      const target = targetOrIssue?.target || targetOrIssue;
+      if (!target || target.type !== 'courseMapCell') return;
+
+      setActiveTab('courseMap');
+      setMobileWorkspaceView('content');
+      window.setTimeout(() => {
+        window.dispatchEvent(new CustomEvent('coursemapper:focus-coursemap-cell', { detail: target }));
+      }, 160);
+    },
+    [setActiveTab],
+  );
+
+  const focusExamPatch = useCallback(
+    (patch) => {
+      if (!patch) return;
+      if (patch.field === 'courseName' || patch.field === 'semester' || patch.action === '_fullMapFallback') {
+        setActiveTab('courseMap');
+        setMobileWorkspaceView('content');
+        return;
+      }
+      if (patch.field === 'title' && patch.lessonIndex != null) {
+        focusCourseMapTarget({ type: 'courseMapCell', lessonIndex: patch.lessonIndex, field: 'title' });
+        return;
+      }
+      if (patch.lessonIndex != null && patch.sectionIndex != null && patch.field) {
+        focusCourseMapTarget({
+          type: 'courseMapCell',
+          lessonIndex: patch.lessonIndex,
+          sectionIndex: patch.sectionIndex,
+          field: patch.field,
+        });
+      }
+    },
+    [focusCourseMapTarget, setActiveTab],
+  );
+
   // ── Cloud ──
   const { user } = useAuth();
   const [projectId, setProjectId] = useState(null); // Firestore project doc ID
@@ -2259,6 +2297,7 @@ export default function AppFlow({ startupAction = null, onStartupHandled, onRetu
                   examChanges={gen.examChanges}
                   onAcceptPatches={gen.onAcceptPatches}
                   onRejectPatch={gen.onRejectPatch}
+                  onFocusExamPatch={focusExamPatch}
                   editor={editor}
                   optimisticUpdate={deliv.optimisticUpdate}
                   regenerateLesson={deliv.regenerateLesson}
@@ -2455,6 +2494,7 @@ export default function AppFlow({ startupAction = null, onStartupHandled, onRetu
                   deliverables={deliv.deliverables}
                   onCourseMapExport={handleDownload}
                   onSaveProject={handleSaveProject}
+                  onReadinessIssueClick={focusCourseMapTarget}
                 />
               </div>
             )}

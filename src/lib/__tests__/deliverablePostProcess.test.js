@@ -1,6 +1,7 @@
 import { describe, expect, it } from 'vitest';
 import {
   getCourseFaqQuestionTarget,
+  normalizeAssignmentGradeWeights,
   normalizeAssignmentLessonAlignment,
   normalizeCourseFaqCategories,
   normalizeCourseFaqQuestionCounts,
@@ -17,6 +18,7 @@ import {
   normalizeSlideDeckSpeakerNotes,
   normalizeStudyGuideQuestions,
   normalizeStudyGuideSupport,
+  normalizeSyllabusCompleteness,
   normalizeSyllabusPublishability,
   validateDeliverableGeneration,
 } from '../deliverablePostProcess.js';
@@ -600,6 +602,47 @@ describe('Syllabus post-processing', () => {
     expect(result.data.syllabus.weeklySchedule[0].dates).toBe('Week 1');
     expect(result.data.syllabus).not.toHaveProperty('contentOwnerGroup');
   });
+
+  it('fills missing course description and weekly schedule from the course map', () => {
+    const result = normalizeSyllabusCompleteness(
+      {
+        syllabus: {
+          courseTitle: 'Research Methods',
+          coursePolicies: 'Use the official course policies.',
+        },
+      },
+      {
+        courseName: 'Research Methods',
+        lessons: [
+          {
+            title: 'Lesson 1: Research Questions',
+            sections: [
+              {
+                weeklyAssessments: 'Question quality memo',
+                supportingResources: 'Research question examples',
+              },
+            ],
+          },
+          {
+            title: 'Lesson 2: Sampling',
+            sections: [{ weeklyAssessments: 'Sampling critique', asyncActivities: 'Read sampling guide' }],
+          },
+        ],
+      },
+    );
+
+    expect(result.patchedDescription).toBe(true);
+    expect(result.patchedSchedule).toBe(true);
+    expect(result.data.syllabus.courseDescription).toContain('Research Methods is organized');
+    expect(result.data.syllabus.weeklySchedule).toHaveLength(2);
+    expect(result.data.syllabus.weeklySchedule[0]).toMatchObject({
+      week: 'Week 1',
+      dates: 'Week 1',
+      topic: 'Research Questions',
+      readings: 'Research question examples',
+      assignments: 'Question quality memo',
+    });
+  });
 });
 
 describe('Lesson plan post-processing', () => {
@@ -797,6 +840,21 @@ describe('Rubric and assignment post-processing', () => {
     expect(result.data.assignments[1].t).toBe('Oral Presentation');
     expect(result.data.assignments[1].rl).toEqual(['Lesson 3: Presentations']);
     expect(result.data.assignments[1].relatedLessons).toBeUndefined();
+  });
+
+  it('normalizes compact assignment grade weights to exactly 100%', () => {
+    const result = normalizeAssignmentGradeWeights({
+      assignments: [
+        { t: 'Proposal', pg: '20%' },
+        { t: 'Analysis Brief', pg: '22%' },
+        { t: 'Final Presentation', pg: '25%' },
+      ],
+    });
+
+    expect(result.normalizedGradeWeights).toBe(true);
+    expect(Math.round(result.previousTotal)).toBe(67);
+    expect(result.newTotal).toBe(100);
+    expect(result.data.assignments.map((assignment) => assignment.pg)).toEqual(['30%', '33%', '37%']);
   });
 });
 

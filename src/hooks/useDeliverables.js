@@ -28,6 +28,7 @@ import { expandKeys } from '../lib/keyMaps';
 import { log, warn, error as logError } from '../lib/logger';
 import { buildDeliverableTimeoutError, runDeliverableFeatureWithTimeout } from '../lib/deliverableTimeouts';
 import {
+  normalizeAssignmentGradeWeights,
   normalizeAssignmentLessonAlignment,
   normalizeCourseFaqCategories,
   normalizeCourseFaqQuestionCounts,
@@ -44,6 +45,7 @@ import {
   normalizeSlideDeckSpeakerNotes,
   normalizeStudyGuideQuestions,
   normalizeStudyGuideSupport,
+  normalizeSyllabusCompleteness,
   normalizeSyllabusPublishability,
   validateDeliverableGeneration,
 } from '../lib/deliverablePostProcess';
@@ -563,7 +565,8 @@ export default function useDeliverables({
             let parsedForChunk = parsed;
             if (isWholeCourse && featureId === 'syllabus') {
               const normalizedSyllabus = normalizeSyllabusPublishability(parsedForChunk);
-              parsedForChunk = normalizedSyllabus.data;
+              const completedSyllabus = normalizeSyllabusCompleteness(normalizedSyllabus.data, courseMap);
+              parsedForChunk = completedSyllabus.data;
               if (normalizedSyllabus.patchedFields > 0) {
                 appendLog(
                   `⚠ ${getFeatureLabel(featureId)}: replaced ${normalizedSyllabus.patchedFields} unresolved local-fact placeholder field(s)`,
@@ -779,6 +782,7 @@ export default function useDeliverables({
                 let candidate = parsed;
                 if (fid === 'syllabus') {
                   candidate = normalizeSyllabusPublishability(candidate).data;
+                  candidate = normalizeSyllabusCompleteness(candidate, courseMap).data;
                 }
                 const candidateValidation = validateDeliverableGeneration(fid, candidate, {
                   expectedLessonCount: expectedCount,
@@ -842,6 +846,7 @@ export default function useDeliverables({
 
           if (fid === 'syllabus') {
             finalData = normalizeSyllabusPublishability(finalData).data;
+            finalData = normalizeSyllabusCompleteness(finalData, courseMap).data;
           }
 
           dispatch(actions.setDeliverableDone(fid, finalData));
@@ -1166,20 +1171,15 @@ export default function useDeliverables({
 
         // Post-merge grade normalization: ensure assignment percentOfGrade sums to 100%
         if (fid === 'assignments' && mergedArr.length > 0) {
-          let gradeTotal = 0;
-          const grades = mergedArr.map((a) => {
-            const pct = parseFloat(String(a?.percentOfGrade || '0').replace('%', ''));
-            gradeTotal += pct;
-            return pct;
-          });
-          if (gradeTotal > 0 && Math.abs(gradeTotal - 100) > 2) {
+          const normalizedGradeWeights = normalizeAssignmentGradeWeights(merged);
+          if (normalizedGradeWeights.normalizedGradeWeights) {
             const label = getFeatureLabel(fid);
-            appendLog(`⚠ ${label}: grade weights sum to ${Math.round(gradeTotal)}% — normalizing to 100%`, 'warn');
-            mergedArr.forEach((a, i) => {
-              const normalized = Math.round((grades[i] / gradeTotal) * 100);
-              a.percentOfGrade = `${normalized}%`;
-            });
-            merged = { ...merged, [arrayKey]: mergedArr };
+            appendLog(
+              `⚠ ${label}: grade weights summed to ${Math.round(normalizedGradeWeights.previousTotal)}% — normalized to 100% before export`,
+              'warn',
+            );
+            merged = normalizedGradeWeights.data;
+            mergedArr = normalizedGradeWeights.arrayKey ? merged[normalizedGradeWeights.arrayKey] || [] : mergedArr;
           }
         }
 
@@ -1488,6 +1488,17 @@ export default function useDeliverables({
           if (normalizedAssignments.patchedRelatedLessons > 0 || normalizedAssignments.reorderedAssignments) {
             appendLog(
               `⚠ ${getFeatureLabel(fid)}: repaired lesson links and chronological ordering for generated briefs`,
+              'warn',
+            );
+          }
+
+          const normalizedGradeWeights = normalizeAssignmentGradeWeights(merged);
+          merged = normalizedGradeWeights.data;
+          mergedArr = normalizedGradeWeights.arrayKey ? merged[normalizedGradeWeights.arrayKey] || [] : mergedArr;
+
+          if (normalizedGradeWeights.normalizedGradeWeights) {
+            appendLog(
+              `⚠ ${getFeatureLabel(fid)}: normalized assignment grade weights from ${Math.round(normalizedGradeWeights.previousTotal)}% to 100%`,
               'warn',
             );
           }

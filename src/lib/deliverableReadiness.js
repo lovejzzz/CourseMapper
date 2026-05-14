@@ -1,6 +1,7 @@
 import { getArrayKey } from './syncDependencies';
 import { findPublishabilityPlaceholders } from './publishabilityPlaceholders';
 import {
+  normalizeAssignmentGradeWeights,
   normalizeAssignmentLessonAlignment,
   normalizeCourseFaqCategories,
   normalizeCourseFaqQuestionCounts,
@@ -17,6 +18,7 @@ import {
   normalizeSlideDeckSpeakerNotes,
   normalizeStudyGuideQuestions,
   normalizeStudyGuideSupport,
+  normalizeSyllabusCompleteness,
   normalizeSyllabusPublishability,
 } from './deliverablePostProcess';
 
@@ -211,6 +213,13 @@ function repairFeatureData(featureId, data, { courseMap, config } = {}) {
   switch (featureId) {
     case 'syllabus':
       current = applyRepair(current, summaries, 'cleaned syllabus placeholders', normalizeSyllabusPublishability);
+      current = applyRepair(
+        current,
+        summaries,
+        'filled syllabus overview and schedule',
+        normalizeSyllabusCompleteness,
+        courseMap,
+      );
       break;
     case 'lessonPlans':
       current = applyRepair(
@@ -232,6 +241,7 @@ function repairFeatureData(featureId, data, { courseMap, config } = {}) {
         normalizeAssignmentLessonAlignment,
         courseMap,
       );
+      current = applyRepair(current, summaries, 'normalized assignment grade weights', normalizeAssignmentGradeWeights);
       break;
     case 'rubrics':
       current = applyRepair(current, summaries, 'filled assessed-lesson rubrics', normalizeRubricCoverage, courseMap);
@@ -314,6 +324,15 @@ function enabledColumnKeys(columns) {
     .filter((column) => column?.enabled !== false)
     .map((column) => column.key)
     .filter(Boolean);
+}
+
+function columnLabel(columns, key) {
+  const column = asArray(columns).find((item) => item?.key === key);
+  const raw = column?.label || column?.title || key || 'field';
+  return raw
+    .replace(/([A-Z])/g, ' $1')
+    .replace(/^./, (char) => char.toUpperCase())
+    .trim();
 }
 
 function hasMeaningfulValue(value) {
@@ -469,7 +488,11 @@ function checkCourseMap(courseMap, columns, lessonIndices, issues) {
     const lesson = lessons[lessonIndex];
     const label = lesson?.title || `Lesson ${lessonIndex + 1}`;
     if (!text(lesson?.title).trim()) {
-      issues.push(makeIssue(READINESS_BLOCKER, 'courseMap', `Lesson ${lessonIndex + 1} is missing a title.`));
+      issues.push(
+        makeIssue(READINESS_BLOCKER, 'courseMap', `Lesson ${lessonIndex + 1} is missing a title.`, {
+          target: { type: 'courseMapCell', lessonIndex, field: 'title' },
+        }),
+      );
     }
     const sections = asArray(lesson?.sections);
     if (sections.length === 0) {
@@ -478,10 +501,57 @@ function checkCourseMap(courseMap, columns, lessonIndices, issues) {
     }
     for (const key of columnsToCheck) {
       const hasValue = sections.some((section) => hasMeaningfulValue(section?.[key]));
-      if (!hasValue) {
-        issues.push(makeIssue(READINESS_WARNING, 'courseMap', `${label} has an empty ${key} field.`));
+      const hasPlaceholderValue = sections.some(
+        (section) => findPublishabilityPlaceholders(section?.[key], { limit: 1 }).length > 0,
+      );
+      if (!hasValue && !hasPlaceholderValue) {
+        issues.push(
+          makeIssue(READINESS_WARNING, 'courseMap', `${label} has an empty ${columnLabel(columns, key)} field.`, {
+            target: { type: 'courseMapCell', lessonIndex, sectionIndex: 0, field: key },
+          }),
+        );
       }
     }
+  }
+}
+
+function checkCourseMapPlaceholders(courseMap, columns, lessonIndices, issues) {
+  const lessons = asArray(courseMap?.lessons);
+  const columnsToCheck = enabledColumnKeys(columns);
+
+  for (const lessonIndex of lessonIndices) {
+    const lesson = lessons[lessonIndex];
+    if (!lesson) continue;
+
+    findPublishabilityPlaceholders(lesson.title, { limit: 3 }).forEach((placeholder) => {
+      issues.push(
+        makeIssue(
+          READINESS_WARNING,
+          'courseMap',
+          `Lesson ${lessonIndex + 1} title contains unresolved placeholder text (${placeholder}).`,
+          {
+            target: { type: 'courseMapCell', lessonIndex, field: 'title' },
+          },
+        ),
+      );
+    });
+
+    asArray(lesson.sections).forEach((section, sectionIndex) => {
+      columnsToCheck.forEach((key) => {
+        findPublishabilityPlaceholders(section?.[key], { limit: 3 }).forEach((placeholder) => {
+          issues.push(
+            makeIssue(
+              READINESS_WARNING,
+              'courseMap',
+              `Lesson ${lessonIndex + 1}, Section ${sectionIndex + 1} — ${columnLabel(columns, key)} contains unresolved placeholder text (${placeholder}).`,
+              {
+                target: { type: 'courseMapCell', lessonIndex, sectionIndex, field: key },
+              },
+            ),
+          );
+        });
+      });
+    });
   }
 }
 
@@ -653,13 +723,14 @@ function checkAssignments(data, courseMap, lessonIndices, issues) {
 }
 
 function checkSyllabus(data, issues) {
-  if (!data || typeof data !== 'object') {
+  const syllabus = data?.syllabus && typeof data.syllabus === 'object' ? data.syllabus : data;
+  if (!syllabus || typeof syllabus !== 'object') {
     issues.push(makeIssue(READINESS_BLOCKER, 'syllabus', 'Syllabus has no generated data.'));
     return;
   }
   if (
-    !hasMeaningfulValue(data.courseDescription || data.description) &&
-    !hasMeaningfulValue(data.schedule || data.weeklySchedule)
+    !hasMeaningfulValue(syllabus.courseDescription || syllabus.description) &&
+    !hasMeaningfulValue(syllabus.schedule || syllabus.weeklySchedule || syllabus.courseAtAGlance)
   ) {
     issues.push(
       makeIssue(READINESS_WARNING, 'syllabus', 'Syllabus may be missing course description or schedule details.'),
@@ -677,20 +748,14 @@ export function evaluateWorkspaceReadiness({
   const issues = [];
   const featureIds = getSelectedFeatureIds(selectedFeatures, deliverables);
   const lessonIndices = getLessonIndices(courseMap, lessonFilter);
-  const scopedCourseMap = scopeCourseMapToLessons(courseMap, lessonIndices);
 
   if (Array.isArray(lessonFilter) && lessonIndices.length === 0) {
     issues.push(makeIssue(READINESS_BLOCKER, 'courseMap', 'Select at least one lesson before exporting.'));
   }
 
   if (featureIds.includes('courseMap')) {
-    checkCourseMap(
-      scopedCourseMap,
-      columns,
-      lessonIndices.map((_, index) => index),
-      issues,
-    );
-    checkPublishabilityPlaceholders('courseMap', scopedCourseMap, issues);
+    checkCourseMap(courseMap, columns, lessonIndices, issues);
+    checkCourseMapPlaceholders(courseMap, columns, lessonIndices, issues);
   }
 
   for (const featureId of featureIds) {

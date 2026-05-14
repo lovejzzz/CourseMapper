@@ -1,4 +1,4 @@
-import React, { useMemo, useState } from 'react';
+import React, { useEffect, useMemo, useRef, useState } from 'react';
 import { useCourse } from '../contexts/CourseContext';
 import { safeImport } from '../lib/safeImport';
 import {
@@ -284,12 +284,20 @@ function GDriveBtn({ fmt, label, disabled, busy, onClick }) {
   );
 }
 
-function ReadinessPanel({ readiness }) {
+function formatReadinessIssue(issue) {
+  if (!issue?.label) return issue?.message || '';
+  const message = issue.message || '';
+  if (message.toLowerCase().startsWith(issue.label.toLowerCase())) return message;
+  return `${issue.label}: ${message}`;
+}
+
+function ReadinessPanel({ readiness, onIssueClick }) {
   if (!readiness || readiness.featureCount === 0) return null;
 
   const isBlocked = readiness.blockers.length > 0;
   const hasWarnings = readiness.warnings.length > 0;
   const issuesToShow = isBlocked ? readiness.blockers.slice(0, 3) : readiness.warnings.slice(0, 3);
+  const canNavigate = (issue) => typeof onIssueClick === 'function' && issue?.target;
   const tone = isBlocked
     ? {
         wrap: 'border-red-100 bg-red-50/70 text-red-700',
@@ -326,7 +334,9 @@ function ReadinessPanel({ readiness }) {
             </p>
             <span className="text-[9px] font-semibold opacity-70">{tone.meta}</span>
           </div>
-          <p className="mt-0.5 text-[10px] leading-snug opacity-80">{summarizeReadiness(readiness)}</p>
+          <p className="mt-0.5 text-[10px] leading-snug opacity-80">
+            {issuesToShow.length > 0 ? 'Review the issue below before publishing.' : summarizeReadiness(readiness)}
+          </p>
           {issuesToShow.length > 0 && (
             <ul className="mt-1.5 space-y-1">
               {issuesToShow.map((issue, index) => (
@@ -335,7 +345,19 @@ function ReadinessPanel({ readiness }) {
                   data-testid="readiness-issue"
                   className="text-[10px] leading-snug"
                 >
-                  <span className="font-semibold">{issue.label}:</span> {issue.message}
+                  {canNavigate(issue) ? (
+                    <button
+                      type="button"
+                      onClick={() => onIssueClick(issue)}
+                      className="w-full rounded-md px-1 py-0.5 text-left font-medium underline decoration-current/30 underline-offset-2 transition-colors hover:bg-white/50 hover:decoration-current"
+                      title="Jump to this issue"
+                    >
+                      {formatReadinessIssue(issue)}
+                      <span className="ml-1 font-bold opacity-70">Jump</span>
+                    </button>
+                  ) : (
+                    formatReadinessIssue(issue)
+                  )}
                 </li>
               ))}
             </ul>
@@ -346,12 +368,14 @@ function ReadinessPanel({ readiness }) {
   );
 }
 
-function ReadinessConfirm({ pendingExport, onCancel, onConfirm }) {
+function ReadinessConfirm({ pendingExport, onCancel, onConfirm, onIssueClick, confirmRef }) {
   if (!pendingExport?.readiness) return null;
   const { readiness } = pendingExport;
   const isBlocked = readiness.blockers.length > 0;
   const isZipExport = pendingExport.format === 'zip';
   const issues = (isBlocked ? readiness.blockers : readiness.issues).slice(0, 5);
+  const firstNavigableIssue = issues.find((issue) => issue?.target);
+  const canNavigate = (issue) => typeof onIssueClick === 'function' && issue?.target;
   const tone = isBlocked
     ? {
         wrap: 'border-red-200 bg-red-50/80 text-red-800',
@@ -373,13 +397,27 @@ function ReadinessConfirm({ pendingExport, onCancel, onConfirm }) {
       };
 
   return (
-    <div data-testid="readiness-confirm" className={`rounded-xl border px-3 py-3 ${tone.wrap}`}>
+    <div ref={confirmRef} data-testid="readiness-confirm" className={`rounded-xl border px-3 py-3 ${tone.wrap}`}>
       <p className="text-[11px] font-bold">{tone.title}</p>
       <p className="mt-1 text-[10px] leading-snug">{tone.description}</p>
       <ul className="mt-2 space-y-1">
         {issues.map((issue, index) => (
           <li key={`${issue.featureId}-${issue.message}-${index}`} className="text-[10px] leading-snug">
-            <span className="font-semibold">{issue.label}:</span> {issue.message}
+            {canNavigate(issue) ? (
+              <button
+                type="button"
+                onClick={() => {
+                  onIssueClick(issue);
+                  onCancel();
+                }}
+                className="w-full rounded-md px-1 py-0.5 text-left font-medium underline decoration-current/30 underline-offset-2 transition-colors hover:bg-white/50 hover:decoration-current"
+              >
+                {formatReadinessIssue(issue)}
+                <span className="ml-1 font-bold opacity-70">Jump</span>
+              </button>
+            ) : (
+              formatReadinessIssue(issue)
+            )}
           </li>
         ))}
       </ul>
@@ -393,7 +431,12 @@ function ReadinessConfirm({ pendingExport, onCancel, onConfirm }) {
         <button
           type="button"
           data-testid="readiness-review-materials"
-          onClick={onCancel}
+          onClick={() => {
+            if (firstNavigableIssue && typeof onIssueClick === 'function') {
+              onIssueClick(firstNavigableIssue);
+            }
+            onCancel();
+          }}
           className={`rounded-lg border bg-white/70 px-2 py-1.5 text-[10px] font-bold hover:bg-white ${tone.reviewButton}`}
         >
           Review materials
@@ -488,13 +531,16 @@ export default function ExportSidePanel({
   deliverables,
   onCourseMapExport, // handleDownload from useExport
   onSaveProject, // save full session as .coursemapper
+  onReadinessIssueClick,
 }) {
   const { courseMap, columns, selectedFeatures, slideTheme } = useCourse();
   const [scope, setScope] = useState('current'); // 'current' | 'all'
   const [busy, setBusy] = useState(null); // format string or 'zip'
   const [lastError, setLastError] = useState('');
   const [lastOk, setLastOk] = useState('');
+  const [lastNotice, setLastNotice] = useState('');
   const [pendingReadinessExport, setPendingReadinessExport] = useState(null);
+  const readinessConfirmRef = useRef(null);
 
   // All-tab lesson filter (null = all lessons)
   const allLessons = courseMap?.lessons || [];
@@ -552,6 +598,12 @@ export default function ExportSidePanel({
     [activeTab, columns, courseMap, deliverables],
   );
   const activeReadiness = scope === 'all' ? workspaceReadiness : currentReadiness;
+  const zipPendingReadiness = pendingReadinessExport?.format === 'zip';
+
+  useEffect(() => {
+    if (!pendingReadinessExport) return;
+    readinessConfirmRef.current?.scrollIntoView({ block: 'nearest', behavior: 'smooth' });
+  }, [pendingReadinessExport]);
 
   function requestReadinessConfirmation(format) {
     const readiness = scope === 'all' ? workspaceReadiness : currentReadiness;
@@ -559,14 +611,25 @@ export default function ExportSidePanel({
       setPendingReadinessExport({ format, readiness, scope });
       setLastError('');
       setLastOk('');
+      setLastNotice(
+        format === 'zip'
+          ? 'Choose Review materials or Export anyway above to continue the ZIP download.'
+          : 'Choose Review materials or Export anyway above to continue the export.',
+      );
       return true;
     }
     return false;
   }
 
+  function clearPendingReadinessExport() {
+    setPendingReadinessExport(null);
+    setLastNotice('');
+  }
+
   async function doExport(format, { skipReadinessConfirmation = false } = {}) {
     if (!skipReadinessConfirmation && requestReadinessConfirmation(format)) return;
     setPendingReadinessExport(null);
+    setLastNotice('');
     // For Google exports we must open a tab BEFORE any await (popup blocker)
     // Course map exports open their own tab internally via useExport → saveToGoogleDocs/Sheets
     const needsTab = (format === 'gdocs' || format === 'gsheets' || format === 'gslides') && activeTab !== 'courseMap';
@@ -646,7 +709,7 @@ export default function ExportSidePanel({
 
   // Toggle a lesson in/out of selectedLessons
   function toggleLesson(idx) {
-    setPendingReadinessExport(null);
+    clearPendingReadinessExport();
     setSelectedLessons((prev) => {
       if (prev === null) {
         // Currently all selected — deselect just this one
@@ -700,7 +763,7 @@ export default function ExportSidePanel({
               data-testid={`export-scope-${s.id}`}
               onClick={() => {
                 setScope(s.id);
-                setPendingReadinessExport(null);
+                clearPendingReadinessExport();
               }}
               className={`flex-1 py-1.5 rounded-md text-[11px] font-semibold transition-all duration-200 ${
                 scope === s.id ? 'bg-white text-slate-800 shadow-sm' : 'text-slate-400 hover:text-slate-600'
@@ -727,14 +790,16 @@ export default function ExportSidePanel({
           )}
         </p>
 
-        <ReadinessPanel readiness={activeReadiness} />
+        <ReadinessPanel readiness={activeReadiness} onIssueClick={onReadinessIssueClick} />
 
         <ReadinessConfirm
           pendingExport={pendingReadinessExport}
-          onCancel={() => setPendingReadinessExport(null)}
+          onCancel={clearPendingReadinessExport}
           onConfirm={() =>
             pendingReadinessExport && doExport(pendingReadinessExport.format, { skipReadinessConfirmation: true })
           }
+          onIssueClick={onReadinessIssueClick}
+          confirmRef={readinessConfirmRef}
         />
 
         {/* ────────────────────────────────────────────────────────────── */}
@@ -797,16 +862,19 @@ export default function ExportSidePanel({
                 onClick={() => doExport('zip')}
                 disabled={
                   !!busy ||
+                  zipPendingReadiness ||
                   allReadyCount === 0 ||
                   !courseMap ||
                   (selectedLessons !== null && selectedLessons.length === 0)
                 }
                 title={
-                  !courseMap
-                    ? 'Course map is required for ZIP export'
-                    : selectedLessons !== null && selectedLessons.length === 0
-                      ? 'Select at least one lesson'
-                      : undefined
+                  zipPendingReadiness
+                    ? 'Choose Review materials or Export anyway above'
+                    : !courseMap
+                      ? 'Course map is required for ZIP export'
+                      : selectedLessons !== null && selectedLessons.length === 0
+                        ? 'Select at least one lesson'
+                        : undefined
                 }
                 className="tactile flex items-center justify-center gap-2 w-full py-2.5 rounded-lg text-[12px] font-bold text-white bg-gradient-to-r from-indigo-500 to-violet-600 shadow-sm hover:brightness-110 transition-all disabled:opacity-40 disabled:cursor-not-allowed"
               >
@@ -822,7 +890,7 @@ export default function ExportSidePanel({
                     />
                   </svg>
                 )}
-                Download ZIP
+                {zipPendingReadiness ? 'Choose above to continue' : 'Download ZIP'}
               </button>
             </div>
 
@@ -974,6 +1042,14 @@ export default function ExportSidePanel({
             className="text-[10px] font-semibold text-red-500 bg-red-50 rounded-lg px-2 py-1.5 animate-spring-in"
           >
             ✗ {lastError}
+          </p>
+        )}
+        {lastNotice && !lastError && (
+          <p
+            data-testid="export-notice"
+            className="text-[10px] font-semibold text-amber-700 bg-amber-50 rounded-lg px-2 py-1.5 animate-spring-in"
+          >
+            {lastNotice}
           </p>
         )}
       </div>

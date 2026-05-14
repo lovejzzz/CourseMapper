@@ -1380,6 +1380,60 @@ function relatedLessonsNeedRepair(relatedLessons = []) {
   return relatedLessons.every((value) => !/\b(?:lesson|week|module|unit|session)\s*\d+/i.test(String(value || '')));
 }
 
+function getPercentValue(value) {
+  const number = Number(String(value || '').match(/\d+(?:\.\d+)?/)?.[0]);
+  return Number.isFinite(number) ? number : 0;
+}
+
+function distributePercentWeights(values) {
+  const total = values.reduce((sum, value) => sum + value, 0);
+  if (!Number.isFinite(total) || total <= 0) return values.map(() => 0);
+
+  const exact = values.map((value) => (value / total) * 100);
+  const floors = exact.map(Math.floor);
+  let remainder = 100 - floors.reduce((sum, value) => sum + value, 0);
+  const order = exact
+    .map((value, index) => ({ index, fraction: value - Math.floor(value) }))
+    .sort((a, b) => b.fraction - a.fraction || a.index - b.index);
+
+  const result = [...floors];
+  for (let i = 0; i < order.length && remainder > 0; i++) {
+    result[order[i].index] += 1;
+    remainder--;
+  }
+  return result;
+}
+
+export function normalizeAssignmentGradeWeights(data) {
+  const arrayKey = getArrayKey('assignments', data) || (data?.assignments ? 'assignments' : null);
+  const assignments = arrayKey ? data?.[arrayKey] : null;
+
+  if (!Array.isArray(assignments) || assignments.length === 0) {
+    return { data, arrayKey, normalizedGradeWeights: false, previousTotal: 0, newTotal: 0 };
+  }
+
+  const values = assignments.map((assignment) => getPercentValue(assignment?.percentOfGrade ?? assignment?.pg));
+  const previousTotal = values.reduce((sum, value) => sum + value, 0);
+  if (previousTotal <= 0 || Math.abs(previousTotal - 100) <= 2) {
+    return { data, arrayKey, normalizedGradeWeights: false, previousTotal, newTotal: previousTotal };
+  }
+
+  const normalized = distributePercentWeights(values);
+  const nextAssignments = assignments.map((assignment, index) => {
+    const weightKey =
+      assignment?.percentOfGrade !== undefined ? 'percentOfGrade' : assignment?.pg !== undefined ? 'pg' : 'pg';
+    return { ...assignment, [weightKey]: `${normalized[index]}%` };
+  });
+
+  return {
+    data: { ...data, [arrayKey]: nextAssignments },
+    arrayKey,
+    normalizedGradeWeights: true,
+    previousTotal,
+    newTotal: normalized.reduce((sum, value) => sum + value, 0),
+  };
+}
+
 export function normalizeAssignmentLessonAlignment(data, courseMap) {
   const arrayKey = getArrayKey('assignments', data) || (data?.assignments ? 'assignments' : null);
   const assignments = arrayKey ? data?.[arrayKey] : null;
@@ -2097,6 +2151,96 @@ function cleanSyllabusText(value, fallback = '') {
 function patchSyllabusField(syllabus, key, fallback) {
   if (!hasPublishabilityMarker(syllabus[key])) return { syllabus, patched: 0 };
   return { syllabus: { ...syllabus, [key]: cleanSyllabusText(syllabus[key], fallback) }, patched: 1 };
+}
+
+function syllabusHasMeaningfulValue(value) {
+  if (Array.isArray(value)) return value.some(syllabusHasMeaningfulValue);
+  if (value && typeof value === 'object') return Object.values(value).some(syllabusHasMeaningfulValue);
+  const raw = String(value || '').trim();
+  return raw.length >= 8 && !hasPublishabilityMarker(raw);
+}
+
+function lessonTopic(lesson, index) {
+  const raw = String(lesson?.title || `Lesson ${index + 1}`).trim();
+  return raw.replace(/^lesson\s*\d+\s*:\s*/i, '').trim() || raw || `Lesson ${index + 1}`;
+}
+
+function lessonField(lesson, keys) {
+  const sections = Array.isArray(lesson?.sections) ? lesson.sections : [];
+  for (const section of sections) {
+    for (const key of keys) {
+      const value = section?.[key];
+      if (syllabusHasMeaningfulValue(value)) return Array.isArray(value) ? value.join('; ') : String(value);
+    }
+  }
+  return '';
+}
+
+function buildSyllabusDescription(courseMap) {
+  const lessons = Array.isArray(courseMap?.lessons) ? courseMap.lessons : [];
+  const courseName = String(courseMap?.courseName || 'this course').trim();
+  const topics = lessons.slice(0, 4).map(lessonTopic).filter(Boolean);
+  const topicText =
+    topics.length > 1
+      ? `${topics.slice(0, -1).join(', ')}, and ${topics[topics.length - 1]}`
+      : topics[0] || 'the major course topics';
+  return `${courseName} is organized as a coherent learning sequence through ${topicText}. Students connect weekly concepts to applied tasks, checks for understanding, and course assessments so they can build usable knowledge over the full term. The course map provides the official week-by-week structure, and this syllabus translates that structure into student-facing expectations for preparation, participation, assessment, and support.`;
+}
+
+function buildSyllabusWeeklySchedule(courseMap) {
+  const lessons = Array.isArray(courseMap?.lessons) ? courseMap.lessons : [];
+  return lessons.map((lesson, index) => {
+    const topic = lessonTopic(lesson, index);
+    const readings =
+      lessonField(lesson, ['supportingResources', 'resources', 'asyncActivities']) || 'Assigned course materials';
+    const assignments =
+      lessonField(lesson, ['weeklyAssessments', 'assessments', 'assessment']) ||
+      'Weekly preparation, participation, and progress checks';
+    return {
+      week: `Week ${index + 1}`,
+      dates: `Week ${index + 1}`,
+      topic,
+      readings,
+      assignments,
+    };
+  });
+}
+
+export function normalizeSyllabusCompleteness(data, courseMap) {
+  const wrapperKey = data?.syllabus && typeof data.syllabus === 'object' ? 'syllabus' : null;
+  let syllabus = wrapperKey ? data.syllabus : data;
+
+  if (!syllabus || typeof syllabus !== 'object' || Array.isArray(syllabus)) {
+    return { data, patchedDescription: false, patchedSchedule: false };
+  }
+
+  let patchedDescription = false;
+  let patchedSchedule = false;
+
+  if (!syllabusHasMeaningfulValue(syllabus.courseDescription || syllabus.description)) {
+    syllabus = { ...syllabus, courseDescription: buildSyllabusDescription(courseMap) };
+    patchedDescription = true;
+  }
+
+  const lessons = Array.isArray(courseMap?.lessons) ? courseMap.lessons : [];
+  const weeklySchedule = Array.isArray(syllabus.weeklySchedule) ? syllabus.weeklySchedule : null;
+  const expectedWeeks = lessons.length || weeklySchedule?.length || 0;
+  const hasUsefulSchedule =
+    weeklySchedule &&
+    weeklySchedule.length >= Math.max(1, expectedWeeks) &&
+    weeklySchedule.some((week) => syllabusHasMeaningfulValue(week?.topic || week?.assignments || week?.readings));
+
+  if (!hasUsefulSchedule && lessons.length > 0) {
+    syllabus = { ...syllabus, weeklySchedule: buildSyllabusWeeklySchedule(courseMap) };
+    patchedSchedule = true;
+  }
+
+  const normalized = wrapperKey ? { ...data, [wrapperKey]: syllabus } : syllabus;
+  return {
+    data: patchedDescription || patchedSchedule ? normalized : data,
+    patchedDescription,
+    patchedSchedule,
+  };
 }
 
 export function normalizeSyllabusPublishability(data) {

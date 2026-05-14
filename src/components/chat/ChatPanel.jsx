@@ -99,6 +99,7 @@ export default function ChatPanel({
   examChanges,
   onAcceptPatches,
   onRejectPatch,
+  onFocusExamPatch,
   // Agent: course map editor + deliverable update
   editor,
   optimisticUpdate,
@@ -424,6 +425,7 @@ export default function ChatPanel({
             examChanges={examChanges}
             onAcceptPatches={onAcceptPatches}
             onRejectPatch={onRejectPatch}
+            onFocusPatch={onFocusExamPatch}
           />
         </div>
       )}

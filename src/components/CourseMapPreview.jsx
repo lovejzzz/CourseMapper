@@ -41,6 +41,10 @@ function splitIntoItems(text) {
 
 const LIST_PREFIX = /^(?:[-•*]|\d+[a-z]?[.):])\s/;
 
+function courseMapCellKey({ lessonIndex, sectionIndex, field }) {
+  return `${lessonIndex ?? ''}:${sectionIndex ?? 'lesson'}:${field || ''}`;
+}
+
 // Format cell text: split by newlines, detect bullets/numbers, render structured
 function FormattedText({ text }) {
   if (!text) return null;
@@ -108,6 +112,7 @@ export default function CourseMapPreview({
   const mouseLeaveTimerRef = useRef(null);
   const autoScrollPausedRef = useRef(false);
   const revisionScrolledRef = useRef(false);
+  const [focusedCellKey, setFocusedCellKey] = useState(null);
 
   // ── Column resizing ──
   const [colWidths, setColWidths] = useState({});
@@ -176,6 +181,39 @@ export default function CourseMapPreview({
   // Cleanup timer on unmount
   useEffect(() => {
     return () => clearTimeout(mouseLeaveTimerRef.current);
+  }, []);
+
+  useEffect(() => {
+    const handleFocusRequest = (event) => {
+      const target = event.detail || {};
+      if (target.type !== 'courseMapCell') return;
+
+      const nextKey = courseMapCellKey(target);
+      setFocusedCellKey(nextKey);
+
+      window.setTimeout(() => {
+        const cells = Array.from(tableRef.current?.querySelectorAll('[data-coursemap-cell="true"]') || []);
+        const match = cells.find((cell) => {
+          const sameLesson = cell.dataset.lessonIndex === String(target.lessonIndex ?? '');
+          const sameField = cell.dataset.fieldKey === String(target.field || '');
+          const expectedSection = target.field === 'title' ? '' : String(target.sectionIndex ?? 0);
+          return sameLesson && sameField && cell.dataset.sectionIndex === expectedSection;
+        });
+        if (!match) return;
+
+        wrapperRef.current?.scrollIntoView({ behavior: 'smooth', block: 'start' });
+        match.scrollIntoView({ behavior: 'smooth', block: 'center', inline: 'center' });
+        const focusable = match.querySelector('[tabindex], textarea, button, [role="button"]') || match;
+        focusable.focus?.({ preventScroll: true });
+      }, 120);
+
+      window.setTimeout(() => {
+        setFocusedCellKey((current) => (current === nextKey ? null : current));
+      }, 5000);
+    };
+
+    window.addEventListener('coursemapper:focus-coursemap-cell', handleFocusRequest);
+    return () => window.removeEventListener('coursemapper:focus-coursemap-cell', handleFocusRequest);
   }, []);
 
   // Reset revision scroll flag when a new revision starts or streaming ends
@@ -442,8 +480,19 @@ export default function CourseMapPreview({
                   } ${isLocked ? 'bg-slate-100/60' : 'hover:bg-indigo-50/20'} animate-fadeIn transition-colors duration-200`}
                 >
                   <td
-                    className={`px-3.5 py-2.5 font-medium text-slate-700 align-top min-w-[120px] max-w-[160px] ${isLocked ? 'bg-slate-100/80' : 'bg-slate-50/40'}`}
+                    className={`px-3.5 py-2.5 font-medium text-slate-700 align-top min-w-[120px] max-w-[160px] transition-shadow duration-300 ${
+                      focusedCellKey === courseMapCellKey({ lessonIndex: li, field: 'title' })
+                        ? 'ring-2 ring-amber-400 ring-inset bg-amber-50/80'
+                        : isLocked
+                          ? 'bg-slate-100/80'
+                          : 'bg-slate-50/40'
+                    }`}
                     style={{ wordBreak: 'break-word', overflowWrap: 'anywhere' }}
+                    data-coursemap-cell="true"
+                    data-lesson-index={li}
+                    data-section-index=""
+                    data-field-key="title"
+                    tabIndex={-1}
                   >
                     {si === 0 ? (
                       <div>
@@ -607,6 +656,11 @@ export default function CourseMapPreview({
                           }`}
                           style={{ wordBreak: 'break-word', overflowWrap: 'anywhere' }}
                           data-changed={!unchanged ? 'true' : undefined}
+                          data-coursemap-cell="true"
+                          data-lesson-index={li}
+                          data-section-index={si}
+                          data-field-key={key}
+                          tabIndex={-1}
                         >
                           <FormattedText text={newText} />
                         </td>
@@ -621,6 +675,11 @@ export default function CourseMapPreview({
                           rowSpan={rowSpan}
                           className="px-3.5 py-2.5 align-top text-slate-600 max-w-[220px]"
                           style={{ wordBreak: 'break-word', overflowWrap: 'anywhere' }}
+                          data-coursemap-cell="true"
+                          data-lesson-index={li}
+                          data-section-index={si}
+                          data-field-key={key}
+                          tabIndex={-1}
                         >
                           <DiffCell text={newText} oldText={null} isStreaming={isStreaming} />
                         </td>
@@ -628,48 +687,65 @@ export default function CourseMapPreview({
                     }
 
                     // Not streaming — editable cells with diff view
-                    return (
-                      <td
-                        key={key}
-                        rowSpan={rowSpan}
-                        className={`px-3.5 py-2.5 align-top text-slate-600 max-w-[220px] transition-colors duration-500 ${showDiff && isChanged ? 'bg-emerald-50/60 border-l-2 border-emerald-400' : isChanged ? 'bg-emerald-50/40' : ''}`}
-                        style={{ wordBreak: 'break-word', overflowWrap: 'anywhere' }}
-                        onMouseEnter={
-                          onCellHover
-                            ? (e) => {
-                                const rect = e.currentTarget.getBoundingClientRect();
-                                onCellHover({ fieldKey: key, position: { x: rect.right + 8, y: rect.top } });
-                              }
-                            : undefined
-                        }
-                        onMouseLeave={onCellHover ? () => onCellHover(null) : undefined}
-                      >
-                        {showDiff && isChanged && oldText ? (
-                          <div>
-                            <div className="text-[10px] text-red-400 line-through mb-1 pb-1 border-b border-red-100/60 leading-relaxed">
-                              {oldText.length > 150 ? oldText.slice(0, 150) + '...' : oldText}
+                    return (() => {
+                      const isFocused =
+                        focusedCellKey === courseMapCellKey({ lessonIndex: li, sectionIndex: si, field: key });
+                      return (
+                        <td
+                          key={key}
+                          rowSpan={rowSpan}
+                          className={`px-3.5 py-2.5 align-top text-slate-600 max-w-[220px] transition-all duration-500 ${
+                            isFocused
+                              ? 'ring-2 ring-amber-400 ring-inset bg-amber-50/80'
+                              : showDiff && isChanged
+                                ? 'bg-emerald-50/60 border-l-2 border-emerald-400'
+                                : isChanged
+                                  ? 'bg-emerald-50/40'
+                                  : ''
+                          }`}
+                          style={{ wordBreak: 'break-word', overflowWrap: 'anywhere' }}
+                          data-coursemap-cell="true"
+                          data-lesson-index={li}
+                          data-section-index={si}
+                          data-field-key={key}
+                          tabIndex={-1}
+                          onMouseEnter={
+                            onCellHover
+                              ? (e) => {
+                                  const rect = e.currentTarget.getBoundingClientRect();
+                                  onCellHover({ fieldKey: key, position: { x: rect.right + 8, y: rect.top } });
+                                }
+                              : undefined
+                          }
+                          onMouseLeave={onCellHover ? () => onCellHover(null) : undefined}
+                        >
+                          {showDiff && isChanged && oldText ? (
+                            <div>
+                              <div className="text-[10px] text-red-400 line-through mb-1 pb-1 border-b border-red-100/60 leading-relaxed">
+                                {oldText.length > 150 ? oldText.slice(0, 150) + '...' : oldText}
+                              </div>
+                              <EditableCell
+                                text={newText}
+                                isStreaming={isStreaming}
+                                onSave={handleCellSave}
+                                highlight={true}
+                                onAIContextMenu={onAIContextMenu}
+                                cellContext={{ lessonIndex: li, sectionIndex: si, columnKey: key }}
+                              />
                             </div>
+                          ) : (
                             <EditableCell
                               text={newText}
                               isStreaming={isStreaming}
                               onSave={handleCellSave}
-                              highlight={true}
+                              highlight={isChanged}
                               onAIContextMenu={onAIContextMenu}
                               cellContext={{ lessonIndex: li, sectionIndex: si, columnKey: key }}
                             />
-                          </div>
-                        ) : (
-                          <EditableCell
-                            text={newText}
-                            isStreaming={isStreaming}
-                            onSave={handleCellSave}
-                            highlight={isChanged}
-                            onAIContextMenu={onAIContextMenu}
-                            cellContext={{ lessonIndex: li, sectionIndex: si, columnKey: key }}
-                          />
-                        )}
-                      </td>
-                    );
+                          )}
+                        </td>
+                      );
+                    })();
                   })}
                   {/* Row actions column */}
                   {!isStreaming && (

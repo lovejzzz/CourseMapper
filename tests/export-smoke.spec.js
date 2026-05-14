@@ -1178,6 +1178,9 @@ test.describe('Export smoke', () => {
     await page.getByTestId('export-download-zip').click();
     await expect(page.getByTestId('readiness-confirm')).toBeVisible();
     await expect(page.getByTestId('readiness-confirm')).toContainText('Export anyway');
+    await expect(page.getByTestId('export-download-zip')).toBeDisabled();
+    await expect(page.getByTestId('export-download-zip')).toContainText('Choose above to continue');
+    await expect(page.getByTestId('export-notice')).toContainText('Choose Review materials or Export anyway');
 
     const zipDownload = await expectDownload(page, () => page.getByTestId('readiness-export-anyway').click(), {
       extension: 'zip',
