@@ -50,6 +50,27 @@ describe('DeveloperAgentLogPanel', () => {
     expect(container.textContent).toContain('Read quiz bank');
   });
 
+  it('renders package readiness handoff events', () => {
+    renderPanel({
+      chatHistory: [
+        {
+          role: 'packageSummary',
+          summary: {
+            confidence: 'Good with assumptions',
+            tone: 'assumptions',
+            repairsApplied: 2,
+            blockerCount: 0,
+            warningCount: 1,
+          },
+        },
+      ],
+    });
+
+    expect(container.querySelectorAll('[data-testid="developer-agent-event"]')).toHaveLength(1);
+    expect(container.textContent).toContain('Package readiness');
+    expect(container.textContent).toContain('Good with assumptions');
+  });
+
   it('shows an empty state when no agent history exists', () => {
     renderPanel({ chatHistory: [] });
 

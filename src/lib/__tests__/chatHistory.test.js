@@ -3,6 +3,7 @@
  * Re-implements the functions since they live inside the useChatRouter hook.
  */
 import { describe, it, expect } from 'vitest';
+import { formatPackageSummaryForHistory } from '../packageFinalizerSummary';
 
 // ─── Re-implement getArrayKey (from syncDependencies) ────────────────────────
 
@@ -112,6 +113,8 @@ function buildAgentChatHistory(messages) {
         .map((c) => `${c.type} ${c.count} in ${c.featureId}${c.label ? ` (${c.label})` : ''}`)
         .join(', ');
       history.push({ role: 'assistant', content: `[Applied changes: ${desc}]` });
+    } else if (m.role === 'packageSummary') {
+      history.push({ role: 'assistant', content: formatPackageSummaryForHistory(m.summary) });
     } else if (m.role === 'diagram') {
       history.push({ role: 'assistant', content: `[Generated diagram: ${m.diagram?.title || 'concept diagram'}]` });
     } else if (m.role === 'chart') {
@@ -408,6 +411,28 @@ describe('buildAgentChatHistory', () => {
       const result = buildAgentChatHistory(messages);
       expect(result[0].content).toContain('added 3 in quizBank (Quiz Bank)');
       expect(result[0].content).toContain('edited 1 in syllabus');
+    });
+  });
+
+  describe('packageSummary', () => {
+    it('keeps finalizer state available to the next agent turn', () => {
+      const result = buildAgentChatHistory([
+        {
+          role: 'packageSummary',
+          summary: {
+            confidence: 'Good with assumptions',
+            repairsApplied: 2,
+            blockerCount: 0,
+            warningCount: 1,
+            validationErrorCount: 0,
+            validationWarningCount: 1,
+          },
+        },
+      ]);
+
+      expect(result[0].content).toContain('Package readiness');
+      expect(result[0].content).toContain('Good with assumptions');
+      expect(result[0].content).toContain('2 safe repair');
     });
   });
 

@@ -14,6 +14,7 @@ const TYPE_LABELS = {
   agentRun: 'Run',
   tool: 'Tool',
   changeSummary: 'Changes',
+  packageSummary: 'Package',
   proposal: 'Proposal',
   diffReview: 'Diff',
   syncSuggestion: 'Sync',

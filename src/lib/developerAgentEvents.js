@@ -85,6 +85,27 @@ function addChangeSummaryEvent(events, message, index) {
   });
 }
 
+function addPackageSummaryEvent(events, message, index) {
+  const summary = message.summary || {};
+  const level =
+    summary.tone === 'blocked' || summary.confidence === 'Needs attention'
+      ? 'error'
+      : summary.tone === 'assumptions' || summary.confidence === 'Good with assumptions'
+        ? 'warning'
+        : 'success';
+  addEvent(events, {
+    type: 'packageSummary',
+    level,
+    title: 'Package readiness',
+    summary: summarizeText(
+      `${summary.confidence || 'Unknown'} - ${summary.repairsApplied || 0} safe repair(s), ${summary.blockerCount || 0} blocker(s), ${summary.warningCount || 0} warning(s)`,
+      summary.nextAction,
+    ),
+    status: summary.confidence || '',
+    sourceIndex: index,
+  });
+}
+
 function addProposalEvent(events, message, index) {
   const proposal = message.proposal || {};
   const options = Array.isArray(proposal.options) ? proposal.options.length : 0;
@@ -173,6 +194,11 @@ export function buildDeveloperAgentEvents(snapshot = {}) {
 
     if (message.role === 'changeSummary') {
       addChangeSummaryEvent(events, message, index);
+      return;
+    }
+
+    if (message.role === 'packageSummary') {
+      addPackageSummaryEvent(events, message, index);
       return;
     }
 

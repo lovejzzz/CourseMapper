@@ -5,6 +5,7 @@ import DiffReviewCard from './DiffReviewCard';
 import ResearchCard from './ResearchCard';
 import ValidationCard from './ValidationCard';
 import ChangeSummaryCard from './ChangeSummaryCard';
+import PackageSummaryCard from './PackageSummaryCard';
 import AgentProgressCard from './AgentProgressCard';
 import SyncSuggestionCard from './SyncSuggestionCard';
 import DiagramCard from './DiagramCard';
@@ -217,6 +218,9 @@ export default function MessageList({
                 onKeep={onKeepAppliedChanges ? () => onKeepAppliedChanges(i) : undefined}
               />
             );
+          }
+          if (msg.role === 'packageSummary') {
+            return <PackageSummaryCard key={key} summary={msg.summary} />;
           }
           if (msg.role === 'syncSuggestion') {
             return (

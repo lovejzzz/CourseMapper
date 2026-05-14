@@ -19,6 +19,7 @@ import {
   filterAgentToolsForExecutionMode,
   isAgentToolBlockedInDryRun,
 } from '../../lib/agentExecutionMode';
+import { classifyFinalizePackageStepStatus, normalizePackageSummary } from '../../lib/packageFinalizerSummary';
 
 /**
  * Execute the multi-step agentic loop with native tool calling.
@@ -61,6 +62,7 @@ export async function runAgentLoop(fullMessage, { silent = false, dryRun = false
     handleAgentFinalResponse,
   } = ctx;
   const executionMode = dryRun ? AGENT_EXECUTION_MODES.DRY_RUN : AGENT_EXECUTION_MODES.APPLY;
+  const runId = `agent-run-${Date.now()}-${Math.random().toString(16).slice(2)}`;
 
   // Helper: update the progress card
   const updateProgress = (updater) => {
@@ -445,6 +447,8 @@ export async function runAgentLoop(fullMessage, { silent = false, dryRun = false
               if (result && typeof result === 'object') {
                 if (result.error) {
                   stepStatus = 'error';
+                } else if (tc.name === 'finalize_package') {
+                  stepStatus = classifyFinalizePackageStepStatus(result);
                 } else if (
                   tc.name === 'edit_course_map' ||
                   tc.name === 'edit_deliverables' ||
@@ -457,6 +461,23 @@ export async function runAgentLoop(fullMessage, { silent = false, dryRun = false
                 }
               }
               updateStepAt(stepIdx, { status: stepStatus, summary });
+
+              if (tc.name === 'finalize_package') {
+                const packageSummary = normalizePackageSummary(result);
+                setMessages((prev) => {
+                  const withoutCurrentRunSummary = prev.filter(
+                    (message) => !(message.role === 'packageSummary' && message.runId === runId),
+                  );
+                  return [
+                    ...withoutCurrentRunSummary,
+                    {
+                      role: 'packageSummary',
+                      runId,
+                      summary: packageSummary,
+                    },
+                  ];
+                });
+              }
 
               // If edit tool -> add changeSummary + trigger sync cascade
               if (
@@ -639,6 +660,7 @@ export async function runAgentLoop(fullMessage, { silent = false, dryRun = false
         'assistant',
         'proposal',
         'changeSummary',
+        'packageSummary',
         'diagram',
         'chart',
         'imageSearch',

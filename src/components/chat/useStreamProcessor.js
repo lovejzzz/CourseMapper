@@ -14,6 +14,7 @@ import {
   parseAgentResponse as parseProviderResponse,
   supportsCustomTemperature,
 } from '../../lib/agentProviders';
+import { formatPackageSummaryForHistory } from '../../lib/packageFinalizerSummary';
 // webllm is dynamically imported when needed; its runtime is loaded externally for Local AI users only.
 
 // ── System prompt for Help / Tutor mode (extracted from FaqChatbot) ─────────
@@ -484,6 +485,8 @@ export function buildAgentChatHistory(messages) {
         .map((c) => `${c.type} ${c.count} in ${c.featureId}${c.label ? ` (${c.label})` : ''}`)
         .join(', ');
       history.push({ role: 'assistant', content: `[Applied changes: ${desc}]` });
+    } else if (m.role === 'packageSummary') {
+      history.push({ role: 'assistant', content: formatPackageSummaryForHistory(m.summary) });
     } else if (m.role === 'diagram') {
       history.push({ role: 'assistant', content: `[Generated diagram: ${m.diagram?.title || 'concept diagram'}]` });
     } else if (m.role === 'chart') {
