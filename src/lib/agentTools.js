@@ -40,6 +40,8 @@ const RETRYABLE_FEATURES = new Set([
   'courseFaq',
 ]);
 
+const RUN_TOOL_META_NAMES = new Set(['respond', 'create_tool', 'run_tool']);
+
 function resolveFeatureName(featureId) {
   if (FEATURE_NAMES[featureId]) return FEATURE_NAMES[featureId];
   if (featureId?.startsWith('custom_')) {
@@ -1697,11 +1699,19 @@ export const AGENT_TOOLS = {
       if (!ctx?.customTools?.registry || !ctx?.customTools?.invokeBuiltin) {
         return { error: 'Custom-tool registry not wired into this runtime.' };
       }
-      const def = ctx.customTools.registry.get(args?.name);
-      if (!def) return { error: `No custom tool named "${args?.name}". Create it first with create_tool.` };
+      const name = String(args?.name || '').trim();
+      const runtimeArgs = args?.args || {};
+      const def = ctx.customTools.registry.get(name);
+      if (!def) {
+        if (name && !RUN_TOOL_META_NAMES.has(name) && AGENT_TOOLS[name]) {
+          const result = await ctx.customTools.invokeBuiltin(name, runtimeArgs, signal);
+          return { ok: !result?.error, delegatedTool: name, result };
+        }
+        return { error: `No custom tool named "${name || args?.name}". Create it first with create_tool.` };
+      }
       return runPlan({
         def,
-        runtimeArgs: args?.args || {},
+        runtimeArgs,
         invokeBuiltin: (toolName, toolArgs) => ctx.customTools.invokeBuiltin(toolName, toolArgs, signal),
         onStep: ctx.customTools.onStep, // wired by the runtime to stream progress
       });
@@ -1832,6 +1842,7 @@ export function summarizeToolResult(toolName, result) {
     case 'create_tool':
       return result.ok ? `Created macro "${result.name}" (${result.plan_steps} steps)` : result.error || 'Failed';
     case 'run_tool':
+      if (result.delegatedTool) return summarizeToolResult(result.delegatedTool, result.result);
       return result.ok ? `Ran macro (${result.steps?.length || 0} steps)` : result.error || 'Failed';
     case 'respond':
       return 'Response ready';

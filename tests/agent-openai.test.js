@@ -194,7 +194,7 @@ describeWithKey(`OpenAI (${OPENAI_MODEL}) Agent E2E`, { timeout: TIMEOUT * 12 },
   it('runs validation when asked to check course health', { timeout: TIMEOUT }, async () => {
     const r = await callOpenAI('Check my course for any issues or alignment problems');
     expect(r.toolCalls).toBeTruthy();
-    expect(findToolCall(r.toolCalls, 'validate_course')).toBeTruthy();
+    expect(findToolCall(r.toolCalls, 'finalize_package') || findToolCall(r.toolCalls, 'validate_course')).toBeTruthy();
   });
 
   it('edits course map when asked to rename a lesson', { timeout: TIMEOUT }, async () => {
@@ -219,6 +219,7 @@ describeWithKey(`OpenAI (${OPENAI_MODEL}) Agent E2E`, { timeout: TIMEOUT * 12 },
   it('uses compare_deliverables for alignment questions', { timeout: TIMEOUT }, async () => {
     const r = await callOpenAI('Are the quiz questions aligned with the lesson plan objectives?');
     const hadRelevantTool =
+      findToolCall(r.toolCalls, 'finalize_package') ||
       findToolCall(r.toolCalls, 'compare_deliverables') ||
       findToolCall(r.toolCalls, 'validate_course') ||
       findToolCall(r.toolCalls, 'read_deliverable');

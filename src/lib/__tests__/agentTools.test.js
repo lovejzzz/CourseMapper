@@ -711,6 +711,48 @@ describe('Tool execute: package readiness', () => {
   });
 });
 
+describe('Tool execute: run_tool', () => {
+  it('delegates known built-in tool names when the model routes them through run_tool', async () => {
+    const invokeBuiltin = vi.fn(async () => ({ started: 1, pending: 1, failed: 0 }));
+
+    const result = await AGENT_TOOLS.run_tool.execute(
+      { name: 'retry_package_weak_spots', args: { maxActions: 2 } },
+      {
+        customTools: {
+          registry: { get: vi.fn(() => null) },
+          invokeBuiltin,
+        },
+      },
+    );
+
+    expect(invokeBuiltin).toHaveBeenCalledWith('retry_package_weak_spots', { maxActions: 2 }, undefined);
+    expect(result).toEqual({
+      ok: true,
+      delegatedTool: 'retry_package_weak_spots',
+      result: { started: 1, pending: 1, failed: 0 },
+    });
+    expect(summarizeToolResult('run_tool', result)).toBe('1 retries started, 1 pending');
+  });
+
+  it('does not delegate unknown or meta tool names through run_tool', async () => {
+    const invokeBuiltin = vi.fn();
+    const ctx = {
+      customTools: {
+        registry: { get: vi.fn(() => null) },
+        invokeBuiltin,
+      },
+    };
+
+    await expect(AGENT_TOOLS.run_tool.execute({ name: 'create_tool', args: {} }, ctx)).resolves.toEqual({
+      error: 'No custom tool named "create_tool". Create it first with create_tool.',
+    });
+    await expect(AGENT_TOOLS.run_tool.execute({ name: 'missing_tool', args: {} }, ctx)).resolves.toEqual({
+      error: 'No custom tool named "missing_tool". Create it first with create_tool.',
+    });
+    expect(invokeBuiltin).not.toHaveBeenCalled();
+  });
+});
+
 describe('Tool execute: check_grammar', () => {
   it('returns matches for a lesson with sufficient text', async () => {
     // Lesson 0 sections have short strings (< 10 chars for values), so we need
