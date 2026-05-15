@@ -599,4 +599,60 @@ describe('repairWorkspaceReadiness', () => {
     expect(warningText).not.toContain('Syllabus may be missing');
     expect(warningText).not.toContain('grade weights sum');
   });
+
+  it('repairs rubric coverage for checklist-style assessed lessons before warnings reach export', () => {
+    const checklistCourseMap = {
+      courseName: 'Checklist Rubric Course',
+      lessons: [
+        {
+          title: 'Lesson 1: Policy Foundations',
+          sections: [{ weeklyAssessments: 'Quiz: Check policy vocabulary.' }],
+        },
+        {
+          title: 'Lesson 2: Advocacy Application',
+          sections: [{ weeklyAssessments: 'Peer feedback checklist: Review an advocacy product draft.' }],
+        },
+      ],
+    };
+    const deliverables = {
+      rubrics: {
+        status: 'done',
+        data: {
+          rubrics: [
+            {
+              title: 'Policy Vocabulary Quiz Rubric',
+              lessonTitle: 'Lesson 1: Policy Foundations',
+              criteria: [{ criterion: 'Accuracy', weight: 100 }],
+            },
+          ],
+        },
+      },
+    };
+
+    const before = evaluateWorkspaceReadiness({
+      courseMap: checklistCourseMap,
+      selectedFeatures: ['rubrics'],
+      deliverables,
+    });
+    expect(before.warnings.map((issue) => issue.message).join(' ')).toContain('lesson(s): 2');
+
+    const repaired = repairWorkspaceReadiness({
+      courseMap: checklistCourseMap,
+      selectedFeatures: ['rubrics'],
+      deliverables,
+    });
+
+    expect(repaired.changed).toBe(true);
+    expect(repaired.repairedFeatureIds).toEqual(['rubrics']);
+    expect(repaired.deliverables.rubrics.data.rubrics.map((rubric) => rubric.lessonTitle)).toContain(
+      'Lesson 2: Advocacy Application',
+    );
+
+    const after = evaluateWorkspaceReadiness({
+      courseMap: checklistCourseMap,
+      selectedFeatures: ['rubrics'],
+      deliverables: repaired.deliverables,
+    });
+    expect(after.warnings.map((issue) => issue.message).join(' ')).not.toContain('Rubrics are missing assessed');
+  });
 });

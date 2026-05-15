@@ -658,28 +658,28 @@ export default function ExportSidePanel({
       return;
     }
 
-    let exportCourseMap = pendingExport?.courseMap || courseMap;
-    let exportDeliverables = pendingExport?.deliverables || deliverables || {};
-    let exportReadiness =
-      pendingExport?.readiness || getReadinessSnapshot({ exportCourseMap, exportDeliverables, exportScope: scope });
+    const exportScope = pendingExport?.scope || scope;
+    let exportCourseMap = courseMap;
+    let exportDeliverables = deliverables || {};
+    let exportReadiness = getReadinessSnapshot({ exportCourseMap, exportDeliverables, exportScope });
     let repairsApplied = pendingExport?.repairsApplied || 0;
 
-    if (!skipReadinessConfirmation && typeof onAutoRepairReadiness === 'function') {
+    if (typeof onAutoRepairReadiness === 'function') {
       const repairResult = onAutoRepairReadiness({
-        selectedFeatureIds: getExportFeatureIds(scope),
-        lessonFilter: scope === 'all' ? effectiveLessonFilter : null,
+        selectedFeatureIds: getExportFeatureIds(exportScope),
+        lessonFilter: exportScope === 'all' ? effectiveLessonFilter : null,
       });
-      repairsApplied = repairResult?.applied || 0;
+      repairsApplied += repairResult?.applied || 0;
       exportCourseMap = repairResult?.courseMap || exportCourseMap;
       exportDeliverables = repairResult?.deliverables || exportDeliverables;
-      exportReadiness = getReadinessSnapshot({ exportCourseMap, exportDeliverables, exportScope: scope });
+      exportReadiness = getReadinessSnapshot({ exportCourseMap, exportDeliverables, exportScope });
     }
 
     if (!skipReadinessConfirmation && (exportReadiness.blockers.length > 0 || exportReadiness.warnings.length > 0)) {
       const pendingExport = {
         format,
         readiness: exportReadiness,
-        scope,
+        scope: exportScope,
         courseMap: exportCourseMap,
         deliverables: exportDeliverables,
         repairsApplied,
@@ -715,7 +715,7 @@ export default function ExportSidePanel({
     setLastError('');
     setLastOk('');
     try {
-      if (scope === 'all') {
+      if (exportScope === 'all') {
         // All mode: only ZIP is available
         if (format === 'zip') {
           await exportAllAsZip(

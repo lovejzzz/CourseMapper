@@ -1229,7 +1229,7 @@ function lessonHasRubricWorthyAssessment(lesson) {
   const text = getLessonAssessmentText(lesson);
   if (!text.trim()) return false;
   if (/\b(no assessment|none|n\/a|not applicable|optional only)\b/i.test(text)) return false;
-  return /\b(assignment|paper|project|presentation|exam|quiz|test|portfolio|brief|report|case study|problem set|reflection|proposal|analysis|essay|final|midterm)\b/i.test(
+  return /\b(assignment|paper|project|presentation|exam|quiz|test|portfolio|brief|report|case study|problem set|reflection|proposal|analysis|essay|final|midterm|checklist)\b/i.test(
     text,
   );
 }

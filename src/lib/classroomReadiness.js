@@ -151,9 +151,19 @@ function inferLessonIndicesFromText(courseMap, value) {
   const indices = new Set();
   const message = String(value || '');
   const lessons = asArray(courseMap?.lessons);
-  for (const match of message.matchAll(/\blesson\s+(\d+)\b/gi)) {
-    const index = Number(match[1]) - 1;
+  const addLessonNumber = (number) => {
+    const index = Number(number) - 1;
     if (Number.isInteger(index) && index >= 0 && index < lessons.length) indices.add(index);
+  };
+
+  for (const group of message.matchAll(/\blesson(?:s|\(s\))?\s*[:#-]?\s*((?:\d{1,2}|,|\band\b|&|\s)+)/gi)) {
+    for (const number of String(group[1] || '').matchAll(/\d{1,2}/g)) {
+      addLessonNumber(number[0]);
+    }
+  }
+
+  for (const match of message.matchAll(/\blesson\s+(\d+)\b/gi)) {
+    addLessonNumber(match[1]);
   }
 
   const normalizedMessage = normalizeForMatch(message);

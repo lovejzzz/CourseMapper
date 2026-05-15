@@ -260,19 +260,28 @@ function inferLessonIndicesFromText(courseMap, text) {
   const indices = new Set();
   const message = String(text || '');
   const lessons = courseMap?.lessons || [];
+  const addLessonNumber = (number) => {
+    const index = Number(number) - 1;
+    if (Number.isInteger(index) && index >= 0 && index < lessons.length) indices.add(index);
+  };
+
+  for (const group of message.matchAll(/\blesson(?:s|\(s\))?\s*[:#-]?\s*((?:\d{1,2}|,|\band\b|&|\s)+)/gi)) {
+    for (const number of String(group[1] || '').matchAll(/\d{1,2}/g)) {
+      addLessonNumber(number[0]);
+    }
+  }
+
   const lessonRegex = /\blesson\s+(\d+)\b/gi;
   let match = lessonRegex.exec(message);
   while (match) {
-    const index = Number(match[1]) - 1;
-    if (Number.isInteger(index) && index >= 0 && index < lessons.length) indices.add(index);
+    addLessonNumber(match[1]);
     match = lessonRegex.exec(message);
   }
 
   if (/missing assessed lesson/i.test(message)) {
     const numberMatches = message.match(/\b\d+\b/g) || [];
     for (const raw of numberMatches) {
-      const index = Number(raw) - 1;
-      if (Number.isInteger(index) && index >= 0 && index < lessons.length) indices.add(index);
+      addLessonNumber(raw);
     }
   }
 

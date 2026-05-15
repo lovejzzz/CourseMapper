@@ -1,5 +1,9 @@
 import { describe, expect, it } from 'vitest';
-import { evaluateClassroomReadiness, summarizeClassroomReadiness } from '../classroomReadiness';
+import {
+  buildPackageRepairQueue,
+  evaluateClassroomReadiness,
+  summarizeClassroomReadiness,
+} from '../classroomReadiness';
 
 function makeCourseMap(lessonCount = 4) {
   return {
@@ -131,5 +135,39 @@ describe('classroomReadiness', () => {
 
     expect(result.status).toBe('blocked');
     expect(result.blockers[0]).toEqual(expect.objectContaining({ featureId: 'slideDecks' }));
+  });
+
+  it('turns plural lesson-number readiness messages into concrete retry actions', () => {
+    const courseMap = makeCourseMap(14);
+    const queue = buildPackageRepairQueue({
+      courseMap,
+      deliverables: {
+        rubrics: {
+          status: 'done',
+          data: {
+            rubrics: Array.from({ length: 14 }, (_, index) => ({
+              title: `Rubric ${index + 1}`,
+              criteria: [{ criterion: 'Quality', weight: 100 }],
+            })),
+          },
+        },
+      },
+      readiness: {
+        issues: [],
+        blockers: [],
+        warnings: [
+          {
+            featureId: 'rubrics',
+            label: 'Rubrics',
+            message: 'Rubrics are missing assessed lesson(s): 11, 13, and 14.',
+          },
+        ],
+      },
+      classroomReadiness: { issues: [], blockers: [], warnings: [] },
+      healthReport: { findings: [] },
+    });
+
+    expect(queue.retryActions.map((action) => action.lessonNumber)).toEqual([11, 13, 14]);
+    expect(queue.nextTool).toBe('retry_package_weak_spots');
   });
 });

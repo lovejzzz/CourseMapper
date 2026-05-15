@@ -1194,6 +1194,58 @@ test.describe('Export smoke', () => {
     expect(report).toContain('fewer than 5 questions');
   });
 
+  test('auto-fixes missing checklist rubric coverage before ZIP export', async ({ page }) => {
+    await restoreExportWorkspace(page, (snapshot) => {
+      snapshot.selectedFeatures = ['courseMap', 'rubrics'];
+      snapshot.deliverableConfig = { rubrics: {} };
+      snapshot.deliverables = {
+        rubrics: {
+          status: 'done',
+          data: {
+            rubrics: [
+              {
+                lessonTitle: 'Lesson 2: Portable Course Materials',
+                title: 'Format Selection Note Rubric',
+                totalPoints: 100,
+                criteria: [
+                  {
+                    criterion: 'Format rationale',
+                    weight: 100,
+                    points: 100,
+                    exemplary: 'Selection is justified with clear workflow evidence.',
+                    proficient: 'Selection is justified with relevant evidence.',
+                    developing: 'Selection has partial workflow evidence.',
+                    beginning: 'Selection is listed without support.',
+                  },
+                ],
+              },
+            ],
+          },
+          error: null,
+          stale: false,
+        },
+      };
+    });
+
+    await page.getByTestId('export-scope-all').click();
+    await expect(page.getByTestId('readiness-status')).toContainText('Ready with warnings');
+    await expect(page.getByTestId('readiness-panel')).toContainText('Rubrics are missing assessed lesson');
+
+    const zipDownload = await expectDownload(page, () => page.getByTestId('export-download-zip').click(), {
+      extension: 'zip',
+      nameIncludes: 'Export Smoke Course',
+      minBytes: 1000,
+    });
+    const zip = await JSZip.loadAsync(await fs.readFile(zipDownload.path));
+    expect(zip.file('READINESS_REPORT.txt')).toBeFalsy();
+
+    const rubricPath = Object.keys(zip.files).find((name) => /Rubrics\/.*\.docx$/.test(name));
+    expect(rubricPath).toBeTruthy();
+    const rubricDocx = await JSZip.loadAsync(await zip.file(rubricPath).async('uint8array'));
+    const rubricXml = await rubricDocx.file('word/document.xml').async('string');
+    expect(rubricXml).toContain('Lesson 1: Export Reliability');
+  });
+
   test('allows ZIP export of ready materials when one selected deliverable failed', async ({ page }) => {
     await restoreExportWorkspace(page, (snapshot) => {
       snapshot.selectedFeatures = ['courseMap', 'lessonPlans', 'courseFaq'];
