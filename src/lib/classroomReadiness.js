@@ -200,6 +200,21 @@ function getQuestionArray(item) {
   return asArray(item?.questions || item?.qs);
 }
 
+function getDiscussionArtifacts(item) {
+  return asArray(item?.sourceArtifacts || item?.artifacts || item?.af);
+}
+
+function getArtifactTitle(artifact) {
+  if (typeof artifact === 'string') return artifact;
+  return itemText([artifact?.title, artifact?.at, artifact?.name, artifact?.label, artifact?.t]);
+}
+
+function hasGenericArtifactTitle(artifact) {
+  const title = getArtifactTitle(artifact);
+  if (!title) return true;
+  return /^(?:week\s*\d+\s*)?(?:artifact|source|document|item|evidence|packet)\s*(?:[A-Z]|\d+)?$/i.test(title);
+}
+
 function getSlideArray(item) {
   return asArray(item?.slides || item?.sl);
 }
@@ -383,6 +398,7 @@ function checkDiscussions(items, issues) {
       probes.length < 2 || criteria.length < 2 || !/\b(evidence|example|source|claim|reason)\b/i.test(itemText(item))
     );
   }).length;
+  const genericArtifacts = items.filter((item) => getDiscussionArtifacts(item).some(hasGenericArtifactTitle)).length;
   addRatioWarning({
     issues,
     featureId: 'discussions',
@@ -392,6 +408,16 @@ function checkDiscussions(items, issues) {
     message: (missing, total) =>
       `${missing}/${total} discussion prompts need stronger facilitation probes, evidence requirements, or evaluation criteria.`,
   });
+  if (genericArtifacts > 0) {
+    issues.push(
+      makeIssue(
+        READINESS_WARNING,
+        'discussions',
+        `${genericArtifacts}/${items.length} discussion prompts use generic source-artifact labels; replace them with concrete artifact titles before classroom handoff.`,
+        'specificity',
+      ),
+    );
+  }
 }
 
 function checkQuizBank(items, issues) {
@@ -690,6 +716,7 @@ export function evaluateClassroomReadiness({
 export function buildPackageRepairQueue({
   courseMap,
   deliverables = {},
+  selectedFeatures = null,
   readiness,
   classroomReadiness,
   healthReport,
@@ -735,11 +762,17 @@ export function buildPackageRepairQueue({
   const retryActions = [...candidates.values()].slice(0, limit);
   const issueCount = (readiness?.issues?.length || 0) + (classroomReadiness?.issues?.length || 0);
   const broadIssueCount = Math.max(0, issueCount - retryActions.length);
+  const issueFeatureIds = new Set(packageIssues.map((issue) => issue?.featureId).filter(Boolean));
+  const protectedFeatureIds = getSelectedFeatureIds(selectedFeatures, deliverables).filter((featureId) => {
+    if (featureId === 'courseMap' || issueFeatureIds.has(featureId)) return false;
+    return deliverables?.[featureId]?.status === 'done';
+  });
 
   return {
     actionCount: retryActions.length,
     retryActionCount: retryActions.length,
     broadIssueCount,
+    protectedFeatureIds,
     nextTool: retryActions.length > 0 ? 'retry_package_weak_spots' : null,
     nextAction:
       retryActions.length > 0

@@ -14,6 +14,7 @@ import { saveAgentPrefs } from './cloudStorage';
 import { getCustomDeliverable } from './customDeliverableLibrary';
 import { CREATE_TOOL_JSON_SCHEMA, RUN_TOOL_JSON_SCHEMA, runPlan } from './customAgentTools';
 import { evaluateWorkspaceReadiness, repairWorkspaceReadiness } from './deliverableReadiness';
+import { evaluateClassroomReadiness } from './classroomReadiness';
 
 // ── Helpers ──────────────────────────────────────────────────────────────────
 
@@ -161,9 +162,17 @@ function applyReadinessRepairsToContext(ctx) {
     columns: ctx.columns,
     lessonFilter: ctx.lessonFilter,
   });
+  const currentClassroomReadiness = evaluateClassroomReadiness({
+    courseMap: ctx.courseMap,
+    deliverables: ctx.deliverables,
+    selectedFeatures: ctx.selectedFeatures,
+    lessonFilter: ctx.lessonFilter,
+  });
   const repairableFeatureIds = [
     ...new Set(
-      currentReadiness.issues.map((issue) => issue.featureId).filter((featureId) => featureId !== 'courseMap'),
+      [...currentReadiness.issues, ...currentClassroomReadiness.issues]
+        .map((issue) => issue.featureId)
+        .filter((featureId) => featureId !== 'courseMap'),
     ),
   ];
 
@@ -608,6 +617,7 @@ export const AGENT_TOOLS = {
       const repairQueue = await runPackageRepairQueue({
         courseMap: ctx.courseMap,
         deliverables: finalDeliverables,
+        selectedFeatures: ctx.selectedFeatures,
         readiness,
         classroomReadiness,
         healthReport,

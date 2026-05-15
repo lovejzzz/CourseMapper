@@ -30,6 +30,13 @@ Return a JSON object with exactly this structure:
       "cx": "string — 2-3 sentences grounding the discussion in specific course content, a case, a tension, or a real-world application. Students must engage with this material.",
       "pr": "string — the single, focused main question. Must be open-ended (no single correct answer), require evidence from course material, and target Analyze/Evaluate/Create level. NO multi-part questions.",
       "er": "string — explicit directive: e.g. 'Draw on at least two sources from this unit to support your position' or 'Reference the case study and at least one theoretical framework discussed in class'",
+      "af": [
+        {
+          "at": "string — specific source artifact title students use, never generic labels like 'Week 3 artifact 1'",
+          "lo": "string — exact locator, row range, excerpt label, memo section, table name, codebook line, variable name, or case packet part",
+          "ut": "string — how students use this artifact in the prompt"
+        }
+      ],
       "fp": [
         "string — 4-5 probing follow-up questions the instructor uses to deepen discussion (e.g., 'What evidence from the reading supports that?', 'How would [theorist] respond to that claim?', 'Can someone steelman the opposing view?')"
       ],
@@ -62,6 +69,7 @@ REQUIREMENTS:
 - evaluationCriteria must name observable learning evidence, not just participation. Include evidence use, method reasoning, peer response quality, and one limitation/revision move.
 - Every prompt must separate student-facing task language from instructor facilitation notes. Do not let grading criteria dominate or obscure the actual question students answer.
 - Every prompt must name the exact artifact locator students should use when relevant, such as row numbers, excerpt labels, codebook lines, variable names, or memo sections.
+- Include "af" for every discussion. Artifact titles must be concrete, student-facing labels such as "Sampling Plan Excerpt", "Attendance Trend Table", "Consent Paragraph Excerpt", or "Policy Brief Scoring Memo". Never use generic labels like "Week 3 artifact 1", "source 2", or "document A".
 - equityConsiderations must be concrete, not generic ("allow think time" → specify duration)
 - Never swap fields: "ec" must contain assessment criteria, "eq" must contain equity/access guidance, "gl" must contain complete student participation instructions, and "tg" must contain searchable tags. Do not put equity language in "ec" or tag lists in "gl".
 - FORMAT VARIETY (CRITICAL): Use at least 6 DISTINCT discussion formats across all lessons. Choose from: 'Socratic Seminar', 'Think-Pair-Share', 'Fishbowl', 'Jigsaw', 'Gallery Walk', 'Debate / Structured Academic Controversy', 'Case-Based Discussion', 'Role Play / Simulation', 'Small Group then Share-Out', 'Whole-Class Discussion', 'Asynchronous Online'. Do NOT repeat the same format for more than 2 consecutive lessons. Rotate formats to keep student engagement high.

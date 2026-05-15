@@ -2084,6 +2084,141 @@ function mergeEquityGuidance(existing, movedCriteria) {
   );
 }
 
+function isGenericDiscussionArtifactTitle(value) {
+  const title = String(value || '')
+    .trim()
+    .replace(/\s+/g, ' ');
+  if (!title) return true;
+  return /^(?:week\s*\d+\s*)?(?:artifact|source|document|item|evidence|packet)\s*(?:[A-Z]|\d+)?$/i.test(title);
+}
+
+function getDiscussionArtifactKey(discussion) {
+  if (Array.isArray(discussion?.sourceArtifacts)) return 'sourceArtifacts';
+  if (Array.isArray(discussion?.artifacts)) return 'artifacts';
+  if (Array.isArray(discussion?.af)) return 'af';
+  return null;
+}
+
+function getDiscussionArtifactField(artifact, fullKey, compactKey, aliases = []) {
+  for (const key of [fullKey, compactKey, ...aliases]) {
+    const value = artifact?.[key];
+    if (value !== undefined && value !== null && String(value).trim()) return String(value).trim();
+  }
+  return '';
+}
+
+function cleanDiscussionArtifactLocator(value) {
+  return compactText(value, '', 180)
+    .replace(/^(?:week\s*\d+\s*)?(?:artifact|source|document|item|evidence|packet)\s*(?:[A-Z]|\d+)?\s*[:.-]?\s*/i, '')
+    .trim();
+}
+
+function inferDiscussionArtifactTitle(discussion, artifact, artifactIndex) {
+  const raw =
+    typeof artifact === 'string'
+      ? artifact
+      : [
+          artifact?.title,
+          artifact?.at,
+          artifact?.name,
+          artifact?.label,
+          artifact?.locator,
+          artifact?.lo,
+          artifact?.use,
+          artifact?.ut,
+        ]
+          .filter(Boolean)
+          .join(' ');
+  const artifactHaystack = raw.toLowerCase();
+  const haystack = [
+    raw,
+    discussion?.lessonTitle,
+    discussion?.lt,
+    discussion?.context,
+    discussion?.cx,
+    discussion?.prompt,
+    discussion?.pr,
+    discussion?.evidenceRequirement,
+    discussion?.er,
+  ]
+    .join(' ')
+    .toLowerCase();
+
+  const rules = [
+    [/recruit|flyer/, 'Recruitment Flyer Excerpt'],
+    [/sampling|sample[-\s]frame/, 'Sampling Plan Excerpt'],
+    [/attendance|trend|time series|table/, 'Attendance Trend Table'],
+    [/interview|transcript/, 'Interview Excerpt Set'],
+    [/consent/, 'Consent Paragraph Excerpt'],
+    [/finding|report excerpt|results excerpt/, 'Findings Report Excerpt'],
+    [/survey|instrument|questionnaire/, 'Survey Instrument Excerpt'],
+    [/codebook|coding|theme table/, 'Codebook Excerpt'],
+    [/policy|brief|memo/, 'Policy Brief Excerpt'],
+    [/case|scenario|vignette/, 'Case Scenario Excerpt'],
+    [/rubric|criteria|scoring/, 'Scoring Criteria Excerpt'],
+    [/dataset|variable|spreadsheet|csv/, 'Dataset Excerpt'],
+  ];
+
+  const match =
+    rules.find(([pattern]) => pattern.test(artifactHaystack)) || rules.find(([pattern]) => pattern.test(haystack));
+  if (match) return match[1];
+
+  const lessonTitle = stripLessonPrefix(discussion?.lessonTitle || discussion?.lt || '').trim();
+  const base = lessonTitle || 'Lesson Evidence';
+  return `${base} Evidence Packet ${artifactIndex + 1}`;
+}
+
+function normalizeDiscussionArtifactsForItem(discussion) {
+  const artifactKey = getDiscussionArtifactKey(discussion);
+  const artifacts = artifactKey ? discussion?.[artifactKey] : null;
+  if (!Array.isArray(artifacts) || artifacts.length === 0) {
+    return { discussion, patchedArtifacts: 0 };
+  }
+
+  let patchedArtifacts = artifactKey === 'sourceArtifacts' ? 0 : 1;
+  const nextArtifacts = artifacts.map((artifact, artifactIndex) => {
+    const source = artifact && typeof artifact === 'object' && !Array.isArray(artifact) ? artifact : {};
+    const currentTitle =
+      typeof artifact === 'string' ? '' : getDiscussionArtifactField(source, 'title', 'at', ['name', 'label', 't']);
+    const nextTitle = isGenericDiscussionArtifactTitle(currentTitle)
+      ? inferDiscussionArtifactTitle(discussion, artifact, artifactIndex)
+      : currentTitle;
+    const locator =
+      typeof artifact === 'string'
+        ? cleanDiscussionArtifactLocator(artifact)
+        : cleanDiscussionArtifactLocator(
+            getDiscussionArtifactField(source, 'locator', 'lo', ['section', 'excerpt', 'range', 'source']),
+          );
+    const use = getDiscussionArtifactField(source, 'use', 'ut', ['purpose', 'instruction']);
+    const nextArtifact = {
+      title: nextTitle,
+      locator:
+        locator ||
+        compactText(
+          discussion?.evidenceRequirement || discussion?.er,
+          `Evidence named in the ${nextTitle} discussion prompt.`,
+          180,
+        ),
+      use: use || `Use this source to ground one claim in the main prompt and to answer at least one follow-up probe.`,
+    };
+
+    if (
+      artifactKey !== 'sourceArtifacts' ||
+      currentTitle !== nextArtifact.title ||
+      source.locator !== nextArtifact.locator ||
+      source.use !== nextArtifact.use
+    ) {
+      patchedArtifacts++;
+    }
+    return nextArtifact;
+  });
+
+  if (patchedArtifacts === 0) return { discussion, patchedArtifacts: 0 };
+  const nextDiscussion = { ...discussion, sourceArtifacts: nextArtifacts };
+  if (artifactKey !== 'sourceArtifacts') delete nextDiscussion[artifactKey];
+  return { discussion: nextDiscussion, patchedArtifacts };
+}
+
 export function normalizeDiscussionPromptFields(data) {
   const arrayKey =
     getArrayKey('discussions', data) ||
@@ -2091,13 +2226,22 @@ export function normalizeDiscussionPromptFields(data) {
   const discussions = arrayKey ? data?.[arrayKey] : null;
 
   if (!Array.isArray(discussions) || discussions.length === 0) {
-    return { data, arrayKey, patchedCriteria: 0, patchedGuidelines: 0, patchedEquity: 0, patchedLanguageArtifacts: 0 };
+    return {
+      data,
+      arrayKey,
+      patchedCriteria: 0,
+      patchedGuidelines: 0,
+      patchedEquity: 0,
+      patchedLanguageArtifacts: 0,
+      patchedArtifacts: 0,
+    };
   }
 
   let patchedCriteria = 0;
   let patchedGuidelines = 0;
   let patchedEquity = 0;
   let patchedLanguageArtifacts = 0;
+  let patchedArtifacts = 0;
   const nextDiscussions = discussions.map((discussion) => {
     if (!discussion || typeof discussion !== 'object' || Array.isArray(discussion)) return discussion;
     const nextDiscussion = { ...discussion };
@@ -2137,19 +2281,29 @@ export function normalizeDiscussionPromptFields(data) {
       changed = true;
     }
 
-    const cleaned = cleanDiscussionLanguageArtifacts(nextDiscussion);
+    const artifactResult = normalizeDiscussionArtifactsForItem(nextDiscussion);
+    if (artifactResult.patchedArtifacts > 0) {
+      patchedArtifacts += artifactResult.patchedArtifacts;
+      changed = true;
+    }
+
+    const cleaned = cleanDiscussionLanguageArtifacts(artifactResult.discussion);
     if (cleaned.patched > 0) {
       patchedLanguageArtifacts += cleaned.patched;
       changed = true;
       return cleaned.value;
     }
 
-    return changed ? nextDiscussion : discussion;
+    return changed ? artifactResult.discussion : discussion;
   });
 
   return {
     data:
-      patchedCriteria > 0 || patchedGuidelines > 0 || patchedEquity > 0 || patchedLanguageArtifacts > 0
+      patchedCriteria > 0 ||
+      patchedGuidelines > 0 ||
+      patchedEquity > 0 ||
+      patchedLanguageArtifacts > 0 ||
+      patchedArtifacts > 0
         ? { ...data, [arrayKey]: nextDiscussions }
         : data,
     arrayKey,
@@ -2157,6 +2311,7 @@ export function normalizeDiscussionPromptFields(data) {
     patchedGuidelines,
     patchedEquity,
     patchedLanguageArtifacts,
+    patchedArtifacts,
   };
 }
 

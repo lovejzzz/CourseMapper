@@ -200,6 +200,36 @@ describe('Discussion prompt post-processing', () => {
     expect(result.patchedLanguageArtifacts).toBe(1);
     expect(result.data.discussions[0].ec[0]).toContain('more decisive evidence');
   });
+
+  it('standardizes generic discussion source artifacts into concrete labels', () => {
+    const data = {
+      discussions: [
+        {
+          lt: 'Lesson 3: Sampling Strategies',
+          pr: 'How should the sampling plan be revised before recruitment begins?',
+          er: 'Use the sampling plan excerpt and recruitment flyer rows 2-5.',
+          af: [
+            { at: 'Week 3 artifact 1', lo: 'Rows 2-5', ut: 'Identify one sample-frame risk.' },
+            'Week 3 artifact 2: recruitment flyer draft',
+          ],
+        },
+      ],
+    };
+
+    const result = normalizeDiscussionPromptFields(data);
+    const discussion = result.data.discussions[0];
+
+    expect(result.patchedArtifacts).toBeGreaterThan(0);
+    expect(discussion.af).toBeUndefined();
+    expect(discussion.sourceArtifacts).toHaveLength(2);
+    expect(discussion.sourceArtifacts[0]).toMatchObject({
+      title: 'Sampling Plan Excerpt',
+      locator: 'Rows 2-5',
+      use: 'Identify one sample-frame risk.',
+    });
+    expect(discussion.sourceArtifacts[1].title).toBe('Recruitment Flyer Excerpt');
+    expect(JSON.stringify(discussion.sourceArtifacts)).not.toMatch(/Week 3 artifact/i);
+  });
 });
 
 describe('Study guide post-processing', () => {

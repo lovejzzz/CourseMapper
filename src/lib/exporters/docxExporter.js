@@ -14,6 +14,13 @@ const H3_SIZE = 22;
 export const LINE_SP = 276;
 const SINGLE_SP = 240;
 
+function formatSourceArtifact(artifact) {
+  if (typeof artifact === 'string') return artifact;
+  return [artifact?.title || artifact?.name || artifact?.label, artifact?.locator, artifact?.use || artifact?.purpose]
+    .filter(Boolean)
+    .join(' — ');
+}
+
 /**
  * Shared DOCX content builder — used by both exportDeliverableDocx and buildDeliverableDocxBlob.
  * Generates comprehensive content matching ALL fields shown in the UI.
@@ -320,6 +327,13 @@ export function _buildDocxContentShared(featureId, data, children, docx) {
         if (d.prompt) children.push(makeBold('Prompt', d.prompt));
         if (d.context) children.push(makeBold('Context', d.context));
         if (d.evidenceRequirement) children.push(makeBold('Evidence Requirement', d.evidenceRequirement));
+        if (d.sourceArtifacts?.length) {
+          children.push(makeSubHeading('Source Artifacts'));
+          d.sourceArtifacts
+            .map(formatSourceArtifact)
+            .filter(Boolean)
+            .forEach((artifact) => children.push(makeBullet(artifact)));
+        }
         // Follow-up probes
         if (d.followUpProbes?.length) {
           children.push(makeSubHeading('Follow-Up Probes'));

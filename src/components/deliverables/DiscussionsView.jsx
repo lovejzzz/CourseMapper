@@ -46,6 +46,8 @@ export default function DiscussionsView({
         const d =
           currentTier !== 'standard' && baseD.tiers?.[currentTier] ? { ...baseD, ...baseD.tiers[currentTier] } : baseD;
         const subtitle = [d.bloomsLevel, d.format, d.estimatedDuration].filter(Boolean).join(' · ');
+        const sourceArtifacts = d.sourceArtifacts || d.af || d.artifacts || [];
+        const sourceArtifactKey = d.sourceArtifacts ? 'sourceArtifacts' : d.af ? 'af' : 'artifacts';
         return (
           <React.Fragment key={i}>
             {proposals?.[i] && (
@@ -114,6 +116,61 @@ export default function DiscussionsView({
                     </p>
                   )}
                 </div>
+
+                {sourceArtifacts.length > 0 && (
+                  <div>
+                    <SectionHeading>Source Artifacts</SectionHeading>
+                    <div className="space-y-1.5">
+                      {sourceArtifacts.map((artifact, j) => {
+                        const isText = typeof artifact === 'string';
+                        const title = isText
+                          ? artifact
+                          : artifact.title || artifact.at || artifact.name || artifact.label;
+                        const locator = isText ? '' : artifact.locator || artifact.lo;
+                        const artifactUse = isText ? '' : artifact.use || artifact.ut || artifact.purpose;
+                        const titleKey =
+                          artifact?.title !== undefined ? 'title' : artifact?.at !== undefined ? 'at' : 'title';
+                        const locatorKey =
+                          artifact?.locator !== undefined ? 'locator' : artifact?.lo !== undefined ? 'lo' : 'locator';
+                        const useKey = artifact?.use !== undefined ? 'use' : artifact?.ut !== undefined ? 'ut' : 'use';
+                        return (
+                          <div key={j} className="rounded-lg border border-rose-100 bg-white/70 px-3 py-2">
+                            <p className="text-xs font-semibold text-slate-800">
+                              <E
+                                value={title || `Source artifact ${j + 1}`}
+                                path={
+                                  isText
+                                    ? ['discussions', i, sourceArtifactKey, j]
+                                    : ['discussions', i, sourceArtifactKey, j, titleKey]
+                                }
+                                onEdit={onEdit}
+                              />
+                            </p>
+                            {locator && (
+                              <p className="mt-1 text-[11px] text-slate-500">
+                                <span className="font-semibold text-slate-600">Locator: </span>
+                                <E
+                                  value={locator}
+                                  path={['discussions', i, sourceArtifactKey, j, locatorKey]}
+                                  onEdit={onEdit}
+                                />
+                              </p>
+                            )}
+                            {artifactUse && (
+                              <p className="mt-1 text-[11px] text-slate-600 leading-relaxed">
+                                <E
+                                  value={artifactUse}
+                                  path={['discussions', i, sourceArtifactKey, j, useKey]}
+                                  onEdit={onEdit}
+                                />
+                              </p>
+                            )}
+                          </div>
+                        );
+                      })}
+                    </div>
+                  </div>
+                )}
 
                 {/* Follow-up probes */}
                 {d.followUpProbes?.length > 0 && (

@@ -31,6 +31,13 @@ describe('KEY_MAPS', () => {
     expect(KEY_MAPS.quizBank.df).toBe('difficulty');
   });
 
+  it('maps discussion source-artifact keys', () => {
+    expect(KEY_MAPS.discussions.af).toBe('sourceArtifacts');
+    expect(KEY_MAPS.discussions.at).toBe('title');
+    expect(KEY_MAPS.discussions.lo).toBe('locator');
+    expect(KEY_MAPS.discussions.ut).toBe('use');
+  });
+
   it('maps slide visual wrapper alias', () => {
     expect(KEY_MAPS.slideDecks.vi).toBe('visual');
   });

@@ -195,6 +195,7 @@ const discussions = {
   er: 'evidenceRequirement',
   fp: 'followUpProbes',
   ft: 'facilitationTips',
+  af: 'sourceArtifacts',
   rs: 'responseStarters',
   ec: 'evaluationCriteria',
   eq: 'equityConsiderations',
@@ -205,6 +206,10 @@ const discussions = {
   is: 'ifStalls',
   id: 'ifDominates',
   cl: 'closure',
+  // nested: sourceArtifacts
+  at: 'title',
+  lo: 'locator',
+  ut: 'use',
 };
 
 const studyGuides = {

@@ -10,6 +10,19 @@ function esc(val) {
   return str.includes(',') || str.includes('\n') || str.includes('"') ? `"${str}"` : str;
 }
 
+function formatSourceArtifacts(artifacts) {
+  if (!Array.isArray(artifacts) || artifacts.length === 0) return '';
+  return artifacts
+    .map((artifact) => {
+      if (typeof artifact === 'string') return artifact;
+      return [artifact.title || artifact.name || artifact.label, artifact.locator, artifact.use || artifact.purpose]
+        .filter(Boolean)
+        .join(' — ');
+    })
+    .filter(Boolean)
+    .join('; ');
+}
+
 export function deliverableToCsvRows(featureId, data) {
   if (!data) return { headers: [], rows: [] };
 
@@ -169,6 +182,7 @@ export function deliverableToCsvRows(featureId, data) {
         'Prompt',
         'Context',
         'Evidence Requirement',
+        'Source Artifacts',
         'Follow-Up Probes',
         'Response Starters',
         'Evaluation Criteria',
@@ -183,6 +197,7 @@ export function deliverableToCsvRows(featureId, data) {
         d.prompt || '',
         d.context || '',
         d.evidenceRequirement || '',
+        formatSourceArtifacts(d.sourceArtifacts),
         (d.followUpProbes || []).join('; '),
         (d.responseStarters || []).join('; '),
         (d.evaluationCriteria || []).join('; '),

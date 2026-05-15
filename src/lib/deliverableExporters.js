@@ -46,6 +46,23 @@ function resolveFeatureLabel(id) {
   return id;
 }
 
+function formatSourceArtifacts(artifacts) {
+  if (!Array.isArray(artifacts) || artifacts.length === 0) return '';
+  return artifacts
+    .map((artifact) => {
+      return formatSourceArtifact(artifact);
+    })
+    .filter(Boolean)
+    .join('; ');
+}
+
+function formatSourceArtifact(artifact) {
+  if (typeof artifact === 'string') return artifact;
+  return [artifact?.title || artifact?.name || artifact?.label, artifact?.locator, artifact?.use || artifact?.purpose]
+    .filter(Boolean)
+    .join(' — ');
+}
+
 // ════════════════════════════════════════════════════════════════
 // CSV EXPORT
 // ════════════════════════════════════════════════════════════════
@@ -214,6 +231,7 @@ function deliverableToCsvRows(featureId, data) {
         'Prompt',
         'Context',
         'Evidence Requirement',
+        'Source Artifacts',
         'Follow-Up Probes',
         'Response Starters',
         'Evaluation Criteria',
@@ -228,6 +246,7 @@ function deliverableToCsvRows(featureId, data) {
         d.prompt || '',
         d.context || '',
         d.evidenceRequirement || '',
+        formatSourceArtifacts(d.sourceArtifacts),
         (d.followUpProbes || []).join('; '),
         (d.responseStarters || []).join('; '),
         (d.evaluationCriteria || []).join('; '),
@@ -1017,6 +1036,13 @@ function _buildDocxContentShared(featureId, data, children, docx) {
         if (d.prompt) children.push(makeBold('Prompt', d.prompt));
         if (d.context) children.push(makeBold('Context', d.context));
         if (d.evidenceRequirement) children.push(makeBold('Evidence Requirement', d.evidenceRequirement));
+        if (d.sourceArtifacts?.length) {
+          children.push(makeSubHeading('Source Artifacts'));
+          d.sourceArtifacts
+            .map(formatSourceArtifact)
+            .filter(Boolean)
+            .forEach((artifact) => children.push(makeBullet(artifact)));
+        }
         // Follow-up probes
         if (d.followUpProbes?.length) {
           children.push(makeSubHeading('Follow-Up Probes'));

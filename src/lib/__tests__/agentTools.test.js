@@ -688,6 +688,66 @@ describe('Tool execute: package readiness', () => {
     expect(mockCtx.deliverables.quizBank.data.quizzes[0].tp).toBe(2);
   });
 
+  it('repairs classroom-readiness discussion artifact labels without touching clean deliverables', async () => {
+    mockCtx.deliverables = {
+      discussions: {
+        status: 'done',
+        data: {
+          discussions: [
+            {
+              lt: 'Lesson 1: Sampling',
+              pr: 'Which sampling revision is best supported?',
+              er: 'Use the sampling plan rows 1-4.',
+              fp: ['What evidence supports that?', 'What limitation remains?', 'What revision would you test?'],
+              ft: { op: 'Start with individual annotation.', is: 'Compare one row aloud.', cl: 'Name one revision.' },
+              ec: ['Uses specific evidence', 'Explains method reasoning'],
+              af: [{ at: 'Week 1 artifact 1', lo: 'Rows 1-4', ut: 'Support one claim.' }],
+            },
+          ],
+        },
+      },
+      quizBank: {
+        status: 'done',
+        data: {
+          quizzes: [
+            ...[1, 2].map((lessonNumber) => ({
+              lt: `Lesson ${lessonNumber}`,
+              tq: 5,
+              tp: 10,
+              bc: ['Understand'],
+              qs: Array.from({ length: 5 }, (_, index) => ({
+                q: `Question ${index + 1}`,
+                ty: 'short_answer',
+                df: 'Medium',
+                em: 4,
+                pt: 2,
+                bl: 'Understand',
+                an: 'A complete response names the relevant evidence and method decision.',
+                ex: 'A complete answer names the evidence and explains the method decision.',
+              })),
+            })),
+          ],
+        },
+      },
+    };
+    mockCtx.selectedFeatures = ['discussions', 'quizBank'];
+
+    const result = await AGENT_TOOLS.repair_package_readiness.execute({}, mockCtx);
+
+    expect(result.applied).toBe(1);
+    expect(mockCtx.optimisticUpdate).toHaveBeenCalledWith(
+      'discussions',
+      expect.objectContaining({
+        discussions: [
+          expect.objectContaining({
+            sourceArtifacts: [expect.objectContaining({ title: 'Sampling Plan Excerpt' })],
+          }),
+        ],
+      }),
+    );
+    expect(mockCtx.optimisticUpdate).not.toHaveBeenCalledWith('quizBank', expect.any(Object));
+  });
+
   it('starts targeted retries for localized weak generated sections', async () => {
     mockCtx.deliverables = {
       slideDecks: {

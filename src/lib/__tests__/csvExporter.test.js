@@ -451,8 +451,8 @@ describe('deliverableToCsvRows — discussions', () => {
     expect(rows).toHaveLength(1);
     expect(rows[0][0]).toBe('Week 1 Discussion');
     expect(rows[0][3]).toBe('Is AI ethical?');
-    expect(rows[0][6]).toContain('What about bias?');
-    expect(rows[0][9]).toContain('Start with video');
+    expect(rows[0][7]).toContain('What about bias?');
+    expect(rows[0][10]).toContain('Start with video');
   });
 
   it('expands compact discussion keys before building rows', () => {
@@ -466,6 +466,7 @@ describe('deliverableToCsvRows — discussions', () => {
           cx: 'Students have just inspected exported materials.',
           pr: 'Which export artifact would you trust for instructor handoff, and why?',
           er: 'Cite one concrete file-quality signal from the exported materials.',
+          af: [{ at: 'CSV Row Inspection Sheet', lo: 'Rows 2-6', ut: 'Compare file structure evidence.' }],
           fp: ['What would change your recommendation?', 'Which artifact needs another review pass?'],
           ft: {
             op: 'Ask students to name the artifact first.',
@@ -491,6 +492,7 @@ describe('deliverableToCsvRows — discussions', () => {
       'Which export artifact would you trust for instructor handoff, and why?',
       'Students have just inspected exported materials.',
       'Cite one concrete file-quality signal from the exported materials.',
+      'CSV Row Inspection Sheet — Rows 2-6 — Compare file structure evidence.',
       'What would change your recommendation?; Which artifact needs another review pass?',
       'I would trust...; The strongest evidence is...',
       'Uses artifact evidence; Explains tradeoffs',

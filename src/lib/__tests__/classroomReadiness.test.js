@@ -137,6 +137,33 @@ describe('classroomReadiness', () => {
     expect(result.blockers[0]).toEqual(expect.objectContaining({ featureId: 'slideDecks' }));
   });
 
+  it('flags generic discussion artifact labels before classroom handoff', () => {
+    const result = evaluateClassroomReadiness({
+      courseMap: makeCourseMap(1),
+      selectedFeatures: ['discussions'],
+      deliverables: {
+        discussions: {
+          status: 'done',
+          data: {
+            discussions: [
+              {
+                lt: 'Lesson 1',
+                pr: 'Which interpretation is best supported by evidence?',
+                er: 'Use one source artifact.',
+                fp: ['What evidence supports that?', 'What alternative should we test?'],
+                ec: ['Uses evidence', 'Responds to peers'],
+                af: [{ at: 'Week 1 artifact 1', lo: 'Rows 1-4', ut: 'Support one claim.' }],
+              },
+            ],
+          },
+        },
+      },
+    });
+
+    expect(result.status).toBe('warnings');
+    expect(result.warnings.map((issue) => issue.message).join(' ')).toContain('generic source-artifact labels');
+  });
+
   it('turns plural lesson-number readiness messages into concrete retry actions', () => {
     const courseMap = makeCourseMap(14);
     const queue = buildPackageRepairQueue({
