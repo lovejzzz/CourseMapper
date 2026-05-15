@@ -6,7 +6,7 @@
  * pure data transformations that can be tested without React hooks.
  */
 import { describe, it, expect } from 'vitest';
-import { buildGapFillPrompt, countGaps, buildExamineUserPrompt } from '../prompts';
+import { EXAMINE_SYSTEM_PROMPT, buildGapFillPrompt, countGaps, buildExamineUserPrompt } from '../prompts';
 
 // ── Test fixtures ────────────────────────────────────────────────────────────
 
@@ -329,5 +329,10 @@ describe('buildExamineUserPrompt', () => {
     const prompt = buildExamineUserPrompt(sampleMap, '');
     expect(prompt).toContain('patches');
     expect(prompt).toContain('JSON');
+  });
+
+  it('tells the examiner not to stuff metadata into courseName', () => {
+    expect(EXAMINE_SYSTEM_PROMPT).toContain('courseName field is the official catalog/title only');
+    expect(EXAMINE_SYSTEM_PROMPT).toContain('Social Policy and Welfare, 14-week undergraduate course');
   });
 });

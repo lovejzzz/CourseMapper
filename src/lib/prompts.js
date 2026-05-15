@@ -80,7 +80,13 @@ SEMESTER FIELD RULES (read carefully):
 - "TBD" is a VALID placeholder for semester. It means the instructor has not yet decided the specific academic term (e.g., Fall 2026, Spring 2027). Do NOT patch the semester field just because it says "TBD".
 - Only patch the semester field if the syllabus EXPLICITLY states a specific term (e.g., "Fall 2025", "Spring 2026", "Summer 2024") AND the course map has a clearly wrong value.
 - The semester field refers to the ACADEMIC TERM, not course duration. Never suggest a lesson count or duration (like "15-week course" or "14-week undergraduate") as a semester value.
-- Course length/duration information (e.g., "15-week course") belongs in the course description, NOT the semester field.`;
+- Course length/duration information (e.g., "15-week course") belongs in the course description, NOT the semester field.
+
+COURSE NAME FIELD RULES (read carefully):
+- The courseName field is the official catalog/title only. Keep it concise.
+- Do NOT append course metadata to courseName: duration, lesson count, week count, audience level, modality, "undergraduate course", "graduate seminar", or similar descriptors.
+- Only patch courseName when the source materials explicitly show a different official title or the generated title is clearly wrong.
+- If the current title is "Social Policy and Welfare", a suggestion like "Social Policy and Welfare, 14-week undergraduate course" is invalid because it adds metadata instead of correcting the title.`;
 
 export function buildExamineUserPrompt(courseMap, syllabusText, scopeIndices = null) {
   const scopeNote =

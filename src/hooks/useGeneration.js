@@ -12,6 +12,7 @@ import { detectExpectedLessons } from '../lib/detectLessons';
 import useStreamReader from './useStreamReader';
 
 import applyPatches from '../lib/applyPatches';
+import { filterExaminePatches } from '../lib/examinePatchFilter';
 import { log, warn, error as logError } from '../lib/logger';
 import { getModeSystemAddition, getModeCourseMapNote } from '../lib/pedagogicalModes';
 import { validateCourseMap } from '../lib/validateCourseMap';
@@ -233,19 +234,7 @@ export default function useGeneration({
       const patchResult = parsePartialJSON(examineText);
 
       if (patchResult && Array.isArray(patchResult.patches) && patchResult.patches.length > 0) {
-        // ── Filter out addLesson patches that target lessons outside the user's selected scope ──
-        let filteredPatches = patchResult.patches;
-        if (scopeIndices && scopeIndices.length > 0) {
-          const scopeSet = new Set(scopeIndices);
-          const maxScopeIdx = Math.max(...scopeIndices);
-          filteredPatches = patchResult.patches.filter((p) => {
-            if (p.action === 'addLesson') {
-              const targetIdx = p.lessonIndex ?? (finalResult.lessons?.length || 0);
-              return targetIdx <= maxScopeIdx && scopeSet.has(targetIdx);
-            }
-            return true;
-          });
-        }
+        const filteredPatches = filterExaminePatches(patchResult.patches, finalResult, scopeIndices);
         if (filteredPatches.length === 0) {
           setOldCourseMap(null);
           return;
