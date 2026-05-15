@@ -1511,6 +1511,11 @@ export default function AppFlow({ startupAction = null, onStartupHandled, onRetu
           ? 'Workspace sync is still applying.'
           : '';
   const developerIdeDisabled = Boolean(developerIdeDisabledReason);
+  const activeDeliverableProgressIds = Object.keys(deliv.progress?.perFeature || {});
+  const activeDeliverableProgressTotal = activeDeliverableProgressIds.length || deliv.progress?.total || 0;
+  const activeDeliverableReadyCount = activeDeliverableProgressIds.filter(
+    (featureId) => deliv.deliverables?.[featureId]?.status === 'done',
+  ).length;
 
   const handleTabPointerDown = (feature, tabIdx) => (e) => {
     if (e.button !== 0) return;
@@ -2001,7 +2006,7 @@ export default function AppFlow({ startupAction = null, onStartupHandled, onRetu
               {/* Deliverable generation progress */}
               {deliv.isGenerating && (
                 <span className="ml-2 text-[10px] text-indigo-500 font-medium animate-pulse whitespace-nowrap flex-shrink-0">
-                  Generating {deliv.progress.done}/{deliv.progress.total}…
+                  Generating {activeDeliverableReadyCount}/{activeDeliverableProgressTotal}…
                 </span>
               )}
 

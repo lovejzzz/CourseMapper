@@ -2,7 +2,7 @@ import { describe, it, expect } from 'vitest';
 import { getDeliverableDoneCount, getProgressDisplayStatus } from '../ProgressHeader';
 
 describe('ProgressHeader progress helpers', () => {
-  it('uses live progress counts while deliverables are still generating', () => {
+  it('uses persisted done status while deliverables are still generating', () => {
     const delivRows = [
       { id: 'lessonPlans', status: 'done' },
       { id: 'quizBank', status: 'pending' },
@@ -14,17 +14,17 @@ describe('ProgressHeader progress helpers', () => {
       isDelivGenerating: true,
     });
 
-    expect(count).toBe(2);
+    expect(count).toBe(1);
   });
 
-  it('caps live progress counts at the declared total', () => {
+  it('does not count transient progress without persisted rows', () => {
     const count = getDeliverableDoneCount({
       delivRows: [],
       delivProgress: { done: 99, total: 3 },
       isDelivGenerating: true,
     });
 
-    expect(count).toBe(3);
+    expect(count).toBe(0);
   });
 
   it('falls back to persisted row status after generation', () => {
@@ -42,7 +42,7 @@ describe('ProgressHeader progress helpers', () => {
     expect(count).toBe(2);
   });
 
-  it('counts terminal error rows after generation', () => {
+  it('does not count terminal error rows as ready', () => {
     const delivRows = [
       { id: 'lessonPlans', status: 'done' },
       { id: 'quizBank', status: 'error' },
@@ -54,12 +54,16 @@ describe('ProgressHeader progress helpers', () => {
       isDelivGenerating: false,
     });
 
-    expect(count).toBe(2);
+    expect(count).toBe(1);
   });
 
-  it('counts live terminal errors without waiting for generation to stop', () => {
+  it('does not count live terminal progress without persisted done status', () => {
     const count = getDeliverableDoneCount({
-      delivRows: [],
+      delivRows: [
+        { id: 'lessonPlans', status: 'done' },
+        { id: 'quizBank', status: 'streaming' },
+        { id: 'rubrics', status: 'streaming' },
+      ],
       delivProgress: {
         done: 1,
         total: 3,
@@ -72,11 +76,12 @@ describe('ProgressHeader progress helpers', () => {
       isDelivGenerating: true,
     });
 
-    expect(count).toBe(2);
+    expect(count).toBe(1);
   });
 
-  it('shows a row as done when per-feature progress completes before state catches up', () => {
-    expect(getProgressDisplayStatus('pending', 'done')).toBe('done');
+  it('keeps rows finalizing until persisted state catches up', () => {
+    expect(getProgressDisplayStatus('pending', 'done')).toBe('finalizing');
     expect(getProgressDisplayStatus('error', 'merging')).toBe('error');
+    expect(getProgressDisplayStatus('done', 'merging')).toBe('done');
   });
 });

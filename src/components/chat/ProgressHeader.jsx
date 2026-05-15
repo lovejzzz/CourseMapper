@@ -5,21 +5,15 @@ import { resolveLabel, STEPS } from './constants';
  * ProgressHeader — Compact collapsible progress bar at the top of the chat panel.
  * Shows overall generation progress + optional expanded deliverable list.
  */
-export function getDeliverableDoneCount({ delivRows = [], delivProgress = null, isDelivGenerating = false }) {
-  const progressTerminalCount = delivProgress?.perFeature
-    ? Object.values(delivProgress.perFeature).filter(
-        (feature) => feature?.status === 'done' || feature?.status === 'error',
-      ).length
-    : 0;
-  const progressDoneCount = delivProgress?.total
-    ? Math.min(Math.max(delivProgress.done || 0, progressTerminalCount), delivProgress.total)
-    : null;
-  const stateDoneCount = delivRows.filter((r) => r.status === 'done' || r.status === 'error').length;
-  return isDelivGenerating && progressDoneCount !== null ? progressDoneCount : stateDoneCount;
+export function getDeliverableDoneCount({ delivRows = [] } = {}) {
+  return delivRows.filter((r) => r.status === 'done').length;
 }
 
 export function getProgressDisplayStatus(rowStatus, progressStatus) {
-  return progressStatus === 'done' ? 'done' : rowStatus;
+  if (rowStatus === 'done' || rowStatus === 'error') return rowStatus;
+  if (progressStatus === 'error') return 'error';
+  if (progressStatus === 'done') return 'finalizing';
+  return rowStatus || progressStatus;
 }
 
 export default function ProgressHeader({
@@ -67,8 +61,8 @@ export default function ProgressHeader({
     : [];
 
   const delivDoneCount = getDeliverableDoneCount({ delivRows, delivProgress, isDelivGenerating });
-  const allDelivDone =
-    delivRows.length > 0 && !isDelivGenerating && delivRows.every((r) => r.status === 'done' || r.status === 'error');
+  const allDelivDone = delivRows.length > 0 && !isDelivGenerating && delivRows.every((r) => r.status === 'done');
+  const hasDelivErrors = delivRows.some((r) => r.status === 'error');
   const isPackageQualityRunning = packageQualityPass?.status === 'running';
   const hasPackageQualityIssues =
     packageQualityPass?.status === 'blocked' || packageQualityPass?.blockers > 0 || packageQualityPass?.warnings > 0;
@@ -96,6 +90,7 @@ export default function ProgressHeader({
   else if (isPackageQualityRunning) phaseLabel = 'Final quality pass...';
   else if (hasPackageQualityIssues) phaseLabel = 'Ready with warnings';
   else if (everythingDone) phaseLabel = 'Complete';
+  else if (isDone && hasDelivErrors) phaseLabel = 'Review failed deliverables';
   else if (isDone && isDelivGenerating) phaseLabel = `Deliverables ${delivDoneCount}/${delivRows.length}`;
   else if (isDone) phaseLabel = 'Course map ready';
   else if (currentStep === 'parsing') phaseLabel = 'Parsing files...';
@@ -327,6 +322,7 @@ export default function ProgressHeader({
                 const pf = delivProgress?.perFeature?.[row.id];
                 const progressStatus = pf?.status;
                 const displayStatus = getProgressDisplayStatus(row.status, progressStatus);
+                const isFinalizing = displayStatus === 'finalizing';
                 const doneMs = timing?.durationMs;
                 return (
                   <div key={row.id} className="flex items-center gap-2 py-0.5">
@@ -340,7 +336,7 @@ export default function ProgressHeader({
                       >
                         <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2.5} d="M5 13l4 4L19 7" />
                       </svg>
-                    ) : isActive || (isDelivGenerating && progressStatus === 'merging') ? (
+                    ) : isActive || isFinalizing || (isDelivGenerating && progressStatus === 'merging') ? (
                       <svg
                         className="animate-spin w-3.5 h-3.5 text-indigo-500 flex-shrink-0"
                         fill="none"
@@ -374,7 +370,7 @@ export default function ProgressHeader({
                           ? 'text-emerald-700'
                           : row.status === 'error'
                             ? 'text-red-500'
-                            : isActive
+                            : isActive || isFinalizing
                               ? 'text-indigo-600'
                               : 'text-slate-400'
                       }`}
