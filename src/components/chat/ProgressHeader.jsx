@@ -64,8 +64,9 @@ export default function ProgressHeader({
   const allDelivDone = delivRows.length > 0 && !isDelivGenerating && delivRows.every((r) => r.status === 'done');
   const hasDelivErrors = delivRows.some((r) => r.status === 'error');
   const isPackageQualityRunning = packageQualityPass?.status === 'running';
-  const hasPackageQualityIssues =
-    packageQualityPass?.status === 'blocked' || packageQualityPass?.blockers > 0 || packageQualityPass?.warnings > 0;
+  const hasPackageQualityBlockers = packageQualityPass?.status === 'blocked' || packageQualityPass?.blockers > 0;
+  const hasPackageQualityWarnings = packageQualityPass?.warnings > 0;
+  const hasPackageQualityIssues = hasPackageQualityBlockers || hasPackageQualityWarnings;
   const everythingDone = isDone && (delivRows.length === 0 || allDelivDone) && !isPackageQualityRunning;
   const totalLessons = completenessInfo?.actual || 0;
 
@@ -88,9 +89,10 @@ export default function ProgressHeader({
   else if (isStopped) phaseLabel = 'Paused';
   else if (isSyncing) phaseLabel = 'Syncing...';
   else if (isPackageQualityRunning) phaseLabel = 'Final quality pass...';
-  else if (hasPackageQualityIssues) phaseLabel = 'Ready with warnings';
-  else if (everythingDone) phaseLabel = 'Complete';
   else if (isDone && hasDelivErrors) phaseLabel = 'Review failed deliverables';
+  else if (hasPackageQualityBlockers) phaseLabel = 'Review before export';
+  else if (hasPackageQualityWarnings) phaseLabel = 'Ready with warnings';
+  else if (everythingDone) phaseLabel = 'Complete';
   else if (isDone && isDelivGenerating) phaseLabel = `Deliverables ${delivDoneCount}/${delivRows.length}`;
   else if (isDone) phaseLabel = 'Course map ready';
   else if (currentStep === 'parsing') phaseLabel = 'Parsing files...';
@@ -104,11 +106,13 @@ export default function ProgressHeader({
     ? 'from-red-400 to-red-500'
     : isStopped
       ? 'from-amber-400 to-orange-500'
-      : hasPackageQualityIssues
-        ? 'from-amber-400 to-orange-500'
-        : everythingDone
-          ? 'from-emerald-400 to-emerald-500'
-          : 'from-indigo-500 to-violet-500';
+      : hasDelivErrors || hasPackageQualityBlockers
+        ? 'from-red-400 to-red-500'
+        : hasPackageQualityWarnings
+          ? 'from-amber-400 to-orange-500'
+          : everythingDone
+            ? 'from-emerald-400 to-emerald-500'
+            : 'from-indigo-500 to-violet-500';
 
   const textColor = error
     ? 'text-red-600'
@@ -116,11 +120,13 @@ export default function ProgressHeader({
       ? 'text-amber-600'
       : isPackageQualityRunning
         ? 'text-indigo-600'
-        : hasPackageQualityIssues
-          ? 'text-amber-600'
-          : everythingDone
-            ? 'text-emerald-700'
-            : 'text-indigo-600';
+        : hasDelivErrors || hasPackageQualityBlockers
+          ? 'text-red-600'
+          : hasPackageQualityWarnings
+            ? 'text-amber-600'
+            : everythingDone
+              ? 'text-emerald-700'
+              : 'text-indigo-600';
 
   // Don't render if generation hasn't started
   if (!currentStep && !error) return null;

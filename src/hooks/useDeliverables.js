@@ -28,6 +28,7 @@ import { expandKeys } from '../lib/keyMaps';
 import { log, warn, error as logError } from '../lib/logger';
 import { buildDeliverableTimeoutError, runDeliverableFeatureWithTimeout } from '../lib/deliverableTimeouts';
 import {
+  buildFallbackCourseFaq,
   normalizeAssignmentGradeWeights,
   normalizeAssignmentLessonAlignment,
   normalizeCourseFaqCategories,
@@ -429,6 +430,59 @@ export default function useDeliverables({
             },
           },
         }));
+      };
+
+      const completeFallbackCourseFaq = (featureId, reason, expectedCount) => {
+        if (featureId !== 'courseFaq') return false;
+
+        const label = getFeatureLabel(featureId);
+        const config = deliverableConfigRef.current?.[featureId] || {};
+        let fallback = buildFallbackCourseFaq(courseMap, config, scopeIndices);
+        fallback = patchScopeNumbering(fallback, featureId, scopeIndices, courseMap);
+
+        const validation = validateDeliverableGeneration(featureId, fallback, {
+          expectedLessonCount: expectedCount,
+          config,
+        });
+        if (!validation.valid) {
+          appendLog(
+            `✗ ${label}: fallback FAQ could not satisfy readiness checks: ${validation.blockers.join(' ')}`,
+            'error',
+          );
+          return false;
+        }
+
+        dispatch(actions.setDeliverableDone(featureId, fallback));
+        try {
+          const quality = scoreHeuristic(featureId, fallback);
+          setQualityScores((prev) => ({ ...prev, [featureId]: quality }));
+        } catch {
+          /* ignore */
+        }
+        const delivEndTime = Date.now();
+        setDelivTimings((prev) => ({
+          ...prev,
+          [featureId]: {
+            startedAt: featureStartTimes[featureId] || generationStartTime,
+            endedAt: delivEndTime,
+            durationMs: delivEndTime - (featureStartTimes[featureId] || generationStartTime),
+          },
+        }));
+        setProgress((prev) => ({
+          ...prev,
+          perFeature: {
+            ...prev.perFeature,
+            [featureId]: {
+              ...(prev.perFeature?.[featureId] || {}),
+              status: 'done',
+            },
+          },
+        }));
+        appendLog(
+          `⚠ ${label}: model output was not usable (${reason}); created a course-map-based FAQ draft instead`,
+          'warn',
+        );
+        return true;
       };
 
       const runChunk = async ({ featureId, chunkIndex, chunkScope, isWholeCourse }) => {
@@ -876,6 +930,9 @@ export default function useDeliverables({
         }
 
         if (chunks.size === 0) {
+          if (completeFallbackCourseFaq(fid, 'all model chunks failed', expectedCount)) {
+            continue;
+          }
           // No chunks completed — set error
           dispatch(actions.setDeliverableError(fid, 'All chunks failed'));
           setProgress((prev) => ({
@@ -892,6 +949,9 @@ export default function useDeliverables({
         log(`── MERGE ${fid} ──`, { chunkCount: chunks.size, chunkKeys: [...chunks.keys()] });
         let merged = mergeChunkResults(fid, chunks);
         if (!merged) {
+          if (completeFallbackCourseFaq(fid, 'completed chunks could not be merged', expectedCount)) {
+            continue;
+          }
           dispatch(actions.setDeliverableError(fid, 'Failed to merge chunks'));
           continue;
         }
@@ -1424,6 +1484,9 @@ export default function useDeliverables({
 
             if (retryError) {
               console.error(`[CM] ${fid} coverage retry aborted due to API error:`, retryError.message);
+              if (completeFallbackCourseFaq(fid, 'coverage retry could not complete', expectedCount)) {
+                continue;
+              }
               dispatch(actions.setDeliverableError(fid, 'API budget exhausted or rate limit hit during retry.'));
               setProgress((prev) => ({
                 ...prev,
@@ -1719,6 +1782,15 @@ export default function useDeliverables({
           config,
         });
         if (!finalValidation.valid) {
+          if (
+            completeFallbackCourseFaq(
+              fid,
+              `readiness checks failed: ${finalValidation.blockers.join(' ')}`,
+              expectedCount,
+            )
+          ) {
+            continue;
+          }
           appendLog(`✗ ${getFeatureLabel(fid)}: ${finalValidation.blockers.join(' ')}`, 'error');
           dispatch(actions.setDeliverableError(fid, finalValidation.blockers.join(' ')));
           setProgress((prev) => ({

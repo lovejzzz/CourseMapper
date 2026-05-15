@@ -222,6 +222,191 @@ export function normalizeCourseFaqCategories(data) {
   };
 }
 
+function compactText(value, fallback = '', maxLength = 220) {
+  const text = String(value || fallback || '')
+    .replace(/\s+/g, ' ')
+    .trim();
+  if (text.length <= maxLength) return text;
+  const clipped = text
+    .slice(0, maxLength)
+    .replace(/\s+\S*$/, '')
+    .trim();
+  return clipped || text.slice(0, maxLength).trim();
+}
+
+function stripLessonPrefix(title) {
+  return String(title || '')
+    .replace(/^Lesson\s+\d+\s*[:.-]\s*/i, '')
+    .replace(/^Week\s+\d+\s*[:.-]\s*/i, '')
+    .trim();
+}
+
+function getLessonField(lesson, field) {
+  if (lesson?.[field]) return lesson[field];
+  if (!Array.isArray(lesson?.sections)) return '';
+  return lesson.sections
+    .map((section) => section?.[field])
+    .filter(Boolean)
+    .join(' ');
+}
+
+function extractCourseFaqConcepts(lesson, title) {
+  const sources = [
+    title,
+    getLessonField(lesson, 'topicSection'),
+    getLessonField(lesson, 'learningObjectives'),
+    getLessonField(lesson, 'learningGoals'),
+    getLessonField(lesson, 'weeklyAssessments'),
+  ];
+  const banned = new Set([
+    'lesson',
+    'week',
+    'course',
+    'students',
+    'student',
+    'learning',
+    'objectives',
+    'goals',
+    'assessment',
+    'activity',
+  ]);
+  const seen = new Set();
+  const concepts = [];
+  sources
+    .join(' ')
+    .replace(/[^A-Za-z0-9\s-]/g, ' ')
+    .split(/\s+/)
+    .map((word) => word.trim().toLowerCase())
+    .filter((word) => word.length >= 4 && !banned.has(word))
+    .forEach((word) => {
+      if (seen.has(word)) return;
+      seen.add(word);
+      concepts.push(word);
+    });
+  return concepts.slice(0, 5);
+}
+
+function buildFallbackFaqQuestions({ lesson, title, shortTitle, target }) {
+  const topic = compactText(getLessonField(lesson, 'topicSection'), shortTitle, 140);
+  const objectives = compactText(
+    getLessonField(lesson, 'learningObjectives') || getLessonField(lesson, 'learningGoals'),
+    `explain the central ideas in ${shortTitle}, use evidence, and connect the lesson to course outcomes`,
+    260,
+  );
+  const assessment = compactText(
+    getLessonField(lesson, 'weeklyAssessments'),
+    'the lesson activities, discussion prompts, and checks for understanding',
+    220,
+  );
+  const activities = compactText(
+    getLessonField(lesson, 'asyncActivities') || getLessonField(lesson, 'syncActivities'),
+    'the assigned materials, class activities, and practice tasks',
+    220,
+  );
+  const concepts = extractCourseFaqConcepts(lesson, title);
+  const related = concepts.length > 0 ? concepts : [shortTitle.toLowerCase()];
+
+  const questions = [
+    {
+      q: `What should I focus on first in ${shortTitle}?`,
+      an: `Start by identifying the main topic: ${topic}. Then connect it to the lesson objectives: ${objectives}. Use your notes to write one clear question you can bring to class or office hours.`,
+      ca: 'Course Logistics',
+      rc: related.slice(0, 3),
+      df: 'Basic',
+    },
+    {
+      q: `How does ${shortTitle} connect to the course goals?`,
+      an: `This lesson builds toward the course goals by asking you to use core concepts in a specific context. The strongest connection is to ${objectives}. When reviewing, explain the concept in your own words and give one evidence-based example.`,
+      ca: 'Concept Explanation',
+      rc: related.slice(0, 4),
+      df: 'Basic',
+    },
+    {
+      q: `How should I prepare for the assessment in this lesson?`,
+      an: `Use the assessment prompt as a checklist: ${assessment}. A prepared response should name the relevant concept, apply it to the lesson case or activity, and explain why the evidence supports your answer.`,
+      ca: 'Assessment Prep',
+      rc: related.slice(0, 4),
+      df: 'Intermediate',
+    },
+    {
+      q: `What should strong submitted work include for ${shortTitle}?`,
+      an: `Strong work should answer the prompt directly, use lesson vocabulary accurately, and connect claims to evidence from the assigned materials. Before submitting, check that your response includes a clear point, a concrete example, and a short explanation of how the example supports your point.`,
+      ca: 'Assignment Clarification',
+      rc: related.slice(0, 4),
+      df: 'Intermediate',
+    },
+    {
+      q: `What should I do if I get stuck during ${shortTitle}?`,
+      an: `First, return to the assigned learning materials and locate the part that matches the confusing term or task. Then review the activity directions: ${activities}. If the problem is technical, document what you tried and ask for help with the exact step that failed.`,
+      ca: 'Technical Help',
+      rc: related.slice(0, 3),
+      df: 'Basic',
+    },
+    {
+      q: `What is a common misunderstanding about ${shortTitle}?`,
+      an: `A common mistake is to memorize isolated terms without explaining how they work in a course example. To avoid that, define the concept, show how it appears in the lesson activity, and explain what evidence would change your interpretation.`,
+      ca: 'Concept Explanation',
+      rc: related.slice(0, 4),
+      df: 'Intermediate',
+    },
+    {
+      q: `How can I check whether my answer is specific enough?`,
+      an: `Your answer is specific enough when another reader can identify the concept, the evidence you used, and the reasoning that links them. Replace vague statements with a lesson example, and make sure each claim answers the question being asked.`,
+      ca: 'Assessment Prep',
+      rc: related.slice(0, 4),
+      df: 'Intermediate',
+    },
+    {
+      q: `What should I bring from this lesson into the next one?`,
+      an: `Carry forward the vocabulary, examples, and evidence habits from this lesson. In the next lesson, look for how ${shortTitle} either extends, complicates, or gives a new use for the same course concepts.`,
+      ca: 'Course Logistics',
+      rc: related.slice(0, 3),
+      df: 'Basic',
+    },
+  ];
+
+  return questions.slice(0, target);
+}
+
+export function buildFallbackCourseFaq(courseMap, config = {}, scopeIndices = null) {
+  const sourceLessons = Array.isArray(courseMap?.lessons) ? courseMap.lessons : [];
+  const target = getCourseFaqQuestionTarget(config);
+  const scopedLessons =
+    Array.isArray(scopeIndices) && scopeIndices.length > 0
+      ? scopeIndices
+          .map((originalIndex, position) => ({
+            originalIndex: Number.isInteger(originalIndex) ? originalIndex : position,
+            lesson: sourceLessons[originalIndex] || sourceLessons[position] || null,
+          }))
+          .filter(({ lesson }) => lesson)
+      : sourceLessons.map((lesson, index) => ({ originalIndex: index, lesson }));
+
+  const faqs = scopedLessons.map(({ lesson, originalIndex }) => {
+    const rawTitle = lesson?.title || lesson?.lessonTitle || lesson?.lt || `Lesson ${originalIndex + 1}`;
+    const shortTitle = stripLessonPrefix(rawTitle) || `Lesson ${originalIndex + 1}`;
+    const title = `Lesson ${originalIndex + 1}: ${shortTitle}`;
+
+    return {
+      lt: title,
+      tg: extractCourseFaqConcepts(lesson, title),
+      qs: buildFallbackFaqQuestions({ lesson, title, shortTitle, target }),
+    };
+  });
+
+  const fallback = {
+    faqGuide: {
+      purpose: 'First-pass student support FAQ generated from the course map when the model output could not be used.',
+      reviewGuidance:
+        'Review local policies, dates, platform names, and instructor-specific expectations before publishing.',
+      categories: COURSE_FAQ_CATEGORIES,
+    },
+    faqs,
+  };
+
+  const normalizedCounts = normalizeCourseFaqQuestionCounts(fallback, config);
+  return normalizeCourseFaqCategories(normalizedCounts.data).data;
+}
+
 function isBlankOrRepairPlaceholder(value) {
   const text = String(value || '').trim();
   if (!text) return true;

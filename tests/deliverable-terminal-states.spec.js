@@ -81,6 +81,8 @@ async function installMockOpenAI(page) {
         await new Promise((resolve) => setTimeout(resolve, 2500));
       }
       content = JSON.stringify(lessonPlansFixture());
+    } else if (/course faq/i.test(system)) {
+      content = 'intentionally invalid course faq response with no JSON object';
     } else if (/study guides/i.test(system)) {
       content = 'intentionally invalid study guide response with no JSON object';
     }
@@ -113,6 +115,7 @@ test.describe('All-deliverables terminal states', () => {
 
     await expect(page.locator('text=Choose deliverables')).toBeVisible({ timeout: 10000 });
     await page.getByRole('button', { name: /Lesson Plans/ }).click();
+    await page.getByRole('button', { name: /Course FAQ/ }).click();
     await page.getByRole('button', { name: /Study Guides/ }).click();
     await page.getByRole('button', { name: /Configure & Generate/ }).click();
 
@@ -127,13 +130,14 @@ test.describe('All-deliverables terminal states', () => {
     await expect(page.getByTestId('developer-mode-panel')).toHaveCount(0);
 
     await expect(page.getByTestId('workspace-agent-panel').getByTestId('progress-phase-label')).toHaveText(
-      'Review failed deliverables',
+      /Review failed deliverables|Ready with warnings|Review before export/,
       { timeout: 20000 },
     );
 
     await page.getByLabel('Expand generation progress').click();
     const agentPanel = page.getByTestId('workspace-agent-panel');
     await expect(agentPanel.getByText('Lesson Plans', { exact: true })).toBeVisible();
+    await expect(agentPanel.getByText('Course FAQ', { exact: true })).toBeVisible();
     await expect(agentPanel.getByText('Study Guides', { exact: true })).toBeVisible();
 
     await page.getByRole('button', { name: /^Study Guides/ }).click();
@@ -146,10 +150,12 @@ test.describe('All-deliverables terminal states', () => {
           const saved = JSON.parse(localStorage.getItem('coursemapper-project') || '{}');
           return {
             lessonPlans: saved.deliverables?.lessonPlans?.status,
+            courseFaq: saved.deliverables?.courseFaq?.status,
+            courseFaqLessons: saved.deliverables?.courseFaq?.data?.faqs?.length,
             studyGuides: saved.deliverables?.studyGuides?.status,
           };
         }),
       )
-      .toEqual({ lessonPlans: 'done', studyGuides: 'error' });
+      .toEqual({ lessonPlans: 'done', courseFaq: 'done', courseFaqLessons: 4, studyGuides: 'error' });
   });
 });

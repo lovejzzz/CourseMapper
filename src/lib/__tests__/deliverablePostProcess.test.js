@@ -1,5 +1,6 @@
 import { describe, expect, it } from 'vitest';
 import {
+  buildFallbackCourseFaq,
   getCourseFaqQuestionTarget,
   normalizeAssignmentGradeWeights,
   normalizeAssignmentLessonAlignment,
@@ -25,6 +26,35 @@ import {
 import { findPublishabilityPlaceholders } from '../publishabilityPlaceholders.js';
 
 describe('Course FAQ post-processing', () => {
+  const faqCourseMap = {
+    lessons: [
+      {
+        title: 'Lesson 1: Foundations of Research Design',
+        sections: [
+          {
+            learningGoals: 'Explain how research questions, evidence, and design choices connect.',
+            topicSection: 'Research questions and evidence',
+            learningObjectives: 'Students distinguish empirical claims from opinions and match questions to evidence.',
+            weeklyAssessments: 'Short design memo comparing two possible research questions.',
+            asyncActivities: 'Read a methods primer and annotate examples of researchable questions.',
+          },
+        ],
+      },
+      {
+        title: 'Lesson 2: Sampling and Measurement',
+        sections: [
+          {
+            learningGoals: 'Evaluate sampling strategies and measurement tradeoffs.',
+            topicSection: 'Sampling frames, bias, and measurement validity',
+            learningObjectives: 'Students identify bias risks and justify a measurement choice.',
+            weeklyAssessments: 'Quiz on sampling terms and a short measurement critique.',
+            syncActivities: 'Small-group critique of sample recruitment plans.',
+          },
+        ],
+      },
+    ],
+  };
+
   it('defaults the Course FAQ target to five questions per lesson', () => {
     expect(getCourseFaqQuestionTarget()).toBe(5);
   });
@@ -93,6 +123,33 @@ describe('Course FAQ post-processing', () => {
 
     expect(result.normalizedCategories).toBe(1);
     expect(result.data.faqs[0].questions[0].category).toBe('Assessment Prep');
+  });
+
+  it('builds a valid course-map fallback FAQ when model output is unusable', () => {
+    const fallback = buildFallbackCourseFaq(faqCourseMap);
+
+    expect(fallback.faqs).toHaveLength(2);
+    expect(fallback.faqs[0].qs).toHaveLength(5);
+    expect(fallback.faqs[1].qs).toHaveLength(5);
+    expect(fallback.faqs[0].lt).toBe('Lesson 1: Foundations of Research Design');
+    expect(JSON.stringify(fallback)).not.toMatch(/\b(TBD|placeholder)\b/i);
+
+    const validation = validateDeliverableGeneration('courseFaq', fallback, { expectedLessonCount: 2 });
+    expect(validation.valid).toBe(true);
+  });
+
+  it('respects configured fallback question counts for scoped Course FAQ generation', () => {
+    const fallback = buildFallbackCourseFaq(faqCourseMap, { questionsPerLesson: 3 }, [1]);
+
+    expect(fallback.faqs).toHaveLength(1);
+    expect(fallback.faqs[0].lt).toBe('Lesson 2: Sampling and Measurement');
+    expect(fallback.faqs[0].qs).toHaveLength(3);
+
+    const validation = validateDeliverableGeneration('courseFaq', fallback, {
+      expectedLessonCount: 1,
+      config: { questionsPerLesson: 3 },
+    });
+    expect(validation.valid).toBe(true);
   });
 });
 
