@@ -1194,6 +1194,46 @@ test.describe('Export smoke', () => {
     expect(report).toContain('fewer than 5 questions');
   });
 
+  test('allows ZIP export of ready materials when one selected deliverable failed', async ({ page }) => {
+    await restoreExportWorkspace(page, (snapshot) => {
+      snapshot.selectedFeatures = ['courseMap', 'lessonPlans', 'courseFaq'];
+      snapshot.deliverables = {
+        lessonPlans: snapshot.deliverables.lessonPlans,
+        courseFaq: {
+          status: 'error',
+          data: null,
+          error: 'All chunks failed',
+          stale: false,
+        },
+      };
+    });
+
+    await page.getByTestId('export-scope-all').click();
+    await expect(page.getByTestId('readiness-status')).toContainText('Review before export');
+    await expect(page.getByTestId('readiness-panel')).toContainText('Course FAQ failed to generate');
+    await expect(page.getByTestId('export-download-zip')).toBeEnabled();
+
+    await page.getByTestId('export-download-zip').click();
+    await expect(page.getByTestId('readiness-confirm')).toContainText('Export ready materials only');
+    await expect(page.getByTestId('readiness-confirm')).toContainText('will be omitted');
+    await expect(page.getByTestId('readiness-export-anyway')).toContainText('Export ready materials');
+    await expect(page.getByTestId('export-notice')).toContainText('Export ready materials');
+
+    const zipDownload = await expectDownload(page, () => page.getByTestId('readiness-export-anyway').click(), {
+      extension: 'zip',
+      nameIncludes: 'Export Smoke Course',
+      minBytes: 1000,
+    });
+    const JSZip = (await import('jszip')).default;
+    const zip = await JSZip.loadAsync(await fs.readFile(zipDownload.path));
+    const fileNames = Object.keys(zip.files);
+    expect(fileNames.some((name) => name.includes('Course Map/'))).toBe(true);
+    expect(fileNames.some((name) => name.includes('Lesson Plans/'))).toBe(true);
+    expect(fileNames.some((name) => name.includes('Course FAQ/'))).toBe(false);
+    const report = await zip.file('READINESS_REPORT.txt')?.async('string');
+    expect(report).toContain('Course FAQ failed to generate');
+  });
+
   test('allows ZIP export with confirmation when generated quiz content is thin', async ({ page }) => {
     await restoreExportWorkspace(page, (snapshot) => {
       snapshot.selectedFeatures = ['courseMap', 'quizBank'];

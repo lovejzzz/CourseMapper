@@ -291,6 +291,17 @@ function formatReadinessIssue(issue) {
   return `${issue.label}: ${message}`;
 }
 
+function isOmittableZipBlocker(issue) {
+  if (!issue || issue.featureId === 'courseMap') return false;
+  return /has not been generated|failed to generate|is still|has no generated data/i.test(issue.message || '');
+}
+
+function canExportZipReadyMaterialsOnly(pendingExport) {
+  const readiness = pendingExport?.readiness;
+  if (pendingExport?.format !== 'zip' || !readiness?.blockers?.length) return false;
+  return readiness.doneFeatureCount > 0 && readiness.blockers.every(isOmittableZipBlocker);
+}
+
 function ReadinessPanel({ readiness, onIssueClick }) {
   if (!readiness || readiness.featureCount === 0) return null;
 
@@ -373,6 +384,7 @@ function ReadinessConfirm({ pendingExport, onCancel, onConfirm, onIssueClick, co
   const { readiness } = pendingExport;
   const isBlocked = readiness.blockers.length > 0;
   const isZipExport = pendingExport.format === 'zip';
+  const canExportReadyMaterialsOnly = canExportZipReadyMaterialsOnly(pendingExport);
   const issues = (isBlocked ? readiness.blockers : readiness.issues).slice(0, 5);
   const firstNavigableIssue = issues.find((issue) => issue?.target);
   const canNavigate = (issue) => typeof onIssueClick === 'function' && issue?.target;
@@ -381,10 +393,13 @@ function ReadinessConfirm({ pendingExport, onCancel, onConfirm, onIssueClick, co
         wrap: 'border-red-200 bg-red-50/80 text-red-800',
         reviewButton: 'border-red-200 text-red-700',
         confirmButton: 'bg-red-500',
-        title: 'Resolve critical issues before export',
-        description: isZipExport
-          ? 'ZIP export is blocked until the critical readiness issues below are fixed.'
-          : 'This export is blocked until the critical readiness issues below are fixed.',
+        title: canExportReadyMaterialsOnly ? 'Export ready materials only' : 'Resolve critical issues before export',
+        description:
+          isZipExport && canExportReadyMaterialsOnly
+            ? 'The failed or unfinished sections below will be omitted. The ZIP will include the ready materials and a readiness report.'
+            : isZipExport
+              ? 'ZIP export is blocked until the critical readiness issues below are fixed.'
+              : 'This export is blocked until the critical readiness issues below are fixed.',
       }
     : {
         wrap: 'border-amber-200 bg-amber-50/80 text-amber-800',
@@ -433,7 +448,7 @@ function ReadinessConfirm({ pendingExport, onCancel, onConfirm, onIssueClick, co
           {readiness.issues.length - issues.length === 1 ? '' : 's'}
         </p>
       )}
-      <div className={`mt-2 grid gap-1.5 ${isBlocked ? 'grid-cols-1' : 'grid-cols-2'}`}>
+      <div className={`mt-2 grid gap-1.5 ${isBlocked && !canExportReadyMaterialsOnly ? 'grid-cols-1' : 'grid-cols-2'}`}>
         <button
           type="button"
           data-testid="readiness-review-materials"
@@ -447,14 +462,14 @@ function ReadinessConfirm({ pendingExport, onCancel, onConfirm, onIssueClick, co
         >
           Review materials
         </button>
-        {!isBlocked && (
+        {(!isBlocked || canExportReadyMaterialsOnly) && (
           <button
             type="button"
             data-testid="readiness-export-anyway"
             onClick={onConfirm}
             className={`rounded-lg px-2 py-1.5 text-[10px] font-bold text-white shadow-sm hover:brightness-105 ${tone.confirmButton}`}
           >
-            Export anyway
+            {canExportReadyMaterialsOnly ? 'Export ready materials' : 'Export anyway'}
           </button>
         )}
       </div>
@@ -661,21 +676,27 @@ export default function ExportSidePanel({
     }
 
     if (!skipReadinessConfirmation && (exportReadiness.blockers.length > 0 || exportReadiness.warnings.length > 0)) {
-      setPendingReadinessExport({
+      const pendingExport = {
         format,
         readiness: exportReadiness,
         scope,
         courseMap: exportCourseMap,
         deliverables: exportDeliverables,
         repairsApplied,
+      };
+      const canExportReadyMaterialsOnly = canExportZipReadyMaterialsOnly(pendingExport);
+      setPendingReadinessExport({
+        ...pendingExport,
       });
       setLastError('');
       setLastOk('');
       setLastNotice(
         `${repairsApplied > 0 ? `Auto-fixed ${repairsApplied} issue${repairsApplied === 1 ? '' : 's'}. ` : ''}${
-          format === 'zip'
-            ? 'Choose Review materials or Export anyway above to continue the ZIP download.'
-            : 'Choose Review materials or Export anyway above to continue the export.'
+          canExportReadyMaterialsOnly
+            ? 'Choose Review materials or Export ready materials above to continue the ZIP download.'
+            : format === 'zip'
+              ? 'Choose Review materials or Export anyway above to continue the ZIP download.'
+              : 'Choose Review materials or Export anyway above to continue the export.'
         }`,
       );
       return;
@@ -960,7 +981,11 @@ export default function ExportSidePanel({
                 }
                 title={
                   zipPendingReadiness
-                    ? 'Choose Review materials or Export anyway above'
+                    ? `Choose Review materials or ${
+                        canExportZipReadyMaterialsOnly(pendingReadinessExport)
+                          ? 'Export ready materials'
+                          : 'Export anyway'
+                      } above`
                     : isPackageQualityRunning
                       ? 'Final quality pass is finishing'
                       : !courseMap
@@ -983,7 +1008,11 @@ export default function ExportSidePanel({
                     />
                   </svg>
                 )}
-                {zipPendingReadiness ? 'Choose above to continue' : 'Download ZIP'}
+                {zipPendingReadiness
+                  ? canExportZipReadyMaterialsOnly(pendingReadinessExport)
+                    ? 'Choose export option above'
+                    : 'Choose above to continue'
+                  : 'Download ZIP'}
               </button>
             </div>
 
