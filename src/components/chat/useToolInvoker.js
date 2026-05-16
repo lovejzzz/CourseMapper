@@ -348,7 +348,7 @@ export async function runAgentLoop(fullMessage, { silent = false, dryRun = false
             }
 
             if (executionMode === AGENT_EXECUTION_MODES.DRY_RUN && isAgentToolBlockedInDryRun(tc.name)) {
-              const message = `Dry run blocked mutating tool: ${tc.name}`;
+              const message = `Suggest-only mode blocked editing tool: ${tc.name}`;
               updateStepAt(stepIdx, { status: 'error', summary: message });
               return {
                 toolCallId: tc.id,

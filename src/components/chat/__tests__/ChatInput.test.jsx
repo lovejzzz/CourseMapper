@@ -53,13 +53,13 @@ describe('ChatInput agent execution mode', () => {
     return props;
   }
 
-  it('renders and toggles dry-run mode', () => {
+  it('renders and toggles suggest-only mode', () => {
     const onAgentDryRunChange = vi.fn();
     renderInput({ onAgentDryRunChange });
 
     const toggle = container.querySelector('[data-testid="agent-dry-run-toggle"]');
     expect(toggle).not.toBeNull();
-    expect(toggle.textContent).toContain('Apply directly');
+    expect(toggle.textContent).toContain('Can edit');
     expect(toggle.getAttribute('aria-pressed')).toBe('false');
 
     act(() => {
@@ -69,13 +69,13 @@ describe('ChatInput agent execution mode', () => {
     expect(onAgentDryRunChange).toHaveBeenCalledWith(true);
   });
 
-  it('uses dry-run copy and review prompt when enabled', () => {
+  it('uses suggest-only copy and review prompt when enabled', () => {
     const onSend = vi.fn();
     renderInput({ agentDryRun: true, onSend });
 
     const toggle = container.querySelector('[data-testid="agent-dry-run-toggle"]');
     const textarea = container.querySelector('textarea');
-    expect(toggle.textContent).toContain('Dry run');
+    expect(toggle.textContent).toContain('Suggest only');
     expect(toggle.getAttribute('aria-pressed')).toBe('true');
     expect(textarea.getAttribute('placeholder')).toContain('Review or ask');
     expect(container.textContent).toContain('No auto-edits');

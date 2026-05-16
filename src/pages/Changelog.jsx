@@ -48,8 +48,8 @@ const releases = [
         color: 'slate',
         items: [
           'Added model-routing advice for the agent: stay on the configured low-cost model first, then escalate only after targeted retry cannot clear concrete blockers.',
-          'Dry-run mode now blocks targeted retry alongside other mutating tools while keeping read-only export verification available.',
-          'Regression tests cover the finalizer, export verifier, package card, auto-review prompt, dry-run filtering, and model-routing advice.',
+          'Suggest-only mode now blocks targeted retry alongside other editing tools while keeping read-only export verification available.',
+          'Regression tests cover the finalizer, export verifier, package card, auto-review prompt, suggest-only filtering, and model-routing advice.',
         ],
       },
     ],
