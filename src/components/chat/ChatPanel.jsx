@@ -24,7 +24,8 @@ function latestRunningStep(steps = []) {
 
 function deriveAgentStatus(progress, isStreaming, isAgentMode, agentDryRun = false) {
   if (!isAgentMode) return { label: 'Ask', tone: 'slate', detail: 'Ready to help' };
-  if (agentDryRun && !progress && !isStreaming) return { label: 'Suggest only', tone: 'slate', detail: 'No auto-edits' };
+  if (agentDryRun && !progress && !isStreaming)
+    return { label: 'Suggest only', tone: 'slate', detail: 'No auto-edits' };
   if (!progress && !isStreaming) return { label: 'Ready', tone: 'emerald', detail: 'Can edit materials' };
   if (progress?.status === 'error') return { label: 'Needs review', tone: 'red', detail: 'Check the latest turn' };
   if (progress?.status === 'complete') {

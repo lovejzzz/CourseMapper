@@ -106,7 +106,7 @@ function openAiRespondStream(text) {
   ].join('\n');
 }
 
-test.describe('Agent dry-run mode', () => {
+test.describe('Agent suggest-only mode', () => {
   test('keeps mutating tools out of a real agent request', async ({ page }) => {
     const agentRequests = [];
     const consoleErrors = [];
@@ -130,7 +130,7 @@ test.describe('Agent dry-run mode', () => {
         await route.fulfill({
           status: 200,
           contentType: 'text/event-stream',
-          body: openAiRespondStream('Dry run complete. No workspace changes were applied.'),
+          body: openAiRespondStream('Suggest-only review complete. No workspace changes were applied.'),
         });
         return;
       }
@@ -156,17 +156,17 @@ test.describe('Agent dry-run mode', () => {
 
     const agentPanel = page.getByTestId('workspace-agent-panel');
     await expect(agentPanel.getByRole('heading', { name: 'Agent' })).toBeVisible();
-    await expect(agentPanel.getByText('Apply directly')).toBeVisible();
+    await expect(agentPanel.getByTestId('agent-dry-run-toggle')).toContainText('Can edit');
 
     await agentPanel.getByTestId('agent-dry-run-toggle').click();
-    await expect(agentPanel.getByTestId('agent-dry-run-toggle')).toContainText('Dry run');
-    await expect(agentPanel.getByText('No auto-edits')).toBeVisible();
+    await expect(agentPanel.getByTestId('agent-dry-run-toggle')).toContainText('Suggest only');
+    await expect(agentPanel.getByText('No auto-edits', { exact: true })).toBeVisible();
 
     await agentPanel.locator('textarea').fill('Make the lesson plan more active.');
     await agentPanel.getByLabel('Send message').click();
 
     await expect.poll(() => agentRequests.length, { timeout: 10000 }).toBe(1);
-    await expect(agentPanel.getByText('Dry run complete. No workspace changes were applied.')).toBeVisible({
+    await expect(agentPanel.getByText('Suggest-only review complete. No workspace changes were applied.')).toBeVisible({
       timeout: 10000,
     });
 
@@ -177,7 +177,7 @@ test.describe('Agent dry-run mode', () => {
     expect(toolNames).toContain('validate_course');
     expect(toolNames).toContain('read_deliverable');
     expect(toolNames).toContain('respond');
-    expect(agentRequests[0].messages[0].content).toContain('CURRENT AGENT MODE: DRY RUN / READ-ONLY');
+    expect(agentRequests[0].messages[0].content).toContain('CURRENT AGENT MODE: SUGGEST ONLY / READ-ONLY');
     expect(consoleErrors).toEqual([]);
   });
 });

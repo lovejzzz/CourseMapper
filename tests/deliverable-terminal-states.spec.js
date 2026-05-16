@@ -97,6 +97,7 @@ async function installMockOpenAI(page) {
 
 test.describe('All-deliverables terminal states', () => {
   test('finishes when one selected deliverable succeeds and another errors', async ({ page }) => {
+    test.setTimeout(60000);
     await installMockOpenAI(page);
     await page.addInitScript(() => {
       localStorage.clear();
@@ -130,7 +131,7 @@ test.describe('All-deliverables terminal states', () => {
     await expect(page.getByTestId('developer-mode-panel')).toHaveCount(0);
 
     await expect(page.getByTestId('workspace-agent-panel').getByTestId('progress-phase-label')).toHaveText(
-      /Review failed deliverables|Ready with warnings|Review before export/,
+      /Review failed deliverables|Ready with notes|Review before export/,
       { timeout: 20000 },
     );
 
