@@ -3,7 +3,7 @@ import { resolveLabel } from './constants';
 
 /**
  * ChatInput — clean textarea with file drop and send button.
- * Routing is automatic based on context; agent mode exposes an apply/dry-run toggle.
+ * Routing is automatic based on context; agent mode exposes an edit/suggest-only toggle.
  */
 export default function ChatInput({
   onSend,
@@ -44,8 +44,8 @@ export default function ChatInput({
     ? 'Configure AI'
     : isAgentMode
       ? agentDryRun
-        ? 'Dry run'
-        : 'Apply directly'
+        ? 'Suggest only'
+        : 'Can edit'
       : 'Ask';
 
   function handleKeyDown(e) {
@@ -204,7 +204,7 @@ export default function ChatInput({
                   ? 'border-amber-200/70 bg-amber-50 text-amber-700'
                   : 'border-indigo-200/70 bg-indigo-50 text-indigo-600'
               }`}
-              title={agentDryRun ? 'Switch to direct apply mode' : 'Switch to dry-run mode'}
+              title={agentDryRun ? 'Let the agent apply safe fixes' : 'Have the agent suggest changes without editing'}
             >
               {modeLabel}
             </button>
@@ -215,7 +215,7 @@ export default function ChatInput({
           )}
           {isAgentMode && !agentUnavailable && (
             <span className="shrink-0 rounded-full border border-slate-200/70 bg-white/60 px-2 py-0.5 font-semibold text-slate-500">
-              {agentDryRun ? 'No auto-edits' : 'Can edit'}
+              {agentDryRun ? 'No auto-edits' : 'Auto-fixes allowed'}
             </span>
           )}
         </div>

@@ -24,8 +24,8 @@ function latestRunningStep(steps = []) {
 
 function deriveAgentStatus(progress, isStreaming, isAgentMode, agentDryRun = false) {
   if (!isAgentMode) return { label: 'Ask', tone: 'slate', detail: 'Ready to help' };
-  if (agentDryRun && !progress && !isStreaming) return { label: 'Dry run', tone: 'slate', detail: 'Analysis only' };
-  if (!progress && !isStreaming) return { label: 'Ready', tone: 'emerald', detail: 'Can edit deliverables' };
+  if (agentDryRun && !progress && !isStreaming) return { label: 'Suggest only', tone: 'slate', detail: 'No auto-edits' };
+  if (!progress && !isStreaming) return { label: 'Ready', tone: 'emerald', detail: 'Can edit materials' };
   if (progress?.status === 'error') return { label: 'Needs review', tone: 'red', detail: 'Check the latest turn' };
   if (progress?.status === 'complete') {
     const hasIssues = progress.steps?.some((step) => step.status === 'error' || step.status === 'partial');
@@ -43,13 +43,13 @@ function deriveAgentStatus(progress, isStreaming, isAgentMode, agentDryRun = fal
 
 function summarizePackageQuality(readiness, repairsApplied = 0) {
   const repairText =
-    repairsApplied > 0 ? `Auto-fixed ${repairsApplied} repairable issue${repairsApplied === 1 ? '' : 's'}. ` : '';
+    repairsApplied > 0 ? `Auto-fixed ${repairsApplied} safe issue${repairsApplied === 1 ? '' : 's'}. ` : '';
   if (!readiness) return `${repairText}Final quality pass complete.`;
   if (readiness.blockers?.length > 0) {
     return `${repairText}${readiness.blockers.length} critical issue${readiness.blockers.length === 1 ? '' : 's'} still need review.`;
   }
   if (readiness.warnings?.length > 0) {
-    return `${repairText}${readiness.warnings.length} warning${readiness.warnings.length === 1 ? '' : 's'} remain.`;
+    return `${repairText}${readiness.warnings.length} note${readiness.warnings.length === 1 ? '' : 's'} need review.`;
   }
   return `${repairText}Workspace is ready to export.`;
 }
@@ -219,7 +219,7 @@ export default function ChatPanel({
   const proactiveReviewDoneRef = useRef(false);
   const autoReviewTimerRef = useRef(null);
   const applyDeterministicReadinessRepairs = useCallback(() => {
-    if (chat.agentDryRun || typeof autoRepairReadinessRef.current !== 'function') {
+    if (typeof autoRepairReadinessRef.current !== 'function') {
       return {
         changed: false,
         applied: 0,
@@ -232,7 +232,7 @@ export default function ChatPanel({
       selectedFeatureIds: selectedFeatures,
       lessonFilter: lessonScope?.type === 'specific' ? lessonScope.indices : null,
     });
-  }, [chat.agentDryRun, selectedFeatures, lessonScope]);
+  }, [selectedFeatures, lessonScope]);
   // If the user types and sends during the 2s delay, we cancel the auto-review
   // so we don't double-post a message on top of their own. Also keeps the
   // proactiveReviewDoneRef flipped so we don't re-schedule later.

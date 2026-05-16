@@ -20,7 +20,7 @@ export const AGENT_DRY_RUN_BLOCKED_TOOLS = new Set([
   'run_tool',
 ]);
 
-export const AGENT_DRY_RUN_INSTRUCTIONS = `## CURRENT AGENT MODE: DRY RUN / READ-ONLY
+export const AGENT_DRY_RUN_INSTRUCTIONS = `## CURRENT AGENT MODE: SUGGEST ONLY / READ-ONLY
 - Do not mutate course maps, generated deliverables, memories, preferences, custom tools, or slide image assets.
 - Available behavior: read, validate, compare, verify, search, and then respond with analysis or user-approved proposal cards.
 - Do not call edit_course_map, edit_deliverables, finalize_package, repair_package_readiness, retry_package_weak_spots, generate_slide_images, save_preference, remember, forget, undo_last, create_tool, or run_tool.

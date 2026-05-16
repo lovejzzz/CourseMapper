@@ -70,7 +70,7 @@ describe('ExamReview', () => {
     expect(container.textContent).toContain('Integrate major concepts');
 
     const reviewButton = Array.from(container.querySelectorAll('button')).find((button) =>
-      button.textContent.includes('Review'),
+      button.textContent.includes('Open'),
     );
     act(() => {
       reviewButton.dispatchEvent(new MouseEvent('click', { bubbles: true }));
@@ -88,5 +88,46 @@ describe('ExamReview', () => {
     });
 
     expect(props.onFocusPatch).toHaveBeenCalledWith(props.pendingExamPatches.patches[0]);
+  });
+
+  it('opens long suggestions so the full before-after content is visible', () => {
+    const currentTail = 'CURRENT END MARKER';
+    const suggestedTail = 'SUGGESTED END MARKER';
+    const longCurrent = `${'Current lesson context. '.repeat(12)}${currentTail}`;
+    const longSuggested = `${'Suggested replacement with detailed alignment rationale. '.repeat(12)}${suggestedTail}`;
+    const patch = {
+      lessonIndex: 0,
+      sectionIndex: 0,
+      field: 'learningGoals',
+      value: longSuggested,
+      reason: 'The existing language is too brief for the final proposal milestone.',
+    };
+    const props = renderReview({
+      pendingExamPatches: {
+        patches: [patch],
+        baseMap: {
+          lessons: [
+            {
+              title: 'Lesson 1',
+              sections: [{ learningGoals: longCurrent }],
+            },
+          ],
+        },
+      },
+    });
+
+    expect(container.textContent).not.toContain(currentTail);
+    expect(container.textContent).not.toContain(suggestedTail);
+
+    const openButton = Array.from(container.querySelectorAll('button')).find((button) =>
+      button.textContent.includes('Open'),
+    );
+    act(() => {
+      openButton.dispatchEvent(new MouseEvent('click', { bubbles: true }));
+    });
+
+    expect(props.onFocusPatch).toHaveBeenCalledWith(patch);
+    expect(container.textContent).toContain(currentTail);
+    expect(container.textContent).toContain(suggestedTail);
   });
 });

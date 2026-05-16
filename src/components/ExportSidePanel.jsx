@@ -308,6 +308,12 @@ function ReadinessPanel({ readiness, onIssueClick }) {
   const isBlocked = readiness.blockers.length > 0;
   const hasWarnings = readiness.warnings.length > 0;
   const issuesToShow = isBlocked ? readiness.blockers.slice(0, 3) : readiness.warnings.slice(0, 3);
+  const helperText =
+    issuesToShow.length === 0
+      ? summarizeReadiness(readiness)
+      : isBlocked
+        ? 'Critical export issues need missing content or a course-design decision before download.'
+        : 'Safe automatic fixes already ran. These remaining notes need instructor review before publishing.';
   const canNavigate = (issue) => typeof onIssueClick === 'function' && issue?.target;
   const tone = isBlocked
     ? {
@@ -320,8 +326,8 @@ function ReadinessPanel({ readiness, onIssueClick }) {
       ? {
           wrap: 'border-amber-100 bg-amber-50/70 text-amber-700',
           icon: 'bg-amber-100 text-amber-600',
-          title: 'Ready with warnings',
-          meta: `${readiness.warnings.length} warning${readiness.warnings.length === 1 ? '' : 's'}`,
+          title: 'Ready with notes',
+          meta: `${readiness.warnings.length} item${readiness.warnings.length === 1 ? '' : 's'} to review`,
         }
       : {
           wrap: 'border-emerald-100 bg-emerald-50/70 text-emerald-700',
@@ -345,9 +351,7 @@ function ReadinessPanel({ readiness, onIssueClick }) {
             </p>
             <span className="text-[9px] font-semibold opacity-70">{tone.meta}</span>
           </div>
-          <p className="mt-0.5 text-[10px] leading-snug opacity-80">
-            {issuesToShow.length > 0 ? 'Review the issue below before publishing.' : summarizeReadiness(readiness)}
-          </p>
+          <p className="mt-0.5 text-[10px] leading-snug opacity-80">{helperText}</p>
           {issuesToShow.length > 0 && (
             <ul className="mt-1.5 space-y-1">
               {issuesToShow.map((issue, index) => (
@@ -405,10 +409,10 @@ function ReadinessConfirm({ pendingExport, onCancel, onConfirm, onIssueClick, co
         wrap: 'border-amber-200 bg-amber-50/80 text-amber-800',
         reviewButton: 'border-amber-200 text-amber-700',
         confirmButton: 'bg-amber-500',
-        title: 'Readiness warnings found',
+        title: 'Review notes before export',
         description: isZipExport
-          ? 'You can review the materials first, or export this draft anyway. The ZIP will include a readiness report.'
-          : 'You can review the materials first, or export this draft anyway. This format will not include a readiness report.',
+          ? 'Safe automatic fixes have already run. These remaining notes need instructor judgment; the ZIP will include a readiness report.'
+          : 'Safe automatic fixes have already run. These remaining notes need instructor judgment before publishing.',
       };
 
   return (
@@ -417,7 +421,7 @@ function ReadinessConfirm({ pendingExport, onCancel, onConfirm, onIssueClick, co
       <p className="mt-1 text-[10px] leading-snug">{tone.description}</p>
       {pendingExport.repairsApplied > 0 && (
         <p className="mt-1 text-[10px] font-semibold">
-          Auto-fixed {pendingExport.repairsApplied} repairable issue
+          Auto-fixed {pendingExport.repairsApplied} safe issue
           {pendingExport.repairsApplied === 1 ? '' : 's'} before this check.
         </p>
       )}
@@ -472,6 +476,24 @@ function ReadinessConfirm({ pendingExport, onCancel, onConfirm, onIssueClick, co
             {canExportReadyMaterialsOnly ? 'Export ready materials' : 'Export anyway'}
           </button>
         )}
+      </div>
+    </div>
+  );
+}
+
+function ReadinessFinalizingPanel() {
+  return (
+    <div className="rounded-xl border border-indigo-100 bg-indigo-50/70 px-3 py-2.5 text-indigo-700">
+      <div className="flex items-start gap-2">
+        <span className="mt-0.5 flex h-5 w-5 flex-shrink-0 items-center justify-center rounded-full bg-indigo-100 text-indigo-600">
+          <Spin />
+        </span>
+        <div className="min-w-0 flex-1">
+          <p className="text-[11px] font-bold">Finalizing materials</p>
+          <p className="mt-0.5 text-[10px] leading-snug opacity-80">
+            Fixing readiness issues automatically before showing the export package.
+          </p>
+        </div>
       </div>
     </div>
   );
@@ -578,6 +600,8 @@ export default function ExportSidePanel({
   const [lastOk, setLastOk] = useState('');
   const [lastNotice, setLastNotice] = useState('');
   const [pendingReadinessExport, setPendingReadinessExport] = useState(null);
+  const [autoRepairingReadiness, setAutoRepairingReadiness] = useState(false);
+  const [readinessRepairAttempts, setReadinessRepairAttempts] = useState(() => new Set());
   const readinessConfirmRef = useRef(null);
   const isPackageQualityRunning = packageQualityPass?.status === 'running';
 
@@ -638,11 +662,66 @@ export default function ExportSidePanel({
   );
   const activeReadiness = scope === 'all' ? workspaceReadiness : currentReadiness;
   const zipPendingReadiness = pendingReadinessExport?.format === 'zip';
+  const activeExportFeatureIds = useMemo(
+    () => (scope === 'all' ? selectedFeatures : [activeTab]),
+    [activeTab, scope, selectedFeatures],
+  );
+  const readinessIssueSignature = useMemo(() => {
+    const issues = activeReadiness?.issues || [];
+    if (issues.length === 0) return '';
+    const lessonScopeKey = effectiveLessonFilter === null ? 'all' : effectiveLessonFilter.join(',');
+    return [
+      scope,
+      activeTab,
+      lessonScopeKey,
+      issues.map((issue) => `${issue.severity}:${issue.featureId}:${issue.message}`).join('|'),
+    ].join('::');
+  }, [activeReadiness, activeTab, effectiveLessonFilter, scope]);
+  const canAutoRepairReadiness =
+    typeof onAutoRepairReadiness === 'function' &&
+    Boolean(readinessIssueSignature) &&
+    !readinessRepairAttempts.has(readinessIssueSignature);
+  const showReadinessFinalizing = canAutoRepairReadiness || autoRepairingReadiness || isPackageQualityRunning;
 
   useEffect(() => {
     if (!pendingReadinessExport) return;
     readinessConfirmRef.current?.scrollIntoView({ block: 'nearest', behavior: 'smooth' });
   }, [pendingReadinessExport]);
+
+  useEffect(() => {
+    if (!canAutoRepairReadiness || isPackageQualityRunning) {
+      if (!isPackageQualityRunning) setAutoRepairingReadiness(false);
+      return;
+    }
+
+    const signature = readinessIssueSignature;
+    setAutoRepairingReadiness(true);
+    const timer = window.setTimeout(() => {
+      try {
+        onAutoRepairReadiness({
+          selectedFeatureIds: activeExportFeatureIds,
+          lessonFilter: scope === 'all' ? effectiveLessonFilter : null,
+        });
+      } finally {
+        setReadinessRepairAttempts((prev) => {
+          const next = new Set(prev);
+          next.add(signature);
+          return next;
+        });
+        setAutoRepairingReadiness(false);
+      }
+    }, 0);
+
+    return () => window.clearTimeout(timer);
+  }, [
+    activeExportFeatureIds,
+    canAutoRepairReadiness,
+    effectiveLessonFilter,
+    isPackageQualityRunning,
+    onAutoRepairReadiness,
+    readinessIssueSignature,
+    scope,
+  ]);
 
   function getExportFeatureIds(exportScope = scope) {
     return exportScope === 'all' ? selectedFeatures : [activeTab];
@@ -706,7 +785,7 @@ export default function ExportSidePanel({
       setLastError('');
       setLastOk('');
       setLastNotice(
-        `${repairsApplied > 0 ? `Auto-fixed ${repairsApplied} issue${repairsApplied === 1 ? '' : 's'}. ` : ''}${
+        `${repairsApplied > 0 ? `Auto-fixed ${repairsApplied} safe issue${repairsApplied === 1 ? '' : 's'}. ` : ''}${
           canExportReadyMaterialsOnly
             ? 'Choose Review materials or Export ready materials above to continue the ZIP download.'
             : format === 'zip'
@@ -719,7 +798,9 @@ export default function ExportSidePanel({
 
     setPendingReadinessExport(null);
     setLastNotice(
-      repairsApplied > 0 ? `Auto-fixed ${repairsApplied} issue${repairsApplied === 1 ? '' : 's'} before export.` : '',
+      repairsApplied > 0
+        ? `Auto-fixed ${repairsApplied} safe issue${repairsApplied === 1 ? '' : 's'} before export.`
+        : '',
     );
     // For Google exports we must open a tab BEFORE any await (popup blocker)
     // Course map exports open their own tab internally via useExport → saveToGoogleDocs/Sheets
@@ -907,7 +988,11 @@ export default function ExportSidePanel({
           )}
         </p>
 
-        <ReadinessPanel readiness={activeReadiness} onIssueClick={onReadinessIssueClick} />
+        {showReadinessFinalizing ? (
+          <ReadinessFinalizingPanel />
+        ) : (
+          <ReadinessPanel readiness={activeReadiness} onIssueClick={onReadinessIssueClick} />
+        )}
 
         <ReadinessConfirm
           pendingExport={pendingReadinessExport}
