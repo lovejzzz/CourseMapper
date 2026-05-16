@@ -478,7 +478,16 @@ function ReadinessConfirm({ pendingExport, onCancel, onConfirm, onIssueClick, co
 }
 
 // ── ZIP export (all deliverables) ─────────────────────────────────────────────
-async function exportAllAsZip(deliverables, courseMap, columns, courseName, lessonFilter, slideTheme, readiness) {
+async function exportAllAsZip(
+  deliverables,
+  courseMap,
+  columns,
+  courseName,
+  lessonFilter,
+  slideTheme,
+  readiness,
+  featureIds = null,
+) {
   let JSZip;
   try {
     JSZip = (await safeImport(() => import('jszip'))).default;
@@ -492,6 +501,11 @@ async function exportAllAsZip(deliverables, courseMap, columns, courseName, less
 
   const zip = new JSZip();
   const name = courseName || 'Course';
+  const exportFeatureIds = new Set(
+    (Array.isArray(featureIds) && featureIds.length > 0 ? featureIds : Object.keys(deliverables || {})).filter(
+      (featureId) => featureId !== 'courseMap',
+    ),
+  );
 
   if (readiness?.issues?.length > 0) {
     zip.file('READINESS_REPORT.txt', buildReadinessReport(readiness, { courseName: name }));
@@ -511,6 +525,7 @@ async function exportAllAsZip(deliverables, courseMap, columns, courseName, less
 
   // ── Each deliverable in its own folder ──
   for (const [featureId, entry] of Object.entries(deliverables)) {
+    if (!exportFeatureIds.has(featureId)) continue;
     if (!entry?.data || entry.status !== 'done' || featureId === 'courseMap') continue;
     const label = FEATURE_LABELS[featureId] || featureId;
     const folder = zip.folder(label);
@@ -593,9 +608,9 @@ export default function ExportSidePanel({
   const currentSupport = FORMAT_SUPPORT[activeTab] || (activeTab?.startsWith('custom_') ? CUSTOM_FORMAT_SUPPORT : {});
 
   // Count ready deliverables for "All" mode
-  const allReadyCount =
-    Object.entries(deliverables || {}).filter(([id, e]) => id !== 'courseMap' && e?.status === 'done').length +
-    (courseMap ? 1 : 0);
+  const allReadyCount = getExportFeatureIds('all').filter((featureId) =>
+    featureId === 'courseMap' ? Boolean(courseMap) : deliverables?.[featureId]?.status === 'done',
+  ).length;
 
   // Effective lesson filter for ZIP
   const effectiveLessonFilter = selectedLessons; // null means no filter (all)
@@ -726,6 +741,7 @@ export default function ExportSidePanel({
             effectiveLessonFilter,
             slideTheme,
             exportReadiness,
+            getExportFeatureIds(exportScope),
           );
           setLastOk('ZIP downloaded!');
         }

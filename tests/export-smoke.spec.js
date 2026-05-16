@@ -402,6 +402,30 @@ test.describe('Export smoke', () => {
     });
   });
 
+  test('all ZIP export includes only selected workspace deliverables', async ({ page }) => {
+    await restoreExportWorkspace(page, (snapshot) => {
+      snapshot.selectedFeatures = ['courseMap', 'lessonPlans'];
+      snapshot.deliverableConfig = { lessonPlans: {} };
+      // Extra generated outputs can remain in saved state after users revise
+      // selected tabs. The exported package must follow the selected workspace.
+    });
+
+    await page.getByTestId('export-scope-all').click();
+    await expect(page.getByTestId('export-side-panel')).toContainText('2 deliverables ready');
+
+    const zipDownload = await expectDownload(page, () => page.getByTestId('export-download-zip').click(), {
+      extension: 'zip',
+      nameIncludes: 'Export Smoke Course',
+      minBytes: 1000,
+    });
+    const zip = await JSZip.loadAsync(await fs.readFile(zipDownload.path));
+    const fileNames = Object.keys(zip.files);
+    expect(fileNames.some((name) => name.includes('Course Map/'))).toBe(true);
+    expect(fileNames.some((name) => name.includes('Lesson Plans/'))).toBe(true);
+    expect(fileNames.some((name) => name.includes('Slide Decks/'))).toBe(false);
+    expect(fileNames.some((name) => name.includes('Course FAQ/'))).toBe(false);
+  });
+
   test('exports compact lesson plans to current-tab CSV and DOCX', async ({ page }) => {
     await restoreExportWorkspace(page, (snapshot) => {
       snapshot.selectedFeatures = ['courseMap', 'lessonPlans'];
