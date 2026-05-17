@@ -3,7 +3,7 @@ import { resolveLabel } from './constants';
 
 /**
  * ChatInput — clean textarea with file drop and send button.
- * Routing is automatic based on context; agent mode exposes an edit/suggest-only toggle.
+ * Routing is automatic based on context; agent mode exposes an auto-fix/review-only toggle.
  */
 export default function ChatInput({
   onSend,
@@ -44,8 +44,8 @@ export default function ChatInput({
     ? 'Configure AI'
     : isAgentMode
       ? agentDryRun
-        ? 'Suggest only'
-        : 'Can edit'
+        ? 'Review only'
+        : 'Auto-fix on'
       : 'Ask';
 
   function handleKeyDown(e) {
@@ -113,8 +113,16 @@ export default function ChatInput({
 
   const busy = isStreaming || isRevising;
   const reviewPrompt = agentDryRun
-    ? 'Review this course package without applying changes. Run read-only readiness, export, and validation checks; identify concrete blockers, assumptions, and the exact safe fixes you would apply. Do not apply changes.'
-    : 'Finish and verify this course package. Run finalize_package first. If repairQueue has localized weak sections, use retry_package_weak_spots, then finalize again. Fix concrete data issues directly. Finish with a concise package handoff.';
+    ? 'Review this course package without applying changes. Run read-only readiness, export, and validation checks; identify concrete issues, instructor decisions, and the exact safe fixes you would apply. Do not apply changes.'
+    : [
+        'Finish this course package until it is ready to export.',
+        'Run finalize_package first.',
+        'If localized weak sections remain, call retry_package_weak_spots, then finalize_package again.',
+        'Apply safe deterministic and concrete content fixes directly.',
+        'Do not present the package as ready unless readiness, classroom readiness, validation, and export verification are clean.',
+        'Only ask the user for decisions that require instructor judgment.',
+        'Finish with a concise package handoff that says either Ready to export or lists the remaining instructor decisions.',
+      ].join(' ');
 
   return (
     <div
@@ -204,7 +212,7 @@ export default function ChatInput({
                   ? 'border-amber-200/70 bg-amber-50 text-amber-700'
                   : 'border-indigo-200/70 bg-indigo-50 text-indigo-600'
               }`}
-              title={agentDryRun ? 'Let the agent apply safe fixes' : 'Have the agent suggest changes without editing'}
+              title={agentDryRun ? 'Let the agent apply safe fixes' : 'Review without editing'}
             >
               {modeLabel}
             </button>
@@ -215,7 +223,7 @@ export default function ChatInput({
           )}
           {isAgentMode && !agentUnavailable && (
             <span className="shrink-0 rounded-full border border-slate-200/70 bg-white/60 px-2 py-0.5 font-semibold text-slate-500">
-              {agentDryRun ? 'No auto-edits' : 'Auto-fixes allowed'}
+              {agentDryRun ? 'No edits' : 'Safe fixes on'}
             </span>
           )}
         </div>
@@ -273,7 +281,7 @@ export default function ChatInput({
                 <span className="text-[10px] font-medium text-slate-400 select-none">{input.length} chars</span>
               )}
 
-              {/* Review Course button — AI scans content and suggests improvements */}
+              {/* Package action button — copy reflects whether edits are allowed. */}
               {isAgentMode && !agentUnavailable && !busy && (
                 <button
                   onClick={() => {
@@ -289,7 +297,11 @@ export default function ChatInput({
                   }}
                   disabled={isCoolingDown}
                   className="tactile flex items-center gap-1 px-2 py-0.5 rounded-lg text-[10px] font-semibold text-emerald-600 hover:bg-emerald-50/60 hover:text-emerald-700 transition-all duration-200 disabled:opacity-50 disabled:cursor-not-allowed"
-                  title="AI reviews your course for alignment, readability, and completeness"
+                  title={
+                    agentDryRun
+                      ? 'Review without editing'
+                      : 'Finish, repair, and verify the course package before export'
+                  }
                 >
                   <svg className="w-3 h-3" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                     <path
@@ -299,7 +311,7 @@ export default function ChatInput({
                       d="M9 5H7a2 2 0 00-2 2v12a2 2 0 002 2h10a2 2 0 002-2V7a2 2 0 00-2-2h-2M9 5a2 2 0 002 2h2a2 2 0 002-2M9 5a2 2 0 012-2h2a2 2 0 012 2m-6 9l2 2 4-4"
                     />
                   </svg>
-                  Review
+                  {agentDryRun ? 'Review only' : 'Finish package'}
                 </button>
               )}
 

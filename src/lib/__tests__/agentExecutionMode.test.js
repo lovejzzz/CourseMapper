@@ -27,7 +27,7 @@ describe('agentExecutionMode', () => {
     expect(normalizeAgentExecutionMode(AGENT_EXECUTION_MODES.DRY_RUN)).toBe(AGENT_EXECUTION_MODES.DRY_RUN);
   });
 
-  it('filters mutating tools in suggest-only mode', () => {
+  it('filters mutating tools in review-only mode', () => {
     const filtered = filterAgentToolsForExecutionMode(tools, AGENT_EXECUTION_MODES.DRY_RUN);
 
     expect(filtered.validate_course).toBe(tools.validate_course);
@@ -55,7 +55,7 @@ describe('agentExecutionMode', () => {
     expect(isAgentToolBlockedInDryRun('validate_course')).toBe(false);
   });
 
-  it('appends suggest-only instructions to string and multipart prompts', () => {
+  it('appends review-only instructions to string and multipart prompts', () => {
     expect(applyAgentExecutionModePrompt('base', AGENT_EXECUTION_MODES.DRY_RUN)).toContain(AGENT_DRY_RUN_INSTRUCTIONS);
 
     const parts = applyAgentExecutionModePrompt(

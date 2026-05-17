@@ -8,6 +8,7 @@ import {
   scopeDeliverableDataToLessons,
   summarizeReadiness,
 } from '../lib/deliverableReadiness';
+import { evaluateClassroomReadiness } from '../lib/classroomReadiness';
 import {
   exportDeliverableCsv,
   exportDeliverablePdf,
@@ -291,15 +292,36 @@ function formatReadinessIssue(issue) {
   return `${issue.label}: ${message}`;
 }
 
-function isOmittableZipBlocker(issue) {
-  if (!issue || issue.featureId === 'courseMap') return false;
-  return /has not been generated|failed to generate|is still|has no generated data/i.test(issue.message || '');
-}
+function evaluateStrictReadiness(options = {}, { includeClassroomReadiness = false } = {}) {
+  const packageReadiness = evaluateWorkspaceReadiness(options);
+  const classroomReadiness = includeClassroomReadiness
+    ? evaluateClassroomReadiness({
+        courseMap: options.courseMap,
+        deliverables: options.deliverables,
+        selectedFeatures: options.selectedFeatures,
+        lessonFilter: options.lessonFilter,
+      })
+    : { issues: [] };
+  const issuesByKey = new Map();
 
-function canExportZipReadyMaterialsOnly(pendingExport) {
-  const readiness = pendingExport?.readiness;
-  if (pendingExport?.format !== 'zip' || !readiness?.blockers?.length) return false;
-  return readiness.doneFeatureCount > 0 && readiness.blockers.every(isOmittableZipBlocker);
+  [...(packageReadiness.issues || []), ...(classroomReadiness.issues || [])].forEach((issue) => {
+    const key = `${issue.severity}:${issue.featureId}:${issue.message}`;
+    if (!issuesByKey.has(key)) issuesByKey.set(key, issue);
+  });
+
+  const issues = [...issuesByKey.values()];
+  const blockers = issues.filter((issue) => issue.severity === 'blocker');
+  const warnings = issues.filter((issue) => issue.severity === 'warning');
+
+  return {
+    ...packageReadiness,
+    status: blockers.length > 0 ? 'blocked' : warnings.length > 0 ? 'warnings' : 'ready',
+    isBlocked: blockers.length > 0,
+    blockers,
+    warnings,
+    issues,
+    classroomReadiness,
+  };
 }
 
 function ReadinessPanel({ readiness, onIssueClick }) {
@@ -326,8 +348,8 @@ function ReadinessPanel({ readiness, onIssueClick }) {
       ? {
           wrap: 'border-amber-100 bg-amber-50/70 text-amber-700',
           icon: 'bg-amber-100 text-amber-600',
-          title: 'Ready with notes',
-          meta: `${readiness.warnings.length} item${readiness.warnings.length === 1 ? '' : 's'} to review`,
+          title: 'Needs finishing',
+          meta: `${readiness.warnings.length} issue${readiness.warnings.length === 1 ? '' : 's'} to fix`,
         }
       : {
           wrap: 'border-emerald-100 bg-emerald-50/70 text-emerald-700',
@@ -383,12 +405,11 @@ function ReadinessPanel({ readiness, onIssueClick }) {
   );
 }
 
-function ReadinessConfirm({ pendingExport, onCancel, onConfirm, onIssueClick, confirmRef }) {
+function ReadinessConfirm({ pendingExport, onCancel, onIssueClick, confirmRef }) {
   if (!pendingExport?.readiness) return null;
   const { readiness } = pendingExport;
   const isBlocked = readiness.blockers.length > 0;
   const isZipExport = pendingExport.format === 'zip';
-  const canExportReadyMaterialsOnly = canExportZipReadyMaterialsOnly(pendingExport);
   const issues = (isBlocked ? readiness.blockers : readiness.issues).slice(0, 5);
   const firstNavigableIssue = issues.find((issue) => issue?.target);
   const canNavigate = (issue) => typeof onIssueClick === 'function' && issue?.target;
@@ -396,23 +417,18 @@ function ReadinessConfirm({ pendingExport, onCancel, onConfirm, onIssueClick, co
     ? {
         wrap: 'border-red-200 bg-red-50/80 text-red-800',
         reviewButton: 'border-red-200 text-red-700',
-        confirmButton: 'bg-red-500',
-        title: canExportReadyMaterialsOnly ? 'Export ready materials only' : 'Resolve critical issues before export',
-        description:
-          isZipExport && canExportReadyMaterialsOnly
-            ? 'The failed or unfinished sections below will be omitted. The ZIP will include the ready materials and a readiness report.'
-            : isZipExport
-              ? 'ZIP export is blocked until the critical readiness issues below are fixed.'
-              : 'This export is blocked until the critical readiness issues below are fixed.',
+        title: 'Resolve critical issues before export',
+        description: isZipExport
+          ? 'ZIP export is blocked until the critical readiness issues below are fixed.'
+          : 'This export is blocked until the critical readiness issues below are fixed.',
       }
     : {
         wrap: 'border-amber-200 bg-amber-50/80 text-amber-800',
         reviewButton: 'border-amber-200 text-amber-700',
-        confirmButton: 'bg-amber-500',
-        title: 'Review notes before export',
+        title: 'Finish materials before export',
         description: isZipExport
-          ? 'Safe automatic fixes have already run. These remaining notes need instructor judgment; the ZIP will include a readiness report.'
-          : 'Safe automatic fixes have already run. These remaining notes need instructor judgment before publishing.',
+          ? 'Safe automatic fixes have already run. Resolve the remaining notes before downloading the ZIP.'
+          : 'Safe automatic fixes have already run. Resolve the remaining notes before exporting.',
       };
 
   return (
@@ -452,7 +468,7 @@ function ReadinessConfirm({ pendingExport, onCancel, onConfirm, onIssueClick, co
           {readiness.issues.length - issues.length === 1 ? '' : 's'}
         </p>
       )}
-      <div className={`mt-2 grid gap-1.5 ${isBlocked && !canExportReadyMaterialsOnly ? 'grid-cols-1' : 'grid-cols-2'}`}>
+      <div className="mt-2 grid grid-cols-1 gap-1.5">
         <button
           type="button"
           data-testid="readiness-review-materials"
@@ -466,16 +482,6 @@ function ReadinessConfirm({ pendingExport, onCancel, onConfirm, onIssueClick, co
         >
           Review materials
         </button>
-        {(!isBlocked || canExportReadyMaterialsOnly) && (
-          <button
-            type="button"
-            data-testid="readiness-export-anyway"
-            onClick={onConfirm}
-            className={`rounded-lg px-2 py-1.5 text-[10px] font-bold text-white shadow-sm hover:brightness-105 ${tone.confirmButton}`}
-          >
-            {canExportReadyMaterialsOnly ? 'Export ready materials' : 'Export anyway'}
-          </button>
-        )}
       </div>
     </div>
   );
@@ -640,18 +646,21 @@ export default function ExportSidePanel({
   const effectiveLessonFilter = selectedLessons; // null means no filter (all)
   const workspaceReadiness = useMemo(
     () =>
-      evaluateWorkspaceReadiness({
-        courseMap,
-        deliverables,
-        selectedFeatures,
-        columns,
-        lessonFilter: effectiveLessonFilter,
-      }),
+      evaluateStrictReadiness(
+        {
+          courseMap,
+          deliverables,
+          selectedFeatures,
+          columns,
+          lessonFilter: effectiveLessonFilter,
+        },
+        { includeClassroomReadiness: true },
+      ),
     [columns, courseMap, deliverables, effectiveLessonFilter, selectedFeatures],
   );
   const currentReadiness = useMemo(
     () =>
-      evaluateWorkspaceReadiness({
+      evaluateStrictReadiness({
         courseMap,
         deliverables,
         selectedFeatures: [activeTab],
@@ -732,13 +741,16 @@ export default function ExportSidePanel({
     exportCourseMap = courseMap,
     exportDeliverables = deliverables,
   } = {}) {
-    return evaluateWorkspaceReadiness({
-      courseMap: exportCourseMap,
-      deliverables: exportDeliverables,
-      selectedFeatures: getExportFeatureIds(exportScope),
-      columns,
-      lessonFilter: exportScope === 'all' ? effectiveLessonFilter : null,
-    });
+    return evaluateStrictReadiness(
+      {
+        courseMap: exportCourseMap,
+        deliverables: exportDeliverables,
+        selectedFeatures: getExportFeatureIds(exportScope),
+        columns,
+        lessonFilter: exportScope === 'all' ? effectiveLessonFilter : null,
+      },
+      { includeClassroomReadiness: exportScope === 'all' },
+    );
   }
 
   function clearPendingReadinessExport() {
@@ -746,7 +758,7 @@ export default function ExportSidePanel({
     setLastNotice('');
   }
 
-  async function doExport(format, { skipReadinessConfirmation = false, pendingExport = null } = {}) {
+  async function doExport(format, { pendingExport = null } = {}) {
     if (isPackageQualityRunning) {
       setLastNotice('Final quality pass is finishing automatic repairs before export.');
       return;
@@ -769,7 +781,7 @@ export default function ExportSidePanel({
       exportReadiness = getReadinessSnapshot({ exportCourseMap, exportDeliverables, exportScope });
     }
 
-    if (!skipReadinessConfirmation && (exportReadiness.blockers.length > 0 || exportReadiness.warnings.length > 0)) {
+    if (exportReadiness.blockers.length > 0 || exportReadiness.warnings.length > 0) {
       const pendingExport = {
         format,
         readiness: exportReadiness,
@@ -778,7 +790,6 @@ export default function ExportSidePanel({
         deliverables: exportDeliverables,
         repairsApplied,
       };
-      const canExportReadyMaterialsOnly = canExportZipReadyMaterialsOnly(pendingExport);
       setPendingReadinessExport({
         ...pendingExport,
       });
@@ -786,11 +797,9 @@ export default function ExportSidePanel({
       setLastOk('');
       setLastNotice(
         `${repairsApplied > 0 ? `Auto-fixed ${repairsApplied} safe issue${repairsApplied === 1 ? '' : 's'}. ` : ''}${
-          canExportReadyMaterialsOnly
-            ? 'Choose Review materials or Export ready materials above to continue the ZIP download.'
-            : format === 'zip'
-              ? 'Choose Review materials or Export anyway above to continue the ZIP download.'
-              : 'Choose Review materials or Export anyway above to continue the export.'
+          format === 'zip'
+            ? 'Resolve the issues above before downloading the ZIP.'
+            : 'Resolve the issues above before exporting.'
         }`,
       );
       return;
@@ -997,13 +1006,6 @@ export default function ExportSidePanel({
         <ReadinessConfirm
           pendingExport={pendingReadinessExport}
           onCancel={clearPendingReadinessExport}
-          onConfirm={() =>
-            pendingReadinessExport &&
-            doExport(pendingReadinessExport.format, {
-              skipReadinessConfirmation: true,
-              pendingExport: pendingReadinessExport,
-            })
-          }
           onIssueClick={onReadinessIssueClick}
           confirmRef={readinessConfirmRef}
         />
@@ -1082,11 +1084,7 @@ export default function ExportSidePanel({
                 }
                 title={
                   zipPendingReadiness
-                    ? `Choose Review materials or ${
-                        canExportZipReadyMaterialsOnly(pendingReadinessExport)
-                          ? 'Export ready materials'
-                          : 'Export anyway'
-                      } above`
+                    ? 'Resolve the readiness issues above before downloading'
                     : isPackageQualityRunning
                       ? 'Final quality pass is finishing'
                       : !courseMap
@@ -1109,11 +1107,7 @@ export default function ExportSidePanel({
                     />
                   </svg>
                 )}
-                {zipPendingReadiness
-                  ? canExportZipReadyMaterialsOnly(pendingReadinessExport)
-                    ? 'Choose export option above'
-                    : 'Choose above to continue'
-                  : 'Download ZIP'}
+                {zipPendingReadiness ? 'Resolve issues above' : 'Download ZIP'}
               </button>
             </div>
 

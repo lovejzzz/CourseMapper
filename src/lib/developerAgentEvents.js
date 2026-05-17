@@ -93,12 +93,14 @@ function addPackageSummaryEvent(events, message, index) {
       : summary.tone === 'assumptions' || summary.confidence === 'Good with assumptions'
         ? 'warning'
         : 'success';
+  const outcome =
+    level === 'error' ? 'Needs finishing' : level === 'warning' ? 'Needs instructor review' : 'Ready to export';
   addEvent(events, {
     type: 'packageSummary',
     level,
-    title: 'Package readiness',
+    title: 'Package check',
     summary: summarizeText(
-      `${summary.confidence || 'Unknown'} - ${summary.repairsApplied || 0} safe repair(s), ${summary.blockerCount || 0} blocker(s), ${summary.warningCount || 0} warning(s)`,
+      `${outcome} - ${summary.repairsApplied || 0} safe repair(s), ${summary.blockerCount || 0} issue(s), ${summary.warningCount || 0} review item(s)`,
       summary.nextAction,
     ),
     status: summary.confidence || '',

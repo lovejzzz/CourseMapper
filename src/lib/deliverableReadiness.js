@@ -440,6 +440,11 @@ function itemLessonNumbers(item) {
     item?.lt,
     item?.title,
     item?.t,
+    item?.assessmentTitle,
+    item?.assessment,
+    item?.taskTitle,
+    item?.taskDirections,
+    item?.linkedAssignment,
     item?.weekNumber,
     item?.wk,
     item?.dueWeek,
@@ -459,6 +464,25 @@ function getExpectedItemForLesson(items, lessonIndex, lessonIndices) {
   if (items.length >= Math.max(...lessonIndices, 0) + 1) return items[lessonIndex] || null;
   const localIndex = lessonIndices.indexOf(lessonIndex);
   return localIndex >= 0 ? items[localIndex] || null : null;
+}
+
+function inferImplicitRubricLessonNumber(rubrics, rubricIndex, lessonIndices, assessedLessonNumbers) {
+  if (!Array.isArray(rubrics) || rubricIndex < 0) return null;
+
+  if (rubrics.length === lessonIndices.length) {
+    const lessonIndex = lessonIndices[rubricIndex];
+    return Number.isInteger(lessonIndex) ? lessonIndex + 1 : null;
+  }
+
+  if (rubrics.length === assessedLessonNumbers.length) {
+    return assessedLessonNumbers[rubricIndex] || null;
+  }
+
+  if (rubrics.length > lessonIndices.length && lessonIndices.includes(rubricIndex)) {
+    return rubricIndex + 1;
+  }
+
+  return null;
 }
 
 function lessonAssessmentText(lesson) {
@@ -759,7 +783,21 @@ function checkRubrics(data, courseMap, lessonIndices, issues) {
   }
 
   const covered = new Set();
-  rubrics.forEach((rubric) => itemLessonNumbers(rubric).forEach((number) => covered.add(number)));
+  rubrics.forEach((rubric, rubricIndex) => {
+    const explicitLessonNumbers = itemLessonNumbers(rubric);
+    if (explicitLessonNumbers.length > 0) {
+      explicitLessonNumbers.forEach((number) => covered.add(number));
+      return;
+    }
+
+    const implicitLessonNumber = inferImplicitRubricLessonNumber(
+      rubrics,
+      rubricIndex,
+      lessonIndices,
+      assessedLessonNumbers,
+    );
+    if (implicitLessonNumber) covered.add(implicitLessonNumber);
+  });
   if (covered.size === 0 && rubrics.length >= assessedLessonNumbers.length) return;
 
   const missing = assessedLessonNumbers.filter((lessonNumber) => !covered.has(lessonNumber));

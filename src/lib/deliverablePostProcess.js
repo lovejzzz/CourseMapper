@@ -1413,11 +1413,12 @@ export function normalizeRubricSupport(data) {
   const rubrics = arrayKey ? data?.[arrayKey] : null;
 
   if (!Array.isArray(rubrics) || rubrics.length === 0) {
-    return { data, arrayKey, normalizedSupportFields: 0, patchedCriterionPoints: 0 };
+    return { data, arrayKey, normalizedSupportFields: 0, patchedCriterionPoints: 0, addedCriteria: 0 };
   }
 
   let normalizedSupportFields = 0;
   let patchedCriterionPoints = 0;
+  let addedCriteria = 0;
   const nextRubrics = rubrics.map((rubric) => {
     const nextRubric = { ...rubric };
     let changed = false;
@@ -1440,18 +1441,61 @@ export function normalizeRubricSupport(data) {
     }
 
     const criteriaKey = Array.isArray(nextRubric.criteria) ? 'criteria' : Array.isArray(nextRubric.cr) ? 'cr' : null;
-    const totalPoints = Number(nextRubric.totalPoints || nextRubric.tp);
-    if (criteriaKey && Number.isFinite(totalPoints) && totalPoints > 0) {
-      const criteria = nextRubric[criteriaKey].map((criterion) => {
-        const weight = Number(criterion?.weight || criterion?.wt);
-        if (!Number.isFinite(weight) || weight <= 0) return criterion;
-        const pointsKey = criterion.points !== undefined ? 'points' : criterion.pt !== undefined ? 'pt' : 'points';
-        const expectedPoints = Math.round((weight / 100) * totalPoints);
-        if (criterion[pointsKey] === expectedPoints) return criterion;
-        patchedCriterionPoints++;
+    if (criteriaKey) {
+      let criteria = nextRubric[criteriaKey];
+      let addedCriteriaForRubric = false;
+      const fallbackCriteria = [
+        {
+          criterion: 'Use of course concepts and evidence',
+          weight: 35,
+          exemplary: 'Applies relevant course concepts accurately and supports claims with specific evidence.',
+          proficient: 'Applies relevant course concepts with enough evidence to support the main claim.',
+          developing: 'Uses course concepts unevenly or supports claims with limited evidence.',
+          beginning: 'Names course concepts without applying them or relies on unsupported description.',
+        },
+        {
+          criterion: 'Reasoning, organization, and communication',
+          weight: 25,
+          exemplary: 'Presents a clear, organized response with logical reasoning and polished communication.',
+          proficient: 'Presents an organized response with understandable reasoning and clear communication.',
+          developing: 'Presents understandable ideas, but reasoning or organization is uneven.',
+          beginning: 'Presents limited reasoning or organization that makes the work difficult to evaluate.',
+        },
+      ];
+      while (criteria.length < 3) {
+        criteria = [...criteria, fallbackCriteria[criteria.length % fallbackCriteria.length]];
+        addedCriteria++;
+        addedCriteriaForRubric = true;
         changed = true;
-        return { ...criterion, [pointsKey]: expectedPoints };
-      });
+      }
+
+      const totalPoints = Number(nextRubric.totalPoints || nextRubric.tp);
+      const weightTotal = criteria.reduce((sum, criterion) => sum + Number(criterion?.weight || criterion?.wt || 0), 0);
+      const shouldRebalanceWeights = addedCriteriaForRubric || weightTotal < 95 || weightTotal > 105;
+      const baseWeight = Math.floor(100 / criteria.length);
+
+      if (shouldRebalanceWeights) {
+        criteria = criteria.map((criterion, index) => {
+          const weightKey = criterion?.wt !== undefined && criterion?.weight === undefined ? 'wt' : 'weight';
+          const weight = index === criteria.length - 1 ? 100 - baseWeight * (criteria.length - 1) : baseWeight;
+          if (criterion?.[weightKey] === weight) return criterion;
+          changed = true;
+          return { ...criterion, [weightKey]: weight };
+        });
+      }
+
+      if (Number.isFinite(totalPoints) && totalPoints > 0) {
+        criteria = criteria.map((criterion) => {
+          const weight = Number(criterion?.weight || criterion?.wt);
+          if (!Number.isFinite(weight) || weight <= 0) return criterion;
+          const pointsKey = criterion.points !== undefined ? 'points' : criterion.pt !== undefined ? 'pt' : 'points';
+          const expectedPoints = Math.round((weight / 100) * totalPoints);
+          if (criterion[pointsKey] === expectedPoints) return criterion;
+          patchedCriterionPoints++;
+          changed = true;
+          return { ...criterion, [pointsKey]: expectedPoints };
+        });
+      }
       nextRubric[criteriaKey] = criteria;
     }
 
@@ -1459,10 +1503,14 @@ export function normalizeRubricSupport(data) {
   });
 
   return {
-    data: normalizedSupportFields > 0 || patchedCriterionPoints > 0 ? { ...data, [arrayKey]: nextRubrics } : data,
+    data:
+      normalizedSupportFields > 0 || patchedCriterionPoints > 0 || addedCriteria > 0
+        ? { ...data, [arrayKey]: nextRubrics }
+        : data,
     arrayKey,
     normalizedSupportFields,
     patchedCriterionPoints,
+    addedCriteria,
   };
 }
 
@@ -2556,6 +2604,7 @@ export function normalizeSyllabusCompleteness(data, courseMap) {
 
   let patchedDescription = false;
   let patchedSchedule = false;
+  let patchedPolicies = false;
 
   if (!syllabusHasMeaningfulValue(syllabus.courseDescription || syllabus.description)) {
     syllabus = { ...syllabus, courseDescription: buildSyllabusDescription(courseMap) };
@@ -2575,11 +2624,40 @@ export function normalizeSyllabusCompleteness(data, courseMap) {
     patchedSchedule = true;
   }
 
+  if (
+    !syllabusHasMeaningfulValue(
+      syllabus.courseRequirements || syllabus.gradingPolicy || syllabus.grading || syllabus.assessmentPolicy,
+    )
+  ) {
+    syllabus = {
+      ...syllabus,
+      courseRequirements: [
+        {
+          name: 'Aligned course assessments',
+          weight: '100%',
+          description:
+            'Grades are based on the aligned assessments, rubrics, participation expectations, and instructor feedback cycles described in the course materials.',
+        },
+      ],
+    };
+    patchedPolicies = true;
+  }
+
+  if (!syllabusHasMeaningfulValue(syllabus.coursePolicies || syllabus.policies)) {
+    syllabus = {
+      ...syllabus,
+      coursePolicies:
+        'Course policies cover attendance, late work, academic integrity, accessibility accommodations, and responsible AI or technology use. Students should follow the official LMS and institutional policy pages for final details.',
+    };
+    patchedPolicies = true;
+  }
+
   const normalized = wrapperKey ? { ...data, [wrapperKey]: syllabus } : syllabus;
   return {
-    data: patchedDescription || patchedSchedule ? normalized : data,
+    data: patchedDescription || patchedSchedule || patchedPolicies ? normalized : data,
     patchedDescription,
     patchedSchedule,
+    patchedPolicies,
   };
 }
 

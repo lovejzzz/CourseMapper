@@ -45,7 +45,7 @@ function generatedWorkspaceFixture() {
     selectedFeatures: ['courseMap', 'lessonPlans'],
     deliverableConfig: { lessonPlans: {} },
     lessonScope: { type: 'all' },
-    promptText: 'Agent dry run course',
+    promptText: 'Agent review-only course',
     activeTab: 'lessonPlans',
     deliverables: {
       lessonPlans: {
@@ -55,7 +55,7 @@ function generatedWorkspaceFixture() {
             {
               lessonTitle: 'Lesson 1',
               overview: 'A generated lesson plan that puts the workspace in agent mode.',
-              activities: ['Check that dry-run mode cannot apply edits.'],
+              activities: ['Check that review-only mode cannot apply edits.'],
             },
           ],
         },
@@ -106,7 +106,7 @@ function openAiRespondStream(text) {
   ].join('\n');
 }
 
-test.describe('Agent suggest-only mode', () => {
+test.describe('Agent review-only mode', () => {
   test('keeps mutating tools out of a real agent request', async ({ page }) => {
     const agentRequests = [];
     const consoleErrors = [];
@@ -156,11 +156,11 @@ test.describe('Agent suggest-only mode', () => {
 
     const agentPanel = page.getByTestId('workspace-agent-panel');
     await expect(agentPanel.getByRole('heading', { name: 'Agent' })).toBeVisible();
-    await expect(agentPanel.getByTestId('agent-dry-run-toggle')).toContainText('Can edit');
+    await expect(agentPanel.getByTestId('agent-dry-run-toggle')).toContainText('Auto-fix on');
 
     await agentPanel.getByTestId('agent-dry-run-toggle').click();
-    await expect(agentPanel.getByTestId('agent-dry-run-toggle')).toContainText('Suggest only');
-    await expect(agentPanel.getByText('No auto-edits', { exact: true })).toBeVisible();
+    await expect(agentPanel.getByTestId('agent-dry-run-toggle')).toContainText('Review only');
+    await expect(agentPanel.getByText('No edits', { exact: true })).toBeVisible();
 
     await agentPanel.locator('textarea').fill('Make the lesson plan more active.');
     await agentPanel.getByLabel('Send message').click();
@@ -177,7 +177,7 @@ test.describe('Agent suggest-only mode', () => {
     expect(toolNames).toContain('validate_course');
     expect(toolNames).toContain('read_deliverable');
     expect(toolNames).toContain('respond');
-    expect(agentRequests[0].messages[0].content).toContain('CURRENT AGENT MODE: SUGGEST ONLY / READ-ONLY');
+    expect(agentRequests[0].messages[0].content).toContain('CURRENT AGENT MODE: REVIEW ONLY / READ-ONLY');
     expect(consoleErrors).toEqual([]);
   });
 });

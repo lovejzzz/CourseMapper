@@ -29,23 +29,23 @@ describe('PackageSummaryCard', () => {
       />,
     );
 
-    expect(html).toContain('Package readiness');
-    expect(html).toContain('Excellent');
+    expect(html).toContain('Ready to export');
+    expect(html).toContain('Clean');
     expect(html).toContain('3 safe repairs applied');
-    expect(html).toContain('Classroom audit ready');
+    expect(html).toContain('Classroom checks passed');
     expect(html).toContain('Exports verified');
     expect(html).toContain('8/8 sections checked');
     expect(html).not.toMatch(/\bscore\b/i);
   });
 
-  it('shows an agent attention list when the package is not ready', () => {
+  it('shows issues to fix when the package is not ready', () => {
     const html = renderToStaticMarkup(
       <PackageSummaryCard
         summary={{
           confidence: 'Needs attention',
           tone: 'blocked',
           ready: false,
-          nextAction: 'Fix the remaining blockers before presenting the package as done.',
+          nextAction: 'Fix the remaining issues before presenting the package as done.',
           repairsApplied: 0,
           blockerCount: 1,
           warningCount: 2,
@@ -63,10 +63,11 @@ describe('PackageSummaryCard', () => {
       />,
     );
 
-    expect(html).toContain('Needs attention');
-    expect(html).toContain('1 blocker remaining');
-    expect(html).toContain('1 classroom warning');
-    expect(html).toContain('Agent attention list');
+    expect(html).toContain('Needs finishing');
+    expect(html).toContain('Action needed');
+    expect(html).toContain('1 issue to fix');
+    expect(html).toContain('1 classroom issue');
+    expect(html).toContain('Issues to fix');
     expect(html).toContain('Quiz Bank');
   });
 });

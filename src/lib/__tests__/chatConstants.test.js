@@ -185,7 +185,7 @@ describe('getChatOpener — Tier 3 (agent mode)', () => {
   it('shows agent greeting', () => {
     const cm = makeCourseMap();
     const result = getChatOpener(cm, true, 'quizBank', makeDoneDeliverables());
-    expect(result.greeting).toContain('edit your course materials');
+    expect(result.greeting).toContain('finish, fix, and verify your course materials');
   });
 
   it('returns up to 2 starters', () => {

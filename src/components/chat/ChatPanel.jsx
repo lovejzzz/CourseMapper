@@ -24,9 +24,8 @@ function latestRunningStep(steps = []) {
 
 function deriveAgentStatus(progress, isStreaming, isAgentMode, agentDryRun = false) {
   if (!isAgentMode) return { label: 'Ask', tone: 'slate', detail: 'Ready to help' };
-  if (agentDryRun && !progress && !isStreaming)
-    return { label: 'Suggest only', tone: 'slate', detail: 'No auto-edits' };
-  if (!progress && !isStreaming) return { label: 'Ready', tone: 'emerald', detail: 'Can edit materials' };
+  if (agentDryRun && !progress && !isStreaming) return { label: 'Review only', tone: 'slate', detail: 'No edits' };
+  if (!progress && !isStreaming) return { label: 'Ready', tone: 'emerald', detail: 'Auto-fix on' };
   if (progress?.status === 'error') return { label: 'Needs review', tone: 'red', detail: 'Check the latest turn' };
   if (progress?.status === 'complete') {
     const hasIssues = progress.steps?.some((step) => step.status === 'error' || step.status === 'partial');
@@ -312,7 +311,7 @@ export default function ChatPanel({
           }
           try {
             await chat.send(
-              `[AUTO-REVIEW] Generation done. ${repairNote} Readiness: ${readiness.status}, ${readiness.blockers.length} blocker(s), ${readiness.warnings.length} warning(s). Run finalize_package. If repairQueue.retryActionCount > 0, call retry_package_weak_spots; otherwise fix concrete data issues. Finalize again, then summarize. Say classroom-ready only when Excellent and classroomReadiness.status is ready.`,
+              `[AUTO-REVIEW] Generation done. ${repairNote} Readiness: ${readiness.status}, ${readiness.blockers.length} issue(s) to fix, ${readiness.warnings.length} review item(s). Run finalize_package. If repairQueue.retryActionCount > 0, call retry_package_weak_spots; otherwise fix concrete data issues. Finalize again, then summarize. Say classroom-ready only when Excellent and classroomReadiness.status is ready.`,
             );
           } finally {
             const finalRepair = applyDeterministicReadinessRepairs();

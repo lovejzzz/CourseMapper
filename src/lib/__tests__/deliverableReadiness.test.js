@@ -282,6 +282,28 @@ describe('evaluateWorkspaceReadiness', () => {
     expect(readiness.warnings.map((issue) => issue.message).join(' ')).not.toContain('missing assessed lesson');
   });
 
+  it('treats ordered rubric arrays as lesson coverage when one item lacks an explicit lesson number', () => {
+    const readiness = evaluateWorkspaceReadiness({
+      courseMap,
+      columns,
+      selectedFeatures: ['rubrics'],
+      deliverables: {
+        rubrics: {
+          status: 'done',
+          data: {
+            rubrics: [
+              { title: 'Question Quality Rubric', lessonTitle: 'Lesson 1: Questions', criteria: [] },
+              { title: 'Sampling Critique Rubric', lessonTitle: 'Sampling critique', criteria: [] },
+            ],
+          },
+        },
+      },
+    });
+
+    expect(readiness.status).toBe('ready');
+    expect(readiness.warnings.map((issue) => issue.message).join(' ')).not.toContain('missing assessed lesson');
+  });
+
   it('blocks readiness when lesson scope is empty', () => {
     const readiness = evaluateWorkspaceReadiness({
       courseMap,

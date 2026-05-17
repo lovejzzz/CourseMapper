@@ -71,6 +71,7 @@ import {
   repairCourseMapReadiness,
   repairWorkspaceReadiness,
 } from './lib/deliverableReadiness';
+import { evaluateClassroomReadiness } from './lib/classroomReadiness';
 
 const STORAGE_KEY = 'coursemapper-project';
 
@@ -484,7 +485,15 @@ export default function AppFlow({ startupAction = null, onStartupHandled, onRetu
         columns,
         lessonFilter,
       });
-      const repairableFeatureIds = new Set(currentReadiness.issues.map((issue) => issue.featureId));
+      const currentClassroomReadiness = evaluateClassroomReadiness({
+        courseMap,
+        deliverables: deliv.deliverables,
+        selectedFeatures: selectedFeatureIds,
+        lessonFilter,
+      });
+      const repairableFeatureIds = new Set(
+        [...currentReadiness.issues, ...currentClassroomReadiness.issues].map((issue) => issue.featureId),
+      );
 
       if (repairableFeatureIds.size === 0) {
         return {

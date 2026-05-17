@@ -18,8 +18,8 @@ const releases = [
         color: 'indigo',
         items: [
           'Added a one-step package finalizer that applies safe readiness repairs, verifies export paths, runs package readiness checks, and reruns pedagogical validation before claiming a package is ready.',
-          'The final handoff card now reports delivery confidence, safe repairs, readiness blockers, export status, lesson count, and remaining assumptions without exposing internal judge scores.',
-          'The agent starter now includes a direct “finish and verify my course package” path from the generated workspace.',
+          'The final handoff card now reports the package outcome, safe repairs, export status, lesson count, and remaining review items without exposing internal judge scores.',
+          'The agent starter now includes a direct “Finish package” path from the generated workspace.',
         ],
       },
       {
@@ -38,7 +38,7 @@ const releases = [
         color: 'emerald',
         items: [
           'Added in-memory export smoke checks for course-map XLSX, deliverable CSV/DOCX, and slide-deck PPTX generation before the agent marks a package ready.',
-          'Export failures now downgrade package confidence to Needs attention instead of allowing a polished but non-exportable handoff.',
+          'Export failures now keep the package in Needs finishing instead of allowing a polished but non-exportable handoff.',
           'The export verifier lazy-loads heavy exporters so bundle budgets remain intact.',
         ],
       },
@@ -47,9 +47,9 @@ const releases = [
         icon: '⚙',
         color: 'slate',
         items: [
-          'Added model-routing advice for the agent: stay on the configured low-cost model first, then escalate only after targeted retry cannot clear concrete blockers.',
-          'Suggest-only mode now blocks targeted retry alongside other editing tools while keeping read-only export verification available.',
-          'Regression tests cover the finalizer, export verifier, package card, auto-review prompt, suggest-only filtering, and model-routing advice.',
+          'Added model-routing advice for the agent: stay on the configured low-cost model first, then escalate only after targeted retry cannot clear concrete package issues.',
+          'Review-only mode now blocks targeted retry alongside other editing tools while keeping read-only export verification available.',
+          'Regression tests cover the finalizer, export verifier, package card, auto-review prompt, review-only filtering, and model-routing advice.',
         ],
       },
     ],

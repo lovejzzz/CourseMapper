@@ -98,19 +98,19 @@ export function classifyFinalizePackageStepStatus(result = {}) {
 export function formatPackageSummaryForHistory(summary = {}) {
   const issueText =
     summary.blockerCount || summary.warningCount
-      ? `${summary.blockerCount || 0} blocker(s), ${summary.warningCount || 0} warning(s)`
-      : 'no readiness blockers';
+      ? `${summary.blockerCount || 0} issue(s) to fix, ${summary.warningCount || 0} review item(s)`
+      : 'no issues to fix';
   const validationText =
     summary.validationErrorCount || summary.validationWarningCount
-      ? `${summary.validationErrorCount || 0} validation error(s), ${summary.validationWarningCount || 0} validation warning(s)`
+      ? `${summary.validationErrorCount || 0} validation issue(s), ${summary.validationWarningCount || 0} validation review item(s)`
       : 'no validation errors';
   const classroomText =
     summary.classroomBlockerCount || summary.classroomWarningCount
-      ? `${summary.classroomBlockerCount || 0} classroom blocker(s), ${summary.classroomWarningCount || 0} classroom warning(s)`
-      : 'classroom audit clear';
+      ? `${summary.classroomBlockerCount || 0} classroom issue(s), ${summary.classroomWarningCount || 0} classroom review item(s)`
+      : 'classroom checks passed';
   const exportText =
     summary.exportChecked > 0
       ? `${summary.exportChecked || 0} export check(s), ${summary.exportFailed || 0} failed`
       : 'exports not checked';
-  return `[Package readiness: ${summary.confidence || 'Unknown'}; ${summary.repairsApplied || 0} safe repair(s); ${issueText}; ${classroomText}; ${validationText}; ${exportText}.]`;
+  return `[Package check: ${summary.confidence || 'Unknown'}; ${summary.repairsApplied || 0} safe repair(s); ${issueText}; ${classroomText}; ${validationText}; ${exportText}.]`;
 }

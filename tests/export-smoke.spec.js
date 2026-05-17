@@ -77,6 +77,10 @@ function exportFixture() {
               bloomsLevels: ['Analyze', 'Evaluate'],
               objectives: ['Verify generated exports', 'Identify format-specific risks'],
               materials: ['Export checklist', 'Generated workspace'],
+              successCriteria: [
+                'Evidence names the exact exported file inspected.',
+                'Model work explains the format risk and the instructor handoff decision.',
+              ],
               outline: [
                 {
                   time: '15 min',
@@ -97,6 +101,10 @@ function exportFixture() {
               bloomsLevels: ['Apply'],
               objectives: ['Match workflows to formats'],
               materials: ['Sample export files'],
+              successCriteria: [
+                'Evidence compares at least two export formats for a named reviewer workflow.',
+                'Model work justifies the recommended format with a maintenance or accessibility reason.',
+              ],
               outline: [
                 {
                   time: '30 min',
@@ -125,7 +133,7 @@ function exportFixture() {
                     'Introduce the smoke test goals and explain why each exported artifact needs a quick inspection.',
                 },
                 {
-                  title: 'Regression Coverage',
+                  title: 'Regression Coverage Activity',
                   bullets: ['Course map', 'Lesson plans', 'Slide decks', 'ZIP bundle'],
                   speakerNotes:
                     'Connect each export button to a concrete format risk that instructors would notice during handoff.',
@@ -160,7 +168,7 @@ function exportFixture() {
                     'Discuss the instructor workflow differences between shareable exports, cloud handoff, and offline backup.',
                 },
                 {
-                  title: 'Format Selection',
+                  title: 'Format Selection Activity',
                   bullets: ['Choose files by audience', 'Keep source state versioned'],
                   speakerNotes:
                     'Frame export choices as operational decisions based on reviewer needs and future revision paths.',
@@ -1062,7 +1070,6 @@ test.describe('Export smoke', () => {
     expect(csv).toContain('Artifact audit memo');
     expect(csv).toContain('ISBN: 9780000000002');
     expect(csv).toContain('Data Privacy');
-    expect(csv).toContain('Review by Fall 2027');
 
     const docxDownload = await expectDownload(page, () => page.getByTestId('export-format-docx').click(), {
       extension: 'docx',
@@ -1075,10 +1082,9 @@ test.describe('Export smoke', () => {
     expect(documentXml).toContain('Artifact audit memo');
     expect(documentXml).toContain('Technical Support');
     expect(documentXml).toContain('Data Privacy');
-    expect(documentXml).toContain('Review by Fall 2027');
   });
 
-  test('allows ZIP export with confirmation when selected generated materials have review notes', async ({ page }) => {
+  test('blocks ZIP export when selected generated materials still have review notes', async ({ page }) => {
     await restoreExportWorkspace(page, (snapshot) => {
       snapshot.selectedFeatures = ['courseMap', 'courseFaq'];
       snapshot.deliverables = {
@@ -1195,27 +1201,18 @@ test.describe('Export smoke', () => {
     });
 
     await page.getByTestId('export-scope-all').click();
-    await expect(page.getByTestId('readiness-status')).toContainText('Ready with notes');
+    await expect(page.getByTestId('readiness-status')).toContainText('Needs finishing');
     await expect(page.getByTestId('readiness-panel')).toContainText('Course FAQ');
     await expect(page.getByTestId('readiness-panel')).toContainText('fewer than 5 questions');
     await expect(page.getByTestId('export-download-zip')).toBeEnabled();
     await page.getByTestId('export-download-zip').click();
     await expect(page.getByTestId('readiness-confirm')).toBeVisible();
-    await expect(page.getByTestId('readiness-confirm')).toContainText('Export anyway');
+    await expect(page.getByTestId('readiness-confirm')).toContainText('Finish materials before export');
+    await expect(page.getByTestId('readiness-confirm')).not.toContainText('Export anyway');
+    await expect(page.getByTestId('readiness-export-anyway')).toHaveCount(0);
     await expect(page.getByTestId('export-download-zip')).toBeDisabled();
-    await expect(page.getByTestId('export-download-zip')).toContainText('Choose above to continue');
-    await expect(page.getByTestId('export-notice')).toContainText('Choose Review materials or Export anyway');
-
-    const zipDownload = await expectDownload(page, () => page.getByTestId('readiness-export-anyway').click(), {
-      extension: 'zip',
-      nameIncludes: 'Export Smoke Course',
-      minBytes: 1000,
-    });
-    const JSZip = (await import('jszip')).default;
-    const zip = await JSZip.loadAsync(await fs.readFile(zipDownload.path));
-    const report = await zip.file('READINESS_REPORT.txt')?.async('string');
-    expect(report).toContain('Course FAQ');
-    expect(report).toContain('fewer than 5 questions');
+    await expect(page.getByTestId('export-download-zip')).toContainText('Resolve issues above');
+    await expect(page.getByTestId('export-notice')).toContainText('Resolve the issues above');
   });
 
   test('auto-fixes missing checklist rubric coverage before ZIP export', async ({ page }) => {
@@ -1270,7 +1267,7 @@ test.describe('Export smoke', () => {
     expect(rubricXml).toContain('Lesson 1: Export Reliability');
   });
 
-  test('allows ZIP export of ready materials when one selected deliverable failed', async ({ page }) => {
+  test('blocks ZIP export when one selected deliverable failed', async ({ page }) => {
     await restoreExportWorkspace(page, (snapshot) => {
       snapshot.selectedFeatures = ['courseMap', 'lessonPlans', 'courseFaq'];
       snapshot.deliverables = {
@@ -1290,27 +1287,13 @@ test.describe('Export smoke', () => {
     await expect(page.getByTestId('export-download-zip')).toBeEnabled();
 
     await page.getByTestId('export-download-zip').click();
-    await expect(page.getByTestId('readiness-confirm')).toContainText('Export ready materials only');
-    await expect(page.getByTestId('readiness-confirm')).toContainText('will be omitted');
-    await expect(page.getByTestId('readiness-export-anyway')).toContainText('Export ready materials');
-    await expect(page.getByTestId('export-notice')).toContainText('Export ready materials');
-
-    const zipDownload = await expectDownload(page, () => page.getByTestId('readiness-export-anyway').click(), {
-      extension: 'zip',
-      nameIncludes: 'Export Smoke Course',
-      minBytes: 1000,
-    });
-    const JSZip = (await import('jszip')).default;
-    const zip = await JSZip.loadAsync(await fs.readFile(zipDownload.path));
-    const fileNames = Object.keys(zip.files);
-    expect(fileNames.some((name) => name.includes('Course Map/'))).toBe(true);
-    expect(fileNames.some((name) => name.includes('Lesson Plans/'))).toBe(true);
-    expect(fileNames.some((name) => name.includes('Course FAQ/'))).toBe(false);
-    const report = await zip.file('READINESS_REPORT.txt')?.async('string');
-    expect(report).toContain('Course FAQ failed to generate');
+    await expect(page.getByTestId('readiness-confirm')).toContainText('Resolve critical issues before export');
+    await expect(page.getByTestId('readiness-confirm')).toContainText('Course FAQ failed to generate');
+    await expect(page.getByTestId('readiness-export-anyway')).toHaveCount(0);
+    await expect(page.getByTestId('export-notice')).toContainText('Resolve the issues above');
   });
 
-  test('allows ZIP export with confirmation when generated quiz content needs review notes', async ({ page }) => {
+  test('blocks ZIP export when generated quiz content needs review notes', async ({ page }) => {
     await restoreExportWorkspace(page, (snapshot) => {
       snapshot.selectedFeatures = ['courseMap', 'quizBank'];
       snapshot.deliverables = {
@@ -1358,7 +1341,7 @@ test.describe('Export smoke', () => {
     });
 
     await page.getByTestId('export-scope-all').click();
-    await expect(page.getByTestId('readiness-status')).toContainText('Ready with notes');
+    await expect(page.getByTestId('readiness-status')).toContainText('Needs finishing');
     await expect(page.getByTestId('readiness-panel')).toContainText('Quiz & Exam Bank');
     await expect(page.getByTestId('readiness-panel')).toContainText('fewer than 5 questions');
     await expect(page.getByTestId('readiness-panel')).not.toContainText('missing answer guidance');
@@ -1366,23 +1349,11 @@ test.describe('Export smoke', () => {
     await page.getByTestId('export-download-zip').click();
     await expect(page.getByTestId('readiness-confirm')).toBeVisible();
     await expect(page.getByTestId('readiness-confirm')).not.toContainText('missing answer guidance');
-    await expect(page.getByTestId('readiness-confirm')).toContainText('Export anyway');
-    await expect(page.getByTestId('readiness-export-anyway')).toBeVisible();
-
-    const zipDownload = await expectDownload(page, () => page.getByTestId('readiness-export-anyway').click(), {
-      extension: 'zip',
-      nameIncludes: 'Export Smoke Course',
-      minBytes: 1000,
-    });
-    const JSZip = (await import('jszip')).default;
-    const zip = await JSZip.loadAsync(await fs.readFile(zipDownload.path));
-    const report = await zip.file('READINESS_REPORT.txt')?.async('string');
-    expect(report).toContain('Quiz & Exam Bank');
-    expect(report).toContain('fewer than 5 questions');
-    expect(report).not.toContain('missing answer guidance');
+    await expect(page.getByTestId('readiness-confirm')).toContainText('Finish materials before export');
+    await expect(page.getByTestId('readiness-export-anyway')).toHaveCount(0);
   });
 
-  test('allows ZIP export with confirmation when discussion guidance needs review notes', async ({ page }) => {
+  test('blocks ZIP export when discussion guidance needs review notes', async ({ page }) => {
     await restoreExportWorkspace(page, (snapshot) => {
       snapshot.selectedFeatures = ['courseMap', 'discussions'];
       snapshot.deliverables = {
@@ -1429,31 +1400,17 @@ test.describe('Export smoke', () => {
     });
 
     await page.getByTestId('export-scope-all').click();
-    await expect(page.getByTestId('readiness-status')).toContainText('Ready with notes');
+    await expect(page.getByTestId('readiness-status')).toContainText('Needs finishing');
     await expect(page.getByTestId('readiness-panel')).toContainText('Discussion Prompts');
     await expect(page.getByTestId('readiness-panel')).toContainText('missing instructor guidance');
     await page.getByTestId('export-download-zip').click();
     await expect(page.getByTestId('readiness-confirm')).toBeVisible();
-    await expect(page.getByTestId('readiness-confirm')).toContainText('Export anyway');
-    await expect(page.getByTestId('readiness-export-anyway')).toBeVisible();
-
-    const zipDownload = await expectDownload(page, () => page.getByTestId('readiness-export-anyway').click(), {
-      extension: 'zip',
-      nameIncludes: 'Export Smoke Course',
-      minBytes: 1000,
-    });
-    const JSZip = (await import('jszip')).default;
-    const zip = await JSZip.loadAsync(await fs.readFile(zipDownload.path));
-    const report = await zip.file('READINESS_REPORT.txt')?.async('string');
-    expect(report).toContain('Discussion Prompts');
-    expect(report).toContain('missing instructor guidance');
-    expect(report).toContain('fewer than 3 follow-up probes');
-    expect(report).toContain('incomplete facilitation tips');
+    await expect(page.getByTestId('readiness-confirm')).toContainText('Finish materials before export');
+    await expect(page.getByTestId('readiness-confirm')).toContainText('missing instructor guidance');
+    await expect(page.getByTestId('readiness-export-anyway')).toHaveCount(0);
   });
 
-  test('requires confirmation before non-ZIP export with review notes without promising a readiness report', async ({
-    page,
-  }) => {
+  test('blocks non-ZIP export with review notes without promising a readiness report', async ({ page }) => {
     await restoreExportWorkspace(page, (snapshot) => {
       snapshot.selectedFeatures = ['courseMap', 'courseFaq'];
       snapshot.courseMap.lessons = snapshot.courseMap.lessons.slice(0, 1);
@@ -1496,19 +1453,12 @@ test.describe('Export smoke', () => {
     });
 
     await switchWorkspaceTab(page, 'Course FAQ');
-    await expect(page.getByTestId('readiness-status')).toContainText('Ready with notes');
+    await expect(page.getByTestId('readiness-status')).toContainText('Needs finishing');
     await page.getByTestId('export-format-csv').click();
     await expect(page.getByTestId('readiness-confirm')).toBeVisible();
-    await expect(page.getByTestId('readiness-confirm')).toContainText(
-      'These remaining notes need instructor judgment before publishing.',
-    );
+    await expect(page.getByTestId('readiness-confirm')).toContainText('Resolve the remaining notes before exporting.');
     await expect(page.getByTestId('readiness-confirm')).not.toContainText('The ZIP will include a readiness report.');
-
-    await expectDownload(page, () => page.getByTestId('readiness-export-anyway').click(), {
-      extension: 'csv',
-      nameIncludes: 'Export Smoke Course',
-      minBytes: 100,
-    });
+    await expect(page.getByTestId('readiness-export-anyway')).toHaveCount(0);
   });
 
   test('exports a selected clean lesson without inheriting unselected placeholder blockers', async ({ page }) => {
@@ -1624,6 +1574,16 @@ test.describe('Export smoke', () => {
                 assignments: 'Fix unresolved placeholders',
               },
             ],
+            courseRequirements: [
+              {
+                name: 'Readiness revision memo',
+                weight: '100%',
+                description:
+                  'Students use the readiness checklist, rubric criteria, and instructor feedback to revise unresolved syllabus details.',
+              },
+            ],
+            coursePolicies:
+              'Course policy language covers attendance, late work, academic integrity, accessibility accommodations, and responsible AI use.',
             instructor: '[Instructor name]',
           },
           error: null,

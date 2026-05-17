@@ -64,7 +64,7 @@ describe('packageFinalizerSummary', () => {
 
     expect(history).toContain('Good with assumptions');
     expect(history).toContain('1 safe repair');
-    expect(history).toContain('1 classroom warning');
+    expect(history).toContain('1 classroom review item');
     expect(history).toContain('3 export check');
     expect(history).not.toMatch(/\bscore\b/i);
   });

@@ -131,7 +131,7 @@ test.describe('All-deliverables terminal states', () => {
     await expect(page.getByTestId('developer-mode-panel')).toHaveCount(0);
 
     await expect(page.getByTestId('workspace-agent-panel').getByTestId('progress-phase-label')).toHaveText(
-      /Review failed deliverables|Ready with notes|Review before export/,
+      /Review failed deliverables|Needs finishing|Review before export/,
       { timeout: 20000 },
     );
 

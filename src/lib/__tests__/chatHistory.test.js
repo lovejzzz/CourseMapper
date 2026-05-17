@@ -430,7 +430,7 @@ describe('buildAgentChatHistory', () => {
         },
       ]);
 
-      expect(result[0].content).toContain('Package readiness');
+      expect(result[0].content).toContain('Package check');
       expect(result[0].content).toContain('Good with assumptions');
       expect(result[0].content).toContain('2 safe repair');
     });

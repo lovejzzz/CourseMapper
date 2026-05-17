@@ -130,18 +130,18 @@ function getPackageConfidence(readiness, healthReport, exportVerification, class
 
 function getPackageNextAction(confidence, exportVerification, classroomReadiness) {
   if (exportVerification?.status === 'failed') {
-    return 'Fix export blockers before presenting the package as done.';
+    return 'Fix export issues before presenting the package as done.';
   }
   if (classroomReadiness?.blockers?.length > 0) {
-    return 'Fix classroom-readiness blockers before presenting the package as done.';
+    return 'Fix classroom-readiness issues before presenting the package as done.';
   }
   if (confidence === 'Excellent') {
     return 'Package is checked, repaired, export-verified, and ready for classroom review/export.';
   }
   if (confidence === 'Good with assumptions') {
-    return 'Package is usable with listed assumptions; fix concrete issues automatically and leave instructor judgment calls visible.';
+    return 'Package needs instructor review; fix concrete issues automatically and leave judgment calls visible.';
   }
-  return 'Fix the remaining blockers before presenting the package as done.';
+  return 'Fix the remaining issues before presenting the package as done.';
 }
 
 function applyReadinessRepairsToContext(ctx) {
@@ -1813,12 +1813,19 @@ export function summarizeToolResult(toolName, result) {
   switch (toolName) {
     case 'validate_course':
       return `${result.errorCount || 0} errors, ${result.warningCount || 0} warnings, ${result.infoCount || 0} info`;
-    case 'finalize_package':
-      return `${result.confidence || 'Unknown'}: ${result.repairsApplied || 0} repaired, ${result.readiness?.blockerCount || 0} blockers, ${result.readiness?.warningCount || 0} warnings${result.classroomReadiness ? `, ${result.classroomReadiness.warningCount || 0} classroom warnings` : ''}, ${result.exportVerification?.status || 'exports unknown'}`;
+    case 'finalize_package': {
+      const status =
+        result.confidence === 'Excellent'
+          ? 'Ready to export'
+          : result.confidence === 'Needs attention'
+            ? 'Needs finishing'
+            : 'Needs review';
+      return `${status}: ${result.repairsApplied || 0} repaired, ${result.readiness?.blockerCount || 0} issue(s) to fix, ${result.readiness?.warningCount || 0} review item(s)${result.classroomReadiness ? `, ${result.classroomReadiness.warningCount || 0} classroom review item(s)` : ''}, ${result.exportVerification?.status || 'exports unknown'}`;
+    }
     case 'verify_package_exports':
       return `${result.status || 'unknown'}: ${result.passed || 0}/${result.checked || 0} export checks passed`;
     case 'review_package_readiness':
-      return `${result.status || 'unknown'}: ${result.blockerCount || 0} blockers, ${result.warningCount || 0} warnings${result.classroomReadiness ? `, ${result.classroomReadiness.warningCount || 0} classroom warnings` : ''}`;
+      return `${result.status || 'unknown'}: ${result.blockerCount || 0} issue(s) to fix, ${result.warningCount || 0} review item(s)${result.classroomReadiness ? `, ${result.classroomReadiness.warningCount || 0} classroom review item(s)` : ''}`;
     case 'repair_package_readiness':
       return `${result.applied || 0} repaired, ${result.failed || 0} failed`;
     case 'retry_package_weak_spots':

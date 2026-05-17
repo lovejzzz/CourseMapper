@@ -327,7 +327,7 @@ describe('summarizeToolResult()', () => {
           readiness: { blockerCount: 0, warningCount: 3 },
           exportVerification: { status: 'passed' },
         }),
-      ).toBe('Good with assumptions: 2 repaired, 0 blockers, 3 warnings, passed');
+      ).toBe('Needs review: 2 repaired, 0 issue(s) to fix, 3 review item(s), passed');
     });
 
     it('formats export verification checks', () => {
@@ -343,7 +343,7 @@ describe('summarizeToolResult()', () => {
           blockerCount: 1,
           warningCount: 2,
         }),
-      ).toBe('warnings: 1 blockers, 2 warnings');
+      ).toBe('warnings: 1 issue(s) to fix, 2 review item(s)');
     });
 
     it('formats readiness repair counts', () => {

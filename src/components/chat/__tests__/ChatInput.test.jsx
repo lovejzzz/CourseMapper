@@ -53,13 +53,13 @@ describe('ChatInput agent execution mode', () => {
     return props;
   }
 
-  it('renders and toggles suggest-only mode', () => {
+  it('renders and toggles review-only mode', () => {
     const onAgentDryRunChange = vi.fn();
     renderInput({ onAgentDryRunChange });
 
     const toggle = container.querySelector('[data-testid="agent-dry-run-toggle"]');
     expect(toggle).not.toBeNull();
-    expect(toggle.textContent).toContain('Can edit');
+    expect(toggle.textContent).toContain('Auto-fix on');
     expect(toggle.getAttribute('aria-pressed')).toBe('false');
 
     act(() => {
@@ -69,19 +69,19 @@ describe('ChatInput agent execution mode', () => {
     expect(onAgentDryRunChange).toHaveBeenCalledWith(true);
   });
 
-  it('uses suggest-only copy and review prompt when enabled', () => {
+  it('uses review-only copy and review prompt when enabled', () => {
     const onSend = vi.fn();
     renderInput({ agentDryRun: true, onSend });
 
     const toggle = container.querySelector('[data-testid="agent-dry-run-toggle"]');
     const textarea = container.querySelector('textarea');
-    expect(toggle.textContent).toContain('Suggest only');
+    expect(toggle.textContent).toContain('Review only');
     expect(toggle.getAttribute('aria-pressed')).toBe('true');
     expect(textarea.getAttribute('placeholder')).toContain('Review or ask');
-    expect(container.textContent).toContain('No auto-edits');
+    expect(container.textContent).toContain('No edits');
 
-    const reviewButton = Array.from(container.querySelectorAll('button')).find((button) =>
-      button.textContent.includes('Review'),
+    const reviewButton = Array.from(container.querySelectorAll('button')).find(
+      (button) => button.getAttribute('title') === 'Review without editing',
     );
     act(() => {
       reviewButton.dispatchEvent(new MouseEvent('click', { bubbles: true }));

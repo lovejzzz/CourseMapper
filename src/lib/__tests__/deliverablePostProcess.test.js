@@ -865,10 +865,14 @@ describe('Rubric and assignment post-processing', () => {
     const result = normalizeRubricSupport(data);
 
     expect(result.normalizedSupportFields).toBe(4);
-    expect(result.patchedCriterionPoints).toBe(1);
+    expect(result.addedCriteria).toBe(2);
+    expect(result.patchedCriterionPoints).toBeGreaterThan(0);
     expect(result.data.rubrics[0].taskDirections).toContain('Complete the quiz');
     expect(result.data.rubrics[0].td).toBeUndefined();
-    expect(result.data.rubrics[0].cr[0].pt).toBe(30);
+    expect(result.data.rubrics[0].cr).toHaveLength(3);
+    expect(
+      result.data.rubrics[0].cr.reduce((sum, criterion) => sum + Number(criterion.weight || criterion.wt || 0), 0),
+    ).toBe(100);
   });
 
   it('sorts assignment briefs chronologically and repairs objective-code lesson links', () => {

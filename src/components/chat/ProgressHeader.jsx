@@ -91,7 +91,7 @@ export default function ProgressHeader({
   else if (isPackageQualityRunning) phaseLabel = 'Final quality pass...';
   else if (isDone && hasDelivErrors) phaseLabel = 'Review failed deliverables';
   else if (hasPackageQualityBlockers) phaseLabel = 'Review before export';
-  else if (hasPackageQualityWarnings) phaseLabel = 'Ready with notes';
+  else if (hasPackageQualityWarnings) phaseLabel = 'Needs finishing';
   else if (everythingDone) phaseLabel = 'Complete';
   else if (isDone && isDelivGenerating) phaseLabel = `Deliverables ${delivDoneCount}/${delivRows.length}`;
   else if (isDone) phaseLabel = 'Course map ready';

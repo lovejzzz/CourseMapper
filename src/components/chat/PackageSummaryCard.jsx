@@ -48,16 +48,22 @@ export default function PackageSummaryCard({ summary }) {
   if (!summary) return null;
 
   const tone = TONES[summary.tone] || TONES.assumptions;
+  const outcomeTitle = summary.ready
+    ? 'Ready to export'
+    : summary.tone === 'blocked'
+      ? 'Needs finishing'
+      : 'Needs instructor review';
+  const badgeText = summary.ready ? 'Clean' : summary.tone === 'blocked' ? 'Action needed' : 'Review needed';
   const repairText =
     summary.repairsApplied > 0
       ? `${summary.repairsApplied} safe repair${summary.repairsApplied === 1 ? '' : 's'} applied`
       : 'No automatic repairs needed';
   const issueText =
     summary.blockerCount > 0
-      ? `${summary.blockerCount} blocker${summary.blockerCount === 1 ? '' : 's'} remaining`
+      ? `${summary.blockerCount} issue${summary.blockerCount === 1 ? '' : 's'} to fix`
       : summary.warningCount > 0
-        ? `${summary.warningCount} assumption${summary.warningCount === 1 ? '' : 's'} to review`
-        : 'No readiness blockers';
+        ? `${summary.warningCount} item${summary.warningCount === 1 ? '' : 's'} to review`
+        : 'No issues to fix';
   const exportText =
     summary.exportChecked > 0
       ? summary.exportFailed > 0
@@ -68,11 +74,11 @@ export default function PackageSummaryCard({ summary }) {
       : null;
   const classroomText =
     summary.classroomBlockerCount > 0
-      ? `${summary.classroomBlockerCount} classroom blocker${summary.classroomBlockerCount === 1 ? '' : 's'}`
+      ? `${summary.classroomBlockerCount} classroom issue${summary.classroomBlockerCount === 1 ? '' : 's'}`
       : summary.classroomWarningCount > 0
-        ? `${summary.classroomWarningCount} classroom warning${summary.classroomWarningCount === 1 ? '' : 's'}`
+        ? `${summary.classroomWarningCount} classroom issue${summary.classroomWarningCount === 1 ? '' : 's'}`
         : summary.classroomStatus
-          ? 'Classroom audit ready'
+          ? 'Classroom checks passed'
           : null;
 
   return (
@@ -84,10 +90,8 @@ export default function PackageSummaryCard({ summary }) {
           </div>
           <div className="min-w-0 flex-1">
             <div className="flex flex-wrap items-center gap-2">
-              <p className={`text-[12px] font-semibold ${tone.title}`}>Package readiness</p>
-              <span className={`rounded-full border px-2 py-0.5 text-[10px] font-bold ${tone.badge}`}>
-                {summary.confidence}
-              </span>
+              <p className={`text-[12px] font-semibold ${tone.title}`}>{outcomeTitle}</p>
+              <span className={`rounded-full border px-2 py-0.5 text-[10px] font-bold ${tone.badge}`}>{badgeText}</span>
             </div>
             <p className={`mt-1 text-[11px] leading-relaxed ${tone.body}`}>{summary.nextAction}</p>
             <div className="mt-2 flex flex-wrap gap-1.5 text-[10px] font-medium">
@@ -114,7 +118,7 @@ export default function PackageSummaryCard({ summary }) {
         {summary.topIssues?.length > 0 && (
           <div className="mt-2 border-t border-white/70 pt-2">
             <p className="mb-1 text-[10px] font-semibold uppercase tracking-[0.08em] text-slate-500">
-              Agent attention list
+              {summary.tone === 'blocked' ? 'Issues to fix' : 'Remaining decisions'}
             </p>
             <div className="space-y-1">
               {summary.topIssues.map((issue, index) => (

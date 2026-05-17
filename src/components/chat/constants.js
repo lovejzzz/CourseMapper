@@ -64,7 +64,7 @@ function buildAdaptiveStarters(courseMap, activeTab, deliverables) {
   ).length;
 
   if (doneFeatureCount > 0 && (!activeTab || activeTab === 'courseMap')) {
-    starters.push({ text: 'Finish and verify my course package', icon: 'search' });
+    starters.push({ text: 'Finish package', icon: 'search' });
   }
 
   // 1. Active-tab-specific starter — prioritize what the user is currently viewing
@@ -205,7 +205,7 @@ export function getChatOpener(
     }
     const starters = buildAdaptiveStarters(courseMap, activeTab, deliverables);
     return {
-      greeting: 'I can edit your course materials directly. Try asking me to:',
+      greeting: 'I can finish, fix, and verify your course materials.',
       starters,
     };
   }
