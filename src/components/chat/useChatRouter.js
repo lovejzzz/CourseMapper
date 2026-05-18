@@ -272,7 +272,7 @@ export default function useChatRouter({
   }
 
   // ── Send message ──────────────────────────────────────────────────────────
-  async function send(text) {
+  async function send(text, options = {}) {
     let trimmed = text.trim();
     if ((!trimmed && attachedFiles.length === 0) || isStreamingRef.current) return;
 
@@ -312,6 +312,7 @@ export default function useChatRouter({
       await sendAgentMessage(trimmed, {
         agentPromptOverride: preparedSend.agentPromptOverride,
         silent: preparedSend.silent,
+        dryRunOverride: options.forceApplyMode ? false : options.dryRunOverride,
       });
     } else if (isGenerating) {
       // Deliverables are being generated — use help mode only (no edits)
@@ -454,7 +455,7 @@ export default function useChatRouter({
   }
 
   // ── Agent mode: multi-step agentic loop (delegated to useToolInvoker) ────
-  async function sendAgentMessage(text, { silent = false, agentPromptOverride = null } = {}) {
+  async function sendAgentMessage(text, { silent = false, agentPromptOverride = null, dryRunOverride = null } = {}) {
     if (!agentProviderReady) {
       appendAgentUnavailableMessage(text, { silent });
       return;
@@ -493,7 +494,7 @@ export default function useChatRouter({
     }
     setStreaming(true);
 
-    await runAgentLoop(fullMessage, { silent, dryRun: agentDryRun }, buildSharedCtx());
+    await runAgentLoop(fullMessage, { silent, dryRun: dryRunOverride ?? agentDryRun }, buildSharedCtx());
   }
 
   // ── Proposal / diff review (delegated to useProposalHandler) ─────────────

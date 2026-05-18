@@ -66,6 +66,7 @@ import { importCourseMap } from './lib/importCourseMap';
 import { parseFiles } from './lib/fileParser';
 import { detectExpectedLessons, detectLessonsWithAI } from './lib/detectLessons';
 import { sanitizeMessagesForPersistence } from './lib/messageSanitizer';
+import { isAgentProviderReady } from './lib/agentAvailability';
 import {
   evaluateWorkspaceReadiness,
   repairCourseMapReadiness,
@@ -357,6 +358,7 @@ export default function AppFlow({ startupAction = null, onStartupHandled, onRetu
 
   // ── AI Context Menu (inline AI editing) ──
   const chatSendRef = useRef(null);
+  const canFinishPackageWithAgent = isAgentProviderReady({ provider, apiKey, apiStatus, modelId });
   const handleAIAction = useCallback((prompt) => {
     // Handle "__FOCUS__" prefix — pre-fill chat with context but let user type
     if (prompt.startsWith('__FOCUS__')) {
@@ -370,6 +372,15 @@ export default function AppFlow({ startupAction = null, onStartupHandled, onRetu
     }
     chatSendRef.current?.(prompt);
   }, []);
+  const handleFinishPackageFromExport = useCallback(
+    async ({ prompt } = {}) => {
+      if (!canFinishPackageWithAgent || !prompt || typeof chatSendRef.current !== 'function') return false;
+      setMobileWorkspaceView('agent');
+      await chatSendRef.current(prompt, { forceApplyMode: true });
+      return true;
+    },
+    [canFinishPackageWithAgent],
+  );
 
   useEffect(() => {
     try {
@@ -2617,6 +2628,8 @@ export default function AppFlow({ startupAction = null, onStartupHandled, onRetu
                   onSaveProject={handleSaveProject}
                   onReadinessIssueClick={focusCourseMapTarget}
                   onAutoRepairReadiness={applyPackageReadinessRepairs}
+                  onFinishPackage={handleFinishPackageFromExport}
+                  canFinishPackage={canFinishPackageWithAgent}
                   packageQualityPass={packageQualityPass}
                 />
               </div>

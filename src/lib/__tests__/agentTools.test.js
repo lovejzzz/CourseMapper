@@ -596,7 +596,8 @@ describe('Tool execute: package readiness', () => {
     expect(result.exportVerification.status).toBe('passed');
     expect(result.modelRouting.currentModel).toBe('gpt-5.4-mini');
     expect(mockCtx.optimisticUpdate).toHaveBeenCalledWith('quizBank', expect.any(Object));
-    expect(mockCtx.deliverables.quizBank.data.quizzes[0].tp).toBe(2);
+    expect(mockCtx.deliverables.quizBank.data.quizzes[0].qs).toHaveLength(5);
+    expect(mockCtx.deliverables.quizBank.data.quizzes[0].tp).toBe(18);
   });
 
   it('returns a repair queue from finalize_package for localized weak sections', async () => {
@@ -685,7 +686,8 @@ describe('Tool execute: package readiness', () => {
     expect(result.applied).toBe(1);
     expect(mockCtx.snapshot).toHaveBeenCalledWith('quizBank', expect.any(Object));
     expect(mockCtx.optimisticUpdate).toHaveBeenCalledWith('quizBank', expect.any(Object));
-    expect(mockCtx.deliverables.quizBank.data.quizzes[0].tp).toBe(2);
+    expect(mockCtx.deliverables.quizBank.data.quizzes[0].qs).toHaveLength(5);
+    expect(mockCtx.deliverables.quizBank.data.quizzes[0].tp).toBe(18);
   });
 
   it('repairs classroom-readiness discussion artifact labels without touching clean deliverables', async () => {

@@ -1201,18 +1201,16 @@ test.describe('Export smoke', () => {
     });
 
     await page.getByTestId('export-scope-all').click();
-    await expect(page.getByTestId('readiness-status')).toContainText('Needs finishing');
-    await expect(page.getByTestId('readiness-panel')).toContainText('Course FAQ');
-    await expect(page.getByTestId('readiness-panel')).toContainText('fewer than 5 questions');
-    await expect(page.getByTestId('export-download-zip')).toBeEnabled();
-    await page.getByTestId('export-download-zip').click();
-    await expect(page.getByTestId('readiness-confirm')).toBeVisible();
-    await expect(page.getByTestId('readiness-confirm')).toContainText('Finish materials before export');
-    await expect(page.getByTestId('readiness-confirm')).not.toContainText('Export anyway');
-    await expect(page.getByTestId('readiness-export-anyway')).toHaveCount(0);
-    await expect(page.getByTestId('export-download-zip')).toBeDisabled();
-    await expect(page.getByTestId('export-download-zip')).toContainText('Resolve issues above');
-    await expect(page.getByTestId('export-notice')).toContainText('Resolve the issues above');
+    await expect(page.getByTestId('readiness-status')).toContainText('Ready to export');
+    await expect(page.getByTestId('readiness-panel')).not.toContainText('fewer than 5 questions');
+
+    const zipDownload = await expectDownload(page, () => page.getByTestId('export-download-zip').click(), {
+      extension: 'zip',
+      nameIncludes: 'Export Smoke Course',
+      minBytes: 1000,
+    });
+    const zip = await JSZip.loadAsync(await fs.readFile(zipDownload.path));
+    expect(zip.file('READINESS_REPORT.txt')).toBeFalsy();
   });
 
   test('auto-fixes missing checklist rubric coverage before ZIP export', async ({ page }) => {
@@ -1341,16 +1339,15 @@ test.describe('Export smoke', () => {
     });
 
     await page.getByTestId('export-scope-all').click();
-    await expect(page.getByTestId('readiness-status')).toContainText('Needs finishing');
-    await expect(page.getByTestId('readiness-panel')).toContainText('Quiz & Exam Bank');
-    await expect(page.getByTestId('readiness-panel')).toContainText('fewer than 5 questions');
+    await expect(page.getByTestId('readiness-status')).toContainText('Ready to export');
+    await expect(page.getByTestId('readiness-panel')).not.toContainText('fewer than 5 questions');
     await expect(page.getByTestId('readiness-panel')).not.toContainText('missing answer guidance');
-    await expect(page.getByTestId('export-download-zip')).toBeEnabled();
-    await page.getByTestId('export-download-zip').click();
-    await expect(page.getByTestId('readiness-confirm')).toBeVisible();
-    await expect(page.getByTestId('readiness-confirm')).not.toContainText('missing answer guidance');
-    await expect(page.getByTestId('readiness-confirm')).toContainText('Finish materials before export');
-    await expect(page.getByTestId('readiness-export-anyway')).toHaveCount(0);
+
+    await expectDownload(page, () => page.getByTestId('export-download-zip').click(), {
+      extension: 'zip',
+      nameIncludes: 'Export Smoke Course',
+      minBytes: 1000,
+    });
   });
 
   test('blocks ZIP export when discussion guidance needs review notes', async ({ page }) => {
@@ -1453,12 +1450,12 @@ test.describe('Export smoke', () => {
     });
 
     await switchWorkspaceTab(page, 'Course FAQ');
-    await expect(page.getByTestId('readiness-status')).toContainText('Needs finishing');
-    await page.getByTestId('export-format-csv').click();
-    await expect(page.getByTestId('readiness-confirm')).toBeVisible();
-    await expect(page.getByTestId('readiness-confirm')).toContainText('Resolve the remaining notes before exporting.');
-    await expect(page.getByTestId('readiness-confirm')).not.toContainText('The ZIP will include a readiness report.');
-    await expect(page.getByTestId('readiness-export-anyway')).toHaveCount(0);
+    await expect(page.getByTestId('readiness-status')).toContainText('Ready to export');
+    await expectDownload(page, () => page.getByTestId('export-format-csv').click(), {
+      extension: 'csv',
+      nameIncludes: 'Export Smoke Course',
+      minBytes: 100,
+    });
   });
 
   test('exports a selected clean lesson without inheriting unselected placeholder blockers', async ({ page }) => {

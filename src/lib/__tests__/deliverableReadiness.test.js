@@ -568,10 +568,12 @@ describe('repairWorkspaceReadiness', () => {
     expect(result.changed).toBe(true);
     expect(result.repairedFeatureIds).toEqual(['quizBank', 'courseFaq']);
     const quiz = result.deliverables.quizBank.data.quizzes[0];
+    expect(quiz.qs).toHaveLength(5);
     expect(quiz.qs[0].ty).toBe('multiple_choice');
     expect(quiz.qs[0].pt).toBe(2);
-    expect(quiz.tp).toBe(2);
+    expect(quiz.tp).toBe(18);
     expect(quiz.qs[0].ex).toContain('correct answer');
+    expect(quiz.qs[4].iu).toContain('Retrieval practice');
     const faqQuestions = result.deliverables.courseFaq.data.faqs[0].qs;
     expect(faqQuestions).toHaveLength(3);
     expect(faqQuestions[0].ca).toBe('Technical Help');

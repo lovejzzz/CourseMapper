@@ -9,6 +9,7 @@ import {
   normalizeDiscussionPromptFields,
   normalizeLessonPlanPublishability,
   normalizeQuizBankIndex,
+  normalizeQuizBankQuestionCounts,
   normalizeQuizBankPointTotals,
   normalizeQuizBankPublishability,
   normalizeQuizBankQuestions,
@@ -101,6 +102,27 @@ describe('Course FAQ post-processing', () => {
     expect(result.data.faqs[0].qs).toHaveLength(5);
     expect(result.data.faqs[0].questions).toBeUndefined();
     expect(result.data.faqs[1].qs).toHaveLength(4);
+  });
+
+  it('fills underfilled FAQ lessons from the course map when repairing for export', () => {
+    const data = {
+      faqs: [
+        {
+          lessonTitle: 'Lesson 1: Foundations of Research Design',
+          questions: [
+            { question: 'What is evidence?', answer: 'Evidence supports claims.', category: 'Concept Explanation' },
+            { question: 'How do I prepare?', answer: 'Review the objectives.', category: 'Assessment Prep' },
+          ],
+        },
+      ],
+    };
+
+    const result = normalizeCourseFaqQuestionCounts(data, {}, faqCourseMap);
+
+    expect(result.addedQuestions).toBe(3);
+    expect(result.underfilledIndices).toEqual([]);
+    expect(result.data.faqs[0].questions).toHaveLength(5);
+    expect(result.data.faqs[0].questions[4].category).toBeTruthy();
   });
 
   it('repairs prose-style FAQ categories to supported labels', () => {
@@ -550,6 +572,31 @@ describe('Quiz Bank post-processing', () => {
     expect(result.data.bankIndex[0].id).toBe(question.id);
   });
 
+  it('fills underfilled quiz lessons with formative retrieval questions', () => {
+    const data = {
+      quizzes: [
+        {
+          lessonTitle: 'Lesson 5: Survey Methods',
+          questions: [
+            {
+              question: 'What is a sampling frame?',
+              type: 'short_answer',
+              difficulty: 'Easy',
+              estimatedMinutes: 3,
+            },
+          ],
+        },
+      ],
+    };
+
+    const result = normalizeQuizBankQuestionCounts(data);
+
+    expect(result.addedQuestions).toBe(4);
+    expect(result.data.quizzes[0].questions).toHaveLength(5);
+    expect(result.data.quizzes[0].questions[4].intendedUse).toContain('Retrieval practice');
+    expect(result.data.quizzes[0].totalQuestions).toBe(5);
+  });
+
   it('repairs quiz point totals and emits a point-plan math check', () => {
     const data = {
       quizzes: [
@@ -947,6 +994,20 @@ describe('Rubric and assignment post-processing', () => {
     expect(result.newTotal).toBe(100);
     expect(result.data.assignments.map((assignment) => assignment.pg)).toEqual(['30%', '33%', '37%']);
   });
+
+  it('normalizes verbose assignment weight fields to exactly 100%', () => {
+    const result = normalizeAssignmentGradeWeights({
+      assignments: [
+        { title: 'Proposal', weight: '2%' },
+        { title: 'Analysis Brief', weight: '2%' },
+        { title: 'Final Presentation', weight: '3%' },
+      ],
+    });
+
+    expect(result.normalizedGradeWeights).toBe(true);
+    expect(result.newTotal).toBe(100);
+    expect(result.data.assignments.map((assignment) => assignment.weight)).toEqual(['29%', '28%', '43%']);
+  });
 });
 
 describe('Slide Deck post-processing', () => {
@@ -980,6 +1041,28 @@ describe('Slide Deck post-processing', () => {
     expect(result.data.decks[0].slides[0].notes.split(/\s+/).length).toBeGreaterThan(40);
     expect(result.data.decks[0].slides[1].notes).toBe(data.decks[0].slides[1].notes);
     expect(result.data.decks[0].totalSlides).toBe(2);
+  });
+
+  it('adds an activity cue when a slide deck has no interactive check', () => {
+    const data = {
+      decks: [
+        {
+          lessonTitle: 'Lesson 1: Research Questions',
+          slides: [
+            {
+              title: 'Research questions',
+              bullets: ['Focused questions clarify evidence.'],
+              notes: 'Long enough notes for teaching this slide with clear context and examples.',
+            },
+          ],
+        },
+      ],
+    };
+
+    const result = normalizeSlideDeckAccessibility(data);
+
+    expect(result.addedActivityPrompts).toBe(1);
+    expect(result.data.decks[0].slides[0].bullets.join(' ')).toContain('Concept check activity');
   });
 
   it('fills compact slide speaker notes without expanding the slide array or note key', () => {
@@ -1103,10 +1186,31 @@ describe('Study guide post-processing', () => {
     const result = normalizeStudyGuideQuestions(data);
 
     expect(result.splitCombinedQuestions).toBe(1);
-    expect(result.data.guides[0].rq).toHaveLength(2);
+    expect(result.data.guides[0].rq).toHaveLength(3);
     expect(result.data.guides[0].rq[0].q2).toBeUndefined();
     expect(result.data.guides[0].rq[1].q).toBe('How would you improve a vague question?');
     expect(result.data.guides[0].rq[1].bl).toBe('Apply');
+  });
+
+  it('adds retrieval questions and key terms to thin study guides', () => {
+    const data = {
+      guides: [
+        {
+          lt: 'Lesson 4: Evidence Appraisal',
+          rq: [],
+          kt: ['evidence'],
+        },
+      ],
+    };
+
+    const result = normalizeStudyGuideQuestions(data);
+
+    expect(result.addedReviewQuestions).toBe(3);
+    expect(result.addedKeyTerms).toBeGreaterThan(0);
+    expect(result.addedRetrievalPrompts).toBe(1);
+    expect(result.data.guides[0].rq).toHaveLength(3);
+    expect(result.data.guides[0].kt.length).toBeGreaterThanOrEqual(3);
+    expect(result.data.guides[0].rp).toContain('Retrieval practice');
   });
 
   it('expands bare resource fragments into complete study support guidance', () => {

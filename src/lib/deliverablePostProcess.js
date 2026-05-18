@@ -114,36 +114,75 @@ export function getCourseFaqQuestionTarget(config = {}) {
   return Math.max(3, Math.min(8, Math.round(raw)));
 }
 
-export function normalizeCourseFaqQuestionCounts(data, config = {}) {
+function getCourseLesson(courseMap, index) {
+  return Array.isArray(courseMap?.lessons) ? courseMap.lessons[index] || null : null;
+}
+
+function asVerboseFaqQuestion(question) {
+  return {
+    question: question.q,
+    answer: question.an,
+    category: question.ca,
+    relatedConcepts: question.rc,
+    difficulty: question.df,
+  };
+}
+
+export function normalizeCourseFaqQuestionCounts(data, config = {}, courseMap = null) {
   const arrayKey = getArrayKey('courseFaq', data) || (data?.faqs ? 'faqs' : data?.courseFaq ? 'courseFaq' : null);
   const lessons = arrayKey ? data?.[arrayKey] : null;
   const target = getCourseFaqQuestionTarget(config);
 
   if (!Array.isArray(lessons) || lessons.length === 0) {
-    return { data, arrayKey, target, trimmedQuestions: 0, underfilledIndices: [] };
+    return { data, arrayKey, target, trimmedQuestions: 0, addedQuestions: 0, underfilledIndices: [] };
   }
 
   let trimmedQuestions = 0;
+  let addedQuestions = 0;
   const underfilledIndices = [];
   const nextLessons = lessons.map((lesson, index) => {
-    const questionKey = Array.isArray(lesson?.questions) ? 'questions' : Array.isArray(lesson?.qs) ? 'qs' : null;
-    const questions = questionKey ? lesson[questionKey] : [];
+    const questionKey = Array.isArray(lesson?.questions)
+      ? 'questions'
+      : Array.isArray(lesson?.qs)
+        ? 'qs'
+        : lesson?.qs !== undefined
+          ? 'qs'
+          : 'questions';
+    const questions = Array.isArray(lesson?.[questionKey]) ? lesson[questionKey] : [];
     if (questions.length > target) {
       trimmedQuestions += questions.length - target;
       return { ...lesson, [questionKey]: questions.slice(0, target) };
     }
-    if (questions.length > 0 && questions.length < target) {
+    if (questions.length < target) {
+      const courseLesson = getCourseLesson(courseMap, index);
+      if (courseLesson) {
+        const rawTitle = lesson?.lessonTitle || lesson?.lt || courseLesson.title || `Lesson ${index + 1}`;
+        const shortTitle = stripLessonPrefix(rawTitle) || `Lesson ${index + 1}`;
+        const fallbackQuestions = buildFallbackFaqQuestions({
+          lesson: courseLesson,
+          title: rawTitle,
+          shortTitle,
+          target,
+        });
+        const additions = fallbackQuestions.slice(questions.length, target);
+        if (additions.length > 0) {
+          addedQuestions += additions.length;
+          const normalizedAdditions = questionKey === 'questions' ? additions.map(asVerboseFaqQuestion) : additions;
+          return { ...lesson, [questionKey]: [...questions, ...normalizedAdditions] };
+        }
+      }
       underfilledIndices.push(index);
     }
     return lesson;
   });
 
-  const changed = trimmedQuestions > 0;
+  const changed = trimmedQuestions > 0 || addedQuestions > 0;
   return {
     data: changed ? { ...data, [arrayKey]: nextLessons } : data,
     arrayKey,
     target,
     trimmedQuestions,
+    addedQuestions,
     underfilledIndices,
   };
 }
@@ -507,6 +546,62 @@ function buildQuizObjective(quiz, question) {
   return `Use ${lessonTitle || 'the lesson'} concepts to ${bloom} the scenario, choose defensible evidence, and explain the method decision.`;
 }
 
+function buildFallbackQuizQuestion(quiz, questionIndex, compact = false) {
+  const lessonTitle = String(quiz?.lessonTitle || quiz?.lt || 'this lesson')
+    .replace(/^Lesson\s+\d+:\s*/i, '')
+    .trim();
+  const focus = lessonTitle || 'the lesson concept';
+  const prompts = [
+    `Apply ${focus} to a brief course scenario. What decision would you make, and what evidence supports it?`,
+    `Identify one likely misconception about ${focus}, then explain how you would correct it using course evidence.`,
+    `Compare two possible interpretations of ${focus}. Which is stronger, and what limitation should be named?`,
+    `Use ${focus} to explain a current example, case, or student-facing problem from the lesson.`,
+    `What evidence would show that a student can transfer ${focus} to a new context?`,
+  ];
+  const answers = [
+    `A strong answer names the relevant concept, applies it to the scenario, cites concrete lesson evidence, and explains why that evidence supports the decision.`,
+    `A strong answer identifies the misconception, states the accurate concept, and gives a targeted correction strategy grounded in the lesson materials.`,
+    `A strong answer compares both interpretations, selects the better-supported one, and names at least one limitation or uncertainty.`,
+    `A strong answer connects the concept to a specific example and explains the reasoning rather than only defining the term.`,
+    `A strong answer describes observable evidence of transfer, such as accurate concept use, justified method choices, and explanation in a new example.`,
+  ];
+  const bloom = questionIndex % 3 === 0 ? 'Apply' : questionIndex % 3 === 1 ? 'Analyze' : 'Evaluate';
+  const difficulty = questionIndex % 2 === 0 ? 'Medium' : 'Hard';
+  const prompt = prompts[questionIndex % prompts.length];
+  const answer = answers[questionIndex % answers.length];
+  const explanation = `Use this as retrieval practice after ${focus}. The response should include a claim, lesson evidence, and reasoning that connects the evidence to the prompt.`;
+
+  if (compact) {
+    return {
+      q: prompt,
+      ty: 'short_answer',
+      df: difficulty,
+      em: 4,
+      bl: bloom,
+      an: answer,
+      ex: explanation,
+      pt: 4,
+      oa: `Apply and explain ${focus} with evidence.`,
+      iu: `Retrieval practice and formative check after ${focus}.`,
+      tg: [focus, 'retrieval practice', bloom],
+    };
+  }
+
+  return {
+    question: prompt,
+    type: 'short_answer',
+    difficulty,
+    estimatedMinutes: 4,
+    bloomsLevel: bloom,
+    answer,
+    explanation,
+    points: 4,
+    objectiveAligned: `Apply and explain ${focus} with evidence.`,
+    intendedUse: `Retrieval practice and formative check after ${focus}.`,
+    tags: [focus, 'retrieval practice', bloom],
+  };
+}
+
 function normalizeQuizType(question = {}) {
   const raw = String(question.type || question.ty || '')
     .trim()
@@ -634,11 +729,17 @@ export function normalizeQuizBankQuestions(data) {
   let patchedBloomCoverages = 0;
 
   const nextQuizzes = quizzes.map((quiz) => {
-    const questionKey = Array.isArray(quiz?.questions) ? 'questions' : Array.isArray(quiz?.qs) ? 'qs' : null;
-    if (!questionKey) return quiz;
+    const questionKey = Array.isArray(quiz?.questions)
+      ? 'questions'
+      : Array.isArray(quiz?.qs)
+        ? 'qs'
+        : quiz?.qs !== undefined
+          ? 'qs'
+          : 'questions';
 
     let quizChanged = false;
-    const questions = quiz[questionKey].map((question) => {
+    const sourceQuestions = Array.isArray(quiz?.[questionKey]) ? quiz[questionKey] : [];
+    const questions = sourceQuestions.map((question) => {
       const nextQuestion = { ...question };
 
       const typeKey = nextQuestion.type !== undefined ? 'type' : nextQuestion.ty !== undefined ? 'ty' : 'type';
@@ -732,6 +833,50 @@ export function normalizeQuizBankQuestions(data) {
     patchedBloomLevels,
     patchedTotals,
     patchedBloomCoverages,
+  };
+}
+
+export function normalizeQuizBankQuestionCounts(data, minimumQuestions = 5) {
+  const arrayKey = getArrayKey('quizBank', data) || (data?.quizzes ? 'quizzes' : data?.quizBank ? 'quizBank' : null);
+  const quizzes = arrayKey ? data?.[arrayKey] : null;
+  const target = Math.max(1, Number(minimumQuestions) || 5);
+
+  if (!Array.isArray(quizzes) || quizzes.length === 0) {
+    return { data, arrayKey, target, addedQuestions: 0 };
+  }
+
+  let addedQuestions = 0;
+  const nextQuizzes = quizzes.map((quiz) => {
+    const questionKey = Array.isArray(quiz?.questions)
+      ? 'questions'
+      : Array.isArray(quiz?.qs)
+        ? 'qs'
+        : quiz?.qs !== undefined
+          ? 'qs'
+          : 'questions';
+    const compact = questionKey === 'qs';
+    let questions = Array.isArray(quiz?.[questionKey]) ? quiz[questionKey] : [];
+    if (questions.length >= target) return quiz;
+
+    while (questions.length < target) {
+      questions = [...questions, buildFallbackQuizQuestion(quiz, questions.length, compact)];
+      addedQuestions++;
+    }
+
+    const totalKey =
+      quiz.totalQuestions !== undefined
+        ? 'totalQuestions'
+        : quiz.tq !== undefined || questionKey === 'qs'
+          ? 'tq'
+          : 'totalQuestions';
+    return { ...quiz, [questionKey]: questions, [totalKey]: questions.length };
+  });
+
+  return {
+    data: addedQuestions > 0 ? { ...data, [arrayKey]: nextQuizzes } : data,
+    arrayKey,
+    target,
+    addedQuestions,
   };
 }
 
@@ -1645,7 +1790,11 @@ export function normalizeAssignmentGradeWeights(data) {
     return { data, arrayKey, normalizedGradeWeights: false, previousTotal: 0, newTotal: 0 };
   }
 
-  const values = assignments.map((assignment) => getPercentValue(assignment?.percentOfGrade ?? assignment?.pg));
+  const weightKeys = ['percentOfGrade', 'pg', 'weight', 'wt', 'percent', 'percentage'];
+  const values = assignments.map((assignment) => {
+    const key = weightKeys.find((candidate) => assignment?.[candidate] !== undefined);
+    return getPercentValue(key ? assignment[key] : null);
+  });
   const previousTotal = values.reduce((sum, value) => sum + value, 0);
   if (previousTotal <= 0 || Math.abs(previousTotal - 100) <= 2) {
     return { data, arrayKey, normalizedGradeWeights: false, previousTotal, newTotal: previousTotal };
@@ -1653,8 +1802,7 @@ export function normalizeAssignmentGradeWeights(data) {
 
   const normalized = distributePercentWeights(values);
   const nextAssignments = assignments.map((assignment, index) => {
-    const weightKey =
-      assignment?.percentOfGrade !== undefined ? 'percentOfGrade' : assignment?.pg !== undefined ? 'pg' : 'pg';
+    const weightKey = weightKeys.find((candidate) => assignment?.[candidate] !== undefined) || 'pg';
     return { ...assignment, [weightKey]: `${normalized[index]}%` };
   });
 
@@ -1805,12 +1953,20 @@ export function normalizeSlideDeckAccessibility(data) {
   const decks = arrayKey ? data?.[arrayKey] : null;
 
   if (!Array.isArray(decks) || decks.length === 0) {
-    return { data, arrayKey, patchedAltText: 0, patchedDuePlaceholders: 0, addedSequenceGuides: 0 };
+    return {
+      data,
+      arrayKey,
+      patchedAltText: 0,
+      patchedDuePlaceholders: 0,
+      addedSequenceGuides: 0,
+      addedActivityPrompts: 0,
+    };
   }
 
   let patchedAltText = 0;
   let patchedDuePlaceholders = 0;
   let addedSequenceGuides = 0;
+  let addedActivityPrompts = 0;
   const nextDecks = decks.map((deck) => {
     const slideKey = Array.isArray(deck?.slides) ? 'slides' : Array.isArray(deck?.sl) ? 'sl' : null;
     if (!slideKey) return deck;
@@ -1862,6 +2018,27 @@ export function normalizeSlideDeckAccessibility(data) {
       return nextSlide;
     });
 
+    const hasActivityCue = slides.some((slide) =>
+      /\b(activity|discussion|practice|check for understanding|concept check|debrief|reflection|poll|case|scenario)\b/i.test(
+        JSON.stringify(slide || {}),
+      ),
+    );
+    if (!hasActivityCue && slides.length > 0) {
+      const lastIndex = slides.length - 1;
+      const lastSlide = slides[lastIndex];
+      const bulletKey = Array.isArray(lastSlide?.bullets) ? 'bullets' : Array.isArray(lastSlide?.bu) ? 'bu' : 'bullets';
+      const bullets = Array.isArray(lastSlide?.[bulletKey]) ? lastSlide[bulletKey] : [];
+      slides[lastIndex] = {
+        ...lastSlide,
+        [bulletKey]: [
+          ...bullets,
+          'Concept check activity: students apply the main idea to a brief example, then debrief the evidence used.',
+        ],
+      };
+      addedActivityPrompts++;
+      deckChanged = true;
+    }
+
     const guideKey = deck.slideDeckSequenceGuide !== undefined ? 'slideDeckSequenceGuide' : 'slideDeckSequenceGuide';
     const needsGuide = !deck[guideKey] || typeof deck[guideKey] !== 'object';
     if (needsGuide) {
@@ -1889,13 +2066,14 @@ export function normalizeSlideDeckAccessibility(data) {
 
   return {
     data:
-      patchedAltText > 0 || patchedDuePlaceholders > 0 || addedSequenceGuides > 0
+      patchedAltText > 0 || patchedDuePlaceholders > 0 || addedSequenceGuides > 0 || addedActivityPrompts > 0
         ? { ...data, [arrayKey]: nextDecks }
         : data,
     arrayKey,
     patchedAltText,
     patchedDuePlaceholders,
     addedSequenceGuides,
+    addedActivityPrompts,
   };
 }
 
@@ -1905,22 +2083,35 @@ export function normalizeStudyGuideQuestions(data) {
   const guides = arrayKey ? data?.[arrayKey] : null;
 
   if (!Array.isArray(guides) || guides.length === 0) {
-    return { data, arrayKey, splitCombinedQuestions: 0, deduplicatedQuestions: 0 };
+    return {
+      data,
+      arrayKey,
+      splitCombinedQuestions: 0,
+      deduplicatedQuestions: 0,
+      addedReviewQuestions: 0,
+      addedKeyTerms: 0,
+      addedRetrievalPrompts: 0,
+    };
   }
 
   let splitCombinedQuestions = 0;
   let deduplicatedQuestions = 0;
+  let addedReviewQuestions = 0;
+  let addedKeyTerms = 0;
+  let addedRetrievalPrompts = 0;
   const nextGuides = guides.map((guide) => {
     const questionKey = Array.isArray(guide?.reviewQuestions)
       ? 'reviewQuestions'
       : Array.isArray(guide?.rq)
         ? 'rq'
-        : null;
-    if (!questionKey) return guide;
+        : guide?.rq !== undefined || guide?.lt !== undefined
+          ? 'rq'
+          : 'reviewQuestions';
     let changed = false;
     let questions = [];
 
-    guide[questionKey].forEach((question) => {
+    const sourceQuestions = Array.isArray(guide?.[questionKey]) ? guide[questionKey] : [];
+    sourceQuestions.forEach((question) => {
       if (!question || typeof question !== 'object' || Array.isArray(question)) {
         questions.push(question);
         return;
@@ -2001,14 +2192,84 @@ export function normalizeStudyGuideQuestions(data) {
       };
     });
 
-    return changed ? { ...guide, [questionKey]: questions } : guide;
+    while (questions.length < 3) {
+      const usesCompact = questionKey === 'rq';
+      const questionIndex = questions.length;
+      questions.push(
+        usesCompact
+          ? {
+              q: buildReplacementReviewQuestion(guide, questionIndex),
+              bl: questionIndex === 0 ? 'Apply' : 'Analyze',
+              ht: 'Answer from memory first, then check the guide and revise with one piece of evidence.',
+            }
+          : {
+              question: buildReplacementReviewQuestion(guide, questionIndex),
+              bloomsLevel: questionIndex === 0 ? 'Apply' : 'Analyze',
+              hint: 'Answer from memory first, then check the guide and revise with one piece of evidence.',
+            },
+      );
+      addedReviewQuestions++;
+      changed = true;
+    }
+
+    let nextGuide = changed ? { ...guide, [questionKey]: questions } : guide;
+    const termKey = Array.isArray(nextGuide?.keyTerms)
+      ? 'keyTerms'
+      : Array.isArray(nextGuide?.kt)
+        ? 'kt'
+        : questionKey === 'rq'
+          ? 'kt'
+          : 'keyTerms';
+    const existingTerms = Array.isArray(nextGuide?.[termKey]) ? nextGuide[termKey] : [];
+    if (existingTerms.length < 3) {
+      const titleWords = String(nextGuide?.lessonTitle || nextGuide?.lt || 'lesson evidence transfer')
+        .replace(/^Lesson\s+\d+:\s*/i, '')
+        .replace(/[^A-Za-z0-9\s-]/g, ' ')
+        .split(/\s+/)
+        .map((word) => word.trim())
+        .filter((word) => word.length >= 4)
+        .slice(0, 4);
+      const nextTerms = [...new Set([...existingTerms, ...titleWords, 'evidence', 'application', 'transfer'])].slice(
+        0,
+        6,
+      );
+      addedKeyTerms += Math.max(0, nextTerms.length - existingTerms.length);
+      nextGuide = { ...nextGuide, [termKey]: nextTerms };
+    }
+
+    const retrievalText = JSON.stringify(nextGuide || {});
+    if (
+      !/\b(review question|self-check|practice question|key term|retrieval|concept check|study strategy)\b/i.test(
+        retrievalText,
+      )
+    ) {
+      const retrievalKey = questionKey === 'rq' ? 'rp' : 'retrievalPractice';
+      nextGuide = {
+        ...nextGuide,
+        [retrievalKey]:
+          'Retrieval practice: close the guide, answer the self-check questions from memory, then reopen the guide and correct your answer with one specific piece of lesson evidence.',
+      };
+      addedRetrievalPrompts++;
+    }
+
+    return nextGuide !== guide ? nextGuide : guide;
   });
 
   return {
-    data: splitCombinedQuestions > 0 || deduplicatedQuestions > 0 ? { ...data, [arrayKey]: nextGuides } : data,
+    data:
+      splitCombinedQuestions > 0 ||
+      deduplicatedQuestions > 0 ||
+      addedReviewQuestions > 0 ||
+      addedKeyTerms > 0 ||
+      addedRetrievalPrompts > 0
+        ? { ...data, [arrayKey]: nextGuides }
+        : data,
     arrayKey,
     splitCombinedQuestions,
     deduplicatedQuestions,
+    addedReviewQuestions,
+    addedKeyTerms,
+    addedRetrievalPrompts,
   };
 }
 

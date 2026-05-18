@@ -292,7 +292,10 @@ function formatReadinessIssue(issue) {
   return `${issue.label}: ${message}`;
 }
 
-function evaluateStrictReadiness(options = {}, { includeClassroomReadiness = false } = {}) {
+function evaluateStrictReadiness(
+  options = {},
+  { includeClassroomReadiness = false, blockOnClassroomWarnings = false } = {},
+) {
   const packageReadiness = evaluateWorkspaceReadiness(options);
   const classroomReadiness = includeClassroomReadiness
     ? evaluateClassroomReadiness({
@@ -304,7 +307,11 @@ function evaluateStrictReadiness(options = {}, { includeClassroomReadiness = fal
     : { issues: [] };
   const issuesByKey = new Map();
 
-  [...(packageReadiness.issues || []), ...(classroomReadiness.issues || [])].forEach((issue) => {
+  const classroomIssues = blockOnClassroomWarnings
+    ? classroomReadiness.issues || []
+    : (classroomReadiness.issues || []).filter((issue) => issue.severity === 'blocker');
+
+  [...(packageReadiness.issues || []), ...classroomIssues].forEach((issue) => {
     const key = `${issue.severity}:${issue.featureId}:${issue.message}`;
     if (!issuesByKey.has(key)) issuesByKey.set(key, issue);
   });
@@ -405,7 +412,15 @@ function ReadinessPanel({ readiness, onIssueClick }) {
   );
 }
 
-function ReadinessConfirm({ pendingExport, onCancel, onIssueClick, confirmRef }) {
+function ReadinessConfirm({
+  pendingExport,
+  onCancel,
+  onIssueClick,
+  onFinishPackage,
+  canFinishPackage,
+  finishPackageBusy,
+  confirmRef,
+}) {
   if (!pendingExport?.readiness) return null;
   const { readiness } = pendingExport;
   const isBlocked = readiness.blockers.length > 0;
@@ -469,25 +484,37 @@ function ReadinessConfirm({ pendingExport, onCancel, onIssueClick, confirmRef })
         </p>
       )}
       <div className="mt-2 grid grid-cols-1 gap-1.5">
-        <button
-          type="button"
-          data-testid="readiness-review-materials"
-          onClick={() => {
-            if (firstNavigableIssue && typeof onIssueClick === 'function') {
-              onIssueClick(firstNavigableIssue);
-            }
-            onCancel();
-          }}
-          className={`rounded-lg border bg-white/70 px-2 py-1.5 text-[10px] font-bold hover:bg-white ${tone.reviewButton}`}
-        >
-          Review materials
-        </button>
+        {canFinishPackage ? (
+          <button
+            type="button"
+            data-testid="readiness-finish-package"
+            onClick={() => onFinishPackage?.(pendingExport.format, readiness, pendingExport.scope)}
+            disabled={finishPackageBusy}
+            className={`rounded-lg border bg-white/70 px-2 py-1.5 text-[10px] font-bold hover:bg-white disabled:cursor-not-allowed disabled:opacity-60 ${tone.reviewButton}`}
+          >
+            {finishPackageBusy ? 'Finishing package...' : 'Finish package'}
+          </button>
+        ) : firstNavigableIssue ? (
+          <button
+            type="button"
+            data-testid="readiness-review-materials"
+            onClick={() => {
+              if (typeof onIssueClick === 'function') {
+                onIssueClick(firstNavigableIssue);
+              }
+              onCancel();
+            }}
+            className={`rounded-lg border bg-white/70 px-2 py-1.5 text-[10px] font-bold hover:bg-white ${tone.reviewButton}`}
+          >
+            Show first issue
+          </button>
+        ) : null}
       </div>
     </div>
   );
 }
 
-function ReadinessFinalizingPanel() {
+function ReadinessFinalizingPanel({ finishingPackage = false }) {
   return (
     <div className="rounded-xl border border-indigo-100 bg-indigo-50/70 px-3 py-2.5 text-indigo-700">
       <div className="flex items-start gap-2">
@@ -497,7 +524,9 @@ function ReadinessFinalizingPanel() {
         <div className="min-w-0 flex-1">
           <p className="text-[11px] font-bold">Finalizing materials</p>
           <p className="mt-0.5 text-[10px] leading-snug opacity-80">
-            Fixing readiness issues automatically before showing the export package.
+            {finishingPackage
+              ? 'The agent is fixing and re-checking the package so the download can start cleanly.'
+              : 'Fixing readiness issues automatically before showing the export package.'}
           </p>
         </div>
       </div>
@@ -597,6 +626,8 @@ export default function ExportSidePanel({
   onSaveProject, // save full session as .coursemapper
   onReadinessIssueClick,
   onAutoRepairReadiness,
+  onFinishPackage,
+  canFinishPackage = false,
   packageQualityPass,
 }) {
   const { courseMap, columns, selectedFeatures, slideTheme } = useCourse();
@@ -607,6 +638,8 @@ export default function ExportSidePanel({
   const [lastNotice, setLastNotice] = useState('');
   const [pendingReadinessExport, setPendingReadinessExport] = useState(null);
   const [autoRepairingReadiness, setAutoRepairingReadiness] = useState(false);
+  const [finishPackageBusy, setFinishPackageBusy] = useState(false);
+  const [autoExportRequest, setAutoExportRequest] = useState(null);
   const [readinessRepairAttempts, setReadinessRepairAttempts] = useState(() => new Set());
   const readinessConfirmRef = useRef(null);
   const isPackageQualityRunning = packageQualityPass?.status === 'running';
@@ -690,7 +723,8 @@ export default function ExportSidePanel({
     typeof onAutoRepairReadiness === 'function' &&
     Boolean(readinessIssueSignature) &&
     !readinessRepairAttempts.has(readinessIssueSignature);
-  const showReadinessFinalizing = canAutoRepairReadiness || autoRepairingReadiness || isPackageQualityRunning;
+  const showReadinessFinalizing =
+    canAutoRepairReadiness || autoRepairingReadiness || isPackageQualityRunning || finishPackageBusy;
 
   useEffect(() => {
     if (!pendingReadinessExport) return;
@@ -757,6 +791,78 @@ export default function ExportSidePanel({
     setPendingReadinessExport(null);
     setLastNotice('');
   }
+
+  function buildFinishPackagePrompt(format, readiness, exportScope) {
+    const issues = (readiness?.issues || [])
+      .slice(0, 10)
+      .map((issue, index) => `${index + 1}. ${formatReadinessIssue(issue)}`)
+      .join('\n');
+    const exportLabel = format === 'zip' ? 'the full ZIP package' : `the ${format} export`;
+    const scopeLabel = exportScope === 'all' ? 'all selected deliverables' : tabLabel;
+    return [
+      `Finish this course package so I can export ${exportLabel}.`,
+      `Scope: ${scopeLabel}.`,
+      'Switch to active fixing if needed. Apply safe deterministic and concrete content fixes directly.',
+      'Run finalize_package first. If localized weak sections remain, call retry_package_weak_spots, then finalize_package again.',
+      'Fix concrete export blockers such as assignment weights, missing rubrics, underfilled quiz or FAQ sections, unsupported FAQ categories, thin study guides, and weak slide activities.',
+      'Do not stop at a read-only review. Only ask me for decisions that require instructor judgment.',
+      'When the package is clean, say Ready to export.',
+      issues ? `Current export issues:\n${issues}` : '',
+    ]
+      .filter(Boolean)
+      .join('\n');
+  }
+
+  async function finishPackageForExport(format = 'zip', readiness = activeReadiness, exportScope = scope) {
+    if (!canFinishPackage || typeof onFinishPackage !== 'function') return false;
+
+    setPendingReadinessExport(null);
+    setLastError('');
+    setLastOk('');
+    setLastNotice('Finishing the package. The download will start automatically if the checks come back clean.');
+    setFinishPackageBusy(true);
+    if (format === 'zip') {
+      setAutoExportRequest({ format, scope: exportScope, requestedAt: Date.now() });
+    }
+
+    try {
+      const started = await onFinishPackage({
+        prompt: buildFinishPackagePrompt(format, readiness, exportScope),
+        format,
+        scope: exportScope,
+        readiness,
+      });
+      if (started === false) {
+        setAutoExportRequest(null);
+        setLastNotice('Configure AI to let the agent finish the package automatically.');
+        return false;
+      }
+      return true;
+    } catch (err) {
+      setAutoExportRequest(null);
+      setLastError(err?.message || 'Could not start package finishing.');
+      return false;
+    } finally {
+      setFinishPackageBusy(false);
+    }
+  }
+
+  useEffect(() => {
+    if (!autoExportRequest || finishPackageBusy || isPackageQualityRunning || busy) return;
+    const exportReadiness = getReadinessSnapshot({ exportScope: autoExportRequest.scope });
+    if (exportReadiness.blockers.length === 0 && exportReadiness.warnings.length === 0) {
+      const request = autoExportRequest;
+      setAutoExportRequest(null);
+      doExport(request.format, { pendingExport: { scope: request.scope } });
+      return;
+    }
+
+    if (!finishPackageBusy) {
+      setAutoExportRequest(null);
+      setLastNotice('The package still needs a decision before export. Review the remaining issue list above.');
+    }
+    // getReadinessSnapshot and doExport are function declarations below; keep this effect tied to state/props.
+  }, [autoExportRequest, busy, courseMap, deliverables, finishPackageBusy, isPackageQualityRunning]); // eslint-disable-line react-hooks/exhaustive-deps
 
   async function doExport(format, { pendingExport = null } = {}) {
     if (isPackageQualityRunning) {
@@ -936,6 +1042,15 @@ export default function ExportSidePanel({
 
   const allSelected = selectedLessons === null;
   const selectedCount = selectedLessons === null ? allLessons.length : selectedLessons.length;
+  const activeHasReadinessIssues = activeReadiness.blockers.length > 0 || activeReadiness.warnings.length > 0;
+  const zipCanFinishPackage = scope === 'all' && activeHasReadinessIssues && canFinishPackage;
+  const zipButtonLabel = finishPackageBusy
+    ? 'Finishing package'
+    : zipCanFinishPackage
+      ? 'Finish and download ZIP'
+      : zipPendingReadiness
+        ? 'Resolve issues above'
+        : 'Download ZIP';
 
   return (
     <div
@@ -998,7 +1113,7 @@ export default function ExportSidePanel({
         </p>
 
         {showReadinessFinalizing ? (
-          <ReadinessFinalizingPanel />
+          <ReadinessFinalizingPanel finishingPackage={finishPackageBusy} />
         ) : (
           <ReadinessPanel readiness={activeReadiness} onIssueClick={onReadinessIssueClick} />
         )}
@@ -1007,6 +1122,9 @@ export default function ExportSidePanel({
           pendingExport={pendingReadinessExport}
           onCancel={clearPendingReadinessExport}
           onIssueClick={onReadinessIssueClick}
+          onFinishPackage={finishPackageForExport}
+          canFinishPackage={canFinishPackage}
+          finishPackageBusy={finishPackageBusy}
           confirmRef={readinessConfirmRef}
         />
 
@@ -1073,25 +1191,36 @@ export default function ExportSidePanel({
               <p className="text-[9px] font-bold text-slate-400 uppercase tracking-wider mb-1.5">Download</p>
               <button
                 data-testid="export-download-zip"
-                onClick={() => doExport('zip')}
+                onClick={() => {
+                  if (zipCanFinishPackage) {
+                    finishPackageForExport('zip', activeReadiness, 'all');
+                    return;
+                  }
+                  doExport('zip');
+                }}
                 disabled={
                   !!busy ||
                   isPackageQualityRunning ||
-                  zipPendingReadiness ||
+                  finishPackageBusy ||
+                  (zipPendingReadiness && !canFinishPackage) ||
                   allReadyCount === 0 ||
                   !courseMap ||
                   (selectedLessons !== null && selectedLessons.length === 0)
                 }
                 title={
-                  zipPendingReadiness
-                    ? 'Resolve the readiness issues above before downloading'
-                    : isPackageQualityRunning
-                      ? 'Final quality pass is finishing'
-                      : !courseMap
-                        ? 'Course map is required for ZIP export'
-                        : selectedLessons !== null && selectedLessons.length === 0
-                          ? 'Select at least one lesson'
-                          : undefined
+                  finishPackageBusy
+                    ? 'The agent is finishing this package'
+                    : zipCanFinishPackage
+                      ? 'Fix remaining issues, re-check, and download when clean'
+                      : zipPendingReadiness
+                        ? 'Resolve the readiness issues above before downloading'
+                        : isPackageQualityRunning
+                          ? 'Final quality pass is finishing'
+                          : !courseMap
+                            ? 'Course map is required for ZIP export'
+                            : selectedLessons !== null && selectedLessons.length === 0
+                              ? 'Select at least one lesson'
+                              : undefined
                 }
                 className="tactile flex items-center justify-center gap-2 w-full py-2.5 rounded-lg text-[12px] font-bold text-white bg-gradient-to-r from-indigo-500 to-violet-600 shadow-sm hover:brightness-110 transition-all disabled:opacity-40 disabled:cursor-not-allowed"
               >
@@ -1107,7 +1236,7 @@ export default function ExportSidePanel({
                     />
                   </svg>
                 )}
-                {zipPendingReadiness ? 'Resolve issues above' : 'Download ZIP'}
+                {zipButtonLabel}
               </button>
             </div>
 

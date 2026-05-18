@@ -8,6 +8,7 @@ import {
   normalizeDiscussionPromptFields,
   normalizeLessonPlanPublishability,
   normalizeQuizBankIndex,
+  normalizeQuizBankQuestionCounts,
   normalizeQuizBankPointTotals,
   normalizeQuizBankPublishability,
   normalizeQuizBankQuestions,
@@ -337,6 +338,7 @@ function repairFeatureData(featureId, data, { courseMap, config } = {}) {
       break;
     case 'quizBank':
       current = applyRepair(current, summaries, 'normalized quiz question metadata', normalizeQuizBankQuestions);
+      current = applyRepair(current, summaries, 'filled quiz question counts', normalizeQuizBankQuestionCounts);
       current = applyRepair(current, summaries, 'filled quiz answer guidance', normalizeQuizBankRationales);
       current = applyRepair(current, summaries, 'fixed quiz point totals', normalizeQuizBankPointTotals);
       current = applyRepair(current, summaries, 'cleaned quiz publishability', normalizeQuizBankPublishability);
@@ -351,9 +353,10 @@ function repairFeatureData(featureId, data, { courseMap, config } = {}) {
       current = applyRepair(
         current,
         summaries,
-        'trimmed FAQ question counts',
+        'normalized FAQ question counts',
         normalizeCourseFaqQuestionCounts,
         config,
+        courseMap,
       );
       break;
     default:

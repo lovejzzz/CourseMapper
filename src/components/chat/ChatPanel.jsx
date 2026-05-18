@@ -200,8 +200,14 @@ export default function ChatPanel({
 
   // ── Expose chat.send to parent via ref (for context menu inline AI) ──
   useEffect(() => {
-    if (chatSendRef) chatSendRef.current = chat.send;
-  }, [chat.send, chatSendRef]);
+    if (!chatSendRef) return;
+    chatSendRef.current = (prompt, options = {}) => {
+      if (options.forceApplyMode) {
+        chat.setAgentDryRun(false);
+      }
+      return chat.send(prompt, options);
+    };
+  }, [chat, chatSendRef]);
 
   // ── Bridge sync suggestion from useSmartSync into chat messages ──
   useEffect(() => {
