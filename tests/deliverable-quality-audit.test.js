@@ -32,6 +32,7 @@ import assignmentsPrompt from '../src/lib/prompts/assignments.js';
 // the real FEATURE_OUTPUT_BUDGETS. A fix in parallelGenerator.js had no
 // observable effect here until callers read the same function.
 import { getFeatureOutputBudget } from '../src/lib/parallelGenerator.js';
+import { findPublishabilityPlaceholders } from '../src/lib/publishabilityPlaceholders.js';
 
 // Effective budget for live calls — mirrors useDeliverables.js:261 which
 // passes Math.min(featureBudget, userGlobalMax). Using a generous global
@@ -101,6 +102,206 @@ const ML_VOCAB =
 // Red-flag placeholder/filler strings that should never appear in output.
 const PLACEHOLDER_RE =
   /\btbd\b|\bto\s+be\s+determined\b|\[insert[^\]]*\]|\[your\s+[^\]]+\]|lorem\s+ipsum|placeholder\s+(text|content)|example\s+(text|content|goes\s+here)|\.{3}\s*\.{3}/i;
+
+const GENERIC_FILLER_RE =
+  /\b(concepts?|frameworks?|methodolog(?:y|ies)|content|materials?|resources?|activities?|appropriate|relevant|various|understanding|knowledge)\b/gi;
+
+function collectStrings(value, out = []) {
+  if (typeof value === 'string') {
+    const trimmed = value.replace(/\s+/g, ' ').trim();
+    if (trimmed) out.push(trimmed);
+    return out;
+  }
+  if (Array.isArray(value)) {
+    value.forEach((item) => collectStrings(item, out));
+    return out;
+  }
+  if (value && typeof value === 'object') {
+    Object.values(value).forEach((item) => collectStrings(item, out));
+  }
+  return out;
+}
+
+function toGlobalRegex(pattern) {
+  return new RegExp(pattern.source, pattern.flags.includes('g') ? pattern.flags : `${pattern.flags}g`);
+}
+
+function normalizeForDuplicateCheck(value) {
+  return String(value || '')
+    .toLowerCase()
+    .replace(/[^a-z0-9]+/g, ' ')
+    .replace(/\s+/g, ' ')
+    .trim();
+}
+
+function auditDeterministicContentQuality(deliverables, options = {}) {
+  const {
+    subjectVocabulary = ML_VOCAB,
+    minVocabularyMatches = 12,
+    maxGenericFillerRatio = 0.045,
+    maxRepeatedLongStrings = 0,
+  } = options;
+  const issues = [];
+  const strings = collectStrings(deliverables);
+  const blob = strings.join(' ');
+  const wordCount = (blob.match(/[A-Za-z][A-Za-z'-]*/g) || []).length || 1;
+  const placeholders = [
+    ...findPublishabilityPlaceholders(blob, { limit: 20 }),
+    ...new Set(
+      (blob.match(PLACEHOLDER_RE) || [])
+        .filter(Boolean)
+        .map((item) => item.trim())
+        .filter(Boolean),
+    ),
+  ];
+
+  if (placeholders.length > 0) {
+    issues.push(`placeholder text present: ${placeholders.slice(0, 4).join(', ')}`);
+  }
+
+  const vocabularyMatches = blob.match(toGlobalRegex(subjectVocabulary)) || [];
+  if (vocabularyMatches.length < minVocabularyMatches) {
+    issues.push(`too little subject vocabulary: ${vocabularyMatches.length}/${minVocabularyMatches} matches`);
+  }
+
+  const genericMatches = blob.match(GENERIC_FILLER_RE) || [];
+  const genericRatio = genericMatches.length / wordCount;
+  if (genericRatio > maxGenericFillerRatio) {
+    issues.push(`generic filler ratio too high: ${genericRatio.toFixed(3)}`);
+  }
+
+  const repeated = new Map();
+  for (const text of strings) {
+    if (text.length < 45) continue;
+    const normalized = normalizeForDuplicateCheck(text);
+    if (!normalized) continue;
+    repeated.set(normalized, (repeated.get(normalized) || 0) + 1);
+  }
+  const repeatedLongStrings = [...repeated.entries()].filter(([, count]) => count > 1);
+  if (repeatedLongStrings.length > maxRepeatedLongStrings) {
+    issues.push(`repeated long strings: ${repeatedLongStrings.length}`);
+  }
+
+  return { issues, stats: { wordCount, vocabularyMatches: vocabularyMatches.length, genericRatio } };
+}
+
+const STRONG_DETERMINISTIC_ML_DELIVERABLES = {
+  lessonPlans: {
+    lessonPlans: [
+      {
+        lessonTitle: 'Supervised Learning Basics',
+        objectives: [
+          'Compare training-set and test-set error to explain overfitting and underfitting.',
+          'Use a bias-variance diagram to justify model selection for classification.',
+        ],
+        outline: [
+          {
+            time: '20 min',
+            activity: 'Error-curve diagnosis',
+            description:
+              'Students inspect loss curves from regression models and identify whether regularization or more data is the next step.',
+          },
+          {
+            time: '35 min',
+            activity: 'Train/test split lab',
+            description:
+              'Pairs fit a scikit-learn classifier, report accuracy on held-out data, and explain one feature that drove prediction.',
+          },
+        ],
+        closingActivity: 'Name one signal that a supervised model is memorizing the training data.',
+      },
+    ],
+  },
+  quizBank: {
+    quizzes: [
+      {
+        lt: 'Supervised Learning Basics',
+        qs: [
+          {
+            q: 'A classifier has high training accuracy and low test accuracy. Which overfitting fix is most defensible, and why?',
+            bl: 'Evaluate',
+            ty: 'short_answer',
+            an: 'Use regularization, pruning, cross-validation, or more data; justify using the train/test gap.',
+          },
+          {
+            q: 'Compare bias and variance errors for a shallow decision tree and an unpruned random forest.',
+            bl: 'Analyze',
+            ty: 'short_answer',
+            an: 'A shallow tree may underfit with high bias; an unpruned ensemble can reduce variance but still needs validation.',
+          },
+          {
+            q: 'Design a validation plan for choosing between logistic regression and a neural network on a small tabular dataset.',
+            bl: 'Create',
+            ty: 'essay',
+            sa: 'Use cross-validation, track loss, compare calibration, and account for sample size.',
+          },
+        ],
+      },
+    ],
+  },
+  slideDecks: {
+    decks: [
+      {
+        lessonTitle: 'Decision Trees and Random Forests',
+        slides: [
+          {
+            title: 'Tree Splits and Impurity',
+            bullets: ['Gini and entropy score candidate splits', 'Pruning controls variance after training'],
+            speakerNotes:
+              'Connect split criteria to the goal of separating labels while avoiding branches that memorize small sample quirks.',
+          },
+          {
+            title: 'Ensemble Check',
+            bullets: ['Bagging averages noisy trees', 'Boosting reweights difficult examples'],
+            speakerNotes:
+              'Ask students to decide whether a random forest or gradient boosting model better fits a noisy classification case.',
+          },
+        ],
+      },
+    ],
+  },
+};
+
+const WEAK_DETERMINISTIC_DELIVERABLES = {
+  lessonPlans: {
+    lessonPlans: [
+      {
+        lessonTitle: 'Lesson 1',
+        objectives: ['Understand concepts and frameworks.'],
+        outline: [
+          {
+            activity: 'Discussion',
+            description: 'Students discuss the concepts, frameworks, methodology, content, and relevant resources.',
+          },
+          {
+            activity: 'Discussion',
+            description: 'Students discuss the concepts, frameworks, methodology, content, and relevant resources.',
+          },
+        ],
+        closingActivity: '[Insert closing activity]',
+      },
+    ],
+  },
+};
+
+describe('Deterministic deliverable quality guardrails', () => {
+  it('passes a subject-specific, classroom-usable fixture without live AI calls', () => {
+    const audit = auditDeterministicContentQuality(STRONG_DETERMINISTIC_ML_DELIVERABLES);
+
+    expect(audit.issues).toEqual([]);
+    expect(audit.stats.vocabularyMatches).toBeGreaterThanOrEqual(12);
+  });
+
+  it('flags placeholder text, generic filler, repetition, and missing subject vocabulary', () => {
+    const audit = auditDeterministicContentQuality(WEAK_DETERMINISTIC_DELIVERABLES);
+    const issueText = audit.issues.join('\n');
+
+    expect(issueText).toContain('placeholder text present');
+    expect(issueText).toContain('too little subject vocabulary');
+    expect(issueText).toContain('generic filler ratio too high');
+    expect(issueText).toContain('repeated long strings');
+  });
+});
 
 async function callClaude(prompt, { maxTokens = 8192 } = {}) {
   const userText = prompt.user(COURSE, null, null, null);

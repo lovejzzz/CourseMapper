@@ -119,6 +119,9 @@ export default function ModelConfig() {
   const debounceRef = useRef(null);
   const prevProviderValueRef = useRef(provider);
   const autoDetectedRef = useRef(false);
+  const providerId = 'ai-provider-select';
+  const apiKeyId = 'ai-api-key-input';
+  const modelIdSelectId = 'ai-model-select';
 
   // WebLLM download state
   const [webllmProgress, setWebllmProgress] = useState(null); // { text, progress }
@@ -304,6 +307,8 @@ export default function ModelConfig() {
     }
   }
 
+  const hasSelectableModels = (apiStatus === 'connected' || apiStatus === 'no_funds') && availableModels.length > 0;
+
   return (
     <div className="glass panel-glow rounded-squircle shadow-glass p-7 animate-stagger-1">
       <h2 className="text-[15px] font-bold text-slate-800 mb-5 flex items-center gap-3">
@@ -357,9 +362,15 @@ export default function ModelConfig() {
       <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
         {/* Provider */}
         <div>
-          <label className="block text-xs font-medium text-slate-500 mb-1.5 tracking-wide uppercase">Provider</label>
+          <label
+            htmlFor={providerId}
+            className="block text-xs font-medium text-slate-500 mb-1.5 tracking-wide uppercase"
+          >
+            Provider
+          </label>
           <div className="relative">
             <select
+              id={providerId}
               value={provider}
               onChange={(e) => setProvider(e.target.value)}
               className="input-glass w-full rounded-xl px-3.5 py-2.5 pr-9 text-sm text-slate-700 focus:outline-none appearance-none cursor-pointer"
@@ -385,9 +396,9 @@ export default function ModelConfig() {
         <div>
           {provider === 'webllm' ? (
             <>
-              <label className="block text-xs font-medium text-slate-500 mb-1.5 tracking-wide uppercase">
+              <div className="block text-xs font-medium text-slate-500 mb-1.5 tracking-wide uppercase">
                 Local Model Status
-              </label>
+              </div>
               {apiStatus === 'connected' ? (
                 <div className="w-full rounded-squircle-xs bg-emerald-50/40 border border-emerald-200/50 px-3.5 py-2.5 text-sm text-emerald-700 flex items-center gap-2">
                   <svg
@@ -442,7 +453,10 @@ export default function ModelConfig() {
             </>
           ) : (
             <>
-              <label className="block text-xs font-medium text-slate-500 mb-1.5 tracking-wide uppercase flex items-center gap-1.5">
+              <label
+                htmlFor={apiKeyId}
+                className="block text-xs font-medium text-slate-500 mb-1.5 tracking-wide uppercase flex items-center gap-1.5"
+              >
                 API Key
                 {API_KEY_URLS[provider] && (
                   <a
@@ -465,6 +479,7 @@ export default function ModelConfig() {
               </label>
               <div className="relative">
                 <input
+                  id={apiKeyId}
                   type="text"
                   autoComplete="off"
                   data-1p-ignore
@@ -517,9 +532,15 @@ export default function ModelConfig() {
 
         {/* Model dropdown */}
         <div>
-          <label className="block text-xs font-medium text-slate-500 mb-1.5 tracking-wide uppercase">Model</label>
-          {(apiStatus === 'connected' || apiStatus === 'no_funds') && availableModels.length > 0 ? (
+          <label
+            {...(hasSelectableModels ? { htmlFor: modelIdSelectId } : {})}
+            className="block text-xs font-medium text-slate-500 mb-1.5 tracking-wide uppercase"
+          >
+            Model
+          </label>
+          {hasSelectableModels ? (
             <select
+              id={modelIdSelectId}
               value={modelId}
               onChange={handleModelChange}
               className={`input-glass w-full rounded-squircle-xs px-3.5 py-2.5 text-sm text-slate-700 focus:outline-none ${

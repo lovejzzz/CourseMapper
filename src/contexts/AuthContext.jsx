@@ -1,8 +1,5 @@
 // src/contexts/AuthContext.jsx — Firebase Auth state + React context
 import React, { createContext, useContext, useState, useEffect } from 'react';
-import { auth, googleProvider, hasConfig } from '../lib/firebase';
-import { signInWithPopup, onAuthStateChanged, signOut as firebaseSignOut } from 'firebase/auth';
-import { clearTokenCache } from '../lib/googleTokenCache';
 
 const AuthContext = createContext({
   user: null,
@@ -12,40 +9,78 @@ const AuthContext = createContext({
   signOut: () => {},
 });
 
+let firebaseAuthPromise = null;
+
+function loadFirebaseAuth() {
+  if (!firebaseAuthPromise) {
+    firebaseAuthPromise = Promise.all([import('../lib/firebase'), import('firebase/auth')]).then(
+      ([firebaseModule, authModule]) => ({
+        auth: firebaseModule.auth,
+        googleProvider: firebaseModule.googleProvider,
+        hasConfig: firebaseModule.hasConfig,
+        onAuthStateChanged: authModule.onAuthStateChanged,
+        signInWithPopup: authModule.signInWithPopup,
+        firebaseSignOut: authModule.signOut,
+      }),
+    );
+  }
+  return firebaseAuthPromise;
+}
+
 export function AuthProvider({ children }) {
   const [user, setUser] = useState(null);
-  const [loading, setLoading] = useState(!!hasConfig); // only "loading" if Firebase is configured
+  const [loading, setLoading] = useState(true);
   const [error, setError] = useState(null);
 
   /* ---- listen for auth state changes ---- */
   useEffect(() => {
-    if (!auth) {
-      setLoading(false);
-      return;
-    }
-    const unsub = onAuthStateChanged(
-      auth,
-      (firebaseUser) => {
-        setUser(firebaseUser);
-        setLoading(false);
-      },
-      (err) => {
-        console.error('[Auth] state listener error', err);
+    let cancelled = false;
+    let unsub = null;
+
+    loadFirebaseAuth()
+      .then(({ auth, hasConfig, onAuthStateChanged }) => {
+        if (cancelled) return;
+        if (!hasConfig || !auth) {
+          setLoading(false);
+          return;
+        }
+        unsub = onAuthStateChanged(
+          auth,
+          (firebaseUser) => {
+            if (cancelled) return;
+            setUser(firebaseUser);
+            setLoading(false);
+          },
+          (err) => {
+            if (cancelled) return;
+            console.error('[Auth] state listener error', err);
+            setError(err);
+            setLoading(false);
+          },
+        );
+      })
+      .catch((err) => {
+        if (cancelled) return;
+        console.error('[Auth] Firebase load error', err);
         setError(err);
         setLoading(false);
-      },
-    );
-    return unsub;
+      });
+
+    return () => {
+      cancelled = true;
+      if (typeof unsub === 'function') unsub();
+    };
   }, []);
 
   /* ---- Google sign-in (popup — single window, no third-party cookie issues) ---- */
   const handleSignIn = async () => {
-    if (!auth || !googleProvider) {
-      setError(new Error('Firebase is not configured'));
-      return;
-    }
     try {
       setError(null);
+      const { auth, googleProvider, hasConfig, signInWithPopup } = await loadFirebaseAuth();
+      if (!hasConfig || !auth || !googleProvider) {
+        setError(new Error('Firebase is not configured'));
+        return;
+      }
       await signInWithPopup(auth, googleProvider);
       // onAuthStateChanged fires automatically after successful sign-in
     } catch (err) {
@@ -58,9 +93,13 @@ export function AuthProvider({ children }) {
 
   /* ---- Sign out ---- */
   const handleSignOut = async () => {
-    if (!auth) return;
     try {
       setError(null);
+      const [{ clearTokenCache }, { auth, firebaseSignOut }] = await Promise.all([
+        import('../lib/googleTokenCache'),
+        loadFirebaseAuth(),
+      ]);
+      if (!auth) return;
       clearTokenCache(); // clear cached Google Drive access token
       await firebaseSignOut(auth);
     } catch (err) {

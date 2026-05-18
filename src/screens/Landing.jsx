@@ -277,6 +277,7 @@ export default function Landing({
           >
             {/* Text prompt */}
             <textarea
+              aria-label="Describe your course"
               value={promptText}
               onChange={(e) => setPromptText(e.target.value)}
               placeholder={
@@ -309,6 +310,7 @@ export default function Landing({
                         removeFile(i);
                       }}
                       className="text-slate-300 hover:text-red-400 transition-colors ml-2 flex-shrink-0"
+                      aria-label={`Remove ${file.name}`}
                     >
                       <svg className="w-3 h-3" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                         <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M6 18L18 6M6 6l12 12" />
@@ -358,6 +360,7 @@ export default function Landing({
               multiple
               accept={[...ACCEPTED_EXTENSIONS, ...PROJECT_EXTENSIONS].join(',')}
               onChange={handleFileInput}
+              aria-label="Attach course files or open a Course Mapper project"
               className="hidden"
             />
 
@@ -422,6 +425,7 @@ export default function Landing({
                   onClick={() => setConfigCollapsed(true)}
                   className="absolute top-3 right-3 z-10 tactile flex items-center justify-center w-7 h-7 rounded-lg text-slate-400 hover:text-slate-600 hover:bg-slate-100/60 transition-all duration-200"
                   title="Collapse AI config"
+                  aria-label="Collapse AI configuration"
                 >
                   <svg className="w-3.5 h-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                     <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M5 15l7-7 7 7" />

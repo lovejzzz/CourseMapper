@@ -49,6 +49,9 @@ jobs:
       - name: Unit tests
         run: npm test
 
+      - name: Deliverable quality audit
+        run: npm run audit:deliverables
+
       - name: Build
         run: npm run build
 
