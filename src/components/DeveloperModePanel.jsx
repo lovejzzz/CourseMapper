@@ -51,6 +51,7 @@ function getSnapshotSignature(value) {
 export default function DeveloperModePanel({
   isOpen,
   snapshot,
+  apiCallBudget,
   developerTemplates = [],
   activeDeveloperTemplateId = '',
   onApply,
@@ -657,6 +658,7 @@ export default function DeveloperModePanel({
         const path = editorPathForChange(change.path);
         selectPathInEditor(path, sectionForPath(path));
       }}
+      apiCallBudget={apiCallBudget}
     />
   );
 

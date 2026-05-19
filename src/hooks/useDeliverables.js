@@ -268,6 +268,7 @@ export default function useDeliverables({
   pedagogicalMode,
   examChanges,
   columns,
+  onApiCallEvent,
 }) {
   // ── Read deliverables from the store ──
   const storeState = useContext(CourseStateContext);
@@ -315,6 +316,13 @@ export default function useDeliverables({
   const appendLog = useCallback((message, type = 'info') => {
     setGenerationLog((prev) => [...prev, { message, type, at: Date.now() }]);
   }, []);
+
+  const recordApiCallEvent = useCallback(
+    (event) => {
+      if (typeof onApiCallEvent === 'function') onApiCallEvent(event);
+    },
+    [onApiCallEvent],
+  );
 
   /** Truncation canary — log when parsePartialJSON had to recover a chunk.
    *  Called immediately after each parsePartialJSON invocation so the ref is
@@ -566,6 +574,11 @@ export default function useDeliverables({
           let fullText = '';
           let lastParseTime = 0;
 
+          recordApiCallEvent({
+            type: 'deliverableChunkCall',
+            label: `Generate ${chunkLabel}`,
+            featureId,
+          });
           const result = await streamProvider(provider, apiKey, modelId, prompts.systemPrompt, prompts.userPrompt, {
             maxOutputTokens: getFeatureOutputBudget(featureId, maxOutputTokens),
             onChunk: (accumulatedText) => {
@@ -599,6 +612,12 @@ export default function useDeliverables({
             maxRetries: 2,
             signal: controller.signal,
             onRetry: (attempt) => {
+              recordApiCallEvent({
+                type: 'retriedCall',
+                label: `${chunkLabel} stream retry`,
+                detail: `${attempt}/2`,
+                featureId,
+              });
               appendLog(`⚠ ${chunkLabel}: Connection interrupted — retrying (${attempt}/2)...`, 'warn');
             },
           });
@@ -708,6 +727,12 @@ export default function useDeliverables({
           if (err.name === 'AbortError') {
             appendLog(`${chunkLabel}: stopped`, 'warn');
           } else {
+            recordApiCallEvent({
+              type: 'failedCall',
+              label: `${chunkLabel} failed`,
+              detail: err.message || '',
+              featureId,
+            });
             appendLog(`✗ ${chunkLabel}: ${err.message || 'Generation failed'}`, 'error');
           }
         } finally {
@@ -821,6 +846,12 @@ export default function useDeliverables({
             abortMapRef.current.set(retryAbortKey, controller);
             try {
               let fullText = '';
+              recordApiCallEvent({
+                type: 'repairRetryCall',
+                label: `${label} whole-deliverable retry`,
+                detail: `round ${retryRound}`,
+                featureId: fid,
+              });
               const result = await streamProvider(provider, apiKey, modelId, prompts.systemPrompt, prompts.userPrompt, {
                 maxOutputTokens: getFeatureOutputBudget(fid, maxOutputTokens),
                 onChunk: (t) => {
@@ -828,6 +859,14 @@ export default function useDeliverables({
                 },
                 maxRetries: 3,
                 signal: controller.signal,
+                onRetry: (attempt) => {
+                  recordApiCallEvent({
+                    type: 'retriedCall',
+                    label: `${label} whole-deliverable retry stream retry`,
+                    detail: `${attempt}/3`,
+                    featureId: fid,
+                  });
+                },
               });
               const text = result?.fullText || fullText;
               const parsed = expandKeys(fid, parsePartialJSON(text));
@@ -854,6 +893,12 @@ export default function useDeliverables({
               }
             } catch (err) {
               if (err.name !== 'AbortError') {
+                recordApiCallEvent({
+                  type: 'failedCall',
+                  label: `${label} whole-deliverable retry failed`,
+                  detail: err.message || '',
+                  featureId: fid,
+                });
                 appendLog(`✗ ${label}: whole-deliverable retry failed: ${err.message}`, 'error');
               }
             } finally {
@@ -1300,6 +1345,12 @@ export default function useDeliverables({
 
                 try {
                   let fullText = '';
+                  recordApiCallEvent({
+                    type: 'repairRetryCall',
+                    label: retryLabel,
+                    detail: `round ${retryRound}`,
+                    featureId: fid,
+                  });
                   const result = await streamProvider(
                     provider,
                     apiKey,
@@ -1313,6 +1364,14 @@ export default function useDeliverables({
                       },
                       maxRetries: 3,
                       signal: controller.signal,
+                      onRetry: (attempt) => {
+                        recordApiCallEvent({
+                          type: 'retriedCall',
+                          label: `${retryLabel} stream retry`,
+                          detail: `${attempt}/3`,
+                          featureId: fid,
+                        });
+                      },
                     },
                   );
                   const text = result?.fullText || fullText;
@@ -1340,6 +1399,12 @@ export default function useDeliverables({
                   }
                 } catch (err) {
                   if (err.name !== 'AbortError') {
+                    recordApiCallEvent({
+                      type: 'failedCall',
+                      label: `${retryLabel} failed`,
+                      detail: err.message || '',
+                      featureId: fid,
+                    });
                     console.error(`[CM] ✗ ${retryLabel}: ${err.message}`);
                     appendLog(`✗ ${retryLabel}: ${err.message}`, 'error');
                   }
@@ -1426,6 +1491,12 @@ export default function useDeliverables({
 
                 try {
                   let fullText = '';
+                  recordApiCallEvent({
+                    type: 'repairRetryCall',
+                    label: retryLabel,
+                    detail: 'coverage retry',
+                    featureId: fid,
+                  });
                   const result = await streamProvider(
                     provider,
                     apiKey,
@@ -1439,6 +1510,14 @@ export default function useDeliverables({
                       },
                       maxRetries: 3,
                       signal: controller.signal,
+                      onRetry: (attempt) => {
+                        recordApiCallEvent({
+                          type: 'retriedCall',
+                          label: `${retryLabel} stream retry`,
+                          detail: `${attempt}/3`,
+                          featureId: fid,
+                        });
+                      },
                     },
                   );
                   const text = result?.fullText || fullText;
@@ -1455,6 +1534,12 @@ export default function useDeliverables({
                   }
                 } catch (err) {
                   if (err.name !== 'AbortError') {
+                    recordApiCallEvent({
+                      type: 'failedCall',
+                      label: `${retryLabel} failed`,
+                      detail: err.message || '',
+                      featureId: fid,
+                    });
                     console.error(`[CM] ✗ ${retryLabel}: ${err.message}`);
                     // Bubble up API exhaustion/rate limit errors so the UI can show them
                     if (
@@ -1890,7 +1975,7 @@ export default function useDeliverables({
       );
       notifyDone('All deliverables are ready!');
     },
-    [provider, modelId, apiKey, streamProvider, parsePartialJSON, appendLog, dispatch],
+    [provider, modelId, apiKey, streamProvider, parsePartialJSON, appendLog, dispatch, recordApiCallEvent],
   );
 
   // ── Stop by featureId or stop all ──
@@ -2063,6 +2148,11 @@ export default function useDeliverables({
         let fullText = '';
         let lastParseTime = 0;
 
+        recordApiCallEvent({
+          type: 'repairRetryCall',
+          label: `Regenerate ${label} lesson ${lessonIndex + 1}`,
+          featureId,
+        });
         await streamProvider(provider, apiKey, modelId, prompts.systemPrompt, prompts.userPrompt, {
           maxOutputTokens,
           onChunk: (accumulatedText) => {
@@ -2103,6 +2193,14 @@ export default function useDeliverables({
           },
           maxRetries: 2,
           signal: controller.signal,
+          onRetry: (attempt) => {
+            recordApiCallEvent({
+              type: 'retriedCall',
+              label: `${label} lesson ${lessonIndex + 1} regeneration stream retry`,
+              detail: `${attempt}/2`,
+              featureId,
+            });
+          },
         });
 
         const parsed = expandKeys(featureId, parsePartialJSON(fullText));
@@ -2186,6 +2284,12 @@ export default function useDeliverables({
         }
       } catch (err) {
         if (err.name !== 'AbortError') {
+          recordApiCallEvent({
+            type: 'failedCall',
+            label: `${label} lesson ${lessonIndex + 1} regeneration failed`,
+            detail: err.message || '',
+            featureId,
+          });
           console.warn(`Regenerate lesson ${lessonIndex} failed:`, err);
           appendLog(
             `✗ ${label}: Lesson ${lessonIndex + 1} regeneration failed — ${err.message || 'Unknown error'}`,
@@ -2216,7 +2320,17 @@ export default function useDeliverables({
         }
       }
     },
-    [provider, modelId, apiKey, streamProvider, parsePartialJSON, appendLog, dispatch, deliverables],
+    [
+      provider,
+      modelId,
+      apiKey,
+      streamProvider,
+      parsePartialJSON,
+      appendLog,
+      dispatch,
+      deliverables,
+      recordApiCallEvent,
+    ],
   );
 
   // ── Surgical resync: handles non-per-lesson deliverables (syllabus, custom) ──

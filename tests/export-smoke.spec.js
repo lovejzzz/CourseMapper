@@ -1084,7 +1084,7 @@ test.describe('Export smoke', () => {
     expect(documentXml).toContain('Data Privacy');
   });
 
-  test('blocks ZIP export when selected generated materials still have review notes', async ({ page }) => {
+  test('blocks ZIP export when final package verification finds classroom-readiness issues', async ({ page }) => {
     await restoreExportWorkspace(page, (snapshot) => {
       snapshot.selectedFeatures = ['courseMap', 'courseFaq'];
       snapshot.deliverables = {
@@ -1204,13 +1204,10 @@ test.describe('Export smoke', () => {
     await expect(page.getByTestId('readiness-status')).toContainText('Ready to export');
     await expect(page.getByTestId('readiness-panel')).not.toContainText('fewer than 5 questions');
 
-    const zipDownload = await expectDownload(page, () => page.getByTestId('export-download-zip').click(), {
-      extension: 'zip',
-      nameIncludes: 'Export Smoke Course',
-      minBytes: 1000,
-    });
-    const zip = await JSZip.loadAsync(await fs.readFile(zipDownload.path));
-    expect(zip.file('READINESS_REPORT.txt')).toBeFalsy();
+    await page.getByTestId('export-download-zip').click();
+    await expect(page.getByTestId('readiness-confirm')).toContainText('Course FAQ readability');
+    await expect(page.getByTestId('readiness-status')).toContainText('Review before export');
+    await expect(page.getByTestId('export-download-zip')).toContainText('Finish and download ZIP');
   });
 
   test('auto-fixes missing checklist rubric coverage before ZIP export', async ({ page }) => {

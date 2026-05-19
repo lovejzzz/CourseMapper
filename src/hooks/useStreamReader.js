@@ -254,6 +254,7 @@ export default function useStreamReader() {
 
         if (attempt < maxRetries && isRetryableError(err)) {
           attempt++;
+          fullText = existingText;
           // Rebuild request with current skipTemp state so temperature fix persists across retries
           ({ url, headers, body, parseChunk } = buildProviderRequest(
             provider,

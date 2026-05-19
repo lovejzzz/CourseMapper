@@ -1,6 +1,7 @@
 import React, { useMemo, useState } from 'react';
 import { formatDeveloperDiffItem } from '../../lib/developerIdeDiagnostics.js';
 import { searchDeveloperHistory } from '../../lib/developerIdeHistory.js';
+import { getApiCallBudgetTotal } from '../../lib/apiCallBudget.js';
 
 function formatHistoryTime(timestamp) {
   if (!timestamp) return 'Unknown time';
@@ -22,6 +23,66 @@ const SECTION_LABELS = {
   config: 'Config',
   raw: 'Raw JSON',
 };
+
+function formatBudgetEventTime(timestamp) {
+  if (!timestamp) return '';
+  try {
+    return new Date(timestamp).toLocaleTimeString(undefined, { hour: 'numeric', minute: '2-digit', second: '2-digit' });
+  } catch {
+    return '';
+  }
+}
+
+function ApiCallBudgetCard({ budget }) {
+  if (!budget) return null;
+  const total = getApiCallBudgetTotal(budget);
+  const counters = [
+    ['Course map', budget.courseMapCalls || 0],
+    ['Deliverable chunks', budget.deliverableChunkCalls || 0],
+    ['Repair/retry', budget.repairRetryCalls || 0],
+    ['Failed', budget.failedCalls || 0],
+    ['Stream retries', budget.retriedCalls || 0],
+  ];
+  const events = Array.isArray(budget.recentEvents) ? budget.recentEvents.slice(0, 4) : [];
+
+  return (
+    <section
+      data-testid="developer-api-call-budget"
+      className="rounded-xl border border-indigo-100 bg-indigo-50/60 p-3 text-indigo-900 dark:border-indigo-500/30 dark:bg-indigo-500/10 dark:text-indigo-100"
+    >
+      <div className="flex items-start justify-between gap-2">
+        <div>
+          <p className="text-[10px] font-bold uppercase tracking-wider text-indigo-500 dark:text-indigo-300">
+            API call budget
+          </p>
+          <p className="mt-0.5 text-[11px] font-semibold">Current run: {total} model calls</p>
+        </div>
+        {budget.skippedExamineCalls > 0 && (
+          <span className="rounded-full bg-white/70 px-2 py-0.5 text-[9px] font-bold text-emerald-600 dark:bg-slate-900/70 dark:text-emerald-300">
+            {budget.skippedExamineCalls} review saved
+          </span>
+        )}
+      </div>
+      <dl className="mt-2 grid grid-cols-2 gap-1.5">
+        {counters.map(([label, value]) => (
+          <div key={label} className="rounded-lg bg-white/65 px-2 py-1 dark:bg-slate-900/60">
+            <dt className="text-[9px] font-semibold uppercase tracking-wide opacity-60">{label}</dt>
+            <dd className="text-[12px] font-bold">{value}</dd>
+          </div>
+        ))}
+      </dl>
+      {events.length > 0 && (
+        <div className="mt-2 space-y-1">
+          {events.map((event, index) => (
+            <p key={`${event.at}-${event.label}-${index}`} className="truncate text-[10px] font-medium opacity-80">
+              {formatBudgetEventTime(event.at)} · {event.label}
+            </p>
+          ))}
+        </div>
+      )}
+    </section>
+  );
+}
 
 export default function DeveloperModeSidebar({
   isEditorSection,
@@ -53,6 +114,7 @@ export default function DeveloperModeSidebar({
   onFindingClick,
   onFindingPathCopy,
   onChangeClick,
+  apiCallBudget,
 }) {
   const [historyQuery, setHistoryQuery] = useState('');
   const dirtySectionIds = Array.from(dirtySections);
@@ -64,6 +126,7 @@ export default function DeveloperModeSidebar({
 
   return (
     <aside className="flex min-h-0 flex-col gap-3 overflow-y-auto bg-white px-4 py-4 dark:bg-slate-950">
+      <ApiCallBudgetCard budget={apiCallBudget} />
       {isEditorSection && (
         <div>
           <p className="text-[10px] font-bold uppercase tracking-wider text-slate-400">Search</p>

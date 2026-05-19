@@ -97,6 +97,7 @@ export default function ChatPanel({
   onStopDeliverables,
   onPackageQualityPassUpdate,
   onAutoRepairReadiness,
+  onFinalizePackage,
   // Sync state
   isSyncing,
   pendingSyncCount,
@@ -149,6 +150,8 @@ export default function ChatPanel({
   courseMapRef.current = courseMap;
   const autoRepairReadinessRef = useRef(onAutoRepairReadiness);
   autoRepairReadinessRef.current = onAutoRepairReadiness;
+  const finalizePackageRef = useRef(onFinalizePackage);
+  finalizePackageRef.current = onFinalizePackage;
   const packageQualityPassUpdateRef = useRef(onPackageQualityPassUpdate);
   packageQualityPassUpdateRef.current = onPackageQualityPassUpdate;
 
@@ -269,33 +272,25 @@ export default function ChatPanel({
         proactiveReviewDoneRef.current = true;
         packageQualityPassUpdateRef.current?.({
           status: 'running',
-          message: 'Final package-quality pass is repairing and reviewing materials...',
+          message: 'Final quality pass is checking and repairing materials...',
           repairsApplied: 0,
           warnings: 0,
           blockers: 0,
         });
-        const repairResult = applyDeterministicReadinessRepairs();
-        const repairedCourseMap = repairResult?.courseMap || courseMap;
-        const repairedDeliverables = repairResult?.deliverables || deliverables;
-        const lessonFilter = lessonScope?.type === 'specific' ? lessonScope.indices : null;
-        const readiness = evaluateWorkspaceReadiness({
-          courseMap: repairedCourseMap,
-          deliverables: repairedDeliverables,
-          selectedFeatures,
-          columns,
-          lessonFilter,
-        });
-        const repairNote =
-          repairResult?.changed && repairResult.repairs?.length
-            ? `Safe deterministic repairs already applied: ${repairResult.repairs
-                .map((repair) => `${repair.label}: ${repair.changes.join('; ')}`)
-                .join(' | ')}.`
-            : 'No deterministic readiness repair was needed before the agent review.';
-        // Brief delay to let UI settle, then auto-review — but cancel if the
+        // Brief delay to let UI settle, then run the finalizer — but cancel if the
         // user beats us to the punch by sending their own message.
         autoReviewTimerRef.current = setTimeout(async () => {
           autoReviewTimerRef.current = null;
           if (chat.isStreaming) {
+            const repairResult = applyDeterministicReadinessRepairs();
+            const lessonFilter = lessonScope?.type === 'specific' ? lessonScope.indices : null;
+            const readiness = evaluateWorkspaceReadiness({
+              courseMap: repairResult?.courseMap || courseMapRef.current,
+              deliverables: repairResult?.deliverables || delivRef.current,
+              selectedFeatures,
+              columns,
+              lessonFilter,
+            });
             packageQualityPassUpdateRef.current?.({
               status: readiness.status,
               message: summarizePackageQuality(readiness, repairResult?.applied || 0),
@@ -305,7 +300,16 @@ export default function ChatPanel({
             });
             return;
           }
-          if (!chat.isAgentProviderReady) {
+          if (typeof finalizePackageRef.current !== 'function') {
+            const repairResult = applyDeterministicReadinessRepairs();
+            const lessonFilter = lessonScope?.type === 'specific' ? lessonScope.indices : null;
+            const readiness = evaluateWorkspaceReadiness({
+              courseMap: repairResult?.courseMap || courseMapRef.current,
+              deliverables: repairResult?.deliverables || delivRef.current,
+              selectedFeatures,
+              columns,
+              lessonFilter,
+            });
             packageQualityPassUpdateRef.current?.({
               status: readiness.status,
               message: summarizePackageQuality(readiness, repairResult?.applied || 0),
@@ -316,27 +320,19 @@ export default function ChatPanel({
             return;
           }
           try {
-            await chat.send(
-              `[AUTO-REVIEW] Generation done. ${repairNote} Readiness: ${readiness.status}, ${readiness.blockers.length} issue(s) to fix, ${readiness.warnings.length} review item(s). Run finalize_package. If repairQueue.retryActionCount > 0, call retry_package_weak_spots; otherwise fix concrete data issues. Finalize again, then summarize. Say classroom-ready only when Excellent and classroomReadiness.status is ready.`,
-            );
-          } finally {
-            const finalRepair = applyDeterministicReadinessRepairs();
-            const finalReadiness = evaluateWorkspaceReadiness({
-              courseMap: finalRepair?.courseMap || courseMapRef.current,
-              deliverables: finalRepair?.deliverables || delivRef.current,
+            await finalizePackageRef.current({
               selectedFeatures,
-              columns,
-              lessonFilter,
+              selectedFeatureIds: selectedFeatures,
+              lessonFilter: lessonScope?.type === 'specific' ? lessonScope.indices : null,
+              retry: true,
             });
+          } catch (err) {
             packageQualityPassUpdateRef.current?.({
-              status: finalReadiness.status,
-              message: summarizePackageQuality(
-                finalReadiness,
-                (repairResult?.applied || 0) + (finalRepair?.applied || 0),
-              ),
-              repairsApplied: (repairResult?.applied || 0) + (finalRepair?.applied || 0),
-              warnings: finalReadiness.warnings.length,
-              blockers: finalReadiness.blockers.length,
+              status: 'blocked',
+              message: err?.message || 'Final quality pass could not complete.',
+              repairsApplied: 0,
+              warnings: 0,
+              blockers: 1,
             });
           }
         }, 2000);

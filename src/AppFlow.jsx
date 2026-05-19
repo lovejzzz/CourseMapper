@@ -73,6 +73,8 @@ import {
   repairWorkspaceReadiness,
 } from './lib/deliverableReadiness';
 import { evaluateClassroomReadiness } from './lib/classroomReadiness';
+import { runDeterministicPackageFinalizer } from './lib/packageFinalizer';
+import { applyApiCallBudgetEvent, createApiCallBudget } from './lib/apiCallBudget';
 
 const STORAGE_KEY = 'coursemapper-project';
 
@@ -347,6 +349,10 @@ export default function AppFlow({ startupAction = null, onStartupHandled, onRetu
       return '';
     }
   });
+  const [apiCallBudget, setApiCallBudget] = useState(() => createApiCallBudget());
+  const recordApiCallEvent = useCallback((event) => {
+    setApiCallBudget((current) => applyApiCallBudgetEvent(current, event));
+  }, []);
 
   // ── Misc ──
   const [downloadedFile, setDownloadedFile] = useState('');
@@ -358,6 +364,7 @@ export default function AppFlow({ startupAction = null, onStartupHandled, onRetu
 
   // ── AI Context Menu (inline AI editing) ──
   const chatSendRef = useRef(null);
+  const packageFinalizerRef = useRef(null);
   const canFinishPackageWithAgent = isAgentProviderReady({ provider, apiKey, apiStatus, modelId });
   const handleAIAction = useCallback((prompt) => {
     // Handle "__FOCUS__" prefix — pre-fill chat with context but let user type
@@ -372,15 +379,15 @@ export default function AppFlow({ startupAction = null, onStartupHandled, onRetu
     }
     chatSendRef.current?.(prompt);
   }, []);
-  const handleFinishPackageFromExport = useCallback(
-    async ({ prompt } = {}) => {
-      if (!canFinishPackageWithAgent || !prompt || typeof chatSendRef.current !== 'function') return false;
-      setMobileWorkspaceView('agent');
-      await chatSendRef.current(prompt, { forceApplyMode: true });
-      return true;
-    },
-    [canFinishPackageWithAgent],
-  );
+  const handleFinishPackageFromExport = useCallback(async ({ selectedFeatureIds, lessonFilter } = {}) => {
+    if (typeof packageFinalizerRef.current !== 'function') return false;
+    return packageFinalizerRef.current({
+      selectedFeatureIds,
+      lessonFilter,
+      retry: true,
+      source: 'export',
+    });
+  }, []);
 
   useEffect(() => {
     try {
@@ -424,6 +431,7 @@ export default function AppFlow({ startupAction = null, onStartupHandled, onRetu
     pedagogicalMode: 'lecture', // Feature 4.2 — wired for when mode selector UI is added
     lessonScope: lessonScope.type === 'specific' ? lessonScope.indices : null,
     courseMapConfig: deliverableConfig['courseMap'],
+    onApiCallEvent: recordApiCallEvent,
   });
 
   const { handleDownload, resetExport } = useExport(courseMap, columns, gen.setError);
@@ -459,9 +467,12 @@ export default function AppFlow({ startupAction = null, onStartupHandled, onRetu
     pedagogicalMode: 'lecture',
     examChanges: gen.examChanges,
     columns,
+    onApiCallEvent: recordApiCallEvent,
   });
   // Keep deliverables ref fresh for use in stable callbacks
   deliverablesRef.current = deliv.deliverables;
+  const regenerateLessonRef = useRef(deliv.regenerateLesson);
+  regenerateLessonRef.current = deliv.regenerateLesson;
 
   // ── Edit-Aware AI Proposal Engine ──
   const editProposal = useEditProposal({
@@ -576,6 +587,173 @@ export default function AppFlow({ startupAction = null, onStartupHandled, onRetu
       setCourseMap,
     ],
   );
+
+  const commitFinalizerResult = useCallback(
+    (result) => {
+      if (!result) return;
+      if (result.courseMap && result.courseMap !== courseMapRef.current) {
+        courseMapRef.current = result.courseMap;
+        setCourseMap(result.courseMap);
+      }
+      if (result.deliverables && result.deliverables !== deliverablesRef.current) {
+        for (const repair of result.repairs || []) {
+          const previousData = deliverablesRef.current?.[repair.featureId]?.data;
+          if (repair.featureId !== 'courseMap' && previousData) {
+            delivUndo.snapshot(repair.featureId, previousData);
+          }
+        }
+        deliverablesRef.current = result.deliverables;
+        deliv.setDeliverables(result.deliverables);
+      }
+    },
+    [deliv.setDeliverables, delivUndo.snapshot, setCourseMap],
+  );
+
+  const handleDeterministicPackageFinalization = useCallback(
+    async ({
+      selectedFeatureIds = selectedFeatures,
+      lessonFilter = lessonScope.type === 'specific' ? lessonScope.indices : null,
+      retry = true,
+      maxRetryActions = 4,
+    } = {}) => {
+      const featureIds =
+        Array.isArray(selectedFeatureIds) && selectedFeatureIds.length > 0 ? selectedFeatureIds : selectedFeatures;
+      const runFinalizer = (retryLimit) =>
+        runDeterministicPackageFinalizer({
+          courseMap: courseMapRef.current,
+          deliverables: deliverablesRef.current || {},
+          selectedFeatures: featureIds,
+          columns,
+          lessonFilter,
+          deliverableConfig,
+          includeClassroomReadiness: true,
+          blockOnClassroomWarnings: true,
+          includePedagogicalValidation: true,
+          blockOnValidationWarnings: false,
+          maxRetryActions: retryLimit,
+        });
+
+      setPackageQualityPass({
+        status: 'running',
+        message: 'Final quality pass is checking and repairing materials...',
+        repairsApplied: 0,
+        warnings: 0,
+        blockers: 0,
+      });
+
+      let result = runFinalizer(maxRetryActions);
+      commitFinalizerResult(result);
+      let totalRepairsApplied = result.repairsApplied || 0;
+      let retryCount = 0;
+      const canRetryWeakSpots = retry && canFinishPackageWithAgent && typeof regenerateLessonRef.current === 'function';
+
+      if (result.retryActions.length > 0 && canRetryWeakSpots) {
+        setPackageQualityPass({
+          status: 'running',
+          message: `Final quality pass is retrying ${result.retryActions.length} weak section${
+            result.retryActions.length === 1 ? '' : 's'
+          }...`,
+          repairsApplied: result.repairsApplied,
+          warnings: 0,
+          blockers: 0,
+        });
+
+        for (const action of result.retryActions) {
+          await regenerateLessonRef.current(
+            action.featureId,
+            result.courseMap || courseMapRef.current,
+            action.lessonIndex,
+          );
+          retryCount += 1;
+          await new Promise((resolve) => window.setTimeout(resolve, 0));
+        }
+
+        result = runFinalizer(0);
+        commitFinalizerResult(result);
+        totalRepairsApplied += result.repairsApplied || 0;
+      }
+
+      let exportVerification = null;
+      try {
+        const { verifyPackageExports } = await import('./lib/packageExportVerifier');
+        exportVerification = await verifyPackageExports({
+          courseMap: result.courseMap || courseMapRef.current,
+          deliverables: result.deliverables || deliverablesRef.current || {},
+          selectedFeatures: featureIds,
+          columns,
+          lessonFilter,
+          slideTheme,
+        });
+      } catch (err) {
+        exportVerification = {
+          status: 'failed',
+          checked: 1,
+          passed: 0,
+          failed: 1,
+          warningCount: 0,
+          checks: [
+            {
+              featureId: 'export',
+              label: 'Export',
+              format: 'package',
+              status: 'failed',
+              message: err?.message || 'Export verification failed.',
+            },
+          ],
+        };
+      }
+
+      const unresolvedRetryCount = result.status === 'needs_retry' ? result.retryActions.length : 0;
+      const exportFailures = exportVerification?.failed || 0;
+      const exportWarnings = exportVerification?.warningCount || 0;
+      const blockers = result.readiness.blockers.length + exportFailures;
+      const warnings = result.readiness.warnings.length + unresolvedRetryCount + exportWarnings;
+      const finalStatus = blockers > 0 ? 'blocked' : warnings > 0 ? 'warnings' : 'ready';
+      const retryText = retryCount > 0 ? `Retried ${retryCount} weak section${retryCount === 1 ? '' : 's'}. ` : '';
+      const skippedRetryText =
+        unresolvedRetryCount > 0 && !canRetryWeakSpots
+          ? `AI setup is needed to retry ${unresolvedRetryCount} weak section${unresolvedRetryCount === 1 ? '' : 's'}. `
+          : '';
+      const repairText =
+        totalRepairsApplied > 0
+          ? `Auto-fixed ${totalRepairsApplied} safe issue${totalRepairsApplied === 1 ? '' : 's'}. `
+          : '';
+      const exportText =
+        exportFailures > 0
+          ? `Export verification found ${exportFailures} file issue${exportFailures === 1 ? '' : 's'}. `
+          : exportWarnings > 0
+            ? `Export verification found ${exportWarnings} warning${exportWarnings === 1 ? '' : 's'}. `
+            : '';
+      const finalizerMessage = String(result.message || '').replace(/^Auto-fixed \d+ safe issues?\. /, '');
+
+      setPackageQualityPass({
+        status: finalStatus,
+        message: `${retryText}${skippedRetryText}${repairText}${exportText}${finalizerMessage}`,
+        repairsApplied: totalRepairsApplied,
+        warnings,
+        blockers,
+      });
+
+      return {
+        ...result,
+        repairsApplied: totalRepairsApplied,
+        retryCount,
+        exportVerification,
+        packageQualityStatus: finalStatus,
+      };
+    },
+    [
+      canFinishPackageWithAgent,
+      columns,
+      commitFinalizerResult,
+      deliverableConfig,
+      lessonScope.indices,
+      lessonScope.type,
+      selectedFeatures,
+      slideTheme,
+    ],
+  );
+  packageFinalizerRef.current = handleDeterministicPackageFinalization;
 
   // (agentHighlight + triggerAgentHighlight moved to UIContext)
 
@@ -2405,6 +2583,7 @@ export default function AppFlow({ startupAction = null, onStartupHandled, onRetu
                   onStopDeliverables={deliv.isGenerating ? deliv.stopGenerating : null}
                   onPackageQualityPassUpdate={setPackageQualityPass}
                   onAutoRepairReadiness={applyPackageReadinessRepairs}
+                  onFinalizePackage={handleDeterministicPackageFinalization}
                   isSyncing={smartSync.isSyncing}
                   pendingSyncCount={smartSync.pendingSyncCount}
                   syncingFeatures={smartSync.syncingFeatures}
@@ -2629,7 +2808,7 @@ export default function AppFlow({ startupAction = null, onStartupHandled, onRetu
                   onReadinessIssueClick={focusCourseMapTarget}
                   onAutoRepairReadiness={applyPackageReadinessRepairs}
                   onFinishPackage={handleFinishPackageFromExport}
-                  canFinishPackage={canFinishPackageWithAgent}
+                  canFinishPackage={typeof handleFinishPackageFromExport === 'function'}
                   packageQualityPass={packageQualityPass}
                 />
               </div>
@@ -2686,6 +2865,7 @@ export default function AppFlow({ startupAction = null, onStartupHandled, onRetu
             <DeveloperModePanel
               isOpen={developerMode && showDeveloperPanel}
               snapshot={buildProjectSnapshot({ mode: 'developer' })}
+              apiCallBudget={apiCallBudget}
               developerTemplates={developerTemplates}
               activeDeveloperTemplateId={activeDeveloperTemplateId}
               onApply={applyDeveloperSnapshot}

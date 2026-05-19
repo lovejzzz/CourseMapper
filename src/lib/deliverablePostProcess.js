@@ -191,8 +191,7 @@ function isInvalidFaqCategory(value) {
   const text = String(value || '').trim();
   if (!text) return true;
   if (CATEGORY_SET.has(text)) return false;
-  if (text.length > 40) return true;
-  return /[.!?;:]|\b(this|because|supports|addresses|matches|helps|students?)\b/i.test(text);
+  return true;
 }
 
 function inferFaqCategory(question = {}) {

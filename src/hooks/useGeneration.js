@@ -17,6 +17,73 @@ import { log, warn, error as logError } from '../lib/logger';
 import { getModeSystemAddition, getModeCourseMapNote } from '../lib/pedagogicalModes';
 import { validateCourseMap } from '../lib/validateCourseMap';
 
+function cellText(value) {
+  if (value == null) return '';
+  if (Array.isArray(value)) return value.map(cellText).join(' ');
+  if (typeof value === 'object') return Object.values(value).map(cellText).join(' ');
+  return String(value);
+}
+
+function hasMeaningfulCellValue(value) {
+  const text = cellText(value).trim();
+  if (!text) return false;
+  return !/^(tbd|n\/a|none|null|undefined|untitled)$/i.test(text);
+}
+
+function getEnabledColumnKeys(columns = []) {
+  return (Array.isArray(columns) ? columns : [])
+    .filter((column) => column?.key && column.enabled !== false)
+    .map((column) => column.key);
+}
+
+function getCourseMapExamineTriggers({ courseMap, columns, validationWarnings = [], expectedInfo = null } = {}) {
+  const triggers = [];
+  const lessons = Array.isArray(courseMap?.lessons) ? courseMap.lessons : [];
+  const columnKeys = getEnabledColumnKeys(columns);
+
+  if (validationWarnings.length > 0) {
+    triggers.push(`${validationWarnings.length} structural fix${validationWarnings.length === 1 ? '' : 'es'} applied`);
+  }
+  if (lessons.length === 0) {
+    triggers.push('no lessons were generated');
+  }
+  if (expectedInfo?.expected && lessons.length < expectedInfo.expected) {
+    triggers.push(`expected ${expectedInfo.expected} lessons but generated ${lessons.length}`);
+  }
+  if (expectedInfo?.confidence === 'low') {
+    triggers.push('lesson-count confidence is low');
+  }
+  if (expectedInfo?.expected && expectedInfo.confidence === 'medium') {
+    triggers.push('lesson-count confidence is medium');
+  }
+
+  let emptyFieldCount = 0;
+  let structuralGapCount = 0;
+  lessons.forEach((lesson) => {
+    if (!hasMeaningfulCellValue(lesson?.title) || /^lesson\s+\d+:\s*untitled$/i.test(String(lesson?.title || ''))) {
+      structuralGapCount += 1;
+    }
+    if (!Array.isArray(lesson?.sections) || lesson.sections.length === 0) {
+      structuralGapCount += 1;
+      return;
+    }
+    lesson.sections.forEach((section) => {
+      columnKeys.forEach((key) => {
+        if (!hasMeaningfulCellValue(section?.[key])) emptyFieldCount += 1;
+      });
+    });
+  });
+
+  if (structuralGapCount > 0) {
+    triggers.push(`${structuralGapCount} lesson structure gap${structuralGapCount === 1 ? '' : 's'}`);
+  }
+  if (emptyFieldCount > 0) {
+    triggers.push(`${emptyFieldCount} empty enabled course-map field${emptyFieldCount === 1 ? '' : 's'}`);
+  }
+
+  return [...new Set(triggers)];
+}
+
 /**
  * Handles course map generation, examination, stop/resume, and retry.
  */
@@ -36,6 +103,7 @@ export default function useGeneration({
   lessonScope,
   pedagogicalMode, // Feature 4.2 — e.g. 'lecture' | 'flipped' | 'pbl' | 'seminar' | 'competency'
   courseMapConfig, // Optional config for the course map deliverable (referenceFile, extraInstructions)
+  onApiCallEvent,
 }) {
   const [status, setStatus] = useState('idle');
   const [progressStep, setProgressStep] = useState(null);
@@ -62,6 +130,13 @@ export default function useGeneration({
   const workingModelRef = useRef({ provider: null, apiKey: null, modelId: null }); // tracks which model to use for examine
 
   const { streamProvider, parsePartialJSON, abort, abortControllerRef } = useStreamReader();
+
+  const recordApiCallEvent = useCallback(
+    (event) => {
+      if (typeof onApiCallEvent === 'function') onApiCallEvent(event);
+    },
+    [onApiCallEvent],
+  );
 
   // ── Apply pending user edits onto a course map ──
   function applyUserEdits(map) {
@@ -187,7 +262,7 @@ export default function useGeneration({
   }
 
   // ── Run the Examine step (patch-based) — stores proposals for instructor review ──
-  async function runExamine(finalResult) {
+  async function runExamine(finalResult, { reason = 'automatic', triggers = [] } = {}) {
     setProgressStep('examining');
     setStreamDetail('Reviewing for missing or inaccurate content...');
     setExamChanges([]);
@@ -205,6 +280,11 @@ export default function useGeneration({
 
     try {
       const examUserPrompt = buildExamineUserPrompt(finalResult, syllabusTextRef.current, scopeIndices);
+      recordApiCallEvent({
+        type: 'courseMapCall',
+        label: reason === 'manual' ? 'Manual course-map review' : 'Conditional course-map review',
+        detail: triggers.join('; '),
+      });
       const { fullText: examineText } = await streamProvider(
         examProvider,
         examApiKey,
@@ -224,6 +304,11 @@ export default function useGeneration({
             }
           },
           onRetry: (attempt, max, delay) => {
+            recordApiCallEvent({
+              type: 'retriedCall',
+              label: 'Course-map review stream retry',
+              detail: `${attempt}/${max}`,
+            });
             setRetryInfo({ attempt, max, delay });
             setStreamDetail(`Connection lost — retrying (${attempt}/${max})...`);
           },
@@ -273,6 +358,11 @@ export default function useGeneration({
       if (examErr.name === 'AbortError') {
         setOldCourseMap(null);
       } else {
+        recordApiCallEvent({
+          type: 'failedCall',
+          label: reason === 'manual' ? 'Manual course-map review failed' : 'Conditional course-map review failed',
+          detail: examErr.message || '',
+        });
         console.warn('Examine step failed:', examErr.message);
         setOldCourseMap(null);
         setExamChanges(['__EXAM_FAILED__:' + (examErr.message || 'Unknown error')]);
@@ -430,6 +520,11 @@ Generate lessons ${actual + 1} through ${expectedCount} now as JSON:`;
     let lastContUIUpdate = 0;
     // Use the active system prompt (with pedagogical mode additions) instead of bare SYSTEM_PROMPT
     const contSystemPrompt = systemPromptOverride || SYSTEM_PROMPT;
+    recordApiCallEvent({
+      type: 'courseMapCall',
+      label: 'Course-map continuation',
+      detail: `${modelName}: lessons ${actual + 1}-${expectedCount}`,
+    });
     const { fullText: contText } = await streamProvider(
       useProvider,
       useApiKey,
@@ -458,6 +553,11 @@ Generate lessons ${actual + 1} through ${expectedCount} now as JSON:`;
           }
         },
         onRetry: (att, max, delay) => {
+          recordApiCallEvent({
+            type: 'retriedCall',
+            label: 'Course-map continuation stream retry',
+            detail: `${att}/${max}`,
+          });
           setRetryInfo({ attempt: att, max, delay });
           setStreamDetail(`Connection lost — retrying (${att}/${max})...`);
         },
@@ -537,6 +637,11 @@ Generate lessons ${actual + 1} through ${expectedCount} now as JSON:`;
         }
       } catch (contErr) {
         if (contErr.name === 'AbortError') throw contErr;
+        recordApiCallEvent({
+          type: 'failedCall',
+          label: 'Course-map continuation failed',
+          detail: contErr.message || '',
+        });
         addLog(model.name, `Failed: ${contErr.message}`, 'error');
         break;
       }
@@ -558,6 +663,7 @@ Generate lessons ${actual + 1} through ${expectedCount} now as JSON:`;
         return;
       }
       generateInFlightRef.current = true;
+      recordApiCallEvent({ type: 'reset', label: 'New course package generation' });
 
       try {
         setError('');
@@ -746,6 +852,11 @@ Generate lessons ${actual + 1} through ${expectedCount} now as JSON:`;
 
           fullTextRef.current = '';
           lastGoodParseRef.current = null;
+          recordApiCallEvent({
+            type: 'courseMapCall',
+            label: 'Course-map generation',
+            detail: currentModelName,
+          });
           const { fullText } = await streamProvider(provider, apiKey, modelId, activeSystemPrompt, finalUserPrompt, {
             maxOutputTokens,
             onChunk: (text, count) => {
@@ -753,6 +864,11 @@ Generate lessons ${actual + 1} through ${expectedCount} now as JSON:`;
               updateGenerationProgress(text, count);
             },
             onRetry: (attempt, max, delay) => {
+              recordApiCallEvent({
+                type: 'retriedCall',
+                label: 'Course-map generation stream retry',
+                detail: `${attempt}/${max}`,
+              });
               setRetryInfo({ attempt, max, delay });
               setStreamDetail(`Connection lost — retrying (${attempt}/${max})...`);
             },
@@ -864,8 +980,31 @@ Generate lessons ${actual + 1} through ${expectedCount} now as JSON:`;
 
           courseMapRef.current = finalResult;
 
-          // Examine step
-          await runExamine(finalResult);
+          // Examine step: only spend this call when deterministic checks found a reason.
+          const examineTriggers = getCourseMapExamineTriggers({
+            courseMap: finalResult,
+            columns,
+            validationWarnings,
+            expectedInfo: expectedLessonsRef.current,
+          });
+          if (examineTriggers.length > 0) {
+            addLog(
+              usedModelName,
+              `Reviewing course map: ${examineTriggers.slice(0, 2).join('; ')}${examineTriggers.length > 2 ? '...' : ''}`,
+              'warning',
+            );
+            await runExamine(finalResult, { reason: 'automatic', triggers: examineTriggers });
+          } else {
+            setOldCourseMap(null);
+            setExamChanges([]);
+            setPendingExamPatches(null);
+            recordApiCallEvent({
+              type: 'skippedExamine',
+              label: 'Skipped course-map review',
+              detail: 'Deterministic checks passed',
+            });
+            addLog(usedModelName, 'Skipped course-map review — deterministic checks passed', 'success');
+          }
 
           setStreamDetail('');
           setStreamProgress(100);
@@ -887,6 +1026,11 @@ Generate lessons ${actual + 1} through ${expectedCount} now as JSON:`;
             setStatus('stopped');
             return;
           }
+          recordApiCallEvent({
+            type: 'failedCall',
+            label: 'Course-map generation failed',
+            detail: err.message || '',
+          });
           setError('AI generation failed: ' + err.message);
           setStatus('error');
           setIsStreaming(false);
@@ -913,6 +1057,7 @@ Generate lessons ${actual + 1} through ${expectedCount} now as JSON:`;
       setUserEdits,
       streamProvider,
       parsePartialJSON,
+      recordApiCallEvent,
     ],
   );
 
@@ -1008,6 +1153,11 @@ Generate lessons ${actual + 1} through ${expectedCount} now as JSON:`;
       if (import.meta.env.DEV)
         console.log('[Resume] calling streamProvider, prompt length:', continuationPrompt.length);
       fullTextRef.current = '';
+      recordApiCallEvent({
+        type: 'courseMapCall',
+        label: 'Course-map resume',
+        detail: resumeModel,
+      });
       const { fullText } = await streamProvider(
         resumeProvider,
         resumeKey,
@@ -1042,6 +1192,11 @@ Generate lessons ${actual + 1} through ${expectedCount} now as JSON:`;
             }
           },
           onRetry: (attempt, max, delay) => {
+            recordApiCallEvent({
+              type: 'retriedCall',
+              label: 'Course-map resume stream retry',
+              detail: `${attempt}/${max}`,
+            });
             setRetryInfo({ attempt, max, delay });
             setStreamDetail(`Connection lost — retrying (${attempt}/${max})...`);
           },
@@ -1100,6 +1255,11 @@ Generate lessons ${actual + 1} through ${expectedCount} now as JSON:`;
         return;
       }
       // Resume failed — go back to stopped state so user can retry
+      recordApiCallEvent({
+        type: 'failedCall',
+        label: 'Course-map resume failed',
+        detail: err.message || '',
+      });
       setError('Resume failed: ' + err.message);
       setStatus('stopped');
       setIsStreaming(false);
@@ -1119,6 +1279,7 @@ Generate lessons ${actual + 1} through ${expectedCount} now as JSON:`;
     userEdits,
     streamProvider,
     parsePartialJSON,
+    recordApiCallEvent,
   ]);
 
   const handleStop = useCallback(() => {
@@ -1194,12 +1355,12 @@ Generate lessons ${actual + 1} through ${expectedCount} now as JSON:`;
 
   const handleRetryExamine = useCallback(async () => {
     if (!courseMapRef.current) return;
-    await runExamine(courseMapRef.current);
+    await runExamine(courseMapRef.current, { reason: 'manual', triggers: ['user requested a review'] });
     setStreamDetail('');
     setStreamProgress(100);
     setProgressStep('done');
     setStatus('done');
-  }, [provider, modelId, apiKey, maxOutputTokens]);
+  }, [provider, modelId, apiKey, maxOutputTokens, lessonScope, streamProvider, parsePartialJSON, recordApiCallEvent]);
 
   return {
     status,
