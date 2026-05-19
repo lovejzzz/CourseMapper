@@ -409,13 +409,14 @@ function buildProviderRequest(
   throw new Error('Unsupported provider: ' + provider);
 }
 
-// Exclude non-chat models that don't work for structured JSON generation
+// Exclude non-chat models that don't work for structured JSON generation.
+// Keep preview/snapshot text models: provider catalogs are the source of truth,
+// and users expect newly released generation-capable models to appear.
 const OPENAI_EXCLUDE =
-  /sora|image|dall-e|whisper|tts|transcribe|realtime|audio|search|codex|chatgpt|oss|deep-research|embedding|moderation|babbage|davinci/i;
-// Exclude dated snapshots, -chat-latest aliases, and -pro variants to deduplicate
-const OPENAI_SKIP_VARIANT = /\d{4}-\d{2}-\d{2}|-chat-latest|-pro$/;
+  /sora|image|dall-e|whisper|tts|transcribe|realtime|audio|search|deep-research|embedding|moderation|babbage|davinci|computer-use/i;
+const OPENAI_INCLUDE = /^(gpt-|o\d|chatgpt-)/i;
 // Exclude non-text Google Gemini variants (image generation, TTS, live streaming, embeddings)
-const GOOGLE_EXCLUDE = /imagen|image-gen|tts|live-|embedding|aqa/i;
+const GOOGLE_EXCLUDE = /imagen|image|veo|tts|live|embedding|aqa|native-audio/i;
 
 /** Detect if a Google API key is a Vertex AI Express Mode key (vs standard Gemini/AI Studio key) */
 export function isVertexKey(apiKey) {
@@ -430,15 +431,72 @@ const VERTEX_MODELS = [
 ];
 
 function cleanOpenAIName(id) {
-  return id.replace(/^gpt-/, 'GPT-').replace(/^o(\d)/, 'O$1');
+  return id
+    .replace(/^gpt-/i, 'GPT-')
+    .replace(/^chatgpt-/i, 'ChatGPT-')
+    .replace(/^o(\d)/i, 'O$1');
+}
+
+function cleanDeepSeekName(id) {
+  if (id === 'deepseek-chat') return 'DeepSeek V3';
+  if (id === 'deepseek-reasoner') return 'DeepSeek R1';
+  return id
+    .split(/[-_]/)
+    .map((part) => (part ? part.charAt(0).toUpperCase() + part.slice(1) : part))
+    .join(' ');
+}
+
+function modelVersionScore(id = '') {
+  const direct = id.match(/(?:gpt-|gemini-|^o)(\d+)(?:\.(\d+))?/i);
+  const fallback = direct || id.match(/(\d+)(?:\.(\d+))?/);
+  if (!fallback) return 0;
+  const major = Number(fallback[1]) || 0;
+  const minor = Number(fallback[2]) || 0;
+  return major * 1000 + minor;
+}
+
+function modelQualityScore(id = '') {
+  const value = id.toLowerCase();
+  if (value.includes('pro') || value.includes('opus')) return 60;
+  if (value.includes('sonnet') || value.includes('reasoner') || /^o\d/.test(value)) return 50;
+  if (value.includes('flash') || value.includes('mini')) return 40;
+  if (value.includes('haiku') || value.includes('nano') || value.includes('lite')) return 30;
+  return 20;
+}
+
+function createdScore(created) {
+  if (!created) return 0;
+  if (typeof created === 'number') return created;
+  const parsed = Date.parse(created);
+  return Number.isNaN(parsed) ? 0 : parsed;
+}
+
+function sortModelOptions(a, b) {
+  const versionDelta = modelVersionScore(b.id) - modelVersionScore(a.id);
+  if (versionDelta) return versionDelta;
+  const qualityDelta = modelQualityScore(b.id) - modelQualityScore(a.id);
+  if (qualityDelta) return qualityDelta;
+  const createdDelta = createdScore(b.created) - createdScore(a.created);
+  if (createdDelta) return createdDelta;
+  return a.id.localeCompare(b.id);
+}
+
+function dedupeModelsById(models) {
+  const seen = new Set();
+  return models.filter((model) => {
+    const key = String(model.id || '').toLowerCase();
+    if (!key || seen.has(key)) return false;
+    seen.add(key);
+    return true;
+  });
 }
 
 /**
  * Lookup max output tokens for OpenAI models (not returned by /v1/models API).
  */
 function openaiMaxOutput(id) {
-  if (/^gpt-5/.test(id)) return 128000; // gpt-5, gpt-5.1, gpt-5.2, gpt-5-mini, gpt-5-nano
-  if (/^o[134]/.test(id)) return 100000; // o1, o3, o3-mini, o4-mini reasoning models
+  if (/^gpt-[5-9]/.test(id)) return 128000; // current/future GPT-5+ families
+  if (/^o\d/.test(id)) return 100000; // o-series reasoning models
   if (id.startsWith('gpt-4.1')) return 32768; // gpt-4.1, gpt-4.1-mini, gpt-4.1-nano
   return 16384; // gpt-4o, gpt-4o-mini, and others
 }
@@ -447,9 +505,8 @@ function openaiMaxOutput(id) {
  * Lookup max output tokens for Anthropic models (not reliably in /v1/models).
  */
 function anthropicMaxOutput(id) {
-  if (/claude-opus-4/.test(id)) return 128000; // Claude Opus 4.x
-  if (/claude-sonnet-4/.test(id)) return 64000; // Claude Sonnet 4.x
-  if (/claude-haiku-4/.test(id)) return 64000; // Claude Haiku 4.x
+  if (/claude-opus-[4-9]/.test(id)) return 128000; // current/future Opus families
+  if (/claude-(sonnet|haiku)-[4-9]/.test(id)) return 64000; // current/future Sonnet/Haiku families
   if (id.includes('claude-3-7')) return 16384;
   if (id.includes('claude-3-5')) return 8192;
   if (id.includes('claude-3-opus')) return 4096;
@@ -472,15 +529,18 @@ export async function fetchModelsFromProvider(provider, apiKey) {
     });
     if (!response.ok) throw new Error('Invalid API key');
     const data = await response.json();
-    return data.data
-      .filter(
-        (m) =>
-          (m.id.startsWith('gpt-') || m.id.startsWith('o')) &&
-          !OPENAI_EXCLUDE.test(m.id) &&
-          !OPENAI_SKIP_VARIANT.test(m.id),
-      )
-      .sort((a, b) => (b.created || 0) - (a.created || 0))
-      .map((m) => ({ id: m.id, name: cleanOpenAIName(m.id), maxOutputTokens: openaiMaxOutput(m.id) }));
+    const models = dedupeModelsById(
+      (data.data || [])
+        .filter((m) => OPENAI_INCLUDE.test(m.id) && !OPENAI_EXCLUDE.test(m.id))
+        .map((m) => ({
+          id: m.id,
+          name: cleanOpenAIName(m.id),
+          created: m.created || 0,
+          maxOutputTokens: openaiMaxOutput(m.id),
+        })),
+    ).sort(sortModelOptions);
+    if (models.length === 0) throw new Error('No OpenAI text-generation models available');
+    return models;
   }
 
   if (provider === 'anthropic') {
@@ -497,22 +557,16 @@ export async function fetchModelsFromProvider(provider, apiKey) {
       throw new Error(err.error?.message || 'Failed to fetch models');
     }
     const data = await response.json();
-    // Anthropic: keep only base model IDs (no dated snapshots), deduplicate by display_name
-    const seen = new Set();
-    const models = (data.data || [])
-      .filter((m) => m.id.includes('claude') && !/\d{8}$/.test(m.id))
-      .map((m) => ({
-        id: m.id,
-        name: m.display_name || m.id,
-        created: m.created_at || '',
-        maxOutputTokens: anthropicMaxOutput(m.id),
-      }))
-      .sort((a, b) => (b.created || '').localeCompare(a.created || ''))
-      .filter((m) => {
-        if (seen.has(m.name)) return false;
-        seen.add(m.name);
-        return true;
-      });
+    const models = dedupeModelsById(
+      (data.data || [])
+        .filter((m) => m.id.includes('claude'))
+        .map((m) => ({
+          id: m.id,
+          name: m.display_name || m.id,
+          created: m.created_at || '',
+          maxOutputTokens: anthropicMaxOutput(m.id),
+        })),
+    ).sort(sortModelOptions);
     if (models.length === 0) throw new Error('No models available');
     return models;
   }
@@ -532,33 +586,39 @@ export async function fetchModelsFromProvider(provider, apiKey) {
       return VERTEX_MODELS;
     }
 
-    const response = await fetch(`https://generativelanguage.googleapis.com/v1beta/models?key=${apiKey}`);
-    if (!response.ok) {
-      const err = await response.json().catch(() => ({}));
-      throw new Error(err.error?.message || 'Invalid API key');
-    }
-    const data = await response.json();
-    // Google: keep only base gemini models (no -exp, no dated suffixes), deduplicate
-    const gSeen = new Set();
-    const models = (data.models || [])
-      .filter(
-        (m) =>
-          m.supportedGenerationMethods?.includes('generateContent') &&
-          m.name.includes('gemini') &&
-          !m.name.includes('exp') &&
-          !GOOGLE_EXCLUDE.test(m.name),
-      )
-      .map((m) => ({
-        id: m.name.replace('models/', ''),
-        name: m.displayName || m.name.replace('models/', ''),
-        maxOutputTokens: m.outputTokenLimit || 8192,
-      }))
-      .sort((a, b) => b.id.localeCompare(a.id))
-      .filter((m) => {
-        if (gSeen.has(m.name)) return false;
-        gSeen.add(m.name);
-        return true;
-      });
+    const allModels = [];
+    let pageToken = '';
+    do {
+      const url = new URL('https://generativelanguage.googleapis.com/v1beta/models');
+      url.searchParams.set('key', apiKey);
+      url.searchParams.set('pageSize', '1000');
+      if (pageToken) url.searchParams.set('pageToken', pageToken);
+      const response = await fetch(url.toString());
+      if (!response.ok) {
+        const err = await response.json().catch(() => ({}));
+        throw new Error(err.error?.message || 'Invalid API key');
+      }
+      const data = await response.json();
+      allModels.push(...(data.models || []));
+      pageToken = data.nextPageToken || '';
+    } while (pageToken);
+
+    const models = dedupeModelsById(
+      allModels
+        .filter((m) => {
+          const methods = m.supportedGenerationMethods || [];
+          return (
+            (methods.includes('generateContent') || methods.includes('streamGenerateContent')) &&
+            m.name.includes('gemini') &&
+            !GOOGLE_EXCLUDE.test(m.name)
+          );
+        })
+        .map((m) => ({
+          id: m.name.replace('models/', ''),
+          name: m.displayName || m.name.replace('models/', ''),
+          maxOutputTokens: m.outputTokenLimit || 8192,
+        })),
+    ).sort(sortModelOptions);
     if (models.length === 0) throw new Error('No Gemini models available');
     return models;
   }
@@ -569,14 +629,19 @@ export async function fetchModelsFromProvider(provider, apiKey) {
     });
     if (!response.ok) throw new Error('Invalid API key');
     const data = await response.json();
-    return (data.data || [])
-      .filter((m) => m.id.includes('deepseek'))
-      .map((m) => ({
-        id: m.id,
-        name: m.id === 'deepseek-chat' ? 'DeepSeek V3' : m.id === 'deepseek-reasoner' ? 'DeepSeek R1' : m.id,
-        // DeepSeek /v1/models doesn't return token limits; values from docs
-        maxOutputTokens: m.id === 'deepseek-reasoner' ? 32768 : 8192,
-      }));
+    const models = dedupeModelsById(
+      (data.data || [])
+        .filter((m) => m.id)
+        .map((m) => ({
+          id: m.id,
+          name: cleanDeepSeekName(m.id),
+          created: m.created || 0,
+          // DeepSeek /v1/models doesn't return token limits; values from docs
+          maxOutputTokens: m.id === 'deepseek-reasoner' ? 32768 : 8192,
+        })),
+    ).sort(sortModelOptions);
+    if (models.length === 0) throw new Error('No DeepSeek models available');
+    return models;
   }
 
   throw new Error('Invalid provider.');
