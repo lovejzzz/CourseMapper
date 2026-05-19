@@ -423,7 +423,12 @@ export function isVertexKey(apiKey) {
   return apiKey && !apiKey.startsWith('AIza') && apiKey.length > 39;
 }
 
-const VERTEX_MODELS = [
+const GOOGLE_TEXT_MODEL_FALLBACKS = [
+  { id: 'gemini-3.1-pro-preview', name: 'Gemini 3.1 Pro Preview', maxOutputTokens: 65536 },
+  { id: 'gemini-3.5-flash', name: 'Gemini 3.5 Flash', maxOutputTokens: 65536 },
+  { id: 'gemini-3-flash-preview', name: 'Gemini 3 Flash Preview', maxOutputTokens: 65536 },
+  { id: 'gemini-3.1-flash-lite', name: 'Gemini 3.1 Flash-Lite', maxOutputTokens: 65536 },
+  { id: 'gemini-3.1-flash-lite-preview', name: 'Gemini 3.1 Flash-Lite Preview', maxOutputTokens: 65536 },
   { id: 'gemini-2.5-pro', name: 'Gemini 2.5 Pro', maxOutputTokens: 65536 },
   { id: 'gemini-2.5-flash', name: 'Gemini 2.5 Flash', maxOutputTokens: 65536 },
   { id: 'gemini-2.5-flash-lite', name: 'Gemini 2.5 Flash Lite', maxOutputTokens: 65536 },
@@ -444,6 +449,19 @@ function cleanDeepSeekName(id) {
     .split(/[-_]/)
     .map((part) => (part ? part.charAt(0).toUpperCase() + part.slice(1) : part))
     .join(' ');
+}
+
+function cleanGoogleName(id, displayName) {
+  if (displayName) return displayName;
+  return id
+    .replace(/^gemini-/i, 'Gemini ')
+    .replace(/-/g, ' ')
+    .replace(/\b\w/g, (letter) => letter.toUpperCase())
+    .replace(/\bLite\b/g, 'Lite');
+}
+
+function googleModelIdFromResourceName(name = '') {
+  return name.replace(/^models\//, '').replace(/^publishers\/google\/models\//, '');
 }
 
 function modelVersionScore(id = '') {
@@ -489,6 +507,53 @@ function dedupeModelsById(models) {
     seen.add(key);
     return true;
   });
+}
+
+function normalizeGoogleModelCatalog(models) {
+  return dedupeModelsById(
+    (models || [])
+      .filter((model) => {
+        const id = googleModelIdFromResourceName(model.name || model.id || '');
+        const methods = model.supportedGenerationMethods || model.supportedActions || [];
+        const supportsText =
+          methods.length === 0 ||
+          methods.includes('generateContent') ||
+          methods.includes('streamGenerateContent') ||
+          methods.includes('predict');
+        return (
+          id.includes('gemini') &&
+          supportsText &&
+          !GOOGLE_EXCLUDE.test(id) &&
+          !GOOGLE_EXCLUDE.test(model.displayName || '')
+        );
+      })
+      .map((model) => {
+        const id = googleModelIdFromResourceName(model.name || model.id || '');
+        return {
+          id,
+          name: cleanGoogleName(id, model.displayName),
+          maxOutputTokens: model.outputTokenLimit || model.output_token_limit || 65536,
+        };
+      }),
+  ).sort(sortModelOptions);
+}
+
+async function fetchVertexModels(apiKey) {
+  const allModels = [];
+  let pageToken = '';
+  do {
+    const url = new URL('https://aiplatform.googleapis.com/v1beta1/publishers/google/models');
+    url.searchParams.set('key', apiKey);
+    url.searchParams.set('pageSize', '1000');
+    url.searchParams.set('listAllVersions', 'true');
+    if (pageToken) url.searchParams.set('pageToken', pageToken);
+    const response = await fetch(url.toString());
+    if (!response.ok) throw new Error('Vertex model catalog unavailable');
+    const data = await response.json();
+    allModels.push(...(data.publisherModels || data.models || []));
+    pageToken = data.nextPageToken || '';
+  } while (pageToken);
+  return normalizeGoogleModelCatalog(allModels);
 }
 
 /**
@@ -572,8 +637,15 @@ export async function fetchModelsFromProvider(provider, apiKey) {
   }
 
   if (provider === 'google') {
-    // Vertex AI Express Mode — no model listing endpoint, validate key + return hardcoded list
     if (isVertexKey(apiKey)) {
+      try {
+        const models = await fetchVertexModels(apiKey);
+        if (models.length > 0) return models;
+      } catch {
+        // Some Vertex/Express API keys cannot list publisher models. Validate
+        // generation access, then use the current documented Gemini text list.
+      }
+
       const testRes = await fetch(
         `https://aiplatform.googleapis.com/v1/publishers/google/models/gemini-2.5-flash:countTokens?key=${apiKey}`,
         {
@@ -583,7 +655,7 @@ export async function fetchModelsFromProvider(provider, apiKey) {
         },
       );
       if (!testRes.ok) throw new Error('Invalid API key');
-      return VERTEX_MODELS;
+      return GOOGLE_TEXT_MODEL_FALLBACKS;
     }
 
     const allModels = [];
@@ -603,22 +675,7 @@ export async function fetchModelsFromProvider(provider, apiKey) {
       pageToken = data.nextPageToken || '';
     } while (pageToken);
 
-    const models = dedupeModelsById(
-      allModels
-        .filter((m) => {
-          const methods = m.supportedGenerationMethods || [];
-          return (
-            (methods.includes('generateContent') || methods.includes('streamGenerateContent')) &&
-            m.name.includes('gemini') &&
-            !GOOGLE_EXCLUDE.test(m.name)
-          );
-        })
-        .map((m) => ({
-          id: m.name.replace('models/', ''),
-          name: m.displayName || m.name.replace('models/', ''),
-          maxOutputTokens: m.outputTokenLimit || 8192,
-        })),
-    ).sort(sortModelOptions);
+    const models = normalizeGoogleModelCatalog(allModels);
     if (models.length === 0) throw new Error('No Gemini models available');
     return models;
   }
