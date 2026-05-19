@@ -162,7 +162,7 @@ async function installMockOpenAI(page, agentRequests) {
 }
 
 test.describe('Agent auto-review', () => {
-  test('runs silently after deliverable generation without showing a user-authored Review my course bubble', async ({
+  test('runs deterministic final pass silently without showing a user-authored Review my course bubble', async ({
     page,
   }) => {
     test.setTimeout(120000);
@@ -195,15 +195,11 @@ test.describe('Agent auto-review', () => {
     const agentPanel = page.getByTestId('workspace-agent-panel');
     await expect(agentPanel.getByTestId('progress-phase-label')).toHaveText('Complete', { timeout: 30000 });
 
-    await expect.poll(() => agentRequests.length, { timeout: 15000 }).toBe(1);
-    expect(agentRequests[0].messages.some((message) => String(message.content || '').includes('[AUTO-REVIEW]'))).toBe(
-      true,
-    );
-    const autoReviewPrompt = agentRequests[0].messages.map((message) => String(message.content || '')).join('\n');
-    expect(autoReviewPrompt).toContain('finalize_package');
-    expect(autoReviewPrompt).toContain('repairQueue');
-    expect(autoReviewPrompt).toContain('classroom-ready');
-    expect(autoReviewPrompt).toContain('retry_package_weak_spots');
+    // The final pass now runs through deterministic finalization, not through
+    // a hidden user-authored chat turn or agent tool-call request.
+    await page.waitForTimeout(3500);
+    expect(agentRequests).toHaveLength(0);
     await expect(agentPanel.getByTestId('chat-message-user').filter({ hasText: 'Review my course' })).toHaveCount(0);
+    await expect(agentPanel.getByText('[AUTO-REVIEW]')).toHaveCount(0);
   });
 });
