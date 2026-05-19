@@ -49,7 +49,7 @@ Course Mapper is a free, browser-based tool that uses AI to transform course des
 - Visit the website. It works in Chrome, Firefox, Safari, or Edge.
 - **Option A — type a course description:** Just describe your course (e.g. "Social Policy and Welfare, 14-week undergraduate course") and click Continue.
 - **Option B — upload a syllabus:** Drag-and-drop or browse to upload course files. The AI extracts the lesson count and structure automatically.
-- **Option C — try a sample:** Click one of the suggested prompts (e.g. "Intro to Psychology", "Research Methods", "Social Policy") to see a quick demo.
+- **Option C — try a sample:** Click one of the three rotating sample prompts to test different topics, course lengths, and teaching formats.
 - Choose an AI provider (OpenAI, Anthropic, Google, or DeepSeek) and enter your API key.
 - Select which deliverables to generate (Course Map, Lesson Plans, Slide Decks, etc.)
 - Click Generate and watch everything build in real time.

@@ -36,21 +36,26 @@ test.describe('Landing Page', () => {
   });
 
   test('shows example chips when prompt and files are empty', async ({ page }) => {
-    await expect(page.locator('button:has-text("Intro to Psychology")')).toBeVisible();
-    await expect(page.locator('button:has-text("Research Methods")')).toBeVisible();
-    await expect(page.locator('button:has-text("Social Policy")')).toBeVisible();
+    const chips = page.getByTestId('course-example-chip');
+
+    await expect(chips).toHaveCount(3);
+    const labels = (await chips.allTextContents()).map((label) => label.trim()).filter(Boolean);
+    expect(new Set(labels).size).toBe(3);
   });
 
   test('clicking example chip fills the prompt textarea', async ({ page }) => {
-    await page.locator('button:has-text("Intro to Psychology")').click();
+    const chip = page.getByTestId('course-example-chip').first();
+    const expectedPrompt = await chip.getAttribute('data-example-text');
+
+    await chip.click();
     const value = await page.locator('textarea').inputValue();
-    expect(value).toContain('Introduction to Psychology');
-    expect(value).toContain('15-week');
+    expect(value).toBe(expectedPrompt);
+    expect(value).toMatch(/\b(6|7|8|9|10|11|12|13|14|15)-week\b/);
   });
 
   test('example chips disappear after prompt is filled', async ({ page }) => {
-    await page.locator('button:has-text("Intro to Psychology")').click();
-    await expect(page.locator('button:has-text("Research Methods")')).not.toBeVisible();
+    await page.getByTestId('course-example-chip').first().click();
+    await expect(page.getByTestId('course-example-chip')).toHaveCount(0);
   });
 
   test('textarea accepts typed input', async ({ page }) => {
@@ -166,7 +171,7 @@ test.describe('Lazy Shell', () => {
     await page.waitForTimeout(250);
     expect(appFlowRequests.length, 'AppFlow should not be requested on initial landing load').toBe(0);
 
-    await page.locator('button:has-text("Intro to Psychology")').click();
+    await page.getByTestId('course-example-chip').first().click();
     await page.locator('button:has-text("Continue")').click();
     await expect(page.locator('text=Choose deliverables')).toBeVisible({ timeout: 10000 });
     expect(appFlowRequests.length, 'AppFlow should be requested after leaving landing').toBeGreaterThan(0);
@@ -671,7 +676,7 @@ test.describe('Layout & Visual', () => {
     await page.reload();
     await expect(page.locator('h1')).toBeVisible({ timeout: 10000 });
 
-    const chip = page.locator('button:has-text("Intro to Psychology")');
+    const chip = page.getByTestId('course-example-chip').first();
     const classes = await chip.getAttribute('class');
     expect(classes).toContain('tactile');
     expect(classes).toContain('rounded-full');
@@ -786,12 +791,12 @@ test.describe('Edge Cases', () => {
     await page.reload();
     await expect(page.locator('h1')).toBeVisible({ timeout: 10000 });
 
-    const chip = page.locator('button:has-text("Intro to Psychology")');
+    const chip = page.getByTestId('course-example-chip').first();
+    const expectedPrompt = await chip.getAttribute('data-example-text');
+
     await chip.dblclick();
     const value = await page.locator('textarea').inputValue();
-    // Should contain the text just once (not duplicated)
-    const count = (value.match(/Introduction to Psychology/g) || []).length;
-    expect(count).toBe(1);
+    expect(value).toBe(expectedPrompt);
   });
 
   test('pasting long text into textarea works', async ({ page }) => {

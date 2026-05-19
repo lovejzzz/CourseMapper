@@ -31,6 +31,78 @@ const ACCEPTED_EXTENSIONS = [
 
 const PROJECT_EXTENSIONS = ['.coursemapper', '.json'];
 
+export const COURSE_EXAMPLES = [
+  {
+    label: '🧠 Intro to Psychology',
+    text: 'Introduction to Psychology, 15-week undergraduate survey course with weekly lectures, discussion sections, low-stakes quizzes, a midterm, and a final applied reflection. Covers history of psychology, research methods, biological bases of behavior, sensation and perception, learning, memory, cognition, development, social psychology, and abnormal psychology.',
+  },
+  {
+    label: '📊 Research Methods',
+    text: 'Research Methods in the Social Sciences, 12-week graduate seminar with scaffolded proposal milestones, peer review workshops, mixed-methods labs, and a final research design portfolio. Covers qualitative and quantitative approaches, sampling, survey design, interviewing, ethnography, descriptive statistics, ethics, and research proposal writing.',
+  },
+  {
+    label: '🌍 Social Policy',
+    text: 'Social Policy and Welfare, 14-week undergraduate course with weekly case briefs, policy memos, debate activities, and a final advocacy project. Covers social welfare history, policy analysis frameworks, healthcare policy, housing policy, income support, child welfare, aging policy, disability policy, and legislative advocacy.',
+  },
+  {
+    label: '🤖 Machine Learning',
+    text: 'Applied Machine Learning, 10-week graduate technical course with Python notebooks, weekly dataset labs, model critique discussions, and a final predictive modeling project. Covers supervised learning, train/test splits, regression, classification, decision trees, random forests, neural networks, evaluation metrics, overfitting, fairness, and model documentation.',
+  },
+  {
+    label: '🧪 Organic Chemistry Lab',
+    text: 'Organic Chemistry Laboratory, 8-week in-person undergraduate lab course with pre-lab checks, bench experiments, lab notebook grading, safety briefings, and formal lab reports. Covers purification, chromatography, spectroscopy, substitution and elimination reactions, synthesis planning, yield analysis, and lab safety practices.',
+  },
+  {
+    label: '🏛️ Art History',
+    text: 'Global Art History: 1400 to Present, 13-week undergraduate seminar with visual analysis exercises, museum object studies, short comparison papers, and a final curatorial proposal. Covers Renaissance art, colonial visual culture, modernism, photography, architecture, protest art, global contemporary movements, and methods for interpreting material culture.',
+  },
+  {
+    label: '💼 Startup Finance',
+    text: 'Startup Finance and Venture Strategy, 6-week executive certificate course with async finance primers, live case workshops, valuation spreadsheets, investor memo practice, and a capstone pitch deck. Covers unit economics, runway, fundraising stages, cap tables, term sheets, valuation methods, scenario planning, and board-level financial storytelling.',
+  },
+  {
+    label: '🧑‍⚕️ Public Health',
+    text: 'Public Health Program Planning, 11-week hybrid graduate course with community needs assessment, logic model studios, evaluation plan checkpoints, and team presentations. Covers epidemiologic thinking, social determinants of health, stakeholder mapping, intervention design, health equity, implementation barriers, evaluation metrics, and grant-style planning.',
+  },
+  {
+    label: '⚖️ Business Law',
+    text: 'Business Law for Managers, 9-week online MBA course with short legal issue briefs, contract annotation drills, scenario-based quizzes, and a final risk advisory memo. Covers contracts, torts, employment law, intellectual property, data privacy, entity formation, regulatory compliance, negotiation ethics, and legal risk communication.',
+  },
+  {
+    label: '🧩 UX Design Studio',
+    text: 'User Experience Design Studio, 12-week project-based undergraduate course with critique sessions, design journals, usability testing labs, prototype reviews, and a final portfolio case study. Covers design research, personas, journey maps, information architecture, wireframing, interaction patterns, accessibility, usability testing, and design handoff.',
+  },
+  {
+    label: '🎬 Film Studies',
+    text: 'Film Form and Cultural Analysis, 10-week undergraduate humanities course with weekly screenings, shot-analysis workshops, short response papers, and a final scene analysis essay. Covers mise-en-scene, cinematography, editing, sound, genre, spectatorship, documentary form, global cinema, authorship, and ideology critique.',
+  },
+  {
+    label: '🌱 Climate Justice',
+    text: 'Climate Justice and Community Resilience, 7-week intensive seminar with policy labs, community case studies, environmental justice mapping, and a final resilience action plan. Covers climate science basics, environmental racism, adaptation planning, disaster recovery, energy transitions, Indigenous sovereignty, public participation, and climate policy tradeoffs.',
+  },
+  {
+    label: '🧮 Data Analytics',
+    text: 'Data Analytics for Decision-Making, 15-week undergraduate course with spreadsheet labs, dashboard critiques, statistics quizzes, and a final analytics report. Covers data cleaning, descriptive statistics, visualization, SQL basics, spreadsheet modeling, correlation, regression, dashboard design, uncertainty, and communicating findings to nontechnical audiences.',
+  },
+  {
+    label: '🗣️ Spanish for Healthcare',
+    text: 'Spanish for Healthcare Professionals, 8-week skills course with role-play clinics, vocabulary practice, cultural humility reflections, oral proficiency checks, and a final patient-interview simulation. Covers intake questions, symptoms, medication instructions, family history, pain description, consent language, interpreter collaboration, and respectful patient communication.',
+  },
+  {
+    label: '🏙️ Urban Planning',
+    text: 'Urban Planning and Community Development, 14-week graduate studio with neighborhood fieldwork, zoning analysis, stakeholder interviews, planning memo drafts, and a final community development plan. Covers land use, housing affordability, transportation equity, zoning, participatory planning, GIS mapping, economic development, and public meeting facilitation.',
+  },
+];
+
+export function pickCourseExamples(examples = COURSE_EXAMPLES, count = 3) {
+  const shuffled = [...examples];
+  for (let i = shuffled.length - 1; i > 0; i -= 1) {
+    const j = Math.floor(Math.random() * (i + 1));
+    [shuffled[i], shuffled[j]] = [shuffled[j], shuffled[i]];
+  }
+  return shuffled.slice(0, count);
+}
+
 function isProjectFile(file) {
   const ext = '.' + file.name.split('.').pop().toLowerCase();
   return PROJECT_EXTENSIONS.includes(ext);
@@ -72,6 +144,7 @@ export default function Landing({
   const { files, setFiles, promptText, setPromptText, columns, setColumns } = useCourse();
   const [isDragging, setIsDragging] = useState(false);
   const [projectDragging, setProjectDragging] = useState(false);
+  const [visibleCourseExamples] = useState(() => pickCourseExamples(COURSE_EXAMPLES, 3));
 
   // ── Auto-collapse AI config when already connected ──
   const isReady = apiStatus === 'connected';
@@ -195,22 +268,11 @@ export default function Landing({
           {!promptText && files.length === 0 && (
             <div className="flex flex-wrap items-center justify-center gap-2 animate-fade-up">
               <span className="text-[10px] font-semibold text-slate-300 uppercase tracking-wider mr-1">Try:</span>
-              {[
-                {
-                  label: '🧠 Intro to Psychology',
-                  text: 'Introduction to Psychology, 15-week undergraduate course. Covers history of psychology, research methods, biological bases of behavior, sensation and perception, states of consciousness, learning, memory, cognition, development, motivation, emotion, social psychology, and abnormal psychology.',
-                },
-                {
-                  label: '📊 Research Methods',
-                  text: 'Research Methods in Social Sciences, 12-week graduate seminar. Covers qualitative and quantitative approaches, research design, survey methods, interviews, ethnography, statistical analysis, ethical considerations, and writing research proposals.',
-                },
-                {
-                  label: '🌍 Social Policy',
-                  text: 'Social Policy and Welfare, 14-week undergraduate course. Covers history of social welfare, policy analysis frameworks, healthcare policy, housing policy, income support, child welfare, aging policy, and advocacy skills.',
-                },
-              ].map(({ label, text }) => (
+              {visibleCourseExamples.map(({ label, text }) => (
                 <button
                   key={label}
+                  data-testid="course-example-chip"
+                  data-example-text={text}
                   onClick={() => (onExampleSelect ? onExampleSelect(text) : setPromptText(text))}
                   className="tactile flex items-center gap-1.5 px-3 py-1.5 rounded-full bg-white/60 border border-slate-200/60 text-[11px] font-medium text-slate-500 hover:text-indigo-600 hover:border-indigo-200 hover:bg-indigo-50/40 transition-all duration-200"
                 >
