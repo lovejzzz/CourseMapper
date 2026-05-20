@@ -20,6 +20,40 @@ export const CHUNK_SIZE = 5; // default lessons per chunk
 export const MAX_CONCURRENT = 6; // max simultaneous API calls (retries only)
 export const MAX_RETRY_ROUNDS = 2; // max retry attempts for incomplete chunks
 
+function clampConcurrency(value, fallback) {
+  const number = Number(value);
+  if (!Number.isFinite(number) || number <= 0) return fallback;
+  return Math.max(1, Math.min(8, Math.round(number)));
+}
+
+export function getFeatureConcurrency(generationPlan = null) {
+  return clampConcurrency(
+    generationPlan?.parallelFeatureCalls,
+    generationPlan?.chunkStrategy === 'conservative' ? 2 : 3,
+  );
+}
+
+export function getRetryConcurrency(generationPlan = null) {
+  return clampConcurrency(
+    generationPlan?.retryConcurrency,
+    generationPlan?.chunkStrategy === 'conservative' ? 2 : MAX_CONCURRENT,
+  );
+}
+
+export function getStreamRetryLimit(generationPlan = null, phase = 'initial') {
+  const key = phase === 'repair' ? 'repairStreamRetries' : 'initialStreamRetries';
+  const fallback = phase === 'repair' ? 3 : 2;
+  const number = Number(generationPlan?.[key]);
+  if (!Number.isFinite(number)) return fallback;
+  return Math.max(0, Math.min(4, Math.round(number)));
+}
+
+export function getRepairRoundLimit(generationPlan = null) {
+  const number = Number(generationPlan?.repair?.maxRepairRounds || generationPlan?.maxRepairRounds);
+  if (!Number.isFinite(number)) return MAX_RETRY_ROUNDS;
+  return Math.max(1, Math.min(4, Math.round(number)));
+}
+
 /** Per-feature chunk sizes — sized against the matching output budget below.
  *  Heavy-per-lesson features (quizBank, slideDecks) drop to 3 lessons/chunk so
  *  a single call doesn't exhaust its token budget when a lesson generates a

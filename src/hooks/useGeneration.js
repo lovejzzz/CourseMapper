@@ -668,7 +668,7 @@ Generate lessons ${actual + 1} through ${expectedCount} now as JSON:`;
       // Prevent duplicate calls while a generation is already in progress
       if (generateInFlightRef.current) {
         log('[useGeneration] Generate call blocked — already in flight');
-        return;
+        return null;
       }
       generateInFlightRef.current = true;
       recordApiCallEvent({ type: 'reset', label: 'New course package generation' });
@@ -694,7 +694,7 @@ Generate lessons ${actual + 1} through ${expectedCount} now as JSON:`;
           } catch (err) {
             setError('Failed to parse files: ' + err.message);
             setStatus('error');
-            return;
+            return null;
           }
           errors = parsedFiles.filter((f) => f.error);
         }
@@ -721,7 +721,7 @@ Generate lessons ${actual + 1} through ${expectedCount} now as JSON:`;
               : 'No text content could be extracted. Upload files or describe your course.';
           setError('Failed to parse files:\n' + errMsg);
           setStatus('error');
-          return;
+          return null;
         }
 
         // Append course map reference file content if provided
@@ -960,7 +960,7 @@ Generate lessons ${actual + 1} through ${expectedCount} now as JSON:`;
                 setCompletenessInfo((prev) =>
                   prev ? { ...prev, actual: partial?.lessons?.length || 0, status: 'incomplete' } : null,
                 );
-                return;
+                return null;
               }
             }
             setIsStreaming(false);
@@ -1025,6 +1025,7 @@ Generate lessons ${actual + 1} through ${expectedCount} now as JSON:`;
           try {
             localStorage.removeItem(STREAM_SAVE_KEY);
           } catch {}
+          return finalResult;
         } catch (err) {
           setRetryInfo(null);
           if (err.name === 'AbortError') {
@@ -1035,7 +1036,7 @@ Generate lessons ${actual + 1} through ${expectedCount} now as JSON:`;
             setStreamDetail('');
             setIsStopped(true);
             setStatus('stopped');
-            return;
+            return null;
           }
           recordApiCallEvent({
             type: 'failedCall',
@@ -1047,6 +1048,7 @@ Generate lessons ${actual + 1} through ${expectedCount} now as JSON:`;
           setIsStreaming(false);
           setStreamDetail('');
           setStreamProgress(0);
+          return null;
         }
       } finally {
         generateInFlightRef.current = false;
@@ -1081,7 +1083,7 @@ Generate lessons ${actual + 1} through ${expectedCount} now as JSON:`;
       console.log('[Resume] stoppedText length:', savedText?.length || 0, 'provider:', provider, 'modelId:', modelId);
     if (!savedText) {
       setError('Nothing to resume — no saved generation data found.');
-      return;
+      return null;
     }
 
     const resumeProvider = provider;
@@ -1090,11 +1092,11 @@ Generate lessons ${actual + 1} through ${expectedCount} now as JSON:`;
 
     if (!resumeKey) {
       setError('No API key provided — please enter your API key and try again.');
-      return;
+      return null;
     }
     if (!resumeModel) {
       setError('No model selected — please select a model and try again.');
-      return;
+      return null;
     }
 
     if (import.meta.env.DEV)
@@ -1248,6 +1250,7 @@ Generate lessons ${actual + 1} through ${expectedCount} now as JSON:`;
       try {
         localStorage.removeItem(STREAM_SAVE_KEY);
       } catch {}
+      return merged;
     } catch (err) {
       setRetryInfo(null);
       if (err.name === 'AbortError') {
@@ -1268,7 +1271,7 @@ Generate lessons ${actual + 1} through ${expectedCount} now as JSON:`;
         setStreamDetail('');
         setIsStopped(true);
         setStatus('stopped');
-        return;
+        return null;
       }
       // Resume failed — go back to stopped state so user can retry
       recordApiCallEvent({
@@ -1283,6 +1286,7 @@ Generate lessons ${actual + 1} through ${expectedCount} now as JSON:`;
       setIsStopped(true);
       setProgressStep('generating');
       // Keep stoppedTextRef so user can retry
+      return null;
     }
   }, [
     provider,

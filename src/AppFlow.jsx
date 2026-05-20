@@ -406,6 +406,7 @@ export default function AppFlow({ startupAction = null, onStartupHandled, onRetu
   // ── AI Context Menu (inline AI editing) ──
   const chatSendRef = useRef(null);
   const packageFinalizerRef = useRef(null);
+  const packageGenerationInFlightRef = useRef(false);
   const canFinishPackageWithAgent = isAgentProviderReady({ provider, apiKey, apiStatus, modelId });
   const handleAIAction = useCallback((prompt) => {
     // Handle "__FOCUS__" prefix — pre-fill chat with context but let user type
@@ -662,13 +663,17 @@ export default function AppFlow({ startupAction = null, onStartupHandled, onRetu
       lessonFilter = lessonScope.type === 'specific' ? lessonScope.indices : null,
       retry = true,
       maxRetryActions = 4,
+      courseMapOverride = null,
+      deliverablesOverride = null,
     } = {}) => {
       const featureIds =
         Array.isArray(selectedFeatureIds) && selectedFeatureIds.length > 0 ? selectedFeatureIds : selectedFeatures;
+      let finalizerCourseMap = courseMapOverride || courseMapRef.current;
+      let finalizerDeliverables = deliverablesOverride || deliverablesRef.current || {};
       const runFinalizer = (retryLimit) =>
         runDeterministicPackageFinalizer({
-          courseMap: courseMapRef.current,
-          deliverables: deliverablesRef.current || {},
+          courseMap: finalizerCourseMap,
+          deliverables: finalizerDeliverables,
           selectedFeatures: featureIds,
           columns,
           lessonFilter,
@@ -695,6 +700,8 @@ export default function AppFlow({ startupAction = null, onStartupHandled, onRetu
 
       let result = runFinalizer(canRetryWeakSpots ? maxRetryActions : 0);
       commitFinalizerResult(result);
+      finalizerCourseMap = result.courseMap || finalizerCourseMap;
+      finalizerDeliverables = result.deliverables || finalizerDeliverables;
       let totalRepairsApplied = result.repairsApplied || 0;
       let retryCount = 0;
 
@@ -711,11 +718,15 @@ export default function AppFlow({ startupAction = null, onStartupHandled, onRetu
 
         for (const action of result.retryActions) {
           if (action.scope === 'feature') {
-            await regenerateFeatureRef.current?.(
+            const retryResult = await regenerateFeatureRef.current?.(
               result.courseMap || courseMapRef.current,
               [action.featureId],
               lessonFilter,
             );
+            if (retryResult?.deliverables) {
+              finalizerDeliverables = { ...finalizerDeliverables, ...retryResult.deliverables };
+              deliverablesRef.current = finalizerDeliverables;
+            }
           } else {
             await regenerateLessonRef.current?.(
               action.featureId,
@@ -725,6 +736,8 @@ export default function AppFlow({ startupAction = null, onStartupHandled, onRetu
           }
           retryCount += 1;
           await new Promise((resolve) => window.setTimeout(resolve, 0));
+          finalizerCourseMap = courseMapRef.current || finalizerCourseMap;
+          finalizerDeliverables = deliverablesRef.current || finalizerDeliverables;
         }
 
         result = runFinalizer(0);
@@ -1508,47 +1521,115 @@ export default function AppFlow({ startupAction = null, onStartupHandled, onRetu
     [rev, gen, setFiles],
   );
 
-  async function onGenerate() {
-    setHasGenerated(true);
-    setPackageQualityPass({
-      status: 'idle',
-      message: '',
-      repairsApplied: 0,
-      warnings: 0,
-      blockers: 0,
-    });
-    setDownloadedFile('');
-    setActiveTab('courseMap');
-    deliv.resetDeliverables();
-    setScreen('workspace');
-    await gen.handleGenerate();
+  function getOrderedSelectedDeliverables() {
+    const allFeats = [...FEATURES, ...listCustomDeliverables().map(toFeatureEntry)];
+    return allFeats.filter((f) => selectedFeatures.includes(f.id) && f.id !== 'courseMap').map((f) => f.id);
   }
 
-  // After course map generation finishes, auto-generate other selected deliverables
-  const prevProgressStepRef = useRef(null);
-  useEffect(() => {
-    const prev = prevProgressStepRef.current;
-    prevProgressStepRef.current = gen.progressStep;
-    // Trigger when step transitions to 'done' (course map just finished)
-    if (prev && prev !== 'done' && gen.progressStep === 'done' && courseMap) {
-      // Use FEATURES canonical order so generation matches tab order
-      const allFeats = [...FEATURES, ...listCustomDeliverables().map(toFeatureEntry)];
-      const orderedFeatures = allFeats
-        .filter((f) => selectedFeatures.includes(f.id) && f.id !== 'courseMap')
-        .map((f) => f.id);
-      if (orderedFeatures.length > 0 && !deliv.isGenerating) {
-        const scopeIndices = lessonScope.type === 'specific' ? lessonScope.indices : null;
-        deliv.generateAll(courseMap, orderedFeatures, scopeIndices);
-      }
-    }
-    // Intentionally depends only on gen.progressStep: we want to trigger deliverable
-    // generation exactly once when the course-map step transitions to 'done'. Including
-    // courseMap, selectedFeatures, lessonScope, or deliv would re-fire the effect on every
-    // render during generation, causing duplicate or premature deliverable runs.
-  }, [gen.progressStep]); // eslint-disable-line react-hooks/exhaustive-deps
+  async function finalizeGeneratedPackage(finalCourseMap, generatedDeliverables, generatedFeatureIds, scopeIndices) {
+    const selectedForFinalizer = ['courseMap', ...generatedFeatureIds];
+    if (selectedForFinalizer.length === 0) return null;
+    return handleDeterministicPackageFinalization({
+      selectedFeatureIds: selectedForFinalizer,
+      lessonFilter: scopeIndices,
+      retry: true,
+      courseMapOverride: finalCourseMap,
+      deliverablesOverride: generatedDeliverables || {},
+    });
+  }
 
-  function onResume() {
-    gen.handleResume();
+  async function onGenerate() {
+    if (packageGenerationInFlightRef.current) return;
+    packageGenerationInFlightRef.current = true;
+    try {
+      setHasGenerated(true);
+      setPackageQualityPass({
+        status: 'running',
+        message: 'Generating, repairing, and verifying the package before export...',
+        repairsApplied: 0,
+        warnings: 0,
+        blockers: 0,
+      });
+      setDownloadedFile('');
+      setActiveTab('courseMap');
+      deliv.resetDeliverables();
+      setScreen('workspace');
+
+      const finalCourseMap = await gen.handleGenerate();
+      if (!finalCourseMap?.lessons?.length) {
+        setPackageQualityPass({
+          status: 'blocked',
+          message: 'Generation did not complete. Fix the generation issue and try again.',
+          repairsApplied: 0,
+          warnings: 0,
+          blockers: 1,
+        });
+        return;
+      }
+
+      const scopeIndices = lessonScope.type === 'specific' ? lessonScope.indices : null;
+      const orderedFeatures = getOrderedSelectedDeliverables();
+      let generatedDeliverables = {};
+      if (orderedFeatures.length > 0) {
+        const deliverableResult = await deliv.generateAll(finalCourseMap, orderedFeatures, scopeIndices);
+        generatedDeliverables = deliverableResult?.deliverables || {};
+      }
+
+      await finalizeGeneratedPackage(finalCourseMap, generatedDeliverables, orderedFeatures, scopeIndices);
+    } catch (err) {
+      setPackageQualityPass({
+        status: 'blocked',
+        message: err?.message || 'Package generation could not complete.',
+        repairsApplied: 0,
+        warnings: 0,
+        blockers: 1,
+      });
+    } finally {
+      packageGenerationInFlightRef.current = false;
+    }
+  }
+
+  async function onResume() {
+    if (packageGenerationInFlightRef.current) return;
+    packageGenerationInFlightRef.current = true;
+    try {
+      setPackageQualityPass({
+        status: 'running',
+        message: 'Resuming generation, then repairing and verifying the package...',
+        repairsApplied: 0,
+        warnings: 0,
+        blockers: 0,
+      });
+      const finalCourseMap = await gen.handleResume();
+      if (!finalCourseMap?.lessons?.length) {
+        setPackageQualityPass({
+          status: 'blocked',
+          message: 'Resume did not complete. Fix the generation issue and try again.',
+          repairsApplied: 0,
+          warnings: 0,
+          blockers: 1,
+        });
+        return;
+      }
+      const scopeIndices = lessonScope.type === 'specific' ? lessonScope.indices : null;
+      const orderedFeatures = getOrderedSelectedDeliverables();
+      let generatedDeliverables = {};
+      if (orderedFeatures.length > 0) {
+        const deliverableResult = await deliv.generateAll(finalCourseMap, orderedFeatures, scopeIndices);
+        generatedDeliverables = deliverableResult?.deliverables || {};
+      }
+      await finalizeGeneratedPackage(finalCourseMap, generatedDeliverables, orderedFeatures, scopeIndices);
+    } catch (err) {
+      setPackageQualityPass({
+        status: 'blocked',
+        message: err?.message || 'Package resume could not complete.',
+        repairsApplied: 0,
+        warnings: 0,
+        blockers: 1,
+      });
+    } finally {
+      packageGenerationInFlightRef.current = false;
+    }
   }
   function onStop() {
     gen.handleStop();

@@ -1,5 +1,6 @@
 import { getArrayKey } from './syncDependencies';
 import { READINESS_BLOCKER, READINESS_FEATURE_LABELS, READINESS_WARNING } from './deliverableReadiness';
+import { normalizeReadinessIssue, normalizeReadinessIssues } from './readinessIssueSchema';
 
 const DEFAULT_FEATURES = [
   'courseMap',
@@ -63,14 +64,14 @@ function labelFor(featureId) {
 }
 
 function makeIssue(severity, featureId, message, classroomCriterion, details = {}) {
-  return {
+  return normalizeReadinessIssue({
     severity,
     featureId,
     label: labelFor(featureId),
     message,
     classroomCriterion,
     ...details,
-  };
+  });
 }
 
 function asArray(value) {
@@ -720,15 +721,16 @@ export function evaluateClassroomReadiness({
     runFeatureSpecificChecks(featureId, entry.data, courseMap, lessonIndices, issues);
   }
 
-  const blockers = issues.filter((issue) => issue.severity === READINESS_BLOCKER);
-  const warnings = issues.filter((issue) => issue.severity === READINESS_WARNING);
+  const normalizedIssues = normalizeReadinessIssues(issues);
+  const blockers = normalizedIssues.filter((issue) => issue.severity === READINESS_BLOCKER);
+  const warnings = normalizedIssues.filter((issue) => issue.severity === READINESS_WARNING);
 
   return {
     status: blockers.length > 0 ? 'blocked' : warnings.length > 0 ? 'warnings' : 'ready',
     isBlocked: blockers.length > 0,
     blockers,
     warnings,
-    issues,
+    issues: normalizedIssues,
     lessonCount: lessonIndices.length,
     checkedFeatures,
     checkedFeatureCount: checkedFeatures.length,

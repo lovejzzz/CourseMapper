@@ -731,6 +731,10 @@ export function createGenerationPlan(profile = {}) {
   const caching = profile.caching || {};
   const generation = profile.generation || {};
   const tools = profile.tools || {};
+  const repair = profile.repair || {};
+  const maxRepairRounds = Math.max(1, Math.min(4, Number(repair.maxRepairRounds || 2)));
+  const parallelFeatureCalls = chunkStrategy === 'conservative' ? 2 : chunkStrategy === 'expanded' ? 5 : 3;
+  const retryConcurrency = chunkStrategy === 'conservative' ? 2 : chunkStrategy === 'expanded' ? 6 : 4;
   return {
     version: 1,
     provider: profile.provider || '',
@@ -741,6 +745,10 @@ export function createGenerationPlan(profile = {}) {
     chunkStrategy,
     chunkScale,
     outputBudgetScale,
+    parallelFeatureCalls,
+    retryConcurrency,
+    initialStreamRetries: chunkStrategy === 'conservative' ? 3 : 2,
+    repairStreamRetries: Math.max(2, maxRepairRounds),
     maxOutputTokens,
     maxInputTokens,
     structuredOutputMode,
@@ -766,7 +774,7 @@ export function createGenerationPlan(profile = {}) {
       supportsTokenCounting: caching.supportsTokenCounting === true,
       recommendedBreakpoints: caching.recommendedBreakpoints || [],
     },
-    repair: profile.repair || {},
+    repair,
     exportPolicy: profile.export || {},
     retryStyle: chunkStrategy === 'conservative' ? 'targeted-small' : 'standard',
     courseMapOutputTokens: Math.max(4096, Math.min(maxOutputTokens, Math.round(maxOutputTokens * outputBudgetScale))),

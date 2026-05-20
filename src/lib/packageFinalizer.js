@@ -1,6 +1,7 @@
 import { evaluateWorkspaceReadiness, repairCourseMapReadiness, repairWorkspaceReadiness } from './deliverableReadiness';
 import { buildPackageRepairQueue, evaluateClassroomReadiness } from './classroomReadiness';
 import { generateCourseHealthReport } from './pedagogicalValidator';
+import { normalizeReadinessIssue, normalizeReadinessIssues } from './readinessIssueSchema';
 
 function dedupeIssues(issues = []) {
   const seen = new Map();
@@ -18,16 +19,19 @@ function compactValidationIssues(healthReport, { blockOnValidationWarnings = fal
     .filter(
       (finding) => finding?.severity === 'error' || (blockOnValidationWarnings && finding?.severity === 'warning'),
     )
-    .map((finding) => ({
-      severity: finding.severity === 'error' ? 'blocker' : 'warning',
-      featureId: finding.featureId || 'courseMap',
-      label: finding.featureId || 'Course Map',
-      message: finding.message,
-      classroomCriterion: finding.category,
-      target: Number.isInteger(finding.lessonIndex)
-        ? { type: 'lesson', lessonIndex: finding.lessonIndex, featureId: finding.featureId }
-        : undefined,
-    }));
+    .map((finding) =>
+      normalizeReadinessIssue({
+        severity: finding.severity === 'error' ? 'blocker' : 'warning',
+        featureId: finding.featureId || 'courseMap',
+        label: finding.featureId || 'Course Map',
+        message: finding.message,
+        classroomCriterion: finding.category,
+        lessonIndex: Number.isInteger(finding.lessonIndex) ? finding.lessonIndex : null,
+        target: Number.isInteger(finding.lessonIndex)
+          ? { type: 'lesson', lessonIndex: finding.lessonIndex, featureId: finding.featureId }
+          : undefined,
+      }),
+    );
 }
 
 function buildReadinessResult(workspaceReadiness, classroomReadiness, healthReport, settings) {
@@ -41,7 +45,9 @@ function buildReadinessResult(workspaceReadiness, classroomReadiness, healthRepo
         blockOnValidationWarnings: settings.blockOnValidationWarnings,
       })
     : [];
-  const issues = dedupeIssues([...(workspaceReadiness?.issues || []), ...classroomIssues, ...validationIssues]);
+  const issues = normalizeReadinessIssues(
+    dedupeIssues([...(workspaceReadiness?.issues || []), ...classroomIssues, ...validationIssues]),
+  );
   const blockers = issues.filter((issue) => issue.severity === 'blocker');
   const warnings = issues.filter((issue) => issue.severity === 'warning');
 

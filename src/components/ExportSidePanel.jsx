@@ -8,6 +8,7 @@ import {
   summarizeReadiness,
 } from '../lib/deliverableReadiness';
 import { evaluateStrictPackageReadiness } from '../lib/packageFinalizer';
+import { normalizeReadinessIssue } from '../lib/readinessIssueSchema';
 import {
   exportDeliverableCsv,
   exportDeliverablePdf,
@@ -305,15 +306,17 @@ function mergeExportVerificationIssues(readiness, verification) {
   const checks = Array.isArray(verification?.checks) ? verification.checks : [];
   const issues = checks
     .filter((check) => check?.status === 'failed' || check?.status === 'warning')
-    .map((check) => ({
-      featureId: check.featureId || 'export',
-      label: check.label || 'Export',
-      severity: check.status === 'failed' ? 'blocker' : 'warning',
-      message: `${check.format ? `${String(check.format).toUpperCase()}: ` : ''}${
-        check.message || 'Export verification did not pass.'
-      }`,
-      source: 'exportVerification',
-    }));
+    .map((check) =>
+      normalizeReadinessIssue({
+        featureId: check.featureId || 'export',
+        label: check.label || 'Export',
+        severity: check.status === 'failed' ? 'blocker' : 'warning',
+        message: `${check.format ? `${String(check.format).toUpperCase()}: ` : ''}${
+          check.message || 'Export verification did not pass.'
+        }`,
+        source: 'exportVerification',
+      }),
+    );
 
   if (issues.length === 0) return readiness;
   const blockers = issues.filter((issue) => issue.severity === 'blocker');
@@ -333,16 +336,17 @@ function mergeFinalizerRetryIssues(readiness, finishResult) {
     const lessonLabel = Number.isInteger(action.lessonIndex)
       ? `Lesson ${action.lessonIndex + 1}`
       : FEATURE_LABELS[action.featureId] || 'This material';
-    return {
+    return normalizeReadinessIssue({
       featureId: action.featureId,
       label: FEATURE_LABELS[action.featureId] || action.featureId || 'Deliverable',
       severity: 'warning',
       message: `${lessonLabel} needs one more targeted retry before export.`,
+      lessonIndex: Number.isInteger(action.lessonIndex) ? action.lessonIndex : null,
       target: Number.isInteger(action.lessonIndex)
         ? { type: 'lesson', featureId: action.featureId, lessonIndex: action.lessonIndex }
         : undefined,
       source: 'finalizerRetry',
-    };
+    });
   });
   return {
     ...readiness,
@@ -534,7 +538,7 @@ function ReadinessConfirm({
   );
 }
 
-function ReadinessFinalizingPanel({ finishingPackage = false }) {
+function ReadinessFinalizingPanel({ finishingPackage = false, message = '' }) {
   return (
     <div className="rounded-xl border border-indigo-100 bg-indigo-50/70 px-3 py-2.5 text-indigo-700">
       <div className="flex items-start gap-2">
@@ -544,9 +548,10 @@ function ReadinessFinalizingPanel({ finishingPackage = false }) {
         <div className="min-w-0 flex-1">
           <p className="text-[11px] font-bold">Finalizing materials</p>
           <p className="mt-0.5 text-[10px] leading-snug opacity-80">
-            {finishingPackage
-              ? 'Checking, fixing, and retrying weak sections so the download can start cleanly.'
-              : 'Fixing readiness issues automatically before showing the export package.'}
+            {message ||
+              (finishingPackage
+                ? 'Checking, fixing, and retrying weak sections so the download can start cleanly.'
+                : 'Fixing readiness issues automatically before showing the export package.')}
           </p>
         </div>
       </div>
@@ -1113,7 +1118,7 @@ export default function ExportSidePanel({
         </p>
 
         {showReadinessFinalizing ? (
-          <ReadinessFinalizingPanel finishingPackage={finishPackageBusy} />
+          <ReadinessFinalizingPanel finishingPackage={finishPackageBusy} message={packageQualityPass?.message} />
         ) : (
           <ReadinessPanel readiness={displayedReadiness} onIssueClick={onReadinessIssueClick} />
         )}

@@ -1,5 +1,6 @@
 import { getArrayKey } from './syncDependencies';
 import { findPublishabilityPlaceholders } from './publishabilityPlaceholders';
+import { normalizeReadinessIssue, normalizeReadinessIssues } from './readinessIssueSchema';
 import {
   normalizeAssignmentGradeWeights,
   normalizeAssignmentLessonAlignment,
@@ -75,7 +76,7 @@ function labelFor(featureId) {
 }
 
 function makeIssue(severity, featureId, message, details = {}) {
-  return { severity, featureId, label: labelFor(featureId), message, ...details };
+  return normalizeReadinessIssue({ severity, featureId, label: labelFor(featureId), message, ...details });
 }
 
 function asArray(value) {
@@ -932,8 +933,9 @@ export function evaluateWorkspaceReadiness({
     }
   }
 
-  const blockers = issues.filter((issue) => issue.severity === READINESS_BLOCKER);
-  const warnings = issues.filter((issue) => issue.severity === READINESS_WARNING);
+  const normalizedIssues = normalizeReadinessIssues(issues);
+  const blockers = normalizedIssues.filter((issue) => issue.severity === READINESS_BLOCKER);
+  const warnings = normalizedIssues.filter((issue) => issue.severity === READINESS_WARNING);
   const doneFeatures = featureIds.filter(
     (featureId) => featureId === 'courseMap' || deliverables?.[featureId]?.status === 'done',
   );
@@ -943,7 +945,7 @@ export function evaluateWorkspaceReadiness({
     isBlocked: blockers.length > 0,
     blockers,
     warnings,
-    issues,
+    issues: normalizedIssues,
     lessonCount: lessonIndices.length,
     featureCount: featureIds.length,
     doneFeatureCount: doneFeatures.length,

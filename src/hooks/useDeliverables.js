@@ -13,11 +13,12 @@ import {
   mergeChunkResults,
   findMissingIndices,
   chunkArray,
-  CHUNK_SIZE,
-  MAX_CONCURRENT,
-  MAX_RETRY_ROUNDS,
+  getFeatureConcurrency,
   getFeatureChunkSize,
   getFeatureOutputBudget,
+  getRepairRoundLimit,
+  getRetryConcurrency,
+  getStreamRetryLimit,
   getCoverageRetryMissingLessons,
   extractCoverageLessonNumbers,
   getSlideDeckSlideCount,
@@ -361,6 +362,7 @@ export default function useDeliverables({
 
       const lessonCount = (courseMap.lessons || []).length;
       const lessonIndices = scopeIndices ?? Array.from({ length: lessonCount }, (_, i) => i);
+      const repairRoundLimit = getRepairRoundLimit(generationPlan);
 
       // ── 1. Create chunk plan ──
       const tasks = createChunkPlan(toGenerate, lessonCount, scopeIndices, generationPlan);
@@ -389,9 +391,25 @@ export default function useDeliverables({
 
       // ── 3. Chunk result accumulators ──
       const chunkResults = {}; // { [featureId]: Map<chunkIndex, parsedData> }
+      const generatedDeliverables = {};
+      const completedFeatureIds = new Set();
+      const failedFeatureIds = new Set();
       for (const fid of toGenerate) {
         chunkResults[fid] = new Map();
       }
+
+      const markFeatureDone = (featureId, data) => {
+        generatedDeliverables[featureId] = { status: 'done', data, error: null, stale: false };
+        completedFeatureIds.add(featureId);
+        failedFeatureIds.delete(featureId);
+        dispatch(actions.setDeliverableDone(featureId, data));
+      };
+
+      const markFeatureError = (featureId, message) => {
+        generatedDeliverables[featureId] = { status: 'error', data: null, error: message, stale: false };
+        failedFeatureIds.add(featureId);
+        dispatch(actions.setDeliverableError(featureId, message));
+      };
 
       // ── 4. Run chunks sequentially within each feature, all features in parallel ──
       // This eliminates live-preview "flashing": each feature streams one chunk at a
@@ -462,7 +480,7 @@ export default function useDeliverables({
           return false;
         }
 
-        dispatch(actions.setDeliverableDone(featureId, fallback));
+        markFeatureDone(featureId, fallback);
         try {
           const quality = scoreHeuristic(featureId, fallback);
           setQualityScores((prev) => ({ ...prev, [featureId]: quality }));
@@ -581,6 +599,7 @@ export default function useDeliverables({
             label: `Generate ${chunkLabel}`,
             featureId,
           });
+          const initialRetryLimit = getStreamRetryLimit(generationPlan, 'initial');
           const result = await streamProvider(provider, apiKey, modelId, prompts.systemPrompt, prompts.userPrompt, {
             maxOutputTokens: getFeatureOutputBudget(featureId, maxOutputTokens, generationPlan),
             modelCapabilities,
@@ -614,16 +633,19 @@ export default function useDeliverables({
                 }
               }
             },
-            maxRetries: 2,
+            maxRetries: initialRetryLimit,
             signal: controller.signal,
             onRetry: (attempt) => {
               recordApiCallEvent({
                 type: 'retriedCall',
                 label: `${chunkLabel} stream retry`,
-                detail: `${attempt}/2`,
+                detail: `${attempt}/${initialRetryLimit}`,
                 featureId,
               });
-              appendLog(`⚠ ${chunkLabel}: Connection interrupted — retrying (${attempt}/2)...`, 'warn');
+              appendLog(
+                `⚠ ${chunkLabel}: Connection interrupted — retrying (${attempt}/${initialRetryLimit})...`,
+                'warn',
+              );
             },
           });
 
@@ -688,7 +710,7 @@ export default function useDeliverables({
             // For whole-course features, dispatch done immediately
             if (isWholeCourse) {
               const finalData = patchScopeNumbering(parsedForChunk, featureId, chunkScope, courseMap);
-              dispatch(actions.setDeliverableDone(featureId, finalData));
+              markFeatureDone(featureId, finalData);
               try {
                 const quality = scoreHeuristic(featureId, finalData);
                 setQualityScores((prev) => ({ ...prev, [featureId]: quality }));
@@ -779,13 +801,16 @@ export default function useDeliverables({
         }
       };
 
+      const featureLimit = pLimit(getFeatureConcurrency(generationPlan));
       const featurePromises = Object.entries(tasksByFeature).map(([featureId, featureTasks]) =>
-        runDeliverableFeatureWithTimeout({
-          featureId,
-          featureTasks,
-          runFeature: () => runFeatureChain(featureId, featureTasks),
-          onTimeout: markFeatureTimedOut,
-        }),
+        featureLimit(() =>
+          runDeliverableFeatureWithTimeout({
+            featureId,
+            featureTasks,
+            runFeature: () => runFeatureChain(featureId, featureTasks),
+            onTimeout: markFeatureTimedOut,
+          }),
+        ),
       );
 
       // ── 5. Wait for all feature chains ──
@@ -826,10 +851,10 @@ export default function useDeliverables({
           });
           let retryRound = 0;
 
-          while (!validation.valid && retryRound < MAX_RETRY_ROUNDS) {
+          while (!validation.valid && retryRound < repairRoundLimit) {
             retryRound++;
             appendLog(
-              `⚠ ${label}: ${validation.blockers.join(' ')} Retrying whole deliverable (round ${retryRound}/${MAX_RETRY_ROUNDS})`,
+              `⚠ ${label}: ${validation.blockers.join(' ')} Retrying whole deliverable (round ${retryRound}/${repairRoundLimit})`,
               'warn',
             );
 
@@ -857,6 +882,7 @@ export default function useDeliverables({
                 detail: `round ${retryRound}`,
                 featureId: fid,
               });
+              const repairRetryLimit = getStreamRetryLimit(generationPlan, 'repair');
               const result = await streamProvider(provider, apiKey, modelId, prompts.systemPrompt, prompts.userPrompt, {
                 maxOutputTokens: getFeatureOutputBudget(fid, maxOutputTokens, generationPlan),
                 modelCapabilities,
@@ -865,13 +891,13 @@ export default function useDeliverables({
                 onChunk: (t) => {
                   fullText = t;
                 },
-                maxRetries: 3,
+                maxRetries: repairRetryLimit,
                 signal: controller.signal,
                 onRetry: (attempt) => {
                   recordApiCallEvent({
                     type: 'retriedCall',
                     label: `${label} whole-deliverable retry stream retry`,
-                    detail: `${attempt}/3`,
+                    detail: `${attempt}/${repairRetryLimit}`,
                     featureId: fid,
                   });
                 },
@@ -915,7 +941,7 @@ export default function useDeliverables({
           }
 
           if (!validation.valid) {
-            dispatch(actions.setDeliverableError(fid, validation.blockers.join(' ')));
+            markFeatureError(fid, validation.blockers.join(' '));
             setProgress((prev) => ({
               ...prev,
               perFeature: {
@@ -956,7 +982,7 @@ export default function useDeliverables({
             finalData = normalizeSyllabusCompleteness(finalData, courseMap).data;
           }
 
-          dispatch(actions.setDeliverableDone(fid, finalData));
+          markFeatureDone(fid, finalData);
           try {
             const quality = scoreHeuristic(fid, finalData);
             setQualityScores((prev) => ({ ...prev, [fid]: quality }));
@@ -987,7 +1013,7 @@ export default function useDeliverables({
             continue;
           }
           // No chunks completed — set error
-          dispatch(actions.setDeliverableError(fid, 'All chunks failed'));
+          markFeatureError(fid, 'All chunks failed');
           setProgress((prev) => ({
             ...prev,
             perFeature: {
@@ -1005,7 +1031,7 @@ export default function useDeliverables({
           if (completeFallbackCourseFaq(fid, 'completed chunks could not be merged', expectedCount)) {
             continue;
           }
-          dispatch(actions.setDeliverableError(fid, 'Failed to merge chunks'));
+          markFeatureError(fid, 'Failed to merge chunks');
           continue;
         }
 
@@ -1303,7 +1329,7 @@ export default function useDeliverables({
         if (mergedArr.length < adjustedExpected) {
           const label = getFeatureLabel(fid);
           let retryRound = 0;
-          while (mergedArr.length < adjustedExpected && retryRound < MAX_RETRY_ROUNDS) {
+          while (mergedArr.length < adjustedExpected && retryRound < repairRoundLimit) {
             retryRound++;
             const missing = findMissingIndices(mergedArr, lessonIndices);
             warn(
@@ -1311,7 +1337,7 @@ export default function useDeliverables({
               missing,
             );
             appendLog(
-              `⚠ ${label}: ${mergedArr.length}/${expectedCount} items — retrying ${missing.length} missing (round ${retryRound})`,
+              `⚠ ${label}: ${mergedArr.length}/${expectedCount} items — retrying ${missing.length} missing (round ${retryRound}/${repairRoundLimit})`,
               'warn',
             );
 
@@ -1322,7 +1348,7 @@ export default function useDeliverables({
               ? 1
               : Math.max(2, Math.floor(getFeatureChunkSize(fid, generationPlan) / 2));
             const retryChunks = chunkArray(missing, retryChunkSize);
-            const retryLimit = pLimit(MAX_CONCURRENT);
+            const retryLimit = pLimit(getRetryConcurrency(generationPlan));
             const retryPromises = retryChunks.map((retryScope, idx) =>
               retryLimit(async () => {
                 const retryChunkIndex = chunks.size + idx + (retryRound - 1) * 100; // unique index
@@ -1361,6 +1387,7 @@ export default function useDeliverables({
                     detail: `round ${retryRound}`,
                     featureId: fid,
                   });
+                  const repairRetryLimit = getStreamRetryLimit(generationPlan, 'repair');
                   const result = await streamProvider(
                     provider,
                     apiKey,
@@ -1375,13 +1402,13 @@ export default function useDeliverables({
                       onChunk: (t) => {
                         fullText = t;
                       },
-                      maxRetries: 3,
+                      maxRetries: repairRetryLimit,
                       signal: controller.signal,
                       onRetry: (attempt) => {
                         recordApiCallEvent({
                           type: 'retriedCall',
                           label: `${retryLabel} stream retry`,
-                          detail: `${attempt}/3`,
+                          detail: `${attempt}/${repairRetryLimit}`,
                           featureId: fid,
                         });
                       },
@@ -1467,7 +1494,7 @@ export default function useDeliverables({
             warn(`${fid}: coverage retry — ${missingLessons.length} lesson(s) missing: ${missingLessons.join(', ')}`);
             appendLog(`⚠ ${label}: retrying missing lesson(s): ${missingLessons.join(', ')}`, 'warn');
 
-            const retryLimit = pLimit(MAX_CONCURRENT);
+            const retryLimit = pLimit(getRetryConcurrency(generationPlan));
             const retryPromises = missingIndices.map((idx) =>
               retryLimit(async () => {
                 const retryChunkIndex = chunks.size + 500 + idx;
@@ -1510,6 +1537,7 @@ export default function useDeliverables({
                     detail: 'coverage retry',
                     featureId: fid,
                   });
+                  const repairRetryLimit = getStreamRetryLimit(generationPlan, 'repair');
                   const result = await streamProvider(
                     provider,
                     apiKey,
@@ -1524,13 +1552,13 @@ export default function useDeliverables({
                       onChunk: (t) => {
                         fullText = t;
                       },
-                      maxRetries: 3,
+                      maxRetries: repairRetryLimit,
                       signal: controller.signal,
                       onRetry: (attempt) => {
                         recordApiCallEvent({
                           type: 'retriedCall',
                           label: `${retryLabel} stream retry`,
-                          detail: `${attempt}/3`,
+                          detail: `${attempt}/${repairRetryLimit}`,
                           featureId: fid,
                         });
                       },
@@ -1588,7 +1616,7 @@ export default function useDeliverables({
               if (completeFallbackCourseFaq(fid, 'coverage retry could not complete', expectedCount)) {
                 continue;
               }
-              dispatch(actions.setDeliverableError(fid, 'API budget exhausted or rate limit hit during retry.'));
+              markFeatureError(fid, 'API budget exhausted or rate limit hit during retry.');
               setProgress((prev) => ({
                 ...prev,
                 perFeature: {
@@ -1893,7 +1921,7 @@ export default function useDeliverables({
             continue;
           }
           appendLog(`✗ ${getFeatureLabel(fid)}: ${finalValidation.blockers.join(' ')}`, 'error');
-          dispatch(actions.setDeliverableError(fid, finalValidation.blockers.join(' ')));
+          markFeatureError(fid, finalValidation.blockers.join(' '));
           setProgress((prev) => ({
             ...prev,
             perFeature: {
@@ -1943,7 +1971,7 @@ export default function useDeliverables({
         }
 
         // Dispatch final result
-        dispatch(actions.setDeliverableDone(fid, finalData));
+        markFeatureDone(fid, finalData);
 
         // Quality scoring + quality gate
         try {
@@ -1985,11 +2013,27 @@ export default function useDeliverables({
       setIsGenerating(false);
       setCurrentFeatures(new Set());
       const totalDur = formatDuration(Date.now() - generationStartTime);
-      appendLog(
-        `All ${toGenerate.length} deliverable${toGenerate.length !== 1 ? 's' : ''} generated (${totalDur})`,
-        'done',
-      );
-      notifyDone('All deliverables are ready!');
+      const failed = toGenerate.filter((fid) => failedFeatureIds.has(fid) && !completedFeatureIds.has(fid));
+      const completed = toGenerate.filter((fid) => completedFeatureIds.has(fid));
+      if (failed.length > 0) {
+        appendLog(
+          `${completed.length}/${toGenerate.length} deliverable${toGenerate.length !== 1 ? 's' : ''} generated (${totalDur}); ${failed.length} still need attention`,
+          'warn',
+        );
+        notifyDone('Some materials still need attention before export.');
+      } else {
+        appendLog(
+          `Generated ${toGenerate.length} deliverable${toGenerate.length !== 1 ? 's' : ''} (${totalDur}); starting final quality pass`,
+          'done',
+        );
+        notifyDone('Generated materials are complete. Final quality pass is next.');
+      }
+      return {
+        status: failed.length > 0 ? 'partial' : 'generated',
+        completedFeatureIds: completed,
+        failedFeatureIds: failed,
+        deliverables: generatedDeliverables,
+      };
     },
     [
       provider,
@@ -2182,6 +2226,7 @@ export default function useDeliverables({
           label: `Regenerate ${label} lesson ${lessonIndex + 1}`,
           featureId,
         });
+        const repairRetryLimit = getStreamRetryLimit(generationPlan, 'repair');
         await streamProvider(provider, apiKey, modelId, prompts.systemPrompt, prompts.userPrompt, {
           maxOutputTokens,
           modelCapabilities,
@@ -2223,13 +2268,13 @@ export default function useDeliverables({
               }
             }
           },
-          maxRetries: 2,
+          maxRetries: repairRetryLimit,
           signal: controller.signal,
           onRetry: (attempt) => {
             recordApiCallEvent({
               type: 'retriedCall',
               label: `${label} lesson ${lessonIndex + 1} regeneration stream retry`,
-              detail: `${attempt}/2`,
+              detail: `${attempt}/${repairRetryLimit}`,
               featureId,
             });
           },
