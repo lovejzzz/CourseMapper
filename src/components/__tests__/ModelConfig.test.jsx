@@ -187,6 +187,7 @@ describe('checkCredits', () => {
           }),
         });
       }
+      if (requestUrl.includes(':countTokens')) return Promise.resolve({ ok: false, json: async () => ({}) });
       return Promise.resolve({ ok: true, json: async () => ({}) });
     });
 

@@ -27,40 +27,43 @@ describe('fetchModelsFromProvider', () => {
   });
 
   it('keeps Google Gemini preview/snapshot models that support content generation', async () => {
-    const fetchMock = vi.spyOn(globalThis, 'fetch').mockResolvedValue({
-      ok: true,
-      json: async () => ({
-        models: [
-          {
-            name: 'models/gemini-3.0-pro-preview-01-15',
-            displayName: 'Gemini 3.0 Pro Preview',
-            supportedGenerationMethods: ['generateContent', 'countTokens'],
-            outputTokenLimit: 65536,
-          },
-          {
-            name: 'models/gemini-2.5-flash-preview-05-20',
-            displayName: 'Gemini 2.5 Flash Preview 05-20',
-            supportedGenerationMethods: ['streamGenerateContent'],
-            outputTokenLimit: 65536,
-          },
-          {
-            name: 'models/gemini-3-pro-preview',
-            displayName: 'Gemini 3 Pro Preview',
-            supportedGenerationMethods: ['generateContent'],
-            outputTokenLimit: 65536,
-          },
-          {
-            name: 'models/gemini-2.0-flash-preview-image-generation',
-            displayName: 'Gemini 2.0 Flash Preview Image Generation',
-            supportedGenerationMethods: ['generateContent'],
-          },
-          {
-            name: 'models/text-embedding-004',
-            displayName: 'Text Embedding',
-            supportedGenerationMethods: ['embedContent'],
-          },
-        ],
-      }),
+    const fetchMock = vi.spyOn(globalThis, 'fetch').mockImplementation(async (url) => {
+      if (String(url).includes(':countTokens')) return { ok: false, json: async () => ({}) };
+      return {
+        ok: true,
+        json: async () => ({
+          models: [
+            {
+              name: 'models/gemini-3.0-pro-preview-01-15',
+              displayName: 'Gemini 3.0 Pro Preview',
+              supportedGenerationMethods: ['generateContent', 'countTokens'],
+              outputTokenLimit: 65536,
+            },
+            {
+              name: 'models/gemini-2.5-flash-preview-05-20',
+              displayName: 'Gemini 2.5 Flash Preview 05-20',
+              supportedGenerationMethods: ['streamGenerateContent'],
+              outputTokenLimit: 65536,
+            },
+            {
+              name: 'models/gemini-3-pro-preview',
+              displayName: 'Gemini 3 Pro Preview',
+              supportedGenerationMethods: ['generateContent'],
+              outputTokenLimit: 65536,
+            },
+            {
+              name: 'models/gemini-2.0-flash-preview-image-generation',
+              displayName: 'Gemini 2.0 Flash Preview Image Generation',
+              supportedGenerationMethods: ['generateContent'],
+            },
+            {
+              name: 'models/text-embedding-004',
+              displayName: 'Text Embedding',
+              supportedGenerationMethods: ['embedContent'],
+            },
+          ],
+        }),
+      };
     });
 
     const models = await fetchModelsFromProvider('google', 'AIza-test');
@@ -70,31 +73,60 @@ describe('fetchModelsFromProvider', () => {
   });
 
   it('fetches Vertex publisher models for Google Express keys instead of returning the short fallback', async () => {
-    const fetchMock = vi.spyOn(globalThis, 'fetch').mockResolvedValue({
-      ok: true,
-      json: async () => ({
-        publisherModels: [
-          {
-            name: 'publishers/google/models/gemini-3.5-flash',
-            displayName: 'Gemini 3.5 Flash',
-            supportedActions: ['predict'],
-            outputTokenLimit: 65536,
-          },
-          {
-            name: 'publishers/google/models/gemini-3-flash-preview',
-            displayName: 'Gemini 3 Flash Preview',
-            supportedActions: ['predict'],
-            outputTokenLimit: 65536,
-          },
-        ],
-      }),
+    const fetchMock = vi.spyOn(globalThis, 'fetch').mockImplementation(async (url) => {
+      if (String(url).includes(':countTokens')) return { ok: false, json: async () => ({}) };
+      return {
+        ok: true,
+        json: async () => ({
+          publisherModels: [
+            {
+              name: 'publishers/google/models/gemini-3.5-flash',
+              displayName: 'Gemini 3.5 Flash',
+              supportedActions: ['predict'],
+              outputTokenLimit: 65536,
+            },
+            {
+              name: 'publishers/google/models/gemini-3-flash-preview',
+              displayName: 'Gemini 3 Flash Preview',
+              supportedActions: ['predict'],
+              outputTokenLimit: 65536,
+            },
+          ],
+        }),
+      };
     });
 
     const models = await fetchModelsFromProvider('google', 'VertexExpressKeyWithEnoughLength1234567890');
 
-    expect(fetchMock).toHaveBeenCalledTimes(1);
     expect(fetchMock.mock.calls[0][0]).toContain('aiplatform.googleapis.com/v1beta1/publishers/google/models');
     expect(models.map((model) => model.id)).toEqual(['gemini-3.5-flash', 'gemini-3-flash-preview']);
+  });
+
+  it('adds reachable latest Google candidates when the live list lags behind generation access', async () => {
+    vi.spyOn(globalThis, 'fetch').mockImplementation(async (url) => {
+      const requestUrl = String(url);
+      if (requestUrl.includes('generativelanguage.googleapis.com/v1beta/models?')) {
+        return {
+          ok: true,
+          json: async () => ({
+            models: [
+              {
+                name: 'models/gemini-2.5-flash',
+                displayName: 'Gemini 2.5 Flash',
+                supportedGenerationMethods: ['generateContent', 'streamGenerateContent'],
+                outputTokenLimit: 65536,
+              },
+            ],
+          }),
+        };
+      }
+      if (requestUrl.includes('gemini-3.5-flash:countTokens')) return { ok: true, json: async () => ({}) };
+      return { ok: false, json: async () => ({}) };
+    });
+
+    const models = await fetchModelsFromProvider('google', 'AIza-test');
+
+    expect(models.map((model) => model.id)).toEqual(['gemini-3.5-flash', 'gemini-2.5-flash']);
   });
 
   it('uses the current documented Gemini fallback when a Vertex key cannot list models', async () => {
@@ -111,11 +143,11 @@ describe('fetchModelsFromProvider', () => {
     const models = await fetchModelsFromProvider('google', 'VertexExpressKeyWithEnoughLength1234567890');
 
     expect(models.map((model) => model.id).slice(0, 5)).toEqual([
+      'gemini-3.5-flash',
+      'gemini-3.5-flash-preview',
       'gemini-3.1-pro-preview',
       'gemini-3-flash-preview',
       'gemini-2.5-pro',
-      'gemini-2.5-flash',
-      'gemini-2.5-flash-lite',
     ]);
     expect(models.map((model) => model.id)).not.toContain('gemini-3-pro-preview');
   });

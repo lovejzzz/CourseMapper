@@ -1,6 +1,6 @@
 import { useRef, useCallback } from 'react';
 import { supportsCustomTemperature } from '../lib/agentProviders';
-import { isVertexKey } from '../lib/googleProvider';
+import { getGoogleModelBaseUrl, isVertexKey } from '../lib/googleProvider';
 import { buildProviderTextRequest } from '../lib/modelRequestBuilders';
 
 export { isVertexKey } from '../lib/googleProvider';
@@ -321,7 +321,13 @@ const OPENAI_INCLUDE = /^(gpt-|o\d|chatgpt-)/i;
 // Exclude non-text Google Gemini variants (image generation, TTS, live streaming, embeddings)
 const GOOGLE_EXCLUDE = /imagen|image|veo|tts|live|embedding|aqa|native-audio/i;
 
+const GOOGLE_LATEST_TEXT_MODEL_CANDIDATES = [
+  { id: 'gemini-3.5-flash', name: 'Gemini 3.5 Flash', maxOutputTokens: 65536 },
+  { id: 'gemini-3.5-flash-preview', name: 'Gemini 3.5 Flash Preview', maxOutputTokens: 65536 },
+];
+
 const GOOGLE_VERTEX_EXPRESS_TEXT_MODEL_FALLBACKS = [
+  ...GOOGLE_LATEST_TEXT_MODEL_CANDIDATES,
   { id: 'gemini-3.1-pro-preview', name: 'Gemini 3.1 Pro Preview', maxOutputTokens: 65536 },
   { id: 'gemini-3-flash-preview', name: 'Gemini 3 Flash Preview', maxOutputTokens: 65536 },
   { id: 'gemini-2.5-pro', name: 'Gemini 2.5 Pro', maxOutputTokens: 65536 },
@@ -412,6 +418,21 @@ function dedupeModelsById(models) {
   });
 }
 
+function googleCandidateModel(id, overrides = {}) {
+  return {
+    id,
+    name: cleanGoogleName(id, overrides.name),
+    maxOutputTokens: overrides.maxOutputTokens || 65536,
+    maxInputTokens: overrides.maxInputTokens || null,
+    supportedGenerationMethods: ['generateContent', 'streamGenerateContent', 'countTokens'],
+    capabilities: {
+      streaming: true,
+      jsonMode: true,
+      toolCalling: true,
+    },
+  };
+}
+
 function normalizeGoogleModelCatalog(models) {
   return dedupeModelsById(
     (models || [])
@@ -465,6 +486,34 @@ async function fetchVertexModels(apiKey) {
     pageToken = data.nextPageToken || '';
   } while (pageToken);
   return normalizeGoogleModelCatalog(allModels);
+}
+
+async function canUseGoogleModel(apiKey, modelId) {
+  const response = await fetch(`${getGoogleModelBaseUrl(apiKey, modelId)}:countTokens?key=${apiKey}`, {
+    method: 'POST',
+    headers: { 'Content-Type': 'application/json' },
+    body: JSON.stringify({ contents: [{ parts: [{ text: 'test' }] }] }),
+  });
+  return response.ok;
+}
+
+async function fetchReachableGoogleCandidates(apiKey, candidates) {
+  const settled = await Promise.allSettled(
+    candidates.map(async (candidate) => {
+      const ok = await canUseGoogleModel(apiKey, candidate.id);
+      return ok ? googleCandidateModel(candidate.id, candidate) : null;
+    }),
+  );
+  return settled.filter((result) => result.status === 'fulfilled' && result.value).map((result) => result.value);
+}
+
+async function mergeReachableGoogleCandidates(apiKey, liveModels, candidates = GOOGLE_LATEST_TEXT_MODEL_CANDIDATES) {
+  const knownIds = new Set((liveModels || []).map((model) => model.id));
+  const missingCandidates = candidates.filter((candidate) => !knownIds.has(candidate.id));
+  if (missingCandidates.length === 0) return liveModels;
+  const reachable = await fetchReachableGoogleCandidates(apiKey, missingCandidates);
+  if (reachable.length === 0) return liveModels;
+  return dedupeModelsById([...liveModels, ...reachable]).sort(sortModelOptions);
 }
 
 async function fetchGeminiApiModels(apiKey) {
@@ -593,7 +642,7 @@ export async function fetchModelsFromProvider(provider, apiKey) {
     if (isVertexKey(apiKey)) {
       try {
         const models = await fetchVertexModels(apiKey);
-        if (models.length > 0) return models;
+        if (models.length > 0) return mergeReachableGoogleCandidates(apiKey, models);
       } catch {
         // Some Vertex/Express API keys cannot list publisher models. Validate
         // generation access, then use the current documented Gemini text list.
@@ -601,26 +650,22 @@ export async function fetchModelsFromProvider(provider, apiKey) {
 
       try {
         const models = await fetchGeminiApiModels(apiKey);
-        if (models.length > 0) return models;
+        if (models.length > 0) return mergeReachableGoogleCandidates(apiKey, models);
       } catch {
         // Vertex/Express keys usually cannot list the Gemini API catalog.
       }
 
-      const testRes = await fetch(
-        `https://aiplatform.googleapis.com/v1/publishers/google/models/gemini-2.5-flash:countTokens?key=${apiKey}`,
-        {
-          method: 'POST',
-          headers: { 'Content-Type': 'application/json' },
-          body: JSON.stringify({ contents: [{ parts: [{ text: 'test' }] }] }),
-        },
+      const reachableFallbacks = await fetchReachableGoogleCandidates(
+        apiKey,
+        GOOGLE_VERTEX_EXPRESS_TEXT_MODEL_FALLBACKS,
       );
-      if (!testRes.ok) throw new Error('Invalid API key');
-      return [...GOOGLE_VERTEX_EXPRESS_TEXT_MODEL_FALLBACKS].sort(sortModelOptions);
+      if (reachableFallbacks.length > 0) return reachableFallbacks.sort(sortModelOptions);
+      throw new Error('Invalid API key');
     }
 
     const models = await fetchGeminiApiModels(apiKey);
     if (models.length === 0) throw new Error('No Gemini models available');
-    return models;
+    return mergeReachableGoogleCandidates(apiKey, models);
   }
 
   if (provider === 'deepseek') {
