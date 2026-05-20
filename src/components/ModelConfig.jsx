@@ -127,12 +127,18 @@ export default function ModelConfig() {
   } = useAIConfig();
   const debounceRef = useRef(null);
   const prevProviderValueRef = useRef(provider);
+  const prevApiKeyRef = useRef(apiKey);
   const autoDetectedRef = useRef(false);
   const capabilityRunRef = useRef(0);
   const providerId = 'ai-provider-select';
   const apiKeyId = 'ai-api-key-input';
   const modelIdSelectId = 'ai-model-select';
   const [capabilityStatus, setCapabilityStatus] = useState('idle');
+  const latestConfigRef = useRef({ apiStatus, availableModels, modelId });
+
+  useEffect(() => {
+    latestConfigRef.current = { apiStatus, availableModels, modelId };
+  }, [apiStatus, availableModels, modelId]);
 
   // WebLLM download state
   const [webllmProgress, setWebllmProgress] = useState(null); // { text, progress }
@@ -269,22 +275,36 @@ export default function ModelConfig() {
   useEffect(() => {
     let cancelled = false;
     const providerChanged = provider !== prevProviderRef.current;
+    const apiKeyChanged = apiKey !== prevApiKeyRef.current;
     prevProviderRef.current = provider;
+    prevApiKeyRef.current = apiKey;
+    const trimmedKey = String(apiKey || '').trim();
 
     // WebLLM handles its own initialization — skip API key validation
     if (provider === 'webllm') return;
 
-    setApiStatus('idle');
-    setModelName('');
-    setAvailableModels([]);
-    setModelId('');
+    const cachedState = latestConfigRef.current;
+    const hasSelectableCachedModel =
+      !providerChanged &&
+      !apiKeyChanged &&
+      trimmedKey.length >= 10 &&
+      (cachedState.apiStatus === 'connected' || cachedState.apiStatus === 'no_funds') &&
+      Boolean(cachedState.modelId) &&
+      cachedState.availableModels.some((model) => model.id === cachedState.modelId);
 
-    if (!apiKey || apiKey.trim().length < 10) return;
+    if (!hasSelectableCachedModel) {
+      setApiStatus('idle');
+      setModelName('');
+      setAvailableModels([]);
+      setModelId('');
+    }
+
+    if (trimmedKey.length < 10) return;
 
     // Only auto-detect provider from key prefix when the KEY changed,
     // not when the PROVIDER changed (stale key would fight the switch)
     if (!providerChanged) {
-      const detected = detectProvider(apiKey.trim());
+      const detected = detectProvider(trimmedKey);
       if (detected && detected !== provider) {
         autoDetectedRef.current = true; // signal: don't clear apiKey
         setProvider(detected);
@@ -295,31 +315,33 @@ export default function ModelConfig() {
     if (debounceRef.current) clearTimeout(debounceRef.current);
     debounceRef.current = setTimeout(async () => {
       if (cancelled) return;
-      setApiStatus('validating');
+      if (!hasSelectableCachedModel) setApiStatus('validating');
       try {
-        const models = await fetchModelsFromProvider(provider, apiKey.trim());
+        const models = await fetchModelsFromProvider(provider, trimmedKey);
         if (cancelled) return;
         if (models && models.length > 0) {
           setAvailableModels(models);
-          // Prefer previously saved model if it exists in the list
+          // Keep the current selection while refreshing, then fall back to the saved model.
+          const currentModelId = latestConfigRef.current.modelId;
+          const currentMatch = currentModelId ? models.find((m) => m.id === currentModelId) : null;
           let saved;
           try {
             saved = localStorage.getItem('coursemapper-modelid');
           } catch {}
           const match = saved ? models.find((m) => m.id === saved) : null;
-          const selected = match || models[0];
+          const selected = currentMatch || match || models[0];
           setModelId(selected.id);
           setModelName(selected.name);
           if (setMaxOutputTokens) setMaxOutputTokens(selected.maxOutputTokens || 16384);
           applyBaseCapabilityProfile(selected, provider);
           // Verify the key has credits with a tiny test call
-          const hasCredits = await checkCredits(provider, apiKey.trim(), selected.id);
+          const hasCredits = await checkCredits(provider, trimmedKey, selected.id);
           if (cancelled) return;
           setApiStatus(hasCredits ? 'connected' : 'no_funds');
           if (hasCredits) {
             await detectCapabilitiesForModel(selected, {
               selectedProvider: provider,
-              selectedApiKey: apiKey,
+              selectedApiKey: trimmedKey,
               isCancelled: () => cancelled,
             });
           }

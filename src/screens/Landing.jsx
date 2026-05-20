@@ -149,6 +149,7 @@ export default function Landing({
   // ── Auto-collapse AI config when already connected ──
   const isReady = apiStatus === 'connected';
   const [configCollapsed, setConfigCollapsed] = useState(isReady);
+  const configManuallyExpandedRef = useRef(false);
 
   // Auto-collapse only when apiStatus transitions TO 'connected' (not on mount).
   // This prevents the panel from re-collapsing when the user clicks "Edit".
@@ -156,10 +157,20 @@ export default function Landing({
   useEffect(() => {
     const prev = prevApiStatusRef.current;
     prevApiStatusRef.current = apiStatus;
-    if (apiStatus === 'connected' && prev !== 'connected') {
+    if (apiStatus === 'connected' && prev !== 'connected' && !configManuallyExpandedRef.current) {
       setConfigCollapsed(true);
     }
   }, [apiStatus]);
+
+  const expandConfigForEditing = useCallback(() => {
+    configManuallyExpandedRef.current = true;
+    setConfigCollapsed(false);
+  }, []);
+
+  const collapseConfig = useCallback(() => {
+    configManuallyExpandedRef.current = false;
+    setConfigCollapsed(true);
+  }, []);
 
   const handleDrop = useCallback(
     (e) => {
@@ -465,7 +476,7 @@ export default function Landing({
               <span className="text-slate-300">·</span>
               <span className="text-emerald-600 font-medium">Connected</span>
               <button
-                onClick={() => setConfigCollapsed(false)}
+                onClick={expandConfigForEditing}
                 className="tactile flex items-center gap-1 text-indigo-500 hover:text-indigo-700 transition-colors duration-150"
               >
                 <svg className="w-3.5 h-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
@@ -484,7 +495,7 @@ export default function Landing({
             <div className="relative">
               {isReady && (
                 <button
-                  onClick={() => setConfigCollapsed(true)}
+                  onClick={collapseConfig}
                   className="absolute top-3 right-3 z-10 tactile flex items-center justify-center w-7 h-7 rounded-lg text-slate-400 hover:text-slate-600 hover:bg-slate-100/60 transition-all duration-200"
                   title="Collapse AI config"
                   aria-label="Collapse AI configuration"

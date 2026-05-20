@@ -186,6 +186,61 @@ test.describe('Landing Page', () => {
     });
   });
 
+  test('Edit keeps the connected model picker open while refreshing models', async ({ page }) => {
+    await page.route('https://generativelanguage.googleapis.com/v1beta/models?**', async (route) => {
+      await route.fulfill({
+        contentType: 'application/json',
+        body: JSON.stringify({
+          models: [
+            {
+              name: 'models/gemini-2.5-pro',
+              displayName: 'Gemini 2.5 Pro',
+              supportedGenerationMethods: ['generateContent', 'streamGenerateContent'],
+              inputTokenLimit: 1048576,
+              outputTokenLimit: 65536,
+            },
+            {
+              name: 'models/gemini-2.5-flash',
+              displayName: 'Gemini 2.5 Flash',
+              supportedGenerationMethods: ['generateContent', 'streamGenerateContent'],
+              inputTokenLimit: 1048576,
+              outputTokenLimit: 65536,
+            },
+          ],
+        }),
+      });
+    });
+    await page.route('https://generativelanguage.googleapis.com/v1beta/models/*:generateContent?**', async (route) => {
+      await route.fulfill({
+        contentType: 'application/json',
+        body: JSON.stringify({
+          candidates: [{ content: { parts: [{ text: '{"ok":true}' }] } }],
+        }),
+      });
+    });
+
+    await page.evaluate(() => {
+      localStorage.setItem('coursemapper-provider', 'google');
+      localStorage.setItem('coursemapper-apikey', 'AIzaLandingEditModelPickerUnitTestKey000000000');
+      localStorage.setItem('coursemapper-modelid', 'gemini-2.5-pro');
+      localStorage.setItem('coursemapper-modelname', 'Gemini 2.5 Pro');
+    });
+    await page.reload();
+
+    await expect(page.getByText('Google · Gemini 2.5 Pro')).toBeVisible({ timeout: 10000 });
+    await page.getByRole('button', { name: /^Edit$/ }).click();
+
+    const modelSelect = page.locator('#ai-model-select');
+    await expect(modelSelect).toBeVisible({ timeout: 1000 });
+    await expect(modelSelect).toHaveValue('gemini-2.5-pro');
+
+    await page.waitForTimeout(1200);
+    await expect(page.getByText('AI Configuration')).toBeVisible();
+    await expect(modelSelect).toBeVisible();
+    await modelSelect.selectOption('gemini-2.5-flash');
+    await expect(modelSelect).toHaveValue('gemini-2.5-flash');
+  });
+
   test('opening a .coursemapper file restores its provider and model', async ({ page }) => {
     await page.goto('/');
     await page.evaluate(() => {
