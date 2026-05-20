@@ -97,9 +97,15 @@ export async function checkCredits(provider, apiKey, modelId) {
     ) {
       return false;
     }
-    // Other errors (e.g. 400 for temperature) — key likely has credits
+    if (res.status === 400 || res.status === 401 || res.status === 403 || res.status === 404) {
+      const modelError = new Error(err.error?.message || 'The selected model is not available for this API key.');
+      modelError.isConfigurationError = true;
+      throw modelError;
+    }
+    // Other transient/provider errors do not prove the account is out of funds.
     return true;
-  } catch {
+  } catch (error) {
+    if (error?.isConfigurationError) throw error;
     return true; // Network error — don't block, assume credits OK
   }
 }

@@ -333,6 +333,10 @@ function inferExportControls() {
 function enrichControlProfile(profile) {
   const provider = profile.provider;
   const modelId = profile.modelId || '';
+  const googleEndpointFamily =
+    provider === 'google'
+      ? profile.googleEndpointFamily || profile.endpointFamily || profile.api?.googleEndpointFamily || null
+      : null;
   const rawJsonMode =
     profile.supportsJsonMode ?? (profile.structuredOutput?.supportsJsonObject === true ? true : UNKNOWN_SUPPORT);
   const rawToolSupport =
@@ -356,7 +360,12 @@ function enrichControlProfile(profile) {
     maxInputTokens,
     supportsJsonMode,
     supportsTools,
-    api: { ...inferApiControls(provider, modelId), ...(profile.api || {}) },
+    api: {
+      ...inferApiControls(provider, modelId),
+      ...(profile.api || {}),
+      ...(googleEndpointFamily ? { googleEndpointFamily } : {}),
+    },
+    ...(googleEndpointFamily ? { googleEndpointFamily } : {}),
     limits: {
       maxOutputTokens,
       maxInputTokens,
@@ -389,6 +398,7 @@ export function createBaseModelCapabilities(provider, model = {}) {
     modelId,
     modelName: model?.name || modelId,
     source: model?.source || 'catalog',
+    googleEndpointFamily: provider === 'google' ? model?.endpointFamily || model?.googleEndpointFamily || null : null,
     confidence: 'catalog',
     updatedAt: now(),
     expiresAt: now() + CACHE_TTL_MS,
@@ -484,7 +494,7 @@ function isTemperatureError(error) {
   return /temperature/i.test(String(error?.message || ''));
 }
 
-async function probeJsonAndTemperature({ provider, apiKey, modelId, signal }) {
+async function probeJsonAndTemperature({ provider, apiKey, modelId, signal, googleEndpointFamily = null }) {
   if (provider === 'webllm' || !apiKey || !modelId) return {};
   const prompt = 'Return exactly this JSON object and no other text: {"ok":true}';
 
@@ -528,7 +538,7 @@ async function probeJsonAndTemperature({ provider, apiKey, modelId, signal }) {
 
     if (provider === 'google') {
       return postJson(
-        `${getGoogleModelBaseUrl(apiKey, modelId)}:generateContent?key=${apiKey}`,
+        `${getGoogleModelBaseUrl(apiKey, modelId, googleEndpointFamily)}:generateContent?key=${apiKey}`,
         {
           systemInstruction: { parts: [{ text: 'Return only valid JSON.' }] },
           contents: [{ role: 'user', parts: [{ text: prompt }] }],
@@ -574,7 +584,7 @@ async function probeJsonAndTemperature({ provider, apiKey, modelId, signal }) {
   }
 }
 
-export async function probeToolCalling({ provider, apiKey, modelId, signal }) {
+export async function probeToolCalling({ provider, apiKey, modelId, signal, googleEndpointFamily = null }) {
   if (provider === 'webllm' || !apiKey || !modelId) return {};
   const toolName = 'coursemapper_capability_echo';
   const prompt = `Call the ${toolName} tool with {"ok": true}.`;
@@ -629,7 +639,7 @@ export async function probeToolCalling({ provider, apiKey, modelId, signal }) {
 
     if (provider === 'google') {
       const data = await postJson(
-        `${getGoogleModelBaseUrl(apiKey, modelId)}:generateContent?key=${apiKey}`,
+        `${getGoogleModelBaseUrl(apiKey, modelId, googleEndpointFamily)}:generateContent?key=${apiKey}`,
         {
           contents: [{ role: 'user', parts: [{ text: prompt }] }],
           tools: [
@@ -662,9 +672,18 @@ export async function probeToolCalling({ provider, apiKey, modelId, signal }) {
   return {};
 }
 
-async function runCapabilityProbes({ provider, apiKey, modelId, signal, probeTools = false }) {
-  const jsonProbe = await probeJsonAndTemperature({ provider, apiKey, modelId, signal });
-  const toolProbe = probeTools ? await probeToolCalling({ provider, apiKey, modelId, signal }) : {};
+async function runCapabilityProbes({
+  provider,
+  apiKey,
+  modelId,
+  signal,
+  probeTools = false,
+  googleEndpointFamily = null,
+}) {
+  const jsonProbe = await probeJsonAndTemperature({ provider, apiKey, modelId, signal, googleEndpointFamily });
+  const toolProbe = probeTools
+    ? await probeToolCalling({ provider, apiKey, modelId, signal, googleEndpointFamily })
+    : {};
   return {
     ...jsonProbe,
     ...toolProbe,
@@ -689,7 +708,13 @@ export async function resolveModelCapabilities({ provider, apiKey, model, signal
 
   let profile = base;
   try {
-    const probe = await runCapabilityProbes({ provider, apiKey, modelId: base.modelId, signal });
+    const probe = await runCapabilityProbes({
+      provider,
+      apiKey,
+      modelId: base.modelId,
+      signal,
+      googleEndpointFamily: base.googleEndpointFamily || base.api?.googleEndpointFamily || null,
+    });
     profile = {
       ...base,
       ...probe,
@@ -742,6 +767,7 @@ export function createGenerationPlan(profile = {}) {
     quality: profile.quality || 'balanced',
     apiMode: profile.api?.activeTextApi || profile.api?.preferredTextApi || 'chat-completions',
     preferredApiMode: profile.api?.preferredTextApi || profile.api?.activeTextApi || 'chat-completions',
+    googleEndpointFamily: profile.api?.googleEndpointFamily || profile.googleEndpointFamily || null,
     chunkStrategy,
     chunkScale,
     outputBudgetScale,

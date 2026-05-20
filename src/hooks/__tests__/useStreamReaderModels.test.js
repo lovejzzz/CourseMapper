@@ -72,34 +72,24 @@ describe('fetchModelsFromProvider', () => {
     expect(models.map((model) => model.id)).toEqual(['gemini-3.0-pro-preview-01-15', 'gemini-2.5-flash-preview-05-20']);
   });
 
-  it('fetches Vertex publisher models for Google Express keys instead of returning the short fallback', async () => {
+  it('uses Vertex Express candidate probes instead of unsupported catalog endpoints', async () => {
     const fetchMock = vi.spyOn(globalThis, 'fetch').mockImplementation(async (url) => {
-      if (String(url).includes(':countTokens')) return { ok: false, json: async () => ({}) };
-      return {
-        ok: true,
-        json: async () => ({
-          publisherModels: [
-            {
-              name: 'publishers/google/models/gemini-3.5-flash',
-              displayName: 'Gemini 3.5 Flash',
-              supportedActions: ['predict'],
-              outputTokenLimit: 65536,
-            },
-            {
-              name: 'publishers/google/models/gemini-3-flash-preview',
-              displayName: 'Gemini 3 Flash Preview',
-              supportedActions: ['predict'],
-              outputTokenLimit: 65536,
-            },
-          ],
-        }),
-      };
+      const requestUrl = String(url);
+      if (requestUrl.includes('v1beta1/publishers/google/models?')) throw new Error('unexpected catalog call');
+      if (requestUrl.includes('generativelanguage.googleapis.com/v1beta/models?'))
+        throw new Error('unexpected Gemini API catalog call');
+      if (requestUrl.includes('gemini-3.1-pro-preview:countTokens')) return { ok: true, json: async () => ({}) };
+      if (requestUrl.includes('gemini-3-flash-preview:countTokens')) return { ok: true, json: async () => ({}) };
+      return { ok: false, json: async () => ({}) };
     });
 
     const models = await fetchModelsFromProvider('google', 'VertexExpressKeyWithEnoughLength1234567890');
 
-    expect(fetchMock.mock.calls[0][0]).toContain('aiplatform.googleapis.com/v1beta1/publishers/google/models');
-    expect(models.map((model) => model.id)).toEqual(['gemini-3.5-flash', 'gemini-3-flash-preview']);
+    expect(fetchMock.mock.calls.some(([url]) => String(url).includes('v1beta1/publishers/google/models?'))).toBe(false);
+    expect(
+      fetchMock.mock.calls.some(([url]) => String(url).includes('generativelanguage.googleapis.com/v1beta/models?')),
+    ).toBe(false);
+    expect(models.map((model) => model.id)).toEqual(['gemini-3.1-pro-preview', 'gemini-3-flash-preview']);
   });
 
   it('adds reachable latest Google candidates when the live list lags behind generation access', async () => {
@@ -129,26 +119,23 @@ describe('fetchModelsFromProvider', () => {
     expect(models.map((model) => model.id)).toEqual(['gemini-3.5-flash', 'gemini-2.5-flash']);
   });
 
-  it('uses the current documented Gemini fallback when a Vertex key cannot list models', async () => {
+  it('uses the current Vertex Express fallback without Gemini API-only models', async () => {
     vi.spyOn(globalThis, 'fetch').mockImplementation(async (url) => {
-      if (String(url).includes('/v1beta1/publishers/google/models')) {
-        return { ok: false, json: async () => ({ error: { message: 'catalog unavailable' } }) };
-      }
-      if (String(url).includes('generativelanguage.googleapis.com/v1beta/models')) {
-        return { ok: false, json: async () => ({ error: { message: 'catalog unavailable' } }) };
-      }
+      expect(String(url)).not.toContain('/v1beta1/publishers/google/models?');
+      expect(String(url)).not.toContain('generativelanguage.googleapis.com/v1beta/models?');
       return { ok: true, json: async () => ({ totalTokens: 1 }) };
     });
 
     const models = await fetchModelsFromProvider('google', 'VertexExpressKeyWithEnoughLength1234567890');
 
     expect(models.map((model) => model.id).slice(0, 5)).toEqual([
-      'gemini-3.5-flash',
-      'gemini-3.5-flash-preview',
       'gemini-3.1-pro-preview',
       'gemini-3-flash-preview',
       'gemini-2.5-pro',
+      'gemini-2.5-flash',
+      'gemini-2.5-flash-lite',
     ]);
+    expect(models.map((model) => model.id)).not.toContain('gemini-3.5-flash');
     expect(models.map((model) => model.id)).not.toContain('gemini-3-pro-preview');
   });
 

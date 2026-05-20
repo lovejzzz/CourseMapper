@@ -1,6 +1,6 @@
 import { useRef, useCallback } from 'react';
 import { supportsCustomTemperature } from '../lib/agentProviders';
-import { getGoogleModelBaseUrl, isVertexKey } from '../lib/googleProvider';
+import { getGoogleModelBaseUrl, GOOGLE_ENDPOINT_FAMILIES, isVertexKey } from '../lib/googleProvider';
 import { buildProviderTextRequest } from '../lib/modelRequestBuilders';
 
 export { isVertexKey } from '../lib/googleProvider';
@@ -30,6 +30,17 @@ function deepStripThinkTags(obj) {
 
 // Module-level cache: models that don't support custom temperature
 const _noTempModels = new Set();
+
+function googleGenerateUrlFromStreamUrl(streamUrl) {
+  const url = new URL(streamUrl);
+  url.pathname = url.pathname.replace(':streamGenerateContent', ':generateContent');
+  url.searchParams.delete('alt');
+  return url.toString();
+}
+
+function extractGoogleText(data) {
+  return data?.candidates?.[0]?.content?.parts?.map((part) => part.text || '').join('') || '';
+}
 
 /**
  * Shared SSE stream reader with auto-retry and exponential backoff.
@@ -189,6 +200,31 @@ export default function useStreamReader() {
     let fullText = existingText;
     let attempt = 0;
 
+    const runGoogleNonStreamingFallback = async () => {
+      const fallbackController = new AbortController();
+      abortControllerRef.current = fallbackController;
+      if (externalSignal) {
+        if (externalSignal.aborted) throw new DOMException('Aborted', 'AbortError');
+        externalSignal.addEventListener('abort', () => fallbackController.abort(), { once: true });
+      }
+      const response = await fetch(googleGenerateUrlFromStreamUrl(url), {
+        method: 'POST',
+        headers,
+        body: JSON.stringify(body),
+        signal: fallbackController.signal,
+      });
+      const data = await response.json().catch(() => ({}));
+      if (!response.ok) {
+        const msg = data.error?.message || data.error || `API error: ${response.status}`;
+        throw new Error(`${msg} [${response.status}]`);
+      }
+      const text = extractGoogleText(data);
+      if (!text) throw new Error('Google fallback returned an empty response.');
+      fullText = existingText + text;
+      if (onChunk) onChunk(fullText, 1);
+      return { fullText };
+    };
+
     while (attempt <= maxRetries) {
       const controller = new AbortController();
       abortControllerRef.current = controller;
@@ -302,6 +338,14 @@ export default function useStreamReader() {
           continue;
         }
 
+        if (provider === 'google' && isRetryableError(err)) {
+          try {
+            return await runGoogleNonStreamingFallback();
+          } catch (fallbackError) {
+            if (fallbackError.name === 'AbortError') throw fallbackError;
+          }
+        }
+
         throw err;
       }
     }
@@ -322,24 +366,57 @@ const OPENAI_INCLUDE = /^(gpt-|o\d|chatgpt-)/i;
 const GOOGLE_EXCLUDE = /imagen|image|veo|tts|live|embedding|aqa|native-audio/i;
 
 const GOOGLE_LATEST_TEXT_MODEL_CANDIDATES = [
-  { id: 'gemini-3.5-flash', name: 'Gemini 3.5 Flash', maxOutputTokens: 65536 },
-  { id: 'gemini-3.5-flash-preview', name: 'Gemini 3.5 Flash Preview', maxOutputTokens: 65536 },
+  {
+    id: 'gemini-3.5-flash',
+    name: 'Gemini 3.5 Flash',
+    maxOutputTokens: 65536,
+    endpointFamily: GOOGLE_ENDPOINT_FAMILIES.GEMINI_API,
+  },
+  {
+    id: 'gemini-3.5-flash-preview',
+    name: 'Gemini 3.5 Flash Preview',
+    maxOutputTokens: 65536,
+    endpointFamily: GOOGLE_ENDPOINT_FAMILIES.GEMINI_API,
+  },
 ];
 
 const GOOGLE_VERTEX_EXPRESS_TEXT_MODEL_FALLBACKS = [
-  ...GOOGLE_LATEST_TEXT_MODEL_CANDIDATES,
-  { id: 'gemini-3.1-pro-preview', name: 'Gemini 3.1 Pro Preview', maxOutputTokens: 65536 },
-  { id: 'gemini-3-flash-preview', name: 'Gemini 3 Flash Preview', maxOutputTokens: 65536 },
-  { id: 'gemini-2.5-pro', name: 'Gemini 2.5 Pro', maxOutputTokens: 65536 },
-  { id: 'gemini-2.5-flash', name: 'Gemini 2.5 Flash', maxOutputTokens: 65536 },
-  { id: 'gemini-2.5-flash-lite', name: 'Gemini 2.5 Flash Lite', maxOutputTokens: 65536 },
+  {
+    id: 'gemini-3.1-pro-preview',
+    name: 'Gemini 3.1 Pro Preview',
+    maxOutputTokens: 65536,
+    endpointFamily: GOOGLE_ENDPOINT_FAMILIES.VERTEX_EXPRESS,
+  },
+  {
+    id: 'gemini-3-flash-preview',
+    name: 'Gemini 3 Flash Preview',
+    maxOutputTokens: 65536,
+    endpointFamily: GOOGLE_ENDPOINT_FAMILIES.VERTEX_EXPRESS,
+  },
+  {
+    id: 'gemini-2.5-pro',
+    name: 'Gemini 2.5 Pro',
+    maxOutputTokens: 65536,
+    endpointFamily: GOOGLE_ENDPOINT_FAMILIES.VERTEX_EXPRESS,
+  },
+  {
+    id: 'gemini-2.5-flash',
+    name: 'Gemini 2.5 Flash',
+    maxOutputTokens: 65536,
+    endpointFamily: GOOGLE_ENDPOINT_FAMILIES.VERTEX_EXPRESS,
+  },
+  {
+    id: 'gemini-2.5-flash-lite',
+    name: 'Gemini 2.5 Flash Lite',
+    maxOutputTokens: 65536,
+    endpointFamily: GOOGLE_ENDPOINT_FAMILIES.VERTEX_EXPRESS,
+  },
   {
     id: 'gemini-2.5-flash-lite-preview-09-2025',
     name: 'Gemini 2.5 Flash-Lite Preview 09-2025',
     maxOutputTokens: 65536,
+    endpointFamily: GOOGLE_ENDPOINT_FAMILIES.VERTEX_EXPRESS,
   },
-  { id: 'gemini-2.0-flash-001', name: 'Gemini 2.0 Flash 001', maxOutputTokens: 8192 },
-  { id: 'gemini-2.0-flash-lite-001', name: 'Gemini 2.0 Flash-Lite 001', maxOutputTokens: 8192 },
 ];
 
 const GOOGLE_DEPRECATED_TEXT_MODEL_IDS = new Set(['gemini-3-pro-preview']);
@@ -424,6 +501,8 @@ function googleCandidateModel(id, overrides = {}) {
     name: cleanGoogleName(id, overrides.name),
     maxOutputTokens: overrides.maxOutputTokens || 65536,
     maxInputTokens: overrides.maxInputTokens || null,
+    endpointFamily: overrides.endpointFamily || GOOGLE_ENDPOINT_FAMILIES.GEMINI_API,
+    source: overrides.source || 'probe',
     supportedGenerationMethods: ['generateContent', 'streamGenerateContent', 'countTokens'],
     capabilities: {
       streaming: true,
@@ -433,7 +512,7 @@ function googleCandidateModel(id, overrides = {}) {
   };
 }
 
-function normalizeGoogleModelCatalog(models) {
+function normalizeGoogleModelCatalog(models, endpointFamily = GOOGLE_ENDPOINT_FAMILIES.GEMINI_API) {
   return dedupeModelsById(
     (models || [])
       .filter((model) => {
@@ -459,6 +538,8 @@ function normalizeGoogleModelCatalog(models) {
           name: cleanGoogleName(id, model.displayName),
           maxOutputTokens: model.outputTokenLimit || model.output_token_limit || 65536,
           maxInputTokens: model.inputTokenLimit || model.input_token_limit || null,
+          endpointFamily,
+          source: endpointFamily === GOOGLE_ENDPOINT_FAMILIES.VERTEX_EXPRESS ? 'vertex-express' : 'gemini-api',
           supportedGenerationMethods: model.supportedGenerationMethods || model.supportedActions || [],
           capabilities: {
             streaming: (model.supportedGenerationMethods || []).includes('streamGenerateContent'),
@@ -470,26 +551,8 @@ function normalizeGoogleModelCatalog(models) {
   ).sort(sortModelOptions);
 }
 
-async function fetchVertexModels(apiKey) {
-  const allModels = [];
-  let pageToken = '';
-  do {
-    const url = new URL('https://aiplatform.googleapis.com/v1beta1/publishers/google/models');
-    url.searchParams.set('key', apiKey);
-    url.searchParams.set('pageSize', '1000');
-    url.searchParams.set('listAllVersions', 'true');
-    if (pageToken) url.searchParams.set('pageToken', pageToken);
-    const response = await fetch(url.toString());
-    if (!response.ok) throw new Error('Vertex model catalog unavailable');
-    const data = await response.json();
-    allModels.push(...(data.publisherModels || data.models || []));
-    pageToken = data.nextPageToken || '';
-  } while (pageToken);
-  return normalizeGoogleModelCatalog(allModels);
-}
-
-async function canUseGoogleModel(apiKey, modelId) {
-  const response = await fetch(`${getGoogleModelBaseUrl(apiKey, modelId)}:countTokens?key=${apiKey}`, {
+async function canUseGoogleModel(apiKey, modelId, endpointFamily) {
+  const response = await fetch(`${getGoogleModelBaseUrl(apiKey, modelId, endpointFamily)}:countTokens?key=${apiKey}`, {
     method: 'POST',
     headers: { 'Content-Type': 'application/json' },
     body: JSON.stringify({ contents: [{ parts: [{ text: 'test' }] }] }),
@@ -497,21 +560,31 @@ async function canUseGoogleModel(apiKey, modelId) {
   return response.ok;
 }
 
-async function fetchReachableGoogleCandidates(apiKey, candidates) {
+async function fetchReachableGoogleCandidates(
+  apiKey,
+  candidates,
+  endpointFamily = GOOGLE_ENDPOINT_FAMILIES.GEMINI_API,
+) {
   const settled = await Promise.allSettled(
     candidates.map(async (candidate) => {
-      const ok = await canUseGoogleModel(apiKey, candidate.id);
-      return ok ? googleCandidateModel(candidate.id, candidate) : null;
+      const candidateEndpointFamily = candidate.endpointFamily || endpointFamily;
+      const ok = await canUseGoogleModel(apiKey, candidate.id, candidateEndpointFamily);
+      return ok ? googleCandidateModel(candidate.id, { ...candidate, endpointFamily: candidateEndpointFamily }) : null;
     }),
   );
   return settled.filter((result) => result.status === 'fulfilled' && result.value).map((result) => result.value);
 }
 
-async function mergeReachableGoogleCandidates(apiKey, liveModels, candidates = GOOGLE_LATEST_TEXT_MODEL_CANDIDATES) {
+async function mergeReachableGoogleCandidates(
+  apiKey,
+  liveModels,
+  candidates = GOOGLE_LATEST_TEXT_MODEL_CANDIDATES,
+  endpointFamily = GOOGLE_ENDPOINT_FAMILIES.GEMINI_API,
+) {
   const knownIds = new Set((liveModels || []).map((model) => model.id));
   const missingCandidates = candidates.filter((candidate) => !knownIds.has(candidate.id));
   if (missingCandidates.length === 0) return liveModels;
-  const reachable = await fetchReachableGoogleCandidates(apiKey, missingCandidates);
+  const reachable = await fetchReachableGoogleCandidates(apiKey, missingCandidates, endpointFamily);
   if (reachable.length === 0) return liveModels;
   return dedupeModelsById([...liveModels, ...reachable]).sort(sortModelOptions);
 }
@@ -640,32 +713,27 @@ export async function fetchModelsFromProvider(provider, apiKey) {
 
   if (provider === 'google') {
     if (isVertexKey(apiKey)) {
-      try {
-        const models = await fetchVertexModels(apiKey);
-        if (models.length > 0) return mergeReachableGoogleCandidates(apiKey, models);
-      } catch {
-        // Some Vertex/Express API keys cannot list publisher models. Validate
-        // generation access, then use the current documented Gemini text list.
-      }
-
-      try {
-        const models = await fetchGeminiApiModels(apiKey);
-        if (models.length > 0) return mergeReachableGoogleCandidates(apiKey, models);
-      } catch {
-        // Vertex/Express keys usually cannot list the Gemini API catalog.
-      }
-
+      // Vertex AI Express browser keys do not support the Gemini API catalog
+      // endpoint, and publisher model listing is not available in this flow.
+      // Probe only the current Express-compatible text models so unsupported
+      // Gemini API-only models (for example Gemini 3.5 Flash) never appear.
       const reachableFallbacks = await fetchReachableGoogleCandidates(
         apiKey,
         GOOGLE_VERTEX_EXPRESS_TEXT_MODEL_FALLBACKS,
+        GOOGLE_ENDPOINT_FAMILIES.VERTEX_EXPRESS,
       );
       if (reachableFallbacks.length > 0) return reachableFallbacks.sort(sortModelOptions);
-      throw new Error('Invalid API key');
+      throw new Error('Invalid or unsupported Vertex AI Express key');
     }
 
     const models = await fetchGeminiApiModels(apiKey);
     if (models.length === 0) throw new Error('No Gemini models available');
-    return mergeReachableGoogleCandidates(apiKey, models);
+    return mergeReachableGoogleCandidates(
+      apiKey,
+      models,
+      GOOGLE_LATEST_TEXT_MODEL_CANDIDATES,
+      GOOGLE_ENDPOINT_FAMILIES.GEMINI_API,
+    );
   }
 
   if (provider === 'deepseek') {

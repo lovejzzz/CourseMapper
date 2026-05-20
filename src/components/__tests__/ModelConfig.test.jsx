@@ -86,6 +86,18 @@ describe('checkCredits', () => {
     expect(fetchMock.mock.calls[0][0]).not.toContain('generativelanguage.googleapis.com');
   });
 
+  it('rejects unavailable Google models instead of marking the key connected', async () => {
+    vi.spyOn(globalThis, 'fetch').mockResolvedValue({
+      ok: false,
+      status: 404,
+      json: async () => ({ error: { message: 'Model not found' } }),
+    });
+
+    await expect(
+      checkCredits('google', 'AQ.testVertexKeyForEndpointRoutingOnly0000000000000000000000', 'gemini-3.5-flash'),
+    ).rejects.toThrow('Model not found');
+  });
+
   it('ignores stale landing model validation after the config unmounts for project resume', async () => {
     vi.useFakeTimers();
 

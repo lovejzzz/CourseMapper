@@ -1,4 +1,5 @@
 import { supportsCustomTemperature } from './agentProviders';
+import { getGoogleModelBaseUrl } from './googleProvider';
 
 /**
  * Detect the expected number of lessons/weeks from syllabus text.
@@ -212,10 +213,7 @@ ${text.slice(0, 8000)}`;
       const data = await res.json();
       responseText = data.choices?.[0]?.message?.content || '';
     } else if (effectiveProvider === 'google') {
-      const vertex = apiKey && !apiKey.startsWith('AIza') && apiKey.length > 39;
-      const baseUrl = vertex
-        ? `https://aiplatform.googleapis.com/v1/publishers/google/models/${modelId}`
-        : `https://generativelanguage.googleapis.com/v1beta/models/${modelId}`;
+      const baseUrl = getGoogleModelBaseUrl(apiKey, modelId);
       const res = await fetch(`${baseUrl}:generateContent?key=${apiKey}`, {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },

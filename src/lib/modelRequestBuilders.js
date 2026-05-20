@@ -118,6 +118,11 @@ export function createRequestControls({
     reasoning,
     caching: generationPlan?.caching || modelCapabilities?.caching || { mode: 'none' },
     repair: generationPlan?.repair || modelCapabilities?.repair || {},
+    googleEndpointFamily:
+      modelCapabilities?.api?.googleEndpointFamily ||
+      modelCapabilities?.googleEndpointFamily ||
+      generationPlan?.googleEndpointFamily ||
+      null,
   };
 }
 
@@ -223,7 +228,7 @@ export function buildProviderTextRequest({
   }
 
   if (provider === 'google') {
-    const baseUrl = getGoogleModelBaseUrl(apiKey, modelId);
+    const baseUrl = getGoogleModelBaseUrl(apiKey, modelId, controls.googleEndpointFamily);
     return {
       url: `${baseUrl}:streamGenerateContent?key=${apiKey}&alt=sse`,
       headers: { 'Content-Type': 'application/json' },
