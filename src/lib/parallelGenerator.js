@@ -39,9 +39,16 @@ const FEATURE_CHUNK_SIZES = {
   courseFaq: 10,
 };
 
+function adaptChunkSize(baseSize, generationPlan = null) {
+  const scale = Number(generationPlan?.chunkScale || 1);
+  if (!Number.isFinite(scale) || scale === 1) return baseSize;
+  const next = Math.round(baseSize * scale);
+  return Math.max(1, Math.min(12, next));
+}
+
 /** Get the chunk size for a given feature */
-export function getFeatureChunkSize(featureId) {
-  return FEATURE_CHUNK_SIZES[featureId] || CHUNK_SIZE;
+export function getFeatureChunkSize(featureId, generationPlan = null) {
+  return adaptChunkSize(FEATURE_CHUNK_SIZES[featureId] || CHUNK_SIZE, generationPlan);
 }
 
 /** Per-feature max output token budgets — caps to prevent runaway responses.
@@ -64,10 +71,12 @@ const FEATURE_OUTPUT_BUDGETS = {
 };
 
 /** Get the output token budget for a feature, capped by the global model limit */
-export function getFeatureOutputBudget(featureId, globalMax) {
+export function getFeatureOutputBudget(featureId, globalMax, generationPlan = null) {
   const budget = FEATURE_OUTPUT_BUDGETS[featureId];
   if (!budget) return globalMax;
-  return Math.min(budget, globalMax);
+  const scale = Number(generationPlan?.outputBudgetScale || 1);
+  const plannedBudget = Math.round(budget * (Number.isFinite(scale) ? scale : 1));
+  return Math.min(plannedBudget, globalMax);
 }
 
 /** Features that are whole-course (never chunked).
@@ -128,7 +137,7 @@ export function chunkArray(arr, size) {
  * @param {number[]|null} scopeIndices — specific lesson indices (null = all)
  * @returns {Array<{ featureId, chunkIndex, chunkScope, isWholeCourse }>}
  */
-export function createChunkPlan(features, lessonCount, scopeIndices = null) {
+export function createChunkPlan(features, lessonCount, scopeIndices = null, generationPlan = null) {
   const allIndices = scopeIndices ?? Array.from({ length: lessonCount }, (_, i) => i);
   const tasks = [];
 
@@ -143,7 +152,7 @@ export function createChunkPlan(features, lessonCount, scopeIndices = null) {
       });
     } else {
       // Per-lesson feature — chunk the lesson indices (size varies by feature complexity)
-      const chunks = chunkArray(allIndices, getFeatureChunkSize(featureId));
+      const chunks = chunkArray(allIndices, getFeatureChunkSize(featureId, generationPlan));
       for (let i = 0; i < chunks.length; i++) {
         tasks.push({
           featureId,
@@ -377,8 +386,8 @@ export function getCoverageRetryMissingLessons(mergedArray, expectedCount) {
  * @param {number[]|null} scopeIndices
  * @returns {number}
  */
-export function getChunkCount(featureId, lessonCount, scopeIndices = null) {
+export function getChunkCount(featureId, lessonCount, scopeIndices = null, generationPlan = null) {
   if (WHOLE_COURSE_FEATURES.has(featureId)) return 1;
   const count = scopeIndices ? scopeIndices.length : lessonCount;
-  return Math.ceil(count / getFeatureChunkSize(featureId));
+  return Math.ceil(count / getFeatureChunkSize(featureId, generationPlan));
 }

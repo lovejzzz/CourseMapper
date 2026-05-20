@@ -270,6 +270,8 @@ export default function AppFlow({ startupAction = null, onStartupHandled, onRetu
     setAvailableModels,
     maxOutputTokens,
     setMaxOutputTokens,
+    modelCapabilities,
+    generationPlan,
   } = useAIConfig();
 
   const restoreProjectAIConfig = useCallback(
@@ -459,6 +461,8 @@ export default function AppFlow({ startupAction = null, onStartupHandled, onRetu
     modelId,
     apiKey,
     maxOutputTokens,
+    modelCapabilities,
+    generationPlan,
     files,
     columns,
     setCourseMap,
@@ -501,6 +505,8 @@ export default function AppFlow({ startupAction = null, onStartupHandled, onRetu
     modelId,
     apiKey,
     maxOutputTokens,
+    modelCapabilities,
+    generationPlan,
     deliverableConfig,
     lockedLessons: lessonScope.type === 'specific' ? lessonScope.indices : null,
     pedagogicalMode: 'lecture',

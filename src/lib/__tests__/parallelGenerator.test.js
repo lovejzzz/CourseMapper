@@ -9,6 +9,7 @@ import {
   trimQuizBankQuestions,
   chunkArray,
   createChunkPlan,
+  getFeatureOutputBudget,
 } from '../parallelGenerator';
 
 describe('mergeChunkResults', () => {
@@ -277,5 +278,18 @@ describe('createChunkPlan', () => {
     expect(tasks).toHaveLength(1);
     expect(tasks[0].isWholeCourse).toBe(true);
     expect(tasks[0].chunkScope).toBeNull();
+  });
+
+  it('uses smaller chunks for conservative model plans', () => {
+    const tasks = createChunkPlan(['lessonPlans'], 10, null, { chunkScale: 0.65 });
+
+    expect(tasks).toHaveLength(4);
+    expect(tasks[0].chunkScope).toEqual([0, 1, 2]);
+    expect(tasks[3].chunkScope).toEqual([9]);
+  });
+
+  it('scales output budgets without exceeding the selected model limit', () => {
+    expect(getFeatureOutputBudget('slideDecks', 65536, { outputBudgetScale: 1.1 })).toBe(19800);
+    expect(getFeatureOutputBudget('slideDecks', 12000, { outputBudgetScale: 1.1 })).toBe(12000);
   });
 });

@@ -1,6 +1,7 @@
 // src/contexts/AIConfigContext.jsx — AI provider/model configuration state
 import React, { createContext, useContext, useState, useEffect } from 'react';
 import { getSecure, setSecure, removeSecure } from '../lib/secureStorage';
+import { createGenerationPlan } from '../lib/modelCapabilities';
 
 const AIConfigContext = createContext(null);
 
@@ -36,6 +37,15 @@ export function AIConfigProvider({ children }) {
   });
   const [availableModels, setAvailableModels] = useState([]);
   const [maxOutputTokens, setMaxOutputTokens] = useState(16384);
+  const [modelCapabilities, setModelCapabilities] = useState(() => {
+    try {
+      const raw = localStorage.getItem('coursemapper-model-capabilities-current');
+      return raw ? JSON.parse(raw) : null;
+    } catch {
+      return null;
+    }
+  });
+  const [generationPlan, setGenerationPlan] = useState(() => createGenerationPlan(modelCapabilities || {}));
 
   // ── Persist API key, provider & model to localStorage ──
   useEffect(() => {
@@ -60,6 +70,22 @@ export function AIConfigProvider({ children }) {
     } catch {}
   }, [modelId, modelName]);
 
+  useEffect(() => {
+    const matchesCurrentModel =
+      modelCapabilities?.provider === provider &&
+      (!modelCapabilities?.modelId || modelCapabilities.modelId === modelId);
+    if (!matchesCurrentModel) {
+      setGenerationPlan(createGenerationPlan({ provider, modelId, maxOutputTokens }));
+      return;
+    }
+    setGenerationPlan(createGenerationPlan(modelCapabilities));
+    try {
+      if (modelCapabilities)
+        localStorage.setItem('coursemapper-model-capabilities-current', JSON.stringify(modelCapabilities));
+      else localStorage.removeItem('coursemapper-model-capabilities-current');
+    } catch {}
+  }, [modelCapabilities, provider, modelId, maxOutputTokens]);
+
   return (
     <AIConfigContext.Provider
       value={{
@@ -77,6 +103,10 @@ export function AIConfigProvider({ children }) {
         setAvailableModels,
         maxOutputTokens,
         setMaxOutputTokens,
+        modelCapabilities,
+        setModelCapabilities,
+        generationPlan,
+        setGenerationPlan,
       }}
     >
       {children}

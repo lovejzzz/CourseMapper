@@ -263,6 +263,8 @@ export default function useDeliverables({
   modelId,
   apiKey,
   maxOutputTokens,
+  modelCapabilities,
+  generationPlan,
   deliverableConfig,
   lockedLessons,
   pedagogicalMode,
@@ -361,7 +363,7 @@ export default function useDeliverables({
       const lessonIndices = scopeIndices ?? Array.from({ length: lessonCount }, (_, i) => i);
 
       // ── 1. Create chunk plan ──
-      const tasks = createChunkPlan(toGenerate, lessonCount, scopeIndices);
+      const tasks = createChunkPlan(toGenerate, lessonCount, scopeIndices, generationPlan);
 
       // ── 2. Initialize per-feature progress ──
       const perFeatureInit = {};
@@ -580,7 +582,9 @@ export default function useDeliverables({
             featureId,
           });
           const result = await streamProvider(provider, apiKey, modelId, prompts.systemPrompt, prompts.userPrompt, {
-            maxOutputTokens: getFeatureOutputBudget(featureId, maxOutputTokens),
+            maxOutputTokens: getFeatureOutputBudget(featureId, maxOutputTokens, generationPlan),
+            modelCapabilities,
+            generationPlan,
             onChunk: (accumulatedText) => {
               if (timedOutFeaturesRef.current.has(featureId)) return;
               fullText = accumulatedText;
@@ -853,7 +857,9 @@ export default function useDeliverables({
                 featureId: fid,
               });
               const result = await streamProvider(provider, apiKey, modelId, prompts.systemPrompt, prompts.userPrompt, {
-                maxOutputTokens: getFeatureOutputBudget(fid, maxOutputTokens),
+                maxOutputTokens: getFeatureOutputBudget(fid, maxOutputTokens, generationPlan),
+                modelCapabilities,
+                generationPlan,
                 onChunk: (t) => {
                   fullText = t;
                 },
@@ -1310,7 +1316,9 @@ export default function useDeliverables({
             // Create retry tasks — use smaller chunks to reduce token pressure on retries
             // Quiz bank, slide decks, rubrics use individual lessons (size 1) to prevent merging
             const useIndividualRetry = fid === 'quizBank' || fid === 'slideDecks' || fid === 'rubrics';
-            const retryChunkSize = useIndividualRetry ? 1 : Math.max(2, Math.floor(getFeatureChunkSize(fid) / 2));
+            const retryChunkSize = useIndividualRetry
+              ? 1
+              : Math.max(2, Math.floor(getFeatureChunkSize(fid, generationPlan) / 2));
             const retryChunks = chunkArray(missing, retryChunkSize);
             const retryLimit = pLimit(MAX_CONCURRENT);
             const retryPromises = retryChunks.map((retryScope, idx) =>
@@ -1358,7 +1366,9 @@ export default function useDeliverables({
                     prompts.systemPrompt,
                     prompts.userPrompt,
                     {
-                      maxOutputTokens: getFeatureOutputBudget(fid, maxOutputTokens),
+                      maxOutputTokens: getFeatureOutputBudget(fid, maxOutputTokens, generationPlan),
+                      modelCapabilities,
+                      generationPlan,
                       onChunk: (t) => {
                         fullText = t;
                       },
@@ -1504,7 +1514,9 @@ export default function useDeliverables({
                     prompts.systemPrompt,
                     prompts.userPrompt,
                     {
-                      maxOutputTokens: getFeatureOutputBudget(fid, maxOutputTokens),
+                      maxOutputTokens: getFeatureOutputBudget(fid, maxOutputTokens, generationPlan),
+                      modelCapabilities,
+                      generationPlan,
                       onChunk: (t) => {
                         fullText = t;
                       },
@@ -1975,7 +1987,20 @@ export default function useDeliverables({
       );
       notifyDone('All deliverables are ready!');
     },
-    [provider, modelId, apiKey, streamProvider, parsePartialJSON, appendLog, dispatch, recordApiCallEvent],
+    [
+      provider,
+      modelId,
+      apiKey,
+      maxOutputTokens,
+      modelCapabilities,
+      generationPlan,
+      streamProvider,
+      parsePartialJSON,
+      appendLog,
+      dispatch,
+      recordApiCallEvent,
+      logIfRecovered,
+    ],
   );
 
   // ── Stop by featureId or stop all ──

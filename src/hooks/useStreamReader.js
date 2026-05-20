@@ -136,7 +136,16 @@ export default function useStreamReader() {
    * @returns {{ fullText: string }}
    */
   const streamProvider = useCallback(async (provider, apiKey, modelId, systemPrompt, userPrompt, opts = {}) => {
-    const { onChunk, onRetry, maxRetries = 3, existingText = '', signal: externalSignal, maxOutputTokens } = opts;
+    const {
+      onChunk,
+      onRetry,
+      maxRetries = 3,
+      existingText = '',
+      signal: externalSignal,
+      maxOutputTokens,
+      modelCapabilities,
+      generationPlan,
+    } = opts;
 
     // WebLLM: run locally in browser, no network needed
     if (provider === 'webllm') {
@@ -155,7 +164,11 @@ export default function useStreamReader() {
       }).then((result) => ({ fullText: existingText + result.fullText }));
     }
 
-    let skipTemp = _noTempModels.has(modelId) || !supportsCustomTemperature(modelId);
+    let skipTemp =
+      _noTempModels.has(modelId) ||
+      !supportsCustomTemperature(modelId) ||
+      modelCapabilities?.supportsTemperature === false ||
+      generationPlan?.useTemperature === false;
     let { url, headers, body, parseChunk } = buildProviderRequest(
       provider,
       apiKey,
@@ -164,6 +177,8 @@ export default function useStreamReader() {
       userPrompt,
       maxOutputTokens,
       skipTemp,
+      modelCapabilities,
+      generationPlan,
     );
 
     let fullText = existingText;
@@ -206,6 +221,8 @@ export default function useStreamReader() {
               userPrompt,
               maxOutputTokens,
               true,
+              modelCapabilities,
+              generationPlan,
             ));
             continue;
           }
@@ -267,6 +284,8 @@ export default function useStreamReader() {
             userPrompt,
             maxOutputTokens,
             skipTemp,
+            modelCapabilities,
+            generationPlan,
           ));
           const delay = Math.min(1000 * Math.pow(2, attempt - 1), 8000);
           if (onRetry) onRetry(attempt, maxRetries, delay);
@@ -294,8 +313,11 @@ function buildProviderRequest(
   userPrompt,
   maxOutputTokens = 16384,
   skipTemp = false,
+  modelCapabilities = null,
+  generationPlan = null,
 ) {
   const temp = skipTemp ? undefined : 0.3;
+  const useJsonMode = modelCapabilities?.supportsJsonMode !== false && generationPlan?.useJsonMode !== false;
   if (provider === 'openai') {
     return {
       url: 'https://api.openai.com/v1/chat/completions',
@@ -309,7 +331,7 @@ function buildProviderRequest(
           { role: 'system', content: systemPrompt },
           { role: 'user', content: userPrompt },
         ],
-        response_format: { type: 'json_object' },
+        ...(useJsonMode ? { response_format: { type: 'json_object' } } : {}),
         max_completion_tokens: maxOutputTokens,
         ...(temp !== undefined && { temperature: temp }),
         stream: true,
@@ -353,7 +375,7 @@ function buildProviderRequest(
         generationConfig: {
           ...(temp !== undefined && { temperature: temp }),
           maxOutputTokens: maxOutputTokens,
-          responseMimeType: 'application/json',
+          ...(useJsonMode ? { responseMimeType: 'application/json' } : {}),
         },
       },
       parseChunk: (parsed) => parsed.candidates?.[0]?.content?.parts?.[0]?.text || null,
@@ -373,7 +395,7 @@ function buildProviderRequest(
           { role: 'system', content: systemPrompt },
           { role: 'user', content: userPrompt },
         ],
-        response_format: { type: 'json_object' },
+        ...(useJsonMode ? { response_format: { type: 'json_object' } } : {}),
         max_tokens: maxOutputTokens,
         ...(temp !== undefined && { temperature: temp }),
         stream: true,
@@ -534,6 +556,13 @@ function normalizeGoogleModelCatalog(models) {
           id,
           name: cleanGoogleName(id, model.displayName),
           maxOutputTokens: model.outputTokenLimit || model.output_token_limit || 65536,
+          maxInputTokens: model.inputTokenLimit || model.input_token_limit || null,
+          supportedGenerationMethods: model.supportedGenerationMethods || model.supportedActions || [],
+          capabilities: {
+            streaming: (model.supportedGenerationMethods || []).includes('streamGenerateContent'),
+            jsonMode: true,
+            toolCalling: true,
+          },
         };
       }),
   ).sort(sortModelOptions);
@@ -623,6 +652,11 @@ export async function fetchModelsFromProvider(provider, apiKey) {
           name: cleanOpenAIName(m.id),
           created: m.created || 0,
           maxOutputTokens: openaiMaxOutput(m.id),
+          capabilities: {
+            jsonMode: true,
+            toolCalling: true,
+            streaming: true,
+          },
         })),
     ).sort(sortModelOptions);
     if (models.length === 0) throw new Error('No OpenAI text-generation models available');
@@ -650,7 +684,13 @@ export async function fetchModelsFromProvider(provider, apiKey) {
           id: m.id,
           name: m.display_name || m.id,
           created: m.created_at || '',
+          maxInputTokens: m.input_token_limit || null,
           maxOutputTokens: anthropicMaxOutput(m.id),
+          capabilities: {
+            jsonMode: false,
+            toolCalling: true,
+            streaming: true,
+          },
         })),
     ).sort(sortModelOptions);
     if (models.length === 0) throw new Error('No models available');
@@ -706,6 +746,11 @@ export async function fetchModelsFromProvider(provider, apiKey) {
           created: m.created || 0,
           // DeepSeek /v1/models doesn't return token limits; values from docs
           maxOutputTokens: m.id === 'deepseek-reasoner' ? 32768 : 8192,
+          capabilities: {
+            jsonMode: true,
+            toolCalling: true,
+            streaming: true,
+          },
         })),
     ).sort(sortModelOptions);
     if (models.length === 0) throw new Error('No DeepSeek models available');

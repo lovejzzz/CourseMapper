@@ -1,8 +1,14 @@
-import React, { useState, useEffect, useRef } from 'react';
+import React, { useState, useEffect, useRef, useCallback } from 'react';
 import { fetchModelsFromProvider } from '../hooks/useStreamReader';
 import { useAIConfig } from '../contexts/AIConfigContext';
 import { WEBLLM_MODELS, isWebGPUSupported } from '../lib/webllmConstants';
 import { getGoogleModelBaseUrl } from '../lib/googleProvider';
+import {
+  createBaseModelCapabilities,
+  createGenerationPlan,
+  getModelCapabilityBadges,
+  resolveModelCapabilities,
+} from '../lib/modelCapabilities';
 
 /**
  * Detect provider from API key prefix and auto-switch if mismatched.
@@ -114,13 +120,19 @@ export default function ModelConfig() {
     setModelName,
     maxOutputTokens,
     setMaxOutputTokens,
+    modelCapabilities,
+    setModelCapabilities,
+    generationPlan,
+    setGenerationPlan,
   } = useAIConfig();
   const debounceRef = useRef(null);
   const prevProviderValueRef = useRef(provider);
   const autoDetectedRef = useRef(false);
+  const capabilityRunRef = useRef(0);
   const providerId = 'ai-provider-select';
   const apiKeyId = 'ai-api-key-input';
   const modelIdSelectId = 'ai-model-select';
+  const [capabilityStatus, setCapabilityStatus] = useState('idle');
 
   // WebLLM download state
   const [webllmProgress, setWebllmProgress] = useState(null); // { text, progress }
@@ -143,6 +155,9 @@ export default function ModelConfig() {
     setModelName('');
     setAvailableModels([]);
     setModelId('');
+    setModelCapabilities(null);
+    setGenerationPlan(createGenerationPlan({ provider }));
+    setCapabilityStatus('idle');
 
     if (autoDetectedRef.current) {
       // Provider was auto-switched because user typed a key with a different
@@ -174,6 +189,10 @@ export default function ModelConfig() {
     setModelId(selected.id);
     setModelName(selected.name);
     if (setMaxOutputTokens) setMaxOutputTokens(selected.maxOutputTokens || 4096);
+    const localProfile = createBaseModelCapabilities('webllm', selected);
+    setModelCapabilities(localProfile);
+    setGenerationPlan(createGenerationPlan(localProfile));
+    setCapabilityStatus('ready');
 
     // Prevent double-init from StrictMode or remount when already connected
     if (webllmInitRef.current) return;
@@ -205,6 +224,45 @@ export default function ModelConfig() {
         webllmInitRef.current = false;
       });
   }, [provider]);
+
+  const applyBaseCapabilityProfile = useCallback(
+    (selectedModel, selectedProvider = provider) => {
+      if (!selectedModel?.id) return null;
+      const baseProfile = createBaseModelCapabilities(selectedProvider, selectedModel);
+      setModelCapabilities(baseProfile);
+      setGenerationPlan(createGenerationPlan(baseProfile));
+      return baseProfile;
+    },
+    [provider, setGenerationPlan, setModelCapabilities],
+  );
+
+  const detectCapabilitiesForModel = useCallback(
+    async (selectedModel, { selectedProvider = provider, selectedApiKey = apiKey, isCancelled = () => false } = {}) => {
+      if (!selectedModel?.id || selectedProvider === 'webllm') return null;
+      const trimmedKey = String(selectedApiKey || '').trim();
+      if (!trimmedKey) return applyBaseCapabilityProfile(selectedModel, selectedProvider);
+
+      const runId = ++capabilityRunRef.current;
+      setCapabilityStatus('detecting');
+      applyBaseCapabilityProfile(selectedModel, selectedProvider);
+      try {
+        const profile = await resolveModelCapabilities({
+          provider: selectedProvider,
+          apiKey: trimmedKey,
+          model: selectedModel,
+        });
+        if (isCancelled() || runId !== capabilityRunRef.current) return null;
+        setModelCapabilities(profile);
+        setGenerationPlan(createGenerationPlan(profile));
+        setCapabilityStatus(profile.confidence === 'probed' ? 'ready' : 'catalog');
+        return profile;
+      } catch {
+        if (!isCancelled() && runId === capabilityRunRef.current) setCapabilityStatus('catalog');
+        return null;
+      }
+    },
+    [apiKey, applyBaseCapabilityProfile, provider, setGenerationPlan, setModelCapabilities],
+  );
 
   // When API key or provider changes, auto-detect provider and validate.
   const prevProviderRef = useRef(provider);
@@ -253,10 +311,18 @@ export default function ModelConfig() {
           setModelId(selected.id);
           setModelName(selected.name);
           if (setMaxOutputTokens) setMaxOutputTokens(selected.maxOutputTokens || 16384);
+          applyBaseCapabilityProfile(selected, provider);
           // Verify the key has credits with a tiny test call
           const hasCredits = await checkCredits(provider, apiKey.trim(), selected.id);
           if (cancelled) return;
           setApiStatus(hasCredits ? 'connected' : 'no_funds');
+          if (hasCredits) {
+            await detectCapabilitiesForModel(selected, {
+              selectedProvider: provider,
+              selectedApiKey: apiKey,
+              isCancelled: () => cancelled,
+            });
+          }
         } else {
           if (cancelled) return;
           setApiStatus('error');
@@ -271,7 +337,20 @@ export default function ModelConfig() {
       cancelled = true;
       if (debounceRef.current) clearTimeout(debounceRef.current);
     };
-  }, [apiKey, provider]);
+  }, [
+    apiKey,
+    provider,
+    setApiStatus,
+    setAvailableModels,
+    setGenerationPlan,
+    setModelCapabilities,
+    setModelId,
+    setModelName,
+    setMaxOutputTokens,
+    setProvider,
+    applyBaseCapabilityProfile,
+    detectCapabilitiesForModel,
+  ]);
 
   function handleModelChange(e) {
     const id = e.target.value;
@@ -279,6 +358,7 @@ export default function ModelConfig() {
     const found = availableModels.find((m) => m.id === id);
     setModelName(found?.name || id);
     if (setMaxOutputTokens) setMaxOutputTokens(found?.maxOutputTokens || 16384);
+    if (found) detectCapabilitiesForModel(found);
 
     // For WebLLM, switching models requires reloading the engine
     if (provider === 'webllm') {
@@ -305,6 +385,18 @@ export default function ModelConfig() {
   }
 
   const hasSelectableModels = (apiStatus === 'connected' || apiStatus === 'no_funds') && availableModels.length > 0;
+  const capabilityBadges =
+    hasSelectableModels && modelCapabilities?.modelId === modelId
+      ? getModelCapabilityBadges(modelCapabilities, generationPlan)
+      : [];
+  const badgeTone = {
+    emerald: 'bg-emerald-50/70 text-emerald-700 border-emerald-200/60',
+    indigo: 'bg-indigo-50/70 text-indigo-700 border-indigo-200/60',
+    violet: 'bg-violet-50/70 text-violet-700 border-violet-200/60',
+    amber: 'bg-amber-50/70 text-amber-700 border-amber-200/60',
+    blue: 'bg-sky-50/70 text-sky-700 border-sky-200/60',
+    slate: 'bg-slate-50/70 text-slate-600 border-slate-200/60',
+  };
 
   return (
     <div className="glass panel-glow rounded-squircle shadow-glass p-7 animate-stagger-1">
@@ -560,6 +652,24 @@ export default function ModelConfig() {
           )}
         </div>
       </div>
+      {hasSelectableModels && (
+        <div className="mt-4 flex flex-wrap items-center gap-2">
+          {capabilityStatus === 'detecting' && (
+            <span className="inline-flex items-center gap-1.5 rounded-pill border border-amber-200/60 bg-amber-50/70 px-2.5 py-1 text-[10px] font-semibold text-amber-700">
+              <span className="h-1.5 w-1.5 rounded-full bg-amber-400 animate-pulse" />
+              Detecting model strengths
+            </span>
+          )}
+          {capabilityBadges.map((badge) => (
+            <span
+              key={badge.label}
+              className={`inline-flex items-center rounded-pill border px-2.5 py-1 text-[10px] font-semibold ${badgeTone[badge.tone] || badgeTone.slate}`}
+            >
+              {badge.label}
+            </span>
+          ))}
+        </div>
+      )}
     </div>
   );
 }

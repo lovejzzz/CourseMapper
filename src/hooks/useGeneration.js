@@ -92,6 +92,8 @@ export default function useGeneration({
   modelId,
   apiKey,
   maxOutputTokens,
+  modelCapabilities,
+  generationPlan,
   files,
   columns,
   promptText,
@@ -292,7 +294,9 @@ export default function useGeneration({
         EXAMINE_SYSTEM_PROMPT,
         examUserPrompt,
         {
-          maxOutputTokens,
+          maxOutputTokens: generationPlan?.courseMapOutputTokens || maxOutputTokens,
+          modelCapabilities,
+          generationPlan,
           onChunk: (text) => {
             if (text.length % 200 < 10) {
               const partial = parsePartialJSON(text);
@@ -532,7 +536,9 @@ Generate lessons ${actual + 1} through ${expectedCount} now as JSON:`;
       contSystemPrompt,
       contPrompt,
       {
-        maxOutputTokens,
+        maxOutputTokens: generationPlan?.courseMapOutputTokens || maxOutputTokens,
+        modelCapabilities,
+        generationPlan,
         onChunk: (text) => {
           fullTextRef.current = text;
           const now = performance.now();
@@ -858,7 +864,9 @@ Generate lessons ${actual + 1} through ${expectedCount} now as JSON:`;
             detail: currentModelName,
           });
           const { fullText } = await streamProvider(provider, apiKey, modelId, activeSystemPrompt, finalUserPrompt, {
-            maxOutputTokens,
+            maxOutputTokens: generationPlan?.courseMapOutputTokens || maxOutputTokens,
+            modelCapabilities,
+            generationPlan,
             onChunk: (text, count) => {
               fullTextRef.current = text;
               updateGenerationProgress(text, count);
@@ -1046,6 +1054,8 @@ Generate lessons ${actual + 1} through ${expectedCount} now as JSON:`;
       modelId,
       apiKey,
       maxOutputTokens,
+      modelCapabilities,
+      generationPlan,
       files,
       columns,
       promptText,
@@ -1165,7 +1175,9 @@ Generate lessons ${actual + 1} through ${expectedCount} now as JSON:`;
         SYSTEM_PROMPT,
         continuationPrompt,
         {
-          maxOutputTokens,
+          maxOutputTokens: generationPlan?.courseMapOutputTokens || maxOutputTokens,
+          modelCapabilities,
+          generationPlan,
           onChunk: (text, count) => {
             fullTextRef.current = text;
             if (import.meta.env.DEV && (count <= 3 || count % 20 === 0))
@@ -1273,6 +1285,8 @@ Generate lessons ${actual + 1} through ${expectedCount} now as JSON:`;
     modelId,
     apiKey,
     maxOutputTokens,
+    modelCapabilities,
+    generationPlan,
     columns,
     setCourseMap,
     pushVersion,
@@ -1360,7 +1374,18 @@ Generate lessons ${actual + 1} through ${expectedCount} now as JSON:`;
     setStreamProgress(100);
     setProgressStep('done');
     setStatus('done');
-  }, [provider, modelId, apiKey, maxOutputTokens, lessonScope, streamProvider, parsePartialJSON, recordApiCallEvent]);
+  }, [
+    provider,
+    modelId,
+    apiKey,
+    maxOutputTokens,
+    modelCapabilities,
+    generationPlan,
+    lessonScope,
+    streamProvider,
+    parsePartialJSON,
+    recordApiCallEvent,
+  ]);
 
   return {
     status,
