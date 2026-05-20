@@ -113,6 +113,142 @@ test.describe('Landing Page', () => {
     await expect(page.locator('text=AI Configuration')).toBeVisible({ timeout: 5000 });
   });
 
+  test('Resume restores the saved project model instead of the landing-page model', async ({ page }) => {
+    await page.route('https://api.openai.com/v1/models', async (route) => {
+      await route.fulfill({
+        contentType: 'application/json',
+        body: JSON.stringify({ data: [{ id: 'gpt-4o-mini', created: 1 }] }),
+      });
+    });
+    await page.route('https://api.openai.com/v1/chat/completions', async (route) => {
+      await route.fulfill({ contentType: 'application/json', body: JSON.stringify({ choices: [] }) });
+    });
+
+    await page.goto('/');
+    await page.evaluate(() => {
+      localStorage.clear();
+      sessionStorage.clear();
+      localStorage.setItem('coursemapper-provider', 'openai');
+      localStorage.setItem('coursemapper-apikey', 'sk-proj-landing-test-key');
+      localStorage.setItem('coursemapper-modelid', 'gpt-4o-mini');
+      localStorage.setItem('coursemapper-modelname', 'GPT-4o mini');
+      localStorage.setItem(
+        'coursemapper-project',
+        JSON.stringify({
+          formatVersion: 1,
+          hasGenerated: true,
+          provider: 'google',
+          modelId: 'gemini-2.5-pro',
+          modelName: 'Gemini 2.5 Pro',
+          courseMap: {
+            courseName: 'Resume Model Test',
+            lessons: [
+              {
+                title: 'Lesson 1',
+                learningGoals: ['Goal'],
+                topics: ['Topic'],
+                learningObjectives: ['Objective'],
+                weeklyAssessments: ['Assessment'],
+                asynchronousActivities: ['Activity'],
+                synchronousActivities: ['Discussion'],
+              },
+            ],
+          },
+          columns: [],
+          userEdits: [],
+          chatHistory: [],
+          fileNames: [],
+          versionHistory: [],
+          selectedFeatures: ['courseMap'],
+          lessonScope: { type: 'all' },
+          deliverableConfig: {},
+          promptText: 'Resume model test',
+          activeTab: 'courseMap',
+          deliverables: {},
+        }),
+      );
+    });
+    await page.reload();
+
+    await expect(page.getByRole('button', { name: 'Resume' })).toBeVisible({ timeout: 10000 });
+    await page.getByRole('button', { name: 'Resume' }).click();
+
+    await expect(page.getByText('Gemini 2.5 Pro')).toBeVisible({ timeout: 10000 });
+    const restored = await page.evaluate(() => ({
+      provider: localStorage.getItem('coursemapper-provider'),
+      modelId: localStorage.getItem('coursemapper-modelid'),
+      modelName: localStorage.getItem('coursemapper-modelname'),
+    }));
+    expect(restored).toEqual({
+      provider: 'google',
+      modelId: 'gemini-2.5-pro',
+      modelName: 'Gemini 2.5 Pro',
+    });
+  });
+
+  test('opening a .coursemapper file restores its provider and model', async ({ page }) => {
+    await page.goto('/');
+    await page.evaluate(() => {
+      localStorage.clear();
+      sessionStorage.clear();
+      localStorage.setItem('coursemapper-provider', 'openai');
+      localStorage.setItem('coursemapper-modelid', 'gpt-4o-mini');
+      localStorage.setItem('coursemapper-modelname', 'GPT-4o mini');
+    });
+    await page.reload();
+
+    const project = {
+      formatVersion: 1,
+      hasGenerated: true,
+      provider: 'anthropic',
+      modelId: 'claude-sonnet-4-5-20250929',
+      modelName: 'Claude Sonnet 4.5',
+      courseMap: {
+        courseName: 'Opened Project Model Test',
+        lessons: [
+          {
+            title: 'Lesson 1',
+            learningGoals: ['Goal'],
+            topics: ['Topic'],
+            learningObjectives: ['Objective'],
+            weeklyAssessments: ['Assessment'],
+            asynchronousActivities: ['Activity'],
+            synchronousActivities: ['Discussion'],
+          },
+        ],
+      },
+      columns: [],
+      userEdits: [],
+      chatHistory: [],
+      fileNames: [],
+      versionHistory: [],
+      selectedFeatures: ['courseMap'],
+      lessonScope: { type: 'all' },
+      deliverableConfig: {},
+      promptText: 'Opened project model test',
+      activeTab: 'courseMap',
+      deliverables: {},
+    };
+
+    await page.locator('#landing-file-input').setInputFiles({
+      name: 'Opened Project.coursemapper',
+      mimeType: 'application/json',
+      buffer: Buffer.from(JSON.stringify(project)),
+    });
+
+    await expect(page.getByText('Claude Sonnet 4.5')).toBeVisible({ timeout: 10000 });
+    const restored = await page.evaluate(() => ({
+      provider: localStorage.getItem('coursemapper-provider'),
+      modelId: localStorage.getItem('coursemapper-modelid'),
+      modelName: localStorage.getItem('coursemapper-modelname'),
+    }));
+    expect(restored).toEqual({
+      provider: 'anthropic',
+      modelId: 'claude-sonnet-4-5-20250929',
+      modelName: 'Claude Sonnet 4.5',
+    });
+  });
+
   test('Attach files button is present', async ({ page }) => {
     await expect(page.locator('button:has-text("Attach files")')).toBeVisible();
   });

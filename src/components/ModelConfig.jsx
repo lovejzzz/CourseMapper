@@ -210,6 +210,7 @@ export default function ModelConfig() {
   const prevApiKeyRef = useRef(apiKey);
   const prevProviderRef = useRef(provider);
   useEffect(() => {
+    let cancelled = false;
     const apiKeyChanged = apiKey !== prevApiKeyRef.current;
     const providerChanged = provider !== prevProviderRef.current;
     prevApiKeyRef.current = apiKey;
@@ -244,9 +245,11 @@ export default function ModelConfig() {
 
     if (debounceRef.current) clearTimeout(debounceRef.current);
     debounceRef.current = setTimeout(async () => {
+      if (cancelled) return;
       setApiStatus('validating');
       try {
         const models = await fetchModelsFromProvider(provider, apiKey.trim());
+        if (cancelled) return;
         if (models && models.length > 0) {
           setAvailableModels(models);
           // Prefer previously saved model if it exists in the list
@@ -261,16 +264,20 @@ export default function ModelConfig() {
           if (setMaxOutputTokens) setMaxOutputTokens(selected.maxOutputTokens || 16384);
           // Verify the key has credits with a tiny test call
           const hasCredits = await checkCredits(provider, apiKey.trim(), selected.id);
+          if (cancelled) return;
           setApiStatus(hasCredits ? 'connected' : 'no_funds');
         } else {
+          if (cancelled) return;
           setApiStatus('error');
         }
       } catch {
+        if (cancelled) return;
         setApiStatus('error');
       }
     }, 800);
 
     return () => {
+      cancelled = true;
       if (debounceRef.current) clearTimeout(debounceRef.current);
     };
   }, [apiKey, provider]);

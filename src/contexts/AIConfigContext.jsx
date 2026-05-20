@@ -54,7 +54,9 @@ export function AIConfigProvider({ children }) {
   useEffect(() => {
     try {
       if (modelId) localStorage.setItem('coursemapper-modelid', modelId);
+      else localStorage.removeItem('coursemapper-modelid');
       if (modelName) localStorage.setItem('coursemapper-modelname', modelName);
+      else localStorage.removeItem('coursemapper-modelname');
     } catch {}
   }, [modelId, modelName]);
 

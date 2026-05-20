@@ -78,6 +78,10 @@ import { applyApiCallBudgetEvent, createApiCallBudget } from './lib/apiCallBudge
 
 const STORAGE_KEY = 'coursemapper-project';
 
+function normalizeProjectProvider(provider) {
+  return provider === 'free' ? 'openai' : provider;
+}
+
 // ── Add Deliverable dropdown — uses a portal so it escapes the overflow-x-auto tab bar ──
 function AddDeliverableButton({ unselected, showAddDeliverable, setShowAddDeliverable, onAdd, onCreateCustom }) {
   const btnRef = useRef(null);
@@ -267,6 +271,41 @@ export default function AppFlow({ startupAction = null, onStartupHandled, onRetu
     maxOutputTokens,
     setMaxOutputTokens,
   } = useAIConfig();
+
+  const restoreProjectAIConfig = useCallback(
+    (snapshot, { providerFallback } = {}) => {
+      const nextProvider = snapshot?.provider ? normalizeProjectProvider(snapshot.provider) : providerFallback;
+
+      try {
+        if (nextProvider) localStorage.setItem('coursemapper-provider', nextProvider);
+        if (snapshot && Object.prototype.hasOwnProperty.call(snapshot, 'modelId')) {
+          if (snapshot.modelId) localStorage.setItem('coursemapper-modelid', snapshot.modelId);
+          else localStorage.removeItem('coursemapper-modelid');
+        } else if (providerFallback !== undefined) {
+          localStorage.removeItem('coursemapper-modelid');
+        }
+        if (snapshot && Object.prototype.hasOwnProperty.call(snapshot, 'modelName')) {
+          if (snapshot.modelName) localStorage.setItem('coursemapper-modelname', snapshot.modelName);
+          else localStorage.removeItem('coursemapper-modelname');
+        } else if (providerFallback !== undefined) {
+          localStorage.removeItem('coursemapper-modelname');
+        }
+      } catch {}
+
+      if (nextProvider) setProvider(nextProvider);
+      if (snapshot && Object.prototype.hasOwnProperty.call(snapshot, 'modelId')) {
+        setModelId(snapshot.modelId || '');
+      } else if (providerFallback !== undefined) {
+        setModelId('');
+      }
+      if (snapshot && Object.prototype.hasOwnProperty.call(snapshot, 'modelName')) {
+        setModelName(snapshot.modelName || '');
+      } else if (providerFallback !== undefined) {
+        setModelName('');
+      }
+    },
+    [setModelId, setModelName, setProvider],
+  );
 
   // ── Core Course Map State ──
   const [restoredSession, setRestoredSession] = useState(false);
@@ -879,9 +918,7 @@ export default function AppFlow({ startupAction = null, onStartupHandled, onRetu
       setPromptText(typeof snapshot.promptText === 'string' ? snapshot.promptText : '');
       setActiveTab(nextActive);
       setSlideTheme(snapshot.slideTheme ?? null);
-      if (snapshot.provider) setProvider(snapshot.provider === 'free' ? 'openai' : snapshot.provider);
-      if (snapshot.modelId !== undefined) setModelId(snapshot.modelId || '');
-      if (snapshot.modelName !== undefined) setModelName(snapshot.modelName || '');
+      restoreProjectAIConfig(snapshot);
       deliv.restoreDeliverables(
         snapshot.deliverables && typeof snapshot.deliverables === 'object' ? snapshot.deliverables : {},
       );
@@ -902,11 +939,9 @@ export default function AppFlow({ startupAction = null, onStartupHandled, onRetu
       setDeliverableConfig,
       setHasGenerated,
       setLessonScope,
-      setModelId,
-      setModelName,
       setOldCourseMap,
       setPromptText,
-      setProvider,
+      restoreProjectAIConfig,
       setScreen,
       setSelectedFeatures,
       setSlideTheme,
@@ -982,9 +1017,7 @@ export default function AppFlow({ startupAction = null, onStartupHandled, onRetu
       setLessonScope(data.lessonScope && typeof data.lessonScope === 'object' ? data.lessonScope : { type: 'all' });
       if (Array.isArray(data.columns)) setColumns(data.columns);
       if (data.slideTheme !== undefined) setSlideTheme(data.slideTheme);
-      if (data.provider) setProvider(data.provider === 'free' ? 'openai' : data.provider);
-      if (data.modelId !== undefined) setModelId(data.modelId || '');
-      if (data.modelName !== undefined) setModelName(data.modelName || '');
+      restoreProjectAIConfig(data);
       setActiveTab(nextFeatures[0] || 'courseMap');
       setActiveDeveloperTemplateId(template.id);
     },
@@ -994,9 +1027,7 @@ export default function AppFlow({ startupAction = null, onStartupHandled, onRetu
       setColumns,
       setDeliverableConfig,
       setLessonScope,
-      setModelId,
-      setModelName,
-      setProvider,
+      restoreProjectAIConfig,
       setSelectedFeatures,
       setSlideTheme,
     ],
@@ -1116,9 +1147,7 @@ export default function AppFlow({ startupAction = null, onStartupHandled, onRetu
       setCourseMap(saved.courseMap);
       setColumns(saved.columns || [...DEFAULT_COLUMNS]);
       setHasGenerated(true);
-      setProvider(saved.provider === 'free' ? 'openai' : saved.provider || 'openai');
-      setModelId(saved.modelId || '');
-      setModelName(saved.modelName || '');
+      restoreProjectAIConfig(saved, { providerFallback: 'openai' });
       setUserEdits(saved.userEdits || []);
       if (saved.fileNames?.length > 0) {
         setFiles(saved.fileNames.map((name) => ({ name, size: 0, _restored: true })));
@@ -1200,6 +1229,7 @@ export default function AppFlow({ startupAction = null, onStartupHandled, onRetu
         // Treat missing formatVersion as version 1 (backwards compatible)
         if (!saved.formatVersion) saved.formatVersion = 1;
         if (!saved.courseMap) throw new Error('Invalid .coursemapper file');
+        restoreProjectAIConfig(saved);
         setCourseMap(saved.courseMap);
         setOldCourseMap(null);
         setColumns(saved.columns || [...DEFAULT_COLUMNS]);
@@ -1275,9 +1305,7 @@ export default function AppFlow({ startupAction = null, onStartupHandled, onRetu
       setCourseMap(saved.courseMap);
       setColumns(saved.columns || [...DEFAULT_COLUMNS]);
       setHasGenerated(true);
-      setProvider(saved.provider === 'free' ? 'openai' : saved.provider || 'openai');
-      setModelId(saved.modelId || '');
-      setModelName(saved.modelName || '');
+      restoreProjectAIConfig(saved, { providerFallback: 'openai' });
       setUserEdits(saved.userEdits || []);
       if (saved.fileNames?.length > 0) {
         setFiles(saved.fileNames.map((name) => ({ name, size: 0, _restored: true })));
