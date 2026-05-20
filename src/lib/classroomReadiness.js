@@ -245,7 +245,8 @@ function splitSentences(text) {
 function normalizeSentence(sentence) {
   return sentence
     .toLowerCase()
-    .replace(/\b\d+\b/g, '#')
+    .replace(/\blesson\s+\d+\b/g, 'lesson #')
+    .replace(/\bweek\s+\d+\b/g, 'week #')
     .replace(/[^a-z0-9#\s]/g, ' ')
     .replace(/\s+/g, ' ')
     .trim();

@@ -113,6 +113,81 @@ describe('packageFinalizer', () => {
     expect(result.deliverables.courseFaq.data.faqs[0].questions).toHaveLength(5);
   });
 
+  it('finishes deterministic export issues without requiring a review dead-end', () => {
+    const courseMap = makeCourseMap(4);
+    const genericNotes =
+      'A likely student question is how this point applies in practice; answer with a brief example from the lesson context. TRANSITION: Link this idea to the next slide by naming the next concept or activity students will use.';
+    const result = runDeterministicPackageFinalizer({
+      courseMap,
+      selectedFeatures: ['courseMap', 'lessonPlans', 'slideDecks', 'assignments'],
+      includeClassroomReadiness: true,
+      includePedagogicalValidation: true,
+      deliverables: {
+        lessonPlans: {
+          status: 'done',
+          data: {
+            lessonPlans: Array.from({ length: 4 }, (_, index) => ({
+              lessonTitle: `Lesson ${index + 1}: Research Topic ${index + 1}`,
+              objectives: [`Analyze research topic ${index + 1}`],
+              outline: [
+                { activity: `Discuss topic ${index + 1}`, description: `Students compare examples ${index + 1}.` },
+              ],
+            })),
+          },
+        },
+        slideDecks: {
+          status: 'done',
+          data: {
+            decks: Array.from({ length: 4 }, (_, index) => ({
+              lessonTitle: `Lesson ${index + 1}: Research Topic ${index + 1}`,
+              slideDeckSequenceGuide: {
+                accessibilityStandards:
+                  'All instructional content is available as text for screen readers. Visual suggestions include alt text and should not rely on color alone.',
+                cumulativeAssessmentMap:
+                  'Use the objectives, practice slides, and closing prompts as checkpoints before related quizzes, assignments, or exams.',
+              },
+              slides: [
+                { title: `Topic ${index + 1} frame`, notes: genericNotes },
+                {
+                  title: `Topic ${index + 1} example`,
+                  notes: `Students examine a course-specific example for research topic ${index + 1} and name the claim, evidence, and reasoning in the model.`,
+                },
+                {
+                  title: `Topic ${index + 1} activity`,
+                  notes: `Students practice applying research topic ${index + 1}, compare their answer to a model response, and revise one sentence before the debrief.`,
+                },
+              ],
+            })),
+          },
+        },
+        assignments: {
+          status: 'done',
+          data: {
+            assignments: Array.from({ length: 4 }, (_, index) => ({
+              title: `Research Topic ${index + 1} Memo`,
+              relatedLessons: [`Lesson ${index + 1}: Research Topic ${index + 1}`],
+              objectives: [`Analyze research topic ${index + 1}`],
+              bloomsLevel: 'Analyze',
+              percentOfGrade: index === 3 ? '15%' : '20%',
+              milestones: [{ name: 'Draft checkpoint', due: `Week ${index + 1}` }],
+              performanceBands: ['Exemplary', 'Proficient', 'Developing'],
+            })),
+          },
+        },
+      },
+    });
+
+    expect(result.status).toBe('ready');
+    expect(result.readiness.issues).toEqual([]);
+    expect(result.repairsApplied).toBeGreaterThanOrEqual(3);
+    expect(result.deliverables.assignments.data.assignments.map((assignment) => assignment.percentOfGrade)).toEqual([
+      '27%',
+      '27%',
+      '26%',
+      '20%',
+    ]);
+  });
+
   it('returns exact retry actions for localized weak sections', () => {
     const result = runDeterministicPackageFinalizer({
       courseMap: makeCourseMap(2),

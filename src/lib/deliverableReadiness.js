@@ -7,6 +7,7 @@ import {
   normalizeCourseFaqQuestionCounts,
   normalizeDiscussionPromptFields,
   normalizeLessonPlanPublishability,
+  normalizeLessonPlanTeachingSupport,
   normalizeQuizBankIndex,
   normalizeQuizBankQuestionCounts,
   normalizeQuizBankPointTotals,
@@ -313,6 +314,12 @@ function repairFeatureData(featureId, data, { courseMap, config } = {}) {
         summaries,
         'cleaned lesson plan publishability',
         normalizeLessonPlanPublishability,
+      );
+      current = applyRepair(
+        current,
+        summaries,
+        'added lesson plan teaching support',
+        normalizeLessonPlanTeachingSupport,
       );
       break;
     case 'slideDecks':

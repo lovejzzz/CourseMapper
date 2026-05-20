@@ -129,7 +129,14 @@ function getLessonObjectiveLevels(lesson) {
   if (!lesson?.sections) return [];
   const levels = [];
   for (const section of lesson.sections) {
-    const parsed = parseBloomsFromObjectives(section.learningObjectives);
+    const objectiveText =
+      section.learningObjectives ||
+      section.objectives ||
+      section.lo ||
+      section.learningObjective ||
+      section.learning_outcomes ||
+      '';
+    const parsed = parseBloomsFromObjectives(Array.isArray(objectiveText) ? objectiveText.join('\n') : objectiveText);
     levels.push(...parsed);
   }
   return levels;
@@ -159,6 +166,56 @@ function norm(s) {
     .trim();
 }
 
+function asArray(value) {
+  if (Array.isArray(value)) return value;
+  return value ? [value] : [];
+}
+
+function getQuizQuestions(quiz) {
+  return asArray(quiz?.qs || quiz?.questions || quiz?.items);
+}
+
+function getRelatedLessons(assignment) {
+  return asArray(
+    assignment?.rl ||
+      assignment?.relatedLessons ||
+      assignment?.lessons ||
+      assignment?.lessonTitles ||
+      assignment?.lessonTitle ||
+      assignment?.lt,
+  );
+}
+
+function getAssignmentObjectives(assignment) {
+  return asArray(
+    assignment?.ob ||
+      assignment?.objectives ||
+      assignment?.learningObjectives ||
+      assignment?.outcomes ||
+      assignment?.objectiveAligned,
+  );
+}
+
+function getRubricCriteria(rubric) {
+  return asArray(rubric?.cr || rubric?.criteria || rubric?.rows || rubric?.performanceCriteria);
+}
+
+function getAlignmentText(item) {
+  return (
+    item?.oa ||
+    item?.objectiveAligned ||
+    item?.objectiveAlignment ||
+    item?.learningObjective ||
+    item?.learningObjectives ||
+    item?.outcome ||
+    ''
+  );
+}
+
+function getBloomsText(item) {
+  return item?.bl || item?.bloomsLevel || item?.bloomLevel || item?.blooms || item?.level || '';
+}
+
 // ── 1. Bloom's Alignment ─────────────────────────────────────────────────────
 
 export function validateBloomsAlignment(courseMap, deliverables) {
@@ -182,9 +239,9 @@ export function validateBloomsAlignment(courseMap, deliverables) {
     // Quiz questions
     const quizzes = getDelivArray(deliverables, 'quizBank');
     if (quizzes && quizzes[li]) {
-      const qs = quizzes[li].qs || [];
+      const qs = getQuizQuestions(quizzes[li]);
       for (const q of qs) {
-        const lvl = resolveBloomsLevel(q.bl);
+        const lvl = resolveBloomsLevel(getBloomsText(q));
         if (lvl > 0) assessmentLevels.push(lvl);
       }
     }
@@ -194,9 +251,9 @@ export function validateBloomsAlignment(courseMap, deliverables) {
     if (assignments) {
       const lessonTitle = norm(lesson.title);
       for (const a of assignments) {
-        const related = (a.rl || []).map(norm);
+        const related = getRelatedLessons(a).map(norm);
         if (related.some((r) => r.includes(lessonTitle) || lessonTitle.includes(r))) {
-          const lvl = resolveBloomsLevel(a.bl);
+          const lvl = resolveBloomsLevel(getBloomsText(a));
           if (lvl > 0) assessmentLevels.push(lvl);
         }
       }
@@ -205,15 +262,15 @@ export function validateBloomsAlignment(courseMap, deliverables) {
     // Discussions
     const discussions = getDelivArray(deliverables, 'discussions');
     if (discussions && discussions[li]) {
-      const lvl = resolveBloomsLevel(discussions[li].bl);
+      const lvl = resolveBloomsLevel(getBloomsText(discussions[li]));
       if (lvl > 0) assessmentLevels.push(lvl);
     }
 
     // Lesson plan segments
     const plans = getDelivArray(deliverables, 'lessonPlans');
     if (plans && plans[li]) {
-      for (const seg of plans[li].ol || []) {
-        const lvl = resolveBloomsLevel(seg.bl);
+      for (const seg of asArray(plans[li].ol || plans[li].outline)) {
+        const lvl = resolveBloomsLevel(getBloomsText(seg));
         if (lvl > 0) assessmentLevels.push(lvl);
       }
     }
@@ -221,8 +278,8 @@ export function validateBloomsAlignment(courseMap, deliverables) {
     // Study guide review questions
     const guides = getDelivArray(deliverables, 'studyGuides');
     if (guides && guides[li]) {
-      for (const rq of guides[li].rq || []) {
-        const lvl = resolveBloomsLevel(rq.bl);
+      for (const rq of asArray(guides[li].rq || guides[li].reviewQuestions || guides[li].questions)) {
+        const lvl = resolveBloomsLevel(getBloomsText(rq));
         if (lvl > 0) assessmentLevels.push(lvl);
       }
     }
@@ -317,8 +374,9 @@ export function validateObjectiveAlignment(courseMap, deliverables) {
 
     const quizzes = getDelivArray(deliverables, 'quizBank');
     if (quizzes && quizzes[li]) {
-      for (const q of quizzes[li].qs || []) {
-        if (q.oa) assessmentAlignments.push(norm(q.oa));
+      for (const q of getQuizQuestions(quizzes[li])) {
+        const alignment = getAlignmentText(q);
+        if (alignment) assessmentAlignments.push(norm(Array.isArray(alignment) ? alignment.join(' ') : alignment));
       }
     }
 
@@ -326,9 +384,9 @@ export function validateObjectiveAlignment(courseMap, deliverables) {
     if (assignments) {
       const lessonTitle = norm(lesson.title);
       for (const a of assignments) {
-        const related = (a.rl || []).map(norm);
+        const related = getRelatedLessons(a).map(norm);
         if (related.some((r) => r.includes(lessonTitle) || lessonTitle.includes(r))) {
-          for (const ob of a.ob || []) {
+          for (const ob of getAssignmentObjectives(a)) {
             assessmentAlignments.push(norm(ob));
           }
         }
@@ -337,8 +395,9 @@ export function validateObjectiveAlignment(courseMap, deliverables) {
 
     const rubrics = getDelivArray(deliverables, 'rubrics');
     if (rubrics && rubrics[li]) {
-      for (const cr of rubrics[li].cr || []) {
-        if (cr.oa) assessmentAlignments.push(norm(cr.oa));
+      for (const cr of getRubricCriteria(rubrics[li])) {
+        const alignment = getAlignmentText(cr);
+        if (alignment) assessmentAlignments.push(norm(Array.isArray(alignment) ? alignment.join(' ') : alignment));
       }
     }
 

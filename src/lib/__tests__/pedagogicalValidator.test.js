@@ -173,6 +173,56 @@ describe('validateObjectiveAlignment', () => {
     expect(findings[0].category).toBe('alignment');
     expect(findings[0].message).toMatch(/No assessments generated/);
   });
+
+  it('recognizes expanded assessment alignment fields from generated deliverables', () => {
+    const courseMap = {
+      lessons: [
+        {
+          title: 'Lesson 1: Visual Evidence',
+          sections: [{ learningObjectives: 'Analyze visual evidence in contemporary art' }],
+        },
+      ],
+    };
+    const deliverables = {
+      quizBank: doneDeliv({
+        quizzes: [
+          {
+            questions: [
+              {
+                type: 'short_answer',
+                bloomsLevel: 'Analyze',
+                objectiveAligned: 'Analyze visual evidence in contemporary art',
+              },
+            ],
+          },
+        ],
+      }),
+      assignments: doneDeliv({
+        assignments: [
+          {
+            title: 'Visual Evidence Memo',
+            relatedLessons: ['Lesson 1: Visual Evidence'],
+            objectives: ['Analyze visual evidence in contemporary art'],
+            bloomsLevel: 'Analyze',
+          },
+        ],
+      }),
+      rubrics: doneDeliv({
+        rubrics: [
+          {
+            criteria: [
+              { criterion: 'Evidence analysis', objectiveAligned: 'Analyze visual evidence in contemporary art' },
+            ],
+          },
+        ],
+      }),
+    };
+
+    const findings = validateObjectiveAlignment(courseMap, deliverables);
+
+    expect(findings.map((finding) => finding.id)).not.toContain('alignment-no-assess-L0');
+    expect(findings.filter((finding) => finding.category === 'alignment')).toEqual([]);
+  });
 });
 
 // ── assessCognitiveLoad ─────────────────────────────────────────────────────

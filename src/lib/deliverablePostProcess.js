@@ -1871,8 +1871,8 @@ function buildFallbackSlideNotes(deck, slide, index) {
   return [
     `Use this ${slideType} slide to connect "${slideTitle}" to the larger purpose of ${lessonTitle}.`,
     `Emphasize ${anchor} in concrete language and tie it back to the lesson objective.`,
-    'A likely student question is how this point applies in practice; answer with a brief example from the lesson context.',
-    'TRANSITION: Link this idea to the next slide by naming the next concept or activity students will use.',
+    `For "${slideTitle}", a likely student question asks how the idea works in ${lessonTitle}; answer with a brief lesson-specific example.`,
+    `TRANSITION: From "${slideTitle}", name the next concept or activity students will use in ${lessonTitle}.`,
   ].join(' ');
 }
 
@@ -1947,6 +1947,44 @@ function buildSlideAltText(deck, slide) {
   return `Text-only ${kind} slide for "${title}"; all instructional content is available in the slide title, bullets, and speaker notes.`;
 }
 
+function getDeckAnchor(deck, slides = []) {
+  const lessonTitle = String(deck?.lessonTitle || deck?.lt || deck?.title || deck?.t || '').trim();
+  const firstSlideTitle = String(slides?.[0]?.title || slides?.[0]?.t || '').trim();
+  return lessonTitle || firstSlideTitle || 'this lesson';
+}
+
+function buildSlideDeckSequenceGuide(deck, slides = []) {
+  const anchor = getDeckAnchor(deck, slides);
+  return {
+    accessibilityStandards: `For ${anchor}, all instructional content is available as text for screen readers. Visual suggestions for ${anchor} include alt text and should not rely on color alone.`,
+    cumulativeAssessmentMap: `Use the ${anchor} objectives, practice slides, and closing prompts as checkpoints before related quizzes, assignments, or exams.`,
+  };
+}
+
+function needsLessonSpecificSequenceGuide(guide, deck, slides = []) {
+  if (!guide || typeof guide !== 'object') return true;
+  const anchor = getDeckAnchor(deck, slides).toLowerCase();
+  const text = JSON.stringify(guide || {}).toLowerCase();
+  if (!text.trim()) return true;
+  return anchor !== 'this lesson' && !text.includes(anchor);
+}
+
+function repairGenericSlideNotes(note, deck, slide, index) {
+  const raw = String(note || '');
+  if (!raw) return raw;
+  const lessonTitle = deck?.lessonTitle || deck?.lt || 'this lesson';
+  const slideTitle = slide?.title || slide?.t || `slide ${index + 1}`;
+  return raw
+    .replace(
+      /A likely student question is how this point applies in practice; answer with a brief example from the lesson context\./g,
+      `For "${slideTitle}", a likely student question asks how the idea works in ${lessonTitle}; answer with a brief lesson-specific example.`,
+    )
+    .replace(
+      /TRANSITION:\s*Link this idea to the next slide by naming the next concept or activity students will use\./g,
+      `TRANSITION: From "${slideTitle}", name the next concept or activity students will use in ${lessonTitle}.`,
+    );
+}
+
 export function normalizeSlideDeckAccessibility(data) {
   const arrayKey = getArrayKey('slideDecks', data) || (data?.decks ? 'decks' : data?.slideDecks ? 'slideDecks' : null);
   const decks = arrayKey ? data?.[arrayKey] : null;
@@ -1958,20 +1996,24 @@ export function normalizeSlideDeckAccessibility(data) {
       patchedAltText: 0,
       patchedDuePlaceholders: 0,
       addedSequenceGuides: 0,
+      patchedSequenceGuides: 0,
       addedActivityPrompts: 0,
+      patchedBoilerplateNotes: 0,
     };
   }
 
   let patchedAltText = 0;
   let patchedDuePlaceholders = 0;
   let addedSequenceGuides = 0;
+  let patchedSequenceGuides = 0;
   let addedActivityPrompts = 0;
+  let patchedBoilerplateNotes = 0;
   const nextDecks = decks.map((deck) => {
     const slideKey = Array.isArray(deck?.slides) ? 'slides' : Array.isArray(deck?.sl) ? 'sl' : null;
     if (!slideKey) return deck;
 
     let deckChanged = false;
-    const slides = deck[slideKey].map((slide) => {
+    const slides = deck[slideKey].map((slide, index) => {
       let nextSlide = slide;
       const visualKey = slide?.visual !== undefined ? 'visual' : slide?.vi !== undefined ? 'vi' : null;
       if (visualKey && slide[visualKey] && typeof slide[visualKey] === 'object') {
@@ -1987,6 +2029,23 @@ export function normalizeSlideDeckAccessibility(data) {
               [altKey]: buildSlideAltText(deck, slide),
             },
           };
+        }
+      }
+
+      const noteKey =
+        nextSlide?.notes !== undefined
+          ? 'notes'
+          : nextSlide?.speakerNotes !== undefined
+            ? 'speakerNotes'
+            : nextSlide?.no !== undefined
+              ? 'no'
+              : null;
+      if (noteKey) {
+        const repairedNotes = repairGenericSlideNotes(nextSlide[noteKey], deck, nextSlide, index);
+        if (repairedNotes !== nextSlide[noteKey]) {
+          nextSlide = { ...nextSlide, [noteKey]: repairedNotes };
+          patchedBoilerplateNotes++;
+          deckChanged = true;
         }
       }
 
@@ -2031,7 +2090,7 @@ export function normalizeSlideDeckAccessibility(data) {
         ...lastSlide,
         [bulletKey]: [
           ...bullets,
-          'Concept check activity: students apply the main idea to a brief example, then debrief the evidence used.',
+          `Concept check activity for ${getDeckAnchor(deck, slides)}: students apply the main idea to a brief example, then debrief the evidence used.`,
         ],
       };
       addedActivityPrompts++;
@@ -2040,8 +2099,12 @@ export function normalizeSlideDeckAccessibility(data) {
 
     const guideKey = deck.slideDeckSequenceGuide !== undefined ? 'slideDeckSequenceGuide' : 'slideDeckSequenceGuide';
     const needsGuide = !deck[guideKey] || typeof deck[guideKey] !== 'object';
+    const needsSpecificGuide = !needsGuide && needsLessonSpecificSequenceGuide(deck[guideKey], deck, slides);
     if (needsGuide) {
       addedSequenceGuides++;
+      deckChanged = true;
+    } else if (needsSpecificGuide) {
+      patchedSequenceGuides++;
       deckChanged = true;
     }
 
@@ -2049,30 +2112,28 @@ export function normalizeSlideDeckAccessibility(data) {
       ? {
           ...deck,
           [slideKey]: slides,
-          ...(needsGuide
-            ? {
-                [guideKey]: {
-                  accessibilityStandards:
-                    'All instructional content is available as text for screen readers. Visual suggestions include alt text and should not rely on color alone.',
-                  cumulativeAssessmentMap:
-                    'Use the objectives, practice slides, and closing prompts as checkpoints before related quizzes, assignments, or exams.',
-                },
-              }
-            : {}),
+          ...(needsGuide || needsSpecificGuide ? { [guideKey]: buildSlideDeckSequenceGuide(deck, slides) } : {}),
         }
       : deck;
   });
 
   return {
     data:
-      patchedAltText > 0 || patchedDuePlaceholders > 0 || addedSequenceGuides > 0 || addedActivityPrompts > 0
+      patchedAltText > 0 ||
+      patchedDuePlaceholders > 0 ||
+      addedSequenceGuides > 0 ||
+      patchedSequenceGuides > 0 ||
+      addedActivityPrompts > 0 ||
+      patchedBoilerplateNotes > 0
         ? { ...data, [arrayKey]: nextDecks }
         : data,
     arrayKey,
     patchedAltText,
     patchedDuePlaceholders,
     addedSequenceGuides,
+    patchedSequenceGuides,
     addedActivityPrompts,
+    patchedBoilerplateNotes,
   };
 }
 
@@ -2693,6 +2754,106 @@ function buildLessonTags(plan) {
     .join(' ');
   const tokens = tokenize(source);
   return [...tokens].slice(0, 8);
+}
+
+const LESSON_PLAN_QUALITY_CUE_RE =
+  /\b(success criteria|criteria|checklist|exemplar|model answer|sample answer|evidence|rubric|strong work|quality|feedback|revision|misconception|transfer|exit ticket)\b/i;
+
+function firstText(values) {
+  for (const value of values) {
+    if (Array.isArray(value)) {
+      const item = value.find((entry) => String(entry || '').trim());
+      if (item) return String(item).trim();
+    } else if (String(value || '').trim()) {
+      return String(value).trim();
+    }
+  }
+  return '';
+}
+
+function lessonPlanTitle(plan, index) {
+  return String(plan?.lessonTitle || plan?.lt || plan?.title || `Lesson ${index + 1}`)
+    .replace(/^Lesson\s+\d+:\s*/i, '')
+    .trim();
+}
+
+function buildLessonPlanSupportText(plan, index) {
+  const title = lessonPlanTitle(plan, index) || `Lesson ${index + 1}`;
+  const objective = firstText([plan?.objectives, plan?.ob, plan?.learningObjectives, plan?.lo]);
+  const objectiveCue = objective ? ` tied to "${objective}"` : '';
+  return `Success criteria for ${title}: students use accurate course vocabulary, cite lesson evidence, and explain reasoning with one concrete example${objectiveCue}. Model-work guidance for ${title}: show a brief exemplar, name what makes it strong work, then have students revise one response using feedback.`;
+}
+
+function buildReadyToTeachSupport(plan, index) {
+  const title = lessonPlanTitle(plan, index) || `Lesson ${index + 1}`;
+  return {
+    workedExample: `Use a short exemplar for ${title} and ask students to mark the evidence, reasoning, and revision move that make it strong work.`,
+    methodSpecificMiniRubric: `Mini-rubric for ${title}: accurate concept use, relevant evidence, clear reasoning, and one actionable revision step.`,
+    instructorPrep: `Prepare one model answer, one common misconception, and one feedback prompt for ${title} before class.`,
+  };
+}
+
+export function normalizeLessonPlanTeachingSupport(data) {
+  const arrayKey =
+    getArrayKey('lessonPlans', data) || (data?.plans ? 'plans' : data?.lessonPlans ? 'lessonPlans' : null);
+  const plans = arrayKey ? data?.[arrayKey] : null;
+
+  if (!Array.isArray(plans) || plans.length === 0) {
+    return { data, arrayKey, patchedTeachingSupport: 0 };
+  }
+
+  let patchedTeachingSupport = 0;
+  const nextPlans = plans.map((plan, index) => {
+    if (!plan || typeof plan !== 'object' || Array.isArray(plan)) return plan;
+    if (LESSON_PLAN_QUALITY_CUE_RE.test(JSON.stringify(plan))) return plan;
+
+    const compact = plan?.lt !== undefined || plan?.fc !== undefined || plan?.rts !== undefined;
+    const formativeKey =
+      plan?.formativeCheck !== undefined
+        ? 'formativeCheck'
+        : plan?.fc !== undefined || compact
+          ? 'fc'
+          : 'formativeCheck';
+    const supportKey =
+      plan?.readyToTeachSupport !== undefined
+        ? 'readyToTeachSupport'
+        : plan?.rts !== undefined || compact
+          ? 'rts'
+          : 'readyToTeachSupport';
+    const existingFormative =
+      plan?.[formativeKey] && typeof plan[formativeKey] === 'object' && !Array.isArray(plan[formativeKey])
+        ? plan[formativeKey]
+        : {};
+    const typeKey = compact ? 'ty' : 'type';
+    const promptKey = compact ? 'pr' : 'prompt';
+    const alignedKey = compact ? 'oa' : 'objectiveAligned';
+    const actionKey = compact ? 'ia' : 'instructorAction';
+    const support = buildLessonPlanSupportText(plan, index);
+
+    patchedTeachingSupport++;
+    return {
+      ...plan,
+      [formativeKey]: {
+        ...existingFormative,
+        [typeKey]: existingFormative[typeKey] || 'Exit ticket',
+        [promptKey]:
+          existingFormative[promptKey] ||
+          `What evidence from ${lessonPlanTitle(plan, index) || 'today'} best supports your answer?`,
+        [alignedKey]: existingFormative[alignedKey] || firstText([plan?.objectives, plan?.ob]) || 'Lesson objective',
+        [actionKey]: existingFormative[actionKey] ? `${existingFormative[actionKey]} ${support}` : support,
+      },
+      [supportKey]: {
+        ...(plan?.[supportKey] && typeof plan[supportKey] === 'object' ? plan[supportKey] : {}),
+        ...buildReadyToTeachSupport(plan, index),
+      },
+    };
+  });
+
+  return {
+    data: patchedTeachingSupport > 0 ? { ...data, [arrayKey]: nextPlans } : data,
+    arrayKey,
+    patchedTeachingSupport,
+  };
 }
 
 export function normalizeLessonPlanPublishability(data) {

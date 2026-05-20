@@ -1,5 +1,5 @@
 import React, { useState, useEffect, useRef } from 'react';
-import { fetchModelsFromProvider } from '../hooks/useStreamReader';
+import { fetchModelsFromProvider, isVertexKey } from '../hooks/useStreamReader';
 import { useAIConfig } from '../contexts/AIConfigContext';
 import { WEBLLM_MODELS, isWebGPUSupported } from '../lib/webllmConstants';
 
@@ -66,14 +66,14 @@ export async function checkCredits(provider, apiKey, modelId) {
         body: JSON.stringify({ model: modelId, max_tokens: 1, messages: [{ role: 'user', content: 'Hi' }] }),
       });
     } else if (provider === 'google') {
-      res = await fetch(
-        `https://generativelanguage.googleapis.com/v1beta/models/${modelId}:generateContent?key=${apiKey}`,
-        {
-          method: 'POST',
-          headers: { 'Content-Type': 'application/json' },
-          body: JSON.stringify({ contents: [{ parts: [{ text: 'Hi' }] }], generationConfig: { maxOutputTokens: 1 } }),
-        },
-      );
+      const baseUrl = isVertexKey(apiKey)
+        ? `https://aiplatform.googleapis.com/v1/publishers/google/models/${modelId}`
+        : `https://generativelanguage.googleapis.com/v1beta/models/${modelId}`;
+      res = await fetch(`${baseUrl}:generateContent?key=${apiKey}`, {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ contents: [{ parts: [{ text: 'Hi' }] }], generationConfig: { maxOutputTokens: 1 } }),
+      });
     } else {
       return true;
     }

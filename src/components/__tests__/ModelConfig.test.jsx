@@ -35,4 +35,21 @@ describe('checkCredits', () => {
     expect(body.max_tokens).toBe(1);
     expect(body.max_completion_tokens).toBeUndefined();
   });
+
+  it('validates Vertex-style Google keys against the Vertex endpoint', async () => {
+    const fetchMock = vi.spyOn(globalThis, 'fetch').mockResolvedValue({
+      ok: true,
+      json: async () => ({}),
+    });
+
+    const ok = await checkCredits(
+      'google',
+      'AQ.testVertexKeyForEndpointRoutingOnly0000000000000000000000',
+      'gemini-2.5-pro',
+    );
+
+    expect(ok).toBe(true);
+    expect(fetchMock.mock.calls[0][0]).toContain('aiplatform.googleapis.com/v1/publishers/google/models');
+    expect(fetchMock.mock.calls[0][0]).not.toContain('generativelanguage.googleapis.com');
+  });
 });

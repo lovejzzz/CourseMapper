@@ -8,6 +8,7 @@ import {
   normalizeCourseFaqQuestionCounts,
   normalizeDiscussionPromptFields,
   normalizeLessonPlanPublishability,
+  normalizeLessonPlanTeachingSupport,
   normalizeQuizBankIndex,
   normalizeQuizBankQuestionCounts,
   normalizeQuizBankPointTotals,
@@ -824,6 +825,25 @@ describe('Lesson plan post-processing', () => {
     expect(result.data.plans[0].tg).toContain('coding');
     expect(result.data.plans[0].tg).not.toContain('Course site');
   });
+
+  it('adds concrete teaching support when lesson plans lack quality cues', () => {
+    const data = {
+      plans: [
+        {
+          lt: 'Lesson 1: Museum Interpretation',
+          ob: ['Analyze a museum label'],
+          ol: [{ ac: 'Discuss examples', de: 'Students compare two labels.' }],
+        },
+      ],
+    };
+
+    const result = normalizeLessonPlanTeachingSupport(data);
+
+    expect(result.patchedTeachingSupport).toBe(1);
+    expect(result.data.plans[0].fc.ia).toContain('Success criteria');
+    expect(result.data.plans[0].fc.ia).toContain('Model-work guidance');
+    expect(result.data.plans[0].rts.workedExample).toContain('strong work');
+  });
 });
 
 describe('Rubric and assignment post-processing', () => {
@@ -1160,6 +1180,38 @@ describe('Slide Deck post-processing', () => {
     expect(result.data.decks[0].sl[0].vi.at).toContain('Text-only');
     expect(JSON.stringify(result.data)).not.toMatch(/TBD|to be confirmed/i);
     expect(result.data.decks[0].slideDeckSequenceGuide.accessibilityStandards).toContain('screen readers');
+  });
+
+  it('replaces repeated slide boilerplate with lesson-specific guidance', () => {
+    const data = {
+      decks: [
+        {
+          lessonTitle: 'Lesson 6: Photography and Realism',
+          slideDeckSequenceGuide: {
+            accessibilityStandards:
+              'All instructional content is available as text for screen readers. Visual suggestions include alt text and should not rely on color alone.',
+            cumulativeAssessmentMap:
+              'Use the objectives, practice slides, and closing prompts as checkpoints before related quizzes, assignments, or exams.',
+          },
+          slides: [
+            {
+              title: 'Photography changed realism',
+              notes:
+                'A likely student question is how this point applies in practice; answer with a brief example from the lesson context. TRANSITION: Link this idea to the next slide by naming the next concept or activity students will use.',
+            },
+          ],
+        },
+      ],
+    };
+
+    const result = normalizeSlideDeckAccessibility(data);
+
+    expect(result.patchedBoilerplateNotes).toBe(1);
+    expect(result.patchedSequenceGuides).toBe(1);
+    expect(result.data.decks[0].slides[0].notes).toContain('Photography changed realism');
+    expect(result.data.decks[0].slideDeckSequenceGuide.accessibilityStandards).toContain(
+      'Lesson 6: Photography and Realism',
+    );
   });
 });
 
