@@ -651,6 +651,7 @@ test.describe('Export smoke', () => {
       snapshot.selectedFeatures = ['courseMap', 'rubrics'];
       snapshot.activeTab = 'rubrics';
       snapshot.deliverableConfig = { rubrics: {} };
+      snapshot.courseMap.lessons[1].sections[0].weeklyAssessments = 'Format selection report';
       snapshot.deliverables = {
         rubrics: {
           status: 'done',
@@ -717,6 +718,47 @@ test.describe('Export smoke', () => {
     expect(documentXml).toContain('Compact Rubric Export Audit');
     expect(documentXml).toContain('Artifact evidence');
     expect(documentXml).toContain('Specific evidence from CSV and DOCX artifacts.');
+  });
+
+  test('fills missing rubric coverage in the current tab instead of showing a regenerate warning', async ({ page }) => {
+    await restoreExportWorkspace(page, (snapshot) => {
+      snapshot.selectedFeatures = ['courseMap', 'rubrics'];
+      snapshot.activeTab = 'rubrics';
+      snapshot.deliverableConfig = { rubrics: {} };
+      snapshot.courseMap.lessons[1].sections[0].weeklyAssessments = 'Format selection report';
+      snapshot.deliverables = {
+        rubrics: {
+          status: 'done',
+          data: {
+            rubrics: [
+              {
+                title: 'Export Reliability Rubric',
+                lessonTitle: 'Lesson 1: Export Reliability',
+                assessmentType: 'Project',
+                totalPoints: 100,
+                criteria: [
+                  {
+                    criterion: 'Export evidence',
+                    weight: 100,
+                    points: 100,
+                    exemplary: 'Uses specific exported files as evidence.',
+                    proficient: 'Names exported files with enough evidence.',
+                    developing: 'Mentions exports with limited evidence.',
+                    beginning: 'Does not use export evidence.',
+                  },
+                ],
+              },
+            ],
+          },
+          error: null,
+          stale: false,
+        },
+      };
+    });
+
+    await switchWorkspaceTab(page, 'Rubrics');
+    await expect(page.getByText('Missing coverage')).toHaveCount(0);
+    await expect(page.getByText('Lesson 2: Portable Course Materials').first()).toBeVisible();
   });
 
   test('exports compact assignment briefs to current-tab CSV and DOCX', async ({ page }) => {
@@ -1084,7 +1126,7 @@ test.describe('Export smoke', () => {
     expect(documentXml).toContain('Data Privacy');
   });
 
-  test('blocks ZIP export when final package verification finds classroom-readiness issues', async ({ page }) => {
+  test('does not block ZIP export on title-only readability noise', async ({ page }) => {
     await restoreExportWorkspace(page, (snapshot) => {
       snapshot.selectedFeatures = ['courseMap', 'courseFaq'];
       snapshot.deliverables = {
@@ -1204,10 +1246,12 @@ test.describe('Export smoke', () => {
     await expect(page.getByTestId('readiness-status')).toContainText('Ready to export');
     await expect(page.getByTestId('readiness-panel')).not.toContainText('fewer than 5 questions');
 
-    await page.getByTestId('export-download-zip').click();
-    await expect(page.getByTestId('readiness-confirm')).toContainText('Course FAQ readability');
-    await expect(page.getByTestId('readiness-status')).toContainText('Review before export');
-    await expect(page.getByTestId('export-download-zip')).toContainText('Finish and download ZIP');
+    await expectDownload(page, () => page.getByTestId('export-download-zip').click(), {
+      extension: 'zip',
+      nameIncludes: 'Export Smoke Course',
+      minBytes: 500,
+    });
+    await expect(page.getByTestId('readiness-confirm')).toBeHidden();
   });
 
   test('auto-fixes missing checklist rubric coverage before ZIP export', async ({ page }) => {

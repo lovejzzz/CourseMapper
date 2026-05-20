@@ -374,6 +374,38 @@ describe('validateReadability', () => {
     expect(errors).toEqual([]);
   });
 
+  it('uses nested student-facing content instead of title-only fragments for readability', () => {
+    const deliverables = {
+      courseFaq: doneDeliv({
+        faqs: [
+          {
+            lessonTitle: 'Lesson 1: Introduction to Applied Machine Learning and Supervised Learning Frameworks',
+            questions: [
+              {
+                question: 'What should I do before class?',
+                answer: 'Read the short overview and write down one question.',
+                category: 'Course Logistics',
+              },
+              {
+                question: 'Where do I submit the lab?',
+                answer: 'Submit the notebook in the course site by Friday.',
+                category: 'Technical Help',
+              },
+              {
+                question: 'How is the lab graded?',
+                answer: 'The rubric checks setup, clear thinking, and use of evidence.',
+                category: 'Assessment Prep',
+              },
+            ],
+          },
+        ],
+      }),
+    };
+
+    const findings = validateReadability({ courseName: 'Intro to Machine Learning' }, deliverables);
+    expect(findings.filter((f) => f.featureId === 'courseFaq' && f.severity === 'error')).toEqual([]);
+  });
+
   it('skips text shorter than 100 characters', () => {
     const deliverables = {
       quizBank: doneDeliv({

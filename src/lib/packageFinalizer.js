@@ -173,7 +173,7 @@ function summarizeFinalizerStatus({ status, readiness, repairQueue, repairsAppli
     repairsApplied > 0 ? `Auto-fixed ${repairsApplied} safe issue${repairsApplied === 1 ? '' : 's'}. ` : '';
   if (status === 'ready') return `${repairText}All selected materials are ready to export.`;
   if (status === 'needs_retry') {
-    return `${repairText}Retrying ${retryActions.length} weak section${retryActions.length === 1 ? '' : 's'} before export.`;
+    return `${repairText}Retrying ${retryActions.length} weak area${retryActions.length === 1 ? '' : 's'} before export.`;
   }
   if (status === 'blocked') {
     return `${repairText}${readiness.blockers.length} critical issue${readiness.blockers.length === 1 ? '' : 's'} still need review.`;

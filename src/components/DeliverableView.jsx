@@ -18,6 +18,46 @@ import AssignmentsView from './deliverables/AssignmentsView';
 import StudyGuidesView from './deliverables/StudyGuidesView';
 import SyllabusView from './deliverables/SyllabusView';
 import CourseFaqView from './deliverables/CourseFaqView';
+import { normalizeRubricCoverage, normalizeRubricSupport } from '../lib/deliverablePostProcess';
+
+function getCoverageGap(featureId, data, courseMap) {
+  if (!data || !courseMap) return null;
+
+  if (featureId === 'rubrics') {
+    const coverage = normalizeRubricCoverage(data, courseMap);
+    if (!coverage?.addedRubrics) return null;
+    return {
+      missing: coverage.missingLessonNumbers || [],
+      repairedData: normalizeRubricSupport(coverage.data).data,
+      autoRepairable: true,
+    };
+  }
+
+  if (featureId !== 'assignments') return null;
+
+  const arr = data?.assignments;
+  if (!Array.isArray(arr) || arr.length === 0) return null;
+  const totalLessons = courseMap?.lessons?.length || 0;
+  if (totalLessons < 2) return null;
+
+  const coveredNums = new Set();
+  arr.forEach((item) => {
+    const titleStr = item?.lessonTitle || item?.title || item?.lesson || '';
+    const m = String(titleStr).match(/(?:Lesson|Week)\s*(\d+)/i);
+    if (m) coveredNums.add(parseInt(m[1], 10));
+    const related = item?.relatedLessons;
+    if (Array.isArray(related)) {
+      related.forEach((r) => {
+        const rm = String(r).match(/(?:Lesson|Week)\s*(\d+)/i);
+        if (rm) coveredNums.add(parseInt(rm[1], 10));
+      });
+    }
+  });
+  if (coveredNums.size === 0) return null;
+
+  const missing = Array.from({ length: totalLessons }, (_, i) => i + 1).filter((n) => !coveredNums.has(n));
+  return missing.length > 0 ? { missing, autoRepairable: false } : null;
+}
 
 export default function DeliverableView({
   featureId,
@@ -66,6 +106,28 @@ export default function DeliverableView({
     const arr = arrays[featureId];
     return Array.isArray(arr) && arr.length > 0 && arr[0]?.tiers != null;
   }, [data, featureId]);
+  const isStreaming = status === 'streaming';
+  const coverageGap = useMemo(
+    () =>
+      status === 'done' && !isStreaming && (featureId === 'rubrics' || featureId === 'assignments')
+        ? getCoverageGap(featureId, data, courseMap)
+        : null,
+    [courseMap, data, featureId, isStreaming, status],
+  );
+
+  useEffect(() => {
+    if (
+      status !== 'done' ||
+      isStreaming ||
+      featureId !== 'rubrics' ||
+      !coverageGap?.autoRepairable ||
+      !coverageGap.repairedData ||
+      typeof onDataChange !== 'function'
+    ) {
+      return;
+    }
+    onDataChange(coverageGap.repairedData);
+  }, [coverageGap, featureId, isStreaming, onDataChange, status]);
 
   // ── Early returns (after all hooks) ──
   if (status === 'error') return <ErrorState error={error} onRetry={onRetry} />;
@@ -81,7 +143,6 @@ export default function DeliverableView({
     return <EmptyState featureId={featureId} onGenerate={onRetry} />;
   }
 
-  const isStreaming = status === 'streaming';
   const editable = status === 'done' && !!onDataChange;
 
   function onEdit(path, value) {
@@ -226,30 +287,9 @@ export default function DeliverableView({
         !isStreaming &&
         (featureId === 'rubrics' || featureId === 'assignments') &&
         (() => {
-          // Only fire when lesson numbers are actually present in the output (coverage is trackable)
-          const arr = featureId === 'rubrics' ? data?.rubrics : data?.assignments;
-          if (!Array.isArray(arr) || arr.length === 0) return null;
-          const totalLessons = courseMap?.lessons?.length || 0;
-          if (totalLessons < 2) return null;
-
-          const coveredNums = new Set();
-          arr.forEach((item) => {
-            const titleStr = item?.lessonTitle || item?.title || item?.lesson || '';
-            const m = titleStr.match(/(?:Lesson|Week)\s*(\d+)/i);
-            if (m) coveredNums.add(parseInt(m[1], 10));
-            // assignments: also check relatedLessons
-            const related = item?.relatedLessons;
-            if (Array.isArray(related)) {
-              related.forEach((r) => {
-                const rm = String(r).match(/(?:Lesson|Week)\s*(\d+)/i);
-                if (rm) coveredNums.add(parseInt(rm[1], 10));
-              });
-            }
-          });
-          // Only show banner when we have trackable lesson numbers AND there are gaps
-          if (coveredNums.size === 0) return null;
-          const missing = Array.from({ length: totalLessons }, (_, i) => i + 1).filter((n) => !coveredNums.has(n));
-          if (missing.length === 0) return null;
+          if (!coverageGap?.missing?.length) return null;
+          if (coverageGap.autoRepairable && typeof onDataChange === 'function') return null;
+          const missing = coverageGap.missing;
 
           return (
             <div className="mx-4 mt-2 mb-1 flex items-start gap-2.5 px-4 py-2.5 rounded-squircle-xs bg-orange-50/80 border border-orange-200/60 backdrop-blur-sm">

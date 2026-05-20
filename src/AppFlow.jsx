@@ -518,6 +518,8 @@ export default function AppFlow({ startupAction = null, onStartupHandled, onRetu
   deliverablesRef.current = deliv.deliverables;
   const regenerateLessonRef = useRef(deliv.regenerateLesson);
   regenerateLessonRef.current = deliv.regenerateLesson;
+  const regenerateFeatureRef = useRef(deliv.generateAll);
+  regenerateFeatureRef.current = deliv.generateAll;
 
   // ── Edit-Aware AI Proposal Engine ──
   const editProposal = useEditProposal({
@@ -686,16 +688,20 @@ export default function AppFlow({ startupAction = null, onStartupHandled, onRetu
         blockers: 0,
       });
 
-      let result = runFinalizer(maxRetryActions);
+      const canRetryWeakSpots =
+        retry &&
+        canFinishPackageWithAgent &&
+        (typeof regenerateLessonRef.current === 'function' || typeof regenerateFeatureRef.current === 'function');
+
+      let result = runFinalizer(canRetryWeakSpots ? maxRetryActions : 0);
       commitFinalizerResult(result);
       let totalRepairsApplied = result.repairsApplied || 0;
       let retryCount = 0;
-      const canRetryWeakSpots = retry && canFinishPackageWithAgent && typeof regenerateLessonRef.current === 'function';
 
       if (result.retryActions.length > 0 && canRetryWeakSpots) {
         setPackageQualityPass({
           status: 'running',
-          message: `Final quality pass is retrying ${result.retryActions.length} weak section${
+          message: `Final quality pass is retrying ${result.retryActions.length} weak area${
             result.retryActions.length === 1 ? '' : 's'
           }...`,
           repairsApplied: result.repairsApplied,
@@ -704,11 +710,19 @@ export default function AppFlow({ startupAction = null, onStartupHandled, onRetu
         });
 
         for (const action of result.retryActions) {
-          await regenerateLessonRef.current(
-            action.featureId,
-            result.courseMap || courseMapRef.current,
-            action.lessonIndex,
-          );
+          if (action.scope === 'feature') {
+            await regenerateFeatureRef.current?.(
+              result.courseMap || courseMapRef.current,
+              [action.featureId],
+              lessonFilter,
+            );
+          } else {
+            await regenerateLessonRef.current?.(
+              action.featureId,
+              result.courseMap || courseMapRef.current,
+              action.lessonIndex,
+            );
+          }
           retryCount += 1;
           await new Promise((resolve) => window.setTimeout(resolve, 0));
         }
@@ -754,10 +768,10 @@ export default function AppFlow({ startupAction = null, onStartupHandled, onRetu
       const blockers = result.readiness.blockers.length + exportFailures;
       const warnings = result.readiness.warnings.length + unresolvedRetryCount + exportWarnings;
       const finalStatus = blockers > 0 ? 'blocked' : warnings > 0 ? 'warnings' : 'ready';
-      const retryText = retryCount > 0 ? `Retried ${retryCount} weak section${retryCount === 1 ? '' : 's'}. ` : '';
+      const retryText = retryCount > 0 ? `Retried ${retryCount} weak area${retryCount === 1 ? '' : 's'}. ` : '';
       const skippedRetryText =
         unresolvedRetryCount > 0 && !canRetryWeakSpots
-          ? `AI setup is needed to retry ${unresolvedRetryCount} weak section${unresolvedRetryCount === 1 ? '' : 's'}. `
+          ? `AI setup is needed to retry ${unresolvedRetryCount} weak area${unresolvedRetryCount === 1 ? '' : 's'}. `
           : '';
       const repairText =
         totalRepairsApplied > 0
@@ -2842,7 +2856,7 @@ export default function AppFlow({ startupAction = null, onStartupHandled, onRetu
                   onReadinessIssueClick={focusCourseMapTarget}
                   onAutoRepairReadiness={applyPackageReadinessRepairs}
                   onFinishPackage={handleFinishPackageFromExport}
-                  canFinishPackage={typeof handleFinishPackageFromExport === 'function'}
+                  canFinishPackage={canFinishPackageWithAgent && typeof handleFinishPackageFromExport === 'function'}
                   packageQualityPass={packageQualityPass}
                 />
               </div>

@@ -330,7 +330,9 @@ function mergeFinalizerRetryIssues(readiness, finishResult) {
   const retryActions = Array.isArray(finishResult?.retryActions) ? finishResult.retryActions : [];
   if (finishResult?.status !== 'needs_retry' || retryActions.length === 0) return readiness;
   const issues = retryActions.map((action) => {
-    const lessonLabel = Number.isInteger(action.lessonIndex) ? `Lesson ${action.lessonIndex + 1}` : 'A section';
+    const lessonLabel = Number.isInteger(action.lessonIndex)
+      ? `Lesson ${action.lessonIndex + 1}`
+      : FEATURE_LABELS[action.featureId] || 'This material';
     return {
       featureId: action.featureId,
       label: FEATURE_LABELS[action.featureId] || action.featureId || 'Deliverable',

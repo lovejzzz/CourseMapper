@@ -197,4 +197,51 @@ describe('classroomReadiness', () => {
     expect(queue.retryActions.map((action) => action.lessonNumber)).toEqual([11, 13, 14]);
     expect(queue.nextTool).toBe('retry_package_weak_spots');
   });
+
+  it('queues a whole-deliverable retry for broad auto-fixable validation issues', () => {
+    const courseMap = makeCourseMap(2);
+    const queue = buildPackageRepairQueue({
+      courseMap,
+      deliverables: {
+        courseFaq: {
+          status: 'done',
+          data: {
+            faqs: [
+              {
+                lessonTitle: 'Lesson 1',
+                questions: [
+                  { question: 'What is due?', answer: 'Submit the short reflection.' },
+                  { question: 'Where do I submit?', answer: 'Use the course LMS.' },
+                  { question: 'How is it graded?', answer: 'Use the rubric criteria.' },
+                ],
+              },
+            ],
+          },
+        },
+      },
+      readiness: { issues: [], blockers: [], warnings: [] },
+      classroomReadiness: { issues: [], blockers: [], warnings: [] },
+      healthReport: {
+        findings: [
+          {
+            severity: 'error',
+            category: 'readability',
+            featureId: 'courseFaq',
+            lessonIndex: null,
+            message: 'Course FAQ readability is grade level 18.0 — too complex',
+          },
+        ],
+      },
+    });
+
+    expect(queue.retryActions).toEqual([
+      expect.objectContaining({
+        featureId: 'courseFaq',
+        lessonIndex: null,
+        scope: 'feature',
+        source: 'validation',
+      }),
+    ]);
+    expect(queue.nextTool).toBe('retry_package_weak_spots');
+  });
 });

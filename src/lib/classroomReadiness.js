@@ -34,6 +34,8 @@ const RETRYABLE_FEATURES = new Set([
   'courseFaq',
 ]);
 
+const AUTO_FIX_VALIDATION_CATEGORIES = new Set(['readability', 'difficulty', 'grammar']);
+
 const ARRAY_ALIASES = {
   lessonPlans: ['lessonPlans', 'plans'],
   slideDecks: ['decks', 'slideDecks'],
@@ -190,6 +192,26 @@ function addRetryCandidate(candidates, deliverables, courseMap, { featureId, les
       label: label || labelFor(featureId),
       lessonIndex,
       lessonNumber: lessonIndex + 1,
+      source,
+      message,
+    });
+  }
+}
+
+function addFeatureRetryCandidate(candidates, deliverables, { featureId, source, message, label }) {
+  if (!featureId || !RETRYABLE_FEATURES.has(featureId)) return;
+  const entry = deliverables?.[featureId];
+  const items = getFeatureArray(featureId, entry?.data);
+  if (entry?.status !== 'done' || !items.length) return;
+
+  const key = `${featureId}:feature`;
+  if (!candidates.has(key)) {
+    candidates.set(key, {
+      featureId,
+      label: label || labelFor(featureId),
+      lessonIndex: null,
+      lessonNumber: null,
+      scope: 'feature',
       source,
       message,
     });
@@ -749,6 +771,14 @@ export function buildPackageRepairQueue({
       Number.isInteger(finding.lessonIndex) && finding.lessonIndex >= 0
         ? [finding.lessonIndex]
         : inferLessonIndicesFromText(courseMap, finding.message);
+    if (lessonIndices.length === 0 && AUTO_FIX_VALIDATION_CATEGORIES.has(finding.category)) {
+      addFeatureRetryCandidate(candidates, deliverables, {
+        featureId: finding.featureId,
+        message: finding.message,
+        source: 'validation',
+      });
+      return;
+    }
     lessonIndices.forEach((lessonIndex) => {
       addRetryCandidate(candidates, deliverables, courseMap, {
         featureId: finding.featureId,

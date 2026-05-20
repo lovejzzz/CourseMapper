@@ -606,6 +606,51 @@ const READABLE_NAMES = {
   courseFaq: 'Course FAQ',
 };
 
+const READABILITY_IGNORED_KEYS = new Set([
+  'id',
+  'uid',
+  'uuid',
+  'type',
+  'category',
+  'difficulty',
+  'df',
+  'bloomsLevel',
+  'blooms',
+  'bl',
+  'points',
+  'pt',
+  'weight',
+  'wt',
+  'percent',
+  'percentage',
+  'tags',
+]);
+
+function collectReadableStrings(value, output = [], key = '') {
+  if (value == null) return output;
+
+  if (typeof value === 'string' || typeof value === 'number') {
+    const raw = String(value).replace(/\s+/g, ' ').trim();
+    if (raw.length >= 24 && !READABILITY_IGNORED_KEYS.has(key)) {
+      output.push(/[.!?]$/.test(raw) ? raw : `${raw}.`);
+    }
+    return output;
+  }
+
+  if (Array.isArray(value)) {
+    value.forEach((item) => collectReadableStrings(item, output, key));
+    return output;
+  }
+
+  if (typeof value === 'object') {
+    Object.entries(value).forEach(([childKey, childValue]) => {
+      collectReadableStrings(childValue, output, childKey);
+    });
+  }
+
+  return output;
+}
+
 function extractDeliverableText(deliverables, featureId) {
   const deliv = deliverables?.[featureId];
   if (!deliv || deliv.status !== 'done' || !deliv.data) return '';
@@ -619,16 +664,11 @@ function extractDeliverableText(deliverables, featureId) {
   }
   const arrKey = getArrayKey(featureId, parsed);
   if (!arrKey || !Array.isArray(parsed[arrKey])) return '';
-  // Collect all string values from items
-  const texts = [];
-  for (const item of parsed[arrKey]) {
-    if (typeof item === 'object' && item) {
-      for (const val of Object.values(item)) {
-        if (typeof val === 'string' && val.length > 20) texts.push(val);
-      }
-    }
-  }
-  return texts.join(' ');
+  const texts = parsed[arrKey].flatMap((item) => collectReadableStrings(item, []));
+  const joined = texts.join(' ');
+  const sentenceCount = (joined.match(/[.!?]/g) || []).length;
+  if (texts.length < 3 && sentenceCount < 3) return '';
+  return joined;
 }
 
 export function validateReadability(courseMap, deliverables) {
@@ -643,7 +683,7 @@ export function validateReadability(courseMap, deliverables) {
 
   for (const featureId of featureIds) {
     const text = extractDeliverableText(deliverables, featureId);
-    if (!text || text.length < 100) continue; // need enough text for meaningful analysis
+    if (!text || text.length < 180) continue; // need enough real prose for meaningful analysis
 
     const grade = readability.fleschKincaidGrade(text);
     const displayName = READABLE_NAMES[featureId];
