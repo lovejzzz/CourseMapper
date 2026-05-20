@@ -7,6 +7,7 @@
  */
 
 import { getGoogleModelBaseUrl } from './googleProvider';
+import { createRequestControls } from './modelRequestBuilders';
 
 // ── Parse param type from string format ─────────────────────────────────────
 // 'number — 0-based lesson index' → { type: 'number', description: '0-based lesson index' }
@@ -193,9 +194,31 @@ function googleSchemaFix(schema) {
 
 export function buildAgentRequest(
   provider,
-  { model, systemPrompt, messages, tools, maxTokens = 16384, temperature = 0.4, apiKey },
+  {
+    model,
+    systemPrompt,
+    messages,
+    tools,
+    maxTokens = 16384,
+    temperature = 0.4,
+    apiKey,
+    modelCapabilities = null,
+    generationPlan = null,
+    task = 'agent',
+  },
 ) {
-  const tempSetting = temperature !== undefined && supportsCustomTemperature(model) ? { temperature } : {};
+  const controls = createRequestControls({
+    provider,
+    modelId: model,
+    modelCapabilities,
+    generationPlan,
+    maxOutputTokens: maxTokens,
+    temperature,
+    task,
+    skipTemperature: !supportsCustomTemperature(model),
+  });
+  const tempSetting = controls.temperature !== undefined ? { temperature: controls.temperature } : {};
+  const effectiveMaxTokens = controls.maxOutputTokens;
 
   // Callers may pass `systemPrompt` as a string (legacy) or as
   // `{staticPart, dynamicPart}` for Anthropic two-breakpoint caching. The
@@ -221,7 +244,7 @@ export function buildAgentRequest(
         ],
         tools,
         tool_choice: 'auto',
-        max_completion_tokens: maxTokens,
+        max_completion_tokens: effectiveMaxTokens,
         ...tempSetting,
       },
     };
@@ -244,8 +267,11 @@ export function buildAgentRequest(
       },
       body: {
         model,
-        max_tokens: maxTokens,
+        max_tokens: effectiveMaxTokens,
         ...tempSetting,
+        ...(controls.reasoning.enabled && controls.reasoning.control === 'thinking_budget'
+          ? { thinking: { type: 'enabled', budget_tokens: controls.reasoning.budgetTokens } }
+          : {}),
         system: systemBlocks.system,
         tools: systemBlocks.tools,
         messages: messages.map((m) => (m._native ? stripNativeFlag(m) : { role: m.role, content: m.content })),
@@ -267,7 +293,16 @@ export function buildAgentRequest(
           };
         }),
         tools,
-        generationConfig: { ...tempSetting, maxOutputTokens: maxTokens },
+        generationConfig: {
+          ...tempSetting,
+          maxOutputTokens: effectiveMaxTokens,
+          ...(controls.reasoning.enabled && controls.reasoning.control === 'thinking_budget'
+            ? { thinkingConfig: { thinkingBudget: controls.reasoning.budgetTokens } }
+            : {}),
+          ...(controls.reasoning.enabled && controls.reasoning.control === 'thinking_level'
+            ? { thinkingConfig: { thinkingLevel: String(controls.reasoning.level || 'medium').toUpperCase() } }
+            : {}),
+        },
       },
     };
   }
@@ -287,8 +322,11 @@ export function buildAgentRequest(
         ],
         tools,
         tool_choice: 'auto',
-        max_tokens: maxTokens,
+        max_tokens: effectiveMaxTokens,
         ...tempSetting,
+        ...(controls.reasoning.enabled && controls.reasoning.control === 'reasoning_effort'
+          ? { reasoning_effort: controls.reasoning.effort }
+          : {}),
       },
     };
   }
@@ -311,7 +349,7 @@ export function buildAgentRequest(
         ],
         tools,
         tool_choice: 'auto',
-        max_tokens: maxTokens,
+        max_tokens: effectiveMaxTokens,
         ...tempSetting,
         provider: { data_collection: 'allow' },
       },

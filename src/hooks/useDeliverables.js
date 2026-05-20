@@ -585,6 +585,7 @@ export default function useDeliverables({
             maxOutputTokens: getFeatureOutputBudget(featureId, maxOutputTokens, generationPlan),
             modelCapabilities,
             generationPlan,
+            task: featureId,
             onChunk: (accumulatedText) => {
               if (timedOutFeaturesRef.current.has(featureId)) return;
               fullText = accumulatedText;
@@ -860,6 +861,7 @@ export default function useDeliverables({
                 maxOutputTokens: getFeatureOutputBudget(fid, maxOutputTokens, generationPlan),
                 modelCapabilities,
                 generationPlan,
+                task: 'repair',
                 onChunk: (t) => {
                   fullText = t;
                 },
@@ -1369,6 +1371,7 @@ export default function useDeliverables({
                       maxOutputTokens: getFeatureOutputBudget(fid, maxOutputTokens, generationPlan),
                       modelCapabilities,
                       generationPlan,
+                      task: 'repair',
                       onChunk: (t) => {
                         fullText = t;
                       },
@@ -1517,6 +1520,7 @@ export default function useDeliverables({
                       maxOutputTokens: getFeatureOutputBudget(fid, maxOutputTokens, generationPlan),
                       modelCapabilities,
                       generationPlan,
+                      task: 'repair',
                       onChunk: (t) => {
                         fullText = t;
                       },
@@ -2180,6 +2184,9 @@ export default function useDeliverables({
         });
         await streamProvider(provider, apiKey, modelId, prompts.systemPrompt, prompts.userPrompt, {
           maxOutputTokens,
+          modelCapabilities,
+          generationPlan,
+          task: 'repair',
           onChunk: (accumulatedText) => {
             fullText = accumulatedText;
             const now = Date.now();
@@ -2349,12 +2356,16 @@ export default function useDeliverables({
       provider,
       modelId,
       apiKey,
+      maxOutputTokens,
+      modelCapabilities,
+      generationPlan,
       streamProvider,
       parsePartialJSON,
       appendLog,
       dispatch,
       deliverables,
       recordApiCallEvent,
+      logIfRecovered,
     ],
   );
 

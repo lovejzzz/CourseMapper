@@ -1,6 +1,7 @@
 import { useRef, useCallback } from 'react';
 import { supportsCustomTemperature } from '../lib/agentProviders';
-import { getGoogleModelBaseUrl, isVertexKey } from '../lib/googleProvider';
+import { isVertexKey } from '../lib/googleProvider';
+import { buildProviderTextRequest } from '../lib/modelRequestBuilders';
 
 export { isVertexKey } from '../lib/googleProvider';
 
@@ -145,6 +146,8 @@ export default function useStreamReader() {
       maxOutputTokens,
       modelCapabilities,
       generationPlan,
+      task,
+      schema,
     } = opts;
 
     // WebLLM: run locally in browser, no network needed
@@ -169,17 +172,19 @@ export default function useStreamReader() {
       !supportsCustomTemperature(modelId) ||
       modelCapabilities?.supportsTemperature === false ||
       generationPlan?.useTemperature === false;
-    let { url, headers, body, parseChunk } = buildProviderRequest(
+    let { url, headers, body, parseChunk } = buildProviderTextRequest({
       provider,
       apiKey,
       modelId,
       systemPrompt,
       userPrompt,
       maxOutputTokens,
-      skipTemp,
+      skipTemperature: skipTemp,
       modelCapabilities,
       generationPlan,
-    );
+      task,
+      schema,
+    });
 
     let fullText = existingText;
     let attempt = 0;
@@ -213,17 +218,19 @@ export default function useStreamReader() {
             console.log('[CM] Model does not support custom temperature, retrying without it');
             skipTemp = true;
             _noTempModels.add(modelId); // Remember for parallel & future calls
-            ({ url, headers, body, parseChunk } = buildProviderRequest(
+            ({ url, headers, body, parseChunk } = buildProviderTextRequest({
               provider,
               apiKey,
               modelId,
               systemPrompt,
               userPrompt,
               maxOutputTokens,
-              true,
+              skipTemperature: true,
               modelCapabilities,
               generationPlan,
-            ));
+              task,
+              schema,
+            }));
             continue;
           }
 
@@ -276,17 +283,19 @@ export default function useStreamReader() {
           attempt++;
           fullText = existingText;
           // Rebuild request with current skipTemp state so temperature fix persists across retries
-          ({ url, headers, body, parseChunk } = buildProviderRequest(
+          ({ url, headers, body, parseChunk } = buildProviderTextRequest({
             provider,
             apiKey,
             modelId,
             systemPrompt,
             userPrompt,
             maxOutputTokens,
-            skipTemp,
+            skipTemperature: skipTemp,
             modelCapabilities,
             generationPlan,
-          ));
+            task,
+            schema,
+          }));
           const delay = Math.min(1000 * Math.pow(2, attempt - 1), 8000);
           if (onRetry) onRetry(attempt, maxRetries, delay);
           await sleep(delay);
@@ -301,134 +310,6 @@ export default function useStreamReader() {
   }, []);
 
   return { streamProvider, parsePartialJSON, getLastParseRecovery, abort, abortControllerRef };
-}
-
-// ── Provider-specific request builders ──
-
-function buildProviderRequest(
-  provider,
-  apiKey,
-  modelId,
-  systemPrompt,
-  userPrompt,
-  maxOutputTokens = 16384,
-  skipTemp = false,
-  modelCapabilities = null,
-  generationPlan = null,
-) {
-  const temp = skipTemp ? undefined : 0.3;
-  const useJsonMode = modelCapabilities?.supportsJsonMode !== false && generationPlan?.useJsonMode !== false;
-  if (provider === 'openai') {
-    return {
-      url: 'https://api.openai.com/v1/chat/completions',
-      headers: {
-        Authorization: `Bearer ${apiKey}`,
-        'Content-Type': 'application/json',
-      },
-      body: {
-        model: modelId,
-        messages: [
-          { role: 'system', content: systemPrompt },
-          { role: 'user', content: userPrompt },
-        ],
-        ...(useJsonMode ? { response_format: { type: 'json_object' } } : {}),
-        max_completion_tokens: maxOutputTokens,
-        ...(temp !== undefined && { temperature: temp }),
-        stream: true,
-      },
-      parseChunk: (parsed) => parsed.choices?.[0]?.delta?.content || null,
-    };
-  }
-
-  if (provider === 'anthropic') {
-    return {
-      url: 'https://api.anthropic.com/v1/messages',
-      headers: {
-        'x-api-key': apiKey,
-        'content-type': 'application/json',
-        'anthropic-version': '2023-06-01',
-        'anthropic-dangerous-direct-browser-access': 'true',
-      },
-      body: {
-        model: modelId,
-        max_tokens: maxOutputTokens,
-        ...(temp !== undefined && { temperature: temp }),
-        stream: true,
-        system: systemPrompt,
-        messages: [{ role: 'user', content: userPrompt }],
-      },
-      parseChunk: (parsed) => {
-        if (parsed.type === 'content_block_delta' && parsed.delta?.text) return parsed.delta.text;
-        return null;
-      },
-    };
-  }
-
-  if (provider === 'google') {
-    const baseUrl = getGoogleModelBaseUrl(apiKey, modelId);
-    return {
-      url: `${baseUrl}:streamGenerateContent?key=${apiKey}&alt=sse`,
-      headers: { 'Content-Type': 'application/json' },
-      body: {
-        contents: [{ role: 'user', parts: [{ text: userPrompt }] }],
-        systemInstruction: { parts: [{ text: systemPrompt }] },
-        generationConfig: {
-          ...(temp !== undefined && { temperature: temp }),
-          maxOutputTokens: maxOutputTokens,
-          ...(useJsonMode ? { responseMimeType: 'application/json' } : {}),
-        },
-      },
-      parseChunk: (parsed) => parsed.candidates?.[0]?.content?.parts?.[0]?.text || null,
-    };
-  }
-
-  if (provider === 'deepseek') {
-    return {
-      url: 'https://api.deepseek.com/v1/chat/completions',
-      headers: {
-        Authorization: `Bearer ${apiKey}`,
-        'Content-Type': 'application/json',
-      },
-      body: {
-        model: modelId,
-        messages: [
-          { role: 'system', content: systemPrompt },
-          { role: 'user', content: userPrompt },
-        ],
-        ...(useJsonMode ? { response_format: { type: 'json_object' } } : {}),
-        max_tokens: maxOutputTokens,
-        ...(temp !== undefined && { temperature: temp }),
-        stream: true,
-      },
-      parseChunk: (parsed) => parsed.choices?.[0]?.delta?.content || null,
-    };
-  }
-
-  if (provider === 'openrouter') {
-    if (!apiKey) throw new Error('NO_API_KEY');
-    return {
-      url: 'https://openrouter.ai/api/v1/chat/completions',
-      headers: {
-        Authorization: `Bearer ${apiKey}`,
-        'Content-Type': 'application/json',
-        'HTTP-Referer': window.location.origin,
-      },
-      body: {
-        model: modelId,
-        messages: [
-          { role: 'system', content: systemPrompt },
-          { role: 'user', content: userPrompt },
-        ],
-        max_tokens: maxOutputTokens,
-        ...(temp !== undefined && { temperature: temp }),
-        stream: true,
-        provider: { data_collection: 'allow' },
-      },
-      parseChunk: (parsed) => parsed.choices?.[0]?.delta?.content || null,
-    };
-  }
-
-  throw new Error('Unsupported provider: ' + provider);
 }
 
 // Exclude non-chat models that don't work for structured JSON generation.
@@ -628,6 +509,17 @@ function anthropicMaxOutput(id) {
   return 8192; // safe default
 }
 
+function deepseekMaxOutput(id) {
+  if (/deepseek-v4|deepseek-.*pro/i.test(id)) return 384000;
+  if (/reasoner|r1/i.test(id)) return 32768;
+  return 8192;
+}
+
+function deepseekMaxInput(id) {
+  if (/deepseek-v4|deepseek-.*pro|deepseek-.*flash/i.test(id)) return 1000000;
+  return null;
+}
+
 /**
  * Fetch models dynamically from provider API, filtered to only chat/text models
  * that support streaming + JSON output.
@@ -744,8 +636,9 @@ export async function fetchModelsFromProvider(provider, apiKey) {
           id: m.id,
           name: cleanDeepSeekName(m.id),
           created: m.created || 0,
-          // DeepSeek /v1/models doesn't return token limits; values from docs
-          maxOutputTokens: m.id === 'deepseek-reasoner' ? 32768 : 8192,
+          // DeepSeek /v1/models doesn't return token limits; infer from the public model family contract.
+          maxInputTokens: deepseekMaxInput(m.id),
+          maxOutputTokens: deepseekMaxOutput(m.id),
           capabilities: {
             jsonMode: true,
             toolCalling: true,

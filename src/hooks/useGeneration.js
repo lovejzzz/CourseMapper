@@ -297,6 +297,7 @@ export default function useGeneration({
           maxOutputTokens: generationPlan?.courseMapOutputTokens || maxOutputTokens,
           modelCapabilities,
           generationPlan,
+          task: 'verification',
           onChunk: (text) => {
             if (text.length % 200 < 10) {
               const partial = parsePartialJSON(text);
@@ -539,6 +540,7 @@ Generate lessons ${actual + 1} through ${expectedCount} now as JSON:`;
         maxOutputTokens: generationPlan?.courseMapOutputTokens || maxOutputTokens,
         modelCapabilities,
         generationPlan,
+        task: 'repair',
         onChunk: (text) => {
           fullTextRef.current = text;
           const now = performance.now();
@@ -867,6 +869,7 @@ Generate lessons ${actual + 1} through ${expectedCount} now as JSON:`;
             maxOutputTokens: generationPlan?.courseMapOutputTokens || maxOutputTokens,
             modelCapabilities,
             generationPlan,
+            task: 'course-map',
             onChunk: (text, count) => {
               fullTextRef.current = text;
               updateGenerationProgress(text, count);
@@ -1178,6 +1181,7 @@ Generate lessons ${actual + 1} through ${expectedCount} now as JSON:`;
           maxOutputTokens: generationPlan?.courseMapOutputTokens || maxOutputTokens,
           modelCapabilities,
           generationPlan,
+          task: 'repair',
           onChunk: (text, count) => {
             fullTextRef.current = text;
             if (import.meta.env.DEV && (count <= 3 || count % 20 === 0))

@@ -143,4 +143,21 @@ describe('fetchModelsFromProvider', () => {
 
     expect(models.map((model) => model.id)).toEqual(['claude-sonnet-5-20260401', 'claude-sonnet-5-20260101']);
   });
+
+  it('infers larger DeepSeek V4 limits from model family names', async () => {
+    vi.spyOn(globalThis, 'fetch').mockResolvedValue({
+      ok: true,
+      json: async () => ({
+        data: [{ id: 'deepseek-v4-pro' }, { id: 'deepseek-chat' }],
+      }),
+    });
+
+    const models = await fetchModelsFromProvider('deepseek', 'sk-test');
+
+    expect(models.find((model) => model.id === 'deepseek-v4-pro')).toMatchObject({
+      maxInputTokens: 1000000,
+      maxOutputTokens: 384000,
+    });
+    expect(models.find((model) => model.id === 'deepseek-chat')).toMatchObject({ maxOutputTokens: 8192 });
+  });
 });

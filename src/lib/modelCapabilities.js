@@ -123,6 +123,258 @@ function qualityFromSignals({ modelId, maxOutputTokens, supportsTools, supportsJ
   return 'fast';
 }
 
+function inferApiControls(provider, modelId) {
+  const id = String(modelId || '').toLowerCase();
+  const base = {
+    provider,
+    activeTextApi: 'chat-completions',
+    preferredTextApi: 'chat-completions',
+    streamingProtocol: 'sse',
+    supportsStreaming: providerStreamingSupport(provider),
+  };
+  if (provider === 'openai') {
+    return {
+      ...base,
+      activeTextApi: 'chat-completions',
+      preferredTextApi: /^gpt-[5-9]/.test(id) || /^o\d/.test(id) ? 'responses' : 'chat-completions',
+      endpointFamily: 'openai-compatible',
+    };
+  }
+  if (provider === 'anthropic') {
+    return { ...base, activeTextApi: 'messages', preferredTextApi: 'messages', endpointFamily: 'anthropic-messages' };
+  }
+  if (provider === 'google') {
+    return {
+      ...base,
+      activeTextApi: 'gemini-generate-content',
+      preferredTextApi: 'gemini-generate-content',
+      endpointFamily: 'gemini',
+    };
+  }
+  if (provider === 'deepseek') {
+    return {
+      ...base,
+      activeTextApi: 'chat-completions',
+      preferredTextApi: 'chat-completions',
+      endpointFamily: 'openai-compatible',
+    };
+  }
+  if (provider === 'webllm') {
+    return { ...base, activeTextApi: 'local-chat', preferredTextApi: 'local-chat', endpointFamily: 'webllm' };
+  }
+  return base;
+}
+
+function inferStructuredOutputControls(provider, modelId, supportsJsonMode) {
+  const id = String(modelId || '').toLowerCase();
+  const supportsJsonObject = supportsJsonMode === true;
+  const supportsJsonSchema =
+    provider === 'openai' ||
+    provider === 'google' ||
+    provider === 'deepseek' ||
+    (provider === 'anthropic' && /claude-(?:opus|sonnet|haiku)-(?:[4-9]|\d{2,})|claude-3-7/.test(id));
+  const toolSchemaOnly = provider === 'anthropic' && supportsJsonSchema;
+  return {
+    supportsJsonObject,
+    supportsJsonSchema,
+    supportsStrictSchema: supportsJsonSchema && provider !== 'webllm',
+    defaultMode: supportsJsonSchema
+      ? toolSchemaOnly
+        ? 'tool_schema'
+        : 'json_schema'
+      : supportsJsonObject
+        ? 'json_object'
+        : 'prompt_only',
+    schemaDialect: provider === 'google' ? 'gemini-schema' : 'json-schema',
+    schemaTransport: toolSchemaOnly ? 'tool' : supportsJsonSchema ? 'response_format' : 'prompt',
+    canForceSchema: supportsJsonSchema && provider !== 'webllm',
+    jsonReliability: 'unknown',
+  };
+}
+
+function inferReasoningControls(provider, modelId) {
+  const id = String(modelId || '').toLowerCase();
+  if (provider === 'openai' && (/^o\d/.test(id) || /^gpt-[5-9]/.test(id))) {
+    return {
+      supported: true,
+      control: 'reasoning_effort',
+      levels: ['minimal', 'low', 'medium', 'high'],
+      defaultLevel: /^gpt-[5-9]/.test(id) ? 'medium' : 'high',
+      applyByDefault: false,
+      highValueTasks: ['course-map', 'assessment-alignment', 'rubrics', 'verification', 'repair'],
+    };
+  }
+  if (provider === 'anthropic' && /claude-(?:opus|sonnet|haiku)-(?:[4-9]|\d{2,})|claude-3-7/.test(id)) {
+    return {
+      supported: true,
+      control: 'thinking_budget',
+      minBudgetTokens: 1024,
+      defaultBudgetTokens: id.includes('opus') ? 8192 : 4096,
+      applyByDefault: false,
+      highValueTasks: ['course-map', 'assessment-alignment', 'rubrics', 'verification'],
+    };
+  }
+  if (provider === 'google' && /gemini-3/.test(id)) {
+    return {
+      supported: true,
+      control: 'thinking_level',
+      levels: ['low', 'medium', 'high'],
+      defaultLevel: id.includes('pro') ? 'high' : 'medium',
+      applyByDefault: false,
+      highValueTasks: ['course-map', 'assessment-alignment', 'verification'],
+    };
+  }
+  if (provider === 'google' && /gemini-2\.5/.test(id)) {
+    return {
+      supported: true,
+      control: 'thinking_budget',
+      minBudgetTokens: 0,
+      defaultBudgetTokens: id.includes('pro') ? 8192 : 4096,
+      applyByDefault: false,
+      highValueTasks: ['course-map', 'assessment-alignment', 'verification'],
+    };
+  }
+  if (provider === 'deepseek' && (/reasoner|r1|v4/.test(id) || id.includes('pro'))) {
+    return {
+      supported: true,
+      control: 'reasoning_effort',
+      levels: ['low', 'medium', 'high'],
+      defaultLevel: id.includes('pro') || id.includes('reasoner') ? 'high' : 'medium',
+      applyByDefault: false,
+      highValueTasks: ['course-map', 'assessment-alignment', 'verification', 'repair'],
+    };
+  }
+  return { supported: false, control: 'none', applyByDefault: false, highValueTasks: [] };
+}
+
+function inferCachingControls(provider) {
+  if (provider === 'anthropic') {
+    return {
+      mode: 'explicit',
+      supportsPromptCache: true,
+      cacheControl: 'ephemeral',
+      ttl: '5m',
+      recommendedBreakpoints: ['static-system', 'dynamic-course', 'tool-list'],
+    };
+  }
+  if (provider === 'google') {
+    return {
+      mode: 'explicit',
+      supportsPromptCache: true,
+      supportsContextCache: true,
+      supportsTokenCounting: true,
+      recommendedBreakpoints: ['course-source', 'course-map', 'deliverable-schema'],
+    };
+  }
+  if (provider === 'openai') {
+    return {
+      mode: 'automatic',
+      supportsPromptCache: true,
+      supportsCacheKey: true,
+      recommendedBreakpoints: ['system-prompt', 'course-map', 'schema'],
+    };
+  }
+  if (provider === 'deepseek') {
+    return { mode: 'automatic', supportsPromptCache: true, recommendedBreakpoints: ['system-prompt', 'course-map'] };
+  }
+  return { mode: 'none', supportsPromptCache: false, recommendedBreakpoints: [] };
+}
+
+function inferGenerationControls(provider, modelId, supportsTemperature) {
+  const id = String(modelId || '').toLowerCase();
+  const temperatureAllowed = supportsTemperature !== false && !(provider === 'openai' && /^gpt-[5-9]/.test(id));
+  return {
+    supportsTemperature: temperatureAllowed,
+    defaultTemperature: temperatureAllowed ? 0.3 : null,
+    supportsTopP: provider !== 'webllm',
+    supportsSeed: provider === 'openai' || provider === 'deepseek' || provider === 'webllm',
+    deterministicRepairTemperature: temperatureAllowed ? 0 : null,
+    classroomQualityTemperature: temperatureAllowed ? 0.2 : null,
+  };
+}
+
+function inferToolControls(provider, supportsTools) {
+  return {
+    supportsNativeTools: supportsTools === true,
+    supportsStrictTools: provider === 'openai' || provider === 'deepseek' || provider === 'google',
+    supportsParallelTools: provider === 'openai' || provider === 'deepseek',
+    agentUse: provider === 'webllm' ? 'disabled' : supportsTools === true ? 'native' : 'json-protocol',
+  };
+}
+
+function inferFileControls(provider) {
+  return {
+    supportsNativeFiles: provider === 'openai' || provider === 'anthropic' || provider === 'google',
+    supportsPdfInput: provider === 'openai' || provider === 'anthropic' || provider === 'google',
+    supportsImageInput: provider === 'openai' || provider === 'anthropic' || provider === 'google',
+    preferredUpload: provider === 'webllm' ? 'text-extract' : 'inline-or-file-api',
+  };
+}
+
+function inferRepairControls(provider, structuredOutput) {
+  const schemaFirst = structuredOutput?.supportsJsonSchema === true;
+  return {
+    deterministicFirst: true,
+    retryMode: schemaFirst ? 'schema-targeted' : 'small-chunk-targeted',
+    parseMode: schemaFirst ? 'strict-then-recover' : 'recover-then-targeted-retry',
+    maxRepairRounds: provider === 'webllm' ? 3 : 2,
+  };
+}
+
+function inferExportControls() {
+  return {
+    verifyBeforeExport: true,
+    autoRepairBeforeExport: true,
+    blockCriticalIssues: true,
+    allowNotesForNonCriticalIssues: false,
+  };
+}
+
+function enrichControlProfile(profile) {
+  const provider = profile.provider;
+  const modelId = profile.modelId || '';
+  const rawJsonMode =
+    profile.supportsJsonMode ?? (profile.structuredOutput?.supportsJsonObject === true ? true : UNKNOWN_SUPPORT);
+  const rawToolSupport =
+    profile.supportsTools ?? (profile.tools?.supportsNativeTools === true ? true : UNKNOWN_SUPPORT);
+  const supportsJsonMode = rawJsonMode === UNKNOWN_SUPPORT ? providerJsonModeSupport(provider) : rawJsonMode;
+  const supportsTools = rawToolSupport === UNKNOWN_SUPPORT ? providerToolSupport(provider) : rawToolSupport;
+  const supportsTemperature = profile.supportsTemperature;
+  const maxOutputTokens = Number(profile.maxOutputTokens || profile.limits?.maxOutputTokens || 8192);
+  const maxInputTokens = Number(profile.maxInputTokens || profile.limits?.maxInputTokens || 0) || null;
+  const existingStructuredOutput =
+    profile.structuredOutput && typeof profile.structuredOutput === 'object' ? profile.structuredOutput : {};
+  const structuredOutput = {
+    ...inferStructuredOutputControls(provider, modelId, supportsJsonMode),
+    ...existingStructuredOutput,
+    jsonReliability: profile.jsonReliability || existingStructuredOutput.jsonReliability || 'unknown',
+  };
+
+  return {
+    ...profile,
+    maxOutputTokens,
+    maxInputTokens,
+    supportsJsonMode,
+    supportsTools,
+    api: { ...inferApiControls(provider, modelId), ...(profile.api || {}) },
+    limits: {
+      maxOutputTokens,
+      maxInputTokens,
+      safeCourseMapOutputTokens: Math.max(4096, Math.min(maxOutputTokens, Math.round(maxOutputTokens * 0.9))),
+      safeDeliverableOutputTokens: Math.max(4096, Math.min(maxOutputTokens, Math.round(maxOutputTokens * 0.75))),
+      ...(profile.limits || {}),
+    },
+    structuredOutput,
+    reasoning: { ...inferReasoningControls(provider, modelId), ...(profile.reasoning || {}) },
+    generation: { ...inferGenerationControls(provider, modelId, supportsTemperature), ...(profile.generation || {}) },
+    tools: { ...inferToolControls(provider, supportsTools), ...(profile.tools || {}) },
+    caching: { ...inferCachingControls(provider), ...(profile.caching || {}) },
+    files: { ...inferFileControls(provider), ...(profile.files || {}) },
+    repair: { ...inferRepairControls(provider, structuredOutput), ...(profile.repair || {}) },
+    export: { ...inferExportControls(), ...(profile.export || {}) },
+  };
+}
+
 export function createBaseModelCapabilities(provider, model = {}) {
   const modelId = model?.id || '';
   const maxOutputTokens =
@@ -131,7 +383,7 @@ export function createBaseModelCapabilities(provider, model = {}) {
     Number(model?.maxInputTokens || model?.inputTokenLimit || model?.input_token_limit || 0) || null;
   const supportsJsonMode = getCatalogSupport(model, 'jsonMode');
   const supportsTools = getCatalogSupport(model, 'toolCalling');
-  const profile = {
+  const profile = enrichControlProfile({
     version: 1,
     provider,
     modelId,
@@ -147,7 +399,6 @@ export function createBaseModelCapabilities(provider, model = {}) {
     supportsTools: supportsTools === UNKNOWN_SUPPORT ? providerToolSupport(provider) : supportsTools,
     supportsTemperature: getCatalogSupport(model, 'temperature'),
     jsonReliability: 'unknown',
-    structuredOutput: provider === 'openai' ? 'unknown' : false,
     observed: {
       calls: 0,
       parseFailures: 0,
@@ -157,7 +408,7 @@ export function createBaseModelCapabilities(provider, model = {}) {
       averageLatencyMs: null,
     },
     evidence: ['catalog'],
-  };
+  });
   profile.quality = qualityFromSignals(profile);
   return profile;
 }
@@ -174,8 +425,9 @@ function mergeCapabilityProfiles(base, cached) {
     expiresAt: cached.expiresAt || base.expiresAt,
     evidence: Array.from(new Set([...(base.evidence || []), ...(cached.evidence || [])])),
   };
-  merged.quality = qualityFromSignals(merged);
-  return merged;
+  const enriched = enrichControlProfile(merged);
+  enriched.quality = qualityFromSignals(enriched);
+  return enriched;
 }
 
 function isCachedProfileFresh(profile) {
@@ -445,37 +697,77 @@ export async function resolveModelCapabilities({ provider, apiKey, model, signal
       expiresAt: now() + CACHE_TTL_MS,
       evidence: Array.from(new Set([...(base.evidence || []), ...(probe.evidence || [])])),
     };
+    profile = enrichControlProfile(profile);
     profile.quality = qualityFromSignals(profile);
     cache[key] = profile;
     writeCache(cache);
   } catch {
-    profile = { ...base, confidence: 'catalog', evidence: [...(base.evidence || []), 'probe-error'] };
+    profile = enrichControlProfile({
+      ...base,
+      confidence: 'catalog',
+      evidence: [...(base.evidence || []), 'probe-error'],
+    });
   }
   return profile;
 }
 
 export function createGenerationPlan(profile = {}) {
-  const maxOutputTokens = Number(profile.maxOutputTokens || 8192);
-  const jsonHigh = profile.jsonReliability === 'high' || profile.supportsJsonMode === true;
+  const maxOutputTokens = Number(profile.limits?.maxOutputTokens || profile.maxOutputTokens || 8192);
+  const maxInputTokens = Number(profile.limits?.maxInputTokens || profile.maxInputTokens || 0) || null;
+  const structuredOutputMode =
+    profile.structuredOutput?.defaultMode || (profile.supportsJsonMode === true ? 'json_object' : 'prompt_only');
+  const jsonHigh =
+    profile.structuredOutput?.jsonReliability === 'high' ||
+    profile.jsonReliability === 'high' ||
+    profile.supportsJsonMode === true;
   const longOutput = maxOutputTokens >= 64000;
   const tightOutput = maxOutputTokens < 12000;
-  const weakStructure = profile.supportsJsonMode === false && profile.jsonReliability !== 'high';
+  const weakStructure = structuredOutputMode === 'prompt_only' && profile.jsonReliability !== 'high';
   const chunkStrategy =
     tightOutput || weakStructure ? 'conservative' : longOutput && jsonHigh ? 'expanded' : 'standard';
   const chunkScale = chunkStrategy === 'conservative' ? 0.65 : chunkStrategy === 'expanded' ? 1.2 : 1;
   const outputBudgetScale = tightOutput ? 0.85 : longOutput && jsonHigh ? 1.1 : 1;
+  const reasoning = profile.reasoning || {};
+  const caching = profile.caching || {};
+  const generation = profile.generation || {};
+  const tools = profile.tools || {};
   return {
     version: 1,
     provider: profile.provider || '',
     modelId: profile.modelId || '',
     quality: profile.quality || 'balanced',
+    apiMode: profile.api?.activeTextApi || profile.api?.preferredTextApi || 'chat-completions',
+    preferredApiMode: profile.api?.preferredTextApi || profile.api?.activeTextApi || 'chat-completions',
     chunkStrategy,
     chunkScale,
     outputBudgetScale,
     maxOutputTokens,
-    useJsonMode: profile.supportsJsonMode !== false,
-    useNativeTools: profile.supportsTools !== false,
-    useTemperature: profile.supportsTemperature !== false,
+    maxInputTokens,
+    structuredOutputMode,
+    schemaStrategy:
+      profile.structuredOutput?.schemaTransport || (profile.supportsJsonMode ? 'response_format' : 'prompt'),
+    useJsonMode: structuredOutputMode !== 'prompt_only' && structuredOutputMode !== 'tool_schema',
+    useStrictSchema: profile.structuredOutput?.supportsStrictSchema === true,
+    useNativeTools: tools.supportsNativeTools !== false && profile.supportsTools !== false,
+    useTemperature: generation.supportsTemperature !== false && profile.supportsTemperature !== false,
+    temperature: generation.defaultTemperature ?? 0.3,
+    reasoning: {
+      supported: reasoning.supported === true,
+      control: reasoning.control || 'none',
+      defaultLevel: reasoning.defaultLevel || null,
+      defaultBudgetTokens: reasoning.defaultBudgetTokens || null,
+      enabledByDefault: reasoning.applyByDefault === true,
+      highValueTasks: reasoning.highValueTasks || [],
+    },
+    caching: {
+      mode: caching.mode || 'none',
+      supportsPromptCache: caching.supportsPromptCache === true,
+      supportsContextCache: caching.supportsContextCache === true,
+      supportsTokenCounting: caching.supportsTokenCounting === true,
+      recommendedBreakpoints: caching.recommendedBreakpoints || [],
+    },
+    repair: profile.repair || {},
+    exportPolicy: profile.export || {},
     retryStyle: chunkStrategy === 'conservative' ? 'targeted-small' : 'standard',
     courseMapOutputTokens: Math.max(4096, Math.min(maxOutputTokens, Math.round(maxOutputTokens * outputBudgetScale))),
   };
@@ -487,8 +779,11 @@ export function getModelCapabilityBadges(profile = {}, plan = createGenerationPl
   else if (profile.fromCache) badges.push({ label: 'Cached profile', tone: 'slate' });
   else badges.push({ label: 'Catalog profile', tone: 'slate' });
   if ((profile.maxOutputTokens || 0) >= 64000) badges.push({ label: 'Long output', tone: 'indigo' });
-  if (profile.supportsJsonMode === true || profile.jsonReliability === 'high')
-    badges.push({ label: 'Structured JSON', tone: 'emerald' });
+  if (profile.structuredOutput?.supportsStrictSchema === true) badges.push({ label: 'Strict schema', tone: 'emerald' });
+  else if (profile.supportsJsonMode === true || profile.jsonReliability === 'high')
+    badges.push({ label: 'JSON output', tone: 'emerald' });
+  if (profile.reasoning?.supported === true) badges.push({ label: 'Reasoning controls', tone: 'indigo' });
+  if (profile.caching?.supportsPromptCache === true) badges.push({ label: 'Prompt cache', tone: 'slate' });
   if (profile.supportsTools === true) badges.push({ label: 'Native tools', tone: 'violet' });
   if (plan.chunkStrategy === 'conservative') badges.push({ label: 'Smaller chunks', tone: 'amber' });
   if (plan.chunkStrategy === 'expanded') badges.push({ label: 'Larger chunks', tone: 'blue' });
