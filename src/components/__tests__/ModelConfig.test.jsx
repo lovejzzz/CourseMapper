@@ -1,7 +1,7 @@
 /**
  * @vitest-environment happy-dom
  */
-import React, { useEffect } from 'react';
+import React, { useEffect, useState } from 'react';
 import { act } from 'react';
 import { createRoot } from 'react-dom/client';
 import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest';
@@ -160,6 +160,91 @@ describe('checkCredits', () => {
 
     expect(fetchMock).toHaveBeenCalledTimes(1);
     expect(latestModelId).toBe('gpt-project');
+
+    act(() => {
+      root.unmount();
+    });
+    container.remove();
+  });
+
+  it('refreshes cached model lists when the config opens', async () => {
+    vi.useFakeTimers();
+
+    const fetchMock = vi.spyOn(globalThis, 'fetch').mockImplementation((url) => {
+      const requestUrl = String(url);
+      if (requestUrl.includes('generativelanguage.googleapis.com/v1beta/models?')) {
+        return Promise.resolve({
+          ok: true,
+          json: async () => ({
+            models: [
+              {
+                name: 'models/gemini-3.5-flash',
+                displayName: 'Gemini 3.5 Flash',
+                supportedGenerationMethods: ['generateContent'],
+                outputTokenLimit: 65536,
+              },
+            ],
+          }),
+        });
+      }
+      return Promise.resolve({ ok: true, json: async () => ({}) });
+    });
+
+    let latestModelId = '';
+    let latestModelIds = [];
+    function StateProbe() {
+      const { modelId, availableModels } = useAIConfig();
+      latestModelId = modelId;
+      latestModelIds = availableModels.map((model) => model.id);
+      return null;
+    }
+    function SeededConfig() {
+      const [showConfig, setShowConfig] = useState(false);
+      const { setProvider, setApiKey, setApiStatus, setAvailableModels, setModelId, setModelName } = useAIConfig();
+      useEffect(() => {
+        setProvider('google');
+        setApiKey('AIzaRefreshCachedModelsKeyForUnitTest000000000');
+        setApiStatus('connected');
+        setAvailableModels([{ id: 'gemini-cached-old', name: 'Gemini Cached Old', maxOutputTokens: 8192 }]);
+        setModelId('gemini-cached-old');
+        setModelName('Gemini Cached Old');
+        setShowConfig(true);
+      }, [setApiKey, setApiStatus, setAvailableModels, setModelId, setModelName, setProvider]);
+      return showConfig ? <ModelConfig /> : null;
+    }
+    function Harness() {
+      return (
+        <AIConfigProvider>
+          <StateProbe />
+          <SeededConfig />
+        </AIConfigProvider>
+      );
+    }
+
+    const container = document.createElement('div');
+    document.body.appendChild(container);
+    const root = createRoot(container);
+
+    await act(async () => {
+      root.render(<Harness />);
+    });
+    await act(async () => {
+      await Promise.resolve();
+    });
+    await act(async () => {
+      await vi.advanceTimersByTimeAsync(850);
+    });
+    await act(async () => {
+      await Promise.resolve();
+      await Promise.resolve();
+      await Promise.resolve();
+    });
+
+    expect(
+      fetchMock.mock.calls.some(([url]) => String(url).includes('generativelanguage.googleapis.com/v1beta/models?')),
+    ).toBe(true);
+    expect(latestModelIds).toEqual(['gemini-3.5-flash']);
+    expect(latestModelId).toBe('gemini-3.5-flash');
 
     act(() => {
       root.unmount();

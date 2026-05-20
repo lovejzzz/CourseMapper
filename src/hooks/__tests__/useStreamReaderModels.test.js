@@ -44,6 +44,12 @@ describe('fetchModelsFromProvider', () => {
             outputTokenLimit: 65536,
           },
           {
+            name: 'models/gemini-3-pro-preview',
+            displayName: 'Gemini 3 Pro Preview',
+            supportedGenerationMethods: ['generateContent'],
+            outputTokenLimit: 65536,
+          },
+          {
             name: 'models/gemini-2.0-flash-preview-image-generation',
             displayName: 'Gemini 2.0 Flash Preview Image Generation',
             supportedGenerationMethods: ['generateContent'],
@@ -96,18 +102,22 @@ describe('fetchModelsFromProvider', () => {
       if (String(url).includes('/v1beta1/publishers/google/models')) {
         return { ok: false, json: async () => ({ error: { message: 'catalog unavailable' } }) };
       }
+      if (String(url).includes('generativelanguage.googleapis.com/v1beta/models')) {
+        return { ok: false, json: async () => ({ error: { message: 'catalog unavailable' } }) };
+      }
       return { ok: true, json: async () => ({ totalTokens: 1 }) };
     });
 
     const models = await fetchModelsFromProvider('google', 'VertexExpressKeyWithEnoughLength1234567890');
 
     expect(models.map((model) => model.id).slice(0, 5)).toEqual([
-      'gemini-3-pro-preview',
+      'gemini-3.1-pro-preview',
       'gemini-3-flash-preview',
       'gemini-2.5-pro',
       'gemini-2.5-flash',
-      'gemini-2.5-flash-preview-09-2025',
+      'gemini-2.5-flash-lite',
     ]);
+    expect(models.map((model) => model.id)).not.toContain('gemini-3-pro-preview');
   });
 
   it('keeps dated Anthropic model IDs instead of collapsing to display names', async () => {

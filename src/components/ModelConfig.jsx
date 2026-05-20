@@ -207,23 +207,14 @@ export default function ModelConfig() {
   }, [provider]);
 
   // When API key or provider changes, auto-detect provider and validate.
-  const prevApiKeyRef = useRef(apiKey);
   const prevProviderRef = useRef(provider);
   useEffect(() => {
     let cancelled = false;
-    const apiKeyChanged = apiKey !== prevApiKeyRef.current;
     const providerChanged = provider !== prevProviderRef.current;
-    prevApiKeyRef.current = apiKey;
     prevProviderRef.current = provider;
 
     // WebLLM handles its own initialization — skip API key validation
     if (provider === 'webllm') return;
-
-    // On mount/remount: if nothing changed AND we already have a valid state,
-    // skip re-validation entirely.
-    if (!apiKeyChanged && !providerChanged) {
-      if ((apiStatus === 'connected' || apiStatus === 'no_funds') && availableModels.length > 0) return;
-    }
 
     setApiStatus('idle');
     setModelName('');

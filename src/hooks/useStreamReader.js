@@ -418,21 +418,22 @@ const OPENAI_INCLUDE = /^(gpt-|o\d|chatgpt-)/i;
 // Exclude non-text Google Gemini variants (image generation, TTS, live streaming, embeddings)
 const GOOGLE_EXCLUDE = /imagen|image|veo|tts|live|embedding|aqa|native-audio/i;
 
-const GOOGLE_TEXT_MODEL_FALLBACKS = [
-  { id: 'gemini-3-pro-preview', name: 'Gemini 3 Pro Preview', maxOutputTokens: 65536 },
+const GOOGLE_VERTEX_EXPRESS_TEXT_MODEL_FALLBACKS = [
+  { id: 'gemini-3.1-pro-preview', name: 'Gemini 3.1 Pro Preview', maxOutputTokens: 65536 },
   { id: 'gemini-3-flash-preview', name: 'Gemini 3 Flash Preview', maxOutputTokens: 65536 },
   { id: 'gemini-2.5-pro', name: 'Gemini 2.5 Pro', maxOutputTokens: 65536 },
   { id: 'gemini-2.5-flash', name: 'Gemini 2.5 Flash', maxOutputTokens: 65536 },
-  { id: 'gemini-2.5-flash-preview-09-2025', name: 'Gemini 2.5 Flash Preview 09-2025', maxOutputTokens: 65536 },
   { id: 'gemini-2.5-flash-lite', name: 'Gemini 2.5 Flash Lite', maxOutputTokens: 65536 },
   {
     id: 'gemini-2.5-flash-lite-preview-09-2025',
     name: 'Gemini 2.5 Flash-Lite Preview 09-2025',
     maxOutputTokens: 65536,
   },
-  { id: 'gemini-2.0-flash', name: 'Gemini 2.0 Flash', maxOutputTokens: 8192 },
   { id: 'gemini-2.0-flash-001', name: 'Gemini 2.0 Flash 001', maxOutputTokens: 8192 },
+  { id: 'gemini-2.0-flash-lite-001', name: 'Gemini 2.0 Flash-Lite 001', maxOutputTokens: 8192 },
 ];
+
+const GOOGLE_DEPRECATED_TEXT_MODEL_IDS = new Set(['gemini-3-pro-preview']);
 
 function cleanOpenAIName(id) {
   return id
@@ -522,6 +523,7 @@ function normalizeGoogleModelCatalog(models) {
         return (
           id.includes('gemini') &&
           supportsText &&
+          !GOOGLE_DEPRECATED_TEXT_MODEL_IDS.has(id) &&
           !GOOGLE_EXCLUDE.test(id) &&
           !GOOGLE_EXCLUDE.test(model.displayName || '')
         );
@@ -550,6 +552,26 @@ async function fetchVertexModels(apiKey) {
     if (!response.ok) throw new Error('Vertex model catalog unavailable');
     const data = await response.json();
     allModels.push(...(data.publisherModels || data.models || []));
+    pageToken = data.nextPageToken || '';
+  } while (pageToken);
+  return normalizeGoogleModelCatalog(allModels);
+}
+
+async function fetchGeminiApiModels(apiKey) {
+  const allModels = [];
+  let pageToken = '';
+  do {
+    const url = new URL('https://generativelanguage.googleapis.com/v1beta/models');
+    url.searchParams.set('key', apiKey);
+    url.searchParams.set('pageSize', '1000');
+    if (pageToken) url.searchParams.set('pageToken', pageToken);
+    const response = await fetch(url.toString());
+    if (!response.ok) {
+      const err = await response.json().catch(() => ({}));
+      throw new Error(err.error?.message || 'Invalid API key');
+    }
+    const data = await response.json();
+    allModels.push(...(data.models || []));
     pageToken = data.nextPageToken || '';
   } while (pageToken);
   return normalizeGoogleModelCatalog(allModels);
@@ -645,6 +667,13 @@ export async function fetchModelsFromProvider(provider, apiKey) {
         // generation access, then use the current documented Gemini text list.
       }
 
+      try {
+        const models = await fetchGeminiApiModels(apiKey);
+        if (models.length > 0) return models;
+      } catch {
+        // Vertex/Express keys usually cannot list the Gemini API catalog.
+      }
+
       const testRes = await fetch(
         `https://aiplatform.googleapis.com/v1/publishers/google/models/gemini-2.5-flash:countTokens?key=${apiKey}`,
         {
@@ -654,27 +683,10 @@ export async function fetchModelsFromProvider(provider, apiKey) {
         },
       );
       if (!testRes.ok) throw new Error('Invalid API key');
-      return GOOGLE_TEXT_MODEL_FALLBACKS;
+      return [...GOOGLE_VERTEX_EXPRESS_TEXT_MODEL_FALLBACKS].sort(sortModelOptions);
     }
 
-    const allModels = [];
-    let pageToken = '';
-    do {
-      const url = new URL('https://generativelanguage.googleapis.com/v1beta/models');
-      url.searchParams.set('key', apiKey);
-      url.searchParams.set('pageSize', '1000');
-      if (pageToken) url.searchParams.set('pageToken', pageToken);
-      const response = await fetch(url.toString());
-      if (!response.ok) {
-        const err = await response.json().catch(() => ({}));
-        throw new Error(err.error?.message || 'Invalid API key');
-      }
-      const data = await response.json();
-      allModels.push(...(data.models || []));
-      pageToken = data.nextPageToken || '';
-    } while (pageToken);
-
-    const models = normalizeGoogleModelCatalog(allModels);
+    const models = await fetchGeminiApiModels(apiKey);
     if (models.length === 0) throw new Error('No Gemini models available');
     return models;
   }
