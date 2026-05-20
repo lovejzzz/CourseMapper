@@ -6,6 +6,8 @@
  * This replaces the fragile JSON-in-text protocol with guaranteed structured output.
  */
 
+import { getGoogleModelBaseUrl } from './googleProvider';
+
 // ── Parse param type from string format ─────────────────────────────────────
 // 'number — 0-based lesson index' → { type: 'number', description: '0-based lesson index' }
 // 'string — search terms'         → { type: 'string', description: 'search terms' }
@@ -253,10 +255,10 @@ export function buildAgentRequest(
 
   if (provider === 'google') {
     return {
-      endpoint: `https://generativelanguage.googleapis.com/v1beta/models/${model}:generateContent?key=${apiKey}`,
+      endpoint: `${getGoogleModelBaseUrl(apiKey, model)}:generateContent?key=${apiKey}`,
       headers: { 'Content-Type': 'application/json' },
       body: {
-        system_instruction: { parts: [{ text: joinedSystemPrompt }] },
+        systemInstruction: { parts: [{ text: joinedSystemPrompt }] },
         contents: messages.map((m) => {
           if (m._native) return stripNativeFlag(m);
           return {

@@ -384,8 +384,21 @@ describe('buildAgentRequest', () => {
 
   it('builds Google request with API key in URL', () => {
     const req = buildAgentRequest('google', { ...params, model: 'gemini-2.0-flash' });
+    expect(req.endpoint).toContain('generativelanguage.googleapis.com/v1beta/models/gemini-2.0-flash');
     expect(req.endpoint).toContain('key=test-key');
-    expect(req.body.system_instruction.parts[0].text).toBe('You are a helpful assistant.');
+    expect(req.body.systemInstruction.parts[0].text).toBe('You are a helpful assistant.');
+  });
+
+  it('builds Google Vertex requests for Vertex-style keys', () => {
+    const req = buildAgentRequest('google', {
+      ...params,
+      apiKey: 'AQ.testVertexKeyForRoutingOnly0000000000000000000000',
+      model: 'publishers/google/models/gemini-2.5-pro',
+    });
+
+    expect(req.endpoint).toContain('aiplatform.googleapis.com/v1/publishers/google/models/gemini-2.5-pro');
+    expect(req.endpoint).toContain('key=AQ.testVertexKeyForRoutingOnly');
+    expect(req.body.systemInstruction.parts[0].text).toBe('You are a helpful assistant.');
   });
 
   it('builds DeepSeek requests with max_tokens for OpenAI-compatible API', () => {

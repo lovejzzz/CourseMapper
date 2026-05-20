@@ -1,7 +1,8 @@
 import React, { useState, useEffect, useRef } from 'react';
-import { fetchModelsFromProvider, isVertexKey } from '../hooks/useStreamReader';
+import { fetchModelsFromProvider } from '../hooks/useStreamReader';
 import { useAIConfig } from '../contexts/AIConfigContext';
 import { WEBLLM_MODELS, isWebGPUSupported } from '../lib/webllmConstants';
+import { getGoogleModelBaseUrl } from '../lib/googleProvider';
 
 /**
  * Detect provider from API key prefix and auto-switch if mismatched.
@@ -66,9 +67,7 @@ export async function checkCredits(provider, apiKey, modelId) {
         body: JSON.stringify({ model: modelId, max_tokens: 1, messages: [{ role: 'user', content: 'Hi' }] }),
       });
     } else if (provider === 'google') {
-      const baseUrl = isVertexKey(apiKey)
-        ? `https://aiplatform.googleapis.com/v1/publishers/google/models/${modelId}`
-        : `https://generativelanguage.googleapis.com/v1beta/models/${modelId}`;
+      const baseUrl = getGoogleModelBaseUrl(apiKey, modelId);
       res = await fetch(`${baseUrl}:generateContent?key=${apiKey}`, {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },

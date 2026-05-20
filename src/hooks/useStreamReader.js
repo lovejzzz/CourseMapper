@@ -1,5 +1,8 @@
 import { useRef, useCallback } from 'react';
 import { supportsCustomTemperature } from '../lib/agentProviders';
+import { getGoogleModelBaseUrl, isVertexKey } from '../lib/googleProvider';
+
+export { isVertexKey } from '../lib/googleProvider';
 
 /**
  * Strip <think>...</think> tags from reasoning model output.
@@ -340,10 +343,7 @@ function buildProviderRequest(
   }
 
   if (provider === 'google') {
-    const vertex = isVertexKey(apiKey);
-    const baseUrl = vertex
-      ? `https://aiplatform.googleapis.com/v1/publishers/google/models/${modelId}`
-      : `https://generativelanguage.googleapis.com/v1beta/models/${modelId}`;
+    const baseUrl = getGoogleModelBaseUrl(apiKey, modelId);
     return {
       url: `${baseUrl}:streamGenerateContent?key=${apiKey}&alt=sse`,
       headers: { 'Content-Type': 'application/json' },
@@ -418,21 +418,20 @@ const OPENAI_INCLUDE = /^(gpt-|o\d|chatgpt-)/i;
 // Exclude non-text Google Gemini variants (image generation, TTS, live streaming, embeddings)
 const GOOGLE_EXCLUDE = /imagen|image|veo|tts|live|embedding|aqa|native-audio/i;
 
-/** Detect if a Google API key is a Vertex AI Express Mode key (vs standard Gemini/AI Studio key) */
-export function isVertexKey(apiKey) {
-  return apiKey && !apiKey.startsWith('AIza') && apiKey.length > 39;
-}
-
 const GOOGLE_TEXT_MODEL_FALLBACKS = [
-  { id: 'gemini-3.1-pro-preview', name: 'Gemini 3.1 Pro Preview', maxOutputTokens: 65536 },
-  { id: 'gemini-3.5-flash', name: 'Gemini 3.5 Flash', maxOutputTokens: 65536 },
+  { id: 'gemini-3-pro-preview', name: 'Gemini 3 Pro Preview', maxOutputTokens: 65536 },
   { id: 'gemini-3-flash-preview', name: 'Gemini 3 Flash Preview', maxOutputTokens: 65536 },
-  { id: 'gemini-3.1-flash-lite', name: 'Gemini 3.1 Flash-Lite', maxOutputTokens: 65536 },
-  { id: 'gemini-3.1-flash-lite-preview', name: 'Gemini 3.1 Flash-Lite Preview', maxOutputTokens: 65536 },
   { id: 'gemini-2.5-pro', name: 'Gemini 2.5 Pro', maxOutputTokens: 65536 },
   { id: 'gemini-2.5-flash', name: 'Gemini 2.5 Flash', maxOutputTokens: 65536 },
+  { id: 'gemini-2.5-flash-preview-09-2025', name: 'Gemini 2.5 Flash Preview 09-2025', maxOutputTokens: 65536 },
   { id: 'gemini-2.5-flash-lite', name: 'Gemini 2.5 Flash Lite', maxOutputTokens: 65536 },
-  { id: 'gemini-2.0-flash-001', name: 'Gemini 2.0 Flash', maxOutputTokens: 8192 },
+  {
+    id: 'gemini-2.5-flash-lite-preview-09-2025',
+    name: 'Gemini 2.5 Flash-Lite Preview 09-2025',
+    maxOutputTokens: 65536,
+  },
+  { id: 'gemini-2.0-flash', name: 'Gemini 2.0 Flash', maxOutputTokens: 8192 },
+  { id: 'gemini-2.0-flash-001', name: 'Gemini 2.0 Flash 001', maxOutputTokens: 8192 },
 ];
 
 function cleanOpenAIName(id) {

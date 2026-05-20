@@ -27,6 +27,7 @@ import {
   loadCustomDeliverables as cloudLoadAll,
 } from './cloudStorage';
 import { supportsCustomTemperature } from './agentProviders';
+import { getGoogleModelBaseUrl } from './googleProvider';
 
 const STORAGE_KEY = 'coursemapper-custom-deliverables';
 
@@ -221,19 +222,35 @@ Pick the most fitting tone, style, length, icon, and color for "${trimmedName}".
       if (!res.ok) return null;
       const data = await res.json();
       responseText = data.choices?.[0]?.message?.content || '';
+    } else if (effectiveProvider === 'deepseek') {
+      const res = await fetch('https://api.deepseek.com/v1/chat/completions', {
+        method: 'POST',
+        headers: { Authorization: `Bearer ${apiKey}`, 'Content-Type': 'application/json' },
+        body: JSON.stringify({
+          model: modelId,
+          max_tokens: 1500,
+          ...tempSetting,
+          stream: false,
+          response_format: { type: 'json_object' },
+          messages: [
+            { role: 'system', content: sysPrompt },
+            { role: 'user', content: userPrompt },
+          ],
+        }),
+      });
+      if (!res.ok) return null;
+      const data = await res.json();
+      responseText = data.choices?.[0]?.message?.content || '';
     } else if (effectiveProvider === 'google') {
-      const res = await fetch(
-        `https://generativelanguage.googleapis.com/v1beta/models/${modelId}:generateContent?key=${apiKey}`,
-        {
-          method: 'POST',
-          headers: { 'Content-Type': 'application/json' },
-          body: JSON.stringify({
-            contents: [{ role: 'user', parts: [{ text: userPrompt }] }],
-            systemInstruction: { parts: [{ text: sysPrompt }] },
-            generationConfig: { ...tempSetting, maxOutputTokens: 1500, responseMimeType: 'application/json' },
-          }),
-        },
-      );
+      const res = await fetch(`${getGoogleModelBaseUrl(apiKey, modelId)}:generateContent?key=${apiKey}`, {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({
+          contents: [{ role: 'user', parts: [{ text: userPrompt }] }],
+          systemInstruction: { parts: [{ text: sysPrompt }] },
+          generationConfig: { ...tempSetting, maxOutputTokens: 1500, responseMimeType: 'application/json' },
+        }),
+      });
       if (!res.ok) return null;
       const data = await res.json();
       responseText = data.candidates?.[0]?.content?.parts?.[0]?.text || '';

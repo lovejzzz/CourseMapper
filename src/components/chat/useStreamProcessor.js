@@ -15,6 +15,7 @@ import {
   supportsCustomTemperature,
 } from '../../lib/agentProviders';
 import { formatPackageSummaryForHistory } from '../../lib/packageFinalizerSummary';
+import { getGoogleModelBaseUrl } from '../../lib/googleProvider';
 // webllm is dynamically imported when needed; its runtime is loaded externally for Local AI users only.
 
 // ── System prompt for Help / Tutor mode (extracted from FaqChatbot) ─────────
@@ -128,12 +129,12 @@ export async function streamChat(messages, systemPrompt, signal, apiKey, provide
       role: m.role === 'assistant' ? 'model' : 'user',
       parts: [{ text: m.content }],
     }));
-    const url = `https://generativelanguage.googleapis.com/v1beta/models/${chatModel}:streamGenerateContent?alt=sse&key=${apiKey}`;
+    const url = `${getGoogleModelBaseUrl(apiKey, chatModel)}:streamGenerateContent?alt=sse&key=${apiKey}`;
     const response = await fetch(url, {
       method: 'POST',
       headers: { 'Content-Type': 'application/json' },
       body: JSON.stringify({
-        system_instruction: { parts: [{ text: systemPrompt }] },
+        systemInstruction: { parts: [{ text: systemPrompt }] },
         contents: geminiMessages,
         generationConfig: { temperature: 0.4, maxOutputTokens: maxTokens },
       }),

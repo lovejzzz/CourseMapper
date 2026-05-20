@@ -2,6 +2,7 @@ import React, { useState, useRef, useEffect } from 'react';
 import FocusTrap from 'focus-trap-react';
 import { getSecure } from '../lib/secureStorage';
 import { supportsCustomTemperature } from '../lib/agentProviders';
+import { getGoogleModelBaseUrl } from '../lib/googleProvider';
 
 function getSystemPrompt(courseMap, activeTab) {
   let contextSection = '';
@@ -208,12 +209,12 @@ async function streamChat(messages, systemPrompt, signal) {
       role: m.role === 'assistant' ? 'model' : 'user',
       parts: [{ text: m.content }],
     }));
-    const url = `https://generativelanguage.googleapis.com/v1beta/models/${chatModel}:streamGenerateContent?alt=sse&key=${apiKey}`;
+    const url = `${getGoogleModelBaseUrl(apiKey, chatModel)}:streamGenerateContent?alt=sse&key=${apiKey}`;
     const response = await fetch(url, {
       method: 'POST',
       headers: { 'Content-Type': 'application/json' },
       body: JSON.stringify({
-        system_instruction: { parts: [{ text: systemPrompt }] },
+        systemInstruction: { parts: [{ text: systemPrompt }] },
         contents: geminiMessages,
         generationConfig: { temperature: 0.4, maxOutputTokens: 2048 },
       }),
