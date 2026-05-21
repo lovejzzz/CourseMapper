@@ -68,7 +68,7 @@ describe('DeveloperAgentLogPanel', () => {
 
     expect(container.querySelectorAll('[data-testid="developer-agent-event"]')).toHaveLength(1);
     expect(container.textContent).toContain('Package check');
-    expect(container.textContent).toContain('Needs instructor review');
+    expect(container.textContent).toContain('Decision needed');
   });
 
   it('shows an empty state when no agent history exists', () => {

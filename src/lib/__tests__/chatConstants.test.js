@@ -208,7 +208,7 @@ describe('getChatOpener — Tier 3 (agent mode)', () => {
     const result = getChatOpener(cm, true, 'slideDecks', deliverables);
     const texts = result.starters.map((s) => s.text);
 
-    expect(texts).toContain('Audit slide speaker notes and activities');
+    expect(texts).toContain('Improve slides');
     expect(texts.join(' ')).not.toContain("Review Bloom's alignment");
   });
 

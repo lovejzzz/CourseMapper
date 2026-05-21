@@ -421,6 +421,67 @@ test.describe('Configure Generation', () => {
     await expect(page.getByRole('button', { name: 'Course Logistics' })).toBeVisible();
   });
 
+  test('uses selected model capabilities to tune configure defaults', async ({ page }) => {
+    await page.route('https://api.openai.com/v1/models', (route) =>
+      route.fulfill({
+        status: 200,
+        contentType: 'application/json',
+        body: JSON.stringify({
+          data: [{ id: 'gpt-5-future-long', created: 1 }],
+        }),
+      }),
+    );
+    await page.route('https://api.openai.com/v1/chat/completions', (route) =>
+      route.fulfill({
+        status: 200,
+        contentType: 'application/json',
+        body: JSON.stringify({
+          choices: [{ message: { content: 'ok' } }],
+        }),
+      }),
+    );
+
+    await page.addInitScript(() => {
+      localStorage.clear();
+      sessionStorage.clear();
+      localStorage.setItem('coursemapper-provider', 'openai');
+      localStorage.setItem('coursemapper-apikey', 'sk-proj-test1234567890123456789012345678901234567890123456');
+      localStorage.setItem('coursemapper-modelid', 'gpt-5-future-long');
+      localStorage.setItem('coursemapper-modelname', 'GPT-5 Future Long');
+      localStorage.setItem(
+        'coursemapper-model-capabilities-current',
+        JSON.stringify({
+          provider: 'openai',
+          modelId: 'gpt-5-future-long',
+          modelName: 'GPT-5 Future Long',
+          maxOutputTokens: 131072,
+          quality: 'high',
+          structuredOutput: { supportsStrictSchema: true, jsonReliability: 'high' },
+          reasoning: { supported: true },
+        }),
+      );
+    });
+
+    await page.goto('/');
+    await expect(page.locator('text=Connected').first()).toBeVisible({ timeout: 10000 });
+    await page.locator('textarea').fill('Build a 12-lesson course with slide decks.');
+    await page.getByRole('button', { name: 'Continue' }).click();
+
+    await expect(page.locator('text=Choose deliverables')).toBeVisible({ timeout: 10000 });
+    await page.getByRole('button', { name: /Slide Decks/ }).click();
+    await page.getByRole('button', { name: /Configure & Generate/ }).click();
+
+    await expect(page.locator('h1:has-text("Configure generation")')).toBeVisible({ timeout: 10000 });
+    await expect(page.getByText('Model-tuned defaults')).toBeVisible();
+    await expect(page.getByText(/uses detailed defaults\./)).toBeVisible();
+    await expect(page.getByText('Long output')).toBeVisible();
+    await page.getByRole('button', { name: 'Expand Slide Decks settings' }).click();
+    await expect(page.getByText('Model default: 14.')).toBeVisible();
+    await expect(page.getByText('Model default: Full script.')).toBeVisible();
+    await page.getByRole('button', { name: 'Advanced options' }).click();
+    await expect(page.getByRole('button', { name: 'Auto (Detailed)' })).toBeVisible();
+  });
+
   test('saves institution profile defaults from the configure screen', async ({ page }) => {
     await page.route('https://api.openai.com/v1/models', (route) =>
       route.fulfill({

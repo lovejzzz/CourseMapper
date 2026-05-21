@@ -1,4 +1,4 @@
-import React, { useEffect, useState, useRef } from 'react';
+import React, { useEffect, useMemo, useState, useRef } from 'react';
 import FocusTrap from 'focus-trap-react';
 import { FEATURES, COLOR_MAP } from '../lib/featureCatalog';
 import ColumnEditor from '../components/ColumnEditor';
@@ -11,6 +11,12 @@ import { useUI } from '../contexts/UIContext';
 import { useCourse } from '../contexts/CourseContext';
 import { useAIConfig } from '../contexts/AIConfigContext';
 import { fetchOpenAIImageModels, OPENAI_IMAGE_MODEL_FALLBACKS, OPENAI_SLIDE_IMAGE_MODEL } from '../lib/imageSearch';
+import {
+  applyModelAwareDeliverableDefaults,
+  createModelAwareConfigPlan,
+  getCurrentModelCapabilityProfile,
+  hasExplicitConfigValue,
+} from '../lib/modelAwareConfig';
 
 // ── Shared option lists for universal advanced settings ───────────────────────
 const TONE_OPTIONS = ['Auto', 'Academic', 'Professional', 'Conversational', 'Friendly', 'Formal', 'Encouraging'];
@@ -26,10 +32,16 @@ const FAQ_CATEGORY_OPTIONS = [
 
 // ── DeliverableExtras — reference file + extra instructions ───────────────────
 
-function DeliverableExtras({ featureId, config, onChange }) {
+function DeliverableExtras({ featureId, config, onChange, modelConfigPlan }) {
   const inputRef = useRef(null);
   const file = config.referenceFile || null;
   const [showPromptEditor, setShowPromptEditor] = useState(false);
+  const modelDefaults = modelConfigPlan?.universal || {};
+
+  const defaultLabel = (key) => {
+    if (!modelDefaults[key] || hasExplicitConfigValue(config, key)) return null;
+    return `Auto (${modelDefaults[key]})`;
+  };
 
   function handleFile(e) {
     const f = e.target.files?.[0];
@@ -54,11 +66,16 @@ function DeliverableExtras({ featureId, config, onChange }) {
       {/* ── Universal Controls: Tone ── */}
       <div className="space-y-1">
         <label className="text-xs font-medium text-slate-700">Tone</label>
-        <p className="text-[10px] text-slate-400">Sets the voice and register of the output.</p>
+        <p className="text-[10px] text-slate-400">
+          {defaultLabel('tone')
+            ? `Model default: ${modelDefaults.tone}.`
+            : 'Sets the voice and register of the output.'}
+        </p>
         <div className="flex flex-wrap gap-1.5 mt-1">
           {TONE_OPTIONS.map((opt) => {
             const isAuto = opt === 'Auto';
             const isActive = isAuto ? !config.tone || config.tone === 'Auto' : config.tone === opt;
+            const label = isAuto ? defaultLabel('tone') || opt : opt;
             return (
               <button
                 key={opt}
@@ -69,7 +86,7 @@ function DeliverableExtras({ featureId, config, onChange }) {
                     : 'bg-white/60 text-slate-600 border border-slate-200/60 hover:bg-white/90'
                 }`}
               >
-                {opt}
+                {label}
               </button>
             );
           })}
@@ -79,11 +96,16 @@ function DeliverableExtras({ featureId, config, onChange }) {
       {/* ── Universal Controls: Style & Format ── */}
       <div className="space-y-1">
         <label className="text-xs font-medium text-slate-700">Style & Format</label>
-        <p className="text-[10px] text-slate-400">How the content is structured and presented.</p>
+        <p className="text-[10px] text-slate-400">
+          {defaultLabel('style')
+            ? `Model default: ${modelDefaults.style}.`
+            : 'How the content is structured and presented.'}
+        </p>
         <div className="flex flex-wrap gap-1.5 mt-1">
           {STYLE_OPTIONS.map((opt) => {
             const isAuto = opt === 'Auto';
             const isActive = isAuto ? !config.style || config.style === 'Auto' : config.style === opt;
+            const label = isAuto ? defaultLabel('style') || opt : opt;
             return (
               <button
                 key={opt}
@@ -94,7 +116,7 @@ function DeliverableExtras({ featureId, config, onChange }) {
                     : 'bg-white/60 text-slate-600 border border-slate-200/60 hover:bg-white/90'
                 }`}
               >
-                {opt}
+                {label}
               </button>
             );
           })}
@@ -104,13 +126,18 @@ function DeliverableExtras({ featureId, config, onChange }) {
       {/* ── Universal Controls: Output Length ── */}
       <div className="space-y-1">
         <label className="text-xs font-medium text-slate-700">Output Length</label>
-        <p className="text-[10px] text-slate-400">Controls how much detail the AI generates.</p>
+        <p className="text-[10px] text-slate-400">
+          {defaultLabel('outputLength')
+            ? `Model default: ${modelDefaults.outputLength}.`
+            : 'Controls how much detail the AI generates.'}
+        </p>
         <div className="flex flex-wrap gap-1.5 mt-1">
           {LENGTH_OPTIONS.map((opt) => {
             const isAuto = opt === 'Auto';
             const isActive = isAuto
               ? !config.outputLength || config.outputLength === 'Auto'
               : config.outputLength === opt;
+            const label = isAuto ? defaultLabel('outputLength') || opt : opt;
             return (
               <button
                 key={opt}
@@ -123,7 +150,7 @@ function DeliverableExtras({ featureId, config, onChange }) {
                     : 'bg-white/60 text-slate-600 border border-slate-200/60 hover:bg-white/90'
                 }`}
               >
-                {opt}
+                {label}
               </button>
             );
           })}
@@ -343,6 +370,35 @@ function NumberInput({ label, value, onChange, min, max, description }) {
         >
           +
         </button>
+      </div>
+    </div>
+  );
+}
+
+function ModelTuningSummary({ modelLabel, plan }) {
+  const tags = plan?.tags || [];
+  if (!plan) return null;
+  return (
+    <div className="rounded-squircle-xs border border-indigo-100/70 bg-white/55 px-4 py-3 shadow-sm shadow-indigo-100/30">
+      <div className="flex flex-col gap-2 sm:flex-row sm:items-center sm:justify-between">
+        <div className="min-w-0">
+          <p className="text-[10px] font-semibold uppercase tracking-wider text-indigo-500">Model-tuned defaults</p>
+          <p className="mt-0.5 truncate text-xs font-medium text-slate-700">
+            {modelLabel || 'Selected model'} uses {plan.label.toLowerCase()}.
+          </p>
+        </div>
+        {tags.length > 0 && (
+          <div className="flex flex-wrap gap-1.5">
+            {tags.map((tag) => (
+              <span
+                key={tag}
+                className="rounded-full border border-indigo-100 bg-indigo-50/70 px-2 py-1 text-[10px] font-semibold text-indigo-600"
+              >
+                {tag}
+              </span>
+            ))}
+          </div>
+        )}
       </div>
     </div>
   );
@@ -1295,8 +1351,17 @@ function DeliverableConfigContent({
   courseMap,
   provider,
   apiKey,
+  modelConfigPlan,
 }) {
   const set = (key, val) => onChange({ ...config, [key]: val });
+  const effectiveConfig = applyModelAwareDeliverableDefaults(featureId, config, modelConfigPlan);
+  const ranges = modelConfigPlan?.ranges?.[featureId] || {};
+  const modelDefaultNote = (key, fallbackDescription = '') => {
+    const value = effectiveConfig?.[key];
+    if (!value || hasExplicitConfigValue(config, key)) return fallbackDescription;
+    const note = `Model default: ${Array.isArray(value) ? value.join(', ') : value}.`;
+    return fallbackDescription ? `${fallbackDescription} ${note}` : note;
+  };
 
   switch (featureId) {
     case 'courseMap':
@@ -1308,7 +1373,12 @@ function DeliverableConfigContent({
           </p>
           <ColumnEditor columns={columns} setColumns={setColumns} />
           <AdvancedSection>
-            <DeliverableExtras featureId={featureId} config={config} onChange={onChange} />
+            <DeliverableExtras
+              featureId={featureId}
+              config={config}
+              onChange={onChange}
+              modelConfigPlan={modelConfigPlan}
+            />
           </AdvancedSection>
         </div>
       );
@@ -1320,16 +1390,17 @@ function DeliverableConfigContent({
           {/* Basic settings — always visible */}
           <Select
             label="Session length"
-            value={config.sessionLength || '75 min'}
+            value={effectiveConfig.sessionLength || '75 min'}
             onChange={(v) => set('sessionLength', v)}
             options={['50 min', '75 min', '90 min', '2 hr', '3 hr']}
-            description="Adjusts all time estimates in the lesson outline."
+            description={modelDefaultNote('sessionLength', 'Adjusts all time estimates in the lesson outline.')}
           />
           <Select
             label="Detail level"
-            value={config.detailLevel || 'Standard'}
+            value={effectiveConfig.detailLevel || 'Standard'}
             onChange={(v) => set('detailLevel', v)}
             options={['Brief', 'Standard', 'Detailed']}
+            description={modelDefaultNote('detailLevel')}
           />
           {/* Advanced settings */}
           <AdvancedSection>
@@ -1349,7 +1420,12 @@ function DeliverableConfigContent({
               value={config.includeHomework !== false}
               onChange={(v) => set('includeHomework', v)}
             />
-            <DeliverableExtras featureId={featureId} config={config} onChange={onChange} />
+            <DeliverableExtras
+              featureId={featureId}
+              config={config}
+              onChange={onChange}
+              modelConfigPlan={modelConfigPlan}
+            />
           </AdvancedSection>
         </div>
       );
@@ -1361,17 +1437,21 @@ function DeliverableConfigContent({
           {/* Basic */}
           <NumberInput
             label="Slides per lesson"
-            value={config.slidesPerLesson || 12}
+            value={effectiveConfig.slidesPerLesson || 12}
             onChange={(v) => set('slidesPerLesson', v)}
-            min={8}
-            max={20}
-            description="Includes title, agenda, objectives, content, and closing slides."
+            min={ranges.slidesPerLesson?.min || 8}
+            max={ranges.slidesPerLesson?.max || 20}
+            description={modelDefaultNote(
+              'slidesPerLesson',
+              'Includes title, agenda, objectives, content, and closing slides.',
+            )}
           />
           <Select
             label="Speaker notes"
-            value={config.speakerNotes || 'Standard'}
+            value={effectiveConfig.speakerNotes || 'Standard'}
             onChange={(v) => set('speakerNotes', v)}
             options={['Minimal', 'Standard', 'Full script']}
+            description={modelDefaultNote('speakerNotes')}
           />
           {/* Advanced */}
           <AdvancedSection>
@@ -1396,8 +1476,8 @@ function DeliverableConfigContent({
                       label="Max images total"
                       value={config.aiImagesTotal || 2}
                       onChange={(v) => set('aiImagesTotal', v)}
-                      min={1}
-                      max={4}
+                      min={ranges.aiImagesTotal?.min || 1}
+                      max={ranges.aiImagesTotal?.max || 4}
                       description="Creates images for high-value image, diagram, and chart slide cues."
                     />
                   </>
@@ -1408,7 +1488,12 @@ function DeliverableConfigContent({
                 GPT Image slide visuals are available when the model provider is OpenAI.
               </p>
             )}
-            <DeliverableExtras featureId={featureId} config={config} onChange={onChange} />
+            <DeliverableExtras
+              featureId={featureId}
+              config={config}
+              onChange={onChange}
+              modelConfigPlan={modelConfigPlan}
+            />
           </AdvancedSection>
         </div>
       );
@@ -1420,18 +1505,18 @@ function DeliverableConfigContent({
           {/* Basic */}
           <NumberInput
             label="Criteria per rubric"
-            value={config.criteriaCount || 4}
+            value={effectiveConfig.criteriaCount || 4}
             onChange={(v) => set('criteriaCount', v)}
-            min={3}
-            max={8}
-            description="All criteria weights will sum to 100%."
+            min={ranges.criteriaCount?.min || 3}
+            max={ranges.criteriaCount?.max || 8}
+            description={modelDefaultNote('criteriaCount', 'All criteria weights will sum to 100%.')}
           />
           <Select
             label="Performance levels"
-            value={config.performanceLevels || '4 levels'}
+            value={effectiveConfig.performanceLevels || '4 levels'}
             onChange={(v) => set('performanceLevels', v)}
             options={['3 levels', '4 levels']}
-            description="3 levels: Developing / Proficient / Mastery."
+            description={modelDefaultNote('performanceLevels', '3 levels: Developing / Proficient / Mastery.')}
           />
           {/* Advanced */}
           <AdvancedSection>
@@ -1441,7 +1526,12 @@ function DeliverableConfigContent({
               onChange={(v) => set('includeTeacherNotes', v)}
               description="Calibration tips and student feedback guidance."
             />
-            <DeliverableExtras featureId={featureId} config={config} onChange={onChange} />
+            <DeliverableExtras
+              featureId={featureId}
+              config={config}
+              onChange={onChange}
+              modelConfigPlan={modelConfigPlan}
+            />
           </AdvancedSection>
         </div>
       );
@@ -1453,10 +1543,11 @@ function DeliverableConfigContent({
           {/* Basic */}
           <NumberInput
             label="Questions per lesson"
-            value={config.questionsPerLesson || 8}
+            value={effectiveConfig.questionsPerLesson || 8}
             onChange={(v) => set('questionsPerLesson', v)}
-            min={3}
-            max={20}
+            min={ranges.questionsPerLesson?.min || 3}
+            max={ranges.questionsPerLesson?.max || 20}
+            description={modelDefaultNote('questionsPerLesson')}
           />
           <MultiToggle
             label="Question types"
@@ -1479,11 +1570,17 @@ function DeliverableConfigContent({
           <AdvancedSection>
             <Select
               label="Difficulty distribution"
-              value={config.difficultyDist || 'Mixed'}
+              value={effectiveConfig.difficultyDist || 'Mixed'}
               onChange={(v) => set('difficultyDist', v)}
               options={['Mostly Easy/Medium', 'Mixed', 'Mostly Medium/Hard']}
+              description={modelDefaultNote('difficultyDist')}
             />
-            <DeliverableExtras featureId={featureId} config={config} onChange={onChange} />
+            <DeliverableExtras
+              featureId={featureId}
+              config={config}
+              onChange={onChange}
+              modelConfigPlan={modelConfigPlan}
+            />
           </AdvancedSection>
         </div>
       );
@@ -1495,9 +1592,10 @@ function DeliverableConfigContent({
           {/* Basic */}
           <Select
             label="Discussion format"
-            value={config.formatPreference || 'Any'}
+            value={effectiveConfig.formatPreference || 'Any'}
             onChange={(v) => set('formatPreference', v)}
             options={['Any', 'Socratic Seminar', 'Fishbowl', 'Debate', 'Case Study', 'Think-Pair-Share']}
+            description={modelDefaultNote('formatPreference')}
           />
           {/* Advanced */}
           <AdvancedSection>
@@ -1511,7 +1609,12 @@ function DeliverableConfigContent({
               value={config.includeEquity !== false}
               onChange={(v) => set('includeEquity', v)}
             />
-            <DeliverableExtras featureId={featureId} config={config} onChange={onChange} />
+            <DeliverableExtras
+              featureId={featureId}
+              config={config}
+              onChange={onChange}
+              modelConfigPlan={modelConfigPlan}
+            />
           </AdvancedSection>
         </div>
       );
@@ -1525,7 +1628,7 @@ function DeliverableConfigContent({
             label="Assignment types"
             options={['Essay', 'Research Paper', 'Case Study', 'Reflection', 'Group Project', 'Presentation']}
             selected={
-              config.assignmentTypes || [
+              effectiveConfig.assignmentTypes || [
                 'Essay',
                 'Research Paper',
                 'Case Study',
@@ -1535,7 +1638,7 @@ function DeliverableConfigContent({
               ]
             }
             onChange={(v) => set('assignmentTypes', v)}
-            description="Only the selected types will be generated."
+            description={modelDefaultNote('assignmentTypes', 'Only the selected types will be generated.')}
           />
           {/* Advanced */}
           <AdvancedSection>
@@ -1550,7 +1653,12 @@ function DeliverableConfigContent({
               value={config.includeIntegrity !== false}
               onChange={(v) => set('includeIntegrity', v)}
             />
-            <DeliverableExtras featureId={featureId} config={config} onChange={onChange} />
+            <DeliverableExtras
+              featureId={featureId}
+              config={config}
+              onChange={onChange}
+              modelConfigPlan={modelConfigPlan}
+            />
           </AdvancedSection>
         </div>
       );
@@ -1562,11 +1670,11 @@ function DeliverableConfigContent({
           {/* Basic */}
           <NumberInput
             label="Key terms per guide"
-            value={config.keyTermsCount || 8}
+            value={effectiveConfig.keyTermsCount || 8}
             onChange={(v) => set('keyTermsCount', v)}
-            min={4}
-            max={20}
-            description="Each term includes a definition and example."
+            min={ranges.keyTermsCount?.min || 4}
+            max={ranges.keyTermsCount?.max || 20}
+            description={modelDefaultNote('keyTermsCount', 'Each term includes a definition and example.')}
           />
           {/* Advanced */}
           <AdvancedSection>
@@ -1585,7 +1693,12 @@ function DeliverableConfigContent({
               value={config.includePractice !== false}
               onChange={(v) => set('includePractice', v)}
             />
-            <DeliverableExtras featureId={featureId} config={config} onChange={onChange} />
+            <DeliverableExtras
+              featureId={featureId}
+              config={config}
+              onChange={onChange}
+              modelConfigPlan={modelConfigPlan}
+            />
           </AdvancedSection>
         </div>
       );
@@ -1597,11 +1710,11 @@ function DeliverableConfigContent({
           {/* Basic */}
           <NumberInput
             label="Questions per lesson"
-            value={config.questionsPerLesson || 5}
+            value={effectiveConfig.questionsPerLesson || 5}
             onChange={(v) => set('questionsPerLesson', v)}
-            min={3}
-            max={8}
-            description="Keeps the FAQ useful without overwhelming students."
+            min={ranges.questionsPerLesson?.min || 3}
+            max={ranges.questionsPerLesson?.max || 8}
+            description={modelDefaultNote('questionsPerLesson', 'Keeps the FAQ useful without overwhelming students.')}
           />
           <MultiToggle
             label="Question categories"
@@ -1612,10 +1725,10 @@ function DeliverableConfigContent({
           />
           <Select
             label="Answer depth"
-            value={config.answerDepth || 'Standard'}
+            value={effectiveConfig.answerDepth || 'Standard'}
             onChange={(v) => set('answerDepth', v)}
             options={['Quick answers', 'Standard', 'Detailed']}
-            description="Sets how much explanation each answer includes."
+            description={modelDefaultNote('answerDepth', 'Sets how much explanation each answer includes.')}
           />
           {/* Advanced */}
           <AdvancedSection>
@@ -1631,7 +1744,12 @@ function DeliverableConfigContent({
               onChange={(v) => set('useFirstPersonQuestions', v)}
               description='Writes questions like "How should I prepare?" instead of neutral headings.'
             />
-            <DeliverableExtras featureId={featureId} config={config} onChange={onChange} />
+            <DeliverableExtras
+              featureId={featureId}
+              config={config}
+              onChange={onChange}
+              modelConfigPlan={modelConfigPlan}
+            />
           </AdvancedSection>
         </div>
       );
@@ -1643,13 +1761,19 @@ function DeliverableConfigContent({
           {/* Basic */}
           <Select
             label="Citation style"
-            value={config.citationStyle || 'APA 7th'}
+            value={effectiveConfig.citationStyle || 'APA 7th'}
             onChange={(v) => set('citationStyle', v)}
             options={['APA 7th', 'MLA 9th', 'Chicago 17th', 'None']}
+            description={modelDefaultNote('citationStyle')}
           />
           {/* Advanced */}
           <AdvancedSection>
-            <DeliverableExtras featureId={featureId} config={config} onChange={onChange} />
+            <DeliverableExtras
+              featureId={featureId}
+              config={config}
+              onChange={onChange}
+              modelConfigPlan={modelConfigPlan}
+            />
           </AdvancedSection>
         </div>
       );
@@ -1666,7 +1790,12 @@ function DeliverableConfigContent({
               </p>
             )}
             <AdvancedSection>
-              <DeliverableExtras featureId={featureId} config={config} onChange={onChange} />
+              <DeliverableExtras
+                featureId={featureId}
+                config={config}
+                onChange={onChange}
+                modelConfigPlan={modelConfigPlan}
+              />
             </AdvancedSection>
           </div>
         );
@@ -1689,7 +1818,7 @@ export default function Config({
 }) {
   const { setShowHelp } = useUI();
   const { user } = useAuth();
-  const { apiKey } = useAIConfig();
+  const { apiKey, modelName, modelId, modelCapabilities, generationPlan } = useAIConfig();
   const {
     selectedFeatures: selected,
     deliverableConfig,
@@ -1701,6 +1830,15 @@ export default function Config({
     setColumns,
   } = useCourse();
   const [expandedId, setExpandedId] = useState('courseMap');
+  const modelConfigPlan = useMemo(
+    () =>
+      createModelAwareConfigPlan(
+        getCurrentModelCapabilityProfile(modelCapabilities, provider, modelId, generationPlan),
+        generationPlan,
+      ),
+    [modelCapabilities, provider, modelId, generationPlan],
+  );
+  const modelLabel = modelName || modelId || 'Selected model';
 
   // Merge built-in + custom features for the config accordion
   const allFeatures = [...FEATURES, ...listCustomDeliverables().map(toFeatureEntry)];
@@ -1764,6 +1902,8 @@ export default function Config({
               <p className="text-sm text-slate-500 mt-2">Set the lesson scope and customize each deliverable.</p>
             </div>
 
+            <ModelTuningSummary modelLabel={modelLabel} plan={modelConfigPlan} />
+
             {/* ── Lesson Scope ── */}
             <LessonScopeSelector
               lessonCount={lessonCount}
@@ -1803,6 +1943,7 @@ export default function Config({
                       courseMap={courseMap}
                       provider={provider}
                       apiKey={apiKey}
+                      modelConfigPlan={modelConfigPlan}
                     />
                   );
 

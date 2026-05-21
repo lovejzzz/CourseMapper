@@ -73,6 +73,7 @@ export function normalizePackageSummary(result = {}) {
     exportChecked: count(exportVerification.checked),
     exportFailed: count(exportVerification.failed),
     exportWarningCount: count(exportVerification.warningCount),
+    checkedItems: ['Readiness', 'classroom fit', 'content validation', 'export files'],
     checkedSections: readiness.checkedSections || null,
     lessonCount: readiness.lessonCount || null,
     topIssues: [

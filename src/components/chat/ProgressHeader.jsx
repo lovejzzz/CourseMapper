@@ -88,11 +88,11 @@ export default function ProgressHeader({
   if (error) phaseLabel = 'Error';
   else if (isStopped) phaseLabel = 'Paused';
   else if (isSyncing) phaseLabel = 'Syncing...';
-  else if (isPackageQualityRunning) phaseLabel = 'Final quality pass...';
-  else if (isDone && hasDelivErrors) phaseLabel = 'Review failed deliverables';
-  else if (hasPackageQualityBlockers) phaseLabel = 'Review before export';
-  else if (hasPackageQualityWarnings) phaseLabel = 'Needs finishing';
-  else if (everythingDone) phaseLabel = 'Complete';
+  else if (isPackageQualityRunning) phaseLabel = 'Finishing package...';
+  else if (isDone && hasDelivErrors) phaseLabel = 'Finish failed sections';
+  else if (hasPackageQualityBlockers) phaseLabel = 'Finish package';
+  else if (hasPackageQualityWarnings) phaseLabel = 'Finish package';
+  else if (everythingDone) phaseLabel = 'Ready to download';
   else if (isDone && isDelivGenerating) phaseLabel = `Deliverables ${delivDoneCount}/${delivRows.length}`;
   else if (isDone) phaseLabel = 'Course map ready';
   else if (currentStep === 'parsing') phaseLabel = 'Parsing files...';

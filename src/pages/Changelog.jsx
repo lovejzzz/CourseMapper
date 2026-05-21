@@ -38,7 +38,7 @@ const releases = [
         color: 'emerald',
         items: [
           'Added in-memory export smoke checks for course-map XLSX, deliverable CSV/DOCX, and slide-deck PPTX generation before the agent marks a package ready.',
-          'Export failures now keep the package in Needs finishing instead of allowing a polished but non-exportable handoff.',
+          'Export failures now keep the package in Finish package instead of allowing a polished but non-exportable handoff.',
           'The export verifier lazy-loads heavy exporters so bundle budgets remain intact.',
         ],
       },

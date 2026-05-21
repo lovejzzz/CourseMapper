@@ -136,10 +136,10 @@ function getPackageNextAction(confidence, exportVerification, classroomReadiness
     return 'Fix classroom-readiness issues before presenting the package as done.';
   }
   if (confidence === 'Excellent') {
-    return 'Package is checked, repaired, export-verified, and ready for classroom review/export.';
+    return 'Package is checked, repaired, export-verified, and ready to download.';
   }
   if (confidence === 'Good with assumptions') {
-    return 'Package needs instructor review; fix concrete issues automatically and leave judgment calls visible.';
+    return 'Safe fixes are complete; leave only instructor judgment calls visible.';
   }
   return 'Fix the remaining issues before presenting the package as done.';
 }
@@ -1816,10 +1816,10 @@ export function summarizeToolResult(toolName, result) {
     case 'finalize_package': {
       const status =
         result.confidence === 'Excellent'
-          ? 'Ready to export'
+          ? 'Ready to download'
           : result.confidence === 'Needs attention'
-            ? 'Needs finishing'
-            : 'Needs review';
+            ? 'Finish package'
+            : 'Decision needed';
       return `${status}: ${result.repairsApplied || 0} repaired, ${result.readiness?.blockerCount || 0} issue(s) to fix, ${result.readiness?.warningCount || 0} review item(s)${result.classroomReadiness ? `, ${result.classroomReadiness.warningCount || 0} classroom review item(s)` : ''}, ${result.exportVerification?.status || 'exports unknown'}`;
     }
     case 'verify_package_exports':

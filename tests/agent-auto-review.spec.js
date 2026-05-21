@@ -193,7 +193,7 @@ test.describe('Agent auto-review', () => {
 
     await expect(page.getByTestId('workspace-shell')).toBeVisible({ timeout: 10000 });
     const agentPanel = page.getByTestId('workspace-agent-panel');
-    await expect(agentPanel.getByTestId('progress-phase-label')).toHaveText('Complete', { timeout: 30000 });
+    await expect(agentPanel.getByTestId('progress-phase-label')).toHaveText('Ready to download', { timeout: 30000 });
 
     // The final pass now runs through deterministic finalization, not through
     // a hidden user-authored chat turn or agent tool-call request.

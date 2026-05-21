@@ -177,7 +177,7 @@ function applyDeterministicRepairs({
 function summarizeFinalizerStatus({ status, readiness, repairQueue, repairsApplied, retryActions }) {
   const repairText =
     repairsApplied > 0 ? `Auto-fixed ${repairsApplied} safe issue${repairsApplied === 1 ? '' : 's'}. ` : '';
-  if (status === 'ready') return `${repairText}All selected materials are ready to export.`;
+  if (status === 'ready') return `${repairText}All selected materials are ready to download.`;
   if (status === 'needs_retry') {
     return `${repairText}Retrying ${retryActions.length} weak area${retryActions.length === 1 ? '' : 's'} before export.`;
   }

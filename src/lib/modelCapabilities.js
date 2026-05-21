@@ -823,3 +823,53 @@ export function getModelCapabilityBadges(profile = {}, plan = createGenerationPl
   if (plan.chunkStrategy === 'expanded') badges.push({ label: 'Larger chunks', tone: 'blue' });
   return badges.slice(0, 5);
 }
+
+function modelHintText(profile = {}) {
+  return String(
+    `${profile.modelId || ''} ${profile.modelName || ''} ${profile.name || ''} ${profile.displayName || ''}`,
+  ).toLowerCase();
+}
+
+function hasFastModelHint(profile = {}) {
+  return /flash|haiku|instant|small|(?:^|[-_\s])(mini|lite|nano)(?:$|[-_\s])/.test(modelHintText(profile));
+}
+
+function hasReasoningModelHint(profile = {}) {
+  return /pro|opus|sonnet|reasoner|thinking|^o\d/.test(modelHintText(profile));
+}
+
+export function getModelFitBadges(profile = {}, plan = createGenerationPlan(profile)) {
+  const maxOutputTokens = Number(
+    profile.limits?.maxOutputTokens || profile.maxOutputTokens || plan.maxOutputTokens || 0,
+  );
+  const quality = profile.quality || plan.quality || 'balanced';
+  const fastModel = hasFastModelHint(profile);
+  const strongStructure =
+    profile.structuredOutput?.supportsStrictSchema === true ||
+    profile.supportsJsonMode === true ||
+    profile.jsonReliability === 'high' ||
+    plan.useStrictSchema === true;
+  const strongRepair =
+    strongStructure ||
+    profile.reasoning?.supported === true ||
+    hasReasoningModelHint(profile) ||
+    Number(plan.repairStreamRetries || 0) >= 3;
+  const longOutput = maxOutputTokens >= 64000 || plan.chunkStrategy === 'expanded';
+  const badges = [];
+
+  if (quality === 'high' && !fastModel && strongRepair) {
+    badges.push({ label: 'Best for full courses', tone: 'emerald' });
+  }
+  if (fastModel || quality === 'fast') badges.push({ label: 'Fast draft', tone: 'blue' });
+  if (strongRepair) badges.push({ label: 'Strong repair', tone: 'violet' });
+  if (longOutput) badges.push({ label: 'Long output', tone: 'indigo' });
+  if (badges.length === 0) badges.push({ label: 'Balanced course build', tone: 'slate' });
+
+  return badges.slice(0, 4);
+}
+
+export function getPrimaryModelFitLabel(profile = {}, plan = createGenerationPlan(profile)) {
+  const badges = getModelFitBadges(profile, plan);
+  const priority = ['Best for full courses', 'Fast draft', 'Strong repair', 'Long output', 'Balanced course build'];
+  return priority.find((label) => badges.some((badge) => badge.label === label)) || badges[0]?.label || 'Course build';
+}

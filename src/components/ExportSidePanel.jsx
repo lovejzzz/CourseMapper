@@ -365,27 +365,27 @@ function ReadinessPanel({ readiness, onIssueClick }) {
     issuesToShow.length === 0
       ? summarizeReadiness(readiness)
       : isBlocked
-        ? 'Critical export issues need missing content or a course-design decision before download.'
-        : 'Safe automatic fixes already ran. These remaining notes need instructor review before publishing.';
+        ? 'Finish package will fix what is safe, then show only the missing content or course-design decisions.'
+        : 'Finish package will retry safe fixes and leave only true instructor decisions.';
   const canNavigate = (issue) => typeof onIssueClick === 'function' && issue?.target;
   const tone = isBlocked
     ? {
         wrap: 'border-red-100 bg-red-50/70 text-red-700',
         icon: 'bg-red-100 text-red-600',
-        title: 'Review before export',
+        title: 'Finish package',
         meta: `${readiness.blockers.length} critical issue${readiness.blockers.length === 1 ? '' : 's'}`,
       }
     : hasWarnings
       ? {
           wrap: 'border-amber-100 bg-amber-50/70 text-amber-700',
           icon: 'bg-amber-100 text-amber-600',
-          title: 'Needs finishing',
+          title: 'Finish package',
           meta: `${readiness.warnings.length} issue${readiness.warnings.length === 1 ? '' : 's'} to fix`,
         }
       : {
           wrap: 'border-emerald-100 bg-emerald-50/70 text-emerald-700',
           icon: 'bg-emerald-100 text-emerald-600',
-          title: 'Ready to export',
+          title: 'Ready to download',
           meta: `${readiness.doneFeatureCount}/${readiness.featureCount} sections checked`,
         };
 
@@ -456,18 +456,18 @@ function ReadinessConfirm({
     ? {
         wrap: 'border-red-200 bg-red-50/80 text-red-800',
         reviewButton: 'border-red-200 text-red-700',
-        title: 'Resolve critical issues before export',
+        title: 'Finish package before export',
         description: isZipExport
-          ? 'ZIP export is blocked until the critical readiness issues below are fixed.'
-          : 'This export is blocked until the critical readiness issues below are fixed.',
+          ? 'Finish package will repair safe issues, re-check the ZIP, and stop only for decisions you need to make.'
+          : 'Finish package will repair safe issues, re-check this export, and stop only for decisions you need to make.',
       }
     : {
         wrap: 'border-amber-200 bg-amber-50/80 text-amber-800',
         reviewButton: 'border-amber-200 text-amber-700',
-        title: 'Finish materials before export',
+        title: 'Finish package before export',
         description: isZipExport
-          ? 'Safe automatic fixes have already run. Resolve the remaining notes before downloading the ZIP.'
-          : 'Safe automatic fixes have already run. Resolve the remaining notes before exporting.',
+          ? 'Automatic fixes ran. Finish package will retry anything safe and prepare the ZIP when clean.'
+          : 'Automatic fixes ran. Finish package will retry anything safe and prepare the export when clean.',
       };
 
   return (
@@ -516,7 +516,7 @@ function ReadinessConfirm({
             disabled={finishPackageBusy}
             className={`rounded-lg border bg-white/70 px-2 py-1.5 text-[10px] font-bold hover:bg-white disabled:cursor-not-allowed disabled:opacity-60 ${tone.reviewButton}`}
           >
-            {finishPackageBusy ? 'Finishing package...' : 'Finish and export'}
+            {finishPackageBusy ? 'Finishing package...' : 'Finish package'}
           </button>
         ) : firstNavigableIssue ? (
           <button
@@ -530,7 +530,7 @@ function ReadinessConfirm({
             }}
             className={`rounded-lg border bg-white/70 px-2 py-1.5 text-[10px] font-bold hover:bg-white ${tone.reviewButton}`}
           >
-            Show first issue
+            Open first issue
           </button>
         ) : null}
       </div>
@@ -546,12 +546,12 @@ function ReadinessFinalizingPanel({ finishingPackage = false, message = '' }) {
           <Spin />
         </span>
         <div className="min-w-0 flex-1">
-          <p className="text-[11px] font-bold">Finalizing materials</p>
+          <p className="text-[11px] font-bold">Finishing package</p>
           <p className="mt-0.5 text-[10px] leading-snug opacity-80">
             {message ||
               (finishingPackage
                 ? 'Checking, fixing, and retrying weak sections so the download can start cleanly.'
-                : 'Fixing readiness issues automatically before showing the export package.')}
+                : 'Fixing known issues automatically before showing the export package.')}
           </p>
         </div>
       </div>
@@ -834,7 +834,7 @@ export default function ExportSidePanel({
 
   async function doExport(format, { pendingExport = null } = {}) {
     if (isPackageQualityRunning) {
-      setLastNotice('Final quality pass is finishing automatic repairs before export.');
+      setLastNotice('Finishing package is repairing and checking materials before export.');
       return;
     }
 
@@ -860,7 +860,7 @@ export default function ExportSidePanel({
         });
 
         if (finishResult === false) {
-          setLastNotice('Automatic finishing could not start. Review the remaining issues before export.');
+          setLastNotice('Package finishing could not start. Open the remaining issue that needs attention.');
           return;
         }
 
@@ -909,8 +909,8 @@ export default function ExportSidePanel({
       setLastNotice(
         `${repairsApplied > 0 ? `Auto-fixed ${repairsApplied} safe issue${repairsApplied === 1 ? '' : 's'}. ` : ''}${
           format === 'zip'
-            ? 'Resolve the issues above before downloading the ZIP.'
-            : 'Resolve the issues above before exporting.'
+            ? 'Finish the issues above before downloading the ZIP.'
+            : 'Finish the issues above before exporting.'
         }`,
       );
       return;
@@ -1052,9 +1052,9 @@ export default function ExportSidePanel({
   const zipButtonLabel = finishPackageBusy
     ? 'Finishing package'
     : zipCanFinishPackage
-      ? 'Finish and download ZIP'
+      ? 'Finish package'
       : zipPendingReadiness
-        ? 'Resolve issues above'
+        ? 'Finish package'
         : 'Download ZIP';
 
   return (
@@ -1135,7 +1135,7 @@ export default function ExportSidePanel({
 
         {isPackageQualityRunning && (
           <p className="rounded-lg bg-indigo-50 px-2 py-1.5 text-[10px] font-semibold text-indigo-700">
-            Final quality pass is repairing and re-checking the package before export.
+            Finishing package is repairing and re-checking materials before export.
           </p>
         )}
 
@@ -1212,9 +1212,9 @@ export default function ExportSidePanel({
                     : zipCanFinishPackage
                       ? 'Fix remaining issues, re-check, and download when clean'
                       : zipPendingReadiness
-                        ? 'Resolve the readiness issues above before downloading'
+                        ? 'Finish the readiness issues above before downloading'
                         : isPackageQualityRunning
-                          ? 'Final quality pass is finishing'
+                          ? 'Package finishing is still running'
                           : !courseMap
                             ? 'Course map is required for ZIP export'
                             : selectedLessons !== null && selectedLessons.length === 0

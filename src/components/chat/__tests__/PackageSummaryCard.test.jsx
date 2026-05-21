@@ -22,6 +22,7 @@ describe('PackageSummaryCard', () => {
           exportChecked: 4,
           exportFailed: 0,
           exportWarningCount: 0,
+          checkedItems: ['Readiness', 'classroom fit', 'content validation', 'export files'],
           checkedSections: '8/8',
           lessonCount: 12,
           topIssues: [],
@@ -29,9 +30,10 @@ describe('PackageSummaryCard', () => {
       />,
     );
 
-    expect(html).toContain('Ready to export');
-    expect(html).toContain('Clean');
+    expect(html).toContain('Quality receipt');
+    expect(html).toContain('Ready to download');
     expect(html).toContain('3 safe repairs applied');
+    expect(html).toContain('Checked:');
     expect(html).toContain('Classroom checks passed');
     expect(html).toContain('Exports verified');
     expect(html).toContain('8/8 sections checked');
@@ -63,11 +65,11 @@ describe('PackageSummaryCard', () => {
       />,
     );
 
-    expect(html).toContain('Needs finishing');
-    expect(html).toContain('Action needed');
+    expect(html).toContain('Quality receipt');
+    expect(html).toContain('Finish package');
     expect(html).toContain('1 issue to fix');
     expect(html).toContain('1 classroom issue');
-    expect(html).toContain('Issues to fix');
+    expect(html).toContain('Needs attention');
     expect(html).toContain('Quiz Bank');
   });
 });

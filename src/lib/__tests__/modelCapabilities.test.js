@@ -3,6 +3,8 @@ import {
   createBaseModelCapabilities,
   createGenerationPlan,
   getModelCapabilityBadges,
+  getModelFitBadges,
+  getPrimaryModelFitLabel,
   resolveModelCapabilities,
 } from '../modelCapabilities';
 
@@ -52,6 +54,21 @@ describe('modelCapabilities', () => {
 
     expect(plan.chunkStrategy).toBe('conservative');
     expect(plan.useJsonMode).toBe(false);
+  });
+
+  it('derives user-facing model fit labels from capabilities', () => {
+    const profile = createBaseModelCapabilities('google', {
+      id: 'gemini-9-pro',
+      name: 'Gemini 9 Pro',
+      maxOutputTokens: 131072,
+      capabilities: { jsonMode: true, toolCalling: true },
+    });
+    const plan = createGenerationPlan({ ...profile, jsonReliability: 'high' });
+
+    expect(getPrimaryModelFitLabel(profile, plan)).toBe('Best for full courses');
+    expect(getModelFitBadges(profile, plan).map((badge) => badge.label)).toEqual(
+      expect.arrayContaining(['Best for full courses', 'Strong repair', 'Long output']),
+    );
   });
 
   it('probes selected model JSON behavior once and reuses the cached profile', async () => {

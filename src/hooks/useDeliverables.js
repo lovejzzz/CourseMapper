@@ -1,4 +1,4 @@
-import { useState, useCallback, useRef, useContext, useEffect } from 'react';
+import { useState, useCallback, useMemo, useRef, useContext, useEffect } from 'react';
 import useStreamReader from './useStreamReader';
 import { getDeliverablePrompt } from '../lib/deliverablePrompts';
 import { getArrayKey } from '../lib/syncDependencies';
@@ -28,6 +28,11 @@ import {
 import { expandKeys } from '../lib/keyMaps';
 import { log, warn, error as logError } from '../lib/logger';
 import { buildDeliverableTimeoutError, runDeliverableFeatureWithTimeout } from '../lib/deliverableTimeouts';
+import {
+  applyModelAwareDeliverableDefaults,
+  createModelAwareConfigPlan,
+  getCurrentModelCapabilityProfile,
+} from '../lib/modelAwareConfig';
 import {
   buildFallbackCourseFaq,
   normalizeAssignmentGradeWeights,
@@ -300,6 +305,19 @@ export default function useDeliverables({
 
   const deliverableConfigRef = useRef(deliverableConfig);
   deliverableConfigRef.current = deliverableConfig;
+  const modelConfigPlan = useMemo(
+    () =>
+      createModelAwareConfigPlan(
+        getCurrentModelCapabilityProfile(modelCapabilities, provider, modelId, generationPlan),
+        generationPlan,
+      ),
+    [modelCapabilities, provider, modelId, generationPlan],
+  );
+  const getGenerationConfig = useCallback(
+    (featureId) =>
+      applyModelAwareDeliverableDefaults(featureId, deliverableConfigRef.current?.[featureId] || {}, modelConfigPlan),
+    [modelConfigPlan],
+  );
   const pedagogicalModeRef = useRef(pedagogicalMode || 'lecture');
   pedagogicalModeRef.current = pedagogicalMode || 'lecture';
   const examChangesRef = useRef(examChanges || null);
@@ -464,7 +482,7 @@ export default function useDeliverables({
         if (featureId !== 'courseFaq') return false;
 
         const label = getFeatureLabel(featureId);
-        const config = deliverableConfigRef.current?.[featureId] || {};
+        const config = getGenerationConfig(featureId);
         let fallback = buildFallbackCourseFaq(courseMap, config, scopeIndices);
         fallback = patchScopeNumbering(fallback, featureId, scopeIndices, courseMap);
 
@@ -554,7 +572,7 @@ export default function useDeliverables({
 
         // Build prompt — for chunks after the first, inject compressed style exemplar
         // from chunk 0 (first item only, capped at 1200 chars to save input tokens)
-        const config = deliverableConfigRef.current?.[featureId] || {};
+        const config = getGenerationConfig(featureId);
         let styleExemplar = null;
         if (chunkIndex > 0 && chunkResults[featureId]?.has(0)) {
           const firstChunk = chunkResults[featureId].get(0);
@@ -843,7 +861,7 @@ export default function useDeliverables({
         // parse as "{}" and would otherwise be marked done before any retry guard.
         if (isWholeCourseFeature) {
           const label = getFeatureLabel(fid);
-          const config = deliverableConfigRef.current?.[fid] || {};
+          const config = getGenerationConfig(fid);
           let finalData = mergeChunkResults(fid, chunks);
           let validation = validateDeliverableGeneration(fid, finalData, {
             expectedLessonCount: expectedCount,
@@ -1193,7 +1211,7 @@ export default function useDeliverables({
         // Treat underfilled lessons like truncated chunks so they get regenerated,
         // and trim overfilled lessons for consistent student-facing exports.
         if (fid === 'courseFaq' && mergedArr.length > 0) {
-          const config = deliverableConfigRef.current?.[fid] || {};
+          const config = getGenerationConfig(fid);
           const normalized = normalizeCourseFaqQuestionCounts(merged, config);
           merged = normalized.data;
           mergedArr = normalized.arrayKey ? merged[normalized.arrayKey] || [] : mergedArr;
@@ -1355,7 +1373,7 @@ export default function useDeliverables({
                 const retryLabel = `${label} retry [${retryScope[0] + 1}-${retryScope[retryScope.length - 1] + 1}]`;
                 appendLog(`Retrying ${retryLabel}...`, 'progress');
 
-                const config = deliverableConfigRef.current?.[fid] || {};
+                const config = getGenerationConfig(fid);
                 const prompts = getDeliverablePrompt(
                   fid,
                   courseMap,
@@ -1461,7 +1479,7 @@ export default function useDeliverables({
             mergedArr = merged && arrayKey ? merged[arrayKey] || [] : [];
 
             if (fid === 'courseFaq' && mergedArr.length > 0) {
-              const config = deliverableConfigRef.current?.[fid] || {};
+              const config = getGenerationConfig(fid);
               const normalized = normalizeCourseFaqQuestionCounts(merged, config);
               merged = normalized.data;
               mergedArr = normalized.arrayKey ? merged[normalized.arrayKey] || [] : mergedArr;
@@ -1501,7 +1519,7 @@ export default function useDeliverables({
                 const retryLabel = `${label} coverage-retry [${idx + 1}]`;
                 appendLog(`Retrying ${retryLabel}...`, 'progress');
 
-                const config = deliverableConfigRef.current?.[fid] || {};
+                const config = getGenerationConfig(fid);
                 // For rubric coverage retries, inject the expected lesson title as an edit
                 // context hint so GPT knows which specific assessment to target (not a generic
                 // re-run that might produce a different assessment for the same lesson block).
@@ -1632,7 +1650,7 @@ export default function useDeliverables({
             mergedArr = merged && arrayKey ? merged[arrayKey] || [] : [];
 
             if (fid === 'courseFaq' && mergedArr.length > 0) {
-              const config = deliverableConfigRef.current?.[fid] || {};
+              const config = getGenerationConfig(fid);
               const normalized = normalizeCourseFaqQuestionCounts(merged, config);
               merged = normalized.data;
               mergedArr = normalized.arrayKey ? merged[normalized.arrayKey] || [] : mergedArr;
@@ -1905,7 +1923,7 @@ export default function useDeliverables({
             ? merged
             : patchScopeNumbering(merged, fid, scopeIndices, courseMap);
 
-        const config = deliverableConfigRef.current?.[fid] || {};
+        const config = getGenerationConfig(fid);
         const finalValidation = validateDeliverableGeneration(fid, finalData, {
           expectedLessonCount: expectedCount,
           config,
@@ -2026,7 +2044,7 @@ export default function useDeliverables({
           `Generated ${toGenerate.length} deliverable${toGenerate.length !== 1 ? 's' : ''} (${totalDur}); starting final quality pass`,
           'done',
         );
-        notifyDone('Generated materials are complete. Final quality pass is next.');
+        notifyDone('Generated materials are complete. Finishing package is next.');
       }
       return {
         status: failed.length > 0 ? 'partial' : 'generated',
@@ -2048,6 +2066,7 @@ export default function useDeliverables({
       dispatch,
       recordApiCallEvent,
       logIfRecovered,
+      getGenerationConfig,
     ],
   );
 
@@ -2180,7 +2199,7 @@ export default function useDeliverables({
 
       appendLog(`Regenerating Lesson ${lessonIndex + 1} in ${label}...`, 'progress');
 
-      const regenConfig = deliverableConfigRef.current?.[featureId] || {};
+      const regenConfig = getGenerationConfig(featureId);
       const prompts = getDeliverablePrompt(
         featureId,
         courseMap,
@@ -2411,6 +2430,7 @@ export default function useDeliverables({
       deliverables,
       recordApiCallEvent,
       logIfRecovered,
+      getGenerationConfig,
     ],
   );
 

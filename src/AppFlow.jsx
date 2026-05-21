@@ -78,6 +78,43 @@ import { applyApiCallBudgetEvent, createApiCallBudget } from './lib/apiCallBudge
 
 const STORAGE_KEY = 'coursemapper-project';
 
+function summarizeReceiptIssue(issue) {
+  if (!issue) return null;
+  return {
+    severity: issue.severity === 'blocker' ? 'error' : issue.severity || 'warning',
+    label:
+      issue.label || FEATURES.find((feature) => feature.id === issue.featureId)?.label || issue.featureId || 'Package',
+    message: issue.message || 'Needs attention before export.',
+  };
+}
+
+function buildQualityReceipt({
+  result,
+  exportVerification,
+  repairsApplied = 0,
+  retryCount = 0,
+  selectedFeatureIds = [],
+  courseMap,
+}) {
+  const readiness = result?.readiness || {};
+  const blockers = Array.isArray(readiness.blockers) ? readiness.blockers : [];
+  const warnings = Array.isArray(readiness.warnings) ? readiness.warnings : [];
+  const topIssues = [...blockers, ...warnings].map(summarizeReceiptIssue).filter(Boolean).slice(0, 3);
+  const checkedFeatureCount = Array.isArray(selectedFeatureIds) ? selectedFeatureIds.length : 0;
+  return {
+    checkedItems: ['Readiness', 'classroom fit', 'content validation', 'export files'],
+    checkedSections: checkedFeatureCount > 0 ? `${checkedFeatureCount}/${checkedFeatureCount}` : '',
+    lessonCount: courseMap?.lessons?.length || 0,
+    autoFixedCount: repairsApplied,
+    retriedCount: retryCount,
+    humanDecisionCount: blockers.length + warnings.length,
+    exportChecked: exportVerification?.checked || 0,
+    exportFailed: exportVerification?.failed || 0,
+    exportWarningCount: exportVerification?.warningCount || 0,
+    topIssues,
+  };
+}
+
 function normalizeProjectProvider(provider) {
   return provider === 'free' ? 'openai' : provider;
 }
@@ -687,7 +724,7 @@ export default function AppFlow({ startupAction = null, onStartupHandled, onRetu
 
       setPackageQualityPass({
         status: 'running',
-        message: 'Final quality pass is checking and repairing materials...',
+        message: 'Finishing package: checking, repairing, and preparing export...',
         repairsApplied: 0,
         warnings: 0,
         blockers: 0,
@@ -708,7 +745,7 @@ export default function AppFlow({ startupAction = null, onStartupHandled, onRetu
       if (result.retryActions.length > 0 && canRetryWeakSpots) {
         setPackageQualityPass({
           status: 'running',
-          message: `Final quality pass is retrying ${result.retryActions.length} weak area${
+          message: `Finishing package: retrying ${result.retryActions.length} weak area${
             result.retryActions.length === 1 ? '' : 's'
           }...`,
           repairsApplied: result.repairsApplied,
@@ -797,6 +834,14 @@ export default function AppFlow({ startupAction = null, onStartupHandled, onRetu
             ? `Export verification found ${exportWarnings} warning${exportWarnings === 1 ? '' : 's'}. `
             : '';
       const finalizerMessage = String(result.message || '').replace(/^Auto-fixed \d+ safe issues?\. /, '');
+      const receipt = buildQualityReceipt({
+        result,
+        exportVerification,
+        repairsApplied: totalRepairsApplied,
+        retryCount,
+        selectedFeatureIds: featureIds,
+        courseMap: result.courseMap || courseMapRef.current,
+      });
 
       setPackageQualityPass({
         status: finalStatus,
@@ -804,6 +849,7 @@ export default function AppFlow({ startupAction = null, onStartupHandled, onRetu
         repairsApplied: totalRepairsApplied,
         warnings,
         blockers,
+        receipt,
       });
 
       return {

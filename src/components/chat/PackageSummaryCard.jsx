@@ -44,16 +44,16 @@ function PackageIcon({ ready }) {
   );
 }
 
-export default function PackageSummaryCard({ summary }) {
+export default function PackageSummaryCard({ summary, embedded = false }) {
   if (!summary) return null;
 
   const tone = TONES[summary.tone] || TONES.assumptions;
-  const outcomeTitle = summary.ready
-    ? 'Ready to export'
+  const outcomeTitle = 'Quality receipt';
+  const badgeText = summary.ready
+    ? 'Ready to download'
     : summary.tone === 'blocked'
-      ? 'Needs finishing'
-      : 'Needs instructor review';
-  const badgeText = summary.ready ? 'Clean' : summary.tone === 'blocked' ? 'Action needed' : 'Review needed';
+      ? 'Finish package'
+      : 'Decision needed';
   const repairText =
     summary.repairsApplied > 0
       ? `${summary.repairsApplied} safe repair${summary.repairsApplied === 1 ? '' : 's'} applied`
@@ -82,7 +82,9 @@ export default function PackageSummaryCard({ summary }) {
           : null;
 
   return (
-    <div className={`ml-8 mr-1 rounded-lg border ${tone.wrapper} shadow-sm animate-spring-in overflow-hidden`}>
+    <div
+      className={`${embedded ? '' : 'ml-8 mr-1'} rounded-lg border ${tone.wrapper} shadow-sm animate-spring-in overflow-hidden`}
+    >
       <div className="px-3 py-2.5">
         <div className="flex items-start gap-2.5">
           <div className={`mt-0.5 flex h-6 w-6 items-center justify-center rounded-full ${tone.icon}`}>
@@ -94,6 +96,11 @@ export default function PackageSummaryCard({ summary }) {
               <span className={`rounded-full border px-2 py-0.5 text-[10px] font-bold ${tone.badge}`}>{badgeText}</span>
             </div>
             <p className={`mt-1 text-[11px] leading-relaxed ${tone.body}`}>{summary.nextAction}</p>
+            {summary.checkedItems?.length > 0 && (
+              <p className="mt-1 text-[10px] font-medium leading-snug text-slate-500">
+                Checked: {summary.checkedItems.join(', ')}
+              </p>
+            )}
             <div className="mt-2 flex flex-wrap gap-1.5 text-[10px] font-medium">
               <span className="rounded-full bg-white/60 px-2 py-0.5 text-slate-600">{repairText}</span>
               <span className="rounded-full bg-white/60 px-2 py-0.5 text-slate-600">{issueText}</span>
@@ -118,7 +125,7 @@ export default function PackageSummaryCard({ summary }) {
         {summary.topIssues?.length > 0 && (
           <div className="mt-2 border-t border-white/70 pt-2">
             <p className="mb-1 text-[10px] font-semibold uppercase tracking-[0.08em] text-slate-500">
-              {summary.tone === 'blocked' ? 'Issues to fix' : 'Remaining decisions'}
+              {summary.tone === 'blocked' ? 'Needs attention' : 'Human judgment'}
             </p>
             <div className="space-y-1">
               {summary.topIssues.map((issue, index) => (

@@ -74,7 +74,7 @@ function previousDoneStep(steps) {
 
 function statusTitle(status, tone, currentStep) {
   if (status === 'running') return currentStep?.label || currentStep?.tool || 'Thinking';
-  if (status === 'error' || tone === 'error') return 'Needs review';
+  if (status === 'error' || tone === 'error') return 'Needs attention';
   if (tone === 'partial') return 'Finished with issues';
   return 'Work complete';
 }

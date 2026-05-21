@@ -1,5 +1,6 @@
 import React, { lazy, Suspense, useEffect, useRef, useCallback, useMemo } from 'react';
 import MessageList from './MessageList';
+import PackageSummaryCard from './PackageSummaryCard';
 import ChatInput from './ChatInput';
 import CustomToolsMenu from './CustomToolsMenu';
 import useChatRouter from './useChatRouter';
@@ -26,7 +27,7 @@ function deriveAgentStatus(progress, isStreaming, isAgentMode, agentDryRun = fal
   if (!isAgentMode) return { label: 'Ask', tone: 'slate', detail: 'Ready to help' };
   if (agentDryRun && !progress && !isStreaming) return { label: 'Review only', tone: 'slate', detail: 'No edits' };
   if (!progress && !isStreaming) return { label: 'Ready', tone: 'emerald', detail: 'Auto-fix on' };
-  if (progress?.status === 'error') return { label: 'Needs review', tone: 'red', detail: 'Check the latest turn' };
+  if (progress?.status === 'error') return { label: 'Needs attention', tone: 'red', detail: 'Check the latest turn' };
   if (progress?.status === 'complete') {
     const hasIssues = progress.steps?.some((step) => step.status === 'error' || step.status === 'partial');
     return hasIssues
@@ -44,14 +45,49 @@ function deriveAgentStatus(progress, isStreaming, isAgentMode, agentDryRun = fal
 function summarizePackageQuality(readiness, repairsApplied = 0) {
   const repairText =
     repairsApplied > 0 ? `Auto-fixed ${repairsApplied} safe issue${repairsApplied === 1 ? '' : 's'}. ` : '';
-  if (!readiness) return `${repairText}Final quality pass complete.`;
+  if (!readiness) return `${repairText}Package finishing complete.`;
   if (readiness.blockers?.length > 0) {
     return `${repairText}${readiness.blockers.length} critical issue${readiness.blockers.length === 1 ? '' : 's'} still need review.`;
   }
   if (readiness.warnings?.length > 0) {
     return `${repairText}${readiness.warnings.length} note${readiness.warnings.length === 1 ? '' : 's'} need review.`;
   }
-  return `${repairText}Workspace is ready to export.`;
+  return `${repairText}Workspace is ready to download.`;
+}
+
+function buildPackageReceiptSummary(packageQualityPass, courseMap, selectedFeatures = []) {
+  if (!packageQualityPass || packageQualityPass.status === 'running' || packageQualityPass.status === 'idle')
+    return null;
+  const receipt = packageQualityPass.receipt || {};
+  const blockerCount = Number(packageQualityPass.blockers || 0);
+  const warningCount = Number(packageQualityPass.warnings || 0);
+  const ready = packageQualityPass.status === 'ready' && blockerCount === 0 && warningCount === 0;
+  const tone = ready ? 'excellent' : blockerCount > 0 ? 'blocked' : 'assumptions';
+  const checkedFeatureCount = Array.isArray(selectedFeatures) ? selectedFeatures.length : 0;
+  return {
+    confidence: ready ? 'Excellent' : blockerCount > 0 ? 'Needs attention' : 'Good with assumptions',
+    tone,
+    ready,
+    nextAction: ready
+      ? 'Safe checks passed and the package is ready to download.'
+      : blockerCount > 0
+        ? 'Finish package handled safe fixes. The remaining issue needs attention before download.'
+        : 'Safe fixes are complete. The remaining item needs instructor judgment.',
+    repairsApplied: packageQualityPass.repairsApplied || receipt.autoFixedCount || 0,
+    blockerCount,
+    warningCount,
+    checkedItems: receipt.checkedItems || ['Readiness', 'classroom fit', 'content validation', 'export files'],
+    classroomStatus: ready ? 'ready' : null,
+    classroomBlockerCount: 0,
+    classroomWarningCount: 0,
+    exportChecked: receipt.exportChecked || 0,
+    exportFailed: receipt.exportFailed || 0,
+    exportWarningCount: receipt.exportWarningCount || 0,
+    checkedSections:
+      receipt.checkedSections || (checkedFeatureCount > 0 ? `${checkedFeatureCount}/${checkedFeatureCount}` : ''),
+    lessonCount: receipt.lessonCount || courseMap?.lessons?.length || 0,
+    topIssues: receipt.topIssues || [],
+  };
 }
 
 const STATUS_TONES = {
@@ -272,7 +308,7 @@ export default function ChatPanel({
         proactiveReviewDoneRef.current = true;
         packageQualityPassUpdateRef.current?.({
           status: 'running',
-          message: 'Final quality pass is checking and repairing materials...',
+          message: 'Finishing package: checking, repairing, and preparing export...',
           repairsApplied: 0,
           warnings: 0,
           blockers: 0,
@@ -329,7 +365,7 @@ export default function ChatPanel({
           } catch (err) {
             packageQualityPassUpdateRef.current?.({
               status: 'blocked',
-              message: err?.message || 'Final quality pass could not complete.',
+              message: err?.message || 'Package finishing could not complete.',
               repairsApplied: 0,
               warnings: 0,
               blockers: 1,
@@ -359,6 +395,10 @@ export default function ChatPanel({
     isAgentMode && !chat.isAgentProviderReady
       ? { label: 'Configure', tone: 'amber', detail: 'Provider/key required' }
       : deriveAgentStatus(latestAgentProgress, chat.isStreaming, isAgentMode, chat.agentDryRun);
+  const packageReceiptSummary = useMemo(
+    () => buildPackageReceiptSummary(packageQualityPass, courseMap, selectedFeatures),
+    [courseMap, packageQualityPass, selectedFeatures],
+  );
 
   return (
     <div
@@ -458,6 +498,12 @@ export default function ChatPanel({
             syncingFeatures={syncingFeatures}
           />
         </Suspense>
+      )}
+
+      {packageReceiptSummary && (
+        <div className="flex-shrink-0 border-b border-slate-200/40 px-4 py-2">
+          <PackageSummaryCard summary={packageReceiptSummary} embedded />
+        </div>
       )}
 
       {/* ── Stale deliverables banner (persistent, above messages) ── */}

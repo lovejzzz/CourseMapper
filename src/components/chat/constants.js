@@ -42,17 +42,17 @@ const SUB_ARRAY_KEYS = { quizBank: 'qs', slideDecks: 'sl', courseFaq: 'qs', rubr
 
 function buildActiveTabSecondaryStarter(activeTab, tabLabel) {
   const starters = {
-    quizBank: { text: 'Check quiz timing and difficulty balance', icon: 'search' },
-    discussions: { text: 'Add stronger follow-up probes to discussions', icon: 'plus' },
-    slideDecks: { text: 'Audit slide speaker notes and activities', icon: 'search' },
-    assignments: { text: 'Check assignment sequence and due weeks', icon: 'search' },
-    lessonPlans: { text: 'Tighten lesson timing and facilitation notes', icon: 'edit' },
-    studyGuides: { text: 'Check study guides against quiz coverage', icon: 'search' },
-    rubrics: { text: 'Check rubric coverage for each graded assessment', icon: 'search' },
-    courseFaq: { text: 'Check FAQ categories and unanswered student questions', icon: 'search' },
-    syllabus: { text: 'Review syllabus policies for gaps', icon: 'search' },
+    quizBank: { text: 'Check quiz timing and difficulty', icon: 'search' },
+    discussions: { text: 'Improve discussion prompts', icon: 'edit' },
+    slideDecks: { text: 'Improve slides', icon: 'edit' },
+    assignments: { text: 'Strengthen assignment criteria', icon: 'edit' },
+    lessonPlans: { text: 'Check lesson timing', icon: 'search' },
+    studyGuides: { text: 'Improve study guides', icon: 'edit' },
+    rubrics: { text: 'Make rubrics stricter', icon: 'edit' },
+    courseFaq: { text: 'Improve student FAQ', icon: 'edit' },
+    syllabus: { text: 'Check syllabus policies', icon: 'search' },
   };
-  return starters[activeTab] || { text: `Find gaps in ${tabLabel}`, icon: 'search' };
+  return starters[activeTab] || { text: `Review ${tabLabel} for completeness`, icon: 'search' };
 }
 
 function buildAdaptiveStarters(courseMap, activeTab, deliverables) {
@@ -63,31 +63,12 @@ function buildAdaptiveStarters(courseMap, activeTab, deliverables) {
     (entry) => entry?.status === 'done' && entry?.data,
   ).length;
 
-  if (doneFeatureCount > 0 && (!activeTab || activeTab === 'courseMap')) {
+  if (doneFeatureCount > 0) {
     starters.push({ text: 'Finish package', icon: 'search' });
   }
 
   // 1. Active-tab-specific starter — prioritize what the user is currently viewing
   if (starters.length < 2 && activeTab && activeTab !== 'courseMap' && deliverables?.[activeTab]?.status === 'done') {
-    const lesson = lessons[0];
-    const lessonTitle = lesson?.title || 'Lesson 1';
-    if (activeTab === 'quizBank') {
-      starters.push({ text: `Add more quiz questions for ${lessonTitle}`, icon: 'plus' });
-    } else if (activeTab === 'discussions') {
-      starters.push({ text: `Improve discussion prompts for Bloom's alignment`, icon: 'edit' });
-    } else if (activeTab === 'slideDecks') {
-      starters.push({ text: `Add speaker notes to ${lessonTitle} slides`, icon: 'edit' });
-    } else if (activeTab === 'assignments') {
-      starters.push({ text: `Review assignment rubric alignment`, icon: 'search' });
-    } else if (activeTab === 'lessonPlans') {
-      starters.push({ text: `Check lesson plans cover all objectives`, icon: 'search' });
-    } else if (activeTab === 'studyGuides') {
-      starters.push({ text: `Add key terms to ${lessonTitle} study guide`, icon: 'plus' });
-    } else if (activeTab === 'rubrics') {
-      starters.push({ text: `Review rubric criteria for ${lessonTitle}`, icon: 'search' });
-    } else {
-      starters.push({ text: `Review ${tabLabel} for completeness`, icon: 'search' });
-    }
     starters.push(buildActiveTabSecondaryStarter(activeTab, tabLabel));
   } else if (starters.length < 2 && activeTab === 'courseMap') {
     // On course map tab — suggest course-level actions
@@ -121,7 +102,7 @@ function buildAdaptiveStarters(courseMap, activeTab, deliverables) {
   if (starters.length < 2) {
     if (lessons.length > 0) {
       const topic = lessons[Math.floor(lessons.length / 2)]?.title || courseMap?.courseName || 'your course';
-      starters.push({ text: `Find research on ${topic}`, icon: 'search' });
+      starters.push({ text: `Check ${topic} for gaps`, icon: 'search' });
     } else {
       starters.push({ text: 'What should I work on next?', icon: 'chat' });
     }

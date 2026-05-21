@@ -7,6 +7,8 @@ import {
   createBaseModelCapabilities,
   createGenerationPlan,
   getModelCapabilityBadges,
+  getModelFitBadges,
+  getPrimaryModelFitLabel,
   resolveModelCapabilities,
 } from '../lib/modelCapabilities';
 
@@ -417,6 +419,20 @@ export default function ModelConfig() {
     hasSelectableModels && modelCapabilities?.modelId === modelId
       ? getModelCapabilityBadges(modelCapabilities, generationPlan)
       : [];
+  const fitBadges =
+    hasSelectableModels && modelCapabilities?.modelId === modelId
+      ? getModelFitBadges(modelCapabilities, generationPlan)
+      : [];
+  const fitBadgeLabels = new Set(fitBadges.map((badge) => badge.label));
+  const technicalBadges = capabilityBadges.filter((badge) => !fitBadgeLabels.has(badge.label)).slice(0, 3);
+  const describeModelOption = (model) => {
+    const optionProfile =
+      modelCapabilities?.modelId === model.id ? modelCapabilities : createBaseModelCapabilities(provider, model);
+    const optionPlan =
+      modelCapabilities?.modelId === model.id && generationPlan ? generationPlan : createGenerationPlan(optionProfile);
+    const fitLabel = getPrimaryModelFitLabel(optionProfile, optionPlan);
+    return `${model.name}${model.size ? ` (${model.size})` : ''} - ${fitLabel}`;
+  };
   const badgeTone = {
     emerald: 'bg-emerald-50/70 text-emerald-700 border-emerald-200/60',
     indigo: 'bg-indigo-50/70 text-indigo-700 border-indigo-200/60',
@@ -668,8 +684,7 @@ export default function ModelConfig() {
             >
               {availableModels.map((m) => (
                 <option key={m.id} value={m.id}>
-                  {m.name}
-                  {m.size ? ` (${m.size})` : ''}
+                  {describeModelOption(m)}
                 </option>
               ))}
             </select>
@@ -688,7 +703,15 @@ export default function ModelConfig() {
               Detecting model strengths
             </span>
           )}
-          {capabilityBadges.map((badge) => (
+          {fitBadges.map((badge) => (
+            <span
+              key={badge.label}
+              className={`inline-flex items-center rounded-pill border px-2.5 py-1 text-[10px] font-semibold ${badgeTone[badge.tone] || badgeTone.slate}`}
+            >
+              {badge.label}
+            </span>
+          ))}
+          {technicalBadges.map((badge) => (
             <span
               key={badge.label}
               className={`inline-flex items-center rounded-pill border px-2.5 py-1 text-[10px] font-semibold ${badgeTone[badge.tone] || badgeTone.slate}`}

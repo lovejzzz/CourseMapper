@@ -115,13 +115,13 @@ export default function ChatInput({
   const reviewPrompt = agentDryRun
     ? 'Review this course package without applying changes. Run read-only readiness, export, and validation checks; identify concrete issues, instructor decisions, and the exact safe fixes you would apply. Do not apply changes.'
     : [
-        'Finish this course package until it is ready to export.',
+        'Finish this course package until it is ready to download.',
         'Run finalize_package first.',
         'If localized weak sections remain, call retry_package_weak_spots, then finalize_package again.',
         'Apply safe deterministic and concrete content fixes directly.',
         'Do not present the package as ready unless readiness, classroom readiness, validation, and export verification are clean.',
         'Only ask the user for decisions that require instructor judgment.',
-        'Finish with a concise package handoff that says either Ready to export or lists the remaining instructor decisions.',
+        'Finish with a concise package handoff that says either Ready to download or lists the remaining instructor decisions.',
       ].join(' ');
 
   return (
@@ -296,7 +296,7 @@ export default function ChatInput({
                     setInput('');
                   }}
                   disabled={isCoolingDown}
-                  className="tactile flex items-center gap-1 px-2 py-0.5 rounded-lg text-[10px] font-semibold text-emerald-600 hover:bg-emerald-50/60 hover:text-emerald-700 transition-all duration-200 disabled:opacity-50 disabled:cursor-not-allowed"
+                  className="tactile flex items-center gap-1 rounded-lg border border-emerald-200/70 bg-emerald-50/80 px-2 py-0.5 text-[10px] font-bold text-emerald-700 shadow-sm transition-all duration-200 hover:bg-emerald-100/80 disabled:cursor-not-allowed disabled:opacity-50"
                   title={
                     agentDryRun
                       ? 'Review without editing'

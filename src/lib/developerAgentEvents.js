@@ -93,8 +93,7 @@ function addPackageSummaryEvent(events, message, index) {
       : summary.tone === 'assumptions' || summary.confidence === 'Good with assumptions'
         ? 'warning'
         : 'success';
-  const outcome =
-    level === 'error' ? 'Needs finishing' : level === 'warning' ? 'Needs instructor review' : 'Ready to export';
+  const outcome = level === 'error' ? 'Finish package' : level === 'warning' ? 'Decision needed' : 'Ready to download';
   addEvent(events, {
     type: 'packageSummary',
     level,
