@@ -6,9 +6,27 @@ import {
   recordPendingApiCallEvent,
 } from '../apiCallBudget';
 
+function ensureSessionStorage() {
+  if (globalThis.sessionStorage?.clear) {
+    globalThis.sessionStorage.clear();
+    return;
+  }
+
+  const store = new Map();
+  Object.defineProperty(globalThis, 'sessionStorage', {
+    configurable: true,
+    value: {
+      getItem: (key) => (store.has(String(key)) ? store.get(String(key)) : null),
+      setItem: (key, value) => store.set(String(key), String(value)),
+      removeItem: (key) => store.delete(String(key)),
+      clear: () => store.clear(),
+    },
+  });
+}
+
 describe('apiCallBudget', () => {
   beforeEach(() => {
-    sessionStorage.clear();
+    ensureSessionStorage();
   });
 
   it('counts actual provider attempts across the expanded schema', () => {
