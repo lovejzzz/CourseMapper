@@ -75,6 +75,7 @@ import {
 import { evaluateClassroomReadiness } from './lib/classroomReadiness';
 import { runDeterministicPackageFinalizer } from './lib/packageFinalizer';
 import { applyApiCallBudgetEvent, createApiCallBudget } from './lib/apiCallBudget';
+import { getChunkCount } from './lib/parallelGenerator';
 
 const STORAGE_KEY = 'coursemapper-project';
 
@@ -113,6 +114,34 @@ function buildQualityReceipt({
     exportWarningCount: exportVerification?.warningCount || 0,
     topIssues,
   };
+}
+
+function estimateRetryActionCallCost(action, courseMap, lessonFilter, generationPlan) {
+  if (!action?.featureId) return 1;
+  if (action.scope !== 'feature') return 1;
+  const lessonCount = Array.isArray(courseMap?.lessons) ? courseMap.lessons.length : 0;
+  return Math.max(1, getChunkCount(action.featureId, lessonCount, lessonFilter, generationPlan));
+}
+
+function selectRetryActionsWithinCallBudget(
+  actions = [],
+  { courseMap, lessonFilter, generationPlan, maxCalls = 4 } = {},
+) {
+  const limit = Math.max(0, Number(maxCalls) || 0);
+  let usedCalls = 0;
+  const selected = [];
+  const skipped = [];
+  for (const action of actions) {
+    const estimatedCalls = estimateRetryActionCallCost(action, courseMap, lessonFilter, generationPlan);
+    const annotated = { ...action, estimatedCalls };
+    if (estimatedCalls <= limit - usedCalls) {
+      selected.push(annotated);
+      usedCalls += estimatedCalls;
+    } else {
+      skipped.push(annotated);
+    }
+  }
+  return { selected, skipped, usedCalls };
 }
 
 function normalizeProjectProvider(provider) {
@@ -700,6 +729,7 @@ export default function AppFlow({ startupAction = null, onStartupHandled, onRetu
       lessonFilter = lessonScope.type === 'specific' ? lessonScope.indices : null,
       retry = true,
       maxRetryActions = 4,
+      maxRetryCallBudget = 4,
       courseMapOverride = null,
       deliverablesOverride = null,
     } = {}) => {
@@ -741,19 +771,33 @@ export default function AppFlow({ startupAction = null, onStartupHandled, onRetu
       finalizerDeliverables = result.deliverables || finalizerDeliverables;
       let totalRepairsApplied = result.repairsApplied || 0;
       let retryCount = 0;
+      let skippedRetryCallCount = 0;
+      let skippedRetryActionCount = 0;
 
       if (result.retryActions.length > 0 && canRetryWeakSpots) {
+        const retryBudget = selectRetryActionsWithinCallBudget(result.retryActions, {
+          courseMap: result.courseMap || finalizerCourseMap,
+          lessonFilter,
+          generationPlan,
+          maxCalls: maxRetryCallBudget,
+        });
+        const retryActionsToRun = retryBudget.selected;
+        skippedRetryActionCount = retryBudget.skipped.length;
+        skippedRetryCallCount = retryBudget.skipped.reduce((sum, action) => sum + (action.estimatedCalls || 1), 0);
         setPackageQualityPass({
           status: 'running',
-          message: `Finishing package: retrying ${result.retryActions.length} weak area${
-            result.retryActions.length === 1 ? '' : 's'
-          }...`,
+          message:
+            retryActionsToRun.length > 0
+              ? `Finishing package: retrying ${retryActionsToRun.length} weak area${
+                  retryActionsToRun.length === 1 ? '' : 's'
+                } (${retryBudget.usedCalls} call${retryBudget.usedCalls === 1 ? '' : 's'})...`
+              : 'Finishing package: retry plan is over the call budget; checking remaining issues...',
           repairsApplied: result.repairsApplied,
           warnings: 0,
           blockers: 0,
         });
 
-        for (const action of result.retryActions) {
+        for (const action of retryActionsToRun) {
           if (action.scope === 'feature') {
             const retryResult = await regenerateFeatureRef.current?.(
               result.courseMap || courseMapRef.current,
@@ -777,9 +821,11 @@ export default function AppFlow({ startupAction = null, onStartupHandled, onRetu
           finalizerDeliverables = deliverablesRef.current || finalizerDeliverables;
         }
 
-        result = runFinalizer(0);
-        commitFinalizerResult(result);
-        totalRepairsApplied += result.repairsApplied || 0;
+        if (retryActionsToRun.length > 0) {
+          result = runFinalizer(0);
+          commitFinalizerResult(result);
+          totalRepairsApplied += result.repairsApplied || 0;
+        }
       }
 
       let exportVerification = null;
@@ -822,7 +868,9 @@ export default function AppFlow({ startupAction = null, onStartupHandled, onRetu
       const skippedRetryText =
         unresolvedRetryCount > 0 && !canRetryWeakSpots
           ? `AI setup is needed to retry ${unresolvedRetryCount} weak area${unresolvedRetryCount === 1 ? '' : 's'}. `
-          : '';
+          : skippedRetryActionCount > 0
+            ? `Skipped ${skippedRetryActionCount} broad retry action${skippedRetryActionCount === 1 ? '' : 's'} to stay within the ${maxRetryCallBudget}-call retry budget. `
+            : '';
       const repairText =
         totalRepairsApplied > 0
           ? `Auto-fixed ${totalRepairsApplied} safe issue${totalRepairsApplied === 1 ? '' : 's'}. `
@@ -856,6 +904,8 @@ export default function AppFlow({ startupAction = null, onStartupHandled, onRetu
         ...result,
         repairsApplied: totalRepairsApplied,
         retryCount,
+        skippedRetryActionCount,
+        skippedRetryCallCount,
         exportVerification,
         packageQualityStatus: finalStatus,
       };
@@ -869,6 +919,7 @@ export default function AppFlow({ startupAction = null, onStartupHandled, onRetu
       lessonScope.type,
       selectedFeatures,
       slideTheme,
+      generationPlan,
     ],
   );
   packageFinalizerRef.current = handleDeterministicPackageFinalization;
@@ -2795,6 +2846,7 @@ export default function AppFlow({ startupAction = null, onStartupHandled, onRetu
                   chatSendRef={chatSendRef}
                   uid={user?.uid || null}
                   onConfigureAI={() => setScreen('landing')}
+                  onApiCallEvent={recordApiCallEvent}
                 />
               </ErrorBoundary>
             </div>

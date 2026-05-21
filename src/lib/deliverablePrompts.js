@@ -42,7 +42,7 @@ const PROMPTS = {
 // requirements instead of the full verbose schema with inline descriptions.
 // This saves ~400-700 input tokens per subsequent chunk call.
 
-const COMPACT_SCHEMAS = {
+export const COMPACT_SCHEMAS = {
   lessonPlans: `{"plans":[{"lt":"str","wk":"str","dur":"str","sfs":{"beforeClass":"str","duringClass":"str","afterClass":"str","submittedArtifact":"str"},"al":"str","pk":"str","cms":["str"],"wsc":"str","lcr":"str","acs":["str"],"cc":"str","bls":["str"],"ob":["str"],"mt":["str"],"wu":{"dur":"str","ty":"str","pr":"str","pu":"str","fa":"str"},"ol":[{"tm":"str","ac":"str","ty":"str","de":"str","in":"str","ir":"str","gr":"str","bl":"str"}],"fc":{"ty":"str","pr":"str","oa":"str","ia":"str"},"un":{"rp":"str","eg":"str","ex":"str"},"hw":{"t":"str","de":"str","et":"str","cn":"str"},"ca":"str","tg":["str"],"rts":{"workedExample":"str","methodSpecificMiniRubric":"str","studentHandout":"str","instructorPrep":"str","accessibilityAndUDL":"str"}}]}`,
   slideDecks: `{"decks":[{"lt":"str","ts":0,"lo":["str"],"sl":[{"t":"str","ty":"str","bu":["str"],"no":"str","vi":{"k":"none|diagram|chart|image|table|code|equation","d":"str","at":"str"},"at":"str|null","ti":"str|null","bl":"str|null","ol":"str|null"}],"tg":["str"]}]}`,
   quizBank: `{"quizzes":[{"lt":"str","tq":0,"bc":["str"],"fn":"str","bp":"str","qs":[{"ty":"str","bl":"str","df":"str","em":0,"pt":0,"oa":"str","q":"str","op":["str"],"an":"str","dr":"str","ex":"str","rh":"str","sa":"str","sg":"str"}],"tg":["str"]}]}`,

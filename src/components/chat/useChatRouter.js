@@ -66,6 +66,7 @@ export default function useChatRouter({
   executeSyncPlan,
   notifyEdit,
   uid,
+  onApiCallEvent,
 }) {
   const { apiKey, provider, modelId, apiStatus } = useAIConfig();
   const [messages, setMessages] = useState(savedMessages || []);
@@ -450,6 +451,7 @@ export default function useChatRouter({
       customToolRegistryRef,
       maybeRunValidation,
       sendAgentMessage,
+      onApiCallEvent,
       handleAgentFinalResponse: (response) => _handleAgentFinalResponse(response, buildSharedCtx()),
     };
   }

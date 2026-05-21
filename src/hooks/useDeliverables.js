@@ -1,6 +1,7 @@
 import { useState, useCallback, useMemo, useRef, useContext, useEffect } from 'react';
 import useStreamReader from './useStreamReader';
 import { getDeliverablePrompt } from '../lib/deliverablePrompts';
+import { getDeliverableResponseSchema } from '../lib/deliverableSchemas';
 import { getArrayKey } from '../lib/syncDependencies';
 import { getCustomDeliverable } from '../lib/customDeliverableLibrary';
 import { scoreHeuristic, computeAvgScore } from '../lib/deliverableQualityScorer';
@@ -167,7 +168,7 @@ function buildSlideImagePrompt(deck, slide, visual) {
     .join(' ');
 }
 
-async function enrichSlideDeckImages(data, config, { apiKey, appendLog, signal }) {
+async function enrichSlideDeckImages(data, config, { apiKey, appendLog, signal, onApiCallEvent }) {
   const maxTotal = Math.max(1, Math.min(4, Number(config?.aiImagesTotal) || 2));
   const maxPerLesson = Math.max(1, Math.min(2, Number(config?.aiImagesPerLesson) || 1));
   const arrayKey = getArrayKey('slideDecks', data) || 'decks';
@@ -203,6 +204,13 @@ async function enrichSlideDeckImages(data, config, { apiKey, appendLog, signal }
         `Generating GPT Image visual for ${deck.lessonTitle || deck.lt || 'slide deck'} slide ${candidate.index + 1}...`,
         'progress',
       );
+      if (typeof onApiCallEvent === 'function') {
+        onApiCallEvent({
+          type: 'imageGenerationCall',
+          label: `Generate slide image ${candidate.index + 1}`,
+          featureId: 'slideDecks',
+        });
+      }
 
       const result = await generateImages(
         prompt,
@@ -623,6 +631,8 @@ export default function useDeliverables({
             modelCapabilities,
             generationPlan,
             task: featureId,
+            schema: getDeliverableResponseSchema(featureId),
+            onApiCallEvent: recordApiCallEvent,
             onChunk: (accumulatedText) => {
               if (timedOutFeaturesRef.current.has(featureId)) return;
               fullText = accumulatedText;
@@ -655,7 +665,7 @@ export default function useDeliverables({
             signal: controller.signal,
             onRetry: (attempt) => {
               recordApiCallEvent({
-                type: 'retriedCall',
+                type: 'streamRetryCall',
                 label: `${chunkLabel} stream retry`,
                 detail: `${attempt}/${initialRetryLimit}`,
                 featureId,
@@ -906,6 +916,8 @@ export default function useDeliverables({
                 modelCapabilities,
                 generationPlan,
                 task: 'repair',
+                schema: getDeliverableResponseSchema(fid),
+                onApiCallEvent: recordApiCallEvent,
                 onChunk: (t) => {
                   fullText = t;
                 },
@@ -913,7 +925,7 @@ export default function useDeliverables({
                 signal: controller.signal,
                 onRetry: (attempt) => {
                   recordApiCallEvent({
-                    type: 'retriedCall',
+                    type: 'streamRetryCall',
                     label: `${label} whole-deliverable retry stream retry`,
                     detail: `${attempt}/${repairRetryLimit}`,
                     featureId: fid,
@@ -1417,6 +1429,8 @@ export default function useDeliverables({
                       modelCapabilities,
                       generationPlan,
                       task: 'repair',
+                      schema: getDeliverableResponseSchema(fid),
+                      onApiCallEvent: recordApiCallEvent,
                       onChunk: (t) => {
                         fullText = t;
                       },
@@ -1424,7 +1438,7 @@ export default function useDeliverables({
                       signal: controller.signal,
                       onRetry: (attempt) => {
                         recordApiCallEvent({
-                          type: 'retriedCall',
+                          type: 'streamRetryCall',
                           label: `${retryLabel} stream retry`,
                           detail: `${attempt}/${repairRetryLimit}`,
                           featureId: fid,
@@ -1567,6 +1581,8 @@ export default function useDeliverables({
                       modelCapabilities,
                       generationPlan,
                       task: 'repair',
+                      schema: getDeliverableResponseSchema(fid),
+                      onApiCallEvent: recordApiCallEvent,
                       onChunk: (t) => {
                         fullText = t;
                       },
@@ -1574,7 +1590,7 @@ export default function useDeliverables({
                       signal: controller.signal,
                       onRetry: (attempt) => {
                         recordApiCallEvent({
-                          type: 'retriedCall',
+                          type: 'streamRetryCall',
                           label: `${retryLabel} stream retry`,
                           detail: `${attempt}/${repairRetryLimit}`,
                           featureId: fid,
@@ -1960,6 +1976,7 @@ export default function useDeliverables({
               apiKey,
               appendLog,
               signal: imageController.signal,
+              onApiCallEvent: recordApiCallEvent,
             });
           } catch (err) {
             if (err.name === 'AbortError') {
@@ -2251,6 +2268,8 @@ export default function useDeliverables({
           modelCapabilities,
           generationPlan,
           task: 'repair',
+          schema: getDeliverableResponseSchema(featureId),
+          onApiCallEvent: recordApiCallEvent,
           onChunk: (accumulatedText) => {
             fullText = accumulatedText;
             const now = Date.now();
@@ -2291,7 +2310,7 @@ export default function useDeliverables({
           signal: controller.signal,
           onRetry: (attempt) => {
             recordApiCallEvent({
-              type: 'retriedCall',
+              type: 'streamRetryCall',
               label: `${label} lesson ${lessonIndex + 1} regeneration stream retry`,
               detail: `${attempt}/${repairRetryLimit}`,
               featureId,

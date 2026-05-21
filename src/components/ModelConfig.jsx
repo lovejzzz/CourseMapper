@@ -3,6 +3,7 @@ import { fetchModelsFromProvider } from '../hooks/useStreamReader';
 import { useAIConfig } from '../contexts/AIConfigContext';
 import { WEBLLM_MODELS, isWebGPUSupported } from '../lib/webllmConstants';
 import { getGoogleModelBaseUrl } from '../lib/googleProvider';
+import { recordPendingApiCallEvent } from '../lib/apiCallBudget';
 import {
   createBaseModelCapabilities,
   createGenerationPlan,
@@ -49,11 +50,14 @@ const BILLING_URLS = {
  * Make a tiny test completion to verify the key has credits.
  * Returns true if the key works, false if insufficient funds.
  */
-export async function checkCredits(provider, apiKey, modelId) {
+export async function checkCredits(provider, apiKey, modelId, onApiCallEvent) {
   try {
     let res;
     if (provider === 'openai' || provider === 'deepseek') {
       const base = provider === 'deepseek' ? 'https://api.deepseek.com/v1' : 'https://api.openai.com/v1';
+      if (typeof onApiCallEvent === 'function') {
+        onApiCallEvent({ type: 'creditCheckCall', label: 'Validate API credits', detail: modelId });
+      }
       res = await fetch(`${base}/chat/completions`, {
         method: 'POST',
         headers: { Authorization: `Bearer ${apiKey}`, 'Content-Type': 'application/json' },
@@ -64,6 +68,9 @@ export async function checkCredits(provider, apiKey, modelId) {
         }),
       });
     } else if (provider === 'anthropic') {
+      if (typeof onApiCallEvent === 'function') {
+        onApiCallEvent({ type: 'creditCheckCall', label: 'Validate API credits', detail: modelId });
+      }
       res = await fetch('https://api.anthropic.com/v1/messages', {
         method: 'POST',
         headers: {
@@ -76,6 +83,9 @@ export async function checkCredits(provider, apiKey, modelId) {
       });
     } else if (provider === 'google') {
       const baseUrl = getGoogleModelBaseUrl(apiKey, modelId);
+      if (typeof onApiCallEvent === 'function') {
+        onApiCallEvent({ type: 'creditCheckCall', label: 'Validate API credits', detail: modelId });
+      }
       res = await fetch(`${baseUrl}:generateContent?key=${apiKey}`, {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
@@ -264,6 +274,7 @@ export default function ModelConfig() {
           provider: selectedProvider,
           apiKey: trimmedKey,
           model: selectedModel,
+          onApiCallEvent: recordPendingApiCallEvent,
         });
         if (isCancelled() || runId !== capabilityRunRef.current) return null;
         setModelCapabilities(profile);
@@ -325,7 +336,9 @@ export default function ModelConfig() {
       if (cancelled) return;
       if (!hasSelectableCachedModel) setApiStatus('validating');
       try {
-        const models = await fetchModelsFromProvider(provider, trimmedKey);
+        const models = await fetchModelsFromProvider(provider, trimmedKey, {
+          onApiCallEvent: recordPendingApiCallEvent,
+        });
         if (cancelled) return;
         if (models && models.length > 0) {
           setAvailableModels(models);
@@ -343,7 +356,7 @@ export default function ModelConfig() {
           if (setMaxOutputTokens) setMaxOutputTokens(selected.maxOutputTokens || 16384);
           applyBaseCapabilityProfile(selected, provider);
           // Verify the key has credits with a tiny test call
-          const hasCredits = await checkCredits(provider, trimmedKey, selected.id);
+          const hasCredits = await checkCredits(provider, trimmedKey, selected.id, recordPendingApiCallEvent);
           if (cancelled) return;
           setApiStatus(hasCredits ? 'connected' : 'no_funds');
           if (hasCredits) {

@@ -173,6 +173,7 @@ export default function ChatPanel({
   // User ID for cloud sync
   uid,
   onConfigureAI,
+  onApiCallEvent,
 }) {
   // Detect agent mode: deliverables with done status exist
   const isAgentMode = !!(
@@ -235,6 +236,7 @@ export default function ChatPanel({
     notifyEdit,
     slideTheme,
     uid,
+    onApiCallEvent,
   });
 
   // ── Expose chat.send to parent via ref (for context menu inline AI) ──

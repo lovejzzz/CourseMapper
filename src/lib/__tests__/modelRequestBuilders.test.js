@@ -62,6 +62,44 @@ describe('modelRequestBuilders', () => {
     expect(req.body.generationConfig.responseMimeType).toBe('application/json');
   });
 
+  it('passes provider-safe response schemas to Gemini requests', () => {
+    const profile = createBaseModelCapabilities('google', {
+      id: 'gemini-3.5-flash',
+      name: 'Gemini 3.5 Flash',
+      maxOutputTokens: 65536,
+    });
+    const req = buildProviderTextRequest({
+      provider: 'google',
+      apiKey: 'AIza-test',
+      modelId: profile.modelId,
+      systemPrompt: 'Return JSON.',
+      userPrompt: 'Generate slide decks.',
+      modelCapabilities: profile,
+      generationPlan: createGenerationPlan(profile),
+      schema: {
+        name: 'slide_decks',
+        schema: {
+          type: 'object',
+          additionalProperties: false,
+          properties: {
+            decks: {
+              type: 'array',
+              items: { type: 'object', additionalProperties: false, properties: { lt: { type: 'string' } } },
+            },
+          },
+          required: ['decks'],
+        },
+      },
+    });
+
+    expect(req.body.generationConfig.responseSchema).toMatchObject({
+      type: 'OBJECT',
+      properties: { decks: { type: 'ARRAY' } },
+      required: ['decks'],
+    });
+    expect(req.body.generationConfig.responseSchema.additionalProperties).toBeUndefined();
+  });
+
   it('keeps Anthropic structured generation prompt-based while supporting opt-in thinking', () => {
     const profile = createBaseModelCapabilities('anthropic', {
       id: 'claude-sonnet-4-20250514',

@@ -28,6 +28,8 @@ function normalizeSchema(schema) {
 function toGeminiSchema(schema) {
   if (!schema || typeof schema !== 'object') return schema;
   const next = { ...schema };
+  delete next.additionalProperties;
+  delete next.strict;
   if (typeof next.type === 'string') next.type = next.type.toUpperCase();
   if (next.properties) {
     next.properties = Object.fromEntries(

@@ -159,7 +159,11 @@ export default function useStreamReader() {
       generationPlan,
       task,
       schema,
+      onApiCallEvent,
     } = opts;
+    const recordApiCallEvent = (event) => {
+      if (typeof onApiCallEvent === 'function') onApiCallEvent(event);
+    };
 
     // WebLLM: run locally in browser, no network needed
     if (provider === 'webllm') {
@@ -207,6 +211,11 @@ export default function useStreamReader() {
         if (externalSignal.aborted) throw new DOMException('Aborted', 'AbortError');
         externalSignal.addEventListener('abort', () => fallbackController.abort(), { once: true });
       }
+      recordApiCallEvent({
+        type: 'providerFallbackCall',
+        label: 'Google non-streaming fallback',
+        detail: modelId,
+      });
       const response = await fetch(googleGenerateUrlFromStreamUrl(url), {
         method: 'POST',
         headers,
@@ -254,6 +263,11 @@ export default function useStreamReader() {
             console.log('[CM] Model does not support custom temperature, retrying without it');
             skipTemp = true;
             _noTempModels.add(modelId); // Remember for parallel & future calls
+            recordApiCallEvent({
+              type: 'providerFallbackCall',
+              label: 'Retry without temperature',
+              detail: modelId,
+            });
             ({ url, headers, body, parseChunk } = buildProviderTextRequest({
               provider,
               apiKey,
@@ -551,7 +565,14 @@ function normalizeGoogleModelCatalog(models, endpointFamily = GOOGLE_ENDPOINT_FA
   ).sort(sortModelOptions);
 }
 
-async function canUseGoogleModel(apiKey, modelId, endpointFamily) {
+async function canUseGoogleModel(apiKey, modelId, endpointFamily, onApiCallEvent) {
+  if (typeof onApiCallEvent === 'function') {
+    onApiCallEvent({
+      type: 'modelDiscoveryCall',
+      label: 'Probe Google model availability',
+      detail: modelId,
+    });
+  }
   const response = await fetch(`${getGoogleModelBaseUrl(apiKey, modelId, endpointFamily)}:countTokens?key=${apiKey}`, {
     method: 'POST',
     headers: { 'Content-Type': 'application/json' },
@@ -564,11 +585,12 @@ async function fetchReachableGoogleCandidates(
   apiKey,
   candidates,
   endpointFamily = GOOGLE_ENDPOINT_FAMILIES.GEMINI_API,
+  onApiCallEvent,
 ) {
   const settled = await Promise.allSettled(
     candidates.map(async (candidate) => {
       const candidateEndpointFamily = candidate.endpointFamily || endpointFamily;
-      const ok = await canUseGoogleModel(apiKey, candidate.id, candidateEndpointFamily);
+      const ok = await canUseGoogleModel(apiKey, candidate.id, candidateEndpointFamily, onApiCallEvent);
       return ok ? googleCandidateModel(candidate.id, { ...candidate, endpointFamily: candidateEndpointFamily }) : null;
     }),
   );
@@ -580,16 +602,17 @@ async function mergeReachableGoogleCandidates(
   liveModels,
   candidates = GOOGLE_LATEST_TEXT_MODEL_CANDIDATES,
   endpointFamily = GOOGLE_ENDPOINT_FAMILIES.GEMINI_API,
+  onApiCallEvent,
 ) {
   const knownIds = new Set((liveModels || []).map((model) => model.id));
   const missingCandidates = candidates.filter((candidate) => !knownIds.has(candidate.id));
   if (missingCandidates.length === 0) return liveModels;
-  const reachable = await fetchReachableGoogleCandidates(apiKey, missingCandidates, endpointFamily);
+  const reachable = await fetchReachableGoogleCandidates(apiKey, missingCandidates, endpointFamily, onApiCallEvent);
   if (reachable.length === 0) return liveModels;
   return dedupeModelsById([...liveModels, ...reachable]).sort(sortModelOptions);
 }
 
-async function fetchGeminiApiModels(apiKey) {
+async function fetchGeminiApiModels(apiKey, onApiCallEvent) {
   const allModels = [];
   let pageToken = '';
   do {
@@ -597,6 +620,13 @@ async function fetchGeminiApiModels(apiKey) {
     url.searchParams.set('key', apiKey);
     url.searchParams.set('pageSize', '1000');
     if (pageToken) url.searchParams.set('pageToken', pageToken);
+    if (typeof onApiCallEvent === 'function') {
+      onApiCallEvent({
+        type: 'modelDiscoveryCall',
+        label: 'Fetch Gemini model catalog',
+        detail: pageToken ? 'next page' : 'first page',
+      });
+    }
     const response = await fetch(url.toString());
     if (!response.ok) {
       const err = await response.json().catch(() => ({}));
@@ -646,13 +676,17 @@ function deepseekMaxInput(id) {
  * Fetch models dynamically from provider API, filtered to only chat/text models
  * that support streaming + JSON output.
  */
-export async function fetchModelsFromProvider(provider, apiKey) {
+export async function fetchModelsFromProvider(provider, apiKey, options = {}) {
+  const onApiCallEvent = options?.onApiCallEvent;
   if (provider === 'webllm') {
     // Models are handled directly in ModelConfig — return empty to avoid errors
     return [];
   }
 
   if (provider === 'openai') {
+    if (typeof onApiCallEvent === 'function') {
+      onApiCallEvent({ type: 'modelDiscoveryCall', label: 'Fetch OpenAI model catalog', detail: 'openai' });
+    }
     const response = await fetch('https://api.openai.com/v1/models', {
       headers: { Authorization: `Bearer ${apiKey}` },
     });
@@ -678,6 +712,9 @@ export async function fetchModelsFromProvider(provider, apiKey) {
   }
 
   if (provider === 'anthropic') {
+    if (typeof onApiCallEvent === 'function') {
+      onApiCallEvent({ type: 'modelDiscoveryCall', label: 'Fetch Anthropic model catalog', detail: 'anthropic' });
+    }
     const response = await fetch('https://api.anthropic.com/v1/models', {
       headers: {
         'x-api-key': apiKey,
@@ -721,22 +758,27 @@ export async function fetchModelsFromProvider(provider, apiKey) {
         apiKey,
         GOOGLE_VERTEX_EXPRESS_TEXT_MODEL_FALLBACKS,
         GOOGLE_ENDPOINT_FAMILIES.VERTEX_EXPRESS,
+        onApiCallEvent,
       );
       if (reachableFallbacks.length > 0) return reachableFallbacks.sort(sortModelOptions);
       throw new Error('Invalid or unsupported Vertex AI Express key');
     }
 
-    const models = await fetchGeminiApiModels(apiKey);
+    const models = await fetchGeminiApiModels(apiKey, onApiCallEvent);
     if (models.length === 0) throw new Error('No Gemini models available');
     return mergeReachableGoogleCandidates(
       apiKey,
       models,
       GOOGLE_LATEST_TEXT_MODEL_CANDIDATES,
       GOOGLE_ENDPOINT_FAMILIES.GEMINI_API,
+      onApiCallEvent,
     );
   }
 
   if (provider === 'deepseek') {
+    if (typeof onApiCallEvent === 'function') {
+      onApiCallEvent({ type: 'modelDiscoveryCall', label: 'Fetch DeepSeek model catalog', detail: 'deepseek' });
+    }
     const response = await fetch('https://api.deepseek.com/v1/models', {
       headers: { Authorization: `Bearer ${apiKey}` },
     });

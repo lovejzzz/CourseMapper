@@ -37,11 +37,17 @@ function ApiCallBudgetCard({ budget }) {
   if (!budget) return null;
   const total = getApiCallBudgetTotal(budget);
   const counters = [
+    ['Model discovery', budget.modelDiscoveryCalls || 0],
+    ['Credit checks', budget.creditCheckCalls || 0],
+    ['Capability probes', budget.capabilityProbeCalls || 0],
     ['Course map', budget.courseMapCalls || 0],
     ['Deliverable chunks', budget.deliverableChunkCalls || 0],
     ['Repair/retry', budget.repairRetryCalls || 0],
+    ['Stream retries', budget.streamRetryCalls ?? budget.retriedCalls ?? 0],
+    ['Provider fallback', budget.providerFallbackCalls || 0],
+    ['Agent loop', budget.agentLoopCalls || 0],
+    ['Image generation', budget.imageGenerationCalls || 0],
     ['Failed', budget.failedCalls || 0],
-    ['Stream retries', budget.retriedCalls || 0],
   ];
   const events = Array.isArray(budget.recentEvents) ? budget.recentEvents.slice(0, 4) : [];
 
@@ -55,7 +61,7 @@ function ApiCallBudgetCard({ budget }) {
           <p className="text-[10px] font-bold uppercase tracking-wider text-indigo-500 dark:text-indigo-300">
             API call budget
           </p>
-          <p className="mt-0.5 text-[11px] font-semibold">Current run: {total} model calls</p>
+          <p className="mt-0.5 text-[11px] font-semibold">Current run: {total} provider calls</p>
         </div>
         {budget.skippedExamineCalls > 0 && (
           <span className="rounded-full bg-white/70 px-2 py-0.5 text-[9px] font-bold text-emerald-600 dark:bg-slate-900/70 dark:text-emerald-300">

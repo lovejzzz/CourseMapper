@@ -238,6 +238,13 @@ export async function runAgentLoop(fullMessage, { silent = false, dryRun = false
 
     // ── AGENTIC LOOP (native tool calling) ───────────────────────────────
     for (let iteration = 0; iteration < MAX_ITERATIONS; iteration++) {
+      if (typeof ctx.onApiCallEvent === 'function') {
+        ctx.onApiCallEvent({
+          type: 'agentLoopCall',
+          label: 'Agent loop provider call',
+          detail: `${iteration + 1}/${MAX_ITERATIONS}`,
+        });
+      }
       const { toolCalls, textContent, stopReason, assistantMessage } = await fetchAgentResponseNative(
         loopMessages,
         systemPrompt,

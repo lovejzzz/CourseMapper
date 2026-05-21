@@ -444,7 +444,14 @@ function isCachedProfileFresh(profile) {
   return Boolean(profile && profile.expiresAt && profile.expiresAt > now());
 }
 
-async function postJson(url, body, headers, signal) {
+async function postJson(url, body, headers, signal, apiCallEvent = null) {
+  if (typeof apiCallEvent?.onApiCallEvent === 'function') {
+    apiCallEvent.onApiCallEvent({
+      type: 'capabilityProbeCall',
+      label: apiCallEvent.label || 'Probe model capabilities',
+      detail: apiCallEvent.detail || body?.model || '',
+    });
+  }
   const response = await fetch(url, {
     method: 'POST',
     headers,
@@ -494,7 +501,14 @@ function isTemperatureError(error) {
   return /temperature/i.test(String(error?.message || ''));
 }
 
-async function probeJsonAndTemperature({ provider, apiKey, modelId, signal, googleEndpointFamily = null }) {
+async function probeJsonAndTemperature({
+  provider,
+  apiKey,
+  modelId,
+  signal,
+  googleEndpointFamily = null,
+  onApiCallEvent,
+}) {
   if (provider === 'webllm' || !apiKey || !modelId) return {};
   const prompt = 'Return exactly this JSON object and no other text: {"ok":true}';
 
@@ -518,6 +532,7 @@ async function probeJsonAndTemperature({ provider, apiKey, modelId, signal, goog
         body,
         providerHeaders(provider, apiKey),
         signal,
+        { onApiCallEvent, label: 'Probe JSON output', detail: modelId },
       );
     }
 
@@ -533,6 +548,7 @@ async function probeJsonAndTemperature({ provider, apiKey, modelId, signal, goog
         },
         providerHeaders(provider, apiKey),
         signal,
+        { onApiCallEvent, label: 'Probe JSON output', detail: modelId },
       );
     }
 
@@ -550,6 +566,7 @@ async function probeJsonAndTemperature({ provider, apiKey, modelId, signal, goog
         },
         providerHeaders(provider, apiKey),
         signal,
+        { onApiCallEvent, label: 'Probe JSON output', detail: modelId },
       );
     }
 
@@ -584,7 +601,14 @@ async function probeJsonAndTemperature({ provider, apiKey, modelId, signal, goog
   }
 }
 
-export async function probeToolCalling({ provider, apiKey, modelId, signal, googleEndpointFamily = null }) {
+export async function probeToolCalling({
+  provider,
+  apiKey,
+  modelId,
+  signal,
+  googleEndpointFamily = null,
+  onApiCallEvent,
+}) {
   if (provider === 'webllm' || !apiKey || !modelId) return {};
   const toolName = 'coursemapper_capability_echo';
   const prompt = `Call the ${toolName} tool with {"ok": true}.`;
@@ -612,6 +636,7 @@ export async function probeToolCalling({ provider, apiKey, modelId, signal, goog
         },
         providerHeaders(provider, apiKey),
         signal,
+        { onApiCallEvent, label: 'Probe tool calling', detail: modelId },
       );
       return {
         supportsTools: Boolean(data?.choices?.[0]?.message?.tool_calls?.length),
@@ -630,6 +655,7 @@ export async function probeToolCalling({ provider, apiKey, modelId, signal, goog
         },
         providerHeaders(provider, apiKey),
         signal,
+        { onApiCallEvent, label: 'Probe tool calling', detail: modelId },
       );
       return {
         supportsTools: Boolean((data?.content || []).some((item) => item?.type === 'tool_use')),
@@ -661,6 +687,7 @@ export async function probeToolCalling({ provider, apiKey, modelId, signal, goog
         },
         providerHeaders(provider, apiKey),
         signal,
+        { onApiCallEvent, label: 'Probe tool calling', detail: modelId },
       );
       const parts = data?.candidates?.[0]?.content?.parts || [];
       return { supportsTools: parts.some((part) => part?.functionCall?.name === toolName), evidence: ['tool-probe'] };
@@ -679,10 +706,18 @@ async function runCapabilityProbes({
   signal,
   probeTools = false,
   googleEndpointFamily = null,
+  onApiCallEvent,
 }) {
-  const jsonProbe = await probeJsonAndTemperature({ provider, apiKey, modelId, signal, googleEndpointFamily });
+  const jsonProbe = await probeJsonAndTemperature({
+    provider,
+    apiKey,
+    modelId,
+    signal,
+    googleEndpointFamily,
+    onApiCallEvent,
+  });
   const toolProbe = probeTools
-    ? await probeToolCalling({ provider, apiKey, modelId, signal, googleEndpointFamily })
+    ? await probeToolCalling({ provider, apiKey, modelId, signal, googleEndpointFamily, onApiCallEvent })
     : {};
   return {
     ...jsonProbe,
@@ -694,7 +729,14 @@ async function runCapabilityProbes({
   };
 }
 
-export async function resolveModelCapabilities({ provider, apiKey, model, signal, forceProbe = false }) {
+export async function resolveModelCapabilities({
+  provider,
+  apiKey,
+  model,
+  signal,
+  forceProbe = false,
+  onApiCallEvent,
+}) {
   const base = createBaseModelCapabilities(provider, model);
   if (!provider || !base.modelId || provider === 'webllm' || !apiKey) {
     return { ...base, confidence: provider === 'webllm' ? 'local' : base.confidence };
@@ -714,6 +756,7 @@ export async function resolveModelCapabilities({ provider, apiKey, model, signal
       modelId: base.modelId,
       signal,
       googleEndpointFamily: base.googleEndpointFamily || base.api?.googleEndpointFamily || null,
+      onApiCallEvent,
     });
     profile = {
       ...base,

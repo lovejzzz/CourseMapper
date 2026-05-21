@@ -47,14 +47,8 @@ function getCourseMapExamineTriggers({ courseMap, columns, validationWarnings = 
   if (lessons.length === 0) {
     triggers.push('no lessons were generated');
   }
-  if (expectedInfo?.expected && lessons.length < expectedInfo.expected) {
+  if (expectedInfo?.expected && expectedInfo.confidence === 'high' && lessons.length < expectedInfo.expected) {
     triggers.push(`expected ${expectedInfo.expected} lessons but generated ${lessons.length}`);
-  }
-  if (expectedInfo?.confidence === 'low') {
-    triggers.push('lesson-count confidence is low');
-  }
-  if (expectedInfo?.expected && expectedInfo.confidence === 'medium') {
-    triggers.push('lesson-count confidence is medium');
   }
 
   let emptyFieldCount = 0;
@@ -298,6 +292,7 @@ export default function useGeneration({
           modelCapabilities,
           generationPlan,
           task: 'verification',
+          onApiCallEvent: recordApiCallEvent,
           onChunk: (text) => {
             if (text.length % 200 < 10) {
               const partial = parsePartialJSON(text);
@@ -310,7 +305,7 @@ export default function useGeneration({
           },
           onRetry: (attempt, max, delay) => {
             recordApiCallEvent({
-              type: 'retriedCall',
+              type: 'streamRetryCall',
               label: 'Course-map review stream retry',
               detail: `${attempt}/${max}`,
             });
@@ -541,6 +536,7 @@ Generate lessons ${actual + 1} through ${expectedCount} now as JSON:`;
         modelCapabilities,
         generationPlan,
         task: 'repair',
+        onApiCallEvent: recordApiCallEvent,
         onChunk: (text) => {
           fullTextRef.current = text;
           const now = performance.now();
@@ -562,7 +558,7 @@ Generate lessons ${actual + 1} through ${expectedCount} now as JSON:`;
         },
         onRetry: (att, max, delay) => {
           recordApiCallEvent({
-            type: 'retriedCall',
+            type: 'streamRetryCall',
             label: 'Course-map continuation stream retry',
             detail: `${att}/${max}`,
           });
@@ -870,13 +866,14 @@ Generate lessons ${actual + 1} through ${expectedCount} now as JSON:`;
             modelCapabilities,
             generationPlan,
             task: 'course-map',
+            onApiCallEvent: recordApiCallEvent,
             onChunk: (text, count) => {
               fullTextRef.current = text;
               updateGenerationProgress(text, count);
             },
             onRetry: (attempt, max, delay) => {
               recordApiCallEvent({
-                type: 'retriedCall',
+                type: 'streamRetryCall',
                 label: 'Course-map generation stream retry',
                 detail: `${attempt}/${max}`,
               });
@@ -1184,6 +1181,7 @@ Generate lessons ${actual + 1} through ${expectedCount} now as JSON:`;
           modelCapabilities,
           generationPlan,
           task: 'repair',
+          onApiCallEvent: recordApiCallEvent,
           onChunk: (text, count) => {
             fullTextRef.current = text;
             if (import.meta.env.DEV && (count <= 3 || count % 20 === 0))
@@ -1211,7 +1209,7 @@ Generate lessons ${actual + 1} through ${expectedCount} now as JSON:`;
           },
           onRetry: (attempt, max, delay) => {
             recordApiCallEvent({
-              type: 'retriedCall',
+              type: 'streamRetryCall',
               label: 'Course-map resume stream retry',
               detail: `${attempt}/${max}`,
             });
