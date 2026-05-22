@@ -176,22 +176,6 @@ function addTargetLessonIdentity(item, courseMap, lessonIndex) {
   if (!numbers.includes(lessonNumber) || !titleText.trim()) {
     next.lessonTitle = explicitTitle;
   }
-  if (Array.isArray(next.tags)) {
-    const hasLessonTag = next.tags.some((tag) => extractLessonNumbersFromText(tag).includes(lessonNumber));
-    if (!hasLessonTag) next.tags = [...next.tags, `Lesson ${lessonNumber}`];
-  }
-  if (Array.isArray(next.tg)) {
-    const hasLessonTag = next.tg.some((tag) => extractLessonNumbersFromText(tag).includes(lessonNumber));
-    if (!hasLessonTag) next.tg = [...next.tg, `Lesson ${lessonNumber}`];
-  }
-  if (Array.isArray(next.relatedLessons)) {
-    const hasLesson = next.relatedLessons.some((value) => extractLessonNumbersFromText(value).includes(lessonNumber));
-    if (!hasLesson) next.relatedLessons = [...next.relatedLessons, explicitTitle];
-  }
-  if (Array.isArray(next.rl)) {
-    const hasLesson = next.rl.some((value) => extractLessonNumbersFromText(value).includes(lessonNumber));
-    if (!hasLesson) next.rl = [...next.rl, explicitTitle];
-  }
   return next;
 }
 
