@@ -265,6 +265,8 @@ export default function ChatPanel({
   const prevDelivGeneratingRef = useRef(isDelivGenerating);
   const proactiveReviewDoneRef = useRef(false);
   const autoReviewTimerRef = useRef(null);
+  const packageQualityStatusRef = useRef(packageQualityPass?.status || 'idle');
+  packageQualityStatusRef.current = packageQualityPass?.status || 'idle';
   const applyDeterministicReadinessRepairs = useCallback(() => {
     if (typeof autoRepairReadinessRef.current !== 'function') {
       return {
@@ -297,8 +299,21 @@ export default function ChatPanel({
     }
   }, [chat.isStreaming]);
   useEffect(() => {
+    if (packageQualityPass?.status === 'running' && autoReviewTimerRef.current) {
+      clearTimeout(autoReviewTimerRef.current);
+      autoReviewTimerRef.current = null;
+    }
+  }, [packageQualityPass?.status]);
+  useEffect(() => {
     const wasGenerating = prevDelivGeneratingRef.current;
     prevDelivGeneratingRef.current = isDelivGenerating;
+    const packageFinishing = packageQualityStatusRef.current === 'running';
+    if (packageFinishing) {
+      if (!wasGenerating && isDelivGenerating) {
+        proactiveReviewDoneRef.current = true;
+      }
+      return;
+    }
     if (!wasGenerating && isDelivGenerating) {
       proactiveReviewDoneRef.current = false;
     }
@@ -376,7 +391,7 @@ export default function ChatPanel({
         }, 2000);
       }
     }
-  }, [isDelivGenerating]); // eslint-disable-line react-hooks/exhaustive-deps
+  }, [isDelivGenerating, packageQualityPass?.status]); // eslint-disable-line react-hooks/exhaustive-deps
   useEffect(
     () => () => {
       if (autoReviewTimerRef.current) clearTimeout(autoReviewTimerRef.current);

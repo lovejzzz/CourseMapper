@@ -103,6 +103,152 @@ function patchScopeNumbering(parsed, featureId, scopeIndices, courseMap) {
   return { ...parsed, [k]: patched };
 }
 
+const PER_ASSESSMENT_REGEN_FEATURES = new Set(['rubrics', 'assignments']);
+
+function normalizeLessonMatch(value) {
+  return String(value || '')
+    .toLowerCase()
+    .replace(/\b(?:lesson|week|module|unit|session)\s*\d{1,2}\b/g, ' ')
+    .replace(/[^a-z0-9]+/g, ' ')
+    .replace(/\s+/g, ' ')
+    .trim();
+}
+
+function extractLessonNumbersFromText(value) {
+  const numbers = new Set();
+  const raw = String(value || '');
+  for (const match of raw.matchAll(/\b(?:lesson|week|module|unit|session)\s*(\d{1,2})\b/gi)) {
+    const number = Number(match[1]);
+    if (Number.isFinite(number)) numbers.add(number);
+  }
+  return [...numbers];
+}
+
+function collectLessonIdentityText(item) {
+  const values = [
+    item?.lessonTitle,
+    item?.lt,
+    item?.title,
+    item?.t,
+    item?.assessmentTitle,
+    item?.assessment,
+    item?.assessmentType,
+    item?.at,
+    item?.taskTitle,
+    item?.taskDirections,
+    item?.linkedAssignment,
+    item?.weekNumber,
+    item?.wk,
+    item?.dueWeek,
+    item?.dw,
+    ...(Array.isArray(item?.relatedLessons) ? item.relatedLessons : []),
+    ...(Array.isArray(item?.rl) ? item.rl : []),
+    ...(Array.isArray(item?.tags) ? item.tags : []),
+    ...(Array.isArray(item?.tg) ? item.tg : []),
+  ];
+  return values.filter(Boolean).join(' ');
+}
+
+function getItemLessonNumbers(item) {
+  return extractLessonNumbersFromText(collectLessonIdentityText(item));
+}
+
+function getCourseLessonTitle(courseMap, lessonIndex) {
+  return courseMap?.lessons?.[lessonIndex]?.title || `Lesson ${lessonIndex + 1}`;
+}
+
+function itemMatchesLesson(item, lessonNumber, normalizedLessonTitle) {
+  const numbers = getItemLessonNumbers(item);
+  if (numbers.includes(lessonNumber)) return true;
+  if (!normalizedLessonTitle) return false;
+  return normalizeLessonMatch(collectLessonIdentityText(item)).includes(normalizedLessonTitle);
+}
+
+function addTargetLessonIdentity(item, courseMap, lessonIndex) {
+  if (!item || typeof item !== 'object') return item;
+  const lessonNumber = lessonIndex + 1;
+  const lessonTitle = getCourseLessonTitle(courseMap, lessonIndex);
+  const explicitTitle = `Lesson ${lessonNumber}: ${lessonTitle}`;
+  const next = { ...item };
+  const numbers = getItemLessonNumbers(next);
+  const titleText = String(next.lessonTitle || next.lt || '');
+
+  if (!numbers.includes(lessonNumber) || !titleText.trim()) {
+    next.lessonTitle = explicitTitle;
+  }
+  if (Array.isArray(next.tags)) {
+    const hasLessonTag = next.tags.some((tag) => extractLessonNumbersFromText(tag).includes(lessonNumber));
+    if (!hasLessonTag) next.tags = [...next.tags, `Lesson ${lessonNumber}`];
+  }
+  if (Array.isArray(next.tg)) {
+    const hasLessonTag = next.tg.some((tag) => extractLessonNumbersFromText(tag).includes(lessonNumber));
+    if (!hasLessonTag) next.tg = [...next.tg, `Lesson ${lessonNumber}`];
+  }
+  if (Array.isArray(next.relatedLessons)) {
+    const hasLesson = next.relatedLessons.some((value) => extractLessonNumbersFromText(value).includes(lessonNumber));
+    if (!hasLesson) next.relatedLessons = [...next.relatedLessons, explicitTitle];
+  }
+  if (Array.isArray(next.rl)) {
+    const hasLesson = next.rl.some((value) => extractLessonNumbersFromText(value).includes(lessonNumber));
+    if (!hasLesson) next.rl = [...next.rl, explicitTitle];
+  }
+  return next;
+}
+
+function sortLessonScopedItems(items) {
+  return [...items].sort((a, b) => {
+    const aNumber = getItemLessonNumbers(a)[0] || 9999;
+    const bNumber = getItemLessonNumbers(b)[0] || 9999;
+    return aNumber - bNumber;
+  });
+}
+
+function mergeRegeneratedLessonItems(featureId, existingArr, newArr, lessonIndex, courseMap) {
+  const incoming = Array.isArray(newArr) ? newArr.filter(Boolean) : [];
+  const existing = Array.isArray(existingArr) ? [...existingArr] : [];
+  if (incoming.length === 0) return existing;
+
+  if (!PER_ASSESSMENT_REGEN_FEATURES.has(featureId)) {
+    const merged = [...existing];
+    if (lessonIndex < merged.length) merged[lessonIndex] = incoming[0];
+    else merged.push(incoming[0]);
+    for (let i = 1; i < incoming.length; i++) {
+      const itemTitle = incoming[i]?.lessonTitle || incoming[i]?.title || '';
+      const matchIdx = itemTitle
+        ? merged.findIndex((m, idx) => idx !== lessonIndex && (m?.lessonTitle === itemTitle || m?.title === itemTitle))
+        : -1;
+      if (matchIdx >= 0) merged[matchIdx] = incoming[i];
+    }
+    return merged;
+  }
+
+  const lessonNumber = lessonIndex + 1;
+  const normalizedLessonTitle = normalizeLessonMatch(getCourseLessonTitle(courseMap, lessonIndex));
+  const preparedIncoming = incoming.map((item) => addTargetLessonIdentity(item, courseMap, lessonIndex));
+  const firstMatchIndex = existing.findIndex((item) => itemMatchesLesson(item, lessonNumber, normalizedLessonTitle));
+  const keptExisting = existing.filter((item) => !itemMatchesLesson(item, lessonNumber, normalizedLessonTitle));
+
+  if (firstMatchIndex < 0) {
+    return sortLessonScopedItems([...keptExisting, ...preparedIncoming]);
+  }
+
+  const insertIndex = Math.min(firstMatchIndex, keptExisting.length);
+  return [...keptExisting.slice(0, insertIndex), ...preparedIncoming, ...keptExisting.slice(insertIndex)];
+}
+
+function prepareRegeneratedLessonData(featureId, parsed, lessonIndex, courseMap) {
+  if (!PER_ASSESSMENT_REGEN_FEATURES.has(featureId)) {
+    return patchScopeNumbering(parsed, featureId, [lessonIndex], courseMap);
+  }
+  const arrayKey = getArrayKey(featureId, parsed);
+  const arr = arrayKey ? parsed[arrayKey] || [] : [];
+  if (!arrayKey || arr.length === 0) return parsed;
+  return {
+    ...parsed,
+    [arrayKey]: arr.map((item) => addTargetLessonIdentity(item, courseMap, lessonIndex)),
+  };
+}
+
 // Human-readable labels for logging (built-ins only)
 const FEATURE_LABELS_MAP = {
   lessonPlans: 'Lesson Plans',
@@ -2744,21 +2890,7 @@ export default function useDeliverables({
               if (partial && existingDataSnapshot && existingKey) {
                 const partialKey = getArrayKey(featureId, partial);
                 const partialArr = partialKey ? partial[partialKey] || [] : [];
-                const merged = [...existingArr];
-                // First item always targets the requested lesson index.
-                // Extra items (rare — AI may return neighbours) match by title.
-                if (partialArr.length > 0 && lessonIndex < merged.length) {
-                  merged[lessonIndex] = partialArr[0];
-                }
-                for (let i = 1; i < partialArr.length; i++) {
-                  const itemTitle = partialArr[i]?.lessonTitle || partialArr[i]?.title || '';
-                  const matchIdx = itemTitle
-                    ? merged.findIndex(
-                        (m) => m !== partialArr[0] && (m?.lessonTitle === itemTitle || m?.title === itemTitle),
-                      )
-                    : -1;
-                  if (matchIdx >= 0) merged[matchIdx] = partialArr[i];
-                }
+                const merged = mergeRegeneratedLessonItems(featureId, existingArr, partialArr, lessonIndex, courseMap);
                 dispatch({
                   type: 'SET_DELIVERABLE',
                   featureId,
@@ -2809,30 +2941,12 @@ export default function useDeliverables({
             traceGeneration(regenerationRunId, 'lesson_regen_superseded', supersededResult, 'warn');
             return supersededResult;
           }
-          const finalParsed = patchScopeNumbering(parsed, featureId, [lessonIndex], courseMap);
+          const finalParsed = prepareRegeneratedLessonData(featureId, parsed, lessonIndex, courseMap);
           let nextData = finalParsed;
           if (existingKey && existingDataSnapshot) {
             const newKey = getArrayKey(featureId, finalParsed);
             const newArr = (newKey ? finalParsed[newKey] : null) || [];
-            const merged = [...existingArr];
-            // First item always replaces the target lesson index.
-            // Any extra items returned by the AI are matched by lessonTitle
-            // to avoid overwriting the wrong lesson in the array.
-            if (newArr.length > 0 && lessonIndex < merged.length) {
-              merged[lessonIndex] = newArr[0];
-            } else if (newArr.length > 0) {
-              merged.push(newArr[0]);
-            }
-            for (let i = 1; i < newArr.length; i++) {
-              const itemTitle = newArr[i]?.lessonTitle || newArr[i]?.title || '';
-              const matchIdx = itemTitle
-                ? merged.findIndex(
-                    (m, idx) => idx !== lessonIndex && (m?.lessonTitle === itemTitle || m?.title === itemTitle),
-                  )
-                : -1;
-              if (matchIdx >= 0) merged[matchIdx] = newArr[i];
-              // If no title match, don't blindly push — skip to prevent corruption
-            }
+            const merged = mergeRegeneratedLessonItems(featureId, existingArr, newArr, lessonIndex, courseMap);
             nextData = { ...existingDataSnapshot, [existingKey]: merged };
             dispatch(actions.setDeliverableDone(featureId, nextData));
           } else {
