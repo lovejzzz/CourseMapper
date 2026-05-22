@@ -1326,10 +1326,10 @@ test.describe('Export smoke', () => {
     await expect(page.getByTestId('export-download-zip')).toBeEnabled();
 
     await page.getByTestId('export-download-zip').click();
-    await expect(page.getByTestId('readiness-confirm')).toContainText('Finish package before export');
+    await expect(page.getByTestId('readiness-confirm')).toContainText('Needs attention before export');
     await expect(page.getByTestId('readiness-confirm')).toContainText('Course FAQ failed to generate');
     await expect(page.getByTestId('readiness-export-anyway')).toHaveCount(0);
-    await expect(page.getByTestId('export-notice')).toContainText('Finish the issues above');
+    await expect(page.getByTestId('export-notice')).toContainText('Automatic finishing ran');
   });
 
   test('blocks ZIP export when generated quiz content needs review notes', async ({ page }) => {
@@ -1443,7 +1443,7 @@ test.describe('Export smoke', () => {
     await expect(page.getByTestId('readiness-panel')).toContainText('missing instructor guidance');
     await page.getByTestId('export-download-zip').click();
     await expect(page.getByTestId('readiness-confirm')).toBeVisible();
-    await expect(page.getByTestId('readiness-confirm')).toContainText('Finish package before export');
+    await expect(page.getByTestId('readiness-confirm')).toContainText('Needs attention before export');
     await expect(page.getByTestId('readiness-confirm')).toContainText('missing instructor guidance');
     await expect(page.getByTestId('readiness-export-anyway')).toHaveCount(0);
   });

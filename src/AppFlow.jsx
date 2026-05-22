@@ -494,6 +494,9 @@ export default function AppFlow({ startupAction = null, onStartupHandled, onRetu
       lessonFilter,
       retry: true,
       source: 'export',
+      maxRetryActions: 10,
+      maxRetryCallBudget: 14,
+      maxRetryPasses: 3,
     });
   }, []);
 
@@ -730,6 +733,7 @@ export default function AppFlow({ startupAction = null, onStartupHandled, onRetu
       retry = true,
       maxRetryActions = 4,
       maxRetryCallBudget = 4,
+      maxRetryPasses = 2,
       courseMapOverride = null,
       deliverablesOverride = null,
     } = {}) => {
@@ -765,34 +769,52 @@ export default function AppFlow({ startupAction = null, onStartupHandled, onRetu
         canFinishPackageWithAgent &&
         (typeof regenerateLessonRef.current === 'function' || typeof regenerateFeatureRef.current === 'function');
 
+      const retryPassLimit = Math.max(0, Number(maxRetryPasses) || 0);
+      let remainingRetryCallBudget = Math.max(0, Number(maxRetryCallBudget) || 0);
       let result = runFinalizer(canRetryWeakSpots ? maxRetryActions : 0);
       commitFinalizerResult(result);
       finalizerCourseMap = result.courseMap || finalizerCourseMap;
       finalizerDeliverables = result.deliverables || finalizerDeliverables;
       let totalRepairsApplied = result.repairsApplied || 0;
       let retryCount = 0;
+      let retryPassCount = 0;
+      let retryCallCount = 0;
       let skippedRetryCallCount = 0;
       let skippedRetryActionCount = 0;
+      let retryBudgetExhausted = false;
+      let retryPassLimitReached = false;
 
-      if (result.retryActions.length > 0 && canRetryWeakSpots) {
+      while (
+        result.retryActions.length > 0 &&
+        canRetryWeakSpots &&
+        retryPassCount < retryPassLimit &&
+        remainingRetryCallBudget > 0
+      ) {
         const retryBudget = selectRetryActionsWithinCallBudget(result.retryActions, {
           courseMap: result.courseMap || finalizerCourseMap,
           lessonFilter,
           generationPlan,
-          maxCalls: maxRetryCallBudget,
+          maxCalls: remainingRetryCallBudget,
         });
         const retryActionsToRun = retryBudget.selected;
-        skippedRetryActionCount = retryBudget.skipped.length;
-        skippedRetryCallCount = retryBudget.skipped.reduce((sum, action) => sum + (action.estimatedCalls || 1), 0);
+        skippedRetryActionCount += retryBudget.skipped.length;
+        skippedRetryCallCount += retryBudget.skipped.reduce((sum, action) => sum + (action.estimatedCalls || 1), 0);
+
+        if (retryActionsToRun.length === 0) {
+          retryBudgetExhausted = true;
+          break;
+        }
+
+        retryPassCount += 1;
         setPackageQualityPass({
           status: 'running',
           message:
             retryActionsToRun.length > 0
-              ? `Finishing package: retrying ${retryActionsToRun.length} weak area${
+              ? `Finishing package: retry pass ${retryPassCount}/${retryPassLimit}, fixing ${retryActionsToRun.length} weak area${
                   retryActionsToRun.length === 1 ? '' : 's'
                 } (${retryBudget.usedCalls} call${retryBudget.usedCalls === 1 ? '' : 's'})...`
               : 'Finishing package: retry plan is over the call budget; checking remaining issues...',
-          repairsApplied: result.repairsApplied,
+          repairsApplied: totalRepairsApplied,
           warnings: 0,
           blockers: 0,
         });
@@ -816,16 +838,23 @@ export default function AppFlow({ startupAction = null, onStartupHandled, onRetu
             );
           }
           retryCount += 1;
+          retryCallCount += action.estimatedCalls || 1;
           await new Promise((resolve) => window.setTimeout(resolve, 0));
           finalizerCourseMap = courseMapRef.current || finalizerCourseMap;
           finalizerDeliverables = deliverablesRef.current || finalizerDeliverables;
         }
 
-        if (retryActionsToRun.length > 0) {
-          result = runFinalizer(0);
-          commitFinalizerResult(result);
-          totalRepairsApplied += result.repairsApplied || 0;
-        }
+        remainingRetryCallBudget = Math.max(0, remainingRetryCallBudget - retryBudget.usedCalls);
+        result = runFinalizer(canRetryWeakSpots ? maxRetryActions : 0);
+        commitFinalizerResult(result);
+        finalizerCourseMap = result.courseMap || finalizerCourseMap;
+        finalizerDeliverables = result.deliverables || finalizerDeliverables;
+        totalRepairsApplied += result.repairsApplied || 0;
+      }
+
+      if (result.retryActions.length > 0 && canRetryWeakSpots) {
+        retryBudgetExhausted = remainingRetryCallBudget <= 0;
+        retryPassLimitReached = retryPassCount >= retryPassLimit;
       }
 
       let exportVerification = null;
@@ -868,9 +897,13 @@ export default function AppFlow({ startupAction = null, onStartupHandled, onRetu
       const skippedRetryText =
         unresolvedRetryCount > 0 && !canRetryWeakSpots
           ? `AI setup is needed to retry ${unresolvedRetryCount} weak area${unresolvedRetryCount === 1 ? '' : 's'}. `
-          : skippedRetryActionCount > 0
-            ? `Skipped ${skippedRetryActionCount} broad retry action${skippedRetryActionCount === 1 ? '' : 's'} to stay within the ${maxRetryCallBudget}-call retry budget. `
-            : '';
+          : retryPassLimitReached
+            ? `Reached the ${retryPassLimit}-pass finishing limit with ${unresolvedRetryCount} weak area${unresolvedRetryCount === 1 ? '' : 's'} still needing attention. `
+            : retryBudgetExhausted
+              ? `Reached the ${maxRetryCallBudget}-call finishing budget with ${unresolvedRetryCount} weak area${unresolvedRetryCount === 1 ? '' : 's'} still needing attention. `
+              : skippedRetryActionCount > 0
+                ? `Skipped ${skippedRetryActionCount} broad retry action${skippedRetryActionCount === 1 ? '' : 's'} to stay within the ${maxRetryCallBudget}-call retry budget. `
+                : '';
       const repairText =
         totalRepairsApplied > 0
           ? `Auto-fixed ${totalRepairsApplied} safe issue${totalRepairsApplied === 1 ? '' : 's'}. `
@@ -904,8 +937,15 @@ export default function AppFlow({ startupAction = null, onStartupHandled, onRetu
         ...result,
         repairsApplied: totalRepairsApplied,
         retryCount,
+        retryPassCount,
+        retryCallCount,
         skippedRetryActionCount,
         skippedRetryCallCount,
+        retryBudgetRemaining: remainingRetryCallBudget,
+        retryBudgetExhausted,
+        retryPassLimitReached,
+        retryExhausted:
+          unresolvedRetryCount > 0 && canRetryWeakSpots && (retryBudgetExhausted || retryPassLimitReached),
         exportVerification,
         packageQualityStatus: finalStatus,
       };
@@ -1630,6 +1670,9 @@ export default function AppFlow({ startupAction = null, onStartupHandled, onRetu
       selectedFeatureIds: selectedForFinalizer,
       lessonFilter: scopeIndices,
       retry: true,
+      maxRetryActions: 8,
+      maxRetryCallBudget: 8,
+      maxRetryPasses: 2,
       courseMapOverride: finalCourseMap,
       deliverablesOverride: generatedDeliverables || {},
     });

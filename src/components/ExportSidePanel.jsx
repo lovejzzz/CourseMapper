@@ -451,24 +451,37 @@ function ReadinessConfirm({
   const isZipExport = pendingExport.format === 'zip';
   const issues = (isBlocked ? readiness.blockers : readiness.issues).slice(0, 5);
   const firstNavigableIssue = issues.find((issue) => issue?.target);
+  const canRetryPackage = canFinishPackage && pendingExport.canFinishPackageAgain !== false;
   const canNavigate = (issue) => typeof onIssueClick === 'function' && issue?.target;
-  const tone = isBlocked
-    ? {
-        wrap: 'border-red-200 bg-red-50/80 text-red-800',
-        reviewButton: 'border-red-200 text-red-700',
-        title: 'Finish package before export',
+  const tone = (() => {
+    if (!canRetryPackage) {
+      return {
+        wrap: isBlocked ? 'border-red-200 bg-red-50/80 text-red-800' : 'border-amber-200 bg-amber-50/80 text-amber-800',
+        reviewButton: isBlocked ? 'border-red-200 text-red-700' : 'border-amber-200 text-amber-700',
+        title: 'Needs attention before export',
         description: isZipExport
-          ? 'Finish package will repair safe issues, re-check the ZIP, and stop only for decisions you need to make.'
-          : 'Finish package will repair safe issues, re-check this export, and stop only for decisions you need to make.',
-      }
-    : {
-        wrap: 'border-amber-200 bg-amber-50/80 text-amber-800',
-        reviewButton: 'border-amber-200 text-amber-700',
-        title: 'Finish package before export',
-        description: isZipExport
-          ? 'Automatic fixes ran. Finish package will retry anything safe and prepare the ZIP when clean.'
-          : 'Automatic fixes ran. Finish package will retry anything safe and prepare the export when clean.',
+          ? 'Automatic finishing already ran. Open the remaining issue, adjust the material or model, then export again.'
+          : 'Automatic finishing already ran. Open the remaining issue, adjust the material or model, then export again.',
       };
+    }
+    return isBlocked
+      ? {
+          wrap: 'border-red-200 bg-red-50/80 text-red-800',
+          reviewButton: 'border-red-200 text-red-700',
+          title: 'Finish package before export',
+          description: isZipExport
+            ? 'Finish package will repair safe issues, re-check the ZIP, and stop only for decisions you need to make.'
+            : 'Finish package will repair safe issues, re-check this export, and stop only for decisions you need to make.',
+        }
+      : {
+          wrap: 'border-amber-200 bg-amber-50/80 text-amber-800',
+          reviewButton: 'border-amber-200 text-amber-700',
+          title: 'Finish package before export',
+          description: isZipExport
+            ? 'Automatic fixes ran. Finish package will retry anything safe and prepare the ZIP when clean.'
+            : 'Automatic fixes ran. Finish package will retry anything safe and prepare the export when clean.',
+        };
+  })();
 
   return (
     <div ref={confirmRef} data-testid="readiness-confirm" className={`rounded-xl border px-3 py-3 ${tone.wrap}`}>
@@ -508,7 +521,7 @@ function ReadinessConfirm({
         </p>
       )}
       <div className="mt-2 grid grid-cols-1 gap-1.5">
-        {canFinishPackage ? (
+        {canRetryPackage ? (
           <button
             type="button"
             data-testid="readiness-finish-package"
@@ -843,6 +856,7 @@ export default function ExportSidePanel({
     let exportDeliverables = deliverables || {};
     let exportReadiness = getReadinessSnapshot({ exportCourseMap, exportDeliverables, exportScope });
     let repairsApplied = pendingExport?.repairsApplied || 0;
+    let finishOutcome = null;
 
     if (exportScope === 'all' && typeof onFinishPackage === 'function') {
       setPendingReadinessExport(null);
@@ -865,6 +879,7 @@ export default function ExportSidePanel({
         }
 
         if (finishResult && typeof finishResult === 'object') {
+          finishOutcome = finishResult;
           repairsApplied += finishResult.repairsApplied || 0;
           exportCourseMap = finishResult.courseMap || exportCourseMap;
           exportDeliverables = finishResult.deliverables || exportDeliverables;
@@ -893,6 +908,8 @@ export default function ExportSidePanel({
     }
 
     if (exportReadiness.blockers.length > 0 || exportReadiness.warnings.length > 0) {
+      const canFinishPackageAgain =
+        !finishOutcome || ((finishOutcome.retryActions?.length || 0) > 0 && !finishOutcome.retryExhausted);
       const pendingExport = {
         format,
         readiness: exportReadiness,
@@ -900,6 +917,7 @@ export default function ExportSidePanel({
         courseMap: exportCourseMap,
         deliverables: exportDeliverables,
         repairsApplied,
+        canFinishPackageAgain,
       };
       setPendingReadinessExport({
         ...pendingExport,
@@ -907,11 +925,13 @@ export default function ExportSidePanel({
       setLastError('');
       setLastOk('');
       setLastNotice(
-        `${repairsApplied > 0 ? `Auto-fixed ${repairsApplied} safe issue${repairsApplied === 1 ? '' : 's'}. ` : ''}${
-          format === 'zip'
-            ? 'Finish the issues above before downloading the ZIP.'
-            : 'Finish the issues above before exporting.'
-        }`,
+        finishOutcome && !canFinishPackageAgain
+          ? `${repairsApplied > 0 ? `Auto-fixed ${repairsApplied} safe issue${repairsApplied === 1 ? '' : 's'}. ` : ''}Automatic finishing ran. Open the remaining issue before exporting.`
+          : `${repairsApplied > 0 ? `Auto-fixed ${repairsApplied} safe issue${repairsApplied === 1 ? '' : 's'}. ` : ''}${
+              format === 'zip'
+                ? 'Finish the issues above before downloading the ZIP.'
+                : 'Finish the issues above before exporting.'
+            }`,
       );
       return;
     }
@@ -1048,14 +1068,18 @@ export default function ExportSidePanel({
   const allSelected = selectedLessons === null;
   const selectedCount = selectedLessons === null ? allLessons.length : selectedLessons.length;
   const activeHasReadinessIssues = displayedReadiness.blockers.length > 0 || displayedReadiness.warnings.length > 0;
-  const zipCanFinishPackage = scope === 'all' && activeHasReadinessIssues && canFinishPackage;
+  const zipPendingNeedsAttention = zipPendingReadiness && pendingReadinessExport?.canFinishPackageAgain === false;
+  const zipCanFinishPackage =
+    scope === 'all' && activeHasReadinessIssues && canFinishPackage && !zipPendingNeedsAttention;
   const zipButtonLabel = finishPackageBusy
     ? 'Finishing package'
     : zipCanFinishPackage
       ? 'Finish package'
-      : zipPendingReadiness
-        ? 'Finish package'
-        : 'Download ZIP';
+      : zipPendingNeedsAttention
+        ? 'Needs attention'
+        : zipPendingReadiness
+          ? 'Finish package'
+          : 'Download ZIP';
 
   return (
     <div
@@ -1202,6 +1226,7 @@ export default function ExportSidePanel({
                   isPackageQualityRunning ||
                   finishPackageBusy ||
                   (zipPendingReadiness && !canFinishPackage) ||
+                  zipPendingNeedsAttention ||
                   allReadyCount === 0 ||
                   !courseMap ||
                   (selectedLessons !== null && selectedLessons.length === 0)
@@ -1211,15 +1236,17 @@ export default function ExportSidePanel({
                     ? 'Final checks are finishing this package'
                     : zipCanFinishPackage
                       ? 'Fix remaining issues, re-check, and download when clean'
-                      : zipPendingReadiness
-                        ? 'Finish the readiness issues above before downloading'
-                        : isPackageQualityRunning
-                          ? 'Package finishing is still running'
-                          : !courseMap
-                            ? 'Course map is required for ZIP export'
-                            : selectedLessons !== null && selectedLessons.length === 0
-                              ? 'Select at least one lesson'
-                              : undefined
+                      : zipPendingNeedsAttention
+                        ? 'Open the remaining issue before downloading'
+                        : zipPendingReadiness
+                          ? 'Finish the readiness issues above before downloading'
+                          : isPackageQualityRunning
+                            ? 'Package finishing is still running'
+                            : !courseMap
+                              ? 'Course map is required for ZIP export'
+                              : selectedLessons !== null && selectedLessons.length === 0
+                                ? 'Select at least one lesson'
+                                : undefined
                 }
                 className="tactile flex items-center justify-center gap-2 w-full py-2.5 rounded-lg text-[12px] font-bold text-white bg-gradient-to-r from-indigo-500 to-violet-600 shadow-sm hover:brightness-110 transition-all disabled:opacity-40 disabled:cursor-not-allowed"
               >
