@@ -4,6 +4,7 @@ import {
   MAX_DELIVERABLE_FEATURE_TIMEOUT_MS,
   MIN_DELIVERABLE_FEATURE_TIMEOUT_MS,
   buildDeliverableTimeoutError,
+  getDeliverableFeatureHardTimeoutMs,
   getDeliverableFeatureTimeoutMs,
   runDeliverableFeatureWithTimeout,
 } from '../deliverableTimeouts';
@@ -35,9 +36,17 @@ describe('deliverable timeout helpers', () => {
     expect(getDeliverableFeatureTimeoutMs('lessonPlans', [{}], 25)).toBe(25);
   });
 
+  it('uses a longer hard safety limit than the idle watchdog', () => {
+    expect(getDeliverableFeatureHardTimeoutMs('lessonPlans', [{}])).toBe(30 * 60 * 1000);
+    expect(getDeliverableFeatureHardTimeoutMs('lessonPlans', [{}], 25)).toBe(25);
+  });
+
   it('builds an actionable terminal error message', () => {
     expect(buildDeliverableTimeoutError('Quiz Bank', 8 * 60 * 1000)).toBe(
-      'Quiz Bank did not finish after 8 minutes. The request was stopped so the rest of the workspace can continue.',
+      'Quiz Bank stopped after 8 minutes without new progress. If the provider is still responding, retry will continue from the remaining sections.',
+    );
+    expect(buildDeliverableTimeoutError('Quiz Bank', 30 * 60 * 1000, 'hard')).toBe(
+      'Quiz Bank reached the 30-minute safety limit. The request was stopped so the rest of the workspace can continue.',
     );
   });
 
@@ -54,14 +63,44 @@ describe('deliverable timeout helpers', () => {
         featureId: 'lessonPlans',
         featureTasks: [{}],
         timeoutMs: 1000,
+        watchdogIntervalMs: 100,
         runFeature: () => new Promise(() => {}),
         onTimeout,
       });
 
       await vi.advanceTimersByTimeAsync(1000);
 
-      await expect(resultPromise).resolves.toEqual({ timedOut: true, timeoutMs: 1000 });
-      expect(onTimeout).toHaveBeenCalledWith('lessonPlans', 1000);
+      await expect(resultPromise).resolves.toMatchObject({
+        timedOut: true,
+        timeoutMs: 1000,
+        timeoutType: 'idle',
+      });
+      expect(onTimeout).toHaveBeenCalledWith('lessonPlans', 1000, 'idle');
+    });
+
+    it('uses the hard safety timeout while progress continues', async () => {
+      vi.useFakeTimers();
+      const onTimeout = vi.fn();
+
+      const resultPromise = runDeliverableFeatureWithTimeout({
+        featureId: 'lessonPlans',
+        featureTasks: [{}],
+        timeoutMs: 5000,
+        hardTimeoutMs: 1000,
+        watchdogIntervalMs: 100,
+        getLastActivityAt: () => Date.now(),
+        runFeature: () => new Promise(() => {}),
+        onTimeout,
+      });
+
+      await vi.advanceTimersByTimeAsync(1000);
+
+      await expect(resultPromise).resolves.toMatchObject({
+        timedOut: true,
+        timeoutMs: 1000,
+        timeoutType: 'hard',
+      });
+      expect(onTimeout).toHaveBeenCalledWith('lessonPlans', 1000, 'hard');
     });
 
     it('clears the timeout when the feature finishes normally', async () => {

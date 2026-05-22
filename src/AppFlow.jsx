@@ -74,7 +74,7 @@ import {
 } from './lib/deliverableReadiness';
 import { evaluateClassroomReadiness } from './lib/classroomReadiness';
 import { runDeterministicPackageFinalizer } from './lib/packageFinalizer';
-import { applyApiCallBudgetEvent, createApiCallBudget } from './lib/apiCallBudget';
+import { applyApiCallBudgetEvent, createApiCallBudget, getApiCallBudgetTotal } from './lib/apiCallBudget';
 import { getChunkCount } from './lib/parallelGenerator';
 
 const STORAGE_KEY = 'coursemapper-project';
@@ -114,6 +114,33 @@ function buildQualityReceipt({
     exportWarningCount: exportVerification?.warningCount || 0,
     topIssues,
   };
+}
+
+function traceApiCallBudget(event = {}, budget = {}) {
+  if (typeof console === 'undefined') return;
+  const counters = {
+    modelDiscovery: budget.modelDiscoveryCalls || 0,
+    creditCheck: budget.creditCheckCalls || 0,
+    capabilityProbe: budget.capabilityProbeCalls || 0,
+    courseMap: budget.courseMapCalls || 0,
+    deliverableChunk: budget.deliverableChunkCalls || 0,
+    repairRetry: budget.repairRetryCalls || 0,
+    streamRetry: budget.streamRetryCalls || 0,
+    providerFallback: budget.providerFallbackCalls || 0,
+    agentLoop: budget.agentLoopCalls || 0,
+    imageGeneration: budget.imageGenerationCalls || 0,
+    failed: budget.failedCalls || 0,
+  };
+  console.info(`[CM][API] ${event.type || 'event'}`, {
+    at: new Date().toISOString(),
+    runId: budget.runId,
+    label: event.label || '',
+    detail: event.detail || '',
+    featureId: event.featureId || '',
+    count: Number.isFinite(event.count) ? event.count : 1,
+    totalProviderCalls: getApiCallBudgetTotal(budget),
+    counters,
+  });
 }
 
 function estimateRetryActionCallCost(action, courseMap, lessonFilter, generationPlan) {
@@ -458,7 +485,11 @@ export default function AppFlow({ startupAction = null, onStartupHandled, onRetu
   });
   const [apiCallBudget, setApiCallBudget] = useState(() => createApiCallBudget());
   const recordApiCallEvent = useCallback((event) => {
-    setApiCallBudget((current) => applyApiCallBudgetEvent(current, event));
+    setApiCallBudget((current) => {
+      const next = applyApiCallBudgetEvent(current, event);
+      traceApiCallBudget(event, next);
+      return next;
+    });
   }, []);
 
   // ── Misc ──

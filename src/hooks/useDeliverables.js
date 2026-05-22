@@ -27,7 +27,7 @@ import {
   trimQuizBankQuestions,
 } from '../lib/parallelGenerator';
 import { expandKeys } from '../lib/keyMaps';
-import { log, warn, error as logError } from '../lib/logger';
+import { log, warn } from '../lib/logger';
 import { buildDeliverableTimeoutError, runDeliverableFeatureWithTimeout } from '../lib/deliverableTimeouts';
 import {
   applyModelAwareDeliverableDefaults,
@@ -123,6 +123,65 @@ function getFeatureLabel(featureId) {
     return custom?.name || featureId;
   }
   return featureId;
+}
+
+function createGenerationRunId() {
+  return `gen-${Date.now().toString(36)}-${Math.random().toString(36).slice(2, 7)}`;
+}
+
+function summarizeError(err) {
+  return {
+    name: err?.name || 'Error',
+    message: err?.message || String(err || 'Unknown error'),
+    stack: err?.stack ? String(err.stack).split('\n').slice(0, 5).join('\n') : undefined,
+  };
+}
+
+function traceGeneration(runId, event, details = {}, level = 'info') {
+  if (typeof console === 'undefined') return;
+  const method = level === 'error' ? 'error' : level === 'warn' ? 'warn' : 'info';
+  console[method](`[CM][GEN][${runId}] ${event}`, {
+    at: new Date().toISOString(),
+    ...details,
+  });
+}
+
+function traceGenerationTable(runId, event, rows = []) {
+  if (typeof console === 'undefined') return;
+  console.groupCollapsed(`[CM][GEN][${runId}] ${event}`);
+  if (typeof console.table === 'function') console.table(rows);
+  else console.info(rows);
+  console.groupEnd();
+}
+
+const STREAM_PROGRESS_LOG_CHAR_STEP = 10000;
+const DEFAULT_REPAIR_RETRY_CALL_LIMIT = 3;
+const REPAIR_RETRY_CALL_LIMITS = {
+  syllabus: 1,
+  rubrics: 1,
+  courseFaq: 2,
+  lessonPlans: 3,
+  assignments: 3,
+  discussions: 3,
+  studyGuides: 3,
+  slideDecks: 4,
+  quizBank: 4,
+};
+
+function estimateCharsAsTokens(...values) {
+  return Math.round(values.reduce((total, value) => total + (value?.length || 0), 0) / 4);
+}
+
+function getRepairRetryCallLimit(featureId, expectedCount, repairRoundLimit) {
+  const featureLimit = REPAIR_RETRY_CALL_LIMITS[featureId] ?? DEFAULT_REPAIR_RETRY_CALL_LIMIT;
+  const sizeAllowance = expectedCount >= 12 ? 1 : 0;
+  return Math.max(1, Math.min(featureLimit, repairRoundLimit + sizeAllowance));
+}
+
+function getDeliverableItemCount(featureId, data) {
+  const key = getArrayKey(featureId, data);
+  if (key) return Array.isArray(data?.[key]) ? data[key].length : 0;
+  return data && Object.keys(data).length > 0 ? 1 : 0;
 }
 
 const IMAGE_WORTHY_SLIDE_TYPES = new Set(['content', 'bridge', 'example', 'keyTerm', 'activity']);
@@ -307,6 +366,7 @@ export default function useDeliverables({
   // Per-feature/chunk abort controllers: Map<"featureId" | "featureId:chunkN", AbortController>
   const abortMapRef = useRef(new Map());
   const timedOutFeaturesRef = useRef(new Set());
+  const featureActivityRef = useRef(new Map());
   const startedRef = useRef(false);
   // Track the active sync generation ID so stale results can be discarded
   const activeSyncGenRef = useRef(0);
@@ -380,15 +440,18 @@ export default function useDeliverables({
 
       startedRef.current = true;
       timedOutFeaturesRef.current = new Set();
+      featureActivityRef.current = new Map();
       if (syncGenId !== null) activeSyncGenRef.current = syncGenId;
       setIsGenerating(true);
       setGenerationLog([]);
       setDelivTimings({});
       const generationStartTime = Date.now();
+      const generationRunId = createGenerationRunId();
 
       const lessonCount = (courseMap.lessons || []).length;
       const lessonIndices = scopeIndices ?? Array.from({ length: lessonCount }, (_, i) => i);
       const repairRoundLimit = getRepairRoundLimit(generationPlan);
+      const repairRetryCallsUsed = new Map();
 
       // ── 1. Create chunk plan ──
       const tasks = createChunkPlan(toGenerate, lessonCount, scopeIndices, generationPlan);
@@ -414,6 +477,29 @@ export default function useDeliverables({
         `Starting parallel generation of ${toGenerate.length} deliverable${toGenerate.length !== 1 ? 's' : ''} (${tasks.length} tasks) for ${scopeDesc}`,
         'start',
       );
+      traceGeneration(generationRunId, 'run_start', {
+        provider,
+        modelId,
+        lessonCount,
+        scopeDesc,
+        features: toGenerate,
+        taskCount: tasks.length,
+        featureConcurrency: getFeatureConcurrency(generationPlan),
+        retryConcurrency: getRetryConcurrency(generationPlan),
+        repairRoundLimit,
+        initialStreamRetries: getStreamRetryLimit(generationPlan, 'initial'),
+        repairStreamRetries: getStreamRetryLimit(generationPlan, 'repair'),
+      });
+      traceGenerationTable(
+        generationRunId,
+        'chunk_plan',
+        tasks.map((task) => ({
+          featureId: task.featureId,
+          chunkIndex: task.chunkIndex,
+          lessons: task.isWholeCourse ? 'whole course' : task.chunkScope.map((idx) => idx + 1).join(','),
+          wholeCourse: Boolean(task.isWholeCourse),
+        })),
+      );
 
       // ── 3. Chunk result accumulators ──
       const chunkResults = {}; // { [featureId]: Map<chunkIndex, parsedData> }
@@ -429,18 +515,72 @@ export default function useDeliverables({
         completedFeatureIds.add(featureId);
         failedFeatureIds.delete(featureId);
         dispatch(actions.setDeliverableDone(featureId, data));
+        traceGeneration(generationRunId, 'feature_done', {
+          featureId,
+          label: getFeatureLabel(featureId),
+          itemCount: getDeliverableItemCount(featureId, data),
+        });
       };
 
       const markFeatureError = (featureId, message) => {
         generatedDeliverables[featureId] = { status: 'error', data: null, error: message, stale: false };
         failedFeatureIds.add(featureId);
         dispatch(actions.setDeliverableError(featureId, message));
+        traceGeneration(
+          generationRunId,
+          'feature_error',
+          {
+            featureId,
+            label: getFeatureLabel(featureId),
+            message,
+          },
+          'error',
+        );
       };
 
       // ── 4. Run chunks sequentially within each feature, all features in parallel ──
       // This eliminates live-preview "flashing": each feature streams one chunk at a
       // time, so the preview shows stable L1→L2→L3→… typing in order.
       const featureStartTimes = {};
+
+      const markFeatureActivity = (featureId) => {
+        featureActivityRef.current.set(featureId, Date.now());
+      };
+
+      const getRemainingRepairRetryCalls = (featureId) => {
+        const limit = getRepairRetryCallLimit(featureId, lessonIndices.length, repairRoundLimit);
+        return Math.max(0, limit - (repairRetryCallsUsed.get(featureId) || 0));
+      };
+
+      const reserveRepairRetryCalls = (featureId, requested, context) => {
+        const wanted = Math.max(0, Number(requested) || 0);
+        if (wanted === 0) return 0;
+        const used = repairRetryCallsUsed.get(featureId) || 0;
+        const remaining = getRemainingRepairRetryCalls(featureId);
+        const allowed = Math.min(wanted, remaining);
+        repairRetryCallsUsed.set(featureId, used + allowed);
+        if (allowed < wanted) {
+          const limit = getRepairRetryCallLimit(featureId, lessonIndices.length, repairRoundLimit);
+          traceGeneration(
+            generationRunId,
+            'repair_retry_budget_capped',
+            {
+              featureId,
+              context,
+              requested: wanted,
+              allowed,
+              used,
+              limit,
+            },
+            'warn',
+          );
+          appendLog(
+            `⚠ ${getFeatureLabel(featureId)}: repair retry budget reached (${used}/${limit}); stopping extra retries to control API cost`,
+            'warn',
+          );
+        }
+        return allowed;
+      };
 
       const abortFeatureControllers = (featureId) => {
         for (const [key, ctrl] of abortMapRef.current) {
@@ -451,14 +591,25 @@ export default function useDeliverables({
         }
       };
 
-      const markFeatureTimedOut = (featureId, timeoutMs) => {
+      const markFeatureTimedOut = (featureId, timeoutMs, timeoutType = 'idle') => {
         if (timedOutFeaturesRef.current.has(featureId)) return;
         timedOutFeaturesRef.current.add(featureId);
         const label = getFeatureLabel(featureId);
-        const message = buildDeliverableTimeoutError(label, timeoutMs);
+        const message = buildDeliverableTimeoutError(label, timeoutMs, timeoutType);
         abortFeatureControllers(featureId);
         dispatch(actions.setDeliverableError(featureId, message));
         appendLog(`✗ ${message}`, 'error');
+        traceGeneration(
+          generationRunId,
+          'feature_timeout',
+          {
+            featureId,
+            label,
+            timeoutMs,
+            timeoutType,
+          },
+          'error',
+        );
         const endedAt = Date.now();
         setDelivTimings((prev) => ({
           ...prev,
@@ -546,6 +697,7 @@ export default function useDeliverables({
           ? label
           : `${label} [${chunkScope[0] + 1}-${chunkScope[chunkScope.length - 1] + 1}]`;
         const taskStartTime = Date.now();
+        markFeatureActivity(featureId);
 
         // Track feature start time (first chunk to start)
         if (!featureStartTimes[featureId]) {
@@ -569,6 +721,13 @@ export default function useDeliverables({
         }));
 
         const totalChunksForFeature = tasks.filter((t) => t.featureId === featureId).length;
+        traceGeneration(generationRunId, 'chunk_start', {
+          featureId,
+          chunkIndex,
+          chunkLabel,
+          lessons: isWholeCourse ? 'whole course' : chunkScope.map((idx) => idx + 1),
+          totalChunksForFeature,
+        });
         if (isWholeCourse || totalChunksForFeature === 1) {
           appendLog(`Generating ${label}…`, 'start');
         } else {
@@ -619,24 +778,56 @@ export default function useDeliverables({
         try {
           let fullText = '';
           let lastParseTime = 0;
+          let lastProgressLogChars = 0;
+          const initialRetryLimit = getStreamRetryLimit(generationPlan, 'initial');
+          const responseSchema = getDeliverableResponseSchema(featureId);
+          const outputBudget = getFeatureOutputBudget(featureId, maxOutputTokens, generationPlan);
 
           recordApiCallEvent({
             type: 'deliverableChunkCall',
             label: `Generate ${chunkLabel}`,
             featureId,
           });
-          const initialRetryLimit = getStreamRetryLimit(generationPlan, 'initial');
+          traceGeneration(generationRunId, 'chunk_request', {
+            featureId,
+            chunkIndex,
+            chunkLabel,
+            provider,
+            modelId,
+            maxOutputTokens: outputBudget,
+            initialRetryLimit,
+            hasSchema: Boolean(responseSchema),
+            systemChars: prompts.systemPrompt?.length || 0,
+            userChars: prompts.userPrompt?.length || 0,
+            approxInputTokens: estimateCharsAsTokens(prompts.systemPrompt, prompts.userPrompt),
+          });
           const result = await streamProvider(provider, apiKey, modelId, prompts.systemPrompt, prompts.userPrompt, {
-            maxOutputTokens: getFeatureOutputBudget(featureId, maxOutputTokens, generationPlan),
+            maxOutputTokens: outputBudget,
             modelCapabilities,
             generationPlan,
             task: featureId,
-            schema: getDeliverableResponseSchema(featureId),
+            schema: responseSchema,
             onApiCallEvent: recordApiCallEvent,
-            onChunk: (accumulatedText) => {
+            onChunk: (accumulatedText, streamChunkCount) => {
               if (timedOutFeaturesRef.current.has(featureId)) return;
+              markFeatureActivity(featureId);
               fullText = accumulatedText;
               tokenCount = Math.round(accumulatedText.length / 4);
+              if (
+                accumulatedText.length > 0 &&
+                (lastProgressLogChars === 0 ||
+                  accumulatedText.length - lastProgressLogChars >= STREAM_PROGRESS_LOG_CHAR_STEP)
+              ) {
+                lastProgressLogChars = accumulatedText.length;
+                traceGeneration(generationRunId, 'chunk_stream_progress', {
+                  featureId,
+                  chunkIndex,
+                  chunkLabel,
+                  chars: accumulatedText.length,
+                  approxOutputTokens: tokenCount,
+                  streamChunkCount,
+                });
+              }
 
               // Throttled streaming preview
               const now = Date.now();
@@ -664,6 +855,7 @@ export default function useDeliverables({
             maxRetries: initialRetryLimit,
             signal: controller.signal,
             onRetry: (attempt) => {
+              markFeatureActivity(featureId);
               recordApiCallEvent({
                 type: 'streamRetryCall',
                 label: `${chunkLabel} stream retry`,
@@ -715,6 +907,18 @@ export default function useDeliverables({
                 'warn',
               );
               warn(`${chunkLabel}: rejected invalid whole-course output`, initialValidation);
+              traceGeneration(
+                generationRunId,
+                'chunk_rejected',
+                {
+                  featureId,
+                  chunkIndex,
+                  chunkLabel,
+                  blockers: initialValidation.blockers,
+                  chars: text?.length || 0,
+                },
+                'warn',
+              );
               return;
             }
 
@@ -764,6 +968,15 @@ export default function useDeliverables({
             const itemCount = k ? parsed[k]?.length || 0 : 0;
             const durStr = formatDuration(Date.now() - taskStartTime);
             const tokenDesc = tokenCount > 0 ? `, ~${formatTokens(tokenCount)} tokens` : '';
+            traceGeneration(generationRunId, 'chunk_parsed', {
+              featureId,
+              chunkIndex,
+              chunkLabel,
+              itemCount,
+              chars: text?.length || 0,
+              approxOutputTokens: tokenCount,
+              durationMs: Date.now() - taskStartTime,
+            });
             appendLog(
               `✓ ${chunkLabel} — ${itemCount} item${itemCount !== 1 ? 's' : ''}${tokenDesc} (${durStr})`,
               'done',
@@ -777,10 +990,32 @@ export default function useDeliverables({
               `✗ ${chunkLabel}: PARSE FAILED. Response length: ${text?.length || 0} chars. First 500 chars:`,
               text?.slice(0, 500),
             );
+            traceGeneration(
+              generationRunId,
+              'chunk_parse_failed',
+              {
+                featureId,
+                chunkIndex,
+                chunkLabel,
+                chars: text?.length || 0,
+                snippet: text?.slice(0, 500) || '',
+              },
+              'warn',
+            );
           }
         } catch (err) {
           if (err.name === 'AbortError') {
             appendLog(`${chunkLabel}: stopped`, 'warn');
+            traceGeneration(
+              generationRunId,
+              'chunk_aborted',
+              {
+                featureId,
+                chunkIndex,
+                chunkLabel,
+              },
+              'warn',
+            );
           } else {
             recordApiCallEvent({
               type: 'failedCall',
@@ -789,6 +1024,17 @@ export default function useDeliverables({
               featureId,
             });
             appendLog(`✗ ${chunkLabel}: ${err.message || 'Generation failed'}`, 'error');
+            traceGeneration(
+              generationRunId,
+              'chunk_failed',
+              {
+                featureId,
+                chunkIndex,
+                chunkLabel,
+                error: summarizeError(err),
+              },
+              'error',
+            );
           }
         } finally {
           abortMapRef.current.delete(abortKey);
@@ -823,9 +1069,25 @@ export default function useDeliverables({
       }
 
       const runFeatureChain = async (featureId, featureTasks) => {
-        for (const task of featureTasks) {
-          if (timedOutFeaturesRef.current.has(featureId)) break;
-          await runChunk(task);
+        traceGeneration(generationRunId, 'feature_start', {
+          featureId,
+          label: getFeatureLabel(featureId),
+          chunkCount: featureTasks.length,
+          timeoutWatch: 'idle progress watchdog',
+        });
+        try {
+          for (const task of featureTasks) {
+            if (timedOutFeaturesRef.current.has(featureId)) break;
+            await runChunk(task);
+          }
+        } finally {
+          traceGeneration(generationRunId, 'feature_chain_finished', {
+            featureId,
+            label: getFeatureLabel(featureId),
+            chunksCompleted: chunkResults[featureId]?.size || 0,
+            timedOut: timedOutFeaturesRef.current.has(featureId),
+            durationMs: Date.now() - (featureStartTimes[featureId] || generationStartTime),
+          });
         }
       };
 
@@ -837,12 +1099,22 @@ export default function useDeliverables({
             featureTasks,
             runFeature: () => runFeatureChain(featureId, featureTasks),
             onTimeout: markFeatureTimedOut,
+            getLastActivityAt: (activeFeatureId) =>
+              featureActivityRef.current.get(activeFeatureId) ||
+              featureStartTimes[activeFeatureId] ||
+              generationStartTime,
           }),
         ),
       );
 
       // ── 5. Wait for all feature chains ──
       await Promise.allSettled(featurePromises);
+      traceGeneration(generationRunId, 'feature_chains_settled', {
+        completedChunks: Object.fromEntries(
+          Object.entries(chunkResults).map(([featureId, chunks]) => [featureId, chunks.size]),
+        ),
+        timedOutFeatures: [...timedOutFeaturesRef.current],
+      });
 
       // ── 6. Post-generation: merge, verify, retry ──
       for (const fid of toGenerate) {
@@ -880,11 +1152,21 @@ export default function useDeliverables({
           let retryRound = 0;
 
           while (!validation.valid && retryRound < repairRoundLimit) {
+            if (reserveRepairRetryCalls(fid, 1, `whole-deliverable retry round ${retryRound + 1}`) < 1) {
+              appendLog(`⚠ ${label}: stopped whole-deliverable retries to control API cost`, 'warn');
+              break;
+            }
             retryRound++;
             appendLog(
               `⚠ ${label}: ${validation.blockers.join(' ')} Retrying whole deliverable (round ${retryRound}/${repairRoundLimit})`,
               'warn',
             );
+            traceGeneration(generationRunId, 'whole_retry_start', {
+              featureId: fid,
+              label,
+              retryRound,
+              blockers: validation.blockers,
+            });
 
             const prompts = getDeliverablePrompt(
               fid,
@@ -919,11 +1201,13 @@ export default function useDeliverables({
                 schema: getDeliverableResponseSchema(fid),
                 onApiCallEvent: recordApiCallEvent,
                 onChunk: (t) => {
+                  markFeatureActivity(fid);
                   fullText = t;
                 },
                 maxRetries: repairRetryLimit,
                 signal: controller.signal,
                 onRetry: (attempt) => {
+                  markFeatureActivity(fid);
                   recordApiCallEvent({
                     type: 'streamRetryCall',
                     label: `${label} whole-deliverable retry stream retry`,
@@ -951,9 +1235,26 @@ export default function useDeliverables({
                   finalData = candidate;
                   validation = candidateValidation;
                   appendLog(`✓ ${label}: whole-deliverable retry produced a valid result`, 'done');
+                  traceGeneration(generationRunId, 'whole_retry_valid', {
+                    featureId: fid,
+                    label,
+                    retryRound,
+                    itemCount: getDeliverableItemCount(fid, candidate),
+                  });
                   break;
                 }
                 validation = candidateValidation;
+                traceGeneration(
+                  generationRunId,
+                  'whole_retry_rejected',
+                  {
+                    featureId: fid,
+                    label,
+                    retryRound,
+                    blockers: validation.blockers,
+                  },
+                  'warn',
+                );
               }
             } catch (err) {
               if (err.name !== 'AbortError') {
@@ -964,6 +1265,17 @@ export default function useDeliverables({
                   featureId: fid,
                 });
                 appendLog(`✗ ${label}: whole-deliverable retry failed: ${err.message}`, 'error');
+                traceGeneration(
+                  generationRunId,
+                  'whole_retry_failed',
+                  {
+                    featureId: fid,
+                    label,
+                    retryRound,
+                    error: summarizeError(err),
+                  },
+                  'error',
+                );
               }
             } finally {
               abortMapRef.current.delete(retryAbortKey);
@@ -1056,6 +1368,11 @@ export default function useDeliverables({
 
         // Merge chunks
         log(`── MERGE ${fid} ──`, { chunkCount: chunks.size, chunkKeys: [...chunks.keys()] });
+        traceGeneration(generationRunId, 'merge_start', {
+          featureId: fid,
+          chunkCount: chunks.size,
+          chunkKeys: [...chunks.keys()],
+        });
         let merged = mergeChunkResults(fid, chunks);
         if (!merged) {
           if (completeFallbackCourseFaq(fid, 'completed chunks could not be merged', expectedCount)) {
@@ -1076,6 +1393,12 @@ export default function useDeliverables({
             slides: fid === 'slideDecks' ? getSlideDeckSlideCount(it) : it?.slides?.length,
           })),
         );
+        traceGeneration(generationRunId, 'merge_complete', {
+          featureId: fid,
+          arrayKey,
+          itemCount: mergedArr.length,
+          expectedCount,
+        });
 
         // ── Post-merge cleanup: prune near-empty items (parsing artifacts) ──
         // Items with < 30 words of JSON content are artifacts of failed chunk parsing
@@ -1377,7 +1700,23 @@ export default function useDeliverables({
             const retryChunkSize = useIndividualRetry
               ? 1
               : Math.max(2, Math.floor(getFeatureChunkSize(fid, generationPlan) / 2));
-            const retryChunks = chunkArray(missing, retryChunkSize);
+            const plannedRetryChunks = chunkArray(missing, retryChunkSize);
+            const allowedRetryCalls = reserveRepairRetryCalls(
+              fid,
+              plannedRetryChunks.length,
+              `missing-item retry round ${retryRound}`,
+            );
+            if (allowedRetryCalls < 1) break;
+            const retryChunks = plannedRetryChunks.slice(0, allowedRetryCalls);
+            traceGeneration(generationRunId, 'repair_retry_round_start', {
+              featureId: fid,
+              label,
+              retryRound,
+              missingCount: missing.length,
+              plannedCalls: plannedRetryChunks.length,
+              allowedCalls: retryChunks.length,
+              retryChunkSize,
+            });
             const retryLimit = pLimit(getRetryConcurrency(generationPlan));
             const retryPromises = retryChunks.map((retryScope, idx) =>
               retryLimit(async () => {
@@ -1432,11 +1771,13 @@ export default function useDeliverables({
                       schema: getDeliverableResponseSchema(fid),
                       onApiCallEvent: recordApiCallEvent,
                       onChunk: (t) => {
+                        markFeatureActivity(fid);
                         fullText = t;
                       },
                       maxRetries: repairRetryLimit,
                       signal: controller.signal,
                       onRetry: (attempt) => {
+                        markFeatureActivity(fid);
                         recordApiCallEvent({
                           type: 'streamRetryCall',
                           label: `${retryLabel} stream retry`,
@@ -1462,12 +1803,31 @@ export default function useDeliverables({
                       })),
                     );
                     appendLog(`✓ ${retryLabel} complete`, 'done');
+                    traceGeneration(generationRunId, 'repair_retry_parsed', {
+                      featureId: fid,
+                      retryLabel,
+                      retryRound,
+                      itemCount: _ritems.length,
+                      chars: text?.length || 0,
+                    });
                   } else {
                     warn(
                       `✗ ${retryLabel}: RETRY PARSE FAILED. Response length: ${text?.length || 0}. First 500 chars:`,
                       text?.slice(0, 500),
                     );
                     appendLog(`⚠ ${retryLabel}: parse failed`, 'warn');
+                    traceGeneration(
+                      generationRunId,
+                      'repair_retry_parse_failed',
+                      {
+                        featureId: fid,
+                        retryLabel,
+                        retryRound,
+                        chars: text?.length || 0,
+                        snippet: text?.slice(0, 500) || '',
+                      },
+                      'warn',
+                    );
                   }
                 } catch (err) {
                   if (err.name !== 'AbortError') {
@@ -1479,6 +1839,17 @@ export default function useDeliverables({
                     });
                     console.error(`[CM] ✗ ${retryLabel}: ${err.message}`);
                     appendLog(`✗ ${retryLabel}: ${err.message}`, 'error');
+                    traceGeneration(
+                      generationRunId,
+                      'repair_retry_failed',
+                      {
+                        featureId: fid,
+                        retryLabel,
+                        retryRound,
+                        error: summarizeError(err),
+                      },
+                      'error',
+                    );
                   }
                 } finally {
                   abortMapRef.current.delete(retryAbortKey);
@@ -1526,153 +1897,205 @@ export default function useDeliverables({
             warn(`${fid}: coverage retry — ${missingLessons.length} lesson(s) missing: ${missingLessons.join(', ')}`);
             appendLog(`⚠ ${label}: retrying missing lesson(s): ${missingLessons.join(', ')}`, 'warn');
 
-            const retryLimit = pLimit(getRetryConcurrency(generationPlan));
-            const retryPromises = missingIndices.map((idx) =>
-              retryLimit(async () => {
-                const retryChunkIndex = chunks.size + 500 + idx;
-                const retryLabel = `${label} coverage-retry [${idx + 1}]`;
-                appendLog(`Retrying ${retryLabel}...`, 'progress');
+            const allowedCoverageCalls = reserveRepairRetryCalls(fid, missingIndices.length, 'coverage retry');
+            if (allowedCoverageCalls < 1) {
+              appendLog(`⚠ ${label}: skipped coverage retry to control API cost`, 'warn');
+              traceGeneration(
+                generationRunId,
+                'coverage_retry_skipped_budget',
+                {
+                  featureId: fid,
+                  label,
+                  missingLessons,
+                },
+                'warn',
+              );
+            } else {
+              const retryIndices = missingIndices.slice(0, allowedCoverageCalls);
+              traceGeneration(generationRunId, 'coverage_retry_start', {
+                featureId: fid,
+                label,
+                missingLessons,
+                plannedCalls: missingIndices.length,
+                allowedCalls: retryIndices.length,
+              });
+              const retryLimit = pLimit(getRetryConcurrency(generationPlan));
+              const retryPromises = retryIndices.map((idx) =>
+                retryLimit(async () => {
+                  const retryChunkIndex = chunks.size + 500 + idx;
+                  const retryLabel = `${label} coverage-retry [${idx + 1}]`;
+                  appendLog(`Retrying ${retryLabel}...`, 'progress');
 
-                const config = getGenerationConfig(fid);
-                // For rubric coverage retries, inject the expected lesson title as an edit
-                // context hint so GPT knows which specific assessment to target (not a generic
-                // re-run that might produce a different assessment for the same lesson block).
-                let retryEditContext = null;
-                if (fid === 'rubrics' || fid === 'assignments') {
-                  const lesson = courseMap?.lessons?.[idx];
-                  if (lesson?.title) {
-                    retryEditContext = `Regenerate the rubric/assignment for the assessment associated with: "${lesson.title}". Do not change other assessments.`;
-                  }
-                }
-                const prompts = getDeliverablePrompt(
-                  fid,
-                  courseMap,
-                  [idx],
-                  config,
-                  pedagogicalModeRef.current,
-                  examChangesRef.current,
-                  retryEditContext,
-                  columnsRef.current,
-                  deliverableConfigRef.current,
-                );
-                if (!prompts) return;
-
-                const controller = new AbortController();
-                const retryAbortKey = `${fid}:covretry${idx}`;
-                abortMapRef.current.set(retryAbortKey, controller);
-
-                try {
-                  let fullText = '';
-                  recordApiCallEvent({
-                    type: 'repairRetryCall',
-                    label: retryLabel,
-                    detail: 'coverage retry',
-                    featureId: fid,
-                  });
-                  const repairRetryLimit = getStreamRetryLimit(generationPlan, 'repair');
-                  const result = await streamProvider(
-                    provider,
-                    apiKey,
-                    modelId,
-                    prompts.systemPrompt,
-                    prompts.userPrompt,
-                    {
-                      maxOutputTokens: getFeatureOutputBudget(fid, maxOutputTokens, generationPlan),
-                      modelCapabilities,
-                      generationPlan,
-                      task: 'repair',
-                      schema: getDeliverableResponseSchema(fid),
-                      onApiCallEvent: recordApiCallEvent,
-                      onChunk: (t) => {
-                        fullText = t;
-                      },
-                      maxRetries: repairRetryLimit,
-                      signal: controller.signal,
-                      onRetry: (attempt) => {
-                        recordApiCallEvent({
-                          type: 'streamRetryCall',
-                          label: `${retryLabel} stream retry`,
-                          detail: `${attempt}/${repairRetryLimit}`,
-                          featureId: fid,
-                        });
-                      },
-                    },
-                  );
-                  const text = result?.fullText || fullText;
-                  const parsed = expandKeys(fid, parsePartialJSON(text));
-                  logIfRecovered(fid, '(coverage retry)');
-                  if (parsed) {
-                    chunkResults[fid].set(retryChunkIndex, parsed);
-                    const _rk = getArrayKey(fid, parsed);
-                    const _ritems = _rk ? parsed[_rk] || [] : [];
-                    log(`✓ ${retryLabel}: parsed ${_ritems.length} items`);
-                    appendLog(`✓ ${retryLabel} complete`, 'done');
-                  } else {
-                    warn(`✗ ${retryLabel}: parse failed`);
-                  }
-                } catch (err) {
-                  if (err.name !== 'AbortError') {
-                    recordApiCallEvent({
-                      type: 'failedCall',
-                      label: `${retryLabel} failed`,
-                      detail: err.message || '',
-                      featureId: fid,
-                    });
-                    console.error(`[CM] ✗ ${retryLabel}: ${err.message}`);
-                    // Bubble up API exhaustion/rate limit errors so the UI can show them
-                    if (
-                      err.message.toLowerCase().includes('429') ||
-                      err.message.toLowerCase().includes('quota') ||
-                      err.message.toLowerCase().includes('budget')
-                    ) {
-                      // throw to be caught by the outer loop
-                      throw err;
+                  const config = getGenerationConfig(fid);
+                  // For rubric coverage retries, inject the expected lesson title as an edit
+                  // context hint so GPT knows which specific assessment to target (not a generic
+                  // re-run that might produce a different assessment for the same lesson block).
+                  let retryEditContext = null;
+                  if (fid === 'rubrics' || fid === 'assignments') {
+                    const lesson = courseMap?.lessons?.[idx];
+                    if (lesson?.title) {
+                      retryEditContext = `Regenerate the rubric/assignment for the assessment associated with: "${lesson.title}". Do not change other assessments.`;
                     }
                   }
-                } finally {
-                  abortMapRef.current.delete(retryAbortKey);
+                  const prompts = getDeliverablePrompt(
+                    fid,
+                    courseMap,
+                    [idx],
+                    config,
+                    pedagogicalModeRef.current,
+                    examChangesRef.current,
+                    retryEditContext,
+                    columnsRef.current,
+                    deliverableConfigRef.current,
+                  );
+                  if (!prompts) return;
+
+                  const controller = new AbortController();
+                  const retryAbortKey = `${fid}:covretry${idx}`;
+                  abortMapRef.current.set(retryAbortKey, controller);
+
+                  try {
+                    let fullText = '';
+                    recordApiCallEvent({
+                      type: 'repairRetryCall',
+                      label: retryLabel,
+                      detail: 'coverage retry',
+                      featureId: fid,
+                    });
+                    const repairRetryLimit = getStreamRetryLimit(generationPlan, 'repair');
+                    const result = await streamProvider(
+                      provider,
+                      apiKey,
+                      modelId,
+                      prompts.systemPrompt,
+                      prompts.userPrompt,
+                      {
+                        maxOutputTokens: getFeatureOutputBudget(fid, maxOutputTokens, generationPlan),
+                        modelCapabilities,
+                        generationPlan,
+                        task: 'repair',
+                        schema: getDeliverableResponseSchema(fid),
+                        onApiCallEvent: recordApiCallEvent,
+                        onChunk: (t) => {
+                          markFeatureActivity(fid);
+                          fullText = t;
+                        },
+                        maxRetries: repairRetryLimit,
+                        signal: controller.signal,
+                        onRetry: (attempt) => {
+                          markFeatureActivity(fid);
+                          recordApiCallEvent({
+                            type: 'streamRetryCall',
+                            label: `${retryLabel} stream retry`,
+                            detail: `${attempt}/${repairRetryLimit}`,
+                            featureId: fid,
+                          });
+                        },
+                      },
+                    );
+                    const text = result?.fullText || fullText;
+                    const parsed = expandKeys(fid, parsePartialJSON(text));
+                    logIfRecovered(fid, '(coverage retry)');
+                    if (parsed) {
+                      chunkResults[fid].set(retryChunkIndex, parsed);
+                      const _rk = getArrayKey(fid, parsed);
+                      const _ritems = _rk ? parsed[_rk] || [] : [];
+                      log(`✓ ${retryLabel}: parsed ${_ritems.length} items`);
+                      appendLog(`✓ ${retryLabel} complete`, 'done');
+                      traceGeneration(generationRunId, 'coverage_retry_parsed', {
+                        featureId: fid,
+                        retryLabel,
+                        itemCount: _ritems.length,
+                        chars: text?.length || 0,
+                      });
+                    } else {
+                      warn(`✗ ${retryLabel}: parse failed`);
+                      traceGeneration(
+                        generationRunId,
+                        'coverage_retry_parse_failed',
+                        {
+                          featureId: fid,
+                          retryLabel,
+                          chars: text?.length || 0,
+                          snippet: text?.slice(0, 500) || '',
+                        },
+                        'warn',
+                      );
+                    }
+                  } catch (err) {
+                    if (err.name !== 'AbortError') {
+                      recordApiCallEvent({
+                        type: 'failedCall',
+                        label: `${retryLabel} failed`,
+                        detail: err.message || '',
+                        featureId: fid,
+                      });
+                      console.error(`[CM] ✗ ${retryLabel}: ${err.message}`);
+                      traceGeneration(
+                        generationRunId,
+                        'coverage_retry_failed',
+                        {
+                          featureId: fid,
+                          retryLabel,
+                          error: summarizeError(err),
+                        },
+                        'error',
+                      );
+                      // Bubble up API exhaustion/rate limit errors so the UI can show them
+                      if (
+                        err.message.toLowerCase().includes('429') ||
+                        err.message.toLowerCase().includes('quota') ||
+                        err.message.toLowerCase().includes('budget')
+                      ) {
+                        // throw to be caught by the outer loop
+                        throw err;
+                      }
+                    }
+                  } finally {
+                    abortMapRef.current.delete(retryAbortKey);
+                  }
+                }),
+              );
+
+              const results = await Promise.allSettled(retryPromises);
+
+              let retryError = null;
+              for (const result of results) {
+                if (result.status === 'rejected' && result.reason) {
+                  retryError = result.reason;
+                  break;
                 }
-              }),
-            );
-
-            const results = await Promise.allSettled(retryPromises);
-
-            let retryError = null;
-            for (const result of results) {
-              if (result.status === 'rejected' && result.reason) {
-                retryError = result.reason;
-                break;
               }
-            }
 
-            if (retryError) {
-              console.error(`[CM] ${fid} coverage retry aborted due to API error:`, retryError.message);
-              if (completeFallbackCourseFaq(fid, 'coverage retry could not complete', expectedCount)) {
+              if (retryError) {
+                console.error(`[CM] ${fid} coverage retry aborted due to API error:`, retryError.message);
+                if (completeFallbackCourseFaq(fid, 'coverage retry could not complete', expectedCount)) {
+                  continue;
+                }
+                markFeatureError(fid, 'API budget exhausted or rate limit hit during retry.');
+                setProgress((prev) => ({
+                  ...prev,
+                  perFeature: {
+                    ...prev.perFeature,
+                    [fid]: { ...prev.perFeature[fid], status: 'error' },
+                  },
+                }));
+                // Stop processing this feature so we don't mark it as done
                 continue;
               }
-              markFeatureError(fid, 'API budget exhausted or rate limit hit during retry.');
-              setProgress((prev) => ({
-                ...prev,
-                perFeature: {
-                  ...prev.perFeature,
-                  [fid]: { ...prev.perFeature[fid], status: 'error' },
-                },
-              }));
-              // Stop processing this feature so we don't mark it as done
-              continue;
-            }
 
-            merged = mergeChunkResults(fid, chunkResults[fid]);
-            mergedArr = merged && arrayKey ? merged[arrayKey] || [] : [];
+              merged = mergeChunkResults(fid, chunkResults[fid]);
+              mergedArr = merged && arrayKey ? merged[arrayKey] || [] : [];
 
-            if (fid === 'courseFaq' && mergedArr.length > 0) {
-              const config = getGenerationConfig(fid);
-              const normalized = normalizeCourseFaqQuestionCounts(merged, config);
-              merged = normalized.data;
-              mergedArr = normalized.arrayKey ? merged[normalized.arrayKey] || [] : mergedArr;
-              const normalizedCategories = normalizeCourseFaqCategories(merged);
-              merged = normalizedCategories.data;
-              mergedArr = normalizedCategories.arrayKey ? merged[normalizedCategories.arrayKey] || [] : mergedArr;
+              if (fid === 'courseFaq' && mergedArr.length > 0) {
+                const config = getGenerationConfig(fid);
+                const normalized = normalizeCourseFaqQuestionCounts(merged, config);
+                merged = normalized.data;
+                mergedArr = normalized.arrayKey ? merged[normalized.arrayKey] || [] : mergedArr;
+                const normalizedCategories = normalizeCourseFaqCategories(merged);
+                merged = normalizedCategories.data;
+                mergedArr = normalizedCategories.arrayKey ? merged[normalizedCategories.arrayKey] || [] : mergedArr;
+              }
             }
           }
         }
@@ -1955,6 +2378,16 @@ export default function useDeliverables({
             continue;
           }
           appendLog(`✗ ${getFeatureLabel(fid)}: ${finalValidation.blockers.join(' ')}`, 'error');
+          traceGeneration(
+            generationRunId,
+            'final_validation_failed',
+            {
+              featureId: fid,
+              blockers: finalValidation.blockers,
+              itemCount: getDeliverableItemCount(fid, finalData),
+            },
+            'error',
+          );
           markFeatureError(fid, finalValidation.blockers.join(' '));
           setProgress((prev) => ({
             ...prev,
@@ -1988,6 +2421,10 @@ export default function useDeliverables({
             abortMapRef.current.delete(imageAbortKey);
           }
         }
+        traceGeneration(generationRunId, 'final_validation_passed', {
+          featureId: fid,
+          itemCount: getDeliverableItemCount(fid, finalData),
+        });
         const delivEndTime = Date.now();
 
         // Feature-level completion summary for multi-chunk features
@@ -2050,6 +2487,13 @@ export default function useDeliverables({
       const totalDur = formatDuration(Date.now() - generationStartTime);
       const failed = toGenerate.filter((fid) => failedFeatureIds.has(fid) && !completedFeatureIds.has(fid));
       const completed = toGenerate.filter((fid) => completedFeatureIds.has(fid));
+      traceGeneration(generationRunId, 'run_complete', {
+        status: failed.length > 0 ? 'partial' : 'generated',
+        completed,
+        failed,
+        totalDurationMs: Date.now() - generationStartTime,
+        repairRetryCallsUsed: Object.fromEntries(repairRetryCallsUsed),
+      });
       if (failed.length > 0) {
         appendLog(
           `${completed.length}/${toGenerate.length} deliverable${toGenerate.length !== 1 ? 's' : ''} generated (${totalDur}); ${failed.length} still need attention`,
