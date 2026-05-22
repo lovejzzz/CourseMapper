@@ -1,12 +1,7 @@
 import React, { useEffect, useMemo, useRef, useState } from 'react';
 import { useCourse } from '../contexts/CourseContext';
 import { safeImport } from '../lib/safeImport';
-import {
-  buildReadinessReport,
-  scopeCourseMapToLessons,
-  scopeDeliverableDataToLessons,
-  summarizeReadiness,
-} from '../lib/deliverableReadiness';
+import { summarizeReadiness } from '../lib/deliverableReadiness';
 import { evaluateStrictPackageReadiness } from '../lib/packageFinalizer';
 import { normalizeReadinessIssue } from '../lib/readinessIssueSchema';
 import {
@@ -19,6 +14,7 @@ import {
 } from '../lib/deliverableExporters';
 import { openTabNow, saveToGoogleSlides } from '../lib/googleDrive';
 import { exportSlideDeckPptx, buildSlideDeckPptxBlob } from '../lib/exporters/pptxExporter';
+import { downloadCourseMaterialsZip } from '../lib/packageZipExporter';
 import { expandKeys } from '../lib/keyMaps';
 import { loadPdfRuntime } from '../lib/pdfRuntime';
 
@@ -329,6 +325,27 @@ function mergeExportVerificationIssues(readiness, verification) {
   };
 }
 
+function mergePackageExportFailureIssues(readiness, exportError) {
+  const failures = Array.isArray(exportError?.failures) ? exportError.failures : [];
+  if (failures.length === 0) return readiness;
+  const issues = failures.map((failure) =>
+    normalizeReadinessIssue({
+      featureId: failure.featureId || 'export',
+      label: failure.label || 'Export',
+      severity: 'blocker',
+      message: `${failure.format ? `${String(failure.format).toUpperCase()}: ` : ''}${
+        failure.message || 'ZIP export could not include this file.'
+      }`,
+      source: 'packageZipExport',
+    }),
+  );
+  return {
+    ...readiness,
+    issues: [...(readiness?.issues || []), ...issues],
+    blockers: [...(readiness?.blockers || []), ...issues],
+  };
+}
+
 function mergeFinalizerRetryIssues(readiness, finishResult) {
   const retryActions = Array.isArray(finishResult?.retryActions) ? finishResult.retryActions : [];
   if (finishResult?.status !== 'needs_retry' || retryActions.length === 0) return readiness;
@@ -570,89 +587,6 @@ function ReadinessFinalizingPanel({ finishingPackage = false, message = '' }) {
       </div>
     </div>
   );
-}
-
-// ── ZIP export (all deliverables) ─────────────────────────────────────────────
-async function exportAllAsZip(
-  deliverables,
-  courseMap,
-  columns,
-  courseName,
-  lessonFilter,
-  slideTheme,
-  readiness,
-  featureIds = null,
-) {
-  let JSZip;
-  try {
-    JSZip = (await safeImport(() => import('jszip'))).default;
-  } catch {
-    throw new Error('ZIP library unavailable — please export individually');
-  }
-
-  const { buildDeliverableDocxBlob } = await safeImport(() => import('../lib/deliverableExporters'));
-  const { buildXlsxBuffer } = await safeImport(() => import('../lib/xlsxGenerator'));
-  const { saveAs } = await safeImport(() => import('file-saver'));
-
-  const zip = new JSZip();
-  const name = courseName || 'Course';
-  const exportFeatureIds = new Set(
-    (Array.isArray(featureIds) && featureIds.length > 0 ? featureIds : Object.keys(deliverables || {})).filter(
-      (featureId) => featureId !== 'courseMap',
-    ),
-  );
-
-  if (readiness?.issues?.length > 0) {
-    zip.file('READINESS_REPORT.txt', buildReadinessReport(readiness, { courseName: name }));
-  }
-
-  // Apply lesson filter to courseMap if needed
-  const filteredCourseMap = scopeCourseMapToLessons(courseMap, lessonFilter);
-
-  // ── Course Map folder ──
-  const cmFolder = zip.folder('Course Map');
-  try {
-    const buf = await buildXlsxBuffer(filteredCourseMap, columns);
-    cmFolder.file(`${name} - Course Map.xlsx`, buf);
-  } catch (e) {
-    console.warn('CM xlsx failed', e);
-  }
-
-  // ── Each deliverable in its own folder ──
-  for (const [featureId, entry] of Object.entries(deliverables)) {
-    if (!exportFeatureIds.has(featureId)) continue;
-    if (!entry?.data || entry.status !== 'done' || featureId === 'courseMap') continue;
-    const label = FEATURE_LABELS[featureId] || featureId;
-    const folder = zip.folder(label);
-    const support = FORMAT_SUPPORT[featureId] || {};
-
-    // Filter deliverable data by lesson indices if needed
-    const filteredData = scopeDeliverableDataToLessons(featureId, entry.data, lessonFilter);
-
-    // Slide Decks → PPTX
-    if (featureId === 'slideDecks' && support.pptx) {
-      try {
-        const blob = await buildSlideDeckPptxBlob(filteredData, name, slideTheme);
-        folder.file(`${name} - ${label}.pptx`, blob);
-      } catch (e) {
-        console.warn(`${featureId} pptx blob failed`, e);
-      }
-    } else {
-      // DOCX for other deliverables
-      if (support.docx) {
-        try {
-          const blob = await buildDeliverableDocxBlob(featureId, filteredData, name);
-          folder.file(`${name} - ${label}.docx`, blob);
-        } catch (e) {
-          console.warn(`${featureId} docx blob failed`, e);
-        }
-      }
-      // CSV (skipped in ZIP — export individually if needed)
-    }
-  }
-
-  const blob = await zip.generateAsync({ type: 'blob', compression: 'DEFLATE', compressionOptions: { level: 6 } });
-  saveAs(blob, `${name} - Course Materials.zip`);
 }
 
 // ── Main Component ────────────────────────────────────────────────────────────
@@ -954,17 +888,17 @@ export default function ExportSidePanel({
       if (exportScope === 'all') {
         // All mode: only ZIP is available
         if (format === 'zip') {
-          await exportAllAsZip(
-            exportDeliverables || {},
-            exportCourseMap,
+          const zipResult = await downloadCourseMaterialsZip({
+            deliverables: exportDeliverables || {},
+            courseMap: exportCourseMap,
             columns,
-            exportCourseMap?.courseName || courseName,
-            effectiveLessonFilter,
+            courseName: exportCourseMap?.courseName || courseName,
+            lessonFilter: effectiveLessonFilter,
             slideTheme,
-            exportReadiness,
-            getExportFeatureIds(exportScope),
-          );
-          setLastOk('ZIP downloaded!');
+            readiness: exportReadiness,
+            featureIds: getExportFeatureIds(exportScope),
+          });
+          setLastOk(`ZIP downloaded with ${zipResult.files.length} file${zipResult.files.length === 1 ? '' : 's'}.`);
         }
       } else {
         // Current tab
@@ -1020,7 +954,22 @@ export default function ExportSidePanel({
       }
     } catch (err) {
       if (preTab && !preTab.closed) preTab.close();
-      setLastError(err.message || 'Export failed');
+      if (format === 'zip' && exportScope === 'all' && Array.isArray(err?.failures) && err.failures.length > 0) {
+        const failureReadiness = mergePackageExportFailureIssues(exportReadiness, err);
+        setPendingReadinessExport({
+          format,
+          readiness: failureReadiness,
+          scope: exportScope,
+          courseMap: exportCourseMap,
+          deliverables: exportDeliverables,
+          repairsApplied,
+          canFinishPackageAgain: false,
+        });
+        setLastNotice('ZIP export stopped before download because required files could not be built.');
+        setLastError(err.message || 'ZIP export failed before download.');
+      } else {
+        setLastError(err.message || 'Export failed');
+      }
     } finally {
       setBusy(null);
       setTimeout(() => {
