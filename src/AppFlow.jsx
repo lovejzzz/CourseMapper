@@ -143,6 +143,26 @@ function traceApiCallBudget(event = {}, budget = {}) {
   });
 }
 
+function createPackageFinishRunId() {
+  return `finish-${Date.now().toString(36)}-${Math.random().toString(36).slice(2, 7)}`;
+}
+
+function tracePackageFinish(runId, event, details = {}, level = 'info') {
+  if (typeof console === 'undefined') return;
+  const method = level === 'error' ? 'error' : level === 'warn' ? 'warn' : 'info';
+  console[method](`[CM][FINISH][${runId}] ${event}`, {
+    at: new Date().toISOString(),
+    ...details,
+  });
+}
+
+function getRetryActionKey(action = {}) {
+  const scope = action.scope || 'lesson';
+  const featureId = action.featureId || 'unknown';
+  const lessonPart = Number.isInteger(action.lessonIndex) ? `lesson-${action.lessonIndex}` : 'feature';
+  return `${scope}:${featureId}:${lessonPart}`;
+}
+
 function estimateRetryActionCallCost(action, courseMap, lessonFilter, generationPlan) {
   if (!action?.featureId) return 1;
   if (action.scope !== 'feature') return 1;
@@ -503,6 +523,7 @@ export default function AppFlow({ startupAction = null, onStartupHandled, onRetu
   // ── AI Context Menu (inline AI editing) ──
   const chatSendRef = useRef(null);
   const packageFinalizerRef = useRef(null);
+  const packageFinalizerInFlightRef = useRef(null);
   const packageGenerationInFlightRef = useRef(false);
   const canFinishPackageWithAgent = isAgentProviderReady({ provider, apiKey, apiStatus, modelId });
   const handleAIAction = useCallback((prompt) => {
@@ -767,219 +788,410 @@ export default function AppFlow({ startupAction = null, onStartupHandled, onRetu
       maxRetryPasses = 2,
       courseMapOverride = null,
       deliverablesOverride = null,
+      source = 'auto',
     } = {}) => {
-      const featureIds =
-        Array.isArray(selectedFeatureIds) && selectedFeatureIds.length > 0 ? selectedFeatureIds : selectedFeatures;
-      let finalizerCourseMap = courseMapOverride || courseMapRef.current;
-      let finalizerDeliverables = deliverablesOverride || deliverablesRef.current || {};
-      const runFinalizer = (retryLimit) =>
-        runDeterministicPackageFinalizer({
-          courseMap: finalizerCourseMap,
-          deliverables: finalizerDeliverables,
-          selectedFeatures: featureIds,
-          columns,
+      if (packageFinalizerInFlightRef.current) {
+        tracePackageFinish('existing', 'join_existing', {
+          source,
+          selectedFeatureIds,
           lessonFilter,
-          deliverableConfig,
-          includeClassroomReadiness: true,
-          blockOnClassroomWarnings: true,
-          includePedagogicalValidation: true,
-          blockOnValidationWarnings: false,
-          maxRetryActions: retryLimit,
         });
+        return packageFinalizerInFlightRef.current;
+      }
 
-      setPackageQualityPass({
-        status: 'running',
-        message: 'Finishing package: checking, repairing, and preparing export...',
-        repairsApplied: 0,
-        warnings: 0,
-        blockers: 0,
-      });
-
-      const canRetryWeakSpots =
-        retry &&
-        canFinishPackageWithAgent &&
-        (typeof regenerateLessonRef.current === 'function' || typeof regenerateFeatureRef.current === 'function');
-
-      const retryPassLimit = Math.max(0, Number(maxRetryPasses) || 0);
-      let remainingRetryCallBudget = Math.max(0, Number(maxRetryCallBudget) || 0);
-      let result = runFinalizer(canRetryWeakSpots ? maxRetryActions : 0);
-      commitFinalizerResult(result);
-      finalizerCourseMap = result.courseMap || finalizerCourseMap;
-      finalizerDeliverables = result.deliverables || finalizerDeliverables;
-      let totalRepairsApplied = result.repairsApplied || 0;
-      let retryCount = 0;
-      let retryPassCount = 0;
-      let retryCallCount = 0;
-      let skippedRetryCallCount = 0;
-      let skippedRetryActionCount = 0;
-      let retryBudgetExhausted = false;
-      let retryPassLimitReached = false;
-
-      while (
-        result.retryActions.length > 0 &&
-        canRetryWeakSpots &&
-        retryPassCount < retryPassLimit &&
-        remainingRetryCallBudget > 0
-      ) {
-        const retryBudget = selectRetryActionsWithinCallBudget(result.retryActions, {
-          courseMap: result.courseMap || finalizerCourseMap,
+      const finishRunId = createPackageFinishRunId();
+      const finishPromise = (async () => {
+        const featureIds =
+          Array.isArray(selectedFeatureIds) && selectedFeatureIds.length > 0 ? selectedFeatureIds : selectedFeatures;
+        let finalizerCourseMap = courseMapOverride || courseMapRef.current;
+        let finalizerDeliverables = deliverablesOverride || deliverablesRef.current || {};
+        tracePackageFinish(finishRunId, 'finish_start', {
+          selectedFeatureIds: featureIds,
           lessonFilter,
-          generationPlan,
-          maxCalls: remainingRetryCallBudget,
+          retry,
+          maxRetryActions,
+          maxRetryCallBudget,
+          maxRetryPasses,
+          source,
+          lessonCount: Array.isArray(finalizerCourseMap?.lessons) ? finalizerCourseMap.lessons.length : 0,
+          deliverableIds: Object.keys(finalizerDeliverables || {}),
         });
-        const retryActionsToRun = retryBudget.selected;
-        skippedRetryActionCount += retryBudget.skipped.length;
-        skippedRetryCallCount += retryBudget.skipped.reduce((sum, action) => sum + (action.estimatedCalls || 1), 0);
+        const runFinalizer = (retryLimit) =>
+          runDeterministicPackageFinalizer({
+            courseMap: finalizerCourseMap,
+            deliverables: finalizerDeliverables,
+            selectedFeatures: featureIds,
+            columns,
+            lessonFilter,
+            deliverableConfig,
+            includeClassroomReadiness: true,
+            blockOnClassroomWarnings: true,
+            includePedagogicalValidation: true,
+            blockOnValidationWarnings: false,
+            maxRetryActions: retryLimit,
+          });
 
-        if (retryActionsToRun.length === 0) {
-          retryBudgetExhausted = true;
-          break;
-        }
-
-        retryPassCount += 1;
         setPackageQualityPass({
           status: 'running',
-          message:
-            retryActionsToRun.length > 0
-              ? `Finishing package: retry pass ${retryPassCount}/${retryPassLimit}, fixing ${retryActionsToRun.length} weak area${
-                  retryActionsToRun.length === 1 ? '' : 's'
-                } (${retryBudget.usedCalls} call${retryBudget.usedCalls === 1 ? '' : 's'})...`
-              : 'Finishing package: retry plan is over the call budget; checking remaining issues...',
-          repairsApplied: totalRepairsApplied,
+          message: 'Finishing package: checking, repairing, and preparing export...',
+          repairsApplied: 0,
           warnings: 0,
           blockers: 0,
         });
 
-        for (const action of retryActionsToRun) {
-          if (action.scope === 'feature') {
-            const retryResult = await regenerateFeatureRef.current?.(
-              result.courseMap || courseMapRef.current,
-              [action.featureId],
-              lessonFilter,
-            );
-            if (retryResult?.deliverables) {
-              finalizerDeliverables = { ...finalizerDeliverables, ...retryResult.deliverables };
-              deliverablesRef.current = finalizerDeliverables;
-            }
-          } else {
-            await regenerateLessonRef.current?.(
-              action.featureId,
-              result.courseMap || courseMapRef.current,
-              action.lessonIndex,
-            );
-          }
-          retryCount += 1;
-          retryCallCount += action.estimatedCalls || 1;
-          await new Promise((resolve) => window.setTimeout(resolve, 0));
-          finalizerCourseMap = courseMapRef.current || finalizerCourseMap;
-          finalizerDeliverables = deliverablesRef.current || finalizerDeliverables;
-        }
+        const canRetryWeakSpots =
+          retry &&
+          canFinishPackageWithAgent &&
+          (typeof regenerateLessonRef.current === 'function' || typeof regenerateFeatureRef.current === 'function');
 
-        remainingRetryCallBudget = Math.max(0, remainingRetryCallBudget - retryBudget.usedCalls);
-        result = runFinalizer(canRetryWeakSpots ? maxRetryActions : 0);
+        const retryPassLimit = Math.max(0, Number(maxRetryPasses) || 0);
+        let remainingRetryCallBudget = Math.max(0, Number(maxRetryCallBudget) || 0);
+        let result = runFinalizer(canRetryWeakSpots ? maxRetryActions : 0);
         commitFinalizerResult(result);
         finalizerCourseMap = result.courseMap || finalizerCourseMap;
         finalizerDeliverables = result.deliverables || finalizerDeliverables;
-        totalRepairsApplied += result.repairsApplied || 0;
-      }
-
-      if (result.retryActions.length > 0 && canRetryWeakSpots) {
-        retryBudgetExhausted = remainingRetryCallBudget <= 0;
-        retryPassLimitReached = retryPassCount >= retryPassLimit;
-      }
-
-      let exportVerification = null;
-      try {
-        const { verifyPackageExports } = await import('./lib/packageExportVerifier');
-        exportVerification = await verifyPackageExports({
-          courseMap: result.courseMap || courseMapRef.current,
-          deliverables: result.deliverables || deliverablesRef.current || {},
-          selectedFeatures: featureIds,
-          columns,
-          lessonFilter,
-          slideTheme,
+        let totalRepairsApplied = result.repairsApplied || 0;
+        let retryCount = 0;
+        let retryPassCount = 0;
+        let retryCallCount = 0;
+        let skippedRetryCallCount = 0;
+        let skippedRetryActionCount = 0;
+        let retryBudgetExhausted = false;
+        let retryPassLimitReached = false;
+        let retryNoProgress = false;
+        const attemptedRetryKeys = new Set();
+        tracePackageFinish(finishRunId, 'initial_check', {
+          status: result.status,
+          repairsApplied: result.repairsApplied || 0,
+          blockers: result.readiness?.blockers?.length || 0,
+          warnings: result.readiness?.warnings?.length || 0,
+          retryActionCount: result.retryActions?.length || 0,
+          canRetryWeakSpots,
+          remainingRetryCallBudget,
         });
-      } catch (err) {
-        exportVerification = {
-          status: 'failed',
-          checked: 1,
-          passed: 0,
-          failed: 1,
-          warningCount: 0,
-          checks: [
+
+        while (
+          result.retryActions.length > 0 &&
+          canRetryWeakSpots &&
+          retryPassCount < retryPassLimit &&
+          remainingRetryCallBudget > 0
+        ) {
+          const retryActionsNotYetAttempted = result.retryActions.filter(
+            (action) => !attemptedRetryKeys.has(getRetryActionKey(action)),
+          );
+          const repeatedRetryActionCount = result.retryActions.length - retryActionsNotYetAttempted.length;
+          skippedRetryActionCount += repeatedRetryActionCount;
+          if (retryActionsNotYetAttempted.length === 0) {
+            retryNoProgress = true;
+            tracePackageFinish(
+              finishRunId,
+              'retry_no_progress',
+              {
+                retryPassCount,
+                remainingRetryCallBudget,
+                unresolvedRetryActions: result.retryActions.map((action) => ({
+                  key: getRetryActionKey(action),
+                  featureId: action.featureId,
+                  lessonIndex: action.lessonIndex,
+                  scope: action.scope,
+                  message: action.message || '',
+                })),
+              },
+              'warn',
+            );
+            break;
+          }
+
+          const retryBudget = selectRetryActionsWithinCallBudget(retryActionsNotYetAttempted, {
+            courseMap: result.courseMap || finalizerCourseMap,
+            lessonFilter,
+            generationPlan,
+            maxCalls: remainingRetryCallBudget,
+          });
+          const retryActionsToRun = retryBudget.selected;
+          skippedRetryActionCount += retryBudget.skipped.length;
+          skippedRetryCallCount += retryBudget.skipped.reduce((sum, action) => sum + (action.estimatedCalls || 1), 0);
+
+          if (retryActionsToRun.length === 0) {
+            retryBudgetExhausted = true;
+            tracePackageFinish(
+              finishRunId,
+              'retry_budget_empty',
+              {
+                retryPassCount,
+                remainingRetryCallBudget,
+                skippedRetryActionCount,
+                skippedRetryCallCount,
+              },
+              'warn',
+            );
+            break;
+          }
+
+          retryPassCount += 1;
+          tracePackageFinish(finishRunId, 'retry_plan', {
+            retryPassCount,
+            retryPassLimit,
+            selected: retryActionsToRun.map((action) => ({
+              key: getRetryActionKey(action),
+              featureId: action.featureId,
+              lessonIndex: action.lessonIndex,
+              scope: action.scope,
+              estimatedCalls: action.estimatedCalls,
+              message: action.message || '',
+            })),
+            skipped: retryBudget.skipped.map((action) => ({
+              key: getRetryActionKey(action),
+              featureId: action.featureId,
+              lessonIndex: action.lessonIndex,
+              scope: action.scope,
+              estimatedCalls: action.estimatedCalls,
+              message: action.message || '',
+            })),
+            usedCalls: retryBudget.usedCalls,
+            remainingRetryCallBudget,
+          });
+          setPackageQualityPass({
+            status: 'running',
+            message:
+              retryActionsToRun.length > 0
+                ? `Finishing package: retry pass ${retryPassCount}/${retryPassLimit}, fixing ${retryActionsToRun.length} weak area${
+                    retryActionsToRun.length === 1 ? '' : 's'
+                  } (${retryBudget.usedCalls} call${retryBudget.usedCalls === 1 ? '' : 's'})...`
+                : 'Finishing package: retry plan is over the call budget; checking remaining issues...',
+            repairsApplied: totalRepairsApplied,
+            warnings: 0,
+            blockers: 0,
+          });
+
+          for (const action of retryActionsToRun) {
+            const retryActionKey = getRetryActionKey(action);
+            attemptedRetryKeys.add(retryActionKey);
+            tracePackageFinish(finishRunId, 'retry_action_start', {
+              key: retryActionKey,
+              featureId: action.featureId,
+              lessonIndex: action.lessonIndex,
+              scope: action.scope,
+              estimatedCalls: action.estimatedCalls || 1,
+              message: action.message || '',
+            });
+            if (action.scope === 'feature') {
+              const retryResult = await regenerateFeatureRef.current?.(
+                result.courseMap || courseMapRef.current,
+                [action.featureId],
+                lessonFilter,
+              );
+              tracePackageFinish(finishRunId, 'retry_action_done', {
+                key: retryActionKey,
+                featureId: action.featureId,
+                scope: action.scope,
+                status: retryResult?.status || 'unknown',
+                returnedDeliverables: Object.keys(retryResult?.deliverables || {}),
+              });
+              if (retryResult?.deliverables) {
+                finalizerDeliverables = { ...finalizerDeliverables, ...retryResult.deliverables };
+                deliverablesRef.current = finalizerDeliverables;
+              }
+            } else {
+              const retryResult = await regenerateLessonRef.current?.(
+                action.featureId,
+                result.courseMap || courseMapRef.current,
+                action.lessonIndex,
+              );
+              tracePackageFinish(finishRunId, 'retry_action_done', {
+                key: retryActionKey,
+                featureId: action.featureId,
+                lessonIndex: action.lessonIndex,
+                scope: action.scope,
+                status: retryResult?.status || 'unknown',
+                itemCount: retryResult?.itemCount,
+                hasData: Boolean(retryResult?.data),
+              });
+              if (retryResult?.data) {
+                finalizerDeliverables = {
+                  ...finalizerDeliverables,
+                  [action.featureId]: {
+                    ...(finalizerDeliverables[action.featureId] || {}),
+                    status: 'done',
+                    data: retryResult.data,
+                    error: null,
+                    stale: false,
+                  },
+                };
+                deliverablesRef.current = finalizerDeliverables;
+              }
+            }
+            retryCount += 1;
+            retryCallCount += action.estimatedCalls || 1;
+            await new Promise((resolve) => window.setTimeout(resolve, 0));
+            finalizerCourseMap = courseMapRef.current || finalizerCourseMap;
+            finalizerDeliverables = deliverablesRef.current || finalizerDeliverables;
+          }
+
+          remainingRetryCallBudget = Math.max(0, remainingRetryCallBudget - retryBudget.usedCalls);
+          result = runFinalizer(canRetryWeakSpots ? maxRetryActions : 0);
+          commitFinalizerResult(result);
+          finalizerCourseMap = result.courseMap || finalizerCourseMap;
+          finalizerDeliverables = result.deliverables || finalizerDeliverables;
+          totalRepairsApplied += result.repairsApplied || 0;
+          tracePackageFinish(finishRunId, 'retry_check', {
+            status: result.status,
+            retryPassCount,
+            repairsApplied: result.repairsApplied || 0,
+            totalRepairsApplied,
+            blockers: result.readiness?.blockers?.length || 0,
+            warnings: result.readiness?.warnings?.length || 0,
+            retryActionCount: result.retryActions?.length || 0,
+            remainingRetryCallBudget,
+          });
+        }
+
+        if (result.retryActions.length > 0 && canRetryWeakSpots) {
+          retryBudgetExhausted = remainingRetryCallBudget <= 0;
+          retryPassLimitReached = retryPassCount >= retryPassLimit;
+        }
+
+        let exportVerification = null;
+        try {
+          tracePackageFinish(finishRunId, 'export_verify_start', {
+            selectedFeatureIds: featureIds,
+            lessonFilter,
+            status: result.status,
+          });
+          const { verifyPackageExports } = await import('./lib/packageExportVerifier');
+          exportVerification = await verifyPackageExports({
+            courseMap: result.courseMap || courseMapRef.current,
+            deliverables: result.deliverables || deliverablesRef.current || {},
+            selectedFeatures: featureIds,
+            columns,
+            lessonFilter,
+            slideTheme,
+          });
+          tracePackageFinish(finishRunId, 'export_verify_done', {
+            status: exportVerification?.status,
+            checked: exportVerification?.checked || 0,
+            failed: exportVerification?.failed || 0,
+            warningCount: exportVerification?.warningCount || 0,
+          });
+        } catch (err) {
+          tracePackageFinish(
+            finishRunId,
+            'export_verify_failed',
             {
-              featureId: 'export',
-              label: 'Export',
-              format: 'package',
-              status: 'failed',
-              message: err?.message || 'Export verification failed.',
+              message: err?.message || String(err || 'Export verification failed.'),
             },
-          ],
-        };
-      }
+            'error',
+          );
+          exportVerification = {
+            status: 'failed',
+            checked: 1,
+            passed: 0,
+            failed: 1,
+            warningCount: 0,
+            checks: [
+              {
+                featureId: 'export',
+                label: 'Export',
+                format: 'package',
+                status: 'failed',
+                message: err?.message || 'Export verification failed.',
+              },
+            ],
+          };
+        }
 
-      const unresolvedRetryCount = result.status === 'needs_retry' ? result.retryActions.length : 0;
-      const exportFailures = exportVerification?.failed || 0;
-      const exportWarnings = exportVerification?.warningCount || 0;
-      const blockers = result.readiness.blockers.length + exportFailures;
-      const warnings = result.readiness.warnings.length + unresolvedRetryCount + exportWarnings;
-      const finalStatus = blockers > 0 ? 'blocked' : warnings > 0 ? 'warnings' : 'ready';
-      const retryText = retryCount > 0 ? `Retried ${retryCount} weak area${retryCount === 1 ? '' : 's'}. ` : '';
-      const skippedRetryText =
-        unresolvedRetryCount > 0 && !canRetryWeakSpots
-          ? `AI setup is needed to retry ${unresolvedRetryCount} weak area${unresolvedRetryCount === 1 ? '' : 's'}. `
-          : retryPassLimitReached
-            ? `Reached the ${retryPassLimit}-pass finishing limit with ${unresolvedRetryCount} weak area${unresolvedRetryCount === 1 ? '' : 's'} still needing attention. `
-            : retryBudgetExhausted
-              ? `Reached the ${maxRetryCallBudget}-call finishing budget with ${unresolvedRetryCount} weak area${unresolvedRetryCount === 1 ? '' : 's'} still needing attention. `
-              : skippedRetryActionCount > 0
-                ? `Skipped ${skippedRetryActionCount} broad retry action${skippedRetryActionCount === 1 ? '' : 's'} to stay within the ${maxRetryCallBudget}-call retry budget. `
-                : '';
-      const repairText =
-        totalRepairsApplied > 0
-          ? `Auto-fixed ${totalRepairsApplied} safe issue${totalRepairsApplied === 1 ? '' : 's'}. `
-          : '';
-      const exportText =
-        exportFailures > 0
-          ? `Export verification found ${exportFailures} file issue${exportFailures === 1 ? '' : 's'}. `
-          : exportWarnings > 0
-            ? `Export verification found ${exportWarnings} warning${exportWarnings === 1 ? '' : 's'}. `
+        const unresolvedRetryCount = result.status === 'needs_retry' ? result.retryActions.length : 0;
+        const exportFailures = exportVerification?.failed || 0;
+        const exportWarnings = exportVerification?.warningCount || 0;
+        const blockers = result.readiness.blockers.length + exportFailures;
+        const warnings = result.readiness.warnings.length + unresolvedRetryCount + exportWarnings;
+        const finalStatus = blockers > 0 ? 'blocked' : warnings > 0 ? 'warnings' : 'ready';
+        const retryText = retryCount > 0 ? `Retried ${retryCount} weak area${retryCount === 1 ? '' : 's'}. ` : '';
+        const skippedRetryText =
+          unresolvedRetryCount > 0 && !canRetryWeakSpots
+            ? `AI setup is needed to retry ${unresolvedRetryCount} weak area${unresolvedRetryCount === 1 ? '' : 's'}. `
+            : retryNoProgress
+              ? `Stopped after retrying the same weak area without progress. `
+              : retryPassLimitReached
+                ? `Reached the ${retryPassLimit}-pass finishing limit with ${unresolvedRetryCount} weak area${unresolvedRetryCount === 1 ? '' : 's'} still needing attention. `
+                : retryBudgetExhausted
+                  ? `Reached the ${maxRetryCallBudget}-call finishing budget with ${unresolvedRetryCount} weak area${unresolvedRetryCount === 1 ? '' : 's'} still needing attention. `
+                  : skippedRetryActionCount > 0
+                    ? `Skipped ${skippedRetryActionCount} broad retry action${skippedRetryActionCount === 1 ? '' : 's'} to stay within the ${maxRetryCallBudget}-call retry budget. `
+                    : '';
+        const repairText =
+          totalRepairsApplied > 0
+            ? `Auto-fixed ${totalRepairsApplied} safe issue${totalRepairsApplied === 1 ? '' : 's'}. `
             : '';
-      const finalizerMessage = String(result.message || '').replace(/^Auto-fixed \d+ safe issues?\. /, '');
-      const receipt = buildQualityReceipt({
-        result,
-        exportVerification,
-        repairsApplied: totalRepairsApplied,
-        retryCount,
-        selectedFeatureIds: featureIds,
-        courseMap: result.courseMap || courseMapRef.current,
-      });
+        const exportText =
+          exportFailures > 0
+            ? `Export verification found ${exportFailures} file issue${exportFailures === 1 ? '' : 's'}. `
+            : exportWarnings > 0
+              ? `Export verification found ${exportWarnings} warning${exportWarnings === 1 ? '' : 's'}. `
+              : '';
+        const finalizerMessage = String(result.message || '').replace(/^Auto-fixed \d+ safe issues?\. /, '');
+        const receipt = buildQualityReceipt({
+          result,
+          exportVerification,
+          repairsApplied: totalRepairsApplied,
+          retryCount,
+          selectedFeatureIds: featureIds,
+          courseMap: result.courseMap || courseMapRef.current,
+        });
 
-      setPackageQualityPass({
-        status: finalStatus,
-        message: `${retryText}${skippedRetryText}${repairText}${exportText}${finalizerMessage}`,
-        repairsApplied: totalRepairsApplied,
-        warnings,
-        blockers,
-        receipt,
-      });
+        setPackageQualityPass({
+          status: finalStatus,
+          message: `${retryText}${skippedRetryText}${repairText}${exportText}${finalizerMessage}`,
+          repairsApplied: totalRepairsApplied,
+          warnings,
+          blockers,
+          receipt,
+        });
+        tracePackageFinish(finishRunId, 'finish_complete', {
+          finalStatus,
+          blockers,
+          warnings,
+          retryCount,
+          retryPassCount,
+          retryCallCount,
+          skippedRetryActionCount,
+          skippedRetryCallCount,
+          retryBudgetRemaining: remainingRetryCallBudget,
+          retryBudgetExhausted,
+          retryPassLimitReached,
+          retryNoProgress,
+          exportStatus: exportVerification?.status,
+        });
 
-      return {
-        ...result,
-        repairsApplied: totalRepairsApplied,
-        retryCount,
-        retryPassCount,
-        retryCallCount,
-        skippedRetryActionCount,
-        skippedRetryCallCount,
-        retryBudgetRemaining: remainingRetryCallBudget,
-        retryBudgetExhausted,
-        retryPassLimitReached,
-        retryExhausted:
-          unresolvedRetryCount > 0 && canRetryWeakSpots && (retryBudgetExhausted || retryPassLimitReached),
-        exportVerification,
-        packageQualityStatus: finalStatus,
-      };
+        return {
+          ...result,
+          repairsApplied: totalRepairsApplied,
+          retryCount,
+          retryPassCount,
+          retryCallCount,
+          skippedRetryActionCount,
+          skippedRetryCallCount,
+          retryBudgetRemaining: remainingRetryCallBudget,
+          retryBudgetExhausted,
+          retryPassLimitReached,
+          retryNoProgress,
+          retryExhausted:
+            unresolvedRetryCount > 0 &&
+            canRetryWeakSpots &&
+            (retryBudgetExhausted || retryPassLimitReached || retryNoProgress),
+          exportVerification,
+          packageQualityStatus: finalStatus,
+        };
+      })();
+
+      packageFinalizerInFlightRef.current = finishPromise;
+      try {
+        return await finishPromise;
+      } finally {
+        if (packageFinalizerInFlightRef.current === finishPromise) {
+          packageFinalizerInFlightRef.current = null;
+        }
+      }
     },
     [
       canFinishPackageWithAgent,
@@ -1706,6 +1918,7 @@ export default function AppFlow({ startupAction = null, onStartupHandled, onRetu
       maxRetryPasses: 2,
       courseMapOverride: finalCourseMap,
       deliverablesOverride: generatedDeliverables || {},
+      source: 'generation',
     });
   }
 

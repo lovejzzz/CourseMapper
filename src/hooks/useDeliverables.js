@@ -2638,12 +2638,21 @@ export default function useDeliverables({
   // single-lesson scope via scopeIndices=[lessonIndex].
   const regenerateLesson = useCallback(
     async (featureId, courseMap, lessonIndex, syncGenId = null) => {
-      if (!courseMap) return;
+      if (!courseMap) return { status: 'skipped', reason: 'missing_course_map', featureId, lessonIndex };
       if (lockedLessonsRef.current?.has(lessonIndex)) {
         appendLog(`⚠ Lesson ${lessonIndex + 1} is locked — skipping regeneration`, 'warn');
-        return;
+        return { status: 'skipped', reason: 'locked_lesson', featureId, lessonIndex };
       }
       const label = getFeatureLabel(featureId);
+      const regenerationRunId = createGenerationRunId();
+      traceGeneration(regenerationRunId, 'lesson_regen_start', {
+        featureId,
+        label,
+        lessonIndex,
+        lessonNumber: lessonIndex + 1,
+        provider,
+        modelId,
+      });
 
       if (syncGenId !== null) activeSyncGenRef.current = syncGenId;
 
@@ -2691,12 +2700,23 @@ export default function useDeliverables({
           return s;
         });
         if (abortMapRef.current.size === 0) setIsGenerating(false);
-        return;
+        const skippedResult = {
+          status: 'skipped',
+          reason: 'missing_prompt',
+          featureId,
+          lessonIndex,
+          data: existingDataSnapshot,
+          itemCount: getDeliverableItemCount(featureId, existingDataSnapshot),
+        };
+        traceGeneration(regenerationRunId, 'lesson_regen_skipped', skippedResult, 'warn');
+        return skippedResult;
       }
 
+      let abortKey = null;
       try {
         const controller = new AbortController();
-        abortMapRef.current.set(featureId, controller);
+        abortKey = `${featureId}:lesson-${lessonIndex}:regen-${Date.now()}`;
+        abortMapRef.current.set(abortKey, controller);
 
         let fullText = '';
         let lastParseTime = 0;
@@ -2704,6 +2724,7 @@ export default function useDeliverables({
         recordApiCallEvent({
           type: 'repairRetryCall',
           label: `Regenerate ${label} lesson ${lessonIndex + 1}`,
+          detail: regenerationRunId,
           featureId,
         });
         const repairRetryLimit = getStreamRetryLimit(generationPlan, 'repair');
@@ -2756,7 +2777,7 @@ export default function useDeliverables({
             recordApiCallEvent({
               type: 'streamRetryCall',
               label: `${label} lesson ${lessonIndex + 1} regeneration stream retry`,
-              detail: `${attempt}/${repairRetryLimit}`,
+              detail: `${regenerationRunId} ${attempt}/${repairRetryLimit}`,
               featureId,
             });
           },
@@ -2778,9 +2799,18 @@ export default function useDeliverables({
                 regeneratingIndex: null,
               });
             }
-            return;
+            const supersededResult = {
+              status: 'superseded',
+              featureId,
+              lessonIndex,
+              data: existingDataSnapshot,
+              itemCount: getDeliverableItemCount(featureId, existingDataSnapshot),
+            };
+            traceGeneration(regenerationRunId, 'lesson_regen_superseded', supersededResult, 'warn');
+            return supersededResult;
           }
           const finalParsed = patchScopeNumbering(parsed, featureId, [lessonIndex], courseMap);
+          let nextData = finalParsed;
           if (existingKey && existingDataSnapshot) {
             const newKey = getArrayKey(featureId, finalParsed);
             const newArr = (newKey ? finalParsed[newKey] : null) || [];
@@ -2803,11 +2833,26 @@ export default function useDeliverables({
               if (matchIdx >= 0) merged[matchIdx] = newArr[i];
               // If no title match, don't blindly push — skip to prevent corruption
             }
-            dispatch(actions.setDeliverableDone(featureId, { ...existingDataSnapshot, [existingKey]: merged }));
+            nextData = { ...existingDataSnapshot, [existingKey]: merged };
+            dispatch(actions.setDeliverableDone(featureId, nextData));
           } else {
             dispatch(actions.setDeliverableDone(featureId, finalParsed));
           }
           appendLog(`✓ Lesson ${lessonIndex + 1} in ${label} regenerated`, 'done');
+          const doneResult = {
+            status: 'done',
+            featureId,
+            lessonIndex,
+            data: nextData,
+            itemCount: getDeliverableItemCount(featureId, nextData),
+          };
+          traceGeneration(regenerationRunId, 'lesson_regen_done', {
+            featureId,
+            label,
+            lessonIndex,
+            lessonNumber: lessonIndex + 1,
+            itemCount: doneResult.itemCount,
+          });
 
           // Green highlight (3s)
           setFreshLessons((prev) => ({
@@ -2827,6 +2872,7 @@ export default function useDeliverables({
             freshTimersRef.current.delete(freshKey);
           }, 3000);
           freshTimersRef.current.set(freshKey, freshTimer);
+          return doneResult;
         } else {
           appendLog(`⚠ ${label}: Lesson ${lessonIndex + 1} regeneration response was incomplete`, 'warn');
           if (existingDataSnapshot) {
@@ -2840,9 +2886,18 @@ export default function useDeliverables({
               regeneratingIndex: null,
             });
           }
+          const incompleteResult = {
+            status: 'incomplete',
+            featureId,
+            lessonIndex,
+            data: existingDataSnapshot,
+            itemCount: getDeliverableItemCount(featureId, existingDataSnapshot),
+          };
+          traceGeneration(regenerationRunId, 'lesson_regen_incomplete', incompleteResult, 'warn');
+          return incompleteResult;
         }
       } catch (err) {
-        if (err.name !== 'AbortError') {
+        if (err?.name !== 'AbortError') {
           recordApiCallEvent({
             type: 'failedCall',
             label: `${label} lesson ${lessonIndex + 1} regeneration failed`,
@@ -2866,8 +2921,26 @@ export default function useDeliverables({
             regeneratingIndex: null,
           });
         }
+        const failedResult = {
+          status: err?.name === 'AbortError' ? 'aborted' : 'error',
+          featureId,
+          lessonIndex,
+          data: existingDataSnapshot,
+          itemCount: getDeliverableItemCount(featureId, existingDataSnapshot),
+          error: err?.message || String(err || 'Unknown error'),
+        };
+        traceGeneration(
+          regenerationRunId,
+          'lesson_regen_failed',
+          {
+            ...failedResult,
+            error: summarizeError(err),
+          },
+          err?.name === 'AbortError' ? 'warn' : 'error',
+        );
+        return failedResult;
       } finally {
-        abortMapRef.current.delete(featureId);
+        if (abortKey) abortMapRef.current.delete(abortKey);
         // Remove from active features
         setCurrentFeatures((prev) => {
           const s = new Set(prev);
