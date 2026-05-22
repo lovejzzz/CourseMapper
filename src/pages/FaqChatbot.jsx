@@ -3,6 +3,11 @@ import FocusTrap from 'focus-trap-react';
 import { getSecure } from '../lib/secureStorage';
 import { supportsCustomTemperature } from '../lib/agentProviders';
 import { getGoogleModelBaseUrl } from '../lib/googleProvider';
+import {
+  buildOpenAIResponsesBody,
+  parseOpenAIResponsesStreamChunk,
+  prefersOpenAIResponsesApi,
+} from '../lib/openaiProvider';
 
 function getSystemPrompt(courseMap, activeTab) {
   let contextSection = '';
@@ -268,30 +273,48 @@ async function streamChat(messages, systemPrompt, signal) {
     { role: 'system', content: systemPrompt },
     ...messages.map((m) => ({ role: m.role, content: m.content })),
   ];
-  const baseUrl = provider === 'deepseek' ? 'https://api.deepseek.com/v1' : 'https://api.openai.com/v1';
   const tempSetting = supportsCustomTemperature(chatModel) ? { temperature: 0.4 } : {};
-  const response = await fetch(`${baseUrl}/chat/completions`, {
-    method: 'POST',
-    headers: {
-      Authorization: `Bearer ${apiKey}`,
-      'Content-Type': 'application/json',
+  const useResponses = provider === 'openai' && prefersOpenAIResponsesApi(chatModel);
+  const response = await fetch(
+    useResponses
+      ? 'https://api.openai.com/v1/responses'
+      : `${provider === 'deepseek' ? 'https://api.deepseek.com/v1' : 'https://api.openai.com/v1'}/chat/completions`,
+    {
+      method: 'POST',
+      headers: {
+        Authorization: `Bearer ${apiKey}`,
+        'Content-Type': 'application/json',
+      },
+      body: JSON.stringify(
+        useResponses
+          ? buildOpenAIResponsesBody({
+              model: chatModel,
+              systemPrompt,
+              userPrompt: messages.map((m) => `${m.role}: ${m.content}`).join('\n'),
+              maxOutputTokens: 2048,
+              temperature: tempSetting.temperature,
+              stream: true,
+            })
+          : {
+              model: chatModel,
+              messages: openaiMessages,
+              ...(provider === 'deepseek' ? { max_tokens: 2048 } : { max_completion_tokens: 2048 }),
+              ...tempSetting,
+              stream: true,
+            },
+      ),
+      signal,
     },
-    body: JSON.stringify({
-      model: chatModel,
-      messages: openaiMessages,
-      ...(provider === 'deepseek' ? { max_tokens: 2048 } : { max_completion_tokens: 2048 }),
-      ...tempSetting,
-      stream: true,
-    }),
-    signal,
-  });
+  );
   if (!response.ok) {
     const err = await response.json().catch(() => ({}));
     throw new Error(err.error?.message || `API error: ${response.status}`);
   }
   return {
     reader: response.body.getReader(),
-    parseChunk: (parsed) => parsed.choices?.[0]?.delta?.content || null,
+    parseChunk: useResponses
+      ? parseOpenAIResponsesStreamChunk
+      : (parsed) => parsed.choices?.[0]?.delta?.content || null,
   };
 }
 

@@ -28,7 +28,6 @@ describe('fetchModelsFromProvider', () => {
 
   it('keeps Google Gemini preview/snapshot models that support content generation', async () => {
     const fetchMock = vi.spyOn(globalThis, 'fetch').mockImplementation(async (url) => {
-      if (String(url).includes(':countTokens')) return { ok: false, json: async () => ({}) };
       return {
         ok: true,
         json: async () => ({
@@ -72,28 +71,28 @@ describe('fetchModelsFromProvider', () => {
     expect(models.map((model) => model.id)).toEqual(['gemini-3.0-pro-preview-01-15', 'gemini-2.5-flash-preview-05-20']);
   });
 
-  it('uses Vertex Express candidate probes instead of unsupported catalog endpoints', async () => {
+  it('uses conservative Vertex Express fallbacks instead of unsupported catalog/probe endpoints', async () => {
     const fetchMock = vi.spyOn(globalThis, 'fetch').mockImplementation(async (url) => {
       const requestUrl = String(url);
       if (requestUrl.includes('v1beta1/publishers/google/models?')) throw new Error('unexpected catalog call');
       if (requestUrl.includes('generativelanguage.googleapis.com/v1beta/models?'))
         throw new Error('unexpected Gemini API catalog call');
-      if (requestUrl.includes('gemini-3.1-pro-preview:countTokens')) return { ok: true, json: async () => ({}) };
-      if (requestUrl.includes('gemini-3-flash-preview:countTokens')) return { ok: true, json: async () => ({}) };
-      return { ok: false, json: async () => ({}) };
+      if (requestUrl.includes(':countTokens')) throw new Error('unexpected model probe call');
+      return { ok: true, json: async () => ({}) };
     });
 
     const models = await fetchModelsFromProvider('google', 'VertexExpressKeyWithEnoughLength1234567890');
 
-    expect(fetchMock.mock.calls.some(([url]) => String(url).includes('v1beta1/publishers/google/models?'))).toBe(false);
-    expect(
-      fetchMock.mock.calls.some(([url]) => String(url).includes('generativelanguage.googleapis.com/v1beta/models?')),
-    ).toBe(false);
-    expect(models.map((model) => model.id)).toEqual(['gemini-3.1-pro-preview', 'gemini-3-flash-preview']);
+    expect(fetchMock).not.toHaveBeenCalled();
+    expect(models.map((model) => model.id).slice(0, 3)).toEqual([
+      'gemini-2.5-pro',
+      'gemini-2.5-flash',
+      'gemini-2.5-flash-lite',
+    ]);
   });
 
-  it('adds reachable latest Google candidates when the live list lags behind generation access', async () => {
-    vi.spyOn(globalThis, 'fetch').mockImplementation(async (url) => {
+  it('does not add guessed Google models that are missing from the live catalog', async () => {
+    const fetchMock = vi.spyOn(globalThis, 'fetch').mockImplementation(async (url) => {
       const requestUrl = String(url);
       if (requestUrl.includes('generativelanguage.googleapis.com/v1beta/models?')) {
         return {
@@ -110,30 +109,27 @@ describe('fetchModelsFromProvider', () => {
           }),
         };
       }
-      if (requestUrl.includes('gemini-3.5-flash:countTokens')) return { ok: true, json: async () => ({}) };
-      return { ok: false, json: async () => ({}) };
+      throw new Error(`unexpected request: ${requestUrl}`);
     });
 
     const models = await fetchModelsFromProvider('google', 'AIza-test');
 
-    expect(models.map((model) => model.id)).toEqual(['gemini-3.5-flash', 'gemini-2.5-flash']);
+    expect(fetchMock).toHaveBeenCalledTimes(1);
+    expect(models.map((model) => model.id)).toEqual(['gemini-2.5-flash']);
   });
 
   it('uses the current Vertex Express fallback without Gemini API-only models', async () => {
-    vi.spyOn(globalThis, 'fetch').mockImplementation(async (url) => {
-      expect(String(url)).not.toContain('/v1beta1/publishers/google/models?');
-      expect(String(url)).not.toContain('generativelanguage.googleapis.com/v1beta/models?');
-      return { ok: true, json: async () => ({ totalTokens: 1 }) };
-    });
+    const fetchMock = vi.spyOn(globalThis, 'fetch').mockResolvedValue({ ok: true, json: async () => ({}) });
 
     const models = await fetchModelsFromProvider('google', 'VertexExpressKeyWithEnoughLength1234567890');
 
+    expect(fetchMock).not.toHaveBeenCalled();
     expect(models.map((model) => model.id).slice(0, 5)).toEqual([
-      'gemini-3.1-pro-preview',
-      'gemini-3-flash-preview',
       'gemini-2.5-pro',
       'gemini-2.5-flash',
       'gemini-2.5-flash-lite',
+      'gemini-2.0-flash',
+      'gemini-2.0-flash-001',
     ]);
     expect(models.map((model) => model.id)).not.toContain('gemini-3.5-flash');
     expect(models.map((model) => model.id)).not.toContain('gemini-3-pro-preview');

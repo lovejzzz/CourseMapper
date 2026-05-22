@@ -39,7 +39,7 @@ describe('checkCredits', () => {
     else delete globalThis.localStorage;
   });
 
-  it('validates OpenAI GPT-5-class models with max_completion_tokens', async () => {
+  it('validates OpenAI GPT-5-class models with the Responses API', async () => {
     const fetchMock = vi.spyOn(globalThis, 'fetch').mockResolvedValue({
       ok: true,
       json: async () => ({}),
@@ -48,9 +48,12 @@ describe('checkCredits', () => {
     const ok = await checkCredits('openai', 'test-key', 'gpt-5.4-mini');
 
     expect(ok).toBe(true);
+    expect(fetchMock.mock.calls[0][0]).toBe('https://api.openai.com/v1/responses');
     const [, request] = fetchMock.mock.calls[0];
     const body = JSON.parse(request.body);
-    expect(body.max_completion_tokens).toBe(16);
+    expect(body.max_output_tokens).toBe(16);
+    expect(body.input).toBe('Hi');
+    expect(body.max_completion_tokens).toBeUndefined();
     expect(body.max_tokens).toBeUndefined();
   });
 

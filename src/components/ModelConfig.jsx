@@ -12,6 +12,7 @@ import {
   getPrimaryModelFitLabel,
   resolveModelCapabilities,
 } from '../lib/modelCapabilities';
+import { buildOpenAIResponsesBody, prefersOpenAIResponsesApi } from '../lib/openaiProvider';
 
 /**
  * Detect provider from API key prefix and auto-switch if mismatched.
@@ -50,21 +51,48 @@ const BILLING_URLS = {
  * Make a tiny test completion to verify the key has credits.
  * Returns true if the key works, false if insufficient funds.
  */
-export async function checkCredits(provider, apiKey, modelId, onApiCallEvent) {
+export async function checkCredits(provider, apiKey, modelId, onApiCallEvent, options = {}) {
   try {
     let res;
-    if (provider === 'openai' || provider === 'deepseek') {
-      const base = provider === 'deepseek' ? 'https://api.deepseek.com/v1' : 'https://api.openai.com/v1';
+    if (provider === 'openai') {
       if (typeof onApiCallEvent === 'function') {
         onApiCallEvent({ type: 'creditCheckCall', label: 'Validate API credits', detail: modelId });
       }
-      res = await fetch(`${base}/chat/completions`, {
+      if (prefersOpenAIResponsesApi(modelId)) {
+        res = await fetch('https://api.openai.com/v1/responses', {
+          method: 'POST',
+          headers: { Authorization: `Bearer ${apiKey}`, 'Content-Type': 'application/json' },
+          body: JSON.stringify(
+            buildOpenAIResponsesBody({
+              model: modelId,
+              userPrompt: 'Hi',
+              maxOutputTokens: 16,
+              stream: false,
+            }),
+          ),
+        });
+      } else {
+        res = await fetch('https://api.openai.com/v1/chat/completions', {
+          method: 'POST',
+          headers: { Authorization: `Bearer ${apiKey}`, 'Content-Type': 'application/json' },
+          body: JSON.stringify({
+            model: modelId,
+            messages: [{ role: 'user', content: 'Hi' }],
+            max_completion_tokens: 16,
+          }),
+        });
+      }
+    } else if (provider === 'deepseek') {
+      if (typeof onApiCallEvent === 'function') {
+        onApiCallEvent({ type: 'creditCheckCall', label: 'Validate API credits', detail: modelId });
+      }
+      res = await fetch('https://api.deepseek.com/v1/chat/completions', {
         method: 'POST',
         headers: { Authorization: `Bearer ${apiKey}`, 'Content-Type': 'application/json' },
         body: JSON.stringify({
           model: modelId,
           messages: [{ role: 'user', content: 'Hi' }],
-          ...(provider === 'openai' ? { max_completion_tokens: 16 } : { max_tokens: 1 }),
+          max_tokens: 1,
         }),
       });
     } else if (provider === 'anthropic') {
@@ -82,7 +110,7 @@ export async function checkCredits(provider, apiKey, modelId, onApiCallEvent) {
         body: JSON.stringify({ model: modelId, max_tokens: 1, messages: [{ role: 'user', content: 'Hi' }] }),
       });
     } else if (provider === 'google') {
-      const baseUrl = getGoogleModelBaseUrl(apiKey, modelId);
+      const baseUrl = getGoogleModelBaseUrl(apiKey, modelId, options.endpointFamily);
       if (typeof onApiCallEvent === 'function') {
         onApiCallEvent({ type: 'creditCheckCall', label: 'Validate API credits', detail: modelId });
       }
@@ -356,7 +384,9 @@ export default function ModelConfig() {
           if (setMaxOutputTokens) setMaxOutputTokens(selected.maxOutputTokens || 16384);
           applyBaseCapabilityProfile(selected, provider);
           // Verify the key has credits with a tiny test call
-          const hasCredits = await checkCredits(provider, trimmedKey, selected.id, recordPendingApiCallEvent);
+          const hasCredits = await checkCredits(provider, trimmedKey, selected.id, recordPendingApiCallEvent, {
+            endpointFamily: selected.endpointFamily,
+          });
           if (cancelled) return;
           setApiStatus(hasCredits ? 'connected' : 'no_funds');
           if (hasCredits) {

@@ -29,11 +29,13 @@ describe('modelRequestBuilders', () => {
       },
     });
 
-    expect(req.body.max_completion_tokens).toBe(128000);
+    expect(req.url).toBe('https://api.openai.com/v1/responses');
+    expect(req.body.max_output_tokens).toBe(128000);
     expect(req.body.temperature).toBeUndefined();
-    expect(req.body.response_format).toMatchObject({
+    expect(req.body.text.format).toMatchObject({
       type: 'json_schema',
-      json_schema: { name: 'course_map', strict: true },
+      name: 'course_map',
+      strict: true,
     });
   });
 
@@ -166,6 +168,6 @@ describe('modelRequestBuilders', () => {
 
     expect(controls.temperature).toBeUndefined();
     expect(controls.preferredApiMode).toBe('responses');
-    expect(controls.apiMode).toBe('chat-completions');
+    expect(controls.apiMode).toBe('responses');
   });
 });

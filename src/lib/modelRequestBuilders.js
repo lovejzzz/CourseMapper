@@ -1,4 +1,5 @@
 import { getGoogleModelBaseUrl } from './googleProvider';
+import { buildOpenAIResponsesBody, parseOpenAIResponsesStreamChunk, prefersOpenAIResponsesApi } from './openaiProvider';
 
 function modelIsDefaultTemperatureOnly(provider, modelId) {
   const id = String(modelId || '').toLowerCase();
@@ -182,6 +183,24 @@ export function buildProviderTextRequest({
 
   if (provider === 'openai') {
     const responseFormat = openAiResponseFormat(controls);
+    if (prefersOpenAIResponsesApi(modelId, controls.preferredApiMode)) {
+      return {
+        url: 'https://api.openai.com/v1/responses',
+        headers: { Authorization: `Bearer ${apiKey}`, 'Content-Type': 'application/json' },
+        body: buildOpenAIResponsesBody({
+          model: modelId,
+          systemPrompt,
+          userPrompt,
+          maxOutputTokens: controls.maxOutputTokens,
+          temperature: controls.temperature,
+          responseFormat,
+          reasoning: controls.reasoning,
+          stream: true,
+        }),
+        parseChunk: parseOpenAIResponsesStreamChunk,
+        controls: { ...controls, apiMode: 'responses' },
+      };
+    }
     return {
       url: 'https://api.openai.com/v1/chat/completions',
       headers: { Authorization: `Bearer ${apiKey}`, 'Content-Type': 'application/json' },

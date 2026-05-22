@@ -1,6 +1,6 @@
 import { useRef, useCallback } from 'react';
 import { supportsCustomTemperature } from '../lib/agentProviders';
-import { getGoogleModelBaseUrl, GOOGLE_ENDPOINT_FAMILIES, isVertexKey } from '../lib/googleProvider';
+import { GOOGLE_ENDPOINT_FAMILIES, isVertexKey } from '../lib/googleProvider';
 import { buildProviderTextRequest } from '../lib/modelRequestBuilders';
 
 export { isVertexKey } from '../lib/googleProvider';
@@ -379,34 +379,7 @@ const OPENAI_INCLUDE = /^(gpt-|o\d|chatgpt-)/i;
 // Exclude non-text Google Gemini variants (image generation, TTS, live streaming, embeddings)
 const GOOGLE_EXCLUDE = /imagen|image|veo|tts|live|embedding|aqa|native-audio/i;
 
-const GOOGLE_LATEST_TEXT_MODEL_CANDIDATES = [
-  {
-    id: 'gemini-3.5-flash',
-    name: 'Gemini 3.5 Flash',
-    maxOutputTokens: 65536,
-    endpointFamily: GOOGLE_ENDPOINT_FAMILIES.GEMINI_API,
-  },
-  {
-    id: 'gemini-3.5-flash-preview',
-    name: 'Gemini 3.5 Flash Preview',
-    maxOutputTokens: 65536,
-    endpointFamily: GOOGLE_ENDPOINT_FAMILIES.GEMINI_API,
-  },
-];
-
 const GOOGLE_VERTEX_EXPRESS_TEXT_MODEL_FALLBACKS = [
-  {
-    id: 'gemini-3.1-pro-preview',
-    name: 'Gemini 3.1 Pro Preview',
-    maxOutputTokens: 65536,
-    endpointFamily: GOOGLE_ENDPOINT_FAMILIES.VERTEX_EXPRESS,
-  },
-  {
-    id: 'gemini-3-flash-preview',
-    name: 'Gemini 3 Flash Preview',
-    maxOutputTokens: 65536,
-    endpointFamily: GOOGLE_ENDPOINT_FAMILIES.VERTEX_EXPRESS,
-  },
   {
     id: 'gemini-2.5-pro',
     name: 'Gemini 2.5 Pro',
@@ -426,8 +399,26 @@ const GOOGLE_VERTEX_EXPRESS_TEXT_MODEL_FALLBACKS = [
     endpointFamily: GOOGLE_ENDPOINT_FAMILIES.VERTEX_EXPRESS,
   },
   {
-    id: 'gemini-2.5-flash-lite-preview-09-2025',
-    name: 'Gemini 2.5 Flash-Lite Preview 09-2025',
+    id: 'gemini-2.0-flash-001',
+    name: 'Gemini 2.0 Flash 001',
+    maxOutputTokens: 8192,
+    endpointFamily: GOOGLE_ENDPOINT_FAMILIES.VERTEX_EXPRESS,
+  },
+  {
+    id: 'gemini-2.0-flash-lite-001',
+    name: 'Gemini 2.0 Flash Lite 001',
+    maxOutputTokens: 8192,
+    endpointFamily: GOOGLE_ENDPOINT_FAMILIES.VERTEX_EXPRESS,
+  },
+  {
+    id: 'gemini-2.0-flash',
+    name: 'Gemini 2.0 Flash',
+    maxOutputTokens: 8192,
+    endpointFamily: GOOGLE_ENDPOINT_FAMILIES.VERTEX_EXPRESS,
+  },
+  {
+    id: 'gemini-2.0-flash-lite',
+    name: 'Gemini 2.0 Flash Lite',
     maxOutputTokens: 65536,
     endpointFamily: GOOGLE_ENDPOINT_FAMILIES.VERTEX_EXPRESS,
   },
@@ -517,7 +508,7 @@ function googleCandidateModel(id, overrides = {}) {
     maxInputTokens: overrides.maxInputTokens || null,
     endpointFamily: overrides.endpointFamily || GOOGLE_ENDPOINT_FAMILIES.GEMINI_API,
     source: overrides.source || 'probe',
-    supportedGenerationMethods: ['generateContent', 'streamGenerateContent', 'countTokens'],
+    supportedGenerationMethods: ['generateContent', 'streamGenerateContent'],
     capabilities: {
       streaming: true,
       jsonMode: true,
@@ -563,53 +554,6 @@ function normalizeGoogleModelCatalog(models, endpointFamily = GOOGLE_ENDPOINT_FA
         };
       }),
   ).sort(sortModelOptions);
-}
-
-async function canUseGoogleModel(apiKey, modelId, endpointFamily, onApiCallEvent) {
-  if (typeof onApiCallEvent === 'function') {
-    onApiCallEvent({
-      type: 'modelDiscoveryCall',
-      label: 'Probe Google model availability',
-      detail: modelId,
-    });
-  }
-  const response = await fetch(`${getGoogleModelBaseUrl(apiKey, modelId, endpointFamily)}:countTokens?key=${apiKey}`, {
-    method: 'POST',
-    headers: { 'Content-Type': 'application/json' },
-    body: JSON.stringify({ contents: [{ parts: [{ text: 'test' }] }] }),
-  });
-  return response.ok;
-}
-
-async function fetchReachableGoogleCandidates(
-  apiKey,
-  candidates,
-  endpointFamily = GOOGLE_ENDPOINT_FAMILIES.GEMINI_API,
-  onApiCallEvent,
-) {
-  const settled = await Promise.allSettled(
-    candidates.map(async (candidate) => {
-      const candidateEndpointFamily = candidate.endpointFamily || endpointFamily;
-      const ok = await canUseGoogleModel(apiKey, candidate.id, candidateEndpointFamily, onApiCallEvent);
-      return ok ? googleCandidateModel(candidate.id, { ...candidate, endpointFamily: candidateEndpointFamily }) : null;
-    }),
-  );
-  return settled.filter((result) => result.status === 'fulfilled' && result.value).map((result) => result.value);
-}
-
-async function mergeReachableGoogleCandidates(
-  apiKey,
-  liveModels,
-  candidates = GOOGLE_LATEST_TEXT_MODEL_CANDIDATES,
-  endpointFamily = GOOGLE_ENDPOINT_FAMILIES.GEMINI_API,
-  onApiCallEvent,
-) {
-  const knownIds = new Set((liveModels || []).map((model) => model.id));
-  const missingCandidates = candidates.filter((candidate) => !knownIds.has(candidate.id));
-  if (missingCandidates.length === 0) return liveModels;
-  const reachable = await fetchReachableGoogleCandidates(apiKey, missingCandidates, endpointFamily, onApiCallEvent);
-  if (reachable.length === 0) return liveModels;
-  return dedupeModelsById([...liveModels, ...reachable]).sort(sortModelOptions);
 }
 
 async function fetchGeminiApiModels(apiKey, onApiCallEvent) {
@@ -750,29 +694,18 @@ export async function fetchModelsFromProvider(provider, apiKey, options = {}) {
 
   if (provider === 'google') {
     if (isVertexKey(apiKey)) {
-      // Vertex AI Express browser keys do not support the Gemini API catalog
-      // endpoint, and publisher model listing is not available in this flow.
-      // Probe only the current Express-compatible text models so unsupported
-      // Gemini API-only models (for example Gemini 3.5 Flash) never appear.
-      const reachableFallbacks = await fetchReachableGoogleCandidates(
-        apiKey,
-        GOOGLE_VERTEX_EXPRESS_TEXT_MODEL_FALLBACKS,
-        GOOGLE_ENDPOINT_FAMILIES.VERTEX_EXPRESS,
-        onApiCallEvent,
-      );
-      if (reachableFallbacks.length > 0) return reachableFallbacks.sort(sortModelOptions);
-      throw new Error('Invalid or unsupported Vertex AI Express key');
+      // Vertex AI Express browser keys do not expose a browser-safe model
+      // catalog. Return conservative stable fallbacks and validate the selected
+      // model once, instead of probing guessed models and polluting the console
+      // with 404s for unsupported preview IDs.
+      return GOOGLE_VERTEX_EXPRESS_TEXT_MODEL_FALLBACKS.map((model) =>
+        googleCandidateModel(model.id, { ...model, source: 'vertex-express-fallback' }),
+      ).sort(sortModelOptions);
     }
 
     const models = await fetchGeminiApiModels(apiKey, onApiCallEvent);
     if (models.length === 0) throw new Error('No Gemini models available');
-    return mergeReachableGoogleCandidates(
-      apiKey,
-      models,
-      GOOGLE_LATEST_TEXT_MODEL_CANDIDATES,
-      GOOGLE_ENDPOINT_FAMILIES.GEMINI_API,
-      onApiCallEvent,
-    );
+    return models;
   }
 
   if (provider === 'deepseek') {

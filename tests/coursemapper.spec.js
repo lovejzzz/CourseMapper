@@ -341,7 +341,6 @@ test.describe('Lazy Shell', () => {
         }),
       }),
     );
-
     const appFlowRequests = [];
     page.on('request', (request) => {
       if (isAppFlowRequest(request.url())) appFlowRequests.push(request.url());
@@ -393,7 +392,6 @@ test.describe('Configure Generation', () => {
         }),
       }),
     );
-
     await page.addInitScript(() => {
       localStorage.clear();
       sessionStorage.clear();
@@ -437,6 +435,16 @@ test.describe('Configure Generation', () => {
         contentType: 'application/json',
         body: JSON.stringify({
           choices: [{ message: { content: 'ok' } }],
+        }),
+      }),
+    );
+    await page.route('https://api.openai.com/v1/responses', (route) =>
+      route.fulfill({
+        status: 200,
+        contentType: 'application/json',
+        body: JSON.stringify({
+          output_text: 'ok',
+          output: [{ content: [{ type: 'output_text', text: 'ok' }] }],
         }),
       }),
     );

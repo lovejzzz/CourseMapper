@@ -16,6 +16,11 @@ import {
 } from '../../lib/agentProviders';
 import { formatPackageSummaryForHistory } from '../../lib/packageFinalizerSummary';
 import { getGoogleModelBaseUrl } from '../../lib/googleProvider';
+import {
+  buildOpenAIResponsesBody,
+  parseOpenAIResponsesStreamChunk,
+  prefersOpenAIResponsesApi,
+} from '../../lib/openaiProvider';
 // webllm is dynamically imported when needed; its runtime is loaded externally for Local AI users only.
 
 // ── System prompt for Help / Tutor mode (extracted from FaqChatbot) ─────────
@@ -184,8 +189,10 @@ export async function streamChat(messages, systemPrompt, signal, apiKey, provide
   }
 
   // OpenAI / DeepSeek / OpenRouter (OpenAI-compatible)
-  const baseUrl =
-    provider === 'deepseek'
+  const useResponses = provider === 'openai' && prefersOpenAIResponsesApi(chatModel);
+  const baseUrl = useResponses
+    ? 'https://api.openai.com/v1/responses'
+    : provider === 'deepseek'
       ? 'https://api.deepseek.com/v1/chat/completions'
       : provider === 'openrouter'
         ? 'https://openrouter.ai/api/v1/chat/completions'
@@ -203,14 +210,25 @@ export async function streamChat(messages, systemPrompt, signal, apiKey, provide
   const response = await fetch(baseUrl, {
     method: 'POST',
     headers: openaiHeaders,
-    body: JSON.stringify({
-      model: chatModel,
-      messages: openaiMessages,
-      ...(provider === 'openai' ? { max_completion_tokens: maxTokens } : { max_tokens: maxTokens }),
-      ...tempSetting,
-      stream: true,
-      ...(provider === 'openrouter' ? { provider: { data_collection: 'allow' } } : {}),
-    }),
+    body: JSON.stringify(
+      useResponses
+        ? buildOpenAIResponsesBody({
+            model: chatModel,
+            systemPrompt,
+            userPrompt: messages.map((m) => `${m.role}: ${m.content}`).join('\n'),
+            maxOutputTokens: maxTokens,
+            temperature: tempSetting.temperature,
+            stream: true,
+          })
+        : {
+            model: chatModel,
+            messages: openaiMessages,
+            ...(provider === 'openai' ? { max_completion_tokens: maxTokens } : { max_tokens: maxTokens }),
+            ...tempSetting,
+            stream: true,
+            ...(provider === 'openrouter' ? { provider: { data_collection: 'allow' } } : {}),
+          },
+    ),
     signal,
   });
   if (!response.ok) {
@@ -219,7 +237,9 @@ export async function streamChat(messages, systemPrompt, signal, apiKey, provide
   }
   return {
     reader: response.body.getReader(),
-    parseChunk: (parsed) => parsed.choices?.[0]?.delta?.content || null,
+    parseChunk: useResponses
+      ? parseOpenAIResponsesStreamChunk
+      : (parsed) => parsed.choices?.[0]?.delta?.content || null,
   };
 }
 

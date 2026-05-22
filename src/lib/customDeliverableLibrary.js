@@ -28,6 +28,7 @@ import {
 } from './cloudStorage';
 import { supportsCustomTemperature } from './agentProviders';
 import { getGoogleModelBaseUrl } from './googleProvider';
+import { buildOpenAIResponsesBody, extractOpenAIResponsesText, prefersOpenAIResponsesApi } from './openaiProvider';
 
 const STORAGE_KEY = 'coursemapper-custom-deliverables';
 
@@ -204,24 +205,40 @@ Pick the most fitting tone, style, length, icon, and color for "${trimmedName}".
       const data = await res.json();
       responseText = data.content?.[0]?.text || '';
     } else if (effectiveProvider === 'openai') {
-      const res = await fetch('https://api.openai.com/v1/chat/completions', {
-        method: 'POST',
-        headers: { Authorization: `Bearer ${apiKey}`, 'Content-Type': 'application/json' },
-        body: JSON.stringify({
-          model: modelId,
-          max_completion_tokens: 1500,
-          ...tempSetting,
-          stream: false,
-          response_format: { type: 'json_object' },
-          messages: [
-            { role: 'system', content: sysPrompt },
-            { role: 'user', content: userPrompt },
-          ],
-        }),
-      });
+      const useResponses = prefersOpenAIResponsesApi(modelId);
+      const res = await fetch(
+        useResponses ? 'https://api.openai.com/v1/responses' : 'https://api.openai.com/v1/chat/completions',
+        {
+          method: 'POST',
+          headers: { Authorization: `Bearer ${apiKey}`, 'Content-Type': 'application/json' },
+          body: JSON.stringify(
+            useResponses
+              ? buildOpenAIResponsesBody({
+                  model: modelId,
+                  systemPrompt: sysPrompt,
+                  userPrompt,
+                  maxOutputTokens: 1500,
+                  temperature: tempSetting.temperature,
+                  responseFormat: { type: 'json_object' },
+                  stream: false,
+                })
+              : {
+                  model: modelId,
+                  max_completion_tokens: 1500,
+                  ...tempSetting,
+                  stream: false,
+                  response_format: { type: 'json_object' },
+                  messages: [
+                    { role: 'system', content: sysPrompt },
+                    { role: 'user', content: userPrompt },
+                  ],
+                },
+          ),
+        },
+      );
       if (!res.ok) return null;
       const data = await res.json();
-      responseText = data.choices?.[0]?.message?.content || '';
+      responseText = useResponses ? extractOpenAIResponsesText(data) : data.choices?.[0]?.message?.content || '';
     } else if (effectiveProvider === 'deepseek') {
       const res = await fetch('https://api.deepseek.com/v1/chat/completions', {
         method: 'POST',

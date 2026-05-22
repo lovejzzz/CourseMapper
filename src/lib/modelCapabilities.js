@@ -1,4 +1,5 @@
 import { getGoogleModelBaseUrl } from './googleProvider';
+import { buildOpenAIResponsesBody, extractOpenAIResponsesText, prefersOpenAIResponsesApi } from './openaiProvider';
 
 const CACHE_KEY = 'coursemapper-model-capability-profiles-v1';
 const CACHE_TTL_MS = 7 * 24 * 60 * 60 * 1000;
@@ -133,10 +134,11 @@ function inferApiControls(provider, modelId) {
     supportsStreaming: providerStreamingSupport(provider),
   };
   if (provider === 'openai') {
+    const textApi = /^gpt-[5-9]/.test(id) || /^o\d/.test(id) ? 'responses' : 'chat-completions';
     return {
       ...base,
-      activeTextApi: 'chat-completions',
-      preferredTextApi: /^gpt-[5-9]/.test(id) || /^o\d/.test(id) ? 'responses' : 'chat-completions',
+      activeTextApi: textApi,
+      preferredTextApi: textApi,
       endpointFamily: 'openai-compatible',
     };
   }
@@ -485,7 +487,8 @@ function providerHeaders(provider, apiKey) {
 }
 
 function extractProviderText(provider, data) {
-  if (provider === 'openai' || provider === 'deepseek') return data?.choices?.[0]?.message?.content || '';
+  if (provider === 'openai') return extractOpenAIResponsesText(data) || data?.choices?.[0]?.message?.content || '';
+  if (provider === 'deepseek') return data?.choices?.[0]?.message?.content || '';
   if (provider === 'anthropic') {
     return (data?.content || [])
       .filter((item) => item?.type === 'text')
@@ -515,6 +518,23 @@ async function probeJsonAndTemperature({
   async function run(includeTemperature = true) {
     if (provider === 'openai' || provider === 'deepseek') {
       const isOpenAI = provider === 'openai';
+      if (isOpenAI && prefersOpenAIResponsesApi(modelId)) {
+        return postJson(
+          'https://api.openai.com/v1/responses',
+          buildOpenAIResponsesBody({
+            model: modelId,
+            systemPrompt: 'You are a JSON capability probe.',
+            userPrompt: prompt,
+            maxOutputTokens: 32,
+            temperature: includeTemperature ? 0 : undefined,
+            responseFormat: { type: 'json_object' },
+            stream: false,
+          }),
+          providerHeaders(provider, apiKey),
+          signal,
+          { onApiCallEvent, label: 'Probe JSON output', detail: modelId },
+        );
+      }
       const body = {
         model: modelId,
         messages: [
@@ -621,6 +641,25 @@ export async function probeToolCalling({
   try {
     if (provider === 'openai' || provider === 'deepseek') {
       const isOpenAI = provider === 'openai';
+      if (isOpenAI && prefersOpenAIResponsesApi(modelId)) {
+        const data = await postJson(
+          'https://api.openai.com/v1/responses',
+          {
+            model: modelId,
+            input: prompt,
+            tools: [{ type: 'function', name: toolName, description: 'Echo readiness.', parameters: schema }],
+            tool_choice: 'auto',
+            max_output_tokens: 32,
+          },
+          providerHeaders(provider, apiKey),
+          signal,
+          { onApiCallEvent, label: 'Probe tool calling', detail: modelId },
+        );
+        return {
+          supportsTools: Boolean((data?.output || []).some((item) => item?.type === 'function_call')),
+          evidence: ['tool-probe'],
+        };
+      }
       const data = await postJson(
         provider === 'openai'
           ? 'https://api.openai.com/v1/chat/completions'

@@ -1,5 +1,6 @@
 import { supportsCustomTemperature } from './agentProviders';
 import { getGoogleModelBaseUrl } from './googleProvider';
+import { buildOpenAIResponsesBody, extractOpenAIResponsesText, prefersOpenAIResponsesApi } from './openaiProvider';
 
 /**
  * Detect the expected number of lessons/weeks from syllabus text.
@@ -191,27 +192,43 @@ ${text.slice(0, 8000)}`;
       const data = await res.json();
       responseText = data.content?.[0]?.text || '';
     } else if (effectiveProvider === 'openai') {
-      const res = await fetch('https://api.openai.com/v1/chat/completions', {
-        method: 'POST',
-        headers: {
-          Authorization: `Bearer ${apiKey}`,
-          'Content-Type': 'application/json',
+      const useResponses = prefersOpenAIResponsesApi(modelId);
+      const res = await fetch(
+        useResponses ? 'https://api.openai.com/v1/responses' : 'https://api.openai.com/v1/chat/completions',
+        {
+          method: 'POST',
+          headers: {
+            Authorization: `Bearer ${apiKey}`,
+            'Content-Type': 'application/json',
+          },
+          body: JSON.stringify(
+            useResponses
+              ? buildOpenAIResponsesBody({
+                  model: modelId,
+                  systemPrompt,
+                  userPrompt,
+                  maxOutputTokens: 64,
+                  temperature: tempSetting.temperature,
+                  responseFormat: { type: 'json_object' },
+                  stream: false,
+                })
+              : {
+                  model: modelId,
+                  messages: [
+                    { role: 'system', content: systemPrompt },
+                    { role: 'user', content: userPrompt },
+                  ],
+                  response_format: { type: 'json_object' },
+                  max_completion_tokens: 64,
+                  ...tempSetting,
+                  stream: false,
+                },
+          ),
         },
-        body: JSON.stringify({
-          model: modelId,
-          messages: [
-            { role: 'system', content: systemPrompt },
-            { role: 'user', content: userPrompt },
-          ],
-          response_format: { type: 'json_object' },
-          max_completion_tokens: 64,
-          ...tempSetting,
-          stream: false,
-        }),
-      });
+      );
       if (!res.ok) return null;
       const data = await res.json();
-      responseText = data.choices?.[0]?.message?.content || '';
+      responseText = useResponses ? extractOpenAIResponsesText(data) : data.choices?.[0]?.message?.content || '';
     } else if (effectiveProvider === 'google') {
       const baseUrl = getGoogleModelBaseUrl(apiKey, modelId);
       const res = await fetch(`${baseUrl}:generateContent?key=${apiKey}`, {
