@@ -3,6 +3,7 @@ import { fetchModelsFromProvider } from '../useStreamReader';
 
 describe('fetchModelsFromProvider', () => {
   afterEach(() => {
+    vi.useRealTimers();
     vi.restoreAllMocks();
   });
 
@@ -24,6 +25,25 @@ describe('fetchModelsFromProvider', () => {
 
     expect(models.map((model) => model.id)).toEqual(['gpt-6.0', 'gpt-6.0-2026-05-01', 'chatgpt-5o-latest']);
     expect(models[0]).toMatchObject({ name: 'GPT-6.0', maxOutputTokens: 128000 });
+  });
+
+  it('times out stalled provider model discovery calls', async () => {
+    vi.useFakeTimers();
+    vi.spyOn(globalThis, 'fetch').mockImplementation((_url, options = {}) => {
+      return new Promise((_resolve, reject) => {
+        options.signal?.addEventListener(
+          'abort',
+          () => reject(options.signal.reason || Object.assign(new Error('Aborted'), { name: 'AbortError' })),
+          { once: true },
+        );
+      });
+    });
+
+    const request = fetchModelsFromProvider('openai', 'sk-test', { timeoutMs: 50 });
+    const expectation = expect(request).rejects.toMatchObject({ name: 'TimeoutError', isTimeout: true });
+    await vi.advanceTimersByTimeAsync(50);
+
+    await expectation;
   });
 
   it('keeps Google Gemini preview/snapshot models that support content generation', async () => {

@@ -4,6 +4,7 @@ import { useAIConfig } from '../contexts/AIConfigContext';
 import { WEBLLM_MODELS, isWebGPUSupported } from '../lib/webllmConstants';
 import { getGoogleModelBaseUrl } from '../lib/googleProvider';
 import { recordPendingApiCallEvent } from '../lib/apiCallBudget';
+import { fetchWithTimeout, isTimeoutError } from '../lib/fetchWithTimeout';
 import {
   createBaseModelCapabilities,
   createGenerationPlan,
@@ -47,6 +48,9 @@ const BILLING_URLS = {
   deepseek: 'https://platform.deepseek.com/top_up',
 };
 
+const MODEL_DISCOVERY_TIMEOUT_MS = 12000;
+const CREDIT_CHECK_TIMEOUT_MS = 10000;
+
 /**
  * Make a tiny test completion to verify the key has credits.
  * Returns true if the key works, false if insufficient funds.
@@ -54,71 +58,98 @@ const BILLING_URLS = {
 export async function checkCredits(provider, apiKey, modelId, onApiCallEvent, options = {}) {
   try {
     let res;
+    const timeoutMs = options.timeoutMs ?? CREDIT_CHECK_TIMEOUT_MS;
+    const signal = options.signal;
     if (provider === 'openai') {
       if (typeof onApiCallEvent === 'function') {
         onApiCallEvent({ type: 'creditCheckCall', label: 'Validate API credits', detail: modelId });
       }
       if (prefersOpenAIResponsesApi(modelId)) {
-        res = await fetch('https://api.openai.com/v1/responses', {
-          method: 'POST',
-          headers: { Authorization: `Bearer ${apiKey}`, 'Content-Type': 'application/json' },
-          body: JSON.stringify(
-            buildOpenAIResponsesBody({
-              model: modelId,
-              userPrompt: 'Hi',
-              maxOutputTokens: 16,
-              stream: false,
-            }),
-          ),
-        });
+        res = await fetchWithTimeout(
+          'https://api.openai.com/v1/responses',
+          {
+            method: 'POST',
+            signal,
+            headers: { Authorization: `Bearer ${apiKey}`, 'Content-Type': 'application/json' },
+            body: JSON.stringify(
+              buildOpenAIResponsesBody({
+                model: modelId,
+                userPrompt: 'Hi',
+                maxOutputTokens: 16,
+                stream: false,
+              }),
+            ),
+          },
+          timeoutMs,
+        );
       } else {
-        res = await fetch('https://api.openai.com/v1/chat/completions', {
-          method: 'POST',
-          headers: { Authorization: `Bearer ${apiKey}`, 'Content-Type': 'application/json' },
-          body: JSON.stringify({
-            model: modelId,
-            messages: [{ role: 'user', content: 'Hi' }],
-            max_completion_tokens: 16,
-          }),
-        });
+        res = await fetchWithTimeout(
+          'https://api.openai.com/v1/chat/completions',
+          {
+            method: 'POST',
+            signal,
+            headers: { Authorization: `Bearer ${apiKey}`, 'Content-Type': 'application/json' },
+            body: JSON.stringify({
+              model: modelId,
+              messages: [{ role: 'user', content: 'Hi' }],
+              max_completion_tokens: 16,
+            }),
+          },
+          timeoutMs,
+        );
       }
     } else if (provider === 'deepseek') {
       if (typeof onApiCallEvent === 'function') {
         onApiCallEvent({ type: 'creditCheckCall', label: 'Validate API credits', detail: modelId });
       }
-      res = await fetch('https://api.deepseek.com/v1/chat/completions', {
-        method: 'POST',
-        headers: { Authorization: `Bearer ${apiKey}`, 'Content-Type': 'application/json' },
-        body: JSON.stringify({
-          model: modelId,
-          messages: [{ role: 'user', content: 'Hi' }],
-          max_tokens: 1,
-        }),
-      });
+      res = await fetchWithTimeout(
+        'https://api.deepseek.com/v1/chat/completions',
+        {
+          method: 'POST',
+          signal,
+          headers: { Authorization: `Bearer ${apiKey}`, 'Content-Type': 'application/json' },
+          body: JSON.stringify({
+            model: modelId,
+            messages: [{ role: 'user', content: 'Hi' }],
+            max_tokens: 1,
+          }),
+        },
+        timeoutMs,
+      );
     } else if (provider === 'anthropic') {
       if (typeof onApiCallEvent === 'function') {
         onApiCallEvent({ type: 'creditCheckCall', label: 'Validate API credits', detail: modelId });
       }
-      res = await fetch('https://api.anthropic.com/v1/messages', {
-        method: 'POST',
-        headers: {
-          'x-api-key': apiKey,
-          'content-type': 'application/json',
-          'anthropic-version': '2023-06-01',
-          'anthropic-dangerous-direct-browser-access': 'true',
+      res = await fetchWithTimeout(
+        'https://api.anthropic.com/v1/messages',
+        {
+          method: 'POST',
+          signal,
+          headers: {
+            'x-api-key': apiKey,
+            'content-type': 'application/json',
+            'anthropic-version': '2023-06-01',
+            'anthropic-dangerous-direct-browser-access': 'true',
+          },
+          body: JSON.stringify({ model: modelId, max_tokens: 1, messages: [{ role: 'user', content: 'Hi' }] }),
         },
-        body: JSON.stringify({ model: modelId, max_tokens: 1, messages: [{ role: 'user', content: 'Hi' }] }),
-      });
+        timeoutMs,
+      );
     } else if (provider === 'google') {
       const baseUrl = getGoogleModelBaseUrl(apiKey, modelId, options.endpointFamily);
       if (typeof onApiCallEvent === 'function') {
         onApiCallEvent({ type: 'creditCheckCall', label: 'Validate API credits', detail: modelId });
       }
-      res = await fetch(`${baseUrl}:generateContent?key=${apiKey}`, {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ contents: [{ parts: [{ text: 'Hi' }] }], generationConfig: { maxOutputTokens: 1 } }),
-      });
+      res = await fetchWithTimeout(
+        `${baseUrl}:generateContent?key=${apiKey}`,
+        {
+          method: 'POST',
+          signal,
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({ contents: [{ parts: [{ text: 'Hi' }] }], generationConfig: { maxOutputTokens: 1 } }),
+        },
+        timeoutMs,
+      );
     } else {
       return true;
     }
@@ -180,6 +211,7 @@ export default function ModelConfig() {
   const apiKeyId = 'ai-api-key-input';
   const modelIdSelectId = 'ai-model-select';
   const [capabilityStatus, setCapabilityStatus] = useState('idle');
+  const [validationMessage, setValidationMessage] = useState('');
   const latestConfigRef = useRef({ apiStatus, availableModels, modelId });
 
   useEffect(() => {
@@ -210,6 +242,7 @@ export default function ModelConfig() {
     setModelCapabilities(null);
     setGenerationPlan(createGenerationPlan({ provider }));
     setCapabilityStatus('idle');
+    setValidationMessage('');
 
     if (autoDetectedRef.current) {
       // Provider was auto-switched because user typed a key with a different
@@ -321,6 +354,7 @@ export default function ModelConfig() {
   const prevProviderRef = useRef(provider);
   useEffect(() => {
     let cancelled = false;
+    let validationController = null;
     const providerChanged = provider !== prevProviderRef.current;
     const apiKeyChanged = apiKey !== prevApiKeyRef.current;
     prevProviderRef.current = provider;
@@ -344,6 +378,7 @@ export default function ModelConfig() {
       setModelName('');
       setAvailableModels([]);
       setModelId('');
+      setValidationMessage('');
     }
 
     if (trimmedKey.length < 10) return;
@@ -362,10 +397,14 @@ export default function ModelConfig() {
     if (debounceRef.current) clearTimeout(debounceRef.current);
     debounceRef.current = setTimeout(async () => {
       if (cancelled) return;
+      validationController = new AbortController();
+      setValidationMessage('');
       if (!hasSelectableCachedModel) setApiStatus('validating');
       try {
         const models = await fetchModelsFromProvider(provider, trimmedKey, {
           onApiCallEvent: recordPendingApiCallEvent,
+          signal: validationController.signal,
+          timeoutMs: MODEL_DISCOVERY_TIMEOUT_MS,
         });
         if (cancelled) return;
         if (models && models.length > 0) {
@@ -386,6 +425,8 @@ export default function ModelConfig() {
           // Verify the key has credits with a tiny test call
           const hasCredits = await checkCredits(provider, trimmedKey, selected.id, recordPendingApiCallEvent, {
             endpointFamily: selected.endpointFamily,
+            signal: validationController.signal,
+            timeoutMs: CREDIT_CHECK_TIMEOUT_MS,
           });
           if (cancelled) return;
           setApiStatus(hasCredits ? 'connected' : 'no_funds');
@@ -398,10 +439,12 @@ export default function ModelConfig() {
           }
         } else {
           if (cancelled) return;
+          setValidationMessage('No compatible text models found');
           setApiStatus('error');
         }
-      } catch {
+      } catch (error) {
         if (cancelled) return;
+        setValidationMessage(isTimeoutError(error) ? 'Validation timed out' : error?.message || 'Could not validate');
         setApiStatus('error');
       }
     }, 800);
@@ -409,6 +452,7 @@ export default function ModelConfig() {
     return () => {
       cancelled = true;
       if (debounceRef.current) clearTimeout(debounceRef.current);
+      validationController?.abort();
     };
   }, [
     apiKey,
@@ -458,6 +502,7 @@ export default function ModelConfig() {
   }
 
   const hasSelectableModels = (apiStatus === 'connected' || apiStatus === 'no_funds') && availableModels.length > 0;
+  const validationErrorLabel = validationMessage || 'Could not validate';
   const capabilityBadges =
     hasSelectableModels && modelCapabilities?.modelId === modelId
       ? getModelCapabilityBadges(modelCapabilities, generationPlan)
@@ -528,9 +573,12 @@ export default function ModelConfig() {
           </a>
         )}
         {apiStatus === 'error' && (
-          <span className="ml-auto flex items-center gap-1.5 text-[10px] font-semibold text-red-500 bg-red-50/60 px-2.5 py-1 rounded-pill border border-red-100/50">
+          <span
+            title={validationErrorLabel}
+            className="ml-auto flex items-center gap-1.5 text-[10px] font-semibold text-red-500 bg-red-50/60 px-2.5 py-1 rounded-pill border border-red-100/50"
+          >
             <span className="inline-flex rounded-full h-2 w-2 bg-red-500"></span>
-            Invalid Key
+            <span className="max-w-[180px] truncate">{validationErrorLabel}</span>
           </span>
         )}
       </h2>
@@ -733,7 +781,11 @@ export default function ModelConfig() {
             </select>
           ) : (
             <div className="w-full rounded-squircle-xs bg-slate-50/60 border border-slate-200/40 px-3.5 py-2.5 text-sm text-slate-400">
-              {apiStatus === 'validating' ? 'Loading models...' : 'Enter API key first'}
+              {apiStatus === 'validating'
+                ? 'Loading models...'
+                : apiStatus === 'error'
+                  ? validationErrorLabel
+                  : 'Enter API key first'}
             </div>
           )}
         </div>

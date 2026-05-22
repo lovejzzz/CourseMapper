@@ -1,5 +1,6 @@
 import { useRef, useCallback } from 'react';
 import { supportsCustomTemperature } from '../lib/agentProviders';
+import { DEFAULT_PROVIDER_TIMEOUT_MS, fetchWithTimeout } from '../lib/fetchWithTimeout';
 import { GOOGLE_ENDPOINT_FAMILIES, isVertexKey } from '../lib/googleProvider';
 import { buildProviderTextRequest } from '../lib/modelRequestBuilders';
 
@@ -556,7 +557,7 @@ function normalizeGoogleModelCatalog(models, endpointFamily = GOOGLE_ENDPOINT_FA
   ).sort(sortModelOptions);
 }
 
-async function fetchGeminiApiModels(apiKey, onApiCallEvent) {
+async function fetchGeminiApiModels(apiKey, onApiCallEvent, options = {}) {
   const allModels = [];
   let pageToken = '';
   do {
@@ -571,7 +572,11 @@ async function fetchGeminiApiModels(apiKey, onApiCallEvent) {
         detail: pageToken ? 'next page' : 'first page',
       });
     }
-    const response = await fetch(url.toString());
+    const response = await fetchWithTimeout(
+      url.toString(),
+      { signal: options.signal },
+      options.timeoutMs ?? DEFAULT_PROVIDER_TIMEOUT_MS,
+    );
     if (!response.ok) {
       const err = await response.json().catch(() => ({}));
       throw new Error(err.error?.message || 'Invalid API key');
@@ -622,6 +627,8 @@ function deepseekMaxInput(id) {
  */
 export async function fetchModelsFromProvider(provider, apiKey, options = {}) {
   const onApiCallEvent = options?.onApiCallEvent;
+  const requestOptions = { signal: options?.signal };
+  const timeoutMs = options?.timeoutMs ?? DEFAULT_PROVIDER_TIMEOUT_MS;
   if (provider === 'webllm') {
     // Models are handled directly in ModelConfig — return empty to avoid errors
     return [];
@@ -631,9 +638,14 @@ export async function fetchModelsFromProvider(provider, apiKey, options = {}) {
     if (typeof onApiCallEvent === 'function') {
       onApiCallEvent({ type: 'modelDiscoveryCall', label: 'Fetch OpenAI model catalog', detail: 'openai' });
     }
-    const response = await fetch('https://api.openai.com/v1/models', {
-      headers: { Authorization: `Bearer ${apiKey}` },
-    });
+    const response = await fetchWithTimeout(
+      'https://api.openai.com/v1/models',
+      {
+        ...requestOptions,
+        headers: { Authorization: `Bearer ${apiKey}` },
+      },
+      timeoutMs,
+    );
     if (!response.ok) throw new Error('Invalid API key');
     const data = await response.json();
     const models = dedupeModelsById(
@@ -659,13 +671,18 @@ export async function fetchModelsFromProvider(provider, apiKey, options = {}) {
     if (typeof onApiCallEvent === 'function') {
       onApiCallEvent({ type: 'modelDiscoveryCall', label: 'Fetch Anthropic model catalog', detail: 'anthropic' });
     }
-    const response = await fetch('https://api.anthropic.com/v1/models', {
-      headers: {
-        'x-api-key': apiKey,
-        'anthropic-version': '2023-06-01',
-        'anthropic-dangerous-direct-browser-access': 'true',
+    const response = await fetchWithTimeout(
+      'https://api.anthropic.com/v1/models',
+      {
+        ...requestOptions,
+        headers: {
+          'x-api-key': apiKey,
+          'anthropic-version': '2023-06-01',
+          'anthropic-dangerous-direct-browser-access': 'true',
+        },
       },
-    });
+      timeoutMs,
+    );
     if (!response.ok) {
       const err = await response.json().catch(() => ({}));
       if (err.error?.type === 'authentication_error') throw new Error('Invalid API key');
@@ -703,7 +720,7 @@ export async function fetchModelsFromProvider(provider, apiKey, options = {}) {
       ).sort(sortModelOptions);
     }
 
-    const models = await fetchGeminiApiModels(apiKey, onApiCallEvent);
+    const models = await fetchGeminiApiModels(apiKey, onApiCallEvent, { signal: options?.signal, timeoutMs });
     if (models.length === 0) throw new Error('No Gemini models available');
     return models;
   }
@@ -712,9 +729,14 @@ export async function fetchModelsFromProvider(provider, apiKey, options = {}) {
     if (typeof onApiCallEvent === 'function') {
       onApiCallEvent({ type: 'modelDiscoveryCall', label: 'Fetch DeepSeek model catalog', detail: 'deepseek' });
     }
-    const response = await fetch('https://api.deepseek.com/v1/models', {
-      headers: { Authorization: `Bearer ${apiKey}` },
-    });
+    const response = await fetchWithTimeout(
+      'https://api.deepseek.com/v1/models',
+      {
+        ...requestOptions,
+        headers: { Authorization: `Bearer ${apiKey}` },
+      },
+      timeoutMs,
+    );
     if (!response.ok) throw new Error('Invalid API key');
     const data = await response.json();
     const models = dedupeModelsById(

@@ -101,6 +101,24 @@ describe('checkCredits', () => {
     ).rejects.toThrow('Model not found');
   });
 
+  it('does not let a stalled credit check keep validation spinning', async () => {
+    vi.useFakeTimers();
+    vi.spyOn(globalThis, 'fetch').mockImplementation((_url, options = {}) => {
+      return new Promise((_resolve, reject) => {
+        options.signal?.addEventListener(
+          'abort',
+          () => reject(options.signal.reason || Object.assign(new Error('Aborted'), { name: 'AbortError' })),
+          { once: true },
+        );
+      });
+    });
+
+    const result = checkCredits('openai', 'test-key', 'gpt-5.4-mini', undefined, { timeoutMs: 50 });
+    await vi.advanceTimersByTimeAsync(50);
+
+    await expect(result).resolves.toBe(true);
+  });
+
   it('ignores stale landing model validation after the config unmounts for project resume', async () => {
     vi.useFakeTimers();
 
