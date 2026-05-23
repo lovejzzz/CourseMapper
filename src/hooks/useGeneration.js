@@ -13,6 +13,7 @@ import useStreamReader from './useStreamReader';
 
 import applyPatches from '../lib/applyPatches';
 import { filterExaminePatches } from '../lib/examinePatchFilter';
+import { failureEventFields } from '../lib/failureClassification';
 import { log, warn, error as logError } from '../lib/logger';
 import { getModeSystemAddition, getModeCourseMapNote } from '../lib/pedagogicalModes';
 import { validateCourseMap } from '../lib/validateCourseMap';
@@ -76,6 +77,16 @@ function getCourseMapExamineTriggers({ courseMap, columns, validationWarnings = 
   }
 
   return [...new Set(triggers)];
+}
+
+function recordClassifiedFailedCall(recordApiCallEvent, err, event = {}, context = {}) {
+  if (err?.apiCallBudgetRecorded) return;
+  recordApiCallEvent({
+    type: 'failedCall',
+    ...event,
+    detail: event.detail || err?.message || '',
+    ...failureEventFields(err, context),
+  });
 }
 
 /**
@@ -358,11 +369,14 @@ export default function useGeneration({
       if (examErr.name === 'AbortError') {
         setOldCourseMap(null);
       } else {
-        recordApiCallEvent({
-          type: 'failedCall',
-          label: reason === 'manual' ? 'Manual course-map review failed' : 'Conditional course-map review failed',
-          detail: examErr.message || '',
-        });
+        recordClassifiedFailedCall(
+          recordApiCallEvent,
+          examErr,
+          {
+            label: reason === 'manual' ? 'Manual course-map review failed' : 'Conditional course-map review failed',
+          },
+          { provider: examProvider, modelId: examModelId },
+        );
         console.warn('Examine step failed:', examErr.message);
         setOldCourseMap(null);
         setExamChanges(['__EXAM_FAILED__:' + (examErr.message || 'Unknown error')]);
@@ -641,11 +655,12 @@ Generate lessons ${actual + 1} through ${expectedCount} now as JSON:`;
         }
       } catch (contErr) {
         if (contErr.name === 'AbortError') throw contErr;
-        recordApiCallEvent({
-          type: 'failedCall',
-          label: 'Course-map continuation failed',
-          detail: contErr.message || '',
-        });
+        recordClassifiedFailedCall(
+          recordApiCallEvent,
+          contErr,
+          { label: 'Course-map continuation failed' },
+          { provider, modelId: model.id },
+        );
         addLog(model.name, `Failed: ${contErr.message}`, 'error');
         break;
       }
@@ -1035,11 +1050,12 @@ Generate lessons ${actual + 1} through ${expectedCount} now as JSON:`;
             setStatus('stopped');
             return null;
           }
-          recordApiCallEvent({
-            type: 'failedCall',
-            label: 'Course-map generation failed',
-            detail: err.message || '',
-          });
+          recordClassifiedFailedCall(
+            recordApiCallEvent,
+            err,
+            { label: 'Course-map generation failed' },
+            { provider, modelId },
+          );
           setError('AI generation failed: ' + err.message);
           setStatus('error');
           setIsStreaming(false);
@@ -1272,11 +1288,12 @@ Generate lessons ${actual + 1} through ${expectedCount} now as JSON:`;
         return null;
       }
       // Resume failed — go back to stopped state so user can retry
-      recordApiCallEvent({
-        type: 'failedCall',
-        label: 'Course-map resume failed',
-        detail: err.message || '',
-      });
+      recordClassifiedFailedCall(
+        recordApiCallEvent,
+        err,
+        { label: 'Course-map resume failed' },
+        { provider: resumeProvider, modelId: resumeModel },
+      );
       setError('Resume failed: ' + err.message);
       setStatus('stopped');
       setIsStreaming(false);

@@ -2,6 +2,7 @@ import { getArrayKey } from './syncDependencies';
 import { findPublishabilityPlaceholders } from './publishabilityPlaceholders';
 import { normalizeReadinessIssue, normalizeReadinessIssues } from './readinessIssueSchema';
 import {
+  normalizeAssignmentAssessmentAlignment,
   normalizeAssignmentGradeWeights,
   normalizeAssignmentLessonAlignment,
   normalizeCourseFaqCategories,
@@ -15,7 +16,9 @@ import {
   normalizeQuizBankPublishability,
   normalizeQuizBankQuestions,
   normalizeQuizBankRationales,
+  normalizeQuizAssessmentAlignment,
   normalizeRubricCoverage,
+  normalizeRubricAssessmentAlignment,
   normalizeRubricSupport,
   normalizeSlideDeckAccessibility,
   normalizeSlideDeckSpeakerNotes,
@@ -294,7 +297,7 @@ export function repairCourseMapReadiness({ courseMap, columns = [], lessonFilter
   };
 }
 
-function repairFeatureData(featureId, data, { courseMap, config } = {}) {
+function repairFeatureData(featureId, data, { courseMap, config, deliverables } = {}) {
   let current = data;
   const summaries = [];
 
@@ -335,11 +338,26 @@ function repairFeatureData(featureId, data, { courseMap, config } = {}) {
         normalizeAssignmentLessonAlignment,
         courseMap,
       );
+      current = applyRepair(
+        current,
+        summaries,
+        'aligned assignments to assessment objectives',
+        normalizeAssignmentAssessmentAlignment,
+        courseMap,
+      );
       current = applyRepair(current, summaries, 'normalized assignment grade weights', normalizeAssignmentGradeWeights);
       break;
     case 'rubrics':
       current = applyRepair(current, summaries, 'filled assessed-lesson rubrics', normalizeRubricCoverage, courseMap);
       current = applyRepair(current, summaries, 'normalized rubric support', normalizeRubricSupport);
+      current = applyRepair(
+        current,
+        summaries,
+        'aligned rubrics to assessments',
+        normalizeRubricAssessmentAlignment,
+        courseMap,
+        deliverables?.assignments?.data,
+      );
       break;
     case 'discussions':
       current = applyRepair(current, summaries, 'normalized discussion guidance', normalizeDiscussionPromptFields);
@@ -350,6 +368,13 @@ function repairFeatureData(featureId, data, { courseMap, config } = {}) {
       current = applyRepair(current, summaries, 'filled quiz answer guidance', normalizeQuizBankRationales);
       current = applyRepair(current, summaries, 'fixed quiz point totals', normalizeQuizBankPointTotals);
       current = applyRepair(current, summaries, 'cleaned quiz publishability', normalizeQuizBankPublishability);
+      current = applyRepair(
+        current,
+        summaries,
+        'aligned quiz objectives to lessons',
+        normalizeQuizAssessmentAlignment,
+        courseMap,
+      );
       current = applyRepair(current, summaries, 'rebuilt quiz index', normalizeQuizBankIndex);
       break;
     case 'studyGuides':
@@ -393,6 +418,7 @@ export function repairWorkspaceReadiness({
     const { data, summaries } = repairFeatureData(featureId, entry.data, {
       courseMap,
       config: deliverableConfig?.[featureId] || {},
+      deliverables: nextDeliverables,
     });
     if (summaries.length === 0 || stableJson(data) === stableJson(entry.data)) continue;
 

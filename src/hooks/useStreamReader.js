@@ -1,6 +1,7 @@
 import { useRef, useCallback } from 'react';
 import { supportsCustomTemperature } from '../lib/agentProviders';
 import { DEFAULT_PROVIDER_TIMEOUT_MS, fetchWithTimeout } from '../lib/fetchWithTimeout';
+import { failureEventFields, toClassifiedError } from '../lib/failureClassification';
 import { GOOGLE_ENDPOINT_FAMILIES, isVertexKey } from '../lib/googleProvider';
 import { buildProviderTextRequest } from '../lib/modelRequestBuilders';
 
@@ -226,7 +227,24 @@ export default function useStreamReader() {
       const data = await response.json().catch(() => ({}));
       if (!response.ok) {
         const msg = data.error?.message || data.error || `API error: ${response.status}`;
-        throw new Error(`${msg} [${response.status}]`);
+        const error = toClassifiedError(
+          Object.assign(new Error(`${msg} [${response.status}]`), { status: response.status }),
+          {
+            provider,
+            modelId,
+            task,
+            status: response.status,
+          },
+        );
+        recordApiCallEvent({
+          type: 'failedCall',
+          label: 'Google non-streaming fallback failed',
+          detail: error.message,
+          featureId: task,
+          ...failureEventFields(error, { provider, modelId }),
+        });
+        error.apiCallBudgetRecorded = true;
+        throw error;
       }
       const text = extractGoogleText(data);
       if (!text) throw new Error('Google fallback returned an empty response.');
@@ -285,7 +303,24 @@ export default function useStreamReader() {
             continue;
           }
 
-          throw new Error(`${msg} [${response.status}]`);
+          const error = toClassifiedError(
+            Object.assign(new Error(`${msg} [${response.status}]`), {
+              status: response.status,
+              provider,
+              modelId,
+              responseBody: errData,
+            }),
+            { provider, modelId, task, status: response.status, url },
+          );
+          recordApiCallEvent({
+            type: 'failedCall',
+            label: 'Provider API error',
+            detail: error.message,
+            featureId: task,
+            ...failureEventFields(error, { provider, modelId }),
+          });
+          error.apiCallBudgetRecorded = true;
+          throw error;
         }
 
         const reader = response.body.getReader();
@@ -329,8 +364,9 @@ export default function useStreamReader() {
         return { fullText };
       } catch (err) {
         if (err.name === 'AbortError') throw err;
+        const classifiedError = toClassifiedError(err, { provider, modelId, task });
 
-        if (attempt < maxRetries && isRetryableError(err)) {
+        if (attempt < maxRetries && isRetryableError(classifiedError)) {
           attempt++;
           fullText = existingText;
           // Rebuild request with current skipTemp state so temperature fix persists across retries
@@ -353,7 +389,19 @@ export default function useStreamReader() {
           continue;
         }
 
-        if (provider === 'google' && isRetryableError(err)) {
+        if (attempt < maxRetries && !isRetryableError(classifiedError)) {
+          recordApiCallEvent({
+            type: 'retrySuppressed',
+            label: 'Retry suppressed',
+            detail: classifiedError.userMessage || classifiedError.message,
+            featureId: task,
+            attempt: attempt + 1,
+            maxRetries,
+            ...failureEventFields(classifiedError, { provider, modelId }),
+          });
+        }
+
+        if (provider === 'google' && isRetryableError(classifiedError)) {
           try {
             return await runGoogleNonStreamingFallback();
           } catch (fallbackError) {
@@ -361,7 +409,7 @@ export default function useStreamReader() {
           }
         }
 
-        throw err;
+        throw classifiedError;
       }
     }
 
@@ -764,6 +812,10 @@ export async function fetchModelsFromProvider(provider, apiKey, options = {}) {
 }
 
 function isRetryableError(err) {
+  if (typeof err?.retryable === 'boolean') return err.retryable;
+  if (err?.classification && typeof err.classification.retryable === 'boolean') {
+    return err.classification.retryable;
+  }
   const msg = (err.message || '').toLowerCase();
   return (
     msg.includes('network') ||

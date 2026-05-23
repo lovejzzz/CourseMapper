@@ -75,6 +75,7 @@ import {
 import { evaluateClassroomReadiness } from './lib/classroomReadiness';
 import { runDeterministicPackageFinalizer } from './lib/packageFinalizer';
 import { applyApiCallBudgetEvent, createApiCallBudget, getApiCallBudgetTotal } from './lib/apiCallBudget';
+import { buildApiCostPlan, evaluateApiCostControl } from './lib/apiCostControl';
 import { getChunkCount } from './lib/parallelGenerator';
 
 const STORAGE_KEY = 'coursemapper-project';
@@ -138,7 +139,14 @@ function traceApiCallBudget(event = {}, budget = {}) {
     detail: event.detail || '',
     featureId: event.featureId || '',
     count: Number.isFinite(event.count) ? event.count : 1,
+    failureClass: event.failureClass || '',
+    statusCode: event.statusCode || '',
+    retryable: event.retryable,
+    userMessage: event.userMessage || '',
+    provider: event.provider || '',
+    modelId: event.modelId || '',
     totalProviderCalls: getApiCallBudgetTotal(budget),
+    costControl: budget.costControl || null,
     counters,
   });
 }
@@ -504,9 +512,11 @@ export default function AppFlow({ startupAction = null, onStartupHandled, onRetu
     }
   });
   const [apiCallBudget, setApiCallBudget] = useState(() => createApiCallBudget());
+  const apiCallBudgetRef = useRef(apiCallBudget);
   const recordApiCallEvent = useCallback((event) => {
     setApiCallBudget((current) => {
       const next = applyApiCallBudgetEvent(current, event);
+      apiCallBudgetRef.current = next;
       traceApiCallBudget(event, next);
       return next;
     });
@@ -844,6 +854,22 @@ export default function AppFlow({ startupAction = null, onStartupHandled, onRetu
           canFinishPackageWithAgent &&
           (typeof regenerateLessonRef.current === 'function' || typeof regenerateFeatureRef.current === 'function');
 
+        const finalizerCostPlan = buildApiCostPlan({
+          source: `finalizer:${source}`,
+          featureIds,
+          lessonCount: Array.isArray(finalizerCourseMap?.lessons) ? finalizerCourseMap.lessons.length : 0,
+          lessonFilter,
+          generationPlan,
+          includeCourseMap: false,
+          finalizerRetryCallBudget: canRetryWeakSpots ? maxRetryCallBudget : 0,
+        });
+        recordApiCallEvent({
+          type: 'costPlan',
+          label: 'Package finalizer call plan',
+          detail: `${finalizerCostPlan.plannedCalls} planned provider calls`,
+          costPlan: finalizerCostPlan,
+        });
+
         const retryPassLimit = Math.max(0, Number(maxRetryPasses) || 0);
         let remainingRetryCallBudget = Math.max(0, Number(maxRetryCallBudget) || 0);
         let result = runFinalizer(canRetryWeakSpots ? maxRetryActions : 0);
@@ -876,6 +902,30 @@ export default function AppFlow({ startupAction = null, onStartupHandled, onRetu
           retryPassCount < retryPassLimit &&
           remainingRetryCallBudget > 0
         ) {
+          const costControl =
+            apiCallBudgetRef.current?.costControl || evaluateApiCostControl(apiCallBudgetRef.current || {});
+          if (costControl.shouldStopRetries) {
+            retryBudgetExhausted = true;
+            tracePackageFinish(
+              finishRunId,
+              'retry_stopped_cost_control',
+              {
+                status: costControl.status,
+                reason: costControl.reason,
+                totalProviderCalls: costControl.totalProviderCalls,
+                hardCallLimit: costControl.hardCallLimit,
+                failedCalls: costControl.failedCalls,
+              },
+              'warn',
+            );
+            recordApiCallEvent({
+              type: 'costControlStop',
+              label: 'Retry stopped by cost control',
+              detail: costControl.reason,
+            });
+            break;
+          }
+
           const retryActionsNotYetAttempted = result.retryActions.filter(
             (action) => !attemptedRetryKeys.has(getRetryActionKey(action)),
           );
@@ -980,6 +1030,7 @@ export default function AppFlow({ startupAction = null, onStartupHandled, onRetu
                 result.courseMap || courseMapRef.current,
                 [action.featureId],
                 lessonFilter,
+                { mode: 'finalizerRetry' },
               );
               tracePackageFinish(finishRunId, 'retry_action_done', {
                 key: retryActionKey,
@@ -1203,6 +1254,7 @@ export default function AppFlow({ startupAction = null, onStartupHandled, onRetu
       selectedFeatures,
       slideTheme,
       generationPlan,
+      recordApiCallEvent,
     ],
   );
   packageFinalizerRef.current = handleDeterministicPackageFinalization;

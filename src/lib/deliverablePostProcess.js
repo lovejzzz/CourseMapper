@@ -1658,6 +1658,519 @@ export function normalizeRubricSupport(data) {
   };
 }
 
+function listFromValue(value) {
+  if (Array.isArray(value))
+    return value
+      .filter(Boolean)
+      .map((item) => String(item).trim())
+      .filter(Boolean);
+  return String(value || '')
+    .split(/\n|;/)
+    .map((item) => item.replace(/^\s*(?:[-*]|\d+[.)])\s*/, '').trim())
+    .filter(Boolean);
+}
+
+function getLessonObjectiveLines(lesson) {
+  const lines = (lesson?.sections || []).flatMap((section) => listFromValue(section?.learningObjectives));
+  const cleaned = lines
+    .map((line) =>
+      line
+        .replace(/^students will be able to:\s*/i, '')
+        .replace(/^\s*\d+[a-z]?[.)]\s*/i, '')
+        .trim(),
+    )
+    .filter((line) => line && !/^students will be able to:?$/i.test(line));
+  return cleaned.length > 0 ? cleaned : [firstObjective(lesson)];
+}
+
+function fieldKey(item, verboseKey, compactKey, fallbackKey = verboseKey) {
+  if (item?.[verboseKey] !== undefined) return verboseKey;
+  if (item?.[compactKey] !== undefined) return compactKey;
+  return fallbackKey;
+}
+
+function normalizedComparable(value) {
+  return stripObjectiveCodes(value)
+    .toLowerCase()
+    .replace(/[^a-z0-9]+/g, ' ')
+    .replace(/\s+/g, ' ')
+    .trim();
+}
+
+function titleLooksGeneric(value) {
+  const text = normalizedComparable(value);
+  if (!text) return true;
+  return /^(analytic )?(rubric|assessment rubric|lesson assessment rubric|lesson rubric|assignment rubric|quiz rubric|assignment brief|assessment brief)$/.test(
+    text,
+  );
+}
+
+function getAssignmentTitle(assignment) {
+  return (
+    assignment?.title ||
+    assignment?.t ||
+    assignment?.taskTitle ||
+    assignment?.assessmentTitle ||
+    assignment?.assignment ||
+    ''
+  );
+}
+
+function getAssignmentAssessmentType(assignment) {
+  return assignment?.assignmentType || assignment?.at || assignment?.type || assignment?.assessmentType || '';
+}
+
+function getAssignmentObjectives(assignment) {
+  const objectives = assignment?.objectives || assignment?.ob || assignment?.learningObjectives || assignment?.lo;
+  return Array.isArray(objectives) ? objectives.filter(Boolean) : [];
+}
+
+function getAssignmentPercent(assignment) {
+  return (
+    assignment?.percentOfGrade ||
+    assignment?.pg ||
+    assignment?.weight ||
+    assignment?.wt ||
+    assignment?.percent ||
+    assignment?.percentage ||
+    ''
+  );
+}
+
+function getAssignmentPoints(assignment) {
+  return getNumericValue(assignment?.totalPoints ?? assignment?.tp ?? assignment?.points ?? assignment?.pts);
+}
+
+function getAssignmentsByLesson(assignmentsData, courseMap) {
+  const assignmentKey =
+    getArrayKey('assignments', assignmentsData) || (assignmentsData?.assignments ? 'assignments' : null);
+  const assignments = assignmentKey ? assignmentsData?.[assignmentKey] : null;
+  const byLesson = new Map();
+  if (!Array.isArray(assignments) || assignments.length === 0) return byLesson;
+
+  assignments.forEach((assignment, originalIndex) => {
+    const lessonIndex = inferAssignmentLessonIndex(assignment, courseMap);
+    if (lessonIndex === null) return;
+    const existing = byLesson.get(lessonIndex) || [];
+    existing.push({ assignment, originalIndex });
+    byLesson.set(lessonIndex, existing);
+  });
+  return byLesson;
+}
+
+function buildAssessmentAnchors(courseMap, assignmentsData = null) {
+  const lessons = Array.isArray(courseMap?.lessons) ? courseMap.lessons : [];
+  const assignmentsByLesson = getAssignmentsByLesson(assignmentsData, courseMap);
+
+  return lessons.map((lesson, lessonIndex) => {
+    const assignmentEntry = assignmentsByLesson.get(lessonIndex)?.[0]?.assignment || null;
+    const assignmentTitle = assignmentEntry ? getAssignmentTitle(assignmentEntry) : '';
+    const assessmentTitle = assignmentTitle || firstAssessmentLine(lesson);
+    const objectives = [...getAssignmentObjectives(assignmentEntry), ...getLessonObjectiveLines(lesson)]
+      .map((objective) => String(objective || '').trim())
+      .filter(Boolean);
+    const uniqueObjectives = [...new Set(objectives)];
+    const lessonTitle = getLessonTitle(courseMap, lessonIndex);
+
+    return {
+      lessonIndex,
+      lessonNumber: lessonIndex + 1,
+      lessonTitle,
+      assessmentTitle,
+      assessmentType: getAssignmentAssessmentType(assignmentEntry) || assessmentTitle.split(':')[0] || 'Assessment',
+      totalPoints: getAssignmentPoints(assignmentEntry) || 100,
+      gradeWeight: getAssignmentPercent(assignmentEntry),
+      objectives: uniqueObjectives.length > 0 ? uniqueObjectives : [firstObjective(lesson)],
+      haystack: [lessonTitle, assessmentTitle, getLessonAssessmentText(lesson), ...uniqueObjectives].join(' '),
+    };
+  });
+}
+
+function getRubricHaystack(rubric) {
+  return [
+    rubric?.lessonTitle,
+    rubric?.lt,
+    rubric?.title,
+    rubric?.t,
+    rubric?.assessmentType,
+    rubric?.at,
+    rubric?.taskDirections,
+    rubric?.td,
+    rubric?.gradePolicyConnection,
+    rubric?.gp,
+    ...(Array.isArray(rubric?.tags) ? rubric.tags : []),
+    ...(Array.isArray(rubric?.tg) ? rubric.tg : []),
+  ].join(' ');
+}
+
+function scoreRubricAnchor(rubric, anchor) {
+  const haystack = normalizedComparable(getRubricHaystack(rubric));
+  const explicit = getLessonNumberFromText(haystack);
+  if (explicit === anchor.lessonNumber) return 1000;
+  const anchorLesson = normalizedComparable(anchor.lessonTitle);
+  const anchorAssessment = normalizedComparable(anchor.assessmentTitle);
+  let score = 0;
+  if (anchorLesson && haystack.includes(anchorLesson)) score += 80;
+  if (anchorAssessment && haystack.includes(anchorAssessment)) score += 70;
+  const rubricTokens = tokenize(haystack);
+  tokenize(anchor.haystack).forEach((token) => {
+    if (rubricTokens.has(token)) score += 1;
+  });
+  return score;
+}
+
+function inferRubricAnchorIndex(rubric, anchors, rubricIndex, rubricCount) {
+  const explicit = getLessonNumberFromText(getRubricHaystack(rubric));
+  if (explicit && explicit >= 1 && explicit <= anchors.length) return explicit - 1;
+
+  let best = { index: null, score: 0 };
+  anchors.forEach((anchor) => {
+    const score = scoreRubricAnchor(rubric, anchor);
+    if (score > best.score) best = { index: anchor.lessonIndex, score };
+  });
+  if (best.score > 0) return best.index;
+  if (rubricCount === anchors.length && anchors[rubricIndex]) return rubricIndex;
+  return null;
+}
+
+function valueIsMissingOrShort(value, minWords = 8) {
+  const text = String(value || '').trim();
+  return text.split(/\s+/).filter(Boolean).length < minWords;
+}
+
+function sentenceFragment(value) {
+  return String(value || '')
+    .replace(/[.!?]+$/g, '')
+    .trim();
+}
+
+function objectiveNeedsAlignment(value) {
+  const stripped = stripObjectiveCodes(value);
+  return !stripped || stripped.split(/\s+/).filter(Boolean).length < 5;
+}
+
+function patchRubricToAnchor(rubric, anchor) {
+  let next = rubric;
+  let patchedLessonLinks = 0;
+  let patchedTitles = 0;
+  let patchedObjectiveLinks = 0;
+  let patchedWeights = 0;
+  let patchedSupport = 0;
+
+  const lessonTitleKey = fieldKey(next, 'lessonTitle', 'lt', 'lessonTitle');
+  if (next[lessonTitleKey] !== anchor.lessonTitle) {
+    next = { ...next, [lessonTitleKey]: anchor.lessonTitle };
+    patchedLessonLinks++;
+  }
+
+  const titleKey = fieldKey(next, 'title', 't', 'title');
+  const currentTitle = next[titleKey];
+  if (titleLooksGeneric(currentTitle)) {
+    next = { ...next, [titleKey]: `${anchor.assessmentTitle} Rubric` };
+    patchedTitles++;
+  }
+
+  const typeKey = fieldKey(next, 'assessmentType', 'at', 'assessmentType');
+  if (valueIsMissingOrShort(next[typeKey], 2)) {
+    next = { ...next, [typeKey]: anchor.assessmentType || 'Analytic Rubric' };
+    patchedTitles++;
+  }
+
+  const pointsKey = fieldKey(next, 'totalPoints', 'tp', 'totalPoints');
+  const currentPoints = getNumericValue(next[pointsKey]);
+  if (!Number.isFinite(currentPoints) || currentPoints <= 0) {
+    next = { ...next, [pointsKey]: anchor.totalPoints };
+    patchedWeights++;
+  }
+
+  const policyKey = fieldKey(next, 'gradePolicyConnection', 'gp', 'gradePolicyConnection');
+  if (valueIsMissingOrShort(next[policyKey], anchor.gradeWeight ? 12 : 8)) {
+    const weightText = anchor.gradeWeight ? ` It contributes ${anchor.gradeWeight} to the course grade.` : '';
+    next = {
+      ...next,
+      [policyKey]: `Use this rubric to score ${anchor.assessmentTitle} for ${anchor.lessonTitle}.${weightText} Apply the course syllabus if the local grade policy differs.`,
+    };
+    patchedWeights++;
+  }
+
+  const directionsKey = fieldKey(next, 'taskDirections', 'td', 'taskDirections');
+  if (valueIsMissingOrShort(next[directionsKey], 10)) {
+    next = {
+      ...next,
+      [directionsKey]: `Students complete ${anchor.assessmentTitle} for ${anchor.lessonTitle} and submit work that directly demonstrates the listed lesson objectives.`,
+    };
+    patchedSupport++;
+  }
+
+  const criteriaKey = Array.isArray(next?.criteria) ? 'criteria' : Array.isArray(next?.cr) ? 'cr' : null;
+  if (criteriaKey) {
+    let criteriaChanged = false;
+    const criteria = next[criteriaKey].map((criterion, index) => {
+      const objectiveKey = fieldKey(criterion, 'objectiveAligned', 'oa', 'objectiveAligned');
+      if (!objectiveNeedsAlignment(criterion?.[objectiveKey])) return criterion;
+      patchedObjectiveLinks++;
+      criteriaChanged = true;
+      return { ...criterion, [objectiveKey]: anchor.objectives[index % anchor.objectives.length] };
+    });
+    if (criteriaChanged) next = { ...next, [criteriaKey]: criteria };
+  }
+
+  const tagKey = Array.isArray(next?.tags) ? 'tags' : Array.isArray(next?.tg) ? 'tg' : null;
+  if (tagKey) {
+    const tags = [...new Set([...next[tagKey], anchor.lessonTitle, anchor.assessmentTitle, 'rubric'])].filter(Boolean);
+    if (tags.length !== next[tagKey].length) {
+      next = { ...next, [tagKey]: tags };
+      patchedSupport++;
+    }
+  }
+
+  return {
+    rubric: next,
+    changed: next !== rubric,
+    patchedLessonLinks,
+    patchedTitles,
+    patchedObjectiveLinks,
+    patchedWeights,
+    patchedSupport,
+  };
+}
+
+export function normalizeRubricAssessmentAlignment(data, courseMap, assignmentsData = null) {
+  const arrayKey = getArrayKey('rubrics', data) || (data?.rubrics ? 'rubrics' : null);
+  const rubrics = arrayKey ? data?.[arrayKey] : null;
+  const anchors = buildAssessmentAnchors(courseMap, assignmentsData).filter((anchor) =>
+    lessonHasRubricWorthyAssessment(courseMap?.lessons?.[anchor.lessonIndex]),
+  );
+
+  if (!Array.isArray(rubrics) || rubrics.length === 0 || anchors.length === 0) {
+    return {
+      data,
+      arrayKey,
+      patchedLessonLinks: 0,
+      patchedTitles: 0,
+      patchedObjectiveLinks: 0,
+      patchedWeights: 0,
+      patchedSupport: 0,
+      reorderedRubrics: false,
+    };
+  }
+
+  const rows = rubrics.map((rubric, originalIndex) => {
+    const anchorIndex = inferRubricAnchorIndex(rubric, anchors, originalIndex, rubrics.length);
+    const anchor = anchorIndex === null ? null : anchors.find((item) => item.lessonIndex === anchorIndex);
+    if (!anchor) return { rubric, originalIndex, anchorIndex: null, patch: null };
+    const patch = patchRubricToAnchor(rubric, anchor);
+    return { rubric: patch.rubric, originalIndex, anchorIndex, patch };
+  });
+
+  const sorted = [...rows].sort((a, b) => {
+    const aKey = a.anchorIndex ?? 9999;
+    const bKey = b.anchorIndex ?? 9999;
+    if (aKey !== bKey) return aKey - bKey;
+    return a.originalIndex - b.originalIndex;
+  });
+
+  const counts = rows.reduce(
+    (acc, row) => {
+      if (!row.patch) return acc;
+      acc.patchedLessonLinks += row.patch.patchedLessonLinks;
+      acc.patchedTitles += row.patch.patchedTitles;
+      acc.patchedObjectiveLinks += row.patch.patchedObjectiveLinks;
+      acc.patchedWeights += row.patch.patchedWeights;
+      acc.patchedSupport += row.patch.patchedSupport;
+      return acc;
+    },
+    {
+      patchedLessonLinks: 0,
+      patchedTitles: 0,
+      patchedObjectiveLinks: 0,
+      patchedWeights: 0,
+      patchedSupport: 0,
+    },
+  );
+  const reorderedRubrics = sorted.some((entry, index) => entry.originalIndex !== index);
+  const changed =
+    reorderedRubrics ||
+    Object.values(counts).some((count) => count > 0) ||
+    sorted.some((entry) => entry.rubric !== rubrics[entry.originalIndex]);
+
+  return {
+    data: changed ? { ...data, [arrayKey]: sorted.map((entry) => entry.rubric) } : data,
+    arrayKey,
+    ...counts,
+    reorderedRubrics,
+  };
+}
+
+function patchAssignmentToAnchor(assignment, anchor) {
+  let next = assignment;
+  let patchedTitles = 0;
+  let patchedObjectives = 0;
+  let patchedSupport = 0;
+
+  const titleKey = fieldKey(next, 'title', 't', 'title');
+  if (titleLooksGeneric(next[titleKey])) {
+    next = { ...next, [titleKey]: anchor.assessmentTitle };
+    patchedTitles++;
+  }
+
+  const objectivesKey = Array.isArray(next?.objectives) ? 'objectives' : Array.isArray(next?.ob) ? 'ob' : 'objectives';
+  const objectives = Array.isArray(next[objectivesKey]) ? next[objectivesKey] : [];
+  if (objectives.length === 0 || objectives.every(objectiveNeedsAlignment)) {
+    next = { ...next, [objectivesKey]: anchor.objectives.slice(0, 3) };
+    patchedObjectives++;
+  }
+
+  const overviewKey = fieldKey(next, 'overview', 'ov', 'overview');
+  if (valueIsMissingOrShort(next[overviewKey], 12)) {
+    const assessmentTitle = sentenceFragment(anchor.assessmentTitle);
+    const primaryObjective = sentenceFragment(anchor.objectives[0]);
+    next = {
+      ...next,
+      [overviewKey]: `For ${anchor.lessonTitle}, students complete ${assessmentTitle} and explain how ${primaryObjective} shapes their evidence, decisions, or final recommendation.`,
+    };
+    patchedSupport++;
+  }
+
+  const criteriaKey = fieldKey(next, 'gradingCriteria', 'gc', 'gradingCriteria');
+  if (gradingCriteriaNeedsSupport(next[criteriaKey])) {
+    const assessmentTitle = sentenceFragment(anchor.assessmentTitle);
+    const primaryObjective = sentenceFragment(anchor.objectives[0]);
+    next = {
+      ...next,
+      [criteriaKey]: `Score ${assessmentTitle} on accurate use of ${primaryObjective}, lesson-specific evidence from ${anchor.lessonTitle}, analytical reasoning, and clear communication.`,
+    };
+    patchedSupport++;
+  }
+
+  return { assignment: next, changed: next !== assignment, patchedTitles, patchedObjectives, patchedSupport };
+}
+
+function gradingCriteriaNeedsSupport(value) {
+  const text = String(value || '').trim();
+  if (!text) return true;
+  if (
+    /\b(evidence|recommendation|criteria|criterion|score|scored|rubric|quality|analysis|reasoning|communication|specific|actionable|accuracy|complete|completion|alignment|feedback|revision)\b/i.test(
+      text,
+    )
+  ) {
+    return false;
+  }
+  return valueIsMissingOrShort(text, 12);
+}
+
+export function normalizeAssignmentAssessmentAlignment(data, courseMap) {
+  const arrayKey = getArrayKey('assignments', data) || (data?.assignments ? 'assignments' : null);
+  const assignments = arrayKey ? data?.[arrayKey] : null;
+  const anchors = buildAssessmentAnchors(courseMap);
+
+  if (!Array.isArray(assignments) || assignments.length === 0 || anchors.length === 0) {
+    return { data, arrayKey, patchedTitles: 0, patchedObjectives: 0, patchedSupport: 0 };
+  }
+
+  const counts = { patchedTitles: 0, patchedObjectives: 0, patchedSupport: 0 };
+  let changed = false;
+  const nextAssignments = assignments.map((assignment) => {
+    const lessonIndex = inferAssignmentLessonIndex(assignment, courseMap);
+    const anchor = lessonIndex === null ? null : anchors[lessonIndex];
+    if (!anchor) return assignment;
+    const patch = patchAssignmentToAnchor(assignment, anchor);
+    counts.patchedTitles += patch.patchedTitles;
+    counts.patchedObjectives += patch.patchedObjectives;
+    counts.patchedSupport += patch.patchedSupport;
+    if (patch.changed) changed = true;
+    return patch.assignment;
+  });
+
+  return {
+    data: changed ? { ...data, [arrayKey]: nextAssignments } : data,
+    arrayKey,
+    ...counts,
+  };
+}
+
+function inferQuizLessonIndex(quiz, courseMap, quizIndex, quizCount) {
+  const lessons = Array.isArray(courseMap?.lessons) ? courseMap.lessons : [];
+  const haystack = [
+    quiz?.lessonTitle,
+    quiz?.lt,
+    quiz?.title,
+    quiz?.t,
+    quiz?.topic,
+    quiz?.tp,
+    ...(Array.isArray(quiz?.tags) ? quiz.tags : []),
+    ...(Array.isArray(quiz?.tg) ? quiz.tg : []),
+  ].join(' ');
+  const explicit = getLessonNumberFromText(haystack);
+  if (explicit && explicit >= 1 && explicit <= lessons.length) return explicit - 1;
+  const normalized = normalizedComparable(haystack);
+  let best = { index: null, score: 0 };
+  lessons.forEach((lesson, index) => {
+    const title = normalizedComparable(getLessonTitle(courseMap, index));
+    let score = title && normalized.includes(title) ? 80 : 0;
+    const quizTokens = tokenize(normalized);
+    tokenize(getCourseLessonHaystack(lesson)).forEach((token) => {
+      if (quizTokens.has(token)) score += 1;
+    });
+    if (score > best.score) best = { index, score };
+  });
+  if (best.score > 0) return best.index;
+  if (quizCount === lessons.length && lessons[quizIndex]) return quizIndex;
+  return null;
+}
+
+export function normalizeQuizAssessmentAlignment(data, courseMap) {
+  const arrayKey = getArrayKey('quizBank', data) || (data?.quizzes ? 'quizzes' : null);
+  const quizzes = arrayKey ? data?.[arrayKey] : null;
+  const anchors = buildAssessmentAnchors(courseMap);
+
+  if (!Array.isArray(quizzes) || quizzes.length === 0 || anchors.length === 0) {
+    return { data, arrayKey, patchedLessonTitles: 0, patchedObjectiveAlignment: 0 };
+  }
+
+  let patchedLessonTitles = 0;
+  let patchedObjectiveAlignment = 0;
+  let changed = false;
+  const nextQuizzes = quizzes.map((quiz, quizIndex) => {
+    const lessonIndex = inferQuizLessonIndex(quiz, courseMap, quizIndex, quizzes.length);
+    const anchor = lessonIndex === null ? null : anchors[lessonIndex];
+    if (!anchor) return quiz;
+    let nextQuiz = quiz;
+
+    const lessonTitleKey = fieldKey(nextQuiz, 'lessonTitle', 'lt', 'lessonTitle');
+    if (nextQuiz[lessonTitleKey] !== anchor.lessonTitle) {
+      nextQuiz = { ...nextQuiz, [lessonTitleKey]: anchor.lessonTitle };
+      patchedLessonTitles++;
+      changed = true;
+    }
+
+    const questionKey = getQuestionKey(nextQuiz);
+    if (questionKey) {
+      let questionsChanged = false;
+      const questions = nextQuiz[questionKey].map((question, index) => {
+        const objectiveKey = fieldKey(question, 'objectiveAligned', 'oa', 'objectiveAligned');
+        if (!objectiveNeedsAlignment(question?.[objectiveKey])) return question;
+        patchedObjectiveAlignment++;
+        questionsChanged = true;
+        return { ...question, [objectiveKey]: anchor.objectives[index % anchor.objectives.length] };
+      });
+      if (questionsChanged) {
+        nextQuiz = { ...nextQuiz, [questionKey]: questions };
+        changed = true;
+      }
+    }
+
+    return nextQuiz;
+  });
+
+  return {
+    data: changed ? { ...data, [arrayKey]: nextQuizzes } : data,
+    arrayKey,
+    patchedLessonTitles,
+    patchedObjectiveAlignment,
+  };
+}
+
 function getCourseLessonHaystack(lesson) {
   return [
     lesson?.title,

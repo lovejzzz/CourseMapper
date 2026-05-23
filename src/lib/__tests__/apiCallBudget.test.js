@@ -64,4 +64,78 @@ describe('apiCallBudget', () => {
     expect(budget.capabilityProbeCalls).toBe(1);
     expect(getApiCallBudgetTotal(budget)).toBe(3);
   });
+
+  it('preserves failure classification details on recent events', () => {
+    const budget = applyApiCallBudgetEvent(createApiCallBudget(), {
+      type: 'failedCall',
+      label: 'Provider API error',
+      detail: 'Service unavailable [503]',
+      failureClass: 'provider_unavailable',
+      statusCode: 503,
+      retryable: true,
+      provider: 'openai',
+      modelId: 'gpt-test',
+    });
+
+    expect(budget.failedCalls).toBe(1);
+    expect(budget.costControl.status).toBe('ok');
+    expect(budget.failureClasses).toEqual({ provider_unavailable: 1 });
+    expect(budget.recentEvents[0]).toMatchObject({
+      failureClass: 'provider_unavailable',
+      statusCode: 503,
+      retryable: true,
+      provider: 'openai',
+      modelId: 'gpt-test',
+    });
+  });
+
+  it('stores cost plans as cumulative limits for the current run', () => {
+    let budget = createApiCallBudget();
+    budget = applyApiCallBudgetEvent(budget, { type: 'courseMapCall' });
+    budget = applyApiCallBudgetEvent(budget, {
+      type: 'costPlan',
+      label: 'Deliverable call plan',
+      costPlan: {
+        source: 'generation',
+        plannedCalls: 10,
+        softCallLimit: 12,
+        hardCallLimit: 15,
+      },
+    });
+
+    expect(budget.costPlan).toMatchObject({
+      source: 'generation',
+      baseProviderCalls: 1,
+      plannedCalls: 11,
+      softCallLimit: 13,
+      hardCallLimit: 16,
+      cumulative: true,
+    });
+    expect(budget.costControl).toMatchObject({
+      status: 'ok',
+      totalProviderCalls: 1,
+      plannedCalls: 11,
+      hardCallLimit: 16,
+    });
+  });
+
+  it('updates cost control after hard-limit or non-retryable failures', () => {
+    let budget = createApiCallBudget({
+      costPlan: { plannedCalls: 2, softCallLimit: 3, hardCallLimit: 3, cumulative: true },
+    });
+    budget = applyApiCallBudgetEvent(budget, { type: 'deliverableChunkCall', count: 3 });
+
+    expect(budget.costControl.status).toBe('over_hard_limit');
+    expect(budget.costControl.shouldStopRetries).toBe(true);
+
+    budget = applyApiCallBudgetEvent(createApiCallBudget(), {
+      type: 'failedCall',
+      failureClass: 'model_unsupported',
+      statusCode: 404,
+      retryable: false,
+    });
+
+    expect(budget.costControl.status).toBe('needs_model_attention');
+    expect(budget.costControl.shouldStopRetries).toBe(true);
+  });
 });

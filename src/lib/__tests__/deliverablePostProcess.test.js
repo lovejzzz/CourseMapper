@@ -3,6 +3,7 @@ import {
   buildFallbackCourseFaq,
   getCourseFaqQuestionTarget,
   normalizeAssignmentGradeWeights,
+  normalizeAssignmentAssessmentAlignment,
   normalizeAssignmentLessonAlignment,
   normalizeCourseFaqCategories,
   normalizeCourseFaqQuestionCounts,
@@ -15,7 +16,9 @@ import {
   normalizeQuizBankPublishability,
   normalizeQuizBankQuestions,
   normalizeQuizBankRationales,
+  normalizeQuizAssessmentAlignment,
   normalizeRubricCoverage,
+  normalizeRubricAssessmentAlignment,
   normalizeRubricSupport,
   normalizeSlideDeckAccessibility,
   normalizeSlideDeckSpeakerNotes,
@@ -940,6 +943,111 @@ describe('Rubric and assignment post-processing', () => {
     expect(
       result.data.rubrics[0].cr.reduce((sum, criterion) => sum + Number(criterion.weight || criterion.wt || 0), 0),
     ).toBe(100);
+  });
+
+  it('aligns generic rubrics to assignment and course-map assessment anchors', () => {
+    const rubrics = {
+      rubrics: [
+        {
+          t: 'Lesson Rubric',
+          lt: 'Sampling',
+          tp: 0,
+          cr: [
+            { cn: 'Concept use', oa: '2a', wt: 50 },
+            { cn: 'Evidence', oa: '', wt: 50 },
+            { cn: 'Communication', wt: 0 },
+          ],
+          gp: '',
+        },
+      ],
+    };
+    const assignments = {
+      assignments: [
+        {
+          t: 'Sampling Strategy Quiz',
+          dw: 'Week 2',
+          pg: '20%',
+          tp: 40,
+          ob: ['Compare sampling strategies for a research design.'],
+        },
+      ],
+    };
+
+    const result = normalizeRubricAssessmentAlignment(rubrics, courseMap, assignments);
+
+    expect(result.patchedLessonLinks).toBe(1);
+    expect(result.patchedObjectiveLinks).toBeGreaterThan(0);
+    expect(result.patchedWeights).toBeGreaterThan(0);
+    expect(result.data.rubrics[0].lt).toBe('Lesson 2: Sampling');
+    expect(result.data.rubrics[0].t).toBe('Sampling Strategy Quiz Rubric');
+    expect(result.data.rubrics[0].tp).toBe(40);
+    expect(result.data.rubrics[0].gp).toContain('20%');
+    expect(result.data.rubrics[0].cr[0].oa).toContain('Compare sampling strategies');
+  });
+
+  it('tightens generic assignment briefs with lesson assessment objectives', () => {
+    const data = {
+      assignments: [
+        {
+          title: 'Assignment Brief',
+          dueWeek: 'Week 1',
+          relatedLessons: ['Lesson 1'],
+          objectives: ['1a'],
+          overview: 'Complete it.',
+          gradingCriteria: '',
+        },
+      ],
+    };
+
+    const result = normalizeAssignmentAssessmentAlignment(data, courseMap);
+
+    expect(result.patchedTitles).toBe(1);
+    expect(result.patchedObjectives).toBe(1);
+    expect(result.patchedSupport).toBe(2);
+    expect(result.data.assignments[0].title).toContain('Reflection Paper');
+    expect(result.data.assignments[0].objectives[0]).toContain('Draft answerable research questions');
+    expect(result.data.assignments[0].overview).toContain('Lesson 1: Research Questions');
+  });
+
+  it('preserves concise meaningful grading criteria when tightening assignment briefs', () => {
+    const data = {
+      assignments: [
+        {
+          t: 'Export Checklist',
+          dw: 'Week 1',
+          rl: ['Lesson 1'],
+          ob: [],
+          ov: 'Complete the export checklist.',
+          gc: 'Specific evidence and actionable recommendations.',
+        },
+      ],
+    };
+
+    const result = normalizeAssignmentAssessmentAlignment(data, courseMap);
+
+    expect(result.data.assignments[0].gc).toBe('Specific evidence and actionable recommendations.');
+    expect(result.data.assignments[0].ob[0]).toContain('Draft answerable research questions');
+  });
+
+  it('aligns quiz objective metadata to the lesson assessment spine', () => {
+    const data = {
+      quizzes: [
+        {
+          lt: 'Week 1',
+          qs: [
+            { q: 'Which question is researchable?', oa: '1a' },
+            { q: 'Explain your choice.', oa: '' },
+          ],
+        },
+      ],
+    };
+
+    const result = normalizeQuizAssessmentAlignment(data, courseMap);
+
+    expect(result.patchedLessonTitles).toBe(1);
+    expect(result.patchedObjectiveAlignment).toBe(2);
+    expect(result.data.quizzes[0].lt).toBe('Lesson 1: Research Questions');
+    expect(result.data.quizzes[0].qs[0].oa).toContain('Draft answerable research questions');
   });
 
   it('sorts assignment briefs chronologically and repairs objective-code lesson links', () => {

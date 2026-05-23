@@ -35,6 +35,7 @@ import {
   getCurrentModelCapabilityProfile,
 } from '../lib/modelAwareConfig';
 import {
+  normalizeAssignmentAssessmentAlignment,
   buildFallbackCourseFaq,
   normalizeAssignmentGradeWeights,
   normalizeAssignmentLessonAlignment,
@@ -47,7 +48,9 @@ import {
   normalizeQuizBankPublishability,
   normalizeQuizBankQuestions,
   normalizeQuizBankRationales,
+  normalizeQuizAssessmentAlignment,
   normalizeRubricCoverage,
+  normalizeRubricAssessmentAlignment,
   normalizeRubricSupport,
   normalizeSlideDeckAccessibility,
   normalizeSlideDeckSpeakerNotes,
@@ -57,6 +60,8 @@ import {
   normalizeSyllabusPublishability,
   validateDeliverableGeneration,
 } from '../lib/deliverablePostProcess';
+import { buildApiCostPlan, isNonRetryableFailureClass } from '../lib/apiCostControl';
+import { classifyError } from '../lib/failureClassification';
 
 // ── Post-process scoped deliverable output to fix lesson/week numbering ──
 // When the user generates a subset of lessons (e.g., lesson 6 only), the AI may
@@ -564,7 +569,12 @@ export default function useDeliverables({
   // ═══════════════════════════════════════════════════════════════════════════
 
   const generateAll = useCallback(
-    async (courseMap, features, scopeIndices = null, syncGenId = null) => {
+    async (courseMap, features, scopeIndices = null, syncGenOrOptions = null) => {
+      const generationOptions =
+        syncGenOrOptions && typeof syncGenOrOptions === 'object' ? syncGenOrOptions : { syncGenId: syncGenOrOptions };
+      const syncGenId = generationOptions.syncGenId ?? null;
+      const costMode = generationOptions.mode || 'generation';
+      const countInitialChunksAsRepair = costMode === 'finalizerRetry';
       const toGenerate = features.filter((f) => f && f !== 'courseMap');
       if (toGenerate.length === 0 || !courseMap) return;
 
@@ -582,9 +592,24 @@ export default function useDeliverables({
       const lessonIndices = scopeIndices ?? Array.from({ length: lessonCount }, (_, i) => i);
       const repairRoundLimit = getRepairRoundLimit(generationPlan);
       const repairRetryCallsUsed = new Map();
+      const retryBlockedFeatures = new Map();
 
       // ── 1. Create chunk plan ──
       const tasks = createChunkPlan(toGenerate, lessonCount, scopeIndices, generationPlan);
+      const costPlan = buildApiCostPlan({
+        source: costMode,
+        featureIds: toGenerate,
+        lessonCount,
+        lessonFilter: scopeIndices,
+        generationPlan,
+        includeCourseMap: false,
+      });
+      recordApiCallEvent({
+        type: 'costPlan',
+        label: costMode === 'finalizerRetry' ? 'Finalizer retry call plan' : 'Deliverable call plan',
+        detail: `${costPlan.plannedCalls} planned provider calls`,
+        costPlan,
+      });
 
       // ── 2. Initialize per-feature progress ──
       const perFeatureInit = {};
@@ -619,6 +644,10 @@ export default function useDeliverables({
         repairRoundLimit,
         initialStreamRetries: getStreamRetryLimit(generationPlan, 'initial'),
         repairStreamRetries: getStreamRetryLimit(generationPlan, 'repair'),
+        costMode,
+        plannedProviderCalls: costPlan.plannedCalls,
+        softCallLimit: costPlan.softCallLimit,
+        hardCallLimit: costPlan.hardCallLimit,
       });
       traceGenerationTable(
         generationRunId,
@@ -677,7 +706,38 @@ export default function useDeliverables({
         featureActivityRef.current.set(featureId, Date.now());
       };
 
+      const getRetryBlockReason = (featureId) => retryBlockedFeatures.get(featureId) || '';
+
+      const blockFeatureRetries = (featureId, err, context = '') => {
+        if (!featureId || !err) return false;
+        const classification = err.classification || classifyError(err, { provider, modelId, task: featureId });
+        if (classification.retryable !== false && !isNonRetryableFailureClass(classification.failureClass)) {
+          return false;
+        }
+        const reason = classification.userMessage || err.message || 'Provider reported a non-retryable failure.';
+        if (!retryBlockedFeatures.has(featureId)) {
+          retryBlockedFeatures.set(featureId, reason);
+          traceGeneration(
+            generationRunId,
+            'repair_retry_blocked_failure_control',
+            {
+              featureId,
+              label: getFeatureLabel(featureId),
+              context,
+              failureClass: classification.failureClass,
+              statusCode: classification.statusCode,
+              retryable: classification.retryable,
+              reason,
+            },
+            'warn',
+          );
+          appendLog(`⚠ ${getFeatureLabel(featureId)}: stopped retries because ${reason}`, 'warn');
+        }
+        return true;
+      };
+
       const getRemainingRepairRetryCalls = (featureId) => {
+        if (getRetryBlockReason(featureId)) return 0;
         const limit = getRepairRetryCallLimit(featureId, lessonIndices.length, repairRoundLimit);
         return Math.max(0, limit - (repairRetryCallsUsed.get(featureId) || 0));
       };
@@ -691,6 +751,7 @@ export default function useDeliverables({
         repairRetryCallsUsed.set(featureId, used + allowed);
         if (allowed < wanted) {
           const limit = getRepairRetryCallLimit(featureId, lessonIndices.length, repairRoundLimit);
+          const blockReason = getRetryBlockReason(featureId);
           traceGeneration(
             generationRunId,
             'repair_retry_budget_capped',
@@ -701,11 +762,14 @@ export default function useDeliverables({
               allowed,
               used,
               limit,
+              blockReason,
             },
             'warn',
           );
           appendLog(
-            `⚠ ${getFeatureLabel(featureId)}: repair retry budget reached (${used}/${limit}); stopping extra retries to control API cost`,
+            blockReason
+              ? `⚠ ${getFeatureLabel(featureId)}: retries stopped because ${blockReason}`
+              : `⚠ ${getFeatureLabel(featureId)}: repair retry budget reached (${used}/${limit}); stopping extra retries to control API cost`,
             'warn',
           );
         }
@@ -914,8 +978,8 @@ export default function useDeliverables({
           const outputBudget = getFeatureOutputBudget(featureId, maxOutputTokens, generationPlan);
 
           recordApiCallEvent({
-            type: 'deliverableChunkCall',
-            label: `Generate ${chunkLabel}`,
+            type: countInitialChunksAsRepair ? 'repairRetryCall' : 'deliverableChunkCall',
+            label: countInitialChunksAsRepair ? `Finish retry ${chunkLabel}` : `Generate ${chunkLabel}`,
             featureId,
           });
           traceGeneration(generationRunId, 'chunk_request', {
@@ -930,6 +994,7 @@ export default function useDeliverables({
             systemChars: prompts.systemPrompt?.length || 0,
             userChars: prompts.userPrompt?.length || 0,
             approxInputTokens: estimateCharsAsTokens(prompts.systemPrompt, prompts.userPrompt),
+            costMode,
           });
           const result = await streamProvider(provider, apiKey, modelId, prompts.systemPrompt, prompts.userPrompt, {
             maxOutputTokens: outputBudget,
@@ -1147,12 +1212,7 @@ export default function useDeliverables({
               'warn',
             );
           } else {
-            recordApiCallEvent({
-              type: 'failedCall',
-              label: `${chunkLabel} failed`,
-              detail: err.message || '',
-              featureId,
-            });
+            blockFeatureRetries(featureId, err, 'initial chunk');
             appendLog(`✗ ${chunkLabel}: ${err.message || 'Generation failed'}`, 'error');
             traceGeneration(
               generationRunId,
@@ -1388,12 +1448,7 @@ export default function useDeliverables({
               }
             } catch (err) {
               if (err.name !== 'AbortError') {
-                recordApiCallEvent({
-                  type: 'failedCall',
-                  label: `${label} whole-deliverable retry failed`,
-                  detail: err.message || '',
-                  featureId: fid,
-                });
+                blockFeatureRetries(fid, err, 'whole-deliverable retry');
                 appendLog(`✗ ${label}: whole-deliverable retry failed: ${err.message}`, 'error');
                 traceGeneration(
                   generationRunId,
@@ -1447,6 +1502,13 @@ export default function useDeliverables({
                 'warn',
               );
             }
+
+            const normalizedRubricAlignment = normalizeRubricAssessmentAlignment(
+              finalData,
+              courseMap,
+              deliverables.assignments?.data,
+            );
+            finalData = normalizedRubricAlignment.data;
           }
 
           if (fid === 'syllabus') {
@@ -1961,12 +2023,7 @@ export default function useDeliverables({
                   }
                 } catch (err) {
                   if (err.name !== 'AbortError') {
-                    recordApiCallEvent({
-                      type: 'failedCall',
-                      label: `${retryLabel} failed`,
-                      detail: err.message || '',
-                      featureId: fid,
-                    });
+                    blockFeatureRetries(fid, err, 'missing-item retry');
                     console.error(`[CM] ✗ ${retryLabel}: ${err.message}`);
                     appendLog(`✗ ${retryLabel}: ${err.message}`, 'error');
                     traceGeneration(
@@ -2154,12 +2211,7 @@ export default function useDeliverables({
                     }
                   } catch (err) {
                     if (err.name !== 'AbortError') {
-                      recordApiCallEvent({
-                        type: 'failedCall',
-                        label: `${retryLabel} failed`,
-                        detail: err.message || '',
-                        featureId: fid,
-                      });
+                      blockFeatureRetries(fid, err, 'coverage retry');
                       console.error(`[CM] ✗ ${retryLabel}: ${err.message}`);
                       traceGeneration(
                         generationRunId,
@@ -2257,6 +2309,14 @@ export default function useDeliverables({
               'warn',
             );
           }
+
+          const normalizedRubricAlignment = normalizeRubricAssessmentAlignment(
+            merged,
+            courseMap,
+            deliverables.assignments?.data,
+          );
+          merged = normalizedRubricAlignment.data;
+          mergedArr = normalizedRubricAlignment.arrayKey ? merged[normalizedRubricAlignment.arrayKey] || [] : mergedArr;
         }
 
         if (fid === 'assignments' && mergedArr.length > 0) {
@@ -2270,6 +2330,12 @@ export default function useDeliverables({
               'warn',
             );
           }
+
+          const normalizedAssignmentAssessment = normalizeAssignmentAssessmentAlignment(merged, courseMap);
+          merged = normalizedAssignmentAssessment.data;
+          mergedArr = normalizedAssignmentAssessment.arrayKey
+            ? merged[normalizedAssignmentAssessment.arrayKey] || []
+            : mergedArr;
 
           const normalizedGradeWeights = normalizeAssignmentGradeWeights(merged);
           merged = normalizedGradeWeights.data;
@@ -2436,6 +2502,10 @@ export default function useDeliverables({
           ) {
             appendLog(`⚠ ${getFeatureLabel(fid)}: cleaned quiz publishability issues after retry`, 'warn');
           }
+
+          const normalizedQuizAlignment = normalizeQuizAssessmentAlignment(merged, courseMap);
+          merged = normalizedQuizAlignment.data;
+          mergedArr = normalizedQuizAlignment.arrayKey ? merged[normalizedQuizAlignment.arrayKey] || [] : mergedArr;
 
           const normalizedQuizIndex = normalizeQuizBankIndex(merged);
           merged = normalizedQuizIndex.data;
@@ -2996,12 +3066,6 @@ export default function useDeliverables({
         }
       } catch (err) {
         if (err?.name !== 'AbortError') {
-          recordApiCallEvent({
-            type: 'failedCall',
-            label: `${label} lesson ${lessonIndex + 1} regeneration failed`,
-            detail: err.message || '',
-            featureId,
-          });
           console.warn(`Regenerate lesson ${lessonIndex} failed:`, err);
           appendLog(
             `✗ ${label}: Lesson ${lessonIndex + 1} regeneration failed — ${err.message || 'Unknown error'}`,

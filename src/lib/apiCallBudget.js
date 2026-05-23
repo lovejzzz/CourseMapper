@@ -1,5 +1,7 @@
+import { evaluateApiCostControl } from './apiCostControl';
+import { drainPendingApiCallEvents, recordPendingApiCallEvent } from './apiCallPendingEvents';
+
 const MAX_RECENT_EVENTS = 12;
-const PENDING_EVENTS_KEY = 'coursemapper-api-call-pending-events';
 
 const PROVIDER_CALL_COUNTERS = [
   'modelDiscoveryCalls',
@@ -14,54 +16,12 @@ const PROVIDER_CALL_COUNTERS = [
   'imageGenerationCalls',
 ];
 
-function readPendingEvents() {
-  if (typeof sessionStorage === 'undefined') return [];
-  try {
-    const raw = sessionStorage.getItem(PENDING_EVENTS_KEY);
-    const parsed = raw ? JSON.parse(raw) : [];
-    return Array.isArray(parsed) ? parsed : [];
-  } catch {
-    return [];
-  }
-}
-
-function writePendingEvents(events) {
-  if (typeof sessionStorage === 'undefined') return;
-  try {
-    sessionStorage.setItem(PENDING_EVENTS_KEY, JSON.stringify(events.slice(-MAX_RECENT_EVENTS * 2)));
-  } catch {
-    /* best-effort developer telemetry */
-  }
-}
-
-function drainPendingEvents() {
-  const events = readPendingEvents();
-  if (typeof sessionStorage !== 'undefined') {
-    try {
-      sessionStorage.removeItem(PENDING_EVENTS_KEY);
-    } catch {
-      /* ignore */
-    }
-  }
-  return events;
-}
-
-export function recordPendingApiCallEvent(event = {}) {
-  const events = readPendingEvents();
-  writePendingEvents([
-    ...events,
-    {
-      ...event,
-      pending: true,
-      at: event.at || Date.now(),
-    },
-  ]);
-}
+export { recordPendingApiCallEvent };
 
 export function createApiCallBudget(overrides = {}) {
   const now = Date.now();
   const streamRetryCalls = overrides.streamRetryCalls ?? overrides.retriedCalls ?? 0;
-  return {
+  const budget = {
     runId: overrides.runId || `run-${now}`,
     startedAt: overrides.startedAt || now,
     updatedAt: overrides.updatedAt || now,
@@ -76,10 +36,16 @@ export function createApiCallBudget(overrides = {}) {
     agentLoopCalls: overrides.agentLoopCalls || 0,
     imageGenerationCalls: overrides.imageGenerationCalls || 0,
     failedCalls: overrides.failedCalls || 0,
+    failureClasses: { ...(overrides.failureClasses || {}) },
     // Backward-compatible alias for older UI/tests.
     retriedCalls: streamRetryCalls,
     skippedExamineCalls: overrides.skippedExamineCalls || 0,
+    costPlan: { ...(overrides.costPlan || {}) },
     recentEvents: Array.isArray(overrides.recentEvents) ? overrides.recentEvents.slice(0, MAX_RECENT_EVENTS) : [],
+  };
+  return {
+    ...budget,
+    costControl: overrides.costControl || evaluateApiCostControl(budget),
   };
 }
 
@@ -117,7 +83,7 @@ function counterForType(type) {
 
 export function applyApiCallBudgetEvent(currentBudget, event = {}) {
   if (event.type === 'reset') {
-    const pendingEvents = drainPendingEvents();
+    const pendingEvents = drainPendingApiCallEvents();
     let budget = createApiCallBudget({
       runId: event.runId || `run-${Date.now()}`,
       recentEvents: [
@@ -137,6 +103,20 @@ export function applyApiCallBudgetEvent(currentBudget, event = {}) {
   const budget = createApiCallBudget(currentBudget);
   const counter = counterForType(event.type);
   const at = Date.now();
+  const eventMetadata = {};
+  [
+    'failureClass',
+    'statusCode',
+    'retryable',
+    'userMessage',
+    'action',
+    'provider',
+    'modelId',
+    'attempt',
+    'maxRetries',
+  ].forEach((key) => {
+    if (event[key] !== undefined && event[key] !== '') eventMetadata[key] = event[key];
+  });
   const next = {
     ...budget,
     updatedAt: at,
@@ -147,17 +127,50 @@ export function applyApiCallBudgetEvent(currentBudget, event = {}) {
         detail: event.detail || '',
         featureId: event.featureId || '',
         at,
+        ...eventMetadata,
       },
       ...budget.recentEvents,
     ].slice(0, MAX_RECENT_EVENTS),
   };
 
+  if (event.type === 'costPlan') {
+    const rawPlan = event.costPlan || {};
+    const baseProviderCalls = Number.isFinite(rawPlan.baseProviderCalls)
+      ? rawPlan.baseProviderCalls
+      : getApiCallBudgetTotal(budget);
+    const cumulativePlan = rawPlan.cumulative
+      ? rawPlan
+      : {
+          ...rawPlan,
+          baseProviderCalls,
+          plannedCalls: (Number(rawPlan.plannedCalls) || 0) + baseProviderCalls,
+          softCallLimit: (Number(rawPlan.softCallLimit) || 0) + baseProviderCalls,
+          hardCallLimit: (Number(rawPlan.hardCallLimit) || 0) + baseProviderCalls,
+          cumulative: true,
+        };
+    next.costPlan = {
+      ...next.costPlan,
+      ...cumulativePlan,
+      source: rawPlan.source || event.source || event.label || next.costPlan?.source || 'generation',
+    };
+  }
+
   if (counter) {
     next[counter] = (next[counter] || 0) + (Number.isFinite(event.count) ? event.count : 1);
     if (counter === 'streamRetryCalls') next.retriedCalls = next.streamRetryCalls;
   }
+  if (event.failureClass) {
+    const count = Number.isFinite(event.count) ? event.count : 1;
+    next.failureClasses = {
+      ...next.failureClasses,
+      [event.failureClass]: (next.failureClasses?.[event.failureClass] || 0) + count,
+    };
+  }
 
-  return next;
+  return {
+    ...next,
+    costControl: evaluateApiCostControl(next),
+  };
 }
 
 export function getApiCallBudgetTotal(budget = {}) {

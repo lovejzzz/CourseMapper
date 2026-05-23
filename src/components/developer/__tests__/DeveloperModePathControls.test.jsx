@@ -216,6 +216,61 @@ describe('Developer Mode path controls', () => {
     expect(onCheckpointNameChange).toHaveBeenCalledWith('Before QA pass');
   });
 
+  it('shows classified API failures in the developer budget card', () => {
+    render(
+      <DeveloperModeSidebar
+        isEditorSection={false}
+        activeValidation={{ ok: true, message: 'Current section is valid.', findings: [] }}
+        apiCallBudget={{
+          runId: 'run-test',
+          deliverableChunkCalls: 12,
+          providerFallbackCalls: 1,
+          failedCalls: 2,
+          failureClasses: { provider_unavailable: 1, model_unsupported: 1 },
+          costPlan: {
+            plannedCalls: 12,
+            softCallLimit: 15,
+            hardCallLimit: 18,
+            cumulative: true,
+          },
+          costControl: {
+            status: 'failure_spike',
+            reason: 'Too many provider calls are failing.',
+            shouldStopRetries: true,
+            totalProviderCalls: 15,
+            plannedCalls: 12,
+            softCallLimit: 15,
+            hardCallLimit: 18,
+            remainingBeforeHardLimit: 3,
+          },
+          recentEvents: [
+            {
+              type: 'failedCall',
+              label: 'Provider API error',
+              at: Date.now(),
+              failureClass: 'provider_unavailable',
+              statusCode: 503,
+              retryable: true,
+              userMessage: 'The provider service is temporarily unavailable.',
+              provider: 'openai',
+              modelId: 'gpt-test',
+            },
+          ],
+        }}
+      />,
+    );
+
+    expect(container.querySelector('[data-testid="developer-api-cost-control"]')).not.toBeNull();
+    expect(container.querySelector('[data-testid="developer-api-failure-breakdown"]')).not.toBeNull();
+    expect(container.querySelectorAll('[data-testid="developer-api-failure-class"]')).toHaveLength(2);
+    expect(container.textContent).toContain('Failure Spike');
+    expect(container.textContent).toContain('Too many provider calls are failing.');
+    expect(container.textContent).toContain('Provider Unavailable 1');
+    expect(container.textContent).toContain('Model Unsupported 1');
+    expect(container.textContent).toContain('503');
+    expect(container.textContent).toContain('retryable');
+  });
+
   it('jumps from pending diff entries to their JSON paths', () => {
     const onChangeClick = vi.fn();
     const change = {

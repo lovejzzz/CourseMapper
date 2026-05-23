@@ -3,7 +3,7 @@ import { fetchModelsFromProvider } from '../hooks/useStreamReader';
 import { useAIConfig } from '../contexts/AIConfigContext';
 import { WEBLLM_MODELS, isWebGPUSupported } from '../lib/webllmConstants';
 import { getGoogleModelBaseUrl } from '../lib/googleProvider';
-import { recordPendingApiCallEvent } from '../lib/apiCallBudget';
+import { recordPendingApiCallEvent } from '../lib/apiCallPendingEvents';
 import { fetchWithTimeout, isTimeoutError } from '../lib/fetchWithTimeout';
 import {
   createBaseModelCapabilities,

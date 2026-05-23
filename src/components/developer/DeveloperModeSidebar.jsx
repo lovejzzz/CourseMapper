@@ -33,9 +33,27 @@ function formatBudgetEventTime(timestamp) {
   }
 }
 
+function formatFailureClass(value) {
+  return String(value || 'unknown')
+    .split(/[_-]+/)
+    .filter(Boolean)
+    .map((part) => part.charAt(0).toUpperCase() + part.slice(1))
+    .join(' ');
+}
+
+function formatCostStatus(value) {
+  return String(value || 'ok')
+    .split(/[_-]+/)
+    .filter(Boolean)
+    .map((part) => part.charAt(0).toUpperCase() + part.slice(1))
+    .join(' ');
+}
+
 function ApiCallBudgetCard({ budget }) {
   if (!budget) return null;
   const total = getApiCallBudgetTotal(budget);
+  const costControl = budget.costControl || {};
+  const costPlan = budget.costPlan || {};
   const counters = [
     ['Model discovery', budget.modelDiscoveryCalls || 0],
     ['Credit checks', budget.creditCheckCalls || 0],
@@ -49,7 +67,10 @@ function ApiCallBudgetCard({ budget }) {
     ['Image generation', budget.imageGenerationCalls || 0],
     ['Failed', budget.failedCalls || 0],
   ];
-  const events = Array.isArray(budget.recentEvents) ? budget.recentEvents.slice(0, 4) : [];
+  const failureClasses = Object.entries(budget.failureClasses || {})
+    .filter(([, count]) => count > 0)
+    .sort((a, b) => b[1] - a[1]);
+  const events = Array.isArray(budget.recentEvents) ? budget.recentEvents.slice(0, 6) : [];
 
   return (
     <section
@@ -69,6 +90,39 @@ function ApiCallBudgetCard({ budget }) {
           </span>
         )}
       </div>
+      {(costControl.status || costPlan.plannedCalls) && (
+        <div
+          data-testid="developer-api-cost-control"
+          className="mt-2 rounded-lg border border-indigo-100 bg-white/70 px-2 py-1.5 dark:border-indigo-500/20 dark:bg-slate-900/70"
+          title={costControl.reason || ''}
+        >
+          <div className="flex items-center justify-between gap-2">
+            <p className="text-[9px] font-bold uppercase tracking-wide opacity-60">Cost control</p>
+            <span
+              className={`rounded-full px-2 py-0.5 text-[9px] font-bold ${
+                costControl.shouldStopRetries
+                  ? 'bg-rose-50 text-rose-600 dark:bg-rose-500/15 dark:text-rose-200'
+                  : costControl.status && costControl.status !== 'ok'
+                    ? 'bg-amber-50 text-amber-600 dark:bg-amber-500/15 dark:text-amber-200'
+                    : 'bg-emerald-50 text-emerald-600 dark:bg-emerald-500/15 dark:text-emerald-200'
+              }`}
+            >
+              {formatCostStatus(costControl.status)}
+            </span>
+          </div>
+          <p className="mt-1 text-[11px] font-semibold">
+            {costControl.totalProviderCalls ?? total}
+            {costControl.hardCallLimit ? `/${costControl.hardCallLimit}` : ''} calls
+            {costControl.plannedCalls ? ` · planned ${costControl.plannedCalls}` : ''}
+          </p>
+          {costControl.reason && <p className="mt-0.5 line-clamp-2 text-[9px] opacity-70">{costControl.reason}</p>}
+          {costControl.remainingBeforeHardLimit !== null && costControl.remainingBeforeHardLimit !== undefined && (
+            <p className="mt-0.5 text-[9px] font-semibold opacity-60">
+              {costControl.remainingBeforeHardLimit} calls before hard stop
+            </p>
+          )}
+        </div>
+      )}
       <dl className="mt-2 grid grid-cols-2 gap-1.5">
         {counters.map(([label, value]) => (
           <div key={label} className="rounded-lg bg-white/65 px-2 py-1 dark:bg-slate-900/60">
@@ -79,10 +133,49 @@ function ApiCallBudgetCard({ budget }) {
       </dl>
       {events.length > 0 && (
         <div className="mt-2 space-y-1">
+          {failureClasses.length > 0 && (
+            <div
+              data-testid="developer-api-failure-breakdown"
+              className="rounded-lg border border-rose-200 bg-white/70 px-2 py-1.5 dark:border-rose-500/30 dark:bg-slate-900/70"
+            >
+              <p className="text-[9px] font-bold uppercase tracking-wide text-rose-500 dark:text-rose-300">
+                Failure classes
+              </p>
+              <div className="mt-1 flex flex-wrap gap-1">
+                {failureClasses.map(([failureClass, count]) => (
+                  <span
+                    key={failureClass}
+                    data-testid="developer-api-failure-class"
+                    className="rounded-full bg-rose-50 px-2 py-0.5 text-[9px] font-bold text-rose-600 dark:bg-rose-500/15 dark:text-rose-200"
+                  >
+                    {formatFailureClass(failureClass)} {count}
+                  </span>
+                ))}
+              </div>
+            </div>
+          )}
           {events.map((event, index) => (
-            <p key={`${event.at}-${event.label}-${index}`} className="truncate text-[10px] font-medium opacity-80">
-              {formatBudgetEventTime(event.at)} · {event.label}
-            </p>
+            <div
+              key={`${event.at}-${event.label}-${index}`}
+              className="rounded-lg bg-white/50 px-2 py-1 dark:bg-slate-900/45"
+              title={[event.detail, event.userMessage, event.provider, event.modelId].filter(Boolean).join(' · ')}
+            >
+              <p className="truncate text-[10px] font-medium opacity-80">
+                {formatBudgetEventTime(event.at)} · {event.label}
+              </p>
+              {(event.failureClass || event.statusCode || event.retryable !== undefined) && (
+                <p className="mt-0.5 truncate text-[9px] font-semibold text-rose-600 dark:text-rose-300">
+                  {event.failureClass ? formatFailureClass(event.failureClass) : 'Provider failure'}
+                  {event.statusCode ? ` · ${event.statusCode}` : ''}
+                  {event.retryable !== undefined ? ` · ${event.retryable ? 'retryable' : 'no retry'}` : ''}
+                </p>
+              )}
+              {event.userMessage && (
+                <p className="truncate text-[9px] font-medium text-slate-500 dark:text-slate-400">
+                  {event.userMessage}
+                </p>
+              )}
+            </div>
           ))}
         </div>
       )}
