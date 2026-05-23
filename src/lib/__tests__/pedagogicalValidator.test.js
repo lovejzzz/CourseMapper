@@ -223,6 +223,61 @@ describe('validateObjectiveAlignment', () => {
     expect(findings.map((finding) => finding.id)).not.toContain('alignment-no-assess-L0');
     expect(findings.filter((finding) => finding.category === 'alignment')).toEqual([]);
   });
+
+  it('matches flat rubrics by lesson title instead of array position', () => {
+    const courseMap = {
+      lessons: [
+        {
+          title: 'Lesson 1: Planning Cycle',
+          sections: [
+            {
+              learningObjectives: 'Analyze the planning cycle purpose',
+              weeklyAssessments: 'Planning memo submission.',
+            },
+          ],
+        },
+        {
+          title: 'Lesson 2: Implementation Evidence',
+          sections: [
+            {
+              learningObjectives: 'Evaluate implementation evidence',
+              weeklyAssessments: 'Evidence analysis brief.',
+            },
+          ],
+        },
+        {
+          title: 'Lesson 3: Studio Reflection',
+          sections: [
+            {
+              learningObjectives: 'Discuss reflection practices',
+              weeklyAssessments: 'No graded assessment this week.',
+            },
+          ],
+        },
+      ],
+    };
+    const deliverables = {
+      rubrics: doneDeliv({
+        rubrics: [
+          {
+            lessonTitle: 'Lesson 2: Implementation Evidence',
+            criteria: [{ criterion: 'Evidence judgment', objectiveAligned: 'Evaluate implementation evidence' }],
+          },
+          {
+            lessonTitle: 'Lesson 1: Planning Cycle',
+            criteria: [{ criterion: 'Planning analysis', objectiveAligned: 'Analyze the planning cycle purpose' }],
+          },
+        ],
+      }),
+    };
+
+    const findings = validateObjectiveAlignment(courseMap, deliverables);
+
+    expect(findings.map((finding) => finding.id)).not.toContain('alignment-no-assess-L0');
+    expect(findings.map((finding) => finding.id)).not.toContain('alignment-no-assess-L1');
+    expect(findings.map((finding) => finding.id)).not.toContain('alignment-no-assess-L2');
+    expect(findings.filter((finding) => finding.severity === 'error')).toEqual([]);
+  });
 });
 
 // ── assessCognitiveLoad ─────────────────────────────────────────────────────

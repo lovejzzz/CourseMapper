@@ -164,6 +164,48 @@ describe('classroomReadiness', () => {
     expect(result.warnings.map((issue) => issue.message).join(' ')).toContain('generic source-artifact labels');
   });
 
+  it('ignores repeated rubric support notes when criteria are lesson-specific', () => {
+    const sharedTeacherNote =
+      'Distribute this rubric before students begin the assessment and calibrate feedback against each criterion.';
+    const topics = ['sampling plan', 'interview protocol', 'coding memo', 'findings brief'];
+    const result = evaluateClassroomReadiness({
+      courseMap: makeCourseMap(4),
+      selectedFeatures: ['rubrics'],
+      deliverables: {
+        rubrics: {
+          status: 'done',
+          data: {
+            rubrics: Array.from({ length: 4 }, (_, index) => ({
+              lessonTitle: `Lesson ${index + 1}`,
+              teacherNotes: sharedTeacherNote,
+              gradePolicyConnection:
+                'Use this rubric to score the lesson assessment within the grading category named in the course map.',
+              criteria: [
+                {
+                  criterion: `${topics[index]} evidence use`,
+                  weight: 34,
+                  exemplary: `Uses ${topics[index]} evidence accurately with clear interpretation.`,
+                },
+                {
+                  criterion: `${topics[index]} reasoning`,
+                  weight: 33,
+                  exemplary: `Explains ${topics[index]} choices with logical, specific reasoning.`,
+                },
+                {
+                  criterion: `${topics[index]} communication`,
+                  weight: 33,
+                  exemplary: `Presents ${topics[index]} work in an organized, readable format.`,
+                },
+              ],
+            })),
+          },
+        },
+      },
+    });
+
+    expect(result.warnings.some((issue) => issue.message.includes('repeats the same boilerplate'))).toBe(false);
+  });
+
   it('turns plural lesson-number readiness messages into concrete retry actions', () => {
     const courseMap = makeCourseMap(14);
     const queue = buildPackageRepairQueue({
@@ -243,5 +285,45 @@ describe('classroomReadiness', () => {
       }),
     ]);
     expect(queue.nextTool).toBe('retry_package_weak_spots');
+  });
+
+  it('does not spend retry calls on non-blocking validation warnings', () => {
+    const queue = buildPackageRepairQueue({
+      courseMap: makeCourseMap(2),
+      deliverables: {
+        courseFaq: {
+          status: 'done',
+          data: {
+            faqs: [
+              {
+                lessonTitle: 'Lesson 1',
+                questions: [
+                  { question: 'What is due?', answer: 'Submit the short reflection.' },
+                  { question: 'Where do I submit?', answer: 'Use the course LMS.' },
+                  { question: 'How is it graded?', answer: 'Use the rubric criteria.' },
+                ],
+              },
+            ],
+          },
+        },
+      },
+      readiness: { issues: [], blockers: [], warnings: [] },
+      classroomReadiness: { issues: [], blockers: [], warnings: [] },
+      healthReport: {
+        warningCount: 1,
+        findings: [
+          {
+            severity: 'warning',
+            category: 'readability',
+            featureId: 'courseFaq',
+            lessonIndex: null,
+            message: 'Course FAQ readability is grade level 13.0 — consider simplifying.',
+          },
+        ],
+      },
+    });
+
+    expect(queue.retryActions).toEqual([]);
+    expect(queue.nextTool).toBeNull();
   });
 });

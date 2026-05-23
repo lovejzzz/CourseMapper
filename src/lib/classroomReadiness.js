@@ -275,13 +275,56 @@ function normalizeSentence(sentence) {
     .trim();
 }
 
+const RUBRIC_SHARED_SUPPORT_RE =
+  /\b(distribute this rubric|course grading policy|official weight|gradebook|calibrate by reviewing|sample submission|criterion and the next concrete improvement|academic integrity|accessibility|accommodation|udl)\b/i;
+
+function rubricBoilerplateText(rubric) {
+  const criteriaText = getCriteriaArray(rubric)
+    .map((criterion) =>
+      itemText([
+        criterion?.criterion,
+        criterion?.cn,
+        criterion?.objectiveAligned,
+        criterion?.oa,
+        criterion?.description,
+        criterion?.exemplary,
+        criterion?.ex,
+        criterion?.proficient,
+        criterion?.pr,
+        criterion?.developing,
+        criterion?.dv,
+        criterion?.beginning,
+        criterion?.bg,
+      ]),
+    )
+    .join(' ');
+
+  return itemText([
+    rubric?.title,
+    rubric?.t,
+    rubric?.lessonTitle,
+    rubric?.lt,
+    rubric?.assessmentTitle,
+    rubric?.assessmentType,
+    rubric?.at,
+    rubric?.taskDirections,
+    rubric?.td,
+    criteriaText,
+  ]);
+}
+
+function getBoilerplateSentences(featureId, item) {
+  const text = featureId === 'rubrics' ? rubricBoilerplateText(item) : itemText(item);
+  return splitSentences(text).filter((sentence) => featureId !== 'rubrics' || !RUBRIC_SHARED_SUPPORT_RE.test(sentence));
+}
+
 function addBoilerplateWarning(featureId, items, issues) {
   if (!Array.isArray(items) || items.length < 4) return;
 
   const counts = new Map();
   for (const item of items) {
     const seenInItem = new Set();
-    for (const sentence of splitSentences(itemText(item))) {
+    for (const sentence of getBoilerplateSentences(featureId, item)) {
       const normalized = normalizeSentence(sentence);
       if (!normalized || normalized.length < 45) continue;
       seenInItem.add(normalized);
@@ -289,7 +332,12 @@ function addBoilerplateWarning(featureId, items, issues) {
     seenInItem.forEach((sentence) => counts.set(sentence, (counts.get(sentence) || 0) + 1));
   }
 
-  const repeated = [...counts.entries()].find(([, count]) => count >= 3 && count >= Math.ceil(items.length * 0.4));
+  const minimumRepeatCount =
+    featureId === 'rubrics' ? (items.length < 6 ? items.length : Math.max(6, Math.ceil(items.length * 0.7))) : 3;
+  const repeatRatio = featureId === 'rubrics' ? 0.7 : 0.4;
+  const repeated = [...counts.entries()].find(
+    ([, count]) => count >= minimumRepeatCount && count >= Math.ceil(items.length * repeatRatio),
+  );
   if (!repeated) return;
 
   issues.push(
@@ -768,7 +816,7 @@ export function buildPackageRepairQueue({
   });
 
   asArray(healthReport?.findings).forEach((finding) => {
-    if (finding?.severity !== 'error' && finding?.severity !== 'warning') return;
+    if (finding?.severity !== 'error') return;
     const lessonIndices =
       Number.isInteger(finding.lessonIndex) && finding.lessonIndex >= 0
         ? [finding.lessonIndex]

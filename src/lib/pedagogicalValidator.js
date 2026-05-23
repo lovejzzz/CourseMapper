@@ -171,6 +171,26 @@ function asArray(value) {
   return value ? [value] : [];
 }
 
+function collectText(value, output = []) {
+  if (value == null) return output;
+  if (typeof value === 'string' || typeof value === 'number') {
+    output.push(String(value));
+    return output;
+  }
+  if (Array.isArray(value)) {
+    value.forEach((item) => collectText(item, output));
+    return output;
+  }
+  if (typeof value === 'object') {
+    Object.values(value).forEach((item) => collectText(item, output));
+  }
+  return output;
+}
+
+function textify(value) {
+  return collectText(value).join(' ').replace(/\s+/g, ' ').trim();
+}
+
 function getQuizQuestions(quiz) {
   return asArray(quiz?.qs || quiz?.questions || quiz?.items);
 }
@@ -198,6 +218,94 @@ function getAssignmentObjectives(assignment) {
 
 function getRubricCriteria(rubric) {
   return asArray(rubric?.cr || rubric?.criteria || rubric?.rows || rubric?.performanceCriteria);
+}
+
+function extractLessonNumbersFromText(value) {
+  const text = textify(value);
+  const lessonNumbers = new Set();
+  for (const match of text.matchAll(/\b(?:lesson|week|module)\s*#?\s*(\d{1,2})\b/gi)) {
+    const num = Number(match[1]);
+    if (Number.isInteger(num) && num > 0) lessonNumbers.add(num);
+  }
+  return [...lessonNumbers];
+}
+
+function getRubricLessonText(rubric) {
+  return textify([
+    rubric?.lessonNumber,
+    rubric?.ln,
+    rubric?.lesson,
+    rubric?.week,
+    rubric?.module,
+    rubric?.lessonTitle,
+    rubric?.lt,
+    rubric?.relatedLessons,
+    rubric?.rl,
+    rubric?.lessonTitles,
+    rubric?.title,
+    rubric?.t,
+    rubric?.assessmentTitle,
+    rubric?.assessment,
+    rubric?.assessmentType,
+    rubric?.at,
+    rubric?.tags,
+    rubric?.tg,
+  ]);
+}
+
+function rubricMatchesLesson(rubric, lesson, lessonIndex) {
+  if (!rubric || !lesson) return false;
+  const lessonNumber = lessonIndex + 1;
+  const numericFields = [rubric.lessonNumber, rubric.ln, rubric.lesson, rubric.week, rubric.module]
+    .map((value) => Number(value))
+    .filter((value) => Number.isInteger(value) && value > 0);
+  if (numericFields.includes(lessonNumber)) return true;
+
+  const rubricLessonText = getRubricLessonText(rubric);
+  const explicitNumbers = extractLessonNumbersFromText(rubricLessonText);
+  if (explicitNumbers.length > 0) return explicitNumbers.includes(lessonNumber);
+
+  const lessonTitle = norm(lesson?.title);
+  const rubricText = norm(rubricLessonText);
+  return (
+    lessonTitle.length >= 8 &&
+    rubricText.length >= 8 &&
+    (rubricText.includes(lessonTitle) || lessonTitle.includes(rubricText))
+  );
+}
+
+function getRubricsForLesson(rubrics, lesson, lessonIndex, lessons) {
+  if (!Array.isArray(rubrics) || rubrics.length === 0) return [];
+  const matched = rubrics.filter((rubric) => rubricMatchesLesson(rubric, lesson, lessonIndex));
+  if (matched.length > 0) return matched;
+  return rubrics.length === lessons.length && rubrics[lessonIndex] ? [rubrics[lessonIndex]] : [];
+}
+
+function getLessonAssessmentText(lesson) {
+  const sectionText = asArray(lesson?.sections)
+    .map((section) =>
+      textify([
+        section?.weeklyAssessments,
+        section?.weeklyAssessment,
+        section?.assessments,
+        section?.assessment,
+        section?.assessmentPlan,
+        section?.as,
+      ]),
+    )
+    .join(' ');
+  return sectionText || textify([lesson?.weeklyAssessments, lesson?.assessments, lesson?.assessment, lesson?.as]);
+}
+
+function lessonHasAssessmentCue(lesson) {
+  const assessmentText = getLessonAssessmentText(lesson);
+  if (!assessmentText) return false;
+  const negative =
+    /\b(no\s+(?:graded\s+)?(?:assessment|assignment|quiz|exam|rubric)|not\s+graded|ungraded|optional|informal\s+check|practice\s+only)\b/i;
+  const positive =
+    /\b(quiz|exam|test|assignment|project|paper|essay|portfolio|presentation|report|brief|memo|problem\s+set|case\s+study|lab\s+report|reflection|analysis|proposal|deliverable|graded|grade|points?|rubric|submit|submission|discussion\s+post|assessment)\b/i;
+  if (negative.test(assessmentText)) return false;
+  return positive.test(assessmentText);
 }
 
 function getAlignmentText(item) {
@@ -371,9 +479,11 @@ export function validateObjectiveAlignment(courseMap, deliverables) {
 
     // Collect all assessment alignment texts for this lesson
     const assessmentAlignments = [];
+    let assessmentItemSeen = false;
 
     const quizzes = getDelivArray(deliverables, 'quizBank');
     if (quizzes && quizzes[li]) {
+      assessmentItemSeen = true;
       for (const q of getQuizQuestions(quizzes[li])) {
         const alignment = getAlignmentText(q);
         if (alignment) assessmentAlignments.push(norm(Array.isArray(alignment) ? alignment.join(' ') : alignment));
@@ -386,6 +496,7 @@ export function validateObjectiveAlignment(courseMap, deliverables) {
       for (const a of assignments) {
         const related = getRelatedLessons(a).map(norm);
         if (related.some((r) => r.includes(lessonTitle) || lessonTitle.includes(r))) {
+          assessmentItemSeen = true;
           for (const ob of getAssignmentObjectives(a)) {
             assessmentAlignments.push(norm(ob));
           }
@@ -394,11 +505,24 @@ export function validateObjectiveAlignment(courseMap, deliverables) {
     }
 
     const rubrics = getDelivArray(deliverables, 'rubrics');
-    if (rubrics && rubrics[li]) {
-      for (const cr of getRubricCriteria(rubrics[li])) {
-        const alignment = getAlignmentText(cr);
-        if (alignment) assessmentAlignments.push(norm(Array.isArray(alignment) ? alignment.join(' ') : alignment));
+    const lessonRubrics = getRubricsForLesson(rubrics, lesson, li, lessons);
+    if (lessonRubrics.length > 0) {
+      assessmentItemSeen = true;
+      for (const rubric of lessonRubrics) {
+        for (const cr of getRubricCriteria(rubric)) {
+          const alignment = getAlignmentText(cr);
+          if (alignment) assessmentAlignments.push(norm(Array.isArray(alignment) ? alignment.join(' ') : alignment));
+        }
       }
+    }
+
+    if (
+      assessmentAlignments.length === 0 &&
+      objectives.length > 0 &&
+      !assessmentItemSeen &&
+      !lessonHasAssessmentCue(lesson)
+    ) {
+      continue;
     }
 
     if (assessmentAlignments.length === 0 && objectives.length > 0) {

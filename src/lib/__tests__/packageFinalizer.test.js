@@ -188,6 +188,103 @@ describe('packageFinalizer', () => {
     ]);
   });
 
+  it('does not block clean flat rubrics because of lesson-array position', () => {
+    const courseMap = {
+      courseName: 'Public Health Planning',
+      lessons: [
+        {
+          title: 'Lesson 1: Planning Cycle',
+          sections: [
+            {
+              learningGoals: 'Build public health planning skill.',
+              learningObjectives: 'Analyze the planning cycle purpose',
+              weeklyAssessments: 'Planning memo submission.',
+            },
+          ],
+        },
+        {
+          title: 'Lesson 2: Implementation Evidence',
+          sections: [
+            {
+              learningGoals: 'Build evidence review skill.',
+              learningObjectives: 'Evaluate implementation evidence',
+              weeklyAssessments: 'Evidence analysis brief.',
+            },
+          ],
+        },
+        {
+          title: 'Lesson 3: Studio Reflection',
+          sections: [
+            {
+              learningGoals: 'Build reflective practice skill.',
+              learningObjectives: 'Discuss reflection practices',
+              weeklyAssessments: 'No graded assessment this week; formative discussion only.',
+            },
+          ],
+        },
+      ],
+    };
+    const makeRubric = (lessonTitle, objective, topic) => ({
+      lessonTitle,
+      title: `${topic} Rubric`,
+      totalPoints: 100,
+      criteria: [
+        {
+          criterion: `${topic} evidence`,
+          objectiveAligned: objective,
+          weight: 34,
+          points: 34,
+          exemplary: 'Uses evidence accurately with clear interpretation.',
+          proficient: 'Uses evidence with relevant interpretation.',
+          developing: 'Uses limited evidence.',
+          beginning: 'Uses minimal evidence.',
+        },
+        {
+          criterion: `${topic} reasoning`,
+          objectiveAligned: objective,
+          weight: 33,
+          points: 33,
+          exemplary: 'Explains choices with logical specific reasoning.',
+          proficient: 'Explains choices with clear reasoning.',
+          developing: 'Explains some choices.',
+          beginning: 'Gives limited reasoning.',
+        },
+        {
+          criterion: `${topic} communication`,
+          objectiveAligned: objective,
+          weight: 33,
+          points: 33,
+          exemplary: 'Presents work in an organized readable format.',
+          proficient: 'Presents organized work.',
+          developing: 'Presents uneven work.',
+          beginning: 'Presents unclear work.',
+        },
+      ],
+    });
+
+    const result = runDeterministicPackageFinalizer({
+      courseMap,
+      selectedFeatures: ['courseMap', 'rubrics'],
+      includeClassroomReadiness: true,
+      includePedagogicalValidation: true,
+      deliverables: {
+        rubrics: {
+          status: 'done',
+          data: {
+            rubrics: [
+              makeRubric('Lesson 2: Implementation Evidence', 'Evaluate implementation evidence', 'Evidence brief'),
+              makeRubric('Lesson 1: Planning Cycle', 'Analyze the planning cycle purpose', 'Planning memo'),
+            ],
+          },
+        },
+      },
+    });
+
+    expect(result.status).toBe('ready');
+    expect(result.readiness.issues).toEqual([]);
+    expect(result.retryActions).toEqual([]);
+  });
+
   it('returns exact retry actions for localized weak sections', () => {
     const result = runDeterministicPackageFinalizer({
       courseMap: makeCourseMap(2),
