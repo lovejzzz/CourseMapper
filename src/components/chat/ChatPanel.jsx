@@ -86,7 +86,7 @@ function buildPackageReceiptSummary(packageQualityPass, courseMap, selectedFeatu
     checkedSections:
       receipt.checkedSections || (checkedFeatureCount > 0 ? `${checkedFeatureCount}/${checkedFeatureCount}` : ''),
     lessonCount: receipt.lessonCount || courseMap?.lessons?.length || 0,
-    topIssues: receipt.topIssues || [],
+    topIssues: ready ? [] : receipt.topIssues || [],
   };
 }
 

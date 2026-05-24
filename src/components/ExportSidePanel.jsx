@@ -375,6 +375,22 @@ function mergeFinalizerRetryIssues(readiness, finishResult) {
   };
 }
 
+function hasBlockingReadinessIssues(readiness) {
+  return (readiness?.blockers?.length || 0) > 0;
+}
+
+function getDownloadReadiness(readiness) {
+  if (!readiness || hasBlockingReadinessIssues(readiness)) return readiness;
+  return {
+    ...readiness,
+    status: 'ready',
+    isBlocked: false,
+    blockers: [],
+    warnings: [],
+    issues: [],
+  };
+}
+
 function ReadinessPanel({ readiness, onIssueClick }) {
   if (!readiness || readiness.featureCount === 0) return null;
 
@@ -661,7 +677,7 @@ export default function ExportSidePanel({
           columns,
           lessonFilter: effectiveLessonFilter,
         },
-        { includeClassroomReadiness: true, blockOnClassroomWarnings: true },
+        { includeClassroomReadiness: true, blockOnClassroomWarnings: false },
       ),
     [columns, courseMap, deliverables, effectiveLessonFilter, selectedFeatures],
   );
@@ -679,13 +695,13 @@ export default function ExportSidePanel({
   const activeReadiness = scope === 'all' ? workspaceReadiness : currentReadiness;
   const zipPendingReadiness = pendingReadinessExport?.format === 'zip';
   const displayedReadiness =
-    pendingReadinessExport?.scope === scope ? pendingReadinessExport.readiness : activeReadiness;
+    pendingReadinessExport?.scope === scope ? pendingReadinessExport.readiness : getDownloadReadiness(activeReadiness);
   const activeExportFeatureIds = useMemo(
     () => (scope === 'all' ? selectedFeatures : [activeTab]),
     [activeTab, scope, selectedFeatures],
   );
   const readinessIssueSignature = useMemo(() => {
-    const issues = activeReadiness?.issues || [];
+    const issues = activeReadiness?.blockers || [];
     if (issues.length === 0) return '';
     const lessonScopeKey = effectiveLessonFilter === null ? 'all' : effectiveLessonFilter.join(',');
     return [
@@ -760,7 +776,7 @@ export default function ExportSidePanel({
         columns,
         lessonFilter: exportScope === 'all' ? effectiveLessonFilter : null,
       },
-      { includeClassroomReadiness: exportScope === 'all', blockOnClassroomWarnings: exportScope === 'all' },
+      { includeClassroomReadiness: exportScope === 'all', blockOnClassroomWarnings: false },
     );
   }
 
@@ -844,7 +860,7 @@ export default function ExportSidePanel({
       exportReadiness = getReadinessSnapshot({ exportCourseMap, exportDeliverables, exportScope });
     }
 
-    if (exportReadiness.blockers.length > 0 || exportReadiness.warnings.length > 0) {
+    if (hasBlockingReadinessIssues(exportReadiness)) {
       const canFinishPackageAgain =
         !finishOutcome || ((finishOutcome.retryActions?.length || 0) > 0 && !finishOutcome.retryExhausted);
       const pendingExport = {
@@ -873,6 +889,7 @@ export default function ExportSidePanel({
       return;
     }
 
+    const downloadReadiness = getDownloadReadiness(exportReadiness);
     setPendingReadinessExport(null);
     setLastNotice(
       repairsApplied > 0
@@ -898,7 +915,7 @@ export default function ExportSidePanel({
             courseName: exportCourseMap?.courseName || courseName,
             lessonFilter: effectiveLessonFilter,
             slideTheme,
-            readiness: exportReadiness,
+            readiness: downloadReadiness,
             featureIds: getExportFeatureIds(exportScope),
           });
           setLastOk(`ZIP downloaded with ${zipResult.files.length} file${zipResult.files.length === 1 ? '' : 's'}.`);
@@ -1019,7 +1036,7 @@ export default function ExportSidePanel({
 
   const allSelected = selectedLessons === null;
   const selectedCount = selectedLessons === null ? allLessons.length : selectedLessons.length;
-  const activeHasReadinessIssues = displayedReadiness.blockers.length > 0 || displayedReadiness.warnings.length > 0;
+  const activeHasReadinessIssues = hasBlockingReadinessIssues(displayedReadiness);
   const zipPendingNeedsAttention = zipPendingReadiness && pendingReadinessExport?.canFinishPackageAgain === false;
   const zipCanFinishPackage =
     scope === 'all' && activeHasReadinessIssues && canFinishPackage && !zipPendingNeedsAttention;

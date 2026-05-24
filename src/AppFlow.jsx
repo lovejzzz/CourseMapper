@@ -98,11 +98,15 @@ function buildQualityReceipt({
   retryCount = 0,
   selectedFeatureIds = [],
   courseMap,
+  includeWarnings = true,
 }) {
   const readiness = result?.readiness || {};
   const blockers = Array.isArray(readiness.blockers) ? readiness.blockers : [];
   const warnings = Array.isArray(readiness.warnings) ? readiness.warnings : [];
-  const topIssues = [...blockers, ...warnings].map(summarizeReceiptIssue).filter(Boolean).slice(0, 3);
+  const topIssues = [...blockers, ...(includeWarnings ? warnings : [])]
+    .map(summarizeReceiptIssue)
+    .filter(Boolean)
+    .slice(0, 3);
   const checkedFeatureCount = Array.isArray(selectedFeatureIds) ? selectedFeatureIds.length : 0;
   return {
     checkedItems: ['Readiness', 'classroom fit', 'content validation', 'export files'],
@@ -110,7 +114,7 @@ function buildQualityReceipt({
     lessonCount: courseMap?.lessons?.length || 0,
     autoFixedCount: repairsApplied,
     retriedCount: retryCount,
-    humanDecisionCount: blockers.length + warnings.length,
+    humanDecisionCount: blockers.length + (includeWarnings ? warnings.length : 0),
     exportChecked: exportVerification?.checked || 0,
     exportFailed: exportVerification?.failed || 0,
     exportWarningCount: exportVerification?.warningCount || 0,
@@ -842,10 +846,11 @@ export default function AppFlow({ startupAction = null, onStartupHandled, onRetu
             lessonFilter,
             deliverableConfig,
             includeClassroomReadiness: true,
-            blockOnClassroomWarnings: true,
+            blockOnClassroomWarnings: false,
             includePedagogicalValidation: true,
             blockOnValidationWarnings: false,
             maxRetryActions: retryLimit,
+            retryWarnings: false,
           });
 
         setPackageQualityPass({
@@ -1216,8 +1221,9 @@ export default function AppFlow({ startupAction = null, onStartupHandled, onRetu
         const exportFailures = exportVerification?.failed || 0;
         const exportWarnings = exportVerification?.warningCount || 0;
         const blockers = result.readiness.blockers.length + exportFailures;
-        const warnings = result.readiness.warnings.length + unresolvedRetryCount + exportWarnings;
-        const finalStatus = blockers > 0 ? 'blocked' : warnings > 0 ? 'warnings' : 'ready';
+        const reviewWarningCount = result.readiness.warnings.length + unresolvedRetryCount + exportWarnings;
+        const finalStatus = blockers > 0 ? 'blocked' : 'ready';
+        const warnings = finalStatus === 'ready' ? 0 : reviewWarningCount;
         const retryText = retryCount > 0 ? `Retried ${retryCount} weak area${retryCount === 1 ? '' : 's'}. ` : '';
         const skippedRetryText =
           unresolvedRetryCount > 0 && !canRetryWeakSpots
@@ -1243,7 +1249,10 @@ export default function AppFlow({ startupAction = null, onStartupHandled, onRetu
             : exportWarnings > 0
               ? `Export verification found ${exportWarnings} warning${exportWarnings === 1 ? '' : 's'}. `
               : '';
-        const finalizerMessage = String(result.message || '').replace(/^Auto-fixed \d+ safe issues?\. /, '');
+        const finalizerMessage =
+          finalStatus === 'ready'
+            ? 'All required files passed export checks and the package is ready to download.'
+            : String(result.message || '').replace(/^Auto-fixed \d+ safe issues?\. /, '');
         const receipt = buildQualityReceipt({
           result,
           exportVerification,
@@ -1251,11 +1260,15 @@ export default function AppFlow({ startupAction = null, onStartupHandled, onRetu
           retryCount,
           selectedFeatureIds: featureIds,
           courseMap: result.courseMap || courseMapRef.current,
+          includeWarnings: finalStatus !== 'ready',
         });
 
         setPackageQualityPass({
           status: finalStatus,
-          message: `${retryText}${skippedRetryText}${repairText}${exportText}${finalizerMessage}`,
+          message:
+            finalStatus === 'ready'
+              ? `${repairText}${exportText}${finalizerMessage}`
+              : `${retryText}${skippedRetryText}${repairText}${exportText}${finalizerMessage}`,
           repairsApplied: totalRepairsApplied,
           warnings,
           blockers,

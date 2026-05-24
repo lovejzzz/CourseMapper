@@ -1391,7 +1391,7 @@ test.describe('Export smoke', () => {
     });
   });
 
-  test('blocks ZIP export when discussion guidance needs review notes', async ({ page }) => {
+  test('downloads ZIP when discussion guidance only has review notes', async ({ page }) => {
     await restoreExportWorkspace(page, (snapshot) => {
       snapshot.selectedFeatures = ['courseMap', 'discussions'];
       snapshot.deliverables = {
@@ -1438,14 +1438,13 @@ test.describe('Export smoke', () => {
     });
 
     await page.getByTestId('export-scope-all').click();
-    await expect(page.getByTestId('readiness-status')).toContainText('Finish package');
-    await expect(page.getByTestId('readiness-panel')).toContainText('Discussion Prompts');
-    await expect(page.getByTestId('readiness-panel')).toContainText('missing instructor guidance');
-    await page.getByTestId('export-download-zip').click();
-    await expect(page.getByTestId('readiness-confirm')).toBeVisible();
-    await expect(page.getByTestId('readiness-confirm')).toContainText('Needs attention before export');
-    await expect(page.getByTestId('readiness-confirm')).toContainText('missing instructor guidance');
-    await expect(page.getByTestId('readiness-export-anyway')).toHaveCount(0);
+    await expect(page.getByTestId('readiness-status')).toContainText('Ready to download');
+    await expect(page.getByTestId('readiness-panel')).not.toContainText('missing instructor guidance');
+    await expectDownload(page, () => page.getByTestId('export-download-zip').click(), {
+      extension: 'zip',
+      nameIncludes: 'Export Smoke Course',
+      minBytes: 1000,
+    });
   });
 
   test('blocks non-ZIP export with review notes without promising a readiness report', async ({ page }) => {

@@ -331,4 +331,51 @@ describe('packageFinalizer', () => {
       expect.objectContaining({ featureId: 'slideDecks', lessonIndex: 0, lessonNumber: 1 }),
     ]);
   });
+
+  it('can keep warnings out of the model retry queue', () => {
+    const result = runDeterministicPackageFinalizer({
+      courseMap: makeCourseMap(2),
+      selectedFeatures: ['slideDecks'],
+      includeClassroomReadiness: false,
+      includePedagogicalValidation: false,
+      retryWarnings: false,
+      deliverables: {
+        slideDecks: {
+          status: 'done',
+          data: {
+            decks: [
+              {
+                lessonTitle: 'Lesson 1: Research Topic 1',
+                slides: [{ title: 'Opening', speakerNotes: 'Introduce the lesson and name the evidence task.' }],
+              },
+              {
+                lessonTitle: 'Lesson 2: Research Topic 2',
+                slides: [
+                  {
+                    title: 'Opening',
+                    speakerNotes:
+                      'Introduce the lesson, name the evidence task, and connect the work to the assessment criteria.',
+                  },
+                  {
+                    title: 'Practice',
+                    speakerNotes:
+                      'Students compare examples, identify evidence quality, and explain why one source is stronger.',
+                  },
+                  {
+                    title: 'Debrief',
+                    speakerNotes:
+                      'Close by naming next steps, common misconceptions, and submission expectations for the lesson.',
+                  },
+                ],
+              },
+            ],
+          },
+        },
+      },
+    });
+
+    expect(result.status).toBe('needs_review');
+    expect(result.readiness.warnings.length).toBeGreaterThan(0);
+    expect(result.retryActions).toEqual([]);
+  });
 });

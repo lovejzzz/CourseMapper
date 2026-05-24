@@ -209,6 +209,7 @@ export function runDeterministicPackageFinalizer({
   includePedagogicalValidation = true,
   blockOnValidationWarnings = false,
   maxRetryActions = 4,
+  retryWarnings = true,
 } = {}) {
   const repairResult = applyDeterministicRepairs({
     courseMap,
@@ -240,12 +241,26 @@ export function runDeterministicPackageFinalizer({
       healthReport,
     },
   );
+  const retryReadiness = retryWarnings
+    ? readiness.workspaceReadiness
+    : {
+        ...readiness.workspaceReadiness,
+        warnings: [],
+        issues: readiness.workspaceReadiness?.blockers || [],
+      };
+  const retryClassroomReadiness = retryWarnings
+    ? readiness.classroomReadiness
+    : {
+        ...readiness.classroomReadiness,
+        warnings: [],
+        issues: readiness.classroomReadiness?.blockers || [],
+      };
   const repairQueue = buildPackageRepairQueue({
     courseMap: finalCourseMap,
     deliverables: finalDeliverables,
     selectedFeatures,
-    readiness: readiness.workspaceReadiness,
-    classroomReadiness: readiness.classroomReadiness,
+    readiness: retryReadiness,
+    classroomReadiness: retryClassroomReadiness,
     healthReport,
     maxActions: maxRetryActions,
   });
