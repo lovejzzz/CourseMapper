@@ -813,6 +813,19 @@ describe('deliverableToCsvRows — syllabus', () => {
     expect(rows[0][1]).toContain('Intro');
   });
 
+  it('accepts plain-text course requirements from restored or older syllabus snapshots', () => {
+    const data = {
+      syllabus: {
+        courseTitle: 'Resilience Studio',
+        courseRequirements:
+          'Students complete quizzes, discussion posts, studio briefs, and a final capstone action plan.',
+      },
+    };
+
+    const { rows } = deliverableToCsvRows('syllabus', data);
+    expect(rows.find((r) => r[0] === 'Course Requirements')[1]).toContain('final capstone action plan');
+  });
+
   it('preserves syllabus orientation, alignment, support, and maintenance fields', () => {
     const data = {
       syllabus: {

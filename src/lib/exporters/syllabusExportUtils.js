@@ -24,10 +24,34 @@ export function formatRequiredText(text) {
 
 export function formatRequirement(requirement) {
   if (!requirement) return '';
+  if (typeof requirement === 'string') return requirement;
   const label = requirement.name || requirement.component || 'Requirement';
   const weight = requirement.weight ? `: ${requirement.weight}` : '';
   const description = requirement.description ? ` - ${requirement.description}` : '';
   return `${label}${weight}${description}`;
+}
+
+export function normalizeCourseRequirements(...values) {
+  for (const value of values) {
+    if (!value) continue;
+    if (Array.isArray(value)) {
+      return value
+        .map((item) => {
+          if (typeof item === 'string') {
+            const trimmed = item.trim();
+            return trimmed ? { name: 'Course Requirements', weight: '', description: trimmed } : null;
+          }
+          return item && typeof item === 'object' ? item : null;
+        })
+        .filter(Boolean);
+    }
+    if (typeof value === 'string') {
+      const trimmed = value.trim();
+      return trimmed ? [{ name: 'Course Requirements', weight: '', description: trimmed }] : [];
+    }
+    if (typeof value === 'object') return [value];
+  }
+  return [];
 }
 
 export function formatOutcomeAlignment(row) {
@@ -71,7 +95,7 @@ export function buildSyllabusCsvRows(data) {
     }
   }
   if (syl.requiredTexts?.length) add('Required Texts', syl.requiredTexts.map(formatRequiredText).join('; '));
-  const reqs = syl.courseRequirements || syl.gradingPolicy || [];
+  const reqs = normalizeCourseRequirements(syl.courseRequirements, syl.gradingPolicy);
   if (reqs.length) add('Course Requirements', reqs.map(formatRequirement).join('; '));
   if (syl.gradingScale?.length) add('Grading Scale', syl.gradingScale.map((g) => `${g.grade}: ${g.range}`).join('; '));
   add('Attendance & Participation', syl.attendancePolicy);

@@ -16,6 +16,7 @@ import {
   SectionHeading,
   FEATURE_META,
 } from './shared/SharedComponents';
+import { normalizeCourseRequirements } from '../../lib/exporters/syllabusExportUtils';
 
 // ─── Syllabus ───
 // Helper: render a policy block (heading + editable text)
@@ -63,7 +64,7 @@ export default function SyllabusView({ data, isStreaming, onEdit }) {
   if (!syl.courseTitle && !syl.courseDescription) return <EmptyState />;
 
   // Backward compat: old schema had gradingPolicy, new has courseRequirements
-  const requirements = syl.courseRequirements || syl.gradingPolicy || [];
+  const requirements = normalizeCourseRequirements(syl.courseRequirements, syl.gradingPolicy);
   const hasDescription = requirements.some((r) => r.description);
 
   return (

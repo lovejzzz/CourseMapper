@@ -1,6 +1,6 @@
 import { loadPdfLibs, getDocx, getSaveAs, resolveFeatureLabel } from './exporterUtils.js';
 import { deliverableToCsvRows } from './csvExporter.js';
-import { formatOutcomeAlignment, formatRequiredText } from './syllabusExportUtils.js';
+import { formatOutcomeAlignment, formatRequiredText, normalizeCourseRequirements } from './syllabusExportUtils.js';
 
 // PDF EXPORT
 // ════════════════════════════════════════════════════════════════
@@ -149,7 +149,7 @@ export async function exportDeliverablePdf(featureId, data, courseName) {
     }
 
     // ── Course Requirements & Grading ──
-    const reqs = syl.courseRequirements || syl.gradingPolicy || [];
+    const reqs = normalizeCourseRequirements(syl.courseRequirements, syl.gradingPolicy);
     if (reqs.length) {
       drawSectionHeading('Course Requirements & Grading');
       checkPage(20);

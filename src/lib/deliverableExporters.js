@@ -3,7 +3,12 @@
 // Google Docs, or Google Sheets.
 
 import { getCustomDeliverable } from './customDeliverableLibrary';
-import { buildSyllabusCsvRows, formatOutcomeAlignment, formatRequiredText } from './exporters/syllabusExportUtils.js';
+import {
+  buildSyllabusCsvRows,
+  formatOutcomeAlignment,
+  formatRequiredText,
+  normalizeCourseRequirements,
+} from './exporters/syllabusExportUtils.js';
 import { expandKeys } from './keyMaps';
 import { buildXlsxWorkbook } from './lightweightXlsx.js';
 import { loadPdfRuntime } from './pdfRuntime.js';
@@ -568,7 +573,7 @@ export async function exportDeliverablePdf(featureId, data, courseName) {
     }
 
     // ── Course Requirements & Grading ──
-    const reqs = syl.courseRequirements || syl.gradingPolicy || [];
+    const reqs = normalizeCourseRequirements(syl.courseRequirements, syl.gradingPolicy);
     if (reqs.length) {
       drawSectionHeading('Course Requirements & Grading');
       checkPage(20);
@@ -1313,7 +1318,7 @@ function _buildDocxContentShared(featureId, data, children, docx) {
         syl.requiredTexts.forEach((t) => children.push(makeBullet(formatRequiredText(t))));
       }
       // Course Requirements
-      const reqs = syl.courseRequirements || syl.gradingPolicy || [];
+      const reqs = normalizeCourseRequirements(syl.courseRequirements, syl.gradingPolicy);
       if (reqs.length) {
         children.push(makeHeading('Course Requirements & Grading'));
         const hasDesc = reqs.some((r) => r.description);

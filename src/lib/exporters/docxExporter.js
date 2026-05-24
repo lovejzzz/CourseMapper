@@ -1,6 +1,6 @@
 import { loadPdfLibs, getDocx, getSaveAs, resolveFeatureLabel } from './exporterUtils.js';
 import { expandKeys } from '../keyMaps.js';
-import { formatOutcomeAlignment, formatRequiredText } from './syllabusExportUtils.js';
+import { formatOutcomeAlignment, formatRequiredText, normalizeCourseRequirements } from './syllabusExportUtils.js';
 
 // DOCX EXPORT
 // ════════════════════════════════════════════════════════════════
@@ -604,7 +604,7 @@ export function _buildDocxContentShared(featureId, data, children, docx) {
         syl.requiredTexts.forEach((t) => children.push(makeBullet(formatRequiredText(t))));
       }
       // Course Requirements
-      const reqs = syl.courseRequirements || syl.gradingPolicy || [];
+      const reqs = normalizeCourseRequirements(syl.courseRequirements, syl.gradingPolicy);
       if (reqs.length) {
         children.push(makeHeading('Course Requirements & Grading'));
         const hasDesc = reqs.some((r) => r.description);
