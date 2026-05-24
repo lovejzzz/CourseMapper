@@ -349,6 +349,7 @@ function mergePackageExportFailureIssues(readiness, exportError) {
 function mergeFinalizerRetryIssues(readiness, finishResult) {
   const retryActions = Array.isArray(finishResult?.retryActions) ? finishResult.retryActions : [];
   if (finishResult?.status !== 'needs_retry' || retryActions.length === 0) return readiness;
+  const exhausted = finishResult?.retryExhausted || finishResult?.retryNoProgress;
   const issues = retryActions.map((action) => {
     const lessonLabel = Number.isInteger(action.lessonIndex)
       ? `Lesson ${action.lessonIndex + 1}`
@@ -357,7 +358,9 @@ function mergeFinalizerRetryIssues(readiness, finishResult) {
       featureId: action.featureId,
       label: FEATURE_LABELS[action.featureId] || action.featureId || 'Deliverable',
       severity: 'warning',
-      message: `${lessonLabel} needs one more targeted retry before export.`,
+      message: exhausted
+        ? `${lessonLabel} still needs instructor review; automatic retry already ran without progress.`
+        : `${lessonLabel} needs one more targeted retry before export.`,
       lessonIndex: Number.isInteger(action.lessonIndex) ? action.lessonIndex : null,
       target: Number.isInteger(action.lessonIndex)
         ? { type: 'lesson', featureId: action.featureId, lessonIndex: action.lessonIndex }

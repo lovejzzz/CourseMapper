@@ -77,6 +77,7 @@ import { runDeterministicPackageFinalizer } from './lib/packageFinalizer';
 import { applyApiCallBudgetEvent, createApiCallBudget, getApiCallBudgetTotal } from './lib/apiCallBudget';
 import { buildApiCostPlan, evaluateApiCostControl } from './lib/apiCostControl';
 import { getChunkCount } from './lib/parallelGenerator';
+import { traceLog } from './lib/traceLog';
 
 const STORAGE_KEY = 'coursemapper-project';
 
@@ -118,7 +119,6 @@ function buildQualityReceipt({
 }
 
 function traceApiCallBudget(event = {}, budget = {}) {
-  if (typeof console === 'undefined') return;
   const counters = {
     modelDiscovery: budget.modelDiscoveryCalls || 0,
     creditCheck: budget.creditCheckCalls || 0,
@@ -132,7 +132,7 @@ function traceApiCallBudget(event = {}, budget = {}) {
     imageGeneration: budget.imageGenerationCalls || 0,
     failed: budget.failedCalls || 0,
   };
-  console.info(`[CM][API] ${event.type || 'event'}`, {
+  traceLog(`[CM][API] ${event.type || 'event'}`, {
     at: new Date().toISOString(),
     runId: budget.runId,
     label: event.label || '',
@@ -156,12 +156,14 @@ function createPackageFinishRunId() {
 }
 
 function tracePackageFinish(runId, event, details = {}, level = 'info') {
-  if (typeof console === 'undefined') return;
-  const method = level === 'error' ? 'error' : level === 'warn' ? 'warn' : 'info';
-  console[method](`[CM][FINISH][${runId}] ${event}`, {
-    at: new Date().toISOString(),
-    ...details,
-  });
+  traceLog(
+    `[CM][FINISH][${runId}] ${event}`,
+    {
+      at: new Date().toISOString(),
+      ...details,
+    },
+    level,
+  );
 }
 
 function getRetryActionKey(action = {}) {
@@ -169,6 +171,10 @@ function getRetryActionKey(action = {}) {
   const featureId = action.featureId || 'unknown';
   const lessonPart = Number.isInteger(action.lessonIndex) ? `lesson-${action.lessonIndex}` : 'feature';
   return `${scope}:${featureId}:${lessonPart}`;
+}
+
+function getSuppressedRetryActionKey(action = {}, provider = '', modelId = '') {
+  return `${provider || 'provider'}:${modelId || 'model'}:${getRetryActionKey(action)}`;
 }
 
 function estimateRetryActionCallCost(action, courseMap, lessonFilter, generationPlan) {
@@ -535,6 +541,7 @@ export default function AppFlow({ startupAction = null, onStartupHandled, onRetu
   const packageFinalizerRef = useRef(null);
   const packageFinalizerInFlightRef = useRef(null);
   const packageGenerationInFlightRef = useRef(false);
+  const suppressedPackageRetryKeysRef = useRef(new Set());
   const canFinishPackageWithAgent = isAgentProviderReady({ provider, apiKey, apiStatus, modelId });
   const handleAIAction = useCallback((prompt) => {
     // Handle "__FOCUS__" prefix — pre-fill chat with context but let user type
@@ -882,6 +889,7 @@ export default function AppFlow({ startupAction = null, onStartupHandled, onRetu
         let retryCallCount = 0;
         let skippedRetryCallCount = 0;
         let skippedRetryActionCount = 0;
+        let suppressedRetryActionCount = 0;
         let retryBudgetExhausted = false;
         let retryPassLimitReached = false;
         let retryNoProgress = false;
@@ -926,13 +934,66 @@ export default function AppFlow({ startupAction = null, onStartupHandled, onRetu
             break;
           }
 
-          const retryActionsNotYetAttempted = result.retryActions.filter(
+          const retryActionsNotSuppressed = result.retryActions.filter(
+            (action) =>
+              !suppressedPackageRetryKeysRef.current.has(getSuppressedRetryActionKey(action, provider, modelId)),
+          );
+          const newlySuppressedRetryActionCount = result.retryActions.length - retryActionsNotSuppressed.length;
+          if (newlySuppressedRetryActionCount > 0) {
+            suppressedRetryActionCount += newlySuppressedRetryActionCount;
+            skippedRetryActionCount += newlySuppressedRetryActionCount;
+            tracePackageFinish(
+              finishRunId,
+              'retry_suppressed',
+              {
+                retryPassCount,
+                suppressedRetryActionCount: newlySuppressedRetryActionCount,
+                suppressed: result.retryActions
+                  .filter((action) =>
+                    suppressedPackageRetryKeysRef.current.has(getSuppressedRetryActionKey(action, provider, modelId)),
+                  )
+                  .map((action) => ({
+                    key: getRetryActionKey(action),
+                    featureId: action.featureId,
+                    lessonIndex: action.lessonIndex,
+                    scope: action.scope,
+                    message: action.message || '',
+                  })),
+              },
+              'warn',
+            );
+          }
+          if (retryActionsNotSuppressed.length === 0) {
+            retryNoProgress = true;
+            tracePackageFinish(
+              finishRunId,
+              'retry_suppressed_no_progress',
+              {
+                retryPassCount,
+                remainingRetryCallBudget,
+                unresolvedRetryActions: result.retryActions.map((action) => ({
+                  key: getRetryActionKey(action),
+                  featureId: action.featureId,
+                  lessonIndex: action.lessonIndex,
+                  scope: action.scope,
+                  message: action.message || '',
+                })),
+              },
+              'warn',
+            );
+            break;
+          }
+
+          const retryActionsNotYetAttempted = retryActionsNotSuppressed.filter(
             (action) => !attemptedRetryKeys.has(getRetryActionKey(action)),
           );
-          const repeatedRetryActionCount = result.retryActions.length - retryActionsNotYetAttempted.length;
+          const repeatedRetryActionCount = retryActionsNotSuppressed.length - retryActionsNotYetAttempted.length;
           skippedRetryActionCount += repeatedRetryActionCount;
           if (retryActionsNotYetAttempted.length === 0) {
             retryNoProgress = true;
+            result.retryActions.forEach((action) => {
+              suppressedPackageRetryKeysRef.current.add(getSuppressedRetryActionKey(action, provider, modelId));
+            });
             tracePackageFinish(
               finishRunId,
               'retry_no_progress',
@@ -1162,7 +1223,9 @@ export default function AppFlow({ startupAction = null, onStartupHandled, onRetu
           unresolvedRetryCount > 0 && !canRetryWeakSpots
             ? `AI setup is needed to retry ${unresolvedRetryCount} weak area${unresolvedRetryCount === 1 ? '' : 's'}. `
             : retryNoProgress
-              ? `Stopped after retrying the same weak area without progress. `
+              ? suppressedRetryActionCount > 0 && retryCount === 0
+                ? `Automatic retry already ran without progress; not spending another model call on the same weak area. `
+                : `Stopped after retrying the same weak area without progress. `
               : retryPassLimitReached
                 ? `Reached the ${retryPassLimit}-pass finishing limit with ${unresolvedRetryCount} weak area${unresolvedRetryCount === 1 ? '' : 's'} still needing attention. `
                 : retryBudgetExhausted
@@ -1207,6 +1270,7 @@ export default function AppFlow({ startupAction = null, onStartupHandled, onRetu
           retryCallCount,
           skippedRetryActionCount,
           skippedRetryCallCount,
+          suppressedRetryActionCount,
           retryBudgetRemaining: remainingRetryCallBudget,
           retryBudgetExhausted,
           retryPassLimitReached,
@@ -1222,6 +1286,7 @@ export default function AppFlow({ startupAction = null, onStartupHandled, onRetu
           retryCallCount,
           skippedRetryActionCount,
           skippedRetryCallCount,
+          suppressedRetryActionCount,
           retryBudgetRemaining: remainingRetryCallBudget,
           retryBudgetExhausted,
           retryPassLimitReached,
@@ -1254,6 +1319,8 @@ export default function AppFlow({ startupAction = null, onStartupHandled, onRetu
       selectedFeatures,
       slideTheme,
       generationPlan,
+      modelId,
+      provider,
       recordApiCallEvent,
     ],
   );
@@ -1988,6 +2055,7 @@ export default function AppFlow({ startupAction = null, onStartupHandled, onRetu
       });
       setDownloadedFile('');
       setActiveTab('courseMap');
+      suppressedPackageRetryKeysRef.current.clear();
       deliv.resetDeliverables();
       setScreen('workspace');
 

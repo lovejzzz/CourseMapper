@@ -62,6 +62,7 @@ import {
 } from '../lib/deliverablePostProcess';
 import { buildApiCostPlan, isNonRetryableFailureClass } from '../lib/apiCostControl';
 import { classifyError } from '../lib/failureClassification';
+import { traceLog } from '../lib/traceLog';
 
 // ── Post-process scoped deliverable output to fix lesson/week numbering ──
 // When the user generates a subset of lessons (e.g., lesson 6 only), the AI may
@@ -273,20 +274,18 @@ function summarizeError(err) {
 }
 
 function traceGeneration(runId, event, details = {}, level = 'info') {
-  if (typeof console === 'undefined') return;
-  const method = level === 'error' ? 'error' : level === 'warn' ? 'warn' : 'info';
-  console[method](`[CM][GEN][${runId}] ${event}`, {
-    at: new Date().toISOString(),
-    ...details,
-  });
+  traceLog(
+    `[CM][GEN][${runId}] ${event}`,
+    {
+      at: new Date().toISOString(),
+      ...details,
+    },
+    level,
+  );
 }
 
 function traceGenerationTable(runId, event, rows = []) {
-  if (typeof console === 'undefined') return;
-  console.groupCollapsed(`[CM][GEN][${runId}] ${event}`);
-  if (typeof console.table === 'function') console.table(rows);
-  else console.info(rows);
-  console.groupEnd();
+  traceLog(`[CM][GEN][${runId}] ${event}`, { at: new Date().toISOString(), rows });
 }
 
 const STREAM_PROGRESS_LOG_CHAR_STEP = 10000;
