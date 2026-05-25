@@ -1998,7 +1998,7 @@ const GENERIC_RUBRIC_CRITERION_RE =
   /^(objective alignment and task completion|use of course concepts and evidence|reasoning,? organization,? and communication|communication and submission quality|concept use|evidence quality|reasoning|communication)$/i;
 
 const GENERIC_RUBRIC_DESCRIPTOR_RE =
-  /\b(target learning objective|required components|course concepts accurately|central claim|relevant concept|course evidence|the response cites|the submission names|understandable reasoning|polished communication|specific evidence)\b/i;
+  /\b(target learning objective|required components|course concepts accurately|central claim|relevant concept|course evidence|the response cites|the submission names|understandable reasoning|polished communication)\b/i;
 
 function rubricCriterionNeedsSpecificity(criterion, nameKey) {
   const name = String(criterion?.[nameKey] || '').trim();
@@ -2041,10 +2041,10 @@ function buildSpecificRubricDescriptors(anchor, criterionName, objective) {
   const lesson = sentenceFragment(stripLessonPrefix(anchor.lessonTitle) || anchor.lessonTitle);
   const objectiveText = sentenceFragment(objective || anchor.objectives[0]);
   return {
-    exemplary: `The student completes ${assessment} with precise ${criterionName.toLowerCase()}, uses specific ${lesson} evidence, and explains how the work demonstrates ${objectiveText}. e.g., The submission names the relevant method or concept, applies it to the lesson task, and justifies one key decision with evidence.`,
-    proficient: `The student completes ${assessment} with accurate ${criterionName.toLowerCase()} and connects the main claim to ${lesson} evidence. e.g., The submission applies the expected concept or method and explains the central result in a way another reader can follow.`,
-    developing: `The student addresses ${assessment} but the ${criterionName.toLowerCase()} is uneven, partly implicit, or supported by limited ${lesson} evidence. e.g., The submission includes the required task but leaves one method choice, evidence link, or limitation underexplained.`,
-    beginning: `The student attempts ${assessment} but shows limited control of ${criterionName.toLowerCase()} or omits important ${lesson} evidence. e.g., The submission names part of the task but gives minimal explanation of how the evidence supports the answer.`,
+    exemplary: `Completes ${assessment} with strong ${criterionName.toLowerCase()}. Uses clear ${lesson} evidence and explains how it shows ${objectiveText}.`,
+    proficient: `Completes most of ${assessment}. Uses relevant ${lesson} evidence and explains the main link to ${objectiveText}.`,
+    developing: `Addresses ${assessment}, but evidence or explanation is incomplete. Some links to ${lesson} are unclear.`,
+    beginning: `Attempts ${assessment}, but key evidence is missing or not connected to ${lesson}.`,
   };
 }
 
