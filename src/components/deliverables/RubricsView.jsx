@@ -50,7 +50,9 @@ export default function RubricsView({
         </div>
       )}
       {rubrics.map((rubric, i) => {
+        const gradedWork = rubric.gradedWork || rubric.gw || rubric.assignmentTitle || rubric.title || '';
         const subtitle = [
+          rubric.lessonTitle,
           rubric.totalPoints ? `${rubric.totalPoints} pts` : null,
           rubric.assessmentType,
           rubric.bloomsLevel,
@@ -69,7 +71,7 @@ export default function RubricsView({
               />
             )}
             <CollapsibleCard
-              title={rubric.lessonTitle || rubric.title || `Rubric ${i + 1}`}
+              title={gradedWork || rubric.lessonTitle || `Rubric ${i + 1}`}
               subtitle={subtitle}
               defaultOpen={i < 3}
               accent="emerald"
@@ -77,9 +79,26 @@ export default function RubricsView({
               regenerating={regeneratingIndex === i}
               fresh={!!freshLessonIndices?.has(i)}
               onRegenerate={onRegenerateLesson && !isStreaming ? () => onRegenerateLesson(i) : undefined}
-              onTitleEdit={onEdit ? (newTitle) => onEdit(['rubrics', i, 'lessonTitle'], newTitle) : undefined}
+              onTitleEdit={
+                onEdit
+                  ? (newTitle) =>
+                      onEdit(
+                        [
+                          'rubrics',
+                          i,
+                          rubric.gradedWork !== undefined || rubric.gw !== undefined ? 'gradedWork' : 'title',
+                        ],
+                        newTitle,
+                      )
+                  : undefined
+              }
             >
               <div className="pt-3 space-y-3">
+                {gradedWork && (
+                  <div className="text-[11px] text-slate-600 bg-emerald-50/70 border border-emerald-100 rounded-lg px-3 py-2">
+                    <span className="font-semibold text-emerald-700">Graded student work:</span> {gradedWork}
+                  </div>
+                )}
                 {/* Save rubric to bank */}
                 {onSaveToBank && rubric.criteria?.length > 0 && (
                   <SaveToBankButton

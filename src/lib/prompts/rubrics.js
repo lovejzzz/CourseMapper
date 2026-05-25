@@ -20,6 +20,7 @@ Return a JSON object with exactly this structure:
     {
       "t": "string — assignment/assessment name this rubric grades",
       "lt": "string — the lesson this rubric is associated with",
+      "gw": "string — exact graded student work product this rubric evaluates, e.g. 'Sampling Strategy Quiz student responses' or 'Policy Memo submission'",
       "at": "string — e.g. 'Written Essay' | 'Research Paper' | 'Lab Report' | 'Oral Presentation' | 'Group Project' | 'Reflection' | 'Problem Set'",
       "tp": number — integer matching the assignment's gradebook weight,
       "bl": "string — highest Bloom's level assessed by this rubric",
@@ -57,6 +58,8 @@ Return a JSON object with exactly this structure:
 REQUIREMENTS:
 - Create one rubric for every lesson in the requested scope that contains a clearly graded assessment. If a lesson has multiple explicitly named graded assessments, create one rubric for each distinct assessment.
 - The "lt" value must include the exact lesson number/title from the course map, such as "Lesson 8: Data Analysis Workshop". Never omit late-course lessons just because an earlier assessment type already appeared.
+- The "gw" value must name the exact graded student work being scored. Do not use broad labels like "Lesson Assessment" when weeklyAssessments names a quiz, memo, case brief, presentation, dashboard, report, worksheet, exam, or reflection.
+- The "t" value should read like a rubric title for that graded work, such as "Sampling Strategy Quiz Rubric"; "td" must begin by naming the graded student work students submit.
 - 4–6 criteria per rubric
 - Criterion weights must sum to exactly 100
 - ALL cell descriptions must use third-person, present-tense observable language (e.g., "The student provides..." or declarative "Argument is supported by 4+ peer-reviewed sources")

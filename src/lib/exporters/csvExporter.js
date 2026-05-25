@@ -90,6 +90,8 @@ export function deliverableToCsvRows(featureId, data) {
       const rubrics = expanded.rubrics || [];
       const headers = [
         'Rubric',
+        'Lesson',
+        'Graded Student Work',
         'Points',
         'Type',
         'Criterion',
@@ -104,6 +106,8 @@ export function deliverableToCsvRows(featureId, data) {
         for (const c of r.criteria || []) {
           rows.push([
             r.title || '',
+            r.lessonTitle || '',
+            r.gradedWork || r.assignmentTitle || r.title || '',
             String(r.totalPoints || ''),
             r.assessmentType || '',
             c.criterion || c.name || '',

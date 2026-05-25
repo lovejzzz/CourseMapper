@@ -144,6 +144,8 @@ function deliverableToCsvRows(featureId, data) {
       const rubrics = expanded.rubrics || [];
       const headers = [
         'Rubric',
+        'Lesson',
+        'Graded Student Work',
         'Points',
         'Type',
         'Criterion',
@@ -158,6 +160,8 @@ function deliverableToCsvRows(featureId, data) {
         for (const c of r.criteria || []) {
           rows.push([
             r.title || '',
+            r.lessonTitle || '',
+            r.gradedWork || r.assignmentTitle || r.title || '',
             String(r.totalPoints || ''),
             r.assessmentType || '',
             c.criterion || c.name || '',
@@ -936,8 +940,10 @@ function _buildDocxContentShared(featureId, data, children, docx) {
       const expanded = expandKeys('rubrics', data);
       const COL_DXA = [2060, 750, 1640, 1640, 1640, 1630];
       for (const r of expanded.rubrics || []) {
+        const gradedWork = r.gradedWork || r.assignmentTitle || r.title || '';
         children.push(makeHeading(r.lessonTitle || r.title || 'Rubric'));
-        if (r.title && r.lessonTitle) children.push(makeBold('Assessment', r.title));
+        if (gradedWork) children.push(makeBold('Graded Student Work', gradedWork));
+        if (r.title && r.lessonTitle) children.push(makeBold('Rubric', r.title));
         const rMeta = [r.totalPoints && `${r.totalPoints} points`, r.assessmentType, r.bloomsLevel].filter(Boolean);
         if (rMeta.length) children.push(makeText(rMeta.join(' · ')));
         if (r.taskDirections) children.push(makeBold('Task Directions', r.taskDirections));

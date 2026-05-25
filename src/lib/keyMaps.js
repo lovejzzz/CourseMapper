@@ -91,6 +91,7 @@ const slideDecks = {
 const rubrics = {
   t: 'title',
   lt: 'lessonTitle',
+  gw: 'gradedWork',
   at: 'assessmentType',
   tp: 'totalPoints',
   bl: 'bloomsLevel',

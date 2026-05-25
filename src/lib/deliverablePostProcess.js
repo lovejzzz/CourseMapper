@@ -272,6 +272,35 @@ function compactText(value, fallback = '', maxLength = 220) {
   return clipped || text.slice(0, maxLength).trim();
 }
 
+function cleanListItem(value) {
+  return String(value || '')
+    .replace(/^\s*(?:[-*]|\d{1,2}[.)])\s*/, '')
+    .replace(/\s+/g, ' ')
+    .replace(/\s+[.;:,]\s*$/g, '')
+    .trim();
+}
+
+function splitStructuredListItems(value) {
+  const text = String(value || '').replace(/\r/g, '\n');
+  if (!text.trim()) return [];
+  return text
+    .split(/\n|;/)
+    .flatMap((segment) => {
+      const matches = [
+        ...String(segment || '').matchAll(
+          /(?:^|\s)(?:[-*]|\d{1,2}[.)])\s+([\s\S]*?)(?=(?:\s(?:[-*]|\d{1,2}[.)])\s+)|$)/g,
+        ),
+      ];
+      return matches.length > 0 ? matches.map((match) => match[1]) : [segment];
+    })
+    .map(cleanListItem)
+    .filter(Boolean);
+}
+
+function firstStructuredListItem(value, fallback = '') {
+  return splitStructuredListItems(value)[0] || fallback;
+}
+
 function stripLessonPrefix(title) {
   return String(title || '')
     .replace(/^Lesson\s+\d+\s*[:.-]\s*/i, '')
@@ -331,8 +360,9 @@ function buildFallbackFaqQuestions({ lesson, title, shortTitle, target }) {
     `explain the central ideas in ${shortTitle}, use evidence, and connect the lesson to course outcomes`,
     260,
   );
+  const assessmentText = getLessonField(lesson, 'weeklyAssessments');
   const assessment = compactText(
-    getLessonField(lesson, 'weeklyAssessments'),
+    assessmentText,
     'the lesson activities, discussion prompts, and checks for understanding',
     220,
   );
@@ -344,10 +374,7 @@ function buildFallbackFaqQuestions({ lesson, title, shortTitle, target }) {
   const concepts = extractCourseFaqConcepts(lesson, title);
   const related = concepts.length > 0 ? concepts : [shortTitle.toLowerCase()];
   const assessmentLabel = compactText(
-    String(assessment || '')
-      .split(/\n|;/)
-      .map((item) => item.replace(/^\s*(?:[-*]|\d+[.)])\s*/, '').trim())
-      .find(Boolean),
+    firstStructuredListItem(assessmentText, 'the lesson assessment'),
     'the lesson assessment',
     90,
   );
@@ -438,17 +465,15 @@ function getFaqQuestionCategory(question = {}) {
 function buildFaqQuestionRepair({ question, courseLesson, lessonTitle, lessonIndex }) {
   const shortTitle = stripLessonPrefix(lessonTitle) || `Lesson ${lessonIndex + 1}`;
   const topic = compactText(getLessonField(courseLesson, 'topicSection'), shortTitle, 90);
-  const assessment = compactText(getLessonField(courseLesson, 'weeklyAssessments'), 'the lesson assessment', 120);
+  const assessmentText = getLessonField(courseLesson, 'weeklyAssessments');
+  const assessment = compactText(assessmentText, 'the lesson assessment', 120);
   const objective = compactText(
     getLessonField(courseLesson, 'learningObjectives') || getLessonField(courseLesson, 'learningGoals'),
     `apply ${shortTitle} concepts`,
     120,
   );
   const assessmentLabel = compactText(
-    String(assessment)
-      .split(/\n|;/)
-      .map((item) => item.replace(/^\s*(?:[-*]|\d+[.)])\s*/, '').trim())
-      .find(Boolean),
+    firstStructuredListItem(assessmentText, 'the lesson assessment'),
     'the lesson assessment',
     90,
   );
@@ -488,14 +513,17 @@ export function normalizeCourseFaqQuestionVariety(data, courseMap = null) {
   }
 
   const questionCounts = new Map();
+  const answerCounts = new Map();
   lessons.forEach((lesson) => {
     const questionKey = getCourseFaqQuestionArrayKey(lesson);
     const questions = questionKey ? lesson[questionKey] : [];
     questions.forEach((question) => {
       const questionText = question?.question || question?.q || '';
       const key = normalizeFaqQuestionText(questionText);
-      if (!key) return;
-      questionCounts.set(key, (questionCounts.get(key) || 0) + 1);
+      if (key) questionCounts.set(key, (questionCounts.get(key) || 0) + 1);
+      const answerText = question?.answer || question?.an || '';
+      const answerKey = normalizeFaqQuestionText(answerText);
+      if (answerKey) answerCounts.set(answerKey, (answerCounts.get(answerKey) || 0) + 1);
     });
   });
 
@@ -510,17 +538,27 @@ export function normalizeCourseFaqQuestionVariety(data, courseMap = null) {
       const qKey = question?.question !== undefined ? 'question' : question?.q !== undefined ? 'q' : 'q';
       const answerKey = question?.answer !== undefined ? 'answer' : question?.an !== undefined ? 'an' : 'an';
       const currentQuestion = question?.[qKey] || '';
+      const currentAnswer = question?.[answerKey] || '';
       const normalized = normalizeFaqQuestionText(currentQuestion);
       const repeated = normalized && questionCounts.get(normalized) > 1;
+      const normalizedAnswer = normalizeFaqQuestionText(currentAnswer);
+      const repeatedBoilerplateAnswer =
+        normalizedAnswer &&
+        answerCounts.get(normalizedAnswer) > 2 &&
+        /\bstrong work should answer the prompt directly\b/i.test(String(currentAnswer || ''));
       const genericPrep = /^how should i prepare for the assessment in this lesson\??$/i.test(
         String(currentQuestion || '').trim(),
       );
-      if (!repeated && !genericPrep) return question;
+      if (!repeated && !genericPrep && !repeatedBoilerplateAnswer) return question;
 
       const repair = buildFaqQuestionRepair({ question, courseLesson, lessonTitle, lessonIndex });
       rewrittenQuestions++;
       changed = true;
-      const nextQuestion = { ...question, [qKey]: repair.q, [answerKey]: repair.an };
+      const nextQuestion = {
+        ...question,
+        [qKey]: repeated || genericPrep ? repair.q : currentQuestion,
+        [answerKey]: repair.an,
+      };
       const actionKey =
         question?.studentAction !== undefined ? 'studentAction' : question?.sa !== undefined ? 'sa' : null;
       const connectionKey =
@@ -1518,7 +1556,7 @@ function lessonHasRubricWorthyAssessment(lesson) {
   const text = getLessonAssessmentText(lesson);
   if (!text.trim()) return false;
   if (/\b(no assessment|none|n\/a|not applicable|optional only)\b/i.test(text)) return false;
-  return /\b(assignment|paper|project|presentation|exam|quiz|test|portfolio|brief|report|case study|problem set|reflection|proposal|analysis|essay|final|midterm|checklist)\b/i.test(
+  return /\b(assignment|paper|project|presentation|exam|quiz|test|portfolio|brief|report|case study|problem set|reflection|proposal|analysis|essay|final|midterm|checklist|critique|exercise|worksheet|model|dashboard|memo|checkpoint|exit ticket|lab)\b/i.test(
     text,
   );
 }
@@ -1527,6 +1565,8 @@ function extractLessonNumbersFromRubric(rubric) {
   const haystack = [
     rubric?.lessonTitle,
     rubric?.lt,
+    rubric?.gradedWork,
+    rubric?.gw,
     rubric?.title,
     rubric?.t,
     rubric?.assessmentType,
@@ -1539,12 +1579,7 @@ function extractLessonNumbersFromRubric(rubric) {
 }
 
 function firstAssessmentLine(lesson) {
-  const text = getLessonAssessmentText(lesson);
-  const line = text
-    .split(/\n|;/)
-    .map((part) => part.replace(/^\s*(?:[-*]|\d+[.)])\s*/, '').trim())
-    .find(Boolean);
-  return line || 'Lesson Assessment';
+  return firstStructuredListItem(getLessonAssessmentText(lesson), 'Lesson Assessment');
 }
 
 function firstObjective(lesson) {
@@ -1571,6 +1606,7 @@ function buildFallbackRubric(lesson, lessonIndex) {
   return {
     title,
     lessonTitle,
+    gradedWork: assessmentName,
     assessmentType: 'Analytic Rubric',
     totalPoints: 100,
     bloomsLevel: 'Evaluate',
@@ -1582,60 +1618,44 @@ function buildFallbackRubric(lesson, lessonIndex) {
     },
     criteria: [
       {
-        criterion: 'Objective alignment and task completion',
+        criterion: `${assessmentName} requirements and accuracy`,
         objectiveAligned: objective,
         weight: 30,
         points: 30,
-        exemplary:
-          'The student completes every required component and explicitly connects the work to the target learning objective with precise evidence. e.g., The submission names the objective and uses course evidence to justify each major claim.',
-        proficient:
-          'The student completes the required components and connects the work to the target learning objective with relevant evidence. e.g., The submission links the main claim to course concepts and includes supporting details.',
-        developing:
-          'The student completes major components but the connection to the target learning objective is uneven or partly implicit. e.g., The submission references the topic but leaves some required reasoning unstated.',
-        beginning:
-          'The student attempts the task but omits required components or gives only a limited connection to the learning objective. e.g., The submission summarizes the topic without showing how it meets the objective.',
+        exemplary: `The student completes every required component of ${assessmentName} and connects the work to ${objective} with precise evidence. e.g., The submission names the required decision, method, or artifact and justifies each major choice.`,
+        proficient: `The student completes the major ${assessmentName} requirements and links the work to ${objective} with relevant evidence. e.g., The submission explains the main choice and includes supporting details from the lesson task.`,
+        developing: `The student addresses ${assessmentName}, but one required component or objective link is incomplete. e.g., The submission identifies the topic but leaves part of the evidence or reasoning unstated.`,
+        beginning: `The student attempts ${assessmentName}, but key required work is missing or disconnected from ${objective}. e.g., The submission summarizes the topic without showing how it satisfies the assigned task.`,
       },
       {
-        criterion: 'Use of course concepts and evidence',
+        criterion: `${assessmentName} concept and evidence use`,
         objectiveAligned: objective,
         weight: 30,
         points: 30,
-        exemplary:
-          'The student applies course concepts accurately and supports claims with specific, relevant evidence. e.g., The response integrates named methods, readings, or examples to explain the decision made.',
-        proficient:
-          'The student applies course concepts accurately with enough evidence to support the central claim. e.g., The response cites a relevant concept and uses it to interpret the example.',
-        developing:
-          'The student uses course concepts but evidence is thin, broad, or only partly connected to the claim. e.g., The response names a concept but provides limited explanation of its relevance.',
-        beginning:
-          'The student attempts to use course concepts but shows confusion or relies mostly on unsupported description. e.g., The response lists terms without applying them to the assigned task.',
+        exemplary: `The student applies the relevant concepts in ${assessmentName} accurately and supports claims with specific evidence. e.g., The work integrates named methods, readings, examples, or data to explain the decision made.`,
+        proficient: `The student applies the main concepts in ${assessmentName} accurately with enough evidence to support the claim. e.g., The work cites a relevant concept and uses it to interpret the required example.`,
+        developing: `The student uses course concepts in ${assessmentName}, but evidence is thin, broad, or only partly connected. e.g., The work names a concept but gives limited explanation of its relevance to the submitted artifact.`,
+        beginning: `The student attempts to use concepts in ${assessmentName}, but shows confusion or relies mostly on unsupported description. e.g., The work lists terms without applying them to the assigned task.`,
       },
       {
-        criterion: 'Analysis, reasoning, and judgment',
+        criterion: `${assessmentName} analysis and decision quality`,
         objectiveAligned: objective,
         weight: 25,
         points: 25,
-        exemplary:
-          'The student develops a clear, logical line of reasoning that considers implications, limits, or alternatives. e.g., The response explains why one approach is stronger while acknowledging a credible limitation.',
-        proficient:
-          'The student presents a logical line of reasoning that supports the conclusion. e.g., The response explains the main choice and connects it to the evidence provided.',
-        developing:
-          'The student presents reasoning, but some links between evidence and conclusion are incomplete. e.g., The response makes a plausible claim but does not fully explain why the evidence supports it.',
-        beginning:
-          'The student offers a conclusion with minimal reasoning or unsupported assertions. e.g., The response states an answer but provides little explanation for the choice.',
+        exemplary: `The student develops a clear line of reasoning in ${assessmentName} that considers implications, limits, or alternatives. e.g., The work explains why one approach is stronger while acknowledging a credible limitation.`,
+        proficient: `The student presents reasoning in ${assessmentName} that supports the conclusion. e.g., The work explains the main choice and connects it to the evidence provided.`,
+        developing: `The student presents reasoning in ${assessmentName}, but some links between evidence and conclusion are incomplete. e.g., The work makes a plausible claim but does not fully explain why the evidence supports it.`,
+        beginning: `The student offers a conclusion in ${assessmentName} with minimal reasoning or unsupported assertions. e.g., The work states an answer but provides little explanation for the choice.`,
       },
       {
-        criterion: 'Communication and submission quality',
+        criterion: `${assessmentName} communication and submission format`,
         objectiveAligned: objective,
         weight: 15,
         points: 15,
-        exemplary:
-          'The student communicates in a polished, organized format that follows all stated submission requirements. e.g., The work uses headings, citations, and formatting that make the argument easy to evaluate.',
-        proficient:
-          'The student communicates clearly and follows the major submission requirements. e.g., The work is organized, readable, and includes required format elements.',
-        developing:
-          'The student communicates the main ideas but organization, clarity, or formatting inconsistencies slow evaluation. e.g., The work is understandable but misses one format requirement.',
-        beginning:
-          'The student submits work that is difficult to follow or misses multiple submission requirements. e.g., The work lacks structure or omits required formatting details.',
+        exemplary: `The student presents ${assessmentName} in a polished, organized format that follows all stated submission requirements. e.g., The work uses headings, citations, visuals, or formatting that make the artifact easy to evaluate.`,
+        proficient: `The student presents ${assessmentName} clearly and follows the major submission requirements. e.g., The work is organized, readable, and includes the required format elements.`,
+        developing: `The student communicates the main ideas in ${assessmentName}, but organization, clarity, or formatting inconsistencies slow evaluation. e.g., The work is understandable but misses one format requirement.`,
+        beginning: `The student submits ${assessmentName} in a form that is difficult to follow or misses multiple submission requirements. e.g., The work lacks structure or omits required formatting details.`,
       },
     ],
     gradePolicyConnection:
@@ -1886,6 +1906,13 @@ function getAssignmentPoints(assignment) {
   return getNumericValue(assignment?.totalPoints ?? assignment?.tp ?? assignment?.points ?? assignment?.pts);
 }
 
+function compactGradedWorkTitle(value, fallback = 'Lesson Assessment') {
+  const title = compactText(value, fallback, 140)
+    .replace(/\s+(rubric|grading rubric)$/i, '')
+    .trim();
+  return title || fallback;
+}
+
 function getAssignmentsByLesson(assignmentsData, courseMap) {
   const assignmentKey =
     getArrayKey('assignments', assignmentsData) || (assignmentsData?.assignments ? 'assignments' : null);
@@ -1903,31 +1930,64 @@ function getAssignmentsByLesson(assignmentsData, courseMap) {
   return byLesson;
 }
 
+function makeAssessmentAnchor(courseMap, lesson, lessonIndex, assignmentEntry = null, assessmentTitleOverride = '') {
+  const assignmentTitle = assignmentEntry ? getAssignmentTitle(assignmentEntry) : '';
+  const assessmentTitle = compactGradedWorkTitle(
+    assignmentTitle || assessmentTitleOverride || firstAssessmentLine(lesson),
+  );
+  const objectives = [...getAssignmentObjectives(assignmentEntry), ...getLessonObjectiveLines(lesson)]
+    .map((objective) => String(objective || '').trim())
+    .filter(Boolean);
+  const uniqueObjectives = [...new Set(objectives)];
+  const lessonTitle = getLessonTitle(courseMap, lessonIndex);
+  const assessmentType =
+    getAssignmentAssessmentType(assignmentEntry) ||
+    assessmentTitle.split(':')[0]?.replace(/\s+/g, ' ').trim() ||
+    'Assessment';
+
+  return {
+    lessonIndex,
+    lessonNumber: lessonIndex + 1,
+    lessonTitle,
+    assessmentTitle,
+    gradedWork: assessmentTitle,
+    assessmentType,
+    totalPoints: getAssignmentPoints(assignmentEntry) || 100,
+    gradeWeight: getAssignmentPercent(assignmentEntry),
+    objectives: uniqueObjectives.length > 0 ? uniqueObjectives : [firstObjective(lesson)],
+    haystack: [lessonTitle, assessmentTitle, getLessonAssessmentText(lesson), ...uniqueObjectives].join(' '),
+  };
+}
+
 function buildAssessmentAnchors(courseMap, assignmentsData = null) {
   const lessons = Array.isArray(courseMap?.lessons) ? courseMap.lessons : [];
   const assignmentsByLesson = getAssignmentsByLesson(assignmentsData, courseMap);
 
   return lessons.map((lesson, lessonIndex) => {
     const assignmentEntry = assignmentsByLesson.get(lessonIndex)?.[0]?.assignment || null;
-    const assignmentTitle = assignmentEntry ? getAssignmentTitle(assignmentEntry) : '';
-    const assessmentTitle = assignmentTitle || firstAssessmentLine(lesson);
-    const objectives = [...getAssignmentObjectives(assignmentEntry), ...getLessonObjectiveLines(lesson)]
-      .map((objective) => String(objective || '').trim())
-      .filter(Boolean);
-    const uniqueObjectives = [...new Set(objectives)];
-    const lessonTitle = getLessonTitle(courseMap, lessonIndex);
+    return makeAssessmentAnchor(courseMap, lesson, lessonIndex, assignmentEntry);
+  });
+}
 
-    return {
-      lessonIndex,
-      lessonNumber: lessonIndex + 1,
-      lessonTitle,
-      assessmentTitle,
-      assessmentType: getAssignmentAssessmentType(assignmentEntry) || assessmentTitle.split(':')[0] || 'Assessment',
-      totalPoints: getAssignmentPoints(assignmentEntry) || 100,
-      gradeWeight: getAssignmentPercent(assignmentEntry),
-      objectives: uniqueObjectives.length > 0 ? uniqueObjectives : [firstObjective(lesson)],
-      haystack: [lessonTitle, assessmentTitle, getLessonAssessmentText(lesson), ...uniqueObjectives].join(' '),
-    };
+function buildRubricAssessmentAnchors(courseMap, assignmentsData = null) {
+  const lessons = Array.isArray(courseMap?.lessons) ? courseMap.lessons : [];
+  const assignmentsByLesson = getAssignmentsByLesson(assignmentsData, courseMap);
+  let anchorIndex = 0;
+
+  return lessons.flatMap((lesson, lessonIndex) => {
+    const assignmentEntries = assignmentsByLesson.get(lessonIndex) || [];
+    const anchors =
+      assignmentEntries.length > 0
+        ? assignmentEntries.map(({ assignment }) => makeAssessmentAnchor(courseMap, lesson, lessonIndex, assignment))
+        : splitStructuredListItems(getLessonAssessmentText(lesson))
+            .filter((item) => lessonHasRubricWorthyAssessment({ sections: [{ weeklyAssessments: item }] }))
+            .map((item) => makeAssessmentAnchor(courseMap, lesson, lessonIndex, null, item));
+    const fallbackAnchors = anchors.length > 0 ? anchors : [makeAssessmentAnchor(courseMap, lesson, lessonIndex)];
+    return fallbackAnchors.map((anchor, localAssessmentIndex) => ({
+      ...anchor,
+      anchorIndex: anchorIndex++,
+      localAssessmentIndex,
+    }));
   });
 }
 
@@ -1951,12 +2011,14 @@ function getRubricHaystack(rubric) {
 function scoreRubricAnchor(rubric, anchor) {
   const haystack = normalizedComparable(getRubricHaystack(rubric));
   const explicit = getLessonNumberFromText(haystack);
-  if (explicit === anchor.lessonNumber) return 1000;
   const anchorLesson = normalizedComparable(anchor.lessonTitle);
   const anchorAssessment = normalizedComparable(anchor.assessmentTitle);
   let score = 0;
+  if (explicit === anchor.lessonNumber) score += 1000;
   if (anchorLesson && haystack.includes(anchorLesson)) score += 80;
   if (anchorAssessment && haystack.includes(anchorAssessment)) score += 70;
+  const anchorGradedWork = normalizedComparable(anchor.gradedWork);
+  if (anchorGradedWork && haystack.includes(anchorGradedWork)) score += 90;
   const rubricTokens = tokenize(haystack);
   tokenize(anchor.haystack).forEach((token) => {
     if (rubricTokens.has(token)) score += 1;
@@ -1966,15 +2028,21 @@ function scoreRubricAnchor(rubric, anchor) {
 
 function inferRubricAnchorIndex(rubric, anchors, rubricIndex, rubricCount) {
   const explicit = getLessonNumberFromText(getRubricHaystack(rubric));
-  if (explicit && explicit >= 1 && explicit <= anchors.length) return explicit - 1;
+  const candidates =
+    explicit && anchors.some((anchor) => anchor.lessonNumber === explicit)
+      ? anchors.filter((anchor) => anchor.lessonNumber === explicit)
+      : anchors;
 
   let best = { index: null, score: 0 };
-  anchors.forEach((anchor) => {
+  candidates.forEach((anchor) => {
     const score = scoreRubricAnchor(rubric, anchor);
-    if (score > best.score) best = { index: anchor.lessonIndex, score };
+    if (score > best.score) best = { index: anchor.anchorIndex ?? anchor.lessonIndex, score };
   });
   if (best.score > 0) return best.index;
-  if (rubricCount === anchors.length && anchors[rubricIndex]) return rubricIndex;
+  if (explicit && candidates[0]) return candidates[0].anchorIndex ?? candidates[0].lessonIndex;
+  if (rubricCount === anchors.length && anchors[rubricIndex]) {
+    return anchors[rubricIndex].anchorIndex ?? anchors[rubricIndex].lessonIndex;
+  }
   return null;
 }
 
@@ -1995,10 +2063,10 @@ function objectiveNeedsAlignment(value) {
 }
 
 const GENERIC_RUBRIC_CRITERION_RE =
-  /^(objective alignment and task completion|use of course concepts and evidence|reasoning,? organization,? and communication|communication and submission quality|concept use|evidence quality|reasoning|communication)$/i;
+  /^(objective alignment and task completion|use of course concepts and evidence|analysis,? reasoning,? and judgment|reasoning,? organization,? and communication|communication and submission quality|concept use|evidence quality|reasoning|communication)$/i;
 
 const GENERIC_RUBRIC_DESCRIPTOR_RE =
-  /\b(target learning objective|required components|course concepts accurately|central claim|relevant concept|course evidence|the response cites|the submission names|understandable reasoning|polished communication)\b/i;
+  /\b(target learning objective|required components|course concepts accurately|central claim|relevant concept|course evidence|the response cites|the submission names|clear,\s*logical line of reasoning|evidence and conclusion|unsupported assertions|submission requirements|format elements|understandable reasoning|polished communication)\b/i;
 
 function rubricCriterionNeedsSpecificity(criterion, nameKey) {
   const name = String(criterion?.[nameKey] || '').trim();
@@ -2020,7 +2088,10 @@ function compactCriterionFocus(value, fallback) {
 }
 
 function buildSpecificRubricCriterionName(anchor, index, currentName) {
-  const assessment = compactCriterionFocus(anchor.assessmentTitle, anchor.assessmentType || 'assessment');
+  const assessment = compactCriterionFocus(
+    anchor.gradedWork || anchor.assessmentTitle,
+    anchor.assessmentType || 'assessment',
+  );
   const objective = compactCriterionFocus(anchor.objectives[index % anchor.objectives.length], assessment);
   const lesson = stripLessonPrefix(anchor.lessonTitle);
   const names = [
@@ -2037,7 +2108,7 @@ function buildSpecificRubricCriterionName(anchor, index, currentName) {
 }
 
 function buildSpecificRubricDescriptors(anchor, criterionName, objective) {
-  const assessment = sentenceFragment(anchor.assessmentTitle);
+  const assessment = sentenceFragment(anchor.gradedWork || anchor.assessmentTitle);
   const lesson = sentenceFragment(stripLessonPrefix(anchor.lessonTitle) || anchor.lessonTitle);
   const objectiveText = sentenceFragment(objective || anchor.objectives[0]);
   return {
@@ -2065,7 +2136,18 @@ function patchRubricToAnchor(rubric, anchor) {
   const titleKey = fieldKey(next, 'title', 't', 'title');
   const currentTitle = next[titleKey];
   if (titleLooksGeneric(currentTitle)) {
-    next = { ...next, [titleKey]: `${anchor.assessmentTitle} Rubric` };
+    next = { ...next, [titleKey]: `${anchor.gradedWork} Rubric` };
+    patchedTitles++;
+  }
+
+  const gradedWorkKey =
+    next.gradedWork !== undefined ? 'gradedWork' : next.gw !== undefined || next.t !== undefined ? 'gw' : 'gradedWork';
+  const currentGradedWork = String(next[gradedWorkKey] || '').trim();
+  if (
+    valueIsMissingOrShort(currentGradedWork, 3) ||
+    normalizedComparable(currentGradedWork) === normalizedComparable(next[titleKey])
+  ) {
+    next = { ...next, [gradedWorkKey]: anchor.gradedWork };
     patchedTitles++;
   }
 
@@ -2087,16 +2169,25 @@ function patchRubricToAnchor(rubric, anchor) {
     const weightText = anchor.gradeWeight ? ` It contributes ${anchor.gradeWeight} to the course grade.` : '';
     next = {
       ...next,
-      [policyKey]: `Use this rubric to score ${anchor.assessmentTitle} for ${anchor.lessonTitle}.${weightText} Apply the course syllabus if the local grade policy differs.`,
+      [policyKey]: `Use this rubric to score the graded student work "${anchor.gradedWork}" for ${anchor.lessonTitle}.${weightText} Apply the course syllabus if the local grade policy differs.`,
     };
     patchedWeights++;
   }
 
   const directionsKey = fieldKey(next, 'taskDirections', 'td', 'taskDirections');
-  if (valueIsMissingOrShort(next[directionsKey], 10)) {
+  const directions = String(next[directionsKey] || '').trim();
+  const directionsNeedWork =
+    valueIsMissingOrShort(directions, 10) ||
+    !normalizedComparable(directions).includes(normalizedComparable(anchor.gradedWork)) ||
+    !/\b(graded student work|rubric evaluates|students submit|student work)\b/i.test(directions);
+  if (directionsNeedWork) {
+    const existingDirections =
+      directions && directions.split(/\s+/).length >= 10
+        ? ` Existing task focus: ${directions.replace(/^this rubric evaluates[^.]*\.\s*/i, '')}`
+        : '';
     next = {
       ...next,
-      [directionsKey]: `Students complete ${anchor.assessmentTitle} for ${anchor.lessonTitle} and submit work that directly demonstrates the listed lesson objectives.`,
+      [directionsKey]: `This rubric evaluates the graded student work: ${anchor.gradedWork}. Students submit it for ${anchor.lessonTitle} and must directly demonstrate the listed lesson objectives.${existingDirections}`,
     };
     patchedSupport++;
   }
@@ -2141,7 +2232,9 @@ function patchRubricToAnchor(rubric, anchor) {
 
   const tagKey = Array.isArray(next?.tags) ? 'tags' : Array.isArray(next?.tg) ? 'tg' : null;
   if (tagKey) {
-    const tags = [...new Set([...next[tagKey], anchor.lessonTitle, anchor.assessmentTitle, 'rubric'])].filter(Boolean);
+    const tags = [
+      ...new Set([...next[tagKey], anchor.lessonTitle, anchor.assessmentTitle, anchor.gradedWork, 'rubric']),
+    ].filter(Boolean);
     if (tags.length !== next[tagKey].length) {
       next = { ...next, [tagKey]: tags };
       patchedSupport++;
@@ -2162,7 +2255,7 @@ function patchRubricToAnchor(rubric, anchor) {
 export function normalizeRubricAssessmentAlignment(data, courseMap, assignmentsData = null) {
   const arrayKey = getArrayKey('rubrics', data) || (data?.rubrics ? 'rubrics' : null);
   const rubrics = arrayKey ? data?.[arrayKey] : null;
-  const anchors = buildAssessmentAnchors(courseMap, assignmentsData).filter((anchor) =>
+  const anchors = buildRubricAssessmentAnchors(courseMap, assignmentsData).filter((anchor) =>
     lessonHasRubricWorthyAssessment(courseMap?.lessons?.[anchor.lessonIndex]),
   );
 
@@ -2181,7 +2274,8 @@ export function normalizeRubricAssessmentAlignment(data, courseMap, assignmentsD
 
   const rows = rubrics.map((rubric, originalIndex) => {
     const anchorIndex = inferRubricAnchorIndex(rubric, anchors, originalIndex, rubrics.length);
-    const anchor = anchorIndex === null ? null : anchors.find((item) => item.lessonIndex === anchorIndex);
+    const anchor =
+      anchorIndex === null ? null : anchors.find((item) => (item.anchorIndex ?? item.lessonIndex) === anchorIndex);
     if (!anchor) return { rubric, originalIndex, anchorIndex: null, patch: null };
     const patch = patchRubricToAnchor(rubric, anchor);
     return { rubric: patch.rubric, originalIndex, anchorIndex, patch };

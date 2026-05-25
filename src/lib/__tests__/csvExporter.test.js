@@ -202,6 +202,8 @@ describe('deliverableToCsvRows — rubrics', () => {
       rubrics: [
         {
           title: 'Essay Rubric',
+          lessonTitle: 'Lesson 1: Academic Writing',
+          gradedWork: 'Argument Essay submission',
           totalPoints: 100,
           assessmentType: 'Summative',
           criteria: [
@@ -220,11 +222,13 @@ describe('deliverableToCsvRows — rubrics', () => {
     };
     const { headers, rows } = deliverableToCsvRows('rubrics', data);
     expect(headers).toContain('Rubric');
+    expect(headers).toContain('Graded Student Work');
     expect(headers).toContain('Criterion');
     expect(rows).toHaveLength(2);
     expect(rows[0][0]).toBe('Essay Rubric');
-    expect(rows[0][3]).toBe('Thesis');
-    expect(rows[1][3]).toBe('Evidence');
+    expect(rows[0][2]).toBe('Argument Essay submission');
+    expect(rows[0][5]).toBe('Thesis');
+    expect(rows[1][5]).toBe('Evidence');
   });
 
   it('handles rubric with no criteria', () => {
@@ -239,6 +243,7 @@ describe('deliverableToCsvRows — rubrics', () => {
         {
           t: 'Compact Rubric Export Audit',
           lt: 'Lesson 1: Export Reliability',
+          gw: 'Export Reliability Audit workbook',
           at: 'Project',
           tp: 100,
           bl: 'Evaluate',
@@ -262,6 +267,8 @@ describe('deliverableToCsvRows — rubrics', () => {
     expect(rows).toEqual([
       [
         'Compact Rubric Export Audit',
+        'Lesson 1: Export Reliability',
+        'Export Reliability Audit workbook',
         '100',
         'Project',
         'Artifact evidence',

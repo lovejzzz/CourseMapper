@@ -178,6 +178,66 @@ describe('Course FAQ post-processing', () => {
     expect(new Set(result.data.faqs.map((lesson) => lesson.qs[0].q)).size).toBe(2);
   });
 
+  it('rewrites repeated boilerplate FAQ answers even when questions are unique', () => {
+    const boilerplate =
+      'Strong work should answer the prompt directly, use lesson vocabulary accurately, and connect claims to evidence from the assigned materials.';
+    const data = {
+      faqs: [
+        {
+          lt: 'Lesson 1: Foundations of Research Design',
+          qs: [
+            {
+              q: 'What should strong submitted work include for Foundations?',
+              an: boilerplate,
+              ca: 'Assignment Clarification',
+            },
+          ],
+        },
+        {
+          lt: 'Lesson 2: Sampling and Measurement',
+          qs: [
+            {
+              q: 'What should strong submitted work include for Sampling?',
+              an: boilerplate,
+              ca: 'Assignment Clarification',
+            },
+          ],
+        },
+        {
+          lt: 'Lesson 3: Analysis Planning',
+          qs: [
+            {
+              q: 'What should strong submitted work include for Analysis?',
+              an: boilerplate,
+              ca: 'Assignment Clarification',
+            },
+          ],
+        },
+      ],
+    };
+    const courseMap = {
+      lessons: [
+        ...faqCourseMap.lessons,
+        {
+          title: 'Lesson 3: Analysis Planning',
+          sections: [
+            {
+              topicSection: 'Analysis plans',
+              learningObjectives: 'Students justify a model choice.',
+              weeklyAssessments: 'Model-choice memo.',
+            },
+          ],
+        },
+      ],
+    };
+
+    const result = normalizeCourseFaqQuestionVariety(data, courseMap);
+
+    expect(result.rewrittenQuestions).toBe(3);
+    expect(new Set(result.data.faqs.map((lesson) => lesson.qs[0].an)).size).toBe(3);
+    expect(result.data.faqs[1].qs[0].an).toContain('Sampling and Measurement');
+  });
+
   it('builds a valid course-map fallback FAQ when model output is unusable', () => {
     const fallback = buildFallbackCourseFaq(faqCourseMap);
 
@@ -189,6 +249,30 @@ describe('Course FAQ post-processing', () => {
 
     const validation = validateDeliverableGeneration('courseFaq', fallback, { expectedLessonCount: 2 });
     expect(validation.valid).toBe(true);
+  });
+
+  it('uses only the first numbered assessment item in fallback FAQ prep questions', () => {
+    const courseMap = {
+      lessons: [
+        {
+          title: 'Lesson 1: Analytics Foundations',
+          sections: [
+            {
+              topicSection: 'Analytics decisions',
+              learningObjectives: 'Students explain how evidence supports a decision.',
+              weeklyAssessments: '1. Memo: Recommend a decision metric. 2. Quiz: Identify descriptive statistics.',
+            },
+          ],
+        },
+      ],
+    };
+
+    const fallback = buildFallbackCourseFaq(courseMap);
+    const prepQuestion = fallback.faqs[0].qs.find((question) => question.ca === 'Assessment Prep');
+
+    expect(prepQuestion.q).toContain('Memo: Recommend a decision metric');
+    expect(prepQuestion.q).not.toContain('2.');
+    expect(prepQuestion.q).not.toContain('Quiz');
   });
 
   it('respects configured fallback question counts for scoped Course FAQ generation', () => {
@@ -933,6 +1017,34 @@ describe('Rubric and assignment post-processing', () => {
     expect(result.data.rubrics[2].criteria).toHaveLength(4);
   });
 
+  it('treats critiques and spreadsheet model exercises as rubric-worthy assessments', () => {
+    const data = {
+      rubrics: [{ title: 'Lesson 1 Rubric', lessonTitle: 'Lesson 1: Foundations', criteria: [] }],
+    };
+    const courseMap = {
+      lessons: [
+        {
+          title: 'Lesson 1: Foundations',
+          sections: [{ weeklyAssessments: '1. Introductory quiz: Confirm baseline knowledge.' }],
+        },
+        {
+          title: 'Lesson 2: Visualization',
+          sections: [{ weeklyAssessments: '1. Visualization critique: Identify strengths in a sample chart.' }],
+        },
+        {
+          title: 'Lesson 3: Spreadsheet Modeling',
+          sections: [{ weeklyAssessments: '1. Spreadsheet model exercise: Build a decision model from a template.' }],
+        },
+      ],
+    };
+
+    const result = normalizeRubricCoverage(data, courseMap);
+
+    expect(result.missingLessonNumbers).toEqual([2, 3]);
+    expect(result.data.rubrics[1].gradedWork).toContain('Visualization critique');
+    expect(result.data.rubrics[2].gradedWork).toContain('Spreadsheet model exercise');
+  });
+
   it('does not add fallback rubrics when compact rubrics already cover assessed lessons', () => {
     const data = {
       rubrics: [
@@ -1019,8 +1131,13 @@ describe('Rubric and assignment post-processing', () => {
     expect(result.patchedWeights).toBeGreaterThan(0);
     expect(result.data.rubrics[0].lt).toBe('Lesson 2: Sampling');
     expect(result.data.rubrics[0].t).toBe('Sampling Strategy Quiz Rubric');
+    expect(result.data.rubrics[0].gw).toBe('Sampling Strategy Quiz');
     expect(result.data.rubrics[0].tp).toBe(40);
     expect(result.data.rubrics[0].gp).toContain('20%');
+    expect(result.data.rubrics[0].gp).toContain('graded student work');
+    expect(result.data.rubrics[0].taskDirections).toContain(
+      'This rubric evaluates the graded student work: Sampling Strategy Quiz',
+    );
     expect(result.data.rubrics[0].cr[0].oa).toContain('Compare sampling strategies');
     expect(result.data.rubrics[0].cr[0].cn).toContain('Sampling Strategy Quiz');
     expect(result.data.rubrics[0].cr[0].ex).toContain('Sampling');
