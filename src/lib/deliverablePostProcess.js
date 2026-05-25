@@ -2068,13 +2068,6 @@ function rubricGradedWorkLooksUsable(value) {
   return true;
 }
 
-function titleMatchesGradedWork(title, gradedWork) {
-  const titleCore = normalizedComparable(compactGradedWorkTitle(title, ''));
-  const work = normalizedComparable(compactGradedWorkTitle(gradedWork, ''));
-  if (!titleCore || !work) return false;
-  return titleCore.includes(work) || work.includes(titleCore);
-}
-
 function inferAssessmentTypeFromGradedWork(gradedWork, fallback = '') {
   const text = normalizedComparable(gradedWork);
   const patterns = [
@@ -2209,7 +2202,7 @@ function patchRubricToAnchor(rubric, anchor) {
     patchedTitles++;
   }
 
-  if (titleLooksGeneric(currentTitle) || !titleMatchesGradedWork(currentTitle, canonicalGradedWork)) {
+  if (titleLooksGeneric(currentTitle)) {
     next = { ...next, [titleKey]: `${canonicalGradedWork} Rubric` };
     patchedTitles++;
   }
