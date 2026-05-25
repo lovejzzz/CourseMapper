@@ -1976,12 +1976,18 @@ function buildRubricAssessmentAnchors(courseMap, assignmentsData = null) {
 
   return lessons.flatMap((lesson, lessonIndex) => {
     const assignmentEntries = assignmentsByLesson.get(lessonIndex) || [];
-    const anchors =
-      assignmentEntries.length > 0
-        ? assignmentEntries.map(({ assignment }) => makeAssessmentAnchor(courseMap, lesson, lessonIndex, assignment))
-        : splitStructuredListItems(getLessonAssessmentText(lesson))
-            .filter((item) => lessonHasRubricWorthyAssessment({ sections: [{ weeklyAssessments: item }] }))
-            .map((item) => makeAssessmentAnchor(courseMap, lesson, lessonIndex, null, item));
+    const assignmentAnchors = assignmentEntries.map(({ assignment }) =>
+      makeAssessmentAnchor(courseMap, lesson, lessonIndex, assignment),
+    );
+    const assessmentAnchors = splitStructuredListItems(getLessonAssessmentText(lesson))
+      .filter((item) => lessonHasRubricWorthyAssessment({ sections: [{ weeklyAssessments: item }] }))
+      .map((item) => makeAssessmentAnchor(courseMap, lesson, lessonIndex, null, item));
+    const anchorsByAssessment = new Map();
+    [...assignmentAnchors, ...assessmentAnchors].forEach((anchor) => {
+      const key = `${anchor.lessonNumber}:${normalizedComparable(anchor.gradedWork || anchor.assessmentTitle)}`;
+      if (!anchorsByAssessment.has(key)) anchorsByAssessment.set(key, anchor);
+    });
+    const anchors = [...anchorsByAssessment.values()];
     const fallbackAnchors = anchors.length > 0 ? anchors : [makeAssessmentAnchor(courseMap, lesson, lessonIndex)];
     return fallbackAnchors.map((anchor, localAssessmentIndex) => ({
       ...anchor,
@@ -1997,6 +2003,8 @@ function getRubricHaystack(rubric) {
     rubric?.lt,
     rubric?.title,
     rubric?.t,
+    rubric?.gradedWork,
+    rubric?.gw,
     rubric?.assessmentType,
     rubric?.at,
     rubric?.taskDirections,
@@ -2051,6 +2059,60 @@ function valueIsMissingOrShort(value, minWords = 8) {
   return text.split(/\s+/).filter(Boolean).length < minWords;
 }
 
+function rubricGradedWorkLooksUsable(value) {
+  const raw = String(value || '').trim();
+  const cleaned = compactGradedWorkTitle(raw, '');
+  if (valueIsMissingOrShort(cleaned, 3)) return false;
+  if (titleLooksGeneric(cleaned)) return false;
+  if (/\brubric$/i.test(raw)) return false;
+  return true;
+}
+
+function titleMatchesGradedWork(title, gradedWork) {
+  const titleCore = normalizedComparable(compactGradedWorkTitle(title, ''));
+  const work = normalizedComparable(compactGradedWorkTitle(gradedWork, ''));
+  if (!titleCore || !work) return false;
+  return titleCore.includes(work) || work.includes(titleCore);
+}
+
+function inferAssessmentTypeFromGradedWork(gradedWork, fallback = '') {
+  const text = normalizedComparable(gradedWork);
+  const patterns = [
+    ['Discussion Post', /\b(discussion|forum|post|reply|thread)\b/],
+    ['Quiz', /\b(quiz|check quiz|knowledge check)\b/],
+    ['Problem Set', /\b(problem set|problems|calculation|worksheet)\b/],
+    ['Reflection', /\b(reflection|reflective|journal)\b/],
+    ['Memo', /\b(memo|memorandum)\b/],
+    ['Brief', /\b(brief|case brief|policy brief)\b/],
+    ['Report', /\b(report|lab report)\b/],
+    ['Presentation', /\b(presentation|oral|slides|pitch)\b/],
+    ['Project', /\b(project|prototype|portfolio|capstone)\b/],
+    ['Research Paper', /\b(research paper|paper)\b/],
+    ['Written Essay', /\b(essay|written response)\b/],
+    ['Case Study', /\b(case study|case analysis)\b/],
+    ['Lab', /\b(lab|experiment)\b/],
+    ['Dataset/File Submission', /\b(dataset|workbook|spreadsheet|file|notebook|log)\b/],
+    ['Exam', /\b(exam|midterm|final test|test)\b/],
+    ['Checklist', /\b(checklist|checkpoint)\b/],
+    ['Analysis', /\b(analysis|critique|evaluation|audit)\b/],
+    ['Demonstration', /\b(demonstration|demo)\b/],
+  ];
+  const match = patterns.find(([, pattern]) => pattern.test(text));
+  if (match) return match[0];
+
+  const fallbackText = String(fallback || '').trim();
+  if (fallbackText && !titleLooksGeneric(fallbackText) && !/\brubric$/i.test(fallbackText)) return fallbackText;
+  return 'Assessment';
+}
+
+function assessmentTypeMatchesGradedWork(assessmentType, inferredType) {
+  const current = normalizedComparable(assessmentType);
+  const inferred = normalizedComparable(inferredType);
+  if (!current || !inferred) return false;
+  if (current.includes(inferred) || inferred.includes(current)) return true;
+  return false;
+}
+
 function sentenceFragment(value) {
   return String(value || '')
     .replace(/[.!?]+$/g, '')
@@ -2089,7 +2151,7 @@ function compactCriterionFocus(value, fallback) {
 
 function buildSpecificRubricCriterionName(anchor, index, currentName) {
   const assessment = compactCriterionFocus(
-    anchor.gradedWork || anchor.assessmentTitle,
+    anchor.canonicalGradedWork || anchor.gradedWork || anchor.assessmentTitle,
     anchor.assessmentType || 'assessment',
   );
   const objective = compactCriterionFocus(anchor.objectives[index % anchor.objectives.length], assessment);
@@ -2108,7 +2170,7 @@ function buildSpecificRubricCriterionName(anchor, index, currentName) {
 }
 
 function buildSpecificRubricDescriptors(anchor, criterionName, objective) {
-  const assessment = sentenceFragment(anchor.gradedWork || anchor.assessmentTitle);
+  const assessment = sentenceFragment(anchor.canonicalGradedWork || anchor.gradedWork || anchor.assessmentTitle);
   const lesson = sentenceFragment(stripLessonPrefix(anchor.lessonTitle) || anchor.lessonTitle);
   const objectiveText = sentenceFragment(objective || anchor.objectives[0]);
   return {
@@ -2135,25 +2197,30 @@ function patchRubricToAnchor(rubric, anchor) {
 
   const titleKey = fieldKey(next, 'title', 't', 'title');
   const currentTitle = next[titleKey];
-  if (titleLooksGeneric(currentTitle)) {
-    next = { ...next, [titleKey]: `${anchor.gradedWork} Rubric` };
-    patchedTitles++;
-  }
-
   const gradedWorkKey =
     next.gradedWork !== undefined ? 'gradedWork' : next.gw !== undefined || next.t !== undefined ? 'gw' : 'gradedWork';
   const currentGradedWork = String(next[gradedWorkKey] || '').trim();
-  if (
-    valueIsMissingOrShort(currentGradedWork, 3) ||
-    normalizedComparable(currentGradedWork) === normalizedComparable(next[titleKey])
-  ) {
-    next = { ...next, [gradedWorkKey]: anchor.gradedWork };
+  const canonicalGradedWork = rubricGradedWorkLooksUsable(currentGradedWork)
+    ? compactGradedWorkTitle(currentGradedWork, anchor.gradedWork)
+    : anchor.gradedWork;
+
+  if (next[gradedWorkKey] !== canonicalGradedWork) {
+    next = { ...next, [gradedWorkKey]: canonicalGradedWork };
+    patchedTitles++;
+  }
+
+  if (titleLooksGeneric(currentTitle) || !titleMatchesGradedWork(currentTitle, canonicalGradedWork)) {
+    next = { ...next, [titleKey]: `${canonicalGradedWork} Rubric` };
     patchedTitles++;
   }
 
   const typeKey = fieldKey(next, 'assessmentType', 'at', 'assessmentType');
-  if (valueIsMissingOrShort(next[typeKey], 2)) {
-    next = { ...next, [typeKey]: anchor.assessmentType || 'Analytic Rubric' };
+  const inferredAssessmentType = inferAssessmentTypeFromGradedWork(canonicalGradedWork, anchor.assessmentType);
+  if (
+    valueIsMissingOrShort(next[typeKey], 1) ||
+    !assessmentTypeMatchesGradedWork(next[typeKey], inferredAssessmentType)
+  ) {
+    next = { ...next, [typeKey]: inferredAssessmentType };
     patchedTitles++;
   }
 
@@ -2165,29 +2232,31 @@ function patchRubricToAnchor(rubric, anchor) {
   }
 
   const policyKey = fieldKey(next, 'gradePolicyConnection', 'gp', 'gradePolicyConnection');
-  if (valueIsMissingOrShort(next[policyKey], anchor.gradeWeight ? 12 : 8)) {
+  const policy = String(next[policyKey] || '').trim();
+  const policyNeedsWork =
+    valueIsMissingOrShort(policy, anchor.gradeWeight ? 12 : 8) ||
+    !normalizedComparable(policy).includes(normalizedComparable(canonicalGradedWork));
+  if (policyNeedsWork) {
     const weightText = anchor.gradeWeight ? ` It contributes ${anchor.gradeWeight} to the course grade.` : '';
     next = {
       ...next,
-      [policyKey]: `Use this rubric to score the graded student work "${anchor.gradedWork}" for ${anchor.lessonTitle}.${weightText} Apply the course syllabus if the local grade policy differs.`,
+      [policyKey]: `Use this rubric to score the graded student work "${canonicalGradedWork}" for ${anchor.lessonTitle}.${weightText} Apply the course syllabus if the local grade policy differs.`,
     };
     patchedWeights++;
   }
 
   const directionsKey = fieldKey(next, 'taskDirections', 'td', 'taskDirections');
   const directions = String(next[directionsKey] || '').trim();
+  const cleanDirections = directions.replace(/\bExisting task focus:\s*\.\s*/gi, '').trim();
   const directionsNeedWork =
-    valueIsMissingOrShort(directions, 10) ||
-    !normalizedComparable(directions).includes(normalizedComparable(anchor.gradedWork)) ||
-    !/\b(graded student work|rubric evaluates|students submit|student work)\b/i.test(directions);
+    cleanDirections !== directions ||
+    valueIsMissingOrShort(cleanDirections, 10) ||
+    !normalizedComparable(cleanDirections).includes(normalizedComparable(canonicalGradedWork)) ||
+    !/\b(graded student work|rubric evaluates|students submit|student work)\b/i.test(cleanDirections);
   if (directionsNeedWork) {
-    const existingDirections =
-      directions && directions.split(/\s+/).length >= 10
-        ? ` Existing task focus: ${directions.replace(/^this rubric evaluates[^.]*\.\s*/i, '')}`
-        : '';
     next = {
       ...next,
-      [directionsKey]: `This rubric evaluates the graded student work: ${anchor.gradedWork}. Students submit it for ${anchor.lessonTitle} and must directly demonstrate the listed lesson objectives.${existingDirections}`,
+      [directionsKey]: `This rubric evaluates the graded student work: ${canonicalGradedWork}. Students submit it for ${anchor.lessonTitle} and must directly demonstrate the listed lesson objectives.`,
     };
     patchedSupport++;
   }
@@ -2195,6 +2264,7 @@ function patchRubricToAnchor(rubric, anchor) {
   const criteriaKey = Array.isArray(next?.criteria) ? 'criteria' : Array.isArray(next?.cr) ? 'cr' : null;
   if (criteriaKey) {
     let criteriaChanged = false;
+    const criterionAnchor = { ...anchor, canonicalGradedWork };
     const criteria = next[criteriaKey].map((criterion, index) => {
       let nextCriterion = criterion;
       const objectiveKey = fieldKey(criterion, 'objectiveAligned', 'oa', 'objectiveAligned');
@@ -2207,8 +2277,16 @@ function patchRubricToAnchor(rubric, anchor) {
 
       const criterionNameKey = fieldKey(nextCriterion, 'criterion', 'cn', 'criterion');
       if (rubricCriterionNeedsSpecificity(nextCriterion, criterionNameKey)) {
-        const criterionName = buildSpecificRubricCriterionName(anchor, index, nextCriterion?.[criterionNameKey]);
-        const descriptors = buildSpecificRubricDescriptors(anchor, criterionName, nextCriterion?.[objectiveKey]);
+        const criterionName = buildSpecificRubricCriterionName(
+          criterionAnchor,
+          index,
+          nextCriterion?.[criterionNameKey],
+        );
+        const descriptors = buildSpecificRubricDescriptors(
+          criterionAnchor,
+          criterionName,
+          nextCriterion?.[objectiveKey],
+        );
         const exemplaryKey = fieldKey(nextCriterion, 'exemplary', 'ex', 'exemplary');
         const proficientKey = fieldKey(nextCriterion, 'proficient', 'pr', 'proficient');
         const developingKey = fieldKey(nextCriterion, 'developing', 'dv', 'developing');
@@ -2233,7 +2311,7 @@ function patchRubricToAnchor(rubric, anchor) {
   const tagKey = Array.isArray(next?.tags) ? 'tags' : Array.isArray(next?.tg) ? 'tg' : null;
   if (tagKey) {
     const tags = [
-      ...new Set([...next[tagKey], anchor.lessonTitle, anchor.assessmentTitle, anchor.gradedWork, 'rubric']),
+      ...new Set([...next[tagKey], anchor.lessonTitle, anchor.assessmentTitle, canonicalGradedWork, 'rubric']),
     ].filter(Boolean);
     if (tags.length !== next[tagKey].length) {
       next = { ...next, [tagKey]: tags };

@@ -1144,6 +1144,68 @@ describe('Rubric and assignment post-processing', () => {
     expect(result.data.rubrics[0].cr[0].ex).not.toContain('target learning objective');
   });
 
+  it('keeps specific rubric graded work canonical when assignment anchors are broader', () => {
+    const localCourseMap = {
+      lessons: [
+        {
+          title: 'Lesson 1: Course Foundations',
+          sections: [
+            {
+              learningObjectives: 'Students will be able to:\n1a. Explain course expectations and decision criteria',
+              weeklyAssessments:
+                '1. Diagnostic discussion post: Explain one prior analytics decision.\n2. Syllabus check quiz: Confirm course policies.',
+            },
+          ],
+        },
+      ],
+    };
+    const assignments = {
+      assignments: [
+        {
+          t: 'Course Overview and Decision Memo',
+          dw: 'Week 1',
+          pg: '10%',
+          tp: 100,
+          ob: ['Explain course expectations and decision criteria.'],
+        },
+      ],
+    };
+    const rubrics = {
+      rubrics: [
+        {
+          t: 'Diagnostic Discussion Post Rubric',
+          lt: 'Lesson 1: Course Foundations',
+          gw: 'Diagnostic discussion post response',
+          at: 'Syllabus check quiz',
+          tp: 100,
+          gp: 'Use this rubric to score the graded student work "Course Overview and Decision Memo" for Lesson 1.',
+          td: 'This rubric evaluates the graded student work: Course Overview and Decision Memo. Existing task focus: . Students submit a memo.',
+          cr: [
+            {
+              cn: 'Objective alignment and task completion',
+              oa: '',
+              wt: 100,
+              ex: 'The student completes every required component and connects the work to the target learning objective with precise evidence.',
+            },
+          ],
+        },
+      ],
+    };
+
+    const result = normalizeRubricAssessmentAlignment(rubrics, localCourseMap, assignments);
+    const rubric = result.data.rubrics[0];
+
+    expect(rubric.gw).toBe('Diagnostic discussion post response');
+    expect(rubric.t).toBe('Diagnostic Discussion Post Rubric');
+    expect(rubric.at).toBe('Discussion Post');
+    expect(rubric.gp).toContain('Diagnostic discussion post response');
+    expect(rubric.gp).not.toContain('Course Overview and Decision Memo');
+    expect(rubric.td).toContain('Diagnostic discussion post response');
+    expect(rubric.td).not.toContain('Course Overview and Decision Memo');
+    expect(rubric.td).not.toContain('Existing task focus');
+    expect(rubric.cr[0].cn).toContain('Diagnostic discussion post response');
+  });
+
   it('tightens generic assignment briefs with lesson assessment objectives', () => {
     const data = {
       assignments: [
