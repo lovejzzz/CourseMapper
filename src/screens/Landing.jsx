@@ -546,7 +546,7 @@ export default function Landing({
         </p>
         <div className="flex items-center justify-center gap-3 text-[10px] text-slate-300/70">
           <a href="#/changelog" className="font-medium hover:text-indigo-500 transition-colors duration-200">
-            v0.7
+            v0.75
           </a>
           <span>·</span>
           <a href="#/privacy" className="hover:text-indigo-500 transition-colors duration-200">

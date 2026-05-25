@@ -7,6 +7,7 @@ import {
   normalizeAssignmentLessonAlignment,
   normalizeCourseFaqCategories,
   normalizeCourseFaqQuestionCounts,
+  normalizeCourseFaqQuestionVariety,
   normalizeDiscussionPromptFields,
   normalizeLessonPlanPublishability,
   normalizeLessonPlanTeachingSupport,
@@ -149,6 +150,32 @@ describe('Course FAQ post-processing', () => {
 
     expect(result.normalizedCategories).toBe(1);
     expect(result.data.faqs[0].questions[0].category).toBe('Assessment Prep');
+  });
+
+  it('tailors repeated FAQ questions to each lesson context', () => {
+    const data = {
+      faqs: faqCourseMap.lessons.map((lesson) => ({
+        lt: lesson.title,
+        qs: [
+          {
+            q: 'How should I prepare for the assessment in this lesson?',
+            an: 'Use the assessment prompt as a checklist.',
+            ca: 'Assessment Prep',
+            sa: 'Review the prompt.',
+            ac: 'Connects to the assignment.',
+            ce: 'Strong work uses evidence.',
+          },
+          { q: 'What concept is most important?', an: 'Review the main idea.', ca: 'Concept Explanation' },
+        ],
+      })),
+    };
+
+    const result = normalizeCourseFaqQuestionVariety(data, faqCourseMap);
+
+    expect(result.rewrittenQuestions).toBe(4);
+    expect(result.data.faqs[0].qs[0].q).toContain('Short design memo');
+    expect(result.data.faqs[1].qs[0].q).toContain('Quiz on sampling terms');
+    expect(new Set(result.data.faqs.map((lesson) => lesson.qs[0].q)).size).toBe(2);
   });
 
   it('builds a valid course-map fallback FAQ when model output is unusable', () => {
@@ -709,6 +736,13 @@ describe('Deliverable generation validation', () => {
 });
 
 describe('Syllabus post-processing', () => {
+  it('does not treat legitimate missing-data placeholder wording as unfinished content', () => {
+    const text =
+      'Students compare deleting rows with missing values against keeping them with a documented placeholder during data cleaning.';
+
+    expect(findPublishabilityPlaceholders(text, { limit: 10 })).toEqual([]);
+  });
+
   it('replaces unresolved local-fact placeholders with finished course-relative language', () => {
     const result = normalizeSyllabusPublishability({
       syllabus: {
@@ -953,7 +987,12 @@ describe('Rubric and assignment post-processing', () => {
           lt: 'Sampling',
           tp: 0,
           cr: [
-            { cn: 'Concept use', oa: '2a', wt: 50 },
+            {
+              cn: 'Concept use',
+              oa: '2a',
+              wt: 50,
+              ex: 'The student completes every required component and explicitly connects the work to the target learning objective with precise evidence.',
+            },
             { cn: 'Evidence', oa: '', wt: 50 },
             { cn: 'Communication', wt: 0 },
           ],
@@ -983,6 +1022,9 @@ describe('Rubric and assignment post-processing', () => {
     expect(result.data.rubrics[0].tp).toBe(40);
     expect(result.data.rubrics[0].gp).toContain('20%');
     expect(result.data.rubrics[0].cr[0].oa).toContain('Compare sampling strategies');
+    expect(result.data.rubrics[0].cr[0].cn).toContain('Sampling Strategy Quiz');
+    expect(result.data.rubrics[0].cr[0].ex).toContain('Sampling');
+    expect(result.data.rubrics[0].cr[0].ex).not.toContain('target learning objective');
   });
 
   it('tightens generic assignment briefs with lesson assessment objectives', () => {

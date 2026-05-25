@@ -343,6 +343,14 @@ function buildFallbackFaqQuestions({ lesson, title, shortTitle, target }) {
   );
   const concepts = extractCourseFaqConcepts(lesson, title);
   const related = concepts.length > 0 ? concepts : [shortTitle.toLowerCase()];
+  const assessmentLabel = compactText(
+    String(assessment || '')
+      .split(/\n|;/)
+      .map((item) => item.replace(/^\s*(?:[-*]|\d+[.)])\s*/, '').trim())
+      .find(Boolean),
+    'the lesson assessment',
+    90,
+  );
 
   const questions = [
     {
@@ -360,11 +368,14 @@ function buildFallbackFaqQuestions({ lesson, title, shortTitle, target }) {
       df: 'Basic',
     },
     {
-      q: `How should I prepare for the assessment in this lesson?`,
+      q: `How should I prepare for ${assessmentLabel} in ${shortTitle}?`,
       an: `Use the assessment prompt as a checklist: ${assessment}. A prepared response should name the relevant concept, apply it to the lesson case or activity, and explain why the evidence supports your answer.`,
       ca: 'Assessment Prep',
       rc: related.slice(0, 4),
       df: 'Intermediate',
+      sa: `Mark the required evidence for ${assessmentLabel}, then draft one claim that uses ${shortTitle} vocabulary.`,
+      ac: `${assessmentLabel} should show the lesson concept, evidence choice, and reasoning link before submission.`,
+      ce: `For ${shortTitle}, strong work names the relevant concept and explains why the chosen evidence supports the answer.`,
     },
     {
       q: `What should strong submitted work include for ${shortTitle}?`,
@@ -388,7 +399,7 @@ function buildFallbackFaqQuestions({ lesson, title, shortTitle, target }) {
       df: 'Intermediate',
     },
     {
-      q: `How can I check whether my answer is specific enough?`,
+      q: `How can I check whether my ${shortTitle} answer is specific enough?`,
       an: `Your answer is specific enough when another reader can identify the concept, the evidence you used, and the reasoning that links them. Replace vague statements with a lesson example, and make sure each claim answers the question being asked.`,
       ca: 'Assessment Prep',
       rc: related.slice(0, 4),
@@ -404,6 +415,140 @@ function buildFallbackFaqQuestions({ lesson, title, shortTitle, target }) {
   ];
 
   return questions.slice(0, target);
+}
+
+function normalizeFaqQuestionText(value) {
+  return String(value || '')
+    .toLowerCase()
+    .replace(/[^\p{Letter}\p{Number}]+/gu, ' ')
+    .replace(/\s+/g, ' ')
+    .trim();
+}
+
+function getCourseFaqQuestionArrayKey(lesson) {
+  if (Array.isArray(lesson?.questions)) return 'questions';
+  if (Array.isArray(lesson?.qs)) return 'qs';
+  return null;
+}
+
+function getFaqQuestionCategory(question = {}) {
+  return question.category || question.ca || inferFaqCategory(question);
+}
+
+function buildFaqQuestionRepair({ question, courseLesson, lessonTitle, lessonIndex }) {
+  const shortTitle = stripLessonPrefix(lessonTitle) || `Lesson ${lessonIndex + 1}`;
+  const topic = compactText(getLessonField(courseLesson, 'topicSection'), shortTitle, 90);
+  const assessment = compactText(getLessonField(courseLesson, 'weeklyAssessments'), 'the lesson assessment', 120);
+  const objective = compactText(
+    getLessonField(courseLesson, 'learningObjectives') || getLessonField(courseLesson, 'learningGoals'),
+    `apply ${shortTitle} concepts`,
+    120,
+  );
+  const assessmentLabel = compactText(
+    String(assessment)
+      .split(/\n|;/)
+      .map((item) => item.replace(/^\s*(?:[-*]|\d+[.)])\s*/, '').trim())
+      .find(Boolean),
+    'the lesson assessment',
+    90,
+  );
+  const category = getFaqQuestionCategory(question);
+  const templates = {
+    'Course Logistics': {
+      q: `What should I review first for ${shortTitle}?`,
+      an: `Start with ${topic}, then compare your notes to the lesson objective: ${objective}. Bring one specific question about the topic or assessment to class, office hours, or a study group.`,
+    },
+    'Assignment Clarification': {
+      q: `What does strong work on ${assessmentLabel} look like?`,
+      an: `Strong work answers the prompt directly, uses ${shortTitle} vocabulary accurately, and connects each claim to a concrete piece of lesson evidence. Before submitting, check that the final artifact matches the posted directions and rubric language.`,
+    },
+    'Concept Explanation': {
+      q: `What is the main confusion to avoid about ${topic}?`,
+      an: `Do not stop at a definition. Explain how ${topic} works in the lesson context, then use one example or data point to show why the distinction matters.`,
+    },
+    'Technical Help': {
+      q: `What should I do if the ${shortTitle} file, tool, or workflow step does not work?`,
+      an: `Write down the exact step that failed, the input you used, and what result you expected. Then retry the step with the course example before asking for help, so the instructor can see where the workflow broke.`,
+    },
+    'Assessment Prep': {
+      q: `How should I prepare for ${assessmentLabel} in ${shortTitle}?`,
+      an: `Use ${assessmentLabel} as a checklist. A prepared response names the relevant ${shortTitle} concept, applies it to the required case or task, and explains why the evidence supports the answer.`,
+    },
+  };
+  return templates[category] || templates['Concept Explanation'];
+}
+
+export function normalizeCourseFaqQuestionVariety(data, courseMap = null) {
+  const arrayKey = getArrayKey('courseFaq', data) || (data?.faqs ? 'faqs' : data?.courseFaq ? 'courseFaq' : null);
+  const lessons = arrayKey ? data?.[arrayKey] : null;
+  const courseLessons = Array.isArray(courseMap?.lessons) ? courseMap.lessons : [];
+
+  if (!Array.isArray(lessons) || lessons.length === 0) {
+    return { data, arrayKey, rewrittenQuestions: 0 };
+  }
+
+  const questionCounts = new Map();
+  lessons.forEach((lesson) => {
+    const questionKey = getCourseFaqQuestionArrayKey(lesson);
+    const questions = questionKey ? lesson[questionKey] : [];
+    questions.forEach((question) => {
+      const questionText = question?.question || question?.q || '';
+      const key = normalizeFaqQuestionText(questionText);
+      if (!key) return;
+      questionCounts.set(key, (questionCounts.get(key) || 0) + 1);
+    });
+  });
+
+  let rewrittenQuestions = 0;
+  const nextLessons = lessons.map((lesson, lessonIndex) => {
+    const questionKey = getCourseFaqQuestionArrayKey(lesson);
+    if (!questionKey) return lesson;
+    const courseLesson = courseLessons[lessonIndex] || null;
+    const lessonTitle = lesson?.lessonTitle || lesson?.lt || courseLesson?.title || `Lesson ${lessonIndex + 1}`;
+    let changed = false;
+    const questions = lesson[questionKey].map((question, questionIndex) => {
+      const qKey = question?.question !== undefined ? 'question' : question?.q !== undefined ? 'q' : 'q';
+      const answerKey = question?.answer !== undefined ? 'answer' : question?.an !== undefined ? 'an' : 'an';
+      const currentQuestion = question?.[qKey] || '';
+      const normalized = normalizeFaqQuestionText(currentQuestion);
+      const repeated = normalized && questionCounts.get(normalized) > 1;
+      const genericPrep = /^how should i prepare for the assessment in this lesson\??$/i.test(
+        String(currentQuestion || '').trim(),
+      );
+      if (!repeated && !genericPrep) return question;
+
+      const repair = buildFaqQuestionRepair({ question, courseLesson, lessonTitle, lessonIndex });
+      rewrittenQuestions++;
+      changed = true;
+      const nextQuestion = { ...question, [qKey]: repair.q, [answerKey]: repair.an };
+      const actionKey =
+        question?.studentAction !== undefined ? 'studentAction' : question?.sa !== undefined ? 'sa' : null;
+      const connectionKey =
+        question?.assessmentConnection !== undefined
+          ? 'assessmentConnection'
+          : question?.ac !== undefined
+            ? 'ac'
+            : null;
+      const exampleKey =
+        question?.concreteExample !== undefined ? 'concreteExample' : question?.ce !== undefined ? 'ce' : null;
+      if (actionKey)
+        nextQuestion[actionKey] =
+          `Use the ${lessonTitle} prompt as a checklist and mark one evidence point before drafting.`;
+      if (connectionKey)
+        nextQuestion[connectionKey] = `Connects directly to ${repair.q.replace(/\?$/, '').toLowerCase()}.`;
+      if (exampleKey)
+        nextQuestion[exampleKey] =
+          `A strong ${lessonTitle} answer names the concept, cites lesson evidence, and explains the decision made.`;
+      return nextQuestion;
+    });
+    return changed ? { ...lesson, [questionKey]: questions } : lesson;
+  });
+
+  return {
+    data: rewrittenQuestions > 0 ? { ...data, [arrayKey]: nextLessons } : data,
+    arrayKey,
+    rewrittenQuestions,
+  };
 }
 
 export function buildFallbackCourseFaq(courseMap, config = {}, scopeIndices = null) {
@@ -1849,6 +1994,60 @@ function objectiveNeedsAlignment(value) {
   return !stripped || stripped.split(/\s+/).filter(Boolean).length < 5;
 }
 
+const GENERIC_RUBRIC_CRITERION_RE =
+  /^(objective alignment and task completion|use of course concepts and evidence|reasoning,? organization,? and communication|communication and submission quality|concept use|evidence quality|reasoning|communication)$/i;
+
+const GENERIC_RUBRIC_DESCRIPTOR_RE =
+  /\b(target learning objective|required components|course concepts accurately|central claim|relevant concept|course evidence|the response cites|the submission names|understandable reasoning|polished communication|specific evidence)\b/i;
+
+function rubricCriterionNeedsSpecificity(criterion, nameKey) {
+  const name = String(criterion?.[nameKey] || '').trim();
+  if (!name || GENERIC_RUBRIC_CRITERION_RE.test(name)) return true;
+  return ['exemplary', 'proficient', 'developing', 'beginning', 'ex', 'pr', 'dv', 'bg'].some((key) =>
+    GENERIC_RUBRIC_DESCRIPTOR_RE.test(String(criterion?.[key] || '')),
+  );
+}
+
+function compactCriterionFocus(value, fallback) {
+  const words = String(value || fallback || '')
+    .replace(/^students will be able to:\s*/i, '')
+    .replace(/^\s*\d+[a-z]?[.)]\s*/i, '')
+    .replace(/[^A-Za-z0-9\s-]/g, ' ')
+    .split(/\s+/)
+    .filter(Boolean)
+    .slice(0, 7);
+  return words.join(' ') || fallback;
+}
+
+function buildSpecificRubricCriterionName(anchor, index, currentName) {
+  const assessment = compactCriterionFocus(anchor.assessmentTitle, anchor.assessmentType || 'assessment');
+  const objective = compactCriterionFocus(anchor.objectives[index % anchor.objectives.length], assessment);
+  const lesson = stripLessonPrefix(anchor.lessonTitle);
+  const names = [
+    `${assessment} requirements and accuracy`,
+    `${objective} evidence use`,
+    `${lesson || assessment} reasoning and interpretation`,
+    `${assessment} communication and format`,
+    `${objective} transfer and limitation awareness`,
+    `${assessment} revision and feedback use`,
+  ];
+  const selected = names[index % names.length];
+  if (!currentName || GENERIC_RUBRIC_CRITERION_RE.test(String(currentName).trim())) return selected;
+  return `${String(currentName).trim()} for ${lesson || assessment}`;
+}
+
+function buildSpecificRubricDescriptors(anchor, criterionName, objective) {
+  const assessment = sentenceFragment(anchor.assessmentTitle);
+  const lesson = sentenceFragment(stripLessonPrefix(anchor.lessonTitle) || anchor.lessonTitle);
+  const objectiveText = sentenceFragment(objective || anchor.objectives[0]);
+  return {
+    exemplary: `The student completes ${assessment} with precise ${criterionName.toLowerCase()}, uses specific ${lesson} evidence, and explains how the work demonstrates ${objectiveText}. e.g., The submission names the relevant method or concept, applies it to the lesson task, and justifies one key decision with evidence.`,
+    proficient: `The student completes ${assessment} with accurate ${criterionName.toLowerCase()} and connects the main claim to ${lesson} evidence. e.g., The submission applies the expected concept or method and explains the central result in a way another reader can follow.`,
+    developing: `The student addresses ${assessment} but the ${criterionName.toLowerCase()} is uneven, partly implicit, or supported by limited ${lesson} evidence. e.g., The submission includes the required task but leaves one method choice, evidence link, or limitation underexplained.`,
+    beginning: `The student attempts ${assessment} but shows limited control of ${criterionName.toLowerCase()} or omits important ${lesson} evidence. e.g., The submission names part of the task but gives minimal explanation of how the evidence supports the answer.`,
+  };
+}
+
 function patchRubricToAnchor(rubric, anchor) {
   let next = rubric;
   let patchedLessonLinks = 0;
@@ -1906,11 +2105,36 @@ function patchRubricToAnchor(rubric, anchor) {
   if (criteriaKey) {
     let criteriaChanged = false;
     const criteria = next[criteriaKey].map((criterion, index) => {
+      let nextCriterion = criterion;
       const objectiveKey = fieldKey(criterion, 'objectiveAligned', 'oa', 'objectiveAligned');
-      if (!objectiveNeedsAlignment(criterion?.[objectiveKey])) return criterion;
-      patchedObjectiveLinks++;
-      criteriaChanged = true;
-      return { ...criterion, [objectiveKey]: anchor.objectives[index % anchor.objectives.length] };
+      const objective = anchor.objectives[index % anchor.objectives.length];
+      if (objectiveNeedsAlignment(nextCriterion?.[objectiveKey])) {
+        patchedObjectiveLinks++;
+        criteriaChanged = true;
+        nextCriterion = { ...nextCriterion, [objectiveKey]: objective };
+      }
+
+      const criterionNameKey = fieldKey(nextCriterion, 'criterion', 'cn', 'criterion');
+      if (rubricCriterionNeedsSpecificity(nextCriterion, criterionNameKey)) {
+        const criterionName = buildSpecificRubricCriterionName(anchor, index, nextCriterion?.[criterionNameKey]);
+        const descriptors = buildSpecificRubricDescriptors(anchor, criterionName, nextCriterion?.[objectiveKey]);
+        const exemplaryKey = fieldKey(nextCriterion, 'exemplary', 'ex', 'exemplary');
+        const proficientKey = fieldKey(nextCriterion, 'proficient', 'pr', 'proficient');
+        const developingKey = fieldKey(nextCriterion, 'developing', 'dv', 'developing');
+        const beginningKey = fieldKey(nextCriterion, 'beginning', 'bg', 'beginning');
+        nextCriterion = {
+          ...nextCriterion,
+          [criterionNameKey]: criterionName,
+          [exemplaryKey]: descriptors.exemplary,
+          [proficientKey]: descriptors.proficient,
+          [developingKey]: descriptors.developing,
+          [beginningKey]: descriptors.beginning,
+        };
+        patchedSupport++;
+        criteriaChanged = true;
+      }
+
+      return nextCriterion;
     });
     if (criteriaChanged) next = { ...next, [criteriaKey]: criteria };
   }

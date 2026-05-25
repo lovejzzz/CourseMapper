@@ -58,6 +58,8 @@ REQUIREMENTS:
 - Named third-party tools are allowed only when the course map names them or when framed as optional examples, not required institutional resources.
 - Include at least 1 Concept Explanation question per lesson that clarifies a common point of confusion
 - Include at least 1 Assessment Prep question for lessons with exams or major assignments due
+- Do not repeat the exact same question across lessons. In particular, avoid repeating "How should I prepare for the assessment in this lesson?" Instead, name the lesson artifact, quiz, project, tool, case, or concept in the question text.
+- The third question in each lesson must be tailored to that lesson's actual assessment or concept, not a reusable preparation template.
 - Every FAQ item must include studentAction, instructorNote, assessmentConnection, accessibilitySupport, and concreteExample.
 - accessibilitySupport must be concrete and varied across lessons. Do not repeat the same generic support sentence.
 - assessmentConnection must be specific when the lesson has an assessment: name the expected artifact, timing, success criterion, or feedback loop. Do not only say "connects to the assignment."

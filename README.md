@@ -3,6 +3,7 @@
 AI-powered instructional design platform with an embedded teaching assistant agent. Upload your syllabus and generate a structured Course Map, lesson plans, slide decks, rubrics, quizzes, assignments, discussion prompts, study guides, and a polished syllabus — all pedagogically aligned, validated, and fully editable. Then use the AI agent to revise, validate, research, and visualize your curriculum through natural conversation.
 
 **Live:** [https://edutool.dev](https://edutool.dev)
+**Current release:** v0.75
 
 ---
 
@@ -11,12 +12,12 @@ AI-powered instructional design platform with an embedded teaching assistant age
 Course Mapper is a **purpose-built instructional design tool**, not a general chatbot. The difference is like using Excel for a budget vs. asking ChatGPT to "make me a budget" — one gives you a functional, editable, exportable artifact; the other gives you text you have to manually restructure.
 
 1. **Structured output, not chat.** Pasting a syllabus into ChatGPT gives you a blob of markdown. Course Mapper produces structured, editable tables and slide decks with defined schemas — ready to use immediately.
-2. **9 aligned deliverables.** Generate a Course Map, Syllabus, Lesson Plans, Slide Decks, Rubrics, Quiz Bank, Assignments, Discussion Prompts, and Study Guides — all cross-referenced and pedagogically consistent.
+2. **10 aligned deliverables.** Generate a Course Map, Syllabus, Lesson Plans, Slide Decks, Rubrics, Quiz Bank, Assignments, Discussion Prompts, Study Guides, and Course FAQ — all cross-referenced and pedagogically consistent.
 3. **Embedded AI agent with 8 tools.** A multi-step teaching assistant that can read your deliverables, validate pedagogy, search academic literature, generate diagrams and charts, and apply edits — all through native tool calling with accept/reject review before changes land.
 4. **Inline AI editing.** Right-click any cell to Improve, Expand, Simplify, or Rewrite with AI. No need to describe what you want changed — the agent sees the cell context automatically.
 5. **Cascade editing.** Edit one deliverable and the system automatically detects which other deliverables are affected and surgically regenerates just those lessons — no full regeneration.
 6. **Pedagogical validation.** Built-in Bloom's taxonomy alignment, objective coverage, cognitive load assessment, readability scoring, and difficulty progression checks — with auto-fix for common issues.
-7. **Full export pipeline.** Export each deliverable to DOCX, PDF, XLSX, CSV, PPTX, Google Docs, Google Sheets, Google Slides, and ZIP bundle. Save/load complete sessions as `.coursemapper` project files.
+7. **One-click package finalizer.** Export runs deterministic repair, targeted retry, readiness checks, and file verification before a package is marked ready. Save/load complete sessions as `.coursemapper` project files.
 8. **Multi-model support.** Supports OpenAI, Anthropic, Google, and DeepSeek with native tool calling per provider. Auto-detects key format and auto-rotates through models on failure.
 9. **Privacy-first.** Static BYOK app by default. There is no Course Mapper backend server; project data is stored in your browser unless you explicitly sign in for Firebase cloud sync or export to Google Drive. API keys go directly to providers.
 
@@ -45,7 +46,7 @@ Course Mapper auto-detects lesson count and structure from your files using AI.
 
 ### Step 3: Choose Your Deliverables
 
-Pick which deliverables to generate. Course Map is always included. Add any combination of: Syllabus, Lesson Plans, Slide Decks, Rubrics, Quiz Bank, Assignments, Discussion Prompts, and Study Guides.
+Pick which deliverables to generate. Course Map is always included. Add any combination of: Syllabus, Lesson Plans, Slide Decks, Rubrics, Quiz Bank, Assignments, Discussion Prompts, Study Guides, and Course FAQ.
 
 ### Step 4: Configure & Generate
 
@@ -123,6 +124,16 @@ Client-side validation engine that runs in under 50ms. Six validators catch issu
 
 The agent auto-classifies findings: **auto-fixable** issues (readability, difficulty, grammar) are resolved silently; **needs-decision** issues (Bloom's, alignment, cognitive load) are surfaced in a Validation Card with one-click "Fix" buttons.
 
+### One-Click Package Finalizer
+
+Course Mapper treats export as a finishing workflow, not just a file download. Before the ZIP is marked ready, the app:
+
+- Applies deterministic repairs for missing coverage, unsupported FAQ categories, rubric alignment, scoring math, and publishability placeholders.
+- Retries only concrete weak sections when safe, instead of regenerating the whole course.
+- Verifies export files in memory so a course is not labeled ready if DOCX, XLSX, CSV, PPTX, or ZIP generation fails.
+- Produces a quality receipt that shows what was checked, what was auto-fixed, and what still needs instructor judgment.
+- Tracks API-call budgets in Developer Mode across model discovery, credit checks, course-map calls, deliverable chunks, repair retries, stream retries, provider fallbacks, agent loops, and image generation.
+
 ### Academic Research
 
 Six free, keyless academic search sources built into the agent — no API keys required:
@@ -138,17 +149,18 @@ Results are synthesized by the AI with numbered `[N]` citations and formatted in
 
 ### Deliverables
 
-Nine built-in deliverable types, all cross-referenced and pedagogically consistent:
+Ten built-in deliverable types, all cross-referenced and pedagogically consistent:
 
 - **Course Map** — Week-by-week structure with learning goals, objectives, assessments, activities, and resources in a customizable column layout. Click columns to enable/disable — disabled columns are excluded from AI generation and all exports. Identical values across sections auto-merge for cleaner display.
 - **Syllabus** — Complete professional syllabus with policies, grading, schedule, and learning outcomes.
 - **Lesson Plans** — Session-by-session plans with timing, warm-ups, activities, UDL notes, and instructor notes.
 - **Slide Decks** — University-quality presentation slides with 5 color themes, speaker notes, and inline editing.
-- **Rubrics** — Grading rubrics with criteria, performance levels, descriptors, and teacher calibration notes.
+- **Rubrics** — Grading rubrics with criteria, performance levels, descriptors, and teacher calibration notes. Generic criteria are automatically tightened against the lesson assessment and objectives before export.
 - **Quiz & Exam Bank** — Multiple choice, short answer, and essay questions organized by lesson and difficulty.
 - **Assignment Briefs** — Clear assignment descriptions with objectives, deliverables, scaffolding milestones, and submission guidelines.
 - **Discussion Prompts** — Engaging prompts with response frameworks, facilitation guides, and equity considerations.
 - **Study Guides** — Student-facing review materials with key concepts, vocabulary, common misconceptions, and exam prep tips.
+- **Course FAQ** — Student-facing lesson FAQs. Repeated question templates are rewritten with lesson-specific assessment, topic, or workflow context.
 
 ### Editing & Sync
 
@@ -251,7 +263,7 @@ Five pedagogical frameworks that shape all generated content:
 - **Multi-provider support** — OpenAI, Anthropic, Google, and DeepSeek with native tool calling per provider. Your own API key (BYOK).
 - **Streaming generation** — Watch deliverables build in real time with stable per-feature sequential streaming (no preview flashing).
 - **Token-optimized prompts** — Minified JSON keys, adaptive chunk sizes, and compact continuation schemas reduce API costs by ~20% and cut total API calls by ~15–20%.
-- **AI self-examination** — The AI reviews and fixes its own structured output automatically.
+- **Conditional AI review** — The app skips broad self-review when deterministic checks pass, then uses targeted repair/retry only for concrete defects.
 - **Static BYOK architecture** — No Course Mapper backend server. Work is stored in browser local storage by default, with optional Firebase cloud sync when you sign in.
 - **Google OAuth verified** — Clean consent screen for Google Drive export.
 

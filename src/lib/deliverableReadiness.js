@@ -7,6 +7,7 @@ import {
   normalizeAssignmentLessonAlignment,
   normalizeCourseFaqCategories,
   normalizeCourseFaqQuestionCounts,
+  normalizeCourseFaqQuestionVariety,
   normalizeDiscussionPromptFields,
   normalizeLessonPlanPublishability,
   normalizeLessonPlanTeachingSupport,
@@ -389,6 +390,13 @@ function repairFeatureData(featureId, data, { courseMap, config, deliverables } 
         'normalized FAQ question counts',
         normalizeCourseFaqQuestionCounts,
         config,
+        courseMap,
+      );
+      current = applyRepair(
+        current,
+        summaries,
+        'tailored repeated FAQ questions',
+        normalizeCourseFaqQuestionVariety,
         courseMap,
       );
       break;

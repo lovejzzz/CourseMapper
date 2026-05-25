@@ -3,6 +3,56 @@ import Header from '../components/Header';
 
 const releases = [
   {
+    version: '0.75',
+    date: 'May 25, 2026',
+    title: 'Output Polish and Cost Telemetry Cleanup',
+    highlights: [
+      'Rubrics now receive deterministic lesson-specific cleanup when a model falls back to generic grading language',
+      'Course FAQ questions are automatically tailored when repeated templates appear across lessons',
+      'API budget logs now avoid duplicate trace noise so troubleshooting reflects real provider calls',
+    ],
+    sections: [
+      {
+        label: 'Rubric Quality',
+        icon: '✦',
+        color: 'indigo',
+        items: [
+          'Rubric prompts now explicitly reject reusable criteria such as “Objective alignment and task completion” unless they include lesson-specific evidence, artifact, method, or decision language.',
+          'The package finalizer now rewrites generic rubric criteria and performance descriptors against the course-map assessment anchor before export.',
+          'Fallback rubric cells now point to concrete lesson evidence instead of broad “course concepts” language.',
+        ],
+      },
+      {
+        label: 'Course FAQ Variety',
+        icon: '⚡',
+        color: 'amber',
+        items: [
+          'Course FAQ prompts now ban repeated lesson questions such as “How should I prepare for the assessment in this lesson?”',
+          'FAQ post-processing now detects repeated question text across lessons and rewrites it with the lesson assessment, topic, or workflow context.',
+          'Fallback FAQ generation now names the actual assessment or lesson title in preparation questions.',
+        ],
+      },
+      {
+        label: 'Readiness Accuracy',
+        icon: '🛡️',
+        color: 'emerald',
+        items: [
+          'Publishability checks now preserve legitimate instructional wording about data-cleaning placeholders while still blocking unresolved “placeholder text/content” markers.',
+          'The export-ready path still treats real placeholders, missing fields, unsupported FAQ categories, and incomplete lesson coverage as repair targets.',
+        ],
+      },
+      {
+        label: 'Developer Telemetry',
+        icon: '⚙',
+        color: 'slate',
+        items: [
+          'API budget tracing now updates from a ref-backed budget path instead of logging inside the React state updater, reducing duplicate console rows during troubleshooting.',
+          'Developer Mode call counters remain focused on actual provider attempts: model discovery, credit checks, course map, deliverable chunks, retries, fallbacks, agent loops, and image calls.',
+        ],
+      },
+    ],
+  },
+  {
     version: '0.7',
     date: 'May 14, 2026',
     title: 'Autonomous Package Finalizer',

@@ -41,6 +41,7 @@ import {
   normalizeAssignmentLessonAlignment,
   normalizeCourseFaqCategories,
   normalizeCourseFaqQuestionCounts,
+  normalizeCourseFaqQuestionVariety,
   normalizeDiscussionPromptFields,
   normalizeLessonPlanPublishability,
   normalizeQuizBankIndex,
@@ -1760,6 +1761,17 @@ export default function useDeliverables({
             );
           }
 
+          const normalizedVariety = normalizeCourseFaqQuestionVariety(merged, courseMap);
+          merged = normalizedVariety.data;
+          mergedArr = normalizedVariety.arrayKey ? merged[normalizedVariety.arrayKey] || [] : mergedArr;
+
+          if (normalizedVariety.rewrittenQuestions > 0) {
+            appendLog(
+              `⚠ ${getFeatureLabel(fid)}: tailored ${normalizedVariety.rewrittenQuestions} repeated FAQ question(s) to lesson context`,
+              'warn',
+            );
+          }
+
           if (normalized.underfilledIndices.length > 0) {
             const underfilledLessonIndices = normalized.underfilledIndices.map((i) => lessonIndices[i] ?? i);
             appendLog(
@@ -2057,6 +2069,9 @@ export default function useDeliverables({
               const normalizedCategories = normalizeCourseFaqCategories(merged);
               merged = normalizedCategories.data;
               mergedArr = normalizedCategories.arrayKey ? merged[normalizedCategories.arrayKey] || [] : mergedArr;
+              const normalizedVariety = normalizeCourseFaqQuestionVariety(merged, courseMap);
+              merged = normalizedVariety.data;
+              mergedArr = normalizedVariety.arrayKey ? merged[normalizedVariety.arrayKey] || [] : mergedArr;
             }
           }
         }
@@ -2276,6 +2291,9 @@ export default function useDeliverables({
                 const normalizedCategories = normalizeCourseFaqCategories(merged);
                 merged = normalizedCategories.data;
                 mergedArr = normalizedCategories.arrayKey ? merged[normalizedCategories.arrayKey] || [] : mergedArr;
+                const normalizedVariety = normalizeCourseFaqQuestionVariety(merged, courseMap);
+                merged = normalizedVariety.data;
+                mergedArr = normalizedVariety.arrayKey ? merged[normalizedVariety.arrayKey] || [] : mergedArr;
               }
             }
           }
