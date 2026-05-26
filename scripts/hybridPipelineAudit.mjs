@@ -5,6 +5,7 @@ import process from 'node:process';
 import { pathToFileURL } from 'node:url';
 
 import { createServer } from 'vite';
+import { buildHumanReviewRecommendation, summarizeRepairEvidence } from '../src/lib/packageTrust.js';
 
 const ROOT = process.cwd();
 const DEFAULT_OUTPUT_DIR = path.join(ROOT, 'verification-output', 'hybrid-pipeline-audit');
@@ -604,26 +605,6 @@ function formatGateStatus(status) {
   return status === 'pass' ? 'pass' : status === 'warnings' ? 'warnings' : 'blocked';
 }
 
-function summarizeRepairEvidence(repairedFields = [], previewCount = 2) {
-  if (!Array.isArray(repairedFields) || repairedFields.length === 0) return 'none';
-  const preview = repairedFields.slice(0, previewCount).join('; ');
-  const remainder = repairedFields.length - Math.min(repairedFields.length, previewCount);
-  return remainder > 0 ? `${preview}; +${remainder} more` : preview;
-}
-
-function buildHumanReviewRecommendation(result) {
-  if (result.summary.blockerCount > 0) {
-    return 'Review blocked features and readiness findings before classroom handoff.';
-  }
-  if (result.summary.warningCount > 0) {
-    return 'Review flagged warnings before treating the package as classroom-ready.';
-  }
-  if (result.courseMapRepair?.changed) {
-    return 'Spot-check repaired course-map fields plus institution-specific facts before handoff.';
-  }
-  return 'Spot-check institution-specific facts, official dates, and copyrighted readings before handoff.';
-}
-
 export function auditHybridPipelineCase({ project, scope, runtime, features = PIPELINE_FEATURES }) {
   if (!runtime) throw new Error('auditHybridPipelineCase requires a loaded audit runtime.');
   const rawCourseMap = scopeCourseMap(project.courseMap, scope);
@@ -728,10 +709,10 @@ export function auditHybridPipelineCase({ project, scope, runtime, features = PI
   const workspaceStatus = summarizeGateStatus(workspaceReadiness);
   const classroomStatus = summarizeGateStatus(classroomReadiness);
   const reviewRecommendation = buildHumanReviewRecommendation({
-    summary: { blockerCount, warningCount },
-    courseMapRepair: {
-      changed: Boolean(courseMapRepair.changed),
-    },
+    blockerCount,
+    warningCount,
+    repaired: Boolean(courseMapRepair.changed),
+    repairScope: 'repaired course-map fields',
   });
   const repairEvidence = summarizeRepairEvidence(courseMapRepair.repairedFields);
 

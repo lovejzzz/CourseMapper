@@ -1,5 +1,5 @@
 import { buildReadinessReport, scopeCourseMapToLessons, scopeDeliverableDataToLessons } from './deliverableReadiness';
-import { FEATURE_LABELS } from './deliverableExporters';
+import { resolveFeatureLabel } from './exporters/exporterUtils.js';
 import { safeImport } from './safeImport';
 
 const MIN_EXPORT_BYTES = 128;
@@ -27,8 +27,8 @@ export function sanitizeFilePart(value, fallback = 'Course') {
   return cleaned || fallback;
 }
 
-function resolveFeatureLabel(featureId) {
-  return FEATURE_LABELS[featureId] || featureId || 'Deliverable';
+function publicFeatureId(featureId) {
+  return featureId?.startsWith('custom_') ? 'custom' : featureId;
 }
 
 function getExportPartSize(part) {
@@ -64,7 +64,7 @@ function addRequiredFile(zip, files, failures, path, content, { featureId, forma
     return false;
   }
   zip.file(path, content);
-  files.push({ path, featureId, format, size });
+  files.push({ path, featureId: publicFeatureId(featureId), label: resolveFeatureLabel(featureId), format, size });
   return true;
 }
 
@@ -79,7 +79,10 @@ function buildManifest({ courseName, lessonFilter, readiness, files, requestedFe
     courseName,
     generatedAt: new Date().toISOString(),
     lessonScope: Array.isArray(lessonFilter) ? lessonFilter.map((index) => index + 1) : 'all',
-    requestedFeatures: requestedFeatureIds,
+    requestedFeatures: requestedFeatureIds.map((featureId) => ({
+      featureId: publicFeatureId(featureId),
+      label: resolveFeatureLabel(featureId),
+    })),
     readiness: {
       status: readiness?.status || 'unknown',
       blockers: readiness?.blockers?.length || 0,

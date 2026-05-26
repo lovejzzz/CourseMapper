@@ -1,6 +1,10 @@
 import { describe, expect, it, vi } from 'vitest';
 import { verifyPackageExports } from '../packageExportVerifier';
 
+vi.mock('../customDeliverableLibrary', () => ({
+  getCustomDeliverable: vi.fn((id) => (id === 'custom_weeklyReflection' ? { name: 'Weekly Reflection' } : null)),
+}));
+
 vi.mock('../xlsxGenerator', () => ({
   buildXlsxBuffer: vi.fn(() => Promise.resolve(new Uint8Array(256).buffer)),
 }));
@@ -48,5 +52,21 @@ describe('verifyPackageExports', () => {
 
     expect(result.status).toBe('failed');
     expect(result.checks[0].message).toContain('no lessons');
+  });
+
+  it('uses custom deliverable names in export verification messages', async () => {
+    const result = await verifyPackageExports({
+      courseMap: { courseName: 'Research Methods', lessons: [{ title: 'Lesson 1', sections: [] }] },
+      deliverables: { custom_weeklyReflection: { status: 'error' } },
+      selectedFeatures: ['custom_weeklyReflection'],
+    });
+
+    expect(result.status).toBe('warnings');
+    expect(result.checks[0]).toMatchObject({
+      featureId: 'custom_weeklyReflection',
+      label: 'Weekly Reflection',
+      message: 'Weekly Reflection has no generated data.',
+    });
+    expect(result.checks[0].message).not.toContain('custom_weeklyReflection');
   });
 });

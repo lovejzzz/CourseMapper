@@ -36,6 +36,7 @@ import { extractEditContext } from './lib/editContextExtractor';
 import { FEATURES } from './lib/featureCatalog';
 import {
   listCustomDeliverables,
+  getCustomDeliverable,
   toFeatureEntry,
   saveCustomDeliverable,
   mergeCloudDeliverables,
@@ -78,6 +79,7 @@ import { applyApiCallBudgetEvent, createApiCallBudget, getApiCallBudgetTotal } f
 import { buildApiCostPlan, evaluateApiCostControl } from './lib/apiCostControl';
 import { summarizeApiFeatureUsageBudget, summarizeApiUsageBudget, summarizeCompilerSavings } from './lib/apiUsageCost';
 import { getChunkCount } from './lib/parallelGenerator';
+import { buildHumanReviewRecommendation, summarizeRepairEvidence } from './lib/packageTrust';
 import { traceLog } from './lib/traceLog';
 
 const STORAGE_KEY = 'coursemapper-project';
@@ -93,7 +95,10 @@ function summarizeReceiptIssue(issue) {
 }
 
 function getReceiptFeatureLabel(featureId) {
-  return FEATURES.find((feature) => feature.id === featureId)?.label || featureId;
+  const builtIn = FEATURES.find((feature) => feature.id === featureId);
+  if (builtIn?.label) return builtIn.label;
+  if (featureId?.startsWith('custom_')) return getCustomDeliverable(featureId)?.name || 'Custom Deliverable';
+  return featureId;
 }
 
 function buildQualityReceipt({
@@ -113,6 +118,7 @@ function buildQualityReceipt({
     .filter(Boolean)
     .slice(0, 3);
   const checkedFeatureCount = Array.isArray(selectedFeatureIds) ? selectedFeatureIds.length : 0;
+  const repairSummary = summarizeRepairEvidence(result?.repairs || []);
   return {
     checkedItems: ['Readiness', 'classroom fit', 'content validation', 'export files'],
     checkedSections: checkedFeatureCount > 0 ? `${checkedFeatureCount}/${checkedFeatureCount}` : '',
@@ -123,6 +129,12 @@ function buildQualityReceipt({
     exportChecked: exportVerification?.checked || 0,
     exportFailed: exportVerification?.failed || 0,
     exportWarningCount: exportVerification?.warningCount || 0,
+    repairSummary,
+    reviewRecommendation: buildHumanReviewRecommendation({
+      blockerCount: blockers.length + (exportVerification?.failed || 0),
+      warningCount: (includeWarnings ? warnings.length : 0) + (exportVerification?.warningCount || 0),
+      repaired: repairSummary !== 'none',
+    }),
     topIssues,
   };
 }

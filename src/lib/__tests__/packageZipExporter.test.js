@@ -11,6 +11,10 @@ import { buildSlideDeckPptxBlob } from '../exporters/pptxExporter';
 import { buildXlsxBuffer } from '../xlsxGenerator';
 import { saveAs } from 'file-saver';
 
+vi.mock('../customDeliverableLibrary', () => ({
+  getCustomDeliverable: vi.fn((id) => (id === 'custom_weeklyReflection' ? { name: 'Weekly Reflection' } : null)),
+}));
+
 vi.mock('../xlsxGenerator', () => ({
   buildXlsxBuffer: vi.fn(() => Promise.resolve(new Uint8Array(256).buffer)),
 }));
@@ -74,10 +78,44 @@ describe('packageZipExporter', () => {
     const zip = await JSZip.loadAsync(await result.blob.arrayBuffer());
     const manifest = JSON.parse(await zip.file('PACKAGE_MANIFEST.json').async('string'));
     expect(manifest.courseName).toBe('Export - Smoke - Course');
-    expect(manifest.requestedFeatures).toEqual(['courseMap', 'lessonPlans', 'slideDecks']);
+    expect(manifest.requestedFeatures).toEqual([
+      { featureId: 'courseMap', label: 'Course Map' },
+      { featureId: 'lessonPlans', label: 'Lesson Plans' },
+      { featureId: 'slideDecks', label: 'Slide Decks' },
+    ]);
     expect(buildXlsxBuffer).toHaveBeenCalledOnce();
     expect(buildDeliverableDocxBlob).toHaveBeenCalledOnce();
     expect(buildSlideDeckPptxBlob).toHaveBeenCalledOnce();
+  });
+
+  it('uses custom deliverable names in ZIP paths and manifest labels', async () => {
+    const result = await buildCourseMaterialsZip({
+      courseMap: makeCourseMap(),
+      deliverables: {
+        custom_weeklyReflection: {
+          status: 'done',
+          data: { weekly_reflection: [{ lessonTitle: 'Lesson 1', reflectionPrompt: 'Connect practice to care.' }] },
+        },
+      },
+      featureIds: ['courseMap', 'custom_weeklyReflection'],
+    });
+
+    const paths = result.files.map((file) => file.path).join('\n');
+    expect(paths).toContain('Weekly Reflection/Export Smoke Course - Weekly Reflection.docx');
+    expect(paths).not.toContain('custom_weeklyReflection');
+
+    const zip = await JSZip.loadAsync(await result.blob.arrayBuffer());
+    const manifestText = await zip.file('PACKAGE_MANIFEST.json').async('string');
+    const manifest = JSON.parse(manifestText);
+    expect(manifest.requestedFeatures).toContainEqual({ featureId: 'custom', label: 'Weekly Reflection' });
+    expect(manifest.files).toContainEqual(
+      expect.objectContaining({
+        path: 'Weekly Reflection/Export Smoke Course - Weekly Reflection.docx',
+        featureId: 'custom',
+        label: 'Weekly Reflection',
+      }),
+    );
+    expect(manifestText).not.toContain('custom_weeklyReflection');
   });
 
   it('fails closed instead of downloading a partial ZIP when a selected file cannot be built', async () => {

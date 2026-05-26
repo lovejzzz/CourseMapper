@@ -1,17 +1,5 @@
 import { scopeCourseMapToLessons, scopeDeliverableDataToLessons } from './deliverableReadiness';
-
-const FEATURE_LABELS = {
-  courseMap: 'Course Map',
-  syllabus: 'Syllabus',
-  lessonPlans: 'Lesson Plans',
-  slideDecks: 'Slide Decks',
-  assignments: 'Assignment Briefs',
-  rubrics: 'Rubrics',
-  discussions: 'Discussion Prompts',
-  quizBank: 'Quiz & Exam Bank',
-  studyGuides: 'Study Guides',
-  courseFaq: 'Course FAQ',
-};
+import { resolveFeatureLabel } from './exporters/exporterUtils.js';
 
 const DEFAULT_FEATURES = [
   'courseMap',
@@ -25,10 +13,6 @@ const DEFAULT_FEATURES = [
   'studyGuides',
   'courseFaq',
 ];
-
-function resolveFeatureLabel(featureId) {
-  return FEATURE_LABELS[featureId] || featureId || 'Deliverable';
-}
 
 function getBlobSize(blob) {
   if (!blob) return 0;

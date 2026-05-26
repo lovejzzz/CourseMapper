@@ -89,6 +89,8 @@ function buildPackageReceiptSummary(packageQualityPass, courseMap, selectedFeatu
     apiSpendSummary: receipt.apiSpendSummary || null,
     apiFeatureSpendSummary: receipt.apiFeatureSpendSummary || [],
     compilerSummary: receipt.compilerSummary || null,
+    repairSummary: receipt.repairSummary || 'none',
+    reviewRecommendation: receipt.reviewRecommendation || '',
     topIssues: ready ? [] : receipt.topIssues || [],
   };
 }

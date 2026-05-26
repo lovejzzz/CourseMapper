@@ -1,3 +1,5 @@
+import { buildHumanReviewRecommendation, summarizeRepairEvidence } from './packageTrust';
+
 const CONFIDENCE_TONES = {
   Excellent: 'excellent',
   'Good with assumptions': 'assumptions',
@@ -51,6 +53,7 @@ export function normalizePackageSummary(result = {}) {
           ),
         )
     : [];
+  const repairSummary = result.repairSummary || summarizeRepairEvidence(result.repairs || []);
 
   return {
     confidence,
@@ -73,6 +76,22 @@ export function normalizePackageSummary(result = {}) {
     exportChecked: count(exportVerification.checked),
     exportFailed: count(exportVerification.failed),
     exportWarningCount: count(exportVerification.warningCount),
+    repairSummary,
+    reviewRecommendation:
+      result.reviewRecommendation ||
+      buildHumanReviewRecommendation({
+        blockerCount:
+          count(readiness.blockerCount) +
+          count(classroomReadiness.blockerCount) +
+          count(validation.errorCount) +
+          count(exportVerification.failed),
+        warningCount:
+          count(readiness.warningCount) +
+          count(classroomReadiness.warningCount) +
+          count(validation.warningCount) +
+          count(exportVerification.warningCount),
+        repaired: repairSummary !== 'none',
+      }),
     checkedItems: ['Readiness', 'classroom fit', 'content validation', 'export files'],
     checkedSections: readiness.checkedSections || null,
     lessonCount: readiness.lessonCount || null,

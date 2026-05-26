@@ -37,22 +37,27 @@ describe('PackageSummaryCard', () => {
             label: '5 compiled · ~10 AI calls saved',
             detail: 'Compiled from the course map: Syllabus, Rubrics, Assignments, Study Guides, Course FAQ',
           },
+          repairSummary: 'Lesson 2 title; Lesson 4 learning goals',
+          reviewRecommendation: 'Spot-check repaired sections plus institution-specific facts before handoff.',
           topIssues: [],
         }}
       />,
     );
 
-    expect(html).toContain('Quality receipt');
+    expect(html).toContain('Package ready');
     expect(html).toContain('Ready to download');
     expect(html).toContain('3 safe repairs applied');
-    expect(html).toContain('Checked:');
+    expect(html).toContain('8/8 materials checked');
     expect(html).toContain('Classroom checks passed');
     expect(html).toContain('Exports verified');
-    expect(html).toContain('8/8 sections checked');
+    expect(html).toContain('8/8 checked');
     expect(html).toContain('$0.04 \u00b7 52k tokens estimated');
     expect(html).toContain('5 compiled');
-    expect(html).toContain('Spend by feature');
+    expect(html).toContain('Auto-fixed: Lesson 2 title; Lesson 4 learning goals');
+    expect(html).toContain('Human check: dates, policies, and official readings.');
+    expect(html).toContain('Cost drivers');
     expect(html).toContain('Slide Decks');
+    expect(html).not.toContain('Compiled from the course map');
     expect(html).not.toMatch(/\bscore\b/i);
   });
 
@@ -81,7 +86,7 @@ describe('PackageSummaryCard', () => {
       />,
     );
 
-    expect(html).toContain('Quality receipt');
+    expect(html).toContain('Package needs attention');
     expect(html).toContain('Finish package');
     expect(html).toContain('1 issue to fix');
     expect(html).toContain('1 classroom issue');

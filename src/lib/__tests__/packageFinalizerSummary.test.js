@@ -37,6 +37,10 @@ describe('packageFinalizerSummary', () => {
     expect(summary.classroomStatus).toBe('ready');
     expect(summary.classroomCheckedFeatureCount).toBe(8);
     expect(summary.exportChecked).toBe(4);
+    expect(summary.repairSummary).toBe('none');
+    expect(summary.reviewRecommendation).toBe(
+      'Spot-check institution-specific facts, official dates, and copyrighted readings before handoff.',
+    );
     expect(summary.topIssues).toEqual([]);
   });
 
@@ -67,5 +71,25 @@ describe('packageFinalizerSummary', () => {
     expect(history).toContain('1 classroom review item');
     expect(history).toContain('3 export check');
     expect(history).not.toMatch(/\bscore\b/i);
+  });
+
+  it('keeps repair evidence and review guidance visible in warning states', () => {
+    const summary = normalizePackageSummary({
+      confidence: 'Good with assumptions',
+      repairsApplied: 2,
+      repairs: [
+        { label: 'Course Map', changes: ['Lesson 1 title', 'Lesson 2 learning goals'] },
+        { label: 'Quiz Bank', changes: ['Lesson 3 point totals'] },
+      ],
+      readiness: { blockerCount: 0, warningCount: 1 },
+      classroomReadiness: { status: 'warnings', blockerCount: 0, warningCount: 0 },
+      validation: { errorCount: 0, warningCount: 0 },
+      exportVerification: { status: 'passed', checked: 4, failed: 0, warningCount: 0 },
+    });
+
+    expect(summary.repairSummary).toBe('Lesson 1 title; Lesson 2 learning goals; +1 more');
+    expect(summary.reviewRecommendation).toBe(
+      'Review flagged warnings before treating the package as classroom-ready.',
+    );
   });
 });

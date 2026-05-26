@@ -69,7 +69,6 @@ describe('resolveFeatureLabel', () => {
 
   it('falls back to title-cased split for unknown custom_ IDs not in library', () => {
     const result = resolveFeatureLabel('custom_unknownWidget');
-    // Not in mock, so falls through to the regex fallback
-    expect(result).toBe('Custom_unknown Widget');
+    expect(result).toBe('Custom Deliverable');
   });
 });

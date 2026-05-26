@@ -48,7 +48,11 @@ export default function PackageSummaryCard({ summary, embedded = false }) {
   if (!summary) return null;
 
   const tone = TONES[summary.tone] || TONES.assumptions;
-  const outcomeTitle = 'Quality receipt';
+  const outcomeTitle = summary.ready
+    ? 'Package ready'
+    : summary.tone === 'blocked'
+      ? 'Package needs attention'
+      : 'Package needs review';
   const badgeText = summary.ready
     ? 'Ready to download'
     : summary.tone === 'blocked'
@@ -82,10 +86,26 @@ export default function PackageSummaryCard({ summary, embedded = false }) {
           : null;
   const spendText = summary.apiSpendSummary?.label || '';
   const compilerSummary = summary.compilerSummary || null;
-  const featureSpend = Array.isArray(summary.apiFeatureSpendSummary) ? summary.apiFeatureSpendSummary.slice(0, 4) : [];
+  const repairEvidenceText = summary.repairSummary && summary.repairSummary !== 'none' ? summary.repairSummary : '';
+  const reviewRecommendation = summary.reviewRecommendation || '';
+  const featureSpend = Array.isArray(summary.apiFeatureSpendSummary) ? summary.apiFeatureSpendSummary.slice(0, 3) : [];
   const featureSpendText = featureSpend
-    .map((item) => `${item.label}: ${item.costDisplay || 'cost unknown'} (${item.totalTokensDisplay} tokens)`)
+    .map((item) => `${item.label}: ${item.costDisplay || 'cost unknown'}`)
     .join('; ');
+  const statusText = summary.ready
+    ? `${summary.checkedSections || 'All selected'} materials checked. Download when ready.`
+    : summary.nextAction || 'Review the items below before export.';
+  const reviewText = summary.ready ? 'Human check: dates, policies, and official readings.' : reviewRecommendation;
+  const chips = [
+    summary.repairsApplied > 0 ? repairText : null,
+    issueText,
+    classroomText,
+    exportText,
+    summary.checkedSections ? `${summary.checkedSections} checked` : null,
+    summary.lessonCount ? `${summary.lessonCount} lessons` : null,
+    spendText,
+    compilerSummary?.label,
+  ].filter(Boolean);
 
   return (
     <div
@@ -101,40 +121,23 @@ export default function PackageSummaryCard({ summary, embedded = false }) {
               <p className={`text-[12px] font-semibold ${tone.title}`}>{outcomeTitle}</p>
               <span className={`rounded-full border px-2 py-0.5 text-[10px] font-bold ${tone.badge}`}>{badgeText}</span>
             </div>
-            <p className={`mt-1 text-[11px] leading-relaxed ${tone.body}`}>{summary.nextAction}</p>
-            {summary.checkedItems?.length > 0 && (
+            <p className={`mt-1 text-[11px] leading-relaxed ${tone.body}`}>{statusText}</p>
+            <div className="mt-2 flex flex-wrap gap-1.5 text-[10px] font-medium">
+              {chips.map((chip) => (
+                <span key={chip} className="rounded-full bg-white/60 px-2 py-0.5 text-slate-600">
+                  {chip}
+                </span>
+              ))}
+            </div>
+            {repairEvidenceText && summary.repairsApplied > 0 && (
               <p className="mt-1 text-[10px] font-medium leading-snug text-slate-500">
-                Checked: {summary.checkedItems.join(', ')}
+                Auto-fixed: {repairEvidenceText}
               </p>
             )}
-            <div className="mt-2 flex flex-wrap gap-1.5 text-[10px] font-medium">
-              <span className="rounded-full bg-white/60 px-2 py-0.5 text-slate-600">{repairText}</span>
-              <span className="rounded-full bg-white/60 px-2 py-0.5 text-slate-600">{issueText}</span>
-              {classroomText && (
-                <span className="rounded-full bg-white/60 px-2 py-0.5 text-slate-600">{classroomText}</span>
-              )}
-              {exportText && <span className="rounded-full bg-white/60 px-2 py-0.5 text-slate-600">{exportText}</span>}
-              {summary.checkedSections && (
-                <span className="rounded-full bg-white/60 px-2 py-0.5 text-slate-600">
-                  {summary.checkedSections} sections checked
-                </span>
-              )}
-              {summary.lessonCount && (
-                <span className="rounded-full bg-white/60 px-2 py-0.5 text-slate-600">
-                  {summary.lessonCount} lessons
-                </span>
-              )}
-              {spendText && <span className="rounded-full bg-white/60 px-2 py-0.5 text-slate-600">{spendText}</span>}
-              {compilerSummary?.label && (
-                <span className="rounded-full bg-white/60 px-2 py-0.5 text-slate-600">{compilerSummary.label}</span>
-              )}
-            </div>
-            {compilerSummary?.detail && (
-              <p className="mt-1 text-[10px] font-medium leading-snug text-slate-500">{compilerSummary.detail}</p>
-            )}
+            {reviewText && <p className="mt-1 text-[10px] font-medium leading-snug text-slate-500">{reviewText}</p>}
             {featureSpendText && (
               <p className="mt-1 text-[10px] font-medium leading-snug text-slate-500">
-                Spend by feature: {featureSpendText}
+                Cost drivers: {featureSpendText}
               </p>
             )}
           </div>

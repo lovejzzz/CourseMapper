@@ -40,5 +40,6 @@ export function resolveFeatureLabel(id) {
   if (FEATURE_LABELS[id]) return FEATURE_LABELS[id];
   const custom = getCustomDeliverable(id);
   if (custom) return custom.name;
+  if (id?.startsWith('custom_')) return 'Custom Deliverable';
   return id.replace(/([A-Z])/g, ' $1').replace(/^./, (str) => str.toUpperCase());
 }

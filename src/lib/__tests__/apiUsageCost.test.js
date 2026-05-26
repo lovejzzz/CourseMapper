@@ -105,4 +105,21 @@ describe('apiUsageCost', () => {
     });
     expect(compilerSummary.label).toContain('2 compiled');
   });
+
+  it('does not expose internal custom deliverable IDs in spend labels', () => {
+    let budget = createApiCallBudget();
+    budget = applyApiCallBudgetEvent(budget, {
+      type: 'apiUsage',
+      provider: 'openai',
+      modelId: 'gpt-4.1-mini',
+      featureId: 'custom_1772061753482',
+      usage: { inputTokens: 1000, outputTokens: 500, totalTokens: 1500, estimated: false },
+      costUsd: 0.0012,
+    });
+
+    const [summary] = summarizeApiFeatureUsageBudget(budget);
+
+    expect(summary.label).toBe('Custom Deliverable');
+    expect(summary.summaryLabel).not.toContain('custom_1772061753482');
+  });
 });

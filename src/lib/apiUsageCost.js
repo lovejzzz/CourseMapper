@@ -378,6 +378,7 @@ export function formatTokenCount(value) {
 }
 
 function fallbackFeatureLabel(featureId) {
+  if (String(featureId || '').startsWith('custom_')) return 'Custom Deliverable';
   return String(featureId || 'Unattributed')
     .replace(/^custom_/, '')
     .replace(/([a-z0-9])([A-Z])/g, '$1 $2')

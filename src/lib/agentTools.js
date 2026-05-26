@@ -14,6 +14,7 @@ import { saveAgentPrefs } from './cloudStorage';
 import { getCustomDeliverable } from './customDeliverableLibrary';
 import { CREATE_TOOL_JSON_SCHEMA, RUN_TOOL_JSON_SCHEMA, runPlan } from './customAgentTools';
 import { evaluateWorkspaceReadiness, repairWorkspaceReadiness } from './deliverableReadiness';
+import { buildHumanReviewRecommendation, summarizeRepairEvidence } from './packageTrust';
 import { evaluateClassroomReadiness } from './classroomReadiness';
 
 // ── Helpers ──────────────────────────────────────────────────────────────────
@@ -628,6 +629,16 @@ export const AGENT_TOOLS = {
         confidence,
         exportStatus: exportVerification.status,
       });
+      const repairSummary = summarizeRepairEvidence(repairResult.repairs || []);
+      const reviewRecommendation = buildHumanReviewRecommendation({
+        blockerCount: readiness.blockers.length + exportVerification.failed,
+        warningCount:
+          readiness.warnings.length +
+          classroomReadiness.warnings.length +
+          healthReport.warningCount +
+          exportVerification.warningCount,
+        repaired: repairSummary !== 'none',
+      });
 
       return {
         confidence,
@@ -639,6 +650,8 @@ export const AGENT_TOOLS = {
         repairsApplied: repairResult.applied || 0,
         repairsFailed: repairResult.failed || 0,
         repairs: repairResult.repairs || [],
+        repairSummary,
+        reviewRecommendation,
         readiness: {
           status: readiness.status,
           isBlocked: readiness.isBlocked,
