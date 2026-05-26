@@ -3171,51 +3171,132 @@ export default function useDeliverables({
 
       appendLog(`Regenerating Lesson ${lessonIndex + 1} in ${label}...`, 'progress');
 
-      const regenConfig = getGenerationConfig(featureId);
-      const prompts = getDeliverablePrompt(
-        featureId,
-        courseMap,
-        [lessonIndex],
-        regenConfig,
-        pedagogicalModeRef.current,
-        examChangesRef.current,
-        null,
-        columnsRef.current,
-        deliverableConfigRef.current,
-      );
-      if (!prompts) {
-        if (existingDataSnapshot) {
-          dispatch({
-            type: 'SET_DELIVERABLE',
-            featureId,
-            status: 'done',
-            data: existingDataSnapshot,
-            error: null,
-            stale: false,
-            regeneratingIndex: null,
-          });
+      const markFreshLesson = () => {
+        setFreshLessons((prev) => ({
+          ...prev,
+          [featureId]: new Set([...(prev[featureId] || []), lessonIndex]),
+        }));
+        const freshKey = `${featureId}:${lessonIndex}`;
+        if (freshTimersRef.current.has(freshKey)) {
+          clearTimeout(freshTimersRef.current.get(freshKey));
         }
-        appendLog(`✗ ${label}: No prompt for lesson ${lessonIndex + 1}`, 'error');
-        setCurrentFeatures((prev) => {
-          const s = new Set(prev);
-          s.delete(featureId);
-          return s;
-        });
-        if (abortMapRef.current.size === 0) setIsGenerating(false);
-        const skippedResult = {
-          status: 'skipped',
-          reason: 'missing_prompt',
-          featureId,
-          lessonIndex,
-          data: existingDataSnapshot,
-          itemCount: getDeliverableItemCount(featureId, existingDataSnapshot),
-        };
-        traceGeneration(regenerationRunId, 'lesson_regen_skipped', skippedResult, 'warn');
-        return skippedResult;
-      }
+        const freshTimer = setTimeout(() => {
+          setFreshLessons((prev) => {
+            const s = new Set(prev[featureId] || []);
+            s.delete(lessonIndex);
+            return { ...prev, [featureId]: s };
+          });
+          freshTimersRef.current.delete(freshKey);
+        }, 3000);
+        freshTimersRef.current.set(freshKey, freshTimer);
+      };
 
       let abortKey = null;
       try {
+        const canCompileSyncLesson =
+          syncGenId !== null &&
+          regenerationOptions.mode !== 'finalizerRetry' &&
+          regenerationOptions.useBlueprintCompiler !== false &&
+          generationPlan?.blueprintCompiler !== false;
+
+        if (canCompileSyncLesson) {
+          try {
+            const { compileBlueprintLessonPatch } = await import('../lib/compiledLessonSync');
+            const lessonPatchData = compileBlueprintLessonPatch({
+              featureId,
+              courseMap,
+              lessonIndex,
+              config: getGenerationConfig(featureId),
+            });
+            if (lessonPatchData) {
+              const finalParsed = prepareRegeneratedLessonData(featureId, lessonPatchData, lessonIndex, courseMap);
+              let nextData = finalParsed;
+              if (existingKey && existingDataSnapshot) {
+                const newKey = getArrayKey(featureId, finalParsed);
+                const newArr = (newKey ? finalParsed[newKey] : null) || [];
+                const merged = mergeRegeneratedLessonItems(featureId, existingArr, newArr, lessonIndex, courseMap);
+                nextData = { ...existingDataSnapshot, [existingKey]: merged };
+              }
+              dispatch(actions.setDeliverableDone(featureId, nextData));
+              recordApiCallEvent({
+                type: 'compiledDeliverable',
+                label: 'Compiler sync',
+                detail: `${label} L${lessonIndex + 1} compiled`,
+                featureIds: [featureId],
+                savedProviderCalls: 1,
+                compilerSource: 'blueprint-sync',
+              });
+              appendLog(`✓ ${label} L${lessonIndex + 1} synced from blueprint`, 'done');
+              const doneResult = {
+                status: 'done',
+                featureId,
+                lessonIndex,
+                data: nextData,
+                itemCount: getDeliverableItemCount(featureId, nextData),
+              };
+              traceGeneration(regenerationRunId, 'lesson_regen_compiled', {
+                featureId,
+                label,
+                lessonIndex,
+                lessonNumber: lessonIndex + 1,
+                itemCount: doneResult.itemCount,
+              });
+              markFreshLesson();
+              return doneResult;
+            }
+          } catch (compileErr) {
+            appendLog(`⚠ ${label}: compiler sync fell back to model`, 'warn');
+            traceGeneration(
+              regenerationRunId,
+              'lesson_regen_compile_fallback',
+              {
+                featureId,
+                label,
+                lessonIndex,
+                message: compileErr?.message || String(compileErr || 'compiler unavailable'),
+              },
+              'warn',
+            );
+          }
+        }
+
+        const regenConfig = getGenerationConfig(featureId);
+        const prompts = getDeliverablePrompt(
+          featureId,
+          courseMap,
+          [lessonIndex],
+          regenConfig,
+          pedagogicalModeRef.current,
+          examChangesRef.current,
+          null,
+          columnsRef.current,
+          deliverableConfigRef.current,
+        );
+        if (!prompts) {
+          if (existingDataSnapshot) {
+            dispatch({
+              type: 'SET_DELIVERABLE',
+              featureId,
+              status: 'done',
+              data: existingDataSnapshot,
+              error: null,
+              stale: false,
+              regeneratingIndex: null,
+            });
+          }
+          appendLog(`✗ ${label}: No prompt for lesson ${lessonIndex + 1}`, 'error');
+          const skippedResult = {
+            status: 'skipped',
+            reason: 'missing_prompt',
+            featureId,
+            lessonIndex,
+            data: existingDataSnapshot,
+            itemCount: getDeliverableItemCount(featureId, existingDataSnapshot),
+          };
+          traceGeneration(regenerationRunId, 'lesson_regen_skipped', skippedResult, 'warn');
+          return skippedResult;
+        }
+
         const controller = new AbortController();
         abortKey = `${featureId}:lesson-${lessonIndex}:regen-${Date.now()}`;
         abortMapRef.current.set(abortKey, controller);
@@ -3341,24 +3422,7 @@ export default function useDeliverables({
             itemCount: doneResult.itemCount,
           });
 
-          // Green highlight (3s)
-          setFreshLessons((prev) => ({
-            ...prev,
-            [featureId]: new Set([...(prev[featureId] || []), lessonIndex]),
-          }));
-          const freshKey = `${featureId}:${lessonIndex}`;
-          if (freshTimersRef.current.has(freshKey)) {
-            clearTimeout(freshTimersRef.current.get(freshKey));
-          }
-          const freshTimer = setTimeout(() => {
-            setFreshLessons((prev) => {
-              const s = new Set(prev[featureId] || []);
-              s.delete(lessonIndex);
-              return { ...prev, [featureId]: s };
-            });
-            freshTimersRef.current.delete(freshKey);
-          }, 3000);
-          freshTimersRef.current.set(freshKey, freshTimer);
+          markFreshLesson();
           return doneResult;
         } else {
           appendLog(`⚠ ${label}: Lesson ${lessonIndex + 1} regeneration response was incomplete`, 'warn');

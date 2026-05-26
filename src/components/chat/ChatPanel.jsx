@@ -304,11 +304,15 @@ export default function ChatPanel({
     }
   }, [chat.isStreaming]);
   useEffect(() => {
-    if (packageQualityPass?.status === 'running' && autoReviewTimerRef.current) {
+    if (
+      packageQualityPass?.status === 'running' &&
+      packageQualityPass?.source !== 'auto-review-pending' &&
+      autoReviewTimerRef.current
+    ) {
       clearTimeout(autoReviewTimerRef.current);
       autoReviewTimerRef.current = null;
     }
-  }, [packageQualityPass?.status]);
+  }, [packageQualityPass?.source, packageQualityPass?.status]);
   useEffect(() => {
     const wasGenerating = prevDelivGeneratingRef.current;
     prevDelivGeneratingRef.current = isDelivGenerating;
@@ -330,6 +334,7 @@ export default function ChatPanel({
         proactiveReviewDoneRef.current = true;
         packageQualityPassUpdateRef.current?.({
           status: 'running',
+          source: 'auto-review-pending',
           message: 'Finishing package: checking, repairing, and preparing export...',
           repairsApplied: 0,
           warnings: 0,
