@@ -981,8 +981,11 @@ export default function useDeliverables({
           });
         }
         const blueprint = buildCourseBlueprint(blueprintCourseMap, { scopeIndices });
+        const compilerConfigMap = Object.fromEntries(
+          blueprintCompiledFeatureIds.map((featureId) => [featureId, getGenerationConfig(featureId)]),
+        );
         const compiled = compileBlueprintDeliverables(blueprint, blueprintCompiledFeatureIds, {
-          configMap: deliverableConfigRef.current,
+          configMap: compilerConfigMap,
         });
         const compiledSavings = estimateBlueprintCompilerSavings(
           blueprintCompiledFeatureIds,

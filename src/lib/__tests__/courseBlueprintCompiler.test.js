@@ -87,6 +87,23 @@ describe('courseBlueprintCompiler', () => {
     expect(compiled.courseFaq.faqs[0].qs).toHaveLength(5);
   });
 
+  it('honors configured Course FAQ question targets for compiled output', () => {
+    const courseMap = makeCourseMap(4);
+    const blueprint = buildCourseBlueprint(courseMap);
+    const compiled = compileBlueprintDeliverables(blueprint, ['courseFaq'], {
+      configMap: { courseFaq: { questionsPerLesson: 6 } },
+    });
+
+    expect(compiled.courseFaq.faqs).toHaveLength(4);
+    expect(compiled.courseFaq.faqs.every((lesson) => lesson.qs.length === 6)).toBe(true);
+
+    const validation = validateDeliverableGeneration('courseFaq', compiled.courseFaq, {
+      expectedLessonCount: 4,
+      config: { questionsPerLesson: 6 },
+    });
+    expect(validation.valid, validation.blockers.join('; ')).toBe(true);
+  });
+
   it('produces deliverables that pass existing generation validators', () => {
     const courseMap = makeCourseMap(5);
     const blueprint = buildCourseBlueprint(courseMap);
