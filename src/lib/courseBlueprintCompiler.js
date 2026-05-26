@@ -1,5 +1,6 @@
 import { COLUMN_EXTRACTORS } from './prompts/promptUtils';
 import { getChunkCount } from './parallelGenerator';
+import { getCustomDeliverable } from './customDeliverableLibrary';
 
 export const BLUEPRINT_COMPILED_FEATURES = new Set([
   'syllabus',
@@ -12,6 +13,9 @@ export const BLUEPRINT_COMPILED_FEATURES = new Set([
   'studyGuides',
   'courseFaq',
 ]);
+
+const CUSTOM_REFLECTION_PATTERN = /\b(reflection|reflective|check[-\s]?in|journal|exit ticket|debrief)\b/i;
+const CUSTOM_REFLECTION_EXCLUDE_PATTERN = /\b(quiz|exam|rubric|slide|syllabus|faq|assignment|discussion)\b/i;
 
 const BLOOMS_LEVELS = ['Apply', 'Analyze', 'Evaluate', 'Create'];
 const QUIZ_BLOOMS_SEQUENCE = ['Remember', 'Understand', 'Apply', 'Analyze', 'Evaluate', 'Create'];
@@ -53,6 +57,15 @@ function cleanText(value, fallback = '') {
   return String(value ?? fallback)
     .replace(/\s+/g, ' ')
     .trim();
+}
+
+function slugifyCustomArrayKey(value) {
+  return (
+    cleanText(value, 'items')
+      .toLowerCase()
+      .replace(/[^a-z0-9]+/g, '_')
+      .replace(/^_+|_+$/g, '') || 'items'
+  );
 }
 
 function stripLessonPrefix(value) {
@@ -428,13 +441,13 @@ export function buildCourseBlueprint(courseMap, options = {}) {
   return mergeBlueprintEnrichment(blueprint, options.enrichment || {});
 }
 
-export function isBlueprintCompiledFeature(featureId) {
-  return BLUEPRINT_COMPILED_FEATURES.has(featureId);
+export function isBlueprintCompiledFeature(featureId, options = {}) {
+  return BLUEPRINT_COMPILED_FEATURES.has(featureId) || isCompiledCustomDeliverable(featureId, options);
 }
 
 export function getBlueprintCompiledFeatures(featureIds = [], options = {}) {
   if (options.enabled === false) return [];
-  return [...new Set(featureIds)].filter((featureId) => BLUEPRINT_COMPILED_FEATURES.has(featureId));
+  return [...new Set(featureIds)].filter((featureId) => isBlueprintCompiledFeature(featureId, options));
 }
 
 export function estimateBlueprintCompilerSavings(
@@ -447,6 +460,80 @@ export function estimateBlueprintCompilerSavings(
     (sum, featureId) => sum + Math.max(1, getChunkCount(featureId, lessonCount, scopeIndices, generationPlan)),
     0,
   );
+}
+
+function getCustomDeliverableDefinition(featureId, options = {}) {
+  if (!featureId?.startsWith('custom_')) return null;
+  if (options.customDeliverables && typeof options.customDeliverables === 'object') {
+    return options.customDeliverables[featureId] || null;
+  }
+  return getCustomDeliverable(featureId);
+}
+
+function isCompiledCustomDeliverable(featureId, options = {}) {
+  if (!featureId?.startsWith('custom_')) return false;
+  const custom = getCustomDeliverableDefinition(featureId, options);
+  if (!custom) return false;
+
+  const combinedText = [
+    custom.name,
+    custom.description,
+    custom.systemPrompt,
+    custom.userPromptTemplate,
+    custom.outputFormat,
+  ]
+    .map((value) => cleanText(value).toLowerCase())
+    .join(' ');
+
+  if (!CUSTOM_REFLECTION_PATTERN.test(combinedText)) return false;
+  if (!/\b(lesson|week|per lesson|per week|each lesson|each week)\b/i.test(combinedText)) return false;
+  return !CUSTOM_REFLECTION_EXCLUDE_PATTERN.test(cleanText(custom.name).toLowerCase());
+}
+
+function compileCustomReflectionDeliverable(featureId, blueprint, options = {}) {
+  const custom = getCustomDeliverableDefinition(featureId, options);
+  if (!custom || !isCompiledCustomDeliverable(featureId, options)) return null;
+
+  const deliverableName = cleanText(custom.name, 'Weekly Reflection');
+  const arrayKey = slugifyCustomArrayKey(deliverableName);
+  const lens = blueprintLens(blueprint);
+  const items = blueprint.lessons.map((lesson) => {
+    const focus = lesson.keyConcepts[0] || stripLessonPrefix(lesson.title) || 'the lesson focus';
+    const alternate = alternateLessonConcept(lesson, focus);
+    const phrase = lessonPhrase(blueprint, lesson);
+
+    return {
+      lessonTitle: lesson.title,
+      weekNumber: `Week ${lesson.lessonNumber}`,
+      deliverableName,
+      promptTitle: `${deliverableName} ${lesson.lessonNumber}`,
+      reflectionPrompt: `Explain how ${focus} from ${lesson.title} changes your next ${lens.decisionNoun}. Reference ${phrase.context} and connect it to the lesson artifact: ${stripTerminalPunctuation(lesson.studentArtifact)}.`,
+      checkInQuestion: `What is one move you can make this week to apply ${alternate} more deliberately in your ${lens.domain} practice?`,
+      evidenceToReference: [
+        `Use one detail from ${lesson.activityPattern.toLowerCase()}.`,
+        `Name one success criterion from the lesson artifact expectations.`,
+        `Describe one uncertainty, risk, or feedback target you still need to work on.`,
+      ],
+      responseStructure: [
+        `Part 1: summarize the most important insight about ${focus} in 2-3 sentences.`,
+        `Part 2: explain how that insight changes your approach to ${stripLessonPrefix(lesson.studentArtifact)}.`,
+        `Part 3: name one next step you will take before the next class session.`,
+      ],
+      successCriteria: [
+        `${deliverableName} names a concrete ${focus} takeaway from the lesson.`,
+        `${deliverableName} uses course evidence instead of generic reflection filler.`,
+        `${deliverableName} ends with a realistic next action tied to the next assignment or feedback cycle.`,
+      ],
+      instructorReviewFocus: `Look for whether the student can connect ${focus} to ${alternate}, cite lesson evidence, and identify a concrete next step before the next checkpoint.`,
+    };
+  });
+
+  return {
+    deliverableName,
+    deliverableType: 'compiled-reflection-check-in',
+    source: 'deterministic-course-blueprint',
+    [arrayKey]: items,
+  };
 }
 
 function compileSyllabus(blueprint) {
@@ -1631,6 +1718,9 @@ function compileLessonPlans(blueprint) {
 }
 
 export function compileBlueprintDeliverable(featureId, blueprint, options = {}) {
+  if (featureId?.startsWith('custom_')) {
+    return compileCustomReflectionDeliverable(featureId, blueprint, options);
+  }
   switch (featureId) {
     case 'syllabus':
       return compileSyllabus(blueprint, options);

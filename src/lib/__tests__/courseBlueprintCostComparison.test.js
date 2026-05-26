@@ -1,4 +1,4 @@
-import { describe, expect, it } from 'vitest';
+import { beforeEach, describe, expect, it, vi } from 'vitest';
 import { buildApiCostPlan } from '../apiCostControl';
 import {
   buildCourseBlueprint,
@@ -8,6 +8,12 @@ import {
 } from '../courseBlueprintCompiler';
 import { validateDeliverableGeneration } from '../deliverablePostProcess';
 import { scoreHeuristic } from '../deliverableQualityScorer';
+
+let customDeliverables = {};
+
+vi.mock('../customDeliverableLibrary', () => ({
+  getCustomDeliverable: vi.fn((id) => customDeliverables[id] || null),
+}));
 
 const ALL_DELIVERABLE_FEATURES = [
   'syllabus',
@@ -53,6 +59,10 @@ function averageQuality(score) {
 }
 
 describe('blueprint compiler cost comparison sample', () => {
+  beforeEach(() => {
+    customDeliverables = {};
+  });
+
   it('cuts provider calls on a realistic package while preserving validator-backed quality', () => {
     const courseMap = makeRealisticCourseMap();
     const lessonCount = courseMap.lessons.length;
@@ -106,5 +116,45 @@ describe('blueprint compiler cost comparison sample', () => {
       expect(validation.valid, `${featureId}: ${validation.blockers.join('; ')}`).toBe(true);
       expect(averageQuality(quality), featureId).toBeGreaterThanOrEqual(6);
     }
+  });
+
+  it('removes planned provider calls for compiled weekly reflection customs while leaving unknown customs on the model path', () => {
+    customDeliverables = {
+      custom_weeklyReflection: {
+        id: 'custom_weeklyReflection',
+        name: 'Weekly Reflection',
+        description: 'Per-week reflection and check-in prompts for each lesson.',
+        systemPrompt: 'Return one Weekly Reflection item for each lesson/week.',
+        userPromptTemplate: 'Generate one reflection for each lesson/week. {{courseMap}}',
+      },
+      custom_unknown: {
+        id: 'custom_unknown',
+        name: 'Studio Artifact Pack',
+        description: 'Flexible materials for studio facilitation.',
+        systemPrompt: 'Generate custom studio materials.',
+        userPromptTemplate: 'Create the custom deliverable for the course. {{courseMap}}',
+      },
+    };
+
+    const featureIds = ['custom_weeklyReflection', 'custom_unknown'];
+    const compiledFeatureIds = getBlueprintCompiledFeatures(featureIds);
+    const modelFeatureIds = featureIds.filter((featureId) => !compiledFeatureIds.includes(featureId));
+    const baselinePlan = buildApiCostPlan({
+      featureIds,
+      lessonCount: 8,
+      includeRepairRetryReserve: false,
+    });
+    const hybridPlan = buildApiCostPlan({
+      featureIds: modelFeatureIds,
+      lessonCount: 8,
+      includeRepairRetryReserve: false,
+    });
+
+    expect(compiledFeatureIds).toEqual(['custom_weeklyReflection']);
+    expect(modelFeatureIds).toEqual(['custom_unknown']);
+    expect(estimateBlueprintCompilerSavings(compiledFeatureIds, 8)).toBeGreaterThan(0);
+    expect(baselinePlan.deliverableChunkCalls - hybridPlan.deliverableChunkCalls).toBe(
+      estimateBlueprintCompilerSavings(compiledFeatureIds, 8),
+    );
   });
 });

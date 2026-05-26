@@ -7,6 +7,8 @@ import {
   summarizeApiUsageBudget,
   summarizeCompilerSavings,
 } from '../../lib/apiUsageCost.js';
+import { getCustomDeliverable } from '../../lib/customDeliverableLibrary.js';
+import { FEATURES } from '../../lib/featureCatalog.js';
 
 function formatHistoryTime(timestamp) {
   if (!timestamp) return 'Unknown time';
@@ -28,6 +30,14 @@ const SECTION_LABELS = {
   config: 'Config',
   raw: 'Raw JSON',
 };
+
+function getDeveloperFeatureLabel(featureId) {
+  if (!featureId) return '';
+  if (String(featureId).startsWith('custom_')) {
+    return getCustomDeliverable(featureId)?.name || 'Custom Deliverable';
+  }
+  return FEATURES.find((feature) => feature.id === featureId)?.label || '';
+}
 
 function formatBudgetEventTime(timestamp) {
   if (!timestamp) return '';
@@ -60,8 +70,11 @@ function ApiCallBudgetCard({ budget }) {
   const costControl = budget.costControl || {};
   const costPlan = budget.costPlan || {};
   const usageSummary = summarizeApiUsageBudget(budget);
-  const featureUsageSummary = summarizeApiFeatureUsageBudget(budget, { limit: 5 });
-  const compilerSummary = summarizeCompilerSavings(budget);
+  const featureUsageSummary = summarizeApiFeatureUsageBudget(budget, {
+    limit: 5,
+    labelForFeature: getDeveloperFeatureLabel,
+  });
+  const compilerSummary = summarizeCompilerSavings(budget, { labelForFeature: getDeveloperFeatureLabel });
   const reservedCalls =
     costPlan.plannedNewCalls ??
     (costPlan.cumulative && Number.isFinite(costPlan.baseProviderCalls)

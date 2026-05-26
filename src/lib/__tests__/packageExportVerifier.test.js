@@ -69,4 +69,42 @@ describe('verifyPackageExports', () => {
     });
     expect(result.checks[0].message).not.toContain('custom_weeklyReflection');
   });
+
+  it('passes export verification for compiled weekly reflection custom deliverables', async () => {
+    const result = await verifyPackageExports({
+      courseMap: {
+        courseName: 'Research Methods',
+        lessons: [
+          { title: 'Lesson 1', sections: [{ learningObjectives: 'Define sampling.' }] },
+          { title: 'Lesson 2', sections: [{ learningObjectives: 'Compare interview protocols.' }] },
+        ],
+      },
+      deliverables: {
+        custom_weeklyReflection: {
+          status: 'done',
+          data: {
+            deliverableName: 'Weekly Reflection',
+            weekly_reflection: [
+              {
+                lessonTitle: 'Lesson 1: Define sampling',
+                weekNumber: 'Week 1',
+                promptTitle: 'Weekly Reflection 1',
+                reflectionPrompt: 'Connect sampling choices to your next research decision.',
+              },
+              {
+                lessonTitle: 'Lesson 2: Compare interview protocols',
+                weekNumber: 'Week 2',
+                promptTitle: 'Weekly Reflection 2',
+                reflectionPrompt: 'Explain how protocol choices shape your interview planning.',
+              },
+            ],
+          },
+        },
+      },
+      selectedFeatures: ['custom_weeklyReflection'],
+    });
+
+    expect(result.status).toBe('passed');
+    expect(result.checks.map((check) => check.status)).toEqual(['passed', 'passed']);
+  });
 });

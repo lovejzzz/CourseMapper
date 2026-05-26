@@ -10,6 +10,12 @@ import DeveloperModeSidebar from '../DeveloperModeSidebar';
 
 globalThis.IS_REACT_ACT_ENVIRONMENT = true;
 
+vi.mock('../../../lib/customDeliverableLibrary.js', () => ({
+  getCustomDeliverable: vi.fn((id) =>
+    id === 'custom_weeklyReflection' ? { id: 'custom_weeklyReflection', name: 'Weekly Reflection' } : null,
+  ),
+}));
+
 describe('Developer Mode path controls', () => {
   let container;
   let root;
@@ -287,7 +293,7 @@ describe('Developer Mode path controls', () => {
             costKnownCallCount: 1,
           },
           featureUsage: {
-            slideDecks: {
+            custom_weeklyReflection: {
               inputTokens: 2000,
               outputTokens: 1000,
               totalTokens: 3000,
@@ -297,7 +303,7 @@ describe('Developer Mode path controls', () => {
           },
           compilerSavings: {
             source: 'blueprint',
-            featureIds: ['syllabus', 'rubrics'],
+            featureIds: ['custom_weeklyReflection', 'rubrics'],
             compiledFeatureCount: 2,
             savedProviderCalls: 2,
           },
@@ -319,7 +325,7 @@ describe('Developer Mode path controls', () => {
     expect(container.querySelector('[data-testid="developer-feature-spend"]')).not.toBeNull();
     expect(container.querySelector('[data-testid="developer-compiler-receipt"]')).not.toBeNull();
     expect(container.textContent).toContain('Spend by feature');
-    expect(container.textContent).toContain('Slide Decks');
+    expect(container.textContent).toContain('Weekly Reflection');
     expect(container.textContent).toContain('2 compiled');
     expect(container.textContent).toContain('calls saved');
   });

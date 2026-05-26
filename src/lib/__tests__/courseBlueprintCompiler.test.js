@@ -1,4 +1,4 @@
-import { describe, expect, it } from 'vitest';
+import { beforeEach, describe, expect, it, vi } from 'vitest';
 import {
   buildSlideDeckIntermediateRepresentation,
   buildCourseBlueprint,
@@ -8,7 +8,14 @@ import {
 } from '../courseBlueprintCompiler';
 import { evaluateClassroomReadiness } from '../classroomReadiness';
 import { validateDeliverableGeneration } from '../deliverablePostProcess';
+import { deliverableToCsvRows } from '../exporters/csvExporter';
 import { MESSY_IMPORT_STRESS_PROJECT } from '../../../scripts/hybridPipelineAudit.mjs';
+
+let customDeliverables = {};
+
+vi.mock('../customDeliverableLibrary', () => ({
+  getCustomDeliverable: vi.fn((id) => customDeliverables[id] || null),
+}));
 
 const makeCourseMap = (lessonCount = 6) => ({
   courseName: 'Applied Social Policy Studio',
@@ -31,6 +38,10 @@ const makeCourseMap = (lessonCount = 6) => ({
 });
 
 describe('courseBlueprintCompiler', () => {
+  beforeEach(() => {
+    customDeliverables = {};
+  });
+
   it('builds a reusable blueprint with lesson and assessment anchors', () => {
     const blueprint = buildCourseBlueprint(makeCourseMap(4));
 
@@ -174,5 +185,44 @@ describe('courseBlueprintCompiler', () => {
       'practice slides reinforce',
     );
     expect(compiled.slideDecks.decks[0].slides[0].notes).toContain('working session');
+  });
+
+  it('compiles predictable weekly reflection custom deliverables from the blueprint', () => {
+    customDeliverables = {
+      custom_weeklyReflection: {
+        id: 'custom_weeklyReflection',
+        name: 'Weekly Reflection',
+        description: 'A per-week reflection and check-in for each lesson.',
+        systemPrompt:
+          'Create one Weekly Reflection item for each lesson/week with a reflection prompt and check-in guidance.',
+        userPromptTemplate:
+          'Generate a Weekly Reflection for each lesson in the course. Return one item per lesson/week. {{courseMap}}',
+      },
+    };
+
+    const blueprint = buildCourseBlueprint(makeCourseMap(5), { scopeIndices: [1, 2, 4] });
+    const compiled = compileBlueprintDeliverables(blueprint, ['custom_weeklyReflection']);
+    const reflection = compiled.custom_weeklyReflection;
+
+    expect(getBlueprintCompiledFeatures(['custom_weeklyReflection', 'custom_unknown'])).toEqual([
+      'custom_weeklyReflection',
+    ]);
+    expect(reflection.deliverableName).toBe('Weekly Reflection');
+    expect(reflection.weekly_reflection).toHaveLength(3);
+    expect(reflection.weekly_reflection.map((item) => item.lessonTitle)).toEqual([
+      'Lesson 2: Policy Topic 2',
+      'Lesson 3: Policy Topic 3',
+      'Lesson 5: Policy Topic 5',
+    ]);
+    expect(reflection.weekly_reflection.every((item) => item.promptTitle.includes('Weekly Reflection'))).toBe(true);
+
+    const validation = validateDeliverableGeneration('custom_weeklyReflection', reflection, {
+      expectedLessonCount: 3,
+    });
+    const csv = deliverableToCsvRows('custom_weeklyReflection', reflection);
+
+    expect(validation.valid, validation.blockers.join('; ')).toBe(true);
+    expect(csv.headers).toContain('Prompt Title');
+    expect(csv.rows).toHaveLength(3);
   });
 });
