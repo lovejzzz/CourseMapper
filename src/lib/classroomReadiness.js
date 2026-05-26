@@ -25,6 +25,7 @@ const PER_LESSON_FEATURES = new Set([
 ]);
 
 const RETRYABLE_FEATURES = new Set([
+  'syllabus',
   'assignments',
   'quizBank',
   'discussions',
@@ -179,12 +180,14 @@ function inferLessonIndicesFromText(courseMap, value) {
 }
 
 function addRetryCandidate(candidates, deliverables, courseMap, { featureId, lessonIndex, source, message, label }) {
-  if (!featureId || !RETRYABLE_FEATURES.has(featureId)) return;
+  if (!featureId || !RETRYABLE_FEATURES.has(featureId)) return false;
   const entry = deliverables?.[featureId];
   const items = getFeatureArray(featureId, entry?.data);
   const lessonCount = asArray(courseMap?.lessons).length;
-  if (entry?.status !== 'done' || !items.length) return;
-  if (!Number.isInteger(lessonIndex) || lessonIndex < 0 || lessonIndex >= Math.max(items.length, lessonCount)) return;
+  if (entry?.status !== 'done' || !items.length) return false;
+  if (!Number.isInteger(lessonIndex) || lessonIndex < 0 || lessonIndex >= Math.max(items.length, lessonCount)) {
+    return false;
+  }
 
   const key = `${featureId}:${lessonIndex}`;
   if (!candidates.has(key)) {
@@ -197,13 +200,11 @@ function addRetryCandidate(candidates, deliverables, courseMap, { featureId, les
       message,
     });
   }
+  return true;
 }
 
-function addFeatureRetryCandidate(candidates, deliverables, { featureId, source, message, label }) {
+function addFeatureRetryCandidate(candidates, _deliverables, { featureId, source, message, label }) {
   if (!featureId || !RETRYABLE_FEATURES.has(featureId)) return;
-  const entry = deliverables?.[featureId];
-  const items = getFeatureArray(featureId, entry?.data);
-  if (entry?.status !== 'done' || !items.length) return;
 
   const key = `${featureId}:feature`;
   if (!candidates.has(key)) {
@@ -217,6 +218,11 @@ function addFeatureRetryCandidate(candidates, deliverables, { featureId, source,
       message,
     });
   }
+}
+
+function hasRetryCandidateForFeature(candidates, featureId) {
+  if (!featureId) return false;
+  return [...candidates.values()].some((candidate) => candidate.featureId === featureId);
 }
 
 function getQuestionArray(item) {
@@ -804,15 +810,26 @@ export function buildPackageRepairQueue({
   ];
 
   packageIssues.forEach((issue) => {
-    inferLessonIndicesFromText(courseMap, issue?.message).forEach((lessonIndex) => {
-      addRetryCandidate(candidates, deliverables, courseMap, {
+    const lessonIndices = inferLessonIndicesFromText(courseMap, issue?.message);
+    let coveredByLessonRetry = false;
+    lessonIndices.forEach((lessonIndex) => {
+      const covered = addRetryCandidate(candidates, deliverables, courseMap, {
         featureId: issue.featureId,
         lessonIndex,
         label: issue.label,
         message: issue.message,
         source: 'readiness',
       });
+      coveredByLessonRetry = coveredByLessonRetry || covered;
     });
+    if (!coveredByLessonRetry && !hasRetryCandidateForFeature(candidates, issue.featureId)) {
+      addFeatureRetryCandidate(candidates, deliverables, {
+        featureId: issue.featureId,
+        label: issue.label,
+        message: issue.message,
+        source: 'readiness',
+      });
+    }
   });
 
   asArray(healthReport?.findings).forEach((finding) => {

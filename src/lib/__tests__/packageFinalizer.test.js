@@ -332,6 +332,29 @@ describe('packageFinalizer', () => {
     ]);
   });
 
+  it('queues feature-level retries for missing or failed deliverables', () => {
+    const result = runDeterministicPackageFinalizer({
+      courseMap: makeCourseMap(10),
+      selectedFeatures: ['courseMap', 'syllabus', 'lessonPlans', 'slideDecks'],
+      includeClassroomReadiness: true,
+      includePedagogicalValidation: false,
+      maxRetryActions: 10,
+      deliverables: {
+        lessonPlans: { status: 'error', data: null, error: 'generation failed' },
+        slideDecks: { status: 'error', data: null, error: 'generation failed' },
+      },
+    });
+
+    expect(result.status).toBe('needs_retry');
+    expect(result.retryActions).toEqual(
+      expect.arrayContaining([
+        expect.objectContaining({ featureId: 'syllabus', scope: 'feature', lessonIndex: null }),
+        expect.objectContaining({ featureId: 'lessonPlans', scope: 'feature', lessonIndex: null }),
+        expect.objectContaining({ featureId: 'slideDecks', scope: 'feature', lessonIndex: null }),
+      ]),
+    );
+  });
+
   it('can keep warnings out of the model retry queue', () => {
     const result = runDeterministicPackageFinalizer({
       courseMap: makeCourseMap(2),
