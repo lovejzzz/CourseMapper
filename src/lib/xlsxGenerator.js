@@ -137,8 +137,10 @@ function buildCourseMapSheet(courseMap, customColumns) {
       rows.push(
         columns.map((col) => {
           if (col.key === 'weekModule') return section === sections[0] ? lesson.title : '';
-          if (col.key === 'evaluateDesign')
-            return section[col.key] === true || section[col.key] === 'true' ? '\u2713' : '';
+          if (col.key === 'evaluateDesign') {
+            if (section[col.key] === true || section[col.key] === 'true') return '\u2713';
+            if (section[col.key] === false || section[col.key] === 'false') return '';
+          }
           return toStr(section[col.key]);
         }),
       );

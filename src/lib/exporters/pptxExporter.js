@@ -1548,53 +1548,6 @@ async function createPptxWithDecks(data, courseName, themeIndex) {
     const theme = resolveTheme(di, themeIndex);
     const slides = deck.slides || [];
 
-    // Add section divider between decks (after the first)
-    if (di > 0) {
-      const divider = pptx.addSlide();
-      divider.background = { color: theme.primary };
-      divider.addShape(pptx.ShapeType.rect, {
-        x: 0,
-        y: 5.625 - 0.08,
-        w: 10,
-        h: 0.08,
-        fill: { color: theme.accent },
-        line: { color: theme.accent },
-        altText: 'Decorative',
-      });
-      divider.addText(deck.lessonTitle || `Lesson ${di + 1}`, {
-        x: 1,
-        y: 1.5,
-        w: 8,
-        h: 2.5,
-        fontSize: 36,
-        fontFace: FONT_HEADING,
-        color: 'FFFFFF',
-        bold: true,
-        align: 'center',
-        valign: 'middle',
-      });
-      const num = (deck.lessonTitle || '').match(/^(?:Lesson|Week)\s*(\d+)/i);
-      divider.addText(`LESSON ${num ? num[1] : di + 1}`, {
-        x: 1,
-        y: 0.6,
-        w: 8,
-        h: 0.4,
-        fontSize: 11,
-        fontFace: FONT_LABEL,
-        color: theme.accent,
-        bold: true,
-        charSpacing: 4,
-        align: 'center',
-      });
-      divider.addNotes(
-        [
-          `Use this transition slide to reset attention before ${deck.lessonTitle || `Lesson ${di + 1}`}.`,
-          'Preview the lesson focus, connect it to the previous deck, and invite students to name one question they are bringing forward.',
-          'Move quickly so the divider supports pacing without becoming a content slide.',
-        ].join(' '),
-      );
-    }
-
     for (let si = 0; si < slides.length; si++) {
       await buildSlideForDeck(pptx, deck, theme, si, slides.length, { hasLatex });
     }

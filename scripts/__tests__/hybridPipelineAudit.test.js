@@ -175,14 +175,19 @@ describe('hybrid pipeline audit', () => {
       const payload = await buildHybridPipelineAudit({
         runtime,
         projects: DEFAULT_AUDIT_PROJECTS.slice(0, 1),
-        scopes: [5],
+        scopes: [5, 8, 14],
       });
       const markdown = renderHybridPipelineAuditMarkdown(payload);
 
-      expect(payload.summary.stressCaseCount).toBe(2);
+      expect(payload.summary.stressCaseCount).toBe(6);
       expect(markdown).toContain('## Stress Case Matrix');
       expect(markdown).toContain('| messy-import-stress | 5 | pass |');
+      expect(markdown).toContain('| messy-import-stress | 8 | pass |');
+      expect(markdown).toContain('| messy-import-stress | 14 | pass |');
       expect(markdown).toContain('Messy imported clinical studio map');
+      expect(
+        payload.results.filter((entry) => entry.projectId === 'messy-import-stress').map((entry) => entry.scope),
+      ).toEqual([5, 8, 14]);
       expect(payload.nextActions.some((action) => /messy-import stress cases/i.test(action.title))).toBe(false);
     } finally {
       await closeHybridPipelineAuditRuntime();

@@ -412,27 +412,28 @@ export const MESSY_IMPORT_STRESS_PROJECT = {
     semester: 'Spring 2027',
     learningOutcomes:
       'Coordinate clinical placement learning, connect field evidence to course frameworks, and communicate recommendations to community partners.',
-    lessons: COMMUNITY_HEALTH_LESSONS.slice(0, 5).map((lesson, index) => ({
-      title: index === 0 ? 'TBD' : index === 2 ? '' : `Clinical Block ${index + 1} / ${lesson.title}`,
+    lessons: COMMUNITY_HEALTH_LESSONS.map((lesson, index) => ({
+      title: index === 0 ? 'TBD' : index % 5 === 2 ? '' : `Clinical Block ${index + 1} / ${lesson.title}`,
       sections: [
         {
           learningGoals: index === 0 ? 'TBD' : lesson.goals,
           topicSection: index === 0 ? 'Placement orientation / community context' : `Studio seminar / ${lesson.topics}`,
-          learningObjectives: index === 1 ? '' : lesson.objectives,
-          weeklyAssessments: index === 3 ? 'To be determined' : lesson.assessment,
+          learningObjectives: index % 4 === 1 ? '' : lesson.objectives,
+          weeklyAssessments: index % 5 === 3 ? 'To be determined' : lesson.assessment,
           asyncActivities: lesson.async,
-          syncActivities: index === 4 ? 'Clinical debrief, simulation check-in, partner case conference.' : lesson.sync,
-          technologyNeeded: index === 2 ? '' : 'LMS, placement log, shared drive, and video reflection tools.',
+          syncActivities:
+            index % 6 === 4 ? 'Clinical debrief, simulation check-in, partner case conference.' : lesson.sync,
+          technologyNeeded: index % 4 === 2 ? '' : 'LMS, placement log, shared drive, and video reflection tools.',
           presentationFormat: index === 1 ? 'Clinical placement huddle + studio critique + debrief.' : lesson.format,
           supportingResources:
-            index === 4 ? '' : 'Placement handbook; partner brief; observation template; debrief guide',
+            index % 5 === 4 ? '' : 'Placement handbook; partner brief; observation template; debrief guide',
           evaluateDesign: lesson.evaluation,
         },
         {
           learningGoals: `Field application for ${lesson.title}.`,
           topicSection: `Clinical placement / ${lesson.title}`,
           learningObjectives: `Connect field evidence from ${lesson.title} to the seminar debrief.`,
-          weeklyAssessments: index === 2 ? '' : `Field note and supervisor check-in for ${lesson.title}.`,
+          weeklyAssessments: index % 6 === 2 ? '' : `Field note and supervisor check-in for ${lesson.title}.`,
           asyncActivities: 'Placement documentation, reflection notes, and case preparation.',
           syncActivities: 'Instructor conference, peer consult, and evidence-to-practice synthesis.',
           technologyNeeded: 'Placement log, LMS, and approved communication tools.',
