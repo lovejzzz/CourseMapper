@@ -1,5 +1,12 @@
-import { describe, expect, it } from 'vitest';
-import { prepareAutoReviewSend, prepareEditAndResendMessages } from '../useChatRouter';
+import { describe, expect, it, vi } from 'vitest';
+import { buildRetryFailedPrompt, prepareAutoReviewSend, prepareEditAndResendMessages } from '../useChatRouter';
+
+vi.mock('../../../lib/customDeliverableLibrary', () => ({
+  getCustomDeliverable: vi.fn((id) => {
+    if (id === 'custom_peerReview') return { name: 'Peer Review' };
+    return null;
+  }),
+}));
 
 describe('prepareEditAndResendMessages', () => {
   it('resends even when the edited text matches the original message', () => {
@@ -60,5 +67,32 @@ describe('prepareAutoReviewSend', () => {
       agentPromptOverride: null,
       silent: false,
     });
+  });
+});
+
+describe('buildRetryFailedPrompt', () => {
+  it('uses resolved custom deliverable names instead of internal IDs', () => {
+    const prompt = buildRetryFailedPrompt(
+      [
+        {
+          action: 'editItem',
+          featureId: 'custom_peerReview',
+          lessonIndex: 1,
+          message: 'Missing required field',
+          originalInput: { path: ['peerReviews', 1, 'prompt'] },
+        },
+      ],
+      'edit_deliverables',
+    );
+
+    expect(prompt).toContain('editItem on Peer Review (Lesson 2)');
+    expect(prompt).not.toContain('custom_peerReview');
+  });
+
+  it('falls back to course map when no feature is provided', () => {
+    const prompt = buildRetryFailedPrompt([{ action: 'editCell', message: 'Invalid section' }], 'edit_course_map');
+
+    expect(prompt).toContain('editCell on course map');
+    expect(prompt).toContain('edit_course_map');
   });
 });

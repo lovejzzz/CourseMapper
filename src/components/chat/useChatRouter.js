@@ -1,7 +1,7 @@
 import { useState, useRef, useEffect, useCallback, useMemo } from 'react';
 import { parseFiles } from '../../lib/fileParser';
 import { classifyFindings } from '../../lib/pedagogicalValidator';
-import { getChatOpener } from './constants';
+import { getChatOpener, resolveLabel } from './constants';
 import { saveConversation, newConversationId } from '../../lib/chatPersistence';
 import { getSystemPrompt, streamChat } from './useStreamProcessor';
 import useProposalHandler from './useProposalHandler';
@@ -41,6 +41,25 @@ export function prepareAutoReviewSend(text) {
     agentPromptOverride: trimmed,
     silent: true,
   };
+}
+
+export function buildRetryFailedPrompt(failedItems, toolName) {
+  if (!Array.isArray(failedItems) || failedItems.length === 0) return '';
+  const lines = failedItems
+    .map((f, i) => {
+      const feature = f.featureId ? resolveLabel(f.featureId) : 'course map';
+      const lesson = typeof f.lessonIndex === 'number' ? ` (Lesson ${f.lessonIndex + 1})` : '';
+      const inputBlob = f.originalInput ? `\n    Previous args: ${JSON.stringify(f.originalInput)}` : '';
+      return `${i + 1}. ${f.action} on ${feature}${lesson} — failed: ${f.message}${inputBlob}`;
+    })
+    .join('\n');
+  const tool = toolName === 'edit_course_map' ? 'edit_course_map' : 'edit_deliverables';
+  return (
+    `[RETRY-FAILED] A previous ${tool} call partially failed. The applied changes should stay; ` +
+    `only retry the failures below, correcting whatever caused each error (bad lessonIndex, missing required ` +
+    `field, duplicate content, not-generated deliverable, etc). After retrying, respond() briefly confirming ` +
+    `what now succeeded and what couldn't be fixed and why.\n\n${lines}`
+  );
 }
 
 export default function useChatRouter({
@@ -691,20 +710,7 @@ export default function useChatRouter({
    */
   function retryFailedEdits(msgIndex, failedItems, toolName) {
     if (!Array.isArray(failedItems) || failedItems.length === 0) return;
-    const lines = failedItems
-      .map((f, i) => {
-        const feature = f.featureId || 'courseMap';
-        const lesson = typeof f.lessonIndex === 'number' ? ` (Lesson ${f.lessonIndex + 1})` : '';
-        const inputBlob = f.originalInput ? `\n    Previous args: ${JSON.stringify(f.originalInput)}` : '';
-        return `${i + 1}. ${f.action} on ${feature}${lesson} — failed: ${f.message}${inputBlob}`;
-      })
-      .join('\n');
-    const tool = toolName === 'edit_course_map' ? 'edit_course_map' : 'edit_deliverables';
-    const prompt =
-      `[RETRY-FAILED] A previous ${tool} call partially failed. The applied changes should stay; ` +
-      `only retry the failures below, correcting whatever caused each error (bad lessonIndex, missing required ` +
-      `field, duplicate content, not-generated deliverable, etc). After retrying, respond() briefly confirming ` +
-      `what now succeeded and what couldn't be fixed and why.\n\n${lines}`;
+    const prompt = buildRetryFailedPrompt(failedItems, toolName);
     // Mark the card as retrying so the UI updates immediately.
     setMessages((prev) =>
       prev.map((m, i) => (i === msgIndex && m.role === 'changeSummary' ? { ...m, status: 'retried' } : m)),

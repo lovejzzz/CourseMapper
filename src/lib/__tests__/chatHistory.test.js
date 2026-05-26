@@ -38,6 +38,13 @@ function getArrayKey(featureId, parsed) {
   return arrKey || null;
 }
 
+function resolveLabel(featureId) {
+  if (featureId === 'quizBank') return 'Quiz & Exam Bank';
+  if (featureId === 'rubrics') return 'Rubrics';
+  if (featureId === 'custom_peerReview') return 'Peer Review';
+  return featureId;
+}
+
 // ─── Re-implement buildAgentChatHistory ──────────────────────────────────────
 
 function buildAgentChatHistory(messages) {
@@ -110,7 +117,7 @@ function buildAgentChatHistory(messages) {
     } else if (m.role === 'changeSummary') {
       const s = m.summary;
       const desc = (s?.changes || [])
-        .map((c) => `${c.type} ${c.count} in ${c.featureId}${c.label ? ` (${c.label})` : ''}`)
+        .map((c) => `${c.type} ${c.count} in ${resolveLabel(c.featureId)}${c.label ? ` (${c.label})` : ''}`)
         .join(', ');
       history.push({ role: 'assistant', content: `[Applied changes: ${desc}]` });
     } else if (m.role === 'packageSummary') {
@@ -122,7 +129,7 @@ function buildAgentChatHistory(messages) {
     } else if (m.role === 'imageSearch') {
       history.push({ role: 'assistant', content: `[Image search: ${m.imageSearch?.query || 'images'}]` });
     } else if (m.role === 'syncSuggestion') {
-      const featureNames = (m.plan || []).map((p) => p.featureId).join(', ');
+      const featureNames = (m.plan || []).map((p) => resolveLabel(p.featureId)).join(', ');
       const statusText = m.status === 'done' ? 'synced' : m.status === 'skipped' ? 'skipped' : 'pending';
       history.push({ role: 'assistant', content: `[Sync suggestion: ${featureNames} — ${statusText}]` });
     } else if (m.role === 'agentProgress') {
@@ -409,8 +416,22 @@ describe('buildAgentChatHistory', () => {
         },
       ];
       const result = buildAgentChatHistory(messages);
-      expect(result[0].content).toContain('added 3 in quizBank (Quiz Bank)');
+      expect(result[0].content).toContain('added 3 in Quiz & Exam Bank (Quiz Bank)');
       expect(result[0].content).toContain('edited 1 in syllabus');
+    });
+
+    it('uses custom deliverable names instead of internal IDs', () => {
+      const result = buildAgentChatHistory([
+        {
+          role: 'changeSummary',
+          summary: {
+            changes: [{ type: 'edited', count: 1, featureId: 'custom_peerReview' }],
+          },
+        },
+      ]);
+
+      expect(result[0].content).toContain('edited 1 in Peer Review');
+      expect(result[0].content).not.toContain('custom_peerReview');
     });
   });
 
@@ -477,8 +498,21 @@ describe('buildAgentChatHistory', () => {
           status: 'done',
         },
       ]);
-      expect(result[0].content).toContain('quizBank, rubrics');
+      expect(result[0].content).toContain('Quiz & Exam Bank, Rubrics');
       expect(result[0].content).toContain('synced');
+    });
+
+    it('uses custom deliverable names instead of internal IDs', () => {
+      const result = buildAgentChatHistory([
+        {
+          role: 'syncSuggestion',
+          plan: [{ featureId: 'custom_peerReview' }],
+          status: 'done',
+        },
+      ]);
+
+      expect(result[0].content).toContain('Peer Review');
+      expect(result[0].content).not.toContain('custom_peerReview');
     });
 
     it('maps "skipped" status', () => {

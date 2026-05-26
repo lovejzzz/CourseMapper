@@ -21,6 +21,7 @@ import {
   parseOpenAIResponsesStreamChunk,
   prefersOpenAIResponsesApi,
 } from '../../lib/openaiProvider';
+import { resolveLabel } from './constants';
 // webllm is dynamically imported when needed; its runtime is loaded externally for Local AI users only.
 
 // ── System prompt for Help / Tutor mode (extracted from FaqChatbot) ─────────
@@ -503,7 +504,7 @@ export function buildAgentChatHistory(messages) {
     } else if (m.role === 'changeSummary') {
       const s = m.summary;
       const desc = (s?.changes || [])
-        .map((c) => `${c.type} ${c.count} in ${c.featureId}${c.label ? ` (${c.label})` : ''}`)
+        .map((c) => `${c.type} ${c.count} in ${resolveLabel(c.featureId)}${c.label ? ` (${c.label})` : ''}`)
         .join(', ');
       history.push({ role: 'assistant', content: `[Applied changes: ${desc}]` });
     } else if (m.role === 'packageSummary') {
@@ -515,7 +516,7 @@ export function buildAgentChatHistory(messages) {
     } else if (m.role === 'imageSearch') {
       history.push({ role: 'assistant', content: `[Image search: ${m.imageSearch?.query || 'images'}]` });
     } else if (m.role === 'syncSuggestion') {
-      const featureNames = (m.plan || []).map((p) => p.featureId).join(', ');
+      const featureNames = (m.plan || []).map((p) => resolveLabel(p.featureId)).join(', ');
       const statusText = m.status === 'done' ? 'synced' : m.status === 'skipped' ? 'skipped' : 'pending';
       history.push({ role: 'assistant', content: `[Sync suggestion: ${featureNames} — ${statusText}]` });
     } else if (m.role === 'agentProgress') {
