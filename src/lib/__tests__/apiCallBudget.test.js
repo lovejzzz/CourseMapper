@@ -106,6 +106,9 @@ describe('apiCallBudget', () => {
     expect(budget.costPlan).toMatchObject({
       source: 'generation',
       baseProviderCalls: 1,
+      plannedNewCalls: 10,
+      softNewCallLimit: 12,
+      hardNewCallLimit: 15,
       plannedCalls: 11,
       softCallLimit: 13,
       hardCallLimit: 16,
@@ -115,6 +118,7 @@ describe('apiCallBudget', () => {
       status: 'ok',
       totalProviderCalls: 1,
       plannedCalls: 11,
+      plannedNewCalls: 10,
       hardCallLimit: 16,
     });
   });

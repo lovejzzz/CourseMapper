@@ -291,5 +291,6 @@ describe('createChunkPlan', () => {
   it('scales output budgets without exceeding the selected model limit', () => {
     expect(getFeatureOutputBudget('slideDecks', 65536, { outputBudgetScale: 1.1 })).toBe(19800);
     expect(getFeatureOutputBudget('slideDecks', 12000, { outputBudgetScale: 1.1 })).toBe(12000);
+    expect(getFeatureOutputBudget('syllabus', 128000)).toBe(12000);
   });
 });

@@ -143,6 +143,9 @@ export function applyApiCallBudgetEvent(currentBudget, event = {}) {
       : {
           ...rawPlan,
           baseProviderCalls,
+          plannedNewCalls: Number(rawPlan.plannedCalls) || 0,
+          softNewCallLimit: Number(rawPlan.softCallLimit) || 0,
+          hardNewCallLimit: Number(rawPlan.hardCallLimit) || 0,
           plannedCalls: (Number(rawPlan.plannedCalls) || 0) + baseProviderCalls,
           softCallLimit: (Number(rawPlan.softCallLimit) || 0) + baseProviderCalls,
           hardCallLimit: (Number(rawPlan.hardCallLimit) || 0) + baseProviderCalls,

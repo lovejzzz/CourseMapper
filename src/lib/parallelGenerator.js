@@ -94,6 +94,7 @@ export function getFeatureChunkSize(featureId, generationPlan = null) {
  *  parsePartialJSON recovery + a retry round.
  */
 const FEATURE_OUTPUT_BUDGETS = {
+  syllabus: 12000,
   lessonPlans: 10000, // was 8000 — gives UDL notes and warm-up breathing room
   slideDecks: 18000, // was 12000 — 12-16 slides × 4-sentence notes needed ~13.4K at 3 lessons
   quizBank: 14000, // was 8000  — 5-7 questions × 3 lessons × full MC metadata (q/op/an/ex/dr/bl/df/em/pt/oa) needs ~12K; follow-up audit showed 10K still clipped at ~10.7K

@@ -24,6 +24,22 @@ describe('apiCostControl', () => {
     expect(plan.hardCallLimit).toBeGreaterThan(plan.softCallLimit);
   });
 
+  it('can reserve only finalizer retry calls without replaying full generation cost', () => {
+    const plan = buildApiCostPlan({
+      source: 'finalizer:export',
+      featureIds: ['courseMap', 'syllabus', 'lessonPlans', 'slideDecks'],
+      lessonCount: 10,
+      includeDeliverableChunks: false,
+      includeRepairRetryReserve: false,
+      finalizerRetryCallBudget: 14,
+    });
+
+    expect(plan.deliverableChunkCalls).toBe(0);
+    expect(plan.repairRetryReserve).toBe(0);
+    expect(plan.finalizerRetryReserve).toBe(14);
+    expect(plan.plannedCalls).toBe(14);
+  });
+
   it('stops retries after non-retryable provider failures', () => {
     const control = evaluateApiCostControl({
       modelDiscoveryCalls: 1,

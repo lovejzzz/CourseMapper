@@ -52,6 +52,8 @@ export function buildApiCostPlan({
   lessonFilter = null,
   generationPlan = null,
   includeCourseMap = false,
+  includeDeliverableChunks = true,
+  includeRepairRetryReserve = true,
   finalizerRetryCallBudget = 0,
 } = {}) {
   const selectedFeatures = [
@@ -59,15 +61,19 @@ export function buildApiCostPlan({
   ];
   const scopedLessonCount = Array.isArray(lessonFilter) ? lessonFilter.length : Number(lessonCount) || 0;
   const initialCourseMapCalls = includeCourseMap ? 1 : 0;
-  const deliverableChunkCalls = selectedFeatures.reduce(
-    (sum, featureId) => sum + Math.max(1, getChunkCount(featureId, scopedLessonCount, lessonFilter, generationPlan)),
-    0,
-  );
+  const deliverableChunkCalls = includeDeliverableChunks
+    ? selectedFeatures.reduce(
+        (sum, featureId) => sum + Math.max(1, getChunkCount(featureId, scopedLessonCount, lessonFilter, generationPlan)),
+        0,
+      )
+    : 0;
   const repairRoundLimit = getRepairRoundLimit(generationPlan);
-  const repairRetryReserve = selectedFeatures.reduce(
-    (sum, featureId) => sum + getRepairRetryCallLimit(featureId, scopedLessonCount, repairRoundLimit),
-    0,
-  );
+  const repairRetryReserve = includeRepairRetryReserve
+    ? selectedFeatures.reduce(
+        (sum, featureId) => sum + getRepairRetryCallLimit(featureId, scopedLessonCount, repairRoundLimit),
+        0,
+      )
+    : 0;
   const finalizerRetryReserve = Math.max(0, Number(finalizerRetryCallBudget) || 0);
   const plannedCalls = initialCourseMapCalls + deliverableChunkCalls + repairRetryReserve + finalizerRetryReserve;
   const normalCalls = initialCourseMapCalls + deliverableChunkCalls;
@@ -82,6 +88,9 @@ export function buildApiCostPlan({
     deliverableChunkCalls,
     repairRetryReserve,
     finalizerRetryReserve,
+    reservedCalls: plannedCalls,
+    includeDeliverableChunks,
+    includeRepairRetryReserve,
     plannedCalls,
     softCallLimit,
     hardCallLimit,
@@ -139,6 +148,7 @@ export function evaluateApiCostControl(budget = {}) {
     shouldStopRetries,
     totalProviderCalls,
     plannedCalls: Number(costPlan.plannedCalls || 0) || null,
+    plannedNewCalls: Number(costPlan.plannedNewCalls || costPlan.reservedCalls || 0) || null,
     softCallLimit,
     hardCallLimit,
     remainingBeforeHardLimit,

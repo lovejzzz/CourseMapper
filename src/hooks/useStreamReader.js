@@ -162,6 +162,7 @@ export default function useStreamReader() {
       task,
       schema,
       onApiCallEvent,
+      allowProviderFallback = true,
     } = opts;
     const recordApiCallEvent = (event) => {
       if (typeof onApiCallEvent === 'function') onApiCallEvent(event);
@@ -401,7 +402,7 @@ export default function useStreamReader() {
           });
         }
 
-        if (provider === 'google' && isRetryableError(classifiedError)) {
+        if (allowProviderFallback && provider === 'google' && isRetryableError(classifiedError)) {
           try {
             return await runGoogleNonStreamingFallback();
           } catch (fallbackError) {

@@ -65,6 +65,20 @@ import { buildApiCostPlan, isNonRetryableFailureClass } from '../lib/apiCostCont
 import { classifyError } from '../lib/failureClassification';
 import { traceLog } from '../lib/traceLog';
 
+const PROVIDER_CALL_EVENT_TYPES = new Set([
+  'deliverableChunkCall',
+  'repairRetryCall',
+  'streamRetryCall',
+  'retriedCall',
+  'providerFallbackCall',
+  'imageGenerationCall',
+]);
+
+function getProviderCallEventCount(event = {}) {
+  if (!PROVIDER_CALL_EVENT_TYPES.has(event.type)) return 0;
+  return Number.isFinite(event.count) ? Math.max(0, event.count) : 1;
+}
+
 // ── Post-process scoped deliverable output to fix lesson/week numbering ──
 // When the user generates a subset of lessons (e.g., lesson 6 only), the AI may
 // still label it as "Week 1" / "Lesson 1" because it's the first item in its output.
@@ -575,6 +589,20 @@ export default function useDeliverables({
       const syncGenId = generationOptions.syncGenId ?? null;
       const costMode = generationOptions.mode || 'generation';
       const countInitialChunksAsRepair = costMode === 'finalizerRetry';
+      const rawMaxProviderCalls = Number(generationOptions.maxProviderCalls);
+      const maxProviderCalls = Number.isFinite(rawMaxProviderCalls)
+        ? Math.max(0, Math.floor(rawMaxProviderCalls))
+        : null;
+      let providerCallsUsed = 0;
+      const getRemainingProviderCalls = () =>
+        maxProviderCalls === null ? Number.POSITIVE_INFINITY : Math.max(0, maxProviderCalls - providerCallsUsed);
+      const hasProviderCallBudget = (count = 1) => getRemainingProviderCalls() >= count;
+      const recordGenerationApiCallEvent = (event) => {
+        providerCallsUsed += getProviderCallEventCount(event);
+        recordApiCallEvent(event);
+      };
+      const getAllowedStreamRetries = (requested) =>
+        maxProviderCalls === null ? requested : Math.max(0, Math.min(requested, getRemainingProviderCalls()));
       const toGenerate = features.filter((f) => f && f !== 'courseMap');
       if (toGenerate.length === 0 || !courseMap) return;
 
@@ -603,13 +631,28 @@ export default function useDeliverables({
         lessonFilter: scopeIndices,
         generationPlan,
         includeCourseMap: false,
+        includeRepairRetryReserve: costMode !== 'finalizerRetry',
       });
-      recordApiCallEvent({
-        type: 'costPlan',
-        label: costMode === 'finalizerRetry' ? 'Finalizer retry call plan' : 'Deliverable call plan',
-        detail: `${costPlan.plannedCalls} planned provider calls`,
-        costPlan,
-      });
+      const cappedCostPlan =
+        maxProviderCalls === null
+          ? costPlan
+          : {
+              ...costPlan,
+              maxProviderCalls,
+              plannedCalls: Math.min(costPlan.plannedCalls, maxProviderCalls),
+              softCallLimit: Math.min(costPlan.softCallLimit, maxProviderCalls),
+              hardCallLimit: Math.min(costPlan.hardCallLimit, maxProviderCalls),
+            };
+      if (costMode !== 'finalizerRetry') {
+        recordApiCallEvent({
+          type: 'costPlan',
+          label: 'Deliverable call plan',
+          detail: `${cappedCostPlan.deliverableChunkCalls} generation call${
+            cappedCostPlan.deliverableChunkCalls === 1 ? '' : 's'
+          } + ${cappedCostPlan.repairRetryReserve} repair reserve`,
+          costPlan: cappedCostPlan,
+        });
+      }
 
       // ── 2. Initialize per-feature progress ──
       const perFeatureInit = {};
@@ -645,9 +688,10 @@ export default function useDeliverables({
         initialStreamRetries: getStreamRetryLimit(generationPlan, 'initial'),
         repairStreamRetries: getStreamRetryLimit(generationPlan, 'repair'),
         costMode,
-        plannedProviderCalls: costPlan.plannedCalls,
-        softCallLimit: costPlan.softCallLimit,
-        hardCallLimit: costPlan.hardCallLimit,
+        plannedProviderCalls: cappedCostPlan.plannedCalls,
+        softCallLimit: cappedCostPlan.softCallLimit,
+        hardCallLimit: cappedCostPlan.hardCallLimit,
+        maxProviderCalls,
       });
       traceGenerationTable(
         generationRunId,
@@ -747,7 +791,8 @@ export default function useDeliverables({
         if (wanted === 0) return 0;
         const used = repairRetryCallsUsed.get(featureId) || 0;
         const remaining = getRemainingRepairRetryCalls(featureId);
-        const allowed = Math.min(wanted, remaining);
+        const globalRemaining = getRemainingProviderCalls();
+        const allowed = Math.min(wanted, remaining, globalRemaining);
         repairRetryCallsUsed.set(featureId, used + allowed);
         if (allowed < wanted) {
           const limit = getRepairRetryCallLimit(featureId, lessonIndices.length, repairRoundLimit);
@@ -763,12 +808,16 @@ export default function useDeliverables({
               used,
               limit,
               blockReason,
+              providerCallsUsed,
+              maxProviderCalls,
             },
             'warn',
           );
           appendLog(
             blockReason
               ? `⚠ ${getFeatureLabel(featureId)}: retries stopped because ${blockReason}`
+              : maxProviderCalls !== null && globalRemaining <= 0
+                ? `⚠ ${getFeatureLabel(featureId)}: retry call cap reached (${providerCallsUsed}/${maxProviderCalls}); stopping extra retries`
               : `⚠ ${getFeatureLabel(featureId)}: repair retry budget reached (${used}/${limit}); stopping extra retries to control API cost`,
             'warn',
           );
@@ -977,11 +1026,29 @@ export default function useDeliverables({
           const responseSchema = getDeliverableResponseSchema(featureId);
           const outputBudget = getFeatureOutputBudget(featureId, maxOutputTokens, generationPlan);
 
-          recordApiCallEvent({
+          if (!hasProviderCallBudget()) {
+            appendLog(`⚠ ${chunkLabel}: skipped to stay within the retry call cap`, 'warn');
+            traceGeneration(
+              generationRunId,
+              'provider_call_cap_skipped',
+              {
+                featureId,
+                chunkIndex,
+                chunkLabel,
+                providerCallsUsed,
+                maxProviderCalls,
+              },
+              'warn',
+            );
+            return;
+          }
+
+          recordGenerationApiCallEvent({
             type: countInitialChunksAsRepair ? 'repairRetryCall' : 'deliverableChunkCall',
             label: countInitialChunksAsRepair ? `Finish retry ${chunkLabel}` : `Generate ${chunkLabel}`,
             featureId,
           });
+          const allowedInitialRetries = getAllowedStreamRetries(initialRetryLimit);
           traceGeneration(generationRunId, 'chunk_request', {
             featureId,
             chunkIndex,
@@ -989,7 +1056,7 @@ export default function useDeliverables({
             provider,
             modelId,
             maxOutputTokens: outputBudget,
-            initialRetryLimit,
+            initialRetryLimit: allowedInitialRetries,
             hasSchema: Boolean(responseSchema),
             systemChars: prompts.systemPrompt?.length || 0,
             userChars: prompts.userPrompt?.length || 0,
@@ -1002,7 +1069,8 @@ export default function useDeliverables({
             generationPlan,
             task: featureId,
             schema: responseSchema,
-            onApiCallEvent: recordApiCallEvent,
+            allowProviderFallback: maxProviderCalls === null || getRemainingProviderCalls() > 0,
+            onApiCallEvent: recordGenerationApiCallEvent,
             onChunk: (accumulatedText, streamChunkCount) => {
               if (timedOutFeaturesRef.current.has(featureId)) return;
               markFeatureActivity(featureId);
@@ -1047,18 +1115,18 @@ export default function useDeliverables({
                 }
               }
             },
-            maxRetries: initialRetryLimit,
+            maxRetries: allowedInitialRetries,
             signal: controller.signal,
             onRetry: (attempt) => {
               markFeatureActivity(featureId);
-              recordApiCallEvent({
+              recordGenerationApiCallEvent({
                 type: 'streamRetryCall',
                 label: `${chunkLabel} stream retry`,
-                detail: `${attempt}/${initialRetryLimit}`,
+                detail: `${attempt}/${allowedInitialRetries}`,
                 featureId,
               });
               appendLog(
-                `⚠ ${chunkLabel}: Connection interrupted — retrying (${attempt}/${initialRetryLimit})...`,
+                `⚠ ${chunkLabel}: Connection interrupted — retrying (${attempt}/${allowedInitialRetries})...`,
                 'warn',
               );
             },
@@ -1376,32 +1444,49 @@ export default function useDeliverables({
             abortMapRef.current.set(retryAbortKey, controller);
             try {
               let fullText = '';
-              recordApiCallEvent({
+              if (!hasProviderCallBudget()) {
+                traceGeneration(
+                  generationRunId,
+                  'provider_call_cap_skipped',
+                  {
+                    featureId: fid,
+                    label,
+                    context: 'whole-deliverable retry',
+                    providerCallsUsed,
+                    maxProviderCalls,
+                  },
+                  'warn',
+                );
+                break;
+              }
+              recordGenerationApiCallEvent({
                 type: 'repairRetryCall',
                 label: `${label} whole-deliverable retry`,
                 detail: `round ${retryRound}`,
                 featureId: fid,
               });
               const repairRetryLimit = getStreamRetryLimit(generationPlan, 'repair');
+              const allowedRepairRetries = getAllowedStreamRetries(repairRetryLimit);
               const result = await streamProvider(provider, apiKey, modelId, prompts.systemPrompt, prompts.userPrompt, {
                 maxOutputTokens: getFeatureOutputBudget(fid, maxOutputTokens, generationPlan),
                 modelCapabilities,
                 generationPlan,
                 task: 'repair',
                 schema: getDeliverableResponseSchema(fid),
-                onApiCallEvent: recordApiCallEvent,
+                allowProviderFallback: maxProviderCalls === null || getRemainingProviderCalls() > 0,
+                onApiCallEvent: recordGenerationApiCallEvent,
                 onChunk: (t) => {
                   markFeatureActivity(fid);
                   fullText = t;
                 },
-                maxRetries: repairRetryLimit,
+                maxRetries: allowedRepairRetries,
                 signal: controller.signal,
                 onRetry: (attempt) => {
                   markFeatureActivity(fid);
-                  recordApiCallEvent({
+                  recordGenerationApiCallEvent({
                     type: 'streamRetryCall',
                     label: `${label} whole-deliverable retry stream retry`,
-                    detail: `${attempt}/${repairRetryLimit}`,
+                    detail: `${attempt}/${allowedRepairRetries}`,
                     featureId: fid,
                   });
                 },
@@ -1953,13 +2038,29 @@ export default function useDeliverables({
 
                 try {
                   let fullText = '';
-                  recordApiCallEvent({
+                  if (!hasProviderCallBudget()) {
+                    traceGeneration(
+                      generationRunId,
+                      'provider_call_cap_skipped',
+                      {
+                        featureId: fid,
+                        label: retryLabel,
+                        context: 'missing-item retry',
+                        providerCallsUsed,
+                        maxProviderCalls,
+                      },
+                      'warn',
+                    );
+                    return;
+                  }
+                  recordGenerationApiCallEvent({
                     type: 'repairRetryCall',
                     label: retryLabel,
                     detail: `round ${retryRound}`,
                     featureId: fid,
                   });
                   const repairRetryLimit = getStreamRetryLimit(generationPlan, 'repair');
+                  const allowedRepairRetries = getAllowedStreamRetries(repairRetryLimit);
                   const result = await streamProvider(
                     provider,
                     apiKey,
@@ -1972,19 +2073,20 @@ export default function useDeliverables({
                       generationPlan,
                       task: 'repair',
                       schema: getDeliverableResponseSchema(fid),
-                      onApiCallEvent: recordApiCallEvent,
+                      allowProviderFallback: maxProviderCalls === null || getRemainingProviderCalls() > 0,
+                      onApiCallEvent: recordGenerationApiCallEvent,
                       onChunk: (t) => {
                         markFeatureActivity(fid);
                         fullText = t;
                       },
-                      maxRetries: repairRetryLimit,
+                      maxRetries: allowedRepairRetries,
                       signal: controller.signal,
                       onRetry: (attempt) => {
                         markFeatureActivity(fid);
-                        recordApiCallEvent({
+                        recordGenerationApiCallEvent({
                           type: 'streamRetryCall',
                           label: `${retryLabel} stream retry`,
-                          detail: `${attempt}/${repairRetryLimit}`,
+                          detail: `${attempt}/${allowedRepairRetries}`,
                           featureId: fid,
                         });
                       },
@@ -2157,13 +2259,29 @@ export default function useDeliverables({
 
                   try {
                     let fullText = '';
-                    recordApiCallEvent({
+                    if (!hasProviderCallBudget()) {
+                      traceGeneration(
+                        generationRunId,
+                        'provider_call_cap_skipped',
+                        {
+                          featureId: fid,
+                          label: retryLabel,
+                          context: 'coverage retry',
+                          providerCallsUsed,
+                          maxProviderCalls,
+                        },
+                        'warn',
+                      );
+                      return;
+                    }
+                    recordGenerationApiCallEvent({
                       type: 'repairRetryCall',
                       label: retryLabel,
                       detail: 'coverage retry',
                       featureId: fid,
                     });
                     const repairRetryLimit = getStreamRetryLimit(generationPlan, 'repair');
+                    const allowedRepairRetries = getAllowedStreamRetries(repairRetryLimit);
                     const result = await streamProvider(
                       provider,
                       apiKey,
@@ -2176,19 +2294,20 @@ export default function useDeliverables({
                         generationPlan,
                         task: 'repair',
                         schema: getDeliverableResponseSchema(fid),
-                        onApiCallEvent: recordApiCallEvent,
+                        allowProviderFallback: maxProviderCalls === null || getRemainingProviderCalls() > 0,
+                        onApiCallEvent: recordGenerationApiCallEvent,
                         onChunk: (t) => {
                           markFeatureActivity(fid);
                           fullText = t;
                         },
-                        maxRetries: repairRetryLimit,
+                        maxRetries: allowedRepairRetries,
                         signal: controller.signal,
                         onRetry: (attempt) => {
                           markFeatureActivity(fid);
-                          recordApiCallEvent({
+                          recordGenerationApiCallEvent({
                             type: 'streamRetryCall',
                             label: `${retryLabel} stream retry`,
-                            detail: `${attempt}/${repairRetryLimit}`,
+                            detail: `${attempt}/${allowedRepairRetries}`,
                             featureId: fid,
                           });
                         },
@@ -2616,7 +2735,13 @@ export default function useDeliverables({
           continue;
         }
 
-        if (fid === 'slideDecks' && provider === 'openai' && config.generateAiImages === true && apiKey) {
+        if (
+          fid === 'slideDecks' &&
+          provider === 'openai' &&
+          config.generateAiImages === true &&
+          apiKey &&
+          costMode !== 'finalizerRetry'
+        ) {
           const imageController = new AbortController();
           const imageAbortKey = `${fid}:images`;
           abortMapRef.current.set(imageAbortKey, imageController);
@@ -2626,7 +2751,7 @@ export default function useDeliverables({
               apiKey,
               appendLog,
               signal: imageController.signal,
-              onApiCallEvent: recordApiCallEvent,
+              onApiCallEvent: recordGenerationApiCallEvent,
             });
           } catch (err) {
             if (err.name === 'AbortError') {
@@ -2710,6 +2835,8 @@ export default function useDeliverables({
         failed,
         totalDurationMs: Date.now() - generationStartTime,
         repairRetryCallsUsed: Object.fromEntries(repairRetryCallsUsed),
+        providerCallsUsed,
+        maxProviderCalls,
       });
       if (failed.length > 0) {
         appendLog(
@@ -2851,10 +2978,29 @@ export default function useDeliverables({
   );
 
   // ── Single-lesson regeneration (used by smart sync) ──
-  // This function is UNCHANGED from the sequential version — it already handles
-  // single-lesson scope via scopeIndices=[lessonIndex].
+  // Single-lesson scope via scopeIndices=[lessonIndex], with an optional call cap
+  // for package-finalizer retries.
   const regenerateLesson = useCallback(
-    async (featureId, courseMap, lessonIndex, syncGenId = null) => {
+    async (featureId, courseMap, lessonIndex, syncGenOrOptions = null) => {
+      const regenerationOptions =
+        syncGenOrOptions && typeof syncGenOrOptions === 'object'
+          ? syncGenOrOptions
+          : { syncGenId: syncGenOrOptions };
+      const syncGenId = regenerationOptions.syncGenId ?? null;
+      const rawMaxProviderCalls = Number(regenerationOptions.maxProviderCalls);
+      const maxProviderCalls = Number.isFinite(rawMaxProviderCalls)
+        ? Math.max(0, Math.floor(rawMaxProviderCalls))
+        : null;
+      let providerCallsUsed = 0;
+      const getRemainingProviderCalls = () =>
+        maxProviderCalls === null ? Number.POSITIVE_INFINITY : Math.max(0, maxProviderCalls - providerCallsUsed);
+      const hasProviderCallBudget = (count = 1) => getRemainingProviderCalls() >= count;
+      const recordRegenerationApiCallEvent = (event) => {
+        providerCallsUsed += getProviderCallEventCount(event);
+        recordApiCallEvent(event);
+      };
+      const getAllowedStreamRetries = (requested) =>
+        maxProviderCalls === null ? requested : Math.max(0, Math.min(requested, getRemainingProviderCalls()));
       if (!courseMap) return { status: 'skipped', reason: 'missing_course_map', featureId, lessonIndex };
       if (lockedLessonsRef.current?.has(lessonIndex)) {
         appendLog(`⚠ Lesson ${lessonIndex + 1} is locked — skipping regeneration`, 'warn');
@@ -2938,20 +3084,36 @@ export default function useDeliverables({
         let fullText = '';
         let lastParseTime = 0;
 
-        recordApiCallEvent({
+        if (!hasProviderCallBudget()) {
+          const skippedResult = {
+            status: 'skipped',
+            reason: 'provider_call_cap',
+            featureId,
+            lessonIndex,
+            data: existingDataSnapshot,
+            itemCount: getDeliverableItemCount(featureId, existingDataSnapshot),
+          };
+          appendLog(`⚠ ${label}: skipped Lesson ${lessonIndex + 1} retry to stay within the call cap`, 'warn');
+          traceGeneration(regenerationRunId, 'lesson_regen_skipped', skippedResult, 'warn');
+          return skippedResult;
+        }
+
+        recordRegenerationApiCallEvent({
           type: 'repairRetryCall',
           label: `Regenerate ${label} lesson ${lessonIndex + 1}`,
           detail: regenerationRunId,
           featureId,
         });
         const repairRetryLimit = getStreamRetryLimit(generationPlan, 'repair');
+        const allowedRepairRetries = getAllowedStreamRetries(repairRetryLimit);
         await streamProvider(provider, apiKey, modelId, prompts.systemPrompt, prompts.userPrompt, {
-          maxOutputTokens,
+          maxOutputTokens: getFeatureOutputBudget(featureId, maxOutputTokens, generationPlan),
           modelCapabilities,
           generationPlan,
           task: 'repair',
           schema: getDeliverableResponseSchema(featureId),
-          onApiCallEvent: recordApiCallEvent,
+          allowProviderFallback: maxProviderCalls === null || getRemainingProviderCalls() > 0,
+          onApiCallEvent: recordRegenerationApiCallEvent,
           onChunk: (accumulatedText) => {
             fullText = accumulatedText;
             const now = Date.now();
@@ -2974,13 +3136,13 @@ export default function useDeliverables({
               }
             }
           },
-          maxRetries: repairRetryLimit,
+          maxRetries: allowedRepairRetries,
           signal: controller.signal,
           onRetry: (attempt) => {
-            recordApiCallEvent({
+            recordRegenerationApiCallEvent({
               type: 'streamRetryCall',
               label: `${label} lesson ${lessonIndex + 1} regeneration stream retry`,
-              detail: `${regenerationRunId} ${attempt}/${repairRetryLimit}`,
+              detail: `${regenerationRunId} ${attempt}/${allowedRepairRetries}`,
               featureId,
             });
           },

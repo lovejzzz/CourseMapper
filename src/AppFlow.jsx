@@ -151,6 +151,14 @@ function traceApiCallBudget(event = {}, budget = {}) {
     modelId: event.modelId || '',
     totalProviderCalls: getApiCallBudgetTotal(budget),
     costControl: budget.costControl || null,
+    costPlan: budget.costPlan
+      ? {
+          source: budget.costPlan.source,
+          plannedNewCalls: budget.costPlan.plannedNewCalls,
+          plannedCalls: budget.costPlan.plannedCalls,
+          hardCallLimit: budget.costPlan.hardCallLimit,
+        }
+      : null,
     counters,
   });
 }
@@ -872,12 +880,19 @@ export default function AppFlow({ startupAction = null, onStartupHandled, onRetu
           lessonFilter,
           generationPlan,
           includeCourseMap: false,
+          includeDeliverableChunks: false,
+          includeRepairRetryReserve: false,
           finalizerRetryCallBudget: canRetryWeakSpots ? maxRetryCallBudget : 0,
         });
         recordApiCallEvent({
           type: 'costPlan',
           label: 'Package finalizer call plan',
-          detail: `${finalizerCostPlan.plannedCalls} planned provider calls`,
+          detail:
+            finalizerCostPlan.finalizerRetryReserve > 0
+              ? `${finalizerCostPlan.finalizerRetryReserve} finish retry call${
+                  finalizerCostPlan.finalizerRetryReserve === 1 ? '' : 's'
+                } reserved`
+              : 'No provider calls planned for deterministic final checks',
           costPlan: finalizerCostPlan,
         });
 
@@ -1095,7 +1110,7 @@ export default function AppFlow({ startupAction = null, onStartupHandled, onRetu
                 result.courseMap || courseMapRef.current,
                 [action.featureId],
                 lessonFilter,
-                { mode: 'finalizerRetry' },
+                { mode: 'finalizerRetry', maxProviderCalls: action.estimatedCalls || 1 },
               );
               tracePackageFinish(finishRunId, 'retry_action_done', {
                 key: retryActionKey,
@@ -1113,6 +1128,7 @@ export default function AppFlow({ startupAction = null, onStartupHandled, onRetu
                 action.featureId,
                 result.courseMap || courseMapRef.current,
                 action.lessonIndex,
+                { mode: 'finalizerRetry', maxProviderCalls: action.estimatedCalls || 1 },
               );
               tracePackageFinish(finishRunId, 'retry_action_done', {
                 key: retryActionKey,

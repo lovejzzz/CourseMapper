@@ -54,6 +54,11 @@ function ApiCallBudgetCard({ budget }) {
   const total = getApiCallBudgetTotal(budget);
   const costControl = budget.costControl || {};
   const costPlan = budget.costPlan || {};
+  const reservedCalls =
+    costPlan.plannedNewCalls ??
+    (costPlan.cumulative && Number.isFinite(costPlan.baseProviderCalls)
+      ? Math.max(0, (Number(costPlan.plannedCalls) || 0) - costPlan.baseProviderCalls)
+      : Number(costPlan.plannedCalls) || 0);
   const counters = [
     ['Model discovery', budget.modelDiscoveryCalls || 0],
     ['Credit checks', budget.creditCheckCalls || 0],
@@ -111,9 +116,9 @@ function ApiCallBudgetCard({ budget }) {
             </span>
           </div>
           <p className="mt-1 text-[11px] font-semibold">
-            {costControl.totalProviderCalls ?? total}
-            {costControl.hardCallLimit ? `/${costControl.hardCallLimit}` : ''} calls
-            {costControl.plannedCalls ? ` · planned ${costControl.plannedCalls}` : ''}
+            {costControl.totalProviderCalls ?? total} actual calls
+            {reservedCalls ? ` · ${reservedCalls} reserved` : ''}
+            {costControl.hardCallLimit ? ` · hard stop ${costControl.hardCallLimit}` : ''}
           </p>
           {costControl.reason && <p className="mt-0.5 line-clamp-2 text-[9px] opacity-70">{costControl.reason}</p>}
           {costControl.remainingBeforeHardLimit !== null && costControl.remainingBeforeHardLimit !== undefined && (
