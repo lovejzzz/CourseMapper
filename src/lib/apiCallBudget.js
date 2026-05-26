@@ -1,5 +1,6 @@
 import { evaluateApiCostControl } from './apiCostControl';
 import { drainPendingApiCallEvents, recordPendingApiCallEvent } from './apiCallPendingEvents';
+import { addUsageTotals, normalizeApiUsage } from './apiUsageCost';
 
 const MAX_RECENT_EVENTS = 12;
 
@@ -17,6 +18,25 @@ const PROVIDER_CALL_COUNTERS = [
 ];
 
 export { recordPendingApiCallEvent };
+
+function cloneUsageTotals(usage = {}) {
+  return {
+    ...(usage || {}),
+    byModel: { ...(usage?.byModel || {}) },
+  };
+}
+
+function cloneFeatureUsage(featureUsage = {}) {
+  return Object.fromEntries(
+    Object.entries(featureUsage || {}).map(([featureId, usage]) => [featureId, cloneUsageTotals(usage)]),
+  );
+}
+
+function normalizeFeatureIds(value) {
+  if (Array.isArray(value)) return value.filter(Boolean);
+  if (value) return [value];
+  return [];
+}
 
 export function createApiCallBudget(overrides = {}) {
   const now = Date.now();
@@ -41,6 +61,12 @@ export function createApiCallBudget(overrides = {}) {
     retriedCalls: streamRetryCalls,
     skippedExamineCalls: overrides.skippedExamineCalls || 0,
     costPlan: { ...(overrides.costPlan || {}) },
+    tokenUsage: cloneUsageTotals(overrides.tokenUsage || {}),
+    featureUsage: cloneFeatureUsage(overrides.featureUsage || {}),
+    compilerSavings: {
+      ...(overrides.compilerSavings || {}),
+      featureIds: Array.isArray(overrides.compilerSavings?.featureIds) ? [...overrides.compilerSavings.featureIds] : [],
+    },
     recentEvents: Array.isArray(overrides.recentEvents) ? overrides.recentEvents.slice(0, MAX_RECENT_EVENTS) : [],
   };
   return {
@@ -114,9 +140,34 @@ export function applyApiCallBudgetEvent(currentBudget, event = {}) {
     'modelId',
     'attempt',
     'maxRetries',
+    'task',
+    'inputTokens',
+    'outputTokens',
+    'totalTokens',
+    'costUsd',
+    'usageEstimated',
+    'costEstimated',
+    'pricingSource',
+    'savedProviderCalls',
+    'compiledFeatureCount',
+    'compiledFeatureIds',
+    'compilerSource',
   ].forEach((key) => {
     if (event[key] !== undefined && event[key] !== '') eventMetadata[key] = event[key];
   });
+  const compiledFeatureIds = normalizeFeatureIds(event.featureIds || event.compiledFeatureIds || event.featureId);
+  if (compiledFeatureIds.length > 0 && event.type === 'compiledDeliverable') {
+    eventMetadata.compiledFeatureIds = compiledFeatureIds;
+    eventMetadata.compiledFeatureCount = eventMetadata.compiledFeatureCount ?? compiledFeatureIds.length;
+  }
+  const usage = normalizeApiUsage(event.usage || {});
+  if (usage) {
+    eventMetadata.inputTokens = eventMetadata.inputTokens ?? usage.inputTokens;
+    eventMetadata.outputTokens = eventMetadata.outputTokens ?? usage.outputTokens;
+    eventMetadata.totalTokens = eventMetadata.totalTokens ?? usage.totalTokens;
+    eventMetadata.costUsd = eventMetadata.costUsd ?? usage.costUsd;
+    eventMetadata.usageEstimated = eventMetadata.usageEstimated ?? Boolean(usage.estimated);
+  }
   const next = {
     ...budget,
     updatedAt: at,
@@ -167,6 +218,37 @@ export function applyApiCallBudgetEvent(currentBudget, event = {}) {
     next.failureClasses = {
       ...next.failureClasses,
       [event.failureClass]: (next.failureClasses?.[event.failureClass] || 0) + count,
+    };
+  }
+  if (usage) {
+    next.tokenUsage = addUsageTotals(next.tokenUsage || {}, usage, {
+      provider: event.provider,
+      modelId: event.modelId,
+      costUsd: event.costUsd,
+      costEstimated: event.costEstimated,
+    });
+    const featureId = event.featureId || event.task || 'unattributed';
+    next.featureUsage = {
+      ...(next.featureUsage || {}),
+      [featureId]: addUsageTotals(next.featureUsage?.[featureId] || {}, usage, {
+        provider: event.provider,
+        modelId: event.modelId,
+        costUsd: event.costUsd,
+        costEstimated: event.costEstimated,
+      }),
+    };
+  }
+  if (event.type === 'compiledDeliverable') {
+    const previous = next.compilerSavings || {};
+    const featureIds = new Set([...(previous.featureIds || []), ...compiledFeatureIds]);
+    const savedProviderCalls = Number.isFinite(event.savedProviderCalls) ? event.savedProviderCalls : 0;
+    next.compilerSavings = {
+      ...previous,
+      source: event.compilerSource || previous.source || 'blueprint',
+      featureIds: [...featureIds],
+      compiledFeatureCount: featureIds.size || previous.compiledFeatureCount || 0,
+      savedProviderCalls: (Number(previous.savedProviderCalls) || 0) + Math.max(0, savedProviderCalls),
+      lastAt: at,
     };
   }
 

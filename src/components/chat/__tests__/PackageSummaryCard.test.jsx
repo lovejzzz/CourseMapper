@@ -25,6 +25,18 @@ describe('PackageSummaryCard', () => {
           checkedItems: ['Readiness', 'classroom fit', 'content validation', 'export files'],
           checkedSections: '8/8',
           lessonCount: 12,
+          apiSpendSummary: { label: '$0.04 \u00b7 52k tokens estimated' },
+          apiFeatureSpendSummary: [
+            {
+              label: 'Slide Decks',
+              costDisplay: '$0.02',
+              totalTokensDisplay: '28k',
+            },
+          ],
+          compilerSummary: {
+            label: '5 compiled · ~10 AI calls saved',
+            detail: 'Compiled from the course map: Syllabus, Rubrics, Assignments, Study Guides, Course FAQ',
+          },
           topIssues: [],
         }}
       />,
@@ -37,6 +49,10 @@ describe('PackageSummaryCard', () => {
     expect(html).toContain('Classroom checks passed');
     expect(html).toContain('Exports verified');
     expect(html).toContain('8/8 sections checked');
+    expect(html).toContain('$0.04 \u00b7 52k tokens estimated');
+    expect(html).toContain('5 compiled');
+    expect(html).toContain('Spend by feature');
+    expect(html).toContain('Slide Decks');
     expect(html).not.toMatch(/\bscore\b/i);
   });
 

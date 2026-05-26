@@ -3,6 +3,58 @@ import Header from '../components/Header';
 
 const releases = [
   {
+    version: '0.8',
+    date: 'May 26, 2026',
+    title: 'Cost-Efficient Hybrid Package Pipeline',
+    highlights: [
+      'Stable deliverables can now compile directly from the course blueprint before model generation starts',
+      'Package receipts report actual API spend, per-feature spend, and compiler savings after the course is done',
+      'Developer Mode now exposes the same spend and compiler receipt data used by the user-facing handoff card',
+    ],
+    sections: [
+      {
+        label: 'Hybrid Pipeline',
+        icon: '✦',
+        color: 'indigo',
+        items: [
+          'Added a deterministic blueprint compiler for syllabus, rubrics, assignment briefs, study guides, and Course FAQ so stable materials no longer require model calls by default.',
+          'Deliverable generation now splits requested features into compiled and model-generated paths, keeping slide decks, lesson plans, discussions, and quiz banks on the existing quality-tested generation pipeline.',
+          'The cost plan now accounts for avoided blueprint-compiled generation calls before model tasks are reserved.',
+        ],
+      },
+      {
+        label: 'Spend Receipts',
+        icon: '⚡',
+        color: 'amber',
+        items: [
+          'API usage events now aggregate spend by feature as well as by run, including repair and regeneration spend against the affected deliverable.',
+          'The package handoff card now shows total spend, feature-level spend, and a compiler receipt that names what was compiled from the course map.',
+          'Final package messages include the spend summary and compiler savings after finishing checks complete.',
+        ],
+      },
+      {
+        label: 'Developer IDE',
+        icon: '⚙',
+        color: 'slate',
+        items: [
+          'Developer Mode API budget telemetry now includes a per-feature spend table with cost, token count, and estimated/reported status.',
+          'Compiler events now show compiled feature counts and estimated AI calls saved in the recent API event log.',
+          'The same budget object powers Developer Mode and the user-facing receipt so debugging matches what instructors see.',
+        ],
+      },
+      {
+        label: 'Sample Verification',
+        icon: '🛡️',
+        color: 'emerald',
+        items: [
+          'Added a 14-lesson package comparison test: the hybrid path preserves slide deck and quiz generation while compiling the stable five deliverables.',
+          'The sample reduces initial deliverable model tasks from 25 to 15, saving 10 generation calls before any slide or quiz changes.',
+          'Compiled sample outputs pass existing deliverable validators and heuristic quality checks before the cost reduction is accepted.',
+        ],
+      },
+    ],
+  },
+  {
     version: '0.75',
     date: 'May 25, 2026',
     title: 'Output Polish and Cost Telemetry Cleanup',

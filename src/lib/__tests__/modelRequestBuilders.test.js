@@ -170,4 +170,31 @@ describe('modelRequestBuilders', () => {
     expect(controls.preferredApiMode).toBe('responses');
     expect(controls.apiMode).toBe('responses');
   });
+
+  it('requests streaming usage for OpenAI chat completions', () => {
+    const profile = createBaseModelCapabilities('openai', {
+      id: 'gpt-4.1-mini',
+      name: 'GPT-4.1 Mini',
+      maxOutputTokens: 32768,
+    });
+    const req = buildProviderTextRequest({
+      provider: 'openai',
+      apiKey: 'test-key',
+      modelId: profile.modelId,
+      systemPrompt: 'Return JSON.',
+      userPrompt: 'Generate.',
+      modelCapabilities: {
+        ...profile,
+        api: { ...profile.api, preferredTextApi: 'chat-completions', activeTextApi: 'chat-completions' },
+      },
+      generationPlan: {
+        ...createGenerationPlan(profile),
+        preferredApiMode: 'chat-completions',
+        apiMode: 'chat-completions',
+      },
+    });
+
+    expect(req.url).toBe('https://api.openai.com/v1/chat/completions');
+    expect(req.body.stream_options).toEqual({ include_usage: true });
+  });
 });

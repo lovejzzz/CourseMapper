@@ -76,6 +76,7 @@ import { evaluateClassroomReadiness } from './lib/classroomReadiness';
 import { runDeterministicPackageFinalizer } from './lib/packageFinalizer';
 import { applyApiCallBudgetEvent, createApiCallBudget, getApiCallBudgetTotal } from './lib/apiCallBudget';
 import { buildApiCostPlan, evaluateApiCostControl } from './lib/apiCostControl';
+import { summarizeApiFeatureUsageBudget, summarizeApiUsageBudget, summarizeCompilerSavings } from './lib/apiUsageCost';
 import { getChunkCount } from './lib/parallelGenerator';
 import { traceLog } from './lib/traceLog';
 
@@ -89,6 +90,10 @@ function summarizeReceiptIssue(issue) {
       issue.label || FEATURES.find((feature) => feature.id === issue.featureId)?.label || issue.featureId || 'Package',
     message: issue.message || 'Needs attention before export.',
   };
+}
+
+function getReceiptFeatureLabel(featureId) {
+  return FEATURES.find((feature) => feature.id === featureId)?.label || featureId;
 }
 
 function buildQualityReceipt({
@@ -149,6 +154,19 @@ function traceApiCallBudget(event = {}, budget = {}) {
     userMessage: event.userMessage || '',
     provider: event.provider || '',
     modelId: event.modelId || '',
+    usage: budget.tokenUsage
+      ? {
+          inputTokens: budget.tokenUsage.inputTokens || 0,
+          outputTokens: budget.tokenUsage.outputTokens || 0,
+          totalTokens: budget.tokenUsage.totalTokens || 0,
+          costUsd: budget.tokenUsage.costUsd || 0,
+          costKnownCallCount: budget.tokenUsage.costKnownCallCount || 0,
+          costUnknownCallCount: budget.tokenUsage.costUnknownCallCount || 0,
+          costEstimatedCallCount: budget.tokenUsage.costEstimatedCallCount || 0,
+          estimatedCallCount: budget.tokenUsage.estimatedCallCount || 0,
+          reportedCallCount: budget.tokenUsage.reportedCallCount || 0,
+        }
+      : null,
     totalProviderCalls: getApiCallBudgetTotal(budget),
     costControl: budget.costControl || null,
     costPlan: budget.costPlan
@@ -1268,6 +1286,15 @@ export default function AppFlow({ startupAction = null, onStartupHandled, onRetu
           finalStatus === 'ready'
             ? 'All required files passed export checks and the package is ready to download.'
             : String(result.message || '').replace(/^Auto-fixed \d+ safe issues?\. /, '');
+        const receiptBudget = apiCallBudgetRef.current || {};
+        const apiSpendSummary = summarizeApiUsageBudget(receiptBudget);
+        const apiFeatureSpendSummary = summarizeApiFeatureUsageBudget(receiptBudget, {
+          labelForFeature: getReceiptFeatureLabel,
+          limit: 5,
+        });
+        const compilerSummary = summarizeCompilerSavings(receiptBudget, {
+          labelForFeature: getReceiptFeatureLabel,
+        });
         const receipt = buildQualityReceipt({
           result,
           exportVerification,
@@ -1277,17 +1304,25 @@ export default function AppFlow({ startupAction = null, onStartupHandled, onRetu
           courseMap: result.courseMap || courseMapRef.current,
           includeWarnings: finalStatus !== 'ready',
         });
+        const receiptWithSpend = {
+          ...receipt,
+          ...(apiSpendSummary ? { apiSpendSummary } : {}),
+          ...(apiFeatureSpendSummary.length > 0 ? { apiFeatureSpendSummary } : {}),
+          ...(compilerSummary ? { compilerSummary } : {}),
+        };
+        const spendText = apiSpendSummary ? ` API spend: ${apiSpendSummary.label}.` : '';
+        const compilerText = compilerSummary ? ` ${compilerSummary.label}.` : '';
 
         setPackageQualityPass({
           status: finalStatus,
           message:
             finalStatus === 'ready'
-              ? `${repairText}${exportText}${finalizerMessage}`
-              : `${retryText}${skippedRetryText}${repairText}${exportText}${finalizerMessage}`,
+              ? `${repairText}${exportText}${finalizerMessage}${spendText}${compilerText}`
+              : `${retryText}${skippedRetryText}${repairText}${exportText}${finalizerMessage}${spendText}${compilerText}`,
           repairsApplied: totalRepairsApplied,
           warnings,
           blockers,
-          receipt,
+          receipt: receiptWithSpend,
         });
         tracePackageFinish(finishRunId, 'finish_complete', {
           finalStatus,
@@ -1304,6 +1339,9 @@ export default function AppFlow({ startupAction = null, onStartupHandled, onRetu
           retryPassLimitReached,
           retryNoProgress,
           exportStatus: exportVerification?.status,
+          apiSpend: apiSpendSummary,
+          apiFeatureSpend: apiFeatureSpendSummary,
+          compilerSavings: compilerSummary,
         });
 
         return {
@@ -3484,7 +3522,7 @@ export default function AppFlow({ startupAction = null, onStartupHandled, onRetu
           </p>
           <div className="flex items-center justify-center gap-3 text-[10px] text-slate-300/70">
             <a href="#/changelog" className="font-medium hover:text-indigo-500 transition-colors duration-200">
-              v0.75
+              v0.8
             </a>
             <span>·</span>
             <a href="#/privacy" className="hover:text-indigo-500 transition-colors duration-200">

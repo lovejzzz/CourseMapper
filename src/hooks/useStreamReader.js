@@ -4,6 +4,12 @@ import { DEFAULT_PROVIDER_TIMEOUT_MS, fetchWithTimeout } from '../lib/fetchWithT
 import { failureEventFields, toClassifiedError } from '../lib/failureClassification';
 import { GOOGLE_ENDPOINT_FAMILIES, isVertexKey } from '../lib/googleProvider';
 import { buildProviderTextRequest } from '../lib/modelRequestBuilders';
+import {
+  buildApiUsageEvent,
+  extractUsageFromProviderChunk,
+  mergeReportedUsage,
+  normalizeApiUsage,
+} from '../lib/apiUsageCost';
 
 export { isVertexKey } from '../lib/googleProvider';
 
@@ -159,6 +165,7 @@ export default function useStreamReader() {
       maxOutputTokens,
       modelCapabilities,
       generationPlan,
+      featureId,
       task,
       schema,
       onApiCallEvent,
@@ -166,6 +173,20 @@ export default function useStreamReader() {
     } = opts;
     const recordApiCallEvent = (event) => {
       if (typeof onApiCallEvent === 'function') onApiCallEvent(event);
+    };
+    const recordUsage = (reportedUsage, outputText, label = 'API usage') => {
+      const usageEvent = buildApiUsageEvent({
+        provider,
+        modelId,
+        featureId,
+        task,
+        label,
+        systemPrompt,
+        userPrompt,
+        outputText,
+        reportedUsage,
+      });
+      if (usageEvent) recordApiCallEvent(usageEvent);
     };
 
     // WebLLM: run locally in browser, no network needed
@@ -182,7 +203,14 @@ export default function useStreamReader() {
           if (onChunk) onChunk(existingText + text, count);
         },
         signal: externalSignal,
-      }).then((result) => ({ fullText: existingText + result.fullText }));
+      }).then((result) => {
+        recordUsage(
+          { inputTokens: 0, outputTokens: 0, totalTokens: 0, source: 'local' },
+          result.fullText || '',
+          'Local model usage',
+        );
+        return { fullText: existingText + result.fullText };
+      });
     }
 
     let skipTemp =
@@ -218,6 +246,7 @@ export default function useStreamReader() {
         type: 'providerFallbackCall',
         label: 'Google non-streaming fallback',
         detail: modelId,
+        featureId: featureId || task,
       });
       const response = await fetch(googleGenerateUrlFromStreamUrl(url), {
         method: 'POST',
@@ -241,7 +270,7 @@ export default function useStreamReader() {
           type: 'failedCall',
           label: 'Google non-streaming fallback failed',
           detail: error.message,
-          featureId: task,
+          featureId: featureId || task,
           ...failureEventFields(error, { provider, modelId }),
         });
         error.apiCallBudgetRecorded = true;
@@ -251,6 +280,7 @@ export default function useStreamReader() {
       if (!text) throw new Error('Google fallback returned an empty response.');
       fullText = existingText + text;
       if (onChunk) onChunk(fullText, 1);
+      recordUsage(normalizeApiUsage(data.usageMetadata || {}), text, 'Google fallback usage');
       return { fullText };
     };
 
@@ -287,6 +317,7 @@ export default function useStreamReader() {
               type: 'providerFallbackCall',
               label: 'Retry without temperature',
               detail: modelId,
+              featureId: featureId || task,
             });
             ({ url, headers, body, parseChunk } = buildProviderTextRequest({
               provider,
@@ -317,7 +348,7 @@ export default function useStreamReader() {
             type: 'failedCall',
             label: 'Provider API error',
             detail: error.message,
-            featureId: task,
+            featureId: featureId || task,
             ...failureEventFields(error, { provider, modelId }),
           });
           error.apiCallBudgetRecorded = true;
@@ -328,6 +359,7 @@ export default function useStreamReader() {
         const decoder = new TextDecoder();
         let buffer = '';
         let chunkCount = 0;
+        let reportedUsage = null;
 
         while (true) {
           const { done, value } = await reader.read();
@@ -348,6 +380,8 @@ export default function useStreamReader() {
 
             try {
               const parsed = JSON.parse(data);
+              const chunkUsage = extractUsageFromProviderChunk(provider, parsed);
+              if (chunkUsage) reportedUsage = mergeReportedUsage(reportedUsage, chunkUsage);
               const text = parseChunk(parsed);
               if (text) {
                 fullText += text;
@@ -362,6 +396,7 @@ export default function useStreamReader() {
           if (done) break;
         }
 
+        recordUsage(reportedUsage, fullText.slice(String(existingText || '').length), 'API usage');
         return { fullText };
       } catch (err) {
         if (err.name === 'AbortError') throw err;
@@ -395,7 +430,7 @@ export default function useStreamReader() {
             type: 'retrySuppressed',
             label: 'Retry suppressed',
             detail: classifiedError.userMessage || classifiedError.message,
-            featureId: task,
+            featureId: featureId || task,
             attempt: attempt + 1,
             maxRetries,
             ...failureEventFields(classifiedError, { provider, modelId }),

@@ -1,11 +1,11 @@
 import React, { lazy, Suspense, useCallback, useEffect, useState } from 'react';
 import LoadingScreen from './components/LoadingScreen';
-import Landing from './screens/Landing';
 import { useAuth } from './contexts/AuthContext';
 import { useAIConfig } from './contexts/AIConfigContext';
 import { useCourse } from './contexts/CourseContext';
 import { useUI } from './contexts/UIContext';
 
+const Landing = lazy(() => import('./screens/Landing'));
 const AppFlow = lazy(() => import('./AppFlow'));
 const ProjectPicker = lazy(() => import('./components/ProjectPicker'));
 
@@ -123,25 +123,27 @@ export default function App() {
 
   return (
     <>
-      <Landing
-        onGenerate={handleContinue}
-        canGenerate={
-          (files.length > 0 || promptText.trim().length > 0) &&
-          (provider === 'webllm' || apiKey.trim()) &&
-          !!modelId &&
-          apiStatus === 'connected'
-        }
-        isGenerating={false}
-        hasSavedSession={hasSavedSession}
-        onRestoreSession={handleRestoreSession}
-        onDismissSavedSession={handleDismissSavedSession}
-        onImportCourseMap={handleImportCourseMap}
-        onOpenProject={handleOpenProjectFile}
-        onExampleSelect={(text) => setPromptText(text)}
-        onOpenProjects={user ? () => setShowProjectPicker(true) : undefined}
-        developerMode={developerMode}
-        onDeveloperModeChange={setDeveloperMode}
-      />
+      <Suspense fallback={<LoadingScreen />}>
+        <Landing
+          onGenerate={handleContinue}
+          canGenerate={
+            (files.length > 0 || promptText.trim().length > 0) &&
+            (provider === 'webllm' || apiKey.trim()) &&
+            !!modelId &&
+            apiStatus === 'connected'
+          }
+          isGenerating={false}
+          hasSavedSession={hasSavedSession}
+          onRestoreSession={handleRestoreSession}
+          onDismissSavedSession={handleDismissSavedSession}
+          onImportCourseMap={handleImportCourseMap}
+          onOpenProject={handleOpenProjectFile}
+          onExampleSelect={(text) => setPromptText(text)}
+          onOpenProjects={user ? () => setShowProjectPicker(true) : undefined}
+          developerMode={developerMode}
+          onDeveloperModeChange={setDeveloperMode}
+        />
+      </Suspense>
 
       {showProjectPicker && (
         <Suspense fallback={null}>

@@ -63,7 +63,8 @@ export function buildApiCostPlan({
   const initialCourseMapCalls = includeCourseMap ? 1 : 0;
   const deliverableChunkCalls = includeDeliverableChunks
     ? selectedFeatures.reduce(
-        (sum, featureId) => sum + Math.max(1, getChunkCount(featureId, scopedLessonCount, lessonFilter, generationPlan)),
+        (sum, featureId) =>
+          sum + Math.max(1, getChunkCount(featureId, scopedLessonCount, lessonFilter, generationPlan)),
         0,
       )
     : 0;

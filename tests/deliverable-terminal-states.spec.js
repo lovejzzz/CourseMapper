@@ -81,10 +81,8 @@ async function installMockOpenAI(page) {
         await new Promise((resolve) => setTimeout(resolve, 2500));
       }
       content = JSON.stringify(lessonPlansFixture());
-    } else if (/course faq/i.test(system)) {
-      content = 'intentionally invalid course faq response with no JSON object';
-    } else if (/study guides/i.test(system)) {
-      content = 'intentionally invalid study guide response with no JSON object';
+    } else if (/discussion/i.test(system)) {
+      content = 'intentionally invalid discussion response with no JSON object';
     }
 
     return route.fulfill({
@@ -116,8 +114,7 @@ test.describe('All-deliverables terminal states', () => {
 
     await expect(page.locator('text=Choose deliverables')).toBeVisible({ timeout: 10000 });
     await page.getByRole('button', { name: /Lesson Plans/ }).click();
-    await page.getByRole('button', { name: /Course FAQ/ }).click();
-    await page.getByRole('button', { name: /Study Guides/ }).click();
+    await page.getByRole('button', { name: /Discussion Prompts/ }).click();
     await page.getByRole('button', { name: /Configure & Generate/ }).click();
 
     await expect(page.locator('h1:has-text("Configure generation")')).toBeVisible({ timeout: 10000 });
@@ -138,10 +135,9 @@ test.describe('All-deliverables terminal states', () => {
     await page.getByLabel('Expand generation progress').click();
     const agentPanel = page.getByTestId('workspace-agent-panel');
     await expect(agentPanel.getByText('Lesson Plans', { exact: true })).toBeVisible();
-    await expect(agentPanel.getByText('Course FAQ', { exact: true })).toBeVisible();
-    await expect(agentPanel.getByText('Study Guides', { exact: true })).toBeVisible();
+    await expect(agentPanel.getByText('Discussion Prompts', { exact: true })).toBeVisible();
 
-    await page.getByRole('button', { name: /^Study Guides/ }).click();
+    await page.getByRole('button', { name: /^Discussion Prompts/ }).click();
     await expect(page.getByText('All chunks failed')).toBeVisible();
     await expect(page.locator('text=Generating')).toHaveCount(0);
 
@@ -151,12 +147,10 @@ test.describe('All-deliverables terminal states', () => {
           const saved = JSON.parse(localStorage.getItem('coursemapper-project') || '{}');
           return {
             lessonPlans: saved.deliverables?.lessonPlans?.status,
-            courseFaq: saved.deliverables?.courseFaq?.status,
-            courseFaqLessons: saved.deliverables?.courseFaq?.data?.faqs?.length,
-            studyGuides: saved.deliverables?.studyGuides?.status,
+            discussions: saved.deliverables?.discussions?.status,
           };
         }),
       )
-      .toEqual({ lessonPlans: 'done', courseFaq: 'done', courseFaqLessons: 4, studyGuides: 'error' });
+      .toEqual({ lessonPlans: 'done', discussions: 'error' });
   });
 });

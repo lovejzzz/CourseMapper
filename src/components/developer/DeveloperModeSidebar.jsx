@@ -2,6 +2,11 @@ import React, { useMemo, useState } from 'react';
 import { formatDeveloperDiffItem } from '../../lib/developerIdeDiagnostics.js';
 import { searchDeveloperHistory } from '../../lib/developerIdeHistory.js';
 import { getApiCallBudgetTotal } from '../../lib/apiCallBudget.js';
+import {
+  summarizeApiFeatureUsageBudget,
+  summarizeApiUsageBudget,
+  summarizeCompilerSavings,
+} from '../../lib/apiUsageCost.js';
 
 function formatHistoryTime(timestamp) {
   if (!timestamp) return 'Unknown time';
@@ -54,6 +59,9 @@ function ApiCallBudgetCard({ budget }) {
   const total = getApiCallBudgetTotal(budget);
   const costControl = budget.costControl || {};
   const costPlan = budget.costPlan || {};
+  const usageSummary = summarizeApiUsageBudget(budget);
+  const featureUsageSummary = summarizeApiFeatureUsageBudget(budget, { limit: 5 });
+  const compilerSummary = summarizeCompilerSavings(budget);
   const reservedCalls =
     costPlan.plannedNewCalls ??
     (costPlan.cumulative && Number.isFinite(costPlan.baseProviderCalls)
@@ -120,12 +128,42 @@ function ApiCallBudgetCard({ budget }) {
             {reservedCalls ? ` · ${reservedCalls} reserved` : ''}
             {costControl.hardCallLimit ? ` · hard stop ${costControl.hardCallLimit}` : ''}
           </p>
+          {usageSummary && (
+            <p className="mt-0.5 text-[10px] font-semibold opacity-75">
+              Spend {usageSummary.label} ({usageSummary.inputTokensDisplay} in / {usageSummary.outputTokensDisplay} out)
+            </p>
+          )}
+          {compilerSummary && (
+            <p data-testid="developer-compiler-receipt" className="mt-0.5 text-[10px] font-semibold opacity-75">
+              {compilerSummary.label}
+              {compilerSummary.featureList ? `: ${compilerSummary.featureList}` : ''}
+            </p>
+          )}
           {costControl.reason && <p className="mt-0.5 line-clamp-2 text-[9px] opacity-70">{costControl.reason}</p>}
           {costControl.remainingBeforeHardLimit !== null && costControl.remainingBeforeHardLimit !== undefined && (
             <p className="mt-0.5 text-[9px] font-semibold opacity-60">
               {costControl.remainingBeforeHardLimit} calls before hard stop
             </p>
           )}
+        </div>
+      )}
+      {featureUsageSummary.length > 0 && (
+        <div
+          data-testid="developer-feature-spend"
+          className="mt-2 rounded-lg border border-indigo-100 bg-white/70 px-2 py-1.5 dark:border-indigo-500/20 dark:bg-slate-900/70"
+        >
+          <p className="text-[9px] font-bold uppercase tracking-wide opacity-60">Spend by feature</p>
+          <div className="mt-1 space-y-1">
+            {featureUsageSummary.map((summary) => (
+              <div key={summary.featureId} className="flex items-center justify-between gap-2 text-[10px]">
+                <span className="min-w-0 truncate font-semibold">{summary.label}</span>
+                <span className="flex-shrink-0 font-medium opacity-75">
+                  {summary.costDisplay || 'Cost unknown'} · {summary.totalTokensDisplay}
+                  {summary.estimated ? ' est.' : ''}
+                </span>
+              </div>
+            ))}
+          </div>
         </div>
       )}
       <dl className="mt-2 grid grid-cols-2 gap-1.5">
@@ -178,6 +216,20 @@ function ApiCallBudgetCard({ budget }) {
               {event.userMessage && (
                 <p className="truncate text-[9px] font-medium text-slate-500 dark:text-slate-400">
                   {event.userMessage}
+                </p>
+              )}
+              {event.totalTokens > 0 && (
+                <p className="truncate text-[9px] font-medium text-slate-500 dark:text-slate-400">
+                  {event.costUsd !== null && event.costUsd !== undefined
+                    ? `$${Number(event.costUsd).toFixed(Number(event.costUsd) < 0.01 ? 4 : 2)}`
+                    : 'Cost unknown'}{' '}
+                  · {event.totalTokens} tokens{event.usageEstimated || event.costEstimated ? ' estimated' : ''}
+                </p>
+              )}
+              {event.type === 'compiledDeliverable' && (
+                <p className="truncate text-[9px] font-medium text-emerald-600 dark:text-emerald-300">
+                  {event.compiledFeatureCount || event.compiledFeatureIds?.length || 0} compiled
+                  {event.savedProviderCalls ? ` · ~${event.savedProviderCalls} calls saved` : ''}
                 </p>
               )}
             </div>

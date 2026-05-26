@@ -603,8 +603,20 @@ export default function useDeliverables({
       };
       const getAllowedStreamRetries = (requested) =>
         maxProviderCalls === null ? requested : Math.max(0, Math.min(requested, getRemainingProviderCalls()));
-      const toGenerate = features.filter((f) => f && f !== 'courseMap');
-      if (toGenerate.length === 0 || !courseMap) return;
+      const requestedFeatures = features.filter((f) => f && f !== 'courseMap');
+      if (requestedFeatures.length === 0 || !courseMap) return;
+      const blueprintCompilerEnabled =
+        generationOptions.useBlueprintCompiler !== false && generationPlan?.blueprintCompiler !== false;
+      const blueprintCompiler = blueprintCompilerEnabled ? await import('../lib/courseBlueprintCompiler') : null;
+      const getBlueprintCompiledFeatures = blueprintCompiler?.getBlueprintCompiledFeatures || (() => []);
+      const estimateBlueprintCompilerSavings = blueprintCompiler?.estimateBlueprintCompilerSavings || (() => 0);
+      const buildCourseBlueprint = blueprintCompiler?.buildCourseBlueprint;
+      const compileBlueprintDeliverables = blueprintCompiler?.compileBlueprintDeliverables;
+      const blueprintCompiledFeatureIds = getBlueprintCompiledFeatures(requestedFeatures, {
+        enabled: blueprintCompilerEnabled,
+      });
+      const blueprintCompiledSet = new Set(blueprintCompiledFeatureIds);
+      const toGenerate = requestedFeatures.filter((featureId) => !blueprintCompiledSet.has(featureId));
 
       startedRef.current = true;
       timedOutFeaturesRef.current = new Set();
@@ -644,26 +656,38 @@ export default function useDeliverables({
               hardCallLimit: Math.min(costPlan.hardCallLimit, maxProviderCalls),
             };
       if (costMode !== 'finalizerRetry') {
+        const compiledSavings = estimateBlueprintCompilerSavings(
+          blueprintCompiledFeatureIds,
+          lessonCount,
+          generationPlan,
+          scopeIndices,
+        );
         recordApiCallEvent({
           type: 'costPlan',
           label: 'Deliverable call plan',
           detail: `${cappedCostPlan.deliverableChunkCalls} generation call${
             cappedCostPlan.deliverableChunkCalls === 1 ? '' : 's'
-          } + ${cappedCostPlan.repairRetryReserve} repair reserve`,
+          } + ${cappedCostPlan.repairRetryReserve} repair reserve${
+            compiledSavings > 0 ? `; blueprint compiler saves about ${compiledSavings} generation call(s)` : ''
+          }`,
           costPlan: cappedCostPlan,
         });
       }
 
       // ── 2. Initialize per-feature progress ──
       const perFeatureInit = {};
-      for (const fid of toGenerate) {
+      for (const fid of requestedFeatures) {
         const featureTasks = tasks.filter((t) => t.featureId === fid);
-        perFeatureInit[fid] = { chunksTotal: featureTasks.length, chunksDone: 0, status: 'pending' };
+        perFeatureInit[fid] = {
+          chunksTotal: featureTasks.length || (blueprintCompiledSet.has(fid) ? 1 : 0),
+          chunksDone: 0,
+          status: 'pending',
+        };
       }
-      setProgress({ done: 0, total: toGenerate.length, perFeature: perFeatureInit });
+      setProgress({ done: 0, total: requestedFeatures.length, perFeature: perFeatureInit });
 
       // Mark all features as streaming
-      for (const fid of toGenerate) {
+      for (const fid of requestedFeatures) {
         dispatch(actions.setDeliverableStreaming(fid));
       }
 
@@ -672,7 +696,7 @@ export default function useDeliverables({
         : `all ${lessonCount} lesson${lessonCount !== 1 ? 's' : ''}`;
 
       appendLog(
-        `Starting parallel generation of ${toGenerate.length} deliverable${toGenerate.length !== 1 ? 's' : ''} (${tasks.length} tasks) for ${scopeDesc}`,
+        `Starting package materials: ${requestedFeatures.length} deliverable${requestedFeatures.length !== 1 ? 's' : ''}, ${blueprintCompiledFeatureIds.length} blueprint-compiled, ${tasks.length} model task${tasks.length === 1 ? '' : 's'} for ${scopeDesc}`,
         'start',
       );
       traceGeneration(generationRunId, 'run_start', {
@@ -680,7 +704,8 @@ export default function useDeliverables({
         modelId,
         lessonCount,
         scopeDesc,
-        features: toGenerate,
+        features: requestedFeatures,
+        blueprintCompiledFeatures: blueprintCompiledFeatureIds,
         taskCount: tasks.length,
         featureConcurrency: getFeatureConcurrency(generationPlan),
         retryConcurrency: getRetryConcurrency(generationPlan),
@@ -818,7 +843,7 @@ export default function useDeliverables({
               ? `⚠ ${getFeatureLabel(featureId)}: retries stopped because ${blockReason}`
               : maxProviderCalls !== null && globalRemaining <= 0
                 ? `⚠ ${getFeatureLabel(featureId)}: retry call cap reached (${providerCallsUsed}/${maxProviderCalls}); stopping extra retries`
-              : `⚠ ${getFeatureLabel(featureId)}: repair retry budget reached (${used}/${limit}); stopping extra retries to control API cost`,
+                : `⚠ ${getFeatureLabel(featureId)}: repair retry budget reached (${used}/${limit}); stopping extra retries to control API cost`,
             'warn',
           );
         }
@@ -932,6 +957,98 @@ export default function useDeliverables({
         );
         return true;
       };
+
+      const runBlueprintCompiler = () => {
+        if (blueprintCompiledFeatureIds.length === 0) return;
+        const compiledStart = Date.now();
+        const labelList = blueprintCompiledFeatureIds.map(getFeatureLabel).join(', ');
+        appendLog(`Compiling ${labelList} from the course blueprint...`, 'progress');
+        const blueprint = buildCourseBlueprint(courseMap, { scopeIndices });
+        const compiled = compileBlueprintDeliverables(blueprint, blueprintCompiledFeatureIds, {
+          configMap: deliverableConfigRef.current,
+        });
+        const compiledSavings = estimateBlueprintCompilerSavings(
+          blueprintCompiledFeatureIds,
+          lessonCount,
+          generationPlan,
+          scopeIndices,
+        );
+        recordApiCallEvent({
+          type: 'compiledDeliverable',
+          label: 'Blueprint compiler',
+          detail: `Compiled ${blueprintCompiledFeatureIds.length} deliverable${
+            blueprintCompiledFeatureIds.length === 1 ? '' : 's'
+          } without provider calls; saved about ${compiledSavings} generation call${compiledSavings === 1 ? '' : 's'}`,
+          featureIds: blueprintCompiledFeatureIds,
+          savedProviderCalls: compiledSavings,
+          compilerSource: 'blueprint',
+        });
+        traceGeneration(generationRunId, 'blueprint_compiler_start', {
+          featureIds: blueprintCompiledFeatureIds,
+          lessonCount,
+          savedProviderCalls: compiledSavings,
+        });
+
+        for (const fid of blueprintCompiledFeatureIds) {
+          const data = compiled[fid];
+          const validation = validateDeliverableGeneration(fid, data, {
+            expectedLessonCount: lessonIndices.length,
+            config: getGenerationConfig(fid),
+          });
+          if (!validation.valid) {
+            markFeatureError(fid, validation.blockers.join(' '));
+            setProgress((prev) => ({
+              ...prev,
+              perFeature: {
+                ...prev.perFeature,
+                [fid]: { ...(prev.perFeature?.[fid] || {}), status: 'error' },
+              },
+            }));
+            traceGeneration(
+              generationRunId,
+              'blueprint_compiler_rejected',
+              {
+                featureId: fid,
+                blockers: validation.blockers,
+              },
+              'warn',
+            );
+            continue;
+          }
+
+          markFeatureDone(fid, data);
+          try {
+            const quality = scoreHeuristic(fid, data);
+            setQualityScores((prev) => ({ ...prev, [fid]: quality }));
+          } catch {
+            /* ignore */
+          }
+          const endedAt = Date.now();
+          setDelivTimings((prev) => ({
+            ...prev,
+            [fid]: {
+              startedAt: compiledStart,
+              endedAt,
+              durationMs: endedAt - compiledStart,
+            },
+          }));
+          setProgress((prev) => ({
+            ...prev,
+            done: Math.min((prev.done || 0) + 1, prev.total || requestedFeatures.length),
+            perFeature: {
+              ...prev.perFeature,
+              [fid]: { ...(prev.perFeature?.[fid] || {}), chunksDone: 1, status: 'done' },
+            },
+          }));
+          appendLog(`✓ ${getFeatureLabel(fid)} compiled from blueprint`, 'done');
+          traceGeneration(generationRunId, 'blueprint_compiler_done', {
+            featureId: fid,
+            itemCount: getDeliverableItemCount(fid, data),
+          });
+        }
+      };
+
+      runBlueprintCompiler();
 
       const runChunk = async ({ featureId, chunkIndex, chunkScope, isWholeCourse }) => {
         if (timedOutFeaturesRef.current.has(featureId)) return;
@@ -1067,6 +1184,7 @@ export default function useDeliverables({
             maxOutputTokens: outputBudget,
             modelCapabilities,
             generationPlan,
+            featureId,
             task: featureId,
             schema: responseSchema,
             allowProviderFallback: maxProviderCalls === null || getRemainingProviderCalls() > 0,
@@ -1471,6 +1589,7 @@ export default function useDeliverables({
                 maxOutputTokens: getFeatureOutputBudget(fid, maxOutputTokens, generationPlan),
                 modelCapabilities,
                 generationPlan,
+                featureId: fid,
                 task: 'repair',
                 schema: getDeliverableResponseSchema(fid),
                 allowProviderFallback: maxProviderCalls === null || getRemainingProviderCalls() > 0,
@@ -2071,6 +2190,7 @@ export default function useDeliverables({
                       maxOutputTokens: getFeatureOutputBudget(fid, maxOutputTokens, generationPlan),
                       modelCapabilities,
                       generationPlan,
+                      featureId: fid,
                       task: 'repair',
                       schema: getDeliverableResponseSchema(fid),
                       allowProviderFallback: maxProviderCalls === null || getRemainingProviderCalls() > 0,
@@ -2292,6 +2412,7 @@ export default function useDeliverables({
                         maxOutputTokens: getFeatureOutputBudget(fid, maxOutputTokens, generationPlan),
                         modelCapabilities,
                         generationPlan,
+                        featureId: fid,
                         task: 'repair',
                         schema: getDeliverableResponseSchema(fid),
                         allowProviderFallback: maxProviderCalls === null || getRemainingProviderCalls() > 0,
@@ -2827,8 +2948,8 @@ export default function useDeliverables({
       setIsGenerating(false);
       setCurrentFeatures(new Set());
       const totalDur = formatDuration(Date.now() - generationStartTime);
-      const failed = toGenerate.filter((fid) => failedFeatureIds.has(fid) && !completedFeatureIds.has(fid));
-      const completed = toGenerate.filter((fid) => completedFeatureIds.has(fid));
+      const failed = requestedFeatures.filter((fid) => failedFeatureIds.has(fid) && !completedFeatureIds.has(fid));
+      const completed = requestedFeatures.filter((fid) => completedFeatureIds.has(fid));
       traceGeneration(generationRunId, 'run_complete', {
         status: failed.length > 0 ? 'partial' : 'generated',
         completed,
@@ -2840,13 +2961,13 @@ export default function useDeliverables({
       });
       if (failed.length > 0) {
         appendLog(
-          `${completed.length}/${toGenerate.length} deliverable${toGenerate.length !== 1 ? 's' : ''} generated (${totalDur}); ${failed.length} still need attention`,
+          `${completed.length}/${requestedFeatures.length} deliverable${requestedFeatures.length !== 1 ? 's' : ''} generated (${totalDur}); ${failed.length} still need attention`,
           'warn',
         );
         notifyDone('Some materials still need attention before export.');
       } else {
         appendLog(
-          `Generated ${toGenerate.length} deliverable${toGenerate.length !== 1 ? 's' : ''} (${totalDur}); starting final quality pass`,
+          `Generated ${requestedFeatures.length} deliverable${requestedFeatures.length !== 1 ? 's' : ''} (${totalDur}); starting final quality pass`,
           'done',
         );
         notifyDone('Generated materials are complete. Finishing package is next.');
@@ -2983,9 +3104,7 @@ export default function useDeliverables({
   const regenerateLesson = useCallback(
     async (featureId, courseMap, lessonIndex, syncGenOrOptions = null) => {
       const regenerationOptions =
-        syncGenOrOptions && typeof syncGenOrOptions === 'object'
-          ? syncGenOrOptions
-          : { syncGenId: syncGenOrOptions };
+        syncGenOrOptions && typeof syncGenOrOptions === 'object' ? syncGenOrOptions : { syncGenId: syncGenOrOptions };
       const syncGenId = regenerationOptions.syncGenId ?? null;
       const rawMaxProviderCalls = Number(regenerationOptions.maxProviderCalls);
       const maxProviderCalls = Number.isFinite(rawMaxProviderCalls)
@@ -3110,6 +3229,7 @@ export default function useDeliverables({
           maxOutputTokens: getFeatureOutputBudget(featureId, maxOutputTokens, generationPlan),
           modelCapabilities,
           generationPlan,
+          featureId,
           task: 'repair',
           schema: getDeliverableResponseSchema(featureId),
           allowProviderFallback: maxProviderCalls === null || getRemainingProviderCalls() > 0,

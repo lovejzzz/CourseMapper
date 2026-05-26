@@ -214,6 +214,7 @@ export function buildProviderTextRequest({
         max_completion_tokens: controls.maxOutputTokens,
         ...(controls.temperature !== undefined && { temperature: controls.temperature }),
         stream: true,
+        stream_options: { include_usage: true },
       },
       parseChunk: (parsed) => parsed.choices?.[0]?.delta?.content || null,
       controls,

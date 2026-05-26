@@ -89,6 +89,64 @@ describe('apiCallBudget', () => {
     });
   });
 
+  it('aggregates token usage events without increasing provider call counts', () => {
+    let budget = createApiCallBudget();
+    budget = applyApiCallBudgetEvent(budget, { type: 'courseMapCall' });
+    budget = applyApiCallBudgetEvent(budget, {
+      type: 'apiUsage',
+      label: 'Course-map usage',
+      featureId: 'courseMap',
+      provider: 'openai',
+      modelId: 'gpt-4.1-mini',
+      usage: { inputTokens: 2000, outputTokens: 500, totalTokens: 2500, estimated: false },
+      costUsd: 0.0016,
+    });
+
+    expect(getApiCallBudgetTotal(budget)).toBe(1);
+    expect(budget.tokenUsage).toMatchObject({
+      inputTokens: 2000,
+      outputTokens: 500,
+      totalTokens: 2500,
+      costUsd: 0.0016,
+      reportedCallCount: 1,
+    });
+    expect(budget.featureUsage.courseMap).toMatchObject({
+      inputTokens: 2000,
+      outputTokens: 500,
+      totalTokens: 2500,
+      costUsd: 0.0016,
+    });
+    expect(budget.recentEvents[0]).toMatchObject({
+      type: 'apiUsage',
+      featureId: 'courseMap',
+      totalTokens: 2500,
+      costUsd: 0.0016,
+    });
+  });
+
+  it('records blueprint compiler receipt metadata without increasing provider calls', () => {
+    const budget = applyApiCallBudgetEvent(createApiCallBudget(), {
+      type: 'compiledDeliverable',
+      label: 'Blueprint compiler',
+      featureIds: ['syllabus', 'rubrics', 'assignments'],
+      savedProviderCalls: 3,
+      compilerSource: 'blueprint',
+    });
+
+    expect(getApiCallBudgetTotal(budget)).toBe(0);
+    expect(budget.compilerSavings).toMatchObject({
+      source: 'blueprint',
+      compiledFeatureCount: 3,
+      savedProviderCalls: 3,
+      featureIds: ['syllabus', 'rubrics', 'assignments'],
+    });
+    expect(budget.recentEvents[0]).toMatchObject({
+      type: 'compiledDeliverable',
+      compiledFeatureCount: 3,
+      savedProviderCalls: 3,
+    });
+  });
+
   it('stores cost plans as cumulative limits for the current run', () => {
     let budget = createApiCallBudget();
     budget = applyApiCallBudgetEvent(budget, { type: 'courseMapCall' });

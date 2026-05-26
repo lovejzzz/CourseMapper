@@ -80,6 +80,12 @@ export default function PackageSummaryCard({ summary, embedded = false }) {
         : summary.classroomStatus
           ? 'Classroom checks passed'
           : null;
+  const spendText = summary.apiSpendSummary?.label || '';
+  const compilerSummary = summary.compilerSummary || null;
+  const featureSpend = Array.isArray(summary.apiFeatureSpendSummary) ? summary.apiFeatureSpendSummary.slice(0, 4) : [];
+  const featureSpendText = featureSpend
+    .map((item) => `${item.label}: ${item.costDisplay || 'cost unknown'} (${item.totalTokensDisplay} tokens)`)
+    .join('; ');
 
   return (
     <div
@@ -118,7 +124,19 @@ export default function PackageSummaryCard({ summary, embedded = false }) {
                   {summary.lessonCount} lessons
                 </span>
               )}
+              {spendText && <span className="rounded-full bg-white/60 px-2 py-0.5 text-slate-600">{spendText}</span>}
+              {compilerSummary?.label && (
+                <span className="rounded-full bg-white/60 px-2 py-0.5 text-slate-600">{compilerSummary.label}</span>
+              )}
             </div>
+            {compilerSummary?.detail && (
+              <p className="mt-1 text-[10px] font-medium leading-snug text-slate-500">{compilerSummary.detail}</p>
+            )}
+            {featureSpendText && (
+              <p className="mt-1 text-[10px] font-medium leading-snug text-slate-500">
+                Spend by feature: {featureSpendText}
+              </p>
+            )}
           </div>
         </div>
 

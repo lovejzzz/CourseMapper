@@ -271,6 +271,59 @@ describe('Developer Mode path controls', () => {
     expect(container.textContent).toContain('retryable');
   });
 
+  it('shows per-feature spend and compiler receipts in the developer budget card', () => {
+    render(
+      <DeveloperModeSidebar
+        isEditorSection={false}
+        activeValidation={{ ok: true, message: 'Current section is valid.', findings: [] }}
+        apiCallBudget={{
+          runId: 'run-test',
+          deliverableChunkCalls: 1,
+          tokenUsage: {
+            inputTokens: 2000,
+            outputTokens: 1000,
+            totalTokens: 3000,
+            costUsd: 0.0024,
+            costKnownCallCount: 1,
+          },
+          featureUsage: {
+            slideDecks: {
+              inputTokens: 2000,
+              outputTokens: 1000,
+              totalTokens: 3000,
+              costUsd: 0.0024,
+              costKnownCallCount: 1,
+            },
+          },
+          compilerSavings: {
+            source: 'blueprint',
+            featureIds: ['syllabus', 'rubrics'],
+            compiledFeatureCount: 2,
+            savedProviderCalls: 2,
+          },
+          costPlan: { plannedCalls: 4, softCallLimit: 6, hardCallLimit: 8, cumulative: true },
+          costControl: { status: 'ok', totalProviderCalls: 1, plannedCalls: 4, hardCallLimit: 8 },
+          recentEvents: [
+            {
+              type: 'compiledDeliverable',
+              label: 'Blueprint compiler',
+              at: Date.now(),
+              compiledFeatureCount: 2,
+              savedProviderCalls: 2,
+            },
+          ],
+        }}
+      />,
+    );
+
+    expect(container.querySelector('[data-testid="developer-feature-spend"]')).not.toBeNull();
+    expect(container.querySelector('[data-testid="developer-compiler-receipt"]')).not.toBeNull();
+    expect(container.textContent).toContain('Spend by feature');
+    expect(container.textContent).toContain('Slide Decks');
+    expect(container.textContent).toContain('2 compiled');
+    expect(container.textContent).toContain('calls saved');
+  });
+
   it('jumps from pending diff entries to their JSON paths', () => {
     const onChangeClick = vi.fn();
     const change = {
