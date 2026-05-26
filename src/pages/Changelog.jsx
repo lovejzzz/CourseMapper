@@ -7,9 +7,9 @@ const releases = [
     date: 'May 26, 2026',
     title: 'Cost-Efficient Hybrid Package Pipeline',
     highlights: [
-      'Stable deliverables can now compile directly from the course blueprint before model generation starts',
+      'All audited package deliverables can now compile directly from the course blueprint before model generation starts',
       'Package receipts report actual API spend, per-feature spend, and compiler savings after the course is done',
-      'Developer Mode now exposes the same spend and compiler receipt data used by the user-facing handoff card',
+      'The hybrid pipeline audit is now a required regression gate for v0.8+ quality and cost checks',
     ],
     sections: [
       {
@@ -17,9 +17,21 @@ const releases = [
         icon: '✦',
         color: 'indigo',
         items: [
-          'Added a deterministic blueprint compiler for syllabus, rubrics, assignment briefs, study guides, and Course FAQ so stable materials no longer require model calls by default.',
-          'Deliverable generation now splits requested features into compiled and model-generated paths, keeping slide decks, lesson plans, discussions, and quiz banks on the existing quality-tested generation pipeline.',
+          'Added deterministic compiler coverage for syllabus, lesson plans, slide decks, assignment briefs, rubrics, discussion prompts, quiz banks, study guides, and Course FAQ so audited package materials no longer require model calls by default.',
+          'Lesson plans and discussion prompts now use lesson-specific blueprint phrasing for teaching flow, facilitation guidance, formative checks, participation criteria, and student support.',
+          'Quiz banks now compile from reusable assessment atoms with Bloom coverage, point plans, rationales, answer guidance, and a filterable bank index.',
+          'Slide decks now compile from a compact intermediate representation with assertion-evidence flow, visual hints, speaker notes, accessibility guidance, and assessment mapping.',
           'The cost plan now accounts for avoided blueprint-compiled generation calls before model tasks are reserved.',
+        ],
+      },
+      {
+        label: 'Audit Gate',
+        icon: '🛡️',
+        color: 'emerald',
+        items: [
+          'CI now runs npm run audit:pipeline as a required v0.8+ regression gate after deliverable quality audits.',
+          'The audit measures baseline calls versus hybrid calls, validator/readiness quality, sparse course-map repairs, and remaining model-call pools.',
+          'Sparse course maps now receive deterministic assessment fallbacks before blueprint compilation so missing weekly assessment cells do not collapse downstream deliverables.',
         ],
       },
       {
@@ -47,9 +59,9 @@ const releases = [
         icon: '🛡️',
         color: 'emerald',
         items: [
-          'Added a 14-lesson package comparison test: the hybrid path preserves slide deck and quiz generation while compiling the stable five deliverables.',
-          'The sample reduces initial deliverable model tasks from 25 to 15, saving 10 generation calls before any slide or quiz changes.',
-          'Compiled sample outputs pass existing deliverable validators and heuristic quality checks before the cost reduction is accepted.',
+          'Added a 14-lesson package comparison test: the audited hybrid path now keeps no core package deliverables on the model pipeline.',
+          'The sample reduces initial deliverable model tasks from 25 to 0, saving 25 generation calls before repair reserves.',
+          'Compiled lesson-plan, discussion, quiz, slide, syllabus, assignment, rubric, study-guide, and FAQ outputs pass existing deliverable validators and heuristic quality checks before the cost reduction is accepted.',
         ],
       },
     ],

@@ -61,6 +61,7 @@ import {
   normalizeSyllabusPublishability,
   validateDeliverableGeneration,
 } from '../lib/deliverablePostProcess';
+import { repairCourseMapReadiness } from '../lib/deliverableReadiness';
 import { buildApiCostPlan, isNonRetryableFailureClass } from '../lib/apiCostControl';
 import { classifyError } from '../lib/failureClassification';
 import { traceLog } from '../lib/traceLog';
@@ -963,7 +964,23 @@ export default function useDeliverables({
         const compiledStart = Date.now();
         const labelList = blueprintCompiledFeatureIds.map(getFeatureLabel).join(', ');
         appendLog(`Compiling ${labelList} from the course blueprint...`, 'progress');
-        const blueprint = buildCourseBlueprint(courseMap, { scopeIndices });
+        const courseMapRepair = repairCourseMapReadiness({
+          courseMap,
+          columns,
+          lessonFilter: scopeIndices,
+        });
+        const blueprintCourseMap = courseMapRepair.courseMap || courseMap;
+        if (courseMapRepair.changed) {
+          appendLog(
+            `Course map sparse fields filled for blueprint compile: ${courseMapRepair.repairedFields.slice(0, 3).join('; ')}${courseMapRepair.repairedFields.length > 3 ? ` +${courseMapRepair.repairedFields.length - 3} more` : ''}`,
+            'progress',
+          );
+          traceGeneration(generationRunId, 'blueprint_course_map_repaired', {
+            repairedFieldCount: courseMapRepair.repairedFields.length,
+            repairedFields: courseMapRepair.repairedFields,
+          });
+        }
+        const blueprint = buildCourseBlueprint(blueprintCourseMap, { scopeIndices });
         const compiled = compileBlueprintDeliverables(blueprint, blueprintCompiledFeatureIds, {
           configMap: deliverableConfigRef.current,
         });

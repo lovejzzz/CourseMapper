@@ -71,19 +71,30 @@ describe('blueprint compiler cost comparison sample', () => {
     });
     const savedCalls = estimateBlueprintCompilerSavings(compiledFeatureIds, lessonCount);
 
-    expect(compiledFeatureIds).toEqual(['syllabus', 'rubrics', 'assignments', 'studyGuides', 'courseFaq']);
-    expect(modelFeatureIds).toEqual(['lessonPlans', 'slideDecks', 'discussions', 'quizBank']);
+    expect(compiledFeatureIds).toEqual([
+      'syllabus',
+      'lessonPlans',
+      'slideDecks',
+      'rubrics',
+      'assignments',
+      'discussions',
+      'quizBank',
+      'studyGuides',
+      'courseFaq',
+    ]);
+    expect(modelFeatureIds).toEqual([]);
     expect(baselinePlan.deliverableChunkCalls - hybridPlan.deliverableChunkCalls).toBe(savedCalls);
-    expect(savedCalls).toBeGreaterThanOrEqual(10);
-    expect(hybridPlan.deliverableChunkCalls / baselinePlan.deliverableChunkCalls).toBeLessThanOrEqual(0.65);
+    expect(savedCalls).toBeGreaterThanOrEqual(20);
+    expect(hybridPlan.deliverableChunkCalls).toBe(0);
 
     const blueprint = buildCourseBlueprint(courseMap);
     const compiled = compileBlueprintDeliverables(blueprint, compiledFeatureIds, {
       configMap: { courseFaq: { questionsPerLesson: 5 } },
     });
 
-    expect(compiled).not.toHaveProperty('slideDecks');
-    expect(compiled).not.toHaveProperty('quizBank');
+    expect(compiled.slideDecks.decks).toHaveLength(lessonCount);
+    expect(compiled.lessonPlans.lessonPlans).toHaveLength(lessonCount);
+    expect(compiled.quizBank.quizzes).toHaveLength(lessonCount);
 
     for (const featureId of compiledFeatureIds) {
       const validation = validateDeliverableGeneration(featureId, compiled[featureId], {

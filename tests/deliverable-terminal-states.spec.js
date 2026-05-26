@@ -28,30 +28,46 @@ function courseMapFixture() {
   };
 }
 
-function lessonPlansFixture() {
+const CUSTOM_FAILURE_ID = 'custom_terminal_failure_pack';
+const CUSTOM_FAILURE_NAME = 'Terminal Failure Pack';
+
+function customFailureDeliverableFixture() {
   return {
-    lessonPlans: [1, 2, 3, 4].map((n) => ({
-      lessonTitle: `Lesson ${n}: Terminal State ${n}`,
-      overview:
-        `This plan gives instructors a concrete workflow for testing terminal deliverable states in lesson ${n}. ` +
-        'Students examine completed, failed, and retryable states so the user interface remains understandable.',
-      objectives: [
-        `Analyze how a generated deliverable reaches a terminal state in lesson ${n}.`,
-        'Evaluate whether a user can continue when one deliverable fails.',
-      ],
-      activities: [
-        'Inspect a successful output row and identify the completion signal.',
-        'Inspect a failed output row and describe the recovery path.',
-        'Compare progress text before and after all selected deliverables finish.',
-      ],
-      materials: ['Mock provider trace', 'Terminal-state checklist', 'Course Mapper workspace'],
-    })),
+    [CUSTOM_FAILURE_ID]: {
+      id: CUSTOM_FAILURE_ID,
+      name: CUSTOM_FAILURE_NAME,
+      description: 'A test-only custom deliverable that remains provider-generated while built-ins compile locally.',
+      color: 'rose',
+      icon: 'M9 5H7a2 2 0 00-2 2v12a2 2 0 002 2h10a2 2 0 002-2V7a2 2 0 00-2-2h-2M9 5a2 2 0 002 2h2a2 2 0 002-2M9 5a2 2 0 012-2h2a2 2 0 012 2',
+      systemPrompt:
+        'You are generating the Terminal Failure Pack custom deliverable. Return only valid JSON with one item per lesson.',
+      userPromptTemplate: `Generate a Terminal Failure Pack for each lesson.
+
+Course data:
+{{courseMap}}
+
+Return JSON with this shape:
+{
+  "terminal_failure_pack": [
+    {
+      "lessonTitle": "Lesson title",
+      "weekNumber": "Week 1",
+      "checks": ["Check one", "Check two"]
+    }
+  ]
+}`,
+      defaultConfig: {
+        tone: 'Professional',
+        style: 'Bullet points',
+        length: 'Brief',
+      },
+      createdAt: 1,
+      updatedAt: 1,
+    },
   };
 }
 
 async function installMockOpenAI(page) {
-  let delayedLessonPlansOnce = false;
-
   await page.route('https://api.openai.com/v1/models', (route) =>
     route.fulfill({
       status: 200,
@@ -75,14 +91,9 @@ async function installMockOpenAI(page) {
     let content = JSON.stringify(courseMapFixture());
     if (/quality assurance review/i.test(system)) {
       content = JSON.stringify({ patches: [] });
-    } else if (/lesson plans/i.test(system)) {
-      if (!delayedLessonPlansOnce) {
-        delayedLessonPlansOnce = true;
-        await new Promise((resolve) => setTimeout(resolve, 2500));
-      }
-      content = JSON.stringify(lessonPlansFixture());
-    } else if (/discussion/i.test(system)) {
-      content = 'intentionally invalid discussion response with no JSON object';
+    } else if (/terminal failure pack/i.test(system)) {
+      await new Promise((resolve) => setTimeout(resolve, 2500));
+      content = 'intentionally invalid terminal failure pack response with no JSON object';
     }
 
     return route.fulfill({
@@ -97,7 +108,7 @@ test.describe('All-deliverables terminal states', () => {
   test('finishes when one selected deliverable succeeds and another errors', async ({ page }) => {
     test.setTimeout(60000);
     await installMockOpenAI(page);
-    await page.addInitScript(() => {
+    await page.addInitScript((customDeliverables) => {
       localStorage.clear();
       sessionStorage.clear();
       localStorage.setItem('coursemapper-provider', 'openai');
@@ -105,7 +116,8 @@ test.describe('All-deliverables terminal states', () => {
       localStorage.setItem('coursemapper-modelid', 'gpt-4o-mini');
       localStorage.setItem('coursemapper-modelname', 'GPT-4o mini');
       localStorage.setItem('coursemapper-developer-mode', 'true');
-    });
+      localStorage.setItem('coursemapper-custom-deliverables', JSON.stringify(customDeliverables));
+    }, customFailureDeliverableFixture());
 
     await page.goto('/');
     await expect(page.locator('text=Connected').first()).toBeVisible({ timeout: 10000 });
@@ -114,7 +126,11 @@ test.describe('All-deliverables terminal states', () => {
 
     await expect(page.locator('text=Choose deliverables')).toBeVisible({ timeout: 10000 });
     await page.getByRole('button', { name: /Lesson Plans/ }).click();
-    await page.getByRole('button', { name: /Discussion Prompts/ }).click();
+    await page
+      .locator('button')
+      .filter({ has: page.getByText(CUSTOM_FAILURE_NAME, { exact: true }) })
+      .first()
+      .click();
     await page.getByRole('button', { name: /Configure & Generate/ }).click();
 
     await expect(page.locator('h1:has-text("Configure generation")')).toBeVisible({ timeout: 10000 });
@@ -135,22 +151,22 @@ test.describe('All-deliverables terminal states', () => {
     await page.getByLabel('Expand generation progress').click();
     const agentPanel = page.getByTestId('workspace-agent-panel');
     await expect(agentPanel.getByText('Lesson Plans', { exact: true })).toBeVisible();
-    await expect(agentPanel.getByText('Discussion Prompts', { exact: true })).toBeVisible();
+    await expect(agentPanel.getByText(CUSTOM_FAILURE_NAME, { exact: true })).toBeVisible();
 
-    await page.getByRole('button', { name: /^Discussion Prompts/ }).click();
+    await page.getByRole('button', { name: new RegExp(`^${CUSTOM_FAILURE_NAME}`) }).click();
     await expect(page.getByText('All chunks failed')).toBeVisible();
     await expect(page.locator('text=Generating')).toHaveCount(0);
 
     await expect
       .poll(async () =>
-        page.evaluate(() => {
+        page.evaluate((customFailureId) => {
           const saved = JSON.parse(localStorage.getItem('coursemapper-project') || '{}');
           return {
             lessonPlans: saved.deliverables?.lessonPlans?.status,
-            discussions: saved.deliverables?.discussions?.status,
+            customFailure: saved.deliverables?.[customFailureId]?.status,
           };
-        }),
+        }, CUSTOM_FAILURE_ID),
       )
-      .toEqual({ lessonPlans: 'done', discussions: 'error' });
+      .toEqual({ lessonPlans: 'done', customFailure: 'error' });
   });
 });

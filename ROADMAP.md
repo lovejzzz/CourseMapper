@@ -34,6 +34,31 @@ Goal: make CourseMapper credible for real classroom pilots while keeping the age
 9. Versioned package handoff so users can recover prior generated packages.
 10. Public demo packages showing polished complete outputs across multiple subjects.
 
+## Perfect System Gap
+
+Goal: close the gap between the current audited v0.8 hybrid compiler and a near-perfect course artifact system.
+
+1. Compile nearly everything. All audited v0.8 package deliverables now compile from the course blueprint; the next cost frontier is optional enrichment, custom deliverables, image generation, and adaptive repairs.
+2. Real quality proof, not just validators. Compare generated packages against expert-reviewed gold samples and real instructor edits, not only structure, readiness, heuristics, sparse inputs, and regressions.
+3. A true enrichment pass. Use one compact model call to enrich the course blueprint once, then compile everything from that richer course-specific representation.
+4. Learning from edits. Learn repeated user preferences for rubrics, slide wording, quiz difficulty, lesson-plan pacing, and apply them automatically on later runs.
+5. Adaptive generation. Choose the cheapest safe path per course: deterministic compile, enriched compile, local repair, or model generation only when needed.
+6. Better user trust. Show what was compiled, what was model-generated, what was repaired, what quality gates passed, and where human review is still recommended.
+7. Broader edge-case coverage. Handle unusual formats, nontraditional courses, labs, clinical placements, studio courses, multi-section syllabi, and messy imported documents.
+
+Hourly execution rule: pick one small vertical slice from this section per run, implement it, run the narrowest meaningful verification, and update roadmap notes or audit evidence before moving to the next slice.
+
+Latest slice evidence:
+
+- 2026-05-26: `audit:pipeline` now emits a per-case feature source matrix in `verification-output/hybrid-pipeline-audit/latest.md`, explicitly naming compiled versus still model-generated deliverables for each audited release fixture.
+- 2026-05-26: Discussion Prompts moved onto the deterministic blueprint compiler path; `audit:pipeline` now reports 8 compiled deliverables and only `lessonPlans` remaining on the model path (156 baseline calls -> 18 hybrid calls, 88.5% saved). Remaining warning: compiled discussions still repeat boilerplate across fixtures, so the next slice should make their lesson-specific guidance more varied.
+- 2026-05-26: Compiled Discussion Prompts now vary follow-up probes, facilitation guidance, response stems, criteria, and participation guidance by lesson context; scoped `audit:pipeline` rerun (`research-methods`, scope 5) cleared the repeated-boilerplate warning with 0 release warnings and 0 stress findings at the same 33 baseline calls -> 3 hybrid calls cost profile.
+- 2026-05-26: Lesson Plans moved onto the deterministic blueprint compiler path with lesson-specific outlines, student-facing summaries, formative checks, UDL notes, and ready-to-teach support. Scoped `audit:pipeline` rerun (`--scopes 5 --no-stress`) now shows all 9 audited deliverables compiled, 33 baseline calls -> 0 hybrid calls, and 0 release warnings in `verification-output/hybrid-pipeline-audit/latest.md`.
+- 2026-05-26: `audit:pipeline` now emits a per-case quality gate matrix with validator/readiness pass states plus an explicit human-review recommendation. Scoped rerun (`--scopes 5 --no-stress`) shows all three release fixtures passing validators, quality floor, workspace readiness, and classroom readiness while still recommending a spot-check for institution-specific facts, official dates, and copyrighted readings before handoff.
+- 2026-05-26: `audit:pipeline` now emits a Trust Evidence Matrix that pairs repaired course-map field counts, compact repair evidence, delivery path (`compiled` vs `model-generated`), and the handoff review recommendation per release fixture. Scoped rerun (`--scopes 5 --no-stress`) shows all three audited fixtures at `9 compiled / 0 model-generated`, `0` repaired input fields, and the same targeted spot-check recommendation in `verification-output/hybrid-pipeline-audit/latest.md`.
+- 2026-05-26: `audit:pipeline` now includes a Stress Case Matrix for atypical course maps, covering sparse assessments plus a messy imported clinical-studio fixture. Scoped rerun (`--scopes 5`) still passes release fixtures at `33 -> 0` calls while exposing one remaining stress warning: compiled slide decks repeat boilerplate across 3 items for the messy-import case, so the next slice should make those edge-case decks more lesson-specific.
+- 2026-05-26: Compiled slide decks now vary speaker notes, accessibility guidance, assessment carry-forward cues, and fallback concept selection by lesson context instead of reusing shared boilerplate. Scoped `audit:pipeline` rerun (`--scopes 5`) cleared the slide-deck specificity warning across all three release fixtures plus both stress fixtures, leaving `0` release warnings, `0` stress findings, and the same `33 -> 0` hybrid cost profile in `verification-output/hybrid-pipeline-audit/latest.md`.
+
 ## Current v0.7 Focus
 
 Complete the autonomous package loop in production:

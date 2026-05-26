@@ -1,15 +1,48 @@
 import { COLUMN_EXTRACTORS } from './prompts/promptUtils';
 import { getChunkCount } from './parallelGenerator';
 
-export const BLUEPRINT_COMPILED_FEATURES = new Set(['syllabus', 'rubrics', 'assignments', 'studyGuides', 'courseFaq']);
+export const BLUEPRINT_COMPILED_FEATURES = new Set([
+  'syllabus',
+  'lessonPlans',
+  'slideDecks',
+  'rubrics',
+  'assignments',
+  'discussions',
+  'quizBank',
+  'studyGuides',
+  'courseFaq',
+]);
 
 const BLOOMS_LEVELS = ['Apply', 'Analyze', 'Evaluate', 'Create'];
+const QUIZ_BLOOMS_SEQUENCE = ['Remember', 'Understand', 'Apply', 'Analyze', 'Evaluate', 'Create'];
 const FAQ_CATEGORIES = [
   'Course Logistics',
   'Assignment Clarification',
   'Concept Explanation',
   'Technical Help',
   'Assessment Prep',
+];
+const SYNTHETIC_ASSESSMENT_PATTERNS = [
+  { label: 'Evidence memo', verb: 'analyze', output: 'brief evidence memo' },
+  { label: 'Concept check', verb: 'apply', output: 'short concept-check response' },
+  { label: 'Case worksheet', verb: 'evaluate', output: 'case worksheet' },
+  { label: 'Design note', verb: 'create', output: 'one-page design note' },
+  { label: 'Reflection checkpoint', verb: 'connect', output: 'structured reflection' },
+  { label: 'Peer critique', verb: 'critique', output: 'peer-review note' },
+];
+const SLIDE_VISUAL_KINDS = ['diagram', 'table', 'chart', 'image'];
+const DISCUSSION_FORMAT_SEQUENCE = [
+  'Socratic Seminar',
+  'Think-Pair-Share',
+  'Fishbowl',
+  'Small Group then Share-Out',
+  'Case-Based Discussion',
+  'Asynchronous Online',
+  'Debate / Structured Academic Controversy',
+  'Whole-Class Discussion',
+  'Jigsaw',
+  'Gallery Walk',
+  'Role Play / Simulation',
 ];
 
 function asArray(value) {
@@ -99,6 +132,143 @@ function firstNonEmpty(...values) {
   return values.map((value) => cleanText(value)).find(Boolean) || '';
 }
 
+function sentenceCase(value) {
+  const text = cleanText(value);
+  if (!text) return '';
+  return text.charAt(0).toUpperCase() + text.slice(1);
+}
+
+function stripTerminalPunctuation(value) {
+  return cleanText(value).replace(/[.!?]+$/g, '');
+}
+
+function compactList(values, fallback = 'course evidence', limit = 3) {
+  const items = unique(values, limit);
+  return items.length > 0 ? items.join(', ') : fallback;
+}
+
+function alternateLessonConcept(lesson, primary) {
+  const generic = new Set(['clinical', 'community', 'health', 'studio', 'lesson', 'topic', 'block']);
+  return (
+    lesson.keyConcepts.find((concept) => {
+      const normalized = cleanText(concept).toLowerCase();
+      return normalized && normalized !== cleanText(primary).toLowerCase() && !generic.has(normalized);
+    }) ||
+    lesson.keyConcepts.find((concept) => cleanText(concept).toLowerCase() !== cleanText(primary).toLowerCase()) ||
+    primary
+  );
+}
+
+function inferDisciplineLens(courseName, concepts = []) {
+  const text = `${courseName} ${concepts.join(' ')}`.toLowerCase();
+  if (/\b(ai|prompt|automation|machine learning|analytics|model)\b/.test(text)) {
+    return {
+      domain: 'AI course design',
+      evidenceNoun: 'design evidence',
+      decisionNoun: 'implementation decision',
+      learnerRole: 'course designer',
+      exampleNoun: 'AI-supported teaching scenario',
+    };
+  }
+  if (/\b(health|community|equity|program|stakeholder|policy)\b/.test(text)) {
+    return {
+      domain: 'community health evaluation',
+      evidenceNoun: 'community evidence',
+      decisionNoun: 'program decision',
+      learnerRole: 'evaluation practitioner',
+      exampleNoun: 'community implementation case',
+    };
+  }
+  if (/\b(research|sampling|survey|interview|statistics|qualitative|quantitative|irb|ethics)\b/.test(text)) {
+    return {
+      domain: 'applied research methods',
+      evidenceNoun: 'research evidence',
+      decisionNoun: 'methodological decision',
+      learnerRole: 'research practitioner',
+      exampleNoun: 'study-design scenario',
+    };
+  }
+  return {
+    domain: 'applied course practice',
+    evidenceNoun: 'course evidence',
+    decisionNoun: 'professional decision',
+    learnerRole: 'course practitioner',
+    exampleNoun: 'applied case',
+  };
+}
+
+function normalizeBlueprintEnrichment({ courseName, lessons, courseConcepts, provided = {} }) {
+  const providedTerms = Array.isArray(provided.signatureTerms) ? provided.signatureTerms : [];
+  const signatureTerms = unique([...providedTerms, ...courseConcepts], 12);
+  const lens = {
+    ...inferDisciplineLens(courseName, signatureTerms),
+    ...(provided.lens && typeof provided.lens === 'object' ? provided.lens : {}),
+  };
+  const lessonPhrases = Object.fromEntries(
+    lessons.map((lesson) => [
+      lesson.id,
+      {
+        context: compactList(lesson.keyConcepts, stripLessonPrefix(lesson.title), 3),
+        evidenceMove: `use ${lens.evidenceNoun} about ${lesson.keyConcepts[0] || stripLessonPrefix(lesson.title)}`,
+        decisionMove: `explain the ${lens.decisionNoun} for ${stripLessonPrefix(lesson.title)}`,
+      },
+    ]),
+  );
+
+  return {
+    source: provided.source || 'deterministic-blueprint-enrichment',
+    lens,
+    signatureTerms,
+    lessonPhrases: {
+      ...lessonPhrases,
+      ...(provided.lessonPhrases && typeof provided.lessonPhrases === 'object' ? provided.lessonPhrases : {}),
+    },
+    styleNotes: unique(
+      [
+        ...(Array.isArray(provided.styleNotes) ? provided.styleNotes : []),
+        `Prefer concrete ${lens.domain} nouns over generic course-language templates.`,
+        `Name the ${lens.evidenceNoun}, student output, and feedback use in long-form guidance.`,
+      ],
+      6,
+    ),
+  };
+}
+
+export function mergeBlueprintEnrichment(blueprint, enrichment = {}) {
+  if (!blueprint || typeof blueprint !== 'object') return blueprint;
+  return {
+    ...blueprint,
+    enrichment: normalizeBlueprintEnrichment({
+      courseName: blueprint.courseName,
+      lessons: blueprint.lessons || [],
+      courseConcepts: blueprint.courseConcepts || [],
+      provided: enrichment,
+    }),
+  };
+}
+
+function lessonPhrase(blueprint, lesson) {
+  return (
+    blueprint?.enrichment?.lessonPhrases?.[lesson.id] || {
+      context: compactList(lesson.keyConcepts, stripLessonPrefix(lesson.title), 3),
+      evidenceMove: `use course evidence about ${lesson.keyConcepts[0] || stripLessonPrefix(lesson.title)}`,
+      decisionMove: `explain the decision for ${stripLessonPrefix(lesson.title)}`,
+    }
+  );
+}
+
+function blueprintLens(blueprint) {
+  return blueprint?.enrichment?.lens || inferDisciplineLens(blueprint?.courseName, blueprint?.courseConcepts || []);
+}
+
+function buildSyntheticAssessment({ title, concepts, outcomes, activities, originalIndex }) {
+  const pattern = SYNTHETIC_ASSESSMENT_PATTERNS[originalIndex % SYNTHETIC_ASSESSMENT_PATTERNS.length];
+  const concept = concepts[0] || stripLessonPrefix(title) || 'the lesson topic';
+  const activity = activities[0] || `practice with ${concept}`;
+  const objective = outcomes[0] || objectiveForLesson(title, concepts);
+  return `${pattern.label}: ${pattern.verb} ${concept} through ${activity}; submit a ${pattern.output} that shows ${stripTerminalPunctuation(objective).toLowerCase()}.`;
+}
+
 function objectiveForLesson(title, concepts) {
   const concept = concepts[0] || stripLessonPrefix(title) || 'the weekly topic';
   return `Analyze ${concept} using course evidence and explain how it informs an instructional or professional decision.`;
@@ -108,8 +278,8 @@ function successCriteriaForLesson(title, concepts) {
   const concept = concepts[0] || stripLessonPrefix(title) || 'the topic';
   return [
     `Names the relevant ${concept} concept accurately.`,
-    'Uses specific evidence from the lesson materials or activity.',
-    'Explains a decision, implication, or next step instead of only summarizing.',
+    `Uses specific evidence from the ${concept} materials or activity.`,
+    `Explains a ${concept} decision, implication, or next step instead of only summarizing.`,
   ];
 }
 
@@ -122,14 +292,12 @@ function hasMeaningfulAssessment(value) {
 function extractLessonBlueprint(lesson, originalIndex) {
   const lessonNumber = originalIndex + 1;
   const title = lessonTitle(lesson, lessonNumber);
-  const objectives = unique(
-    splitList(extractColumn(lesson, 'learningObjectives')).concat(splitList(extractColumn(lesson, 'learningGoals'))),
-    5,
-  );
-  const topics = unique(
-    splitList(extractColumn(lesson, 'topicSection')).concat(splitList(extractColumn(lesson, 'learningGoals'))),
-    8,
-  );
+  const objectiveEntries = splitList(extractColumn(lesson, 'learningObjectives'));
+  const goalEntries = splitList(extractColumn(lesson, 'learningGoals'));
+  const objectives = unique(objectiveEntries.length > 0 ? objectiveEntries : goalEntries, 5);
+  const topicEntries = splitList(extractColumn(lesson, 'topicSection'));
+  const topics = unique(topicEntries.length > 0 ? topicEntries : goalEntries, 8);
+  const titleConcepts = unique([stripLessonPrefix(title)].concat(wordsFromConcepts([stripLessonPrefix(title)], 4)), 4);
   const resources = unique(splitList(extractColumn(lesson, 'supportingResources')), 6);
   const asyncActivities = splitList(extractColumn(lesson, 'asyncActivities'));
   const syncActivities = splitList(extractColumn(lesson, 'syncActivities'));
@@ -137,11 +305,16 @@ function extractLessonBlueprint(lesson, originalIndex) {
     extractColumn(lesson, 'weeklyAssessments'),
     extractColumn(lesson, 'evaluateDesign'),
   );
-  const concepts = unique([...topics, ...wordsFromConcepts([...topics, ...objectives, title], 5)], 8);
+  const concepts = unique([...titleConcepts, ...topics, ...wordsFromConcepts([...topics, ...objectives, title], 5)], 8);
   const outcomes = objectives.length > 0 ? objectives : [objectiveForLesson(title, concepts)];
-  const assessmentLink = hasMeaningfulAssessment(assessmentText)
-    ? assessmentText
-    : `Applied lesson evidence check for ${stripLessonPrefix(title)}`;
+  const synthesizedAssessment = buildSyntheticAssessment({
+    title,
+    concepts,
+    outcomes,
+    activities: [...syncActivities, ...asyncActivities],
+    originalIndex,
+  });
+  const assessmentLink = hasMeaningfulAssessment(assessmentText) ? assessmentText : synthesizedAssessment;
 
   return {
     id: `lesson-${lessonNumber}`,
@@ -157,9 +330,8 @@ function extractLessonBlueprint(lesson, originalIndex) {
     ),
     assessmentLink,
     hasAssessment: hasMeaningfulAssessment(assessmentText),
-    studentArtifact: hasMeaningfulAssessment(assessmentText)
-      ? assessmentText
-      : `${stripLessonPrefix(title)} applied reflection`,
+    assessmentSource: hasMeaningfulAssessment(assessmentText) ? 'course-map' : 'sparse-fallback',
+    studentArtifact: hasMeaningfulAssessment(assessmentText) ? assessmentText : synthesizedAssessment,
     successCriteria: successCriteriaForLesson(title, concepts),
     feedbackMoment: `Instructor or peer feedback helps students improve the next ${stripLessonPrefix(title)} artifact.`,
     slideNarrative: `Introduce ${stripLessonPrefix(title)}, model the core concept, apply it to a case, and close with a decision checkpoint.`,
@@ -188,9 +360,19 @@ function distributePercent(count) {
   return Array.from({ length: count }, (_, index) => (index === count - 1 ? 100 - base * (count - 1) : base));
 }
 
+function buildAssessmentCriteria(lesson) {
+  const concept = lesson.keyConcepts[0] || stripLessonPrefix(lesson.title);
+  const artifact = stripTerminalPunctuation(lesson.studentArtifact);
+  return [
+    `${concept} accuracy and evidence selection for ${artifact}`,
+    `Analysis logic that connects ${concept} to the lesson decision`,
+    `Professional communication organized around ${stripLessonPrefix(lesson.title)}`,
+    `Feedback and revision use documented for ${artifact}`,
+  ];
+}
+
 function buildAssessmentAnchors(lessons) {
-  const assessed = lessons.filter((lesson) => lesson.hasAssessment);
-  const source = assessed.length > 0 ? assessed : lessons;
+  const source = lessons;
   const weights = distributePercent(source.length || 1);
   return source.map((lesson, index) => ({
     id: `assessment-${index + 1}`,
@@ -202,14 +384,10 @@ function buildAssessmentAnchors(lessons) {
     points: 100,
     bloomsLevel: lesson.bloomsLevel,
     objectives: lesson.outcomes,
-    criteria: [
-      'Concept accuracy and evidence use',
-      'Analysis and decision logic',
-      'Professional communication and organization',
-      'Revision use and learner reflection',
-    ],
+    criteria: buildAssessmentCriteria(lesson),
     successCriteria: lesson.successCriteria,
     feedbackUse: lesson.feedbackMoment,
+    source: lesson.assessmentSource,
   }));
 }
 
@@ -223,7 +401,7 @@ export function buildCourseBlueprint(courseMap, options = {}) {
     16,
   );
 
-  return {
+  const blueprint = {
     version: 1,
     source: 'deterministic-course-map',
     courseName: cleanText(courseMap?.courseName, 'Untitled Course'),
@@ -247,6 +425,7 @@ export function buildCourseBlueprint(courseMap, options = {}) {
       support: 'Name concrete success criteria and feedback use instead of generic encouragement.',
     },
   };
+  return mergeBlueprintEnrichment(blueprint, options.enrichment || {});
 }
 
 export function isBlueprintCompiledFeature(featureId) {
@@ -399,6 +578,7 @@ function compileSyllabus(blueprint) {
 }
 
 function compileAssignments(blueprint) {
+  const lens = blueprintLens(blueprint);
   return {
     courseAssignmentMap: blueprint.assessments.map((assessment) => ({
       week: assessment.lessonNumbers[0],
@@ -417,63 +597,65 @@ function compileAssignments(blueprint) {
       percentOfGrade: assessment.weight,
       bloomsLevel: assessment.bloomsLevel,
       portfolioConnection: `This artifact documents how students apply ${assessment.relatedLessons.join(', ')} to a course-relevant decision.`,
-      expectedSubmissionFormat:
-        'Submit through the official course site using the format named in the weekly instructions.',
+      expectedSubmissionFormat: `Submit ${assessment.title} through the official course site using the weekly ${lens.domain} format for ${assessment.relatedLessons[0]}.`,
       highValueSuccessCriteria: assessment.successCriteria,
       instructorFeedbackPriority: assessment.feedbackUse,
       performanceBands: {
-        excellent: 'Specific evidence, clear analysis, polished communication, and explicit revision use.',
-        proficient: 'Accurate evidence and understandable analysis with minor gaps in depth or polish.',
-        revisionNeeded: 'Limited evidence, unclear reasoning, or missing connection to course criteria.',
+        excellent: `${assessment.title} uses precise ${lens.evidenceNoun}, clear analysis for ${assessment.relatedLessons[0]}, polished communication, and explicit revision use.`,
+        proficient: `${assessment.title} includes accurate evidence and understandable analysis tied to ${assessment.relatedLessons[0]} with minor gaps in depth or polish.`,
+        revisionNeeded: `${assessment.title} needs stronger evidence for ${assessment.relatedLessons[0]}, clearer reasoning, or a closer connection to the listed criteria.`,
       },
-      overview: `${assessment.artifact} asks students to turn lesson concepts into a concrete course artifact. The task is designed to show how students use evidence, make decisions, and prepare for later work.`,
+      overview: `${assessment.artifact} asks students to turn ${assessment.relatedLessons[0]} concepts into a concrete course artifact. The task is designed to show how students use evidence for ${assessment.title}, make decisions, and prepare for later work.`,
       objectives: assessment.objectives,
       instructions: [
         `Review the materials for ${assessment.relatedLessons.join(', ')} and identify the central problem or decision.`,
-        'Select specific evidence from course readings, activities, or discussion notes.',
-        'Draft the artifact so each section addresses one rubric criterion.',
-        'Use feedback or self-review to revise the final submission before posting it.',
+        `Select specific ${lens.evidenceNoun} from course readings, activities, or discussion notes for ${assessment.title}.`,
+        `Draft ${assessment.title} so each section addresses one rubric criterion.`,
+        `Use feedback or self-review to revise ${assessment.artifact} before posting it.`,
       ],
       formatRequirements: {
-        length: 'Enough detail to address every criterion; follow instructor length guidance when provided.',
-        format: 'Organized document, slide, or course-site post with headings matching the rubric criteria.',
-        citationStyle: 'Use the citation style specified in the course or assignment prompt.',
+        length: `Enough detail to address every ${assessment.title} criterion; follow instructor length guidance when provided.`,
+        format: `Organized ${lens.domain} document, slide, or course-site post for ${assessment.title} with headings matching the rubric criteria.`,
+        citationStyle: `Use the citation style specified for ${assessment.title} or the course assignment prompt.`,
         submissionPlatform: 'Official course site',
-        latePolicy: 'Follow the course late work policy and contact the instructor before the deadline when needed.',
+        latePolicy: `For ${assessment.title}, follow the course late work policy and contact the instructor before the deadline when needed.`,
       },
       deliverables: [
-        'Completed artifact with clear headings.',
-        'Evidence or citation notes tied to course materials.',
-        'Brief reflection naming one revision decision.',
+        `Completed ${assessment.artifact} with clear headings.`,
+        `${sentenceCase(lens.evidenceNoun)} or citation notes tied to ${assessment.relatedLessons[0]} course materials.`,
+        `Brief reflection naming one revision decision for ${assessment.title}.`,
       ],
       scaffoldingMilestones: [
         {
           milestone: 'Evidence checkpoint',
           dueDate: `Before Week ${assessment.lessonNumbers[0]} submission`,
-          description: 'Identify the concept, evidence, and decision the artifact will address.',
-          feedback: 'Use instructor, peer, or self-review feedback to focus the artifact.',
+          description: `Identify the concept, ${lens.evidenceNoun}, and decision ${assessment.title} will address.`,
+          feedback: `Use instructor, peer, or self-review feedback to focus ${assessment.artifact}.`,
           points: 10,
-          uploadChecklist: ['Concept named', 'Evidence selected', 'criterion checked'],
+          uploadChecklist: [
+            `${assessment.relatedLessons[0]} concept named`,
+            `${lens.evidenceNoun} selected`,
+            'criterion checked',
+          ],
         },
         {
           milestone: 'Final submission',
           dueDate: `Week ${assessment.lessonNumbers[0]}`,
-          description: 'Submit the complete artifact with all rubric criteria addressed.',
+          description: `Submit the complete ${assessment.artifact} with all rubric criteria addressed.`,
           feedback: assessment.feedbackUse,
           points: 90,
-          uploadChecklist: ['Artifact complete', 'criteria addressed', 'reflection included'],
+          uploadChecklist: [`${assessment.title} complete`, 'criteria addressed', 'reflection included'],
         },
       ],
       gradingCriteria: assessment.criteria,
       supportResources: [
-        'Course notes and assigned readings',
-        'Rubric criteria for this artifact',
+        `${assessment.relatedLessons[0]} notes and assigned readings`,
+        `Rubric criteria for ${assessment.title}`,
         'Office hours or course communication channel',
       ],
-      progressTracking: 'Use the milestone checklist and rubric criteria to monitor readiness before submission.',
-      academicIntegrityStatement: blueprint.policies.academicIntegrity,
-      accessibilityAndUDL:
-        'Use accessible document structure, descriptive headings, readable contrast, and captions or alt text for media.',
+      progressTracking: `Use the ${assessment.title} milestone checklist and rubric criteria to monitor readiness before submission for ${assessment.relatedLessons[0]}.`,
+      academicIntegrityStatement: `For ${assessment.title}, submitted work must represent the student or team effort and cite outside sources or approved tools. Course-specific AI use in ${assessment.artifact} must be disclosed for ${assessment.title} when it contributes to submitted work.`,
+      accessibilityAndUDL: `For ${assessment.title}, use accessible document structure, descriptive headings, readable contrast, and captions or alt text for media.`,
       selfAssessmentRubric: assessment.criteria.map((criterion) => `Before submitting, confirm: ${criterion}.`),
       feedbackLoop: assessment.feedbackUse,
       tags: unique(['assignment', assessment.title, ...assessment.relatedLessons, ...assessment.criteria], 10),
@@ -482,6 +664,7 @@ function compileAssignments(blueprint) {
 }
 
 function compileRubrics(blueprint) {
+  const lens = blueprintLens(blueprint);
   return {
     rubrics: blueprint.assessments.map((assessment) => {
       const criteria = assessment.criteria.map((criterion, index) => {
@@ -491,13 +674,10 @@ function compileRubrics(blueprint) {
           objectiveAligned: assessment.objectives[index % assessment.objectives.length],
           weight,
           points: Math.round((weight / 100) * assessment.points),
-          exemplary: `Exceeds expectations by applying course evidence precisely, explaining decisions clearly, and connecting the work to ${assessment.relatedLessons.join(', ')}.`,
-          proficient:
-            'Meets expectations with accurate evidence, clear organization, and a complete response to the criterion.',
-          developing:
-            'Partially meets expectations but needs stronger evidence, clearer reasoning, or more complete communication.',
-          beginning:
-            'Shows limited evidence of the criterion and needs substantial revision before it is ready for assessment.',
+          exemplary: `Exceeds expectations on "${criterion}" by applying ${lens.evidenceNoun} precisely and connecting the work to ${assessment.relatedLessons.join(', ')}.`,
+          proficient: `Meets "${criterion}" with accurate evidence, clear organization, and a complete ${assessment.title} response.`,
+          developing: `Partially meets "${criterion}" but needs stronger ${lens.evidenceNoun}, clearer reasoning, or more complete communication.`,
+          beginning: `Shows limited evidence for "${criterion}" and needs substantial revision before ${assessment.title} is ready for assessment.`,
         };
       });
       return {
@@ -515,15 +695,13 @@ function compileRubrics(blueprint) {
         },
         criteria,
         taskDirections: `Score the ${assessment.artifact} for ${assessment.relatedLessons.join(', ')} using the criteria below.`,
-        instructorFacilitationNote:
-          'Share the rubric before students draft, then use criterion-level feedback for revision guidance.',
-        accessibilityAndUDL:
-          'Allow equivalent accessible formats when the artifact demonstrates the same evidence, reasoning, and communication criteria.',
+        instructorFacilitationNote: `Share the ${assessment.title} rubric before students draft, then use criterion-level feedback for ${assessment.artifact} revision guidance.`,
+        accessibilityAndUDL: `For ${assessment.title}, allow equivalent accessible formats when students demonstrate the same ${lens.evidenceNoun}, reasoning, and communication criteria.`,
         anchorExamples: {
-          exemplary: 'Names relevant course evidence, explains the decision, and reflects on revision use.',
-          proficient: 'Uses relevant evidence and answers the prompt with clear organization.',
-          developing: 'Mentions course ideas but needs clearer evidence or stronger decision logic.',
-          beginning: 'Provides general description with little evidence or criterion alignment.',
+          exemplary: `Names relevant ${lens.evidenceNoun}, explains the ${lens.decisionNoun}, and reflects on revision use for ${assessment.title}.`,
+          proficient: `Uses relevant evidence and answers the ${assessment.artifact} prompt with clear organization.`,
+          developing: `Mentions ${assessment.relatedLessons[0]} ideas but needs clearer evidence or stronger decision logic.`,
+          beginning: `Provides general description with little ${assessment.title} evidence or criterion alignment.`,
         },
         gradePolicyConnection: `${assessment.weight} of the course grade when the syllabus weighting is used.`,
         teacherNotes: assessment.feedbackUse,
@@ -534,97 +712,715 @@ function compileRubrics(blueprint) {
 }
 
 function compileStudyGuides(blueprint) {
+  const lens = blueprintLens(blueprint);
   return {
-    studyGuides: blueprint.lessons.map((lesson) => ({
+    studyGuides: blueprint.lessons.map((lesson) => {
+      const phrase = lessonPhrase(blueprint, lesson);
+      return {
+        lessonTitle: lesson.title,
+        examScope: `Use this guide to prepare for Week ${lesson.lessonNumber} checks on ${phrase.context} and later assessments.`,
+        summary: `${lesson.title} focuses on ${lesson.keyConcepts.slice(0, 3).join(', ')}. Students should connect those ideas to the weekly activity pattern, ${phrase.evidenceMove}, and ${phrase.decisionMove}.`,
+        keyTerms: lesson.keyConcepts.slice(0, 8).map((term) => ({
+          term,
+          definition: `${term} as used in ${lesson.title}, with attention to ${lens.evidenceNoun}, context, and application.`,
+          example: `In ${lesson.title}, students use ${term} to explain a concrete ${lens.decisionNoun}.`,
+        })),
+        conceptConnections: [
+          `${lesson.title} connects to the assessment artifact: ${lesson.studentArtifact}.`,
+          `The lesson prepares students to meet this success criterion: ${lesson.successCriteria[0]}`,
+        ],
+        commonMisconceptions: [
+          {
+            misconception: `For ${stripLessonPrefix(lesson.title)}, summarizing the topic is enough for strong work.`,
+            correction: `Strong ${lesson.title} work applies ${phrase.context} to evidence and explains the decision or implication.`,
+          },
+          {
+            misconception: `One ${lens.exampleNoun} proves the whole ${stripLessonPrefix(lesson.title)} claim.`,
+            correction: `Use enough ${lens.evidenceNoun} in ${lesson.title} to show the pattern and name the limits of the example.`,
+          },
+        ],
+        reviewQuestions: [
+          {
+            question: `How would you explain the central idea of ${stripLessonPrefix(lesson.title)} using ${lens.evidenceNoun}?`,
+            bloomsLevel: 'Analyze',
+            hint: `Name ${phrase.context}, cite evidence, and explain why it matters.`,
+          },
+          {
+            question: `What would strong work on ${lesson.studentArtifact} need to show?`,
+            bloomsLevel: 'Evaluate',
+            hint: lesson.successCriteria.join(' '),
+          },
+          {
+            question: `How does feedback from ${lesson.title} improve a later artifact?`,
+            bloomsLevel: 'Apply',
+            hint: lesson.feedbackMoment,
+          },
+        ],
+        practiceActivities: [
+          `Create a three-column note with concept, ${lens.evidenceNoun}, and decision for ${stripLessonPrefix(lesson.title)}.`,
+          `Self-check a ${lesson.studentArtifact} draft against this criterion: ${lesson.successCriteria[0]}`,
+        ],
+        examPrep: {
+          keyTopicsToKnow: lesson.keyConcepts.slice(0, 5),
+          timeline: `Review ${lesson.title} notes after Week ${lesson.lessonNumber}, then revisit before the next assessment.`,
+          commonErrors: `Avoid unsupported claims, vague ${phrase.context} definitions, and responses that omit ${lesson.studentArtifact}.`,
+          reviewStrategy: `Practice explaining one ${lesson.keyConcepts[0] || 'concept'}, one ${lens.evidenceNoun} source, and one implication out loud.`,
+        },
+        studentResources: `Use ${lesson.title} readings, instructor notes, office hours, peer discussion, and the rubric criteria for this lesson.`,
+        tags: unique(['study guide', lesson.title, ...lesson.keyConcepts], 10),
+      };
+    }),
+  };
+}
+
+function quizQuestionId(lesson, index) {
+  return `lesson-${lesson.lessonNumber}-q${index + 1}`;
+}
+
+function quizTags(lesson, type, bloom, use) {
+  return unique(['quiz', lesson.title, ...lesson.keyConcepts.slice(0, 3), type, bloom, use], 8);
+}
+
+function buildMultipleChoiceQuestion({ lesson, index, bloom, difficulty, objective, concept, use, prompt, correct }) {
+  const id = quizQuestionId(lesson, index);
+  return {
+    id,
+    type: 'multiple_choice',
+    bloomsLevel: bloom,
+    difficulty,
+    estimatedMinutes: difficulty === 'Hard' ? 3 : 2,
+    points: 2,
+    objectiveAligned: objective,
+    intendedUse: `${use} for ${lesson.title}; review distractor choices before the next ${lesson.studentArtifact}.`,
+    question: prompt,
+    options: [
+      `A. Treat ${concept} in ${lesson.title} as background information and move directly to a general summary.`,
+      `B. ${correct}`,
+      `C. Choose the quickest activity even if it weakens evidence for ${lesson.studentArtifact}.`,
+      `D. Delay the ${lesson.title} decision until all possible ${concept} materials have been reviewed.`,
+    ],
+    answer: 'B',
+    distractorRationale: `A: This skips the evidence-to-decision move in ${lesson.title}; C: Speed alone does not meet the objective for ${lesson.studentArtifact}; D: Waiting for perfect information prevents a usable course decision.`,
+    explanation: `The correct answer is B because it connects ${concept} to ${lesson.studentArtifact}, uses lesson evidence, and supports the objective "${objective}".`,
+    tags: quizTags(lesson, 'multiple_choice', bloom, use),
+  };
+}
+
+function buildShortAnswerQuestion({ lesson, index, bloom, objective, concept, lens }) {
+  return {
+    id: quizQuestionId(lesson, index),
+    type: 'short_answer',
+    bloomsLevel: bloom,
+    difficulty: 'Medium',
+    estimatedMinutes: 5,
+    points: 4,
+    objectiveAligned: objective,
+    intendedUse: `Formative written check after ${lesson.title}; use responses to identify review needs before ${lesson.studentArtifact}.`,
+    question: `In 2-3 sentences, explain how ${concept} should shape ${lesson.studentArtifact} and name one ${lens.evidenceNoun} source from ${lesson.title} students should use.`,
+    answer: `${concept} should guide the evidence students select and the decision they justify in ${lesson.studentArtifact}. A strong ${lesson.title} answer names a lesson source, explains why it fits, and states how the evidence changes the next step.`,
+    sampleAnswer: `For ${lesson.title}, I would use ${concept} to choose evidence that directly supports ${lesson.studentArtifact}. I would cite a specific reading, activity result, or case example from ${lesson.title} and explain how it changes the ${lens.decisionNoun}.`,
+    explanation: `A complete response links ${concept}, ${lesson.studentArtifact}, and a concrete ${lens.evidenceNoun} source instead of only defining the term.`,
+    scoringGuidance: `Full credit for ${lesson.title} requires ${concept}, one concrete evidence source, and a decision implication. Partial credit is appropriate when the answer names ${concept} but omits evidence or the implication. Flag answers that summarize ${lesson.title} without applying it.`,
+    tags: quizTags(lesson, 'short_answer', bloom, 'formative check'),
+  };
+}
+
+function buildEssayQuestion({ lesson, index, objective, concept, lens }) {
+  return {
+    id: quizQuestionId(lesson, index),
+    type: 'essay',
+    bloomsLevel: 'Create',
+    difficulty: 'Hard',
+    estimatedMinutes: 12,
+    points: 8,
+    objectiveAligned: objective,
+    intendedUse: `Summative or exam-prep synthesis for ${lesson.title}; score with the rubric hints before students revise related work.`,
+    question: `Analyze ${lesson.studentArtifact} as a ${lens.exampleNoun}. In 2-3 organized paragraphs, create a defensible next step that uses ${concept}, cites lesson evidence, and explains one limitation.`,
+    rubricHints: `Strong responses define ${concept}, use at least two pieces of ${lens.evidenceNoun}, justify a ${lens.decisionNoun}, and acknowledge a limitation or risk.`,
+    sampleAnswer: `A strong response for ${lesson.title} would identify how ${concept} changes the artifact, cite evidence from the lesson activity or readings, and propose a next step that is feasible for ${lesson.studentArtifact}. It would also name a ${lesson.title} limitation so the recommendation is not overstated.`,
+    explanation: `The essay is scored for synthesis: students must turn ${concept} and evidence into a defensible ${lens.decisionNoun}, not merely list lesson facts.`,
+    scoringGuidance: `Full credit for ${lesson.title} requires concept accuracy, evidence use, a justified next step, and a limitation. Partial credit is appropriate when the response has ${concept} evidence but weak decision logic. Flag responses that ignore ${lesson.studentArtifact}.`,
+    tags: quizTags(lesson, 'essay', 'Create', 'exam synthesis'),
+  };
+}
+
+export function buildQuizAtomsForLesson(lesson, blueprint, options = {}) {
+  const lens = blueprintLens(blueprint);
+  const concept = lesson.keyConcepts[0] || stripLessonPrefix(lesson.title);
+  const secondary = lesson.keyConcepts[1] || concept;
+  const objective = lesson.outcomes[0] || objectiveForLesson(lesson.title, lesson.keyConcepts);
+  const targetCount = Math.max(5, Math.min(7, Number(options.questionsPerLesson) || 6));
+  const atoms = [
+    buildMultipleChoiceQuestion({
+      lesson,
+      index: 0,
+      bloom: QUIZ_BLOOMS_SEQUENCE[0],
+      difficulty: 'Easy',
+      objective,
+      concept,
+      use: 'diagnostic retrieval practice',
+      prompt: `Which statement best explains why ${concept} matters for ${lesson.studentArtifact}?`,
+      correct: `${sentenceCase(concept)} helps students choose relevant evidence and justify the decision in ${lesson.studentArtifact}.`,
+    }),
+    buildMultipleChoiceQuestion({
+      lesson,
+      index: 1,
+      bloom: QUIZ_BLOOMS_SEQUENCE[2],
+      difficulty: 'Medium',
+      objective,
+      concept,
+      use: 'formative quiz',
+      prompt: `A student is preparing ${lesson.studentArtifact}. Which action best applies ${concept} from ${lesson.title}?`,
+      correct: `Use ${concept} to select a concrete example, connect it to the objective, and revise the artifact before submission.`,
+    }),
+    buildMultipleChoiceQuestion({
+      lesson,
+      index: 2,
+      bloom: QUIZ_BLOOMS_SEQUENCE[3],
+      difficulty: 'Medium',
+      objective,
+      concept: secondary,
+      use: 'exam review',
+      prompt: `Which instructor question would best reveal whether students can analyze ${secondary} in ${lesson.title}?`,
+      correct: `Ask students to compare two pieces of evidence and explain which one better supports ${lesson.studentArtifact}.`,
+    }),
+    buildShortAnswerQuestion({
+      lesson,
+      index: 3,
+      bloom: QUIZ_BLOOMS_SEQUENCE[3],
+      objective,
+      concept,
+      lens,
+    }),
+    buildMultipleChoiceQuestion({
+      lesson,
+      index: 4,
+      bloom: QUIZ_BLOOMS_SEQUENCE[4],
+      difficulty: 'Hard',
+      objective,
+      concept,
+      use: 'summative assessment',
+      prompt: `Which feedback move best helps students evaluate the quality of ${lesson.studentArtifact}?`,
+      correct: `Compare ${lesson.studentArtifact} against the ${concept} success criteria, identify the weakest evidence link, and choose one revision priority.`,
+    }),
+    buildEssayQuestion({ lesson, index: 5, objective, concept, lens }),
+  ];
+  return atoms.slice(0, targetCount).map((atom, index) => ({ ...atom, id: quizQuestionId(lesson, index) }));
+}
+
+function compileQuizBank(blueprint, config = {}) {
+  const quizzes = blueprint.lessons.map((lesson) => {
+    const questions = buildQuizAtomsForLesson(lesson, blueprint, config);
+    const totalPoints = questions.reduce((sum, question) => sum + Number(question.points || 0), 0);
+    const totalMinutes = questions.reduce((sum, question) => sum + Number(question.estimatedMinutes || 0), 0);
+    return {
       lessonTitle: lesson.title,
-      examScope: `Use this guide to prepare for Week ${lesson.lessonNumber} checks and later assessments.`,
-      summary: `${lesson.title} focuses on ${lesson.keyConcepts.slice(0, 3).join(', ')}. Students should connect those ideas to the weekly activity pattern, use evidence from course materials, and explain how the concept affects a decision or artifact.`,
-      keyTerms: lesson.keyConcepts.slice(0, 8).map((term) => ({
-        term,
-        definition: `${term} as used in ${lesson.title}, with attention to evidence, context, and application.`,
-        example: `In ${lesson.title}, students use ${term} to explain a concrete course decision.`,
+      totalQuestions: questions.length,
+      totalPoints,
+      pointPlan: `${lesson.title} uses ${questions.filter((question) => question.type === 'multiple_choice').length} multiple-choice item(s) at 2 points, ${questions.filter((question) => question.type === 'short_answer').length} short-answer item(s) at 4 points, and ${questions.filter((question) => question.type === 'essay').length} essay item(s) at 8 points for ${totalPoints} total points.`,
+      bloomsCoverage: unique(
+        questions.map((question) => question.bloomsLevel),
+        6,
+      ),
+      formativeFeedbackNote: `For ${lesson.title}, administer these questions after students practice ${compactList(lesson.keyConcepts, 'the lesson concepts', 3)}. Review missed items within one class session, allow screen-reader-friendly text formats or extended time as needed, and ask students to use results to revise ${lesson.studentArtifact}. Estimated completion time is ${totalMinutes} minutes.`,
+      questions,
+      assessmentBlueprint: `${lesson.title} covers ${lesson.outcomes.join('; ')} with ${lesson.title} lower-order retrieval, applied analysis, evaluation, and one synthesis prompt. Results indicate which parts of ${lesson.studentArtifact} need reteaching or feedback.`,
+      tags: unique(['quiz bank', lesson.title, ...lesson.keyConcepts, lesson.studentArtifact], 8),
+    };
+  });
+
+  return {
+    quizzes,
+    bankIndex: quizzes.flatMap((quiz) =>
+      quiz.questions.map((question) => ({
+        id: question.id,
+        lessonTitle: quiz.lessonTitle,
+        type: question.type,
+        bloomsLevel: question.bloomsLevel,
+        difficulty: question.difficulty,
+        estimatedMinutes: question.estimatedMinutes,
+        intendedUse: question.intendedUse,
+        tags: question.tags,
       })),
-      conceptConnections: [
-        `${lesson.title} connects to the assessment artifact: ${lesson.studentArtifact}.`,
-        `The lesson prepares students to meet this success criterion: ${lesson.successCriteria[0]}`,
+    ),
+  };
+}
+
+function slideVisual(lesson, type, title, index) {
+  if (['title', 'agenda', 'objectives', 'closing'].includes(type)) {
+    return { kind: 'none', description: '', altText: '' };
+  }
+  const kind = SLIDE_VISUAL_KINDS[index % SLIDE_VISUAL_KINDS.length];
+  const concept = lesson.keyConcepts[index % Math.max(1, lesson.keyConcepts.length)] || stripLessonPrefix(lesson.title);
+  return {
+    kind,
+    description: `${sentenceCase(kind)} showing how ${concept} supports ${stripLessonPrefix(lesson.title)} and the weekly artifact.`,
+    altText: `A ${kind} connects ${concept} to ${lesson.studentArtifact} for the slide "${title}".`,
+  };
+}
+
+function slideTypeFocus(type, lesson, lens) {
+  const concept = lesson.keyConcepts[0] || stripLessonPrefix(lesson.title);
+  const secondary = alternateLessonConcept(lesson, concept);
+  const artifact = stripTerminalPunctuation(lesson.studentArtifact);
+  switch (type) {
+    case 'title':
+      return {
+        opening: `Frame ${lesson.title} as a working session on ${compactList(lesson.keyConcepts, stripLessonPrefix(lesson.title), 3)}, not a generic overview.`,
+        evidence: `Preview the ${lens.evidenceNoun} students will inspect before they revise ${artifact}.`,
+        misconception: `Set the expectation that students will leave with one concrete move they can use in ${artifact}.`,
+      };
+    case 'agenda':
+      return {
+        opening: `Walk through the lesson flow so students can see where ${concept}, practice, and feedback each appear.`,
+        evidence: `Point to the activity block where students will test ${secondary} against live ${lens.evidenceNoun} for ${artifact}.`,
+        misconception: `Clarify that the seminar and fieldwork pieces in ${lesson.title} both support ${artifact} rather than two disconnected tasks.`,
+      };
+    case 'objectives':
+      return {
+        opening: `Read the objectives aloud as actions students should demonstrate by the end of ${lesson.title}.`,
+        evidence: `Tie each objective to the evidence move students need for ${artifact}.`,
+        misconception: `If students treat the objectives in ${lesson.title} as vocabulary only, restate them as decisions they must justify in ${artifact}.`,
+      };
+    case 'bridge':
+      return {
+        opening: `Connect the prior lesson to today's ${concept} decision so the course arc feels cumulative.`,
+        evidence: `Name what prior ${lens.evidenceNoun} still matters for ${artifact} and what new evidence students need to add today.`,
+        misconception: `Prevent compartmentalized thinking by showing how today's ${concept} revision changes the ongoing ${artifact} sequence.`,
+      };
+    case 'keyTerm':
+      return {
+        opening: `Define ${concept} with language students can reuse in seminar notes, field notes, or critique.`,
+        evidence: `Model one sentence that applies ${concept} to ${artifact} using course evidence.`,
+        misconception: `Correct any tendency to use ${concept} as a label without showing what evidence makes it credible.`,
+      };
+    case 'example':
+      return {
+        opening: `Use the scenario to show how a practitioner notices ${concept} inside a realistic course situation.`,
+        evidence: `Pause on the example long enough for students to identify which detail counts as usable ${lens.evidenceNoun} for ${artifact}.`,
+        misconception: `If students jump to recommendations about ${artifact} too early, bring them back to what the ${concept} example actually shows.`,
+      };
+    case 'activity':
+      return {
+        opening: `Give students a short work window to revise ${artifact} with a partner before the debrief.`,
+        evidence: `Circulate for whether pairs can point to one concrete ${lens.evidenceNoun} move and one ${concept} revision choice in ${artifact}.`,
+        misconception: `When groups stay abstract during ${lesson.title}, require them to annotate the exact sentence, note, or claim they would change in ${artifact}.`,
+      };
+    case 'discussion':
+      return {
+        opening: `Use the discussion in ${lesson.title} to compare competing interpretations before students lock in their next ${artifact} move.`,
+        evidence: `Push students to cite specific ${lens.evidenceNoun} instead of general impressions when they defend a ${concept} choice in ${artifact}.`,
+        misconception: `If the conversation turns into opinion-sharing, redirect to ${artifact} and ask what ${concept} evidence would change the decision.`,
+      };
+    case 'summary':
+      return {
+        opening: `Treat the self-check in ${lesson.title} as a quick readiness check, not as a formality before dismissal.`,
+        evidence: `Ask students to name which ${lens.evidenceNoun} now feels strongest for ${artifact}.`,
+        misconception: `If they can only repeat vocabulary from ${lesson.title}, prompt for the specific ${artifact} revision or next step they can now justify.`,
+      };
+    case 'closing':
+      return {
+        opening: `End by naming the exact follow-through students should complete after ${lesson.title}.`,
+        evidence: `Remind them which note, example, or feedback move should carry forward into ${artifact}.`,
+        misconception: `Avoid vague homework language in ${lesson.title}; specify that the next step is to improve ${artifact} with today's evidence and feedback.`,
+      };
+    default:
+      return {
+        opening: `Use this slide to keep ${lesson.title} tied to ${compactList(lesson.keyConcepts, stripLessonPrefix(lesson.title), 3)}.`,
+        evidence: `Connect the slide to one visible ${lens.evidenceNoun} move in ${artifact}.`,
+        misconception: `Redirect abstract discussion in ${lesson.title} back to the evidence and decision work students must complete in ${artifact}.`,
+      };
+  }
+}
+
+function slideNotes({ lesson, title, type, bullets, nextCue, lens }) {
+  const anchor = bullets[0] || title;
+  const focus = slideTypeFocus(type, lesson, lens);
+  return [
+    `${focus.opening} Anchor the explanation in ${anchor}.`,
+    `${focus.evidence}`,
+    `${focus.misconception} Redirect students to the success criterion "${lesson.successCriteria[0]}".`,
+    `Move next by asking how this point changes the ${lens.decisionNoun} for ${stripLessonPrefix(lesson.title)}${nextCue ? ` before ${nextCue}.` : ` in ${lesson.studentArtifact}.`}`,
+  ].join(' ');
+}
+
+function discussionFormatForLesson(index) {
+  return DISCUSSION_FORMAT_SEQUENCE[index % DISCUSSION_FORMAT_SEQUENCE.length];
+}
+
+function discussionDurationForFormat(format) {
+  if (format === 'Asynchronous Online') return 'Initial post by midweek; replies by week end';
+  if (format === 'Gallery Walk') return '25 min';
+  if (format === 'Debate / Structured Academic Controversy') return '30 min';
+  return '20-25 min';
+}
+
+function buildDiscussionArtifactSet(lesson, phrase) {
+  const concept = lesson.keyConcepts[0] || stripLessonPrefix(lesson.title);
+  return [
+    {
+      title: `${stripLessonPrefix(lesson.title)} Reading Notes`,
+      locator: lesson.readings.slice(0, 2).join('; '),
+      use: `Pull one concrete claim or data point that clarifies ${concept} in the main prompt.`,
+    },
+    {
+      title: `${stripLessonPrefix(lesson.title)} Assessment Brief`,
+      locator: cleanText(lesson.studentArtifact, `${stripLessonPrefix(lesson.title)} weekly artifact`),
+      use: `Use this artifact expectation to test whether the proposed decision would hold up in assessed work and ${phrase.decisionMove}.`,
+    },
+  ];
+}
+
+function buildDiscussionPrompt(lesson, phrase, lens) {
+  const concept = lesson.keyConcepts[0] || stripLessonPrefix(lesson.title);
+  const secondary = lesson.keyConcepts[1] || concept;
+  return `Which ${concept} choice should students defend in ${lesson.studentArtifact}, and how does ${secondary} strengthen or complicate that decision?`;
+}
+
+function buildDiscussionFollowUps(lesson, phrase) {
+  const concept = lesson.keyConcepts[0] || stripLessonPrefix(lesson.title);
+  const artifact = stripTerminalPunctuation(lesson.studentArtifact);
+  return [
+    `What evidence from ${lesson.title} most strongly supports your position on ${concept}?`,
+    `Which alternative reading of the same evidence about ${concept} would challenge your claim, and why might another student prefer it for ${artifact}?`,
+    `If the evidence changed, what part of ${lesson.studentArtifact} would you revise first?`,
+    `Where is the strongest limitation, risk, or ethical concern in your current reasoning about ${artifact}?`,
+    `How does this discussion help students ${stripTerminalPunctuation(phrase.decisionMove).toLowerCase()}?`,
+  ];
+}
+
+function buildDiscussionFacilitationTips(lesson, format) {
+  const concept = lesson.keyConcepts[0] || stripLessonPrefix(lesson.title);
+  const artifact = stripTerminalPunctuation(lesson.studentArtifact);
+  return {
+    opening: `Launch with two minutes of silent note-making on which ${concept} evidence source seems strongest for ${lesson.studentArtifact}, then ask for two contrasting claims before discussion opens.`,
+    ifStalls: `Ask students to compare the strongest and weakest evidence choices for ${lesson.studentArtifact}, or switch to a quick pair exchange before reopening the ${format.toLowerCase()}.`,
+    ifDominates: `Pause the ${format.toLowerCase()}, invite a new voice to paraphrase the current ${concept} claim, then require the next response to add evidence or a limitation that would sharpen ${artifact}.`,
+    closure: `Close by naming one claim the class can defend with evidence, one unresolved limitation in ${concept}, and one revision students should make before completing ${lesson.studentArtifact}.`,
+  };
+}
+
+function buildDiscussionResponseStems(lesson) {
+  const concept = lesson.keyConcepts[0] || stripLessonPrefix(lesson.title);
+  return [
+    `The evidence I find most convincing for ${concept} is...`,
+    `I agree with that conclusion about ${concept} only if the evidence also shows...`,
+    `A limitation in this reasoning about ${lesson.studentArtifact} is...`,
+    `If I were revising ${lesson.studentArtifact} after this ${concept} discussion, I would change...`,
+  ];
+}
+
+function buildDiscussionCriteriaSet(lesson) {
+  const concept = lesson.keyConcepts[0] || stripLessonPrefix(lesson.title);
+  return [
+    `Uses specific evidence from ${lesson.title} instead of unsupported opinion.`,
+    `Explains the reasoning behind the claim and connects it to ${lesson.studentArtifact}.`,
+    `Responds to a peer by extending, questioning, or refining the evidence used about ${concept}.`,
+    `Names one limitation, ethical concern, or revision step that would improve ${lesson.studentArtifact}.`,
+  ];
+}
+
+function buildDiscussionGuidelinesForFormat(lesson, format) {
+  const concept = lesson.keyConcepts[0] || stripLessonPrefix(lesson.title);
+  if (format === 'Asynchronous Online') {
+    return `Post one evidence-based response by Wednesday 11:59 PM and two substantive replies by Sunday 11:59 PM. Your initial post should be about 175-225 words, cite at least one lesson source, and take a clear position on ${lesson.studentArtifact}. A substantive reply extends or challenges a peer's evidence, reasoning, or limitation statement about ${concept} rather than simply agreeing. Discussion credit depends on timeliness, evidence use, and the quality of peer engagement around ${lesson.title}.`;
+  }
+
+  return `Come prepared with one brief evidence note before class, speak or post at least twice during the ${format}, and respond directly to one peer by building on or challenging their evidence. Reference a course concept, case detail, or reading when you contribute, and connect at least one comment to ${lesson.studentArtifact}. If you need an alternative participation mode, use the instructor-approved written or chat response option during the same activity window for ${lesson.title}. Participation is judged by evidence use, reasoning, peer response quality, and whether you name a limitation or revision move tied to ${concept}.`;
+}
+
+function compileDiscussions(blueprint) {
+  const lens = blueprintLens(blueprint);
+  return {
+    discussionDesign: {
+      courseThroughline: `Each discussion moves students from naming ${lens.evidenceNoun} to defending a ${lens.decisionNoun} they will need in later course artifacts.`,
+      sharedParticipationNorms:
+        'Use evidence before opinion, listen for contrasting interpretations, paraphrase before rebutting, and leave space for written, spoken, or chat-based entry points.',
+      scoringApproach:
+        'Discussion quality is judged by evidence use, reasoning, peer response quality, and the ability to name a limitation or revision step.',
+    },
+    discussions: blueprint.lessons.map((lesson, index) => {
+      const phrase = lessonPhrase(blueprint, lesson);
+      const format = discussionFormatForLesson(index);
+      return {
+        lessonTitle: lesson.title,
+        bloomsLevel: lesson.bloomsLevel,
+        format,
+        estimatedDuration: discussionDurationForFormat(format),
+        context: `${lesson.title} asks students to work with ${phrase.context}. The discussion should test how students ${phrase.evidenceMove} and whether they can ${stripTerminalPunctuation(phrase.decisionMove).toLowerCase()} before they finalize ${lesson.studentArtifact}.`,
+        prompt: buildDiscussionPrompt(lesson, phrase, lens),
+        evidenceRequirement: `Use at least one ${lens.evidenceNoun} source from ${lesson.title} and one concrete detail from ${lesson.studentArtifact} or its success criteria.`,
+        sourceArtifacts: buildDiscussionArtifactSet(lesson, phrase),
+        followUpProbes: buildDiscussionFollowUps(lesson, phrase),
+        facilitationTips: buildDiscussionFacilitationTips(lesson, format),
+        responseStems: buildDiscussionResponseStems(lesson),
+        evaluationCriteria: buildDiscussionCriteriaSet(lesson),
+        equityConsiderations: `Begin with two minutes of individual think time on ${lesson.studentArtifact}, allow written or spoken entry, invite quieter voices before a second comment from the same student, and provide sentence frames so students can cite ${lesson.keyConcepts[0] || stripLessonPrefix(lesson.title)} evidence without rushing.`,
+        guidelines: buildDiscussionGuidelinesForFormat(lesson, format),
+        tags: unique(['discussion', format, lesson.bloomsLevel, ...lesson.keyConcepts.slice(0, 4)], 8),
+      };
+    }),
+  };
+}
+
+function buildSlideDeckIrForLesson(blueprint, lesson, index) {
+  const lens = blueprintLens(blueprint);
+  const phrase = lessonPhrase(blueprint, lesson);
+  const previous = blueprint.lessons[index - 1];
+  const next = blueprint.lessons[index + 1];
+  const objectiveOne = lesson.outcomes[0] || objectiveForLesson(lesson.title, lesson.keyConcepts);
+  const objectiveTwo =
+    lesson.outcomes[1] || `Evaluate ${lesson.keyConcepts[0] || stripLessonPrefix(lesson.title)} evidence.`;
+  const concept = lesson.keyConcepts[0] || stripLessonPrefix(lesson.title);
+  const secondary = alternateLessonConcept(lesson, concept);
+  const slides = [
+    {
+      type: 'title',
+      title: `${lesson.title}`,
+      bullets: [`${blueprint.courseName}: ${phrase.context}`],
+      minutes: 1,
+      bloom: null,
+      objective: null,
+      activity: null,
+    },
+    {
+      type: 'agenda',
+      title: 'Session Flow',
+      bullets: [
+        'Opening connection (5 min)',
+        'Concept model (12 min)',
+        'Applied example (12 min)',
+        'Practice and debrief (18 min)',
+        'Exit synthesis (8 min)',
       ],
-      commonMisconceptions: [
-        {
-          misconception: 'Summarizing the topic is enough for strong work.',
-          correction: 'Strong work applies the concept to evidence and explains the decision or implication.',
-        },
-        {
-          misconception: 'A single example proves the whole claim.',
-          correction: 'Use enough evidence to show the pattern and name the limits of the example.',
-        },
+      minutes: 2,
+      bloom: null,
+      objective: null,
+      activity: null,
+    },
+    {
+      type: 'objectives',
+      title: 'Objectives',
+      bullets: [objectiveOne, objectiveTwo, `Use feedback to improve ${lesson.studentArtifact}.`],
+      minutes: 3,
+      bloom: null,
+      objective: objectiveOne,
+      activity: null,
+    },
+    {
+      type: 'bridge',
+      title: `${stripLessonPrefix(lesson.title)} extends the prior evidence thread`,
+      bullets: [
+        previous
+          ? `Last time: ${stripLessonPrefix(previous.title)}`
+          : `Last time: course goals and ${blueprint.courseName}`,
+        `Today: ${phrase.decisionMove}`,
+        next ? `Next: ${stripLessonPrefix(next.title)}` : `Next: final synthesis and revision planning`,
       ],
-      reviewQuestions: [
-        {
-          question: `How would you explain the central idea of ${stripLessonPrefix(lesson.title)} using course evidence?`,
-          bloomsLevel: 'Analyze',
-          hint: 'Name the concept, cite evidence, and explain why it matters.',
-        },
-        {
-          question: `What would strong work on ${lesson.studentArtifact} need to show?`,
-          bloomsLevel: 'Evaluate',
-          hint: lesson.successCriteria.join(' '),
-        },
-        {
-          question: `How does feedback from this lesson improve a later artifact?`,
-          bloomsLevel: 'Apply',
-          hint: lesson.feedbackMoment,
-        },
+      minutes: 4,
+      bloom: 'Apply',
+      objective: objectiveOne,
+      activity: null,
+    },
+    {
+      type: 'keyTerm',
+      title: concept,
+      bullets: [
+        `${concept}: a key idea students use to complete ${lesson.studentArtifact}.`,
+        `Evidence cue: ${phrase.evidenceMove}.`,
+        `Decision cue: ${phrase.decisionMove}.`,
       ],
-      practiceActivities: [
-        `Create a three-column note with concept, evidence, and decision for ${stripLessonPrefix(lesson.title)}.`,
-        `Self-check a draft against this criterion: ${lesson.successCriteria[0]}`,
+      minutes: 5,
+      bloom: 'Understand',
+      objective: objectiveOne,
+      activity: null,
+    },
+    {
+      type: 'content',
+      title: `${sentenceCase(concept)} changes what evidence students should trust`,
+      bullets: [
+        `${concept} focuses attention on evidence quality.`,
+        `${secondary} helps students avoid unsupported claims.`,
+        `${lesson.successCriteria[0]}`,
       ],
-      examPrep: {
-        keyTopicsToKnow: lesson.keyConcepts.slice(0, 5),
-        timeline: `Review notes after Week ${lesson.lessonNumber}, then revisit before the next assessment.`,
-        commonErrors: 'Avoid unsupported claims, vague definitions, and responses that omit the course artifact.',
-        reviewStrategy: 'Practice explaining one concept, one evidence source, and one implication out loud.',
-      },
-      studentResources:
-        'Use assigned readings, instructor notes, office hours, peer discussion, and the rubric criteria for this lesson.',
-      tags: unique(['study guide', lesson.title, ...lesson.keyConcepts], 10),
-    })),
+      minutes: 6,
+      bloom: 'Analyze',
+      objective: objectiveOne,
+      activity: null,
+    },
+    {
+      type: 'example',
+      title: `A ${lens.exampleNoun} makes ${concept} visible`,
+      bullets: [
+        `Start with a short scenario from ${stripLessonPrefix(lesson.title)}.`,
+        `Identify the evidence students can actually inspect.`,
+        `Key insight: the strongest ${lesson.title} answer explains why the evidence changes the decision.`,
+      ],
+      minutes: 7,
+      bloom: 'Analyze',
+      objective: objectiveTwo,
+      activity: null,
+    },
+    {
+      type: 'activity',
+      title: `Students practice revising ${lesson.studentArtifact}`,
+      bullets: [
+        `Pairs mark one strong and one weak ${concept} evidence move.`,
+        `Each pair rewrites the weak move using ${concept}.`,
+        `Debrief by naming the revision choice.`,
+      ],
+      minutes: 10,
+      bloom: 'Apply',
+      objective: objectiveOne,
+      activity: 'Think-Pair-Share',
+    },
+    {
+      type: 'content',
+      title: `${sentenceCase(secondary)} creates a check on overclaiming`,
+      bullets: [
+        `${secondary} asks students to state limits.`,
+        `Limit language protects the credibility of ${lesson.studentArtifact}.`,
+        `Feedback on ${lesson.title} should point to the evidence gap, not only grammar.`,
+      ],
+      minutes: 6,
+      bloom: 'Evaluate',
+      objective: objectiveTwo,
+      activity: null,
+    },
+    {
+      type: 'discussion',
+      title: `The class evaluates which ${concept} ${lens.evidenceNoun} is strongest`,
+      bullets: [
+        `Compare two evidence choices for ${lesson.studentArtifact}.`,
+        `Vote on the stronger choice and explain why.`,
+        `Capture one revision rule for future work.`,
+      ],
+      minutes: 8,
+      bloom: 'Evaluate',
+      objective: objectiveTwo,
+      activity: 'Small Group Discussion',
+    },
+    {
+      type: 'summary',
+      title: 'Self-Check',
+      bullets: [
+        `Can you now ${stripTerminalPunctuation(objectiveOne).toLowerCase()}?`,
+        `Can you explain how ${concept} improves ${lesson.studentArtifact}?`,
+        `Can you name one ${lesson.studentArtifact} feedback action before the next submission?`,
+      ],
+      minutes: 4,
+      bloom: 'Evaluate',
+      objective: objectiveOne,
+      activity: null,
+    },
+    {
+      type: 'closing',
+      title: 'Next Step',
+      bullets: [
+        `Prepare or submit ${lesson.studentArtifact}; timing is set by the instructor in the local LMS.`,
+        next ? `Preview: ${stripLessonPrefix(next.title)}.` : `Preview: portfolio synthesis and final reflection.`,
+        `Use feedback from ${lesson.title} to strengthen the next artifact.`,
+      ],
+      minutes: 3,
+      bloom: null,
+      objective: null,
+      activity: null,
+    },
+  ];
+
+  return {
+    id: lesson.id,
+    lessonTitle: lesson.title,
+    tags: unique(['slide deck', lesson.title, ...lesson.keyConcepts, lens.domain], 8),
+    sequenceGuide: {
+      accessibilityStandards: `${lesson.title} should offer spoken, written, and visual entry points around ${phrase.context}; all visuals include alt text, activity directions can be completed without color-only cues, and speaker notes identify how to support learners who need more processing time or text-first participation.`,
+      cumulativeAssessmentMap: `${lesson.title} prepares students for ${lesson.studentArtifact}; the deck moves from ${phrase.evidenceMove} to ${stripTerminalPunctuation(phrase.decisionMove).toLowerCase()}, while practice slides reinforce ${lesson.successCriteria.slice(0, 2).join(' and ')} before feedback carries into the next artifact.`,
+    },
+    slides,
+  };
+}
+
+export function buildSlideDeckIntermediateRepresentation(blueprint) {
+  return {
+    version: 1,
+    source: 'course-blueprint-slide-ir',
+    decks: blueprint.lessons.map((lesson, index) => buildSlideDeckIrForLesson(blueprint, lesson, index)),
+  };
+}
+
+function compileSlideDecks(blueprint) {
+  const ir = buildSlideDeckIntermediateRepresentation(blueprint);
+  const lens = blueprintLens(blueprint);
+  return {
+    decks: ir.decks.map((deck) => {
+      const lesson = blueprint.lessons.find((item) => item.id === deck.id) || blueprint.lessons[0];
+      const slides = deck.slides.map((slide, index) => {
+        const visual = slideVisual(lesson, slide.type, slide.title, index);
+        return {
+          title: slide.title,
+          type: slide.type,
+          bullets: slide.bullets,
+          notes: slideNotes({
+            lesson,
+            title: slide.title,
+            type: slide.type,
+            bullets: slide.bullets,
+            nextCue: deck.slides[index + 1]?.title,
+            lens,
+          }),
+          visual,
+          activityType: slide.activity,
+          timer: `${slide.minutes} min`,
+          bloomsLevel: slide.bloom,
+          objectiveLink: slide.objective,
+        };
+      });
+      return {
+        lessonTitle: deck.lessonTitle,
+        totalSlides: slides.length,
+        learningObjectives: unique(slides.map((slide) => slide.objectiveLink).filter(Boolean), 5),
+        slides,
+        slideDeckSequenceGuide: deck.sequenceGuide,
+        tags: deck.tags,
+      };
+    }),
   };
 }
 
 function compileCourseFaq(blueprint, config = {}) {
   const target = Math.max(3, Math.min(8, Number(config.questionsPerLesson) || 5));
+  const lens = blueprintLens(blueprint);
   const builders = [
     (lesson) => ({
       q: `What should I focus on for ${lesson.title}?`,
-      an: `Focus on ${lesson.keyConcepts.slice(0, 3).join(', ')}, then connect those ideas to ${lesson.studentArtifact}. Strong work uses course evidence and explains a decision or implication.`,
+      an: `Focus on ${lesson.keyConcepts.slice(0, 3).join(', ')}, then connect those ideas to ${lesson.studentArtifact}. Strong ${lesson.title} work uses ${lens.evidenceNoun} and explains a decision or implication.`,
       ca: 'Concept Explanation',
       rc: lesson.keyConcepts.slice(0, 4),
       df: 'Basic',
     }),
     (lesson) => ({
-      q: `How does this lesson connect to graded work?`,
-      an: `${lesson.title} prepares you for ${lesson.studentArtifact}. Use the success criteria as a checklist before submitting or discussing your work.`,
+      q: `How does ${stripLessonPrefix(lesson.title)} connect to graded work?`,
+      an: `${lesson.title} prepares you for ${lesson.studentArtifact}. Use the ${lesson.title} success criteria as a checklist before submitting or discussing your work.`,
       ca: 'Assignment Clarification',
       rc: lesson.successCriteria,
       df: 'Intermediate',
     }),
     (lesson) => ({
-      q: 'What does strong work look like this week?',
-      an: `Strong work ${lesson.successCriteria.join(' ')} It should be specific enough that another reader can see how evidence supports the decision.`,
+      q: `What does strong work on ${stripLessonPrefix(lesson.title)} look like?`,
+      an: `Strong work on ${lesson.title} ${lesson.successCriteria.join(' ')} It should be specific enough that another reader can see how ${lesson.title} ${lens.evidenceNoun} supports the decision.`,
       ca: 'Assessment Prep',
       rc: lesson.successCriteria,
       df: 'Intermediate',
     }),
     (lesson) => ({
-      q: 'Where should I ask questions or get help?',
-      an: 'Use the official course communication channel, office hours, peer discussion spaces, and assigned support resources. Bring a specific concept, evidence point, or draft section when asking for help.',
+      q: `Where should I ask questions about ${stripLessonPrefix(lesson.title)}?`,
+      an: `Use the official course communication channel, office hours, peer discussion spaces, and ${lesson.title} support resources. For ${lesson.title}, bring a specific concept, ${lens.evidenceNoun} point, or draft section when asking for help.`,
       ca: 'Course Logistics',
-      rc: ['support', 'office hours', 'course communication'],
+      rc: [`${lesson.title} support`, 'office hours', 'course communication'],
       df: 'Basic',
     }),
     (lesson) => ({
-      q: 'What is a common mistake to avoid?',
+      q: `What common mistake should I avoid in ${stripLessonPrefix(lesson.title)}?`,
       an: `Do not stop at summary. For ${lesson.title}, explain how the concept works, what evidence supports it, and how it changes the artifact or decision.`,
       ca: 'Assessment Prep',
       rc: lesson.keyConcepts.slice(0, 4),
@@ -638,14 +1434,14 @@ function compileCourseFaq(blueprint, config = {}) {
       df: 'Intermediate',
     }),
     (lesson) => ({
-      q: 'What materials should I review first?',
+      q: `What ${stripLessonPrefix(lesson.title)} materials should I review first?`,
       an: `Start with ${lesson.readings.slice(0, 2).join(' and ')}. Then compare your notes against the weekly success criteria.`,
       ca: 'Technical Help',
       rc: lesson.readings.slice(0, 3),
       df: 'Basic',
     }),
     (lesson) => ({
-      q: 'How can I check whether I am ready before class or submission?',
+      q: `How can I check readiness for ${stripLessonPrefix(lesson.title)} before class or submission?`,
       an: `You are ready when you can define ${lesson.keyConcepts[0] || 'the main concept'}, cite lesson evidence, and explain one implication for ${lesson.studentArtifact}.`,
       ca: 'Assessment Prep',
       rc: lesson.keyConcepts.slice(0, 4),
@@ -667,14 +1463,189 @@ function compileCourseFaq(blueprint, config = {}) {
   };
 }
 
+function buildLessonPlanDurations(sessionMinutes = 110) {
+  const base = [10, 15, 20, 25, 25];
+  const used = base.reduce((sum, value) => sum + value, 0);
+  return [...base, Math.max(10, sessionMinutes - used)];
+}
+
+function formatDuration(minutes) {
+  return `${minutes} minutes`;
+}
+
+function buildLessonPlanMaterials(lesson) {
+  return unique(
+    [
+      ...lesson.readings,
+      'Course site agenda and lesson handout',
+      'Shared notes or collaboration document',
+      'Submission template for the weekly artifact',
+    ],
+    6,
+  );
+}
+
+function buildLessonPlanOutline(blueprint, lesson) {
+  const lens = blueprintLens(blueprint);
+  const phrase = lessonPhrase(blueprint, lesson);
+  const [warmUp, context, guided, collaborative, independent, debrief] = buildLessonPlanDurations();
+  const concept = lesson.keyConcepts[0] || stripLessonPrefix(lesson.title);
+  const artifact = stripTerminalPunctuation(lesson.studentArtifact);
+
+  return [
+    {
+      time: formatDuration(warmUp),
+      activity: 'Warm-up retrieval and framing',
+      type: 'Warm-up',
+      description: `Students respond to a short prompt that asks them to ${phrase.decisionMove} using prior course evidence before the day’s lesson work begins.`,
+      instructorNotes: `Collect two fast examples about ${concept}, name the evidence move worth imitating, and connect the prompt to ${lesson.outcomes[0]}.`,
+      instructorRole: `Facilitate retrieval, surface misconceptions about ${concept}, and set the purpose for ${stripLessonPrefix(lesson.title)}.`,
+      grouping: 'Whole class, then quick pair share',
+      bloomsLevel: 'Apply',
+    },
+    {
+      time: formatDuration(context),
+      activity: 'Model the weekly concept',
+      type: 'Mini-lesson',
+      description: `Introduce ${concept} with a concise worked example that shows how ${lens.learnerRole}s ${phrase.evidenceMove}.`,
+      instructorNotes: `Keep the model concrete and point to one line of reasoning students should reuse in ${artifact}.`,
+      instructorRole: `Model thinking aloud and annotate the exemplar for ${concept}.`,
+      grouping: 'Instructor model with guided notes',
+      bloomsLevel: 'Understand',
+    },
+    {
+      time: formatDuration(guided),
+      activity: 'Guided analysis',
+      type: 'Practice',
+      description: `Students inspect a short ${lens.exampleNoun} and identify which evidence, assumptions, and constraints matter most for ${stripLessonPrefix(lesson.title)}.`,
+      instructorNotes: `Prompt students to test one alternative interpretation of ${concept} so the room hears why some evidence is stronger than other evidence.`,
+      instructorRole: `Coach evidence selection and press for specificity in ${artifact}.`,
+      grouping: 'Pairs with instructor check-ins',
+      bloomsLevel: 'Analyze',
+    },
+    {
+      time: formatDuration(collaborative),
+      activity: 'Collaborative application',
+      type: 'Discussion',
+      description: `Teams apply ${concept} to a new scenario, compare options, and explain the ${lens.decisionNoun} they would defend.`,
+      instructorNotes: `Require each group to cite at least one reading, example, or class note about ${concept} before they report out.`,
+      instructorRole: `Moderate the ${stripLessonPrefix(lesson.title)} tradeoff discussion and calibrate the quality criteria for ${artifact}.`,
+      grouping: 'Small groups then share-out',
+      bloomsLevel: 'Evaluate',
+    },
+    {
+      time: formatDuration(independent),
+      activity: 'Independent artifact sprint',
+      type: 'Workshop',
+      description: `Students draft ${artifact} while using the lesson success criteria, feedback prompts, and exemplar moves as a checklist.`,
+      instructorNotes: `Conference with students who need support on ${artifact} and redirect them to the exact ${concept} criterion they have not yet met.`,
+      instructorRole: `Provide targeted feedback on ${artifact} and confirm readiness for submission.`,
+      grouping: 'Independent work with spot coaching',
+      bloomsLevel: lesson.bloomsLevel,
+    },
+    {
+      time: formatDuration(debrief),
+      activity: 'Debrief and exit ticket',
+      type: 'Closure',
+      description: `Students share one revision they made to ${artifact}, one question they still have about ${concept}, and one way today’s work prepares them for the next artifact.`,
+      instructorNotes: `Use exit-ticket responses to decide whether the next lesson should review ${concept} before extending it.`,
+      instructorRole: `Synthesize patterns from ${stripLessonPrefix(lesson.title)} and set up the next lesson.`,
+      grouping: 'Whole class plus individual exit ticket',
+      bloomsLevel: 'Evaluate',
+    },
+  ];
+}
+
+function compileLessonPlans(blueprint) {
+  const lens = blueprintLens(blueprint);
+  return {
+    lessonPlans: blueprint.lessons.map((lesson, index) => {
+      const phrase = lessonPhrase(blueprint, lesson);
+      const artifact = stripTerminalPunctuation(lesson.studentArtifact);
+      const concept = lesson.keyConcepts[0] || stripLessonPrefix(lesson.title);
+      const materials = buildLessonPlanMaterials(lesson);
+
+      return {
+        lessonTitle: lesson.title,
+        weekNumber: `Week ${lesson.lessonNumber}`,
+        duration: '110 minutes',
+        studentFacingSummary: {
+          beforeClass: `Review ${materials[0]} and arrive ready to ${phrase.evidenceMove}.`,
+          duringClass: `Use class discussion and practice time to ${phrase.decisionMove} with peers before drafting your own response.`,
+          afterClass: `Revise your work using the feedback notes and submit the final ${artifact}.`,
+          submittedArtifact: artifact,
+        },
+        artifactLength: `One focused ${stripLessonPrefix(lesson.title)} artifact, usually 350-500 words or an equivalent applied format that demonstrates ${concept}.`,
+        prerequisiteKnowledge: `Students should know the core terms from earlier course materials and be ready to connect them to ${stripLessonPrefix(lesson.title)}.`,
+        commonMisconceptions: [
+          `Treating ${concept} as summary work instead of a decision-making process.`,
+          `Listing evidence without explaining why it matters for ${artifact}.`,
+          `Using generic claims instead of course-specific examples or criteria for ${concept}.`,
+        ],
+        weeklySubmissionCriteria: `Submit ${artifact} with concrete evidence, a clear claim or recommendation, and one explicit revision move based on feedback.`,
+        localCaseReplacementNote: `If the named case for ${stripLessonPrefix(lesson.title)} is not locally relevant, replace it with a comparable ${lens.exampleNoun} that still requires students to use evidence about ${concept} and defend the same decision moves.`,
+        assessmentCriteria: lesson.successCriteria,
+        calibrationCue: `Before collecting work, compare two sample responses and name what makes the stronger ${artifact} more defensible.`,
+        bloomsLevels: unique(['Understand', 'Analyze', lesson.bloomsLevel, 'Evaluate'], 4),
+        objectives: lesson.outcomes,
+        materials,
+        warmUp: {
+          duration: '10 minutes',
+          type: 'Retrieval and framing',
+          prompt: `What evidence best helps you ${stripTerminalPunctuation(phrase.decisionMove)}?`,
+          purpose: `Activate prior knowledge and focus students on the central ${concept} decision.`,
+          facilitation: `Ask for one fast example, then name the quality cue students should carry into ${artifact}.`,
+        },
+        outline: buildLessonPlanOutline(blueprint, lesson),
+        formativeCheck: {
+          type: 'Exit ticket',
+          prompt: `State one claim from ${stripLessonPrefix(lesson.title)} and cite the evidence that makes it credible.`,
+          objectiveAligned: lesson.outcomes[0],
+          instructorAction:
+            `Sort ${stripLessonPrefix(lesson.title)} responses into ready, partial, and needs-support groups so the next lesson can reopen misconceptions before new content begins. ` +
+            `Success criteria for ${stripLessonPrefix(lesson.title)}: accurate concept use, specific evidence, and clear reasoning with one concrete example.`,
+        },
+        udlNotes: {
+          representation: `Provide the concept model in text, spoken explanation, and one visual organizer tied to ${concept}.`,
+          engagement: `Offer a choice between speaking, annotating, or drafting in writing during the ${stripLessonPrefix(lesson.title)} collaborative application task.`,
+          expression: `Allow students to show ${artifact} progress through a memo, slide, table, or annotated outline when the same criteria are met.`,
+        },
+        homework: {
+          title: artifact,
+          description: `Complete ${artifact}, use the lesson criteria as a checklist, and add one note explaining how feedback changed your draft.`,
+          estimatedTime: '45-60 minutes',
+          connectionToNext: `Bring your submitted work forward so the next lesson can build on today’s ${concept} reasoning.`,
+        },
+        closingActivity: `Close by having students name one strong evidence move from today and one revision they still need before ${artifact} is fully ready.`,
+        tags: unique(['lesson-plan', lesson.title, concept, lens.domain, ...lesson.keyConcepts], 10),
+        readyToTeachSupport: {
+          workedExample: `Show a brief exemplar for ${artifact} and annotate where the evidence, reasoning, and revision move appear.`,
+          methodSpecificMiniRubric: `Score ${artifact} for concept accuracy, evidence quality, reasoning strength, and feedback-informed revision.`,
+          studentHandout: `One-page guide with the lesson objective, success criteria, outline, and submission checklist for ${stripLessonPrefix(lesson.title)}.`,
+          instructorPrep: `Prepare the exemplar, one misconception check, and one targeted feedback prompt before teaching ${stripLessonPrefix(lesson.title)}.`,
+          accessibilityAndUDL: `Keep the ${stripLessonPrefix(lesson.title)} directions chunked, provide plain-language criteria, and let students choose an equivalent response format that still demonstrates ${concept}.`,
+        },
+      };
+    }),
+  };
+}
+
 export function compileBlueprintDeliverable(featureId, blueprint, options = {}) {
   switch (featureId) {
     case 'syllabus':
       return compileSyllabus(blueprint, options);
+    case 'lessonPlans':
+      return compileLessonPlans(blueprint, options);
+    case 'slideDecks':
+      return compileSlideDecks(blueprint, options.configMap?.slideDecks || {});
     case 'assignments':
       return compileAssignments(blueprint, options);
     case 'rubrics':
       return compileRubrics(blueprint, options);
+    case 'discussions':
+      return compileDiscussions(blueprint, options);
+    case 'quizBank':
+      return compileQuizBank(blueprint, options.configMap?.quizBank || {});
     case 'studyGuides':
       return compileStudyGuides(blueprint, options);
     case 'courseFaq':

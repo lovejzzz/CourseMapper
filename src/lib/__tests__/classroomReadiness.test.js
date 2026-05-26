@@ -1,4 +1,5 @@
 import { describe, expect, it } from 'vitest';
+import { buildCourseBlueprint, compileBlueprintDeliverables } from '../courseBlueprintCompiler';
 import {
   buildPackageRepairQueue,
   evaluateClassroomReadiness,
@@ -162,6 +163,42 @@ describe('classroomReadiness', () => {
 
     expect(result.status).toBe('warnings');
     expect(result.warnings.map((issue) => issue.message).join(' ')).toContain('generic source-artifact labels');
+  });
+
+  it('does not flag compiled discussion guidance as repeated boilerplate', () => {
+    const courseMap = {
+      courseName: 'Applied Research Design',
+      lessons: Array.from({ length: 5 }, (_, index) => ({
+        title: `Lesson ${index + 1}: Research Topic ${index + 1}`,
+        sections: [
+          {
+            topicSection: `Research Topic ${index + 1}; field scenario ${index + 1}`,
+            learningObjectives: `Analyze evidence choice ${index + 1}; Evaluate method tradeoff ${index + 1}`,
+            learningGoals: `Connect research design to applied decision ${index + 1}`,
+            weeklyAssessments: `Method memo ${index + 1}`,
+            asyncActivities: `Read article ${index + 1}; annotate evidence limits`,
+            syncActivities: `Case discussion ${index + 1}; peer critique`,
+            supportingResources: `Article ${index + 1}; data brief ${index + 1}`,
+            evaluateDesign: `Score evidence use and method reasoning ${index + 1}`,
+          },
+        ],
+      })),
+    };
+    const blueprint = buildCourseBlueprint(courseMap);
+    const compiled = compileBlueprintDeliverables(blueprint, ['discussions']);
+
+    const result = evaluateClassroomReadiness({
+      courseMap,
+      selectedFeatures: ['discussions'],
+      deliverables: {
+        discussions: {
+          status: 'done',
+          data: compiled.discussions,
+        },
+      },
+    });
+
+    expect(result.warnings.some((issue) => issue.message.includes('repeats the same boilerplate'))).toBe(false);
   });
 
   it('ignores repeated rubric support notes when criteria are lesson-specific', () => {

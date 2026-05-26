@@ -52,6 +52,9 @@ jobs:
       - name: Deliverable quality audit
         run: npm run audit:deliverables
 
+      - name: Hybrid pipeline audit
+        run: npm run audit:pipeline
+
       - name: Build
         run: npm run build
 
