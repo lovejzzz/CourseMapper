@@ -972,6 +972,49 @@ test.describe('Model Configuration', () => {
     // With a pre-configured (but fake) key, AI Configuration section should render
     await expect(page.locator('text=AI Configuration')).toBeVisible({ timeout: 5000 });
   });
+
+  test('entering the website reconnects to the last selected model', async ({ page }) => {
+    await page.route('https://api.openai.com/v1/models', async (route) => {
+      await route.fulfill({
+        contentType: 'application/json',
+        body: JSON.stringify({
+          data: [
+            { id: 'gpt-5.4-mini', created: 3 },
+            { id: 'gpt-4o-mini', created: 2 },
+          ],
+        }),
+      });
+    });
+    await page.route('https://api.openai.com/v1/chat/completions', async (route) => {
+      await route.fulfill({
+        contentType: 'application/json',
+        body: JSON.stringify({ choices: [{ message: { content: '{"ok":true}' } }] }),
+      });
+    });
+    await page.route('https://api.openai.com/v1/responses', async (route) => {
+      await route.fulfill({
+        contentType: 'application/json',
+        body: JSON.stringify({ output: [{ content: [{ type: 'output_text', text: '{"ok":true}' }] }] }),
+      });
+    });
+    await page.addInitScript(() => {
+      localStorage.clear();
+      sessionStorage.clear();
+      localStorage.setItem('coursemapper-provider', 'openai');
+      localStorage.setItem('coursemapper-apikey', 'sk-proj-test1234567890123456789012345678901234567890123456');
+      localStorage.setItem('coursemapper-modelid', 'gpt-4o-mini');
+      localStorage.setItem('coursemapper-modelname', 'GPT-4o mini');
+    });
+
+    await page.goto('/');
+    await expect(page.getByText('Connected')).toBeVisible({ timeout: 10000 });
+    await page.getByRole('button', { name: /^Edit$/ }).click();
+
+    const modelSelect = page.locator('#ai-model-select');
+    await expect(modelSelect).toBeVisible({ timeout: 1000 });
+    await expect(modelSelect).toHaveValue('gpt-4o-mini');
+    await expect.poll(() => page.evaluate(() => localStorage.getItem('coursemapper-modelid'))).toBe('gpt-4o-mini');
+  });
 });
 
 // ─────────────────────────────────────────────────────────────────────────────

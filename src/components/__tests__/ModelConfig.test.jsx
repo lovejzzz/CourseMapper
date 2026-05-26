@@ -285,4 +285,79 @@ describe('checkCredits', () => {
     });
     container.remove();
   });
+
+  it('keeps the saved model choice while reconnecting on a fresh visit', async () => {
+    vi.useFakeTimers();
+
+    localStorage.setItem('coursemapper-provider', 'openai');
+    localStorage.setItem('coursemapper-apikey', 'sk-proj-last-model-choice');
+    localStorage.setItem('coursemapper-modelid', 'gpt-4o-mini');
+    localStorage.setItem('coursemapper-modelname', 'GPT-4o mini');
+
+    const fetchMock = vi.spyOn(globalThis, 'fetch').mockImplementation((url) => {
+      const requestUrl = String(url);
+      if (requestUrl.includes('/v1/models')) {
+        return Promise.resolve({
+          ok: true,
+          json: async () => ({
+            data: [
+              { id: 'gpt-5.4-mini', created: 3 },
+              { id: 'gpt-4o-mini', created: 2 },
+            ],
+          }),
+        });
+      }
+      return Promise.resolve({ ok: true, json: async () => ({ choices: [] }) });
+    });
+
+    let latestModelId = '';
+    let latestModelIds = [];
+    let latestApiStatus = '';
+    function StateProbe() {
+      const { apiStatus, modelId, availableModels } = useAIConfig();
+      latestApiStatus = apiStatus;
+      latestModelId = modelId;
+      latestModelIds = availableModels.map((model) => model.id);
+      return null;
+    }
+    function Harness() {
+      return (
+        <AIConfigProvider>
+          <StateProbe />
+          <ModelConfig />
+        </AIConfigProvider>
+      );
+    }
+
+    const container = document.createElement('div');
+    document.body.appendChild(container);
+    const root = createRoot(container);
+
+    await act(async () => {
+      root.render(<Harness />);
+    });
+
+    expect(latestModelId).toBe('gpt-4o-mini');
+    expect(localStorage.getItem('coursemapper-modelid')).toBe('gpt-4o-mini');
+
+    await act(async () => {
+      await vi.advanceTimersByTimeAsync(850);
+    });
+    await act(async () => {
+      await Promise.resolve();
+      await Promise.resolve();
+      await Promise.resolve();
+    });
+
+    expect(fetchMock.mock.calls.some(([url]) => String(url).includes('/v1/models'))).toBe(true);
+    expect(latestModelIds).toEqual(['gpt-5.4-mini', 'gpt-4o-mini']);
+    expect(latestModelId).toBe('gpt-4o-mini');
+    expect(latestApiStatus).toBe('connected');
+    expect(localStorage.getItem('coursemapper-modelid')).toBe('gpt-4o-mini');
+
+    act(() => {
+      root.unmount();
+    });
+    container.remove();
+  });
 });

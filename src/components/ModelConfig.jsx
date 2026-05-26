@@ -375,9 +375,8 @@ export default function ModelConfig() {
 
     if (!hasSelectableCachedModel) {
       setApiStatus('idle');
-      setModelName('');
       setAvailableModels([]);
-      setModelId('');
+      // Keep modelId/modelName while reconnecting so the saved choice can be reselected from the refreshed catalog.
       setValidationMessage('');
     }
 
