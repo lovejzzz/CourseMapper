@@ -1,6 +1,6 @@
 import React, { useState, useEffect, useRef, useCallback } from 'react';
 import { fetchModelsFromProvider } from '../hooks/useStreamReader';
-import { useAIConfig } from '../contexts/AIConfigContext';
+import { getSavedApiKeyForProvider, saveApiKeyForProvider, useAIConfig } from '../contexts/AIConfigContext';
 import { WEBLLM_MODELS, isWebGPUSupported } from '../lib/webllmConstants';
 import { getGoogleModelBaseUrl } from '../lib/googleProvider';
 import { recordPendingApiCallEvent } from '../lib/apiCallPendingEvents';
@@ -223,7 +223,7 @@ export default function ModelConfig() {
   const [webllmError, setWebllmError] = useState(null);
   const webllmInitRef = useRef(false);
 
-  // When provider changes, reset model state.
+  // When provider changes, reset model state and restore that provider's trusted key.
   // Skip when provider hasn't actually changed (mount/remount/StrictMode).
   // Skip clearing apiKey when change was auto-detected from key prefix.
   useEffect(() => {
@@ -249,8 +249,7 @@ export default function ModelConfig() {
       // prefix — keep the key so validation can proceed
       autoDetectedRef.current = false;
     } else {
-      // User explicitly changed the dropdown — clear the old key
-      setApiKey('');
+      setApiKey(getSavedApiKeyForProvider(provider));
     }
   }, [provider]);
 
@@ -428,6 +427,7 @@ export default function ModelConfig() {
             timeoutMs: CREDIT_CHECK_TIMEOUT_MS,
           });
           if (cancelled) return;
+          if (hasCredits) saveApiKeyForProvider(provider, trimmedKey);
           setApiStatus(hasCredits ? 'connected' : 'no_funds');
           if (hasCredits) {
             await detectCapabilitiesForModel(selected, {

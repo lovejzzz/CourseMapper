@@ -4,6 +4,30 @@ import { getSecure, setSecure, removeSecure } from '../lib/secureStorage';
 import { createGenerationPlan } from '../lib/modelCapabilities';
 
 const AIConfigContext = createContext(null);
+const ACTIVE_API_KEY_STORAGE_KEY = 'coursemapper-apikey';
+const PROVIDER_API_KEY_STORAGE_PREFIX = 'coursemapper-apikey-provider:';
+
+export function getProviderApiKeyStorageKey(provider) {
+  return `${PROVIDER_API_KEY_STORAGE_PREFIX}${provider || 'unknown'}`;
+}
+
+export function getSavedApiKeyForProvider(provider, { includeLegacy = false } = {}) {
+  try {
+    const saved = provider ? getSecure(getProviderApiKeyStorageKey(provider)) : '';
+    if (saved) return saved;
+    return includeLegacy ? getSecure(ACTIVE_API_KEY_STORAGE_KEY) || '' : '';
+  } catch {
+    return '';
+  }
+}
+
+export function saveApiKeyForProvider(provider, apiKey) {
+  const trimmedKey = String(apiKey || '').trim();
+  if (!provider || provider === 'webllm' || !trimmedKey) return;
+  try {
+    setSecure(getProviderApiKeyStorageKey(provider), trimmedKey);
+  } catch {}
+}
 
 export function AIConfigProvider({ children }) {
   const [provider, setProvider] = useState(() => {
@@ -14,11 +38,7 @@ export function AIConfigProvider({ children }) {
     }
   });
   const [apiKey, setApiKey] = useState(() => {
-    try {
-      return getSecure('coursemapper-apikey') || '';
-    } catch {
-      return '';
-    }
+    return getSavedApiKeyForProvider(provider, { includeLegacy: true });
   });
   const [apiStatus, setApiStatus] = useState('idle');
   const [modelName, setModelName] = useState(() => {
@@ -50,8 +70,8 @@ export function AIConfigProvider({ children }) {
   // ── Persist API key, provider & model to localStorage ──
   useEffect(() => {
     try {
-      if (apiKey) setSecure('coursemapper-apikey', apiKey);
-      else removeSecure('coursemapper-apikey');
+      if (apiKey) setSecure(ACTIVE_API_KEY_STORAGE_KEY, apiKey);
+      else removeSecure(ACTIVE_API_KEY_STORAGE_KEY);
     } catch {}
   }, [apiKey]);
 

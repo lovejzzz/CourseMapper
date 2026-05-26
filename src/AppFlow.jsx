@@ -51,7 +51,7 @@ import {
 import { mergeCloudProfile } from './lib/professorProfile';
 import { mergeCloudMemories, mergeCloudAgentPrefs } from './lib/agentMemory';
 import { useAuth } from './contexts/AuthContext';
-import { useAIConfig } from './contexts/AIConfigContext';
+import { getSavedApiKeyForProvider, useAIConfig } from './contexts/AIConfigContext';
 import { useUI } from './contexts/UIContext';
 import { useCourse } from './contexts/CourseContext';
 import { log, warn, error as logError } from './lib/logger';
@@ -464,6 +464,7 @@ export default function AppFlow({ startupAction = null, onStartupHandled, onRetu
       } catch {}
 
       if (nextProvider) setProvider(nextProvider);
+      if (nextProvider) setApiKey(getSavedApiKeyForProvider(nextProvider));
       if (snapshot && Object.prototype.hasOwnProperty.call(snapshot, 'modelId')) {
         setModelId(snapshot.modelId || '');
       } else if (providerFallback !== undefined) {
@@ -475,7 +476,7 @@ export default function AppFlow({ startupAction = null, onStartupHandled, onRetu
         setModelName('');
       }
     },
-    [setModelId, setModelName, setProvider],
+    [setApiKey, setModelId, setModelName, setProvider],
   );
 
   // ── Core Course Map State ──

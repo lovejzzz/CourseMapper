@@ -1015,6 +1015,73 @@ test.describe('Model Configuration', () => {
     await expect(modelSelect).toHaveValue('gpt-4o-mini');
     await expect.poll(() => page.evaluate(() => localStorage.getItem('coursemapper-modelid'))).toBe('gpt-4o-mini');
   });
+
+  test('provider picker restores the saved API key for each provider', async ({ page }) => {
+    const openaiKey = 'sk-proj-openai-saved-key-for-e2e-1234567890';
+    const googleKey = 'AIzaGoogleSavedKeyForE2E00000000000000000';
+    await page.route('https://api.openai.com/v1/models', async (route) => {
+      await route.fulfill({
+        contentType: 'application/json',
+        body: JSON.stringify({ data: [{ id: 'gpt-4o-mini', created: 2 }] }),
+      });
+    });
+    await page.route('https://api.openai.com/v1/chat/completions', async (route) => {
+      await route.fulfill({
+        contentType: 'application/json',
+        body: JSON.stringify({ choices: [{ message: { content: '{"ok":true}' } }] }),
+      });
+    });
+    await page.route('https://generativelanguage.googleapis.com/v1beta/models?**', async (route) => {
+      await route.fulfill({
+        contentType: 'application/json',
+        body: JSON.stringify({
+          models: [
+            {
+              name: 'models/gemini-2.5-flash',
+              displayName: 'Gemini 2.5 Flash',
+              supportedGenerationMethods: ['generateContent', 'streamGenerateContent'],
+              outputTokenLimit: 65536,
+            },
+          ],
+        }),
+      });
+    });
+    await page.route('https://generativelanguage.googleapis.com/v1beta/models/*:generateContent?**', async (route) => {
+      await route.fulfill({
+        contentType: 'application/json',
+        body: JSON.stringify({ candidates: [{ content: { parts: [{ text: '{"ok":true}' }] } }] }),
+      });
+    });
+    await page.addInitScript(
+      ({ googleKey, openaiKey }) => {
+        localStorage.clear();
+        sessionStorage.clear();
+        localStorage.setItem('coursemapper-provider', 'openai');
+        localStorage.setItem('coursemapper-apikey-provider:openai', openaiKey);
+        localStorage.setItem('coursemapper-apikey-provider:google', googleKey);
+        localStorage.setItem('coursemapper-modelid', 'gpt-4o-mini');
+        localStorage.setItem('coursemapper-modelname', 'GPT-4o mini');
+      },
+      { googleKey, openaiKey },
+    );
+
+    await page.goto('/');
+    await expect(page.getByText('Connected')).toBeVisible({ timeout: 10000 });
+    await page.getByRole('button', { name: /^Edit$/ }).click();
+
+    const providerSelect = page.locator('#ai-provider-select');
+    const apiKeyInput = page.locator('#ai-api-key-input');
+    await expect(apiKeyInput).toHaveValue(openaiKey);
+
+    await providerSelect.selectOption('google');
+    await expect(apiKeyInput).toHaveValue(googleKey);
+
+    await providerSelect.selectOption('anthropic');
+    await expect(apiKeyInput).toHaveValue('');
+
+    await providerSelect.selectOption('openai');
+    await expect(apiKeyInput).toHaveValue(openaiKey);
+  });
 });
 
 // ─────────────────────────────────────────────────────────────────────────────

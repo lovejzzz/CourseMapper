@@ -6,7 +6,13 @@ import { act } from 'react';
 import { createRoot } from 'react-dom/client';
 import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest';
 import ModelConfig, { checkCredits } from '../ModelConfig';
-import { AIConfigProvider, useAIConfig } from '../../contexts/AIConfigContext';
+import {
+  AIConfigProvider,
+  getProviderApiKeyStorageKey,
+  getSavedApiKeyForProvider,
+  saveApiKeyForProvider,
+  useAIConfig,
+} from '../../contexts/AIConfigContext';
 
 globalThis.IS_REACT_ACT_ENVIRONMENT = true;
 
@@ -354,6 +360,74 @@ describe('checkCredits', () => {
     expect(latestModelId).toBe('gpt-4o-mini');
     expect(latestApiStatus).toBe('connected');
     expect(localStorage.getItem('coursemapper-modelid')).toBe('gpt-4o-mini');
+    expect(getSavedApiKeyForProvider('openai')).toBe('sk-proj-last-model-choice');
+    expect(localStorage.getItem(getProviderApiKeyStorageKey('openai'))).toMatch(/^obf:/);
+
+    act(() => {
+      root.unmount();
+    });
+    container.remove();
+  });
+
+  it('restores saved API keys when switching back to a provider', async () => {
+    vi.useFakeTimers();
+
+    const openaiKey = 'sk-proj-openai-saved-key-1234567890';
+    const googleKey = 'AIzaGoogleSavedKeyForUnitTest000000000000';
+    localStorage.setItem('coursemapper-provider', 'openai');
+    saveApiKeyForProvider('openai', openaiKey);
+    saveApiKeyForProvider('google', googleKey);
+
+    let latestApiKey = '';
+    let latestProvider = '';
+    let setProviderFromTest = null;
+    function StateProbe() {
+      const { apiKey, provider, setProvider } = useAIConfig();
+      latestApiKey = apiKey;
+      latestProvider = provider;
+      setProviderFromTest = setProvider;
+      return null;
+    }
+    function Harness() {
+      return (
+        <AIConfigProvider>
+          <StateProbe />
+          <ModelConfig />
+        </AIConfigProvider>
+      );
+    }
+
+    const container = document.createElement('div');
+    document.body.appendChild(container);
+    const root = createRoot(container);
+
+    await act(async () => {
+      root.render(<Harness />);
+    });
+
+    expect(latestProvider).toBe('openai');
+    expect(latestApiKey).toBe(openaiKey);
+
+    await act(async () => {
+      setProviderFromTest('google');
+      await Promise.resolve();
+    });
+    expect(latestProvider).toBe('google');
+    expect(latestApiKey).toBe(googleKey);
+
+    await act(async () => {
+      setProviderFromTest('anthropic');
+      await Promise.resolve();
+    });
+    expect(latestProvider).toBe('anthropic');
+    expect(latestApiKey).toBe('');
+
+    await act(async () => {
+      setProviderFromTest('openai');
+      await Promise.resolve();
+    });
+    expect(latestProvider).toBe('openai');
+    expect(latestApiKey).toBe(openaiKey);
 
     act(() => {
       root.unmount();
