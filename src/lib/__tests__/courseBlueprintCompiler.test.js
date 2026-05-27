@@ -185,6 +185,9 @@ describe('courseBlueprintCompiler', () => {
       'practice slides reinforce',
     );
     expect(compiled.slideDecks.decks[0].slides[0].notes).toContain('working session');
+    expect(JSON.stringify(compiled.slideDecks.decks[0])).not.toMatch(/\bTBD\b|Anchor the explanation in/i);
+    expect(compiled.slideDecks.decks[0].lessonTitle).toBe('Lesson 1: Placement orientation and community context');
+    expect(compiled.slideDecks.decks[0].slides[1].bullets.join(' ')).toContain('Practice with');
   });
 
   it('compiles predictable weekly reflection custom deliverables from the blueprint', () => {

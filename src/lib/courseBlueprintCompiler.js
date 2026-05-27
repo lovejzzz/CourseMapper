@@ -1088,41 +1088,166 @@ function compileQuizBank(blueprint, config = {}) {
   };
 }
 
+const SLIDE_STRUCTURAL_LABEL_RE =
+  /^(?:clinical\s+block\s*\d*|block\s*\d+|studio\s+seminar|clinical\s+placement|field\s+application|course\s+goals)$/i;
+const SLIDE_WEAK_PHRASE_RE = /^(?:tbd|to be determined|none|n\/a|lesson|week|topic|clinical|block|studio|seminar)$/i;
+
+function normalizeSlidePhrase(value) {
+  const raw = stripTerminalPunctuation(stripLessonPrefix(value))
+    .replace(/\bTBD\b/gi, '')
+    .replace(/\s+/g, ' ')
+    .trim();
+  if (!raw) return '';
+
+  const parts = raw
+    .split(/\s*\/\s*/)
+    .map((part) =>
+      stripTerminalPunctuation(part)
+        .replace(/^(?:clinical\s+block\s*\d+|block\s*\d+)\s*[:.-]?\s*/i, '')
+        .trim(),
+    )
+    .filter(Boolean);
+
+  const phrase =
+    parts.length > 1
+      ? parts.filter((part) => !SLIDE_STRUCTURAL_LABEL_RE.test(part)).join(' and ') || parts[parts.length - 1]
+      : parts[0] || raw;
+
+  return cleanText(
+    phrase
+      .replace(/^(?:studio\s+seminar|clinical\s+placement|field\s+application)\s*[:.-]?\s*/i, '')
+      .replace(/\s+/g, ' '),
+  );
+}
+
+function isWeakSlidePhrase(value) {
+  const text = cleanText(value);
+  if (!text) return true;
+  if (SLIDE_WEAK_PHRASE_RE.test(text)) return true;
+  return text.length > 95;
+}
+
+function slideConceptCandidates(lesson) {
+  return unique(
+    [
+      ...asArray(lesson?.keyConcepts),
+      lesson?.title,
+      ...(lesson?.outcomes || []),
+      ...(lesson?.readings || []),
+      lesson?.activityPattern,
+    ]
+      .map(normalizeSlidePhrase)
+      .filter((phrase) => !isWeakSlidePhrase(phrase)),
+    6,
+  );
+}
+
+function primarySlideConcept(lesson) {
+  return slideConceptCandidates(lesson)[0] || `Week ${lesson?.lessonNumber || ''} focus`.trim();
+}
+
+function secondarySlideConcept(lesson, primary = primarySlideConcept(lesson)) {
+  return (
+    slideConceptCandidates(lesson).find(
+      (candidate) => cleanText(candidate).toLowerCase() !== cleanText(primary).toLowerCase(),
+    ) || primary
+  );
+}
+
+function slideConceptList(lesson, fallback = primarySlideConcept(lesson)) {
+  return compactList(slideConceptCandidates(lesson), fallback, 3);
+}
+
+function slideLessonTitle(lesson) {
+  const title = normalizeSlidePhrase(lesson?.title);
+  const display = isWeakSlidePhrase(title) ? primarySlideConcept(lesson) : title;
+  return `Lesson ${lesson?.lessonNumber || ''}: ${sentenceCase(display)}`.replace(/\s+:/, ':').trim();
+}
+
+function slideArtifact(lesson) {
+  const parts = cleanText(lesson?.studentArtifact)
+    .split(/\s*;\s*/)
+    .map(stripTerminalPunctuation)
+    .filter((part) => part && !/\b(TBD|to be determined)\b/i.test(part));
+  return parts[0] || `${primarySlideConcept(lesson)} artifact`;
+}
+
+function slideActivityCue(lesson) {
+  return (
+    cleanText(lesson?.activityPattern)
+      .split(/\s*;\s*/)
+      .map(stripTerminalPunctuation)
+      .find((part) => part && !/\b(TBD|to be determined)\b/i.test(part)) ||
+    `short applied practice with ${primarySlideConcept(lesson)}`
+  );
+}
+
+function slideSourceCue(lesson) {
+  return (
+    asArray(lesson?.readings)
+      .map(normalizeSlidePhrase)
+      .find((part) => !isWeakSlidePhrase(part)) || `${primarySlideConcept(lesson)} course materials`
+  );
+}
+
+function slideSuccessCriterion(lesson) {
+  return (
+    asArray(lesson?.successCriteria).find((criterion) => criterion && !/\b(TBD|to be determined)\b/i.test(criterion)) ||
+    `Uses specific evidence about ${primarySlideConcept(lesson)} to improve ${slideArtifact(lesson)}.`
+  );
+}
+
+function slideDeckPhrase(blueprint, lesson) {
+  const lens = blueprintLens(blueprint);
+  const concept = primarySlideConcept(lesson);
+  const source = slideSourceCue(lesson);
+  return {
+    context: slideConceptList(lesson, concept),
+    evidenceMove: `use ${lens.evidenceNoun} from ${source} to test ${concept}`,
+    decisionMove: `choose the ${lens.decisionNoun} for ${slideArtifact(lesson)}`,
+  };
+}
+
 function slideVisual(lesson, type, title, index) {
   if (['title', 'agenda', 'objectives', 'closing'].includes(type)) {
     return { kind: 'none', description: '', altText: '' };
   }
   const kind = SLIDE_VISUAL_KINDS[index % SLIDE_VISUAL_KINDS.length];
-  const concept = lesson.keyConcepts[index % Math.max(1, lesson.keyConcepts.length)] || stripLessonPrefix(lesson.title);
+  const concepts = slideConceptCandidates(lesson);
+  const concept = concepts[index % Math.max(1, concepts.length)] || primarySlideConcept(lesson);
+  const artifact = slideArtifact(lesson);
   return {
     kind,
-    description: `${sentenceCase(kind)} showing how ${concept} supports ${stripLessonPrefix(lesson.title)} and the weekly artifact.`,
-    altText: `A ${kind} connects ${concept} to ${lesson.studentArtifact} for the slide "${title}".`,
+    description: `${sentenceCase(kind)} for ${concept}: connect the evidence source, student decision, and ${artifact}.`,
+    altText: `A ${kind} connects ${concept} evidence to ${artifact} for the slide "${title}".`,
   };
 }
 
 function slideTypeFocus(type, lesson, lens) {
-  const concept = lesson.keyConcepts[0] || stripLessonPrefix(lesson.title);
-  const secondary = alternateLessonConcept(lesson, concept);
-  const artifact = stripTerminalPunctuation(lesson.studentArtifact);
+  const concept = primarySlideConcept(lesson);
+  const secondary = secondarySlideConcept(lesson, concept);
+  const displayTitle = slideLessonTitle(lesson);
+  const artifact = slideArtifact(lesson);
+  const source = slideSourceCue(lesson);
+  const successCriterion = slideSuccessCriterion(lesson);
   switch (type) {
     case 'title':
       return {
-        opening: `Frame ${lesson.title} as a working session on ${compactList(lesson.keyConcepts, stripLessonPrefix(lesson.title), 3)}, not a generic overview.`,
-        evidence: `Preview the ${lens.evidenceNoun} students will inspect before they revise ${artifact}.`,
+        opening: `Frame ${displayTitle} as a working session on ${slideConceptList(lesson)}, with ${artifact} as the visible product.`,
+        evidence: `Preview the ${lens.evidenceNoun} from ${source} that students will inspect before they revise ${artifact}.`,
         misconception: `Set the expectation that students will leave with one concrete move they can use in ${artifact}.`,
       };
     case 'agenda':
       return {
-        opening: `Walk through the lesson flow so students can see where ${concept}, practice, and feedback each appear.`,
-        evidence: `Point to the activity block where students will test ${secondary} against live ${lens.evidenceNoun} for ${artifact}.`,
-        misconception: `Clarify that the seminar and fieldwork pieces in ${lesson.title} both support ${artifact} rather than two disconnected tasks.`,
+        opening: `Walk through the lesson flow so students can see where ${concept}, practice, and feedback each appear in ${displayTitle}.`,
+        evidence: `Point to the work block where students test ${secondary} against live ${lens.evidenceNoun} for ${artifact}.`,
+        misconception: `Clarify that preparation, practice, and debrief all support ${artifact} rather than disconnected tasks.`,
       };
     case 'objectives':
       return {
-        opening: `Read the objectives aloud as actions students should demonstrate by the end of ${lesson.title}.`,
+        opening: `Translate the objectives into actions students should demonstrate by the end of ${displayTitle}.`,
         evidence: `Tie each objective to the evidence move students need for ${artifact}.`,
-        misconception: `If students treat the objectives in ${lesson.title} as vocabulary only, restate them as decisions they must justify in ${artifact}.`,
+        misconception: `If students treat the objectives as vocabulary only, restate them as decisions they must justify in ${artifact}.`,
       };
     case 'bridge':
       return {
@@ -1132,7 +1257,7 @@ function slideTypeFocus(type, lesson, lens) {
       };
     case 'keyTerm':
       return {
-        opening: `Define ${concept} with language students can reuse in seminar notes, field notes, or critique.`,
+        opening: `Define ${concept} with language students can reuse in notes, field observations, critique, or draft feedback.`,
         evidence: `Model one sentence that applies ${concept} to ${artifact} using course evidence.`,
         misconception: `Correct any tendency to use ${concept} as a label without showing what evidence makes it credible.`,
       };
@@ -1146,43 +1271,110 @@ function slideTypeFocus(type, lesson, lens) {
       return {
         opening: `Give students a short work window to revise ${artifact} with a partner before the debrief.`,
         evidence: `Circulate for whether pairs can point to one concrete ${lens.evidenceNoun} move and one ${concept} revision choice in ${artifact}.`,
-        misconception: `When groups stay abstract during ${lesson.title}, require them to annotate the exact sentence, note, or claim they would change in ${artifact}.`,
+        misconception: `When groups stay abstract, require them to annotate the exact sentence, note, or claim they would change in ${artifact}.`,
       };
     case 'discussion':
       return {
-        opening: `Use the discussion in ${lesson.title} to compare competing interpretations before students lock in their next ${artifact} move.`,
+        opening: `Use the discussion to compare competing interpretations before students lock in their next ${artifact} move.`,
         evidence: `Push students to cite specific ${lens.evidenceNoun} instead of general impressions when they defend a ${concept} choice in ${artifact}.`,
         misconception: `If the conversation turns into opinion-sharing, redirect to ${artifact} and ask what ${concept} evidence would change the decision.`,
       };
     case 'summary':
       return {
-        opening: `Treat the self-check in ${lesson.title} as a quick readiness check, not as a formality before dismissal.`,
+        opening: `Treat the ${concept} self-check for ${artifact} as a quick readiness check, not as a formality before dismissal.`,
         evidence: `Ask students to name which ${lens.evidenceNoun} now feels strongest for ${artifact}.`,
-        misconception: `If they can only repeat vocabulary from ${lesson.title}, prompt for the specific ${artifact} revision or next step they can now justify.`,
+        misconception: `If they can only repeat vocabulary, prompt for the specific ${artifact} revision or next step they can now justify.`,
       };
     case 'closing':
       return {
-        opening: `End by naming the exact follow-through students should complete after ${lesson.title}.`,
+        opening: `End by naming the exact follow-through students should complete after ${displayTitle}.`,
         evidence: `Remind them which note, example, or feedback move should carry forward into ${artifact}.`,
-        misconception: `Avoid vague homework language in ${lesson.title}; specify that the next step is to improve ${artifact} with today's evidence and feedback.`,
+        misconception: `Avoid vague homework language; specify that the next step is to improve ${artifact} with today's evidence and feedback.`,
       };
     default:
       return {
-        opening: `Use this slide to keep ${lesson.title} tied to ${compactList(lesson.keyConcepts, stripLessonPrefix(lesson.title), 3)}.`,
+        opening: `Use this slide to keep ${displayTitle} tied to ${slideConceptList(lesson)}.`,
         evidence: `Connect the slide to one visible ${lens.evidenceNoun} move in ${artifact}.`,
-        misconception: `Redirect abstract discussion in ${lesson.title} back to the evidence and decision work students must complete in ${artifact}.`,
+        misconception: `Redirect abstract discussion back to the evidence and decision work students must complete in ${artifact}.`,
       };
   }
+}
+
+function slideNoteAnchor({ type, anchor, concept, artifact, displayTitle }) {
+  switch (type) {
+    case 'title':
+      return `Open the working session by naming the product students are building: ${artifact}. Use "${anchor}" to connect the topic to the decisions they will make today.`;
+    case 'agenda':
+      return `Keep the pacing visible and point to the first ${concept} checkpoint: ${anchor}. Students should know when they will listen, practice, compare, and revise ${artifact}.`;
+    case 'objectives':
+      return `Turn "${anchor}" into an observable performance target; ask students what evidence would prove they can do it.`;
+    case 'bridge':
+      return `Use "${anchor}" as the continuity cue between prior work and today's ${concept} decision.`;
+    case 'keyTerm':
+      return `Put "${anchor}" into a sentence students could write in their own notes before showing a formal definition.`;
+    case 'example':
+      return `Treat "${anchor}" as the ${concept} detail to inspect, then ask what it reveals about ${artifact} and what it does not prove.`;
+    case 'activity':
+      return `Set up the activity with a visible output: each pair must leave a marked revision, not just a conversation about ${concept}.`;
+    case 'discussion':
+      return `Start the discussion from a concrete contrast in "${anchor}" so the exchange does not drift into general opinion.`;
+    case 'summary':
+      return `Use "${anchor}" as a quick oral or written check for ${concept} readiness before students leave ${displayTitle}.`;
+    case 'closing':
+      return `Close with the handoff: students should know exactly what to revise, prepare, or submit for ${artifact}.`;
+    default:
+      return `Use "${anchor}" as the claim students need to test with evidence, not as a heading to copy.`;
+  }
+}
+
+function slideNoteCriterionCue(type, criterion) {
+  const cues = {
+    title: `Keep the success test visible from the start: ${criterion}`,
+    agenda: `Use the agenda to show when students will practice this criterion: ${criterion}`,
+    objectives: `Make the criterion measurable in student language: ${criterion}`,
+    bridge: `Ask which prior move already supports the criterion and which part still needs work: ${criterion}`,
+    keyTerm: `Check that students can use the term to meet this criterion: ${criterion}`,
+    example: `Score the example against the criterion before moving on: ${criterion}`,
+    activity: `During circulation, look for evidence that pairs are improving this criterion: ${criterion}`,
+    discussion: `Use the criterion to decide which argument is strongest: ${criterion}`,
+    summary: `Have students self-rate readiness against this criterion: ${criterion}`,
+    closing: `Make the after-class task point directly back to this criterion: ${criterion}`,
+  };
+  return cues[type] || `Tie the explanation back to this criterion: ${criterion}`;
+}
+
+function slideNoteTransition({ type, nextCue, lens, concept, artifact }) {
+  if (nextCue) {
+    const transitions = {
+      title: `Then move into "${nextCue}" by asking what students need to notice first about ${concept}.`,
+      agenda: `Before "${nextCue}", confirm students can name the ${concept} evidence they will use for ${artifact}.`,
+      objectives: `Transition to "${nextCue}" by choosing one ${concept} objective to watch during practice.`,
+      bridge: `Use that ${concept} carry-forward point to launch "${nextCue}" without restarting the lesson from scratch.`,
+      keyTerm: `Move to "${nextCue}" by asking students where ${concept} would show up in ${artifact}.`,
+      content: `Move next to "${nextCue}" by naming how ${concept} changes the ${lens.decisionNoun} for ${artifact}.`,
+      example: `Carry the strongest ${concept} detail into "${nextCue}" as the next piece of evidence for ${artifact}.`,
+      activity: `Use one ${artifact} revision as the bridge into "${nextCue}".`,
+      discussion: `Close the exchange by selecting the ${concept} claim that should guide "${nextCue}".`,
+      summary: `Use the ${concept} self-check result to decide what needs reinforcement in "${nextCue}".`,
+      closing: `Point students to "${nextCue}" as the next place their ${artifact} revision decision will matter.`,
+    };
+    return transitions[type] || `Move next to "${nextCue}" by naming how it changes the ${lens.decisionNoun}.`;
+  }
+  return `End by asking how this point changes the ${lens.decisionNoun} students will make for ${artifact}.`;
 }
 
 function slideNotes({ lesson, title, type, bullets, nextCue, lens }) {
   const anchor = bullets[0] || title;
   const focus = slideTypeFocus(type, lesson, lens);
+  const concept = primarySlideConcept(lesson);
+  const artifact = slideArtifact(lesson);
+  const displayTitle = slideLessonTitle(lesson);
+  const criterion = slideSuccessCriterion(lesson);
   return [
-    `${focus.opening} Anchor the explanation in ${anchor}.`,
-    `${focus.evidence}`,
-    `${focus.misconception} Redirect students to the success criterion "${lesson.successCriteria[0]}".`,
-    `Move next by asking how this point changes the ${lens.decisionNoun} for ${stripLessonPrefix(lesson.title)}${nextCue ? ` before ${nextCue}.` : ` in ${lesson.studentArtifact}.`}`,
+    `${focus.opening} ${slideNoteAnchor({ type, anchor, concept, artifact, displayTitle })}`,
+    focus.evidence,
+    `${focus.misconception} ${slideNoteCriterionCue(type, criterion)}`,
+    slideNoteTransition({ type, nextCue, lens, concept, artifact }),
   ].join(' ');
 }
 
@@ -1307,19 +1499,31 @@ function compileDiscussions(blueprint) {
 
 function buildSlideDeckIrForLesson(blueprint, lesson, index) {
   const lens = blueprintLens(blueprint);
-  const phrase = lessonPhrase(blueprint, lesson);
+  const phrase = slideDeckPhrase(blueprint, lesson);
   const previous = blueprint.lessons[index - 1];
   const next = blueprint.lessons[index + 1];
-  const objectiveOne = lesson.outcomes[0] || objectiveForLesson(lesson.title, lesson.keyConcepts);
+  const displayTitle = slideLessonTitle(lesson);
+  const concept = primarySlideConcept(lesson);
+  const secondary = secondarySlideConcept(lesson, concept);
+  const artifact = slideArtifact(lesson);
+  const activityCue = slideActivityCue(lesson);
+  const sourceCue = slideSourceCue(lesson);
+  const successCriterion = slideSuccessCriterion(lesson);
+  const sequenceArtifact = /\b(TBD|to be determined)\b/i.test(cleanText(lesson.studentArtifact))
+    ? artifact
+    : cleanText(lesson.studentArtifact, artifact);
+  const sequenceCriterion = stripTerminalPunctuation(successCriterion);
+  const objectiveOne =
+    lesson.outcomes.find((outcome) => outcome && !/\b(TBD|to be determined)\b/i.test(outcome)) ||
+    `Analyze ${concept} using course evidence and explain how it informs ${artifact}.`;
   const objectiveTwo =
-    lesson.outcomes[1] || `Evaluate ${lesson.keyConcepts[0] || stripLessonPrefix(lesson.title)} evidence.`;
-  const concept = lesson.keyConcepts[0] || stripLessonPrefix(lesson.title);
-  const secondary = alternateLessonConcept(lesson, concept);
+    lesson.outcomes.find((outcome) => outcome !== objectiveOne && !/\b(TBD|to be determined)\b/i.test(outcome)) ||
+    `Evaluate how ${secondary} evidence changes ${artifact}.`;
   const slides = [
     {
       type: 'title',
-      title: `${lesson.title}`,
-      bullets: [`${blueprint.courseName}: ${phrase.context}`],
+      title: displayTitle,
+      bullets: [`${blueprint.courseName}: ${phrase.context}`, `Today students improve: ${artifact}`],
       minutes: 1,
       bloom: null,
       objective: null,
@@ -1327,13 +1531,15 @@ function buildSlideDeckIrForLesson(blueprint, lesson, index) {
     },
     {
       type: 'agenda',
-      title: 'Session Flow',
+      title: 'Session Plan',
       bullets: [
-        'Opening connection (5 min)',
-        'Concept model (12 min)',
-        'Applied example (12 min)',
-        'Practice and debrief (18 min)',
-        'Exit synthesis (8 min)',
+        `Frame ${concept} through ${sourceCue}.`,
+        `Model the evidence decision for ${artifact}.`,
+        `Practice with ${concept}: ${activityCue}.`,
+        `Debrief against this criterion: ${successCriterion}`,
+        next
+          ? `Carry forward to ${primarySlideConcept(next)}.`
+          : 'Carry forward to final synthesis and revision planning.',
       ],
       minutes: 2,
       bloom: null,
@@ -1351,13 +1557,13 @@ function buildSlideDeckIrForLesson(blueprint, lesson, index) {
     },
     {
       type: 'bridge',
-      title: `${stripLessonPrefix(lesson.title)} extends the prior evidence thread`,
+      title: `${sentenceCase(concept)} carries the evidence thread forward`,
       bullets: [
         previous
-          ? `Last time: ${stripLessonPrefix(previous.title)}`
+          ? `Last time: ${primarySlideConcept(previous)}`
           : `Last time: course goals and ${blueprint.courseName}`,
         `Today: ${phrase.decisionMove}`,
-        next ? `Next: ${stripLessonPrefix(next.title)}` : `Next: final synthesis and revision planning`,
+        next ? `Next: ${primarySlideConcept(next)}` : `Next: final synthesis and revision planning`,
       ],
       minutes: 4,
       bloom: 'Apply',
@@ -1366,9 +1572,9 @@ function buildSlideDeckIrForLesson(blueprint, lesson, index) {
     },
     {
       type: 'keyTerm',
-      title: concept,
+      title: `What counts as ${concept}?`,
       bullets: [
-        `${concept}: a key idea students use to complete ${lesson.studentArtifact}.`,
+        `${concept}: a decision tool for ${artifact}.`,
         `Evidence cue: ${phrase.evidenceMove}.`,
         `Decision cue: ${phrase.decisionMove}.`,
       ],
@@ -1379,11 +1585,11 @@ function buildSlideDeckIrForLesson(blueprint, lesson, index) {
     },
     {
       type: 'content',
-      title: `${sentenceCase(concept)} changes what evidence students should trust`,
+      title: `Evidence that can actually support ${artifact}`,
       bullets: [
-        `${concept} focuses attention on evidence quality.`,
-        `${secondary} helps students avoid unsupported claims.`,
-        `${lesson.successCriteria[0]}`,
+        `${concept} focuses attention on evidence quality, not just topic coverage.`,
+        `${secondary} helps students avoid unsupported claims in ${artifact}.`,
+        successCriterion,
       ],
       minutes: 6,
       bloom: 'Analyze',
@@ -1392,11 +1598,11 @@ function buildSlideDeckIrForLesson(blueprint, lesson, index) {
     },
     {
       type: 'example',
-      title: `A ${lens.exampleNoun} makes ${concept} visible`,
+      title: `${sentenceCase(concept)} in a ${lens.exampleNoun}`,
       bullets: [
-        `Start with a short scenario from ${stripLessonPrefix(lesson.title)}.`,
-        `Identify the evidence students can actually inspect.`,
-        `Key insight: the strongest ${lesson.title} answer explains why the evidence changes the decision.`,
+        `Start with a short scenario from ${sourceCue}.`,
+        `Identify the ${concept} evidence students can actually inspect in ${sourceCue}.`,
+        `Key insight: the strongest answer explains why the evidence changes ${artifact}.`,
       ],
       minutes: 7,
       bloom: 'Analyze',
@@ -1405,7 +1611,7 @@ function buildSlideDeckIrForLesson(blueprint, lesson, index) {
     },
     {
       type: 'activity',
-      title: `Students practice revising ${lesson.studentArtifact}`,
+      title: `Revise one evidence move for ${artifact}`,
       bullets: [
         `Pairs mark one strong and one weak ${concept} evidence move.`,
         `Each pair rewrites the weak move using ${concept}.`,
@@ -1418,11 +1624,11 @@ function buildSlideDeckIrForLesson(blueprint, lesson, index) {
     },
     {
       type: 'content',
-      title: `${sentenceCase(secondary)} creates a check on overclaiming`,
+      title: `Use ${secondary} to keep claims honest`,
       bullets: [
         `${secondary} asks students to state limits.`,
-        `Limit language protects the credibility of ${lesson.studentArtifact}.`,
-        `Feedback on ${lesson.title} should point to the evidence gap, not only grammar.`,
+        `Limit language protects the credibility of ${artifact}.`,
+        `Feedback on ${artifact} should point to the ${secondary} evidence gap, not only grammar.`,
       ],
       minutes: 6,
       bloom: 'Evaluate',
@@ -1431,9 +1637,9 @@ function buildSlideDeckIrForLesson(blueprint, lesson, index) {
     },
     {
       type: 'discussion',
-      title: `The class evaluates which ${concept} ${lens.evidenceNoun} is strongest`,
+      title: `Which evidence choice holds up?`,
       bullets: [
-        `Compare two evidence choices for ${lesson.studentArtifact}.`,
+        `Compare two evidence choices for ${artifact}.`,
         `Vote on the stronger choice and explain why.`,
         `Capture one revision rule for future work.`,
       ],
@@ -1444,11 +1650,11 @@ function buildSlideDeckIrForLesson(blueprint, lesson, index) {
     },
     {
       type: 'summary',
-      title: 'Self-Check',
+      title: `${sentenceCase(concept)} readiness check`,
       bullets: [
         `Can you now ${stripTerminalPunctuation(objectiveOne).toLowerCase()}?`,
-        `Can you explain how ${concept} improves ${lesson.studentArtifact}?`,
-        `Can you name one ${lesson.studentArtifact} feedback action before the next submission?`,
+        `Can you explain how ${concept} improves ${artifact}?`,
+        `Can you name one ${artifact} feedback action before the next submission?`,
       ],
       minutes: 4,
       bloom: 'Evaluate',
@@ -1457,11 +1663,11 @@ function buildSlideDeckIrForLesson(blueprint, lesson, index) {
     },
     {
       type: 'closing',
-      title: 'Next Step',
+      title: 'Carry Forward',
       bullets: [
-        `Prepare or submit ${lesson.studentArtifact}; timing is set by the instructor in the local LMS.`,
-        next ? `Preview: ${stripLessonPrefix(next.title)}.` : `Preview: portfolio synthesis and final reflection.`,
-        `Use feedback from ${lesson.title} to strengthen the next artifact.`,
+        `Prepare or submit ${artifact}; timing is set by the instructor in the local LMS.`,
+        next ? `Preview: ${primarySlideConcept(next)}.` : `Preview: portfolio synthesis and final reflection.`,
+        `Use feedback from ${displayTitle} to strengthen the next artifact.`,
       ],
       minutes: 3,
       bloom: null,
@@ -1472,11 +1678,11 @@ function buildSlideDeckIrForLesson(blueprint, lesson, index) {
 
   return {
     id: lesson.id,
-    lessonTitle: lesson.title,
-    tags: unique(['slide deck', lesson.title, ...lesson.keyConcepts, lens.domain], 8),
+    lessonTitle: displayTitle,
+    tags: unique(['slide deck', displayTitle, ...slideConceptCandidates(lesson), lens.domain], 8),
     sequenceGuide: {
-      accessibilityStandards: `${lesson.title} should offer spoken, written, and visual entry points around ${phrase.context}; all visuals include alt text, activity directions can be completed without color-only cues, and speaker notes identify how to support learners who need more processing time or text-first participation.`,
-      cumulativeAssessmentMap: `${lesson.title} prepares students for ${lesson.studentArtifact}; the deck moves from ${phrase.evidenceMove} to ${stripTerminalPunctuation(phrase.decisionMove).toLowerCase()}, while practice slides reinforce ${lesson.successCriteria.slice(0, 2).join(' and ')} before feedback carries into the next artifact.`,
+      accessibilityStandards: `${displayTitle} should offer spoken, written, and visual entry points around ${phrase.context}; visuals include alt text, activity directions can be completed without color-only cues, and speaker notes identify how to support learners who need more processing time or text-first participation.`,
+      cumulativeAssessmentMap: `${displayTitle} prepares students for ${sequenceArtifact}; the deck moves from ${phrase.evidenceMove} to ${stripTerminalPunctuation(phrase.decisionMove).toLowerCase()}, while practice slides reinforce ${sequenceCriterion} before feedback carries into the next artifact.`,
     },
     slides,
   };
