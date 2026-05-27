@@ -225,4 +225,55 @@ describe('courseBlueprintCompiler', () => {
     expect(csv.headers).toContain('Prompt Title');
     expect(csv.rows).toHaveLength(3);
   });
+
+  it('compiles predictable per-lesson reading response custom deliverables from the blueprint', () => {
+    customDeliverables = {
+      custom_readingResponse: {
+        id: 'custom_readingResponse',
+        name: 'Lesson Reading Response',
+        description: 'A per-lesson reading response for each week in the course.',
+        systemPrompt:
+          'Create one Lesson Reading Response item for each lesson/week with a reading-based prompt and submission checklist.',
+        userPromptTemplate:
+          'Generate one Lesson Reading Response for each lesson in the course. Return one item per lesson/week. {{courseMap}}',
+      },
+      custom_readingReflection: {
+        id: 'custom_readingReflection',
+        name: 'Lesson Reading Reflection',
+        description: 'A per-lesson reading reflection for each week in the course.',
+        systemPrompt:
+          'Create one Lesson Reading Reflection item for each lesson/week with a reading-based prompt and submission checklist.',
+        userPromptTemplate:
+          'Generate one Lesson Reading Reflection for each lesson in the course. Return one item per lesson/week. {{courseMap}}',
+      },
+    };
+
+    const blueprint = buildCourseBlueprint(makeCourseMap(5), { scopeIndices: [0, 2, 3] });
+    const compiled = compileBlueprintDeliverables(blueprint, ['custom_readingResponse']);
+    const readingResponse = compiled.custom_readingResponse;
+
+    expect(getBlueprintCompiledFeatures(['custom_readingResponse', 'custom_unknown'])).toEqual([
+      'custom_readingResponse',
+    ]);
+    expect(getBlueprintCompiledFeatures(['custom_readingReflection'])).toEqual(['custom_readingReflection']);
+    expect(readingResponse.deliverableName).toBe('Lesson Reading Response');
+    expect(readingResponse.lesson_reading_response).toHaveLength(3);
+    expect(readingResponse.lesson_reading_response.map((item) => item.lessonTitle)).toEqual([
+      'Lesson 1: Policy Topic 1',
+      'Lesson 3: Policy Topic 3',
+      'Lesson 4: Policy Topic 4',
+    ]);
+    expect(
+      readingResponse.lesson_reading_response.every((item) => item.promptTitle.includes('Lesson Reading Response')),
+    ).toBe(true);
+
+    const validation = validateDeliverableGeneration('custom_readingResponse', readingResponse, {
+      expectedLessonCount: 3,
+    });
+    const csv = deliverableToCsvRows('custom_readingResponse', readingResponse);
+
+    expect(validation.valid, validation.blockers.join('; ')).toBe(true);
+    expect(csv.headers).toContain('Prompt Title');
+    expect(csv.rows).toHaveLength(3);
+  });
 });

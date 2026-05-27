@@ -157,4 +157,44 @@ describe('blueprint compiler cost comparison sample', () => {
       estimateBlueprintCompilerSavings(compiledFeatureIds, 8),
     );
   });
+
+  it('removes planned provider calls for compiled reading response customs while leaving unknown customs on the model path', () => {
+    customDeliverables = {
+      custom_readingResponse: {
+        id: 'custom_readingResponse',
+        name: 'Lesson Reading Response',
+        description: 'Per-week reading response prompts for each lesson.',
+        systemPrompt: 'Return one Lesson Reading Response item for each lesson/week.',
+        userPromptTemplate: 'Generate one Lesson Reading Response for each lesson/week. {{courseMap}}',
+      },
+      custom_unknown: {
+        id: 'custom_unknown',
+        name: 'Studio Artifact Pack',
+        description: 'Flexible materials for studio facilitation.',
+        systemPrompt: 'Generate custom studio materials.',
+        userPromptTemplate: 'Create the custom deliverable for the course. {{courseMap}}',
+      },
+    };
+
+    const featureIds = ['custom_readingResponse', 'custom_unknown'];
+    const compiledFeatureIds = getBlueprintCompiledFeatures(featureIds);
+    const modelFeatureIds = featureIds.filter((featureId) => !compiledFeatureIds.includes(featureId));
+    const baselinePlan = buildApiCostPlan({
+      featureIds,
+      lessonCount: 8,
+      includeRepairRetryReserve: false,
+    });
+    const hybridPlan = buildApiCostPlan({
+      featureIds: modelFeatureIds,
+      lessonCount: 8,
+      includeRepairRetryReserve: false,
+    });
+
+    expect(compiledFeatureIds).toEqual(['custom_readingResponse']);
+    expect(modelFeatureIds).toEqual(['custom_unknown']);
+    expect(estimateBlueprintCompilerSavings(compiledFeatureIds, 8)).toBeGreaterThan(0);
+    expect(baselinePlan.deliverableChunkCalls - hybridPlan.deliverableChunkCalls).toBe(
+      estimateBlueprintCompilerSavings(compiledFeatureIds, 8),
+    );
+  });
 });

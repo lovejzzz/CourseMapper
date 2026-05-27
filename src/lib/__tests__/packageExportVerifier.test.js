@@ -2,7 +2,11 @@ import { describe, expect, it, vi } from 'vitest';
 import { verifyPackageExports } from '../packageExportVerifier';
 
 vi.mock('../customDeliverableLibrary', () => ({
-  getCustomDeliverable: vi.fn((id) => (id === 'custom_weeklyReflection' ? { name: 'Weekly Reflection' } : null)),
+  getCustomDeliverable: vi.fn((id) => {
+    if (id === 'custom_weeklyReflection') return { name: 'Weekly Reflection' };
+    if (id === 'custom_readingResponse') return { name: 'Lesson Reading Response' };
+    return null;
+  }),
 }));
 
 vi.mock('../xlsxGenerator', () => ({
@@ -102,6 +106,44 @@ describe('verifyPackageExports', () => {
         },
       },
       selectedFeatures: ['custom_weeklyReflection'],
+    });
+
+    expect(result.status).toBe('passed');
+    expect(result.checks.map((check) => check.status)).toEqual(['passed', 'passed']);
+  });
+
+  it('passes export verification for compiled reading response custom deliverables', async () => {
+    const result = await verifyPackageExports({
+      courseMap: {
+        courseName: 'Research Methods',
+        lessons: [
+          { title: 'Lesson 1', sections: [{ learningObjectives: 'Define sampling.' }] },
+          { title: 'Lesson 2', sections: [{ learningObjectives: 'Compare interview protocols.' }] },
+        ],
+      },
+      deliverables: {
+        custom_readingResponse: {
+          status: 'done',
+          data: {
+            deliverableName: 'Lesson Reading Response',
+            lesson_reading_response: [
+              {
+                lessonTitle: 'Lesson 1: Define sampling',
+                weekNumber: 'Week 1',
+                promptTitle: 'Lesson Reading Response 1',
+                responsePrompt: 'Explain how the sampling reading changes your evidence choices.',
+              },
+              {
+                lessonTitle: 'Lesson 2: Compare interview protocols',
+                weekNumber: 'Week 2',
+                promptTitle: 'Lesson Reading Response 2',
+                responsePrompt: 'Connect the interview reading to your next protocol revision.',
+              },
+            ],
+          },
+        },
+      },
+      selectedFeatures: ['custom_readingResponse'],
     });
 
     expect(result.status).toBe('passed');

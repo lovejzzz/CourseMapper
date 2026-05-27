@@ -15,7 +15,10 @@ export const BLUEPRINT_COMPILED_FEATURES = new Set([
 ]);
 
 const CUSTOM_REFLECTION_PATTERN = /\b(reflection|reflective|check[-\s]?in|journal|exit ticket|debrief)\b/i;
-const CUSTOM_REFLECTION_EXCLUDE_PATTERN = /\b(quiz|exam|rubric|slide|syllabus|faq|assignment|discussion)\b/i;
+const CUSTOM_READING_RESPONSE_PATTERN =
+  /\b(reading response|reading responses|reading reflection|reading journal|reading log|annotation response|annotated response|reading recap)\b/i;
+const CUSTOM_TEMPLATE_EXCLUDE_PATTERN = /\b(quiz|exam|rubric|slide|syllabus|faq|assignment|discussion)\b/i;
+const CUSTOM_PER_LESSON_PATTERN = /\b(lesson|week|per lesson|per week|each lesson|each week)\b/i;
 
 const BLOOMS_LEVELS = ['Apply', 'Analyze', 'Evaluate', 'Create'];
 const QUIZ_BLOOMS_SEQUENCE = ['Remember', 'Understand', 'Apply', 'Analyze', 'Evaluate', 'Create'];
@@ -470,10 +473,10 @@ function getCustomDeliverableDefinition(featureId, options = {}) {
   return getCustomDeliverable(featureId);
 }
 
-function isCompiledCustomDeliverable(featureId, options = {}) {
-  if (!featureId?.startsWith('custom_')) return false;
+function getCompiledCustomTemplateKind(featureId, options = {}) {
+  if (!featureId?.startsWith('custom_')) return null;
   const custom = getCustomDeliverableDefinition(featureId, options);
-  if (!custom) return false;
+  if (!custom) return null;
 
   const combinedText = [
     custom.name,
@@ -485,14 +488,22 @@ function isCompiledCustomDeliverable(featureId, options = {}) {
     .map((value) => cleanText(value).toLowerCase())
     .join(' ');
 
-  if (!CUSTOM_REFLECTION_PATTERN.test(combinedText)) return false;
-  if (!/\b(lesson|week|per lesson|per week|each lesson|each week)\b/i.test(combinedText)) return false;
-  return !CUSTOM_REFLECTION_EXCLUDE_PATTERN.test(cleanText(custom.name).toLowerCase());
+  if (!CUSTOM_PER_LESSON_PATTERN.test(combinedText)) return null;
+
+  const customName = cleanText(custom.name).toLowerCase();
+  if (CUSTOM_TEMPLATE_EXCLUDE_PATTERN.test(customName)) return null;
+  if (CUSTOM_READING_RESPONSE_PATTERN.test(combinedText)) return 'reading-response';
+  if (CUSTOM_REFLECTION_PATTERN.test(combinedText)) return 'reflection-check-in';
+  return null;
+}
+
+function isCompiledCustomDeliverable(featureId, options = {}) {
+  return getCompiledCustomTemplateKind(featureId, options) !== null;
 }
 
 function compileCustomReflectionDeliverable(featureId, blueprint, options = {}) {
   const custom = getCustomDeliverableDefinition(featureId, options);
-  if (!custom || !isCompiledCustomDeliverable(featureId, options)) return null;
+  if (!custom || getCompiledCustomTemplateKind(featureId, options) !== 'reflection-check-in') return null;
 
   const deliverableName = cleanText(custom.name, 'Weekly Reflection');
   const arrayKey = slugifyCustomArrayKey(deliverableName);
@@ -531,6 +542,50 @@ function compileCustomReflectionDeliverable(featureId, blueprint, options = {}) 
   return {
     deliverableName,
     deliverableType: 'compiled-reflection-check-in',
+    source: 'deterministic-course-blueprint',
+    [arrayKey]: items,
+  };
+}
+
+function compileCustomReadingResponseDeliverable(featureId, blueprint, options = {}) {
+  const custom = getCustomDeliverableDefinition(featureId, options);
+  if (!custom || getCompiledCustomTemplateKind(featureId, options) !== 'reading-response') return null;
+
+  const deliverableName = cleanText(custom.name, 'Reading Response');
+  const arrayKey = slugifyCustomArrayKey(deliverableName);
+  const lens = blueprintLens(blueprint);
+  const items = blueprint.lessons.map((lesson) => {
+    const focus = lesson.keyConcepts[0] || stripLessonPrefix(lesson.title) || 'the lesson focus';
+    const alternate = alternateLessonConcept(lesson, focus);
+    const phrase = lessonPhrase(blueprint, lesson);
+    const reading = lesson.readings[0] || 'Assigned lesson materials';
+
+    return {
+      lessonTitle: lesson.title,
+      weekNumber: `Week ${lesson.lessonNumber}`,
+      deliverableName,
+      promptTitle: `${deliverableName} ${lesson.lessonNumber}`,
+      focusReading: reading,
+      responsePrompt: `Write a focused response explaining how ${focus} from ${reading} changes your approach to ${stripTerminalPunctuation(lesson.studentArtifact)} in ${lesson.title}. Reference ${phrase.context} and make one clear ${lens.decisionNoun}.`,
+      quoteOrDetailRequirement: `Use one concrete detail, quote, or example from ${reading} and explain why it matters for ${alternate} in ${lesson.title}.`,
+      connectionPrompt: `Connect the reading to this week's practice by naming how it should shape ${stripTerminalPunctuation(lesson.studentArtifact)} before the next class session.`,
+      submissionChecklist: [
+        `Name the reading focus for ${lesson.title}.`,
+        `Use one specific piece of ${lens.evidenceNoun} from the reading or lesson materials.`,
+        `Explain one decision, implication, or revision move for ${lesson.studentArtifact}.`,
+      ],
+      successCriteria: [
+        `${deliverableName} uses an actual reading detail instead of generic summary.`,
+        `${deliverableName} connects the reading to ${lesson.studentArtifact} or the weekly practice task.`,
+        `${deliverableName} ends with a concrete implication, next step, or question for class discussion.`,
+      ],
+      instructorReviewFocus: `Look for whether the student cites ${reading}, connects ${focus} to ${lesson.studentArtifact}, and makes a usable ${lens.decisionNoun} for the next checkpoint.`,
+    };
+  });
+
+  return {
+    deliverableName,
+    deliverableType: 'compiled-reading-response',
     source: 'deterministic-course-blueprint',
     [arrayKey]: items,
   };
@@ -1719,7 +1774,14 @@ function compileLessonPlans(blueprint) {
 
 export function compileBlueprintDeliverable(featureId, blueprint, options = {}) {
   if (featureId?.startsWith('custom_')) {
-    return compileCustomReflectionDeliverable(featureId, blueprint, options);
+    const templateKind = getCompiledCustomTemplateKind(featureId, options);
+    if (templateKind === 'reflection-check-in') {
+      return compileCustomReflectionDeliverable(featureId, blueprint, options);
+    }
+    if (templateKind === 'reading-response') {
+      return compileCustomReadingResponseDeliverable(featureId, blueprint, options);
+    }
+    return null;
   }
   switch (featureId) {
     case 'syllabus':
