@@ -1380,6 +1380,44 @@ describe('courseBlueprintCompiler', () => {
     );
   });
 
+  it('keeps syllabus trust surfaces compact instead of copying full internal proof maps', () => {
+    const sourceCourseMap = DEFAULT_AUDIT_PROJECTS[0].courseMap;
+    const blueprint = buildCourseBlueprint({
+      ...sourceCourseMap,
+      lessons: sourceCourseMap.lessons.slice(0, 14),
+    });
+    const compiled = compileBlueprintDeliverables(blueprint, ['syllabus'], {
+      enforceCompilerContract: false,
+    });
+    const syllabus = compiled.syllabus.syllabus;
+
+    expect(new Set(blueprint.lessons.map((lesson) => lesson.modalityDecode.evidenceRoutine)).size).toBe(
+      blueprint.lessons.length,
+    );
+    expect(blueprint.lessons[0].modalityDecode.evidenceRoutine).toContain('Question-quality memo');
+    expect(blueprint.lessons[1].modalityDecode.evidenceRoutine).not.toBe(
+      blueprint.lessons[0].modalityDecode.evidenceRoutine,
+    );
+
+    expect(syllabus.blueprintQualityReceipt.conceptDependencyGraph).toMatchObject({
+      status: 'sequenced',
+      nodeCount: 14,
+      practiceRowCount: 14,
+    });
+    expect(syllabus.blueprintQualityReceipt.conceptDependencyGraph.practiceRows).toBeUndefined();
+    expect(syllabus.blueprintQualityReceipt.masteryEvidenceMap.lessonRows).toBeUndefined();
+    expect(syllabus.courseAtAGlance[0]).toMatchObject({
+      week: 'Week 1',
+      readinessCue: expect.stringContaining('Question-quality memo'),
+      feedbackUse: expect.stringContaining('course artifact'),
+      publishGate: 'instructor-spot-check-before-publish',
+    });
+    expect(syllabus.courseAtAGlance[0].masteryEvidencePlan).toBeUndefined();
+    expect(syllabus.courseAtAGlance[0].sourceEvidenceTrace).toBeUndefined();
+    expect(syllabus.assessmentCalendar[0].criterionEvidenceMap).toBeUndefined();
+    expect(syllabus.assessmentCalendar[0].criterionWeightSummary).toContain('%');
+  });
+
   it('decodes quantitative worked artifacts as problem sets with solution tracing', () => {
     const blueprint = buildCourseBlueprint(makeQuantitativeProblemSetCourseMap(), {
       enrichment: {

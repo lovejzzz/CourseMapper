@@ -3203,11 +3203,12 @@ function buildModelContrast({ title, concepts, artifact, evidencePlan }) {
   const concept = concepts[0] || stripLessonPrefix(title) || 'the lesson focus';
   const artifactName = stripTerminalPunctuation(artifact);
   const sourceCue = evidencePlan?.sourceCue || `${stripLessonPrefix(title)} course materials`;
+  const shortTitle = stripLessonPrefix(title);
   return {
     exemplarMove: `Strong ${artifactName} work uses a specific detail from ${sourceCue} to explain ${concept}, names why the evidence matters, and states one limitation before making the decision.`,
     nonExemplarMove: `Weak ${artifactName} work summarizes ${concept} generally, cites no inspectable evidence, and makes the decision sound automatic.`,
     contrastQuestion: `Which sentence makes the evidence for ${concept} inspectable, and what limitation keeps the claim honest?`,
-    transferPrompt: `Revise one line of ${artifactName} so it moves from summary to evidence-backed ${concept} reasoning.`,
+    transferPrompt: `In ${shortTitle}, revise one ${artifactName} sentence into evidence-backed ${concept} reasoning by making the ${sourceCue} support visible.`,
   };
 }
 
@@ -3256,16 +3257,14 @@ function buildAccessibilityPlan({ title, concepts, artifact, evidencePlan, readi
   };
 }
 
-function buildFeedbackCycle({ title, concepts, artifact, evidencePlan, modelContrast }) {
+function buildFeedbackCycle({ title, concepts, artifact, evidencePlan }) {
   const concept = concepts[0] || stripLessonPrefix(title) || 'the lesson focus';
   const artifactName = stripTerminalPunctuation(artifact);
   const sourceCue = evidencePlan?.sourceCue || `${stripLessonPrefix(title)} course materials`;
   return {
     formativeEvidence: `Collect one annotated ${artifactName} line or checkpoint response showing how ${concept} evidence from ${sourceCue} supports the decision.`,
     feedbackMethod: `Give criterion-level feedback that names the strongest evidence move, the weakest reasoning link, and one revision priority for ${artifactName}.`,
-    studentRevisionAction:
-      modelContrast?.transferPrompt ||
-      `Students revise ${artifactName} by replacing a general claim with an inspectable ${concept} evidence move and one limitation statement.`,
+    studentRevisionAction: `Students revise ${artifactName} by replacing a general ${concept} claim with evidence-backed ${concept} reasoning, one limitation, and one next decision.`,
     nextUse: `Carry the revised ${concept} evidence move into the next course artifact, discussion, or synthesis task.`,
     closureCheck: `Before moving on from ${stripLessonPrefix(title)}, students submit a brief note naming what feedback changed and what evidence still needs review.`,
   };
@@ -4974,6 +4973,61 @@ function buildLessonModalityCue(profile = {}, lesson = {}) {
   return `${stripLessonPrefix(lesson.title)} should run as ${mode}: students use ${profile.interactionPattern || 'guided practice and feedback'} to produce ${artifact} evidence for ${concept}.`;
 }
 
+function lessonRotationIndex(lesson = {}, offset = 0) {
+  const lessonNumber = Number(lesson.lessonNumber);
+  const lessonIndex = Number(lesson.lessonIndex);
+  const base = Number.isFinite(lessonNumber) ? lessonNumber - 1 : Number.isFinite(lessonIndex) ? lessonIndex : 0;
+  return Math.abs(base + offset);
+}
+
+function rotatedLessonTemplate(templates = [], lesson = {}, offset = 0) {
+  if (templates.length === 0) return '';
+  return templates[lessonRotationIndex(lesson, offset) % templates.length];
+}
+
+function contextualizeModalityRoutine(kind, base, { lesson = {}, concept = '', artifact = '', mode = '' } = {}) {
+  const routine = stripTerminalPunctuation(base);
+  if (!routine) return '';
+  const title = stripLessonPrefix(lesson.title) || `Lesson ${lesson.lessonNumber || 1}`;
+  const secondary = alternateLessonConcept(lesson, concept);
+  const templates = {
+    signaturePractice: [
+      `${sentenceCase(routine)} for ${title}, with ${artifact} as the visible product.`,
+      `Use the ${mode} pattern to ${routine}, then connect the result to ${title}.`,
+      `${title} adapts the course pattern: ${routine}, focused on ${concept}.`,
+    ],
+    evidenceRoutine: [
+      `${sentenceCase(routine)}; in ${title}, the checkout is a visible ${concept} evidence move in ${artifact}.`,
+      `For ${title}, ${routine}; students label the ${secondary} detail that makes ${artifact} credible.`,
+      `${sentenceCase(routine)} while students show which ${concept} evidence changes the ${artifact} decision.`,
+    ],
+    feedbackRoutine: [
+      `${sentenceCase(routine)}; calibrate feedback against ${concept}, ${secondary}, and ${artifact}.`,
+      `For ${title}, ${routine}; the feedback target is the most fragile evidence link in ${artifact}.`,
+      `${sentenceCase(routine)} and require one revision that makes ${concept} reasoning inspectable.`,
+    ],
+    instructorMove: [
+      `${sentenceCase(routine)} for ${title}, then ask which ${concept} evidence changes ${artifact}.`,
+      `Model the ${title} decision by using the routine to test ${secondary} evidence before students revise ${artifact}.`,
+      `${sentenceCase(routine)}; close by having students name the next ${concept} move in ${artifact}.`,
+    ],
+  };
+  return rotatedLessonTemplate(templates[kind] || [`${sentenceCase(routine)} for ${title}.`], lesson, kind.length);
+}
+
+function contextualizeModalityProduct(base, { lesson = {}, concept = '', artifact = '' } = {}) {
+  const productFamily = stripTerminalPunctuation(base || artifact || 'lesson artifact');
+  const artifactName = stripTerminalPunctuation(artifact || productFamily);
+  if (!base || normalizeAuditComparable(productFamily).includes(normalizeAuditComparable(artifactName))) {
+    return artifactName;
+  }
+  return `${artifactName} with visible ${concept} evidence (${productFamily})`;
+}
+
+function normalizeAuditComparable(value) {
+  return cleanText(value).toLowerCase();
+}
+
 function buildLessonModalityDecode(profile = {}, lesson = {}) {
   const pattern = profile.teachingPattern || {};
   const mode = profile.primaryMode || 'weekly-applied-seminar';
@@ -4982,15 +5036,22 @@ function buildLessonModalityDecode(profile = {}, lesson = {}) {
   return {
     mode,
     signaturePractice:
-      pattern.signaturePractice || `run ${stripLessonPrefix(lesson.title)} as applied practice with visible evidence`,
+      contextualizeModalityRoutine('signaturePractice', pattern.signaturePractice, {
+        lesson,
+        concept,
+        artifact,
+        mode,
+      }) || `run ${stripLessonPrefix(lesson.title)} as applied practice with visible evidence`,
     evidenceRoutine:
-      pattern.evidenceRoutine ||
+      contextualizeModalityRoutine('evidenceRoutine', pattern.evidenceRoutine, { lesson, concept, artifact, mode }) ||
       `collect one inspectable ${concept} evidence move before students finalize ${artifact}`,
     feedbackRoutine:
-      pattern.feedbackRoutine || `debrief ${artifact} with criterion-level feedback and one required revision`,
+      contextualizeModalityRoutine('feedbackRoutine', pattern.feedbackRoutine, { lesson, concept, artifact, mode }) ||
+      `debrief ${artifact} with criterion-level feedback and one required revision`,
     instructorMove:
-      pattern.instructorMove || `model one ${concept} decision, then coach students as they revise ${artifact}`,
-    studentProduct: pattern.studentProduct || artifact,
+      contextualizeModalityRoutine('instructorMove', pattern.instructorMove, { lesson, concept, artifact, mode }) ||
+      `model one ${concept} decision, then coach students as they revise ${artifact}`,
+    studentProduct: contextualizeModalityProduct(pattern.studentProduct, { lesson, concept, artifact }),
     artifactCheck: `Confirm ${artifact} shows ${concept} through the ${mode} evidence routine, not only topic recall.`,
     localReviewQuestion: `Confirm the local setting supports this ${mode} practice pattern before publishing ${stripLessonPrefix(lesson.title)}.`,
   };
@@ -6769,7 +6830,7 @@ function buildCourseAlignmentMatrix(lessons, assessments) {
       readinessSupportCue: lesson.readinessSupport?.supportMove || '',
       instructionalRationaleCue: lesson.instructionalRationale?.assessmentRationale || '',
       accessibilityCue: lesson.accessibilityPlan?.participationProtocol || '',
-      feedbackCycleCue: lesson.feedbackCycle?.studentRevisionAction || '',
+      feedbackCycleCue: `${stripTerminalPunctuation(lesson.studentArtifact)} revision uses evidence-backed ${primaryConceptForLesson(lesson)} reasoning after feedback.`,
       learningTransferCue: lesson.learningTransferPlan?.transferTask || '',
       gradingCalibrationCue: assessment.calibrationPlan?.biasCheck || '',
       criterionEvidenceCue: assessment.criterionEvidenceMap?.[0]?.evidenceNeeded || '',
@@ -7828,6 +7889,204 @@ function compactEnrichmentLanguage(enrichment = {}) {
   };
 }
 
+function compactConceptDependencyGraph(graph = {}) {
+  const nodes = Array.isArray(graph.nodes) ? graph.nodes : [];
+  const edges = Array.isArray(graph.edges) ? graph.edges : [];
+  const practiceRows = Array.isArray(graph.practiceRows) ? graph.practiceRows : [];
+  return {
+    status: graph.status || 'unknown',
+    nodeCount: nodes.length,
+    edgeCount: Number.isFinite(graph.edgeCount) ? graph.edgeCount : edges.length,
+    practiceRowCount: practiceRows.length,
+    conceptThread: graph.conceptThread || '',
+    lessonConcepts: nodes.map((node) => ({
+      lessonNumber: node.lessonNumber,
+      concept: node.concept,
+      stage: node.stage,
+      dependencyCount: edges.filter((edge) => edge.toLessonNumber === node.lessonNumber).length,
+      transferCount: edges.filter((edge) => edge.fromLessonNumber === node.lessonNumber).length,
+    })),
+  };
+}
+
+function compactMasteryEvidenceMap(map = {}) {
+  const rows = Array.isArray(map.lessonRows) ? map.lessonRows : [];
+  return {
+    status: map.status || 'unknown',
+    lessonRowCount: rows.length,
+    missingFieldCount: map.missingFieldCount ?? null,
+    checkedStages: unique(map.checkedStages || [], 8),
+    lessonReadiness: rows.map((row) => ({
+      lessonNumber: row.lessonNumber,
+      concept: row.concept,
+      artifact: row.artifact,
+      evidencePortfolioStages: unique(row.evidencePortfolioStages || [], 8),
+      hasMasteryThreshold: Boolean(row.masteryThreshold),
+    })),
+  };
+}
+
+function compactEvidenceResponseMap(map = {}) {
+  const rows = Array.isArray(map.lessonRows) ? map.lessonRows : [];
+  return {
+    status: map.status || 'unknown',
+    lessonRowCount: rows.length,
+    missingFieldCount: map.missingFieldCount ?? null,
+    checkedStates: unique(map.checkedStates || [], 5),
+    lessonResponseCoverage: rows.map((row) => ({
+      lessonNumber: row.lessonNumber,
+      concept: row.concept,
+      artifact: row.artifact,
+      decisionStateCount: row.decisionStateCount || 0,
+      reviewerCue: row.reviewerCue || '',
+    })),
+  };
+}
+
+function compactSourceRiskRegister(register = {}) {
+  const lessonRows = Array.isArray(register.lessonRows) ? register.lessonRows : [];
+  return {
+    status: register.status || 'unknown',
+    riskPolicy: register.riskPolicy || '',
+    highRiskCount: register.highRiskCount || 0,
+    reviewRequiredCount: register.reviewRequiredCount || 0,
+    lessonRows: lessonRows.map((row) => ({
+      lessonNumber: row.lessonNumber,
+      riskLevel: row.riskLevel,
+      confidence: row.confidence,
+      reviewRequired: Boolean(row.reviewRequired),
+    })),
+  };
+}
+
+function compactCompilerDecisionMatrix(matrix = {}) {
+  const lessonRows = Array.isArray(matrix.lessonRows) ? matrix.lessonRows : [];
+  return {
+    status: matrix.status || 'unknown',
+    reviewRequiredCount: matrix.reviewRequiredCount || 0,
+    deterministicCount: lessonRows.filter((row) => row.generationPath === 'deterministic-compile').length,
+    lessonRows: lessonRows.map((row) => ({
+      lessonNumber: row.lessonNumber,
+      generationPath: row.generationPath,
+      publishGate: row.publishGate,
+      reviewRequired: Boolean(row.reviewRequired),
+    })),
+  };
+}
+
+function compactAssessmentArchitecture(architecture = {}) {
+  const rows = Array.isArray(architecture.lessonRows) ? architecture.lessonRows : [];
+  return {
+    status: architecture.status || 'unknown',
+    totalWeightPercent: architecture.totalWeightPercent ?? null,
+    highStakesWeightPercent: architecture.highStakesWeightPercent ?? null,
+    formativeWeightPercent: architecture.formativeWeightPercent ?? null,
+    weightSourceStatus: architecture.weightSourceStatus || '',
+    explicitWeightCount: architecture.explicitWeightCount || 0,
+    compilerDistributedWeightCount: architecture.compilerDistributedWeightCount || 0,
+    weightReviewRequiredCount: architecture.weightReviewRequiredCount || 0,
+    lessonRows: rows.map((row) => ({
+      lessonNumber: row.lessonNumber,
+      assessmentTitle: row.assessmentTitle,
+      roleLabel: row.roleLabel,
+      stakes: row.stakes,
+      weightPercent: row.weightPercent,
+      dueWindow: row.dueWindow,
+      feedbackWindow: row.feedbackWindow,
+      revisionUse: row.revisionUse,
+    })),
+  };
+}
+
+function compactClassroomHandoffPlan(plan = {}) {
+  const lessonReviewOrder = Array.isArray(plan.lessonReviewOrder) ? plan.lessonReviewOrder : [];
+  return {
+    status: plan.status || 'unknown',
+    publishBoundary: plan.publishBoundary || '',
+    reviewOrder: unique(plan.reviewOrder || [], 8),
+    localConfirmationSummary: plan.localConfirmationSummary || null,
+    lessonReviewCount: lessonReviewOrder.length,
+    lessonReviewOrder: lessonReviewOrder.map((row) => ({
+      lessonNumber: row.lessonNumber,
+      lessonTitle: row.lessonTitle,
+      confidence: row.confidence,
+      sourceRiskLevel: row.sourceRiskLevel,
+      publishGate: row.publishGate,
+    })),
+  };
+}
+
+function compactAssumptionLedger(ledger = {}) {
+  const rows = Array.isArray(ledger.rows) ? ledger.rows : [];
+  return {
+    status: ledger.status || 'unknown',
+    reviewerPolicy: ledger.reviewerPolicy || '',
+    rowCount: rows.length,
+    reviewRequiredCount: ledger.reviewRequiredCount || rows.filter((row) => row.reviewRequired).length,
+    categories: unique(
+      rows.map((row) => row.category),
+      12,
+    ),
+    rows: rows.map((row) => ({
+      category: row.category,
+      lessonNumber: row.lessonNumber,
+      lessonTitle: row.lessonTitle,
+      confidence: row.confidence,
+      source: row.source,
+      reviewRequired: Boolean(row.reviewRequired),
+      reviewerAction: row.reviewerAction,
+    })),
+  };
+}
+
+function compactPackageCoherenceMatrix(matrix = {}) {
+  const rows = Array.isArray(matrix.lessonRows) ? matrix.lessonRows : [];
+  return {
+    status: matrix.status || 'unknown',
+    missingFieldCount: matrix.missingFieldCount || 0,
+    lessonRowCount: rows.length,
+    sourceConflictCount: rows.filter((row) => row.sourceConflictCue).length,
+    publishGateCount: rows.filter((row) => row.publishGate).length,
+    lessonRows: rows.map((row) => ({
+      lessonNumber: row.lessonNumber,
+      assessmentArtifact: row.assessmentArtifact,
+      assessmentRole: row.assessmentRole,
+      assessmentCadenceCue: row.assessmentCadenceCue,
+      sourceEvidenceCue: row.sourceEvidenceCue,
+      sourceRiskLevel: row.sourceRiskLevel,
+      compilerDecisionCue: row.compilerDecisionCue,
+      publishGate: row.publishGate,
+      sourceUseCue: row.sourceUseCue,
+      prerequisiteCue: row.prerequisiteCue,
+      teachingIntentCue: row.teachingIntentCue,
+      modalityCue: row.modalityCue,
+      modalityDecodeCue: row.modalityDecodeCue,
+      artifactGenreCue: row.artifactGenreCue,
+      classSessionCue: row.classSessionCue,
+      localReviewNeeded: row.localReviewNeeded,
+    })),
+  };
+}
+
+function compactBlueprintReviewSurface(surface = {}) {
+  return {
+    status: surface.status || 'unknown',
+    localConfirmationSummary: surface.localConfirmationSummary || null,
+    traceabilitySummary: surface.traceabilitySummary || null,
+    instructionalMoveDecode: surface.instructionalMoveDecode || null,
+    courseDecode: surface.courseDecode || null,
+  };
+}
+
+function compactSourceConflictReport(report = {}) {
+  return {
+    status: report.status || 'unknown',
+    duplicateGroupCount: report.duplicateGroupCount || 0,
+    duplicateLessonCount: report.duplicateLessonCount || 0,
+    conflictLessonNumbers: unique(report.conflictLessonNumbers || [], 20),
+  };
+}
+
 function clonePlain(value) {
   if (Array.isArray(value)) return value.map((item) => clonePlain(item));
   if (value && typeof value === 'object') {
@@ -8243,7 +8502,6 @@ function extractLessonBlueprint(lesson, originalIndex) {
     concepts: keyConcepts,
     artifact: studentArtifact,
     evidencePlan,
-    modelContrast,
   });
   const activityPattern = firstNonEmpty(
     activities.join('; '),
@@ -8707,13 +8965,14 @@ function buildAssessmentCriteria(lesson) {
 function buildAssessmentValidityEvidence(lesson) {
   const concept = lesson.keyConcepts[0] || stripLessonPrefix(lesson.title);
   const artifact = stripTerminalPunctuation(lesson.studentArtifact);
+  const title = stripLessonPrefix(lesson.title);
   const sourceCue =
     lesson.evidencePlan?.sourceCue || lesson.readings?.[0] || `${stripLessonPrefix(lesson.title)} materials`;
   return {
     targetConstruct: `${artifact} shows whether students can use ${concept} evidence to make a defensible course decision.`,
     authenticPerformance: `The task asks students to produce ${artifact}, not only recall vocabulary, so performance evidence comes from applied reasoning in ${stripLessonPrefix(lesson.title)}.`,
     validityThreat: `A polished but unsupported ${artifact} could hide weak ${concept} reasoning if scoring does not require inspectable evidence from ${sourceCue}.`,
-    calibrationCheck: `Before scoring, compare one strong and one partial ${artifact} response and verify that the stronger sample cites evidence, explains the decision, and names a limitation.`,
+    calibrationCheck: `Before scoring ${title}, compare one strong and one partial ${artifact} sample; the stronger sample should cite ${sourceCue}, explain the ${concept} decision, and name a limitation.`,
   };
 }
 
@@ -9418,6 +9677,19 @@ function compileSyllabus(blueprint) {
     weight: assessment.weight,
     description: `${assessment.artifact}. Strong work ${assessment.successCriteria.join(' ')} Feedback is used to improve later course artifacts.`,
   }));
+  const compactConceptGraph = compactConceptDependencyGraph(blueprint.conceptDependencyGraph);
+  const compactMasteryMap = compactMasteryEvidenceMap(blueprint.masteryEvidenceMap);
+  const compactResponseMap = compactEvidenceResponseMap(blueprint.evidenceResponseMap);
+  const compactRiskRegister = compactSourceRiskRegister(blueprint.sourceRiskRegister);
+  const compactDecisionMatrix = compactCompilerDecisionMatrix(blueprint.compilerDecisionMatrix);
+  const compactAssessmentPlan = compactAssessmentArchitecture(blueprint.assessmentArchitecture);
+  const compactSourceConflicts = compactSourceConflictReport(blueprint.sourceConflictReport);
+  const compactHandoffPlan = compactClassroomHandoffPlan(blueprint.classroomHandoffPlan);
+  const compactAssumptions = compactAssumptionLedger(blueprint.blueprintAssumptionLedger);
+  const compactCoherence = compactPackageCoherenceMatrix(blueprint.packageCoherenceMatrix);
+  const compactReviewSurface = compactBlueprintReviewSurface(blueprint.blueprintReviewSurface);
+  const assessmentForLesson = (lesson) =>
+    blueprint.assessments.find((assessment) => assessment.lessonNumbers.includes(lesson.lessonNumber)) || {};
 
   return {
     syllabus: {
@@ -9449,19 +9721,19 @@ function compileSyllabus(blueprint) {
         timingStatus: blueprint.courseWorkload.timingStatus,
         averagePlannedClassMinutes: blueprint.courseWorkload.averagePlannedClassMinutes,
         courseArc: blueprint.courseArc.throughline,
-        conceptDependencyGraph: blueprint.conceptDependencyGraph,
-        masteryEvidenceMap: blueprint.masteryEvidenceMap,
-        evidenceResponseMap: blueprint.evidenceResponseMap,
+        conceptDependencyGraph: compactConceptGraph,
+        masteryEvidenceMap: compactMasteryMap,
+        evidenceResponseMap: compactResponseMap,
         learnerContextProfile: blueprint.learnerContextProfile,
         courseModalityProfile: blueprint.courseModalityProfile,
-        sourceConflictReport: blueprint.sourceConflictReport,
-        sourceRiskRegister: blueprint.sourceRiskRegister,
-        compilerDecisionMatrix: blueprint.compilerDecisionMatrix,
-        assessmentArchitecture: blueprint.assessmentArchitecture,
-        classroomHandoffPlan: blueprint.classroomHandoffPlan,
-        blueprintAssumptionLedger: blueprint.blueprintAssumptionLedger,
-        packageCoherenceMatrix: blueprint.packageCoherenceMatrix,
-        blueprintReviewSurface: blueprint.blueprintReviewSurface,
+        sourceConflictReport: compactSourceConflicts,
+        sourceRiskRegister: compactRiskRegister,
+        compilerDecisionMatrix: compactDecisionMatrix,
+        assessmentArchitecture: compactAssessmentPlan,
+        classroomHandoffPlan: compactHandoffPlan,
+        blueprintAssumptionLedger: compactAssumptions,
+        packageCoherenceMatrix: compactCoherence,
+        blueprintReviewSurface: compactReviewSurface,
         compilerPath: blueprint.compilerPath,
         compilerContract: compactBlueprintContract(blueprint.compilerContract),
         enrichmentLanguage: compactEnrichmentLanguage(blueprint.enrichment),
@@ -9470,60 +9742,53 @@ function compileSyllabus(blueprint) {
       },
       learnerContextProfile: blueprint.learnerContextProfile,
       courseModalityProfile: blueprint.courseModalityProfile,
-      conceptDependencyGraph: blueprint.conceptDependencyGraph,
-      masteryEvidenceMap: blueprint.masteryEvidenceMap,
-      evidenceResponseMap: blueprint.evidenceResponseMap,
-      sourceConflictReport: blueprint.sourceConflictReport,
-      sourceRiskRegister: blueprint.sourceRiskRegister,
-      compilerDecisionMatrix: blueprint.compilerDecisionMatrix,
-      assessmentArchitecture: blueprint.assessmentArchitecture,
-      classroomHandoffPlan: blueprint.classroomHandoffPlan,
-      blueprintAssumptionLedger: blueprint.blueprintAssumptionLedger,
-      packageCoherenceMatrix: blueprint.packageCoherenceMatrix,
+      conceptDependencyGraph: compactConceptGraph,
+      masteryEvidenceMap: compactMasteryMap,
+      evidenceResponseMap: compactResponseMap,
+      sourceConflictReport: compactSourceConflicts,
+      sourceRiskRegister: compactRiskRegister,
+      compilerDecisionMatrix: compactDecisionMatrix,
+      assessmentArchitecture: compactAssessmentPlan,
+      classroomHandoffPlan: compactHandoffPlan,
+      blueprintAssumptionLedger: compactAssumptions,
+      packageCoherenceMatrix: compactCoherence,
       learningOutcomes: unique(
         blueprint.lessons.flatMap((lesson) => lesson.outcomes),
         7,
       ),
-      courseAtAGlance: blueprint.lessons.map((lesson) => ({
-        week: `Week ${lesson.lessonNumber}`,
-        topic: stripLessonPrefix(lesson.title),
-        inClassFocus: lesson.activityPattern,
-        studentOutput: lesson.studentArtifact,
-        pointsOrWeight: blueprint.assessments.find((assessment) =>
-          assessment.lessonNumbers.includes(lesson.lessonNumber),
-        )?.weight,
-        assessmentRole: blueprint.assessments.find((assessment) =>
-          assessment.lessonNumbers.includes(lesson.lessonNumber),
-        )?.roleLabel,
-        assessmentCadence: blueprint.assessments.find((assessment) =>
-          assessment.lessonNumbers.includes(lesson.lessonNumber),
-        )?.cadence,
-        criterionWeightPlan: blueprint.assessments.find((assessment) =>
-          assessment.lessonNumbers.includes(lesson.lessonNumber),
-        )?.criterionWeightPlan,
-        successCriteria: lesson.successCriteria[0],
-        prerequisitePlan: lesson.prerequisitePlan,
-        conceptDependencyPlan: lesson.conceptDependencyPlan,
-        practiceProgressionPlan: lesson.practiceProgressionPlan,
-        masteryEvidencePlan: lesson.masteryEvidencePlan,
-        evidenceResponsePlan: lesson.evidenceResponsePlan,
-        feedbackUse: lesson.feedbackCycle?.nextUse || lesson.feedbackMoment,
-        feedbackCycle: lesson.feedbackCycle,
-        learningTransferPlan: lesson.learningTransferPlan,
-        teachingIntent: lesson.teachingIntent,
-        modalityCue: lesson.modalityCue,
-        modalityDecode: lesson.modalityDecode,
-        artifactGenre: lesson.artifactGenre,
-        classSessionPlan: lesson.classSessionPlan,
-        workload: lesson.workloadEstimate.studentFacingEstimate,
-        difficulty: lesson.difficultyProfile.difficulty,
-        sourceConfidence: lesson.confidence.level,
-        sourceEvidenceTrace: lesson.sourceEvidenceTrace,
-        sourceRisk: lesson.sourceRisk,
-        compilerDecision: lesson.compilerDecision,
-        sourceUsePlan: lesson.sourceUsePlan,
-        localReviewNeeded: lesson.missingSignals,
-      })),
+      courseAtAGlance: blueprint.lessons.map((lesson) => {
+        const assessment = assessmentForLesson(lesson);
+        return {
+          week: `Week ${lesson.lessonNumber}`,
+          topic: stripLessonPrefix(lesson.title),
+          inClassFocus: lesson.activityPattern,
+          studentOutput: lesson.studentArtifact,
+          pointsOrWeight: assessment.weight,
+          assessmentRole: assessment.roleLabel,
+          assessmentCadence: {
+            dueWindow: assessment.cadence?.dueWindow,
+            feedbackWindow: assessment.cadence?.feedbackWindow,
+            revisionUse: assessment.revisionUse,
+          },
+          criterionWeightSummary:
+            (assessment.criterionWeightPlan || [])
+              .map((entry) => `${entry.priority || entry.criterion}: ${entry.weight}%`)
+              .join('; ') || '',
+          successCriteria: lesson.successCriteria[0],
+          readinessCue: lesson.readinessSupport?.readinessEvidence || '',
+          feedbackUse: lesson.feedbackCycle?.nextUse || lesson.feedbackMoment,
+          transferCue: lesson.learningTransferPlan?.transferTask || '',
+          modalityCue: lesson.modalityCue,
+          artifactGenre: lesson.artifactGenre?.label || lesson.artifactGenre?.genre || '',
+          classSessionFit: lesson.classSessionPlan?.feasibilityStatus || '',
+          workload: lesson.workloadEstimate.studentFacingEstimate,
+          difficulty: lesson.difficultyProfile.difficulty,
+          sourceConfidence: lesson.confidence.level,
+          sourceRiskLevel: lesson.sourceRisk?.riskLevel || '',
+          publishGate: lesson.compilerDecision?.publishGate || '',
+          localReviewNeeded: lesson.missingSignals,
+        };
+      }),
       outcomeAlignmentMatrix: unique(
         blueprint.lessons.flatMap((lesson) => lesson.outcomes),
         7,
@@ -9558,16 +9823,6 @@ function compileSyllabus(blueprint) {
         conceptTransferCue: row.conceptTransferCue,
         practiceProgressionCue: row.practiceProgressionCue,
         practiceProgressionTransferCue: row.practiceProgressionTransferCue,
-        masteryDiagnosticCue: row.masteryDiagnosticCue,
-        masteryGuidedPracticeCue: row.masteryGuidedPracticeCue,
-        masteryPerformanceCue: row.masteryPerformanceCue,
-        masteryRevisionCue: row.masteryRevisionCue,
-        masteryTransferCue: row.masteryTransferCue,
-        masteryThresholdCue: row.masteryThresholdCue,
-        evidenceReadyResponseCue: row.evidenceReadyResponseCue,
-        evidencePartialResponseCue: row.evidencePartialResponseCue,
-        evidenceSupportResponseCue: row.evidenceSupportResponseCue,
-        evidenceRecheckCue: row.evidenceRecheckCue,
         feedbackUse: row.feedbackUse,
         misconceptionCheck: row.misconceptionCheck,
         modelContrastCue: row.modelContrastCue,
@@ -9621,16 +9876,22 @@ function compileSyllabus(blueprint) {
         gradingMode: assessment.gradingMode,
         roleRationale: assessment.roleRationale,
         studentFacingPurpose: assessment.studentFacingPurpose,
-        cadence: assessment.cadence,
+        cadence: {
+          dueWindow: assessment.cadence?.dueWindow,
+          feedbackWindow: assessment.cadence?.feedbackWindow,
+          revisionWindow: assessment.cadence?.revisionWindow,
+        },
         revisionUse: assessment.revisionUse,
         rubricCriteria: assessment.criteria,
         feedbackAndRevisionUse: assessment.feedbackUse,
-        feedbackCycle: assessment.feedbackCycle,
-        validityEvidence: assessment.validityEvidence,
-        gradingCalibrationPlan: assessment.calibrationPlan,
-        criterionEvidenceMap: assessment.criterionEvidenceMap,
-        criterionWeightPlan: assessment.criterionWeightPlan,
-        anchorExampleSet: assessment.anchorExampleSet,
+        calibrationCue:
+          assessment.calibrationPlan?.studentTransparency || assessment.validityEvidence?.calibrationCheck,
+        criterionWeightSummary:
+          (assessment.criterionWeightPlan || [])
+            .map((entry) => `${entry.priority || entry.criterion}: ${entry.weight}%`)
+            .join('; ') || '',
+        validitySummary: assessment.validityEvidence?.targetConstruct || '',
+        anchorExampleSummary: assessment.anchorExampleSet?.strongSignal || '',
       })),
       gradingScale: [
         { grade: 'A', range: '93-100' },
