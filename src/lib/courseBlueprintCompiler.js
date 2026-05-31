@@ -7998,6 +7998,25 @@ function compactAssessmentArchitecture(architecture = {}) {
   };
 }
 
+function compactWeightProvenance(provenance = {}) {
+  if (!provenance || typeof provenance !== 'object') return null;
+  const planStatus = provenance.planStatus || provenance.sourceStatus || 'unknown';
+  const source = provenance.source || 'unknown';
+  const reviewRequired = Boolean(provenance.reviewRequired);
+  return {
+    version: provenance.version || 1,
+    planStatus,
+    source,
+    sourceStatus: provenance.sourceStatus || planStatus,
+    sourceWeightPercent: provenance.sourceWeightPercent ?? null,
+    sourceEvidence: provenance.sourceEvidence || '',
+    reviewRequired,
+    reviewCode: reviewRequired ? 'confirm-weight-before-publish' : 'source-weight-spot-check',
+    rationale: provenance.rationale || '',
+    reviewerAction: provenance.reviewerAction || '',
+  };
+}
+
 function compactClassroomHandoffPlan(plan = {}) {
   const lessonReviewOrder = Array.isArray(plan.lessonReviewOrder) ? plan.lessonReviewOrder : [];
   return {
@@ -9007,13 +9026,32 @@ function buildCriterionEvidenceMap(lesson, criteria, validityEvidence) {
         ? `Strong evidence names the relevant ${concept} detail, explains why it matters, and connects it directly to ${artifact}.`
         : `Strong evidence connects ${criterion.toLowerCase()} to a specific decision, limitation, or revision in ${artifact}.`,
     partialSignal: `Partial evidence mentions ${concept} or ${artifact} but leaves the reasoning, limitation, or criterion connection implicit.`,
-    feedbackMove:
-      lesson.feedbackCycle?.studentRevisionAction ||
-      `Ask students to revise ${artifact} by replacing a general claim with criterion-specific evidence and one limitation statement.`,
+    feedbackMove: buildCriterionFeedbackMove({ lesson, criterion, index }),
     calibrationQuestion:
       validityEvidence?.calibrationCheck ||
       `Would two scorers point to the same evidence for "${criterion}" in ${artifact}? If not, clarify the anchor example before scoring.`,
   }));
+}
+
+function buildCriterionFeedbackMove({ lesson = {}, criterion = '', index = 0 }) {
+  const concept = lesson.keyConcepts?.[0] || stripLessonPrefix(lesson.title) || 'the lesson focus';
+  const artifact = stripTerminalPunctuation(lesson.studentArtifact || 'the lesson artifact');
+  const sourceCue =
+    lesson.evidencePlan?.sourceCue || lesson.readings?.[0] || `${stripLessonPrefix(lesson.title)} materials`;
+  const criterionLabel = cleanText(criterion, `criterion ${index + 1}`);
+  if (index === 0 || /\b(accuracy|evidence|source)\b/i.test(criterionLabel)) {
+    return `Revise ${artifact} by tying the ${concept} evidence for "${criterionLabel}" to ${sourceCue}, one limitation, and the visible decision.`;
+  }
+  if (index === 1 || /\b(analysis|logic|reasoning|decision)\b/i.test(criterionLabel)) {
+    return `Strengthen "${criterionLabel}" by adding the missing reasoning step between the ${concept} evidence, the tradeoff, and the ${artifact} decision.`;
+  }
+  if (index === 2 || /\b(communication|format|organization)\b/i.test(criterionLabel)) {
+    return `Revise the organization for "${criterionLabel}" so the ${concept} evidence, decision, and limitation are easy to locate in ${artifact}.`;
+  }
+  if (/\b(feedback|revision)\b/i.test(criterionLabel)) {
+    return `Mark the feedback-informed change for "${criterionLabel}" and explain how it improved the ${concept} evidence link in ${artifact}.`;
+  }
+  return `Revise "${criterionLabel}" in ${artifact} by adding criterion-specific ${concept} evidence, one limitation, and the next decision.`;
 }
 
 function criterionWeightDescriptor({ criterion, index, lesson, evidenceEntry }) {
@@ -9250,9 +9288,7 @@ function buildAssessmentAnchorExamples(lesson, criteria, criterionEvidenceMap, v
     strongSignal,
     partialSignal,
     scoringRationale: `Score the strong anchor higher because the evidence is inspectable, tied to ${primaryCriterion}, and aligned with ${validityEvidence?.targetConstruct || `${artifact} performance evidence`}.`,
-    revisionPrompt:
-      lesson.feedbackCycle?.studentRevisionAction ||
-      `Revise the partial ${artifact} anchor by replacing one general claim with a specific ${concept} evidence move and one limitation statement.`,
+    revisionPrompt: `Revise the partial ${artifact} anchor by making the ${primaryCriterion} evidence from ${sourceCue} inspectable, naming one limitation, and stating what changed before submission.`,
     scorerCalibrationUse: `Before grading, scorers compare the strong and partial ${artifact} anchors, point to the exact evidence difference, and reconcile disagreements before scoring student work.`,
     studentFacingUse: `Share the strong/partial ${artifact} anchor contrast before students submit so they can self-check evidence, reasoning, limitation, and revision quality.`,
   };
@@ -9870,7 +9906,7 @@ function compileSyllabus(blueprint) {
         week: `Week ${assessment.lessonNumbers[0]}`,
         assessmentOrMilestone: assessment.title,
         pointsOrWeight: assessment.weight,
-        gradingWeightProvenance: assessment.weightProvenance,
+        gradingWeightProvenance: compactWeightProvenance(assessment.weightProvenance),
         assessmentRole: assessment.roleLabel,
         stakes: assessment.stakes,
         gradingMode: assessment.gradingMode,
@@ -9952,7 +9988,7 @@ function compileAssignments(blueprint) {
       artifact: assessment.title,
       assessmentRole: assessment.roleLabel,
       weight: assessment.weight,
-      gradingWeightProvenance: assessment.weightProvenance,
+      gradingWeightProvenance: compactWeightProvenance(assessment.weightProvenance),
       criterionWeightCue:
         (assessment.criterionWeightPlan || [])
           .map((entry) => `${entry.priority || entry.criterion}: ${entry.weight}%`)
@@ -9985,7 +10021,7 @@ function compileAssignments(blueprint) {
           roleLabel: assessment.roleLabel,
           stakes: assessment.stakes,
           gradingMode: assessment.gradingMode,
-          weightProvenance: assessment.weightProvenance,
+          weightProvenance: compactWeightProvenance(assessment.weightProvenance),
           roleRationale: assessment.roleRationale,
           studentFacingPurpose: assessment.studentFacingPurpose,
           cadence: assessment.cadence,
@@ -10017,7 +10053,7 @@ function compileAssignments(blueprint) {
             roleLabel: assessment.roleLabel,
             stakes: assessment.stakes,
             cadence: assessment.cadence,
-            weightProvenance: assessment.weightProvenance,
+            weightProvenance: compactWeightProvenance(assessment.weightProvenance),
             revisionUse: assessment.revisionUse,
             criterionWeightPlan: assessment.criterionWeightPlan,
           },
@@ -10061,7 +10097,7 @@ function compileAssignments(blueprint) {
           revisionNeeded: `${assessmentTitle} needs stronger evidence for ${assessment.relatedLessons[0]}, clearer reasoning, or a closer connection to the listed criteria.`,
         },
         overview: `${assessmentArtifact} is a ${assessment.roleLabel || 'course assessment'} worth ${assessment.weight}; it asks students to turn ${assessment.relatedLessons[0]} concepts into a concrete ${submissionProfile.assignmentType.toLowerCase()}. The task is designed to show how students use evidence for ${assessmentTitle}, make decisions, and prepare for later work. Genre-specific quality focus: ${submissionProfile.qualityFocus}.`,
-        gradingWeightProvenance: assessment.weightProvenance,
+        gradingWeightProvenance: compactWeightProvenance(assessment.weightProvenance),
         objectives: assessment.objectives,
         instructions: [
           lesson.prerequisitePlan?.diagnosticCheck ||
@@ -10075,8 +10111,7 @@ function compileAssignments(blueprint) {
           assessment.anchorExampleSet?.studentFacingUse ||
             `Compare a strong and partial sample before finalizing ${assessmentTitle}.`,
           `Draft ${assessmentTitle} so each section addresses one rubric criterion.`,
-          assessment.feedbackCycle?.studentRevisionAction ||
-            `Use feedback or self-review to revise ${assessmentArtifact} before posting it.`,
+          `Use feedback or self-review to revise one evidence link, limitation, or decision step in ${assessmentArtifact} before posting it.`,
         ],
         formatRequirements: {
           length: `Enough detail to address every ${assessmentTitle} criterion; follow instructor length guidance when provided.`,
@@ -10263,7 +10298,7 @@ function compileRubrics(blueprint) {
           roleLabel: assessment.roleLabel,
           stakes: assessment.stakes,
           gradingMode: assessment.gradingMode,
-          weightProvenance: assessment.weightProvenance,
+          weightProvenance: compactWeightProvenance(assessment.weightProvenance),
           roleRationale: assessment.roleRationale,
           studentFacingPurpose: assessment.studentFacingPurpose,
           cadence: assessment.cadence,
@@ -10288,7 +10323,7 @@ function compileRubrics(blueprint) {
             roleLabel: assessment.roleLabel,
             stakes: assessment.stakes,
             cadence: assessment.cadence,
-            weightProvenance: assessment.weightProvenance,
+            weightProvenance: compactWeightProvenance(assessment.weightProvenance),
             revisionUse: assessment.revisionUse,
             criterionWeightPlan,
           },

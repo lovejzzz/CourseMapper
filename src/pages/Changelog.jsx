@@ -57,6 +57,7 @@ const releases = [
         items: [
           'Developer Mode now tracks blueprint-enrichment calls alongside course-map, deliverable, repair, retry, fallback, agent, and image calls.',
           'Receipts distinguish deterministic compile, enriched compile, local source-inferred repair, model fallback, and required human review.',
+          'Compiled syllabus, assignment, and rubric grading-weight receipts now use compact provenance rows instead of repeating internal policy text on every deliverable row.',
           'The pipeline audit continues to prove the audited core package can compile with zero hybrid model calls while preserving validator and readiness quality.',
         ],
       },

@@ -2957,14 +2957,14 @@ describe('courseBlueprintCompiler', () => {
       evidenceNeeded: expect.stringContaining('inspectable Policy Topic 1 detail'),
       strongSignal: expect.stringContaining('Strong evidence names'),
       partialSignal: expect.stringContaining('Partial evidence mentions Policy Topic 1'),
-      feedbackMove: expect.stringContaining('evidence-backed Policy Topic 1 reasoning'),
+      feedbackMove: expect.stringContaining('tying the Policy Topic 1 evidence'),
       calibrationQuestion: expect.stringContaining('compare one strong and one partial Policy memo checkpoint 1'),
     });
     expect(blueprint.assessments[0].anchorExampleSet).toMatchObject({
       strongSample: expect.stringContaining('Strong Policy memo checkpoint 1 anchor'),
       partialSample: expect.stringContaining('Partial Policy memo checkpoint 1 anchor'),
       scoringRationale: expect.stringContaining('Policy Topic 1 accuracy'),
-      revisionPrompt: expect.stringContaining('evidence-backed Policy Topic 1 reasoning'),
+      revisionPrompt: expect.stringContaining('making the Policy Topic 1 accuracy'),
       scorerCalibrationUse: expect.stringContaining('compare the strong and partial Policy memo checkpoint 1 anchors'),
       studentFacingUse: expect.stringContaining('strong/partial Policy memo checkpoint 1 anchor contrast'),
     });
@@ -4739,13 +4739,24 @@ describe('courseBlueprintCompiler', () => {
     expect(weightedCompiled.syllabus.syllabus.assessmentCalendar[0].gradingWeightProvenance).toMatchObject({
       source: 'course-map-explicit',
       reviewRequired: false,
+      reviewCode: 'source-weight-spot-check',
     });
+    expect(weightedCompiled.syllabus.syllabus.assessmentCalendar[0].gradingWeightProvenance.planPolicy).toBeUndefined();
+    expect(
+      weightedCompiled.syllabus.syllabus.assessmentCalendar[0].gradingWeightProvenance.planReviewReason,
+    ).toBeUndefined();
     expect(weightedCompiled.assignments.assignments[0].assessmentArchitecture.weightProvenance).toMatchObject({
       source: 'course-map-explicit',
+      reviewCode: 'source-weight-spot-check',
     });
+    expect(
+      weightedCompiled.assignments.assignments[0].assessmentArchitecture.weightProvenance.planPolicy,
+    ).toBeUndefined();
     expect(weightedCompiled.rubrics.rubrics[0].assessmentArchitecture.weightProvenance).toMatchObject({
       source: 'course-map-explicit',
+      reviewCode: 'source-weight-spot-check',
     });
+    expect(weightedCompiled.rubrics.rubrics[0].assessmentArchitecture.weightProvenance.planPolicy).toBeUndefined();
 
     const draftBlueprint = buildCourseBlueprint(makeCourseMap(4));
     expect(draftBlueprint.assessmentArchitecture).toMatchObject({
