@@ -1,4 +1,5 @@
 #!/usr/bin/env node
+import { readFileSync } from 'node:fs';
 import fs from 'node:fs/promises';
 import path from 'node:path';
 import process from 'node:process';
@@ -20,6 +21,7 @@ export { closeHybridPipelineAuditRuntime, loadHybridPipelineAuditRuntime };
 
 const ROOT = process.cwd();
 const DEFAULT_OUTPUT_DIR = path.join(ROOT, 'verification-output', 'expert-review-quality-audit');
+export const CURRENT_PACKAGE_VERSION = JSON.parse(readFileSync(path.join(ROOT, 'package.json'), 'utf8')).version;
 
 const FEATURE_LABELS = {
   syllabus: 'Syllabus',
@@ -105,6 +107,16 @@ const PLACEHOLDER_PROOF_RE =
   /\b(?:replace with|template|placeholder|tbd|to be determined|example only|lorem ipsum|yyyy-mm-dd)\b/i;
 const UNREPLACED_TEMPLATE_RE =
   /\b(?:replace with|replace this|placeholder|tbd|to be determined|example only|lorem ipsum|yyyy-mm-dd)\b/i;
+
+function normalizePackageVersion(value) {
+  return String(value || '')
+    .trim()
+    .replace(/^v/i, '');
+}
+
+function matchesCurrentPackageVersion(value) {
+  return normalizePackageVersion(value) === normalizePackageVersion(CURRENT_PACKAGE_VERSION);
+}
 
 export const DEFAULT_REVIEW_FIXTURES = [
   {
@@ -733,6 +745,16 @@ function validateReviewFixture(fixture) {
         'fixture',
         'externalProofPackageVersionPlaceholder',
         'External review fixtures must replace placeholder package-version text with the reviewed package version.',
+      ),
+    );
+  } else if (!matchesCurrentPackageVersion(reviewEvidence.reviewedPackageVersion)) {
+    findings.push(
+      makeFinding(
+        'blocker',
+        fixtureId,
+        'fixture',
+        'externalProofPackageVersionMismatch',
+        `External review fixtures must match the current package version (${CURRENT_PACKAGE_VERSION}); found ${reviewEvidence.reviewedPackageVersion}. Regenerate and review the packet for this release before using it as A-quality proof.`,
       ),
     );
   }

@@ -35,6 +35,7 @@ const releases = [
           'External proof packets now include source inputs, compact blueprints, full-package review files, reviewer scorecards, source-fidelity artifact rows, blueprint-quality rows, and assumption-ledger decisions.',
           'Recommended strict-proof bundles now cover 5-, 8-, and 14-lesson scopes across different modalities and show whether the required real external course map is at a valid proof scope.',
           'The strict external gate now blocks real-course proof that is complete but off-scope, so curated samples cannot hide an unproven real-course workflow.',
+          'External reviewer fixtures must now match the current package version, preventing stale review packets from certifying a newer compiler build.',
         ],
       },
       {

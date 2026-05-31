@@ -5,6 +5,7 @@ import path from 'node:path';
 import { describe, expect, it } from 'vitest';
 
 import {
+  CURRENT_PACKAGE_VERSION,
   DEFAULT_REVIEW_FIXTURES,
   auditExpertReviewFixture,
   buildExpertReviewQualityAudit,
@@ -190,7 +191,7 @@ describe('expert review quality audit', () => {
       reviewEvidence: {
         reviewerType: 'external-instructor',
         reviewedAt: '2026-05-27',
-        reviewedPackageVersion: '0.8.0',
+        reviewedPackageVersion: CURRENT_PACKAGE_VERSION,
         reviewedArtifacts: ['rubrics', 'quizBank', 'slideDecks'],
         evidenceSource: 'instructor edit history',
       },
@@ -454,7 +455,7 @@ describe('expert review quality audit', () => {
               reviewEvidence: {
                 reviewerType: 'external-expert',
                 reviewedAt: '2026-05-27',
-                reviewedPackageVersion: '0.8.0',
+                reviewedPackageVersion: CURRENT_PACKAGE_VERSION,
                 reviewedArtifacts: ['syllabus', 'lessonPlans', 'assignments'],
               },
               reviewScorecard: {
@@ -526,7 +527,7 @@ describe('expert review quality audit', () => {
             reviewEvidence: {
               reviewerType: 'external-expert',
               reviewedAt: '2026-05-27',
-              reviewedPackageVersion: '0.8.0',
+              reviewedPackageVersion: CURRENT_PACKAGE_VERSION,
               reviewedArtifacts: ['syllabus', 'lessonPlans', 'assignments'],
             },
             project: {
@@ -571,7 +572,7 @@ describe('expert review quality audit', () => {
           reviewEvidence: {
             reviewerType: 'external-expert',
             reviewedAt: '2026-05-27',
-            reviewedPackageVersion: '0.8.0',
+            reviewedPackageVersion: CURRENT_PACKAGE_VERSION,
             reviewedArtifacts: ['syllabus', 'lessonPlans'],
           },
           reviewScorecard: {
@@ -618,7 +619,7 @@ describe('expert review quality audit', () => {
           reviewEvidence: {
             reviewerType: 'external-expert',
             reviewedAt: '2026-05-27',
-            reviewedPackageVersion: '0.8.0',
+            reviewedPackageVersion: CURRENT_PACKAGE_VERSION,
             reviewedArtifacts: ['syllabus', 'lessonPlans'],
           },
           reviewScorecard: {
@@ -674,7 +675,7 @@ describe('expert review quality audit', () => {
           reviewEvidence: {
             reviewerType: 'external-expert',
             reviewedAt: '2026-05-27',
-            reviewedPackageVersion: '0.8.0',
+            reviewedPackageVersion: CURRENT_PACKAGE_VERSION,
             reviewedArtifacts: ['full-package'],
           },
           reviewScorecard: {
@@ -721,7 +722,7 @@ describe('expert review quality audit', () => {
           reviewEvidence: {
             reviewerType: 'external-expert',
             reviewedAt: '2026-05-27',
-            reviewedPackageVersion: '0.8.0',
+            reviewedPackageVersion: CURRENT_PACKAGE_VERSION,
             reviewedArtifacts: ['full-package'],
           },
           reviewScorecard: {
@@ -806,6 +807,39 @@ describe('expert review quality audit', () => {
     }
   });
 
+  it('blocks external fixtures reviewed against a stale package version', async () => {
+    const runtime = await loadHybridPipelineAuditRuntime();
+    try {
+      const result = auditExpertReviewFixture({
+        fixture: makeExternalEditHistoryFixture({
+          id: 'external-stale-package-version-fixture',
+          reviewEvidence: {
+            reviewedPackageVersion: '0.0.0',
+            reviewedArtifacts: ['full-package'],
+          },
+          reviewScorecard: {
+            maxScore: 5,
+            dimensions: makePassingScorecardDimensions(),
+          },
+        }),
+        runtime,
+      });
+
+      expect(result.summary.status).toBe('blocked');
+      expect(result.externalProofEligible).toBe(false);
+      expect(result.findings).toEqual(
+        expect.arrayContaining([
+          expect.objectContaining({
+            featureId: 'fixture',
+            check: 'externalProofPackageVersionMismatch',
+          }),
+        ]),
+      );
+    } finally {
+      await closeHybridPipelineAuditRuntime();
+    }
+  });
+
   it('blocks external project course maps that still contain template placeholders', async () => {
     const runtime = await loadHybridPipelineAuditRuntime();
     try {
@@ -818,7 +852,7 @@ describe('expert review quality audit', () => {
           reviewEvidence: {
             reviewerType: 'external-expert',
             reviewedAt: '2026-05-27',
-            reviewedPackageVersion: '0.8.0',
+            reviewedPackageVersion: CURRENT_PACKAGE_VERSION,
             reviewedArtifacts: ['full-package'],
           },
           project: {
@@ -865,7 +899,7 @@ describe('expert review quality audit', () => {
           reviewEvidence: {
             reviewerType: 'external-expert',
             reviewedAt: '2026-05-27',
-            reviewedPackageVersion: '0.8.0',
+            reviewedPackageVersion: CURRENT_PACKAGE_VERSION,
             reviewedArtifacts: ['full-package'],
           },
           reviewScorecard: {
@@ -942,7 +976,7 @@ describe('expert review quality audit', () => {
           reviewEvidence: {
             reviewerType: 'external-expert',
             reviewedAt: '2026-05-27',
-            reviewedPackageVersion: '0.8.0',
+            reviewedPackageVersion: CURRENT_PACKAGE_VERSION,
             reviewedArtifacts: ['syllabus'],
           },
           packageMustMatch: [/evidence/i],
@@ -981,7 +1015,7 @@ describe('expert review quality audit', () => {
             reviewEvidence: {
               reviewerType: 'external-expert',
               reviewedAt: '2026-05-27',
-              reviewedPackageVersion: '0.8.0',
+              reviewedPackageVersion: CURRENT_PACKAGE_VERSION,
               reviewedArtifacts: ['syllabus'],
             },
             packageMustMatch: [/empirical evidence/i],

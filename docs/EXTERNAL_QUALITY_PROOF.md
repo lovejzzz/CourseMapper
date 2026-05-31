@@ -34,7 +34,7 @@ Copy the template to a private review file, replace the example values with real
 
 Fixtures can point to a curated `sampleId` or include their own `project.courseMap`.
 
-External proof metadata must be concrete. Do not leave values such as `YYYY-MM-DD`, `Replace with...`, `TBD`, `template`, or `placeholder` in `reviewEvidence.reviewedAt`, `reviewEvidence.reviewedPackageVersion`, `reviewEvidence.reviewedArtifacts`, or `reviewEvidence.evidenceSource`; the audit blocks those fixtures instead of counting them as proof.
+External proof metadata must be concrete and tied to the current package version in `package.json`. Do not leave values such as `YYYY-MM-DD`, `Replace with...`, `TBD`, `template`, or `placeholder` in `reviewEvidence.reviewedAt`, `reviewEvidence.reviewedPackageVersion`, `reviewEvidence.reviewedArtifacts`, or `reviewEvidence.evidenceSource`; the audit blocks those fixtures instead of counting them as proof. If `reviewEvidence.reviewedPackageVersion` does not match the current CourseMapper package version, the fixture is treated as stale proof and must be regenerated/re-reviewed for the current release.
 
 External project course maps and positive reviewer expectations must also be filled with real content. Removing `templateOnly` is not enough if `project.courseMap`, `packageMustMatch`, `featureExpectations`, `preferenceExpectations`, blueprint expectations, or positive edit checks still contain placeholder text such as `Replace with...` or `placeholder`.
 
@@ -430,6 +430,7 @@ External reviewers should record a decision for each review-required assumption 
 This mode fails unless the fixture set proves all of the following:
 
 - External review and concrete external edit-history evidence are both present
+- External review fixtures name the current CourseMapper package version, not an older reviewed build
 - At least two external proof samples across at least two teaching modalities combine the full-package scorecard, source-fidelity review, blueprint-quality review, assumption-ledger decisions, and concrete edit-history evidence for each same sample
 - At least one complete proof sample uses a real `project.courseMap` fixture from outside the curated built-in gold samples, and that real course-map proof sample is at one of the required `5`, `8`, or `14` lesson scopes
 - Complete proof samples cover `5`, `8`, and `14` lesson scopes so strict proof covers short modules, standard courses, and full-semester courses

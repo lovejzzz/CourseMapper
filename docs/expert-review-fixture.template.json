@@ -10,7 +10,7 @@
       "reviewEvidence": {
         "reviewerType": "external-expert",
         "reviewedAt": "YYYY-MM-DD",
-        "reviewedPackageVersion": "0.8.0",
+        "reviewedPackageVersion": "0.8.1",
         "reviewedArtifacts": [
           "syllabus",
           "lessonPlans",
@@ -274,7 +274,7 @@
       "reviewEvidence": {
         "reviewerType": "external-instructor",
         "reviewedAt": "YYYY-MM-DD",
-        "reviewedPackageVersion": "0.8.0",
+        "reviewedPackageVersion": "0.8.1",
         "reviewedArtifacts": [
           "syllabus",
           "lessonPlans",
@@ -319,7 +319,7 @@
       "reviewEvidence": {
         "reviewerType": "external-expert",
         "reviewedAt": "YYYY-MM-DD",
-        "reviewedPackageVersion": "0.8.0",
+        "reviewedPackageVersion": "0.8.1",
         "reviewedArtifacts": [
           "syllabus",
           "lessonPlans",
@@ -602,7 +602,7 @@
       "reviewEvidence": {
         "reviewerType": "external-instructor",
         "reviewedAt": "YYYY-MM-DD",
-        "reviewedPackageVersion": "0.8.0",
+        "reviewedPackageVersion": "0.8.1",
         "reviewedArtifacts": [
           "syllabus",
           "lessonPlans",
