@@ -1,6 +1,9 @@
 import { describe, expect, it, vi } from 'vitest';
+import JSZip from 'jszip';
 import { verifyPackageExports } from '../packageExportVerifier';
 import { deliverableToCsvRows } from '../exporters/csvExporter';
+import { buildDeliverableDocxBlob } from '../exporters/bulkDocxExporter';
+import { buildSlideDeckPptxBlob } from '../exporters/pptxExporter';
 
 vi.mock('../customDeliverableLibrary', () => ({
   getCustomDeliverable: vi.fn((id) => {
@@ -25,6 +28,13 @@ vi.mock('../exporters/bulkDocxExporter', () => ({
 vi.mock('../exporters/pptxExporter', () => ({
   buildSlideDeckPptxBlob: vi.fn(() => Promise.resolve({ size: 256 })),
 }));
+
+async function makeOfficeXmlBlob(path, xml) {
+  const zip = new JSZip();
+  zip.file(path, xml);
+  const buffer = await zip.generateAsync({ type: 'arraybuffer' });
+  return new Blob([buffer]);
+}
 
 describe('verifyPackageExports', () => {
   it('runs in-memory checks for course map and selected deliverables', async () => {
@@ -181,6 +191,62 @@ describe('verifyPackageExports', () => {
       format: 'csv',
       status: 'failed',
       message: 'CSV export exposes internal compiler decision language in Prompt.',
+    });
+  });
+
+  it('fails export verification when generated DOCX text leaks internal compiler language', async () => {
+    vi.mocked(buildDeliverableDocxBlob).mockResolvedValueOnce(
+      await makeOfficeXmlBlob(
+        'word/document.xml',
+        '<w:document><w:body><w:p><w:r><w:t>This handout exposes the compiler decision.</w:t></w:r></w:p></w:body></w:document>',
+      ),
+    );
+
+    const result = await verifyPackageExports({
+      courseMap: { courseName: 'Research Methods', lessons: [{ title: 'Lesson 1', sections: [] }] },
+      deliverables: {
+        lessonPlans: {
+          status: 'done',
+          data: { lessonPlans: [{ lessonTitle: 'Lesson 1', objectives: ['Define sampling.'] }] },
+        },
+      },
+      selectedFeatures: ['lessonPlans'],
+    });
+
+    expect(result.status).toBe('failed');
+    expect(result.checks.find((check) => check.format === 'docx')).toMatchObject({
+      featureId: 'lessonPlans',
+      status: 'failed',
+      message: 'DOCX export exposes internal compiler decision language in word/document.xml.',
+    });
+  });
+
+  it('fails export verification when generated PPTX text leaks internal proof language', async () => {
+    vi.mocked(buildSlideDeckPptxBlob).mockResolvedValueOnce(
+      await makeOfficeXmlBlob(
+        'ppt/slides/slide1.xml',
+        '<p:sld><p:cSld><a:t>This slide still exposes a publish gate.</a:t></p:cSld></p:sld>',
+      ),
+    );
+
+    const result = await verifyPackageExports({
+      courseMap: { courseName: 'Research Methods', lessons: [{ title: 'Lesson 1', sections: [] }] },
+      deliverables: {
+        slideDecks: {
+          status: 'done',
+          data: {
+            decks: [{ lessonTitle: 'Lesson 1', slides: [{ title: 'Sampling', bullets: ['Define sampling.'] }] }],
+          },
+        },
+      },
+      selectedFeatures: ['slideDecks'],
+    });
+
+    expect(result.status).toBe('failed');
+    expect(result.checks.find((check) => check.format === 'pptx')).toMatchObject({
+      featureId: 'slideDecks',
+      status: 'failed',
+      message: 'Slide deck PowerPoint export exposes internal publish gate language in ppt/slides/slide1.xml.',
     });
   });
 });

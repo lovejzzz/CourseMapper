@@ -82,6 +82,64 @@ function findInternalExportText(rows) {
   return null;
 }
 
+function findInternalTextInString(text) {
+  const value = String(text || '');
+  const match = INTERNAL_EXPORT_TEXT_PATTERNS.find(({ pattern }) => pattern.test(value));
+  return match ? { label: match.label } : null;
+}
+
+async function toArrayBuffer(value) {
+  if (!value) return null;
+  if (value instanceof ArrayBuffer) return value;
+  if (ArrayBuffer.isView(value)) {
+    return value.buffer.slice(value.byteOffset, value.byteOffset + value.byteLength);
+  }
+  if (typeof value.arrayBuffer === 'function') return await value.arrayBuffer();
+  return null;
+}
+
+function decodeXmlEntities(value) {
+  return String(value || '')
+    .replace(/&lt;/g, '<')
+    .replace(/&gt;/g, '>')
+    .replace(/&amp;/g, '&')
+    .replace(/&quot;/g, '"')
+    .replace(/&apos;/g, "'");
+}
+
+function extractOfficeXmlText(xml) {
+  const textRuns = [];
+  const textRunPattern = /<(?:[A-Za-z0-9_-]+:)?t\b[^>]*>([\s\S]*?)<\/(?:[A-Za-z0-9_-]+:)?t>/g;
+  let match;
+  while ((match = textRunPattern.exec(xml))) {
+    textRuns.push(decodeXmlEntities(match[1].replace(/<[^>]+>/g, '')));
+  }
+  if (textRuns.length > 0) return textRuns.join(' ');
+  return decodeXmlEntities(String(xml || '').replace(/<[^>]+>/g, ' '));
+}
+
+async function findInternalOfficeXmlText(blob, pathPattern) {
+  const buffer = await toArrayBuffer(blob);
+  if (!buffer) return null;
+  const JSZip = (await import('jszip')).default;
+  const zip = await JSZip.loadAsync(buffer);
+  const files = Object.values(zip.files)
+    .filter((file) => !file.dir && pathPattern.test(file.name))
+    .sort((a, b) => a.name.localeCompare(b.name));
+  for (const file of files) {
+    const xml = await file.async('string');
+    const text = extractOfficeXmlText(xml);
+    const internalText = findInternalTextInString(text);
+    if (internalText) {
+      return {
+        ...internalText,
+        path: file.name,
+      };
+    }
+  }
+  return null;
+}
+
 async function verifyCourseMapExport({ courseMap, columns, lessonFilter }) {
   if (!courseMap?.lessons?.length) {
     return [createCheck('courseMap', 'xlsx', 'failed', 'Course map has no lessons to export.')];
@@ -130,26 +188,43 @@ async function verifyDocxExport(featureId, data, courseName) {
   const { buildDeliverableDocxBlob } = await import('./exporters/bulkDocxExporter');
   const blob = await buildDeliverableDocxBlob(featureId, data, courseName);
   const size = getBlobSize(blob);
-  return createCheck(
-    featureId,
-    'docx',
-    size > 128 ? 'passed' : 'failed',
-    size > 128 ? 'DOCX export can be generated.' : 'DOCX export output was empty.',
-    { size },
+  if (size <= 128) {
+    return createCheck(featureId, 'docx', 'failed', 'DOCX export output was empty.', { size });
+  }
+  const internalText = await findInternalOfficeXmlText(
+    blob,
+    /^word\/(?:document|footnotes|endnotes|header\d+|footer\d+)\.xml$/,
   );
+  if (internalText) {
+    return createCheck(
+      featureId,
+      'docx',
+      'failed',
+      `DOCX export exposes internal ${internalText.label} language in ${internalText.path}.`,
+      { size, internalText },
+    );
+  }
+  return createCheck(featureId, 'docx', 'passed', 'DOCX export can be generated.', { size });
 }
 
 async function verifyPptxExport(data, courseName, slideTheme) {
   const { buildSlideDeckPptxBlob } = await import('./exporters/pptxExporter');
   const blob = await buildSlideDeckPptxBlob(data, courseName, slideTheme || 0);
   const size = getBlobSize(blob);
-  return createCheck(
-    'slideDecks',
-    'pptx',
-    size > 128 ? 'passed' : 'failed',
-    size > 128 ? 'Slide deck PowerPoint export can be generated.' : 'Slide deck PowerPoint output was empty.',
-    { size },
-  );
+  if (size <= 128) {
+    return createCheck('slideDecks', 'pptx', 'failed', 'Slide deck PowerPoint output was empty.', { size });
+  }
+  const internalText = await findInternalOfficeXmlText(blob, /^ppt\/(?:slides|notesSlides)\/[^/]+\.xml$/);
+  if (internalText) {
+    return createCheck(
+      'slideDecks',
+      'pptx',
+      'failed',
+      `Slide deck PowerPoint export exposes internal ${internalText.label} language in ${internalText.path}.`,
+      { size, internalText },
+    );
+  }
+  return createCheck('slideDecks', 'pptx', 'passed', 'Slide deck PowerPoint export can be generated.', { size });
 }
 
 async function verifyDeliverableExport({ featureId, entry, courseMap, lessonFilter, slideTheme }) {
