@@ -1,4 +1,4 @@
-import { loadPdfLibs, getDocx, getSaveAs, resolveFeatureLabel } from './exporterUtils.js';
+import { loadPdfLibs, getDocx, getSaveAs, isInternalExportMetadataKey, resolveFeatureLabel } from './exporterUtils.js';
 import { expandKeys } from '../keyMaps.js';
 import { buildSyllabusCsvRows } from './syllabusExportUtils.js';
 
@@ -343,6 +343,7 @@ export function deliverableToCsvRows(featureId, data) {
       const seen = new Set();
       for (const item of items) {
         for (const k of Object.keys(item)) {
+          if (isInternalExportMetadataKey(k)) continue;
           if (!seen.has(k)) {
             seen.add(k);
             allKeys.push(k);

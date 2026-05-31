@@ -926,4 +926,33 @@ describe('deliverableToCsvRows — custom/unknown deliverables', () => {
     const { rows } = deliverableToCsvRows('custom_x', data);
     expect(rows[0][0]).toBe('{"deep":true}');
   });
+
+  it('omits internal compiler metadata from custom deliverable CSV exports', () => {
+    const data = {
+      items: [
+        {
+          lessonTitle: 'Lesson 1',
+          promptTitle: 'Weekly Reflection 1',
+          responsePrompt: 'Connect the lesson evidence to your next revision.',
+          sourceGrounding: {
+            compilerDecision: 'deterministic-compile',
+            publishGate: 'ready-with-spot-check',
+          },
+          blueprintGrounding: {
+            sourceConfidence: 'high',
+          },
+          qualityReceipt: 'Internal proof packet only.',
+        },
+      ],
+    };
+
+    const { headers, rows } = deliverableToCsvRows('custom_reflection', data);
+    const exportedText = [headers, ...rows].flat().join(' ');
+
+    expect(headers).toEqual(['Lesson Title', 'Prompt Title', 'Response Prompt']);
+    expect(exportedText).toContain('Weekly Reflection 1');
+    expect(exportedText).not.toContain('Source Grounding');
+    expect(exportedText).not.toContain('deterministic-compile');
+    expect(exportedText).not.toContain('Internal proof packet');
+  });
 });

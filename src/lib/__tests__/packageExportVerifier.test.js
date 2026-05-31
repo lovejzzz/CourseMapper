@@ -1,5 +1,6 @@
 import { describe, expect, it, vi } from 'vitest';
 import { verifyPackageExports } from '../packageExportVerifier';
+import { deliverableToCsvRows } from '../exporters/csvExporter';
 
 vi.mock('../customDeliverableLibrary', () => ({
   getCustomDeliverable: vi.fn((id) => {
@@ -148,5 +149,38 @@ describe('verifyPackageExports', () => {
 
     expect(result.status).toBe('passed');
     expect(result.checks.map((check) => check.status)).toEqual(['passed', 'passed']);
+  });
+
+  it('fails export verification when exported CSV text leaks internal compiler language', async () => {
+    vi.mocked(deliverableToCsvRows).mockReturnValueOnce({
+      headers: ['Lesson', 'Prompt'],
+      rows: [['Lesson 1', 'This prompt exposes the compiler decision and publish gate.']],
+    });
+
+    const result = await verifyPackageExports({
+      courseMap: { courseName: 'Research Methods', lessons: [{ title: 'Lesson 1', sections: [] }] },
+      deliverables: {
+        custom_weeklyReflection: {
+          status: 'done',
+          data: {
+            weekly_reflection: [
+              {
+                lessonTitle: 'Lesson 1',
+                reflectionPrompt: 'This prompt exposes the compiler decision and publish gate.',
+              },
+            ],
+          },
+        },
+      },
+      selectedFeatures: ['custom_weeklyReflection'],
+    });
+
+    expect(result.status).toBe('failed');
+    expect(result.checks[0]).toMatchObject({
+      featureId: 'custom_weeklyReflection',
+      format: 'csv',
+      status: 'failed',
+      message: 'CSV export exposes internal compiler decision language in Prompt.',
+    });
   });
 });

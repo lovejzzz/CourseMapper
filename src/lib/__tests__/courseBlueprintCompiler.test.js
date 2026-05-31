@@ -5002,6 +5002,8 @@ describe('courseBlueprintCompiler', () => {
     expect(validation.valid, validation.blockers.join('; ')).toBe(true);
     expect(csv.headers).toContain('Prompt Title');
     expect(csv.rows).toHaveLength(3);
+    expect(csv.headers).not.toContain('Source Grounding');
+    expect(csv.rows.flat().join(' ')).not.toContain('compiledPattern');
   });
 
   it('compiles predictable per-lesson reading response custom deliverables from the blueprint', () => {
@@ -5058,5 +5060,7 @@ describe('courseBlueprintCompiler', () => {
     expect(validation.valid, validation.blockers.join('; ')).toBe(true);
     expect(csv.headers).toContain('Prompt Title');
     expect(csv.rows).toHaveLength(3);
+    expect(csv.headers).not.toContain('Source Grounding');
+    expect(csv.rows.flat().join(' ')).not.toContain('compiledPattern');
   });
 });

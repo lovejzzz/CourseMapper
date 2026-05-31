@@ -14,6 +14,21 @@ const DEFAULT_FEATURES = [
   'courseFaq',
 ];
 
+const INTERNAL_EXPORT_TEXT_PATTERNS = [
+  { label: 'compiler decision', pattern: /\bcompiler decision(?:s)?\b/i },
+  { label: 'compiler path', pattern: /\bcompiler path\b/i },
+  { label: 'deterministic blueprint', pattern: /\bdeterministic[- ]blueprint\b/i },
+  { label: 'model-use policy', pattern: /\bmodel[- ]use policy\b/i },
+  { label: 'source grounding', pattern: /\bsource grounding\b/i },
+  { label: 'source confidence', pattern: /\bsource confidence\b/i },
+  { label: 'publish gate', pattern: /\bpublish(?:ing)? gate\b/i },
+  { label: 'handoff review focus', pattern: /\bhandoff[- ]review focus\b/i },
+  { label: 'local-review', pattern: /\blocal-review\b|\blocal review (?:action|gate|focus|required)\b/i },
+  { label: 'source-review-required', pattern: /\bsource[- ]review[- ]required\b/i },
+  { label: 'proof packet', pattern: /\bproof packet\b/i },
+  { label: 'audit gate', pattern: /\baudit gate\b/i },
+];
+
 function getBlobSize(blob) {
   if (!blob) return 0;
   if (Number.isFinite(blob.size)) return blob.size;
@@ -47,6 +62,26 @@ function createCheck(featureId, format, status, message, extra = {}) {
   };
 }
 
+function findInternalExportText(rows) {
+  const headers = Array.isArray(rows?.headers) ? rows.headers : [];
+  const dataRows = Array.isArray(rows?.rows) ? rows.rows : [];
+  for (const [rowIndex, row] of dataRows.entries()) {
+    for (const [columnIndex, value] of (Array.isArray(row) ? row : []).entries()) {
+      const text = String(value || '');
+      const match = INTERNAL_EXPORT_TEXT_PATTERNS.find(({ pattern }) => pattern.test(text));
+      if (match) {
+        return {
+          label: match.label,
+          rowIndex,
+          columnIndex,
+          column: headers[columnIndex] || `Column ${columnIndex + 1}`,
+        };
+      }
+    }
+  }
+  return null;
+}
+
 async function verifyCourseMapExport({ courseMap, columns, lessonFilter }) {
   if (!courseMap?.lessons?.length) {
     return [createCheck('courseMap', 'xlsx', 'failed', 'Course map has no lessons to export.')];
@@ -77,6 +112,16 @@ async function verifyCsvExport(featureId, data) {
   }
   if (rowCount === 0) {
     return createCheck(featureId, 'csv', 'warning', 'CSV export has headers but no data rows.', { rowCount });
+  }
+  const internalText = findInternalExportText(rows);
+  if (internalText) {
+    return createCheck(
+      featureId,
+      'csv',
+      'failed',
+      `CSV export exposes internal ${internalText.label} language in ${internalText.column}.`,
+      { rowCount, internalText },
+    );
   }
   return createCheck(featureId, 'csv', 'passed', 'CSV export can be generated.', { rowCount });
 }

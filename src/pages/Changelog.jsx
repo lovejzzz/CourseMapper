@@ -25,6 +25,7 @@ const releases = [
           'Weak-input lessons now carry a concrete local-review action through syllabus rows, lesson plans, slide decks, assignments, and each compiled lesson grounding before the package can claim classroom readiness.',
           'Blueprints now include an objective-level evidence map, so every lesson objective must show practice, assessment, rubric, quiz/check, feedback, and revision evidence before compilation is treated as classroom-ready.',
           'Syllabus trust receipts and course-at-a-glance rows now use compact proof summaries instead of copying full internal blueprint maps into user-facing materials.',
+          'Generic custom CSV and DOCX exports now omit internal compiler proof metadata while keeping the visible custom deliverable content intact.',
         ],
       },
       {
@@ -48,6 +49,7 @@ const releases = [
           'Gold audits now include a Review Actionability Matrix that blocks weak-input packages when instructors cannot see exactly what to confirm before publishing.',
           'Gold audits now include a Student-Facing Cleanliness Matrix that blocks internal compiler, proof, and publish-gate language from leaking into classroom-facing prompts and handouts.',
           'External source-fidelity notes must now cite the local-review or publish-before-use action reviewers saw, blocking generic trust notes.',
+          'Package export verification now fails before download if exported CSV text still exposes internal compiler or proof language.',
         ],
       },
       {

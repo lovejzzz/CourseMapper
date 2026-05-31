@@ -1,4 +1,4 @@
-import { loadPdfLibs, getDocx, getSaveAs, resolveFeatureLabel } from './exporterUtils.js';
+import { loadPdfLibs, getDocx, getSaveAs, isInternalExportMetadataKey, resolveFeatureLabel } from './exporterUtils.js';
 import { expandKeys } from '../keyMaps.js';
 import { formatOutcomeAlignment, formatRequiredText, normalizeCourseRequirements } from './syllabusExportUtils.js';
 
@@ -728,7 +728,7 @@ export function _buildDocxContentShared(featureId, data, children, docx) {
         children.push(makeHeading(subtitle ? `${title} — ${subtitle}` : title));
 
         for (const [k, v] of Object.entries(item)) {
-          if (headerKeys.has(k) || v == null || v === '') continue;
+          if (headerKeys.has(k) || isInternalExportMetadataKey(k) || v == null || v === '') continue;
           const label = toLabel(k);
           if (typeof v === 'string') {
             if (v.length < 100) {
@@ -744,7 +744,7 @@ export function _buildDocxContentShared(featureId, data, children, docx) {
                 children.push(makeBullet(el));
               } else if (typeof el === 'object' && el !== null) {
                 const parts = Object.entries(el)
-                  .filter(([, val]) => val != null && val !== '')
+                  .filter(([ek, val]) => !isInternalExportMetadataKey(ek) && val != null && val !== '')
                   .map(([ek, ev]) => `${toLabel(ek)}: ${typeof ev === 'string' ? ev : JSON.stringify(ev)}`);
                 children.push(makeBullet(parts.join(' · ')));
               }
@@ -752,6 +752,7 @@ export function _buildDocxContentShared(featureId, data, children, docx) {
           } else if (typeof v === 'object') {
             children.push(makeSubHeading(label));
             for (const [sk, sv] of Object.entries(v)) {
+              if (isInternalExportMetadataKey(sk)) continue;
               if (sv != null && sv !== '')
                 children.push(makeBold(toLabel(sk), typeof sv === 'string' ? sv : JSON.stringify(sv)));
             }

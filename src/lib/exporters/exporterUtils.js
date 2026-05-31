@@ -36,6 +36,30 @@ export const FEATURE_LABELS = {
   courseFaq: 'Course FAQ',
 };
 
+const INTERNAL_EXPORT_METADATA_KEYS = new Set([
+  'sourceGrounding',
+  'blueprintGrounding',
+  'compilerDecision',
+  'compilerDecisionMatrix',
+  'reviewActionability',
+  'qualityReceipt',
+  'qualitySummary',
+  'blueprintQualityReceipt',
+  'sourceEvidenceTrace',
+  'sourceAnchors',
+  'sourceRisk',
+  'sourceRiskRegister',
+  'sourceConflictReport',
+  'blueprintAssumptionLedger',
+  'packageCoherenceMatrix',
+  'provenance',
+  'internalMetadata',
+]);
+
+export function isInternalExportMetadataKey(key) {
+  return INTERNAL_EXPORT_METADATA_KEYS.has(String(key || ''));
+}
+
 export function resolveFeatureLabel(id) {
   if (FEATURE_LABELS[id]) return FEATURE_LABELS[id];
   const custom = getCustomDeliverable(id);
