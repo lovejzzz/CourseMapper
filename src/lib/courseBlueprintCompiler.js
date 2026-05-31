@@ -9027,10 +9027,30 @@ function buildCriterionEvidenceMap(lesson, criteria, validityEvidence) {
         : `Strong evidence connects ${criterion.toLowerCase()} to a specific decision, limitation, or revision in ${artifact}.`,
     partialSignal: `Partial evidence mentions ${concept} or ${artifact} but leaves the reasoning, limitation, or criterion connection implicit.`,
     feedbackMove: buildCriterionFeedbackMove({ lesson, criterion, index }),
-    calibrationQuestion:
-      validityEvidence?.calibrationCheck ||
-      `Would two scorers point to the same evidence for "${criterion}" in ${artifact}? If not, clarify the anchor example before scoring.`,
+    calibrationQuestion: buildCriterionCalibrationQuestion({ lesson, criterion, index, validityEvidence }),
   }));
+}
+
+function buildCriterionCalibrationQuestion({ lesson = {}, criterion = '', index = 0, validityEvidence = {} }) {
+  const concept = lesson.keyConcepts?.[0] || stripLessonPrefix(lesson.title) || 'the lesson focus';
+  const artifact = stripTerminalPunctuation(lesson.studentArtifact || 'the lesson artifact');
+  const criterionLabel = cleanText(criterion, `criterion ${index + 1}`);
+  const baseCheck =
+    validityEvidence?.calibrationCheck ||
+    `Before scoring ${artifact}, compare one strong and one partial ${artifact} response.`;
+  if (index === 0 || /\b(accuracy|evidence|source)\b/i.test(criterionLabel)) {
+    return `${baseCheck} For "${criterionLabel}", ask whether two scorers cite the same ${concept} source detail and agree that it supports ${artifact}.`;
+  }
+  if (index === 1 || /\b(analysis|logic|reasoning|decision)\b/i.test(criterionLabel)) {
+    return `${baseCheck} For "${criterionLabel}", ask whether two scorers can point to the same reasoning step between ${concept} evidence and the ${artifact} decision.`;
+  }
+  if (index === 2 || /\b(communication|format|organization)\b/i.test(criterionLabel)) {
+    return `${baseCheck} For "${criterionLabel}", ask whether the evidence, limitation, and decision are easy for another reader to locate in ${artifact}.`;
+  }
+  if (/\b(feedback|revision)\b/i.test(criterionLabel)) {
+    return `${baseCheck} For "${criterionLabel}", ask whether the submitted ${artifact} marks a concrete feedback-informed change and explains its effect.`;
+  }
+  return `${baseCheck} For "${criterionLabel}", ask whether two scorers identify the same criterion-specific evidence, limitation, and next decision.`;
 }
 
 function buildCriterionFeedbackMove({ lesson = {}, criterion = '', index = 0 }) {
@@ -9797,7 +9817,7 @@ function compileSyllabus(blueprint) {
         return {
           week: `Week ${lesson.lessonNumber}`,
           topic: stripLessonPrefix(lesson.title),
-          inClassFocus: lesson.activityPattern,
+          inClassFocus: `${stripLessonPrefix(lesson.title)}: ${lesson.activityPattern}`,
           studentOutput: lesson.studentArtifact,
           pointsOrWeight: assessment.weight,
           assessmentRole: assessment.roleLabel,
@@ -10394,7 +10414,7 @@ function compileRubrics(blueprint) {
             `Provides general description with little ${assessment.title} evidence or criterion alignment.`,
         },
         scorerCalibrationUse: assessment.anchorExampleSet?.scorerCalibrationUse || '',
-        gradePolicyConnection: `${assessment.weight} of the course grade as a ${assessment.roleLabel || assessment.role} with feedback due in this window: ${assessment.cadence?.feedbackWindow || 'local LMS feedback window'}.`,
+        gradePolicyConnection: `${assessment.title} carries ${assessment.weight} of the course grade as a ${assessment.roleLabel || assessment.role}, with feedback due in this window: ${assessment.cadence?.feedbackWindow || 'local LMS feedback window'}.`,
         assessmentCadence: assessment.cadence,
         revisionUse: assessment.revisionUse,
         teacherNotes: preference
@@ -10648,14 +10668,14 @@ function buildMultipleChoiceQuestion({
       intendedUse: `${use} for ${lesson.title}; review distractor choices before the next ${artifact}.`,
       question: prompt,
       options: [
-        `A. Treat ${concept} in ${lesson.title} as background information and move directly to a general summary.`,
+        `A. For this ${use} item, treat ${concept} in ${lesson.title} as background information and move directly to a general summary.`,
         `B. ${correct}`,
-        `C. Choose the quickest activity even if it weakens evidence for ${artifact}.`,
-        `D. Delay the ${lesson.title} decision until all possible ${concept} materials have been reviewed.`,
+        `C. For question ${index + 1}, choose the quickest activity even if it weakens evidence for ${artifact}.`,
+        `D. In question ${index + 1}, delay the ${lesson.title} decision until all possible ${concept} materials have been reviewed.`,
       ],
       answer: 'B',
-      distractorRationale: `A: This skips the evidence-to-decision move in ${lesson.title}; C: Speed alone does not meet the objective for ${artifact}; D: Waiting for perfect information prevents a usable course decision.`,
-      explanation: `The correct answer is B because it connects ${concept} to ${artifact}, uses lesson evidence, and supports the objective "${objective}".`,
+      distractorRationale: `Question ${index + 1} (${use}) distractors: A skips the ${concept} evidence-to-decision move in ${lesson.title}; C favors speed over the ${artifact} evidence standard; D waits for perfect information instead of making the bounded decision this item asks students to justify.`,
+      explanation: `For question ${index + 1}, B is correct because it connects ${concept} to ${artifact} for ${use}, uses lesson evidence, and supports the objective "${objective}".`,
       tags: quizTags(lesson, 'multiple_choice', bloom, use),
     },
     plan,

@@ -7,6 +7,7 @@ import { describe, expect, it as vitestIt } from 'vitest';
 import {
   DEFAULT_GOLD_SAMPLES,
   auditGoldSample,
+  buildCopySpecificityAudit,
   buildGoldSampleQualityAudit,
   closeHybridPipelineAuditRuntime,
   loadHybridPipelineAuditRuntime,
@@ -398,6 +399,13 @@ describe('gold sample quality audit', () => {
         ).toBe(true);
         expect(payload.results.every((result) => result.fidelitySummary.checkedFeatures === 9)).toBe(true);
         expect(payload.results.every((result) => result.fidelitySummary.findings === 0)).toBe(true);
+        expect(payload.results.every((result) => result.copySpecificitySummary.status === 'pass')).toBe(true);
+        expect(payload.results.every((result) => result.copySpecificitySummary.checkedFeatures === 9)).toBe(true);
+        expect(payload.results.every((result) => result.copySpecificitySummary.checkedStrings > 0)).toBe(true);
+        expect(payload.results.every((result) => result.copySpecificitySummary.repeatedLongStringGroups === 0)).toBe(
+          true,
+        );
+        expect(payload.summary.maxSurfaceCopyRepeatCount).toBe(0);
         expect(markdown).toContain('CourseMapper Gold-Sample Quality Audit');
         expect(markdown).toContain('gold-ai-course-design-8');
         expect(markdown).toContain('gold-ai-course-design-short-5');
@@ -458,6 +466,7 @@ describe('gold sample quality audit', () => {
         expect(markdown).toContain('Concept Dependency Graph Matrix');
         expect(markdown).toContain('Mastery Evidence Matrix');
         expect(markdown).toContain('Evidence Response Matrix');
+        expect(markdown).toContain('Copy Specificity Matrix');
         expect(markdown).toContain('Blueprint Fidelity Matrix');
         expect(markdown).toContain('Enrichment Impact Matrix');
         expect(markdown).toContain('Minimum deterministic baseline quality');
@@ -471,6 +480,39 @@ describe('gold sample quality audit', () => {
     },
     GOLD_AUDIT_FULL_MATRIX_TIMEOUT_MS,
   );
+
+  it('blocks repeated long surface copy while ignoring internal blueprint proof objects', () => {
+    const repeated =
+      'Use this generic paragraph to review the course artifact, identify one evidence link, revise the submission, and prepare for the next module without any lesson-specific details.';
+    const audit = buildCopySpecificityAudit({
+      compiledFeatures: ['assignments'],
+      compiled: {
+        assignments: {
+          assignments: [
+            {
+              overview: repeated,
+              sourceGrounding: {
+                internalReviewerNote: repeated,
+              },
+            },
+            { overview: repeated },
+            { overview: repeated },
+          ],
+        },
+      },
+    });
+
+    expect(audit.status).toBe('blocked');
+    expect(audit.checkedStrings).toBe(3);
+    expect(audit.repeatedLongStringGroups).toBe(1);
+    expect(audit.findings).toEqual([
+      expect.objectContaining({
+        featureId: 'assignments',
+        check: 'copySpecificity',
+        message: expect.stringContaining('Surface copy repeats 3 times'),
+      }),
+    ]);
+  });
 
   it('blocks when a gold expectation is missing', async () => {
     const runtime = await loadHybridPipelineAuditRuntime();

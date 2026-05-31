@@ -21,6 +21,8 @@ const GOLD_QUALITY_FLOOR = 9;
 const CLASSROOM_EXCELLENCE_FLOOR = 9;
 const REQUIRED_GOLD_SCOPE_COVERAGE = [5, 8, 14];
 const MIN_GOLD_MODALITIES_PER_REQUIRED_SCOPE = 3;
+const COPY_SPECIFICITY_MIN_LENGTH = 90;
+const COPY_SPECIFICITY_MAX_REPEAT_COUNT = 2;
 const REQUIRED_TEACHING_MOVE_KEYS = ['openingMove', 'practiceMove', 'feedbackMove', 'assessmentMove', 'reviewMove'];
 
 const FEATURE_LABELS = {
@@ -7594,6 +7596,22 @@ function collectStrings(value, out = []) {
   return out;
 }
 
+function collectStringRows(value, pathParts = [], out = []) {
+  if (typeof value === 'string') {
+    const trimmed = value.replace(/\s+/g, ' ').trim();
+    if (trimmed) out.push({ path: pathParts.join('.'), text: trimmed });
+    return out;
+  }
+  if (Array.isArray(value)) {
+    value.forEach((item, index) => collectStringRows(item, [...pathParts, String(index)], out));
+    return out;
+  }
+  if (value && typeof value === 'object') {
+    Object.entries(value).forEach(([key, item]) => collectStringRows(item, [...pathParts, key], out));
+  }
+  return out;
+}
+
 function wordCount(text) {
   return (String(text || '').match(/[A-Za-z][A-Za-z'-]*/g) || []).length;
 }
@@ -8059,6 +8077,120 @@ function minQualityForCompiled({ runtime, compiledFeatures, compiled }) {
     .map((featureId) => runtime.computeAvgScore(runtime.scoreHeuristic(featureId, compiled[featureId])))
     .filter(Number.isFinite);
   return values.length ? Math.min(...values) : null;
+}
+
+function normalizeCopyString(text) {
+  return String(text || '')
+    .toLowerCase()
+    .replace(/[^a-z0-9]+/g, ' ')
+    .replace(/\s+/g, ' ')
+    .trim();
+}
+
+function isCopySpecificitySurfacePath(featureId, path) {
+  if (!path) return false;
+  if (
+    /\b(sourceGrounding|blueprintGrounding|sourceEvidenceTrace|sourceAnchors|compilerDecision|courseModalityProfile|learnerContextProfile|blueprintAssumptionLedger|packageCoherenceMatrix|sourceRiskRegister|sourceConflictReport|compilerContract|classroomHandoffPlan|conceptDependencyGraph|masteryEvidenceMap|evidenceResponseMap|qualityReceipt|qualitySummary|receipt|provenance)\b/i.test(
+      path,
+    )
+  ) {
+    return false;
+  }
+
+  switch (featureId) {
+    case 'syllabus':
+      return /^syllabus\.(courseDescription|sourceUsePolicy\.(citationExpectation|noInventedSources|localReview)|courseAtAGlance\.\d+\.(inClassFocus|studentOutput|successCriteria|readinessCue|feedbackUse|transferCue)|assessmentCalendar\.\d+\.(studentFacingPurpose|roleRationale|revisionUse|validitySummary|anchorExampleSummary)|weeklySchedule\.\d+\.(topic|assignments))$/.test(
+        path,
+      );
+    case 'lessonPlans':
+      return /^(lessonPlans|plans)\.\d+\.(studentFacingSummary\.(beforeClass|duringClass|afterClass)|artifactLength|prerequisiteKnowledge|weeklySubmissionCriteria|localCaseReplacementNote|calibrationCue|warmUp\.(prompt|purpose|facilitation)|outline\.\d+\.(description|instructorNotes|instructorRole)|formativeCheck\.(prompt|instructorAction)|udlNotes\.(representation|engagement|actionExpression|assessmentAccess)|readyToTeachSupport\.(workedExample|methodSpecificMiniRubric|teacherLookFors|studentModel)|commonMisconceptions\.\d+|materials\.\d+)$/.test(
+        path,
+      );
+    case 'slideDecks':
+      return /^(decks|slideDecks)\.\d+\.(slides\.\d+\.(title|notes|bullets\.\d+|activityPrompt|visual\.altText)|slideDeckSequenceGuide\.(accessibilityStandards|cumulativeAssessmentMap|pacingBridge))$/.test(
+        path,
+      );
+    case 'assignments':
+      return /^assignments\.\d+\.(portfolioConnection|expectedSubmissionFormat|instructorFeedbackPriority|overview|instructions\.\d+|formatRequirements\.[^.]+|deliverables\.\d+|scaffoldingMilestones\.\d+\.(description|feedback)|performanceBands\.(excellent|proficient|revisionNeeded))$/.test(
+        path,
+      );
+    case 'rubrics':
+      return /^rubrics\.\d+\.(taskDirections|instructorFacilitationNote|accessibilityAndUDL|gradePolicyConnection|teacherNotes|criteria\.\d+\.(feedbackUse|calibrationUse|exemplary|proficient|developing|beginning))$/.test(
+        path,
+      );
+    case 'discussions':
+      return /^discussions\.\d+\.(context|prompt|evidenceRequirement|followUpProbes\.\d+|facilitationTips\.\d+|responseStems\.\d+|evaluationCriteria\.\d+|prerequisitePrompt|anchorExamplePrompt|equityConsiderations|guidelines)$/.test(
+        path,
+      );
+    case 'quizBank':
+      return /^(quizzes|quizBank)\.\d+\.(pointPlan|formativeFeedbackNote|assessmentBlueprint|questions\.\d+\.(intendedUse|question|options\.\d+|distractorRationale|explanation|sampleAnswer|scoringGuidance|rubricHints))$/.test(
+        path,
+      );
+    case 'studyGuides':
+      return /^(studyGuides|guides)\.\d+\.(examScope|summary|conceptConnections\.\d+|commonMisconceptions\.\d+\.(misconception|correction)|reviewQuestions\.\d+\.(question|hint)|practiceActivities\.\d+|examPrep\.(timeline|commonErrors|reviewStrategy)|studentResources)$/.test(
+        path,
+      );
+    case 'courseFaq':
+      return /^(faqs|courseFaq)\.\d+\.(qs\.\d+\.(q|an)|learnerContextCue)$/.test(path);
+    default:
+      return false;
+  }
+}
+
+export function buildCopySpecificityAudit({ compiledFeatures = [], compiled = {} } = {}) {
+  const featureRows = compiledFeatures.map((featureId) => {
+    const rows = collectStringRows(compiled[featureId]).filter(
+      (row) => row.text.length >= COPY_SPECIFICITY_MIN_LENGTH && isCopySpecificitySurfacePath(featureId, row.path),
+    );
+    const groups = new Map();
+    for (const row of rows) {
+      const normalized = normalizeCopyString(row.text);
+      if (!normalized) continue;
+      const group = groups.get(normalized) || {
+        text: row.text,
+        count: 0,
+        paths: [],
+      };
+      group.count += 1;
+      if (group.paths.length < 4) group.paths.push(`${featureId}.${row.path}`);
+      groups.set(normalized, group);
+    }
+    const repeated = [...groups.values()]
+      .filter((group) => group.count > COPY_SPECIFICITY_MAX_REPEAT_COUNT)
+      .sort((a, b) => b.count - a.count || a.text.localeCompare(b.text));
+    return {
+      featureId,
+      checkedStrings: rows.length,
+      repeatedLongStringGroups: repeated.length,
+      maxRepeatCount: repeated.length ? Math.max(...repeated.map((group) => group.count)) : 0,
+      repeatedExamples: repeated.slice(0, 3).map((group) => ({
+        count: group.count,
+        text: group.text,
+        paths: group.paths,
+      })),
+    };
+  });
+  const repeatedExamples = featureRows.flatMap((row) =>
+    row.repeatedExamples.map((example) => ({ featureId: row.featureId, ...example })),
+  );
+  const findings = repeatedExamples.map((example) =>
+    makeFinding(
+      'blocker',
+      example.featureId,
+      'copySpecificity',
+      `Surface copy repeats ${example.count} times; first paths: ${example.paths.join(', ')}.`,
+    ),
+  );
+  return {
+    status: summarizeFeatureStatus(findings),
+    checkedFeatures: featureRows.filter((row) => row.checkedStrings > 0).length,
+    checkedStrings: featureRows.reduce((sum, row) => sum + row.checkedStrings, 0),
+    maxAllowedRepeatCount: COPY_SPECIFICITY_MAX_REPEAT_COUNT,
+    repeatedLongStringGroups: featureRows.reduce((sum, row) => sum + row.repeatedLongStringGroups, 0),
+    maxRepeatCount: featureRows.reduce((max, row) => Math.max(max, row.maxRepeatCount), 0),
+    featureRows,
+    findings,
+  };
 }
 
 function mergeFeatureExpectations(globalExpectations = {}, featureId) {
@@ -11947,10 +12079,12 @@ function buildEnrichmentImpactAudit({
   }
 
   const baselineBlueprint = runtime.buildCourseBlueprint(courseMap, {});
-  const baselineCompiled = runtime.compileBlueprintDeliverables(baselineBlueprint, compiledFeatures, {
-    configMap: { courseFaq: { questionsPerLesson: 5 } },
-    enforceCompilerContract: false,
+  const baselineCompiledResult = compileGoldDeliverables({
+    runtime,
+    blueprint: baselineBlueprint,
+    compiledFeatures,
   });
+  const baselineCompiled = baselineCompiledResult.compiled;
   const baselineText = collectStrings(baselineCompiled).join(' ');
   const enrichedText = collectStrings(enrichedCompiled).join(' ');
   const baselineSignatureMatches = countSignalMatches(signatureSignals, baselineText);
@@ -11972,6 +12106,7 @@ function buildEnrichmentImpactAudit({
   const requiredPhraseCoverage = lessonPhraseSignals.length > 0 ? 0.75 : 0;
   const requiredPhraseLift = lessonPhraseSignals.length > 0 ? Math.min(3, lessonPhraseSignals.length) : 0;
   const findings = [];
+  findings.push(...baselineCompiledResult.findings);
 
   if (!Number.isFinite(baselineMinQuality) || baselineMinQuality < GOLD_QUALITY_FLOOR) {
     findings.push(
@@ -12897,6 +13032,49 @@ function buildClassroomExcellenceScorecard({
   };
 }
 
+function emptyCompiledFeature(featureId) {
+  const emptyByFeature = {
+    syllabus: { syllabus: {} },
+    lessonPlans: { lessonPlans: [] },
+    slideDecks: { decks: [] },
+    assignments: { assignments: [] },
+    rubrics: { rubrics: [] },
+    discussions: { discussions: [] },
+    quizBank: { quizzes: [] },
+    studyGuides: { studyGuides: [] },
+    courseFaq: { faqs: [] },
+  };
+  return emptyByFeature[featureId] || {};
+}
+
+function emptyCompiledPackage(compiledFeatures = []) {
+  return Object.fromEntries(compiledFeatures.map((featureId) => [featureId, emptyCompiledFeature(featureId)]));
+}
+
+function compileGoldDeliverables({ runtime, blueprint, compiledFeatures }) {
+  try {
+    return {
+      compiled: runtime.compileBlueprintDeliverables(blueprint, compiledFeatures, {
+        configMap: { courseFaq: { questionsPerLesson: 5 } },
+        enforceCompilerContract: false,
+      }),
+      findings: [],
+    };
+  } catch (error) {
+    return {
+      compiled: emptyCompiledPackage(compiledFeatures),
+      findings: [
+        makeFinding(
+          'blocker',
+          'package',
+          'compilerException',
+          `Compiler threw while gold-audit checks were running: ${error?.message || String(error)}`,
+        ),
+      ],
+    };
+  }
+}
+
 export function auditGoldSample({ sample, runtime, features = sample.features || PIPELINE_FEATURES }) {
   if (!runtime) throw new Error('auditGoldSample requires a loaded audit runtime.');
   const rawCourseMap = scopeCourseMap(sample.project.courseMap, sample.scope);
@@ -12910,10 +13088,8 @@ export function auditGoldSample({ sample, runtime, features = sample.features ||
   );
   const blueprintAlignmentFindings = buildBlueprintAlignmentFindings(blueprint, scope);
   const compiledFeatures = runtime.getBlueprintCompiledFeatures(features);
-  const compiled = runtime.compileBlueprintDeliverables(blueprint, compiledFeatures, {
-    configMap: { courseFaq: { questionsPerLesson: 5 } },
-    enforceCompilerContract: false,
-  });
+  const compiledResult = compileGoldDeliverables({ runtime, blueprint, compiledFeatures });
+  const { compiled } = compiledResult;
   const sourceFidelity = buildSourceFidelityAudit({ courseMap, blueprint, compiledFeatures, compiled });
   const decodeLosslessness = buildBlueprintDecodeLosslessnessAudit({
     courseMap,
@@ -12943,6 +13119,7 @@ export function auditGoldSample({ sample, runtime, features = sample.features ||
   const evidenceResponse = buildEvidenceResponseAudit({ blueprint, compiledFeatures, compiled });
   const compiledAlignmentFindings = buildCompiledAlignmentFindings({ blueprint, compiledFeatures, compiled });
   const blueprintFidelityFindings = buildBlueprintFidelityFindings({ blueprint, compiledFeatures, compiled });
+  const copySpecificity = buildCopySpecificityAudit({ compiledFeatures, compiled });
   const enrichmentImpact = buildEnrichmentImpactAudit({
     sample,
     runtime,
@@ -13036,6 +13213,7 @@ export function auditGoldSample({ sample, runtime, features = sample.features ||
   const findings = [
     ...blueprintMaturity.findings,
     ...blueprintExpectationFindings,
+    ...compiledResult.findings,
     ...sourceFidelity.findings,
     ...decodeLosslessness.findings,
     ...teachingIntent.findings,
@@ -13051,6 +13229,7 @@ export function auditGoldSample({ sample, runtime, features = sample.features ||
     ...blueprintAlignmentFindings,
     ...compiledAlignmentFindings,
     ...blueprintFidelityFindings,
+    ...copySpecificity.findings,
     ...enrichmentImpact.findings,
     ...classroomExcellence.findings,
     ...packageFindings,
@@ -13208,6 +13387,15 @@ export function auditGoldSample({ sample, runtime, features = sample.features ||
       ).length,
       findings: blueprintFidelityFindings.length,
     },
+    copySpecificitySummary: {
+      status: copySpecificity.status,
+      checkedFeatures: copySpecificity.checkedFeatures,
+      checkedStrings: copySpecificity.checkedStrings,
+      repeatedLongStringGroups: copySpecificity.repeatedLongStringGroups,
+      maxRepeatCount: copySpecificity.maxRepeatCount,
+      findings: copySpecificity.findings.length,
+    },
+    copySpecificity,
     enrichmentImpact,
     classroomExcellence,
     packageFindings,
@@ -13297,6 +13485,9 @@ function summarizeGoldResults(results, auditFindings = []) {
   const deterministicBaselineQualityValues = enrichmentImpacts
     .map((impact) => impact.baselineMinQuality)
     .filter(Number.isFinite);
+  const copyRepeatValues = results
+    .map((result) => result.copySpecificitySummary?.maxRepeatCount)
+    .filter(Number.isFinite);
   return {
     status: blockers > 0 ? 'blocked' : warnings > 0 ? 'warnings' : 'pass',
     goldSampleCount: results.length,
@@ -13310,6 +13501,7 @@ function summarizeGoldResults(results, auditFindings = []) {
     minDeterministicBaselineQuality: deterministicBaselineQualityValues.length
       ? Math.min(...deterministicBaselineQualityValues)
       : null,
+    maxSurfaceCopyRepeatCount: copyRepeatValues.length ? Math.max(...copyRepeatValues) : null,
   };
 }
 
@@ -13433,6 +13625,10 @@ export function renderGoldSampleQualityAuditMarkdown(payload) {
     (result) =>
       `| ${result.sampleId} | ${result.fidelitySummary?.checkedFeatures ?? 0} | ${result.fidelitySummary?.findings ?? 0} |`,
   );
+  const copySpecificityRows = payload.results.map(
+    (result) =>
+      `| ${result.sampleId} | ${result.copySpecificitySummary?.status || 'missing'} | ${result.copySpecificitySummary?.checkedFeatures ?? 0} | ${result.copySpecificitySummary?.checkedStrings ?? 0} | ${result.copySpecificitySummary?.repeatedLongStringGroups ?? 0} | ${result.copySpecificitySummary?.maxRepeatCount ?? 0} | ${result.copySpecificitySummary?.findings ?? 0} |`,
+  );
   const enrichmentRows = payload.results.map((result) => {
     const impact = result.enrichmentImpact || {};
     return `| ${result.sampleId} | ${impact.status || 'missing'} | ${impact.source || 'none'} | ${impact.enrichedSignatureMatches ?? 0}/${impact.signatureSignalCount ?? 0} | ${impact.signatureLift ?? 0} | ${impact.enrichedPhraseMatches ?? 0}/${impact.phraseSignalCount ?? 0} | ${impact.phraseLift ?? 0} | ${impact.phraseCoverage ?? ''} | ${impact.baselineCompilerContractStatus || ''} | ${impact.baselineMinQuality ?? ''} -> ${impact.enrichedMinQuality ?? ''} | ${impact.baselineFidelityFindings ?? 0} -> ${impact.enrichedFidelityFindings ?? 0} | ${impact.justifiesEnrichmentCall ? 'yes' : 'no'} |`;
@@ -13465,6 +13661,7 @@ export function renderGoldSampleQualityAuditMarkdown(payload) {
     `Enrichment justified cases: ${payload.summary.enrichmentJustifiedCount}`,
     `Minimum enrichment phrase coverage: ${payload.summary.minEnrichmentPhraseCoverage}`,
     `Minimum deterministic baseline quality: ${payload.summary.minDeterministicBaselineQuality}`,
+    `Maximum repeated surface-copy count: ${payload.summary.maxSurfaceCopyRepeatCount}`,
     `Scope coverage: ${payload.summary.scopeCoverageStatus} (${(payload.summary.coveredScopes || []).join(', ') || 'none'})`,
     `Blockers: ${payload.summary.blockers}`,
     `Warnings: ${payload.summary.warnings}`,
@@ -13613,6 +13810,14 @@ export function renderGoldSampleQualityAuditMarkdown(payload) {
       '| Gold Sample | Checked Lesson-Facing Features | Fidelity Findings |',
       '| --- | ---: | ---: |',
       ...fidelityRows,
+    ]),
+    '',
+    '## Copy Specificity Matrix',
+    '',
+    markdownTable([
+      '| Gold Sample | Status | Checked Features | Checked Surface Strings | Repeated Long String Groups | Max Repeat Count | Findings |',
+      '| --- | --- | ---: | ---: | ---: | ---: | ---: |',
+      ...copySpecificityRows,
     ]),
     '',
     '## Enrichment Impact Matrix',

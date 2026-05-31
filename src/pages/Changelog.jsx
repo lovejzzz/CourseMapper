@@ -38,6 +38,7 @@ const releases = [
           'The strict external gate now blocks real-course proof that is complete but off-scope, so curated samples cannot hide an unproven real-course workflow.',
           'External reviewer fixtures must now match the current package version, preventing stale review packets from certifying a newer compiler build.',
           'Expert proof reports now show current-version fixture coverage and stale fixture IDs as a dedicated readiness item.',
+          'Gold audits now include a Copy Specificity Matrix that blocks repeated long surface copy across classroom-facing deliverables.',
         ],
       },
       {
@@ -58,6 +59,7 @@ const releases = [
           'Developer Mode now tracks blueprint-enrichment calls alongside course-map, deliverable, repair, retry, fallback, agent, and image calls.',
           'Receipts distinguish deterministic compile, enriched compile, local source-inferred repair, model fallback, and required human review.',
           'Compiled syllabus, assignment, and rubric grading-weight receipts now use compact provenance rows instead of repeating internal policy text on every deliverable row.',
+          'Rubric calibration notes, quiz distractors, quiz explanations, and course-at-a-glance focus rows now vary by criterion, question, or lesson instead of repeating generic compiler copy.',
           'The pipeline audit continues to prove the audited core package can compile with zero hybrid model calls while preserving validator and readiness quality.',
         ],
       },
