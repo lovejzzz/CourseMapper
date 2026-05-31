@@ -3999,6 +3999,10 @@ function buildCourseModalityProfile({ courseName, lessons }) {
   const capstoneScore = countPattern(
     /\b(capstone|senior project|client project|sponsor|project charter|project milestone|portfolio defense|final showcase|proposal defense|stakeholder brief)\b/g,
   );
+  const hasExplicitStudioCourseSignal =
+    /\b(course design studio|design studio|interaction design studio|instructional design|studio)\b/.test(
+      courseNameText,
+    ) || /\b(course design studio|design studio|interaction design studio)\b/.test(text);
   const competencyScore = countPattern(
     /\b(competency|proficiency|accreditation|standards[-\s]?aligned|program standard|performance task|evidence portfolio|mastery demonstration|benchmark|calibration panel|remediation plan)\b/g,
   );
@@ -4231,6 +4235,10 @@ function buildCourseModalityProfile({ courseName, lessons }) {
   const labScore = countPattern(
     /\b(lab|laboratory|dataset|data set|experiment|coding|field note|observation|instrument|survey|statistics|data-cleaning|method)\b/g,
   );
+  const capstoneDominatesStudio =
+    capstoneScore >= 2 &&
+    (!hasExplicitStudioCourseSignal || capstoneScore >= studioScore + 3) &&
+    capstoneScore >= Math.max(fieldScore, labScore);
   const hasOnline =
     /\b(online|asynchronous|discussion board|self[-\s]?paced|lms|remote|virtual)\b/.test(text) ||
     lessons.some((lesson) => /asynchronous|online|discussion board|lms/i.test(lesson.activityPattern || ''));
@@ -4264,7 +4272,7 @@ function buildCourseModalityProfile({ courseName, lessons }) {
                             ? 'clinical-judgment-simulation'
                             : clinicalScore >= 2
                               ? 'clinical-simulation'
-                              : capstoneScore >= 2
+                              : capstoneDominatesStudio
                                 ? 'capstone-project'
                                 : competencyScore >= 2 && competencyScore >= Math.max(labScore, fieldScore, studioScore)
                                   ? 'competency-based'
@@ -5028,10 +5036,10 @@ function buildArtifactGenreDecode(lesson = {}, profile = {}, modalityDecode = {}
   ) {
     genre = 'performance-rehearsal';
   } else if (
-    artifactMatches(
+    profile.primaryMode === 'capstone-project' &&
+    (artifactMatches(
       /\b(capstone|project charter|project milestone|milestone brief|client project|sponsor brief|portfolio defense|final showcase|project portfolio|integration portfolio|proposal defense)\b/,
     ) ||
-    (profile.primaryMode === 'capstone-project' &&
       artifactMatches(
         /\b(project|charter|milestone|brief|plan|portfolio|showcase|defense|deliverable|roadmap|matrix)\b/,
       ))
@@ -5307,6 +5315,7 @@ function buildArtifactGenreDecode(lesson = {}, profile = {}, modalityDecode = {}
   } else if (contextMatches(/\b(memo|brief|recommendation|rationale)\b/)) {
     genre = 'memo-brief';
   } else if (
+    profile.primaryMode === 'capstone-project' &&
     contextMatches(
       /\b(capstone|project charter|project milestone|milestone brief|client project|sponsor brief|portfolio defense|final showcase|project portfolio|integration portfolio|proposal defense)\b/,
     )

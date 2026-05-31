@@ -19,6 +19,7 @@ const releases = [
         items: [
           'Expanded the compact blueprint with course modality, learner context, evidence requirements, success criteria, source anchors, assumption ledgers, package coherence rows, and per-lesson compiler decisions.',
           'Lesson plans, slide decks, assignments, rubrics, discussions, quiz banks, study guides, syllabus, FAQ, and safe custom deliverables now preserve blueprint grounding instead of relying on repeated model calls.',
+          'Studio and course-design classifiers now resist false capstone reclassification when a long course ends with a portfolio or final showcase.',
           'The compiler now exposes publish gates, model-use policy, local-review focus, and source-risk cues so instructors can see which parts are ready and which parts require confirmation.',
         ],
       },
@@ -28,6 +29,7 @@ const releases = [
         color: 'emerald',
         items: [
           'Added audit:gold for curated classroom-quality regression checks across blueprint maturity, source fidelity, decode losslessness, instructional alignment, modality fit, artifact genre, teaching moves, and enrichment impact.',
+          'Expanded the gold-sample matrix to 40 packages and now require short, standard, and full-semester scope proof across multiple teaching modalities before the gate can pass.',
           'Added audit:expert, audit:expert:preflight, audit:expert:external, and audit:expert:packet so internal checks stay separate from external A-quality proof.',
           'External proof packets now include source inputs, compact blueprints, full-package review files, reviewer scorecards, source-fidelity artifact rows, blueprint-quality rows, and assumption-ledger decisions.',
         ],

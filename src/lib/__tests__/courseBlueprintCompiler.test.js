@@ -2007,6 +2007,26 @@ describe('courseBlueprintCompiler', () => {
     });
   });
 
+  it('keeps long AI course design studios from being reclassified as capstone projects', () => {
+    const blueprint = buildCourseBlueprint(DEFAULT_AUDIT_PROJECTS[1].courseMap, {
+      enrichment: {
+        source: 'test-ai-course-design-enrichment',
+        lens: {
+          domain: 'AI-supported course design',
+          evidenceNoun: 'design evidence',
+          decisionNoun: 'instructional design decision',
+          learnerRole: 'course designer',
+          exampleNoun: 'AI teaching workflow',
+        },
+      },
+    });
+
+    expect(blueprint.courseModalityProfile.primaryMode).toBe('studio-lab');
+    expect(blueprint.lessons).toHaveLength(14);
+    expect(blueprint.lessons.map((lesson) => lesson.artifactGenre.genre)).toEqual(Array(14).fill('design-prototype'));
+    expect(blueprint.lessons[13].title).toContain('Capstone AI Course Redesign Portfolio');
+  });
+
   it('decodes competency-based assessment artifacts with calibrated proficiency evidence', () => {
     const blueprint = buildCourseBlueprint(makeCompetencyAssessmentCourseMap(), {
       enrichment: {

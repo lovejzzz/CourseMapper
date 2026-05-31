@@ -20,6 +20,7 @@ const DEFAULT_OUTPUT_DIR = path.join(ROOT, 'verification-output', 'gold-sample-q
 const GOLD_QUALITY_FLOOR = 9;
 const CLASSROOM_EXCELLENCE_FLOOR = 9;
 const REQUIRED_GOLD_SCOPE_COVERAGE = [5, 8, 14];
+const MIN_GOLD_MODALITIES_PER_REQUIRED_SCOPE = 3;
 const REQUIRED_TEACHING_MOVE_KEYS = ['openingMove', 'practiceMove', 'feedbackMove', 'assessmentMove', 'reviewMove'];
 
 const FEATURE_LABELS = {
@@ -294,6 +295,88 @@ const AI_COURSE_DESIGN_GOLD_ENRICHMENT = {
   ],
 };
 
+const AI_COURSE_DESIGN_EXTRA_GOLD_LESSON_PHRASES = {
+  'lesson-9': {
+    context: 'human-in-the-loop review design',
+    evidenceMove: 'use design evidence to decide which AI outputs require instructor review',
+    decisionMove: 'choose a review workflow decision that keeps accountability visible',
+  },
+  'lesson-10': {
+    context: 'multimodal content and captioning',
+    evidenceMove: 'use design evidence to check captions, transcripts, and modality access',
+    decisionMove: 'choose a multimodal design decision that supports accessibility',
+  },
+  'lesson-11': {
+    context: 'academic integrity and AI disclosure',
+    evidenceMove: 'use design evidence to compare disclosure language against course expectations',
+    decisionMove: 'choose an integrity decision that makes AI boundaries transparent',
+  },
+  'lesson-12': {
+    context: 'course analytics and intervention planning',
+    evidenceMove: 'use design evidence to interpret learner-progress signals responsibly',
+    decisionMove: 'choose an intervention decision that supports students without over-surveillance',
+  },
+  'lesson-13': {
+    context: 'faculty workflow automation',
+    evidenceMove: 'use design evidence to test whether automation saves time without losing quality',
+    decisionMove: 'choose a workflow decision that preserves instructor oversight',
+  },
+  'lesson-14': {
+    context: 'capstone AI course redesign portfolio',
+    evidenceMove: 'use design evidence to connect revised AI-supported artifacts into a portfolio',
+    decisionMove: 'choose a redesign decision that proves alignment, accessibility, privacy, and disclosure',
+  },
+};
+
+function aiCourseDesignGoldExpectations(scope) {
+  return {
+    minQuality: GOLD_QUALITY_FLOOR,
+    courseModality: 'studio-lab',
+    artifactGenres: Array(scope).fill('design-prototype'),
+    packageMustMatch: [
+      /prompt audit/i,
+      /privacy risk|privacy/i,
+      /accessibility check|accessibility/i,
+      /design evidence/i,
+      /instructional design decision/i,
+    ],
+    packageMustNotMatch: [/TBD|to be determined|lorem ipsum|placeholder/i],
+    features: {
+      syllabus: {
+        mustMatchAny: [
+          [/AI-supported course design/i, /prompt/i],
+          [/privacy/i, /accessibility/i, /rubric calibration/i],
+        ],
+      },
+      lessonPlans: {
+        mustMatch: [/design evidence/i, /instructional design decision/i],
+      },
+      slideDecks: {
+        mustMatch: [/design evidence/i, /instructional design decision/i],
+        mustMatchAny: [[/AI teaching workflow/i, /prompt audit/i]],
+      },
+      assignments: {
+        mustMatch: [/design evidence/i, /AI-supported course design/i],
+      },
+      rubrics: {
+        mustMatch: [/design evidence/i],
+      },
+      discussions: {
+        mustMatch: [/design evidence/i, /instructional design decision/i],
+      },
+      quizBank: {
+        mustMatch: [/design evidence/i, /instructional design decision/i],
+      },
+      studyGuides: {
+        mustMatch: [/design evidence/i, /instructional design decision/i],
+      },
+      courseFaq: {
+        mustMatch: [/design evidence/i],
+      },
+    },
+  };
+}
+
 const COMMUNITY_HEALTH_GOLD_ENRICHMENT = {
   source: 'curated-gold-sample-enrichment',
   signatureTerms: [
@@ -360,6 +443,88 @@ const COMMUNITY_HEALTH_GOLD_ENRICHMENT = {
     'Prefer community implementation cases over generic public-health examples.',
   ],
 };
+
+const COMMUNITY_HEALTH_EXTRA_GOLD_LESSON_PHRASES = {
+  'lesson-9': {
+    context: 'qualitative participant feedback',
+    evidenceMove: 'use implementation evidence to connect participant feedback to program adaptation',
+    decisionMove: 'choose a feedback-use decision that preserves participant voice',
+  },
+  'lesson-10': {
+    context: 'mixed evidence for program adaptation',
+    evidenceMove: 'use implementation evidence to compare outcome data and stakeholder feedback',
+    decisionMove: 'choose an adaptation decision that fits mixed evidence',
+  },
+  'lesson-11': {
+    context: 'ethics in community health evaluation',
+    evidenceMove: 'use implementation evidence to identify equity and consent risks',
+    decisionMove: 'choose an ethics decision that protects community trust',
+  },
+  'lesson-12': {
+    context: 'policy evidence and advocacy briefs',
+    evidenceMove: 'use implementation evidence to judge whether policy claims are supported',
+    decisionMove: 'choose an advocacy decision that avoids overclaiming',
+  },
+  'lesson-13': {
+    context: 'practitioner-facing findings',
+    evidenceMove: 'use implementation evidence to translate findings for community partners',
+    decisionMove: 'choose a communication decision that keeps limitations and equity visible',
+  },
+  'lesson-14': {
+    context: 'community health evaluation portfolio',
+    evidenceMove: 'use implementation evidence to connect revised evaluation artifacts into a portfolio',
+    decisionMove: 'choose a portfolio decision that proves stakeholder, equity, and outcome reasoning',
+  },
+};
+
+function communityHealthGoldExpectations(scope) {
+  return {
+    minQuality: GOLD_QUALITY_FLOOR,
+    courseModality: 'field-applied',
+    artifactGenres: Array(scope).fill('memo-brief'),
+    packageMustMatch: [
+      /health equity/i,
+      /stakeholder evidence|stakeholder/i,
+      /logic model/i,
+      /implementation evidence/i,
+      /program decision/i,
+    ],
+    packageMustNotMatch: [/TBD|to be determined|lorem ipsum|placeholder/i],
+    features: {
+      syllabus: {
+        mustMatchAny: [
+          [/community health evaluation/i, /health equity/i],
+          [/logic model/i, /outcome indicator/i, /stakeholder/i],
+        ],
+      },
+      lessonPlans: {
+        mustMatch: [/implementation evidence/i, /program decision/i],
+      },
+      slideDecks: {
+        mustMatch: [/implementation evidence/i, /program decision/i],
+        mustMatchAny: [[/community implementation case/i, /logic model/i]],
+      },
+      assignments: {
+        mustMatch: [/implementation evidence/i, /community health evaluation/i],
+      },
+      rubrics: {
+        mustMatch: [/implementation evidence/i],
+      },
+      discussions: {
+        mustMatch: [/implementation evidence/i, /program decision/i],
+      },
+      quizBank: {
+        mustMatch: [/implementation evidence/i, /program decision/i],
+      },
+      studyGuides: {
+        mustMatch: [/implementation evidence/i, /program decision/i],
+      },
+      courseFaq: {
+        mustMatch: [/implementation evidence/i],
+      },
+    },
+  };
+}
 
 const INTERACTION_DESIGN_STUDIO_GOLD_ENRICHMENT = {
   source: 'curated-gold-sample-enrichment',
@@ -5724,52 +5889,25 @@ export const DEFAULT_GOLD_SAMPLES = [
     scope: 8,
     features: PIPELINE_FEATURES,
     enrichment: AI_COURSE_DESIGN_GOLD_ENRICHMENT,
-    expectations: {
-      minQuality: GOLD_QUALITY_FLOOR,
-      courseModality: 'studio-lab',
-      artifactGenres: Array(8).fill('design-prototype'),
-      packageMustMatch: [
-        /prompt audit/i,
-        /privacy risk|privacy/i,
-        /accessibility check|accessibility/i,
-        /design evidence/i,
-        /instructional design decision/i,
-      ],
-      packageMustNotMatch: [/TBD|to be determined|lorem ipsum|placeholder/i],
-      features: {
-        syllabus: {
-          mustMatchAny: [
-            [/AI-supported course design/i, /prompt/i],
-            [/privacy/i, /accessibility/i, /rubric calibration/i],
-          ],
-        },
-        lessonPlans: {
-          mustMatch: [/design evidence/i, /instructional design decision/i],
-        },
-        slideDecks: {
-          mustMatch: [/design evidence/i, /instructional design decision/i],
-          mustMatchAny: [[/AI teaching workflow/i, /prompt audit/i]],
-        },
-        assignments: {
-          mustMatch: [/design evidence/i, /AI-supported course design/i],
-        },
-        rubrics: {
-          mustMatch: [/design evidence/i],
-        },
-        discussions: {
-          mustMatch: [/design evidence/i, /instructional design decision/i],
-        },
-        quizBank: {
-          mustMatch: [/design evidence/i, /instructional design decision/i],
-        },
-        studyGuides: {
-          mustMatch: [/design evidence/i, /instructional design decision/i],
-        },
-        courseFaq: {
-          mustMatch: [/design evidence/i],
-        },
-      },
-    },
+    expectations: aiCourseDesignGoldExpectations(8),
+  },
+  {
+    id: 'gold-ai-course-design-short-5',
+    label: 'Curated short-module AI-supported course design scope coverage sample',
+    project: DEFAULT_AUDIT_PROJECTS[1],
+    scope: 5,
+    features: PIPELINE_FEATURES,
+    enrichment: scopedGoldEnrichment(AI_COURSE_DESIGN_GOLD_ENRICHMENT, 5),
+    expectations: aiCourseDesignGoldExpectations(5),
+  },
+  {
+    id: 'gold-ai-course-design-semester-14',
+    label: 'Curated full-semester AI-supported course design scope coverage sample',
+    project: DEFAULT_AUDIT_PROJECTS[1],
+    scope: 14,
+    features: PIPELINE_FEATURES,
+    enrichment: scopedGoldEnrichment(AI_COURSE_DESIGN_GOLD_ENRICHMENT, 14, AI_COURSE_DESIGN_EXTRA_GOLD_LESSON_PHRASES),
+    expectations: aiCourseDesignGoldExpectations(14),
   },
   {
     id: 'gold-community-health-8',
@@ -5778,52 +5916,25 @@ export const DEFAULT_GOLD_SAMPLES = [
     scope: 8,
     features: PIPELINE_FEATURES,
     enrichment: COMMUNITY_HEALTH_GOLD_ENRICHMENT,
-    expectations: {
-      minQuality: GOLD_QUALITY_FLOOR,
-      courseModality: 'field-applied',
-      artifactGenres: Array(8).fill('memo-brief'),
-      packageMustMatch: [
-        /health equity/i,
-        /stakeholder evidence|stakeholder/i,
-        /logic model/i,
-        /implementation evidence/i,
-        /program decision/i,
-      ],
-      packageMustNotMatch: [/TBD|to be determined|lorem ipsum|placeholder/i],
-      features: {
-        syllabus: {
-          mustMatchAny: [
-            [/community health evaluation/i, /health equity/i],
-            [/logic model/i, /outcome indicator/i, /stakeholder/i],
-          ],
-        },
-        lessonPlans: {
-          mustMatch: [/implementation evidence/i, /program decision/i],
-        },
-        slideDecks: {
-          mustMatch: [/implementation evidence/i, /program decision/i],
-          mustMatchAny: [[/community implementation case/i, /logic model/i]],
-        },
-        assignments: {
-          mustMatch: [/implementation evidence/i, /community health evaluation/i],
-        },
-        rubrics: {
-          mustMatch: [/implementation evidence/i],
-        },
-        discussions: {
-          mustMatch: [/implementation evidence/i, /program decision/i],
-        },
-        quizBank: {
-          mustMatch: [/implementation evidence/i, /program decision/i],
-        },
-        studyGuides: {
-          mustMatch: [/implementation evidence/i, /program decision/i],
-        },
-        courseFaq: {
-          mustMatch: [/implementation evidence/i],
-        },
-      },
-    },
+    expectations: communityHealthGoldExpectations(8),
+  },
+  {
+    id: 'gold-community-health-short-5',
+    label: 'Curated short-module community health evaluation scope coverage sample',
+    project: DEFAULT_AUDIT_PROJECTS[2],
+    scope: 5,
+    features: PIPELINE_FEATURES,
+    enrichment: scopedGoldEnrichment(COMMUNITY_HEALTH_GOLD_ENRICHMENT, 5),
+    expectations: communityHealthGoldExpectations(5),
+  },
+  {
+    id: 'gold-community-health-semester-14',
+    label: 'Curated full-semester community health evaluation scope coverage sample',
+    project: DEFAULT_AUDIT_PROJECTS[2],
+    scope: 14,
+    features: PIPELINE_FEATURES,
+    enrichment: scopedGoldEnrichment(COMMUNITY_HEALTH_GOLD_ENRICHMENT, 14, COMMUNITY_HEALTH_EXTRA_GOLD_LESSON_PHRASES),
+    expectations: communityHealthGoldExpectations(14),
   },
   {
     id: 'gold-interaction-design-studio-8',
@@ -13117,11 +13228,18 @@ export function auditGoldSample({ sample, runtime, features = sample.features ||
 
 function buildGoldScopeCoverage(results, requiredScopes = REQUIRED_GOLD_SCOPE_COVERAGE) {
   const scopeCounts = new Map();
+  const scopeModalities = new Map();
   for (const result of results) {
     scopeCounts.set(result.scope, (scopeCounts.get(result.scope) || 0) + 1);
+    const modality = result.modalityFitSummary?.primaryMode || 'unknown';
+    if (!scopeModalities.has(result.scope)) scopeModalities.set(result.scope, new Set());
+    scopeModalities.get(result.scope).add(modality);
   }
   const coveredScopes = [...scopeCounts.keys()].sort((a, b) => a - b);
   const missingScopes = requiredScopes.filter((scope) => !scopeCounts.has(scope));
+  const missingModalityScopes = requiredScopes.filter(
+    (scope) => (scopeModalities.get(scope)?.size || 0) < MIN_GOLD_MODALITIES_PER_REQUIRED_SCOPE,
+  );
   const findings = missingScopes.map((scope) =>
     makeFinding(
       'blocker',
@@ -13130,13 +13248,35 @@ function buildGoldScopeCoverage(results, requiredScopes = REQUIRED_GOLD_SCOPE_CO
       `Gold audit is missing a strict A-quality sample at ${scope} lesson(s).`,
     ),
   );
+  for (const scope of missingModalityScopes) {
+    if (missingScopes.includes(scope)) continue;
+    const modalities = [...(scopeModalities.get(scope) || new Set())].sort();
+    findings.push(
+      makeFinding(
+        'blocker',
+        'goldScopeCoverage',
+        'scopeModalityCoverage',
+        `Gold audit needs at least ${MIN_GOLD_MODALITIES_PER_REQUIRED_SCOPE} teaching modalities at ${scope} lessons; found ${modalities.length}: ${modalities.join(', ') || 'none'}.`,
+      ),
+    );
+  }
 
   return {
     status: findings.length > 0 ? 'blocked' : 'pass',
     requiredScopes,
+    minModalitiesPerRequiredScope: MIN_GOLD_MODALITIES_PER_REQUIRED_SCOPE,
     coveredScopes,
     missingScopes,
+    missingModalityScopes,
     counts: Object.fromEntries([...scopeCounts.entries()].sort((a, b) => a[0] - b[0])),
+    modalityCounts: Object.fromEntries(
+      [...scopeModalities.entries()].sort((a, b) => a[0] - b[0]).map(([scope, modalities]) => [scope, modalities.size]),
+    ),
+    modalitiesByScope: Object.fromEntries(
+      [...scopeModalities.entries()]
+        .sort((a, b) => a[0] - b[0])
+        .map(([scope, modalities]) => [scope, [...modalities].sort()]),
+    ),
     findings,
   };
 }
@@ -13198,6 +13338,7 @@ export async function buildGoldSampleQualityAudit(options = {}) {
       scopeCoverageStatus: scopeCoverage.status,
       coveredScopes: scopeCoverage.coveredScopes,
       missingScopes: scopeCoverage.missingScopes,
+      missingScopeModalityCoverage: scopeCoverage.missingModalityScopes,
     },
     scopeCoverage,
     auditFindings,
@@ -13216,7 +13357,11 @@ export function renderGoldSampleQualityAuditMarkdown(payload) {
   );
   const scopeCoverageRows = (payload.scopeCoverage?.requiredScopes || []).map((scope) => {
     const count = payload.scopeCoverage?.counts?.[scope] || 0;
-    return `| ${scope} | ${count > 0 ? 'pass' : 'blocked'} | ${count} |`;
+    const modalityCount = payload.scopeCoverage?.modalityCounts?.[scope] || 0;
+    const modalities = payload.scopeCoverage?.modalitiesByScope?.[scope] || [];
+    const status =
+      count > 0 && modalityCount >= (payload.scopeCoverage?.minModalitiesPerRequiredScope || 1) ? 'pass' : 'blocked';
+    return `| ${scope} | ${status} | ${count} | ${modalityCount}/${payload.scopeCoverage?.minModalitiesPerRequiredScope || 1} | ${modalities.join(', ') || 'none'} |`;
   });
   const blueprintRows = payload.results.map(
     (result) =>
@@ -13336,7 +13481,11 @@ export function renderGoldSampleQualityAuditMarkdown(payload) {
     '',
     '## Scope Coverage Matrix',
     '',
-    markdownTable(['| Required Scope | Status | Sample Count |', '| ---: | --- | ---: |', ...scopeCoverageRows]),
+    markdownTable([
+      '| Required Scope | Status | Sample Count | Modality Coverage | Modalities |',
+      '| ---: | --- | ---: | ---: | --- |',
+      ...scopeCoverageRows,
+    ]),
     '',
     '## Blueprint Maturity Matrix',
     '',

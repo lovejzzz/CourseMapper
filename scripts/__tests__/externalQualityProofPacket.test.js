@@ -86,7 +86,7 @@ describe('external quality proof packet', () => {
       });
       const markdown = renderExternalQualityProofPacketMarkdown(payload);
 
-      expect(payload.summary.sampleCount).toBe(36);
+      expect(payload.summary.sampleCount).toBe(40);
       expect(payload.summary.reviewedArtifactCount).toBe(9);
       expect(payload.summary.scorecardDimensionCount).toBe(6);
       expect(payload.proofCollectionPlan).toMatchObject({
@@ -95,12 +95,12 @@ describe('external quality proof packet', () => {
         requiredExternalProjectSamples: 1,
         requiredCompleteProofScopes: [5, 8, 14],
         recommendedScopeCoverage: [5, 8, 14],
-        availableSamples: 36,
+        availableSamples: 40,
         availableScopes: [5, 8, 14],
         availableScopeCounts: {
-          5: 1,
+          5: 3,
           8: 34,
-          14: 1,
+          14: 3,
         },
         missingRecommendedScopes: [],
         availableExternalProjectSamples: 0,

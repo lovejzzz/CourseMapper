@@ -31,21 +31,32 @@ describe('gold sample quality audit', () => {
         const markdown = renderGoldSampleQualityAuditMarkdown(payload);
 
         expect(payload.summary.status).toBe('pass');
-        expect(payload.summary.goldSampleCount).toBe(36);
+        expect(payload.summary.goldSampleCount).toBe(40);
         expect(payload.summary.scopeCoverageStatus).toBe('pass');
         expect(payload.summary.coveredScopes).toEqual(expect.arrayContaining([5, 8, 14]));
         expect(payload.summary.missingScopes).toEqual([]);
+        expect(payload.summary.missingScopeModalityCoverage).toEqual([]);
         expect(payload.scopeCoverage).toMatchObject({
           status: 'pass',
           requiredScopes: [5, 8, 14],
+          minModalitiesPerRequiredScope: 3,
           missingScopes: [],
+          missingModalityScopes: [],
+          modalityCounts: {
+            5: 3,
+            14: 3,
+          },
         });
         expect(payload.results.map((result) => result.sampleId)).toEqual([
           'gold-research-methods-8',
           'gold-research-methods-short-5',
           'gold-research-methods-semester-14',
           'gold-ai-course-design-8',
+          'gold-ai-course-design-short-5',
+          'gold-ai-course-design-semester-14',
           'gold-community-health-8',
+          'gold-community-health-short-5',
+          'gold-community-health-semester-14',
           'gold-interaction-design-studio-8',
           'gold-spanish-healthcare-8',
           'gold-clinical-judgment-8',
@@ -165,8 +176,8 @@ describe('gold sample quality audit', () => {
         expect(payload.results.every((result) => result.featureResults.length === 9)).toBe(true);
         expect(payload.results.every((result) => result.summary.minQuality >= 9)).toBe(true);
         expect(payload.results.every((result) => result.summary.minExcellence >= 9)).toBe(true);
-        expect(payload.summary.enrichmentImpactCount).toBe(36);
-        expect(payload.summary.enrichmentJustifiedCount).toBe(36);
+        expect(payload.summary.enrichmentImpactCount).toBe(40);
+        expect(payload.summary.enrichmentJustifiedCount).toBe(40);
         expect(payload.summary.minEnrichmentPhraseCoverage).toBeGreaterThanOrEqual(0.75);
         expect(payload.summary.minDeterministicBaselineQuality).toBeGreaterThanOrEqual(9);
         expect(payload.results.every((result) => result.enrichmentImpact.status === 'pass')).toBe(true);
@@ -257,7 +268,11 @@ describe('gold sample quality audit', () => {
           'gold-research-methods-short-5': 'applied-lab',
           'gold-research-methods-semester-14': 'applied-lab',
           'gold-ai-course-design-8': 'studio-lab',
+          'gold-ai-course-design-short-5': 'studio-lab',
+          'gold-ai-course-design-semester-14': 'studio-lab',
           'gold-community-health-8': 'field-applied',
+          'gold-community-health-short-5': 'field-applied',
+          'gold-community-health-semester-14': 'field-applied',
           'gold-interaction-design-studio-8': 'studio-lab',
           'gold-spanish-healthcare-8': 'clinical-simulation',
           'gold-clinical-judgment-8': 'clinical-judgment-simulation',
@@ -385,7 +400,11 @@ describe('gold sample quality audit', () => {
         expect(payload.results.every((result) => result.fidelitySummary.findings === 0)).toBe(true);
         expect(markdown).toContain('CourseMapper Gold-Sample Quality Audit');
         expect(markdown).toContain('gold-ai-course-design-8');
+        expect(markdown).toContain('gold-ai-course-design-short-5');
+        expect(markdown).toContain('gold-ai-course-design-semester-14');
         expect(markdown).toContain('gold-community-health-8');
+        expect(markdown).toContain('gold-community-health-short-5');
+        expect(markdown).toContain('gold-community-health-semester-14');
         expect(markdown).toContain('gold-interaction-design-studio-8');
         expect(markdown).toContain('gold-spanish-healthcare-8');
         expect(markdown).toContain('gold-clinical-judgment-8');
@@ -2292,6 +2311,40 @@ describe('gold sample quality audit', () => {
       await closeHybridPipelineAuditRuntime();
     }
   });
+
+  it(
+    'blocks required scopes that are only proven by one teaching modality',
+    async () => {
+      const runtime = await loadHybridPipelineAuditRuntime();
+      try {
+        const payload = await buildGoldSampleQualityAudit({
+          runtime,
+          samples: DEFAULT_GOLD_SAMPLES.filter((sample) => sample.id.startsWith('gold-research-methods')),
+        });
+
+        expect(payload.summary.status).toBe('blocked');
+        expect(payload.summary.scopeCoverageStatus).toBe('blocked');
+        expect(payload.summary.missingScopes).toEqual([]);
+        expect(payload.summary.missingScopeModalityCoverage).toEqual([5, 8, 14]);
+        expect(payload.scopeCoverage.modalityCounts).toMatchObject({
+          5: 1,
+          8: 1,
+          14: 1,
+        });
+        expect(payload.auditFindings).toEqual(
+          expect.arrayContaining([
+            expect.objectContaining({
+              featureId: 'goldScopeCoverage',
+              check: 'scopeModalityCoverage',
+            }),
+          ]),
+        );
+      } finally {
+        await closeHybridPipelineAuditRuntime();
+      }
+    },
+    GOLD_AUDIT_FULL_MATRIX_TIMEOUT_MS,
+  );
 
   it('writes latest markdown and JSON reports', async () => {
     const runtime = await loadHybridPipelineAuditRuntime();
