@@ -690,6 +690,8 @@ describe('external quality proof packet', () => {
       expect(markdown).toContain('Source Risk Register');
       expect(markdown).toContain('Source Conflict Report');
       expect(markdown).toContain('Blueprint Assumption Ledger');
+      expect(markdown).toContain('Local Review Actions');
+      expect(markdown).toContain('Spot-check official dates');
       expect(markdown).toContain('Teaching Intent');
       expect(markdown).toContain('Modality Fit');
       expect(markdown).toContain('Concept Dependency Graph');
@@ -725,6 +727,9 @@ describe('external quality proof packet', () => {
       expect(fullMarkdown).toContain('Opening-encounter role-play');
       expect(fullMarkdown).toContain('Final Patient Interview Simulation');
       expect(fullMarkdown).toContain('## Course FAQ');
+      expect(fullMarkdown).toContain('## Local Review Actions');
+      expect(fullMarkdown).toContain('sourceFidelityReview.artifactReviews[].localReviewActionVisible');
+      expect(fullMarkdown).toContain('Spot-check official dates');
       expect(fullMarkdown).toContain('**Category:**');
       expect(fullMarkdown).toContain('**Related Concepts:**');
       expect(fullMarkdown).not.toContain('**Ca:**');
@@ -745,6 +750,8 @@ describe('external quality proof packet', () => {
       expect(fullJson.fullPackageArtifacts[0].reviewData.syllabus.courseTitle).toBe(
         'Spanish for Healthcare Professionals',
       );
+      expect(fullJson.lessons[0].localReviewAction).toContain('Spot-check official dates');
+      expect(fullJson.lessons[0].publishGate).toBe('instructor-spot-check-before-publish');
       expect(fullJson.fullPackageArtifacts[0].reviewText).toContain('Spanish for Healthcare Professionals');
       expect(reviewIntakeMarkdown).toContain('CourseMapper External Review Intake Form');
       expect(reviewIntakeMarkdown).toContain('Source course-map Markdown');

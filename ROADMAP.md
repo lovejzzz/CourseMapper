@@ -218,6 +218,7 @@ Latest slice evidence:
 - 2026-05-31: Added workload-balance proof to the blueprint compiler and `audit:gold`. The compiler now records per-lesson out-of-class workload, spike status, and review counts; syllabus receipts expose the compact workload plan; and the new Workload Balance Matrix blocks packages that hide unrealistic student workload from syllabus, assignment, or lesson-plan outputs.
 - 2026-05-31: Added review-actionability proof for weak and messy inputs. The compiler now carries a lesson-specific local-review action in source grounding plus syllabus, lesson-plan, slide-deck, and assignment-facing rows, and `audit:gold` now includes a Review Actionability Matrix that blocks packages where review-required lessons do not tell instructors exactly what to confirm before classroom publication.
 - 2026-05-31: Extended review-actionability proof into external A-quality review. `audit:expert` now requires source-fidelity artifact rows to confirm local-review action visibility alongside compiler decisions, publish gates, model-use policy, and handoff review focus; `audit:expert:packet` and the reviewer fixture template now ask experts to verify those actions for every core artifact.
+- 2026-05-31: Made those local-review actions easier for external reviewers to verify. `audit:expert:packet` now writes a compact Local Review Actions matrix into the main proof packet and each full-package review file, and per-sample JSON carries the derived action, publish gate, and review state for every lesson.
 
 ## Current v0.7 Focus
 

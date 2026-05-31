@@ -464,51 +464,75 @@ function assessmentForLesson(blueprint, lesson) {
   );
 }
 
+function localReviewActionForLesson(lesson, assessment = {}) {
+  const reviewFocus = Array.isArray(lesson?.compilerDecision?.reviewFocus) ? lesson.compilerDecision.reviewFocus : [];
+  const actionableFocus =
+    reviewFocus.find((item) => /\b(?:confirm|check|spot-check|review|verify|resolve)\b/i.test(cleanText(item))) ||
+    reviewFocus[0];
+  if (actionableFocus) return cleanText(actionableFocus);
+
+  const missingSignals = Array.isArray(lesson?.missingSignals)
+    ? lesson.missingSignals.map(cleanText).filter(Boolean)
+    : [];
+  if (missingSignals.length > 0) {
+    return `Before publishing ${lesson.title || 'this lesson'}, confirm ${missingSignals.join(', ')} against the instructor's source materials.`;
+  }
+
+  const artifact = cleanText(lesson?.studentArtifact || assessment?.title || 'the lesson materials');
+  return `Spot-check official dates, policies, source permissions, local examples, and ${artifact} expectations for ${lesson.title || 'this lesson'}.`;
+}
+
 function summarizeLessons(blueprint) {
-  return (blueprint.lessons || []).map((lesson) => ({
-    lessonNumber: lesson.lessonNumber,
-    title: lesson.title,
-    sourceConfidence: lesson.confidence?.level || 'unknown',
-    sourceEvidenceTrace: lesson.sourceEvidenceTrace || null,
-    sourceConflict: lesson.sourceConflict || null,
-    sourceRisk: lesson.sourceRisk || null,
-    compilerDecision: lesson.compilerDecision || null,
-    assessmentArtifact: lesson.studentArtifact || '',
-    evidenceRequirement: lesson.evidencePlan?.evidenceRequirement || '',
-    successCriteria: lesson.successCriteria || [],
-    feedbackCycle: lesson.feedbackCycle || null,
-    learningTransferPlan: lesson.learningTransferPlan || null,
-    teachingIntent: lesson.teachingIntent || null,
-    prerequisitePlan: lesson.prerequisitePlan || null,
-    conceptDependencyPlan: lesson.conceptDependencyPlan || null,
-    practiceProgressionPlan: lesson.practiceProgressionPlan || null,
-    masteryEvidencePlan: lesson.masteryEvidencePlan || null,
-    evidenceResponsePlan: lesson.evidenceResponsePlan || null,
-    classSessionPlan: lesson.classSessionPlan || null,
-    modalityCue: lesson.modalityCue || '',
-    modalityDecode: lesson.modalityDecode || null,
-    artifactGenre: lesson.artifactGenre || null,
-    learnerContextCue: lesson.learnerContextCue || '',
-    sourceUsePlan: lesson.sourceUsePlan || null,
-    accessibilityPlan: lesson.accessibilityPlan || null,
-    instructionalRationale: lesson.instructionalRationale || null,
-    readinessSupport: lesson.readinessSupport || null,
-    modelContrast: lesson.modelContrast || null,
-    assessmentValidity: assessmentForLesson(blueprint, lesson).validityEvidence || null,
-    gradingCalibrationPlan: assessmentForLesson(blueprint, lesson).calibrationPlan || null,
-    criterionEvidenceCue: assessmentForLesson(blueprint, lesson).criterionEvidenceMap?.[0]?.evidenceNeeded || '',
-    criterionWeightPlan: assessmentForLesson(blueprint, lesson).criterionWeightPlan || [],
-    anchorExampleSet: assessmentForLesson(blueprint, lesson).anchorExampleSet || null,
-    localReviewNeeded: lesson.missingSignals || [],
-    reviewerFocus: [
-      `Check whether ${lesson.studentArtifact || 'the assessment artifact'} is teachable and assessable from the provided materials.`,
-      lesson.prerequisitePlan?.diagnosticCheck || '',
-      assessmentForLesson(blueprint, lesson).anchorExampleSet?.studentFacingUse || '',
-      lesson.artifactGenre?.reviewProtocol || '',
-      lesson.feedbackCycle?.studentRevisionAction || '',
-      assessmentForLesson(blueprint, lesson).calibrationPlan?.biasCheck || '',
-    ].filter(Boolean),
-  }));
+  return (blueprint.lessons || []).map((lesson) => {
+    const assessment = assessmentForLesson(blueprint, lesson);
+    return {
+      lessonNumber: lesson.lessonNumber,
+      title: lesson.title,
+      sourceConfidence: lesson.confidence?.level || 'unknown',
+      sourceEvidenceTrace: lesson.sourceEvidenceTrace || null,
+      sourceConflict: lesson.sourceConflict || null,
+      sourceRisk: lesson.sourceRisk || null,
+      compilerDecision: lesson.compilerDecision || null,
+      publishGate: lesson.compilerDecision?.publishGate || 'missing',
+      localReviewState: lesson.compilerDecision?.reviewRequired ? 'local-review-required' : 'spot-check-required',
+      localReviewAction: localReviewActionForLesson(lesson, assessment),
+      assessmentArtifact: lesson.studentArtifact || '',
+      evidenceRequirement: lesson.evidencePlan?.evidenceRequirement || '',
+      successCriteria: lesson.successCriteria || [],
+      feedbackCycle: lesson.feedbackCycle || null,
+      learningTransferPlan: lesson.learningTransferPlan || null,
+      teachingIntent: lesson.teachingIntent || null,
+      prerequisitePlan: lesson.prerequisitePlan || null,
+      conceptDependencyPlan: lesson.conceptDependencyPlan || null,
+      practiceProgressionPlan: lesson.practiceProgressionPlan || null,
+      masteryEvidencePlan: lesson.masteryEvidencePlan || null,
+      evidenceResponsePlan: lesson.evidenceResponsePlan || null,
+      classSessionPlan: lesson.classSessionPlan || null,
+      modalityCue: lesson.modalityCue || '',
+      modalityDecode: lesson.modalityDecode || null,
+      artifactGenre: lesson.artifactGenre || null,
+      learnerContextCue: lesson.learnerContextCue || '',
+      sourceUsePlan: lesson.sourceUsePlan || null,
+      accessibilityPlan: lesson.accessibilityPlan || null,
+      instructionalRationale: lesson.instructionalRationale || null,
+      readinessSupport: lesson.readinessSupport || null,
+      modelContrast: lesson.modelContrast || null,
+      assessmentValidity: assessment.validityEvidence || null,
+      gradingCalibrationPlan: assessment.calibrationPlan || null,
+      criterionEvidenceCue: assessment.criterionEvidenceMap?.[0]?.evidenceNeeded || '',
+      criterionWeightPlan: assessment.criterionWeightPlan || [],
+      anchorExampleSet: assessment.anchorExampleSet || null,
+      localReviewNeeded: lesson.missingSignals || [],
+      reviewerFocus: [
+        `Check whether ${lesson.studentArtifact || 'the assessment artifact'} is teachable and assessable from the provided materials.`,
+        lesson.prerequisitePlan?.diagnosticCheck || '',
+        assessment.anchorExampleSet?.studentFacingUse || '',
+        lesson.artifactGenre?.reviewProtocol || '',
+        lesson.feedbackCycle?.studentRevisionAction || '',
+        assessment.calibrationPlan?.biasCheck || '',
+      ].filter(Boolean),
+    };
+  });
 }
 
 function summarizeFeature({ featureId, compiled }) {
@@ -1129,6 +1153,13 @@ function renderClassroomEvidenceRows(sample) {
   );
 }
 
+function renderLocalReviewActionRows(sample) {
+  return sample.lessons.map(
+    (lesson) =>
+      `| ${lesson.lessonNumber} | ${tableCell(lesson.title, 110)} | ${tableCell(lesson.localReviewState, 90)} | ${tableCell(lesson.publishGate, 110)} | ${tableCell(lesson.sourceRisk?.riskLevel || lesson.compilerDecision?.evidence?.sourceRiskLevel || 'unknown', 80)} | ${tableCell(lesson.compilerDecision?.evidence?.assessmentSource || 'unknown', 90)} | ${tableCell(lesson.localReviewAction, 220)} |`,
+  );
+}
+
 function renderConceptGraphRows(sample) {
   return sample.lessons.map((lesson) => {
     const plan = lesson.conceptDependencyPlan || {};
@@ -1639,6 +1670,14 @@ export function renderExternalQualityProofPacketMarkdown(payload) {
         ...renderCompilerDecisionRows(sample),
       ]),
       '',
+      '### Local Review Actions',
+      '',
+      markdownTable([
+        '| Lesson | Title | Review State | Publish Gate | Source Risk | Assessment Source | Local Review Action |',
+        '| ---: | --- | --- | --- | --- | --- | --- |',
+        ...renderLocalReviewActionRows(sample),
+      ]),
+      '',
       '### Package Coherence Matrix',
       '',
       markdownTable([
@@ -2009,6 +2048,16 @@ export function renderExternalQualityFullPackageMarkdown(payload, sample) {
       ...sample.fullPackageArtifacts.map(
         (artifact) => `| ${artifact.label} | ${artifact.featureId} | ${artifact.itemCount} |`,
       ),
+    ]),
+    '',
+    '## Local Review Actions',
+    '',
+    'Use this table when filling `sourceFidelityReview.artifactReviews[].localReviewActionVisible`. The compiled package should make these publish-before-use checks visible rather than burying them in internal metadata.',
+    '',
+    markdownTable([
+      '| Lesson | Title | Review State | Publish Gate | Source Risk | Assessment Source | Local Review Action |',
+      '| ---: | --- | --- | --- | --- | --- | --- |',
+      ...renderLocalReviewActionRows(sample),
     ]),
   ];
 
