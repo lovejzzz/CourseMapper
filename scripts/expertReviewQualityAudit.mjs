@@ -1842,6 +1842,12 @@ function auditInstructorEditHistory({
 export function auditExpertReviewFixture({ fixture, runtime }) {
   if (!runtime) throw new Error('auditExpertReviewFixture requires a loaded audit runtime.');
   const normalizedFixture = normalizeFixturePatterns(fixture);
+  const reviewedPackageVersion = normalizedFixture.reviewEvidence?.reviewedPackageVersion || null;
+  const reviewedCurrentPackageVersion =
+    isExternalFixture(normalizedFixture) &&
+    Boolean(reviewedPackageVersion) &&
+    !hasPlaceholderProofText(reviewedPackageVersion) &&
+    matchesCurrentPackageVersion(reviewedPackageVersion);
   const fixtureValidationFindings = validateReviewFixture(normalizedFixture);
   const reviewedArtifactCoverage = buildReviewedArtifactCoverage(normalizedFixture);
   if (fixtureValidationFindings.some((finding) => FIXTURE_SOURCE_BLOCKERS.has(finding.check))) {
@@ -1892,6 +1898,8 @@ export function auditExpertReviewFixture({ fixture, runtime }) {
       reviewedArtifactCoverage,
       externalProofEligible: false,
       externalEditProofEligible: false,
+      reviewedPackageVersion,
+      reviewedCurrentPackageVersion,
       reviewEvidence: normalizedFixture.reviewEvidence || null,
       preferenceProfile: null,
       findings: fixtureValidationFindings,
@@ -1987,6 +1995,8 @@ export function auditExpertReviewFixture({ fixture, runtime }) {
       editHistorySummary.concreteEvidencePatternCount === editHistorySummary.editPatternCount &&
       editHistorySummary.weakEvidencePatternCount === 0 &&
       editHistorySummary.missingCoreFieldCount === 0,
+    reviewedPackageVersion,
+    reviewedCurrentPackageVersion,
     reviewEvidence: normalizedFixture.reviewEvidence || null,
     preferenceProfile: instructorPreferenceProfile
       ? {
@@ -2013,6 +2023,16 @@ function summarizeResults(results, auditFindings = [], externalProofBundles = bu
   const blockers = resultBlockers + auditBlockers;
   const warnings = resultWarnings + auditWarnings;
   const externalFixtureCount = results.filter((result) => result.evidenceType === 'external').length;
+  const externalCurrentPackageVersionFixtureCount = results.filter(
+    (result) => result.evidenceType === 'external' && result.reviewedCurrentPackageVersion,
+  ).length;
+  const externalStalePackageVersionResults = results.filter(
+    (result) =>
+      result.evidenceType === 'external' &&
+      result.reviewedPackageVersion &&
+      !hasPlaceholderProofText(result.reviewedPackageVersion) &&
+      !result.reviewedCurrentPackageVersion,
+  );
   const externalProofEligibleCount = results.filter((result) => result.externalProofEligible).length;
   const externalReviewProofCount = results.filter(
     (result) => result.externalProofEligible && result.reviewerExpectationCount > 0,
@@ -2116,7 +2136,11 @@ function summarizeResults(results, auditFindings = [], externalProofBundles = bu
   return {
     status: blockers > 0 ? 'blocked' : warnings > 0 ? 'warnings' : 'pass',
     reviewFixtureCount: results.length,
+    currentPackageVersion: CURRENT_PACKAGE_VERSION,
     externalFixtureCount,
+    externalCurrentPackageVersionFixtureCount,
+    externalStalePackageVersionFixtureCount: externalStalePackageVersionResults.length,
+    externalStalePackageVersionFixtureIds: externalStalePackageVersionResults.map((result) => result.fixtureId),
     externalProofEligibleCount,
     externalReviewProofCount,
     reviewerScorecardFixtureCount,
@@ -2474,6 +2498,23 @@ function buildExternalProofReadinessChecklist(summary) {
         'Provide proof-eligible external reviewer evidence and external instructor edit-history patterns with concrete before/after text or evidence notes.',
     },
     {
+      id: 'current-package-version-proof',
+      label: `External proof was reviewed against the current package version (${CURRENT_PACKAGE_VERSION})`,
+      status:
+        summary.externalFixtureCount > 0 &&
+        summary.externalCurrentPackageVersionFixtureCount === summary.externalFixtureCount &&
+        summary.externalStalePackageVersionFixtureCount === 0
+          ? 'pass'
+          : 'blocked',
+      evidence: `${summary.externalCurrentPackageVersionFixtureCount || 0}/${summary.externalFixtureCount || 0} external fixture(s) match ${CURRENT_PACKAGE_VERSION}; stale fixture(s): ${
+        summary.externalStalePackageVersionFixtureIds?.length
+          ? summary.externalStalePackageVersionFixtureIds.join(', ')
+          : 'none'
+      }`,
+      nextAction:
+        'Regenerate the proof packet for the current package version, have reviewers inspect that package, and set reviewEvidence.reviewedPackageVersion to the current package version.',
+    },
+    {
       id: 'complete-proof-sample',
       label: 'External proof includes multiple complete samples across distinct teaching modalities',
       status:
@@ -2698,7 +2739,9 @@ function markdownTable(rows) {
 export function renderExpertReviewQualityAuditMarkdown(payload) {
   const caseRows = payload.results.map(
     (result) =>
-      `| ${result.fixtureId} | ${result.evidenceType} | ${result.externalProofEligible ? 'yes' : 'no'} | ${result.sampleId} | ${result.proofModality || 'unknown'} | ${result.summary.status} | ${result.checkedFeatureCount} | ${result.editCheckCount} | ${result.editHistoryPatternCount} | ${result.editHistoryAppliedFeatureCount} | ${result.editHistoryConcreteEvidencePatternCount ?? 0}/${result.editHistoryPatternCount ?? 0} | ${result.reviewerScorecard?.minScore ?? ''} | ${result.reviewedArtifactCoverage?.coveredCount || 0}/${result.reviewedArtifactCoverage?.requiredCount || REQUIRED_FULL_PACKAGE_ARTIFACTS.length} | ${result.sourceFidelityReview?.status || 'not-provided'} | ${result.sourceFidelityReview?.artifactReviewCount ?? 0}/${REQUIRED_FULL_PACKAGE_ARTIFACTS.length} | ${result.blueprintQualityReview?.status || 'not-provided'} | ${result.blueprintQualityReview?.lessonReviewCount ?? 0}/${result.blueprintQualityReview?.requiredLessonCount ?? 0} | ${result.assumptionLedgerReview?.status || 'not-provided'} | ${result.assumptionLedgerReview?.reviewedRowDecisionCount ?? 0}/${result.assumptionLedgerReview?.reviewRequiredRowCount ?? 0} | ${result.blueprintFidelityFindingCount || 0} | ${result.summary.blockerCount} | ${result.summary.warningCount} |`,
+      `| ${result.fixtureId} | ${result.evidenceType} | ${result.externalProofEligible ? 'yes' : 'no'} | ${result.reviewedPackageVersion || ''} | ${
+        result.evidenceType === 'external' ? (result.reviewedCurrentPackageVersion ? 'yes' : 'no') : ''
+      } | ${result.sampleId} | ${result.proofModality || 'unknown'} | ${result.summary.status} | ${result.checkedFeatureCount} | ${result.editCheckCount} | ${result.editHistoryPatternCount} | ${result.editHistoryAppliedFeatureCount} | ${result.editHistoryConcreteEvidencePatternCount ?? 0}/${result.editHistoryPatternCount ?? 0} | ${result.reviewerScorecard?.minScore ?? ''} | ${result.reviewedArtifactCoverage?.coveredCount || 0}/${result.reviewedArtifactCoverage?.requiredCount || REQUIRED_FULL_PACKAGE_ARTIFACTS.length} | ${result.sourceFidelityReview?.status || 'not-provided'} | ${result.sourceFidelityReview?.artifactReviewCount ?? 0}/${REQUIRED_FULL_PACKAGE_ARTIFACTS.length} | ${result.blueprintQualityReview?.status || 'not-provided'} | ${result.blueprintQualityReview?.lessonReviewCount ?? 0}/${result.blueprintQualityReview?.requiredLessonCount ?? 0} | ${result.assumptionLedgerReview?.status || 'not-provided'} | ${result.assumptionLedgerReview?.reviewedRowDecisionCount ?? 0}/${result.assumptionLedgerReview?.reviewRequiredRowCount ?? 0} | ${result.blueprintFidelityFindingCount || 0} | ${result.summary.blockerCount} | ${result.summary.warningCount} |`,
   );
   const scorecardRows = payload.results.flatMap((result) =>
     (result.reviewerScorecard?.dimensions || []).map(
@@ -2734,7 +2777,14 @@ export function renderExpertReviewQualityAuditMarkdown(payload) {
     '',
     `Status: ${payload.summary.status}`,
     `Review fixtures: ${payload.summary.reviewFixtureCount}`,
+    `Current package version: ${payload.summary.currentPackageVersion}`,
     `External review fixtures: ${payload.summary.externalFixtureCount}`,
+    `External current-version fixtures: ${payload.summary.externalCurrentPackageVersionFixtureCount}/${payload.summary.externalFixtureCount}`,
+    `External stale package-version fixtures: ${payload.summary.externalStalePackageVersionFixtureCount}${
+      payload.summary.externalStalePackageVersionFixtureIds?.length
+        ? ` (${payload.summary.externalStalePackageVersionFixtureIds.join(', ')})`
+        : ''
+    }`,
     `External proof-eligible fixtures: ${payload.summary.externalProofEligibleCount}`,
     `External reviewer-proof fixtures: ${payload.summary.externalReviewProofCount}`,
     `Reviewer scorecard fixtures: ${payload.summary.reviewerScorecardFixtureCount}`,
@@ -2801,8 +2851,8 @@ export function renderExpertReviewQualityAuditMarkdown(payload) {
     '## Review Fixture Matrix',
     '',
     markdownTable([
-      '| Review Fixture | Evidence Type | Proof Eligible | Sample/Project | Proof Modality | Status | Feature Checks | Edit Checks | Edit Patterns | Applied Features | Edit Evidence | Reviewer Min Score | Reviewed Core | Source Fidelity | Source Artifacts | Blueprint Quality | Blueprint Lessons | Assumption Ledger | Assumption Decisions | Fidelity Findings | Blockers | Warnings |',
-      '| --- | --- | --- | --- | --- | --- | ---: | ---: | ---: | ---: | ---: | ---: | ---: | --- | ---: | --- | ---: | --- | ---: | ---: | ---: | ---: |',
+      '| Review Fixture | Evidence Type | Proof Eligible | Reviewed Version | Current Version | Sample/Project | Proof Modality | Status | Feature Checks | Edit Checks | Edit Patterns | Applied Features | Edit Evidence | Reviewer Min Score | Reviewed Core | Source Fidelity | Source Artifacts | Blueprint Quality | Blueprint Lessons | Assumption Ledger | Assumption Decisions | Fidelity Findings | Blockers | Warnings |',
+      '| --- | --- | --- | --- | --- | --- | --- | --- | ---: | ---: | ---: | ---: | ---: | ---: | ---: | --- | ---: | --- | ---: | --- | ---: | ---: | ---: | ---: |',
       ...caseRows,
     ]),
     '',

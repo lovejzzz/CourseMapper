@@ -304,7 +304,7 @@ describe('expert review quality audit', () => {
       expect(payload.proofReadinessChecklist).toMatchObject({
         status: 'blocked',
         passCount: 1,
-        itemCount: 11,
+        itemCount: 12,
       });
       expect(payload.results.every((result) => result.summary.status === 'pass')).toBe(true);
       expect(payload.results.every((result) => result.blueprintFidelityFindingCount === 0)).toBe(true);
@@ -810,11 +810,64 @@ describe('expert review quality audit', () => {
   it('blocks external fixtures reviewed against a stale package version', async () => {
     const runtime = await loadHybridPipelineAuditRuntime();
     try {
+      const payload = await buildExpertReviewQualityAudit({
+        runtime,
+        fixtures: [
+          makeExternalEditHistoryFixture({
+            id: 'external-stale-package-version-fixture',
+            reviewEvidence: {
+              reviewedPackageVersion: '0.0.0',
+              reviewedArtifacts: ['full-package'],
+            },
+            reviewScorecard: {
+              maxScore: 5,
+              dimensions: makePassingScorecardDimensions(),
+            },
+          }),
+        ],
+      });
+      const result = payload.results[0];
+
+      expect(payload.summary.status).toBe('blocked');
+      expect(payload.summary.externalFixtureCount).toBe(1);
+      expect(payload.summary.externalCurrentPackageVersionFixtureCount).toBe(0);
+      expect(payload.summary.externalStalePackageVersionFixtureCount).toBe(1);
+      expect(payload.summary.externalStalePackageVersionFixtureIds).toEqual(['external-stale-package-version-fixture']);
+      expect(payload.proofReadinessChecklist.items).toEqual(
+        expect.arrayContaining([
+          expect.objectContaining({
+            id: 'current-package-version-proof',
+            status: 'blocked',
+          }),
+        ]),
+      );
+      expect(result).toMatchObject({
+        fixtureId: 'external-stale-package-version-fixture',
+        reviewedPackageVersion: '0.0.0',
+        reviewedCurrentPackageVersion: false,
+      });
+      expect(result.externalProofEligible).toBe(false);
+      expect(result.findings).toEqual(
+        expect.arrayContaining([
+          expect.objectContaining({
+            featureId: 'fixture',
+            check: 'externalProofPackageVersionMismatch',
+          }),
+        ]),
+      );
+    } finally {
+      await closeHybridPipelineAuditRuntime();
+    }
+  });
+
+  it('accepts external fixtures reviewed against the current package version with a v-prefix', async () => {
+    const runtime = await loadHybridPipelineAuditRuntime();
+    try {
       const result = auditExpertReviewFixture({
         fixture: makeExternalEditHistoryFixture({
-          id: 'external-stale-package-version-fixture',
+          id: 'external-current-package-version-v-prefix-fixture',
           reviewEvidence: {
-            reviewedPackageVersion: '0.0.0',
+            reviewedPackageVersion: `v${CURRENT_PACKAGE_VERSION}`,
             reviewedArtifacts: ['full-package'],
           },
           reviewScorecard: {
@@ -825,16 +878,9 @@ describe('expert review quality audit', () => {
         runtime,
       });
 
-      expect(result.summary.status).toBe('blocked');
-      expect(result.externalProofEligible).toBe(false);
-      expect(result.findings).toEqual(
-        expect.arrayContaining([
-          expect.objectContaining({
-            featureId: 'fixture',
-            check: 'externalProofPackageVersionMismatch',
-          }),
-        ]),
-      );
+      expect(result.summary.status).toBe('pass');
+      expect(result.externalProofEligible).toBe(true);
+      expect(result.reviewedCurrentPackageVersion).toBe(true);
     } finally {
       await closeHybridPipelineAuditRuntime();
     }
@@ -1206,6 +1252,11 @@ describe('expert review quality audit', () => {
 
       expect(payload.summary.status).toBe('pass');
       expect(payload.summary.auditBlockers).toBe(0);
+      expect(payload.summary.currentPackageVersion).toBe(CURRENT_PACKAGE_VERSION);
+      expect(payload.summary.externalFixtureCount).toBe(3);
+      expect(payload.summary.externalCurrentPackageVersionFixtureCount).toBe(3);
+      expect(payload.summary.externalStalePackageVersionFixtureCount).toBe(0);
+      expect(payload.summary.externalStalePackageVersionFixtureIds).toEqual([]);
       expect(payload.summary.externalReviewerScorecardCount).toBe(3);
       expect(payload.summary.externalEvidenceAnchoredScorecardCount).toBe(3);
       expect(payload.summary.externalFullPackageReviewCount).toBe(3);
@@ -1277,9 +1328,17 @@ describe('expert review quality audit', () => {
       );
       expect(payload.proofReadinessChecklist).toMatchObject({
         status: 'pass',
-        passCount: 11,
-        itemCount: 11,
+        passCount: 12,
+        itemCount: 12,
       });
+      expect(payload.proofReadinessChecklist.items).toEqual(
+        expect.arrayContaining([
+          expect.objectContaining({
+            id: 'current-package-version-proof',
+            status: 'pass',
+          }),
+        ]),
+      );
       expect(payload.results[0].sourceFidelityReview).toMatchObject({
         status: 'pass',
         sourceInputReviewed: true,

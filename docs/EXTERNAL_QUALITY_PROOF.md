@@ -446,7 +446,10 @@ This mode fails unless the fixture set proves all of the following:
 
 The audit report includes:
 
+- `Current package version`: the CourseMapper package version that external proof must match
 - `External review fixtures`: fixtures marked external
+- `External current-version fixtures`: external fixtures whose `reviewEvidence.reviewedPackageVersion` matches the current package version
+- `External stale package-version fixtures`: external fixtures that were reviewed against an older or different package version
 - `External proof-eligible fixtures`: external fixtures with enough proof metadata
 - `External reviewer-proof fixtures`: proof-eligible fixtures with reviewer expectations
 - `Reviewer scorecard fixtures`: fixtures with scored external or internal review dimensions
@@ -477,6 +480,8 @@ The goal state for A-quality proof is:
 
 - `Status: pass`
 - `Proof status: external-review-and-edit-evidence-present`
+- `External current-version fixtures` equals `External review fixtures`
+- `External stale package-version fixtures: 0`
 - `External complete proof samples: 2` or higher
 - `External complete proof modalities: 2` or higher
 - `External complete proof scopes: 3` with `5`, `8`, and `14`
