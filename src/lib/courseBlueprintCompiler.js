@@ -975,7 +975,7 @@ function buildLessonCompilerDecision({ lesson, sourceRiskRow = {}, assessment = 
       assessmentSource !== 'course-map'
         ? `Confirm the ${assessment?.title || lesson?.studentArtifact || 'assessment'} artifact, criteria, and weight against the official course plan.`
         : '',
-      'Spot-check official dates, source permissions, institution policies, and local examples.',
+      `Spot-check official dates, source permissions, institution policies, and local examples for ${stripLessonPrefix(lesson?.title)}.`,
     ],
     5,
   );
@@ -8582,6 +8582,7 @@ function buildAssignmentSubmissionProfile({ lesson = {}, assessment = {}, lens =
     estimatedTime: workload.studentFacingEstimate,
     workload,
     localAdaptationCue: `Confirm local length, tool, accessibility, privacy, and LMS expectations before publishing ${artifact}.`,
+    localReviewAction: lessonLocalReviewAction(lesson),
   };
 }
 
@@ -8622,7 +8623,48 @@ function lessonSourceGrounding(lesson, extras = {}) {
     modalityCue: lesson?.modalityCue || '',
     modalityDecode: clonePlain(lesson?.modalityDecode || null),
     artifactGenre: clonePlain(lesson?.artifactGenre || null),
+    reviewActionability: buildLessonReviewActionability(lesson),
     ...extras,
+  };
+}
+
+function lessonLocalReviewAction(lesson) {
+  const rawAction = cleanText(
+    lesson?.compilerDecision?.reviewFocus?.[0] ||
+      lesson?.sourceRisk?.reviewFocus?.[0] ||
+      lesson?.sourceUsePlan?.localReplacementCue ||
+      lesson?.accessibilityPlan?.accommodationReviewCue ||
+      '',
+  );
+  const lessonTitle = stripLessonPrefix(lesson?.title || 'this lesson');
+  const artifact = stripTerminalPunctuation(lesson?.studentArtifact || 'the lesson artifact');
+  const fallback = lesson?.compilerDecision?.reviewRequired
+    ? `Confirm source evidence, assessment details, and local constraints for ${lessonTitle} before publishing.`
+    : `Spot-check official dates, policies, source permissions, local examples, and ${artifact} expectations for ${lessonTitle} before publishing.`;
+  const base = rawAction || fallback;
+  const lowered = base.toLowerCase();
+  const hasLessonCue = lessonTitle && lowered.includes(lessonTitle.toLowerCase());
+  const hasArtifactCue = artifact && lowered.includes(artifact.toLowerCase());
+  if (hasLessonCue || hasArtifactCue) return base;
+  return `${stripTerminalPunctuation(base)} Review ${lessonTitle} and ${artifact} before publishing.`;
+}
+
+function buildLessonReviewActionability(lesson) {
+  const publishGate = lesson?.compilerDecision?.publishGate || '';
+  const reviewRequired = Boolean(lesson?.compilerDecision?.reviewRequired);
+  const reviewerAction = lessonLocalReviewAction(lesson);
+  return {
+    version: 1,
+    status: reviewRequired ? 'local-review-required' : 'spot-check-ready',
+    reviewRequired,
+    publishGate,
+    reviewerAction,
+    sourceRiskLevel: lesson?.sourceRisk?.riskLevel || lesson?.compilerDecision?.evidence?.sourceRiskLevel || 'unknown',
+    assessmentSource: lesson?.compilerDecision?.evidence?.assessmentSource || lesson?.assessmentSource || 'unknown',
+    localReviewNeeded: clonePlain(lesson?.missingSignals || []),
+    publishBoundary: reviewRequired
+      ? `Hold ${stripLessonPrefix(lesson?.title)} for local confirmation before classroom publication.`
+      : `Publish ${stripLessonPrefix(lesson?.title)} after instructor spot-check of official facts and source permissions.`,
   };
 }
 
@@ -10160,6 +10202,7 @@ function compileSyllabus(blueprint) {
           sourceRiskLevel: lesson.sourceRisk?.riskLevel || '',
           publishGate: lesson.compilerDecision?.publishGate || '',
           localReviewNeeded: lesson.missingSignals,
+          localReviewAction: lessonLocalReviewAction(lesson),
         };
       }),
       outcomeAlignmentMatrix: unique(
@@ -10221,6 +10264,9 @@ function compileSyllabus(blueprint) {
         successCriteria: row.successCriteria,
         status: row.alignmentStatus,
         localReviewNeeded: row.localReviewNeeded,
+        localReviewAction: lessonLocalReviewAction(
+          blueprint.lessons.find((lesson) => lesson.lessonNumber === row.lessonNumber) || {},
+        ),
       })),
       requiredTexts: [
         {
@@ -12225,6 +12271,7 @@ function buildSlideDeckIrForLesson(blueprint, lesson, index) {
     sequenceGuide: {
       accessibilityStandards:
         `${lesson.accessibilityPlan?.representation || `${displayTitle} should offer spoken, written, and visual entry points around ${phrase.context}`}; ${lesson.accessibilityPlan?.participationProtocol || 'visuals include alt text, activity directions can be completed without color-only cues, and speaker notes identify how to support learners who need more processing time or text-first participation'}; ${lesson.accessibilityPlan?.accommodationReviewCue || ''}`.trim(),
+      localReviewAction: lessonLocalReviewAction(lesson),
       cumulativeAssessmentMap: `${displayTitle} prepares students for ${sequenceArtifact}; the deck moves from ${phrase.evidenceMove} to ${stripTerminalPunctuation(phrase.decisionMove).toLowerCase()}, while practice slides reinforce ${sequenceCriterion} and the ${artifactGenre.label || artifactGenre.genre || 'artifact'} quality focus before feedback carries into the next artifact.`,
       pacingBridge: `${lesson.pacing?.bridgeFrom || ''} ${lesson.pacing?.bridgeTo || ''}`.trim(),
       classSessionPlan,
@@ -12667,6 +12714,7 @@ function compileLessonPlans(blueprint) {
         closingActivity: `Close by having students name one strong evidence move from today and one revision they still need before ${artifact} is fully ready.`,
         tags: unique(['lesson-plan', lesson.title, concept, lens.domain, ...lesson.keyConcepts], 10),
         readyToTeachSupport: {
+          localReviewAction: lessonLocalReviewAction(lesson),
           workedExample:
             lesson.modelContrast?.exemplarMove ||
             `Show a brief exemplar for ${artifact} and annotate where the evidence, reasoning, and revision move appear.`,

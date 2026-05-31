@@ -22,6 +22,7 @@ const releases = [
           'Lesson plans, slide decks, assignments, rubrics, discussions, quiz banks, study guides, syllabus, FAQ, and safe custom deliverables now preserve blueprint grounding instead of relying on repeated model calls.',
           'Studio and course-design classifiers now resist false capstone reclassification when a long course ends with a portfolio or final showcase.',
           'The compiler now exposes publish gates, model-use policy, local-review focus, and source-risk cues so instructors can see which parts are ready and which parts require confirmation.',
+          'Weak-input lessons now carry a concrete local-review action through syllabus rows, lesson plans, slide decks, assignments, and each compiled lesson grounding before the package can claim classroom readiness.',
           'Blueprints now include an objective-level evidence map, so every lesson objective must show practice, assessment, rubric, quiz/check, feedback, and revision evidence before compilation is treated as classroom-ready.',
           'Syllabus trust receipts and course-at-a-glance rows now use compact proof summaries instead of copying full internal blueprint maps into user-facing materials.',
         ],
@@ -42,6 +43,7 @@ const releases = [
           'Gold audits now include a Copy Specificity Matrix that blocks repeated long surface copy across classroom-facing deliverables.',
           'Gold audits now include an Objective Evidence Matrix that checks objective-by-objective evidence propagation across the compiled core package.',
           'Gold audits now include a Workload Balance Matrix that verifies weekly student workload stays realistic and remains visible in syllabus, assignment, and lesson-plan outputs.',
+          'Gold audits now include a Review Actionability Matrix that blocks weak-input packages when instructors cannot see exactly what to confirm before publishing.',
         ],
       },
       {

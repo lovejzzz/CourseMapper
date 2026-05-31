@@ -4709,6 +4709,7 @@ describe('courseBlueprintCompiler', () => {
         assessmentSource: 'sparse-fallback',
       },
     });
+    expect(blueprint.lessons[1].compilerDecision.reviewFocus[0]).toMatch(/Case worksheet|Lesson 2/i);
     expect(blueprint.compilerDecisionMatrix).toMatchObject({
       status: 'review-required',
       reviewRequiredCount: 1,
@@ -4725,6 +4726,12 @@ describe('courseBlueprintCompiler', () => {
     expect(compiled.slideDecks.decks[1].slideDeckSequenceGuide.cumulativeAssessmentMap).toContain(
       blueprint.lessons[1].studentArtifact,
     );
+    expect(compiled.slideDecks.decks[1].sourceGrounding.reviewActionability).toMatchObject({
+      status: 'local-review-required',
+      publishGate: 'local-review-required-before-publish',
+      reviewRequired: true,
+    });
+    expect(compiled.slideDecks.decks[1].slideDeckSequenceGuide.localReviewAction).toMatch(/Case worksheet|Lesson 2/i);
     expect(compiled.quizBank.quizzes[1].quizBlueprint).toMatchObject({
       source: 'source-grounded-quiz-plan',
       lessonBloom: 'Evaluate',
@@ -4732,6 +4739,9 @@ describe('courseBlueprintCompiler', () => {
     expect(new Set(compiled.quizBank.quizzes[1].bloomsCoverage).size).toBeGreaterThanOrEqual(4);
     expect(compiled.quizBank.quizzes[1].questions.every((question) => question.quizPlan?.bloomSource)).toBe(true);
     expect(compiled.assignments.assignments[1].title).toContain('Case worksheet');
+    expect(compiled.assignments.assignments[1].sourceGrounding.reviewActionability.reviewerAction).toMatch(
+      /Case worksheet|Lesson 2/i,
+    );
   });
 
   it('flags assessment anchors derived from evaluation notes instead of overclaiming source confidence', () => {
@@ -4904,9 +4914,16 @@ describe('courseBlueprintCompiler', () => {
     expect(compiled.lessonPlans.lessonPlans[1].blueprintGrounding.localReviewNeeded.join(' ')).toMatch(
       /Source conflict/i,
     );
+    expect(compiled.lessonPlans.lessonPlans[1].blueprintGrounding.reviewActionability).toMatchObject({
+      status: 'local-review-required',
+      publishGate: 'local-review-required-before-publish',
+      reviewRequired: true,
+    });
+    expect(compiled.lessonPlans.lessonPlans[1].readyToTeachSupport.localReviewAction).toMatch(/duplicate source row/i);
     expect(compiled.assignments.assignments[1].sourceGrounding.sourceEvidenceTrace.sourceConflict).toMatchObject({
       status: 'source-conflict',
     });
+    expect(compiled.syllabus.syllabus.courseAtAGlance[1].localReviewAction).toMatch(/duplicate source row/i);
     expect(compiled.syllabus.syllabus.blueprintQualityReceipt.sourceConflictReport).toMatchObject({
       status: 'source-conflicts-review-required',
       duplicateLessonCount: 2,

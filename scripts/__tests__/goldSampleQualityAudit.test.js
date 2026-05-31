@@ -357,6 +357,27 @@ describe('gold sample quality audit', () => {
             ),
           ),
         ).toBe(true);
+        expect(payload.results.every((result) => result.reviewActionabilitySummary.status === 'pass')).toBe(true);
+        expect(payload.results.every((result) => result.reviewActionabilitySummary.lessonRows === result.scope)).toBe(
+          true,
+        );
+        expect(payload.results.every((result) => result.reviewActionabilitySummary.checkedFeatures === 9)).toBe(true);
+        expect(
+          payload.results.every(
+            (result) =>
+              result.reviewActionabilitySummary.actionableRows === result.reviewActionabilitySummary.lessonRows,
+          ),
+        ).toBe(true);
+        expect(payload.results.every((result) => result.reviewActionabilitySummary.blueprintFindings === 0)).toBe(true);
+        expect(payload.results.every((result) => result.reviewActionabilitySummary.compiledFindings === 0)).toBe(true);
+        expect(
+          payload.results.find((result) => result.sampleId === 'gold-sparse-assessment-resilience-8')
+            .reviewActionabilitySummary.reviewRequiredLessons,
+        ).toBeGreaterThan(0);
+        expect(
+          payload.results.find((result) => result.sampleId === 'gold-messy-clinical-resilience-8')
+            .reviewActionabilitySummary.reviewRequiredLessons,
+        ).toBeGreaterThan(0);
         expect(payload.results.every((result) => result.assessmentArchitectureSummary.status === 'pass')).toBe(true);
         expect(
           payload.results.every((result) => result.assessmentArchitectureSummary.lessonRows === result.scope),
@@ -499,6 +520,9 @@ describe('gold sample quality audit', () => {
         expect(markdown).toContain('Session Feasibility Matrix');
         expect(markdown).toContain('Workload Balance Matrix');
         expect(markdown).toContain('Max Out-of-Class Minutes');
+        expect(markdown).toContain('Review Actionability Matrix');
+        expect(markdown).toContain('Review-Required Lessons');
+        expect(markdown).toContain('Actionable Rows');
         expect(markdown).toContain('Assessment Architecture Matrix');
         expect(markdown).toContain('Criterion Weighting Matrix');
         expect(markdown).toContain('Concept Dependency Graph Matrix');
@@ -2471,6 +2495,50 @@ describe('gold sample quality audit', () => {
           expect.objectContaining({
             featureId: 'assignments',
             check: 'workloadSubmissionProfile',
+          }),
+        ]),
+      );
+    } finally {
+      await closeHybridPipelineAuditRuntime();
+    }
+  });
+
+  it('blocks when weak-input lessons lose concrete local-review actions', async () => {
+    const runtime = await loadHybridPipelineAuditRuntime();
+    try {
+      const weakInputSample = DEFAULT_GOLD_SAMPLES.find(
+        (sample) => sample.id === 'gold-sparse-assessment-resilience-8',
+      );
+      const result = auditGoldSample({
+        sample: weakInputSample,
+        runtime: {
+          ...runtime,
+          compileBlueprintDeliverables: (...args) => {
+            const compiled = runtime.compileBlueprintDeliverables(...args);
+            compiled.syllabus.syllabus.courseAtAGlance[0].localReviewAction = '';
+            compiled.lessonPlans.lessonPlans[0].blueprintGrounding.reviewActionability = {
+              publishGate: 'local-review-required-before-publish',
+              reviewRequired: true,
+              reviewerAction: '',
+              localReviewNeeded: [],
+              publishBoundary: '',
+            };
+            return compiled;
+          },
+        },
+      });
+
+      expect(result.summary.status).toBe('blocked');
+      expect(result.reviewActionabilitySummary.status).toBe('blocked');
+      expect(result.findings).toEqual(
+        expect.arrayContaining([
+          expect.objectContaining({
+            featureId: 'syllabus',
+            check: 'reviewActionabilityCourseAtAGlance',
+          }),
+          expect.objectContaining({
+            featureId: 'lessonPlans',
+            check: 'reviewActionabilityFeature',
           }),
         ]),
       );

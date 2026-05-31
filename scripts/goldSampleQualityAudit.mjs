@@ -10542,6 +10542,241 @@ function buildWorkloadBalanceAudit({ blueprint, compiledFeatures, compiled }) {
   };
 }
 
+function hasReviewActionVerb(text) {
+  return /\b(confirm|replace|resolve|review|spot-check|verify|hold|publish)\b/i.test(String(text || ''));
+}
+
+function hasLessonSpecificReviewCue(text, lesson = {}) {
+  const keywords = keywordSet(
+    [
+      lesson.title,
+      lesson.lessonTitle,
+      lesson.studentArtifact,
+      ...(Array.isArray(lesson.keyConcepts) ? lesson.keyConcepts.slice(0, 3) : []),
+    ].join(' '),
+    8,
+  );
+  return keywords.length === 0 || tokenOverlap(keywords, text).length > 0;
+}
+
+function hasActionableReviewText(text, lesson = {}) {
+  return Boolean(text && hasReviewActionVerb(text) && hasLessonSpecificReviewCue(text, lesson));
+}
+
+function reviewActionTextForFeature(featureId, item = {}, grounding = {}) {
+  if (featureId === 'syllabus') {
+    return collectStrings({
+      localReviewAction: item.localReviewAction,
+      localReviewNeeded: item.localReviewNeeded,
+      publishGate: item.publishGate,
+    }).join(' ');
+  }
+  return collectStrings({
+    reviewActionability: grounding.reviewActionability,
+    localReviewAction: item.localReviewAction,
+    readyToTeachLocalReviewAction: item.readyToTeachSupport?.localReviewAction,
+    slideDeckLocalReviewAction: item.slideDeckSequenceGuide?.localReviewAction,
+    sequenceLocalReviewAction: item.sequenceGuide?.localReviewAction,
+    submissionLocalReviewAction: item.submissionProfile?.localReviewAction,
+    compilerReviewFocus: grounding.compilerDecision?.reviewFocus,
+  }).join(' ');
+}
+
+function buildReviewActionabilityAudit({ blueprint, compiledFeatures, compiled }) {
+  const findings = [];
+  const lessons = Array.isArray(blueprint?.lessons) ? blueprint.lessons : [];
+  const lessonFeatures = [
+    'syllabus',
+    'lessonPlans',
+    'slideDecks',
+    'assignments',
+    'rubrics',
+    'discussions',
+    'quizBank',
+    'studyGuides',
+    'courseFaq',
+  ].filter((featureId) => compiledFeatures.includes(featureId));
+  const syllabus = compiled?.syllabus?.syllabus || {};
+  const reviewSurfaceRows = Array.isArray(blueprint?.blueprintReviewSurface?.lessonRows)
+    ? blueprint.blueprintReviewSurface.lessonRows
+    : [];
+  const handoffRows = Array.isArray(blueprint?.classroomHandoffPlan?.lessonReviewOrder)
+    ? blueprint.classroomHandoffPlan.lessonReviewOrder
+    : [];
+
+  if (!Array.isArray(reviewSurfaceRows) || reviewSurfaceRows.length !== lessons.length) {
+    findings.push(
+      makeFinding(
+        'blocker',
+        'blueprint',
+        'reviewActionabilitySurface',
+        'Blueprint review surface is missing per-lesson review-action rows.',
+      ),
+    );
+  }
+
+  const rows = lessons.map((lesson, index) => {
+    const lessonLabel = `Lesson ${lesson.lessonNumber}`;
+    const expectedDecision = lesson.compilerDecision || {};
+    const expectedPublishGate = expectedDecision.publishGate || '';
+    const expectedReviewRequired = Boolean(expectedDecision.reviewRequired);
+    const expectedAction = collectStrings(expectedDecision.reviewFocus || [])[0] || '';
+    const reviewSurfaceRow = reviewSurfaceRows[index] || {};
+    const handoffRow = handoffRows.find((row) => row.lessonNumber === lesson.lessonNumber) || handoffRows[index] || {};
+    const missingFeatures = [];
+    const compiledFindingsBefore = findings.length;
+    const blueprintFindingsBefore = findings.filter((finding) => finding.featureId === 'blueprint').length;
+
+    if (!expectedPublishGate || !hasActionableReviewText(expectedAction, lesson)) {
+      findings.push(
+        makeFinding(
+          'blocker',
+          'blueprint',
+          'reviewActionabilityDecision',
+          `${lessonLabel} compiler decision does not provide a lesson-specific review action and publish gate.`,
+        ),
+      );
+    }
+
+    if (
+      expectedReviewRequired &&
+      (expectedPublishGate !== 'local-review-required-before-publish' ||
+        reviewSurfaceRow.reviewState !== 'source-review-required' ||
+        reviewSurfaceRow.answerabilityStatus !== 'answerable-with-source-review' ||
+        !hasActionableReviewText(reviewSurfaceRow.sourceTrace?.localConfirmationCue, lesson))
+    ) {
+      findings.push(
+        makeFinding(
+          'blocker',
+          'blueprint',
+          'reviewActionabilityWeakInput',
+          `${lessonLabel} weak-input review row is not answerable with a concrete local-confirmation action.`,
+        ),
+      );
+    }
+
+    if (
+      !Array.isArray(handoffRow.reviewFocus) ||
+      handoffRow.reviewFocus.length === 0 ||
+      !hasActionableReviewText(handoffRow.reviewFocus[0], lesson)
+    ) {
+      findings.push(
+        makeFinding(
+          'blocker',
+          'blueprint',
+          'reviewActionabilityHandoff',
+          `${lessonLabel} classroom handoff plan does not preserve an actionable review focus.`,
+        ),
+      );
+    }
+
+    if (compiledFeatures.includes('syllabus')) {
+      const glance = syllabus.courseAtAGlance?.[index] || {};
+      const alignment = syllabus.lessonAlignmentMatrix?.[index] || {};
+      if (glance.publishGate !== expectedPublishGate || !hasActionableReviewText(glance.localReviewAction, lesson)) {
+        missingFeatures.push('syllabus');
+        findings.push(
+          makeFinding(
+            'blocker',
+            'syllabus',
+            'reviewActionabilityCourseAtAGlance',
+            `${lessonLabel} course-at-a-glance row does not expose the publish gate and local review action.`,
+          ),
+        );
+      }
+      if (
+        alignment.publishGate !== expectedPublishGate ||
+        !hasActionableReviewText(alignment.localReviewAction, lesson)
+      ) {
+        missingFeatures.push('syllabus');
+        findings.push(
+          makeFinding(
+            'blocker',
+            'syllabus',
+            'reviewActionabilityAlignmentRow',
+            `${lessonLabel} syllabus alignment row does not expose the local review action.`,
+          ),
+        );
+      }
+    }
+
+    for (const featureId of lessonFeatures.filter((id) => id !== 'syllabus')) {
+      const item = featureItemForLesson(featureId, compiled[featureId], index);
+      const grounding = structuredGroundingForFeature(featureId, item);
+      const actionability = grounding.reviewActionability || {};
+      const actionText = reviewActionTextForFeature(featureId, item, grounding);
+
+      if (!item || Object.keys(item).length === 0) {
+        missingFeatures.push(featureId);
+        findings.push(
+          makeFinding('blocker', featureId, 'reviewActionabilityItem', `${lessonLabel} has no compiled item.`),
+        );
+        continue;
+      }
+      if (
+        actionability.publishGate !== expectedPublishGate ||
+        Boolean(actionability.reviewRequired) !== expectedReviewRequired ||
+        !hasActionableReviewText(actionability.reviewerAction, lesson) ||
+        !hasActionableReviewText(actionText, lesson)
+      ) {
+        missingFeatures.push(featureId);
+        findings.push(
+          makeFinding(
+            'blocker',
+            featureId,
+            'reviewActionabilityFeature',
+            `${lessonLabel} ${FEATURE_LABELS[featureId] || featureId} output does not preserve a concrete local review action.`,
+          ),
+        );
+      }
+      if (
+        expectedReviewRequired &&
+        (!Array.isArray(actionability.localReviewNeeded) ||
+          actionability.localReviewNeeded.length === 0 ||
+          !String(actionability.publishBoundary || '')
+            .toLowerCase()
+            .includes('hold'))
+      ) {
+        missingFeatures.push(featureId);
+        findings.push(
+          makeFinding(
+            'blocker',
+            featureId,
+            'reviewActionabilityPublishBoundary',
+            `${lessonLabel} ${FEATURE_LABELS[featureId] || featureId} output does not hold weak-input work for local confirmation.`,
+          ),
+        );
+      }
+    }
+
+    const blueprintFindingCount =
+      findings.filter((finding) => finding.featureId === 'blueprint').length - blueprintFindingsBefore;
+    return {
+      lessonNumber: lesson.lessonNumber,
+      reviewRequired: expectedReviewRequired,
+      publishGate: expectedPublishGate || 'missing',
+      checkedFeatures: lessonFeatures.length,
+      blueprintFindingCount,
+      compiledFindingCount: findings.length - compiledFindingsBefore - blueprintFindingCount,
+      missingFeatures: uniqueSignals(missingFeatures, lessonFeatures.length),
+    };
+  });
+
+  const blueprintFindings = findings.filter((finding) => finding.featureId === 'blueprint').length;
+  const compiledFindings = findings.length - blueprintFindings;
+  return {
+    status: summarizeFeatureStatus(findings),
+    lessonRows: rows.length,
+    reviewRequiredLessons: rows.filter((row) => row.reviewRequired).length,
+    checkedFeatures: lessonFeatures.length,
+    actionableRows: rows.filter((row) => row.compiledFindingCount === 0 && row.blueprintFindingCount === 0).length,
+    blueprintFindings,
+    compiledFindings,
+    findings,
+    rows,
+  };
+}
+
 function buildAssessmentArchitectureAudit({ blueprint, compiledFeatures, compiled }) {
   const findings = [];
   const rows = Array.isArray(blueprint?.assessmentArchitecture?.lessonRows)
@@ -13511,6 +13746,7 @@ export function auditGoldSample({ sample, runtime, features = sample.features ||
   });
   const sessionFeasibility = buildSessionFeasibilityAudit({ blueprint, compiledFeatures, compiled });
   const workloadBalance = buildWorkloadBalanceAudit({ blueprint, compiledFeatures, compiled });
+  const reviewActionability = buildReviewActionabilityAudit({ blueprint, compiledFeatures, compiled });
   const assessmentArchitecture = buildAssessmentArchitectureAudit({ blueprint, compiledFeatures, compiled });
   const criterionWeighting = buildCriterionWeightingAudit({ blueprint, compiledFeatures, compiled });
   const conceptGraph = buildConceptGraphAudit({ blueprint, compiledFeatures, compiled });
@@ -13622,6 +13858,7 @@ export function auditGoldSample({ sample, runtime, features = sample.features ||
     ...artifactGenre.findings,
     ...sessionFeasibility.findings,
     ...workloadBalance.findings,
+    ...reviewActionability.findings,
     ...assessmentArchitecture.findings,
     ...criterionWeighting.findings,
     ...conceptGraph.findings,
@@ -13734,6 +13971,17 @@ export function auditGoldSample({ sample, runtime, features = sample.features ||
       findings: workloadBalance.findings.length,
     },
     workloadBalance,
+    reviewActionabilitySummary: {
+      status: reviewActionability.status,
+      lessonRows: reviewActionability.lessonRows,
+      reviewRequiredLessons: reviewActionability.reviewRequiredLessons,
+      checkedFeatures: reviewActionability.checkedFeatures,
+      actionableRows: reviewActionability.actionableRows,
+      blueprintFindings: reviewActionability.blueprintFindings,
+      compiledFindings: reviewActionability.compiledFindings,
+      findings: reviewActionability.findings.length,
+    },
+    reviewActionability,
     assessmentArchitectureSummary: {
       status: assessmentArchitecture.status,
       lessonRows: assessmentArchitecture.lessonRows,
@@ -14030,6 +14278,10 @@ export function renderGoldSampleQualityAuditMarkdown(payload) {
     (result) =>
       `| ${result.sampleId} | ${result.workloadBalanceSummary?.status || 'missing'} | ${result.workloadBalanceSummary?.lessonRows ?? 0} | ${result.workloadBalanceSummary?.checkedFeatures ?? 0} | ${result.workloadBalanceSummary?.averageOutOfClassMinutes ?? 0} | ${result.workloadBalanceSummary?.maxOutOfClassMinutes ?? 0} | ${result.workloadBalanceSummary?.workloadReviewCount ?? 0} | ${result.workloadBalanceSummary?.blueprintFindings ?? 0} | ${result.workloadBalanceSummary?.compiledFindings ?? 0} |`,
   );
+  const reviewActionabilityRows = payload.results.map(
+    (result) =>
+      `| ${result.sampleId} | ${result.reviewActionabilitySummary?.status || 'missing'} | ${result.reviewActionabilitySummary?.lessonRows ?? 0} | ${result.reviewActionabilitySummary?.reviewRequiredLessons ?? 0} | ${result.reviewActionabilitySummary?.checkedFeatures ?? 0} | ${result.reviewActionabilitySummary?.actionableRows ?? 0} | ${result.reviewActionabilitySummary?.blueprintFindings ?? 0} | ${result.reviewActionabilitySummary?.compiledFindings ?? 0} |`,
+  );
   const assessmentArchitectureRows = payload.results.map(
     (result) =>
       `| ${result.sampleId} | ${result.assessmentArchitectureSummary?.status || 'missing'} | ${result.assessmentArchitectureSummary?.lessonRows ?? 0} | ${result.assessmentArchitectureSummary?.checkedFeatures ?? 0} | ${result.assessmentArchitectureSummary?.totalWeightPercent ?? ''} | ${result.assessmentArchitectureSummary?.highStakesWeightPercent ?? ''} | ${result.assessmentArchitectureSummary?.blueprintFindings ?? 0} | ${result.assessmentArchitectureSummary?.compiledFindings ?? 0} |`,
@@ -14203,6 +14455,14 @@ export function renderGoldSampleQualityAuditMarkdown(payload) {
       '| Gold Sample | Status | Lessons | Checked Features | Avg Out-of-Class Minutes | Max Out-of-Class Minutes | Review Count | Blueprint Findings | Compiled Findings |',
       '| --- | --- | ---: | ---: | ---: | ---: | ---: | ---: | ---: |',
       ...workloadBalanceRows,
+    ]),
+    '',
+    '## Review Actionability Matrix',
+    '',
+    markdownTable([
+      '| Gold Sample | Status | Lessons | Review-Required Lessons | Checked Features | Actionable Rows | Blueprint Findings | Compiled Findings |',
+      '| --- | --- | ---: | ---: | ---: | ---: | ---: | ---: |',
+      ...reviewActionabilityRows,
     ]),
     '',
     '## Assessment Architecture Matrix',
