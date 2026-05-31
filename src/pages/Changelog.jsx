@@ -41,6 +41,7 @@ const releases = [
           'Expert proof reports now show current-version fixture coverage and stale fixture IDs as a dedicated readiness item.',
           'Gold audits now include a Copy Specificity Matrix that blocks repeated long surface copy across classroom-facing deliverables.',
           'Gold audits now include an Objective Evidence Matrix that checks objective-by-objective evidence propagation across the compiled core package.',
+          'Gold audits now include a Workload Balance Matrix that verifies weekly student workload stays realistic and remains visible in syllabus, assignment, and lesson-plan outputs.',
         ],
       },
       {

@@ -8292,7 +8292,10 @@ function auditBlueprintMaturity(blueprint, scope, expectedLens = {}) {
   if (
     !blueprint?.courseWorkload?.averagePerLessonMinutes ||
     !blueprint?.courseWorkload?.averagePlannedClassMinutes ||
-    !blueprint?.courseWorkload?.timingStatus
+    !blueprint?.courseWorkload?.timingStatus ||
+    !blueprint?.courseWorkload?.workloadBalanceStatus ||
+    !Array.isArray(blueprint?.courseWorkload?.lessonRows) ||
+    blueprint.courseWorkload.lessonRows.length !== scope
   ) {
     findings.push(
       makeFinding('blocker', 'blueprint', 'workload', 'Blueprint is missing course-level workload estimates.'),
@@ -9053,6 +9056,8 @@ function auditBlueprintMaturity(blueprint, scope, expectedLens = {}) {
     reviewFlagCount: blueprint?.qualitySignals?.reviewFlagCount ?? null,
     reviewFlags: blueprint?.qualitySignals?.reviewFlags || [],
     averageWorkloadMinutes: blueprint?.courseWorkload?.averagePerLessonMinutes ?? null,
+    workloadBalanceStatus: blueprint?.courseWorkload?.workloadBalanceStatus || 'missing',
+    workloadReviewCount: blueprint?.courseWorkload?.workloadReviewCount ?? null,
     timingStatus: blueprint?.courseWorkload?.timingStatus || 'missing',
     averagePlannedClassMinutes: blueprint?.courseWorkload?.averagePlannedClassMinutes ?? null,
     courseArc: blueprint?.courseArc?.throughline || '',
@@ -10361,6 +10366,175 @@ function buildSessionFeasibilityAudit({ blueprint, compiledFeatures, compiled })
     status: summarizeFeatureStatus(findings),
     lessonRows: rows.length,
     checkedFeatures: lessonFeatures.length,
+    blueprintFindings,
+    compiledFindings,
+    findings,
+    rows,
+  };
+}
+
+function buildWorkloadBalanceAudit({ blueprint, compiledFeatures, compiled }) {
+  const findings = [];
+  const lessons = Array.isArray(blueprint?.lessons) ? blueprint.lessons : [];
+  const courseWorkload = blueprint?.courseWorkload || {};
+  const workloadRows = Array.isArray(courseWorkload.lessonRows) ? courseWorkload.lessonRows : [];
+  const checkedFeatures = ['syllabus', 'assignments', 'lessonPlans'].filter((featureId) =>
+    compiledFeatures.includes(featureId),
+  );
+
+  if (
+    courseWorkload.workloadBalanceStatus !== 'balanced' ||
+    !Array.isArray(courseWorkload.lessonRows) ||
+    courseWorkload.lessonRows.length !== lessons.length ||
+    Number(courseWorkload.workloadReviewCount || 0) > 0
+  ) {
+    findings.push(
+      makeFinding(
+        'blocker',
+        'blueprint',
+        'workloadBalanceBlueprint',
+        'Blueprint is missing a balanced week-by-week student workload plan.',
+      ),
+    );
+  }
+
+  const syllabus = compiled?.syllabus?.syllabus || {};
+  if (compiledFeatures.includes('syllabus')) {
+    const receipt = syllabus.blueprintQualityReceipt?.workloadBalance || syllabus.workloadBalance || {};
+    if (
+      receipt.status !== 'balanced' ||
+      Number(receipt.workloadReviewCount || 0) > 0 ||
+      !Array.isArray(receipt.lessonRows) ||
+      receipt.lessonRows.length !== lessons.length
+    ) {
+      findings.push(
+        makeFinding(
+          'blocker',
+          'syllabus',
+          'workloadBalanceReceipt',
+          'Syllabus receipt does not expose the workload-balance plan.',
+        ),
+      );
+    }
+  }
+
+  const rows = lessons.map((lesson, index) => {
+    const workload = lesson.workloadEstimate || {};
+    const row = workloadRows[index] || {};
+    const lessonLabel = `Lesson ${lesson.lessonNumber}`;
+    const beforeClassMinutes = Number(workload.beforeClassMinutes || 0);
+    const afterClassMinutes = Number(workload.afterClassMinutes || 0);
+    const expectedOutOfClassMinutes = beforeClassMinutes + afterClassMinutes;
+    const expectedTotalMinutes = Number(workload.totalStudentMinutes || 0);
+    const missingFeatures = [];
+    const compiledFindingsBefore = findings.length;
+
+    if (
+      row.lessonNumber !== lesson.lessonNumber ||
+      row.outOfClassMinutes !== expectedOutOfClassMinutes ||
+      row.totalStudentMinutes !== expectedTotalMinutes ||
+      row.workloadFit === 'review-heavy-out-of-class-load' ||
+      row.workloadSpike === true
+    ) {
+      findings.push(
+        makeFinding(
+          'blocker',
+          'blueprint',
+          'workloadBalanceLessonRow',
+          `${lessonLabel} workload row is missing, mismatched, or requires workload review.`,
+        ),
+      );
+    }
+
+    if (compiledFeatures.includes('syllabus')) {
+      const glance = syllabus.courseAtAGlance?.[index] || {};
+      const schedule = syllabus.weeklySchedule?.[index] || {};
+      if (!glance.workload || !String(glance.workload).includes('hours including class time')) {
+        missingFeatures.push('syllabus');
+        findings.push(
+          makeFinding(
+            'blocker',
+            'syllabus',
+            'workloadCourseAtAGlance',
+            `${lessonLabel} course-at-a-glance row does not preserve the student workload estimate.`,
+          ),
+        );
+      }
+      if (!String(schedule.assignments || '').includes('Estimated workload:')) {
+        missingFeatures.push('syllabus');
+        findings.push(
+          makeFinding(
+            'blocker',
+            'syllabus',
+            'workloadWeeklySchedule',
+            `${lessonLabel} weekly schedule does not expose estimated workload.`,
+          ),
+        );
+      }
+    }
+
+    if (compiledFeatures.includes('assignments')) {
+      const assignment = featureItemForLesson('assignments', compiled.assignments, index);
+      const assignmentWorkload = assignment?.submissionProfile?.workload || assignment?.workloadEstimate || {};
+      if (
+        assignmentWorkload.totalStudentMinutes !== expectedTotalMinutes ||
+        assignmentWorkload.outOfClassMinutes !== expectedOutOfClassMinutes ||
+        assignmentWorkload.workloadFit === 'review-heavy-out-of-class-load' ||
+        !assignment?.submissionProfile?.workload?.outOfClassEstimate
+      ) {
+        missingFeatures.push('assignments');
+        findings.push(
+          makeFinding(
+            'blocker',
+            'assignments',
+            'workloadSubmissionProfile',
+            `${lessonLabel} assignment submission profile does not preserve workload balance evidence.`,
+          ),
+        );
+      }
+    }
+
+    if (compiledFeatures.includes('lessonPlans')) {
+      const lessonPlan = featureItemForLesson('lessonPlans', compiled.lessonPlans, index);
+      const fit = lessonPlan?.classSessionPlan?.studentWorkloadFit || {};
+      if (
+        fit.outOfClassMinutes !== expectedOutOfClassMinutes ||
+        fit.status === 'review-heavy-out-of-class-load' ||
+        !lessonPlan?.readyToTeachSupport?.timingFit?.includes(fit.status || 'missing')
+      ) {
+        missingFeatures.push('lessonPlans');
+        findings.push(
+          makeFinding(
+            'blocker',
+            'lessonPlans',
+            'workloadTeachabilityCue',
+            `${lessonLabel} lesson plan does not preserve workload-fit evidence for the instructor.`,
+          ),
+        );
+      }
+    }
+
+    return {
+      lessonNumber: lesson.lessonNumber,
+      outOfClassMinutes: expectedOutOfClassMinutes,
+      totalStudentMinutes: expectedTotalMinutes,
+      workloadFit: row.workloadFit || 'missing',
+      workloadSpike: Boolean(row.workloadSpike),
+      checkedFeatures: checkedFeatures.length,
+      compiledFindingCount: findings.length - compiledFindingsBefore,
+      missingFeatures: uniqueSignals(missingFeatures, checkedFeatures.length),
+    };
+  });
+
+  const blueprintFindings = findings.filter((finding) => finding.featureId === 'blueprint').length;
+  const compiledFindings = findings.length - blueprintFindings;
+  return {
+    status: summarizeFeatureStatus(findings),
+    lessonRows: rows.length,
+    checkedFeatures: checkedFeatures.length,
+    averageOutOfClassMinutes: courseWorkload.averageOutOfClassMinutes || 0,
+    maxOutOfClassMinutes: courseWorkload.maxOutOfClassMinutes || 0,
+    workloadReviewCount: courseWorkload.workloadReviewCount || 0,
     blueprintFindings,
     compiledFindings,
     findings,
@@ -12668,6 +12842,29 @@ function buildClassroomExcellenceScorecard({
         ),
       },
       {
+        label: 'Student workload is balanced and visible in syllabus, assignments, and lesson plans',
+        pass:
+          blueprint.courseWorkload?.workloadBalanceStatus === 'balanced' &&
+          Number(blueprint.courseWorkload?.workloadReviewCount || 0) === 0 &&
+          Array.isArray(syllabus.courseAtAGlance) &&
+          syllabus.courseAtAGlance.length === scope &&
+          syllabus.courseAtAGlance.every((row) => String(row.workload || '').includes('hours including class time')) &&
+          fullCoverage(
+            arrays.assignments,
+            scope,
+            (item) =>
+              item.submissionProfile?.workload?.outOfClassEstimate &&
+              item.submissionProfile?.workload?.workloadFit !== 'review-heavy-out-of-class-load',
+          ) &&
+          fullCoverage(
+            arrays.lessonPlans,
+            scope,
+            (item) =>
+              item.classSessionPlan?.studentWorkloadFit?.status &&
+              item.classSessionPlan.studentWorkloadFit.status !== 'review-heavy-out-of-class-load',
+          ),
+      },
+      {
         label: 'Lesson plans include exemplar contrast, learner context, mini-rubrics, handouts, and instructor prep',
         pass: fullCoverage(
           arrays.lessonPlans,
@@ -13313,6 +13510,7 @@ export function auditGoldSample({ sample, runtime, features = sample.features ||
     expectedGenres: sample.expectations?.artifactGenres || [],
   });
   const sessionFeasibility = buildSessionFeasibilityAudit({ blueprint, compiledFeatures, compiled });
+  const workloadBalance = buildWorkloadBalanceAudit({ blueprint, compiledFeatures, compiled });
   const assessmentArchitecture = buildAssessmentArchitectureAudit({ blueprint, compiledFeatures, compiled });
   const criterionWeighting = buildCriterionWeightingAudit({ blueprint, compiledFeatures, compiled });
   const conceptGraph = buildConceptGraphAudit({ blueprint, compiledFeatures, compiled });
@@ -13423,6 +13621,7 @@ export function auditGoldSample({ sample, runtime, features = sample.features ||
     ...modalityFit.findings,
     ...artifactGenre.findings,
     ...sessionFeasibility.findings,
+    ...workloadBalance.findings,
     ...assessmentArchitecture.findings,
     ...criterionWeighting.findings,
     ...conceptGraph.findings,
@@ -13523,6 +13722,18 @@ export function auditGoldSample({ sample, runtime, features = sample.features ||
       findings: sessionFeasibility.findings.length,
     },
     sessionFeasibility,
+    workloadBalanceSummary: {
+      status: workloadBalance.status,
+      lessonRows: workloadBalance.lessonRows,
+      checkedFeatures: workloadBalance.checkedFeatures,
+      averageOutOfClassMinutes: workloadBalance.averageOutOfClassMinutes,
+      maxOutOfClassMinutes: workloadBalance.maxOutOfClassMinutes,
+      workloadReviewCount: workloadBalance.workloadReviewCount,
+      blueprintFindings: workloadBalance.blueprintFindings,
+      compiledFindings: workloadBalance.compiledFindings,
+      findings: workloadBalance.findings.length,
+    },
+    workloadBalance,
     assessmentArchitectureSummary: {
       status: assessmentArchitecture.status,
       lessonRows: assessmentArchitecture.lessonRows,
@@ -13815,6 +14026,10 @@ export function renderGoldSampleQualityAuditMarkdown(payload) {
     (result) =>
       `| ${result.sampleId} | ${result.sessionFeasibilitySummary?.status || 'missing'} | ${result.sessionFeasibilitySummary?.lessonRows ?? 0} | ${result.sessionFeasibilitySummary?.checkedFeatures ?? 0} | ${result.sessionFeasibilitySummary?.blueprintFindings ?? 0} | ${result.sessionFeasibilitySummary?.compiledFindings ?? 0} |`,
   );
+  const workloadBalanceRows = payload.results.map(
+    (result) =>
+      `| ${result.sampleId} | ${result.workloadBalanceSummary?.status || 'missing'} | ${result.workloadBalanceSummary?.lessonRows ?? 0} | ${result.workloadBalanceSummary?.checkedFeatures ?? 0} | ${result.workloadBalanceSummary?.averageOutOfClassMinutes ?? 0} | ${result.workloadBalanceSummary?.maxOutOfClassMinutes ?? 0} | ${result.workloadBalanceSummary?.workloadReviewCount ?? 0} | ${result.workloadBalanceSummary?.blueprintFindings ?? 0} | ${result.workloadBalanceSummary?.compiledFindings ?? 0} |`,
+  );
   const assessmentArchitectureRows = payload.results.map(
     (result) =>
       `| ${result.sampleId} | ${result.assessmentArchitectureSummary?.status || 'missing'} | ${result.assessmentArchitectureSummary?.lessonRows ?? 0} | ${result.assessmentArchitectureSummary?.checkedFeatures ?? 0} | ${result.assessmentArchitectureSummary?.totalWeightPercent ?? ''} | ${result.assessmentArchitectureSummary?.highStakesWeightPercent ?? ''} | ${result.assessmentArchitectureSummary?.blueprintFindings ?? 0} | ${result.assessmentArchitectureSummary?.compiledFindings ?? 0} |`,
@@ -13980,6 +14195,14 @@ export function renderGoldSampleQualityAuditMarkdown(payload) {
       '| Gold Sample | Status | Lessons | Checked Features | Blueprint Findings | Compiled Findings |',
       '| --- | --- | ---: | ---: | ---: | ---: |',
       ...sessionFeasibilityRows,
+    ]),
+    '',
+    '## Workload Balance Matrix',
+    '',
+    markdownTable([
+      '| Gold Sample | Status | Lessons | Checked Features | Avg Out-of-Class Minutes | Max Out-of-Class Minutes | Review Count | Blueprint Findings | Compiled Findings |',
+      '| --- | --- | ---: | ---: | ---: | ---: | ---: | ---: | ---: |',
+      ...workloadBalanceRows,
     ]),
     '',
     '## Assessment Architecture Matrix',

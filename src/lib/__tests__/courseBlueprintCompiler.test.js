@@ -1406,11 +1406,22 @@ describe('courseBlueprintCompiler', () => {
     });
     expect(syllabus.blueprintQualityReceipt.conceptDependencyGraph.practiceRows).toBeUndefined();
     expect(syllabus.blueprintQualityReceipt.masteryEvidenceMap.lessonRows).toBeUndefined();
+    expect(syllabus.blueprintQualityReceipt.workloadBalance).toMatchObject({
+      status: 'balanced',
+      workloadReviewCount: 0,
+      lessonRows: expect.arrayContaining([
+        expect.objectContaining({
+          lessonNumber: 1,
+          workloadSpike: false,
+        }),
+      ]),
+    });
     expect(syllabus.courseAtAGlance[0]).toMatchObject({
       week: 'Week 1',
       readinessCue: expect.stringContaining('Question-quality memo'),
       feedbackUse: expect.stringContaining('course artifact'),
       publishGate: 'instructor-spot-check-before-publish',
+      workload: expect.stringContaining('hours including class time'),
     });
     expect(syllabus.courseAtAGlance[0].masteryEvidencePlan).toBeUndefined();
     expect(syllabus.courseAtAGlance[0].sourceEvidenceTrace).toBeUndefined();
@@ -2489,7 +2500,17 @@ describe('courseBlueprintCompiler', () => {
     expect(blueprint.courseWorkload).toMatchObject({
       timingStatus: 'fits-session',
       averagePlannedClassMinutes: 110,
+      workloadBalanceStatus: 'balanced',
+      workloadReviewCount: 0,
       timingReviewCount: 0,
+      lessonRows: expect.arrayContaining([
+        expect.objectContaining({
+          lessonNumber: 1,
+          workloadFit: expect.stringMatching(/manageable/),
+          workloadSpike: false,
+          outOfClassMinutes: expect.any(Number),
+        }),
+      ]),
     });
     expect(blueprint.learnerContextProfile).toMatchObject({
       source: 'compiler-derived-from-course-map',

@@ -158,6 +158,8 @@ describe('gold sample quality audit', () => {
           payload.results.every(
             (result) =>
               result.blueprintMaturity.timingStatus === 'fits-session' &&
+              result.blueprintMaturity.workloadBalanceStatus === 'balanced' &&
+              result.blueprintMaturity.workloadReviewCount === 0 &&
               result.blueprintMaturity.averagePlannedClassMinutes === 110,
           ),
         ).toBe(true);
@@ -338,6 +340,23 @@ describe('gold sample quality audit', () => {
             ),
           ),
         ).toBe(true);
+        expect(payload.results.every((result) => result.workloadBalanceSummary.status === 'pass')).toBe(true);
+        expect(payload.results.every((result) => result.workloadBalanceSummary.lessonRows === result.scope)).toBe(true);
+        expect(payload.results.every((result) => result.workloadBalanceSummary.checkedFeatures === 3)).toBe(true);
+        expect(payload.results.every((result) => result.workloadBalanceSummary.workloadReviewCount === 0)).toBe(true);
+        expect(payload.results.every((result) => result.workloadBalanceSummary.blueprintFindings === 0)).toBe(true);
+        expect(payload.results.every((result) => result.workloadBalanceSummary.compiledFindings === 0)).toBe(true);
+        expect(
+          payload.results.every((result) =>
+            result.workloadBalance.rows.every(
+              (row) =>
+                row.checkedFeatures === 3 &&
+                row.totalStudentMinutes > row.outOfClassMinutes &&
+                row.workloadFit !== 'review-heavy-out-of-class-load' &&
+                row.workloadSpike === false,
+            ),
+          ),
+        ).toBe(true);
         expect(payload.results.every((result) => result.assessmentArchitectureSummary.status === 'pass')).toBe(true);
         expect(
           payload.results.every((result) => result.assessmentArchitectureSummary.lessonRows === result.scope),
@@ -478,6 +497,8 @@ describe('gold sample quality audit', () => {
         expect(markdown).toContain('Artifact Genre Matrix');
         expect(markdown).toContain('Gold Matches');
         expect(markdown).toContain('Session Feasibility Matrix');
+        expect(markdown).toContain('Workload Balance Matrix');
+        expect(markdown).toContain('Max Out-of-Class Minutes');
         expect(markdown).toContain('Assessment Architecture Matrix');
         expect(markdown).toContain('Criterion Weighting Matrix');
         expect(markdown).toContain('Concept Dependency Graph Matrix');
@@ -2413,6 +2434,43 @@ describe('gold sample quality audit', () => {
           expect.objectContaining({
             featureId: 'enrichment',
             check: 'phraseCoverage',
+          }),
+        ]),
+      );
+    } finally {
+      await closeHybridPipelineAuditRuntime();
+    }
+  });
+
+  it('blocks when compiled package hides workload-balance evidence from students and instructors', async () => {
+    const runtime = await loadHybridPipelineAuditRuntime();
+    try {
+      const result = auditGoldSample({
+        sample: DEFAULT_GOLD_SAMPLES[0],
+        runtime: {
+          ...runtime,
+          compileBlueprintDeliverables: (...args) => {
+            const compiled = runtime.compileBlueprintDeliverables(...args);
+            delete compiled.syllabus.syllabus.blueprintQualityReceipt.workloadBalance;
+            delete compiled.syllabus.syllabus.workloadBalance;
+            compiled.syllabus.syllabus.courseAtAGlance[0].workload = '';
+            compiled.assignments.assignments[0].submissionProfile.workload.outOfClassEstimate = '';
+            return compiled;
+          },
+        },
+      });
+
+      expect(result.summary.status).toBe('blocked');
+      expect(result.workloadBalanceSummary.status).toBe('blocked');
+      expect(result.findings).toEqual(
+        expect.arrayContaining([
+          expect.objectContaining({
+            featureId: 'syllabus',
+            check: 'workloadBalanceReceipt',
+          }),
+          expect.objectContaining({
+            featureId: 'assignments',
+            check: 'workloadSubmissionProfile',
           }),
         ]),
       );

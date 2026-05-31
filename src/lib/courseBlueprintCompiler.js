@@ -1823,6 +1823,12 @@ function buildWorkloadEstimate({ resources, hasAssessment, bloomsLevel }) {
   };
 }
 
+function classifyOutOfClassWorkload(outOfClassMinutes) {
+  if (outOfClassMinutes > 150) return 'review-heavy-out-of-class-load';
+  if (outOfClassMinutes > 120) return 'manageable-with-local-review';
+  return 'manageable';
+}
+
 function buildClassSessionPlan({ lesson, modalityDecode, sessionMinutes = DEFAULT_CLASS_SESSION_MINUTES }) {
   const concept = lesson.keyConcepts?.[0] || stripLessonPrefix(lesson.title) || 'the lesson focus';
   const artifact = stripTerminalPunctuation(lesson.studentArtifact || 'the weekly artifact');
@@ -3085,12 +3091,7 @@ function buildClassSessionPlan({ lesson, modalityDecode, sessionMinutes = DEFAUL
   const overageMinutes = Math.max(0, plannedClassMinutes - sessionMinutes);
   const outOfClassMinutes =
     Number(lesson.workloadEstimate?.beforeClassMinutes || 0) + Number(lesson.workloadEstimate?.afterClassMinutes || 0);
-  const outOfClassStatus =
-    outOfClassMinutes > 150
-      ? 'review-heavy-out-of-class-load'
-      : outOfClassMinutes > 120
-        ? 'manageable-with-local-review'
-        : 'manageable';
+  const outOfClassStatus = classifyOutOfClassWorkload(outOfClassMinutes);
   return {
     version: 1,
     deliveryMode: isOnlineHybrid ? 'online-hybrid-module' : 'live-or-blended-class-session',
@@ -3860,14 +3861,56 @@ function buildCourseWorkload(lessons) {
   );
   const averagePerLessonMinutes = lessons.length ? Math.round(totalStudentMinutes / lessons.length) : 0;
   const averagePlannedClassMinutes = lessons.length ? Math.round(totalPlannedClassMinutes / lessons.length) : 0;
+  const lessonRows = lessons.map((lesson) => {
+    const beforeClassMinutes = Number(lesson.workloadEstimate?.beforeClassMinutes || 0);
+    const inClassMinutes = Number(lesson.workloadEstimate?.inClassMinutes || 0);
+    const afterClassMinutes = Number(lesson.workloadEstimate?.afterClassMinutes || 0);
+    const outOfClassMinutes = beforeClassMinutes + afterClassMinutes;
+    const totalMinutes =
+      Number(lesson.workloadEstimate?.totalStudentMinutes || 0) ||
+      beforeClassMinutes + inClassMinutes + afterClassMinutes;
+    return {
+      lessonNumber: lesson.lessonNumber,
+      lessonTitle: lesson.title,
+      beforeClassMinutes,
+      inClassMinutes,
+      afterClassMinutes,
+      outOfClassMinutes,
+      totalStudentMinutes: totalMinutes,
+      workloadFit: classifyOutOfClassWorkload(outOfClassMinutes),
+      studentFacingEstimate:
+        lesson.workloadEstimate?.studentFacingEstimate ||
+        (totalMinutes ? `${Math.round(totalMinutes / 30) / 2} hours including class time` : ''),
+    };
+  });
+  const totalOutOfClassMinutes = lessonRows.reduce((sum, row) => sum + row.outOfClassMinutes, 0);
+  const averageOutOfClassMinutes = lessonRows.length ? Math.round(totalOutOfClassMinutes / lessonRows.length) : 0;
+  const maxOutOfClassMinutes = lessonRows.length ? Math.max(...lessonRows.map((row) => row.outOfClassMinutes)) : 0;
+  const maxTotalStudentMinutes = lessonRows.length ? Math.max(...lessonRows.map((row) => row.totalStudentMinutes)) : 0;
+  const spikeThreshold = Math.max(150, Math.round(averageOutOfClassMinutes * 1.6));
+  const workloadRows = lessonRows.map((row) => ({
+    ...row,
+    workloadSpike: averageOutOfClassMinutes > 0 && row.outOfClassMinutes > spikeThreshold,
+  }));
+  const workloadReviewCount = workloadRows.filter(
+    (row) => row.workloadFit === 'review-heavy-out-of-class-load' || row.workloadSpike,
+  ).length;
   const timingReviewCount = lessons.filter(
     (lesson) => lesson.classSessionPlan?.feasibilityStatus !== 'fits-session',
   ).length;
   return {
     totalStudentMinutes,
+    totalOutOfClassMinutes,
     averagePerLessonMinutes,
     averagePerLessonHours: Number((averagePerLessonMinutes / 60).toFixed(1)),
+    averageOutOfClassMinutes,
     averagePlannedClassMinutes,
+    maxOutOfClassMinutes,
+    maxTotalStudentMinutes,
+    workloadBalanceStatus: workloadReviewCount > 0 ? 'needs-workload-review' : 'balanced',
+    workloadReviewCount,
+    spikeThreshold,
+    lessonRows: workloadRows,
     timingStatus: timingReviewCount > 0 ? 'needs-timing-review' : 'fits-session',
     timingReviewCount,
   };
@@ -7144,7 +7187,10 @@ export function validateCourseBlueprintContract(blueprint = {}) {
   if (
     !blueprint.courseWorkload?.averagePerLessonMinutes ||
     !blueprint.courseWorkload?.averagePlannedClassMinutes ||
-    !blueprint.courseWorkload?.timingStatus
+    !blueprint.courseWorkload?.timingStatus ||
+    !blueprint.courseWorkload?.workloadBalanceStatus ||
+    !Array.isArray(blueprint.courseWorkload?.lessonRows) ||
+    blueprint.courseWorkload.lessonRows.length !== lessons.length
   ) {
     findings.push(makeContractFinding('blocker', 'courseWorkload', 'Blueprint is missing course workload estimates.'));
   }
@@ -8401,6 +8447,27 @@ function compactWorkloadEstimate(workload = {}) {
   };
 }
 
+function compactCourseWorkloadBalance(courseWorkload = {}) {
+  const rows = Array.isArray(courseWorkload.lessonRows) ? courseWorkload.lessonRows : [];
+  return {
+    status: courseWorkload.workloadBalanceStatus || 'missing',
+    averagePerLessonHours: courseWorkload.averagePerLessonHours || 0,
+    averageOutOfClassMinutes: courseWorkload.averageOutOfClassMinutes || 0,
+    maxOutOfClassMinutes: courseWorkload.maxOutOfClassMinutes || 0,
+    maxTotalStudentMinutes: courseWorkload.maxTotalStudentMinutes || 0,
+    workloadReviewCount: courseWorkload.workloadReviewCount || 0,
+    spikeThreshold: courseWorkload.spikeThreshold || 0,
+    lessonRows: rows.map((row) => ({
+      lessonNumber: row.lessonNumber,
+      outOfClassMinutes: row.outOfClassMinutes,
+      totalStudentMinutes: row.totalStudentMinutes,
+      workloadFit: row.workloadFit,
+      workloadSpike: Boolean(row.workloadSpike),
+      studentFacingEstimate: row.studentFacingEstimate,
+    })),
+  };
+}
+
 function hoursLabelFromMinutes(minutes) {
   const total = Number(minutes || 0);
   if (!total) return '';
@@ -8471,12 +8538,7 @@ function buildAssignmentWorkloadProfile(lesson = {}) {
     classSupportedPractice: classLabel
       ? `${classLabel} of class-supported practice`
       : 'Class-supported practice follows the local meeting pattern',
-    workloadFit:
-      outOfClass > 150
-        ? 'review-heavy-out-of-class-load'
-        : outOfClass > 120
-          ? 'manageable-with-local-review'
-          : 'manageable',
+    workloadFit: classifyOutOfClassWorkload(outOfClass),
   };
 }
 
@@ -9994,6 +10056,7 @@ function compileSyllabus(blueprint) {
   const compactAssumptions = compactAssumptionLedger(blueprint.blueprintAssumptionLedger);
   const compactCoherence = compactPackageCoherenceMatrix(blueprint.packageCoherenceMatrix);
   const compactReviewSurface = compactBlueprintReviewSurface(blueprint.blueprintReviewSurface);
+  const compactWorkloadBalance = compactCourseWorkloadBalance(blueprint.courseWorkload);
   const assessmentForLesson = (lesson) =>
     blueprint.assessments.find((assessment) => assessment.lessonNumbers.includes(lesson.lessonNumber)) || {};
 
@@ -10024,6 +10087,7 @@ function compileSyllabus(blueprint) {
         reviewFlagCount: blueprint.qualitySignals.reviewFlagCount,
         reviewFlags: blueprint.qualitySignals.reviewFlags,
         workloadAverageHours: blueprint.courseWorkload.averagePerLessonHours,
+        workloadBalance: compactWorkloadBalance,
         timingStatus: blueprint.courseWorkload.timingStatus,
         averagePlannedClassMinutes: blueprint.courseWorkload.averagePlannedClassMinutes,
         courseArc: blueprint.courseArc.throughline,
@@ -10053,6 +10117,7 @@ function compileSyllabus(blueprint) {
       masteryEvidenceMap: compactMasteryMap,
       evidenceResponseMap: compactResponseMap,
       objectiveEvidenceMap: compactObjectiveEvidence,
+      workloadBalance: compactWorkloadBalance,
       sourceConflictReport: compactSourceConflicts,
       sourceRiskRegister: compactRiskRegister,
       compilerDecisionMatrix: compactDecisionMatrix,
