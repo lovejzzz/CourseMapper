@@ -19,7 +19,7 @@ jobs:
   verify:
     name: Verify app
     runs-on: ubuntu-latest
-    timeout-minutes: 45
+    timeout-minutes: 60
 
     steps:
       - uses: actions/checkout@v4
@@ -54,6 +54,15 @@ jobs:
 
       - name: Hybrid pipeline audit
         run: npm run audit:pipeline
+
+      - name: Gold sample quality audit
+        run: npm run audit:gold
+
+      - name: Expert review quality audit
+        run: npm run audit:expert
+
+      - name: External quality proof packet
+        run: npm run audit:expert:packet
 
       - name: Build
         run: npm run build
