@@ -9,6 +9,7 @@ import {
   auditGoldSample,
   buildCopySpecificityAudit,
   buildGoldSampleQualityAudit,
+  buildStudentFacingCleanlinessAudit,
   closeHybridPipelineAuditRuntime,
   loadHybridPipelineAuditRuntime,
   renderGoldSampleQualityAuditMarkdown,
@@ -463,6 +464,15 @@ describe('gold sample quality audit', () => {
           true,
         );
         expect(payload.summary.maxSurfaceCopyRepeatCount).toBe(0);
+        expect(payload.results.every((result) => result.studentFacingCleanlinessSummary.status === 'pass')).toBe(true);
+        expect(payload.results.every((result) => result.studentFacingCleanlinessSummary.checkedFeatures === 9)).toBe(
+          true,
+        );
+        expect(payload.results.every((result) => result.studentFacingCleanlinessSummary.checkedStrings > 0)).toBe(true);
+        expect(payload.results.every((result) => result.studentFacingCleanlinessSummary.violationCount === 0)).toBe(
+          true,
+        );
+        expect(payload.summary.maxStudentFacingInternalLanguageFindings).toBe(0);
         expect(markdown).toContain('CourseMapper Gold-Sample Quality Audit');
         expect(markdown).toContain('gold-ai-course-design-8');
         expect(markdown).toContain('gold-ai-course-design-short-5');
@@ -530,6 +540,7 @@ describe('gold sample quality audit', () => {
         expect(markdown).toContain('Evidence Response Matrix');
         expect(markdown).toContain('Objective Evidence Matrix');
         expect(markdown).toContain('Copy Specificity Matrix');
+        expect(markdown).toContain('Student-Facing Cleanliness Matrix');
         expect(markdown).toContain('Blueprint Fidelity Matrix');
         expect(markdown).toContain('Enrichment Impact Matrix');
         expect(markdown).toContain('Minimum deterministic baseline quality');
@@ -573,6 +584,42 @@ describe('gold sample quality audit', () => {
         featureId: 'assignments',
         check: 'copySpecificity',
         message: expect.stringContaining('Surface copy repeats 3 times'),
+      }),
+    ]);
+  });
+
+  it('blocks internal compiler language in student-facing fields while ignoring proof metadata', () => {
+    const audit = buildStudentFacingCleanlinessAudit({
+      compiledFeatures: ['assignments'],
+      compiled: {
+        assignments: {
+          assignments: [
+            {
+              overview:
+                'Use the case evidence to prepare a recommendation memo that is ready for peer review and revision.',
+              instructions: [
+                'Draft the memo using stakeholder evidence and submit a revision note after feedback.',
+                'This student-facing prompt should not expose the compiler decision or publish gate.',
+              ],
+              sourceGrounding: {
+                reviewerNote:
+                  'This internal proof object may mention compiler decision, publish gate, and local-review actions.',
+              },
+            },
+          ],
+        },
+      },
+    });
+
+    expect(audit.status).toBe('blocked');
+    expect(audit.checkedFeatures).toBe(1);
+    expect(audit.checkedStrings).toBe(3);
+    expect(audit.violationCount).toBe(1);
+    expect(audit.findings).toEqual([
+      expect.objectContaining({
+        featureId: 'assignments',
+        check: 'studentFacingInternalLanguage',
+        message: expect.stringContaining('compiler decision'),
       }),
     ]);
   });

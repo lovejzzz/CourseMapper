@@ -220,6 +220,7 @@ Latest slice evidence:
 - 2026-05-31: Extended review-actionability proof into external A-quality review. `audit:expert` now requires source-fidelity artifact rows to confirm local-review action visibility alongside compiler decisions, publish gates, model-use policy, and handoff review focus; `audit:expert:packet` and the reviewer fixture template now ask experts to verify those actions for every core artifact.
 - 2026-05-31: Made those local-review actions easier for external reviewers to verify. `audit:expert:packet` now writes a compact Local Review Actions matrix into the main proof packet and each full-package review file, and per-sample JSON carries the derived action, publish gate, and review state for every lesson.
 - 2026-05-31: Tightened external source-fidelity proof from "checkbox visible" to note-level evidence. `audit:expert` now blocks source-fidelity artifact rows when the reviewer marks local-review actions visible but leaves generic notes that do not cite the local-review or publish-before-use action they inspected.
+- 2026-05-31: Added a Student-Facing Cleanliness Matrix to `audit:gold`. The gate scans known classroom-facing fields separately from internal proof metadata and blocks any compiler, source-grounding, publish-gate, proof-packet, or local-review language that leaks into student prompts, handouts, quiz items, slide text, discussion prompts, study guides, or FAQ answers.
 
 ## Current v0.7 Focus
 

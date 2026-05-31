@@ -23,6 +23,23 @@ const REQUIRED_GOLD_SCOPE_COVERAGE = [5, 8, 14];
 const MIN_GOLD_MODALITIES_PER_REQUIRED_SCOPE = 3;
 const COPY_SPECIFICITY_MIN_LENGTH = 90;
 const COPY_SPECIFICITY_MAX_REPEAT_COUNT = 2;
+const STUDENT_FACING_INTERNAL_LANGUAGE_PATTERNS = [
+  { label: 'compiler decision', pattern: /\bcompiler decision(?:s)?\b/i },
+  { label: 'compiler path', pattern: /\bcompiler path\b/i },
+  { label: 'deterministic blueprint', pattern: /\bdeterministic[- ]blueprint\b/i },
+  { label: 'model-use policy', pattern: /\bmodel[- ]use policy\b/i },
+  { label: 'source grounding', pattern: /\bsource grounding\b/i },
+  { label: 'source confidence', pattern: /\bsource confidence\b/i },
+  { label: 'publish gate', pattern: /\bpublish(?:ing)? gate\b/i },
+  { label: 'handoff review focus', pattern: /\bhandoff[- ]review focus\b/i },
+  { label: 'local-review', pattern: /\blocal-review\b|\blocal review (?:action|gate|focus|required)\b/i },
+  { label: 'local confirmation cue', pattern: /\blocal[- ]confirmation cue\b/i },
+  { label: 'source-review-required', pattern: /\bsource[- ]review[- ]required\b/i },
+  { label: 'review surface', pattern: /\breview surface\b/i },
+  { label: 'machine decode', pattern: /\bmachine decode\b/i },
+  { label: 'proof packet', pattern: /\bproof packet\b/i },
+  { label: 'audit gate', pattern: /\baudit gate\b/i },
+];
 const REQUIRED_TEACHING_MOVE_KEYS = ['openingMove', 'practiceMove', 'feedbackMove', 'assessmentMove', 'reviewMove'];
 
 const FEATURE_LABELS = {
@@ -8193,6 +8210,103 @@ export function buildCopySpecificityAudit({ compiledFeatures = [], compiled = {}
   };
 }
 
+function isStudentFacingSurfacePath(featureId, path) {
+  if (!path) return false;
+  if (
+    /\b(sourceGrounding|blueprintGrounding|sourceEvidenceTrace|sourceAnchors|compilerDecision|courseModalityProfile|learnerContextProfile|blueprintAssumptionLedger|packageCoherenceMatrix|sourceRiskRegister|sourceConflictReport|compilerContract|classroomHandoffPlan|conceptDependencyGraph|masteryEvidenceMap|evidenceResponseMap|qualityReceipt|qualitySummary|receipt|provenance|reviewActionability)\b/i.test(
+      path,
+    )
+  ) {
+    return false;
+  }
+
+  switch (featureId) {
+    case 'syllabus':
+      return /^syllabus\.(courseDescription|sourceUsePolicy\.(citationExpectation|noInventedSources|localReview)|courseAtAGlance\.\d+\.(inClassFocus|studentOutput|successCriteria|readinessCue|feedbackUse|transferCue)|assessmentCalendar\.\d+\.(studentFacingPurpose|roleRationale|revisionUse|validitySummary|anchorExampleSummary)|weeklySchedule\.\d+\.(topic|assignments))$/.test(
+        path,
+      );
+    case 'lessonPlans':
+      return /^(lessonPlans|plans)\.\d+\.(studentFacingSummary\.(beforeClass|duringClass|afterClass)|artifactLength|prerequisiteKnowledge|weeklySubmissionCriteria|warmUp\.(prompt|purpose)|outline\.\d+\.description|formativeCheck\.prompt|udlNotes\.(representation|engagement|actionExpression|assessmentAccess)|readyToTeachSupport\.(workedExample|studentModel)|commonMisconceptions\.\d+)$/.test(
+        path,
+      );
+    case 'slideDecks':
+      return /^(decks|slideDecks)\.\d+\.slides\.\d+\.(title|bullets\.\d+|activityPrompt|visual\.altText)$/.test(path);
+    case 'assignments':
+      return /^assignments\.\d+\.(portfolioConnection|expectedSubmissionFormat|overview|instructions\.\d+|formatRequirements\.(format|evidenceRequirement|reviewProtocol)|deliverables\.\d+|scaffoldingMilestones\.\d+\.description|performanceBands\.(excellent|proficient|revisionNeeded)|highValueSuccessCriteria\.\d+)$/.test(
+        path,
+      );
+    case 'rubrics':
+      return /^rubrics\.\d+\.(taskDirections|accessibilityAndUDL|gradePolicyConnection|criteria\.\d+\.(exemplary|proficient|developing|beginning))$/.test(
+        path,
+      );
+    case 'discussions':
+      return /^discussions\.\d+\.(context|prompt|evidenceRequirement|followUpProbes\.\d+|responseStems\.\d+|evaluationCriteria\.\d+|prerequisitePrompt|anchorExamplePrompt|equityConsiderations|guidelines)$/.test(
+        path,
+      );
+    case 'quizBank':
+      return /^(quizzes|quizBank)\.\d+\.(formativeFeedbackNote|assessmentBlueprint|questions\.\d+\.(intendedUse|question|options\.\d+|explanation|sampleAnswer|scoringGuidance|rubricHints))$/.test(
+        path,
+      );
+    case 'studyGuides':
+      return /^(studyGuides|guides)\.\d+\.(examScope|summary|conceptConnections\.\d+|commonMisconceptions\.\d+\.(misconception|correction)|reviewQuestions\.\d+\.(question|hint)|practiceActivities\.\d+|examPrep\.(timeline|commonErrors|reviewStrategy)|studentResources)$/.test(
+        path,
+      );
+    case 'courseFaq':
+      return /^(faqs|courseFaq)\.\d+\.(qs\.\d+\.(q|an)|learnerContextCue)$/.test(path);
+    default:
+      return false;
+  }
+}
+
+function internalLanguageMatches(text) {
+  return STUDENT_FACING_INTERNAL_LANGUAGE_PATTERNS.filter(({ pattern }) => pattern.test(text)).map(
+    ({ label }) => label,
+  );
+}
+
+export function buildStudentFacingCleanlinessAudit({ compiledFeatures = [], compiled = {} } = {}) {
+  const featureRows = compiledFeatures.map((featureId) => {
+    const rows = collectStringRows(compiled[featureId]).filter((row) =>
+      isStudentFacingSurfacePath(featureId, row.path),
+    );
+    const violations = rows
+      .map((row) => ({
+        ...row,
+        matches: internalLanguageMatches(row.text),
+      }))
+      .filter((row) => row.matches.length > 0);
+    return {
+      featureId,
+      checkedStrings: rows.length,
+      violationCount: violations.length,
+      violationExamples: violations.slice(0, 4).map((row) => ({
+        path: `${featureId}.${row.path}`,
+        matches: row.matches,
+        text: row.text,
+      })),
+    };
+  });
+  const violationExamples = featureRows.flatMap((row) =>
+    row.violationExamples.map((example) => ({ featureId: row.featureId, ...example })),
+  );
+  const findings = violationExamples.map((example) =>
+    makeFinding(
+      'blocker',
+      example.featureId,
+      'studentFacingInternalLanguage',
+      `Student-facing copy exposes internal ${example.matches.join(', ')} language at ${example.path}.`,
+    ),
+  );
+  return {
+    status: summarizeFeatureStatus(findings),
+    checkedFeatures: featureRows.filter((row) => row.checkedStrings > 0).length,
+    checkedStrings: featureRows.reduce((sum, row) => sum + row.checkedStrings, 0),
+    violationCount: featureRows.reduce((sum, row) => sum + row.violationCount, 0),
+    featureRows,
+    findings,
+  };
+}
+
 function mergeFeatureExpectations(globalExpectations = {}, featureId) {
   return {
     minQuality: globalExpectations.minQuality ?? GOLD_QUALITY_FLOOR,
@@ -13756,6 +13870,7 @@ export function auditGoldSample({ sample, runtime, features = sample.features ||
   const compiledAlignmentFindings = buildCompiledAlignmentFindings({ blueprint, compiledFeatures, compiled });
   const blueprintFidelityFindings = buildBlueprintFidelityFindings({ blueprint, compiledFeatures, compiled });
   const copySpecificity = buildCopySpecificityAudit({ compiledFeatures, compiled });
+  const studentFacingCleanliness = buildStudentFacingCleanlinessAudit({ compiledFeatures, compiled });
   const enrichmentImpact = buildEnrichmentImpactAudit({
     sample,
     runtime,
@@ -13869,6 +13984,7 @@ export function auditGoldSample({ sample, runtime, features = sample.features ||
     ...compiledAlignmentFindings,
     ...blueprintFidelityFindings,
     ...copySpecificity.findings,
+    ...studentFacingCleanliness.findings,
     ...enrichmentImpact.findings,
     ...classroomExcellence.findings,
     ...packageFindings,
@@ -14069,6 +14185,14 @@ export function auditGoldSample({ sample, runtime, features = sample.features ||
       findings: copySpecificity.findings.length,
     },
     copySpecificity,
+    studentFacingCleanlinessSummary: {
+      status: studentFacingCleanliness.status,
+      checkedFeatures: studentFacingCleanliness.checkedFeatures,
+      checkedStrings: studentFacingCleanliness.checkedStrings,
+      violationCount: studentFacingCleanliness.violationCount,
+      findings: studentFacingCleanliness.findings.length,
+    },
+    studentFacingCleanliness,
     enrichmentImpact,
     classroomExcellence,
     packageFindings,
@@ -14161,6 +14285,9 @@ function summarizeGoldResults(results, auditFindings = []) {
   const copyRepeatValues = results
     .map((result) => result.copySpecificitySummary?.maxRepeatCount)
     .filter(Number.isFinite);
+  const studentFacingInternalLanguageValues = results
+    .map((result) => result.studentFacingCleanlinessSummary?.violationCount)
+    .filter(Number.isFinite);
   return {
     status: blockers > 0 ? 'blocked' : warnings > 0 ? 'warnings' : 'pass',
     goldSampleCount: results.length,
@@ -14175,6 +14302,9 @@ function summarizeGoldResults(results, auditFindings = []) {
       ? Math.min(...deterministicBaselineQualityValues)
       : null,
     maxSurfaceCopyRepeatCount: copyRepeatValues.length ? Math.max(...copyRepeatValues) : null,
+    maxStudentFacingInternalLanguageFindings: studentFacingInternalLanguageValues.length
+      ? Math.max(...studentFacingInternalLanguageValues)
+      : null,
   };
 }
 
@@ -14314,6 +14444,10 @@ export function renderGoldSampleQualityAuditMarkdown(payload) {
     (result) =>
       `| ${result.sampleId} | ${result.copySpecificitySummary?.status || 'missing'} | ${result.copySpecificitySummary?.checkedFeatures ?? 0} | ${result.copySpecificitySummary?.checkedStrings ?? 0} | ${result.copySpecificitySummary?.repeatedLongStringGroups ?? 0} | ${result.copySpecificitySummary?.maxRepeatCount ?? 0} | ${result.copySpecificitySummary?.findings ?? 0} |`,
   );
+  const studentFacingCleanlinessRows = payload.results.map(
+    (result) =>
+      `| ${result.sampleId} | ${result.studentFacingCleanlinessSummary?.status || 'missing'} | ${result.studentFacingCleanlinessSummary?.checkedFeatures ?? 0} | ${result.studentFacingCleanlinessSummary?.checkedStrings ?? 0} | ${result.studentFacingCleanlinessSummary?.violationCount ?? 0} | ${result.studentFacingCleanlinessSummary?.findings ?? 0} |`,
+  );
   const enrichmentRows = payload.results.map((result) => {
     const impact = result.enrichmentImpact || {};
     return `| ${result.sampleId} | ${impact.status || 'missing'} | ${impact.source || 'none'} | ${impact.enrichedSignatureMatches ?? 0}/${impact.signatureSignalCount ?? 0} | ${impact.signatureLift ?? 0} | ${impact.enrichedPhraseMatches ?? 0}/${impact.phraseSignalCount ?? 0} | ${impact.phraseLift ?? 0} | ${impact.phraseCoverage ?? ''} | ${impact.baselineCompilerContractStatus || ''} | ${impact.baselineMinQuality ?? ''} -> ${impact.enrichedMinQuality ?? ''} | ${impact.baselineFidelityFindings ?? 0} -> ${impact.enrichedFidelityFindings ?? 0} | ${impact.justifiesEnrichmentCall ? 'yes' : 'no'} |`;
@@ -14347,6 +14481,7 @@ export function renderGoldSampleQualityAuditMarkdown(payload) {
     `Minimum enrichment phrase coverage: ${payload.summary.minEnrichmentPhraseCoverage}`,
     `Minimum deterministic baseline quality: ${payload.summary.minDeterministicBaselineQuality}`,
     `Maximum repeated surface-copy count: ${payload.summary.maxSurfaceCopyRepeatCount}`,
+    `Maximum student-facing internal-language findings: ${payload.summary.maxStudentFacingInternalLanguageFindings}`,
     `Scope coverage: ${payload.summary.scopeCoverageStatus} (${(payload.summary.coveredScopes || []).join(', ') || 'none'})`,
     `Blockers: ${payload.summary.blockers}`,
     `Warnings: ${payload.summary.warnings}`,
@@ -14527,6 +14662,14 @@ export function renderGoldSampleQualityAuditMarkdown(payload) {
       '| Gold Sample | Status | Checked Features | Checked Surface Strings | Repeated Long String Groups | Max Repeat Count | Findings |',
       '| --- | --- | ---: | ---: | ---: | ---: | ---: |',
       ...copySpecificityRows,
+    ]),
+    '',
+    '## Student-Facing Cleanliness Matrix',
+    '',
+    markdownTable([
+      '| Gold Sample | Status | Checked Features | Checked Student-Facing Strings | Internal-Language Findings | Findings |',
+      '| --- | --- | ---: | ---: | ---: | ---: |',
+      ...studentFacingCleanlinessRows,
     ]),
     '',
     '## Enrichment Impact Matrix',
