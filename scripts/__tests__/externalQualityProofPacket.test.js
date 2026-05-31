@@ -757,6 +757,7 @@ describe('external quality proof packet', () => {
       expect(reviewIntakeMarkdown).toContain('Unsupported invention risk');
       expect(reviewIntakeMarkdown).toContain('Source Compared?');
       expect(reviewIntakeMarkdown).toContain('Source Signals Preserved?');
+      expect(reviewIntakeMarkdown).toContain('Local Review Action Visible?');
       expect(reviewIntakeMarkdown).toContain('Blueprint-Quality Review');
       expect(reviewIntakeMarkdown).toContain('Compact blueprint reviewed');
       expect(reviewIntakeMarkdown).toContain('Review Flags Visible?');
@@ -828,6 +829,7 @@ describe('external quality proof packet', () => {
         publishGateVisible: null,
         modelUsePolicyVisible: null,
         handoffReviewFocusVisible: null,
+        localReviewActionVisible: null,
       });
       expect(reviewFixture.fixtures[0].blueprintQualityReview).toMatchObject({
         blueprintReviewed: false,
@@ -1064,9 +1066,11 @@ describe('external quality proof packet', () => {
             row.publishGateVisible === null &&
             row.modelUsePolicyVisible === null &&
             row.handoffReviewFocusVisible === null &&
+            row.localReviewActionVisible === null &&
             row.unsupportedInventionRisk === null &&
             row.notes?.includes('source course map') &&
-            row.notes?.includes('compiler decision'),
+            row.notes?.includes('compiler decision') &&
+            row.notes?.includes('local-review action'),
         ),
       ).toBe(true);
       expect(fixture.blueprintQualityReview).toMatchObject({
@@ -1162,6 +1166,7 @@ describe('external quality proof packet', () => {
           row.publishGateVisible === true &&
           row.modelUsePolicyVisible === true &&
           row.handoffReviewFocusVisible === true &&
+          row.localReviewActionVisible === true &&
           row.unsupportedInventionRisk === 'low' &&
           row.notes?.length > 40,
       ),

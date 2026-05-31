@@ -20,7 +20,7 @@ For the stricter A-quality release gate, the strongest proof must be tied to com
 
 For the stricter A-quality release gate, at least one proof-eligible external reviewer scorecard must cover the full core package. Use either `"full-package"` in `reviewEvidence.reviewedArtifacts`, or list every core artifact: `syllabus`, `lessonPlans`, `slideDecks`, `assignments`, `rubrics`, `discussions`, `quizBank`, `studyGuides`, and `courseFaq`.
 
-The strict gate also needs at least one proof-eligible external `sourceFidelityReview` confirming that the reviewer compared the original source course map against the compiled package. It must include `sourceInputReviewed: true`, `compiledPackageReviewed: true`, concrete notes, and `artifactReviews` rows for every core compiled artifact. Each artifact row must confirm source comparison, package comparison, preserved source signals, visible compiler decision, visible publish gate, visible model-use policy, visible handoff review focus, and concrete evidence notes. Reviews that report broken lesson order, lost assessments, lost source signals, hidden publication boundaries, or high unsupported-invention risk block A-quality proof.
+The strict gate also needs at least one proof-eligible external `sourceFidelityReview` confirming that the reviewer compared the original source course map against the compiled package. It must include `sourceInputReviewed: true`, `compiledPackageReviewed: true`, concrete notes, and `artifactReviews` rows for every core compiled artifact. Each artifact row must confirm source comparison, package comparison, preserved source signals, visible compiler decision, visible publish gate, visible model-use policy, visible handoff review focus, visible local-review action, and concrete evidence notes. Reviews that report broken lesson order, lost assessments, lost source signals, hidden publication boundaries, hidden local-review actions, or high unsupported-invention risk block A-quality proof.
 
 The strict gate also needs at least one proof-eligible external `blueprintQualityReview` confirming that the reviewer compared the original source course map against the compact blueprint before scoring compiled artifacts. It must include `sourceInputReviewed: true`, `blueprintReviewed: true`, `compactRepresentationReviewed: true`, concrete notes, and `lessonReviews` rows for every blueprint lesson. Each lesson row must confirm source comparison, blueprint comparison, preserved source signals, preserved assessment signals, usable alignment, visible review flags, and concrete evidence notes. Reviews that report lost source signals, lost assessments, unusable alignment, hidden review flags, or high unresolved blueprint risk block A-quality proof.
 
@@ -44,7 +44,7 @@ To prepare a review packet with source course maps, compact blueprint review fil
 npm run audit:expert:packet
 ```
 
-The packet is written to `verification-output/external-quality-proof-packet/latest.md` and a compact `latest.json` manifest. It also writes original source course-map review files under `verification-output/external-quality-proof-packet/source-inputs/`, compact blueprint review files under `verification-output/external-quality-proof-packet/compact-blueprints/`, and full compiled review artifacts for each sample under `verification-output/external-quality-proof-packet/full-package/`, with one structured `.md` file and one `.json` file per sample in each directory. Reviewers should compare source-input files against compact-blueprint files before scoring the compiled package, then compare both against the full-package files before scorecards. The per-sample JSON files preserve the full structured review data for audit traceability, including per-lesson compiler decisions, publish gates, source-review focus, compact blueprint review rows, and full `reviewData` for each artifact. The reviewer-facing Markdown is bounded so a packet remains practical to inspect; when a long section is truncated, the paired JSON keeps the complete structured data. The main `latest.md` file is also kept as an index plus detailed evidence for the recommended strict-proof bundle instead of rendering every curated sample in full; all other sample review files remain available through the Available Sample File Index. The `latest.json` file is intentionally an index manifest: it keeps compact sample status, quality summaries, and file paths, while source details, compact blueprint structures, full package structures, and fixture templates live in the per-sample JSON and fixture files. The packet also writes reviewer intake forms under `verification-output/external-quality-proof-packet/review-intake/` and standalone fixture JSON templates under `verification-output/external-quality-proof-packet/fixtures/`, including a combined review-plus-edit-history fixture bundle per curated sample, `fixtures/external-project.combined-fixtures.template.json` for the required real `project.courseMap` proof sample, and `fixtures/recommended-strict-proof-bundle.template.json` as the one-file starting point for the recommended strict proof set. The proof collection plan recommends strict proof bundle samples that cover `5`, `8`, and `14` lesson scopes while varying modality, and the external-project starting point now tells reviewers to supply a real reviewed `5`-, `8`-, or `14`-lesson course map so real-source evidence contributes to strict scope proof. It also includes a Recommended Bundle Coverage table that shows whether the recommended bundle already satisfies sample count, modality, real-course-at-required-scope, and scope coverage before reviewers spend time filling evidence. Reviewers can complete `recommended-strict-proof-bundle.template.json`, replace any included external-project placeholder with a real reviewed course map at a required proof scope, remove `templateOnly` from the bundle and its fixtures, run the proof preflight, and then run the strict external proof gate directly. You can limit curated samples with `-- --sample gold-spanish-healthcare-8`, but the strict A-quality gate still needs the full scope coverage and at least one completed external-project fixture at a required proof scope.
+The packet is written to `verification-output/external-quality-proof-packet/latest.md` and a compact `latest.json` manifest. It also writes original source course-map review files under `verification-output/external-quality-proof-packet/source-inputs/`, compact blueprint review files under `verification-output/external-quality-proof-packet/compact-blueprints/`, and full compiled review artifacts for each sample under `verification-output/external-quality-proof-packet/full-package/`, with one structured `.md` file and one `.json` file per sample in each directory. Reviewers should compare source-input files against compact-blueprint files before scoring the compiled package, then compare both against the full-package files before scorecards. The per-sample JSON files preserve the full structured review data for audit traceability, including per-lesson compiler decisions, publish gates, source-review focus, local-review actions, compact blueprint review rows, and full `reviewData` for each artifact. The reviewer-facing Markdown is bounded so a packet remains practical to inspect; when a long section is truncated, the paired JSON keeps the complete structured data. The main `latest.md` file is also kept as an index plus detailed evidence for the recommended strict-proof bundle instead of rendering every curated sample in full; all other sample review files remain available through the Available Sample File Index. The `latest.json` file is intentionally an index manifest: it keeps compact sample status, quality summaries, and file paths, while source details, compact blueprint structures, full package structures, and fixture templates live in the per-sample JSON and fixture files. The packet also writes reviewer intake forms under `verification-output/external-quality-proof-packet/review-intake/` and standalone fixture JSON templates under `verification-output/external-quality-proof-packet/fixtures/`, including a combined review-plus-edit-history fixture bundle per curated sample, `fixtures/external-project.combined-fixtures.template.json` for the required real `project.courseMap` proof sample, and `fixtures/recommended-strict-proof-bundle.template.json` as the one-file starting point for the recommended strict proof set. The proof collection plan recommends strict proof bundle samples that cover `5`, `8`, and `14` lesson scopes while varying modality, and the external-project starting point now tells reviewers to supply a real reviewed `5`-, `8`-, or `14`-lesson course map so real-source evidence contributes to strict scope proof. It also includes a Recommended Bundle Coverage table that shows whether the recommended bundle already satisfies sample count, modality, real-course-at-required-scope, and scope coverage before reviewers spend time filling evidence. Reviewers can complete `recommended-strict-proof-bundle.template.json`, replace any included external-project placeholder with a real reviewed course map at a required proof scope, remove `templateOnly` from the bundle and its fixtures, run the proof preflight, and then run the strict external proof gate directly. You can limit curated samples with `-- --sample gold-spanish-healthcare-8`, but the strict A-quality gate still needs the full scope coverage and at least one completed external-project fixture at a required proof scope.
 
 The top-level `templateOnly` flag on a fixture bundle is also enforced. `audit:expert:preflight` reports `bundleTemplateOnly` until the completed bundle has real reviewer evidence and the top-level template marker is removed, even if individual fixture rows look complete.
 
@@ -203,6 +203,7 @@ Source-fidelity example:
         "publishGateVisible": true,
         "modelUsePolicyVisible": true,
         "handoffReviewFocusVisible": true,
+        "localReviewActionVisible": true,
         "unsupportedInventionRisk": "low",
         "notes": "The syllabus keeps the source course arc, assessment roles, and local-review caveats without adding unsupported policy claims."
       },
@@ -215,6 +216,7 @@ Source-fidelity example:
         "publishGateVisible": true,
         "modelUsePolicyVisible": true,
         "handoffReviewFocusVisible": true,
+        "localReviewActionVisible": true,
         "unsupportedInventionRisk": "low",
         "notes": "Lesson plans preserve the source lesson order, objectives, practice themes, and assessment handoffs."
       },
@@ -227,6 +229,7 @@ Source-fidelity example:
         "publishGateVisible": true,
         "modelUsePolicyVisible": true,
         "handoffReviewFocusVisible": true,
+        "localReviewActionVisible": true,
         "unsupportedInventionRisk": "low",
         "notes": "Slides use source lesson concepts and speaker notes match the documented teaching routine."
       },
@@ -239,6 +242,7 @@ Source-fidelity example:
         "publishGateVisible": true,
         "modelUsePolicyVisible": true,
         "handoffReviewFocusVisible": true,
+        "localReviewActionVisible": true,
         "unsupportedInventionRisk": "low",
         "notes": "Assignment briefs preserve source assessment evidence and avoid invented grading policies."
       },
@@ -251,6 +255,7 @@ Source-fidelity example:
         "publishGateVisible": true,
         "modelUsePolicyVisible": true,
         "handoffReviewFocusVisible": true,
+        "localReviewActionVisible": true,
         "unsupportedInventionRisk": "low",
         "notes": "Rubric criteria align with the source assessment artifacts and stated success criteria."
       },
@@ -263,6 +268,7 @@ Source-fidelity example:
         "publishGateVisible": true,
         "modelUsePolicyVisible": true,
         "handoffReviewFocusVisible": true,
+        "localReviewActionVisible": true,
         "unsupportedInventionRisk": "low",
         "notes": "Discussion prompts preserve source concepts and ask for evidence tied to the lesson objectives."
       },
@@ -275,6 +281,7 @@ Source-fidelity example:
         "publishGateVisible": true,
         "modelUsePolicyVisible": true,
         "handoffReviewFocusVisible": true,
+        "localReviewActionVisible": true,
         "unsupportedInventionRisk": "low",
         "notes": "Quiz and exam items stay aligned to the source objectives and assessment progression."
       },
@@ -287,6 +294,7 @@ Source-fidelity example:
         "publishGateVisible": true,
         "modelUsePolicyVisible": true,
         "handoffReviewFocusVisible": true,
+        "localReviewActionVisible": true,
         "unsupportedInventionRisk": "low",
         "notes": "Study guides preserve the course vocabulary, practice expectations, and review focus."
       },
@@ -299,6 +307,7 @@ Source-fidelity example:
         "publishGateVisible": true,
         "modelUsePolicyVisible": true,
         "handoffReviewFocusVisible": true,
+        "localReviewActionVisible": true,
         "unsupportedInventionRisk": "low",
         "notes": "Course FAQ answers stay within source-grounded course logistics and review boundaries."
       }
@@ -417,7 +426,7 @@ npm run audit:expert:external -- --fixtures /path/to/external-review-fixtures.js
 
 Reviewer packets also include the source-conflict report. When a source course map has duplicate or contradictory lesson rows, reviewers should confirm whether the rows should be merged, split, renumbered, or replaced before counting the package as classroom-ready.
 
-External reviewers should complete `sourceFidelityReview.artifactReviews` for every core artifact. These rows are the evidence that the reviewer compared the original course-map source to each compiled output, not only to the package as a whole. Each row must also confirm that the artifact makes the compiler decision, publish gate, model-use policy, and handoff review focus visible to an instructor.
+External reviewers should complete `sourceFidelityReview.artifactReviews` for every core artifact. These rows are the evidence that the reviewer compared the original course-map source to each compiled output, not only to the package as a whole. Each row must also confirm that the artifact makes the compiler decision, publish gate, model-use policy, handoff review focus, and local-review action visible to an instructor.
 
 Reviewer packets also expose assessment-weight provenance. Weights marked `course-map-explicit` came from source grading percentages; weights marked `compiler-distributed-by-assessment-role` are draft planning weights and should not be treated as official grading policy until the instructor confirms them.
 

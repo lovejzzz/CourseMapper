@@ -1238,6 +1238,7 @@ function auditSourceFidelityReview({ fixture, findings }) {
       artifactReview.publishGateVisible !== true ||
       artifactReview.modelUsePolicyVisible !== true ||
       artifactReview.handoffReviewFocusVisible !== true ||
+      artifactReview.localReviewActionVisible !== true ||
       artifactReview.unsupportedInventionRisk === true ||
       /\b(?:high|major|unacceptable|unsupported)\b/i.test(cleanText(artifactReview.unsupportedInventionRisk)),
   );
@@ -1275,7 +1276,7 @@ function auditSourceFidelityReview({ fixture, findings }) {
   if (weakArtifactReviews.length > 0) {
     addBlocker(
       'sourceFidelityArtifactNotes',
-      `Source-fidelity review has ${weakArtifactReviews.length} artifact row(s) missing source/package comparison flags, concrete notes, preserved-source confirmation, compiler-decision visibility, publish-gate visibility, model-use-policy visibility, or handoff-review-focus visibility.`,
+      `Source-fidelity review has ${weakArtifactReviews.length} artifact row(s) missing source/package comparison flags, concrete notes, preserved-source confirmation, compiler-decision visibility, publish-gate visibility, model-use-policy visibility, handoff-review-focus visibility, or local-review action visibility.`,
     );
   }
   if (review.lessonOrderPreserved === false) {
@@ -1328,6 +1329,8 @@ function normalizeSourceFidelityArtifactReviews(review) {
       publishGateVisible: row?.publishGateVisible ?? row?.publishBoundaryVisible ?? null,
       modelUsePolicyVisible: row?.modelUsePolicyVisible ?? row?.modelPolicyVisible ?? null,
       handoffReviewFocusVisible: row?.handoffReviewFocusVisible ?? row?.reviewFocusVisible ?? null,
+      localReviewActionVisible:
+        row?.localReviewActionVisible ?? row?.reviewActionabilityVisible ?? row?.localConfirmationActionVisible ?? null,
       unsupportedInventionRisk: row?.unsupportedInventionRisk ?? row?.inventionRisk ?? null,
       notes: cleanText(row?.notes || row?.sourceFidelityNotes || row?.comment || row?.evidence),
     };

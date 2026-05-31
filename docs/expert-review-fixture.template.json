@@ -103,11 +103,12 @@
             "packageCompared": false,
             "sourceSignalsPreserved": null,
             "unsupportedInventionRisk": null,
-            "notes": "Replace with reviewer notes comparing this artifact to the source course map, including compiler decision, publish gate, model-use policy, and handoff review focus.",
+            "notes": "Replace with reviewer notes comparing this artifact to the source course map, including compiler decision, publish gate, model-use policy, and handoff review focus, and local-review action.",
             "compilerDecisionVisible": null,
             "publishGateVisible": null,
             "modelUsePolicyVisible": null,
-            "handoffReviewFocusVisible": null
+            "handoffReviewFocusVisible": null,
+            "localReviewActionVisible": null
           },
           {
             "featureId": "lessonPlans",
@@ -116,11 +117,12 @@
             "packageCompared": false,
             "sourceSignalsPreserved": null,
             "unsupportedInventionRisk": null,
-            "notes": "Replace with reviewer notes comparing this artifact to the source course map, including compiler decision, publish gate, model-use policy, and handoff review focus.",
+            "notes": "Replace with reviewer notes comparing this artifact to the source course map, including compiler decision, publish gate, model-use policy, and handoff review focus, and local-review action.",
             "compilerDecisionVisible": null,
             "publishGateVisible": null,
             "modelUsePolicyVisible": null,
-            "handoffReviewFocusVisible": null
+            "handoffReviewFocusVisible": null,
+            "localReviewActionVisible": null
           },
           {
             "featureId": "slideDecks",
@@ -129,11 +131,12 @@
             "packageCompared": false,
             "sourceSignalsPreserved": null,
             "unsupportedInventionRisk": null,
-            "notes": "Replace with reviewer notes comparing this artifact to the source course map, including compiler decision, publish gate, model-use policy, and handoff review focus.",
+            "notes": "Replace with reviewer notes comparing this artifact to the source course map, including compiler decision, publish gate, model-use policy, and handoff review focus, and local-review action.",
             "compilerDecisionVisible": null,
             "publishGateVisible": null,
             "modelUsePolicyVisible": null,
-            "handoffReviewFocusVisible": null
+            "handoffReviewFocusVisible": null,
+            "localReviewActionVisible": null
           },
           {
             "featureId": "assignments",
@@ -142,11 +145,12 @@
             "packageCompared": false,
             "sourceSignalsPreserved": null,
             "unsupportedInventionRisk": null,
-            "notes": "Replace with reviewer notes comparing this artifact to the source course map, including compiler decision, publish gate, model-use policy, and handoff review focus.",
+            "notes": "Replace with reviewer notes comparing this artifact to the source course map, including compiler decision, publish gate, model-use policy, and handoff review focus, and local-review action.",
             "compilerDecisionVisible": null,
             "publishGateVisible": null,
             "modelUsePolicyVisible": null,
-            "handoffReviewFocusVisible": null
+            "handoffReviewFocusVisible": null,
+            "localReviewActionVisible": null
           },
           {
             "featureId": "rubrics",
@@ -155,11 +159,12 @@
             "packageCompared": false,
             "sourceSignalsPreserved": null,
             "unsupportedInventionRisk": null,
-            "notes": "Replace with reviewer notes comparing this artifact to the source course map, including compiler decision, publish gate, model-use policy, and handoff review focus.",
+            "notes": "Replace with reviewer notes comparing this artifact to the source course map, including compiler decision, publish gate, model-use policy, and handoff review focus, and local-review action.",
             "compilerDecisionVisible": null,
             "publishGateVisible": null,
             "modelUsePolicyVisible": null,
-            "handoffReviewFocusVisible": null
+            "handoffReviewFocusVisible": null,
+            "localReviewActionVisible": null
           },
           {
             "featureId": "discussions",
@@ -168,11 +173,12 @@
             "packageCompared": false,
             "sourceSignalsPreserved": null,
             "unsupportedInventionRisk": null,
-            "notes": "Replace with reviewer notes comparing this artifact to the source course map, including compiler decision, publish gate, model-use policy, and handoff review focus.",
+            "notes": "Replace with reviewer notes comparing this artifact to the source course map, including compiler decision, publish gate, model-use policy, and handoff review focus, and local-review action.",
             "compilerDecisionVisible": null,
             "publishGateVisible": null,
             "modelUsePolicyVisible": null,
-            "handoffReviewFocusVisible": null
+            "handoffReviewFocusVisible": null,
+            "localReviewActionVisible": null
           },
           {
             "featureId": "quizBank",
@@ -181,11 +187,12 @@
             "packageCompared": false,
             "sourceSignalsPreserved": null,
             "unsupportedInventionRisk": null,
-            "notes": "Replace with reviewer notes comparing this artifact to the source course map, including compiler decision, publish gate, model-use policy, and handoff review focus.",
+            "notes": "Replace with reviewer notes comparing this artifact to the source course map, including compiler decision, publish gate, model-use policy, and handoff review focus, and local-review action.",
             "compilerDecisionVisible": null,
             "publishGateVisible": null,
             "modelUsePolicyVisible": null,
-            "handoffReviewFocusVisible": null
+            "handoffReviewFocusVisible": null,
+            "localReviewActionVisible": null
           },
           {
             "featureId": "studyGuides",
@@ -194,11 +201,12 @@
             "packageCompared": false,
             "sourceSignalsPreserved": null,
             "unsupportedInventionRisk": null,
-            "notes": "Replace with reviewer notes comparing this artifact to the source course map, including compiler decision, publish gate, model-use policy, and handoff review focus.",
+            "notes": "Replace with reviewer notes comparing this artifact to the source course map, including compiler decision, publish gate, model-use policy, and handoff review focus, and local-review action.",
             "compilerDecisionVisible": null,
             "publishGateVisible": null,
             "modelUsePolicyVisible": null,
-            "handoffReviewFocusVisible": null
+            "handoffReviewFocusVisible": null,
+            "localReviewActionVisible": null
           },
           {
             "featureId": "courseFaq",
@@ -207,11 +215,12 @@
             "packageCompared": false,
             "sourceSignalsPreserved": null,
             "unsupportedInventionRisk": null,
-            "notes": "Replace with reviewer notes comparing this artifact to the source course map, including compiler decision, publish gate, model-use policy, and handoff review focus.",
+            "notes": "Replace with reviewer notes comparing this artifact to the source course map, including compiler decision, publish gate, model-use policy, and handoff review focus, and local-review action.",
             "compilerDecisionVisible": null,
             "publishGateVisible": null,
             "modelUsePolicyVisible": null,
-            "handoffReviewFocusVisible": null
+            "handoffReviewFocusVisible": null,
+            "localReviewActionVisible": null
           }
         ],
         "notes": "Replace with reviewer notes comparing the source course map to the compiled package."
@@ -438,11 +447,12 @@
             "packageCompared": false,
             "sourceSignalsPreserved": null,
             "unsupportedInventionRisk": null,
-            "notes": "Replace with reviewer notes comparing this artifact to the source course map, including compiler decision, publish gate, model-use policy, and handoff review focus.",
+            "notes": "Replace with reviewer notes comparing this artifact to the source course map, including compiler decision, publish gate, model-use policy, and handoff review focus, and local-review action.",
             "compilerDecisionVisible": null,
             "publishGateVisible": null,
             "modelUsePolicyVisible": null,
-            "handoffReviewFocusVisible": null
+            "handoffReviewFocusVisible": null,
+            "localReviewActionVisible": null
           },
           {
             "featureId": "lessonPlans",
@@ -451,11 +461,12 @@
             "packageCompared": false,
             "sourceSignalsPreserved": null,
             "unsupportedInventionRisk": null,
-            "notes": "Replace with reviewer notes comparing this artifact to the source course map, including compiler decision, publish gate, model-use policy, and handoff review focus.",
+            "notes": "Replace with reviewer notes comparing this artifact to the source course map, including compiler decision, publish gate, model-use policy, and handoff review focus, and local-review action.",
             "compilerDecisionVisible": null,
             "publishGateVisible": null,
             "modelUsePolicyVisible": null,
-            "handoffReviewFocusVisible": null
+            "handoffReviewFocusVisible": null,
+            "localReviewActionVisible": null
           },
           {
             "featureId": "slideDecks",
@@ -464,11 +475,12 @@
             "packageCompared": false,
             "sourceSignalsPreserved": null,
             "unsupportedInventionRisk": null,
-            "notes": "Replace with reviewer notes comparing this artifact to the source course map, including compiler decision, publish gate, model-use policy, and handoff review focus.",
+            "notes": "Replace with reviewer notes comparing this artifact to the source course map, including compiler decision, publish gate, model-use policy, and handoff review focus, and local-review action.",
             "compilerDecisionVisible": null,
             "publishGateVisible": null,
             "modelUsePolicyVisible": null,
-            "handoffReviewFocusVisible": null
+            "handoffReviewFocusVisible": null,
+            "localReviewActionVisible": null
           },
           {
             "featureId": "assignments",
@@ -477,11 +489,12 @@
             "packageCompared": false,
             "sourceSignalsPreserved": null,
             "unsupportedInventionRisk": null,
-            "notes": "Replace with reviewer notes comparing this artifact to the source course map, including compiler decision, publish gate, model-use policy, and handoff review focus.",
+            "notes": "Replace with reviewer notes comparing this artifact to the source course map, including compiler decision, publish gate, model-use policy, and handoff review focus, and local-review action.",
             "compilerDecisionVisible": null,
             "publishGateVisible": null,
             "modelUsePolicyVisible": null,
-            "handoffReviewFocusVisible": null
+            "handoffReviewFocusVisible": null,
+            "localReviewActionVisible": null
           },
           {
             "featureId": "rubrics",
@@ -490,11 +503,12 @@
             "packageCompared": false,
             "sourceSignalsPreserved": null,
             "unsupportedInventionRisk": null,
-            "notes": "Replace with reviewer notes comparing this artifact to the source course map, including compiler decision, publish gate, model-use policy, and handoff review focus.",
+            "notes": "Replace with reviewer notes comparing this artifact to the source course map, including compiler decision, publish gate, model-use policy, and handoff review focus, and local-review action.",
             "compilerDecisionVisible": null,
             "publishGateVisible": null,
             "modelUsePolicyVisible": null,
-            "handoffReviewFocusVisible": null
+            "handoffReviewFocusVisible": null,
+            "localReviewActionVisible": null
           },
           {
             "featureId": "discussions",
@@ -503,11 +517,12 @@
             "packageCompared": false,
             "sourceSignalsPreserved": null,
             "unsupportedInventionRisk": null,
-            "notes": "Replace with reviewer notes comparing this artifact to the source course map, including compiler decision, publish gate, model-use policy, and handoff review focus.",
+            "notes": "Replace with reviewer notes comparing this artifact to the source course map, including compiler decision, publish gate, model-use policy, and handoff review focus, and local-review action.",
             "compilerDecisionVisible": null,
             "publishGateVisible": null,
             "modelUsePolicyVisible": null,
-            "handoffReviewFocusVisible": null
+            "handoffReviewFocusVisible": null,
+            "localReviewActionVisible": null
           },
           {
             "featureId": "quizBank",
@@ -516,11 +531,12 @@
             "packageCompared": false,
             "sourceSignalsPreserved": null,
             "unsupportedInventionRisk": null,
-            "notes": "Replace with reviewer notes comparing this artifact to the source course map, including compiler decision, publish gate, model-use policy, and handoff review focus.",
+            "notes": "Replace with reviewer notes comparing this artifact to the source course map, including compiler decision, publish gate, model-use policy, and handoff review focus, and local-review action.",
             "compilerDecisionVisible": null,
             "publishGateVisible": null,
             "modelUsePolicyVisible": null,
-            "handoffReviewFocusVisible": null
+            "handoffReviewFocusVisible": null,
+            "localReviewActionVisible": null
           },
           {
             "featureId": "studyGuides",
@@ -529,11 +545,12 @@
             "packageCompared": false,
             "sourceSignalsPreserved": null,
             "unsupportedInventionRisk": null,
-            "notes": "Replace with reviewer notes comparing this artifact to the source course map, including compiler decision, publish gate, model-use policy, and handoff review focus.",
+            "notes": "Replace with reviewer notes comparing this artifact to the source course map, including compiler decision, publish gate, model-use policy, and handoff review focus, and local-review action.",
             "compilerDecisionVisible": null,
             "publishGateVisible": null,
             "modelUsePolicyVisible": null,
-            "handoffReviewFocusVisible": null
+            "handoffReviewFocusVisible": null,
+            "localReviewActionVisible": null
           },
           {
             "featureId": "courseFaq",
@@ -542,11 +559,12 @@
             "packageCompared": false,
             "sourceSignalsPreserved": null,
             "unsupportedInventionRisk": null,
-            "notes": "Replace with reviewer notes comparing this artifact to the source course map, including compiler decision, publish gate, model-use policy, and handoff review focus.",
+            "notes": "Replace with reviewer notes comparing this artifact to the source course map, including compiler decision, publish gate, model-use policy, and handoff review focus, and local-review action.",
             "compilerDecisionVisible": null,
             "publishGateVisible": null,
             "modelUsePolicyVisible": null,
-            "handoffReviewFocusVisible": null
+            "handoffReviewFocusVisible": null,
+            "localReviewActionVisible": null
           }
         ],
         "notes": "Replace with reviewer notes comparing the source course map to the compiled package."

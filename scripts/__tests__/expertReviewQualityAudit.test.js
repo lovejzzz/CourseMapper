@@ -107,6 +107,7 @@ describe('expert review quality audit', () => {
       publishGateVisible: true,
       modelUsePolicyVisible: true,
       handoffReviewFocusVisible: true,
+      localReviewActionVisible: true,
       unsupportedInventionRisk: 'low',
       notes: `Reviewer compared source course-map signals to compiled ${featureId} output and found preserved lesson and assessment evidence.`,
     })),
@@ -1802,6 +1803,7 @@ describe('expert review quality audit', () => {
                 publishGateVisible: false,
                 modelUsePolicyVisible: false,
                 handoffReviewFocusVisible: false,
+                localReviewActionVisible: false,
                 unsupportedInventionRisk: 'low',
                 notes: 'Replace with reviewer notes.',
               },
@@ -1835,7 +1837,7 @@ describe('expert review quality audit', () => {
     }
   });
 
-  it('blocks source-fidelity rows that do not confirm compiler trust traces', async () => {
+  it('blocks source-fidelity rows that do not confirm compiler trust and local-review traces', async () => {
     const runtime = await loadHybridPipelineAuditRuntime();
     try {
       const sourceFidelityReview = makePassingSourceFidelityReview();
@@ -1847,8 +1849,9 @@ describe('expert review quality audit', () => {
               publishGateVisible: false,
               modelUsePolicyVisible: false,
               handoffReviewFocusVisible: false,
+              localReviewActionVisible: false,
               notes:
-                'Reviewer compared the source course map and package artifact, but the row does not confirm compiler trust traces.',
+                'Reviewer compared the source course map and package artifact, but the row does not confirm compiler trust traces or local-review action.',
             }
           : row,
       );

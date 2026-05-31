@@ -179,9 +179,10 @@ function makeSourceFidelityArtifactReviewTemplate() {
     publishGateVisible: null,
     modelUsePolicyVisible: null,
     handoffReviewFocusVisible: null,
+    localReviewActionVisible: null,
     unsupportedInventionRisk: null,
     notes:
-      'Replace with reviewer notes comparing this compiled artifact to the source course map, including compiler decision, publish gate, model-use policy, and handoff review focus.',
+      'Replace with reviewer notes comparing this compiled artifact to the source course map, including compiler decision, publish gate, model-use policy, handoff review focus, and local-review action.',
   }));
 }
 
@@ -1328,7 +1329,7 @@ function mainPacketDetailSamples(payload) {
 
 function renderSourceFidelityArtifactIntakeRows(payload) {
   return payload.reviewedArtifacts.map(
-    (artifact) => `| ${artifact.label} | ${artifact.featureId} |  |  |  |  |  |  |  |  |`,
+    (artifact) => `| ${artifact.label} | ${artifact.featureId} |  |  |  |  |  |  |  |  |  |`,
   );
 }
 
@@ -1735,8 +1736,8 @@ export function renderExternalReviewIntakeMarkdown(payload, sample) {
     '- Notes comparing source course map to compiled package:',
     '',
     markdownTable([
-      '| Artifact | Feature ID | Source Compared? | Package Compared? | Source Signals Preserved? | Compiler Decision Visible? | Publish Gate Visible? | Model-Use Policy Visible? | Handoff Review Focus Visible? | Evidence Notes |',
-      '| --- | --- | --- | --- | --- | --- | --- | --- | --- | --- |',
+      '| Artifact | Feature ID | Source Compared? | Package Compared? | Source Signals Preserved? | Compiler Decision Visible? | Publish Gate Visible? | Model-Use Policy Visible? | Handoff Review Focus Visible? | Local Review Action Visible? | Evidence Notes |',
+      '| --- | --- | --- | --- | --- | --- | --- | --- | --- | --- | --- |',
       ...renderSourceFidelityArtifactIntakeRows(payload),
     ]),
     '',
