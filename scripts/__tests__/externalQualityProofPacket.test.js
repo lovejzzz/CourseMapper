@@ -112,7 +112,9 @@ describe('external quality proof packet', () => {
           scopeCount: 3,
           scopes: [5, 8, 14],
           missingScopes: [],
-          missingCoverage: ['complete proof from at least one real external project.courseMap'],
+          missingCoverage: [
+            'complete proof from at least one real external project.courseMap at a 5, 8, or 14 lesson proof scope',
+          ],
         },
         readyForStrictExternalCollection: false,
       });
@@ -412,7 +414,7 @@ describe('external quality proof packet', () => {
       expect(markdown).toContain('Missing Before Strict Proof');
       expect(markdown).toContain('Recommended Strict Proof Bundle Samples');
       expect(markdown).toContain('Recommended Bundle Coverage');
-      expect(markdown).toContain('| Real external course map | missing | 0/1 |');
+      expect(markdown).toContain('| Real external course map at required scope | missing | 0/1 |');
       expect(markdown).toContain('Recommended Scope Coverage');
       expect(markdown).toContain('gold-research-methods-short-5');
       expect(markdown).toContain('gold-ai-course-design-8');
@@ -934,6 +936,7 @@ describe('external quality proof packet', () => {
           sampleCount: 1,
           modalityCount: 1,
           externalProjectSampleCount: 1,
+          externalProjectRequiredScopeSampleCount: 0,
           scopeCount: 1,
           scopes: [3],
           missingScopes: [5, 8, 14],
@@ -946,6 +949,7 @@ describe('external quality proof packet', () => {
         expect.arrayContaining([
           expect.stringContaining('two reviewed course samples'),
           expect.stringContaining('two distinct teaching modalities'),
+          expect.stringContaining('required 5-, 8-, or 14-lesson proof scope'),
         ]),
       );
       expect(payload.proofCollectionPlan.recommendedSamples[0]).toMatchObject({

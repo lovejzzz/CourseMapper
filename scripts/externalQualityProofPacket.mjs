@@ -434,7 +434,7 @@ function renderExternalProjectTemplateMarkdown({ packageVersion, paths = {} }) {
   return [
     '# External Project Course-Map Proof Template',
     '',
-    'Use this template when the strict A-quality proof gate needs evidence from a real reviewed course map rather than only a curated built-in sample.',
+    'Use this template when the strict A-quality proof gate needs evidence from a real reviewed course map at one of the required 5/8/14 lesson proof scopes rather than only a curated built-in sample.',
     '',
     `Package version: ${packageVersion}`,
     '',
@@ -446,7 +446,7 @@ function renderExternalProjectTemplateMarkdown({ packageVersion, paths = {} }) {
     '',
     '## Required Edits',
     '',
-    '1. Replace `project.courseMap` with the real source course map that was reviewed.',
+    '1. Replace `project.courseMap` with the real source course map that was reviewed; use a 5-, 8-, or 14-lesson reviewed course so the real project contributes to required scope proof.',
     '2. Remove `templateOnly` only after every placeholder has been replaced with concrete evidence.',
     '3. Fill reviewer metadata, scorecard evidence artifacts, evidence examples, source-fidelity artifact rows, blueprint-quality lesson rows, assumption-ledger decisions, and instructor edit-history before/after evidence.',
     '4. Run `npm run audit:expert:preflight -- --fixtures /path/to/external-project.combined-fixtures.json`.',
@@ -898,11 +898,16 @@ function buildRecommendedBundleCoverage(samples) {
   ].sort((a, b) => a - b);
   const modalities = [...new Set(samples.map((sample) => proofSampleModality(sample)).filter(Boolean))].sort();
   const externalProjectSamples = samples.filter((sample) => sample.projectSource === 'external-project');
+  const externalProjectRequiredScopeSamples = externalProjectSamples.filter((sample) =>
+    RECOMMENDED_PROOF_SCOPES.includes(Number(sample.scope)),
+  );
   const missingScopes = RECOMMENDED_PROOF_SCOPES.filter((scope) => !scopes.includes(scope));
   const missingCoverage = [
     samples.length < 2 ? 'complete proof from at least two reviewed samples' : null,
     modalities.length < 2 ? 'complete proof across at least two teaching modalities' : null,
-    externalProjectSamples.length < 1 ? 'complete proof from at least one real external project.courseMap' : null,
+    externalProjectRequiredScopeSamples.length < 1
+      ? 'complete proof from at least one real external project.courseMap at a 5, 8, or 14 lesson proof scope'
+      : null,
     missingScopes.length > 0 ? `complete proof for ${missingScopes.join(', ')} lesson scope(s)` : null,
   ].filter(Boolean);
 
@@ -915,6 +920,7 @@ function buildRecommendedBundleCoverage(samples) {
     modalities,
     externalProjectSampleCount: externalProjectSamples.length,
     requiredExternalProjectSamples: 1,
+    externalProjectRequiredScopeSampleCount: externalProjectRequiredScopeSamples.length,
     scopeCount: scopes.length,
     requiredScopes: RECOMMENDED_PROOF_SCOPES,
     scopes,
@@ -935,6 +941,9 @@ function buildProofCollectionPlan(samplePackets) {
   }
   const availableScopes = [...scopeCounts.keys()].sort((a, b) => a - b);
   const externalProjectSamples = samplePackets.filter((sample) => sample.projectSource === 'external-project');
+  const externalProjectRequiredScopeSamples = externalProjectSamples.filter((sample) =>
+    RECOMMENDED_PROOF_SCOPES.includes(Number(sample.scope)),
+  );
   const selected = [];
   const selectedById = new Map();
   const externalProjectSample = externalProjectSamples[0];
@@ -979,7 +988,11 @@ function buildProofCollectionPlan(samplePackets) {
   }
   if (externalProjectSamples.length < 1) {
     missingRequirements.push(
-      'Add at least one filled real external project.courseMap fixture; curated built-in samples cannot certify release quality alone.',
+      'Add at least one filled real external project.courseMap fixture at a 5-, 8-, or 14-lesson proof scope; curated built-in samples cannot certify release quality alone.',
+    );
+  } else if (externalProjectRequiredScopeSamples.length < 1) {
+    missingRequirements.push(
+      'Add at least one filled real external project.courseMap fixture at a required 5-, 8-, or 14-lesson proof scope; off-scope real courses can support breadth but cannot satisfy strict A-quality proof alone.',
     );
   }
   const missingRecommendedScopes = RECOMMENDED_PROOF_SCOPES.filter((scope) => !scopeCounts.has(scope));
@@ -1044,7 +1057,7 @@ export async function buildExternalQualityProofPacket(options = {}) {
     meta: {
       generatedAt: new Date().toISOString(),
       packageVersion,
-      note: 'This packet prepares external A-quality proof. It is not proof until complete reviewed samples cover distinct teaching modalities, a real external course map, and 5/8/14 lesson scopes with full-package scorecards, source-fidelity reviews, blueprint-quality reviews, assumption-ledger decisions, and instructor edit-history evidence.',
+      note: 'This packet prepares external A-quality proof. It is not proof until complete reviewed samples cover distinct teaching modalities, a real external course map at a required 5/8/14 lesson proof scope, and 5/8/14 lesson scopes overall with full-package scorecards, source-fidelity reviews, blueprint-quality reviews, assumption-ledger decisions, and instructor edit-history evidence.',
     },
     summary: {
       sampleCount: samplePackets.length,
@@ -1054,7 +1067,7 @@ export async function buildExternalQualityProofPacket(options = {}) {
       scorecardDimensionCount: REVIEW_SCORECARD_DIMENSIONS.length,
       proofRequirements: [
         'At least two course samples carry complete external proof bundles across at least two teaching modalities',
-        'At least one complete proof bundle uses a real external project.courseMap fixture rather than only curated built-in samples',
+        'At least one complete proof bundle uses a real external project.courseMap fixture at a required 5-, 8-, or 14-lesson proof scope rather than only curated built-in samples',
         'Complete proof bundles cover short-module, standard, and full-semester course lengths: 5, 8, and 14 lessons',
         'Each complete bundle includes a full-package scorecard, source-fidelity review, blueprint-quality review, assumption-ledger decisions, and instructor edit-history evidence tied to the same sample',
         'External reviewer scorecard over the full core package for each proof sample',
@@ -1271,7 +1284,8 @@ function renderRecommendedBundleCoverageRows(plan) {
   const modalityStatus =
     Number(coverage.modalityCount || 0) >= Number(coverage.requiredDistinctModalities || 0) ? 'ready' : 'missing';
   const projectStatus =
-    Number(coverage.externalProjectSampleCount || 0) >= Number(coverage.requiredExternalProjectSamples || 0)
+    Number(coverage.externalProjectRequiredScopeSampleCount || 0) >=
+    Number(coverage.requiredExternalProjectSamples || 0)
       ? 'ready'
       : 'missing';
   const scopeStatus = (coverage.missingScopes || []).length === 0 ? 'ready' : 'missing';
@@ -1282,8 +1296,10 @@ function renderRecommendedBundleCoverageRows(plan) {
     `| Teaching modalities | ${modalityStatus} | ${coverage.modalityCount || 0}/${coverage.requiredDistinctModalities || 0} | ${
       coverage.modalities?.length ? coverage.modalities.join(', ') : 'add a second modality'
     } |`,
-    `| Real external course map | ${projectStatus} | ${coverage.externalProjectSampleCount || 0}/${coverage.requiredExternalProjectSamples || 0} | ${
-      projectStatus === 'ready' ? 'external project sample included' : 'add a filled project.courseMap fixture'
+    `| Real external course map at required scope | ${projectStatus} | ${coverage.externalProjectRequiredScopeSampleCount || 0}/${coverage.requiredExternalProjectSamples || 0} | ${
+      projectStatus === 'ready'
+        ? 'external project sample included at a required proof scope'
+        : 'add a filled 5-, 8-, or 14-lesson project.courseMap fixture'
     } |`,
     `| Lesson scopes | ${scopeStatus} | ${coverage.scopeCount || 0}/${coverage.requiredScopes?.length || 0} | ${
       scopeStatus === 'ready'
@@ -1347,13 +1363,13 @@ export function renderExternalQualityProofPacketMarkdown(payload) {
     '1. Compare the source course map to the compact blueprint before reviewing compiled artifacts.',
     '2. Review every core artifact listed below, not only selected examples.',
     '3. Score each classroom-quality dimension on the 5-point scorecard.',
-    '4. Complete combined fixtures for enough course samples to cover distinct teaching modalities, one real external course map, and the required 5/8/14 lesson scopes.',
+    '4. Complete combined fixtures for enough course samples to cover distinct teaching modalities, one real external course map at a required 5/8/14 lesson scope, and the required 5/8/14 lesson scopes overall.',
     '5. Add concrete reviewer-required expectations or edit checks where the package needs proof.',
     '6. Remove `templateOnly` only after real external evidence replaces placeholder text.',
     '7. Run `npm run audit:expert:preflight -- --fixtures /path/to/external-review-fixtures.json` with the completed fixtures.',
     '8. Treat the package as externally proven only when the preflight readiness checklist and `npm run audit:expert:external` both pass with 0 blockers.',
     '',
-    'For the required real-course proof sample, start from `fixtures/external-project.combined-fixtures.template.json` and replace `project.courseMap` with the reviewed course map.',
+    'For the required real-course proof sample, start from `fixtures/external-project.combined-fixtures.template.json` and replace `project.courseMap` with a reviewed 5-, 8-, or 14-lesson course map.',
     'After filling the real course map, run `npm run audit:expert:packet -- --fixtures /path/to/external-project.combined-fixtures.json --external-only` to generate source-input and full-package review artifacts for that course.',
     '',
     '## Proof Requirements',

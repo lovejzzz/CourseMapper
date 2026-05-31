@@ -2072,6 +2072,13 @@ function summarizeResults(results, auditFindings = [], externalProofBundles = bu
   const externalProjectCompleteProofSamples = externalCompleteProofSamples.filter(
     (entry) => entry.projectSource === 'external-project',
   );
+  const externalProjectCompleteProofRequiredScopes = [
+    ...new Set(
+      externalProjectCompleteProofSamples
+        .map((entry) => Number(entry.proofScope))
+        .filter((scope) => REQUIRED_EXTERNAL_COMPLETE_PROOF_SCOPES.includes(scope)),
+    ),
+  ].sort((a, b) => a - b);
   const blueprintFidelityFindings = results.reduce(
     (sum, result) => sum + (result.blueprintFidelityFindingCount || 0),
     0,
@@ -2116,6 +2123,8 @@ function summarizeResults(results, auditFindings = [], externalProofBundles = bu
     externalCompleteProofScopeTags,
     externalProjectCompleteProofSampleCount: externalProjectCompleteProofSamples.length,
     externalProjectCompleteProofSampleIds: externalProjectCompleteProofSamples.map((entry) => entry.sampleId),
+    externalProjectCompleteProofRequiredScopeCount: externalProjectCompleteProofRequiredScopes.length,
+    externalProjectCompleteProofRequiredScopes,
     blueprintFidelityFindings,
     internalProvisionalFixtureCount: results.filter((result) => result.evidenceType !== 'external').length,
     proofStatus,
@@ -2391,6 +2400,27 @@ function buildAuditRequirementFindings(summary, options = {}) {
     summary.externalCompleteProofSampleCount >= REQUIRED_EXTERNAL_COMPLETE_PROOF_SAMPLES &&
     summary.externalCompleteProofModalityCount >= REQUIRED_EXTERNAL_COMPLETE_PROOF_MODALITIES &&
     summary.externalProjectCompleteProofSampleCount >= REQUIRED_EXTERNAL_PROJECT_COMPLETE_PROOF_SAMPLES &&
+    summary.externalProjectCompleteProofRequiredScopeCount < REQUIRED_EXTERNAL_PROJECT_COMPLETE_PROOF_SAMPLES
+  ) {
+    findings.push(
+      makeFinding(
+        'blocker',
+        'audit',
+        'externalProof',
+        'requiredExternalProjectProofScope',
+        `A-quality proof requires at least ${REQUIRED_EXTERNAL_PROJECT_COMPLETE_PROOF_SAMPLES} complete external-project proof sample at one of the required course scopes (${REQUIRED_EXTERNAL_COMPLETE_PROOF_SCOPES.join(
+          ', ',
+        )} lessons); current required-scope external-project proof scopes: ${
+          summary.externalProjectCompleteProofRequiredScopes?.join(', ') || 'none'
+        }.`,
+      ),
+    );
+  }
+  if (
+    hasRequiredExternalProofIngredients(summary) &&
+    summary.externalCompleteProofSampleCount >= REQUIRED_EXTERNAL_COMPLETE_PROOF_SAMPLES &&
+    summary.externalCompleteProofModalityCount >= REQUIRED_EXTERNAL_COMPLETE_PROOF_MODALITIES &&
+    summary.externalProjectCompleteProofSampleCount >= REQUIRED_EXTERNAL_PROJECT_COMPLETE_PROOF_SAMPLES &&
     (summary.missingExternalCompleteProofScopes || []).length > 0
   ) {
     findings.push(
@@ -2438,18 +2468,26 @@ function buildExternalProofReadinessChecklist(summary) {
     },
     {
       id: 'external-project-proof-sample',
-      label: 'External proof includes at least one complete real course-map sample',
+      label: `External proof includes at least one complete real course-map sample at a required proof scope (${REQUIRED_EXTERNAL_COMPLETE_PROOF_SCOPES.join(
+        ', ',
+      )} lessons)`,
       status:
-        summary.externalProjectCompleteProofSampleCount >= REQUIRED_EXTERNAL_PROJECT_COMPLETE_PROOF_SAMPLES
+        summary.externalProjectCompleteProofSampleCount >= REQUIRED_EXTERNAL_PROJECT_COMPLETE_PROOF_SAMPLES &&
+        summary.externalProjectCompleteProofRequiredScopeCount >= REQUIRED_EXTERNAL_PROJECT_COMPLETE_PROOF_SAMPLES
           ? 'pass'
           : 'blocked',
       evidence: `${summary.externalProjectCompleteProofSampleCount || 0} complete external-project proof sample(s)${
         summary.externalProjectCompleteProofSampleIds?.length
           ? `: ${summary.externalProjectCompleteProofSampleIds.join(', ')}`
           : ''
+      }; required-scope external-project proof scopes: ${
+        summary.externalProjectCompleteProofRequiredScopes?.length
+          ? summary.externalProjectCompleteProofRequiredScopes.join(', ')
+          : 'none'
       }`,
-      nextAction:
-        'Add a complete external proof bundle whose fixture includes project.courseMap from a real reviewed course, not only a curated built-in sampleId.',
+      nextAction: `Add a complete external proof bundle whose fixture includes project.courseMap from a real reviewed course at a ${REQUIRED_EXTERNAL_COMPLETE_PROOF_SCOPES.join(
+        ', ',
+      )}-lesson proof scope, not only a curated built-in sampleId or off-scope real course.`,
     },
     {
       id: 'external-proof-scope-coverage',
@@ -2720,6 +2758,11 @@ export function renderExpertReviewQualityAuditMarkdown(payload) {
     `External-project complete proof samples: ${payload.summary.externalProjectCompleteProofSampleCount}${
       payload.summary.externalProjectCompleteProofSampleIds?.length
         ? ` (${payload.summary.externalProjectCompleteProofSampleIds.join(', ')})`
+        : ''
+    }`,
+    `External-project required-scope proof: ${payload.summary.externalProjectCompleteProofRequiredScopeCount || 0}${
+      payload.summary.externalProjectCompleteProofRequiredScopes?.length
+        ? ` (${payload.summary.externalProjectCompleteProofRequiredScopes.join(', ')})`
         : ''
     }`,
     `Blueprint fidelity findings: ${payload.summary.blueprintFidelityFindings}`,

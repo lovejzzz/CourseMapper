@@ -1198,6 +1198,8 @@ describe('expert review quality audit', () => {
       expect(payload.summary.missingExternalCompleteProofScopes).toEqual([]);
       expect(payload.summary.externalProjectCompleteProofSampleCount).toBe(1);
       expect(payload.summary.externalProjectCompleteProofSampleIds).toEqual(['external-field-methods-project']);
+      expect(payload.summary.externalProjectCompleteProofRequiredScopeCount).toBe(1);
+      expect(payload.summary.externalProjectCompleteProofRequiredScopes).toEqual([5]);
       expect(payload.summary.minReviewerScore).toBe(9);
       expect(payload.summary.minExternalReviewerScore).toBe(9);
       expect(payload.summary.proofStatus).toBe('external-review-and-edit-evidence-present');
@@ -1279,6 +1281,100 @@ describe('expert review quality audit', () => {
         requiredCount: 9,
         coversFullPackage: true,
       });
+    } finally {
+      await closeHybridPipelineAuditRuntime();
+    }
+  }, 15000);
+
+  it('blocks required external proof mode when the real course-map proof is outside required course lengths', async () => {
+    const runtime = await loadHybridPipelineAuditRuntime();
+    try {
+      const payload = await buildExpertReviewQualityAudit({
+        runtime,
+        requireExternalProof: true,
+        fixtures: [
+          makeExternalEditHistoryFixture({
+            id: 'external-required-scope-proof-research-methods-short',
+            sampleId: 'gold-research-methods-short-5',
+            blueprintQualityReview: makePassingBlueprintQualityReview(5),
+            reviewEvidence: {
+              reviewedArtifacts: ['full-package'],
+            },
+            reviewScorecard: {
+              maxScore: 5,
+              dimensions: makePassingScorecardDimensions(),
+            },
+          }),
+          makeExternalEditHistoryFixture({
+            id: 'external-required-scope-proof-research-methods-standard',
+            reviewEvidence: {
+              reviewedArtifacts: ['full-package'],
+            },
+            reviewScorecard: {
+              maxScore: 5,
+              dimensions: makePassingScorecardDimensions(),
+            },
+          }),
+          makeExternalEditHistoryFixture({
+            id: 'external-required-scope-proof-research-methods-semester',
+            sampleId: 'gold-research-methods-semester-14',
+            blueprintQualityReview: makePassingBlueprintQualityReview(14),
+            reviewEvidence: {
+              reviewedArtifacts: ['full-package'],
+            },
+            reviewScorecard: {
+              maxScore: 5,
+              dimensions: makePassingScorecardDimensions(),
+            },
+          }),
+          makeExternalEditHistoryFixture({
+            id: 'external-off-scope-field-methods-project',
+            sampleId: 'external-field-methods-project',
+            project: {
+              id: 'external-field-methods-project',
+              label: 'External field methods course map',
+              courseMap: makeExternalCourseMap(3),
+            },
+            packageMustMatch: [/field evidence/i, /interview/i],
+            reviewEvidence: {
+              reviewedArtifacts: ['full-package'],
+              courseModality: 'field-applied',
+            },
+            blueprintQualityReview: makePassingBlueprintQualityReview(3),
+            reviewScorecard: {
+              maxScore: 5,
+              dimensions: makePassingScorecardDimensions(),
+            },
+          }),
+        ],
+      });
+
+      expect(payload.summary.status).toBe('blocked');
+      expect(payload.summary.externalCompleteProofSampleCount).toBe(4);
+      expect(payload.summary.externalCompleteProofModalityCount).toBeGreaterThanOrEqual(2);
+      expect(payload.summary.externalCompleteProofScopes).toEqual([3, 5, 8, 14]);
+      expect(payload.summary.missingExternalCompleteProofScopes).toEqual([]);
+      expect(payload.summary.externalProjectCompleteProofSampleCount).toBe(1);
+      expect(payload.summary.externalProjectCompleteProofSampleIds).toEqual(['external-field-methods-project']);
+      expect(payload.summary.externalProjectCompleteProofRequiredScopeCount).toBe(0);
+      expect(payload.summary.externalProjectCompleteProofRequiredScopes).toEqual([]);
+      expect(payload.summary.auditBlockers).toBe(1);
+      expect(payload.auditFindings).toEqual(
+        expect.arrayContaining([
+          expect.objectContaining({
+            featureId: 'externalProof',
+            check: 'requiredExternalProjectProofScope',
+          }),
+        ]),
+      );
+      expect(payload.proofReadinessChecklist.items).toEqual(
+        expect.arrayContaining([
+          expect.objectContaining({
+            id: 'external-project-proof-sample',
+            status: 'blocked',
+          }),
+        ]),
+      );
     } finally {
       await closeHybridPipelineAuditRuntime();
     }

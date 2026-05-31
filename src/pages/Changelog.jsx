@@ -10,6 +10,7 @@ const releases = [
       'The course blueprint is now a richer instructional representation with source confidence, teaching moves, review boundaries, and compiler decisions',
       'Gold-sample and expert-review audits now check whether compiler output is classroom-ready, source-faithful, and transparent about what still needs human review',
       'Compact enrichment and instructor preference learning are wired into the compiler path without returning to high-cost generation for the core package',
+      'Strict external proof now requires real course-map evidence at a required 5-, 8-, or 14-lesson proof scope before we claim A-quality release readiness',
     ],
     sections: [
       {
@@ -32,6 +33,8 @@ const releases = [
           'Expanded the gold-sample matrix to 40 packages and now require short, standard, and full-semester scope proof across multiple teaching modalities before the gate can pass.',
           'Added audit:expert, audit:expert:preflight, audit:expert:external, and audit:expert:packet so internal checks stay separate from external A-quality proof.',
           'External proof packets now include source inputs, compact blueprints, full-package review files, reviewer scorecards, source-fidelity artifact rows, blueprint-quality rows, and assumption-ledger decisions.',
+          'Recommended strict-proof bundles now cover 5-, 8-, and 14-lesson scopes across different modalities and show whether the required real external course map is at a valid proof scope.',
+          'The strict external gate now blocks real-course proof that is complete but off-scope, so curated samples cannot hide an unproven real-course workflow.',
         ],
       },
       {
