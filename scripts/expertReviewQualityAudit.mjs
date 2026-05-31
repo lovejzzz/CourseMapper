@@ -267,6 +267,16 @@ function hasConcreteProofNote(value) {
   return text.length >= 12 && !hasPlaceholderProofText(text);
 }
 
+function hasLocalReviewActionProofNote(value) {
+  const text = cleanText(value);
+  return (
+    hasConcreteProofNote(text) &&
+    /\b(?:local[- ]review|review action|publish(?:ing)?|publish-before-use|before publishing|confirm|spot-check|instructor|human review|hold for local)\b/i.test(
+      text,
+    )
+  );
+}
+
 function scopeCourseMap(courseMap, scope) {
   return {
     ...courseMap,
@@ -1239,6 +1249,7 @@ function auditSourceFidelityReview({ fixture, findings }) {
       artifactReview.modelUsePolicyVisible !== true ||
       artifactReview.handoffReviewFocusVisible !== true ||
       artifactReview.localReviewActionVisible !== true ||
+      !hasLocalReviewActionProofNote(artifactReview.notes) ||
       artifactReview.unsupportedInventionRisk === true ||
       /\b(?:high|major|unacceptable|unsupported)\b/i.test(cleanText(artifactReview.unsupportedInventionRisk)),
   );
@@ -1276,7 +1287,7 @@ function auditSourceFidelityReview({ fixture, findings }) {
   if (weakArtifactReviews.length > 0) {
     addBlocker(
       'sourceFidelityArtifactNotes',
-      `Source-fidelity review has ${weakArtifactReviews.length} artifact row(s) missing source/package comparison flags, concrete notes, preserved-source confirmation, compiler-decision visibility, publish-gate visibility, model-use-policy visibility, handoff-review-focus visibility, or local-review action visibility.`,
+      `Source-fidelity review has ${weakArtifactReviews.length} artifact row(s) missing source/package comparison flags, concrete notes, preserved-source confirmation, compiler-decision visibility, publish-gate visibility, model-use-policy visibility, handoff-review-focus visibility, local-review action visibility, or local-review action evidence in the notes.`,
     );
   }
   if (review.lessonOrderPreserved === false) {

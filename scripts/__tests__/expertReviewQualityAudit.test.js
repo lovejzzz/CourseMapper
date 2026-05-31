@@ -109,7 +109,7 @@ describe('expert review quality audit', () => {
       handoffReviewFocusVisible: true,
       localReviewActionVisible: true,
       unsupportedInventionRisk: 'low',
-      notes: `Reviewer compared source course-map signals to compiled ${featureId} output and found preserved lesson and assessment evidence.`,
+      notes: `Reviewer compared source course-map signals to compiled ${featureId} output, found preserved lesson and assessment evidence, and verified the visible local-review action that tells the instructor what to confirm before publishing.`,
     })),
     notes:
       'Reviewer compared the source course map with the compiled package and found lesson order, assessments, and review flags preserved.',
@@ -1859,6 +1859,53 @@ describe('expert review quality audit', () => {
       const result = auditExpertReviewFixture({
         fixture: makeExternalEditHistoryFixture({
           id: 'external-missing-compiler-trust-traces-fixture',
+          reviewEvidence: {
+            reviewedArtifacts: ['full-package'],
+          },
+          reviewScorecard: {
+            maxScore: 5,
+            dimensions: makePassingScorecardDimensions(),
+          },
+          sourceFidelityReview,
+        }),
+        runtime,
+      });
+
+      expect(result.summary.status).toBe('blocked');
+      expect(result.sourceFidelityReview).toMatchObject({
+        status: 'blocked',
+        artifactReviewCount: CORE_ARTIFACT_IDS.length,
+      });
+      expect(result.findings).toEqual(
+        expect.arrayContaining([
+          expect.objectContaining({
+            featureId: 'sourceFidelityReview',
+            check: 'sourceFidelityArtifactNotes',
+          }),
+        ]),
+      );
+    } finally {
+      await closeHybridPipelineAuditRuntime();
+    }
+  });
+
+  it('blocks source-fidelity rows whose notes do not cite the local-review action evidence', async () => {
+    const runtime = await loadHybridPipelineAuditRuntime();
+    try {
+      const sourceFidelityReview = makePassingSourceFidelityReview();
+      sourceFidelityReview.artifactReviews = sourceFidelityReview.artifactReviews.map((row, index) =>
+        index === 0
+          ? {
+              ...row,
+              notes:
+                'Reviewer compared the source course map and package artifact and found preserved lesson and assessment evidence.',
+            }
+          : row,
+      );
+
+      const result = auditExpertReviewFixture({
+        fixture: makeExternalEditHistoryFixture({
+          id: 'external-generic-local-review-notes-fixture',
           reviewEvidence: {
             reviewedArtifacts: ['full-package'],
           },

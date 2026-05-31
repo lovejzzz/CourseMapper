@@ -182,7 +182,7 @@ function makeSourceFidelityArtifactReviewTemplate() {
     localReviewActionVisible: null,
     unsupportedInventionRisk: null,
     notes:
-      'Replace with reviewer notes comparing this compiled artifact to the source course map, including compiler decision, publish gate, model-use policy, handoff review focus, and local-review action.',
+      'Replace with reviewer notes comparing this compiled artifact to the source course map, including compiler decision, publish gate, model-use policy, handoff review focus, and the local-review or publish-before-use action the reviewer saw.',
   }));
 }
 

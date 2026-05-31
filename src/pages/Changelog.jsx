@@ -46,6 +46,7 @@ const releases = [
           'Gold audits now include an Objective Evidence Matrix that checks objective-by-objective evidence propagation across the compiled core package.',
           'Gold audits now include a Workload Balance Matrix that verifies weekly student workload stays realistic and remains visible in syllabus, assignment, and lesson-plan outputs.',
           'Gold audits now include a Review Actionability Matrix that blocks weak-input packages when instructors cannot see exactly what to confirm before publishing.',
+          'External source-fidelity notes must now cite the local-review or publish-before-use action reviewers saw, blocking generic trust notes.',
         ],
       },
       {

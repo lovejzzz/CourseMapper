@@ -1077,7 +1077,7 @@ describe('external quality proof packet', () => {
             row.unsupportedInventionRisk === null &&
             row.notes?.includes('source course map') &&
             row.notes?.includes('compiler decision') &&
-            row.notes?.includes('local-review action'),
+            row.notes?.includes('publish-before-use action'),
         ),
       ).toBe(true);
       expect(fixture.blueprintQualityReview).toMatchObject({
