@@ -62,6 +62,12 @@ function createCheck(featureId, format, status, message, extra = {}) {
   };
 }
 
+function getFailureFormat(featureId) {
+  if (featureId === 'courseMap') return 'xlsx';
+  if (featureId === 'slideDecks') return 'pptx/docx/csv';
+  return 'docx/csv';
+}
+
 function findInternalExportText(rows) {
   const headers = Array.isArray(rows?.headers) ? rows.headers : [];
   const dataRows = Array.isArray(rows?.rows) ? rows.rows : [];
@@ -122,7 +128,12 @@ async function findInternalOfficeXmlText(blob, pathPattern) {
   const buffer = await toArrayBuffer(blob);
   if (!buffer) return null;
   const JSZip = (await import('jszip')).default;
-  const zip = await JSZip.loadAsync(buffer);
+  let zip;
+  try {
+    zip = await JSZip.loadAsync(buffer);
+  } catch (err) {
+    throw new Error(`Office export could not be inspected: ${err.message || 'invalid package'}`);
+  }
   const files = Object.values(zip.files)
     .filter((file) => !file.dir && pathPattern.test(file.name))
     .sort((a, b) => a.name.localeCompare(b.name));
@@ -149,15 +160,22 @@ async function verifyCourseMapExport({ courseMap, columns, lessonFilter }) {
   const { buildXlsxBuffer } = await import('./xlsxGenerator');
   const buffer = await buildXlsxBuffer(scopedCourseMap, columns);
   const size = getBufferSize(buffer);
-  return [
-    createCheck(
-      'courseMap',
-      'xlsx',
-      size > 128 ? 'passed' : 'failed',
-      size > 128 ? 'Course map spreadsheet can be generated.' : 'Course map spreadsheet output was empty.',
-      { size },
-    ),
-  ];
+  if (size <= 128) {
+    return [createCheck('courseMap', 'xlsx', 'failed', 'Course map spreadsheet output was empty.', { size })];
+  }
+  const internalText = await findInternalOfficeXmlText(buffer, /^xl\/(?:sharedStrings|worksheets\/sheet\d+)\.xml$/);
+  if (internalText) {
+    return [
+      createCheck(
+        'courseMap',
+        'xlsx',
+        'failed',
+        `Course map spreadsheet exposes internal ${internalText.label} language in ${internalText.path}.`,
+        { size, internalText },
+      ),
+    ];
+  }
+  return [createCheck('courseMap', 'xlsx', 'passed', 'Course map spreadsheet can be generated.', { size })];
 }
 
 async function verifyCsvExport(featureId, data) {
@@ -273,14 +291,7 @@ export async function verifyPackageExports({
         })),
       );
     } catch (err) {
-      checks.push(
-        createCheck(
-          featureId,
-          featureId === 'slideDecks' ? 'pptx/docx/csv' : 'docx/csv',
-          'failed',
-          err.message || 'Export check failed.',
-        ),
-      );
+      checks.push(createCheck(featureId, getFailureFormat(featureId), 'failed', err.message || 'Export check failed.'));
     }
   }
 

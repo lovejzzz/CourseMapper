@@ -223,6 +223,7 @@ Latest slice evidence:
 - 2026-05-31: Added a Student-Facing Cleanliness Matrix to `audit:gold`. The gate scans known classroom-facing fields separately from internal proof metadata and blocks any compiler, source-grounding, publish-gate, proof-packet, or local-review language that leaks into student prompts, handouts, quiz items, slide text, discussion prompts, study guides, or FAQ answers.
 - 2026-05-31: Closed the custom-export metadata leak path. Generic custom CSV/DOCX exporters now omit compiler proof objects such as `sourceGrounding`, `blueprintGrounding`, compiler decisions, quality receipts, and provenance, and package export verification fails if exported CSV text still exposes internal compiler/proof language before download.
 - 2026-05-31: Extended export cleanliness from source rows to actual downloadable Office files. Package export verification now opens generated DOCX and PPTX XML, scans document, slide, and speaker-note text for internal compiler/proof language, and blocks export readiness if those terms leak into the files a user would download.
+- 2026-05-31: Closed the matching spreadsheet export gap. Course-map XLSX verification now opens the generated workbook XML and blocks export readiness if worksheet or shared-string text leaks internal compiler/proof language, so every primary downloaded Office format is inspected before the package is marked ready.
 
 ## Current v0.7 Focus
 

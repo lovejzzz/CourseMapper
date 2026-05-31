@@ -1,6 +1,7 @@
-import { describe, expect, it, vi } from 'vitest';
+import { beforeEach, describe, expect, it, vi } from 'vitest';
 import JSZip from 'jszip';
 import { verifyPackageExports } from '../packageExportVerifier';
+import { buildXlsxBuffer } from '../xlsxGenerator';
 import { deliverableToCsvRows } from '../exporters/csvExporter';
 import { buildDeliverableDocxBlob } from '../exporters/bulkDocxExporter';
 import { buildSlideDeckPptxBlob } from '../exporters/pptxExporter';
@@ -14,7 +15,7 @@ vi.mock('../customDeliverableLibrary', () => ({
 }));
 
 vi.mock('../xlsxGenerator', () => ({
-  buildXlsxBuffer: vi.fn(() => Promise.resolve(new Uint8Array(256).buffer)),
+  buildXlsxBuffer: vi.fn(),
 }));
 
 vi.mock('../exporters/csvExporter', () => ({
@@ -35,6 +36,27 @@ async function makeOfficeXmlBlob(path, xml) {
   const buffer = await zip.generateAsync({ type: 'arraybuffer' });
   return new Blob([buffer]);
 }
+
+async function makeOfficeXmlBuffer(path, xml) {
+  return await (await makeOfficeXmlBlob(path, xml)).arrayBuffer();
+}
+
+beforeEach(async () => {
+  vi.mocked(buildXlsxBuffer).mockReset();
+  vi.mocked(deliverableToCsvRows).mockReset();
+  vi.mocked(buildDeliverableDocxBlob).mockReset();
+  vi.mocked(buildSlideDeckPptxBlob).mockReset();
+
+  vi.mocked(buildXlsxBuffer).mockResolvedValue(
+    await makeOfficeXmlBuffer(
+      'xl/worksheets/sheet1.xml',
+      '<worksheet><sheetData><row><c t="inlineStr"><is><t>Lesson 1 Define sampling.</t></is></c></row></sheetData></worksheet>',
+    ),
+  );
+  vi.mocked(deliverableToCsvRows).mockReturnValue({ headers: ['Lesson'], rows: [['Lesson 1']] });
+  vi.mocked(buildDeliverableDocxBlob).mockResolvedValue({ size: 256 });
+  vi.mocked(buildSlideDeckPptxBlob).mockResolvedValue({ size: 256 });
+});
 
 describe('verifyPackageExports', () => {
   it('runs in-memory checks for course map and selected deliverables', async () => {
@@ -67,6 +89,58 @@ describe('verifyPackageExports', () => {
 
     expect(result.status).toBe('failed');
     expect(result.checks[0].message).toContain('no lessons');
+  });
+
+  it('fails export verification when generated XLSX text leaks internal compiler language', async () => {
+    vi.mocked(buildXlsxBuffer).mockResolvedValueOnce(
+      await makeOfficeXmlBuffer(
+        'xl/worksheets/sheet1.xml',
+        '<worksheet><sheetData><row><c t="inlineStr"><is><t>This course map exposes the compiler decision.</t></is></c></row></sheetData></worksheet>',
+      ),
+    );
+
+    const result = await verifyPackageExports({
+      courseMap: {
+        courseName: 'Research Methods',
+        lessons: [{ title: 'Lesson 1', sections: [{ learningObjectives: 'Define sampling.' }] }],
+      },
+      deliverables: {},
+      selectedFeatures: ['courseMap'],
+    });
+
+    expect(result.status).toBe('failed');
+    expect(result.checks[0]).toMatchObject({
+      featureId: 'courseMap',
+      format: 'xlsx',
+      status: 'failed',
+      message: 'Course map spreadsheet exposes internal compiler decision language in xl/worksheets/sheet1.xml.',
+    });
+  });
+
+  it('fails export verification when generated XLSX shared strings leak internal proof language', async () => {
+    vi.mocked(buildXlsxBuffer).mockResolvedValueOnce(
+      await makeOfficeXmlBuffer(
+        'xl/sharedStrings.xml',
+        '<sst><si><t>This workbook exposes source grounding details.</t></si></sst>',
+      ),
+    );
+
+    const result = await verifyPackageExports({
+      courseMap: {
+        courseName: 'Research Methods',
+        lessons: [{ title: 'Lesson 1', sections: [{ learningObjectives: 'Define sampling.' }] }],
+      },
+      deliverables: {},
+      selectedFeatures: ['courseMap'],
+    });
+
+    expect(result.status).toBe('failed');
+    expect(result.checks[0]).toMatchObject({
+      featureId: 'courseMap',
+      format: 'xlsx',
+      status: 'failed',
+      message: 'Course map spreadsheet exposes internal source grounding language in xl/sharedStrings.xml.',
+    });
   });
 
   it('uses custom deliverable names in export verification messages', async () => {

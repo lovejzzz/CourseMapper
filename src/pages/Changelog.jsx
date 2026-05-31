@@ -51,6 +51,7 @@ const releases = [
           'External source-fidelity notes must now cite the local-review or publish-before-use action reviewers saw, blocking generic trust notes.',
           'Package export verification now fails before download if exported CSV text still exposes internal compiler or proof language.',
           'Export verification now opens generated DOCX and PPTX files and blocks downloads when document, slide, or speaker-note text leaks internal compiler/proof language.',
+          'Course-map XLSX verification now opens generated workbook XML and blocks downloads when worksheet or shared-string text leaks internal compiler/proof language.',
         ],
       },
       {
