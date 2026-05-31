@@ -865,11 +865,38 @@ function addProofPlanSample(selected, selectedById, sample, role) {
   return planned;
 }
 
+function proofSampleModality(sample) {
+  return (
+    sample?.proofModality ||
+    sample?.courseModalityProfile?.primaryMode ||
+    sample?.fixtureTemplate?.reviewEvidence?.courseModality ||
+    null
+  );
+}
+
+function selectedProofModalities(selected) {
+  return new Set(selected.map((sample) => proofSampleModality(sample)).filter(Boolean));
+}
+
+function selectScopeProofSample(samplePackets, scope, selected, selectedById) {
+  const candidates = samplePackets.filter((sample) => Number(sample.scope) === Number(scope));
+  if (candidates.length === 0) return null;
+
+  const currentModalities = selectedProofModalities(selected);
+  return (
+    candidates.find(
+      (sample) => !selectedById.has(sample.sampleId) && !currentModalities.has(proofSampleModality(sample)),
+    ) ||
+    candidates.find((sample) => !selectedById.has(sample.sampleId)) ||
+    candidates[0]
+  );
+}
+
 function buildRecommendedBundleCoverage(samples) {
   const scopes = [
     ...new Set(samples.map((sample) => Number(sample.scope)).filter((scope) => Number.isFinite(scope) && scope > 0)),
   ].sort((a, b) => a - b);
-  const modalities = [...new Set(samples.map((sample) => sample.proofModality).filter(Boolean))].sort();
+  const modalities = [...new Set(samples.map((sample) => proofSampleModality(sample)).filter(Boolean))].sort();
   const externalProjectSamples = samples.filter((sample) => sample.projectSource === 'external-project');
   const missingScopes = RECOMMENDED_PROOF_SCOPES.filter((scope) => !scopes.includes(scope));
   const missingCoverage = [
@@ -914,19 +941,16 @@ function buildProofCollectionPlan(samplePackets) {
   if (externalProjectSample) {
     addProofPlanSample(selected, selectedById, externalProjectSample, 'required real-course proof sample');
   }
-  const scopeCoverageSamples = RECOMMENDED_PROOF_SCOPES.map((scope) => {
-    const sampleForScope = samplePackets.find((sample) => Number(sample.scope) === scope);
-    if (!sampleForScope) return null;
-    return proofPlanSample(sampleForScope, `${scope}-lesson scope proof sample`);
-  }).filter(Boolean);
-  for (const scopeSample of scopeCoverageSamples) {
-    const sample = samplePackets.find((item) => item.sampleId === scopeSample.sampleId);
-    addProofPlanSample(selected, selectedById, sample, scopeSample.role);
+  const scopeCoverageSamples = [];
+  for (const scope of RECOMMENDED_PROOF_SCOPES) {
+    const sampleForScope = selectScopeProofSample(samplePackets, scope, selected, selectedById);
+    if (!sampleForScope) continue;
+    const planned = addProofPlanSample(selected, selectedById, sampleForScope, `${scope}-lesson scope proof sample`);
+    if (planned) scopeCoverageSamples.push(planned);
   }
 
-  const selectedModalities = () => new Set(selected.map((sample) => sample.proofModality).filter(Boolean));
   for (const sample of samplePackets) {
-    const currentModalities = selectedModalities();
+    const currentModalities = selectedProofModalities(selected);
     if (currentModalities.size >= Math.min(2, modalities.length)) break;
     if (selectedById.has(sample.sampleId)) continue;
     const modality = sample.courseModalityProfile?.primaryMode;

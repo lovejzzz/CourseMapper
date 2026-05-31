@@ -106,8 +106,8 @@ describe('external quality proof packet', () => {
         availableExternalProjectSamples: 0,
         recommendedBundleCoverage: {
           status: 'needs-more-samples',
-          sampleCount: 4,
-          modalityCount: 2,
+          sampleCount: 3,
+          modalityCount: 3,
           externalProjectSampleCount: 0,
           scopeCount: 3,
           scopes: [5, 8, 14],
@@ -120,20 +120,19 @@ describe('external quality proof packet', () => {
       expect(payload.proofCollectionPlan.missingRequirements).toEqual(
         expect.arrayContaining([expect.stringContaining('project.courseMap')]),
       );
-      expect(payload.proofCollectionPlan.recommendedSamples).toHaveLength(4);
+      expect(payload.proofCollectionPlan.recommendedSamples).toHaveLength(3);
       expect(payload.proofCollectionPlan.recommendedSamples.map((sample) => sample.sampleId)).toEqual([
         'gold-research-methods-short-5',
-        'gold-research-methods-8',
-        'gold-research-methods-semester-14',
         'gold-ai-course-design-8',
+        'gold-community-health-semester-14',
       ]);
       expect(
         new Set(payload.proofCollectionPlan.recommendedSamples.map((sample) => sample.proofModality)).size,
-      ).toBeGreaterThanOrEqual(2);
+      ).toBeGreaterThanOrEqual(3);
       expect(payload.proofCollectionPlan.scopeCoverageSamples.map((sample) => sample.sampleId)).toEqual([
         'gold-research-methods-short-5',
-        'gold-research-methods-8',
-        'gold-research-methods-semester-14',
+        'gold-ai-course-design-8',
+        'gold-community-health-semester-14',
       ]);
       expect(payload.proofCollectionPlan.preflightCommand).toContain('audit:expert:preflight');
       expect(payload.proofCollectionPlan.externalGateCommand).toContain('audit:expert:external');
@@ -416,7 +415,8 @@ describe('external quality proof packet', () => {
       expect(markdown).toContain('| Real external course map | missing | 0/1 |');
       expect(markdown).toContain('Recommended Scope Coverage');
       expect(markdown).toContain('gold-research-methods-short-5');
-      expect(markdown).toContain('gold-research-methods-semester-14');
+      expect(markdown).toContain('gold-ai-course-design-8');
+      expect(markdown).toContain('gold-community-health-semester-14');
       expect(markdown).toContain('audit:expert:preflight');
       expect(markdown).toContain('audit:expert:external');
       expect(markdown).toContain('gold-spanish-healthcare-8');
@@ -425,7 +425,7 @@ describe('external quality proof packet', () => {
       expect(markdown).toContain('Scorecard Dimensions');
       expect(markdown).toContain('Available Sample File Index');
       expect(markdown).toContain(
-        'Detailed evidence sections below are limited to 4 recommended strict-proof bundle sample(s)',
+        'Detailed evidence sections below are limited to 3 recommended strict-proof bundle sample(s)',
       );
       expect(markdown).toContain('| gold-spanish-healthcare-8 | Spanish for Healthcare Professionals | 8 |');
       expect(markdown).toContain('Calibration Evidence');
