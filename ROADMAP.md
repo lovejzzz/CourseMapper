@@ -214,6 +214,7 @@ Latest slice evidence:
 - 2026-05-31: Tightened external proof versioning so stale reviewer fixtures cannot certify a newer compiler release. `audit:expert` now blocks external fixtures whose `reviewEvidence.reviewedPackageVersion` does not match the current `package.json` version, while the external proof template/docs point reviewers at the current reviewed package version.
 - 2026-05-31: Made that package-version freshness visible in the expert proof report. `audit:expert` now summarizes current-version fixture counts, stale fixture ids, and a dedicated readiness item so reviewers can see whether external proof actually applies to the current compiler build before checking deeper quality evidence.
 - 2026-05-31: Added a Copy Specificity Matrix to `audit:gold`. The gate now blocks repeated long classroom-facing surface copy while ignoring internal blueprint proof objects, and the compiler varies rubric calibration, quiz distractors, quiz explanations, and course-at-a-glance focus rows by criterion, question, or lesson so A-quality proof catches boilerplate regressions.
+- 2026-05-31: Added objective-level evidence coverage to the blueprint compiler and `audit:gold`. Each lesson objective now carries practice, assessment, rubric, quiz/check, feedback, and revision evidence before compilation, compiled deliverables preserve that checklist, and the new Objective Evidence Matrix blocks packages that look aligned at the artifact level but leave individual objectives unproven.
 
 ## Current v0.7 Focus
 

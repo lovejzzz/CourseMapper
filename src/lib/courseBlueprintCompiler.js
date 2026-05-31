@@ -6734,6 +6734,9 @@ function buildCourseAlignmentMatrix(lessons, assessments) {
       Boolean(lesson.conceptDependencyPlan?.node?.concept) &&
       Boolean(lesson.practiceProgressionPlan?.practiceFocus) &&
       Boolean(lesson.practiceProgressionPlan?.transferTask) &&
+      lesson.objectiveEvidencePlan?.status === 'complete' &&
+      Array.isArray(lesson.objectiveEvidencePlan?.objectiveRows) &&
+      lesson.objectiveEvidencePlan.objectiveRows.length >= lesson.outcomes.length &&
       Boolean(lesson.masteryEvidencePlan?.diagnosticEvidence) &&
       Boolean(lesson.masteryEvidencePlan?.guidedPracticeEvidence) &&
       Boolean(lesson.masteryEvidencePlan?.independentPerformanceEvidence) &&
@@ -6792,6 +6795,10 @@ function buildCourseAlignmentMatrix(lessons, assessments) {
       conceptTransferCue: lesson.conceptDependencyPlan?.transferCue || '',
       practiceProgressionCue: lesson.practiceProgressionPlan?.practiceFocus || '',
       practiceProgressionTransferCue: lesson.practiceProgressionPlan?.transferTask || '',
+      objectiveEvidenceCue:
+        lesson.objectiveEvidencePlan?.objectiveRows
+          ?.map((entry) => `${entry.objective}: ${entry.practiceEvidence}; ${entry.assessmentEvidence}`)
+          .join('; ') || '',
       masteryDiagnosticCue: lesson.masteryEvidencePlan?.diagnosticEvidence || '',
       masteryGuidedPracticeCue: lesson.masteryEvidencePlan?.guidedPracticeEvidence || '',
       masteryPerformanceCue: lesson.masteryEvidencePlan?.independentPerformanceEvidence || '',
@@ -6842,6 +6849,170 @@ function buildCourseAlignmentMatrix(lessons, assessments) {
         : `Review ${lesson.title} because one or more alignment signals is missing or inferred.`,
     };
   });
+}
+
+function normalizeObjectiveKey(value) {
+  return cleanText(value).toLowerCase();
+}
+
+function objectiveOverlapScore(left, right) {
+  const leftTokens = alignmentTokens(left);
+  const rightTokens = alignmentTokens(right);
+  if (leftTokens.length === 0 || rightTokens.length === 0) return 0;
+  const rightSet = new Set(rightTokens);
+  return leftTokens.filter((token) => rightSet.has(token)).length;
+}
+
+function objectiveRowsForAssessment(assessment = {}, objective = '', index = 0) {
+  const objectiveKey = normalizeObjectiveKey(objective);
+  const alignments = Array.isArray(assessment.criterionObjectiveAlignment)
+    ? assessment.criterionObjectiveAlignment
+    : [];
+  const exactMatches = alignments.filter((entry) => normalizeObjectiveKey(entry?.objective) === objectiveKey);
+  if (exactMatches.length > 0) return exactMatches;
+
+  const scoredMatches = alignments
+    .map((entry) => ({
+      entry,
+      score: objectiveOverlapScore(objective, [entry?.objective, entry?.criterion, entry?.rationale].join(' ')),
+    }))
+    .filter((item) => item.score > 0)
+    .sort((left, right) => right.score - left.score);
+  if (scoredMatches.length > 0) return scoredMatches.slice(0, 2).map((item) => item.entry);
+
+  const criteria = Array.isArray(assessment.criteria) ? assessment.criteria : [];
+  const fallbackCriterion =
+    criteria[index % Math.max(1, criteria.length)] || assessment.title || 'assessment criterion';
+  return [
+    {
+      criterion: fallbackCriterion,
+      objective,
+      strategy: 'artifact-level-objective-coverage',
+      rationale:
+        'No direct criterion-objective wording match was available, so the objective is covered through the lesson artifact criterion and marked for local review.',
+    },
+  ];
+}
+
+function buildLessonObjectiveEvidencePlan({ lesson = {}, assessment = {} }) {
+  const objectives =
+    Array.isArray(lesson.outcomes) && lesson.outcomes.length > 0
+      ? lesson.outcomes.map((objective) => cleanText(objective)).filter(Boolean)
+      : [objectiveForLesson(lesson.title, lesson.keyConcepts || [])];
+  const quizPlan = buildQuizQuestionPlan({ lesson, assessment, targetCount: 6 });
+  const objectiveAnchor =
+    (lesson.sourceAnchors || []).find((anchor) => /objective/i.test(anchor?.field || '')) ||
+    (lesson.sourceAnchors || [])[0] ||
+    null;
+  const objectiveRows = objectives.map((objective, index) => {
+    const criterionRows = objectiveRowsForAssessment(assessment, objective, index);
+    const objectiveKey = normalizeObjectiveKey(objective);
+    const quizRows = quizPlan.filter((entry) => normalizeObjectiveKey(entry.objective) === objectiveKey);
+    const practiceEvidence =
+      lesson.teachingIntent?.guidedPracticeMove ||
+      lesson.practiceProgressionPlan?.practiceFocus ||
+      lesson.activityPattern ||
+      '';
+    const assessmentEvidence =
+      assessment.artifact || lesson.studentArtifact || lesson.masteryEvidencePlan?.independentPerformanceEvidence || '';
+    const feedbackEvidence =
+      lesson.feedbackCycle?.feedbackMethod || assessment.feedbackCycle?.feedbackMethod || assessment.feedbackUse || '';
+    const revisionEvidence =
+      lesson.feedbackCycle?.studentRevisionAction ||
+      assessment.feedbackCycle?.studentRevisionAction ||
+      assessment.revisionUse ||
+      '';
+    const rowStatus =
+      objective &&
+      practiceEvidence &&
+      assessmentEvidence &&
+      criterionRows.length > 0 &&
+      quizRows.length > 0 &&
+      feedbackEvidence &&
+      revisionEvidence
+        ? 'complete'
+        : 'needs-review';
+    return {
+      objectiveIndex: index + 1,
+      objective,
+      bloomLevel: inferBloomLevelFromSignals([{ source: 'objective', text: objective }]).level,
+      sourceAnchor: objectiveAnchor?.source || '',
+      sourceAnchorConfidence: objectiveAnchor?.confidence || lesson.confidence?.level || '',
+      practiceEvidence,
+      assessmentEvidence,
+      rubricCriteria: criterionRows.map((entry) => entry.criterion).filter(Boolean),
+      criterionObjectiveStrategies: unique(criterionRows.map((entry) => entry.strategy).filter(Boolean), 4),
+      quizQuestionRoles: quizRows.map((entry) => entry.role),
+      quizQuestionBlooms: quizRows.map((entry) => entry.bloom),
+      feedbackEvidence,
+      revisionEvidence,
+      reviewerQuestion: `Can a reviewer point to where students practice, submit, receive feedback on, and are checked on "${objective}"?`,
+      status: rowStatus,
+    };
+  });
+  return {
+    version: 1,
+    status: objectiveRows.every((row) => row.status === 'complete') ? 'complete' : 'needs-review',
+    policy:
+      'Each objective must have visible practice evidence, an assessment artifact, rubric evidence, quiz/check evidence, feedback, and a revision use before the lesson is classroom-ready.',
+    objectiveCount: objectiveRows.length,
+    missingEvidenceCount: objectiveRows.filter((row) => row.status !== 'complete').length,
+    objectiveRows,
+  };
+}
+
+function attachObjectiveEvidenceToLessons(lessons, assessments) {
+  return lessons.map((lesson, index) => {
+    const assessment =
+      assessments.find((item) => (item.lessonNumbers || []).includes(lesson.lessonNumber)) || assessments[index] || {};
+    return {
+      ...lesson,
+      objectiveEvidencePlan: buildLessonObjectiveEvidencePlan({ lesson, assessment }),
+    };
+  });
+}
+
+function buildObjectiveEvidenceMap({ lessons = [], assessments = [] }) {
+  const lessonRows = lessons.map((lesson, index) => {
+    const assessment =
+      assessments.find((item) => (item.lessonNumbers || []).includes(lesson.lessonNumber)) || assessments[index] || {};
+    const objectivePlan = lesson.objectiveEvidencePlan || buildLessonObjectiveEvidencePlan({ lesson, assessment });
+    return {
+      lessonNumber: lesson.lessonNumber,
+      lessonTitle: lesson.title,
+      assessmentTitle: assessment.title || '',
+      artifact: assessment.artifact || lesson.studentArtifact || '',
+      objectiveCount: objectivePlan.objectiveCount || 0,
+      missingEvidenceCount: objectivePlan.missingEvidenceCount || 0,
+      objectiveRows: clonePlain(objectivePlan.objectiveRows || []),
+      status: objectivePlan.status || 'needs-review',
+    };
+  });
+  const totalObjectiveRows = lessonRows.reduce((sum, row) => sum + Number(row.objectiveCount || 0), 0);
+  const missingEvidenceCount = lessonRows.reduce((sum, row) => sum + Number(row.missingEvidenceCount || 0), 0);
+  return {
+    version: 1,
+    status: missingEvidenceCount === 0 && lessonRows.length === lessons.length ? 'complete' : 'needs-review',
+    policy:
+      'Objective coverage is checked at the blueprint layer before expansion: every objective needs practice, assessment, rubric, quiz/check, feedback, and revision evidence.',
+    lessonRows,
+    totalObjectiveRows,
+    missingEvidenceCount,
+    checkedEvidenceTypes: ['practice', 'assessment', 'rubric', 'quiz-check', 'feedback', 'revision'],
+  };
+}
+
+function objectiveEvidenceChecklist(plan = {}) {
+  return (plan.objectiveRows || []).map((row) => ({
+    objective: row.objective,
+    practice: row.practiceEvidence,
+    assessment: row.assessmentEvidence,
+    rubricCriteria: row.rubricCriteria || [],
+    quizChecks: row.quizQuestionRoles || [],
+    feedback: row.feedbackEvidence,
+    revision: row.revisionEvidence,
+    status: row.status,
+  }));
 }
 
 function buildBlueprintQualitySignals(lessons) {
@@ -6950,6 +7121,23 @@ export function validateCourseBlueprintContract(blueprint = {}) {
         'blocker',
         'evidenceResponseMap',
         'Blueprint is missing a complete evidence-response decision map.',
+      ),
+    );
+  }
+  if (
+    blueprint.objectiveEvidenceMap?.status !== 'complete' ||
+    !Array.isArray(blueprint.objectiveEvidenceMap?.lessonRows) ||
+    blueprint.objectiveEvidenceMap.lessonRows.length !== lessons.length ||
+    !Array.isArray(blueprint.objectiveEvidenceMap?.checkedEvidenceTypes) ||
+    blueprint.objectiveEvidenceMap.checkedEvidenceTypes.length < 6 ||
+    blueprint.objectiveEvidenceMap.missingEvidenceCount !== 0 ||
+    blueprint.objectiveEvidenceMap.totalObjectiveRows < lessons.length
+  ) {
+    findings.push(
+      makeContractFinding(
+        'blocker',
+        'objectiveEvidenceMap',
+        'Blueprint is missing complete objective-level practice, assessment, rubric, quiz, feedback, and revision evidence.',
       ),
     );
   }
@@ -7434,6 +7622,33 @@ export function validateCourseBlueprintContract(blueprint = {}) {
       );
     }
     if (
+      lesson.objectiveEvidencePlan?.status !== 'complete' ||
+      !Array.isArray(lesson.objectiveEvidencePlan?.objectiveRows) ||
+      lesson.objectiveEvidencePlan.objectiveRows.length < lesson.outcomes.length ||
+      lesson.objectiveEvidencePlan.missingEvidenceCount !== 0 ||
+      lesson.objectiveEvidencePlan.objectiveRows.some(
+        (row) =>
+          !row?.objective ||
+          !row.practiceEvidence ||
+          !row.assessmentEvidence ||
+          !Array.isArray(row.rubricCriteria) ||
+          row.rubricCriteria.length === 0 ||
+          !Array.isArray(row.quizQuestionRoles) ||
+          row.quizQuestionRoles.length === 0 ||
+          !row.feedbackEvidence ||
+          !row.revisionEvidence,
+      )
+    ) {
+      findings.push(
+        makeContractFinding(
+          'blocker',
+          'objectiveEvidencePlan',
+          'Lesson is missing objective-level practice, assessment, rubric, quiz/check, feedback, and revision evidence.',
+          lessonNumber,
+        ),
+      );
+    }
+    if (
       !lesson.masteryEvidencePlan?.diagnosticEvidence ||
       !lesson.masteryEvidencePlan?.guidedPracticeEvidence ||
       !lesson.masteryEvidencePlan?.independentPerformanceEvidence ||
@@ -7726,6 +7941,7 @@ export function validateCourseBlueprintContract(blueprint = {}) {
       !row.prerequisiteCue ||
       !row.conceptDependencyCue ||
       !row.practiceProgressionCue ||
+      !row.objectiveEvidenceCue ||
       !row.masteryDiagnosticCue ||
       !row.masteryGuidedPracticeCue ||
       !row.masteryPerformanceCue ||
@@ -7758,7 +7974,7 @@ export function validateCourseBlueprintContract(blueprint = {}) {
         makeContractFinding(
           'blocker',
           'alignmentLoop',
-          'Alignment row is missing evidence, assessment role/cadence, source evidence, compiler decision, source-use, criterion evidence, anchor-example, prerequisite-readiness, concept-dependency, practice-progression, mastery-evidence, evidence-response decisions, modality-fit, modality teaching pattern, artifact genre, teaching-intent, feedback, revision, retrieval/transfer, misconception, exemplar-contrast, readiness-support, instructional-rationale, accessibility, or grading-calibration checks.',
+          'Alignment row is missing evidence, assessment role/cadence, source evidence, compiler decision, source-use, criterion evidence, anchor-example, prerequisite-readiness, concept-dependency, practice-progression, objective-evidence, mastery-evidence, evidence-response decisions, modality-fit, modality teaching pattern, artifact genre, teaching-intent, feedback, revision, retrieval/transfer, misconception, exemplar-contrast, readiness-support, instructional-rationale, accessibility, or grading-calibration checks.',
           row.lessonNumber,
         ),
       );
@@ -7817,6 +8033,9 @@ export function validateCourseBlueprintContract(blueprint = {}) {
     conceptGraphStatus: blueprint.conceptDependencyGraph?.status || 'missing',
     masteryEvidenceStatus: blueprint.masteryEvidenceMap?.status || 'missing',
     evidenceResponseStatus: blueprint.evidenceResponseMap?.status || 'missing',
+    objectiveEvidenceStatus: blueprint.objectiveEvidenceMap?.status || 'missing',
+    objectiveEvidenceRows: blueprint.objectiveEvidenceMap?.totalObjectiveRows ?? null,
+    objectiveEvidenceMissingCount: blueprint.objectiveEvidenceMap?.missingEvidenceCount ?? null,
     sourceConflictStatus: blueprint.sourceConflictReport?.status || 'missing',
     sourceConflictDuplicateLessonCount: blueprint.sourceConflictReport?.duplicateLessonCount ?? null,
     compilerDecisionStatus: blueprint.compilerDecisionMatrix?.status || 'missing',
@@ -7847,6 +8066,9 @@ function compactBlueprintContract(contract = {}) {
     conceptGraphStatus: contract.conceptGraphStatus || 'unknown',
     masteryEvidenceStatus: contract.masteryEvidenceStatus || 'unknown',
     evidenceResponseStatus: contract.evidenceResponseStatus || 'unknown',
+    objectiveEvidenceStatus: contract.objectiveEvidenceStatus || 'unknown',
+    objectiveEvidenceRows: contract.objectiveEvidenceRows ?? null,
+    objectiveEvidenceMissingCount: contract.objectiveEvidenceMissingCount ?? null,
     compilerDecisionStatus: contract.compilerDecisionStatus || 'unknown',
     compilerReviewRequiredCount: contract.compilerReviewRequiredCount ?? null,
     blueprintReviewSurfaceStatus: contract.blueprintReviewSurfaceStatus || 'unknown',
@@ -7939,6 +8161,29 @@ function compactEvidenceResponseMap(map = {}) {
       artifact: row.artifact,
       decisionStateCount: row.decisionStateCount || 0,
       reviewerCue: row.reviewerCue || '',
+    })),
+  };
+}
+
+function compactObjectiveEvidenceMap(map = {}) {
+  const rows = Array.isArray(map.lessonRows) ? map.lessonRows : [];
+  return {
+    status: map.status || 'unknown',
+    lessonRowCount: rows.length,
+    totalObjectiveRows: map.totalObjectiveRows ?? null,
+    missingEvidenceCount: map.missingEvidenceCount ?? null,
+    checkedEvidenceTypes: unique(map.checkedEvidenceTypes || [], 8),
+    lessonObjectiveCoverage: rows.map((row) => ({
+      lessonNumber: row.lessonNumber,
+      objectiveCount: row.objectiveCount,
+      missingEvidenceCount: row.missingEvidenceCount,
+      artifact: row.artifact,
+      objectiveStatuses: (row.objectiveRows || []).map((entry) => ({
+        objectiveIndex: entry.objectiveIndex,
+        status: entry.status,
+        rubricCriteria: entry.rubricCriteria?.length || 0,
+        quizQuestionRoles: entry.quizQuestionRoles?.length || 0,
+      })),
     })),
   };
 }
@@ -8297,6 +8542,7 @@ function lessonSourceGrounding(lesson, extras = {}) {
     prerequisitePlan: clonePlain(lesson?.prerequisitePlan || null),
     conceptDependencyPlan: clonePlain(lesson?.conceptDependencyPlan || null),
     practiceProgressionPlan: clonePlain(lesson?.practiceProgressionPlan || null),
+    objectiveEvidencePlan: clonePlain(lesson?.objectiveEvidencePlan || null),
     masteryEvidencePlan: clonePlain(lesson?.masteryEvidencePlan || null),
     evidenceResponsePlan: clonePlain(lesson?.evidenceResponsePlan || null),
     instructionalRationale: clonePlain(lesson?.instructionalRationale || null),
@@ -9457,8 +9703,10 @@ export function buildCourseBlueprint(courseMap, options = {}) {
   lessons = attachConceptGraphToLessons(lessons, conceptDependencyGraph);
   lessons = attachMasteryEvidenceToLessons(lessons, assessments);
   lessons = attachEvidenceResponseToLessons(lessons);
+  lessons = attachObjectiveEvidenceToLessons(lessons, assessments);
   const masteryEvidenceMap = buildMasteryEvidenceMap(lessons);
   const evidenceResponseMap = buildEvidenceResponseMap(lessons);
+  const objectiveEvidenceMap = buildObjectiveEvidenceMap({ lessons, assessments });
   const compilerDecisionMatrix = buildCompilerDecisionMatrix(lessons);
   const assessmentArchitecture = buildAssessmentArchitecture({ lessons, assessments });
   const alignmentMatrix = buildCourseAlignmentMatrix(lessons, assessments);
@@ -9520,6 +9768,7 @@ export function buildCourseBlueprint(courseMap, options = {}) {
     conceptDependencyGraph,
     masteryEvidenceMap,
     evidenceResponseMap,
+    objectiveEvidenceMap,
     courseWorkload: buildCourseWorkload(lessons),
     learnerContextProfile,
     courseModalityProfile,
@@ -9736,6 +9985,7 @@ function compileSyllabus(blueprint) {
   const compactConceptGraph = compactConceptDependencyGraph(blueprint.conceptDependencyGraph);
   const compactMasteryMap = compactMasteryEvidenceMap(blueprint.masteryEvidenceMap);
   const compactResponseMap = compactEvidenceResponseMap(blueprint.evidenceResponseMap);
+  const compactObjectiveEvidence = compactObjectiveEvidenceMap(blueprint.objectiveEvidenceMap);
   const compactRiskRegister = compactSourceRiskRegister(blueprint.sourceRiskRegister);
   const compactDecisionMatrix = compactCompilerDecisionMatrix(blueprint.compilerDecisionMatrix);
   const compactAssessmentPlan = compactAssessmentArchitecture(blueprint.assessmentArchitecture);
@@ -9780,6 +10030,7 @@ function compileSyllabus(blueprint) {
         conceptDependencyGraph: compactConceptGraph,
         masteryEvidenceMap: compactMasteryMap,
         evidenceResponseMap: compactResponseMap,
+        objectiveEvidenceMap: compactObjectiveEvidence,
         learnerContextProfile: blueprint.learnerContextProfile,
         courseModalityProfile: blueprint.courseModalityProfile,
         sourceConflictReport: compactSourceConflicts,
@@ -9801,6 +10052,7 @@ function compileSyllabus(blueprint) {
       conceptDependencyGraph: compactConceptGraph,
       masteryEvidenceMap: compactMasteryMap,
       evidenceResponseMap: compactResponseMap,
+      objectiveEvidenceMap: compactObjectiveEvidence,
       sourceConflictReport: compactSourceConflicts,
       sourceRiskRegister: compactRiskRegister,
       compilerDecisionMatrix: compactDecisionMatrix,
@@ -9879,6 +10131,7 @@ function compileSyllabus(blueprint) {
         conceptTransferCue: row.conceptTransferCue,
         practiceProgressionCue: row.practiceProgressionCue,
         practiceProgressionTransferCue: row.practiceProgressionTransferCue,
+        objectiveEvidenceCue: row.objectiveEvidenceCue,
         feedbackUse: row.feedbackUse,
         misconceptionCheck: row.misconceptionCheck,
         modelContrastCue: row.modelContrastCue,
@@ -10119,6 +10372,7 @@ function compileAssignments(blueprint) {
         overview: `${assessmentArtifact} is a ${assessment.roleLabel || 'course assessment'} worth ${assessment.weight}; it asks students to turn ${assessment.relatedLessons[0]} concepts into a concrete ${submissionProfile.assignmentType.toLowerCase()}. The task is designed to show how students use evidence for ${assessmentTitle}, make decisions, and prepare for later work. Genre-specific quality focus: ${submissionProfile.qualityFocus}.`,
         gradingWeightProvenance: compactWeightProvenance(assessment.weightProvenance),
         objectives: assessment.objectives,
+        objectiveEvidenceChecklist: objectiveEvidenceChecklist(lesson.objectiveEvidencePlan),
         instructions: [
           lesson.prerequisitePlan?.diagnosticCheck ||
             `Confirm you can connect prerequisite knowledge to ${assessmentTitle} before drafting.`,
@@ -10363,6 +10617,7 @@ function compileRubrics(blueprint) {
         criterionEvidenceMap: assessment.criterionEvidenceMap,
         criterionWeightPlan,
         criterionObjectiveAlignment: assessment.criterionObjectiveAlignment,
+        objectiveEvidenceChecklist: objectiveEvidenceChecklist(lesson?.objectiveEvidencePlan),
         criterionWeightGuidance: `Weight criterion feedback by instructional importance: ${criterionWeightPlan
           .map((entry) => `${entry.priority} ${entry.weight}%`)
           .join('; ')}.`,
@@ -10552,7 +10807,11 @@ function quizObjectiveAlignmentForRole(lesson, assessment = {}, role = '') {
 
 function buildQuizQuestionPlan({ lesson, assessment = {}, targetCount = 6 }) {
   const lessonBloom = lesson.bloomsLevel || lesson.difficultyProfile?.bloomsLevel || 'Apply';
-  const objectiveFallback = lesson.outcomes?.[0] || objectiveForLesson(lesson.title, lesson.keyConcepts);
+  const lessonObjectives =
+    Array.isArray(lesson.outcomes) && lesson.outcomes.length > 0
+      ? lesson.outcomes.map((objective) => cleanText(objective)).filter(Boolean)
+      : [objectiveForLesson(lesson.title, lesson.keyConcepts)];
+  const objectiveFallback = lessonObjectives[0] || objectiveForLesson(lesson.title, lesson.keyConcepts);
   const sourceSignal = lesson.bloomInference?.matchedSignal || lesson.outcomes?.join('; ') || lesson.title;
   const highDemandBloom = ['Evaluate', 'Create'].includes(lessonBloom) ? lessonBloom : nextHigherBloom(lessonBloom);
   const analysisBloom = 'Analyze';
@@ -10609,16 +10868,30 @@ function buildQuizQuestionPlan({ lesson, assessment = {}, targetCount = 6 }) {
     },
   ];
 
+  const usedObjectiveKeys = new Set();
   return planRows.slice(0, targetCount).map((row, index) => {
     const objectiveAlignment = quizObjectiveAlignmentForRole(lesson, assessment, row.role);
+    const alignedObjective = objectiveAlignment?.objective || '';
+    const alignedKey = normalizeObjectiveKey(alignedObjective);
+    const nextUncoveredObjective = lessonObjectives.find(
+      (objective) => !usedObjectiveKeys.has(normalizeObjectiveKey(objective)),
+    );
+    const usesCoverageObjective = Boolean(
+      nextUncoveredObjective && (!alignedObjective || usedObjectiveKeys.has(alignedKey)),
+    );
+    const objective = usesCoverageObjective ? nextUncoveredObjective : alignedObjective || objectiveFallback;
+    usedObjectiveKeys.add(normalizeObjectiveKey(objective));
     return {
       ...row,
       questionIndex: index,
-      objective: objectiveAlignment?.objective || objectiveFallback,
-      objectiveAlignmentStrategy: objectiveAlignment?.strategy || 'lesson-primary-objective',
-      objectiveAlignmentRationale:
-        objectiveAlignment?.rationale ||
-        'Question uses the primary lesson objective because no stronger criterion match was available.',
+      objective,
+      objectiveAlignmentStrategy: usesCoverageObjective
+        ? 'lesson-objective-coverage'
+        : objectiveAlignment?.strategy || 'lesson-primary-objective',
+      objectiveAlignmentRationale: usesCoverageObjective
+        ? 'Question plan rotates through lesson objectives so every objective receives at least one quiz/check item before repeating.'
+        : objectiveAlignment?.rationale ||
+          'Question uses the primary lesson objective because no stronger criterion match was available.',
       source: 'source-grounded-quiz-plan',
     };
   });
@@ -10853,6 +11126,7 @@ function compileQuizBank(blueprint, config = {}) {
         bloomInference: lesson.bloomInference || null,
         questionPlan: questions.map((question) => question.quizPlan),
       },
+      objectiveEvidenceChecklist: objectiveEvidenceChecklist(lesson.objectiveEvidencePlan),
       formativeFeedbackNote: `For ${lesson.title}, administer these questions after students practice ${compactList(lesson.keyConcepts, 'the lesson concepts', 3)}. ${lesson.prerequisitePlan?.diagnosticCheck || 'Check prerequisite understanding before scoring readiness.'} ${assessment.anchorExampleSet?.scorerCalibrationUse || 'Compare responses against strong and partial anchor examples before scoring.'} ${lesson.learningTransferPlan?.spacedPracticeCue || 'Use the results as spaced retrieval before the next artifact.'} Review missed items within one class session, allow screen-reader-friendly text formats or extended time as needed, and ask students to use results to revise ${lesson.studentArtifact}. Estimated completion time is ${totalMinutes} minutes.${preference ? ` Preference profile: ${preference}.` : ''}`,
       questions,
       assessmentBlueprint: `${lesson.title} covers ${lesson.outcomes.join('; ')} with a source-grounded quiz plan for ${compactList(lesson.keyConcepts, stripLessonPrefix(lesson.title), 3)} and ${stripTerminalPunctuation(lesson.studentArtifact)}: ${questions.map((question) => `${question.quizPlan.role} -> ${question.bloomsLevel}`).join('; ')}. ${lesson.learningTransferPlan?.transferTask || `Students transfer quiz evidence into ${lesson.studentArtifact}.`} Results indicate which parts of ${lesson.studentArtifact} need reteaching or feedback.${preference ? ` Instructor preference: ${preference}.` : ''}`,
@@ -12278,6 +12552,7 @@ function compileLessonPlans(blueprint) {
           6,
         ),
         objectives: lesson.outcomes,
+        objectiveEvidenceChecklist: objectiveEvidenceChecklist(lesson.objectiveEvidencePlan),
         materials,
         warmUp: {
           duration: '10 minutes',
@@ -12377,6 +12652,9 @@ function compileLessonPlans(blueprint) {
           practiceProgressionReviewerCue:
             lesson.practiceProgressionPlan?.reviewerCue ||
             `Confirm the lesson builds from prior knowledge, visible practice, feedback, and transfer.`,
+          objectiveEvidenceCheck:
+            lesson.objectiveEvidencePlan?.policy ||
+            `Confirm each objective is visible in practice, assessment, scoring, quiz/check evidence, feedback, and revision for ${artifact}.`,
           masteryDiagnosticEvidence:
             lesson.masteryEvidencePlan?.diagnosticEvidence ||
             `Check whether students can explain ${concept} before new instruction begins.`,

@@ -2456,6 +2456,35 @@ describe('courseBlueprintCompiler', () => {
         expect.objectContaining({ state: 'needs-support' }),
       ]),
     });
+    expect(blueprint.objectiveEvidenceMap).toMatchObject({
+      status: 'complete',
+      missingEvidenceCount: 0,
+      totalObjectiveRows: expect.any(Number),
+      checkedEvidenceTypes: expect.arrayContaining(['practice', 'assessment', 'rubric', 'quiz-check']),
+      lessonRows: expect.arrayContaining([
+        expect.objectContaining({
+          lessonNumber: 1,
+          objectiveCount: expect.any(Number),
+          missingEvidenceCount: 0,
+          artifact: 'Policy memo checkpoint 1',
+        }),
+      ]),
+    });
+    expect(blueprint.lessons[0].objectiveEvidencePlan).toMatchObject({
+      status: 'complete',
+      missingEvidenceCount: 0,
+      objectiveRows: expect.arrayContaining([
+        expect.objectContaining({
+          objective: expect.stringContaining('policy evidence 1'),
+          practiceEvidence: expect.stringContaining('Small-group policy lab 1'),
+          assessmentEvidence: 'Policy memo checkpoint 1',
+          rubricCriteria: expect.arrayContaining([expect.stringContaining('Policy Topic 1')]),
+          quizQuestionRoles: expect.arrayContaining(['diagnostic-retrieval']),
+          feedbackEvidence: expect.stringContaining('criterion-level feedback'),
+          revisionEvidence: expect.stringContaining('evidence-backed Policy Topic 1 reasoning'),
+        }),
+      ]),
+    });
     expect(blueprint.courseWorkload.averagePerLessonHours).toBeGreaterThan(2);
     expect(blueprint.courseWorkload).toMatchObject({
       timingStatus: 'fits-session',
@@ -2759,6 +2788,8 @@ describe('courseBlueprintCompiler', () => {
       conceptGraphStatus: 'sequenced',
       masteryEvidenceStatus: 'complete',
       evidenceResponseStatus: 'complete',
+      objectiveEvidenceStatus: 'complete',
+      objectiveEvidenceMissingCount: 0,
     });
     expect(blueprint.alignmentMatrix).toHaveLength(4);
     expect(blueprint.alignmentMatrix[0]).toMatchObject({
@@ -2773,6 +2804,7 @@ describe('courseBlueprintCompiler', () => {
     expect(blueprint.alignmentMatrix[0].prerequisiteCue).toContain('define Policy Topic 1');
     expect(blueprint.alignmentMatrix[0].conceptDependencyCue).toContain('checking readiness for Policy Topic 1');
     expect(blueprint.alignmentMatrix[0].practiceProgressionCue).toContain('stakeholder');
+    expect(blueprint.alignmentMatrix[0].objectiveEvidenceCue).toContain('Policy memo checkpoint 1');
     expect(blueprint.alignmentMatrix[0].masteryDiagnosticCue).toContain('ready when they can cite');
     expect(blueprint.alignmentMatrix[0].masteryGuidedPracticeCue).toContain('stakeholder/equity effect');
     expect(blueprint.alignmentMatrix[0].masteryPerformanceCue).toContain('Policy memo checkpoint 1');
@@ -3037,6 +3069,7 @@ describe('courseBlueprintCompiler', () => {
       conceptDependencyGraph: {},
       masteryEvidenceMap: {},
       evidenceResponseMap: {},
+      objectiveEvidenceMap: {},
       lessons: [
         {
           ...blueprint.lessons[0],
@@ -3052,6 +3085,7 @@ describe('courseBlueprintCompiler', () => {
           prerequisitePlan: {},
           conceptDependencyPlan: {},
           practiceProgressionPlan: {},
+          objectiveEvidencePlan: {},
           masteryEvidencePlan: {},
           evidenceResponsePlan: {},
           instructionalRationale: {},
@@ -3114,6 +3148,8 @@ describe('courseBlueprintCompiler', () => {
         'masteryEvidencePlan',
         'evidenceResponseMap',
         'evidenceResponsePlan',
+        'objectiveEvidenceMap',
+        'objectiveEvidencePlan',
         'modalityCue',
         'modalityDecode',
         'artifactGenre',

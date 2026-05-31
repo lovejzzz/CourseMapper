@@ -397,6 +397,23 @@ describe('gold sample quality audit', () => {
             result.evidenceResponse.rows.every((row) => row.decisionStates >= 3 && row.checkedFeatures === 9),
           ),
         ).toBe(true);
+        expect(payload.results.every((result) => result.objectiveEvidenceSummary.status === 'pass')).toBe(true);
+        expect(payload.results.every((result) => result.objectiveEvidenceSummary.lessonRows === result.scope)).toBe(
+          true,
+        );
+        expect(payload.results.every((result) => result.objectiveEvidenceSummary.objectiveRows >= result.scope)).toBe(
+          true,
+        );
+        expect(payload.results.every((result) => result.objectiveEvidenceSummary.checkedEvidenceTypes >= 6)).toBe(true);
+        expect(payload.results.every((result) => result.objectiveEvidenceSummary.blueprintFindings === 0)).toBe(true);
+        expect(payload.results.every((result) => result.objectiveEvidenceSummary.compiledFindings === 0)).toBe(true);
+        expect(
+          payload.results.every((result) =>
+            result.objectiveEvidence.rows.every(
+              (row) => row.objectiveRows > 0 && row.missingObjectiveRows === 0 && row.checkedFeatures === 9,
+            ),
+          ),
+        ).toBe(true);
         expect(payload.results.every((result) => result.fidelitySummary.checkedFeatures === 9)).toBe(true);
         expect(payload.results.every((result) => result.fidelitySummary.findings === 0)).toBe(true);
         expect(payload.results.every((result) => result.copySpecificitySummary.status === 'pass')).toBe(true);
@@ -466,6 +483,7 @@ describe('gold sample quality audit', () => {
         expect(markdown).toContain('Concept Dependency Graph Matrix');
         expect(markdown).toContain('Mastery Evidence Matrix');
         expect(markdown).toContain('Evidence Response Matrix');
+        expect(markdown).toContain('Objective Evidence Matrix');
         expect(markdown).toContain('Copy Specificity Matrix');
         expect(markdown).toContain('Blueprint Fidelity Matrix');
         expect(markdown).toContain('Enrichment Impact Matrix');
@@ -657,6 +675,55 @@ describe('gold sample quality audit', () => {
           expect.objectContaining({
             featureId: 'blueprint',
             check: 'compilerContract',
+          }),
+        ]),
+      );
+    } finally {
+      await closeHybridPipelineAuditRuntime();
+    }
+  });
+
+  it('blocks when objective-level evidence coverage is missing', async () => {
+    const runtime = await loadHybridPipelineAuditRuntime();
+    try {
+      const result = auditGoldSample({
+        sample: DEFAULT_GOLD_SAMPLES[0],
+        runtime: {
+          ...runtime,
+          buildCourseBlueprint: (...args) => {
+            const blueprint = runtime.buildCourseBlueprint(...args);
+            return {
+              ...blueprint,
+              objectiveEvidenceMap: null,
+              lessons: blueprint.lessons.map((lesson, index) =>
+                index === 0
+                  ? {
+                      ...lesson,
+                      objectiveEvidencePlan: {
+                        ...lesson.objectiveEvidencePlan,
+                        status: 'needs-review',
+                        missingEvidenceCount: 1,
+                        objectiveRows: [],
+                      },
+                    }
+                  : lesson,
+              ),
+            };
+          },
+        },
+      });
+
+      expect(result.summary.status).toBe('blocked');
+      expect(result.objectiveEvidenceSummary.status).toBe('blocked');
+      expect(result.findings).toEqual(
+        expect.arrayContaining([
+          expect.objectContaining({
+            featureId: 'blueprint',
+            check: 'objectiveEvidenceMap',
+          }),
+          expect.objectContaining({
+            featureId: 'blueprint',
+            check: 'objectiveEvidencePlan',
           }),
         ]),
       );

@@ -8272,6 +8272,24 @@ function auditBlueprintMaturity(blueprint, scope, expectedLens = {}) {
     );
   }
   if (
+    blueprint?.objectiveEvidenceMap?.status !== 'complete' ||
+    !Array.isArray(blueprint?.objectiveEvidenceMap?.lessonRows) ||
+    blueprint.objectiveEvidenceMap.lessonRows.length !== scope ||
+    !Array.isArray(blueprint?.objectiveEvidenceMap?.checkedEvidenceTypes) ||
+    blueprint.objectiveEvidenceMap.checkedEvidenceTypes.length < 6 ||
+    blueprint.objectiveEvidenceMap.missingEvidenceCount !== 0 ||
+    blueprint.objectiveEvidenceMap.totalObjectiveRows < scope
+  ) {
+    findings.push(
+      makeFinding(
+        'blocker',
+        'blueprint',
+        'objectiveEvidenceMap',
+        'Blueprint is missing a complete objective evidence map.',
+      ),
+    );
+  }
+  if (
     !blueprint?.courseWorkload?.averagePerLessonMinutes ||
     !blueprint?.courseWorkload?.averagePlannedClassMinutes ||
     !blueprint?.courseWorkload?.timingStatus
@@ -8814,6 +8832,21 @@ function auditBlueprintMaturity(blueprint, scope, expectedLens = {}) {
       );
     }
     if (
+      lesson.objectiveEvidencePlan?.status !== 'complete' ||
+      !Array.isArray(lesson.objectiveEvidencePlan?.objectiveRows) ||
+      lesson.objectiveEvidencePlan.objectiveRows.length < lesson.outcomes.length ||
+      Number(lesson.objectiveEvidencePlan.missingEvidenceCount || 0) !== 0
+    ) {
+      findings.push(
+        makeFinding(
+          'blocker',
+          'blueprint',
+          'objectiveEvidencePlan',
+          `${prefix} is missing objective-level evidence coverage.`,
+        ),
+      );
+    }
+    if (
       !lesson.masteryEvidencePlan?.diagnosticEvidence ||
       !lesson.masteryEvidencePlan?.guidedPracticeEvidence ||
       !lesson.masteryEvidencePlan?.independentPerformanceEvidence ||
@@ -9027,6 +9060,7 @@ function auditBlueprintMaturity(blueprint, scope, expectedLens = {}) {
     sourceConflictReport: blueprint?.sourceConflictReport || null,
     sourceRiskRegister: blueprint?.sourceRiskRegister || null,
     assessmentArchitecture: blueprint?.assessmentArchitecture || null,
+    objectiveEvidenceMap: blueprint?.objectiveEvidenceMap || null,
     blueprintAssumptionLedger: blueprint?.blueprintAssumptionLedger || null,
     blueprintReviewSurface: blueprint?.blueprintReviewSurface || null,
     compilerPath: blueprint?.compilerPath || null,
@@ -9130,6 +9164,7 @@ function buildBlueprintAlignmentFindings(blueprint, scope) {
       !row.prerequisiteCue ||
       !row.conceptDependencyCue ||
       !row.practiceProgressionCue ||
+      !row.objectiveEvidenceCue ||
       !row.masteryDiagnosticCue ||
       !row.masteryGuidedPracticeCue ||
       !row.masteryPerformanceCue ||
@@ -9161,7 +9196,7 @@ function buildBlueprintAlignmentFindings(blueprint, scope) {
           'blocker',
           'blueprint',
           'alignmentTeachingLoop',
-          `${prefix} is missing evidence, source evidence, source risk, source-use, prerequisite-readiness, concept-dependency, practice-progression, mastery-evidence, evidence-response decisions, modality-fit, modality teaching pattern, artifact genre, criterion-weighting, criterion-evidence, anchor-example, teaching-intent, feedback, revision, retrieval/transfer, misconception, exemplar-contrast, readiness-support, instructional-rationale, accessibility, or grading-calibration alignment.`,
+          `${prefix} is missing evidence, source evidence, source risk, source-use, prerequisite-readiness, concept-dependency, practice-progression, objective-evidence, mastery-evidence, evidence-response decisions, modality-fit, modality teaching pattern, artifact genre, criterion-weighting, criterion-evidence, anchor-example, teaching-intent, feedback, revision, retrieval/transfer, misconception, exemplar-contrast, readiness-support, instructional-rationale, accessibility, or grading-calibration alignment.`,
         ),
       );
     }
@@ -11107,6 +11142,172 @@ function buildEvidenceResponseAudit({ blueprint, compiledFeatures, compiled }) {
     lessonRows: rows.length,
     checkedFeatures: lessonFeatures.length,
     checkedStates: blueprint?.evidenceResponseMap?.checkedStates?.length || 0,
+    blueprintFindings,
+    compiledFindings,
+    findings,
+    rows,
+  };
+}
+
+function hasObjectiveEvidenceContract(blueprint = {}, scope = 0) {
+  const map = blueprint.objectiveEvidenceMap || {};
+  return Boolean(
+    map.status === 'complete' &&
+    Array.isArray(map.lessonRows) &&
+    map.lessonRows.length === scope &&
+    Array.isArray(map.checkedEvidenceTypes) &&
+    map.checkedEvidenceTypes.length >= 6 &&
+    map.totalObjectiveRows >= scope &&
+    map.missingEvidenceCount === 0,
+  );
+}
+
+function objectiveEvidenceTraceForFeature(featureId, item = {}, grounding = {}) {
+  if (featureId === 'syllabus') {
+    return collectStrings({
+      objectiveEvidenceCue: item.objectiveEvidenceCue,
+      objectiveEvidenceMap: item.blueprintQualityReceipt?.objectiveEvidenceMap || item.objectiveEvidenceMap,
+      lessonAlignmentMatrix: item.lessonAlignmentMatrix,
+      outcomeAlignmentMatrix: item.outcomeAlignmentMatrix,
+    }).join(' ');
+  }
+  return collectStrings({
+    objectiveEvidencePlan: grounding.objectiveEvidencePlan || item.objectiveEvidencePlan,
+    objectiveEvidenceChecklist: item.objectiveEvidenceChecklist,
+    objectives: item.objectives || item.learningObjectives,
+    quizBlueprint: item.quizBlueprint,
+  }).join(' ');
+}
+
+function buildObjectiveEvidenceAudit({ blueprint, compiledFeatures, compiled }) {
+  const findings = [];
+  const lessons = Array.isArray(blueprint?.lessons) ? blueprint.lessons : [];
+  const scope = lessons.length;
+  const lessonFeatures = [
+    'syllabus',
+    'lessonPlans',
+    'slideDecks',
+    'assignments',
+    'rubrics',
+    'discussions',
+    'quizBank',
+    'studyGuides',
+    'courseFaq',
+  ].filter((featureId) => compiledFeatures.includes(featureId));
+
+  if (!hasObjectiveEvidenceContract(blueprint, scope)) {
+    findings.push(
+      makeFinding(
+        'blocker',
+        'blueprint',
+        'objectiveEvidenceMap',
+        'Blueprint is missing complete objective-level practice, assessment, rubric, quiz/check, feedback, and revision evidence.',
+      ),
+    );
+  }
+
+  const rows = lessons.map((lesson, index) => {
+    const lessonLabel = `Lesson ${lesson.lessonNumber}`;
+    const plan = lesson.objectiveEvidencePlan || {};
+    const objectiveRows = Array.isArray(plan.objectiveRows) ? plan.objectiveRows : [];
+    const missingFeatures = [];
+    const compiledFindingsBefore = findings.length;
+
+    if (
+      plan.status !== 'complete' ||
+      objectiveRows.length < (lesson.outcomes || []).length ||
+      Number(plan.missingEvidenceCount || 0) !== 0 ||
+      objectiveRows.some(
+        (row) =>
+          !row.objective ||
+          !row.practiceEvidence ||
+          !row.assessmentEvidence ||
+          !Array.isArray(row.rubricCriteria) ||
+          row.rubricCriteria.length === 0 ||
+          !Array.isArray(row.quizQuestionRoles) ||
+          row.quizQuestionRoles.length === 0 ||
+          !row.feedbackEvidence ||
+          !row.revisionEvidence,
+      )
+    ) {
+      findings.push(
+        makeFinding(
+          'blocker',
+          'blueprint',
+          'objectiveEvidencePlan',
+          `${lessonLabel} is missing complete objective-level evidence rows.`,
+        ),
+      );
+    }
+
+    for (const featureId of lessonFeatures) {
+      const item = featureItemForLesson(featureId, compiled[featureId], index);
+      const itemText = collectStrings(item).join(' ');
+      const grounding = structuredGroundingForFeature(featureId, item);
+      const traceText = `${objectiveEvidenceTraceForFeature(featureId, item, grounding)} ${itemText}`;
+      if (!itemText) {
+        missingFeatures.push(featureId);
+        findings.push(
+          makeFinding('blocker', featureId, 'objectiveEvidenceItem', `${lessonLabel} has no compiled item.`),
+        );
+        continue;
+      }
+      for (const row of objectiveRows) {
+        if (row.objective && !hasKeywordTrace(row.objective, traceText, 8)) {
+          missingFeatures.push(featureId);
+          findings.push(
+            makeFinding(
+              'blocker',
+              featureId,
+              'objectiveEvidenceObjectiveTrace',
+              `${lessonLabel} output does not preserve objective-level evidence for objective ${row.objectiveIndex}.`,
+            ),
+          );
+        }
+        if (row.practiceEvidence && !hasKeywordTrace(row.practiceEvidence, traceText, 8)) {
+          missingFeatures.push(featureId);
+          findings.push(
+            makeFinding(
+              'blocker',
+              featureId,
+              'objectiveEvidencePracticeTrace',
+              `${lessonLabel} output does not preserve objective-level practice evidence for objective ${row.objectiveIndex}.`,
+            ),
+          );
+        }
+        if (row.assessmentEvidence && !hasKeywordTrace(row.assessmentEvidence, traceText, 8)) {
+          missingFeatures.push(featureId);
+          findings.push(
+            makeFinding(
+              'blocker',
+              featureId,
+              'objectiveEvidenceAssessmentTrace',
+              `${lessonLabel} output does not preserve objective-level assessment evidence for objective ${row.objectiveIndex}.`,
+            ),
+          );
+        }
+      }
+    }
+
+    return {
+      lessonNumber: lesson.lessonNumber,
+      objectiveRows: objectiveRows.length,
+      missingObjectiveRows: objectiveRows.filter((row) => row.status !== 'complete').length,
+      checkedFeatures: lessonFeatures.length,
+      compiledFindingCount: findings.length - compiledFindingsBefore,
+      missingFeatures: uniqueSignals(missingFeatures, lessonFeatures.length),
+    };
+  });
+
+  const blueprintFindings = findings.filter((finding) => finding.featureId === 'blueprint').length;
+  const compiledFindings = findings.length - blueprintFindings;
+  return {
+    status: summarizeFeatureStatus(findings),
+    lessonRows: rows.length,
+    objectiveRows:
+      blueprint?.objectiveEvidenceMap?.totalObjectiveRows || rows.reduce((sum, row) => sum + row.objectiveRows, 0),
+    checkedEvidenceTypes: blueprint?.objectiveEvidenceMap?.checkedEvidenceTypes?.length || 0,
+    checkedFeatures: lessonFeatures.length,
     blueprintFindings,
     compiledFindings,
     findings,
@@ -13117,6 +13318,7 @@ export function auditGoldSample({ sample, runtime, features = sample.features ||
   const conceptGraph = buildConceptGraphAudit({ blueprint, compiledFeatures, compiled });
   const masteryEvidence = buildMasteryEvidenceAudit({ blueprint, compiledFeatures, compiled });
   const evidenceResponse = buildEvidenceResponseAudit({ blueprint, compiledFeatures, compiled });
+  const objectiveEvidence = buildObjectiveEvidenceAudit({ blueprint, compiledFeatures, compiled });
   const compiledAlignmentFindings = buildCompiledAlignmentFindings({ blueprint, compiledFeatures, compiled });
   const blueprintFidelityFindings = buildBlueprintFidelityFindings({ blueprint, compiledFeatures, compiled });
   const copySpecificity = buildCopySpecificityAudit({ compiledFeatures, compiled });
@@ -13226,6 +13428,7 @@ export function auditGoldSample({ sample, runtime, features = sample.features ||
     ...conceptGraph.findings,
     ...masteryEvidence.findings,
     ...evidenceResponse.findings,
+    ...objectiveEvidence.findings,
     ...blueprintAlignmentFindings,
     ...compiledAlignmentFindings,
     ...blueprintFidelityFindings,
@@ -13371,6 +13574,17 @@ export function auditGoldSample({ sample, runtime, features = sample.features ||
       findings: evidenceResponse.findings.length,
     },
     evidenceResponse,
+    objectiveEvidenceSummary: {
+      status: objectiveEvidence.status,
+      lessonRows: objectiveEvidence.lessonRows,
+      objectiveRows: objectiveEvidence.objectiveRows,
+      checkedEvidenceTypes: objectiveEvidence.checkedEvidenceTypes,
+      checkedFeatures: objectiveEvidence.checkedFeatures,
+      blueprintFindings: objectiveEvidence.blueprintFindings,
+      compiledFindings: objectiveEvidence.compiledFindings,
+      findings: objectiveEvidence.findings.length,
+    },
+    objectiveEvidence,
     fidelitySummary: {
       checkedFeatures: compiledFeatures.filter((featureId) =>
         [
@@ -13621,6 +13835,10 @@ export function renderGoldSampleQualityAuditMarkdown(payload) {
     (result) =>
       `| ${result.sampleId} | ${result.evidenceResponseSummary?.status || 'missing'} | ${result.evidenceResponseSummary?.lessonRows ?? 0} | ${result.evidenceResponseSummary?.checkedStates ?? 0} | ${result.evidenceResponseSummary?.checkedFeatures ?? 0} | ${result.evidenceResponseSummary?.blueprintFindings ?? 0} | ${result.evidenceResponseSummary?.compiledFindings ?? 0} |`,
   );
+  const objectiveEvidenceRows = payload.results.map(
+    (result) =>
+      `| ${result.sampleId} | ${result.objectiveEvidenceSummary?.status || 'missing'} | ${result.objectiveEvidenceSummary?.lessonRows ?? 0} | ${result.objectiveEvidenceSummary?.objectiveRows ?? 0} | ${result.objectiveEvidenceSummary?.checkedEvidenceTypes ?? 0} | ${result.objectiveEvidenceSummary?.checkedFeatures ?? 0} | ${result.objectiveEvidenceSummary?.blueprintFindings ?? 0} | ${result.objectiveEvidenceSummary?.compiledFindings ?? 0} |`,
+  );
   const fidelityRows = payload.results.map(
     (result) =>
       `| ${result.sampleId} | ${result.fidelitySummary?.checkedFeatures ?? 0} | ${result.fidelitySummary?.findings ?? 0} |`,
@@ -13802,6 +14020,14 @@ export function renderGoldSampleQualityAuditMarkdown(payload) {
       '| Gold Sample | Status | Lessons | Checked States | Checked Features | Blueprint Findings | Compiled Findings |',
       '| --- | --- | ---: | ---: | ---: | ---: | ---: |',
       ...evidenceResponseRows,
+    ]),
+    '',
+    '## Objective Evidence Matrix',
+    '',
+    markdownTable([
+      '| Gold Sample | Status | Lessons | Objective Rows | Evidence Types | Checked Features | Blueprint Findings | Compiled Findings |',
+      '| --- | --- | ---: | ---: | ---: | ---: | ---: | ---: |',
+      ...objectiveEvidenceRows,
     ]),
     '',
     '## Blueprint Fidelity Matrix',
