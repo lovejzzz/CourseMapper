@@ -68,6 +68,7 @@ import { traceLog } from '../lib/traceLog';
 
 const PROVIDER_CALL_EVENT_TYPES = new Set([
   'deliverableChunkCall',
+  'blueprintEnrichmentCall',
   'repairRetryCall',
   'streamRetryCall',
   'retriedCall',
@@ -78,6 +79,15 @@ const PROVIDER_CALL_EVENT_TYPES = new Set([
 function getProviderCallEventCount(event = {}) {
   if (!PROVIDER_CALL_EVENT_TYPES.has(event.type)) return 0;
   return Number.isFinite(event.count) ? Math.max(0, event.count) : 1;
+}
+
+async function loadInstructorPreferenceProfile() {
+  try {
+    const { loadCurrentInstructorPreferenceProfile } = await import('../lib/instructorPreferenceRuntime');
+    return loadCurrentInstructorPreferenceProfile();
+  } catch {
+    return null;
+  }
 }
 
 // ── Post-process scoped deliverable output to fix lesson/week numbering ──
@@ -618,6 +628,11 @@ export default function useDeliverables({
       });
       const blueprintCompiledSet = new Set(blueprintCompiledFeatureIds);
       const toGenerate = requestedFeatures.filter((featureId) => !blueprintCompiledSet.has(featureId));
+      const blueprintEnrichmentMode =
+        generationOptions.useBlueprintEnrichment ?? generationPlan?.blueprintEnrichment ?? false;
+      const enrichmentModelAvailable = Boolean(provider && modelId && (provider === 'webllm' || apiKey));
+      const blueprintEnrichmentRequested =
+        costMode !== 'finalizerRetry' && blueprintCompiledFeatureIds.length > 0 && blueprintEnrichmentMode !== false;
 
       startedRef.current = true;
       timedOutFeaturesRef.current = new Set();
@@ -637,7 +652,7 @@ export default function useDeliverables({
 
       // ── 1. Create chunk plan ──
       const tasks = createChunkPlan(toGenerate, lessonCount, scopeIndices, generationPlan);
-      const costPlan = buildApiCostPlan({
+      const baseCostPlan = buildApiCostPlan({
         source: costMode,
         featureIds: toGenerate,
         lessonCount,
@@ -646,6 +661,15 @@ export default function useDeliverables({
         includeCourseMap: false,
         includeRepairRetryReserve: costMode !== 'finalizerRetry',
       });
+      const costPlan = blueprintEnrichmentRequested
+        ? {
+            ...baseCostPlan,
+            blueprintEnrichmentCalls: 1,
+            plannedCalls: baseCostPlan.plannedCalls + 1,
+            softCallLimit: baseCostPlan.softCallLimit + 1,
+            hardCallLimit: baseCostPlan.hardCallLimit + 1,
+          }
+        : baseCostPlan;
       const cappedCostPlan =
         maxProviderCalls === null
           ? costPlan
@@ -668,7 +692,9 @@ export default function useDeliverables({
           label: 'Deliverable call plan',
           detail: `${cappedCostPlan.deliverableChunkCalls} generation call${
             cappedCostPlan.deliverableChunkCalls === 1 ? '' : 's'
-          } + ${cappedCostPlan.repairRetryReserve} repair reserve${
+          }${blueprintEnrichmentRequested ? ' + 1 blueprint enrichment call' : ''} + ${
+            cappedCostPlan.repairRetryReserve
+          } repair reserve${
             compiledSavings > 0 ? `; blueprint compiler saves about ${compiledSavings} generation call(s)` : ''
           }`,
           costPlan: cappedCostPlan,
@@ -718,6 +744,7 @@ export default function useDeliverables({
         softCallLimit: cappedCostPlan.softCallLimit,
         hardCallLimit: cappedCostPlan.hardCallLimit,
         maxProviderCalls,
+        blueprintEnrichmentRequested,
       });
       traceGenerationTable(
         generationRunId,
@@ -959,11 +986,83 @@ export default function useDeliverables({
         return true;
       };
 
-      const runBlueprintCompiler = () => {
+      const runBlueprintEnrichment = async (blueprintCourseMap) => {
+        if (!blueprintEnrichmentRequested) return null;
+        if (!enrichmentModelAvailable) {
+          appendLog('⚠ Blueprint enrichment skipped: no model', 'warn');
+          return null;
+        }
+        if (!hasProviderCallBudget()) {
+          appendLog('⚠ Blueprint enrichment skipped: call cap', 'warn');
+          return null;
+        }
+
+        const abortKey = 'blueprintEnrichment';
+        const controller = new AbortController();
+        abortMapRef.current.set(abortKey, controller);
+        const outputCap = Number(generationOptions.blueprintEnrichmentMaxOutputTokens) || 1800;
+        const enrichmentMaxOutputTokens = Math.max(512, Math.min(outputCap, Number(maxOutputTokens) || outputCap));
+
+        try {
+          const { buildBlueprintEnrichmentPrompt, chooseBlueprintEnrichmentPath, parseBlueprintEnrichmentResponse } =
+            await import('../lib/blueprintEnrichmentPass');
+          const decision = chooseBlueprintEnrichmentPath(blueprintCourseMap, {
+            mode: blueprintEnrichmentMode,
+            scopeIndices,
+            compiledFeatureIds: blueprintCompiledFeatureIds,
+            modelAvailable: enrichmentModelAvailable,
+            remainingProviderCalls: getRemainingProviderCalls(),
+            costMode,
+          });
+          if (!decision.shouldRunEnrichment) return null;
+          const prompts = buildBlueprintEnrichmentPrompt(blueprintCourseMap, { scopeIndices });
+          appendLog('Enriching blueprint...', 'progress');
+          recordGenerationApiCallEvent({
+            type: 'blueprintEnrichmentCall',
+            label: 'Enrich blueprint',
+            detail: `${prompts.approxInputTokens} input tokens estimated`,
+            featureId: 'blueprintEnrichment',
+          });
+          const result = await streamProvider(provider, apiKey, modelId, prompts.systemPrompt, prompts.userPrompt, {
+            maxOutputTokens: enrichmentMaxOutputTokens,
+            modelCapabilities,
+            generationPlan,
+            featureId: 'blueprintEnrichment',
+            task: 'blueprintEnrichment',
+            allowProviderFallback: maxProviderCalls === null || getRemainingProviderCalls() > 0,
+            onApiCallEvent: recordGenerationApiCallEvent,
+            signal: controller.signal,
+          });
+          const enrichment = parseBlueprintEnrichmentResponse(result?.fullText || '', { payload: prompts.payload });
+          if (!enrichment) {
+            appendLog('⚠ Blueprint enrichment was rejected by source-grounding checks', 'warn');
+            return null;
+          }
+          appendLog(
+            `✓ Blueprint enrichment applied (${enrichment.signatureTerms.length} terms, ${enrichment.quality?.sourceGroundingSignalCount || 0} source signal${enrichment.quality?.sourceGroundingSignalCount === 1 ? '' : 's'})`,
+            'done',
+          );
+          return enrichment;
+        } catch (err) {
+          if (err?.name === 'AbortError') {
+            appendLog('Blueprint enrichment stopped', 'warn');
+          } else {
+            appendLog(`⚠ Blueprint enrichment failed: ${err.message || 'model error'}`, 'warn');
+          }
+          return null;
+        } finally {
+          abortMapRef.current.delete(abortKey);
+        }
+      };
+
+      const runBlueprintCompiler = async () => {
         if (blueprintCompiledFeatureIds.length === 0) return;
         const compiledStart = Date.now();
         const labelList = blueprintCompiledFeatureIds.map(getFeatureLabel).join(', ');
-        appendLog(`Compiling ${labelList} from the course blueprint...`, 'progress');
+        appendLog(
+          `Compiling ${labelList} from the ${blueprintEnrichmentRequested ? 'enriched ' : ''}course blueprint...`,
+          'progress',
+        );
         const courseMapRepair = repairCourseMapReadiness({
           courseMap,
           columns,
@@ -972,7 +1071,7 @@ export default function useDeliverables({
         const blueprintCourseMap = courseMapRepair.courseMap || courseMap;
         if (courseMapRepair.changed) {
           appendLog(
-            `Course map sparse fields filled for blueprint compile: ${courseMapRepair.repairedFields.slice(0, 3).join('; ')}${courseMapRepair.repairedFields.length > 3 ? ` +${courseMapRepair.repairedFields.length - 3} more` : ''}`,
+            `Filled sparse fields for blueprint compile: ${courseMapRepair.repairedFields.slice(0, 3).join('; ')}${courseMapRepair.repairedFields.length > 3 ? ` +${courseMapRepair.repairedFields.length - 3} more` : ''}`,
             'progress',
           );
           traceGeneration(generationRunId, 'blueprint_course_map_repaired', {
@@ -980,7 +1079,25 @@ export default function useDeliverables({
             repairedFields: courseMapRepair.repairedFields,
           });
         }
-        const blueprint = buildCourseBlueprint(blueprintCourseMap, { scopeIndices });
+        const blueprintEnrichment = await runBlueprintEnrichment(blueprintCourseMap);
+        const instructorPreferenceProfile = await loadInstructorPreferenceProfile();
+        if (instructorPreferenceProfile?.signalCount > 0) {
+          appendLog(
+            `Applying ${instructorPreferenceProfile.signalCount} learned edit pattern${instructorPreferenceProfile.signalCount === 1 ? '' : 's'}...`,
+            'progress',
+          );
+        }
+        const blueprint = buildCourseBlueprint(blueprintCourseMap, {
+          scopeIndices,
+          enrichment: blueprintEnrichment,
+          compilerPath: {
+            mode: blueprintEnrichment ? 'enriched' : 'deterministic',
+            reason: blueprintEnrichment
+              ? 'Adaptive compiler accepted source-grounded enrichment before deterministic output.'
+              : 'Adaptive compiler used deterministic output without an enrichment call.',
+          },
+          instructorPreferences: instructorPreferenceProfile,
+        });
         const compilerConfigMap = Object.fromEntries(
           blueprintCompiledFeatureIds.map((featureId) => [featureId, getGenerationConfig(featureId)]),
         );
@@ -995,18 +1112,20 @@ export default function useDeliverables({
         );
         recordApiCallEvent({
           type: 'compiledDeliverable',
-          label: 'Blueprint compiler',
+          label: blueprintEnrichment ? 'Enriched blueprint compiler' : 'Blueprint compiler',
           detail: `Compiled ${blueprintCompiledFeatureIds.length} deliverable${
             blueprintCompiledFeatureIds.length === 1 ? '' : 's'
-          } without provider calls; saved about ${compiledSavings} generation call${compiledSavings === 1 ? '' : 's'}`,
+          }; saved about ${compiledSavings} generation call${compiledSavings === 1 ? '' : 's'}`,
           featureIds: blueprintCompiledFeatureIds,
           savedProviderCalls: compiledSavings,
-          compilerSource: 'blueprint',
+          compilerSource: blueprintEnrichment ? 'enriched-blueprint' : 'blueprint',
         });
         traceGeneration(generationRunId, 'blueprint_compiler_start', {
           featureIds: blueprintCompiledFeatureIds,
           lessonCount,
           savedProviderCalls: compiledSavings,
+          enrichmentSource: blueprintEnrichment?.source || null,
+          instructorPreferenceSignals: instructorPreferenceProfile?.signalCount || 0,
         });
 
         for (const fid of blueprintCompiledFeatureIds) {
@@ -1068,7 +1187,7 @@ export default function useDeliverables({
         }
       };
 
-      runBlueprintCompiler();
+      await runBlueprintCompiler();
 
       const runChunk = async ({ featureId, chunkIndex, chunkScope, isWholeCourse }) => {
         if (timedOutFeaturesRef.current.has(featureId)) return;
@@ -3202,11 +3321,13 @@ export default function useDeliverables({
         if (canCompileSyncLesson) {
           try {
             const { compileBlueprintLessonPatch } = await import('../lib/compiledLessonSync');
+            const instructorPreferenceProfile = await loadInstructorPreferenceProfile();
             const lessonPatchData = compileBlueprintLessonPatch({
               featureId,
               courseMap,
               lessonIndex,
               config: getGenerationConfig(featureId),
+              instructorPreferences: instructorPreferenceProfile,
             });
             if (lessonPatchData) {
               const finalParsed = prepareRegeneratedLessonData(featureId, lessonPatchData, lessonIndex, courseMap);
@@ -3240,6 +3361,7 @@ export default function useDeliverables({
                 lessonIndex,
                 lessonNumber: lessonIndex + 1,
                 itemCount: doneResult.itemCount,
+                instructorPreferenceSignals: instructorPreferenceProfile?.signalCount || 0,
               });
               markFreshLesson();
               return doneResult;

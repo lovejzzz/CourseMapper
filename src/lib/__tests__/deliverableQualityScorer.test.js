@@ -76,6 +76,27 @@ describe('scoreHeuristic', () => {
     expect(result.specificity).toBeGreaterThanOrEqual(6);
   });
 
+  it('recognizes A-quality trace evidence without treating internal heuristics as perfect proof', () => {
+    const traceEvidence = Array(20)
+      .fill(
+        [
+          'Students analyze evaluate create synthesize apply demonstrate design critique assess.',
+          'Use retrieval, spaced practice, transfer, metacognitive reflection, cumulative practice, revision, and feedback.',
+          'Evidence, source, criterion, criteria, success criteria, artifact, assessment, rubric, calibration, bias check, and target construct are visible.',
+          'Minutes, step, checklist, example, template, review, revise, share, score, support, extension, and diagnostic moves are ready.',
+          'Objective alignment, measurable learning outcome, variety, multiple support paths, accommodation, accessibility, interaction, collaboration, peer group active learning, source integrity, do not invent, local review, publish boundary, human review, learner context, and participation are explicit.',
+        ].join(' '),
+      )
+      .join(' ');
+    const result = scoreHeuristic('lessonPlans', { lessonPlans: [{ title: 'A-quality trace', body: traceEvidence }] });
+
+    expect(computeAvgScore(result)).toBe(9);
+    expect(result.bloomsAlignment).toBe(9);
+    expect(result.specificity).toBe(9);
+    expect(result.actionability).toBe(9);
+    expect(result.qmAlignment).toBe(9);
+  });
+
   it('scores lower for sparse content', () => {
     const result = scoreHeuristic('lessonPlans', { lessonPlans: [{ title: 'Intro' }] });
     expect(result.specificity).toBeLessThanOrEqual(5);

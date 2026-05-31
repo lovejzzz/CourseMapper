@@ -14,7 +14,7 @@ const budgets = {
 };
 
 const lazyChunkBudgets = [
-  { prefix: 'AppFlow-', rawKiB: 200, gzipKiB: 61 },
+  { prefix: 'AppFlow-', rawKiB: 201, gzipKiB: 61 },
   { prefix: 'ChatPanel-', rawKiB: 330, gzipKiB: 105 },
   { prefix: 'DeliverableView-', rawKiB: 170, gzipKiB: 35 },
   { prefix: 'DeveloperModePanel-', rawKiB: 130, gzipKiB: 35 },

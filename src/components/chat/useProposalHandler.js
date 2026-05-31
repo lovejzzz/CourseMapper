@@ -181,8 +181,14 @@ export default function useProposalHandler({
       // Record accepted edit pattern so agent learns user preferences
       recordEditPattern({
         featureId: action?.featureId || 'courseMap',
-        field: action?.type || 'proposal',
+        field:
+          action?.field ||
+          (Array.isArray(action?.path) ? action.path.join('.') : action?.path) ||
+          action?.type ||
+          'proposal',
         action: 'accepted',
+        path: action?.path || null,
+        lessonIndex: action?.lessonIndex ?? null,
       });
 
       setMessages((prev) => {
@@ -256,8 +262,14 @@ export default function useProposalHandler({
     if (action) {
       recordEditPattern({
         featureId: action.featureId || 'courseMap',
-        field: action.type || 'proposal',
+        field:
+          action.field ||
+          (Array.isArray(action.path) ? action.path.join('.') : action.path) ||
+          action.type ||
+          'proposal',
         action: 'rejected',
+        path: action.path || null,
+        lessonIndex: action.lessonIndex ?? null,
       });
     }
 

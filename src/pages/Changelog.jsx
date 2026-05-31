@@ -3,6 +3,58 @@ import Header from '../components/Header';
 
 const releases = [
   {
+    version: '0.8.1',
+    date: 'May 31, 2026',
+    title: 'A-Quality Blueprint Compiler Proof',
+    highlights: [
+      'The course blueprint is now a richer instructional representation with source confidence, teaching moves, review boundaries, and compiler decisions',
+      'Gold-sample and expert-review audits now check whether compiler output is classroom-ready, source-faithful, and transparent about what still needs human review',
+      'Compact enrichment and instructor preference learning are wired into the compiler path without returning to high-cost generation for the core package',
+    ],
+    sections: [
+      {
+        label: 'Blueprint Compiler',
+        icon: '✦',
+        color: 'indigo',
+        items: [
+          'Expanded the compact blueprint with course modality, learner context, evidence requirements, success criteria, source anchors, assumption ledgers, package coherence rows, and per-lesson compiler decisions.',
+          'Lesson plans, slide decks, assignments, rubrics, discussions, quiz banks, study guides, syllabus, FAQ, and safe custom deliverables now preserve blueprint grounding instead of relying on repeated model calls.',
+          'The compiler now exposes publish gates, model-use policy, local-review focus, and source-risk cues so instructors can see which parts are ready and which parts require confirmation.',
+        ],
+      },
+      {
+        label: 'Quality Proof',
+        icon: '🛡️',
+        color: 'emerald',
+        items: [
+          'Added audit:gold for curated classroom-quality regression checks across blueprint maturity, source fidelity, decode losslessness, instructional alignment, modality fit, artifact genre, teaching moves, and enrichment impact.',
+          'Added audit:expert, audit:expert:preflight, audit:expert:external, and audit:expert:packet so internal checks stay separate from external A-quality proof.',
+          'External proof packets now include source inputs, compact blueprints, full-package review files, reviewer scorecards, source-fidelity artifact rows, blueprint-quality rows, and assumption-ledger decisions.',
+        ],
+      },
+      {
+        label: 'Enrichment and Learning',
+        icon: '⚡',
+        color: 'amber',
+        items: [
+          'Added a compact blueprint enrichment pass that can use one source-grounded model call for course-specific phrasing and teaching moves before deterministic compilation.',
+          'Rejected generic, drifting, incomplete, or weakly grounded enrichment so the compiler falls back to deterministic output when the enrichment is not safe.',
+          'Added deterministic instructor preference profiles from accepted and rejected edits so repeated rubric, slide, quiz, pacing, and wording preferences can influence later compiler output.',
+        ],
+      },
+      {
+        label: 'Trust and Cost',
+        icon: '⚙',
+        color: 'slate',
+        items: [
+          'Developer Mode now tracks blueprint-enrichment calls alongside course-map, deliverable, repair, retry, fallback, agent, and image calls.',
+          'Receipts distinguish deterministic compile, enriched compile, local source-inferred repair, model fallback, and required human review.',
+          'The pipeline audit continues to prove the audited core package can compile with zero hybrid model calls while preserving validator and readiness quality.',
+        ],
+      },
+    ],
+  },
+  {
     version: '0.8',
     date: 'May 26, 2026',
     title: 'Cost-Efficient Hybrid Package Pipeline',

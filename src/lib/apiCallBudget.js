@@ -10,6 +10,7 @@ const PROVIDER_CALL_COUNTERS = [
   'capabilityProbeCalls',
   'courseMapCalls',
   'deliverableChunkCalls',
+  'blueprintEnrichmentCalls',
   'repairRetryCalls',
   'streamRetryCalls',
   'providerFallbackCalls',
@@ -50,6 +51,7 @@ export function createApiCallBudget(overrides = {}) {
     capabilityProbeCalls: overrides.capabilityProbeCalls || 0,
     courseMapCalls: overrides.courseMapCalls || 0,
     deliverableChunkCalls: overrides.deliverableChunkCalls || 0,
+    blueprintEnrichmentCalls: overrides.blueprintEnrichmentCalls || 0,
     repairRetryCalls: overrides.repairRetryCalls || 0,
     streamRetryCalls,
     providerFallbackCalls: overrides.providerFallbackCalls || 0,
@@ -87,6 +89,8 @@ function counterForType(type) {
       return 'courseMapCalls';
     case 'deliverableChunkCall':
       return 'deliverableChunkCalls';
+    case 'blueprintEnrichmentCall':
+      return 'blueprintEnrichmentCalls';
     case 'repairRetryCall':
       return 'repairRetryCalls';
     case 'streamRetryCall':

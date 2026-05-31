@@ -33,6 +33,7 @@ describe('apiCallBudget', () => {
     let budget = createApiCallBudget();
     budget = applyApiCallBudgetEvent(budget, { type: 'courseMapCall' });
     budget = applyApiCallBudgetEvent(budget, { type: 'deliverableChunkCall', count: 3 });
+    budget = applyApiCallBudgetEvent(budget, { type: 'blueprintEnrichmentCall' });
     budget = applyApiCallBudgetEvent(budget, { type: 'repairRetryCall' });
     budget = applyApiCallBudgetEvent(budget, { type: 'streamRetryCall' });
     budget = applyApiCallBudgetEvent(budget, { type: 'providerFallbackCall' });
@@ -42,6 +43,7 @@ describe('apiCallBudget', () => {
     expect(budget).toMatchObject({
       courseMapCalls: 1,
       deliverableChunkCalls: 3,
+      blueprintEnrichmentCalls: 1,
       repairRetryCalls: 1,
       streamRetryCalls: 1,
       retriedCalls: 1,
@@ -49,7 +51,7 @@ describe('apiCallBudget', () => {
       agentLoopCalls: 1,
       imageGenerationCalls: 2,
     });
-    expect(getApiCallBudgetTotal(budget)).toBe(10);
+    expect(getApiCallBudgetTotal(budget)).toBe(11);
   });
 
   it('drains model setup calls into the next generation run', () => {

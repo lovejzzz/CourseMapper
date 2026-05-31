@@ -168,9 +168,10 @@ export function touchMemory(id) {
  * Record a user edit pattern — called when user edits AI-generated content.
  * Automatically aggregates into a feedback memory.
  */
-export function recordEditPattern({ featureId, field, action, uid = null }) {
+export function recordEditPattern({ featureId, field, action, uid = null, path = null, lessonIndex = null }) {
   const category = 'feedback';
-  const content = `User frequently ${action} ${field ? `the "${field}" field` : 'content'} in ${featureId}.`;
+  const fieldLabel = field || (Array.isArray(path) ? path.join('.') : path);
+  const content = `User frequently ${action} ${fieldLabel ? `the "${fieldLabel}" field` : 'content'} in ${featureId}.`;
 
   // Check for existing pattern memory
   const memories = loadLocal();
@@ -178,7 +179,7 @@ export function recordEditPattern({ featureId, field, action, uid = null }) {
     (m) =>
       m.category === category &&
       m.meta?.featureId === featureId &&
-      m.meta?.field === field &&
+      m.meta?.field === fieldLabel &&
       m.meta?.action === action,
   );
 
@@ -201,7 +202,7 @@ export function recordEditPattern({ featureId, field, action, uid = null }) {
     accessCount: 1,
     createdAt: Date.now(),
     updatedAt: Date.now(),
-    meta: { featureId, field, action },
+    meta: { featureId, field: fieldLabel, action, path, lessonIndex },
   };
   memories.push(memory);
   saveLocal(memories);

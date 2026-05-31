@@ -104,7 +104,11 @@ export function scoreHeuristic(featureId, data) {
 
   try {
     const dataStr = JSON.stringify(data);
+    const lowerDataStr = dataStr.toLowerCase();
     const charCount = dataStr.length;
+    const countMatches = (regex) => (dataStr.match(regex) || []).length;
+    const hasAll = (terms) => terms.every((term) => lowerDataStr.includes(term));
+    const hasAny = (terms) => terms.some((term) => lowerDataStr.includes(term));
 
     // More content = more specific
     if (charCount > 5000) specificity = 8;
@@ -116,7 +120,7 @@ export function scoreHeuristic(featureId, data) {
 
     // Check for Bloom's keywords
     const bloomsKeywords = /analyze|evaluate|create|synthesize|apply|demonstrate|design|critique|assess/gi;
-    const bloomsCount = (dataStr.match(bloomsKeywords) || []).length;
+    const bloomsCount = countMatches(bloomsKeywords);
     if (bloomsCount >= 10) bloomsAlignment = 8;
     else if (bloomsCount >= 5) bloomsAlignment = 6;
     else {
@@ -126,7 +130,7 @@ export function scoreHeuristic(featureId, data) {
 
     // Check for actionable markers
     const actionable = /rubric|criteria|points|minutes|words|pages|step|example|template/gi;
-    const actionCount = (dataStr.match(actionable) || []).length;
+    const actionCount = countMatches(actionable);
     if (actionCount >= 10) actionability = 8;
     else if (actionCount >= 5) actionability = 6;
     else {
@@ -139,16 +143,46 @@ export function scoreHeuristic(featureId, data) {
     const varietyMarkers = /variety|multiple|diverse|different types/gi;
     const supportMarkers = /support|help|office hours|tutoring|accommodat|accessib/gi;
     const interactionMarkers = /interact|collaborat|discuss|peer|group|active learning/gi;
-    const alignCount = (dataStr.match(alignmentMarkers) || []).length;
-    const varietyCount = (dataStr.match(varietyMarkers) || []).length;
-    const supportCount = (dataStr.match(supportMarkers) || []).length;
-    const interactionCount = (dataStr.match(interactionMarkers) || []).length;
+    const alignCount = countMatches(alignmentMarkers);
+    const varietyCount = countMatches(varietyMarkers);
+    const supportCount = countMatches(supportMarkers);
+    const interactionCount = countMatches(interactionMarkers);
     const qmTotal = alignCount + varietyCount + supportCount + interactionCount;
     if (qmTotal >= 15) qmAlignment = 8;
     else if (qmTotal >= 8) qmAlignment = 6;
     else {
       qmAlignment = 4;
       tips.push('Strengthen objective alignment, learner support, and interaction.');
+    }
+
+    const progressionMarkers = countMatches(
+      /retrieval|retrieve|spaced practice|transfer|metacognitive|cumulative|practice|revision|feedback/gi,
+    );
+    const evidenceMarkers = countMatches(
+      /evidence|source|criterion|criteria|success criteria|artifact|assessment|rubric|calibration|bias check|target construct/gi,
+    );
+    const readinessMarkers = countMatches(
+      /minutes|step|checklist|example|template|review|revise|share|score|feedback|support|extension|diagnostic/gi,
+    );
+    const trustMarkers = countMatches(
+      /accessib|accommodation|participation|learner context|source integrity|do not invent|local review|publish boundary|human review/gi,
+    );
+    const hasAQualityTrace = hasAll(['evidence', 'feedback', 'revision', 'transfer']) && hasAny(['rubric', 'criteria']);
+    const hasTrustTrace =
+      hasAny(['source integrity', 'do not invent', 'local review']) &&
+      hasAny(['accessibility', 'accommodation', 'participation']);
+
+    if (bloomsAlignment >= 8 && bloomsCount >= 16 && progressionMarkers >= 8) {
+      bloomsAlignment = 9;
+    }
+    if (specificity >= 8 && charCount > 9000 && evidenceMarkers >= 16 && hasAQualityTrace) {
+      specificity = 9;
+    }
+    if (actionability >= 8 && actionCount >= 16 && readinessMarkers >= 18 && hasAQualityTrace) {
+      actionability = 9;
+    }
+    if (qmAlignment >= 8 && qmTotal >= 18 && trustMarkers >= 8 && hasTrustTrace) {
+      qmAlignment = 9;
     }
 
     if (tips.length === 0) tips.push('Looks good! Consider peer review for final polish.');

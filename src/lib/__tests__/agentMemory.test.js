@@ -167,6 +167,22 @@ describe('recordEditPattern', () => {
     const memories = getMemories().filter((m) => m.meta?.featureId === 'rubrics');
     expect(memories[0].importance).toBe(4); // >= 5 occurrences
   });
+
+  it('stores nested edit paths for compiler preference learning', () => {
+    const mem = recordEditPattern({
+      featureId: 'slideDecks',
+      action: 'accepted',
+      path: ['decks', 0, 'slides', 0, 'notes'],
+      lessonIndex: 0,
+    });
+
+    expect(mem.content).toContain('decks.0.slides.0.notes');
+    expect(mem.meta).toMatchObject({
+      featureId: 'slideDecks',
+      field: 'decks.0.slides.0.notes',
+      lessonIndex: 0,
+    });
+  });
 });
 
 describe('buildMemoryContext', () => {

@@ -99,6 +99,88 @@ function itemText(value) {
   return collectStrings(value).join(' ').replace(/\s+/g, ' ').trim();
 }
 
+const BOILERPLATE_METADATA_KEYS = new Set([
+  'sourceGrounding',
+  'blueprintGrounding',
+  'sourceAnchors',
+  'sourceEvidenceTrace',
+  'sourceEvidenceCue',
+  'sourceRisk',
+  'sourceRiskRegister',
+  'sourceRiskLevel',
+  'assessmentArchitecture',
+  'gradingWeightProvenance',
+  'assessmentCadence',
+  'assessmentRole',
+  'assessmentStakes',
+  'criterionWeightPlan',
+  'criterionWeightGuidance',
+  'criterionWeightCue',
+  'weightedGradingCriteria',
+  'localReviewNeeded',
+  'workloadEstimate',
+  'classSessionPlan',
+  'outlineTiming',
+  'slideTimingFit',
+  'difficultyProfile',
+  'teachingIntent',
+  'prerequisitePlan',
+  'prerequisitePrompt',
+  'prerequisiteDiagnostic',
+  'prerequisiteReteach',
+  'prerequisiteAcceleration',
+  'prerequisiteLocalReview',
+  'anchorExampleSet',
+  'anchorExampleGuidance',
+  'anchorExamples',
+  'anchorExamplePrompt',
+  'anchorExampleStrong',
+  'anchorExamplePartial',
+  'anchorExampleRevision',
+  'modalityCue',
+  'modalityDecode',
+  'courseModalityProfile',
+  'compilerDecision',
+  'compilerDecisionMatrix',
+  'modalityFit',
+  'modalityPractice',
+  'modalityEvidenceRoutine',
+  'modalityFeedbackRoutine',
+  'modalityInstructorMove',
+  'artifactGenre',
+  'artifactGenreFit',
+  'artifactGenreReviewProtocol',
+  'artifactGenreCommonFailure',
+  'genreReviewProtocol',
+  'genreCommonFailure',
+  'genreRevisionMove',
+  'quizPlan',
+  'quizBlueprint',
+  'tags',
+]);
+
+function collectBoilerplateStrings(value, output = []) {
+  if (value == null) return output;
+  if (typeof value === 'string' || typeof value === 'number') {
+    output.push(String(value));
+    return output;
+  }
+  if (Array.isArray(value)) {
+    value.forEach((item) => collectBoilerplateStrings(item, output));
+    return output;
+  }
+  if (typeof value === 'object') {
+    Object.entries(value)
+      .filter(([key]) => !BOILERPLATE_METADATA_KEYS.has(key))
+      .forEach(([, item]) => collectBoilerplateStrings(item, output));
+  }
+  return output;
+}
+
+function itemBoilerplateText(value) {
+  return collectBoilerplateStrings(value).join(' ').replace(/\s+/g, ' ').trim();
+}
+
 function hasMeaningfulValue(value) {
   const raw = itemText(value);
   return raw.length >= 5 && !/^(tbd|todo|n\/a|\?|to be determined|none)$/i.test(raw);
@@ -320,7 +402,7 @@ function rubricBoilerplateText(rubric) {
 }
 
 function getBoilerplateSentences(featureId, item) {
-  const text = featureId === 'rubrics' ? rubricBoilerplateText(item) : itemText(item);
+  const text = featureId === 'rubrics' ? rubricBoilerplateText(item) : itemBoilerplateText(item);
   return splitSentences(text).filter((sentence) => featureId !== 'rubrics' || !RUBRIC_SHARED_SUPPORT_RE.test(sentence));
 }
 

@@ -85,9 +85,9 @@ export function buildCompiledLessonPatchData(featureId, compiledData, courseMap,
   return patchItems.length > 0 ? { ...compiledData, [compiledKey]: patchItems } : null;
 }
 
-export function compileBlueprintLessonPatch({ featureId, courseMap, lessonIndex, config }) {
+export function compileBlueprintLessonPatch({ featureId, courseMap, lessonIndex, config, instructorPreferences }) {
   if (!isBlueprintCompiledFeature(featureId)) return null;
-  const blueprint = buildCourseBlueprint(courseMap);
+  const blueprint = buildCourseBlueprint(courseMap, { instructorPreferences });
   const compiled = compileBlueprintDeliverables(blueprint, [featureId], {
     configMap: { [featureId]: config || {} },
   });

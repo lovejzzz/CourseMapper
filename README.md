@@ -3,7 +3,7 @@
 AI-powered instructional design platform with an embedded teaching assistant agent. Upload your syllabus and generate a structured Course Map, lesson plans, slide decks, rubrics, quizzes, assignments, discussion prompts, study guides, and a polished syllabus — all pedagogically aligned, validated, and fully editable. Then use the AI agent to revise, validate, research, and visualize your curriculum through natural conversation.
 
 **Live:** [https://edutool.dev](https://edutool.dev)
-**Current release:** v0.8
+**Current release:** v0.8.1
 
 ---
 
@@ -133,6 +133,9 @@ Course Mapper treats export as a finishing workflow, not just a file download. B
 - Verifies export files in memory so a course is not labeled ready if DOCX, XLSX, CSV, PPTX, or ZIP generation fails.
 - Produces a quality receipt that shows what was checked, what was auto-fixed, and what still needs instructor judgment.
 - Tracks API-call budgets in Developer Mode across model discovery, credit checks, course-map calls, deliverable chunks, repair retries, stream retries, provider fallbacks, agent loops, and image generation.
+- Uses an adaptive blueprint compiler path when enabled: deterministic compile by default, or one source-grounded enrichment call when the course map has enough signal to improve subject-specific phrasing safely.
+- Adds compiler-path evidence to the receipt so instructors can see whether the package was deterministically compiled or enriched, how many enrichment calls were used, and what still needs local review.
+- Classifies adaptive safety in the receipt: local source-inferred repairs, required human review, and whether model fallback was used for blueprint-compiled deliverables.
 
 ### Academic Research
 
@@ -297,12 +300,37 @@ npm run format:check      # Prettier check mode; currently flags legacy formatti
 npm run test:offline      # unit + integration — no network, always safe
 npm run test:rules        # Firestore security rules through the Firebase emulator
 npm run test:e2e          # Playwright end-to-end suite
+npm run audit:pipeline    # deterministic compiler regression gate
+npm run audit:gold        # internal gold-sample classroom-quality gate
+npm run audit:expert      # expert-review gate; supports external fixtures
+npm run audit:expert:preflight # readiness checklist for completed external proof fixtures
+npm run audit:expert:external # A-quality proof gate; requires external review + edit evidence
+npm run audit:expert:packet # external reviewer packet for collecting A-quality proof
 npm run audit:agent:openai # live OpenAI agent probe suite (needs OPENAI_API_KEY)
 npm run audit:agent       # live agent suite (needs ANTHROPIC_API_KEY)
 npm run audit:deliverables # live deliverable-quality audit (needs ANTHROPIC_API_KEY)
 ```
 
+`audit:gold` compares compiled packages against curated classroom-quality expectations, source-to-output fidelity, explicit teaching-intent traces, course-modality fit, modality-specific teaching-pattern decoding, and enrichment impact. The enrichment matrix checks whether compact blueprint enrichment creates measurable course-specific lift over the deterministic compiler without lowering quality, source fidelity, teaching intent, modality fit, or blueprint fidelity.
+
+`audit:expert:packet` builds a reviewer packet from the compiled gold samples, including original source course-map files, course-modality evidence, modality-specific teaching routines, lesson evidence, artifact excerpts, full-package reviewed-artifact lists, scorecard dimensions, and fixture templates that can be filled by external reviewers.
+
 `audit:deliverables` drives the real production prompts (`src/lib/prompts/*`) through Anthropic against a fixed ML-course fixture and scores the output on schema fidelity, prompt-rule adherence (Bloom's distribution, slide sequence, speaker-note format, etc.), and content specificity. Run after any change to the prompts, `FEATURE_OUTPUT_BUDGETS`, or `FEATURE_CHUNK_SIZES` in `src/lib/parallelGenerator.js`. Expect ~12 minutes wall time and a handful of Sonnet calls per run.
+
+`audit:expert` defaults to internal provisional fixtures. To count as external proof, run it with proof-eligible reviewer or instructor-edit fixtures:
+
+```bash
+npm run audit:expert -- --fixtures /path/to/external-review-fixtures.json
+```
+
+To enforce the A-quality proof standard, use the external-proof gate. It fails unless the fixture set includes proof-eligible external review evidence, a required-dimension reviewer scorecard, source-fidelity review notes, and external instructor edit-history evidence:
+
+```bash
+npm run audit:expert:preflight -- --fixtures /path/to/external-review-fixtures.json
+npm run audit:expert:external -- --fixtures /path/to/external-review-fixtures.json
+```
+
+See [External Quality Proof Intake](docs/EXTERNAL_QUALITY_PROOF.md) for the fixture schema and template.
 
 ### Deployment
 

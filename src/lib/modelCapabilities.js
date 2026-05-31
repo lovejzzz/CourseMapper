@@ -853,6 +853,8 @@ export function createGenerationPlan(profile = {}) {
     chunkStrategy,
     chunkScale,
     outputBudgetScale,
+    blueprintCompiler: profile.blueprintCompiler !== false,
+    blueprintEnrichment: profile.blueprintEnrichment === true,
     parallelFeatureCalls,
     retryConcurrency,
     initialStreamRetries: chunkStrategy === 'conservative' ? 3 : 2,

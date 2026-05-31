@@ -67,6 +67,7 @@ export async function loadHybridPipelineAuditRuntime() {
   auditRuntimePromise = (async () => {
     const server = await createServer({
       appType: 'custom',
+      cacheDir: path.join(ROOT, 'node_modules', '.vite', `audit-${process.pid}`),
       logLevel: 'error',
       optimizeDeps: { entries: [], noDiscovery: true },
       server: { middlewareMode: true, hmr: false },
