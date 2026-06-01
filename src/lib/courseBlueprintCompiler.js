@@ -6272,6 +6272,95 @@ function buildClassroomHandoffPlan({
   };
 }
 
+function buildClassroomDryRunPlan({ courseName, lessons, courseModalityProfile, classroomHandoffPlan }) {
+  const lessonRows = lessons.map((lesson) => {
+    const segments = Array.isArray(lesson.classSessionPlan?.segments) ? lesson.classSessionPlan.segments : [];
+    const firstSegment = segments[0] || {};
+    const evidenceSegment =
+      segments.find((segment) =>
+        /\b(practice|checkpoint|artifact|feedback|revision|sprint|challenge)\b/i.test(
+          `${segment.phase || ''} ${segment.purpose || ''}`,
+        ),
+      ) ||
+      segments[2] ||
+      firstSegment;
+    const misconception = Array.isArray(lesson.misconceptionMap) ? lesson.misconceptionMap[0] : null;
+    const artifact = stripTerminalPunctuation(lesson.studentArtifact || 'the lesson artifact');
+    const concept = lesson.keyConcepts?.[0] || stripLessonPrefix(lesson.title) || 'the lesson focus';
+    const handoffRow = Array.isArray(classroomHandoffPlan?.lessonReviewOrder)
+      ? classroomHandoffPlan.lessonReviewOrder.find((row) => row.lessonNumber === lesson.lessonNumber)
+      : null;
+    return {
+      version: 1,
+      lessonNumber: lesson.lessonNumber,
+      lessonTitle: lesson.title,
+      dryRunFocus: `Rehearse how students move from ${concept} readiness into visible work on ${artifact}.`,
+      setupChecks: unique(
+        [
+          `Confirm students can access the materials, tools, examples, and submission path for ${stripLessonPrefix(lesson.title)}.`,
+          lesson.sourceUsePlan?.localReplacementCue || '',
+          lesson.accessibilityPlan?.accommodationReviewCue || '',
+          lesson.prerequisitePlan?.localAssumptionReview || '',
+          lessonLocalReviewAction(lesson),
+        ],
+        5,
+      ),
+      firstTenMinutes: firstSegment.purpose || lesson.prerequisitePlan?.diagnosticCheck || '',
+      firstTenEvidence: firstSegment.evidenceOfLearning || lesson.readinessSupport?.readinessEvidence || '',
+      evidenceCheckpoint: evidenceSegment.evidenceOfLearning || lesson.evidencePlan?.evidenceRequirement || '',
+      likelyFailureMode:
+        misconception?.misconception ||
+        lesson.artifactGenre?.commonFailure ||
+        `Students describe ${concept} without showing how evidence changes ${artifact}.`,
+      instructorAdjustment:
+        lesson.evidenceResponsePlan?.supportMove ||
+        lesson.readinessSupport?.supportMove ||
+        `Pause and model one evidence-backed ${concept} move before students continue ${artifact}.`,
+      extensionMove:
+        lesson.evidenceResponsePlan?.readyMove ||
+        lesson.readinessSupport?.extensionMove ||
+        `Ask ready students to compare two evidence choices and justify which one strengthens ${artifact}.`,
+      adjustmentTrigger:
+        lesson.feedbackCycle?.closureCheck ||
+        lesson.evidenceResponsePlan?.recheckCue ||
+        `If students cannot explain the evidence behind ${artifact}, reteach ${concept} before publishing or continuing.`,
+      timingCheck: {
+        status: lesson.classSessionPlan?.feasibilityStatus || 'missing',
+        plannedClassMinutes: lesson.classSessionPlan?.plannedClassMinutes ?? null,
+        sessionMinutes: lesson.classSessionPlan?.sessionMinutes ?? null,
+        segmentCount: lesson.classSessionPlan?.segmentCount ?? segments.length,
+      },
+      workloadFit: lesson.classSessionPlan?.studentWorkloadFit?.status || 'workload review pending',
+      sourceRiskLevel: lesson.sourceRisk?.riskLevel || 'unknown',
+      publishGate: lesson.compilerDecision?.publishGate || handoffRow?.compilerDecision?.publishGate || '',
+      reviewerAction: lessonLocalReviewAction(lesson),
+      readyEvidence:
+        lesson.masteryEvidencePlan?.masteryThreshold ||
+        `Ready work cites evidence, explains the decision, and shows revision in ${artifact}.`,
+    };
+  });
+  const reviewRequiredCount = lessonRows.filter(
+    (row) => row.publishGate === 'local-review-required-before-publish' || row.sourceRiskLevel !== 'none',
+  ).length;
+  const timingReviewCount = lessonRows.filter((row) => row.timingCheck.status !== 'fits-session').length;
+  return {
+    version: 1,
+    source: 'deterministic-classroom-dry-run-plan',
+    status:
+      reviewRequiredCount > 0 || timingReviewCount > 0 ? 'dry-run-with-local-review' : 'ready-for-classroom-dry-run',
+    courseName,
+    modality: courseModalityProfile?.primaryMode || 'course-specific',
+    rehearsalPolicy:
+      'Before classroom handoff, rehearse the opening readiness check, the central evidence checkpoint, and the instructor adjustment for every lesson.',
+    failureResponsePolicy:
+      'If dry-run evidence shows students cannot produce the lesson artifact with source-backed reasoning, reteach locally before publishing the package.',
+    lessonRowCount: lessonRows.length,
+    reviewRequiredCount,
+    timingReviewCount,
+    lessonRows,
+  };
+}
+
 function buildBlueprintAssumptionLedger({
   courseName,
   lessons,
@@ -7320,6 +7409,36 @@ export function validateCourseBlueprintContract(blueprint = {}) {
     );
   }
   if (
+    !blueprint.classroomDryRunPlan?.status ||
+    blueprint.classroomDryRunPlan?.source !== 'deterministic-classroom-dry-run-plan' ||
+    !blueprint.classroomDryRunPlan?.rehearsalPolicy ||
+    !blueprint.classroomDryRunPlan?.failureResponsePolicy ||
+    !Array.isArray(blueprint.classroomDryRunPlan?.lessonRows) ||
+    blueprint.classroomDryRunPlan.lessonRows.length !== lessons.length ||
+    blueprint.classroomDryRunPlan.lessonRows.some(
+      (row) =>
+        !row?.lessonNumber ||
+        !row.lessonTitle ||
+        !row.dryRunFocus ||
+        !Array.isArray(row.setupChecks) ||
+        row.setupChecks.length === 0 ||
+        !row.firstTenMinutes ||
+        !row.firstTenEvidence ||
+        !row.evidenceCheckpoint ||
+        !row.likelyFailureMode ||
+        !row.instructorAdjustment ||
+        !row.adjustmentTrigger ||
+        !row.readyEvidence ||
+        !row.timingCheck?.status ||
+        !row.publishGate ||
+        !row.reviewerAction,
+    )
+  ) {
+    findings.push(
+      makeContractFinding('blocker', 'classroomDryRunPlan', 'Blueprint is missing classroom dry-run plan.'),
+    );
+  }
+  if (
     !blueprint.sourceRiskRegister?.status ||
     !Array.isArray(blueprint.sourceRiskRegister?.lessonRows) ||
     blueprint.sourceRiskRegister.lessonRows.length !== lessons.length ||
@@ -8169,6 +8288,9 @@ export function validateCourseBlueprintContract(blueprint = {}) {
     sourceConflictDuplicateLessonCount: blueprint.sourceConflictReport?.duplicateLessonCount ?? null,
     compilerDecisionStatus: blueprint.compilerDecisionMatrix?.status || 'missing',
     compilerReviewRequiredCount: blueprint.compilerDecisionMatrix?.reviewRequiredCount ?? null,
+    classroomDryRunStatus: blueprint.classroomDryRunPlan?.status || 'missing',
+    classroomDryRunLessonRows: blueprint.classroomDryRunPlan?.lessonRowCount ?? null,
+    classroomDryRunReviewRequiredCount: blueprint.classroomDryRunPlan?.reviewRequiredCount ?? null,
     blueprintReviewSurfaceStatus: blueprint.blueprintReviewSurface?.status || 'missing',
     blueprintReviewSourceRequiredCount:
       blueprint.blueprintReviewSurface?.localConfirmationSummary?.sourceReviewRequiredCount ?? null,
@@ -8200,6 +8322,9 @@ function compactBlueprintContract(contract = {}) {
     objectiveEvidenceMissingCount: contract.objectiveEvidenceMissingCount ?? null,
     compilerDecisionStatus: contract.compilerDecisionStatus || 'unknown',
     compilerReviewRequiredCount: contract.compilerReviewRequiredCount ?? null,
+    classroomDryRunStatus: contract.classroomDryRunStatus || 'unknown',
+    classroomDryRunLessonRows: contract.classroomDryRunLessonRows ?? null,
+    classroomDryRunReviewRequiredCount: contract.classroomDryRunReviewRequiredCount ?? null,
     blueprintReviewSurfaceStatus: contract.blueprintReviewSurfaceStatus || 'unknown',
     blueprintReviewSourceRequiredCount: contract.blueprintReviewSourceRequiredCount ?? null,
     blueprintReviewTraceabilityStatus: contract.blueprintReviewTraceabilityStatus || 'unknown',
@@ -8405,6 +8530,31 @@ function compactClassroomHandoffPlan(plan = {}) {
       confidence: row.confidence,
       sourceRiskLevel: row.sourceRiskLevel,
       publishGate: row.publishGate,
+    })),
+  };
+}
+
+function compactClassroomDryRunPlan(plan = {}) {
+  const lessonRows = Array.isArray(plan.lessonRows) ? plan.lessonRows : [];
+  return {
+    status: plan.status || 'unknown',
+    source: plan.source || '',
+    modality: plan.modality || '',
+    rehearsalPolicy: plan.rehearsalPolicy || '',
+    failureResponsePolicy: plan.failureResponsePolicy || '',
+    lessonRowCount: lessonRows.length,
+    reviewRequiredCount: plan.reviewRequiredCount || 0,
+    timingReviewCount: plan.timingReviewCount || 0,
+    lessonRows: lessonRows.map((row) => ({
+      lessonNumber: row.lessonNumber,
+      lessonTitle: row.lessonTitle,
+      dryRunFocus: row.dryRunFocus,
+      firstTenMinutes: row.firstTenMinutes,
+      evidenceCheckpoint: row.evidenceCheckpoint,
+      likelyFailureMode: row.likelyFailureMode,
+      instructorAdjustment: row.instructorAdjustment,
+      publishGate: row.publishGate,
+      reviewerAction: row.reviewerAction,
     })),
   };
 }
@@ -9908,6 +10058,12 @@ export function buildCourseBlueprint(courseMap, options = {}) {
     sourceRiskRegister,
     assessmentArchitecture,
   });
+  const classroomDryRunPlan = buildClassroomDryRunPlan({
+    courseName,
+    lessons,
+    courseModalityProfile,
+    classroomHandoffPlan,
+  });
   const blueprintAssumptionLedger = buildBlueprintAssumptionLedger({
     courseName,
     lessons,
@@ -9963,6 +10119,7 @@ export function buildCourseBlueprint(courseMap, options = {}) {
     sourceRiskRegister,
     compilerDecisionMatrix,
     classroomHandoffPlan,
+    classroomDryRunPlan,
     blueprintAssumptionLedger,
     packageCoherenceMatrix,
     blueprintReviewSurface,
@@ -10178,6 +10335,7 @@ function compileSyllabus(blueprint) {
   const compactAssessmentPlan = compactAssessmentArchitecture(blueprint.assessmentArchitecture);
   const compactSourceConflicts = compactSourceConflictReport(blueprint.sourceConflictReport);
   const compactHandoffPlan = compactClassroomHandoffPlan(blueprint.classroomHandoffPlan);
+  const compactDryRunPlan = compactClassroomDryRunPlan(blueprint.classroomDryRunPlan);
   const compactAssumptions = compactAssumptionLedger(blueprint.blueprintAssumptionLedger);
   const compactCoherence = compactPackageCoherenceMatrix(blueprint.packageCoherenceMatrix);
   const compactReviewSurface = compactBlueprintReviewSurface(blueprint.blueprintReviewSurface);
@@ -10227,6 +10385,7 @@ function compileSyllabus(blueprint) {
         compilerDecisionMatrix: compactDecisionMatrix,
         assessmentArchitecture: compactAssessmentPlan,
         classroomHandoffPlan: compactHandoffPlan,
+        classroomDryRunPlan: compactDryRunPlan,
         blueprintAssumptionLedger: compactAssumptions,
         packageCoherenceMatrix: compactCoherence,
         blueprintReviewSurface: compactReviewSurface,
@@ -10248,6 +10407,7 @@ function compileSyllabus(blueprint) {
       compilerDecisionMatrix: compactDecisionMatrix,
       assessmentArchitecture: compactAssessmentPlan,
       classroomHandoffPlan: compactHandoffPlan,
+      classroomDryRunPlan: compactDryRunPlan,
       blueprintAssumptionLedger: compactAssumptions,
       packageCoherenceMatrix: compactCoherence,
       learningOutcomes: unique(
@@ -12671,6 +12831,8 @@ function compileLessonPlans(blueprint) {
       const classSessionPlan = lesson.classSessionPlan || buildClassSessionPlan({ lesson, modalityDecode: modality });
       const outline = buildLessonPlanOutline(blueprint, { ...lesson, classSessionPlan });
       const outlineMinutes = outline.reduce((sum, item) => sum + (Number.parseInt(item.time, 10) || 0), 0);
+      const dryRunRow =
+        blueprint.classroomDryRunPlan?.lessonRows?.find((row) => row.lessonNumber === lesson.lessonNumber) || {};
 
       return {
         lessonTitle: lesson.title,
@@ -12690,6 +12852,7 @@ function compileLessonPlans(blueprint) {
         }),
         workloadEstimate: compactWorkloadEstimate(lesson.workloadEstimate),
         classSessionPlan,
+        classroomDryRun: dryRunRow,
         outlineTiming: {
           sessionMinutes: classSessionPlan.sessionMinutes,
           plannedClassMinutes: classSessionPlan.plannedClassMinutes,
@@ -12798,6 +12961,12 @@ function compileLessonPlans(blueprint) {
         tags: unique(['lesson-plan', lesson.title, concept, lens.domain, ...lesson.keyConcepts], 10),
         readyToTeachSupport: {
           localReviewAction: lessonLocalReviewAction(lesson),
+          dryRunChecklist: dryRunRow.setupChecks || [],
+          dryRunOpeningCheck: dryRunRow.firstTenMinutes || '',
+          dryRunEvidenceCheckpoint: dryRunRow.evidenceCheckpoint || '',
+          dryRunFailureMode: dryRunRow.likelyFailureMode || '',
+          dryRunAdjustmentTrigger: dryRunRow.adjustmentTrigger || '',
+          dryRunInstructorAdjustment: dryRunRow.instructorAdjustment || '',
           workedExample:
             lesson.modelContrast?.exemplarMove ||
             `Show a brief exemplar for ${artifact} and annotate where the evidence, reasoning, and revision move appear.`,

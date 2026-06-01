@@ -2550,6 +2550,24 @@ describe('courseBlueprintCompiler', () => {
       ]),
       publishBoundary: expect.stringContaining('Do not publish'),
     });
+    expect(blueprint.classroomDryRunPlan).toMatchObject({
+      status: 'ready-for-classroom-dry-run',
+      source: 'deterministic-classroom-dry-run-plan',
+      lessonRowCount: 4,
+      reviewRequiredCount: 0,
+      timingReviewCount: 0,
+      rehearsalPolicy: expect.stringContaining('rehearse'),
+      lessonRows: expect.arrayContaining([
+        expect.objectContaining({
+          lessonNumber: 1,
+          lessonTitle: expect.stringContaining('Policy Topic 1'),
+          dryRunFocus: expect.stringContaining('Policy Topic 1'),
+          evidenceCheckpoint: expect.stringContaining('Policy Topic 1'),
+          publishGate: 'instructor-spot-check-before-publish',
+          reviewerAction: expect.stringContaining('Policy Topic 1'),
+        }),
+      ]),
+    });
     expect(blueprint.sourceRiskRegister).toMatchObject({
       status: 'clear-with-spot-check',
       highRiskCount: 0,
@@ -3090,6 +3108,7 @@ describe('courseBlueprintCompiler', () => {
       learnerContextProfile: {},
       courseModalityProfile: {},
       classroomHandoffPlan: {},
+      classroomDryRunPlan: {},
       sourceRiskRegister: {},
       compilerDecisionMatrix: {},
       assessmentArchitecture: {},
@@ -3149,6 +3168,7 @@ describe('courseBlueprintCompiler', () => {
         'lessonCoverage',
         'learnerContextProfile',
         'classroomHandoffPlan',
+        'classroomDryRunPlan',
         'packageCoherenceMatrix',
         'sourceAnchors',
         'sourceEvidenceTrace',
@@ -3331,6 +3351,13 @@ describe('courseBlueprintCompiler', () => {
       plannedClassMinutes: 110,
       sessionMinutes: 110,
     });
+    expect(compiled.lessonPlans.lessonPlans[0].classroomDryRun).toMatchObject({
+      lessonNumber: 1,
+      firstTenMinutes: expect.stringContaining('define Policy Topic 1'),
+      evidenceCheckpoint: expect.stringContaining('Policy Topic 1'),
+      likelyFailureMode: expect.stringContaining('Policy Topic 1'),
+      instructorAdjustment: expect.stringContaining('sentence frame'),
+    });
     expect(compiled.lessonPlans.lessonPlans[0].outlineTiming).toMatchObject({
       outlineMinutes: 110,
       status: 'fits-session',
@@ -3338,6 +3365,11 @@ describe('courseBlueprintCompiler', () => {
     expect(compiled.lessonPlans.lessonPlans[0].prerequisiteKnowledge).toContain('prior example');
     expect(compiled.lessonPlans.lessonPlans[0].teachingIntent.feedbackDecision).toContain('criterion-level feedback');
     expect(compiled.lessonPlans.lessonPlans[0].readyToTeachSupport).toMatchObject({
+      dryRunChecklist: expect.arrayContaining([expect.stringContaining('Policy Topic 1')]),
+      dryRunOpeningCheck: expect.stringContaining('define Policy Topic 1'),
+      dryRunEvidenceCheckpoint: expect.stringContaining('Policy Topic 1'),
+      dryRunFailureMode: expect.stringContaining('Policy Topic 1'),
+      dryRunInstructorAdjustment: expect.stringContaining('sentence frame'),
       workedExample: expect.stringContaining('Strong Policy memo checkpoint 1 work'),
       nonExample: expect.stringContaining('Weak Policy memo checkpoint 1 work'),
       contrastQuestion: expect.stringContaining('evidence for Policy Topic 1'),
@@ -3455,6 +3487,12 @@ describe('courseBlueprintCompiler', () => {
         status: 'ready-with-spot-check',
         publishBoundary: expect.stringContaining('Do not publish'),
       },
+      classroomDryRunPlan: {
+        status: 'ready-for-classroom-dry-run',
+        source: 'deterministic-classroom-dry-run-plan',
+        lessonRowCount: 6,
+        reviewRequiredCount: 0,
+      },
       sourceRiskRegister: {
         status: 'clear-with-spot-check',
         highRiskCount: 0,
@@ -3493,6 +3531,11 @@ describe('courseBlueprintCompiler', () => {
     expect(compiled.syllabus.syllabus.classroomHandoffPlan.lessonReviewOrder[0].lessonTitle).toContain(
       'Policy Topic 1',
     );
+    expect(compiled.syllabus.syllabus.classroomDryRunPlan.lessonRows[0]).toMatchObject({
+      lessonNumber: 1,
+      dryRunFocus: expect.stringContaining('Policy Topic 1'),
+      evidenceCheckpoint: expect.stringContaining('Policy Topic 1'),
+    });
     expect(compiled.syllabus.syllabus.packageCoherenceMatrix.lessonRows[0]).toMatchObject({
       lessonNumber: 1,
       assessmentArtifact: expect.stringContaining('Policy memo checkpoint 1'),

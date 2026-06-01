@@ -8107,7 +8107,7 @@ function normalizeCopyString(text) {
 function isCopySpecificitySurfacePath(featureId, path) {
   if (!path) return false;
   if (
-    /\b(sourceGrounding|blueprintGrounding|sourceEvidenceTrace|sourceAnchors|compilerDecision|courseModalityProfile|learnerContextProfile|blueprintAssumptionLedger|packageCoherenceMatrix|sourceRiskRegister|sourceConflictReport|compilerContract|classroomHandoffPlan|conceptDependencyGraph|masteryEvidenceMap|evidenceResponseMap|qualityReceipt|qualitySummary|receipt|provenance)\b/i.test(
+    /\b(sourceGrounding|blueprintGrounding|sourceEvidenceTrace|sourceAnchors|compilerDecision|courseModalityProfile|learnerContextProfile|blueprintAssumptionLedger|packageCoherenceMatrix|sourceRiskRegister|sourceConflictReport|compilerContract|classroomHandoffPlan|classroomDryRunPlan|classroomDryRun|conceptDependencyGraph|masteryEvidenceMap|evidenceResponseMap|qualityReceipt|qualitySummary|receipt|provenance)\b/i.test(
       path,
     )
   ) {
@@ -8213,7 +8213,7 @@ export function buildCopySpecificityAudit({ compiledFeatures = [], compiled = {}
 function isStudentFacingSurfacePath(featureId, path) {
   if (!path) return false;
   if (
-    /\b(sourceGrounding|blueprintGrounding|sourceEvidenceTrace|sourceAnchors|compilerDecision|courseModalityProfile|learnerContextProfile|blueprintAssumptionLedger|packageCoherenceMatrix|sourceRiskRegister|sourceConflictReport|compilerContract|classroomHandoffPlan|conceptDependencyGraph|masteryEvidenceMap|evidenceResponseMap|qualityReceipt|qualitySummary|receipt|provenance|reviewActionability)\b/i.test(
+    /\b(sourceGrounding|blueprintGrounding|sourceEvidenceTrace|sourceAnchors|compilerDecision|courseModalityProfile|learnerContextProfile|blueprintAssumptionLedger|packageCoherenceMatrix|sourceRiskRegister|sourceConflictReport|compilerContract|classroomHandoffPlan|classroomDryRunPlan|classroomDryRun|conceptDependencyGraph|masteryEvidenceMap|evidenceResponseMap|qualityReceipt|qualitySummary|receipt|provenance|reviewActionability)\b/i.test(
       path,
     )
   ) {
@@ -8503,6 +8503,36 @@ function auditBlueprintMaturity(blueprint, scope, expectedLens = {}) {
   ) {
     findings.push(
       makeFinding('blocker', 'blueprint', 'classroomHandoffPlan', 'Blueprint is missing classroom handoff plan.'),
+    );
+  }
+  if (
+    !blueprint?.classroomDryRunPlan?.status ||
+    blueprint.classroomDryRunPlan?.source !== 'deterministic-classroom-dry-run-plan' ||
+    !blueprint.classroomDryRunPlan?.rehearsalPolicy ||
+    !blueprint.classroomDryRunPlan?.failureResponsePolicy ||
+    !Array.isArray(blueprint.classroomDryRunPlan?.lessonRows) ||
+    blueprint.classroomDryRunPlan.lessonRows.length !== scope ||
+    blueprint.classroomDryRunPlan.lessonRows.some(
+      (row) =>
+        !row?.lessonNumber ||
+        !row.lessonTitle ||
+        !row.dryRunFocus ||
+        !Array.isArray(row.setupChecks) ||
+        row.setupChecks.length === 0 ||
+        !row.firstTenMinutes ||
+        !row.firstTenEvidence ||
+        !row.evidenceCheckpoint ||
+        !row.likelyFailureMode ||
+        !row.instructorAdjustment ||
+        !row.adjustmentTrigger ||
+        !row.readyEvidence ||
+        !row.timingCheck?.status ||
+        !row.publishGate ||
+        !row.reviewerAction,
+    )
+  ) {
+    findings.push(
+      makeFinding('blocker', 'blueprint', 'classroomDryRunPlan', 'Blueprint is missing classroom dry-run plan.'),
     );
   }
   if (
@@ -9231,6 +9261,7 @@ function auditBlueprintMaturity(blueprint, scope, expectedLens = {}) {
     assessmentArchitecture: blueprint?.assessmentArchitecture || null,
     objectiveEvidenceMap: blueprint?.objectiveEvidenceMap || null,
     blueprintAssumptionLedger: blueprint?.blueprintAssumptionLedger || null,
+    classroomDryRunPlan: blueprint?.classroomDryRunPlan || null,
     blueprintReviewSurface: blueprint?.blueprintReviewSurface || null,
     compilerPath: blueprint?.compilerPath || null,
     adaptiveSafety: blueprint?.compilerPath?.adaptiveSafety || null,
@@ -13162,6 +13193,14 @@ function buildClassroomExcellenceScorecard({
           syllabus.blueprintQualityReceipt?.classroomHandoffPlan?.publishBoundary,
       },
       {
+        label: 'Syllabus exposes classroom dry-run rehearsal plan',
+        pass:
+          syllabus.classroomDryRunPlan?.status &&
+          Array.isArray(syllabus.classroomDryRunPlan?.lessonRows) &&
+          syllabus.classroomDryRunPlan.lessonRows.length === scope &&
+          syllabus.blueprintQualityReceipt?.classroomDryRunPlan?.rehearsalPolicy,
+      },
+      {
         label: 'Syllabus exposes source-risk register',
         pass:
           syllabus.sourceRiskRegister?.status &&
@@ -13223,6 +13262,16 @@ function buildClassroomExcellenceScorecard({
     ]),
     buildDimension('teachability', 'Teachability', [
       {
+        label: 'Blueprint includes dry-run rehearsal rows for every lesson',
+        pass:
+          blueprint.classroomDryRunPlan?.status &&
+          Array.isArray(blueprint.classroomDryRunPlan?.lessonRows) &&
+          blueprint.classroomDryRunPlan.lessonRows.length === scope &&
+          blueprint.classroomDryRunPlan.lessonRows.every(
+            (row) => row.firstTenMinutes && row.evidenceCheckpoint && row.instructorAdjustment && row.adjustmentTrigger,
+          ),
+      },
+      {
         label: 'Lesson plans have full teachable outlines',
         pass: fullCoverage(
           arrays.lessonPlans,
@@ -13239,6 +13288,21 @@ function buildClassroomExcellenceScorecard({
             item.classSessionPlan?.feasibilityStatus === 'fits-session' &&
             item.outlineTiming?.status === 'fits-session' &&
             item.readyToTeachSupport?.timingFit,
+        ),
+      },
+      {
+        label: 'Lesson plans carry dry-run checks and instructor adjustments',
+        pass: fullCoverage(
+          arrays.lessonPlans,
+          scope,
+          (item) =>
+            item.classroomDryRun?.firstTenMinutes &&
+            item.classroomDryRun?.evidenceCheckpoint &&
+            item.classroomDryRun?.instructorAdjustment &&
+            Array.isArray(item.readyToTeachSupport?.dryRunChecklist) &&
+            item.readyToTeachSupport.dryRunChecklist.length > 0 &&
+            item.readyToTeachSupport?.dryRunEvidenceCheckpoint &&
+            item.readyToTeachSupport?.dryRunInstructorAdjustment,
         ),
       },
       {
@@ -14417,6 +14481,10 @@ export function renderGoldSampleQualityAuditMarkdown(payload) {
     const surface = result.blueprintMaturity.blueprintReviewSurface || {};
     return `| ${result.sampleId} | ${surface.status || 'missing'} | ${surface.traceabilitySummary?.status || 'missing'} | ${surface.instructionalMoveDecode?.status || 'missing'} | ${surface.instructionalMoveDecode?.source || 'missing'} | ${surface.courseDecode?.modality || 'missing'} | ${surface.courseDecode?.learnerRole || 'missing'} | ${surface.lessonRows?.length ?? 0} | ${surface.traceabilitySummary?.instructionalMoveRows ?? ''} | ${surface.localConfirmationSummary?.localConfirmationCount ?? ''} | ${surface.localConfirmationSummary?.sourceReviewRequiredCount ?? ''} | ${surface.traceabilitySummary?.untraceableRows ?? ''} | ${surface.machineDecodeCompleteness?.checkedArtifacts ?? ''} |`;
   });
+  const classroomDryRunRows = payload.results.map((result) => {
+    const plan = result.blueprintMaturity.classroomDryRunPlan || {};
+    return `| ${result.sampleId} | ${plan.status || 'missing'} | ${plan.source || 'missing'} | ${plan.lessonRowCount ?? 0} | ${plan.reviewRequiredCount ?? 0} | ${plan.timingReviewCount ?? 0} |`;
+  });
   const featureRows = payload.results.flatMap((result) =>
     result.featureResults.map(
       (feature) =>
@@ -14569,6 +14637,14 @@ export function renderGoldSampleQualityAuditMarkdown(payload) {
       '| Gold Sample | Review Surface | Traceability | Instructional Moves | Move Source | Modality | Learner Role | Lesson Rows | Move Rows | Local Confirmations | Source-Review Lessons | Untraceable Rows | Checked Artifacts |',
       '| --- | --- | --- | --- | --- | --- | --- | ---: | ---: | ---: | ---: | ---: | ---: |',
       ...blueprintReviewRows,
+    ]),
+    '',
+    '## Classroom Dry-Run Matrix',
+    '',
+    markdownTable([
+      '| Gold Sample | Status | Source | Lesson Rows | Review Rows | Timing Reviews |',
+      '| --- | --- | --- | ---: | ---: | ---: |',
+      ...classroomDryRunRows,
     ]),
     '',
     '## Instructional Alignment Matrix',

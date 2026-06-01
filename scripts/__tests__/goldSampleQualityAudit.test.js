@@ -163,6 +163,18 @@ describe('gold sample quality audit', () => {
         expect(
           payload.results.every(
             (result) =>
+              result.blueprintMaturity.classroomDryRunPlan?.source === 'deterministic-classroom-dry-run-plan' &&
+              result.blueprintMaturity.classroomDryRunPlan?.lessonRows?.length === result.scope &&
+              result.blueprintMaturity.classroomDryRunPlan?.lessonRowCount === result.scope &&
+              result.blueprintMaturity.classroomDryRunPlan?.rehearsalPolicy &&
+              result.blueprintMaturity.classroomDryRunPlan?.lessonRows?.every(
+                (row) => row.firstTenMinutes && row.evidenceCheckpoint && row.instructorAdjustment,
+              ),
+          ),
+        ).toBe(true);
+        expect(
+          payload.results.every(
+            (result) =>
               result.blueprintMaturity.blueprintReviewSurface?.instructionalMoveDecode?.status === 'reviewable' &&
               result.blueprintMaturity.blueprintReviewSurface?.traceabilitySummary?.instructionalMoveRows ===
                 result.scope,
@@ -532,6 +544,8 @@ describe('gold sample quality audit', () => {
         expect(markdown).toContain('Move Rows');
         expect(markdown).toContain('Source-Review Lessons');
         expect(markdown).toContain('Untraceable Rows');
+        expect(markdown).toContain('Classroom Dry-Run Matrix');
+        expect(markdown).toContain('Review Rows');
         expect(markdown).toContain('Instructional Alignment Matrix');
         expect(markdown).toContain('Source Fidelity Matrix');
         expect(markdown).toContain('Blueprint Decode Losslessness Matrix');
@@ -1798,6 +1812,34 @@ describe('gold sample quality audit', () => {
           expect.objectContaining({
             featureId: 'blueprint',
             check: 'classroomHandoffPlan',
+          }),
+        ]),
+      );
+    } finally {
+      await closeHybridPipelineAuditRuntime();
+    }
+  });
+
+  it('blocks when the blueprint lacks classroom dry-run planning', async () => {
+    const runtime = await loadHybridPipelineAuditRuntime();
+    try {
+      const result = auditGoldSample({
+        sample: DEFAULT_GOLD_SAMPLES[0],
+        runtime: {
+          ...runtime,
+          buildCourseBlueprint: (...args) => ({
+            ...runtime.buildCourseBlueprint(...args),
+            classroomDryRunPlan: null,
+          }),
+        },
+      });
+
+      expect(result.summary.status).toBe('blocked');
+      expect(result.blueprintMaturity.findings).toEqual(
+        expect.arrayContaining([
+          expect.objectContaining({
+            featureId: 'blueprint',
+            check: 'classroomDryRunPlan',
           }),
         ]),
       );
