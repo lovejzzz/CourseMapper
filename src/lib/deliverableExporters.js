@@ -13,6 +13,10 @@ import { expandKeys } from './keyMaps';
 import { buildXlsxWorkbook } from './lightweightXlsx.js';
 import { loadPdfRuntime } from './pdfRuntime.js';
 import { safeImport } from './safeImport.js';
+import {
+  assertCsvRowsHaveNoInternalExportLanguage,
+  assertOfficeExportHasNoInternalText,
+} from './exportTextInspector.js';
 
 let _docx, _saveAs;
 
@@ -422,6 +426,7 @@ function deliverableToCsvRows(featureId, data) {
 export async function exportDeliverableCsv(featureId, data, courseName) {
   const { headers, rows } = deliverableToCsvRows(featureId, data);
   if (rows.length === 0) throw new Error('No data to export');
+  assertCsvRowsHaveNoInternalExportLanguage({ headers, rows }, resolveFeatureLabel(featureId));
   const csv = [headers.map(esc).join(','), ...rows.map((r) => r.map(esc).join(','))].join('\n');
   const saveAs = await getSaveAs();
   const fileName = `${courseName || 'Course'} - ${resolveFeatureLabel(featureId)}.csv`;
@@ -1551,6 +1556,7 @@ export async function exportDeliverableDocx(featureId, data, courseName) {
   });
 
   const blob = await Packer.toBlob(doc);
+  await assertOfficeExportHasNoInternalText(blob, 'docx', label);
   const fileName = `${courseName || 'Course'} - ${label}.docx`;
   saveAs(blob, fileName);
   return fileName;
@@ -1580,6 +1586,7 @@ export async function exportDeliverableToGoogleDocs(featureId, data, courseName,
 export async function exportDeliverableToGoogleSheets(featureId, data, courseName, preOpenedTab = null) {
   const { headers, rows } = deliverableToCsvRows(featureId, data);
   if (rows.length === 0) throw new Error('No data to export');
+  assertCsvRowsHaveNoInternalExportLanguage({ headers, rows }, resolveFeatureLabel(featureId));
 
   const { updateTabStatus } = await import('./googleDrive.js');
   updateTabStatus(preOpenedTab, 'build');

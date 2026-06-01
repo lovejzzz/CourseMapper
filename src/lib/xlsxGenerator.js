@@ -1,4 +1,5 @@
 import { safeImport } from './safeImport.js';
+import { assertOfficeExportHasNoInternalText } from './exportTextInspector.js';
 import { buildXlsxWorkbook, columnName, XLSX_MIME } from './lightweightXlsx.js';
 
 // Lazy-loaded download helper
@@ -90,6 +91,7 @@ function stripEmptyColumns(columns, courseMap) {
 export async function generateXlsx(courseMap, customColumns) {
   const saveAs = await getSaveAs();
   const buffer = await buildXlsxBuffer(courseMap, customColumns);
+  await assertOfficeExportHasNoInternalText(buffer, 'xlsx', 'Course Map');
   const fileName = `${courseMap.courseName || 'Course'} Course Map (${courseMap.semester || 'TBD'}).xlsx`;
   const blob = new Blob([buffer], { type: XLSX_MIME });
   saveAs(blob, fileName);

@@ -1,5 +1,6 @@
 import { loadPdfLibs, getDocx, getSaveAs, isInternalExportMetadataKey, resolveFeatureLabel } from './exporterUtils.js';
 import { expandKeys } from '../keyMaps.js';
+import { assertOfficeExportHasNoInternalText } from '../exportTextInspector.js';
 import { formatOutcomeAlignment, formatRequiredText, normalizeCourseRequirements } from './syllabusExportUtils.js';
 
 // DOCX EXPORT
@@ -834,6 +835,7 @@ export async function exportDeliverableDocx(featureId, data, courseName) {
   });
 
   const blob = await Packer.toBlob(doc);
+  await assertOfficeExportHasNoInternalText(blob, 'docx', label);
   const fileName = `${courseName || 'Course'} - ${label}.docx`;
   saveAs(blob, fileName);
   return fileName;

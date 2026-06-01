@@ -1,4 +1,5 @@
 import { buildDocxBlob } from './docxGenerator';
+import { assertOfficeExportHasNoInternalText } from './exportTextInspector';
 import { cacheToken, getCachedToken, hasValidToken, clearTokenCache } from './googleTokenCache';
 
 const CLIENT_ID = '64961514263-r4lb3mg64v3j40csb3s764sgleo7ngbf.apps.googleusercontent.com';
@@ -370,6 +371,7 @@ export async function saveToGoogleDocs(courseMap, customColumns, preOpenedTab = 
 
     updateTabStatus(tab, 'build');
     const blob = await buildDocxBlob(courseMap, customColumns);
+    await assertOfficeExportHasNoInternalText(blob, 'docx', 'Course Map');
 
     if (hasValidToken()) {
       updateTabStatus(tab, 'auth', 'done');
@@ -402,6 +404,7 @@ export async function saveToGoogleDocs(courseMap, customColumns, preOpenedTab = 
 export async function saveToGoogleDocsBlob(blob, fileName, courseName, preOpenedTab = null) {
   const tab = preOpenedTab ?? openTabNow();
   try {
+    await assertOfficeExportHasNoInternalText(blob, 'docx', fileName || 'Google Docs');
     if (hasValidToken()) {
       updateTabStatus(tab, 'auth', 'done');
     } else {
@@ -440,6 +443,7 @@ export async function saveToGoogleDocsBlob(blob, fileName, courseName, preOpened
 export async function saveToGoogleSheets(xlsxBuffer, fileName, courseName, preOpenedTab = null) {
   const tab = preOpenedTab ?? openTabNow();
   try {
+    await assertOfficeExportHasNoInternalText(xlsxBuffer, 'xlsx', fileName || 'Google Sheets');
     const blob = new Blob([xlsxBuffer], {
       type: 'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet',
     });
@@ -481,6 +485,7 @@ export async function saveToGoogleSheets(xlsxBuffer, fileName, courseName, preOp
 export async function saveToGoogleSlides(pptxBlob, fileName, courseName, preOpenedTab = null) {
   const tab = preOpenedTab ?? openTabNow();
   try {
+    await assertOfficeExportHasNoInternalText(pptxBlob, 'pptx', fileName || 'Google Slides');
     if (hasValidToken()) {
       updateTabStatus(tab, 'auth', 'done');
     } else {

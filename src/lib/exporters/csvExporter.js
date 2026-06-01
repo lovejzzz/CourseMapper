@@ -1,6 +1,7 @@
 import { loadPdfLibs, getDocx, getSaveAs, isInternalExportMetadataKey, resolveFeatureLabel } from './exporterUtils.js';
 import { expandKeys } from '../keyMaps.js';
 import { buildSyllabusCsvRows } from './syllabusExportUtils.js';
+import { assertCsvRowsHaveNoInternalExportLanguage } from '../exportTextInspector.js';
 
 // CSV EXPORT
 // ════════════════════════════════════════════════════════════════
@@ -369,6 +370,7 @@ export function deliverableToCsvRows(featureId, data) {
 export async function exportDeliverableCsv(featureId, data, courseName) {
   const { headers, rows } = deliverableToCsvRows(featureId, data);
   if (rows.length === 0) throw new Error('No data to export');
+  assertCsvRowsHaveNoInternalExportLanguage({ headers, rows }, resolveFeatureLabel(featureId));
   const csv = [headers.map(esc).join(','), ...rows.map((r) => r.map(esc).join(','))].join('\n');
   const saveAs = await getSaveAs();
   const fileName = `${courseName || 'Course'} - ${resolveFeatureLabel(featureId)}.csv`;

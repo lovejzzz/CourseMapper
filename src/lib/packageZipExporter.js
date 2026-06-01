@@ -1,5 +1,5 @@
 import { buildReadinessReport, scopeCourseMapToLessons, scopeDeliverableDataToLessons } from './deliverableReadiness';
-import { findInternalOfficeXmlText, OFFICE_TEXT_PATH_PATTERNS } from './exportTextInspector';
+import { assertOfficeExportHasNoInternalText } from './exportTextInspector';
 import { resolveFeatureLabel } from './exporters/exporterUtils.js';
 import { safeImport } from './safeImport';
 
@@ -96,24 +96,15 @@ async function addRequiredOfficeFile(
   }
 
   try {
-    const internalText = await findInternalOfficeXmlText(content, OFFICE_TEXT_PATH_PATTERNS[format]);
-    if (internalText) {
-      failures.push(
-        createFailure(
-          featureId,
-          format,
-          `${resolveFeatureLabel(featureId)} ${String(format).toUpperCase()} export exposes internal ${internalText.label} language in ${internalText.path}.`,
-          { path, size, internalText },
-        ),
-      );
-      return false;
-    }
+    await assertOfficeExportHasNoInternalText(content, format, resolveFeatureLabel(featureId));
   } catch (err) {
     failures.push(
       createFailure(
         featureId,
         format,
-        `${resolveFeatureLabel(featureId)} ${String(format || 'file').toUpperCase()} export could not be inspected: ${err?.message || 'Unknown error.'}`,
+        err?.message?.includes('exposes internal')
+          ? err.message
+          : `${resolveFeatureLabel(featureId)} ${String(format || 'file').toUpperCase()} export could not be inspected: ${err?.message || 'Unknown error.'}`,
         { path, size },
       ),
     );

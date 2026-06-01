@@ -1,5 +1,6 @@
 import { safeImport } from './safeImport.js';
 import { loadPdfRuntime } from './pdfRuntime.js';
+import { assertTextHasNoInternalExportLanguage } from './exportTextInspector.js';
 
 // Lazy-loaded heavy dependencies
 let _saveAs;
@@ -81,6 +82,7 @@ export async function generateCsv(courseMap, customColumns) {
   }
 
   const csvContent = rows.join('\n');
+  assertTextHasNoInternalExportLanguage(csvContent, 'Course Map', 'CSV');
   const saveAs = await getSaveAs();
   const blob = new Blob(['\uFEFF' + csvContent], { type: 'text/csv;charset=utf-8;' });
   const fileName = `${courseMap.courseName || 'Course'} Course Map (${courseMap.semester || 'TBD'}).csv`;

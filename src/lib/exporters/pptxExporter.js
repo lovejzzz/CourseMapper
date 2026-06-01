@@ -14,6 +14,7 @@
 import { autoFitFontSize, autoFitBullets, createElementTracker, SLIDE_W, SLIDE_H } from './slideTextFit.js';
 import { containsLatex, deckDataContainsLatex, processSlideText } from '../latexRenderer.js';
 import { expandKeys } from '../keyMaps.js';
+import { assertOfficeExportHasNoInternalText } from '../exportTextInspector.js';
 import { safeImport } from '../safeImport.js';
 
 let _PptxGenJS;
@@ -1581,9 +1582,11 @@ async function createPptxWithDecks(data, courseName, themeIndex) {
  * Export slide deck data as a .pptx file.
  */
 export async function exportSlideDeckPptx(data, courseName, themeIndex) {
-  const pptx = await createPptxWithDecks(data, courseName, themeIndex);
+  const { saveAs } = await safeImport(() => import('file-saver'));
+  const blob = await buildSlideDeckPptxBlob(data, courseName, themeIndex);
+  await assertOfficeExportHasNoInternalText(blob, 'pptx', 'Slide Decks');
   const fileName = `${courseName || 'Course'} - Slide Decks.pptx`;
-  await pptx.writeFile({ fileName });
+  saveAs(blob, fileName);
   return fileName;
 }
 
@@ -1627,6 +1630,7 @@ export async function buildSingleDeckPptxBlob(deck, deckIndex, courseName, theme
 export async function exportSingleDeckPptx(deck, deckIndex, courseName, themeIndex) {
   const { saveAs } = await safeImport(() => import('file-saver'));
   const blob = await buildSingleDeckPptxBlob(deck, deckIndex, courseName, themeIndex);
+  await assertOfficeExportHasNoInternalText(blob, 'pptx', 'Slide Decks');
   const deckName = (deck.lessonTitle || `Deck ${deckIndex + 1}`).replace(/[/\\?%*:|"<>]/g, '-').trim();
   const lessonNumMatch = (deck.lessonTitle || '').match(/^(?:Lesson|Week)\s*(\d+)/i);
   const lessonNum = lessonNumMatch ? parseInt(lessonNumMatch[1], 10) : deckIndex + 1;

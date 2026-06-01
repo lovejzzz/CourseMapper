@@ -2,6 +2,7 @@ import { resolveFeatureLabel } from './exporterUtils.js';
 import { buildDeliverableDocxBlob } from './bulkDocxExporter.js';
 import { deliverableToCsvRows } from './csvExporter.js';
 import { buildXlsxWorkbook } from '../lightweightXlsx.js';
+import { assertCsvRowsHaveNoInternalExportLanguage } from '../exportTextInspector.js';
 
 // GOOGLE DOCS / SHEETS
 // ════════════════════════════════════════════════════════════════
@@ -26,6 +27,7 @@ export async function exportDeliverableToGoogleDocs(featureId, data, courseName,
 export async function exportDeliverableToGoogleSheets(featureId, data, courseName, preOpenedTab = null) {
   const { headers, rows } = deliverableToCsvRows(featureId, data);
   if (rows.length === 0) throw new Error('No data to export');
+  assertCsvRowsHaveNoInternalExportLanguage({ headers, rows }, resolveFeatureLabel(featureId));
 
   const { updateTabStatus } = await import('../googleDrive.js');
   updateTabStatus(preOpenedTab, 'build');

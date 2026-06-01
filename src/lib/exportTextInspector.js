@@ -44,6 +44,30 @@ export function findInternalExportText(rows) {
   return null;
 }
 
+export function formatInternalExportMessage(subject, format, internalText) {
+  const surface = String(format || 'export').toUpperCase();
+  const location = internalText?.path
+    ? ` in ${internalText.path}`
+    : internalText?.column
+      ? ` in ${internalText.column}`
+      : '';
+  return `${subject} ${surface} export exposes internal ${internalText?.label || 'proof'} language${location}.`;
+}
+
+export function assertTextHasNoInternalExportLanguage(text, subject, format = 'text') {
+  const internalText = findInternalTextInString(text);
+  if (internalText) {
+    throw new Error(formatInternalExportMessage(subject, format, internalText));
+  }
+}
+
+export function assertCsvRowsHaveNoInternalExportLanguage(rows, subject) {
+  const internalText = findInternalExportText(rows);
+  if (internalText) {
+    throw new Error(formatInternalExportMessage(subject, 'CSV', internalText));
+  }
+}
+
 async function toArrayBuffer(value) {
   if (!value) return null;
   if (value instanceof ArrayBuffer) return value;
@@ -99,4 +123,12 @@ export async function findInternalOfficeXmlText(blob, pathPattern) {
     }
   }
   return null;
+}
+
+export async function assertOfficeExportHasNoInternalText(blob, format, subject) {
+  const pathPattern = OFFICE_TEXT_PATH_PATTERNS[format];
+  const internalText = await findInternalOfficeXmlText(blob, pathPattern);
+  if (internalText) {
+    throw new Error(formatInternalExportMessage(subject, format, internalText));
+  }
 }

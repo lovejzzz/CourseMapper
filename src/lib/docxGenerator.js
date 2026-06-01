@@ -1,4 +1,5 @@
 import { safeImport } from './safeImport.js';
+import { assertOfficeExportHasNoInternalText } from './exportTextInspector.js';
 
 // Lazy-loaded heavy dependencies
 let _docx, _saveAs;
@@ -378,6 +379,7 @@ export async function buildDocxBlob(courseMap, customColumns) {
 export async function generateDocx(courseMap, customColumns) {
   const saveAs = await getSaveAs();
   const blob = await buildDocxBlob(courseMap, customColumns);
+  await assertOfficeExportHasNoInternalText(blob, 'docx', 'Course Map');
   const courseName = courseMap.courseName || 'Course Map';
   const semester = courseMap.semester || '';
   const fileName = `${courseName} Course Map (${semester || 'TBD'}).docx`;
