@@ -644,6 +644,14 @@ test.describe('Export smoke', () => {
     expect(slideXml).toContain('Compact slide title survives export');
     expect(slideXml).toContain('Compact bullet survives export');
     expect(notesXml).toContain('compact speaker notes');
+
+    const pdfDownload = await expectDownload(page, () => page.getByTestId('export-format-slidepdf').click(), {
+      extension: 'pdf',
+      nameIncludes: 'Export Smoke Course',
+      minBytes: 100,
+    });
+    const pdfBytes = await fs.readFile(pdfDownload.path);
+    expect(pdfBytes.subarray(0, 4).toString()).toBe('%PDF');
   });
 
   test('exports compact rubrics to current-tab CSV and DOCX', async ({ page }) => {

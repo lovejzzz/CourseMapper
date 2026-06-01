@@ -5573,10 +5573,15 @@ function buildArtifactGenreDecode(lesson = {}, profile = {}, modalityDecode = {}
   } else if (
     (profile.primaryMode !== 'engineering-design-lab' &&
       artifactMatches(
-        /\b(prototype|wireframe|design system|design-system|design artifact|design brief|portfolio rationale|journey map|usability|screen|component)\b/,
+        /\b(prototype|wireframe|design system|design-system|design artifact|design brief|portfolio rationale|journey map|usability|accessibility audit|inclusive interaction|design decision|screen|component)\b/,
       )) ||
     (profile.primaryMode === 'studio-lab' &&
-      artifactMatches(/\b(critique|revision plan|rationale|artifact|portfolio)\b/))
+      (artifactMatches(
+        /\b(design|prototype|wireframe|journey map|usability|accessibility|inclusive interaction|critique|revision plan|rationale|artifact|portfolio|decision|recommendation|memo|brief)\b/,
+      ) ||
+        contextMatches(
+          /\b(design|prototype|wireframe|journey map|usability|accessibility|inclusive interaction|critique|revision|rationale|artifact|portfolio|studio)\b/,
+        )))
   ) {
     genre = 'design-prototype';
   } else if (
@@ -5594,14 +5599,14 @@ function buildArtifactGenreDecode(lesson = {}, profile = {}, modalityDecode = {}
     genre = 'engineering-design-test';
   } else if (
     artifactMatches(
-      /\b(statistical inference report|hypothesis test write[-\s]?up|hypothesis-test write[-\s]?up|confidence interval interpretation|p[-\s]?value explanation|assumption check memo|test statistic report|effect size interpretation|regression inference memo|chi[-\s]?square report|t[-\s]?test report)\b/,
+      /\b(statistical inference report|inference question memo|statistical question memo|hypothesis test write[-\s]?up|hypothesis-test write[-\s]?up|confidence interval interpretation|p[-\s]?value explanation|assumption check memo|test statistic report|effect size interpretation|regression inference memo|chi[-\s]?square report|t[-\s]?test report)\b/,
     ) ||
     (profile.primaryMode === 'statistics-inference' &&
       (artifactMatches(
-        /\b(confidence interval|hypothesis test|hypothesis testing|null hypothesis|alternative hypothesis|p[-\s]?value|test statistic|standard error|margin of error|assumption|effect size|statistical significance|sampling distribution|inference decision|regression inference)\b/,
+        /\b(statistical question|inference question|inference claim|sample context|sample|population|variable|parameter|confidence interval|hypothesis test|hypothesis testing|null hypothesis|alternative hypothesis|p[-\s]?value|test statistic|standard error|margin of error|assumption|effect size|statistical significance|sampling distribution|inference decision|regression inference)\b/,
       ) ||
         contextMatches(
-          /\b(confidence interval|hypothesis test|hypothesis testing|null hypothesis|alternative hypothesis|p[-\s]?value|test statistic|standard error|margin of error|assumption|effect size|statistical significance|sampling distribution|inference decision|regression inference)\b/,
+          /\b(statistical question|inference question|inference claim|sample context|sample|population|variable|parameter|confidence interval|hypothesis test|hypothesis testing|null hypothesis|alternative hypothesis|p[-\s]?value|test statistic|standard error|margin of error|assumption|effect size|statistical significance|sampling distribution|inference decision|regression inference)\b/,
         )))
   ) {
     genre = 'statistical-inference-report';
@@ -5811,7 +5816,9 @@ function buildArtifactGenreDecode(lesson = {}, profile = {}, modalityDecode = {}
     genre = 'close-reading-analysis';
   } else if (
     profile.primaryMode !== 'engineering-design-lab' &&
-    contextMatches(/\b(prototype|wireframe|design system|portfolio rationale|journey map|usability)\b/)
+    contextMatches(
+      /\b(prototype|wireframe|design system|portfolio rationale|journey map|usability|accessibility audit|inclusive interaction|design decision)\b/,
+    )
   ) {
     genre = 'design-prototype';
   } else if (
@@ -5826,11 +5833,11 @@ function buildArtifactGenreDecode(lesson = {}, profile = {}, modalityDecode = {}
     genre = 'engineering-design-test';
   } else if (
     contextMatches(
-      /\b(statistical inference report|hypothesis test write[-\s]?up|hypothesis-test write[-\s]?up|confidence interval interpretation|p[-\s]?value explanation|assumption check memo|test statistic report|effect size interpretation|regression inference memo|chi[-\s]?square report|t[-\s]?test report)\b/,
+      /\b(statistical inference report|inference question memo|statistical question memo|hypothesis test write[-\s]?up|hypothesis-test write[-\s]?up|confidence interval interpretation|p[-\s]?value explanation|assumption check memo|test statistic report|effect size interpretation|regression inference memo|chi[-\s]?square report|t[-\s]?test report)\b/,
     ) ||
     (profile.primaryMode === 'statistics-inference' &&
       contextMatches(
-        /\b(confidence interval|hypothesis test|hypothesis testing|null hypothesis|alternative hypothesis|p[-\s]?value|test statistic|standard error|margin of error|assumption|effect size|statistical significance|sampling distribution|inference decision|regression inference)\b/,
+        /\b(statistical question|inference question|inference claim|sample context|sample|population|variable|parameter|confidence interval|hypothesis test|hypothesis testing|null hypothesis|alternative hypothesis|p[-\s]?value|test statistic|standard error|margin of error|assumption|effect size|statistical significance|sampling distribution|inference decision|regression inference)\b/,
       ))
   ) {
     genre = 'statistical-inference-report';
@@ -11920,7 +11927,7 @@ function buildShortAnswerQuestion({ lesson, index, bloom, objective, concept, le
       intendedUse: `Formative written check after ${lesson.title}; use responses to identify review needs before ${artifact}.`,
       question: `In 2-3 sentences, explain how ${concept} should shape ${artifact} and name one ${lens.evidenceNoun} source from ${sourceCue} students should use.`,
       answer: `${concept} should guide the evidence students select and the decision they justify in ${artifact}. A strong ${lesson.title} answer names a specific detail from ${sourceCue}, explains why it fits, and states how the evidence changes the next step.`,
-      sampleAnswer: `For ${lesson.title}, I would use ${concept} to choose evidence from ${sourceCue} that directly supports ${artifact}. I would cite the exact ${concept} packet detail and explain how it changes the ${lens.decisionNoun}.`,
+      sampleAnswer: `For ${lesson.title}, I would use ${concept} to choose evidence from ${sourceCue} that directly supports ${artifact}. I would cite the exact source detail that shows what ${concept} changes about ${artifact} and the ${lens.decisionNoun}.`,
       explanation: `A complete response links ${concept}, ${artifact}, and a concrete ${lens.evidenceNoun} source instead of only defining the term.`,
       scoringGuidance: `Scoring guidance: Full credit for ${lesson.title} requires ${concept}, one concrete evidence source, and a decision implication. Partial credit is appropriate when the answer names ${concept} but omits evidence or the implication. Flag answers that summarize ${lesson.title} without applying it.`,
       tags: quizTags(lesson, 'short_answer', bloom, 'formative check'),

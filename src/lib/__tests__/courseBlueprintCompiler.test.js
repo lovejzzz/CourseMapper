@@ -1495,6 +1495,23 @@ describe('courseBlueprintCompiler', () => {
       'statistical-inference-report',
       'statistical-inference-report',
     ]);
+    const statisticalQuestionMap = makeStatisticsInferenceCourseMap();
+    statisticalQuestionMap.lessons = statisticalQuestionMap.lessons.map((lesson, index) =>
+      index === 0
+        ? {
+            ...lesson,
+            title: 'Week 1: Statistical Questions, Variables, and Samples',
+            sections: lesson.sections.map((section) => ({
+              ...section,
+              topicSection: 'Statistical question, variable, parameter, population, sample, inference claim',
+              weeklyAssessments:
+                'Inference question memo with research question, variable or parameter, sample context, population claim, assumption note, and limitation.',
+            })),
+          }
+        : lesson,
+    );
+    const statisticalQuestionBlueprint = buildCourseBlueprint(statisticalQuestionMap);
+    expect(statisticalQuestionBlueprint.lessons[0].artifactGenre.genre).toBe('statistical-inference-report');
     expect(blueprint.lessons[0].classSessionPlan.segments.map((segment) => segment.phase)).toEqual([
       'question and assumption check',
       'statistical model demonstration',
@@ -1520,6 +1537,59 @@ describe('courseBlueprintCompiler', () => {
         reviewFocus: expect.stringContaining('uncertainty interpretation'),
       }),
     });
+  });
+
+  it('keeps accessibility audit memos in studio courses as design prototypes', () => {
+    const blueprint = buildCourseBlueprint({
+      courseName: 'Interaction Design Studio',
+      semester: 'Fall 2026',
+      learningOutcomes:
+        'Frame user problems, prototype interaction flows, test usability, improve accessibility, and defend design decisions with evidence.',
+      lessons: [
+        {
+          title: 'Week 1: Wireframes and Interaction Flows',
+          sections: [
+            {
+              topicSection: 'Wireframes, task flow, information architecture, sketching alternatives, flow friction',
+              learningObjectives:
+                'Evaluate alternate wireframes against a task flow and select a testable interaction direction.',
+              learningGoals: 'Students compare low-fidelity concepts and select an interaction flow for prototyping.',
+              weeklyAssessments:
+                'Wireframe critique packet with three alternatives, task-flow rationale, and revision target.',
+              asyncActivities: 'Sketch low-fidelity alternatives and annotate flow decisions.',
+              syncActivities: 'Wireframe charrette comparing interaction flow, hierarchy, and task friction.',
+              supportingResources: 'Wireframe kit; task-flow examples; information architecture checklist',
+              evaluateDesign: 'Score alternative breadth, task-flow fit, and rationale for the selected direction.',
+            },
+          ],
+        },
+        {
+          title: 'Week 2: Accessibility Audit and Inclusive Interaction',
+          sections: [
+            {
+              topicSection:
+                'Accessibility audit, contrast, keyboard navigation, alt text, inclusive interaction patterns',
+              learningObjectives:
+                'Evaluate a prototype against accessibility criteria and revise interaction details for equivalent use.',
+              learningGoals: 'Students audit prototypes for accessibility barriers and revise interaction details.',
+              weeklyAssessments:
+                'Accessibility audit memo with barriers, evidence screenshots, and inclusive revision plan.',
+              asyncActivities: 'Run contrast and keyboard checks; annotate barriers in the prototype.',
+              syncActivities: 'Accessibility audit studio with barrier triage and inclusive interaction revision.',
+              supportingResources: 'Accessibility checklist; contrast tool guide; inclusive interaction examples',
+              evaluateDesign:
+                'Score audit evidence, barrier priority, equivalent-use reasoning, and revision specificity.',
+            },
+          ],
+        },
+      ],
+    });
+
+    expect(blueprint.courseModalityProfile.primaryMode).toBe('studio-lab');
+    expect(blueprint.lessons.map((lesson) => lesson.artifactGenre.genre)).toEqual([
+      'design-prototype',
+      'design-prototype',
+    ]);
   });
 
   it('decodes information literacy courses as source evaluation instead of generic research synthesis', () => {
@@ -1949,9 +2019,13 @@ describe('courseBlueprintCompiler', () => {
         },
       },
     });
-    const compiled = compileBlueprintDeliverables(blueprint, ['lessonPlans', 'assignments', 'discussions'], {
-      enforceCompilerContract: false,
-    });
+    const compiled = compileBlueprintDeliverables(
+      blueprint,
+      ['lessonPlans', 'assignments', 'discussions', 'quizBank'],
+      {
+        enforceCompilerContract: false,
+      },
+    );
 
     expect(blueprint.courseModalityProfile).toMatchObject({
       primaryMode: 'proof-seminar',
@@ -1999,6 +2073,11 @@ describe('courseBlueprintCompiler', () => {
         reviewFocus: expect.stringContaining('logical validity'),
       }),
     });
+    const quizSampleAnswers = compiled.quizBank.quizzes
+      .flatMap((quiz) => quiz.questions.map((question) => question.sampleAnswer || ''))
+      .join(' ');
+    expect(quizSampleAnswers).toContain('exact source detail');
+    expect(quizSampleAnswers).not.toMatch(/\bproof packet\b/i);
   });
 
   it('decodes lecture exam courses into retrieval and misconception repair checkpoints', () => {
