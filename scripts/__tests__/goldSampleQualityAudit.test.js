@@ -118,6 +118,19 @@ describe('gold sample quality audit', () => {
         expect(
           payload.results.every(
             (result) =>
+              result.blueprintMaturity.adaptiveRepairPlan?.source === 'adaptive-compiler-repair-plan' &&
+              result.blueprintMaturity.adaptiveRepairPlan?.modelGeneratedFallbackCount === 0 &&
+              result.blueprintMaturity.adaptiveRepairPlan?.modelFallbackPolicy?.status ===
+                'not-used-for-blueprint-compiled-core' &&
+              Array.isArray(result.blueprintMaturity.adaptiveRepairPlan?.modelFallbackPolicy?.blockedFor) &&
+              result.blueprintMaturity.adaptiveRepairPlan.modelFallbackPolicy.blockedFor.length >= 2 &&
+              result.blueprintMaturity.adaptiveRepairPlan?.deterministicRepairCount ===
+                result.blueprintMaturity.compilerDecisionMatrix?.localRepairCount,
+          ),
+        ).toBe(true);
+        expect(
+          payload.results.every(
+            (result) =>
               result.blueprintMaturity.compilerDecisionMatrix?.deterministicCompiler === true &&
               result.blueprintMaturity.compilerDecisionMatrix?.modelFallback ===
                 'not used for blueprint-compiled deliverables' &&
@@ -2505,6 +2518,35 @@ describe('gold sample quality audit', () => {
           expect.objectContaining({
             featureId: 'enrichment',
             check: 'phraseCoverage',
+          }),
+        ]),
+      );
+    } finally {
+      await closeHybridPipelineAuditRuntime();
+    }
+  });
+
+  it('blocks when compiler output hides the adaptive repair and fallback plan', async () => {
+    const runtime = await loadHybridPipelineAuditRuntime();
+    try {
+      const result = auditGoldSample({
+        sample: DEFAULT_GOLD_SAMPLES.at(-2),
+        runtime: {
+          ...runtime,
+          buildCourseBlueprint: (...args) => {
+            const blueprint = runtime.buildCourseBlueprint(...args);
+            delete blueprint.compilerPath.adaptiveRepairPlan;
+            return blueprint;
+          },
+        },
+      });
+
+      expect(result.summary.status).toBe('blocked');
+      expect(result.blueprintMaturity.findings).toEqual(
+        expect.arrayContaining([
+          expect.objectContaining({
+            featureId: 'blueprint',
+            check: 'adaptiveRepairPlan',
           }),
         ]),
       );

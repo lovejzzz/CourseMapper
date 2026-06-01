@@ -8695,6 +8695,56 @@ function auditBlueprintMaturity(blueprint, scope, expectedLens = {}) {
       makeFinding('blocker', 'blueprint', 'adaptiveSafety', 'Blueprint is missing adaptive safety classification.'),
     );
   }
+  const adaptiveRepairPlan = blueprint?.compilerPath?.adaptiveRepairPlan || null;
+  if (
+    !adaptiveRepairPlan?.status ||
+    adaptiveRepairPlan?.source !== 'adaptive-compiler-repair-plan' ||
+    !Number.isFinite(adaptiveRepairPlan?.deterministicRepairCount) ||
+    adaptiveRepairPlan.deterministicRepairCount !== blueprint?.compilerDecisionMatrix?.localRepairCount ||
+    !Number.isFinite(adaptiveRepairPlan?.modelGeneratedFallbackCount) ||
+    adaptiveRepairPlan.modelGeneratedFallbackCount !== 0 ||
+    adaptiveRepairPlan?.modelFallbackPolicy?.status !== 'not-used-for-blueprint-compiled-core' ||
+    !Array.isArray(adaptiveRepairPlan?.modelFallbackPolicy?.allowedAfter) ||
+    adaptiveRepairPlan.modelFallbackPolicy.allowedAfter.length < 2 ||
+    !Array.isArray(adaptiveRepairPlan?.modelFallbackPolicy?.blockedFor) ||
+    adaptiveRepairPlan.modelFallbackPolicy.blockedFor.length < 2 ||
+    !adaptiveRepairPlan?.repairPolicy ||
+    !adaptiveRepairPlan?.escalationPolicy ||
+    !Array.isArray(adaptiveRepairPlan?.repairRows)
+  ) {
+    findings.push(
+      makeFinding(
+        'blocker',
+        'blueprint',
+        'adaptiveRepairPlan',
+        'Blueprint is missing a reviewable adaptive repair and model-fallback plan.',
+      ),
+    );
+  }
+  if (
+    Array.isArray(adaptiveRepairPlan?.repairRows) &&
+    adaptiveRepairPlan.repairRows.some(
+      (row) =>
+        !row?.lessonNumber ||
+        !row.lessonTitle ||
+        !row.generationPath ||
+        !row.publishGate ||
+        !Array.isArray(row.repairKinds) ||
+        row.repairKinds.length === 0 ||
+        !row.assessmentSource ||
+        !row.sourceRiskLevel ||
+        !row.reviewerAction,
+    )
+  ) {
+    findings.push(
+      makeFinding(
+        'blocker',
+        'blueprint',
+        'adaptiveRepairRows',
+        'Adaptive repair rows must identify the repaired lesson, repair kind, source risk, publish gate, and reviewer action.',
+      ),
+    );
+  }
   if (
     !blueprint?.compilerDecisionMatrix?.status ||
     blueprint.compilerDecisionMatrix.deterministicCompiler !== true ||
@@ -9184,6 +9234,7 @@ function auditBlueprintMaturity(blueprint, scope, expectedLens = {}) {
     blueprintReviewSurface: blueprint?.blueprintReviewSurface || null,
     compilerPath: blueprint?.compilerPath || null,
     adaptiveSafety: blueprint?.compilerPath?.adaptiveSafety || null,
+    adaptiveRepairPlan: blueprint?.compilerPath?.adaptiveRepairPlan || null,
     compilerDecisionMatrix: blueprint?.compilerDecisionMatrix || null,
     compilerContract: blueprint?.compilerContract || null,
     findings,
@@ -14360,7 +14411,7 @@ export function renderGoldSampleQualityAuditMarkdown(payload) {
   });
   const blueprintRows = payload.results.map(
     (result) =>
-      `| ${result.sampleId} | ${result.blueprintMaturity.status} | ${result.blueprintMaturity.compilerPath?.source || 'missing'} | ${result.blueprintMaturity.adaptiveSafety?.status || 'missing'} | ${result.blueprintMaturity.compilerDecisionMatrix?.status || 'missing'} | ${result.blueprintMaturity.compilerDecisionMatrix?.reviewRequiredCount ?? ''} | ${result.blueprintMaturity.sourceRiskRegister?.status || 'missing'} | ${result.blueprintMaturity.sourceConflictReport?.status || 'missing'} | ${result.blueprintMaturity.blueprintAssumptionLedger?.status || 'missing'} | ${result.blueprintMaturity.blueprintAssumptionLedger?.reviewRequiredCount ?? ''} | ${result.blueprintMaturity.timingStatus || 'missing'} | ${result.blueprintMaturity.confidenceLevel} | ${result.blueprintMaturity.averageConfidenceScore} | ${result.blueprintMaturity.sourceGroundedLessonCount} | ${result.blueprintMaturity.averageWorkloadMinutes} | ${result.blueprintMaturity.averagePlannedClassMinutes} | ${result.blueprintMaturity.reviewFlagCount} |`,
+      `| ${result.sampleId} | ${result.blueprintMaturity.status} | ${result.blueprintMaturity.compilerPath?.source || 'missing'} | ${result.blueprintMaturity.adaptiveSafety?.status || 'missing'} | ${result.blueprintMaturity.adaptiveRepairPlan?.status || 'missing'} | ${result.blueprintMaturity.adaptiveRepairPlan?.deterministicRepairCount ?? ''} | ${result.blueprintMaturity.adaptiveRepairPlan?.modelGeneratedFallbackCount ?? ''} | ${result.blueprintMaturity.compilerDecisionMatrix?.status || 'missing'} | ${result.blueprintMaturity.compilerDecisionMatrix?.reviewRequiredCount ?? ''} | ${result.blueprintMaturity.sourceRiskRegister?.status || 'missing'} | ${result.blueprintMaturity.sourceConflictReport?.status || 'missing'} | ${result.blueprintMaturity.blueprintAssumptionLedger?.status || 'missing'} | ${result.blueprintMaturity.blueprintAssumptionLedger?.reviewRequiredCount ?? ''} | ${result.blueprintMaturity.timingStatus || 'missing'} | ${result.blueprintMaturity.confidenceLevel} | ${result.blueprintMaturity.averageConfidenceScore} | ${result.blueprintMaturity.sourceGroundedLessonCount} | ${result.blueprintMaturity.averageWorkloadMinutes} | ${result.blueprintMaturity.averagePlannedClassMinutes} | ${result.blueprintMaturity.reviewFlagCount} |`,
   );
   const blueprintReviewRows = payload.results.map((result) => {
     const surface = result.blueprintMaturity.blueprintReviewSurface || {};
@@ -14507,8 +14558,8 @@ export function renderGoldSampleQualityAuditMarkdown(payload) {
     '## Blueprint Maturity Matrix',
     '',
     markdownTable([
-      '| Gold Sample | Blueprint Status | Compiler Path | Adaptive Safety | Compiler Decisions | Review Required Lessons | Source Risk | Source Conflicts | Assumption Ledger | Ledger Review Items | Timing | Confidence | Confidence Score | Source-Grounded Lessons | Avg Workload Minutes | Avg Live Minutes | Review Flags |',
-      '| --- | --- | --- | --- | --- | ---: | --- | --- | --- | ---: | --- | --- | ---: | ---: | ---: | ---: | ---: |',
+      '| Gold Sample | Blueprint Status | Compiler Path | Adaptive Safety | Adaptive Repair Plan | Deterministic Repairs | Model Fallbacks | Compiler Decisions | Review Required Lessons | Source Risk | Source Conflicts | Assumption Ledger | Ledger Review Items | Timing | Confidence | Confidence Score | Source-Grounded Lessons | Avg Workload Minutes | Avg Live Minutes | Review Flags |',
+      '| --- | --- | --- | --- | --- | ---: | ---: | --- | ---: | --- | --- | --- | ---: | --- | --- | ---: | ---: | ---: | ---: | ---: |',
       ...blueprintRows,
     ]),
     '',

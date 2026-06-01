@@ -893,6 +893,88 @@ export function mergeBlueprintEnrichment(blueprint, enrichment = {}) {
   };
 }
 
+function buildAdaptiveRepairPlan(blueprint = {}, { mode = 'deterministic' } = {}) {
+  const lessons = Array.isArray(blueprint?.lessons) ? blueprint.lessons : [];
+  const repairRows = lessons
+    .filter((lesson) => lesson?.compilerDecision?.reviewRequired || lesson?.compilerDecision?.localRepairUsed)
+    .map((lesson) => {
+      const inferredFields = Array.isArray(lesson?.sourceEvidenceTrace?.inferredOrDerivedFields)
+        ? lesson.sourceEvidenceTrace.inferredOrDerivedFields
+        : [];
+      const missingSignals = Array.isArray(lesson?.missingSignals) ? lesson.missingSignals : [];
+      const assessmentSource = lesson?.compilerDecision?.evidence?.assessmentSource || lesson?.assessmentSource || '';
+      const confidenceLevel = lesson?.compilerDecision?.evidence?.confidenceLevel || lesson?.confidence?.level || '';
+      const sourceRiskLevel =
+        lesson?.compilerDecision?.evidence?.sourceRiskLevel || lesson?.sourceRisk?.riskLevel || 'unknown';
+      const repairKinds = unique(
+        [
+          confidenceLevel && confidenceLevel !== 'high' ? 'source-confidence-review' : '',
+          ['high', 'medium'].includes(sourceRiskLevel) ? 'source-risk-review' : '',
+          missingSignals.length > 0 ? 'missing-source-signal' : '',
+          inferredFields.length > 0 ? 'source-inferred-field' : '',
+          assessmentSource === 'sparse-fallback' ? 'synthesized-assessment' : '',
+          assessmentSource === 'evaluation-design-derived' ? 'derived-assessment' : '',
+          assessmentSource && assessmentSource !== 'course-map' ? 'assessment-source-review' : '',
+          lesson?.sourceConflict?.status && lesson.sourceConflict.status !== 'clear' ? 'source-conflict' : '',
+        ].filter(Boolean),
+        8,
+      );
+      return {
+        lessonNumber: lesson.lessonNumber,
+        lessonTitle: lesson.title,
+        generationPath: lesson?.compilerDecision?.generationPath || 'missing',
+        publishGate: lesson?.compilerDecision?.publishGate || 'missing',
+        reviewRequired: Boolean(lesson?.compilerDecision?.reviewRequired),
+        localRepairUsed: Boolean(lesson?.compilerDecision?.localRepairUsed),
+        repairKinds,
+        assessmentSource: assessmentSource || 'unknown',
+        sourceRiskLevel,
+        inferredFieldCount: inferredFields.length,
+        missingSignalCount: missingSignals.length,
+        reviewerAction: lessonLocalReviewAction(lesson),
+      };
+    });
+  const localRepairRows = repairRows.filter((row) => row.localRepairUsed);
+  const synthesizedAssessmentCount = repairRows.filter((row) =>
+    row.repairKinds.includes('synthesized-assessment'),
+  ).length;
+  const derivedAssessmentCount = repairRows.filter((row) => row.repairKinds.includes('derived-assessment')).length;
+  const sourceConflictCount = repairRows.filter((row) => row.repairKinds.includes('source-conflict')).length;
+  const status = repairRows.length > 0 ? 'deterministic-repair-with-local-review' : 'deterministic-compile-no-repair';
+  return {
+    version: 1,
+    source: 'adaptive-compiler-repair-plan',
+    status,
+    selectedCompileMode: mode,
+    deterministicRepairCount: localRepairRows.length,
+    localReviewRequiredCount: repairRows.filter((row) => row.reviewRequired).length,
+    synthesizedAssessmentCount,
+    derivedAssessmentCount,
+    sourceConflictCount,
+    modelGeneratedFallbackCount: 0,
+    repairPolicy:
+      'Use deterministic, source-marked repairs only when the source map is sparse or structurally messy; preserve local-review gates instead of inventing course facts.',
+    escalationPolicy:
+      repairRows.length > 0
+        ? 'Ask the instructor or instructional designer to confirm the listed rows before export-ready classroom use.'
+        : 'Use deterministic compile with instructor spot-check; optional enrichment may polish phrasing only after source grounding passes.',
+    modelFallbackPolicy: {
+      status: 'not-used-for-blueprint-compiled-core',
+      allowedAfter: [
+        'blueprint contract passes',
+        'source-risk and assumption-ledger review gates remain visible',
+        'fallback is limited to unsupported optional add-ons or post-generation format repair',
+      ],
+      blockedFor: [
+        'inventing missing official dates, grading weights, readings, clinical/safety requirements, or institution policy',
+        'hiding sparse source gaps that require instructor confirmation',
+        'overriding deterministic blueprint evidence without a reviewable source anchor',
+      ],
+    },
+    repairRows,
+  };
+}
+
 function buildCompilerPathReceipt(blueprint, options = {}) {
   const enriched =
     blueprint?.enrichment?.source === 'model-blueprint-enrichment' &&
@@ -939,6 +1021,7 @@ function buildCompilerPathReceipt(blueprint, options = {}) {
       recommendedPath:
         reviewFlagCount > 0 ? `${mode}-compile-with-local-review` : `${mode}-compile-with-instructor-spot-check`,
     },
+    adaptiveRepairPlan: buildAdaptiveRepairPlan(blueprint, { mode }),
   };
 }
 

@@ -2791,6 +2791,15 @@ describe('courseBlueprintCompiler', () => {
         locallyRepairedLessonCount: 0,
         modelFallback: 'not used for blueprint-compiled deliverables',
       },
+      adaptiveRepairPlan: {
+        status: 'deterministic-compile-no-repair',
+        deterministicRepairCount: 0,
+        modelGeneratedFallbackCount: 0,
+        modelFallbackPolicy: {
+          status: 'not-used-for-blueprint-compiled-core',
+        },
+        repairRows: [],
+      },
     });
     expect(blueprint.compilerContract).toMatchObject({
       status: 'pass',
@@ -4721,6 +4730,29 @@ describe('courseBlueprintCompiler', () => {
       synthesizedAssessmentCount: 1,
       humanReview: 'required for flagged source gaps or conflicts before classroom handoff',
       recommendedPath: 'deterministic-compile-with-local-review',
+    });
+    expect(blueprint.compilerPath.adaptiveRepairPlan).toMatchObject({
+      status: 'deterministic-repair-with-local-review',
+      deterministicRepairCount: 1,
+      localReviewRequiredCount: 1,
+      synthesizedAssessmentCount: 1,
+      modelGeneratedFallbackCount: 0,
+      modelFallbackPolicy: {
+        status: 'not-used-for-blueprint-compiled-core',
+        blockedFor: expect.arrayContaining([expect.stringContaining('inventing missing official dates')]),
+      },
+      repairRows: [
+        expect.objectContaining({
+          lessonNumber: 2,
+          publishGate: 'local-review-required-before-publish',
+          repairKinds: expect.arrayContaining([
+            'missing-source-signal',
+            'source-inferred-field',
+            'synthesized-assessment',
+          ]),
+          reviewerAction: expect.stringMatching(/Case worksheet|Lesson 2/i),
+        }),
+      ],
     });
     expect(ir.decks[1].slides.map((slide) => slide.type)).toContain('activity');
     expect(compiled.slideDecks.decks[1].slideDeckSequenceGuide.cumulativeAssessmentMap).toContain(
