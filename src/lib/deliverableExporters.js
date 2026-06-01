@@ -16,6 +16,7 @@ import { safeImport } from './safeImport.js';
 import {
   assertCsvRowsHaveNoInternalExportLanguage,
   assertOfficeExportHasNoInternalText,
+  assertTableRowsHaveNoInternalExportLanguage,
 } from './exportTextInspector.js';
 
 let _docx, _saveAs;
@@ -439,12 +440,13 @@ export async function exportDeliverableCsv(featureId, data, courseName) {
 // ════════════════════════════════════════════════════════════════
 
 export async function exportDeliverablePdf(featureId, data, courseName) {
-  const { jsPDF, autoTable } = await loadPdfLibs();
   const label = resolveFeatureLabel(featureId);
   const title = `${courseName || 'Course'} — ${label}`;
 
   // Syllabus gets a specially formatted multi-section PDF
   if (featureId === 'syllabus') {
+    assertTableRowsHaveNoInternalExportLanguage(buildSyllabusCsvRows(data), label, 'PDF');
+    const { jsPDF, autoTable } = await loadPdfLibs();
     const doc = new jsPDF({ orientation: 'portrait', unit: 'mm', format: 'a4' });
     const syl = data.syllabus || data;
     let y = 15;
@@ -700,7 +702,9 @@ export async function exportDeliverablePdf(featureId, data, courseName) {
   // All other deliverables: generic table-based PDF
   const { headers, rows } = deliverableToCsvRows(featureId, data);
   if (rows.length === 0) throw new Error('No data to export');
+  assertTableRowsHaveNoInternalExportLanguage({ headers, rows }, label, 'PDF');
 
+  const { jsPDF, autoTable } = await loadPdfLibs();
   const landscape = headers.length > 5;
   const doc = new jsPDF({ orientation: landscape ? 'landscape' : 'portrait', unit: 'mm', format: 'a4' });
 

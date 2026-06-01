@@ -61,11 +61,15 @@ export function assertTextHasNoInternalExportLanguage(text, subject, format = 't
   }
 }
 
-export function assertCsvRowsHaveNoInternalExportLanguage(rows, subject) {
+export function assertTableRowsHaveNoInternalExportLanguage(rows, subject, format = 'table') {
   const internalText = findInternalExportText(rows);
   if (internalText) {
-    throw new Error(formatInternalExportMessage(subject, 'CSV', internalText));
+    throw new Error(formatInternalExportMessage(subject, format, internalText));
   }
+}
+
+export function assertCsvRowsHaveNoInternalExportLanguage(rows, subject) {
+  assertTableRowsHaveNoInternalExportLanguage(rows, subject, 'CSV');
 }
 
 async function toArrayBuffer(value) {

@@ -1,6 +1,8 @@
 import { describe, expect, it } from 'vitest';
 import JSZip from 'jszip';
-import { exportDeliverableCsv } from '../deliverableExporters';
+import { exportDeliverableCsv, exportDeliverablePdf } from '../deliverableExporters';
+import { generatePdf } from '../exporters';
+import { exportDeliverablePdf as exportModularDeliverablePdf } from '../exporters/pdfExporter';
 import { saveToGoogleDocsBlob, saveToGoogleSheets, saveToGoogleSlides } from '../googleDrive';
 
 async function makeOfficeXmlBlob(path, xml) {
@@ -32,6 +34,76 @@ describe('direct export integrity guards', () => {
         'Research Methods',
       ),
     ).rejects.toThrow('Lesson Plans CSV export exposes internal compiler decision language in Warm-Up.');
+  });
+
+  it('blocks course-map PDF exports that expose internal proof language', async () => {
+    await expect(
+      generatePdf({
+        courseName: 'Research Methods',
+        semester: 'Fall',
+        lessons: [
+          {
+            title: 'Lesson 1',
+            sections: [
+              {
+                learningGoals: 'This goal exposes source grounding details.',
+              },
+            ],
+          },
+        ],
+      }),
+    ).rejects.toThrow('Course Map PDF export exposes internal source grounding language in Learning Goals.');
+  });
+
+  it('blocks current-tab deliverable PDF exports that expose internal proof language', async () => {
+    await expect(
+      exportDeliverablePdf(
+        'lessonPlans',
+        {
+          lessonPlans: [
+            {
+              lessonTitle: 'Lesson 1',
+              warmUp: {
+                prompt: 'This prompt exposes the compiler decision.',
+              },
+            },
+          ],
+        },
+        'Research Methods',
+      ),
+    ).rejects.toThrow('Lesson Plans PDF export exposes internal compiler decision language in Warm-Up.');
+  });
+
+  it('blocks syllabus PDF exports before rendering internal proof language', async () => {
+    await expect(
+      exportDeliverablePdf(
+        'syllabus',
+        {
+          syllabus: {
+            courseTitle: 'Research Methods',
+            courseDescription: 'This description exposes the publish gate.',
+          },
+        },
+        'Research Methods',
+      ),
+    ).rejects.toThrow('Syllabus PDF export exposes internal publish gate language in Content.');
+  });
+
+  it('blocks modular PDF exports used by all-export routing', async () => {
+    await expect(
+      exportModularDeliverablePdf(
+        'lessonPlans',
+        {
+          lessonPlans: [
+            {
+              lessonTitle: 'Lesson 1',
+              materials: ['This material exposes source confidence.'],
+            },
+          ],
+        },
+        'Research Methods',
+      ),
+    ).rejects.toThrow('Lesson Plans PDF export exposes internal source confidence language in Materials.');
   });
 
   it('blocks Google Docs uploads when the source DOCX exposes internal proof language', async () => {

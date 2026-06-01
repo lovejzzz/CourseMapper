@@ -226,6 +226,7 @@ Latest slice evidence:
 - 2026-05-31: Closed the matching spreadsheet export gap. Course-map XLSX verification now opens the generated workbook XML and blocks export readiness if worksheet or shared-string text leaks internal compiler/proof language, so every primary downloaded Office format is inspected before the package is marked ready.
 - 2026-05-31: Added the same fail-closed proof-language boundary to ZIP packaging and live package audits. The ZIP builder now inspects each generated Office file before adding it to the package, and the course-materials ZIP audit flags internal compiler/proof language in DOCX, PPTX speaker notes/slides, and XLSX text.
 - 2026-05-31: Closed the current-tab export bypass. Direct CSV, DOCX, PPTX, Google Docs, Google Sheets, and Google Slides export paths now reuse the same internal proof-language guards as package verification and ZIP packaging before a file is saved or uploaded.
+- 2026-05-31: Closed the PDF export bypass. Course-map PDFs, deliverable PDFs, syllabus PDFs, slide-deck PDFs, and all-export PDF routing now scan the exact rendered text table before loading the PDF renderer, blocking internal compiler/proof language before download.
 
 ## Current v0.7 Focus
 

@@ -1,6 +1,9 @@
 import { safeImport } from './safeImport.js';
 import { loadPdfRuntime } from './pdfRuntime.js';
-import { assertTextHasNoInternalExportLanguage } from './exportTextInspector.js';
+import {
+  assertTableRowsHaveNoInternalExportLanguage,
+  assertTextHasNoInternalExportLanguage,
+} from './exportTextInspector.js';
 
 // Lazy-loaded heavy dependencies
 let _saveAs;
@@ -145,6 +148,7 @@ export async function generatePdf(courseMap, customColumns) {
       body.push(row);
     }
   }
+  assertTableRowsHaveNoInternalExportLanguage({ headers: colHeaders, rows: body }, 'Course Map', 'PDF');
 
   const { jsPDF, autoTable } = await loadPdfLibs();
   const doc = new jsPDF({ orientation: 'landscape', unit: 'mm', format: 'a3' });

@@ -17,6 +17,7 @@ import { exportSlideDeckPptx, buildSlideDeckPptxBlob } from '../lib/exporters/pp
 import { downloadCourseMaterialsZip } from '../lib/packageZipExporter';
 import { expandKeys } from '../lib/keyMaps';
 import { loadPdfRuntime } from '../lib/pdfRuntime';
+import { assertTableRowsHaveNoInternalExportLanguage } from '../lib/exportTextInspector';
 
 // ── Which formats each deliverable supports ─────────────────────────────────
 // courseMap handled separately via useExport (xlsx, csv, pdf, docx, gsheets, gdocs)
@@ -111,6 +112,25 @@ const CLOUD_FORMATS = [
 
 // ── Slide Deck PDF export (text-based, using jsPDF) ───────────────────────────
 async function exportSlideDeckPdf(data, courseName) {
+  const expanded = expandKeys('slideDecks', data);
+  const decks = expanded.slideDecks || expanded.decks || [];
+  const inspectionRows = [];
+  decks.forEach((deck, deckIdx) => {
+    const lessonLabel = deck.lessonTitle || deck.title || `Lesson ${deckIdx + 1}`;
+    inspectionRows.push(['Lesson', lessonLabel]);
+    (deck.slides || []).forEach((slide, slideIdx) => {
+      inspectionRows.push(['Slide Title', slide.title || '']);
+      const bullets = slide.bullets || slide.content || [];
+      bullets.forEach((bullet) => inspectionRows.push([`Slide ${slideIdx + 1} Bullet`, String(bullet || '')]));
+      inspectionRows.push(['Speaker Notes', slide.speakerNotes || slide.notes || '']);
+    });
+  });
+  assertTableRowsHaveNoInternalExportLanguage(
+    { headers: ['Field', 'Content'], rows: inspectionRows },
+    'Slide Decks',
+    'PDF',
+  );
+
   const { jsPDF, autoTable } = await loadPdfRuntime();
   const { saveAs } = await safeImport(() => import('file-saver'));
 
@@ -119,9 +139,6 @@ async function exportSlideDeckPdf(data, courseName) {
   const pageH = 210;
   const margin = 12;
   const contentW = pageW - margin * 2;
-
-  const expanded = expandKeys('slideDecks', data);
-  const decks = expanded.slideDecks || expanded.decks || [];
 
   decks.forEach((deck, deckIdx) => {
     const slides = deck.slides || [];
