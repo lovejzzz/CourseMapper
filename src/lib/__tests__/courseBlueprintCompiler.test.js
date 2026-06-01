@@ -2587,6 +2587,23 @@ describe('courseBlueprintCompiler', () => {
         }),
       ]),
     });
+    expect(blueprint.instructorFeedbackLoadPlan).toMatchObject({
+      status: 'feedback-load-ready',
+      source: 'deterministic-instructor-feedback-load-plan',
+      lessonRowCount: 4,
+      averageEstimatedFeedbackMinutes: expect.any(Number),
+      feedbackLoadPolicy: expect.stringContaining('instructor feedback work'),
+      lessonRows: expect.arrayContaining([
+        expect.objectContaining({
+          lessonNumber: 1,
+          assessmentTitle: expect.stringContaining('Policy memo checkpoint 1'),
+          estimatedFeedbackMinutes: expect.any(Number),
+          feedbackFocus: expect.stringContaining('criterion-level feedback'),
+          batchingStrategy: expect.stringContaining('Policy memo checkpoint 1'),
+          publishGate: 'instructor-spot-check-before-publish',
+        }),
+      ]),
+    });
     expect(blueprint.sourceRiskRegister).toMatchObject({
       status: 'clear-with-spot-check',
       highRiskCount: 0,
@@ -3129,6 +3146,7 @@ describe('courseBlueprintCompiler', () => {
       classroomHandoffPlan: {},
       classroomDryRunPlan: {},
       classroomEvidenceLoopPlan: {},
+      instructorFeedbackLoadPlan: {},
       sourceRiskRegister: {},
       compilerDecisionMatrix: {},
       assessmentArchitecture: {},
@@ -3190,6 +3208,7 @@ describe('courseBlueprintCompiler', () => {
         'classroomHandoffPlan',
         'classroomDryRunPlan',
         'classroomEvidenceLoopPlan',
+        'instructorFeedbackLoadPlan',
         'packageCoherenceMatrix',
         'sourceAnchors',
         'sourceEvidenceTrace',
@@ -3386,6 +3405,13 @@ describe('courseBlueprintCompiler', () => {
       adjustmentDecision: expect.stringContaining('feedback changed'),
       preferenceLearningSignal: expect.stringContaining('instructor edits'),
     });
+    expect(compiled.lessonPlans.lessonPlans[0].instructorFeedbackLoad).toMatchObject({
+      lessonNumber: 1,
+      assessmentTitle: expect.stringContaining('Policy memo checkpoint 1'),
+      estimatedFeedbackMinutes: expect.any(Number),
+      batchingStrategy: expect.stringContaining('Policy memo checkpoint 1'),
+      calibrationCue: expect.stringContaining('strong and one partial'),
+    });
     expect(compiled.lessonPlans.lessonPlans[0].outlineTiming).toMatchObject({
       outlineMinutes: 110,
       status: 'fits-session',
@@ -3402,6 +3428,10 @@ describe('courseBlueprintCompiler', () => {
       implementationStudentWorkSampleCue: expect.stringContaining('Policy memo checkpoint 1'),
       implementationAdjustmentDecision: expect.stringContaining('feedback changed'),
       implementationPreferenceLearningSignal: expect.stringContaining('instructor edits'),
+      feedbackLoadEstimate: expect.stringContaining('Policy memo checkpoint 1'),
+      feedbackBatchingStrategy: expect.stringContaining('Policy memo checkpoint 1'),
+      feedbackCalibrationCue: expect.stringContaining('strong and one partial'),
+      feedbackNextInstructionCue: expect.stringContaining('Policy memo checkpoint 2'),
       workedExample: expect.stringContaining('Strong Policy memo checkpoint 1 work'),
       nonExample: expect.stringContaining('Weak Policy memo checkpoint 1 work'),
       contrastQuestion: expect.stringContaining('evidence for Policy Topic 1'),
@@ -3531,6 +3561,12 @@ describe('courseBlueprintCompiler', () => {
         lessonRowCount: 6,
         reviewRequiredCount: 0,
       },
+      instructorFeedbackLoadPlan: {
+        status: 'feedback-load-ready',
+        source: 'deterministic-instructor-feedback-load-plan',
+        lessonRowCount: 6,
+        averageEstimatedFeedbackMinutes: expect.any(Number),
+      },
       sourceRiskRegister: {
         status: 'clear-with-spot-check',
         highRiskCount: 0,
@@ -3578,6 +3614,11 @@ describe('courseBlueprintCompiler', () => {
       lessonNumber: 1,
       implementationFocus: expect.stringContaining('Policy Topic 1'),
       adjustmentDecision: expect.stringContaining('feedback changed'),
+    });
+    expect(compiled.syllabus.syllabus.instructorFeedbackLoadPlan.lessonRows[0]).toMatchObject({
+      lessonNumber: 1,
+      assessmentTitle: expect.stringContaining('Policy memo checkpoint 1'),
+      batchingStrategy: expect.stringContaining('Policy memo checkpoint 1'),
     });
     expect(compiled.syllabus.syllabus.packageCoherenceMatrix.lessonRows[0]).toMatchObject({
       lessonNumber: 1,

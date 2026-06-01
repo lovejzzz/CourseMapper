@@ -6450,6 +6450,98 @@ function buildClassroomEvidenceLoopPlan({
   };
 }
 
+function estimateFeedbackMinutes(assessment = {}, lesson = {}) {
+  const role = `${assessment.role || ''} ${assessment.roleLabel || ''} ${assessment.stakes || ''} ${assessment.title || ''}`;
+  if (/\b(high[-\s]?stakes|summative|final|portfolio|capstone)\b/i.test(role)) return 14;
+  if (/\b(quiz|check|diagnostic|retrieval)\b/i.test(role)) return 4;
+  if (/\b(draft|checkpoint|formative|discussion|reflection)\b/i.test(role)) return 7;
+  if (lesson.artifactGenre?.genre && /project|design|case|clinical|portfolio/i.test(lesson.artifactGenre.genre))
+    return 10;
+  return 8;
+}
+
+function buildInstructorFeedbackLoadPlan({
+  courseName,
+  lessons,
+  assessments,
+  courseModalityProfile,
+  classroomEvidenceLoopPlan,
+}) {
+  const lessonRows = lessons.map((lesson, index) => {
+    const assessment =
+      assessments.find((item) => (item.lessonNumbers || []).includes(lesson.lessonNumber)) || assessments[index] || {};
+    const evidenceLoopRow = Array.isArray(classroomEvidenceLoopPlan?.lessonRows)
+      ? classroomEvidenceLoopPlan.lessonRows.find((row) => row.lessonNumber === lesson.lessonNumber)
+      : null;
+    const concept = lesson.keyConcepts?.[0] || stripLessonPrefix(lesson.title) || 'the lesson focus';
+    const artifact = stripTerminalPunctuation(lesson.studentArtifact || assessment.title || 'the lesson artifact');
+    const feedbackMinutes = estimateFeedbackMinutes(assessment, lesson);
+    return {
+      version: 1,
+      lessonNumber: lesson.lessonNumber,
+      lessonTitle: lesson.title,
+      assessmentTitle: assessment.title || artifact,
+      assessmentRole: assessment.roleLabel || assessment.role || 'Course evidence checkpoint',
+      gradingMode: assessment.gradingMode || 'criteria-based feedback',
+      stakes: assessment.stakes || 'formative',
+      feedbackWindow: assessment.cadence?.feedbackWindow || 'Return feedback before the next dependent task.',
+      estimatedFeedbackMinutes: feedbackMinutes,
+      feedbackFocus:
+        lesson.feedbackCycle?.feedbackMethod ||
+        assessment.criterionEvidenceMap?.[0]?.feedbackMove ||
+        `Focus feedback on whether ${concept} evidence clearly improves ${artifact}.`,
+      highestLeverageCriterion:
+        assessment.criterionWeightPlan?.[0]?.criterion ||
+        assessment.criteria?.[0] ||
+        lesson.successCriteria?.[0] ||
+        `${concept} evidence quality`,
+      calibrationCue:
+        assessment.calibrationPlan?.scorerNorming ||
+        assessment.anchorExampleSet?.scorerCalibrationUse ||
+        `Before grading ${artifact}, compare a strong and partial sample and name the visible evidence difference.`,
+      studentSelfCheck:
+        assessment.anchorExampleSet?.studentFacingUse ||
+        lesson.objectiveEvidencePlan?.policy ||
+        `Before submitting ${artifact}, students self-check evidence, reasoning, feedback use, and revision quality.`,
+      batchingStrategy:
+        feedbackMinutes <= 5
+          ? `Use quick whole-class pattern feedback for ${artifact}, then respond individually only where evidence is missing.`
+          : `Batch feedback for ${artifact} by criterion so repeated issues become reusable comments plus one student-specific next move.`,
+      reusableCommentCue:
+        assessment.criterionEvidenceMap?.[0]?.partialSignal ||
+        `Use a reusable comment when students name ${concept} but do not explain how evidence changes ${artifact}.`,
+      nextInstructionCue:
+        evidenceLoopRow?.nextLessonFeedForward ||
+        lesson.learningTransferPlan?.transferTask ||
+        `Use feedback patterns from ${artifact} to decide what to reteach before the next lesson.`,
+      loadRisk: feedbackMinutes > 12 ? 'heavy-feedback-checkpoint' : 'manageable-feedback-load',
+      publishGate: lesson.compilerDecision?.publishGate || '',
+      reviewerAction: lessonLocalReviewAction(lesson),
+    };
+  });
+  const totalEstimatedFeedbackMinutes = lessonRows.reduce((sum, row) => sum + row.estimatedFeedbackMinutes, 0);
+  const heavyFeedbackLessonCount = lessonRows.filter((row) => row.loadRisk === 'heavy-feedback-checkpoint').length;
+  return {
+    version: 1,
+    source: 'deterministic-instructor-feedback-load-plan',
+    status:
+      heavyFeedbackLessonCount > Math.ceil(lessonRows.length * 0.35) ? 'feedback-load-review' : 'feedback-load-ready',
+    courseName,
+    modality: courseModalityProfile?.primaryMode || 'course-specific',
+    feedbackLoadPolicy:
+      'Classroom-ready packages must make instructor feedback work visible, paced, calibrated, and reusable before handoff.',
+    calibrationPolicy:
+      'High-value feedback should use criteria, anchor examples, and observed classroom evidence instead of one-off freeform comments.',
+    lessonRowCount: lessonRows.length,
+    totalEstimatedFeedbackMinutes,
+    averageEstimatedFeedbackMinutes: lessonRows.length
+      ? Math.round(totalEstimatedFeedbackMinutes / lessonRows.length)
+      : 0,
+    heavyFeedbackLessonCount,
+    lessonRows,
+  };
+}
+
 function buildBlueprintAssumptionLedger({
   courseName,
   lessons,
@@ -7565,6 +7657,44 @@ export function validateCourseBlueprintContract(blueprint = {}) {
     );
   }
   if (
+    !blueprint.instructorFeedbackLoadPlan?.status ||
+    blueprint.instructorFeedbackLoadPlan?.source !== 'deterministic-instructor-feedback-load-plan' ||
+    !blueprint.instructorFeedbackLoadPlan?.feedbackLoadPolicy ||
+    !blueprint.instructorFeedbackLoadPlan?.calibrationPolicy ||
+    !Number.isFinite(blueprint.instructorFeedbackLoadPlan?.totalEstimatedFeedbackMinutes) ||
+    !Number.isFinite(blueprint.instructorFeedbackLoadPlan?.averageEstimatedFeedbackMinutes) ||
+    !Array.isArray(blueprint.instructorFeedbackLoadPlan?.lessonRows) ||
+    blueprint.instructorFeedbackLoadPlan.lessonRows.length !== lessons.length ||
+    blueprint.instructorFeedbackLoadPlan.lessonRows.some(
+      (row) =>
+        !row?.lessonNumber ||
+        !row.lessonTitle ||
+        !row.assessmentTitle ||
+        !row.assessmentRole ||
+        !row.gradingMode ||
+        !row.feedbackWindow ||
+        !Number.isFinite(row.estimatedFeedbackMinutes) ||
+        !row.feedbackFocus ||
+        !row.highestLeverageCriterion ||
+        !row.calibrationCue ||
+        !row.studentSelfCheck ||
+        !row.batchingStrategy ||
+        !row.reusableCommentCue ||
+        !row.nextInstructionCue ||
+        !row.loadRisk ||
+        !row.publishGate ||
+        !row.reviewerAction,
+    )
+  ) {
+    findings.push(
+      makeContractFinding(
+        'blocker',
+        'instructorFeedbackLoadPlan',
+        'Blueprint is missing instructor feedback-load plan.',
+      ),
+    );
+  }
+  if (
     !blueprint.sourceRiskRegister?.status ||
     !Array.isArray(blueprint.sourceRiskRegister?.lessonRows) ||
     blueprint.sourceRiskRegister.lessonRows.length !== lessons.length ||
@@ -8420,6 +8550,9 @@ export function validateCourseBlueprintContract(blueprint = {}) {
     classroomEvidenceLoopStatus: blueprint.classroomEvidenceLoopPlan?.status || 'missing',
     classroomEvidenceLoopLessonRows: blueprint.classroomEvidenceLoopPlan?.lessonRowCount ?? null,
     classroomEvidenceLoopReviewRequiredCount: blueprint.classroomEvidenceLoopPlan?.reviewRequiredCount ?? null,
+    instructorFeedbackLoadStatus: blueprint.instructorFeedbackLoadPlan?.status || 'missing',
+    instructorFeedbackLoadLessonRows: blueprint.instructorFeedbackLoadPlan?.lessonRowCount ?? null,
+    instructorFeedbackLoadAverageMinutes: blueprint.instructorFeedbackLoadPlan?.averageEstimatedFeedbackMinutes ?? null,
     blueprintReviewSurfaceStatus: blueprint.blueprintReviewSurface?.status || 'missing',
     blueprintReviewSourceRequiredCount:
       blueprint.blueprintReviewSurface?.localConfirmationSummary?.sourceReviewRequiredCount ?? null,
@@ -8457,6 +8590,9 @@ function compactBlueprintContract(contract = {}) {
     classroomEvidenceLoopStatus: contract.classroomEvidenceLoopStatus || 'unknown',
     classroomEvidenceLoopLessonRows: contract.classroomEvidenceLoopLessonRows ?? null,
     classroomEvidenceLoopReviewRequiredCount: contract.classroomEvidenceLoopReviewRequiredCount ?? null,
+    instructorFeedbackLoadStatus: contract.instructorFeedbackLoadStatus || 'unknown',
+    instructorFeedbackLoadLessonRows: contract.instructorFeedbackLoadLessonRows ?? null,
+    instructorFeedbackLoadAverageMinutes: contract.instructorFeedbackLoadAverageMinutes ?? null,
     blueprintReviewSurfaceStatus: contract.blueprintReviewSurfaceStatus || 'unknown',
     blueprintReviewSourceRequiredCount: contract.blueprintReviewSourceRequiredCount ?? null,
     blueprintReviewTraceabilityStatus: contract.blueprintReviewTraceabilityStatus || 'unknown',
@@ -8710,6 +8846,35 @@ function compactClassroomEvidenceLoopPlan(plan = {}) {
       adjustmentDecision: row.adjustmentDecision,
       nextLessonFeedForward: row.nextLessonFeedForward,
       preferenceLearningSignal: row.preferenceLearningSignal,
+      publishGate: row.publishGate,
+      reviewerAction: row.reviewerAction,
+    })),
+  };
+}
+
+function compactInstructorFeedbackLoadPlan(plan = {}) {
+  const lessonRows = Array.isArray(plan.lessonRows) ? plan.lessonRows : [];
+  return {
+    status: plan.status || 'unknown',
+    source: plan.source || '',
+    modality: plan.modality || '',
+    feedbackLoadPolicy: plan.feedbackLoadPolicy || '',
+    calibrationPolicy: plan.calibrationPolicy || '',
+    lessonRowCount: lessonRows.length,
+    totalEstimatedFeedbackMinutes: plan.totalEstimatedFeedbackMinutes || 0,
+    averageEstimatedFeedbackMinutes: plan.averageEstimatedFeedbackMinutes || 0,
+    heavyFeedbackLessonCount: plan.heavyFeedbackLessonCount || 0,
+    lessonRows: lessonRows.map((row) => ({
+      lessonNumber: row.lessonNumber,
+      lessonTitle: row.lessonTitle,
+      assessmentTitle: row.assessmentTitle,
+      feedbackWindow: row.feedbackWindow,
+      estimatedFeedbackMinutes: row.estimatedFeedbackMinutes,
+      feedbackFocus: row.feedbackFocus,
+      highestLeverageCriterion: row.highestLeverageCriterion,
+      calibrationCue: row.calibrationCue,
+      batchingStrategy: row.batchingStrategy,
+      loadRisk: row.loadRisk,
       publishGate: row.publishGate,
       reviewerAction: row.reviewerAction,
     })),
@@ -10228,6 +10393,13 @@ export function buildCourseBlueprint(courseMap, options = {}) {
     classroomDryRunPlan,
     classroomHandoffPlan,
   });
+  const instructorFeedbackLoadPlan = buildInstructorFeedbackLoadPlan({
+    courseName,
+    lessons,
+    assessments,
+    courseModalityProfile,
+    classroomEvidenceLoopPlan,
+  });
   const blueprintAssumptionLedger = buildBlueprintAssumptionLedger({
     courseName,
     lessons,
@@ -10285,6 +10457,7 @@ export function buildCourseBlueprint(courseMap, options = {}) {
     classroomHandoffPlan,
     classroomDryRunPlan,
     classroomEvidenceLoopPlan,
+    instructorFeedbackLoadPlan,
     blueprintAssumptionLedger,
     packageCoherenceMatrix,
     blueprintReviewSurface,
@@ -10502,6 +10675,7 @@ function compileSyllabus(blueprint) {
   const compactHandoffPlan = compactClassroomHandoffPlan(blueprint.classroomHandoffPlan);
   const compactDryRunPlan = compactClassroomDryRunPlan(blueprint.classroomDryRunPlan);
   const compactEvidenceLoopPlan = compactClassroomEvidenceLoopPlan(blueprint.classroomEvidenceLoopPlan);
+  const compactFeedbackLoadPlan = compactInstructorFeedbackLoadPlan(blueprint.instructorFeedbackLoadPlan);
   const compactAssumptions = compactAssumptionLedger(blueprint.blueprintAssumptionLedger);
   const compactCoherence = compactPackageCoherenceMatrix(blueprint.packageCoherenceMatrix);
   const compactReviewSurface = compactBlueprintReviewSurface(blueprint.blueprintReviewSurface);
@@ -10553,6 +10727,7 @@ function compileSyllabus(blueprint) {
         classroomHandoffPlan: compactHandoffPlan,
         classroomDryRunPlan: compactDryRunPlan,
         classroomEvidenceLoopPlan: compactEvidenceLoopPlan,
+        instructorFeedbackLoadPlan: compactFeedbackLoadPlan,
         blueprintAssumptionLedger: compactAssumptions,
         packageCoherenceMatrix: compactCoherence,
         blueprintReviewSurface: compactReviewSurface,
@@ -10576,6 +10751,7 @@ function compileSyllabus(blueprint) {
       classroomHandoffPlan: compactHandoffPlan,
       classroomDryRunPlan: compactDryRunPlan,
       classroomEvidenceLoopPlan: compactEvidenceLoopPlan,
+      instructorFeedbackLoadPlan: compactFeedbackLoadPlan,
       blueprintAssumptionLedger: compactAssumptions,
       packageCoherenceMatrix: compactCoherence,
       learningOutcomes: unique(
@@ -13003,6 +13179,8 @@ function compileLessonPlans(blueprint) {
         blueprint.classroomDryRunPlan?.lessonRows?.find((row) => row.lessonNumber === lesson.lessonNumber) || {};
       const evidenceLoopRow =
         blueprint.classroomEvidenceLoopPlan?.lessonRows?.find((row) => row.lessonNumber === lesson.lessonNumber) || {};
+      const feedbackLoadRow =
+        blueprint.instructorFeedbackLoadPlan?.lessonRows?.find((row) => row.lessonNumber === lesson.lessonNumber) || {};
 
       return {
         lessonTitle: lesson.title,
@@ -13024,6 +13202,7 @@ function compileLessonPlans(blueprint) {
         classSessionPlan,
         classroomDryRun: dryRunRow,
         classroomEvidenceLoop: evidenceLoopRow,
+        instructorFeedbackLoad: feedbackLoadRow,
         outlineTiming: {
           sessionMinutes: classSessionPlan.sessionMinutes,
           plannedClassMinutes: classSessionPlan.plannedClassMinutes,
@@ -13143,6 +13322,13 @@ function compileLessonPlans(blueprint) {
           implementationAdjustmentDecision: evidenceLoopRow.adjustmentDecision || '',
           implementationNextLessonFeedForward: evidenceLoopRow.nextLessonFeedForward || '',
           implementationPreferenceLearningSignal: evidenceLoopRow.preferenceLearningSignal || '',
+          feedbackLoadEstimate: feedbackLoadRow.estimatedFeedbackMinutes
+            ? `${feedbackLoadRow.estimatedFeedbackMinutes} minutes per ${feedbackLoadRow.assessmentTitle || artifact}`
+            : '',
+          feedbackBatchingStrategy: feedbackLoadRow.batchingStrategy || '',
+          feedbackCalibrationCue: feedbackLoadRow.calibrationCue || '',
+          feedbackHighestLeverageCriterion: feedbackLoadRow.highestLeverageCriterion || '',
+          feedbackNextInstructionCue: feedbackLoadRow.nextInstructionCue || '',
           workedExample:
             lesson.modelContrast?.exemplarMove ||
             `Show a brief exemplar for ${artifact} and annotate where the evidence, reasoning, and revision move appear.`,

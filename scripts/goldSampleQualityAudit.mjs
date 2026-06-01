@@ -8107,7 +8107,7 @@ function normalizeCopyString(text) {
 function isCopySpecificitySurfacePath(featureId, path) {
   if (!path) return false;
   if (
-    /\b(sourceGrounding|blueprintGrounding|sourceEvidenceTrace|sourceAnchors|compilerDecision|courseModalityProfile|learnerContextProfile|blueprintAssumptionLedger|packageCoherenceMatrix|sourceRiskRegister|sourceConflictReport|compilerContract|classroomHandoffPlan|classroomDryRunPlan|classroomDryRun|classroomEvidenceLoopPlan|classroomEvidenceLoop|conceptDependencyGraph|masteryEvidenceMap|evidenceResponseMap|qualityReceipt|qualitySummary|receipt|provenance)\b/i.test(
+    /\b(sourceGrounding|blueprintGrounding|sourceEvidenceTrace|sourceAnchors|compilerDecision|courseModalityProfile|learnerContextProfile|blueprintAssumptionLedger|packageCoherenceMatrix|sourceRiskRegister|sourceConflictReport|compilerContract|classroomHandoffPlan|classroomDryRunPlan|classroomDryRun|classroomEvidenceLoopPlan|classroomEvidenceLoop|instructorFeedbackLoadPlan|instructorFeedbackLoad|conceptDependencyGraph|masteryEvidenceMap|evidenceResponseMap|qualityReceipt|qualitySummary|receipt|provenance)\b/i.test(
       path,
     )
   ) {
@@ -8213,7 +8213,7 @@ export function buildCopySpecificityAudit({ compiledFeatures = [], compiled = {}
 function isStudentFacingSurfacePath(featureId, path) {
   if (!path) return false;
   if (
-    /\b(sourceGrounding|blueprintGrounding|sourceEvidenceTrace|sourceAnchors|compilerDecision|courseModalityProfile|learnerContextProfile|blueprintAssumptionLedger|packageCoherenceMatrix|sourceRiskRegister|sourceConflictReport|compilerContract|classroomHandoffPlan|classroomDryRunPlan|classroomDryRun|classroomEvidenceLoopPlan|classroomEvidenceLoop|conceptDependencyGraph|masteryEvidenceMap|evidenceResponseMap|qualityReceipt|qualitySummary|receipt|provenance|reviewActionability)\b/i.test(
+    /\b(sourceGrounding|blueprintGrounding|sourceEvidenceTrace|sourceAnchors|compilerDecision|courseModalityProfile|learnerContextProfile|blueprintAssumptionLedger|packageCoherenceMatrix|sourceRiskRegister|sourceConflictReport|compilerContract|classroomHandoffPlan|classroomDryRunPlan|classroomDryRun|classroomEvidenceLoopPlan|classroomEvidenceLoop|instructorFeedbackLoadPlan|instructorFeedbackLoad|conceptDependencyGraph|masteryEvidenceMap|evidenceResponseMap|qualityReceipt|qualitySummary|receipt|provenance|reviewActionability)\b/i.test(
       path,
     )
   ) {
@@ -8570,6 +8570,45 @@ function auditBlueprintMaturity(blueprint, scope, expectedLens = {}) {
         'blueprint',
         'classroomEvidenceLoopPlan',
         'Blueprint is missing classroom implementation evidence loop.',
+      ),
+    );
+  }
+  if (
+    !blueprint?.instructorFeedbackLoadPlan?.status ||
+    blueprint.instructorFeedbackLoadPlan?.source !== 'deterministic-instructor-feedback-load-plan' ||
+    !blueprint.instructorFeedbackLoadPlan?.feedbackLoadPolicy ||
+    !blueprint.instructorFeedbackLoadPlan?.calibrationPolicy ||
+    !Number.isFinite(blueprint.instructorFeedbackLoadPlan?.totalEstimatedFeedbackMinutes) ||
+    !Number.isFinite(blueprint.instructorFeedbackLoadPlan?.averageEstimatedFeedbackMinutes) ||
+    !Array.isArray(blueprint.instructorFeedbackLoadPlan?.lessonRows) ||
+    blueprint.instructorFeedbackLoadPlan.lessonRows.length !== scope ||
+    blueprint.instructorFeedbackLoadPlan.lessonRows.some(
+      (row) =>
+        !row?.lessonNumber ||
+        !row.lessonTitle ||
+        !row.assessmentTitle ||
+        !row.assessmentRole ||
+        !row.gradingMode ||
+        !row.feedbackWindow ||
+        !Number.isFinite(row.estimatedFeedbackMinutes) ||
+        !row.feedbackFocus ||
+        !row.highestLeverageCriterion ||
+        !row.calibrationCue ||
+        !row.studentSelfCheck ||
+        !row.batchingStrategy ||
+        !row.reusableCommentCue ||
+        !row.nextInstructionCue ||
+        !row.loadRisk ||
+        !row.publishGate ||
+        !row.reviewerAction,
+    )
+  ) {
+    findings.push(
+      makeFinding(
+        'blocker',
+        'blueprint',
+        'instructorFeedbackLoadPlan',
+        'Blueprint is missing instructor feedback-load plan.',
       ),
     );
   }
@@ -9301,6 +9340,7 @@ function auditBlueprintMaturity(blueprint, scope, expectedLens = {}) {
     blueprintAssumptionLedger: blueprint?.blueprintAssumptionLedger || null,
     classroomDryRunPlan: blueprint?.classroomDryRunPlan || null,
     classroomEvidenceLoopPlan: blueprint?.classroomEvidenceLoopPlan || null,
+    instructorFeedbackLoadPlan: blueprint?.instructorFeedbackLoadPlan || null,
     blueprintReviewSurface: blueprint?.blueprintReviewSurface || null,
     compilerPath: blueprint?.compilerPath || null,
     adaptiveSafety: blueprint?.compilerPath?.adaptiveSafety || null,
@@ -13249,6 +13289,15 @@ function buildClassroomExcellenceScorecard({
           syllabus.blueprintQualityReceipt?.classroomEvidenceLoopPlan?.preferenceLearningPolicy,
       },
       {
+        label: 'Syllabus exposes instructor feedback-load plan',
+        pass:
+          syllabus.instructorFeedbackLoadPlan?.status &&
+          Array.isArray(syllabus.instructorFeedbackLoadPlan?.lessonRows) &&
+          syllabus.instructorFeedbackLoadPlan.lessonRows.length === scope &&
+          syllabus.blueprintQualityReceipt?.instructorFeedbackLoadPlan?.feedbackLoadPolicy &&
+          syllabus.blueprintQualityReceipt?.instructorFeedbackLoadPlan?.averageEstimatedFeedbackMinutes > 0,
+      },
+      {
         label: 'Syllabus exposes source-risk register',
         pass:
           syllabus.sourceRiskRegister?.status &&
@@ -13336,6 +13385,22 @@ function buildClassroomExcellenceScorecard({
           ),
       },
       {
+        label: 'Blueprint includes instructor feedback-load rows for every lesson',
+        pass:
+          blueprint.instructorFeedbackLoadPlan?.status &&
+          Array.isArray(blueprint.instructorFeedbackLoadPlan?.lessonRows) &&
+          blueprint.instructorFeedbackLoadPlan.lessonRows.length === scope &&
+          Number(blueprint.instructorFeedbackLoadPlan.averageEstimatedFeedbackMinutes || 0) > 0 &&
+          blueprint.instructorFeedbackLoadPlan.lessonRows.every(
+            (row) =>
+              row.estimatedFeedbackMinutes > 0 &&
+              row.feedbackFocus &&
+              row.calibrationCue &&
+              row.batchingStrategy &&
+              row.nextInstructionCue,
+          ),
+      },
+      {
         label: 'Lesson plans have full teachable outlines',
         pass: fullCoverage(
           arrays.lessonPlans,
@@ -13381,6 +13446,20 @@ function buildClassroomExcellenceScorecard({
             item.readyToTeachSupport.implementationEvidenceToCollect.length > 0 &&
             item.readyToTeachSupport?.implementationAdjustmentDecision &&
             item.readyToTeachSupport?.implementationPreferenceLearningSignal,
+        ),
+      },
+      {
+        label: 'Lesson plans carry feedback-load and calibration cues',
+        pass: fullCoverage(
+          arrays.lessonPlans,
+          scope,
+          (item) =>
+            item.instructorFeedbackLoad?.estimatedFeedbackMinutes > 0 &&
+            item.instructorFeedbackLoad?.batchingStrategy &&
+            item.readyToTeachSupport?.feedbackLoadEstimate &&
+            item.readyToTeachSupport?.feedbackBatchingStrategy &&
+            item.readyToTeachSupport?.feedbackCalibrationCue &&
+            item.readyToTeachSupport?.feedbackNextInstructionCue,
         ),
       },
       {
@@ -14567,6 +14646,10 @@ export function renderGoldSampleQualityAuditMarkdown(payload) {
     const plan = result.blueprintMaturity.classroomEvidenceLoopPlan || {};
     return `| ${result.sampleId} | ${plan.status || 'missing'} | ${plan.source || 'missing'} | ${plan.lessonRowCount ?? 0} | ${plan.reviewRequiredCount ?? 0} |`;
   });
+  const instructorFeedbackLoadRows = payload.results.map((result) => {
+    const plan = result.blueprintMaturity.instructorFeedbackLoadPlan || {};
+    return `| ${result.sampleId} | ${plan.status || 'missing'} | ${plan.source || 'missing'} | ${plan.lessonRowCount ?? 0} | ${plan.averageEstimatedFeedbackMinutes ?? 0} | ${plan.heavyFeedbackLessonCount ?? 0} |`;
+  });
   const featureRows = payload.results.flatMap((result) =>
     result.featureResults.map(
       (feature) =>
@@ -14735,6 +14818,14 @@ export function renderGoldSampleQualityAuditMarkdown(payload) {
       '| Gold Sample | Status | Source | Lesson Rows | Review Rows |',
       '| --- | --- | --- | ---: | ---: |',
       ...classroomEvidenceLoopRows,
+    ]),
+    '',
+    '## Instructor Feedback Load Matrix',
+    '',
+    markdownTable([
+      '| Gold Sample | Status | Source | Lesson Rows | Avg Feedback Minutes | Heavy Feedback Lessons |',
+      '| --- | --- | --- | ---: | ---: | ---: |',
+      ...instructorFeedbackLoadRows,
     ]),
     '',
     '## Instructional Alignment Matrix',

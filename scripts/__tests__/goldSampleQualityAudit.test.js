@@ -192,6 +192,24 @@ describe('gold sample quality audit', () => {
         expect(
           payload.results.every(
             (result) =>
+              result.blueprintMaturity.instructorFeedbackLoadPlan?.source ===
+                'deterministic-instructor-feedback-load-plan' &&
+              result.blueprintMaturity.instructorFeedbackLoadPlan?.lessonRows?.length === result.scope &&
+              result.blueprintMaturity.instructorFeedbackLoadPlan?.lessonRowCount === result.scope &&
+              result.blueprintMaturity.instructorFeedbackLoadPlan?.averageEstimatedFeedbackMinutes > 0 &&
+              result.blueprintMaturity.instructorFeedbackLoadPlan?.lessonRows?.every(
+                (row) =>
+                  row.estimatedFeedbackMinutes > 0 &&
+                  row.feedbackFocus &&
+                  row.calibrationCue &&
+                  row.batchingStrategy &&
+                  row.nextInstructionCue,
+              ),
+          ),
+        ).toBe(true);
+        expect(
+          payload.results.every(
+            (result) =>
               result.blueprintMaturity.blueprintReviewSurface?.instructionalMoveDecode?.status === 'reviewable' &&
               result.blueprintMaturity.blueprintReviewSurface?.traceabilitySummary?.instructionalMoveRows ===
                 result.scope,
@@ -564,6 +582,7 @@ describe('gold sample quality audit', () => {
         expect(markdown).toContain('Classroom Dry-Run Matrix');
         expect(markdown).toContain('Review Rows');
         expect(markdown).toContain('Classroom Evidence Loop Matrix');
+        expect(markdown).toContain('Instructor Feedback Load Matrix');
         expect(markdown).toContain('Instructional Alignment Matrix');
         expect(markdown).toContain('Source Fidelity Matrix');
         expect(markdown).toContain('Blueprint Decode Losslessness Matrix');
@@ -1886,6 +1905,34 @@ describe('gold sample quality audit', () => {
           expect.objectContaining({
             featureId: 'blueprint',
             check: 'classroomEvidenceLoopPlan',
+          }),
+        ]),
+      );
+    } finally {
+      await closeHybridPipelineAuditRuntime();
+    }
+  });
+
+  it('blocks when the blueprint lacks instructor feedback-load planning', async () => {
+    const runtime = await loadHybridPipelineAuditRuntime();
+    try {
+      const result = auditGoldSample({
+        sample: DEFAULT_GOLD_SAMPLES[0],
+        runtime: {
+          ...runtime,
+          buildCourseBlueprint: (...args) => ({
+            ...runtime.buildCourseBlueprint(...args),
+            instructorFeedbackLoadPlan: null,
+          }),
+        },
+      });
+
+      expect(result.summary.status).toBe('blocked');
+      expect(result.blueprintMaturity.findings).toEqual(
+        expect.arrayContaining([
+          expect.objectContaining({
+            featureId: 'blueprint',
+            check: 'instructorFeedbackLoadPlan',
           }),
         ]),
       );
