@@ -144,6 +144,31 @@ function compactList(values, fallback = 'course evidence', limit = 3) {
   return items.length > 0 ? items.join(', ') : fallback;
 }
 
+function conciseClause(value, fallback = 'course evidence', maxLength = 120) {
+  const firstItem = splitList(value)[0] || cleanText(value, fallback);
+  const text = stripTerminalPunctuation(firstItem || fallback);
+  if (text.length <= maxLength) return text;
+  return stripTerminalPunctuation(text.slice(0, maxLength).replace(/\s+\S*$/g, '')) || fallback;
+}
+
+function customPracticeContext(blueprint, lens) {
+  const courseText = cleanText(
+    [
+      blueprint?.courseName,
+      ...(blueprint?.lessons || []).flatMap((lesson) => [lesson?.title, ...(lesson?.keyConcepts || [])]),
+    ].join(' '),
+  ).toLowerCase();
+  const domain = cleanText(lens?.domain, 'course work');
+  if (
+    /community health evaluation/i.test(domain) &&
+    !/\b(community health|public health|healthcare|health care)\b/i.test(courseText)
+  ) {
+    return 'your course-specific work';
+  }
+  if (/\b(work|practice|lab|studio|seminar|workshop|placement|rehearsal)\b/i.test(domain)) return `your ${domain}`;
+  return `your ${domain} work`;
+}
+
 function alternateLessonConcept(lesson, primary) {
   const generic = new Set(['clinical', 'community', 'health', 'studio', 'lesson', 'topic', 'block']);
   return (
@@ -351,7 +376,7 @@ function hasPolicyAnalysisEvidence(text = '') {
       text,
     );
   const hasPolicyPractice =
-    /\b(policy memo|policy brief|policy option|policy options|stakeholder analysis|equity analysis|implementation plan|implementation constraint|feasibility|cost[-\s]?benefit|impact assessment|regulatory analysis|benefit[-\s]?cost|logic model|theory of change|program evaluation|administrative burden|public value|policy trade[-\s]?off)\b/.test(
+    /\b(policy memo|policy brief|policy option|policy options|policy evidence|policy lab|policy studio|stakeholder analysis|stakeholder mapping|stakeholder map|equity analysis|environmental justice|implementation context|implementation plan|implementation planning|implementation constraint|feasibility|cost[-\s]?benefit|impact assessment|regulatory analysis|regulatory impact|regulatory impact analysis|public comment|benefit[-\s]?cost|logic model|theory of change|program evaluation|administrative burden|public value|policy trade[-\s]?off)\b/.test(
       text,
     );
   return hasPolicyDomain && hasPolicyPractice;
@@ -697,7 +722,12 @@ function inferDisciplineLens(courseName, concepts = []) {
       exampleNoun: 'studio critique case',
     };
   }
-  if (/\b(health|community|equity|program|stakeholder|policy)\b/.test(text)) {
+  if (
+    /\b(community health|public health|population health|health equity|community program|program evaluation|community evaluation|health program)\b/.test(
+      text,
+    ) ||
+    (/\b(health|community)\b/.test(text) && /\b(evaluation|program|implementation|stakeholder)\b/.test(text))
+  ) {
     return {
       domain: 'community health evaluation',
       evidenceNoun: 'community evidence',
@@ -10567,6 +10597,10 @@ function compileCustomReflectionDeliverable(featureId, blueprint, options = {}) 
     const focus = lesson.keyConcepts[0] || stripLessonPrefix(lesson.title) || 'the lesson focus';
     const alternate = alternateLessonConcept(lesson, focus);
     const phrase = lessonPhrase(blueprint, lesson);
+    const artifact = stripTerminalPunctuation(lesson.studentArtifact || 'the lesson artifact');
+    const contextCue = conciseClause(phrase.context, stripLessonPrefix(lesson.title), 110);
+    const activityCue = conciseClause(lesson.activityPattern, `${stripLessonPrefix(lesson.title)} activity`, 110);
+    const successCue = conciseClause(lesson.successCriteria, 'the lesson success criteria', 120);
 
     return {
       lessonTitle: lesson.title,
@@ -10578,21 +10612,21 @@ function compileCustomReflectionDeliverable(featureId, blueprint, options = {}) 
         evidenceRequirement: lesson.evidencePlan?.evidenceRequirement || '',
         learnerContextProfile: blueprint.learnerContextProfile,
       }),
-      reflectionPrompt: `Explain how ${focus} from ${lesson.title} changes your next ${lens.decisionNoun}. Reference ${phrase.context} and connect it to the lesson artifact: ${stripTerminalPunctuation(lesson.studentArtifact)}.`,
-      checkInQuestion: `What is one move you can make this week to apply ${alternate} more deliberately in your ${lens.domain} practice?`,
+      reflectionPrompt: `Explain how ${focus} changes your next ${lens.decisionNoun}. Use one example from ${contextCue} and connect it to the lesson artifact: ${artifact}.`,
+      checkInQuestion: `What is one move you can make this week to apply ${alternate} more deliberately in ${customPracticeContext(blueprint, lens)}?`,
       evidenceToReference: [
-        `Use one detail from ${lesson.activityPattern.toLowerCase()}.`,
-        `Name one success criterion from the lesson artifact expectations.`,
+        `Use one detail from ${activityCue.toLowerCase()}.`,
+        `Name one success criterion, such as: ${successCue}.`,
         `Describe one uncertainty, risk, or feedback target you still need to work on.`,
       ],
       responseStructure: [
         `Part 1: summarize the most important insight about ${focus} in 2-3 sentences.`,
-        `Part 2: explain how that insight changes your approach to ${stripLessonPrefix(lesson.studentArtifact)}.`,
+        `Part 2: explain how that insight changes your approach to ${stripLessonPrefix(artifact)}.`,
         `Part 3: name one next step you will take before the next class session.`,
       ],
       successCriteria: [
         `${deliverableName} names a concrete ${focus} takeaway from the lesson.`,
-        `${deliverableName} uses course evidence instead of generic reflection filler.`,
+        `${deliverableName} uses specific course evidence instead of generic filler.`,
         `${deliverableName} ends with a realistic next action tied to the next assignment or feedback cycle.`,
       ],
       instructorReviewFocus: `Look for whether the student can connect ${focus} to ${alternate}, cite lesson evidence, and identify a concrete next step before the next checkpoint.`,

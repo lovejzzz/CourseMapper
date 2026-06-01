@@ -2022,7 +2022,7 @@ export default function AppFlow({ startupAction = null, onStartupHandled, onRetu
 
   async function handleConfirmNewProject() {
     if (isStartingNewProject) return;
-    const skipCloudSave = newProjectCloudSaveFailed;
+    const skipCloudSave = newProjectCloudSaveFailed || Boolean(newProjectError);
     if (!skipCloudSave) setNewProjectError('');
     setIsStartingNewProject(true);
     try {
@@ -2056,7 +2056,9 @@ export default function AppFlow({ startupAction = null, onStartupHandled, onRetu
       warn('[Cloud] final save before new project failed:', e);
       setCloudSaveStatus('error');
       setNewProjectCloudSaveFailed(true);
-      setNewProjectError('Cloud save failed. Your browser copy is still open. Download a backup or start anyway.');
+      setNewProjectError(
+        'Cloud save failed. Your browser copy is still open. Download a backup or click Start Anyway.',
+      );
     } finally {
       setIsStartingNewProject(false);
     }
@@ -3086,12 +3088,16 @@ export default function AppFlow({ startupAction = null, onStartupHandled, onRetu
                   </div>
                   <p className="text-[11px] text-slate-400 mb-5 leading-relaxed">
                     {user
-                      ? 'We will save this project to My Projects before starting over. If saving fails, your workspace will stay open.'
+                      ? newProjectError
+                        ? 'My Projects sync did not finish. Your workspace is still open, and you can download a backup before starting over.'
+                        : 'We will save this project to My Projects before starting over. If saving fails, your workspace will stay open.'
                       : 'You are not signed in, so this browser autosave is the only in-app copy. Download a .coursemapper backup if you want to keep it.'}
                   </p>
                   <div className="mb-4 rounded-xl bg-slate-50/80 border border-slate-100 px-3 py-2 text-[10px] text-slate-500 leading-relaxed">
                     {user
-                      ? 'Autosave: local browser backup plus My Projects sync.'
+                      ? newProjectError
+                        ? 'Backup recommended: download a .coursemapper file or continue without My Projects sync.'
+                        : 'Autosave: local browser backup plus My Projects sync.'
                       : 'Autosave: local browser backup only. It is cleared when you start over.'}
                   </div>
                   {newProjectError && (
@@ -3125,7 +3131,7 @@ export default function AppFlow({ startupAction = null, onStartupHandled, onRetu
                         <span className="inline-flex items-center gap-1.5">
                           <Spinner /> Saving...
                         </span>
-                      ) : newProjectCloudSaveFailed ? (
+                      ) : newProjectCloudSaveFailed || newProjectError ? (
                         'Start Anyway'
                       ) : (
                         'Start New Project'

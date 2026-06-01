@@ -2514,7 +2514,7 @@ describe('courseBlueprintCompiler', () => {
     });
     expect(blueprint.learnerContextProfile).toMatchObject({
       source: 'compiler-derived-from-course-map',
-      learnerRole: expect.stringContaining('evaluation practitioner'),
+      learnerRole: expect.stringContaining('policy analyst'),
       coursePerformanceRole: expect.stringContaining('evidence'),
       supportAssumptions: expect.arrayContaining([expect.stringContaining('Policy Topic 1')]),
       participationModes: expect.arrayContaining(['individual think-write']),
@@ -2783,7 +2783,7 @@ describe('courseBlueprintCompiler', () => {
       audience: 'instructor-review-before-package-expansion',
       courseDecode: {
         modality: 'policy-analysis',
-        learnerRole: expect.stringContaining('evaluation practitioner'),
+        learnerRole: expect.stringContaining('policy analyst'),
         signaturePractice: expect.stringContaining('stakeholder'),
       },
       localConfirmationSummary: {
@@ -2791,7 +2791,7 @@ describe('courseBlueprintCompiler', () => {
       },
       instructionalMoveDecode: {
         status: 'reviewable',
-        openingMove: expect.stringContaining('community'),
+        openingMove: expect.stringContaining('policy memo'),
         practiceMove: expect.stringContaining('evidence'),
         feedbackMove: expect.stringContaining('revision'),
         assessmentMove: expect.stringContaining('assessment'),
@@ -3540,7 +3540,7 @@ describe('courseBlueprintCompiler', () => {
         },
       },
       learnerContextProfile: {
-        learnerRole: expect.stringContaining('evaluation practitioner'),
+        learnerRole: expect.stringContaining('policy analyst'),
       },
       courseModalityProfile: {
         primaryMode: 'policy-analysis',
@@ -3752,7 +3752,7 @@ describe('courseBlueprintCompiler', () => {
     );
     expect(compiled.assignments.assignments[0].courseModalityProfile.primaryMode).toBe('policy-analysis');
     expect(compiled.assignments.assignments[0].sourceGrounding.learnerContextProfile.learnerRole).toContain(
-      'evaluation practitioner',
+      'policy analyst',
     );
     expect(compiled.assignments.assignments[0].sourceGrounding.sourceEvidenceTrace.sourceFields[0]).toMatchObject({
       field: 'lesson identity',
@@ -5152,6 +5152,10 @@ describe('courseBlueprintCompiler', () => {
       compiledPattern: 'reflection-check-in',
       evidenceRequirement: expect.stringContaining('Use a concrete detail'),
     });
+    expect(reflection.weekly_reflection.map((item) => item.checkInQuestion).join(' ')).toContain(
+      'public policy analysis work',
+    );
+    expect(JSON.stringify(reflection)).not.toMatch(/community health|generic reflection filler/i);
 
     const validation = validateDeliverableGeneration('custom_weeklyReflection', reflection, {
       expectedLessonCount: 3,
@@ -5163,6 +5167,65 @@ describe('courseBlueprintCompiler', () => {
     expect(csv.rows).toHaveLength(3);
     expect(csv.headers).not.toContain('Source Grounding');
     expect(csv.rows.flat().join(' ')).not.toContain('compiledPattern');
+  });
+
+  it('keeps compiled environmental-policy reflections out of stale community-health phrasing', () => {
+    customDeliverables = {
+      custom_weeklyReflection: {
+        id: 'custom_weeklyReflection',
+        name: 'Weekly Reflection',
+        description: 'A per-week reflection and check-in for each lesson.',
+        systemPrompt:
+          'Create one Weekly Reflection item for each lesson/week with a reflection prompt and check-in guidance.',
+        userPromptTemplate:
+          'Generate a Weekly Reflection for each lesson in the course. Return one item per lesson/week. {{courseMap}}',
+      },
+    };
+    const environmentalPolicyCourse = {
+      courseName: 'Applied Environmental Policy Studio',
+      semester: 'Fall 2026',
+      learningOutcomes:
+        'Analyze climate policy, environmental justice, stakeholder mapping, regulatory impact, cost-benefit reasoning, public comment, implementation planning, and briefing delivery.',
+      lessons: [
+        {
+          title: 'Lesson 1: Foundations of Environmental Policy Analysis',
+          sections: [
+            {
+              topicSection:
+                'Climate policy, environmental justice, stakeholder mapping, regulatory impact, cost-benefit reasoning',
+              learningObjectives:
+                'Analyze environmental policy evidence and evaluate stakeholder consequences for implementation decisions.',
+              learningGoals: 'Connect environmental justice frameworks to defensible policy memo recommendations.',
+              weeklyAssessments:
+                'Policy memo checkpoint with stakeholder map, regulatory impact evidence, and implementation decision.',
+              asyncActivities:
+                'Read a climate policy case and annotate public comment evidence, implementation constraints, and equity trade-offs.',
+              syncActivities:
+                'Policy option studio with stakeholder mapping, cost-benefit evidence, public comment review, and revised implementation recommendation.',
+              supportingResources: 'Climate policy case; stakeholder map template; public comment example',
+              evaluateDesign:
+                'Score evidence quality, equity reasoning, regulatory impact analysis, and implementation realism.',
+            },
+          ],
+        },
+      ],
+    };
+
+    const blueprint = buildCourseBlueprint(environmentalPolicyCourse);
+    const reflection = compileBlueprintDeliverables(blueprint, ['custom_weeklyReflection'], {
+      enforceCompilerContract: false,
+    }).custom_weeklyReflection;
+    const item = reflection.weekly_reflection[0];
+    const exportedText = JSON.stringify(reflection);
+
+    expect(blueprint.enrichment.lens).toMatchObject({
+      domain: 'public policy analysis',
+      decisionNoun: 'policy decision',
+    });
+    expect(item.checkInQuestion).toContain('public policy analysis work');
+    expect(item.reflectionPrompt).toContain('policy decision');
+    expect(item.evidenceToReference[0].length).toBeLessThan(150);
+    expect(exportedText).not.toMatch(/community health|generic reflection filler|custom_\d+/i);
   });
 
   it('compiles predictable per-lesson reading response custom deliverables from the blueprint', () => {

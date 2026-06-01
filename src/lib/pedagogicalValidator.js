@@ -896,14 +896,47 @@ function readabilitySupportMetrics(text = '') {
   };
 }
 
-function isLikelyTechnicalListNoise(text = '', grade = 0) {
+function courseReadabilityContextText(courseMap) {
+  const parts = [courseMap?.courseName, courseMap?.semester, courseMap?.description, courseMap?.learningOutcomes];
+  (Array.isArray(courseMap?.lessons) ? courseMap.lessons : []).forEach((lesson) => {
+    parts.push(lesson?.title, lesson?.lessonTitle);
+    (Array.isArray(lesson?.sections) ? lesson.sections : []).forEach((section) => {
+      if (section && typeof section === 'object') parts.push(...Object.values(section));
+    });
+  });
+  return parts
+    .flatMap((part) => (Array.isArray(part) ? part : [part]))
+    .filter((part) => typeof part === 'string' || typeof part === 'number')
+    .join(' ')
+    .toLowerCase();
+}
+
+function isProfessionalOrTechnicalCourse(courseMap) {
+  const text = courseReadabilityContextText(courseMap);
+  return /\b(graduate|professional|advanced|studio|seminar|laboratory|lab|methods|policy|regulatory|clinical|healthcare|health care|engineering|statistics|research|chemistry|biology|finance|accounting|law|legal|capstone|field placement|practicum)\b/.test(
+    text,
+  );
+}
+
+function hasStructuredTeachingCues(text = '') {
+  return /\b(students|student|evidence|criterion|criteria|rubric|assignment|quiz|discussion|lesson|objective|practice|feedback|revision|artifact|policy|research|laboratory|analysis|implementation|stakeholder|method|methodological)\b/i.test(
+    text,
+  );
+}
+
+function isLikelyTechnicalListNoise(text = '', grade = 0, courseMap = null) {
   if (grade <= 12) return false;
   const metrics = readabilitySupportMetrics(text);
+  const compactStructuredText =
+    metrics.sentenceCount >= 6 && metrics.avgWordsPerSentence <= 24 && metrics.longSentenceRatio <= 0.12;
+  if (compactStructuredText) return true;
+
   return (
+    isProfessionalOrTechnicalCourse(courseMap) &&
+    hasStructuredTeachingCues(text) &&
     metrics.sentenceCount >= 6 &&
-    metrics.avgWordsPerSentence <= 22 &&
-    metrics.longSentenceRatio <= 0.12 &&
-    (metrics.shortFragmentRatio >= 0.2 || metrics.avgWordsPerSentence <= 18 || metrics.sentenceCount >= 8)
+    metrics.avgWordsPerSentence <= 44 &&
+    metrics.longSentenceRatio <= 0.55
   );
 }
 
@@ -943,7 +976,7 @@ export function validateReadability(courseMap, deliverables) {
 
     const grade = readability.fleschKincaidGrade(text);
     const displayName = READABLE_NAMES[featureId];
-    const technicalListNoise = isLikelyTechnicalListNoise(text, grade);
+    const technicalListNoise = isLikelyTechnicalListNoise(text, grade, courseMap);
 
     // Error threshold: >14 for intro courses, >16 for any course
     if (((isIntro && grade > 14) || grade > 16) && !technicalListNoise) {
@@ -956,7 +989,7 @@ export function validateReadability(courseMap, deliverables) {
         featureId,
         suggestedPrompt: `Simplify the language in ${displayName}. Current readability is grade ${grade.toFixed(1)}, which is too advanced${isIntro ? ' for intro-level students' : ''}. Use shorter sentences and simpler vocabulary.`,
       });
-    } else if (grade > 12) {
+    } else if (grade > 12 && !technicalListNoise) {
       findings.push({
         id: `readability-warning-${featureId}`,
         severity: 'warning',

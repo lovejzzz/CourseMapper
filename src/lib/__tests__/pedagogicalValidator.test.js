@@ -590,6 +590,35 @@ describe('validateReadability', () => {
     expect(findings).toEqual([]);
   });
 
+  it('does not block structured professional-course language as readability formula noise', () => {
+    const structuredProfessionalText =
+      'Students synthesize stakeholder mapping, regulatory impact analysis, environmental justice evidence, and cost-benefit reasoning to justify an implementation decision in a policy memo. ' +
+      'They compare feasibility constraints, administrative authority, public comment evidence, distributional impact, and monitoring data before revising the final briefing. ' +
+      'The instructor checks whether the memo names a decision maker, cites evidence, explains uncertainty, and connects the recommendation to implementation risk. ' +
+      'Students use feedback to revise one claim, clarify one trade-off, and prepare a concise public-facing explanation. ' +
+      'The discussion asks teams to identify evidence gaps, stakeholder consequences, and practical constraints before choosing the strongest policy option. ' +
+      'The rubric rewards evidence quality, decision logic, equity reasoning, implementation realism, and revision based on peer review.';
+    const deliverables = {
+      lessonPlans: doneDeliv({
+        lessonPlans: [
+          {
+            description: structuredProfessionalText,
+          },
+        ],
+      }),
+      quizBank: doneDeliv({
+        quizzes: [
+          {
+            description: structuredProfessionalText,
+          },
+        ],
+      }),
+    };
+
+    const findings = validateReadability({ courseName: 'Applied Environmental Policy Studio' }, deliverables);
+    expect(findings.filter((finding) => finding.category === 'readability')).toEqual([]);
+  });
+
   it('skips text shorter than 100 characters', () => {
     const deliverables = {
       quizBank: doneDeliv({
