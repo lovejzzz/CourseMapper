@@ -1,4 +1,5 @@
 import { scopeCourseMapToLessons, scopeDeliverableDataToLessons } from './deliverableReadiness';
+import { findInternalExportText, findInternalOfficeXmlText, OFFICE_TEXT_PATH_PATTERNS } from './exportTextInspector';
 import { resolveFeatureLabel } from './exporters/exporterUtils.js';
 
 const DEFAULT_FEATURES = [
@@ -12,21 +13,6 @@ const DEFAULT_FEATURES = [
   'quizBank',
   'studyGuides',
   'courseFaq',
-];
-
-const INTERNAL_EXPORT_TEXT_PATTERNS = [
-  { label: 'compiler decision', pattern: /\bcompiler decision(?:s)?\b/i },
-  { label: 'compiler path', pattern: /\bcompiler path\b/i },
-  { label: 'deterministic blueprint', pattern: /\bdeterministic[- ]blueprint\b/i },
-  { label: 'model-use policy', pattern: /\bmodel[- ]use policy\b/i },
-  { label: 'source grounding', pattern: /\bsource grounding\b/i },
-  { label: 'source confidence', pattern: /\bsource confidence\b/i },
-  { label: 'publish gate', pattern: /\bpublish(?:ing)? gate\b/i },
-  { label: 'handoff review focus', pattern: /\bhandoff[- ]review focus\b/i },
-  { label: 'local-review', pattern: /\blocal-review\b|\blocal review (?:action|gate|focus|required)\b/i },
-  { label: 'source-review-required', pattern: /\bsource[- ]review[- ]required\b/i },
-  { label: 'proof packet', pattern: /\bproof packet\b/i },
-  { label: 'audit gate', pattern: /\baudit gate\b/i },
 ];
 
 function getBlobSize(blob) {
@@ -68,89 +54,6 @@ function getFailureFormat(featureId) {
   return 'docx/csv';
 }
 
-function findInternalExportText(rows) {
-  const headers = Array.isArray(rows?.headers) ? rows.headers : [];
-  const dataRows = Array.isArray(rows?.rows) ? rows.rows : [];
-  for (const [rowIndex, row] of dataRows.entries()) {
-    for (const [columnIndex, value] of (Array.isArray(row) ? row : []).entries()) {
-      const text = String(value || '');
-      const match = INTERNAL_EXPORT_TEXT_PATTERNS.find(({ pattern }) => pattern.test(text));
-      if (match) {
-        return {
-          label: match.label,
-          rowIndex,
-          columnIndex,
-          column: headers[columnIndex] || `Column ${columnIndex + 1}`,
-        };
-      }
-    }
-  }
-  return null;
-}
-
-function findInternalTextInString(text) {
-  const value = String(text || '');
-  const match = INTERNAL_EXPORT_TEXT_PATTERNS.find(({ pattern }) => pattern.test(value));
-  return match ? { label: match.label } : null;
-}
-
-async function toArrayBuffer(value) {
-  if (!value) return null;
-  if (value instanceof ArrayBuffer) return value;
-  if (ArrayBuffer.isView(value)) {
-    return value.buffer.slice(value.byteOffset, value.byteOffset + value.byteLength);
-  }
-  if (typeof value.arrayBuffer === 'function') return await value.arrayBuffer();
-  return null;
-}
-
-function decodeXmlEntities(value) {
-  return String(value || '')
-    .replace(/&lt;/g, '<')
-    .replace(/&gt;/g, '>')
-    .replace(/&amp;/g, '&')
-    .replace(/&quot;/g, '"')
-    .replace(/&apos;/g, "'");
-}
-
-function extractOfficeXmlText(xml) {
-  const textRuns = [];
-  const textRunPattern = /<(?:[A-Za-z0-9_-]+:)?t\b[^>]*>([\s\S]*?)<\/(?:[A-Za-z0-9_-]+:)?t>/g;
-  let match;
-  while ((match = textRunPattern.exec(xml))) {
-    textRuns.push(decodeXmlEntities(match[1].replace(/<[^>]+>/g, '')));
-  }
-  if (textRuns.length > 0) return textRuns.join(' ');
-  return decodeXmlEntities(String(xml || '').replace(/<[^>]+>/g, ' '));
-}
-
-async function findInternalOfficeXmlText(blob, pathPattern) {
-  const buffer = await toArrayBuffer(blob);
-  if (!buffer) return null;
-  const JSZip = (await import('jszip')).default;
-  let zip;
-  try {
-    zip = await JSZip.loadAsync(buffer);
-  } catch (err) {
-    throw new Error(`Office export could not be inspected: ${err.message || 'invalid package'}`);
-  }
-  const files = Object.values(zip.files)
-    .filter((file) => !file.dir && pathPattern.test(file.name))
-    .sort((a, b) => a.name.localeCompare(b.name));
-  for (const file of files) {
-    const xml = await file.async('string');
-    const text = extractOfficeXmlText(xml);
-    const internalText = findInternalTextInString(text);
-    if (internalText) {
-      return {
-        ...internalText,
-        path: file.name,
-      };
-    }
-  }
-  return null;
-}
-
 async function verifyCourseMapExport({ courseMap, columns, lessonFilter }) {
   if (!courseMap?.lessons?.length) {
     return [createCheck('courseMap', 'xlsx', 'failed', 'Course map has no lessons to export.')];
@@ -163,7 +66,7 @@ async function verifyCourseMapExport({ courseMap, columns, lessonFilter }) {
   if (size <= 128) {
     return [createCheck('courseMap', 'xlsx', 'failed', 'Course map spreadsheet output was empty.', { size })];
   }
-  const internalText = await findInternalOfficeXmlText(buffer, /^xl\/(?:sharedStrings|worksheets\/sheet\d+)\.xml$/);
+  const internalText = await findInternalOfficeXmlText(buffer, OFFICE_TEXT_PATH_PATTERNS.xlsx);
   if (internalText) {
     return [
       createCheck(
@@ -209,10 +112,7 @@ async function verifyDocxExport(featureId, data, courseName) {
   if (size <= 128) {
     return createCheck(featureId, 'docx', 'failed', 'DOCX export output was empty.', { size });
   }
-  const internalText = await findInternalOfficeXmlText(
-    blob,
-    /^word\/(?:document|footnotes|endnotes|header\d+|footer\d+)\.xml$/,
-  );
+  const internalText = await findInternalOfficeXmlText(blob, OFFICE_TEXT_PATH_PATTERNS.docx);
   if (internalText) {
     return createCheck(
       featureId,
@@ -232,7 +132,7 @@ async function verifyPptxExport(data, courseName, slideTheme) {
   if (size <= 128) {
     return createCheck('slideDecks', 'pptx', 'failed', 'Slide deck PowerPoint output was empty.', { size });
   }
-  const internalText = await findInternalOfficeXmlText(blob, /^ppt\/(?:slides|notesSlides)\/[^/]+\.xml$/);
+  const internalText = await findInternalOfficeXmlText(blob, OFFICE_TEXT_PATH_PATTERNS.pptx);
   if (internalText) {
     return createCheck(
       'slideDecks',

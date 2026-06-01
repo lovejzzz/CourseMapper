@@ -33,6 +33,21 @@ async function buildXlsxBuffer(sharedText) {
   return xlsx.generateAsync({ type: 'nodebuffer' });
 }
 
+async function buildPptxBuffer(slideText, noteText = '') {
+  const pptx = new JSZip();
+  pptx.file(
+    'ppt/slides/slide1.xml',
+    `<?xml version="1.0" encoding="UTF-8"?><p:sld><p:cSld><a:t>${slideText}</a:t></p:cSld></p:sld>`,
+  );
+  if (noteText) {
+    pptx.file(
+      'ppt/notesSlides/notesSlide1.xml',
+      `<?xml version="1.0" encoding="UTF-8"?><p:notes><a:t>${noteText}</a:t></p:notes>`,
+    );
+  }
+  return pptx.generateAsync({ type: 'nodebuffer' });
+}
+
 afterEach(async () => {
   await Promise.all(tempPaths.splice(0).map((target) => fs.rm(target, { force: true })));
 });
@@ -82,5 +97,29 @@ describe('auditCourseMaterialsZip', () => {
     expect(audit.issues.join(' ')).toContain('Week or Module [Topic]');
     expect(audit.issues.join(' ')).toContain('Learning Objective: Describe');
     expect(audit.issues.join(' ')).toContain('Ask yourself');
+  });
+
+  it('flags internal compiler proof language in exported Office files', async () => {
+    const outerZip = new JSZip();
+    outerZip.file(
+      'Lesson Plans/Proof Leak - Lesson Plans.docx',
+      await buildDocxBuffer('This instructor handout exposes the compiler decision.'),
+    );
+    outerZip.file(
+      'Slide Decks/Proof Leak - Slide Decks.pptx',
+      await buildPptxBuffer('Clean slide title', 'Speaker notes expose the publish gate.'),
+    );
+    outerZip.file(
+      'Course Map/Proof Leak - Course Map.xlsx',
+      await buildXlsxBuffer('This workbook exposes source grounding details.'),
+    );
+
+    const zipPath = await writeTempZip('coursemapper-export-quality-audit-proof-language.zip', outerZip);
+    const audit = await auditCourseMaterialsZip(zipPath, { minSpeakerNoteWords: 1 });
+    const issues = audit.issues.join('\n');
+
+    expect(issues).toContain('Lesson Plans/Proof Leak - Lesson Plans.docx: leaked internal compiler decision language');
+    expect(issues).toContain('Slide Decks/Proof Leak - Slide Decks.pptx: leaked internal publish gate language');
+    expect(issues).toContain('Course Map/Proof Leak - Course Map.xlsx: leaked internal source grounding language');
   });
 });

@@ -16,15 +16,15 @@ vi.mock('../customDeliverableLibrary', () => ({
 }));
 
 vi.mock('../xlsxGenerator', () => ({
-  buildXlsxBuffer: vi.fn(() => Promise.resolve(new Uint8Array(256).buffer)),
+  buildXlsxBuffer: vi.fn(),
 }));
 
 vi.mock('../exporters/bulkDocxExporter', () => ({
-  buildDeliverableDocxBlob: vi.fn(() => Promise.resolve(new Uint8Array(256))),
+  buildDeliverableDocxBlob: vi.fn(),
 }));
 
 vi.mock('../exporters/pptxExporter', () => ({
-  buildSlideDeckPptxBlob: vi.fn(() => Promise.resolve(new Uint8Array(256))),
+  buildSlideDeckPptxBlob: vi.fn(),
 }));
 
 vi.mock('file-saver', () => ({
@@ -38,9 +38,39 @@ function makeCourseMap(courseName = 'Export Smoke Course') {
   };
 }
 
+async function makeOfficeXmlBlob(path, xml) {
+  const zip = new JSZip();
+  zip.file(path, xml);
+  const buffer = await zip.generateAsync({ type: 'arraybuffer' });
+  return new Blob([buffer]);
+}
+
+async function makeOfficeXmlBuffer(path, xml) {
+  return await (await makeOfficeXmlBlob(path, xml)).arrayBuffer();
+}
+
 describe('packageZipExporter', () => {
-  beforeEach(() => {
+  beforeEach(async () => {
     vi.clearAllMocks();
+
+    buildXlsxBuffer.mockResolvedValue(
+      await makeOfficeXmlBuffer(
+        'xl/worksheets/sheet1.xml',
+        '<worksheet><sheetData><row><c t="inlineStr"><is><t>Lesson 1 Verify exports.</t></is></c></row></sheetData></worksheet>',
+      ),
+    );
+    buildDeliverableDocxBlob.mockResolvedValue(
+      await makeOfficeXmlBlob(
+        'word/document.xml',
+        '<w:document><w:body><w:p><w:r><w:t>Lesson 1 Verify exports.</w:t></w:r></w:p></w:body></w:document>',
+      ),
+    );
+    buildSlideDeckPptxBlob.mockResolvedValue(
+      await makeOfficeXmlBlob(
+        'ppt/slides/slide1.xml',
+        '<p:sld><p:cSld><a:t>Lesson 1 Verify exports.</a:t></p:cSld></p:sld>',
+      ),
+    );
   });
 
   it('sanitizes unsafe filename characters', () => {
@@ -135,5 +165,60 @@ describe('packageZipExporter', () => {
     ).rejects.toBeInstanceOf(PackageZipExportError);
 
     expect(saveAs).not.toHaveBeenCalled();
+  });
+
+  it('fails closed when a selected ZIP document leaks internal proof language', async () => {
+    buildDeliverableDocxBlob.mockResolvedValueOnce(
+      await makeOfficeXmlBlob(
+        'word/document.xml',
+        '<w:document><w:body><w:p><w:r><w:t>This handout exposes the compiler decision.</w:t></w:r></w:p></w:body></w:document>',
+      ),
+    );
+
+    await expect(
+      buildCourseMaterialsZip({
+        courseMap: makeCourseMap(),
+        deliverables: {
+          lessonPlans: {
+            status: 'done',
+            data: { lessonPlans: [{ lessonTitle: 'Lesson 1', objectives: ['Verify exports.'] }] },
+          },
+        },
+        featureIds: ['courseMap', 'lessonPlans'],
+      }),
+    ).rejects.toMatchObject({
+      failures: [
+        expect.objectContaining({
+          featureId: 'lessonPlans',
+          format: 'docx',
+          message: 'Lesson Plans DOCX export exposes internal compiler decision language in word/document.xml.',
+        }),
+      ],
+    });
+  });
+
+  it('fails closed when the ZIP course-map workbook leaks internal proof language', async () => {
+    buildXlsxBuffer.mockResolvedValueOnce(
+      await makeOfficeXmlBuffer(
+        'xl/sharedStrings.xml',
+        '<sst><si><t>This workbook exposes source grounding details.</t></si></sst>',
+      ),
+    );
+
+    await expect(
+      buildCourseMaterialsZip({
+        courseMap: makeCourseMap(),
+        deliverables: {},
+        featureIds: ['courseMap'],
+      }),
+    ).rejects.toMatchObject({
+      failures: [
+        expect.objectContaining({
+          featureId: 'courseMap',
+          format: 'xlsx',
+          message: 'Course Map XLSX export exposes internal source grounding language in xl/sharedStrings.xml.',
+        }),
+      ],
+    });
   });
 });

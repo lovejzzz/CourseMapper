@@ -1,4 +1,5 @@
 import { buildReadinessReport, scopeCourseMapToLessons, scopeDeliverableDataToLessons } from './deliverableReadiness';
+import { findInternalOfficeXmlText, OFFICE_TEXT_PATH_PATTERNS } from './exportTextInspector';
 import { resolveFeatureLabel } from './exporters/exporterUtils.js';
 import { safeImport } from './safeImport';
 
@@ -40,6 +41,11 @@ function getExportPartSize(part) {
   return 0;
 }
 
+async function getZipFileContent(part) {
+  if (part && typeof part.arrayBuffer === 'function') return await part.arrayBuffer();
+  return part;
+}
+
 function createFailure(featureId, format, message, extra = {}) {
   return {
     featureId,
@@ -64,6 +70,57 @@ function addRequiredFile(zip, files, failures, path, content, { featureId, forma
     return false;
   }
   zip.file(path, content);
+  files.push({ path, featureId: publicFeatureId(featureId), label: resolveFeatureLabel(featureId), format, size });
+  return true;
+}
+
+async function addRequiredOfficeFile(
+  zip,
+  files,
+  failures,
+  path,
+  content,
+  { featureId, format, minBytes = MIN_EXPORT_BYTES } = {},
+) {
+  const size = getExportPartSize(content);
+  if (size < minBytes) {
+    failures.push(
+      createFailure(
+        featureId,
+        format,
+        `${resolveFeatureLabel(featureId)} ${String(format || 'file').toUpperCase()} export was empty.`,
+        { path, size },
+      ),
+    );
+    return false;
+  }
+
+  try {
+    const internalText = await findInternalOfficeXmlText(content, OFFICE_TEXT_PATH_PATTERNS[format]);
+    if (internalText) {
+      failures.push(
+        createFailure(
+          featureId,
+          format,
+          `${resolveFeatureLabel(featureId)} ${String(format).toUpperCase()} export exposes internal ${internalText.label} language in ${internalText.path}.`,
+          { path, size, internalText },
+        ),
+      );
+      return false;
+    }
+  } catch (err) {
+    failures.push(
+      createFailure(
+        featureId,
+        format,
+        `${resolveFeatureLabel(featureId)} ${String(format || 'file').toUpperCase()} export could not be inspected: ${err?.message || 'Unknown error.'}`,
+        { path, size },
+      ),
+    );
+    return false;
+  }
+
+  zip.file(path, await getZipFileContent(content));
   files.push({ path, featureId: publicFeatureId(featureId), label: resolveFeatureLabel(featureId), format, size });
   return true;
 }
@@ -125,7 +182,7 @@ export async function buildCourseMaterialsZip({
   try {
     const filteredCourseMap = scopeCourseMapToLessons(courseMap, lessonFilter);
     const buffer = await buildXlsxBuffer(filteredCourseMap, columns);
-    addRequiredFile(zip, files, failures, `Course Map/${safeCourseName} - Course Map.xlsx`, buffer, {
+    await addRequiredOfficeFile(zip, files, failures, `Course Map/${safeCourseName} - Course Map.xlsx`, buffer, {
       featureId: 'courseMap',
       format: 'xlsx',
     });
@@ -153,7 +210,7 @@ export async function buildCourseMaterialsZip({
     if (featureId === 'slideDecks') {
       try {
         const blob = await buildSlideDeckPptxBlob(filteredData, safeCourseName, slideTheme);
-        addRequiredFile(zip, files, failures, `${safeLabel}/${safeCourseName} - ${safeLabel}.pptx`, blob, {
+        await addRequiredOfficeFile(zip, files, failures, `${safeLabel}/${safeCourseName} - ${safeLabel}.pptx`, blob, {
           featureId,
           format: 'pptx',
         });
@@ -171,7 +228,7 @@ export async function buildCourseMaterialsZip({
 
     try {
       const blob = await buildDeliverableDocxBlob(featureId, filteredData, safeCourseName);
-      addRequiredFile(zip, files, failures, `${safeLabel}/${safeCourseName} - ${safeLabel}.docx`, blob, {
+      await addRequiredOfficeFile(zip, files, failures, `${safeLabel}/${safeCourseName} - ${safeLabel}.docx`, blob, {
         featureId,
         format: 'docx',
       });

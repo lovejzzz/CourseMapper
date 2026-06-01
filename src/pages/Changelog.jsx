@@ -52,6 +52,7 @@ const releases = [
           'Package export verification now fails before download if exported CSV text still exposes internal compiler or proof language.',
           'Export verification now opens generated DOCX and PPTX files and blocks downloads when document, slide, or speaker-note text leaks internal compiler/proof language.',
           'Course-map XLSX verification now opens generated workbook XML and blocks downloads when worksheet or shared-string text leaks internal compiler/proof language.',
+          'ZIP packaging now fails closed if the actual generated DOCX, PPTX, or XLSX file would leak internal proof language, and live ZIP audits check the same issue.',
         ],
       },
       {

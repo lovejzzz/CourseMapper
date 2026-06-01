@@ -1,5 +1,6 @@
 import fs from 'node:fs/promises';
 import JSZip from 'jszip';
+import { findInternalTextInString } from '../../src/lib/exportTextInspector.js';
 import { findPublishabilityPlaceholders } from '../../src/lib/publishabilityPlaceholders.js';
 
 function decodeXmlEntities(value) {
@@ -94,6 +95,13 @@ function checkPlaceholders(issues, fileName, text) {
   }
 }
 
+function checkInternalProofLanguage(issues, fileName, text) {
+  const internalText = findInternalTextInString(text);
+  if (internalText) {
+    issues.push(`${fileName}: leaked internal ${internalText.label} language`);
+  }
+}
+
 function checkFaqQuestionCounts(issues, fileName, text, expected) {
   const lessonTitles = Object.keys(expected || {});
   for (let i = 0; i < lessonTitles.length; i++) {
@@ -135,6 +143,7 @@ export async function auditCourseMaterialsZip(zipPath, options = {}) {
     if (lower.endsWith('.docx')) {
       const text = await extractDocxText(fileBuffer);
       checkPlaceholders(issues, name, text);
+      checkInternalProofLanguage(issues, name, text);
       if (expectedFaqQuestionsPerLesson && name.startsWith('Course FAQ/')) {
         checkFaqQuestionCounts(issues, name, text, expectedFaqQuestionsPerLesson);
       }
@@ -144,6 +153,7 @@ export async function auditCourseMaterialsZip(zipPath, options = {}) {
     if (lower.endsWith('.pptx')) {
       const { text, notes } = await extractPptxTextAndNotes(fileBuffer);
       checkPlaceholders(issues, name, text);
+      checkInternalProofLanguage(issues, name, text);
       for (const note of notes) {
         const noteWords = countWords(note.text.replace(/\b\d+\s*\/\s*\d+\b/g, ''));
         if (noteWords < minSpeakerNoteWords) {
@@ -156,6 +166,7 @@ export async function auditCourseMaterialsZip(zipPath, options = {}) {
     if (lower.endsWith('.xlsx')) {
       const text = await extractXlsxText(fileBuffer);
       checkPlaceholders(issues, name, text);
+      checkInternalProofLanguage(issues, name, text);
     }
   }
 
