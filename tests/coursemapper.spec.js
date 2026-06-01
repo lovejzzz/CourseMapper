@@ -304,6 +304,63 @@ test.describe('Landing Page', () => {
     });
   });
 
+  test('opening a legacy .coursemapper file sanitizes restored project content', async ({ page }) => {
+    await page.goto('/');
+    await page.evaluate(() => {
+      localStorage.clear();
+      sessionStorage.clear();
+    });
+    await page.reload();
+
+    const secret = 'sk-proj-abcdefghijklmnopqrstuvwxyz1234567890';
+    const project = {
+      hasGenerated: true,
+      provider: 'webllm',
+      modelId: 'Llama-3.2-1B-Instruct-q4f16_1-MLC',
+      modelName: 'Local browser model',
+      promptText: `Legacy prompt ${secret}`,
+      courseMap: {
+        courseName: 'Legacy Project',
+        lessons: [
+          {
+            title: `Lesson ${secret}`,
+            learningGoals: ['Goal'],
+            topics: ['Topic'],
+            learningObjectives: ['Objective'],
+            weeklyAssessments: ['Assessment'],
+            asynchronousActivities: ['Activity'],
+            synchronousActivities: ['Discussion'],
+            apiKey: secret,
+          },
+        ],
+      },
+      columns: [],
+      userEdits: [],
+      chatHistory: [{ role: 'assistant', text: `Do not restore ${secret}` }],
+      fileNames: [],
+      versionHistory: [],
+      selectedFeatures: ['courseMap'],
+      lessonScope: { type: 'all' },
+      deliverableConfig: {},
+      activeTab: 'courseMap',
+      deliverables: {
+        lessonPlans: {
+          status: 'done',
+          data: { notes: `Plan ${secret}` },
+        },
+      },
+    };
+
+    await page.locator('#landing-file-input').setInputFiles({
+      name: 'Legacy Unsafe Project.coursemapper',
+      mimeType: 'application/json',
+      buffer: Buffer.from(JSON.stringify(project)),
+    });
+
+    await expect(page.locator('body')).toContainText('Lesson [redacted secret]', { timeout: 10000 });
+    await expect(page.locator('body')).not.toContainText(secret);
+  });
+
   test('Attach files button is present', async ({ page }) => {
     await expect(page.locator('button:has-text("Attach files")')).toBeVisible();
   });

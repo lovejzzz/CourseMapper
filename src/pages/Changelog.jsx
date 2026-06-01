@@ -59,6 +59,7 @@ const releases = [
           '.coursemapper backups, autosave snapshots, cloud snapshots, and developer snapshots now strip API-key/token fields and redact key-like text while keeping provider/model choices.',
           'Direct cloud project, deliverable, agent-memory, and custom-tool saves now reuse the same sanitizer so future persistence paths cannot bypass the trust boundary.',
           'Cloud restore and merge reads now sanitize legacy records before they re-enter app state, while preserving timestamp metadata needed by project lists.',
+          'Local autosave restore, .coursemapper import, cloud project open, and Developer Mode snapshot apply now sanitize legacy project objects before workspace state is restored.',
         ],
       },
       {

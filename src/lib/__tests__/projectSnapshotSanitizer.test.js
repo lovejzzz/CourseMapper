@@ -1,5 +1,5 @@
 import { describe, expect, it } from 'vitest';
-import { sanitizeProjectSnapshot } from '../projectSnapshotSanitizer';
+import { prepareProjectSnapshotForRestore, sanitizeProjectSnapshot } from '../projectSnapshotSanitizer';
 
 describe('sanitizeProjectSnapshot', () => {
   it('removes secret fields recursively without dropping model configuration', () => {
@@ -86,5 +86,73 @@ describe('sanitizeProjectSnapshot', () => {
 
     expect(sanitized.updatedAt).toBe(timestampLike);
     expect(sanitized.nested).toEqual({ title: 'Keep this' });
+  });
+});
+
+describe('prepareProjectSnapshotForRestore', () => {
+  it('sanitizes legacy project snapshots before restoring them to app state', () => {
+    const legacy = {
+      courseMap: {
+        courseName: 'Legacy sk-proj-abcdefghijklmnopqrstuvwxyz1234567890',
+        lessons: [
+          {
+            title: 'Keep lesson title',
+            apiKey: 'sk-proj-abcdefghijklmnopqrstuvwxyz1234567890',
+          },
+        ],
+      },
+      promptText: 'Connected with Bearer abcdefghijklmnopqrstuvwxyz1234567890ABCDE',
+      deliverables: {
+        lessonPlans: {
+          stale: true,
+          data: {
+            notes: 'Provider sk-ant-abcdefghijklmnopqrstuvwxyz1234567890',
+            refreshToken: 'sk-ant-abcdefghijklmnopqrstuvwxyz1234567890',
+          },
+        },
+      },
+    };
+
+    const restored = prepareProjectSnapshotForRestore(legacy);
+
+    expect(restored.formatVersion).toBe(1);
+    expect(restored.courseMap.courseName).toBe('Legacy [redacted secret]');
+    expect(restored.courseMap.lessons[0]).toEqual({ title: 'Keep lesson title' });
+    expect(restored.promptText).toBe('Connected with [redacted secret]');
+    expect(restored.deliverables.lessonPlans).toMatchObject({
+      stale: true,
+      staleConfidence: { level: 'high', maxWeight: 1.0, dominantField: null },
+      data: {
+        notes: 'Provider [redacted secret]',
+      },
+    });
+    expect(restored.deliverables.lessonPlans.data).not.toHaveProperty('refreshToken');
+    expect(JSON.stringify(restored)).not.toContain('sk-proj-');
+    expect(JSON.stringify(restored)).not.toContain('sk-ant-');
+    expect(JSON.stringify(restored)).not.toContain('Bearer ');
+  });
+
+  it('does not mutate the legacy snapshot while applying restore migrations', () => {
+    const legacy = {
+      courseMap: { lessons: [] },
+      deliverables: {
+        slideDecks: { stale: true },
+      },
+    };
+
+    const restored = prepareProjectSnapshotForRestore(legacy);
+
+    expect(restored).not.toBe(legacy);
+    expect(restored.deliverables.slideDecks.staleConfidence).toEqual({
+      level: 'high',
+      maxWeight: 1.0,
+      dominantField: null,
+    });
+    expect(legacy).toEqual({
+      courseMap: { lessons: [] },
+      deliverables: {
+        slideDecks: { stale: true },
+      },
+    });
   });
 });

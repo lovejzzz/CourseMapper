@@ -61,3 +61,20 @@ export function sanitizeProjectSnapshot(value) {
   if (typeof value === 'string') return redactSecretText(value);
   return value;
 }
+
+function migrateRestoredDeliverables(snapshot) {
+  if (!snapshot.deliverables || typeof snapshot.deliverables !== 'object') return snapshot;
+
+  for (const entry of Object.values(snapshot.deliverables)) {
+    if (entry?.stale && !entry?.staleConfidence) {
+      entry.staleConfidence = { level: 'high', maxWeight: 1.0, dominantField: null };
+    }
+  }
+  return snapshot;
+}
+
+export function prepareProjectSnapshotForRestore(snapshot) {
+  const restored = sanitizeProjectSnapshot(snapshot || {});
+  if (!restored.formatVersion) restored.formatVersion = 1;
+  return migrateRestoredDeliverables(restored);
+}

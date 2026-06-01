@@ -67,7 +67,7 @@ import { importCourseMap } from './lib/importCourseMap';
 import { parseFiles } from './lib/fileParser';
 import { detectExpectedLessons, detectLessonsWithAI } from './lib/detectLessons';
 import { sanitizeMessagesForPersistence } from './lib/messageSanitizer';
-import { sanitizeProjectSnapshot } from './lib/projectSnapshotSanitizer';
+import { prepareProjectSnapshotForRestore, sanitizeProjectSnapshot } from './lib/projectSnapshotSanitizer';
 import { isAgentProviderReady } from './lib/agentAvailability';
 import {
   evaluateWorkspaceReadiness,
@@ -1498,41 +1498,42 @@ export default function AppFlow({ startupAction = null, onStartupHandled, onRetu
       if (!snapshot || typeof snapshot !== 'object') {
         throw new Error('Developer code must be a project JSON object.');
       }
-      if (!snapshot.courseMap || !Array.isArray(snapshot.courseMap.lessons)) {
+      const restored = prepareProjectSnapshotForRestore(snapshot);
+      if (!restored.courseMap || !Array.isArray(restored.courseMap.lessons)) {
         throw new Error('Cannot apply: courseMap.lessons must exist and be an array.');
       }
-      if (snapshot.selectedFeatures !== undefined && !Array.isArray(snapshot.selectedFeatures)) {
+      if (restored.selectedFeatures !== undefined && !Array.isArray(restored.selectedFeatures)) {
         throw new Error('Cannot apply: selectedFeatures must be an array.');
       }
 
       const nextSelected =
-        Array.isArray(snapshot.selectedFeatures) && snapshot.selectedFeatures.length > 0
-          ? snapshot.selectedFeatures
+        Array.isArray(restored.selectedFeatures) && restored.selectedFeatures.length > 0
+          ? restored.selectedFeatures
           : ['courseMap'];
       const nextActive =
-        typeof snapshot.activeTab === 'string' && nextSelected.includes(snapshot.activeTab)
-          ? snapshot.activeTab
+        typeof restored.activeTab === 'string' && nextSelected.includes(restored.activeTab)
+          ? restored.activeTab
           : nextSelected[0] || 'courseMap';
 
-      setCourseMap(snapshot.courseMap);
-      setOldCourseMap(snapshot.oldCourseMap || null);
-      setColumns(Array.isArray(snapshot.columns) ? snapshot.columns : [...DEFAULT_COLUMNS]);
+      setCourseMap(restored.courseMap);
+      setOldCourseMap(restored.oldCourseMap || null);
+      setColumns(Array.isArray(restored.columns) ? restored.columns : [...DEFAULT_COLUMNS]);
       setHasGenerated(true);
-      setUserEdits(Array.isArray(snapshot.userEdits) ? snapshot.userEdits : []);
-      setChatHistory(sanitizeMessagesForPersistence(snapshot.chatHistory));
+      setUserEdits(Array.isArray(restored.userEdits) ? restored.userEdits : []);
+      setChatHistory(sanitizeMessagesForPersistence(restored.chatHistory));
       setSelectedFeatures(nextSelected);
       setDeliverableConfig(
-        snapshot.deliverableConfig && typeof snapshot.deliverableConfig === 'object' ? snapshot.deliverableConfig : {},
+        restored.deliverableConfig && typeof restored.deliverableConfig === 'object' ? restored.deliverableConfig : {},
       );
       setLessonScope(
-        snapshot.lessonScope && typeof snapshot.lessonScope === 'object' ? snapshot.lessonScope : { type: 'all' },
+        restored.lessonScope && typeof restored.lessonScope === 'object' ? restored.lessonScope : { type: 'all' },
       );
-      setPromptText(typeof snapshot.promptText === 'string' ? snapshot.promptText : '');
+      setPromptText(typeof restored.promptText === 'string' ? restored.promptText : '');
       setActiveTab(nextActive);
-      setSlideTheme(snapshot.slideTheme ?? null);
-      restoreProjectAIConfig(snapshot);
+      setSlideTheme(restored.slideTheme ?? null);
+      restoreProjectAIConfig(restored);
       deliv.restoreDeliverables(
-        snapshot.deliverables && typeof snapshot.deliverables === 'object' ? snapshot.deliverables : {},
+        restored.deliverables && typeof restored.deliverables === 'object' ? restored.deliverables : {},
       );
       if (!gen.restoreStoppedState()) {
         gen.setProgressStep('done');
@@ -1739,7 +1740,7 @@ export default function AppFlow({ startupAction = null, onStartupHandled, onRetu
     try {
       const raw = localStorage.getItem(STORAGE_KEY);
       if (!raw) return;
-      const saved = JSON.parse(raw);
+      const saved = prepareProjectSnapshotForRestore(JSON.parse(raw));
       if (saved.courseMap) setHasSavedSession(true);
     } catch {}
     // Intentionally runs only on mount: checks localStorage once for a saved session.
@@ -1752,9 +1753,7 @@ export default function AppFlow({ startupAction = null, onStartupHandled, onRetu
     try {
       const raw = localStorage.getItem(STORAGE_KEY);
       if (!raw) return;
-      const saved = JSON.parse(raw);
-      // Treat missing formatVersion as version 1 (backwards compatible)
-      if (!saved.formatVersion) saved.formatVersion = 1;
+      const saved = prepareProjectSnapshotForRestore(JSON.parse(raw));
       if (!saved.courseMap) return;
       setCourseMap(saved.courseMap);
       setColumns(saved.columns || [...DEFAULT_COLUMNS]);
@@ -1781,12 +1780,6 @@ export default function AppFlow({ startupAction = null, onStartupHandled, onRetu
         projectIdRef.current = saved.projectId;
       }
       if (saved.deliverables) {
-        // ── Change #3: Migrate old stale:true entries that lack staleConfidence ──
-        for (const [, entry] of Object.entries(saved.deliverables)) {
-          if (entry?.stale && !entry?.staleConfidence) {
-            entry.staleConfidence = { level: 'high', maxWeight: 1.0, dominantField: null };
-          }
-        }
         deliv.restoreDeliverables(saved.deliverables);
       }
       setRestoredSession(true);
@@ -1837,9 +1830,7 @@ export default function AppFlow({ startupAction = null, onStartupHandled, onRetu
       // .coursemapper files are full JSON project snapshots — restore everything
       if (file.name.endsWith('.coursemapper')) {
         const text = await file.text();
-        const saved = JSON.parse(text);
-        // Treat missing formatVersion as version 1 (backwards compatible)
-        if (!saved.formatVersion) saved.formatVersion = 1;
+        const saved = prepareProjectSnapshotForRestore(JSON.parse(text));
         if (!saved.courseMap) throw new Error('Invalid .coursemapper file');
         restoreProjectAIConfig(saved);
         setCourseMap(saved.courseMap);
@@ -1908,11 +1899,11 @@ export default function AppFlow({ startupAction = null, onStartupHandled, onRetu
   async function handleOpenCloudProject(pid) {
     if (!user) return;
     try {
-      const saved = await cloudLoadProject(user.uid, pid);
+      const saved = prepareProjectSnapshotForRestore(await cloudLoadProject(user.uid, pid));
       if (!saved || !saved.courseMap) throw new Error('Project data not found');
-      // Treat missing formatVersion as version 1 (backwards compatible)
-      if (!saved.formatVersion) saved.formatVersion = 1;
-      const deliverables = await loadProjectDeliverables(user.uid, pid);
+      const deliverables = prepareProjectSnapshotForRestore({
+        deliverables: await loadProjectDeliverables(user.uid, pid),
+      }).deliverables;
       // Restore all state — same as doRestoreSession but from cloud
       setCourseMap(saved.courseMap);
       setColumns(saved.columns || [...DEFAULT_COLUMNS]);
