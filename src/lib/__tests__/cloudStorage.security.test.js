@@ -30,7 +30,17 @@ vi.mock('firebase/firestore', () => ({
 vi.mock('../firebase', () => ({ db: { _kind: 'fake-db' } }));
 
 const firestore = await import('firebase/firestore');
-const { saveAgentMemory, saveCustomTool, saveProject, saveProjectDeliverables } = await import('../cloudStorage');
+const {
+  listProjects,
+  loadAgentMemories,
+  loadCustomTools,
+  loadProject,
+  loadProjectDeliverables,
+  saveAgentMemory,
+  saveCustomTool,
+  saveProject,
+  saveProjectDeliverables,
+} = await import('../cloudStorage');
 
 const OPENAI_KEY = 'sk-proj-abcdefghijklmnopqrstuvwxyz1234567890';
 const ANTHROPIC_KEY = 'sk-ant-abcdefghijklmnopqrstuvwxyz1234567890';
@@ -41,6 +51,14 @@ function allWritesText() {
     setDoc: firestore.setDoc.mock.calls,
     batchSet: firestoreMocks.batchSet.mock.calls,
   });
+}
+
+function makeTimestamp(iso) {
+  const timestamp = {
+    toDate: vi.fn(() => new Date(iso)),
+  };
+  Object.setPrototypeOf(timestamp, { constructor: { name: 'Timestamp' } });
+  return timestamp;
 }
 
 beforeEach(() => {
@@ -134,5 +152,125 @@ describe('cloudStorage secret sanitation', () => {
     expect(allWritesText()).not.toContain('sk-proj-');
     expect(allWritesText()).not.toContain('sk-ant-');
     expect(allWritesText()).not.toContain(BEARER_TOKEN);
+  });
+
+  it('sanitizes legacy cloud project and deliverable reads', async () => {
+    const updatedAt = makeTimestamp('2026-06-01T10:00:00Z');
+    firestore.getDoc.mockResolvedValueOnce({
+      exists: () => true,
+      data: () => ({
+        courseName: `Legacy ${OPENAI_KEY}`,
+        updatedAt,
+        apiKey: OPENAI_KEY,
+        nested: {
+          accessToken: ANTHROPIC_KEY,
+          visible: 'keep',
+        },
+      }),
+    });
+    firestore.getDocs.mockResolvedValueOnce({
+      forEach: (cb) =>
+        cb({
+          id: 'lessonPlans',
+          data: () => ({
+            status: 'done',
+            authorization: BEARER_TOKEN,
+            data: {
+              summary: `Never reload ${OPENAI_KEY}`,
+            },
+          }),
+        }),
+    });
+
+    const project = await loadProject('user-1', 'project-1');
+    const deliverables = await loadProjectDeliverables('user-1', 'project-1');
+
+    expect(project.courseName).toBe('Legacy [redacted secret]');
+    expect(project.updatedAt).toBe(updatedAt);
+    expect(project).not.toHaveProperty('apiKey');
+    expect(project.nested).toEqual({ visible: 'keep' });
+    expect(deliverables.lessonPlans).not.toHaveProperty('authorization');
+    expect(deliverables.lessonPlans.data.summary).toBe('Never reload [redacted secret]');
+    expect(JSON.stringify({ project, deliverables })).not.toContain('sk-proj-');
+    expect(JSON.stringify({ project, deliverables })).not.toContain('sk-ant-');
+    expect(JSON.stringify({ project, deliverables })).not.toContain(BEARER_TOKEN);
+  });
+
+  it('sanitizes legacy agent reads while keeping document ids', async () => {
+    firestore.getDocs
+      .mockResolvedValueOnce({
+        docs: [
+          {
+            id: 'memory-1',
+            data: () => ({
+              text: `Old memory ${OPENAI_KEY}`,
+              bearerToken: BEARER_TOKEN,
+            }),
+          },
+        ],
+      })
+      .mockResolvedValueOnce({
+        docs: [
+          {
+            id: 'audit_course',
+            data: () => ({
+              name: 'audit_course',
+              description: `Old tool ${ANTHROPIC_KEY}`,
+              params: {
+                apiKey: OPENAI_KEY,
+                safe: true,
+              },
+            }),
+          },
+        ],
+      });
+
+    const memories = await loadAgentMemories('user-1');
+    const tools = await loadCustomTools('user-1');
+
+    expect(memories).toEqual([{ id: 'memory-1', text: 'Old memory [redacted secret]' }]);
+    expect(tools).toEqual([
+      {
+        name: 'audit_course',
+        description: 'Old tool [redacted secret]',
+        params: { safe: true },
+      },
+    ]);
+    expect(JSON.stringify({ memories, tools })).not.toContain('sk-proj-');
+    expect(JSON.stringify({ memories, tools })).not.toContain('sk-ant-');
+    expect(JSON.stringify({ memories, tools })).not.toContain(BEARER_TOKEN);
+  });
+
+  it('preserves timestamp objects when sanitizing project list rows', async () => {
+    const updatedAt = makeTimestamp('2026-06-01T10:00:00Z');
+    const createdAt = makeTimestamp('2026-05-31T10:00:00Z');
+    firestore.getDocs.mockResolvedValueOnce({
+      docs: [
+        {
+          id: 'project-1',
+          data: () => ({
+            courseName: `Legacy ${OPENAI_KEY}`,
+            semester: `Fall ${ANTHROPIC_KEY}`,
+            apiKey: OPENAI_KEY,
+            updatedAt,
+            createdAt,
+          }),
+        },
+      ],
+    });
+
+    const projects = await listProjects('user-1');
+
+    expect(projects).toEqual([
+      {
+        id: 'project-1',
+        courseName: 'Legacy [redacted secret]',
+        semester: 'Fall [redacted secret]',
+        updatedAt: new Date('2026-06-01T10:00:00Z'),
+        createdAt: new Date('2026-05-31T10:00:00Z'),
+      },
+    ]);
+    expect(updatedAt.toDate).toHaveBeenCalled();
+    expect(createdAt.toDate).toHaveBeenCalled();
   });
 });

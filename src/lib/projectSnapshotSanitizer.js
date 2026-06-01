@@ -41,10 +41,16 @@ function redactSecretText(value) {
   );
 }
 
+function isPlainObject(value) {
+  const prototype = Object.getPrototypeOf(value);
+  return prototype === Object.prototype || prototype === null;
+}
+
 export function sanitizeProjectSnapshot(value) {
   if (Array.isArray(value)) return value.map(sanitizeProjectSnapshot);
 
   if (value && typeof value === 'object') {
+    if (!isPlainObject(value)) return value;
     return Object.entries(value).reduce((acc, [key, nested]) => {
       if (isSecretFieldName(key)) return acc;
       acc[key] = sanitizeProjectSnapshot(nested);

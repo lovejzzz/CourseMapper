@@ -63,7 +63,7 @@ function sanitizeCloudPayload(value) {
 export async function loadProfile(uid) {
   if (!db) return null;
   const snap = await getDoc(userDoc(uid));
-  return snap.exists() ? snap.data() : null;
+  return snap.exists() ? sanitizeCloudPayload(snap.data()) : null;
 }
 
 export async function saveProfile(uid, profile) {
@@ -86,7 +86,7 @@ export async function loadCustomDeliverables(uid) {
   const snap = await getDocs(customDelCol(uid));
   const map = {};
   snap.forEach((d) => {
-    map[d.id] = d.data();
+    map[d.id] = sanitizeCloudPayload(d.data());
   });
   return map;
 }
@@ -112,7 +112,7 @@ export async function loadDeveloperTemplates(uid) {
   const snap = await getDocs(developerTemplateCol(uid));
   const map = {};
   snap.forEach((d) => {
-    map[d.id] = d.data();
+    map[d.id] = sanitizeCloudPayload(d.data());
   });
   return map;
 }
@@ -138,7 +138,7 @@ export async function listProjects(uid) {
   const q = query(projectsCol(uid), orderBy('updatedAt', 'desc'));
   const snap = await getDocs(q);
   return snap.docs.map((d) => {
-    const data = d.data();
+    const data = sanitizeCloudPayload(d.data());
     return {
       id: d.id,
       courseName: data.courseName || 'Untitled',
@@ -153,7 +153,7 @@ export async function loadProject(uid, projectId) {
   if (!db) return null;
   const snap = await getDoc(projectDoc(uid, projectId));
   if (!snap.exists()) return null;
-  return snap.data();
+  return sanitizeCloudPayload(snap.data());
 }
 
 export async function saveProject(uid, projectId, projectData) {
@@ -207,7 +207,7 @@ export async function loadProjectDeliverables(uid, projectId) {
   const snap = await getDocs(delivCol(uid, projectId));
   const map = {};
   snap.forEach((d) => {
-    map[d.id] = d.data();
+    map[d.id] = sanitizeCloudPayload(d.data());
   });
   return map;
 }
@@ -221,7 +221,7 @@ function agentPrefsDoc(uid) {
 export async function loadAgentPrefs(uid) {
   if (!db) return null;
   const snap = await getDoc(agentPrefsDoc(uid));
-  return snap.exists() ? snap.data() : null;
+  return snap.exists() ? sanitizeCloudPayload(snap.data()) : null;
 }
 
 export async function saveAgentPrefs(uid, prefs) {
@@ -249,7 +249,7 @@ function memoryDoc(uid, id) {
 export async function loadAgentMemories(uid) {
   if (!db) return [];
   const snap = await getDocs(memoryCol(uid));
-  return snap.docs.map((d) => ({ id: d.id, ...d.data() }));
+  return snap.docs.map((d) => ({ id: d.id, ...sanitizeCloudPayload(d.data()) }));
 }
 
 export async function saveAgentMemory(uid, entry) {
@@ -281,7 +281,7 @@ function customToolDoc(uid, name) {
 export async function loadCustomTools(uid) {
   if (!db) return [];
   const snap = await getDocs(customToolsCol(uid));
-  return snap.docs.map((d) => ({ name: d.id, ...d.data() }));
+  return snap.docs.map((d) => ({ name: d.id, ...sanitizeCloudPayload(d.data()) }));
 }
 
 export async function saveCustomTool(uid, tool) {

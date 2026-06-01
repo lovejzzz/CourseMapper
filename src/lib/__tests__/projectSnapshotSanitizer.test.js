@@ -69,4 +69,22 @@ describe('sanitizeProjectSnapshot', () => {
       promptText: 'Keep course text.',
     });
   });
+
+  it('preserves non-plain objects such as Firestore timestamps', () => {
+    const timestampLike = {
+      toDate: () => new Date('2026-06-01T00:00:00Z'),
+    };
+    Object.setPrototypeOf(timestampLike, { constructor: { name: 'Timestamp' } });
+
+    const sanitized = sanitizeProjectSnapshot({
+      updatedAt: timestampLike,
+      nested: {
+        apiKey: 'sk-proj-abcdefghijklmnopqrstuvwxyz123456',
+        title: 'Keep this',
+      },
+    });
+
+    expect(sanitized.updatedAt).toBe(timestampLike);
+    expect(sanitized.nested).toEqual({ title: 'Keep this' });
+  });
 });
