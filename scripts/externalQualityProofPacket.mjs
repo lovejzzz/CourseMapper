@@ -1057,6 +1057,114 @@ function buildProofCollectionPlan(samplePackets) {
   };
 }
 
+function buildReviewerCompletionChecklist({ packageVersion, proofCollectionPlan }) {
+  const recommendedSamples = proofCollectionPlan?.recommendedSamples || [];
+  const externalProjectStatus =
+    Number(proofCollectionPlan?.recommendedBundleCoverage?.externalProjectRequiredScopeSampleCount || 0) >=
+    Number(proofCollectionPlan?.requiredExternalProjectSamples || 1)
+      ? 'ready'
+      : 'missing';
+
+  return {
+    status: proofCollectionPlan?.readyForStrictExternalCollection
+      ? 'ready-for-evidence-collection'
+      : 'missing-required-samples',
+    packageVersion,
+    completedFixtureBundlePath: proofCollectionPlan?.completedFixtureBundlePath,
+    preflightCommand: proofCollectionPlan?.preflightCommand,
+    externalGateCommand: proofCollectionPlan?.externalGateCommand,
+    globalItems: [
+      {
+        id: 'review-current-version',
+        status: 'required',
+        target: 'reviewEvidence.reviewedPackageVersion',
+        requirement: `Set every fixture reviewEvidence.reviewedPackageVersion to ${packageVersion}.`,
+      },
+      {
+        id: 'remove-template-markers',
+        status: 'required',
+        target: 'templateOnly',
+        requirement:
+          'Remove top-level and fixture-level templateOnly only after every placeholder has been replaced with real reviewer evidence.',
+      },
+      {
+        id: 'real-external-project',
+        status: externalProjectStatus,
+        target: proofCollectionPlan?.externalProjectTemplate?.combinedFixturePath,
+        requirement:
+          'Include one real external project.courseMap fixture at a 5-, 8-, or 14-lesson proof scope; curated samples alone cannot certify release quality.',
+      },
+      {
+        id: 'scope-coverage',
+        status:
+          (proofCollectionPlan?.recommendedBundleCoverage?.missingScopes || []).length === 0 ? 'ready' : 'missing',
+        target: 'reviewEvidence.proofScopeTags',
+        requirement: 'Completed proof bundle must cover 5-, 8-, and 14-lesson scopes.',
+      },
+    ],
+    perSample: recommendedSamples.map((sample) => ({
+      sampleId: sample.sampleId,
+      courseName: sample.courseName,
+      scope: sample.scope,
+      modality: sample.proofModality || 'unknown',
+      projectSource: sample.projectSource || 'unknown',
+      files: {
+        sourceInput: sample.sourceInputPath,
+        compactBlueprint: sample.blueprintPath,
+        fullPackage: sample.fullPackagePath,
+        reviewIntake: sample.reviewIntakePath,
+        combinedFixture: sample.combinedFixturePath,
+      },
+      requiredReviewFixtureFields: [
+        'reviewEvidence.reviewedAt',
+        'reviewEvidence.reviewedPackageVersion',
+        'reviewEvidence.reviewedArtifacts',
+        'reviewScorecard.dimensions[].score',
+        'reviewScorecard.dimensions[].evidenceArtifacts',
+        'reviewScorecard.dimensions[].evidenceExamples',
+        'reviewScorecard.dimensions[].notes',
+        'sourceFidelityReview.sourceInputReviewed',
+        'sourceFidelityReview.compiledPackageReviewed',
+        'sourceFidelityReview.artifactReviews[].sourceCompared',
+        'sourceFidelityReview.artifactReviews[].packageCompared',
+        'sourceFidelityReview.artifactReviews[].sourceSignalsPreserved',
+        'sourceFidelityReview.artifactReviews[].compilerDecisionVisible',
+        'sourceFidelityReview.artifactReviews[].publishGateVisible',
+        'sourceFidelityReview.artifactReviews[].modelUsePolicyVisible',
+        'sourceFidelityReview.artifactReviews[].handoffReviewFocusVisible',
+        'sourceFidelityReview.artifactReviews[].localReviewActionVisible',
+        'sourceFidelityReview.artifactReviews[].notes',
+        'blueprintQualityReview.sourceInputReviewed',
+        'blueprintQualityReview.compactRepresentationReviewed',
+        'blueprintQualityReview.lessonReviews[].sourceCompared',
+        'blueprintQualityReview.lessonReviews[].blueprintCompared',
+        'blueprintQualityReview.lessonReviews[].sourceSignalsPreserved',
+        'blueprintQualityReview.lessonReviews[].assessmentPreserved',
+        'blueprintQualityReview.lessonReviews[].alignmentUsable',
+        'blueprintQualityReview.lessonReviews[].reviewRequiredFlagsVisible',
+        'blueprintQualityReview.lessonReviews[].notes',
+        'assumptionLedgerReview.assumptionLedgerReviewed',
+        'assumptionLedgerReview.reviewRequiredRowsReviewed',
+        'assumptionLedgerReview.reviewedRows[].decision',
+        'assumptionLedgerReview.reviewedRows[].notes',
+        'packageMustMatch',
+        'featureExpectations',
+      ],
+      requiredEditHistoryFixtureFields: [
+        'reviewEvidence.reviewedAt',
+        'reviewEvidence.reviewedPackageVersion',
+        'instructorEditPatterns[].featureId',
+        'instructorEditPatterns[].field',
+        'instructorEditPatterns[].action',
+        'instructorEditPatterns[].before',
+        'instructorEditPatterns[].after',
+        'instructorEditPatterns[].notes',
+        'preferenceExpectations',
+      ],
+    })),
+  };
+}
+
 export async function buildExternalQualityProofPacket(options = {}) {
   const runtime = options.runtime || (await loadHybridPipelineAuditRuntime());
   const packageVersion = options.packageVersion || (await readPackageVersion());
@@ -1078,6 +1186,7 @@ export async function buildExternalQualityProofPacket(options = {}) {
   const samples = [...curatedSamples, ...externalProjectSamples];
   const samplePackets = samples.map((sample) => buildSamplePacket({ sample, runtime, packageVersion }));
   const proofCollectionPlan = buildProofCollectionPlan(samplePackets);
+  const reviewerCompletionChecklist = buildReviewerCompletionChecklist({ packageVersion, proofCollectionPlan });
   return {
     meta: {
       generatedAt: new Date().toISOString(),
@@ -1106,6 +1215,7 @@ export async function buildExternalQualityProofPacket(options = {}) {
       ],
     },
     proofCollectionPlan,
+    reviewerCompletionChecklist,
     reviewedArtifacts: FULL_PACKAGE_ARTIFACTS.map((featureId) => ({
       featureId,
       label: FEATURE_LABELS[featureId],
@@ -1341,6 +1451,19 @@ function renderRecommendedBundleCoverageRows(plan) {
   ];
 }
 
+function renderReviewerCompletionGlobalRows(checklist) {
+  return (checklist?.globalItems || []).map(
+    (item) => `| ${item.id} | ${item.status} | ${tableCell(item.target, 120)} | ${tableCell(item.requirement, 220)} |`,
+  );
+}
+
+function renderReviewerCompletionSampleRows(checklist) {
+  return (checklist?.perSample || []).map(
+    (sample) =>
+      `| ${sample.sampleId} | ${tableCell(sample.courseName, 120)} | ${sample.scope || ''} | ${sample.modality || 'unknown'} | ${sample.projectSource || 'unknown'} | ${sample.requiredReviewFixtureFields?.length || 0} | ${sample.requiredEditHistoryFixtureFields?.length || 0} | \`${sample.files?.combinedFixture || ''}\` |`,
+  );
+}
+
 function renderSampleIndexRows(payload) {
   return (payload.samples || []).map((sample) => {
     const fileName = safeSampleFileName(sample.sampleId);
@@ -1376,6 +1499,56 @@ function renderScorecardIntakeRows(payload) {
   return payload.scorecardDimensions.map(
     (dimension) => `| ${dimension.label} | ${tableCell(dimension.reviewPrompt, 180)} |  /5 |  |  |  |`,
   );
+}
+
+export function renderReviewerCompletionChecklistMarkdown(payload) {
+  const checklist = payload.reviewerCompletionChecklist || {};
+  const lines = [
+    '# CourseMapper Reviewer Completion Checklist',
+    '',
+    `Generated: ${payload.meta.generatedAt}`,
+    `Package version: ${payload.meta.packageVersion}`,
+    `Status: ${checklist.status || 'unknown'}`,
+    '',
+    'Use this checklist before running the external proof preflight. It maps the strict A-quality proof requirements to the exact fixture fields reviewers or instructors must complete.',
+    '',
+    '## Global Completion Items',
+    '',
+    markdownTable([
+      '| Item | Status | Fixture Field / File | Requirement |',
+      '| --- | --- | --- | --- |',
+      ...(checklist.globalItems?.length
+        ? renderReviewerCompletionGlobalRows(checklist)
+        : ['| none | unknown |  | No checklist items generated. |']),
+    ]),
+    '',
+    '## Recommended Proof Samples',
+    '',
+    markdownTable([
+      '| Sample | Course | Scope | Modality | Source | Review Fields | Edit-History Fields | Combined Fixture |',
+      '| --- | --- | ---: | --- | --- | ---: | ---: | --- |',
+      ...(checklist.perSample?.length
+        ? renderReviewerCompletionSampleRows(checklist)
+        : ['| none | none |  | none | none | 0 | 0 | none |']),
+    ]),
+    '',
+    '## Required Review Fixture Fields',
+    '',
+    ...(checklist.perSample?.[0]?.requiredReviewFixtureFields || []).map((field) => `- \`${field}\``),
+    '',
+    '## Required Edit-History Fixture Fields',
+    '',
+    ...(checklist.perSample?.[0]?.requiredEditHistoryFixtureFields || []).map((field) => `- \`${field}\``),
+    '',
+    '## Commands',
+    '',
+    '```bash',
+    checklist.preflightCommand || 'npm run audit:expert:preflight -- --fixtures /path/to/completed-fixtures.json',
+    checklist.externalGateCommand || 'npm run audit:expert:external -- --fixtures /path/to/completed-fixtures.json',
+    '```',
+  ];
+
+  return `${lines.join('\n')}\n`;
 }
 
 export function renderExternalQualityProofPacketMarkdown(payload) {
@@ -1480,7 +1653,32 @@ export function renderExternalQualityProofPacketMarkdown(payload) {
     '',
     `Recommended strict-proof bundle template: \`${payload.proofCollectionPlan?.recommendedBundleTemplatePath || 'fixtures/recommended-strict-proof-bundle.template.json'}\``,
     `External project starting point: \`${payload.proofCollectionPlan?.externalProjectTemplate?.combinedFixturePath || 'fixtures/external-project.combined-fixtures.template.json'}\``,
+    `Reviewer completion checklist: \`review-intake/reviewer-completion-checklist.md\``,
     '',
+    '### Reviewer Completion Checklist',
+    '',
+    markdownTable([
+      '| Item | Status | Fixture Field / File | Requirement |',
+      '| --- | --- | --- | --- |',
+      ...renderReviewerCompletionGlobalRows(payload.reviewerCompletionChecklist),
+    ]),
+    '',
+    markdownTable([
+      '| Sample | Course | Scope | Modality | Source | Review Fields | Edit-History Fields | Combined Fixture |',
+      '| --- | --- | ---: | --- | --- | ---: | ---: | --- |',
+      ...renderReviewerCompletionSampleRows(payload.reviewerCompletionChecklist),
+    ]),
+    '',
+    ...(payload.reviewerCompletionChecklist?.perSample?.[0]?.requiredReviewFixtureFields?.length
+      ? [
+          'Required review fixture fields include:',
+          '',
+          ...payload.reviewerCompletionChecklist.perSample[0].requiredReviewFixtureFields
+            .slice(0, 8)
+            .map((field) => `- \`${field}\``),
+          '',
+        ]
+      : []),
     '## Reviewed Artifacts',
     '',
     markdownTable([
@@ -2178,6 +2376,7 @@ function externalQualityProofManifestPayload(payload, pathIndex = {}, externalPr
     meta: payload.meta,
     summary: payload.summary,
     proofCollectionPlan: payload.proofCollectionPlan,
+    reviewerCompletionChecklist: payload.reviewerCompletionChecklist,
     reviewedArtifacts: payload.reviewedArtifacts,
     scorecardDimensions: payload.scorecardDimensions,
     externalProjectTemplateFiles: externalProjectTemplatePaths,
@@ -2228,6 +2427,13 @@ export async function writeExternalQualityProofPacket(payload, outputDir = DEFAU
   await fs.mkdir(reviewIntakeDir, { recursive: true });
   await fs.mkdir(fixtureDir, { recursive: true });
   await fs.writeFile(markdownPath, renderExternalQualityProofPacketMarkdown(payload));
+  const reviewerCompletionChecklistPath = path.join(reviewIntakeDir, 'reviewer-completion-checklist.md');
+  const reviewerCompletionChecklistJsonPath = path.join(reviewIntakeDir, 'reviewer-completion-checklist.json');
+  await fs.writeFile(reviewerCompletionChecklistPath, renderReviewerCompletionChecklistMarkdown(payload));
+  await fs.writeFile(
+    reviewerCompletionChecklistJsonPath,
+    `${JSON.stringify(payload.reviewerCompletionChecklist, null, 2)}\n`,
+  );
   const externalProjectTemplate = makeExternalProjectProofTemplate({ packageVersion: payload.meta.packageVersion });
   const externalProjectTemplatePaths = {
     intakePath: path.join(reviewIntakeDir, 'external-project-course-map.md'),
@@ -2346,6 +2552,8 @@ export async function writeExternalQualityProofPacket(payload, outputDir = DEFAU
     fullPackagePaths,
     reviewIntakeDir,
     reviewIntakePaths,
+    reviewerCompletionChecklistPath,
+    reviewerCompletionChecklistJsonPath,
     fixtureDir,
     fixtureTemplatePaths,
     externalProjectTemplatePaths,

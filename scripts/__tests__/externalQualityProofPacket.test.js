@@ -513,6 +513,10 @@ describe('external quality proof packet', () => {
       const fullMarkdown = await fs.readFile(paths.fullPackagePaths[0].markdownPath, 'utf8');
       const fullJson = JSON.parse(await fs.readFile(paths.fullPackagePaths[0].jsonPath, 'utf8'));
       const reviewIntakeMarkdown = await fs.readFile(paths.reviewIntakePaths[0].markdownPath, 'utf8');
+      const reviewerCompletionChecklistMarkdown = await fs.readFile(paths.reviewerCompletionChecklistPath, 'utf8');
+      const reviewerCompletionChecklist = JSON.parse(
+        await fs.readFile(paths.reviewerCompletionChecklistJsonPath, 'utf8'),
+      );
       const combinedFixture = JSON.parse(await fs.readFile(paths.fixtureTemplatePaths[0].combinedFixturePath, 'utf8'));
       const reviewFixture = JSON.parse(await fs.readFile(paths.fixtureTemplatePaths[0].reviewFixturePath, 'utf8'));
       const editHistoryFixture = JSON.parse(
@@ -555,6 +559,8 @@ describe('external quality proof packet', () => {
       expect(paths.fullPackagePaths).toHaveLength(1);
       expect(paths.reviewIntakePaths).toHaveLength(1);
       expect(paths.fixtureTemplatePaths).toHaveLength(1);
+      expect(paths.reviewerCompletionChecklistPath).toContain('reviewer-completion-checklist.md');
+      expect(paths.reviewerCompletionChecklistJsonPath).toContain('reviewer-completion-checklist.json');
       expect(paths.externalProjectTemplatePaths.combinedFixturePath).toContain(
         'external-project.combined-fixtures.template.json',
       );
@@ -705,6 +711,9 @@ describe('external quality proof packet', () => {
       expect(markdown).toContain('fixtures/gold-spanish-healthcare-8.review-fixture.template.json');
       expect(markdown).toContain('fixtures/recommended-strict-proof-bundle.template.json');
       expect(markdown).toContain('fixtures/external-project.combined-fixtures.template.json');
+      expect(markdown).toContain('Reviewer completion checklist');
+      expect(markdown).toContain('reviewEvidence.reviewedPackageVersion');
+      expect(markdown).toContain('reviewScorecard.dimensions[].score');
       expect(sourceMarkdown).toContain('CourseMapper Source Course Map Review');
       expect(sourceMarkdown).toContain('Source Lesson Map');
       expect(sourceMarkdown).toContain('Clinical Greetings, Roles, and Consent Language');
@@ -781,6 +790,30 @@ describe('external quality proof packet', () => {
       expect(reviewIntakeMarkdown).toContain('Concrete Evidence Example');
       expect(reviewIntakeMarkdown).toContain('4.5/5');
       expect(reviewIntakeMarkdown).toContain('Instructional alignment');
+      expect(reviewerCompletionChecklistMarkdown).toContain('CourseMapper Reviewer Completion Checklist');
+      expect(reviewerCompletionChecklistMarkdown).toContain('Global Completion Items');
+      expect(reviewerCompletionChecklistMarkdown).toContain('Required Review Fixture Fields');
+      expect(reviewerCompletionChecklistMarkdown).toContain('reviewScorecard.dimensions[].score');
+      expect(reviewerCompletionChecklistMarkdown).toContain('sourceFidelityReview.artifactReviews[].notes');
+      expect(reviewerCompletionChecklistMarkdown).toContain('instructorEditPatterns[].after');
+      expect(reviewerCompletionChecklist).toMatchObject({
+        status: 'missing-required-samples',
+        packageVersion: '0.8.0-test',
+      });
+      expect(reviewerCompletionChecklist.globalItems.map((item) => item.id)).toEqual(
+        expect.arrayContaining(['review-current-version', 'remove-template-markers', 'real-external-project']),
+      );
+      expect(reviewerCompletionChecklist.perSample[0]).toMatchObject({
+        sampleId: 'gold-spanish-healthcare-8',
+        scope: 8,
+        modality: 'clinical-simulation',
+      });
+      expect(reviewerCompletionChecklist.perSample[0].requiredReviewFixtureFields).toContain(
+        'blueprintQualityReview.lessonReviews[].notes',
+      );
+      expect(reviewerCompletionChecklist.perSample[0].requiredEditHistoryFixtureFields).toContain(
+        'instructorEditPatterns[].after',
+      );
       expect(externalProjectIntakeMarkdown).toContain('External Project Course-Map Proof Template');
       expect(externalProjectIntakeMarkdown).toContain('Replace `project.courseMap`');
       expect(externalProjectCombinedFixture.fixtures).toHaveLength(2);
@@ -812,6 +845,9 @@ describe('external quality proof packet', () => {
       );
       expect(json.externalProjectTemplateFiles.recommendedBundleTemplatePath).toBe(
         paths.externalProjectTemplatePaths.recommendedBundleTemplatePath,
+      );
+      expect(json.reviewerCompletionChecklist.perSample[0].files.combinedFixture).toBe(
+        'fixtures/gold-spanish-healthcare-8.combined-fixtures.template.json',
       );
       expect(combinedFixture.fixtures).toHaveLength(2);
       expect(combinedFixture.fixtures.map((fixture) => fixture.sampleId)).toEqual([
@@ -920,6 +956,9 @@ describe('external quality proof packet', () => {
       });
       const paths = await writeExternalQualityProofPacket(payload, outputDir);
       const manifest = JSON.parse(await fs.readFile(paths.jsonPath, 'utf8'));
+      const reviewerCompletionChecklist = JSON.parse(
+        await fs.readFile(paths.reviewerCompletionChecklistJsonPath, 'utf8'),
+      );
       const sourceMarkdown = await fs.readFile(paths.sourceInputPaths[0].markdownPath, 'utf8');
       const blueprintMarkdown = await fs.readFile(paths.blueprintPaths[0].markdownPath, 'utf8');
       const fullMarkdown = await fs.readFile(paths.fullPackagePaths[0].markdownPath, 'utf8');
@@ -990,6 +1029,13 @@ describe('external quality proof packet', () => {
       expect(recommendedStrictBundle.fixtures[0].project.courseMap.courseName).toBe('External Field Methods Studio');
       expect(manifest.summary.externalProjectSampleCount).toBe(1);
       expect(manifest.proofCollectionPlan.availableExternalProjectSamples).toBe(1);
+      expect(manifest.reviewerCompletionChecklist.globalItems).toEqual(
+        expect.arrayContaining([expect.objectContaining({ id: 'real-external-project', status: 'missing' })]),
+      );
+      expect(reviewerCompletionChecklist.perSample[0]).toMatchObject({
+        sampleId: 'external-field-methods-project',
+        projectSource: 'external-project',
+      });
       expect(manifest.samples[0].projectSource).toBe('external-project');
       expect(manifest.samples[0].sourceInput.markdownPath).toBe(paths.sourceInputPaths[0].markdownPath);
       expect(manifest.samples[0].blueprintFiles.markdownPath).toBe(paths.blueprintPaths[0].markdownPath);

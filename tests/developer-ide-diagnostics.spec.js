@@ -1,6 +1,7 @@
 import { expect, test } from '@playwright/test';
 
 const SECRET_DIAGNOSTIC_PATH = 'deliverableConfig.slideDecks.extraInstructions';
+const CONFIG_WARNING_PATH = 'deliverableConfig.slideDecks.customUserPrompt';
 const FAKE_OPENAI_KEY = ['sk', 'proj', 'developerdiagnosticstestkey1234567890'].join('-');
 
 function developerDiagnosticsFixture() {
@@ -42,6 +43,7 @@ function developerDiagnosticsFixture() {
       slideDecks: {
         slideCount: 4,
         extraInstructions: `Never persist this fake test key: ${FAKE_OPENAI_KEY}`,
+        customUserPrompt: 'Generate slide decks without the required course-map placeholder.',
       },
     },
     lessonScope: { type: 'all' },
@@ -85,7 +87,7 @@ async function restoreDeveloperWorkspace(page) {
 }
 
 test.describe('Developer IDE diagnostics', () => {
-  test('flags secret-bearing snapshot fields and jumps to the matching editor location', async ({ page }) => {
+  test('sanitizes secret-bearing snapshots and jumps to the matching diagnostic editor location', async ({ page }) => {
     await restoreDeveloperWorkspace(page);
 
     await page.getByRole('button', { name: 'IDE', exact: true }).click();
@@ -97,15 +99,22 @@ test.describe('Developer IDE diagnostics', () => {
     const secretFinding = page.locator(
       `[data-testid="developer-diagnostic-finding"][data-path="${SECRET_DIAGNOSTIC_PATH}"]`,
     );
-    await expect(secretFinding).toBeVisible();
-    await expect(secretFinding).toHaveAttribute('data-level', 'error');
-    await expect(secretFinding).toContainText('OpenAI API key detected');
-    await expect(secretFinding).toContainText('Remove it before applying or saving developer state.');
+    await expect(secretFinding).toHaveCount(0);
+    await expect(page.locator('body')).not.toContainText(FAKE_OPENAI_KEY);
 
-    await page.locator(`[data-testid="developer-diagnostic-path"][data-path="${SECRET_DIAGNOSTIC_PATH}"]`).click();
+    const configFinding = page.locator(
+      `[data-testid="developer-diagnostic-finding"][data-path="${CONFIG_WARNING_PATH}"]`,
+    );
+    await expect(configFinding).toBeVisible();
+    await expect(configFinding).toHaveAttribute('data-level', 'warning');
+    await expect(configFinding).toContainText('Custom user prompt should include {{courseMap}}.');
+
+    await page.locator(`[data-testid="developer-diagnostic-path"][data-path="${CONFIG_WARNING_PATH}"]`).click();
 
     await expect(page.getByTestId('developer-code-editor-config')).toBeVisible();
-    await expect(page.getByTestId('developer-status')).toContainText(`Selected ${SECRET_DIAGNOSTIC_PATH} at line`);
+    await expect(page.getByTestId('developer-code-editor-config')).toContainText('[redacted secret]');
+    await expect(page.getByTestId('developer-code-editor-config')).not.toContainText(FAKE_OPENAI_KEY);
+    await expect(page.getByTestId('developer-status')).toContainText(`Selected ${CONFIG_WARNING_PATH} at line`);
     await expect(page.getByTestId('developer-code-cursor')).toContainText(/Ln \d+, Col \d+/);
   });
 });

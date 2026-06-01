@@ -4,7 +4,7 @@ import Header from '../components/Header';
 const releases = [
   {
     version: '0.8.1',
-    date: 'May 31, 2026',
+    date: 'June 1, 2026',
     title: 'A-Quality Blueprint Compiler Proof',
     highlights: [
       'The course blueprint is now a richer instructional representation with source confidence, teaching moves, review boundaries, and compiler decisions',
@@ -37,6 +37,7 @@ const releases = [
           'Expanded the gold-sample matrix to 40 packages and now require short, standard, and full-semester scope proof across multiple teaching modalities before the gate can pass.',
           'Added audit:expert, audit:expert:preflight, audit:expert:external, and audit:expert:packet so internal checks stay separate from external A-quality proof.',
           'External proof packets now include source inputs, compact blueprints, full-package review files, reviewer scorecards, source-fidelity artifact rows, blueprint-quality rows, and assumption-ledger decisions.',
+          'External proof packets now generate a reviewer completion checklist in Markdown and JSON, mapping strict A-quality proof requirements to the exact fixture fields reviewers must complete.',
           'Full-package reviewer files now include a Local Review Actions matrix so experts can verify publish-before-use checks without digging through giant artifact JSON.',
           'Recommended strict-proof bundles now cover 5-, 8-, and 14-lesson scopes across different modalities and show whether the required real external course map is at a valid proof scope.',
           'The strict external gate now blocks real-course proof that is complete but off-scope, so curated samples cannot hide an unproven real-course workflow.',
