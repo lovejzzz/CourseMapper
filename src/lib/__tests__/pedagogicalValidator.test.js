@@ -525,6 +525,71 @@ describe('validateReadability', () => {
     expect(findings.filter((f) => f.featureId === 'lessonPlans' && f.severity === 'error')).toEqual([]);
   });
 
+  it('does not flag compiled graduate course artifacts made of academic labels and short prompts', () => {
+    const researchPrompts = [
+      'Compare validity strategies across qualitative and quantitative designs.',
+      'Identify how sampling choices affect credibility and generalizability.',
+      'Draft a concise research question using course terminology.',
+      'Review peer feedback and revise the proposal milestone.',
+      'Connect ethics decisions to participant risk and consent.',
+      'Summarize the project and defend major design choices.',
+      'Prepare a structured interview protocol for peer review.',
+      'Explain how evidence supports the selected method.',
+    ];
+    const deliverables = {
+      quizBank: doneDeliv({
+        quizzes: [
+          {
+            lessonTitle: 'Lesson 12: Reflective Synthesis and Portfolio',
+            questions: researchPrompts.map((prompt) => ({
+              question: prompt,
+              answer: 'Look for a direct connection between method, evidence, and course concepts.',
+              options: ['Strong alignment', 'Partial alignment', 'Missing evidence', 'Unclear method'],
+            })),
+          },
+        ],
+      }),
+      discussions: doneDeliv({
+        discussions: researchPrompts.map((prompt) => ({
+          title: 'Research design discussion',
+          prompt,
+        })),
+      }),
+      lessonPlans: doneDeliv({
+        lessonPlans: [
+          {
+            lessonTitle: 'Lesson 12: Reflective Synthesis and Portfolio',
+            objectives: researchPrompts,
+            activities: researchPrompts,
+          },
+        ],
+      }),
+      slideDecks: doneDeliv({
+        decks: [
+          {
+            lessonTitle: 'Lesson 12: Reflective Synthesis and Portfolio',
+            slides: researchPrompts.map((prompt) => ({ title: 'Portfolio review', speakerNotes: prompt })),
+          },
+        ],
+      }),
+      rubrics: doneDeliv({
+        rubrics: [
+          {
+            title: 'Research design portfolio rubric',
+            criteria: researchPrompts.map((prompt) => ({
+              criterion: prompt,
+              exemplary: 'Shows clear alignment among question, method, evidence, ethics, and analysis.',
+              proficient: 'Shows reasonable alignment among most project components.',
+            })),
+          },
+        ],
+      }),
+    };
+
+    const findings = validateReadability({ courseName: 'Research Methods in the Social Sciences' }, deliverables);
+    expect(findings).toEqual([]);
+  });
+
   it('skips text shorter than 100 characters', () => {
     const deliverables = {
       quizBank: doneDeliv({

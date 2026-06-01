@@ -345,6 +345,86 @@ describe('packageFinalizer', () => {
     expect(result.healthReport.findings.filter((finding) => finding.severity === 'error')).toEqual([]);
   });
 
+  it('does not retry a compiled graduate package for readability formula false positives', () => {
+    const courseMap = makeCourseMap(12);
+    const prompts = [
+      'Compare validity strategies across qualitative and quantitative designs.',
+      'Identify how sampling choices affect credibility and generalizability.',
+      'Draft a concise research question using course terminology.',
+      'Review peer feedback and revise the proposal milestone.',
+      'Connect ethics decisions to participant risk and consent.',
+      'Summarize the project and defend major design choices.',
+      'Prepare a structured interview protocol for peer review.',
+      'Explain how evidence supports the selected method.',
+    ];
+    const result = runDeterministicPackageFinalizer({
+      courseMap,
+      selectedFeatures: ['courseMap', 'quizBank', 'discussions', 'lessonPlans', 'slideDecks', 'rubrics'],
+      includeClassroomReadiness: false,
+      includePedagogicalValidation: true,
+      deliverables: {
+        quizBank: {
+          status: 'done',
+          data: {
+            quizzes: Array.from({ length: 12 }, (_, index) => ({
+              lessonTitle: `Lesson ${index + 1}: Research Topic ${index + 1}`,
+              questions: prompts.map((prompt) => ({
+                question: prompt,
+                answer: 'Look for a direct connection between method, evidence, and course concepts.',
+                options: ['Strong alignment', 'Partial alignment', 'Missing evidence', 'Unclear method'],
+              })),
+            })),
+          },
+        },
+        discussions: {
+          status: 'done',
+          data: {
+            discussions: Array.from({ length: 12 }, (_, index) => ({
+              lessonTitle: `Lesson ${index + 1}: Research Topic ${index + 1}`,
+              title: 'Research design discussion',
+              prompt: prompts[index % prompts.length],
+            })),
+          },
+        },
+        lessonPlans: {
+          status: 'done',
+          data: {
+            lessonPlans: Array.from({ length: 12 }, (_, index) => ({
+              lessonTitle: `Lesson ${index + 1}: Research Topic ${index + 1}`,
+              objectives: prompts,
+            })),
+          },
+        },
+        slideDecks: {
+          status: 'done',
+          data: {
+            decks: Array.from({ length: 12 }, (_, index) => ({
+              lessonTitle: `Lesson ${index + 1}: Research Topic ${index + 1}`,
+              slides: prompts.map((prompt) => ({ title: 'Portfolio review', speakerNotes: prompt })),
+            })),
+          },
+        },
+        rubrics: {
+          status: 'done',
+          data: {
+            rubrics: Array.from({ length: 12 }, (_, index) => ({
+              lessonTitle: `Lesson ${index + 1}: Research Topic ${index + 1}`,
+              title: 'Research design portfolio rubric',
+              criteria: prompts.map((prompt) => ({
+                criterion: prompt,
+                exemplary: 'Shows clear alignment among question, method, evidence, ethics, and analysis.',
+                proficient: 'Shows reasonable alignment among most project components.',
+              })),
+            })),
+          },
+        },
+      },
+    });
+
+    expect(result.retryActions.filter((action) => action.source === 'validation')).toEqual([]);
+    expect(result.healthReport.findings.filter((finding) => finding.category === 'readability')).toEqual([]);
+  });
+
   it('returns exact retry actions for localized weak sections', () => {
     const result = runDeterministicPackageFinalizer({
       courseMap: makeCourseMap(2),

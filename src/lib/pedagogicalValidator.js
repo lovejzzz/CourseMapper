@@ -735,7 +735,14 @@ const READABILITY_IGNORED_KEYS = new Set([
   'uid',
   'uuid',
   'type',
+  'title',
+  'lessonTitle',
+  'lt',
+  'name',
+  'label',
   'category',
+  'topic',
+  'topicSection',
   'difficulty',
   'df',
   'bloomsLevel',
@@ -748,6 +755,30 @@ const READABILITY_IGNORED_KEYS = new Set([
   'percent',
   'percentage',
   'tags',
+  'option',
+  'options',
+  'op',
+  'answerOption',
+  'answerOptions',
+  'explanation',
+  'explanations',
+  'rationale',
+  'distractorRationale',
+  'dr',
+  'intendedUse',
+  'iu',
+  'pointPlan',
+  'pp',
+  'objectiveAligned',
+  'oa',
+  'relatedLessons',
+  'rl',
+  'assignmentType',
+  'at',
+  'criterionName',
+  'cn',
+  'term',
+  'tm',
 ]);
 
 const READABILITY_IGNORED_SUBTREE_KEYS = new Set([
@@ -804,13 +835,27 @@ function isIgnoredReadabilitySubtree(key = '') {
   return [...READABILITY_IGNORED_SUBTREE_KEYS].some((ignored) => normalizedReadabilityKey(ignored) === normalized);
 }
 
+function readabilityWordCount(text = '') {
+  return (String(text).match(/[A-Za-z][A-Za-z'-]*/g) || []).length;
+}
+
+function looksLikeReadableProse(raw = '') {
+  const words = readabilityWordCount(raw);
+  if (words < 14) return false;
+
+  const terminalCount = (raw.match(/[.!?]/g) || []).length;
+  if (terminalCount === 0 && words < 18) return false;
+
+  return true;
+}
+
 function collectReadableStrings(value, output = [], key = '') {
   if (value == null) return output;
   if (isIgnoredReadabilitySubtree(key)) return output;
 
   if (typeof value === 'string' || typeof value === 'number') {
     const raw = String(value).replace(/\s+/g, ' ').trim();
-    if (raw.length >= 24 && !isIgnoredReadabilityKey(key)) {
+    if (raw.length >= 24 && !isIgnoredReadabilityKey(key) && looksLikeReadableProse(raw)) {
       output.push(/[.!?]$/.test(raw) ? raw : `${raw}.`);
     }
     return output;
@@ -852,13 +897,13 @@ function readabilitySupportMetrics(text = '') {
 }
 
 function isLikelyTechnicalListNoise(text = '', grade = 0) {
-  if (grade <= 16) return false;
+  if (grade <= 12) return false;
   const metrics = readabilitySupportMetrics(text);
   return (
-    metrics.sentenceCount >= 8 &&
-    metrics.avgWordsPerSentence <= 12 &&
-    metrics.shortFragmentRatio >= 0.35 &&
-    metrics.longSentenceRatio <= 0.1
+    metrics.sentenceCount >= 6 &&
+    metrics.avgWordsPerSentence <= 22 &&
+    metrics.longSentenceRatio <= 0.12 &&
+    (metrics.shortFragmentRatio >= 0.2 || metrics.avgWordsPerSentence <= 18 || metrics.sentenceCount >= 8)
   );
 }
 

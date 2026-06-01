@@ -2416,7 +2416,7 @@ function patchAssignmentToAnchor(assignment, anchor) {
     const primaryObjective = sentenceFragment(anchor.objectives[0]);
     next = {
       ...next,
-      [overviewKey]: `For ${anchor.lessonTitle}, students complete ${assessmentTitle} and explain how ${primaryObjective} shapes their evidence, decisions, or final recommendation.`,
+      [overviewKey]: `Students complete ${assessmentTitle} for ${anchor.lessonTitle}. They explain how ${primaryObjective} guides their evidence, decisions, or recommendation.`,
     };
     patchedSupport++;
   }
@@ -2427,7 +2427,7 @@ function patchAssignmentToAnchor(assignment, anchor) {
     const primaryObjective = sentenceFragment(anchor.objectives[0]);
     next = {
       ...next,
-      [criteriaKey]: `Score ${assessmentTitle} on accurate use of ${primaryObjective}, lesson-specific evidence from ${anchor.lessonTitle}, analytical reasoning, and clear communication.`,
+      [criteriaKey]: `Score ${assessmentTitle} for accurate use of ${primaryObjective}. Check lesson-specific evidence from ${anchor.lessonTitle}, analytical reasoning, and clear communication.`,
     };
     patchedSupport++;
   }

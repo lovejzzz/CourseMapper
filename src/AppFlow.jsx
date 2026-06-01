@@ -543,6 +543,7 @@ export default function AppFlow({ startupAction = null, onStartupHandled, onRetu
   const localStatusTimerRef = useRef(null);
   const [isStartingNewProject, setIsStartingNewProject] = useState(false);
   const [newProjectError, setNewProjectError] = useState('');
+  const [newProjectCloudSaveFailed, setNewProjectCloudSaveFailed] = useState(false);
   const [deleteTabConfirm, setDeleteTabConfirm] = useState(null);
   const [tabDrag, setTabDrag] = useState(null);
   const [developerMode, setDeveloperMode] = useState(() => {
@@ -2008,6 +2009,7 @@ export default function AppFlow({ startupAction = null, onStartupHandled, onRetu
     setLocalSaveStatus('idle');
     setCloudSaveStatus('idle');
     setNewProjectError('');
+    setNewProjectCloudSaveFailed(false);
     setScreen('landing');
     onReturnToLanding?.();
   }
@@ -2019,8 +2021,9 @@ export default function AppFlow({ startupAction = null, onStartupHandled, onRetu
   }, [screen, activeDeveloperTemplateId, developerTemplates, applyDeveloperTemplate]);
 
   async function handleConfirmNewProject() {
-    setNewProjectError('');
     if (isStartingNewProject) return;
+    const skipCloudSave = newProjectCloudSaveFailed;
+    if (!skipCloudSave) setNewProjectError('');
     setIsStartingNewProject(true);
     try {
       clearTimeout(saveTimerRef.current);
@@ -2028,7 +2031,7 @@ export default function AppFlow({ startupAction = null, onStartupHandled, onRetu
         saveLocalProjectSnapshot({ projectId: projectIdRef.current });
       }
 
-      if (user && courseMap && hasGenerated) {
+      if (user && courseMap && hasGenerated && !skipCloudSave) {
         clearTimeout(cloudSaveTimerRef.current);
         setCloudSaveStatus('saving');
         let pid = projectIdRef.current;
@@ -2052,9 +2055,8 @@ export default function AppFlow({ startupAction = null, onStartupHandled, onRetu
     } catch (e) {
       warn('[Cloud] final save before new project failed:', e);
       setCloudSaveStatus('error');
-      setNewProjectError(
-        'We could not save this project to My Projects. Download a .coursemapper backup or try again before starting over.',
-      );
+      setNewProjectCloudSaveFailed(true);
+      setNewProjectError('Cloud save failed. Your browser copy is still open. Download a backup or start anyway.');
     } finally {
       setIsStartingNewProject(false);
     }
@@ -2583,6 +2585,7 @@ export default function AppFlow({ startupAction = null, onStartupHandled, onRetu
             <button
               onClick={() => {
                 setNewProjectError('');
+                setNewProjectCloudSaveFailed(false);
                 setNewProjectConfirm(true);
               }}
               className="tactile group flex items-center gap-2 px-3 sm:px-4 py-2 rounded-pill text-xs font-semibold text-slate-500 bg-white/50 border border-slate-200/40 hover:bg-white/70 hover:text-slate-700 shadow-glass transition-all duration-300"
@@ -3122,6 +3125,8 @@ export default function AppFlow({ startupAction = null, onStartupHandled, onRetu
                         <span className="inline-flex items-center gap-1.5">
                           <Spinner /> Saving...
                         </span>
+                      ) : newProjectCloudSaveFailed ? (
+                        'Start Anyway'
                       ) : (
                         'Start New Project'
                       )}

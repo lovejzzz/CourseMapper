@@ -186,6 +186,61 @@ test.describe('Landing Page', () => {
     });
   });
 
+  test('Start New Project clears a restored browser project', async ({ page }) => {
+    await page.goto('/');
+    await page.evaluate(() => {
+      localStorage.clear();
+      sessionStorage.clear();
+      localStorage.setItem(
+        'coursemapper-project',
+        JSON.stringify({
+          formatVersion: 1,
+          hasGenerated: true,
+          provider: 'webllm',
+          modelId: 'Llama-3.2-1B-Instruct-q4f16_1-MLC',
+          modelName: 'Local browser model',
+          courseMap: {
+            courseName: 'Start New Project Test',
+            lessons: [
+              {
+                title: 'Lesson 1',
+                learningGoals: ['Goal'],
+                topics: ['Topic'],
+                learningObjectives: ['Objective'],
+                weeklyAssessments: ['Assessment'],
+                asynchronousActivities: ['Activity'],
+                synchronousActivities: ['Discussion'],
+              },
+            ],
+          },
+          columns: [],
+          userEdits: [],
+          chatHistory: [],
+          fileNames: [],
+          versionHistory: [],
+          selectedFeatures: ['courseMap'],
+          lessonScope: { type: 'all' },
+          deliverableConfig: {},
+          promptText: 'Start new project test',
+          activeTab: 'courseMap',
+          deliverables: {},
+        }),
+      );
+    });
+    await page.reload();
+
+    await expect(page.getByRole('button', { name: 'Resume' })).toBeVisible({ timeout: 10000 });
+    await page.getByRole('button', { name: 'Resume' }).click();
+    await expect(page.getByText('Course Map Preview')).toBeVisible({ timeout: 10000 });
+
+    await page.getByRole('button', { name: 'New Project', exact: true }).click();
+    await expect(page.getByText('Start a new project?')).toBeVisible();
+    await page.getByRole('button', { name: 'Start New Project', exact: true }).click();
+
+    await expect(page.locator('h1')).toHaveText('Everything you need to teach a course.');
+    expect(await page.evaluate(() => localStorage.getItem('coursemapper-project'))).toBeNull();
+  });
+
   test('Edit keeps the connected model picker open while refreshing models', async ({ page }) => {
     await page.route('https://generativelanguage.googleapis.com/v1beta/models?**', async (route) => {
       await route.fulfill({
