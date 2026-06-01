@@ -67,6 +67,7 @@ import { importCourseMap } from './lib/importCourseMap';
 import { parseFiles } from './lib/fileParser';
 import { detectExpectedLessons, detectLessonsWithAI } from './lib/detectLessons';
 import { sanitizeMessagesForPersistence } from './lib/messageSanitizer';
+import { sanitizeProjectSnapshot } from './lib/projectSnapshotSanitizer';
 import { isAgentProviderReady } from './lib/agentAvailability';
 import {
   evaluateWorkspaceReadiness,
@@ -1449,7 +1450,7 @@ export default function AppFlow({ startupAction = null, onStartupHandled, onRetu
     (extra = {}) => {
       const safeCourseMap =
         courseMap && typeof courseMap === 'object' && Array.isArray(courseMap.lessons) ? courseMap : { lessons: [] };
-      return {
+      return sanitizeProjectSnapshot({
         formatVersion: 1,
         courseMap: safeCourseMap,
         columns,
@@ -1470,7 +1471,7 @@ export default function AppFlow({ startupAction = null, onStartupHandled, onRetu
         slideTheme,
         savedAt: Date.now(),
         ...extra,
-      };
+      });
     },
     [
       courseMap,

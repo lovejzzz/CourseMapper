@@ -56,6 +56,7 @@ const releases = [
           'Current-tab exports and Google uploads now use the same proof-language guard before CSV, DOCX, PPTX, Sheets, Docs, or Slides files leave the app.',
           'PDF exports now scan the rendered course-map, syllabus, deliverable, slide-deck, and all-export text before creating a file.',
           'Export readiness now includes PDF text checks before the app or agent can call selected materials export-ready.',
+          '.coursemapper backups, autosave snapshots, cloud snapshots, and developer snapshots now strip API-key/token fields and redact key-like text while keeping provider/model choices.',
         ],
       },
       {

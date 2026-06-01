@@ -228,6 +228,7 @@ Latest slice evidence:
 - 2026-05-31: Closed the current-tab export bypass. Direct CSV, DOCX, PPTX, Google Docs, Google Sheets, and Google Slides export paths now reuse the same internal proof-language guards as package verification and ZIP packaging before a file is saved or uploaded.
 - 2026-05-31: Closed the PDF export bypass. Course-map PDFs, deliverable PDFs, syllabus PDFs, slide-deck PDFs, and all-export PDF routing now scan the exact rendered text table before loading the PDF renderer, blocking internal compiler/proof language before download.
 - 2026-05-31: Promoted PDF cleanliness into export readiness. The package verifier now checks course-map, syllabus, deliverable, and slide-deck PDF text alongside XLSX/CSV/DOCX/PPTX before the app or agent can claim selected materials are export-ready.
+- 2026-06-01: Hardened project snapshot trust. `.coursemapper` downloads, local autosave, cloud project snapshots, and developer snapshots now pass through a recursive sanitizer that removes API-key/token fields and redacts key-like text while preserving provider/model metadata.
 
 ## Current v0.7 Focus
 
