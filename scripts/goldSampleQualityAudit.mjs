@@ -8107,7 +8107,7 @@ function normalizeCopyString(text) {
 function isCopySpecificitySurfacePath(featureId, path) {
   if (!path) return false;
   if (
-    /\b(sourceGrounding|blueprintGrounding|sourceEvidenceTrace|sourceAnchors|compilerDecision|courseModalityProfile|learnerContextProfile|blueprintAssumptionLedger|packageCoherenceMatrix|sourceRiskRegister|sourceConflictReport|compilerContract|classroomHandoffPlan|classroomDryRunPlan|classroomDryRun|conceptDependencyGraph|masteryEvidenceMap|evidenceResponseMap|qualityReceipt|qualitySummary|receipt|provenance)\b/i.test(
+    /\b(sourceGrounding|blueprintGrounding|sourceEvidenceTrace|sourceAnchors|compilerDecision|courseModalityProfile|learnerContextProfile|blueprintAssumptionLedger|packageCoherenceMatrix|sourceRiskRegister|sourceConflictReport|compilerContract|classroomHandoffPlan|classroomDryRunPlan|classroomDryRun|classroomEvidenceLoopPlan|classroomEvidenceLoop|conceptDependencyGraph|masteryEvidenceMap|evidenceResponseMap|qualityReceipt|qualitySummary|receipt|provenance)\b/i.test(
       path,
     )
   ) {
@@ -8213,7 +8213,7 @@ export function buildCopySpecificityAudit({ compiledFeatures = [], compiled = {}
 function isStudentFacingSurfacePath(featureId, path) {
   if (!path) return false;
   if (
-    /\b(sourceGrounding|blueprintGrounding|sourceEvidenceTrace|sourceAnchors|compilerDecision|courseModalityProfile|learnerContextProfile|blueprintAssumptionLedger|packageCoherenceMatrix|sourceRiskRegister|sourceConflictReport|compilerContract|classroomHandoffPlan|classroomDryRunPlan|classroomDryRun|conceptDependencyGraph|masteryEvidenceMap|evidenceResponseMap|qualityReceipt|qualitySummary|receipt|provenance|reviewActionability)\b/i.test(
+    /\b(sourceGrounding|blueprintGrounding|sourceEvidenceTrace|sourceAnchors|compilerDecision|courseModalityProfile|learnerContextProfile|blueprintAssumptionLedger|packageCoherenceMatrix|sourceRiskRegister|sourceConflictReport|compilerContract|classroomHandoffPlan|classroomDryRunPlan|classroomDryRun|classroomEvidenceLoopPlan|classroomEvidenceLoop|conceptDependencyGraph|masteryEvidenceMap|evidenceResponseMap|qualityReceipt|qualitySummary|receipt|provenance|reviewActionability)\b/i.test(
       path,
     )
   ) {
@@ -8533,6 +8533,44 @@ function auditBlueprintMaturity(blueprint, scope, expectedLens = {}) {
   ) {
     findings.push(
       makeFinding('blocker', 'blueprint', 'classroomDryRunPlan', 'Blueprint is missing classroom dry-run plan.'),
+    );
+  }
+  if (
+    !blueprint?.classroomEvidenceLoopPlan?.status ||
+    blueprint.classroomEvidenceLoopPlan?.source !== 'deterministic-classroom-evidence-loop' ||
+    !blueprint.classroomEvidenceLoopPlan?.evidencePolicy ||
+    !blueprint.classroomEvidenceLoopPlan?.preferenceLearningPolicy ||
+    !Array.isArray(blueprint.classroomEvidenceLoopPlan?.lessonRows) ||
+    blueprint.classroomEvidenceLoopPlan.lessonRows.length !== scope ||
+    blueprint.classroomEvidenceLoopPlan.lessonRows.some(
+      (row) =>
+        !row?.lessonNumber ||
+        !row.lessonTitle ||
+        !row.implementationFocus ||
+        !Array.isArray(row.evidenceToCollect) ||
+        row.evidenceToCollect.length === 0 ||
+        !Array.isArray(row.duringClassSignals) ||
+        row.duringClassSignals.length === 0 ||
+        !row.studentWorkSampleCue ||
+        !row.pacingSignal ||
+        !row.misconceptionSignal ||
+        !row.adjustmentDecision ||
+        !row.nextLessonFeedForward ||
+        !row.sourceUpdateCue ||
+        !row.preferenceLearningSignal ||
+        !row.readyForNextRunCriteria ||
+        !row.reviewCadence ||
+        !row.publishGate ||
+        !row.reviewerAction,
+    )
+  ) {
+    findings.push(
+      makeFinding(
+        'blocker',
+        'blueprint',
+        'classroomEvidenceLoopPlan',
+        'Blueprint is missing classroom implementation evidence loop.',
+      ),
     );
   }
   if (
@@ -9262,6 +9300,7 @@ function auditBlueprintMaturity(blueprint, scope, expectedLens = {}) {
     objectiveEvidenceMap: blueprint?.objectiveEvidenceMap || null,
     blueprintAssumptionLedger: blueprint?.blueprintAssumptionLedger || null,
     classroomDryRunPlan: blueprint?.classroomDryRunPlan || null,
+    classroomEvidenceLoopPlan: blueprint?.classroomEvidenceLoopPlan || null,
     blueprintReviewSurface: blueprint?.blueprintReviewSurface || null,
     compilerPath: blueprint?.compilerPath || null,
     adaptiveSafety: blueprint?.compilerPath?.adaptiveSafety || null,
@@ -13201,6 +13240,15 @@ function buildClassroomExcellenceScorecard({
           syllabus.blueprintQualityReceipt?.classroomDryRunPlan?.rehearsalPolicy,
       },
       {
+        label: 'Syllabus exposes classroom implementation evidence loop',
+        pass:
+          syllabus.classroomEvidenceLoopPlan?.status &&
+          Array.isArray(syllabus.classroomEvidenceLoopPlan?.lessonRows) &&
+          syllabus.classroomEvidenceLoopPlan.lessonRows.length === scope &&
+          syllabus.blueprintQualityReceipt?.classroomEvidenceLoopPlan?.evidencePolicy &&
+          syllabus.blueprintQualityReceipt?.classroomEvidenceLoopPlan?.preferenceLearningPolicy,
+      },
+      {
         label: 'Syllabus exposes source-risk register',
         pass:
           syllabus.sourceRiskRegister?.status &&
@@ -13272,6 +13320,22 @@ function buildClassroomExcellenceScorecard({
           ),
       },
       {
+        label: 'Blueprint includes implementation evidence-loop rows for every lesson',
+        pass:
+          blueprint.classroomEvidenceLoopPlan?.status &&
+          Array.isArray(blueprint.classroomEvidenceLoopPlan?.lessonRows) &&
+          blueprint.classroomEvidenceLoopPlan.lessonRows.length === scope &&
+          blueprint.classroomEvidenceLoopPlan.lessonRows.every(
+            (row) =>
+              Array.isArray(row.evidenceToCollect) &&
+              row.evidenceToCollect.length > 0 &&
+              row.studentWorkSampleCue &&
+              row.adjustmentDecision &&
+              row.preferenceLearningSignal &&
+              row.readyForNextRunCriteria,
+          ),
+      },
+      {
         label: 'Lesson plans have full teachable outlines',
         pass: fullCoverage(
           arrays.lessonPlans,
@@ -13303,6 +13367,20 @@ function buildClassroomExcellenceScorecard({
             item.readyToTeachSupport.dryRunChecklist.length > 0 &&
             item.readyToTeachSupport?.dryRunEvidenceCheckpoint &&
             item.readyToTeachSupport?.dryRunInstructorAdjustment,
+        ),
+      },
+      {
+        label: 'Lesson plans carry after-class evidence and next-run adjustment cues',
+        pass: fullCoverage(
+          arrays.lessonPlans,
+          scope,
+          (item) =>
+            item.classroomEvidenceLoop?.studentWorkSampleCue &&
+            item.classroomEvidenceLoop?.adjustmentDecision &&
+            Array.isArray(item.readyToTeachSupport?.implementationEvidenceToCollect) &&
+            item.readyToTeachSupport.implementationEvidenceToCollect.length > 0 &&
+            item.readyToTeachSupport?.implementationAdjustmentDecision &&
+            item.readyToTeachSupport?.implementationPreferenceLearningSignal,
         ),
       },
       {
@@ -14485,6 +14563,10 @@ export function renderGoldSampleQualityAuditMarkdown(payload) {
     const plan = result.blueprintMaturity.classroomDryRunPlan || {};
     return `| ${result.sampleId} | ${plan.status || 'missing'} | ${plan.source || 'missing'} | ${plan.lessonRowCount ?? 0} | ${plan.reviewRequiredCount ?? 0} | ${plan.timingReviewCount ?? 0} |`;
   });
+  const classroomEvidenceLoopRows = payload.results.map((result) => {
+    const plan = result.blueprintMaturity.classroomEvidenceLoopPlan || {};
+    return `| ${result.sampleId} | ${plan.status || 'missing'} | ${plan.source || 'missing'} | ${plan.lessonRowCount ?? 0} | ${plan.reviewRequiredCount ?? 0} |`;
+  });
   const featureRows = payload.results.flatMap((result) =>
     result.featureResults.map(
       (feature) =>
@@ -14645,6 +14727,14 @@ export function renderGoldSampleQualityAuditMarkdown(payload) {
       '| Gold Sample | Status | Source | Lesson Rows | Review Rows | Timing Reviews |',
       '| --- | --- | --- | ---: | ---: | ---: |',
       ...classroomDryRunRows,
+    ]),
+    '',
+    '## Classroom Evidence Loop Matrix',
+    '',
+    markdownTable([
+      '| Gold Sample | Status | Source | Lesson Rows | Review Rows |',
+      '| --- | --- | --- | ---: | ---: |',
+      ...classroomEvidenceLoopRows,
     ]),
     '',
     '## Instructional Alignment Matrix',
