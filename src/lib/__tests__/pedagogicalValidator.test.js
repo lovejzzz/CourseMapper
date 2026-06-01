@@ -461,6 +461,70 @@ describe('validateReadability', () => {
     expect(findings.filter((f) => f.featureId === 'courseFaq' && f.severity === 'error')).toEqual([]);
   });
 
+  it('ignores internal blueprint proof metadata when scoring readability', () => {
+    const deliverables = {
+      courseFaq: doneDeliv({
+        faqs: [
+          {
+            lessonTitle: 'Lesson 1: Export Reliability',
+            questions: [
+              {
+                question: 'How do I verify an export?',
+                answer: 'Check the downloaded file for the expected content.',
+                category: 'Course Logistics',
+              },
+              {
+                question: 'What if a download fails?',
+                answer: 'Retry the export and review the error message.',
+                category: 'Technical Help',
+              },
+            ],
+            sourceGrounding: {
+              reviewerNote: complexText,
+            },
+            blueprintGrounding: {
+              compilerDecision: complexText,
+            },
+          },
+        ],
+      }),
+    };
+
+    const findings = validateReadability({ courseName: 'Intro to Export Tools' }, deliverables);
+    expect(findings.filter((f) => f.featureId === 'courseFaq' && f.severity === 'error')).toEqual([]);
+  });
+
+  it('does not block concise technical checklist fragments as severe readability failures', () => {
+    const technicalFragments = [
+      'Chromatography purification checkpoint.',
+      'Spectroscopy interpretation note.',
+      'Substitution reaction mechanism.',
+      'Elimination reaction comparison.',
+      'Synthesis planning decision.',
+      'Laboratory safety reflection.',
+      'Chemical reasoning debrief.',
+      'Scientific communication wrap-up.',
+      'Technique selection rationale.',
+      'Reaction analysis evidence.',
+      'Notebook revision cue.',
+      'Procedure accuracy check.',
+    ];
+    const deliverables = {
+      lessonPlans: doneDeliv({
+        lessonPlans: [
+          {
+            title: 'Lesson 8: Final Lab Report and Course Debrief',
+            objectives: technicalFragments,
+            activities: technicalFragments,
+          },
+        ],
+      }),
+    };
+
+    const findings = validateReadability({ courseName: 'Intro to Organic Chemistry Lab' }, deliverables);
+    expect(findings.filter((f) => f.featureId === 'lessonPlans' && f.severity === 'error')).toEqual([]);
+  });
+
   it('skips text shorter than 100 characters', () => {
     const deliverables = {
       quizBank: doneDeliv({

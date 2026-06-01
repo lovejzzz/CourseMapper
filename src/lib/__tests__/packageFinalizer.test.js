@@ -285,6 +285,66 @@ describe('packageFinalizer', () => {
     expect(result.retryActions).toEqual([]);
   });
 
+  it('does not retry compiled technical deliverables for proof metadata or checklist readability noise', () => {
+    const courseMap = {
+      courseName: 'Organic Chemistry Lab',
+      lessons: [
+        {
+          title: 'Lesson 1: Final Lab Report and Course Debrief',
+          sections: [
+            {
+              learningGoals: 'Students review laboratory skills and chemical reasoning across the course.',
+              topicSection: 'Chromatography, spectroscopy, substitution, elimination, synthesis planning',
+              learningObjectives:
+                'Synthesize purification, spectroscopy, substitution, elimination, and synthesis planning into a connected framework.',
+              weeklyAssessments: 'Final lab report and course reflection.',
+            },
+          ],
+        },
+      ],
+    };
+    const complexProofMetadata =
+      'The epistemological ramifications of postmodern deconstructionist paradigms necessitate a thorough re-examination of the ontological presuppositions underlying contemporary hermeneutical frameworks.';
+    const result = runDeterministicPackageFinalizer({
+      courseMap,
+      selectedFeatures: ['courseMap', 'lessonPlans'],
+      includeClassroomReadiness: false,
+      includePedagogicalValidation: true,
+      deliverables: {
+        lessonPlans: {
+          status: 'done',
+          data: {
+            lessonPlans: [
+              {
+                lessonTitle: 'Lesson 1: Final Lab Report and Course Debrief',
+                objectives: [
+                  'Chromatography purification checkpoint.',
+                  'Spectroscopy interpretation note.',
+                  'Substitution reaction mechanism.',
+                  'Elimination reaction comparison.',
+                  'Synthesis planning decision.',
+                  'Laboratory safety reflection.',
+                  'Chemical reasoning debrief.',
+                  'Scientific communication wrap-up.',
+                ],
+                outline: [
+                  { activity: 'Technique review', description: 'Students compare evidence from lab procedures.' },
+                ],
+                sourceGrounding: {
+                  reviewerNote: complexProofMetadata,
+                },
+              },
+            ],
+          },
+        },
+      },
+    });
+
+    expect(result.status).toBe('ready');
+    expect(result.retryActions).toEqual([]);
+    expect(result.healthReport.findings.filter((finding) => finding.severity === 'error')).toEqual([]);
+  });
+
   it('returns exact retry actions for localized weak sections', () => {
     const result = runDeterministicPackageFinalizer({
       courseMap: makeCourseMap(2),

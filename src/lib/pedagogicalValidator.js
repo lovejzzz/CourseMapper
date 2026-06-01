@@ -750,12 +750,67 @@ const READABILITY_IGNORED_KEYS = new Set([
   'tags',
 ]);
 
+const READABILITY_IGNORED_SUBTREE_KEYS = new Set([
+  'adaptiveRepairPlan',
+  'blueprintAssumptionLedger',
+  'blueprintGrounding',
+  'blueprintQualityReceipt',
+  'blueprintReviewSurface',
+  'classroomDryRun',
+  'classroomDryRunPlan',
+  'classroomEvidenceLoop',
+  'classroomEvidenceLoopPlan',
+  'classroomHandoffPlan',
+  'classSessionPlan',
+  'compilerContract',
+  'compilerDecision',
+  'conceptDependencyGraph',
+  'courseModalityProfile',
+  'courseWorkload',
+  'evidenceResponseMap',
+  'instructorFeedbackLoad',
+  'instructorFeedbackLoadPlan',
+  'learnerContextProfile',
+  'masteryEvidenceMap',
+  'objectiveEvidenceMap',
+  'objectiveEvidencePlan',
+  'outlineTiming',
+  'packageCoherenceMatrix',
+  'provenance',
+  'qualityReceipt',
+  'qualitySignals',
+  'qualitySummary',
+  'receipt',
+  'sourceAnchors',
+  'sourceConflictReport',
+  'sourceEvidenceTrace',
+  'sourceGrounding',
+  'sourceRiskRegister',
+]);
+
+function normalizedReadabilityKey(key = '') {
+  return String(key)
+    .replace(/[-_\s]/g, '')
+    .toLowerCase();
+}
+
+function isIgnoredReadabilityKey(key = '') {
+  const normalized = normalizedReadabilityKey(key);
+  return [...READABILITY_IGNORED_KEYS].some((ignored) => normalizedReadabilityKey(ignored) === normalized);
+}
+
+function isIgnoredReadabilitySubtree(key = '') {
+  const normalized = normalizedReadabilityKey(key);
+  return [...READABILITY_IGNORED_SUBTREE_KEYS].some((ignored) => normalizedReadabilityKey(ignored) === normalized);
+}
+
 function collectReadableStrings(value, output = [], key = '') {
   if (value == null) return output;
+  if (isIgnoredReadabilitySubtree(key)) return output;
 
   if (typeof value === 'string' || typeof value === 'number') {
     const raw = String(value).replace(/\s+/g, ' ').trim();
-    if (raw.length >= 24 && !READABILITY_IGNORED_KEYS.has(key)) {
+    if (raw.length >= 24 && !isIgnoredReadabilityKey(key)) {
       output.push(/[.!?]$/.test(raw) ? raw : `${raw}.`);
     }
     return output;
@@ -773,6 +828,38 @@ function collectReadableStrings(value, output = [], key = '') {
   }
 
   return output;
+}
+
+function readabilitySupportMetrics(text = '') {
+  const sentences = text
+    .split(/[.!?]+/)
+    .map((sentence) => sentence.trim())
+    .filter(Boolean);
+  const wordCounts = sentences.map((sentence) => (sentence.match(/[A-Za-z][A-Za-z'-]*/g) || []).length);
+  const totalWords = wordCounts.reduce((sum, count) => sum + count, 0);
+  const sentenceCount = Math.max(1, sentences.length);
+  const avgWordsPerSentence = totalWords / sentenceCount;
+  const shortFragmentRatio =
+    sentenceCount > 0 ? wordCounts.filter((count) => count > 0 && count <= 8).length / sentenceCount : 0;
+  const longSentenceRatio = sentenceCount > 0 ? wordCounts.filter((count) => count >= 28).length / sentenceCount : 0;
+  return {
+    sentenceCount,
+    totalWords,
+    avgWordsPerSentence,
+    shortFragmentRatio,
+    longSentenceRatio,
+  };
+}
+
+function isLikelyTechnicalListNoise(text = '', grade = 0) {
+  if (grade <= 16) return false;
+  const metrics = readabilitySupportMetrics(text);
+  return (
+    metrics.sentenceCount >= 8 &&
+    metrics.avgWordsPerSentence <= 12 &&
+    metrics.shortFragmentRatio >= 0.35 &&
+    metrics.longSentenceRatio <= 0.1
+  );
 }
 
 function extractDeliverableText(deliverables, featureId) {
@@ -811,9 +898,10 @@ export function validateReadability(courseMap, deliverables) {
 
     const grade = readability.fleschKincaidGrade(text);
     const displayName = READABLE_NAMES[featureId];
+    const technicalListNoise = isLikelyTechnicalListNoise(text, grade);
 
     // Error threshold: >14 for intro courses, >16 for any course
-    if ((isIntro && grade > 14) || grade > 16) {
+    if (((isIntro && grade > 14) || grade > 16) && !technicalListNoise) {
       findings.push({
         id: `readability-error-${featureId}`,
         severity: 'error',
