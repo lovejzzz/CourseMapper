@@ -5,11 +5,12 @@ const releases = [
   {
     version: '0.8.1',
     date: 'June 1, 2026',
-    title: 'A-Quality Blueprint Compiler Proof',
+    title: 'A-Quality Blueprint Compiler Proof Readiness',
     highlights: [
       'The course blueprint is now a richer instructional representation with source confidence, teaching moves, review boundaries, and compiler decisions',
       'Gold-sample and expert-review audits now check whether compiler output is classroom-ready, source-faithful, and transparent about what still needs human review',
       'Compact enrichment and instructor preference learning are wired into the compiler path without returning to high-cost generation for the core package',
+      'Internal proof is strong, but external A-quality certification still requires completed real reviewer fixtures before we call it proven',
       'Strict external proof now requires real course-map evidence at a required 5-, 8-, or 14-lesson proof scope before we claim A-quality release readiness',
     ],
     sections: [
@@ -37,7 +38,7 @@ const releases = [
           'Expanded the gold-sample matrix to 40 packages and now require short, standard, and full-semester scope proof across multiple teaching modalities before the gate can pass.',
           'Added audit:expert, audit:expert:preflight, audit:expert:external, and audit:expert:packet so internal checks stay separate from external A-quality proof.',
           'External proof packets now include source inputs, compact blueprints, full-package review files, reviewer scorecards, source-fidelity artifact rows, blueprint-quality rows, and assumption-ledger decisions.',
-          'External proof packets now generate a reviewer completion checklist in Markdown and JSON, mapping strict A-quality proof requirements to the exact fixture fields reviewers must complete.',
+          'External proof packets now generate a reviewer completion checklist in Markdown and JSON, and the recommended strict-proof bundle embeds the same checklist so private reviewer bundles remain self-contained.',
           'Full-package reviewer files now include a Local Review Actions matrix so experts can verify publish-before-use checks without digging through giant artifact JSON.',
           'Recommended strict-proof bundles now cover 5-, 8-, and 14-lesson scopes across different modalities and show whether the required real external course map is at a valid proof scope.',
           'The strict external gate now blocks real-course proof that is complete but off-scope, so curated samples cannot hide an unproven real-course workflow.',

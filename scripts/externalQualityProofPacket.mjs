@@ -2408,6 +2408,8 @@ function buildRecommendedStrictProofBundleTemplate(payload, externalProjectTempl
     requiredCompleteProofScopes: payload.proofCollectionPlan?.requiredCompleteProofScopes || RECOMMENDED_PROOF_SCOPES,
     requiredDistinctModalities: payload.proofCollectionPlan?.requiredDistinctModalities || 2,
     requiredExternalProjectSamples: payload.proofCollectionPlan?.requiredExternalProjectSamples || 1,
+    reviewerCompletionChecklistPath: 'review-intake/reviewer-completion-checklist.md',
+    reviewerCompletionChecklist: payload.reviewerCompletionChecklist,
     fixtures,
   };
 }

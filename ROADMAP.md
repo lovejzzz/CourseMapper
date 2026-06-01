@@ -233,6 +233,7 @@ Latest slice evidence:
 - 2026-06-01: Hardened legacy cloud restore trust. Cloud project, deliverable, profile, template, custom-tool, and agent-memory reads now sanitize records before they re-enter app state, while preserving Firestore timestamp-like objects so old unsafe records cannot be revived by restore/merge flows.
 - 2026-06-01: Hardened local and portable project restore trust. Local autosave restore, `.coursemapper` import, cloud project open, and Developer Mode snapshot apply now share a restore-preparation pass that sanitizes legacy project objects, restores missing snapshot versions, and migrates old stale deliverable entries before any project state reaches the workspace.
 - 2026-06-01: Made external A-quality proof collection more operational. `audit:expert:packet` now writes reviewer completion checklists in Markdown and JSON, links them from the main proof packet and manifest, and names the exact review, scorecard, source-fidelity, blueprint-quality, assumption-ledger, edit-history, and current-version fixture fields required before external proof can certify v0.8.1.
+- 2026-06-01: Made strict external proof bundles self-contained and claim-safe. `recommended-strict-proof-bundle.template.json` now embeds the reviewer completion checklist plus its Markdown path, and the v0.8.1 changelog labels the work as proof readiness until real current-version external reviewer fixtures pass the strict gate.
 
 ## Current v0.7 Focus
 

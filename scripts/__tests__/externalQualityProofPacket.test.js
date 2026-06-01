@@ -832,6 +832,23 @@ describe('external quality proof packet', () => {
         requiredCompleteProofScopes: [5, 8, 14],
         requiredDistinctModalities: 2,
         requiredExternalProjectSamples: 1,
+        reviewerCompletionChecklistPath: 'review-intake/reviewer-completion-checklist.md',
+        reviewerCompletionChecklist: {
+          packageVersion: '0.8.0-test',
+          globalItems: expect.arrayContaining([
+            expect.objectContaining({
+              id: 'review-current-version',
+              target: 'reviewEvidence.reviewedPackageVersion',
+            }),
+          ]),
+          perSample: expect.arrayContaining([
+            expect.objectContaining({
+              sampleId: 'gold-spanish-healthcare-8',
+              requiredReviewFixtureFields: expect.arrayContaining(['reviewScorecard.dimensions[].score']),
+              requiredEditHistoryFixtureFields: expect.arrayContaining(['instructorEditPatterns[].after']),
+            }),
+          ]),
+        },
       });
       expect(recommendedStrictBundle.fixtures).toHaveLength(4);
       expect(recommendedStrictBundle.fixtures.map((fixture) => fixture.sampleId)).toEqual([
