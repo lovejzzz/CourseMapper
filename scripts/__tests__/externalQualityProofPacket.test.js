@@ -796,6 +796,8 @@ describe('external quality proof packet', () => {
       expect(reviewerCompletionChecklistMarkdown).toContain('reviewScorecard.dimensions[].score');
       expect(reviewerCompletionChecklistMarkdown).toContain('sourceFidelityReview.artifactReviews[].notes');
       expect(reviewerCompletionChecklistMarkdown).toContain('instructorEditPatterns[].after');
+      expect(reviewerCompletionChecklistMarkdown).toContain('external-reviewed-course-project');
+      expect(reviewerCompletionChecklistMarkdown).toContain('project.courseMap.lessons[]');
       expect(reviewerCompletionChecklist).toMatchObject({
         status: 'missing-required-samples',
         packageVersion: '0.8.0-test',
@@ -813,6 +815,19 @@ describe('external quality proof packet', () => {
       );
       expect(reviewerCompletionChecklist.perSample[0].requiredEditHistoryFixtureFields).toContain(
         'instructorEditPatterns[].after',
+      );
+      expect(reviewerCompletionChecklist.perSample[1]).toMatchObject({
+        sampleId: 'external-reviewed-course-project',
+        scope: '5, 8, or 14 required',
+        projectSource: 'external-project',
+        requiredForCertification: true,
+        files: {
+          reviewIntake: 'review-intake/external-project-course-map.md',
+          combinedFixture: 'fixtures/external-project.combined-fixtures.template.json',
+        },
+      });
+      expect(reviewerCompletionChecklist.perSample[1].requiredReviewFixtureFields).toEqual(
+        expect.arrayContaining(['project.courseMap.courseName', 'project.courseMap.lessons[]']),
       );
       expect(externalProjectIntakeMarkdown).toContain('External Project Course-Map Proof Template');
       expect(externalProjectIntakeMarkdown).toContain('Replace `project.courseMap`');
@@ -846,6 +861,11 @@ describe('external quality proof packet', () => {
               sampleId: 'gold-spanish-healthcare-8',
               requiredReviewFixtureFields: expect.arrayContaining(['reviewScorecard.dimensions[].score']),
               requiredEditHistoryFixtureFields: expect.arrayContaining(['instructorEditPatterns[].after']),
+            }),
+            expect.objectContaining({
+              sampleId: 'external-reviewed-course-project',
+              requiredForCertification: true,
+              requiredReviewFixtureFields: expect.arrayContaining(['project.courseMap.lessons[]']),
             }),
           ]),
         },
@@ -1053,6 +1073,14 @@ describe('external quality proof packet', () => {
         sampleId: 'external-field-methods-project',
         projectSource: 'external-project',
       });
+      expect(reviewerCompletionChecklist.perSample).toEqual(
+        expect.arrayContaining([
+          expect.objectContaining({
+            sampleId: 'external-reviewed-course-project',
+            requiredForCertification: true,
+          }),
+        ]),
+      );
       expect(manifest.samples[0].projectSource).toBe('external-project');
       expect(manifest.samples[0].sourceInput.markdownPath).toBe(paths.sourceInputPaths[0].markdownPath);
       expect(manifest.samples[0].blueprintFiles.markdownPath).toBe(paths.blueprintPaths[0].markdownPath);

@@ -39,6 +39,7 @@ const releases = [
           'Added audit:expert, audit:expert:preflight, audit:expert:external, and audit:expert:packet so internal checks stay separate from external A-quality proof.',
           'External proof packets now include source inputs, compact blueprints, full-package review files, reviewer scorecards, source-fidelity artifact rows, blueprint-quality rows, and assumption-ledger decisions.',
           'External proof packets now generate a reviewer completion checklist in Markdown and JSON, and the recommended strict-proof bundle embeds the same checklist so private reviewer bundles remain self-contained.',
+          'Reviewer checklists now include an explicit real-course project row when external project.courseMap proof is missing, making the remaining certification blocker harder to miss.',
           'Full-package reviewer files now include a Local Review Actions matrix so experts can verify publish-before-use checks without digging through giant artifact JSON.',
           'Recommended strict-proof bundles now cover 5-, 8-, and 14-lesson scopes across different modalities and show whether the required real external course map is at a valid proof scope.',
           'The strict external gate now blocks real-course proof that is complete but off-scope, so curated samples cannot hide an unproven real-course workflow.',

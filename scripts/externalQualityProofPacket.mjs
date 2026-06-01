@@ -1064,6 +1064,93 @@ function buildReviewerCompletionChecklist({ packageVersion, proofCollectionPlan 
     Number(proofCollectionPlan?.requiredExternalProjectSamples || 1)
       ? 'ready'
       : 'missing';
+  const requiredReviewFixtureFields = [
+    'reviewEvidence.reviewedAt',
+    'reviewEvidence.reviewedPackageVersion',
+    'reviewEvidence.reviewedArtifacts',
+    'reviewScorecard.dimensions[].score',
+    'reviewScorecard.dimensions[].evidenceArtifacts',
+    'reviewScorecard.dimensions[].evidenceExamples',
+    'reviewScorecard.dimensions[].notes',
+    'sourceFidelityReview.sourceInputReviewed',
+    'sourceFidelityReview.compiledPackageReviewed',
+    'sourceFidelityReview.artifactReviews[].sourceCompared',
+    'sourceFidelityReview.artifactReviews[].packageCompared',
+    'sourceFidelityReview.artifactReviews[].sourceSignalsPreserved',
+    'sourceFidelityReview.artifactReviews[].compilerDecisionVisible',
+    'sourceFidelityReview.artifactReviews[].publishGateVisible',
+    'sourceFidelityReview.artifactReviews[].modelUsePolicyVisible',
+    'sourceFidelityReview.artifactReviews[].handoffReviewFocusVisible',
+    'sourceFidelityReview.artifactReviews[].localReviewActionVisible',
+    'sourceFidelityReview.artifactReviews[].notes',
+    'blueprintQualityReview.sourceInputReviewed',
+    'blueprintQualityReview.compactRepresentationReviewed',
+    'blueprintQualityReview.lessonReviews[].sourceCompared',
+    'blueprintQualityReview.lessonReviews[].blueprintCompared',
+    'blueprintQualityReview.lessonReviews[].sourceSignalsPreserved',
+    'blueprintQualityReview.lessonReviews[].assessmentPreserved',
+    'blueprintQualityReview.lessonReviews[].alignmentUsable',
+    'blueprintQualityReview.lessonReviews[].reviewRequiredFlagsVisible',
+    'blueprintQualityReview.lessonReviews[].notes',
+    'assumptionLedgerReview.assumptionLedgerReviewed',
+    'assumptionLedgerReview.reviewRequiredRowsReviewed',
+    'assumptionLedgerReview.reviewedRows[].decision',
+    'assumptionLedgerReview.reviewedRows[].notes',
+    'packageMustMatch',
+    'featureExpectations',
+  ];
+  const requiredEditHistoryFixtureFields = [
+    'reviewEvidence.reviewedAt',
+    'reviewEvidence.reviewedPackageVersion',
+    'instructorEditPatterns[].featureId',
+    'instructorEditPatterns[].field',
+    'instructorEditPatterns[].action',
+    'instructorEditPatterns[].before',
+    'instructorEditPatterns[].after',
+    'instructorEditPatterns[].notes',
+    'preferenceExpectations',
+  ];
+  const perSample = recommendedSamples.map((sample) => ({
+    sampleId: sample.sampleId,
+    courseName: sample.courseName,
+    scope: sample.scope,
+    modality: sample.proofModality || 'unknown',
+    projectSource: sample.projectSource || 'unknown',
+    files: {
+      sourceInput: sample.sourceInputPath,
+      compactBlueprint: sample.blueprintPath,
+      fullPackage: sample.fullPackagePath,
+      reviewIntake: sample.reviewIntakePath,
+      combinedFixture: sample.combinedFixturePath,
+    },
+    requiredReviewFixtureFields,
+    requiredEditHistoryFixtureFields,
+  }));
+
+  if (externalProjectStatus !== 'ready') {
+    perSample.push({
+      sampleId: 'external-reviewed-course-project',
+      courseName: 'Replace with real reviewed course map',
+      scope: '5, 8, or 14 required',
+      modality: 'replace-with-confirmed-course-modality',
+      projectSource: 'external-project',
+      requiredForCertification: true,
+      files: {
+        sourceInput: 'generated after external-only packet run',
+        compactBlueprint: 'generated after external-only packet run',
+        fullPackage: 'generated after external-only packet run',
+        reviewIntake: proofCollectionPlan?.externalProjectTemplate?.intakePath,
+        combinedFixture: proofCollectionPlan?.externalProjectTemplate?.combinedFixturePath,
+      },
+      requiredReviewFixtureFields: [
+        'project.courseMap.courseName',
+        'project.courseMap.lessons[]',
+        'reviewEvidence.proofScopeTags',
+        ...requiredReviewFixtureFields,
+      ],
+      requiredEditHistoryFixtureFields,
+    });
+  }
 
   return {
     status: proofCollectionPlan?.readyForStrictExternalCollection
@@ -1102,66 +1189,7 @@ function buildReviewerCompletionChecklist({ packageVersion, proofCollectionPlan 
         requirement: 'Completed proof bundle must cover 5-, 8-, and 14-lesson scopes.',
       },
     ],
-    perSample: recommendedSamples.map((sample) => ({
-      sampleId: sample.sampleId,
-      courseName: sample.courseName,
-      scope: sample.scope,
-      modality: sample.proofModality || 'unknown',
-      projectSource: sample.projectSource || 'unknown',
-      files: {
-        sourceInput: sample.sourceInputPath,
-        compactBlueprint: sample.blueprintPath,
-        fullPackage: sample.fullPackagePath,
-        reviewIntake: sample.reviewIntakePath,
-        combinedFixture: sample.combinedFixturePath,
-      },
-      requiredReviewFixtureFields: [
-        'reviewEvidence.reviewedAt',
-        'reviewEvidence.reviewedPackageVersion',
-        'reviewEvidence.reviewedArtifacts',
-        'reviewScorecard.dimensions[].score',
-        'reviewScorecard.dimensions[].evidenceArtifacts',
-        'reviewScorecard.dimensions[].evidenceExamples',
-        'reviewScorecard.dimensions[].notes',
-        'sourceFidelityReview.sourceInputReviewed',
-        'sourceFidelityReview.compiledPackageReviewed',
-        'sourceFidelityReview.artifactReviews[].sourceCompared',
-        'sourceFidelityReview.artifactReviews[].packageCompared',
-        'sourceFidelityReview.artifactReviews[].sourceSignalsPreserved',
-        'sourceFidelityReview.artifactReviews[].compilerDecisionVisible',
-        'sourceFidelityReview.artifactReviews[].publishGateVisible',
-        'sourceFidelityReview.artifactReviews[].modelUsePolicyVisible',
-        'sourceFidelityReview.artifactReviews[].handoffReviewFocusVisible',
-        'sourceFidelityReview.artifactReviews[].localReviewActionVisible',
-        'sourceFidelityReview.artifactReviews[].notes',
-        'blueprintQualityReview.sourceInputReviewed',
-        'blueprintQualityReview.compactRepresentationReviewed',
-        'blueprintQualityReview.lessonReviews[].sourceCompared',
-        'blueprintQualityReview.lessonReviews[].blueprintCompared',
-        'blueprintQualityReview.lessonReviews[].sourceSignalsPreserved',
-        'blueprintQualityReview.lessonReviews[].assessmentPreserved',
-        'blueprintQualityReview.lessonReviews[].alignmentUsable',
-        'blueprintQualityReview.lessonReviews[].reviewRequiredFlagsVisible',
-        'blueprintQualityReview.lessonReviews[].notes',
-        'assumptionLedgerReview.assumptionLedgerReviewed',
-        'assumptionLedgerReview.reviewRequiredRowsReviewed',
-        'assumptionLedgerReview.reviewedRows[].decision',
-        'assumptionLedgerReview.reviewedRows[].notes',
-        'packageMustMatch',
-        'featureExpectations',
-      ],
-      requiredEditHistoryFixtureFields: [
-        'reviewEvidence.reviewedAt',
-        'reviewEvidence.reviewedPackageVersion',
-        'instructorEditPatterns[].featureId',
-        'instructorEditPatterns[].field',
-        'instructorEditPatterns[].action',
-        'instructorEditPatterns[].before',
-        'instructorEditPatterns[].after',
-        'instructorEditPatterns[].notes',
-        'preferenceExpectations',
-      ],
-    })),
+    perSample,
   };
 }
 
@@ -1503,6 +1531,7 @@ function renderScorecardIntakeRows(payload) {
 
 export function renderReviewerCompletionChecklistMarkdown(payload) {
   const checklist = payload.reviewerCompletionChecklist || {};
+  const externalProjectChecklist = (checklist.perSample || []).find((sample) => sample.requiredForCertification);
   const lines = [
     '# CourseMapper Reviewer Completion Checklist',
     '',
@@ -1536,6 +1565,14 @@ export function renderReviewerCompletionChecklistMarkdown(payload) {
     '',
     ...(checklist.perSample?.[0]?.requiredReviewFixtureFields || []).map((field) => `- \`${field}\``),
     '',
+    ...(externalProjectChecklist
+      ? [
+          '## Required Real External Course Fields',
+          '',
+          ...externalProjectChecklist.requiredReviewFixtureFields.map((field) => `- \`${field}\``),
+          '',
+        ]
+      : []),
     '## Required Edit-History Fixture Fields',
     '',
     ...(checklist.perSample?.[0]?.requiredEditHistoryFixtureFields || []).map((field) => `- \`${field}\``),
