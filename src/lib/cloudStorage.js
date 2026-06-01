@@ -98,7 +98,10 @@ async function commitBatchOperations(operations) {
 
 async function clearProjectDeliverables(uid, projectId) {
   const snap = await getDocs(delivCol(uid, projectId));
-  const operations = getSnapshotDocs(snap).map((d) => ({ type: 'delete', ref: d.ref || delivDoc(uid, projectId, d.id) }));
+  const operations = getSnapshotDocs(snap).map((d) => ({
+    type: 'delete',
+    ref: d.ref || delivDoc(uid, projectId, d.id),
+  }));
   if (operations.length > 0) await commitBatchOperations(operations);
 }
 
@@ -332,9 +335,9 @@ export async function loadProjectDeliverables(uid, projectId) {
   for (const [featureId, manifest] of chunkedManifests.entries()) {
     const expectedCount = Number(manifest.chunkCount) || 0;
     const parts = chunkParts.get(featureId) || [];
-    const hasAllChunks = expectedCount > 0 && Array.from({ length: expectedCount }, (_, index) => parts[index]).every(
-      (part) => typeof part === 'string',
-    );
+    const hasAllChunks =
+      expectedCount > 0 &&
+      Array.from({ length: expectedCount }, (_, index) => parts[index]).every((part) => typeof part === 'string');
     if (!hasAllChunks) {
       map[featureId] = {
         status: 'error',

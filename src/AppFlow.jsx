@@ -1498,8 +1498,9 @@ export default function AppFlow({ startupAction = null, onStartupHandled, onRetu
   const buildCloudProjectSnapshot = useCallback(
     (extra = {}) => {
       const snapshot = buildProjectSnapshot(extra);
-      const selectedDeliverables = (Array.isArray(snapshot.selectedFeatures) ? snapshot.selectedFeatures : [])
-        .filter((featureId) => featureId && featureId !== 'courseMap');
+      const selectedDeliverables = (Array.isArray(snapshot.selectedFeatures) ? snapshot.selectedFeatures : []).filter(
+        (featureId) => featureId && featureId !== 'courseMap',
+      );
       const deliverableEntries = Object.entries(snapshot.deliverables || {});
       const deliverableFeatureIds = [
         ...new Set([...selectedDeliverables, ...deliverableEntries.map(([featureId]) => featureId)]),
@@ -1935,15 +1936,15 @@ export default function AppFlow({ startupAction = null, onStartupHandled, onRetu
     const selectedFeatureIds = Array.isArray(saved.selectedFeatures)
       ? saved.selectedFeatures.filter((featureId) => featureId && featureId !== 'courseMap')
       : [];
-    const featureIds = Array.isArray(saved.deliverableFeatureIds) && saved.deliverableFeatureIds.length > 0
-      ? saved.deliverableFeatureIds
-      : selectedFeatureIds;
+    const featureIds =
+      Array.isArray(saved.deliverableFeatureIds) && saved.deliverableFeatureIds.length > 0
+        ? saved.deliverableFeatureIds
+        : selectedFeatureIds;
     if (featureIds.length === 0) return {};
 
     try {
-      const { buildCourseBlueprint, compileBlueprintDeliverables, getBlueprintCompiledFeatures } = await import(
-        './lib/courseBlueprintCompiler'
-      );
+      const { buildCourseBlueprint, compileBlueprintDeliverables, getBlueprintCompiledFeatures } =
+        await import('./lib/courseBlueprintCompiler');
       const compiledFeatureIds = getBlueprintCompiledFeatures(featureIds);
       if (compiledFeatureIds.length === 0) return {};
       const configMap = Object.fromEntries(
