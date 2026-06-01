@@ -10,6 +10,7 @@
  */
 
 import { db } from './firebase';
+import { sanitizeProjectSnapshot } from './projectSnapshotSanitizer';
 import {
   doc,
   collection,
@@ -53,6 +54,10 @@ function developerTemplateDoc(uid, id) {
   return doc(db, 'users', uid, 'developerTemplates', id);
 }
 
+function sanitizeCloudPayload(value) {
+  return sanitizeProjectSnapshot(value || {});
+}
+
 /* ═══════════════════ Profile ═══════════════════ */
 
 export async function loadProfile(uid) {
@@ -63,10 +68,11 @@ export async function loadProfile(uid) {
 
 export async function saveProfile(uid, profile) {
   if (!db) return;
+  const safeProfile = sanitizeCloudPayload(profile);
   await setDoc(
     userDoc(uid),
     {
-      ...profile,
+      ...safeProfile,
       updatedAt: serverTimestamp(),
     },
     { merge: true },
@@ -87,8 +93,9 @@ export async function loadCustomDeliverables(uid) {
 
 export async function saveCustomDeliverable(uid, id, def) {
   if (!db) return;
+  const safeDef = sanitizeCloudPayload(def);
   await setDoc(customDelDoc(uid, id), {
-    ...def,
+    ...safeDef,
     updatedAt: serverTimestamp(),
   });
 }
@@ -112,8 +119,9 @@ export async function loadDeveloperTemplates(uid) {
 
 export async function saveDeveloperTemplate(uid, id, template) {
   if (!db) return;
+  const safeTemplate = sanitizeCloudPayload(template);
   await setDoc(developerTemplateDoc(uid, id), {
-    ...template,
+    ...safeTemplate,
     updatedAt: serverTimestamp(),
   });
 }
@@ -150,8 +158,9 @@ export async function loadProject(uid, projectId) {
 
 export async function saveProject(uid, projectId, projectData) {
   if (!db) return;
+  const safeProjectData = sanitizeCloudPayload(projectData);
   // Separate deliverables out — they go to a subcollection
-  const { deliverables, ...meta } = projectData;
+  const { deliverables, ...meta } = safeProjectData;
   await setDoc(
     projectDoc(uid, projectId),
     {
@@ -182,8 +191,9 @@ export async function deleteProject(uid, projectId) {
 
 export async function saveProjectDeliverables(uid, projectId, deliverables) {
   if (!db) return;
+  const safeDeliverables = sanitizeCloudPayload(deliverables);
   const batch = writeBatch(db);
-  for (const [featureId, data] of Object.entries(deliverables)) {
+  for (const [featureId, data] of Object.entries(safeDeliverables)) {
     batch.set(delivDoc(uid, projectId, featureId), {
       ...data,
       updatedAt: serverTimestamp(),
@@ -216,10 +226,11 @@ export async function loadAgentPrefs(uid) {
 
 export async function saveAgentPrefs(uid, prefs) {
   if (!db) return;
+  const safePrefs = sanitizeCloudPayload(prefs);
   await setDoc(
     agentPrefsDoc(uid),
     {
-      ...prefs,
+      ...safePrefs,
       updatedAt: serverTimestamp(),
     },
     { merge: true },
@@ -243,9 +254,10 @@ export async function loadAgentMemories(uid) {
 
 export async function saveAgentMemory(uid, entry) {
   if (!db) return;
-  const id = entry.id || doc(collection(db, '_')).id;
+  const safeEntry = sanitizeCloudPayload(entry);
+  const id = safeEntry.id || doc(collection(db, '_')).id;
   await setDoc(memoryDoc(uid, id), {
-    ...entry,
+    ...safeEntry,
     id,
     updatedAt: serverTimestamp(),
   });
@@ -274,12 +286,13 @@ export async function loadCustomTools(uid) {
 
 export async function saveCustomTool(uid, tool) {
   if (!db) return;
+  const safeTool = sanitizeCloudPayload(tool);
   // Use the tool name as the doc id so re-registering overwrites cleanly.
-  await setDoc(customToolDoc(uid, tool.name), {
-    ...tool,
+  await setDoc(customToolDoc(uid, safeTool.name), {
+    ...safeTool,
     updatedAt: serverTimestamp(),
   });
-  return tool.name;
+  return safeTool.name;
 }
 
 export async function deleteCustomTool(uid, name) {

@@ -57,6 +57,7 @@ const releases = [
           'PDF exports now scan the rendered course-map, syllabus, deliverable, slide-deck, and all-export text before creating a file.',
           'Export readiness now includes PDF text checks before the app or agent can call selected materials export-ready.',
           '.coursemapper backups, autosave snapshots, cloud snapshots, and developer snapshots now strip API-key/token fields and redact key-like text while keeping provider/model choices.',
+          'Direct cloud project, deliverable, agent-memory, and custom-tool saves now reuse the same sanitizer so future persistence paths cannot bypass the trust boundary.',
         ],
       },
       {
