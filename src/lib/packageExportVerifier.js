@@ -1,5 +1,11 @@
 import { scopeCourseMapToLessons, scopeDeliverableDataToLessons } from './deliverableReadiness';
-import { findInternalExportText, findInternalOfficeXmlText, OFFICE_TEXT_PATH_PATTERNS } from './exportTextInspector';
+import {
+  assertTableRowsHaveNoInternalExportLanguage,
+  findInternalExportText,
+  findInternalOfficeXmlText,
+  OFFICE_TEXT_PATH_PATTERNS,
+} from './exportTextInspector';
+import { expandKeys } from './keyMaps';
 import { resolveFeatureLabel } from './exporters/exporterUtils.js';
 
 const DEFAULT_FEATURES = [
@@ -49,9 +55,103 @@ function createCheck(featureId, format, status, message, extra = {}) {
 }
 
 function getFailureFormat(featureId) {
-  if (featureId === 'courseMap') return 'xlsx';
-  if (featureId === 'slideDecks') return 'pptx/docx/csv';
-  return 'docx/csv';
+  if (featureId === 'courseMap') return 'xlsx/pdf';
+  if (featureId === 'slideDecks') return 'pptx/pdf/csv';
+  return 'docx/pdf/csv';
+}
+
+function toStr(value) {
+  if (value == null) return '';
+  if (Array.isArray(value)) return value.map((item) => String(item)).join('\n');
+  return String(value);
+}
+
+function buildCourseMapPdfRows(courseMap, columns) {
+  const enabledColumns =
+    Array.isArray(columns) && columns.length > 0 ? columns.filter((column) => column.enabled !== false) : null;
+  const columnKeys = enabledColumns
+    ? enabledColumns.map((column) => column.key)
+    : [
+        'learningGoals',
+        'topicSection',
+        'learningObjectives',
+        'weeklyAssessments',
+        'asyncActivities',
+        'syncActivities',
+        'technologyNeeded',
+        'presentationFormat',
+        'supportingResources',
+        'evaluateDesign',
+      ];
+  const headers = enabledColumns
+    ? ['Week/Module', ...enabledColumns.map((column) => column.label)]
+    : [
+        'Week/Module',
+        'Learning Goals',
+        'Topic/Section',
+        'Learning Objectives',
+        'Assessments',
+        'Async Activities',
+        'Sync Activities',
+        'Technology',
+        'Format',
+        'Resources',
+        'Evaluate',
+      ];
+  const rows = [];
+  for (const lesson of courseMap?.lessons || []) {
+    const sections = lesson.sections && lesson.sections.length > 0 ? lesson.sections : [{}];
+    for (let sectionIndex = 0; sectionIndex < sections.length; sectionIndex += 1) {
+      const section = sections[sectionIndex];
+      const row = [sectionIndex === 0 ? lesson.title : ''];
+      for (const key of columnKeys) {
+        row.push(
+          key === 'evaluateDesign'
+            ? section[key] === true || section[key] === 'true'
+              ? 'Yes'
+              : ''
+            : toStr(section[key]),
+        );
+      }
+      rows.push(row);
+    }
+  }
+  return { headers, rows };
+}
+
+function buildSlideDeckPdfRows(data) {
+  const expanded = expandKeys('slideDecks', data);
+  const decks = expanded.slideDecks || expanded.decks || [];
+  const rows = [];
+  decks.forEach((deck, deckIndex) => {
+    rows.push(['Lesson', deck.lessonTitle || deck.title || `Lesson ${deckIndex + 1}`]);
+    (deck.slides || []).forEach((slide, slideIndex) => {
+      rows.push(['Slide Title', slide.title || '']);
+      const bullets = slide.bullets || slide.content || [];
+      bullets.forEach((bullet) => rows.push([`Slide ${slideIndex + 1} Bullet`, String(bullet || '')]));
+      rows.push(['Speaker Notes', slide.speakerNotes || slide.notes || '']);
+    });
+  });
+  return { headers: ['Field', 'Content'], rows };
+}
+
+function verifyPdfRows(featureId, rows, subject) {
+  const headerCount = rows?.headers?.length || 0;
+  const rowCount = rows?.rows?.length || 0;
+  if (headerCount === 0) {
+    return createCheck(featureId, 'pdf', 'failed', 'PDF export has no text headers.', { rowCount });
+  }
+  if (rowCount === 0) {
+    return createCheck(featureId, 'pdf', 'warning', 'PDF export has headers but no text rows.', { rowCount });
+  }
+  try {
+    assertTableRowsHaveNoInternalExportLanguage(rows, subject, 'PDF');
+  } catch (err) {
+    return createCheck(featureId, 'pdf', 'failed', err.message || 'PDF export exposes internal proof language.', {
+      rowCount,
+    });
+  }
+  return createCheck(featureId, 'pdf', 'passed', 'PDF export text can be generated.', { rowCount });
 }
 
 async function verifyCourseMapExport({ courseMap, columns, lessonFilter }) {
@@ -59,6 +159,7 @@ async function verifyCourseMapExport({ courseMap, columns, lessonFilter }) {
     return [createCheck('courseMap', 'xlsx', 'failed', 'Course map has no lessons to export.')];
   }
 
+  const checks = [];
   const scopedCourseMap = scopeCourseMapToLessons(courseMap, lessonFilter);
   const { buildXlsxBuffer } = await import('./xlsxGenerator');
   const buffer = await buildXlsxBuffer(scopedCourseMap, columns);
@@ -78,7 +179,9 @@ async function verifyCourseMapExport({ courseMap, columns, lessonFilter }) {
       ),
     ];
   }
-  return [createCheck('courseMap', 'xlsx', 'passed', 'Course map spreadsheet can be generated.', { size })];
+  checks.push(createCheck('courseMap', 'xlsx', 'passed', 'Course map spreadsheet can be generated.', { size }));
+  checks.push(verifyPdfRows('courseMap', buildCourseMapPdfRows(scopedCourseMap, columns), 'Course Map'));
+  return checks;
 }
 
 async function verifyCsvExport(featureId, data) {
@@ -157,8 +260,11 @@ async function verifyDeliverableExport({ featureId, entry, courseMap, lessonFilt
   checks.push(await verifyCsvExport(featureId, scopedData));
   if (featureId === 'slideDecks') {
     checks.push(await verifyPptxExport(scopedData, courseName, slideTheme));
+    checks.push(verifyPdfRows(featureId, buildSlideDeckPdfRows(scopedData), resolveFeatureLabel(featureId)));
   } else {
     checks.push(await verifyDocxExport(featureId, scopedData, courseName));
+    const { deliverableToCsvRows } = await import('./exporters/csvExporter');
+    checks.push(verifyPdfRows(featureId, deliverableToCsvRows(featureId, scopedData), resolveFeatureLabel(featureId)));
   }
 
   return checks;

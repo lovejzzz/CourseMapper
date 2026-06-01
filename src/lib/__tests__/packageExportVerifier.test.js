@@ -75,9 +75,9 @@ describe('verifyPackageExports', () => {
     });
 
     expect(result.status).toBe('passed');
-    expect(result.checked).toBe(3);
+    expect(result.checked).toBe(5);
     expect(result.failed).toBe(0);
-    expect(result.checks.map((check) => check.format)).toEqual(['xlsx', 'csv', 'docx']);
+    expect(result.checks.map((check) => check.format)).toEqual(['xlsx', 'pdf', 'csv', 'docx', 'pdf']);
   });
 
   it('fails honestly when the course map export has no lessons', async () => {
@@ -143,6 +143,29 @@ describe('verifyPackageExports', () => {
     });
   });
 
+  it('fails export verification when course-map PDF text would leak internal proof language', async () => {
+    const result = await verifyPackageExports({
+      courseMap: {
+        courseName: 'Research Methods',
+        lessons: [
+          {
+            title: 'Lesson 1',
+            sections: [{ learningGoals: 'This PDF row exposes source grounding details.' }],
+          },
+        ],
+      },
+      deliverables: {},
+      selectedFeatures: ['courseMap'],
+    });
+
+    expect(result.status).toBe('failed');
+    expect(result.checks.find((check) => check.format === 'pdf')).toMatchObject({
+      featureId: 'courseMap',
+      status: 'failed',
+      message: 'Course Map PDF export exposes internal source grounding language in Learning Goals.',
+    });
+  });
+
   it('uses custom deliverable names in export verification messages', async () => {
     const result = await verifyPackageExports({
       courseMap: { courseName: 'Research Methods', lessons: [{ title: 'Lesson 1', sections: [] }] },
@@ -194,7 +217,7 @@ describe('verifyPackageExports', () => {
     });
 
     expect(result.status).toBe('passed');
-    expect(result.checks.map((check) => check.status)).toEqual(['passed', 'passed']);
+    expect(result.checks.map((check) => check.status)).toEqual(['passed', 'passed', 'passed']);
   });
 
   it('passes export verification for compiled reading response custom deliverables', async () => {
@@ -232,7 +255,7 @@ describe('verifyPackageExports', () => {
     });
 
     expect(result.status).toBe('passed');
-    expect(result.checks.map((check) => check.status)).toEqual(['passed', 'passed']);
+    expect(result.checks.map((check) => check.status)).toEqual(['passed', 'passed', 'passed']);
   });
 
   it('fails export verification when exported CSV text leaks internal compiler language', async () => {
@@ -295,6 +318,33 @@ describe('verifyPackageExports', () => {
     });
   });
 
+  it('fails export verification when deliverable PDF text would leak internal proof language', async () => {
+    vi.mocked(deliverableToCsvRows)
+      .mockReturnValueOnce({ headers: ['Lesson', 'Prompt'], rows: [['Lesson 1', 'Clean prompt.']] })
+      .mockReturnValueOnce({
+        headers: ['Lesson', 'Prompt'],
+        rows: [['Lesson 1', 'This PDF prompt exposes the publish gate.']],
+      });
+
+    const result = await verifyPackageExports({
+      courseMap: { courseName: 'Research Methods', lessons: [{ title: 'Lesson 1', sections: [] }] },
+      deliverables: {
+        lessonPlans: {
+          status: 'done',
+          data: { lessonPlans: [{ lessonTitle: 'Lesson 1', objectives: ['Define sampling.'] }] },
+        },
+      },
+      selectedFeatures: ['lessonPlans'],
+    });
+
+    expect(result.status).toBe('failed');
+    expect(result.checks.find((check) => check.format === 'pdf')).toMatchObject({
+      featureId: 'lessonPlans',
+      status: 'failed',
+      message: 'Lesson Plans PDF export exposes internal publish gate language in Prompt.',
+    });
+  });
+
   it('fails export verification when generated PPTX text leaks internal proof language', async () => {
     vi.mocked(buildSlideDeckPptxBlob).mockResolvedValueOnce(
       await makeOfficeXmlBlob(
@@ -321,6 +371,39 @@ describe('verifyPackageExports', () => {
       featureId: 'slideDecks',
       status: 'failed',
       message: 'Slide deck PowerPoint export exposes internal publish gate language in ppt/slides/slide1.xml.',
+    });
+  });
+
+  it('fails export verification when slide-deck PDF speaker notes would leak internal proof language', async () => {
+    const result = await verifyPackageExports({
+      courseMap: { courseName: 'Research Methods', lessons: [{ title: 'Lesson 1', sections: [] }] },
+      deliverables: {
+        slideDecks: {
+          status: 'done',
+          data: {
+            decks: [
+              {
+                lessonTitle: 'Lesson 1',
+                slides: [
+                  {
+                    title: 'Sampling',
+                    bullets: ['Define sampling.'],
+                    speakerNotes: 'This speaker note exposes the model-use policy.',
+                  },
+                ],
+              },
+            ],
+          },
+        },
+      },
+      selectedFeatures: ['slideDecks'],
+    });
+
+    expect(result.status).toBe('failed');
+    expect(result.checks.find((check) => check.format === 'pdf')).toMatchObject({
+      featureId: 'slideDecks',
+      status: 'failed',
+      message: 'Slide Decks PDF export exposes internal model-use policy language in Content.',
     });
   });
 });

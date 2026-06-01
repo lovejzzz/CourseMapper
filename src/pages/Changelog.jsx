@@ -55,6 +55,7 @@ const releases = [
           'ZIP packaging now fails closed if the actual generated DOCX, PPTX, or XLSX file would leak internal proof language, and live ZIP audits check the same issue.',
           'Current-tab exports and Google uploads now use the same proof-language guard before CSV, DOCX, PPTX, Sheets, Docs, or Slides files leave the app.',
           'PDF exports now scan the rendered course-map, syllabus, deliverable, slide-deck, and all-export text before creating a file.',
+          'Export readiness now includes PDF text checks before the app or agent can call selected materials export-ready.',
         ],
       },
       {
