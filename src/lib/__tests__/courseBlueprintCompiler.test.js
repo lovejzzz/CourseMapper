@@ -1790,6 +1790,40 @@ describe('courseBlueprintCompiler', () => {
     });
   });
 
+  it('adds a concrete course throughline case across compiled social policy materials', () => {
+    const blueprint = buildCourseBlueprint(makeCourseMap(2));
+    const compiled = compileBlueprintDeliverables(
+      blueprint,
+      ['lessonPlans', 'slideDecks', 'assignments', 'rubrics', 'discussions', 'quizBank', 'studyGuides', 'courseFaq'],
+      { enforceCompilerContract: false },
+    );
+
+    expect(blueprint.courseThroughlineContext).toMatchObject({
+      projectName: 'Riverton Family Support Access Initiative',
+      clientName: 'Riverton Human Services Collaborative',
+    });
+    expect(blueprint.courseArc.throughline).toContain('Riverton Family Support Access Initiative');
+    expect(blueprint.lessons[0].throughlineCase).toMatchObject({
+      projectName: 'Riverton Family Support Access Initiative',
+      evidencePacket: expect.stringContaining('Riverton Family Support Evidence Packet'),
+    });
+    expect(blueprint.lessons[0].readings[0]).toContain('Riverton Family Support Evidence Packet');
+    expect(blueprint.lessons[0].studentArtifact).toBe('Policy memo checkpoint 1');
+
+    expect(compiled.lessonPlans.lessonPlans[0].materials.join(' ')).toContain(
+      'Riverton Family Support Evidence Packet',
+    );
+    expect(compiled.slideDecks.decks[0].slides.flatMap((slide) => slide.bullets).join(' ')).toContain('Riverton');
+    expect(compiled.assignments.assignments[0].sourceUsePlan.approvedSources[0]).toContain('Riverton');
+    expect(compiled.rubrics.rubrics[0].criteria[0].evidenceSignal).toContain('Riverton');
+    expect(compiled.discussions.discussions[0].sourceArtifacts[0].locator).toContain('Riverton');
+    expect(compiled.quizBank.quizzes[0].questions.map((question) => question.sampleAnswer || '').join(' ')).toContain(
+      'Riverton',
+    );
+    expect(compiled.studyGuides.studyGuides[0].sourceGrounding.throughlineCase.projectName).toContain('Riverton');
+    expect(compiled.courseFaq.faqs[0].qs.map((item) => item.an).join(' ')).toContain('Riverton');
+  });
+
   it('decodes economics courses as market analysis instead of lecture-exam, policy, or problem sets', () => {
     const blueprint = buildCourseBlueprint(makeEconomicsAnalysisCourseMap());
     const compiled = compileBlueprintDeliverables(blueprint, ['lessonPlans', 'assignments', 'discussions'], {
@@ -2817,7 +2851,7 @@ describe('courseBlueprintCompiler', () => {
           answerabilityStatus: 'answerable-from-blueprint',
           reviewerQuestion: expect.stringContaining('Policy Topic 1'),
           sourceTrace: expect.objectContaining({
-            sourceAnchor: expect.stringContaining('Case packet 1'),
+            sourceAnchor: expect.stringContaining('Riverton Family Support Evidence Packet'),
             evidenceRequirement: expect.stringContaining('Use a concrete detail'),
             compilerReason: expect.stringContaining('high-confidence source fields'),
             localConfirmationCue: expect.stringContaining('Spot-check official dates'),
@@ -2827,7 +2861,7 @@ describe('courseBlueprintCompiler', () => {
             openingMove: expect.stringContaining('Policy Topic 1'),
             practiceMove: expect.stringContaining('Policy memo checkpoint 1'),
             feedbackMove: expect.stringContaining('Policy memo checkpoint 1'),
-            sourceAnchor: expect.stringContaining('Case packet 1'),
+            sourceAnchor: expect.stringContaining('Riverton Family Support Evidence Packet'),
             artifactCue: expect.stringContaining('Policy memo checkpoint 1'),
             modalityCue: expect.stringContaining('stakeholder'),
           }),
@@ -2940,6 +2974,7 @@ describe('courseBlueprintCompiler', () => {
       'topics',
       'assessment',
       'resources',
+      'throughline case',
     ]);
     expect(blueprint.lessons[0].sourceEvidenceTrace).toMatchObject({
       sourceKind: 'course-map-lesson-row',
@@ -3513,7 +3548,7 @@ describe('courseBlueprintCompiler', () => {
       kind: 'learning-thread timeline',
       visualPlan: expect.objectContaining({
         slidePurpose: expect.stringContaining('Policy Topic 1'),
-        evidenceSource: expect.stringContaining('Case packet 1'),
+        evidenceSource: expect.stringContaining('Riverton Family Support Evidence Packet'),
         artifactConnection: expect.stringContaining('Policy memo checkpoint 1'),
         modalityFit: expect.stringContaining('stakeholder'),
         artifactGenreFit: expect.stringContaining('problem framing'),
@@ -3813,7 +3848,7 @@ describe('courseBlueprintCompiler', () => {
       }),
       evidenceSignal: expect.stringContaining('inspectable Policy Topic 1 detail'),
       calibrationUse: expect.stringContaining('Policy memo checkpoint 1'),
-      exemplary: expect.stringContaining('Case packet 1'),
+      exemplary: expect.stringContaining('Riverton Family Support Evidence Packet'),
       proficient: expect.stringContaining('Policy Topic 1'),
       developing: expect.stringContaining('evidence link'),
       beginning: expect.stringContaining('unsupported claims'),
@@ -5271,7 +5306,7 @@ describe('courseBlueprintCompiler', () => {
     expect(readingResponse.lesson_reading_response[0].sourceGrounding).toMatchObject({
       confidence: 'high',
       compiledPattern: 'reading-response',
-      focusReading: 'Case packet 1',
+      focusReading: expect.stringContaining('Riverton Family Support Evidence Packet'),
     });
 
     const validation = validateDeliverableGeneration('custom_readingResponse', readingResponse, {

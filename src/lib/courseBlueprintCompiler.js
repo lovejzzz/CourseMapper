@@ -3295,6 +3295,198 @@ function buildSourceUsePlan({ title, concepts, resources, evidencePlan, artifact
   };
 }
 
+function assessmentTaskLabel(value, fallback = 'Weekly artifact') {
+  const text = stripTerminalPunctuation(value || fallback);
+  if (!text) return fallback;
+  const colonIndex = text.indexOf(':');
+  const label = colonIndex > 4 && colonIndex <= 80 ? text.slice(0, colonIndex) : conciseClause(text, fallback, 78);
+  return sentenceCase(label);
+}
+
+function buildStudentArtifactLabel(assessmentText, title, fallback) {
+  const parts = meaningfulEntries(splitList(assessmentText)).slice(0, 2);
+  if (parts.length === 0) return fallback || `${stripLessonPrefix(title)} artifact`;
+  const labels = parts.map((part) => assessmentTaskLabel(part, `${stripLessonPrefix(title)} artifact`));
+  if (labels.length === 1) return labels[0];
+  return `${labels[0]} and ${labels[1].charAt(0).toLowerCase()}${labels[1].slice(1)}`;
+}
+
+function selectThroughlineProfile({ courseName = '', courseConcepts = [], lens = {}, courseModalityProfile = {} }) {
+  const text = cleanText(
+    [courseName, lens.domain, lens.exampleNoun, courseModalityProfile.primaryMode, ...courseConcepts].join(' '),
+  ).toLowerCase();
+
+  if (/\b(social policy|welfare|benefits|human services|social work|poverty|public assistance)\b/.test(text)) {
+    return {
+      projectName: 'Riverton Family Support Access Initiative',
+      clientName: 'Riverton Human Services Collaborative',
+      datasetName: 'Riverton Benefits Access and Service Gap Dataset',
+      casePacketName: 'Riverton Family Support Evidence Packet',
+      stakeholderGroup: 'families, frontline caseworkers, agency leaders, and local policy staff',
+      setting: 'a midsize city reviewing access to family support, cash assistance, housing, and food benefits',
+    };
+  }
+  if (/\b(environment|climate|sustainability|resilience|urban|planning)\b/.test(text)) {
+    return {
+      projectName: 'Harborview Resilience Corridor',
+      clientName: 'Harborview Planning Department',
+      datasetName: 'Harborview Resilience and Equity Dataset',
+      casePacketName: 'Harborview Resilience Evidence Packet',
+      stakeholderGroup: 'residents, neighborhood groups, agency staff, and elected decision makers',
+      setting: 'a coastal community comparing resilience investments and equity tradeoffs',
+    };
+  }
+  if (/\b(policy|public administration|governance|regulatory|stakeholder|equity)\b/.test(text)) {
+    return {
+      projectName: 'Harborview Community Policy Lab',
+      clientName: 'Harborview Policy Advisory Office',
+      datasetName: 'Harborview Policy Options Dataset',
+      casePacketName: 'Harborview Policy Evidence Packet',
+      stakeholderGroup: 'community members, service providers, administrators, and policy decision makers',
+      setting: 'a public agency weighing policy options under equity, feasibility, and implementation constraints',
+    };
+  }
+  if (/\b(healthcare|health care|clinical|patient|nursing|medical|care coordination)\b/.test(text)) {
+    return {
+      projectName: 'Maple Grove Care Coordination Case',
+      clientName: 'Maple Grove Community Health Clinic',
+      datasetName: 'Maple Grove Patient Communication and Care Dataset',
+      casePacketName: 'Maple Grove Care Evidence Packet',
+      stakeholderGroup: 'patients, care teams, clinic staff, and family supporters',
+      setting: 'a community clinic improving patient communication, safety, and follow-up care',
+    };
+  }
+  if (/\b(research methods|survey|interview|ethnography|statistics|mixed methods|data collection)\b/.test(text)) {
+    return {
+      projectName: 'Riverton Community Study',
+      clientName: 'Riverton Applied Research Team',
+      datasetName: 'Riverton Community Study Dataset',
+      casePacketName: 'Riverton Research Design Evidence Packet',
+      stakeholderGroup: 'research participants, community partners, analysts, and review stakeholders',
+      setting: 'a mixed-methods study moving from research question design to evidence-based reporting',
+    };
+  }
+  if (/\b(lab|chemistry|biology|experiment|synthesis|chromatography|spectroscopy)\b/.test(text)) {
+    return {
+      projectName: 'Westbrook Lab Investigation',
+      clientName: 'Westbrook Teaching Laboratory',
+      datasetName: 'Westbrook Lab Notebook Dataset',
+      casePacketName: 'Westbrook Lab Evidence Packet',
+      stakeholderGroup: 'student researchers, lab partners, safety reviewers, and technical readers',
+      setting: 'a teaching laboratory where students connect procedures, evidence, and scientific claims',
+    };
+  }
+  if (/\b(design|studio|prototype|user experience|ux|product)\b/.test(text)) {
+    return {
+      projectName: 'Northstar Service Design Studio',
+      clientName: 'Northstar Community Services',
+      datasetName: 'Northstar User Research Dataset',
+      casePacketName: 'Northstar Design Evidence Packet',
+      stakeholderGroup: 'users, service staff, product reviewers, and implementation partners',
+      setting: 'a service-design project moving from user evidence to prototype decisions',
+    };
+  }
+
+  return {
+    projectName: 'Cedar Ridge Community Project',
+    clientName: 'Cedar Ridge Project Team',
+    datasetName: 'Cedar Ridge Course Evidence Dataset',
+    casePacketName: 'Cedar Ridge Evidence Packet',
+    stakeholderGroup: 'learners, practitioners, reviewers, and local decision makers',
+    setting: 'a realistic course project that lets students reuse evidence across lessons',
+  };
+}
+
+function buildCourseThroughlineContext({
+  courseName,
+  lessons = [],
+  courseConcepts = [],
+  lens = {},
+  courseModalityProfile,
+}) {
+  const profile = selectThroughlineProfile({ courseName, courseConcepts, lens, courseModalityProfile });
+  const first = lessons[0];
+  const last = lessons[lessons.length - 1];
+  const firstFocus = stripLessonPrefix(first?.title || courseName || 'the opening lesson');
+  const lastFocus = stripLessonPrefix(last?.title || 'final synthesis');
+  return {
+    version: 1,
+    source: 'course-throughline',
+    ...profile,
+    recurringQuestion: `What should ${profile.clientName} do next in ${profile.setting}, and what evidence makes that decision defensible?`,
+    sequenceSummary:
+      first && last
+        ? `${profile.projectName} starts with ${firstFocus} and returns through ${lastFocus} as students revise evidence, tradeoffs, and recommendations.`
+        : `${profile.projectName} gives the course a recurring evidence case across lessons.`,
+    evidenceBoundary:
+      'This is a fictional course-created case for classroom practice; replace it with official local sources when the instructor has a required case, dataset, or policy document.',
+  };
+}
+
+function buildLessonThroughlineCase(context, lesson) {
+  const lessonTitle = stripLessonPrefix(lesson?.title || 'this lesson');
+  const concept = lesson?.keyConcepts?.[0] || lessonTitle;
+  const artifact = stripTerminalPunctuation(lesson?.studentArtifact || 'the lesson artifact');
+  const evidencePacket = `${context.casePacketName}: Lesson ${lesson.lessonNumber} ${lessonTitle}`;
+  return {
+    projectName: context.projectName,
+    clientName: context.clientName,
+    datasetName: context.datasetName,
+    evidencePacket,
+    lessonCaseName: `${context.projectName} ${lessonTitle} decision`,
+    stakeholderCue: context.stakeholderGroup,
+    decisionPrompt: `Advise ${context.clientName} on the ${concept} decision using evidence from ${evidencePacket}.`,
+    artifactConnection: `${artifact} should show how ${context.projectName} evidence changes the student's recommendation, design choice, or analysis.`,
+    sourceBoundary: context.evidenceBoundary,
+  };
+}
+
+function attachThroughlineCaseToLesson(lesson, context) {
+  if (!context || !lesson) return lesson;
+  const throughlineCase = buildLessonThroughlineCase(context, lesson);
+  const concept = lesson.keyConcepts?.[0] || stripLessonPrefix(lesson.title);
+  const artifact = stripTerminalPunctuation(lesson.studentArtifact || 'the lesson artifact');
+  const sourceCue = throughlineCase.evidencePacket;
+  const readings = unique([sourceCue, ...(lesson.readings || [])], 8);
+  const evidencePlan = {
+    ...(lesson.evidencePlan || {}),
+    sourceCue,
+    evidenceRequirement: `Use a concrete detail from ${sourceCue} to explain ${concept} for ${context.clientName}.`,
+    limitationCue:
+      lesson.evidencePlan?.limitationCue ||
+      `Name one limitation, assumption, or boundary condition before applying ${concept}.`,
+    artifactConnection: throughlineCase.artifactConnection,
+  };
+  const approvedSources = unique([sourceCue, ...asArray(lesson.sourceUsePlan?.approvedSources)], 6);
+  const sourceUsePlan = {
+    ...(lesson.sourceUsePlan || {}),
+    approvedSources,
+    studentAttributionMove: `Before explaining ${concept}, cite the exact ${context.projectName} packet item, assigned reading, class activity, or instructor note used for ${artifact}.`,
+    noInventedSources: `Do not invent authors, URLs, page numbers, studies, legal authority, or real agency data for ${sourceCue}. Treat the ${concept} throughline case as classroom practice evidence unless the instructor replaces it with an official source.`,
+    sourceEvaluationPrompt: `Ask what ${sourceCue} can support for ${context.clientName}, what it cannot prove, and what local evidence would be needed before publication.`,
+    localReplacementCue: `Before publishing ${artifact}, replace or supplement ${sourceCue} with the official local reading, case, dataset, policy document, or agency guidance required by the instructor.`,
+    copyrightReviewCue:
+      lesson.sourceUsePlan?.copyrightReviewCue ||
+      `Verify that any copied reading, image, dataset, case, or media excerpt for ${stripLessonPrefix(lesson.title)} is licensed or institutionally approved before distribution.`,
+  };
+  return {
+    ...lesson,
+    readings,
+    throughlineCase,
+    evidencePlan,
+    sourceUsePlan,
+    slideNarrative: `Introduce ${stripLessonPrefix(lesson.title)}, model the core concept with ${throughlineCase.lessonCaseName}, and close with a decision checkpoint.`,
+    faqNeeds: [
+      `How does ${stripLessonPrefix(lesson.title)} connect to ${context.projectName}?`,
+      `What evidence from ${sourceCue} should I use?`,
+    ],
+    sourceAnchors: [
+      ...(lesson.sourceAnchors || []),
+      sourceAnchor('throughline case', 'course-created-case', sourceCue, 'medium'),
+    ],
+  };
+}
+
 function buildMisconceptionMap({ title, concepts, artifact }) {
   const concept = concepts[0] || stripLessonPrefix(title) || 'the lesson focus';
   const secondary = concepts[1] || concept;
@@ -3944,15 +4136,26 @@ function addCourseSequenceSemantics(lessons) {
   });
 }
 
-function buildCourseArc(lessons, conceptDependencyGraph = null) {
+function buildCourseArc(lessons, conceptDependencyGraph = null, throughlineContext = null) {
   const first = lessons[0];
   const last = lessons[lessons.length - 1];
   const stageOrder = unique(lessons.map((lesson) => lesson.pacing?.stage).filter(Boolean), lessons.length);
+  const defaultThroughline =
+    first && last
+      ? `The course moves from ${stripLessonPrefix(first.title)} toward ${stripLessonPrefix(last.title)} through repeated evidence, practice, feedback, and revision cycles.`
+      : 'The course uses repeated evidence, practice, feedback, and revision cycles.';
   return {
-    throughline:
-      first && last
-        ? `The course moves from ${stripLessonPrefix(first.title)} toward ${stripLessonPrefix(last.title)} through repeated evidence, practice, feedback, and revision cycles.`
-        : 'The course uses repeated evidence, practice, feedback, and revision cycles.',
+    throughline: throughlineContext
+      ? `Students return to ${throughlineContext.projectName} for ${throughlineContext.clientName} as the course moves from ${stripLessonPrefix(first?.title || 'the opening lesson')} toward ${stripLessonPrefix(last?.title || 'final synthesis')} through repeated evidence, practice, feedback, and revision cycles.`
+      : defaultThroughline,
+    caseThroughline: throughlineContext
+      ? {
+          projectName: throughlineContext.projectName,
+          clientName: throughlineContext.clientName,
+          datasetName: throughlineContext.datasetName,
+          recurringQuestion: throughlineContext.recurringQuestion,
+        }
+      : null,
     stages: stageOrder.map((stage) => ({
       stage,
       lessonNumbers: lessons.filter((lesson) => lesson.pacing?.stage === stage).map((lesson) => lesson.lessonNumber),
@@ -9183,6 +9386,7 @@ function lessonSourceGrounding(lesson, extras = {}) {
     localReviewNeeded: clonePlain(lesson?.missingSignals || []),
     evidencePlan: clonePlain(lesson?.evidencePlan || null),
     sourceUsePlan: clonePlain(lesson?.sourceUsePlan || null),
+    throughlineCase: clonePlain(lesson?.throughlineCase || null),
     classSessionPlan: clonePlain(lesson?.classSessionPlan || null),
     misconceptionFocus: lesson?.misconceptionMap?.[0]?.misconception || '',
     modelContrast: clonePlain(lesson?.modelContrast || null),
@@ -9348,7 +9552,9 @@ function extractLessonBlueprint(lesson, originalIndex) {
     bloomsLevel,
   });
   const assessmentLink = hasAssessment ? assessmentText : synthesizedAssessment;
-  const studentArtifact = hasAssessment ? assessmentText : synthesizedAssessment;
+  const studentArtifact = hasAssessment
+    ? buildStudentArtifactLabel(assessmentText, title, synthesizedAssessment)
+    : synthesizedAssessment;
   const confidence = buildLessonConfidence({
     hasTitle,
     hasObjectives,
@@ -9503,6 +9709,7 @@ function extractLessonBlueprint(lesson, originalIndex) {
     readings,
     activityPattern,
     assessmentLink,
+    assessmentDetails: assessmentText,
     hasAssessment,
     assessmentSource: confidence.fields.assessment.source,
     studentArtifact,
@@ -10362,6 +10569,13 @@ export function buildCourseBlueprint(courseMap, options = {}) {
     lens: normalizedEnrichment.lens,
     courseModalityProfile,
   });
+  const courseThroughlineContext = buildCourseThroughlineContext({
+    courseName,
+    lessons: sequencedLessons,
+    courseConcepts,
+    lens: normalizedEnrichment.lens,
+    courseModalityProfile,
+  });
   const baseLessons = sequencedLessons.map((lesson) => {
     const modalityDecode = buildLessonModalityDecode(courseModalityProfile, lesson);
     const lessonWithContext = {
@@ -10371,10 +10585,13 @@ export function buildCourseBlueprint(courseMap, options = {}) {
       modalityDecode,
       artifactGenre: buildArtifactGenreDecode(lesson, courseModalityProfile, modalityDecode),
     };
-    return {
-      ...lessonWithContext,
-      classSessionPlan: buildClassSessionPlan({ lesson: lessonWithContext, modalityDecode }),
-    };
+    return attachThroughlineCaseToLesson(
+      {
+        ...lessonWithContext,
+        classSessionPlan: buildClassSessionPlan({ lesson: lessonWithContext, modalityDecode }),
+      },
+      courseThroughlineContext,
+    );
   });
   const assessments = buildAssessmentAnchors(baseLessons);
   const sourceRiskRegister = buildSourceRiskRegister({ lessons: baseLessons, assessments });
@@ -10399,7 +10616,7 @@ export function buildCourseBlueprint(courseMap, options = {}) {
   const compilerDecisionMatrix = buildCompilerDecisionMatrix(lessons);
   const assessmentArchitecture = buildAssessmentArchitecture({ lessons, assessments });
   const alignmentMatrix = buildCourseAlignmentMatrix(lessons, assessments);
-  const courseArc = buildCourseArc(lessons, conceptDependencyGraph);
+  const courseArc = buildCourseArc(lessons, conceptDependencyGraph, courseThroughlineContext);
   const classroomHandoffPlan = buildClassroomHandoffPlan({
     courseName,
     lessons,
@@ -10474,6 +10691,7 @@ export function buildCourseBlueprint(courseMap, options = {}) {
     alignmentMatrix,
     courseConcepts,
     courseArc,
+    courseThroughlineContext,
     conceptDependencyGraph,
     masteryEvidenceMap,
     evidenceResponseMap,
@@ -11689,6 +11907,7 @@ function buildMultipleChoiceQuestion({
 
 function buildShortAnswerQuestion({ lesson, index, bloom, objective, concept, lens, plan }) {
   const artifact = stripTerminalPunctuation(lesson.studentArtifact);
+  const sourceCue = lesson.throughlineCase?.evidencePacket || `${lesson.title} evidence`;
   return withQuizPlan(
     {
       id: quizQuestionId(lesson, index),
@@ -11699,9 +11918,9 @@ function buildShortAnswerQuestion({ lesson, index, bloom, objective, concept, le
       points: 4,
       objectiveAligned: objective,
       intendedUse: `Formative written check after ${lesson.title}; use responses to identify review needs before ${artifact}.`,
-      question: `In 2-3 sentences, explain how ${concept} should shape ${artifact} and name one ${lens.evidenceNoun} source from ${lesson.title} students should use.`,
-      answer: `${concept} should guide the evidence students select and the decision they justify in ${artifact}. A strong ${lesson.title} answer names a lesson source, explains why it fits, and states how the evidence changes the next step.`,
-      sampleAnswer: `For ${lesson.title}, I would use ${concept} to choose evidence that directly supports ${artifact}. I would cite a specific reading, activity result, or case example from ${lesson.title} and explain how it changes the ${lens.decisionNoun}.`,
+      question: `In 2-3 sentences, explain how ${concept} should shape ${artifact} and name one ${lens.evidenceNoun} source from ${sourceCue} students should use.`,
+      answer: `${concept} should guide the evidence students select and the decision they justify in ${artifact}. A strong ${lesson.title} answer names a specific detail from ${sourceCue}, explains why it fits, and states how the evidence changes the next step.`,
+      sampleAnswer: `For ${lesson.title}, I would use ${concept} to choose evidence from ${sourceCue} that directly supports ${artifact}. I would cite the exact ${concept} packet detail and explain how it changes the ${lens.decisionNoun}.`,
       explanation: `A complete response links ${concept}, ${artifact}, and a concrete ${lens.evidenceNoun} source instead of only defining the term.`,
       scoringGuidance: `Scoring guidance: Full credit for ${lesson.title} requires ${concept}, one concrete evidence source, and a decision implication. Partial credit is appropriate when the answer names ${concept} but omits evidence or the implication. Flag answers that summarize ${lesson.title} without applying it.`,
       tags: quizTags(lesson, 'short_answer', bloom, 'formative check'),
@@ -11712,7 +11931,10 @@ function buildShortAnswerQuestion({ lesson, index, bloom, objective, concept, le
 
 function buildEssayQuestion({ lesson, index, bloom, objective, concept, lens, plan }) {
   const artifact = stripTerminalPunctuation(lesson.studentArtifact);
-  const scenario = [lens.exampleNoun, concept].filter(Boolean).map(stripTerminalPunctuation).join(' focused on ');
+  const scenario =
+    lesson.throughlineCase?.lessonCaseName ||
+    [lens.exampleNoun, concept].filter(Boolean).map(stripTerminalPunctuation).join(' focused on ');
+  const clientCue = lesson.throughlineCase?.clientName || 'the course audience';
   return withQuizPlan(
     {
       id: quizQuestionId(lesson, index),
@@ -11723,9 +11945,9 @@ function buildEssayQuestion({ lesson, index, bloom, objective, concept, lens, pl
       points: 8,
       objectiveAligned: objective,
       intendedUse: `Summative or exam-prep synthesis for ${lesson.title}; score with the rubric hints before students revise related work.`,
-      question: `${bloom === 'Create' ? 'Create' : 'Evaluate'} a defensible next step for ${artifact} as a ${scenario}. In 2-3 organized paragraphs, use ${concept}, cite lesson evidence, and explain one limitation.`,
+      question: `${bloom === 'Create' ? 'Create' : 'Evaluate'} a defensible next step for ${artifact} in the ${scenario} for ${clientCue}. In 2-3 organized paragraphs, use ${concept}, cite lesson evidence, and explain one limitation.`,
       rubricHints: `Strong responses define ${concept}, use at least two pieces of ${lens.evidenceNoun}, justify a ${lens.decisionNoun}, and acknowledge a limitation or risk.`,
-      sampleAnswer: `A strong response for ${lesson.title} would identify how ${concept} changes the artifact, cite evidence from the lesson activity or readings, and propose a next step that is feasible for ${artifact}. It would also name a ${lesson.title} limitation so the recommendation is not overstated.`,
+      sampleAnswer: `A strong response for ${lesson.title} would identify how ${concept} changes the artifact, cite evidence from ${lesson.throughlineCase?.evidencePacket || 'the lesson activity or readings'}, and propose a next step that is feasible for ${artifact}. It would also name a ${lesson.title} limitation so the recommendation is not overstated.`,
       explanation: `The essay is scored for synthesis: students must turn ${concept} and evidence into a defensible ${lens.decisionNoun}, not merely list lesson facts.`,
       scoringGuidance: `Scoring guidance: Full credit for ${lesson.title} requires concept accuracy, evidence use, a justified next step, and a limitation. Partial credit is appropriate when the response has ${concept} evidence but weak decision logic. Flag responses that ignore ${artifact}.`,
       tags: quizTags(lesson, 'essay', bloom, 'exam synthesis'),
@@ -12990,7 +13212,7 @@ function compileCourseFaq(blueprint, config = {}) {
   const builders = [
     (lesson) => ({
       q: `What should I focus on for ${lesson.title}?`,
-      an: `Focus on ${lesson.keyConcepts.slice(0, 3).join(', ')}, then connect those ideas to ${lesson.studentArtifact}. Strong ${lesson.title} work uses ${lens.evidenceNoun} and explains a decision or implication.`,
+      an: `Focus on ${lesson.keyConcepts.slice(0, 3).join(', ')}, then connect those ideas to ${lesson.studentArtifact}. Strong ${lesson.title} work uses ${lesson.throughlineCase?.evidencePacket || lens.evidenceNoun} and explains a decision or implication.`,
       ca: 'Concept Explanation',
       rc: lesson.keyConcepts.slice(0, 4),
       df: 'Basic',
@@ -13004,7 +13226,7 @@ function compileCourseFaq(blueprint, config = {}) {
     }),
     (lesson) => ({
       q: `What does strong work on ${stripLessonPrefix(lesson.title)} look like?`,
-      an: `Strong work on ${lesson.title} ${lesson.successCriteria.join(' ')} It should be specific enough that another reader can see how ${lesson.title} ${lens.evidenceNoun} supports the decision. For this ${lesson.artifactGenre?.label || lesson.artifactGenre?.genre || 'artifact'}, also check: ${lesson.artifactGenre?.qualityFocus || 'evidence specificity and revision quality'}. Anchor contrast: ${lesson.assessmentAnchorExamples?.strongSample || 'compare strong and partial evidence examples before submitting'}.`,
+      an: `Strong work on ${lesson.title} ${lesson.successCriteria.join(' ')} It should be specific enough that another reader can see how ${lesson.throughlineCase?.projectName || lesson.title} evidence about ${lesson.keyConcepts[0] || stripLessonPrefix(lesson.title)} supports the decision. For this ${lesson.artifactGenre?.label || lesson.artifactGenre?.genre || 'artifact'}, also check: ${lesson.artifactGenre?.qualityFocus || 'evidence specificity and revision quality'}. Anchor contrast: ${lesson.assessmentAnchorExamples?.strongSample || 'compare strong and partial evidence examples before submitting'}.`,
       ca: 'Assessment Prep',
       rc: lesson.successCriteria,
       df: 'Intermediate',
@@ -13032,7 +13254,7 @@ function compileCourseFaq(blueprint, config = {}) {
     }),
     (lesson) => ({
       q: `What ${stripLessonPrefix(lesson.title)} materials should I review first?`,
-      an: `Start with ${lesson.readings.slice(0, 2).join(' and ')}. Then compare your notes against the weekly success criteria.`,
+      an: `Start with ${lesson.throughlineCase?.evidencePacket || lesson.readings[0] || 'the lesson packet'}, then review ${lesson.readings.slice(1, 3).join(' and ') || 'the assigned lesson materials'}. Compare your notes against the weekly success criteria.`,
       ca: 'Technical Help',
       rc: lesson.readings.slice(0, 3),
       df: 'Basic',

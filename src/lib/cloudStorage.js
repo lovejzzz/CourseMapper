@@ -41,6 +41,12 @@ function delivCol(uid, pid) {
 function delivDoc(uid, pid, fid) {
   return doc(db, 'users', uid, 'projects', pid, 'deliverables', fid);
 }
+const DELIVERABLE_CHUNK_PREFIX = '__cm_chunk__';
+const MAX_DELIVERABLE_DOC_BYTES = 700_000;
+
+function delivChunkDoc(uid, pid, fid, index) {
+  return doc(db, 'users', uid, 'projects', pid, 'deliverables', `${DELIVERABLE_CHUNK_PREFIX}${fid}__${index}`);
+}
 function customDelCol(uid) {
   return collection(db, 'users', uid, 'customDeliverables');
 }
@@ -56,6 +62,61 @@ function developerTemplateDoc(uid, id) {
 
 function sanitizeCloudPayload(value) {
   return sanitizeProjectSnapshot(value || {});
+}
+
+function getByteLength(value) {
+  if (typeof TextEncoder !== 'undefined') return new TextEncoder().encode(value).length;
+  return unescape(encodeURIComponent(value)).length;
+}
+
+function splitStringByBytes(value, maxBytes = MAX_DELIVERABLE_DOC_BYTES) {
+  if (getByteLength(value) <= maxBytes) return [value];
+  const chunks = [];
+  let start = 0;
+  while (start < value.length) {
+    let end = Math.min(value.length, start + maxBytes);
+    while (end > start && getByteLength(value.slice(start, end)) > maxBytes) {
+      end = start + Math.max(1, Math.floor((end - start) * 0.8));
+    }
+    chunks.push(value.slice(start, end));
+    start = end;
+  }
+  return chunks;
+}
+
+async function commitBatchOperations(operations) {
+  const maxBatchWrites = 450;
+  for (let i = 0; i < operations.length; i += maxBatchWrites) {
+    const batch = writeBatch(db);
+    for (const operation of operations.slice(i, i + maxBatchWrites)) {
+      if (operation.type === 'delete') batch.delete(operation.ref);
+      else batch.set(operation.ref, operation.payload);
+    }
+    await batch.commit();
+  }
+}
+
+async function clearProjectDeliverables(uid, projectId) {
+  const snap = await getDocs(delivCol(uid, projectId));
+  const operations = getSnapshotDocs(snap).map((d) => ({ type: 'delete', ref: d.ref || delivDoc(uid, projectId, d.id) }));
+  if (operations.length > 0) await commitBatchOperations(operations);
+}
+
+function getSnapshotDocs(snap) {
+  const docs = [];
+  if (snap?.forEach) {
+    snap.forEach((d) => docs.push(d));
+    return docs;
+  }
+  return Array.isArray(snap?.docs) ? snap.docs : [];
+}
+
+function getChunkDocFeatureId(id, data) {
+  if (data?.featureId) return data.featureId;
+  if (!String(id || '').startsWith(DELIVERABLE_CHUNK_PREFIX)) return null;
+  const rest = String(id).slice(DELIVERABLE_CHUNK_PREFIX.length);
+  const markerIndex = rest.lastIndexOf('__');
+  return markerIndex > 0 ? rest.slice(0, markerIndex) : null;
 }
 
 /* ═══════════════════ Profile ═══════════════════ */
@@ -171,6 +232,11 @@ export async function saveProject(uid, projectId, projectData) {
     { merge: true },
   );
 
+  if (meta.deliverableSaveMode === 'recompile-on-open') {
+    await clearProjectDeliverables(uid, projectId);
+    return;
+  }
+
   // Save deliverables to subcollection
   if (deliverables && typeof deliverables === 'object') {
     await saveProjectDeliverables(uid, projectId, deliverables);
@@ -192,23 +258,99 @@ export async function deleteProject(uid, projectId) {
 export async function saveProjectDeliverables(uid, projectId, deliverables) {
   if (!db) return;
   const safeDeliverables = sanitizeCloudPayload(deliverables);
-  const batch = writeBatch(db);
+  const operations = [];
   for (const [featureId, data] of Object.entries(safeDeliverables)) {
-    batch.set(delivDoc(uid, projectId, featureId), {
-      ...data,
-      updatedAt: serverTimestamp(),
+    const serialized = JSON.stringify(data);
+    const chunks = splitStringByBytes(serialized);
+    if (chunks.length <= 1) {
+      operations.push({
+        type: 'set',
+        ref: delivDoc(uid, projectId, featureId),
+        payload: {
+          ...data,
+          updatedAt: serverTimestamp(),
+        },
+      });
+      continue;
+    }
+
+    operations.push({
+      type: 'set',
+      ref: delivDoc(uid, projectId, featureId),
+      payload: {
+        __chunked: true,
+        encoding: 'json',
+        chunkCount: chunks.length,
+        status: data?.status || 'done',
+        updatedAt: serverTimestamp(),
+      },
+    });
+    chunks.forEach((chunk, index) => {
+      operations.push({
+        type: 'set',
+        ref: delivChunkDoc(uid, projectId, featureId, index),
+        payload: {
+          __deliverableChunk: true,
+          featureId,
+          index,
+          text: chunk,
+          updatedAt: serverTimestamp(),
+        },
+      });
     });
   }
-  await batch.commit();
+  await commitBatchOperations(operations);
 }
 
 export async function loadProjectDeliverables(uid, projectId) {
   if (!db) return {};
   const snap = await getDocs(delivCol(uid, projectId));
   const map = {};
-  snap.forEach((d) => {
-    map[d.id] = sanitizeCloudPayload(d.data());
-  });
+  const chunkedManifests = new Map();
+  const chunkParts = new Map();
+
+  for (const d of getSnapshotDocs(snap)) {
+    const data = d.data();
+    if (data?.__deliverableChunk || String(d.id || '').startsWith(DELIVERABLE_CHUNK_PREFIX)) {
+      const featureId = getChunkDocFeatureId(d.id, data);
+      const index = Number.isInteger(data?.index) ? data.index : null;
+      if (featureId && index !== null && typeof data?.text === 'string') {
+        if (!chunkParts.has(featureId)) chunkParts.set(featureId, []);
+        chunkParts.get(featureId)[index] = data.text;
+      }
+      continue;
+    }
+
+    if (data?.__chunked) {
+      chunkedManifests.set(d.id, sanitizeCloudPayload(data));
+      continue;
+    }
+
+    map[d.id] = sanitizeCloudPayload(data);
+  }
+
+  for (const [featureId, manifest] of chunkedManifests.entries()) {
+    const expectedCount = Number(manifest.chunkCount) || 0;
+    const parts = chunkParts.get(featureId) || [];
+    const hasAllChunks = expectedCount > 0 && Array.from({ length: expectedCount }, (_, index) => parts[index]).every(
+      (part) => typeof part === 'string',
+    );
+    if (!hasAllChunks) {
+      map[featureId] = {
+        status: 'error',
+        error: 'Saved deliverable chunks are incomplete. Regenerate this deliverable before exporting.',
+      };
+      continue;
+    }
+    try {
+      map[featureId] = sanitizeCloudPayload(JSON.parse(parts.slice(0, expectedCount).join('')));
+    } catch {
+      map[featureId] = {
+        status: 'error',
+        error: 'Saved deliverable chunks could not be restored. Regenerate this deliverable before exporting.',
+      };
+    }
+  }
   return map;
 }
 

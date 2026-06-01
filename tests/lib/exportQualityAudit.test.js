@@ -122,4 +122,26 @@ describe('auditCourseMaterialsZip', () => {
     expect(issues).toContain('Slide Decks/Proof Leak - Slide Decks.pptx: leaked internal publish gate language');
     expect(issues).toContain('Course Map/Proof Leak - Course Map.xlsx: leaked internal source grounding language');
   });
+
+  it('aggregates Course FAQ question counts across per-lesson files', async () => {
+    const outerZip = new JSZip();
+    outerZip.file(
+      'Course FAQ/Lesson 01 - Foundations - Course FAQ.docx',
+      await buildDocxBuffer('Lesson 1: Foundations Q1 What matters? Q2 How do I prepare?'),
+    );
+    outerZip.file(
+      'Course FAQ/Lesson 02 - Policy History - Course FAQ.docx',
+      await buildDocxBuffer('Lesson 2: Policy History Q1 What changed? Q2 What evidence should I use?'),
+    );
+
+    const zipPath = await writeTempZip('coursemapper-export-quality-audit-faq-split.zip', outerZip);
+    const audit = await auditCourseMaterialsZip(zipPath, {
+      expectedFaqQuestionsPerLesson: {
+        'Lesson 1: Foundations': 2,
+        'Lesson 2: Policy History': 2,
+      },
+    });
+
+    expect(audit.issues).toEqual([]);
+  });
 });

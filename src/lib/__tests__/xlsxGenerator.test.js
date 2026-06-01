@@ -17,6 +17,11 @@ async function sheetText(buffer) {
   return decodeXml(xml);
 }
 
+async function stylesText(buffer) {
+  const zip = await JSZip.loadAsync(buffer);
+  return zip.file('xl/styles.xml').async('string');
+}
+
 describe('xlsxGenerator', () => {
   const columns = [
     { key: 'learningGoals', label: 'Learning Goals', enabled: true },
@@ -79,5 +84,25 @@ describe('xlsxGenerator', () => {
     const text = await sheetText(buffer);
 
     expect(text).not.toContain('Evaluate Design');
+  });
+
+  it('uses standards-valid vertical alignment values', async () => {
+    const buffer = await buildXlsxBuffer(
+      {
+        courseName: 'Export Audit',
+        lessons: [
+          {
+            title: 'Lesson 1: Evidence',
+            sections: [{ learningGoals: 'Use evidence.', topicSection: 'Evidence review' }],
+          },
+        ],
+      },
+      columns,
+    );
+
+    const styles = await stylesText(buffer);
+
+    expect(styles).toContain('vertical="center"');
+    expect(styles).not.toContain('vertical="middle"');
   });
 });

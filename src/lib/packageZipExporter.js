@@ -4,6 +4,16 @@ import { resolveFeatureLabel } from './exporters/exporterUtils.js';
 import { safeImport } from './safeImport';
 
 const MIN_EXPORT_BYTES = 128;
+const SPLIT_BY_LESSON_FEATURES = new Set([
+  'lessonPlans',
+  'slideDecks',
+  'assignments',
+  'rubrics',
+  'discussions',
+  'quizBank',
+  'studyGuides',
+  'courseFaq',
+]);
 
 export class PackageZipExportError extends Error {
   constructor(failures = []) {
@@ -26,6 +36,17 @@ export function sanitizeFilePart(value, fallback = 'Course') {
     .trim()
     .replace(/^[.\-\s]+|[.\-\s]+$/g, '');
   return cleaned || fallback;
+}
+
+function truncateFilePart(value, maxLength = 95) {
+  const text = sanitizeFilePart(value, 'Lesson');
+  if (text.length <= maxLength) return text;
+  return (
+    text
+      .slice(0, maxLength)
+      .replace(/\s+\S*$/, '')
+      .replace(/[.\-\s]+$/g, '') || text.slice(0, maxLength)
+  );
 }
 
 function publicFeatureId(featureId) {
@@ -122,6 +143,24 @@ function getRequestedFeatureIds(featureIds, deliverables) {
   return [...new Set(requested.filter(Boolean))];
 }
 
+function getLessonIndicesForZip(courseMap, lessonFilter) {
+  const lessons = Array.isArray(courseMap?.lessons) ? courseMap.lessons : [];
+  if (Array.isArray(lessonFilter)) {
+    return lessonFilter.filter((index) => Number.isInteger(index) && index >= 0 && index < lessons.length);
+  }
+  return lessons.map((_, index) => index);
+}
+
+function lessonFileStem(courseMap, lessonIndex) {
+  const lesson = Array.isArray(courseMap?.lessons) ? courseMap.lessons[lessonIndex] : null;
+  const title = lesson?.title || lesson?.lessonTitle || lesson?.lt || `Lesson ${lessonIndex + 1}`;
+  const withoutPrefix = String(title || '')
+    .replace(/^(?:lesson|week)\s*\d+\s*[:.-]?\s*/i, '')
+    .trim();
+  const safeTitle = truncateFilePart(withoutPrefix || title || `Lesson ${lessonIndex + 1}`);
+  return `Lesson ${String(lessonIndex + 1).padStart(2, '0')} - ${safeTitle}`;
+}
+
 function buildManifest({ courseName, lessonFilter, readiness, files, requestedFeatureIds }) {
   return {
     courseName,
@@ -160,6 +199,7 @@ export async function buildCourseMaterialsZip({
   const safeCourseName = sanitizeFilePart(courseName || courseMap?.courseName || 'Course');
   const requestedFeatureIds = getRequestedFeatureIds(featureIds, deliverables);
   const requestedDeliverableIds = requestedFeatureIds.filter((featureId) => featureId !== 'courseMap');
+  const lessonIndices = getLessonIndicesForZip(courseMap, lessonFilter);
   const files = [];
   const failures = [];
 
@@ -197,40 +237,76 @@ export async function buildCourseMaterialsZip({
       continue;
     }
 
-    const filteredData = scopeDeliverableDataToLessons(featureId, entry.data, lessonFilter);
+    const shouldSplitByLesson = SPLIT_BY_LESSON_FEATURES.has(featureId);
+    const exportSlices = shouldSplitByLesson
+      ? lessonIndices.map((lessonIndex) => ({
+          lessonIndex,
+          fileStem: lessonFileStem(courseMap, lessonIndex),
+          data: scopeDeliverableDataToLessons(featureId, entry.data, [lessonIndex]),
+        }))
+      : [
+          {
+            lessonIndex: null,
+            fileStem: safeCourseName,
+            data: scopeDeliverableDataToLessons(featureId, entry.data, lessonFilter),
+          },
+        ];
+
     if (featureId === 'slideDecks') {
-      try {
-        const blob = await buildSlideDeckPptxBlob(filteredData, safeCourseName, slideTheme);
-        await addRequiredOfficeFile(zip, files, failures, `${safeLabel}/${safeCourseName} - ${safeLabel}.pptx`, blob, {
-          featureId,
-          format: 'pptx',
-        });
-      } catch (err) {
-        failures.push(
-          createFailure(
-            featureId,
-            'pptx',
-            `${label} PowerPoint could not be generated: ${err?.message || 'Unknown error.'}`,
-          ),
-        );
+      for (const exportSlice of exportSlices) {
+        try {
+          const exportTitle =
+            exportSlice.lessonIndex === null ? safeCourseName : `${safeCourseName} - ${exportSlice.fileStem}`;
+          const blob = await buildSlideDeckPptxBlob(exportSlice.data, exportTitle, slideTheme);
+          await addRequiredOfficeFile(
+            zip,
+            files,
+            failures,
+            `${safeLabel}/${exportSlice.fileStem} - ${safeLabel}.pptx`,
+            blob,
+            {
+              featureId,
+              format: 'pptx',
+            },
+          );
+        } catch (err) {
+          failures.push(
+            createFailure(
+              featureId,
+              'pptx',
+              `${label} PowerPoint could not be generated${exportSlice.lessonIndex === null ? '' : ` for Lesson ${exportSlice.lessonIndex + 1}`}: ${err?.message || 'Unknown error.'}`,
+            ),
+          );
+        }
       }
       continue;
     }
 
-    try {
-      const blob = await buildDeliverableDocxBlob(featureId, filteredData, safeCourseName);
-      await addRequiredOfficeFile(zip, files, failures, `${safeLabel}/${safeCourseName} - ${safeLabel}.docx`, blob, {
-        featureId,
-        format: 'docx',
-      });
-    } catch (err) {
-      failures.push(
-        createFailure(
-          featureId,
-          'docx',
-          `${label} document could not be generated: ${err?.message || 'Unknown error.'}`,
-        ),
-      );
+    for (const exportSlice of exportSlices) {
+      try {
+        const exportTitle =
+          exportSlice.lessonIndex === null ? safeCourseName : `${safeCourseName} - ${exportSlice.fileStem}`;
+        const blob = await buildDeliverableDocxBlob(featureId, exportSlice.data, exportTitle);
+        await addRequiredOfficeFile(
+          zip,
+          files,
+          failures,
+          `${safeLabel}/${exportSlice.fileStem} - ${safeLabel}.docx`,
+          blob,
+          {
+            featureId,
+            format: 'docx',
+          },
+        );
+      } catch (err) {
+        failures.push(
+          createFailure(
+            featureId,
+            'docx',
+            `${label} document could not be generated${exportSlice.lessonIndex === null ? '' : ` for Lesson ${exportSlice.lessonIndex + 1}`}: ${err?.message || 'Unknown error.'}`,
+          ),
+        );
+      }
     }
   }
 

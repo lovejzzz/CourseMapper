@@ -34,7 +34,10 @@ vi.mock('file-saver', () => ({
 function makeCourseMap(courseName = 'Export Smoke Course') {
   return {
     courseName,
-    lessons: [{ title: 'Lesson 1', sections: [{ learningObjectives: 'Verify exports.' }] }],
+    lessons: [
+      { title: 'Lesson 1: Export Reliability', sections: [{ learningObjectives: 'Verify exports.' }] },
+      { title: 'Lesson 2: Portable Course Materials', sections: [{ learningObjectives: 'Package files.' }] },
+    ],
   };
 }
 
@@ -84,11 +87,24 @@ describe('packageZipExporter', () => {
       deliverables: {
         lessonPlans: {
           status: 'done',
-          data: { lessonPlans: [{ lessonTitle: 'Lesson 1', objectives: ['Verify exports.'] }] },
+          data: {
+            lessonPlans: [
+              { lessonTitle: 'Lesson 1: Export Reliability', objectives: ['Verify exports.'] },
+              { lessonTitle: 'Lesson 2: Portable Course Materials', objectives: ['Package files.'] },
+            ],
+          },
         },
         slideDecks: {
           status: 'done',
-          data: { decks: [{ lessonTitle: 'Lesson 1', slides: [{ title: 'Export', bullets: ['Verify'] }] }] },
+          data: {
+            decks: [
+              { lessonTitle: 'Lesson 1: Export Reliability', slides: [{ title: 'Export', bullets: ['Verify'] }] },
+              {
+                lessonTitle: 'Lesson 2: Portable Course Materials',
+                slides: [{ title: 'Package', bullets: ['Download'] }],
+              },
+            ],
+          },
         },
       },
       selectedFeatures: ['courseMap', 'lessonPlans', 'slideDecks'],
@@ -99,8 +115,10 @@ describe('packageZipExporter', () => {
     expect(result.files.map((file) => file.path)).toEqual(
       expect.arrayContaining([
         'Course Map/Export - Smoke - Course - Course Map.xlsx',
-        'Lesson Plans/Export - Smoke - Course - Lesson Plans.docx',
-        'Slide Decks/Export - Smoke - Course - Slide Decks.pptx',
+        'Lesson Plans/Lesson 01 - Export Reliability - Lesson Plans.docx',
+        'Lesson Plans/Lesson 02 - Portable Course Materials - Lesson Plans.docx',
+        'Slide Decks/Lesson 01 - Export Reliability - Slide Decks.pptx',
+        'Slide Decks/Lesson 02 - Portable Course Materials - Slide Decks.pptx',
         'PACKAGE_MANIFEST.json',
       ]),
     );
@@ -114,8 +132,8 @@ describe('packageZipExporter', () => {
       { featureId: 'slideDecks', label: 'Slide Decks' },
     ]);
     expect(buildXlsxBuffer).toHaveBeenCalledOnce();
-    expect(buildDeliverableDocxBlob).toHaveBeenCalledOnce();
-    expect(buildSlideDeckPptxBlob).toHaveBeenCalledOnce();
+    expect(buildDeliverableDocxBlob).toHaveBeenCalledTimes(2);
+    expect(buildSlideDeckPptxBlob).toHaveBeenCalledTimes(2);
   });
 
   it('uses custom deliverable names in ZIP paths and manifest labels', async () => {

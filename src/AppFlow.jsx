@@ -84,6 +84,7 @@ import { buildHumanReviewRecommendation, summarizeRepairEvidence } from './lib/p
 import { traceLog } from './lib/traceLog';
 
 const STORAGE_KEY = 'coursemapper-project';
+const CLOUD_PROJECT_FORMAT = 'coursemapper-blueprint-v1';
 
 function summarizeReceiptIssue(issue) {
   if (!issue) return null;
@@ -1494,6 +1495,38 @@ export default function AppFlow({ startupAction = null, onStartupHandled, onRetu
     ],
   );
 
+  const buildCloudProjectSnapshot = useCallback(
+    (extra = {}) => {
+      const snapshot = buildProjectSnapshot(extra);
+      const selectedDeliverables = (Array.isArray(snapshot.selectedFeatures) ? snapshot.selectedFeatures : [])
+        .filter((featureId) => featureId && featureId !== 'courseMap');
+      const deliverableEntries = Object.entries(snapshot.deliverables || {});
+      const deliverableFeatureIds = [
+        ...new Set([...selectedDeliverables, ...deliverableEntries.map(([featureId]) => featureId)]),
+      ];
+      const deliverableManifest = Object.fromEntries(
+        deliverableEntries.map(([featureId, entry]) => [
+          featureId,
+          {
+            status: entry?.status || 'idle',
+            stale: entry?.stale === true,
+            error: entry?.error ? String(entry.error).slice(0, 240) : '',
+          },
+        ]),
+      );
+
+      return {
+        ...snapshot,
+        cloudProjectFormat: CLOUD_PROJECT_FORMAT,
+        deliverableSaveMode: 'recompile-on-open',
+        deliverableFeatureIds,
+        deliverableManifest,
+        deliverables: {},
+      };
+    },
+    [buildProjectSnapshot],
+  );
+
   const applyDeveloperSnapshot = useCallback(
     (snapshot) => {
       if (!snapshot || typeof snapshot !== 'object') {
@@ -1697,7 +1730,7 @@ export default function AppFlow({ startupAction = null, onStartupHandled, onRetu
           projectIdRef.current = pid;
           setProjectId(pid);
         }
-        const state = buildProjectSnapshot({
+        const state = buildCloudProjectSnapshot({
           projectId: pid,
           courseName: courseMap?.courseName || 'Untitled',
           semester: courseMap?.semester || '',
@@ -1717,7 +1750,7 @@ export default function AppFlow({ startupAction = null, onStartupHandled, onRetu
       }
     }, 5000);
     return () => clearTimeout(cloudSaveTimerRef.current);
-  }, [user, hasGenerated, courseMap, buildProjectSnapshot, saveLocalProjectSnapshot]);
+  }, [user, hasGenerated, courseMap, buildCloudProjectSnapshot, saveLocalProjectSnapshot]);
 
   // ── On sign-in: merge cloud data (custom deliverables + profile) ──
   const prevUserRef = useRef(null);
@@ -1896,6 +1929,52 @@ export default function AppFlow({ startupAction = null, onStartupHandled, onRetu
     }
   }
 
+  async function compileCompactCloudDeliverables(saved) {
+    if (saved?.deliverableSaveMode !== 'recompile-on-open') return {};
+    if (!saved?.courseMap || !Array.isArray(saved.courseMap.lessons)) return {};
+    const selectedFeatureIds = Array.isArray(saved.selectedFeatures)
+      ? saved.selectedFeatures.filter((featureId) => featureId && featureId !== 'courseMap')
+      : [];
+    const featureIds = Array.isArray(saved.deliverableFeatureIds) && saved.deliverableFeatureIds.length > 0
+      ? saved.deliverableFeatureIds
+      : selectedFeatureIds;
+    if (featureIds.length === 0) return {};
+
+    try {
+      const { buildCourseBlueprint, compileBlueprintDeliverables, getBlueprintCompiledFeatures } = await import(
+        './lib/courseBlueprintCompiler'
+      );
+      const compiledFeatureIds = getBlueprintCompiledFeatures(featureIds);
+      if (compiledFeatureIds.length === 0) return {};
+      const configMap = Object.fromEntries(
+        compiledFeatureIds.map((featureId) => [featureId, saved.deliverableConfig?.[featureId] || {}]),
+      );
+      const blueprint = buildCourseBlueprint(saved.courseMap, {
+        compilerPath: {
+          mode: 'cloud-restore',
+          reason: 'Restored from a compact CourseMapper cloud project.',
+        },
+      });
+      const compiled = compileBlueprintDeliverables(blueprint, compiledFeatureIds, { configMap });
+      return Object.fromEntries(
+        compiledFeatureIds
+          .filter((featureId) => compiled[featureId])
+          .map((featureId) => [
+            featureId,
+            {
+              ...(saved.deliverableManifest?.[featureId] || {}),
+              status: 'done',
+              data: compiled[featureId],
+              restoredFrom: 'compact-cloud-project',
+            },
+          ]),
+      );
+    } catch (e) {
+      warn('[Cloud] compact project restore failed:', e);
+      return {};
+    }
+  }
+
   // ── Open a cloud project by ID ──
   async function handleOpenCloudProject(pid) {
     if (!user) return;
@@ -1905,6 +1984,10 @@ export default function AppFlow({ startupAction = null, onStartupHandled, onRetu
       const deliverables = prepareProjectSnapshotForRestore({
         deliverables: await loadProjectDeliverables(user.uid, pid),
       }).deliverables;
+      const restoredDeliverables =
+        deliverables && Object.keys(deliverables).length > 0
+          ? deliverables
+          : await compileCompactCloudDeliverables(saved);
       // Restore all state — same as doRestoreSession but from cloud
       setCourseMap(saved.courseMap);
       setColumns(saved.columns || [...DEFAULT_COLUMNS]);
@@ -1926,8 +2009,8 @@ export default function AppFlow({ startupAction = null, onStartupHandled, onRetu
       if (saved.activeTab) setActiveTab(saved.activeTab);
       if (saved.slideTheme !== undefined) setSlideTheme(saved.slideTheme);
       if (saved.deliverableConfig) setDeliverableConfig(saved.deliverableConfig);
-      if (deliverables && Object.keys(deliverables).length > 0) {
-        deliv.restoreDeliverables(deliverables);
+      if (restoredDeliverables && Object.keys(restoredDeliverables).length > 0) {
+        deliv.restoreDeliverables(restoredDeliverables);
       } else if (saved.deliverables) {
         deliv.restoreDeliverables(saved.deliverables);
       }
@@ -1952,7 +2035,7 @@ export default function AppFlow({ startupAction = null, onStartupHandled, onRetu
     if (!user || !courseMap) return;
     try {
       const pid = newProjectId();
-      const state = buildProjectSnapshot({
+      const state = buildCloudProjectSnapshot({
         projectId: pid,
         courseName: courseMap?.courseName || 'Untitled',
         semester: courseMap?.semester || '',
@@ -2022,8 +2105,7 @@ export default function AppFlow({ startupAction = null, onStartupHandled, onRetu
 
   async function handleConfirmNewProject() {
     if (isStartingNewProject) return;
-    const skipCloudSave = newProjectCloudSaveFailed || Boolean(newProjectError);
-    if (!skipCloudSave) setNewProjectError('');
+    setNewProjectError('');
     setIsStartingNewProject(true);
     try {
       clearTimeout(saveTimerRef.current);
@@ -2031,7 +2113,7 @@ export default function AppFlow({ startupAction = null, onStartupHandled, onRetu
         saveLocalProjectSnapshot({ projectId: projectIdRef.current });
       }
 
-      if (user && courseMap && hasGenerated && !skipCloudSave) {
+      if (user && courseMap && hasGenerated) {
         clearTimeout(cloudSaveTimerRef.current);
         setCloudSaveStatus('saving');
         let pid = projectIdRef.current;
@@ -2040,7 +2122,7 @@ export default function AppFlow({ startupAction = null, onStartupHandled, onRetu
           projectIdRef.current = pid;
           setProjectId(pid);
         }
-        const state = buildProjectSnapshot({
+        const state = buildCloudProjectSnapshot({
           projectId: pid,
           courseName: courseMap?.courseName || 'Untitled',
           semester: courseMap?.semester || '',
@@ -2057,8 +2139,24 @@ export default function AppFlow({ startupAction = null, onStartupHandled, onRetu
       setCloudSaveStatus('error');
       setNewProjectCloudSaveFailed(true);
       setNewProjectError(
-        'Cloud save failed. Your browser copy is still open. Download a backup or click Start Anyway.',
+        'My Projects save did not finish. Your current project is still open. Download a backup or start without cloud save.',
       );
+    } finally {
+      setIsStartingNewProject(false);
+    }
+  }
+
+  function handleStartNewProjectWithoutCloudSave() {
+    if (isStartingNewProject) return;
+    setIsStartingNewProject(true);
+    try {
+      clearTimeout(saveTimerRef.current);
+      clearTimeout(cloudSaveTimerRef.current);
+      if (courseMap && hasGenerated) {
+        saveLocalProjectSnapshot({ projectId: projectIdRef.current });
+      }
+      setNewProjectConfirm(false);
+      handleNewProject();
     } finally {
       setIsStartingNewProject(false);
     }
@@ -3090,18 +3188,18 @@ export default function AppFlow({ startupAction = null, onStartupHandled, onRetu
                     {user
                       ? newProjectError
                         ? 'My Projects sync did not finish. Your workspace is still open, and you can download a backup before starting over.'
-                        : 'We will save this project to My Projects before starting over. If saving fails, your workspace will stay open.'
+                        : 'We will save a compact CourseMapper project to My Projects before starting over. If saving fails, your workspace will stay open.'
                       : 'You are not signed in, so this browser autosave is the only in-app copy. Download a .coursemapper backup if you want to keep it.'}
                   </p>
                   <div className="mb-4 rounded-xl bg-slate-50/80 border border-slate-100 px-3 py-2 text-[10px] text-slate-500 leading-relaxed">
                     {user
                       ? newProjectError
                         ? 'Backup recommended: download a .coursemapper file or continue without My Projects sync.'
-                        : 'Autosave: local browser backup plus My Projects sync.'
+                        : 'Autosave: full browser backup plus compact My Projects sync.'
                       : 'Autosave: local browser backup only. It is cleared when you start over.'}
                   </div>
                   {newProjectError && (
-                    <p className="mb-4 rounded-lg bg-red-50 px-3 py-2 text-[11px] text-red-600 leading-relaxed">
+                    <p className="mb-4 rounded-lg bg-amber-50 px-3 py-2 text-[11px] text-amber-700 leading-relaxed">
                       {newProjectError}
                     </p>
                   )}
@@ -3123,7 +3221,11 @@ export default function AppFlow({ startupAction = null, onStartupHandled, onRetu
                       Cancel
                     </button>
                     <button
-                      onClick={handleConfirmNewProject}
+                      onClick={
+                        newProjectCloudSaveFailed || newProjectError
+                          ? handleStartNewProjectWithoutCloudSave
+                          : handleConfirmNewProject
+                      }
                       disabled={isStartingNewProject}
                       className="tactile px-4 py-2 rounded-lg text-xs font-semibold text-white bg-red-500 hover:bg-red-600 transition-all disabled:opacity-60 disabled:cursor-wait"
                     >
@@ -3132,7 +3234,7 @@ export default function AppFlow({ startupAction = null, onStartupHandled, onRetu
                           <Spinner /> Saving...
                         </span>
                       ) : newProjectCloudSaveFailed || newProjectError ? (
-                        'Start Anyway'
+                        'Start without cloud save'
                       ) : (
                         'Start New Project'
                       )}

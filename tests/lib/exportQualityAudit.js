@@ -102,21 +102,32 @@ function checkInternalProofLanguage(issues, fileName, text) {
   }
 }
 
-function checkFaqQuestionCounts(issues, fileName, text, expected) {
+function collectFaqQuestionCounts(text, expected) {
   const lessonTitles = Object.keys(expected || {});
+  const counts = {};
   for (let i = 0; i < lessonTitles.length; i++) {
     const title = lessonTitles[i];
     const start = text.indexOf(title);
-    if (start < 0) {
-      issues.push(`${fileName}: missing FAQ lesson heading "${title}"`);
-      continue;
-    }
-    const nextTitle = lessonTitles[i + 1];
-    const end = nextTitle ? text.indexOf(nextTitle, start + title.length) : -1;
+    if (start < 0) continue;
+    const laterStarts = lessonTitles
+      .slice(i + 1)
+      .map((nextTitle) => text.indexOf(nextTitle, start + title.length))
+      .filter((position) => position > start)
+      .sort((a, b) => a - b);
+    const end = laterStarts[0] || -1;
     const section = text.slice(start, end > start ? end : undefined);
-    const count = (section.match(/\bQ\d+\b/g) || []).length;
-    if (count !== expected[title]) {
-      issues.push(`${fileName}: expected ${expected[title]} FAQ questions for "${title}", found ${count}`);
+    counts[title] = (counts[title] || 0) + (section.match(/\bQ\d+\b/g) || []).length;
+  }
+  return counts;
+}
+
+function checkFaqQuestionCounts(issues, counts, expected) {
+  for (const [title, expectedCount] of Object.entries(expected || {})) {
+    const count = counts[title] || 0;
+    if (count === 0) {
+      issues.push(`Course FAQ: missing FAQ lesson heading "${title}"`);
+    } else if (count !== expectedCount) {
+      issues.push(`Course FAQ: expected ${expectedCount} FAQ questions for "${title}", found ${count}`);
     }
   }
 }
@@ -127,6 +138,7 @@ export async function auditCourseMaterialsZip(zipPath, options = {}) {
   const buffer = await fs.readFile(zipPath);
   const zip = await JSZip.loadAsync(buffer);
   const names = Object.keys(zip.files).filter((name) => !zip.files[name].dir);
+  const faqQuestionCounts = {};
 
   for (const folder of expectedFolders) {
     if (!names.some((name) => name.startsWith(`${folder}/`))) {
@@ -145,7 +157,10 @@ export async function auditCourseMaterialsZip(zipPath, options = {}) {
       checkPlaceholders(issues, name, text);
       checkInternalProofLanguage(issues, name, text);
       if (expectedFaqQuestionsPerLesson && name.startsWith('Course FAQ/')) {
-        checkFaqQuestionCounts(issues, name, text, expectedFaqQuestionsPerLesson);
+        const counts = collectFaqQuestionCounts(text, expectedFaqQuestionsPerLesson);
+        for (const [title, count] of Object.entries(counts)) {
+          faqQuestionCounts[title] = (faqQuestionCounts[title] || 0) + count;
+        }
       }
       continue;
     }
@@ -168,6 +183,10 @@ export async function auditCourseMaterialsZip(zipPath, options = {}) {
       checkPlaceholders(issues, name, text);
       checkInternalProofLanguage(issues, name, text);
     }
+  }
+
+  if (expectedFaqQuestionsPerLesson) {
+    checkFaqQuestionCounts(issues, faqQuestionCounts, expectedFaqQuestionsPerLesson);
   }
 
   return {

@@ -126,6 +126,110 @@ describe('cloudStorage secret sanitation', () => {
     expect(allWritesText()).not.toContain('sk-proj-');
   });
 
+  it('chunks oversized deliverables so full-course cloud saves stay below Firestore document limits', async () => {
+    await saveProjectDeliverables('user-1', 'project-1', {
+      slideDecks: {
+        status: 'done',
+        data: {
+          slides: [{ title: 'Large deck', speakerNotes: 'x'.repeat(760_000) }],
+        },
+      },
+    });
+
+    const [, manifestPayload] = firestoreMocks.batchSet.mock.calls[0];
+    expect(manifestPayload.__chunked).toBe(true);
+    expect(manifestPayload.encoding).toBe('json');
+    expect(manifestPayload.chunkCount).toBeGreaterThan(1);
+
+    const chunkPayloads = firestoreMocks.batchSet.mock.calls.slice(1).map(([, payload]) => payload);
+    expect(chunkPayloads).toHaveLength(manifestPayload.chunkCount);
+    expect(chunkPayloads.every((payload) => payload.__deliverableChunk === true)).toBe(true);
+    expect(chunkPayloads.map((payload) => payload.text).join('')).toContain('Large deck');
+  });
+
+  it('saves compact blueprint projects without writing generated deliverable bodies', async () => {
+    firestore.getDocs.mockResolvedValueOnce({
+      docs: [
+        { id: 'slideDecks', ref: { path: 'users/user-1/projects/project-1/deliverables/slideDecks' } },
+        {
+          id: '__cm_chunk__slideDecks__0',
+          ref: { path: 'users/user-1/projects/project-1/deliverables/__cm_chunk__slideDecks__0' },
+        },
+      ],
+    });
+
+    await saveProject('user-1', 'project-1', {
+      courseName: 'Compact Course',
+      cloudProjectFormat: 'coursemapper-blueprint-v1',
+      deliverableSaveMode: 'recompile-on-open',
+      deliverableFeatureIds: ['lessonPlans', 'slideDecks'],
+      deliverableManifest: {
+        slideDecks: { status: 'done' },
+      },
+      deliverables: {
+        slideDecks: {
+          status: 'done',
+          data: {
+            slides: [{ speakerNotes: 'x'.repeat(760_000) }],
+          },
+        },
+      },
+    });
+
+    const [, projectPayload] = firestore.setDoc.mock.calls[0];
+    expect(projectPayload).toMatchObject({
+      courseName: 'Compact Course',
+      cloudProjectFormat: 'coursemapper-blueprint-v1',
+      deliverableSaveMode: 'recompile-on-open',
+      deliverableFeatureIds: ['lessonPlans', 'slideDecks'],
+    });
+    expect(projectPayload).not.toHaveProperty('deliverables');
+    expect(firestoreMocks.batchSet).not.toHaveBeenCalled();
+    expect(firestoreMocks.batchDelete).toHaveBeenCalledTimes(2);
+  });
+
+  it('restores chunked deliverables without exposing internal chunk documents', async () => {
+    const deliverable = {
+      status: 'done',
+      data: {
+        slides: [{ title: 'Restored deck', speakerNotes: `Never reload ${OPENAI_KEY}` }],
+      },
+    };
+    const serialized = JSON.stringify(deliverable);
+    const chunks = [serialized.slice(0, 60), serialized.slice(60)];
+    firestore.getDocs.mockResolvedValueOnce({
+      forEach: (cb) => {
+        cb({
+          id: 'slideDecks',
+          data: () => ({
+            __chunked: true,
+            encoding: 'json',
+            chunkCount: chunks.length,
+            status: 'done',
+          }),
+        });
+        chunks.forEach((text, index) => {
+          cb({
+            id: `__cm_chunk__slideDecks__${index}`,
+            data: () => ({
+              __deliverableChunk: true,
+              featureId: 'slideDecks',
+              index,
+              text,
+            }),
+          });
+        });
+      },
+    });
+
+    const restored = await loadProjectDeliverables('user-1', 'project-1');
+
+    expect(restored).not.toHaveProperty('__cm_chunk__slideDecks__0');
+    expect(restored.slideDecks.status).toBe('done');
+    expect(restored.slideDecks.data.slides[0].title).toBe('Restored deck');
+    expect(restored.slideDecks.data.slides[0].speakerNotes).toBe('Never reload [redacted secret]');
+  });
+
   it('sanitizes agent memory and custom tool cloud writes', async () => {
     await saveAgentMemory('user-1', {
       id: 'memory-1',
