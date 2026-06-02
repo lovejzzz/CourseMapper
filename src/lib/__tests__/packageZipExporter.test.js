@@ -166,6 +166,58 @@ describe('packageZipExporter', () => {
     expect(manifestText).not.toContain('custom_weeklyReflection');
   });
 
+  it('adds a required lab-assets marker when notebook and dataset assets are referenced', async () => {
+    const result = await buildCourseMaterialsZip({
+      courseMap: {
+        courseName: 'Applied Machine Learning',
+        lessons: [
+          {
+            title: 'Lesson 1: Model Validation',
+            sections: [
+              {
+                supportingResources: 'Starter notebook; course dataset; model card template',
+                weeklyAssessments:
+                  'Model validation notebook using a train-test split, confusion matrix, threshold tradeoff, precision, recall, and fairness note.',
+              },
+            ],
+          },
+        ],
+      },
+      deliverables: {
+        studyGuides: {
+          status: 'done',
+          data: {
+            studyGuides: [
+              {
+                lessonTitle: 'Lesson 1: Model Validation',
+                summary: 'Use the Jupyter notebook and dataset to compare validation metrics and model-card limits.',
+              },
+            ],
+          },
+        },
+      },
+      featureIds: ['courseMap', 'studyGuides'],
+    });
+
+    const assetPath = 'Required Assets/Applied Machine Learning - Required Lab Assets.md';
+    expect(result.files.map((file) => file.path)).toContain(assetPath);
+
+    const zip = await JSZip.loadAsync(await result.blob.arrayBuffer());
+    const report = await zip.file(assetPath).async('string');
+    expect(report).toContain('Course dataset');
+    expect(report).toContain('Starter lab notebook');
+    expect(report).toContain('Model card or validation template');
+
+    const manifest = JSON.parse(await zip.file('PACKAGE_MANIFEST.json').async('string'));
+    expect(manifest.requiredAssets).toEqual(
+      expect.arrayContaining([
+        expect.objectContaining({ id: 'course-dataset', label: 'Course dataset' }),
+        expect.objectContaining({ id: 'starter-notebook', label: 'Starter lab notebook' }),
+        expect.objectContaining({ id: 'model-card-template', label: 'Model card or validation template' }),
+      ]),
+    );
+  });
+
   it('fails closed instead of downloading a partial ZIP when a selected file cannot be built', async () => {
     buildDeliverableDocxBlob.mockRejectedValueOnce(new Error('DOCX build failed'));
 

@@ -102,6 +102,20 @@ function checkInternalProofLanguage(issues, fileName, text) {
   }
 }
 
+function hasDataScienceAssetReference(text) {
+  return /\b(applied machine learning|machine learning|data science|jupyter|notebook|ipynb|dataset|data set|dataframe|model validation|train[-\s]?test|cross[-\s]?validation|confusion matrix|precision|recall|threshold|fairness|bias audit|model card)\b/i.test(
+    text,
+  );
+}
+
+function hasBundledLabAsset(names) {
+  return names.some((name) => /\.(?:ipynb|csv|py|parquet|r|jsonl)$/i.test(name));
+}
+
+function hasRequiredLabAssetsMarker(names) {
+  return names.some((name) => /^Required Assets\/.+Required Lab Assets\.md$/i.test(name));
+}
+
 function collectFaqQuestionCounts(text, expected) {
   const lessonTitles = Object.keys(expected || {});
   const counts = {};
@@ -139,6 +153,7 @@ export async function auditCourseMaterialsZip(zipPath, options = {}) {
   const zip = await JSZip.loadAsync(buffer);
   const names = Object.keys(zip.files).filter((name) => !zip.files[name].dir);
   const faqQuestionCounts = {};
+  const extractedText = [];
 
   for (const folder of expectedFolders) {
     if (!names.some((name) => name.startsWith(`${folder}/`))) {
@@ -154,6 +169,7 @@ export async function auditCourseMaterialsZip(zipPath, options = {}) {
 
     if (lower.endsWith('.docx')) {
       const text = await extractDocxText(fileBuffer);
+      extractedText.push(text);
       checkPlaceholders(issues, name, text);
       checkInternalProofLanguage(issues, name, text);
       if (expectedFaqQuestionsPerLesson && name.startsWith('Course FAQ/')) {
@@ -167,6 +183,7 @@ export async function auditCourseMaterialsZip(zipPath, options = {}) {
 
     if (lower.endsWith('.pptx')) {
       const { text, notes } = await extractPptxTextAndNotes(fileBuffer);
+      extractedText.push(text);
       checkPlaceholders(issues, name, text);
       checkInternalProofLanguage(issues, name, text);
       for (const note of notes) {
@@ -180,9 +197,27 @@ export async function auditCourseMaterialsZip(zipPath, options = {}) {
 
     if (lower.endsWith('.xlsx')) {
       const text = await extractXlsxText(fileBuffer);
+      extractedText.push(text);
       checkPlaceholders(issues, name, text);
       checkInternalProofLanguage(issues, name, text);
     }
+
+    if (lower.endsWith('.md') || lower.endsWith('.txt')) {
+      const text = fileBuffer.toString('utf8');
+      extractedText.push(text);
+      checkPlaceholders(issues, name, text);
+      checkInternalProofLanguage(issues, name, text);
+    }
+  }
+
+  if (
+    hasDataScienceAssetReference(extractedText.join(' ')) &&
+    !hasBundledLabAsset(names) &&
+    !hasRequiredLabAssetsMarker(names)
+  ) {
+    issues.push(
+      'Data-science package references notebooks, datasets, model cards, or validation assets but includes no lab asset file and no Required Assets marker.',
+    );
   }
 
   if (expectedFaqQuestionsPerLesson) {

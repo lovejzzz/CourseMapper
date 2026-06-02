@@ -407,6 +407,87 @@ const makeDataScienceLabCourseMap = () => ({
   ],
 });
 
+const makeAppliedMachineLearningCourseMap = () => ({
+  courseName: 'Applied Machine Learning',
+  semester: 'Fall 2026',
+  learningOutcomes:
+    'Build notebook-based applied machine learning workflows with datasets, train-test validation, model-performance evidence, threshold tradeoffs, fairness checks, quizzes, study guides, and a final model card.',
+  lessons: [
+    {
+      title: 'Lesson 1: Foundations of Applied Machine Learning',
+      sections: [
+        {
+          topicSection: 'Applied machine learning workflow, supervised learning, dataset, features, target variable',
+          learningObjectives:
+            'Explain how a notebook workflow connects data, features, target labels, and model decisions.',
+          learningGoals: 'Students connect machine learning concepts to a reproducible dataset workflow.',
+          weeklyAssessments:
+            'Concept check quiz and starter notebook annotation identifying dataset fields, target variable, and model-use risk.',
+          asyncActivities: 'Read the dataset card and mark one likely data-quality limitation.',
+          syncActivities:
+            'Notebook lab with dataset inspection, feature/target identification, and peer explanation of model-use risk.',
+          supportingResources: 'Starter notebook; course dataset; dataset card; study guide',
+          evaluateDesign: 'Score data-quality evidence, feature/target clarity, and model-use limitation.',
+        },
+      ],
+    },
+    {
+      title: 'Lesson 2: Model Validation and Train-Test Evidence',
+      sections: [
+        {
+          topicSection:
+            'Train-test split, validation metric, baseline model, overfitting, reproducible notebook evidence',
+          learningObjectives: 'Use train-test evidence to decide whether a baseline model is useful.',
+          learningGoals: 'Students separate model fit from defensible validation evidence.',
+          weeklyAssessments:
+            'Practice quiz and model validation notebook with baseline comparison, train-test metric, and limitation note.',
+          asyncActivities: 'Review a short study guide on overfitting and validation metrics.',
+          syncActivities: 'Notebook lab comparing baseline and trained model output with a validation debrief.',
+          supportingResources: 'Validation notebook; metric guide; model card template',
+          evaluateDesign: 'Assess validation evidence, metric interpretation, and limitation clarity.',
+        },
+      ],
+    },
+    {
+      title: 'Lesson 3: Classification Modeling and Decision Thresholds',
+      sections: [
+        {
+          topicSection:
+            'Classification model, confusion matrix, decision threshold, precision, recall, false positives, false negatives',
+          learningObjectives:
+            'Evaluate a classification threshold using confusion matrix evidence, precision, and recall.',
+          learningGoals: 'Students connect threshold choice to stakeholder risk and model performance.',
+          weeklyAssessments:
+            'Quiz and notebook checkpoint interpreting confusion matrix results, threshold tradeoffs, precision, recall, and false-positive/false-negative costs.',
+          asyncActivities: 'Read threshold examples and predict which error is more costly.',
+          syncActivities:
+            'Notebook lab adjusting classification thresholds, comparing precision/recall, and writing a model-card limitation.',
+          supportingResources: 'Classification notebook; confusion matrix guide; model card template',
+          evaluateDesign: 'Score threshold rationale, metric interpretation, fairness concern, and model-card limit.',
+        },
+      ],
+    },
+    {
+      title: 'Lesson 4: Fairness Audit and Model Card Handoff',
+      sections: [
+        {
+          topicSection: 'Fairness audit, subgroup performance, model card, deployment limit, validation summary',
+          learningObjectives: 'Audit model outputs for fairness risk and write a bounded model-card recommendation.',
+          learningGoals: 'Students make model evidence transparent enough for review.',
+          weeklyAssessments:
+            'Final exam review and model-card handoff with subgroup check, validation evidence, fairness note, and recommendation.',
+          asyncActivities: 'Study the model-card template and identify one missing evidence field.',
+          syncActivities:
+            'Analytics review clinic with subgroup metric comparison, fairness discussion, and model-card revision.',
+          supportingResources: 'Fairness notebook; subgroup metric table; model card template; exam study guide',
+          evaluateDesign:
+            'Assess fairness evidence, validation summary, limitation transparency, and handoff readiness.',
+        },
+      ],
+    },
+  ],
+});
+
 const makeEngineeringDesignLabCourseMap = () => ({
   courseName: 'Engineering Design Build Test Lab',
   semester: 'Fall 2026',
@@ -4742,7 +4823,7 @@ describe('courseBlueprintCompiler', () => {
     expect(blueprint.courseModalityProfile.primaryMode).not.toBe('applied-lab');
     expect(blueprint.enrichment.lens).toMatchObject({
       domain: 'data science analytics lab',
-      evidenceNoun: 'data-model evidence',
+      evidenceNoun: 'validation and model-performance evidence',
       decisionNoun: 'analytic decision',
       learnerRole: 'data analyst',
     });
@@ -4776,6 +4857,49 @@ describe('courseBlueprintCompiler', () => {
         reviewFocus: expect.stringContaining('bias or fairness risk'),
       }),
     });
+  });
+
+  it('keeps applied machine learning in data-science lab mode despite quizzes and study guides', () => {
+    const blueprint = buildCourseBlueprint(makeAppliedMachineLearningCourseMap());
+    const compiled = compileBlueprintDeliverables(blueprint, [
+      'lessonPlans',
+      'slideDecks',
+      'discussions',
+      'quizBank',
+      'studyGuides',
+      'courseFaq',
+    ]);
+    const compiledText = JSON.stringify(compiled).toLowerCase();
+    const blueprintText = JSON.stringify(blueprint).toLowerCase();
+    const classificationGuide = compiled.studyGuides.studyGuides.find((guide) =>
+      /classification modeling/i.test(guide.lessonTitle),
+    );
+    const classificationGuideText = JSON.stringify(classificationGuide).toLowerCase();
+
+    expect(blueprint.courseModalityProfile.primaryMode).toBe('data-science-lab');
+    expect(blueprint.courseModalityProfile.primaryMode).not.toBe('lecture-exam');
+    expect(blueprint.enrichment.lens).toMatchObject({
+      domain: 'applied machine learning lab',
+      evidenceNoun: 'validation and model-performance evidence',
+      decisionNoun: 'modeling decision',
+    });
+    expect(blueprint.lessons.map((lesson) => lesson.artifactGenre.genre)).toEqual(
+      Array(4).fill('data-science-notebook'),
+    );
+    expect(blueprint.lessons[0].throughlineCase).toMatchObject({
+      projectName: 'Riverton Civic Services Modeling Project',
+      datasetName: 'Riverton Civic Services Triage Dataset',
+      evidencePacket: expect.stringContaining('Riverton Model Evidence Packet'),
+    });
+    expect(blueprintText).not.toContain('research design evidence packet');
+    expect(compiledText).not.toContain('lecture-exam evidence choice');
+    expect(compiledText).not.toContain('design evidence');
+    expect(classificationGuideText).toContain('confusion matrix');
+    expect(classificationGuideText).toContain('precision');
+    expect(classificationGuideText).toContain('recall');
+    expect(classificationGuideText).toContain('false positives');
+    expect(classificationGuideText).toContain('false negatives');
+    expect(classificationGuideText).toContain('model-card');
   });
 
   it('decodes engineering design courses as test-and-verification labs', () => {

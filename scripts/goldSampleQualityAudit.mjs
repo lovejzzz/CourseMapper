@@ -1975,7 +1975,7 @@ const PROGRAMMING_LAB_GOLD_ENRICHMENT = {
 const DATA_SCIENCE_LAB_GOLD_ENRICHMENT = {
   source: 'curated-gold-sample-enrichment',
   signatureTerms: [
-    'data-model evidence',
+    'validation and model-performance evidence',
     'dataset provenance',
     'data-cleaning log',
     'analytics notebook',
@@ -1986,50 +1986,56 @@ const DATA_SCIENCE_LAB_GOLD_ENRICHMENT = {
   ],
   lens: {
     domain: 'data science analytics lab',
-    evidenceNoun: 'data-model evidence',
+    evidenceNoun: 'validation and model-performance evidence',
     decisionNoun: 'analytic decision',
     learnerRole: 'data analyst',
-    exampleNoun: 'analytics notebook scenario',
+    exampleNoun: 'dataset and notebook scenario',
   },
   lessonPhrases: {
     'lesson-1': {
       context: 'dataset provenance and cleaning',
-      evidenceMove: 'use data-model evidence to show dataset source, missingness, and cleaning decisions',
+      evidenceMove:
+        'use validation and model-performance evidence to show dataset source, missingness, and cleaning decisions',
       decisionMove: 'choose an analytic decision that keeps data quality limits visible',
     },
     'lesson-2': {
       context: 'exploratory visualization and data story',
-      evidenceMove: 'use data-model evidence to connect chart choice, pattern, and interpretation boundary',
+      evidenceMove:
+        'use validation and model-performance evidence to connect chart choice, pattern, and interpretation boundary',
       decisionMove: 'choose an analytic decision that avoids overclaiming from exploratory visuals',
     },
     'lesson-3': {
       context: 'feature engineering and transformation',
-      evidenceMove: 'use data-model evidence to justify transformation choices and feature meaning',
+      evidenceMove:
+        'use validation and model-performance evidence to justify transformation choices and feature meaning',
       decisionMove: 'choose an analytic decision that preserves interpretability and reproducibility',
     },
     'lesson-4': {
       context: 'model validation and metrics',
-      evidenceMove: 'use data-model evidence to compare validation metrics and model limitations',
+      evidenceMove: 'use validation and model-performance evidence to compare validation metrics and model limitations',
       decisionMove: 'choose an analytic decision that fits the decision context rather than only the best score',
     },
     'lesson-5': {
       context: 'classification errors and confusion matrix',
-      evidenceMove: 'use data-model evidence to diagnose false positives, false negatives, and threshold effects',
+      evidenceMove:
+        'use validation and model-performance evidence to diagnose false positives, false negatives, and threshold effects',
       decisionMove: 'choose an analytic decision that names the cost of classification errors',
     },
     'lesson-6': {
       context: 'bias audit and fairness check',
-      evidenceMove: 'use data-model evidence to compare subgroup performance and fairness risks',
+      evidenceMove: 'use validation and model-performance evidence to compare subgroup performance and fairness risks',
       decisionMove: 'choose an analytic decision that protects transparency and local review',
     },
     'lesson-7': {
       context: 'dashboard communication and stakeholder interpretation',
-      evidenceMove: 'use data-model evidence to connect dashboard choices to stakeholder questions',
+      evidenceMove:
+        'use validation and model-performance evidence to connect dashboard choices to stakeholder questions',
       decisionMove: 'choose an analytic decision that makes the insight actionable without hiding uncertainty',
     },
     'lesson-8': {
       context: 'final analytics notebook and data story handoff',
-      evidenceMove: 'use data-model evidence to synthesize provenance, cleaning, validation, bias, and interpretation',
+      evidenceMove:
+        'use validation and model-performance evidence to synthesize provenance, cleaning, validation, bias, and interpretation',
       decisionMove: 'choose an analytic decision that supports maintainable data-story handoff',
     },
   },
@@ -5087,7 +5093,8 @@ const DATA_SCIENCE_LAB_GOLD_PROJECT = {
         async: 'Review prior notebook checkpoints and draft a data-story summary with one known limitation.',
         sync: 'Final analytics review clinic with notebook walkthrough, validation check, bias review, and handoff debrief.',
         resources: 'Final analytics rubric; notebook handoff checklist; data story model',
-        evaluation: 'Assess data-model evidence, interpretation accuracy, bias transparency, and handoff readiness.',
+        evaluation:
+          'Assess validation and model-performance evidence, interpretation accuracy, bias transparency, and handoff readiness.',
       },
     ],
   }),
@@ -7107,7 +7114,7 @@ export const DEFAULT_GOLD_SAMPLES = [
       courseModality: 'data-science-lab',
       artifactGenres: Array(8).fill('data-science-notebook'),
       packageMustMatch: [
-        /data-model evidence/i,
+        /validation and model-performance evidence/i,
         /dataset provenance/i,
         /analytics notebook/i,
         /validation metric/i,
@@ -7122,29 +7129,29 @@ export const DEFAULT_GOLD_SAMPLES = [
           ],
         },
         lessonPlans: {
-          mustMatch: [/data-model evidence/i, /analytic decision/i],
+          mustMatch: [/validation and model-performance evidence/i, /analytic decision/i],
         },
         slideDecks: {
-          mustMatch: [/data-model evidence/i, /analytic decision/i],
-          mustMatchAny: [[/analytics notebook scenario/i, /validation metric/i]],
+          mustMatch: [/validation and model-performance evidence/i, /analytic decision/i],
+          mustMatchAny: [[/dataset and notebook scenario/i, /validation metric/i]],
         },
         assignments: {
-          mustMatch: [/data-model evidence/i, /data science analytics lab/i],
+          mustMatch: [/validation and model-performance evidence/i, /data science analytics lab/i],
         },
         rubrics: {
-          mustMatch: [/data-model evidence/i],
+          mustMatch: [/validation and model-performance evidence/i],
         },
         discussions: {
-          mustMatch: [/data-model evidence/i, /analytic decision/i],
+          mustMatch: [/validation and model-performance evidence/i, /analytic decision/i],
         },
         quizBank: {
-          mustMatch: [/data-model evidence/i, /analytic decision/i],
+          mustMatch: [/validation and model-performance evidence/i, /analytic decision/i],
         },
         studyGuides: {
-          mustMatch: [/data-model evidence/i, /analytic decision/i],
+          mustMatch: [/validation and model-performance evidence/i, /analytic decision/i],
         },
         courseFaq: {
-          mustMatch: [/data-model evidence/i],
+          mustMatch: [/validation and model-performance evidence/i],
         },
       },
     },

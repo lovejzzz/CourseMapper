@@ -161,7 +161,7 @@ function lessonFileStem(courseMap, lessonIndex) {
   return `Lesson ${String(lessonIndex + 1).padStart(2, '0')} - ${safeTitle}`;
 }
 
-function buildManifest({ courseName, lessonFilter, readiness, files, requestedFeatureIds }) {
+function buildManifest({ courseName, lessonFilter, readiness, files, requestedFeatureIds, requiredAssets = [] }) {
   return {
     courseName,
     generatedAt: new Date().toISOString(),
@@ -176,6 +176,7 @@ function buildManifest({ courseName, lessonFilter, readiness, files, requestedFe
       warnings: readiness?.warnings?.length || 0,
       checkedSections: readiness?.featureCount ? `${readiness?.doneFeatureCount ?? 0}/${readiness.featureCount}` : null,
     },
+    requiredAssets,
     files,
   };
 }
@@ -312,12 +313,29 @@ export async function buildCourseMaterialsZip({
 
   if (failures.length > 0) throw new PackageZipExportError(failures);
 
+  const { collectRequiredLabAssets, buildRequiredLabAssetsReport } = await safeImport(
+    () => import('./requiredLabAssets'),
+  );
+  const requiredAssets = collectRequiredLabAssets({ courseMap, deliverables, requestedFeatureIds });
+  if (requiredAssets.length > 0) {
+    const reportPath = `Required Assets/${safeCourseName} - Required Lab Assets.md`;
+    const report = buildRequiredLabAssetsReport(requiredAssets, { courseName: safeCourseName });
+    addRequiredFile(zip, files, failures, reportPath, report, {
+      featureId: 'requiredAssets',
+      format: 'md',
+      minBytes: 64,
+    });
+  }
+
+  if (failures.length > 0) throw new PackageZipExportError(failures);
+
   const manifest = buildManifest({
     courseName: safeCourseName,
     lessonFilter,
     readiness,
     files,
     requestedFeatureIds,
+    requiredAssets,
   });
   const manifestText = JSON.stringify(manifest, null, 2);
   zip.file('PACKAGE_MANIFEST.json', manifestText);

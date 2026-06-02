@@ -276,7 +276,7 @@ function hasProgrammingLabEvidence(text = '') {
 
 function hasDataScienceLabEvidence(text = '') {
   const hasDataDomain =
-    /\b(data science|data analytics|business analytics|analytics lab|machine learning lab|statistical learning|data mining|predictive modeling|predictive analytics|model evaluation|data visualization|analytics dashboard|jupyter notebook|r notebook|notebook analysis|dataframe)\b/.test(
+    /\b(data science|data analytics|business analytics|analytics lab|applied machine learning|machine learning|machine learning lab|statistical learning|data mining|predictive modeling|predictive analytics|model evaluation|data visualization|analytics dashboard|jupyter notebook|r notebook|notebook analysis|dataframe)\b/.test(
       text,
     ) ||
     (/\b(dataset|data set|csv|spreadsheet|data table|dataframe)\b/.test(text) &&
@@ -570,11 +570,15 @@ function inferDisciplineLens(courseName, concepts = []) {
   }
   if (hasDataScienceLabEvidence(text)) {
     return {
-      domain: 'data science analytics lab',
-      evidenceNoun: 'data-model evidence',
-      decisionNoun: 'analytic decision',
+      domain: /\b(machine learning|predictive model|classification|regression|model evaluation)\b/.test(text)
+        ? 'applied machine learning lab'
+        : 'data science analytics lab',
+      evidenceNoun: 'validation and model-performance evidence',
+      decisionNoun: /\b(machine learning|predictive model|classification|regression|model evaluation)\b/.test(text)
+        ? 'modeling decision'
+        : 'analytic decision',
       learnerRole: 'data analyst',
-      exampleNoun: 'analytics notebook scenario',
+      exampleNoun: 'dataset and notebook scenario',
     };
   }
   if (hasProgrammingLabEvidence(text)) {
@@ -798,6 +802,40 @@ function pluralizeLensPhrase(value) {
 
 function alignLensToCourseModality(lens = {}, courseModalityProfile = {}) {
   const primaryMode = courseModalityProfile?.primaryMode || '';
+  if (primaryMode === 'data-science-lab') {
+    const dataScienceLensText = [lens.domain, lens.evidenceNoun, lens.decisionNoun, lens.learnerRole, lens.exampleNoun]
+      .join(' ')
+      .toLowerCase();
+    if (
+      /\b(data science|analytics|machine learning|model|validation|dataset|notebook|data analyst)\b/.test(
+        dataScienceLensText,
+      )
+    ) {
+      return {
+        ...lens,
+        evidenceNoun: /validation|model-performance|data-quality|fairness/.test(
+          cleanText(lens.evidenceNoun).toLowerCase(),
+        )
+          ? lens.evidenceNoun
+          : 'validation and model-performance evidence',
+        decisionNoun: /model|analytic|threshold/.test(cleanText(lens.decisionNoun).toLowerCase())
+          ? lens.decisionNoun
+          : 'modeling decision',
+        exampleNoun: /dataset|notebook|analytics/.test(cleanText(lens.exampleNoun).toLowerCase())
+          ? lens.exampleNoun
+          : 'dataset and notebook scenario',
+      };
+    }
+
+    return {
+      ...lens,
+      domain: 'applied machine learning and data science lab',
+      evidenceNoun: 'validation and model-performance evidence',
+      decisionNoun: 'modeling decision',
+      learnerRole: 'data science practitioner',
+      exampleNoun: 'dataset and notebook scenario',
+    };
+  }
   if (primaryMode === 'clinical-placement-practicum') {
     const placementLensText = [lens.domain, lens.evidenceNoun, lens.decisionNoun, lens.learnerRole, lens.exampleNoun]
       .join(' ')
@@ -3074,7 +3112,7 @@ function buildClassSessionPlan({ lesson, modalityDecode, sessionMinutes = DEFAUL
                                               `Students prepare the notebook, dashboard, or data story evidence that carries into the next analytics task.`,
                                             evidenceOfLearning:
                                               lesson.feedbackCycle?.closureCheck ||
-                                              `Students submit or state one data-model evidence claim, one limitation, and one next analysis risk.`,
+                                              `Students submit or state one validation or model-performance evidence claim, one limitation, and one next analysis risk.`,
                                           },
                                         ]
                                       : isProgrammingLab
@@ -3316,6 +3354,22 @@ function selectThroughlineProfile({ courseName = '', courseConcepts = [], lens =
     [courseName, lens.domain, lens.exampleNoun, courseModalityProfile.primaryMode, ...courseConcepts].join(' '),
   ).toLowerCase();
 
+  if (
+    courseModalityProfile?.primaryMode === 'data-science-lab' ||
+    /\b(applied machine learning|machine learning|data science|data analytics|predictive modeling|model evaluation|classification model|regression model|jupyter|notebook analysis|dataframe)\b/.test(
+      text,
+    )
+  ) {
+    return {
+      projectName: 'Riverton Civic Services Modeling Project',
+      clientName: 'Riverton Analytics Team',
+      datasetName: 'Riverton Civic Services Triage Dataset',
+      casePacketName: 'Riverton Model Evidence Packet',
+      stakeholderGroup: 'residents, service coordinators, data analysts, program managers, and fairness reviewers',
+      setting:
+        'a civic-services analytics project where students build, validate, and audit a triage model from a course-created dataset',
+    };
+  }
   if (/\b(social policy|welfare|benefits|human services|social work|poverty|public assistance)\b/.test(text)) {
     return {
       projectName: 'Riverton Family Support Access Initiative',
@@ -3428,6 +3482,9 @@ function buildLessonThroughlineCase(context, lesson) {
   const concept = lesson?.keyConcepts?.[0] || lessonTitle;
   const artifact = stripTerminalPunctuation(lesson?.studentArtifact || 'the lesson artifact');
   const evidencePacket = `${context.casePacketName}: Lesson ${lesson.lessonNumber} ${lessonTitle}`;
+  const isDataScienceCase = /\b(model|analytics|dataset|notebook|data science|machine learning|triage)\b/i.test(
+    [context.projectName, context.clientName, context.datasetName, context.casePacketName, context.setting].join(' '),
+  );
   return {
     projectName: context.projectName,
     clientName: context.clientName,
@@ -3435,8 +3492,12 @@ function buildLessonThroughlineCase(context, lesson) {
     evidencePacket,
     lessonCaseName: `${context.projectName} ${lessonTitle} decision`,
     stakeholderCue: context.stakeholderGroup,
-    decisionPrompt: `Advise ${context.clientName} on the ${concept} decision using evidence from ${evidencePacket}.`,
-    artifactConnection: `${artifact} should show how ${context.projectName} evidence changes the student's recommendation, design choice, or analysis.`,
+    decisionPrompt: isDataScienceCase
+      ? `Advise ${context.clientName} on the ${concept} modeling decision using ${context.datasetName}, notebook outputs, validation metrics, and evidence from ${evidencePacket}.`
+      : `Advise ${context.clientName} on the ${concept} decision using evidence from ${evidencePacket}.`,
+    artifactConnection: isDataScienceCase
+      ? `${artifact} should show how ${context.datasetName} records, validation results, and model limitations change the student's modeling choice or analytic recommendation.`
+      : `${artifact} should show how ${context.projectName} evidence changes the student's recommendation, design choice, or analysis.`,
     sourceBoundary: context.evidenceBoundary,
   };
 }
@@ -4532,7 +4593,7 @@ function buildCourseModalityProfile({ courseName, lessons }) {
   const ethicsArgumentScore = ethicsArgumentCoreScore + ethicsArgumentPracticeScore;
   const dataScienceCoreScore = hasDataScienceLabEvidence(text)
     ? countPattern(
-        /\b(data science|data analytics|business analytics|analytics lab|machine learning lab|statistical learning|data mining|predictive modeling|predictive analytics|model evaluation|data visualization|analytics dashboard|jupyter notebook|r notebook|notebook analysis|dataframe)\b/g,
+        /\b(data science|data analytics|business analytics|analytics lab|applied machine learning|machine learning|machine learning lab|statistical learning|data mining|predictive modeling|predictive analytics|model evaluation|model validation|data visualization|analytics dashboard|jupyter notebook|r notebook|notebook analysis|dataframe)\b/g,
       )
     : 0;
   const dataSciencePracticeScore =
@@ -4600,6 +4661,18 @@ function buildCourseModalityProfile({ courseName, lessons }) {
   const hasOnline =
     /\b(online|asynchronous|discussion board|self[-\s]?paced|lms|remote|virtual)\b/.test(text) ||
     lessons.some((lesson) => /asynchronous|online|discussion board|lms/i.test(lesson.activityPattern || ''));
+  const dataScienceLabShouldWin =
+    dataScienceScore >= 3 &&
+    (dataScienceScore >= lectureExamScore - 1 ||
+      programmingScore >= lectureExamScore ||
+      /\b(applied machine learning|machine learning|predictive modeling|model evaluation|classification model|regression model|jupyter|notebook)\b/.test(
+        courseNameText,
+      ));
+  const lectureExamShouldWin =
+    lectureExamScore >= 3 &&
+    !hasOnline &&
+    lectureExamScore >= Math.max(labScore, fieldScore, studioScore) &&
+    !dataScienceLabShouldWin;
 
   const primaryMode =
     worldLanguageScore >= 3 && clinicalScore < 2 && !hasOnline
@@ -4620,49 +4693,50 @@ function buildCourseModalityProfile({ courseName, lessons }) {
                     ? 'counseling-practice'
                     : statisticsInferenceScore >= 3 && !hasOnline
                       ? 'statistics-inference'
-                      : lectureExamScore >= 3 &&
-                          !hasOnline &&
-                          lectureExamScore >= Math.max(labScore, fieldScore, studioScore)
-                        ? 'lecture-exam'
-                        : clinicalPlacementScore >= 3 && clinicalPlacementStrongScore >= 2
-                          ? 'clinical-placement-practicum'
-                          : clinicalJudgmentScore >= 3
-                            ? 'clinical-judgment-simulation'
-                            : clinicalScore >= 2
-                              ? 'clinical-simulation'
-                              : capstoneDominatesStudio
-                                ? 'capstone-project'
-                                : competencyScore >= 2 && competencyScore >= Math.max(labScore, fieldScore, studioScore)
-                                  ? 'competency-based'
-                                  : performingArtsScore >= 3 && !hasOnline
-                                    ? 'performing-arts'
-                                    : creativeScore >= 2 && !hasOnline
-                                      ? 'creative-studio'
-                                      : caseScore >= 2
-                                        ? 'case-method'
-                                        : legalScore >= 2
-                                          ? 'legal-doctrinal'
-                                          : proofScore >= 3
-                                            ? 'proof-seminar'
-                                            : engineeringScore >= 3
-                                              ? 'engineering-design-lab'
-                                              : dataScienceScore >= 3
-                                                ? 'data-science-lab'
-                                                : programmingScore >= 3
-                                                  ? 'programming-lab'
-                                                  : humanitiesScore >= 3 && !hasOnline
-                                                    ? 'interpretive-humanities'
-                                                    : studioScore >= 2 &&
-                                                        studioScore >= fieldScore &&
-                                                        studioScore >= labScore
-                                                      ? 'studio-lab'
-                                                      : fieldScore >= 2 && fieldScore >= labScore
-                                                        ? 'field-applied'
-                                                        : labScore >= 2
-                                                          ? 'applied-lab'
-                                                          : hasOnline
-                                                            ? 'online-hybrid'
-                                                            : 'weekly-applied-seminar';
+                      : dataScienceLabShouldWin
+                        ? 'data-science-lab'
+                        : lectureExamShouldWin
+                          ? 'lecture-exam'
+                          : clinicalPlacementScore >= 3 && clinicalPlacementStrongScore >= 2
+                            ? 'clinical-placement-practicum'
+                            : clinicalJudgmentScore >= 3
+                              ? 'clinical-judgment-simulation'
+                              : clinicalScore >= 2
+                                ? 'clinical-simulation'
+                                : capstoneDominatesStudio
+                                  ? 'capstone-project'
+                                  : competencyScore >= 2 &&
+                                      competencyScore >= Math.max(labScore, fieldScore, studioScore)
+                                    ? 'competency-based'
+                                    : performingArtsScore >= 3 && !hasOnline
+                                      ? 'performing-arts'
+                                      : creativeScore >= 2 && !hasOnline
+                                        ? 'creative-studio'
+                                        : caseScore >= 2
+                                          ? 'case-method'
+                                          : legalScore >= 2
+                                            ? 'legal-doctrinal'
+                                            : proofScore >= 3
+                                              ? 'proof-seminar'
+                                              : engineeringScore >= 3
+                                                ? 'engineering-design-lab'
+                                                : dataScienceScore >= 3
+                                                  ? 'data-science-lab'
+                                                  : programmingScore >= 3
+                                                    ? 'programming-lab'
+                                                    : humanitiesScore >= 3 && !hasOnline
+                                                      ? 'interpretive-humanities'
+                                                      : studioScore >= 2 &&
+                                                          studioScore >= fieldScore &&
+                                                          studioScore >= labScore
+                                                        ? 'studio-lab'
+                                                        : fieldScore >= 2 && fieldScore >= labScore
+                                                          ? 'field-applied'
+                                                          : labScore >= 2
+                                                            ? 'applied-lab'
+                                                            : hasOnline
+                                                              ? 'online-hybrid'
+                                                              : 'weekly-applied-seminar';
   const modeDetails = {
     'clinical-simulation': {
       sessionPattern: 'simulation, role-play, debrief, and performance feedback',
@@ -11638,11 +11712,84 @@ function compileRubrics(blueprint) {
   };
 }
 
+function isDataScienceLabLesson(blueprint, lesson = {}) {
+  return (
+    blueprint?.courseModalityProfile?.primaryMode === 'data-science-lab' ||
+    lesson?.modalityDecode?.mode === 'data-science-lab' ||
+    lesson?.artifactGenre?.genre === 'data-science-notebook'
+  );
+}
+
+function dataScienceTermGuide(term, lesson = {}) {
+  const cleanTerm = cleanText(term);
+  const normalized = cleanTerm.toLowerCase();
+  const lessonTitle = stripLessonPrefix(lesson.title || 'this lab');
+  const datasetName = lesson.throughlineCase?.datasetName || 'the course dataset';
+  const modelEvidence = 'validation metrics, model outputs, data-quality checks, and limitation notes';
+  const guides = [
+    {
+      pattern: /\b(confusion matrix|false positive|false negative|classification|threshold)\b/,
+      definition:
+        'A classification decision is evaluated by comparing predicted labels with actual labels; threshold changes trade off false positives, false negatives, precision, and recall.',
+      example: `In ${lessonTitle}, students inspect the confusion matrix for ${datasetName} and explain which threshold best fits the decision risk.`,
+    },
+    {
+      pattern: /\b(precision|recall|sensitivity|specificity|f1|classification metric)\b/,
+      definition:
+        'Precision asks how many predicted positives were correct; recall asks how many actual positives were found. The better metric depends on the cost of false positives and false negatives.',
+      example: `In ${lessonTitle}, students choose the metric that matches the stakeholder risk before recommending a model output.`,
+    },
+    {
+      pattern: /\b(train|test|validation|cross[-\s]?validation|holdout|generaliz)\b/,
+      definition:
+        'Validation checks whether a model performs on data it did not learn from, so students can separate memorized fit from useful generalization.',
+      example: `In ${lessonTitle}, students compare train/test or cross-validation results before accepting a model claim.`,
+    },
+    {
+      pattern: /\b(data quality|missing|missingness|clean|wrangl|leakage|provenance|feature)\b/,
+      definition:
+        'Data-quality evidence includes missingness, measurement limits, leakage risk, feature definitions, and whether the dataset can support the intended model use.',
+      example: `In ${lessonTitle}, students name one ${datasetName} quality issue that could change the model conclusion.`,
+    },
+    {
+      pattern: /\b(fairness|bias|subgroup|equity|model card|limitation)\b/,
+      definition:
+        'Fairness evidence compares model behavior across relevant groups and records limits, intended use, and review needs in a model-card style explanation.',
+      example: `In ${lessonTitle}, students add a fairness or limitation note before handing the model recommendation to a reviewer.`,
+    },
+    {
+      pattern: /\b(regression|residual|prediction error|rmse|mae|r[-\s]?squared)\b/,
+      definition:
+        'Regression evidence compares predicted numeric values with actual outcomes using residuals and error metrics, then checks whether the errors are acceptable for the decision.',
+      example: `In ${lessonTitle}, students use residual or error evidence to decide whether the model is useful enough for the case.`,
+    },
+    {
+      pattern: /\b(eda|exploratory|visualization|dashboard|data story)\b/,
+      definition:
+        'Exploratory analysis uses visual patterns and summary statistics to form bounded claims; it should not be treated as final proof without validation.',
+      example: `In ${lessonTitle}, students use a chart or dashboard from ${datasetName} to state what the data can and cannot support.`,
+    },
+  ];
+  const guide = guides.find((item) => item.pattern.test(normalized));
+  if (guide) return { term: cleanTerm, definition: guide.definition, example: guide.example };
+  return {
+    term: cleanTerm,
+    definition: `${cleanTerm} is the lab concept students test against ${datasetName} by checking ${modelEvidence}.`,
+    example: `In ${lessonTitle}, students use ${cleanTerm} to make a bounded modeling or analytic decision from notebook evidence.`,
+  };
+}
+
 function compileStudyGuides(blueprint) {
   const lens = blueprintLens(blueprint);
   return {
     studyGuides: blueprint.lessons.map((lesson, index) => {
       const phrase = lessonPhrase(blueprint, lesson);
+      const isDataScience = isDataScienceLabLesson(blueprint, lesson);
+      const datasetName = lesson.throughlineCase?.datasetName || 'the course dataset';
+      const casePacket = lesson.throughlineCase?.evidencePacket || `${stripLessonPrefix(lesson.title)} lab packet`;
+      const primaryConcept = lesson.keyConcepts[0] || stripLessonPrefix(lesson.title);
+      const dataScienceEvidenceCue =
+        'validation metrics, model-performance evidence, data-quality checks, threshold tradeoffs, and fairness or limitation evidence';
       const misconceptionMap = Array.isArray(lesson.misconceptionMap) ? lesson.misconceptionMap : [];
       const assessment =
         blueprint.assessments.find((item) => (item.lessonNumbers || []).includes(lesson.lessonNumber)) ||
@@ -11651,7 +11798,9 @@ function compileStudyGuides(blueprint) {
       return {
         lessonTitle: lesson.title,
         examScope: `Use this guide to prepare for Week ${lesson.lessonNumber} checks on ${phrase.context} and later assessments.`,
-        summary: `${lesson.title} focuses on ${lesson.keyConcepts.slice(0, 3).join(', ')}. Students should connect those ideas to the weekly activity pattern, ${phrase.evidenceMove}, and ${phrase.decisionMove}.`,
+        summary: isDataScience
+          ? `${lesson.title} focuses on ${lesson.keyConcepts.slice(0, 3).join(', ')}. Students should inspect ${datasetName}, read notebook outputs, use ${dataScienceEvidenceCue}, and explain how the evidence changes the modeling decision.`
+          : `${lesson.title} focuses on ${lesson.keyConcepts.slice(0, 3).join(', ')}. Students should connect those ideas to the weekly activity pattern, ${phrase.evidenceMove}, and ${phrase.decisionMove}.`,
         sourceGrounding: lessonSourceGrounding(lesson, {
           anchorExampleSet: assessment.anchorExampleSet,
           learnerContextProfile: blueprint.learnerContextProfile,
@@ -11665,11 +11814,13 @@ function compileStudyGuides(blueprint) {
         anchorExampleSet: assessment.anchorExampleSet || null,
         learningTransferPlan: lesson.learningTransferPlan,
         teachingIntent: lesson.teachingIntent,
-        keyTerms: lesson.keyConcepts.slice(0, 8).map((term) => ({
-          term,
-          definition: `${term} as used in ${lesson.title}, with attention to ${lens.evidenceNoun}, context, and application.`,
-          example: `In ${lesson.title}, students use ${term} to explain a concrete ${lens.decisionNoun}.`,
-        })),
+        keyTerms: isDataScience
+          ? lesson.keyConcepts.slice(0, 8).map((term) => dataScienceTermGuide(term, lesson))
+          : lesson.keyConcepts.slice(0, 8).map((term) => ({
+              term,
+              definition: `${term} as used in ${lesson.title}, with attention to ${lens.evidenceNoun}, context, and application.`,
+              example: `In ${lesson.title}, students use ${term} to explain a concrete ${lens.decisionNoun}.`,
+            })),
         conceptConnections: [
           `${lesson.title} connects to the assessment artifact: ${lesson.studentArtifact}.`,
           lesson.prerequisitePlan?.prerequisiteEvidence ||
@@ -11681,46 +11832,89 @@ function compileStudyGuides(blueprint) {
         commonMisconceptions:
           misconceptionMap.length > 0
             ? misconceptionMap
+            : isDataScience
+              ? [
+                  {
+                    misconception: `A high model score means the ${stripLessonPrefix(lesson.title)} result is ready to use.`,
+                    correction: `Strong work checks the validation setup, precision/recall or error tradeoffs, data-quality risks, and fairness limits before recommending a model decision.`,
+                  },
+                  {
+                    misconception: `Notebook output alone proves the claim for ${stripLessonPrefix(lesson.title)}.`,
+                    correction: `Notebook output must be tied to ${casePacket}, the dataset fields used, the metric chosen, and one limitation or review need.`,
+                  },
+                ]
+              : [
+                  {
+                    misconception: `For ${stripLessonPrefix(lesson.title)}, summarizing the topic is enough for strong work.`,
+                    correction: `Strong ${lesson.title} work applies ${phrase.context} to evidence and explains the decision or implication.`,
+                  },
+                  {
+                    misconception: `One ${lens.exampleNoun} proves the whole ${stripLessonPrefix(lesson.title)} claim.`,
+                    correction: `Use enough ${lens.evidenceNoun} in ${lesson.title} to show the pattern and name the limits of the example.`,
+                  },
+                ],
+        reviewQuestions: [
+          ...(isDataScience
+            ? [
+                {
+                  question: `Which validation metric or notebook output would change the modeling decision in ${stripLessonPrefix(lesson.title)}?`,
+                  bloomsLevel: 'Analyze',
+                  hint: `Name the metric, the model output, and what decision risk it reveals.`,
+                },
+                {
+                  question: `How do false positives, false negatives, threshold choice, or prediction error affect the ${primaryConcept} recommendation?`,
+                  bloomsLevel: 'Evaluate',
+                  hint: `Connect the metric tradeoff to the stakeholder or classroom case, not just to a score.`,
+                },
+                {
+                  question: `What data-quality, fairness, or limitation note should be included before ${lesson.studentArtifact} is submitted?`,
+                  bloomsLevel: 'Apply',
+                  hint: `Use ${datasetName}, ${casePacket}, and one model-card style limitation.`,
+                },
+              ]
             : [
                 {
-                  misconception: `For ${stripLessonPrefix(lesson.title)}, summarizing the topic is enough for strong work.`,
-                  correction: `Strong ${lesson.title} work applies ${phrase.context} to evidence and explains the decision or implication.`,
+                  question: `How would you explain the central idea of ${stripLessonPrefix(lesson.title)} using ${lens.evidenceNoun}?`,
+                  bloomsLevel: 'Analyze',
+                  hint: `Name ${phrase.context}, cite evidence, and explain why it matters.`,
                 },
                 {
-                  misconception: `One ${lens.exampleNoun} proves the whole ${stripLessonPrefix(lesson.title)} claim.`,
-                  correction: `Use enough ${lens.evidenceNoun} in ${lesson.title} to show the pattern and name the limits of the example.`,
+                  question: `What would strong work on ${lesson.studentArtifact} need to show?`,
+                  bloomsLevel: 'Evaluate',
+                  hint: `${lesson.successCriteria.join(' ')} Artifact genre check: ${lesson.artifactGenre?.qualityFocus || 'evidence specificity and revision quality'}.`,
                 },
-              ],
-        reviewQuestions: [
-          {
-            question: `How would you explain the central idea of ${stripLessonPrefix(lesson.title)} using ${lens.evidenceNoun}?`,
-            bloomsLevel: 'Analyze',
-            hint: `Name ${phrase.context}, cite evidence, and explain why it matters.`,
-          },
-          {
-            question: `What would strong work on ${lesson.studentArtifact} need to show?`,
-            bloomsLevel: 'Evaluate',
-            hint: `${lesson.successCriteria.join(' ')} Artifact genre check: ${lesson.artifactGenre?.qualityFocus || 'evidence specificity and revision quality'}.`,
-          },
-          {
-            question:
-              lesson.learningTransferPlan?.metacognitivePrompt ||
-              `How does feedback from ${lesson.title} improve a later artifact?`,
-            bloomsLevel: 'Apply',
-            hint: lesson.learningTransferPlan?.transferTask || lesson.feedbackMoment,
-          },
+                {
+                  question:
+                    lesson.learningTransferPlan?.metacognitivePrompt ||
+                    `How does feedback from ${lesson.title} improve a later artifact?`,
+                  bloomsLevel: 'Apply',
+                  hint: lesson.learningTransferPlan?.transferTask || lesson.feedbackMoment,
+                },
+              ]),
         ],
         practiceActivities: [
-          `Create a three-column note with concept, ${lens.evidenceNoun}, and decision for ${stripLessonPrefix(lesson.title)}.`,
-          `Self-check a ${lesson.studentArtifact} draft against this criterion: ${lesson.successCriteria[0]}`,
-          lesson.learningTransferPlan?.spacedPracticeCue ||
-            `Revisit ${lesson.keyConcepts[0] || stripLessonPrefix(lesson.title)} before the next assessment.`,
+          ...(isDataScience
+            ? [
+                `Open the lesson notebook or dataset card and identify the target/outcome, two important features, and one data-quality risk for ${stripLessonPrefix(lesson.title)}.`,
+                `Write a ${primaryConcept} metric note that explains what the validation result proves, what it does not prove, and which threshold or model setting you would review next.`,
+                `Self-check ${lesson.studentArtifact} for a model-card style limitation, a fairness or subgroup question, and one concrete revision based on notebook evidence.`,
+              ]
+            : [
+                `Create a three-column note with concept, ${lens.evidenceNoun}, and decision for ${stripLessonPrefix(lesson.title)}.`,
+                `Self-check a ${lesson.studentArtifact} draft against this criterion: ${lesson.successCriteria[0]}`,
+                lesson.learningTransferPlan?.spacedPracticeCue ||
+                  `Revisit ${lesson.keyConcepts[0] || stripLessonPrefix(lesson.title)} before the next assessment.`,
+              ]),
         ],
         examPrep: {
           keyTopicsToKnow: lesson.keyConcepts.slice(0, 5),
           timeline: `Review ${lesson.title} notes after Week ${lesson.lessonNumber}, then revisit before the next assessment.`,
-          commonErrors: `Avoid unsupported claims, vague ${phrase.context} definitions, and responses that omit ${lesson.studentArtifact}.`,
-          reviewStrategy: `Practice explaining one ${lesson.keyConcepts[0] || 'concept'}, one ${lens.evidenceNoun} source, and one implication out loud.`,
+          commonErrors: isDataScience
+            ? `Avoid treating accuracy as enough, ignoring false-positive/false-negative costs, skipping data-quality checks, or submitting ${lesson.studentArtifact} without a limitation note.`
+            : `Avoid unsupported claims, vague ${phrase.context} definitions, and responses that omit ${lesson.studentArtifact}.`,
+          reviewStrategy: isDataScience
+            ? `Practice explaining how ${primaryConcept} uses one dataset issue, one validation metric, one threshold or model-performance tradeoff, and one fairness or limitation note.`
+            : `Practice explaining one ${lesson.keyConcepts[0] || 'concept'}, one ${lens.evidenceNoun} source, and one implication out loud.`,
         },
         studentResources: `Use ${lesson.title} readings, instructor notes, office hours, peer discussion, and the rubric criteria for this lesson.`,
         tags: unique(['study guide', lesson.title, ...lesson.keyConcepts], 10),

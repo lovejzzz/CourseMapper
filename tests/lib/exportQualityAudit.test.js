@@ -144,4 +144,38 @@ describe('auditCourseMaterialsZip', () => {
 
     expect(audit.issues).toEqual([]);
   });
+
+  it('flags data-science packages that reference lab assets without bundling or marking them', async () => {
+    const outerZip = new JSZip();
+    outerZip.file(
+      'Study Guides/Lesson 01 - Model Validation - Study Guides.docx',
+      await buildDocxBuffer(
+        'Use the Jupyter notebook and course dataset to compare train-test validation, confusion matrix, precision, recall, threshold choice, and model card limits.',
+      ),
+    );
+
+    const zipPath = await writeTempZip('coursemapper-export-quality-audit-missing-lab-assets.zip', outerZip);
+    const audit = await auditCourseMaterialsZip(zipPath);
+
+    expect(audit.issues.join('\n')).toContain('includes no lab asset file and no Required Assets marker');
+  });
+
+  it('accepts data-science packages with an explicit required lab-assets marker', async () => {
+    const outerZip = new JSZip();
+    outerZip.file(
+      'Study Guides/Lesson 01 - Model Validation - Study Guides.docx',
+      await buildDocxBuffer(
+        'Use the Jupyter notebook and course dataset to compare train-test validation, confusion matrix, precision, recall, threshold choice, and model card limits.',
+      ),
+    );
+    outerZip.file(
+      'Required Assets/Applied Machine Learning - Required Lab Assets.md',
+      '# Required Lab Assets\n\n- Course dataset (.csv)\n- Starter lab notebook (.ipynb)\n- Model card or validation template (.md)',
+    );
+
+    const zipPath = await writeTempZip('coursemapper-export-quality-audit-lab-assets-marker.zip', outerZip);
+    const audit = await auditCourseMaterialsZip(zipPath);
+
+    expect(audit.issues).toEqual([]);
+  });
 });
