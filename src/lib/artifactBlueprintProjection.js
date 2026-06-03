@@ -109,6 +109,114 @@ const FIELD_TOKEN_MAP = [
   },
 ];
 
+const FEATURE_FIELD_TOKEN_MAP = {
+  lessonPlans: [
+    { field: 'learningObjectives', tokens: ['ob', 'objective', 'objectives', 'learningobjectives'] },
+    { field: 'weeklyAssessments', tokens: ['fc', 'formativecheck', 'wsc', 'weeklysubmissioncriteria', 'acs'] },
+    { field: 'supportingResources', tokens: ['mt', 'materials', 'sr', 'supportresources'] },
+    { field: 'asyncActivities', tokens: ['hw', 'homework', 'prep', 'prework'] },
+    { field: 'syncActivities', tokens: ['wu', 'warmup', 'ol', 'outline', 'ca', 'closingactivity', 'activity', 'ac'] },
+    { field: 'topicSection', tokens: ['sfs', 'studentfacingsummary', 'cms', 'commonmisconceptions', 'pk'] },
+  ],
+  slideDecks: [
+    { field: 'learningObjectives', tokens: ['lo', 'learningobjectives', 'objectivelink', 'ol'] },
+    { field: 'topicSection', tokens: ['bu', 'bullets', 'keyconcepts', 'keyconcept', 'concepts', 'concept'] },
+    { field: 'syncActivities', tokens: ['activitytype', 'at'] },
+  ],
+  assignments: [
+    {
+      field: 'weeklyAssessments',
+      tokens: [
+        't',
+        'title',
+        'at',
+        'assignmenttype',
+        'ov',
+        'overview',
+        'ob',
+        'objectives',
+        'ins',
+        'instructions',
+        'dl',
+        'deliverables',
+        'gc',
+        'gradingcriteria',
+        'hsc',
+        'highvaluesuccesscriteria',
+        'pb',
+        'performancebands',
+        'sar',
+        'selfassessmentrubric',
+      ],
+    },
+    { field: 'supportingResources', tokens: ['sr', 'supportresources'] },
+    { field: 'asyncActivities', tokens: ['sm', 'scaffoldingmilestones', 'ms', 'milestone'] },
+  ],
+  rubrics: [
+    {
+      field: 'weeklyAssessments',
+      tokens: [
+        't',
+        'title',
+        'gw',
+        'gradedwork',
+        'at',
+        'assessmenttype',
+        'cr',
+        'criteria',
+        'cn',
+        'criterion',
+        'oa',
+        'objectivealigned',
+        'td',
+        'taskdirections',
+        'ax',
+        'anchorexamples',
+      ],
+    },
+  ],
+  quizBank: [
+    {
+      field: 'weeklyAssessments',
+      tokens: [
+        'bc',
+        'bloomscoverage',
+        'qs',
+        'questions',
+        'q',
+        'question',
+        'df',
+        'difficulty',
+        'iu',
+        'intendeduse',
+        'sg',
+        'scoringguidance',
+        'rh',
+        'rubrichints',
+        'sa',
+        'sampleanswer',
+      ],
+    },
+  ],
+  discussions: [
+    { field: 'syncActivities', tokens: ['pr', 'prompt', 'fp', 'followupprobes', 'rs', 'responsestarters', 'gl'] },
+    { field: 'topicSection', tokens: ['cx', 'context', 'af', 'sourceartifacts'] },
+    { field: 'weeklyAssessments', tokens: ['er', 'evidencerequirement', 'ec', 'evaluationcriteria'] },
+  ],
+  studyGuides: [
+    { field: 'topicSection', tokens: ['su', 'summary', 'kt', 'keyterms', 'tm', 'term', 'cc', 'conceptconnections'] },
+    {
+      field: 'learningObjectives',
+      tokens: ['rq', 'reviewquestions', 'q', 'question', 'pa', 'practiceactivities', 'kk', 'keytopicstoknow'],
+    },
+    { field: 'supportingResources', tokens: ['sr', 'supportresources'] },
+  ],
+  courseFaq: [
+    { field: 'topicSection', tokens: ['q', 'question', 'an', 'answer', 'rc', 'relatedconcepts', 'ce'] },
+    { field: 'weeklyAssessments', tokens: ['ac', 'assessmentconnection', 'df', 'difficulty'] },
+  ],
+};
+
 const LESSON_TITLE_FEATURES = new Set(['lessonPlans', 'studyGuides']);
 
 function cleanText(value, fallback = '') {
@@ -200,7 +308,7 @@ function sanitizeEditPath(path = []) {
 export function isKnownPresentationOnlyEdit(featureId, editPath = []) {
   const tokens = pathTokens(editPath);
   const leafToken = tokens[tokens.length - 1] || '';
-  return featureId === 'slideDecks' && leafToken === 'title';
+  return featureId === 'slideDecks' && (leafToken === 'title' || leafToken === 't');
 }
 
 function normalizeCanonicalField(value) {
@@ -224,11 +332,15 @@ export function getCanonicalPatchFieldLabel(field) {
 }
 
 export function inferCourseMapFieldFromArtifactPath(featureId, editPath = []) {
+  if (isKnownPresentationOnlyEdit(featureId, editPath)) return null;
   const tokens = pathTokens(editPath);
   const leafToken = tokens[tokens.length - 1] || '';
   const nonRootTokens = tokens.slice(1);
 
   if (leafToken === 'lessontitle' || (leafToken === 'title' && LESSON_TITLE_FEATURES.has(featureId))) return 'title';
+  for (const { field, tokens: candidates } of FEATURE_FIELD_TOKEN_MAP[featureId] || []) {
+    if (nonRootTokens.some((token) => candidates.includes(token))) return field;
+  }
   for (const { field, tokens: candidates } of FIELD_TOKEN_MAP) {
     if (nonRootTokens.some((token) => candidates.includes(token))) return field;
   }

@@ -114,6 +114,45 @@ describe('artifact blueprint projection', () => {
       'learningObjectives',
     );
     expect(inferCourseMapFieldFromArtifactPath('slideDecks', ['decks', 0, 'slides', 1, 'title'])).toBeNull();
+    expect(inferCourseMapFieldFromArtifactPath('slideDecks', ['decks', 0, 'slides', 1, 'no'])).toBeNull();
+    expect(inferCourseMapFieldFromArtifactPath('slideDecks', ['decks', 0, 'slides', 1, 'visual', 'description'])).toBe(
+      null,
+    );
+  });
+
+  it('projects minified deliverable keys that the Agent is instructed to use', () => {
+    expect(inferCourseMapFieldFromArtifactPath('lessonPlans', ['lessonPlans', 0, 'ob'])).toBe('learningObjectives');
+    expect(inferCourseMapFieldFromArtifactPath('lessonPlans', ['lessonPlans', 0, 'fc', 'pr'])).toBe(
+      'weeklyAssessments',
+    );
+    expect(inferCourseMapFieldFromArtifactPath('slideDecks', ['decks', 0, 'slides', 1, 'bu', 0])).toBe('topicSection');
+    expect(inferCourseMapFieldFromArtifactPath('slideDecks', ['decks', 0, 'slides', 1, 't'])).toBeNull();
+    expect(inferCourseMapFieldFromArtifactPath('assignments', ['assignments', 0, 'ins', 0])).toBe('weeklyAssessments');
+    expect(inferCourseMapFieldFromArtifactPath('rubrics', ['rubrics', 0, 'cr', 0, 'cn'])).toBe('weeklyAssessments');
+    expect(inferCourseMapFieldFromArtifactPath('quizBank', ['quizzes', 0, 'qs', 0, 'df'])).toBe('weeklyAssessments');
+    expect(inferCourseMapFieldFromArtifactPath('discussions', ['discussions', 0, 'pr'])).toBe('syncActivities');
+    expect(inferCourseMapFieldFromArtifactPath('discussions', ['discussions', 0, 'er'])).toBe('weeklyAssessments');
+    expect(inferCourseMapFieldFromArtifactPath('studyGuides', ['guides', 0, 'kt', 0, 'tm'])).toBe('topicSection');
+    expect(inferCourseMapFieldFromArtifactPath('studyGuides', ['guides', 0, 'rq', 0, 'q'])).toBe('learningObjectives');
+  });
+
+  it('builds deterministic canonical patches from minified Agent edit paths', () => {
+    const patch = projectArtifactEditToCourseMapPatch({
+      featureId: 'lessonPlans',
+      lessonIndex: 0,
+      editPath: ['lessonPlans', 0, 'ob'],
+      oldData: { lessonPlans: [{ ob: 'Explain research traditions.' }] },
+      newData: { lessonPlans: [{ ob: 'Compare research traditions using a field observation scenario.' }] },
+      courseMap,
+    });
+
+    expect(patch).toMatchObject({
+      field: 'learningObjectives',
+      lessonIndex: 0,
+      sourceFeatureId: 'lessonPlans',
+      label: 'learning objectives',
+    });
+    expect(patch.value).toContain('field observation scenario');
   });
 
   it('creates a compact patch request when an artifact edit is course-design but not path-mappable', () => {
