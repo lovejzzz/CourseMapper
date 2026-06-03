@@ -554,6 +554,24 @@ function buildSyncReceipt(featureSummary, mode = 'Auto-fix', syncResult = null) 
   });
 }
 
+function buildSyncSkipReceipt(featureSummary, mode = 'Auto-fix', suggestion = null) {
+  const isCourseMapSource = suggestion?.editSource === 'courseMap';
+  return buildAgentReceiptMessage({
+    title: isCourseMapSource ? 'Sync skipped receipt' : 'Local edit receipt',
+    status: 'done',
+    badge: isCourseMapSource ? 'Skipped' : 'Kept local',
+    mode,
+    target: featureSummary,
+    changed: isCourseMapSource ? 'Kept course map edit without recompiling deliverables' : 'Kept artifact edit local',
+    checked: isCourseMapSource
+      ? ['Compiler sync skipped', 'Model calls: 0']
+      : ['Blueprint unchanged', 'Compiler sync skipped', 'Model calls: 0'],
+    next: isCourseMapSource
+      ? 'Run Sync later if deliverables should match the course map.'
+      : 'No downstream sync will run for this local edit.',
+  });
+}
+
 function buildModeSwitchReceipt(agentDryRun) {
   const mode = agentDryRun ? 'Review only' : 'Auto-fix';
   return buildAgentReceiptMessage({
@@ -815,6 +833,7 @@ export default function ChatPanel({
   pendingSyncSuggestion,
   clearPendingSyncSuggestion,
   executeSyncPlan,
+  clearSyncStalePlan,
   notifyEdit,
   // External ref for sending messages from outside (e.g., context menu)
   chatSendRef,
@@ -1509,6 +1528,34 @@ export default function ChatPanel({
     [chat],
   );
 
+  const skipSyncSuggestionWithReceipt = useCallback(
+    (suggestionId) => {
+      const suggestion = chat.messages.find(
+        (message) => message?.role === 'syncSuggestion' && message.id === suggestionId,
+      );
+      const plan = Array.isArray(suggestion?.plan) ? suggestion.plan : [];
+      const shouldClearStale = suggestion?.status === 'pending';
+      if (shouldClearStale && typeof clearSyncStalePlan === 'function') {
+        clearSyncStalePlan(plan);
+      }
+      chat.handleSkipSyncSuggestion?.(suggestionId);
+      if (shouldClearStale) {
+        const featureSummary = summarizeSyncPlanFeatures(plan);
+        chat.addLocalMessages([
+          buildSyncSkipReceipt(featureSummary, chat.agentDryRun ? 'Review only' : 'Auto-fix', suggestion),
+          {
+            role: 'assistant',
+            text:
+              suggestion?.editSource === 'courseMap'
+                ? `Skipped compiler sync for ${featureSummary}.`
+                : `Kept the edit local for ${featureSummary}.`,
+          },
+        ]);
+      }
+    },
+    [chat, clearSyncStalePlan],
+  );
+
   const handleWorkspacePlanAction = useCallback(
     async (action, followUp = {}) => {
       const intent = getWorkspacePlanIntent(action);
@@ -2198,7 +2245,7 @@ export default function ChatPanel({
         onUndo={delivUndoFn}
         canUndo={delivCanUndo}
         onApproveSyncSuggestion={approveSyncSuggestionWithReceipt}
-        onSkipSyncSuggestion={chat.handleSkipSyncSuggestion}
+        onSkipSyncSuggestion={skipSyncSuggestionWithReceipt}
         onRegenerate={chat.regenerate}
         onFeedback={chat.feedback}
         onEditAndResend={chat.editAndResend}

@@ -3742,6 +3742,7 @@ export default function AppFlow({ startupAction = null, onStartupHandled, onRetu
                   pendingSyncSuggestion={smartSync.pendingSyncSuggestion}
                   clearPendingSyncSuggestion={smartSync.clearPendingSyncSuggestion}
                   executeSyncPlan={smartSync.executeSyncPlan}
+                  clearSyncStalePlan={deliv.clearSyncStalePlan}
                   onRevision={rev.handleRevision}
                   onDeliverableRevision={(msg, history) => {
                     // For deliverable revisions, regenerate the active deliverable

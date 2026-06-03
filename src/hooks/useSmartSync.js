@@ -422,12 +422,13 @@ export default function useSmartSync({
             return doneFeatureIds.has(fId) && arr.indexOf(fId) === index;
           });
           const blueprintPlan = targets.map((fId) => {
-            currentDeliv.markFeatureStale(fId, delivConfidence, {
+            const staleEdits = {
               lessonIndices: edit.lessonIdx != null ? [edit.lessonIdx] : [],
               editKeys: fieldKeys,
               sourceFeatureId,
               canonicalSync: true,
-            });
+            };
+            currentDeliv.markFeatureStale(fId, delivConfidence, staleEdits);
             appendSyncLog(
               'pending',
               fId,
@@ -436,6 +437,7 @@ export default function useSmartSync({
             return {
               featureId: fId,
               lessonIndices: edit.lessonIdx != null ? [edit.lessonIdx] : null,
+              staleEdits,
               canonicalPatches,
               canonicalPatchRequests,
             };
@@ -480,11 +482,12 @@ export default function useSmartSync({
         for (const fId of outbound) {
           if (doneFeatureIds.has(fId)) {
             // Mark stale with specific edit info (enables partial sync)
-            currentDeliv.markFeatureStale(fId, delivConfidence, {
+            const staleEdits = {
               lessonIndices: edit.lessonIdx != null ? [edit.lessonIdx] : [],
               editKeys: ['_deliverableEdit'],
               sourceFeatureId: sourceFeatureId,
-            });
+            };
+            currentDeliv.markFeatureStale(fId, delivConfidence, staleEdits);
             appendSyncLog(
               'pending',
               fId,
@@ -493,6 +496,7 @@ export default function useSmartSync({
             downstreamPlan.push({
               featureId: fId,
               lessonIndices: edit.lessonIdx != null ? [edit.lessonIdx] : null,
+              staleEdits,
             });
             // Fire a surgical downstream proposal so the user sees an AI
             // suggestion panel (not just a stale badge) for each target

@@ -15,6 +15,7 @@ const chatRouterMock = vi.hoisted(() => ({
   send: vi.fn(),
   handleStop: vi.fn(),
   handleApproveSyncSuggestion: vi.fn(),
+  handleSkipSyncSuggestion: vi.fn(),
   setAgentDryRun: vi.fn(),
   addLocalMessages: vi.fn(),
   updateLocalMessage: vi.fn(),
@@ -59,7 +60,7 @@ vi.mock('../useChatRouter', () => ({
     handleAcceptDiff: vi.fn(),
     handleRejectDiff: vi.fn(),
     handleApproveSyncSuggestion: chatRouterMock.handleApproveSyncSuggestion,
-    handleSkipSyncSuggestion: vi.fn(),
+    handleSkipSyncSuggestion: chatRouterMock.handleSkipSyncSuggestion,
     regenerate: vi.fn(),
     feedback: vi.fn(),
     editAndResend: vi.fn(),
@@ -144,6 +145,7 @@ function renderChatPanel(container, overrides = {}) {
         pendingSyncSuggestion={null}
         clearPendingSyncSuggestion={vi.fn()}
         executeSyncPlan={vi.fn()}
+        clearSyncStalePlan={vi.fn()}
         notifyEdit={vi.fn()}
         chatSendRef={{ current: null }}
         uid="test-user"
@@ -230,6 +232,7 @@ describe('ChatPanel agent command strip', () => {
     chatRouterMock.agentDryRun = false;
     chatRouterMock.send.mockReset();
     chatRouterMock.handleApproveSyncSuggestion.mockReset();
+    chatRouterMock.handleSkipSyncSuggestion.mockReset();
     chatRouterMock.setAgentDryRun.mockReset();
     chatRouterMock.addLocalMessages.mockReset();
     chatRouterMock.updateLocalMessage.mockReset();
@@ -1103,6 +1106,55 @@ describe('ChatPanel agent command strip', () => {
       },
     ]);
     expect(chatRouterMock.send).not.toHaveBeenCalled();
+  });
+
+  it('clears stale marks and posts a local-only receipt when skipping a pending sync suggestion', async () => {
+    const lessonPlanSync = {
+      featureId: 'lessonPlans',
+      lessonIndices: [0],
+      staleEdits: { lessonIndices: [0], sourceFeatureId: 'lessonPlans', canonicalSync: true },
+      canonicalPatches: [
+        {
+          lessonIndex: 0,
+          sectionIndex: 0,
+          field: 'learningObjectives',
+          label: 'learning objectives',
+          value: 'Analyze evidence quality.',
+        },
+      ],
+    };
+    const clearSyncStalePlan = vi.fn();
+    chatRouterMock.messages = [
+      {
+        role: 'syncSuggestion',
+        id: 'sync-local-1',
+        status: 'pending',
+        editSource: 'artifactBlueprint',
+        plan: [lessonPlanSync],
+        changedFieldsSummary: 'learning objectives',
+      },
+    ];
+    root = renderChatPanel(container, { clearSyncStalePlan });
+
+    await act(async () => {
+      messageListMock.props.onSkipSyncSuggestion('sync-local-1');
+    });
+
+    expect(clearSyncStalePlan).toHaveBeenCalledWith([lessonPlanSync]);
+    expect(chatRouterMock.handleSkipSyncSuggestion).toHaveBeenCalledWith('sync-local-1');
+    expect(chatRouterMock.addLocalMessages).toHaveBeenCalledWith([
+      expect.objectContaining({
+        role: 'agentReceipt',
+        receipt: expect.objectContaining({
+          title: 'Local edit receipt',
+          badge: 'Kept local',
+          target: 'Lesson Plans',
+          changed: ['Kept artifact edit local'],
+          checked: ['Blueprint unchanged', 'Compiler sync skipped', 'Model calls: 0'],
+        }),
+      }),
+      { role: 'assistant', text: 'Kept the edit local for Lesson Plans.' },
+    ]);
   });
 
   it('runs the command-strip Sync action through the pending sync suggestion', async () => {

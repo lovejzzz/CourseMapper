@@ -39,6 +39,11 @@ export const actions = {
     staleConfidence,
     staleEdits,
   }),
+  clearFeatureStale: (featureId, staleEdits = null) => ({
+    type: 'CLEAR_FEATURE_STALE',
+    featureId,
+    staleEdits,
+  }),
   setDeliverable: (featureId, status, data, error, stale) => ({
     type: 'SET_DELIVERABLE',
     featureId,
@@ -58,6 +63,36 @@ export const actions = {
 };
 
 // ── Reducer ────────────────────────────────────────────────────────────────────
+
+function normalizeLessonIndices(value) {
+  if (!Array.isArray(value)) return null;
+  return [...new Set(value.filter((index) => Number.isInteger(index)))].sort((a, b) => a - b);
+}
+
+function clearStaleState(existing, staleEdits) {
+  if (!existing?.stale) return existing;
+  const clearLessonIndices = normalizeLessonIndices(staleEdits?.lessonIndices);
+  const existingLessonIndices = normalizeLessonIndices(existing.staleEdits?.lessonIndices);
+
+  if (!clearLessonIndices || !existingLessonIndices || clearLessonIndices.length === 0) {
+    return { ...existing, stale: false, staleConfidence: null, staleEdits: null };
+  }
+
+  const clearSet = new Set(clearLessonIndices);
+  const remainingLessonIndices = existingLessonIndices.filter((index) => !clearSet.has(index));
+  if (remainingLessonIndices.length === existingLessonIndices.length) return existing;
+  if (remainingLessonIndices.length > 0) {
+    return {
+      ...existing,
+      stale: true,
+      staleEdits: {
+        ...existing.staleEdits,
+        lessonIndices: remainingLessonIndices,
+      },
+    };
+  }
+  return { ...existing, stale: false, staleConfidence: null, staleEdits: null };
+}
 
 function reducer(state, action) {
   switch (action.type) {
@@ -128,6 +163,19 @@ function reducer(state, action) {
             staleConfidence: action.staleConfidence || existing.staleConfidence || null,
             staleEdits: mergedEdits || existing.staleEdits || null,
           },
+        },
+      };
+    }
+    case 'CLEAR_FEATURE_STALE': {
+      const existing = state.deliverables[action.featureId];
+      if (!existing) return state;
+      const cleared = clearStaleState(existing, action.staleEdits || null);
+      if (cleared === existing) return state;
+      return {
+        ...state,
+        deliverables: {
+          ...state.deliverables,
+          [action.featureId]: cleared,
         },
       };
     }

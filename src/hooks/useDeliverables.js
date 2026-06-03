@@ -3209,6 +3209,23 @@ export default function useDeliverables({
     [dispatch],
   );
 
+  const clearFeatureStale = useCallback(
+    (featureId, staleEdits = null) => {
+      dispatch(actions.clearFeatureStale(featureId, staleEdits));
+    },
+    [dispatch],
+  );
+
+  const clearSyncStalePlan = useCallback(
+    (plan = []) => {
+      for (const entry of Array.isArray(plan) ? plan : []) {
+        if (!entry?.featureId) continue;
+        clearFeatureStale(entry.featureId, entry.staleEdits || { lessonIndices: entry.lessonIndices });
+      }
+    },
+    [clearFeatureStale],
+  );
+
   // Optimistic update — instantly patch deliverable data (e.g. title rename)
   const optimisticUpdate = useCallback(
     (featureId, patchedData) => {
@@ -3720,6 +3737,8 @@ export default function useDeliverables({
     regenerateLesson,
     surgicalResync,
     markFeatureStale,
+    clearFeatureStale,
+    clearSyncStalePlan,
     optimisticUpdate,
     staleCount,
     started: startedRef.current,

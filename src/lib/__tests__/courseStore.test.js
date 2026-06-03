@@ -74,6 +74,37 @@ function reducer(state, action) {
         },
       };
     }
+    case 'CLEAR_FEATURE_STALE': {
+      const existing = state.deliverables[action.featureId];
+      if (!existing?.stale) return state;
+      const clearIndices = Array.isArray(action.staleEdits?.lessonIndices)
+        ? new Set(action.staleEdits.lessonIndices)
+        : null;
+      const existingIndices = Array.isArray(existing.staleEdits?.lessonIndices)
+        ? existing.staleEdits.lessonIndices
+        : null;
+      if (!clearIndices || !existingIndices || clearIndices.size === 0) {
+        return {
+          ...state,
+          deliverables: {
+            ...state.deliverables,
+            [action.featureId]: { ...existing, stale: false, staleConfidence: null, staleEdits: null },
+          },
+        };
+      }
+      const remaining = existingIndices.filter((index) => !clearIndices.has(index));
+      if (remaining.length === existingIndices.length) return state;
+      return {
+        ...state,
+        deliverables: {
+          ...state.deliverables,
+          [action.featureId]:
+            remaining.length > 0
+              ? { ...existing, stale: true, staleEdits: { ...existing.staleEdits, lessonIndices: remaining } }
+              : { ...existing, stale: false, staleConfidence: null, staleEdits: null },
+        },
+      };
+    }
     case 'MARK_LESSON_REGENERATING': {
       const cur = state.deliverables[action.featureId];
       if (!cur) return state;
@@ -236,6 +267,51 @@ describe('courseStore reducer', () => {
         staleEdits: { lessonIndices: [0, 2, 4] },
       });
       expect(result.deliverables.quizBank.staleEdits.lessonIndices).toEqual([0, 2, 4]);
+    });
+  });
+
+  describe('CLEAR_FEATURE_STALE', () => {
+    it('clears stale state for a skipped local-only sync', () => {
+      const state = {
+        deliverables: {
+          lessonPlans: {
+            status: 'done',
+            stale: true,
+            staleConfidence: { level: 'high' },
+            staleEdits: { lessonIndices: [0], sourceFeatureId: 'lessonPlans', canonicalSync: true },
+          },
+        },
+      };
+      const result = reducer(state, {
+        type: 'CLEAR_FEATURE_STALE',
+        featureId: 'lessonPlans',
+        staleEdits: { lessonIndices: [0] },
+      });
+
+      expect(result.deliverables.lessonPlans.stale).toBe(false);
+      expect(result.deliverables.lessonPlans.staleConfidence).toBeNull();
+      expect(result.deliverables.lessonPlans.staleEdits).toBeNull();
+    });
+
+    it('keeps remaining stale lesson indices when only one skipped sync is cleared', () => {
+      const state = {
+        deliverables: {
+          slideDecks: {
+            status: 'done',
+            stale: true,
+            staleConfidence: { level: 'high' },
+            staleEdits: { lessonIndices: [0, 2], sourceFeatureId: 'lessonPlans', canonicalSync: true },
+          },
+        },
+      };
+      const result = reducer(state, {
+        type: 'CLEAR_FEATURE_STALE',
+        featureId: 'slideDecks',
+        staleEdits: { lessonIndices: [0] },
+      });
+
+      expect(result.deliverables.slideDecks.stale).toBe(true);
+      expect(result.deliverables.slideDecks.staleEdits.lessonIndices).toEqual([2]);
     });
   });
 
