@@ -13,12 +13,31 @@ describe('agentAvailability', () => {
     ).toBe(true);
   });
 
-  it('blocks BYOK providers without a connected validated key', () => {
+  it('allows restored BYOK providers with a saved key and model before validation UI runs', () => {
     expect(
       isAgentProviderReady({
         provider: 'openai',
         apiKey: 'sk-test',
         apiStatus: 'idle',
+        modelId: 'gpt-4o-mini',
+      }),
+    ).toBe(true);
+  });
+
+  it('blocks BYOK providers while validation is pending or failed', () => {
+    expect(
+      isAgentProviderReady({
+        provider: 'openai',
+        apiKey: 'sk-test',
+        apiStatus: 'validating',
+        modelId: 'gpt-4o-mini',
+      }),
+    ).toBe(false);
+    expect(
+      isAgentProviderReady({
+        provider: 'openai',
+        apiKey: 'sk-test',
+        apiStatus: 'error',
         modelId: 'gpt-4o-mini',
       }),
     ).toBe(false);

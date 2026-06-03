@@ -511,8 +511,16 @@ export default function AppFlow({ startupAction = null, onStartupHandled, onRetu
         }
       } catch {}
 
+      const restoredApiKey = nextProvider ? getSavedApiKeyForProvider(nextProvider) : '';
+      const restoredModelId =
+        snapshot && Object.prototype.hasOwnProperty.call(snapshot, 'modelId')
+          ? snapshot.modelId || ''
+          : providerFallback !== undefined
+            ? ''
+            : modelId;
+
       if (nextProvider) setProvider(nextProvider);
-      if (nextProvider) setApiKey(getSavedApiKeyForProvider(nextProvider));
+      if (nextProvider) setApiKey(restoredApiKey);
       if (snapshot && Object.prototype.hasOwnProperty.call(snapshot, 'modelId')) {
         setModelId(snapshot.modelId || '');
       } else if (providerFallback !== undefined) {
@@ -523,8 +531,13 @@ export default function AppFlow({ startupAction = null, onStartupHandled, onRetu
       } else if (providerFallback !== undefined) {
         setModelName('');
       }
+      if (nextProvider === 'webllm') {
+        setApiStatus(restoredModelId ? 'connected' : 'idle');
+      } else {
+        setApiStatus(restoredApiKey && restoredModelId ? 'connected' : 'idle');
+      }
     },
-    [setApiKey, setModelId, setModelName, setProvider],
+    [modelId, setApiKey, setApiStatus, setModelId, setModelName, setProvider],
   );
 
   // ── Core Course Map State ──
