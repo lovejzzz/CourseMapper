@@ -107,9 +107,11 @@ describe('AgentWorkingSetPanel', () => {
     expect(html).toContain('Local tools');
     expect(html).toContain('3 lessons');
     expect(html).toContain('1 ready, 1 running, 1 stale');
-    expect(html).toContain('Package');
-    expect(html).toContain('Finishing');
-    expect(html).toContain('Selected: Slide Decks, Rubrics');
+    expect(html).toContain('overflow-x-auto');
+    expect(html).not.toContain('data-testid="agent-working-package"');
+    expect(html).not.toContain('Finishing');
+    expect(html).toContain('Selected');
+    expect(html).toContain('Slide Decks, Rubrics');
   });
 
   it('surfaces the latest workspace plan state in the working set', () => {
@@ -215,6 +217,45 @@ describe('AgentWorkingSetPanel', () => {
     expect(html).toContain('data-testid="agent-working-activity-0"');
     expect(html).toContain('Planning receipt');
     expect(html).toContain('1 done');
+  });
+
+  it('does not duplicate package summaries in the working-set activity strip', () => {
+    const summary = buildAgentWorkingSetSummary({
+      courseMap,
+      selectedFeatures: ['courseMap', 'lessonPlans'],
+      deliverables: { lessonPlans: { status: 'done', data: { lessonPlans: [] } } },
+      messages: [
+        {
+          role: 'packageSummary',
+          summary: {
+            ready: true,
+            confidence: 'Excellent',
+            tone: 'excellent',
+          },
+        },
+      ],
+    });
+    const html = renderToStaticMarkup(
+      <AgentWorkingSetPanel
+        courseMap={courseMap}
+        selectedFeatures={['courseMap', 'lessonPlans']}
+        deliverables={{ lessonPlans: { status: 'done', data: { lessonPlans: [] } } }}
+        messages={[
+          {
+            role: 'packageSummary',
+            summary: {
+              ready: true,
+              confidence: 'Excellent',
+              tone: 'excellent',
+            },
+          },
+        ]}
+      />,
+    );
+
+    expect(summary.activityStatus).toMatchObject({ hasActivity: false, activities: [] });
+    expect(html).not.toContain('Package check');
+    expect(html).not.toContain('Excellent');
   });
 
   it('does not render before the workspace has course or deliverable context', () => {

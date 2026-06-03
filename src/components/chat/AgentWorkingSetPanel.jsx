@@ -205,18 +205,6 @@ function buildRecentActivityStatus(messages) {
       });
       continue;
     }
-    if (message.role === 'packageSummary') {
-      const confidence = String(message.summary?.confidence || '').trim();
-      const blocked =
-        message.summary?.tone === 'blocked' ||
-        confidence === 'Needs attention' ||
-        compactCount(message.summary?.blockerCount) > 0;
-      activities.push({
-        title: 'Package check',
-        label: confidence || (blocked ? 'needs attention' : 'checked'),
-        tone: blocked ? BAD_TONE : confidence === 'Good with assumptions' ? WARN_TONE : GOOD_TONE,
-      });
-    }
   }
 
   return {
@@ -303,7 +291,7 @@ function StatusChip({ label, value, tone = MUTED_TONE, testId }) {
   return (
     <span
       data-testid={testId}
-      className={`inline-flex min-h-[22px] max-w-full items-center gap-1 rounded-full border px-2 py-0.5 text-[10px] font-bold ${tone}`}
+      className={`inline-flex min-h-[22px] max-w-full shrink-0 items-center gap-1 rounded-full border px-2 py-0.5 text-[10px] font-bold ${tone}`}
     >
       {label && <span className="shrink-0 opacity-70">{label}</span>}
       {value && <span className="truncate">{value}</span>}
@@ -316,7 +304,7 @@ function ActivityChip({ activity, index }) {
   return (
     <span
       data-testid={`agent-working-activity-${index}`}
-      className={`inline-flex min-h-[22px] max-w-full items-center gap-1 rounded-full border px-2 py-0.5 text-[10px] font-bold ${activity.tone || MUTED_TONE}`}
+      className={`inline-flex min-h-[22px] max-w-full shrink-0 items-center gap-1 rounded-full border px-2 py-0.5 text-[10px] font-bold ${activity.tone || MUTED_TONE}`}
       title={`${activity.title || 'Activity'}${activity.label ? `: ${activity.label}` : ''}`}
     >
       <span className="shrink-0 opacity-70">{activity.title || 'Activity'}</span>
@@ -352,9 +340,9 @@ export default function AgentWorkingSetPanel(props) {
   return (
     <div
       data-testid="agent-working-set-panel"
-      className="flex-shrink-0 border-t border-slate-200/40 bg-white/58 px-3.5 py-2"
+      className="flex-shrink-0 border-t border-slate-200/40 bg-white/58 px-3.5 py-1.5"
     >
-      <div className="flex min-w-0 flex-wrap items-center gap-1.5">
+      <div className="flex min-w-0 items-center gap-1.5 overflow-x-auto pb-0.5">
         <StatusChip label="Working set" value={summary.activeTarget} tone={MODE_TONE} testId="agent-working-target" />
         {summary.briefStatus.hasBrief && (
           <StatusChip label="Brief" value={summary.briefStatus.label} tone={MODE_TONE} testId="agent-working-brief" />
@@ -379,22 +367,10 @@ export default function AgentWorkingSetPanel(props) {
           tone={materialTone}
           testId="agent-working-materials"
         />
-        <StatusChip
-          label="Package"
-          value={summary.packageStatus.label}
-          tone={summary.packageStatus.tone}
-          testId="agent-working-package"
-        />
+        {summary.selectedFeatureCount > 0 && (
+          <StatusChip label="Selected" value={selectedText} testId="agent-working-selected" />
+        )}
       </div>
-      {summary.selectedFeatureCount > 0 && (
-        <div
-          data-testid="agent-working-selected"
-          className="mt-1 truncate text-[10px] font-medium text-slate-500"
-          title={selectedText}
-        >
-          Selected: {selectedText}
-        </div>
-      )}
     </div>
   );
 }

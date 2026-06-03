@@ -329,8 +329,8 @@ describe('ChatPanel agent command strip', () => {
       },
     ];
     root = renderChatPanel(container, {
-      currentStep: 'done',
-      packageQualityPass: { status: 'ready', blockers: 0, warnings: 0 },
+      currentStep: 'generating',
+      packageQualityPass: { status: 'idle' },
     });
 
     await act(async () => {
@@ -338,6 +338,30 @@ describe('ChatPanel agent command strip', () => {
     });
 
     expect(progressHeaderMock.props.pendingSyncCount).toBe(1);
+  });
+
+  it('keeps completed package readiness out of the fixed progress header', async () => {
+    root = renderChatPanel(container, {
+      currentStep: 'done',
+      packageQualityPass: {
+        status: 'ready',
+        message: 'Ready to download.',
+        blockers: 0,
+        warnings: 0,
+        receipt: { checkedSections: '10/10', lessonCount: 5 },
+      },
+    });
+
+    await act(async () => {
+      await Promise.resolve();
+    });
+
+    expect(container.querySelector('[data-testid="progress-header"]')).toBeNull();
+    expect(progressHeaderMock.props).toBeNull();
+    expect(messageListMock.props.messages.at(-1)).toMatchObject({
+      role: 'packageSummary',
+      summary: expect.objectContaining({ ready: true }),
+    });
   });
 
   it('opens Agent help locally without a model call', () => {

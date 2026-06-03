@@ -76,18 +76,19 @@ describe('ChatInput agent execution mode', () => {
     expect(onAgentDryRunChange).toHaveBeenCalledWith(true);
   });
 
-  it('keeps send controls in the compose flow below the textarea', () => {
+  it('keeps the send control reachable inside the textarea area', () => {
     renderInput();
 
     const textarea = container.querySelector('textarea');
     const sendButton = container.querySelector('button[aria-label="Send message"]');
-    const actionRow = sendButton.closest('div');
+    const sendButtonWrapper = sendButton.closest('div');
 
-    expect(textarea.className).toContain('min-h-[70px]');
-    expect(textarea.className).not.toContain('pb-8');
-    expect(actionRow.className).toContain('mt-1.5');
-    expect(actionRow.className).not.toContain('absolute');
-    expect(sendButton.className).toContain('shrink-0');
+    expect(textarea.className).toContain('min-h-[74px]');
+    expect(textarea.className).toContain('pb-8');
+    expect(textarea.className).toContain('pr-11');
+    expect(sendButtonWrapper.className).toContain('absolute');
+    expect(sendButtonWrapper.className).toContain('bottom-2');
+    expect(sendButtonWrapper.className).toContain('right-2');
   });
 
   it('uses review-only copy and review prompt when enabled', () => {

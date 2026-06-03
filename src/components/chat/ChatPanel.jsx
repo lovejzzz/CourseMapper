@@ -1144,7 +1144,12 @@ export default function ChatPanel({
     [],
   );
 
-  const showProgressHeader = !!(currentStep || error);
+  const showProgressHeader = !!(
+    error ||
+    (currentStep && currentStep !== 'done') ||
+    isDelivGenerating ||
+    packageQualityPass?.status === 'running'
+  );
 
   // Extract latest agent progress for the fixed status area (not in chat scroll)
   const latestAgentProgress = useMemo(() => {

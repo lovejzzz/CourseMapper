@@ -243,7 +243,7 @@ test.describe('Agent command strip', () => {
     await expect(workingSet.getByTestId('agent-working-mode')).toContainText('Auto-fix');
     await expect(workingSet.getByTestId('agent-working-scope')).toContainText('1 lesson');
     await expect(workingSet.getByTestId('agent-working-materials')).toContainText('1 ready');
-    await expect(workingSet.getByTestId('agent-working-package')).toContainText('Not checked');
+    await expect(workingSet.getByTestId('agent-working-package')).toHaveCount(0);
 
     const composer = agentPanel.locator('textarea');
     await composer.fill('/commands');

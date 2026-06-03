@@ -292,6 +292,26 @@ export default function ChatInput({
         'Only ask the user for decisions that require instructor judgment.',
         'Finish with a concise package handoff that says either Ready to download or lists the remaining instructor decisions.',
       ].join(' ');
+  const sendDisabled =
+    (!canRunSlashCommand &&
+      (hasUnknownSlashCommand ||
+        (!typedAgentCommand && agentUnavailable) ||
+        (!input.trim() && (!attachedFiles || attachedFiles.length === 0)))) ||
+    isCoolingDown;
+  const sendAriaLabel = isCoolingDown
+    ? 'Sending — please wait'
+    : hasUnknownSlashCommand
+      ? 'Choose a valid command'
+      : canRunSlashCommand || typedAgentCommand
+        ? 'Run command'
+        : 'Send message';
+  const sendTitle = isCoolingDown
+    ? 'Sending — give it a moment'
+    : hasUnknownSlashCommand
+      ? 'No matching slash command'
+      : canRunSlashCommand || typedAgentCommand
+        ? 'Run command (Enter)'
+        : 'Send (Enter)';
 
   return (
     <div
@@ -495,21 +515,85 @@ export default function ChatInput({
               )}
             </div>
           )}
-          <textarea
-            value={input}
-            onChange={(e) => setInput(e.target.value)}
-            onKeyDown={handleKeyDown}
-            aria-controls={showSlashCommands ? 'agent-slash-command-palette' : undefined}
-            aria-activedescendant={
-              selectedSlashCommand ? `agent-slash-command-option-${selectedSlashCommand.id}` : undefined
-            }
-            placeholder={placeholder}
-            rows={2}
-            className="input-glass min-h-[70px] w-full rounded-xl px-3 pt-2.5 pb-2 text-[13px] text-slate-700 focus:outline-none resize-none leading-relaxed"
-            disabled={busy}
-          />
+          <div className="relative">
+            <textarea
+              value={input}
+              onChange={(e) => setInput(e.target.value)}
+              onKeyDown={handleKeyDown}
+              aria-controls={showSlashCommands ? 'agent-slash-command-palette' : undefined}
+              aria-activedescendant={
+                selectedSlashCommand ? `agent-slash-command-option-${selectedSlashCommand.id}` : undefined
+              }
+              placeholder={placeholder}
+              rows={2}
+              className="input-glass min-h-[74px] w-full resize-none rounded-xl px-3 pb-8 pr-11 pt-2.5 text-[13px] leading-relaxed text-slate-700 focus:outline-none"
+              disabled={busy}
+            />
+            <div className="absolute bottom-2 right-2">
+              {busy ? (
+                <button
+                  type="button"
+                  onClick={onStop}
+                  className="tactile rounded-lg px-2.5 py-1 text-[11px] font-semibold text-red-500 transition-all hover:bg-red-50"
+                  aria-label="Stop generation"
+                >
+                  {isRevising ? (
+                    <span className="flex items-center gap-1.5">
+                      <svg className="h-3 w-3 animate-spin" fill="none" viewBox="0 0 24 24">
+                        <circle className="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" strokeWidth="4" />
+                        <path
+                          className="opacity-75"
+                          fill="currentColor"
+                          d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4z"
+                        />
+                      </svg>
+                      Working...
+                    </span>
+                  ) : (
+                    'Stop'
+                  )}
+                </button>
+              ) : (
+                <button
+                  onClick={handleSend}
+                  disabled={sendDisabled}
+                  className={`tactile rounded-lg bg-gradient-to-r from-indigo-500 to-violet-500 p-1.5 text-white shadow-sm transition-all hover:brightness-110 disabled:cursor-not-allowed ${
+                    isCoolingDown ? 'opacity-60' : 'disabled:opacity-30'
+                  }`}
+                  aria-label={sendAriaLabel}
+                  title={sendTitle}
+                >
+                  {isCoolingDown ? (
+                    <svg className="h-3.5 w-3.5 animate-spin" fill="none" viewBox="0 0 24 24" aria-hidden="true">
+                      <circle className="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" strokeWidth="4" />
+                      <path
+                        className="opacity-75"
+                        fill="currentColor"
+                        d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4z"
+                      />
+                    </svg>
+                  ) : (
+                    <svg
+                      className="h-3.5 w-3.5"
+                      fill="none"
+                      stroke="currentColor"
+                      viewBox="0 0 24 24"
+                      aria-hidden="true"
+                    >
+                      <path
+                        strokeLinecap="round"
+                        strokeLinejoin="round"
+                        strokeWidth={2}
+                        d="M5 10l7-7m0 0l7 7m-7-7v18"
+                      />
+                    </svg>
+                  )}
+                </button>
+              )}
+            </div>
+          </div>
           {/* Compose actions */}
-          <div className="mt-1.5 flex min-h-8 items-center justify-between gap-2 px-0.5">
+          <div className="mt-1.5 flex min-h-7 items-center gap-2 px-0.5">
             <div className="flex min-w-0 flex-wrap items-center gap-1.5">
               {/* Attach button */}
               {courseMap && (
@@ -589,75 +673,6 @@ export default function ChatInput({
                 </button>
               )}
             </div>
-
-            {/* Send / Stop */}
-            {busy ? (
-              <button
-                type="button"
-                onClick={onStop}
-                className="tactile shrink-0 px-3 py-1 rounded-lg text-[12px] font-semibold text-red-500 hover:bg-red-50 transition-all"
-                aria-label="Stop generation"
-              >
-                {isRevising ? (
-                  <span className="flex items-center gap-1.5">
-                    <svg className="animate-spin w-3 h-3" fill="none" viewBox="0 0 24 24">
-                      <circle className="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" strokeWidth="4" />
-                      <path
-                        className="opacity-75"
-                        fill="currentColor"
-                        d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4z"
-                      />
-                    </svg>
-                    Working...
-                  </span>
-                ) : (
-                  'Stop'
-                )}
-              </button>
-            ) : (
-              <button
-                onClick={handleSend}
-                disabled={
-                  (!canRunSlashCommand &&
-                    (hasUnknownSlashCommand ||
-                      (!typedAgentCommand && agentUnavailable) ||
-                      (!input.trim() && (!attachedFiles || attachedFiles.length === 0)))) ||
-                  isCoolingDown
-                }
-                className={`tactile shrink-0 p-1.5 rounded-lg text-white bg-gradient-to-r from-indigo-500 to-violet-500 shadow-sm hover:brightness-110 transition-all disabled:cursor-not-allowed ${
-                  isCoolingDown ? 'opacity-60' : 'disabled:opacity-30'
-                }`}
-                aria-label={
-                  isCoolingDown
-                    ? 'Sending — please wait'
-                    : hasUnknownSlashCommand
-                      ? 'Choose a valid command'
-                      : canRunSlashCommand || typedAgentCommand
-                        ? 'Run command'
-                        : 'Send message'
-                }
-                title={
-                  isCoolingDown
-                    ? 'Sending — give it a moment'
-                    : hasUnknownSlashCommand
-                      ? 'No matching slash command'
-                      : canRunSlashCommand || typedAgentCommand
-                        ? 'Run command (Enter)'
-                        : 'Send (Enter)'
-                }
-              >
-                {isCoolingDown ? (
-                  <svg className="w-3.5 h-3.5 animate-spin" fill="none" viewBox="0 0 24 24" aria-hidden="true">
-                    <circle className="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" strokeWidth="4" />
-                    <path className="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4z" />
-                  </svg>
-                ) : (
-                  <svg className="w-3.5 h-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24" aria-hidden="true">
-                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M5 10l7-7m0 0l7 7m-7-7v18" />
-                  </svg>
-                )}
-              </button>
-            )}
           </div>
         </div>
       </div>
