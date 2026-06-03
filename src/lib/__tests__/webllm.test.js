@@ -4,7 +4,8 @@ import { isEngineReady, WEBLLM_MODULE_URL } from '../webllm';
 
 describe('WebLLM runtime loader', () => {
   it('uses a pinned external ESM runtime URL', () => {
-    expect(WEBLLM_MODULE_URL).toBe('https://esm.sh/@mlc-ai/web-llm@0.2.81?bundle');
+    expect(WEBLLM_MODULE_URL).toBe('https://cdn.jsdelivr.net/npm/@mlc-ai/web-llm@0.2.81/lib/index.js');
+    expect(WEBLLM_MODULE_URL).not.toContain('esm.sh');
   });
 
   it('does not statically import the WebLLM npm package', async () => {

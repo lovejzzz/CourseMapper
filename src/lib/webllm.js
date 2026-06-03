@@ -14,7 +14,7 @@ import { WEBLLM_DEFAULT_MODEL, WEBLLM_MAX_TOKENS } from './webllmConstants';
 // Re-export constants for convenience
 export { WEBLLM_MODELS, WEBLLM_DEFAULT_MODEL, WEBLLM_MAX_TOKENS, isWebGPUSupported } from './webllmConstants';
 
-export const WEBLLM_MODULE_URL = 'https://esm.sh/@mlc-ai/web-llm@0.2.81?bundle';
+export const WEBLLM_MODULE_URL = 'https://cdn.jsdelivr.net/npm/@mlc-ai/web-llm@0.2.81/lib/index.js';
 
 // ── Singleton engine ────────────────────────────────────────────────────────
 let _webllm = null;
