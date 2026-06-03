@@ -3,11 +3,15 @@ import MessageList from './MessageList';
 import PackageSummaryCard from './PackageSummaryCard';
 import ChatInput from './ChatInput';
 import CustomToolsMenu from './CustomToolsMenu';
+import AgentCommandStrip from './AgentCommandStrip';
+import AgentWorkingSetPanel from './AgentWorkingSetPanel';
 import useChatRouter from './useChatRouter';
 import ExamReview from '../ExamReview';
 import { executeAction } from '../../lib/agentActions';
 import { resolveLabel } from './constants';
 import { evaluateWorkspaceReadiness } from '../../lib/deliverableReadiness';
+import { classifyFinalizePackageStepStatus, normalizePackageSummary } from '../../lib/packageFinalizerSummary';
+import { summarizeLandingAgentContext } from '../../lib/landingAgentContext';
 
 const ProgressHeader = lazy(() => import('./ProgressHeader'));
 
@@ -23,7 +27,10 @@ function latestRunningStep(steps = []) {
   return null;
 }
 
-function deriveAgentStatus(progress, isStreaming, isAgentMode, agentDryRun = false) {
+function deriveAgentStatus(progress, isStreaming, isAgentMode, agentDryRun = false, isGeneratingWorkspace = false) {
+  if (!isAgentMode && isGeneratingWorkspace) {
+    return { label: 'Building', tone: 'indigo', detail: 'Using your starting request' };
+  }
   if (!isAgentMode) return { label: 'Ask', tone: 'slate', detail: 'Ready to help' };
   if (agentDryRun && !progress && !isStreaming) return { label: 'Review only', tone: 'slate', detail: 'No edits' };
   if (!progress && !isStreaming) return { label: 'Ready', tone: 'emerald', detail: 'Auto-fix on' };
@@ -95,6 +102,608 @@ function buildPackageReceiptSummary(packageQualityPass, courseMap, selectedFeatu
   };
 }
 
+function getWorkspacePlanIntent(action) {
+  if (!action) return '';
+  if (typeof action.intent === 'string') return action.intent;
+  return action.intent?.type || '';
+}
+
+function summarizeDirectPackageFinish(result) {
+  const status = result?.packageQualityStatus || result?.status || '';
+  const readiness = result?.readiness || {};
+  const blockerCount = Number(readiness.blockers?.length ?? readiness.blockerCount ?? result?.blockers ?? 0);
+  const warningCount = Number(readiness.warnings?.length ?? readiness.warningCount ?? result?.warnings ?? 0);
+  if (status === 'ready' || (blockerCount === 0 && warningCount === 0 && result)) {
+    return 'Package finishing finished. Safe checks passed and the export panel is ready.';
+  }
+  if (blockerCount > 0) {
+    return `Package finishing finished with ${blockerCount} blocker${
+      blockerCount === 1 ? '' : 's'
+    } still needing review. Check the quality receipt before downloading.`;
+  }
+  if (warningCount > 0) {
+    return `Package finishing finished with ${warningCount} review note${
+      warningCount === 1 ? '' : 's'
+    }. Check the quality receipt before downloading.`;
+  }
+  return 'Package finishing finished. Check the export panel for the latest quality receipt.';
+}
+
+function getWorkspacePlanFeatureIds(action) {
+  const intentFeatureIds = Array.isArray(action?.intent?.featureIds) ? action.intent.featureIds : [];
+  const actionFeatureIds = Array.isArray(action?.featureIds) ? action.featureIds : [];
+  return [...intentFeatureIds, ...actionFeatureIds].map((featureId) => String(featureId || '').trim()).filter(Boolean);
+}
+
+function findPendingSyncPlanMatch(messages, action) {
+  const featureIds = new Set(getWorkspacePlanFeatureIds(action));
+  const suggestions = Array.isArray(messages)
+    ? messages.filter((message) => message?.role === 'syncSuggestion' && message.status === 'pending')
+    : [];
+
+  for (const suggestion of suggestions) {
+    const plan = Array.isArray(suggestion.plan) ? suggestion.plan.filter(Boolean) : [];
+    if (plan.length === 0) continue;
+    const selectedPlan =
+      featureIds.size === 0 ? plan : plan.filter((entry) => featureIds.has(String(entry?.featureId || '').trim()));
+    if (selectedPlan.length > 0) return { suggestion, selectedPlan };
+  }
+  return null;
+}
+
+function getPendingSyncFeatureIds(messages) {
+  const featureIds = new Set();
+  if (!Array.isArray(messages)) return [];
+  messages.forEach((message) => {
+    if (message?.role !== 'syncSuggestion' || message.status !== 'pending') return;
+    const plan = Array.isArray(message.plan) ? message.plan : [];
+    plan.forEach((entry) => {
+      const featureId = String(entry?.featureId || '').trim();
+      if (featureId) featureIds.add(featureId);
+    });
+  });
+  return [...featureIds];
+}
+
+function summarizeSyncPlanFeatures(plan) {
+  const featureLabels = Array.from(
+    new Set((Array.isArray(plan) ? plan : []).map((entry) => resolveLabel(entry?.featureId)).filter(Boolean)),
+  );
+  if (featureLabels.length === 0) return 'stale deliverables';
+  if (featureLabels.length === 1) return featureLabels[0];
+  if (featureLabels.length === 2) return `${featureLabels[0]} and ${featureLabels[1]}`;
+  return `${featureLabels.slice(0, 2).join(', ')} and ${featureLabels.length - 2} more`;
+}
+
+function summarizeFeatureIds(featureIds) {
+  const labels = Array.from(new Set((Array.isArray(featureIds) ? featureIds : []).map(resolveLabel).filter(Boolean)));
+  if (labels.length === 0) return 'selected deliverables';
+  if (labels.length === 1) return labels[0];
+  if (labels.length === 2) return `${labels[0]} and ${labels[1]}`;
+  return `${labels.slice(0, 2).join(', ')} and ${labels.length - 2} more`;
+}
+
+function collectSyncCanonicalPatches(syncResult = {}) {
+  const summaryPatches = Array.isArray(syncResult?.syncSummary?.appliedCanonicalPatches)
+    ? syncResult.syncSummary.appliedCanonicalPatches
+    : [];
+  const fallbackPatches = Array.isArray(syncResult?.syncSummary?.canonicalPatches)
+    ? syncResult.syncSummary.canonicalPatches
+    : [];
+  const planPatches = (Array.isArray(syncResult?.selectedPlan) ? syncResult.selectedPlan : []).flatMap((entry) =>
+    Array.isArray(entry?.canonicalPatches) ? entry.canonicalPatches : [],
+  );
+  const patches = summaryPatches.length > 0 ? summaryPatches : fallbackPatches.length > 0 ? fallbackPatches : planPatches;
+  const seen = new Set();
+  return patches.filter((patch) => {
+    if (!patch) return false;
+    const key = `${patch.lessonIndex}:${patch.sectionIndex ?? 0}:${patch.field}:${patch.value}`;
+    if (seen.has(key)) return false;
+    seen.add(key);
+    return true;
+  });
+}
+
+function summarizeCanonicalPatchesForReceipt(patches = []) {
+  const labels = patches
+    .map((patch) => {
+      const lessonLabel = Number.isInteger(patch?.lessonIndex) ? `Lesson ${patch.lessonIndex + 1}` : 'Course map';
+      const fieldLabel = patch?.label || patch?.field || 'field';
+      return `${lessonLabel} ${fieldLabel}`;
+    })
+    .filter(Boolean);
+  if (labels.length === 0) return 'course blueprint';
+  if (labels.length <= 3) return labels.join(', ');
+  return `${labels.slice(0, 3).join(', ')} and ${labels.length - 3} more`;
+}
+
+function getSyncReceiptProviderCallText(syncResult = {}, hasCanonicalPatches = false) {
+  const rawCount = syncResult?.syncSummary?.providerCallCount;
+  if (Number.isFinite(Number(rawCount))) return `${Math.max(0, Number(rawCount))}`;
+  return hasCanonicalPatches ? '0' : 'unknown';
+}
+
+function describeLessonScope(lessonScope, courseMap) {
+  const lessons = Array.isArray(courseMap?.lessons) ? courseMap.lessons : [];
+  if (lessonScope?.type === 'specific' && Array.isArray(lessonScope.indices) && lessonScope.indices.length > 0) {
+    const labels = lessonScope.indices
+      .map((index) => lessons[index]?.title || `Lesson ${Number(index) + 1}`)
+      .filter(Boolean);
+    if (labels.length === 1) return labels[0];
+    if (labels.length === 2) return `${labels[0]} and ${labels[1]}`;
+    return `${labels.slice(0, 2).join(', ')} and ${labels.length - 2} more`;
+  }
+  if (lessons.length > 0) return `All ${lessons.length} lessons`;
+  return 'Current workspace';
+}
+
+function buildAgentHelpPayload({
+  activeTab,
+  chat,
+  lessonScope,
+  courseMap,
+  pendingSyncFeatureIds = [],
+  canUndo = false,
+}) {
+  return {
+    activeTarget: activeTab && activeTab !== 'courseMap' ? resolveLabel(activeTab) : 'Course Map',
+    providerReady: chat?.isAgentProviderReady !== false,
+    agentDryRun: Boolean(chat?.agentDryRun),
+    lessonScopeText: describeLessonScope(lessonScope, courseMap),
+    syncFeatureCount: Array.isArray(pendingSyncFeatureIds) ? pendingSyncFeatureIds.length : 0,
+    canUndo,
+  };
+}
+
+function getAgentCommandTemporaryBlockMessage({
+  item,
+  packageQualityPass,
+  isDelivGenerating = false,
+  isSyncing = false,
+  isRevising = false,
+  isStreaming = false,
+  directPlanActionRunning = false,
+}) {
+  const displayText = item?.displayText || item?.label || 'that action';
+  if (packageQualityPass?.status === 'running') {
+    return `I'm already checking the package. Wait for that to finish, then run ${displayText} again.`;
+  }
+  if (isDelivGenerating) {
+    return `I'm still generating course materials. Wait for generation to finish, then run ${displayText} again.`;
+  }
+  if (isSyncing) {
+    return `I'm syncing deliverables right now. Wait for sync to finish, then run ${displayText} again.`;
+  }
+  if (isRevising || isStreaming || directPlanActionRunning) {
+    return `I'm already working on another Agent action. Wait for it to finish, then run ${displayText} again.`;
+  }
+  return '';
+}
+
+function summarizeDirectGenerationResult(result, requestedFeatureIds = []) {
+  const completed = Array.isArray(result?.completedFeatureIds) ? result.completedFeatureIds : [];
+  const failed = Array.isArray(result?.failedFeatureIds) ? result.failedFeatureIds : [];
+  if (result?.status === 'busy') return result.message || 'Generation is already running.';
+  if (completed.length === 0 && failed.length === 0 && result?.message) return result.message;
+  if (failed.length > 0) {
+    return `Generation finished with ${completed.length}/${requestedFeatureIds.length || completed.length + failed.length} deliverable${
+      requestedFeatureIds.length === 1 ? '' : 's'
+    } complete. ${summarizeFeatureIds(failed)} still need attention.`;
+  }
+  return `Generated ${summarizeFeatureIds(completed.length > 0 ? completed : requestedFeatureIds)} and ran the package checks.`;
+}
+
+function summarizeDirectAuditSummary(summary) {
+  if (!summary) return 'Audit complete. Review the package summary card.';
+  if (summary.ready) return 'Audit complete. No blockers found in the read-only checks.';
+  if (summary.tone === 'blocked') {
+    return `Audit complete. ${summary.blockerCount || summary.topIssues?.length || 1} blocker${
+      (summary.blockerCount || summary.topIssues?.length || 1) === 1 ? '' : 's'
+    } need attention.`;
+  }
+  return `Audit complete. ${summary.warningCount || summary.topIssues?.length || 1} review item${
+    (summary.warningCount || summary.topIssues?.length || 1) === 1 ? '' : 's'
+  } found.`;
+}
+
+function textList(value) {
+  if (Array.isArray(value)) return value.map((item) => String(item || '').trim()).filter(Boolean);
+  const text = String(value || '').trim();
+  return text ? [text] : [];
+}
+
+function buildAgentReceiptMessage({
+  title = 'Action complete',
+  status = 'done',
+  badge = '',
+  mode = 'Auto-fix',
+  target = 'Workspace',
+  changed = [],
+  checked = [],
+  issues = [],
+  next = '',
+  intent = null,
+  runStats = null,
+  toolManifest = null,
+} = {}) {
+  const receipt = {
+    title,
+    status,
+    badge,
+    mode,
+    target,
+    changed: textList(changed),
+    checked: textList(checked),
+    issues: textList(issues).slice(0, 4),
+    next,
+  };
+  if (intent) receipt.intent = intent;
+  if (runStats) receipt.runStats = runStats;
+  if (toolManifest) receipt.toolManifest = toolManifest;
+  return {
+    role: 'agentReceipt',
+    receipt,
+  };
+}
+
+function extractSummaryIssues(summary = {}) {
+  const topIssues = Array.isArray(summary.topIssues) ? summary.topIssues : [];
+  if (topIssues.length > 0) {
+    return topIssues
+      .map((issue) => `${issue.label || 'Issue'}: ${issue.message || issue.text || 'Needs review.'}`)
+      .filter(Boolean);
+  }
+  const issueCount =
+    Number(summary.blockerCount || 0) +
+    Number(summary.warningCount || 0) +
+    Number(summary.classroomBlockerCount || 0) +
+    Number(summary.classroomWarningCount || 0) +
+    Number(summary.validationErrorCount || 0) +
+    Number(summary.validationWarningCount || 0) +
+    Number(summary.exportFailed || 0) +
+    Number(summary.exportWarningCount || 0);
+  if (!issueCount) return [];
+  return [`${issueCount} package item${issueCount === 1 ? '' : 's'} need review.`];
+}
+
+function packageReceiptStatus(summary = {}) {
+  if (summary.ready || summary.status === 'ready' || summary.packageQualityStatus === 'ready') return 'done';
+  const blockerCount =
+    Number(summary.blockerCount || 0) + Number(summary.classroomBlockerCount || 0) + Number(summary.exportFailed || 0);
+  const reviewCount =
+    Number(summary.warningCount || 0) +
+    Number(summary.classroomWarningCount || 0) +
+    Number(summary.validationErrorCount || 0) +
+    Number(summary.validationWarningCount || 0) +
+    Number(summary.exportWarningCount || 0);
+  if (summary.tone === 'blocked' || blockerCount > 0) {
+    return 'blocked';
+  }
+  if (reviewCount === 0 && summary.tone !== 'assumptions') return 'done';
+  return 'review';
+}
+
+function buildPackageAuditReceipt(summary = {}) {
+  const status = packageReceiptStatus(summary);
+  return buildAgentReceiptMessage({
+    title: status === 'done' ? 'Audit receipt' : 'Audit needs review',
+    status,
+    badge: status === 'done' ? 'Passed' : status === 'blocked' ? 'Blocked' : 'Review',
+    mode: 'Review only',
+    target: 'Package',
+    changed: 'No content edits',
+    checked: ['Readiness', 'Classroom fit', 'Content validation', 'Export files'],
+    issues: extractSummaryIssues(summary),
+    next:
+      status === 'done'
+        ? 'No blockers found in the read-only checks.'
+        : status === 'blocked'
+          ? 'Open the package issues before downloading.'
+          : 'Review the package notes before export.',
+  });
+}
+
+function buildPackageFinishReceipt(result = {}) {
+  const summary = normalizePackageSummary(result);
+  const status =
+    result?.packageQualityStatus === 'ready' || result?.status === 'ready' || result?.ready === true
+      ? 'done'
+      : packageReceiptStatus(summary);
+  const repairsApplied = Number(summary.repairsApplied || 0);
+  return buildAgentReceiptMessage({
+    title: status === 'done' ? 'Package receipt' : 'Package needs review',
+    status,
+    badge: status === 'done' ? 'Ready' : status === 'blocked' ? 'Blocked' : 'Review',
+    mode: 'Auto-fix',
+    target: 'Package',
+    changed: repairsApplied > 0 ? `${repairsApplied} safe repair${repairsApplied === 1 ? '' : 's'} applied` : 'No safe repairs needed',
+    checked: ['Readiness', 'Classroom fit', 'Content validation', 'Export files'],
+    issues: extractSummaryIssues(summary),
+    next: status === 'done' ? 'Download when ready.' : 'Review the remaining package issues before export.',
+  });
+}
+
+function buildWorkspacePlanReceipt(plan = {}, mode = 'Auto-fix') {
+  const action = plan?.highestImpactAction || (Array.isArray(plan?.actions) ? plan.actions[0] : null);
+  return buildAgentReceiptMessage({
+    title: 'Planning receipt',
+    status: 'done',
+    badge: 'Plan ready',
+    mode,
+    target: 'Workspace',
+    changed: 'No workspace edits',
+    checked: ['Course map', 'Deliverable status', 'Package readiness'],
+    next: action?.title ? `Start with: ${action.title}.` : 'Use the plan card to choose the next action.',
+  });
+}
+
+function buildUndoReceipt(targetLabel) {
+  return buildAgentReceiptMessage({
+    title: 'Undo receipt',
+    status: 'done',
+    badge: 'Restored',
+    mode: 'Auto-fix',
+    target: targetLabel,
+    changed: `Restored previous ${targetLabel} state`,
+    checked: 'Undo snapshot',
+    next: 'Run Plan or Audit if you want me to check the workspace again.',
+  });
+}
+
+function buildGenerationReceipt(result = {}, featureSummary, requestedFeatureIds = []) {
+  const failedCount = Array.isArray(result?.failedFeatureIds) ? result.failedFeatureIds.length : 0;
+  const status = failedCount > 0 || result?.status === 'busy' ? 'review' : 'done';
+  return buildAgentReceiptMessage({
+    title: status === 'done' ? 'Generation receipt' : 'Generation needs review',
+    status,
+    badge: status === 'done' ? 'Generated' : 'Review',
+    mode: 'Auto-fix',
+    target: featureSummary,
+    changed: status === 'done' ? `Generated ${featureSummary}` : `Partially generated ${featureSummary}`,
+    checked: 'Package checks after generation',
+    issues:
+      failedCount > 0
+        ? [`${summarizeFeatureIds(result.failedFeatureIds)} still need attention.`]
+        : result?.status === 'busy'
+          ? [result.message || 'Generation was already running.']
+          : [],
+    next: status === 'done' ? 'Review the generated deliverables before export.' : 'Review the failed deliverables before export.',
+  });
+}
+
+function buildSyncReceipt(featureSummary, mode = 'Auto-fix', syncResult = null) {
+  const canonicalPatches = collectSyncCanonicalPatches(syncResult);
+  if (canonicalPatches.length > 0) {
+    const providerCallText = getSyncReceiptProviderCallText(syncResult, true);
+    const patchSummary = summarizeCanonicalPatchesForReceipt(canonicalPatches);
+    const status = syncResult?.status === 'failed' || syncResult?.status === 'partialFail' ? 'review' : 'done';
+    const issues =
+      status === 'review' && Array.isArray(syncResult?.failedItems) && syncResult.failedItems.length > 0
+        ? [`${summarizeSyncPlanFeatures(syncResult.failedItems)} did not finish syncing.`]
+        : [];
+    return buildAgentReceiptMessage({
+      title: status === 'done' ? 'Blueprint sync receipt' : 'Blueprint sync needs review',
+      status,
+      badge: status === 'done' ? 'Synced' : 'Review',
+      mode,
+      target: featureSummary,
+      intent: { type: 'content_edit', syncMode: 'canonical_patch' },
+      runStats: { providerCallCount: Number(providerCallText) || 0 },
+      toolManifest: [
+        {
+          tool: 'apply_canonical_patch',
+          label: 'Update blueprint',
+          status: 'done',
+          summary: patchSummary,
+          targets: ['Course Map'],
+        },
+        {
+          tool: 'compiler_sync',
+          label: 'Compiler sync',
+          status: status === 'done' ? 'done' : 'partial',
+          summary: `Model calls: ${providerCallText}`,
+          targets: featureSummary ? [featureSummary] : [],
+        },
+      ],
+      changed: `Updated blueprint: ${patchSummary}`,
+      checked: [`Recompiled: ${featureSummary}`, `Model calls: ${providerCallText}`],
+      issues,
+      next: status === 'done' ? 'Review the synced lesson materials.' : 'Retry the failed sync items or keep the edit local.',
+    });
+  }
+  return buildAgentReceiptMessage({
+    title: 'Sync receipt',
+    status: 'done',
+    badge: 'Synced',
+    mode,
+    target: featureSummary,
+    changed: `Synced ${featureSummary}`,
+    checked: 'Approved sync plan',
+    next: 'Check the sync card for the final status.',
+  });
+}
+
+function buildModeSwitchReceipt(agentDryRun) {
+  const mode = agentDryRun ? 'Review only' : 'Auto-fix';
+  return buildAgentReceiptMessage({
+    title: 'Mode receipt',
+    status: 'done',
+    badge: 'Mode set',
+    mode,
+    target: 'Agent',
+    changed: `Agent mode set to ${mode}`,
+    checked: 'Future Agent commands',
+    next: agentDryRun
+      ? 'I will inspect and propose fixes without editing until you switch Auto-fix back on.'
+      : 'I can apply safe fixes directly. I will still stop for instructor decisions.',
+  });
+}
+
+function summarizeDirectWorkspacePlan(plan) {
+  const action = plan?.highestImpactAction || (Array.isArray(plan?.actions) ? plan.actions[0] : null);
+  if (action?.title) return `Plan ready. Start with: ${action.title}.`;
+  return 'Plan ready. Review the workspace plan card for the next step.';
+}
+
+function buildLocalAgentUserMessage(text, agentPromptOverride = null) {
+  const message = { role: 'user', text };
+  const prompt = typeof agentPromptOverride === 'string' ? agentPromptOverride.trim() : '';
+  if (prompt) message.agentPromptOverride = prompt;
+  return message;
+}
+
+function buildDirectAgentStep(tool, label, { status = 'done', targets = [], summary = '' } = {}) {
+  return {
+    tool,
+    label,
+    status,
+    targets: Array.isArray(targets) ? targets.filter(Boolean) : [],
+    summary,
+  };
+}
+
+function buildDirectAgentProgress({
+  id = null,
+  startedAt,
+  endedAt = null,
+  mode = 'Auto-fix',
+  target = 'Workspace',
+  steps = [],
+  status = null,
+}) {
+  const safeSteps = Array.isArray(steps) ? steps.filter(Boolean) : [];
+  const resolvedStatus = status || (safeSteps.some((step) => step.status === 'error') ? 'error' : 'complete');
+  const message = {
+    id: id || `local-agent-progress-${startedAt || endedAt || Date.now()}`,
+    role: 'agentProgress',
+    status: resolvedStatus,
+    startedAt: startedAt || endedAt || Date.now(),
+    runMeta: {
+      mode,
+      target,
+      model: 'Local tools',
+    },
+    steps: safeSteps,
+  };
+  if (resolvedStatus !== 'running') message.endedAt = endedAt || Date.now();
+  return message;
+}
+
+function commitDirectAgentProgress(chat, progressId, progress) {
+  if (typeof chat?.updateLocalMessage === 'function') {
+    chat.updateLocalMessage({ id: progressId }, () => progress);
+    return;
+  }
+  chat?.addLocalMessages?.(progress);
+}
+
+function issueStepStatus(errorCount = 0, warningCount = 0) {
+  if (Number(errorCount) > 0) return 'error';
+  if (Number(warningCount) > 0) return 'partial';
+  return 'done';
+}
+
+function buildPackageAuditProgressSteps(summary = {}) {
+  const readinessErrors = Number(summary.blockerCount || 0) + Number(summary.classroomBlockerCount || 0);
+  const readinessWarnings = Number(summary.warningCount || 0) + Number(summary.classroomWarningCount || 0);
+  const validationErrors = Number(summary.validationErrorCount || 0);
+  const validationWarnings = Number(summary.validationWarningCount || 0);
+  const exportErrors = Number(summary.exportFailed || 0);
+  const exportWarnings = Number(summary.exportWarningCount || 0);
+
+  return [
+    buildDirectAgentStep('review_package_readiness', 'Review readiness', {
+      status: issueStepStatus(readinessErrors, readinessWarnings),
+      targets: ['Package'],
+      summary:
+        readinessErrors || readinessWarnings
+          ? `${readinessErrors + readinessWarnings} readiness issue${readinessErrors + readinessWarnings === 1 ? '' : 's'}`
+          : 'No readiness blockers',
+    }),
+    buildDirectAgentStep('validate_course', 'Validate course materials', {
+      status: issueStepStatus(validationErrors, validationWarnings),
+      targets: ['Package'],
+      summary:
+        validationErrors || validationWarnings
+          ? `${validationErrors + validationWarnings} validation issue${validationErrors + validationWarnings === 1 ? '' : 's'}`
+          : 'No validation issues',
+    }),
+    buildDirectAgentStep('verify_package_exports', 'Verify exports', {
+      status: issueStepStatus(exportErrors, exportWarnings),
+      targets: ['Package'],
+      summary: exportErrors || exportWarnings ? `${exportErrors} failed, ${exportWarnings} warning` : 'Exports verified',
+    }),
+  ];
+}
+
+function buildPackageFinishProgressSteps(result = {}) {
+  const summary = normalizePackageSummary(result);
+  const repairIssueCount = Number(summary.repairsFailed || 0);
+  const hasFinishIssues =
+    Number(summary.blockerCount || 0) +
+      Number(summary.warningCount || 0) +
+      Number(summary.classroomBlockerCount || 0) +
+      Number(summary.classroomWarningCount || 0) +
+      Number(summary.validationErrorCount || 0) +
+      Number(summary.validationWarningCount || 0) +
+      Number(summary.exportFailed || 0) +
+      Number(summary.exportWarningCount || 0) >
+    0;
+  const finalStatus =
+    (result?.packageQualityStatus === 'ready' || result?.status === 'ready') && !hasFinishIssues
+      ? 'done'
+      : classifyFinalizePackageStepStatus(result);
+  const finishSummary =
+    finalStatus === 'done'
+      ? 'Safe checks passed'
+      : finalStatus === 'error'
+        ? `${summary.blockerCount || summary.exportFailed || 1} blocker${
+            (summary.blockerCount || summary.exportFailed || 1) === 1 ? '' : 's'
+          } still need review`
+        : `${summary.warningCount || summary.exportWarningCount || 1} review item${
+            (summary.warningCount || summary.exportWarningCount || 1) === 1 ? '' : 's'
+          } found`;
+  return [
+    buildDirectAgentStep('repair_package_readiness', 'Repair safe blockers', {
+      status: repairIssueCount > 0 ? 'partial' : 'done',
+      targets: ['Package'],
+      summary:
+        Number(summary.repairsApplied || 0) > 0
+          ? `${summary.repairsApplied} safe repair${summary.repairsApplied === 1 ? '' : 's'}`
+          : 'No safe repairs needed',
+    }),
+    buildDirectAgentStep('finalize_package', 'Finish package', {
+      status: finalStatus,
+      targets: ['Package'],
+      summary: finishSummary,
+    }),
+  ];
+}
+
+function formatLandingContextDetail(summary) {
+  if (!summary?.hasContext) return '';
+  const fileCount = Number(summary.fileCount || 0);
+  const firstFile = summary.fileNames?.[0];
+  const hiddenCount = Math.max(0, fileCount - (firstFile ? 1 : 0));
+  const fileText =
+    fileCount > 0
+      ? firstFile
+        ? `${firstFile}${hiddenCount > 0 ? ` +${hiddenCount}` : ''}`
+        : `${fileCount} uploaded material${fileCount === 1 ? '' : 's'}`
+      : '';
+  const sourceNoteText = summary.hasMaterialNotes
+    ? `${summary.materialNoteCount || 1} source note${summary.materialNoteCount === 1 ? '' : 's'}`
+    : '';
+
+  if (summary.hasPrompt && fileText && sourceNoteText) return `Starting request + ${fileText} + ${sourceNoteText}`;
+  if (summary.hasPrompt && sourceNoteText) return `Starting request + ${sourceNoteText}`;
+  if (fileText && sourceNoteText) return `Uploaded materials: ${fileText} + ${sourceNoteText}`;
+  if (sourceNoteText) return `Uploaded materials: ${sourceNoteText}`;
+  if (summary.hasPrompt && fileText) return `Starting request + ${fileText}`;
+  if (summary.hasPrompt) return 'Starting request';
+  return fileText ? `Uploaded materials: ${fileText}` : '';
+}
+
 const STATUS_TONES = {
   slate: 'bg-slate-100 text-slate-500 border-slate-200/70',
   emerald: 'bg-emerald-50 text-emerald-700 border-emerald-200/70',
@@ -139,6 +748,8 @@ export default function ChatPanel({
   onPackageQualityPassUpdate,
   onAutoRepairReadiness,
   onFinalizePackage,
+  onGenerateFeatures,
+  onAuditPackage,
   // Sync state
   isSyncing,
   pendingSyncCount,
@@ -418,28 +1029,975 @@ export default function ChatPanel({
     }
     return null;
   }, [chat.messages]);
+  const isGeneratingWorkspace = !!(currentStep && currentStep !== 'done') || !!isDelivGenerating;
+  const showsAgentIdentity = !!(courseMap || isGeneratingWorkspace || isAgentMode);
   const agentStatus =
     isAgentMode && !chat.isAgentProviderReady
       ? { label: 'Configure', tone: 'amber', detail: 'Provider/key required' }
-      : deriveAgentStatus(latestAgentProgress, chat.isStreaming, isAgentMode, chat.agentDryRun);
+      : deriveAgentStatus(latestAgentProgress, chat.isStreaming, isAgentMode, chat.agentDryRun, isGeneratingWorkspace);
+  const landingContextSummary = useMemo(() => summarizeLandingAgentContext(chat.messages), [chat.messages]);
+  const landingContextDetail = useMemo(
+    () => formatLandingContextDetail(landingContextSummary),
+    [landingContextSummary],
+  );
   const packageReceiptSummary = useMemo(
     () => buildPackageReceiptSummary(packageQualityPass, courseMap, selectedFeatures),
     [courseMap, packageQualityPass, selectedFeatures],
   );
+  const [directPlanActionRunning, setDirectPlanActionRunning] = React.useState(false);
+  const staleDeliverableCount = deliverables
+    ? Object.values(deliverables).filter((entry) => entry?.stale === true).length
+    : 0;
+  const agentCommandDisabled = !!(
+    chat.isStreaming ||
+    isRevising ||
+    isDelivGenerating ||
+    isSyncing ||
+    directPlanActionRunning
+  );
+  const pendingSyncFeatureIds = useMemo(() => getPendingSyncFeatureIds(chat.messages), [chat.messages]);
+  const workspacePlanActionCapabilities = useMemo(
+    () => ({
+      sync_stale_deliverables:
+        pendingSyncFeatureIds.length > 0 && !agentCommandDisabled ? { featureIds: pendingSyncFeatureIds } : false,
+      generate_missing_feature:
+        typeof onGenerateFeatures === 'function' && courseMap?.lessons?.length && !agentCommandDisabled,
+      regenerate_failed_feature:
+        typeof onGenerateFeatures === 'function' && courseMap?.lessons?.length && !agentCommandDisabled,
+      audit_package: typeof onAuditPackage === 'function' && courseMap?.lessons?.length && !agentCommandDisabled,
+      review_readiness_blockers:
+        typeof onAuditPackage === 'function' && courseMap?.lessons?.length && !agentCommandDisabled,
+    }),
+    [agentCommandDisabled, courseMap?.lessons?.length, onAuditPackage, onGenerateFeatures, pendingSyncFeatureIds],
+  );
+  const notifyAgentCommandTemporarilyBlocked = useCallback(
+    (item) => {
+      const message = getAgentCommandTemporaryBlockMessage({
+        item,
+        packageQualityPass,
+        isDelivGenerating,
+        isSyncing,
+        isRevising,
+        isStreaming: chat.isStreaming,
+        directPlanActionRunning,
+      });
+      if (!message) return false;
+      chat.addLocalMessages([
+        buildLocalAgentUserMessage(item?.displayText || 'Run Agent action'),
+        { role: 'assistant', text: message },
+      ]);
+      return true;
+    },
+    [chat, directPlanActionRunning, isDelivGenerating, isRevising, isSyncing, packageQualityPass],
+  );
+  const runDirectPackageAudit = useCallback(
+    async ({
+      displayText = 'Audit package',
+      selectedFeatureIds = selectedFeatures,
+      introText,
+      agentPromptOverride = null,
+    } = {}) => {
+      if (!(typeof onAuditPackage === 'function' && courseMap?.lessons?.length && !agentCommandDisabled)) return false;
+      const startedAt = Date.now();
+      const progressId = `local-agent-audit-${startedAt}`;
+      chat.addLocalMessages([
+        buildLocalAgentUserMessage(displayText, agentPromptOverride),
+        { role: 'assistant', text: introText || 'Running a read-only package audit.' },
+        buildDirectAgentProgress({
+          id: progressId,
+          startedAt,
+          mode: 'Review only',
+          target: 'Package',
+          status: 'running',
+          steps: [
+            buildDirectAgentStep('review_package_readiness', 'Review readiness', {
+              status: 'running',
+              targets: ['Package'],
+              summary: 'Checking package readiness',
+            }),
+          ],
+        }),
+      ]);
+      setDirectPlanActionRunning(true);
+      try {
+        const result = await onAuditPackage({
+          selectedFeatureIds,
+          lessonFilter: lessonScope?.type === 'specific' ? lessonScope.indices : null,
+        });
+        const summary = normalizePackageSummary(result);
+        const progress = buildDirectAgentProgress({
+          id: progressId,
+          startedAt,
+          mode: 'Review only',
+          target: 'Package',
+          steps: buildPackageAuditProgressSteps(summary),
+        });
+        commitDirectAgentProgress(chat, progressId, progress);
+        chat.addLocalMessages([
+          { role: 'packageSummary', summary },
+          buildPackageAuditReceipt(summary),
+          { role: 'assistant', text: summarizeDirectAuditSummary(summary) },
+        ]);
+      } catch (err) {
+        const progress = buildDirectAgentProgress({
+          id: progressId,
+          startedAt,
+          mode: 'Review only',
+          target: 'Package',
+          steps: [
+            buildDirectAgentStep('review_package_readiness', 'Review readiness', {
+              status: 'error',
+              targets: ['Package'],
+              summary: err?.message || 'Package audit failed',
+            }),
+          ],
+        });
+        commitDirectAgentProgress(chat, progressId, progress);
+        chat.addLocalMessages({
+          role: 'error',
+          text: err?.message || 'Package audit could not complete.',
+        });
+      } finally {
+        setDirectPlanActionRunning(false);
+      }
+      return true;
+    },
+    [agentCommandDisabled, chat, courseMap?.lessons?.length, lessonScope, onAuditPackage, selectedFeatures],
+  );
+  const runDirectPackageFinish = useCallback(
+    async ({
+      displayText = 'Finish package',
+      introText = 'Running package finishing.',
+      source = 'agent-command',
+      maxRetryActions = 10,
+      maxRetryCallBudget = 14,
+      maxRetryPasses = 3,
+      agentPromptOverride = null,
+    } = {}) => {
+      if (
+        !(
+          typeof finalizePackageRef.current === 'function' &&
+          !agentCommandDisabled &&
+          packageQualityPass?.status !== 'running'
+        )
+      ) {
+        return false;
+      }
+
+      const startedAt = Date.now();
+      const progressId = `local-agent-finish-${startedAt}`;
+      chat.addLocalMessages([
+        buildLocalAgentUserMessage(displayText, agentPromptOverride),
+        { role: 'assistant', text: introText },
+        buildDirectAgentProgress({
+          id: progressId,
+          startedAt,
+          mode: 'Auto-fix',
+          target: 'Package',
+          status: 'running',
+          steps: [
+            buildDirectAgentStep('finalize_package', 'Finish package', {
+              status: 'running',
+              targets: ['Package'],
+              summary: 'Running safe repairs and export checks',
+            }),
+          ],
+        }),
+      ]);
+      setDirectPlanActionRunning(true);
+      try {
+        const result = await finalizePackageRef.current({
+          selectedFeatures,
+          selectedFeatureIds: selectedFeatures,
+          lessonFilter: lessonScope?.type === 'specific' ? lessonScope.indices : null,
+          retry: true,
+          source,
+          maxRetryActions,
+          maxRetryCallBudget,
+          maxRetryPasses,
+        });
+        const progress = buildDirectAgentProgress({
+          id: progressId,
+          startedAt,
+          mode: 'Auto-fix',
+          target: 'Package',
+          steps: buildPackageFinishProgressSteps(result),
+        });
+        commitDirectAgentProgress(chat, progressId, progress);
+        chat.addLocalMessages([
+          buildPackageFinishReceipt(result),
+          { role: 'assistant', text: summarizeDirectPackageFinish(result) },
+        ]);
+      } catch (err) {
+        const progress = buildDirectAgentProgress({
+          id: progressId,
+          startedAt,
+          mode: 'Auto-fix',
+          target: 'Package',
+          steps: [
+            buildDirectAgentStep('finalize_package', 'Finish package', {
+              status: 'error',
+              targets: ['Package'],
+              summary: err?.message || 'Package finishing failed',
+            }),
+          ],
+        });
+        commitDirectAgentProgress(chat, progressId, progress);
+        chat.addLocalMessages({
+          role: 'error',
+          text: err?.message || 'Package finishing could not complete.',
+        });
+      } finally {
+        setDirectPlanActionRunning(false);
+      }
+      return true;
+    },
+    [agentCommandDisabled, chat, lessonScope, packageQualityPass?.status, selectedFeatures],
+  );
+  const runDirectWorkspacePlan = useCallback(
+    async ({
+      displayText = 'Plan next step',
+      introText = 'Inspecting the workspace and building a plan.',
+      agentPromptOverride = null,
+    } = {}) => {
+      if (agentCommandDisabled) return false;
+
+      const startedAt = Date.now();
+      const progressId = `local-agent-plan-${startedAt}`;
+      chat.addLocalMessages([
+        buildLocalAgentUserMessage(displayText, agentPromptOverride),
+        { role: 'assistant', text: introText },
+        buildDirectAgentProgress({
+          id: progressId,
+          startedAt,
+          mode: chat.agentDryRun ? 'Review only' : 'Auto-fix',
+          target: 'Workspace',
+          status: 'running',
+          steps: [
+            buildDirectAgentStep('inspect_workspace', 'Inspect workspace', {
+              status: 'running',
+              targets: ['Workspace'],
+              summary: 'Reading current workspace state',
+            }),
+          ],
+        }),
+      ]);
+      setDirectPlanActionRunning(true);
+      try {
+        const { AGENT_TOOLS } = await import('../../lib/agentTools');
+        const scopeIndices = lessonScope?.type === 'specific' ? lessonScope.indices : null;
+        const toolCtx = {
+          courseMap,
+          activeTab,
+          deliverables,
+          selectedFeatures,
+          columns,
+          deliverableConfig,
+          lessonFilter: scopeIndices,
+          dryRun: !!chat.agentDryRun,
+        };
+        await AGENT_TOOLS.inspect_workspace.execute({}, toolCtx);
+        const plan = await AGENT_TOOLS.plan_workspace_next_step.execute({}, toolCtx);
+        const progress = buildDirectAgentProgress({
+          id: progressId,
+          startedAt,
+          mode: chat.agentDryRun ? 'Review only' : 'Auto-fix',
+          target: 'Workspace',
+          steps: [
+            buildDirectAgentStep('inspect_workspace', 'Inspect workspace', {
+              targets: ['Workspace'],
+              summary: 'Checked current materials',
+            }),
+            buildDirectAgentStep('plan_workspace_next_step', 'Plan next step', {
+              targets: ['Workspace'],
+              summary: 'Selected highest-impact action',
+            }),
+          ],
+        });
+        commitDirectAgentProgress(chat, progressId, progress);
+        chat.addLocalMessages([
+          { role: 'workspacePlan', plan },
+          buildWorkspacePlanReceipt(plan, chat.agentDryRun ? 'Review only' : 'Auto-fix'),
+          { role: 'assistant', text: summarizeDirectWorkspacePlan(plan) },
+        ]);
+      } catch (err) {
+        const progress = buildDirectAgentProgress({
+          id: progressId,
+          startedAt,
+          mode: chat.agentDryRun ? 'Review only' : 'Auto-fix',
+          target: 'Workspace',
+          steps: [
+            buildDirectAgentStep('inspect_workspace', 'Inspect workspace', {
+              status: 'error',
+              targets: ['Workspace'],
+              summary: err?.message || 'Workspace planning failed',
+            }),
+          ],
+        });
+        commitDirectAgentProgress(chat, progressId, progress);
+        chat.addLocalMessages({
+          role: 'error',
+          text: err?.message || 'Workspace planning could not complete.',
+        });
+      } finally {
+        setDirectPlanActionRunning(false);
+      }
+      return true;
+    },
+    [
+      activeTab,
+      agentCommandDisabled,
+      chat,
+      columns,
+      courseMap,
+      deliverableConfig,
+      deliverables,
+      lessonScope,
+      selectedFeatures,
+    ],
+  );
+  const runDirectUndo = useCallback(
+    async ({
+      displayText = 'Undo last change',
+      introText = 'Undoing the last deliverable edit.',
+      agentPromptOverride = null,
+    } = {}) => {
+      if (!(delivCanUndo && typeof delivUndoFn === 'function' && !agentCommandDisabled)) return false;
+
+      const startedAt = Date.now();
+      const progressId = `local-agent-undo-${startedAt}`;
+      const targetLabel = activeTabLabel(activeTab);
+      chat.addLocalMessages([
+        buildLocalAgentUserMessage(displayText, agentPromptOverride),
+        { role: 'assistant', text: introText },
+        buildDirectAgentProgress({
+          id: progressId,
+          startedAt,
+          mode: 'Auto-fix',
+          target: targetLabel,
+          status: 'running',
+          steps: [
+            buildDirectAgentStep('undo_last', 'Undo last change', {
+              status: 'running',
+              targets: [targetLabel],
+              summary: 'Restoring previous deliverable state',
+            }),
+          ],
+        }),
+      ]);
+      setDirectPlanActionRunning(true);
+      try {
+        delivUndoFn();
+        commitDirectAgentProgress(
+          chat,
+          progressId,
+          buildDirectAgentProgress({
+            id: progressId,
+            startedAt,
+            mode: 'Auto-fix',
+            target: targetLabel,
+            steps: [
+              buildDirectAgentStep('undo_last', 'Undo last change', {
+                targets: [targetLabel],
+                summary: 'Restored previous deliverable state',
+              }),
+            ],
+          }),
+        );
+        chat.addLocalMessages([
+          buildUndoReceipt(targetLabel),
+          {
+            role: 'assistant',
+            text: `Last ${targetLabel} change undone. Run Plan or Audit if you want me to check the workspace again.`,
+          },
+        ]);
+      } catch (err) {
+        commitDirectAgentProgress(
+          chat,
+          progressId,
+          buildDirectAgentProgress({
+            id: progressId,
+            startedAt,
+            mode: 'Auto-fix',
+            target: targetLabel,
+            steps: [
+              buildDirectAgentStep('undo_last', 'Undo last change', {
+                status: 'error',
+                targets: [targetLabel],
+                summary: err?.message || 'Undo failed',
+              }),
+            ],
+          }),
+        );
+        chat.addLocalMessages({
+          role: 'error',
+          text: err?.message || 'Undo could not complete.',
+        });
+      } finally {
+        setDirectPlanActionRunning(false);
+      }
+      return true;
+    },
+    [activeTab, agentCommandDisabled, chat, delivCanUndo, delivUndoFn],
+  );
+
+  const approveSyncSuggestionWithReceipt = useCallback(
+    async (suggestionId, selectedPlan = null) => {
+      const syncResult = await chat.handleApproveSyncSuggestion?.(suggestionId, selectedPlan);
+      const planForSummary = Array.isArray(syncResult?.selectedPlan)
+        ? syncResult.selectedPlan
+        : Array.isArray(selectedPlan)
+          ? selectedPlan
+          : Array.isArray(syncResult?.suggestion?.plan)
+            ? syncResult.suggestion.plan
+            : [];
+      const featureSummary = summarizeSyncPlanFeatures(planForSummary);
+      const hasCanonicalPatches = collectSyncCanonicalPatches(syncResult).length > 0;
+      chat.addLocalMessages([
+        buildSyncReceipt(featureSummary, chat.agentDryRun ? 'Review only' : 'Auto-fix', syncResult),
+        {
+          role: 'assistant',
+          text: hasCanonicalPatches
+            ? `Blueprint sync finished for ${featureSummary}.`
+            : `Sync request finished for ${featureSummary}.`,
+        },
+      ]);
+      return syncResult;
+    },
+    [chat],
+  );
+
+  const handleWorkspacePlanAction = useCallback(
+    async (action, followUp = {}) => {
+      const intent = getWorkspacePlanIntent(action);
+      const actionFeatureIds = getWorkspacePlanFeatureIds(action).filter((featureId) => featureId !== 'courseMap');
+      const agentPromptOverride = followUp.sendOptions?.agentPromptOverride || null;
+      if (
+        notifyAgentCommandTemporarilyBlocked({
+          id: intent || 'workspace-plan-action',
+          displayText: followUp.displayText || action?.title || 'Run plan action',
+        })
+      ) {
+        return { status: 'error' };
+      }
+      if (intent === 'audit_package' || intent === 'review_readiness_blockers') {
+        const selectedFeatureIds = actionFeatureIds.length > 0 ? ['courseMap', ...actionFeatureIds] : selectedFeatures;
+        const displayText = followUp.displayText || action?.title || 'Audit package';
+        const handled = await runDirectPackageAudit({
+          displayText,
+          selectedFeatureIds,
+          introText:
+            intent === 'review_readiness_blockers'
+              ? 'Reviewing package readiness blockers from the workspace plan.'
+              : 'Running a read-only package audit from the workspace plan.',
+          agentPromptOverride,
+        });
+        if (handled) return true;
+      }
+
+      const generationFeatureIds = getWorkspacePlanFeatureIds(action).filter((featureId) => featureId !== 'courseMap');
+      const canRunDirectGeneration =
+        ['generate_missing_feature', 'regenerate_failed_feature'].includes(intent) &&
+        generationFeatureIds.length > 0 &&
+        typeof onGenerateFeatures === 'function' &&
+        courseMap?.lessons?.length &&
+        !agentCommandDisabled;
+      if (canRunDirectGeneration) {
+        const displayText = followUp.displayText || action?.title || 'Generate deliverables';
+        const featureSummary = summarizeFeatureIds(generationFeatureIds);
+        const startedAt = Date.now();
+        const progressId = `local-agent-generate-${startedAt}`;
+        chat.addLocalMessages([
+          buildLocalAgentUserMessage(displayText, agentPromptOverride),
+          {
+            role: 'assistant',
+            text: `${intent === 'regenerate_failed_feature' ? 'Regenerating' : 'Generating'} ${featureSummary} from the workspace plan.`,
+          },
+          buildDirectAgentProgress({
+            id: progressId,
+            startedAt,
+            mode: 'Auto-fix',
+            target: featureSummary,
+            status: 'running',
+            steps: [
+              buildDirectAgentStep('edit_deliverables', 'Generate deliverables', {
+                status: 'running',
+                targets: [featureSummary],
+                summary: 'Starting generation',
+              }),
+            ],
+          }),
+        ]);
+        setDirectPlanActionRunning(true);
+        try {
+          const result = await onGenerateFeatures({
+            featureIds: generationFeatureIds,
+            lessonFilter: lessonScope?.type === 'specific' ? lessonScope.indices : null,
+            source: 'agent-plan',
+          });
+          const failedCount = Array.isArray(result?.failedFeatureIds) ? result.failedFeatureIds.length : 0;
+          commitDirectAgentProgress(
+            chat,
+            progressId,
+            buildDirectAgentProgress({
+              id: progressId,
+              startedAt,
+              mode: 'Auto-fix',
+              target: featureSummary,
+              steps: [
+                buildDirectAgentStep('edit_deliverables', 'Generate deliverables', {
+                  status: failedCount > 0 || result?.status === 'busy' ? 'partial' : 'done',
+                  targets: [featureSummary],
+                  summary: summarizeDirectGenerationResult(result, generationFeatureIds),
+                }),
+              ],
+            }),
+          );
+          chat.addLocalMessages([
+            buildGenerationReceipt(result, featureSummary, generationFeatureIds),
+            { role: 'assistant', text: summarizeDirectGenerationResult(result, generationFeatureIds) },
+          ]);
+        } catch (err) {
+          commitDirectAgentProgress(
+            chat,
+            progressId,
+            buildDirectAgentProgress({
+              id: progressId,
+              startedAt,
+              mode: 'Auto-fix',
+              target: featureSummary,
+              steps: [
+                buildDirectAgentStep('edit_deliverables', 'Generate deliverables', {
+                  status: 'error',
+                  targets: [featureSummary],
+                  summary: err?.message || `Generation failed for ${featureSummary}`,
+                }),
+              ],
+            }),
+          );
+          chat.addLocalMessages({
+            role: 'error',
+            text: err?.message || `Generation could not complete for ${featureSummary}.`,
+          });
+        } finally {
+          setDirectPlanActionRunning(false);
+        }
+        return true;
+      }
+
+      const syncMatch = intent === 'sync_stale_deliverables' ? findPendingSyncPlanMatch(chat.messages, action) : null;
+      const canRunDirectSync =
+        intent === 'sync_stale_deliverables' &&
+        action?.safeMode === 'needs-approval' &&
+        syncMatch &&
+        typeof chat.handleApproveSyncSuggestion === 'function' &&
+        !agentCommandDisabled;
+      if (canRunDirectSync) {
+        const displayText = followUp.displayText || action?.title || 'Sync stale deliverables';
+        const featureSummary = summarizeSyncPlanFeatures(syncMatch.selectedPlan);
+        const startedAt = Date.now();
+        const progressId = `local-agent-sync-${startedAt}`;
+        chat.addLocalMessages([
+          buildLocalAgentUserMessage(displayText, agentPromptOverride),
+          { role: 'assistant', text: `Syncing ${featureSummary} from the workspace plan.` },
+          buildDirectAgentProgress({
+            id: progressId,
+            startedAt,
+            mode: chat.agentDryRun ? 'Review only' : 'Auto-fix',
+            target: featureSummary,
+            status: 'running',
+            steps: [
+              buildDirectAgentStep('edit_deliverables', 'Sync stale deliverables', {
+                status: 'running',
+                targets: [featureSummary],
+                summary: 'Applying approved sync plan',
+              }),
+            ],
+          }),
+        ]);
+        setDirectPlanActionRunning(true);
+        try {
+          const syncResult = await chat.handleApproveSyncSuggestion(syncMatch.suggestion.id, syncMatch.selectedPlan);
+          commitDirectAgentProgress(
+            chat,
+            progressId,
+            buildDirectAgentProgress({
+              id: progressId,
+              startedAt,
+              mode: chat.agentDryRun ? 'Review only' : 'Auto-fix',
+              target: featureSummary,
+              steps: [
+                buildDirectAgentStep('edit_deliverables', 'Sync stale deliverables', {
+                  targets: [featureSummary],
+                  summary: 'Applied the approved sync plan',
+                }),
+              ],
+            }),
+          );
+          chat.addLocalMessages([
+            buildSyncReceipt(featureSummary, chat.agentDryRun ? 'Review only' : 'Auto-fix', syncResult),
+            {
+              role: 'assistant',
+              text:
+                collectSyncCanonicalPatches(syncResult).length > 0
+                  ? `Blueprint sync finished for ${featureSummary}. Check the sync card for the final status.`
+                  : `Sync request finished for ${featureSummary}. Check the sync card for the final status.`,
+            },
+          ]);
+        } catch (err) {
+          commitDirectAgentProgress(
+            chat,
+            progressId,
+            buildDirectAgentProgress({
+              id: progressId,
+              startedAt,
+              mode: chat.agentDryRun ? 'Review only' : 'Auto-fix',
+              target: featureSummary,
+              steps: [
+                buildDirectAgentStep('edit_deliverables', 'Sync stale deliverables', {
+                  status: 'error',
+                  targets: [featureSummary],
+                  summary: err?.message || `Sync failed for ${featureSummary}`,
+                }),
+              ],
+            }),
+          );
+          chat.addLocalMessages({
+            role: 'error',
+            text: err?.message || `Sync could not complete for ${featureSummary}.`,
+          });
+        } finally {
+          setDirectPlanActionRunning(false);
+        }
+        return true;
+      }
+
+      const canRunDirectFinalize =
+        intent === 'clear_readiness_blockers' &&
+        action?.safeMode === 'safe-auto-fix' &&
+        typeof finalizePackageRef.current === 'function' &&
+        !agentCommandDisabled &&
+        packageQualityPass?.status !== 'running';
+      if (!canRunDirectFinalize) return false;
+
+      const displayText = followUp.displayText || action?.title || 'Fix package readiness';
+      return runDirectPackageFinish({
+        displayText,
+        introText: 'Running package finishing from the workspace plan.',
+        source: 'agent-plan',
+        maxRetryActions: 10,
+        maxRetryCallBudget: 14,
+        maxRetryPasses: 3,
+        agentPromptOverride,
+      });
+    },
+    [
+      agentCommandDisabled,
+      chat,
+      courseMap?.lessons?.length,
+      lessonScope,
+      notifyAgentCommandTemporarilyBlocked,
+      onAuditPackage,
+      onGenerateFeatures,
+      packageQualityPass?.status,
+      runDirectPackageAudit,
+      runDirectPackageFinish,
+      selectedFeatures,
+    ],
+  );
+  const handleAgentCommand = useCallback(
+    async (item) => {
+      if (!item) return;
+      if (item.id === 'agent-help') {
+        chat.addLocalMessages([
+          buildLocalAgentUserMessage(item.displayText),
+          {
+            role: 'agentHelp',
+            help: buildAgentHelpPayload({
+              activeTab,
+              chat,
+              lessonScope,
+              courseMap,
+              pendingSyncFeatureIds,
+              canUndo: delivCanUndo,
+            }),
+          },
+        ]);
+        return;
+      }
+      if (item.modeSwitch === 'review-only' || item.id === 'set-review-mode') {
+        chat.setAgentDryRun(true);
+        chat.addLocalMessages([
+          buildLocalAgentUserMessage(item.displayText || 'Switch to Review only'),
+          buildModeSwitchReceipt(true),
+          {
+            role: 'assistant',
+            text: 'Review-only mode is on. I will inspect and propose fixes without editing.',
+          },
+        ]);
+        return;
+      }
+      if (item.modeSwitch === 'auto-fix' || item.id === 'set-auto-fix-mode') {
+        chat.setAgentDryRun(false);
+        chat.addLocalMessages([
+          buildLocalAgentUserMessage(item.displayText || 'Switch to Auto-fix'),
+          buildModeSwitchReceipt(false),
+          {
+            role: 'assistant',
+            text: 'Auto-fix mode is on. I can apply safe fixes directly and will still stop for instructor decisions.',
+          },
+        ]);
+        return;
+      }
+      if (notifyAgentCommandTemporarilyBlocked(item)) return;
+      if (item.id === 'sync-stale') {
+        const handled = await handleWorkspacePlanAction(
+          {
+            title: 'Sync stale deliverables',
+            target: summarizeFeatureIds(pendingSyncFeatureIds),
+            safeMode: 'needs-approval',
+            intent: { type: 'sync_stale_deliverables', featureIds: pendingSyncFeatureIds },
+          },
+          {
+            displayText: item.displayText,
+            sendOptions: { agentPromptOverride: item.prompt },
+          },
+        );
+        if (handled) return;
+      }
+      if (item.id === 'plan-next') {
+        const handled = await runDirectWorkspacePlan({
+          displayText: item.displayText,
+          introText: 'Inspecting the workspace and building a plan from the Agent command.',
+          agentPromptOverride: item.prompt,
+        });
+        if (handled) return;
+      }
+      if (item.id === 'undo-last') {
+        const handled = await runDirectUndo({
+          displayText: item.displayText,
+          introText: 'Undoing the last deliverable edit from the Agent command.',
+          agentPromptOverride: item.prompt,
+        });
+        if (handled) return;
+      }
+      if (item.id === 'audit-quality') {
+        const handled = await runDirectPackageAudit({
+          displayText: item.displayText,
+          selectedFeatureIds: selectedFeatures,
+          introText: 'Running a read-only package audit from the Agent command.',
+          agentPromptOverride: item.prompt,
+        });
+        if (handled) return;
+      }
+      if (item.id === 'finish-package') {
+        const handled = chat.agentDryRun
+          ? await runDirectPackageAudit({
+              displayText: item.displayText,
+              selectedFeatureIds: selectedFeatures,
+              introText: 'Running a read-only package review from the Agent command.',
+              agentPromptOverride: item.prompt,
+            })
+          : await runDirectPackageFinish({
+              displayText: item.displayText,
+              introText: 'Running package finishing from the Agent command.',
+              source: 'agent-command',
+              maxRetryActions: 10,
+              maxRetryCallBudget: 14,
+              maxRetryPasses: 3,
+              agentPromptOverride: item.prompt,
+            });
+        if (handled) return;
+      }
+      chat.send(item.displayText, {
+        displayText: item.displayText,
+        agentPromptOverride: item.prompt,
+      });
+    },
+    [
+      chat,
+      activeTab,
+      courseMap,
+      delivCanUndo,
+      handleWorkspacePlanAction,
+      lessonScope,
+      notifyAgentCommandTemporarilyBlocked,
+      pendingSyncFeatureIds,
+      runDirectPackageAudit,
+      runDirectPackageFinish,
+      runDirectUndo,
+      runDirectWorkspacePlan,
+      selectedFeatures,
+    ],
+  );
+  const handleAgentRecoveryAction = useCallback(
+    async (action) => {
+      if (!action) return false;
+      const displayText = action.displayText || action.label || 'Recover Agent run';
+      const fromReceipt = action.source === 'agent-receipt';
+      if (notifyAgentCommandTemporarilyBlocked({ id: action.id, displayText })) return true;
+
+      if (action.localIntent === 'audit-package') {
+        return runDirectPackageAudit({
+          displayText,
+          selectedFeatureIds: selectedFeatures,
+          introText: fromReceipt
+            ? 'Running a read-only package audit from the Agent receipt.'
+            : 'Running a read-only package audit for the previous Agent issues.',
+          agentPromptOverride: action.prompt,
+        });
+      }
+
+      if (action.localIntent === 'finish-package') {
+        if (chat.agentDryRun) {
+          return runDirectPackageAudit({
+            displayText,
+            selectedFeatureIds: selectedFeatures,
+            introText: fromReceipt
+              ? 'Running a read-only package review from the Agent receipt.'
+              : 'Running a read-only package review for the previous Agent issues.',
+            agentPromptOverride: action.prompt,
+          });
+        }
+        return runDirectPackageFinish({
+          displayText,
+          introText: fromReceipt
+            ? 'Running safe package fixes from the Agent receipt.'
+            : 'Retrying safe package fixes from the previous Agent run.',
+          source: 'agent-recovery',
+          maxRetryActions: 8,
+          maxRetryCallBudget: 12,
+          maxRetryPasses: 2,
+          agentPromptOverride: action.prompt,
+        });
+      }
+
+      if (action.localIntent === 'plan-next') {
+        return runDirectWorkspacePlan({
+          displayText,
+          introText: fromReceipt
+            ? 'Inspecting the workspace and planning from the Agent receipt.'
+            : 'Inspecting the workspace and planning recovery from the previous Agent issues.',
+          agentPromptOverride: action.prompt,
+        });
+      }
+
+      return false;
+    },
+    [
+      chat.agentDryRun,
+      notifyAgentCommandTemporarilyBlocked,
+      runDirectPackageAudit,
+      runDirectPackageFinish,
+      runDirectWorkspacePlan,
+      selectedFeatures,
+    ],
+  );
+  const handleWorkspacePlanActionStateChange = useCallback(
+    (messageIndex, actionStates) => {
+      if (!Number.isInteger(messageIndex) || !actionStates || typeof actionStates !== 'object') return;
+      chat.updateLocalMessage(
+        (message, index) => index === messageIndex && message?.role === 'workspacePlan',
+        (message) => ({
+          ...message,
+          actionStates,
+          plan: message.plan ? { ...message.plan, actionStates } : message.plan,
+        }),
+      );
+    },
+    [chat],
+  );
+  const handleReceiptActionStateChange = useCallback(
+    (messageIndex, actionStates) => {
+      if (!Number.isInteger(messageIndex) || !actionStates || typeof actionStates !== 'object') return;
+      chat.updateLocalMessage(
+        (message, index) => index === messageIndex && message?.role === 'agentReceipt',
+        (message) => ({
+          ...message,
+          actionStates,
+          receipt: message.receipt ? { ...message.receipt, actionStates } : message.receipt,
+        }),
+      );
+    },
+    [chat],
+  );
+  const handleAgentStarterAction = useCallback(
+    (starter) => {
+      if (!starter?.action) return false;
+      if (starter.action === 'local-audit') {
+        if (
+          notifyAgentCommandTemporarilyBlocked({
+            id: 'audit-quality',
+            displayText: starter.text || 'Run local audit',
+          })
+        ) {
+          return true;
+        }
+        runDirectPackageAudit({
+          displayText: starter.text || 'Run local audit',
+          selectedFeatureIds: selectedFeatures,
+          introText: 'Running a read-only package audit from the Agent starter.',
+        });
+        return true;
+      }
+      if (starter.action === 'local-plan') {
+        if (
+          notifyAgentCommandTemporarilyBlocked({
+            id: 'plan-next',
+            displayText: starter.text || 'Plan next step',
+          })
+        ) {
+          return true;
+        }
+        runDirectWorkspacePlan({
+          displayText: starter.text || 'Plan next step',
+          introText: 'Inspecting the workspace and building a plan from the Agent starter.',
+        });
+        return true;
+      }
+      if (starter.action === 'finish-package') {
+        if (
+          notifyAgentCommandTemporarilyBlocked({
+            id: 'finish-package',
+            displayText: starter.text || 'Finish package',
+          })
+        ) {
+          return true;
+        }
+        runDirectPackageFinish({
+          displayText: starter.text || 'Finish package',
+          introText: 'Running package finishing from the Agent starter.',
+          source: 'agent-starter',
+          maxRetryActions: 10,
+          maxRetryCallBudget: 14,
+          maxRetryPasses: 3,
+        });
+        return true;
+      }
+      return false;
+    },
+    [
+      notifyAgentCommandTemporarilyBlocked,
+      runDirectPackageAudit,
+      runDirectPackageFinish,
+      runDirectWorkspacePlan,
+      selectedFeatures,
+    ],
+  );
 
   return (
     <div
-      className="flex flex-col h-full bg-white/72 backdrop-blur-xl rounded-squircle shadow-glass overflow-hidden"
+      className="flex h-full min-h-0 flex-col overflow-hidden rounded-squircle bg-white/72 shadow-glass backdrop-blur-xl"
       data-print="hide"
     >
       {/* ── Header ── */}
       <div className="flex items-center gap-2.5 px-4 py-2.5 border-b border-slate-200/40 flex-shrink-0">
         <div
           className={`w-7 h-7 rounded-xl flex items-center justify-center ${
-            isAgentMode ? 'bg-indigo-50' : 'bg-slate-100'
+            showsAgentIdentity ? 'bg-indigo-50' : 'bg-slate-100'
           }`}
         >
-          {isAgentMode ? (
+          {showsAgentIdentity ? (
             <svg className="w-3.5 h-3.5 text-indigo-500" fill="none" stroke="currentColor" viewBox="0 0 24 24">
               <path
                 strokeLinecap="round"
@@ -461,7 +2019,9 @@ export default function ChatPanel({
         </div>
         <div className="flex-1 min-w-0">
           <div className="flex items-center gap-2 min-w-0">
-            <h2 className="text-sm font-semibold text-slate-800 truncate">{isAgentMode ? 'Agent' : 'Assistant'}</h2>
+            <h2 className="text-sm font-semibold text-slate-800 truncate">
+              {showsAgentIdentity ? 'Agent' : 'Assistant'}
+            </h2>
             <span
               className={`max-w-[150px] truncate rounded-full border px-2 py-0.5 text-[10px] font-semibold ${STATUS_TONES[agentStatus.tone]}`}
             >
@@ -469,7 +2029,7 @@ export default function ChatPanel({
             </span>
           </div>
           <p className="text-[10px] text-slate-500 -mt-0.5 truncate">
-            {isAgentMode ? `${activeTabLabel(activeTab)} · ${agentStatus.detail}` : agentStatus.detail}
+            {showsAgentIdentity ? `${activeTabLabel(activeTab)} · ${agentStatus.detail}` : agentStatus.detail}
           </p>
         </div>
         {chat.isStreaming && (
@@ -497,6 +2057,31 @@ export default function ChatPanel({
           />
         )}
       </div>
+
+      {isAgentMode && (
+        <AgentCommandStrip
+          activeTab={activeTab}
+          agentDryRun={chat.agentDryRun}
+          disabled={agentCommandDisabled}
+          syncFeatureCount={pendingSyncFeatureIds.length}
+          canUndo={delivCanUndo}
+          isAgentProviderReady={chat.isAgentProviderReady}
+          onConfigureAI={onConfigureAI}
+          onCommand={handleAgentCommand}
+        />
+      )}
+
+      {showsAgentIdentity && landingContextDetail && (
+        <div
+          data-testid="agent-context-strip"
+          className="flex min-h-[34px] flex-shrink-0 items-center gap-2 border-b border-slate-200/40 bg-slate-50/55 px-3.5 py-1.5 text-[11px]"
+        >
+          <span className="shrink-0 rounded-full border border-indigo-100 bg-white/80 px-2 py-0.5 font-bold text-indigo-600">
+            Project brief
+          </span>
+          <span className="min-w-0 truncate font-medium text-slate-600">{landingContextDetail}</span>
+        </div>
+      )}
 
       {/* ── Progress Header (collapsible) — generation + deliverable status ── */}
       {showProgressHeader && (
@@ -528,20 +2113,19 @@ export default function ChatPanel({
       )}
 
       {packageReceiptSummary && (
-        <div className="flex-shrink-0 border-b border-slate-200/40 px-4 py-2">
+        <div className="max-h-44 flex-shrink-0 overflow-y-auto border-b border-slate-200/40 px-4 py-2">
           <PackageSummaryCard summary={packageReceiptSummary} embedded />
         </div>
       )}
 
       {/* ── Stale deliverables banner (persistent, above messages) ── */}
       {(() => {
-        const staleCount = deliverables ? Object.values(deliverables).filter((d) => d?.stale === true).length : 0;
-        if (staleCount === 0 || isSyncing) return null;
+        if (staleDeliverableCount === 0 || isSyncing) return null;
         return (
           <div className="flex-shrink-0 px-3.5 py-1.5 bg-amber-50/80 border-b border-amber-200/40 flex items-center gap-2">
             <div className="w-2 h-2 rounded-full bg-amber-400 animate-pulse" />
             <span className="text-[11px] font-medium text-amber-700">
-              {staleCount} deliverable{staleCount !== 1 ? 's' : ''} out of sync
+              {staleDeliverableCount} deliverable{staleDeliverableCount !== 1 ? 's' : ''} out of sync
             </span>
             <span className="text-[11px] text-amber-500">— check sync suggestions below</span>
           </div>
@@ -565,14 +2149,19 @@ export default function ChatPanel({
       <MessageList
         messages={chat.messages}
         isStreaming={chat.isStreaming}
-        onSuggestionClick={(q) => chat.send(q)}
+        onSuggestionClick={(q, options) => chat.send(q, options)}
+        onStarterAction={handleAgentStarterAction}
+        onRecoveryAction={handleAgentRecoveryAction}
+        onWorkspacePlanAction={handleWorkspacePlanAction}
+        onWorkspacePlanActionStateChange={handleWorkspacePlanActionStateChange}
+        onReceiptActionStateChange={handleReceiptActionStateChange}
         onConfigureAI={onConfigureAI}
         onSelectProposal={chat.handleSelectProposal}
         onAcceptDiff={chat.handleAcceptDiff}
         onRejectDiff={chat.handleRejectDiff}
         onUndo={delivUndoFn}
         canUndo={delivCanUndo}
-        onApproveSyncSuggestion={chat.handleApproveSyncSuggestion}
+        onApproveSyncSuggestion={approveSyncSuggestionWithReceipt}
         onSkipSyncSuggestion={chat.handleSkipSyncSuggestion}
         onRegenerate={chat.regenerate}
         onFeedback={chat.feedback}
@@ -586,7 +2175,23 @@ export default function ChatPanel({
         isAgentProviderReady={chat.isAgentProviderReady}
         isGenerating={!!(currentStep && currentStep !== 'done')}
         isDelivGenerating={!!isDelivGenerating}
+        workspacePlanActionCapabilities={workspacePlanActionCapabilities}
       />
+
+      {showsAgentIdentity && (
+        <AgentWorkingSetPanel
+          courseMap={courseMap}
+          activeTab={activeTab}
+          deliverables={deliverables}
+          selectedFeatures={selectedFeatures}
+          lessonScope={lessonScope}
+          pendingSyncFeatureIds={pendingSyncFeatureIds}
+          packageQualityPass={packageQualityPass}
+          messages={chat.messages}
+          agentDryRun={chat.agentDryRun}
+          isAgentProviderReady={chat.isAgentProviderReady}
+        />
+      )}
 
       {/* ── Chat Input ── */}
       <ChatInput
@@ -607,6 +2212,8 @@ export default function ChatPanel({
         agentDryRun={chat.agentDryRun}
         onAgentDryRunChange={chat.setAgentDryRun}
         onConfigureAI={onConfigureAI}
+        onAgentCommand={handleAgentCommand}
+        syncFeatureCount={pendingSyncFeatureIds.length}
         onUndo={delivUndoFn}
         canUndo={delivCanUndo}
       />

@@ -7,22 +7,22 @@
  *
  * Run locally:
  *   OPENAI_API_KEY=sk-... npx vitest run tests/agent-openai.test.js
- *
- * I could not live-execute this from the sandbox that produced these changes
- * (api.openai.com is not on the egress allowlist), so if a probe fails, the
- * regression lives in OpenAI-specific behavior and should be compared against
- * the matching agent-anthropic.test.js result.
  */
 
 import { describe, it, expect } from 'vitest';
 import { buildAgentSystemPrompt } from '../src/lib/agentPrompts.js';
-import { buildNativeTools } from '../src/lib/agentProviders.js';
+import {
+  buildAgentRequest,
+  buildNativeTools,
+  parseAgentResponse as parseProviderResponse,
+} from '../src/lib/agentProviders.js';
 import { AGENT_TOOLS } from '../src/lib/agentTools.js';
+import { runAgentLoop } from '../src/components/chat/useToolInvoker.js';
 
 const OPENAI_API_KEY = process.env.OPENAI_API_KEY || '';
-// Default to the current "mini" generation. Override via env if you want to
-// probe a different one (e.g. gpt-4o-mini or gpt-5-mini).
-const OPENAI_MODEL = process.env.OPENAI_MODEL || 'gpt-4.1-mini';
+// Default to the model used for current CourseMapper agent validation.
+// Override via env when comparing OpenAI model generations.
+const OPENAI_MODEL = process.env.OPENAI_MODEL || 'gpt-5.4-mini';
 const TIMEOUT = 60_000;
 
 const describeWithKey = OPENAI_API_KEY ? describe : describe.skip;
@@ -116,24 +116,19 @@ const DELIVERABLES = {
 async function callOpenAI(userMessage, { activeTab = 'quizBank', maxTokens = 4096 } = {}) {
   const systemPrompt = buildAgentSystemPrompt(COURSE_MAP, activeTab, DELIVERABLES);
   const nativeTools = buildNativeTools('openai', AGENT_TOOLS);
+  const { endpoint, headers, body } = buildAgentRequest('openai', {
+    model: OPENAI_MODEL,
+    systemPrompt,
+    messages: [{ role: 'user', content: userMessage }],
+    tools: nativeTools,
+    maxTokens,
+    apiKey: OPENAI_API_KEY,
+  });
 
-  const response = await fetch('https://api.openai.com/v1/chat/completions', {
+  const response = await fetch(endpoint, {
     method: 'POST',
-    headers: {
-      Authorization: `Bearer ${OPENAI_API_KEY}`,
-      'Content-Type': 'application/json',
-    },
-    body: JSON.stringify({
-      model: OPENAI_MODEL,
-      messages: [
-        { role: 'system', content: systemPrompt },
-        { role: 'user', content: userMessage },
-      ],
-      tools: nativeTools,
-      tool_choice: 'auto',
-      max_completion_tokens: maxTokens,
-      temperature: 0.3,
-    }),
+    headers,
+    body: JSON.stringify(body),
   });
 
   if (!response.ok) {
@@ -142,29 +137,70 @@ async function callOpenAI(userMessage, { activeTab = 'quizBank', maxTokens = 409
   }
 
   const json = await response.json();
-  const message = json.choices?.[0]?.message;
-  const toolCalls = (message?.tool_calls || []).map((tc) => ({
-    id: tc.id,
-    name: tc.function.name,
-    args: safeJson(tc.function.arguments),
-  }));
-  return {
-    toolCalls: toolCalls.length > 0 ? toolCalls : null,
-    textContent: message?.content || null,
-    finishReason: json.choices?.[0]?.finish_reason,
-    usage: json.usage,
-  };
+  return parseProviderResponse('openai', json);
 }
 
-function safeJson(str) {
-  try {
-    return JSON.parse(str || '{}');
-  } catch {
-    return {};
-  }
-}
 function findToolCall(toolCalls, name) {
   return toolCalls?.find((tc) => tc.name === name);
+}
+
+async function runOpenAIAgentLoop(userMessage, { activeTab = 'courseMap', dryRun = true } = {}) {
+  let messageState = [
+    {
+      id: 'agent-progress-live-openai',
+      role: 'agentProgress',
+      steps: [],
+      status: 'running',
+      startedAt: 100,
+      runMeta: {
+        mode: dryRun ? 'Review only' : 'Auto-fix',
+        target: activeTab,
+        provider: 'openai',
+        model: OPENAI_MODEL,
+      },
+    },
+  ];
+  const setMessages = (updater) => {
+    messageState = typeof updater === 'function' ? updater(messageState) : updater;
+  };
+  const delivRef = { current: structuredClone(DELIVERABLES) };
+
+  await runAgentLoop(userMessage, { dryRun }, {
+    messages: [],
+    setMessages,
+    setStreaming: () => {},
+    abortRef: { current: null },
+    apiKey: OPENAI_API_KEY,
+    provider: 'openai',
+    modelId: OPENAI_MODEL,
+    courseMap: structuredClone(COURSE_MAP),
+    activeTab,
+    slideTheme: null,
+    selectedFeatures: ['courseMap', 'quizBank', 'lessonPlans'],
+    columns: [],
+    deliverableConfig: {},
+    lessonFilter: null,
+    delivRef,
+    executeActionRef: { current: () => ({ success: false, message: 'Not used in read-only audit.' }) },
+    optimisticUpdateRef: { current: null },
+    snapshotRef: { current: () => {} },
+    undoFnRef: { current: null },
+    notifyEditRef: { current: null },
+    uid: null,
+    customToolRegistryRef: null,
+    maybeRunValidation: () => {},
+    handleAgentFinalResponse: (response) => {
+      setMessages((prev) => [
+        ...prev,
+        {
+          role: 'assistant',
+          text: response?.chatReply || response?.text || 'Agent completed.',
+        },
+      ]);
+    },
+  });
+
+  return messageState;
 }
 
 describeWithKey(`OpenAI (${OPENAI_MODEL}) Agent E2E`, { timeout: TIMEOUT * 12 }, () => {
@@ -197,6 +233,31 @@ describeWithKey(`OpenAI (${OPENAI_MODEL}) Agent E2E`, { timeout: TIMEOUT * 12 },
     expect(findToolCall(r.toolCalls, 'finalize_package') || findToolCall(r.toolCalls, 'validate_course')).toBeTruthy();
   });
 
+  it('creates an auditable receipt after a live read-only tool run', { timeout: TIMEOUT * 2 }, async () => {
+    const messages = await runOpenAIAgentLoop(
+      'Run validate_course to check the current course health, then respond with one concise sentence. Do not edit anything.',
+      { activeTab: 'courseMap', dryRun: true },
+    );
+    const receipt = messages.find((message) => message.role === 'agentReceipt');
+    const assistant = messages.find((message) => message.role === 'assistant');
+
+    expect(assistant?.text).toBeTruthy();
+    expect(receipt).toBeTruthy();
+    expect(receipt.receipt.intent).toMatchObject({
+      type: 'package_audit',
+      readOnly: true,
+      mutatesWorkspace: false,
+    });
+    expect(receipt.receipt.runStats).toMatchObject({
+      readOnly: true,
+      mutatesWorkspace: false,
+    });
+    expect(receipt.receipt.runStats.toolCount).toBeGreaterThan(0);
+    expect(receipt.receipt.runStats.checkCount).toBeGreaterThan(0);
+    expect(receipt.receipt.toolManifest.some((step) => step.tool === 'validate_course')).toBe(true);
+    expect(JSON.stringify(receipt.receipt.toolManifest)).not.toContain(OPENAI_API_KEY);
+  });
+
   it('edits course map when asked to rename a lesson', { timeout: TIMEOUT }, async () => {
     const r = await callOpenAI('Rename Lesson 2 to "Tree-Based Learning Methods"', { activeTab: 'courseMap' });
     const edit = findToolCall(r.toolCalls, 'edit_course_map');
@@ -224,5 +285,20 @@ describeWithKey(`OpenAI (${OPENAI_MODEL}) Agent E2E`, { timeout: TIMEOUT * 12 },
       findToolCall(r.toolCalls, 'validate_course') ||
       findToolCall(r.toolCalls, 'read_deliverable');
     expect(hadRelevantTool || r.textContent).toBeTruthy();
+  });
+
+  it('handles command-strip improve instructions as an actionable agent task', { timeout: TIMEOUT }, async () => {
+    const commandPrompt =
+      'Improve Lesson Plans for specificity, classroom usability, alignment to the course map, appropriate difficulty, and missing instructor context. Apply safe changes directly, then verify the affected deliverable and summarize what changed.';
+    const r = await callOpenAI(commandPrompt, { activeTab: 'lessonPlans' });
+    const edit = findToolCall(r.toolCalls, 'edit_deliverables');
+    const read = findToolCall(r.toolCalls, 'read_deliverable');
+    const validate = findToolCall(r.toolCalls, 'validate_course');
+    const respond = findToolCall(r.toolCalls, 'respond');
+
+    expect(edit || read || validate || respond || r.textContent).toBeTruthy();
+    if (edit) {
+      expect(edit.args.actions?.some((action) => action.featureId === 'lessonPlans')).toBe(true);
+    }
   });
 });

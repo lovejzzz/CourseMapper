@@ -3354,6 +3354,8 @@ export default function useDeliverables({
                 lessonIndex,
                 data: nextData,
                 itemCount: getDeliverableItemCount(featureId, nextData),
+                syncSource: 'blueprint-compiler',
+                providerCallCount: 0,
               };
               traceGeneration(regenerationRunId, 'lesson_regen_compiled', {
                 featureId,
@@ -3434,6 +3436,8 @@ export default function useDeliverables({
             lessonIndex,
             data: existingDataSnapshot,
             itemCount: getDeliverableItemCount(featureId, existingDataSnapshot),
+            syncSource: 'model-fallback',
+            providerCallCount: providerCallsUsed,
           };
           appendLog(`⚠ ${label}: skipped Lesson ${lessonIndex + 1} retry to stay within the call cap`, 'warn');
           traceGeneration(regenerationRunId, 'lesson_regen_skipped', skippedResult, 'warn');
@@ -3535,6 +3539,8 @@ export default function useDeliverables({
             lessonIndex,
             data: nextData,
             itemCount: getDeliverableItemCount(featureId, nextData),
+            syncSource: 'model-fallback',
+            providerCallCount: providerCallsUsed,
           };
           traceGeneration(regenerationRunId, 'lesson_regen_done', {
             featureId,

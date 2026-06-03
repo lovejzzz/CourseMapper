@@ -87,14 +87,67 @@ test.describe('Agent no-key behavior', () => {
     await expect(agentPanel.getByRole('heading', { name: 'Agent' })).toBeVisible();
     await expect(agentPanel.getByText('Provider/key required')).toBeVisible();
     await expect(
-      agentPanel.getByText('Your generated workspace is ready. Configure AI to use the agent.'),
+      agentPanel.getByText(
+        'Your generated workspace is ready. I can still run local Audit and Plan. Configure AI for chat and model edits.',
+      ),
     ).toBeVisible();
-    await expect(agentPanel.getByText('Agent actions need a connected AI provider or Local AI model.')).toBeVisible();
+    await expect(agentPanel.getByTestId('agent-command-audit-quality')).toBeVisible();
+    await expect(agentPanel.getByTestId('agent-command-plan-next')).toBeVisible();
+    await expect(agentPanel.getByTestId('agent-command-configure-agent')).toBeVisible();
+    await expect(agentPanel.getByTestId('agent-command-improve-active')).toHaveCount(0);
+    await expect(agentPanel.getByTestId('agent-starter-local-audit')).toBeVisible();
+    await expect(agentPanel.getByTestId('agent-starter-local-plan')).toBeVisible();
+    await expect(
+      agentPanel.getByText('Local Audit and Plan are available above. Connect AI for chat and model-based edits.'),
+    ).toBeVisible();
 
     const composer = agentPanel.locator('textarea');
-    await expect(composer).toBeDisabled();
-    await expect(composer).toHaveAttribute('placeholder', 'Configure AI to use the agent…');
+    await expect(composer).toBeEnabled();
+    await expect(composer).toHaveAttribute('placeholder', 'Configure AI to chat or edit with the agent…');
     await expect(agentPanel.getByLabel('Send message')).toBeDisabled();
+
+    await composer.fill('Please improve this without a key');
+    await expect(agentPanel.getByLabel('Send message')).toBeDisabled();
+
+    await composer.fill('/plan');
+    await expect(agentPanel.getByTestId('agent-slash-command-palette')).toBeVisible();
+    await expect(agentPanel.getByTestId('agent-slash-command-plan-next')).toBeVisible();
+    await composer.press('Enter');
+    await expect(agentPanel.getByText('Inspecting the workspace and building a plan from the Agent command.')).toBeVisible(
+      { timeout: 10000 },
+    );
+    await expect(agentPanel.getByTestId('agent-activity-receipt').first()).toContainText('2 tools', {
+      timeout: 10000,
+    });
+    await expect(agentPanel.getByTestId('agent-activity-receipt').first()).toContainText('0 issues');
+    await expect(agentPanel.getByTestId('workspace-plan-card')).toBeVisible({ timeout: 10000 });
+    await expect(agentPanel.getByText('Plan ready. Start with:', { exact: false })).toBeVisible({ timeout: 10000 });
+    expect(aiRequests).toEqual([]);
+
+    const planningReceipt = agentPanel.getByTestId('agent-receipt-card').filter({ hasText: 'Planning receipt' });
+    await expect(planningReceipt).toHaveCount(1);
+    await expect(planningReceipt).toContainText('Plan ready');
+    await planningReceipt.getByTestId('agent-receipt-action-audit-quality').click();
+    await expect(agentPanel.getByText('Running a read-only package audit from the Agent receipt.')).toBeVisible({
+      timeout: 10000,
+    });
+    await expect(agentPanel.getByTestId('agent-activity-receipt').last()).toContainText('3 tools', {
+      timeout: 10000,
+    });
+    await expect(agentPanel.getByText('Audit complete.', { exact: false })).toHaveCount(1, { timeout: 10000 });
+    await expect(planningReceipt.getByTestId('agent-receipt-action-audit-quality')).toContainText('Done');
+    await expect(planningReceipt.getByTestId('agent-receipt-action-state-audit-quality')).toContainText('Done');
+    expect(aiRequests).toEqual([]);
+
+    await agentPanel.getByTestId('agent-starter-local-audit').click();
+    await expect(agentPanel.getByText('Running a read-only package audit from the Agent starter.')).toBeVisible({
+      timeout: 10000,
+    });
+    await expect(agentPanel.getByTestId('agent-activity-receipt').last()).toContainText('3 tools', {
+      timeout: 10000,
+    });
+    await expect(agentPanel.getByText('Audit complete.', { exact: false })).toHaveCount(2, { timeout: 10000 });
+    expect(aiRequests).toEqual([]);
 
     await agentPanel.getByTestId('configure-agent-ai-button').click();
     await expect(page.locator('h1:has-text("Everything you need")')).toBeVisible({ timeout: 10000 });

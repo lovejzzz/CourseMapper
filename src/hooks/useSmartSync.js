@@ -22,6 +22,7 @@ function pLimit(concurrency) {
     });
 }
 import { buildSyncPlan, getOutboundTargets, computeStaleConfidence } from '../lib/syncDependencies';
+import { dedupeCanonicalPatches, getCanonicalPatchFieldLabel } from '../lib/artifactBlueprintProjection';
 
 // Feature display names for sync suggestion cards
 const FEATURE_NAMES = {
@@ -35,6 +36,36 @@ const FEATURE_NAMES = {
   courseFaq: 'Course FAQ',
   syllabus: 'Syllabus',
 };
+
+function getEditContextText(editContext) {
+  if (!editContext) return null;
+  if (typeof editContext === 'string') return editContext;
+  return editContext.summary || editContext.editContext || null;
+}
+
+function collectPlanCanonicalPatches(plan = []) {
+  return dedupeCanonicalPatches(
+    plan.flatMap((entry) => (Array.isArray(entry?.canonicalPatches) ? entry.canonicalPatches : [])),
+  );
+}
+
+function collectPlanCanonicalPatchRequests(plan = []) {
+  const seen = new Set();
+  const result = [];
+  for (const entry of Array.isArray(plan) ? plan : []) {
+    const requests = Array.isArray(entry?.canonicalPatchRequests) ? entry.canonicalPatchRequests : [];
+    for (const request of requests) {
+      if (!request) continue;
+      const key =
+        request.id ||
+        `${request.sourceFeatureId || entry.featureId || ''}:${request.lessonIndex}:${request.editPath?.join('.')}:${request.artifactValue}`;
+      if (seen.has(key)) continue;
+      seen.add(key);
+      result.push(request);
+    }
+  }
+  return result;
+}
 
 /**
  * useSmartSync — Cascade Sync Engine (V1.8.0)
@@ -68,6 +99,8 @@ export default function useSmartSync({
   selectedFeatures,
   onSyncComplete, // callback(affectedFeatureIds[]) — called when sync batch done
   onRequestProposal, // callback({ featureId, lessonIndex, editContext, courseMap })
+  onApplyCanonicalPatches, // callback(patches[]) — applies approved artifact edits to course map before compile
+  onResolveCanonicalPatchRequests, // callback(requests[]) — tiny model fallback that returns canonical patches
   // — called when a deliverable body edit should show a proposal panel
 }) {
   const [syncLog, setSyncLog] = useState([]);
@@ -99,6 +132,10 @@ export default function useSmartSync({
   onSyncCompleteRef.current = onSyncComplete;
   const onRequestProposalRef = useRef(onRequestProposal);
   onRequestProposalRef.current = onRequestProposal;
+  const onApplyCanonicalPatchesRef = useRef(onApplyCanonicalPatches);
+  onApplyCanonicalPatchesRef.current = onApplyCanonicalPatches;
+  const onResolveCanonicalPatchRequestsRef = useRef(onResolveCanonicalPatchRequests);
+  onResolveCanonicalPatchRequestsRef.current = onResolveCanonicalPatchRequests;
 
   const appendSyncLog = useCallback((type, featureId, message) => {
     setSyncLog((prev) => [...prev, { type, featureId, message, at: Date.now() }]);
@@ -116,7 +153,7 @@ export default function useSmartSync({
     async (plan, changedFieldsSummary = '') => {
       const currentDeliv = delivRef.current;
       const currentGen = genRef.current;
-      const currentCourseMap = courseMapRef?.current;
+      let currentCourseMap = courseMapRef?.current;
 
       if (currentGen?.isStreaming || currentDeliv?.isGenerating) return [];
       if (!currentCourseMap || !plan || plan.length === 0) return [];
@@ -129,6 +166,75 @@ export default function useSmartSync({
       setPendingSyncCount(plan.length);
 
       const completedFeatureIds = [];
+      const resultDetails = [];
+      const canonicalPatchRequests = collectPlanCanonicalPatchRequests(plan);
+      let canonicalPatchResolution = null;
+      let resolvedCanonicalPatches = [];
+      if (canonicalPatchRequests.length > 0 && onResolveCanonicalPatchRequestsRef.current) {
+        try {
+          canonicalPatchResolution = await onResolveCanonicalPatchRequestsRef.current(canonicalPatchRequests, {
+            changedFieldsSummary,
+            plan,
+            courseMap: currentCourseMap,
+          });
+          resolvedCanonicalPatches = dedupeCanonicalPatches(
+            Array.isArray(canonicalPatchResolution)
+              ? canonicalPatchResolution
+              : canonicalPatchResolution?.patches || [],
+          );
+        } catch (err) {
+          canonicalPatchResolution = { error: err?.message || 'Blueprint patch resolver failed', providerCallCount: 0 };
+        }
+      }
+      const canonicalPatches = dedupeCanonicalPatches([
+        ...collectPlanCanonicalPatches(plan),
+        ...resolvedCanonicalPatches,
+      ]);
+      let canonicalPatchResult = null;
+      if (canonicalPatchRequests.length > 0 && canonicalPatches.length === 0) {
+        const result = [];
+        const providerCallCount = Number(canonicalPatchResolution?.providerCallCount || 0);
+        result.syncSummary = {
+          completedFeatureIds: [],
+          changedFieldsSummary,
+          canonicalPatches: [],
+          canonicalPatchRequests,
+          appliedCanonicalPatches: [],
+          plan,
+          resultDetails: [
+            {
+              status: 'failed',
+              featureId: 'courseMap',
+              syncSource: 'canonical-patch-resolver',
+              message: canonicalPatchResolution?.error || 'No canonical blueprint patch was produced',
+              providerCallCount,
+            },
+          ],
+          providerCallCount,
+          compilerSyncCount: 0,
+          modelFallbackCount: canonicalPatchRequests.length,
+        };
+        appendSyncLog(
+          'error',
+          'courseMap',
+          canonicalPatchResolution?.error || 'Could not map the approved edit to a blueprint patch',
+        );
+        isSyncingRef.current = false;
+        setIsSyncing(false);
+        setPendingSyncCount(0);
+        return result;
+      }
+      if (canonicalPatches.length > 0 && onApplyCanonicalPatchesRef.current) {
+        const patchResult = onApplyCanonicalPatchesRef.current(canonicalPatches, { changedFieldsSummary, plan });
+        canonicalPatchResult = patchResult || null;
+        if (patchResult?.courseMap) currentCourseMap = patchResult.courseMap;
+        else if (patchResult?.lessons) currentCourseMap = patchResult;
+        appendSyncLog(
+          'done',
+          'courseMap',
+          `Applied ${canonicalPatches.length} blueprint patch${canonicalPatches.length === 1 ? '' : 'es'} before sync`,
+        );
+      }
 
       const limit = pLimit(3);
       const tasks = plan.map((entry) =>
@@ -148,9 +254,22 @@ export default function useSmartSync({
           try {
             if (lessonIndices === null) {
               await delivRef.current.generateAll(currentCourseMap, [featureId], null, currentGenId);
+              resultDetails.push({
+                status: 'done',
+                featureId,
+                lessonIndices: null,
+                syncSource: 'feature-generation',
+              });
             } else {
               for (const lessonIdx of lessonIndices) {
-                await delivRef.current.regenerateLesson(featureId, currentCourseMap, lessonIdx, currentGenId);
+                const lessonResult = await delivRef.current.regenerateLesson(featureId, currentCourseMap, lessonIdx, currentGenId);
+                resultDetails.push({
+                  status: lessonResult?.status || 'done',
+                  featureId,
+                  lessonIndex: lessonIdx,
+                  syncSource: lessonResult?.syncSource || 'unknown',
+                  providerCallCount: Number(lessonResult?.providerCallCount || 0),
+                });
               }
             }
             appendSyncLog(
@@ -183,6 +302,22 @@ export default function useSmartSync({
         onSyncCompleteRef.current(completedFeatureIds);
       }
 
+      const providerCallCount = resultDetails.reduce((sum, item) => sum + Number(item.providerCallCount || 0), 0);
+      const syncSummary = {
+        completedFeatureIds: [...completedFeatureIds],
+        changedFieldsSummary,
+        canonicalPatches,
+        canonicalPatchRequests,
+        appliedCanonicalPatches: canonicalPatchResult?.applied || [],
+        plan,
+        resultDetails,
+        providerCallCount: providerCallCount + Number(canonicalPatchResolution?.providerCallCount || 0),
+        compilerSyncCount: resultDetails.filter((item) => item.syncSource === 'blueprint-compiler').length,
+        modelFallbackCount:
+          resultDetails.filter((item) => item.syncSource === 'model-fallback').length +
+          Number(canonicalPatchResolution?.providerCallCount || 0),
+      };
+      completedFeatureIds.syncSummary = syncSummary;
       return completedFeatureIds;
     },
     [appendSyncLog, courseMapRef],
@@ -234,21 +369,98 @@ export default function useSmartSync({
       const delivEditBySource = new Map();
       for (const edit of deliverableEdits) {
         const existing = delivEditBySource.get(edit.excludeFeatureId);
-        // Keep the one with a real editContext, or the last one
-        if (!existing || edit.editContext) {
+        if (!existing) {
           delivEditBySource.set(edit.excludeFeatureId, edit);
+          continue;
         }
+        const mergedCanonicalPatches = [
+          ...(existing.canonicalPatches || (existing.canonicalPatch ? [existing.canonicalPatch] : [])),
+          ...(edit.canonicalPatches || (edit.canonicalPatch ? [edit.canonicalPatch] : [])),
+        ];
+        const mergedCanonicalPatchRequests = [
+          ...(existing.canonicalPatchRequests || (existing.canonicalPatchRequest ? [existing.canonicalPatchRequest] : [])),
+          ...(edit.canonicalPatchRequests || (edit.canonicalPatchRequest ? [edit.canonicalPatchRequest] : [])),
+        ];
+        delivEditBySource.set(edit.excludeFeatureId, {
+          ...existing,
+          ...edit,
+          lessonIdx: edit.lessonIdx ?? existing.lessonIdx,
+          editContext: edit.editContext || existing.editContext,
+          canonicalPatches: mergedCanonicalPatches,
+          canonicalPatchRequests: mergedCanonicalPatchRequests,
+        });
       }
 
       for (const [sourceFeatureId, edit] of delivEditBySource.entries()) {
         if (!doneFeatureIds.has(sourceFeatureId)) continue;
+        const editContextText = getEditContextText(edit.editContext);
+        const canonicalPatches = dedupeCanonicalPatches(
+          edit.canonicalPatches || (edit.canonicalPatch ? [edit.canonicalPatch] : []),
+        );
+        const canonicalPatchRequests = collectPlanCanonicalPatchRequests([
+          {
+            featureId: sourceFeatureId,
+            canonicalPatchRequests:
+              edit.canonicalPatchRequests || (edit.canonicalPatchRequest ? [edit.canonicalPatchRequest] : []),
+          },
+        ]);
+
+        if (canonicalPatches.length > 0 || canonicalPatchRequests.length > 0) {
+          const patchLabels = [
+            ...new Set(canonicalPatches.map((patch) => patch.label || getCanonicalPatchFieldLabel(patch.field))),
+          ];
+          const fieldKeys =
+            canonicalPatches.length > 0 ? canonicalPatches.map((patch) => patch.field) : ['_deliverableEdit'];
+          const delivConfidence = computeStaleConfidence(fieldKeys);
+          const targets = [sourceFeatureId, ...getOutboundTargets(sourceFeatureId)].filter((fId, index, arr) => {
+            return doneFeatureIds.has(fId) && arr.indexOf(fId) === index;
+          });
+          const blueprintPlan = targets.map((fId) => {
+            currentDeliv.markFeatureStale(fId, delivConfidence, {
+              lessonIndices: edit.lessonIdx != null ? [edit.lessonIdx] : [],
+              editKeys: fieldKeys,
+              sourceFeatureId,
+              canonicalSync: true,
+            });
+            appendSyncLog(
+              'pending',
+              fId,
+              `Lesson ${edit.lessonIdx != null ? edit.lessonIdx + 1 : '?'} — blueprint sync waiting for approval`,
+            );
+            return {
+              featureId: fId,
+              lessonIndices: edit.lessonIdx != null ? [edit.lessonIdx] : null,
+              canonicalPatches,
+              canonicalPatchRequests,
+            };
+          });
+
+          if (blueprintPlan.length > 0) {
+            const fields =
+              patchLabels.length > 0
+                ? patchLabels
+                : [...new Set(canonicalPatchRequests.map((request) => request.label || 'course-design edit'))];
+            setPendingSyncSuggestion({
+              id: `sync_${Date.now()}`,
+              editSource: 'artifactBlueprint',
+              editSummary: {
+                fields: fields.length > 0 ? fields : [FEATURE_NAMES[sourceFeatureId] || sourceFeatureId],
+                lessonIndices: edit.lessonIdx != null ? [edit.lessonIdx] : [],
+                sourceFeatureId,
+              },
+              plan: blueprintPlan,
+              changedFieldsSummary: fields.join(', ') || editContextText || `Edited ${sourceFeatureId}`,
+            });
+          }
+          continue;
+        }
 
         // 1. Fire proposal for source tab (no auto-regen)
         if (onRequestProposalRef.current && edit.lessonIdx != null) {
           onRequestProposalRef.current({
             featureId: sourceFeatureId,
             lessonIndex: edit.lessonIdx,
-            editContext: edit.editContext || null,
+            editContext: editContextText,
             courseMap: currentCourseMap,
           });
           appendSyncLog('start', sourceFeatureId, `Lesson ${edit.lessonIdx + 1} — AI suggestion requested`);
@@ -299,7 +511,7 @@ export default function useSmartSync({
               sourceFeatureId,
             },
             plan: downstreamPlan,
-            changedFieldsSummary: edit.editContext || `Edited ${FEATURE_NAMES[sourceFeatureId] || sourceFeatureId}`,
+            changedFieldsSummary: editContextText || `Edited ${FEATURE_NAMES[sourceFeatureId] || sourceFeatureId}`,
           });
         }
       }
@@ -369,8 +581,8 @@ export default function useSmartSync({
    * @param {string|null} editContext      — Human-readable change summary ('homework: "3" → "4"')
    */
   const notifyEdit = useCallback(
-    (lessonIdx, key, excludeFeatureId = null, editContext = null) => {
-      pendingEditsRef.current.push({ lessonIdx, key, excludeFeatureId, editContext });
+    (lessonIdx, key, excludeFeatureId = null, editContext = null, metadata = null) => {
+      pendingEditsRef.current.push({ lessonIdx, key, excludeFeatureId, editContext, ...(metadata || {}) });
 
       // Reset debounce timer
       if (debounceTimerRef.current) clearTimeout(debounceTimerRef.current);

@@ -99,6 +99,261 @@ function compactExportCheck(check) {
   };
 }
 
+function countDeliverableItems(featureId, entry) {
+  if (!entry?.data) return 0;
+  const { items } = getDeliverableArray(featureId, entry.data);
+  if (items.length > 0) return items.length;
+  if (entry.data && typeof entry.data === 'object') return Object.keys(entry.data).length > 0 ? 1 : 0;
+  return 0;
+}
+
+function buildWorkspaceFeatureSummary(ctx) {
+  const featureIds = [...new Set([...(ctx.selectedFeatures || []), ...Object.keys(ctx.deliverables || {})])].filter(
+    Boolean,
+  );
+  return featureIds.map((featureId) => {
+    const entry = ctx.deliverables?.[featureId];
+    return {
+      featureId,
+      label: resolveFeatureName(featureId),
+      status: featureId === 'courseMap' ? 'ready' : entry?.status || 'not-selected',
+      itemCount:
+        featureId === 'courseMap' ? ctx.courseMap?.lessons?.length || 0 : countDeliverableItems(featureId, entry),
+      stale: !!entry?.stale,
+      hasData: featureId === 'courseMap' ? !!ctx.courseMap : !!entry?.data,
+      error: entry?.error || null,
+    };
+  });
+}
+
+function buildWorkspaceNextChecks({ readiness, features, dryRun }) {
+  const checks = [];
+  const failed = features.filter((feature) => feature.status === 'error' || feature.error);
+  const stale = features.filter((feature) => feature.stale);
+  const missing = features.filter(
+    (feature) => feature.featureId !== 'courseMap' && !feature.hasData && feature.status !== 'not-selected',
+  );
+
+  if (failed.length > 0)
+    checks.push(`Resolve failed generation for ${failed.map((feature) => feature.label).join(', ')}.`);
+  if (stale.length > 0) checks.push(`Sync stale deliverables: ${stale.map((feature) => feature.label).join(', ')}.`);
+  if (readiness?.isBlocked) checks.push('Run package finalization or repair the blocking readiness issues.');
+  if (missing.length > 0)
+    checks.push(`Generate missing selected deliverables: ${missing.map((feature) => feature.label).join(', ')}.`);
+  if (checks.length === 0 && dryRun)
+    checks.push('Audit the highest-impact deliverable and propose changes before applying them.');
+  if (checks.length === 0)
+    checks.push('Audit quality, then improve the active deliverable if the audit finds a concrete issue.');
+
+  return checks.slice(0, 5);
+}
+
+function featureList(features) {
+  return features
+    .map((feature) => feature.label)
+    .filter(Boolean)
+    .join(', ');
+}
+
+function getPlanFeatureStatus(feature) {
+  if (feature?.error || feature?.status === 'error') return 'failed';
+  if (feature?.stale) return 'stale';
+  if (feature?.hasData) return 'generated';
+  if (feature?.status === 'loading') return 'generating';
+  if (feature?.status === 'not-selected') return 'not selected';
+  return 'missing';
+}
+
+function makePlanAction({
+  priority,
+  title,
+  reason,
+  target = 'Workspace',
+  suggestedCommand,
+  safeMode = 'review-only',
+  toolHint = '',
+  featureIds = [],
+  intent = 'continue_plan',
+}) {
+  const normalizedFeatureIds = featureIds.filter(Boolean);
+  return {
+    priority,
+    title,
+    reason,
+    target,
+    suggestedCommand,
+    safeMode,
+    toolHint,
+    featureIds: normalizedFeatureIds,
+    intent: {
+      type: intent,
+      featureIds: normalizedFeatureIds,
+    },
+  };
+}
+
+function buildWorkspacePlan(ctx, { features, readiness, classroomReadiness }) {
+  const activeTab = ctx.activeTab || 'courseMap';
+  const activeFeature = features.find((feature) => feature.featureId === activeTab);
+  const failed = features.filter(
+    (feature) => feature.featureId !== 'courseMap' && getPlanFeatureStatus(feature) === 'failed',
+  );
+  const stale = features.filter(
+    (feature) => feature.featureId !== 'courseMap' && getPlanFeatureStatus(feature) === 'stale',
+  );
+  const missingSelected = features.filter(
+    (feature) =>
+      feature.featureId !== 'courseMap' &&
+      feature.status !== 'not-selected' &&
+      !feature.hasData &&
+      feature.status !== 'loading' &&
+      !feature.error,
+  );
+  const generated = features.filter((feature) => feature.featureId !== 'courseMap' && feature.hasData);
+  const actions = [];
+
+  if (!ctx.courseMap?.lessons?.length) {
+    actions.push(
+      makePlanAction({
+        priority: 'P0',
+        title: 'Create the course map first',
+        reason:
+          'The Agent needs a generated course map before it can make grounded edits across lessons and deliverables.',
+        target: 'Course Map',
+        suggestedCommand: 'Generate course map',
+        safeMode: 'requires-generation',
+        toolHint: 'Start from the landing prompt and uploaded materials.',
+        featureIds: ['courseMap'],
+        intent: 'create_course_map',
+      }),
+    );
+  }
+
+  if (failed.length > 0) {
+    actions.push(
+      makePlanAction({
+        priority: 'P0',
+        title: `Resolve failed generation for ${featureList(failed)}`,
+        reason:
+          failed[0]?.error ||
+          'A selected deliverable failed, so the package cannot be trusted or exported as complete.',
+        target: featureList(failed),
+        suggestedCommand: `Regenerate ${failed[0]?.label || 'failed deliverable'}`,
+        safeMode: 'requires-generation',
+        toolHint: 'Regenerate the failed feature or ask the Agent to inspect that feature before retrying.',
+        featureIds: failed.map((feature) => feature.featureId),
+        intent: 'regenerate_failed_feature',
+      }),
+    );
+  }
+
+  if (stale.length > 0) {
+    actions.push(
+      makePlanAction({
+        priority: failed.length > 0 ? 'P1' : 'P0',
+        title: `Sync stale deliverables: ${featureList(stale)}`,
+        reason:
+          'The workspace has downstream materials that no longer match the latest course-map or deliverable edits.',
+        target: featureList(stale),
+        suggestedCommand: 'Open sync suggestion',
+        safeMode: 'needs-approval',
+        toolHint: 'Approve the pending sync suggestion or regenerate the stale feature scope.',
+        featureIds: stale.map((feature) => feature.featureId),
+        intent: 'sync_stale_deliverables',
+      }),
+    );
+  }
+
+  const topReadinessIssue = readiness?.blockers?.[0] || classroomReadiness?.blockers?.[0] || null;
+  const hasReadinessBlocker = (readiness?.blockers?.length || 0) > 0 || (classroomReadiness?.blockers?.length || 0) > 0;
+  if (hasReadinessBlocker) {
+    actions.push(
+      makePlanAction({
+        priority: failed.length > 0 || stale.length > 0 ? 'P1' : 'P0',
+        title: 'Clear package readiness blockers',
+        reason: topReadinessIssue?.message || 'Readiness checks found a blocker that must be fixed before download.',
+        target: topReadinessIssue?.label || 'Package',
+        suggestedCommand: ctx.dryRun ? 'Review package' : 'Finish package',
+        safeMode: ctx.dryRun ? 'review-only' : 'safe-auto-fix',
+        toolHint: ctx.dryRun ? 'review_package_readiness' : 'finalize_package',
+        featureIds: [topReadinessIssue?.featureId],
+        intent: ctx.dryRun ? 'review_readiness_blockers' : 'clear_readiness_blockers',
+      }),
+    );
+  }
+
+  if (missingSelected.length > 0) {
+    actions.push(
+      makePlanAction({
+        priority: actions.length > 0 ? 'P1' : 'P0',
+        title: `Generate missing selected deliverables: ${featureList(missingSelected)}`,
+        reason: 'These deliverables are selected but not present, so the course package is incomplete.',
+        target: featureList(missingSelected),
+        suggestedCommand: `Generate ${missingSelected[0]?.label || 'missing deliverable'}`,
+        safeMode: 'requires-generation',
+        toolHint: 'Use the existing generation workflow for the selected feature scope.',
+        featureIds: missingSelected.map((feature) => feature.featureId),
+        intent: 'generate_missing_feature',
+      }),
+    );
+  }
+
+  if (activeFeature?.hasData && activeFeature.featureId !== 'courseMap') {
+    actions.push(
+      makePlanAction({
+        priority: actions.length > 0 ? 'P2' : 'P1',
+        title: `Improve the active ${activeFeature.label}`,
+        reason: `The user is currently viewing ${activeFeature.label}; improving the visible artifact gives the clearest feedback loop.`,
+        target: activeFeature.label,
+        suggestedCommand: `Improve ${activeFeature.label}`,
+        safeMode: ctx.dryRun ? 'review-only' : 'safe-auto-fix',
+        toolHint: 'read_deliverable, then edit_deliverables if a concrete improvement is safe.',
+        featureIds: [activeFeature.featureId],
+        intent: 'improve_active_feature',
+      }),
+    );
+  }
+
+  if (generated.length >= 2) {
+    const warningCount = (readiness?.warnings?.length || 0) + (classroomReadiness?.warnings?.length || 0);
+    actions.push(
+      makePlanAction({
+        priority: actions.length > 0 ? 'P2' : 'P1',
+        title: warningCount > 0 ? 'Audit package warnings' : 'Run a full quality audit',
+        reason:
+          warningCount > 0
+            ? `${warningCount} review item${warningCount === 1 ? '' : 's'} remain across package and classroom checks.`
+            : 'Multiple deliverables are generated; a cross-package audit can find alignment gaps before export.',
+        target: 'Package',
+        suggestedCommand: 'Audit quality',
+        safeMode: 'review-only',
+        toolHint: 'inspect_workspace, review_package_readiness, validate_course',
+        featureIds: generated.map((feature) => feature.featureId),
+        intent: 'audit_package',
+      }),
+    );
+  }
+
+  if (actions.length === 0) {
+    actions.push(
+      makePlanAction({
+        priority: 'P1',
+        title: 'Choose deliverables or ask for a course-map improvement',
+        reason:
+          'The course map is available, but there is not enough generated material for a package-level action yet.',
+        target: 'Course Map',
+        suggestedCommand: 'Improve Course Map',
+        safeMode: ctx.dryRun ? 'review-only' : 'safe-auto-fix',
+        toolHint: 'read_lesson, then edit_course_map if a concrete improvement is safe.',
+        featureIds: ['courseMap'],
+        intent: 'improve_course_map',
+      }),
+    );
+  }
+
+  return actions.slice(0, 5);
+}
+
 async function runPackageExportVerification(options) {
   const { verifyPackageExports } = await import('./packageExportVerifier');
   return verifyPackageExports(options);
@@ -548,6 +803,99 @@ function extractBlooms(featureId, item) {
 // ── Tool Registry ────────────────────────────────────────────────────────────
 
 export const AGENT_TOOLS = {
+  inspect_workspace: {
+    description:
+      'Inspect the current workspace state before planning: course summary, active tab, selected/generated deliverables, stale items, lesson scope, execution mode, and deterministic readiness snapshot. Read-only.',
+    params: {},
+    execute: async (args, ctx) => {
+      const features = buildWorkspaceFeatureSummary(ctx);
+      const readiness = evaluateWorkspaceReadiness({
+        courseMap: ctx.courseMap,
+        deliverables: ctx.deliverables,
+        selectedFeatures: ctx.selectedFeatures,
+        columns: ctx.columns,
+        lessonFilter: ctx.lessonFilter,
+      });
+      const generated = features.filter((feature) => feature.hasData && feature.featureId !== 'courseMap');
+      const stale = features.filter((feature) => feature.stale);
+      const failed = features.filter((feature) => feature.status === 'error' || feature.error);
+
+      return {
+        course: {
+          name: ctx.courseMap?.courseName || 'Untitled course',
+          lessonCount: ctx.courseMap?.lessons?.length || 0,
+          activeTab: ctx.activeTab || 'courseMap',
+          activeTabLabel: resolveFeatureName(ctx.activeTab || 'courseMap'),
+          lessonFilter: Array.isArray(ctx.lessonFilter) ? ctx.lessonFilter : null,
+        },
+        executionMode: ctx.dryRun ? 'review-only' : 'auto-fix',
+        selectedFeatureCount: Array.isArray(ctx.selectedFeatures) ? ctx.selectedFeatures.length : 0,
+        generatedFeatureCount: generated.length,
+        staleFeatureCount: stale.length,
+        failedFeatureCount: failed.length,
+        features,
+        readiness: {
+          status: readiness.status,
+          isBlocked: readiness.isBlocked,
+          blockerCount: readiness.blockers.length,
+          warningCount: readiness.warnings.length,
+          issueCount: readiness.issues.length,
+          checkedSections: `${readiness.doneFeatureCount}/${readiness.featureCount}`,
+          blockers: readiness.blockers.slice(0, 8).map(compactReadinessIssue),
+          warnings: readiness.warnings.slice(0, 8).map(compactReadinessIssue),
+        },
+        nextChecks: buildWorkspaceNextChecks({ readiness, features, dryRun: !!ctx.dryRun }),
+      };
+    },
+  },
+
+  plan_workspace_next_step: {
+    description:
+      'Create a prioritized, read-only action plan from the current workspace state. Use after inspect_workspace when the user asks what to do next or clicks Plan.',
+    params: {},
+    execute: async (args, ctx) => {
+      const features = buildWorkspaceFeatureSummary(ctx);
+      const readiness = evaluateWorkspaceReadiness({
+        courseMap: ctx.courseMap,
+        deliverables: ctx.deliverables,
+        selectedFeatures: ctx.selectedFeatures,
+        columns: ctx.columns,
+        lessonFilter: ctx.lessonFilter,
+      });
+      const classroomReadiness = evaluateClassroomReadiness({
+        courseMap: ctx.courseMap,
+        deliverables: ctx.deliverables,
+        selectedFeatures: ctx.selectedFeatures,
+        lessonFilter: ctx.lessonFilter,
+      });
+      const actions = buildWorkspacePlan(ctx, { features, readiness, classroomReadiness });
+      const highestImpactAction = actions[0] || null;
+
+      return {
+        course: {
+          name: ctx.courseMap?.courseName || 'Untitled course',
+          lessonCount: ctx.courseMap?.lessons?.length || 0,
+          activeTab: ctx.activeTab || 'courseMap',
+          activeTabLabel: resolveFeatureName(ctx.activeTab || 'courseMap'),
+        },
+        executionMode: ctx.dryRun ? 'review-only' : 'auto-fix',
+        evidence: {
+          selectedFeatureCount: Array.isArray(ctx.selectedFeatures) ? ctx.selectedFeatures.length : 0,
+          generatedFeatureCount: features.filter((feature) => feature.hasData && feature.featureId !== 'courseMap')
+            .length,
+          staleFeatureCount: features.filter((feature) => feature.stale).length,
+          failedFeatureCount: features.filter((feature) => feature.status === 'error' || feature.error).length,
+          packageBlockerCount: readiness.blockers.length,
+          packageWarningCount: readiness.warnings.length,
+          classroomBlockerCount: classroomReadiness.blockers.length,
+          classroomWarningCount: classroomReadiness.warnings.length,
+        },
+        highestImpactAction,
+        actions,
+      };
+    },
+  },
+
   validate_course: {
     description:
       "Run pedagogical validation (Bloom's alignment, readability, cognitive load, difficulty progression). Returns errors, warnings, and info.",
@@ -1101,7 +1449,7 @@ export const AGENT_TOOLS = {
 
   edit_deliverables: {
     description:
-      'Add, edit, or remove deliverable items. Changes are applied immediately with undo support. For slide decks, prefer expanded paths such as decks[].slides[].notes/visual; shorthand aliases are still accepted.',
+      'Add, edit, or remove deliverable items. Course-design edits may be queued as blueprint sync patches instead of directly mutating artifact JSON; local wording/format edits are applied immediately with undo support. For slide decks, prefer expanded paths such as decks[].slides[].notes/visual; shorthand aliases are still accepted.',
     params: {
       actions:
         'array — each: {type:"addItem"|"removeItem"|"editItem"|"regenerateLesson", featureId, lessonIndex, item?, itemIndex?, path?, value?}',
@@ -1150,10 +1498,62 @@ export const AGENT_TOOLS = {
       const actions = args.actions || [];
       if (actions.length === 0) return { error: 'No actions provided.' };
 
-      // Snapshot each affected featureId once for undo
+      const results = new Array(actions.length);
+      const directActions = [];
+      const canonicalSyncEdits = [];
+
+      for (let index = 0; index < actions.length; index++) {
+        const action = actions[index];
+        let projection = null;
+        try {
+          projection = ctx.projectDeliverableActionToCanonicalPatch?.(action);
+        } catch {
+          projection = null;
+        }
+        const patch = projection?.patch || projection?.canonicalPatch || null;
+        if (patch) {
+          const canonicalPatches = projection?.canonicalPatches || [patch];
+          const detail = {
+            action: 'blueprintPatch',
+            featureId: action.featureId,
+            lessonIndex: patch.lessonIndex ?? action.lessonIndex,
+            success: true,
+            pending: true,
+            message: `Queued ${patch.label || patch.field || 'course-map'} blueprint sync for approval.`,
+            canonicalPatches,
+            editContext: projection?.editContext || patch.editContext || null,
+          };
+          results[index] = detail;
+          canonicalSyncEdits.push(detail);
+          continue;
+        }
+        const patchRequest = projection?.patchRequest || projection?.canonicalPatchRequest || null;
+        const canonicalPatchRequests =
+          projection?.canonicalPatchRequests || (patchRequest ? [patchRequest] : []);
+        if (canonicalPatchRequests.length > 0) {
+          const detail = {
+            action: 'blueprintPatchRequest',
+            featureId: action.featureId,
+            lessonIndex: patchRequest?.lessonIndex ?? action.lessonIndex,
+            success: true,
+            pending: true,
+            message: 'Queued course-design edit for blueprint sync approval.',
+            canonicalPatchRequests,
+            editContext: projection?.editContext || patchRequest?.editContext || null,
+          };
+          results[index] = detail;
+          canonicalSyncEdits.push(detail);
+          continue;
+        }
+        directActions.push({ index, action });
+      }
+
+      // Snapshot each directly-mutated featureId once for undo. Canonical
+      // projections are intentionally not snapshotted here because the artifact
+      // JSON has not changed yet; approval will update the course map first.
       const snapped = new Set();
       if (ctx.snapshot) {
-        for (const a of actions) {
+        for (const { action: a } of directActions) {
           const fid = a.featureId;
           if (fid && !snapped.has(fid)) {
             const entry = ctx.deliverables?.[fid];
@@ -1165,24 +1565,26 @@ export const AGENT_TOOLS = {
         }
       }
 
-      const results = [];
-      for (const action of actions) {
+      for (const { index, action } of directActions) {
         const result = ctx.executeAction(action, { skipSnapshot: true });
-        results.push({
+        results[index] = {
           action: action.type,
           featureId: action.featureId,
           lessonIndex: action.lessonIndex,
           success: result.success,
           pending: result.pending,
           message: result.message,
-        });
+        };
       }
 
+      const details = results.filter(Boolean);
+
       return {
-        applied: results.filter((r) => r.success && !r.pending).length,
-        pending: results.filter((r) => r.success && r.pending).length,
-        failed: results.filter((r) => !r.success).length,
-        details: results,
+        applied: details.filter((r) => r.success && !r.pending).length,
+        pending: details.filter((r) => r.success && r.pending).length,
+        failed: details.filter((r) => !r.success).length,
+        details,
+        canonicalSyncEdits,
       };
     },
   },
@@ -1776,6 +2178,8 @@ export const AGENT_TOOLS = {
 // ── UI labels for progress card ──────────────────────────────────────────────
 
 export const TOOL_LABELS = {
+  inspect_workspace: 'Inspecting workspace',
+  plan_workspace_next_step: 'Planning next step',
   validate_course: 'Validating course health',
   finalize_package: 'Finalizing course package',
   verify_package_exports: 'Verifying package exports',
@@ -1824,6 +2228,10 @@ export function summarizeToolResult(toolName, result) {
   if (result.error) return result.error;
 
   switch (toolName) {
+    case 'inspect_workspace':
+      return `${result.course?.lessonCount || 0} lessons, ${result.generatedFeatureCount || 0} generated, ${result.staleFeatureCount || 0} stale, ${result.readiness?.blockerCount || 0} blockers`;
+    case 'plan_workspace_next_step':
+      return result.highestImpactAction?.title || `${result.actions?.length || 0} actions planned`;
     case 'validate_course':
       return `${result.errorCount || 0} errors, ${result.warningCount || 0} warnings, ${result.infoCount || 0} info`;
     case 'finalize_package': {

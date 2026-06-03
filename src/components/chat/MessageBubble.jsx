@@ -483,7 +483,7 @@ function EditableUserMessage({ text, onEditSubmit }) {
   return (
     <div data-testid="chat-message-user" className="flex justify-end animate-spring-in group/usermsg">
       <div className="relative max-w-[85%]">
-        <div className="px-3.5 py-2.5 text-[13px] rounded-2xl rounded-br-md bg-gradient-to-r from-indigo-500 to-violet-500 text-white leading-relaxed shadow-lg shadow-indigo-500/10">
+        <div className="px-3.5 py-2.5 text-[13px] rounded-2xl rounded-br-md bg-gradient-to-r from-indigo-500 to-violet-500 text-white leading-relaxed shadow-lg shadow-indigo-500/10 whitespace-pre-wrap">
           {text}
         </div>
         {/* Edit button — appears on hover */}

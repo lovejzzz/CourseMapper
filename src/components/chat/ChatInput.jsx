@@ -1,5 +1,11 @@
-import React, { useState, useRef } from 'react';
+import React, { useState, useRef, useMemo } from 'react';
 import { resolveLabel } from './constants';
+import {
+  buildAgentCommandItems,
+  CommandIcon,
+  filterAgentCommandItems,
+  findAgentCommandByText,
+} from './AgentCommandStrip';
 
 /**
  * ChatInput — clean textarea with file drop and send button.
@@ -23,12 +29,15 @@ export default function ChatInput({
   agentDryRun = false,
   onAgentDryRunChange,
   onConfigureAI,
+  onAgentCommand,
+  syncFeatureCount = 0,
   onUndo,
   canUndo,
 }) {
   const [input, setInput] = useState('');
   const [isDragOver, setIsDragOver] = useState(false);
   const [isCoolingDown, setIsCoolingDown] = useState(false);
+  const [slashSelectedIndex, setSlashSelectedIndex] = useState(0);
   const fileInputRef = useRef(null);
   const lastSendTimeRef = useRef(0);
   const cooldownTimerRef = useRef(null);
@@ -40,6 +49,37 @@ export default function ChatInput({
   const delivLabel = isDeliverableTab ? resolveLabel(activeTab) : null;
   const targetLabel = isAgentMode ? delivLabel || 'Deliverables' : 'Course map';
   const agentUnavailable = isAgentMode && !isAgentProviderReady;
+  const busy = isStreaming || isRevising;
+  const agentCommandItems = useMemo(
+    () =>
+      isAgentMode
+        ? buildAgentCommandItems({
+            activeTab,
+            agentDryRun,
+            syncFeatureCount,
+            localOnly: !isAgentProviderReady,
+            canUndo,
+          })
+        : [],
+    [activeTab, agentDryRun, isAgentMode, isAgentProviderReady, syncFeatureCount, canUndo],
+  );
+  const slashInput = input.trimStart();
+  const slashQuery = slashInput.startsWith('/') ? slashInput.slice(1).trim().toLowerCase() : '';
+  const filteredAgentCommandItems = slashInput.startsWith('/')
+    ? filterAgentCommandItems(agentCommandItems, slashQuery)
+    : [];
+  const suggestedAgentCommands = agentCommandItems.filter((item) =>
+    ['agent-help', 'finish-package', 'audit-quality', 'plan-next'].includes(item.id),
+  );
+  const showSlashCommands = isAgentMode && !busy && slashInput.startsWith('/');
+  const canRunSlashCommand = showSlashCommands && filteredAgentCommandItems.length > 0;
+  const hasUnknownSlashCommand = showSlashCommands && filteredAgentCommandItems.length === 0;
+  const selectedSlashCommand = canRunSlashCommand
+    ? filteredAgentCommandItems[Math.min(slashSelectedIndex, filteredAgentCommandItems.length - 1)]
+    : null;
+  const typedAgentCommand =
+    isAgentMode && !showSlashCommands && !busy ? findAgentCommandByText(agentCommandItems, input) : null;
+  const previewAgentCommand = typedAgentCommand && !showSlashCommands ? typedAgentCommand : null;
   const modeLabel = agentUnavailable
     ? 'Configure AI'
     : isAgentMode
@@ -48,9 +88,48 @@ export default function ChatInput({
         : 'Auto-fix on'
       : 'Ask';
 
+  function handleAgentCommandSelect(item) {
+    if (!item || isStreaming || isRevising) return;
+    if (item.id === 'configure-agent') {
+      onConfigureAI?.();
+    } else {
+      onAgentCommand?.(item);
+    }
+    setInput('');
+  }
+
   function handleKeyDown(e) {
+    if (showSlashCommands && filteredAgentCommandItems.length > 0) {
+      if (e.key === 'ArrowDown') {
+        e.preventDefault();
+        setSlashSelectedIndex((value) => (value + 1) % filteredAgentCommandItems.length);
+        return;
+      }
+      if (e.key === 'ArrowUp') {
+        e.preventDefault();
+        setSlashSelectedIndex(
+          (value) => (value - 1 + filteredAgentCommandItems.length) % filteredAgentCommandItems.length,
+        );
+        return;
+      }
+      if (e.key === 'Home') {
+        e.preventDefault();
+        setSlashSelectedIndex(0);
+        return;
+      }
+      if (e.key === 'End') {
+        e.preventDefault();
+        setSlashSelectedIndex(filteredAgentCommandItems.length - 1);
+        return;
+      }
+    }
+
     if (e.key === 'Enter' && !e.shiftKey) {
       e.preventDefault();
+      if (selectedSlashCommand) {
+        handleAgentCommandSelect(selectedSlashCommand);
+        return;
+      }
       handleSend();
     }
     // Escape clears input
@@ -68,6 +147,15 @@ export default function ChatInput({
   }
 
   function handleSend() {
+    if (canRunSlashCommand) {
+      handleAgentCommandSelect(filteredAgentCommandItems[0]);
+      return;
+    }
+    if (hasUnknownSlashCommand) return;
+    if (typedAgentCommand) {
+      handleAgentCommandSelect(typedAgentCommand);
+      return;
+    }
     if (agentUnavailable) return;
     if ((!input.trim() && (!attachedFiles || attachedFiles.length === 0)) || isStreaming || isRevising) return;
     // Rate-limit: enforce cooldown between sends. If we're still inside the
@@ -84,12 +172,35 @@ export default function ChatInput({
     setInput('');
   }
 
+  function handlePackageAction() {
+    const now = Date.now();
+    if (now - lastSendTimeRef.current < SEND_COOLDOWN_MS) {
+      startCooldown();
+      return;
+    }
+    lastSendTimeRef.current = now;
+    startCooldown();
+
+    const packageCommand = agentCommandItems.find((item) => item.id === 'finish-package');
+    if (packageCommand && onAgentCommand) {
+      handleAgentCommandSelect(packageCommand);
+      return;
+    }
+
+    onSend(reviewPrompt);
+    setInput('');
+  }
+
   React.useEffect(
     () => () => {
       if (cooldownTimerRef.current) clearTimeout(cooldownTimerRef.current);
     },
     [],
   );
+
+  React.useEffect(() => {
+    setSlashSelectedIndex(0);
+  }, [slashQuery, showSlashCommands, filteredAgentCommandItems.length]);
 
   // Context-aware placeholder — keeps tone consistent: short, direct,
   // second-person, no "ask me to…" chatbot-speak.
@@ -100,7 +211,7 @@ export default function ChatInput({
       : !courseMap
         ? 'Ask a question about your course…'
         : agentUnavailable
-          ? 'Configure AI to use the agent…'
+          ? 'Configure AI to chat or edit with the agent…'
           : isAgentMode
             ? agentDryRun
               ? delivLabel
@@ -111,7 +222,6 @@ export default function ChatInput({
                 : 'Edit, review, or ask about your deliverables…'
             : 'Ask a question or request changes…';
 
-  const busy = isStreaming || isRevising;
   const reviewPrompt = agentDryRun
     ? 'Review this course package without applying changes. Run read-only readiness, export, and validation checks; identify concrete issues, instructor decisions, and the exact safe fixes you would apply. Do not apply changes.'
     : [
@@ -126,7 +236,7 @@ export default function ChatInput({
 
   return (
     <div
-      className={`border-t transition-colors duration-200 relative ${isDragOver ? 'border-indigo-400 bg-indigo-50/20' : 'border-slate-200/40'}`}
+      className={`relative flex-shrink-0 border-t transition-colors duration-200 ${isDragOver ? 'border-indigo-400 bg-indigo-50/20' : 'border-slate-200/40'}`}
       onDragOver={(e) => {
         e.preventDefault();
         setIsDragOver(true);
@@ -232,7 +342,7 @@ export default function ChatInput({
           {agentUnavailable && (
             <div className="mb-2 flex items-center justify-between gap-2 rounded-xl border border-amber-200/70 bg-amber-50/80 px-3 py-2">
               <span className="text-[11px] font-medium leading-snug text-amber-700">
-                Agent actions need a connected AI provider or Local AI model.
+                Local Audit and Plan are available above. Connect AI for chat and model-based edits.
               </span>
               {onConfigureAI && (
                 <button
@@ -245,14 +355,97 @@ export default function ChatInput({
               )}
             </div>
           )}
+          {previewAgentCommand && (
+            <button
+              type="button"
+              data-testid="agent-command-preview"
+              onClick={() => handleAgentCommandSelect(previewAgentCommand)}
+              className="mb-2 flex w-full min-w-0 items-center gap-2 rounded-lg border border-indigo-100 bg-indigo-50/80 px-2.5 py-2 text-left shadow-sm transition-colors hover:border-indigo-200 hover:bg-indigo-100/80 focus:outline-none focus:ring-2 focus:ring-indigo-200"
+            >
+              <span className="flex h-6 w-6 shrink-0 items-center justify-center rounded-md border border-indigo-100 bg-white/70 text-indigo-600">
+                <CommandIcon icon={previewAgentCommand.icon} />
+              </span>
+              <span className="min-w-0 flex-1">
+                <span className="block truncate text-[12px] font-bold text-indigo-700">
+                  {previewAgentCommand.displayText}
+                </span>
+                <span className="block truncate text-[10px] font-medium text-indigo-500">
+                  {previewAgentCommand.title}
+                </span>
+              </span>
+              <span className="shrink-0 rounded-md border border-indigo-200/70 bg-white/70 px-2 py-0.5 text-[10px] font-bold text-indigo-600">
+                Run
+              </span>
+            </button>
+          )}
+          {showSlashCommands && (
+            <div
+              data-testid="agent-slash-command-palette"
+              id="agent-slash-command-palette"
+              role="listbox"
+              className="mb-2 max-h-40 overflow-y-auto rounded-lg border border-indigo-100 bg-white/95 p-1.5 shadow-lg shadow-indigo-950/10"
+            >
+              {filteredAgentCommandItems.length > 0 ? (
+                filteredAgentCommandItems.map((item, index) => {
+                  const isSelected = index === slashSelectedIndex;
+                  return (
+                    <button
+                      key={item.id}
+                      type="button"
+                      id={`agent-slash-command-option-${item.id}`}
+                      role="option"
+                      aria-selected={isSelected}
+                      data-testid={`agent-slash-command-${item.id}`}
+                      onClick={() => handleAgentCommandSelect(item)}
+                      className={`flex w-full items-center gap-2 rounded-md px-2.5 py-2 text-left transition-colors focus:outline-none ${
+                        isSelected ? 'bg-indigo-50 text-indigo-700' : 'hover:bg-indigo-50 focus:bg-indigo-50'
+                      }`}
+                    >
+                      <span className="flex h-6 w-6 shrink-0 items-center justify-center rounded-md border border-indigo-100 bg-indigo-50 text-indigo-600">
+                        <CommandIcon icon={item.icon} />
+                      </span>
+                      <span className="min-w-0">
+                        <span className="block truncate text-[12px] font-bold text-slate-700">{item.displayText}</span>
+                        <span className="block truncate text-[10px] font-medium text-slate-500">{item.title}</span>
+                      </span>
+                    </button>
+                  );
+                })
+              ) : (
+                <div
+                  data-testid="agent-slash-command-empty"
+                  className="rounded-md px-2.5 py-2 text-[11px] font-semibold text-slate-400"
+                >
+                  <p>No matching command</p>
+                  {suggestedAgentCommands.length > 0 && (
+                    <div className="mt-1.5 flex flex-wrap gap-1">
+                      {suggestedAgentCommands.slice(0, 4).map((item) => (
+                        <button
+                          key={item.id}
+                          type="button"
+                          data-testid={`agent-slash-command-suggestion-${item.id}`}
+                          onClick={() => handleAgentCommandSelect(item)}
+                          className="rounded-full border border-slate-200/80 bg-white/80 px-2 py-0.5 text-[10px] font-bold text-slate-500 hover:border-indigo-200 hover:bg-indigo-50 hover:text-indigo-700"
+                        >
+                          /{item.aliases?.[0] || item.label.toLowerCase()}
+                        </button>
+                      ))}
+                    </div>
+                  )}
+                </div>
+              )}
+            </div>
+          )}
           <textarea
             value={input}
             onChange={(e) => setInput(e.target.value)}
             onKeyDown={handleKeyDown}
+            aria-controls={showSlashCommands ? 'agent-slash-command-palette' : undefined}
+            aria-activedescendant={selectedSlashCommand ? `agent-slash-command-option-${selectedSlashCommand.id}` : undefined}
             placeholder={placeholder}
             rows={2}
             className="input-glass w-full rounded-xl px-3 pt-2.5 pb-8 text-[13px] text-slate-700 focus:outline-none resize-none leading-relaxed"
-            disabled={busy || agentUnavailable}
+            disabled={busy}
           />
           {/* Bottom bar inside textarea area */}
           <div className="absolute bottom-1.5 left-2 right-2 flex items-center justify-between">
@@ -284,17 +477,7 @@ export default function ChatInput({
               {/* Package action button — copy reflects whether edits are allowed. */}
               {isAgentMode && !agentUnavailable && !busy && (
                 <button
-                  onClick={() => {
-                    const now = Date.now();
-                    if (now - lastSendTimeRef.current < SEND_COOLDOWN_MS) {
-                      startCooldown();
-                      return;
-                    }
-                    lastSendTimeRef.current = now;
-                    startCooldown();
-                    onSend(reviewPrompt);
-                    setInput('');
-                  }}
+                  onClick={handlePackageAction}
                   disabled={isCoolingDown}
                   className="tactile flex items-center gap-1 rounded-lg border border-emerald-200/70 bg-emerald-50/80 px-2 py-0.5 text-[10px] font-bold text-emerald-700 shadow-sm transition-all duration-200 hover:bg-emerald-100/80 disabled:cursor-not-allowed disabled:opacity-50"
                   title={
@@ -374,13 +557,33 @@ export default function ChatInput({
               <button
                 onClick={handleSend}
                 disabled={
-                  agentUnavailable || (!input.trim() && (!attachedFiles || attachedFiles.length === 0)) || isCoolingDown
+                  (!canRunSlashCommand &&
+                    (hasUnknownSlashCommand ||
+                      (!typedAgentCommand && agentUnavailable) ||
+                      (!input.trim() && (!attachedFiles || attachedFiles.length === 0)))) ||
+                  isCoolingDown
                 }
                 className={`tactile p-1.5 rounded-lg text-white bg-gradient-to-r from-indigo-500 to-violet-500 shadow-sm hover:brightness-110 transition-all disabled:cursor-not-allowed ${
                   isCoolingDown ? 'opacity-60' : 'disabled:opacity-30'
                 }`}
-                aria-label={isCoolingDown ? 'Sending — please wait' : 'Send message'}
-                title={isCoolingDown ? 'Sending — give it a moment' : 'Send (Enter)'}
+                aria-label={
+                  isCoolingDown
+                    ? 'Sending — please wait'
+                    : hasUnknownSlashCommand
+                      ? 'Choose a valid command'
+                      : canRunSlashCommand || typedAgentCommand
+                        ? 'Run command'
+                        : 'Send message'
+                }
+                title={
+                  isCoolingDown
+                    ? 'Sending — give it a moment'
+                    : hasUnknownSlashCommand
+                      ? 'No matching slash command'
+                      : canRunSlashCommand || typedAgentCommand
+                        ? 'Run command (Enter)'
+                        : 'Send (Enter)'
+                }
               >
                 {isCoolingDown ? (
                   <svg className="w-3.5 h-3.5 animate-spin" fill="none" viewBox="0 0 24 24" aria-hidden="true">

@@ -64,7 +64,7 @@ function buildAdaptiveStarters(courseMap, activeTab, deliverables) {
   ).length;
 
   if (doneFeatureCount > 0) {
-    starters.push({ text: 'Finish package', icon: 'search' });
+    starters.push({ text: 'Finish package', icon: 'search', action: 'finish-package' });
   }
 
   // 1. Active-tab-specific starter — prioritize what the user is currently viewing
@@ -145,6 +145,29 @@ function buildCourseMapStarters(courseMap) {
 
 // ── Chat opener — context-aware starters ────────────────────────────────────
 
+function buildLandingAwareGenerationGreeting(landingContext, fallback, phase) {
+  if (!landingContext?.hasContext) return fallback;
+
+  const hasPrompt = Boolean(landingContext.hasPrompt);
+  const fileCount = Number(landingContext.fileCount) || 0;
+  const materialText =
+    fileCount > 0 ? `${fileCount} uploaded material${fileCount === 1 ? '' : 's'}` : 'uploaded materials';
+
+  if (phase === 'deliverables') {
+    if (hasPrompt && fileCount > 0) {
+      return `I am carrying your starting request and ${materialText} into the deliverables now.`;
+    }
+    if (hasPrompt) return 'I am carrying your starting request into the deliverables now.';
+    return `I am carrying your ${materialText} into the deliverables now.`;
+  }
+
+  if (hasPrompt && fileCount > 0) {
+    return `I am using your starting request and ${materialText} to generate the course map.`;
+  }
+  if (hasPrompt) return 'I am using your starting request to generate the course map.';
+  return `I am reading your ${materialText} to generate the course map.`;
+}
+
 export function getChatOpener(
   courseMap,
   isAgentMode,
@@ -153,11 +176,16 @@ export function getChatOpener(
   isGenerating = false,
   isDelivGenerating = false,
   isAgentProviderReady = true,
+  landingContext = null,
 ) {
   // Generation in progress — don't show premature lesson count or onboarding message
   if (isGenerating) {
     return {
-      greeting: 'Generating your course map — hang tight!',
+      greeting: buildLandingAwareGenerationGreeting(
+        landingContext,
+        'Generating your course map — hang tight!',
+        'courseMap',
+      ),
       starters: [],
     };
   }
@@ -165,7 +193,11 @@ export function getChatOpener(
   // Deliverables still generating — show progress message, not the agent greeting
   if (isDelivGenerating) {
     return {
-      greeting: 'Generating your deliverables — almost there!',
+      greeting: buildLandingAwareGenerationGreeting(
+        landingContext,
+        'Generating your deliverables — almost there!',
+        'deliverables',
+      ),
       starters: [],
     };
   }
@@ -174,10 +206,20 @@ export function getChatOpener(
   if (isAgentMode) {
     if (!isAgentProviderReady) {
       return {
-        greeting: 'Your generated workspace is ready. Configure AI to use the agent.',
+        greeting: 'Your generated workspace is ready. I can still run local Audit and Plan. Configure AI for chat and model edits.',
         starters: [
           {
-            text: 'Configure AI to use agent',
+            text: 'Run local audit',
+            icon: 'search',
+            action: 'local-audit',
+          },
+          {
+            text: 'Plan next step',
+            icon: 'list',
+            action: 'local-plan',
+          },
+          {
+            text: 'Configure AI for chat and edits',
             icon: 'settings',
             action: 'configure-ai',
           },
@@ -186,7 +228,9 @@ export function getChatOpener(
     }
     const starters = buildAdaptiveStarters(courseMap, activeTab, deliverables);
     return {
-      greeting: 'I can finish, fix, and verify your course materials.',
+      greeting: landingContext?.hasContext
+        ? 'I am still using your starting brief. I can finish, fix, and verify your course materials.'
+        : 'I can finish, fix, and verify your course materials.',
       starters,
     };
   }

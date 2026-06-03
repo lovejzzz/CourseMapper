@@ -194,6 +194,16 @@ describe('getChatOpener — Tier 3 (agent mode)', () => {
     expect(result.starters.length).toBeLessThanOrEqual(2);
   });
 
+  it('marks the finish package starter as a direct action', () => {
+    const cm = makeCourseMap();
+    const result = getChatOpener(cm, true, 'quizBank', makeDoneDeliverables());
+
+    expect(result.starters[0]).toMatchObject({
+      text: 'Finish package',
+      action: 'finish-package',
+    });
+  });
+
   it('provides tab-specific starters for quizBank', () => {
     const cm = makeCourseMap();
     const deliverables = makeDoneDeliverables();
@@ -240,14 +250,23 @@ describe('getChatOpener — Tier 3 (agent mode)', () => {
     expect(texts.join(' ')).not.toContain('custom_peerReview');
   });
 
-  it('shows configure action instead of edit starters when agent provider is unavailable', () => {
+  it('shows local actions plus configure when agent provider is unavailable', () => {
     const cm = makeCourseMap();
     const result = getChatOpener(cm, true, 'quizBank', makeDoneDeliverables(), false, false, false);
 
+    expect(result.greeting).toContain('local Audit and Plan');
     expect(result.greeting).toContain('Configure AI');
     expect(result.starters).toEqual([
       expect.objectContaining({
-        text: 'Configure AI to use agent',
+        text: 'Run local audit',
+        action: 'local-audit',
+      }),
+      expect.objectContaining({
+        text: 'Plan next step',
+        action: 'local-plan',
+      }),
+      expect.objectContaining({
+        text: 'Configure AI for chat and edits',
         action: 'configure-ai',
       }),
     ]);
@@ -265,10 +284,36 @@ describe('getChatOpener — generation in progress', () => {
     expect(result.starters).toHaveLength(0);
   });
 
+  it('adapts the generation greeting when landing prompt and files were handed off', () => {
+    const result = getChatOpener(null, false, null, null, true, false, true, {
+      hasContext: true,
+      hasPrompt: true,
+      fileCount: 2,
+    });
+
+    expect(result.greeting).toContain('starting request');
+    expect(result.greeting).toContain('2 uploaded materials');
+    expect(result.greeting).toContain('generate the course map');
+    expect(result.starters).toHaveLength(0);
+  });
+
   it('returns deliverable generating message with no starters', () => {
     const cm = makeCourseMap();
     const result = getChatOpener(cm, true, 'quizBank', null, false, true);
     expect(result.greeting).toContain('Generating your deliverables');
+    expect(result.starters).toHaveLength(0);
+  });
+
+  it('carries landing context into the deliverable generation greeting', () => {
+    const cm = makeCourseMap();
+    const result = getChatOpener(cm, true, 'quizBank', null, false, true, true, {
+      hasContext: true,
+      hasPrompt: false,
+      fileCount: 1,
+    });
+
+    expect(result.greeting).toContain('1 uploaded material');
+    expect(result.greeting).toContain('deliverables');
     expect(result.starters).toHaveLength(0);
   });
 

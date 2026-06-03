@@ -122,6 +122,19 @@ function buildAgentChatHistory(messages) {
       history.push({ role: 'assistant', content: `[Applied changes: ${desc}]` });
     } else if (m.role === 'packageSummary') {
       history.push({ role: 'assistant', content: formatPackageSummaryForHistory(m.summary) });
+    } else if (m.role === 'agentReceipt') {
+      const receipt = m.receipt || {};
+      const changed = Array.isArray(receipt.changed) ? receipt.changed.filter(Boolean).join('; ') : '';
+      const checked = Array.isArray(receipt.checked) ? receipt.checked.filter(Boolean).join('; ') : '';
+      const parts = [
+        receipt.title || 'Agent receipt',
+        receipt.status ? `status=${receipt.status}` : '',
+        receipt.target ? `target=${receipt.target}` : '',
+        changed ? `changed=${changed}` : '',
+        checked ? `checked=${checked}` : '',
+        receipt.next ? `next=${receipt.next}` : '',
+      ].filter(Boolean);
+      history.push({ role: 'assistant', content: `[${parts.join(' | ')}]` });
     } else if (m.role === 'diagram') {
       history.push({ role: 'assistant', content: `[Generated diagram: ${m.diagram?.title || 'concept diagram'}]` });
     } else if (m.role === 'chart') {
@@ -454,6 +467,30 @@ describe('buildAgentChatHistory', () => {
       expect(result[0].content).toContain('Package check');
       expect(result[0].content).toContain('Good with assumptions');
       expect(result[0].content).toContain('2 safe repair');
+    });
+  });
+
+  describe('agentReceipt', () => {
+    it('keeps visible Agent receipts available to the next agent turn', () => {
+      const result = buildAgentChatHistory([
+        {
+          role: 'agentReceipt',
+          receipt: {
+            title: 'Package receipt',
+            status: 'done',
+            target: 'Package',
+            changed: ['No safe repairs needed'],
+            checked: ['Readiness', 'Export files'],
+            next: 'Safe checks passed and the package is ready.',
+          },
+        },
+      ]);
+
+      expect(result[0].content).toContain('Package receipt');
+      expect(result[0].content).toContain('status=done');
+      expect(result[0].content).toContain('target=Package');
+      expect(result[0].content).toContain('changed=No safe repairs needed');
+      expect(result[0].content).toContain('checked=Readiness; Export files');
     });
   });
 

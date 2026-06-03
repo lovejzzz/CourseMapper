@@ -20,6 +20,14 @@ import {
   isAgentToolBlockedInDryRun,
 } from '../../lib/agentExecutionMode';
 import { classifyFinalizePackageStepStatus, normalizePackageSummary } from '../../lib/packageFinalizerSummary';
+import { isLandingAgentContextText } from '../../lib/landingAgentContext';
+import { isAgentSourceContextText } from '../../lib/agentSourceContext';
+import { resolveLabel } from './constants';
+import { extractEditContext } from '../../lib/editContextExtractor';
+import {
+  createCanonicalPatchRequest,
+  projectArtifactEditToCourseMapPatch,
+} from '../../lib/artifactBlueprintProjection';
 
 /**
  * Execute the multi-step agentic loop with native tool calling.
@@ -34,6 +42,359 @@ import { classifyFinalizePackageStepStatus, normalizePackageSummary } from '../.
  * @param {boolean}  opts.dryRun - If true, expose only read-only tools and block stale mutating calls
  * @param {Object}  ctx         - Shared context from useChatRouter
  */
+
+function addFeatureTarget(featureId, targets) {
+  const raw = String(featureId || '').trim();
+  if (!raw || raw === 'all') return;
+  targets.add(resolveLabel(raw));
+}
+
+function collectFeatureTargets(value, targets) {
+  if (Array.isArray(value)) {
+    value.forEach((item) => collectFeatureTargets(item, targets));
+    return;
+  }
+  if (!value || typeof value !== 'object') return;
+
+  for (const [key, nested] of Object.entries(value)) {
+    if (key === 'featureId' || key === 'targetFeatureId') {
+      addFeatureTarget(nested, targets);
+      continue;
+    }
+    if (key === 'featureIds' && Array.isArray(nested)) {
+      nested.forEach((featureId) => addFeatureTarget(featureId, targets));
+      continue;
+    }
+    collectFeatureTargets(nested, targets);
+  }
+}
+
+function deriveToolTargets(toolCall, activeTab) {
+  const targets = new Set();
+  switch (toolCall.name) {
+    case 'inspect_workspace':
+    case 'plan_workspace_next_step':
+      targets.add('Workspace');
+      break;
+    case 'validate_course':
+    case 'finalize_package':
+    case 'verify_package_exports':
+    case 'review_package_readiness':
+    case 'repair_package_readiness':
+      targets.add('Package');
+      break;
+    case 'read_lesson':
+    case 'edit_course_map':
+    case 'check_grammar':
+      targets.add('Course Map');
+      break;
+    case 'search_research':
+      targets.add('Research');
+      break;
+    case 'create_tool':
+    case 'run_tool':
+      targets.add('Agent tools');
+      break;
+    default:
+      collectFeatureTargets(toolCall.args || {}, targets);
+      if (targets.size === 0 && activeTab) addFeatureTarget(activeTab, targets);
+  }
+  return [...targets].slice(0, 4);
+}
+
+const RECEIPT_ACTION_TOOLS = new Set([
+  'edit_course_map',
+  'edit_deliverables',
+  'generate_slide_images',
+  'finalize_package',
+  'repair_package_readiness',
+  'retry_package_weak_spots',
+  'save_preference',
+  'remember',
+  'forget',
+  'undo_last',
+  'create_tool',
+  'run_tool',
+]);
+
+const RECEIPT_INTENT_TOOLS = {
+  finish_package: new Set(['finalize_package']),
+  package_repair: new Set(['repair_package_readiness', 'retry_package_weak_spots']),
+  content_edit: new Set(['edit_course_map', 'edit_deliverables', 'generate_slide_images', 'undo_last']),
+  package_audit: new Set(['validate_course', 'verify_package_exports', 'review_package_readiness']),
+  workspace_plan: new Set(['plan_workspace_next_step']),
+  workspace_inspection: new Set(['inspect_workspace', 'read_lesson', 'read_deliverable', 'compare_deliverables']),
+  agent_tooling: new Set(['create_tool', 'run_tool']),
+  agent_memory: new Set(['save_preference', 'remember', 'forget', 'recall']),
+  research: new Set(['search_research']),
+};
+
+const RECEIPT_INTENT_LABELS = {
+  finish_package: 'Package finish',
+  package_repair: 'Package repair',
+  content_edit: 'Content update',
+  package_audit: 'Quality audit',
+  workspace_plan: 'Workspace plan',
+  workspace_inspection: 'Workspace inspection',
+  agent_tooling: 'Agent tooling',
+  agent_memory: 'Agent memory',
+  research: 'Research',
+  agent_run: 'Agent run',
+};
+
+function uniqueList(values = [], max = Infinity) {
+  const unique = [];
+  values.forEach((value) => {
+    const text = String(value || '').trim();
+    if (text && !unique.includes(text)) unique.push(text);
+  });
+  if (unique.length <= max) return unique;
+  return [...unique.slice(0, max), `+${unique.length - max} more`];
+}
+
+function cloneForProjection(data) {
+  if (data == null) return {};
+  try {
+    if (typeof structuredClone === 'function') return structuredClone(data);
+  } catch {
+    /* fall through */
+  }
+  try {
+    return JSON.parse(JSON.stringify(data));
+  } catch {
+    return {};
+  }
+}
+
+function normalizeProjectionPath(path) {
+  if (Array.isArray(path)) return path;
+  if (typeof path !== 'string') return null;
+  return path
+    .split('.')
+    .filter((part) => part !== '')
+    .map((part) => {
+      const numeric = Number(part);
+      return Number.isInteger(numeric) && String(numeric) === part ? numeric : part;
+    });
+}
+
+function setProjectionValueAtPath(obj, path, value) {
+  const root = cloneForProjection(obj);
+  if (!Array.isArray(path) || path.length === 0) return root;
+  let current = root;
+  for (let i = 0; i < path.length - 1; i++) {
+    const key = path[i];
+    const nextKey = path[i + 1];
+    if (current[key] == null || typeof current[key] !== 'object') {
+      current[key] = typeof nextKey === 'number' ? [] : {};
+    }
+    current = current[key];
+  }
+  current[path[path.length - 1]] = value;
+  return root;
+}
+
+export function projectAgentDeliverableActionToCanonicalPatch(action, { courseMap, deliverables } = {}) {
+  if (!action || action.type !== 'editItem' || !action.featureId) return null;
+  const editPath = normalizeProjectionPath(action.path);
+  if (!editPath || editPath.length < 2) return null;
+  const lessonIndex = Number.isInteger(action.lessonIndex)
+    ? action.lessonIndex
+    : Number.isInteger(editPath[1])
+      ? editPath[1]
+      : null;
+  if (!Number.isInteger(lessonIndex)) return null;
+
+  const entry = deliverables?.[action.featureId] || null;
+  const oldData = entry?.data || entry || {};
+  const newData = setProjectionValueAtPath(oldData, editPath, action.value);
+  const editContext = extractEditContext(oldData, newData, editPath);
+  const patch = projectArtifactEditToCourseMapPatch({
+    featureId: action.featureId,
+    lessonIndex,
+    editPath,
+    oldData,
+    newData,
+    courseMap,
+    editContext,
+  });
+  if (patch) return { patch, editContext };
+  const patchRequest = createCanonicalPatchRequest({
+    featureId: action.featureId,
+    lessonIndex,
+    editPath,
+    oldData,
+    newData,
+    courseMap,
+    editContext,
+  });
+  return patchRequest ? { patchRequest, canonicalPatchRequests: [patchRequest], editContext } : null;
+}
+
+function formatReceiptStep(step) {
+  const label = String(step?.label || TOOL_LABELS[step?.tool] || step?.tool || 'Agent tool').trim();
+  const summary = String(step?.summary || '').trim();
+  if (!summary || summary === label) return label;
+  return `${label}: ${summary}`;
+}
+
+function buildToolManifest(steps) {
+  return steps.slice(0, 12).map((step) => {
+    const startedAt = Number(step?.startedAt || 0);
+    const endedAt = Number(step?.endedAt || 0);
+    return {
+      tool: String(step?.tool || 'unknown_tool'),
+      label: String(step?.label || TOOL_LABELS[step?.tool] || step?.tool || 'Agent tool'),
+      status: String(step?.status || 'done'),
+      summary: String(step?.summary || '').trim(),
+      targets: uniqueList(step?.targets || [], 3),
+      ...(startedAt && endedAt && endedAt >= startedAt ? { durationMs: endedAt - startedAt } : {}),
+    };
+  });
+}
+
+function receiptIntentPriority(intentType) {
+  return [
+    'finish_package',
+    'package_repair',
+    'content_edit',
+    'package_audit',
+    'workspace_plan',
+    'workspace_inspection',
+    'agent_tooling',
+    'agent_memory',
+    'research',
+  ].indexOf(intentType);
+}
+
+export function deriveModelAgentReceiptIntent(steps = [], { issueCount = 0 } = {}) {
+  const toolNames = uniqueList(steps.map((step) => step?.tool));
+  if (toolNames.length === 0) {
+    return {
+      type: 'agent_run',
+      label: RECEIPT_INTENT_LABELS.agent_run,
+      toolNames: [],
+      toolCount: 0,
+      issueCount,
+      mutatesWorkspace: false,
+      readOnly: true,
+    };
+  }
+
+  const matchedTypes = [];
+  for (const [intentType, tools] of Object.entries(RECEIPT_INTENT_TOOLS)) {
+    if (toolNames.some((toolName) => tools.has(toolName))) matchedTypes.push(intentType);
+  }
+  matchedTypes.sort((a, b) => receiptIntentPriority(a) - receiptIntentPriority(b));
+
+  const type = matchedTypes[0] || 'agent_run';
+  const mutatesWorkspace = steps.some((step) => RECEIPT_ACTION_TOOLS.has(step?.tool));
+  return {
+    type,
+    label: RECEIPT_INTENT_LABELS[type] || RECEIPT_INTENT_LABELS.agent_run,
+    toolNames,
+    toolCount: steps.length,
+    issueCount,
+    mutatesWorkspace,
+    readOnly: !mutatesWorkspace,
+  };
+}
+
+function buildReceiptTitle(status, intent) {
+  const label = intent?.label || RECEIPT_INTENT_LABELS.agent_run;
+  if (status === 'blocked') return `${label} needs attention`;
+  if (status === 'review') return `${label} needs review`;
+  if (intent?.type === 'workspace_plan') return 'Workspace plan ready';
+  if (intent?.type === 'package_audit') return 'Quality audit complete';
+  if (intent?.type === 'finish_package') return 'Package finish receipt';
+  return `${label} receipt`;
+}
+
+function buildReceiptNext(status, intent, actionSteps) {
+  if (status === 'blocked') {
+    if (intent?.type === 'finish_package' || intent?.type === 'package_repair') {
+      return 'Review the package issue, then retry the smallest safe finish action.';
+    }
+    return 'Open the issue details or run a smaller recovery action before continuing.';
+  }
+  if (status === 'review') return 'Review the partial result before applying more changes.';
+
+  switch (intent?.type) {
+    case 'workspace_plan':
+      return 'Choose a plan action, or run a quality audit before changing content.';
+    case 'package_audit':
+      return 'Use the findings to decide whether to fix, finish, or download.';
+    case 'finish_package':
+      return 'Review the package summary, then download or audit quality before sharing.';
+    case 'content_edit':
+    case 'package_repair':
+      return 'Audit quality or plan the next downstream update from the changed workspace.';
+    case 'agent_tooling':
+      return 'Use the saved macro when this workflow repeats.';
+    case 'agent_memory':
+      return 'Future Agent turns can use the updated preference context.';
+    default:
+      return actionSteps.length > 0 ? 'Continue from the updated workspace.' : 'Use these findings to choose the next change.';
+  }
+}
+
+export function buildModelAgentReceiptFromProgress(progress, { runId = null, dryRun = false, activeTab = null } = {}) {
+  const steps = Array.isArray(progress?.steps) ? progress.steps.filter(Boolean) : [];
+  if (steps.length === 0) return null;
+
+  const issueSteps = steps.filter((step) => step.status === 'error' || step.status === 'partial');
+  const hasError = issueSteps.some((step) => step.status === 'error') || progress?.status === 'error';
+  const status = hasError ? 'blocked' : issueSteps.length > 0 ? 'review' : 'done';
+  const actionSteps = steps.filter((step) => RECEIPT_ACTION_TOOLS.has(step.tool));
+  const checkSteps = steps.filter((step) => !RECEIPT_ACTION_TOOLS.has(step.tool));
+  const targets = uniqueList(
+    steps.flatMap((step) => step.targets || []),
+    4,
+  );
+  const fallbackTarget = progress?.runMeta?.target || resolveLabel(activeTab || 'courseMap');
+  const mode = progress?.runMeta?.mode || (dryRun ? 'Review only' : 'Auto-fix');
+  const providerCallCount = Number(progress?.runMeta?.providerCallCount || 0);
+  const maxProviderCallCount = Number(progress?.runMeta?.maxProviderCallCount || progress?.runMeta?.maxIterations || 0);
+  const stopReason = String(progress?.runMeta?.stopReason || '').trim();
+  const intent = deriveModelAgentReceiptIntent(steps, { issueCount: issueSteps.length });
+  const startedAt = Number(progress?.startedAt || 0);
+  const endedAt = Number(progress?.endedAt || 0);
+  const runStats = {
+    toolCount: steps.length,
+    actionCount: actionSteps.length,
+    checkCount: checkSteps.length,
+    issueCount: issueSteps.length,
+    readOnly: intent.readOnly,
+    mutatesWorkspace: intent.mutatesWorkspace,
+    ...(providerCallCount > 0 ? { providerCallCount } : {}),
+    ...(maxProviderCallCount > 0 ? { maxProviderCallCount } : {}),
+    ...(stopReason ? { stopReason } : {}),
+    ...(startedAt && endedAt && endedAt >= startedAt ? { durationMs: endedAt - startedAt } : {}),
+  };
+
+  return {
+    role: 'agentReceipt',
+    runId,
+    receipt: {
+      title: buildReceiptTitle(status, intent),
+      status,
+      badge: status === 'blocked' ? 'Blocked' : status === 'review' ? 'Review' : 'Complete',
+      mode,
+      target: targets.length > 0 ? targets.join(', ') : fallbackTarget,
+      intent,
+      runStats,
+      ...(stopReason ? { stopReason } : {}),
+      toolManifest: buildToolManifest(steps),
+      changed:
+        actionSteps.length > 0 ? uniqueList(actionSteps.map(formatReceiptStep), 4) : ['No workspace edits'],
+      checked:
+        checkSteps.length > 0 ? uniqueList(checkSteps.map(formatReceiptStep), 4) : ['Tool result status'],
+      issues: uniqueList(issueSteps.map(formatReceiptStep), 4),
+      next: buildReceiptNext(status, intent, actionSteps),
+    },
+  };
+}
+
 export async function runAgentLoop(fullMessage, { silent = false, dryRun = false } = {}, ctx) {
   const {
     messages,
@@ -106,6 +467,34 @@ export async function runAgentLoop(fullMessage, { silent = false, dryRun = false
     });
   };
 
+  const completeProgressWithReceipt = ({ status = 'complete', stopReason = '' } = {}) => {
+    if (silent) return;
+    setMessages((prev) => {
+      const updated = [...prev];
+      const progressIdx = updated.findLastIndex((m) => m.role === 'agentProgress');
+      if (progressIdx < 0) return prev;
+      const current = updated[progressIdx];
+      const completed = {
+        ...current,
+        status: status === 'error' || current.status === 'error' ? 'error' : 'complete',
+        startedAt: current.startedAt || Date.now(),
+        endedAt: current.endedAt || Date.now(),
+        runMeta: {
+          ...(current.runMeta || {}),
+          ...(stopReason ? { stopReason } : {}),
+        },
+      };
+      updated[progressIdx] = completed;
+      const receipt = buildModelAgentReceiptFromProgress(completed, {
+        runId,
+        dryRun: executionMode === AGENT_EXECUTION_MODES.DRY_RUN,
+        activeTab,
+      });
+      if (!receipt) return updated;
+      return [...updated.filter((message) => !(message.role === 'agentReceipt' && message.runId === runId)), receipt];
+    });
+  };
+
   try {
     abortRef.current?.abort();
     const controller = new AbortController();
@@ -152,7 +541,11 @@ export async function runAgentLoop(fullMessage, { silent = false, dryRun = false
       const scored = chatHistory.map((m, i) => ({
         ...m,
         _idx: i,
-        _keep: (m.role === 'user' ? 3 : 1) + (i >= chatHistory.length - 4 ? 5 : 0),
+        _keep:
+          (m.role === 'user' ? 3 : 1) +
+          (i >= chatHistory.length - 4 ? 5 : 0) +
+          (m.role === 'user' && isLandingAgentContextText(m.content) ? 25 : 0) +
+          (m.role === 'user' && isAgentSourceContextText(m.content) ? 18 : 0),
       }));
       scored.sort((a, b) => a._keep - b._keep);
       let trimmed = 0;
@@ -208,6 +601,7 @@ export async function runAgentLoop(fullMessage, { silent = false, dryRun = false
     // edit → validate → fix → verify in a single turn without punting to the user.
     const MAX_ITERATIONS = 20;
     let usedTools = false;
+    let terminalResponseHandled = false;
 
     // ── Adaptive temperature: deterministic for simple edits, creative for complex tasks ──
     const agentTemperature = complexity === 'simple' ? 0.2 : complexity === 'complex' ? 0.5 : 0.4;
@@ -238,6 +632,14 @@ export async function runAgentLoop(fullMessage, { silent = false, dryRun = false
 
     // ── AGENTIC LOOP (native tool calling) ───────────────────────────────
     for (let iteration = 0; iteration < MAX_ITERATIONS; iteration++) {
+      updateProgress((card) => ({
+        ...card,
+        runMeta: {
+          ...(card.runMeta || {}),
+          providerCallCount: iteration + 1,
+          maxProviderCallCount: MAX_ITERATIONS,
+        },
+      }));
       if (typeof ctx.onApiCallEvent === 'function') {
         ctx.onApiCallEvent({
           type: 'agentLoopCall',
@@ -268,7 +670,7 @@ export async function runAgentLoop(fullMessage, { silent = false, dryRun = false
               return updated;
             });
           } else if (usedTools) {
-            updateProgress({ status: 'complete' });
+            completeProgressWithReceipt({ stopReason: 'respond' });
           } else {
             setMessages((prev) => {
               const updated = [...prev];
@@ -278,6 +680,7 @@ export async function runAgentLoop(fullMessage, { silent = false, dryRun = false
             });
           }
           handleAgentFinalResponse(respondCall.args);
+          terminalResponseHandled = true;
           break;
         }
       }
@@ -294,7 +697,7 @@ export async function runAgentLoop(fullMessage, { silent = false, dryRun = false
             return updated;
           });
         } else if (usedTools) {
-          updateProgress({ status: 'complete' });
+          completeProgressWithReceipt({ stopReason: 'text_fallback' });
           setMessages((prev) => [...prev, { role: 'assistant', text: fallbackText }]);
         } else {
           setMessages((prev) => {
@@ -304,6 +707,7 @@ export async function runAgentLoop(fullMessage, { silent = false, dryRun = false
             return updated;
           });
         }
+        terminalResponseHandled = true;
         break;
       }
 
@@ -312,7 +716,7 @@ export async function runAgentLoop(fullMessage, { silent = false, dryRun = false
       if (nonRespondCalls.length > 0) {
         const loopedTool = detectLoop(nonRespondCalls);
         if (loopedTool) {
-          updateProgress({ status: 'error' });
+          completeProgressWithReceipt({ status: 'error', stopReason: 'loop_detected' });
           setMessages((prev) => [
             ...prev,
             {
@@ -320,6 +724,7 @@ export async function runAgentLoop(fullMessage, { silent = false, dryRun = false
               text: `I noticed I was repeating the same operation (${loopedTool}) without making progress. Could you rephrase your request or be more specific?`,
             },
           ]);
+          terminalResponseHandled = true;
           break;
         }
 
@@ -329,6 +734,7 @@ export async function runAgentLoop(fullMessage, { silent = false, dryRun = false
         const newSteps = nonRespondCalls.map((tc) => ({
           tool: tc.name,
           label: TOOL_LABELS[tc.name] || tc.name,
+          targets: deriveToolTargets(tc, activeTab),
           thought: '',
           status: 'running',
           summary: '',
@@ -369,12 +775,18 @@ export async function runAgentLoop(fullMessage, { silent = false, dryRun = false
             try {
               const toolCtx = {
                 courseMap,
+                activeTab,
                 deliverables: delivRef.current,
                 selectedFeatures,
                 columns,
                 deliverableConfig,
                 lessonFilter,
                 executeAction: executeActionRef.current,
+                projectDeliverableActionToCanonicalPatch: (action) =>
+                  projectAgentDeliverableActionToCanonicalPatch(action, {
+                    courseMap,
+                    deliverables: delivRef.current,
+                  }),
                 optimisticUpdate: optimisticUpdateRef?.current || null,
                 setCurrentDeliverables: (nextDeliverables) => {
                   if (nextDeliverables) delivRef.current = nextDeliverables;
@@ -487,6 +899,22 @@ export async function runAgentLoop(fullMessage, { silent = false, dryRun = false
                 });
               }
 
+              if (tc.name === 'plan_workspace_next_step' && result && !result.error) {
+                setMessages((prev) => {
+                  const withoutCurrentRunPlan = prev.filter(
+                    (message) => !(message.role === 'workspacePlan' && message.runId === runId),
+                  );
+                  return [
+                    ...withoutCurrentRunPlan,
+                    {
+                      role: 'workspacePlan',
+                      runId,
+                      plan: result,
+                    },
+                  ];
+                });
+              }
+
               // If edit tool -> add changeSummary + trigger sync cascade
               if (
                 tc.name === 'edit_course_map' ||
@@ -496,6 +924,7 @@ export async function runAgentLoop(fullMessage, { silent = false, dryRun = false
               ) {
                 const changes = [];
                 const editedFeatures = new Set();
+                const canonicalSyncEdits = [];
                 const failedItems = []; // carry full per-item failure info to the UI
                 // The agent's original tool args hold the exact patches/actions —
                 // we need them so a "Retry failed" button can reconstruct the
@@ -525,6 +954,21 @@ export async function runAgentLoop(fullMessage, { silent = false, dryRun = false
                     else changes.push({ type: actionType, featureId, count: 1 });
                     if (featureId !== 'courseMap' && !detail.pending) {
                       editedFeatures.add(`${featureId}:${detail.lessonIndex ?? 0}`);
+                    }
+                    if (detail.canonicalPatches?.length > 0) {
+                      canonicalSyncEdits.push({
+                        featureId,
+                        lessonIndex: detail.lessonIndex ?? 0,
+                        editContext: detail.editContext || detail.message || null,
+                        canonicalPatches: detail.canonicalPatches,
+                      });
+                    } else if (detail.canonicalPatchRequests?.length > 0) {
+                      canonicalSyncEdits.push({
+                        featureId,
+                        lessonIndex: detail.lessonIndex ?? 0,
+                        editContext: detail.editContext || detail.message || null,
+                        canonicalPatchRequests: detail.canonicalPatchRequests,
+                      });
                     }
                   } else {
                     failedItems.push({
@@ -567,6 +1011,15 @@ export async function runAgentLoop(fullMessage, { silent = false, dryRun = false
                       status: 'pending', // tracks keep/retry/undo decisions on failures
                     },
                   ]);
+                }
+
+                if (notifyEditRef.current && canonicalSyncEdits.length > 0) {
+                  for (const edit of canonicalSyncEdits) {
+                    notifyEditRef.current(edit.lessonIndex, '_deliverableEdit', edit.featureId, edit.editContext, {
+                      canonicalPatches: edit.canonicalPatches,
+                      canonicalPatchRequests: edit.canonicalPatchRequests,
+                    });
+                  }
                 }
 
                 if (notifyEditRef.current && editedFeatures.size > 0) {
@@ -647,7 +1100,10 @@ export async function runAgentLoop(fullMessage, { silent = false, dryRun = false
     }
 
     // Post-loop cleanup
-    if (silent) {
+    if (terminalResponseHandled) {
+      // The terminal branch already removed or completed the progress card and
+      // appended any needed receipt before the final assistant response.
+    } else if (silent) {
       setMessages((prev) => {
         const updated = [...prev];
         const progressIdx = updated.findLastIndex((m) => m.role === 'agentProgress');
@@ -662,14 +1118,15 @@ export async function runAgentLoop(fullMessage, { silent = false, dryRun = false
         return updated;
       });
     } else {
-      updateProgress({ status: 'complete' });
+      completeProgressWithReceipt({ stopReason: 'max_iterations' });
     }
-    if (!silent) {
+    if (!silent && !terminalResponseHandled) {
       const FINAL_ROLES = new Set([
         'assistant',
         'proposal',
         'changeSummary',
         'packageSummary',
+        'workspacePlan',
         'diagram',
         'chart',
         'imageSearch',

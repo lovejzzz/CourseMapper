@@ -17,6 +17,7 @@ import {
   AGENT_EXECUTION_MODE_STORAGE_KEY,
   normalizeAgentExecutionMode,
 } from '../../lib/agentExecutionMode';
+import { buildAgentSourceContextMessage } from '../../lib/agentSourceContext';
 
 // ═══════════════════════════════════════════════════════════════════════════
 // useChatRouter — Unified hook for Ask (help AI) + Revise (agent/revision)
@@ -60,6 +61,28 @@ export function buildRetryFailedPrompt(failedItems, toolName) {
     `field, duplicate content, not-generated deliverable, etc). After retrying, respond() briefly confirming ` +
     `what now succeeded and what couldn't be fixed and why.\n\n${lines}`
   );
+}
+
+export function formatAttachedFileContents(files) {
+  return (Array.isArray(files) ? files : [])
+    .filter((file) => file?.text)
+    .map((file) => `=== Attached File: ${file.name} ===\n${file.text}`)
+    .join('\n\n');
+}
+
+export function buildAttachedFilePrompt(text, files) {
+  const fileContents = formatAttachedFileContents(files);
+  if (!fileContents) return text;
+  return text
+    ? `${text}\n\nThe user also attached these additional reference files:\n\n${fileContents}`
+    : `Please incorporate the following additional reference files:\n\n${fileContents}`;
+}
+
+export function buildAttachedFileDisplayText(text, files) {
+  const count = Array.isArray(files) ? files.length : 0;
+  const base = text?.trim() || 'Attached reference files';
+  if (count === 0) return base;
+  return `${base} [+${count} file${count > 1 ? 's' : ''}]`;
 }
 
 export default function useChatRouter({
@@ -294,7 +317,13 @@ export default function useChatRouter({
   // ── Send message ──────────────────────────────────────────────────────────
   async function send(text, options = {}) {
     let trimmed = text.trim();
-    if ((!trimmed && attachedFiles.length === 0) || isStreamingRef.current) return;
+    const displayTextOverride =
+      typeof options.displayText === 'string' && options.displayText.trim() ? options.displayText.trim() : null;
+    const agentPromptOverride =
+      typeof options.agentPromptOverride === 'string' && options.agentPromptOverride.trim()
+        ? options.agentPromptOverride.trim()
+        : null;
+    if ((!trimmed && !agentPromptOverride && attachedFiles.length === 0) || isStreamingRef.current) return;
 
     // Dismiss any pending or failed proposals
     setMessages((prev) =>
@@ -326,11 +355,12 @@ export default function useChatRouter({
 
     if (hasDeliverables && !isGenerating && executeActionRef.current) {
       if (!agentProviderReady) {
-        if (!preparedSend.silent) appendAgentUnavailableMessage(trimmed);
+        if (!preparedSend.silent) appendAgentUnavailableMessage(displayTextOverride || trimmed);
         return;
       }
       await sendAgentMessage(trimmed, {
-        agentPromptOverride: preparedSend.agentPromptOverride,
+        agentPromptOverride: agentPromptOverride || preparedSend.agentPromptOverride,
+        displayTextOverride,
         silent: preparedSend.silent,
         dryRunOverride: options.forceApplyMode ? false : options.dryRunOverride,
       });
@@ -346,7 +376,14 @@ export default function useChatRouter({
 
   // ── Ask mode: stream from help AI ─────────────────────────────────────────
   async function sendHelpMessage(text) {
-    const userMsg = { role: 'user', content: text };
+    const filesForThisTurn = attachedFiles;
+    const fullText = buildAttachedFilePrompt(text, filesForThisTurn);
+    const displayText = buildAttachedFileDisplayText(text, filesForThisTurn);
+    const sourceContextMessage =
+      filesForThisTurn.length > 0 ? buildAgentSourceContextMessage(filesForThisTurn) : null;
+    if (filesForThisTurn.length > 0) setAttachedFiles([]);
+
+    const userMsg = { role: 'user', content: fullText };
     const newMessages = [
       ...messages
         .filter((m) => m.role === 'user' || m.role === 'assistant')
@@ -357,7 +394,12 @@ export default function useChatRouter({
       userMsg,
     ];
 
-    setMessages((prev) => [...prev, { role: 'user', text }, { role: 'assistant', text: '' }]);
+    setMessages((prev) => [
+      ...prev,
+      { role: 'user', text: displayText },
+      ...(sourceContextMessage ? [sourceContextMessage] : []),
+      { role: 'assistant', text: '' },
+    ]);
     setStreaming(true);
 
     try {
@@ -476,25 +518,21 @@ export default function useChatRouter({
   }
 
   // ── Agent mode: multi-step agentic loop (delegated to useToolInvoker) ────
-  async function sendAgentMessage(text, { silent = false, agentPromptOverride = null, dryRunOverride = null } = {}) {
+  async function sendAgentMessage(
+    text,
+    { silent = false, agentPromptOverride = null, displayTextOverride = null, dryRunOverride = null } = {},
+  ) {
     if (!agentProviderReady) {
-      appendAgentUnavailableMessage(text, { silent });
+      appendAgentUnavailableMessage(displayTextOverride || text, { silent });
       return;
     }
 
-    let fullMessage = agentPromptOverride || text;
-    if (!silent && attachedFiles.length > 0) {
-      const fileContents = attachedFiles.map((f) => `=== Attached File: ${f.name} ===\n${f.text}`).join('\n\n');
-      fullMessage = text
-        ? `${text}\n\nThe user also attached these additional reference files:\n\n${fileContents}`
-        : `Please incorporate the following additional reference files:\n\n${fileContents}`;
-    }
-
-    const displayText =
-      text +
-      (!silent && attachedFiles.length > 0
-        ? ` [+${attachedFiles.length} file${attachedFiles.length > 1 ? 's' : ''}]`
-        : '');
+    const filesForThisTurn = !silent ? attachedFiles : [];
+    const fullMessage = buildAttachedFilePrompt(agentPromptOverride || text, filesForThisTurn);
+    const sourceContextMessage =
+      filesForThisTurn.length > 0 ? buildAgentSourceContextMessage(filesForThisTurn) : null;
+    const visibleText = displayTextOverride || text;
+    const displayText = buildAttachedFileDisplayText(visibleText, filesForThisTurn);
 
     if (!silent) setAttachedFiles([]);
 
@@ -505,13 +543,26 @@ export default function useChatRouter({
       steps: [],
       status: 'running',
       startedAt: progressStartedAt,
+      runMeta: {
+        mode: (dryRunOverride ?? agentDryRun) ? 'Review only' : 'Auto-fix',
+        target: resolveLabel(activeTab || 'courseMap'),
+        provider,
+        model: modelId,
+      },
     };
 
     // Add user message + agentProgress card (silent mode: no user bubble)
     if (silent) {
       setMessages((prev) => [...prev, progressCard]);
     } else {
-      setMessages((prev) => [...prev, { role: 'user', text: displayText }, progressCard]);
+      const userMessage = { role: 'user', text: displayText };
+      if (agentPromptOverride) userMessage.agentPromptOverride = agentPromptOverride;
+      setMessages((prev) => [
+        ...prev,
+        userMessage,
+        ...(sourceContextMessage ? [sourceContextMessage] : []),
+        progressCard,
+      ]);
     }
     setStreaming(true);
 
@@ -531,22 +582,21 @@ export default function useChatRouter({
 
   // ── Revise mode (legacy): pass to revision handler ────────────────────────
   async function sendRevision(text) {
-    let fullMessage = text;
-    if (attachedFiles.length > 0) {
-      const fileContents = attachedFiles.map((f) => `=== Attached File: ${f.name} ===\n${f.text}`).join('\n\n');
-      fullMessage = text
-        ? `${text}\n\nThe user also attached these additional reference files:\n\n${fileContents}`
-        : `Please incorporate the following additional reference files:\n\n${fileContents}`;
-    }
-
-    const displayText =
-      text + (attachedFiles.length > 0 ? ` [+${attachedFiles.length} file${attachedFiles.length > 1 ? 's' : ''}]` : '');
+    const filesForThisTurn = attachedFiles;
+    const fullMessage = buildAttachedFilePrompt(text, filesForThisTurn);
+    const displayText = buildAttachedFileDisplayText(text, filesForThisTurn);
+    const sourceContextMessage =
+      filesForThisTurn.length > 0 ? buildAgentSourceContextMessage(filesForThisTurn) : null;
 
     setAttachedFiles([]);
     // Use updater to avoid stale messages closure
     let chatHistorySnapshot;
     setMessages((prev) => {
-      const updated = [...prev, { role: 'user', text: displayText }];
+      const updated = [
+        ...prev,
+        { role: 'user', text: displayText },
+        ...(sourceContextMessage ? [sourceContextMessage] : []),
+      ];
       chatHistorySnapshot = updated.filter((m) => m.role === 'user' || m.role === 'assistant').slice(-10);
       return updated;
     });
@@ -583,6 +633,36 @@ export default function useChatRouter({
     });
   }
 
+  function addLocalMessages(nextMessages) {
+    const safeMessages = Array.isArray(nextMessages) ? nextMessages.filter(Boolean) : [nextMessages].filter(Boolean);
+    if (safeMessages.length === 0) return;
+    setMessages((prev) => [...prev, ...safeMessages]);
+  }
+
+  function updateLocalMessage(match, updater) {
+    if (typeof updater !== 'function') return;
+    setMessages((prev) => {
+      const updated = [...prev];
+      const matcher =
+        typeof match === 'function'
+          ? match
+          : (message) => {
+              if (!match || typeof match !== 'object') return false;
+              if (match.id && message?.id === match.id) return true;
+              if (match.role && message?.role === match.role) return true;
+              return false;
+            };
+      for (let i = updated.length - 1; i >= 0; i--) {
+        if (!matcher(updated[i], i)) continue;
+        const next = updater(updated[i], i);
+        if (!next) return prev;
+        updated[i] = next;
+        return updated;
+      }
+      return prev;
+    });
+  }
+
   // ── Sync suggestion methods (agent-mediated sync) ─────────────────────────
   const pushSyncSuggestion = useCallback((suggestion) => {
     setMessages((prev) => {
@@ -600,9 +680,9 @@ export default function useChatRouter({
 
   const handleApproveSyncSuggestion = useCallback(async (suggestionId, selectedPlan = null) => {
     // Read plan from current messages before mutating state
-    let plan, changedFieldsSummary;
+    let plan, changedFieldsSummary, matchMsg;
     const currentMsgs = messagesRef.current;
-    const matchMsg = currentMsgs.find((m) => m.id === suggestionId);
+    matchMsg = currentMsgs.find((m) => m.id === suggestionId);
     if (matchMsg) {
       plan = matchMsg.plan;
       changedFieldsSummary = matchMsg.changedFieldsSummary;
@@ -617,15 +697,29 @@ export default function useChatRouter({
 
     try {
       const completed = await executeSyncPlanRef.current?.(effectivePlan, changedFieldsSummary || '');
-      const completedIds = new Set(completed || []);
+      const completedFeatureIds = Array.isArray(completed)
+        ? [...completed]
+        : Array.isArray(completed?.completedFeatureIds)
+          ? completed.completedFeatureIds
+          : [];
+      const completedIds = new Set(completedFeatureIds);
       const failed = effectivePlan.filter((p) => !completedIds.has(p.featureId));
+      const result = {
+        status: failed.length > 0 ? (completedFeatureIds.length > 0 ? 'partialFail' : 'failed') : 'done',
+        suggestion: matchMsg || null,
+        selectedPlan: effectivePlan,
+        completedFeatureIds,
+        failedItems: failed,
+        changedFieldsSummary: changedFieldsSummary || '',
+        syncSummary: completed?.syncSummary || null,
+      };
 
-      if (failed.length > 0 && completed?.length > 0) {
+      if (failed.length > 0 && completedFeatureIds.length > 0) {
         // Partial failure — some succeeded, some didn't
         setMessages((prev) =>
           prev.map((m) =>
             m.id === suggestionId
-              ? { ...m, status: 'partialFail', failedItems: failed, completedFeatureIds: completed }
+              ? { ...m, status: 'partialFail', failedItems: failed, completedFeatureIds }
               : m,
           ),
         );
@@ -636,13 +730,24 @@ export default function useChatRouter({
         );
       } else {
         setMessages((prev) =>
-          prev.map((m) => (m.id === suggestionId ? { ...m, status: 'done', completedFeatureIds: completed || [] } : m)),
+          prev.map((m) => (m.id === suggestionId ? { ...m, status: 'done', completedFeatureIds } : m)),
         );
       }
+      return result;
     } catch {
+      const failedPlan = Array.isArray(effectivePlan) ? effectivePlan : [];
       setMessages((prev) =>
-        prev.map((m) => (m.id === suggestionId ? { ...m, status: 'partialFail', failedItems: effectivePlan } : m)),
+        prev.map((m) => (m.id === suggestionId ? { ...m, status: 'partialFail', failedItems: failedPlan } : m)),
       );
+      return {
+        status: 'failed',
+        suggestion: matchMsg || null,
+        selectedPlan: failedPlan,
+        completedFeatureIds: [],
+        failedItems: failedPlan,
+        changedFieldsSummary: changedFieldsSummary || '',
+        syncSummary: null,
+      };
     }
   }, []);
 
@@ -770,10 +875,19 @@ export default function useChatRouter({
     if (userIdx < 0) return;
     const userText = msgs[userIdx].text || msgs[userIdx].content || '';
     if (!userText) return;
+    const userAgentPromptOverride = msgs[userIdx].agentPromptOverride || null;
     // Remove the old assistant message
     setMessages((prev) => prev.filter((_, i) => i !== msgIndex));
     // Re-send
-    send(userText);
+    send(
+      userText,
+      userAgentPromptOverride
+        ? {
+            displayText: userText,
+            agentPromptOverride: userAgentPromptOverride,
+          }
+        : {},
+    );
   }
 
   // ── Feedback: toggle thumbs up/down on an assistant message
@@ -797,6 +911,8 @@ export default function useChatRouter({
     removeAttached,
     isParsing,
     addProgressMessage,
+    addLocalMessages,
+    updateLocalMessage,
     handleSelectProposal,
     handleAcceptDiff,
     handleRejectDiff,

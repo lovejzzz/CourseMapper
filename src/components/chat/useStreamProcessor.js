@@ -21,6 +21,12 @@ import {
   parseOpenAIResponsesStreamChunk,
   prefersOpenAIResponsesApi,
 } from '../../lib/openaiProvider';
+import { isLandingAgentContextText } from '../../lib/landingAgentContext';
+import {
+  AGENT_SOURCE_CONTEXT_ROLE,
+  formatAgentSourceContextForHistory,
+  isAgentSourceContextText,
+} from '../../lib/agentSourceContext';
 import { resolveLabel } from './constants';
 // webllm is dynamically imported when needed; its runtime is loaded externally for Local AI users only.
 
@@ -426,6 +432,120 @@ function safeJsonParse(str) {
   }
 }
 
+function getWorkspacePlanHistoryActionKey(action, index = 0) {
+  const intent = typeof action?.intent === 'string' ? action.intent : action?.intent?.type || 'continue_plan';
+  const featureIds = [
+    ...(Array.isArray(action?.intent?.featureIds) ? action.intent.featureIds : []),
+    ...(Array.isArray(action?.featureIds) ? action.featureIds : []),
+  ]
+    .map((featureId) => String(featureId || '').trim())
+    .filter(Boolean)
+    .join(',');
+  return [intent, action?.priority || `P${index}`, action?.title || '', action?.target || '', featureIds]
+    .map((part) => String(part || '').trim())
+    .join('|');
+}
+
+function formatWorkspacePlanForHistory(plan, messageActionStates = null) {
+  if (!plan) return '[Workspace plan: unavailable]';
+  const actions = Array.isArray(plan.actions) ? plan.actions.slice(0, 3) : [];
+  const top = plan.highestImpactAction || actions[0] || null;
+  const evidence = plan.evidence || {};
+  const actionStates =
+    messageActionStates && typeof messageActionStates === 'object'
+      ? messageActionStates
+      : plan.actionStates && typeof plan.actionStates === 'object'
+        ? plan.actionStates
+        : {};
+  const intentOf = (action) => (typeof action?.intent === 'string' ? action.intent : action?.intent?.type || '');
+  const actionText = actions
+    .map((action, index) => {
+      const actionState = actionStates[getWorkspacePlanHistoryActionKey(action, index)];
+      const parts = [
+        `${index + 1}. ${action.title}${action.safeMode ? ` (${action.safeMode})` : ''}`,
+        actionState?.status ? `status=${actionState.status}` : '',
+        intentOf(action) ? `intent=${intentOf(action)}` : '',
+        action.target ? `target=${action.target}` : '',
+        action.reason ? `reason=${action.reason}` : '',
+        action.toolHint ? `toolHint=${action.toolHint}` : '',
+      ].filter(Boolean);
+      return parts.join(' | ');
+    })
+    .join('; ');
+  return [
+    '[Workspace plan',
+    top?.title ? ` top: ${top.title}` : '',
+    ` evidence: ${evidence.generatedFeatureCount || 0} generated, ${evidence.staleFeatureCount || 0} stale, ${
+      evidence.failedFeatureCount || 0
+    } failed, ${evidence.packageBlockerCount || 0} package blockers, ${
+      evidence.classroomBlockerCount || 0
+    } classroom blockers`,
+    actionText ? ` actions: ${actionText}` : '',
+    ']',
+  ].join('');
+}
+
+function formatReceiptActionStates(actionStates) {
+  const entries = Object.entries(actionStates && typeof actionStates === 'object' ? actionStates : {})
+    .map(([key, state]) => {
+      const status = String(state?.status || '').trim();
+      if (!status) return null;
+      const actionLabel = String(key || '').split('|').find(Boolean) || 'action';
+      return `${actionLabel}=status:${status}`;
+    })
+    .filter(Boolean)
+    .slice(0, 4);
+  return entries.join('; ');
+}
+
+function formatToolManifestForHistory(toolManifest) {
+  if (!Array.isArray(toolManifest) || toolManifest.length === 0) return '';
+  return toolManifest
+    .slice(0, 5)
+    .map((step) => {
+      const parts = [
+        step.label || step.tool || 'Agent tool',
+        step.status ? `status=${step.status}` : '',
+        step.summary ? `summary=${step.summary}` : '',
+        Array.isArray(step.targets) && step.targets.length > 0 ? `target=${step.targets.join(', ')}` : '',
+      ].filter(Boolean);
+      return parts.join(' ');
+    })
+    .join('; ');
+}
+
+function formatAgentReceiptForHistory(receipt = {}, messageActionStates = null) {
+  const changed = Array.isArray(receipt.changed) ? receipt.changed.filter(Boolean).slice(0, 3).join('; ') : '';
+  const checked = Array.isArray(receipt.checked) ? receipt.checked.filter(Boolean).slice(0, 3).join('; ') : '';
+  const issues = Array.isArray(receipt.issues) ? receipt.issues.filter(Boolean).slice(0, 3).join('; ') : '';
+  const runStats = receipt.runStats && typeof receipt.runStats === 'object' ? receipt.runStats : null;
+  const actionStates =
+    messageActionStates && typeof messageActionStates === 'object'
+      ? messageActionStates
+      : receipt.actionStates && typeof receipt.actionStates === 'object'
+        ? receipt.actionStates
+        : {};
+  const actionStateSummary = formatReceiptActionStates(actionStates);
+  const toolSummary = formatToolManifestForHistory(receipt.toolManifest);
+  const parts = [
+    receipt.title || 'Agent receipt',
+    receipt.status ? `status=${receipt.status}` : '',
+    receipt.intent?.type ? `intent=${receipt.intent.type}` : '',
+    receipt.mode ? `mode=${receipt.mode}` : '',
+    receipt.target ? `target=${receipt.target}` : '',
+    runStats ? `tools=${runStats.toolCount || 0}, actions=${runStats.actionCount || 0}, checks=${runStats.checkCount || 0}` : '',
+    runStats?.providerCallCount ? `modelCalls=${runStats.providerCallCount}` : '',
+    runStats?.stopReason ? `stop=${runStats.stopReason}` : '',
+    changed ? `changed=${changed}` : '',
+    checked ? `checked=${checked}` : '',
+    issues ? `issues=${issues}` : '',
+    toolSummary ? `toolManifest=${toolSummary}` : '',
+    actionStateSummary ? `receiptActions=${actionStateSummary}` : '',
+    receipt.next ? `next=${receipt.next}` : '',
+  ].filter(Boolean);
+  return `[${parts.join(' | ')}]`;
+}
+
 // ── Build chat history with agent memory ─────────────────────────────────────
 // Converts proposals, actions, and errors into assistant messages so the AI
 // knows what it previously proposed, what the user selected, and what succeeded.
@@ -434,7 +554,7 @@ export function buildAgentChatHistory(messages) {
 
   for (const m of messages) {
     if (m.role === 'user') {
-      history.push({ role: 'user', content: m.text || m.content || '' });
+      history.push({ role: 'user', content: m.agentPromptOverride || m.text || m.content || '' });
     } else if (m.role === 'assistant') {
       const text = m.text || m.content || '';
       if (text) history.push({ role: 'assistant', content: text });
@@ -509,6 +629,12 @@ export function buildAgentChatHistory(messages) {
       history.push({ role: 'assistant', content: `[Applied changes: ${desc}]` });
     } else if (m.role === 'packageSummary') {
       history.push({ role: 'assistant', content: formatPackageSummaryForHistory(m.summary) });
+    } else if (m.role === 'workspacePlan') {
+      history.push({ role: 'assistant', content: formatWorkspacePlanForHistory(m.plan, m.actionStates) });
+    } else if (m.role === 'agentReceipt') {
+      history.push({ role: 'assistant', content: formatAgentReceiptForHistory(m.receipt, m.actionStates) });
+    } else if (m.role === AGENT_SOURCE_CONTEXT_ROLE) {
+      history.push({ role: 'user', content: formatAgentSourceContextForHistory(m) });
     } else if (m.role === 'diagram') {
       history.push({ role: 'assistant', content: `[Generated diagram: ${m.diagram?.title || 'concept diagram'}]` });
     } else if (m.role === 'chart') {
@@ -553,6 +679,11 @@ export function buildAgentChatHistory(messages) {
     else score += 1;
     // First user message is critical (original intent)
     if (m.role === 'user' && i === history.findIndex((h) => h.role === 'user')) score += 4;
+    // Landing context is the user's original project brief and uploaded materials.
+    if (m.role === 'user' && isLandingAgentContextText(m.content)) score += 10;
+    // Attached source context should survive trimming so future Agent turns can
+    // still ground on recently supplied materials.
+    if (m.role === 'user' && isAgentSourceContextText(m.content)) score += 8;
     // Recent messages are more relevant (last 6)
     if (i >= history.length - 6) score += 4;
     // Proposals and errors carry decision context

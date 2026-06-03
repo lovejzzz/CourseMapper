@@ -39,9 +39,23 @@ function groupSteps(steps) {
             ? `${total} items`
             : `${issueCount} with issues`,
       thought: group.items.find((step) => step.status === 'running')?.thought,
+      targets: summarizeTargets(
+        group.items.flatMap((step) => step.targets || []),
+        3,
+      ),
       _count: total,
     };
   });
+}
+
+function summarizeTargets(targets = [], max = 3) {
+  const unique = [];
+  for (const target of targets) {
+    const label = String(target || '').trim();
+    if (label && !unique.includes(label)) unique.push(label);
+  }
+  if (unique.length <= max) return unique;
+  return [...unique.slice(0, max), `+${unique.length - max} more`];
 }
 
 function getElapsedSeconds(startedAt, endedAt) {
@@ -70,6 +84,171 @@ function previousDoneStep(steps) {
     if (steps[i].status === 'done' || steps[i].status === 'partial') return steps[i];
   }
   return null;
+}
+
+const ACTION_TOOLS = new Set([
+  'edit_course_map',
+  'edit_deliverables',
+  'generate_slide_images',
+  'finalize_package',
+  'repair_package_readiness',
+  'retry_package_weak_spots',
+  'save_preference',
+  'remember',
+  'forget',
+  'undo_last',
+  'create_tool',
+  'run_tool',
+]);
+
+const WORKSPACE_ACTION_TOOLS = new Set([
+  'edit_course_map',
+  'edit_deliverables',
+  'generate_slide_images',
+  'finalize_package',
+  'repair_package_readiness',
+  'retry_package_weak_spots',
+  'undo_last',
+]);
+
+const MEMORY_ACTION_TOOLS = new Set(['save_preference', 'remember', 'forget', 'create_tool', 'run_tool']);
+
+function pluralize(count, singular, plural = `${singular}s`) {
+  return `${count} ${count === 1 ? singular : plural}`;
+}
+
+export function buildAgentRunOutcome(steps = [], { status = 'complete', mode = '' } = {}) {
+  const safeSteps = Array.isArray(steps) ? steps.filter(Boolean) : [];
+  if (safeSteps.length === 0) {
+    return {
+      label: status === 'running' ? 'Waiting for tools' : 'No tool activity',
+      tone: 'slate',
+    };
+  }
+
+  const workspaceSteps = safeSteps.filter((step) => WORKSPACE_ACTION_TOOLS.has(step.tool));
+  const memorySteps = safeSteps.filter((step) => MEMORY_ACTION_TOOLS.has(step.tool));
+  const issueCount = safeSteps.filter((step) => step.status === 'error' || step.status === 'partial').length;
+  const completedWorkspaceSteps = workspaceSteps.filter((step) => step.status === 'done' || step.status === 'partial');
+  const runningWorkspaceStep = workspaceSteps.some((step) => step.status === 'running');
+  const completedMemorySteps = memorySteps.filter((step) => step.status === 'done' || step.status === 'partial');
+  const failedWorkspaceOnly = workspaceSteps.length > 0 && completedWorkspaceSteps.length === 0 && issueCount > 0;
+
+  if (status === 'running') {
+    if (runningWorkspaceStep) return { label: 'Editing now', tone: 'indigo' };
+    if (completedWorkspaceSteps.length > 0) return { label: 'Workspace updated', tone: 'emerald' };
+    return { label: 'Inspecting', tone: 'slate' };
+  }
+
+  if (failedWorkspaceOnly) return { label: 'Action failed', tone: 'red' };
+  if (issueCount > 0 && completedWorkspaceSteps.length > 0) return { label: 'Changes need review', tone: 'amber' };
+  if (completedWorkspaceSteps.length > 0) return { label: 'Workspace updated', tone: 'emerald' };
+  if (completedMemorySteps.length > 0) return { label: 'Agent memory updated', tone: 'indigo' };
+  if (String(mode || '').toLowerCase().includes('review')) return { label: 'Review only', tone: 'slate' };
+  return { label: 'No workspace edits', tone: 'slate' };
+}
+
+export function buildAgentActivityReceipt(steps = []) {
+  const safeSteps = Array.isArray(steps) ? steps.filter(Boolean) : [];
+  if (safeSteps.length === 0) return [];
+
+  const actionCount = safeSteps.filter((step) => ACTION_TOOLS.has(step.tool)).length;
+  const checkCount = safeSteps.length - actionCount;
+  const issueCount = safeSteps.filter((step) => step.status === 'error' || step.status === 'partial').length;
+  const uniqueTargets = summarizeTargets(
+    safeSteps.flatMap((step) => step.targets || []),
+    2,
+  );
+
+  return [
+    pluralize(safeSteps.length, 'tool'),
+    checkCount > 0 ? pluralize(checkCount, 'check') : null,
+    actionCount > 0 ? pluralize(actionCount, 'action') : null,
+    issueCount > 0 ? pluralize(issueCount, 'issue') : '0 issues',
+    uniqueTargets.length > 0 ? uniqueTargets.join(', ') : null,
+  ].filter(Boolean);
+}
+
+function summarizeIssueContext(issueSteps = [], runMeta = {}) {
+  const issueLabels = summarizeTargets(
+    issueSteps.map((step) => step.label || step.tool || step.summary || '').filter(Boolean),
+    2,
+  );
+  const issueTargets = summarizeTargets(
+    issueSteps.flatMap((step) => step.targets || []),
+    3,
+  );
+  const targetText = issueTargets.length > 0 ? issueTargets.join(', ') : runMeta?.target || 'the current workspace';
+  const issueText = issueLabels.length > 0 ? issueLabels.join(', ') : 'the failed step';
+  return { issueText, targetText };
+}
+
+function isPackageIssueStep(step) {
+  if (!step) return false;
+  if (['finalize_package', 'repair_package_readiness', 'retry_package_weak_spots'].includes(step.tool)) return true;
+  return (step.targets || []).some((target) => String(target || '').toLowerCase().includes('package'));
+}
+
+export function buildAgentRecoveryActions(steps = [], { status = 'complete', runMeta = null } = {}) {
+  if (status === 'running') return [];
+
+  const safeSteps = Array.isArray(steps) ? steps.filter(Boolean) : [];
+  const issueSteps = safeSteps.filter((step) => step.status === 'error' || step.status === 'partial');
+  if (issueSteps.length === 0) return [];
+
+  const { issueText, targetText } = summarizeIssueContext(issueSteps, runMeta || {});
+  const hasWorkspaceIssue = issueSteps.some((step) => WORKSPACE_ACTION_TOOLS.has(step.tool));
+  const hasPackageIssue = issueSteps.some(isPackageIssueStep);
+  const actions = [];
+
+  if (hasPackageIssue) {
+    actions.push({
+      id: 'review-package-issues',
+      label: 'Review issues',
+      displayText: 'Review package issues',
+      localIntent: 'audit-package',
+      prompt: [
+        'Review the package issues from the previous Agent run before applying changes.',
+        `Focus on ${targetText}.`,
+        `The issue appeared around: ${issueText}.`,
+        'Run read-only checks first, identify the smallest safe fix, and say whether the package needs automatic repair, localized regeneration, or instructor review.',
+      ].join(' '),
+    });
+  }
+
+  if (hasWorkspaceIssue && status !== 'error') {
+    actions.push({
+      id: 'retry-safe-fixes',
+      label: 'Retry safe fixes',
+      displayText: 'Retry safe fixes',
+      localIntent: hasPackageIssue ? 'finish-package' : 'model-agent',
+      prompt: [
+        'Retry only the failed or partial workspace fixes from the previous Agent run.',
+        `Focus on ${targetText}.`,
+        `The incomplete step was: ${issueText}.`,
+        'Use the smallest safe scope, verify the affected material, and stop if the next step requires an instructor decision.',
+      ].join(' '),
+    });
+  }
+
+  actions.push({
+    id: 'plan-recovery',
+    label: 'Plan recovery',
+    displayText: 'Plan recovery',
+    localIntent: 'plan-next',
+    prompt: [
+      'Inspect the failed or partial Agent run and plan the recovery path.',
+      `Focus on ${targetText}.`,
+      `The issue appeared around: ${issueText}.`,
+      'Call inspect_workspace and plan_workspace_next_step if available. Do not apply changes until you identify the smallest safe next action.',
+    ].join(' '),
+  });
+
+  const unique = [];
+  actions.forEach((action) => {
+    if (!unique.some((existing) => existing.id === action.id)) unique.push(action);
+  });
+  return unique.slice(0, 2);
 }
 
 function statusTitle(status, tone, currentStep) {
@@ -139,7 +318,15 @@ function StepIcon({ status }) {
   return <span className="mt-1 h-1.5 w-1.5 rounded-full bg-emerald-500" aria-hidden="true" />;
 }
 
-export default function AgentProgressCard({ steps = [], status = 'running', thinkingText = '', startedAt, endedAt }) {
+export default function AgentProgressCard({
+  steps = [],
+  status = 'running',
+  thinkingText = '',
+  startedAt,
+  endedAt,
+  runMeta = null,
+  onRecoveryAction,
+}) {
   const [expanded, setExpanded] = useState(false);
   const [now, setNow] = useState(Date.now());
   const prevStatusRef = useRef(status);
@@ -166,6 +353,15 @@ export default function AgentProgressCard({ steps = [], status = 'running', thin
   const styles = TONES[tone];
   const elapsed = getElapsedSeconds(effectiveStartedAt, status === 'running' ? now : endedAt || now);
   const slow = isRunning && elapsed >= 20;
+  const activityReceipt = useMemo(() => buildAgentActivityReceipt(steps), [steps]);
+  const runOutcome = useMemo(
+    () => buildAgentRunOutcome(steps, { status, mode: runMeta?.mode }),
+    [runMeta?.mode, status, steps],
+  );
+  const recoveryActions = useMemo(
+    () => buildAgentRecoveryActions(steps, { status, runMeta }),
+    [runMeta, status, steps],
+  );
 
   useEffect(() => {
     if (prevStatusRef.current === 'running' && status !== 'running') {
@@ -178,6 +374,16 @@ export default function AgentProgressCard({ steps = [], status = 'running', thin
   const progressMeta = isRunning
     ? `${doneCount}/${steps.length || 1} done · ${formatTime(elapsed)}`
     : `${steps.length || groupedSteps.length || 1} step${(steps.length || groupedSteps.length || 1) === 1 ? '' : 's'} · ${formatTime(elapsed)}`;
+  const runTargets = summarizeTargets(
+    steps.flatMap((step) => step.targets || []),
+    3,
+  );
+  const receiptParts = [
+    runMeta?.mode,
+    runTargets.length > 0 ? runTargets.join(', ') : runMeta?.target,
+    runMeta?.model,
+  ].filter(Boolean);
+  const receiptMeta = receiptParts.length > 0 ? `${receiptParts.join(' · ')} · ${progressMeta}` : progressMeta;
 
   return (
     <div
@@ -196,7 +402,29 @@ export default function AgentProgressCard({ steps = [], status = 'running', thin
               </p>
             </div>
 
-            <p className="mt-0.5 text-[10px] font-medium text-slate-400">{progressMeta}</p>
+            <p className="mt-0.5 text-[10px] font-medium text-slate-400">{receiptMeta}</p>
+
+            {(runOutcome || activityReceipt.length > 0) && (
+              <div
+                data-testid="agent-activity-receipt"
+                className="mt-1 flex flex-wrap gap-1.5 text-[10px] font-semibold"
+                aria-label={`Agent activity receipt: ${[runOutcome?.label, ...activityReceipt].filter(Boolean).join(', ')}`}
+              >
+                {runOutcome && (
+                  <span
+                    data-testid="agent-run-outcome"
+                    className={`rounded-full border px-1.5 py-0.5 ${OUTCOME_TONES[runOutcome.tone] || OUTCOME_TONES.slate}`}
+                  >
+                    {runOutcome.label}
+                  </span>
+                )}
+                {activityReceipt.map((item) => (
+                  <span key={item} className="rounded-full border border-slate-200/70 bg-white/70 px-1.5 py-0.5 text-slate-500">
+                    {item}
+                  </span>
+                ))}
+              </div>
+            )}
 
             <p className="mt-0.5 line-clamp-3 text-[11px] leading-relaxed text-slate-500">
               {isRunning
@@ -209,6 +437,26 @@ export default function AgentProgressCard({ steps = [], status = 'running', thin
               <p className="mt-1 text-[10px] text-slate-400">
                 Last completed: {previousDone.label || previousDone.tool}
               </p>
+            )}
+
+            {!isRunning && recoveryActions.length > 0 && onRecoveryAction && (
+              <div className="mt-2 flex flex-wrap gap-1.5">
+                {recoveryActions.map((action) => (
+                  <button
+                    key={action.id}
+                    type="button"
+                    data-testid={`agent-progress-action-${action.id}`}
+                    onClick={() => onRecoveryAction(action)}
+                    className={`tactile inline-flex items-center gap-1 rounded-md border px-2 py-1 text-[10px] font-bold transition-colors ${
+                      action.id === 'plan-recovery'
+                        ? 'border-slate-200/80 bg-white/75 text-slate-600 hover:bg-slate-50'
+                        : 'border-indigo-200/80 bg-indigo-50/80 text-indigo-700 hover:bg-indigo-100/80'
+                    }`}
+                  >
+                    {action.label}
+                  </button>
+                ))}
+              </div>
             )}
           </div>
 
@@ -243,6 +491,7 @@ export default function AgentProgressCard({ steps = [], status = 'running', thin
                 <div className="min-w-0 flex-1">
                   <span className="font-medium text-slate-600">{step.label || step.tool}</span>
                   {step._count > 1 && <span className="ml-1 text-slate-400">x{step._count}</span>}
+                  {step.targets?.length > 0 && <span className="ml-1 text-slate-400">· {step.targets.join(', ')}</span>}
                   {step.summary && <span className="ml-1 text-slate-400">{step.summary}</span>}
                   {step.thought && step.status === 'running' && (
                     <p className="truncate text-[10px] text-slate-400">{step.thought}</p>
@@ -276,4 +525,12 @@ const TONES = {
     iconBg: 'bg-red-50',
     title: 'text-red-700',
   },
+};
+
+const OUTCOME_TONES = {
+  slate: 'border-slate-200/70 bg-white/70 text-slate-500',
+  indigo: 'border-indigo-200/70 bg-indigo-50 text-indigo-700',
+  emerald: 'border-emerald-200/70 bg-emerald-50 text-emerald-700',
+  amber: 'border-amber-200/70 bg-amber-50 text-amber-700',
+  red: 'border-red-200/70 bg-red-50 text-red-700',
 };

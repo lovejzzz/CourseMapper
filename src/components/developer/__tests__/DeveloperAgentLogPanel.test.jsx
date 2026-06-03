@@ -71,6 +71,63 @@ describe('DeveloperAgentLogPanel', () => {
     expect(container.textContent).toContain('Decision needed');
   });
 
+  it('renders workspace plan events', () => {
+    renderPanel({
+      chatHistory: [
+        {
+          role: 'workspacePlan',
+          plan: {
+            evidence: { generatedFeatureCount: 3, staleFeatureCount: 1, failedFeatureCount: 0 },
+            highestImpactAction: {
+              title: 'Sync stale deliverables: Quiz & Exam Bank',
+              safeMode: 'needs-approval',
+            },
+          },
+        },
+      ],
+    });
+
+    expect(container.querySelectorAll('[data-testid="developer-agent-event"]')).toHaveLength(1);
+    expect(container.textContent).toContain('Plan');
+    expect(container.textContent).toContain('Workspace plan');
+    expect(container.textContent).toContain('Sync stale deliverables');
+  });
+
+  it('renders receipt run details and tools in compact chips', () => {
+    renderPanel({
+      chatHistory: [
+        {
+          role: 'agentReceipt',
+          receipt: {
+            title: 'Quality audit complete',
+            status: 'done',
+            target: 'Package',
+            intent: { type: 'package_audit' },
+            runStats: {
+              toolCount: 2,
+              actionCount: 0,
+              checkCount: 2,
+              providerCallCount: 1,
+              stopReason: 'respond',
+              readOnly: true,
+            },
+            toolManifest: [
+              { tool: 'validate_course', label: 'Validate course materials', status: 'done' },
+              { tool: 'review_package_readiness', label: 'Review readiness', status: 'done' },
+            ],
+            checked: ['Readiness', 'Validation'],
+          },
+        },
+      ],
+    });
+
+    expect(container.querySelectorAll('[data-testid="developer-agent-event"]')).toHaveLength(1);
+    expect(container.textContent).toContain('Quality audit complete');
+    expect(container.textContent).toContain('intent: package_audit');
+    expect(container.textContent).toContain('2 tools, 1 model call, 2 checks, read-only, stop: respond');
+    expect(container.textContent).toContain('tools: Validate course materials, Review readiness');
+  });
+
   it('shows an empty state when no agent history exists', () => {
     renderPanel({ chatHistory: [] });
 

@@ -30,6 +30,34 @@ function formatFeatureList(items = []) {
     .join(', ');
 }
 
+function formatReceiptTools(toolManifest) {
+  if (!Array.isArray(toolManifest) || toolManifest.length === 0) return '';
+  const names = toolManifest
+    .map((step) => step?.label || step?.tool)
+    .filter(Boolean)
+    .slice(0, 3);
+  const hidden = toolManifest.length - names.length;
+  return `${names.join(', ')}${hidden > 0 ? `, +${hidden} more` : ''}`;
+}
+
+function formatReceiptStats(runStats = {}) {
+  const parts = [];
+  const toolCount = Number(runStats.toolCount || 0);
+  const actionCount = Number(runStats.actionCount || 0);
+  const checkCount = Number(runStats.checkCount || 0);
+  const issueCount = Number(runStats.issueCount || 0);
+  const providerCallCount = Number(runStats.providerCallCount || 0);
+  if (toolCount > 0) parts.push(`${toolCount} tool${toolCount === 1 ? '' : 's'}`);
+  if (providerCallCount > 0) parts.push(`${providerCallCount} model call${providerCallCount === 1 ? '' : 's'}`);
+  if (actionCount > 0) parts.push(`${actionCount} action${actionCount === 1 ? '' : 's'}`);
+  if (checkCount > 0) parts.push(`${checkCount} check${checkCount === 1 ? '' : 's'}`);
+  if (issueCount > 0) parts.push(`${issueCount} issue${issueCount === 1 ? '' : 's'}`);
+  if (runStats.readOnly === true) parts.push('read-only');
+  if (runStats.mutatesWorkspace === true) parts.push('edited workspace');
+  if (runStats.stopReason) parts.push(`stop: ${runStats.stopReason}`);
+  return parts.join(', ');
+}
+
 function addEvent(events, event) {
   events.push({
     id: `agent-event-${events.length}`,
@@ -103,6 +131,52 @@ function addPackageSummaryEvent(events, message, index) {
       summary.nextAction,
     ),
     status: summary.confidence || '',
+    sourceIndex: index,
+  });
+}
+
+function addWorkspacePlanEvent(events, message, index) {
+  const plan = message.plan || {};
+  const action = plan.highestImpactAction || (Array.isArray(plan.actions) ? plan.actions[0] : null) || {};
+  const evidence = plan.evidence || {};
+  addEvent(events, {
+    type: 'workspacePlan',
+    level:
+      evidence.failedFeatureCount > 0 || evidence.packageBlockerCount > 0 || evidence.classroomBlockerCount > 0
+        ? 'warning'
+        : 'info',
+    title: 'Workspace plan',
+    summary: summarizeText(
+      `${action.title || 'Next step planned'} - ${evidence.generatedFeatureCount || 0} generated, ${evidence.staleFeatureCount || 0} stale, ${evidence.failedFeatureCount || 0} failed`,
+      action.reason,
+    ),
+    status: action.safeMode || plan.executionMode || '',
+    sourceIndex: index,
+  });
+}
+
+function addAgentReceiptEvent(events, message, index) {
+  const receipt = message.receipt || {};
+  const issues = Array.isArray(receipt.issues) ? receipt.issues.length : 0;
+  const level =
+    receipt.status === 'blocked' ? 'error' : receipt.status === 'review' || issues > 0 ? 'warning' : 'success';
+  const changed = Array.isArray(receipt.changed) ? receipt.changed.filter(Boolean).join(', ') : '';
+  const checked = Array.isArray(receipt.checked) ? receipt.checked.filter(Boolean).join(', ') : '';
+  const stats = receipt.runStats && typeof receipt.runStats === 'object' ? formatReceiptStats(receipt.runStats) : '';
+  const tools = formatReceiptTools(receipt.toolManifest);
+  const details = [receipt.intent?.type ? `intent: ${receipt.intent.type}` : '', stats, tools ? `tools: ${tools}` : '']
+    .filter(Boolean)
+    .map((detail) => summarizeText(detail, detail));
+  addEvent(events, {
+    type: 'agentReceipt',
+    level,
+    title: receipt.title || 'Agent receipt',
+    summary: summarizeText(
+      `${receipt.target || 'Workspace'}${stats ? ` - ${stats}` : ''}${tools ? ` - tools: ${tools}` : ''}${changed ? ` - changed: ${changed}` : ''}${checked ? ` - checked: ${checked}` : ''}`,
+      receipt.next,
+    ),
+    details,
+    status: receipt.status || '',
     sourceIndex: index,
   });
 }
@@ -200,6 +274,16 @@ export function buildDeveloperAgentEvents(snapshot = {}) {
 
     if (message.role === 'packageSummary') {
       addPackageSummaryEvent(events, message, index);
+      return;
+    }
+
+    if (message.role === 'workspacePlan') {
+      addWorkspacePlanEvent(events, message, index);
+      return;
+    }
+
+    if (message.role === 'agentReceipt') {
+      addAgentReceiptEvent(events, message, index);
       return;
     }
 

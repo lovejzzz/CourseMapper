@@ -15,6 +15,7 @@ const TYPE_LABELS = {
   tool: 'Tool',
   changeSummary: 'Changes',
   packageSummary: 'Package',
+  workspacePlan: 'Plan',
   proposal: 'Proposal',
   diffReview: 'Diff',
   syncSuggestion: 'Sync',
@@ -79,6 +80,18 @@ export default function DeveloperAgentLogPanel({ snapshot = {} }) {
                 </div>
                 {event.summary && (
                   <p className="mt-1 text-[11px] leading-5 text-slate-500 dark:text-slate-400">{event.summary}</p>
+                )}
+                {Array.isArray(event.details) && event.details.length > 0 && (
+                  <div className="mt-2 flex flex-wrap gap-1.5">
+                    {event.details.map((detail, detailIndex) => (
+                      <span
+                        key={`${event.id}-detail-${detailIndex}`}
+                        className="rounded-full border border-slate-200 bg-white px-2 py-0.5 text-[10px] font-semibold text-slate-500 dark:border-slate-700 dark:bg-slate-900 dark:text-slate-300"
+                      >
+                        {detail}
+                      </span>
+                    ))}
+                  </div>
                 )}
                 <p className="mt-1 font-mono text-[10px] text-slate-300">
                   message[{event.sourceIndex}]{Number.isInteger(event.stepIndex) ? `.steps[${event.stepIndex}]` : ''}

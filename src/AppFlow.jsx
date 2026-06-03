@@ -33,6 +33,14 @@ import useSmartSync from './hooks/useSmartSync';
 import useEditProposal from './hooks/useEditProposal';
 import useDeliverableUndo from './hooks/useDeliverableUndo';
 import { extractEditContext } from './lib/editContextExtractor';
+import {
+  applyCanonicalPatchesToCourseMap,
+  createCanonicalPatchRequest,
+  getCanonicalPatchFieldLabel,
+  normalizeCanonicalPatchFromModel,
+  projectArtifactEditToCourseMapPatch,
+} from './lib/artifactBlueprintProjection';
+import { streamChat } from './components/chat/useStreamProcessor';
 import { FEATURES } from './lib/featureCatalog';
 import {
   listCustomDeliverables,
@@ -67,6 +75,7 @@ import { importCourseMap } from './lib/importCourseMap';
 import { parseFiles } from './lib/fileParser';
 import { detectExpectedLessons, detectLessonsWithAI } from './lib/detectLessons';
 import { sanitizeMessagesForPersistence } from './lib/messageSanitizer';
+import { upsertLandingAgentContextMessages } from './lib/landingAgentContext';
 import { prepareProjectSnapshotForRestore, sanitizeProjectSnapshot } from './lib/projectSnapshotSanitizer';
 import { isAgentProviderReady } from './lib/agentAvailability';
 import {
@@ -76,6 +85,8 @@ import {
 } from './lib/deliverableReadiness';
 import { evaluateClassroomReadiness } from './lib/classroomReadiness';
 import { runDeterministicPackageFinalizer } from './lib/packageFinalizer';
+import { verifyPackageExports } from './lib/packageExportVerifier';
+import { generateCourseHealthReport } from './lib/pedagogicalValidator';
 import { applyApiCallBudgetEvent, createApiCallBudget, getApiCallBudgetTotal } from './lib/apiCallBudget';
 import { buildApiCostPlan, evaluateApiCostControl } from './lib/apiCostControl';
 import { summarizeApiFeatureUsageBudget, summarizeApiUsageBudget, summarizeCompilerSavings } from './lib/apiUsageCost';
@@ -94,6 +105,30 @@ function summarizeReceiptIssue(issue) {
       issue.label || FEATURES.find((feature) => feature.id === issue.featureId)?.label || issue.featureId || 'Package',
     message: issue.message || 'Needs attention before export.',
   };
+}
+
+function getReadOnlyPackageConfidence(readiness, classroomReadiness, healthReport, exportVerification) {
+  if (exportVerification?.status === 'failed') return 'Needs attention';
+  if (readiness?.blockers?.length > 0 || classroomReadiness?.blockers?.length > 0 || healthReport?.errorCount > 0) {
+    return 'Needs attention';
+  }
+  if (
+    exportVerification?.status === 'warnings' ||
+    readiness?.warnings?.length > 0 ||
+    classroomReadiness?.warnings?.length > 0 ||
+    healthReport?.warningCount > 0
+  ) {
+    return 'Good with assumptions';
+  }
+  return 'Excellent';
+}
+
+function getReadOnlyPackageNextAction(confidence) {
+  if (confidence === 'Excellent') return 'Read-only audit passed. The package is ready for final instructor review.';
+  if (confidence === 'Good with assumptions') {
+    return 'Read-only audit found review notes. Decide whether they need edits before export.';
+  }
+  return 'Read-only audit found blockers. Fix them before presenting the package as ready.';
 }
 
 function getReceiptFeatureLabel(featureId) {
@@ -251,6 +286,81 @@ function selectRetryActionsWithinCallBudget(
 
 function normalizeProjectProvider(provider) {
   return provider === 'free' ? 'openai' : provider;
+}
+
+const CANONICAL_PATCH_RESOLVER_SYSTEM = `You convert one localized CourseMapper artifact edit into one compact course blueprint patch.
+Return JSON only. Use this exact shape:
+{"sync":true,"field":"learningObjectives|learningGoals|weeklyAssessments|topicSection|asyncActivities|syncActivities|supportingResources|technologyNeeded|presentationFormat|title","value":"concise course-map value","sectionIndex":0}
+If the edit is presentation-only and should stay local, return {"sync":false,"reason":"local-only"}.
+Do not regenerate deliverable content. Do not include markdown.`;
+
+async function collectProviderStreamText(streamResponse) {
+  const reader = streamResponse?.reader;
+  const parseChunk = streamResponse?.parseChunk;
+  if (!reader || typeof parseChunk !== 'function') return '';
+  const decoder = new TextDecoder();
+  let buffer = '';
+  let text = '';
+
+  while (true) {
+    const { done, value } = await reader.read();
+    if (done) break;
+    buffer += decoder.decode(value, { stream: true });
+    const lines = buffer.split('\n');
+    buffer = lines.pop() || '';
+
+    for (const line of lines) {
+      const trimmed = line.trim();
+      if (!trimmed || !trimmed.startsWith('data: ')) continue;
+      const data = trimmed.slice(6);
+      if (data === '[DONE]') continue;
+      try {
+        const parsed = JSON.parse(data);
+        const chunk = parseChunk(parsed);
+        if (chunk) text += chunk;
+      } catch {
+        // Ignore partial provider chunks.
+      }
+    }
+  }
+  return text.trim();
+}
+
+function parseFirstJsonObject(text = '') {
+  const source = String(text || '').trim();
+  const first = source.indexOf('{');
+  if (first < 0) return null;
+  let depth = 0;
+  let inString = false;
+  let escaped = false;
+  for (let i = first; i < source.length; i++) {
+    const ch = source[i];
+    if (inString) {
+      if (escaped) {
+        escaped = false;
+      } else if (ch === '\\') {
+        escaped = true;
+      } else if (ch === '"') {
+        inString = false;
+      }
+      continue;
+    }
+    if (ch === '"') {
+      inString = true;
+    } else if (ch === '{') {
+      depth++;
+    } else if (ch === '}') {
+      depth--;
+      if (depth === 0) {
+        try {
+          return JSON.parse(source.slice(first, i + 1));
+        } catch {
+          return null;
+        }
+      }
+    }
+  }
+  return null;
 }
 
 // ── Add Deliverable dropdown — uses a portal so it escapes the overflow-x-auto tab bar ──
@@ -1410,6 +1520,97 @@ export default function AppFlow({ startupAction = null, onStartupHandled, onRetu
 
   // (agentHighlight + triggerAgentHighlight moved to UIContext)
 
+  const applyArtifactBlueprintPatches = useCallback(
+    (patches = []) => {
+      const result = applyCanonicalPatchesToCourseMap(courseMapRef.current, patches);
+      if (!result.changed) return result;
+
+      courseMapRef.current = result.courseMap;
+      setCourseMap(result.courseMap);
+      setDownloadedFile('');
+      if (result.userEdits.length > 0) {
+        setUserEdits((prev) => [...prev, ...result.userEdits]);
+      }
+      const labels = [
+        ...new Set(result.applied.map((patch) => patch.label || getCanonicalPatchFieldLabel(patch.field))),
+      ];
+      version.pushVersion(
+        result.courseMap,
+        `Synced artifact edit to ${labels.slice(0, 2).join(', ') || 'course map'}`,
+      );
+      return result;
+    },
+    [setCourseMap, setDownloadedFile, setUserEdits, version.pushVersion],
+  );
+
+  const resolveArtifactBlueprintPatchRequests = useCallback(
+    async (requests = [], { courseMap: sourceCourseMap } = {}) => {
+      const validRequests = Array.isArray(requests) ? requests.filter(Boolean) : [];
+      if (validRequests.length === 0) return { patches: [], providerCallCount: 0 };
+      if (provider !== 'webllm' && !apiKey) {
+        return { patches: [], providerCallCount: 0, error: 'No connected AI provider for blueprint patch mapping.' };
+      }
+      if (!modelId) {
+        return { patches: [], providerCallCount: 0, error: 'No model selected for blueprint patch mapping.' };
+      }
+
+      const baseCourseMap = sourceCourseMap || courseMapRef.current;
+      const patches = [];
+      let providerCallCount = 0;
+      let lastError = '';
+
+      for (const request of validRequests) {
+        providerCallCount += 1;
+        recordApiCallEvent({
+          type: 'agentLoopCall',
+          label: 'Blueprint patch resolver',
+          detail: `Lesson ${Number(request.lessonIndex || 0) + 1} ${request.label || 'course-design edit'}`,
+          featureId: request.sourceFeatureId || '',
+          provider,
+          modelId,
+        });
+        try {
+          const compactRequest = {
+            sourceFeatureId: request.sourceFeatureId,
+            lessonIndex: request.lessonIndex,
+            currentLessonTitle: request.currentLessonTitle,
+            editPath: request.editPath,
+            previousArtifactValue: request.previousArtifactValue,
+            editedArtifactValue: request.artifactValue,
+            editContext: request.editContext,
+            allowedFields: request.allowedFields,
+            currentFields: request.currentFields,
+          };
+          const streamResponse = await streamChat(
+            [{ role: 'user', content: JSON.stringify(compactRequest) }],
+            CANONICAL_PATCH_RESOLVER_SYSTEM,
+            undefined,
+            apiKey,
+            provider,
+            modelId,
+            700,
+          );
+          const text = await collectProviderStreamText(streamResponse);
+          const rawPatch = parseFirstJsonObject(text);
+          const patch = normalizeCanonicalPatchFromModel(rawPatch, request, baseCourseMap);
+          if (patch) patches.push(patch);
+          else lastError = rawPatch?.reason || 'Provider did not return a usable canonical patch.';
+        } catch (err) {
+          lastError = err?.message || 'Blueprint patch resolver failed.';
+        }
+      }
+
+      return {
+        patches,
+        providerCallCount,
+        requestsResolved: patches.length,
+        requestsAttempted: validRequests.length,
+        ...(patches.length === 0 && lastError ? { error: lastError } : {}),
+      };
+    },
+    [apiKey, modelId, provider, recordApiCallEvent],
+  );
+
   // ── Cascade Sync Engine ──
   const smartSync = useSmartSync({
     deliv,
@@ -1430,6 +1631,8 @@ export default function AppFlow({ startupAction = null, onStartupHandled, onRetu
       },
       [editProposal.proposeLesson],
     ),
+    onApplyCanonicalPatches: applyArtifactBlueprintPatches,
+    onResolveCanonicalPatchRequests: resolveArtifactBlueprintPatchRequests,
   });
 
   // Wire editor with smartSync notifyEdit
@@ -2215,6 +2418,219 @@ export default function AppFlow({ startupAction = null, onStartupHandled, onRetu
     });
   }
 
+  const handleAgentGenerateFeatures = useCallback(
+    async ({ featureIds = [], lessonFilter = null, source = 'agent-plan' } = {}) => {
+      const requestedFeatures = [...new Set((Array.isArray(featureIds) ? featureIds : [featureIds]).filter(Boolean))]
+        .filter((featureId) => featureId !== 'courseMap');
+      if (requestedFeatures.length === 0) {
+        return { status: 'skipped', completedFeatureIds: [], failedFeatureIds: [], message: 'No deliverables selected.' };
+      }
+      const currentCourseMap = courseMapRef.current;
+      if (!currentCourseMap?.lessons?.length) {
+        throw new Error('Generate the course map before generating deliverables.');
+      }
+      if (packageGenerationInFlightRef.current) {
+        return {
+          status: 'busy',
+          completedFeatureIds: [],
+          failedFeatureIds: requestedFeatures,
+          message: 'Package generation is already running.',
+        };
+      }
+
+      packageGenerationInFlightRef.current = true;
+      try {
+        setHasGenerated(true);
+        setDownloadedFile('');
+        setPackageQualityPass({
+          status: 'running',
+          message: `Generating ${requestedFeatures.length} deliverable${
+            requestedFeatures.length === 1 ? '' : 's'
+          }, then checking the package...`,
+          repairsApplied: 0,
+          warnings: 0,
+          blockers: 0,
+        });
+        const scopeIndices =
+          Array.isArray(lessonFilter) || lessonFilter === null
+            ? lessonFilter
+            : lessonScope.type === 'specific'
+              ? lessonScope.indices
+              : null;
+        const result = await deliv.generateAll(currentCourseMap, requestedFeatures, scopeIndices);
+        const completedFeatureIds = Array.isArray(result?.completedFeatureIds) ? result.completedFeatureIds : [];
+        const failedFeatureIds = Array.isArray(result?.failedFeatureIds) ? result.failedFeatureIds : [];
+        const generatedDeliverables = result?.deliverables || {};
+        if (completedFeatureIds.length > 0) {
+          await handleDeterministicPackageFinalization({
+            selectedFeatureIds: ['courseMap', ...completedFeatureIds],
+            lessonFilter: scopeIndices,
+            retry: true,
+            maxRetryActions: 6,
+            maxRetryCallBudget: 6,
+            maxRetryPasses: 2,
+            courseMapOverride: currentCourseMap,
+            deliverablesOverride: generatedDeliverables,
+            source,
+          });
+        } else {
+          setPackageQualityPass({
+            status: 'blocked',
+            message: 'Generation did not complete. Fix the generation issue and try again.',
+            repairsApplied: 0,
+            warnings: 0,
+            blockers: 1,
+          });
+        }
+        return {
+          status: failedFeatureIds.length > 0 ? 'partial' : 'generated',
+          completedFeatureIds,
+          failedFeatureIds,
+          deliverables: generatedDeliverables,
+        };
+      } catch (err) {
+        setPackageQualityPass({
+          status: 'blocked',
+          message: err?.message || 'Agent generation could not complete.',
+          repairsApplied: 0,
+          warnings: 0,
+          blockers: 1,
+        });
+        throw err;
+      } finally {
+        packageGenerationInFlightRef.current = false;
+      }
+    },
+    [deliv, handleDeterministicPackageFinalization, lessonScope.indices, lessonScope.type, setDownloadedFile],
+  );
+
+  const handleAgentAuditPackage = useCallback(
+    async ({ selectedFeatureIds = selectedFeatures, lessonFilter = null } = {}) => {
+      const featureIds =
+        Array.isArray(selectedFeatureIds) && selectedFeatureIds.length > 0 ? selectedFeatureIds : selectedFeatures;
+      const scopeIndices =
+        Array.isArray(lessonFilter) || lessonFilter === null
+          ? lessonFilter
+          : lessonScope.type === 'specific'
+            ? lessonScope.indices
+            : null;
+      const finalizerCourseMap = courseMapRef.current;
+      const finalizerDeliverables = deliverablesRef.current || {};
+      const readiness = evaluateWorkspaceReadiness({
+        courseMap: finalizerCourseMap,
+        deliverables: finalizerDeliverables,
+        selectedFeatures: featureIds,
+        columns,
+        lessonFilter: scopeIndices,
+      });
+      const classroomReadiness = evaluateClassroomReadiness({
+        courseMap: finalizerCourseMap,
+        deliverables: finalizerDeliverables,
+        selectedFeatures: featureIds,
+        lessonFilter: scopeIndices,
+      });
+      const healthReport = generateCourseHealthReport(finalizerCourseMap, finalizerDeliverables);
+      const exportVerification = await verifyPackageExports({
+        courseMap: finalizerCourseMap,
+        deliverables: finalizerDeliverables,
+        selectedFeatures: featureIds,
+        columns,
+        lessonFilter: scopeIndices,
+        slideTheme,
+      }).catch((err) => ({
+        status: 'failed',
+        checked: 0,
+        passed: 0,
+        failed: 1,
+        warningCount: 0,
+        checks: [
+          {
+            featureId: 'package',
+            label: 'Package',
+            format: 'export',
+            status: 'failed',
+            message: err?.message || 'Export verification failed.',
+          },
+        ],
+      }));
+      const confidence = getReadOnlyPackageConfidence(readiness, classroomReadiness, healthReport, exportVerification);
+      const blockerCount =
+        readiness.blockers.length +
+        classroomReadiness.blockers.length +
+        healthReport.errorCount +
+        exportVerification.failed;
+      const warningCount =
+        readiness.warnings.length +
+        classroomReadiness.warnings.length +
+        healthReport.warningCount +
+        exportVerification.warningCount;
+
+      return {
+        confidence,
+        ready: confidence === 'Excellent',
+        nextAction: getReadOnlyPackageNextAction(confidence),
+        repairsApplied: 0,
+        repairsFailed: 0,
+        repairs: [],
+        repairSummary: 'none',
+        reviewRecommendation: buildHumanReviewRecommendation({
+          blockerCount,
+          warningCount,
+          repaired: false,
+        }),
+        readiness: {
+          status: readiness.status,
+          isBlocked: readiness.isBlocked,
+          blockerCount: readiness.blockers.length,
+          warningCount: readiness.warnings.length,
+          issueCount: readiness.issues.length,
+          lessonCount: readiness.lessonCount,
+          checkedSections: `${readiness.doneFeatureCount}/${readiness.featureCount}`,
+          blockers: readiness.blockers.slice(0, 20).map(summarizeReceiptIssue),
+          warnings: readiness.warnings.slice(0, 20).map(summarizeReceiptIssue),
+        },
+        classroomReadiness: {
+          status: classroomReadiness.status,
+          isBlocked: classroomReadiness.isBlocked,
+          blockerCount: classroomReadiness.blockers.length,
+          warningCount: classroomReadiness.warnings.length,
+          issueCount: classroomReadiness.issues.length,
+          lessonCount: classroomReadiness.lessonCount,
+          checkedFeatureCount: classroomReadiness.checkedFeatureCount,
+          checkedFeatures: classroomReadiness.checkedFeatures,
+          blockers: classroomReadiness.blockers.slice(0, 20).map(summarizeReceiptIssue),
+          warnings: classroomReadiness.warnings.slice(0, 20).map(summarizeReceiptIssue),
+        },
+        validation: {
+          errorCount: healthReport.errorCount,
+          warningCount: healthReport.warningCount,
+          infoCount: healthReport.infoCount,
+          findings: healthReport.findings.slice(0, 20).map((finding) => ({
+            severity: finding.severity,
+            category: finding.category,
+            message: finding.message,
+            lessonIndex: finding.lessonIndex,
+          })),
+        },
+        exportVerification: {
+          status: exportVerification.status,
+          checked: exportVerification.checked,
+          passed: exportVerification.passed,
+          failed: exportVerification.failed,
+          warningCount: exportVerification.warningCount,
+          checks: exportVerification.checks.slice(0, 20).map((check) => ({
+            featureId: check.featureId,
+            label: check.label,
+            format: check.format,
+            status: check.status,
+            message: check.message,
+          })),
+        },
+      };
+    },
+    [columns, lessonScope.indices, lessonScope.type, selectedFeatures, slideTheme],
+  );
+
   async function onGenerate() {
     if (packageGenerationInFlightRef.current) return;
     packageGenerationInFlightRef.current = true;
@@ -2315,7 +2731,20 @@ export default function AppFlow({ startupAction = null, onStartupHandled, onRetu
 
   // ── Detect lesson count using AI when user proceeds from landing ──
   async function handleLandingContinue() {
+    setChatHistory((prev) => upsertLandingAgentContextMessages(prev, { promptText, files }));
     setScreen('features');
+
+    const parseLandingFilesForContext = async () => {
+      if (files.length === 0) return { combinedText: promptText, parsed: [] };
+      const parsed = await parseFiles(files);
+      setChatHistory((prev) => upsertLandingAgentContextMessages(prev, { promptText, files, parsedFiles: parsed }));
+      const fileText = parsed
+        .filter((f) => f.text)
+        .map((f) => f.text)
+        .join('\n\n')
+        .slice(0, 20000);
+      return { combinedText: [promptText, fileText].filter(Boolean).join('\n\n'), parsed };
+    };
 
     // Start with a regex scan of promptText for instant feedback
     const promptRegex = detectExpectedLessons(promptText);
@@ -2326,6 +2755,13 @@ export default function AppFlow({ startupAction = null, onStartupHandled, onRetu
     // and skip the AI call — AI can miscount by multiplying weeks × sessions/week
     // when the text doesn't state meeting frequency explicitly.
     if (promptRegex.confidence === 'high' && regexCount) {
+      if (files.length > 0) {
+        try {
+          await parseLandingFilesForContext();
+        } catch {
+          /* file parse failed — keep prompt and file-name context */
+        }
+      }
       setIsDetectingLessons(false);
       return;
     }
@@ -2337,13 +2773,7 @@ export default function AppFlow({ startupAction = null, onStartupHandled, onRetu
         let combinedText = promptText;
         if (files.length > 0) {
           try {
-            const parsed = await parseFiles(files);
-            const fileText = parsed
-              .filter((f) => f.text)
-              .map((f) => f.text)
-              .join('\n\n')
-              .slice(0, 20000);
-            combinedText = [promptText, fileText].filter(Boolean).join('\n\n');
+            ({ combinedText } = await parseLandingFilesForContext());
             // Re-run regex on combined text — syllabus may have explicit week count
             const combinedRegex = detectExpectedLessons(combinedText);
             if (combinedRegex.expected) setLessonCount(combinedRegex.expected);
@@ -3402,6 +3832,8 @@ export default function AppFlow({ startupAction = null, onStartupHandled, onRetu
                   onPackageQualityPassUpdate={setPackageQualityPass}
                   onAutoRepairReadiness={applyPackageReadinessRepairs}
                   onFinalizePackage={handleDeterministicPackageFinalization}
+                  onGenerateFeatures={handleAgentGenerateFeatures}
+                  onAuditPackage={handleAgentAuditPackage}
                   isSyncing={smartSync.isSyncing}
                   pendingSyncCount={smartSync.pendingSyncCount}
                   syncingFeatures={smartSync.syncingFeatures}
@@ -3549,9 +3981,39 @@ export default function AppFlow({ startupAction = null, onStartupHandled, onRetu
                         if (lessonIdx !== null) {
                           // Extract a human-readable change summary for the AI proposal
                           const ctx = extractEditContext(oldData, newData, editPath);
+                          const canonicalPatch = projectArtifactEditToCourseMapPatch({
+                            featureId: activeTab,
+                            lessonIndex: lessonIdx,
+                            editPath,
+                            oldData,
+                            newData,
+                            courseMap: courseMapRef.current,
+                            editContext: ctx,
+                          });
+                          const canonicalPatchRequest = canonicalPatch
+                            ? null
+                            : createCanonicalPatchRequest({
+                                featureId: activeTab,
+                                lessonIndex: lessonIdx,
+                                editPath,
+                                oldData,
+                                newData,
+                                courseMap: courseMapRef.current,
+                                editContext: ctx,
+                              });
                           // '_deliverableEdit' key: source tab gets AI proposal,
                           // downstream tabs get stale badge + proposal (no auto-regen)
-                          smartSync.notifyEdit(lessonIdx, '_deliverableEdit', activeTab, ctx);
+                          smartSync.notifyEdit(
+                            lessonIdx,
+                            '_deliverableEdit',
+                            activeTab,
+                            ctx,
+                            canonicalPatch
+                              ? { canonicalPatches: [canonicalPatch] }
+                              : canonicalPatchRequest
+                                ? { canonicalPatchRequests: [canonicalPatchRequest] }
+                                : null,
+                          );
                         }
                       }
                     }}

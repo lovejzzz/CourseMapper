@@ -7,11 +7,24 @@ import ValidationCard from './ValidationCard';
 import ChangeSummaryCard from './ChangeSummaryCard';
 import PackageSummaryCard from './PackageSummaryCard';
 import AgentProgressCard from './AgentProgressCard';
+import AgentHelpCard from './AgentHelpCard';
+import AgentReceiptCard from './AgentReceiptCard';
 import SyncSuggestionCard from './SyncSuggestionCard';
+import WorkspacePlanCard, {
+  buildWorkspacePlanActionDisplayText,
+  buildWorkspacePlanActionSendOptions,
+} from './WorkspacePlanCard';
+import SourceContextCard from './SourceContextCard';
+import LandingContextCard from './LandingContextCard';
 import DiagramCard from './DiagramCard';
 import ChartCard from './ChartCard';
 import ImageSearchCard from './ImageSearchCard';
 import { getChatOpener } from './constants';
+import {
+  isLandingAgentContextText,
+  LANDING_AGENT_CONTEXT_SOURCE,
+  summarizeLandingAgentContext,
+} from '../../lib/landingAgentContext';
 
 // Stable key generator: assigns a unique ID to each message object (by identity).
 // Uses WeakMap so keys are GC'd when messages are removed.
@@ -35,6 +48,8 @@ export default function MessageList({
   messages,
   isStreaming,
   onSuggestionClick,
+  onStarterAction,
+  onRecoveryAction,
   onConfigureAI,
   onSelectProposal,
   onAcceptDiff,
@@ -48,6 +63,10 @@ export default function MessageList({
   onEditAndResend,
   onRetryFailedEdits,
   onKeepAppliedChanges,
+  onWorkspacePlanAction,
+  onWorkspacePlanActionStateChange,
+  onReceiptActionStateChange,
+  workspacePlanActionCapabilities = {},
   courseMap,
   activeTab,
   deliverables,
@@ -65,6 +84,7 @@ export default function MessageList({
   const [isAtBottom, setIsAtBottom] = useState(true);
   const [pendingNewCount, setPendingNewCount] = useState(0);
 
+  const landingContext = summarizeLandingAgentContext(messages);
   const opener = getChatOpener(
     courseMap,
     isAgentMode,
@@ -73,6 +93,7 @@ export default function MessageList({
     isGenerating,
     isDelivGenerating,
     isAgentProviderReady,
+    landingContext,
   );
   const { greeting, starters = [] } = opener || {};
 
@@ -104,8 +125,25 @@ export default function MessageList({
     prevCountRef.current = messages.length;
     if (!countChanged) return;
 
-    if (isAtBottom) {
+    const addedMessages = messages.slice(Math.max(0, prev));
+    const shouldFollowWorkspacePlan = addedMessages.some((message) => message?.role === 'workspacePlan');
+    const shouldFollowAgentAction =
+      shouldFollowWorkspacePlan ||
+      addedMessages.some((message) => ['syncSuggestion', 'packageSummary'].includes(message?.role));
+
+    if (shouldFollowWorkspacePlan) {
+      const planCards = containerRef.current?.querySelectorAll('[data-testid="workspace-plan-card"]');
+      const latestPlanCard = planCards?.[planCards.length - 1];
+      if (latestPlanCard && containerRef.current) {
+        const nextTop = Math.max(0, latestPlanCard.offsetTop - containerRef.current.clientHeight * 0.25);
+        containerRef.current.scrollTo({ top: nextTop, behavior: 'auto' });
+      } else {
+        endRef.current?.scrollIntoView({ behavior: 'auto' });
+      }
+      setPendingNewCount(0);
+    } else if (isAtBottom || shouldFollowAgentAction) {
       endRef.current?.scrollIntoView({ behavior: 'smooth' });
+      setPendingNewCount(0);
     } else {
       // User is scrolled up — accumulate how many arrived while they're away.
       const delta = messages.length - prev;
@@ -115,8 +153,16 @@ export default function MessageList({
 
   // Messages list — greeting + starters always shown as first item in the stream
   return (
-    <div className="relative flex-1 flex flex-col min-h-0">
-      <div ref={containerRef} className="flex-1 overflow-y-auto px-4 py-3 space-y-3" style={{ minHeight: 0 }}>
+    <div
+      data-testid="message-list-root"
+      className="relative flex min-h-[120px] flex-1 flex-col overflow-hidden"
+    >
+      <div
+        ref={containerRef}
+        data-testid="message-scroll-container"
+        className="flex-1 overflow-y-auto px-4 pt-3 pb-24 space-y-3"
+        style={{ minHeight: 0 }}
+      >
         {/* Greeting + suggestion starters — inline at the top of the chat stream */}
         <div className="space-y-3">
           <div className="flex items-start gap-2.5">
@@ -144,9 +190,19 @@ export default function MessageList({
                       onConfigureAI?.();
                       return;
                     }
+                    if (s.action) {
+                      const handled = onStarterAction?.(s);
+                      if (handled) return;
+                    }
                     onSuggestionClick?.(s.text);
                   }}
-                  data-testid={s.action === 'configure-ai' ? 'configure-agent-ai-button' : undefined}
+                  data-testid={
+                    s.action === 'configure-ai'
+                      ? 'configure-agent-ai-button'
+                      : s.action
+                        ? `agent-starter-${s.action}`
+                        : undefined
+                  }
                   className="tactile text-[12px] px-3 py-1.5 rounded-full bg-white/60 border border-slate-200/40 text-slate-600 hover:bg-indigo-50/60 hover:border-indigo-300/40 hover:text-indigo-600 transition-all shadow-sm"
                 >
                   {s.text}
@@ -167,6 +223,47 @@ export default function MessageList({
                 thinkingText={msg.thinkingText || ''}
                 startedAt={msg.startedAt}
                 endedAt={msg.endedAt}
+                runMeta={msg.runMeta}
+                onRecoveryAction={
+                  onSuggestionClick
+                    ? async (action) => {
+                        const handled = await onRecoveryAction?.(action);
+                        if (handled) return;
+                        onSuggestionClick(action.displayText, {
+                          displayText: action.displayText,
+                          agentPromptOverride: action.prompt,
+                        });
+                      }
+                    : undefined
+                }
+              />
+            );
+          }
+          if (msg.role === 'agentHelp') {
+            return <AgentHelpCard key={key} help={msg.help} />;
+          }
+          if (msg.role === 'agentReceipt') {
+            return (
+              <AgentReceiptCard
+                key={key}
+                receipt={msg.receipt}
+                actionStates={msg.actionStates || msg.receipt?.actionStates || {}}
+                onActionStateChange={(actionStates, change) =>
+                  onReceiptActionStateChange?.(i, actionStates, change)
+                }
+                onAction={
+                  onSuggestionClick
+                    ? async (action) => {
+                        const handled = await onRecoveryAction?.(action);
+                        if (handled) return typeof handled === 'object' ? handled : { status: 'done' };
+                        onSuggestionClick(action.displayText, {
+                          displayText: action.displayText,
+                          agentPromptOverride: action.prompt,
+                        });
+                        return { status: 'sent' };
+                      }
+                    : undefined
+                }
               />
             );
           }
@@ -221,6 +318,38 @@ export default function MessageList({
           }
           if (msg.role === 'packageSummary') {
             return <PackageSummaryCard key={key} summary={msg.summary} />;
+          }
+          if (msg.role === 'workspacePlan') {
+            return (
+              <WorkspacePlanCard
+                key={key}
+                plan={msg.plan}
+                actionStates={msg.actionStates || msg.plan?.actionStates || {}}
+                actionCapabilities={workspacePlanActionCapabilities}
+                onActionStateChange={(actionStates, change) =>
+                  onWorkspacePlanActionStateChange?.(i, actionStates, change)
+                }
+                onAction={async (action) => {
+                  const displayText = buildWorkspacePlanActionDisplayText(action, workspacePlanActionCapabilities);
+                  const sendOptions = buildWorkspacePlanActionSendOptions(action, workspacePlanActionCapabilities);
+                  const handled = await onWorkspacePlanAction?.(action, { displayText, sendOptions });
+                  if (handled) return typeof handled === 'object' ? handled : { status: 'done' };
+                  onSuggestionClick?.(displayText, sendOptions);
+                  return { status: 'sent' };
+                }}
+              />
+            );
+          }
+          if (msg.role === 'sourceContext') {
+            return <SourceContextCard key={key} message={msg} />;
+          }
+          if (
+            msg.role === 'user' &&
+            (msg.source === LANDING_AGENT_CONTEXT_SOURCE ||
+              msg.meta?.source === LANDING_AGENT_CONTEXT_SOURCE ||
+              isLandingAgentContextText(msg.text || msg.content || ''))
+          ) {
+            return <LandingContextCard key={key} message={msg} />;
           }
           if (msg.role === 'syncSuggestion') {
             return (

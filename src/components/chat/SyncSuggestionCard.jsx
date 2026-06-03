@@ -18,6 +18,14 @@ export default function SyncSuggestionCard({ suggestion, onApprove, onSkip }) {
   const isDone = status === 'done';
   const isSkipped = status === 'skipped';
   const isPartialFail = status === 'partialFail';
+  const effectivePlan = plan || [];
+  const isBlueprintSync =
+    editSource === 'artifactBlueprint' ||
+    effectivePlan.some(
+      (entry) =>
+        (Array.isArray(entry?.canonicalPatches) && entry.canonicalPatches.length > 0) ||
+        (Array.isArray(entry?.canonicalPatchRequests) && entry.canonicalPatchRequests.length > 0),
+    );
 
   // Build edit description
   const fields = editSummary?.fields || [];
@@ -25,7 +33,7 @@ export default function SyncSuggestionCard({ suggestion, onApprove, onSkip }) {
   const lessonText =
     lessons.length > 0 ? ` in Lesson${lessons.length > 1 ? 's' : ''} ${lessons.map((n) => n + 1).join(', ')}` : '';
   const editDesc =
-    editSource === 'deliverable'
+    editSource === 'deliverable' || isBlueprintSync
       ? `Edited **${fields[0] || 'a deliverable'}**${lessonText}`
       : `Edited **${fields.join(', ')}**${lessonText}`;
 
@@ -67,9 +75,21 @@ export default function SyncSuggestionCard({ suggestion, onApprove, onSkip }) {
           };
 
   // Checkbox state
-  const effectivePlan = plan || [];
   const getChecked = (i) => (checkedItems === null ? true : !!checkedItems[i]);
   const anyChecked = checkedItems === null ? true : Object.values(checkedItems).some(Boolean);
+  const sourceOnlyPlan = (() => {
+    const sourceFeatureId = editSummary?.sourceFeatureId;
+    const sourceMatches = sourceFeatureId ? effectivePlan.filter((entry) => entry.featureId === sourceFeatureId) : [];
+    return sourceMatches.length > 0 ? sourceMatches : effectivePlan.slice(0, 1);
+  })();
+  const statusTitle = (() => {
+    if (isDone) return isBlueprintSync ? 'Blueprint Sync Complete' : 'Sync Complete';
+    if (isSyncing) return 'Syncing...';
+    if (isSkipped) return isBlueprintSync ? 'Kept Local' : 'Sync Skipped';
+    if (isPartialFail) return 'Sync Partially Failed';
+    if (isBlueprintSync) return 'Sync Choice';
+    return `${effectivePlan.length} Deliverable${effectivePlan.length !== 1 ? 's' : ''} Need Syncing`;
+  })();
 
   function toggleItem(i) {
     setCheckedItems((prev) => {
@@ -89,6 +109,11 @@ export default function SyncSuggestionCard({ suggestion, onApprove, onSkip }) {
     if (!anyChecked) return;
     // Filter plan to only checked items
     const selectedPlan = checkedItems === null ? effectivePlan : effectivePlan.filter((_, i) => checkedItems[i]);
+    onApprove?.(id, selectedPlan);
+  }
+
+  function handleApprovePlan(selectedPlan) {
+    if (!selectedPlan || selectedPlan.length === 0) return;
     onApprove?.(id, selectedPlan);
   }
 
@@ -140,15 +165,7 @@ export default function SyncSuggestionCard({ suggestion, onApprove, onSkip }) {
           )}
         </div>
         <span className={`text-[13px] font-semibold ${theme.text} flex-1 text-left`}>
-          {isDone
-            ? 'Sync Complete'
-            : isSyncing
-              ? 'Syncing...'
-              : isSkipped
-                ? 'Sync Skipped'
-                : isPartialFail
-                  ? 'Sync Partially Failed'
-                  : `${effectivePlan.length} Deliverable${effectivePlan.length !== 1 ? 's' : ''} Need Syncing`}
+          {statusTitle}
         </span>
         <svg
           className={`w-3 h-3 ${theme.subtext} transition-transform duration-200 ${collapsed ? '' : 'rotate-180'}`}
@@ -164,6 +181,11 @@ export default function SyncSuggestionCard({ suggestion, onApprove, onSkip }) {
       {!collapsed && (
         <div className="px-3.5 pb-2.5 space-y-1.5 border-t border-amber-100/50">
           <p className={`text-[12px] ${theme.subtext} pt-1.5`}>{editDesc}</p>
+          {isBlueprintSync && isPending && (
+            <p className="rounded-lg bg-white/65 px-2.5 py-2 text-[12px] font-medium leading-snug text-slate-700">
+              Keep this edit only here, or sync it through the course blueprint?
+            </p>
+          )}
 
           {/* Affected deliverables — with checkboxes when pending */}
           <div className="space-y-0.5">
@@ -180,8 +202,8 @@ export default function SyncSuggestionCard({ suggestion, onApprove, onSkip }) {
                     isPending ? 'cursor-pointer hover:bg-amber-50/50 rounded px-1 -mx-1' : ''
                   } ${isFailed ? 'text-red-600' : isDone ? 'text-emerald-700' : isSkipped ? 'text-slate-400' : 'text-amber-700'}`}
                 >
-                  {/* Checkbox only when pending */}
-                  {isPending && (
+                  {/* Checkbox only when pending. Blueprint sync uses explicit choice buttons below. */}
+                  {isPending && !isBlueprintSync && (
                     <input
                       type="checkbox"
                       checked={getChecked(i)}
@@ -206,7 +228,40 @@ export default function SyncSuggestionCard({ suggestion, onApprove, onSkip }) {
           </div>
 
           {/* Action buttons */}
-          {isPending && (
+          {isPending && isBlueprintSync && (
+            <div className="grid grid-cols-1 gap-1.5 pt-1 sm:grid-cols-3">
+              <button
+                onClick={(e) => {
+                  e.stopPropagation();
+                  onSkip?.(id);
+                }}
+                className="tactile rounded-lg border border-slate-200 bg-white/70 px-2.5 py-1.5 text-[11px] font-semibold text-slate-600 shadow-sm transition-colors hover:bg-slate-50"
+              >
+                Keep local
+              </button>
+              <button
+                onClick={(e) => {
+                  e.stopPropagation();
+                  handleApprovePlan(sourceOnlyPlan);
+                }}
+                disabled={sourceOnlyPlan.length === 0}
+                className="tactile rounded-lg border border-amber-200 bg-white/75 px-2.5 py-1.5 text-[11px] font-semibold text-amber-700 shadow-sm transition-colors hover:bg-amber-50 disabled:cursor-not-allowed disabled:opacity-50"
+              >
+                Sync this lesson
+              </button>
+              <button
+                onClick={(e) => {
+                  e.stopPropagation();
+                  handleApprovePlan(effectivePlan);
+                }}
+                disabled={effectivePlan.length === 0}
+                className="tactile rounded-lg bg-amber-500 px-2.5 py-1.5 text-[11px] font-semibold text-white shadow-sm transition-colors hover:bg-amber-600 disabled:cursor-not-allowed disabled:bg-amber-200"
+              >
+                Sync related materials
+              </button>
+            </div>
+          )}
+          {isPending && !isBlueprintSync && (
             <div className="flex items-center gap-2 pt-1">
               <button
                 onClick={(e) => {

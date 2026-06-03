@@ -1,5 +1,11 @@
 import { describe, expect, it, vi } from 'vitest';
-import { buildRetryFailedPrompt, prepareAutoReviewSend, prepareEditAndResendMessages } from '../useChatRouter';
+import {
+  buildAttachedFileDisplayText,
+  buildAttachedFilePrompt,
+  buildRetryFailedPrompt,
+  prepareAutoReviewSend,
+  prepareEditAndResendMessages,
+} from '../useChatRouter';
 
 vi.mock('../../../lib/customDeliverableLibrary', () => ({
   getCustomDeliverable: vi.fn((id) => {
@@ -67,6 +73,25 @@ describe('prepareAutoReviewSend', () => {
       agentPromptOverride: null,
       silent: false,
     });
+  });
+});
+
+describe('attached file prompt helpers', () => {
+  it('appends attached source text to the full model prompt, not just the visible label', () => {
+    const prompt = buildAttachedFilePrompt('Improve Lesson Plans with detailed classroom-readiness instructions.', [
+      { name: 'field-notes.txt', text: 'Students need more lab notebook scaffolding.' },
+    ]);
+
+    expect(prompt).toContain('Improve Lesson Plans with detailed classroom-readiness instructions.');
+    expect(prompt).toContain('The user also attached these additional reference files:');
+    expect(prompt).toContain('=== Attached File: field-notes.txt ===');
+    expect(prompt).toContain('lab notebook scaffolding');
+  });
+
+  it('uses a readable visible label for file-only turns', () => {
+    expect(buildAttachedFileDisplayText('', [{ name: 'source.txt', text: 'Source' }])).toBe(
+      'Attached reference files [+1 file]',
+    );
   });
 });
 

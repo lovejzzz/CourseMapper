@@ -178,6 +178,8 @@ beforeEach(() => {
 
 describe('AGENT_TOOLS registry', () => {
   const EXPECTED_TOOLS = [
+    'inspect_workspace',
+    'plan_workspace_next_step',
     'validate_course',
     'finalize_package',
     'verify_package_exports',
@@ -203,9 +205,9 @@ describe('AGENT_TOOLS registry', () => {
     'run_tool',
   ];
 
-  it('contains exactly 23 tools', () => {
+  it('contains exactly 25 tools', () => {
     // Domain tools + create_tool / run_tool meta-tools for session macros.
-    expect(Object.keys(AGENT_TOOLS)).toHaveLength(23);
+    expect(Object.keys(AGENT_TOOLS)).toHaveLength(25);
   });
 
   it.each(EXPECTED_TOOLS)('has tool "%s" with description, params, and execute', (name) => {
@@ -305,6 +307,30 @@ describe('summarizeToolResult()', () => {
 
   it('returns the error message when result has error', () => {
     expect(summarizeToolResult('validate_course', { error: 'Something broke' })).toBe('Something broke');
+  });
+
+  describe('inspect_workspace', () => {
+    it('formats course, generated, stale, and blocker counts', () => {
+      expect(
+        summarizeToolResult('inspect_workspace', {
+          course: { lessonCount: 8 },
+          generatedFeatureCount: 3,
+          staleFeatureCount: 1,
+          readiness: { blockerCount: 2 },
+        }),
+      ).toBe('8 lessons, 3 generated, 1 stale, 2 blockers');
+    });
+  });
+
+  describe('plan_workspace_next_step', () => {
+    it('formats the highest-impact action title', () => {
+      expect(
+        summarizeToolResult('plan_workspace_next_step', {
+          highestImpactAction: { title: 'Clear package readiness blockers' },
+          actions: [{ title: 'Clear package readiness blockers' }],
+        }),
+      ).toBe('Clear package readiness blockers');
+    });
   });
 
   describe('validate_course', () => {
@@ -538,6 +564,84 @@ describe('classifyRequestComplexity()', () => {
 // ══════════════════════════════════════════════════════════════════════════════
 // 6. Individual tool execute functions
 // ══════════════════════════════════════════════════════════════════════════════
+
+describe('Tool execute: inspect_workspace', () => {
+  it('returns grounded workspace state for planning', async () => {
+    mockCtx.selectedFeatures = ['courseMap', 'lessonPlans', 'quizBank', 'rubrics'];
+    mockCtx.activeTab = 'lessonPlans';
+    mockCtx.dryRun = true;
+    mockCtx.deliverables.quizBank.stale = true;
+    mockCtx.deliverables.rubrics = { status: 'error', error: 'Generation failed', data: null };
+
+    const result = await AGENT_TOOLS.inspect_workspace.execute({}, mockCtx);
+
+    expect(result.course).toMatchObject({
+      name: 'Test Course',
+      lessonCount: 2,
+      activeTab: 'lessonPlans',
+      activeTabLabel: 'Lesson Plans',
+    });
+    expect(result.executionMode).toBe('review-only');
+    expect(result.selectedFeatureCount).toBe(4);
+    expect(result.generatedFeatureCount).toBe(2);
+    expect(result.staleFeatureCount).toBe(1);
+    expect(result.failedFeatureCount).toBe(1);
+    expect(result.features).toEqual(
+      expect.arrayContaining([
+        expect.objectContaining({ featureId: 'lessonPlans', label: 'Lesson Plans', status: 'done', itemCount: 1 }),
+        expect.objectContaining({ featureId: 'quizBank', label: 'Quiz & Exam Bank', stale: true }),
+        expect.objectContaining({ featureId: 'rubrics', label: 'Rubrics', status: 'error' }),
+      ]),
+    );
+    expect(result.readiness).toEqual(
+      expect.objectContaining({
+        blockerCount: expect.any(Number),
+        warningCount: expect.any(Number),
+        checkedSections: expect.any(String),
+      }),
+    );
+    expect(result.nextChecks.join(' ')).toMatch(/failed generation|stale/i);
+  });
+});
+
+describe('Tool execute: plan_workspace_next_step', () => {
+  it('prioritizes failed and stale deliverables before general quality work', async () => {
+    mockCtx.selectedFeatures = ['courseMap', 'lessonPlans', 'quizBank', 'rubrics'];
+    mockCtx.activeTab = 'lessonPlans';
+    mockCtx.deliverables.quizBank.stale = true;
+    mockCtx.deliverables.rubrics = { status: 'error', error: 'Generation failed', data: null };
+
+    const result = await AGENT_TOOLS.plan_workspace_next_step.execute({}, mockCtx);
+
+    expect(result.course).toMatchObject({
+      name: 'Test Course',
+      lessonCount: 2,
+      activeTab: 'lessonPlans',
+      activeTabLabel: 'Lesson Plans',
+    });
+    expect(result.evidence).toMatchObject({
+      selectedFeatureCount: 4,
+      generatedFeatureCount: 2,
+      staleFeatureCount: 1,
+      failedFeatureCount: 1,
+    });
+    expect(result.highestImpactAction).toMatchObject({
+      priority: 'P0',
+      title: expect.stringContaining('Resolve failed generation'),
+      target: 'Rubrics',
+      suggestedCommand: 'Regenerate Rubrics',
+      safeMode: 'requires-generation',
+      featureIds: ['rubrics'],
+      intent: { type: 'regenerate_failed_feature', featureIds: ['rubrics'] },
+    });
+    expect(result.actions[1]).toMatchObject({
+      title: expect.stringContaining('Sync stale deliverables'),
+      intent: { type: 'sync_stale_deliverables', featureIds: ['quizBank'] },
+    });
+    expect(result.actions.map((action) => action.title).join(' ')).toContain('Sync stale deliverables');
+    expect(result.actions.map((action) => action.title).join(' ')).toContain('Improve the active Lesson Plans');
+  });
+});
 
 describe('Tool execute: validate_course', () => {
   it('calls generateCourseHealthReport and returns structured findings', async () => {
@@ -1121,6 +1225,111 @@ describe('Tool execute: edit_deliverables', () => {
       mockCtx,
     );
     expect(result.applied).toBe(1);
+  });
+
+  it('queues projected course-design edits as blueprint sync instead of direct artifact mutation', () => {
+    mockCtx.projectDeliverableActionToCanonicalPatch = vi.fn(() => ({
+      patch: {
+        field: 'learningObjectives',
+        label: 'learning objectives',
+        lessonIndex: 0,
+        sectionIndex: 0,
+        value: 'Analyze evidence quality.',
+        sourceFeatureId: 'lessonPlans',
+      },
+      editContext: 'learning objectives changed',
+    }));
+
+    const result = AGENT_TOOLS.edit_deliverables.execute(
+      {
+        actions: [
+          {
+            type: 'editItem',
+            featureId: 'lessonPlans',
+            lessonIndex: 0,
+            path: ['lessonPlans', 0, 'learningObjectives'],
+            value: 'Analyze evidence quality.',
+          },
+        ],
+      },
+      mockCtx,
+    );
+
+    expect(result).toMatchObject({
+      applied: 0,
+      pending: 1,
+      failed: 0,
+    });
+    expect(result.details[0]).toMatchObject({
+      action: 'blueprintPatch',
+      featureId: 'lessonPlans',
+      lessonIndex: 0,
+      success: true,
+      pending: true,
+      editContext: 'learning objectives changed',
+    });
+    expect(result.details[0].canonicalPatches[0]).toMatchObject({
+      field: 'learningObjectives',
+      value: 'Analyze evidence quality.',
+    });
+    expect(result.canonicalSyncEdits).toHaveLength(1);
+    expect(mockCtx.executeAction).not.toHaveBeenCalled();
+    expect(mockCtx.snapshot).not.toHaveBeenCalled();
+  });
+
+  it('queues ambiguous course-design edits as blueprint patch requests instead of direct artifact mutation', () => {
+    mockCtx.projectDeliverableActionToCanonicalPatch = vi.fn(() => ({
+      patchRequest: {
+        id: 'request-1',
+        sourceFeatureId: 'lessonPlans',
+        lessonIndex: 0,
+        label: 'course-design edit',
+        artifactValue: 'Use a named dataset throughout the lesson.',
+      },
+      canonicalPatchRequests: [
+        {
+          id: 'request-1',
+          sourceFeatureId: 'lessonPlans',
+          lessonIndex: 0,
+          label: 'course-design edit',
+          artifactValue: 'Use a named dataset throughout the lesson.',
+        },
+      ],
+      editContext: 'custom instruction changed',
+    }));
+
+    const result = AGENT_TOOLS.edit_deliverables.execute(
+      {
+        actions: [
+          {
+            type: 'editItem',
+            featureId: 'lessonPlans',
+            lessonIndex: 0,
+            path: ['lessonPlans', 0, 'customInstruction'],
+            value: 'Use a named dataset throughout the lesson.',
+          },
+        ],
+      },
+      mockCtx,
+    );
+
+    expect(result).toMatchObject({
+      applied: 0,
+      pending: 1,
+      failed: 0,
+    });
+    expect(result.details[0]).toMatchObject({
+      action: 'blueprintPatchRequest',
+      featureId: 'lessonPlans',
+      lessonIndex: 0,
+      success: true,
+      pending: true,
+      editContext: 'custom instruction changed',
+    });
+    expect(result.details[0].canonicalPatchRequests).toHaveLength(1);
+    expect(result.canonicalSyncEdits).toHaveLength(1);
+    expect(mockCtx.executeAction).not.toHaveBeenCalled();
+    expect(mockCtx.snapshot).not.toHaveBeenCalled();
   });
 });
 
