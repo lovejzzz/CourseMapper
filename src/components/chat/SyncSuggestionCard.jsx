@@ -164,9 +164,7 @@ export default function SyncSuggestionCard({ suggestion, onApprove, onSkip }) {
             </svg>
           )}
         </div>
-        <span className={`text-[13px] font-semibold ${theme.text} flex-1 text-left`}>
-          {statusTitle}
-        </span>
+        <span className={`text-[13px] font-semibold ${theme.text} flex-1 text-left`}>{statusTitle}</span>
         <svg
           className={`w-3 h-3 ${theme.subtext} transition-transform duration-200 ${collapsed ? '' : 'rotate-180'}`}
           fill="none"

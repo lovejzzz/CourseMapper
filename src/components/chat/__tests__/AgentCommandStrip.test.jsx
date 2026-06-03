@@ -67,9 +67,9 @@ describe('buildAgentCommandItems', () => {
     expect(sync.prompt).toContain('Sync 2 stale deliverables');
     expect(sync.prompt).toContain('existing pending sync suggestion');
 
-    expect(buildAgentCommandItems({ activeTab: 'lessonPlans', syncFeatureCount: 0 }).map((item) => item.id)).not.toContain(
-      'sync-stale',
-    );
+    expect(
+      buildAgentCommandItems({ activeTab: 'lessonPlans', syncFeatureCount: 0 }).map((item) => item.id),
+    ).not.toContain('sync-stale');
     expect(
       buildAgentCommandItems({ activeTab: 'lessonPlans', syncFeatureCount: 2, agentDryRun: true }).map(
         (item) => item.id,
@@ -291,16 +291,16 @@ describe('AgentCommandStrip', () => {
     expect(container.querySelector('[data-testid="agent-command-finish-package"]')).toBeNull();
 
     act(() => {
-      container.querySelector('[data-testid="agent-command-audit-quality"]').dispatchEvent(
-        new MouseEvent('click', { bubbles: true }),
-      );
+      container
+        .querySelector('[data-testid="agent-command-audit-quality"]')
+        .dispatchEvent(new MouseEvent('click', { bubbles: true }));
     });
     expect(onCommand).toHaveBeenCalledWith(expect.objectContaining({ id: 'audit-quality' }));
 
     act(() => {
-      container.querySelector('[data-testid="agent-command-configure-agent"]').dispatchEvent(
-        new MouseEvent('click', { bubbles: true }),
-      );
+      container
+        .querySelector('[data-testid="agent-command-configure-agent"]')
+        .dispatchEvent(new MouseEvent('click', { bubbles: true }));
     });
     expect(onConfigureAI).toHaveBeenCalledTimes(1);
   });

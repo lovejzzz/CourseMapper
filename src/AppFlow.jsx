@@ -37,10 +37,8 @@ import {
   applyCanonicalPatchesToCourseMap,
   createCanonicalPatchRequest,
   getCanonicalPatchFieldLabel,
-  normalizeCanonicalPatchFromModel,
   projectArtifactEditToCourseMapPatch,
 } from './lib/artifactBlueprintProjection';
-import { streamChat } from './components/chat/useStreamProcessor';
 import { FEATURES } from './lib/featureCatalog';
 import {
   listCustomDeliverables,
@@ -286,81 +284,6 @@ function selectRetryActionsWithinCallBudget(
 
 function normalizeProjectProvider(provider) {
   return provider === 'free' ? 'openai' : provider;
-}
-
-const CANONICAL_PATCH_RESOLVER_SYSTEM = `You convert one localized CourseMapper artifact edit into one compact course blueprint patch.
-Return JSON only. Use this exact shape:
-{"sync":true,"field":"learningObjectives|learningGoals|weeklyAssessments|topicSection|asyncActivities|syncActivities|supportingResources|technologyNeeded|presentationFormat|title","value":"concise course-map value","sectionIndex":0}
-If the edit is presentation-only and should stay local, return {"sync":false,"reason":"local-only"}.
-Do not regenerate deliverable content. Do not include markdown.`;
-
-async function collectProviderStreamText(streamResponse) {
-  const reader = streamResponse?.reader;
-  const parseChunk = streamResponse?.parseChunk;
-  if (!reader || typeof parseChunk !== 'function') return '';
-  const decoder = new TextDecoder();
-  let buffer = '';
-  let text = '';
-
-  while (true) {
-    const { done, value } = await reader.read();
-    if (done) break;
-    buffer += decoder.decode(value, { stream: true });
-    const lines = buffer.split('\n');
-    buffer = lines.pop() || '';
-
-    for (const line of lines) {
-      const trimmed = line.trim();
-      if (!trimmed || !trimmed.startsWith('data: ')) continue;
-      const data = trimmed.slice(6);
-      if (data === '[DONE]') continue;
-      try {
-        const parsed = JSON.parse(data);
-        const chunk = parseChunk(parsed);
-        if (chunk) text += chunk;
-      } catch {
-        // Ignore partial provider chunks.
-      }
-    }
-  }
-  return text.trim();
-}
-
-function parseFirstJsonObject(text = '') {
-  const source = String(text || '').trim();
-  const first = source.indexOf('{');
-  if (first < 0) return null;
-  let depth = 0;
-  let inString = false;
-  let escaped = false;
-  for (let i = first; i < source.length; i++) {
-    const ch = source[i];
-    if (inString) {
-      if (escaped) {
-        escaped = false;
-      } else if (ch === '\\') {
-        escaped = true;
-      } else if (ch === '"') {
-        inString = false;
-      }
-      continue;
-    }
-    if (ch === '"') {
-      inString = true;
-    } else if (ch === '{') {
-      depth++;
-    } else if (ch === '}') {
-      depth--;
-      if (depth === 0) {
-        try {
-          return JSON.parse(source.slice(first, i + 1));
-        } catch {
-          return null;
-        }
-      }
-    }
-  }
-  return null;
 }
 
 // ── Add Deliverable dropdown — uses a portal so it escapes the overflow-x-auto tab bar ──
@@ -1534,10 +1457,7 @@ export default function AppFlow({ startupAction = null, onStartupHandled, onRetu
       const labels = [
         ...new Set(result.applied.map((patch) => patch.label || getCanonicalPatchFieldLabel(patch.field))),
       ];
-      version.pushVersion(
-        result.courseMap,
-        `Synced artifact edit to ${labels.slice(0, 2).join(', ') || 'course map'}`,
-      );
+      version.pushVersion(result.courseMap, `Synced artifact edit to ${labels.slice(0, 2).join(', ') || 'course map'}`);
       return result;
     },
     [setCourseMap, setDownloadedFile, setUserEdits, version.pushVersion],
@@ -1555,58 +1475,34 @@ export default function AppFlow({ startupAction = null, onStartupHandled, onRetu
       }
 
       const baseCourseMap = sourceCourseMap || courseMapRef.current;
-      const patches = [];
-      let providerCallCount = 0;
-      let lastError = '';
-
-      for (const request of validRequests) {
-        providerCallCount += 1;
-        recordApiCallEvent({
-          type: 'agentLoopCall',
-          label: 'Blueprint patch resolver',
-          detail: `Lesson ${Number(request.lessonIndex || 0) + 1} ${request.label || 'course-design edit'}`,
-          featureId: request.sourceFeatureId || '',
+      try {
+        const { resolveArtifactBlueprintPatchRequestsWithProvider } =
+          await import('./lib/artifactBlueprintPatchResolver');
+        return resolveArtifactBlueprintPatchRequestsWithProvider({
+          requests: validRequests,
+          courseMap: baseCourseMap,
+          apiKey,
           provider,
           modelId,
+          onBeforeRequest: (request) =>
+            recordApiCallEvent({
+              type: 'agentLoopCall',
+              label: 'Blueprint patch resolver',
+              detail: `Lesson ${Number(request.lessonIndex || 0) + 1} ${request.label || 'course-design edit'}`,
+              featureId: request.sourceFeatureId || '',
+              provider,
+              modelId,
+            }),
         });
-        try {
-          const compactRequest = {
-            sourceFeatureId: request.sourceFeatureId,
-            lessonIndex: request.lessonIndex,
-            currentLessonTitle: request.currentLessonTitle,
-            editPath: request.editPath,
-            previousArtifactValue: request.previousArtifactValue,
-            editedArtifactValue: request.artifactValue,
-            editContext: request.editContext,
-            allowedFields: request.allowedFields,
-            currentFields: request.currentFields,
-          };
-          const streamResponse = await streamChat(
-            [{ role: 'user', content: JSON.stringify(compactRequest) }],
-            CANONICAL_PATCH_RESOLVER_SYSTEM,
-            undefined,
-            apiKey,
-            provider,
-            modelId,
-            700,
-          );
-          const text = await collectProviderStreamText(streamResponse);
-          const rawPatch = parseFirstJsonObject(text);
-          const patch = normalizeCanonicalPatchFromModel(rawPatch, request, baseCourseMap);
-          if (patch) patches.push(patch);
-          else lastError = rawPatch?.reason || 'Provider did not return a usable canonical patch.';
-        } catch (err) {
-          lastError = err?.message || 'Blueprint patch resolver failed.';
-        }
+      } catch (err) {
+        return {
+          patches: [],
+          providerCallCount: 0,
+          requestsResolved: 0,
+          requestsAttempted: validRequests.length,
+          error: err?.message || 'Blueprint patch resolver failed.',
+        };
       }
-
-      return {
-        patches,
-        providerCallCount,
-        requestsResolved: patches.length,
-        requestsAttempted: validRequests.length,
-        ...(patches.length === 0 && lastError ? { error: lastError } : {}),
-      };
     },
     [apiKey, modelId, provider, recordApiCallEvent],
   );
@@ -2420,10 +2316,16 @@ export default function AppFlow({ startupAction = null, onStartupHandled, onRetu
 
   const handleAgentGenerateFeatures = useCallback(
     async ({ featureIds = [], lessonFilter = null, source = 'agent-plan' } = {}) => {
-      const requestedFeatures = [...new Set((Array.isArray(featureIds) ? featureIds : [featureIds]).filter(Boolean))]
-        .filter((featureId) => featureId !== 'courseMap');
+      const requestedFeatures = [
+        ...new Set((Array.isArray(featureIds) ? featureIds : [featureIds]).filter(Boolean)),
+      ].filter((featureId) => featureId !== 'courseMap');
       if (requestedFeatures.length === 0) {
-        return { status: 'skipped', completedFeatureIds: [], failedFeatureIds: [], message: 'No deliverables selected.' };
+        return {
+          status: 'skipped',
+          completedFeatureIds: [],
+          failedFeatureIds: [],
+          message: 'No deliverables selected.',
+        };
       }
       const currentCourseMap = courseMapRef.current;
       if (!currentCourseMap?.lessons?.length) {

@@ -379,8 +379,7 @@ export default function useChatRouter({
     const filesForThisTurn = attachedFiles;
     const fullText = buildAttachedFilePrompt(text, filesForThisTurn);
     const displayText = buildAttachedFileDisplayText(text, filesForThisTurn);
-    const sourceContextMessage =
-      filesForThisTurn.length > 0 ? buildAgentSourceContextMessage(filesForThisTurn) : null;
+    const sourceContextMessage = filesForThisTurn.length > 0 ? buildAgentSourceContextMessage(filesForThisTurn) : null;
     if (filesForThisTurn.length > 0) setAttachedFiles([]);
 
     const userMsg = { role: 'user', content: fullText };
@@ -529,8 +528,7 @@ export default function useChatRouter({
 
     const filesForThisTurn = !silent ? attachedFiles : [];
     const fullMessage = buildAttachedFilePrompt(agentPromptOverride || text, filesForThisTurn);
-    const sourceContextMessage =
-      filesForThisTurn.length > 0 ? buildAgentSourceContextMessage(filesForThisTurn) : null;
+    const sourceContextMessage = filesForThisTurn.length > 0 ? buildAgentSourceContextMessage(filesForThisTurn) : null;
     const visibleText = displayTextOverride || text;
     const displayText = buildAttachedFileDisplayText(visibleText, filesForThisTurn);
 
@@ -585,8 +583,7 @@ export default function useChatRouter({
     const filesForThisTurn = attachedFiles;
     const fullMessage = buildAttachedFilePrompt(text, filesForThisTurn);
     const displayText = buildAttachedFileDisplayText(text, filesForThisTurn);
-    const sourceContextMessage =
-      filesForThisTurn.length > 0 ? buildAgentSourceContextMessage(filesForThisTurn) : null;
+    const sourceContextMessage = filesForThisTurn.length > 0 ? buildAgentSourceContextMessage(filesForThisTurn) : null;
 
     setAttachedFiles([]);
     // Use updater to avoid stale messages closure
@@ -718,9 +715,7 @@ export default function useChatRouter({
         // Partial failure — some succeeded, some didn't
         setMessages((prev) =>
           prev.map((m) =>
-            m.id === suggestionId
-              ? { ...m, status: 'partialFail', failedItems: failed, completedFeatureIds }
-              : m,
+            m.id === suggestionId ? { ...m, status: 'partialFail', failedItems: failed, completedFeatureIds } : m,
           ),
         );
       } else if (failed.length > 0) {

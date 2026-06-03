@@ -145,7 +145,10 @@ function normalizeToken(value) {
 }
 
 function pathTokens(path = []) {
-  return path.filter((part) => typeof part === 'string').map(normalizeToken).filter(Boolean);
+  return path
+    .filter((part) => typeof part === 'string')
+    .map(normalizeToken)
+    .filter(Boolean);
 }
 
 function summarizeObject(value) {
@@ -252,9 +255,11 @@ export function projectArtifactEditToCourseMapPatch({
   const sectionIndex = 0;
   const currentLesson = courseMap?.lessons?.[lessonIndex] || {};
   const currentValue =
-    field === 'title' ? currentLesson.title : currentLesson.sections?.[sectionIndex]?.[field] ?? '';
+    field === 'title' ? currentLesson.title : (currentLesson.sections?.[sectionIndex]?.[field] ?? '');
   const value =
-    field === 'title' ? normalizeLessonTitleValue(newArtifactValue, lessonIndex) : valueToCourseMapText(newArtifactValue);
+    field === 'title'
+      ? normalizeLessonTitleValue(newArtifactValue, lessonIndex)
+      : valueToCourseMapText(newArtifactValue);
   if (!value || cleanText(value) === cleanText(currentValue)) return null;
 
   const label = getCanonicalPatchFieldLabel(field);
@@ -298,7 +303,7 @@ export function createCanonicalPatchRequest({
   const currentFields = Object.fromEntries(
     CANONICAL_PATCH_FIELDS.map((field) => [
       field,
-      field === 'title' ? currentLesson.title || '' : currentSection[field] ?? '',
+      field === 'title' ? currentLesson.title || '' : (currentSection[field] ?? ''),
     ]),
   );
   const pathLabel = sanitizeEditPath(editPath).join('.');
@@ -323,7 +328,8 @@ export function createCanonicalPatchRequest({
 }
 
 function getEditRequestContext(editContext, pathLabel, proposedValue) {
-  const explicit = typeof editContext === 'string' ? editContext : editContext?.summary || editContext?.editContext || '';
+  const explicit =
+    typeof editContext === 'string' ? editContext : editContext?.summary || editContext?.editContext || '';
   return truncate(explicit || `Edited ${pathLabel}: ${proposedValue}`, 500);
 }
 
@@ -335,14 +341,14 @@ export function normalizeCanonicalPatchFromModel(rawPatch, request, courseMap) {
 
   const lessonIndex = Number.isInteger(raw.lessonIndex) ? raw.lessonIndex : request.lessonIndex;
   if (!Number.isInteger(lessonIndex) || lessonIndex < 0) return null;
-  const sectionIndex = Number.isInteger(raw.sectionIndex) ? raw.sectionIndex : request.sectionIndex ?? 0;
+  const sectionIndex = Number.isInteger(raw.sectionIndex) ? raw.sectionIndex : (request.sectionIndex ?? 0);
   const rawValue =
     raw.value ?? raw.newValue ?? raw.courseMapValue ?? raw.replacement ?? raw.text ?? request.artifactValue;
   const value = field === 'title' ? normalizeLessonTitleValue(rawValue, lessonIndex) : valueToCourseMapText(rawValue);
   if (!value) return null;
 
   const lesson = courseMap?.lessons?.[lessonIndex] || {};
-  const currentValue = field === 'title' ? lesson.title || '' : lesson.sections?.[sectionIndex]?.[field] ?? '';
+  const currentValue = field === 'title' ? lesson.title || '' : (lesson.sections?.[sectionIndex]?.[field] ?? '');
   if (cleanText(currentValue) === cleanText(value)) return null;
 
   const label = getCanonicalPatchFieldLabel(field);
@@ -411,7 +417,7 @@ export function applyCanonicalPatchesToCourseMap(courseMap, patches = []) {
     applied,
     userEdits: applied.map((patch) => ({
       lessonIdx: patch.lessonIndex,
-      sectionIdx: patch.field === 'title' ? -1 : patch.sectionIndex ?? 0,
+      sectionIdx: patch.field === 'title' ? -1 : (patch.sectionIndex ?? 0),
       key: patch.field,
       oldValue: patch.oldValue ?? '',
       newValue: patch.value,

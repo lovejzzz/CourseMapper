@@ -88,18 +88,12 @@ describe('artifact blueprint projection', () => {
     expect(inferCourseMapFieldFromArtifactPath('assignments', ['assignments', 0, 'assignmentTitle'])).toBe(
       'weeklyAssessments',
     );
-    expect(inferCourseMapFieldFromArtifactPath('assignments', ['assignments', 0, 'assignmentTitle'])).not.toBe(
-      'title',
-    );
+    expect(inferCourseMapFieldFromArtifactPath('assignments', ['assignments', 0, 'assignmentTitle'])).not.toBe('title');
   });
 
   it('projects assessment focus, rubric evidence, and assignment directions to the assessment plan', () => {
-    expect(inferCourseMapFieldFromArtifactPath('quizBank', ['quizzes', 0, 'quizFocus'])).toBe(
-      'weeklyAssessments',
-    );
-    expect(inferCourseMapFieldFromArtifactPath('quizBank', ['quizzes', 0, 'difficulty'])).toBe(
-      'weeklyAssessments',
-    );
+    expect(inferCourseMapFieldFromArtifactPath('quizBank', ['quizzes', 0, 'quizFocus'])).toBe('weeklyAssessments');
+    expect(inferCourseMapFieldFromArtifactPath('quizBank', ['quizzes', 0, 'difficulty'])).toBe('weeklyAssessments');
     expect(inferCourseMapFieldFromArtifactPath('rubrics', ['rubrics', 0, 'evidenceCriteria', 1, 'description'])).toBe(
       'weeklyAssessments',
     );
@@ -115,9 +109,7 @@ describe('artifact blueprint projection', () => {
     expect(inferCourseMapFieldFromArtifactPath('slideDecks', ['decks', 0, 'slides', 1, 'keyConcepts'])).toBe(
       'topicSection',
     );
-    expect(inferCourseMapFieldFromArtifactPath('studyGuides', ['studyGuides', 0, 'keyTerms', 0])).toBe(
-      'topicSection',
-    );
+    expect(inferCourseMapFieldFromArtifactPath('studyGuides', ['studyGuides', 0, 'keyTerms', 0])).toBe('topicSection');
     expect(inferCourseMapFieldFromArtifactPath('studyGuides', ['studyGuides', 0, 'learningObjectives', 0])).toBe(
       'learningObjectives',
     );

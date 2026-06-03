@@ -441,7 +441,9 @@ export default function ChatInput({
             onChange={(e) => setInput(e.target.value)}
             onKeyDown={handleKeyDown}
             aria-controls={showSlashCommands ? 'agent-slash-command-palette' : undefined}
-            aria-activedescendant={selectedSlashCommand ? `agent-slash-command-option-${selectedSlashCommand.id}` : undefined}
+            aria-activedescendant={
+              selectedSlashCommand ? `agent-slash-command-option-${selectedSlashCommand.id}` : undefined
+            }
             placeholder={placeholder}
             rows={2}
             className="input-glass w-full rounded-xl px-3 pt-2.5 pb-8 text-[13px] text-slate-700 focus:outline-none resize-none leading-relaxed"

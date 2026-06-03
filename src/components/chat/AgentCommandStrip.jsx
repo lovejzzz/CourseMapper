@@ -194,13 +194,7 @@ export function normalizeAgentCommandQuery(query = '') {
 }
 
 export function getAgentCommandSearchText(item = {}) {
-  return [
-    item.id,
-    item.label,
-    item.title,
-    item.displayText,
-    ...(Array.isArray(item.aliases) ? item.aliases : []),
-  ]
+  return [item.id, item.label, item.title, item.displayText, ...(Array.isArray(item.aliases) ? item.aliases : [])]
     .join(' ')
     .toLowerCase();
 }
@@ -258,9 +252,7 @@ const NATURAL_COMMAND_MATCHERS = [
   },
   {
     id: 'undo-last',
-    patterns: [
-      /^(?:undo|undo last|undo last change|revert|revert last|revert last change|restore last|rollback)$/,
-    ],
+    patterns: [/^(?:undo|undo last|undo last change|revert|revert last|revert last change|restore last|rollback)$/],
   },
   {
     id: 'improve-active',

@@ -57,9 +57,7 @@ export default function LandingContextCard({ message }) {
             </div>
 
             {summary.promptExcerpt && (
-              <p className="mt-1.5 line-clamp-3 text-[12px] leading-snug text-slate-700">
-                {summary.promptExcerpt}
-              </p>
+              <p className="mt-1.5 line-clamp-3 text-[12px] leading-snug text-slate-700">{summary.promptExcerpt}</p>
             )}
 
             {(summary.fileNames.length > 0 || hiddenFileText) && (

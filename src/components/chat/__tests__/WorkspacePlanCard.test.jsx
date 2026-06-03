@@ -140,9 +140,7 @@ describe('WorkspacePlanCard', () => {
     };
 
     expect(getWorkspacePlanActionButtonLabel(regenerateAction)).toBe('Plan generate');
-    expect(getWorkspacePlanActionButtonLabel(regenerateAction, { regenerate_failed_feature: true })).toBe(
-      'Regenerate',
-    );
+    expect(getWorkspacePlanActionButtonLabel(regenerateAction, { regenerate_failed_feature: true })).toBe('Regenerate');
     expect(buildWorkspacePlanActionSendOptions(regenerateAction, { regenerate_failed_feature: true })).toMatchObject({
       displayText: 'Regenerate: Resolve failed generation for Rubrics',
       dryRunOverride: false,
@@ -183,7 +181,10 @@ describe('WorkspacePlanCard', () => {
       expect.objectContaining({
         [getWorkspacePlanActionKey(samplePlan.actions[0], 0)]: { status: 'running' },
       }),
-      expect.objectContaining({ key: getWorkspacePlanActionKey(samplePlan.actions[0], 0), state: { status: 'running' } }),
+      expect.objectContaining({
+        key: getWorkspacePlanActionKey(samplePlan.actions[0], 0),
+        state: { status: 'running' },
+      }),
     );
     expect(onActionStateChange).toHaveBeenCalledWith(
       expect.objectContaining({
@@ -191,9 +192,9 @@ describe('WorkspacePlanCard', () => {
       }),
       expect.objectContaining({ key: getWorkspacePlanActionKey(samplePlan.actions[0], 0), state: { status: 'done' } }),
     );
-    expect(container.querySelector('[data-testid="workspace-plan-action-state-regenerate_failed_feature"]').textContent).toBe(
-      'Done',
-    );
+    expect(
+      container.querySelector('[data-testid="workspace-plan-action-state-regenerate_failed_feature"]').textContent,
+    ).toBe('Done');
     expect(button.textContent).toBe('Done');
     expect(button.disabled).toBe(true);
 
@@ -224,9 +225,9 @@ describe('WorkspacePlanCard', () => {
       );
     });
 
-    expect(container.querySelector('[data-testid="workspace-plan-action-state-sync_stale_deliverables"]').textContent).toBe(
-      'Sent to Agent',
-    );
+    expect(
+      container.querySelector('[data-testid="workspace-plan-action-state-sync_stale_deliverables"]').textContent,
+    ).toBe('Sent to Agent');
     const button = container.querySelector('[data-testid="workspace-plan-action-sync_stale_deliverables"]');
     expect(button.textContent).toBe('Sent');
     expect(button.disabled).toBe(true);
@@ -251,9 +252,9 @@ describe('WorkspacePlanCard', () => {
     });
 
     expect(onAction).toHaveBeenCalledWith(samplePlan.actions[1]);
-    expect(container.querySelector('[data-testid="workspace-plan-action-state-sync_stale_deliverables"]').textContent).toBe(
-      'Sent to Agent',
-    );
+    expect(
+      container.querySelector('[data-testid="workspace-plan-action-state-sync_stale_deliverables"]').textContent,
+    ).toBe('Sent to Agent');
     expect(button.textContent).toBe('Sent');
     expect(button.disabled).toBe(true);
 
@@ -294,9 +295,9 @@ describe('WorkspacePlanCard', () => {
     });
 
     expect(onAction).toHaveBeenCalledWith(samplePlan.actions[0]);
-    expect(container.querySelector('[data-testid="workspace-plan-action-state-regenerate_failed_feature"]').textContent).toBe(
-      'Done',
-    );
+    expect(
+      container.querySelector('[data-testid="workspace-plan-action-state-regenerate_failed_feature"]').textContent,
+    ).toBe('Done');
 
     await act(async () => root.unmount());
   });

@@ -490,7 +490,10 @@ function formatReceiptActionStates(actionStates) {
     .map(([key, state]) => {
       const status = String(state?.status || '').trim();
       if (!status) return null;
-      const actionLabel = String(key || '').split('|').find(Boolean) || 'action';
+      const actionLabel =
+        String(key || '')
+          .split('|')
+          .find(Boolean) || 'action';
       return `${actionLabel}=status:${status}`;
     })
     .filter(Boolean)
@@ -533,7 +536,9 @@ function formatAgentReceiptForHistory(receipt = {}, messageActionStates = null) 
     receipt.intent?.type ? `intent=${receipt.intent.type}` : '',
     receipt.mode ? `mode=${receipt.mode}` : '',
     receipt.target ? `target=${receipt.target}` : '',
-    runStats ? `tools=${runStats.toolCount || 0}, actions=${runStats.actionCount || 0}, checks=${runStats.checkCount || 0}` : '',
+    runStats
+      ? `tools=${runStats.toolCount || 0}, actions=${runStats.actionCount || 0}, checks=${runStats.checkCount || 0}`
+      : '',
     runStats?.providerCallCount ? `modelCalls=${runStats.providerCallCount}` : '',
     runStats?.stopReason ? `stop=${runStats.stopReason}` : '',
     changed ? `changed=${changed}` : '',

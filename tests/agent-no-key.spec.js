@@ -113,9 +113,9 @@ test.describe('Agent no-key behavior', () => {
     await expect(agentPanel.getByTestId('agent-slash-command-palette')).toBeVisible();
     await expect(agentPanel.getByTestId('agent-slash-command-plan-next')).toBeVisible();
     await composer.press('Enter');
-    await expect(agentPanel.getByText('Inspecting the workspace and building a plan from the Agent command.')).toBeVisible(
-      { timeout: 10000 },
-    );
+    await expect(
+      agentPanel.getByText('Inspecting the workspace and building a plan from the Agent command.'),
+    ).toBeVisible({ timeout: 10000 });
     await expect(agentPanel.getByTestId('agent-activity-receipt').first()).toContainText('2 tools', {
       timeout: 10000,
     });

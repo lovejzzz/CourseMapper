@@ -334,7 +334,9 @@ function buildReceiptNext(status, intent, actionSteps) {
     case 'agent_memory':
       return 'Future Agent turns can use the updated preference context.';
     default:
-      return actionSteps.length > 0 ? 'Continue from the updated workspace.' : 'Use these findings to choose the next change.';
+      return actionSteps.length > 0
+        ? 'Continue from the updated workspace.'
+        : 'Use these findings to choose the next change.';
   }
 }
 
@@ -385,10 +387,8 @@ export function buildModelAgentReceiptFromProgress(progress, { runId = null, dry
       runStats,
       ...(stopReason ? { stopReason } : {}),
       toolManifest: buildToolManifest(steps),
-      changed:
-        actionSteps.length > 0 ? uniqueList(actionSteps.map(formatReceiptStep), 4) : ['No workspace edits'],
-      checked:
-        checkSteps.length > 0 ? uniqueList(checkSteps.map(formatReceiptStep), 4) : ['Tool result status'],
+      changed: actionSteps.length > 0 ? uniqueList(actionSteps.map(formatReceiptStep), 4) : ['No workspace edits'],
+      checked: checkSteps.length > 0 ? uniqueList(checkSteps.map(formatReceiptStep), 4) : ['Tool result status'],
       issues: uniqueList(issueSteps.map(formatReceiptStep), 4),
       next: buildReceiptNext(status, intent, actionSteps),
     },

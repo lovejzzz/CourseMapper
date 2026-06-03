@@ -961,7 +961,10 @@ describe('ChatPanel agent command strip', () => {
         role: 'agentReceipt',
         receipt: expect.objectContaining({ title: 'Sync receipt', status: 'done', target: 'Quiz & Exam Bank' }),
       }),
-      { role: 'assistant', text: 'Sync request finished for Quiz & Exam Bank. Check the sync card for the final status.' },
+      {
+        role: 'assistant',
+        text: 'Sync request finished for Quiz & Exam Bank. Check the sync card for the final status.',
+      },
     ]);
     expect(chatRouterMock.send).not.toHaveBeenCalled();
   });

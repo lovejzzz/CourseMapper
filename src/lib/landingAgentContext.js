@@ -144,9 +144,7 @@ export function hasLandingAgentContext(messages) {
 export function isLandingAgentContextText(value) {
   const text = String(value || '').trim();
   return (
-    text.startsWith(PROJECT_BRIEF_PREFIX) ||
-    text.startsWith(USER_PROMPT_PREFIX) ||
-    text.startsWith(FILE_ONLY_PREFIX)
+    text.startsWith(PROJECT_BRIEF_PREFIX) || text.startsWith(USER_PROMPT_PREFIX) || text.startsWith(FILE_ONLY_PREFIX)
   );
 }
 

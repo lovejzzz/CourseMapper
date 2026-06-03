@@ -46,7 +46,9 @@ export function buildAgentHelpSummary(help = {}) {
     localActions: [
       'Audit package readiness, classroom fit, validation, and export risk without using a model.',
       'Plan the next safest workspace action from the current generated materials.',
-      syncCount > 0 ? `Sync ${syncCount} stale deliverable${syncCount === 1 ? '' : 's'} from the pending sync plan.` : null,
+      syncCount > 0
+        ? `Sync ${syncCount} stale deliverable${syncCount === 1 ? '' : 's'} from the pending sync plan.`
+        : null,
       canUndo ? 'Undo the most recent accepted deliverable edit.' : null,
     ].filter(Boolean),
     modelActions: providerReady
@@ -95,7 +97,10 @@ export default function AgentHelpCard({ help }) {
 
             <div className="mt-2.5 grid gap-2.5">
               <HelpSection title="Available now" items={summary.localActions} />
-              <HelpSection title={summary.providerReady ? 'Model-backed actions' : 'Needs AI connection'} items={summary.modelActions} />
+              <HelpSection
+                title={summary.providerReady ? 'Model-backed actions' : 'Needs AI connection'}
+                items={summary.modelActions}
+              />
               <HelpSection title="Controls" items={summary.controls} />
             </div>
           </div>

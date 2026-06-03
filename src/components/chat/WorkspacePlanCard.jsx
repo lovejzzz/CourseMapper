@@ -183,7 +183,8 @@ export function buildWorkspacePlanActionDisplayText(action, actionCapabilities =
 export function buildWorkspacePlanActionSendOptions(action, actionCapabilities = {}) {
   const displayText = buildWorkspacePlanActionDisplayText(action, actionCapabilities);
   const safeAutoFix = action?.safeMode === 'safe-auto-fix';
-  const directSync = getPlanActionIntent(action) === 'sync_stale_deliverables' && canRunActionDirectly(action, actionCapabilities);
+  const directSync =
+    getPlanActionIntent(action) === 'sync_stale_deliverables' && canRunActionDirectly(action, actionCapabilities);
   const directGeneration =
     ['generate_missing_feature', 'regenerate_failed_feature'].includes(getPlanActionIntent(action)) &&
     canRunActionDirectly(action, actionCapabilities);

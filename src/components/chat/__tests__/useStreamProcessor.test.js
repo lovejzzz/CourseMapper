@@ -175,7 +175,9 @@ describe('buildAgentChatHistory', () => {
     expect(history[0].content).toContain('stop=respond');
     expect(history[0].content).toContain('changed=No safe repairs needed');
     expect(history[0].content).toContain('checked=Readiness; Export files');
-    expect(history[0].content).toContain('toolManifest=Finish package status=done summary=Package ready target=Package');
+    expect(history[0].content).toContain(
+      'toolManifest=Finish package status=done summary=Package ready target=Package',
+    );
     expect(history[0].content).toContain('receiptActions=audit-quality=status:done');
     expect(history[0].content).toContain('next=Safe checks passed');
   });

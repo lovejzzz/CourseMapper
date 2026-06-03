@@ -1528,8 +1528,7 @@ export const AGENT_TOOLS = {
           continue;
         }
         const patchRequest = projection?.patchRequest || projection?.canonicalPatchRequest || null;
-        const canonicalPatchRequests =
-          projection?.canonicalPatchRequests || (patchRequest ? [patchRequest] : []);
+        const canonicalPatchRequests = projection?.canonicalPatchRequests || (patchRequest ? [patchRequest] : []);
         if (canonicalPatchRequests.length > 0) {
           const detail = {
             action: 'blueprintPatchRequest',

@@ -146,9 +146,9 @@ describe('MessageList workspace plan actions', () => {
 
     expect(onWorkspacePlanAction).toHaveBeenCalled();
     expect(onSuggestionClick).not.toHaveBeenCalled();
-    expect(container.querySelector('[data-testid="workspace-plan-action-state-sync_stale_deliverables"]').textContent).toBe(
-      'Error',
-    );
+    expect(
+      container.querySelector('[data-testid="workspace-plan-action-state-sync_stale_deliverables"]').textContent,
+    ).toBe('Error');
   });
 
   it('falls back to Agent chat when the parent does not handle a plan action directly', async () => {

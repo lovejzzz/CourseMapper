@@ -80,9 +80,7 @@ export function getAgentSourceContextSummary(message) {
     : [];
   const materialNotes = Array.isArray(message?.materialNotes) ? message.materialNotes : [];
   const hiddenFileCount = Number.isFinite(meta.hiddenFileCount) ? Math.max(0, meta.hiddenFileCount) : 0;
-  const fileCount = Number.isFinite(meta.fileCount)
-    ? Math.max(0, meta.fileCount)
-    : fileNames.length + hiddenFileCount;
+  const fileCount = Number.isFinite(meta.fileCount) ? Math.max(0, meta.fileCount) : fileNames.length + hiddenFileCount;
 
   return {
     label: String(message?.label || 'Source added').trim() || 'Source added',
@@ -90,7 +88,9 @@ export function getAgentSourceContextSummary(message) {
     fileNames,
     hiddenFileCount,
     materialNotes,
-    materialNoteCount: Number.isFinite(meta.materialNoteCount) ? Math.max(0, meta.materialNoteCount) : materialNotes.length,
+    materialNoteCount: Number.isFinite(meta.materialNoteCount)
+      ? Math.max(0, meta.materialNoteCount)
+      : materialNotes.length,
   };
 }
 
@@ -113,5 +113,7 @@ export function formatAgentSourceContextForHistory(message) {
 }
 
 export function isAgentSourceContextText(value) {
-  return String(value || '').trim().startsWith('[Source context added:');
+  return String(value || '')
+    .trim()
+    .startsWith('[Source context added:');
 }

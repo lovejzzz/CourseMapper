@@ -153,10 +153,7 @@ export default function MessageList({
 
   // Messages list — greeting + starters always shown as first item in the stream
   return (
-    <div
-      data-testid="message-list-root"
-      className="relative flex min-h-[120px] flex-1 flex-col overflow-hidden"
-    >
+    <div data-testid="message-list-root" className="relative flex min-h-[120px] flex-1 flex-col overflow-hidden">
       <div
         ref={containerRef}
         data-testid="message-scroll-container"
@@ -248,9 +245,7 @@ export default function MessageList({
                 key={key}
                 receipt={msg.receipt}
                 actionStates={msg.actionStates || msg.receipt?.actionStates || {}}
-                onActionStateChange={(actionStates, change) =>
-                  onReceiptActionStateChange?.(i, actionStates, change)
-                }
+                onActionStateChange={(actionStates, change) => onReceiptActionStateChange?.(i, actionStates, change)}
                 onAction={
                   onSuggestionClick
                     ? async (action) => {

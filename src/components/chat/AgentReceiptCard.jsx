@@ -69,7 +69,14 @@ export function buildAgentReceiptSummary(receipt = {}) {
   const changed = normalizeList(receipt.changed);
   const checked = normalizeList(receipt.checked);
   const issues = normalizeList(receipt.issues);
-  const status = receipt.status === 'blocked' ? 'blocked' : receipt.status === 'review' ? 'review' : issues.length ? 'review' : 'done';
+  const status =
+    receipt.status === 'blocked'
+      ? 'blocked'
+      : receipt.status === 'review'
+        ? 'review'
+        : issues.length
+          ? 'review'
+          : 'done';
   const mode = String(receipt.mode || '').trim();
   const target = String(receipt.target || '').trim();
   const next = String(receipt.next || '').trim();
@@ -409,7 +416,9 @@ export default function AgentReceiptCard({
   const safeReceipt = receipt || {};
   const summary = buildAgentReceiptSummary(safeReceipt);
   const tone = TONES[summary.status] || TONES.done;
-  const meta = [summary.mode, summary.target, formatReceiptRunStatMeta(safeReceipt.runStats)].filter(Boolean).join(' · ');
+  const meta = [summary.mode, summary.target, formatReceiptRunStatMeta(safeReceipt.runStats)]
+    .filter(Boolean)
+    .join(' · ');
   const actions = onAction ? buildAgentReceiptActions(safeReceipt).slice(0, 2) : [];
   const toolTrace = normalizeToolTrace(safeReceipt.toolManifest);
   const initialActionStates = React.useMemo(() => {

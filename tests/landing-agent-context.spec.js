@@ -142,17 +142,16 @@ test.describe('Landing to Agent continuity', () => {
     await expect(agentPanel.getByTestId('agent-context-strip')).toContainText(
       'Starting request + starter-notebook-outline.txt + 1 source note',
     );
-    await expect(agentPanel.getByTestId('agent-working-brief')).toContainText(
-      'prompt + 1 material + 1 source note',
-    );
+    await expect(agentPanel.getByTestId('agent-working-brief')).toContainText('prompt + 1 material + 1 source note');
 
     const landingContextCard = agentPanel.getByTestId('landing-context-card');
     await expect(landingContextCard).toContainText('Starting brief', { timeout: 30000 });
     await expect(landingContextCard).toContainText(landingPrompt, { timeout: 30000 });
     await expect(landingContextCard).toContainText('starter-notebook-outline.txt');
     await expect(landingContextCard).toContainText('Week 1 notebook: validation split');
-    await expect(agentPanel.getByTestId('chat-message-user').filter({ hasText: 'Here is what I am starting with.' }))
-      .toHaveCount(0);
+    await expect(
+      agentPanel.getByTestId('chat-message-user').filter({ hasText: 'Here is what I am starting with.' }),
+    ).toHaveCount(0);
     await expect(agentPanel.getByText('I have your starting request and 1 uploaded material')).toBeVisible();
     await expect(agentPanel.getByText('1 compact source note')).toBeVisible();
   });

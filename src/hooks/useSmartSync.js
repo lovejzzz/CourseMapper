@@ -262,7 +262,12 @@ export default function useSmartSync({
               });
             } else {
               for (const lessonIdx of lessonIndices) {
-                const lessonResult = await delivRef.current.regenerateLesson(featureId, currentCourseMap, lessonIdx, currentGenId);
+                const lessonResult = await delivRef.current.regenerateLesson(
+                  featureId,
+                  currentCourseMap,
+                  lessonIdx,
+                  currentGenId,
+                );
                 resultDetails.push({
                   status: lessonResult?.status || 'done',
                   featureId,
@@ -378,7 +383,8 @@ export default function useSmartSync({
           ...(edit.canonicalPatches || (edit.canonicalPatch ? [edit.canonicalPatch] : [])),
         ];
         const mergedCanonicalPatchRequests = [
-          ...(existing.canonicalPatchRequests || (existing.canonicalPatchRequest ? [existing.canonicalPatchRequest] : [])),
+          ...(existing.canonicalPatchRequests ||
+            (existing.canonicalPatchRequest ? [existing.canonicalPatchRequest] : [])),
           ...(edit.canonicalPatchRequests || (edit.canonicalPatchRequest ? [edit.canonicalPatchRequest] : [])),
         ];
         delivEditBySource.set(edit.excludeFeatureId, {

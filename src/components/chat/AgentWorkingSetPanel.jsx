@@ -16,7 +16,9 @@ function compactCount(value) {
 }
 
 function uniqueValues(values) {
-  return Array.from(new Set((Array.isArray(values) ? values : []).map((value) => String(value || '').trim()).filter(Boolean)));
+  return Array.from(
+    new Set((Array.isArray(values) ? values : []).map((value) => String(value || '').trim()).filter(Boolean)),
+  );
 }
 
 function isFeatureReady(entry) {
@@ -63,7 +65,10 @@ function buildBriefStatus(messages) {
     (count, summary) => count + compactCount(summary.fileCount || summary.materialNoteCount),
     0,
   );
-  const sourceNoteCount = sourceSummaries.reduce((count, summary) => count + compactCount(summary.materialNoteCount), 0);
+  const sourceNoteCount = sourceSummaries.reduce(
+    (count, summary) => count + compactCount(summary.materialNoteCount),
+    0,
+  );
   const landingMaterialCount = compactCount(landing.fileCount || landing.materialNoteCount);
   const totalMaterialCount = landingMaterialCount + sourceFileCount;
   const totalSourceNoteCount = compactCount(landing.materialNoteCount) + sourceNoteCount;
@@ -71,7 +76,8 @@ function buildBriefStatus(messages) {
 
   if (landing.hasPrompt) parts.push('prompt');
   if (totalMaterialCount > 0) parts.push(`${totalMaterialCount} material${totalMaterialCount === 1 ? '' : 's'}`);
-  if (totalSourceNoteCount > 0) parts.push(`${totalSourceNoteCount} source note${totalSourceNoteCount === 1 ? '' : 's'}`);
+  if (totalSourceNoteCount > 0)
+    parts.push(`${totalSourceNoteCount} source note${totalSourceNoteCount === 1 ? '' : 's'}`);
 
   return {
     hasBrief: landing.hasContext || sourceMessages.length > 0,
@@ -165,7 +171,8 @@ function buildProgressActivity(message) {
   const errorCount = steps.filter((step) => step?.status === 'error' || step?.status === 'partial').length;
   const status = String(message?.status || '').trim();
   return {
-    title: status === 'running' ? 'Running' : status === 'error' || errorCount > 0 ? 'Run needs review' : 'Run complete',
+    title:
+      status === 'running' ? 'Running' : status === 'error' || errorCount > 0 ? 'Run needs review' : 'Run complete',
     label:
       status === 'running' && running
         ? running.label || running.tool || 'Working'
@@ -235,9 +242,11 @@ export function buildAgentWorkingSetSummary({
   const syncIds = uniqueValues(pendingSyncFeatureIds);
   const syncSet = new Set(syncIds);
   const selectedSet = new Set(selectedDeliverableIds);
-  const allRelevantIds = uniqueValues([...selectedDeliverableIds, ...syncIds, ...Object.keys(deliverables || {})]).filter(
-    (featureId) => featureId !== 'courseMap',
-  );
+  const allRelevantIds = uniqueValues([
+    ...selectedDeliverableIds,
+    ...syncIds,
+    ...Object.keys(deliverables || {}),
+  ]).filter((featureId) => featureId !== 'courseMap');
 
   let readyFeatureCount = 0;
   let missingFeatureCount = 0;

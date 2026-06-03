@@ -144,7 +144,12 @@ export function buildAgentRunOutcome(steps = [], { status = 'complete', mode = '
   if (issueCount > 0 && completedWorkspaceSteps.length > 0) return { label: 'Changes need review', tone: 'amber' };
   if (completedWorkspaceSteps.length > 0) return { label: 'Workspace updated', tone: 'emerald' };
   if (completedMemorySteps.length > 0) return { label: 'Agent memory updated', tone: 'indigo' };
-  if (String(mode || '').toLowerCase().includes('review')) return { label: 'Review only', tone: 'slate' };
+  if (
+    String(mode || '')
+      .toLowerCase()
+      .includes('review')
+  )
+    return { label: 'Review only', tone: 'slate' };
   return { label: 'No workspace edits', tone: 'slate' };
 }
 
@@ -186,7 +191,11 @@ function summarizeIssueContext(issueSteps = [], runMeta = {}) {
 function isPackageIssueStep(step) {
   if (!step) return false;
   if (['finalize_package', 'repair_package_readiness', 'retry_package_weak_spots'].includes(step.tool)) return true;
-  return (step.targets || []).some((target) => String(target || '').toLowerCase().includes('package'));
+  return (step.targets || []).some((target) =>
+    String(target || '')
+      .toLowerCase()
+      .includes('package'),
+  );
 }
 
 export function buildAgentRecoveryActions(steps = [], { status = 'complete', runMeta = null } = {}) {
@@ -419,7 +428,10 @@ export default function AgentProgressCard({
                   </span>
                 )}
                 {activityReceipt.map((item) => (
-                  <span key={item} className="rounded-full border border-slate-200/70 bg-white/70 px-1.5 py-0.5 text-slate-500">
+                  <span
+                    key={item}
+                    className="rounded-full border border-slate-200/70 bg-white/70 px-1.5 py-0.5 text-slate-500"
+                  >
                     {item}
                   </span>
                 ))}

@@ -200,8 +200,8 @@ test.describe('Agent command strip', () => {
             hasToolResult && latestUserMessage.includes('Improve Lesson Plans for specificity')
               ? 'Lesson Plans improved. I checked the active deliverable and no export risk changed.'
               : hasToolResult
-              ? 'I planned the next step from the current workspace.'
-              : 'Lesson Plans improved. I checked the active deliverable and no export risk changed.',
+                ? 'I planned the next step from the current workspace.'
+                : 'Lesson Plans improved. I checked the active deliverable and no export risk changed.',
           ),
         });
         return;
@@ -296,7 +296,10 @@ test.describe('Agent command strip', () => {
     await expect(
       agentPanel.getByText('Lesson Plans improved. I checked the active deliverable and no export risk changed.'),
     ).toBeVisible({ timeout: 10000 });
-    const activityReceipt = agentPanel.getByTestId('agent-activity-receipt').filter({ hasText: 'Lesson Plans' }).first();
+    const activityReceipt = agentPanel
+      .getByTestId('agent-activity-receipt')
+      .filter({ hasText: 'Lesson Plans' })
+      .first();
     await expect(activityReceipt).toContainText('2 tools');
     await expect(activityReceipt).toContainText('2 checks');
     await expect(activityReceipt).toContainText('0 issues');
@@ -317,7 +320,9 @@ test.describe('Agent command strip', () => {
 
     await commandStrip.getByTestId('agent-command-plan-next').click();
     await expect(agentPanel.getByText('Plan next step')).toBeVisible({ timeout: 10000 });
-    await expect(agentPanel.getByText('Inspecting the workspace and building a plan from the Agent command.')).toBeVisible({
+    await expect(
+      agentPanel.getByText('Inspecting the workspace and building a plan from the Agent command.'),
+    ).toBeVisible({
       timeout: 10000,
     });
     await expect(agentPanel.getByTestId('workspace-plan-card')).toBeVisible({ timeout: 10000 });

@@ -165,40 +165,44 @@ async function runOpenAIAgentLoop(userMessage, { activeTab = 'courseMap', dryRun
   };
   const delivRef = { current: structuredClone(DELIVERABLES) };
 
-  await runAgentLoop(userMessage, { dryRun }, {
-    messages: [],
-    setMessages,
-    setStreaming: () => {},
-    abortRef: { current: null },
-    apiKey: OPENAI_API_KEY,
-    provider: 'openai',
-    modelId: OPENAI_MODEL,
-    courseMap: structuredClone(COURSE_MAP),
-    activeTab,
-    slideTheme: null,
-    selectedFeatures: ['courseMap', 'quizBank', 'lessonPlans'],
-    columns: [],
-    deliverableConfig: {},
-    lessonFilter: null,
-    delivRef,
-    executeActionRef: { current: () => ({ success: false, message: 'Not used in read-only audit.' }) },
-    optimisticUpdateRef: { current: null },
-    snapshotRef: { current: () => {} },
-    undoFnRef: { current: null },
-    notifyEditRef: { current: null },
-    uid: null,
-    customToolRegistryRef: null,
-    maybeRunValidation: () => {},
-    handleAgentFinalResponse: (response) => {
-      setMessages((prev) => [
-        ...prev,
-        {
-          role: 'assistant',
-          text: response?.chatReply || response?.text || 'Agent completed.',
-        },
-      ]);
+  await runAgentLoop(
+    userMessage,
+    { dryRun },
+    {
+      messages: [],
+      setMessages,
+      setStreaming: () => {},
+      abortRef: { current: null },
+      apiKey: OPENAI_API_KEY,
+      provider: 'openai',
+      modelId: OPENAI_MODEL,
+      courseMap: structuredClone(COURSE_MAP),
+      activeTab,
+      slideTheme: null,
+      selectedFeatures: ['courseMap', 'quizBank', 'lessonPlans'],
+      columns: [],
+      deliverableConfig: {},
+      lessonFilter: null,
+      delivRef,
+      executeActionRef: { current: () => ({ success: false, message: 'Not used in read-only audit.' }) },
+      optimisticUpdateRef: { current: null },
+      snapshotRef: { current: () => {} },
+      undoFnRef: { current: null },
+      notifyEditRef: { current: null },
+      uid: null,
+      customToolRegistryRef: null,
+      maybeRunValidation: () => {},
+      handleAgentFinalResponse: (response) => {
+        setMessages((prev) => [
+          ...prev,
+          {
+            role: 'assistant',
+            text: response?.chatReply || response?.text || 'Agent completed.',
+          },
+        ]);
+      },
     },
-  });
+  );
 
   return messageState;
 }

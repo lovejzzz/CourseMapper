@@ -180,10 +180,7 @@ describe('buildModelAgentReceiptFromProgress', () => {
 
   it('classifies the highest-impact tool intent from a mixed model tool batch', () => {
     expect(
-      deriveModelAgentReceiptIntent([
-        { tool: 'inspect_workspace' },
-        { tool: 'review_package_readiness' },
-      ]),
+      deriveModelAgentReceiptIntent([{ tool: 'inspect_workspace' }, { tool: 'review_package_readiness' }]),
     ).toMatchObject({
       type: 'package_audit',
       label: 'Quality audit',
@@ -193,10 +190,7 @@ describe('buildModelAgentReceiptFromProgress', () => {
     });
 
     expect(
-      deriveModelAgentReceiptIntent([
-        { tool: 'plan_workspace_next_step' },
-        { tool: 'finalize_package' },
-      ]),
+      deriveModelAgentReceiptIntent([{ tool: 'plan_workspace_next_step' }, { tool: 'finalize_package' }]),
     ).toMatchObject({
       type: 'finish_package',
       label: 'Package finish',
@@ -232,7 +226,9 @@ describe('projectAgentDeliverableActionToCanonicalPatch', () => {
           lessonPlans: {
             status: 'done',
             data: {
-              lessonPlans: [{ lessonTitle: 'Lesson 1: Model Evaluation', learningObjectives: ['Explain model evaluation.'] }],
+              lessonPlans: [
+                { lessonTitle: 'Lesson 1: Model Evaluation', learningObjectives: ['Explain model evaluation.'] },
+              ],
             },
           },
         },

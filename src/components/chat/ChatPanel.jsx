@@ -193,7 +193,8 @@ function collectSyncCanonicalPatches(syncResult = {}) {
   const planPatches = (Array.isArray(syncResult?.selectedPlan) ? syncResult.selectedPlan : []).flatMap((entry) =>
     Array.isArray(entry?.canonicalPatches) ? entry.canonicalPatches : [],
   );
-  const patches = summaryPatches.length > 0 ? summaryPatches : fallbackPatches.length > 0 ? fallbackPatches : planPatches;
+  const patches =
+    summaryPatches.length > 0 ? summaryPatches : fallbackPatches.length > 0 ? fallbackPatches : planPatches;
   const seen = new Set();
   return patches.filter((patch) => {
     if (!patch) return false;
@@ -416,7 +417,10 @@ function buildPackageFinishReceipt(result = {}) {
     badge: status === 'done' ? 'Ready' : status === 'blocked' ? 'Blocked' : 'Review',
     mode: 'Auto-fix',
     target: 'Package',
-    changed: repairsApplied > 0 ? `${repairsApplied} safe repair${repairsApplied === 1 ? '' : 's'} applied` : 'No safe repairs needed',
+    changed:
+      repairsApplied > 0
+        ? `${repairsApplied} safe repair${repairsApplied === 1 ? '' : 's'} applied`
+        : 'No safe repairs needed',
     checked: ['Readiness', 'Classroom fit', 'Content validation', 'Export files'],
     issues: extractSummaryIssues(summary),
     next: status === 'done' ? 'Download when ready.' : 'Review the remaining package issues before export.',
@@ -467,7 +471,10 @@ function buildGenerationReceipt(result = {}, featureSummary, requestedFeatureIds
         : result?.status === 'busy'
           ? [result.message || 'Generation was already running.']
           : [],
-    next: status === 'done' ? 'Review the generated deliverables before export.' : 'Review the failed deliverables before export.',
+    next:
+      status === 'done'
+        ? 'Review the generated deliverables before export.'
+        : 'Review the failed deliverables before export.',
   });
 }
 
@@ -508,7 +515,10 @@ function buildSyncReceipt(featureSummary, mode = 'Auto-fix', syncResult = null) 
       changed: `Updated blueprint: ${patchSummary}`,
       checked: [`Recompiled: ${featureSummary}`, `Model calls: ${providerCallText}`],
       issues,
-      next: status === 'done' ? 'Review the synced lesson materials.' : 'Retry the failed sync items or keep the edit local.',
+      next:
+        status === 'done'
+          ? 'Review the synced lesson materials.'
+          : 'Retry the failed sync items or keep the edit local.',
     });
   }
   return buildAgentReceiptMessage({
@@ -631,7 +641,8 @@ function buildPackageAuditProgressSteps(summary = {}) {
     buildDirectAgentStep('verify_package_exports', 'Verify exports', {
       status: issueStepStatus(exportErrors, exportWarnings),
       targets: ['Package'],
-      summary: exportErrors || exportWarnings ? `${exportErrors} failed, ${exportWarnings} warning` : 'Exports verified',
+      summary:
+        exportErrors || exportWarnings ? `${exportErrors} failed, ${exportWarnings} warning` : 'Exports verified',
     }),
   ];
 }
