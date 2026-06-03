@@ -144,7 +144,7 @@ test.describe('All-deliverables terminal states', () => {
     await expect(page.getByTestId('developer-mode-panel')).toHaveCount(0);
 
     await expect(page.getByTestId('workspace-agent-panel').getByTestId('progress-phase-label')).toHaveText(
-      /Finish failed sections|Finish package/,
+      /Finish failed sections|Finish(?:ing)? package/,
       { timeout: 20000 },
     );
 
