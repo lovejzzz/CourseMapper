@@ -275,6 +275,24 @@ describeWithKey(`OpenAI (${OPENAI_MODEL}) Agent E2E`, { timeout: TIMEOUT * 12 },
     }
   });
 
+  it('expands course scope through course-map addLesson patches', { timeout: TIMEOUT }, async () => {
+    const r = await callOpenAI(
+      [
+        'Expand the course map from 3 to 5 lessons.',
+        'Call edit_course_map with exactly 2 addLesson patches appended after the existing lessons.',
+        'Keep existing lessons unchanged and include concrete sections for each new lesson.',
+      ].join(' '),
+      { activeTab: 'courseMap', maxTokens: 8192 },
+    );
+    const edit = findToolCall(r.toolCalls, 'edit_course_map');
+
+    expect(edit).toBeTruthy();
+    const addLessons = edit.args.patches?.filter((patch) => patch.action === 'addLesson') || [];
+    expect(addLessons).toHaveLength(2);
+    expect(addLessons.every((patch) => typeof patch.title === 'string' && patch.title.trim().length > 0)).toBe(true);
+    expect(addLessons.every((patch) => Array.isArray(patch.sections) && patch.sections.length > 0)).toBe(true);
+  });
+
   it('saves teaching preference when told to remember', { timeout: TIMEOUT }, async () => {
     const r = await callOpenAI('Remember that I always want Bloom\'s level "Apply" or higher for assessments');
     expect(r.toolCalls).toBeTruthy();
