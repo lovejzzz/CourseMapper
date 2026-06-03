@@ -373,7 +373,7 @@ export default function CourseMapPreview({
             <tr className="bg-gradient-to-r from-slate-800 to-slate-700 text-white">
               {colHeaders.map((h, hi) => (
                 <th
-                  key={h}
+                  key={`${hi}-${h}`}
                   className="px-3.5 py-3 text-left text-[11px] font-semibold tracking-wide uppercase whitespace-nowrap relative group/th"
                   style={colWidths[hi] ? { width: colWidths[hi], minWidth: colWidths[hi] } : undefined}
                 >
@@ -790,7 +790,7 @@ export default function CourseMapPreview({
             })}
             {/* Add lesson row */}
             {!isStreaming && onAddLesson && (
-              <tr>
+              <tr key="add-lesson-row">
                 <td colSpan={colHeaders.length + 1} className="px-3.5 py-2">
                   <button
                     onClick={onAddLesson}
