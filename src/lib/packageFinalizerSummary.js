@@ -10,12 +10,60 @@ function count(value) {
   return Number.isFinite(value) ? value : 0;
 }
 
+function pluralize(countValue, singular, plural = `${singular}s`) {
+  return `${countValue} ${countValue === 1 ? singular : plural}`;
+}
+
 function mapIssue(issue, fallbackSeverity = 'warning') {
   return {
     severity: issue?.severity || fallbackSeverity,
     label: issue?.label || issue?.category || issue?.featureId || 'Package',
     message: issue?.message || 'Review this item before export.',
   };
+}
+
+export function buildPackageTrustBoundarySummary({
+  lessonCount = 0,
+  compilerSummary = null,
+  repairsApplied = 0,
+  safeInferenceCount = null,
+  modelCallCount = null,
+  apiSpendSummary = null,
+  reviewRequiredCount = 0,
+  externalProofStatus = 'not attached',
+} = {}) {
+  const items = [];
+  const normalizedLessonCount = count(lessonCount);
+  if (normalizedLessonCount > 0) {
+    items.push({ id: 'source', label: 'Course source', value: pluralize(normalizedLessonCount, 'lesson') });
+  }
+
+  const compiledFeatureCount = count(compilerSummary?.compiledFeatureCount);
+  if (compiledFeatureCount > 0) {
+    items.push({ id: 'compiled', label: 'Compiled', value: pluralize(compiledFeatureCount, 'material') });
+  }
+
+  if (Number.isFinite(safeInferenceCount)) {
+    items.push({ id: 'inferred', label: 'Safely inferred', value: pluralize(count(safeInferenceCount), 'field') });
+  }
+
+  items.push({ id: 'repaired', label: 'Local repairs', value: String(count(repairsApplied)) });
+
+  const apiSpendLabel =
+    typeof apiSpendSummary === 'string' ? apiSpendSummary.trim() : String(apiSpendSummary?.label || '').trim();
+  if (apiSpendLabel) {
+    items.push({ id: 'model', label: 'Model use', value: apiSpendLabel });
+  } else if (Number.isFinite(modelCallCount)) {
+    items.push({ id: 'model', label: 'Model calls', value: String(count(modelCallCount)) });
+  }
+
+  items.push({ id: 'review', label: 'Needs review', value: String(count(reviewRequiredCount)) });
+
+  if (externalProofStatus) {
+    items.push({ id: 'external-proof', label: 'External proof', value: String(externalProofStatus) });
+  }
+
+  return { items };
 }
 
 export function normalizePackageSummary(result = {}) {
@@ -54,6 +102,15 @@ export function normalizePackageSummary(result = {}) {
         )
     : [];
   const repairSummary = result.repairSummary || summarizeRepairEvidence(result.repairs || []);
+  const reviewRequiredCount =
+    count(readiness.blockerCount) +
+    count(readiness.warningCount) +
+    count(classroomReadiness.blockerCount) +
+    count(classroomReadiness.warningCount) +
+    count(validation.errorCount) +
+    count(validation.warningCount) +
+    count(exportVerification.failed) +
+    count(exportVerification.warningCount);
 
   return {
     confidence,
@@ -76,6 +133,20 @@ export function normalizePackageSummary(result = {}) {
     exportChecked: count(exportVerification.checked),
     exportFailed: count(exportVerification.failed),
     exportWarningCount: count(exportVerification.warningCount),
+    apiSpendSummary: result.apiSpendSummary || null,
+    apiFeatureSpendSummary: Array.isArray(result.apiFeatureSpendSummary) ? result.apiFeatureSpendSummary : [],
+    compilerSummary: result.compilerSummary || null,
+    trustBoundary:
+      result.trustBoundary ||
+      buildPackageTrustBoundarySummary({
+        lessonCount: readiness.lessonCount || result.lessonCount,
+        compilerSummary: result.compilerSummary,
+        repairsApplied: count(result.repairsApplied),
+        modelCallCount: Number.isFinite(result.providerCallCount) ? result.providerCallCount : null,
+        apiSpendSummary: result.apiSpendSummary,
+        reviewRequiredCount,
+        externalProofStatus: result.externalProofStatus || 'not attached',
+      }),
     repairSummary,
     reviewRecommendation:
       result.reviewRecommendation ||

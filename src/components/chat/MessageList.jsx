@@ -98,7 +98,25 @@ export default function MessageList({
   const { greeting, starters = [] } = opener || {};
 
   const scrollToBottom = useCallback((behavior = 'smooth') => {
-    endRef.current?.scrollIntoView({ behavior });
+    const container = containerRef.current;
+    if (container) {
+      const applyScroll = () => {
+        if (typeof container.scrollTo === 'function') {
+          container.scrollTo({ top: container.scrollHeight, behavior });
+        } else {
+          container.scrollTop = container.scrollHeight;
+        }
+      };
+      applyScroll();
+      if (behavior === 'auto') {
+        const raf = typeof requestAnimationFrame === 'function' ? requestAnimationFrame : (fn) => setTimeout(fn, 0);
+        raf(() => {
+          container.scrollTop = container.scrollHeight;
+        });
+      }
+    } else {
+      endRef.current?.scrollIntoView({ behavior, block: 'end' });
+    }
     setPendingNewCount(0);
   }, []);
 
@@ -138,12 +156,11 @@ export default function MessageList({
         const nextTop = Math.max(0, latestPlanCard.offsetTop - containerRef.current.clientHeight * 0.25);
         containerRef.current.scrollTo({ top: nextTop, behavior: 'auto' });
       } else {
-        endRef.current?.scrollIntoView({ behavior: 'auto' });
+        scrollToBottom('auto');
       }
       setPendingNewCount(0);
     } else if (isAtBottom || shouldFollowAgentAction) {
-      endRef.current?.scrollIntoView({ behavior: 'smooth' });
-      setPendingNewCount(0);
+      scrollToBottom(shouldFollowAgentAction ? 'auto' : 'smooth');
     } else {
       // User is scrolled up — accumulate how many arrived while they're away.
       const delta = messages.length - prev;

@@ -1,5 +1,6 @@
 import { describe, expect, it } from 'vitest';
 import {
+  buildPackageTrustBoundarySummary,
   classifyFinalizePackageStepStatus,
   formatPackageSummaryForHistory,
   normalizePackageSummary,
@@ -29,6 +30,8 @@ describe('packageFinalizerSummary', () => {
       validation: { errorCount: 0, warningCount: 0, findings: [] },
       exportVerification: { status: 'passed', checked: 4, failed: 0, warningCount: 0, checks: [] },
       nextAction: 'Package is ready to present and export.',
+      compilerSummary: { compiledFeatureCount: 5, label: '5 compiled · ~10 AI calls saved' },
+      apiSpendSummary: { label: '$0.04 · 52k tokens estimated' },
     });
 
     expect(summary.ready).toBe(true);
@@ -42,6 +45,36 @@ describe('packageFinalizerSummary', () => {
       'Spot-check institution-specific facts, official dates, and copyrighted readings before handoff.',
     );
     expect(summary.topIssues).toEqual([]);
+    expect(summary.trustBoundary.items).toEqual(
+      expect.arrayContaining([
+        { id: 'source', label: 'Course source', value: '12 lessons' },
+        { id: 'compiled', label: 'Compiled', value: '5 materials' },
+        { id: 'repaired', label: 'Local repairs', value: '2' },
+        { id: 'model', label: 'Model use', value: '$0.04 · 52k tokens estimated' },
+        { id: 'review', label: 'Needs review', value: '0' },
+        { id: 'external-proof', label: 'External proof', value: 'not attached' },
+      ]),
+    );
+  });
+
+  it('builds compact trust boundary rows for package handoff', () => {
+    expect(
+      buildPackageTrustBoundarySummary({
+        lessonCount: 8,
+        compilerSummary: { compiledFeatureCount: 4 },
+        repairsApplied: 1,
+        modelCallCount: 0,
+        reviewRequiredCount: 2,
+        externalProofStatus: 'private review pending',
+      }).items,
+    ).toEqual([
+      { id: 'source', label: 'Course source', value: '8 lessons' },
+      { id: 'compiled', label: 'Compiled', value: '4 materials' },
+      { id: 'repaired', label: 'Local repairs', value: '1' },
+      { id: 'model', label: 'Model calls', value: '0' },
+      { id: 'review', label: 'Needs review', value: '2' },
+      { id: 'external-proof', label: 'External proof', value: 'private review pending' },
+    ]);
   });
 
   it('classifies assumption and blocker states honestly for progress UI', () => {

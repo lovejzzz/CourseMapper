@@ -37,6 +37,16 @@ describe('PackageSummaryCard', () => {
             label: '5 compiled · ~10 AI calls saved',
             detail: 'Compiled from the course map: Syllabus, Rubrics, Assignments, Study Guides, Course FAQ',
           },
+          trustBoundary: {
+            items: [
+              { id: 'source', label: 'Course source', value: '12 lessons' },
+              { id: 'compiled', label: 'Compiled', value: '5 materials' },
+              { id: 'repaired', label: 'Local repairs', value: '3' },
+              { id: 'model', label: 'Model use', value: '$0.04 · 52k tokens estimated' },
+              { id: 'review', label: 'Needs review', value: '0' },
+              { id: 'external-proof', label: 'External proof', value: 'not attached' },
+            ],
+          },
           repairSummary: 'Lesson 2 title; Lesson 4 learning goals',
           reviewRecommendation: 'Spot-check repaired sections plus institution-specific facts before handoff.',
           topIssues: [],
@@ -53,6 +63,15 @@ describe('PackageSummaryCard', () => {
     expect(html).toContain('8/8 checked');
     expect(html).toContain('$0.04 \u00b7 52k tokens estimated');
     expect(html).toContain('5 compiled');
+    expect(html).toContain('Course source');
+    expect(html).toContain('12 lessons');
+    expect(html).toContain('Compiled');
+    expect(html).toContain('5 materials');
+    expect(html).toContain('Local repairs');
+    expect(html).toContain('Model use');
+    expect(html).toContain('Needs review');
+    expect(html).toContain('External proof');
+    expect(html).toContain('not attached');
     expect(html).toContain('Auto-fixed: Lesson 2 title; Lesson 4 learning goals');
     expect(html).toContain('Human check: dates, policies, and official readings.');
     expect(html).toContain('Cost drivers');

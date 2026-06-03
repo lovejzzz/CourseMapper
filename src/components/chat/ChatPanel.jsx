@@ -95,6 +95,7 @@ function buildPackageReceiptSummary(packageQualityPass, courseMap, selectedFeatu
     apiSpendSummary: receipt.apiSpendSummary || null,
     apiFeatureSpendSummary: receipt.apiFeatureSpendSummary || [],
     compilerSummary: receipt.compilerSummary || null,
+    trustBoundary: receipt.trustBoundary || null,
     repairSummary: receipt.repairSummary || 'none',
     reviewRecommendation: receipt.reviewRecommendation || '',
     topIssues: ready ? [] : receipt.topIssues || [],
@@ -121,6 +122,44 @@ function buildPackageReceiptMessage(packageReceiptSummary, packageQualityPass) {
     source: 'package-quality-pass',
     summary,
   };
+}
+
+function countResultValue(value, fallback = 0) {
+  if (Array.isArray(value)) return value.length;
+  const numeric = Number(value);
+  return Number.isFinite(numeric) ? numeric : fallback;
+}
+
+function buildPackageFinishSummaryMessage(result = {}, courseMap, selectedFeatures = []) {
+  const normalized = normalizePackageSummary({
+    ...result,
+    lessonCount: result.lessonCount || courseMap?.lessons?.length || 0,
+  });
+  const packageQualityPass = {
+    status: result.packageQualityStatus || result.status || (normalized.ready ? 'ready' : 'blocked'),
+    repairsApplied: countResultValue(result.repairsApplied, normalized.repairsApplied || 0),
+    warnings: countResultValue(result.warnings, normalized.warningCount || 0),
+    blockers: countResultValue(result.blockers, normalized.blockerCount || 0),
+    receipt: result.receipt || {
+      checkedItems: normalized.checkedItems,
+      checkedSections: normalized.checkedSections,
+      lessonCount: normalized.lessonCount,
+      exportChecked: normalized.exportChecked,
+      exportFailed: normalized.exportFailed,
+      exportWarningCount: normalized.exportWarningCount,
+      apiSpendSummary: normalized.apiSpendSummary,
+      apiFeatureSpendSummary: normalized.apiFeatureSpendSummary,
+      compilerSummary: normalized.compilerSummary,
+      trustBoundary: normalized.trustBoundary,
+      repairSummary: normalized.repairSummary,
+      reviewRecommendation: normalized.reviewRecommendation,
+      topIssues: normalized.topIssues,
+    },
+  };
+  return buildPackageReceiptMessage(
+    buildPackageReceiptSummary(packageQualityPass, result.courseMap || courseMap, selectedFeatures),
+    packageQualityPass,
+  );
 }
 
 function getWorkspacePlanIntent(action) {
@@ -1098,6 +1137,10 @@ export default function ChatPanel({
   const displayedMessages = useMemo(() => {
     const packageReceiptMessage = buildPackageReceiptMessage(packageReceiptSummary, packageQualityPass);
     if (!packageReceiptMessage) return chat.messages;
+    const alreadyRendered = chat.messages.some(
+      (message) => message?.role === 'packageSummary' && message.id === packageReceiptMessage.id,
+    );
+    if (alreadyRendered) return chat.messages;
     return [...chat.messages, packageReceiptMessage];
   }, [chat.messages, packageQualityPass, packageReceiptSummary]);
   const [directPlanActionRunning, setDirectPlanActionRunning] = React.useState(false);
@@ -1285,9 +1328,11 @@ export default function ChatPanel({
           steps: buildPackageFinishProgressSteps(result),
         });
         commitDirectAgentProgress(chat, progressId, progress);
+        const packageSummaryMessage = buildPackageFinishSummaryMessage(result, courseMap, selectedFeatures);
         chat.addLocalMessages([
           buildPackageFinishReceipt(result),
           { role: 'assistant', text: summarizeDirectPackageFinish(result) },
+          ...(packageSummaryMessage ? [packageSummaryMessage] : []),
         ]);
       } catch (err) {
         const progress = buildDirectAgentProgress({
@@ -1313,7 +1358,7 @@ export default function ChatPanel({
       }
       return true;
     },
-    [agentCommandDisabled, chat, lessonScope, packageQualityPass?.status, selectedFeatures],
+    [agentCommandDisabled, chat, courseMap, lessonScope, packageQualityPass?.status, selectedFeatures],
   );
   const runDirectWorkspacePlan = useCallback(
     async ({

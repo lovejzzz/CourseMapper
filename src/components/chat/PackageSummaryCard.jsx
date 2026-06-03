@@ -84,7 +84,8 @@ export default function PackageSummaryCard({ summary, embedded = false }) {
         : summary.classroomStatus
           ? 'Classroom checks passed'
           : null;
-  const spendText = summary.apiSpendSummary?.label || '';
+  const spendText =
+    typeof summary.apiSpendSummary === 'string' ? summary.apiSpendSummary : summary.apiSpendSummary?.label || '';
   const compilerSummary = summary.compilerSummary || null;
   const repairEvidenceText = summary.repairSummary && summary.repairSummary !== 'none' ? summary.repairSummary : '';
   const reviewRecommendation = summary.reviewRecommendation || '';
@@ -92,6 +93,9 @@ export default function PackageSummaryCard({ summary, embedded = false }) {
   const featureSpendText = featureSpend
     .map((item) => `${item.label}: ${item.costDisplay || 'cost unknown'}`)
     .join('; ');
+  const trustBoundaryItems = Array.isArray(summary.trustBoundary?.items)
+    ? summary.trustBoundary.items.filter((item) => item?.label && item?.value).slice(0, 6)
+    : [];
   const statusText = summary.ready
     ? `${summary.checkedSections || 'All selected'} materials checked. Download when ready.`
     : summary.nextAction || 'Review the items below before export.';
@@ -129,6 +133,16 @@ export default function PackageSummaryCard({ summary, embedded = false }) {
                 </span>
               ))}
             </div>
+            {trustBoundaryItems.length > 0 && (
+              <div className="mt-2 flex flex-wrap gap-1.5 text-[10px] leading-snug">
+                {trustBoundaryItems.map((item) => (
+                  <span key={item.id || item.label} className="rounded-md bg-white/55 px-2 py-1 text-slate-600">
+                    <span className="font-semibold text-slate-700">{item.label}: </span>
+                    {item.value}
+                  </span>
+                ))}
+              </div>
+            )}
             {repairEvidenceText && summary.repairsApplied > 0 && (
               <p className="mt-1 text-[10px] font-medium leading-snug text-slate-500">
                 Auto-fixed: {repairEvidenceText}

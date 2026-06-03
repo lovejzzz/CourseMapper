@@ -88,6 +88,7 @@ import { generateCourseHealthReport } from './lib/pedagogicalValidator';
 import { applyApiCallBudgetEvent, createApiCallBudget, getApiCallBudgetTotal } from './lib/apiCallBudget';
 import { buildApiCostPlan, evaluateApiCostControl } from './lib/apiCostControl';
 import { summarizeApiFeatureUsageBudget, summarizeApiUsageBudget, summarizeCompilerSavings } from './lib/apiUsageCost';
+import { buildPackageTrustBoundarySummary } from './lib/packageFinalizerSummary';
 import { getChunkCount } from './lib/parallelGenerator';
 import { buildHumanReviewRecommendation, summarizeRepairEvidence } from './lib/packageTrust';
 import { traceLog } from './lib/traceLog';
@@ -144,6 +145,8 @@ function buildQualityReceipt({
   selectedFeatureIds = [],
   courseMap,
   includeWarnings = true,
+  apiSpendSummary = null,
+  compilerSummary = null,
 }) {
   const readiness = result?.readiness || {};
   const blockers = Array.isArray(readiness.blockers) ? readiness.blockers : [];
@@ -154,17 +157,27 @@ function buildQualityReceipt({
     .slice(0, 3);
   const checkedFeatureCount = Array.isArray(selectedFeatureIds) ? selectedFeatureIds.length : 0;
   const repairSummary = summarizeRepairEvidence(result?.repairs || []);
+  const humanDecisionCount = blockers.length + (includeWarnings ? warnings.length : 0);
   return {
     checkedItems: ['Readiness', 'classroom fit', 'content validation', 'export files'],
     checkedSections: checkedFeatureCount > 0 ? `${checkedFeatureCount}/${checkedFeatureCount}` : '',
     lessonCount: courseMap?.lessons?.length || 0,
     autoFixedCount: repairsApplied,
     retriedCount: retryCount,
-    humanDecisionCount: blockers.length + (includeWarnings ? warnings.length : 0),
+    humanDecisionCount,
     exportChecked: exportVerification?.checked || 0,
     exportFailed: exportVerification?.failed || 0,
     exportWarningCount: exportVerification?.warningCount || 0,
     repairSummary,
+    trustBoundary: buildPackageTrustBoundarySummary({
+      lessonCount: courseMap?.lessons?.length || 0,
+      compilerSummary,
+      repairsApplied,
+      apiSpendSummary,
+      reviewRequiredCount:
+        humanDecisionCount + (exportVerification?.failed || 0) + (exportVerification?.warningCount || 0),
+      externalProofStatus: 'not attached',
+    }),
     reviewRecommendation: buildHumanReviewRecommendation({
       blockerCount: blockers.length + (exportVerification?.failed || 0),
       warningCount: (includeWarnings ? warnings.length : 0) + (exportVerification?.warningCount || 0),
@@ -1352,6 +1365,8 @@ export default function AppFlow({ startupAction = null, onStartupHandled, onRetu
           selectedFeatureIds: featureIds,
           courseMap: result.courseMap || courseMapRef.current,
           includeWarnings: finalStatus !== 'ready',
+          apiSpendSummary,
+          compilerSummary,
         });
         const receiptWithSpend = {
           ...receipt,
@@ -1412,6 +1427,12 @@ export default function AppFlow({ startupAction = null, onStartupHandled, onRetu
             (retryBudgetExhausted || retryPassLimitReached || retryNoProgress),
           exportVerification,
           packageQualityStatus: finalStatus,
+          warnings,
+          blockers,
+          receipt: receiptWithSpend,
+          ...(apiSpendSummary ? { apiSpendSummary } : {}),
+          ...(apiFeatureSpendSummary.length > 0 ? { apiFeatureSpendSummary } : {}),
+          ...(compilerSummary ? { compilerSummary } : {}),
         };
       })();
 

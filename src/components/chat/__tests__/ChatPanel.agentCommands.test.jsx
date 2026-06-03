@@ -285,6 +285,9 @@ describe('ChatPanel agent command strip', () => {
           exportFailed: 0,
           exportWarningCount: 0,
           apiSpendSummary: '$0.05',
+          trustBoundary: {
+            items: [{ id: 'source', label: 'Course source', value: '5 lessons' }],
+          },
         },
       },
     });
@@ -301,6 +304,9 @@ describe('ChatPanel agent command strip', () => {
         lessonCount: 5,
         exportChecked: 9,
         apiSpendSummary: '$0.05',
+        trustBoundary: {
+          items: [{ id: 'source', label: 'Course source', value: '5 lessons' }],
+        },
       }),
     });
   });
@@ -456,6 +462,14 @@ describe('ChatPanel agent command strip', () => {
         receipt: expect.objectContaining({ title: 'Package receipt', status: 'done', target: 'Package' }),
       }),
       { role: 'assistant', text: 'Package finishing finished. Safe checks passed and the export panel is ready.' },
+      expect.objectContaining({
+        role: 'packageSummary',
+        summary: expect.objectContaining({
+          ready: true,
+          lessonCount: 1,
+          trustBoundary: expect.objectContaining({ items: expect.any(Array) }),
+        }),
+      }),
     ]);
     const progress = await waitForAgentProgressMessage((message) =>
       message.steps?.some((step) => step.tool === 'finalize_package'),
@@ -510,6 +524,14 @@ describe('ChatPanel agent command strip', () => {
         receipt: expect.objectContaining({ title: 'Package receipt', status: 'done', target: 'Package' }),
       }),
       { role: 'assistant', text: 'Package finishing finished. Safe checks passed and the export panel is ready.' },
+      expect.objectContaining({
+        role: 'packageSummary',
+        summary: expect.objectContaining({
+          ready: true,
+          lessonCount: 1,
+          trustBoundary: expect.objectContaining({ items: expect.any(Array) }),
+        }),
+      }),
     ]);
     expect(chatRouterMock.send).not.toHaveBeenCalled();
   });
@@ -983,6 +1005,14 @@ describe('ChatPanel agent command strip', () => {
         receipt: expect.objectContaining({ title: 'Package receipt', status: 'done', target: 'Package' }),
       }),
       { role: 'assistant', text: 'Package finishing finished. Safe checks passed and the export panel is ready.' },
+      expect.objectContaining({
+        role: 'packageSummary',
+        summary: expect.objectContaining({
+          ready: true,
+          lessonCount: 1,
+          trustBoundary: expect.objectContaining({ items: expect.any(Array) }),
+        }),
+      }),
     ]);
     expect(chatRouterMock.send).not.toHaveBeenCalled();
   });
