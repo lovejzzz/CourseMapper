@@ -293,7 +293,7 @@ export default function ChatInput({
       )}
 
       {/* Compose area */}
-      <div className="px-4 py-3 space-y-2.5">
+      <div className="px-4 pt-3 pb-4 space-y-2.5">
         <input
           type="file"
           ref={fileInputRef}
@@ -446,12 +446,12 @@ export default function ChatInput({
             }
             placeholder={placeholder}
             rows={2}
-            className="input-glass w-full rounded-xl px-3 pt-2.5 pb-8 text-[13px] text-slate-700 focus:outline-none resize-none leading-relaxed"
+            className="input-glass min-h-[70px] w-full rounded-xl px-3 pt-2.5 pb-2 text-[13px] text-slate-700 focus:outline-none resize-none leading-relaxed"
             disabled={busy}
           />
-          {/* Bottom bar inside textarea area */}
-          <div className="absolute bottom-1.5 left-2 right-2 flex items-center justify-between">
-            <div className="flex items-center gap-1.5">
+          {/* Compose actions */}
+          <div className="mt-1.5 flex min-h-8 items-center justify-between gap-2 px-0.5">
+            <div className="flex min-w-0 flex-wrap items-center gap-1.5">
               {/* Attach button */}
               {courseMap && (
                 <button
@@ -536,7 +536,7 @@ export default function ChatInput({
               <button
                 type="button"
                 onClick={onStop}
-                className="tactile px-3 py-1 rounded-lg text-[12px] font-semibold text-red-500 hover:bg-red-50 transition-all"
+                className="tactile shrink-0 px-3 py-1 rounded-lg text-[12px] font-semibold text-red-500 hover:bg-red-50 transition-all"
                 aria-label="Stop generation"
               >
                 {isRevising ? (
@@ -565,7 +565,7 @@ export default function ChatInput({
                       (!input.trim() && (!attachedFiles || attachedFiles.length === 0)))) ||
                   isCoolingDown
                 }
-                className={`tactile p-1.5 rounded-lg text-white bg-gradient-to-r from-indigo-500 to-violet-500 shadow-sm hover:brightness-110 transition-all disabled:cursor-not-allowed ${
+                className={`tactile shrink-0 p-1.5 rounded-lg text-white bg-gradient-to-r from-indigo-500 to-violet-500 shadow-sm hover:brightness-110 transition-all disabled:cursor-not-allowed ${
                   isCoolingDown ? 'opacity-60' : 'disabled:opacity-30'
                 }`}
                 aria-label={

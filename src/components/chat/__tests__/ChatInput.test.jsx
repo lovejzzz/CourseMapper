@@ -76,6 +76,20 @@ describe('ChatInput agent execution mode', () => {
     expect(onAgentDryRunChange).toHaveBeenCalledWith(true);
   });
 
+  it('keeps send controls in the compose flow below the textarea', () => {
+    renderInput();
+
+    const textarea = container.querySelector('textarea');
+    const sendButton = container.querySelector('button[aria-label="Send message"]');
+    const actionRow = sendButton.closest('div');
+
+    expect(textarea.className).toContain('min-h-[70px]');
+    expect(textarea.className).not.toContain('pb-8');
+    expect(actionRow.className).toContain('mt-1.5');
+    expect(actionRow.className).not.toContain('absolute');
+    expect(sendButton.className).toContain('shrink-0');
+  });
+
   it('uses review-only copy and review prompt when enabled', () => {
     const onSend = vi.fn();
     renderInput({ agentDryRun: true, onSend });

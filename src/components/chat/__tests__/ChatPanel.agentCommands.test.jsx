@@ -255,6 +255,43 @@ describe('ChatPanel agent command strip', () => {
     );
   });
 
+  it('renders the package quality receipt as the newest conversation message', () => {
+    chatRouterMock.messages = [{ id: 'assistant-note', role: 'assistant', text: 'I can finish the package.' }];
+    root = renderChatPanel(container, {
+      packageQualityPass: {
+        status: 'ready',
+        message: 'Ready to download.',
+        blockers: 0,
+        warnings: 0,
+        repairsApplied: 0,
+        receipt: {
+          checkedItems: ['No issues to fix', 'Classroom checks passed', 'Exports verified'],
+          checkedSections: '10/10',
+          lessonCount: 5,
+          exportChecked: 9,
+          exportFailed: 0,
+          exportWarningCount: 0,
+          apiSpendSummary: '$0.05',
+        },
+      },
+    });
+
+    expect(container.querySelector('[data-testid="package-summary"]')).toBeNull();
+    expect(messageListMock.props.messages).toHaveLength(2);
+    expect(messageListMock.props.messages[1]).toMatchObject({
+      role: 'packageSummary',
+      source: 'package-quality-pass',
+      summary: expect.objectContaining({
+        ready: true,
+        confidence: 'Excellent',
+        checkedSections: '10/10',
+        lessonCount: 5,
+        exportChecked: 9,
+        apiSpendSummary: '$0.05',
+      }),
+    });
+  });
+
   it('opens Agent help locally without a model call', () => {
     root = renderChatPanel(container, {
       lessonScope: { type: 'specific', indices: [0] },

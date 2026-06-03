@@ -1,6 +1,5 @@
 import React, { lazy, Suspense, useEffect, useRef, useCallback, useMemo } from 'react';
 import MessageList from './MessageList';
-import PackageSummaryCard from './PackageSummaryCard';
 import ChatInput from './ChatInput';
 import CustomToolsMenu from './CustomToolsMenu';
 import AgentCommandStrip from './AgentCommandStrip';
@@ -99,6 +98,28 @@ function buildPackageReceiptSummary(packageQualityPass, courseMap, selectedFeatu
     repairSummary: receipt.repairSummary || 'none',
     reviewRecommendation: receipt.reviewRecommendation || '',
     topIssues: ready ? [] : receipt.topIssues || [],
+  };
+}
+
+function buildPackageReceiptMessage(packageReceiptSummary, packageQualityPass) {
+  if (!packageReceiptSummary) return null;
+  const summary = packageReceiptSummary;
+  const keyParts = [
+    packageQualityPass?.status || 'done',
+    summary.ready ? 'ready' : 'review',
+    summary.checkedSections || 'sections',
+    summary.lessonCount || 0,
+    summary.exportChecked || 0,
+    summary.exportFailed || 0,
+    summary.blockerCount || 0,
+    summary.warningCount || 0,
+    summary.repairsApplied || 0,
+  ];
+  return {
+    id: `package-receipt-${keyParts.map((part) => String(part).replace(/[^a-z0-9]+/gi, '-')).join('-')}`,
+    role: 'packageSummary',
+    source: 'package-quality-pass',
+    summary,
   };
 }
 
@@ -1055,6 +1076,11 @@ export default function ChatPanel({
     () => buildPackageReceiptSummary(packageQualityPass, courseMap, selectedFeatures),
     [courseMap, packageQualityPass, selectedFeatures],
   );
+  const displayedMessages = useMemo(() => {
+    const packageReceiptMessage = buildPackageReceiptMessage(packageReceiptSummary, packageQualityPass);
+    if (!packageReceiptMessage) return chat.messages;
+    return [...chat.messages, packageReceiptMessage];
+  }, [chat.messages, packageQualityPass, packageReceiptSummary]);
   const [directPlanActionRunning, setDirectPlanActionRunning] = React.useState(false);
   const staleDeliverableCount = deliverables
     ? Object.values(deliverables).filter((entry) => entry?.stale === true).length
@@ -2123,12 +2149,6 @@ export default function ChatPanel({
         </Suspense>
       )}
 
-      {packageReceiptSummary && (
-        <div className="max-h-44 flex-shrink-0 overflow-y-auto border-b border-slate-200/40 px-4 py-2">
-          <PackageSummaryCard summary={packageReceiptSummary} embedded />
-        </div>
-      )}
-
       {/* ── Stale deliverables banner (persistent, above messages) ── */}
       {(() => {
         if (staleDeliverableCount === 0 || isSyncing) return null;
@@ -2158,7 +2178,7 @@ export default function ChatPanel({
 
       {/* ── Message List (scrollable) — clean chat only ── */}
       <MessageList
-        messages={chat.messages}
+        messages={displayedMessages}
         isStreaming={chat.isStreaming}
         onSuggestionClick={(q, options) => chat.send(q, options)}
         onStarterAction={handleAgentStarterAction}
