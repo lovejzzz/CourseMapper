@@ -800,6 +800,10 @@ function extractBlooms(featureId, item) {
   return [...levels];
 }
 
+function normalizeDeliverableSyncPolicy(value) {
+  return ['auto', 'localOnly', 'blueprint'].includes(value) ? value : 'auto';
+}
+
 // ── Tool Registry ────────────────────────────────────────────────────────────
 
 export const AGENT_TOOLS = {
@@ -1469,10 +1473,10 @@ export const AGENT_TOOLS = {
 
   edit_deliverables: {
     description:
-      'Add, edit, or remove deliverable items. Course-design edits may be queued as blueprint sync patches instead of directly mutating artifact JSON; local wording/format edits are applied immediately with undo support. For slide decks, prefer expanded paths such as decks[].slides[].notes/visual; shorthand aliases are still accepted.',
+      'Add, edit, or remove deliverable items. Course-design edits may be queued as blueprint sync patches instead of directly mutating artifact JSON; local wording/format edits are applied immediately with undo support when syncPolicy:"localOnly" is set. For slide decks, prefer expanded paths such as decks[].slides[].notes/visual; shorthand aliases are still accepted.',
     params: {
       actions:
-        'array — each: {type:"addItem"|"removeItem"|"editItem"|"regenerateLesson", featureId, lessonIndex, item?, itemIndex?, path?, value?}',
+        'array — each: {type:"addItem"|"removeItem"|"editItem"|"regenerateLesson", featureId, lessonIndex, item?, itemIndex?, path?, value?, syncPolicy?:"auto"|"localOnly"|"blueprint"}',
     },
     // Explicit JSON Schema for better LLM tool-calling accuracy
     jsonSchema: {
@@ -1507,6 +1511,12 @@ export const AGENT_TOOLS = {
                 items: {},
               },
               value: { description: 'New value to set (for editItem)' },
+              syncPolicy: {
+                type: 'string',
+                enum: ['auto', 'localOnly', 'blueprint'],
+                description:
+                  'auto projects course-design edits to blueprint sync when possible; localOnly keeps the edit artifact-local and skips sync; blueprint queues/fails instead of silently mutating artifact JSON.',
+              },
             },
             required: ['type', 'featureId'],
           },
@@ -1524,11 +1534,14 @@ export const AGENT_TOOLS = {
 
       for (let index = 0; index < actions.length; index++) {
         const action = actions[index];
+        const syncPolicy = normalizeDeliverableSyncPolicy(action?.syncPolicy);
         let projection = null;
-        try {
-          projection = ctx.projectDeliverableActionToCanonicalPatch?.(action);
-        } catch {
-          projection = null;
+        if (syncPolicy !== 'localOnly') {
+          try {
+            projection = ctx.projectDeliverableActionToCanonicalPatch?.(action);
+          } catch {
+            projection = null;
+          }
         }
         const patch = projection?.patch || projection?.canonicalPatch || null;
         if (patch) {
@@ -1545,6 +1558,20 @@ export const AGENT_TOOLS = {
           };
           results[index] = detail;
           canonicalSyncEdits.push(detail);
+          continue;
+        }
+        const projectedLocalOnly = projection?.localOnly === true;
+        if (syncPolicy === 'blueprint' && projectedLocalOnly) {
+          results[index] = {
+            action: 'blueprintPatch',
+            featureId: action.featureId,
+            lessonIndex: action.lessonIndex,
+            success: false,
+            pending: false,
+            syncPolicy,
+            message:
+              'This edit is artifact-local and has no blueprint field to sync. Use syncPolicy:"localOnly" to keep it only in this deliverable.',
+          };
           continue;
         }
         const patchRequest = projection?.patchRequest || projection?.canonicalPatchRequest || null;
@@ -1564,7 +1591,25 @@ export const AGENT_TOOLS = {
           canonicalSyncEdits.push(detail);
           continue;
         }
-        directActions.push({ index, action });
+        if (syncPolicy === 'blueprint') {
+          results[index] = {
+            action: 'blueprintPatch',
+            featureId: action.featureId,
+            lessonIndex: action.lessonIndex,
+            success: false,
+            pending: false,
+            syncPolicy,
+            message:
+              'Could not map this deliverable edit to a blueprint patch. Choose syncPolicy:"localOnly" for artifact-only wording, or edit a blueprint-backed field.',
+          };
+          continue;
+        }
+        directActions.push({
+          index,
+          action,
+          localOnly: syncPolicy === 'localOnly' || projectedLocalOnly,
+          syncPolicy: syncPolicy === 'localOnly' || projectedLocalOnly ? 'localOnly' : syncPolicy,
+        });
       }
 
       // Snapshot each directly-mutated featureId once for undo. Canonical
@@ -1584,7 +1629,7 @@ export const AGENT_TOOLS = {
         }
       }
 
-      for (const { index, action } of directActions) {
+      for (const { index, action, localOnly, syncPolicy } of directActions) {
         const result = ctx.executeAction(action, { skipSnapshot: true });
         results[index] = {
           action: action.type,
@@ -1592,6 +1637,8 @@ export const AGENT_TOOLS = {
           lessonIndex: action.lessonIndex,
           success: result.success,
           pending: result.pending,
+          syncPolicy,
+          localOnly,
           message: result.message,
         };
       }

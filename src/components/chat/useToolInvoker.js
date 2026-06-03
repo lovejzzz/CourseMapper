@@ -26,6 +26,7 @@ import { resolveLabel } from './constants';
 import { extractEditContext } from '../../lib/editContextExtractor';
 import {
   createCanonicalPatchRequest,
+  isKnownPresentationOnlyEdit,
   projectArtifactEditToCourseMapPatch,
 } from '../../lib/artifactBlueprintProjection';
 
@@ -209,6 +210,9 @@ export function projectAgentDeliverableActionToCanonicalPatch(action, { courseMa
   const oldData = entry?.data || entry || {};
   const newData = setProjectionValueAtPath(oldData, editPath, action.value);
   const editContext = extractEditContext(oldData, newData, editPath);
+  if (action.syncPolicy === 'localOnly' || isKnownPresentationOnlyEdit(action.featureId, editPath)) {
+    return { localOnly: true, editContext };
+  }
   const patch = projectArtifactEditToCourseMapPatch({
     featureId: action.featureId,
     lessonIndex,
@@ -229,6 +233,15 @@ export function projectAgentDeliverableActionToCanonicalPatch(action, { courseMa
     editContext,
   });
   return patchRequest ? { patchRequest, canonicalPatchRequests: [patchRequest], editContext } : null;
+}
+
+export function isLocalOnlyDeliverableEditResult(detail) {
+  return detail?.localOnly === true || detail?.syncPolicy === 'localOnly';
+}
+
+export function shouldNotifyDirectDeliverableEdit(detail) {
+  if (!detail || detail.success === false || detail.featureId === 'courseMap' || detail.pending) return false;
+  return !isLocalOnlyDeliverableEditResult(detail);
 }
 
 function formatReceiptStep(step) {
@@ -952,7 +965,7 @@ export async function runAgentLoop(fullMessage, { silent = false, dryRun = false
                     const existing = changes.find((c) => `${c.type}:${c.featureId}` === key);
                     if (existing) existing.count++;
                     else changes.push({ type: actionType, featureId, count: 1 });
-                    if (featureId !== 'courseMap' && !detail.pending) {
+                    if (shouldNotifyDirectDeliverableEdit(detail)) {
                       editedFeatures.add(`${featureId}:${detail.lessonIndex ?? 0}`);
                     }
                     if (detail.canonicalPatches?.length > 0) {

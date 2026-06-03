@@ -224,6 +224,11 @@ describe('AGENT_TOOLS registry', () => {
     expect(AGENT_TOOLS.edit_deliverables.jsonSchema).toBeDefined();
     expect(AGENT_TOOLS.edit_course_map.jsonSchema.required).toContain('patches');
     expect(AGENT_TOOLS.edit_deliverables.jsonSchema.required).toContain('actions');
+    expect(AGENT_TOOLS.edit_deliverables.jsonSchema.properties.actions.items.properties.syncPolicy.enum).toEqual([
+      'auto',
+      'localOnly',
+      'blueprint',
+    ]);
   });
 
   it('remember, recall, and forget have jsonSchema', () => {
@@ -1222,6 +1227,49 @@ describe('Tool execute: edit_deliverables', () => {
     );
   });
 
+  it('marks explicit local-only edits so chat does not raise sync state', () => {
+    mockCtx.projectDeliverableActionToCanonicalPatch = vi.fn(() => ({
+      patch: {
+        field: 'weeklyAssessments',
+        label: 'weekly assessments',
+        lessonIndex: 0,
+        value: 'Harder quiz focus',
+      },
+    }));
+
+    const result = AGENT_TOOLS.edit_deliverables.execute(
+      {
+        actions: [
+          {
+            type: 'editItem',
+            featureId: 'quizBank',
+            path: ['quizzes', 0, 'qs', 0, 'q'],
+            value: 'Corrected typo?',
+            syncPolicy: 'localOnly',
+          },
+        ],
+      },
+      mockCtx,
+    );
+
+    expect(result).toMatchObject({
+      applied: 1,
+      pending: 0,
+      failed: 0,
+    });
+    expect(result.details[0]).toMatchObject({
+      action: 'editItem',
+      featureId: 'quizBank',
+      success: true,
+      syncPolicy: 'localOnly',
+      localOnly: true,
+    });
+    expect(mockCtx.projectDeliverableActionToCanonicalPatch).not.toHaveBeenCalled();
+    expect(mockCtx.executeAction).toHaveBeenCalledWith(expect.objectContaining({ syncPolicy: 'localOnly' }), {
+      skipSnapshot: true,
+    });
+  });
+
   it('returns error for empty actions', () => {
     const result = AGENT_TOOLS.edit_deliverables.execute({ actions: [] }, mockCtx);
     expect(result.error).toBe('No actions provided.');
@@ -1359,6 +1407,40 @@ describe('Tool execute: edit_deliverables', () => {
     });
     expect(result.details[0].canonicalPatchRequests).toHaveLength(1);
     expect(result.canonicalSyncEdits).toHaveLength(1);
+    expect(mockCtx.executeAction).not.toHaveBeenCalled();
+    expect(mockCtx.snapshot).not.toHaveBeenCalled();
+  });
+
+  it('does not silently mutate artifacts when blueprint sync is forced but no mapping exists', () => {
+    mockCtx.projectDeliverableActionToCanonicalPatch = vi.fn(() => null);
+
+    const result = AGENT_TOOLS.edit_deliverables.execute(
+      {
+        actions: [
+          {
+            type: 'editItem',
+            featureId: 'slideDecks',
+            lessonIndex: 0,
+            path: ['decks', 0, 'slides', 0, 'title'],
+            value: 'Cleaner title',
+            syncPolicy: 'blueprint',
+          },
+        ],
+      },
+      mockCtx,
+    );
+
+    expect(result).toMatchObject({
+      applied: 0,
+      pending: 0,
+      failed: 1,
+    });
+    expect(result.details[0]).toMatchObject({
+      action: 'blueprintPatch',
+      featureId: 'slideDecks',
+      success: false,
+      syncPolicy: 'blueprint',
+    });
     expect(mockCtx.executeAction).not.toHaveBeenCalled();
     expect(mockCtx.snapshot).not.toHaveBeenCalled();
   });

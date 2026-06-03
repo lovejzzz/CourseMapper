@@ -2,6 +2,7 @@ import { describe, expect, it } from 'vitest';
 import {
   buildModelAgentReceiptFromProgress,
   deriveModelAgentReceiptIntent,
+  shouldNotifyDirectDeliverableEdit,
   projectAgentDeliverableActionToCanonicalPatch,
 } from '../useToolInvoker';
 
@@ -245,7 +246,7 @@ describe('projectAgentDeliverableActionToCanonicalPatch', () => {
     expect(projection.editContext.toLowerCase()).toContain('learning objectives');
   });
 
-  it('does not project local slide wording edits into the course map', () => {
+  it('classifies local slide wording edits as artifact-local', () => {
     const projection = projectAgentDeliverableActionToCanonicalPatch(
       {
         type: 'editItem',
@@ -273,7 +274,43 @@ describe('projectAgentDeliverableActionToCanonicalPatch', () => {
       },
     );
 
-    expect(projection).toBeNull();
+    expect(projection).toMatchObject({
+      localOnly: true,
+      editContext: expect.stringContaining('Cleaner slide title'),
+    });
+  });
+
+  it('lets chat skip stale sync notifications for local-only direct edits', () => {
+    expect(
+      shouldNotifyDirectDeliverableEdit({
+        action: 'editItem',
+        featureId: 'slideDecks',
+        lessonIndex: 0,
+        success: true,
+        syncPolicy: 'localOnly',
+        localOnly: true,
+      }),
+    ).toBe(false);
+
+    expect(
+      shouldNotifyDirectDeliverableEdit({
+        action: 'editItem',
+        featureId: 'slideDecks',
+        lessonIndex: 0,
+        success: true,
+        syncPolicy: 'auto',
+      }),
+    ).toBe(true);
+
+    expect(
+      shouldNotifyDirectDeliverableEdit({
+        action: 'editItem',
+        featureId: 'slideDecks',
+        lessonIndex: 0,
+        success: false,
+        syncPolicy: 'auto',
+      }),
+    ).toBe(false);
   });
 
   it('queues ambiguous course-design artifact edits as canonical patch requests', () => {

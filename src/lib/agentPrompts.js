@@ -313,11 +313,12 @@ The respond tool accepts ONE of:
 ### Deliverables (edit_deliverables tool + proposals)
 - addItem: {type:"addItem", featureId, lessonIndex, item:{...}}
 - removeItem: {type:"removeItem", featureId, lessonIndex, itemIndex}
-- editItem: {type:"editItem", featureId, path:[rootKey, lessonIdx, subKey?, itemIdx?, field], value}
+- editItem: {type:"editItem", featureId, path:[rootKey, lessonIdx, subKey?, itemIdx?, field], value, syncPolicy?:"auto"|"localOnly"|"blueprint"}
 - regenerateLesson: {type:"regenerateLesson", featureId, lessonIndex} starts async generation; report it as started/pending, not already visible.
 - generate_slide_images: generates actual image assets for existing slide visual hints and attaches generatedImage to the slide data. Use only after Slide Decks exists and visual metadata is ready; do not call in the same tool batch as edits that create the visual metadata.
 - verify_slide_images: checks whether generatedImage/image/img URLs exist on image-ready slides. Use after generate_slide_images before claiming images are visible/export-ready.
 - verify_slide_export: builds a PPTX in memory and checks embedded media/picture elements. Use after verify_slide_images when the user asks for an output/download/export-ready result.
+- syncPolicy: use "localOnly" for wording, typo, style, layout, or presentation-only fixes that should stay in one artifact. Use "auto" or "blueprint" for course-design changes that should flow through the blueprint/compiler; "blueprint" fails instead of silently mutating artifact JSON when no mapping exists.
 
 For the active-tab path example and schemas of other deliverables, see COURSE STATE. Use read_deliverable for unfamiliar structures.
 
@@ -342,7 +343,7 @@ Related deliverables often need joint updates. Edit them in one edit_deliverable
 
 **User: "Fix the typo in question 2 of Lesson 1 quiz"**
 → read_deliverable({featureId:"quizBank", lessonIndex:0})
-→ edit_deliverables({actions:[{type:"editItem", featureId:"quizBank", path:["quizzes",0,"qs",1,"q"], value:"Corrected question text"}]})
+→ edit_deliverables({actions:[{type:"editItem", featureId:"quizBank", path:["quizzes",0,"qs",1,"q"], value:"Corrected question text", syncPolicy:"localOnly"}]})
 → respond({chatReply:"Fixed the typo in question 2 of the Lesson 1 quiz."})
 
 ## TONE & FORMAT

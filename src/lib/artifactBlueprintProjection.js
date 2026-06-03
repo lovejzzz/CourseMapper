@@ -197,7 +197,7 @@ function sanitizeEditPath(path = []) {
     .map((part) => (typeof part === 'number' ? part : String(part)));
 }
 
-function isKnownPresentationOnlyEdit(featureId, editPath = []) {
+export function isKnownPresentationOnlyEdit(featureId, editPath = []) {
   const tokens = pathTokens(editPath);
   const leafToken = tokens[tokens.length - 1] || '';
   return featureId === 'slideDecks' && leafToken === 'title';

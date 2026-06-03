@@ -283,6 +283,13 @@ describe('buildAgentSystemPrompt', () => {
     expect(prompt).toContain('CROSS-DELIVERABLE SYNC');
   });
 
+  it('instructs artifact-only edits to use explicit local-only sync policy', () => {
+    const prompt = buildAgentSystemPrompt(baseCourseMap, 'quizBank', baseDeliverables);
+    expect(prompt).toContain('syncPolicy');
+    expect(prompt).toContain('"localOnly" for wording, typo, style, layout, or presentation-only fixes');
+    expect(prompt).toContain('syncPolicy:"localOnly"');
+  });
+
   // ── Empty lessons hint (Bug 1) ──
 
   it('includes empty-lessons hint when course map has 0 lessons', () => {
