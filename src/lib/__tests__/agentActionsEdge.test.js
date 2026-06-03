@@ -285,6 +285,28 @@ describe('executeAction edge cases', () => {
       expect(ctx.editor.handleCellEdit).toHaveBeenCalledWith(3, 0, 'topicSection', 'TP1');
     });
 
+    it('uses atomic addLesson payloads when the editor returns the inserted index', () => {
+      const ctx = makeCtx();
+      ctx.editor.handleAddLesson.mockReturnValue(3);
+      const result = executeAction(
+        {
+          type: 'addLesson',
+          title: 'Advanced Topics',
+          sections: [{ learningObjectives: 'LO1', topicSection: 'TP1' }],
+        },
+        ctx,
+      );
+      expect(result.success).toBe(true);
+      expect(ctx.editor.handleAddLesson).toHaveBeenCalledWith({
+        title: 'Advanced Topics',
+        sections: [{ learningObjectives: 'LO1', topicSection: 'TP1' }],
+        lesson: undefined,
+        lessonIndex: undefined,
+      });
+      expect(ctx.editor.handleTitleEdit).not.toHaveBeenCalled();
+      expect(ctx.editor.handleCellEdit).not.toHaveBeenCalled();
+    });
+
     it('adds lesson without sections', () => {
       const ctx = makeCtx();
       const result = executeAction({ type: 'addLesson', title: 'Minimal' }, ctx);
@@ -1249,6 +1271,21 @@ describe('Fix 10: addItem for flat deliverables handles gracefully', () => {
     const data = ctx.optimisticUpdate.mock.calls[0][1];
     expect(data.lessonPlans[0].ob).toBe('Obj');
     expect(data.lessonPlans[0].hw).toBe('New homework');
+  });
+
+  it('appends a lessonPlans entry when lessonIndex is the next course-map lesson', () => {
+    const ctx = makeCtx();
+    const result = executeAction(
+      { type: 'addItem', featureId: 'lessonPlans', lessonIndex: 2, item: { ob: 'New lesson objective' } },
+      ctx,
+    );
+    expect(result.success).toBe(true);
+    const data = ctx.optimisticUpdate.mock.calls[0][1];
+    expect(data.lessonPlans).toHaveLength(3);
+    expect(data.lessonPlans[2]).toMatchObject({
+      lessonTitle: 'Lesson 3',
+      ob: 'New lesson objective',
+    });
   });
 
   it('rejects null item for flat deliverable', () => {

@@ -16,6 +16,47 @@ export function getProgressDisplayStatus(rowStatus, progressStatus) {
   return rowStatus || progressStatus;
 }
 
+export function getPendingSyncWorkCount({ deliverables, pendingSyncCount = 0 } = {}) {
+  const staleCount = deliverables ? Object.values(deliverables).filter((entry) => entry?.stale === true).length : 0;
+  return Math.max(Number(pendingSyncCount) || 0, staleCount);
+}
+
+export function getProgressPhaseLabel({
+  error,
+  isStopped,
+  isSyncing,
+  isPackageQualityRunning,
+  isDone,
+  hasDelivErrors,
+  hasPackageQualityBlockers,
+  hasPackageQualityWarnings,
+  hasPendingSyncWork,
+  everythingDone,
+  isDelivGenerating,
+  delivDoneCount,
+  delivRowCount,
+  currentStep,
+  modelName,
+} = {}) {
+  if (error) return 'Error';
+  if (isStopped) return 'Paused';
+  if (isSyncing) return 'Syncing...';
+  if (isPackageQualityRunning) return 'Finishing package...';
+  if (isDone && hasDelivErrors) return 'Finish failed sections';
+  if (hasPackageQualityBlockers) return 'Finish package';
+  if (hasPackageQualityWarnings) return 'Finish package';
+  if (isDone && hasPendingSyncWork) return 'Sync needed';
+  if (everythingDone) return 'Ready to download';
+  if (isDone && isDelivGenerating) return `Deliverables ${delivDoneCount}/${delivRowCount}`;
+  if (isDone) return 'Course map ready';
+  if (currentStep === 'parsing') return 'Parsing files...';
+  if (currentStep === 'sending') return 'Sending to AI...';
+  if (currentStep === 'generating') return modelName ? `${modelName} generating...` : 'Generating...';
+  if (currentStep === 'examining') return 'Examining completeness...';
+  if (currentStep === 'continuing') return 'Completing missing lessons...';
+  return 'Generating...';
+}
+
 export default function ProgressHeader({
   currentStep,
   modelName,
@@ -67,7 +108,10 @@ export default function ProgressHeader({
   const hasPackageQualityBlockers = packageQualityPass?.status === 'blocked' || packageQualityPass?.blockers > 0;
   const hasPackageQualityWarnings = packageQualityPass?.warnings > 0;
   const hasPackageQualityIssues = hasPackageQualityBlockers || hasPackageQualityWarnings;
-  const everythingDone = isDone && (delivRows.length === 0 || allDelivDone) && !isPackageQualityRunning;
+  const pendingSyncWorkCount = getPendingSyncWorkCount({ deliverables, pendingSyncCount });
+  const hasPendingSyncWork = pendingSyncWorkCount > 0;
+  const everythingDone =
+    isDone && (delivRows.length === 0 || allDelivDone) && !isPackageQualityRunning && !hasPendingSyncWork;
   const totalLessons = completenessInfo?.actual || 0;
 
   // Compute overall progress %
@@ -83,23 +127,23 @@ export default function ProgressHeader({
   }
   const progressPct = Math.min(Math.round(progressFill * 100), 100);
 
-  // Phase label
-  let phaseLabel = 'Generating...';
-  if (error) phaseLabel = 'Error';
-  else if (isStopped) phaseLabel = 'Paused';
-  else if (isSyncing) phaseLabel = 'Syncing...';
-  else if (isPackageQualityRunning) phaseLabel = 'Finishing package...';
-  else if (isDone && hasDelivErrors) phaseLabel = 'Finish failed sections';
-  else if (hasPackageQualityBlockers) phaseLabel = 'Finish package';
-  else if (hasPackageQualityWarnings) phaseLabel = 'Finish package';
-  else if (everythingDone) phaseLabel = 'Ready to download';
-  else if (isDone && isDelivGenerating) phaseLabel = `Deliverables ${delivDoneCount}/${delivRows.length}`;
-  else if (isDone) phaseLabel = 'Course map ready';
-  else if (currentStep === 'parsing') phaseLabel = 'Parsing files...';
-  else if (currentStep === 'sending') phaseLabel = 'Sending to AI...';
-  else if (currentStep === 'generating') phaseLabel = modelName ? `${modelName} generating...` : 'Generating...';
-  else if (currentStep === 'examining') phaseLabel = 'Examining completeness...';
-  else if (currentStep === 'continuing') phaseLabel = 'Completing missing lessons...';
+  const phaseLabel = getProgressPhaseLabel({
+    error,
+    isStopped,
+    isSyncing,
+    isPackageQualityRunning,
+    isDone,
+    hasDelivErrors,
+    hasPackageQualityBlockers,
+    hasPackageQualityWarnings,
+    hasPendingSyncWork,
+    everythingDone,
+    isDelivGenerating,
+    delivDoneCount,
+    delivRowCount: delivRows.length,
+    currentStep,
+    modelName,
+  });
 
   // Color scheme
   const barColor = error
@@ -108,7 +152,7 @@ export default function ProgressHeader({
       ? 'from-amber-400 to-orange-500'
       : hasDelivErrors || hasPackageQualityBlockers
         ? 'from-red-400 to-red-500'
-        : hasPackageQualityWarnings
+        : hasPackageQualityWarnings || hasPendingSyncWork
           ? 'from-amber-400 to-orange-500'
           : everythingDone
             ? 'from-emerald-400 to-emerald-500'
@@ -122,7 +166,7 @@ export default function ProgressHeader({
         ? 'text-indigo-600'
         : hasDelivErrors || hasPackageQualityBlockers
           ? 'text-red-600'
-          : hasPackageQualityWarnings
+          : hasPackageQualityWarnings || hasPendingSyncWork
             ? 'text-amber-600'
             : everythingDone
               ? 'text-emerald-700'

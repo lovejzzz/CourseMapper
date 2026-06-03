@@ -1388,7 +1388,8 @@ export const AGENT_TOOLS = {
       properties: {
         patches: {
           type: 'array',
-          description: 'Array of patch operations to apply to the course map.',
+          description:
+            'Array of patch operations to apply to the course map. lessonIndex is required for edits/removals; omit it for append-style addLesson patches.',
           items: {
             type: 'object',
             properties: {
@@ -1402,8 +1403,17 @@ export const AGENT_TOOLS = {
               value: { type: 'string', description: 'New value for the field' },
               action: { type: 'string', description: 'Special action: "addLesson" or "removeLesson"' },
               title: { type: 'string', description: 'Title for new lesson (when action is "addLesson")' },
+              sections: {
+                type: 'array',
+                description: 'Sections for a new lesson when action is "addLesson".',
+                items: { type: 'object', additionalProperties: true },
+              },
+              lesson: {
+                type: 'object',
+                description: 'Complete lesson payload for action "addLesson"; may include title and sections.',
+                additionalProperties: true,
+              },
             },
-            required: ['lessonIndex'],
           },
         },
       },
@@ -1414,13 +1424,17 @@ export const AGENT_TOOLS = {
       if (patches.length === 0) return { error: 'No patches provided.' };
 
       const results = [];
+      let nextAddLessonIndex = Array.isArray(ctx.courseMap?.lessons) ? ctx.courseMap.lessons.length : undefined;
       for (const patch of patches) {
         let action;
         if (patch.action === 'addLesson') {
+          const lessonIndex = Number.isInteger(patch.lessonIndex) ? patch.lessonIndex : nextAddLessonIndex;
           action = {
             type: 'addLesson',
+            lessonIndex,
             title: patch.title || patch.lesson?.title,
             sections: patch.sections || patch.lesson?.sections,
+            lesson: patch.lesson,
           };
         } else if (patch.action === 'removeLesson') {
           action = { type: 'deleteLesson', lessonIndex: patch.lessonIndex };
@@ -1437,6 +1451,12 @@ export const AGENT_TOOLS = {
         }
         const result = ctx.executeAction(action);
         results.push({ patch: patch.field || patch.action, success: result.success, message: result.message });
+        if (patch.action === 'addLesson' && result.success && Number.isInteger(nextAddLessonIndex)) {
+          nextAddLessonIndex = Math.max(
+            nextAddLessonIndex + 1,
+            (Number.isInteger(action.lessonIndex) ? action.lessonIndex : nextAddLessonIndex) + 1,
+          );
+        }
       }
 
       return {

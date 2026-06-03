@@ -23,6 +23,9 @@ const chatRouterMock = vi.hoisted(() => ({
 const messageListMock = vi.hoisted(() => ({
   props: null,
 }));
+const progressHeaderMock = vi.hoisted(() => ({
+  props: null,
+}));
 
 vi.mock('../MessageList', () => ({
   default: (props) => {
@@ -32,6 +35,12 @@ vi.mock('../MessageList', () => ({
 }));
 vi.mock('../ChatInput', () => ({ default: () => <div data-testid="chat-input" /> }));
 vi.mock('../PackageSummaryCard', () => ({ default: () => <div data-testid="package-summary" /> }));
+vi.mock('../ProgressHeader', () => ({
+  default: (props) => {
+    progressHeaderMock.props = props;
+    return <div data-testid="progress-header" />;
+  },
+}));
 vi.mock('../CustomToolsMenu', () => ({ default: () => <div data-testid="custom-tools" /> }));
 vi.mock('../../ExamReview', () => ({ default: () => <div data-testid="exam-review" /> }));
 vi.mock('../useChatRouter', () => ({
@@ -225,6 +234,7 @@ describe('ChatPanel agent command strip', () => {
     chatRouterMock.addLocalMessages.mockReset();
     chatRouterMock.updateLocalMessage.mockReset();
     messageListMock.props = null;
+    progressHeaderMock.props = null;
     container = document.createElement('div');
     document.body.appendChild(container);
   });
@@ -290,6 +300,26 @@ describe('ChatPanel agent command strip', () => {
         apiSpendSummary: '$0.05',
       }),
     });
+  });
+
+  it('passes pending chat sync suggestions into the progress header', async () => {
+    chatRouterMock.messages = [
+      {
+        role: 'syncSuggestion',
+        status: 'pending',
+        plan: [{ featureId: 'lessonPlans' }],
+      },
+    ];
+    root = renderChatPanel(container, {
+      currentStep: 'done',
+      packageQualityPass: { status: 'ready', blockers: 0, warnings: 0 },
+    });
+
+    await act(async () => {
+      await Promise.resolve();
+    });
+
+    expect(progressHeaderMock.props.pendingSyncCount).toBe(1);
   });
 
   it('opens Agent help locally without a model call', () => {

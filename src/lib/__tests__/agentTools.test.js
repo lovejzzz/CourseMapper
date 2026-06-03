@@ -1142,7 +1142,38 @@ describe('Tool execute: edit_course_map', () => {
       mockCtx,
     );
     expect(mockCtx.executeAction).toHaveBeenCalledWith(
-      expect.objectContaining({ type: 'addLesson', title: 'New Lesson' }),
+      expect.objectContaining({ type: 'addLesson', lessonIndex: 2, title: 'New Lesson' }),
+    );
+  });
+
+  it('does not require lessonIndex for addLesson patch schema entries', () => {
+    const patchSchema = AGENT_TOOLS.edit_course_map.jsonSchema.properties.patches.items;
+    expect(patchSchema.required || []).not.toContain('lessonIndex');
+  });
+
+  it('assigns sequential indexes for multiple append-style addLesson patches', () => {
+    AGENT_TOOLS.edit_course_map.execute(
+      {
+        patches: [
+          { action: 'addLesson', title: 'New Lesson 3' },
+          { action: 'addLesson', lesson: { title: 'New Lesson 4', sections: [{ topicSection: 'Topic 4' }] } },
+        ],
+      },
+      mockCtx,
+    );
+
+    expect(mockCtx.executeAction).toHaveBeenNthCalledWith(
+      1,
+      expect.objectContaining({ type: 'addLesson', lessonIndex: 2, title: 'New Lesson 3' }),
+    );
+    expect(mockCtx.executeAction).toHaveBeenNthCalledWith(
+      2,
+      expect.objectContaining({
+        type: 'addLesson',
+        lessonIndex: 3,
+        title: 'New Lesson 4',
+        sections: [{ topicSection: 'Topic 4' }],
+      }),
     );
   });
 

@@ -1093,6 +1093,11 @@ export default function ChatPanel({
     directPlanActionRunning
   );
   const pendingSyncFeatureIds = useMemo(() => getPendingSyncFeatureIds(chat.messages), [chat.messages]);
+  const activePendingSyncCount = Math.max(
+    Number(pendingSyncCount) || 0,
+    staleDeliverableCount,
+    pendingSyncFeatureIds.length,
+  );
   const workspacePlanActionCapabilities = useMemo(
     () => ({
       sync_stale_deliverables:
@@ -2143,7 +2148,7 @@ export default function ChatPanel({
             onClearAll={onClearAll}
             onStopDeliverables={onStopDeliverables}
             isSyncing={isSyncing}
-            pendingSyncCount={pendingSyncCount}
+            pendingSyncCount={activePendingSyncCount}
             syncingFeatures={syncingFeatures}
           />
         </Suspense>

@@ -156,19 +156,30 @@ function execEditTitle({ lessonIndex, newTitle }, { editor }) {
   return { success: true, message: `Renamed Lesson ${lessonIndex + 1}` };
 }
 
-function execAddLesson({ title, sections }, { editor, courseMap }) {
+function execAddLesson({ title, sections, lesson, lessonIndex }, { editor, courseMap }) {
   if (!editor?.handleAddLesson) return { success: false, message: 'Editor not available' };
-  // handleAddLesson appends a blank lesson, then we populate it
-  editor.handleAddLesson();
-  const newIdx = courseMap?.lessons?.length ?? 0; // index of newly added lesson
-  if (title) editor.handleTitleEdit(newIdx, title);
-  if (sections?.[0]) {
-    const sec = sections[0];
+  const nextTitle = title || lesson?.title || '';
+  const nextSections = sections || lesson?.sections;
+  const insertedIndex = editor.handleAddLesson({
+    title: nextTitle,
+    sections: nextSections,
+    lesson,
+    lessonIndex,
+  });
+  if (Number.isInteger(insertedIndex)) {
+    return { success: true, message: `Added "${nextTitle || `Lesson ${insertedIndex + 1}: New Lesson`}"` };
+  }
+
+  // Legacy editor fallback: append a blank lesson, then populate it.
+  const newIdx = Number.isInteger(lessonIndex) ? lessonIndex : (courseMap?.lessons?.length ?? 0);
+  if (nextTitle) editor.handleTitleEdit(newIdx, nextTitle);
+  if (nextSections?.[0]) {
+    const sec = nextSections[0];
     for (const [key, val] of Object.entries(sec)) {
       if (val) editor.handleCellEdit(newIdx, 0, key, val);
     }
   }
-  return { success: true, message: `Added "${title || 'New Lesson'}"` };
+  return { success: true, message: `Added "${nextTitle || 'New Lesson'}"` };
 }
 
 function execDeleteLesson({ lessonIndex }, { editor, courseMap }) {
@@ -242,6 +253,30 @@ function normalizeDeliverableItem(featureId, item) {
   }
 
   return item;
+}
+
+function getCourseLessonTitle(courseMap, lessonIndex) {
+  return courseMap?.lessons?.[lessonIndex]?.title || `Lesson ${lessonIndex + 1}`;
+}
+
+function addLessonTitleIfMissing(featureId, item, courseMap, lessonIndex) {
+  const next = { ...(item || {}) };
+  if (next.lessonTitle || next.lt || next.title || next.t) return next;
+  const lessonTitle = getCourseLessonTitle(courseMap, lessonIndex);
+  if (['quizBank', 'courseFaq', 'rubrics'].includes(featureId)) next.lt = lessonTitle;
+  else next.lessonTitle = lessonTitle;
+  return next;
+}
+
+function buildAppendedLessonItem(featureId, item, ctx, lessonIndex, subArrayKey) {
+  if (subArrayKey) {
+    const lessonItem = addLessonTitleIfMissing(featureId, {}, ctx.courseMap, lessonIndex);
+    lessonItem[subArrayKey] = [item];
+    if (featureId === 'quizBank') lessonItem.tq = 1;
+    if (featureId === 'slideDecks') lessonItem.ts = 1;
+    return lessonItem;
+  }
+  return addLessonTitleIfMissing(featureId, item, ctx.courseMap, lessonIndex);
 }
 
 function isVisualObject(obj) {
@@ -330,12 +365,24 @@ function execAddItem({ featureId, lessonIndex, item, subKey }, ctx) {
   const arr = data[arrKey];
   if (!Array.isArray(arr)) return { success: false, message: `No array found for ${featureId}` };
 
-  if (lessonIndex < 0 || lessonIndex >= arr.length) {
+  const requestedSubArrayKey = subKey || SUB_ARRAY_KEYS[featureId];
+  if (lessonIndex < 0 || lessonIndex > arr.length) {
     return { success: false, message: `Lesson index ${lessonIndex} out of range (0-${arr.length - 1})` };
+  }
+  if (lessonIndex === arr.length) {
+    if (!normalizedItem || typeof normalizedItem !== 'object') {
+      return {
+        success: false,
+        message: `Invalid item for ${featureId} — expected an object to append for Lesson ${lessonIndex + 1}`,
+      };
+    }
+    const subArrayKey = resolveSegment(featureId, {}, requestedSubArrayKey, { final: true });
+    arr.push(buildAppendedLessonItem(featureId, normalizedItem, ctx, lessonIndex, subArrayKey));
+    optimisticUpdate(featureId, data);
+    return { success: true, message: `Added ${featureId} entry for Lesson ${lessonIndex + 1}` };
   }
 
   const lessonItem = arr[lessonIndex];
-  const requestedSubArrayKey = subKey || SUB_ARRAY_KEYS[featureId];
   const subArrayKey = resolveSegment(featureId, lessonItem, requestedSubArrayKey, { final: true });
 
   if (subArrayKey && lessonItem[subArrayKey]) {

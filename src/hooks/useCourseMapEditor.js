@@ -46,6 +46,16 @@ function optimisticTitleReplace(data, featureId, lessonIdx, oldTitle, newTitle) 
   return { ...data, [arrKey]: patchedArr };
 }
 
+function isSyntheticEventLike(value) {
+  return !!value && typeof value === 'object' && ('nativeEvent' in value || 'currentTarget' in value);
+}
+
+function buildEmptySection(columns = []) {
+  const emptySection = {};
+  for (const key of columns.map((column) => column.key).filter(Boolean)) emptySection[key] = '';
+  return emptySection;
+}
+
 /**
  * Encapsulates all course map editing operations:
  * cell edits, title edits, checkbox toggles, section CRUD, lesson CRUD.
@@ -174,21 +184,41 @@ export default function useCourseMapEditor({
     [courseMap, setCourseMap, setDownloadedFile, pushVersion, onEdit],
   );
 
-  const handleAddLesson = useCallback(() => {
-    if (!courseMap) return;
-    const updated = structuredClone(courseMap);
-    const emptySection = {};
-    const colKeys = columns.map((c) => c.key);
-    for (const key of colKeys) emptySection[key] = '';
-    updated.lessons.push({
-      title: `Lesson ${updated.lessons.length + 1}: New Lesson`,
-      sections: [emptySection],
-    });
-    setCourseMap(updated);
-    setDownloadedFile('');
-    pushVersion(updated, `Added Lesson ${updated.lessons.length}`);
-    onEdit?.(null, '_structural');
-  }, [courseMap, setCourseMap, columns, setDownloadedFile, pushVersion, onEdit]);
+  const handleAddLesson = useCallback(
+    (payload = null) => {
+      if (!courseMap) return;
+      const updated = structuredClone(courseMap);
+      const addPayload = payload && typeof payload === 'object' && !isSyntheticEventLike(payload) ? payload : {};
+      const sourceLesson = addPayload.lesson && typeof addPayload.lesson === 'object' ? addPayload.lesson : {};
+      const requestedIndex = Number.isInteger(addPayload.lessonIndex) ? addPayload.lessonIndex : updated.lessons.length;
+      const insertIndex = Math.max(0, Math.min(requestedIndex, updated.lessons.length));
+      const emptySection = buildEmptySection(columns);
+      const sourceSections = Array.isArray(addPayload.sections)
+        ? addPayload.sections
+        : Array.isArray(sourceLesson.sections)
+          ? sourceLesson.sections
+          : [];
+      const sections =
+        sourceSections.length > 0
+          ? sourceSections.map((section) => ({
+              ...emptySection,
+              ...(section && typeof section === 'object' ? section : {}),
+            }))
+          : [emptySection];
+      const title = addPayload.title || sourceLesson.title || `Lesson ${insertIndex + 1}: New Lesson`;
+      updated.lessons.splice(insertIndex, 0, {
+        ...sourceLesson,
+        title,
+        sections,
+      });
+      setCourseMap(updated);
+      setDownloadedFile('');
+      pushVersion(updated, `Added ${title}`);
+      onEdit?.(null, '_structural');
+      return insertIndex;
+    },
+    [courseMap, setCourseMap, columns, setDownloadedFile, pushVersion, onEdit],
+  );
 
   const handleDeleteLesson = useCallback(
     (lessonIdx) => {

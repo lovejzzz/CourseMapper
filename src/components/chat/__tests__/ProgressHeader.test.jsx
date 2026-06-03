@@ -1,5 +1,10 @@
 import { describe, it, expect } from 'vitest';
-import { getDeliverableDoneCount, getProgressDisplayStatus } from '../ProgressHeader';
+import {
+  getDeliverableDoneCount,
+  getPendingSyncWorkCount,
+  getProgressDisplayStatus,
+  getProgressPhaseLabel,
+} from '../ProgressHeader';
 
 describe('ProgressHeader progress helpers', () => {
   it('uses persisted done status while deliverables are still generating', () => {
@@ -83,5 +88,29 @@ describe('ProgressHeader progress helpers', () => {
     expect(getProgressDisplayStatus('pending', 'done')).toBe('finalizing');
     expect(getProgressDisplayStatus('error', 'merging')).toBe('error');
     expect(getProgressDisplayStatus('done', 'merging')).toBe('done');
+  });
+
+  it('counts stale deliverables as pending sync work', () => {
+    expect(
+      getPendingSyncWorkCount({
+        deliverables: {
+          lessonPlans: { status: 'done', stale: true },
+          slideDecks: { status: 'done', stale: false },
+        },
+        pendingSyncCount: 0,
+      }),
+    ).toBe(1);
+  });
+
+  it('does not show ready to download while completed deliverables need sync', () => {
+    const label = getProgressPhaseLabel({
+      isDone: true,
+      hasPendingSyncWork: true,
+      everythingDone: false,
+      delivDoneCount: 1,
+      delivRowCount: 1,
+    });
+
+    expect(label).toBe('Sync needed');
   });
 });
