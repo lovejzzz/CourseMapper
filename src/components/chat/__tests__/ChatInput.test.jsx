@@ -302,6 +302,49 @@ describe('ChatInput agent execution mode', () => {
     expect(container.querySelector('textarea').value).toBe('');
   });
 
+  it('routes typed lesson-scope requests through the agent command handler', () => {
+    const onSend = vi.fn();
+    const onAgentCommand = vi.fn();
+    renderInput({
+      onSend,
+      onAgentCommand,
+      courseMap: {
+        lessons: [
+          { title: 'Lesson 1' },
+          { title: 'Lesson 2' },
+          { title: 'Lesson 3' },
+          { title: 'Lesson 4' },
+          { title: 'Lesson 5' },
+        ],
+      },
+    });
+
+    const textarea = container.querySelector('textarea');
+    act(() => {
+      typeInTextarea(textarea, 'change the scope to 8 lessons');
+    });
+
+    const preview = container.querySelector('[data-testid="agent-command-preview"]');
+    expect(preview).not.toBeNull();
+    expect(preview.textContent).toContain('Change scope to 8 lessons');
+    expect(preview.textContent).toContain('Expand course from 5 to 8 lessons');
+    expect(container.querySelector('button[aria-label="Run command"]')).not.toBeNull();
+
+    act(() => {
+      textarea.dispatchEvent(new KeyboardEvent('keydown', { key: 'Enter', bubbles: true }));
+    });
+
+    expect(onAgentCommand).toHaveBeenCalledTimes(1);
+    expect(onAgentCommand.mock.calls[0][0]).toMatchObject({
+      id: 'set-lesson-scope',
+      targetLessonCount: 8,
+      currentLessonCount: 5,
+      requestedScope: 'count',
+    });
+    expect(onSend).not.toHaveBeenCalled();
+    expect(container.querySelector('textarea').value).toBe('');
+  });
+
   it('lets users click the detected command preview before sending', () => {
     const onSend = vi.fn();
     const onAgentCommand = vi.fn();
@@ -382,6 +425,26 @@ describe('ChatInput agent execution mode', () => {
 
     expect(onAgentCommand).not.toHaveBeenCalled();
     expect(onSend).toHaveBeenCalledWith('Can you explain what the audit checks?');
+  });
+
+  it('does not hijack ordinary sentences that mention scope', () => {
+    const onSend = vi.fn();
+    const onAgentCommand = vi.fn();
+    renderInput({ onSend, onAgentCommand });
+
+    const textarea = container.querySelector('textarea');
+    act(() => {
+      typeInTextarea(textarea, 'Can you explain what scope means here?');
+    });
+
+    expect(container.querySelector('[data-testid="agent-command-preview"]')).toBeNull();
+
+    act(() => {
+      textarea.dispatchEvent(new KeyboardEvent('keydown', { key: 'Enter', bubbles: true }));
+    });
+
+    expect(onAgentCommand).not.toHaveBeenCalled();
+    expect(onSend).toHaveBeenCalledWith('Can you explain what scope means here?');
   });
 
   it('blocks unknown slash commands instead of sending them as chat text', () => {

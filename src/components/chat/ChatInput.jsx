@@ -5,7 +5,63 @@ import {
   CommandIcon,
   filterAgentCommandItems,
   findAgentCommandByText,
+  normalizeAgentCommandQuery,
 } from './AgentCommandStrip';
+
+function getCourseLessonCount(courseMap) {
+  return Array.isArray(courseMap?.lessons) ? courseMap.lessons.length : 0;
+}
+
+export function buildLessonScopeCommandFromText(text = '', courseMap = null) {
+  const normalized = normalizeAgentCommandQuery(text).replace(/[.!?]+$/g, '');
+  if (!normalized) return null;
+
+  const allMatch = normalized.match(
+    /^(?:(?:change|set|switch|update|adjust)\s+)?(?:the\s+)?(?:course\s+|package\s+|lesson\s+)?scope\s+(?:to\s+|for\s+)?all(?:\s+lessons?)?$/,
+  );
+  const countMatch =
+    normalized.match(
+      /^(?:change|set|switch|update|adjust)\s+(?:the\s+)?(?:course\s+|package\s+|lesson\s+)?scope\s+(?:to\s+|for\s+)?(\d{1,2})\s*(?:lessons?|weeks?)?$/,
+    ) ||
+    normalized.match(/^scope\s+(?:to\s+|for\s+)?(\d{1,2})\s*(?:lessons?|weeks?)?$/) ||
+    normalized.match(
+      /^(?:change|set|make|expand|extend)\s+(?:the\s+)?(?:course|course\s+map|map)\s+(?:to\s+|into\s+)?(\d{1,2})\s*(?:lessons?|weeks?)$/,
+    );
+
+  const currentLessonCount = getCourseLessonCount(courseMap);
+  if (allMatch) {
+    return {
+      id: 'set-lesson-scope',
+      icon: 'list',
+      label: 'Scope',
+      displayText: 'Use all lessons',
+      title: currentLessonCount > 0 ? `Use all ${currentLessonCount} lessons` : 'Use the full course scope',
+      targetLessonCount: currentLessonCount || null,
+      requestedScope: 'all',
+      currentLessonCount,
+      prompt: '',
+    };
+  }
+
+  const targetLessonCount = Number(countMatch?.[1]);
+  if (!Number.isInteger(targetLessonCount) || targetLessonCount < 1) return null;
+  const expandsCourse = currentLessonCount > 0 && targetLessonCount > currentLessonCount;
+  return {
+    id: 'set-lesson-scope',
+    icon: 'list',
+    label: 'Scope',
+    displayText: `Change scope to ${targetLessonCount} lesson${targetLessonCount === 1 ? '' : 's'}`,
+    title: expandsCourse
+      ? `Expand course from ${currentLessonCount} to ${targetLessonCount} lessons`
+      : currentLessonCount > 0
+        ? `Use first ${targetLessonCount} of ${currentLessonCount} lessons`
+        : `Set course scope to ${targetLessonCount} lessons`,
+    targetLessonCount,
+    requestedScope: 'count',
+    currentLessonCount,
+    prompt: '',
+  };
+}
 
 /**
  * ChatInput — clean textarea with file drop and send button.
@@ -77,8 +133,11 @@ export default function ChatInput({
   const selectedSlashCommand = canRunSlashCommand
     ? filteredAgentCommandItems[Math.min(slashSelectedIndex, filteredAgentCommandItems.length - 1)]
     : null;
+  const typedScopeCommand =
+    isAgentMode && !showSlashCommands && !busy ? buildLessonScopeCommandFromText(input, courseMap) : null;
   const typedAgentCommand =
-    isAgentMode && !showSlashCommands && !busy ? findAgentCommandByText(agentCommandItems, input) : null;
+    typedScopeCommand ||
+    (isAgentMode && !showSlashCommands && !busy ? findAgentCommandByText(agentCommandItems, input) : null);
   const previewAgentCommand = typedAgentCommand && !showSlashCommands ? typedAgentCommand : null;
   const modeLabel = agentUnavailable
     ? 'Configure AI'

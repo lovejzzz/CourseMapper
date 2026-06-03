@@ -298,6 +298,39 @@ function describeLessonScope(lessonScope, courseMap) {
   return 'Current workspace';
 }
 
+function buildLessonScopeReceipt({ status = 'done', changed = [], issues = [], next = '' } = {}) {
+  return buildAgentReceiptMessage({
+    title: status === 'done' ? 'Scope receipt' : 'Scope needs review',
+    status,
+    badge: status === 'done' ? 'Scope set' : 'Review',
+    mode: 'Local',
+    target: 'Lesson scope',
+    changed,
+    checked: ['Course map lesson count', 'Working set scope'],
+    issues,
+    next,
+  });
+}
+
+function buildExpandCoursePrompt({ currentLessonCount, targetLessonCount, agentDryRun = false } = {}) {
+  const missingCount = Math.max(0, Number(targetLessonCount || 0) - Number(currentLessonCount || 0));
+  if (agentDryRun) {
+    return [
+      `Review how to expand this course from ${currentLessonCount} to ${targetLessonCount} lessons.`,
+      `Do not edit. Propose exactly ${missingCount} new lesson titles and the course-map fields each added lesson would need.`,
+      'Call read_lesson only if the existing course-map summary in the prompt is insufficient.',
+    ].join(' ');
+  }
+
+  return [
+    `Expand the course map from ${currentLessonCount} to ${targetLessonCount} lessons.`,
+    `Call edit_course_map with exactly ${missingCount} addLesson patch${missingCount === 1 ? '' : 'es'} appended after the existing lessons.`,
+    'Keep existing lessons unchanged.',
+    'Each added lesson must include a concrete title and one section with learningGoals, topicSection, learningObjectives, weeklyAssessments, asyncActivities, syncActivities, and technologyNeeded.',
+    'After editing, summarize the added lessons and any downstream materials that now need sync or regeneration.',
+  ].join(' ');
+}
+
 function buildAgentHelpPayload({
   activeTab,
   chat,
@@ -828,6 +861,7 @@ export default function ChatPanel({
   columns,
   deliverableConfig,
   lessonScope,
+  onLessonScopeChange,
   delivProgress,
   currentDelivFeatures,
   isDelivGenerating,
@@ -1839,6 +1873,91 @@ export default function ChatPanel({
       selectedFeatures,
     ],
   );
+  const handleLessonScopeCommand = useCallback(
+    async (item) => {
+      if (!item || item.id !== 'set-lesson-scope') return false;
+
+      const lessons = Array.isArray(courseMap?.lessons) ? courseMap.lessons : [];
+      const currentLessonCount = lessons.length;
+      const requestedAll = item.requestedScope === 'all';
+      const targetLessonCount = requestedAll ? currentLessonCount : Number(item.targetLessonCount || 0);
+      const displayText =
+        item.displayText ||
+        (requestedAll
+          ? 'Use all lessons'
+          : `Change scope to ${targetLessonCount} lesson${targetLessonCount === 1 ? '' : 's'}`);
+
+      if (!currentLessonCount || !Number.isInteger(targetLessonCount) || targetLessonCount < 1) {
+        chat.addLocalMessages([
+          buildLocalAgentUserMessage(displayText),
+          buildLessonScopeReceipt({
+            status: 'blocked',
+            issues: ['No generated course map is available to scope yet.'],
+            next: 'Generate or restore a course map first.',
+          }),
+          { role: 'assistant', text: 'Generate or restore a course map before changing lesson scope.' },
+        ]);
+        return true;
+      }
+
+      if (targetLessonCount <= currentLessonCount) {
+        const nextScope =
+          requestedAll || targetLessonCount === currentLessonCount
+            ? { type: 'all', indices: [] }
+            : { type: 'specific', indices: Array.from({ length: targetLessonCount }, (_, index) => index) };
+        onLessonScopeChange?.(nextScope);
+        onPackageQualityPassUpdate?.({
+          status: 'idle',
+          message: `Scope changed to ${
+            requestedAll || targetLessonCount === currentLessonCount ? `all ${currentLessonCount}` : targetLessonCount
+          } lessons. Run Finish package to verify this scope.`,
+          repairsApplied: 0,
+          warnings: 0,
+          blockers: 0,
+        });
+        const scopeText =
+          requestedAll || targetLessonCount === currentLessonCount
+            ? `all ${currentLessonCount} lessons`
+            : `the first ${targetLessonCount} of ${currentLessonCount} lessons`;
+        chat.addLocalMessages([
+          buildLocalAgentUserMessage(displayText),
+          buildLessonScopeReceipt({
+            changed: [`Working set scope: ${scopeText}`],
+            next: 'Run Finish package to verify the selected scope before downloading.',
+          }),
+          { role: 'assistant', text: `Scope updated to ${scopeText}.` },
+        ]);
+        return true;
+      }
+
+      if (!chat.isAgentProviderReady) {
+        chat.addLocalMessages([
+          buildLocalAgentUserMessage(displayText),
+          buildLessonScopeReceipt({
+            status: 'blocked',
+            issues: [`Expanding from ${currentLessonCount} to ${targetLessonCount} lessons needs new lesson content.`],
+            next: 'Configure an AI provider, then run this scope change again.',
+          }),
+          {
+            role: 'assistant',
+            text: `I can set scope within the existing ${currentLessonCount} lessons locally. Expanding to ${targetLessonCount} lessons needs the Agent to draft new course-map lessons.`,
+          },
+        ]);
+        return true;
+      }
+
+      await chat.send(displayText, {
+        displayText,
+        agentPromptOverride: buildExpandCoursePrompt({
+          currentLessonCount,
+          targetLessonCount,
+          agentDryRun: chat.agentDryRun,
+        }),
+      });
+      return true;
+    },
+    [chat, courseMap?.lessons, onLessonScopeChange, onPackageQualityPassUpdate],
+  );
   const handleAgentCommand = useCallback(
     async (item) => {
       if (!item) return;
@@ -1884,6 +2003,10 @@ export default function ChatPanel({
         return;
       }
       if (notifyAgentCommandTemporarilyBlocked(item)) return;
+      if (item.id === 'set-lesson-scope') {
+        const handled = await handleLessonScopeCommand(item);
+        if (handled) return;
+      }
       if (item.id === 'sync-stale') {
         const handled = await handleWorkspacePlanAction(
           {
@@ -1953,6 +2076,7 @@ export default function ChatPanel({
       activeTab,
       courseMap,
       delivCanUndo,
+      handleLessonScopeCommand,
       handleWorkspacePlanAction,
       lessonScope,
       notifyAgentCommandTemporarilyBlocked,

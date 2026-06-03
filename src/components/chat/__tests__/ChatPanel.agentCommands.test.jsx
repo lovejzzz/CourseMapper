@@ -27,6 +27,9 @@ const messageListMock = vi.hoisted(() => ({
 const progressHeaderMock = vi.hoisted(() => ({
   props: null,
 }));
+const chatInputMock = vi.hoisted(() => ({
+  props: null,
+}));
 
 vi.mock('../MessageList', () => ({
   default: (props) => {
@@ -34,7 +37,12 @@ vi.mock('../MessageList', () => ({
     return <div data-testid="messages" />;
   },
 }));
-vi.mock('../ChatInput', () => ({ default: () => <div data-testid="chat-input" /> }));
+vi.mock('../ChatInput', () => ({
+  default: (props) => {
+    chatInputMock.props = props;
+    return <div data-testid="chat-input" />;
+  },
+}));
 vi.mock('../PackageSummaryCard', () => ({ default: () => <div data-testid="package-summary" /> }));
 vi.mock('../ProgressHeader', () => ({
   default: (props) => {
@@ -238,6 +246,7 @@ describe('ChatPanel agent command strip', () => {
     chatRouterMock.updateLocalMessage.mockReset();
     messageListMock.props = null;
     progressHeaderMock.props = null;
+    chatInputMock.props = null;
     container = document.createElement('div');
     document.body.appendChild(container);
   });
@@ -422,6 +431,81 @@ describe('ChatPanel agent command strip', () => {
       },
     ]);
     expect(chatRouterMock.send).not.toHaveBeenCalled();
+  });
+
+  it('sets a narrower lesson scope locally from the typed Agent command', async () => {
+    const onLessonScopeChange = vi.fn();
+    const onPackageQualityPassUpdate = vi.fn();
+    root = renderChatPanel(container, {
+      courseMap: {
+        courseName: 'Applied Policy',
+        lessons: [{ title: 'Foundations' }, { title: 'Policy Tools' }, { title: 'Evidence' }],
+      },
+      onLessonScopeChange,
+      onPackageQualityPassUpdate,
+    });
+
+    await act(async () => {
+      await chatInputMock.props.onAgentCommand({
+        id: 'set-lesson-scope',
+        displayText: 'Change scope to 2 lessons',
+        targetLessonCount: 2,
+        requestedScope: 'count',
+      });
+    });
+
+    expect(onLessonScopeChange).toHaveBeenCalledWith({ type: 'specific', indices: [0, 1] });
+    expect(onPackageQualityPassUpdate).toHaveBeenCalledWith(
+      expect.objectContaining({
+        status: 'idle',
+        message: expect.stringContaining('Scope changed to 2 lessons'),
+      }),
+    );
+    expect(chatRouterMock.addLocalMessages).toHaveBeenCalledWith([
+      { role: 'user', text: 'Change scope to 2 lessons' },
+      {
+        role: 'agentReceipt',
+        receipt: expect.objectContaining({
+          title: 'Scope receipt',
+          status: 'done',
+          mode: 'Local',
+          target: 'Lesson scope',
+          changed: ['Working set scope: the first 2 of 3 lessons'],
+        }),
+      },
+      { role: 'assistant', text: 'Scope updated to the first 2 of 3 lessons.' },
+    ]);
+    expect(chatRouterMock.send).not.toHaveBeenCalled();
+  });
+
+  it('routes an expansion scope request through the Agent course-map patch path', async () => {
+    const onLessonScopeChange = vi.fn();
+    root = renderChatPanel(container, {
+      courseMap: {
+        courseName: 'Applied Policy',
+        lessons: [{ title: 'Foundations' }, { title: 'Policy Tools' }],
+      },
+      onLessonScopeChange,
+    });
+
+    await act(async () => {
+      await chatInputMock.props.onAgentCommand({
+        id: 'set-lesson-scope',
+        displayText: 'Change scope to 4 lessons',
+        targetLessonCount: 4,
+        requestedScope: 'count',
+      });
+    });
+
+    expect(onLessonScopeChange).not.toHaveBeenCalled();
+    expect(chatRouterMock.send).toHaveBeenCalledWith(
+      'Change scope to 4 lessons',
+      expect.objectContaining({
+        displayText: 'Change scope to 4 lessons',
+        agentPromptOverride: expect.stringContaining('edit_course_map with exactly 2 addLesson patches'),
+      }),
+    );
+    expect(chatRouterMock.addLocalMessages).not.toHaveBeenCalled();
   });
 
   it('runs the Finish command directly through package finalization when edits are allowed', async () => {

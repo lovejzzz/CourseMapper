@@ -3746,6 +3746,7 @@ export default function AppFlow({ startupAction = null, onStartupHandled, onRetu
                   columns={columns}
                   deliverableConfig={deliverableConfig}
                   lessonScope={lessonScope}
+                  onLessonScopeChange={setLessonScope}
                   delivProgress={deliv.progress}
                   currentDelivFeatures={deliv.currentFeatures}
                   isDelivGenerating={deliv.isGenerating}
