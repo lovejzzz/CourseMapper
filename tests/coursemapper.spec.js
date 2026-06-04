@@ -173,7 +173,7 @@ test.describe('Landing Page', () => {
     await expect(page.getByRole('button', { name: 'Resume' })).toBeVisible({ timeout: 10000 });
     await page.getByRole('button', { name: 'Resume' }).click();
 
-    await expect(page.getByText('Gemini 2.5 Pro')).toBeVisible({ timeout: 10000 });
+    await expect(page.getByTestId('workspace-model-config-trigger')).toHaveText('Gemini 2.5 Pro', { timeout: 10000 });
     const restored = await page.evaluate(() => ({
       provider: localStorage.getItem('coursemapper-provider'),
       modelId: localStorage.getItem('coursemapper-modelid'),
@@ -346,7 +346,9 @@ test.describe('Landing Page', () => {
       buffer: Buffer.from(JSON.stringify(project)),
     });
 
-    await expect(page.getByText('Claude Sonnet 4.5')).toBeVisible({ timeout: 10000 });
+    await expect(page.getByTestId('workspace-model-config-trigger')).toHaveText('Claude Sonnet 4.5', {
+      timeout: 10000,
+    });
     const restored = await page.evaluate(() => ({
       provider: localStorage.getItem('coursemapper-provider'),
       modelId: localStorage.getItem('coursemapper-modelid'),

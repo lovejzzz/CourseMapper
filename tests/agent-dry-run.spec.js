@@ -106,8 +106,8 @@ function openAiRespondStream(text) {
   ].join('\n');
 }
 
-test.describe('Agent review-only mode', () => {
-  test('keeps mutating tools out of a real agent request', async ({ page }) => {
+test.describe('Agent conversation-driven mode', () => {
+  test('keeps mode choice in the conversation instead of a review-only toggle', async ({ page }) => {
     const agentRequests = [];
     const consoleErrors = [];
 
@@ -130,7 +130,7 @@ test.describe('Agent review-only mode', () => {
         await route.fulfill({
           status: 200,
           contentType: 'text/event-stream',
-          body: openAiRespondStream('Suggest-only review complete. No workspace changes were applied.'),
+          body: openAiRespondStream('I can revise the lesson plan and will ask before broad changes.'),
         });
         return;
       }
@@ -156,28 +156,24 @@ test.describe('Agent review-only mode', () => {
 
     const agentPanel = page.getByTestId('workspace-agent-panel');
     await expect(agentPanel.getByRole('heading', { name: 'Agent' })).toBeVisible();
-    await expect(agentPanel.getByTestId('agent-dry-run-toggle')).toContainText('Auto-fix on');
-
-    await agentPanel.getByTestId('agent-dry-run-toggle').click();
-    await expect(agentPanel.getByTestId('agent-dry-run-toggle')).toContainText('Review only');
-    await expect(agentPanel.getByText('No edits', { exact: true })).toBeVisible();
+    await expect(agentPanel.getByTestId('agent-dry-run-toggle')).toHaveCount(0);
+    await expect(agentPanel.getByText('No edits', { exact: true })).toHaveCount(0);
+    await expect(agentPanel.getByText('Conversation', { exact: true })).toBeVisible();
 
     await agentPanel.locator('textarea').fill('Make the lesson plan more active.');
     await agentPanel.getByLabel('Send message').click();
 
     await expect.poll(() => agentRequests.length, { timeout: 10000 }).toBe(1);
-    await expect(agentPanel.getByText('Suggest-only review complete. No workspace changes were applied.')).toBeVisible({
+    await expect(agentPanel.getByText('I can revise the lesson plan and will ask before broad changes.')).toBeVisible({
       timeout: 10000,
     });
 
     const toolNames = agentRequests[0].tools.map((tool) => tool.function?.name).filter(Boolean);
-    for (const toolName of MUTATING_AGENT_TOOLS) {
-      expect(toolNames).not.toContain(toolName);
-    }
+    expect(toolNames.some((toolName) => MUTATING_AGENT_TOOLS.includes(toolName))).toBe(true);
     expect(toolNames).toContain('validate_course');
     expect(toolNames).toContain('read_deliverable');
     expect(toolNames).toContain('respond');
-    expect(agentRequests[0].messages[0].content).toContain('CURRENT AGENT MODE: REVIEW ONLY / READ-ONLY');
+    expect(agentRequests[0].messages[0].content).not.toContain('CURRENT AGENT MODE: REVIEW ONLY / READ-ONLY');
     expect(consoleErrors).toEqual([]);
   });
 });

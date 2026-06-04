@@ -240,7 +240,7 @@ test.describe('Agent command strip', () => {
     const workingSet = agentPanel.getByTestId('agent-working-set-panel');
     await expect(workingSet).toBeVisible();
     await expect(workingSet.getByTestId('agent-working-target')).toContainText('Lesson Plans');
-    await expect(workingSet.getByTestId('agent-working-mode')).toContainText('Auto-fix');
+    await expect(workingSet.getByTestId('agent-working-mode')).toContainText('AI connected');
     await expect(workingSet.getByTestId('agent-working-scope')).toContainText('1 lesson');
     await expect(workingSet.getByTestId('agent-working-materials')).toContainText('1 ready');
     await expect(workingSet.getByTestId('agent-working-package')).toHaveCount(0);
