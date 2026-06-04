@@ -211,20 +211,6 @@ export default function useCourseMapEditor({
     [courseMap, setCourseMap, setDownloadedFile, pushVersion, onEdit],
   );
 
-  const handleAddLesson = useCallback(
-    (payload = null) => {
-      if (!courseMap) return;
-      const updated = structuredClone(courseMap);
-      const { insertIndex, title } = insertLessonPayload(updated, payload, columns);
-      setCourseMap(updated);
-      setDownloadedFile('');
-      pushVersion(updated, `Added ${title}`);
-      onEdit?.(null, '_structural');
-      return insertIndex;
-    },
-    [courseMap, setCourseMap, columns, setDownloadedFile, pushVersion, onEdit],
-  );
-
   const handleAddLessons = useCallback(
     (payloads = []) => {
       if (!courseMap) return [];
@@ -245,6 +231,8 @@ export default function useCourseMapEditor({
     },
     [courseMap, setCourseMap, columns, setDownloadedFile, pushVersion, onEdit],
   );
+
+  const handleAddLesson = useCallback((payload = null) => handleAddLessons(payload)[0], [handleAddLessons]);
 
   const handleDeleteLesson = useCallback(
     (lessonIdx) => {
