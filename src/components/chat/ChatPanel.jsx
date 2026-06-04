@@ -499,6 +499,7 @@ function buildAgentReceiptMessage({
   intent = null,
   runStats = null,
   toolManifest = null,
+  stateDiffs = null,
 } = {}) {
   const receipt = {
     title,
@@ -514,6 +515,7 @@ function buildAgentReceiptMessage({
   if (intent) receipt.intent = intent;
   if (runStats) receipt.runStats = runStats;
   if (toolManifest) receipt.toolManifest = toolManifest;
+  if (Array.isArray(stateDiffs) && stateDiffs.length > 0) receipt.stateDiffs = stateDiffs;
   return {
     role: 'agentReceipt',
     receipt,
@@ -596,6 +598,7 @@ function buildPackageFinishReceipt(result = {}) {
         : 'No safe repairs needed',
     checked: ['Readiness', 'Classroom fit', 'Content validation', 'Export files'],
     issues: extractSummaryIssues(summary),
+    stateDiffs: buildPackageRepairReceiptDiffs(result),
     next: status === 'done' ? 'Download when ready.' : 'Review the remaining package issues before export.',
   });
 }
@@ -614,6 +617,23 @@ function buildWorkspacePlanReceipt(plan = {}, mode = 'Workspace plan') {
   });
 }
 
+function buildPackageRepairReceiptDiffs(result = {}) {
+  const repairs = Array.isArray(result?.repairs) ? result.repairs : [];
+  return repairs
+    .filter(Boolean)
+    .slice(0, 8)
+    .map((repair) => ({
+      status: repair.success === false ? 'failed' : 'changed',
+      action: 'repair_package_readiness',
+      target: repair.label || 'Package',
+      featureId: repair.featureId,
+      before: repair.success === false ? '' : 'Generated deliverable state',
+      after:
+        Array.isArray(repair.changes) && repair.changes.length > 0 ? repair.changes.join('; ') : repair.message || '',
+      reason: repair.success === false ? repair.message || 'Package repair failed.' : '',
+    }));
+}
+
 function buildUndoReceipt(targetLabel) {
   return buildAgentReceiptMessage({
     title: 'Undo receipt',
@@ -623,6 +643,15 @@ function buildUndoReceipt(targetLabel) {
     target: targetLabel,
     changed: `Restored previous ${targetLabel} state`,
     checked: 'Undo snapshot',
+    stateDiffs: [
+      {
+        status: 'changed',
+        action: 'undo_last',
+        target: targetLabel,
+        before: 'Latest deliverable state',
+        after: 'Previous deliverable snapshot restored.',
+      },
+    ],
     next: 'Run Plan or Audit if you want me to check the workspace again.',
   });
 }
@@ -737,14 +766,16 @@ function buildLocalAgentUserMessage(text, agentPromptOverride = null) {
   return message;
 }
 
-function buildDirectAgentStep(tool, label, { status = 'done', targets = [], summary = '' } = {}) {
-  return {
+function buildDirectAgentStep(tool, label, { status = 'done', targets = [], summary = '', stateDiffs = null } = {}) {
+  const step = {
     tool,
     label,
     status,
     targets: Array.isArray(targets) ? targets.filter(Boolean) : [],
     summary,
   };
+  if (Array.isArray(stateDiffs) && stateDiffs.length > 0) step.stateDiffs = stateDiffs;
+  return step;
 }
 
 function buildDirectAgentProgress({
@@ -857,6 +888,7 @@ function buildPackageFinishProgressSteps(result = {}) {
         Number(summary.repairsApplied || 0) > 0
           ? `${summary.repairsApplied} safe repair${summary.repairsApplied === 1 ? '' : 's'}`
           : 'No safe repairs needed',
+      stateDiffs: buildPackageRepairReceiptDiffs(result),
     }),
     buildDirectAgentStep('finalize_package', 'Finish package', {
       status: finalStatus,
@@ -1627,6 +1659,15 @@ export default function ChatPanel({
               buildDirectAgentStep('undo_last', 'Undo last change', {
                 targets: [targetLabel],
                 summary: 'Restored previous deliverable state',
+                stateDiffs: [
+                  {
+                    status: 'changed',
+                    action: 'undo_last',
+                    target: targetLabel,
+                    before: 'Latest deliverable state',
+                    after: 'Previous deliverable snapshot restored.',
+                  },
+                ],
               }),
             ],
           }),

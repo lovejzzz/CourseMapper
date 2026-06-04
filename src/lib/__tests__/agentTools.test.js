@@ -859,6 +859,22 @@ describe('Tool execute: package readiness', () => {
     expect(mockCtx.optimisticUpdate).not.toHaveBeenCalledWith('quizBank', expect.any(Object));
   });
 
+  it('refuses package readiness repairs when the deliverable updater is unavailable', async () => {
+    mockCtx.optimisticUpdate = null;
+
+    const result = await AGENT_TOOLS.repair_package_readiness.execute({}, mockCtx);
+
+    expect(result.error).toContain('Deliverable update API is not available');
+  });
+
+  it('refuses package finalization repairs when the deliverable updater is unavailable', async () => {
+    mockCtx.optimisticUpdate = null;
+
+    const result = await AGENT_TOOLS.finalize_package.execute({}, mockCtx);
+
+    expect(result.error).toContain('Deliverable update API is not available');
+  });
+
   it('starts targeted retries for localized weak generated sections', async () => {
     mockCtx.deliverables = {
       slideDecks: {
@@ -880,14 +896,48 @@ describe('Tool execute: package readiness', () => {
       { skipSnapshot: true },
     );
   });
+
+  it.each([0, 9, 1.5, '2'])('rejects invalid retry maxActions before starting retries (%s)', async (maxActions) => {
+    mockCtx.executeAction = vi.fn();
+
+    const result = await AGENT_TOOLS.retry_package_weak_spots.execute({ maxActions }, mockCtx);
+
+    expect(result.error).toBe('Invalid maxActions - expected an integer from 1 to 8.');
+    expect(mockCtx.executeAction).not.toHaveBeenCalled();
+  });
 });
 
 describe('Tool execute: run_tool', () => {
   it('delegates known built-in tool names when the model routes them through run_tool', async () => {
     const invokeBuiltin = vi.fn(async () => ({ started: 1, pending: 1, failed: 0 }));
+    const validateBuiltinDelegation = vi.fn(() => null);
 
     const result = await AGENT_TOOLS.run_tool.execute(
       { name: 'retry_package_weak_spots', args: { maxActions: 2 } },
+      {
+        customTools: {
+          registry: { get: vi.fn(() => null) },
+          invokeBuiltin,
+          validateBuiltinDelegation,
+        },
+      },
+    );
+
+    expect(validateBuiltinDelegation).toHaveBeenCalledWith('retry_package_weak_spots', { maxActions: 2 });
+    expect(invokeBuiltin).toHaveBeenCalledWith('retry_package_weak_spots', { maxActions: 2 }, undefined);
+    expect(result).toEqual({
+      ok: true,
+      delegatedTool: 'retry_package_weak_spots',
+      result: { started: 1, pending: 1, failed: 0 },
+    });
+    expect(summarizeToolResult('run_tool', result)).toBe('1 retries started, 1 pending');
+  });
+
+  it('blocks mutation-capable built-in delegation without a validation hook', async () => {
+    const invokeBuiltin = vi.fn();
+
+    const result = await AGENT_TOOLS.run_tool.execute(
+      { name: 'edit_course_map', args: { patches: [{ lessonIndex: 0, field: 'title', value: 'Unsafe' }] } },
       {
         customTools: {
           registry: { get: vi.fn(() => null) },
@@ -896,13 +946,41 @@ describe('Tool execute: run_tool', () => {
       },
     );
 
-    expect(invokeBuiltin).toHaveBeenCalledWith('retry_package_weak_spots', { maxActions: 2 }, undefined);
-    expect(result).toEqual({
-      ok: true,
-      delegatedTool: 'retry_package_weak_spots',
-      result: { started: 1, pending: 1, failed: 0 },
+    expect(result.error).toContain('Mutation-capable tool "edit_course_map"');
+    expect(invokeBuiltin).not.toHaveBeenCalled();
+  });
+
+  it('blocks custom macro mutation steps when the validation hook refuses them', async () => {
+    const invokeBuiltin = vi.fn(async () => ({ applied: 1, failed: 0 }));
+    const validateBuiltinDelegation = vi.fn(() => ({ error: 'Please confirm this broad course-map rewrite first.' }));
+    const registry = {
+      get: vi.fn(() => ({
+        plan: [
+          {
+            id: 'edit',
+            tool: 'edit_course_map',
+            args: { patches: [{ lessonIndex: 0, field: 'title', value: 'Unsafe' }] },
+          },
+        ],
+      })),
+    };
+
+    const result = await AGENT_TOOLS.run_tool.execute(
+      { name: 'unsafe_macro', args: {} },
+      {
+        customTools: {
+          registry,
+          invokeBuiltin,
+          validateBuiltinDelegation,
+        },
+      },
+    );
+
+    expect(result.error).toContain('step "edit" (edit_course_map) failed: Please confirm');
+    expect(validateBuiltinDelegation).toHaveBeenCalledWith('edit_course_map', {
+      patches: [{ lessonIndex: 0, field: 'title', value: 'Unsafe' }],
     });
-    expect(summarizeToolResult('run_tool', result)).toBe('1 retries started, 1 pending');
+    expect(invokeBuiltin).not.toHaveBeenCalled();
   });
 
   it('does not delegate unknown or meta tool names through run_tool', async () => {
@@ -1210,6 +1288,79 @@ describe('Tool execute: edit_course_map', () => {
   it('defaults sectionIndex to 0 when not provided', () => {
     AGENT_TOOLS.edit_course_map.execute({ patches: [{ lessonIndex: 0, field: 'topicSection', value: 'X' }] }, mockCtx);
     expect(mockCtx.executeAction).toHaveBeenCalledWith(expect.objectContaining({ sectionIndex: 0 }));
+  });
+
+  it('rejects invalid course-map patches before calling executeAction', () => {
+    const result = AGENT_TOOLS.edit_course_map.execute(
+      { patches: [{ lessonIndex: 0, field: 'ghostField', value: 'Do not write this' }] },
+      mockCtx,
+    );
+
+    expect(result).toMatchObject({
+      applied: 0,
+      failed: 1,
+      details: [
+        expect.objectContaining({ success: false, message: expect.stringContaining('Unknown course-map field') }),
+      ],
+    });
+    expect(mockCtx.executeAction).not.toHaveBeenCalled();
+  });
+
+  it('prevalidates the whole course-map batch before executing valid patches', () => {
+    const result = AGENT_TOOLS.edit_course_map.execute(
+      {
+        patches: [
+          { lessonIndex: 0, field: 'topicSection', value: 'Valid topic' },
+          { lessonIndex: 50, field: 'topicSection', value: 'Invalid target' },
+        ],
+      },
+      mockCtx,
+    );
+
+    expect(result.applied).toBe(1);
+    expect(result.failed).toBe(1);
+    expect(result.details[1]).toMatchObject({
+      success: false,
+      message: expect.stringContaining('out of range'),
+    });
+    expect(mockCtx.executeAction).toHaveBeenCalledTimes(1);
+    expect(mockCtx.executeAction).toHaveBeenCalledWith(
+      expect.objectContaining({ type: 'editCell', lessonIndex: 0, field: 'topicSection' }),
+    );
+  });
+
+  it('blocks duplicate lesson titles within one addLesson batch', () => {
+    const result = AGENT_TOOLS.edit_course_map.execute(
+      {
+        patches: [
+          { action: 'addLesson', title: 'New Studio', sections: [{ topicSection: 'A' }] },
+          { action: 'addLesson', title: 'New Studio', sections: [{ topicSection: 'B' }] },
+        ],
+      },
+      mockCtx,
+    );
+
+    expect(result.applied).toBe(1);
+    expect(result.failed).toBe(1);
+    expect(result.details[1]).toMatchObject({
+      success: false,
+      message: expect.stringContaining('already exists'),
+    });
+    expect(mockCtx.executeAction).toHaveBeenCalledTimes(1);
+  });
+
+  it('allows runtime custom course-map columns', () => {
+    mockCtx.columns = [{ key: 'communityPartner' }];
+    const result = AGENT_TOOLS.edit_course_map.execute(
+      { patches: [{ lessonIndex: 0, field: 'communityPartner', value: 'Local clinic' }] },
+      mockCtx,
+    );
+
+    expect(result.applied).toBe(1);
+    expect(result.failed).toBe(0);
+    expect(mockCtx.executeAction).toHaveBeenCalledWith(
+      expect.objectContaining({ field: 'communityPartner', value: 'Local clinic' }),
+    );
   });
 });
 
@@ -1535,6 +1686,29 @@ describe('Tool execute: generate_slide_images', () => {
     expect(result.note).toContain('No image-ready slides');
     expect(ctx.optimisticUpdate).not.toHaveBeenCalled();
   });
+
+  it('rejects invalid slide image mutation args before provider calls or state updates', async () => {
+    const invalidCases = [
+      { args: { lessonIndex: -1 }, error: 'lessonIndex' },
+      { args: { lessonIndex: 1.5 }, error: 'lessonIndex' },
+      { args: { maxImages: 0 }, error: 'maxImages' },
+      { args: { maxImages: 13 }, error: 'maxImages' },
+      { args: { force: 'true' }, error: 'force' },
+      { args: { model: 123 }, error: 'model' },
+    ];
+
+    for (const invalidCase of invalidCases) {
+      const ctx = makeSlideImageCtx();
+      generateImages.mockClear();
+
+      const result = await AGENT_TOOLS.generate_slide_images.execute(invalidCase.args, ctx);
+
+      expect(result.error).toContain(invalidCase.error);
+      expect(generateImages).not.toHaveBeenCalled();
+      expect(ctx.snapshot).not.toHaveBeenCalled();
+      expect(ctx.optimisticUpdate).not.toHaveBeenCalled();
+    }
+  });
 });
 
 describe('Tool execute: verify_slide_images', () => {
@@ -1605,6 +1779,19 @@ describe('Tool execute: save_preference', () => {
     expect(saveAgentPrefs).toHaveBeenCalledWith('test-user', expect.objectContaining({ style: 'formal' }));
   });
 
+  it('rejects blank preference keys and values before writing', async () => {
+    const { saveAgentPrefs } = await import('../cloudStorage');
+
+    expect(AGENT_TOOLS.save_preference.execute({ key: '   ', value: 'formal' }, mockCtx).error).toContain(
+      'Preference key',
+    );
+    expect(AGENT_TOOLS.save_preference.execute({ key: 'style', value: '   ' }, mockCtx).error).toContain(
+      'Preference value',
+    );
+    expect(localStorage.getItem('coursemapper-agent-prefs')).toBeNull();
+    expect(saveAgentPrefs).not.toHaveBeenCalled();
+  });
+
   it('returns error on localStorage failure', () => {
     globalThis.localStorage = {
       getItem() {
@@ -1642,6 +1829,21 @@ describe('Tool execute: remember', () => {
     const { addMemory } = await import('../agentMemory');
     AGENT_TOOLS.remember.execute({ content: 'Test', category: 'general' }, mockCtx);
     expect(addMemory).toHaveBeenCalledWith(expect.objectContaining({ uid: 'test-user' }));
+  });
+
+  it('rejects invalid memory payloads before writing', async () => {
+    const { addMemory } = await import('../agentMemory');
+
+    expect(AGENT_TOOLS.remember.execute({ content: '   ', category: 'general' }, mockCtx).error).toContain(
+      'Memory content',
+    );
+    expect(AGENT_TOOLS.remember.execute({ content: 'Use cases', category: 'unknown' }, mockCtx).error).toContain(
+      'Invalid memory category',
+    );
+    expect(
+      AGENT_TOOLS.remember.execute({ content: 'Use cases', category: 'general', importance: 6 }, mockCtx).error,
+    ).toContain('importance');
+    expect(addMemory).not.toHaveBeenCalled();
   });
 
   it('handles addMemory throwing (dedup detection returns error)', async () => {
@@ -1739,6 +1941,14 @@ describe('Tool execute: forget', () => {
     const result = AGENT_TOOLS.forget.execute({ id: 'mem_1' }, {});
     expect(deleteMemory).toHaveBeenCalledWith('mem_1', null);
     expect(result.deleted).toBe(true);
+  });
+
+  it('rejects missing memory id before deleting', async () => {
+    const { deleteMemory } = await import('../agentMemory');
+    const result = AGENT_TOOLS.forget.execute({ id: '   ' }, mockCtx);
+
+    expect(result.error).toContain('Memory id');
+    expect(deleteMemory).not.toHaveBeenCalled();
   });
 
   it('returns error when deleteMemory throws (nonexistent)', async () => {

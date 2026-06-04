@@ -40,6 +40,81 @@ function normalizeList(value) {
   return text ? [text] : [];
 }
 
+function normalizeVerification(value) {
+  if (!value || typeof value !== 'object') return null;
+  const status = String(value.status || '').trim();
+  const label = String(value.label || '').trim();
+  if (!status && !label) return null;
+  return {
+    ...value,
+    status,
+    label,
+  };
+}
+
+function normalizePlanning(value) {
+  if (!value || typeof value !== 'object') return null;
+  const status = String(value.status || '').trim();
+  const label = String(value.label || '').trim();
+  if (!status && !label) return null;
+  return {
+    ...value,
+    status,
+    label,
+    required: value.required === true,
+    hasPlan: value.hasPlan === true,
+  };
+}
+
+function normalizeStateDiffs(value) {
+  if (!Array.isArray(value)) return [];
+  return value
+    .map((item) => {
+      if (!item || typeof item !== 'object') return null;
+      const status = String(item.status || '').trim();
+      const action = String(item.action || '').trim();
+      const target = String(item.target || '').trim();
+      const before = String(item.before || '').trim();
+      const after = String(item.after || '').trim();
+      const reason = String(item.reason || '').trim();
+      const path = String(item.path || '').trim();
+      if (!status && !action && !target && !before && !after && !reason) return null;
+      return { status, action, target, before, after, reason, path };
+    })
+    .filter(Boolean)
+    .slice(0, 8);
+}
+
+function normalizeQualityScorecard(value) {
+  if (!value || typeof value !== 'object') return null;
+  const score = Number(value.score);
+  const maxScore = Number(value.maxScore || 100);
+  const label = String(value.label || '').trim();
+  const dimensions = Array.isArray(value.dimensions)
+    ? value.dimensions
+        .map((dimension) => {
+          if (!dimension || typeof dimension !== 'object') return null;
+          const id = String(dimension.id || '').trim();
+          const dimensionLabel = String(dimension.label || id).trim();
+          const status = String(dimension.status || '').trim();
+          const dimensionScore =
+            typeof dimension.score === 'number' && Number.isFinite(dimension.score) ? dimension.score : null;
+          if (!id && !dimensionLabel) return null;
+          return { id, label: dimensionLabel, status, score: dimensionScore };
+        })
+        .filter(Boolean)
+        .slice(0, 5)
+    : [];
+  if (!Number.isFinite(score) && !dimensions.length) return null;
+  return {
+    score: Number.isFinite(score) ? score : null,
+    maxScore: Number.isFinite(maxScore) && maxScore > 0 ? maxScore : 100,
+    label,
+    status: String(value.status || '').trim(),
+    dimensions,
+  };
+}
+
 function receiptAction(action) {
   return {
     source: 'agent-receipt',
@@ -80,6 +155,10 @@ export function buildAgentReceiptSummary(receipt = {}) {
   const mode = String(receipt.mode || '').trim();
   const target = String(receipt.target || '').trim();
   const next = String(receipt.next || '').trim();
+  const planning = normalizePlanning(receipt.planning);
+  const verification = normalizeVerification(receipt.verification);
+  const stateDiffs = normalizeStateDiffs(receipt.stateDiffs);
+  const quality = normalizeQualityScorecard(receipt.quality);
 
   return {
     title: receipt.title || (status === 'blocked' ? 'Action needs attention' : 'Action complete'),
@@ -90,6 +169,10 @@ export function buildAgentReceiptSummary(receipt = {}) {
     changed: changed.length > 0 ? changed : ['No workspace edits'],
     checked,
     issues,
+    planning,
+    verification,
+    stateDiffs,
+    quality,
     next,
   };
 }
@@ -386,6 +469,105 @@ function getToolTraceTone(status) {
   return 'border-emerald-200 bg-emerald-50 text-emerald-700';
 }
 
+function getStateDiffTone(status) {
+  if (status === 'failed') return { dot: 'bg-red-500', text: 'text-red-700', label: 'Failed' };
+  if (status === 'skipped') return { dot: 'bg-slate-400', text: 'text-slate-600', label: 'Skipped' };
+  if (status === 'pending') return { dot: 'bg-amber-500', text: 'text-amber-800', label: 'Queued' };
+  return { dot: 'bg-emerald-500', text: 'text-slate-700', label: 'Changed' };
+}
+
+function ReceiptStateDiffs({ diffs = [] }) {
+  if (!diffs.length) return null;
+  return (
+    <div data-testid="agent-receipt-state-diffs" className="mt-2 border-t border-white/70 pt-2">
+      <p className="text-[10px] font-bold uppercase tracking-wide text-slate-400">State diff</p>
+      <div className="mt-1 space-y-1.5">
+        {diffs.map((diff, index) => {
+          const tone = getStateDiffTone(diff.status);
+          const targetMeta = [diff.target, diff.path].filter(Boolean).join(' · ');
+          return (
+            <div
+              key={`${diff.status}-${diff.action}-${diff.target}-${diff.path}-${index}`}
+              className={`flex items-start gap-1.5 text-[11px] leading-snug ${tone.text}`}
+            >
+              <span className={`mt-1.5 h-1.5 w-1.5 shrink-0 rounded-full ${tone.dot}`} aria-hidden="true" />
+              <span className="min-w-0">
+                <span className="font-semibold">{tone.label}</span>
+                {diff.action && <span> {diff.action}</span>}
+                {targetMeta && <span className="text-slate-500"> · {targetMeta}</span>}
+                {(diff.before || diff.after) && (
+                  <span className="block text-slate-600">
+                    {diff.before && (
+                      <>
+                        <span className="font-semibold">Before:</span> {diff.before}
+                      </>
+                    )}
+                    {diff.before && diff.after && <span> </span>}
+                    {diff.after && (
+                      <>
+                        <span className="font-semibold">After:</span> {diff.after}
+                      </>
+                    )}
+                  </span>
+                )}
+                {diff.reason && <span className="block text-slate-500">{diff.reason}</span>}
+              </span>
+            </div>
+          );
+        })}
+      </div>
+    </div>
+  );
+}
+
+function getQualityTone(score) {
+  if (score == null) return 'border-slate-200 bg-white/65 text-slate-600';
+  if (score >= 90) return 'border-emerald-200 bg-white/65 text-emerald-700';
+  if (score >= 75) return 'border-amber-200 bg-white/65 text-amber-800';
+  return 'border-red-200 bg-white/65 text-red-700';
+}
+
+function getQualityDimensionTone(status, score) {
+  if (status === 'not_scored' || score == null) return 'border-slate-200 bg-slate-50 text-slate-500';
+  if (status === 'pass' || score >= 90) return 'border-emerald-200 bg-emerald-50 text-emerald-700';
+  if (status === 'watch' || score >= 75) return 'border-amber-200 bg-amber-50 text-amber-800';
+  return 'border-red-200 bg-red-50 text-red-700';
+}
+
+function ReceiptQualityScorecard({ quality }) {
+  if (!quality) return null;
+  const tone = getQualityTone(quality.score);
+  const scoreText = quality.score == null ? quality.label || 'Not scored' : `${quality.score}/${quality.maxScore}`;
+  return (
+    <div
+      data-testid="agent-receipt-quality-scorecard"
+      className={`mt-2 rounded-md border px-2 py-1.5 text-[11px] leading-snug ${tone}`}
+    >
+      <div className="flex flex-wrap items-center gap-1.5">
+        <span className="font-bold">Quality: </span>
+        <span className="font-semibold">{scoreText}</span>
+        {quality.label && <span>{quality.label}</span>}
+      </div>
+      {quality.dimensions.length > 0 && (
+        <div className="mt-1 flex flex-wrap gap-1">
+          {quality.dimensions.map((dimension) => (
+            <span
+              key={dimension.id || dimension.label}
+              className={`rounded-md border px-1.5 py-0.5 text-[9px] font-bold ${getQualityDimensionTone(
+                dimension.status,
+                dimension.score,
+              )}`}
+              title={dimension.score == null ? 'Not scored' : `${dimension.score}/100`}
+            >
+              {dimension.label}
+            </span>
+          ))}
+        </div>
+      )}
+    </div>
+  );
+}
+
 function ReceiptToolTrace({ tools = [] }) {
   if (!tools.length) return null;
   return (
@@ -416,6 +598,18 @@ export default function AgentReceiptCard({
   const safeReceipt = receipt || {};
   const summary = buildAgentReceiptSummary(safeReceipt);
   const tone = TONES[summary.status] || TONES.done;
+  const verificationTone =
+    summary.verification?.status === 'verified'
+      ? 'border-emerald-200 bg-white/65 text-emerald-700'
+      : summary.verification?.status === 'missing' || summary.verification?.status === 'review'
+        ? 'border-amber-200 bg-white/65 text-amber-800'
+        : 'border-slate-200 bg-white/65 text-slate-600';
+  const planningTone =
+    summary.planning?.status === 'planned'
+      ? 'border-indigo-200 bg-white/65 text-indigo-700'
+      : summary.planning?.status === 'missing' || summary.planning?.status === 'review'
+        ? 'border-amber-200 bg-white/65 text-amber-800'
+        : 'border-slate-200 bg-white/65 text-slate-600';
   const meta = [summary.mode, summary.target, formatReceiptRunStatMeta(safeReceipt.runStats)]
     .filter(Boolean)
     .join(' · ');
@@ -489,6 +683,26 @@ export default function AgentReceiptCard({
               <ReceiptList title="Changed" items={summary.changed} dotClass={tone.dot} />
               <ReceiptList title="Checked" items={summary.checked} dotClass="bg-indigo-400" />
             </div>
+            {summary.verification?.required && summary.verification.label && (
+              <p
+                data-testid="agent-receipt-verification"
+                className={`mt-2 rounded-md border px-2 py-1.5 text-[11px] font-medium leading-snug ${verificationTone}`}
+              >
+                <span className="font-bold">Verifier: </span>
+                {summary.verification.label}
+              </p>
+            )}
+            {(summary.planning?.required || summary.planning?.hasPlan) && summary.planning.label && (
+              <p
+                data-testid="agent-receipt-planning"
+                className={`mt-2 rounded-md border px-2 py-1.5 text-[11px] font-medium leading-snug ${planningTone}`}
+              >
+                <span className="font-bold">Planner: </span>
+                {summary.planning.label}
+              </p>
+            )}
+            <ReceiptQualityScorecard quality={summary.quality} />
+            <ReceiptStateDiffs diffs={summary.stateDiffs} />
             {summary.issues.length > 0 && (
               <div className="mt-2 border-t border-white/70 pt-2">
                 <ReceiptList title="Needs attention" items={summary.issues} dotClass="bg-red-500" />

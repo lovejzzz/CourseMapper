@@ -30,6 +30,19 @@ const FIELD_ALIASES = {
   goals: 'learningGoals',
 };
 
+const DEFAULT_COURSE_MAP_SECTION_FIELDS = new Set([
+  'learningGoals',
+  'learningObjectives',
+  'topicSection',
+  'weeklyAssessments',
+  'asyncActivities',
+  'syncActivities',
+  'supportingResources',
+  'technologyNeeded',
+  'presentationFormat',
+  'evaluateDesign',
+]);
+
 function resolveField(field, sections) {
   if (!field) return field;
   // If the field exists directly in any section, use it as-is
@@ -42,6 +55,25 @@ function resolveField(field, sections) {
     return aliased; // trust alias even without sections
   }
   return field;
+}
+
+function normalizeCourseMapField(field, sections, columns = []) {
+  if (!field || typeof field !== 'string') return field;
+  const resolved = resolveField(field, sections);
+  if (resolved === 'title') return resolved;
+
+  const allowedFields = new Set(DEFAULT_COURSE_MAP_SECTION_FIELDS);
+  (sections || []).forEach((section) => {
+    if (section && typeof section === 'object') {
+      Object.keys(section).forEach((key) => allowedFields.add(key));
+    }
+  });
+  (columns || []).forEach((column) => {
+    if (typeof column === 'string') allowedFields.add(column);
+    else if (column?.key) allowedFields.add(column.key);
+  });
+
+  return allowedFields.has(resolved) ? resolved : null;
 }
 
 // ── Action Types ─────────────────────────────────────────────────────────────
@@ -665,4 +697,76 @@ export function preValidateAction(action, ctx) {
   }
 
   return { valid: true };
+}
+
+export function preValidateCourseMapPatch(patch, ctx = {}) {
+  if (!patch || typeof patch !== 'object') return { valid: false, reason: 'Patch must be an object' };
+  const courseMap = ctx.courseMap;
+  const lessons = courseMap?.lessons;
+  if (!Array.isArray(lessons)) return { valid: false, reason: 'No course map loaded' };
+
+  if (patch.action === 'addLesson') {
+    const title = patch.title || patch.lesson?.title || '';
+    const sections = patch.sections || patch.lesson?.sections;
+    if (!String(title).trim()) return { valid: false, reason: 'addLesson requires a non-empty title' };
+    if (patch.lessonIndex !== undefined) {
+      if (!Number.isInteger(patch.lessonIndex)) {
+        return { valid: false, reason: `Invalid lessonIndex: ${patch.lessonIndex} — expected a number` };
+      }
+      if (patch.lessonIndex < 0 || patch.lessonIndex > lessons.length) {
+        return { valid: false, reason: `lessonIndex ${patch.lessonIndex} out of range (0-${lessons.length})` };
+      }
+    }
+    if (
+      sections !== undefined &&
+      (!Array.isArray(sections) || sections.some((section) => typeof section !== 'object'))
+    ) {
+      return { valid: false, reason: 'addLesson sections must be an array of objects' };
+    }
+    const duplicate = lessons.some(
+      (lesson) =>
+        String(lesson?.title || '')
+          .trim()
+          .toLowerCase() === title.trim().toLowerCase(),
+    );
+    if (duplicate) return { valid: false, reason: `Lesson "${title.trim()}" already exists` };
+    return { valid: true };
+  }
+
+  if (patch.action === 'removeLesson') {
+    const action = { type: 'deleteLesson', lessonIndex: patch.lessonIndex };
+    return preValidateAction(action, { courseMap });
+  }
+
+  if (patch.action && patch.action !== 'addLesson' && patch.action !== 'removeLesson') {
+    return { valid: false, reason: `Unknown course-map patch action: ${patch.action}` };
+  }
+
+  if (!Number.isInteger(patch.lessonIndex)) {
+    return { valid: false, reason: `Invalid lessonIndex: ${patch.lessonIndex} — expected a number` };
+  }
+  if (patch.lessonIndex < 0 || patch.lessonIndex >= lessons.length) {
+    return { valid: false, reason: `lessonIndex ${patch.lessonIndex} out of range (0-${lessons.length - 1})` };
+  }
+  if (!patch.field || typeof patch.field !== 'string')
+    return { valid: false, reason: 'Course-map patch requires field' };
+  if (patch.value === undefined) return { valid: false, reason: `Course-map patch for ${patch.field} requires value` };
+
+  if (patch.field === 'title') {
+    if (!String(patch.value).trim()) return { valid: false, reason: 'Lesson title cannot be blank' };
+    return { valid: true };
+  }
+
+  const sections = lessons[patch.lessonIndex]?.sections || [];
+  const sectionIndex = patch.sectionIndex ?? 0;
+  if (!Number.isInteger(sectionIndex)) {
+    return { valid: false, reason: `Invalid sectionIndex: ${patch.sectionIndex} — expected a number` };
+  }
+  if (sectionIndex < 0 || sectionIndex >= sections.length) {
+    return { valid: false, reason: `sectionIndex ${sectionIndex} out of range (0-${sections.length - 1})` };
+  }
+
+  const resolvedField = normalizeCourseMapField(patch.field, sections, ctx.columns);
+  if (!resolvedField) return { valid: false, reason: `Unknown course-map field: ${patch.field}` };
+  return { valid: true, field: resolvedField };
 }

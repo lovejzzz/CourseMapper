@@ -529,6 +529,15 @@ describe('ChatPanel agent command strip', () => {
     const onFinalizePackage = vi.fn(() =>
       Promise.resolve({
         packageQualityStatus: 'ready',
+        repairsApplied: 1,
+        repairs: [
+          {
+            featureId: 'lessonPlans',
+            label: 'Lesson Plans',
+            success: true,
+            changes: ['normalized lesson plan timing'],
+          },
+        ],
         readiness: { blockers: [], warnings: [] },
       }),
     );
@@ -560,7 +569,19 @@ describe('ChatPanel agent command strip', () => {
     expect(chatRouterMock.addLocalMessages).toHaveBeenCalledWith([
       expect.objectContaining({
         role: 'agentReceipt',
-        receipt: expect.objectContaining({ title: 'Package receipt', status: 'done', target: 'Package' }),
+        receipt: expect.objectContaining({
+          title: 'Package receipt',
+          status: 'done',
+          target: 'Package',
+          stateDiffs: [
+            expect.objectContaining({
+              status: 'changed',
+              action: 'repair_package_readiness',
+              target: 'Lesson Plans',
+              after: 'normalized lesson plan timing',
+            }),
+          ],
+        }),
       }),
       { role: 'assistant', text: 'Package finishing finished. Safe checks passed and the export panel is ready.' },
       expect.objectContaining({
@@ -580,7 +601,17 @@ describe('ChatPanel agent command strip', () => {
       status: 'complete',
       runMeta: { mode: 'Package finish', target: 'Package', model: 'Local tools' },
       steps: [
-        expect.objectContaining({ tool: 'repair_package_readiness', status: 'done' }),
+        expect.objectContaining({
+          tool: 'repair_package_readiness',
+          status: 'done',
+          stateDiffs: [
+            expect.objectContaining({
+              status: 'changed',
+              action: 'repair_package_readiness',
+              target: 'Lesson Plans',
+            }),
+          ],
+        }),
         expect.objectContaining({ tool: 'finalize_package', status: 'done' }),
       ],
     });
@@ -991,7 +1022,20 @@ describe('ChatPanel agent command strip', () => {
     expect(chatRouterMock.addLocalMessages).toHaveBeenCalledWith([
       expect.objectContaining({
         role: 'agentReceipt',
-        receipt: expect.objectContaining({ title: 'Undo receipt', status: 'done', target: 'Lesson Plans' }),
+        receipt: expect.objectContaining({
+          title: 'Undo receipt',
+          status: 'done',
+          target: 'Lesson Plans',
+          stateDiffs: [
+            expect.objectContaining({
+              status: 'changed',
+              action: 'undo_last',
+              target: 'Lesson Plans',
+              before: 'Latest deliverable state',
+              after: 'Previous deliverable snapshot restored.',
+            }),
+          ],
+        }),
       }),
       {
         role: 'assistant',
@@ -1005,7 +1049,20 @@ describe('ChatPanel agent command strip', () => {
       role: 'agentProgress',
       status: 'complete',
       runMeta: { mode: 'Undo', target: 'Lesson Plans', model: 'Local tools' },
-      steps: [expect.objectContaining({ tool: 'undo_last', status: 'done', targets: ['Lesson Plans'] })],
+      steps: [
+        expect.objectContaining({
+          tool: 'undo_last',
+          status: 'done',
+          targets: ['Lesson Plans'],
+          stateDiffs: [
+            expect.objectContaining({
+              status: 'changed',
+              action: 'undo_last',
+              target: 'Lesson Plans',
+            }),
+          ],
+        }),
+      ],
     });
     expect(chatRouterMock.send).not.toHaveBeenCalled();
   });

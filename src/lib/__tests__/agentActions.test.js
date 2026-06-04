@@ -1,5 +1,5 @@
 import { describe, it, expect } from 'vitest';
-import { ACTION_TYPES, executeAction, preValidateAction, parsePath } from '../agentActions';
+import { ACTION_TYPES, executeAction, preValidateAction, preValidateCourseMapPatch, parsePath } from '../agentActions';
 
 // ── Test helpers ──
 const makeCourseMap = (lessonCount = 3) => ({
@@ -186,6 +186,71 @@ describe('preValidateAction', () => {
     );
     expect(result.valid).toBe(false);
     expect(result.reason).toContain('Duplicate');
+  });
+});
+
+describe('preValidateCourseMapPatch', () => {
+  it('accepts safe targeted title and cell edits', () => {
+    const ctx = { courseMap: makeCourseMap(3) };
+
+    expect(preValidateCourseMapPatch({ lessonIndex: 1, field: 'title', value: 'Updated Lesson' }, ctx)).toMatchObject({
+      valid: true,
+    });
+    expect(preValidateCourseMapPatch({ lessonIndex: 1, field: 'lo', value: 'Updated objective' }, ctx)).toMatchObject({
+      valid: true,
+      field: 'learningObjectives',
+    });
+  });
+
+  it('rejects unknown fields before they can create stray course-map properties', () => {
+    const result = preValidateCourseMapPatch(
+      { lessonIndex: 0, field: 'ghostField', value: 'Do not create this' },
+      { courseMap: makeCourseMap(3) },
+    );
+
+    expect(result.valid).toBe(false);
+    expect(result.reason).toContain('Unknown course-map field');
+  });
+
+  it('allows custom course-map columns supplied by the runtime', () => {
+    const result = preValidateCourseMapPatch(
+      { lessonIndex: 0, field: 'communityPartner', value: 'Local clinic' },
+      { courseMap: makeCourseMap(3), columns: [{ key: 'communityPartner' }] },
+    );
+
+    expect(result).toMatchObject({ valid: true, field: 'communityPartner' });
+  });
+
+  it('rejects out-of-range sections and blank titles', () => {
+    expect(
+      preValidateCourseMapPatch(
+        { lessonIndex: 0, sectionIndex: 4, field: 'topicSection', value: 'Too far' },
+        { courseMap: makeCourseMap(3) },
+      ),
+    ).toMatchObject({ valid: false, reason: expect.stringContaining('sectionIndex') });
+
+    expect(
+      preValidateCourseMapPatch({ lessonIndex: 0, field: 'title', value: '   ' }, { courseMap: makeCourseMap(3) }),
+    ).toMatchObject({ valid: false, reason: expect.stringContaining('blank') });
+  });
+
+  it('rejects invalid addLesson payloads', () => {
+    expect(preValidateCourseMapPatch({ action: 'addLesson' }, { courseMap: makeCourseMap(3) })).toMatchObject({
+      valid: false,
+      reason: expect.stringContaining('non-empty title'),
+    });
+    expect(
+      preValidateCourseMapPatch(
+        { action: 'addLesson', title: 'Lesson 1', sections: [{ topicSection: 'Duplicate' }] },
+        { courseMap: makeCourseMap(3) },
+      ),
+    ).toMatchObject({ valid: false, reason: expect.stringContaining('already exists') });
+    expect(
+      preValidateCourseMapPatch(
+        { action: 'addLesson', lessonIndex: 9, title: 'Too Far', sections: [{ topicSection: 'No' }] },
+        { courseMap: makeCourseMap(3) },
+      ),
+    ).toMatchObject({ valid: false, reason: expect.stringContaining('out of range') });
   });
 });
 

@@ -8,7 +8,7 @@
 import { generateCourseHealthReport } from './pedagogicalValidator';
 import { executeResearch } from './academicSearch';
 import { getArrayKey } from './syncDependencies';
-import { preValidateAction } from './agentActions';
+import { preValidateAction, preValidateCourseMapPatch } from './agentActions';
 import { generateImages, OPENAI_SLIDE_IMAGE_MODEL } from './imageSearch';
 import { addMemory, searchMemories, deleteMemory, getMemories, MEMORY_CATEGORIES } from './agentMemory';
 import { saveAgentPrefs } from './cloudStorage';
@@ -44,6 +44,30 @@ const RETRYABLE_FEATURES = new Set([
 ]);
 
 const RUN_TOOL_META_NAMES = new Set(['respond', 'create_tool', 'run_tool']);
+const RUN_TOOL_MUTATION_BUILTINS = new Set([
+  'finalize_package',
+  'repair_package_readiness',
+  'retry_package_weak_spots',
+  'edit_course_map',
+  'edit_deliverables',
+  'generate_slide_images',
+  'save_preference',
+  'remember',
+  'forget',
+  'undo_last',
+]);
+
+function validateRunToolMutationDelegation(ctx, toolName, toolArgs) {
+  if (!RUN_TOOL_MUTATION_BUILTINS.has(toolName)) return null;
+  const validateBuiltinDelegation = ctx?.customTools?.validateBuiltinDelegation;
+  if (typeof validateBuiltinDelegation !== 'function') {
+    return {
+      error: `Mutation-capable tool "${toolName}" cannot run through run_tool without a validation hook.`,
+    };
+  }
+  const decision = validateBuiltinDelegation(toolName, toolArgs || {});
+  return decision?.error ? decision : null;
+}
 
 function resolveFeatureName(featureId) {
   if (FEATURE_NAMES[featureId]) return FEATURE_NAMES[featureId];
@@ -1140,6 +1164,12 @@ export const AGENT_TOOLS = {
     params: { maxActions: 'number (optional) — maximum lesson-level retries to start, default 4, max 8' },
     execute: async (args, ctx) => {
       if (!ctx.executeAction) return { error: 'Deliverable action API is not available in this workspace.' };
+      if (
+        args.maxActions != null &&
+        (!Number.isInteger(args.maxActions) || args.maxActions < 1 || args.maxActions > 8)
+      ) {
+        return { error: 'Invalid maxActions - expected an integer from 1 to 8.' };
+      }
 
       const readiness = evaluateWorkspaceReadiness({
         courseMap: ctx.courseMap,
@@ -1176,10 +1206,25 @@ export const AGENT_TOOLS = {
 
       const details = [];
       for (const action of actions) {
-        const result = await ctx.executeAction(
-          { type: 'regenerateLesson', featureId: action.featureId, lessonIndex: action.lessonIndex },
-          { skipSnapshot: true },
-        );
+        const regenerateAction = {
+          type: 'regenerateLesson',
+          featureId: action.featureId,
+          lessonIndex: action.lessonIndex,
+        };
+        const validation = preValidateAction(regenerateAction, {
+          courseMap: ctx.courseMap,
+          deliverables: ctx.deliverables,
+        });
+        if (!validation.valid) {
+          details.push({
+            ...action,
+            success: false,
+            pending: false,
+            message: validation.reason || 'Retry action failed validation.',
+          });
+          continue;
+        }
+        const result = await ctx.executeAction(regenerateAction, { skipSnapshot: true });
         details.push({
           ...action,
           success: !!result?.success,
@@ -1428,9 +1473,20 @@ export const AGENT_TOOLS = {
       const patches = args.patches || [];
       if (patches.length === 0) return { error: 'No patches provided.' };
 
-      const results = [];
+      const results = new Array(patches.length);
+      const executablePatches = [];
+      const plannedLessonTitles = new Set(
+        (ctx.courseMap?.lessons || [])
+          .map((lesson) =>
+            String(lesson?.title || '')
+              .trim()
+              .toLowerCase(),
+          )
+          .filter(Boolean),
+      );
       let nextAddLessonIndex = Array.isArray(ctx.courseMap?.lessons) ? ctx.courseMap.lessons.length : undefined;
-      for (const patch of patches) {
+      for (let index = 0; index < patches.length; index++) {
+        const patch = patches[index];
         let action;
         if (patch.action === 'addLesson') {
           const lessonIndex = Number.isInteger(patch.lessonIndex) ? patch.lessonIndex : nextAddLessonIndex;
@@ -1454,9 +1510,33 @@ export const AGENT_TOOLS = {
             value: patch.value,
           };
         }
-        const result = ctx.executeAction(action);
-        results.push({ patch: patch.field || patch.action, success: result.success, message: result.message });
-        if (patch.action === 'addLesson' && result.success && Number.isInteger(nextAddLessonIndex)) {
+        const validationPatch =
+          action.type === 'addLesson'
+            ? patch
+            : action.type === 'deleteLesson'
+              ? { ...patch, action: 'removeLesson' }
+              : patch;
+        const validation = preValidateCourseMapPatch(validationPatch, {
+          courseMap: ctx.courseMap,
+          columns: ctx.columns,
+        });
+        const addLessonTitle = patch.action === 'addLesson' ? String(action.title || '').trim() : '';
+        const duplicatePlannedTitle =
+          addLessonTitle && plannedLessonTitles.has(addLessonTitle.toLowerCase())
+            ? `Lesson "${addLessonTitle}" already exists`
+            : null;
+        if (!validation.valid || duplicatePlannedTitle) {
+          results[index] = {
+            patch: patch?.field || patch?.action || 'invalid',
+            lessonIndex: patch?.lessonIndex,
+            success: false,
+            message: duplicatePlannedTitle || validation.reason || 'Course-map patch failed validation',
+          };
+          continue;
+        }
+        executablePatches.push({ index, patch, action });
+        if (addLessonTitle) plannedLessonTitles.add(addLessonTitle.toLowerCase());
+        if (patch.action === 'addLesson' && Number.isInteger(nextAddLessonIndex)) {
           nextAddLessonIndex = Math.max(
             nextAddLessonIndex + 1,
             (Number.isInteger(action.lessonIndex) ? action.lessonIndex : nextAddLessonIndex) + 1,
@@ -1464,10 +1544,21 @@ export const AGENT_TOOLS = {
         }
       }
 
+      for (const { index, patch, action } of executablePatches) {
+        const result = ctx.executeAction(action);
+        results[index] = {
+          patch: patch.field || patch.action,
+          lessonIndex: action.lessonIndex,
+          success: result.success,
+          message: result.message,
+        };
+      }
+      const details = results.filter(Boolean);
+
       return {
-        applied: results.filter((r) => r.success).length,
-        failed: results.filter((r) => !r.success).length,
-        details: results,
+        applied: details.filter((r) => r.success).length,
+        failed: details.filter((r) => !r.success).length,
+        details,
       };
     },
   },
@@ -1695,6 +1786,18 @@ export const AGENT_TOOLS = {
       },
     },
     execute: async (args, ctx, signal) => {
+      if (args.lessonIndex != null && (!Number.isInteger(args.lessonIndex) || args.lessonIndex < 0)) {
+        return { error: `Invalid lessonIndex: ${args.lessonIndex} - expected a non-negative integer.` };
+      }
+      if (args.maxImages != null && (!Number.isInteger(args.maxImages) || args.maxImages < 1 || args.maxImages > 12)) {
+        return { error: `Invalid maxImages: ${args.maxImages} - expected an integer from 1 to 12.` };
+      }
+      if (args.force != null && typeof args.force !== 'boolean') {
+        return { error: `Invalid force: ${args.force} - expected boolean true or false.` };
+      }
+      if (args.model != null && typeof args.model !== 'string') {
+        return { error: 'Invalid model - expected a string model id.' };
+      }
       if (ctx.provider && ctx.provider !== 'openai') {
         return { error: 'Slide image generation requires OpenAI as the configured provider.' };
       }
@@ -1970,13 +2073,18 @@ export const AGENT_TOOLS = {
       value: 'string — preference value',
     },
     execute: (args, ctx) => {
+      const key = String(args?.key || '').trim();
+      if (!key) return { error: 'Preference key is required.' };
+      if (args?.value == null || String(args.value).trim() === '') {
+        return { error: 'Preference value is required.' };
+      }
       try {
         const stored = JSON.parse(localStorage.getItem('coursemapper-agent-prefs') || '{}');
-        stored[args.key] = args.value;
+        stored[key] = args.value;
         localStorage.setItem('coursemapper-agent-prefs', JSON.stringify(stored));
         // Fire-and-forget cloud sync
         if (ctx?.uid) saveAgentPrefs(ctx.uid, stored).catch(() => {});
-        return { saved: true, key: args.key, value: args.value };
+        return { saved: true, key, value: args.value };
       } catch (err) {
         return { error: `Failed to save preference: ${err.message}` };
       }
@@ -2004,10 +2112,21 @@ export const AGENT_TOOLS = {
       required: ['content', 'category'],
     },
     execute: (args, ctx) => {
+      const content = String(args?.content || '').trim();
+      const category = args?.category || 'general';
+      const validCategories = new Set(Object.keys(MEMORY_CATEGORIES));
+      if (!content) return { error: 'Memory content is required.' };
+      if (!validCategories.has(category)) return { error: `Invalid memory category: ${category}` };
+      if (
+        args?.importance != null &&
+        (!Number.isInteger(args.importance) || args.importance < 1 || args.importance > 5)
+      ) {
+        return { error: 'Memory importance must be an integer from 1 to 5.' };
+      }
       try {
         const mem = addMemory({
-          category: args.category || 'general',
-          content: args.content,
+          category,
+          content,
           importance: args.importance || 3,
           uid: ctx?.uid || null,
         });
@@ -2220,6 +2339,8 @@ export const AGENT_TOOLS = {
       const def = ctx.customTools.registry.get(name);
       if (!def) {
         if (name && !RUN_TOOL_META_NAMES.has(name) && AGENT_TOOLS[name]) {
+          const validationBlock = validateRunToolMutationDelegation(ctx, name, runtimeArgs);
+          if (validationBlock) return validationBlock;
           const result = await ctx.customTools.invokeBuiltin(name, runtimeArgs, signal);
           return { ok: !result?.error, delegatedTool: name, result };
         }
@@ -2228,7 +2349,11 @@ export const AGENT_TOOLS = {
       return runPlan({
         def,
         runtimeArgs,
-        invokeBuiltin: (toolName, toolArgs) => ctx.customTools.invokeBuiltin(toolName, toolArgs, signal),
+        invokeBuiltin: (toolName, toolArgs) => {
+          const validationBlock = validateRunToolMutationDelegation(ctx, toolName, toolArgs);
+          if (validationBlock) return validationBlock;
+          return ctx.customTools.invokeBuiltin(toolName, toolArgs, signal);
+        },
         onStep: ctx.customTools.onStep, // wired by the runtime to stream progress
       });
     },
@@ -2247,9 +2372,11 @@ export const AGENT_TOOLS = {
       required: ['id'],
     },
     execute: (args, ctx) => {
+      const id = String(args?.id || '').trim();
+      if (!id) return { error: 'Memory id is required.' };
       try {
-        deleteMemory(args.id, ctx?.uid || null);
-        return { deleted: true, id: args.id };
+        deleteMemory(id, ctx?.uid || null);
+        return { deleted: true, id };
       } catch (err) {
         return { error: `Failed to delete memory: ${err.message}` };
       }

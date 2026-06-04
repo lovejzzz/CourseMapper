@@ -22,6 +22,8 @@ describe('AgentReceiptCard', () => {
       target: 'Package',
       changed: ['No safe repairs needed'],
       checked: ['Readiness', 'Export files'],
+      planning: { required: true, status: 'planned', label: 'Planned before execution via Inspect workspace' },
+      verification: { required: true, status: 'verified', label: 'Verified after mutation via Validate course' },
       next: 'Download when ready.',
     });
 
@@ -33,6 +35,14 @@ describe('AgentReceiptCard', () => {
       target: 'Package',
       changed: ['No safe repairs needed'],
       checked: ['Readiness', 'Export files'],
+      planning: expect.objectContaining({
+        status: 'planned',
+        label: 'Planned before execution via Inspect workspace',
+      }),
+      verification: expect.objectContaining({
+        status: 'verified',
+        label: 'Verified after mutation via Validate course',
+      }),
       next: 'Download when ready.',
     });
   });
@@ -119,6 +129,125 @@ describe('AgentReceiptCard', () => {
 
     expect(html).toContain('0 model calls');
     expect(html).toContain('Model calls: 0');
+  });
+
+  it('renders post-mutation verification evidence when present', () => {
+    const html = renderToStaticMarkup(
+      <AgentReceiptCard
+        receipt={{
+          title: 'Content update receipt',
+          status: 'done',
+          target: 'Lesson Plans',
+          changed: ['Edit deliverables: 2 changes applied'],
+          checked: ['Read lesson plans: Verified 2 lesson plans'],
+          verification: {
+            required: true,
+            status: 'verified',
+            label: 'Verified after mutation via Read lesson plans',
+          },
+        }}
+      />,
+    );
+
+    expect(html).toContain('data-testid="agent-receipt-verification"');
+    expect(html).toContain('Verifier:');
+    expect(html).toContain('Verified after mutation via Read lesson plans');
+  });
+
+  it('renders planner evidence for serious model runs', () => {
+    const html = renderToStaticMarkup(
+      <AgentReceiptCard
+        receipt={{
+          title: 'Package repair receipt',
+          status: 'done',
+          target: 'Package',
+          changed: ['Repair package readiness: 1 repaired'],
+          checked: ['Review package readiness: 0 blockers'],
+          planning: {
+            required: true,
+            status: 'planned',
+            label: 'Planned before execution via Inspect workspace',
+          },
+        }}
+      />,
+    );
+
+    expect(html).toContain('data-testid="agent-receipt-planning"');
+    expect(html).toContain('Planner:');
+    expect(html).toContain('Planned before execution via Inspect workspace');
+  });
+
+  it('renders compact state-diff evidence for changed and failed mutation rows', () => {
+    const html = renderToStaticMarkup(
+      <AgentReceiptCard
+        receipt={{
+          title: 'Content update needs review',
+          status: 'review',
+          target: 'Quiz & Exam Bank',
+          changed: ['Edit deliverables: 1 applied, 1 failed'],
+          checked: ['Read quiz: Verified 1 question'],
+          stateDiffs: [
+            {
+              status: 'changed',
+              action: 'editItem',
+              target: 'Quiz & Exam Bank',
+              path: 'quizzes.0.qs.0.q',
+              before: 'What proves the tool ran?',
+              after: 'What proves the verifier ran?',
+            },
+            {
+              status: 'failed',
+              action: 'addItem',
+              target: 'Rubrics',
+              reason: 'Lesson index out of range.',
+            },
+          ],
+        }}
+      />,
+    );
+
+    expect(html).toContain('data-testid="agent-receipt-state-diffs"');
+    expect(html).toContain('State diff');
+    expect(html).toContain('Changed');
+    expect(html).toContain('Before:');
+    expect(html).toContain('What proves the tool ran?');
+    expect(html).toContain('After:');
+    expect(html).toContain('What proves the verifier ran?');
+    expect(html).toContain('Failed');
+    expect(html).toContain('Lesson index out of range.');
+  });
+
+  it('renders the agent quality scorecard dimensions', () => {
+    const html = renderToStaticMarkup(
+      <AgentReceiptCard
+        receipt={{
+          title: 'Content update receipt',
+          status: 'done',
+          target: 'Course Map',
+          changed: ['Edit course map: 1 applied'],
+          checked: ['Read lesson: verified'],
+          quality: {
+            score: 96,
+            maxScore: 100,
+            label: 'Excellent',
+            status: 'pass',
+            dimensions: [
+              { id: 'intent', label: 'Intent', score: 100, status: 'pass' },
+              { id: 'safety', label: 'Safety', score: 100, status: 'pass' },
+              { id: 'verification', label: 'Verification', score: 100, status: 'pass' },
+              { id: 'response', label: 'Response', score: 80, status: 'watch' },
+              { id: 'recovery', label: 'Recovery', score: 100, status: 'pass' },
+            ],
+          },
+        }}
+      />,
+    );
+
+    expect(html).toContain('data-testid="agent-receipt-quality-scorecard"');
+    expect(html).toContain('Quality:');
+    expect(html).toContain('96/100');
+    expect(html).toContain('Intent');
+    expect(html).toContain('Verification');
   });
 
   it('builds contextual follow-up actions for completed and blocked receipts', () => {

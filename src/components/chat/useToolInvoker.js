@@ -29,6 +29,11 @@ import {
   isKnownPresentationOnlyEdit,
   projectArtifactEditToCourseMapPatch,
 } from '../../lib/artifactBlueprintProjection';
+import {
+  buildConfirmationPolicyToolResult,
+  evaluateAgentMutationConfirmation,
+} from '../../lib/agentConfirmationPolicy';
+import { buildAgentQualityScorecard } from '../../lib/agentQualityScorecard';
 
 /**
  * Execute the multi-step agentic loop with native tool calling.
@@ -117,6 +122,56 @@ const RECEIPT_ACTION_TOOLS = new Set([
   'create_tool',
   'run_tool',
 ]);
+
+const RECEIPT_WORKSPACE_MUTATION_TOOLS = new Set([
+  'edit_course_map',
+  'edit_deliverables',
+  'generate_slide_images',
+  'finalize_package',
+  'repair_package_readiness',
+  'retry_package_weak_spots',
+  'undo_last',
+]);
+
+const RECEIPT_STATE_VERIFIER_TOOLS = new Set([
+  'read_lesson',
+  'read_deliverable',
+  'validate_course',
+  'verify_package_exports',
+  'review_package_readiness',
+  'verify_slide_images',
+  'verify_slide_export',
+  'compare_deliverables',
+  'finalize_package',
+]);
+
+const RECEIPT_SELF_VERIFYING_MUTATION_TOOLS = new Set(['finalize_package']);
+
+const RECEIPT_PLANNER_TOOLS = new Set([
+  'inspect_workspace',
+  'plan_workspace_next_step',
+  'review_package_readiness',
+  'compare_deliverables',
+]);
+
+const RECEIPT_SERIOUS_MUTATION_TOOLS = new Set([
+  'finalize_package',
+  'repair_package_readiness',
+  'retry_package_weak_spots',
+  'generate_slide_images',
+  'run_tool',
+]);
+
+const RECEIPT_PLANNING_ENFORCED_MUTATION_TOOLS = new Set([...RECEIPT_WORKSPACE_MUTATION_TOOLS, 'run_tool']);
+
+const COURSE_MAP_FIELD_ALIASES = {
+  lo: 'learningObjectives',
+  lg: 'learningGoals',
+  tp: 'topicSection',
+  as: 'asyncActivities',
+  ac: 'syncActivities',
+  rs: 'supportingResources',
+};
 
 const RECEIPT_INTENT_TOOLS = {
   finish_package: new Set(['finalize_package']),
@@ -251,6 +306,10 @@ function formatReceiptStep(step) {
   return `${label}: ${summary}`;
 }
 
+function formatReceiptToolLabel(step) {
+  return String(step?.label || TOOL_LABELS[step?.tool] || step?.tool || 'Agent tool').trim();
+}
+
 function buildToolManifest(steps) {
   return steps.slice(0, 12).map((step) => {
     const startedAt = Number(step?.startedAt || 0);
@@ -264,6 +323,457 @@ function buildToolManifest(steps) {
       ...(startedAt && endedAt && endedAt >= startedAt ? { durationMs: endedAt - startedAt } : {}),
     };
   });
+}
+
+export function deriveAgentVerificationState(steps = []) {
+  const normalizedSteps = Array.isArray(steps) ? steps.filter(Boolean) : [];
+  const mutationSteps = normalizedSteps
+    .map((step, index) => ({ step, index }))
+    .filter(({ step }) => RECEIPT_WORKSPACE_MUTATION_TOOLS.has(step?.tool) && step?.status !== 'error');
+
+  if (mutationSteps.length === 0) {
+    return {
+      required: false,
+      status: 'not_required',
+      checkedAfterMutation: false,
+      label: 'No workspace mutation to verify',
+      mutationTools: [],
+      verifierTools: [],
+    };
+  }
+
+  const latestMutation = mutationSteps[mutationSteps.length - 1];
+  const latestMutationSelfVerified =
+    latestMutation.step?.status === 'done' && RECEIPT_SELF_VERIFYING_MUTATION_TOOLS.has(latestMutation.step?.tool);
+  const verifierStepsAfterMutation = normalizedSteps
+    .slice(latestMutation.index + 1)
+    .filter((step) => RECEIPT_STATE_VERIFIER_TOOLS.has(step?.tool));
+  const successfulVerifierSteps = verifierStepsAfterMutation.filter((step) => step.status === 'done');
+  const failedVerifierSteps = verifierStepsAfterMutation.filter(
+    (step) => step.status === 'error' || step.status === 'partial',
+  );
+  const verifierSteps = latestMutationSelfVerified
+    ? [latestMutation.step, ...successfulVerifierSteps]
+    : successfulVerifierSteps;
+  const mutationTools = uniqueList(
+    mutationSteps.map(({ step }) => formatReceiptToolLabel(step)),
+    4,
+  );
+  const verifierTools = uniqueList(verifierSteps.map(formatReceiptToolLabel), 4);
+  const mutationTargets = uniqueList(
+    mutationSteps.flatMap(({ step }) => step?.targets || []),
+    4,
+  );
+  const verifierTargets = uniqueList(
+    verifierSteps.flatMap((step) => step?.targets || []),
+    4,
+  );
+
+  if (verifierSteps.length > 0) {
+    return {
+      required: true,
+      status: 'verified',
+      checkedAfterMutation: true,
+      label: `Verified after mutation via ${verifierTools.join(', ')}`,
+      mutationTools,
+      verifierTools,
+      mutationTargets,
+      verifierTargets,
+    };
+  }
+
+  if (failedVerifierSteps.length > 0) {
+    const failedVerifierTools = uniqueList(failedVerifierSteps.map(formatReceiptToolLabel), 4);
+    return {
+      required: true,
+      status: 'review',
+      checkedAfterMutation: false,
+      label: `Verification needs review: ${failedVerifierTools.join(', ')}`,
+      issue: `Verification needs review: ${failedVerifierTools.join(', ')}`,
+      mutationTools,
+      verifierTools: failedVerifierTools,
+      mutationTargets,
+      verifierTargets,
+    };
+  }
+
+  return {
+    required: true,
+    status: 'missing',
+    checkedAfterMutation: false,
+    label: 'Needs read-back verification after workspace mutation',
+    issue: 'Verification missing after workspace mutation',
+    mutationTools,
+    verifierTools: [],
+    mutationTargets,
+    verifierTargets: [],
+  };
+}
+
+export function deriveAgentPlanningState(steps = [], expectations = {}) {
+  const normalizedSteps = Array.isArray(steps) ? steps.filter(Boolean) : [];
+  const expectedIntent = String(expectations.intent || expectations.expectedIntent || '').trim();
+  const requiresPlanByExpectation = expectations.requiresPlan === true;
+  const requiresPlanByTool = normalizedSteps.some(
+    (step) => RECEIPT_SERIOUS_MUTATION_TOOLS.has(step?.tool) && step?.status !== 'error',
+  );
+  const requiresPlan = requiresPlanByExpectation || requiresPlanByTool;
+  const mutationSteps = normalizedSteps
+    .map((step, index) => ({ step, index }))
+    .filter(({ step }) => RECEIPT_WORKSPACE_MUTATION_TOOLS.has(step?.tool) && step?.status !== 'error');
+  const firstMutationIndex = mutationSteps.length > 0 ? mutationSteps[0].index : normalizedSteps.length;
+  const plannerSteps = normalizedSteps
+    .map((step, index) => ({ step, index }))
+    .filter(({ step }) => RECEIPT_PLANNER_TOOLS.has(step?.tool) && step?.status !== 'error');
+  const plannerStepsBeforeMutation = plannerSteps.filter(({ index }) => index < firstMutationIndex);
+  const plannerTools = uniqueList(plannerStepsBeforeMutation.map(({ step }) => formatReceiptToolLabel(step)), 4);
+  const allPlannerTools = uniqueList(plannerSteps.map(({ step }) => formatReceiptToolLabel(step)), 4);
+  const mutationTools = uniqueList(mutationSteps.map(({ step }) => formatReceiptToolLabel(step)), 4);
+
+  if (!requiresPlan) {
+    if (plannerSteps.length > 0) {
+      return {
+        required: false,
+        status: 'planned',
+        hasPlan: true,
+        checkedBeforeMutation: plannerStepsBeforeMutation.length > 0 || mutationSteps.length === 0,
+        label: `Planning evidence via ${allPlannerTools.join(', ')}`,
+        plannerTools: allPlannerTools,
+        mutationTools,
+        intent: expectedIntent,
+      };
+    }
+    return {
+      required: false,
+      status: 'not_required',
+      hasPlan: false,
+      checkedBeforeMutation: false,
+      label: 'No planning gate required for targeted action',
+      plannerTools: [],
+      mutationTools,
+      intent: expectedIntent,
+    };
+  }
+
+  if (plannerStepsBeforeMutation.length > 0 || (plannerSteps.length > 0 && mutationSteps.length === 0)) {
+    return {
+      required: true,
+      status: 'planned',
+      hasPlan: true,
+      checkedBeforeMutation: plannerStepsBeforeMutation.length > 0 || mutationSteps.length === 0,
+      label: `Planned before execution via ${(plannerTools.length > 0 ? plannerTools : allPlannerTools).join(', ')}`,
+      plannerTools: plannerTools.length > 0 ? plannerTools : allPlannerTools,
+      mutationTools,
+      intent: expectedIntent,
+    };
+  }
+
+  if (plannerSteps.length > 0) {
+    return {
+      required: true,
+      status: 'review',
+      hasPlan: true,
+      checkedBeforeMutation: false,
+      label: `Planning evidence came after execution via ${allPlannerTools.join(', ')}`,
+      issue: 'Planning did not happen before serious mutation.',
+      plannerTools: allPlannerTools,
+      mutationTools,
+      intent: expectedIntent,
+    };
+  }
+
+  return {
+    required: true,
+    status: 'missing',
+    hasPlan: false,
+    checkedBeforeMutation: false,
+    label: 'Needs planning or inspection before serious execution',
+    issue: 'Planning evidence is missing before serious execution.',
+    plannerTools: [],
+    mutationTools,
+    intent: expectedIntent,
+  };
+}
+
+export function shouldRequirePlanningBeforeTool(toolName, priorSteps = [], expectations = {}) {
+  if (expectations?.requiresPlan !== true) return false;
+  if (!RECEIPT_PLANNING_ENFORCED_MUTATION_TOOLS.has(toolName)) return false;
+  const planning = deriveAgentPlanningState(priorSteps, { ...expectations, requiresPlan: true });
+  return planning.status !== 'planned';
+}
+
+function buildPlanningRequiredToolResult(toolName) {
+  return {
+    error: `Serious workspace changes need planning before "${toolName}" can run. Call inspect_workspace or plan_workspace_next_step first, then retry the smallest safe mutation and verify it afterward.`,
+    code: 'planning_required',
+    needsPlanning: true,
+  };
+}
+
+function compactReceiptValue(value) {
+  if (value === undefined) return '';
+  if (value === null) return 'null';
+  if (typeof value === 'string')
+    return value
+      .replace(/sk-[A-Za-z0-9_-]{12,}/g, '[redacted-key]')
+      .replace(/\s+/g, ' ')
+      .trim();
+  if (typeof value === 'number' || typeof value === 'boolean') return String(value);
+  if (Array.isArray(value)) {
+    const primitiveItems = value.filter((item) => ['string', 'number', 'boolean'].includes(typeof item));
+    if (primitiveItems.length === value.length && primitiveItems.length > 0) {
+      return primitiveItems.map(compactReceiptValue).join('; ');
+    }
+  }
+  const title = firstNonEmptyText(value, [
+    'title',
+    'lessonTitle',
+    'lt',
+    'question',
+    'q',
+    'name',
+    'label',
+    'cn',
+    't',
+    'ov',
+  ]);
+  if (title) return title;
+  try {
+    return JSON.stringify(value).replace(/\s+/g, ' ').trim();
+  } catch {
+    return String(value || '').trim();
+  }
+}
+
+function truncateReceiptValue(value, maxLength = 140) {
+  const text = compactReceiptValue(value);
+  if (!text) return '';
+  return text.length > maxLength ? `${text.slice(0, maxLength - 1)}...` : text;
+}
+
+function firstNonEmptyText(value, keys = []) {
+  if (!value || typeof value !== 'object') return '';
+  for (const key of keys) {
+    const text = typeof value[key] === 'string' ? value[key].trim() : '';
+    if (text) return text;
+  }
+  return '';
+}
+
+function getValueAtPath(root, path) {
+  const normalizedPath = normalizeProjectionPath(path);
+  if (!root || !Array.isArray(normalizedPath) || normalizedPath.length === 0) return undefined;
+  let current = root;
+  for (const key of normalizedPath) {
+    if (current == null || typeof current !== 'object' || !(key in current)) return undefined;
+    current = current[key];
+  }
+  return current;
+}
+
+function getCourseMapPatchBeforeValue(patch, courseMap) {
+  const lessons = Array.isArray(courseMap?.lessons) ? courseMap.lessons : [];
+  const lesson = Number.isInteger(patch?.lessonIndex) ? lessons[patch.lessonIndex] : null;
+  if (patch?.action === 'addLesson') return `${lessons.length} lesson${lessons.length === 1 ? '' : 's'}`;
+  if (patch?.action === 'removeLesson') return lesson?.title || `Lesson ${Number(patch?.lessonIndex) + 1}`;
+  if (patch?.field === 'title') return lesson?.title;
+  const sectionIndex = Number.isInteger(patch?.sectionIndex) ? patch.sectionIndex : 0;
+  const field = COURSE_MAP_FIELD_ALIASES[patch?.field] || patch?.field;
+  return lesson?.sections?.[sectionIndex]?.[field];
+}
+
+function getCourseMapPatchAfterValue(patch) {
+  if (patch?.action === 'addLesson') return patch.title || patch.lesson?.title || 'Added lesson';
+  if (patch?.action === 'removeLesson') return 'Removed lesson';
+  return patch?.value;
+}
+
+function getDiffStatus(detail = {}) {
+  if (!detail.success) return 'failed';
+  if (detail.pending) return 'pending';
+  return 'changed';
+}
+
+function buildCourseMapStateDiff(patch = {}, detail = {}, ctx = {}) {
+  const action = patch.action || (patch.field === 'title' ? 'editTitle' : 'editCell');
+  return {
+    status: getDiffStatus(detail),
+    action,
+    target: 'Course Map',
+    featureId: 'courseMap',
+    lessonIndex: patch.lessonIndex,
+    path: patch.action || patch.field || detail.patch || '',
+    before: truncateReceiptValue(getCourseMapPatchBeforeValue(patch, ctx.courseMap)),
+    after: truncateReceiptValue(getCourseMapPatchAfterValue(patch)),
+    reason: detail.success ? '' : detail.message || 'Course map edit failed.',
+  };
+}
+
+function getDeliverableBeforeValue(action = {}, deliverables = {}) {
+  const data = deliverables?.[action.featureId]?.data;
+  if (!data) return undefined;
+  if (action.type === 'editItem') return getValueAtPath(data, action.path);
+  if (action.type === 'addItem') {
+    const rootKey = Array.isArray(action.path) ? action.path[0] : null;
+    const rootItems = rootKey && Array.isArray(data[rootKey]) ? data[rootKey] : null;
+    if (rootItems) return `${rootItems.length} item${rootItems.length === 1 ? '' : 's'}`;
+  }
+  if (action.type === 'removeItem') {
+    const rootKey = Array.isArray(action.path) ? action.path[0] : null;
+    const rootItems = rootKey && Array.isArray(data[rootKey]) ? data[rootKey] : null;
+    if (rootItems && Number.isInteger(action.itemIndex)) return rootItems[action.itemIndex];
+  }
+  if (action.type === 'regenerateLesson') return `Lesson ${Number(action.lessonIndex) + 1}`;
+  return undefined;
+}
+
+function getDeliverableAfterValue(action = {}, detail = {}) {
+  if (detail.pending) return detail.message || 'Queued for approval';
+  if (action.type === 'editItem') return action.value;
+  if (action.type === 'addItem') return action.item || 'Added item';
+  if (action.type === 'removeItem') return 'Removed item';
+  if (action.type === 'regenerateLesson') return 'Regeneration started';
+  return detail.message || '';
+}
+
+function buildDeliverableStateDiff(action = {}, detail = {}, ctx = {}) {
+  const featureId = detail.featureId || action.featureId;
+  const rawAction = detail.action || action.type || 'edit';
+  const target = resolveLabel(featureId || 'deliverables');
+  return {
+    status: getDiffStatus(detail),
+    action: rawAction,
+    target,
+    featureId,
+    lessonIndex: detail.lessonIndex ?? action.lessonIndex,
+    path: Array.isArray(action.path) ? action.path.join('.') : action.subKey || '',
+    before: truncateReceiptValue(getDeliverableBeforeValue(action, ctx.deliverables)),
+    after: truncateReceiptValue(getDeliverableAfterValue(action, detail)),
+    reason: detail.success ? '' : detail.message || 'Deliverable edit failed.',
+  };
+}
+
+function buildGenericMutationDiff(detail = {}, toolName = 'agent_tool') {
+  return {
+    status: getDiffStatus(detail),
+    action: detail.action || toolName,
+    target: resolveLabel(detail.featureId || 'workspace'),
+    featureId: detail.featureId,
+    lessonIndex: detail.lessonIndex,
+    before: '',
+    after: truncateReceiptValue(detail.message || detail.model || detail.nextAction || ''),
+    reason: detail.success ? '' : detail.message || detail.reason || 'Action failed.',
+  };
+}
+
+function buildPackageRepairStateDiff(repair = {}, toolName = 'repair_package_readiness') {
+  const featureId = repair.featureId;
+  const changes = Array.isArray(repair.changes) ? repair.changes.filter(Boolean).join('; ') : '';
+  return {
+    status: getDiffStatus(repair),
+    action: toolName,
+    target: repair.label || resolveLabel(featureId || 'package'),
+    featureId,
+    before: repair.success === false ? '' : 'Generated deliverable state',
+    after: truncateReceiptValue(changes || repair.message || 'Safe readiness repair applied.'),
+    reason: repair.success === false ? repair.message || repair.reason || 'Package repair failed.' : '',
+  };
+}
+
+function buildRetryStateDiff(detail = {}) {
+  return {
+    status: getDiffStatus(detail),
+    action: 'regenerateLesson',
+    target: detail.label || resolveLabel(detail.featureId || 'package'),
+    featureId: detail.featureId,
+    lessonIndex: detail.lessonIndex,
+    before: truncateReceiptValue(detail.source ? `${detail.source} issue` : 'Localized weak section'),
+    after: truncateReceiptValue(detail.message || 'Regeneration started'),
+    reason: detail.success ? '' : detail.message || detail.reason || 'Retry failed.',
+  };
+}
+
+function buildUndoStateDiff(result = {}, ctx = {}) {
+  if (!result.success) return [];
+  return [
+    {
+      status: 'changed',
+      action: 'undo_last',
+      target: resolveLabel(ctx.activeTab || 'deliverables'),
+      before: 'Latest deliverable state',
+      after: truncateReceiptValue(result.message || 'Previous deliverable snapshot restored.'),
+      reason: '',
+    },
+  ];
+}
+
+function buildSkippedDiffs(skipped = []) {
+  if (!Array.isArray(skipped)) return [];
+  return skipped.slice(0, 8).map((item) => ({
+    status: 'skipped',
+    action: item.action || 'skipped',
+    target: resolveLabel(item.featureId || 'workspace'),
+    featureId: item.featureId,
+    lessonIndex: item.lessonIndex,
+    before: '',
+    after: '',
+    reason: item.reason || item.message || 'Skipped because no safe mutation was available.',
+  }));
+}
+
+function uniqueStateDiffs(diffs = [], max = 8) {
+  const seen = new Set();
+  const unique = [];
+  for (const diff of diffs) {
+    if (!diff || typeof diff !== 'object') continue;
+    const normalized = {
+      ...diff,
+      before: truncateReceiptValue(diff.before),
+      after: truncateReceiptValue(diff.after),
+      reason: truncateReceiptValue(diff.reason),
+    };
+    if (!normalized.status && !normalized.action && !normalized.target) continue;
+    const key = JSON.stringify([
+      normalized.status,
+      normalized.action,
+      normalized.target,
+      normalized.lessonIndex,
+      normalized.path,
+      normalized.before,
+      normalized.after,
+      normalized.reason,
+    ]);
+    if (seen.has(key)) continue;
+    seen.add(key);
+    unique.push(normalized);
+    if (unique.length >= max) break;
+  }
+  return unique;
+}
+
+export function buildAgentStateDiffsFromToolResult(toolName, args = {}, result = {}, ctx = {}) {
+  if (!result || typeof result !== 'object' || result.error) return [];
+  const details = Array.isArray(result.details) ? result.details : [];
+  let diffs = [];
+
+  if (toolName === 'edit_course_map') {
+    const patches = Array.isArray(args.patches) ? args.patches : [];
+    diffs = details.map((detail, index) => buildCourseMapStateDiff(patches[index] || {}, detail, ctx));
+  } else if (toolName === 'edit_deliverables') {
+    const actions = Array.isArray(args.actions) ? args.actions : [];
+    diffs = details.map((detail, index) => buildDeliverableStateDiff(actions[index] || {}, detail, ctx));
+  } else if (toolName === 'repair_package_readiness' || toolName === 'finalize_package') {
+    const repairs = Array.isArray(result.repairs) ? result.repairs : [];
+    diffs = repairs.map((repair) => buildPackageRepairStateDiff(repair, toolName));
+  } else if (toolName === 'retry_package_weak_spots') {
+    diffs = details.map((detail) => buildRetryStateDiff(detail));
+  } else if (toolName === 'undo_last') {
+    diffs = buildUndoStateDiff(result, ctx);
+  } else if (toolName === 'generate_slide_images') {
+    diffs = details.map((detail) => buildGenericMutationDiff(detail, toolName));
+  }
+
+  return uniqueStateDiffs([...diffs, ...buildSkippedDiffs(result.skipped)], 8);
 }
 
 function receiptIntentPriority(intentType) {
@@ -301,7 +811,8 @@ export function deriveModelAgentReceiptIntent(steps = [], { issueCount = 0 } = {
   matchedTypes.sort((a, b) => receiptIntentPriority(a) - receiptIntentPriority(b));
 
   const type = matchedTypes[0] || 'agent_run';
-  const mutatesWorkspace = steps.some((step) => RECEIPT_ACTION_TOOLS.has(step?.tool));
+  const hasAction = steps.some((step) => RECEIPT_ACTION_TOOLS.has(step?.tool));
+  const mutatesWorkspace = steps.some((step) => RECEIPT_WORKSPACE_MUTATION_TOOLS.has(step?.tool));
   return {
     type,
     label: RECEIPT_INTENT_LABELS[type] || RECEIPT_INTENT_LABELS.agent_run,
@@ -309,7 +820,8 @@ export function deriveModelAgentReceiptIntent(steps = [], { issueCount = 0 } = {
     toolCount: steps.length,
     issueCount,
     mutatesWorkspace,
-    readOnly: !mutatesWorkspace,
+    mutatesAgentState: hasAction && !mutatesWorkspace,
+    readOnly: !hasAction,
   };
 }
 
@@ -323,14 +835,22 @@ function buildReceiptTitle(status, intent) {
   return `${label} receipt`;
 }
 
-function buildReceiptNext(status, intent, actionSteps) {
+function buildReceiptNext(status, intent, actionSteps, verification = null, hasVerificationReviewIssue = false) {
   if (status === 'blocked') {
     if (intent?.type === 'finish_package' || intent?.type === 'package_repair') {
       return 'Review the package issue, then retry the smallest safe finish action.';
     }
     return 'Open the issue details or run a smaller recovery action before continuing.';
   }
-  if (status === 'review') return 'Review the partial result before applying more changes.';
+  if (status === 'review') {
+    if (hasVerificationReviewIssue && verification?.status === 'missing') {
+      return 'Read back the edited state before applying more changes or reporting it as complete.';
+    }
+    if (hasVerificationReviewIssue && verification?.status === 'review') {
+      return 'Review the verification result before applying more changes.';
+    }
+    return 'Review the partial result before applying more changes.';
+  }
 
   switch (intent?.type) {
     case 'workspace_plan':
@@ -353,15 +873,40 @@ function buildReceiptNext(status, intent, actionSteps) {
   }
 }
 
-export function buildModelAgentReceiptFromProgress(progress, { runId = null, dryRun = false, activeTab = null } = {}) {
+function inferAgentQualityExpectations(fullMessage = '', complexity = 'moderate') {
+  const text = String(fullMessage || '').toLowerCase();
+  const requiresPlan =
+    complexity === 'complex' ||
+    /\b(finish|finalize|package|download|export|audit|review|readiness|alignment|repair|retry|regenerate|sync|fix all|every lesson|all lessons|whole course|14[-\s]?(lesson|week)|scope)\b/.test(
+      text,
+    );
+  return requiresPlan ? { requiresPlan: true } : {};
+}
+
+export function buildModelAgentReceiptFromProgress(
+  progress,
+  { runId = null, dryRun = false, activeTab = null, finalResponse = null, qualityExpectations = null } = {},
+) {
   const steps = Array.isArray(progress?.steps) ? progress.steps.filter(Boolean) : [];
   if (steps.length === 0) return null;
 
   const issueSteps = steps.filter((step) => step.status === 'error' || step.status === 'partial');
   const hasError = issueSteps.some((step) => step.status === 'error') || progress?.status === 'error';
-  const status = hasError ? 'blocked' : issueSteps.length > 0 ? 'review' : 'done';
   const actionSteps = steps.filter((step) => RECEIPT_ACTION_TOOLS.has(step.tool));
   const checkSteps = steps.filter((step) => !RECEIPT_ACTION_TOOLS.has(step.tool));
+  const verification = deriveAgentVerificationState(steps);
+  let intent = deriveModelAgentReceiptIntent(steps, { issueCount: 0 });
+  const planning = deriveAgentPlanningState(steps, {
+    ...(qualityExpectations || {}),
+    intent: qualityExpectations?.intent || qualityExpectations?.expectedIntent || intent.type,
+  });
+  const stateDiffs = uniqueStateDiffs(
+    actionSteps.flatMap((step) => (Array.isArray(step.stateDiffs) ? step.stateDiffs : [])),
+    8,
+  );
+  const verificationIssues = !hasError && issueSteps.length === 0 && verification.issue ? [verification.issue] : [];
+  const issues = uniqueList([...issueSteps.map(formatReceiptStep), ...verificationIssues], 4);
+  const status = hasError ? 'blocked' : issues.length > 0 ? 'review' : 'done';
   const targets = uniqueList(
     steps.flatMap((step) => step.targets || []),
     4,
@@ -371,40 +916,60 @@ export function buildModelAgentReceiptFromProgress(progress, { runId = null, dry
   const providerCallCount = Number(progress?.runMeta?.providerCallCount || 0);
   const maxProviderCallCount = Number(progress?.runMeta?.maxProviderCallCount || progress?.runMeta?.maxIterations || 0);
   const stopReason = String(progress?.runMeta?.stopReason || '').trim();
-  const intent = deriveModelAgentReceiptIntent(steps, { issueCount: issueSteps.length });
+  intent = { ...intent, issueCount: issues.length };
   const startedAt = Number(progress?.startedAt || 0);
   const endedAt = Number(progress?.endedAt || 0);
   const runStats = {
     toolCount: steps.length,
     actionCount: actionSteps.length,
     checkCount: checkSteps.length,
-    issueCount: issueSteps.length,
+    issueCount: issues.length,
     readOnly: intent.readOnly,
     mutatesWorkspace: intent.mutatesWorkspace,
+    mutatesAgentState: intent.mutatesAgentState,
+    planningStatus: planning.status,
+    verificationStatus: verification.status,
+    stateDiffCount: stateDiffs.length,
     ...(providerCallCount > 0 ? { providerCallCount } : {}),
     ...(maxProviderCallCount > 0 ? { maxProviderCallCount } : {}),
     ...(stopReason ? { stopReason } : {}),
     ...(startedAt && endedAt && endedAt >= startedAt ? { durationMs: endedAt - startedAt } : {}),
   };
 
+  const receipt = {
+    title: buildReceiptTitle(status, intent),
+    status,
+    badge: status === 'blocked' ? 'Blocked' : status === 'review' ? 'Review' : 'Complete',
+    mode,
+    target: targets.length > 0 ? targets.join(', ') : fallbackTarget,
+    intent,
+    runStats,
+    planning,
+    verification,
+    stateDiffs,
+    ...(stopReason ? { stopReason } : {}),
+    toolManifest: buildToolManifest(steps),
+    changed: actionSteps.length > 0 ? uniqueList(actionSteps.map(formatReceiptStep), 4) : ['No workspace edits'],
+    checked: checkSteps.length > 0 ? uniqueList(checkSteps.map(formatReceiptStep), 4) : ['Tool result status'],
+    issues,
+    next: buildReceiptNext(
+      status,
+      intent,
+      actionSteps,
+      verification,
+      verificationIssues.length > 0 || verification.status === 'review',
+    ),
+  };
+  receipt.quality = buildAgentQualityScorecard({
+    receipt,
+    finalResponse,
+    expectations: qualityExpectations || {},
+  });
+
   return {
     role: 'agentReceipt',
     runId,
-    receipt: {
-      title: buildReceiptTitle(status, intent),
-      status,
-      badge: status === 'blocked' ? 'Blocked' : status === 'review' ? 'Review' : 'Complete',
-      mode,
-      target: targets.length > 0 ? targets.join(', ') : fallbackTarget,
-      intent,
-      runStats,
-      ...(stopReason ? { stopReason } : {}),
-      toolManifest: buildToolManifest(steps),
-      changed: actionSteps.length > 0 ? uniqueList(actionSteps.map(formatReceiptStep), 4) : ['No workspace edits'],
-      checked: checkSteps.length > 0 ? uniqueList(checkSteps.map(formatReceiptStep), 4) : ['Tool result status'],
-      issues: uniqueList(issueSteps.map(formatReceiptStep), 4),
-      next: buildReceiptNext(status, intent, actionSteps),
-    },
+    receipt,
   };
 }
 
@@ -437,6 +1002,7 @@ export async function runAgentLoop(fullMessage, { silent = false, dryRun = false
   } = ctx;
   const executionMode = dryRun ? AGENT_EXECUTION_MODES.DRY_RUN : AGENT_EXECUTION_MODES.APPLY;
   const runId = `agent-run-${Date.now()}-${Math.random().toString(16).slice(2)}`;
+  let agentQualityExpectations = {};
 
   // Helper: update the progress card
   const updateProgress = (updater) => {
@@ -480,7 +1046,7 @@ export async function runAgentLoop(fullMessage, { silent = false, dryRun = false
     });
   };
 
-  const completeProgressWithReceipt = ({ status = 'complete', stopReason = '' } = {}) => {
+  const completeProgressWithReceipt = ({ status = 'complete', stopReason = '', finalResponse = null } = {}) => {
     if (silent) return;
     setMessages((prev) => {
       const updated = [...prev];
@@ -502,6 +1068,8 @@ export async function runAgentLoop(fullMessage, { silent = false, dryRun = false
         runId,
         dryRun: executionMode === AGENT_EXECUTION_MODES.DRY_RUN,
         activeTab,
+        finalResponse,
+        qualityExpectations: agentQualityExpectations,
       });
       if (!receipt) return updated;
       return [...updated.filter((message) => !(message.role === 'agentReceipt' && message.runId === runId)), receipt];
@@ -576,11 +1144,12 @@ export async function runAgentLoop(fullMessage, { silent = false, dryRun = false
 
     // ── Complexity-aware planning hint ──
     const complexity = classifyRequestComplexity(fullMessage, delivRef.current);
+    agentQualityExpectations = inferAgentQualityExpectations(fullMessage, complexity);
     let effectiveMessage = fullMessage;
     if (complexity === 'complex') {
       effectiveMessage =
         fullMessage +
-        '\n\n[SYSTEM HINT: This is a complex request. Plan your approach: identify which deliverables and lessons to read/edit, then execute efficiently. Use parallel tool calls where possible.]';
+        '\n\n[SYSTEM HINT: This is a complex request. First use inspect_workspace or plan_workspace_next_step unless the target is already fully specified. Then execute efficiently, verify the changed state, and respond with the result.]';
     }
 
     // Build native tools for provider
@@ -615,6 +1184,7 @@ export async function runAgentLoop(fullMessage, { silent = false, dryRun = false
     const MAX_ITERATIONS = 20;
     let usedTools = false;
     let terminalResponseHandled = false;
+    const toolExecutionHistory = [];
 
     // ── Adaptive temperature: deterministic for simple edits, creative for complex tasks ──
     const agentTemperature = complexity === 'simple' ? 0.2 : complexity === 'complex' ? 0.5 : 0.4;
@@ -683,7 +1253,7 @@ export async function runAgentLoop(fullMessage, { silent = false, dryRun = false
               return updated;
             });
           } else if (usedTools) {
-            completeProgressWithReceipt({ stopReason: 'respond' });
+            completeProgressWithReceipt({ stopReason: 'respond', finalResponse: respondCall.args });
           } else {
             setMessages((prev) => {
               const updated = [...prev];
@@ -786,6 +1356,16 @@ export async function runAgentLoop(fullMessage, { silent = false, dryRun = false
             }
 
             try {
+              const getConfirmationPolicyBlock = (toolName, toolArgs) =>
+                buildConfirmationPolicyToolResult(
+                  evaluateAgentMutationConfirmation(toolName, toolArgs || {}, {
+                    userMessage: fullMessage,
+                    courseMap,
+                    deliverables: delivRef.current,
+                    selectedFeatures,
+                    activeTab,
+                  }),
+                );
               const toolCtx = {
                 courseMap,
                 activeTab,
@@ -818,9 +1398,13 @@ export async function runAgentLoop(fullMessage, { silent = false, dryRun = false
                 customTools: customToolRegistryRef
                   ? {
                       registry: customToolRegistryRef.current,
+                      validateBuiltinDelegation: (builtinName, builtinArgs) =>
+                        getConfirmationPolicyBlock(builtinName, builtinArgs || {}),
                       invokeBuiltin: async (builtinName, builtinArgs, innerSignal) => {
                         const builtin = AGENT_TOOLS[builtinName];
                         if (!builtin) return { error: `Unknown tool in plan: ${builtinName}` };
+                        const policyBlock = getConfirmationPolicyBlock(builtinName, builtinArgs || {});
+                        if (policyBlock) return policyBlock;
                         try {
                           return await builtin.execute(builtinArgs || {}, toolCtx, innerSignal || controller.signal);
                         } catch (err) {
@@ -842,6 +1426,31 @@ export async function runAgentLoop(fullMessage, { silent = false, dryRun = false
                     }
                   : null,
               };
+              const policyBlock = getConfirmationPolicyBlock(tc.name, tc.args || {});
+              if (policyBlock) {
+                updateStepAt(stepIdx, { status: 'error', summary: policyBlock.error });
+                return {
+                  toolCallId: tc.id,
+                  toolName: tc.name,
+                  result: policyBlock,
+                };
+              }
+              if (shouldRequirePlanningBeforeTool(tc.name, toolExecutionHistory, agentQualityExpectations)) {
+                const planningBlock = buildPlanningRequiredToolResult(tc.name);
+                updateStepAt(stepIdx, { status: 'error', summary: planningBlock.error });
+                return {
+                  toolCallId: tc.id,
+                  toolName: tc.name,
+                  result: planningBlock,
+                };
+              }
+              const stateDiffContext = RECEIPT_WORKSPACE_MUTATION_TOOLS.has(tc.name)
+                ? {
+                    courseMap: cloneForProjection(courseMap),
+                    deliverables: cloneForProjection(delivRef.current),
+                    activeTab,
+                  }
+                : null;
 
               async function execWithRetry(attempt = 0) {
                 const toolPromise = AGENT_TOOLS[tc.name].execute(tc.args || {}, toolCtx, controller.signal);
@@ -869,6 +1478,9 @@ export async function runAgentLoop(fullMessage, { silent = false, dryRun = false
 
               const result = await execWithRetry();
               const summary = summarizeToolResult(tc.name, result);
+              const stateDiffs = stateDiffContext
+                ? buildAgentStateDiffsFromToolResult(tc.name, tc.args || {}, result, stateDiffContext)
+                : [];
               // Classify the step outcome honestly — previously every non-throwing
               // result painted the step green, which lied when the tool returned
               // {applied:N, failed:M>0}. Now:
@@ -893,7 +1505,11 @@ export async function runAgentLoop(fullMessage, { silent = false, dryRun = false
                   if (failedN > 0) stepStatus = appliedN > 0 ? 'partial' : 'error';
                 }
               }
-              updateStepAt(stepIdx, { status: stepStatus, summary });
+              updateStepAt(stepIdx, {
+                status: stepStatus,
+                summary,
+                ...(stateDiffs.length > 0 ? { stateDiffs } : {}),
+              });
 
               if (tc.name === 'finalize_package') {
                 const packageSummary = normalizePackageSummary(result);
@@ -1059,6 +1675,13 @@ export async function runAgentLoop(fullMessage, { silent = false, dryRun = false
         loopMessages.push(formatAssistantToolCalls(provider, nonRespondCalls, assistantMessage));
         const resultMessages = batchToolResults(provider, toolResults);
         loopMessages.push(...resultMessages);
+        toolExecutionHistory.push(
+          ...toolResults.map((r) => ({
+            tool: r.toolName,
+            label: TOOL_LABELS[r.toolName] || r.toolName,
+            status: r.result?.error ? 'error' : 'done',
+          })),
+        );
 
         // ── Self-correction: inject recovery hints for failed tool calls ──
         const failedResults = toolResults.filter((r) => r.result?.error);
@@ -1090,6 +1713,13 @@ export async function runAgentLoop(fullMessage, { silent = false, dryRun = false
           (r) => (r.toolName === 'edit_course_map' || r.toolName === 'edit_deliverables') && r.result?.applied > 0,
         );
         if (editResults.length > 0 && iteration < MAX_ITERATIONS - 2) {
+          const readbackTools = uniqueList(
+            editResults.map((r) => (r.toolName === 'edit_course_map' ? 'read_lesson' : 'read_deliverable')),
+          ).join(' or ');
+          loopMessages.push({
+            role: 'user',
+            content: `[SYSTEM] Before respond(), verify the changed state with ${readbackTools}. Read back the edited course map or deliverable instead of trusting edit success alone, then summarize what changed from the verified state.`,
+          });
           try {
             const postReport = generateCourseHealthReport(courseMap, delivRef.current);
             if (postReport && postReport.errorCount > 0) {
