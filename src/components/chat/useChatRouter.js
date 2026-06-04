@@ -12,11 +12,7 @@ import { AGENT_TOOLS } from '../../lib/agentTools';
 import { getAgentUnavailableMessage, isAgentProviderReady } from '../../lib/agentAvailability';
 import { createCustomToolRegistry, mergeCloudCustomTools, parseExportedTool } from '../../lib/customAgentTools';
 import { saveCustomTool, deleteCustomTool } from '../../lib/cloudStorage';
-import {
-  AGENT_EXECUTION_MODES,
-  AGENT_EXECUTION_MODE_STORAGE_KEY,
-  normalizeAgentExecutionMode,
-} from '../../lib/agentExecutionMode';
+import { AGENT_EXECUTION_MODES, AGENT_EXECUTION_MODE_STORAGE_KEY } from '../../lib/agentExecutionMode';
 import { buildAgentSourceContextMessage } from '../../lib/agentSourceContext';
 
 // ═══════════════════════════════════════════════════════════════════════════
@@ -123,14 +119,7 @@ export default function useChatRouter({
   const [attachedFiles, setAttachedFiles] = useState([]);
   const [isParsing, setIsParsing] = useState(false);
   const abortRef = useRef(null);
-  const [agentExecutionMode, setAgentExecutionModeState] = useState(() => {
-    if (typeof localStorage === 'undefined') return AGENT_EXECUTION_MODES.APPLY;
-    try {
-      return normalizeAgentExecutionMode(localStorage.getItem(AGENT_EXECUTION_MODE_STORAGE_KEY));
-    } catch {
-      return AGENT_EXECUTION_MODES.APPLY;
-    }
-  });
+  const [agentExecutionMode, setAgentExecutionModeState] = useState(AGENT_EXECUTION_MODES.APPLY);
   const agentDryRun = agentExecutionMode === AGENT_EXECUTION_MODES.DRY_RUN;
   const setAgentDryRun = useCallback((enabled) => {
     const nextMode = enabled ? AGENT_EXECUTION_MODES.DRY_RUN : AGENT_EXECUTION_MODES.APPLY;
@@ -542,7 +531,7 @@ export default function useChatRouter({
       status: 'running',
       startedAt: progressStartedAt,
       runMeta: {
-        mode: (dryRunOverride ?? agentDryRun) ? 'Review only' : 'Auto-fix',
+        mode: (dryRunOverride ?? agentDryRun) ? 'No workspace edits' : 'Agent run',
         target: resolveLabel(activeTab || 'courseMap'),
         provider,
         model: modelId,

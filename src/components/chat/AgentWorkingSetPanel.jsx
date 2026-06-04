@@ -222,7 +222,6 @@ export function buildAgentWorkingSetSummary({
   pendingSyncFeatureIds = [],
   packageQualityPass = null,
   messages = [],
-  agentDryRun = false,
   isAgentProviderReady = true,
 } = {}) {
   const lessonCount = Array.isArray(courseMap?.lessons) ? courseMap.lessons.length : 0;
@@ -260,7 +259,7 @@ export function buildAgentWorkingSetSummary({
   const briefStatus = buildBriefStatus(messages);
   const planStatus = buildPlanStatus(messages);
   const activityStatus = buildRecentActivityStatus(messages);
-  const modeLabel = !isAgentProviderReady ? 'Local tools' : agentDryRun ? 'Review only' : 'Auto-fix';
+  const toolStateLabel = !isAgentProviderReady ? 'Local tools' : 'AI connected';
   const selectedFeatureLabels = selectedDeliverableIds.map(resolveLabel).slice(0, 3);
 
   return {
@@ -270,8 +269,8 @@ export function buildAgentWorkingSetSummary({
     activityStatus,
     lessonCount,
     scopeLabel: buildScopeLabel(lessonScope, lessonCount),
-    modeLabel,
-    modeTone: !isAgentProviderReady ? WARN_TONE : agentDryRun ? MUTED_TONE : MODE_TONE,
+    toolStateLabel,
+    toolStateTone: !isAgentProviderReady ? WARN_TONE : MODE_TONE,
     selectedFeatureCount: selectedDeliverableIds.length,
     selectedFeatureLabels,
     hiddenSelectedFeatureCount: Math.max(0, selectedDeliverableIds.length - selectedFeatureLabels.length),
@@ -359,7 +358,12 @@ export default function AgentWorkingSetPanel(props) {
           summary.activityStatus.activities.map((activity, index) => (
             <ActivityChip key={`${activity.title}-${activity.label}-${index}`} activity={activity} index={index} />
           ))}
-        <StatusChip label="Mode" value={summary.modeLabel} tone={summary.modeTone} testId="agent-working-mode" />
+        <StatusChip
+          label="Agent"
+          value={summary.toolStateLabel}
+          tone={summary.toolStateTone}
+          testId="agent-working-mode"
+        />
         <StatusChip label="Scope" value={summary.scopeLabel} testId="agent-working-scope" />
         <StatusChip
           label="Materials"

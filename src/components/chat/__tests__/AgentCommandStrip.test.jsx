@@ -14,7 +14,7 @@ import AgentCommandStrip, {
 globalThis.IS_REACT_ACT_ENVIRONMENT = true;
 
 describe('buildAgentCommandItems', () => {
-  it('builds mode-aware commands for the active deliverable', () => {
+  it('builds conversation-driven commands for the active deliverable', () => {
     const autoFixItems = buildAgentCommandItems({ activeTab: 'lessonPlans', agentDryRun: false });
     const reviewOnlyItems = buildAgentCommandItems({ activeTab: 'lessonPlans', agentDryRun: true });
 
@@ -24,7 +24,7 @@ describe('buildAgentCommandItems', () => {
     expect(autoImprove.displayText).toBe('Improve Lesson Plans');
     expect(autoImprove.prompt).toContain('Apply safe changes directly');
     expect(reviewImprove.displayText).toBe('Improve Lesson Plans');
-    expect(reviewImprove.prompt).toContain('without applying changes');
+    expect(reviewImprove.prompt).toContain('ask before applying broad changes');
   });
 
   it('uses course-map language when no deliverable tab is active', () => {
@@ -50,15 +50,7 @@ describe('buildAgentCommandItems', () => {
     const ids = items.map((item) => item.id);
     const sync = items.find((item) => item.id === 'sync-stale');
 
-    expect(ids).toEqual([
-      'finish-package',
-      'sync-stale',
-      'set-review-mode',
-      'improve-active',
-      'audit-quality',
-      'plan-next',
-      'agent-help',
-    ]);
+    expect(ids).toEqual(['finish-package', 'sync-stale', 'improve-active', 'audit-quality', 'plan-next', 'agent-help']);
     expect(sync).toMatchObject({
       label: 'Sync',
       displayText: 'Sync stale deliverables',
@@ -77,20 +69,14 @@ describe('buildAgentCommandItems', () => {
     ).not.toContain('sync-stale');
   });
 
-  it('adds the opposite mode switch for the current Agent mode', () => {
+  it('does not expose mode switch commands', () => {
     const autoFixItems = buildAgentCommandItems({ activeTab: 'lessonPlans', agentDryRun: false });
     const reviewOnlyItems = buildAgentCommandItems({ activeTab: 'lessonPlans', agentDryRun: true });
 
-    expect(autoFixItems.find((item) => item.id === 'set-review-mode')).toMatchObject({
-      label: 'Review only',
-      displayText: 'Switch to Review only',
-      modeSwitch: 'review-only',
-    });
-    expect(reviewOnlyItems.find((item) => item.id === 'set-auto-fix-mode')).toMatchObject({
-      label: 'Auto-fix',
-      displayText: 'Switch to Auto-fix',
-      modeSwitch: 'auto-fix',
-    });
+    expect(autoFixItems.map((item) => item.id)).not.toContain('set-review-mode');
+    expect(autoFixItems.map((item) => item.id)).not.toContain('set-auto-fix-mode');
+    expect(reviewOnlyItems.map((item) => item.id)).not.toContain('set-review-mode');
+    expect(reviewOnlyItems.map((item) => item.id)).not.toContain('set-auto-fix-mode');
   });
 
   it('adds an undo command only when undo is available', () => {
@@ -128,12 +114,11 @@ describe('buildAgentCommandItems', () => {
     expect(filterAgentCommandItems(items, 'next').map((item) => item.id)).toContain('plan-next');
     expect(filterAgentCommandItems(items, 'revert').map((item) => item.id)).toContain('undo-last');
     expect(filterAgentCommandItems(items, 'commands').map((item) => item.id)).toContain('agent-help');
-    expect(filterAgentCommandItems(items, 'read only').map((item) => item.id)).toContain('set-review-mode');
+    expect(filterAgentCommandItems(items, 'read only').map((item) => item.id)).toEqual([]);
   });
 
   it('routes high-confidence typed phrases without hijacking ordinary questions', () => {
     const items = buildAgentCommandItems({ activeTab: 'lessonPlans', canUndo: true });
-    const reviewItems = buildAgentCommandItems({ activeTab: 'lessonPlans', agentDryRun: true });
 
     expect(findAgentCommandByText(items, 'plan next')?.id).toBe('plan-next');
     expect(findAgentCommandByText(items, 'what should we do next?')?.id).toBe('plan-next');
@@ -145,10 +130,8 @@ describe('buildAgentCommandItems', () => {
     expect(findAgentCommandByText(items, 'please finish this package')?.id).toBe('finish-package');
     expect(findAgentCommandByText(items, 'revert last change')?.id).toBe('undo-last');
     expect(findAgentCommandByText(items, 'can you undo that last change?')?.id).toBe('undo-last');
-    expect(findAgentCommandByText(items, 'review only')?.id).toBe('set-review-mode');
-    expect(findAgentCommandByText(items, 'switch me to review only')?.id).toBe('set-review-mode');
-    expect(findAgentCommandByText(reviewItems, 'auto fix')?.id).toBe('set-auto-fix-mode');
-    expect(findAgentCommandByText(reviewItems, 'go back to auto fix')?.id).toBe('set-auto-fix-mode');
+    expect(findAgentCommandByText(items, 'review only')).toBeNull();
+    expect(findAgentCommandByText(items, 'switch me to review only')).toBeNull();
     expect(findAgentCommandByText(items, 'show me agent commands')?.id).toBe('agent-help');
     expect(findAgentCommandByText(items, 'can you explain what an audit checks?')).toBeNull();
     expect(findAgentCommandByText(items, 'please improve the assignment language after reading this note')).toBeNull();
@@ -204,7 +187,7 @@ describe('AgentCommandStrip', () => {
     expect(improveButton.className).toContain('max-w-full');
   });
 
-  it('routes mode switch commands through onCommand', () => {
+  it('does not render mode switch commands', () => {
     const onCommand = vi.fn();
 
     act(() => {
@@ -212,19 +195,10 @@ describe('AgentCommandStrip', () => {
     });
 
     const reviewModeButton = container.querySelector('[data-testid="agent-command-set-review-mode"]');
-    expect(reviewModeButton).not.toBeNull();
-    expect(reviewModeButton.textContent).toContain('Review only');
-
-    act(() => {
-      reviewModeButton.dispatchEvent(new MouseEvent('click', { bubbles: true }));
-    });
-
-    expect(onCommand).toHaveBeenCalledWith(
-      expect.objectContaining({
-        id: 'set-review-mode',
-        modeSwitch: 'review-only',
-      }),
-    );
+    const autoFixButton = container.querySelector('[data-testid="agent-command-set-auto-fix-mode"]');
+    expect(reviewModeButton).toBeNull();
+    expect(autoFixButton).toBeNull();
+    expect(onCommand).not.toHaveBeenCalled();
   });
 
   it('disables command buttons while the agent is busy', () => {

@@ -132,6 +132,48 @@ async function restoreGeneratedWorkspaceWithSavedKey(page) {
   await expect(page.getByTestId('workspace-shell')).toBeVisible({ timeout: 10000 });
 }
 
+async function routeSuccessfulOpenAIConfig(page, { modelId = 'gpt-4o-mini' } = {}) {
+  await page.route('https://api.openai.com/v1/models', async (route) => {
+    await route.fulfill({
+      status: 200,
+      contentType: 'application/json',
+      body: JSON.stringify({ data: [{ id: modelId, created: 1_700_000_000 }] }),
+    });
+  });
+  await page.route('https://api.openai.com/v1/chat/completions', async (route) => {
+    await route.fulfill({
+      status: 200,
+      contentType: 'application/json',
+      body: JSON.stringify({ choices: [{ message: { content: 'ok' } }] }),
+    });
+  });
+  await page.route('https://api.openai.com/v1/responses', async (route) => {
+    await route.fulfill({
+      status: 200,
+      contentType: 'application/json',
+      body: JSON.stringify({ output_text: 'ok' }),
+    });
+  });
+}
+
+async function routeInvalidOpenAIConfig(page) {
+  await page.route('https://api.openai.com/v1/models', async (route) => {
+    await route.fulfill({
+      status: 401,
+      contentType: 'application/json',
+      body: JSON.stringify({ error: { message: 'Invalid API key' } }),
+    });
+  });
+}
+
+async function openWorkspaceModelConfigFromHeader(page) {
+  const agentPanel = page.getByTestId('workspace-agent-panel');
+  await agentPanel.getByTestId('workspace-model-config-trigger').click();
+  await expect(page.getByTestId('workspace-model-config-panel')).toBeVisible({ timeout: 10000 });
+  await expect(page.getByTestId('workspace-shell')).toBeVisible();
+  return page.getByTestId('workspace-model-config-panel');
+}
+
 test.describe('Agent no-key behavior', () => {
   test('restores saved provider readiness when resuming before validation finishes', async ({ page }) => {
     await page.route('https://api.openai.com/v1/models', async (route) => {
@@ -142,13 +184,27 @@ test.describe('Agent no-key behavior', () => {
         body: JSON.stringify({ data: [{ id: 'gpt-5.4-mini', created: 1_700_000_000 }] }),
       });
     });
+    await page.route('https://api.openai.com/v1/responses', async (route) => {
+      await route.fulfill({
+        status: 200,
+        contentType: 'application/json',
+        body: JSON.stringify({ output_text: 'ok' }),
+      });
+    });
+    await page.route('https://api.openai.com/v1/chat/completions', async (route) => {
+      await route.fulfill({
+        status: 200,
+        contentType: 'application/json',
+        body: JSON.stringify({ choices: [{ message: { content: 'ok' } }] }),
+      });
+    });
 
     await restoreGeneratedWorkspaceWithSavedKey(page);
 
     const agentPanel = page.getByTestId('workspace-agent-panel');
     await expect(agentPanel).toBeVisible();
     await expect(agentPanel.getByText('Provider/key required')).toHaveCount(0);
-    await expect(agentPanel.getByTestId('agent-dry-run-toggle')).toContainText('Auto-fix on');
+    await expect(agentPanel.getByTestId('workspace-model-config-trigger')).toBeVisible();
     await expect(agentPanel.getByTestId('agent-command-improve-active')).toBeVisible();
     await expect(agentPanel.getByTestId('agent-command-configure-agent')).toHaveCount(0);
 
@@ -196,7 +252,7 @@ test.describe('Agent no-key behavior', () => {
 
     const composer = agentPanel.locator('textarea');
     await expect(composer).toBeEnabled();
-    await expect(composer).toHaveAttribute('placeholder', 'Configure AI to chat or edit with the agent…');
+    await expect(composer).toHaveAttribute('placeholder', 'Configure AI to chat with the agent…');
     await expect(agentPanel.getByLabel('Send message')).toBeDisabled();
 
     await composer.fill('Please improve this without a key');
@@ -248,10 +304,111 @@ test.describe('Agent no-key behavior', () => {
     expect(aiRequests).toEqual([]);
 
     await agentPanel.getByTestId('configure-agent-ai-button').click();
-    await expect(page.locator('h1:has-text("Everything you need")')).toBeVisible({ timeout: 10000 });
+    await expect(page.getByTestId('workspace-model-config-panel')).toBeVisible({ timeout: 10000 });
+    await expect(page.getByTestId('workspace-shell')).toBeVisible();
+    await expect(page.locator('h1:has-text("Everything you need")')).toHaveCount(0);
 
     expect(aiRequests).toEqual([]);
     expect(consoleErrors.filter((text) => text.includes('NO_API_KEY'))).toEqual([]);
+  });
+
+  test('opens model configuration from the restored workspace header', async ({ page }) => {
+    await restoreGeneratedWorkspaceWithoutKey(page);
+
+    const panel = await openWorkspaceModelConfigFromHeader(page);
+
+    await expect(panel.getByText('AI Configuration')).toBeVisible();
+    await expect(panel.getByLabel('Provider')).toHaveValue('openai');
+    await expect(page.locator('h1:has-text("Everything you need")')).toHaveCount(0);
+  });
+
+  test('opens model configuration from the local-only command strip', async ({ page }) => {
+    await restoreGeneratedWorkspaceWithoutKey(page);
+
+    const agentPanel = page.getByTestId('workspace-agent-panel');
+    await agentPanel.getByTestId('agent-command-configure-agent').click();
+
+    await expect(page.getByTestId('workspace-model-config-panel')).toBeVisible({ timeout: 10000 });
+    await expect(page.getByTestId('workspace-shell')).toBeVisible();
+  });
+
+  test('opens model configuration from the disabled composer recovery button', async ({ page }) => {
+    await restoreGeneratedWorkspaceWithoutKey(page);
+
+    const agentPanel = page.getByTestId('workspace-agent-panel');
+    await agentPanel.getByRole('button', { name: /^Configure AI$/ }).click();
+
+    await expect(page.getByTestId('workspace-model-config-panel')).toBeVisible({ timeout: 10000 });
+    await expect(agentPanel.locator('textarea')).toHaveAttribute('placeholder', 'Configure AI to chat with the agent…');
+  });
+
+  test('keeps local audit and plan available after an invalid restored key attempt', async ({ page }) => {
+    await routeInvalidOpenAIConfig(page);
+    await restoreGeneratedWorkspaceWithoutKey(page);
+
+    const panel = await openWorkspaceModelConfigFromHeader(page);
+    await panel.getByLabel('API Key').fill('sk-proj-invalid-browser-recovery-key-1234567890');
+
+    await expect(panel.getByText('Invalid API key').first()).toBeVisible({ timeout: 15000 });
+    const agentPanel = page.getByTestId('workspace-agent-panel');
+    await expect(agentPanel.getByText('Provider/key required')).toBeVisible();
+    await expect(agentPanel.getByTestId('agent-command-audit-quality')).toBeVisible();
+    await expect(agentPanel.getByTestId('agent-command-plan-next')).toBeVisible();
+    await expect(agentPanel.getByTestId('agent-command-improve-active')).toHaveCount(0);
+  });
+
+  test('reconnects the restored workspace after entering a valid key in place', async ({ page }) => {
+    await routeSuccessfulOpenAIConfig(page, { modelId: 'gpt-4o-mini' });
+    await restoreGeneratedWorkspaceWithoutKey(page);
+
+    const panel = await openWorkspaceModelConfigFromHeader(page);
+    await panel.getByLabel('API Key').fill('sk-proj-valid-browser-recovery-key-12345678901234567890');
+
+    await expect(panel.getByText('Connected')).toBeVisible({ timeout: 15000 });
+    await page.getByTestId('workspace-model-config-close').click();
+
+    const agentPanel = page.getByTestId('workspace-agent-panel');
+    await expect(agentPanel.getByText('Provider/key required')).toHaveCount(0);
+    await expect(agentPanel.getByTestId('agent-command-configure-agent')).toHaveCount(0);
+    await expect(agentPanel.getByTestId('agent-command-improve-active')).toBeVisible();
+    await agentPanel.locator('textarea').fill('Improve this lesson plan');
+    await expect(agentPanel.getByLabel('Send message')).toBeEnabled();
+  });
+
+  test('lets restored users switch provider without leaving the workspace', async ({ page }) => {
+    await restoreGeneratedWorkspaceWithoutKey(page);
+
+    const panel = await openWorkspaceModelConfigFromHeader(page);
+    await panel.getByLabel('Provider').selectOption('anthropic');
+
+    await expect(panel.getByLabel('API Key')).toHaveAttribute('placeholder', 'sk-ant-...');
+    await expect(page.getByTestId('workspace-shell')).toBeVisible();
+    await expect(page.locator('h1:has-text("Everything you need")')).toHaveCount(0);
+  });
+
+  test('persists the recovered model choice after closing and reopening settings', async ({ page }) => {
+    await routeSuccessfulOpenAIConfig(page, { modelId: 'gpt-4o-mini' });
+    await restoreGeneratedWorkspaceWithoutKey(page);
+
+    let panel = await openWorkspaceModelConfigFromHeader(page);
+    await panel.getByLabel('API Key').fill('sk-proj-persisted-browser-recovery-key-12345678901234567890');
+    await expect(panel.getByText('Connected')).toBeVisible({ timeout: 15000 });
+    await page.getByTestId('workspace-model-config-close').click();
+
+    await expect(page.getByTestId('workspace-model-config-overlay')).toHaveCount(0);
+    panel = await openWorkspaceModelConfigFromHeader(page);
+    await expect(panel.getByLabel('Model')).toHaveValue('gpt-4o-mini');
+  });
+
+  test('keeps the active workspace view intact when settings are dismissed', async ({ page }) => {
+    await restoreGeneratedWorkspaceWithoutKey(page);
+
+    await openWorkspaceModelConfigFromHeader(page);
+    await page.getByTestId('workspace-model-config-close').click();
+
+    await expect(page.getByTestId('workspace-model-config-overlay')).toHaveCount(0);
+    await expect(page.getByTestId('workspace-agent-panel')).toBeVisible();
+    await expect(page.getByTestId('workspace-content-panel')).toBeVisible();
   });
 
   test('runs natural local audit requests without an AI key', async ({ page }) => {

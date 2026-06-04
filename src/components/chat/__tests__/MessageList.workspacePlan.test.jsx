@@ -435,11 +435,10 @@ describe('MessageList workspace plan actions', () => {
     const card = container.querySelector('[data-testid="agent-help-card"]');
     expect(card).not.toBeNull();
     expect(card.textContent).toContain('Agent guide');
-    expect(card.textContent).toContain('Review only');
     expect(card.textContent).toContain('Local tools only');
     expect(card.textContent).toContain('Working on Lesson Plans');
     expect(card.textContent).toContain('Sync 2 stale deliverables');
-    expect(card.textContent).toContain('Toggle Review only');
+    expect(card.textContent).toContain('ask in the conversation before applying the change');
   });
 
   it('renders Agent receipt messages in the chat stream', () => {

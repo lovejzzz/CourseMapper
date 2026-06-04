@@ -5,15 +5,7 @@ function isCourseMapTab(activeTab) {
   return !activeTab || activeTab === 'courseMap';
 }
 
-function buildFinishPrompt(agentDryRun) {
-  if (agentDryRun) {
-    return [
-      'Review the full course package without applying changes.',
-      'Check readiness, classroom fit, content quality, export risk, and cross-deliverable alignment.',
-      'Return the top blockers, safe fixes you would apply, and instructor decisions that still need human judgment.',
-    ].join(' ');
-  }
-
+function buildFinishPrompt() {
   return [
     'Finish the course package until it is ready to download.',
     'Run package finalization first, apply safe deterministic repairs, retry localized weak sections only where needed, and verify exports plus classroom readiness.',
@@ -26,12 +18,12 @@ function buildImprovePrompt(activeTab, agentDryRun) {
   const tabLabel = resolveLabel(activeTab || 'courseMap');
   if (isCourseMapTab(activeTab)) {
     return agentDryRun
-      ? 'Review the course map for sequencing gaps, vague lesson titles, weak objectives, assessment alignment, and missing throughline. Propose the safest improvements without applying changes.'
+      ? 'Inspect the course map for sequencing gaps, vague lesson titles, weak objectives, assessment alignment, and missing throughline. Explain the safest improvements and ask before applying broad changes.'
       : 'Improve the course map for sequencing, concrete lesson titles, measurable objectives, assessment alignment, and a clearer course throughline. Apply safe changes directly, then summarize what changed.';
   }
 
   return agentDryRun
-    ? `Review ${tabLabel} for specificity, classroom usability, alignment to the course map, appropriate difficulty, and missing instructor context. Propose concrete safe improvements without applying changes.`
+    ? `Inspect ${tabLabel} for specificity, classroom usability, alignment to the course map, appropriate difficulty, and missing instructor context. Explain concrete safe improvements and ask before applying broad changes.`
     : `Improve ${tabLabel} for specificity, classroom usability, alignment to the course map, appropriate difficulty, and missing instructor context. Apply safe changes directly, then verify the affected deliverable and summarize what changed.`;
 }
 
@@ -49,32 +41,6 @@ function buildSyncPrompt(syncFeatureCount) {
   ].join(' ');
 }
 
-function buildModeSwitchItem(agentDryRun) {
-  if (agentDryRun) {
-    return {
-      id: 'set-auto-fix-mode',
-      icon: 'mode',
-      label: 'Auto-fix',
-      displayText: 'Switch to Auto-fix',
-      title: 'Let the Agent apply safe fixes',
-      aliases: ['auto fix', 'autofix', 'apply', 'apply fixes', 'edit mode', 'safe fixes'],
-      modeSwitch: 'auto-fix',
-      prompt: '',
-    };
-  }
-
-  return {
-    id: 'set-review-mode',
-    icon: 'mode',
-    label: 'Review only',
-    displayText: 'Switch to Review only',
-    title: 'Inspect and propose fixes without editing',
-    aliases: ['review only', 'read only', 'no edits', 'suggest only', 'safe mode', 'dry run'],
-    modeSwitch: 'review-only',
-    prompt: '',
-  };
-}
-
 export function buildAgentCommandItems({
   activeTab = 'courseMap',
   agentDryRun = false,
@@ -88,13 +54,12 @@ export function buildAgentCommandItems({
     {
       id: 'finish-package',
       icon: 'check',
-      label: agentDryRun ? 'Review' : 'Finish',
-      displayText: agentDryRun ? 'Review package' : 'Finish package',
-      title: agentDryRun ? 'Review package without edits' : 'Repair, verify, and prepare the package',
+      label: 'Finish',
+      displayText: 'Finish package',
+      title: 'Repair, verify, and prepare the package',
       aliases: ['fix', 'repair', 'ready', 'finalize', 'export', 'download', 'package', 'complete'],
-      prompt: buildFinishPrompt(agentDryRun),
+      prompt: buildFinishPrompt(),
     },
-    buildModeSwitchItem(agentDryRun),
     canUndo
       ? {
           id: 'undo-last',
@@ -163,15 +128,7 @@ export function buildAgentCommandItems({
 
   return [
     ...items.filter((item) =>
-      [
-        'set-review-mode',
-        'set-auto-fix-mode',
-        'undo-last',
-        'sync-stale',
-        'audit-quality',
-        'plan-next',
-        'agent-help',
-      ].includes(item.id),
+      ['undo-last', 'sync-stale', 'audit-quality', 'plan-next', 'agent-help'].includes(item.id),
     ),
     {
       id: 'configure-agent',
@@ -228,20 +185,6 @@ const NATURAL_COMMAND_MATCHERS = [
       /^(?:audit|audit quality|run audit|local audit|check|check quality|quality check|review quality|inspect quality|validate package|verify package)$/,
       /^(?:audit|check|review|inspect|validate|verify)\s+(?:(?:this|my|the|current)\s+)?(?:workspace|package|course|materials|deliverables)(?:\s+for\s+(?:issues|problems|quality|readiness|alignment))?$/,
       /^(?:audit|check|review|inspect|validate|verify)\s+(?:for\s+)?(?:issues|problems|quality|readiness|alignment)$/,
-    ],
-  },
-  {
-    id: 'set-review-mode',
-    patterns: [
-      /^(?:review only|switch to review only|read only|switch to read only|no edits|suggest only|dry run|safe mode)$/,
-      /^(?:switch|turn|set|go)\s+(?:me\s+)?(?:to\s+)?(?:review only|read only|no edits|suggest only|dry run|safe mode)$/,
-    ],
-  },
-  {
-    id: 'set-auto-fix-mode',
-    patterns: [
-      /^(?:auto fix|autofix|switch to auto fix|apply fixes|safe fixes|edit mode|apply mode)$/,
-      /^(?:switch|turn|set|go)\s+(?:me\s+)?(?:back\s+)?(?:to\s+)?(?:auto fix|autofix|apply fixes|safe fixes|edit mode|apply mode)$/,
     ],
   },
   {

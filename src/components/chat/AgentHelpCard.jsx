@@ -33,7 +33,6 @@ function HelpSection({ title, items = [] }) {
 export function buildAgentHelpSummary(help = {}) {
   const activeTarget = help.activeTarget || 'current workspace';
   const providerReady = help.providerReady !== false;
-  const mode = help.agentDryRun ? 'Review only' : 'Auto-fix';
   const scopeText = help.lessonScopeText || 'All selected lessons';
   const syncCount = Number(help.syncFeatureCount || 0);
   const canUndo = Boolean(help.canUndo);
@@ -41,7 +40,6 @@ export function buildAgentHelpSummary(help = {}) {
   return {
     activeTarget,
     providerReady,
-    mode,
     scopeText,
     localActions: [
       'Audit package readiness, classroom fit, validation, and export risk without using a model.',
@@ -53,14 +51,14 @@ export function buildAgentHelpSummary(help = {}) {
     ].filter(Boolean),
     modelActions: providerReady
       ? [
-          `Improve ${activeTarget} with the current Auto-fix or Review-only mode.`,
+          `Improve ${activeTarget} from the conversation.`,
           'Generate or regenerate missing deliverables from workspace plan actions.',
           'Use attached files as source context for the current Agent conversation.',
         ]
       : ['Configure AI to enable free-form chat and model-based edits. Local Audit and Plan still work now.'],
     controls: [
       'Use the command strip for one-click actions, or type / to open the command palette.',
-      'Toggle Review only when you want findings and proposed fixes without edits.',
+      'For broad or destructive changes, the Agent should ask in the conversation before applying the change.',
       'Use recovery buttons on failed Agent runs to review issues, retry safe fixes, or plan recovery.',
     ],
   };
@@ -86,7 +84,6 @@ export default function AgentHelpCard({ help }) {
           <div className="min-w-0 flex-1">
             <div className="flex flex-wrap items-center gap-1.5">
               <span className="font-bold text-slate-800">Agent guide</span>
-              <HelpPill tone="indigo">{summary.mode}</HelpPill>
               <HelpPill tone={summary.providerReady ? 'green' : 'amber'}>
                 {summary.providerReady ? 'AI connected' : 'Local tools only'}
               </HelpPill>

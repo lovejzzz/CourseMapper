@@ -367,7 +367,7 @@ export function buildModelAgentReceiptFromProgress(progress, { runId = null, dry
     4,
   );
   const fallbackTarget = progress?.runMeta?.target || resolveLabel(activeTab || 'courseMap');
-  const mode = progress?.runMeta?.mode || (dryRun ? 'Review only' : 'Auto-fix');
+  const mode = progress?.runMeta?.mode || (dryRun ? 'No workspace edits' : 'Agent run');
   const providerCallCount = Number(progress?.runMeta?.providerCallCount || 0);
   const maxProviderCallCount = Number(progress?.runMeta?.maxProviderCallCount || progress?.runMeta?.maxIterations || 0);
   const stopReason = String(progress?.runMeta?.stopReason || '').trim();

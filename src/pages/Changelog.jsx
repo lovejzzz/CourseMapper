@@ -55,8 +55,12 @@ const releases = [
         items: [
           'audit:agent:openai now runs 20 live real-life scenarios with the private OpenAI API-file workflow used for local release verification.',
           'The second scenario set covers academic research, grammar checks, concept maps, quiz-count charts, lesson reads, quiz cognitive-level review, slide-deck visual improvement, reusable custom macros, undo, and missing-assignment refusal.',
+          'Restored workspaces with a missing, expired, or invalid key now recover in place from the Agent header model/config control instead of sending users back to the landing page.',
+          'Deliverable edits now fail before mutation when the target deliverable, generated lesson slot, or required item path does not exist, preventing ghost rubrics, assignments, and lesson artifacts.',
+          'A new closed-loop safety suite covers 30 state-mutation and no-mutation cases across course-map edits, quizzes, rubrics, assignments, slides, study guides, regeneration, and missing-deliverable refusal.',
+          'Restored-project browser coverage now exercises invalid-key recovery, valid-key reconnection, provider switching, model persistence, and workspace-dismissal behavior.',
           'No-key users can now type natural local command requests such as "can you audit this package?" and still reach the read-only package audit path without provider calls.',
-          'Review-mode package actions now say Review package instead of repeating the Review only mode label.',
+          'Package action labels now stay action-focused instead of exposing internal execution modes.',
         ],
       },
       {

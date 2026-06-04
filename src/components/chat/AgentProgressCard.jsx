@@ -149,7 +149,7 @@ export function buildAgentRunOutcome(steps = [], { status = 'complete', mode = '
       .toLowerCase()
       .includes('review')
   )
-    return { label: 'Review only', tone: 'slate' };
+    return { label: 'No workspace edits', tone: 'slate' };
   return { label: 'No workspace edits', tone: 'slate' };
 }
 

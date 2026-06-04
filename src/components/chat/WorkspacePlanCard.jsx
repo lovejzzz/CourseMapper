@@ -1,8 +1,8 @@
 import React from 'react';
 
 const SAFE_MODE_LABELS = {
-  'review-only': 'Review only',
-  'safe-auto-fix': 'Safe auto-fix',
+  'review-only': 'Inspect first',
+  'safe-auto-fix': 'Safe fix',
   'needs-approval': 'Needs approval',
   'requires-generation': 'Generate',
 };
@@ -88,7 +88,7 @@ function buildIntentInstruction(action) {
     clear_readiness_blockers:
       'Use finalize_package or repair_package_readiness when safe. Apply only deterministic, localized repairs, then verify readiness again.',
     review_readiness_blockers:
-      'Review package readiness without applying changes. Explain the blocker, the concrete fix, and what evidence would prove it is resolved.',
+      'Inspect package readiness before changing content. Explain the blocker, the concrete fix, and what evidence would prove it is resolved.',
     improve_active_feature:
       'Read the active deliverable first. If apply mode is enabled and the change is safe/localized, improve it directly; otherwise explain the concrete edit.',
     improve_course_map:
@@ -144,7 +144,7 @@ export function buildWorkspacePlanActionPrompt(action) {
     action.safeMode === 'safe-auto-fix'
       ? 'If it is still safe and localized, apply the fix directly. If it is not safe, explain what needs user approval.'
       : action.safeMode === 'review-only'
-        ? 'Review only. Do not apply changes; explain the concrete next change and why it matters.'
+        ? 'Inspect first. Do not apply changes in this step; explain the concrete next change and why it matters.'
         : action.safeMode === 'needs-approval'
           ? 'Do not apply changes until the user approves the sync or repair step.'
           : 'Explain the generation step needed and what the user should expect.';
@@ -204,7 +204,7 @@ function resolveActionStateFromResult(result) {
 }
 
 function PlanActionRow({ action, index, isPrimary, actionCapabilities, actionState, onAction }) {
-  const safeModeLabel = SAFE_MODE_LABELS[action.safeMode] || action.safeMode || 'Review only';
+  const safeModeLabel = SAFE_MODE_LABELS[action.safeMode] || action.safeMode || 'Inspect first';
   const priority = action.priority || `P${index}`;
   const buttonLabel = getWorkspacePlanActionButtonLabel(action, actionCapabilities);
   const actionStatus = String(actionState?.status || '');
@@ -336,7 +336,7 @@ export default function WorkspacePlanCard({
   if (!plan) return null;
   const actions = Array.isArray(plan.actions) ? plan.actions.filter(Boolean).slice(0, 5) : [];
   const highest = plan.highestImpactAction || actions[0] || null;
-  const modeLabel = plan.executionMode === 'auto-fix' ? 'Auto-fix available' : 'Review only';
+  const modeLabel = plan.executionMode === 'auto-fix' ? 'Can apply safe fixes' : 'Inspect first';
 
   return (
     <div

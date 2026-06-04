@@ -1412,6 +1412,12 @@ describe('Tool execute: edit_deliverables', () => {
   });
 
   it('does not silently mutate artifacts when blueprint sync is forced but no mapping exists', () => {
+    mockCtx.deliverables.slideDecks = {
+      status: 'done',
+      data: {
+        decks: [{ lessonTitle: 'L1', slides: [{ title: 'Old title', notes: 'Notes' }] }],
+      },
+    };
     mockCtx.projectDeliverableActionToCanonicalPatch = vi.fn(() => null);
 
     const result = AGENT_TOOLS.edit_deliverables.execute(

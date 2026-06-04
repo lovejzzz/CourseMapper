@@ -120,7 +120,7 @@ describe('buildModelAgentReceiptFromProgress', () => {
     expect(receiptMessage.receipt).toMatchObject({
       title: 'Workspace plan ready',
       status: 'done',
-      mode: 'Review only',
+      mode: 'No workspace edits',
       target: 'Workspace',
       intent: expect.objectContaining({
         type: 'workspace_plan',

@@ -60,20 +60,14 @@ describe('ChatInput agent execution mode', () => {
     textarea.dispatchEvent(new Event('input', { bubbles: true, cancelable: true }));
   }
 
-  it('renders and toggles review-only mode', () => {
+  it('renders conversation state without a mode toggle', () => {
     const onAgentDryRunChange = vi.fn();
     renderInput({ onAgentDryRunChange });
 
     const toggle = container.querySelector('[data-testid="agent-dry-run-toggle"]');
-    expect(toggle).not.toBeNull();
-    expect(toggle.textContent).toContain('Auto-fix on');
-    expect(toggle.getAttribute('aria-pressed')).toBe('false');
-
-    act(() => {
-      toggle.dispatchEvent(new MouseEvent('click', { bubbles: true }));
-    });
-
-    expect(onAgentDryRunChange).toHaveBeenCalledWith(true);
+    expect(toggle).toBeNull();
+    expect(container.textContent).toContain('Conversation');
+    expect(onAgentDryRunChange).not.toHaveBeenCalled();
   });
 
   it('keeps the send control reachable inside the textarea area', () => {
@@ -91,28 +85,27 @@ describe('ChatInput agent execution mode', () => {
     expect(sendButtonWrapper.className).toContain('right-2');
   });
 
-  it('uses review-only copy and review prompt when enabled', () => {
+  it('uses conversation copy and a finish-package prompt', () => {
     const onSend = vi.fn();
     renderInput({ agentDryRun: true, onSend });
 
     const toggle = container.querySelector('[data-testid="agent-dry-run-toggle"]');
     const textarea = container.querySelector('textarea');
-    expect(toggle.textContent).toContain('Review only');
-    expect(toggle.getAttribute('aria-pressed')).toBe('true');
-    expect(textarea.getAttribute('placeholder')).toContain('Review or ask');
-    expect(container.textContent).toContain('No edits');
+    expect(toggle).toBeNull();
+    expect(textarea.getAttribute('placeholder')).toContain('Tell the agent what to change');
+    expect(container.textContent).not.toContain('No edits');
 
     const reviewButton = Array.from(container.querySelectorAll('button')).find(
-      (button) => button.getAttribute('title') === 'Review without editing',
+      (button) => button.getAttribute('title') === 'Finish, repair, and verify the course package before export',
     );
-    expect(reviewButton.textContent).toContain('Review package');
+    expect(reviewButton.textContent).toContain('Finish package');
     act(() => {
       reviewButton.dispatchEvent(new MouseEvent('click', { bubbles: true }));
     });
 
     expect(onSend).toHaveBeenCalledTimes(1);
-    expect(onSend.mock.calls[0][0]).toContain('Do not apply changes');
-    expect(onSend.mock.calls[0][0]).not.toContain('using edit_deliverables');
+    expect(onSend.mock.calls[0][0]).toContain('Finish this course package');
+    expect(onSend.mock.calls[0][0]).toContain('Only ask the user for decisions');
   });
 
   it('routes the package action button through the direct agent command when available', () => {
@@ -225,7 +218,7 @@ describe('ChatInput agent execution mode', () => {
     expect(onSend).not.toHaveBeenCalled();
   });
 
-  it('routes typed mode-switch commands through the agent handler', () => {
+  it('does not route typed mode-switch phrases as local commands', () => {
     const onSend = vi.fn();
     const onAgentCommand = vi.fn();
     renderInput({ onSend, onAgentCommand });
@@ -236,22 +229,17 @@ describe('ChatInput agent execution mode', () => {
     });
 
     const preview = container.querySelector('[data-testid="agent-command-preview"]');
-    expect(preview).not.toBeNull();
-    expect(preview.textContent).toContain('Switch to Review only');
+    expect(preview).toBeNull();
 
     act(() => {
       textarea.dispatchEvent(new KeyboardEvent('keydown', { key: 'Enter', bubbles: true }));
     });
 
-    expect(onAgentCommand).toHaveBeenCalledTimes(1);
-    expect(onAgentCommand.mock.calls[0][0]).toMatchObject({
-      id: 'set-review-mode',
-      modeSwitch: 'review-only',
-    });
-    expect(onSend).not.toHaveBeenCalled();
+    expect(onAgentCommand).not.toHaveBeenCalled();
+    expect(onSend).toHaveBeenCalledTimes(1);
   });
 
-  it('routes slash mode-switch commands for the current mode', () => {
+  it('does not expose slash mode-switch commands', () => {
     const onSend = vi.fn();
     const onAgentCommand = vi.fn();
     renderInput({ agentDryRun: true, onSend, onAgentCommand });
@@ -262,18 +250,13 @@ describe('ChatInput agent execution mode', () => {
     });
 
     const modeCommand = container.querySelector('[data-testid="agent-slash-command-set-auto-fix-mode"]');
-    expect(modeCommand).not.toBeNull();
-    expect(modeCommand.textContent).toContain('Switch to Auto-fix');
+    expect(modeCommand).toBeNull();
 
     act(() => {
       textarea.dispatchEvent(new KeyboardEvent('keydown', { key: 'Enter', bubbles: true }));
     });
 
-    expect(onAgentCommand).toHaveBeenCalledTimes(1);
-    expect(onAgentCommand.mock.calls[0][0]).toMatchObject({
-      id: 'set-auto-fix-mode',
-      modeSwitch: 'auto-fix',
-    });
+    expect(onAgentCommand).not.toHaveBeenCalled();
     expect(onSend).not.toHaveBeenCalled();
   });
 
@@ -539,24 +522,24 @@ describe('ChatInput agent execution mode', () => {
     });
 
     const finishCommand = container.querySelector('[data-testid="agent-slash-command-finish-package"]');
-    const modeCommand = container.querySelector('[data-testid="agent-slash-command-set-review-mode"]');
+    const improveCommand = container.querySelector('[data-testid="agent-slash-command-improve-active"]');
     expect(finishCommand.getAttribute('aria-selected')).toBe('true');
-    expect(modeCommand.getAttribute('aria-selected')).toBe('false');
+    expect(improveCommand.getAttribute('aria-selected')).toBe('false');
 
     act(() => {
       textarea.dispatchEvent(new KeyboardEvent('keydown', { key: 'ArrowDown', bubbles: true }));
     });
 
     expect(finishCommand.getAttribute('aria-selected')).toBe('false');
-    expect(modeCommand.getAttribute('aria-selected')).toBe('true');
-    expect(textarea.getAttribute('aria-activedescendant')).toBe('agent-slash-command-option-set-review-mode');
+    expect(improveCommand.getAttribute('aria-selected')).toBe('true');
+    expect(textarea.getAttribute('aria-activedescendant')).toBe('agent-slash-command-option-improve-active');
 
     act(() => {
       textarea.dispatchEvent(new KeyboardEvent('keydown', { key: 'Enter', bubbles: true }));
     });
 
     expect(onAgentCommand).toHaveBeenCalledTimes(1);
-    expect(onAgentCommand.mock.calls[0][0]).toMatchObject({ id: 'set-review-mode' });
+    expect(onAgentCommand.mock.calls[0][0]).toMatchObject({ id: 'improve-active' });
     expect(onSend).not.toHaveBeenCalled();
   });
 

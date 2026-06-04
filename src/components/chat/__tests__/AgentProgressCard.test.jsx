@@ -100,7 +100,7 @@ describe('AgentProgressCard', () => {
         status: 'complete',
         mode: 'Review only',
       }),
-    ).toEqual({ label: 'Review only', tone: 'slate' });
+    ).toEqual({ label: 'No workspace edits', tone: 'slate' });
 
     expect(
       buildAgentRunOutcome([{ tool: 'edit_deliverables', status: 'done' }], {

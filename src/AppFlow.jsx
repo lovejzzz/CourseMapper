@@ -3835,7 +3835,6 @@ export default function AppFlow({ startupAction = null, onStartupHandled, onRetu
                   notifyEdit={smartSync.notifyEdit}
                   chatSendRef={chatSendRef}
                   uid={user?.uid || null}
-                  onConfigureAI={() => setScreen('landing')}
                   onApiCallEvent={recordApiCallEvent}
                 />
               </ErrorBoundary>

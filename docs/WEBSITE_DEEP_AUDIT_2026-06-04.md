@@ -23,7 +23,7 @@ Bottom line:
 
 - Confirmed repo root: `/Users/tianxing/Documents/NYU/NYUsliver/CourseMapper`
 - Confirmed ahead count earlier in the run: `origin/main..HEAD = 0`
-- Current pre-report worktree status only had a pre-existing untracked doc: `docs/A_PLUS_BLUEPRINT_COMPILER_GAP_AUDIT.md`
+- Current pre-report worktree status only had a pre-existing local scratch audit draft, which was not part of the committed release surface.
 - This report was added as a new untracked file. No commit was made.
 
 ### Static and Build Checks

@@ -60,7 +60,7 @@ describe('AgentWorkingSetPanel', () => {
     expect(summary).toMatchObject({
       activeTarget: 'Lesson Plans',
       scopeLabel: '2/3 lessons',
-      modeLabel: 'Review only',
+      toolStateLabel: 'AI connected',
       selectedFeatureCount: 4,
       readyFeatureCount: 2,
       missingFeatureCount: 1,
@@ -103,7 +103,7 @@ describe('AgentWorkingSetPanel', () => {
     expect(html).toContain('Slide Decks');
     expect(html).toContain('Brief');
     expect(html).toContain('prompt + 2 materials + 2 source notes');
-    expect(html).toContain('Mode');
+    expect(html).toContain('Agent');
     expect(html).toContain('Local tools');
     expect(html).toContain('3 lessons');
     expect(html).toContain('1 ready, 1 running, 1 stale');

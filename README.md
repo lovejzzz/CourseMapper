@@ -32,6 +32,7 @@ Course Mapper is a **purpose-built instructional design tool**, not a general ch
 Go to [edutool.dev](https://edutool.dev). On the landing page:
 
 - **Bring your own key** — Select your provider (OpenAI, Anthropic, Google, or DeepSeek) and paste your API key. The app auto-detects key format and switches the provider dropdown.
+- Restored workspaces can reconfigure a missing or expired key in place from the Agent header by clicking the current model/config label.
 
 ### Step 2: Upload Your Materials
 
@@ -104,6 +105,7 @@ An embedded multi-step AI agent with native tool calling, not a chatbot wrapper.
 - **Error recovery** — If a proposed action fails, the agent auto-recovers by silently re-invoking itself to find an alternative.
 - **User preferences** — Tell the agent your teaching style, Bloom's focus, or difficulty preference and it persists across sessions.
 - **No-key local commands** — When AI is not configured, typed requests like "can you audit this package?" still route to safe local Agent commands instead of dead-ending in disabled chat.
+- **Restored-project recovery** — If an old project opens with a missing, expired, or invalid key, the workspace stays open and lets the user change provider, key, or model without returning to the landing page.
 - **v0.8.2 scenario gate** — The OpenAI live agent audit now covers 20 real-life instructor prompts across research, grammar, diagrams, charts, lesson reads, slide improvements, custom macros, undo, alignment, package review, and missing-deliverable safety.
 
 ### Inline AI Editing

@@ -63,7 +63,7 @@ describe('WorkspacePlanCard', () => {
     const html = renderToStaticMarkup(<WorkspacePlanCard plan={samplePlan} />);
 
     expect(html).toContain('Workspace plan');
-    expect(html).toContain('Auto-fix available');
+    expect(html).toContain('Can apply safe fixes');
     expect(html).toContain('Resolve failed generation for Rubrics');
     expect(html).toContain('Sync stale deliverables');
     expect(html).toContain('8 lessons');

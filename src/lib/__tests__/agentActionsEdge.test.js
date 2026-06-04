@@ -1223,11 +1223,12 @@ describe('Fix 9: regenerateLesson validates lessonIndex bounds', () => {
     expect(ctx.regenerateLesson).toHaveBeenCalledWith('quizBank', ctx.courseMap, 1);
   });
 
-  it('still works when deliverables context is missing (no bounds check possible)', () => {
+  it('blocks regeneration when deliverables context is missing', () => {
     const ctx = makeCtx({ deliverables: undefined });
     const result = executeAction({ type: 'regenerateLesson', featureId: 'quizBank', lessonIndex: 0 }, ctx);
-    expect(result.success).toBe(true);
-    expect(ctx.regenerateLesson).toHaveBeenCalled();
+    expect(result.success).toBe(false);
+    expect(result.message).toContain('not generated yet');
+    expect(ctx.regenerateLesson).not.toHaveBeenCalled();
   });
 });
 
@@ -1273,19 +1274,15 @@ describe('Fix 10: addItem for flat deliverables handles gracefully', () => {
     expect(data.lessonPlans[0].hw).toBe('New homework');
   });
 
-  it('appends a lessonPlans entry when lessonIndex is the next course-map lesson', () => {
+  it('blocks appending a lessonPlans entry for a missing generated lesson slot', () => {
     const ctx = makeCtx();
     const result = executeAction(
       { type: 'addItem', featureId: 'lessonPlans', lessonIndex: 2, item: { ob: 'New lesson objective' } },
       ctx,
     );
-    expect(result.success).toBe(true);
-    const data = ctx.optimisticUpdate.mock.calls[0][1];
-    expect(data.lessonPlans).toHaveLength(3);
-    expect(data.lessonPlans[2]).toMatchObject({
-      lessonTitle: 'Lesson 3',
-      ob: 'New lesson objective',
-    });
+    expect(result.success).toBe(false);
+    expect(result.message).toContain('out of range');
+    expect(ctx.optimisticUpdate).not.toHaveBeenCalled();
   });
 
   it('rejects null item for flat deliverable', () => {

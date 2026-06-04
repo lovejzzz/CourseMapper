@@ -65,7 +65,7 @@ export function buildLessonScopeCommandFromText(text = '', courseMap = null) {
 
 /**
  * ChatInput — clean textarea with file drop and send button.
- * Routing is automatic based on context; agent mode exposes an auto-fix/review-only toggle.
+ * Routing is automatic based on context; confirmations happen in conversation.
  */
 export default function ChatInput({
   onSend,
@@ -83,7 +83,6 @@ export default function ChatInput({
   isAgentMode,
   isAgentProviderReady = true,
   agentDryRun = false,
-  onAgentDryRunChange,
   onConfigureAI,
   onAgentCommand,
   syncFeatureCount = 0,
@@ -139,13 +138,7 @@ export default function ChatInput({
     typedScopeCommand ||
     (isAgentMode && !showSlashCommands && !busy ? findAgentCommandByText(agentCommandItems, input) : null);
   const previewAgentCommand = typedAgentCommand && !showSlashCommands ? typedAgentCommand : null;
-  const modeLabel = agentUnavailable
-    ? 'Configure AI'
-    : isAgentMode
-      ? agentDryRun
-        ? 'Review only'
-        : 'Auto-fix on'
-      : 'Ask';
+  const stateLabel = agentUnavailable ? 'Configure AI' : isAgentMode ? 'Conversation' : 'Ask';
 
   function handleAgentCommandSelect(item) {
     if (!item || isStreaming || isRevising) return;
@@ -270,28 +263,22 @@ export default function ChatInput({
       : !courseMap
         ? 'Ask a question about your course…'
         : agentUnavailable
-          ? 'Configure AI to chat or edit with the agent…'
+          ? 'Configure AI to chat with the agent…'
           : isAgentMode
-            ? agentDryRun
-              ? delivLabel
-                ? `Review or ask about ${delivLabel}…`
-                : 'Review or ask about your deliverables…'
-              : delivLabel
-                ? `Edit, review, or ask about ${delivLabel}…`
-                : 'Edit, review, or ask about your deliverables…'
+            ? delivLabel
+              ? `Tell the agent what to change in ${delivLabel}…`
+              : 'Tell the agent what to change in your deliverables…'
             : 'Ask a question or request changes…';
 
-  const reviewPrompt = agentDryRun
-    ? 'Review this course package without applying changes. Run read-only readiness, export, and validation checks; identify concrete issues, instructor decisions, and the exact safe fixes you would apply. Do not apply changes.'
-    : [
-        'Finish this course package until it is ready to download.',
-        'Run finalize_package first.',
-        'If localized weak sections remain, call retry_package_weak_spots, then finalize_package again.',
-        'Apply safe deterministic and concrete content fixes directly.',
-        'Do not present the package as ready unless readiness, classroom readiness, validation, and export verification are clean.',
-        'Only ask the user for decisions that require instructor judgment.',
-        'Finish with a concise package handoff that says either Ready to download or lists the remaining instructor decisions.',
-      ].join(' ');
+  const reviewPrompt = [
+    'Finish this course package until it is ready to download.',
+    'Run finalize_package first.',
+    'If localized weak sections remain, call retry_package_weak_spots, then finalize_package again.',
+    'Apply safe deterministic and concrete content fixes directly.',
+    'Do not present the package as ready unless readiness, classroom readiness, validation, and export verification are clean.',
+    'Only ask the user for decisions that require instructor judgment.',
+    'Finish with a concise package handoff that says either Ready to download or lists the remaining instructor decisions.',
+  ].join(' ');
   const sendDisabled =
     (!canRunSlashCommand &&
       (hasUnknownSlashCommand ||
@@ -389,32 +376,9 @@ export default function ChatInput({
           <span className="truncate rounded-full border border-slate-200/70 bg-white/60 px-2 py-0.5 font-semibold text-slate-500">
             {targetLabel}
           </span>
-          {isAgentMode && !agentUnavailable ? (
-            <button
-              type="button"
-              onClick={() => onAgentDryRunChange?.(!agentDryRun)}
-              disabled={busy}
-              aria-pressed={agentDryRun}
-              data-testid="agent-dry-run-toggle"
-              className={`shrink-0 rounded-full border px-2 py-0.5 font-semibold transition-colors disabled:cursor-not-allowed disabled:opacity-60 ${
-                agentDryRun
-                  ? 'border-amber-200/70 bg-amber-50 text-amber-700'
-                  : 'border-indigo-200/70 bg-indigo-50 text-indigo-600'
-              }`}
-              title={agentDryRun ? 'Let the agent apply safe fixes' : 'Review without editing'}
-            >
-              {modeLabel}
-            </button>
-          ) : (
-            <span className="shrink-0 rounded-full border border-slate-200/70 bg-white/60 px-2 py-0.5 font-semibold text-slate-500">
-              {modeLabel}
-            </span>
-          )}
-          {isAgentMode && !agentUnavailable && (
-            <span className="shrink-0 rounded-full border border-slate-200/70 bg-white/60 px-2 py-0.5 font-semibold text-slate-500">
-              {agentDryRun ? 'No edits' : 'Safe fixes on'}
-            </span>
-          )}
+          <span className="shrink-0 rounded-full border border-slate-200/70 bg-white/60 px-2 py-0.5 font-semibold text-slate-500">
+            {stateLabel}
+          </span>
         </div>
 
         <div className="relative">
@@ -619,17 +583,13 @@ export default function ChatInput({
                 <span className="text-[10px] font-medium text-slate-400 select-none">{input.length} chars</span>
               )}
 
-              {/* Package action button — copy reflects whether edits are allowed. */}
+              {/* Package action button. */}
               {isAgentMode && !agentUnavailable && !busy && (
                 <button
                   onClick={handlePackageAction}
                   disabled={isCoolingDown}
                   className="tactile flex items-center gap-1 rounded-lg border border-emerald-200/70 bg-emerald-50/80 px-2 py-0.5 text-[10px] font-bold text-emerald-700 shadow-sm transition-all duration-200 hover:bg-emerald-100/80 disabled:cursor-not-allowed disabled:opacity-50"
-                  title={
-                    agentDryRun
-                      ? 'Review without editing'
-                      : 'Finish, repair, and verify the course package before export'
-                  }
+                  title="Finish, repair, and verify the course package before export"
                 >
                   <svg className="w-3 h-3" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                     <path
@@ -639,7 +599,7 @@ export default function ChatInput({
                       d="M9 5H7a2 2 0 00-2 2v12a2 2 0 002 2h10a2 2 0 002-2V7a2 2 0 00-2-2h-2M9 5a2 2 0 002 2h2a2 2 0 002-2M9 5a2 2 0 012-2h2a2 2 0 012 2m-6 9l2 2 4-4"
                     />
                   </svg>
-                  {agentDryRun ? 'Review package' : 'Finish package'}
+                  Finish package
                 </button>
               )}
 

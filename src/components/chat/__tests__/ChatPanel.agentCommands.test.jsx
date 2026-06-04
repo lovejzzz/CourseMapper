@@ -394,66 +394,25 @@ describe('ChatPanel agent command strip', () => {
     expect(chatRouterMock.send).not.toHaveBeenCalled();
   });
 
-  it('switches to Review-only mode locally without a model call', () => {
+  it('does not expose Review-only mode switching', () => {
     root = renderChatPanel(container);
 
     const reviewModeButton = container.querySelector('[data-testid="agent-command-set-review-mode"]');
-    expect(reviewModeButton).not.toBeNull();
-
-    act(() => {
-      reviewModeButton.dispatchEvent(new MouseEvent('click', { bubbles: true }));
-    });
-
-    expect(chatRouterMock.setAgentDryRun).toHaveBeenCalledWith(true);
-    expect(chatRouterMock.addLocalMessages).toHaveBeenCalledWith([
-      { role: 'user', text: 'Switch to Review only' },
-      {
-        role: 'agentReceipt',
-        receipt: expect.objectContaining({
-          title: 'Mode receipt',
-          status: 'done',
-          mode: 'Review only',
-          target: 'Agent',
-          changed: ['Agent mode set to Review only'],
-        }),
-      },
-      {
-        role: 'assistant',
-        text: 'Review-only mode is on. I will inspect and propose fixes without editing.',
-      },
-    ]);
+    expect(reviewModeButton).toBeNull();
+    expect(chatRouterMock.setAgentDryRun).not.toHaveBeenCalled();
+    expect(chatRouterMock.addLocalMessages).not.toHaveBeenCalledWith(
+      expect.arrayContaining([expect.objectContaining({ text: 'Switch to Review only' })]),
+    );
     expect(chatRouterMock.send).not.toHaveBeenCalled();
   });
 
-  it('switches back to Auto-fix mode locally without a model call', () => {
+  it('does not expose Auto-fix mode switching', () => {
     chatRouterMock.agentDryRun = true;
     root = renderChatPanel(container);
 
     const autoFixButton = container.querySelector('[data-testid="agent-command-set-auto-fix-mode"]');
-    expect(autoFixButton).not.toBeNull();
-
-    act(() => {
-      autoFixButton.dispatchEvent(new MouseEvent('click', { bubbles: true }));
-    });
-
-    expect(chatRouterMock.setAgentDryRun).toHaveBeenCalledWith(false);
-    expect(chatRouterMock.addLocalMessages).toHaveBeenCalledWith([
-      { role: 'user', text: 'Switch to Auto-fix' },
-      {
-        role: 'agentReceipt',
-        receipt: expect.objectContaining({
-          title: 'Mode receipt',
-          status: 'done',
-          mode: 'Auto-fix',
-          target: 'Agent',
-          changed: ['Agent mode set to Auto-fix'],
-        }),
-      },
-      {
-        role: 'assistant',
-        text: 'Auto-fix mode is on. I can apply safe fixes directly and will still stop for instructor decisions.',
-      },
-    ]);
+    expect(autoFixButton).toBeNull();
+    expect(chatRouterMock.setAgentDryRun).not.toHaveBeenCalled();
     expect(chatRouterMock.send).not.toHaveBeenCalled();
   });
 
@@ -619,7 +578,7 @@ describe('ChatPanel agent command strip', () => {
     expect(progress).toMatchObject({
       role: 'agentProgress',
       status: 'complete',
-      runMeta: { mode: 'Auto-fix', target: 'Package', model: 'Local tools' },
+      runMeta: { mode: 'Package finish', target: 'Package', model: 'Local tools' },
       steps: [
         expect.objectContaining({ tool: 'repair_package_readiness', status: 'done' }),
         expect.objectContaining({ tool: 'finalize_package', status: 'done' }),
@@ -730,7 +689,7 @@ describe('ChatPanel agent command strip', () => {
       }),
       expect.objectContaining({
         role: 'agentReceipt',
-        receipt: expect.objectContaining({ title: 'Audit receipt', status: 'done', mode: 'Review only' }),
+        receipt: expect.objectContaining({ title: 'Audit receipt', status: 'done', mode: 'Local audit' }),
       }),
       { role: 'assistant', text: 'Audit complete. No blockers found in the read-only checks.' },
     ]);
@@ -740,7 +699,7 @@ describe('ChatPanel agent command strip', () => {
     expect(progress).toMatchObject({
       role: 'agentProgress',
       status: 'complete',
-      runMeta: { mode: 'Review only', target: 'Package', model: 'Local tools' },
+      runMeta: { mode: 'Local audit', target: 'Package', model: 'Local tools' },
       steps: [
         expect.objectContaining({ tool: 'review_package_readiness', status: 'done' }),
         expect.objectContaining({ tool: 'validate_course', status: 'done' }),
@@ -750,7 +709,7 @@ describe('ChatPanel agent command strip', () => {
     expect(chatRouterMock.send).not.toHaveBeenCalled();
   });
 
-  it('runs the Review command as a read-only audit in review-only mode', async () => {
+  it('keeps Finish as package finalization even when legacy dry-run state exists', async () => {
     chatRouterMock.agentDryRun = true;
     const onAuditPackage = vi.fn(() =>
       Promise.resolve({
@@ -764,21 +723,18 @@ describe('ChatPanel agent command strip', () => {
     const onFinalizePackage = vi.fn();
     root = renderChatPanel(container, { onAuditPackage, onFinalizePackage });
 
-    const reviewButton = container.querySelector('[data-testid="agent-command-finish-package"]');
+    const finishButton = container.querySelector('[data-testid="agent-command-finish-package"]');
     await act(async () => {
-      reviewButton.dispatchEvent(new MouseEvent('click', { bubbles: true }));
+      finishButton.dispatchEvent(new MouseEvent('click', { bubbles: true }));
     });
 
-    expect(onAuditPackage).toHaveBeenCalledWith({
-      selectedFeatureIds: ['courseMap', 'lessonPlans'],
-      lessonFilter: null,
-    });
-    expect(onFinalizePackage).not.toHaveBeenCalled();
+    expect(onAuditPackage).not.toHaveBeenCalled();
+    expect(onFinalizePackage).toHaveBeenCalled();
     expectInitialLocalTurn({
-      text: 'Review package',
-      assistantText: 'Running a read-only package review from the Agent command.',
-      promptIncludes: 'Review the full course package without applying changes',
-      progressTool: 'review_package_readiness',
+      text: 'Finish package',
+      assistantText: 'Running package finishing from the Agent command.',
+      promptIncludes: 'Finish the course package until it is ready to download',
+      progressTool: 'finalize_package',
     });
     expect(chatRouterMock.send).not.toHaveBeenCalled();
   });
@@ -892,7 +848,7 @@ describe('ChatPanel agent command strip', () => {
     expect(progress).toMatchObject({
       role: 'agentProgress',
       status: 'complete',
-      runMeta: { mode: 'Auto-fix', target: 'Workspace', model: 'Local tools' },
+      runMeta: { mode: 'Workspace plan', target: 'Workspace', model: 'Local tools' },
       steps: [
         expect.objectContaining({ tool: 'inspect_workspace', status: 'done' }),
         expect.objectContaining({ tool: 'plan_workspace_next_step', status: 'done' }),
@@ -1048,7 +1004,7 @@ describe('ChatPanel agent command strip', () => {
     expect(progress).toMatchObject({
       role: 'agentProgress',
       status: 'complete',
-      runMeta: { mode: 'Auto-fix', target: 'Lesson Plans', model: 'Local tools' },
+      runMeta: { mode: 'Undo', target: 'Lesson Plans', model: 'Local tools' },
       steps: [expect.objectContaining({ tool: 'undo_last', status: 'done', targets: ['Lesson Plans'] })],
     });
     expect(chatRouterMock.send).not.toHaveBeenCalled();
@@ -1547,7 +1503,7 @@ describe('ChatPanel agent command strip', () => {
       }),
       expect.objectContaining({
         role: 'agentReceipt',
-        receipt: expect.objectContaining({ title: 'Audit receipt', status: 'done', mode: 'Review only' }),
+        receipt: expect.objectContaining({ title: 'Audit receipt', status: 'done', mode: 'Local audit' }),
       }),
       { role: 'assistant', text: 'Audit complete. No blockers found in the read-only checks.' },
     ]);
@@ -1626,7 +1582,7 @@ describe('ChatPanel agent command strip', () => {
       }),
       expect.objectContaining({
         role: 'agentReceipt',
-        receipt: expect.objectContaining({ title: 'Audit needs review', status: 'review', mode: 'Review only' }),
+        receipt: expect.objectContaining({ title: 'Audit needs review', status: 'review', mode: 'Local audit' }),
       }),
       expect.objectContaining({ role: 'assistant', text: expect.stringContaining('Audit complete.') }),
     ]);

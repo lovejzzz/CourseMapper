@@ -255,28 +255,15 @@ function normalizeDeliverableItem(featureId, item) {
   return item;
 }
 
-function getCourseLessonTitle(courseMap, lessonIndex) {
-  return courseMap?.lessons?.[lessonIndex]?.title || `Lesson ${lessonIndex + 1}`;
-}
-
-function addLessonTitleIfMissing(featureId, item, courseMap, lessonIndex) {
-  const next = { ...(item || {}) };
-  if (next.lessonTitle || next.lt || next.title || next.t) return next;
-  const lessonTitle = getCourseLessonTitle(courseMap, lessonIndex);
-  if (['quizBank', 'courseFaq', 'rubrics'].includes(featureId)) next.lt = lessonTitle;
-  else next.lessonTitle = lessonTitle;
-  return next;
-}
-
-function buildAppendedLessonItem(featureId, item, ctx, lessonIndex, subArrayKey) {
-  if (subArrayKey) {
-    const lessonItem = addLessonTitleIfMissing(featureId, {}, ctx.courseMap, lessonIndex);
-    lessonItem[subArrayKey] = [item];
-    if (featureId === 'quizBank') lessonItem.tq = 1;
-    if (featureId === 'slideDecks') lessonItem.ts = 1;
-    return lessonItem;
+function getReadyDeliverableEntry(featureId, deliverables) {
+  if (!featureId) return { error: 'Missing featureId' };
+  const entry = deliverables?.[featureId];
+  if (!entry) return { error: `Unknown featureId: "${featureId}" — not generated yet` };
+  if (entry.status && entry.status !== 'done') {
+    return { error: `${featureId} not generated yet (status: ${entry.status})` };
   }
-  return addLessonTitleIfMissing(featureId, item, ctx.courseMap, lessonIndex);
+  if (!entry.data) return { error: `${featureId} not generated yet` };
+  return { entry };
 }
 
 function isVisualObject(obj) {
@@ -309,13 +296,17 @@ function resolveSegment(featureId, container, seg, { final = false } = {}) {
 function execAddItem({ featureId, lessonIndex, item, subKey }, ctx) {
   const { deliverables, optimisticUpdate, snapshot, skipSnapshot } = ctx;
   if (!optimisticUpdate) return { success: false, message: 'Optimistic update not available' };
-  if (!featureId) return { success: false, message: 'Missing featureId' };
+  const readyEntry = getReadyDeliverableEntry(featureId, deliverables);
+  if (readyEntry.error) return { success: false, message: readyEntry.error };
 
   // Validate required fields before pushing
   const normalizedItem = normalizeDeliverableItem(featureId, item);
+  if (!normalizedItem || typeof normalizedItem !== 'object') {
+    return { success: false, message: `Invalid item for ${featureId} — expected an object` };
+  }
 
   const reqFields = REQUIRED_FIELDS[featureId];
-  if (reqFields && normalizedItem) {
+  if (reqFields) {
     const groups = {};
     for (const [key, label] of Object.entries(reqFields)) {
       (groups[label] ||= []).push(key);
@@ -335,8 +326,7 @@ function execAddItem({ featureId, lessonIndex, item, subKey }, ctx) {
     }
   }
 
-  const entry = deliverables?.[featureId];
-  if (!entry?.data) return { success: false, message: `${featureId} not generated yet` };
+  const entry = readyEntry.entry;
 
   // Snapshot for undo before mutating (skip during batch — caller snapshots once)
   if (snapshot && !skipSnapshot) snapshot(featureId, entry.data);
@@ -346,10 +336,11 @@ function execAddItem({ featureId, lessonIndex, item, subKey }, ctx) {
 
   if (featureId === 'assignments') {
     // Flat array — push to root
-    if (!data[arrKey]) data[arrKey] = [];
+    if (!arrKey) return { success: false, message: `No array found for ${featureId}` };
+    if (!Array.isArray(data[arrKey])) return { success: false, message: `No array found for ${featureId}` };
     data[arrKey].push(normalizedItem);
     optimisticUpdate(featureId, data);
-    return { success: true, message: `Added assignment "${item.t || 'New Assignment'}"` };
+    return { success: true, message: `Added assignment "${normalizedItem.t || 'New Assignment'}"` };
   }
 
   if (featureId === 'syllabus') {
@@ -366,20 +357,11 @@ function execAddItem({ featureId, lessonIndex, item, subKey }, ctx) {
   if (!Array.isArray(arr)) return { success: false, message: `No array found for ${featureId}` };
 
   const requestedSubArrayKey = subKey || SUB_ARRAY_KEYS[featureId];
-  if (lessonIndex < 0 || lessonIndex > arr.length) {
-    return { success: false, message: `Lesson index ${lessonIndex} out of range (0-${arr.length - 1})` };
+  if (!Number.isInteger(lessonIndex)) {
+    return { success: false, message: `Invalid lessonIndex: ${lessonIndex} — expected a number` };
   }
-  if (lessonIndex === arr.length) {
-    if (!normalizedItem || typeof normalizedItem !== 'object') {
-      return {
-        success: false,
-        message: `Invalid item for ${featureId} — expected an object to append for Lesson ${lessonIndex + 1}`,
-      };
-    }
-    const subArrayKey = resolveSegment(featureId, {}, requestedSubArrayKey, { final: true });
-    arr.push(buildAppendedLessonItem(featureId, normalizedItem, ctx, lessonIndex, subArrayKey));
-    optimisticUpdate(featureId, data);
-    return { success: true, message: `Added ${featureId} entry for Lesson ${lessonIndex + 1}` };
+  if (lessonIndex < 0 || lessonIndex >= arr.length) {
+    return { success: false, message: `Lesson index ${lessonIndex} out of range (0-${arr.length - 1})` };
   }
 
   const lessonItem = arr[lessonIndex];
@@ -433,10 +415,9 @@ function execAddItem({ featureId, lessonIndex, item, subKey }, ctx) {
 function execRemoveItem({ featureId, lessonIndex, itemIndex, subKey }, ctx) {
   const { deliverables, optimisticUpdate, snapshot, skipSnapshot } = ctx;
   if (!optimisticUpdate) return { success: false, message: 'Optimistic update not available' };
-  if (!featureId) return { success: false, message: 'Missing featureId' };
-
-  const entry = deliverables?.[featureId];
-  if (!entry?.data) return { success: false, message: `${featureId} not generated yet` };
+  const readyEntry = getReadyDeliverableEntry(featureId, deliverables);
+  if (readyEntry.error) return { success: false, message: readyEntry.error };
+  const entry = readyEntry.entry;
 
   // Fix 12: Validate itemIndex is a valid number before splicing
   if (itemIndex == null || typeof itemIndex !== 'number') {
@@ -461,6 +442,9 @@ function execRemoveItem({ featureId, lessonIndex, itemIndex, subKey }, ctx) {
 
   // Per-lesson deliverables
   const arr = data[arrKey];
+  if (!Number.isInteger(lessonIndex)) {
+    return { success: false, message: `Invalid lessonIndex: ${lessonIndex} — expected a number` };
+  }
   if (!Array.isArray(arr) || lessonIndex < 0 || lessonIndex >= arr.length) {
     return {
       success: false,
@@ -500,7 +484,8 @@ export function parsePath(pathInput) {
 function execEditItem({ featureId, path: rawPath, value }, ctx) {
   const { deliverables, optimisticUpdate, snapshot, skipSnapshot } = ctx;
   if (!optimisticUpdate) return { success: false, message: 'Optimistic update not available' };
-  if (!featureId) return { success: false, message: 'Missing featureId' };
+  const readyEntry = getReadyDeliverableEntry(featureId, deliverables);
+  if (readyEntry.error) return { success: false, message: readyEntry.error };
 
   // Accept both array and dot-notation string paths
   const path = parsePath(rawPath);
@@ -512,10 +497,7 @@ function execEditItem({ featureId, path: rawPath, value }, ctx) {
   if (path.length < 1) return { success: false, message: 'Invalid path — array cannot be empty' };
 
   // Fix 11: Validate featureId exists and has data before editing
-  const entry = deliverables?.[featureId];
-  if (!entry) return { success: false, message: `Unknown featureId: "${featureId}" — not found in deliverables` };
-  if (!entry.data)
-    return { success: false, message: `${featureId} not generated yet (status: ${entry.status || 'unknown'})` };
+  const entry = readyEntry.entry;
 
   // Snapshot for undo before mutating (skip during batch — caller snapshots once)
   if (snapshot && !skipSnapshot) snapshot(featureId, entry.data);
@@ -563,11 +545,13 @@ function execEditItem({ featureId, path: rawPath, value }, ctx) {
 
 function execRegenerateLesson({ featureId, lessonIndex }, { regenerateLesson, courseMap, deliverables }) {
   if (!regenerateLesson) return { success: false, message: 'Regenerate not available' };
-  if (!featureId) return { success: false, message: 'Missing featureId' };
-  if (lessonIndex == null || lessonIndex < 0) return { success: false, message: `Invalid lessonIndex: ${lessonIndex}` };
+  const readyEntry = getReadyDeliverableEntry(featureId, deliverables);
+  if (readyEntry.error) return { success: false, message: readyEntry.error };
+  if (!Number.isInteger(lessonIndex) || lessonIndex < 0)
+    return { success: false, message: `Invalid lessonIndex: ${lessonIndex}` };
 
   // Fix 9: Validate lessonIndex is within bounds of the deliverable data
-  const entry = deliverables?.[featureId];
+  const entry = readyEntry.entry;
   if (entry?.data) {
     const arrKey = getArrayKey(featureId, entry.data);
     const arr = entry.data[arrKey];
@@ -603,9 +587,8 @@ export function preValidateAction(action, ctx) {
 
   // Deliverable actions require the deliverable to exist with data
   if (['addItem', 'removeItem', 'editItem', 'regenerateLesson'].includes(action.type)) {
-    if (!action.featureId) return { valid: false, reason: 'Missing featureId' };
-    const entry = deliverables?.[action.featureId];
-    if (!entry?.data) return { valid: false, reason: `${action.featureId} not generated yet` };
+    const readyEntry = getReadyDeliverableEntry(action.featureId, deliverables);
+    if (readyEntry.error) return { valid: false, reason: readyEntry.error };
   }
 
   // Course map actions require a course map
@@ -614,17 +597,26 @@ export function preValidateAction(action, ctx) {
   }
 
   // lessonIndex bounds check (skip for assignments which are flat arrays)
-  if (
-    action.lessonIndex !== undefined &&
-    action.featureId &&
-    action.featureId !== 'assignments' &&
-    action.featureId !== 'syllabus'
-  ) {
+  if (action.featureId && action.featureId !== 'assignments' && action.featureId !== 'syllabus') {
     const entry = deliverables?.[action.featureId];
     if (entry?.data) {
       const arrKey = getArrayKey(action.featureId, entry.data);
       const arr = entry.data[arrKey];
-      if (Array.isArray(arr) && (action.lessonIndex < 0 || action.lessonIndex >= arr.length)) {
+      if (Array.isArray(arr) && action.lessonIndex !== undefined && !Number.isInteger(action.lessonIndex)) {
+        return { valid: false, reason: `Invalid lessonIndex: ${action.lessonIndex} — expected a number` };
+      }
+      if (
+        Array.isArray(arr) &&
+        action.lessonIndex === undefined &&
+        ['addItem', 'removeItem', 'regenerateLesson'].includes(action.type)
+      ) {
+        return { valid: false, reason: 'Missing lessonIndex' };
+      }
+      if (
+        Array.isArray(arr) &&
+        action.lessonIndex !== undefined &&
+        (action.lessonIndex < 0 || action.lessonIndex >= arr.length)
+      ) {
         return { valid: false, reason: `lessonIndex ${action.lessonIndex} out of range (0-${arr.length - 1})` };
       }
     }

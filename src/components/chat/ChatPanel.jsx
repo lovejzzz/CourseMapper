@@ -1,9 +1,10 @@
-import React, { lazy, Suspense, useEffect, useRef, useCallback, useMemo } from 'react';
+import React, { lazy, Suspense, useEffect, useRef, useCallback, useMemo, useState } from 'react';
 import MessageList from './MessageList';
 import ChatInput from './ChatInput';
 import CustomToolsMenu from './CustomToolsMenu';
 import AgentCommandStrip from './AgentCommandStrip';
 import AgentWorkingSetPanel from './AgentWorkingSetPanel';
+import ModelConfig from '../ModelConfig';
 import useChatRouter from './useChatRouter';
 import ExamReview from '../ExamReview';
 import { executeAction } from '../../lib/agentActions';
@@ -26,13 +27,12 @@ function latestRunningStep(steps = []) {
   return null;
 }
 
-function deriveAgentStatus(progress, isStreaming, isAgentMode, agentDryRun = false, isGeneratingWorkspace = false) {
+function deriveAgentStatus(progress, isStreaming, isAgentMode, _agentDryRun = false, isGeneratingWorkspace = false) {
   if (!isAgentMode && isGeneratingWorkspace) {
     return { label: 'Building', tone: 'indigo', detail: 'Using your starting request' };
   }
   if (!isAgentMode) return { label: 'Ask', tone: 'slate', detail: 'Ready to help' };
-  if (agentDryRun && !progress && !isStreaming) return { label: 'Review only', tone: 'slate', detail: 'No edits' };
-  if (!progress && !isStreaming) return { label: 'Ready', tone: 'emerald', detail: 'Auto-fix on' };
+  if (!progress && !isStreaming) return { label: 'Ready', tone: 'emerald', detail: 'Conversation-driven' };
   if (progress?.status === 'error') return { label: 'Needs attention', tone: 'red', detail: 'Check the latest turn' };
   if (progress?.status === 'complete') {
     const hasIssues = progress.steps?.some((step) => step.status === 'error' || step.status === 'partial');
@@ -490,7 +490,7 @@ function buildAgentReceiptMessage({
   title = 'Action complete',
   status = 'done',
   badge = '',
-  mode = 'Auto-fix',
+  mode = 'Agent run',
   target = 'Workspace',
   changed = [],
   checked = [],
@@ -563,7 +563,7 @@ function buildPackageAuditReceipt(summary = {}) {
     title: status === 'done' ? 'Audit receipt' : 'Audit needs review',
     status,
     badge: status === 'done' ? 'Passed' : status === 'blocked' ? 'Blocked' : 'Review',
-    mode: 'Review only',
+    mode: 'Local audit',
     target: 'Package',
     changed: 'No content edits',
     checked: ['Readiness', 'Classroom fit', 'Content validation', 'Export files'],
@@ -588,7 +588,7 @@ function buildPackageFinishReceipt(result = {}) {
     title: status === 'done' ? 'Package receipt' : 'Package needs review',
     status,
     badge: status === 'done' ? 'Ready' : status === 'blocked' ? 'Blocked' : 'Review',
-    mode: 'Auto-fix',
+    mode: 'Package finish',
     target: 'Package',
     changed:
       repairsApplied > 0
@@ -600,7 +600,7 @@ function buildPackageFinishReceipt(result = {}) {
   });
 }
 
-function buildWorkspacePlanReceipt(plan = {}, mode = 'Auto-fix') {
+function buildWorkspacePlanReceipt(plan = {}, mode = 'Workspace plan') {
   const action = plan?.highestImpactAction || (Array.isArray(plan?.actions) ? plan.actions[0] : null);
   return buildAgentReceiptMessage({
     title: 'Planning receipt',
@@ -619,7 +619,7 @@ function buildUndoReceipt(targetLabel) {
     title: 'Undo receipt',
     status: 'done',
     badge: 'Restored',
-    mode: 'Auto-fix',
+    mode: 'Undo',
     target: targetLabel,
     changed: `Restored previous ${targetLabel} state`,
     checked: 'Undo snapshot',
@@ -634,7 +634,7 @@ function buildGenerationReceipt(result = {}, featureSummary, requestedFeatureIds
     title: status === 'done' ? 'Generation receipt' : 'Generation needs review',
     status,
     badge: status === 'done' ? 'Generated' : 'Review',
-    mode: 'Auto-fix',
+    mode: 'Generation',
     target: featureSummary,
     changed: status === 'done' ? `Generated ${featureSummary}` : `Partially generated ${featureSummary}`,
     checked: 'Package checks after generation',
@@ -651,7 +651,7 @@ function buildGenerationReceipt(result = {}, featureSummary, requestedFeatureIds
   });
 }
 
-function buildSyncReceipt(featureSummary, mode = 'Auto-fix', syncResult = null) {
+function buildSyncReceipt(featureSummary, mode = 'Sync', syncResult = null) {
   const canonicalPatches = collectSyncCanonicalPatches(syncResult);
   if (canonicalPatches.length > 0) {
     const providerCallText = getSyncReceiptProviderCallText(syncResult, true);
@@ -706,7 +706,7 @@ function buildSyncReceipt(featureSummary, mode = 'Auto-fix', syncResult = null) 
   });
 }
 
-function buildSyncSkipReceipt(featureSummary, mode = 'Auto-fix', suggestion = null) {
+function buildSyncSkipReceipt(featureSummary, mode = 'Sync', suggestion = null) {
   const isCourseMapSource = suggestion?.editSource === 'courseMap';
   return buildAgentReceiptMessage({
     title: isCourseMapSource ? 'Sync skipped receipt' : 'Local edit receipt',
@@ -721,22 +721,6 @@ function buildSyncSkipReceipt(featureSummary, mode = 'Auto-fix', suggestion = nu
     next: isCourseMapSource
       ? 'Run Sync later if deliverables should match the course map.'
       : 'No downstream sync will run for this local edit.',
-  });
-}
-
-function buildModeSwitchReceipt(agentDryRun) {
-  const mode = agentDryRun ? 'Review only' : 'Auto-fix';
-  return buildAgentReceiptMessage({
-    title: 'Mode receipt',
-    status: 'done',
-    badge: 'Mode set',
-    mode,
-    target: 'Agent',
-    changed: `Agent mode set to ${mode}`,
-    checked: 'Future Agent commands',
-    next: agentDryRun
-      ? 'I will inspect and propose fixes without editing until you switch Auto-fix back on.'
-      : 'I can apply safe fixes directly. I will still stop for instructor decisions.',
   });
 }
 
@@ -767,7 +751,7 @@ function buildDirectAgentProgress({
   id = null,
   startedAt,
   endedAt = null,
-  mode = 'Auto-fix',
+  mode = 'Agent run',
   target = 'Workspace',
   steps = [],
   status = null,
@@ -914,6 +898,20 @@ const STATUS_TONES = {
   indigo: 'bg-indigo-50 text-indigo-700 border-indigo-200/70',
 };
 
+const MODEL_CONFIG_TONES = {
+  connected: 'border-emerald-200/70 bg-emerald-50 text-emerald-700 hover:bg-emerald-100/80',
+  validating: 'border-amber-200/70 bg-amber-50 text-amber-700 hover:bg-amber-100/80',
+  no_funds: 'border-amber-200/70 bg-amber-50 text-amber-700 hover:bg-amber-100/80',
+  error: 'border-red-200/70 bg-red-50 text-red-700 hover:bg-red-100/80',
+  idle: 'border-slate-200/70 bg-white/70 text-slate-600 hover:border-indigo-200 hover:bg-indigo-50 hover:text-indigo-700',
+};
+
+function getWorkspaceModelLabel({ modelName, isReady }) {
+  const savedModel = String(modelName || '').trim();
+  if (savedModel) return savedModel;
+  return isReady ? 'Choose model' : 'Configure model';
+}
+
 /**
  * ChatPanel — Unified chat interface replacing ProgressPanel + RevisionChat + HelpDrawer.
  * Handles: generation progress (header), help questions (Ask mode), agent actions (Revise mode),
@@ -992,9 +990,13 @@ export default function ChatPanel({
   chatSendRef,
   // User ID for cloud sync
   uid,
-  onConfigureAI,
   onApiCallEvent,
 }) {
+  const [workspaceModelConfigOpen, setWorkspaceModelConfigOpen] = useState(false);
+  const openWorkspaceModelConfig = useCallback(() => {
+    setWorkspaceModelConfigOpen(true);
+  }, []);
+
   // Detect agent mode: deliverables with done status exist
   const isAgentMode = !!(
     deliverables && Object.keys(deliverables).some((k) => k !== 'courseMap' && deliverables[k]?.status === 'done')
@@ -1329,7 +1331,7 @@ export default function ChatPanel({
         buildDirectAgentProgress({
           id: progressId,
           startedAt,
-          mode: 'Review only',
+          mode: 'Local audit',
           target: 'Package',
           status: 'running',
           steps: [
@@ -1351,7 +1353,7 @@ export default function ChatPanel({
         const progress = buildDirectAgentProgress({
           id: progressId,
           startedAt,
-          mode: 'Review only',
+          mode: 'Local audit',
           target: 'Package',
           steps: buildPackageAuditProgressSteps(summary),
         });
@@ -1365,7 +1367,7 @@ export default function ChatPanel({
         const progress = buildDirectAgentProgress({
           id: progressId,
           startedAt,
-          mode: 'Review only',
+          mode: 'Local audit',
           target: 'Package',
           steps: [
             buildDirectAgentStep('review_package_readiness', 'Review readiness', {
@@ -1415,7 +1417,7 @@ export default function ChatPanel({
         buildDirectAgentProgress({
           id: progressId,
           startedAt,
-          mode: 'Auto-fix',
+          mode: 'Package finish',
           target: 'Package',
           status: 'running',
           steps: [
@@ -1442,7 +1444,7 @@ export default function ChatPanel({
         const progress = buildDirectAgentProgress({
           id: progressId,
           startedAt,
-          mode: 'Auto-fix',
+          mode: 'Package finish',
           target: 'Package',
           steps: buildPackageFinishProgressSteps(result),
         });
@@ -1457,7 +1459,7 @@ export default function ChatPanel({
         const progress = buildDirectAgentProgress({
           id: progressId,
           startedAt,
-          mode: 'Auto-fix',
+          mode: 'Package finish',
           target: 'Package',
           steps: [
             buildDirectAgentStep('finalize_package', 'Finish package', {
@@ -1495,7 +1497,7 @@ export default function ChatPanel({
         buildDirectAgentProgress({
           id: progressId,
           startedAt,
-          mode: chat.agentDryRun ? 'Review only' : 'Auto-fix',
+          mode: 'Workspace plan',
           target: 'Workspace',
           status: 'running',
           steps: [
@@ -1526,7 +1528,7 @@ export default function ChatPanel({
         const progress = buildDirectAgentProgress({
           id: progressId,
           startedAt,
-          mode: chat.agentDryRun ? 'Review only' : 'Auto-fix',
+          mode: 'Workspace plan',
           target: 'Workspace',
           steps: [
             buildDirectAgentStep('inspect_workspace', 'Inspect workspace', {
@@ -1542,14 +1544,14 @@ export default function ChatPanel({
         commitDirectAgentProgress(chat, progressId, progress);
         chat.addLocalMessages([
           { role: 'workspacePlan', plan },
-          buildWorkspacePlanReceipt(plan, chat.agentDryRun ? 'Review only' : 'Auto-fix'),
+          buildWorkspacePlanReceipt(plan, 'Workspace plan'),
           { role: 'assistant', text: summarizeDirectWorkspacePlan(plan) },
         ]);
       } catch (err) {
         const progress = buildDirectAgentProgress({
           id: progressId,
           startedAt,
-          mode: chat.agentDryRun ? 'Review only' : 'Auto-fix',
+          mode: 'Workspace plan',
           target: 'Workspace',
           steps: [
             buildDirectAgentStep('inspect_workspace', 'Inspect workspace', {
@@ -1598,7 +1600,7 @@ export default function ChatPanel({
         buildDirectAgentProgress({
           id: progressId,
           startedAt,
-          mode: 'Auto-fix',
+          mode: 'Undo',
           target: targetLabel,
           status: 'running',
           steps: [
@@ -1619,7 +1621,7 @@ export default function ChatPanel({
           buildDirectAgentProgress({
             id: progressId,
             startedAt,
-            mode: 'Auto-fix',
+            mode: 'Undo',
             target: targetLabel,
             steps: [
               buildDirectAgentStep('undo_last', 'Undo last change', {
@@ -1643,7 +1645,7 @@ export default function ChatPanel({
           buildDirectAgentProgress({
             id: progressId,
             startedAt,
-            mode: 'Auto-fix',
+            mode: 'Undo',
             target: targetLabel,
             steps: [
               buildDirectAgentStep('undo_last', 'Undo last change', {
@@ -1679,7 +1681,7 @@ export default function ChatPanel({
       const featureSummary = summarizeSyncPlanFeatures(planForSummary);
       const hasCanonicalPatches = collectSyncCanonicalPatches(syncResult).length > 0;
       chat.addLocalMessages([
-        buildSyncReceipt(featureSummary, chat.agentDryRun ? 'Review only' : 'Auto-fix', syncResult),
+        buildSyncReceipt(featureSummary, 'Sync', syncResult),
         {
           role: 'assistant',
           text: hasCanonicalPatches
@@ -1706,7 +1708,7 @@ export default function ChatPanel({
       if (shouldClearStale) {
         const featureSummary = summarizeSyncPlanFeatures(plan);
         chat.addLocalMessages([
-          buildSyncSkipReceipt(featureSummary, chat.agentDryRun ? 'Review only' : 'Auto-fix', suggestion),
+          buildSyncSkipReceipt(featureSummary, 'Sync', suggestion),
           {
             role: 'assistant',
             text:
@@ -1769,7 +1771,7 @@ export default function ChatPanel({
           buildDirectAgentProgress({
             id: progressId,
             startedAt,
-            mode: 'Auto-fix',
+            mode: 'Generation',
             target: featureSummary,
             status: 'running',
             steps: [
@@ -1795,7 +1797,7 @@ export default function ChatPanel({
             buildDirectAgentProgress({
               id: progressId,
               startedAt,
-              mode: 'Auto-fix',
+              mode: 'Generation',
               target: featureSummary,
               steps: [
                 buildDirectAgentStep('edit_deliverables', 'Generate deliverables', {
@@ -1817,7 +1819,7 @@ export default function ChatPanel({
             buildDirectAgentProgress({
               id: progressId,
               startedAt,
-              mode: 'Auto-fix',
+              mode: 'Generation',
               target: featureSummary,
               steps: [
                 buildDirectAgentStep('edit_deliverables', 'Generate deliverables', {
@@ -1856,7 +1858,7 @@ export default function ChatPanel({
           buildDirectAgentProgress({
             id: progressId,
             startedAt,
-            mode: chat.agentDryRun ? 'Review only' : 'Auto-fix',
+            mode: 'Sync',
             target: featureSummary,
             status: 'running',
             steps: [
@@ -1877,7 +1879,7 @@ export default function ChatPanel({
             buildDirectAgentProgress({
               id: progressId,
               startedAt,
-              mode: chat.agentDryRun ? 'Review only' : 'Auto-fix',
+              mode: 'Sync',
               target: featureSummary,
               steps: [
                 buildDirectAgentStep('edit_deliverables', 'Sync stale deliverables', {
@@ -1888,7 +1890,7 @@ export default function ChatPanel({
             }),
           );
           chat.addLocalMessages([
-            buildSyncReceipt(featureSummary, chat.agentDryRun ? 'Review only' : 'Auto-fix', syncResult),
+            buildSyncReceipt(featureSummary, 'Sync', syncResult),
             {
               role: 'assistant',
               text:
@@ -1904,7 +1906,7 @@ export default function ChatPanel({
             buildDirectAgentProgress({
               id: progressId,
               startedAt,
-              mode: chat.agentDryRun ? 'Review only' : 'Auto-fix',
+              mode: 'Sync',
               target: featureSummary,
               steps: [
                 buildDirectAgentStep('edit_deliverables', 'Sync stale deliverables', {
@@ -2064,18 +2066,6 @@ export default function ChatPanel({
               : 'Generate the selected deliverables for the expanded course map.',
         });
 
-      if (chat.agentDryRun) {
-        chat.addLocalMessages([
-          buildLocalAgentUserMessage(displayText),
-          scopeExpansionReceipt('review'),
-          {
-            role: 'assistant',
-            text: `Review only: I would add ${missingCount} lesson${missingCount === 1 ? '' : 's'} to reach ${targetLessonCount} lessons, then sync downstream materials. Model calls: 0.`,
-          },
-        ]);
-        return true;
-      }
-
       if (typeof editor?.handleAddLessons === 'function') {
         const inserted = editor.handleAddLessons(expansionLessons);
         if (Array.isArray(inserted) && inserted.length === missingCount) {
@@ -2147,30 +2137,6 @@ export default function ChatPanel({
         ]);
         return;
       }
-      if (item.modeSwitch === 'review-only' || item.id === 'set-review-mode') {
-        chat.setAgentDryRun(true);
-        chat.addLocalMessages([
-          buildLocalAgentUserMessage(item.displayText || 'Switch to Review only'),
-          buildModeSwitchReceipt(true),
-          {
-            role: 'assistant',
-            text: 'Review-only mode is on. I will inspect and propose fixes without editing.',
-          },
-        ]);
-        return;
-      }
-      if (item.modeSwitch === 'auto-fix' || item.id === 'set-auto-fix-mode') {
-        chat.setAgentDryRun(false);
-        chat.addLocalMessages([
-          buildLocalAgentUserMessage(item.displayText || 'Switch to Auto-fix'),
-          buildModeSwitchReceipt(false),
-          {
-            role: 'assistant',
-            text: 'Auto-fix mode is on. I can apply safe fixes directly and will still stop for instructor decisions.',
-          },
-        ]);
-        return;
-      }
       if (notifyAgentCommandTemporarilyBlocked(item)) return;
       if (item.id === 'set-lesson-scope') {
         const handled = await handleLessonScopeCommand(item);
@@ -2217,22 +2183,15 @@ export default function ChatPanel({
         if (handled) return;
       }
       if (item.id === 'finish-package') {
-        const handled = chat.agentDryRun
-          ? await runDirectPackageAudit({
-              displayText: item.displayText,
-              selectedFeatureIds: selectedFeatures,
-              introText: 'Running a read-only package review from the Agent command.',
-              agentPromptOverride: item.prompt,
-            })
-          : await runDirectPackageFinish({
-              displayText: item.displayText,
-              introText: 'Running package finishing from the Agent command.',
-              source: 'agent-command',
-              maxRetryActions: 10,
-              maxRetryCallBudget: 14,
-              maxRetryPasses: 3,
-              agentPromptOverride: item.prompt,
-            });
+        const handled = await runDirectPackageFinish({
+          displayText: item.displayText,
+          introText: 'Running package finishing from the Agent command.',
+          source: 'agent-command',
+          maxRetryActions: 10,
+          maxRetryCallBudget: 14,
+          maxRetryPasses: 3,
+          agentPromptOverride: item.prompt,
+        });
         if (handled) return;
       }
       chat.send(item.displayText, {
@@ -2276,16 +2235,6 @@ export default function ChatPanel({
       }
 
       if (action.localIntent === 'finish-package') {
-        if (chat.agentDryRun) {
-          return runDirectPackageAudit({
-            displayText,
-            selectedFeatureIds: selectedFeatures,
-            introText: fromReceipt
-              ? 'Running a read-only package review from the Agent receipt.'
-              : 'Running a read-only package review for the previous Agent issues.',
-            agentPromptOverride: action.prompt,
-          });
-        }
         return runDirectPackageFinish({
           displayText,
           introText: fromReceipt
@@ -2412,6 +2361,9 @@ export default function ChatPanel({
     ],
   );
 
+  const workspaceModelLabel = getWorkspaceModelLabel({ modelName, isReady: chat.isAgentProviderReady });
+  const workspaceModelTone = chat.isAgentProviderReady ? MODEL_CONFIG_TONES.connected : MODEL_CONFIG_TONES.no_funds;
+
   return (
     <div
       className="flex h-full min-h-0 flex-col overflow-hidden rounded-squircle bg-white/72 shadow-glass backdrop-blur-xl"
@@ -2454,6 +2406,17 @@ export default function ChatPanel({
             >
               {agentStatus.label}
             </span>
+            {showsAgentIdentity && (
+              <button
+                type="button"
+                data-testid="workspace-model-config-trigger"
+                onClick={openWorkspaceModelConfig}
+                className={`min-w-0 max-w-[170px] truncate rounded-full border px-2 py-0.5 text-[10px] font-bold transition-colors ${workspaceModelTone}`}
+                title="Change provider, API key, or model"
+              >
+                {workspaceModelLabel}
+              </button>
+            )}
           </div>
           <p className="text-[10px] text-slate-500 -mt-0.5 truncate">
             {showsAgentIdentity ? `${activeTabLabel(activeTab)} · ${agentStatus.detail}` : agentStatus.detail}
@@ -2485,6 +2448,38 @@ export default function ChatPanel({
         )}
       </div>
 
+      {workspaceModelConfigOpen && (
+        <div
+          data-testid="workspace-model-config-overlay"
+          className="fixed inset-0 z-50 flex items-start justify-center overflow-y-auto bg-slate-950/25 px-3 py-6 backdrop-blur-sm"
+          onMouseDown={(event) => {
+            if (event.target === event.currentTarget) setWorkspaceModelConfigOpen(false);
+          }}
+        >
+          <div className="w-full max-w-3xl rounded-xl border border-slate-200/80 bg-white p-3 shadow-2xl shadow-slate-950/20">
+            <div className="mb-2 flex items-center justify-between gap-3 px-1">
+              <div className="min-w-0">
+                <p className="truncate text-sm font-bold text-slate-800">Agent model settings</p>
+                <p className="truncate text-[11px] font-medium text-slate-500">
+                  Update the provider, API key, or model without leaving this workspace.
+                </p>
+              </div>
+              <button
+                type="button"
+                data-testid="workspace-model-config-close"
+                onClick={() => setWorkspaceModelConfigOpen(false)}
+                className="tactile rounded-lg border border-slate-200 bg-white px-2 py-1 text-[11px] font-bold text-slate-600 hover:bg-slate-50"
+              >
+                Close
+              </button>
+            </div>
+            <div data-testid="workspace-model-config-panel">
+              <ModelConfig />
+            </div>
+          </div>
+        </div>
+      )}
+
       {isAgentMode && (
         <AgentCommandStrip
           activeTab={activeTab}
@@ -2493,7 +2488,7 @@ export default function ChatPanel({
           syncFeatureCount={pendingSyncFeatureIds.length}
           canUndo={delivCanUndo}
           isAgentProviderReady={chat.isAgentProviderReady}
-          onConfigureAI={onConfigureAI}
+          onConfigureAI={openWorkspaceModelConfig}
           onCommand={handleAgentCommand}
         />
       )}
@@ -2576,7 +2571,7 @@ export default function ChatPanel({
         onWorkspacePlanAction={handleWorkspacePlanAction}
         onWorkspacePlanActionStateChange={handleWorkspacePlanActionStateChange}
         onReceiptActionStateChange={handleReceiptActionStateChange}
-        onConfigureAI={onConfigureAI}
+        onConfigureAI={openWorkspaceModelConfig}
         onSelectProposal={chat.handleSelectProposal}
         onAcceptDiff={chat.handleAcceptDiff}
         onRejectDiff={chat.handleRejectDiff}
@@ -2631,8 +2626,7 @@ export default function ChatPanel({
         isAgentMode={isAgentMode}
         isAgentProviderReady={chat.isAgentProviderReady}
         agentDryRun={chat.agentDryRun}
-        onAgentDryRunChange={chat.setAgentDryRun}
-        onConfigureAI={onConfigureAI}
+        onConfigureAI={openWorkspaceModelConfig}
         onAgentCommand={handleAgentCommand}
         syncFeatureCount={pendingSyncFeatureIds.length}
         onUndo={delivUndoFn}

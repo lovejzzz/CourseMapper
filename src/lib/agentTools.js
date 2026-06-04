@@ -8,6 +8,7 @@
 import { generateCourseHealthReport } from './pedagogicalValidator';
 import { executeResearch } from './academicSearch';
 import { getArrayKey } from './syncDependencies';
+import { preValidateAction } from './agentActions';
 import { generateImages, OPENAI_SLIDE_IMAGE_MODEL } from './imageSearch';
 import { addMemory, searchMemories, deleteMemory, getMemories, MEMORY_CATEGORIES } from './agentMemory';
 import { saveAgentPrefs } from './cloudStorage';
@@ -1534,6 +1535,21 @@ export const AGENT_TOOLS = {
 
       for (let index = 0; index < actions.length; index++) {
         const action = actions[index];
+        const validation = preValidateAction(action, {
+          courseMap: ctx.courseMap,
+          deliverables: ctx.deliverables,
+        });
+        if (!validation.valid) {
+          results[index] = {
+            action: action?.type || 'invalid',
+            featureId: action?.featureId,
+            lessonIndex: action?.lessonIndex,
+            success: false,
+            pending: false,
+            message: validation.reason || 'Action failed validation',
+          };
+          continue;
+        }
         const syncPolicy = normalizeDeliverableSyncPolicy(action?.syncPolicy);
         let projection = null;
         if (syncPolicy !== 'localOnly') {
