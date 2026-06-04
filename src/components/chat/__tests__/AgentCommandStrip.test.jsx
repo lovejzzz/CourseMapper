@@ -183,6 +183,19 @@ describe('AgentCommandStrip', () => {
     });
   });
 
+  it('wraps quick commands instead of clipping them horizontally', () => {
+    act(() => {
+      root.render(<AgentCommandStrip activeTab="slideDecks" onCommand={vi.fn()} />);
+    });
+
+    const actionRow = container.querySelector('[data-testid="agent-command-strip-actions"]');
+    expect(actionRow.className).toContain('flex-wrap');
+    expect(actionRow.className).not.toContain('overflow-x-auto');
+
+    const improveButton = container.querySelector('[data-testid="agent-command-improve-active"]');
+    expect(improveButton.className).toContain('max-w-full');
+  });
+
   it('routes mode switch commands through onCommand', () => {
     const onCommand = vi.fn();
 
