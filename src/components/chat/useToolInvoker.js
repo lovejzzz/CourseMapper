@@ -426,9 +426,18 @@ export function deriveAgentPlanningState(steps = [], expectations = {}) {
     .map((step, index) => ({ step, index }))
     .filter(({ step }) => RECEIPT_PLANNER_TOOLS.has(step?.tool) && step?.status !== 'error');
   const plannerStepsBeforeMutation = plannerSteps.filter(({ index }) => index < firstMutationIndex);
-  const plannerTools = uniqueList(plannerStepsBeforeMutation.map(({ step }) => formatReceiptToolLabel(step)), 4);
-  const allPlannerTools = uniqueList(plannerSteps.map(({ step }) => formatReceiptToolLabel(step)), 4);
-  const mutationTools = uniqueList(mutationSteps.map(({ step }) => formatReceiptToolLabel(step)), 4);
+  const plannerTools = uniqueList(
+    plannerStepsBeforeMutation.map(({ step }) => formatReceiptToolLabel(step)),
+    4,
+  );
+  const allPlannerTools = uniqueList(
+    plannerSteps.map(({ step }) => formatReceiptToolLabel(step)),
+    4,
+  );
+  const mutationTools = uniqueList(
+    mutationSteps.map(({ step }) => formatReceiptToolLabel(step)),
+    4,
+  );
 
   if (!requiresPlan) {
     if (plannerSteps.length > 0) {

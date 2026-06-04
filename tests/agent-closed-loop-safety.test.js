@@ -1556,9 +1556,7 @@ describe('agent closed-loop safety guards', () => {
         activeTab: 'Quiz & Exam Bank',
       },
       assert: ({ harness, receiptMessage }) => {
-        expect(harness.state.deliverables.quizBank.data.quizzes[1].qs[0].q).toBe(
-          'How does validation protect state?',
-        );
+        expect(harness.state.deliverables.quizBank.data.quizzes[1].qs[0].q).toBe('How does validation protect state?');
         expect(harness.state.deliverables.studyGuides.data.studyGuides[1].kt[0].df).toContain('protects workspace');
         expect(receiptMessage.receipt.stateDiffs.map((diff) => diff.status)).toEqual(['changed', 'changed']);
         expect(receiptMessage.receipt.verification.status).toBe('verified');
