@@ -779,7 +779,7 @@ export default function ModelConfig() {
               ))}
             </select>
           ) : (
-            <div className="w-full rounded-squircle-xs bg-slate-50/60 border border-slate-200/40 px-3.5 py-2.5 text-sm text-slate-400">
+            <div className="w-full rounded-squircle-xs bg-white/70 border border-slate-200/70 px-3.5 py-2.5 text-sm font-medium text-slate-600">
               {apiStatus === 'validating'
                 ? 'Loading models...'
                 : apiStatus === 'error'

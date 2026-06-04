@@ -96,6 +96,12 @@ export default function PackageSummaryCard({ summary, embedded = false }) {
   const trustBoundaryItems = Array.isArray(summary.trustBoundary?.items)
     ? summary.trustBoundary.items.filter((item) => item?.label && item?.value).slice(0, 6)
     : [];
+  const compactReceiptFields = Array.isArray(summary.compactTrustReceipt?.fields)
+    ? summary.compactTrustReceipt.fields.filter((item) => item?.label && item?.value).slice(0, 10)
+    : [];
+  const reviewActions = Array.isArray(summary.reviewActions)
+    ? summary.reviewActions.filter((item) => item?.label && item?.action).slice(0, 5)
+    : [];
   const statusText = summary.ready
     ? `${summary.checkedSections || 'All selected'} materials checked. Download when ready.`
     : summary.nextAction || 'Review the items below before export.';
@@ -143,12 +149,38 @@ export default function PackageSummaryCard({ summary, embedded = false }) {
                 ))}
               </div>
             )}
+            {compactReceiptFields.length > 0 && (
+              <div
+                data-testid="package-compact-trust-receipt"
+                className="mt-2 grid grid-cols-1 gap-1.5 text-[10px] leading-snug sm:grid-cols-2"
+              >
+                {compactReceiptFields.map((item) => (
+                  <div key={item.id || item.label} className="rounded-md bg-white/60 px-2 py-1 text-slate-600">
+                    <span className="font-semibold text-slate-700">{item.label}: </span>
+                    {item.value}
+                  </div>
+                ))}
+              </div>
+            )}
             {repairEvidenceText && summary.repairsApplied > 0 && (
               <p className="mt-1 text-[10px] font-medium leading-snug text-slate-500">
                 Auto-fixed: {repairEvidenceText}
               </p>
             )}
             {reviewText && <p className="mt-1 text-[10px] font-medium leading-snug text-slate-500">{reviewText}</p>}
+            {reviewActions.length > 0 && (
+              <div data-testid="package-review-actions" className="mt-2 space-y-1">
+                {reviewActions.map((item, index) => (
+                  <div
+                    key={`${item.label}-${index}`}
+                    className="rounded-md bg-white/55 px-2 py-1 text-[10px] text-slate-600"
+                  >
+                    <span className="font-semibold text-slate-700">{item.label}: </span>
+                    {item.action}
+                  </div>
+                ))}
+              </div>
+            )}
             {featureSpendText && (
               <p className="mt-1 text-[10px] font-medium leading-snug text-slate-500">
                 Cost drivers: {featureSpendText}

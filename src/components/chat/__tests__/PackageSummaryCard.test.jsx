@@ -47,8 +47,23 @@ describe('PackageSummaryCard', () => {
               { id: 'external-proof', label: 'External proof', value: 'not attached' },
             ],
           },
+          compactTrustReceipt: {
+            fields: [
+              { id: 'compiled', label: 'Compiled', value: '5 deliverables' },
+              { id: 'model-generated', label: 'Model-generated', value: '0 deliverables' },
+              { id: 'repairs', label: 'Repairs', value: '3 safe repairs' },
+              { id: 'review', label: 'Review needed', value: '0 lessons' },
+              { id: 'exports', label: 'Exports verified', value: 'ZIP, DOCX, PPTX, XLSX, PDF' },
+              { id: 'confirmations', label: 'Local confirmations', value: 'official dates; copyrighted readings' },
+              { id: 'budget', label: 'Budget', value: '$0.04 · 52k tokens estimated' },
+            ],
+          },
           repairSummary: 'Lesson 2 title; Lesson 4 learning goals',
           reviewRecommendation: 'Spot-check repaired sections plus institution-specific facts before handoff.',
+          reviewActions: [
+            { label: 'Official dates', action: 'Confirm the official calendar before publication.' },
+            { label: 'Source permissions', action: 'Confirm copied readings are approved.' },
+          ],
           topIssues: [],
         }}
       />,
@@ -72,6 +87,15 @@ describe('PackageSummaryCard', () => {
     expect(html).toContain('Needs review');
     expect(html).toContain('External proof');
     expect(html).toContain('not attached');
+    expect(html).toContain('Model-generated');
+    expect(html).toContain('0 deliverables');
+    expect(html).toContain('Review needed');
+    expect(html).toContain('0 lessons');
+    expect(html).toContain('ZIP, DOCX, PPTX, XLSX, PDF');
+    expect(html).toContain('Local confirmations');
+    expect(html).toContain('Official dates');
+    expect(html).toContain('Confirm the official calendar before publication.');
+    expect(html).toContain('Source permissions');
     expect(html).toContain('Auto-fixed: Lesson 2 title; Lesson 4 learning goals');
     expect(html).toContain('Human check: dates, policies, and official readings.');
     expect(html).toContain('Cost drivers');
@@ -94,6 +118,7 @@ describe('PackageSummaryCard', () => {
           classroomStatus: 'warnings',
           classroomBlockerCount: 0,
           classroomWarningCount: 1,
+          reviewActions: [{ label: 'Assessment weights', action: 'Confirm the official grading weight.' }],
           topIssues: [
             {
               severity: 'error',
@@ -111,5 +136,7 @@ describe('PackageSummaryCard', () => {
     expect(html).toContain('1 classroom issue');
     expect(html).toContain('Needs attention');
     expect(html).toContain('Quiz Bank');
+    expect(html).toContain('Assessment weights');
+    expect(html).toContain('Confirm the official grading weight.');
   });
 });

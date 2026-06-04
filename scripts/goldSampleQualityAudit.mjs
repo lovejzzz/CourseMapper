@@ -14587,19 +14587,65 @@ function summarizeGoldResults(results, auditFindings = []) {
   };
 }
 
+function formatElapsed(ms) {
+  const seconds = Math.max(0, Math.round(Number(ms) / 1000));
+  const minutes = Math.floor(seconds / 60);
+  const remainingSeconds = seconds % 60;
+  if (minutes > 0) return `${minutes}m ${remainingSeconds}s`;
+  return `${remainingSeconds}s`;
+}
+
+export function formatGoldAuditProgressEvent(event) {
+  if (!event || typeof event !== 'object') return '';
+  const elapsed = event.elapsedMs != null ? ` elapsed=${formatElapsed(event.elapsedMs)}` : '';
+  if (event.type === 'sample:start') {
+    return `[audit:gold] ${event.index}/${event.total} start ${event.sampleId} scope=${event.scope}${elapsed}`;
+  }
+  if (event.type === 'sample:done') {
+    return `[audit:gold] ${event.index}/${event.total} done ${event.sampleId} status=${event.status} blockers=${event.blockers} warnings=${event.warnings}${elapsed}`;
+  }
+  if (event.type === 'complete') {
+    return `[audit:gold] complete status=${event.status} samples=${event.total}${elapsed}`;
+  }
+  return '';
+}
+
 export async function buildGoldSampleQualityAudit(options = {}) {
   const runtime = options.runtime || (await loadHybridPipelineAuditRuntime());
   const samples = Array.isArray(options.samples) && options.samples.length > 0 ? options.samples : DEFAULT_GOLD_SAMPLES;
-  const results = samples.map((sample) =>
-    auditGoldSample({
+  const onProgress = typeof options.onProgress === 'function' ? options.onProgress : null;
+  const startedAt = Date.now();
+  const results = [];
+  for (const [index, sample] of samples.entries()) {
+    onProgress?.({
+      type: 'sample:start',
+      index: index + 1,
+      total: samples.length,
+      sampleId: sample.id,
+      scope: sample.scope,
+      elapsedMs: Date.now() - startedAt,
+    });
+    const result = auditGoldSample({
       sample,
       runtime,
       features: options.features || sample.features || PIPELINE_FEATURES,
-    }),
-  );
+    });
+    results.push(result);
+    onProgress?.({
+      type: 'sample:done',
+      index: index + 1,
+      total: samples.length,
+      sampleId: result.sampleId,
+      scope: result.scope,
+      status: result.summary.status,
+      blockers: result.summary.blockerCount,
+      warnings: result.summary.warningCount,
+      elapsedMs: Date.now() - startedAt,
+    });
+  }
   const scopeCoverage = buildGoldScopeCoverage(results, options.requiredScopes || REQUIRED_GOLD_SCOPE_COVERAGE);
   const auditFindings = [...scopeCoverage.findings];
-  return {
+  const payload = {
     meta: {
       generatedAt: new Date().toISOString(),
       qualityFloor: GOLD_QUALITY_FLOOR,
@@ -14618,6 +14664,13 @@ export async function buildGoldSampleQualityAudit(options = {}) {
     auditFindings,
     results,
   };
+  onProgress?.({
+    type: 'complete',
+    status: payload.summary.status,
+    total: samples.length,
+    elapsedMs: Date.now() - startedAt,
+  });
+  return payload;
 }
 
 function markdownTable(rows) {
@@ -15032,18 +15085,74 @@ export async function writeGoldSampleQualityAudit(payload, outputDir = DEFAULT_O
 function parseArgs(argv) {
   const args = {
     outputDir: DEFAULT_OUTPUT_DIR,
+    sampleIds: [],
+    modalityIds: [],
+    progress: true,
   };
   for (let i = 0; i < argv.length; i += 1) {
     const arg = argv[i];
     if (arg === '--output') args.outputDir = path.resolve(argv[++i]);
+    else if (arg === '--sample' || arg === '--samples') {
+      args.sampleIds.push(
+        ...String(argv[++i] || '')
+          .split(',')
+          .map((value) => value.trim())
+          .filter(Boolean),
+      );
+    } else if (arg === '--no-progress') args.progress = false;
+    else if (arg === '--modality' || arg === '--modalities') {
+      args.modalityIds.push(
+        ...String(argv[++i] || '')
+          .split(',')
+          .map((value) => value.trim())
+          .filter(Boolean),
+      );
+    }
   }
   return args;
+}
+
+export function selectGoldSamples({ sampleIds = [], modalityIds = [] } = {}) {
+  const available = new Map(DEFAULT_GOLD_SAMPLES.map((sample) => [sample.id, sample]));
+  const normalizedSampleIds = Array.isArray(sampleIds) ? sampleIds : [];
+  const normalizedModalityIds = Array.isArray(modalityIds) ? modalityIds : [];
+  let selected =
+    normalizedSampleIds.length > 0
+      ? normalizedSampleIds.map((sampleId) => available.get(sampleId))
+      : DEFAULT_GOLD_SAMPLES;
+  const missingSamples = normalizedSampleIds.filter((sampleId) => !available.has(sampleId));
+  if (missingSamples.length > 0) {
+    throw new Error(`Unknown gold sample id(s): ${missingSamples.join(', ')}`);
+  }
+
+  if (normalizedModalityIds.length > 0) {
+    const requested = new Set(normalizedModalityIds.map((modalityId) => modalityId.toLowerCase()));
+    selected = selected.filter((sample) =>
+      requested.has(String(sample?.expectations?.courseModality || '').toLowerCase()),
+    );
+    if (selected.length === 0) {
+      throw new Error(`No gold samples match modality id(s): ${normalizedModalityIds.join(', ')}`);
+    }
+  }
+
+  return selected;
 }
 
 async function main() {
   const args = parseArgs(process.argv.slice(2));
   try {
-    const payload = await buildGoldSampleQualityAudit();
+    const samples = selectGoldSamples({ sampleIds: args.sampleIds, modalityIds: args.modalityIds });
+    const onProgress = args.progress
+      ? (event) => {
+          const line = formatGoldAuditProgressEvent(event);
+          if (line) console.log(line);
+        }
+      : null;
+    const payload = await buildGoldSampleQualityAudit({
+      samples,
+      onProgress,
+      requiredScopes: args.sampleIds.length > 0 || args.modalityIds.length > 0 ? [] : REQUIRED_GOLD_SCOPE_COVERAGE,
+    });
     const paths = await writeGoldSampleQualityAudit(payload, args.outputDir);
     console.log(`Gold-sample quality audit: ${payload.summary.status}`);
     console.log(`Report: ${paths.markdownPath}`);

@@ -11,8 +11,10 @@ import {
   buildGoldSampleQualityAudit,
   buildStudentFacingCleanlinessAudit,
   closeHybridPipelineAuditRuntime,
+  formatGoldAuditProgressEvent,
   loadHybridPipelineAuditRuntime,
   renderGoldSampleQualityAuditMarkdown,
+  selectGoldSamples,
   writeGoldSampleQualityAudit,
 } from '../goldSampleQualityAudit.mjs';
 
@@ -21,6 +23,50 @@ const GOLD_AUDIT_FULL_MATRIX_TIMEOUT_MS = 600000;
 const it = (name, testFn, timeout = GOLD_AUDIT_CASE_TIMEOUT_MS) => vitestIt(name, testFn, timeout);
 
 describe('gold sample quality audit', () => {
+  it('formats progress events for long-running audit visibility', () => {
+    expect(
+      formatGoldAuditProgressEvent({
+        type: 'sample:start',
+        index: 2,
+        total: 40,
+        sampleId: 'gold-spanish-healthcare-8',
+        scope: 8,
+        elapsedMs: 1240,
+      }),
+    ).toBe('[audit:gold] 2/40 start gold-spanish-healthcare-8 scope=8 elapsed=1s');
+
+    expect(
+      formatGoldAuditProgressEvent({
+        type: 'sample:done',
+        index: 2,
+        total: 40,
+        sampleId: 'gold-spanish-healthcare-8',
+        status: 'pass',
+        blockers: 0,
+        warnings: 0,
+        elapsedMs: 65000,
+      }),
+    ).toBe('[audit:gold] 2/40 done gold-spanish-healthcare-8 status=pass blockers=0 warnings=0 elapsed=1m 5s');
+
+    expect(formatGoldAuditProgressEvent({ type: 'complete', status: 'pass', total: 40, elapsedMs: 305000 })).toBe(
+      '[audit:gold] complete status=pass samples=40 elapsed=5m 5s',
+    );
+  });
+
+  it('selects scoped gold samples by modality', () => {
+    const samples = selectGoldSamples({ modalityIds: ['clinical-simulation'] });
+
+    expect(samples.length).toBeGreaterThan(1);
+    expect(samples.every((sample) => sample.expectations?.courseModality === 'clinical-simulation')).toBe(true);
+    expect(samples.map((sample) => sample.id)).toEqual(
+      expect.arrayContaining(['gold-spanish-healthcare-8', 'gold-messy-clinical-resilience-8']),
+    );
+  });
+
+  it('fails fast for unknown modality scoped gold audits', () => {
+    expect(() => selectGoldSamples({ modalityIds: ['not-a-modality'] })).toThrow(/No gold samples match modality id/);
+  });
+
   it(
     'passes curated gold expectation fixtures across course types',
     async () => {

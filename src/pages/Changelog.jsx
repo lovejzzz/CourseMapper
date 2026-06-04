@@ -3,6 +3,86 @@ import Header from '../components/Header';
 
 const releases = [
   {
+    version: '0.8.2',
+    date: 'June 4, 2026',
+    title: 'Internal Self-Improvement Release',
+    highlights: [
+      'External expert audit is no longer a release dependency; v0.8.2 is gated by stricter internal self-audits, gold fixtures, export checks, and live smoke testing',
+      'CourseMapper now states the release claim honestly: internally self-audited and regression-tested for controlled pilots, not externally expert-certified',
+      'Security, first-run UX, audit operability, and package trust receipts were tightened around the existing deterministic compiler baseline',
+      'The live OpenAI agent gate now covers 20 real-life instructor scenarios, including research, grammar checks, diagrams, charts, custom macros, undo, and missing-deliverable safety',
+    ],
+    sections: [
+      {
+        label: 'Self-Improvement Loop',
+        icon: '✦',
+        color: 'indigo',
+        items: [
+          'Added audit:self, a deterministic internal self-improvement gate that compiles adversarial course fixtures without external reviewer files.',
+          'The self-audit now reports blockers, warnings, improvement candidates, accepted input risks, timing/workload plausibility findings, and compact per-fixture receipts.',
+          'Adversarial fixtures cover sparse official dates and assessments plus contradictory clinical schedules, forcing review-boundary signals instead of silently smoothing over source risk.',
+          'audit:expert remains available as an internal provisional harness, while external proof packets and strict external gates are optional evidence-collection tools for later certification.',
+        ],
+      },
+      {
+        label: 'Security and Privacy',
+        icon: '🛡️',
+        color: 'emerald',
+        items: [
+          'Firebase Hosting now carries a CSP and security-header baseline for controlled static BYOK pilots.',
+          'KaTeX-rendered HTML is sanitized before insertion or image rendering, while allowed math still renders.',
+          'Chat persistence now redacts API-key-like text inside user and assistant messages, titles, previews, and legacy conversation loads.',
+          'The dormant Express proxy now fails closed in production unless explicitly enabled as a development-only proxy.',
+          'Production dependency audit is clean; the remaining full-audit advisory is documented as a dev-only Firebase CLI exception.',
+        ],
+      },
+      {
+        label: 'First-Run UX',
+        icon: '⚡',
+        color: 'amber',
+        items: [
+          'Feature selection and configuration screens now keep the primary CTA visible with sticky action bars at common desktop viewport sizes.',
+          'The configure preview now derives its title and lesson count from the user prompt and selected scope instead of showing a misleading static sample.',
+          'Institution profile and model-tuning details now live behind one Advanced course and model settings section so first-run users see fewer decisions before Generate.',
+          'Landing-screen helper text, inactive model fields, and footer links have stronger contrast in the default no-key state.',
+          'Footer release labels now consistently show v0.8.2 across Landing, Feature Select, Configure, and Workspace.',
+        ],
+      },
+      {
+        label: 'Agent Verification',
+        icon: '✓',
+        color: 'emerald',
+        items: [
+          'audit:agent:openai now runs 20 live real-life scenarios with the private OpenAI API-file workflow used for local release verification.',
+          'The second scenario set covers academic research, grammar checks, concept maps, quiz-count charts, lesson reads, quiz cognitive-level review, slide-deck visual improvement, reusable custom macros, undo, and missing-assignment refusal.',
+          'No-key users can now type natural local command requests such as "can you audit this package?" and still reach the read-only package audit path without provider calls.',
+          'Review-mode package actions now say Review package instead of repeating the Review only mode label.',
+        ],
+      },
+      {
+        label: 'Audit Operability',
+        icon: '⚙',
+        color: 'slate',
+        items: [
+          'audit:gold now emits progress lines with sample number, scope, status, blockers, warnings, and elapsed time.',
+          'audit:gold supports --sample and --modality scoped runs for fast development checks while keeping the full matrix as the release gate.',
+          'Deployment docs include the private API-file live smoke pattern used for bounded provider verification without committing keys.',
+          'Dependency docs split patch/minor maintenance from React 19, Tailwind 4, and pdfjs-dist 6 major migration tracks, with bundle:check as the chunk-budget gate.',
+        ],
+      },
+      {
+        label: 'Trust Surface',
+        icon: '🧾',
+        color: 'slate',
+        items: [
+          'Package handoff now includes a compact receipt for compiled deliverables, model-generated deliverables, repairs, review-needed lessons, export verification, local confirmations, and budget status.',
+          'Agent audit responses surface the same compact receipt after local package audits.',
+          'Review-required rows now show concrete actions for official dates, local policy, source permissions, and surfaced package findings before users treat a draft as publishable.',
+        ],
+      },
+    ],
+  },
+  {
     version: '0.8.1',
     date: 'June 1, 2026',
     title: 'A-Quality Blueprint Compiler Proof Readiness',

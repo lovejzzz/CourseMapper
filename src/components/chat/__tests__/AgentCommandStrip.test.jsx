@@ -137,11 +137,19 @@ describe('buildAgentCommandItems', () => {
 
     expect(findAgentCommandByText(items, 'plan next')?.id).toBe('plan-next');
     expect(findAgentCommandByText(items, 'what should we do next?')?.id).toBe('plan-next');
+    expect(findAgentCommandByText(items, 'can you help me plan the next step?')?.id).toBe('plan-next');
     expect(findAgentCommandByText(items, 'audit quality')?.id).toBe('audit-quality');
+    expect(findAgentCommandByText(items, 'can you audit this package?')?.id).toBe('audit-quality');
+    expect(findAgentCommandByText(items, 'please check my course for issues')?.id).toBe('audit-quality');
     expect(findAgentCommandByText(items, 'fix package')?.id).toBe('finish-package');
+    expect(findAgentCommandByText(items, 'please finish this package')?.id).toBe('finish-package');
     expect(findAgentCommandByText(items, 'revert last change')?.id).toBe('undo-last');
+    expect(findAgentCommandByText(items, 'can you undo that last change?')?.id).toBe('undo-last');
     expect(findAgentCommandByText(items, 'review only')?.id).toBe('set-review-mode');
+    expect(findAgentCommandByText(items, 'switch me to review only')?.id).toBe('set-review-mode');
     expect(findAgentCommandByText(reviewItems, 'auto fix')?.id).toBe('set-auto-fix-mode');
+    expect(findAgentCommandByText(reviewItems, 'go back to auto fix')?.id).toBe('set-auto-fix-mode');
+    expect(findAgentCommandByText(items, 'show me agent commands')?.id).toBe('agent-help');
     expect(findAgentCommandByText(items, 'can you explain what an audit checks?')).toBeNull();
     expect(findAgentCommandByText(items, 'please improve the assignment language after reading this note')).toBeNull();
   });

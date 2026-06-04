@@ -213,35 +213,42 @@ const NATURAL_COMMAND_MATCHERS = [
   {
     id: 'agent-help',
     patterns: [
-      /^(?:help|agent help|show help|show agent help|commands|show commands|what can you do|what can the agent do|\?)$/,
+      /^(?:help|agent help|show help|show agent help|commands|show commands|show me commands|show agent commands|show me agent commands|what can you do|what can the agent do|\?)$/,
     ],
   },
   {
     id: 'plan-next',
     patterns: [
-      /^(?:plan|plan next|plan next step|next|next step|what next|what should i do next|what should we do next|what's next|whats next|recommend next step)$/,
+      /^(?:plan|plan next|plan next step|plan the next step|plan my next step|next|next step|what next|what should i do next|what should we do next|what should i fix next|what should we fix next|what's next|whats next|recommend next step|recommend the next step)$/,
     ],
   },
   {
     id: 'audit-quality',
     patterns: [
       /^(?:audit|audit quality|run audit|local audit|check|check quality|quality check|review quality|inspect quality|validate package|verify package)$/,
+      /^(?:audit|check|review|inspect|validate|verify)\s+(?:(?:this|my|the|current)\s+)?(?:workspace|package|course|materials|deliverables)(?:\s+for\s+(?:issues|problems|quality|readiness|alignment))?$/,
+      /^(?:audit|check|review|inspect|validate|verify)\s+(?:for\s+)?(?:issues|problems|quality|readiness|alignment)$/,
     ],
   },
   {
     id: 'set-review-mode',
     patterns: [
       /^(?:review only|switch to review only|read only|switch to read only|no edits|suggest only|dry run|safe mode)$/,
+      /^(?:switch|turn|set|go)\s+(?:me\s+)?(?:to\s+)?(?:review only|read only|no edits|suggest only|dry run|safe mode)$/,
     ],
   },
   {
     id: 'set-auto-fix-mode',
-    patterns: [/^(?:auto fix|autofix|switch to auto fix|apply fixes|safe fixes|edit mode|apply mode)$/],
+    patterns: [
+      /^(?:auto fix|autofix|switch to auto fix|apply fixes|safe fixes|edit mode|apply mode)$/,
+      /^(?:switch|turn|set|go)\s+(?:me\s+)?(?:back\s+)?(?:to\s+)?(?:auto fix|autofix|apply fixes|safe fixes|edit mode|apply mode)$/,
+    ],
   },
   {
     id: 'finish-package',
     patterns: [
       /^(?:finish|finish package|fix|fix package|repair package|finalize|finalize package|make ready|ready to download|prepare download|prepare package)$/,
+      /^(?:finish|fix|repair|finalize|prepare|make ready)\s+(?:(?:this|my|the|current)\s+)?(?:workspace|package|course|materials|deliverables)?(?:\s+(?:for|to)\s+download)?$/,
     ],
   },
   {
@@ -252,7 +259,10 @@ const NATURAL_COMMAND_MATCHERS = [
   },
   {
     id: 'undo-last',
-    patterns: [/^(?:undo|undo last|undo last change|revert|revert last|revert last change|restore last|rollback)$/],
+    patterns: [
+      /^(?:undo|undo last|undo last change|revert|revert last|revert last change|restore last|rollback)$/,
+      /^(?:undo|revert|restore|rollback)\s+(?:that|this|that last thing|that last change|the last thing|the last change|last change)$/,
+    ],
   },
   {
     id: 'improve-active',
@@ -267,10 +277,7 @@ const NATURAL_COMMAND_MATCHERS = [
 ];
 
 export function findAgentCommandByText(items = [], text = '') {
-  const normalized = normalizeAgentCommandQuery(text)
-    .replace(/[.!?]+$/g, '')
-    .replace(/\s+/g, ' ')
-    .trim();
+  const normalized = normalizeNaturalAgentCommandText(text);
   if (!normalized || normalized.startsWith('/')) return null;
 
   const safeItems = Array.isArray(items) ? items : [];
@@ -280,6 +287,27 @@ export function findAgentCommandByText(items = [], text = '') {
     if (matcher.patterns.some((pattern) => pattern.test(normalized))) return item;
   }
   return null;
+}
+
+export function normalizeNaturalAgentCommandText(text = '') {
+  let normalized = normalizeAgentCommandQuery(text)
+    .replace(/[.!?]+$/g, '')
+    .replace(/\s+/g, ' ')
+    .trim();
+
+  if (!normalized || normalized.startsWith('/')) return normalized;
+  if (/^(?:what|why|how|when|where|who)\b/.test(normalized) && !/^what should (?:i|we)\b/.test(normalized)) {
+    return normalized;
+  }
+
+  normalized = normalized
+    .replace(/^(?:please|pls)\s+/, '')
+    .replace(/^(?:(?:can|could|would|will)\s+you|can\s+we|could\s+we|would\s+we)\s+/, '')
+    .replace(/^(?:help\s+me\s+|i\s+need\s+you\s+to\s+|i\s+want\s+you\s+to\s+|let'?s\s+)/, '')
+    .replace(/\s+(?:please|pls)$/g, '')
+    .trim();
+
+  return normalized;
 }
 
 export function CommandIcon({ icon }) {

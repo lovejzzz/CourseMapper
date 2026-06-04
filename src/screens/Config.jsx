@@ -5,6 +5,7 @@ import ColumnEditor from '../components/ColumnEditor';
 import InstitutionProfileCard from '../components/config/InstitutionProfileCard';
 import LessonScopeSelector from '../components/config/LessonScopeSelector';
 import { getCustomDeliverable, listCustomDeliverables, toFeatureEntry } from '../lib/customDeliverableLibrary';
+import { detectExpectedLessons } from '../lib/detectLessons';
 import { PREVIEW_EXAMPLES } from '../lib/previewExamples';
 import { useAuth } from '../contexts/AuthContext';
 import { useUI } from '../contexts/UIContext';
@@ -489,13 +490,15 @@ function SlideImageModelSettings({ config, onChange, apiKey }) {
 
 // ── Advanced section toggle ───────────────────────────────────────────────────
 
-function AdvancedSection({ children }) {
+function AdvancedSection({ children, label = 'Advanced options', testId = undefined }) {
   const [open, setOpen] = useState(false);
   return (
-    <div className="pt-2">
+    <div className="pt-2" data-testid={testId}>
       <button
         onClick={() => setOpen((v) => !v)}
         className="flex items-center gap-1.5 text-[11px] font-semibold text-slate-400 hover:text-indigo-500 transition-colors mb-2"
+        data-testid={testId ? `${testId}-toggle` : undefined}
+        aria-expanded={open}
       >
         <svg
           className={`w-3 h-3 transition-transform duration-200 ${open ? 'rotate-90' : ''}`}
@@ -505,7 +508,7 @@ function AdvancedSection({ children }) {
         >
           <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 5l7 7-7 7" />
         </svg>
-        {open ? 'Hide advanced options' : 'Advanced options'}
+        {open ? `Hide ${label.toLowerCase()}` : label}
       </button>
       {open && <div className="space-y-4 animate-spring-in pt-1 border-t border-slate-100/60">{children}</div>}
     </div>
@@ -527,7 +530,73 @@ const FEATURE_LABELS = {
   syllabus: 'Syllabus',
 };
 
-function DeliverablePreview({ featureId, delivData, courseMap, columns }) {
+function derivePromptPreviewTitle(promptText) {
+  const text = String(promptText || '')
+    .replace(/\s+/g, ' ')
+    .trim();
+  if (!text) return 'Your course';
+
+  const quoted = text.match(/["“']([^"”']{4,90})["”']/);
+  if (quoted?.[1]) return quoted[1].trim();
+
+  const cleaned = text
+    .replace(/^(?:build|create|generate|design|make|draft|prepare)\s+(?:an?\s+)?/i, '')
+    .replace(/^\d+[-\s]?(?:lesson|week|module|session)s?\s+/i, '')
+    .replace(/^(?:a|an|the)\s+/i, '')
+    .replace(/\b(?:course|class|seminar|workshop)\b.*$/i, (match) =>
+      match.replace(/\s+(?:with|for|that|where)\b.*$/i, ''),
+    )
+    .replace(/\s+(?:course|class|seminar|workshop)$/i, '')
+    .replace(/[.?!:;]+$/g, '')
+    .trim();
+
+  if (!cleaned) return 'Your course';
+  return cleaned.length > 72 ? `${cleaned.slice(0, 69).trim()}...` : cleaned;
+}
+
+function buildPreviewCellValue(column, courseTitle, lessonTheme, lessonNumber) {
+  const key = `${column?.key || ''} ${column?.label || ''}`.toLowerCase();
+  const lowerTitle = courseTitle === 'Your course' ? 'the course' : courseTitle;
+  if (/topic|content|theme|unit/.test(key)) return `${lessonTheme} for ${lowerTitle}`;
+  if (/objective|outcome|goal/.test(key)) return `Students explain and apply ${lessonTheme.toLowerCase()}`;
+  if (/activit|practice|class|session/.test(key)) return `Guided practice, feedback, and transfer task`;
+  if (/assessment|artifact|evidence|deliverable/.test(key))
+    return `Short evidence check tied to Lesson ${lessonNumber}`;
+  if (/reading|material|source/.test(key)) return `Instructor-confirmed source set`;
+  return `Draft ${column?.label || 'course detail'} for Lesson ${lessonNumber}`;
+}
+
+function buildPromptAwareCourseMapPreview({ promptText, lessonCount, columns }) {
+  const courseTitle = derivePromptPreviewTitle(promptText);
+  const promptDetectedLessons = detectExpectedLessons(promptText).expected;
+  const total = Math.max(1, Number(lessonCount) || promptDetectedLessons || PREVIEW_EXAMPLES.courseMap.total || 3);
+  const previewColumns =
+    (columns || []).filter((column) => column.enabled !== false).slice(0, 3) || PREVIEW_EXAMPLES.courseMap.cols;
+  const cols = previewColumns.length > 0 ? previewColumns : PREVIEW_EXAMPLES.courseMap.cols;
+  const lessonThemes = ['Foundations', 'Applied practice', 'Feedback and transfer'];
+
+  return {
+    type: 'courseMap',
+    isExample: true,
+    courseTitle,
+    total,
+    lessons: Array.from({ length: Math.min(3, total) }, (_, index) => {
+      const lessonNumber = index + 1;
+      const lessonTheme = lessonThemes[index] || `Lesson ${lessonNumber} focus`;
+      return {
+        title: `Lesson ${lessonNumber}: ${lessonTheme}`,
+        sections: [
+          Object.fromEntries(
+            cols.map((column) => [column.key, buildPreviewCellValue(column, courseTitle, lessonTheme, lessonNumber)]),
+          ),
+        ],
+      };
+    }),
+    cols,
+  };
+}
+
+function DeliverablePreview({ featureId, delivData, courseMap, columns, promptText, lessonCount }) {
   const [fullscreen, setFullscreen] = useState(false);
   const label = FEATURE_LABELS[featureId] || featureId;
 
@@ -588,9 +657,15 @@ function DeliverablePreview({ featureId, delivData, courseMap, columns }) {
     }
 
     // Fall back to sample content that demonstrates structure only.
+    if (featureId === 'courseMap') {
+      return {
+        content: buildPromptAwareCourseMapPreview({ promptText, lessonCount, columns }),
+        isExample: true,
+      };
+    }
     const example = PREVIEW_EXAMPLES[featureId];
     return example ? { content: example, isExample: true } : { content: null, isExample: true };
-  }, [featureId, delivData, courseMap, columns]);
+  }, [featureId, delivData, courseMap, columns, promptText, lessonCount]);
 
   if (!realContent) return null;
 
@@ -1255,7 +1330,10 @@ function DeliverablePreview({ featureId, delivData, courseMap, columns }) {
 
   return (
     <>
-      <div className="mb-4 rounded-lg border border-slate-200/40 overflow-hidden">
+      <div
+        data-testid={`deliverable-preview-${featureId}`}
+        className="mb-4 rounded-lg border border-slate-200/40 overflow-hidden"
+      >
         <div className="px-3 py-1.5 bg-slate-50/60 border-b border-slate-200/40 flex items-center justify-between">
           <p className="text-[10px] font-semibold text-slate-400 uppercase tracking-wider flex items-center gap-1.5">
             {label} — {realContent.total || realContent.items?.length || 0}{' '}
@@ -1285,6 +1363,11 @@ function DeliverablePreview({ featureId, delivData, courseMap, columns }) {
           <p className="px-3 pb-2 -mt-1 text-[10px] text-amber-600/80">
             Illustrative content only. Your generated version will use the course prompt and files from the previous
             step.
+            {realContent.courseTitle && (
+              <span data-testid="preview-course-context" className="block text-amber-700/90">
+                Previewing structure for: {realContent.courseTitle}
+              </span>
+            )}
           </p>
         )}
         <div className="p-3 text-[10px] text-slate-500 leading-relaxed max-h-48 overflow-y-auto">
@@ -1327,6 +1410,11 @@ function DeliverablePreview({ featureId, delivData, courseMap, columns }) {
                   <p className="mb-4 text-[11px] font-medium text-amber-600">
                     Illustrative content only. Your generated version will use the course prompt and files from the
                     previous step.
+                    {realContent.courseTitle && (
+                      <span className="block text-amber-700/90">
+                        Previewing structure for: {realContent.courseTitle}
+                      </span>
+                    )}
                   </p>
                 )}
                 {renderContent(true)}
@@ -1349,6 +1437,8 @@ function DeliverableConfigContent({
   setColumns,
   delivData,
   courseMap,
+  promptText,
+  lessonCount,
   provider,
   apiKey,
   modelConfigPlan,
@@ -1367,7 +1457,14 @@ function DeliverableConfigContent({
     case 'courseMap':
       return (
         <div className="space-y-3">
-          <DeliverablePreview featureId="courseMap" delivData={courseMap} courseMap={courseMap} columns={columns} />
+          <DeliverablePreview
+            featureId="courseMap"
+            delivData={courseMap}
+            courseMap={courseMap}
+            columns={columns}
+            promptText={promptText}
+            lessonCount={lessonCount}
+          />
           <p className="text-[11px] text-slate-500">
             Click to enable/disable, drag to reorder, double-click to rename.
           </p>
@@ -1809,6 +1906,7 @@ function DeliverableConfigContent({
 
 export default function Config({
   lessonCount, // estimated from promptText + files before generation
+  promptText,
   isDetectingLessons, // true while AI lesson-count detection is running
   deliverables, // generated deliverable data { featureId: { data, status } }
   onBack,
@@ -1888,7 +1986,7 @@ export default function Config({
         </header>
 
         {/* Main */}
-        <main className="flex-1 flex flex-col items-center px-6 py-6">
+        <main className="flex-1 flex flex-col items-center px-6 py-6 pb-0">
           <div className="max-w-2xl w-full animate-fade-up space-y-5">
             {/* Step badge + title */}
             <div className="text-center mb-2">
@@ -1902,8 +2000,6 @@ export default function Config({
               <p className="text-sm text-slate-500 mt-2">Set the lesson scope and customize each deliverable.</p>
             </div>
 
-            <ModelTuningSummary modelLabel={modelLabel} plan={modelConfigPlan} />
-
             {/* ── Lesson Scope ── */}
             <LessonScopeSelector
               lessonCount={lessonCount}
@@ -1913,7 +2009,10 @@ export default function Config({
               setLessonScope={setLessonScope}
             />
 
-            <InstitutionProfileCard uid={user?.uid || null} />
+            <AdvancedSection label="Advanced course and model settings" testId="config-top-advanced">
+              <ModelTuningSummary modelLabel={modelLabel} plan={modelConfigPlan} />
+              <InstitutionProfileCard uid={user?.uid || null} />
+            </AdvancedSection>
 
             {/* ── Deliverable configs ── */}
             {configurableFeatures.length > 0 && (
@@ -1941,6 +2040,8 @@ export default function Config({
                       setColumns={setColumns}
                       delivData={delivData}
                       courseMap={courseMap}
+                      promptText={promptText}
+                      lessonCount={lessonCount}
                       provider={provider}
                       apiKey={apiKey}
                       modelConfigPlan={modelConfigPlan}
@@ -1995,11 +2096,15 @@ export default function Config({
             )}
 
             {/* ── Generate button ── */}
-            <div className="pt-2">
+            <div
+              data-testid="config-sticky-action"
+              className="sticky bottom-0 z-20 -mx-6 border-t border-slate-200/60 bg-white/80 px-6 py-4 shadow-[0_-16px_36px_rgba(79,70,229,0.08)] backdrop-blur-xl"
+            >
               {lessonScope.type === 'specific' && !scopeValid && (
                 <p className="text-center text-[11px] text-amber-500 mb-2">Select at least one lesson to continue.</p>
               )}
               <button
+                data-testid="config-generate-button"
                 onClick={onGenerate}
                 disabled={!canGenerate || !scopeValid}
                 className={`tactile btn-glow w-full py-4 rounded-squircle-xs font-semibold text-sm tracking-wide transition-all duration-300 ${
@@ -2023,7 +2128,7 @@ export default function Config({
         <footer className="py-4 text-center">
           <div className="flex items-center justify-center gap-3 text-[10px] text-slate-300/70">
             <a href="#/changelog" className="font-medium hover:text-indigo-500 transition-colors duration-200">
-              v0.8.1
+              v0.8.2
             </a>
             <span>·</span>
             <a href="#/privacy" className="hover:text-indigo-500 transition-colors duration-200">

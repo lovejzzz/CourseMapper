@@ -10,6 +10,19 @@ const __dirname = dirname(__filename);
 
 const app = express();
 const PORT = process.env.PORT || 3001;
+const DEV_PROXY_OPT_IN = process.env.COURSEMAPPER_ENABLE_DEV_PROXY === 'true';
+
+if (process.env.NODE_ENV === 'production' && !DEV_PROXY_OPT_IN) {
+  throw new Error(
+    'CourseMapper server.js is a development-only proxy. Use static hosting for production, or set COURSEMAPPER_ENABLE_DEV_PROXY=true only after hardening CORS, sessions, rate limits, and API-key handling.',
+  );
+}
+
+if (process.env.NODE_ENV === 'production' && DEV_PROXY_OPT_IN) {
+  console.warn(
+    'CourseMapper server.js development-only proxy enabled in production via COURSEMAPPER_ENABLE_DEV_PROXY=true.',
+  );
+}
 
 /**
  * Strip <think>...</think> tags from reasoning model output.

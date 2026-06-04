@@ -88,7 +88,7 @@ import { generateCourseHealthReport } from './lib/pedagogicalValidator';
 import { applyApiCallBudgetEvent, createApiCallBudget, getApiCallBudgetTotal } from './lib/apiCallBudget';
 import { buildApiCostPlan, evaluateApiCostControl } from './lib/apiCostControl';
 import { summarizeApiFeatureUsageBudget, summarizeApiUsageBudget, summarizeCompilerSavings } from './lib/apiUsageCost';
-import { buildPackageTrustBoundarySummary } from './lib/packageFinalizerSummary';
+import { buildCompactPackageTrustReceipt, buildPackageTrustBoundarySummary } from './lib/packageFinalizerSummary';
 import { getChunkCount } from './lib/parallelGenerator';
 import { buildHumanReviewRecommendation, summarizeRepairEvidence } from './lib/packageTrust';
 import { traceLog } from './lib/traceLog';
@@ -178,11 +178,38 @@ function buildQualityReceipt({
         humanDecisionCount + (exportVerification?.failed || 0) + (exportVerification?.warningCount || 0),
       externalProofStatus: 'not attached',
     }),
+    compactTrustReceipt: buildCompactPackageTrustReceipt({
+      lessonCount: courseMap?.lessons?.length || 0,
+      compilerSummary,
+      selectedFeatureCount: checkedFeatureCount,
+      deterministicRepairCount: repairsApplied,
+      reviewRequiredCount:
+        humanDecisionCount + (exportVerification?.failed || 0) + (exportVerification?.warningCount || 0),
+      exportVerification,
+      studentFacingCleanlinessStatus:
+        exportVerification?.failed || exportVerification?.warningCount ? 'review flagged' : 'clean',
+      localConfirmationChecklist: ['official dates', 'institution policies', 'copyrighted readings'],
+      budgetStatus: apiSpendSummary?.label || 'within configured budget',
+    }),
     reviewRecommendation: buildHumanReviewRecommendation({
       blockerCount: blockers.length + (exportVerification?.failed || 0),
       warningCount: (includeWarnings ? warnings.length : 0) + (exportVerification?.warningCount || 0),
       repaired: repairSummary !== 'none',
     }),
+    reviewActions:
+      topIssues.length > 0
+        ? topIssues.map((issue) => ({
+            label: issue.label,
+            action: issue.message,
+          }))
+        : [
+            { label: 'Official dates', action: 'Confirm the official calendar and due dates before publication.' },
+            { label: 'Local policy', action: 'Confirm institution policy language and accommodation wording.' },
+            {
+              label: 'Source permissions',
+              action: 'Confirm copied readings, media, cases, and datasets are approved.',
+            },
+          ],
     topIssues,
   };
 }
@@ -2847,6 +2874,7 @@ export default function AppFlow({ startupAction = null, onStartupHandled, onRetu
       <Suspense fallback={<ConfigSkeleton />}>
         <Config
           lessonCount={lessonCount}
+          promptText={promptText}
           isDetectingLessons={isDetectingLessons}
           deliverables={deliv.deliverables}
           onBack={() => setScreen('features')}
@@ -4041,7 +4069,7 @@ export default function AppFlow({ startupAction = null, onStartupHandled, onRetu
           </p>
           <div className="flex items-center justify-center gap-3 text-[10px] text-slate-300/70">
             <a href="#/changelog" className="font-medium hover:text-indigo-500 transition-colors duration-200">
-              v0.8.1
+              v0.8.2
             </a>
             <span>·</span>
             <a href="#/privacy" className="hover:text-indigo-500 transition-colors duration-200">

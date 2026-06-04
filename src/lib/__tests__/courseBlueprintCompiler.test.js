@@ -5164,6 +5164,22 @@ describe('courseBlueprintCompiler', () => {
     });
   });
 
+  it('replaces placeholder course terms with local confirmation language in compiled syllabi', () => {
+    const sparseMap = makeCourseMap(4);
+    sparseMap.semester = 'TBD';
+
+    const blueprint = buildCourseBlueprint(sparseMap);
+    const compiled = compileBlueprintDeliverables(blueprint, ['syllabus']);
+    const syllabus = compiled.syllabus.syllabus;
+    const serialized = JSON.stringify(syllabus);
+
+    expect(blueprint.semester).toBe('Official term to confirm locally');
+    expect(syllabus.semester).toBe('Official term to confirm locally');
+    expect(serialized).not.toMatch(/\bTBD\b|to be determined|\[semester year\]/i);
+    expect(syllabus.classroomHandoffPlan.publishBoundary).toMatch(/official dates/i);
+    expect(syllabus.blueprintQualityReceipt.compilerPath.reviewPolicy).toMatch(/official dates|source inputs/i);
+  });
+
   it('preserves explicit source grading weights and labels compiler-distributed weights as draft policy', () => {
     const weightedMap = makeCourseMap(4);
     [10, 20, 30, 40].forEach((weight, index) => {

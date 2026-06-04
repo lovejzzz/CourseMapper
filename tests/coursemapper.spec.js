@@ -485,6 +485,57 @@ test.describe('Lazy Shell', () => {
 // ─────────────────────────────────────────────────────────────────────────────
 
 test.describe('Configure Generation', () => {
+  test('keeps first-run primary CTAs in view on desktop', async ({ page }) => {
+    await page.setViewportSize({ width: 1280, height: 720 });
+    await page.route('https://api.openai.com/v1/models', (route) =>
+      route.fulfill({
+        status: 200,
+        contentType: 'application/json',
+        body: JSON.stringify({
+          data: [{ id: 'gpt-4o-mini', created: 1 }],
+        }),
+      }),
+    );
+    await page.route('https://api.openai.com/v1/chat/completions', (route) =>
+      route.fulfill({
+        status: 200,
+        contentType: 'application/json',
+        body: JSON.stringify({
+          choices: [{ message: { content: 'ok' } }],
+        }),
+      }),
+    );
+    await page.addInitScript(() => {
+      localStorage.clear();
+      sessionStorage.clear();
+      localStorage.setItem('coursemapper-provider', 'openai');
+      localStorage.setItem('coursemapper-apikey', 'sk-proj-test1234567890123456789012345678901234567890123456');
+      localStorage.setItem('coursemapper-modelid', 'gpt-4o-mini');
+      localStorage.setItem('coursemapper-modelname', 'GPT-4o mini');
+    });
+
+    await page.goto('/');
+    await expect(page.locator('text=Connected').first()).toBeVisible({ timeout: 10000 });
+    await page.locator('textarea').fill('Build an 8-lesson Spanish for Healthcare Professionals course.');
+    await page.getByRole('button', { name: 'Continue' }).click();
+
+    await expect(page.locator('text=Choose deliverables')).toBeVisible({ timeout: 10000 });
+    await expect(page.getByTestId('feature-select-sticky-action')).toBeInViewport({ ratio: 0.9 });
+    await expect(page.getByTestId('feature-select-continue')).toBeInViewport({ ratio: 0.9 });
+    await page.getByTestId('feature-select-continue').click();
+
+    await expect(page.locator('h1:has-text("Configure generation")')).toBeVisible({ timeout: 10000 });
+    await expect(page.getByTestId('config-sticky-action')).toBeInViewport({ ratio: 0.9 });
+    await expect(page.getByTestId('config-generate-button')).toBeInViewport({ ratio: 0.9 });
+    await expect(page.getByTestId('deliverable-preview-courseMap')).toContainText('Course Map — 8 lessons');
+    await expect(page.getByTestId('preview-course-context')).toContainText('Spanish for Healthcare Professionals');
+    await expect(page.getByTestId('deliverable-preview-courseMap')).not.toContainText('Machine Learning');
+    await expect(page.getByTestId('config-top-advanced-toggle')).toBeVisible();
+    await expect(page.locator('text=Model-tuned defaults')).toHaveCount(0);
+    await page.getByTestId('config-top-advanced-toggle').click();
+    await expect(page.locator('text=Model-tuned defaults')).toBeVisible();
+  });
+
   test('shows Course FAQ settings when expanded', async ({ page }) => {
     await page.route('https://api.openai.com/v1/models', (route) =>
       route.fulfill({
@@ -592,6 +643,7 @@ test.describe('Configure Generation', () => {
     await page.getByRole('button', { name: /Configure & Generate/ }).click();
 
     await expect(page.locator('h1:has-text("Configure generation")')).toBeVisible({ timeout: 10000 });
+    await page.getByTestId('config-top-advanced-toggle').click();
     await expect(page.getByText('Model-tuned defaults')).toBeVisible();
     await expect(page.getByText(/uses detailed defaults\./)).toBeVisible();
     await expect(page.getByText('Long output')).toBeVisible();
@@ -640,6 +692,7 @@ test.describe('Configure Generation', () => {
     await page.getByRole('button', { name: /Configure & Generate/ }).click();
 
     await expect(page.locator('h1:has-text("Configure generation")')).toBeVisible({ timeout: 10000 });
+    await page.getByTestId('config-top-advanced-toggle').click();
     await expect(page.getByTestId('institution-profile-card')).toBeVisible();
     await page.getByRole('button', { name: /Institution profile/ }).click();
 

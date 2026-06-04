@@ -1,4 +1,4 @@
-import { buildHumanReviewRecommendation, summarizeRepairEvidence } from './packageTrust';
+import { buildHumanReviewRecommendation, summarizeRepairEvidence } from './packageTrust.js';
 
 const CONFIDENCE_TONES = {
   Excellent: 'excellent',
@@ -20,6 +20,21 @@ function mapIssue(issue, fallbackSeverity = 'warning') {
     label: issue?.label || issue?.category || issue?.featureId || 'Package',
     message: issue?.message || 'Review this item before export.',
   };
+}
+
+function buildReviewActionsFromIssues(issues = []) {
+  const normalizedIssues = Array.isArray(issues) ? issues.filter((issue) => issue?.label && issue?.message) : [];
+  if (normalizedIssues.length > 0) {
+    return normalizedIssues.slice(0, 5).map((issue) => ({
+      label: issue.label,
+      action: issue.message,
+    }));
+  }
+  return [
+    { label: 'Official dates', action: 'Confirm the official calendar and due dates before publication.' },
+    { label: 'Local policy', action: 'Confirm institution policy language and accommodation wording.' },
+    { label: 'Source permissions', action: 'Confirm copied readings, media, cases, and datasets are approved.' },
+  ];
 }
 
 export function buildPackageTrustBoundarySummary({
@@ -64,6 +79,74 @@ export function buildPackageTrustBoundarySummary({
   }
 
   return { items };
+}
+
+function exportReceiptValue(exportVerification = {}) {
+  if (Array.isArray(exportVerification.formatsVerified) && exportVerification.formatsVerified.length > 0) {
+    return exportVerification.formatsVerified.join(', ');
+  }
+  const checked = count(exportVerification.checked);
+  if (checked > 0) return pluralize(checked, 'export check');
+  return 'not verified';
+}
+
+function localConfirmationValue(checklist = []) {
+  const items = Array.isArray(checklist) ? checklist.map((item) => String(item || '').trim()).filter(Boolean) : [];
+  if (items.length === 0) return 'official dates, policies, readings';
+  return items.slice(0, 3).join('; ');
+}
+
+export function buildCompactPackageTrustReceipt({
+  lessonCount = 0,
+  compilerSummary = null,
+  selectedFeatureCount = null,
+  modelGeneratedDeliverableCount = 0,
+  deterministicRepairCount = 0,
+  reviewRequiredCount = 0,
+  sourceGroundedLessonCount = null,
+  inferredAssumptionCount = null,
+  exportVerification = {},
+  studentFacingCleanlinessStatus = 'checked',
+  localConfirmationChecklist = [],
+  liveProviderCallCount = null,
+  budgetStatus = '',
+} = {}) {
+  const compiledDeliverables = count(compilerSummary?.compiledFeatureCount);
+  const selectedCount = Number.isFinite(selectedFeatureCount) ? count(selectedFeatureCount) : compiledDeliverables;
+  const modelGenerated = Number.isFinite(modelGeneratedDeliverableCount)
+    ? count(modelGeneratedDeliverableCount)
+    : Math.max(0, selectedCount - compiledDeliverables);
+  const fields = [
+    { id: 'compiled', label: 'Compiled', value: pluralize(compiledDeliverables, 'deliverable') },
+    { id: 'model-generated', label: 'Model-generated', value: pluralize(modelGenerated, 'deliverable') },
+    { id: 'repairs', label: 'Repairs', value: pluralize(count(deterministicRepairCount), 'safe repair') },
+    { id: 'review', label: 'Review needed', value: pluralize(count(reviewRequiredCount), 'lesson') },
+  ];
+
+  if (Number.isFinite(sourceGroundedLessonCount) || count(lessonCount) > 0) {
+    fields.push({
+      id: 'source-grounded',
+      label: 'Source-grounded',
+      value: `${count(sourceGroundedLessonCount)}/${count(lessonCount)} lessons`,
+    });
+  }
+
+  if (Number.isFinite(inferredAssumptionCount)) {
+    fields.push({ id: 'assumptions', label: 'Assumptions', value: String(count(inferredAssumptionCount)) });
+  }
+
+  fields.push(
+    { id: 'exports', label: 'Exports verified', value: exportReceiptValue(exportVerification) },
+    { id: 'cleanliness', label: 'Student-facing cleanliness', value: studentFacingCleanlinessStatus || 'checked' },
+    { id: 'confirmations', label: 'Local confirmations', value: localConfirmationValue(localConfirmationChecklist) },
+  );
+
+  if (Number.isFinite(liveProviderCallCount)) {
+    fields.push({ id: 'live-calls', label: 'Live calls', value: String(count(liveProviderCallCount)) });
+  }
+  if (budgetStatus) fields.push({ id: 'budget', label: 'Budget', value: String(budgetStatus) });
+
+  return { fields };
 }
 
 export function normalizePackageSummary(result = {}) {
@@ -111,6 +194,18 @@ export function normalizePackageSummary(result = {}) {
     count(validation.warningCount) +
     count(exportVerification.failed) +
     count(exportVerification.warningCount);
+  const topIssues = [
+    ...blockers,
+    ...classroomBlockers,
+    ...exportIssues,
+    ...classroomWarnings,
+    ...warnings,
+    ...findings,
+  ].slice(0, 4);
+  const reviewActions =
+    Array.isArray(result.reviewActions) && result.reviewActions.length > 0
+      ? result.reviewActions.filter((item) => item?.label && item?.action).slice(0, 5)
+      : buildReviewActionsFromIssues(topIssues);
 
   return {
     confidence,
@@ -147,6 +242,23 @@ export function normalizePackageSummary(result = {}) {
         reviewRequiredCount,
         externalProofStatus: result.externalProofStatus || 'not attached',
       }),
+    compactTrustReceipt:
+      result.compactTrustReceipt ||
+      buildCompactPackageTrustReceipt({
+        lessonCount: readiness.lessonCount || result.lessonCount,
+        compilerSummary: result.compilerSummary,
+        selectedFeatureCount: result.selectedFeatureCount,
+        modelGeneratedDeliverableCount: result.modelGeneratedDeliverableCount,
+        deterministicRepairCount: result.repairsApplied,
+        reviewRequiredCount,
+        sourceGroundedLessonCount: result.sourceGroundedLessonCount,
+        inferredAssumptionCount: result.inferredAssumptionCount,
+        exportVerification,
+        studentFacingCleanlinessStatus: result.studentFacingCleanlinessStatus,
+        localConfirmationChecklist: result.localConfirmationChecklist,
+        liveProviderCallCount: result.liveProviderCallCount,
+        budgetStatus: result.budgetStatus,
+      }),
     repairSummary,
     reviewRecommendation:
       result.reviewRecommendation ||
@@ -166,14 +278,8 @@ export function normalizePackageSummary(result = {}) {
     checkedItems: ['Readiness', 'classroom fit', 'content validation', 'export files'],
     checkedSections: readiness.checkedSections || null,
     lessonCount: readiness.lessonCount || null,
-    topIssues: [
-      ...blockers,
-      ...classroomBlockers,
-      ...exportIssues,
-      ...classroomWarnings,
-      ...warnings,
-      ...findings,
-    ].slice(0, 4),
+    reviewActions,
+    topIssues,
   };
 }
 

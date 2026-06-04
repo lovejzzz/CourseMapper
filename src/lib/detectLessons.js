@@ -22,6 +22,15 @@ export function detectExpectedLessons(text) {
     if (n >= 4 && n <= 52) return { expected: n, confidence: 'high', source: `"${m1a[0]}"` };
   }
 
+  // Pattern 1a.2: "X-lesson/module/session <anything>" — hyphenated adjective form,
+  // e.g. "8-lesson Spanish course" or "6-module training".
+  const unitAdjPat = /(\d{1,2})-(lesson|module|session)\b/i;
+  const m1unit = text.match(unitAdjPat);
+  if (m1unit) {
+    const n = parseInt(m1unit[1], 10);
+    if (n >= 1 && n <= 52) return { expected: n, confidence: 'high', source: `"${m1unit[0]}"` };
+  }
+
   // Pattern 1b: "X week course/semester/seminar/program/class/workshop"
   const weekCoursePat =
     /(\d{1,2})\s*week\s*(?:course|semester|seminar|program|class|workshop|curriculum|sequence|series|training|bootcamp)/i;
@@ -29,6 +38,15 @@ export function detectExpectedLessons(text) {
   if (m1) {
     const n = parseInt(m1[1], 10);
     if (n >= 4 && n <= 52) return { expected: n, confidence: 'high', source: `"${m1[0]}"` };
+  }
+
+  // Pattern 1b.2: "X lesson/module/session course/sequence/training"
+  const unitCoursePat =
+    /(\d{1,2})\s*(?:lesson|module|session)s?\s*(?:course|semester|seminar|program|class|workshop|curriculum|sequence|series|training|bootcamp)/i;
+  const m1unitCourse = text.match(unitCoursePat);
+  if (m1unitCourse) {
+    const n = parseInt(m1unitCourse[1], 10);
+    if (n >= 1 && n <= 52) return { expected: n, confidence: 'high', source: `"${m1unitCourse[0]}"` };
   }
 
   // Pattern 2: Explicit "Weeks 1-15" or "Weeks 1 through 15"

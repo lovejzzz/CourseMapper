@@ -1,5 +1,6 @@
 import React, { useState, useEffect, useRef, useMemo } from 'react';
 import { loadKatexRuntime } from '../../lib/katexRuntime.js';
+import { sanitizeMathHtml } from '../../lib/sanitizeMathHtml.js';
 
 // ── Lazy KaTeX loader ────────────────────────────────────────────────────────
 let _katex = null;
@@ -20,7 +21,7 @@ async function ensureKatex() {
 function renderMath(expr, displayMode = false) {
   if (!_katex) return null;
   try {
-    return _katex.renderToString(expr, { displayMode, throwOnError: false, output: 'html' });
+    return sanitizeMathHtml(_katex.renderToString(expr, { displayMode, throwOnError: false, output: 'html' }));
   } catch {
     return null;
   }

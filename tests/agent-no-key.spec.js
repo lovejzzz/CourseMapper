@@ -228,6 +228,11 @@ test.describe('Agent no-key behavior', () => {
       timeout: 10000,
     });
     await expect(agentPanel.getByText('Audit complete.', { exact: false })).toHaveCount(1, { timeout: 10000 });
+    await expect(agentPanel.getByTestId('package-compact-trust-receipt').last()).toBeVisible({ timeout: 10000 });
+    await expect(agentPanel.getByTestId('package-compact-trust-receipt').last()).toContainText('Compiled');
+    await expect(agentPanel.getByTestId('package-review-actions').last()).toContainText(
+      /Course Map|Lesson Plans|Official dates|Local policy|Source permissions/,
+    );
     await expect(planningReceipt.getByTestId('agent-receipt-action-audit-quality')).toContainText('Done');
     await expect(planningReceipt.getByTestId('agent-receipt-action-state-audit-quality')).toContainText('Done');
     expect(aiRequests).toEqual([]);
@@ -247,5 +252,30 @@ test.describe('Agent no-key behavior', () => {
 
     expect(aiRequests).toEqual([]);
     expect(consoleErrors.filter((text) => text.includes('NO_API_KEY'))).toEqual([]);
+  });
+
+  test('runs natural local audit requests without an AI key', async ({ page }) => {
+    const aiRequests = [];
+    await page.route(
+      /api\.openai\.com|api\.anthropic\.com|generativelanguage\.googleapis\.com|api\.deepseek\.com/,
+      (route) => {
+        aiRequests.push(route.request().url());
+        return route.abort();
+      },
+    );
+
+    await restoreGeneratedWorkspaceWithoutKey(page);
+
+    const agentPanel = page.getByTestId('workspace-agent-panel');
+    const composer = agentPanel.locator('textarea');
+    await composer.fill('can you audit this package?');
+    await expect(agentPanel.getByTestId('agent-command-preview')).toContainText('Audit quality');
+    await composer.press('Enter');
+
+    await expect(agentPanel.getByText('Running a read-only package audit from the Agent command.')).toBeVisible({
+      timeout: 10000,
+    });
+    await expect(agentPanel.getByText('Audit complete.', { exact: false })).toBeVisible({ timeout: 10000 });
+    expect(aiRequests).toEqual([]);
   });
 });

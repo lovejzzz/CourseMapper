@@ -1463,6 +1463,19 @@ function containsWeakPlaceholder(value) {
   return /\b(?:tbd|to be determined|none|n\/a|not applicable)\b/i.test(cleanText(value));
 }
 
+function publishableCourseTerm(value) {
+  const text = cleanText(value);
+  if (
+    !text ||
+    /\b(?:tbd|to be determined|unknown|placeholder|replace with|semester year|course term|not specified|none|n\/a)\b/i.test(
+      text,
+    )
+  ) {
+    return 'Official term to confirm locally';
+  }
+  return text;
+}
+
 function meaningfulEntries(values) {
   return values.filter((value) => !isWeakConcept(value));
 }
@@ -10764,7 +10777,7 @@ export function buildCourseBlueprint(courseMap, options = {}) {
     version: 1,
     source: 'deterministic-course-map',
     courseName,
-    semester: cleanText(courseMap?.semester, 'Course term'),
+    semester: publishableCourseTerm(courseMap?.semester),
     totalLessons: lessons.length,
     lessons,
     assessments,

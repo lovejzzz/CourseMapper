@@ -22,6 +22,18 @@ describe('detectExpectedLessons', () => {
     expect(result.confidence).toBe('high');
   });
 
+  it('detects "8-lesson" hyphenated form', () => {
+    const result = detectExpectedLessons('Build an 8-lesson Spanish for Healthcare Professionals course.');
+    expect(result.expected).toBe(8);
+    expect(result.confidence).toBe('high');
+  });
+
+  it('detects "6-module" hyphenated form', () => {
+    const result = detectExpectedLessons('Create a 6-module faculty onboarding training.');
+    expect(result.expected).toBe(6);
+    expect(result.confidence).toBe('high');
+  });
+
   // ── Pattern 1b: "X week course" ──
   it('detects "14 week semester"', () => {
     const result = detectExpectedLessons('This is a 14 week semester.');
@@ -32,6 +44,12 @@ describe('detectExpectedLessons', () => {
   it('detects "10 week bootcamp"', () => {
     const result = detectExpectedLessons('A 10 week bootcamp on web development.');
     expect(result.expected).toBe(10);
+    expect(result.confidence).toBe('high');
+  });
+
+  it('detects "8 lesson course"', () => {
+    const result = detectExpectedLessons('Design an 8 lesson course for clinical Spanish practice.');
+    expect(result.expected).toBe(8);
     expect(result.confidence).toBe('high');
   });
 

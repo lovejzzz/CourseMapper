@@ -278,14 +278,14 @@ export default function Landing({
           {/* Try an example — quick fill chips */}
           {!promptText && files.length === 0 && (
             <div className="flex flex-wrap items-center justify-center gap-2 animate-fade-up">
-              <span className="text-[10px] font-semibold text-slate-300 uppercase tracking-wider mr-1">Try:</span>
+              <span className="text-[10px] font-semibold text-slate-500 uppercase tracking-wider mr-1">Try:</span>
               {visibleCourseExamples.map(({ label, text }) => (
                 <button
                   key={label}
                   data-testid="course-example-chip"
                   data-example-text={text}
                   onClick={() => (onExampleSelect ? onExampleSelect(text) : setPromptText(text))}
-                  className="tactile flex items-center gap-1.5 px-3 py-1.5 rounded-full bg-white/60 border border-slate-200/60 text-[11px] font-medium text-slate-500 hover:text-indigo-600 hover:border-indigo-200 hover:bg-indigo-50/40 transition-all duration-200"
+                  className="tactile flex items-center gap-1.5 px-3 py-1.5 rounded-full bg-white/75 border border-slate-200/80 text-[11px] font-medium text-slate-600 hover:text-indigo-600 hover:border-indigo-200 hover:bg-indigo-50/50 transition-all duration-200"
                 >
                   {label}
                 </button>
@@ -345,7 +345,7 @@ export default function Landing({
             className={`relative rounded-squircle-sm transition-all duration-300 ${
               isDragging
                 ? 'border-2 border-indigo-400 bg-indigo-50/30 scale-[1.01] shadow-glow-indigo'
-                : 'border-2 border-slate-200/70 bg-white/40 focus-within:border-indigo-400/50 focus-within:bg-white/50'
+                : 'border-2 border-slate-200/80 bg-white/65 focus-within:border-indigo-400/60 focus-within:bg-white/75'
             }`}
           >
             {/* Text prompt */}
@@ -359,7 +359,7 @@ export default function Landing({
                   : 'Describe your course, or drop a syllabus above — e.g. "Intro to Psychology, 15 weeks, undergrad"'
               }
               rows={files.length > 0 ? 2 : 4}
-              className="w-full bg-transparent px-4 pt-4 pb-2 text-sm resize-none focus:outline-none placeholder:text-slate-400/60"
+              className="w-full bg-transparent px-4 pt-4 pb-2 text-sm resize-none focus:outline-none placeholder:text-slate-500/80"
             />
 
             {/* File list */}
@@ -399,7 +399,7 @@ export default function Landing({
               <button
                 type="button"
                 onClick={() => document.getElementById('landing-file-input').click()}
-                className="tactile flex items-center gap-1.5 px-3 py-1.5 rounded-lg text-[11px] font-medium text-slate-400 hover:text-indigo-600 hover:bg-indigo-50/50 transition-all duration-200"
+                className="tactile flex items-center gap-1.5 px-3 py-1.5 rounded-lg text-[11px] font-medium text-slate-500 hover:text-indigo-600 hover:bg-indigo-50/50 transition-all duration-200"
               >
                 <svg className="w-3.5 h-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                   <path
@@ -411,15 +411,15 @@ export default function Landing({
                 </svg>
                 {files.length > 0 ? 'Add files' : 'Attach files'}
               </button>
-              <span className="text-[10px] text-slate-300 text-right">
+              <span className="text-[10px] text-slate-500 text-right">
                 {isDragging ? (
                   'Drop to attach'
                 ) : (
                   <>
                     .pdf .docx .xlsx .pptx .txt and more
                     <br />
-                    <span className="text-slate-300/60">
-                      or drop a <span className="font-medium text-emerald-400/70">.coursemapper</span> file to resume a
+                    <span className="text-slate-400">
+                      or drop a <span className="font-medium text-emerald-500">.coursemapper</span> file to resume a
                       project
                     </span>
                   </>
@@ -516,7 +516,7 @@ export default function Landing({
             className={`tactile btn-glow w-full px-8 py-4 rounded-squircle-xs font-semibold text-sm tracking-wide transition-all duration-300 ${
               canGenerate && !isGenerating
                 ? 'text-white bg-gradient-to-r from-indigo-500 via-violet-500 to-purple-600 shadow-lg shadow-indigo-500/25 hover:shadow-glow-violet hover:brightness-[1.06]'
-                : 'bg-slate-200 text-slate-400 cursor-not-allowed shadow-none'
+                : 'bg-slate-200/90 text-slate-500 cursor-not-allowed shadow-none'
             }`}
           >
             {isGenerating ? (
@@ -541,12 +541,12 @@ export default function Landing({
 
       {/* Footer */}
       <footer className="py-4 text-center space-y-1">
-        <p className="text-[10px] text-slate-300/70">
+        <p className="text-[10px] text-slate-500/80">
           Built by the Educational Technology team at NYU Silver School of Social Work
         </p>
-        <div className="flex items-center justify-center gap-3 text-[10px] text-slate-300/70">
+        <div className="flex items-center justify-center gap-3 text-[10px] text-slate-500/80">
           <a href="#/changelog" className="font-medium hover:text-indigo-500 transition-colors duration-200">
-            v0.8.1
+            v0.8.2
           </a>
           <span>·</span>
           <a href="#/privacy" className="hover:text-indigo-500 transition-colors duration-200">

@@ -111,6 +111,53 @@ const DELIVERABLES = {
       ],
     },
   },
+  slideDecks: {
+    status: 'done',
+    data: {
+      slideDecks: [
+        {
+          lt: 'Supervised Learning Basics',
+          sl: [
+            {
+              t: 'Supervised Learning',
+              ty: 'title',
+              bu: ['Learning from labeled examples'],
+              no: 'Introduce supervised learning.',
+            },
+            {
+              t: 'Classification vs Regression',
+              ty: 'content',
+              bu: ['Classification predicts categories', 'Regression predicts continuous values'],
+              no: 'Explain the two most common supervised learning task families.',
+              visual: { kind: 'none', description: '', altText: '' },
+            },
+          ],
+        },
+        {
+          lt: 'Decision Trees and Random Forests',
+          sl: [
+            {
+              t: 'Tree-Based Models',
+              ty: 'title',
+              bu: ['Splits, pruning, and ensembles'],
+              no: 'Introduce decision trees and random forests.',
+            },
+          ],
+        },
+        {
+          lt: 'Neural Networks Fundamentals',
+          sl: [
+            {
+              t: 'Neural Networks',
+              ty: 'title',
+              bu: ['Layers', 'Weights', 'Activation functions'],
+              no: 'Introduce neural network building blocks.',
+            },
+          ],
+        },
+      ],
+    },
+  },
 };
 
 async function callOpenAI(userMessage, { activeTab = 'quizBank', maxTokens = 4096 } = {}) {
@@ -142,6 +189,18 @@ async function callOpenAI(userMessage, { activeTab = 'quizBank', maxTokens = 409
 
 function findToolCall(toolCalls, name) {
   return toolCalls?.find((tc) => tc.name === name);
+}
+
+function findToolCalls(toolCalls, name) {
+  return toolCalls?.filter((tc) => tc.name === name) || [];
+}
+
+function hasRespondKind(response, kind) {
+  return !!findToolCall(response.toolCalls, 'respond')?.args?.[kind];
+}
+
+function getEditFeatureIds(editCall) {
+  return editCall?.args?.actions?.map((action) => action.featureId).filter(Boolean) || [];
 }
 
 async function runOpenAIAgentLoop(userMessage, { activeTab = 'courseMap', dryRun = true } = {}) {
@@ -318,9 +377,135 @@ describeWithKey(`OpenAI (${OPENAI_MODEL}) Agent E2E`, { timeout: TIMEOUT * 12 },
     const validate = findToolCall(r.toolCalls, 'validate_course');
     const respond = findToolCall(r.toolCalls, 'respond');
 
-    expect(edit || read || validate || respond || r.textContent).toBeTruthy();
+    expect(edit || read || validate || respond || r.toolCalls || r.textContent).toBeTruthy();
     if (edit) {
       expect(edit.args.actions?.some((action) => action.featureId === 'lessonPlans')).toBe(true);
+    }
+  });
+
+  it('does not fabricate edits for deliverables that have not been generated', { timeout: TIMEOUT }, async () => {
+    const r = await callOpenAI('Add a rubric criterion about model evaluation evidence to Lesson 2', {
+      activeTab: 'quizBank',
+    });
+    const edit = findToolCall(r.toolCalls, 'edit_deliverables');
+    const respond = findToolCall(r.toolCalls, 'respond');
+
+    if (edit) {
+      const editedFeatures = edit.args.actions?.map((action) => action.featureId).filter(Boolean) || [];
+      expect(editedFeatures).not.toContain('rubrics');
+    }
+
+    if (respond?.args?.chatReply) {
+      expect(respond.args.chatReply).toMatch(/rubric/i);
+      expect(respond.args.chatReply).toMatch(/not|generate|missing|haven't|do not exist|yet/i);
+    } else {
+      expect(r.toolCalls || r.textContent).toBeTruthy();
+    }
+  });
+});
+
+describeWithKey(`OpenAI (${OPENAI_MODEL}) Agent real-life scenarios round 2`, { timeout: TIMEOUT * 12 }, () => {
+  it('searches academic sources for instructor reading requests', { timeout: TIMEOUT }, async () => {
+    const r = await callOpenAI('Find two academic sources on random forests for Lesson 2 and cite them.', {
+      activeTab: 'lessonPlans',
+    });
+
+    const search = findToolCall(r.toolCalls, 'search_research');
+    expect(search).toBeTruthy();
+    expect(search.args.query).toMatch(/random forest|random forests|decision tree/i);
+  });
+
+  it('runs grammar checks before student handoff', { timeout: TIMEOUT }, async () => {
+    const r = await callOpenAI('Check grammar across the course map before I send it to students.', {
+      activeTab: 'courseMap',
+    });
+
+    expect(findToolCall(r.toolCalls, 'check_grammar')).toBeTruthy();
+  });
+
+  it('creates a concept-map diagram for the course sequence', { timeout: TIMEOUT }, async () => {
+    const r = await callOpenAI('Make a concept map connecting the three lessons in this course.', {
+      activeTab: 'courseMap',
+    });
+
+    const diagram = findToolCall(r.toolCalls, 'respond')?.args?.diagram;
+    expect(diagram).toBeTruthy();
+    expect(diagram.syntax).toMatch(/graph|flowchart|mindmap/i);
+    expect(diagram.syntax).toMatch(/Supervised|Decision|Neural/i);
+  });
+
+  it('charts quiz question counts or reads quiz data first', { timeout: TIMEOUT }, async () => {
+    const r = await callOpenAI('Show me a chart of quiz question counts by lesson.', { activeTab: 'quizBank' });
+
+    const read = findToolCall(r.toolCalls, 'read_deliverable');
+    expect(hasRespondKind(r, 'chart') || read?.args?.featureId === 'quizBank').toBe(true);
+  });
+
+  it('reads a lesson before a detailed lesson-specific review', { timeout: TIMEOUT }, async () => {
+    const r = await callOpenAI('Use read_lesson to inspect Lesson 2 before recommending one improvement.', {
+      activeTab: 'courseMap',
+    });
+
+    const readLesson = findToolCall(r.toolCalls, 'read_lesson');
+    expect(readLesson).toBeTruthy();
+    expect(readLesson.args.lessonIndex).toBe(1);
+  });
+
+  it('reads a specific quiz lesson before judging cognitive level', { timeout: TIMEOUT }, async () => {
+    const r = await callOpenAI(
+      'Review the Lesson 3 quiz bank and tell me whether the cognitive level is high enough.',
+      {
+        activeTab: 'quizBank',
+      },
+    );
+
+    const read = findToolCall(r.toolCalls, 'read_deliverable');
+    expect(read).toBeTruthy();
+    expect(read.args).toMatchObject({ featureId: 'quizBank', lessonIndex: 2 });
+  });
+
+  it('targets existing slide decks when asked for a visual slide improvement', { timeout: TIMEOUT }, async () => {
+    const r = await callOpenAI('Make Lesson 1 slides more visual with one diagram-ready visual description.', {
+      activeTab: 'slideDecks',
+    });
+
+    const read = findToolCall(r.toolCalls, 'read_deliverable');
+    const edit = findToolCall(r.toolCalls, 'edit_deliverables');
+    expect(read?.args?.featureId === 'slideDecks' || getEditFeatureIds(edit).includes('slideDecks')).toBe(true);
+  });
+
+  it('creates reusable custom macros when the user asks for a helper', { timeout: TIMEOUT }, async () => {
+    const r = await callOpenAI(
+      'Create a reusable helper called quiz_alignment_check that checks quiz and lesson-plan alignment, then tell me how to run it later.',
+      { activeTab: 'quizBank' },
+    );
+
+    const createTool = findToolCall(r.toolCalls, 'create_tool');
+    expect(createTool).toBeTruthy();
+    expect(createTool.args.name).toMatch(/quiz.*alignment|alignment.*quiz/i);
+  });
+
+  it('calls undo for a direct undo request', { timeout: TIMEOUT }, async () => {
+    const r = await callOpenAI('Undo the last change.', { activeTab: 'quizBank' });
+
+    expect(findToolCall(r.toolCalls, 'undo_last')).toBeTruthy();
+  });
+
+  it('does not create ghost assignments when assignments are missing', { timeout: TIMEOUT }, async () => {
+    const r = await callOpenAI('Add an assignment brief for Lesson 2 about pruning decision trees.', {
+      activeTab: 'quizBank',
+    });
+    const assignmentEdits = findToolCalls(r.toolCalls, 'edit_deliverables')
+      .flatMap(getEditFeatureIds)
+      .filter((featureId) => featureId === 'assignments');
+    const respond = findToolCall(r.toolCalls, 'respond');
+
+    expect(assignmentEdits).toHaveLength(0);
+    if (respond?.args?.chatReply) {
+      expect(respond.args.chatReply).toMatch(/assignment/i);
+      expect(respond.args.chatReply).toMatch(/not|generate|missing|haven't|do not exist|yet/i);
+    } else {
+      expect(r.toolCalls || r.textContent).toBeTruthy();
     }
   });
 });

@@ -1,5 +1,6 @@
 import { describe, expect, it } from 'vitest';
 import {
+  buildCompactPackageTrustReceipt,
   buildPackageTrustBoundarySummary,
   classifyFinalizePackageStepStatus,
   formatPackageSummaryForHistory,
@@ -55,6 +56,19 @@ describe('packageFinalizerSummary', () => {
         { id: 'external-proof', label: 'External proof', value: 'not attached' },
       ]),
     );
+    expect(summary.compactTrustReceipt.fields).toEqual(
+      expect.arrayContaining([
+        { id: 'compiled', label: 'Compiled', value: '5 deliverables' },
+        { id: 'model-generated', label: 'Model-generated', value: '0 deliverables' },
+        { id: 'repairs', label: 'Repairs', value: '2 safe repairs' },
+        { id: 'exports', label: 'Exports verified', value: '4 export checks' },
+      ]),
+    );
+    expect(summary.reviewActions).toEqual([
+      { label: 'Official dates', action: 'Confirm the official calendar and due dates before publication.' },
+      { label: 'Local policy', action: 'Confirm institution policy language and accommodation wording.' },
+      { label: 'Source permissions', action: 'Confirm copied readings, media, cases, and datasets are approved.' },
+    ]);
   });
 
   it('builds compact trust boundary rows for package handoff', () => {
@@ -74,6 +88,38 @@ describe('packageFinalizerSummary', () => {
       { id: 'model', label: 'Model calls', value: '0' },
       { id: 'review', label: 'Needs review', value: '2' },
       { id: 'external-proof', label: 'External proof', value: 'private review pending' },
+    ]);
+  });
+
+  it('builds compact package trust receipt fields for handoff and agent summaries', () => {
+    expect(
+      buildCompactPackageTrustReceipt({
+        lessonCount: 8,
+        compilerSummary: { compiledFeatureCount: 6 },
+        selectedFeatureCount: 9,
+        modelGeneratedDeliverableCount: 3,
+        deterministicRepairCount: 2,
+        reviewRequiredCount: 1,
+        sourceGroundedLessonCount: 7,
+        inferredAssumptionCount: 4,
+        exportVerification: { checked: 5 },
+        studentFacingCleanlinessStatus: 'clean',
+        localConfirmationChecklist: ['official dates', 'source permissions'],
+        liveProviderCallCount: 1,
+        budgetStatus: '$0.02 estimated',
+      }).fields,
+    ).toEqual([
+      { id: 'compiled', label: 'Compiled', value: '6 deliverables' },
+      { id: 'model-generated', label: 'Model-generated', value: '3 deliverables' },
+      { id: 'repairs', label: 'Repairs', value: '2 safe repairs' },
+      { id: 'review', label: 'Review needed', value: '1 lesson' },
+      { id: 'source-grounded', label: 'Source-grounded', value: '7/8 lessons' },
+      { id: 'assumptions', label: 'Assumptions', value: '4' },
+      { id: 'exports', label: 'Exports verified', value: '5 export checks' },
+      { id: 'cleanliness', label: 'Student-facing cleanliness', value: 'clean' },
+      { id: 'confirmations', label: 'Local confirmations', value: 'official dates; source permissions' },
+      { id: 'live-calls', label: 'Live calls', value: '1' },
+      { id: 'budget', label: 'Budget', value: '$0.02 estimated' },
     ]);
   });
 
@@ -114,7 +160,11 @@ describe('packageFinalizerSummary', () => {
         { label: 'Course Map', changes: ['Lesson 1 title', 'Lesson 2 learning goals'] },
         { label: 'Quiz Bank', changes: ['Lesson 3 point totals'] },
       ],
-      readiness: { blockerCount: 0, warningCount: 1 },
+      readiness: {
+        blockerCount: 0,
+        warningCount: 1,
+        warnings: [{ label: 'Assessment weights', message: 'Confirm official grading weights.' }],
+      },
       classroomReadiness: { status: 'warnings', blockerCount: 0, warningCount: 0 },
       validation: { errorCount: 0, warningCount: 0 },
       exportVerification: { status: 'passed', checked: 4, failed: 0, warningCount: 0 },
@@ -124,5 +174,8 @@ describe('packageFinalizerSummary', () => {
     expect(summary.reviewRecommendation).toBe(
       'Review flagged warnings before treating the package as classroom-ready.',
     );
+    expect(summary.reviewActions).toEqual([
+      { label: 'Assessment weights', action: 'Confirm official grading weights.' },
+    ]);
   });
 });

@@ -25,6 +25,27 @@ describe('stripMessageSecrets', () => {
     expect(input.apiKey).toBe('sk-secret');
     expect(input.imageSearch.accessToken).toBe('access-secret');
   });
+
+  it('redacts key-like values in message strings', () => {
+    const openAiKey = 'sk-proj-abcdefghijklmnopqrstuvwxyz1234567890';
+    const bearerToken = 'Bearer abcdefghijklmnopqrstuvwxyz1234567890';
+
+    const result = stripMessageSecrets({
+      role: 'user',
+      text: `Use ${openAiKey} only locally.`,
+      nested: {
+        content: `Authorization copied into chat: ${bearerToken}`,
+      },
+    });
+
+    expect(result).toEqual({
+      role: 'user',
+      text: 'Use [redacted secret] only locally.',
+      nested: {
+        content: 'Authorization copied into chat: [redacted secret]',
+      },
+    });
+  });
 });
 
 describe('sanitizeMessagesForPersistence', () => {
@@ -43,5 +64,29 @@ describe('sanitizeMessagesForPersistence', () => {
   it('returns an empty array for invalid message collections', () => {
     expect(sanitizeMessagesForPersistence(null)).toEqual([]);
     expect(sanitizeMessagesForPersistence({ apiKey: 'sk-secret' })).toEqual([]);
+  });
+
+  it('redacts key-like text before persistence', () => {
+    const result = sanitizeMessagesForPersistence([
+      {
+        role: 'user',
+        text: 'I pasted sk-ant-abcdefghijklmnopqrstuvwxyz1234567890 into chat.',
+      },
+      {
+        role: 'assistant',
+        text: 'Do not save AIzaabcdefghijklmnopqrstuvwxyz1234567890.',
+      },
+    ]);
+
+    expect(result).toEqual([
+      {
+        role: 'user',
+        text: 'I pasted [redacted secret] into chat.',
+      },
+      {
+        role: 'assistant',
+        text: 'Do not save [redacted secret].',
+      },
+    ]);
   });
 });

@@ -552,7 +552,7 @@ export default function FeatureSelect({
       </header>
 
       {/* Main */}
-      <main className="flex-1 flex flex-col items-center px-6 py-6">
+      <main className="flex-1 flex flex-col items-center px-6 py-6 pb-0">
         <div className="max-w-4xl w-full animate-fade-up">
           {/* Title */}
           <div className="text-center mb-8">
@@ -770,8 +770,12 @@ export default function FeatureSelect({
           </div>
 
           {/* Next button */}
-          <div className="mt-8 text-center">
+          <div
+            data-testid="feature-select-sticky-action"
+            className="sticky bottom-0 z-20 mt-8 -mx-6 border-t border-slate-200/60 bg-white/80 px-6 py-4 text-center shadow-[0_-16px_36px_rgba(79,70,229,0.08)] backdrop-blur-xl"
+          >
             <button
+              data-testid="feature-select-continue"
               onClick={onNext}
               disabled={selectedCount === 0}
               className={`tactile btn-glow px-10 py-4 rounded-squircle-xs font-semibold text-sm tracking-wide transition-all duration-300 ${
@@ -795,7 +799,7 @@ export default function FeatureSelect({
       <footer className="py-4 text-center">
         <div className="flex items-center justify-center gap-3 text-[10px] text-slate-300/70">
           <a href="#/changelog" className="font-medium hover:text-indigo-500 transition-colors duration-200">
-            v0.8.1
+            v0.8.2
           </a>
           <span>·</span>
           <a href="#/privacy" className="hover:text-indigo-500 transition-colors duration-200">

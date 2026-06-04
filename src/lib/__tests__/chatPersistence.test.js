@@ -77,6 +77,27 @@ describe('saveConversation + loadConversation', () => {
     ]);
   });
 
+  it('redacts key-like text from saved messages, titles, and previews', () => {
+    const openAiKey = 'sk-proj-abcdefghijklmnopqrstuvwxyz1234567890';
+    const messages = [
+      { role: 'user', text: `My provider key is ${openAiKey}` },
+      { role: 'assistant', text: `I will not persist ${openAiKey}` },
+    ];
+
+    const entry = saveConversation('test-secret-text', messages);
+
+    const rawIndex = localStorage.getItem('coursemapper-conversations');
+    const rawMessages = localStorage.getItem('coursemapper-conversations:test-secret-text');
+    expect(rawIndex).not.toContain(openAiKey);
+    expect(rawMessages).not.toContain(openAiKey);
+    expect(entry.title).toBe('My provider key is [redacted secret]');
+    expect(entry.preview).toBe('I will not persist [redacted secret]');
+    expect(loadConversation('test-secret-text')).toEqual([
+      { role: 'user', text: 'My provider key is [redacted secret]' },
+      { role: 'assistant', text: 'I will not persist [redacted secret]' },
+    ]);
+  });
+
   it('sanitizes older saved conversations while loading them', () => {
     localStorage.setItem(
       'coursemapper-conversations:old-secret',
@@ -87,6 +108,19 @@ describe('saveConversation + loadConversation', () => {
 
     expect(loaded).toEqual([{ role: 'imageSearch', imageSearch: { query: 'loops' } }]);
     expect(localStorage.getItem('coursemapper-conversations:old-secret')).not.toContain('sk-old-secret');
+  });
+
+  it('redacts key-like text from older saved conversations while loading them', () => {
+    const openAiKey = 'sk-proj-abcdefghijklmnopqrstuvwxyz1234567890';
+    localStorage.setItem(
+      'coursemapper-conversations:old-text-secret',
+      JSON.stringify([{ role: 'user', text: `Old pasted key ${openAiKey}` }]),
+    );
+
+    const loaded = loadConversation('old-text-secret');
+
+    expect(loaded).toEqual([{ role: 'user', text: 'Old pasted key [redacted secret]' }]);
+    expect(localStorage.getItem('coursemapper-conversations:old-text-secret')).not.toContain(openAiKey);
   });
 
   it('auto-generates title from first user message', () => {

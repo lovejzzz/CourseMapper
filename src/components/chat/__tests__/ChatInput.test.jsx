@@ -105,6 +105,7 @@ describe('ChatInput agent execution mode', () => {
     const reviewButton = Array.from(container.querySelectorAll('button')).find(
       (button) => button.getAttribute('title') === 'Review without editing',
     );
+    expect(reviewButton.textContent).toContain('Review package');
     act(() => {
       reviewButton.dispatchEvent(new MouseEvent('click', { bubbles: true }));
     });
@@ -301,6 +302,33 @@ describe('ChatInput agent execution mode', () => {
     expect(onAgentCommand.mock.calls[0][0]).toMatchObject({ id: 'finish-package' });
     expect(onSend).not.toHaveBeenCalled();
     expect(container.querySelector('textarea').value).toBe('');
+  });
+
+  it('runs natural local audit commands even when AI is not configured', () => {
+    const onSend = vi.fn();
+    const onAgentCommand = vi.fn();
+    renderInput({ isAgentProviderReady: false, onSend, onAgentCommand });
+
+    const textarea = container.querySelector('textarea');
+    act(() => {
+      typeInTextarea(textarea, 'can you audit this package?');
+    });
+
+    const preview = container.querySelector('[data-testid="agent-command-preview"]');
+    expect(preview).not.toBeNull();
+    expect(preview.textContent).toContain('Audit quality');
+
+    const runButton = container.querySelector('button[aria-label="Run command"]');
+    expect(runButton).not.toBeNull();
+    expect(runButton.disabled).toBe(false);
+
+    act(() => {
+      textarea.dispatchEvent(new KeyboardEvent('keydown', { key: 'Enter', bubbles: true }));
+    });
+
+    expect(onAgentCommand).toHaveBeenCalledTimes(1);
+    expect(onAgentCommand.mock.calls[0][0]).toMatchObject({ id: 'audit-quality' });
+    expect(onSend).not.toHaveBeenCalled();
   });
 
   it('routes typed lesson-scope requests through the agent command handler', () => {

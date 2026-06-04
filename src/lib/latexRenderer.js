@@ -9,6 +9,7 @@
  */
 
 import { loadHtml2CanvasRuntime, loadKatexRuntime } from './katexRuntime.js';
+import { sanitizeMathHtml } from './sanitizeMathHtml.js';
 
 // ── LaTeX Detection ───────────────────────────────────────────────────────
 
@@ -303,11 +304,13 @@ export async function renderLatexToImage(expr, { displayMode = false, fontSizePx
     max-width: 800px; line-height: 1.2;
   `;
 
-  container.innerHTML = katex.renderToString(expr, {
-    displayMode,
-    throwOnError: false,
-    output: 'html',
-  });
+  container.innerHTML = sanitizeMathHtml(
+    katex.renderToString(expr, {
+      displayMode,
+      throwOnError: false,
+      output: 'html',
+    }),
+  );
 
   document.body.appendChild(container);
 

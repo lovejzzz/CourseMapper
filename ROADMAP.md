@@ -34,6 +34,21 @@ Goal: make CourseMapper credible for real classroom pilots while keeping the age
 9. Versioned package handoff so users can recover prior generated packages.
 10. Public demo packages showing polished complete outputs across multiple subjects.
 
+## v0.8.2 - Internal Self-Improvement Release
+
+Goal: remove external expert audit as a release dependency and replace it with a stricter internal self-improvement loop. External proof tools can remain available for optional future certification, but v0.8.2 should be judged by internal adversarial fixtures, deterministic self-audits, export verification, security hardening, live provider smoke, and honest claim boundaries.
+
+Full plan: `docs/V0.8.2_INTERNAL_SELF_IMPROVEMENT_ROADMAP.md`
+
+1. Add an internal self-improvement audit that compiles adversarial course maps, runs quality checks, reports blockers/warnings/improvement candidates, and requires no external reviewer fixtures.
+2. Expand adversarial internal fixtures for vague syllabi, source conflicts, impossible workload, safety-sensitive courses, online courses, modality drift, and custom deliverable boundaries.
+3. Keep `audit:expert` as an internal provisional harness, while treating `audit:expert:external` and proof packets as optional evidence collection rather than release blockers.
+4. Close security P0s from the deep website audit: CSP/security headers, runtime CDN strategy, KaTeX insertion hardening, chat secret-value redaction, and the dormant `server.js` decision.
+5. Simplify first-run UX by keeping primary CTAs visible, making the configure preview prompt-aware or clearly generic, and collapsing advanced settings by default.
+6. Improve release operability with progress output for long audits, scoped audit modes, and a private bounded live full-generation smoke.
+7. Add a compact trust summary in the app showing compiled/model-generated counts, repairs, review-required lessons, export verification, local confirmations, and budget status.
+8. Use the honest release claim: internally self-audited and regression-tested, not externally expert-certified.
+
 ## Perfect System Gap
 
 Goal: close the gap between the current audited v0.8 hybrid compiler and a near-perfect course artifact system.
