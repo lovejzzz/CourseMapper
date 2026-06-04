@@ -298,7 +298,15 @@ function describeLessonScope(lessonScope, courseMap) {
   return 'Current workspace';
 }
 
-function buildLessonScopeReceipt({ status = 'done', changed = [], issues = [], next = '' } = {}) {
+function buildLessonScopeReceipt({
+  status = 'done',
+  changed = [],
+  checked = ['Course map lesson count', 'Working set scope'],
+  issues = [],
+  next = '',
+  runStats = null,
+  toolManifest = null,
+} = {}) {
   return buildAgentReceiptMessage({
     title: status === 'done' ? 'Scope receipt' : 'Scope needs review',
     status,
@@ -306,10 +314,82 @@ function buildLessonScopeReceipt({ status = 'done', changed = [], issues = [], n
     mode: 'Local',
     target: 'Lesson scope',
     changed,
-    checked: ['Course map lesson count', 'Working set scope'],
+    checked,
     issues,
     next,
+    runStats,
+    toolManifest,
   });
+}
+
+const EXPANSION_STAGES = [
+  {
+    label: 'Applied Extension',
+    focus: 'extend the core ideas into a new applied case',
+    artifact: 'application brief',
+  },
+  {
+    label: 'Integration and Transfer',
+    focus: 'connect earlier lessons and transfer the approach to a new context',
+    artifact: 'synthesis plan',
+  },
+  {
+    label: 'Evidence and Feedback',
+    focus: 'use evidence and feedback to improve the course work',
+    artifact: 'revision memo',
+  },
+  {
+    label: 'Final Demonstration',
+    focus: 'prepare a final demonstration of learning',
+    artifact: 'final learning artifact',
+  },
+];
+
+function stripLessonPrefix(text = '') {
+  return String(text || '')
+    .replace(/^lesson\s+\d+\s*[:.-]\s*/i, '')
+    .trim();
+}
+
+function getCourseExpansionTheme(courseMap = {}) {
+  const lessons = Array.isArray(courseMap?.lessons) ? courseMap.lessons : [];
+  const lastLesson = lessons[lessons.length - 1] || {};
+  const lastSection = Array.isArray(lastLesson.sections) ? lastLesson.sections[0] || {} : {};
+  const topic = String(lastSection.topicSection || lastSection.topic || '').trim();
+  const lessonTitle = stripLessonPrefix(lastLesson.title || '');
+  const courseName = String(courseMap?.courseName || '')
+    .replace(/\bcourse\b/gi, '')
+    .trim();
+  return topic || lessonTitle || courseName || 'the course focus';
+}
+
+function buildDeterministicExpansionLessons({ courseMap, currentLessonCount, targetLessonCount }) {
+  const theme = getCourseExpansionTheme(courseMap);
+  const lessons = [];
+  for (let index = currentLessonCount; index < targetLessonCount; index += 1) {
+    const lessonNumber = index + 1;
+    const stage = EXPANSION_STAGES[(index - currentLessonCount) % EXPANSION_STAGES.length];
+    const topic = `${stage.label}: ${theme}`;
+    lessons.push({
+      lessonIndex: index,
+      title: `Lesson ${lessonNumber}: ${stage.label}`,
+      sections: [
+        {
+          learningGoals: `Students will ${stage.focus} using ${theme}.`,
+          topicSection: topic,
+          learningObjectives: `By the end of the lesson, students can explain, apply, and critique ${theme} in a structured task.`,
+          weeklyAssessments: `Students submit a ${stage.artifact} showing how they used evidence from the lesson.`,
+          asyncActivities: `Review instructor-provided materials on ${theme} and prepare two questions for class.`,
+          syncActivities: `Workshop ${theme} through examples, peer feedback, and a short application task.`,
+          technologyNeeded: 'Course LMS, shared documents, and standard presentation tools.',
+          presentationFormat: 'Mini-lesson, guided practice, and application workshop.',
+          supportingResources: `Instructor-provided readings, examples, and templates related to ${theme}.`,
+          evaluateDesign: true,
+        },
+      ],
+    });
+  }
+  return lessons;
 }
 
 function buildExpandCoursePrompt({ currentLessonCount, targetLessonCount, agentDryRun = false } = {}) {
@@ -1935,6 +2015,90 @@ export default function ChatPanel({
         return true;
       }
 
+      const missingCount = targetLessonCount - currentLessonCount;
+      const expansionLessons = buildDeterministicExpansionLessons({
+        courseMap,
+        currentLessonCount,
+        targetLessonCount,
+      });
+      const addedLessonLabels = expansionLessons.map((lesson) => `Lesson ${Number(lesson.lessonIndex) + 1}`).join(', ');
+      const generatedFeatureIds = (Array.isArray(selectedFeatures) ? selectedFeatures : []).filter(
+        (featureId) => featureId !== 'courseMap' && deliverables?.[featureId]?.status === 'done',
+      );
+      const generatedFeatureSummary = summarizeFeatureIds(generatedFeatureIds);
+      const scopeExpansionReceipt = (status = 'done') =>
+        buildLessonScopeReceipt({
+          status,
+          changed: [
+            `Updated blueprint: added ${addedLessonLabels || `${missingCount} lessons`}`,
+            `Working set scope: all ${targetLessonCount} lessons`,
+            generatedFeatureIds.length > 0
+              ? `Compiler sync queued: ${generatedFeatureSummary}`
+              : 'Compiler sync skipped: no generated downstream materials',
+          ],
+          checked: [
+            `Course map lesson count: ${targetLessonCount}`,
+            `Canonical patch: ${missingCount} addLesson patch${missingCount === 1 ? '' : 'es'}`,
+            `Model calls: 0`,
+          ],
+          runStats: { providerCallCount: 0 },
+          toolManifest: [
+            {
+              tool: 'apply_canonical_patch',
+              label: 'Update blueprint',
+              status: status === 'done' ? 'done' : 'review',
+              summary: `Added ${addedLessonLabels || `${missingCount} lessons`}`,
+              targets: ['Course Map'],
+            },
+            {
+              tool: 'compiler_sync',
+              label: 'Compiler sync',
+              status: generatedFeatureIds.length > 0 ? 'pending' : 'skipped',
+              summary: `Model calls: 0`,
+              targets: generatedFeatureIds.length > 0 ? [generatedFeatureSummary] : [],
+            },
+          ],
+          next:
+            generatedFeatureIds.length > 0
+              ? 'Run Sync stale deliverables when you want generated materials to match the expanded course map.'
+              : 'Generate the selected deliverables for the expanded course map.',
+        });
+
+      if (chat.agentDryRun) {
+        chat.addLocalMessages([
+          buildLocalAgentUserMessage(displayText),
+          scopeExpansionReceipt('review'),
+          {
+            role: 'assistant',
+            text: `Review only: I would add ${missingCount} lesson${missingCount === 1 ? '' : 's'} to reach ${targetLessonCount} lessons, then sync downstream materials. Model calls: 0.`,
+          },
+        ]);
+        return true;
+      }
+
+      if (typeof editor?.handleAddLessons === 'function') {
+        const inserted = editor.handleAddLessons(expansionLessons);
+        if (Array.isArray(inserted) && inserted.length === missingCount) {
+          onLessonScopeChange?.({ type: 'all', indices: [] });
+          onPackageQualityPassUpdate?.({
+            status: 'idle',
+            message: `Scope changed to all ${targetLessonCount} lessons. Sync generated materials before downloading.`,
+            repairsApplied: 0,
+            warnings: 0,
+            blockers: 0,
+          });
+          chat.addLocalMessages([
+            buildLocalAgentUserMessage(displayText),
+            scopeExpansionReceipt('done'),
+            {
+              role: 'assistant',
+              text: `Scope updated to all ${targetLessonCount} lessons. I added ${missingCount} course-map lesson${missingCount === 1 ? '' : 's'} and queued downstream sync. Model calls: 0.`,
+            },
+          ]);
+          return true;
+        }
+      }
+
       if (!chat.isAgentProviderReady) {
         chat.addLocalMessages([
           buildLocalAgentUserMessage(displayText),
@@ -1961,7 +2125,7 @@ export default function ChatPanel({
       });
       return true;
     },
-    [chat, courseMap?.lessons, onLessonScopeChange, onPackageQualityPassUpdate],
+    [chat, courseMap, deliverables, editor, onLessonScopeChange, onPackageQualityPassUpdate, selectedFeatures],
   );
   const handleAgentCommand = useCallback(
     async (item) => {

@@ -28,6 +28,7 @@ describe('useSmartSync canonical patch requests', () => {
   });
 
   afterEach(() => {
+    vi.useRealTimers();
     if (root) {
       act(() => {
         root.unmount();
@@ -137,5 +138,77 @@ describe('useSmartSync canonical patch requests', () => {
       compilerSyncCount: 1,
       modelFallbackCount: 1,
     });
+  });
+
+  it('marks course-map sync plan targets stale before waiting for approval', async () => {
+    vi.useFakeTimers();
+    const courseMapRef = {
+      current: {
+        lessons: [{ title: 'Foundations', sections: [{ topicSection: 'Foundations' }] }],
+      },
+    };
+    const deliv = {
+      isGenerating: false,
+      deliverables: {
+        lessonPlans: { status: 'done' },
+        slideDecks: { status: 'done' },
+      },
+      generateAll: vi.fn(),
+      markFeatureStale: vi.fn(),
+      regenerateLesson: vi.fn(),
+    };
+    let hook;
+
+    root = createRoot(container);
+    await act(async () => {
+      root.render(
+        <Harness
+          onHook={(value) => {
+            hook = value;
+          }}
+          props={{
+            deliv,
+            gen: { isStreaming: false },
+            courseMapRef,
+            selectedFeatures: ['courseMap', 'lessonPlans', 'slideDecks'],
+            onSyncComplete: vi.fn(),
+            onRequestProposal: vi.fn(),
+            onApplyCanonicalPatches: vi.fn(),
+            onResolveCanonicalPatchRequests: vi.fn(),
+          }}
+        />,
+      );
+    });
+
+    await act(async () => {
+      hook.notifyEdit(null, '_structural');
+      vi.advanceTimersByTime(2100);
+      await Promise.resolve();
+    });
+
+    expect(deliv.markFeatureStale).toHaveBeenCalledWith(
+      'lessonPlans',
+      expect.objectContaining({ level: 'high', dominantField: '_structural' }),
+      { lessonIndices: [], editKeys: ['_structural'], sourceFeatureId: null },
+    );
+    expect(deliv.markFeatureStale).toHaveBeenCalledWith(
+      'slideDecks',
+      expect.objectContaining({ level: 'high', dominantField: '_structural' }),
+      { lessonIndices: [], editKeys: ['_structural'], sourceFeatureId: null },
+    );
+    expect(hook.pendingSyncSuggestion).toMatchObject({
+      editSource: 'courseMap',
+      plan: [
+        expect.objectContaining({
+          featureId: 'lessonPlans',
+          staleEdits: { lessonIndices: [], editKeys: ['_structural'], sourceFeatureId: null },
+        }),
+        expect.objectContaining({
+          featureId: 'slideDecks',
+          staleEdits: { lessonIndices: [], editKeys: ['_structural'], sourceFeatureId: null },
+        }),
+      ],
+    });
+    vi.useRealTimers();
   });
 });

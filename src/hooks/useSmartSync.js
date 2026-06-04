@@ -557,8 +557,19 @@ export default function useSmartSync({
       courseDescription: 'course description',
     };
     const uniqueFields = [...new Set(courseMapEdits.map((e) => FIELD_LABELS[e.key] || e.key))];
+    const uniqueFieldKeys = [...new Set(courseMapEdits.map((e) => e.key).filter(Boolean))];
     const uniqueLessons = [...new Set(courseMapEdits.filter((e) => e.lessonIdx != null).map((e) => e.lessonIdx))];
     const changedFieldsSummary = uniqueFields.slice(0, 3).join(', ') + (uniqueFields.length > 3 ? '…' : '');
+    const courseMapConfidence = computeStaleConfidence(uniqueFieldKeys);
+    const planWithStaleEdits = plan.map((entry) => {
+      const staleEdits = {
+        lessonIndices: Array.isArray(entry.lessonIndices) ? entry.lessonIndices : [],
+        editKeys: uniqueFieldKeys,
+        sourceFeatureId: null,
+      };
+      currentDeliv.markFeatureStale(entry.featureId, courseMapConfidence, staleEdits);
+      return { ...entry, staleEdits };
+    });
 
     // ── Emit sync suggestion for the chat agent instead of auto-executing ──
     setPendingSyncSuggestion({
@@ -569,7 +580,7 @@ export default function useSmartSync({
         lessonIndices: uniqueLessons.sort((a, b) => a - b),
         sourceFeatureId: null,
       },
-      plan,
+      plan: planWithStaleEdits,
       changedFieldsSummary,
     });
 

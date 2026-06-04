@@ -342,7 +342,7 @@ export default function AgentWorkingSetPanel(props) {
       data-testid="agent-working-set-panel"
       className="flex-shrink-0 border-t border-slate-200/40 bg-white/58 px-3.5 py-1.5"
     >
-      <div className="flex min-w-0 items-center gap-1.5 overflow-x-auto pb-0.5">
+      <div className="flex min-w-0 flex-wrap items-center gap-1.5 overflow-hidden pb-0.5">
         <StatusChip label="Working set" value={summary.activeTarget} tone={MODE_TONE} testId="agent-working-target" />
         {summary.briefStatus.hasBrief && (
           <StatusChip label="Brief" value={summary.briefStatus.label} tone={MODE_TONE} testId="agent-working-brief" />

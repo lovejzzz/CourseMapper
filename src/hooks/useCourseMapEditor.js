@@ -56,6 +56,33 @@ function buildEmptySection(columns = []) {
   return emptySection;
 }
 
+function insertLessonPayload(updated, payload = {}, columns = []) {
+  const addPayload = payload && typeof payload === 'object' && !isSyntheticEventLike(payload) ? payload : {};
+  const sourceLesson = addPayload.lesson && typeof addPayload.lesson === 'object' ? addPayload.lesson : {};
+  const requestedIndex = Number.isInteger(addPayload.lessonIndex) ? addPayload.lessonIndex : updated.lessons.length;
+  const insertIndex = Math.max(0, Math.min(requestedIndex, updated.lessons.length));
+  const emptySection = buildEmptySection(columns);
+  const sourceSections = Array.isArray(addPayload.sections)
+    ? addPayload.sections
+    : Array.isArray(sourceLesson.sections)
+      ? sourceLesson.sections
+      : [];
+  const sections =
+    sourceSections.length > 0
+      ? sourceSections.map((section) => ({
+          ...emptySection,
+          ...(section && typeof section === 'object' ? section : {}),
+        }))
+      : [emptySection];
+  const title = addPayload.title || sourceLesson.title || `Lesson ${insertIndex + 1}: New Lesson`;
+  updated.lessons.splice(insertIndex, 0, {
+    ...sourceLesson,
+    title,
+    sections,
+  });
+  return { insertIndex, title };
+}
+
 /**
  * Encapsulates all course map editing operations:
  * cell edits, title edits, checkbox toggles, section CRUD, lesson CRUD.
@@ -188,34 +215,33 @@ export default function useCourseMapEditor({
     (payload = null) => {
       if (!courseMap) return;
       const updated = structuredClone(courseMap);
-      const addPayload = payload && typeof payload === 'object' && !isSyntheticEventLike(payload) ? payload : {};
-      const sourceLesson = addPayload.lesson && typeof addPayload.lesson === 'object' ? addPayload.lesson : {};
-      const requestedIndex = Number.isInteger(addPayload.lessonIndex) ? addPayload.lessonIndex : updated.lessons.length;
-      const insertIndex = Math.max(0, Math.min(requestedIndex, updated.lessons.length));
-      const emptySection = buildEmptySection(columns);
-      const sourceSections = Array.isArray(addPayload.sections)
-        ? addPayload.sections
-        : Array.isArray(sourceLesson.sections)
-          ? sourceLesson.sections
-          : [];
-      const sections =
-        sourceSections.length > 0
-          ? sourceSections.map((section) => ({
-              ...emptySection,
-              ...(section && typeof section === 'object' ? section : {}),
-            }))
-          : [emptySection];
-      const title = addPayload.title || sourceLesson.title || `Lesson ${insertIndex + 1}: New Lesson`;
-      updated.lessons.splice(insertIndex, 0, {
-        ...sourceLesson,
-        title,
-        sections,
-      });
+      const { insertIndex, title } = insertLessonPayload(updated, payload, columns);
       setCourseMap(updated);
       setDownloadedFile('');
       pushVersion(updated, `Added ${title}`);
       onEdit?.(null, '_structural');
       return insertIndex;
+    },
+    [courseMap, setCourseMap, columns, setDownloadedFile, pushVersion, onEdit],
+  );
+
+  const handleAddLessons = useCallback(
+    (payloads = []) => {
+      if (!courseMap) return [];
+      const normalizedPayloads = Array.isArray(payloads) ? payloads.filter(Boolean) : [payloads].filter(Boolean);
+      if (normalizedPayloads.length === 0) return [];
+      const updated = structuredClone(courseMap);
+      const inserted = [];
+      for (const payload of normalizedPayloads) {
+        inserted.push(insertLessonPayload(updated, payload, columns));
+      }
+      setCourseMap(updated);
+      setDownloadedFile('');
+      const titles = inserted.map((entry) => entry.title).filter(Boolean);
+      const summary = titles.length === 1 ? `Added ${titles[0]}` : `Added ${titles.length} lessons`;
+      pushVersion(updated, summary);
+      onEdit?.(null, '_structural');
+      return inserted.map((entry) => entry.insertIndex);
     },
     [courseMap, setCourseMap, columns, setDownloadedFile, pushVersion, onEdit],
   );
@@ -257,6 +283,7 @@ export default function useCourseMapEditor({
     handleAddSection,
     handleDeleteSection,
     handleAddLesson,
+    handleAddLessons,
     handleDeleteLesson,
     handleMoveLesson,
   };

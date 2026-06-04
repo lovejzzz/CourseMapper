@@ -502,14 +502,21 @@ describe('ChatPanel agent command strip', () => {
     expect(chatRouterMock.send).not.toHaveBeenCalled();
   });
 
-  it('routes an expansion scope request through the Agent course-map patch path', async () => {
+  it('expands lesson scope through a deterministic course-map patch receipt', async () => {
     const onLessonScopeChange = vi.fn();
+    const onPackageQualityPassUpdate = vi.fn();
+    const handleAddLessons = vi.fn(() => [2, 3]);
     root = renderChatPanel(container, {
       courseMap: {
         courseName: 'Applied Policy',
-        lessons: [{ title: 'Foundations' }, { title: 'Policy Tools' }],
+        lessons: [
+          { title: 'Foundations', sections: [{ topicSection: 'Policy foundations' }] },
+          { title: 'Policy Tools', sections: [{ topicSection: 'Policy tools' }] },
+        ],
       },
       onLessonScopeChange,
+      onPackageQualityPassUpdate,
+      editor: { handleAddLessons },
     });
 
     await act(async () => {
@@ -521,15 +528,42 @@ describe('ChatPanel agent command strip', () => {
       });
     });
 
-    expect(onLessonScopeChange).not.toHaveBeenCalled();
-    expect(chatRouterMock.send).toHaveBeenCalledWith(
-      'Change scope to 4 lessons',
+    expect(handleAddLessons).toHaveBeenCalledTimes(1);
+    expect(handleAddLessons.mock.calls[0][0]).toHaveLength(2);
+    expect(handleAddLessons.mock.calls[0][0][0]).toMatchObject({
+      lessonIndex: 2,
+      title: 'Lesson 3: Applied Extension',
+      sections: [expect.objectContaining({ topicSection: expect.stringContaining('Policy tools') })],
+    });
+    expect(onLessonScopeChange).toHaveBeenCalledWith({ type: 'all', indices: [] });
+    expect(onPackageQualityPassUpdate).toHaveBeenCalledWith(
       expect.objectContaining({
-        displayText: 'Change scope to 4 lessons',
-        agentPromptOverride: expect.stringContaining('edit_course_map with exactly 2 addLesson patches'),
+        status: 'idle',
+        message: expect.stringContaining('all 4 lessons'),
       }),
     );
-    expect(chatRouterMock.addLocalMessages).not.toHaveBeenCalled();
+    expect(chatRouterMock.addLocalMessages).toHaveBeenCalledWith([
+      { role: 'user', text: 'Change scope to 4 lessons' },
+      {
+        role: 'agentReceipt',
+        receipt: expect.objectContaining({
+          title: 'Scope receipt',
+          status: 'done',
+          changed: expect.arrayContaining([
+            'Updated blueprint: added Lesson 3, Lesson 4',
+            'Working set scope: all 4 lessons',
+            'Compiler sync queued: Lesson Plans',
+          ]),
+          checked: expect.arrayContaining(['Canonical patch: 2 addLesson patches', 'Model calls: 0']),
+          runStats: { providerCallCount: 0 },
+        }),
+      },
+      {
+        role: 'assistant',
+        text: expect.stringContaining('Scope updated to all 4 lessons'),
+      },
+    ]);
+    expect(chatRouterMock.send).not.toHaveBeenCalled();
   });
 
   it('runs the Finish command directly through package finalization when edits are allowed', async () => {

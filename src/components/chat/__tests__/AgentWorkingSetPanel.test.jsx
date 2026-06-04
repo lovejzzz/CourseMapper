@@ -107,7 +107,8 @@ describe('AgentWorkingSetPanel', () => {
     expect(html).toContain('Local tools');
     expect(html).toContain('3 lessons');
     expect(html).toContain('1 ready, 1 running, 1 stale');
-    expect(html).toContain('overflow-x-auto');
+    expect(html).toContain('flex-wrap');
+    expect(html).toContain('overflow-hidden');
     expect(html).not.toContain('data-testid="agent-working-package"');
     expect(html).not.toContain('Finishing');
     expect(html).toContain('Selected');
