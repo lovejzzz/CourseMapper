@@ -1,21 +1,15 @@
-name: CI
+name: Fast verification
 
 on:
   pull_request:
   push:
-    branches:
-      - main
-      - 'release/**'
-      - 'codex/**'
   workflow_dispatch:
-  schedule:
-    - cron: '0 9 * * *'
 
 permissions:
   contents: read
 
 concurrency:
-  group: ci-${{ github.workflow }}-${{ github.ref }}
+  group: fast-verification-${{ github.ref }}
   cancel-in-progress: true
 
 jobs:
@@ -44,63 +38,14 @@ jobs:
       - name: Unit and closed-loop tests
         run: npm test
 
-      - name: Blueprint quality core
-        run: npm run test:blueprint:quality:fast
+      - name: Proof smoke
+        run: |
+          npm run test:blueprint:quality:fast
+          npm run audit:deliverables
+          npm run audit:pipeline
 
       - name: Build
         run: npm run build
 
       - name: Bundle budgets
         run: npm run bundle:check
-
-  verify-deep:
-    name: Deep proof gates
-    runs-on: ubuntu-latest
-    timeout-minutes: 75
-    if: >-
-      github.event_name == 'workflow_dispatch' ||
-      github.event_name == 'schedule' ||
-      (github.event_name == 'push' && (github.ref == 'refs/heads/main' || startsWith(github.ref, 'refs/heads/release/')))
-
-    steps:
-      - uses: actions/checkout@v4
-
-      - uses: actions/setup-node@v4
-        with:
-          node-version: 20
-          cache: npm
-
-      - uses: actions/setup-java@v4
-        with:
-          distribution: temurin
-          java-version: 21
-
-      - name: Install dependencies
-        run: npm ci
-
-      - name: Install Playwright browser
-        run: npx playwright install --with-deps chromium
-
-      - name: Blueprint quality matrix
-        run: npm run test:blueprint:quality
-
-      - name: Deliverable quality audit
-        run: npm run audit:deliverables
-
-      - name: Hybrid pipeline audit
-        run: npm run audit:pipeline
-
-      - name: Gold sample quality audit
-        run: npm run audit:gold
-
-      - name: Internal expert-style audit
-        run: npm run audit:expert
-
-      - name: Optional proof packet build
-        run: npm run audit:expert:packet
-
-      - name: E2E tests
-        run: npm run test:e2e
-
-      - name: Firebase rules tests
-        run: npm run test:rules

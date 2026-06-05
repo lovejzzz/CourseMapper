@@ -1,0 +1,125 @@
+name: Deep proof gates
+
+on:
+  workflow_dispatch:
+  schedule:
+    - cron: '0 9 * * *'
+  push:
+    branches:
+      - main
+      - 'release/**'
+
+permissions:
+  contents: read
+
+concurrency:
+  group: deep-proof-${{ github.ref }}
+  cancel-in-progress: true
+
+jobs:
+  detect-scope:
+    name: Deep proof scope
+    runs-on: ubuntu-latest
+    outputs:
+      run_deep: ${{ steps.scope.outputs.run_deep }}
+      reason: ${{ steps.scope.outputs.reason }}
+
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+
+      - id: scope
+        name: Decide whether deep proof is needed
+        shell: bash
+        run: |
+          set -euo pipefail
+
+          run_deep=false
+          reason="main push without deep-proof paths"
+
+          if [[ "${{ github.event_name }}" == "workflow_dispatch" ]]; then
+            run_deep=true
+            reason="manual dispatch"
+          elif [[ "${{ github.event_name }}" == "schedule" ]]; then
+            run_deep=true
+            reason="nightly schedule"
+          elif [[ "${{ github.ref }}" == refs/heads/release/* ]]; then
+            run_deep=true
+            reason="release branch"
+          else
+            base="${{ github.event.before }}"
+            if [[ -z "$base" || "$base" == "0000000000000000000000000000000000000000" ]]; then
+              base="$(git rev-parse HEAD^ 2>/dev/null || true)"
+            fi
+
+            if [[ -z "$base" ]]; then
+              run_deep=true
+              reason="missing comparison base"
+            else
+              changed_files="$(git diff --name-only "$base" "${{ github.sha }}")"
+              echo "$changed_files"
+
+              if echo "$changed_files" | grep -Eq '^((src/lib/|tests/|scripts/)|package(-lock)?\.json$|vite\.config\.|playwright\.config\.|firebase\.json$|firestore\.rules$|\.github/workflows/(ci|deep-proof|deploy)\.yml$)'; then
+                run_deep=true
+                reason="source, compiler, test, script, dependency, rules, or workflow change"
+              fi
+            fi
+          fi
+
+          echo "run_deep=$run_deep" >> "$GITHUB_OUTPUT"
+          echo "reason=$reason" >> "$GITHUB_OUTPUT"
+          echo "Deep proof decision: $run_deep ($reason)"
+
+  verify-deep:
+    name: Deep proof gates
+    runs-on: ubuntu-latest
+    timeout-minutes: 75
+    needs: detect-scope
+    if: needs.detect-scope.outputs.run_deep == 'true'
+
+    steps:
+      - name: Scope reason
+        run: echo "${{ needs.detect-scope.outputs.reason }}"
+
+      - uses: actions/checkout@v4
+
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 20
+          cache: npm
+
+      - uses: actions/setup-java@v4
+        with:
+          distribution: temurin
+          java-version: 21
+
+      - name: Install dependencies
+        run: npm ci
+
+      - name: Install Playwright browser
+        run: npx playwright install --with-deps chromium
+
+      - name: Blueprint quality matrix
+        run: npm run test:blueprint:quality
+
+      - name: Deliverable quality audit
+        run: npm run audit:deliverables
+
+      - name: Hybrid pipeline audit
+        run: npm run audit:pipeline
+
+      - name: Gold sample quality audit
+        run: npm run audit:gold
+
+      - name: Internal expert-style audit
+        run: npm run audit:expert
+
+      - name: Optional proof packet build
+        run: npm run audit:expert:packet
+
+      - name: E2E tests
+        run: npm run test:e2e
+
+      - name: Firebase rules tests
+        run: npm run test:rules
