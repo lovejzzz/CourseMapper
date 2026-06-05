@@ -7938,18 +7938,12 @@ export function validateBlueprintSemanticContract(blueprint = {}) {
         ),
       );
     }
-    if (
-      lesson.compilerDecision?.source !== 'deterministic-compiler-decision' ||
-      !lesson.compilerDecision?.generationPath ||
-      !lesson.compilerDecision?.safePath ||
-      !lesson.compilerDecision?.publishGate ||
-      !lesson.compilerDecision?.modelUsePolicy
-    ) {
+    if (lesson.compilerDecision && !isUsableLessonCompilerDecision(lesson.compilerDecision)) {
       findings.push(
         makeContractFinding(
-          'blocker',
+          'warning',
           'compilerDecision',
-          'Lesson is missing deterministic compiler decision and publish gate.',
+          'Stored compiler decision is incomplete; the compiler will rebuild it during hydration.',
           lessonNumber,
         ),
       );
@@ -8000,7 +7994,6 @@ export function validateBlueprintSemanticContract(blueprint = {}) {
       'lessons.sourceEvidenceTrace',
       'lessons.sourceUsePlan',
       'lessons.evidencePlan',
-      'lessons.compilerDecision',
       'assessments.artifact',
     ],
     compilerOwnedFields: [
@@ -8457,8 +8450,7 @@ export function validateCourseBlueprintContract(blueprint = {}) {
       ),
     );
   }
-  if (
-    blueprint.assessmentArchitecture?.status !== 'balanced' ||
+  const assessmentArchitectureMissing =
     blueprint.assessmentArchitecture?.totalWeightPercent !== 100 ||
     !Array.isArray(blueprint.assessmentArchitecture?.lessonRows) ||
     blueprint.assessmentArchitecture.lessonRows.length !== lessons.length ||
@@ -8469,10 +8461,18 @@ export function validateCourseBlueprintContract(blueprint = {}) {
     !Number.isFinite(blueprint.assessmentArchitecture?.compilerDistributedWeightCount) ||
     !Number.isFinite(blueprint.assessmentArchitecture?.weightReviewRequiredCount) ||
     !blueprint.assessmentArchitecture?.weightConfirmationPolicy ||
-    !blueprint.assessmentArchitecture?.policy
-  ) {
+    !blueprint.assessmentArchitecture?.policy;
+  if (assessmentArchitectureMissing) {
     findings.push(
       makeContractFinding('blocker', 'assessmentArchitecture', 'Blueprint is missing assessment architecture.'),
+    );
+  } else if (blueprint.assessmentArchitecture.status !== 'balanced') {
+    findings.push(
+      makeContractFinding(
+        'warning',
+        'assessmentArchitecture',
+        'Assessment architecture is complete but needs instructor review before publishing.',
+      ),
     );
   }
   if (
@@ -9573,12 +9573,15 @@ function deriveRoutineFieldsForLesson(lesson = {}, index = 0) {
   const bloomInference =
     lesson.bloomInference?.level && lesson.bloomInference.source
       ? lesson.bloomInference
-      : inferBloomLevelFromSignals([
-          { source: 'learning objectives', text: outcomes.join('; ') },
-          { source: 'assessment artifact', text: artifact },
-          { source: 'learning activities', text: activityPattern },
-          { source: 'lesson title', text: title },
-        ]);
+      : inferBloomLevelFromSignals(
+          [
+            { source: 'learning objectives', text: outcomes.join('; ') },
+            { source: 'assessment artifact', text: artifact },
+            { source: 'learning activities', text: activityPattern },
+            { source: 'lesson title', text: title },
+          ],
+          lesson.bloomsLevel || 'Apply',
+        );
   const bloomsLevel = lesson.bloomsLevel || bloomInference.level;
   const workloadEstimate = lesson.workloadEstimate?.totalStudentMinutes
     ? lesson.workloadEstimate
@@ -9672,11 +9675,21 @@ function normalizeLessonsForCompiler(blueprint = {}, context = {}) {
         lesson.artifactGenre || buildArtifactGenreDecode(lesson, context.courseModalityProfile || {}, modalityDecode),
       classSessionPlan: lesson.classSessionPlan || buildClassSessionPlan({ lesson, modalityDecode }),
     };
-    if (lessonWithCompilerKnobs.throughlineCase || lessonWithCompilerKnobs.evidencePlan?.sourceCue) {
+    if (lessonWithCompilerKnobs.throughlineCase) {
       return lessonWithCompilerKnobs;
     }
     return attachThroughlineCaseToLesson(lessonWithCompilerKnobs, context.courseThroughlineContext);
   });
+}
+
+function isUsableLessonCompilerDecision(decision = {}) {
+  return (
+    decision?.source === 'deterministic-compiler-decision' &&
+    Boolean(decision.generationPath) &&
+    Boolean(decision.safePath) &&
+    Boolean(decision.publishGate) &&
+    Boolean(decision.modelUsePolicy)
+  );
 }
 
 function attachCompilerDecisionsToLessons(lessons = [], assessments = [], sourceRiskRegister = {}) {
@@ -9687,7 +9700,7 @@ function attachCompilerDecisionsToLessons(lessons = [], assessments = [], source
     return {
       ...lesson,
       sourceRisk: lesson.sourceRisk || sourceRiskRow,
-      compilerDecision: lesson.compilerDecision?.source
+      compilerDecision: isUsableLessonCompilerDecision(lesson.compilerDecision)
         ? lesson.compilerDecision
         : buildLessonCompilerDecision({ lesson, sourceRiskRow, assessment }),
     };
@@ -10024,6 +10037,10 @@ function prepareBlueprintForCompilation(blueprint = {}, options = {}) {
   };
 }
 
+export function hydrateBlueprintForCompilation(blueprint = {}, options = {}) {
+  return prepareBlueprintForCompilation(blueprint, options);
+}
+
 export function validateCompilerOutputContract({ blueprint = {}, compiled = {}, featureIds = [], options = {} } = {}) {
   const prepared = prepareBlueprintForCompilation(blueprint, options);
   const proofBundle = prepared.compilerProofBundle;
@@ -10082,9 +10099,158 @@ export function validateCompilerOutputContract({ blueprint = {}, compiled = {}, 
 function clonePlain(value) {
   if (Array.isArray(value)) return value.map((item) => clonePlain(item));
   if (value && typeof value === 'object') {
-    return Object.fromEntries(Object.entries(value).map(([key, item]) => [key, clonePlain(item)]));
+    return Object.fromEntries(Object.getOwnPropertyNames(value).map((key) => [key, clonePlain(value[key])]));
   }
   return value;
+}
+
+const BLUEPRINT_STORAGE_VERSION = 2;
+
+const TOP_LEVEL_HYDRATED_BLUEPRINT_KEYS = [
+  'assessmentArchitecture',
+  'alignmentMatrix',
+  'courseArc',
+  'courseThroughlineContext',
+  'conceptDependencyGraph',
+  'masteryEvidenceMap',
+  'evidenceResponseMap',
+  'objectiveEvidenceMap',
+  'courseWorkload',
+  'sourceConflictReport',
+  'sourceRiskRegister',
+  'compilerDecisionMatrix',
+  'classroomHandoffPlan',
+  'classroomDryRunPlan',
+  'classroomEvidenceLoopPlan',
+  'instructorFeedbackLoadPlan',
+  'blueprintAssumptionLedger',
+  'packageCoherenceMatrix',
+  'blueprintReviewSurface',
+  'compilerPath',
+  'semanticContract',
+  'compilerContract',
+  'compilerProofBundle',
+];
+
+const LESSON_STORAGE_KEYS = new Set([
+  'id',
+  'lessonIndex',
+  'lessonNumber',
+  'title',
+  'outcomes',
+  'keyConcepts',
+  'readings',
+  'activityPattern',
+  'assessmentLink',
+  'assessmentDetails',
+  'hasAssessment',
+  'assessmentSource',
+  'studentArtifact',
+  'successCriteria',
+  'bloomsLevel',
+  'confidence',
+  'sourceAnchors',
+  'sourceEvidenceTrace',
+  'missingSignals',
+  'evidencePlan',
+  'sourceUsePlan',
+]);
+
+const ASSESSMENT_ANCHOR_STORAGE_KEYS = new Set([
+  'id',
+  'title',
+  'artifact',
+  'lessonNumbers',
+  'relatedLessons',
+  'source',
+]);
+
+const SOURCE_TRACE_STORAGE_KEYS = new Set([
+  'version',
+  'sourceKind',
+  'lessonNumber',
+  'lessonTitle',
+  'sourceRowLabel',
+  'sourceFields',
+  'directCourseMapFieldCount',
+  'inferredOrDerivedFields',
+  'unsupportedInferencePolicy',
+]);
+
+function defineHydratedField(target, key, value) {
+  if (!target || value === undefined) return;
+  Object.defineProperty(target, key, {
+    value,
+    enumerable: false,
+    configurable: true,
+    writable: true,
+  });
+}
+
+function attachHydratedFields(target, source, keys) {
+  if (!target || !source) return target;
+  for (const key of keys) {
+    if (Object.prototype.hasOwnProperty.call(source, key)) {
+      defineHydratedField(target, key, source[key]);
+    }
+  }
+  return target;
+}
+
+function compactObjectByKeys(source = {}, keys = new Set()) {
+  return Object.fromEntries(
+    Object.entries(source)
+      .filter(([key, value]) => keys.has(key) && value !== undefined)
+      .map(([key, value]) => [key, clonePlain(value)]),
+  );
+}
+
+function compactSourceEvidenceTraceForStorage(trace = {}) {
+  if (!trace || typeof trace !== 'object') return trace || null;
+  const compact = compactObjectByKeys(trace, SOURCE_TRACE_STORAGE_KEYS);
+  const hydratedKeys = Object.getOwnPropertyNames(trace).filter((key) => !SOURCE_TRACE_STORAGE_KEYS.has(key));
+  return attachHydratedFields(compact, trace, hydratedKeys);
+}
+
+function compactLessonForStorage(lesson = {}) {
+  const compact = compactObjectByKeys(lesson, LESSON_STORAGE_KEYS);
+  if (lesson.sourceEvidenceTrace) {
+    compact.sourceEvidenceTrace = compactSourceEvidenceTraceForStorage(lesson.sourceEvidenceTrace);
+  }
+  const hydratedKeys = Object.getOwnPropertyNames(lesson).filter((key) => !LESSON_STORAGE_KEYS.has(key));
+  return attachHydratedFields(compact, lesson, hydratedKeys);
+}
+
+function compactAssessmentAnchorForStorage(assessment = {}) {
+  const compact = compactObjectByKeys(assessment, ASSESSMENT_ANCHOR_STORAGE_KEYS);
+  const hydratedKeys = Object.getOwnPropertyNames(assessment).filter((key) => !ASSESSMENT_ANCHOR_STORAGE_KEYS.has(key));
+  return attachHydratedFields(compact, assessment, hydratedKeys);
+}
+
+export function compactBlueprintForStorage(blueprint = {}) {
+  const compact = {
+    blueprintStorageVersion: BLUEPRINT_STORAGE_VERSION,
+    version: blueprint.version || 1,
+    source: blueprint.source || 'deterministic-course-map',
+    courseName: blueprint.courseName,
+    semester: blueprint.semester,
+    totalLessons: blueprint.totalLessons,
+    lessons: Array.isArray(blueprint.lessons) ? blueprint.lessons.map(compactLessonForStorage) : [],
+    assessments: Array.isArray(blueprint.assessments)
+      ? blueprint.assessments.map(compactAssessmentAnchorForStorage)
+      : [],
+    courseConcepts: clonePlain(blueprint.courseConcepts || []),
+    learnerContextProfile: clonePlain(blueprint.learnerContextProfile || null),
+    courseModalityProfile: clonePlain(blueprint.courseModalityProfile || null),
+    enrichment: clonePlain(blueprint.enrichment || null),
+    qualitySignals: clonePlain(blueprint.qualitySignals || null),
+    policies: clonePlain(blueprint.policies || null),
+    designRules: clonePlain(blueprint.designRules || null),
+  };
+  if (blueprint.instructorPreferenceProfile) {
+    compact.instructorPreferenceProfile = clonePlain(blueprint.instructorPreferenceProfile);
+  }
+  return attachHydratedFields(compact, blueprint, TOP_LEVEL_HYDRATED_BLUEPRINT_KEYS);
 }
 
 function blueprintContractForCompilation(blueprint) {
@@ -11637,7 +11803,7 @@ export function buildCourseBlueprint(courseMap, options = {}) {
   };
   const semanticContract = validateBlueprintSemanticContract(blueprintWithPath);
   const compilerContract = validateCourseBlueprintContract(blueprintWithPath);
-  return {
+  const hydratedBlueprint = {
     ...blueprintWithPath,
     semanticContract,
     compilerContract,
@@ -11647,6 +11813,7 @@ export function buildCourseBlueprint(courseMap, options = {}) {
       compilerContract,
     }),
   };
+  return compactBlueprintForStorage(hydratedBlueprint);
 }
 
 export function isBlueprintCompiledFeature(featureId, options = {}) {

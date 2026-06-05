@@ -2103,19 +2103,25 @@ export default function AppFlow({ startupAction = null, onStartupHandled, onRetu
     if (featureIds.length === 0) return {};
 
     try {
-      const { buildCourseBlueprint, compileBlueprintDeliverables, getBlueprintCompiledFeatures } =
-        await import('./lib/courseBlueprintCompiler');
+      const {
+        buildCourseBlueprint,
+        compactBlueprintForStorage,
+        compileBlueprintDeliverables,
+        getBlueprintCompiledFeatures,
+      } = await import('./lib/courseBlueprintCompiler');
       const compiledFeatureIds = getBlueprintCompiledFeatures(featureIds);
       if (compiledFeatureIds.length === 0) return {};
       const configMap = Object.fromEntries(
         compiledFeatureIds.map((featureId) => [featureId, saved.deliverableConfig?.[featureId] || {}]),
       );
-      const blueprint = buildCourseBlueprint(saved.courseMap, {
-        compilerPath: {
-          mode: 'cloud-restore',
-          reason: 'Restored from a compact CourseMapper cloud project.',
-        },
-      });
+      const blueprint = compactBlueprintForStorage(
+        buildCourseBlueprint(saved.courseMap, {
+          compilerPath: {
+            mode: 'cloud-restore',
+            reason: 'Restored from a compact CourseMapper cloud project.',
+          },
+        }),
+      );
       const compiled = compileBlueprintDeliverables(blueprint, compiledFeatureIds, { configMap });
       return Object.fromEntries(
         compiledFeatureIds

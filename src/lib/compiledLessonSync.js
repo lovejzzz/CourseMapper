@@ -1,6 +1,7 @@
 import { getArrayKey } from './syncDependencies';
 import {
   buildCourseBlueprint,
+  compactBlueprintForStorage,
   compileBlueprintDeliverables,
   isBlueprintCompiledFeature,
 } from './courseBlueprintCompiler';
@@ -87,7 +88,7 @@ export function buildCompiledLessonPatchData(featureId, compiledData, courseMap,
 
 export function compileBlueprintLessonPatch({ featureId, courseMap, lessonIndex, config, instructorPreferences }) {
   if (!isBlueprintCompiledFeature(featureId)) return null;
-  const blueprint = buildCourseBlueprint(courseMap, { instructorPreferences });
+  const blueprint = compactBlueprintForStorage(buildCourseBlueprint(courseMap, { instructorPreferences }));
   const compiled = compileBlueprintDeliverables(blueprint, [featureId], {
     configMap: { [featureId]: config || {} },
   });

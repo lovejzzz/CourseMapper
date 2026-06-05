@@ -622,6 +622,7 @@ export default function useDeliverables({
       const getBlueprintCompiledFeatures = blueprintCompiler?.getBlueprintCompiledFeatures || (() => []);
       const estimateBlueprintCompilerSavings = blueprintCompiler?.estimateBlueprintCompilerSavings || (() => 0);
       const buildCourseBlueprint = blueprintCompiler?.buildCourseBlueprint;
+      const compactBlueprintForStorage = blueprintCompiler?.compactBlueprintForStorage || ((blueprint) => blueprint);
       const compileBlueprintDeliverables = blueprintCompiler?.compileBlueprintDeliverables;
       const blueprintCompiledFeatureIds = getBlueprintCompiledFeatures(requestedFeatures, {
         enabled: blueprintCompilerEnabled,
@@ -1087,17 +1088,19 @@ export default function useDeliverables({
             'progress',
           );
         }
-        const blueprint = buildCourseBlueprint(blueprintCourseMap, {
-          scopeIndices,
-          enrichment: blueprintEnrichment,
-          compilerPath: {
-            mode: blueprintEnrichment ? 'enriched' : 'deterministic',
-            reason: blueprintEnrichment
-              ? 'Adaptive compiler accepted source-grounded enrichment before deterministic output.'
-              : 'Adaptive compiler used deterministic output without an enrichment call.',
-          },
-          instructorPreferences: instructorPreferenceProfile,
-        });
+        const blueprint = compactBlueprintForStorage(
+          buildCourseBlueprint(blueprintCourseMap, {
+            scopeIndices,
+            enrichment: blueprintEnrichment,
+            compilerPath: {
+              mode: blueprintEnrichment ? 'enriched' : 'deterministic',
+              reason: blueprintEnrichment
+                ? 'Adaptive compiler accepted source-grounded enrichment before deterministic output.'
+                : 'Adaptive compiler used deterministic output without an enrichment call.',
+            },
+            instructorPreferences: instructorPreferenceProfile,
+          }),
+        );
         const compilerConfigMap = Object.fromEntries(
           blueprintCompiledFeatureIds.map((featureId) => [featureId, getGenerationConfig(featureId)]),
         );

@@ -6,6 +6,7 @@ import {
   compileBlueprintDeliverables,
   estimateBlueprintCompilerSavings,
   getBlueprintCompiledFeatures,
+  hydrateBlueprintForCompilation,
   validateBlueprintSemanticContract,
   validateCourseBlueprintContract,
   validateCompilerOutputContract,
@@ -3563,6 +3564,113 @@ describe('courseBlueprintCompiler', () => {
     });
   });
 
+  it('stores compact blueprint atoms and hydrates compiler-owned proof state after reload', () => {
+    const blueprint = buildCourseBlueprint(makeCourseMap(8));
+    const storedBlueprint = JSON.parse(JSON.stringify(blueprint));
+    const hydratedBlueprint = hydrateBlueprintForCompilation(storedBlueprint);
+    const hydratedBytes = Buffer.byteLength(JSON.stringify(hydratedBlueprint));
+    const storedBytes = Buffer.byteLength(JSON.stringify(storedBlueprint));
+
+    expect(blueprint.blueprintStorageVersion).toBe(2);
+    expect(storedBlueprint.blueprintStorageVersion).toBe(2);
+    expect(storedBytes).toBeLessThan(hydratedBytes * 0.1);
+    expect(blueprint.courseArc.throughline).toContain('evidence, practice, feedback');
+    expect(blueprint.compilerProofBundle.proofSummary.verificationStatus).toBe('verified-by-reading-derived-state');
+    expect(blueprint.lessons[0].compilerDecision).toMatchObject({
+      source: 'deterministic-compiler-decision',
+      generationPath: 'deterministic-compile',
+    });
+
+    expect(storedBlueprint.compilerProofBundle).toBeUndefined();
+    expect(storedBlueprint.assessmentArchitecture).toBeUndefined();
+    expect(storedBlueprint.alignmentMatrix).toBeUndefined();
+    expect(storedBlueprint.courseArc).toBeUndefined();
+    expect(storedBlueprint.conceptDependencyGraph).toBeUndefined();
+    expect(storedBlueprint.masteryEvidenceMap).toBeUndefined();
+    expect(storedBlueprint.evidenceResponseMap).toBeUndefined();
+    expect(storedBlueprint.objectiveEvidenceMap).toBeUndefined();
+    expect(storedBlueprint.courseWorkload).toBeUndefined();
+    expect(storedBlueprint.classroomHandoffPlan).toBeUndefined();
+    expect(storedBlueprint.classroomDryRunPlan).toBeUndefined();
+    expect(storedBlueprint.classroomEvidenceLoopPlan).toBeUndefined();
+    expect(storedBlueprint.instructorFeedbackLoadPlan).toBeUndefined();
+    expect(storedBlueprint.blueprintAssumptionLedger).toBeUndefined();
+    expect(storedBlueprint.packageCoherenceMatrix).toBeUndefined();
+    expect(storedBlueprint.blueprintReviewSurface).toBeUndefined();
+    expect(storedBlueprint.compilerDecisionMatrix).toBeUndefined();
+    expect(storedBlueprint.compilerPath).toBeUndefined();
+    expect(storedBlueprint.semanticContract).toBeUndefined();
+    expect(storedBlueprint.compilerContract).toBeUndefined();
+
+    expect(Object.keys(storedBlueprint.assessments[0]).sort()).toEqual(
+      ['artifact', 'id', 'lessonNumbers', 'relatedLessons', 'source', 'title'].sort(),
+    );
+    expect(storedBlueprint.assessments[0]).toMatchObject({
+      id: 'assessment-1',
+      title: 'Policy memo checkpoint 1',
+      artifact: 'Policy memo checkpoint 1',
+      lessonNumbers: [1],
+      source: 'course-map',
+    });
+    expect(storedBlueprint.assessments[0].criteria).toBeUndefined();
+    expect(storedBlueprint.assessments[0].criterionWeightPlan).toBeUndefined();
+    expect(storedBlueprint.assessments[0].validityEvidence).toBeUndefined();
+    expect(storedBlueprint.assessments[0].calibrationPlan).toBeUndefined();
+    expect(storedBlueprint.assessments[0].criterionObjectiveAlignment).toBeUndefined();
+    expect(storedBlueprint.assessments[0].anchorExampleSet).toBeUndefined();
+    expect(storedBlueprint.assessments[0].cadence).toBeUndefined();
+    expect(storedBlueprint.lessons[0].compilerDecision).toBeUndefined();
+    expect(storedBlueprint.lessons[0].sourceRisk).toBeUndefined();
+    expect(storedBlueprint.lessons[0].sourceEvidenceTrace.sectionCoverage).toBeUndefined();
+    expect(storedBlueprint.lessons[0].sourceEvidenceTrace.preservedSignals).toBeUndefined();
+    expect(storedBlueprint.lessons[0].sourceEvidenceTrace.reviewerUse).toBeUndefined();
+    expect(storedBlueprint.lessons[0].sourceEvidenceTrace.sourceFields.length).toBeGreaterThanOrEqual(6);
+
+    expect(validateBlueprintSemanticContract(storedBlueprint)).toMatchObject({
+      status: 'warnings',
+      blockerCount: 0,
+      warningCount: 8,
+    });
+    expect(hydratedBlueprint.compilerContract).toMatchObject({
+      status: 'pass',
+      lessonCount: 8,
+      assessmentCount: 8,
+    });
+    expect(hydratedBlueprint.assessments[0].criterionWeightPlan).toHaveLength(4);
+    expect(hydratedBlueprint.lessons[0].compilerDecision).toMatchObject({
+      source: 'deterministic-compiler-decision',
+      generationPath: 'deterministic-compile',
+    });
+
+    const featureIds = [
+      'syllabus',
+      'lessonPlans',
+      'slideDecks',
+      'rubrics',
+      'assignments',
+      'discussions',
+      'quizBank',
+      'studyGuides',
+      'courseFaq',
+    ];
+    const compiled = compileBlueprintDeliverables(storedBlueprint, featureIds, {
+      configMap: { courseFaq: { questionsPerLesson: 5 } },
+    });
+    expect(validateCompilerOutputContract({ blueprint: storedBlueprint, compiled, featureIds })).toMatchObject({
+      status: 'pass',
+      compiledFeatureCount: featureIds.length,
+      proofBundleStatus: 'pass',
+      semanticStatus: 'pass',
+    });
+    for (const featureId of featureIds) {
+      const validation = validateDeliverableGeneration(featureId, compiled[featureId], {
+        expectedLessonCount: 8,
+        config: featureId === 'courseFaq' ? { questionsPerLesson: 5 } : {},
+      });
+      expect(validation.valid, `${featureId}: ${validation.blockers.join('; ')}`).toBe(true);
+    }
+  });
+
   it('keeps the compiler-output contract stable across prompt styles and lesson scopes', () => {
     const scenarios = [
       {
@@ -3655,6 +3763,102 @@ describe('courseBlueprintCompiler', () => {
       ).toBe('pass');
       if (compiled.lessonPlans) {
         expect(compiled.lessonPlans.lessonPlans, scenario.name).toHaveLength(blueprint.lessons.length);
+      }
+    }
+  });
+
+  it('hydrates compact blueprint storage across ten real course scenarios', () => {
+    const scenarios = [
+      {
+        name: 'biology lab methods',
+        courseMap: makeBiologyLabCourseMap(),
+        featureIds: ['lessonPlans', 'assignments', 'rubrics', 'quizBank'],
+      },
+      {
+        name: 'world language proficiency',
+        courseMap: makeWorldLanguageCourseMap(),
+        featureIds: ['lessonPlans', 'assignments', 'discussions', 'studyGuides'],
+      },
+      {
+        name: 'performing arts studio',
+        courseMap: makePerformingArtsCourseMap(),
+        featureIds: ['lessonPlans', 'assignments', 'discussions'],
+      },
+      {
+        name: 'programming lab',
+        courseMap: makeProgrammingLabCourseMap(),
+        featureIds: ['lessonPlans', 'assignments', 'rubrics', 'quizBank'],
+      },
+      {
+        name: 'data science lab',
+        courseMap: makeDataScienceLabCourseMap(),
+        featureIds: ['syllabus', 'lessonPlans', 'slideDecks', 'quizBank'],
+      },
+      {
+        name: 'engineering design lab',
+        courseMap: makeEngineeringDesignLabCourseMap(),
+        featureIds: ['lessonPlans', 'assignments', 'rubrics', 'courseFaq'],
+      },
+      {
+        name: 'online writing workshop',
+        courseMap: makeOnlineWritingCourseMap(),
+        featureIds: ['syllabus', 'lessonPlans', 'discussions', 'studyGuides'],
+      },
+      {
+        name: 'quantitative problem set',
+        courseMap: makeQuantitativeProblemSetCourseMap(),
+        featureIds: ['lessonPlans', 'assignments', 'rubrics', 'quizBank'],
+      },
+      {
+        name: 'business case method',
+        courseMap: makeBusinessCaseCourseMap(),
+        featureIds: ['lessonPlans', 'assignments', 'discussions', 'courseFaq'],
+      },
+      {
+        name: 'constitutional law doctrine',
+        courseMap: makeConstitutionalLawCourseMap(),
+        featureIds: ['syllabus', 'lessonPlans', 'assignments', 'rubrics'],
+      },
+    ];
+
+    for (const scenario of scenarios) {
+      const blueprint = buildCourseBlueprint(scenario.courseMap);
+      const storedBlueprint = JSON.parse(JSON.stringify(blueprint));
+      const hydratedBlueprint = hydrateBlueprintForCompilation(storedBlueprint);
+      const storedBytes = Buffer.byteLength(JSON.stringify(storedBlueprint));
+      const hydratedBytes = Buffer.byteLength(JSON.stringify(hydratedBlueprint));
+      const semanticContract = validateBlueprintSemanticContract(storedBlueprint);
+      const compiled = compileBlueprintDeliverables(storedBlueprint, scenario.featureIds, {
+        configMap: { courseFaq: { questionsPerLesson: 5 } },
+      });
+      const outputContract = validateCompilerOutputContract({
+        blueprint: storedBlueprint,
+        compiled,
+        featureIds: scenario.featureIds,
+      });
+
+      expect(storedBytes, scenario.name).toBeLessThan(hydratedBytes * 0.15);
+      expect(storedBlueprint.compilerProofBundle, scenario.name).toBeUndefined();
+      expect(storedBlueprint.courseArc, scenario.name).toBeUndefined();
+      expect(storedBlueprint.assessments[0].criteria, scenario.name).toBeUndefined();
+      expect(storedBlueprint.lessons[0].compilerDecision, scenario.name).toBeUndefined();
+      expect(semanticContract.blockerCount, scenario.name).toBe(0);
+      expect(hydratedBlueprint.compilerContract.status, scenario.name).not.toBe('blocked');
+      expect(hydratedBlueprint.compilerContract.blockerCount, scenario.name).toBe(0);
+      expect(hydratedBlueprint.compilerProofBundle.proofSummary.verificationStatus, scenario.name).toBe(
+        'verified-by-reading-derived-state',
+      );
+      expect(
+        outputContract.status,
+        `${scenario.name}: ${outputContract.findings.map((item) => item.code).join(', ')}`,
+      ).toBe('pass');
+
+      for (const featureId of scenario.featureIds) {
+        const validation = validateDeliverableGeneration(featureId, compiled[featureId], {
+          expectedLessonCount: storedBlueprint.lessons.length,
+          config: featureId === 'courseFaq' ? { questionsPerLesson: 5 } : {},
+        });
+        expect(validation.valid, `${scenario.name} ${featureId}: ${validation.blockers.join('; ')}`).toBe(true);
       }
     }
   });
