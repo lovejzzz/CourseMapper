@@ -69,11 +69,11 @@ test.describe('Landing Page', () => {
     await expect(page.getByTestId('course-example-chip')).toHaveCount(0);
   });
 
-  test('sample courses label refreshes the visible sample courses', async ({ page }) => {
+  test('try label refreshes the visible sample courses', async ({ page }) => {
     const chips = page.getByTestId('course-example-chip');
     const before = await chips.allTextContents();
 
-    await page.getByRole('button', { name: 'Sample courses' }).click();
+    await page.getByRole('button', { name: 'Try' }).click();
 
     await expect
       .poll(async () => (await chips.allTextContents()).join('|'), { timeout: 5000 })

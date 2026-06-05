@@ -270,7 +270,7 @@ export default function Landing({
         </div>
       </header>
 
-      <main className="flex-1 px-5 pb-8 pt-10 sm:px-8 md:pt-14">
+      <main className="flex flex-1 items-center justify-center px-5 py-10 sm:px-8">
         <div className="mx-auto flex w-full max-w-4xl flex-col">
           <section className="text-center animate-fade-up">
             <h1 className="text-3xl font-semibold leading-[1.08] text-slate-950 dark:text-white sm:text-4xl md:whitespace-nowrap">
@@ -280,19 +280,19 @@ export default function Landing({
 
           <div className="mt-8">
             <section className="rounded-[28px] border border-slate-200/80 bg-white/80 p-4 shadow-[0_24px_80px_rgba(15,23,42,0.08)] backdrop-blur-xl dark:border-slate-700/80 dark:bg-slate-950/70 dark:shadow-[0_24px_80px_rgba(0,0,0,0.35)] sm:p-5">
-              <div>
+              <div className="text-center">
                 <h2 className="text-base font-semibold text-slate-900 dark:text-white">Start a course workspace</h2>
               </div>
 
               {!promptText && files.length === 0 && (
-                <div className="mt-5 flex flex-wrap items-center gap-2">
+                <div className="mt-5 flex flex-wrap items-center justify-center gap-2">
                   <button
                     type="button"
                     onClick={shuffleCourseExamples}
                     title="Shuffle sample courses"
                     className="tactile rounded-full px-0.5 py-1 text-[10px] font-semibold uppercase tracking-wider text-slate-500 transition-colors hover:text-blue-600 focus:outline-none focus:ring-2 focus:ring-blue-300 dark:text-slate-400 dark:hover:text-blue-200 dark:focus:ring-blue-500/50"
                   >
-                    Sample courses
+                    Try
                   </button>
                   {visibleCourseExamples.map(({ label, text }) => (
                     <button
@@ -367,8 +367,8 @@ export default function Landing({
                   onChange={(e) => setPromptText(e.target.value)}
                   placeholder={
                     files.length > 0
-                      ? 'Add constraints, preferences, or changes to apply to the attached source...'
-                      : 'Paste the course name, learner level, calendar, goals, constraints, or anything the agent should respect...'
+                      ? 'Describe what you want to build from the attached syllabus or source files...'
+                      : 'Describe your course, or drop a syllabus here...'
                   }
                   rows={files.length > 0 ? 2 : 4}
                   className="w-full resize-none bg-transparent px-4 pb-2 pt-4 text-sm text-slate-800 placeholder:text-slate-500/80 focus:outline-none dark:text-slate-100 dark:placeholder:text-slate-500"
