@@ -24,7 +24,7 @@ CourseMapper has four main screens, connected by a linear flow with the ability 
 The landing page is where everything begins. It serves three purposes: configure the AI connection, provide course materials, and restore previous sessions.
 
 **Visual Layout:**
-The page has a centered card design with the CourseMapper logo and tagline ("Everything you need to teach/learn a course") at the top. Below that, three sections stack vertically: a file upload zone, a text area for course descriptions, and an AI configuration panel.
+The page uses a workspace-style landing layout with the EduTool.dev logo in the top bar, the headline "Everything you need to teach/learn a course", a short product-confidence line, a "From source to package" workflow rail, and one focused start panel. The start panel combines sample courses, source file upload, free-text course instructions, AI configuration, and the Continue action.
 
 **File Upload:**
 The upload zone accepts drag-and-drop or click-to-browse file selection. It supports over 18 file formats including Word documents, PDFs, plain text, Markdown, rich text, spreadsheets (Excel, CSV), presentations (PowerPoint), HTML, ePub, and ZIP archives containing any of these. When files are dropped, they appear as a list showing file name and size, with a remove button on each.
@@ -32,7 +32,7 @@ The upload zone accepts drag-and-drop or click-to-browse file selection. It supp
 There is a special case: if the user drops a `.coursemapper` project file (or a `.json` file), the system recognizes it as a saved session rather than course material. The drag-over state changes to show "Open project" instead of the normal upload message, and dropping the file restores the entire previous session — course map, deliverables, chat history, and all settings.
 
 **Example Chips:**
-Three quick-start buttons ("Intro to Psychology", "Research Methods", "Social Policy") auto-fill the text area with a sample course description. This lets new users immediately see what the tool can do without having their own syllabus ready.
+Three shuffled sample-course buttons auto-fill the text area with realistic course descriptions. A small shuffle button refreshes the visible samples without requiring a page reload.
 
 **Text Area:**
 An optional free-text field where users can type a course description, add context or special instructions, or supplement uploaded files. The placeholder text changes depending on whether files are already uploaded.
@@ -40,8 +40,8 @@ An optional free-text field where users can type a course description, add conte
 **AI Model Configuration:**
 A collapsible panel where users connect to their AI provider. It includes:
 
-- A provider selector with three options: OpenAI, Anthropic, and Google
-- An API key input field that auto-detects which provider the key belongs to based on its prefix (keys starting with "sk-proj-" are OpenAI, "sk-ant-" are Anthropic, keys starting with "AIza" are Google)
+- A provider selector with OpenAI, Anthropic, Google, and DeepSeek
+- An API key input field that auto-detects which provider the key belongs to based on its prefix (keys starting with "sk-proj-" are OpenAI, "sk-ant-" are Anthropic, keys starting with "AIza" are Google, and keys starting with "sk-" can be DeepSeek)
 - Once a valid key is entered, the system fetches available models from that provider and displays them in a dropdown
 - A green "Connected" badge appears when the key is validated
 - Direct links to each provider's API key dashboard
@@ -51,7 +51,7 @@ A collapsible panel where users connect to their AI provider. It includes:
 If the browser has a previously saved session in local storage, a banner appears offering to resume where the user left off. The banner has "Resume" and "Dismiss" buttons. Dismissing removes the saved session.
 
 **Dark Mode Toggle:**
-A sun/moon icon in the upper-right corner switches between light and dark themes. The preference is saved to local storage and also respects the operating system's dark mode setting on first visit.
+A sun/moon icon in the upper-right corner switches between light and dark themes. The preference is saved to local storage and also respects the operating system's dark mode setting on first visit. The logo swaps to the dark-theme EduTool.dev asset when dark mode is active.
 
 **User Menu:**
 A Google sign-in button appears in the header. Once signed in, a "My Projects" button opens the cloud project picker. The user's name and avatar are shown.

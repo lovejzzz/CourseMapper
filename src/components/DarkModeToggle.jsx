@@ -27,7 +27,7 @@ export default function DarkModeToggle() {
   return (
     <button
       onClick={() => setDark((d) => !d)}
-      className="tactile p-2 rounded-xl text-slate-400 hover:text-indigo-500 bg-white/40 border border-slate-200/30 hover:bg-indigo-50/50 hover:border-indigo-200/50 shadow-sm transition-all duration-200"
+      className="tactile rounded-xl border border-slate-200/70 bg-white/75 p-2 text-slate-500 shadow-sm transition-all duration-200 hover:border-blue-200 hover:bg-blue-50 hover:text-blue-600 dark:border-slate-700 dark:bg-slate-900/80 dark:text-slate-300 dark:hover:border-blue-400/40 dark:hover:bg-blue-400/10 dark:hover:text-blue-200"
       title={dark ? 'Switch to light mode' : 'Switch to dark mode'}
       aria-label={dark ? 'Switch to light mode' : 'Switch to dark mode'}
     >

@@ -5,6 +5,7 @@ import { useAIConfig } from '../contexts/AIConfigContext';
 import { useCourse } from '../contexts/CourseContext';
 import UserMenu from '../components/UserMenu';
 import DarkModeToggle from '../components/DarkModeToggle';
+import AppLogo from '../components/AppLogo';
 
 const ACCEPTED_EXTENSIONS = [
   '.doc',
@@ -30,6 +31,23 @@ const ACCEPTED_EXTENSIONS = [
 ];
 
 const PROJECT_EXTENSIONS = ['.coursemapper', '.json'];
+
+const LANDING_WORKFLOW = [
+  {
+    title: 'Map the course',
+    body: 'Detect lessons, objectives, workload, and source coverage before drafting materials.',
+  },
+  {
+    title: 'Build the package',
+    body: 'Compile course maps, rubrics, slides, assignments, prompts, quizzes, and study aids from one workspace.',
+  },
+  {
+    title: 'Verify before export',
+    body: 'Run readiness checks, catch missing pieces, and keep recoverable projects useful across sessions.',
+  },
+];
+
+const LANDING_SIGNALS = ['Course map', 'Teaching materials', 'Quality checks', 'Export-ready files'];
 
 export const COURSE_EXAMPLES = [
   {
@@ -252,337 +270,406 @@ export default function Landing({
   })();
 
   return (
-    <div className="min-h-screen mesh-bg noise-overlay flex flex-col">
-      {/* Minimal header with sign-in */}
-      <header className="pt-5 px-8 flex justify-end items-center gap-2 max-w-3xl mx-auto w-full">
-        <DarkModeToggle />
-        <UserMenu
-          onOpenProjects={onOpenProjects}
-          developerMode={developerMode}
-          onDeveloperModeChange={onDeveloperModeChange}
-        />
+    <div className="landing-shell noise-overlay flex min-h-screen flex-col text-slate-900 dark:text-slate-100">
+      <header className="px-5 py-4 sm:px-8">
+        <div className="mx-auto flex w-full max-w-7xl items-center justify-between">
+          <a href="#/" className="flex items-center" aria-label="EduTool.dev home">
+            <AppLogo className="h-12 w-auto object-contain sm:h-14" />
+          </a>
+          <div className="flex items-center gap-2">
+            <DarkModeToggle />
+            <UserMenu
+              onOpenProjects={onOpenProjects}
+              developerMode={developerMode}
+              onDeveloperModeChange={onDeveloperModeChange}
+            />
+          </div>
+        </div>
       </header>
 
-      {/* Centered content */}
-      <main className="flex-1 flex items-center justify-center px-6 py-4">
-        <div className="max-w-xl w-full space-y-6 animate-fade-up">
-          {/* Logo */}
-          <div className="text-center">
-            <img
-              src={`${import.meta.env.BASE_URL}CMlogo.png`}
-              alt="EduTool.dev"
-              className="h-28 sm:h-32 w-auto mx-auto object-contain"
-            />
-          </div>
-
-          {/* Tagline */}
-          <div className="text-center space-y-2">
-            <h1 className="text-2xl sm:text-3xl font-bold text-slate-800 tracking-tight">
+      <main className="flex-1 px-5 pb-8 pt-1 sm:px-8">
+        <div className="mx-auto flex w-full max-w-6xl flex-col">
+          <section className="mx-auto max-w-5xl text-center animate-fade-up">
+            <p className="text-[11px] font-semibold uppercase tracking-[0.28em] text-blue-600 dark:text-blue-300">
+              Course package studio
+            </p>
+            <h1 className="mt-4 text-3xl font-semibold leading-[1.08] text-slate-950 dark:text-white sm:text-4xl md:whitespace-nowrap">
               Everything you need to teach/learn a course.
             </h1>
-            <p className="text-sm text-slate-500">
-              Describe your course, drop a syllabus, or both — we'll handle the rest.
+            <p className="mx-auto mt-4 max-w-2xl text-sm leading-6 text-slate-600 dark:text-slate-300">
+              Start with what you have. CourseMapper turns a rough idea, syllabus, or saved project into an editable
+              teaching workspace with checks and exports built in.
             </p>
-          </div>
+          </section>
 
-          {/* Try an example — quick fill chips */}
-          {!promptText && files.length === 0 && (
-            <div className="flex flex-wrap items-center justify-center gap-2 animate-fade-up">
-              <span className="text-[10px] font-semibold text-slate-500 uppercase tracking-wider mr-1">Try:</span>
-              <button
-                type="button"
-                onClick={shuffleCourseExamples}
-                aria-label="Shuffle sample courses"
-                title="Shuffle sample courses"
-                className="tactile flex h-7 w-7 items-center justify-center rounded-full bg-white/75 border border-slate-200/80 text-slate-500 hover:text-indigo-600 hover:border-indigo-200 hover:bg-indigo-50/50 transition-all duration-200"
-              >
-                <svg className="h-3.5 w-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                  <path
-                    strokeLinecap="round"
-                    strokeLinejoin="round"
-                    strokeWidth={2}
-                    d="M4 4v6h6M20 20v-6h-6M5.64 18.36A9 9 0 0018.36 5.64M18.36 5.64H14m4.36 0V10M5.64 18.36H10m-4.36 0V14"
-                  />
-                </svg>
-              </button>
-              {visibleCourseExamples.map(({ label, text }) => (
-                <button
-                  key={label}
-                  data-testid="course-example-chip"
-                  data-example-text={text}
-                  onClick={() => (onExampleSelect ? onExampleSelect(text) : setPromptText(text))}
-                  className="tactile flex items-center gap-1.5 px-3 py-1.5 rounded-full bg-white/75 border border-slate-200/80 text-[11px] font-medium text-slate-600 hover:text-indigo-600 hover:border-indigo-200 hover:bg-indigo-50/50 transition-all duration-200"
-                >
-                  {label}
-                </button>
-              ))}
-            </div>
-          )}
-
-          {/* Restore session banner */}
-          {hasSavedSession && (
-            <div className="flex items-center gap-3 px-4 py-3 rounded-squircle-xs bg-white/50 border border-indigo-200/40 animate-spring-in">
-              <div className="w-8 h-8 rounded-squircle-xs bg-indigo-100/80 flex items-center justify-center flex-shrink-0">
-                <svg className="w-4 h-4 text-indigo-500" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                  <path
-                    strokeLinecap="round"
-                    strokeLinejoin="round"
-                    strokeWidth={2}
-                    d="M12 8v4l3 3m6-3a9 9 0 11-18 0 9 9 0 0118 0z"
-                  />
-                </svg>
-              </div>
-              <div className="flex-1 min-w-0">
-                <p className="text-xs font-semibold text-slate-700">You have a previous session</p>
-                <p className="text-[11px] text-slate-400">Pick up where you left off, or start fresh.</p>
-              </div>
-              <button
-                onClick={onRestoreSession}
-                className="tactile flex items-center gap-1.5 px-3.5 py-2 rounded-lg text-[11px] font-semibold text-white bg-gradient-to-r from-indigo-500 to-violet-500 shadow-sm hover:brightness-[1.06] transition-all"
-              >
-                <svg className="w-3.5 h-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                  <path
-                    strokeLinecap="round"
-                    strokeLinejoin="round"
-                    strokeWidth={2}
-                    d="M4 4v5h.582m15.356 2A8.001 8.001 0 004.582 9m0 0H9m11 11v-5h-.581m0 0a8.003 8.003 0 01-15.357-2m15.357 2H15"
-                  />
-                </svg>
-                Resume
-              </button>
-              <button
-                onClick={onDismissSavedSession}
-                className="text-slate-300 hover:text-red-400 transition-colors flex-shrink-0 p-1"
-                title="Dismiss and start fresh"
-                aria-label="Dismiss saved session"
-              >
-                <svg className="w-3.5 h-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M6 18L18 6M6 6l12 12" />
-                </svg>
-              </button>
-            </div>
-          )}
-
-          {/* Combined input zone: file drop + text prompt */}
-          <div
-            onDrop={handleDrop}
-            onDragOver={handleDragOver}
-            onDragLeave={handleDragLeave}
-            className={`relative rounded-squircle-sm transition-all duration-300 ${
-              isDragging
-                ? 'border-2 border-indigo-400 bg-indigo-50/30 scale-[1.01] shadow-glow-indigo'
-                : 'border-2 border-slate-200/80 bg-white/65 focus-within:border-indigo-400/60 focus-within:bg-white/75'
-            }`}
-          >
-            {/* Text prompt */}
-            <textarea
-              aria-label="Describe your course"
-              value={promptText}
-              onChange={(e) => setPromptText(e.target.value)}
-              placeholder={
-                files.length > 0
-                  ? 'Add any extra context or instructions... (optional)'
-                  : 'Describe your course, or drop a syllabus above — e.g. "Intro to Psychology, 15 weeks, undergrad"'
-              }
-              rows={files.length > 0 ? 2 : 4}
-              className="w-full bg-transparent px-4 pt-4 pb-2 text-sm resize-none focus:outline-none placeholder:text-slate-500/80"
-            />
-
-            {/* File list */}
-            {files.length > 0 && (
-              <div className="px-3 pb-2 space-y-1">
-                {files.map((file, i) => (
-                  <div
-                    key={i}
-                    className="flex items-center justify-between bg-white/60 rounded-lg px-3 py-1.5 animate-spring-in"
-                  >
-                    <div className="flex items-center gap-2 min-w-0">
-                      <FileIcon ext={file.name.split('.').pop()} />
-                      <span className="text-xs font-medium text-slate-700 truncate">{file.name}</span>
-                      {file.size > 0 && (
-                        <span className="text-[10px] text-slate-400 flex-shrink-0">{formatSize(file.size)}</span>
-                      )}
+          <section className="mt-8 grid gap-6 lg:grid-cols-[0.78fr_1.22fr] lg:items-center">
+            <aside className="hidden space-y-6 pr-4 lg:block">
+              <div>
+                <p className="text-[11px] font-semibold uppercase tracking-[0.24em] text-slate-500 dark:text-slate-400">
+                  From source to package
+                </p>
+                <div className="mt-4 space-y-4">
+                  {LANDING_WORKFLOW.map((item, index) => (
+                    <div key={item.title} className="flex gap-4">
+                      <div className="mt-0.5 flex h-7 w-7 flex-shrink-0 items-center justify-center rounded-full border border-blue-200 bg-blue-50 text-[11px] font-bold text-blue-700 dark:border-blue-400/30 dark:bg-blue-400/10 dark:text-blue-200">
+                        {index + 1}
+                      </div>
+                      <div>
+                        <h2 className="text-sm font-semibold text-slate-800 dark:text-slate-100">{item.title}</h2>
+                        <p className="mt-1 text-[12px] leading-5 text-slate-500 dark:text-slate-400">{item.body}</p>
+                      </div>
                     </div>
-                    <button
-                      onClick={(e) => {
-                        e.stopPropagation();
-                        removeFile(i);
-                      }}
-                      className="text-slate-300 hover:text-red-400 transition-colors ml-2 flex-shrink-0"
-                      aria-label={`Remove ${file.name}`}
+                  ))}
+                </div>
+              </div>
+
+              <div className="border-t border-slate-200/80 pt-5 dark:border-slate-700/70">
+                <p className="text-[11px] font-semibold uppercase tracking-[0.24em] text-slate-500 dark:text-slate-400">
+                  Built for
+                </p>
+                <div className="mt-3 grid grid-cols-2 gap-x-5 gap-y-2">
+                  {LANDING_SIGNALS.map((signal) => (
+                    <div
+                      key={signal}
+                      className="flex items-center gap-2 text-[12px] font-medium text-slate-600 dark:text-slate-300"
                     >
-                      <svg className="w-3 h-3" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                        <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M6 18L18 6M6 6l12 12" />
+                      <span className="h-1.5 w-1.5 rounded-full bg-blue-500" />
+                      {signal}
+                    </div>
+                  ))}
+                </div>
+              </div>
+            </aside>
+
+            <section className="rounded-[28px] border border-slate-200/80 bg-white/80 p-4 shadow-[0_24px_80px_rgba(15,23,42,0.08)] backdrop-blur-xl dark:border-slate-700/80 dark:bg-slate-950/70 dark:shadow-[0_24px_80px_rgba(0,0,0,0.35)] sm:p-5">
+              <div className="flex flex-col gap-3 sm:flex-row sm:items-start sm:justify-between">
+                <div>
+                  <h2 className="text-base font-semibold text-slate-900 dark:text-white">Start a course workspace</h2>
+                  <p className="mt-1 text-[12px] leading-5 text-slate-500 dark:text-slate-400">
+                    Paste a brief, attach source files, or reopen an existing project.
+                  </p>
+                </div>
+                <div
+                  className={`inline-flex w-fit items-center gap-2 rounded-full border px-3 py-1 text-[11px] font-semibold ${
+                    isReady
+                      ? 'border-emerald-200 bg-emerald-50 text-emerald-700 dark:border-emerald-400/30 dark:bg-emerald-400/10 dark:text-emerald-200'
+                      : 'border-slate-200 bg-slate-50 text-slate-500 dark:border-slate-700 dark:bg-slate-900 dark:text-slate-400'
+                  }`}
+                >
+                  <span className={`h-1.5 w-1.5 rounded-full ${isReady ? 'bg-emerald-500' : 'bg-slate-400'}`} />
+                  {isReady ? 'Ready' : 'Model required'}
+                </div>
+              </div>
+
+              {!promptText && files.length === 0 && (
+                <div className="mt-5 flex flex-wrap items-center gap-2">
+                  <span className="text-[10px] font-semibold uppercase tracking-wider text-slate-500 dark:text-slate-400">
+                    Sample courses
+                  </span>
+                  <button
+                    type="button"
+                    onClick={shuffleCourseExamples}
+                    aria-label="Shuffle sample courses"
+                    title="Shuffle sample courses"
+                    className="tactile flex h-7 w-7 items-center justify-center rounded-full border border-slate-200 bg-white text-slate-500 transition-all duration-200 hover:border-blue-200 hover:bg-blue-50 hover:text-blue-600 dark:border-slate-700 dark:bg-slate-900 dark:text-slate-400 dark:hover:border-blue-400/40 dark:hover:bg-blue-400/10 dark:hover:text-blue-200"
+                  >
+                    <svg className="h-3.5 w-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                      <path
+                        strokeLinecap="round"
+                        strokeLinejoin="round"
+                        strokeWidth={2}
+                        d="M4 4v6h6M20 20v-6h-6M5.64 18.36A9 9 0 0018.36 5.64M18.36 5.64H14m4.36 0V10M5.64 18.36H10m-4.36 0V14"
+                      />
+                    </svg>
+                  </button>
+                  {visibleCourseExamples.map(({ label, text }) => (
+                    <button
+                      key={label}
+                      data-testid="course-example-chip"
+                      data-example-text={text}
+                      onClick={() => (onExampleSelect ? onExampleSelect(text) : setPromptText(text))}
+                      className="tactile flex items-center gap-1.5 rounded-full border border-slate-200 bg-white px-3 py-1.5 text-[11px] font-medium text-slate-600 transition-all duration-200 hover:border-blue-200 hover:bg-blue-50 hover:text-blue-600 dark:border-slate-700 dark:bg-slate-900 dark:text-slate-300 dark:hover:border-blue-400/40 dark:hover:bg-blue-400/10 dark:hover:text-blue-200"
+                    >
+                      {label}
+                    </button>
+                  ))}
+                </div>
+              )}
+
+              {hasSavedSession && (
+                <div className="mt-5 flex items-center gap-3 rounded-2xl border border-blue-200/70 bg-blue-50/70 px-4 py-3 animate-spring-in dark:border-blue-400/20 dark:bg-blue-400/10">
+                  <div className="flex h-8 w-8 flex-shrink-0 items-center justify-center rounded-xl bg-white text-blue-600 dark:bg-slate-950 dark:text-blue-200">
+                    <svg className="h-4 w-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                      <path
+                        strokeLinecap="round"
+                        strokeLinejoin="round"
+                        strokeWidth={2}
+                        d="M12 8v4l3 3m6-3a9 9 0 11-18 0 9 9 0 0118 0z"
+                      />
+                    </svg>
+                  </div>
+                  <div className="min-w-0 flex-1">
+                    <p className="text-xs font-semibold text-slate-800 dark:text-slate-100">Previous session found</p>
+                    <p className="text-[11px] text-slate-500 dark:text-slate-400">Resume it or start fresh.</p>
+                  </div>
+                  <button
+                    onClick={onRestoreSession}
+                    className="tactile flex items-center gap-1.5 rounded-lg bg-slate-950 px-3.5 py-2 text-[11px] font-semibold text-white shadow-sm transition-all hover:brightness-110 dark:bg-white dark:text-slate-950"
+                  >
+                    <svg className="h-3.5 w-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                      <path
+                        strokeLinecap="round"
+                        strokeLinejoin="round"
+                        strokeWidth={2}
+                        d="M4 4v5h.582m15.356 2A8.001 8.001 0 004.582 9m0 0H9m11 11v-5h-.581m0 0a8.003 8.003 0 01-15.357-2m15.357 2H15"
+                      />
+                    </svg>
+                    Resume
+                  </button>
+                  <button
+                    onClick={onDismissSavedSession}
+                    className="flex-shrink-0 p-1 text-slate-400 transition-colors hover:text-red-500"
+                    title="Dismiss and start fresh"
+                    aria-label="Dismiss saved session"
+                  >
+                    <svg className="h-3.5 w-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                      <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M6 18L18 6M6 6l12 12" />
+                    </svg>
+                  </button>
+                </div>
+              )}
+
+              <div
+                onDrop={handleDrop}
+                onDragOver={handleDragOver}
+                onDragLeave={handleDragLeave}
+                className={`relative mt-5 rounded-[22px] transition-all duration-300 ${
+                  isDragging
+                    ? 'scale-[1.01] border-2 border-blue-400 bg-blue-50/60 shadow-glow-indigo dark:bg-blue-400/10'
+                    : 'border-2 border-slate-200 bg-white/80 focus-within:border-blue-400/70 dark:border-slate-700 dark:bg-slate-900/80 dark:focus-within:border-blue-400/70'
+                }`}
+              >
+                <textarea
+                  aria-label="Describe your course"
+                  value={promptText}
+                  onChange={(e) => setPromptText(e.target.value)}
+                  placeholder={
+                    files.length > 0
+                      ? 'Add constraints, preferences, or changes to apply to the attached source...'
+                      : 'Paste the course name, learner level, calendar, goals, constraints, or anything the agent should respect...'
+                  }
+                  rows={files.length > 0 ? 2 : 4}
+                  className="w-full resize-none bg-transparent px-4 pb-2 pt-4 text-sm text-slate-800 placeholder:text-slate-500/80 focus:outline-none dark:text-slate-100 dark:placeholder:text-slate-500"
+                />
+
+                {files.length > 0 && (
+                  <div className="space-y-1 px-3 pb-2">
+                    {files.map((file, i) => (
+                      <div
+                        key={i}
+                        className="flex items-center justify-between rounded-xl bg-slate-50 px-3 py-1.5 animate-spring-in dark:bg-slate-800"
+                      >
+                        <div className="flex min-w-0 items-center gap-2">
+                          <FileIcon ext={file.name.split('.').pop()} />
+                          <span className="truncate text-xs font-medium text-slate-700 dark:text-slate-200">
+                            {file.name}
+                          </span>
+                          {file.size > 0 && (
+                            <span className="flex-shrink-0 text-[10px] text-slate-400">{formatSize(file.size)}</span>
+                          )}
+                        </div>
+                        <button
+                          onClick={(e) => {
+                            e.stopPropagation();
+                            removeFile(i);
+                          }}
+                          className="ml-2 flex-shrink-0 text-slate-300 transition-colors hover:text-red-400"
+                          aria-label={`Remove ${file.name}`}
+                        >
+                          <svg className="h-3 w-3" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                            <path
+                              strokeLinecap="round"
+                              strokeLinejoin="round"
+                              strokeWidth={2}
+                              d="M6 18L18 6M6 6l12 12"
+                            />
+                          </svg>
+                        </button>
+                      </div>
+                    ))}
+                  </div>
+                )}
+
+                <div className="flex items-center justify-between gap-3 px-3 pb-3 pt-1">
+                  <button
+                    type="button"
+                    onClick={() => document.getElementById('landing-file-input').click()}
+                    className="tactile flex items-center gap-1.5 rounded-lg px-3 py-1.5 text-[11px] font-medium text-slate-500 transition-all duration-200 hover:bg-blue-50 hover:text-blue-600 dark:text-slate-400 dark:hover:bg-blue-400/10 dark:hover:text-blue-200"
+                  >
+                    <svg className="h-3.5 w-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                      <path
+                        strokeLinecap="round"
+                        strokeLinejoin="round"
+                        strokeWidth={2}
+                        d="M15.172 7l-6.586 6.586a2 2 0 102.828 2.828l6.414-6.586a4 4 0 00-5.656-5.656l-6.415 6.585a6 6 0 108.486 8.486L20.5 13"
+                      />
+                    </svg>
+                    {files.length > 0 ? 'Add files' : 'Attach files'}
+                  </button>
+                  <span className="text-right text-[10px] leading-4 text-slate-500 dark:text-slate-400">
+                    {isDragging ? (
+                      'Drop to attach'
+                    ) : (
+                      <>
+                        .pdf .docx .xlsx .pptx .txt and more
+                        <br />
+                        <span className="text-slate-400 dark:text-slate-500">
+                          drop a{' '}
+                          <span className="font-medium text-emerald-600 dark:text-emerald-300">.coursemapper</span> file
+                          to resume
+                        </span>
+                      </>
+                    )}
+                  </span>
+                </div>
+
+                <input
+                  id="landing-file-input"
+                  type="file"
+                  multiple
+                  accept={[...ACCEPTED_EXTENSIONS, ...PROJECT_EXTENSIONS].join(',')}
+                  onChange={handleFileInput}
+                  aria-label="Attach course files or open a Course Mapper project"
+                  className="hidden"
+                />
+
+                {isDragging && (
+                  <div className="pointer-events-none absolute inset-0 flex items-center justify-center rounded-[22px] bg-blue-500/5">
+                    <div className="flex items-center gap-2 text-sm font-medium text-blue-600 dark:text-blue-200">
+                      <svg className="h-5 w-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                        <path
+                          strokeLinecap="round"
+                          strokeLinejoin="round"
+                          strokeWidth={1.5}
+                          d="M7 16a4 4 0 01-.88-7.903A5 5 0 1115.9 6L16 6a5 5 0 011 9.9M15 13l-3-3m0 0l-3 3m3-3v12"
+                        />
                       </svg>
+                      Drop course files or .coursemapper project
+                    </div>
+                  </div>
+                )}
+
+                {projectDragging && (
+                  <div className="pointer-events-none absolute inset-0 flex items-center justify-center rounded-[22px] border-2 border-dashed border-emerald-400/50 bg-emerald-500/5">
+                    <div className="flex items-center gap-2 text-sm font-semibold text-emerald-600 dark:text-emerald-300">
+                      <span>📂</span>
+                      Open project
+                    </div>
+                  </div>
+                )}
+              </div>
+
+              <div className="mt-5">
+                {configCollapsed ? (
+                  <div className="flex flex-wrap items-center justify-center gap-3 text-sm text-slate-500 dark:text-slate-400">
+                    <span className="flex items-center gap-1.5">
+                      <span className="inline-block h-2 w-2 rounded-full bg-emerald-400" />
+                      {configSummaryLabel}
+                    </span>
+                    <span className="text-slate-300 dark:text-slate-600">·</span>
+                    <span className="font-medium text-emerald-600 dark:text-emerald-300">Connected</span>
+                    <button
+                      onClick={expandConfigForEditing}
+                      className="tactile flex items-center gap-1 text-blue-600 transition-colors duration-150 hover:text-blue-800 dark:text-blue-300 dark:hover:text-blue-100"
+                    >
+                      <svg className="h-3.5 w-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                        <path
+                          strokeLinecap="round"
+                          strokeLinejoin="round"
+                          strokeWidth={2}
+                          d="M15.232 5.232l3.536 3.536m-2.036-5.036a2.5 2.5 0 113.536 3.536L6.5 21.036H3v-3.572L16.732 3.732z"
+                        />
+                      </svg>
+                      Edit
                     </button>
                   </div>
-                ))}
-              </div>
-            )}
-
-            {/* Bottom toolbar: browse button + drag hint */}
-            <div className="flex items-center justify-between px-3 pb-3 pt-1">
-              <button
-                type="button"
-                onClick={() => document.getElementById('landing-file-input').click()}
-                className="tactile flex items-center gap-1.5 px-3 py-1.5 rounded-lg text-[11px] font-medium text-slate-500 hover:text-indigo-600 hover:bg-indigo-50/50 transition-all duration-200"
-              >
-                <svg className="w-3.5 h-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                  <path
-                    strokeLinecap="round"
-                    strokeLinejoin="round"
-                    strokeWidth={2}
-                    d="M15.172 7l-6.586 6.586a2 2 0 102.828 2.828l6.414-6.586a4 4 0 00-5.656-5.656l-6.415 6.585a6 6 0 108.486 8.486L20.5 13"
-                  />
-                </svg>
-                {files.length > 0 ? 'Add files' : 'Attach files'}
-              </button>
-              <span className="text-[10px] text-slate-500 text-right">
-                {isDragging ? (
-                  'Drop to attach'
                 ) : (
-                  <>
-                    .pdf .docx .xlsx .pptx .txt and more
-                    <br />
-                    <span className="text-slate-400">
-                      or drop a <span className="font-medium text-emerald-500">.coursemapper</span> file to resume a
-                      project
-                    </span>
-                  </>
+                  <div className="relative">
+                    {isReady && (
+                      <button
+                        onClick={collapseConfig}
+                        className="tactile absolute right-3 top-3 z-10 flex h-7 w-7 items-center justify-center rounded-lg text-slate-400 transition-all duration-200 hover:bg-slate-100 hover:text-slate-600 dark:hover:bg-slate-800 dark:hover:text-slate-200"
+                        title="Collapse AI config"
+                        aria-label="Collapse AI configuration"
+                      >
+                        <svg className="h-3.5 w-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                          <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M5 15l7-7 7 7" />
+                        </svg>
+                      </button>
+                    )}
+                    <ModelConfig />
+                  </div>
                 )}
-              </span>
-            </div>
-
-            <input
-              id="landing-file-input"
-              type="file"
-              multiple
-              accept={[...ACCEPTED_EXTENSIONS, ...PROJECT_EXTENSIONS].join(',')}
-              onChange={handleFileInput}
-              aria-label="Attach course files or open a Course Mapper project"
-              className="hidden"
-            />
-
-            {/* Drag overlay — syllabus files */}
-            {isDragging && (
-              <div className="absolute inset-0 rounded-squircle-sm bg-indigo-500/5 flex items-center justify-center pointer-events-none">
-                <div className="flex items-center gap-2 text-sm font-medium text-indigo-500">
-                  <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                    <path
-                      strokeLinecap="round"
-                      strokeLinejoin="round"
-                      strokeWidth={1.5}
-                      d="M7 16a4 4 0 01-.88-7.903A5 5 0 1115.9 6L16 6a5 5 0 011 9.9M15 13l-3-3m0 0l-3 3m3-3v12"
-                    />
-                  </svg>
-                  Drop course files or .coursemapper project
-                </div>
               </div>
-            )}
 
-            {/* Drag overlay — .coursemapper project file */}
-            {projectDragging && (
-              <div className="absolute inset-0 rounded-squircle-sm bg-emerald-500/5 border-2 border-dashed border-emerald-400/40 flex items-center justify-center pointer-events-none">
-                <div className="flex items-center gap-2 text-sm font-semibold text-emerald-600">
-                  <span>📂</span>
-                  Open project
-                </div>
-              </div>
-            )}
-          </div>
-
-          {/* AI Model config — collapsible when already connected */}
-          {configCollapsed ? (
-            /* Collapsed summary bar */
-            <div className="flex items-center justify-center gap-3 text-sm text-slate-500">
-              <span className="flex items-center gap-1.5">
-                <span className="w-2 h-2 rounded-full bg-emerald-400 inline-block" />
-                {configSummaryLabel}
-              </span>
-              <span className="text-slate-300">·</span>
-              <span className="text-emerald-600 font-medium">Connected</span>
               <button
-                onClick={expandConfigForEditing}
-                className="tactile flex items-center gap-1 text-indigo-500 hover:text-indigo-700 transition-colors duration-150"
+                onClick={onGenerate}
+                disabled={!canGenerate || isGenerating}
+                className={`tactile btn-glow mt-5 w-full rounded-2xl px-8 py-4 text-sm font-semibold tracking-wide transition-all duration-300 ${
+                  canGenerate && !isGenerating
+                    ? 'bg-slate-950 text-white shadow-lg shadow-slate-950/15 hover:brightness-110 dark:bg-white dark:text-slate-950 dark:shadow-white/10'
+                    : 'cursor-not-allowed bg-slate-200/90 text-slate-500 shadow-none dark:bg-slate-800 dark:text-slate-500'
+                }`}
               >
-                <svg className="w-3.5 h-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                  <path
-                    strokeLinecap="round"
-                    strokeLinejoin="round"
-                    strokeWidth={2}
-                    d="M15.232 5.232l3.536 3.536m-2.036-5.036a2.5 2.5 0 113.536 3.536L6.5 21.036H3v-3.572L16.732 3.732z"
-                  />
-                </svg>
-                Edit
+                {isGenerating ? (
+                  <span className="flex items-center justify-center gap-2.5">
+                    <svg className="h-4 w-4 animate-spin" fill="none" viewBox="0 0 24 24">
+                      <circle className="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" strokeWidth="4" />
+                      <path
+                        className="opacity-75"
+                        fill="currentColor"
+                        d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4z"
+                      />
+                    </svg>
+                    Generating...
+                  </span>
+                ) : (
+                  <span className="flex items-center justify-center gap-2.5">
+                    Continue
+                    <svg className="h-4 w-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                      <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M14 5l7 7m0 0l-7 7m7-7H3" />
+                    </svg>
+                  </span>
+                )}
               </button>
-            </div>
-          ) : (
-            /* Expanded ModelConfig */
-            <div className="relative">
-              {isReady && (
-                <button
-                  onClick={collapseConfig}
-                  className="absolute top-3 right-3 z-10 tactile flex items-center justify-center w-7 h-7 rounded-lg text-slate-400 hover:text-slate-600 hover:bg-slate-100/60 transition-all duration-200"
-                  title="Collapse AI config"
-                  aria-label="Collapse AI configuration"
-                >
-                  <svg className="w-3.5 h-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M5 15l7-7 7 7" />
-                  </svg>
-                </button>
-              )}
-              <ModelConfig />
-            </div>
-          )}
-
-          {/* Continue button */}
-          <button
-            onClick={onGenerate}
-            disabled={!canGenerate || isGenerating}
-            className={`tactile btn-glow w-full px-8 py-4 rounded-squircle-xs font-semibold text-sm tracking-wide transition-all duration-300 ${
-              canGenerate && !isGenerating
-                ? 'text-white bg-gradient-to-r from-indigo-500 via-violet-500 to-purple-600 shadow-lg shadow-indigo-500/25 hover:shadow-glow-violet hover:brightness-[1.06]'
-                : 'bg-slate-200/90 text-slate-500 cursor-not-allowed shadow-none'
-            }`}
-          >
-            {isGenerating ? (
-              <span className="flex items-center justify-center gap-2.5">
-                <svg className="animate-spin w-4 h-4" fill="none" viewBox="0 0 24 24">
-                  <circle className="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" strokeWidth="4" />
-                  <path className="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4z" />
-                </svg>
-                Generating...
-              </span>
-            ) : (
-              <span className="flex items-center justify-center gap-2.5">
-                Continue
-                <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M14 5l7 7m0 0l-7 7m7-7H3" />
-                </svg>
-              </span>
-            )}
-          </button>
+            </section>
+          </section>
         </div>
       </main>
 
-      {/* Footer */}
-      <footer className="py-4 text-center space-y-1">
-        <p className="text-[10px] text-slate-500/80">
+      <footer className="px-5 py-4 text-center">
+        <p className="text-[10px] text-slate-500/80 dark:text-slate-400">
           Built by{' '}
-          <a href="#/contact" className="font-medium hover:text-indigo-500 transition-colors duration-200">
+          <a
+            href="#/contact"
+            className="font-medium transition-colors duration-200 hover:text-blue-600 dark:hover:text-blue-300"
+          >
             Tian Xing
           </a>
         </p>
-        <div className="flex items-center justify-center gap-3 text-[10px] text-slate-500/80">
-          <a href="#/changelog" className="font-medium hover:text-indigo-500 transition-colors duration-200">
+        <div className="mt-1 flex items-center justify-center gap-3 text-[10px] text-slate-500/80 dark:text-slate-400">
+          <a
+            href="#/changelog"
+            className="font-medium transition-colors duration-200 hover:text-blue-600 dark:hover:text-blue-300"
+          >
             v0.8.4
           </a>
           <span>·</span>
-          <a href="#/privacy" className="hover:text-indigo-500 transition-colors duration-200">
+          <a href="#/privacy" className="transition-colors duration-200 hover:text-blue-600 dark:hover:text-blue-300">
             Privacy
           </a>
           <span>·</span>
-          <a href="#/terms" className="hover:text-indigo-500 transition-colors duration-200">
+          <a href="#/terms" className="transition-colors duration-200 hover:text-blue-600 dark:hover:text-blue-300">
             Terms
           </a>
         </div>

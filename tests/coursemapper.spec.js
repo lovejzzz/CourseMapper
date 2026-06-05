@@ -32,7 +32,17 @@ test.describe('Landing Page', () => {
   test('renders logo and tagline', async ({ page }) => {
     await expect(page.locator('img[alt="EduTool.dev"]')).toBeVisible();
     await expect(page.locator('h1')).toHaveText('Everything you need to teach/learn a course.');
-    await expect(page.locator('text=Describe your course')).toBeVisible();
+    await expect(page.getByText('Start with what you have.')).toBeVisible();
+    await expect(page.getByText('Start a course workspace')).toBeVisible();
+  });
+
+  test('keeps the headline on one line at desktop width', async ({ page }) => {
+    await page.setViewportSize({ width: 1280, height: 800 });
+    await page.reload();
+    await expect(page.locator('h1')).toBeVisible({ timeout: 10000 });
+
+    const whiteSpace = await page.locator('h1').evaluate((el) => window.getComputedStyle(el).whiteSpace);
+    expect(whiteSpace).toBe('nowrap');
   });
 
   test('shows example chips when prompt and files are empty', async ({ page }) => {
@@ -114,9 +124,11 @@ test.describe('Landing Page', () => {
 
     await toggle.click();
     expect(await page.locator('html').getAttribute('class')).toContain('dark');
+    await expect(page.locator('img[alt="EduTool.dev"]')).toHaveAttribute('src', /CMlogo-dark\.png$/);
 
     await toggle.click();
     expect((await page.locator('html').getAttribute('class')) || '').not.toContain('dark');
+    await expect(page.locator('img[alt="EduTool.dev"]')).toHaveAttribute('src', /CMlogo\.png$/);
   });
 
   test('dark mode persists across page reload', async ({ page }) => {

@@ -82,6 +82,18 @@ body {
     radial-gradient(ellipse 40% 30% at 70% 50%, rgba(224, 231, 255, 0.15) 0%, transparent 60%);
 }
 
+.landing-shell {
+  background-color: #f8fafc;
+  background-image:
+    linear-gradient(rgba(15, 23, 42, 0.045) 1px, transparent 1px),
+    linear-gradient(90deg, rgba(15, 23, 42, 0.045) 1px, transparent 1px),
+    linear-gradient(180deg, rgba(255, 255, 255, 0.92), rgba(241, 245, 249, 0.78));
+  background-size:
+    44px 44px,
+    44px 44px,
+    100% 100%;
+}
+
 /* ── Glassmorphism utility classes ── */
 .glass {
   background: rgba(255, 255, 255, 0.72);
@@ -302,6 +314,14 @@ body {
     radial-gradient(ellipse 80% 50% at 5% 0%, rgba(99, 102, 241, 0.12) 0%, transparent 60%),
     radial-gradient(ellipse 60% 50% at 98% 0%, rgba(139, 92, 246, 0.08) 0%, transparent 55%),
     radial-gradient(ellipse 50% 35% at 50% 100%, rgba(99, 102, 241, 0.06) 0%, transparent 50%);
+}
+
+.dark .landing-shell {
+  background-color: #080b12;
+  background-image:
+    linear-gradient(rgba(148, 163, 184, 0.08) 1px, transparent 1px),
+    linear-gradient(90deg, rgba(148, 163, 184, 0.08) 1px, transparent 1px),
+    linear-gradient(180deg, rgba(8, 11, 18, 0.98), rgba(15, 17, 23, 0.94));
 }
 
 /* Glass panels → dark glass */

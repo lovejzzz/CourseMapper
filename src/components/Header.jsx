@@ -1,6 +1,7 @@
 import React from 'react';
 import UserMenu from './UserMenu';
 import DarkModeToggle from './DarkModeToggle';
+import AppLogo from './AppLogo';
 
 export default function Header({
   onOpenProjects,
@@ -20,11 +21,7 @@ export default function Header({
 
         <div className="flex items-center justify-between w-full">
           <a href="#/" className="flex items-center" aria-label="Course Mapper home">
-            <img
-              src={`${import.meta.env.BASE_URL}CMlogo.png`}
-              alt="EduTool.dev"
-              className={`${compact ? 'h-10 sm:h-12' : 'h-14 sm:h-16 md:h-20'} w-auto object-contain`}
-            />
+            <AppLogo className={`${compact ? 'h-10 sm:h-12' : 'h-14 sm:h-16 md:h-20'} w-auto object-contain`} />
           </a>
 
           <div className="flex items-center gap-2">
