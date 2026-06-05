@@ -171,36 +171,29 @@ describe('AgentCommandStrip', () => {
     container.remove();
   });
 
-  it('routes quick commands through onCommand', () => {
+  it('does not render a permanent generic command wall', () => {
     const onCommand = vi.fn();
 
     act(() => {
       root.render(<AgentCommandStrip activeTab="slideDecks" onCommand={onCommand} />);
     });
 
-    const improveButton = container.querySelector('[data-testid="agent-command-improve-active"]');
-    act(() => {
-      improveButton.dispatchEvent(new MouseEvent('click', { bubbles: true }));
-    });
-
-    expect(onCommand).toHaveBeenCalledTimes(1);
-    expect(onCommand.mock.calls[0][0]).toMatchObject({
-      id: 'improve-active',
-      displayText: 'Improve Slide Decks',
-    });
+    expect(container.querySelector('[data-testid="agent-command-strip"]')).toBeNull();
+    expect(onCommand).not.toHaveBeenCalled();
   });
 
-  it('wraps quick commands instead of clipping them horizontally', () => {
+  it('wraps contextual commands instead of clipping them horizontally', () => {
     act(() => {
-      root.render(<AgentCommandStrip activeTab="slideDecks" onCommand={vi.fn()} />);
+      root.render(<AgentCommandStrip activeTab="slideDecks" syncFeatureCount={1} canUndo onCommand={vi.fn()} />);
     });
 
     const actionRow = container.querySelector('[data-testid="agent-command-strip-actions"]');
     expect(actionRow.className).toContain('flex-wrap');
     expect(actionRow.className).not.toContain('overflow-x-auto');
 
-    const improveButton = container.querySelector('[data-testid="agent-command-improve-active"]');
-    expect(improveButton.className).toContain('max-w-full');
+    const syncButton = container.querySelector('[data-testid="agent-command-sync-stale"]');
+    expect(syncButton.className).toContain('max-w-full');
+    expect(container.querySelector('[data-testid="agent-command-improve-active"]')).toBeNull();
   });
 
   it('does not render mode switch commands', () => {
@@ -217,18 +210,18 @@ describe('AgentCommandStrip', () => {
     expect(onCommand).not.toHaveBeenCalled();
   });
 
-  it('disables command buttons while the agent is busy', () => {
+  it('disables contextual command buttons while the agent is busy', () => {
     const onCommand = vi.fn();
 
     act(() => {
-      root.render(<AgentCommandStrip activeTab="quizBank" disabled onCommand={onCommand} />);
+      root.render(<AgentCommandStrip activeTab="quizBank" syncFeatureCount={1} disabled onCommand={onCommand} />);
     });
 
-    const finishButton = container.querySelector('[data-testid="agent-command-finish-package"]');
-    expect(finishButton.disabled).toBe(true);
+    const syncButton = container.querySelector('[data-testid="agent-command-sync-stale"]');
+    expect(syncButton.disabled).toBe(true);
 
     act(() => {
-      finishButton.dispatchEvent(new MouseEvent('click', { bubbles: true }));
+      syncButton.dispatchEvent(new MouseEvent('click', { bubbles: true }));
     });
 
     expect(onCommand).not.toHaveBeenCalled();
@@ -297,7 +290,7 @@ describe('AgentCommandStrip', () => {
     expect(container.querySelector('[data-testid="agent-command-sync-stale"]')).not.toBeNull();
     expect(container.querySelector('[data-testid="agent-command-audit-quality"]')).not.toBeNull();
     expect(container.querySelector('[data-testid="agent-command-plan-next"]')).not.toBeNull();
-    expect(container.querySelector('[data-testid="agent-command-agent-help"]')).not.toBeNull();
+    expect(container.querySelector('[data-testid="agent-command-agent-help"]')).toBeNull();
     expect(container.querySelector('[data-testid="agent-command-improve-active"]')).toBeNull();
     expect(container.querySelector('[data-testid="agent-command-finish-package"]')).toBeNull();
 

@@ -5,6 +5,7 @@ import React from 'react';
 import { act } from 'react';
 import { createRoot } from 'react-dom/client';
 import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest';
+import { buildAgentCommandItems } from '../AgentCommandStrip';
 import ChatPanel from '../ChatPanel';
 
 globalThis.IS_REACT_ACT_ENVIRONMENT = true;
@@ -242,6 +243,23 @@ async function waitForAgentProgressMessage(predicate = () => true) {
   return messagesFromCall(call).find((message) => message?.role === 'agentProgress' && predicate(message));
 }
 
+function getAgentCommandItem(id, options = {}) {
+  const item = buildAgentCommandItems({
+    activeTab: 'lessonPlans',
+    agentDryRun: chatRouterMock.agentDryRun,
+    syncFeatureCount: 0,
+    canUndo: true,
+    localOnly: !chatRouterMock.isAgentProviderReady,
+    ...options,
+  }).find((candidate) => candidate.id === id);
+  expect(item, `Expected command item ${id}`).toBeTruthy();
+  return item;
+}
+
+function runInputAgentCommand(id, options = {}) {
+  chatInputMock.props.onAgentCommand(getAgentCommandItem(id, options));
+}
+
 describe('ChatPanel agent command strip', () => {
   let container;
   let root;
@@ -276,12 +294,11 @@ describe('ChatPanel agent command strip', () => {
     container.remove();
   });
 
-  it('sends quick commands with a short display label and internal prompt override', () => {
+  it('sends input-resolved quick commands with a short display label and internal prompt override', () => {
     root = renderChatPanel(container);
 
-    const improveButton = container.querySelector('[data-testid="agent-command-improve-active"]');
     act(() => {
-      improveButton.dispatchEvent(new MouseEvent('click', { bubbles: true }));
+      runInputAgentCommand('improve-active');
     });
 
     expect(chatRouterMock.send).toHaveBeenCalledWith(
@@ -386,11 +403,8 @@ describe('ChatPanel agent command strip', () => {
       delivCanUndo: true,
     });
 
-    const helpButton = container.querySelector('[data-testid="agent-command-agent-help"]');
-    expect(helpButton).not.toBeNull();
-
     act(() => {
-      helpButton.dispatchEvent(new MouseEvent('click', { bubbles: true }));
+      runInputAgentCommand('agent-help');
     });
 
     expect(chatRouterMock.addLocalMessages).toHaveBeenCalledWith([
@@ -593,9 +607,8 @@ describe('ChatPanel agent command strip', () => {
     );
     root = renderChatPanel(container, { onFinalizePackage });
 
-    const finishButton = container.querySelector('[data-testid="agent-command-finish-package"]');
     await act(async () => {
-      finishButton.dispatchEvent(new MouseEvent('click', { bubbles: true }));
+      runInputAgentCommand('finish-package');
     });
 
     expect(onFinalizePackage).toHaveBeenCalledWith(
@@ -744,9 +757,8 @@ describe('ChatPanel agent command strip', () => {
     );
     root = renderChatPanel(container, { onAuditPackage });
 
-    const auditButton = container.querySelector('[data-testid="agent-command-audit-quality"]');
     await act(async () => {
-      auditButton.dispatchEvent(new MouseEvent('click', { bubbles: true }));
+      runInputAgentCommand('audit-quality');
     });
 
     expect(onAuditPackage).toHaveBeenCalledWith({
@@ -804,9 +816,8 @@ describe('ChatPanel agent command strip', () => {
     const onFinalizePackage = vi.fn();
     root = renderChatPanel(container, { onAuditPackage, onFinalizePackage });
 
-    const finishButton = container.querySelector('[data-testid="agent-command-finish-package"]');
     await act(async () => {
-      finishButton.dispatchEvent(new MouseEvent('click', { bubbles: true }));
+      runInputAgentCommand('finish-package');
     });
 
     expect(onAuditPackage).not.toHaveBeenCalled();
@@ -827,9 +838,8 @@ describe('ChatPanel agent command strip', () => {
       packageQualityPass: { status: 'running' },
     });
 
-    const finishButton = container.querySelector('[data-testid="agent-command-finish-package"]');
     await act(async () => {
-      finishButton.dispatchEvent(new MouseEvent('click', { bubbles: true }));
+      runInputAgentCommand('finish-package');
     });
 
     expect(onFinalizePackage).not.toHaveBeenCalled();
@@ -873,9 +883,8 @@ describe('ChatPanel agent command strip', () => {
   it('falls back to the Agent prompt for Audit when the direct audit callback is unavailable', async () => {
     root = renderChatPanel(container, { onAuditPackage: undefined });
 
-    const auditButton = container.querySelector('[data-testid="agent-command-audit-quality"]');
     await act(async () => {
-      auditButton.dispatchEvent(new MouseEvent('click', { bubbles: true }));
+      runInputAgentCommand('audit-quality');
     });
 
     expect(chatRouterMock.send).toHaveBeenCalledWith(
@@ -890,9 +899,8 @@ describe('ChatPanel agent command strip', () => {
   it('runs the Plan command directly and posts a workspace plan card without a model call', async () => {
     root = renderChatPanel(container);
 
-    const planButton = container.querySelector('[data-testid="agent-command-plan-next"]');
     await act(async () => {
-      planButton.dispatchEvent(new MouseEvent('click', { bubbles: true }));
+      runInputAgentCommand('plan-next');
     });
 
     expectInitialLocalTurn({

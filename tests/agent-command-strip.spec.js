@@ -116,8 +116,8 @@ function openAiToolCallStream(calls) {
   ].join('\n');
 }
 
-test.describe('Agent command strip', () => {
-  test('runs command buttons with short visible chat text and rich model instructions', async ({ page }) => {
+test.describe('Agent command entry points', () => {
+  test('keeps generic suggestions out of the panel while typed and starter commands still work', async ({ page }) => {
     const agentRequests = [];
     const consoleErrors = [];
 
@@ -229,13 +229,7 @@ test.describe('Agent command strip', () => {
     const agentPanel = page.getByTestId('workspace-agent-panel');
     await expect(agentPanel.getByRole('heading', { name: 'Agent' })).toBeVisible();
 
-    const commandStrip = agentPanel.getByTestId('agent-command-strip');
-    await expect(commandStrip).toBeVisible();
-    await expect(commandStrip.getByTestId('agent-command-finish-package')).toContainText('Finish');
-    await expect(commandStrip.getByTestId('agent-command-audit-quality')).toContainText('Audit');
-    await expect(commandStrip.getByTestId('agent-command-improve-active')).toContainText('Improve');
-    await expect(commandStrip.getByTestId('agent-command-plan-next')).toContainText('Plan');
-    await expect(commandStrip.getByTestId('agent-command-agent-help')).toContainText('Help');
+    await expect(agentPanel.getByTestId('agent-command-strip')).toHaveCount(0);
 
     const workingSet = agentPanel.getByTestId('agent-working-set-panel');
     await expect(workingSet).toBeVisible();
@@ -318,7 +312,8 @@ test.describe('Agent command strip', () => {
     expect(userMessage).not.toBe('Improve Lesson Plans');
     await expect(agentPanel.getByText('Apply safe changes directly')).toHaveCount(0);
 
-    await commandStrip.getByTestId('agent-command-plan-next').click();
+    await composer.fill('plan next');
+    await composer.press('Enter');
     await expect(agentPanel.getByText('Plan next step')).toBeVisible({ timeout: 10000 });
     await expect(
       agentPanel.getByText('Inspecting the workspace and building a plan from the Agent command.'),

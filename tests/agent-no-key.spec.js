@@ -205,7 +205,8 @@ test.describe('Agent no-key behavior', () => {
     await expect(agentPanel).toBeVisible();
     await expect(agentPanel.getByText('Provider/key required')).toHaveCount(0);
     await expect(agentPanel.getByTestId('workspace-model-config-trigger')).toBeVisible();
-    await expect(agentPanel.getByTestId('agent-command-improve-active')).toBeVisible();
+    await expect(agentPanel.getByTestId('agent-command-strip')).toHaveCount(0);
+    await expect(agentPanel.getByTestId('agent-command-improve-active')).toHaveCount(0);
     await expect(agentPanel.getByTestId('agent-command-configure-agent')).toHaveCount(0);
 
     const composer = agentPanel.locator('textarea');
@@ -370,7 +371,8 @@ test.describe('Agent no-key behavior', () => {
     const agentPanel = page.getByTestId('workspace-agent-panel');
     await expect(agentPanel.getByText('Provider/key required')).toHaveCount(0);
     await expect(agentPanel.getByTestId('agent-command-configure-agent')).toHaveCount(0);
-    await expect(agentPanel.getByTestId('agent-command-improve-active')).toBeVisible();
+    await expect(agentPanel.getByTestId('agent-command-strip')).toHaveCount(0);
+    await expect(agentPanel.getByTestId('agent-command-improve-active')).toHaveCount(0);
     await agentPanel.locator('textarea').fill('Improve this lesson plan');
     await expect(agentPanel.getByLabel('Send message')).toBeEnabled();
   });

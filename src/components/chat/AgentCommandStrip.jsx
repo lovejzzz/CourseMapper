@@ -268,6 +268,14 @@ export function normalizeNaturalAgentCommandText(text = '') {
   return normalized;
 }
 
+function getVisibleCommandStripItems(items = [], { isAgentProviderReady = true } = {}) {
+  const visibleIds = isAgentProviderReady
+    ? ['sync-stale', 'undo-last']
+    : ['configure-agent', 'audit-quality', 'plan-next', 'sync-stale', 'undo-last'];
+
+  return visibleIds.map((id) => items.find((item) => item?.id === id)).filter(Boolean);
+}
+
 export function CommandIcon({ icon }) {
   if (icon === 'check') {
     return (
@@ -395,15 +403,21 @@ export default function AgentCommandStrip({
     localOnly: !isAgentProviderReady,
     canUndo,
   });
+  const visibleItems = getVisibleCommandStripItems(items, { isAgentProviderReady });
+
+  if (visibleItems.length === 0) return null;
+
+  const stripTitle = isAgentProviderReady ? 'Workspace updates' : 'Agent recovery';
+  const stripHint = isAgentProviderReady ? 'Review pending state changes.' : 'Local checks still work.';
 
   return (
     <div data-testid="agent-command-strip" className="flex-shrink-0 border-b border-slate-200/70 px-3.5 py-2">
       <div className="mb-1 flex items-center justify-between gap-2">
-        <p className="text-[10px] font-bold uppercase tracking-wider text-slate-400">Suggestions</p>
-        <p className="text-[10px] font-medium text-slate-400">Type naturally, or pick one.</p>
+        <p className="text-[10px] font-bold uppercase tracking-wider text-slate-500">{stripTitle}</p>
+        <p className="text-[10px] font-medium text-slate-400">{stripHint}</p>
       </div>
       <div data-testid="agent-command-strip-actions" className="flex min-w-0 flex-wrap items-center gap-1.5 pb-0.5">
-        {items.map((item) => (
+        {visibleItems.map((item) => (
           <button
             key={item.id}
             type="button"
