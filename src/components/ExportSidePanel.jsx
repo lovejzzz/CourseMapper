@@ -983,10 +983,7 @@ export default function ExportSidePanel({
               />
             </svg>
           </div>
-          <div className="min-w-0">
-            <span className="text-xs font-bold text-slate-800">Export</span>
-            <p className="mt-0.5 text-[10px] font-medium leading-snug text-slate-500">Finish, verify, then download.</p>
-          </div>
+          <span className="text-xs font-bold text-slate-800">Export</span>
         </div>
 
         {/* ── Scope toggle ── */}
@@ -1026,26 +1023,6 @@ export default function ExportSidePanel({
             </>
           )}
         </p>
-
-        {scope === 'all' && (
-          <button
-            type="button"
-            data-testid="export-finish-package-primary"
-            onClick={() => finishPackageForExport('zip', workspaceReadiness, 'all')}
-            disabled={
-              !canFinishPackage ||
-              finishPackageBusy ||
-              isPackageQualityRunning ||
-              allReadyCount === 0 ||
-              !courseMap ||
-              (selectedLessons !== null && selectedLessons.length === 0)
-            }
-            className="tactile flex w-full items-center justify-center gap-2 rounded-xl bg-slate-950 px-3 py-2.5 text-[12px] font-bold text-white shadow-sm transition-colors hover:bg-slate-800 disabled:cursor-not-allowed disabled:bg-slate-200 disabled:text-slate-400"
-          >
-            {finishPackageBusy || isPackageQualityRunning ? <Spin /> : null}
-            {finishPackageBusy || isPackageQualityRunning ? 'Finishing package' : 'Finish package'}
-          </button>
-        )}
 
         {showReadinessFinalizing ? (
           <ReadinessFinalizingPanel finishingPackage={finishPackageBusy} message={packageQualityPass?.message} />
@@ -1154,7 +1131,7 @@ export default function ExportSidePanel({
                                 ? 'Select at least one lesson'
                                 : undefined
                 }
-                className="tactile flex items-center justify-center gap-2 w-full py-2.5 rounded-lg text-[12px] font-bold text-white bg-gradient-to-r from-indigo-500 to-violet-600 shadow-sm hover:brightness-110 transition-all disabled:opacity-40 disabled:cursor-not-allowed"
+                className="tactile flex w-full items-center justify-center gap-2 rounded-xl bg-slate-950 py-2.5 text-[12px] font-bold text-white shadow-sm transition-colors hover:bg-slate-800 disabled:cursor-not-allowed disabled:bg-slate-200 disabled:text-slate-400"
               >
                 {busy === 'zip' ? (
                   <Spin />
