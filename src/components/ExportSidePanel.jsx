@@ -314,8 +314,8 @@ function ReadinessPanel({ readiness, onIssueClick }) {
     issuesToShow.length === 0
       ? summarizeReadiness(readiness)
       : isBlocked
-        ? 'Finish package will fix what is safe, then show only the missing content or course-design decisions.'
-        : 'Finish package will retry safe fixes and leave only true instructor decisions.';
+        ? 'Finish package will fix safe items and show only missing content or course decisions.'
+        : 'Finish package will retry safe fixes and leave only instructor decisions.';
   const canNavigate = (issue) => typeof onIssueClick === 'function' && issue?.target;
   const tone = isBlocked
     ? {
@@ -408,9 +408,8 @@ function ReadinessConfirm({
         wrap: isBlocked ? 'border-red-200 bg-red-50/80 text-red-800' : 'border-amber-200 bg-amber-50/80 text-amber-800',
         reviewButton: isBlocked ? 'border-red-200 text-red-700' : 'border-amber-200 text-amber-700',
         title: 'Needs attention before export',
-        description: isZipExport
-          ? 'Automatic finishing already ran. Open the remaining issue, adjust the material or model, then export again.'
-          : 'Automatic finishing already ran. Open the remaining issue, adjust the material or model, then export again.',
+        description:
+          'Automatic finishing already ran. Open the remaining issue, adjust the material or model, then export again.',
       };
     }
     return isBlocked
@@ -512,8 +511,8 @@ function ReadinessFinalizingPanel({ finishingPackage = false, message = '' }) {
           <p className="mt-0.5 text-[10px] leading-snug opacity-80">
             {message ||
               (finishingPackage
-                ? 'Checking, fixing, and retrying weak sections so the download can start cleanly.'
-                : 'Fixing known issues automatically before showing the export package.')}
+                ? 'Checking, fixing, and verifying export.'
+                : 'Fixing known issues before showing the export package.')}
           </p>
         </div>
       </div>
@@ -633,8 +632,13 @@ export default function ExportSidePanel({
 
   useEffect(() => {
     if (!pendingReadinessExport) return;
+    if (pendingReadinessExport.scope === scope && (activeReadiness?.blockers?.length || 0) === 0) {
+      setPendingReadinessExport(null);
+      setLastNotice('');
+      return;
+    }
     readinessConfirmRef.current?.scrollIntoView({ block: 'nearest', behavior: 'smooth' });
-  }, [pendingReadinessExport]);
+  }, [activeReadiness, pendingReadinessExport, scope]);
 
   useEffect(() => {
     if (!canAutoRepairReadiness || isPackageQualityRunning || finishPackageBusy) {
@@ -1042,7 +1046,7 @@ export default function ExportSidePanel({
 
         {isPackageQualityRunning && (
           <p className="rounded-lg bg-indigo-50 px-2 py-1.5 text-[10px] font-semibold text-indigo-700">
-            Finishing package is repairing and re-checking materials before export.
+            Finishing package is checking materials before export.
           </p>
         )}
 

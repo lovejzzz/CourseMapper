@@ -304,6 +304,115 @@ function exportFixture() {
   };
 }
 
+function makeIntroPsychCourseMap(lessonCount = 15) {
+  const topics = [
+    'What Psychology Is and How Psychologists Study Behavior',
+    'History, Perspectives, and Research Ethics',
+    'Research Methods, Measurement, and Bias',
+    'Biology, Brain, and Behavior',
+    'Sensation and Perception',
+    'Learning and Conditioning',
+    'Memory and Information Processing',
+    'Thinking, Language, and Intelligence',
+    'Human Development Across the Lifespan',
+    'Motivation, Emotion, and Stress',
+    'Personality Theories and Assessment',
+    'Social Psychology and Group Influence',
+    'Psychological Disorders and Diagnosis',
+    'Treatment, Therapy, and Help-Seeking',
+    'Applied Psychology and Course Synthesis',
+  ];
+  return {
+    courseName: 'Intro to Psychology',
+    semester: 'Spring 2026',
+    lessons: Array.from({ length: lessonCount }, (_, index) => {
+      const topic = topics[index] || `Psychology Topic ${index + 1}`;
+      return {
+        title: `Lesson ${index + 1}: ${topic}`,
+        sections: [
+          {
+            learningGoals: `Explain major ideas in ${topic.toLowerCase()} using introductory psychology evidence.`,
+            topicSection: topic,
+            learningObjectives: `Identify core concepts in ${topic.toLowerCase()}. Apply those concepts to a short case example. Evaluate strengths and limits of the evidence.`,
+            weeklyAssessments: `Lesson ${index + 1} case response and concept check.`,
+            asyncActivities: `Read the assigned textbook section on ${topic.toLowerCase()} and complete a short preparation note.`,
+            syncActivities: `Discuss a brief scenario, compare explanations, and connect the evidence to everyday behavior.`,
+            technologyNeeded: 'LMS quiz, shared notes, and accessible slides.',
+          },
+        ],
+      };
+    }),
+  };
+}
+
+function makeCompiledIntroRubrics(courseMap) {
+  return {
+    rubrics: (courseMap.lessons || []).map((lesson, index) => {
+      const objective = lesson.sections?.[0]?.learningObjectives || 'Apply introductory psychology concepts.';
+      return {
+        title: `Lesson ${index + 1} Case Response Rubric`,
+        lessonTitle: lesson.title,
+        gradedWork: 'Case response and concept check',
+        assessmentType: 'Assignment',
+        totalPoints: 100,
+        bloomsLevel: 'Evaluate',
+        taskDirections:
+          'Score the response with the criteria below. Look for lesson evidence, accurate concept use, and clear explanation.',
+        instructorFacilitationNote:
+          'Share the rubric before students draft, then use criterion-level feedback for revision guidance and calibration.',
+        accessibilityAndUDL:
+          'Allow equivalent accessible formats when students demonstrate the same evidence, reasoning, and communication criteria.',
+        criteria: [
+          {
+            criterion: 'Concept accuracy',
+            objectiveAligned: objective,
+            weight: 25,
+            points: 25,
+            exemplary:
+              'Explains the psychology concept accurately and connects it to the case with specific lesson evidence.',
+            proficient: 'Explains the concept accurately and connects it to the case with relevant evidence.',
+            developing: 'Names the concept but needs clearer explanation or stronger evidence from the lesson.',
+            beginning: 'Uses general description with little accurate concept evidence.',
+          },
+          {
+            criterion: 'Evidence use',
+            objectiveAligned: objective,
+            weight: 25,
+            points: 25,
+            exemplary:
+              'Uses precise lesson evidence, distinguishes observation from interpretation, and explains why the evidence matters.',
+            proficient: 'Uses relevant lesson evidence and explains how it supports the response.',
+            developing: 'Includes some evidence but the connection to the response is incomplete.',
+            beginning: 'Provides claims with minimal or unclear evidence.',
+          },
+          {
+            criterion: 'Application to behavior',
+            objectiveAligned: objective,
+            weight: 25,
+            points: 25,
+            exemplary:
+              'Applies the concept to behavior with a careful explanation of context, limits, and alternative interpretations.',
+            proficient: 'Applies the concept to behavior with a clear explanation of the main reasoning.',
+            developing: 'Attempts application but leaves important reasoning steps unclear.',
+            beginning: 'Mentions behavior without a clear course-based application.',
+          },
+          {
+            criterion: 'Communication and revision',
+            objectiveAligned: objective,
+            weight: 25,
+            points: 25,
+            exemplary:
+              'Organizes the response clearly, uses respectful language, and identifies one useful revision based on feedback.',
+            proficient: 'Organizes the response clearly and uses respectful language.',
+            developing: 'Communicates the idea but needs clearer organization or revision.',
+            beginning: 'Response is difficult to follow or missing revision evidence.',
+          },
+        ],
+      };
+    }),
+  };
+}
+
 async function restoreExportWorkspace(page, mutateSnapshot = null) {
   const snapshot = exportFixture();
   if (mutateSnapshot) mutateSnapshot(snapshot);
@@ -1312,6 +1421,40 @@ test.describe('Export smoke', () => {
     const rubricDocx = await JSZip.loadAsync(await zip.file(rubricPath).async('uint8array'));
     const rubricXml = await rubricDocx.file('word/document.xml').async('string');
     expect(rubricXml).toContain('Lesson 1: Export Reliability');
+  });
+
+  test('downloads compiled intro rubrics without blocking on readability formula noise', async ({ page }) => {
+    const courseMap = makeIntroPsychCourseMap(15);
+    const rubrics = makeCompiledIntroRubrics(courseMap);
+
+    await restoreExportWorkspace(page, (snapshot) => {
+      snapshot.courseMap = courseMap;
+      snapshot.promptText = 'Intro to Psychology, 15 lessons, undergraduate';
+      snapshot.activeTab = 'rubrics';
+      snapshot.selectedFeatures = ['courseMap', 'rubrics'];
+      snapshot.deliverableConfig = { rubrics: {} };
+      snapshot.deliverables = {
+        rubrics: {
+          status: 'done',
+          data: rubrics,
+          error: null,
+          stale: false,
+        },
+      };
+    });
+
+    await page.getByTestId('export-scope-all').click();
+    await expect(page.getByTestId('readiness-status')).toContainText('Ready to download');
+    await expect(page.getByTestId('readiness-panel')).not.toContainText('Rubrics readability');
+
+    const zipDownload = await expectDownload(page, () => page.getByTestId('export-download-zip').click(), {
+      extension: 'zip',
+      nameIncludes: 'Intro to Psychology',
+      minBytes: 1000,
+    });
+    const zip = await JSZip.loadAsync(await fs.readFile(zipDownload.path));
+    const rubricPath = Object.keys(zip.files).find((name) => /Rubrics\/.*\.docx$/.test(name));
+    expect(rubricPath).toBeTruthy();
   });
 
   test('blocks ZIP export when one selected deliverable failed', async ({ page }) => {

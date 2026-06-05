@@ -1,4 +1,5 @@
 import { describe, expect, it } from 'vitest';
+import { buildCourseBlueprint, compileBlueprintDeliverable } from '../courseBlueprintCompiler';
 import { evaluateStrictPackageReadiness, runDeterministicPackageFinalizer } from '../packageFinalizer';
 
 function makeCourseMap(lessonCount = 2) {
@@ -31,6 +32,46 @@ function makeQuestions(count) {
     points: 2,
     explanation: 'The best answer names evidence fit and explains why the other options weaken the design.',
   }));
+}
+
+function makeIntroPsychCourseMap(lessonCount = 15) {
+  const topics = [
+    'What Psychology Is and How Psychologists Study Behavior',
+    'History, Perspectives, and Research Ethics',
+    'Research Methods, Measurement, and Bias',
+    'Biology, Brain, and Behavior',
+    'Sensation and Perception',
+    'Learning and Conditioning',
+    'Memory and Information Processing',
+    'Thinking, Language, and Intelligence',
+    'Human Development Across the Lifespan',
+    'Motivation, Emotion, and Stress',
+    'Personality Theories and Assessment',
+    'Social Psychology and Group Influence',
+    'Psychological Disorders and Diagnosis',
+    'Treatment, Therapy, and Help-Seeking',
+    'Applied Psychology and Course Synthesis',
+  ];
+  return {
+    courseName: 'Intro to Psychology',
+    lessons: Array.from({ length: lessonCount }, (_, index) => {
+      const topic = topics[index] || `Psychology Topic ${index + 1}`;
+      return {
+        title: `Lesson ${index + 1}: ${topic}`,
+        sections: [
+          {
+            learningGoals: `Explain major ideas in ${topic.toLowerCase()} using introductory psychology evidence.`,
+            topicSection: topic,
+            learningObjectives: `Identify core concepts in ${topic.toLowerCase()}. Apply those concepts to a short case example. Evaluate strengths and limits of the evidence.`,
+            weeklyAssessments: `Lesson ${index + 1} case response and concept check.`,
+            asyncActivities: `Read the assigned textbook section on ${topic.toLowerCase()} and complete a short preparation note.`,
+            syncActivities: `Discuss a brief scenario, compare explanations, and connect the evidence to everyday behavior.`,
+            technologyNeeded: 'LMS quiz, shared notes, and accessible slides.',
+          },
+        ],
+      };
+    }),
+  };
 }
 
 describe('packageFinalizer', () => {
@@ -423,6 +464,31 @@ describe('packageFinalizer', () => {
 
     expect(result.retryActions.filter((action) => action.source === 'validation')).toEqual([]);
     expect(result.healthReport.findings.filter((finding) => finding.category === 'readability')).toEqual([]);
+  });
+
+  it('does not block export on compiled intro rubric readability formula noise', () => {
+    const courseMap = makeIntroPsychCourseMap(15);
+    const blueprint = buildCourseBlueprint(courseMap);
+    const rubrics = compileBlueprintDeliverable('rubrics', blueprint);
+
+    const result = runDeterministicPackageFinalizer({
+      courseMap,
+      selectedFeatures: ['courseMap', 'rubrics'],
+      includeClassroomReadiness: true,
+      blockOnClassroomWarnings: false,
+      includePedagogicalValidation: true,
+      retryWarnings: false,
+      deliverables: {
+        rubrics: {
+          status: 'done',
+          data: rubrics,
+        },
+      },
+    });
+
+    expect(result.status).toBe('ready');
+    expect(result.retryActions.filter((action) => action.featureId === 'rubrics')).toEqual([]);
+    expect(result.healthReport.findings.filter((finding) => finding.featureId === 'rubrics')).toEqual([]);
   });
 
   it('returns exact retry actions for localized weak sections', () => {

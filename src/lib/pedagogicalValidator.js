@@ -783,10 +783,14 @@ const READABILITY_IGNORED_KEYS = new Set([
 
 const READABILITY_IGNORED_SUBTREE_KEYS = new Set([
   'adaptiveRepairPlan',
+  'assessmentArchitecture',
+  'assessmentCadence',
+  'assessmentValidity',
   'blueprintAssumptionLedger',
   'blueprintGrounding',
   'blueprintQualityReceipt',
   'blueprintReviewSurface',
+  'calibrationProtocol',
   'classroomDryRun',
   'classroomDryRunPlan',
   'classroomEvidenceLoop',
@@ -798,25 +802,43 @@ const READABILITY_IGNORED_SUBTREE_KEYS = new Set([
   'conceptDependencyGraph',
   'courseModalityProfile',
   'courseWorkload',
+  'criterionEvidenceMap',
+  'criterionObjectiveAlignment',
+  'criterionWeightGuidance',
+  'criterionWeightPlan',
   'evidenceResponseMap',
+  'feedbackCycle',
+  'gradePolicyConnection',
+  'gradingCalibrationPlan',
+  'instructorFacilitationNote',
   'instructorFeedbackLoad',
   'instructorFeedbackLoadPlan',
+  'instructionalRationale',
   'learnerContextProfile',
   'masteryEvidenceMap',
+  'modalityDecode',
   'objectiveEvidenceMap',
   'objectiveEvidencePlan',
+  'objectiveAlignmentEvidence',
   'outlineTiming',
   'packageCoherenceMatrix',
+  'performanceBandEvidence',
+  'prerequisitePlan',
   'provenance',
   'qualityReceipt',
   'qualitySignals',
   'qualitySummary',
   'receipt',
+  'revisionUse',
+  'scorerCalibrationUse',
   'sourceAnchors',
   'sourceConflictReport',
   'sourceEvidenceTrace',
   'sourceGrounding',
+  'sourceUsePlan',
   'sourceRiskRegister',
+  'teacherNotes',
+  'teachingIntent',
 ]);
 
 function normalizedReadabilityKey(key = '') {
@@ -875,6 +897,36 @@ function collectReadableStrings(value, output = [], key = '') {
   return output;
 }
 
+function collectRubricReadableStrings(rubric, output = []) {
+  if (!rubric || typeof rubric !== 'object') return output;
+
+  collectReadableStrings(rubric.taskDirections || rubric.td, output, 'taskDirections');
+
+  getRubricCriteria(rubric).forEach((criterion) => {
+    collectReadableStrings(
+      [
+        criterion?.criterion,
+        criterion?.cn,
+        criterion?.description,
+        criterion?.desc,
+        criterion?.exemplary,
+        criterion?.excellent,
+        criterion?.ex,
+        criterion?.proficient,
+        criterion?.pr,
+        criterion?.developing,
+        criterion?.dv,
+        criterion?.beginning,
+        criterion?.bg,
+      ],
+      output,
+      'rubricCriteria',
+    );
+  });
+
+  return output;
+}
+
 function readabilitySupportMetrics(text = '') {
   const sentences = text
     .split(/[.!?]+/)
@@ -894,6 +946,30 @@ function readabilitySupportMetrics(text = '') {
     shortFragmentRatio,
     longSentenceRatio,
   };
+}
+
+function extractDeliverableReadabilityPayload(deliverables, featureId) {
+  const deliv = deliverables?.[featureId];
+  if (!deliv || deliv.status !== 'done' || !deliv.data) return { text: '', items: [] };
+  let parsed = deliv.data;
+  if (typeof parsed === 'string') {
+    try {
+      parsed = JSON.parse(parsed);
+    } catch {
+      return { text: '', items: [] };
+    }
+  }
+  const arrKey = getArrayKey(featureId, parsed);
+  if (!arrKey || !Array.isArray(parsed[arrKey])) return { text: '', items: [] };
+  const items = parsed[arrKey];
+  const texts =
+    featureId === 'rubrics'
+      ? items.flatMap((item) => collectRubricReadableStrings(item, []))
+      : items.flatMap((item) => collectReadableStrings(item, []));
+  const joined = texts.join(' ');
+  const sentenceCount = (joined.match(/[.!?]/g) || []).length;
+  if (texts.length < 3 && sentenceCount < 3) return { text: '', items };
+  return { text: joined, items };
 }
 
 function courseReadabilityContextText(courseMap) {
@@ -940,24 +1016,27 @@ function isLikelyTechnicalListNoise(text = '', grade = 0, courseMap = null) {
   );
 }
 
+function isLikelyStructuredRubricNoise(featureId, items = [], text = '', grade = 0) {
+  if (featureId !== 'rubrics' || grade <= 12 || !Array.isArray(items) || items.length < 3) return false;
+  const criteria = items.flatMap((rubric) => getRubricCriteria(rubric));
+  if (criteria.length < items.length * 3) return false;
+
+  const performanceBandCount = criteria.reduce((count, criterion) => {
+    return (
+      count +
+      ['exemplary', 'excellent', 'ex', 'proficient', 'pr', 'developing', 'dv', 'beginning', 'bg'].filter(
+        (key) => readabilityWordCount(criterion?.[key]) >= 5,
+      ).length
+    );
+  }, 0);
+  if (performanceBandCount < criteria.length * 2) return false;
+
+  const metrics = readabilitySupportMetrics(text);
+  return metrics.sentenceCount >= items.length * 6 && metrics.avgWordsPerSentence <= 58;
+}
+
 function extractDeliverableText(deliverables, featureId) {
-  const deliv = deliverables?.[featureId];
-  if (!deliv || deliv.status !== 'done' || !deliv.data) return '';
-  let parsed = deliv.data;
-  if (typeof parsed === 'string') {
-    try {
-      parsed = JSON.parse(parsed);
-    } catch {
-      return '';
-    }
-  }
-  const arrKey = getArrayKey(featureId, parsed);
-  if (!arrKey || !Array.isArray(parsed[arrKey])) return '';
-  const texts = parsed[arrKey].flatMap((item) => collectReadableStrings(item, []));
-  const joined = texts.join(' ');
-  const sentenceCount = (joined.match(/[.!?]/g) || []).length;
-  if (texts.length < 3 && sentenceCount < 3) return '';
-  return joined;
+  return extractDeliverableReadabilityPayload(deliverables, featureId).text;
 }
 
 export function validateReadability(courseMap, deliverables) {
@@ -971,15 +1050,16 @@ export function validateReadability(courseMap, deliverables) {
   const featureIds = Object.keys(READABLE_NAMES);
 
   for (const featureId of featureIds) {
-    const text = extractDeliverableText(deliverables, featureId);
+    const { text, items } = extractDeliverableReadabilityPayload(deliverables, featureId);
     if (!text || text.length < 180) continue; // need enough real prose for meaningful analysis
 
     const grade = readability.fleschKincaidGrade(text);
     const displayName = READABLE_NAMES[featureId];
     const technicalListNoise = isLikelyTechnicalListNoise(text, grade, courseMap);
+    const structuredRubricNoise = isLikelyStructuredRubricNoise(featureId, items, text, grade);
 
     // Error threshold: >14 for intro courses, >16 for any course
-    if (((isIntro && grade > 14) || grade > 16) && !technicalListNoise) {
+    if (((isIntro && grade > 14) || grade > 16) && !technicalListNoise && !structuredRubricNoise) {
       findings.push({
         id: `readability-error-${featureId}`,
         severity: 'error',
@@ -989,7 +1069,7 @@ export function validateReadability(courseMap, deliverables) {
         featureId,
         suggestedPrompt: `Simplify the language in ${displayName}. Current readability is grade ${grade.toFixed(1)}, which is too advanced${isIntro ? ' for intro-level students' : ''}. Use shorter sentences and simpler vocabulary.`,
       });
-    } else if (grade > 12 && !technicalListNoise) {
+    } else if (grade > 12 && !technicalListNoise && !structuredRubricNoise) {
       findings.push({
         id: `readability-warning-${featureId}`,
         severity: 'warning',

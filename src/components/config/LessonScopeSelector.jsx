@@ -13,10 +13,15 @@ export default function LessonScopeSelector({
   }));
 
   return (
-    <div className="glass rounded-squircle-sm p-6 space-y-4">
+    <div className="space-y-4 rounded-2xl border border-slate-200 bg-slate-50/65 p-4 dark:border-slate-800 dark:bg-slate-900/55">
       <div className="flex items-center gap-3">
-        <div className="w-8 h-8 rounded-xl bg-indigo-100 flex items-center justify-center flex-shrink-0">
-          <svg className="w-4 h-4 text-indigo-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+        <div className="flex h-8 w-8 flex-shrink-0 items-center justify-center rounded-xl bg-blue-50 dark:bg-blue-400/10">
+          <svg
+            className="w-4 h-4 text-blue-600 dark:text-blue-200"
+            fill="none"
+            stroke="currentColor"
+            viewBox="0 0 24 24"
+          >
             <path
               strokeLinecap="round"
               strokeLinejoin="round"
@@ -26,10 +31,8 @@ export default function LessonScopeSelector({
           </svg>
         </div>
         <div>
-          <h2 className="text-sm font-semibold text-slate-800">Lesson Scope</h2>
-          <p className="text-[11px] text-slate-400">
-            All deliverables will only be generated for the selected lessons.
-          </p>
+          <h2 className="text-sm font-semibold text-slate-900 dark:text-slate-100">Lesson scope</h2>
+          <p className="text-[11px] text-slate-500 dark:text-slate-400">Generate all lessons or a focused subset.</p>
         </div>
       </div>
 
@@ -38,8 +41,8 @@ export default function LessonScopeSelector({
           onClick={() => setLessonScope({ type: 'all' })}
           className={`tactile flex-1 py-2.5 rounded-lg text-xs font-semibold transition-all duration-200 ${
             lessonScope.type === 'all'
-              ? 'bg-indigo-500 text-white shadow-md shadow-indigo-500/20'
-              : 'bg-white/60 text-slate-500 border border-slate-200/60 hover:bg-white/80'
+              ? 'bg-slate-950 text-white shadow-sm dark:bg-white dark:text-slate-950'
+              : 'border border-slate-200 bg-white/80 text-slate-600 hover:bg-white dark:border-slate-700 dark:bg-slate-950/60 dark:text-slate-300 dark:hover:bg-slate-950'
           }`}
         >
           All {total > 0 ? `(${total} lessons)` : 'lessons'}
@@ -48,8 +51,8 @@ export default function LessonScopeSelector({
           onClick={() => setLessonScope({ type: 'specific', indices: lessonScope.indices || [] })}
           className={`tactile flex-1 py-2.5 rounded-lg text-xs font-semibold transition-all duration-200 ${
             lessonScope.type === 'specific'
-              ? 'bg-indigo-500 text-white shadow-md shadow-indigo-500/20'
-              : 'bg-white/60 text-slate-500 border border-slate-200/60 hover:bg-white/80'
+              ? 'bg-slate-950 text-white shadow-sm dark:bg-white dark:text-slate-950'
+              : 'border border-slate-200 bg-white/80 text-slate-600 hover:bg-white dark:border-slate-700 dark:bg-slate-950/60 dark:text-slate-300 dark:hover:bg-slate-950'
           }`}
         >
           Specific lessons
@@ -60,7 +63,7 @@ export default function LessonScopeSelector({
         <div className="space-y-2 animate-spring-in">
           {total === 0 ? (
             isDetectingLessons ? (
-              <p className="text-[11px] text-indigo-500 italic flex items-center gap-1.5">
+              <p className="text-[11px] text-blue-600 italic flex items-center gap-1.5 dark:text-blue-200">
                 <svg className="w-3 h-3 animate-spin flex-shrink-0" fill="none" viewBox="0 0 24 24">
                   <circle className="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" strokeWidth="4" />
                   <path className="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4z" />
@@ -75,13 +78,13 @@ export default function LessonScopeSelector({
           ) : (
             <>
               <div className="flex items-center justify-between mb-1">
-                <span className="text-[10px] font-semibold text-slate-400 uppercase tracking-wider">
+                <span className="text-[10px] font-semibold text-slate-500 uppercase tracking-wider dark:text-slate-400">
                   {lessonScope.indices?.length || 0} of {total} selected
                 </span>
                 <div className="flex gap-2">
                   <button
                     onClick={() => setLessonScope({ type: 'specific', indices: rows.map((r) => r.index) })}
-                    className="text-[10px] font-semibold text-indigo-500 hover:text-indigo-700 transition-colors"
+                    className="text-[10px] font-semibold text-blue-600 hover:text-blue-800 transition-colors dark:text-blue-200"
                   >
                     Select all
                   </button>
@@ -109,11 +112,13 @@ export default function LessonScopeSelector({
                       }}
                       className={`tactile text-left px-3 py-2 rounded-lg text-[11px] transition-all duration-150 ${
                         isSelected
-                          ? 'bg-indigo-500 text-white shadow-sm'
-                          : 'bg-white/60 text-slate-600 border border-slate-200/60 hover:bg-white/90'
+                          ? 'bg-slate-950 text-white shadow-sm dark:bg-white dark:text-slate-950'
+                          : 'border border-slate-200 bg-white/80 text-slate-600 hover:bg-white dark:border-slate-700 dark:bg-slate-950/60 dark:text-slate-300'
                       }`}
                     >
-                      <span className={`font-semibold ${isSelected ? 'text-indigo-100' : 'text-indigo-500'}`}>
+                      <span
+                        className={`font-semibold ${isSelected ? 'text-slate-200 dark:text-slate-500' : 'text-blue-600 dark:text-blue-200'}`}
+                      >
                         #{index + 1}
                       </span>
                       <span className="block truncate mt-0.5">{label}</span>
