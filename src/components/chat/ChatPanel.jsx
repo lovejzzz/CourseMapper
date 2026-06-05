@@ -2514,13 +2514,13 @@ export default function ChatPanel({
 
   return (
     <div
-      className="flex h-full min-h-0 flex-col overflow-hidden rounded-squircle bg-white/72 shadow-glass backdrop-blur-xl"
+      className="flex h-full min-h-0 flex-col overflow-hidden rounded-2xl border border-slate-200/70 bg-white/86 shadow-sm"
       data-print="hide"
     >
       {/* ── Header ── */}
-      <div className="flex items-center gap-2.5 px-4 py-2.5 border-b border-slate-200/40 flex-shrink-0">
+      <div className="flex items-center gap-2.5 px-4 py-3 border-b border-slate-200/70 flex-shrink-0">
         <div
-          className={`w-7 h-7 rounded-xl flex items-center justify-center ${
+          className={`w-7 h-7 rounded-lg flex items-center justify-center ${
             showsAgentIdentity ? 'bg-indigo-50' : 'bg-slate-100'
           }`}
         >

@@ -288,6 +288,7 @@ export default function Landing({
                 <div className="mt-5 flex flex-wrap items-center justify-center gap-2">
                   <button
                     type="button"
+                    data-testid="sample-courses-shuffle"
                     onClick={shuffleCourseExamples}
                     title="Shuffle sample courses"
                     className="tactile rounded-full px-0.5 py-1 text-[10px] font-semibold uppercase tracking-wider text-slate-500 transition-colors hover:text-blue-600 focus:outline-none focus:ring-2 focus:ring-blue-300 dark:text-slate-400 dark:hover:text-blue-200 dark:focus:ring-blue-500/50"

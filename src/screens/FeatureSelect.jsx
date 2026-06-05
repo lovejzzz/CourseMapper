@@ -552,19 +552,19 @@ export default function FeatureSelect({
       </header>
 
       {/* Main */}
-      <main className="flex-1 flex flex-col items-center px-6 py-6 pb-0">
-        <div className="max-w-4xl w-full animate-fade-up">
+      <main className="flex-1 flex flex-col items-center px-6 py-7 pb-0">
+        <div className="max-w-5xl w-full animate-fade-up">
           {/* Title */}
           <div className="text-center mb-8">
             <div className="inline-flex items-center gap-2 px-3 py-1 rounded-full bg-white/50 border border-slate-200/40 text-[10px] font-semibold text-slate-400 uppercase tracking-wider mb-4">
               <span className="w-4 h-4 rounded-full bg-indigo-100 text-indigo-600 flex items-center justify-center text-[9px] font-bold">
                 2
               </span>
-              Choose deliverables
+              Workspace setup
             </div>
-            <h1 className="text-2xl sm:text-3xl font-bold text-slate-800 tracking-tight">What do you need?</h1>
-            <p className="text-sm text-slate-500 mt-2">
-              Pick what to generate. The more you choose, the more aligned everything will be.
+            <h1 className="text-2xl sm:text-3xl font-bold text-slate-900 tracking-tight">Choose materials</h1>
+            <p className="mx-auto mt-2 max-w-xl text-sm text-slate-500">
+              Course Map is included. Add only the teaching materials you want generated now.
             </p>
           </div>
 
@@ -605,20 +605,26 @@ export default function FeatureSelect({
             </div>
           )}
 
-          {/* Select All / Deselect All */}
-          <div className="flex items-center gap-2 mb-4">
+          {/* Selection summary */}
+          <div className="mb-4 flex flex-col gap-3 rounded-2xl border border-slate-200/70 bg-white/82 px-4 py-3 shadow-sm sm:flex-row sm:items-center sm:justify-between">
+            <div>
+              <p className="text-sm font-bold text-slate-800">
+                {selectedCount} material{selectedCount === 1 ? '' : 's'} selected
+              </p>
+              <p className="text-[11px] font-medium text-slate-500">
+                Start lean; you can add more inside the workspace.
+              </p>
+            </div>
             <button
               onClick={allSelected ? deselectAll : selectAll}
-              className="text-[11px] font-semibold text-indigo-500 hover:text-indigo-700 transition-colors"
+              className="w-fit rounded-lg border border-slate-200 bg-white px-3 py-2 text-[11px] font-bold text-slate-600 transition-colors hover:border-indigo-200 hover:bg-indigo-50 hover:text-indigo-700"
             >
-              {allSelected ? 'Deselect all' : 'Select all'}
+              {allSelected ? 'Keep Course Map only' : 'Select all'}
             </button>
-            <span className="text-[10px] text-slate-300">·</span>
-            <span className="text-[11px] font-medium text-slate-400">{selectedCount} selected</span>
           </div>
 
           {/* Feature grid */}
-          <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-3">
+          <div className="grid grid-cols-1 gap-2.5 sm:grid-cols-2 lg:grid-cols-3">
             {visibleFeatures.map((feature) => {
               const isSelected = selected.includes(feature.id);
               const isHovered = hoveredId === feature.id;
@@ -632,26 +638,28 @@ export default function FeatureSelect({
                   onClick={() => toggle(feature.id)}
                   onMouseEnter={() => setHoveredId(feature.id)}
                   onMouseLeave={() => setHoveredId(null)}
-                  className={`tactile group relative text-left rounded-squircle-sm p-4 border-2 transition-all duration-200 ${
+                  className={`tactile group relative text-left rounded-2xl border p-3.5 transition-all duration-200 sm:min-h-[132px] ${
                     isLocked ? 'cursor-default' : ''
                   } ${
-                    isSelected
-                      ? `${c.activeBg} ${c.activeBorder} shadow-md ring-2 ${c.ring}`
-                      : `bg-white/40 ${c.border} hover:bg-white/60 hover:shadow-sm`
+                    isLocked
+                      ? 'bg-slate-950 text-white border-slate-950 shadow-sm sm:col-span-2 lg:col-span-3'
+                      : isSelected
+                        ? 'bg-white border-slate-900 shadow-sm'
+                        : 'bg-white/70 border-slate-200/80 hover:border-slate-300 hover:bg-white'
                   }`}
                 >
                   {/* Checkbox / Lock */}
                   <div
-                    className={`absolute top-3 right-3 w-5 h-5 rounded-md border-2 flex items-center justify-center transition-all duration-200 ${
+                    className={`absolute top-3 right-3 w-5 h-5 rounded-md border flex items-center justify-center transition-all duration-200 ${
                       isLocked
-                        ? `${c.iconBg} ${c.activeBorder}`
+                        ? 'border-white/30 bg-white/15'
                         : isSelected
-                          ? `${c.iconBg} ${c.activeBorder}`
+                          ? 'border-slate-900 bg-slate-900'
                           : 'border-slate-200 bg-white/60'
                     }`}
                   >
                     {isLocked ? (
-                      <svg className={`w-3 h-3 ${c.iconText}`} fill="currentColor" viewBox="0 0 20 20">
+                      <svg className="w-3 h-3 text-white" fill="currentColor" viewBox="0 0 20 20">
                         <path
                           fillRule="evenodd"
                           d="M5 9V7a5 5 0 0110 0v2a2 2 0 012 2v5a2 2 0 01-2 2H5a2 2 0 01-2-2v-5a2 2 0 012-2zm8-2v2H7V7a3 3 0 016 0z"
@@ -659,7 +667,7 @@ export default function FeatureSelect({
                         />
                       </svg>
                     ) : isSelected ? (
-                      <svg className={`w-3 h-3 ${c.iconText}`} fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                      <svg className="w-3 h-3 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                         <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={3} d="M5 13l4 4L19 7" />
                       </svg>
                     ) : null}
@@ -713,19 +721,28 @@ export default function FeatureSelect({
 
                   {/* Icon */}
                   <div
-                    className={`w-9 h-9 rounded-xl ${c.iconBg} flex items-center justify-center mb-3 transition-transform duration-200 ${isHovered ? 'scale-110' : ''}`}
+                    className={`w-8 h-8 rounded-xl flex items-center justify-center mb-3 transition-transform duration-200 ${
+                      isLocked ? 'bg-white/12' : c.iconBg
+                    } ${isHovered ? 'scale-105' : ''}`}
                   >
-                    <svg className={`w-4.5 h-4.5 ${c.iconText}`} fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <svg
+                      className={`w-4.5 h-4.5 ${isLocked ? 'text-white' : c.iconText}`}
+                      fill="none"
+                      stroke="currentColor"
+                      viewBox="0 0 24 24"
+                    >
                       <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={1.5} d={feature.icon} />
                     </svg>
                   </div>
 
                   {/* Title */}
                   <div className="flex items-center gap-2 mb-1.5 pr-6">
-                    <h3 className="text-sm font-semibold text-slate-800">{feature.label}</h3>
+                    <h3 className={`text-sm font-semibold ${isLocked ? 'text-white' : 'text-slate-800'}`}>
+                      {feature.label}
+                    </h3>
                     {isLocked && (
-                      <span className="text-[9px] font-semibold text-indigo-500 bg-indigo-100/80 px-1.5 py-0.5 rounded">
-                        Always included
+                      <span className="text-[9px] font-semibold text-slate-950 bg-white px-1.5 py-0.5 rounded">
+                        Base workspace
                       </span>
                     )}
                     {isCustom && (
@@ -736,7 +753,9 @@ export default function FeatureSelect({
                   </div>
 
                   {/* Description */}
-                  <p className="text-[11px] leading-relaxed text-slate-500 pr-2">{feature.description}</p>
+                  <p className={`text-[11px] leading-relaxed pr-2 ${isLocked ? 'text-slate-300' : 'text-slate-500'}`}>
+                    {feature.description}
+                  </p>
                 </button>
               );
             })}
@@ -749,7 +768,7 @@ export default function FeatureSelect({
               }}
               onMouseEnter={() => setHoveredId('__create__')}
               onMouseLeave={() => setHoveredId(null)}
-              className="tactile group relative text-left rounded-squircle-sm p-4 border-2 border-dashed border-slate-300/60 hover:border-indigo-400 hover:bg-indigo-50/30 transition-all duration-200 flex flex-col items-center justify-center min-h-[140px]"
+              className="tactile group relative flex min-h-[132px] flex-col items-center justify-center rounded-2xl border border-dashed border-slate-300/80 bg-white/45 p-4 text-left transition-all duration-200 hover:border-indigo-300 hover:bg-white"
             >
               <div
                 className={`w-10 h-10 rounded-xl bg-indigo-100/60 flex items-center justify-center mb-3 transition-transform duration-200 ${
@@ -772,7 +791,7 @@ export default function FeatureSelect({
           {/* Next button */}
           <div
             data-testid="feature-select-sticky-action"
-            className="sticky bottom-0 z-20 mt-8 -mx-6 border-t border-slate-200/60 bg-white/80 px-6 py-4 text-center shadow-[0_-16px_36px_rgba(79,70,229,0.08)] backdrop-blur-xl"
+            className="sticky bottom-0 z-20 mt-8 -mx-6 border-t border-slate-200/60 bg-white/88 px-6 py-4 text-center shadow-[0_-16px_36px_rgba(15,23,42,0.06)] backdrop-blur-xl"
           >
             <button
               data-testid="feature-select-continue"
@@ -780,7 +799,7 @@ export default function FeatureSelect({
               disabled={selectedCount === 0}
               className={`tactile btn-glow px-10 py-4 rounded-squircle-xs font-semibold text-sm tracking-wide transition-all duration-300 ${
                 selectedCount > 0
-                  ? 'text-white bg-gradient-to-r from-indigo-500 via-violet-500 to-purple-600 shadow-lg shadow-indigo-500/25 hover:shadow-glow-violet hover:brightness-[1.06]'
+                  ? 'text-white bg-slate-950 shadow-lg shadow-slate-950/12 hover:bg-slate-800'
                   : 'bg-slate-200 text-slate-400 cursor-not-allowed shadow-none'
               }`}
             >

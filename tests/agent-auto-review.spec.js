@@ -183,7 +183,7 @@ test.describe('Agent auto-review', () => {
     await page.locator('textarea').fill('Build a 2-week course for the auto-review regression test.');
     await page.getByRole('button', { name: 'Continue' }).click();
 
-    await expect(page.getByText('Choose deliverables')).toBeVisible({ timeout: 10000 });
+    await expect(page.getByRole('heading', { name: 'Choose materials' })).toBeVisible({ timeout: 10000 });
     await page.getByRole('button', { name: /Lesson Plans/ }).click();
     await page.getByRole('button', { name: /Study Guides/ }).click();
     await page.getByRole('button', { name: /Configure & Generate/ }).click();

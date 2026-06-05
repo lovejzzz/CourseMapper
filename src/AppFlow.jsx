@@ -2929,6 +2929,48 @@ export default function AppFlow({ startupAction = null, onStartupHandled, onRetu
   const activeDeliverableReadyCount = activeDeliverableProgressIds.filter(
     (featureId) => deliv.deliverables?.[featureId]?.status === 'done',
   ).length;
+  const workspaceCourseTitle =
+    String(courseMap?.courseName || '').trim() ||
+    String(promptText || '')
+      .split('\n')[0]
+      .trim()
+      .slice(0, 80) ||
+    'Untitled course';
+  const workspaceLessonCount = Array.isArray(courseMap?.lessons) ? courseMap.lessons.length : 0;
+  const workspaceSaveText =
+    cloudSaveStatus === 'saving'
+      ? 'Saving'
+      : cloudSaveStatus === 'error'
+        ? 'Cloud save failed'
+        : localSaveStatus === 'saving'
+          ? 'Saving'
+          : localSaveStatus === 'error'
+            ? 'Local save failed'
+            : user
+              ? 'Autosaved to My Projects'
+              : 'Autosaved locally';
+  const workspaceSaveTone =
+    cloudSaveStatus === 'error' || localSaveStatus === 'error'
+      ? 'border-red-200 bg-red-50 text-red-700'
+      : cloudSaveStatus === 'saving' || localSaveStatus === 'saving'
+        ? 'border-slate-200 bg-white text-slate-600'
+        : user
+          ? 'border-emerald-200 bg-emerald-50 text-emerald-700'
+          : 'border-slate-200 bg-white text-slate-600';
+  const workspaceSaveTitle = user
+    ? 'Signed-in projects autosave locally and to My Projects.'
+    : 'Anonymous projects autosave only in this browser. Export .coursemapper for a portable backup.';
+  const finishPackageDisabled =
+    !courseMap ||
+    gen.progressStep !== 'done' ||
+    packageQualityPass?.status === 'running' ||
+    !canFinishPackageWithAgent ||
+    typeof handleFinishPackageFromExport !== 'function';
+  const finishPackageTitle = !canFinishPackageWithAgent
+    ? 'Configure a working model/key before package finishing.'
+    : packageQualityPass?.status === 'running'
+      ? 'Package finishing is already running.'
+      : 'Finish, repair, verify, and prepare the package for export.';
 
   const handleTabPointerDown = (feature, tabIdx) => (e) => {
     if (e.button !== 0) return;
@@ -3090,40 +3132,121 @@ export default function AppFlow({ startupAction = null, onStartupHandled, onRetu
 
         <main className="w-full px-4 sm:px-6 pb-10 space-y-4">
           {/* Top bar */}
-          <div className="workspace-header-row flex flex-wrap items-center gap-2 sm:gap-3 animate-spring-in pt-1">
-            <button
-              onClick={() => {
-                setNewProjectError('');
-                setNewProjectCloudSaveFailed(false);
-                setNewProjectConfirm(true);
-              }}
-              className="tactile group flex items-center gap-2 px-3 sm:px-4 py-2 rounded-pill text-xs font-semibold text-slate-500 bg-white/50 border border-slate-200/40 hover:bg-white/70 hover:text-slate-700 shadow-glass transition-all duration-300"
-            >
-              <svg
-                className="w-3.5 h-3.5 group-hover:rotate-90 transition-transform duration-300"
-                fill="none"
-                stroke="currentColor"
-                viewBox="0 0 24 24"
-              >
-                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 4v16m8-8H4" />
-              </svg>
-              New Project
-            </button>
-            <button
-              onClick={() => addMaterialInputRef.current?.click()}
-              disabled={gen.isStreaming || rev.isRevising}
-              className="tactile group flex items-center gap-2 px-3 sm:px-4 py-2 rounded-pill text-xs font-semibold text-sky-600 bg-sky-50/50 border border-sky-200/40 hover:bg-sky-100/70 shadow-glass transition-all duration-300 disabled:opacity-40 disabled:cursor-not-allowed"
-            >
-              <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                <path
-                  strokeLinecap="round"
-                  strokeLinejoin="round"
-                  strokeWidth={2}
-                  d="M7 16a4 4 0 01-.88-7.903A5 5 0 1115.9 6L16 6a5 5 0 011 9.9M15 13l-3-3m0 0l-3 3m3-3v12"
-                />
-              </svg>
-              Add Materials
-            </button>
+          <div className="workspace-header-row animate-spring-in rounded-2xl border border-slate-200/70 bg-white/82 px-4 py-3 shadow-sm">
+            <div className="flex flex-col gap-3 lg:flex-row lg:items-center lg:justify-between">
+              <div className="min-w-0">
+                <p className="text-[10px] font-bold uppercase tracking-wider text-slate-400">Course workspace</p>
+                <div className="mt-0.5 flex min-w-0 flex-wrap items-center gap-x-3 gap-y-1.5">
+                  <h1 className="max-w-[min(620px,80vw)] truncate text-lg font-bold tracking-tight text-slate-950">
+                    {workspaceCourseTitle}
+                  </h1>
+                  {workspaceLessonCount > 0 && (
+                    <span className="rounded-full border border-slate-200 bg-slate-50 px-2 py-0.5 text-[10px] font-bold text-slate-500">
+                      {workspaceLessonCount} lesson{workspaceLessonCount === 1 ? '' : 's'}
+                    </span>
+                  )}
+                </div>
+              </div>
+
+              <div className="flex min-w-0 flex-wrap items-center gap-2">
+                {modelName && (
+                  <span className="rounded-full border border-slate-200 bg-white px-3 py-1 text-[10px] font-bold text-slate-600">
+                    {modelName}
+                  </span>
+                )}
+                {courseMap && (
+                  <span
+                    className={`rounded-full border px-3 py-1 text-[10px] font-bold ${workspaceSaveTone}`}
+                    title={workspaceSaveTitle}
+                  >
+                    {workspaceSaveText}
+                  </span>
+                )}
+                {courseMap && gen.progressStep === 'done' && (
+                  <button
+                    type="button"
+                    data-testid="workspace-finish-package"
+                    onClick={() =>
+                      handleFinishPackageFromExport({
+                        selectedFeatureIds: selectedFeatures,
+                        lessonFilter: lessonScope.type === 'specific' ? lessonScope.indices : null,
+                      })
+                    }
+                    disabled={finishPackageDisabled}
+                    title={finishPackageTitle}
+                    className="tactile inline-flex items-center gap-2 rounded-xl bg-slate-950 px-3.5 py-2 text-xs font-bold text-white shadow-sm transition-colors hover:bg-slate-800 disabled:cursor-not-allowed disabled:bg-slate-200 disabled:text-slate-400"
+                  >
+                    <svg className="h-3.5 w-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                      <path
+                        strokeLinecap="round"
+                        strokeLinejoin="round"
+                        strokeWidth={2.2}
+                        d="M9 12.75 11.25 15 15 9.75M21 12a9 9 0 1 1-18 0 9 9 0 0 1 18 0Z"
+                      />
+                    </svg>
+                    {packageQualityPass?.status === 'running' ? 'Finishing' : 'Finish package'}
+                  </button>
+                )}
+                <details className="relative">
+                  <summary
+                    data-testid="workspace-more-menu-trigger"
+                    className="tactile flex cursor-pointer list-none items-center gap-2 rounded-xl border border-slate-200 bg-white px-3 py-2 text-xs font-bold text-slate-600 transition-colors hover:border-slate-300 hover:bg-slate-50 [&::-webkit-details-marker]:hidden"
+                  >
+                    More
+                    <svg className="h-3.5 w-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                      <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="m19 9-7 7-7-7" />
+                    </svg>
+                  </summary>
+                  <div className="absolute right-0 z-30 mt-2 w-56 overflow-hidden rounded-xl border border-slate-200 bg-white p-1.5 shadow-xl shadow-slate-950/10">
+                    <button
+                      type="button"
+                      data-testid="workspace-menu-new-project"
+                      onClick={() => {
+                        setNewProjectError('');
+                        setNewProjectCloudSaveFailed(false);
+                        setNewProjectConfirm(true);
+                      }}
+                      className="flex w-full items-center gap-2 rounded-lg px-3 py-2 text-left text-xs font-semibold text-slate-700 hover:bg-slate-50"
+                    >
+                      New Project
+                    </button>
+                    <button
+                      type="button"
+                      data-testid="workspace-menu-add-materials"
+                      onClick={() => addMaterialInputRef.current?.click()}
+                      disabled={gen.isStreaming || rev.isRevising}
+                      className="flex w-full items-center gap-2 rounded-lg px-3 py-2 text-left text-xs font-semibold text-slate-700 hover:bg-slate-50 disabled:cursor-not-allowed disabled:opacity-40"
+                    >
+                      Add Materials
+                    </button>
+                    {version.versionHistory.length > 1 && !gen.isStreaming && (
+                      <>
+                        <div className="my-1 border-t border-slate-100" />
+                        <button
+                          type="button"
+                          onClick={version.undo}
+                          disabled={version.activeVersion <= 0}
+                          className="flex w-full items-center gap-2 rounded-lg px-3 py-2 text-left text-xs font-semibold text-slate-700 hover:bg-slate-50 disabled:cursor-not-allowed disabled:opacity-40"
+                        >
+                          Undo
+                        </button>
+                        <button
+                          type="button"
+                          onClick={version.redo}
+                          disabled={version.activeVersion >= version.versionHistory.length - 1}
+                          className="flex w-full items-center gap-2 rounded-lg px-3 py-2 text-left text-xs font-semibold text-slate-700 hover:bg-slate-50 disabled:cursor-not-allowed disabled:opacity-40"
+                        >
+                          Redo
+                        </button>
+                        <p className="px-3 pb-1 pt-0.5 text-[10px] font-medium text-slate-400">
+                          Version {version.activeVersion + 1}/{version.versionHistory.length}
+                        </p>
+                      </>
+                    )}
+                  </div>
+                </details>
+              </div>
+            </div>
             <input
               ref={addMaterialInputRef}
               type="file"
@@ -3132,80 +3255,6 @@ export default function AppFlow({ startupAction = null, onStartupHandled, onRetu
               onChange={handleAddMaterials}
               className="hidden"
             />
-            {modelName && (
-              <span className="ml-auto text-[10px] font-semibold text-indigo-500 bg-indigo-50/60 px-3 py-1 rounded-pill border border-indigo-100/50">
-                {modelName}
-              </span>
-            )}
-            {courseMap && (
-              <span
-                className={`text-[10px] font-semibold px-3 py-1 rounded-pill border ${
-                  cloudSaveStatus === 'error' || localSaveStatus === 'error'
-                    ? 'text-red-500 bg-red-50/60 border-red-100/70'
-                    : cloudSaveStatus === 'saving' || localSaveStatus === 'saving'
-                      ? 'text-slate-500 bg-white/60 border-slate-200/60'
-                      : user
-                        ? 'text-emerald-600 bg-emerald-50/60 border-emerald-100/70'
-                        : 'text-slate-500 bg-white/60 border-slate-200/60'
-                }`}
-                title={
-                  user
-                    ? 'Signed-in projects autosave locally and to My Projects.'
-                    : 'Anonymous projects autosave only in this browser. Export .coursemapper for a portable backup.'
-                }
-              >
-                {cloudSaveStatus === 'saving'
-                  ? 'Saving to My Projects...'
-                  : cloudSaveStatus === 'error'
-                    ? 'Cloud save failed'
-                    : localSaveStatus === 'saving'
-                      ? 'Saving locally...'
-                      : localSaveStatus === 'error'
-                        ? 'Local save failed'
-                        : user
-                          ? 'Autosaved to My Projects'
-                          : 'Autosaved in this browser'}
-              </span>
-            )}
-            {version.versionHistory.length > 1 && !gen.isStreaming && (
-              <div className="flex items-center gap-1">
-                <button
-                  onClick={version.undo}
-                  disabled={version.activeVersion <= 0}
-                  className={`tactile p-2 rounded-full transition-all duration-200 ${version.activeVersion > 0 ? 'text-slate-500 hover:bg-white/60 hover:text-indigo-500' : 'text-slate-300 cursor-not-allowed'}`}
-                  title="Undo"
-                  aria-label="Undo"
-                >
-                  <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                    <path
-                      strokeLinecap="round"
-                      strokeLinejoin="round"
-                      strokeWidth={2}
-                      d="M3 10h10a5 5 0 015 5v2M3 10l4-4M3 10l4 4"
-                    />
-                  </svg>
-                </button>
-                <button
-                  onClick={version.redo}
-                  disabled={version.activeVersion >= version.versionHistory.length - 1}
-                  className={`tactile p-2 rounded-full transition-all duration-200 ${version.activeVersion < version.versionHistory.length - 1 ? 'text-slate-500 hover:bg-white/60 hover:text-indigo-500' : 'text-slate-300 cursor-not-allowed'}`}
-                  title="Redo"
-                  aria-label="Redo"
-                >
-                  <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                    <path
-                      strokeLinecap="round"
-                      strokeLinejoin="round"
-                      strokeWidth={2}
-                      d="M21 10H11a5 5 0 00-5 5v2M21 10l-4-4M21 10l-4 4"
-                    />
-                  </svg>
-                </button>
-                <span className="text-[10px] font-medium text-slate-400">
-                  v{version.activeVersion + 1}/{version.versionHistory.length}
-                </span>
-              </div>
-            )}
           </div>
 
           {/* ── Deliverable tabs ── */}

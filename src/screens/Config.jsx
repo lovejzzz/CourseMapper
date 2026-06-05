@@ -1941,6 +1941,7 @@ export default function Config({
   // Merge built-in + custom features for the config accordion
   const allFeatures = [...FEATURES, ...listCustomDeliverables().map(toFeatureEntry)];
   const configurableFeatures = allFeatures.filter((f) => selected.includes(f.id));
+  const selectedMaterialCount = Math.max(0, configurableFeatures.length - 1);
 
   const scopeDescription = (() => {
     if (lessonScope.type === 'all') {
@@ -1986,8 +1987,8 @@ export default function Config({
         </header>
 
         {/* Main */}
-        <main className="flex-1 flex flex-col items-center px-6 py-6 pb-0">
-          <div className="max-w-2xl w-full animate-fade-up space-y-5">
+        <main className="flex-1 flex flex-col items-center px-6 py-7 pb-0">
+          <div className="max-w-3xl w-full animate-fade-up space-y-5">
             {/* Step badge + title */}
             <div className="text-center mb-2">
               <div className="inline-flex items-center gap-2 px-3 py-1 rounded-full bg-white/50 border border-slate-200/40 text-[10px] font-semibold text-slate-400 uppercase tracking-wider mb-4">
@@ -1996,109 +1997,133 @@ export default function Config({
                 </span>
                 Configure
               </div>
-              <h1 className="text-2xl sm:text-3xl font-bold text-slate-800 tracking-tight">Configure generation</h1>
-              <p className="text-sm text-slate-500 mt-2">Set the lesson scope and customize each deliverable.</p>
+              <h1 className="text-2xl sm:text-3xl font-bold text-slate-900 tracking-tight">Configure generation</h1>
+              <p className="mx-auto mt-2 max-w-xl text-sm text-slate-500">
+                Defaults are ready. Set the lesson scope, then open a material only if it needs special instructions.
+              </p>
             </div>
 
-            {/* ── Lesson Scope ── */}
-            <LessonScopeSelector
-              lessonCount={lessonCount}
-              isDetectingLessons={isDetectingLessons}
-              courseMap={courseMap}
-              lessonScope={lessonScope}
-              setLessonScope={setLessonScope}
-            />
-
-            <AdvancedSection label="Advanced course and model settings" testId="config-top-advanced">
-              <ModelTuningSummary modelLabel={modelLabel} plan={modelConfigPlan} />
-              <InstitutionProfileCard uid={user?.uid || null} />
-            </AdvancedSection>
-
-            {/* ── Deliverable configs ── */}
-            {configurableFeatures.length > 0 && (
-              <div className="space-y-2">
-                <p className="text-[10px] font-semibold text-slate-400 uppercase tracking-wider px-1">
-                  Deliverable settings
-                </p>
-                {configurableFeatures.map((feature) => {
-                  const config = deliverableConfig[feature.id] || {};
-                  const c = COLOR_MAP[feature.color] || COLOR_MAP.indigo;
-                  const isExpanded = expandedId === feature.id;
-
-                  const delivData = deliverables?.[feature.id]?.data;
-                  const panel = (
-                    <DeliverableConfigContent
-                      featureId={feature.id}
-                      config={config}
-                      onChange={(next) =>
-                        setDeliverableConfig((prev) => ({
-                          ...prev,
-                          [feature.id]: typeof next === 'function' ? next(prev[feature.id] || {}) : next,
-                        }))
-                      }
-                      columns={columns}
-                      setColumns={setColumns}
-                      delivData={delivData}
-                      courseMap={courseMap}
-                      promptText={promptText}
-                      lessonCount={lessonCount}
-                      provider={provider}
-                      apiKey={apiKey}
-                      modelConfigPlan={modelConfigPlan}
-                    />
-                  );
-
-                  return (
-                    <div
-                      key={feature.id}
-                      className={`rounded-squircle-xs border overflow-hidden transition-all duration-200 ${
-                        isExpanded ? `${c.activeBg} ${c.activeBorder}` : 'bg-white/40 border-slate-200/50'
-                      }`}
-                    >
-                      {/* Accordion header */}
-                      <button
-                        onClick={() => setExpandedId(isExpanded ? null : feature.id)}
-                        className="w-full flex items-center gap-3 px-4 py-3 text-left"
-                        aria-expanded={isExpanded}
-                        aria-label={`${isExpanded ? 'Collapse' : 'Expand'} ${feature.label} settings`}
-                      >
-                        <div
-                          className={`w-7 h-7 rounded-lg ${c.iconBg} flex items-center justify-center flex-shrink-0`}
-                        >
-                          <svg
-                            className={`w-3.5 h-3.5 ${c.iconText}`}
-                            fill="none"
-                            stroke="currentColor"
-                            viewBox="0 0 24 24"
-                          >
-                            <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={1.5} d={feature.icon} />
-                          </svg>
-                        </div>
-                        <span className="text-xs font-semibold text-slate-700 flex-1">{feature.label}</span>
-                        <svg
-                          className={`w-3.5 h-3.5 text-slate-400 transition-transform duration-200 ${isExpanded ? 'rotate-180' : ''}`}
-                          fill="none"
-                          stroke="currentColor"
-                          viewBox="0 0 24 24"
-                        >
-                          <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M19 9l-7 7-7-7" />
-                        </svg>
-                      </button>
-
-                      {/* Config panel */}
-                      {isExpanded && (
-                        <div className="px-4 pb-4 pt-1 border-t border-slate-100/60 animate-spring-in">{panel}</div>
-                      )}
-                    </div>
-                  );
-                })}
+            <div className="rounded-[28px] border border-slate-200/70 bg-white/84 p-4 shadow-sm sm:p-5">
+              <div className="mb-4 flex flex-col gap-2 border-b border-slate-100 pb-4 sm:flex-row sm:items-center sm:justify-between">
+                <div>
+                  <p className="text-sm font-bold text-slate-800">Ready to generate</p>
+                  <p className="text-[11px] font-medium text-slate-500">
+                    Course Map plus {selectedMaterialCount} selected material{selectedMaterialCount === 1 ? '' : 's'}.
+                  </p>
+                </div>
+                <span className="w-fit rounded-full border border-slate-200 bg-slate-50 px-3 py-1 text-[11px] font-bold text-slate-600">
+                  {scopeDescription}
+                </span>
               </div>
-            )}
+
+              <div className="space-y-5">
+                {/* ── Lesson Scope ── */}
+                <LessonScopeSelector
+                  lessonCount={lessonCount}
+                  isDetectingLessons={isDetectingLessons}
+                  courseMap={courseMap}
+                  lessonScope={lessonScope}
+                  setLessonScope={setLessonScope}
+                />
+
+                <AdvancedSection label="Advanced course and model settings" testId="config-top-advanced">
+                  <ModelTuningSummary modelLabel={modelLabel} plan={modelConfigPlan} />
+                  <InstitutionProfileCard uid={user?.uid || null} />
+                </AdvancedSection>
+
+                {/* ── Deliverable configs ── */}
+                {configurableFeatures.length > 0 && (
+                  <div className="space-y-2">
+                    <div className="flex items-end justify-between gap-3 px-1">
+                      <p className="text-[10px] font-semibold text-slate-400 uppercase tracking-wider">
+                        Fine-tune materials
+                      </p>
+                      <p className="text-[10px] font-medium text-slate-400">Optional</p>
+                    </div>
+                    {configurableFeatures.map((feature) => {
+                      const config = deliverableConfig[feature.id] || {};
+                      const c = COLOR_MAP[feature.color] || COLOR_MAP.indigo;
+                      const isExpanded = expandedId === feature.id;
+
+                      const delivData = deliverables?.[feature.id]?.data;
+                      const panel = (
+                        <DeliverableConfigContent
+                          featureId={feature.id}
+                          config={config}
+                          onChange={(next) =>
+                            setDeliverableConfig((prev) => ({
+                              ...prev,
+                              [feature.id]: typeof next === 'function' ? next(prev[feature.id] || {}) : next,
+                            }))
+                          }
+                          columns={columns}
+                          setColumns={setColumns}
+                          delivData={delivData}
+                          courseMap={courseMap}
+                          promptText={promptText}
+                          lessonCount={lessonCount}
+                          provider={provider}
+                          apiKey={apiKey}
+                          modelConfigPlan={modelConfigPlan}
+                        />
+                      );
+
+                      return (
+                        <div
+                          key={feature.id}
+                          className={`overflow-hidden rounded-xl border transition-all duration-200 ${
+                            isExpanded ? 'border-slate-900 bg-white' : 'border-slate-200/70 bg-white/65'
+                          }`}
+                        >
+                          {/* Accordion header */}
+                          <button
+                            onClick={() => setExpandedId(isExpanded ? null : feature.id)}
+                            className="w-full flex items-center gap-3 px-4 py-3 text-left"
+                            aria-expanded={isExpanded}
+                            aria-label={`${isExpanded ? 'Collapse' : 'Expand'} ${feature.label} settings`}
+                          >
+                            <div
+                              className={`w-7 h-7 rounded-lg ${c.iconBg} flex items-center justify-center flex-shrink-0`}
+                            >
+                              <svg
+                                className={`w-3.5 h-3.5 ${c.iconText}`}
+                                fill="none"
+                                stroke="currentColor"
+                                viewBox="0 0 24 24"
+                              >
+                                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={1.5} d={feature.icon} />
+                              </svg>
+                            </div>
+                            <span className="text-xs font-semibold text-slate-800 flex-1">{feature.label}</span>
+                            <span className="hidden rounded-full bg-slate-100 px-2 py-0.5 text-[10px] font-bold text-slate-500 sm:inline-flex">
+                              {isExpanded ? 'Open' : 'Default'}
+                            </span>
+                            <svg
+                              className={`w-3.5 h-3.5 text-slate-400 transition-transform duration-200 ${isExpanded ? 'rotate-180' : ''}`}
+                              fill="none"
+                              stroke="currentColor"
+                              viewBox="0 0 24 24"
+                            >
+                              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M19 9l-7 7-7-7" />
+                            </svg>
+                          </button>
+
+                          {/* Config panel */}
+                          {isExpanded && (
+                            <div className="px-4 pb-4 pt-1 border-t border-slate-100/80 animate-spring-in">{panel}</div>
+                          )}
+                        </div>
+                      );
+                    })}
+                  </div>
+                )}
+              </div>
+            </div>
 
             {/* ── Generate button ── */}
             <div
               data-testid="config-sticky-action"
-              className="sticky bottom-0 z-20 -mx-6 border-t border-slate-200/60 bg-white/80 px-6 py-4 shadow-[0_-16px_36px_rgba(79,70,229,0.08)] backdrop-blur-xl"
+              className="sticky bottom-0 z-20 -mx-6 border-t border-slate-200/60 bg-white/88 px-6 py-4 shadow-[0_-16px_36px_rgba(15,23,42,0.06)] backdrop-blur-xl"
             >
               {lessonScope.type === 'specific' && !scopeValid && (
                 <p className="text-center text-[11px] text-amber-500 mb-2">Select at least one lesson to continue.</p>
@@ -2109,7 +2134,7 @@ export default function Config({
                 disabled={!canGenerate || !scopeValid}
                 className={`tactile btn-glow w-full py-4 rounded-squircle-xs font-semibold text-sm tracking-wide transition-all duration-300 ${
                   canGenerate && scopeValid
-                    ? 'text-white bg-gradient-to-r from-indigo-500 via-violet-500 to-purple-600 shadow-lg shadow-indigo-500/25 hover:shadow-glow-violet hover:brightness-[1.06]'
+                    ? 'text-white bg-slate-950 shadow-lg shadow-slate-950/12 hover:bg-slate-800'
                     : 'bg-slate-200 text-slate-400 cursor-not-allowed shadow-none'
                 }`}
               >

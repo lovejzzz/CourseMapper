@@ -967,13 +967,13 @@ export default function ExportSidePanel({
   return (
     <div
       data-testid="export-side-panel"
-      className="export-side-panel flex flex-col gap-4 w-full lg:w-56 lg:flex-shrink-0"
+      className="export-side-panel flex flex-col gap-4 w-full lg:w-64 lg:flex-shrink-0"
     >
       {/* ── Panel card ── */}
-      <div className="glass rounded-squircle-sm shadow-glass p-4 space-y-4 animate-spring-in">
+      <div className="rounded-2xl border border-slate-200/70 bg-white/86 p-4 shadow-sm space-y-4 animate-spring-in">
         {/* Header */}
-        <div className="flex items-center gap-2">
-          <div className="w-6 h-6 rounded-lg bg-gradient-to-br from-indigo-500 to-violet-600 flex items-center justify-center flex-shrink-0 shadow-sm">
+        <div className="flex items-start gap-2">
+          <div className="w-7 h-7 rounded-lg bg-slate-950 flex items-center justify-center flex-shrink-0 shadow-sm">
             <svg className="w-3.5 h-3.5 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24">
               <path
                 strokeLinecap="round"
@@ -983,7 +983,10 @@ export default function ExportSidePanel({
               />
             </svg>
           </div>
-          <span className="text-xs font-bold text-slate-700">Export</span>
+          <div className="min-w-0">
+            <span className="text-xs font-bold text-slate-800">Export</span>
+            <p className="mt-0.5 text-[10px] font-medium leading-snug text-slate-500">Finish, verify, then download.</p>
+          </div>
         </div>
 
         {/* ── Scope toggle ── */}
@@ -1023,6 +1026,26 @@ export default function ExportSidePanel({
             </>
           )}
         </p>
+
+        {scope === 'all' && (
+          <button
+            type="button"
+            data-testid="export-finish-package-primary"
+            onClick={() => finishPackageForExport('zip', workspaceReadiness, 'all')}
+            disabled={
+              !canFinishPackage ||
+              finishPackageBusy ||
+              isPackageQualityRunning ||
+              allReadyCount === 0 ||
+              !courseMap ||
+              (selectedLessons !== null && selectedLessons.length === 0)
+            }
+            className="tactile flex w-full items-center justify-center gap-2 rounded-xl bg-slate-950 px-3 py-2.5 text-[12px] font-bold text-white shadow-sm transition-colors hover:bg-slate-800 disabled:cursor-not-allowed disabled:bg-slate-200 disabled:text-slate-400"
+          >
+            {finishPackageBusy || isPackageQualityRunning ? <Spin /> : null}
+            {finishPackageBusy || isPackageQualityRunning ? 'Finishing package' : 'Finish package'}
+          </button>
+        )}
 
         {showReadinessFinalizing ? (
           <ReadinessFinalizingPanel finishingPackage={finishPackageBusy} message={packageQualityPass?.message} />

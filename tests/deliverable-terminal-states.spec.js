@@ -124,7 +124,7 @@ test.describe('All-deliverables terminal states', () => {
     await page.locator('textarea').fill('Build a 4-week course about testing deliverable terminal states.');
     await page.getByRole('button', { name: 'Continue' }).click();
 
-    await expect(page.locator('text=Choose deliverables')).toBeVisible({ timeout: 10000 });
+    await expect(page.getByRole('heading', { name: 'Choose materials' })).toBeVisible({ timeout: 10000 });
     await page.getByRole('button', { name: /Lesson Plans/ }).click();
     await page
       .locator('button')

@@ -73,7 +73,7 @@ test.describe('Landing Page', () => {
     const chips = page.getByTestId('course-example-chip');
     const before = await chips.allTextContents();
 
-    await page.getByRole('button', { name: 'Try' }).click();
+    await page.getByTestId('sample-courses-shuffle').click();
 
     await expect
       .poll(async () => (await chips.allTextContents()).join('|'), { timeout: 5000 })
@@ -273,7 +273,8 @@ test.describe('Landing Page', () => {
     await page.getByRole('button', { name: 'Resume' }).click();
     await expect(page.getByText('Course Map Preview')).toBeVisible({ timeout: 10000 });
 
-    await page.getByRole('button', { name: 'New Project', exact: true }).click();
+    await page.getByTestId('workspace-more-menu-trigger').click();
+    await page.getByTestId('workspace-menu-new-project').click();
     await expect(page.getByText('Start a new project?')).toBeVisible();
     await page.getByRole('button', { name: 'Start New Project', exact: true }).click();
 
@@ -517,7 +518,7 @@ test.describe('Lazy Shell', () => {
 
     await page.getByTestId('course-example-chip').first().click();
     await page.locator('button:has-text("Continue")').click();
-    await expect(page.locator('text=Choose deliverables')).toBeVisible({ timeout: 10000 });
+    await expect(page.getByRole('heading', { name: 'Choose materials' })).toBeVisible({ timeout: 10000 });
     expect(appFlowRequests.length, 'AppFlow should be requested after leaving landing').toBeGreaterThan(0);
   });
 });
@@ -561,7 +562,7 @@ test.describe('Configure Generation', () => {
     await page.locator('textarea').fill('Build an 8-lesson Spanish for Healthcare Professionals course.');
     await page.getByRole('button', { name: 'Continue' }).click();
 
-    await expect(page.locator('text=Choose deliverables')).toBeVisible({ timeout: 10000 });
+    await expect(page.getByRole('heading', { name: 'Choose materials' })).toBeVisible({ timeout: 10000 });
     await expect(page.getByTestId('feature-select-sticky-action')).toBeInViewport({ ratio: 0.9 });
     await expect(page.getByTestId('feature-select-continue')).toBeInViewport({ ratio: 0.9 });
     await page.getByTestId('feature-select-continue').click();
@@ -611,7 +612,7 @@ test.describe('Configure Generation', () => {
     await page.locator('textarea').fill('Build a 12-lesson course with a student FAQ.');
     await page.getByRole('button', { name: 'Continue' }).click();
 
-    await expect(page.locator('text=Choose deliverables')).toBeVisible({ timeout: 10000 });
+    await expect(page.getByRole('heading', { name: 'Choose materials' })).toBeVisible({ timeout: 10000 });
     await page.getByRole('button', { name: /Course FAQ/ }).click();
     await page.getByRole('button', { name: /Configure & Generate/ }).click();
 
@@ -680,7 +681,7 @@ test.describe('Configure Generation', () => {
     await page.locator('textarea').fill('Build a 12-lesson course with slide decks.');
     await page.getByRole('button', { name: 'Continue' }).click();
 
-    await expect(page.locator('text=Choose deliverables')).toBeVisible({ timeout: 10000 });
+    await expect(page.getByRole('heading', { name: 'Choose materials' })).toBeVisible({ timeout: 10000 });
     await page.getByRole('button', { name: /Slide Decks/ }).click();
     await page.getByRole('button', { name: /Configure & Generate/ }).click();
 
@@ -729,7 +730,7 @@ test.describe('Configure Generation', () => {
     await page.locator('textarea').fill('Build a 12-lesson course with reusable institution policies.');
     await page.getByRole('button', { name: 'Continue' }).click();
 
-    await expect(page.locator('text=Choose deliverables')).toBeVisible({ timeout: 10000 });
+    await expect(page.getByRole('heading', { name: 'Choose materials' })).toBeVisible({ timeout: 10000 });
     await page.getByRole('button', { name: /Course FAQ/ }).click();
     await page.getByRole('button', { name: /Configure & Generate/ }).click();
 

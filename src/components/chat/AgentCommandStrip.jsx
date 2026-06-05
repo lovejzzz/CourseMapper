@@ -397,7 +397,11 @@ export default function AgentCommandStrip({
   });
 
   return (
-    <div data-testid="agent-command-strip" className="flex-shrink-0 border-b border-slate-200/40 px-3.5 py-2">
+    <div data-testid="agent-command-strip" className="flex-shrink-0 border-b border-slate-200/70 px-3.5 py-2">
+      <div className="mb-1 flex items-center justify-between gap-2">
+        <p className="text-[10px] font-bold uppercase tracking-wider text-slate-400">Suggestions</p>
+        <p className="text-[10px] font-medium text-slate-400">Type naturally, or pick one.</p>
+      </div>
       <div data-testid="agent-command-strip-actions" className="flex min-w-0 flex-wrap items-center gap-1.5 pb-0.5">
         {items.map((item) => (
           <button
@@ -407,10 +411,12 @@ export default function AgentCommandStrip({
             onClick={() => (item.id === 'configure-agent' ? onConfigureAI?.() : onCommand?.(item))}
             disabled={item.id === 'configure-agent' ? false : disabled}
             title={item.title}
-            className={`tactile inline-flex min-h-[28px] max-w-full shrink-0 items-center gap-1.5 rounded-lg border px-2.5 py-1 text-[11px] font-bold shadow-sm transition-all disabled:cursor-not-allowed disabled:opacity-50 ${
+            className={`tactile inline-flex min-h-[28px] max-w-full shrink-0 items-center gap-1.5 rounded-lg border px-2.5 py-1 text-[11px] font-bold transition-all disabled:cursor-not-allowed disabled:opacity-50 ${
               item.id === 'configure-agent'
                 ? 'border-amber-200/70 bg-amber-50 text-amber-700 hover:bg-amber-100/80'
-                : 'border-slate-200/70 bg-white/65 text-slate-600 hover:border-indigo-200/80 hover:bg-indigo-50/80 hover:text-indigo-700'
+                : item.id === 'finish-package'
+                  ? 'border-slate-900 bg-slate-950 text-white hover:bg-slate-800'
+                  : 'border-slate-200/70 bg-white/65 text-slate-600 hover:border-indigo-200/80 hover:bg-indigo-50/80 hover:text-indigo-700'
             }`}
           >
             <CommandIcon icon={item.icon} />
