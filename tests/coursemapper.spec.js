@@ -32,8 +32,9 @@ test.describe('Landing Page', () => {
   test('renders logo and tagline', async ({ page }) => {
     await expect(page.locator('img[alt="EduTool.dev"]')).toBeVisible();
     await expect(page.locator('h1')).toHaveText('Everything you need to teach/learn a course.');
-    await expect(page.getByText('Start with what you have.')).toBeVisible();
     await expect(page.getByText('Start a course workspace')).toBeVisible();
+    await expect(page.getByText('Start with what you have.')).toHaveCount(0);
+    await expect(page.getByText('From source to package')).toHaveCount(0);
   });
 
   test('keeps the headline on one line at desktop width', async ({ page }) => {
@@ -68,11 +69,11 @@ test.describe('Landing Page', () => {
     await expect(page.getByTestId('course-example-chip')).toHaveCount(0);
   });
 
-  test('shuffle button refreshes the visible sample courses', async ({ page }) => {
+  test('sample courses label refreshes the visible sample courses', async ({ page }) => {
     const chips = page.getByTestId('course-example-chip');
     const before = await chips.allTextContents();
 
-    await page.getByRole('button', { name: 'Shuffle sample courses' }).click();
+    await page.getByRole('button', { name: 'Sample courses' }).click();
 
     await expect
       .poll(async () => (await chips.allTextContents()).join('|'), { timeout: 5000 })

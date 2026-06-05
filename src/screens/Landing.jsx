@@ -32,23 +32,6 @@ const ACCEPTED_EXTENSIONS = [
 
 const PROJECT_EXTENSIONS = ['.coursemapper', '.json'];
 
-const LANDING_WORKFLOW = [
-  {
-    title: 'Map the course',
-    body: 'Detect lessons, objectives, workload, and source coverage before drafting materials.',
-  },
-  {
-    title: 'Build the package',
-    body: 'Compile course maps, rubrics, slides, assignments, prompts, quizzes, and study aids from one workspace.',
-  },
-  {
-    title: 'Verify before export',
-    body: 'Run readiness checks, catch missing pieces, and keep recoverable projects useful across sessions.',
-  },
-];
-
-const LANDING_SIGNALS = ['Course map', 'Teaching materials', 'Quality checks', 'Export-ready files'];
-
 export const COURSE_EXAMPLES = [
   {
     label: '🧠 Intro to Psychology',
@@ -287,100 +270,29 @@ export default function Landing({
         </div>
       </header>
 
-      <main className="flex-1 px-5 pb-8 pt-1 sm:px-8">
-        <div className="mx-auto flex w-full max-w-6xl flex-col">
-          <section className="mx-auto max-w-5xl text-center animate-fade-up">
-            <p className="text-[11px] font-semibold uppercase tracking-[0.28em] text-blue-600 dark:text-blue-300">
-              Course package studio
-            </p>
-            <h1 className="mt-4 text-3xl font-semibold leading-[1.08] text-slate-950 dark:text-white sm:text-4xl md:whitespace-nowrap">
+      <main className="flex-1 px-5 pb-8 pt-10 sm:px-8 md:pt-14">
+        <div className="mx-auto flex w-full max-w-4xl flex-col">
+          <section className="text-center animate-fade-up">
+            <h1 className="text-3xl font-semibold leading-[1.08] text-slate-950 dark:text-white sm:text-4xl md:whitespace-nowrap">
               Everything you need to teach/learn a course.
             </h1>
-            <p className="mx-auto mt-4 max-w-2xl text-sm leading-6 text-slate-600 dark:text-slate-300">
-              Start with what you have. CourseMapper turns a rough idea, syllabus, or saved project into an editable
-              teaching workspace with checks and exports built in.
-            </p>
           </section>
 
-          <section className="mt-8 grid gap-6 lg:grid-cols-[0.78fr_1.22fr] lg:items-center">
-            <aside className="hidden space-y-6 pr-4 lg:block">
-              <div>
-                <p className="text-[11px] font-semibold uppercase tracking-[0.24em] text-slate-500 dark:text-slate-400">
-                  From source to package
-                </p>
-                <div className="mt-4 space-y-4">
-                  {LANDING_WORKFLOW.map((item, index) => (
-                    <div key={item.title} className="flex gap-4">
-                      <div className="mt-0.5 flex h-7 w-7 flex-shrink-0 items-center justify-center rounded-full border border-blue-200 bg-blue-50 text-[11px] font-bold text-blue-700 dark:border-blue-400/30 dark:bg-blue-400/10 dark:text-blue-200">
-                        {index + 1}
-                      </div>
-                      <div>
-                        <h2 className="text-sm font-semibold text-slate-800 dark:text-slate-100">{item.title}</h2>
-                        <p className="mt-1 text-[12px] leading-5 text-slate-500 dark:text-slate-400">{item.body}</p>
-                      </div>
-                    </div>
-                  ))}
-                </div>
-              </div>
-
-              <div className="border-t border-slate-200/80 pt-5 dark:border-slate-700/70">
-                <p className="text-[11px] font-semibold uppercase tracking-[0.24em] text-slate-500 dark:text-slate-400">
-                  Built for
-                </p>
-                <div className="mt-3 grid grid-cols-2 gap-x-5 gap-y-2">
-                  {LANDING_SIGNALS.map((signal) => (
-                    <div
-                      key={signal}
-                      className="flex items-center gap-2 text-[12px] font-medium text-slate-600 dark:text-slate-300"
-                    >
-                      <span className="h-1.5 w-1.5 rounded-full bg-blue-500" />
-                      {signal}
-                    </div>
-                  ))}
-                </div>
-              </div>
-            </aside>
-
+          <div className="mt-8">
             <section className="rounded-[28px] border border-slate-200/80 bg-white/80 p-4 shadow-[0_24px_80px_rgba(15,23,42,0.08)] backdrop-blur-xl dark:border-slate-700/80 dark:bg-slate-950/70 dark:shadow-[0_24px_80px_rgba(0,0,0,0.35)] sm:p-5">
-              <div className="flex flex-col gap-3 sm:flex-row sm:items-start sm:justify-between">
-                <div>
-                  <h2 className="text-base font-semibold text-slate-900 dark:text-white">Start a course workspace</h2>
-                  <p className="mt-1 text-[12px] leading-5 text-slate-500 dark:text-slate-400">
-                    Paste a brief, attach source files, or reopen an existing project.
-                  </p>
-                </div>
-                <div
-                  className={`inline-flex w-fit items-center gap-2 rounded-full border px-3 py-1 text-[11px] font-semibold ${
-                    isReady
-                      ? 'border-emerald-200 bg-emerald-50 text-emerald-700 dark:border-emerald-400/30 dark:bg-emerald-400/10 dark:text-emerald-200'
-                      : 'border-slate-200 bg-slate-50 text-slate-500 dark:border-slate-700 dark:bg-slate-900 dark:text-slate-400'
-                  }`}
-                >
-                  <span className={`h-1.5 w-1.5 rounded-full ${isReady ? 'bg-emerald-500' : 'bg-slate-400'}`} />
-                  {isReady ? 'Ready' : 'Model required'}
-                </div>
+              <div>
+                <h2 className="text-base font-semibold text-slate-900 dark:text-white">Start a course workspace</h2>
               </div>
 
               {!promptText && files.length === 0 && (
                 <div className="mt-5 flex flex-wrap items-center gap-2">
-                  <span className="text-[10px] font-semibold uppercase tracking-wider text-slate-500 dark:text-slate-400">
-                    Sample courses
-                  </span>
                   <button
                     type="button"
                     onClick={shuffleCourseExamples}
-                    aria-label="Shuffle sample courses"
                     title="Shuffle sample courses"
-                    className="tactile flex h-7 w-7 items-center justify-center rounded-full border border-slate-200 bg-white text-slate-500 transition-all duration-200 hover:border-blue-200 hover:bg-blue-50 hover:text-blue-600 dark:border-slate-700 dark:bg-slate-900 dark:text-slate-400 dark:hover:border-blue-400/40 dark:hover:bg-blue-400/10 dark:hover:text-blue-200"
+                    className="tactile rounded-full px-0.5 py-1 text-[10px] font-semibold uppercase tracking-wider text-slate-500 transition-colors hover:text-blue-600 focus:outline-none focus:ring-2 focus:ring-blue-300 dark:text-slate-400 dark:hover:text-blue-200 dark:focus:ring-blue-500/50"
                   >
-                    <svg className="h-3.5 w-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                      <path
-                        strokeLinecap="round"
-                        strokeLinejoin="round"
-                        strokeWidth={2}
-                        d="M4 4v6h6M20 20v-6h-6M5.64 18.36A9 9 0 0018.36 5.64M18.36 5.64H14m4.36 0V10M5.64 18.36H10m-4.36 0V14"
-                      />
-                    </svg>
+                    Sample courses
                   </button>
                   {visibleCourseExamples.map(({ label, text }) => (
                     <button
@@ -643,7 +555,7 @@ export default function Landing({
                 )}
               </button>
             </section>
-          </section>
+          </div>
         </div>
       </main>
 

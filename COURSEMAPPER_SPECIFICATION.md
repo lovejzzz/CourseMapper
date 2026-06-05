@@ -24,7 +24,7 @@ CourseMapper has four main screens, connected by a linear flow with the ability 
 The landing page is where everything begins. It serves three purposes: configure the AI connection, provide course materials, and restore previous sessions.
 
 **Visual Layout:**
-The page uses a workspace-style landing layout with the EduTool.dev logo in the top bar, the headline "Everything you need to teach/learn a course", a short product-confidence line, a "From source to package" workflow rail, and one focused start panel. The start panel combines sample courses, source file upload, free-text course instructions, AI configuration, and the Continue action.
+The page uses a simplified workspace-style landing layout with the EduTool.dev logo in the top bar, the headline "Everything you need to teach/learn a course", and one centered start panel. The start panel combines sample courses, source file upload, free-text course instructions, AI configuration, and the Continue action.
 
 **File Upload:**
 The upload zone accepts drag-and-drop or click-to-browse file selection. It supports over 18 file formats including Word documents, PDFs, plain text, Markdown, rich text, spreadsheets (Excel, CSV), presentations (PowerPoint), HTML, ePub, and ZIP archives containing any of these. When files are dropped, they appear as a list showing file name and size, with a remove button on each.
