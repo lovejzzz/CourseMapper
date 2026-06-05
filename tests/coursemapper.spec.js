@@ -30,7 +30,7 @@ test.describe('Landing Page', () => {
   });
 
   test('renders logo and tagline', async ({ page }) => {
-    await expect(page.locator('img[alt="Course Mapper"]')).toBeVisible();
+    await expect(page.locator('img[alt="EduTool.dev"]')).toBeVisible();
     await expect(page.locator('h1')).toHaveText('Everything you need to teach/learn a course.');
     await expect(page.locator('text=Describe your course')).toBeVisible();
   });
@@ -952,7 +952,7 @@ test.describe('Responsiveness', () => {
     await expect(page.locator('h1')).toBeVisible();
     await expect(page.locator('textarea')).toBeVisible();
 
-    const logo = page.locator('img[alt="Course Mapper"]');
+    const logo = page.locator('img[alt="EduTool.dev"]');
     const box = await logo.boundingBox();
     expect(box.width).toBeLessThanOrEqual(375);
   });
@@ -1123,7 +1123,7 @@ test.describe('Layout & Visual', () => {
 
   test('logo loads successfully', async ({ page }) => {
     await loadApp(page);
-    const logo = page.locator('img[alt="Course Mapper"]');
+    const logo = page.locator('img[alt="EduTool.dev"]');
     await expect(logo).toBeVisible();
     // Check the image actually loaded (naturalWidth > 0)
     const loaded = await logo.evaluate((img) => img.naturalWidth > 0);
@@ -1315,12 +1315,12 @@ test.describe('Static Pages', () => {
   test('changelog page has header with logo', async ({ page }) => {
     await page.goto('/#/changelog');
     // Router renders landing (display:none) + changelog; pick the visible (last) logo
-    await expect(page.locator('img[alt="Course Mapper"]').last()).toBeVisible({ timeout: 10000 });
+    await expect(page.locator('img[alt="EduTool.dev"]').last()).toBeVisible({ timeout: 10000 });
   });
 
   test('privacy page has header with logo', async ({ page }) => {
     await page.goto('/#/privacy');
-    await expect(page.locator('img[alt="Course Mapper"]').last()).toBeVisible({ timeout: 10000 });
+    await expect(page.locator('img[alt="EduTool.dev"]').last()).toBeVisible({ timeout: 10000 });
   });
 });
 

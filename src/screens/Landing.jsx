@@ -270,8 +270,8 @@ export default function Landing({
           <div className="text-center">
             <img
               src={`${import.meta.env.BASE_URL}CMlogo.png`}
-              alt="Course Mapper"
-              className="h-20 sm:h-24 w-auto mx-auto object-contain"
+              alt="EduTool.dev"
+              className="h-28 sm:h-32 w-auto mx-auto object-contain"
             />
           </div>
 

@@ -20,14 +20,11 @@ export default function Header({
 
         <div className="flex items-center justify-between w-full">
           <a href="#/" className="flex items-center" aria-label="Course Mapper home">
-            {/* Crop the subtitle from the bottom of the logo image */}
-            <div className={`overflow-hidden ${compact ? 'h-8' : 'h-16 sm:h-20 md:h-24'}`}>
-              <img
-                src={`${import.meta.env.BASE_URL}CMlogo.png`}
-                alt="Course Mapper"
-                className={`${compact ? 'h-12' : 'h-24 sm:h-28 md:h-36'} w-auto object-contain object-top`}
-              />
-            </div>
+            <img
+              src={`${import.meta.env.BASE_URL}CMlogo.png`}
+              alt="EduTool.dev"
+              className={`${compact ? 'h-10 sm:h-12' : 'h-14 sm:h-16 md:h-20'} w-auto object-contain`}
+            />
           </a>
 
           <div className="flex items-center gap-2">
