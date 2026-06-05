@@ -44,6 +44,9 @@ jobs:
       - name: Unit and closed-loop tests
         run: npm test
 
+      - name: Blueprint quality core
+        run: npm run test:blueprint:quality:fast
+
       - name: Build
         run: npm run build
 
@@ -77,6 +80,9 @@ jobs:
 
       - name: Install Playwright browser
         run: npx playwright install --with-deps chromium
+
+      - name: Blueprint quality matrix
+        run: npm run test:blueprint:quality
 
       - name: Deliverable quality audit
         run: npm run audit:deliverables

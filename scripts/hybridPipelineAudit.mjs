@@ -70,7 +70,7 @@ export async function loadHybridPipelineAuditRuntime() {
       cacheDir: path.join(ROOT, 'node_modules', '.vite', `audit-${process.pid}`),
       logLevel: 'error',
       optimizeDeps: { entries: [], noDiscovery: true },
-      server: { middlewareMode: true, hmr: false },
+      server: { middlewareMode: true, hmr: false, ws: false },
     });
     const [
       apiCostControl,
