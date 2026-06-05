@@ -1,11 +1,14 @@
 import { beforeEach, describe, expect, it, vi } from 'vitest';
 import {
+  buildCompilerProofBundle,
   buildSlideDeckIntermediateRepresentation,
   buildCourseBlueprint,
   compileBlueprintDeliverables,
   estimateBlueprintCompilerSavings,
   getBlueprintCompiledFeatures,
+  validateBlueprintSemanticContract,
   validateCourseBlueprintContract,
+  validateCompilerOutputContract,
 } from '../courseBlueprintCompiler';
 import { evaluateClassroomReadiness } from '../classroomReadiness';
 import { validateDeliverableGeneration } from '../deliverablePostProcess';
@@ -3462,6 +3465,200 @@ describe('courseBlueprintCompiler', () => {
     ).toBeTruthy();
   });
 
+  it('compiles a lean semantic blueprint by deriving compiler-owned proof surfaces', () => {
+    const blueprint = buildCourseBlueprint(makeCourseMap(4));
+    const leanBlueprint = {
+      ...blueprint,
+      lessons: blueprint.lessons.map((lesson) => ({
+        ...lesson,
+        workloadEstimate: undefined,
+        difficultyProfile: undefined,
+        classSessionPlan: undefined,
+        modelContrast: undefined,
+        readinessSupport: undefined,
+        prerequisitePlan: undefined,
+        conceptDependencyPlan: undefined,
+        practiceProgressionPlan: undefined,
+        objectiveEvidencePlan: undefined,
+        masteryEvidencePlan: undefined,
+        evidenceResponsePlan: undefined,
+        instructionalRationale: undefined,
+        accessibilityPlan: undefined,
+        feedbackCycle: undefined,
+        learningTransferPlan: undefined,
+        teachingIntent: undefined,
+        learnerContextCue: '',
+        modalityCue: '',
+        modalityDecode: undefined,
+        artifactGenre: undefined,
+        bloomInference: undefined,
+        bloomsLevel: '',
+      })),
+      semanticContract: undefined,
+      compilerProofBundle: undefined,
+      compilerContract: {
+        status: 'blocked',
+        blockerCount: 1,
+        findings: [{ severity: 'blocker', code: 'staleLegacyAudit', message: 'Old audit result from restored state.' }],
+      },
+      assessmentArchitecture: undefined,
+      alignmentMatrix: [],
+      courseArc: undefined,
+      conceptDependencyGraph: undefined,
+      masteryEvidenceMap: undefined,
+      evidenceResponseMap: undefined,
+      objectiveEvidenceMap: undefined,
+      courseWorkload: undefined,
+      classroomHandoffPlan: undefined,
+      classroomDryRunPlan: undefined,
+      classroomEvidenceLoopPlan: undefined,
+      instructorFeedbackLoadPlan: undefined,
+      blueprintAssumptionLedger: undefined,
+      packageCoherenceMatrix: undefined,
+      blueprintReviewSurface: undefined,
+      compilerDecisionMatrix: undefined,
+    };
+
+    expect(validateBlueprintSemanticContract(leanBlueprint)).toMatchObject({
+      status: 'pass',
+      blockerCount: 0,
+      lessonCount: 4,
+    });
+    expect(validateCourseBlueprintContract(leanBlueprint).status).toBe('blocked');
+
+    const proofBundle = buildCompilerProofBundle(leanBlueprint);
+    expect(proofBundle).toMatchObject({
+      status: 'pass',
+      modelFallback: 'not used for blueprint-compiled deliverables',
+      proofSummary: {
+        lessonCount: 4,
+        dryRunRows: 4,
+        evidenceLoopRows: 4,
+        feedbackLoadRows: 4,
+        coherenceRows: 4,
+        verificationStatus: 'verified-by-reading-derived-state',
+      },
+    });
+
+    const featureIds = ['syllabus', 'lessonPlans', 'assignments', 'rubrics'];
+    const compiled = compileBlueprintDeliverables(leanBlueprint, featureIds);
+    expect(compiled.lessonPlans.lessonPlans).toHaveLength(4);
+    expect(compiled.lessonPlans.lessonPlans[0].readyToTeachSupport.dryRunChecklist.length).toBeGreaterThan(0);
+    expect(compiled.syllabus.syllabus.blueprintQualityReceipt).toMatchObject({
+      semanticContract: {
+        status: 'pass',
+      },
+      compilerProofBundle: {
+        status: 'pass',
+        proofSummary: {
+          verificationStatus: 'verified-by-reading-derived-state',
+        },
+      },
+    });
+    expect(validateCompilerOutputContract({ blueprint: leanBlueprint, compiled, featureIds })).toMatchObject({
+      status: 'pass',
+      compiledFeatureCount: featureIds.length,
+      proofBundleStatus: 'pass',
+      semanticStatus: 'pass',
+    });
+  });
+
+  it('keeps the compiler-output contract stable across prompt styles and lesson scopes', () => {
+    const scenarios = [
+      {
+        name: 'policy studio scoped weeks',
+        courseMap: makeCourseMap(8),
+        scopeIndices: [0, 2, 4],
+        featureIds: ['syllabus', 'lessonPlans', 'courseFaq'],
+      },
+      {
+        name: 'large policy package',
+        courseMap: makeCourseMap(14),
+        scopeIndices: null,
+        featureIds: ['lessonPlans', 'assignments', 'rubrics', 'quizBank'],
+      },
+      {
+        name: 'biology lab',
+        courseMap: makeBiologyLabCourseMap(),
+        scopeIndices: null,
+        featureIds: ['lessonPlans', 'studyGuides', 'quizBank'],
+      },
+      {
+        name: 'programming lab subset',
+        courseMap: makeProgrammingLabCourseMap(),
+        scopeIndices: [0, 1, 3],
+        featureIds: ['lessonPlans', 'assignments', 'rubrics'],
+      },
+      {
+        name: 'data science lab',
+        courseMap: makeDataScienceLabCourseMap(),
+        scopeIndices: null,
+        featureIds: ['syllabus', 'lessonPlans', 'slideDecks'],
+      },
+      {
+        name: 'engineering design checkpoints',
+        courseMap: makeEngineeringDesignLabCourseMap(),
+        scopeIndices: [0, 2],
+        featureIds: ['lessonPlans', 'assignments', 'courseFaq'],
+      },
+      {
+        name: 'online writing',
+        courseMap: makeOnlineWritingCourseMap(),
+        scopeIndices: null,
+        featureIds: ['syllabus', 'lessonPlans', 'studyGuides'],
+      },
+      {
+        name: 'quantitative problem set',
+        courseMap: makeQuantitativeProblemSetCourseMap(),
+        scopeIndices: null,
+        featureIds: ['lessonPlans', 'quizBank', 'rubrics'],
+      },
+      {
+        name: 'capstone project',
+        courseMap: makeCapstoneProjectCourseMap(),
+        scopeIndices: [0, 1, 2],
+        featureIds: ['lessonPlans', 'assignments', 'rubrics', 'courseFaq'],
+      },
+      {
+        name: 'counseling practice',
+        courseMap: makeCounselingPracticeCourseMap(),
+        scopeIndices: null,
+        featureIds: ['syllabus', 'lessonPlans', 'discussions'],
+      },
+    ];
+
+    for (const scenario of scenarios) {
+      const blueprint = buildCourseBlueprint(scenario.courseMap, {
+        ...(scenario.scopeIndices ? { scopeIndices: scenario.scopeIndices } : {}),
+      });
+      const leanBlueprint = {
+        ...blueprint,
+        compilerProofBundle: undefined,
+        classroomDryRunPlan: undefined,
+        classroomEvidenceLoopPlan: undefined,
+        instructorFeedbackLoadPlan: undefined,
+        blueprintAssumptionLedger: undefined,
+        packageCoherenceMatrix: undefined,
+        blueprintReviewSurface: undefined,
+      };
+      const compiled = compileBlueprintDeliverables(leanBlueprint, scenario.featureIds);
+      const outputContract = validateCompilerOutputContract({
+        blueprint: leanBlueprint,
+        compiled,
+        featureIds: scenario.featureIds,
+      });
+
+      expect(validateBlueprintSemanticContract(leanBlueprint).status, scenario.name).toBe('pass');
+      expect(
+        outputContract.status,
+        `${scenario.name}: ${outputContract.findings.map((item) => item.code).join(', ')}`,
+      ).toBe('pass');
+      if (compiled.lessonPlans) {
+        expect(compiled.lessonPlans.lessonPlans, scenario.name).toHaveLength(blueprint.lessons.length);
+      }
+    }
+  });
+
   it('compiles stable deliverables in existing app shapes', () => {
     const courseMap = makeCourseMap(6);
     const blueprint = buildCourseBlueprint(courseMap);
@@ -5538,5 +5735,144 @@ describe('courseBlueprintCompiler', () => {
     expect(csv.rows).toHaveLength(3);
     expect(csv.headers).not.toContain('Source Grounding');
     expect(csv.rows.flat().join(' ')).not.toContain('compiledPattern');
+  });
+
+  it('compiles supported structured custom deliverable families from the blueprint', () => {
+    customDeliverables = {
+      custom_feedbackForm: {
+        id: 'custom_feedbackForm',
+        name: 'Feedback Form',
+        description: 'A peer feedback form for each lesson/week.',
+        systemPrompt: 'Return one peer feedback form for each lesson/week.',
+        userPromptTemplate: 'Generate one feedback form for each lesson/week. {{courseMap}}',
+      },
+      custom_projectMilestone: {
+        id: 'custom_projectMilestone',
+        name: 'Project Milestone Checklist',
+        description: 'A project milestone checklist for each lesson/week.',
+        systemPrompt: 'Return one project milestone checklist for each lesson/week.',
+        userPromptTemplate: 'Generate one project milestone checklist for each lesson/week. {{courseMap}}',
+      },
+      custom_labReport: {
+        id: 'custom_labReport',
+        name: 'Lab Report',
+        description: 'A lab report shell for each lesson/week.',
+        systemPrompt: 'Return one lab report worksheet for each lesson/week.',
+        userPromptTemplate: 'Generate one lab report for each lesson/week. {{courseMap}}',
+      },
+      custom_caseBrief: {
+        id: 'custom_caseBrief',
+        name: 'Case Brief',
+        description: 'A case brief worksheet for each lesson/week.',
+        systemPrompt: 'Return one case brief for each lesson/week.',
+        userPromptTemplate: 'Generate one case brief for each lesson/week. {{courseMap}}',
+      },
+      custom_policyMemo: {
+        id: 'custom_policyMemo',
+        name: 'Policy Memo Checkpoint',
+        description: 'A policy memo checkpoint for each lesson/week.',
+        systemPrompt: 'Return one policy memo checkpoint for each lesson/week.',
+        userPromptTemplate: 'Generate one policy memo checkpoint for each lesson/week. {{courseMap}}',
+      },
+      custom_observationChecklist: {
+        id: 'custom_observationChecklist',
+        name: 'Observation Checklist',
+        description: 'An observation checklist for each lesson/week.',
+        systemPrompt: 'Return one observation checklist for each lesson/week.',
+        userPromptTemplate: 'Generate one observation checklist for each lesson/week. {{courseMap}}',
+      },
+      custom_selfAssessment: {
+        id: 'custom_selfAssessment',
+        name: 'Participation Self Assessment',
+        description: 'A participation self-assessment for each lesson/week.',
+        systemPrompt: 'Return one participation self-assessment for each lesson/week.',
+        userPromptTemplate: 'Generate one participation self-assessment for each lesson/week. {{courseMap}}',
+      },
+      custom_capstoneProgress: {
+        id: 'custom_capstoneProgress',
+        name: 'Capstone Progress Report',
+        description: 'A capstone progress report for each lesson/week.',
+        systemPrompt: 'Return one capstone progress report for each lesson/week.',
+        userPromptTemplate: 'Generate one capstone progress report for each lesson/week. {{courseMap}}',
+      },
+      custom_problemSet: {
+        id: 'custom_problemSet',
+        name: 'Problem Set Worksheet',
+        description: 'A problem set worksheet for each lesson/week.',
+        systemPrompt: 'Return one problem set worksheet for each lesson/week.',
+        userPromptTemplate: 'Generate one problem set worksheet for each lesson/week. {{courseMap}}',
+      },
+      custom_unknown: {
+        id: 'custom_unknown',
+        name: 'Studio Artifact Pack',
+        description: 'A broad custom studio artifact pack.',
+        systemPrompt: 'Generate custom studio materials.',
+        userPromptTemplate: 'Create the custom deliverable for the course. {{courseMap}}',
+      },
+      custom_wholeCourseFeedback: {
+        id: 'custom_wholeCourseFeedback',
+        name: 'Feedback Form',
+        description: 'One whole-course feedback form.',
+        systemPrompt: 'Return one whole-course feedback form.',
+        userPromptTemplate: 'Generate one feedback form for the full course. {{courseMap}}',
+      },
+    };
+    const featureIds = [
+      'custom_feedbackForm',
+      'custom_projectMilestone',
+      'custom_labReport',
+      'custom_caseBrief',
+      'custom_policyMemo',
+      'custom_observationChecklist',
+      'custom_selfAssessment',
+      'custom_capstoneProgress',
+      'custom_problemSet',
+    ];
+
+    const blueprint = buildCourseBlueprint(makeCourseMap(5), { scopeIndices: [0, 2, 4] });
+    const compiledFeatureIds = getBlueprintCompiledFeatures([
+      ...featureIds,
+      'custom_unknown',
+      'custom_wholeCourseFeedback',
+    ]);
+    const compiled = compileBlueprintDeliverables(blueprint, compiledFeatureIds);
+
+    expect(compiledFeatureIds).toEqual(featureIds);
+    expect(compiled.custom_feedbackForm.feedback_form).toHaveLength(3);
+    expect(compiled.custom_feedbackForm.feedback_form[0].feedbackPrompts.join(' ')).toContain('revision');
+    expect(compiled.custom_projectMilestone.project_milestone_checklist[0].milestoneChecklist.join(' ')).toContain(
+      'blocker',
+    );
+    expect(compiled.custom_labReport.lab_report[0].labReportSections.join(' ')).toContain('Results');
+    expect(compiled.custom_caseBrief.case_brief[0].caseBriefSections.join(' ')).toContain('Recommendation');
+    expect(compiled.custom_policyMemo.policy_memo_checkpoint[0].policyMemoSections.join(' ')).toContain('tradeoffs');
+    expect(compiled.custom_observationChecklist.observation_checklist[0].observationTargets.join(' ')).toContain(
+      'inference',
+    );
+    expect(compiled.custom_selfAssessment.participation_self_assessment[0].selfAssessmentPrompts.join(' ')).toContain(
+      'contribute',
+    );
+    expect(compiled.custom_capstoneProgress.capstone_progress_report[0].progressReportSections.join(' ')).toContain(
+      'Completed work',
+    );
+    expect(compiled.custom_problemSet.problem_set_worksheet[0].worksheetTasks.join(' ')).toContain('Error analysis');
+
+    for (const featureId of featureIds) {
+      const validation = validateDeliverableGeneration(featureId, compiled[featureId], {
+        expectedLessonCount: 3,
+      });
+      const csv = deliverableToCsvRows(featureId, compiled[featureId]);
+
+      expect(validation.valid, `${featureId}: ${validation.blockers.join('; ')}`).toBe(true);
+      expect(csv.headers).toContain('Prompt Title');
+      expect(csv.rows).toHaveLength(3);
+      expect(csv.headers).not.toContain('Source Grounding');
+      expect(csv.rows.flat().join(' ')).not.toContain('compiledPattern');
+      expect(compiled[featureId].compilerTrustReceipt).toMatchObject({
+        modelFallback: 'not used',
+      });
+    }
+
+    expect(JSON.stringify(compiled)).not.toMatch(/generic filler|custom_\d+/i);
   });
 });

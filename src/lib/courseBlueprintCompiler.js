@@ -22,8 +22,53 @@ export const BLUEPRINT_COMPILED_FEATURES = new Set([
 const CUSTOM_REFLECTION_PATTERN = /\b(reflection|reflective|check[-\s]?in|journal|exit ticket|debrief)\b/i;
 const CUSTOM_READING_RESPONSE_PATTERN =
   /\b(reading response|reading responses|reading reflection|reading journal|reading log|annotation response|annotated response|reading recap)\b/i;
+const CUSTOM_FEEDBACK_FORM_PATTERN =
+  /\b(feedback form|feedback forms|peer feedback|feedback worksheet|critique form|review form|peer review form|revision feedback)\b/i;
+const CUSTOM_PROJECT_MILESTONE_PATTERN =
+  /\b(project milestone|milestone checklist|project checkpoint|project status|project progress|project plan checkpoint)\b/i;
+const CUSTOM_LAB_REPORT_PATTERN =
+  /\b(lab report|laboratory report|lab worksheet|experiment report|experiment worksheet|lab notebook checkpoint)\b/i;
+const CUSTOM_CASE_BRIEF_PATTERN =
+  /\b(case brief|case memo|case analysis worksheet|case preparation|case prep|case briefing)\b/i;
+const CUSTOM_POLICY_MEMO_PATTERN =
+  /\b(policy memo|memo checkpoint|briefing memo|policy brief|policy analysis memo|decision memo checkpoint)\b/i;
+const CUSTOM_OBSERVATION_CHECKLIST_PATTERN =
+  /\b(observation checklist|observation form|observation protocol|field observation|clinical observation|site observation)\b/i;
+const CUSTOM_SELF_ASSESSMENT_PATTERN =
+  /\b(self[-\s]?assessment|participation assessment|participation tracker|participation reflection|participation check[-\s]?in)\b/i;
+const CUSTOM_CAPSTONE_PROGRESS_PATTERN =
+  /\b(capstone progress|capstone checkpoint|capstone status|capstone progress report|capstone milestone|capstone update)\b/i;
+const CUSTOM_PROBLEM_SET_PATTERN =
+  /\b(problem set worksheet|problem[-\s]?set|practice problem worksheet|calculation worksheet|quantitative worksheet|worked example worksheet)\b/i;
 const CUSTOM_TEMPLATE_EXCLUDE_PATTERN = /\b(quiz|exam|rubric|slide|syllabus|faq|assignment|discussion)\b/i;
 const CUSTOM_PER_LESSON_PATTERN = /\b(lesson|week|per lesson|per week|each lesson|each week)\b/i;
+const CUSTOM_STRUCTURED_TEMPLATE_DEFINITIONS = [
+  { kind: 'feedback-form', defaultName: 'Feedback Form', pattern: CUSTOM_FEEDBACK_FORM_PATTERN },
+  {
+    kind: 'project-milestone-checklist',
+    defaultName: 'Project Milestone Checklist',
+    pattern: CUSTOM_PROJECT_MILESTONE_PATTERN,
+  },
+  { kind: 'lab-report', defaultName: 'Lab Report', pattern: CUSTOM_LAB_REPORT_PATTERN },
+  { kind: 'case-brief', defaultName: 'Case Brief', pattern: CUSTOM_CASE_BRIEF_PATTERN },
+  { kind: 'policy-memo-checkpoint', defaultName: 'Policy Memo Checkpoint', pattern: CUSTOM_POLICY_MEMO_PATTERN },
+  {
+    kind: 'observation-checklist',
+    defaultName: 'Observation Checklist',
+    pattern: CUSTOM_OBSERVATION_CHECKLIST_PATTERN,
+  },
+  {
+    kind: 'participation-self-assessment',
+    defaultName: 'Participation Self-Assessment',
+    pattern: CUSTOM_SELF_ASSESSMENT_PATTERN,
+  },
+  {
+    kind: 'capstone-progress-report',
+    defaultName: 'Capstone Progress Report',
+    pattern: CUSTOM_CAPSTONE_PROGRESS_PATTERN,
+  },
+  { kind: 'problem-set-worksheet', defaultName: 'Problem Set Worksheet', pattern: CUSTOM_PROBLEM_SET_PATTERN },
+];
 
 const DEFAULT_CLASS_SESSION_MINUTES = 110;
 const FAQ_CATEGORIES = [
@@ -7775,6 +7820,211 @@ function contractStatus(findings) {
   return 'pass';
 }
 
+function lessonContractNumber(lesson = {}) {
+  return lesson.lessonNumber || (Number.isFinite(lesson.lessonIndex) ? lesson.lessonIndex + 1 : null);
+}
+
+function findAssessmentForLesson(assessments = [], lesson = {}, index = 0) {
+  return (
+    assessments.find((assessment) => (assessment.lessonNumbers || []).includes(lesson.lessonNumber)) ||
+    assessments[index] ||
+    null
+  );
+}
+
+export function validateBlueprintSemanticContract(blueprint = {}) {
+  const findings = [];
+  const lessons = Array.isArray(blueprint.lessons) ? blueprint.lessons : [];
+  const assessments = Array.isArray(blueprint.assessments) ? blueprint.assessments : [];
+  const expectedLessonCount = Number.isFinite(Number(blueprint.totalLessons))
+    ? Number(blueprint.totalLessons)
+    : lessons.length;
+
+  if (!cleanText(blueprint.courseName)) {
+    findings.push(makeContractFinding('blocker', 'courseName', 'Blueprint is missing a course name.'));
+  }
+  if (lessons.length === 0) {
+    findings.push(makeContractFinding('blocker', 'lessonCoverage', 'Blueprint has no lessons.'));
+  }
+  if (expectedLessonCount !== lessons.length) {
+    findings.push(
+      makeContractFinding(
+        'blocker',
+        'lessonCoverage',
+        `Blueprint totalLessons is ${expectedLessonCount}, but ${lessons.length} lesson(s) are present.`,
+      ),
+    );
+  }
+  if (assessments.length === 0) {
+    findings.push(makeContractFinding('blocker', 'assessmentCoverage', 'Blueprint has no assessment anchors.'));
+  }
+
+  lessons.forEach((lesson, index) => {
+    const lessonNumber = lessonContractNumber(lesson);
+    const sourceFields = Array.isArray(lesson.sourceEvidenceTrace?.sourceFields)
+      ? lesson.sourceEvidenceTrace.sourceFields
+      : [];
+    const sourceAnchors = Array.isArray(lesson.sourceAnchors) ? lesson.sourceAnchors : [];
+    const assessment = findAssessmentForLesson(assessments, lesson, index);
+
+    if (!lesson.id || !lessonNumber || !cleanText(lesson.title)) {
+      findings.push(
+        makeContractFinding('blocker', 'lessonIdentity', 'Lesson is missing id, number, or title.', lessonNumber),
+      );
+    }
+    if (!Array.isArray(lesson.outcomes) || lesson.outcomes.length === 0) {
+      findings.push(makeContractFinding('blocker', 'outcomes', 'Lesson is missing learning outcomes.', lessonNumber));
+    }
+    if (!Array.isArray(lesson.keyConcepts) || lesson.keyConcepts.length === 0) {
+      findings.push(
+        makeContractFinding('blocker', 'keyConcepts', 'Lesson is missing source-grounded concepts.', lessonNumber),
+      );
+    }
+    if (!cleanText(lesson.studentArtifact)) {
+      findings.push(
+        makeContractFinding(
+          'blocker',
+          'studentArtifact',
+          'Lesson is missing the student-facing artifact.',
+          lessonNumber,
+        ),
+      );
+    }
+    if (!Array.isArray(lesson.successCriteria) || lesson.successCriteria.length < 2) {
+      findings.push(
+        makeContractFinding('blocker', 'successCriteria', 'Lesson is missing success criteria.', lessonNumber),
+      );
+    }
+    if (!lesson.confidence?.level || !Number.isFinite(lesson.confidence?.score)) {
+      findings.push(makeContractFinding('blocker', 'confidence', 'Lesson is missing source confidence.', lessonNumber));
+    }
+    if (
+      sourceAnchors.length === 0 ||
+      sourceFields.length < 4 ||
+      !lesson.sourceEvidenceTrace?.sourceRowLabel ||
+      !lesson.sourceEvidenceTrace?.unsupportedInferencePolicy ||
+      sourceFields.some((field) => !field?.field || !field.sourceColumn || !field.source || !field.compiledValue)
+    ) {
+      findings.push(
+        makeContractFinding(
+          'blocker',
+          'sourceTrace',
+          'Lesson is missing inspectable source anchors and field-level provenance.',
+          lessonNumber,
+        ),
+      );
+    }
+    if (
+      !lesson.evidencePlan?.sourceCue ||
+      !lesson.evidencePlan?.evidenceRequirement ||
+      !lesson.evidencePlan?.limitationCue
+    ) {
+      findings.push(makeContractFinding('blocker', 'evidencePlan', 'Lesson is missing evidence plan.', lessonNumber));
+    }
+    if (
+      !Array.isArray(lesson.sourceUsePlan?.approvedSources) ||
+      lesson.sourceUsePlan.approvedSources.length === 0 ||
+      !lesson.sourceUsePlan?.citationExpectation ||
+      !lesson.sourceUsePlan?.noInventedSources ||
+      !lesson.sourceUsePlan?.localReplacementCue ||
+      !lesson.sourceUsePlan?.copyrightReviewCue
+    ) {
+      findings.push(
+        makeContractFinding(
+          'blocker',
+          'sourceUsePlan',
+          'Lesson is missing source-use, citation, and no-invention boundaries.',
+          lessonNumber,
+        ),
+      );
+    }
+    if (
+      lesson.compilerDecision?.source !== 'deterministic-compiler-decision' ||
+      !lesson.compilerDecision?.generationPath ||
+      !lesson.compilerDecision?.safePath ||
+      !lesson.compilerDecision?.publishGate ||
+      !lesson.compilerDecision?.modelUsePolicy
+    ) {
+      findings.push(
+        makeContractFinding(
+          'blocker',
+          'compilerDecision',
+          'Lesson is missing deterministic compiler decision and publish gate.',
+          lessonNumber,
+        ),
+      );
+    }
+    if (!assessment) {
+      findings.push(
+        makeContractFinding(
+          'blocker',
+          'assessmentCoverage',
+          'Lesson has no assessment anchor for downstream assignments and rubrics.',
+          lessonNumber,
+        ),
+      );
+    } else if (!cleanText(assessment.artifact || lesson.studentArtifact)) {
+      findings.push(
+        makeContractFinding('blocker', 'assessmentAnchor', 'Assessment anchor is missing an artifact.', lessonNumber),
+      );
+    } else if (!Array.isArray(assessment.criteria) || assessment.criteria.length < 3) {
+      findings.push(
+        makeContractFinding(
+          'warning',
+          'assessmentCriteria',
+          'Assessment anchor has sparse criteria; compiler will derive rubric structure from lesson criteria.',
+          lessonNumber,
+        ),
+      );
+    }
+  });
+
+  const blockerCount = findings.filter((finding) => finding.severity === 'blocker').length;
+  const warningCount = findings.filter((finding) => finding.severity === 'warning').length;
+  return {
+    version: 1,
+    contractType: 'semantic-blueprint',
+    status: contractStatus(findings),
+    blockerCount,
+    warningCount,
+    lessonCount: lessons.length,
+    assessmentCount: assessments.length,
+    minimumBlueprintFields: [
+      'courseName',
+      'lessons.id',
+      'lessons.title',
+      'lessons.outcomes',
+      'lessons.keyConcepts',
+      'lessons.studentArtifact',
+      'lessons.successCriteria',
+      'lessons.sourceEvidenceTrace',
+      'lessons.sourceUsePlan',
+      'lessons.evidencePlan',
+      'lessons.compilerDecision',
+      'assessments.artifact',
+    ],
+    compilerOwnedFields: [
+      'courseArc',
+      'conceptDependencyGraph',
+      'masteryEvidenceMap',
+      'evidenceResponseMap',
+      'objectiveEvidenceMap',
+      'courseWorkload',
+      'assessmentArchitecture',
+      'classroomHandoffPlan',
+      'classroomDryRunPlan',
+      'classroomEvidenceLoopPlan',
+      'instructorFeedbackLoadPlan',
+      'blueprintAssumptionLedger',
+      'packageCoherenceMatrix',
+      'blueprintReviewSurface',
+      'compilerDecisionMatrix',
+      'receipts',
+    ],
+    findings,
+  };
+}
+
 export function validateCourseBlueprintContract(blueprint = {}) {
   const findings = [];
   const lessons = Array.isArray(blueprint.lessons) ? blueprint.lessons : [];
@@ -9279,6 +9529,556 @@ function compactSourceConflictReport(report = {}) {
   };
 }
 
+function shouldRebuildAssessmentAnchors(lessons = [], assessments = []) {
+  if (!Array.isArray(assessments) || assessments.length !== lessons.length) return true;
+  return lessons.some((lesson, index) => {
+    const assessment = findAssessmentForLesson(assessments, lesson, index);
+    return (
+      !assessment?.artifact ||
+      !Array.isArray(assessment.criteria) ||
+      assessment.criteria.length < 3 ||
+      !Number.isFinite(assessment.weightPercent) ||
+      !assessment.weightProvenance?.source
+    );
+  });
+}
+
+function deriveRoutineFieldsForLesson(lesson = {}, index = 0) {
+  const title = lesson.title || `Lesson ${index + 1}`;
+  const concepts =
+    Array.isArray(lesson.keyConcepts) && lesson.keyConcepts.length > 0
+      ? lesson.keyConcepts
+      : [stripLessonPrefix(title)];
+  const outcomes =
+    Array.isArray(lesson.outcomes) && lesson.outcomes.length > 0
+      ? lesson.outcomes
+      : [objectiveForLesson(title, concepts)];
+  const readings =
+    Array.isArray(lesson.readings) && lesson.readings.length > 0
+      ? lesson.readings
+      : ['Instructor-provided course materials and notes'];
+  const activityPattern =
+    lesson.activityPattern ||
+    `Concept model, applied practice, peer discussion, and individual reflection for ${stripLessonPrefix(title)}.`;
+  const activities = splitList(activityPattern);
+  const artifact =
+    lesson.studentArtifact ||
+    buildSyntheticAssessment({
+      title,
+      concepts,
+      outcomes,
+      activities,
+      bloomsLevel: lesson.bloomsLevel || 'Apply',
+    });
+  const bloomInference =
+    lesson.bloomInference?.level && lesson.bloomInference.source
+      ? lesson.bloomInference
+      : inferBloomLevelFromSignals([
+          { source: 'learning objectives', text: outcomes.join('; ') },
+          { source: 'assessment artifact', text: artifact },
+          { source: 'learning activities', text: activityPattern },
+          { source: 'lesson title', text: title },
+        ]);
+  const bloomsLevel = lesson.bloomsLevel || bloomInference.level;
+  const workloadEstimate = lesson.workloadEstimate?.totalStudentMinutes
+    ? lesson.workloadEstimate
+    : buildWorkloadEstimate({ resources: readings, hasAssessment: Boolean(artifact), bloomsLevel });
+  const difficultyProfile =
+    lesson.difficultyProfile?.cognitiveDemand && lesson.difficultyProfile?.stage
+      ? lesson.difficultyProfile
+      : buildDifficultyProfile({ originalIndex: index, bloomsLevel, hasAssessment: Boolean(artifact), concepts });
+  const evidencePlan =
+    lesson.evidencePlan?.sourceCue && lesson.evidencePlan?.evidenceRequirement && lesson.evidencePlan?.limitationCue
+      ? lesson.evidencePlan
+      : buildEvidencePlan({ title, concepts, resources: readings, activities, artifact });
+  const sourceUsePlan =
+    Array.isArray(lesson.sourceUsePlan?.approvedSources) &&
+    lesson.sourceUsePlan.approvedSources.length > 0 &&
+    lesson.sourceUsePlan?.noInventedSources
+      ? lesson.sourceUsePlan
+      : buildSourceUsePlan({ title, concepts, resources: readings, evidencePlan, artifact });
+  const misconceptionMap =
+    Array.isArray(lesson.misconceptionMap) && lesson.misconceptionMap.length > 0
+      ? lesson.misconceptionMap
+      : buildMisconceptionMap({ title, concepts, artifact });
+  const modelContrast =
+    lesson.modelContrast?.exemplarMove && lesson.modelContrast?.nonExemplarMove
+      ? lesson.modelContrast
+      : buildModelContrast({ title, concepts, artifact, evidencePlan });
+  const readinessSupport =
+    lesson.readinessSupport?.diagnosticPrompt && lesson.readinessSupport?.supportMove
+      ? lesson.readinessSupport
+      : buildReadinessSupportPlan({ title, concepts, artifact, evidencePlan });
+  const instructionalRationale =
+    lesson.instructionalRationale?.sequenceRationale && lesson.instructionalRationale?.assessmentRationale
+      ? lesson.instructionalRationale
+      : buildInstructionalRationale({
+          title,
+          concepts,
+          artifact,
+          evidencePlan,
+          readinessSupport,
+          difficultyProfile,
+        });
+  const accessibilityPlan =
+    lesson.accessibilityPlan?.representation && lesson.accessibilityPlan?.accommodationReviewCue
+      ? lesson.accessibilityPlan
+      : buildAccessibilityPlan({ title, concepts, artifact, evidencePlan, readinessSupport });
+  const feedbackCycle =
+    lesson.feedbackCycle?.formativeEvidence && lesson.feedbackCycle?.studentRevisionAction
+      ? lesson.feedbackCycle
+      : buildFeedbackCycle({ title, concepts, artifact, evidencePlan });
+
+  return {
+    ...lesson,
+    outcomes,
+    keyConcepts: concepts,
+    readings,
+    activityPattern,
+    studentArtifact: artifact,
+    successCriteria:
+      Array.isArray(lesson.successCriteria) && lesson.successCriteria.length > 0
+        ? lesson.successCriteria
+        : successCriteriaForLesson(title, concepts),
+    bloomsLevel,
+    bloomInference,
+    workloadEstimate,
+    difficultyProfile,
+    evidencePlan,
+    sourceUsePlan,
+    misconceptionMap,
+    modelContrast,
+    readinessSupport,
+    instructionalRationale,
+    accessibilityPlan,
+    feedbackCycle,
+    feedbackMoment: lesson.feedbackMoment || feedbackCycle.nextUse,
+  };
+}
+
+function normalizeLessonsForCompiler(blueprint = {}, context = {}) {
+  const lessons = Array.isArray(blueprint.lessons) ? blueprint.lessons : [];
+  const routineReadyLessons = lessons.map((lesson, index) => deriveRoutineFieldsForLesson(lesson, index));
+  return routineReadyLessons.map((lesson) => {
+    const modalityDecode =
+      lesson.modalityDecode || buildLessonModalityDecode(context.courseModalityProfile || {}, lesson);
+    const lessonWithCompilerKnobs = {
+      ...lesson,
+      learnerContextCue:
+        lesson.learnerContextCue || buildLessonLearnerContextCue(context.learnerContextProfile || {}, lesson),
+      modalityCue: lesson.modalityCue || buildLessonModalityCue(context.courseModalityProfile || {}, lesson),
+      modalityDecode,
+      artifactGenre:
+        lesson.artifactGenre || buildArtifactGenreDecode(lesson, context.courseModalityProfile || {}, modalityDecode),
+      classSessionPlan: lesson.classSessionPlan || buildClassSessionPlan({ lesson, modalityDecode }),
+    };
+    if (lessonWithCompilerKnobs.throughlineCase || lessonWithCompilerKnobs.evidencePlan?.sourceCue) {
+      return lessonWithCompilerKnobs;
+    }
+    return attachThroughlineCaseToLesson(lessonWithCompilerKnobs, context.courseThroughlineContext);
+  });
+}
+
+function attachCompilerDecisionsToLessons(lessons = [], assessments = [], sourceRiskRegister = {}) {
+  return lessons.map((lesson, index) => {
+    const sourceRiskRow =
+      sourceRiskRegister.lessonRows?.find((row) => row.lessonNumber === lesson.lessonNumber) || lesson.sourceRisk || {};
+    const assessment = findAssessmentForLesson(assessments, lesson, index) || {};
+    return {
+      ...lesson,
+      sourceRisk: lesson.sourceRisk || sourceRiskRow,
+      compilerDecision: lesson.compilerDecision?.source
+        ? lesson.compilerDecision
+        : buildLessonCompilerDecision({ lesson, sourceRiskRow, assessment }),
+    };
+  });
+}
+
+function deriveBlueprintForCompiler(blueprint = {}, options = {}) {
+  const courseName = cleanText(blueprint.courseName, 'Untitled Course');
+  const rawLessons = Array.isArray(blueprint.lessons) ? blueprint.lessons : [];
+  const rawConcepts = unique(
+    rawLessons.flatMap((lesson) => lesson.keyConcepts || []),
+    16,
+  );
+  const courseConcepts =
+    Array.isArray(blueprint.courseConcepts) && blueprint.courseConcepts.length > 0
+      ? blueprint.courseConcepts
+      : rawConcepts;
+  const courseModalityProfile =
+    blueprint.courseModalityProfile?.primaryMode && blueprint.courseModalityProfile?.teachingPattern
+      ? blueprint.courseModalityProfile
+      : buildCourseModalityProfile({ courseName, lessons: rawLessons });
+  const hasUsableEnrichment =
+    blueprint.enrichment?.lens || blueprint.enrichment?.teachingMoves || blueprint.enrichment?.source;
+  const enrichment = hasUsableEnrichment
+    ? blueprint.enrichment
+    : normalizeBlueprintEnrichment({
+        courseName,
+        lessons: rawLessons,
+        courseConcepts,
+        provided: options.enrichment || {},
+        courseModalityProfile,
+      });
+  const learnerContextProfile =
+    blueprint.learnerContextProfile?.learnerRole && blueprint.learnerContextProfile?.coursePerformanceRole
+      ? blueprint.learnerContextProfile
+      : buildLearnerContextProfile({
+          courseName,
+          courseConcepts,
+          lessons: rawLessons,
+          lens: enrichment.lens,
+          courseModalityProfile,
+        });
+  const courseThroughlineContext =
+    blueprint.courseThroughlineContext ||
+    buildCourseThroughlineContext({
+      courseName,
+      lessons: rawLessons,
+      courseConcepts,
+      lens: enrichment.lens,
+      courseModalityProfile,
+    });
+
+  let lessons = normalizeLessonsForCompiler(blueprint, {
+    courseModalityProfile,
+    learnerContextProfile,
+    courseThroughlineContext,
+  });
+  if (
+    lessons.some(
+      (lesson) =>
+        !lesson.prerequisitePlan?.diagnosticCheck ||
+        !lesson.pacing?.bridgeFrom ||
+        !lesson.learningTransferPlan?.transferTask ||
+        !lesson.teachingIntent?.teachingGoal,
+    )
+  ) {
+    lessons = addCourseSequenceSemantics(lessons);
+  }
+  let assessments = shouldRebuildAssessmentAnchors(lessons, blueprint.assessments)
+    ? buildAssessmentAnchors(lessons)
+    : blueprint.assessments;
+  const sourceConflictReport =
+    blueprint.sourceConflictReport?.status && Array.isArray(blueprint.sourceConflictReport?.lessonRows)
+      ? blueprint.sourceConflictReport
+      : buildSourceConflictReport(lessons);
+  if (lessons.some((lesson) => !lesson.sourceConflict?.status)) {
+    lessons = attachSourceConflictSignals(lessons, sourceConflictReport);
+  }
+  const sourceRiskRegister =
+    blueprint.sourceRiskRegister?.status && Array.isArray(blueprint.sourceRiskRegister?.lessonRows)
+      ? blueprint.sourceRiskRegister
+      : buildSourceRiskRegister({ lessons, assessments });
+  lessons = attachCompilerDecisionsToLessons(lessons, assessments, sourceRiskRegister);
+  const conceptDependencyGraph =
+    blueprint.conceptDependencyGraph?.status && Array.isArray(blueprint.conceptDependencyGraph?.nodes)
+      ? blueprint.conceptDependencyGraph
+      : buildConceptDependencyGraph({ lessons, assessments });
+  if (lessons.some((lesson) => !lesson.conceptDependencyPlan?.node?.concept || !lesson.practiceProgressionPlan)) {
+    lessons = attachConceptGraphToLessons(lessons, conceptDependencyGraph);
+  }
+  if (lessons.some((lesson) => !lesson.masteryEvidencePlan?.diagnosticEvidence)) {
+    lessons = attachMasteryEvidenceToLessons(lessons, assessments);
+  }
+  if (lessons.some((lesson) => !lesson.evidenceResponsePlan?.readyMove)) {
+    lessons = attachEvidenceResponseToLessons(lessons);
+  }
+  if (lessons.some((lesson) => !lesson.objectiveEvidencePlan?.objectiveRows)) {
+    lessons = attachObjectiveEvidenceToLessons(lessons, assessments);
+  }
+  if (shouldRebuildAssessmentAnchors(lessons, assessments)) {
+    assessments = buildAssessmentAnchors(lessons);
+  }
+
+  const assessmentArchitecture =
+    blueprint.assessmentArchitecture?.status && Array.isArray(blueprint.assessmentArchitecture?.lessonRows)
+      ? blueprint.assessmentArchitecture
+      : buildAssessmentArchitecture({ lessons, assessments });
+  const compilerDecisionMatrix =
+    blueprint.compilerDecisionMatrix?.status && Array.isArray(blueprint.compilerDecisionMatrix?.lessonRows)
+      ? blueprint.compilerDecisionMatrix
+      : buildCompilerDecisionMatrix(lessons);
+  const alignmentMatrix =
+    Array.isArray(blueprint.alignmentMatrix) && blueprint.alignmentMatrix.length === lessons.length
+      ? blueprint.alignmentMatrix
+      : buildCourseAlignmentMatrix(lessons, assessments);
+  const courseArc =
+    blueprint.courseArc?.throughline && Array.isArray(blueprint.courseArc?.stages)
+      ? blueprint.courseArc
+      : buildCourseArc(lessons, conceptDependencyGraph, courseThroughlineContext);
+  const classroomHandoffPlan =
+    blueprint.classroomHandoffPlan?.status && Array.isArray(blueprint.classroomHandoffPlan?.lessonReviewOrder)
+      ? blueprint.classroomHandoffPlan
+      : buildClassroomHandoffPlan({
+          courseName,
+          lessons,
+          assessments,
+          learnerContextProfile,
+          courseModalityProfile,
+          sourceRiskRegister,
+          assessmentArchitecture,
+        });
+  const classroomDryRunPlan =
+    blueprint.classroomDryRunPlan?.source === 'deterministic-classroom-dry-run-plan'
+      ? blueprint.classroomDryRunPlan
+      : buildClassroomDryRunPlan({ courseName, lessons, courseModalityProfile, classroomHandoffPlan });
+  const classroomEvidenceLoopPlan =
+    blueprint.classroomEvidenceLoopPlan?.source === 'deterministic-classroom-evidence-loop'
+      ? blueprint.classroomEvidenceLoopPlan
+      : buildClassroomEvidenceLoopPlan({
+          courseName,
+          lessons,
+          courseModalityProfile,
+          classroomDryRunPlan,
+          classroomHandoffPlan,
+        });
+  const instructorFeedbackLoadPlan =
+    blueprint.instructorFeedbackLoadPlan?.source === 'deterministic-instructor-feedback-load-plan'
+      ? blueprint.instructorFeedbackLoadPlan
+      : buildInstructorFeedbackLoadPlan({
+          courseName,
+          lessons,
+          assessments,
+          courseModalityProfile,
+          classroomEvidenceLoopPlan,
+        });
+  const blueprintAssumptionLedger =
+    blueprint.blueprintAssumptionLedger?.status && Array.isArray(blueprint.blueprintAssumptionLedger?.rows)
+      ? blueprint.blueprintAssumptionLedger
+      : buildBlueprintAssumptionLedger({
+          courseName,
+          lessons,
+          learnerContextProfile,
+          courseModalityProfile,
+          sourceConflictReport,
+          sourceRiskRegister,
+          assessmentArchitecture,
+          compilerDecisionMatrix,
+          classroomHandoffPlan,
+        });
+  const packageCoherenceMatrix =
+    blueprint.packageCoherenceMatrix?.status && Array.isArray(blueprint.packageCoherenceMatrix?.lessonRows)
+      ? blueprint.packageCoherenceMatrix
+      : buildPackageCoherenceMatrix({ lessons, assessments, classroomHandoffPlan });
+  const blueprintReviewSurface =
+    blueprint.blueprintReviewSurface?.status && Array.isArray(blueprint.blueprintReviewSurface?.lessonRows)
+      ? blueprint.blueprintReviewSurface
+      : buildBlueprintReviewSurface({
+          courseName,
+          lessons,
+          assessments,
+          courseArc,
+          enrichment,
+          learnerContextProfile,
+          courseModalityProfile,
+          sourceRiskRegister,
+          sourceConflictReport,
+          compilerDecisionMatrix,
+          assessmentArchitecture,
+          blueprintAssumptionLedger,
+          packageCoherenceMatrix,
+        });
+
+  const preparedWithoutPath = {
+    ...blueprint,
+    version: blueprint.version || 1,
+    source: blueprint.source || 'deterministic-course-map',
+    courseName,
+    semester: blueprint.semester || publishableCourseTerm(),
+    totalLessons: Number.isFinite(Number(blueprint.totalLessons)) ? Number(blueprint.totalLessons) : lessons.length,
+    lessons,
+    assessments,
+    assessmentArchitecture,
+    alignmentMatrix,
+    courseConcepts,
+    courseArc,
+    courseThroughlineContext,
+    conceptDependencyGraph,
+    masteryEvidenceMap: blueprint.masteryEvidenceMap?.status
+      ? blueprint.masteryEvidenceMap
+      : buildMasteryEvidenceMap(lessons),
+    evidenceResponseMap: blueprint.evidenceResponseMap?.status
+      ? blueprint.evidenceResponseMap
+      : buildEvidenceResponseMap(lessons),
+    objectiveEvidenceMap: blueprint.objectiveEvidenceMap?.status
+      ? blueprint.objectiveEvidenceMap
+      : buildObjectiveEvidenceMap({ lessons, assessments }),
+    courseWorkload:
+      blueprint.courseWorkload?.averagePerLessonMinutes && Array.isArray(blueprint.courseWorkload?.lessonRows)
+        ? blueprint.courseWorkload
+        : buildCourseWorkload(lessons),
+    learnerContextProfile,
+    courseModalityProfile,
+    sourceConflictReport,
+    sourceRiskRegister,
+    compilerDecisionMatrix,
+    classroomHandoffPlan,
+    classroomDryRunPlan,
+    classroomEvidenceLoopPlan,
+    instructorFeedbackLoadPlan,
+    blueprintAssumptionLedger,
+    packageCoherenceMatrix,
+    blueprintReviewSurface,
+    qualitySignals: blueprint.qualitySignals?.confidenceLevel
+      ? blueprint.qualitySignals
+      : buildBlueprintQualitySignals(lessons),
+    enrichment,
+  };
+  return {
+    ...preparedWithoutPath,
+    compilerPath: preparedWithoutPath.compilerPath || buildCompilerPathReceipt(preparedWithoutPath, options),
+  };
+}
+
+export function buildCompilerProofBundle(blueprint = {}, options = {}) {
+  const prepared = deriveBlueprintForCompiler(blueprint, options);
+  const semanticContract = options.semanticContract || validateBlueprintSemanticContract(prepared);
+  const heavyContract = options.compilerContract || validateCourseBlueprintContract(prepared);
+  const proofFindings = [];
+  const lessons = Array.isArray(prepared.lessons) ? prepared.lessons : [];
+  const lessonCount = lessons.length;
+
+  if (semanticContract.status === 'blocked') {
+    proofFindings.push(
+      makeContractFinding('blocker', 'semanticContract', 'Semantic blueprint contract blocked compiler proof.'),
+    );
+  }
+  if (prepared.classroomDryRunPlan?.lessonRows?.length !== lessonCount) {
+    proofFindings.push(
+      makeContractFinding('blocker', 'classroomDryRunPlan', 'Compiler proof has incomplete dry-run rows.'),
+    );
+  }
+  if (prepared.classroomEvidenceLoopPlan?.lessonRows?.length !== lessonCount) {
+    proofFindings.push(
+      makeContractFinding('blocker', 'classroomEvidenceLoopPlan', 'Compiler proof has incomplete evidence-loop rows.'),
+    );
+  }
+  if (prepared.instructorFeedbackLoadPlan?.lessonRows?.length !== lessonCount) {
+    proofFindings.push(
+      makeContractFinding('blocker', 'instructorFeedbackLoadPlan', 'Compiler proof has incomplete feedback-load rows.'),
+    );
+  }
+  if (prepared.packageCoherenceMatrix?.lessonRows?.length !== lessonCount) {
+    proofFindings.push(
+      makeContractFinding('blocker', 'packageCoherenceMatrix', 'Compiler proof has incomplete coherence rows.'),
+    );
+  }
+  if (prepared.blueprintReviewSurface?.traceabilitySummary?.untraceableRows > 0) {
+    proofFindings.push(
+      makeContractFinding('warning', 'blueprintReviewSurface', 'Compiler proof has untraceable review rows.'),
+    );
+  }
+
+  const proofStatus = contractStatus(proofFindings);
+  return {
+    version: 1,
+    source: 'deterministic-compiler-proof-bundle',
+    status: proofStatus,
+    modelFallback: 'not used for blueprint-compiled deliverables',
+    semanticContract,
+    legacyCompilerContract: compactBlueprintContract(heavyContract),
+    compilerPath: prepared.compilerPath,
+    sourceConflictReport: prepared.sourceConflictReport,
+    sourceRiskRegister: prepared.sourceRiskRegister,
+    compilerDecisionMatrix: prepared.compilerDecisionMatrix,
+    assessmentArchitecture: prepared.assessmentArchitecture,
+    classroomHandoffPlan: prepared.classroomHandoffPlan,
+    classroomDryRunPlan: prepared.classroomDryRunPlan,
+    classroomEvidenceLoopPlan: prepared.classroomEvidenceLoopPlan,
+    instructorFeedbackLoadPlan: prepared.instructorFeedbackLoadPlan,
+    blueprintAssumptionLedger: prepared.blueprintAssumptionLedger,
+    packageCoherenceMatrix: prepared.packageCoherenceMatrix,
+    blueprintReviewSurface: prepared.blueprintReviewSurface,
+    courseWorkload: prepared.courseWorkload,
+    proofSummary: {
+      lessonCount,
+      assessmentCount: prepared.assessments.length,
+      semanticStatus: semanticContract.status,
+      legacyCompilerStatus: heavyContract.status,
+      dryRunRows: prepared.classroomDryRunPlan?.lessonRows?.length || 0,
+      evidenceLoopRows: prepared.classroomEvidenceLoopPlan?.lessonRows?.length || 0,
+      feedbackLoadRows: prepared.instructorFeedbackLoadPlan?.lessonRows?.length || 0,
+      coherenceRows: prepared.packageCoherenceMatrix?.lessonRows?.length || 0,
+      reviewSurfaceTraceability: prepared.blueprintReviewSurface?.traceabilitySummary?.status || 'missing',
+      verificationStatus: proofStatus === 'blocked' ? 'blocked' : 'verified-by-reading-derived-state',
+    },
+    findings: proofFindings,
+  };
+}
+
+function prepareBlueprintForCompilation(blueprint = {}, options = {}) {
+  const prepared = deriveBlueprintForCompiler(blueprint, options);
+  const semanticContract = validateBlueprintSemanticContract(prepared);
+  const compilerContract = validateCourseBlueprintContract(prepared);
+  const compilerProofBundle = buildCompilerProofBundle(prepared, {
+    ...options,
+    semanticContract,
+    compilerContract,
+  });
+  return {
+    ...prepared,
+    semanticContract,
+    compilerContract,
+    compilerProofBundle,
+  };
+}
+
+export function validateCompilerOutputContract({ blueprint = {}, compiled = {}, featureIds = [], options = {} } = {}) {
+  const prepared = prepareBlueprintForCompilation(blueprint, options);
+  const proofBundle = prepared.compilerProofBundle;
+  const requestedFeatures =
+    featureIds.length > 0 ? getBlueprintCompiledFeatures(featureIds, options) : Object.keys(compiled);
+  const findings = [];
+
+  if (prepared.semanticContract.status === 'blocked') {
+    findings.push(
+      makeContractFinding('blocker', 'semanticContract', 'Compiled output is based on a blocked semantic blueprint.'),
+    );
+  }
+  if (proofBundle.status === 'blocked') {
+    findings.push(makeContractFinding('blocker', 'proofBundle', 'Compiler proof bundle is blocked.'));
+  }
+  for (const featureId of requestedFeatures) {
+    if (!compiled?.[featureId]) {
+      findings.push(
+        makeContractFinding('blocker', 'compiledFeatureMissing', `Compiled output is missing ${featureId}.`),
+      );
+    }
+  }
+
+  const lessonCount = prepared.lessons.length;
+  if (compiled.lessonPlans?.lessonPlans && compiled.lessonPlans.lessonPlans.length !== lessonCount) {
+    findings.push(
+      makeContractFinding('blocker', 'lessonPlanCoverage', 'Compiled lesson plans do not cover every lesson.'),
+    );
+  }
+  if (compiled.syllabus?.syllabus?.blueprintQualityReceipt) {
+    const receipt = compiled.syllabus.syllabus.blueprintQualityReceipt;
+    if (receipt.compilerProofBundle?.proofSummary?.verificationStatus !== 'verified-by-reading-derived-state') {
+      findings.push(
+        makeContractFinding('warning', 'receiptVerification', 'Syllabus receipt is missing proof-bundle verification.'),
+      );
+    }
+  }
+
+  const blockerCount = findings.filter((finding) => finding.severity === 'blocker').length;
+  const warningCount = findings.filter((finding) => finding.severity === 'warning').length;
+  return {
+    version: 1,
+    contractType: 'compiler-output',
+    status: contractStatus(findings),
+    blockerCount,
+    warningCount,
+    lessonCount,
+    requestedFeatureCount: requestedFeatures.length,
+    compiledFeatureCount: requestedFeatures.filter((featureId) => compiled?.[featureId]).length,
+    proofBundleStatus: proofBundle.status,
+    semanticStatus: prepared.semanticContract.status,
+    findings,
+  };
+}
+
 function clonePlain(value) {
   if (Array.isArray(value)) return value.map((item) => clonePlain(item));
   if (value && typeof value === 'object') {
@@ -9288,7 +10088,7 @@ function clonePlain(value) {
 }
 
 function blueprintContractForCompilation(blueprint) {
-  return blueprint?.compilerContract || validateCourseBlueprintContract(blueprint);
+  return blueprint?.semanticContract || validateBlueprintSemanticContract(blueprint);
 }
 
 function formatContractFailure(contract) {
@@ -10835,9 +11635,17 @@ export function buildCourseBlueprint(courseMap, options = {}) {
     ...enrichedBlueprint,
     compilerPath: buildCompilerPathReceipt(enrichedBlueprint, options),
   };
+  const semanticContract = validateBlueprintSemanticContract(blueprintWithPath);
+  const compilerContract = validateCourseBlueprintContract(blueprintWithPath);
   return {
     ...blueprintWithPath,
-    compilerContract: validateCourseBlueprintContract(blueprintWithPath),
+    semanticContract,
+    compilerContract,
+    compilerProofBundle: buildCompilerProofBundle(blueprintWithPath, {
+      ...options,
+      semanticContract,
+      compilerContract,
+    }),
   };
 }
 
@@ -10891,6 +11699,10 @@ function getCompiledCustomTemplateKind(featureId, options = {}) {
   if (CUSTOM_TEMPLATE_EXCLUDE_PATTERN.test(customName)) return null;
   if (CUSTOM_READING_RESPONSE_PATTERN.test(combinedText)) return 'reading-response';
   if (CUSTOM_REFLECTION_PATTERN.test(combinedText)) return 'reflection-check-in';
+  const structuredTemplate = CUSTOM_STRUCTURED_TEMPLATE_DEFINITIONS.find((definition) =>
+    definition.pattern.test(combinedText),
+  );
+  if (structuredTemplate) return structuredTemplate.kind;
   return null;
 }
 
@@ -11003,8 +11815,217 @@ function compileCustomReadingResponseDeliverable(featureId, blueprint, options =
   };
 }
 
+function getStructuredCustomTemplateDefinition(templateKind) {
+  return CUSTOM_STRUCTURED_TEMPLATE_DEFINITIONS.find((definition) => definition.kind === templateKind) || null;
+}
+
+function buildStructuredCustomFamilyFields(templateKind, context) {
+  const { alternate, artifact, concept, contextCue, evidenceNoun, lesson, lessonTitle, lens, sourceCue, successCue } =
+    context;
+  const artifactLabel = stripTerminalPunctuation(artifact || 'lesson artifact');
+
+  switch (templateKind) {
+    case 'feedback-form':
+      return {
+        feedbackPrompts: [
+          `Name one place where the ${artifactLabel} uses strong ${evidenceNoun} for ${concept}.`,
+          `Identify one place where the ${artifactLabel} needs clearer reasoning, support, or audience fit.`,
+          `Suggest one revision that would make the ${artifactLabel} more useful for the next ${lens.decisionNoun}.`,
+        ],
+        feedbackCriteria: [
+          `Feedback cites visible evidence from ${sourceCue}.`,
+          `Feedback connects ${concept} to ${alternate} instead of giving generic praise.`,
+          `Feedback ends with a revision move the author can apply before submission.`,
+        ],
+        revisionUse: `Students use the feedback to revise ${artifactLabel} before the next checkpoint.`,
+      };
+    case 'project-milestone-checklist':
+      return {
+        milestoneChecklist: [
+          `Define the ${lessonTitle} project goal in one sentence.`,
+          `Attach the current ${artifactLabel} draft, prototype, memo, or planning evidence.`,
+          `Show which ${concept} decision has been made and what evidence supports it.`,
+          `Name one blocker, risk, or dependency that could delay the next milestone.`,
+        ],
+        riskCheck: `Flag any missing ${evidenceNoun}, stakeholder input, tool access, or instructor decision needed before the next milestone.`,
+        nextMilestone:
+          lesson.pacing?.bridgeTo || `Prepare the next ${lens.decisionNoun} using feedback from this checkpoint.`,
+      };
+    case 'lab-report':
+      return {
+        labReportSections: [
+          `Question or purpose: explain what ${concept} is testing or demonstrating.`,
+          `Method: describe the procedure, materials, data, or setup used in ${lessonTitle}.`,
+          `Results: report observations, measurements, outputs, or errors from ${sourceCue}.`,
+          `Analysis: explain what the results show about ${alternate} and what limitations remain.`,
+        ],
+        dataQualityCheck: `Confirm the record includes enough detail for another student to inspect the ${artifactLabel} evidence without inventing missing data.`,
+        safetyAndAccessNote:
+          lesson.accessibilityPlan?.accommodationReviewCue ||
+          `Confirm local lab safety, access, privacy, and equipment rules before publishing this report shell.`,
+      };
+    case 'case-brief':
+      return {
+        caseBriefSections: [
+          `Case context: summarize the situation or source problem from ${contextCue}.`,
+          `Issue or decision: state the central ${lens.decisionNoun} students must make.`,
+          `Evidence: cite the strongest ${evidenceNoun} for ${concept} and one limitation.`,
+          `Recommendation: explain the action, interpretation, or next step supported by the case.`,
+        ],
+        decisionQuestion: `What should the decision-maker do next, and how does ${alternate} change that answer?`,
+        discussionCarryForward:
+          lesson.learningTransferPlan?.transferTask ||
+          `Use this brief to prepare for the next case discussion or artifact revision.`,
+      };
+    case 'policy-memo-checkpoint':
+      return {
+        policyMemoSections: [
+          `Problem statement: define the policy problem or decision from ${lessonTitle}.`,
+          `Evidence summary: present the most relevant ${evidenceNoun} from ${sourceCue}.`,
+          `Options and tradeoffs: compare at least two plausible choices for ${concept}.`,
+          `Recommendation: make a defensible ${lens.decisionNoun} and name the implementation risk.`,
+        ],
+        stakeholderCheck: `Name who is affected, what they need to know, and which evidence limitation should be disclosed.`,
+        memoReadinessCriteria: [
+          `The memo uses course evidence instead of invented policy facts.`,
+          `The recommendation is actionable for the stated audience.`,
+          `The limitation or uncertainty is visible before the conclusion.`,
+        ],
+      };
+    case 'observation-checklist':
+      return {
+        observationTargets: [
+          `Record where ${concept} appears in the setting, source, performance, or interaction.`,
+          `Capture one concrete behavior, quote, measurement, or artifact connected to ${alternate}.`,
+          `Separate direct observation from inference or interpretation.`,
+          `Note one accessibility, ethics, privacy, or context factor that affects interpretation.`,
+        ],
+        fieldNotesProtocol: `Use timestamped or source-located notes from ${sourceCue}; do not add details that were not observed or provided.`,
+        debriefPrompt: `After observation, explain what the evidence suggests for the next ${lens.decisionNoun}.`,
+      };
+    case 'participation-self-assessment':
+      return {
+        selfAssessmentPrompts: [
+          `What did you contribute to the ${lessonTitle} work session or preparation?`,
+          `Which ${concept} idea can you now explain or use more confidently?`,
+          `Where did you need support, feedback, or more source evidence?`,
+          `What is one concrete action you will take before the next lesson?`,
+        ],
+        participationEvidence: [
+          `Reference a discussion contribution, draft move, question, peer-support action, or practice artifact.`,
+          `Connect the contribution to ${successCue}.`,
+          `Avoid generic attendance-only evidence.`,
+        ],
+        instructorUse: `Use responses to identify participation barriers, feedback needs, and readiness for ${artifactLabel}.`,
+      };
+    case 'capstone-progress-report':
+      return {
+        progressReportSections: [
+          `Completed work: summarize the ${artifactLabel} progress visible this week.`,
+          `Evidence used: identify the strongest ${evidenceNoun} supporting the current direction.`,
+          `Decision made: explain the ${lens.decisionNoun} connected to ${concept}.`,
+          `Next risk: name the blocker, assumption, or review need before the next milestone.`,
+        ],
+        nextMilestone:
+          lesson.pacing?.bridgeTo || `Move from ${lessonTitle} toward the next capstone deliverable checkpoint.`,
+        advisorReviewFocus: `Check whether the student can justify progress with inspectable evidence and a realistic next action.`,
+      };
+    case 'problem-set-worksheet':
+      return {
+        worksheetTasks: [
+          `Set up: define the quantities, variables, claims, or conditions for ${concept}.`,
+          `Worked example: solve one model problem or reasoning step using ${sourceCue}.`,
+          `Independent practice: complete a parallel problem that applies ${alternate}.`,
+          `Error analysis: explain one likely mistake and how to detect it.`,
+        ],
+        answerCheck: `Show the reasoning, not only the final answer, and connect the result to ${artifactLabel}.`,
+        extensionPrompt: `Create one variation that changes an assumption, dataset, constraint, or context for ${lessonTitle}.`,
+      };
+    default:
+      return {};
+  }
+}
+
+function compileStructuredCustomDeliverable(featureId, blueprint, options = {}) {
+  const custom = getCustomDeliverableDefinition(featureId, options);
+  const templateKind = getCompiledCustomTemplateKind(featureId, options);
+  const definition = getStructuredCustomTemplateDefinition(templateKind);
+  if (!custom || !definition) return null;
+
+  const deliverableName = cleanText(custom.name, definition.defaultName);
+  const arrayKey = slugifyCustomArrayKey(deliverableName);
+  const lens = blueprintLens(blueprint);
+  const items = blueprint.lessons.map((lesson) => {
+    const concept = lesson.keyConcepts[0] || stripLessonPrefix(lesson.title) || 'the lesson focus';
+    const alternate = alternateLessonConcept(lesson, concept);
+    const phrase = lessonPhrase(blueprint, lesson);
+    const artifact = stripTerminalPunctuation(lesson.studentArtifact || 'the lesson artifact');
+    const lessonTitle = stripLessonPrefix(lesson.title);
+    const contextCue = conciseClause(phrase.context, lessonTitle, 110);
+    const activityCue = conciseClause(lesson.activityPattern, `${lessonTitle} activity`, 110);
+    const sourceCue = lesson.evidencePlan?.sourceCue || lesson.readings?.[0] || `${lessonTitle} course materials`;
+    const successCue = conciseClause(lesson.successCriteria, 'the lesson success criteria', 120);
+    const common = {
+      lessonTitle: lesson.title,
+      weekNumber: `Week ${lesson.lessonNumber}`,
+      deliverableName,
+      promptTitle: `${deliverableName} ${lesson.lessonNumber}`,
+      purposePrompt: `Use ${deliverableName} to connect ${concept} from ${contextCue} to ${artifact} in ${customPracticeContext(blueprint, lens)}.`,
+      courseContext: contextCue,
+      evidenceToUse: [
+        `Use one concrete detail from ${sourceCue}.`,
+        `Connect the detail to ${alternate} or ${artifact}.`,
+        `Name one uncertainty, limitation, or local-review item before finalizing.`,
+      ],
+      completionChecklist: [
+        `The response is specific to ${lesson.title}.`,
+        `The response uses visible course evidence rather than vague summary.`,
+        `The response ends with a next action tied to feedback, revision, practice, or assessment.`,
+      ],
+      instructorReviewFocus: `Check whether the student links ${concept}, ${alternate}, and ${artifact} with inspectable evidence from ${activityCue}.`,
+      localReviewNote: lessonLocalReviewAction(lesson),
+      sourceGrounding: lessonSourceGrounding(lesson, {
+        compiledPattern: templateKind,
+        evidenceRequirement: lesson.evidencePlan?.evidenceRequirement || '',
+        learnerContextProfile: blueprint.learnerContextProfile,
+      }),
+    };
+    return {
+      ...common,
+      ...buildStructuredCustomFamilyFields(templateKind, {
+        alternate,
+        artifact,
+        concept,
+        contextCue,
+        evidenceNoun: lens.evidenceNoun || 'evidence',
+        lesson,
+        lessonTitle,
+        lens,
+        sourceCue,
+        successCue,
+      }),
+    };
+  });
+
+  return {
+    deliverableName,
+    deliverableType: `compiled-${templateKind}`,
+    source: 'deterministic-course-blueprint',
+    compilerTrustReceipt: {
+      source: 'deterministic-custom-template',
+      compiledPattern: templateKind,
+      modelFallback: 'not used',
+      boundary: 'One item per lesson/week compiled only when the custom definition matches a supported family.',
+      localReviewPolicy:
+        'Review official dates, policies, source permissions, safety rules, and local examples before publishing.',
+    },
+    [arrayKey]: items,
+  };
+}
+
 function compileSyllabus(blueprint) {
   const instructorPreferenceReceipt = preferenceReceipt(blueprintPreferenceProfile(blueprint));
+  const compilerProofBundle = blueprint.compilerProofBundle || buildCompilerProofBundle(blueprint);
   const requirements = blueprint.assessments.map((assessment) => ({
     name: assessment.title,
     weight: assessment.weight,
@@ -11014,18 +12035,18 @@ function compileSyllabus(blueprint) {
   const compactMasteryMap = compactMasteryEvidenceMap(blueprint.masteryEvidenceMap);
   const compactResponseMap = compactEvidenceResponseMap(blueprint.evidenceResponseMap);
   const compactObjectiveEvidence = compactObjectiveEvidenceMap(blueprint.objectiveEvidenceMap);
-  const compactRiskRegister = compactSourceRiskRegister(blueprint.sourceRiskRegister);
-  const compactDecisionMatrix = compactCompilerDecisionMatrix(blueprint.compilerDecisionMatrix);
-  const compactAssessmentPlan = compactAssessmentArchitecture(blueprint.assessmentArchitecture);
-  const compactSourceConflicts = compactSourceConflictReport(blueprint.sourceConflictReport);
-  const compactHandoffPlan = compactClassroomHandoffPlan(blueprint.classroomHandoffPlan);
-  const compactDryRunPlan = compactClassroomDryRunPlan(blueprint.classroomDryRunPlan);
-  const compactEvidenceLoopPlan = compactClassroomEvidenceLoopPlan(blueprint.classroomEvidenceLoopPlan);
-  const compactFeedbackLoadPlan = compactInstructorFeedbackLoadPlan(blueprint.instructorFeedbackLoadPlan);
-  const compactAssumptions = compactAssumptionLedger(blueprint.blueprintAssumptionLedger);
-  const compactCoherence = compactPackageCoherenceMatrix(blueprint.packageCoherenceMatrix);
-  const compactReviewSurface = compactBlueprintReviewSurface(blueprint.blueprintReviewSurface);
-  const compactWorkloadBalance = compactCourseWorkloadBalance(blueprint.courseWorkload);
+  const compactRiskRegister = compactSourceRiskRegister(compilerProofBundle.sourceRiskRegister);
+  const compactDecisionMatrix = compactCompilerDecisionMatrix(compilerProofBundle.compilerDecisionMatrix);
+  const compactAssessmentPlan = compactAssessmentArchitecture(compilerProofBundle.assessmentArchitecture);
+  const compactSourceConflicts = compactSourceConflictReport(compilerProofBundle.sourceConflictReport);
+  const compactHandoffPlan = compactClassroomHandoffPlan(compilerProofBundle.classroomHandoffPlan);
+  const compactDryRunPlan = compactClassroomDryRunPlan(compilerProofBundle.classroomDryRunPlan);
+  const compactEvidenceLoopPlan = compactClassroomEvidenceLoopPlan(compilerProofBundle.classroomEvidenceLoopPlan);
+  const compactFeedbackLoadPlan = compactInstructorFeedbackLoadPlan(compilerProofBundle.instructorFeedbackLoadPlan);
+  const compactAssumptions = compactAssumptionLedger(compilerProofBundle.blueprintAssumptionLedger);
+  const compactCoherence = compactPackageCoherenceMatrix(compilerProofBundle.packageCoherenceMatrix);
+  const compactReviewSurface = compactBlueprintReviewSurface(compilerProofBundle.blueprintReviewSurface);
+  const compactWorkloadBalance = compactCourseWorkloadBalance(compilerProofBundle.courseWorkload);
   const assessmentForLesson = (lesson) =>
     blueprint.assessments.find((assessment) => assessment.lessonNumbers.includes(lesson.lessonNumber)) || {};
 
@@ -11078,7 +12099,15 @@ function compileSyllabus(blueprint) {
         packageCoherenceMatrix: compactCoherence,
         blueprintReviewSurface: compactReviewSurface,
         compilerPath: blueprint.compilerPath,
+        semanticContract: compactBlueprintContract(blueprint.semanticContract),
         compilerContract: compactBlueprintContract(blueprint.compilerContract),
+        compilerProofBundle: {
+          source: compilerProofBundle.source,
+          status: compilerProofBundle.status,
+          modelFallback: compilerProofBundle.modelFallback,
+          proofSummary: compilerProofBundle.proofSummary,
+          findings: compilerProofBundle.findings,
+        },
         enrichmentLanguage: compactEnrichmentLanguage(blueprint.enrichment),
         ...(blueprint.enrichment?.quality ? { enrichmentQuality: blueprint.enrichment.quality } : {}),
         ...(instructorPreferenceReceipt ? { instructorPreferenceProfile: instructorPreferenceReceipt } : {}),
@@ -13627,6 +14656,7 @@ function buildLessonPlanOutline(blueprint, lesson) {
 function compileLessonPlans(blueprint) {
   const lens = blueprintLens(blueprint);
   const preference = featurePreference(blueprint, 'lessonPlans');
+  const compilerProofBundle = blueprint.compilerProofBundle || buildCompilerProofBundle(blueprint);
   return {
     lessonPlans: blueprint.lessons.map((lesson, index) => {
       const teachingMoves = lessonTeachingMoves(blueprint, lesson);
@@ -13646,11 +14676,16 @@ function compileLessonPlans(blueprint) {
       const outline = buildLessonPlanOutline(blueprint, { ...lesson, classSessionPlan });
       const outlineMinutes = outline.reduce((sum, item) => sum + (Number.parseInt(item.time, 10) || 0), 0);
       const dryRunRow =
-        blueprint.classroomDryRunPlan?.lessonRows?.find((row) => row.lessonNumber === lesson.lessonNumber) || {};
+        compilerProofBundle.classroomDryRunPlan?.lessonRows?.find((row) => row.lessonNumber === lesson.lessonNumber) ||
+        {};
       const evidenceLoopRow =
-        blueprint.classroomEvidenceLoopPlan?.lessonRows?.find((row) => row.lessonNumber === lesson.lessonNumber) || {};
+        compilerProofBundle.classroomEvidenceLoopPlan?.lessonRows?.find(
+          (row) => row.lessonNumber === lesson.lessonNumber,
+        ) || {};
       const feedbackLoadRow =
-        blueprint.instructorFeedbackLoadPlan?.lessonRows?.find((row) => row.lessonNumber === lesson.lessonNumber) || {};
+        compilerProofBundle.instructorFeedbackLoadPlan?.lessonRows?.find(
+          (row) => row.lessonNumber === lesson.lessonNumber,
+        ) || {};
 
       return {
         lessonTitle: lesson.title,
@@ -13941,50 +14976,57 @@ function compileLessonPlans(blueprint) {
 }
 
 export function compileBlueprintDeliverable(featureId, blueprint, options = {}) {
+  const compilerBlueprint = options.skipPrepareBlueprint
+    ? blueprint
+    : prepareBlueprintForCompilation(blueprint, options);
   if (!options.skipCompilerContractCheck) {
-    assertBlueprintCompilerContract(blueprint, options);
+    assertBlueprintCompilerContract(compilerBlueprint, options);
   }
   if (featureId?.startsWith('custom_')) {
     const templateKind = getCompiledCustomTemplateKind(featureId, options);
     if (templateKind === 'reflection-check-in') {
-      return compileCustomReflectionDeliverable(featureId, blueprint, options);
+      return compileCustomReflectionDeliverable(featureId, compilerBlueprint, options);
     }
     if (templateKind === 'reading-response') {
-      return compileCustomReadingResponseDeliverable(featureId, blueprint, options);
+      return compileCustomReadingResponseDeliverable(featureId, compilerBlueprint, options);
     }
+    const structuredCustom = compileStructuredCustomDeliverable(featureId, compilerBlueprint, options);
+    if (structuredCustom) return structuredCustom;
     return null;
   }
   switch (featureId) {
     case 'syllabus':
-      return compileSyllabus(blueprint, options);
+      return compileSyllabus(compilerBlueprint, options);
     case 'lessonPlans':
-      return compileLessonPlans(blueprint, options);
+      return compileLessonPlans(compilerBlueprint, options);
     case 'slideDecks':
-      return compileSlideDecks(blueprint, options.configMap?.slideDecks || {});
+      return compileSlideDecks(compilerBlueprint, options.configMap?.slideDecks || {});
     case 'assignments':
-      return compileAssignments(blueprint, options);
+      return compileAssignments(compilerBlueprint, options);
     case 'rubrics':
-      return compileRubrics(blueprint, options);
+      return compileRubrics(compilerBlueprint, options);
     case 'discussions':
-      return compileDiscussions(blueprint, options);
+      return compileDiscussions(compilerBlueprint, options);
     case 'quizBank':
-      return compileQuizBank(blueprint, options.configMap?.quizBank || {});
+      return compileQuizBank(compilerBlueprint, options.configMap?.quizBank || {});
     case 'studyGuides':
-      return compileStudyGuides(blueprint, options);
+      return compileStudyGuides(compilerBlueprint, options);
     case 'courseFaq':
-      return compileCourseFaq(blueprint, options.configMap?.courseFaq || {});
+      return compileCourseFaq(compilerBlueprint, options.configMap?.courseFaq || {});
     default:
       return null;
   }
 }
 
 export function compileBlueprintDeliverables(blueprint, featureIds = [], options = {}) {
-  assertBlueprintCompilerContract(blueprint, options);
+  const compilerBlueprint = prepareBlueprintForCompilation(blueprint, options);
+  assertBlueprintCompilerContract(compilerBlueprint, options);
   const result = {};
   for (const featureId of getBlueprintCompiledFeatures(featureIds, options)) {
-    const data = compileBlueprintDeliverable(featureId, blueprint, {
+    const data = compileBlueprintDeliverable(featureId, compilerBlueprint, {
       ...options,
       skipCompilerContractCheck: true,
+      skipPrepareBlueprint: true,
     });
     if (data) result[featureId] = data;
   }

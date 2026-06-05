@@ -3,6 +3,59 @@ import Header from '../components/Header';
 
 const releases = [
   {
+    version: '0.8.4',
+    date: 'June 5, 2026',
+    title: 'Compiler Weight Shift Release',
+    highlights: [
+      'Blueprints now have a lean semantic contract while compiler-owned proof surfaces are derived deterministically before compilation',
+      'Common per-lesson custom deliverables such as feedback forms, lab reports, case briefs, policy memo checkpoints, and problem-set worksheets compile without model fallback',
+      'Compiled receipts now include proof-bundle verification from reading the derived state back, not only trusting tool success',
+      'The compiler scenario gate now covers different prompt styles, restored/lean blueprint state, lesson scopes, and larger 14-lesson packages',
+    ],
+    sections: [
+      {
+        label: 'Lean Blueprint Contract',
+        icon: '✓',
+        color: 'emerald',
+        items: [
+          'Compilation now gates on source-grounded semantic atoms: lessons, outcomes, concepts, artifacts, success criteria, source traces, source-use policy, evidence plans, compiler decisions, and assessment anchors.',
+          'The older strict blueprint contract remains available as a compatibility audit, but missing receipt/report surfaces no longer block a semantically valid restored blueprint from compiling.',
+          'Old or lean project state can be prepared for compilation by rebuilding missing compiler-owned maps before deliverables are generated.',
+        ],
+      },
+      {
+        label: 'Compiler Proof Bundle',
+        icon: '▣',
+        color: 'slate',
+        items: [
+          'The compiler now derives handoff, dry-run, classroom evidence loop, feedback-load, assumption ledger, coherence, review-surface, workload, and assessment proof surfaces before compiling.',
+          'Syllabus and lesson-plan receipts read those proof surfaces from the compiler bundle, including verification status, row counts, skipped model fallback, and traceability findings.',
+          'A new compiler-output contract checks final user value: selected features exist, lesson coverage is complete, proof bundle passed, and receipts carry read-back verification.',
+        ],
+      },
+      {
+        label: 'Custom Families',
+        icon: '+',
+        color: 'indigo',
+        items: [
+          'Feedback forms, project milestone checklists, lab reports, case briefs, policy memo checkpoints, observation checklists, participation/self-assessments, capstone progress reports, and problem-set worksheets now compile deterministically when the custom definition asks for one item per lesson or week.',
+          'Unknown, broad, whole-course, portfolio, or fully custom structures still stay on the model path instead of being forced into an unsafe deterministic template.',
+          'Compiler receipts keep the model fallback boundary explicit for these custom families.',
+        ],
+      },
+      {
+        label: 'Scenario Coverage',
+        icon: '10',
+        color: 'amber',
+        items: [
+          'The compiler suite now includes a restored lean-blueprint scenario that strips proof/report fields, derives them back, compiles syllabus, lesson plans, assignments, and rubrics, then validates output receipts.',
+          'A 10-scenario prompt-style gate covers policy studio, biology lab, programming lab, data science, engineering design, online writing, quantitative problem sets, capstone projects, counseling practice, scoped lesson subsets, and a 14-lesson package.',
+          'Focused compiler coverage now asserts intent, safety, state change, verification, coverage, and final user value instead of only one expected tool path.',
+        ],
+      },
+    ],
+  },
+  {
     version: '0.8.3',
     date: 'June 5, 2026',
     title: 'Workspace Recovery and Agent Trust Release',

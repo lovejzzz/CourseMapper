@@ -34,6 +34,20 @@ Goal: make CourseMapper credible for real classroom pilots while keeping the age
 9. Versioned package handoff so users can recover prior generated packages.
 10. Public demo packages showing polished complete outputs across multiple subjects.
 
+## v0.8.4 - Compiler Weight Shift Release
+
+Goal: shift repeatable artifact assembly out of blueprint/model generation and into deterministic compiler/finalizer code, so CourseMapper reduces provider cost, improves no-key recovery, and makes review boundaries more reliable.
+
+Full plan: `docs/V0.8.4_COMPILER_WEIGHT_SHIFT_ROADMAP.md`
+
+1. More custom deliverable families: compile common per-lesson/week feedback forms, project milestone checklists, lab reports, case briefs, policy memo checkpoints, observation checklists, participation/self-assessments, capstone progress reports, and problem-set worksheets from the blueprint.
+2. Artifact wording patterns: move predictable artifact language into compiler-owned templates while keeping the blueprint focused on source-grounded atoms, evidence, risks, and compact enrichment.
+3. Adaptive repairs: prefer deterministic compiler/finalizer repairs for structural gaps, scoring math, missing coverage, placeholder language, weak receipts, and stale downstream wording.
+4. Receipts and trust evidence: render instructor-facing compiled/model-generated/repair/skip/failure/verification receipts from compiler/finalizer code instead of copying internal blueprint maps.
+5. Preference application: apply learned instructor preferences as compiler knobs for tone, difficulty, slide-note density, feedback style, scaffolding, and naming.
+6. Stale deliverable regeneration: deterministically regenerate affected compiled deliverables when course-map or blueprint state changes.
+7. Enrichment boundaries: keep optional enrichment compact and blueprint-level; never let enrichment become full deliverable generation.
+
 ## v0.8.3 - Workspace Recovery and Agent Trust Release
 
 Goal: an instructor can open an old or half-finished project, even with a broken API key, reconfigure the model inside the workspace, ask naturally for changes, and trust the agent because it plans, executes, verifies, and shows exactly what changed.
@@ -78,6 +92,7 @@ Hourly execution rule: pick one small vertical slice from this section per run, 
 
 Latest slice evidence:
 
+- 2026-06-05: v0.8.4 shifted blueprint weight into compiler-owned proof and custom-family paths. The compiler now gates on a lean semantic blueprint contract, derives missing handoff/dry-run/evidence-loop/feedback-load/assumption/coherence/review-surface proof bundles for restored or lean blueprints, validates final compiled output with read-back receipts, and compiles feedback forms, project milestone checklists, lab reports, case briefs, policy memo checkpoints, observation checklists, participation/self-assessments, capstone progress reports, and problem-set worksheets deterministically when the custom definition asks for one item per lesson/week. Focused coverage now includes a lean-restored blueprint scenario plus 10 prompt-style/lesson-scope scenarios in `src/lib/__tests__/courseBlueprintCompiler.test.js`, alongside custom-family savings coverage in `src/lib/__tests__/courseBlueprintCostComparison.test.js`.
 - 2026-05-26: `audit:pipeline` now emits a per-case feature source matrix in `verification-output/hybrid-pipeline-audit/latest.md`, explicitly naming compiled versus still model-generated deliverables for each audited release fixture.
 - 2026-05-26: Discussion Prompts moved onto the deterministic blueprint compiler path; `audit:pipeline` now reports 8 compiled deliverables and only `lessonPlans` remaining on the model path (156 baseline calls -> 18 hybrid calls, 88.5% saved). Remaining warning: compiled discussions still repeat boilerplate across fixtures, so the next slice should make their lesson-specific guidance more varied.
 - 2026-05-26: Compiled Discussion Prompts now vary follow-up probes, facilitation guidance, response stems, criteria, and participation guidance by lesson context; scoped `audit:pipeline` rerun (`research-methods`, scope 5) cleared the repeated-boilerplate warning with 0 release warnings and 0 stress findings at the same 33 baseline calls -> 3 hybrid calls cost profile.

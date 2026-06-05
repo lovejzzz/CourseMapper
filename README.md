@@ -3,7 +3,7 @@
 AI-powered instructional design platform with an embedded teaching assistant agent. Upload your syllabus and generate a structured Course Map, lesson plans, slide decks, rubrics, quizzes, assignments, discussion prompts, study guides, and a polished syllabus — all pedagogically aligned, validated, and fully editable. Then use the AI agent to revise, validate, research, and visualize your curriculum through natural conversation.
 
 **Live:** [https://edutool.dev](https://edutool.dev)
-**Current release:** v0.8.3
+**Current release:** v0.8.4
 
 ---
 
@@ -108,6 +108,7 @@ An embedded multi-step AI agent with native tool calling, not a chatbot wrapper.
 - **No-key local commands** — When AI is not configured or a restored key is broken, typed requests like "can you audit this package?" still route to safe local Agent commands instead of dead-ending in disabled chat.
 - **Restored-project recovery** — If an old project opens with a missing, expired, or invalid key, the workspace stays open and lets the user change provider, key, or model without returning to the landing page.
 - **v0.8.3 scenario gate** — The agent safety suite now adds 64 v0.8.3 receipt-level closed-loop scenarios for restored-project recovery, missing deliverables, ambiguous requests, stale edits, provider failures, large packages, finish-package runs, repairs, and skipped/failed work.
+- **v0.8.4 compiler weight shift** — The course blueprint now gates compilation on lean source-grounded semantics while the compiler derives proof receipts, classroom handoff surfaces, and common custom deliverable families deterministically.
 
 ### Inline AI Editing
 
@@ -144,6 +145,7 @@ Course Mapper treats export as a finishing workflow, not just a file download. B
 - Uses an adaptive blueprint compiler path when enabled: deterministic compile by default, or one source-grounded enrichment call when the course map has enough signal to improve subject-specific phrasing safely.
 - Adds compiler-path evidence to the receipt so instructors can see whether the package was deterministically compiled or enriched, how many enrichment calls were used, and what still needs local review.
 - Classifies adaptive safety in the receipt: local source-inferred repairs, required human review, and whether model fallback was used for blueprint-compiled deliverables.
+- Compiles common per-lesson custom families from the course blueprint when safe, including feedback forms, milestone checklists, lab reports, case briefs, policy memo checkpoints, observation checklists, self-assessments, capstone progress reports, and problem-set worksheets.
 
 ### Academic Research
 
@@ -217,6 +219,7 @@ Five pedagogical frameworks that shape all generated content:
 
 - **Create your own** — Build custom deliverable types beyond the built-in 9 with custom system prompts, user prompt templates, and default config.
 - **Workspace creation** — Click **+ Add → Create Custom...** in the tab bar to build a new custom deliverable without leaving the workspace.
+- **Deterministic custom families** — Common per-lesson/week customs such as feedback forms, lab reports, case briefs, policy memo checkpoints, self-assessments, and problem-set worksheets compile from the course blueprint without extra provider calls when the definition matches a supported pattern.
 - **AI auto-config** — If you don't set tone, style, or output length, the AI automatically infers the best settings from your course content and sibling deliverables' configuration.
 - **Persistent** — Custom deliverables are saved in local storage and appear in the + Add dropdown for re-use.
 
@@ -326,11 +329,13 @@ npm run audit:deliverables # live deliverable-quality audit (needs ANTHROPIC_API
 
 `audit:agent:openai` is the private live agent smoke gate. It runs 20 practical instructor scenarios, while the offline closed-loop suite adds the v0.8.3 restored-project recovery, receipt, safety, and finish-package scenario bank.
 
+v0.8.4 adds compiler-output contract coverage for lean/restored blueprints plus 10 prompt-style and lesson-scope scenarios that verify derived proof receipts, compiled feature coverage, and no model fallback for compiler-owned custom families.
+
 `audit:expert:packet` builds a reviewer packet from the compiled gold samples, including original source course-map files, course-modality evidence, modality-specific teaching routines, lesson evidence, artifact excerpts, full-package reviewed-artifact lists, scorecard dimensions, and fixture templates that can be filled by external reviewers.
 
 `audit:deliverables` drives the real production prompts (`src/lib/prompts/*`) through Anthropic against a fixed ML-course fixture and scores the output on schema fidelity, prompt-rule adherence (Bloom's distribution, slide sequence, speaker-note format, etc.), and content specificity. Run after any change to the prompts, `FEATURE_OUTPUT_BUDGETS`, or `FEATURE_CHUNK_SIZES` in `src/lib/parallelGenerator.js`. Expect ~12 minutes wall time and a handful of Sonnet calls per run.
 
-`audit:expert` defaults to internal provisional fixtures. External proof is optional for v0.8.3 and separate from internal self-improvement readiness. To collect optional external evidence later, run it with proof-eligible reviewer or instructor-edit fixtures:
+`audit:expert` defaults to internal provisional fixtures. External proof remains optional and separate from internal self-improvement readiness. To collect optional external evidence later, run it with proof-eligible reviewer or instructor-edit fixtures:
 
 ```bash
 npm run audit:expert -- --fixtures /path/to/external-review-fixtures.json

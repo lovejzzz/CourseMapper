@@ -197,4 +197,71 @@ describe('blueprint compiler cost comparison sample', () => {
       estimateBlueprintCompilerSavings(compiledFeatureIds, 8),
     );
   });
+
+  it('removes planned provider calls for supported structured custom families while preserving model fallback for unknown customs', () => {
+    customDeliverables = {
+      custom_feedbackForm: {
+        id: 'custom_feedbackForm',
+        name: 'Feedback Form',
+        description: 'Per-week peer feedback form for each lesson.',
+        systemPrompt: 'Return one feedback form for each lesson/week.',
+        userPromptTemplate: 'Generate one feedback form for each lesson/week. {{courseMap}}',
+      },
+      custom_labReport: {
+        id: 'custom_labReport',
+        name: 'Lab Report',
+        description: 'Per-week lab report shell for each lesson.',
+        systemPrompt: 'Return one lab report for each lesson/week.',
+        userPromptTemplate: 'Generate one lab report for each lesson/week. {{courseMap}}',
+      },
+      custom_policyMemo: {
+        id: 'custom_policyMemo',
+        name: 'Policy Memo Checkpoint',
+        description: 'Per-week policy memo checkpoint for each lesson.',
+        systemPrompt: 'Return one policy memo checkpoint for each lesson/week.',
+        userPromptTemplate: 'Generate one policy memo checkpoint for each lesson/week. {{courseMap}}',
+      },
+      custom_unknown: {
+        id: 'custom_unknown',
+        name: 'Studio Artifact Pack',
+        description: 'Flexible materials for studio facilitation.',
+        systemPrompt: 'Generate custom studio materials.',
+        userPromptTemplate: 'Create the custom deliverable for the course. {{courseMap}}',
+      },
+      custom_wholeCourseFeedback: {
+        id: 'custom_wholeCourseFeedback',
+        name: 'Feedback Form',
+        description: 'Whole-course feedback form.',
+        systemPrompt: 'Return one whole-course feedback form.',
+        userPromptTemplate: 'Generate a single feedback form for the full course. {{courseMap}}',
+      },
+    };
+
+    const featureIds = [
+      'custom_feedbackForm',
+      'custom_labReport',
+      'custom_policyMemo',
+      'custom_unknown',
+      'custom_wholeCourseFeedback',
+    ];
+    const compiledFeatureIds = getBlueprintCompiledFeatures(featureIds);
+    const modelFeatureIds = featureIds.filter((featureId) => !compiledFeatureIds.includes(featureId));
+    const baselinePlan = buildApiCostPlan({
+      featureIds,
+      lessonCount: 8,
+      includeRepairRetryReserve: false,
+    });
+    const hybridPlan = buildApiCostPlan({
+      featureIds: modelFeatureIds,
+      lessonCount: 8,
+      includeRepairRetryReserve: false,
+    });
+
+    expect(compiledFeatureIds).toEqual(['custom_feedbackForm', 'custom_labReport', 'custom_policyMemo']);
+    expect(modelFeatureIds).toEqual(['custom_unknown', 'custom_wholeCourseFeedback']);
+    expect(estimateBlueprintCompilerSavings(compiledFeatureIds, 8)).toBeGreaterThan(0);
+    expect(baselinePlan.deliverableChunkCalls - hybridPlan.deliverableChunkCalls).toBe(
+      estimateBlueprintCompilerSavings(compiledFeatureIds, 8),
+    );
+  });
 });

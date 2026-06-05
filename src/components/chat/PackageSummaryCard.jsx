@@ -119,6 +119,7 @@ export default function PackageSummaryCard({ summary, embedded = false }) {
 
   return (
     <div
+      data-testid="package-summary-card"
       className={`${embedded ? '' : 'ml-8 mr-1'} rounded-lg border ${tone.wrapper} shadow-sm animate-spring-in overflow-hidden`}
     >
       <div className="px-3 py-2.5">
