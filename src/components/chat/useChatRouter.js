@@ -259,7 +259,7 @@ export default function useChatRouter({
   const agentProviderReady = isAgentProviderReady({ provider, apiKey, apiStatus, modelId });
 
   function appendAgentUnavailableMessage(text, { silent = false } = {}) {
-    const message = getAgentUnavailableMessage({ provider, modelId });
+    const message = getAgentUnavailableMessage({ provider, modelId, apiStatus });
     if (silent) {
       setMessages((prev) => [...prev, { role: 'assistant', text: message }]);
       return;
@@ -767,8 +767,8 @@ export default function useChatRouter({
 
     const { autoFixable, needsDecision } = classifyFindings(findings);
 
-    // Build the synthetic auto-fix prompt
-    const parts = ['[AUTO-FIX MODE] The course health check found the following issues. Fix them now.\n'];
+    // Build the synthetic safe-repair prompt.
+    const parts = ['[SAFE REPAIR LOOP] The course health check found the following issues. Fix them now.\n'];
 
     if (autoFixable.length > 0) {
       parts.push(`## Auto-fixable issues (fix directly via edit_deliverables, NO proposal needed):`);

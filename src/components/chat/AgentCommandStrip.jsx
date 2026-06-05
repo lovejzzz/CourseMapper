@@ -8,9 +8,11 @@ function isCourseMapTab(activeTab) {
 function buildFinishPrompt() {
   return [
     'Finish the course package until it is ready to download.',
-    'Run package finalization first, apply safe deterministic repairs, retry localized weak sections only where needed, and verify exports plus classroom readiness.',
+    'Call inspect_workspace or plan_workspace_next_step first if package state is unclear, then run package finalization.',
+    'Apply safe deterministic repairs, retry localized weak sections only where needed, and verify exports plus classroom readiness by reading the final state back.',
+    'Do not invent missing deliverables; if a required deliverable does not exist, explain what must be generated before finishing.',
     'If broad concrete issues remain, fix them directly before summarizing.',
-    'Finish with a concise ready/not-ready handoff and list only remaining instructor decisions.',
+    'Finish with a concise ready/not-ready handoff that lists changed, skipped, failed, verified, and remaining instructor-decision items.',
   ].join(' ');
 }
 
@@ -57,7 +59,20 @@ export function buildAgentCommandItems({
       label: 'Finish',
       displayText: 'Finish package',
       title: 'Repair, verify, and prepare the package',
-      aliases: ['fix', 'repair', 'ready', 'finalize', 'export', 'download', 'package', 'complete'],
+      aliases: [
+        'fix',
+        'repair',
+        'ready',
+        'finalize',
+        'export',
+        'download',
+        'package',
+        'complete',
+        'finish my package',
+        'final pass',
+        'ready for class',
+        'prepare export',
+      ],
       prompt: buildFinishPrompt(),
     },
     canUndo
@@ -190,8 +205,8 @@ const NATURAL_COMMAND_MATCHERS = [
   {
     id: 'finish-package',
     patterns: [
-      /^(?:finish|finish package|fix|fix package|repair package|finalize|finalize package|make ready|ready to download|prepare download|prepare package)$/,
-      /^(?:finish|fix|repair|finalize|prepare|make ready)\s+(?:(?:this|my|the|current)\s+)?(?:workspace|package|course|materials|deliverables)?(?:\s+(?:for|to)\s+download)?$/,
+      /^(?:finish|finish package|finish my package|fix|fix package|repair package|finalize|finalize package|make ready|ready to download|prepare download|prepare package|prepare export|final pass|do the final pass|make this ready for class)$/,
+      /^(?:finish|fix|repair|finalize|prepare|make ready)\s+(?:(?:this|my|the|current)\s+)?(?:workspace|package|course|materials|deliverables|export)?(?:\s+(?:for|to)\s+(?:download|class|export))?$/,
     ],
   },
   {

@@ -5,8 +5,11 @@ on:
   push:
     branches:
       - main
+      - 'release/**'
       - 'codex/**'
   workflow_dispatch:
+  schedule:
+    - cron: '0 9 * * *'
 
 permissions:
   contents: read
@@ -16,10 +19,45 @@ concurrency:
   cancel-in-progress: true
 
 jobs:
-  verify:
-    name: Verify app
+  verify-fast:
+    name: Fast verification
     runs-on: ubuntu-latest
-    timeout-minutes: 60
+    timeout-minutes: 25
+
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 20
+          cache: npm
+
+      - name: Install dependencies
+        run: npm ci
+
+      - name: Check formatting
+        run: npm run format:check
+
+      - name: Lint
+        run: npm run lint
+
+      - name: Unit and closed-loop tests
+        run: npm test
+
+      - name: Build
+        run: npm run build
+
+      - name: Bundle budgets
+        run: npm run bundle:check
+
+  verify-deep:
+    name: Deep proof gates
+    runs-on: ubuntu-latest
+    timeout-minutes: 75
+    if: >-
+      github.event_name == 'workflow_dispatch' ||
+      github.event_name == 'schedule' ||
+      (github.event_name == 'push' && (github.ref == 'refs/heads/main' || startsWith(github.ref, 'refs/heads/release/')))
 
     steps:
       - uses: actions/checkout@v4
@@ -40,15 +78,6 @@ jobs:
       - name: Install Playwright browser
         run: npx playwright install --with-deps chromium
 
-      - name: Check formatting
-        run: npm run format:check
-
-      - name: Lint
-        run: npm run lint
-
-      - name: Unit tests
-        run: npm test
-
       - name: Deliverable quality audit
         run: npm run audit:deliverables
 
@@ -58,17 +87,11 @@ jobs:
       - name: Gold sample quality audit
         run: npm run audit:gold
 
-      - name: Expert review quality audit
+      - name: Internal expert-style audit
         run: npm run audit:expert
 
-      - name: External quality proof packet
+      - name: Optional proof packet build
         run: npm run audit:expert:packet
-
-      - name: Build
-        run: npm run build
-
-      - name: Bundle budgets
-        run: npm run bundle:check
 
       - name: E2E tests
         run: npm run test:e2e

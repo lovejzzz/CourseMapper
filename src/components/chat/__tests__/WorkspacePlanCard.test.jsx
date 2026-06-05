@@ -17,7 +17,7 @@ import WorkspacePlanCard, {
 globalThis.IS_REACT_ACT_ENVIRONMENT = true;
 
 const samplePlan = {
-  executionMode: 'auto-fix',
+  executionMode: 'safe-edit',
   course: { lessonCount: 8 },
   evidence: {
     generatedFeatureCount: 4,
@@ -116,10 +116,10 @@ describe('WorkspacePlanCard', () => {
     expect(getWorkspacePlanActionButtonLabel(action, unrelatedCapabilities)).toBe('Review sync');
   });
 
-  it('allows safe auto-fix plan actions to request apply mode', () => {
+  it('allows safe-edit plan actions to request apply mode', () => {
     const options = buildWorkspacePlanActionSendOptions({
       title: 'Repair missing slide alt text',
-      safeMode: 'safe-auto-fix',
+      safeMode: 'safe-edit',
       intent: { type: 'clear_readiness_blockers', featureIds: ['slideDecks'] },
     });
 

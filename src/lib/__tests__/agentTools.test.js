@@ -586,7 +586,7 @@ describe('Tool execute: inspect_workspace', () => {
       activeTab: 'lessonPlans',
       activeTabLabel: 'Lesson Plans',
     });
-    expect(result.executionMode).toBe('review-only');
+    expect(result.executionMode).toBe('inspect-first');
     expect(result.selectedFeatureCount).toBe(4);
     expect(result.generatedFeatureCount).toBe(2);
     expect(result.staleFeatureCount).toBe(1);

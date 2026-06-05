@@ -24,12 +24,20 @@ describe('agentAvailability', () => {
     ).toBe(true);
   });
 
-  it('blocks BYOK providers while validation is pending or failed', () => {
+  it('blocks BYOK providers while validation is pending, failed, or out of credits', () => {
     expect(
       isAgentProviderReady({
         provider: 'openai',
         apiKey: 'sk-test',
         apiStatus: 'validating',
+        modelId: 'gpt-4o-mini',
+      }),
+    ).toBe(false);
+    expect(
+      isAgentProviderReady({
+        provider: 'openai',
+        apiKey: 'sk-test',
+        apiStatus: 'no_funds',
         modelId: 'gpt-4o-mini',
       }),
     ).toBe(false);
@@ -64,5 +72,8 @@ describe('agentAvailability', () => {
   it('uses actionable unavailable copy', () => {
     expect(getAgentUnavailableMessage({ provider: 'openai' })).toContain('connected AI provider');
     expect(getAgentUnavailableMessage({ provider: 'webllm' })).toContain('select a local model');
+    expect(getAgentUnavailableMessage({ provider: 'openai', apiStatus: 'validating' })).toContain('checking');
+    expect(getAgentUnavailableMessage({ provider: 'openai', apiStatus: 'error' })).toContain('change the provider');
+    expect(getAgentUnavailableMessage({ provider: 'openai', apiStatus: 'no_funds' })).toContain('no available credits');
   });
 });

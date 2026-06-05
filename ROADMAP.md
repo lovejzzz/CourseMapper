@@ -34,6 +34,19 @@ Goal: make CourseMapper credible for real classroom pilots while keeping the age
 9. Versioned package handoff so users can recover prior generated packages.
 10. Public demo packages showing polished complete outputs across multiple subjects.
 
+## v0.8.3 - Workspace Recovery and Agent Trust Release
+
+Goal: an instructor can open an old or half-finished project, even with a broken API key, reconfigure the model inside the workspace, ask naturally for changes, and trust the agent because it plans, executes, verifies, and shows exactly what changed.
+
+Full plan: `docs/V0.8.3_AGENT_RECOVERY_ROADMAP.md`
+
+1. Workspace model/key recovery: the Agent header model label opens provider, key, and model settings in place; expired, invalid, no-credit, validating, and missing-model states guide recovery without closing the workspace.
+2. Conversation-first agent behavior: remove visible review/edit mode choice; apply safe targeted work, ask before broad/destructive/missing/ambiguous work, and refuse missing deliverables instead of creating ghost artifacts.
+3. Instructor-readable receipts: show before/after change details, affected deliverables, skipped and failed actions, recovery guidance, and verification from reading the edited state back.
+4. Closed-loop scenario expansion: add 50-75 high-value v0.8.3 scenarios first, then grow toward 150 across restored projects, broken keys, stale deliverables, multi-turn edits, provider failures, large packages, and ambiguous requests.
+5. One Finish package path: finish, verify, repair safe issues, retry localized weak spots, verify exports/readiness, prepare export, and list remaining human-review items.
+6. Release operability: keep pull-request feedback fast while deep audits, E2E, rules, and proof packets remain available on push/manual release gates.
+
 ## v0.8.2 - Internal Self-Improvement Release
 
 Goal: remove external expert audit as a release dependency and replace it with a stricter internal self-improvement loop. External proof tools can remain available for optional future certification, but v0.8.2 should be judged by internal adversarial fixtures, deterministic self-audits, export verification, security hardening, live provider smoke, and honest claim boundaries.

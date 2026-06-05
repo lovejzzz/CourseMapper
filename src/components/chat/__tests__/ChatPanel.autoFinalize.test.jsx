@@ -14,6 +14,14 @@ vi.mock('../ChatInput', () => ({ default: () => <div data-testid="chat-input" />
 vi.mock('../PackageSummaryCard', () => ({ default: () => <div data-testid="package-summary" /> }));
 vi.mock('../CustomToolsMenu', () => ({ default: () => <div data-testid="custom-tools" /> }));
 vi.mock('../../ExamReview', () => ({ default: () => <div data-testid="exam-review" /> }));
+vi.mock('../../../contexts/AIConfigContext', () => ({
+  useAIConfig: () => ({
+    provider: 'openai',
+    apiKey: 'sk-test',
+    apiStatus: 'connected',
+    modelId: 'gpt-4o-mini',
+  }),
+}));
 vi.mock('../useChatRouter', () => ({
   default: () => ({
     messages: [],

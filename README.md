@@ -3,7 +3,7 @@
 AI-powered instructional design platform with an embedded teaching assistant agent. Upload your syllabus and generate a structured Course Map, lesson plans, slide decks, rubrics, quizzes, assignments, discussion prompts, study guides, and a polished syllabus — all pedagogically aligned, validated, and fully editable. Then use the AI agent to revise, validate, research, and visualize your curriculum through natural conversation.
 
 **Live:** [https://edutool.dev](https://edutool.dev)
-**Current release:** v0.8.2
+**Current release:** v0.8.3
 
 ---
 
@@ -13,7 +13,7 @@ Course Mapper is a **purpose-built instructional design tool**, not a general ch
 
 1. **Structured output, not chat.** Pasting a syllabus into ChatGPT gives you a blob of markdown. Course Mapper produces structured, editable tables and slide decks with defined schemas — ready to use immediately.
 2. **10 aligned deliverables.** Generate a Course Map, Syllabus, Lesson Plans, Slide Decks, Rubrics, Quiz Bank, Assignments, Discussion Prompts, Study Guides, and Course FAQ — all cross-referenced and pedagogically consistent.
-3. **Embedded AI agent with a 25-tool runtime.** A multi-step teaching assistant that can inspect your workspace, read deliverables, validate pedagogy, search academic literature, generate diagrams and charts, create reusable macros, and apply edits — all through native tool calling with accept/reject review before changes land.
+3. **Embedded AI agent with a 25-tool runtime.** A multi-step teaching assistant that can inspect your workspace, read deliverables, validate pedagogy, search academic literature, generate diagrams and charts, create reusable macros, and apply safe targeted edits from natural conversation.
 4. **Inline AI editing.** Right-click any cell to Improve, Expand, Simplify, or Rewrite with AI. No need to describe what you want changed — the agent sees the cell context automatically.
 5. **Cascade editing.** Edit one deliverable and the system automatically detects which other deliverables are affected and surgically regenerates just those lessons — no full regeneration.
 6. **Pedagogical validation.** Built-in Bloom's taxonomy alignment, objective coverage, cognitive load assessment, readability scoring, and difficulty progression checks — with auto-fix for common issues.
@@ -63,7 +63,7 @@ Click any text to edit inline. Use Revision Chat for AI-assisted changes. Export
 
 ### AI Teaching Agent
 
-An embedded multi-step AI agent with native tool calling, not a chatbot wrapper. The agent reads your course data, reasons about pedagogy, and takes action — with your approval at every step.
+An embedded multi-step AI agent with native tool calling, not a chatbot wrapper. The agent reads your course data, reasons about pedagogy, and takes action from natural requests. Safe targeted edits can apply directly; broad rewrites, deletes, regenerations, overwrites, missing deliverables, and ambiguous targets ask first.
 
 **Core Agent Tool Families:**
 
@@ -95,7 +95,8 @@ An embedded multi-step AI agent with native tool calling, not a chatbot wrapper.
 
 - **Native tool calling** — Uses each provider's native function-calling API (OpenAI, Anthropic, Google) instead of JSON-in-text parsing. Up to 10 reasoning iterations per request.
 - **Parallel tool execution** — Executes multiple tools concurrently (e.g., reading 5 lessons at once), dramatically reducing response time.
-- **Accept/reject diff review** — Every change shows a before/after diff preview. Accept to apply, reject to discard. No changes land without your approval.
+- **Conversation-first edits** — The agent does what you ask when the change is safe and targeted, then verifies by reading the edited state back.
+- **Compact change receipts** — After agent work, receipts show before/after change details, affected deliverables, skipped and failed actions, recovery guidance, and verification results.
 - **Pre-validation** — Every proposed action is validated against current deliverable state before being shown. Invalid options are filtered out automatically.
 - **Batch actions** — "Add a discussion prompt to every lesson" executes across all lessons in one go with per-lesson unique content.
 - **Cross-deliverable edits** — "Add a quiz AND an assignment for Lesson 2" handles multiple deliverable types in a single request.
@@ -104,9 +105,9 @@ An embedded multi-step AI agent with native tool calling, not a chatbot wrapper.
 - **Silent auto-fix** — After deliverables generate, the agent runs a health check and auto-fixes readability, difficulty, and grammar issues without cluttering the chat.
 - **Error recovery** — If a proposed action fails, the agent auto-recovers by silently re-invoking itself to find an alternative.
 - **User preferences** — Tell the agent your teaching style, Bloom's focus, or difficulty preference and it persists across sessions.
-- **No-key local commands** — When AI is not configured, typed requests like "can you audit this package?" still route to safe local Agent commands instead of dead-ending in disabled chat.
+- **No-key local commands** — When AI is not configured or a restored key is broken, typed requests like "can you audit this package?" still route to safe local Agent commands instead of dead-ending in disabled chat.
 - **Restored-project recovery** — If an old project opens with a missing, expired, or invalid key, the workspace stays open and lets the user change provider, key, or model without returning to the landing page.
-- **v0.8.2 scenario gate** — The OpenAI live agent audit now covers 20 real-life instructor prompts across research, grammar, diagrams, charts, lesson reads, slide improvements, custom macros, undo, alignment, package review, and missing-deliverable safety.
+- **v0.8.3 scenario gate** — The agent safety suite now adds 64 v0.8.3 receipt-level closed-loop scenarios for restored-project recovery, missing deliverables, ambiguous requests, stale edits, provider failures, large packages, finish-package runs, repairs, and skipped/failed work.
 
 ### Inline AI Editing
 
@@ -309,7 +310,7 @@ npm run test:rules        # Firestore security rules through the Firebase emulat
 npm run test:e2e          # Playwright end-to-end suite
 npm run audit:pipeline    # deterministic compiler regression gate
 npm run audit:gold        # internal gold-sample classroom-quality gate
-npm run audit:self        # v0.8.2 internal self-improvement gate with adversarial fixtures
+npm run audit:self        # internal self-improvement gate with adversarial fixtures
 npm run audit:expert      # internal provisional expert-style harness; supports optional fixtures
 npm run audit:expert:preflight # optional readiness checklist for completed external proof fixtures
 npm run audit:expert:external # optional external-proof gate; requires external review + edit evidence
@@ -321,15 +322,15 @@ npm run audit:deliverables # live deliverable-quality audit (needs ANTHROPIC_API
 
 `audit:gold` compares compiled packages against curated classroom-quality expectations, source-to-output fidelity, explicit teaching-intent traces, course-modality fit, modality-specific teaching-pattern decoding, and enrichment impact. The enrichment matrix checks whether compact blueprint enrichment creates measurable course-specific lift over the deterministic compiler without lowering quality, source fidelity, teaching intent, modality fit, or blueprint fidelity.
 
-`audit:self` is the v0.8.2 release gate that replaces external audit as a blocker. It runs adversarial internal fixtures through the deterministic compiler, validators, publishability checks, and review-boundary checks. Passing it means internally self-audited for controlled pilots, not externally certified.
+`audit:self` is the internal self-improvement gate that replaces external audit as a blocker. It runs adversarial internal fixtures through the deterministic compiler, validators, publishability checks, and review-boundary checks. Passing it means internally self-audited for controlled pilots, not externally certified.
 
-`audit:agent:openai` is the v0.8.2 live agent smoke gate. It runs 20 practical instructor scenarios, including package auditing, lesson edits, research, grammar checks, diagrams/charts, slide-deck visual improvements, custom macro creation, undo, and refusal to edit deliverables that have not been generated.
+`audit:agent:openai` is the private live agent smoke gate. It runs 20 practical instructor scenarios, while the offline closed-loop suite adds the v0.8.3 restored-project recovery, receipt, safety, and finish-package scenario bank.
 
 `audit:expert:packet` builds a reviewer packet from the compiled gold samples, including original source course-map files, course-modality evidence, modality-specific teaching routines, lesson evidence, artifact excerpts, full-package reviewed-artifact lists, scorecard dimensions, and fixture templates that can be filled by external reviewers.
 
 `audit:deliverables` drives the real production prompts (`src/lib/prompts/*`) through Anthropic against a fixed ML-course fixture and scores the output on schema fidelity, prompt-rule adherence (Bloom's distribution, slide sequence, speaker-note format, etc.), and content specificity. Run after any change to the prompts, `FEATURE_OUTPUT_BUDGETS`, or `FEATURE_CHUNK_SIZES` in `src/lib/parallelGenerator.js`. Expect ~12 minutes wall time and a handful of Sonnet calls per run.
 
-`audit:expert` defaults to internal provisional fixtures. External proof is optional for v0.8.2 and separate from internal self-improvement readiness. To collect optional external evidence later, run it with proof-eligible reviewer or instructor-edit fixtures:
+`audit:expert` defaults to internal provisional fixtures. External proof is optional for v0.8.3 and separate from internal self-improvement readiness. To collect optional external evidence later, run it with proof-eligible reviewer or instructor-edit fixtures:
 
 ```bash
 npm run audit:expert -- --fixtures /path/to/external-review-fixtures.json

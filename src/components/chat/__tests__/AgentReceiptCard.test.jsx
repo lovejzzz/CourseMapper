@@ -54,7 +54,7 @@ describe('AgentReceiptCard', () => {
           title: 'Audit needs review',
           status: 'review',
           badge: 'Review',
-          mode: 'Review only',
+          mode: 'No workspace edits',
           target: 'Package',
           changed: 'No content edits',
           checked: ['Readiness', 'Classroom fit'],
@@ -65,7 +65,7 @@ describe('AgentReceiptCard', () => {
     );
 
     expect(html).toContain('Audit needs review');
-    expect(html).toContain('Review only');
+    expect(html).toContain('No workspace edits');
     expect(html).toContain('No content edits');
     expect(html).toContain('Readiness');
     expect(html).toContain('Lesson Plans: timing needs review.');
@@ -78,7 +78,7 @@ describe('AgentReceiptCard', () => {
         receipt={{
           title: 'Quality audit complete',
           status: 'done',
-          mode: 'Review only',
+          mode: 'No workspace edits',
           target: 'Package',
           runStats: { providerCallCount: 2 },
           changed: ['No workspace edits'],
@@ -104,7 +104,7 @@ describe('AgentReceiptCard', () => {
     );
 
     expect(html).toContain('data-testid="agent-receipt-tool-trace"');
-    expect(html).toContain('Tools used');
+    expect(html).toContain('Work done');
     expect(html).toContain('2 model calls');
     expect(html).toContain('Validate course materials');
     expect(html).toContain('Inspect workspace');
@@ -150,7 +150,7 @@ describe('AgentReceiptCard', () => {
     );
 
     expect(html).toContain('data-testid="agent-receipt-verification"');
-    expect(html).toContain('Verifier:');
+    expect(html).toContain('Verified by reading back:');
     expect(html).toContain('Verified after mutation via Read lesson plans');
   });
 
@@ -173,7 +173,7 @@ describe('AgentReceiptCard', () => {
     );
 
     expect(html).toContain('data-testid="agent-receipt-planning"');
-    expect(html).toContain('Planner:');
+    expect(html).toContain('Plan:');
     expect(html).toContain('Planned before execution via Inspect workspace');
   });
 
@@ -207,7 +207,7 @@ describe('AgentReceiptCard', () => {
     );
 
     expect(html).toContain('data-testid="agent-receipt-state-diffs"');
-    expect(html).toContain('State diff');
+    expect(html).toContain('Change details');
     expect(html).toContain('Changed');
     expect(html).toContain('Before:');
     expect(html).toContain('What proves the tool ran?');

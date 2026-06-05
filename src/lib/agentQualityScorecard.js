@@ -252,7 +252,7 @@ export function buildAgentQualityScorecard({ receipt, progress = null, finalResp
   const issues = dimensions.flatMap((dimension) => dimension.issues.map((issue) => `${dimension.label}: ${issue}`));
 
   return {
-    version: '0.8.2',
+    version: '0.8.3',
     score,
     maxScore: 100,
     label: scoreLabel(score),

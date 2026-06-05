@@ -12,6 +12,7 @@ globalThis.IS_REACT_ACT_ENVIRONMENT = true;
 const chatRouterMock = vi.hoisted(() => ({
   messages: [],
   agentDryRun: false,
+  isAgentProviderReady: true,
   send: vi.fn(),
   handleStop: vi.fn(),
   handleApproveSyncSuggestion: vi.fn(),
@@ -29,6 +30,12 @@ const progressHeaderMock = vi.hoisted(() => ({
 }));
 const chatInputMock = vi.hoisted(() => ({
   props: null,
+}));
+const aiConfigMock = vi.hoisted(() => ({
+  provider: 'openai',
+  apiKey: 'sk-test',
+  apiStatus: 'connected',
+  modelId: 'gpt-4o-mini',
 }));
 
 vi.mock('../MessageList', () => ({
@@ -52,11 +59,15 @@ vi.mock('../ProgressHeader', () => ({
 }));
 vi.mock('../CustomToolsMenu', () => ({ default: () => <div data-testid="custom-tools" /> }));
 vi.mock('../../ExamReview', () => ({ default: () => <div data-testid="exam-review" /> }));
+vi.mock('../../ModelConfig', () => ({ default: () => <div data-testid="model-config" /> }));
+vi.mock('../../../contexts/AIConfigContext', () => ({
+  useAIConfig: () => aiConfigMock,
+}));
 vi.mock('../useChatRouter', () => ({
   default: () => ({
     messages: chatRouterMock.messages,
     isStreaming: false,
-    isAgentProviderReady: true,
+    isAgentProviderReady: chatRouterMock.isAgentProviderReady,
     agentDryRun: chatRouterMock.agentDryRun,
     customTools: [],
     customToolSyncError: null,
@@ -238,6 +249,11 @@ describe('ChatPanel agent command strip', () => {
   beforeEach(() => {
     chatRouterMock.messages = [];
     chatRouterMock.agentDryRun = false;
+    chatRouterMock.isAgentProviderReady = true;
+    aiConfigMock.provider = 'openai';
+    aiConfigMock.apiKey = 'sk-test';
+    aiConfigMock.apiStatus = 'connected';
+    aiConfigMock.modelId = 'gpt-4o-mini';
     chatRouterMock.send.mockReset();
     chatRouterMock.handleApproveSyncSuggestion.mockReset();
     chatRouterMock.handleSkipSyncSuggestion.mockReset();
@@ -392,6 +408,40 @@ describe('ChatPanel agent command strip', () => {
       },
     ]);
     expect(chatRouterMock.send).not.toHaveBeenCalled();
+  });
+
+  it('keeps restored-project recovery inside the workspace when the saved key fails', () => {
+    aiConfigMock.apiStatus = 'error';
+    chatRouterMock.isAgentProviderReady = false;
+    root = renderChatPanel(container);
+
+    const banner = container.querySelector('[data-testid="workspace-model-recovery-banner"]');
+    expect(banner).not.toBeNull();
+    expect(banner.textContent).toContain('Model connection failed');
+    expect(banner.textContent).toContain('Change key/model');
+
+    const action = container.querySelector('[data-testid="workspace-model-recovery-action"]');
+    act(() => {
+      action.dispatchEvent(new MouseEvent('click', { bubbles: true }));
+    });
+
+    expect(container.querySelector('[data-testid="workspace-model-config-overlay"]')).not.toBeNull();
+    expect(container.querySelector('[data-testid="model-config"]')).not.toBeNull();
+  });
+
+  it('shows no-credit recovery copy and keeps local commands available', () => {
+    aiConfigMock.apiStatus = 'no_funds';
+    chatRouterMock.isAgentProviderReady = false;
+    root = renderChatPanel(container, { delivCanUndo: true });
+
+    expect(container.querySelector('[data-testid="workspace-model-recovery-banner"]')?.textContent).toContain(
+      'Model credits unavailable',
+    );
+    expect(container.querySelector('[data-testid="agent-command-audit-quality"]')).not.toBeNull();
+    expect(container.querySelector('[data-testid="agent-command-plan-next"]')).not.toBeNull();
+    expect(container.querySelector('[data-testid="agent-command-undo-last"]')).not.toBeNull();
+    expect(container.querySelector('[data-testid="agent-command-configure-agent"]')).not.toBeNull();
+    expect(container.querySelector('[data-testid="agent-command-finish-package"]')).toBeNull();
   });
 
   it('does not expose Review-only mode switching', () => {
@@ -859,7 +909,7 @@ describe('ChatPanel agent command strip', () => {
       expect.objectContaining({
         role: 'workspacePlan',
         plan: expect.objectContaining({
-          executionMode: 'auto-fix',
+          executionMode: 'safe-edit',
           actions: expect.any(Array),
         }),
       }),
@@ -1133,7 +1183,7 @@ describe('ChatPanel agent command strip', () => {
       handled = await messageListMock.props.onWorkspacePlanAction(
         {
           title: 'Clear package readiness blockers',
-          safeMode: 'safe-auto-fix',
+          safeMode: 'safe-edit',
           intent: { type: 'clear_readiness_blockers', featureIds: ['lessonPlans'] },
         },
         { displayText: 'Fix: Clear package readiness blockers' },

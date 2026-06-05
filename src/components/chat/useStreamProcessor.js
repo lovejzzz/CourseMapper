@@ -458,11 +458,23 @@ function formatWorkspacePlanForHistory(plan, messageActionStates = null) {
         ? plan.actionStates
         : {};
   const intentOf = (action) => (typeof action?.intent === 'string' ? action.intent : action?.intent?.type || '');
+  const safeModeLabel = (safeMode) =>
+    ({
+      'inspect-first': 'inspect first',
+      'review-only': 'inspect first',
+      'safe-edit': 'safe edit',
+      'safe-auto-fix': 'safe edit',
+      'needs-approval': 'needs approval',
+      'requires-generation': 'requires generation',
+    })[safeMode] ||
+    safeMode ||
+    '';
   const actionText = actions
     .map((action, index) => {
       const actionState = actionStates[getWorkspacePlanHistoryActionKey(action, index)];
+      const modeLabel = safeModeLabel(action.safeMode);
       const parts = [
-        `${index + 1}. ${action.title}${action.safeMode ? ` (${action.safeMode})` : ''}`,
+        `${index + 1}. ${action.title}${modeLabel ? ` (${modeLabel})` : ''}`,
         actionState?.status ? `status=${actionState.status}` : '',
         intentOf(action) ? `intent=${intentOf(action)}` : '',
         action.target ? `target=${action.target}` : '',

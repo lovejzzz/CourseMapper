@@ -3,6 +3,70 @@ import Header from '../components/Header';
 
 const releases = [
   {
+    version: '0.8.3',
+    date: 'June 5, 2026',
+    title: 'Workspace Recovery and Agent Trust Release',
+    highlights: [
+      'Old or half-finished projects can recover bad keys, no-credit keys, and model mismatches directly inside the workspace',
+      'The agent path is conversation-first: safe targeted work happens from natural requests, while broad, destructive, missing, or ambiguous work asks first',
+      'Agent receipts now show compact instructor-readable change details, affected work, skipped or failed actions, and read-back verification',
+      'Closed-loop scenario coverage expands beyond first-tool-choice checks with v0.8.3 recovery, failure, stale-state, missing-deliverable, and package-finish cases',
+    ],
+    sections: [
+      {
+        label: 'Workspace Model Recovery',
+        icon: '⚙',
+        color: 'indigo',
+        items: [
+          'The Agent header model label opens provider, key, and model settings without returning to the landing page.',
+          'Expired, invalid, validating, and no-credit key states now show an in-place recovery banner while keeping the loaded project visible.',
+          'No-key local commands remain available for safe reads, package audits, planning, undo, and configuration instead of dead-ending the conversation.',
+        ],
+      },
+      {
+        label: 'Conversation-First Agent',
+        icon: '✓',
+        color: 'emerald',
+        items: [
+          'The user no longer chooses between review/edit modes in the main workspace; the agent applies safe targeted work and asks only when policy requires it.',
+          'Plan vocabulary now uses inspect-first and safe-edit semantics, while older saved plan values still render with the same safe labels.',
+          'Missing deliverables continue to block before mutation, so the agent refuses ghost rubrics, assignments, slides, study guides, FAQs, quizzes, and custom artifacts.',
+        ],
+      },
+      {
+        label: 'Readable Receipts',
+        icon: '🧾',
+        color: 'slate',
+        items: [
+          'Receipt sections now read as Change details, Work done, Plan, and Verified by reading back instead of tool-log language.',
+          'State-diff receipts include before/after rows plus skipped and failed action reasons in the compact card.',
+          'The v0.8.3 agent scorecard remains product-facing: intent, safety, verification, response value, and recovery are tracked as release metrics.',
+        ],
+      },
+      {
+        label: 'Finish Package Path',
+        icon: '✦',
+        color: 'amber',
+        items: [
+          'Finish package now explicitly plans when state is unclear, finalizes, repairs safe issues, retries localized weak spots, verifies exports/readiness, and reports remaining instructor decisions.',
+          'Natural requests such as “finish my package,” “do the final pass,” “make this ready for class,” and “prepare export” route to the same finishing path.',
+          'Finish receipts now list changed, skipped, failed, verified, and remaining decision items so the handoff is inspectable.',
+        ],
+      },
+      {
+        label: 'Scenario and CI Expansion',
+        icon: '🛡️',
+        color: 'emerald',
+        items: [
+          'Added 64 v0.8.3 receipt-level closed-loop scenarios covering restored-project recovery, missing deliverables, ambiguity, stale edits, provider failures, package finishing, repairs, and partial/skipped work.',
+          'Normal pull-request CI is split into a faster format/lint/unit/build/bundle lane, while deep audits, E2E, and Firebase rules stay on push/manual proof gates.',
+          'Footer release labels now consistently show v0.8.3 across Landing, Feature Select, Configure, and Workspace.',
+          'Release docs now point v0.8.3 toward the stricter internal loop rather than an external-audit dependency.',
+        ],
+      },
+    ],
+  },
+  {
     version: '0.8.2',
     date: 'June 4, 2026',
     title: 'Internal Self-Improvement Release',
@@ -340,8 +404,8 @@ const releases = [
         color: 'slate',
         items: [
           'Added model-routing advice for the agent: stay on the configured low-cost model first, then escalate only after targeted retry cannot clear concrete package issues.',
-          'Review-only mode now blocks targeted retry alongside other editing tools while keeping read-only export verification available.',
-          'Regression tests cover the finalizer, export verifier, package card, auto-review prompt, review-only filtering, and model-routing advice.',
+          'No-workspace-edit safety now blocks targeted retry alongside other editing tools while keeping read-only export verification available.',
+          'Regression tests cover the finalizer, export verifier, package card, auto-review prompt, no-workspace-edit filtering, and model-routing advice.',
         ],
       },
     ],

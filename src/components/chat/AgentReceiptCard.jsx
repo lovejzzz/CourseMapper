@@ -480,7 +480,7 @@ function ReceiptStateDiffs({ diffs = [] }) {
   if (!diffs.length) return null;
   return (
     <div data-testid="agent-receipt-state-diffs" className="mt-2 border-t border-white/70 pt-2">
-      <p className="text-[10px] font-bold uppercase tracking-wide text-slate-400">State diff</p>
+      <p className="text-[10px] font-bold uppercase tracking-wide text-slate-400">Change details</p>
       <div className="mt-1 space-y-1.5">
         {diffs.map((diff, index) => {
           const tone = getStateDiffTone(diff.status);
@@ -572,7 +572,7 @@ function ReceiptToolTrace({ tools = [] }) {
   if (!tools.length) return null;
   return (
     <div data-testid="agent-receipt-tool-trace" className="mt-2 border-t border-white/70 pt-2">
-      <p className="text-[10px] font-bold uppercase tracking-wide text-slate-400">Tools used</p>
+      <p className="text-[10px] font-bold uppercase tracking-wide text-slate-400">Work done</p>
       <div className="mt-1 flex flex-wrap gap-1.5">
         {tools.map((tool, index) => (
           <span
@@ -688,7 +688,7 @@ export default function AgentReceiptCard({
                 data-testid="agent-receipt-verification"
                 className={`mt-2 rounded-md border px-2 py-1.5 text-[11px] font-medium leading-snug ${verificationTone}`}
               >
-                <span className="font-bold">Verifier: </span>
+                <span className="font-bold">Verified by reading back: </span>
                 {summary.verification.label}
               </p>
             )}
@@ -697,7 +697,7 @@ export default function AgentReceiptCard({
                 data-testid="agent-receipt-planning"
                 className={`mt-2 rounded-md border px-2 py-1.5 text-[11px] font-medium leading-snug ${planningTone}`}
               >
-                <span className="font-bold">Planner: </span>
+                <span className="font-bold">Plan: </span>
                 {summary.planning.label}
               </p>
             )}

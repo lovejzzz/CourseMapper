@@ -2443,7 +2443,442 @@ describe('agent closed-loop safety guards', () => {
     assert({ harness, beforeHash, afterHash, ...outcome });
   });
 
+  function buildV083ReceiptScenarioCases() {
+    const plannerStep = (summary = 'Workspace inspected before action') => ({
+      tool: 'inspect_workspace',
+      label: 'Inspect workspace',
+      status: 'done',
+      summary,
+      targets: ['Workspace'],
+    });
+    const planStep = (summary = 'Plan ready from current workspace state') => ({
+      tool: 'plan_workspace_next_step',
+      label: 'Plan next step',
+      status: 'done',
+      summary,
+      targets: ['Workspace'],
+    });
+    const readStep = (target, summary = `Verified ${target}`) => ({
+      tool: 'read_deliverable',
+      label: `Read ${target}`,
+      status: 'done',
+      summary,
+      targets: [target],
+    });
+    const changedDiff = ({
+      action = 'editItem',
+      target,
+      before = 'Old value',
+      after = 'New value',
+      status = 'changed',
+    }) => ({
+      status,
+      action,
+      target,
+      before,
+      after,
+    });
+    const receiptCase = ({
+      name,
+      steps,
+      status = 'complete',
+      intent,
+      finalResponse,
+      minScore = 85,
+      options = {},
+      assert = null,
+    }) => ({
+      name,
+      progress: { status, steps },
+      options: {
+        finalResponse,
+        qualityExpectations: { intent, ...(options.qualityExpectations || {}) },
+        ...options,
+      },
+      assert: (receipt) => {
+        expect(receipt.intent.type).toBe(intent);
+        expect(receipt.quality.score).toBeGreaterThanOrEqual(minScore);
+        assert?.(receipt);
+      },
+    });
+
+    const restoredProjectRecovery = [
+      ['OpenAI expired key', 'The saved OpenAI key is expired. Change the key or model in workspace settings.'],
+      ['Anthropic invalid key', 'The saved Anthropic key failed validation. Change the key or provider here.'],
+      [
+        'Google model retired',
+        'The saved Google model is unavailable. Choose a different model in workspace settings.',
+      ],
+      ['DeepSeek no credits', 'The saved DeepSeek key has no credits. Add credits or switch provider/model here.'],
+      ['local model missing', 'Local AI has no selected model. Choose a local model before model-backed edits.'],
+      ['restored project no active key', 'This restored project has no active key. Local Audit and Plan still work.'],
+      ['provider validation pending', 'I am checking the saved model connection. Local Audit and Plan still work.'],
+      ['bad model id after load', 'The saved model id failed validation. Pick a current model before editing.'],
+    ].map(([label, response]) =>
+      receiptCase({
+        name: `v0.8.3 recovery: ${label} keeps loaded workspace usable`,
+        steps: [plannerStep(label), planStep('Local plan built without model-backed edits')],
+        intent: 'workspace_plan',
+        finalResponse: { chatReply: response },
+        minScore: 90,
+        options: {
+          dryRun: true,
+          activeTab: 'lessonPlans',
+          qualityExpectations: { status: 'done' },
+        },
+        assert: (receipt) => {
+          expect(receipt.status).toBe('done');
+          expect(receipt.runStats.readOnly).toBe(true);
+          expect(receipt.changed).toEqual(['No workspace edits']);
+        },
+      }),
+    );
+
+    const missingDeliverableRefusals = [
+      ['Assignment Briefs', 'assignments', 'assignment'],
+      ['Rubrics', 'rubrics', 'rubric'],
+      ['Slide Decks', 'slideDecks', 'slide'],
+      ['Study Guides', 'studyGuides', 'study guide'],
+      ['Discussion Prompts', 'discussions', 'discussion'],
+      ['Course FAQ', 'courseFaq', 'FAQ'],
+      ['Quiz & Exam Bank', 'quizBank', 'quiz question'],
+      ['custom Field Journal', 'custom_fieldJournal', 'field journal'],
+    ].map(([target, featureId, item]) =>
+      receiptCase({
+        name: `v0.8.3 safety: refuses ghost ${item} when ${target} does not exist`,
+        status: 'error',
+        steps: [
+          {
+            tool: 'edit_deliverables',
+            label: 'Edit deliverables',
+            status: 'error',
+            summary: `${target} is not generated, so I will not create a ghost ${item}.`,
+            targets: [target],
+          },
+        ],
+        intent: 'content_edit',
+        finalResponse: {
+          chatReply: `${target} does not exist yet, so I did not create a ghost ${item}. Generate ${target} first.`,
+        },
+        minScore: 85,
+        options: {
+          qualityExpectations: { responseIncludes: ['does not exist', 'ghost'], noGhostArtifacts: true },
+        },
+        assert: (receipt) => {
+          expect(receipt.status).toBe('blocked');
+          expect(receipt.stateDiffs).toEqual([]);
+          expect(receipt.issues[0]).toContain(featureId === 'custom_fieldJournal' ? 'custom Field Journal' : target);
+        },
+      }),
+    );
+
+    const ambiguousMutationRefusals = [
+      ['lesson target', 'Which lesson should I edit?'],
+      ['deliverable target', 'Which deliverable should I update?'],
+      ['delete scope', 'Should I delete one item or the whole section?'],
+      ['regeneration scope', 'Which lesson or deliverable should I regenerate?'],
+      ['overwrite scope', 'Should I replace the existing text or add a new item?'],
+      ['multi-course source', 'Which loaded course should I use for this change?'],
+      ['custom deliverable path', 'Which field in the custom deliverable should change?'],
+      ['all lessons request', 'Do you want this applied to every lesson?'],
+    ].map(([label, question]) =>
+      receiptCase({
+        name: `v0.8.3 confirmation: ambiguous ${label} asks before editing`,
+        status: 'error',
+        steps: [
+          {
+            tool: 'edit_deliverables',
+            label: 'Edit deliverables',
+            status: 'error',
+            summary: `Ambiguous ${label}; confirmation required before mutation.`,
+            targets: ['Workspace'],
+          },
+        ],
+        intent: 'content_edit',
+        finalResponse: { chatReply: question },
+        minScore: 85,
+        options: { qualityExpectations: { shouldAsk: true } },
+        assert: (receipt) => {
+          expect(receipt.status).toBe('blocked');
+          expect(receipt.runStats.stateDiffCount).toBe(0);
+        },
+      }),
+    );
+
+    const staleAndMultiTurnEdits = [
+      [
+        'stale quiz wording',
+        'Quiz & Exam Bank',
+        'What should validation prevent?',
+        'What should stale recovery verify?',
+      ],
+      [
+        'stale slide notes',
+        'Slide Decks',
+        'Explain validation.',
+        'Explain validation with a current course-map example.',
+      ],
+      ['stale lesson objective', 'Lesson Plans', 'Use tools safely', 'Use tools safely with read-back verification.'],
+      [
+        'user changed quiz wording',
+        'Quiz & Exam Bank',
+        'Which guard runs first?',
+        'Which guard proves the edit landed?',
+      ],
+      [
+        'user changed discussion prompt',
+        'Discussion Prompts',
+        'Where can reliability fail?',
+        'Where can recovery fail in this project?',
+      ],
+      [
+        'user narrowed assignment brief',
+        'Assignment Briefs',
+        'Explain a safe agent workflow.',
+        'Explain one verified agent workflow.',
+      ],
+      ['custom deliverable wording', 'Custom Deliverable', 'Reflect broadly.', 'Reflect on the verified change only.'],
+      ['fourteen-lesson pacing note', 'Lesson Plans', 'Generic pacing', 'Pacing fits a 14-lesson package handoff.'],
+    ].map(([label, target, before, after]) =>
+      receiptCase({
+        name: `v0.8.3 closed loop: ${label} mutates, reads back, and receipts diff`,
+        steps: [
+          {
+            tool: 'edit_deliverables',
+            label: 'Edit deliverables',
+            status: 'done',
+            summary: '1 applied',
+            targets: [target],
+            stateDiffs: [changedDiff({ target, before, after })],
+          },
+          readStep(target, `Verified updated ${target}`),
+        ],
+        intent: 'content_edit',
+        finalResponse: { chatReply: `Updated ${target}, read it back, and verified the final wording.` },
+        minScore: 90,
+        options: { qualityExpectations: { requiresVerification: true, requiresStateDiff: true } },
+        assert: (receipt) => {
+          expect(receipt.status).toBe('done');
+          expect(receipt.verification.status).toBe('verified');
+          expect(receipt.stateDiffs[0]).toMatchObject({ before, after });
+        },
+      }),
+    );
+
+    const providerFailures = [
+      ['rate limit during research', '429 rate limit from provider', 'Retry with a smaller query or wait and retry.'],
+      ['timeout during research', 'Provider request timed out', 'Retry with fewer sources or try again later.'],
+      [
+        'invalid model during research',
+        'Selected model is unavailable',
+        'Change the model in workspace settings and retry.',
+      ],
+      ['empty provider response', 'Provider returned an empty response', 'Retry the request or switch models.'],
+      [
+        'tool-call parse failure',
+        'Provider returned an invalid tool call',
+        'I did not mutate the workspace; retry the request.',
+      ],
+      ['quota failure during chart request', 'Provider quota exhausted', 'Switch provider or add credits, then retry.'],
+      [
+        'network failure during citation search',
+        'Network request failed',
+        'Retry when the provider connection is available.',
+      ],
+      [
+        'provider refused large prompt',
+        'Context length exceeded',
+        'Narrow the scope or ask me to work one deliverable at a time.',
+      ],
+    ].map(([label, summary, response]) =>
+      receiptCase({
+        name: `v0.8.3 recovery: ${label} reports failed action and recovery`,
+        status: 'error',
+        steps: [
+          {
+            tool: 'search_research',
+            label: 'Search research',
+            status: 'error',
+            summary,
+            targets: ['Research'],
+          },
+        ],
+        intent: 'research',
+        finalResponse: { chatReply: response },
+        minScore: 85,
+        options: { qualityExpectations: { requiresRecovery: true } },
+        assert: (receipt) => {
+          expect(receipt.status).toBe('blocked');
+          expect(receipt.issues[0]).toContain(summary);
+          expect(receipt.next).toContain('issue');
+        },
+      }),
+    );
+
+    const finishPackageLoops = [
+      ['14-lesson ready package', '14 lessons checked, exports passed', 'No safe repairs needed'],
+      [
+        'half-finished restored package',
+        'Missing selected deliverables identified, finishing paused',
+        'Skipped missing deliverable',
+      ],
+      ['export repair package', '1 export issue repaired, exports passed', 'Repaired export metadata'],
+      ['classroom readiness package', '0 blockers, 2 instructor review items', 'No deterministic content edits'],
+      ['localized weak-section retry', '1 retry started, final checks rerun', 'Queued localized retry'],
+      [
+        'custom deliverable package',
+        'Custom deliverable checked, exports passed',
+        'Verified custom deliverable export',
+      ],
+      ['large package with warnings', '14 lessons checked, 3 review items remain', 'No unsafe rewrites applied'],
+      ['download-ready rerun', 'Package already ready, exports verified again', 'No changes needed'],
+    ].map(([label, summary, after]) =>
+      receiptCase({
+        name: `v0.8.3 finish path: ${label} plans, finishes, verifies, and hands off`,
+        steps: [
+          plannerStep('Workspace inspected before package finish'),
+          {
+            tool: 'finalize_package',
+            label: 'Finish package',
+            status: 'done',
+            summary,
+            targets: ['Package'],
+            stateDiffs: [
+              changedDiff({ action: 'finalize_package', target: 'Package', before: 'Pre-finish state', after }),
+            ],
+          },
+        ],
+        intent: 'finish_package',
+        finalResponse: { chatReply: `Finish pass complete: ${summary}. Remaining instructor decisions are listed.` },
+        minScore: 90,
+        options: {
+          qualityExpectations: { requiresPlan: true, requiresVerification: true, responseIncludes: ['Finish'] },
+        },
+        assert: (receipt) => {
+          expect(receipt.status).toBe('done');
+          expect(receipt.planning.status).toBe('planned');
+          expect(receipt.verification.status).toBe('verified');
+          expect(receipt.runStats.stateDiffCount).toBe(1);
+        },
+      }),
+    );
+
+    const repairRecoveryLoops = [
+      ['quiz scoring repair', '1 repaired, 0 failed', 'Quiz points normalized'],
+      ['rubric coverage repair', '1 repaired, 0 failed', 'Rubric criterion coverage filled'],
+      ['FAQ category repair', '1 repaired, 0 failed', 'FAQ category normalized'],
+      ['slide alt-text repair', '1 repaired, 0 failed', 'Slide alt text added'],
+      ['lesson-plan timing repair', '1 repaired, 0 failed', 'Timing metadata clarified'],
+      ['discussion evidence repair', '1 repaired, 0 failed', 'Evidence requirement clarified'],
+      ['assignment placeholder repair', '1 repaired, 0 failed', 'Placeholder replaced with review note'],
+      ['study-guide review repair', '1 repaired, 0 failed', 'Review question strengthened'],
+    ].map(([label, summary, after]) =>
+      receiptCase({
+        name: `v0.8.3 repair loop: ${label} verifies package state after repair`,
+        steps: [
+          plannerStep('Workspace inspected before repair'),
+          {
+            tool: 'repair_package_readiness',
+            label: 'Repair package readiness',
+            status: 'done',
+            summary,
+            targets: ['Package'],
+            stateDiffs: [
+              changedDiff({ action: 'repair_package_readiness', target: 'Package', before: 'Readiness issue', after }),
+            ],
+          },
+          {
+            tool: 'review_package_readiness',
+            label: 'Review package readiness',
+            status: 'done',
+            summary: '0 blockers after repair',
+            targets: ['Package'],
+          },
+        ],
+        intent: 'package_repair',
+        finalResponse: { chatReply: `Repaired ${label}, reviewed package readiness again, and found no blockers.` },
+        minScore: 90,
+        options: { qualityExpectations: { requiresPlan: true, requiresVerification: true, requiresStateDiff: true } },
+        assert: (receipt) => {
+          expect(receipt.status).toBe('done');
+          expect(receipt.planning.status).toBe('planned');
+          expect(receipt.verification.status).toBe('verified');
+        },
+      }),
+    );
+
+    const skippedAndPartialLoops = [
+      ['safe part applied, broad rewrite skipped', '1 applied, 1 skipped', 'Skipped broad rewrite until confirmed'],
+      ['safe quiz edit applied, missing rubric skipped', '1 applied, 1 skipped', 'Skipped missing Rubrics'],
+      [
+        'safe slide note applied, image generation skipped',
+        '1 applied, 1 skipped',
+        'Skipped image generation without key',
+      ],
+      ['safe plan read completed, destructive delete skipped', '0 applied, 1 skipped', 'Skipped destructive delete'],
+      [
+        'safe package audit completed, regeneration skipped',
+        '0 applied, 1 skipped',
+        'Skipped regeneration without confirmation',
+      ],
+      [
+        'safe local audit completed, provider edit skipped',
+        '0 applied, 1 skipped',
+        'Skipped model-backed edit until key recovers',
+      ],
+      [
+        'safe memory read completed, delete memory skipped',
+        '0 applied, 1 skipped',
+        'Skipped memory deletion without confirmation',
+      ],
+      ['safe custom macro blocked, workspace unchanged', '0 applied, 1 failed', 'Skipped unvalidated macro mutation'],
+    ].map(([label, summary, reason]) =>
+      receiptCase({
+        name: `v0.8.3 receipt clarity: ${label}`,
+        steps: [
+          {
+            tool: 'edit_deliverables',
+            label: 'Edit deliverables',
+            status: summary.includes('failed') ? 'partial' : 'done',
+            summary,
+            targets: ['Workspace'],
+            stateDiffs: [
+              {
+                status: summary.includes('failed') ? 'failed' : 'skipped',
+                action: 'editItem',
+                target: 'Workspace',
+                reason,
+              },
+            ],
+          },
+          readStep('Workspace', 'Verified no unsafe extra changes'),
+        ],
+        intent: 'content_edit',
+        finalResponse: { chatReply: `I handled the safe part and listed the skipped action: ${reason}.` },
+        minScore: 75,
+        options: { qualityExpectations: { requiresVerification: true, requiresRecovery: true } },
+        assert: (receipt) => {
+          expect(['done', 'review']).toContain(receipt.status);
+          expect(receipt.stateDiffs[0].reason).toBe(reason);
+          expect(receipt.verification.status).toBe('verified');
+        },
+      }),
+    );
+
+    return [
+      ...restoredProjectRecovery,
+      ...missingDeliverableRefusals,
+      ...ambiguousMutationRefusals,
+      ...staleAndMultiTurnEdits,
+      ...providerFailures,
+      ...finishPackageLoops,
+      ...repairRecoveryLoops,
+      ...skippedAndPartialLoops,
+    ];
+  }
+
   const receiptOnlyRecoveryCases = [
+    ...buildV083ReceiptScenarioCases(),
     {
       name: 'broad rewrite confirmation request scores as useful response',
       progress: {

@@ -1,7 +1,9 @@
 import React from 'react';
 
 const SAFE_MODE_LABELS = {
+  'inspect-first': 'Inspect first',
   'review-only': 'Inspect first',
+  'safe-edit': 'Safe fix',
   'safe-auto-fix': 'Safe fix',
   'needs-approval': 'Needs approval',
   'requires-generation': 'Generate',
@@ -141,9 +143,9 @@ function EvidenceChips({ evidence, course }) {
 export function buildWorkspacePlanActionPrompt(action) {
   if (!action) return 'Continue with the highest-impact workspace plan item.';
   const mode =
-    action.safeMode === 'safe-auto-fix'
+    action.safeMode === 'safe-edit' || action.safeMode === 'safe-auto-fix'
       ? 'If it is still safe and localized, apply the fix directly. If it is not safe, explain what needs user approval.'
-      : action.safeMode === 'review-only'
+      : action.safeMode === 'inspect-first' || action.safeMode === 'review-only'
         ? 'Inspect first. Do not apply changes in this step; explain the concrete next change and why it matters.'
         : action.safeMode === 'needs-approval'
           ? 'Do not apply changes until the user approves the sync or repair step.'
@@ -167,7 +169,7 @@ export function getWorkspacePlanActionButtonLabel(action, actionCapabilities = {
   if (intent === 'generate_missing_feature' && canRunActionDirectly(action, actionCapabilities)) return 'Generate';
   if (intent === 'regenerate_failed_feature' && canRunActionDirectly(action, actionCapabilities)) return 'Regenerate';
   if (INTENT_BUTTON_LABELS[intent]) return INTENT_BUTTON_LABELS[intent];
-  if (action?.safeMode === 'safe-auto-fix') return 'Fix';
+  if (action?.safeMode === 'safe-edit' || action?.safeMode === 'safe-auto-fix') return 'Fix';
   if (action?.safeMode === 'requires-generation') return 'Plan generate';
   if (action?.safeMode === 'needs-approval') return 'Review';
   return 'Continue';
@@ -182,7 +184,7 @@ export function buildWorkspacePlanActionDisplayText(action, actionCapabilities =
 
 export function buildWorkspacePlanActionSendOptions(action, actionCapabilities = {}) {
   const displayText = buildWorkspacePlanActionDisplayText(action, actionCapabilities);
-  const safeAutoFix = action?.safeMode === 'safe-auto-fix';
+  const safeAutoFix = action?.safeMode === 'safe-edit' || action?.safeMode === 'safe-auto-fix';
   const directSync =
     getPlanActionIntent(action) === 'sync_stale_deliverables' && canRunActionDirectly(action, actionCapabilities);
   const directGeneration =
@@ -336,7 +338,7 @@ export default function WorkspacePlanCard({
   if (!plan) return null;
   const actions = Array.isArray(plan.actions) ? plan.actions.filter(Boolean).slice(0, 5) : [];
   const highest = plan.highestImpactAction || actions[0] || null;
-  const modeLabel = plan.executionMode === 'auto-fix' ? 'Can apply safe fixes' : 'Inspect first';
+  const modeLabel = ['safe-edit', 'auto-fix'].includes(plan.executionMode) ? 'Can apply safe fixes' : 'Inspect first';
 
   return (
     <div

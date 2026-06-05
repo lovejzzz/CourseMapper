@@ -12,6 +12,7 @@ import { resolveLabel } from './constants';
 import { evaluateWorkspaceReadiness } from '../../lib/deliverableReadiness';
 import { classifyFinalizePackageStepStatus, normalizePackageSummary } from '../../lib/packageFinalizerSummary';
 import { summarizeLandingAgentContext } from '../../lib/landingAgentContext';
+import { useAIConfig } from '../../contexts/AIConfigContext';
 
 const ProgressHeader = lazy(() => import('./ProgressHeader'));
 
@@ -938,10 +939,106 @@ const MODEL_CONFIG_TONES = {
   idle: 'border-slate-200/70 bg-white/70 text-slate-600 hover:border-indigo-200 hover:bg-indigo-50 hover:text-indigo-700',
 };
 
-function getWorkspaceModelLabel({ modelName, isReady }) {
+const PROVIDER_LABELS = {
+  openai: 'OpenAI',
+  anthropic: 'Anthropic',
+  google: 'Google',
+  deepseek: 'DeepSeek',
+  webllm: 'Local AI',
+};
+
+function getWorkspaceModelLabel({ modelName, modelId, isReady }) {
   const savedModel = String(modelName || '').trim();
   if (savedModel) return savedModel;
+  const savedModelId = String(modelId || '').trim();
+  if (savedModelId && isReady) return savedModelId;
   return isReady ? 'Choose model' : 'Configure model';
+}
+
+export function getWorkspaceModelStatus({
+  provider,
+  apiKey = '',
+  apiStatus = 'idle',
+  modelId = '',
+  modelName = '',
+  isReady = false,
+} = {}) {
+  const providerLabel = PROVIDER_LABELS[provider] || 'AI provider';
+  const hasKey = Boolean(String(apiKey || '').trim());
+  const hasModel = Boolean(String(modelId || modelName || '').trim());
+  const savedModelLabel = hasModel ? getWorkspaceModelLabel({ modelName, modelId, isReady: true }) : '';
+
+  if (apiStatus === 'validating') {
+    return {
+      label: 'Checking model',
+      tone: 'validating',
+      title: 'Checking the saved provider, key, and model',
+      heading: 'Checking model connection',
+      message: 'This workspace stays open while I validate the saved model setup.',
+      actionLabel: 'Open settings',
+      blocked: false,
+    };
+  }
+
+  if (apiStatus === 'error') {
+    return {
+      label: savedModelLabel || 'Fix model/key',
+      tone: 'error',
+      title: 'Change provider, API key, or model',
+      heading: 'Model connection failed',
+      message:
+        'Model-backed edits are paused because the saved provider, key, or model could not be validated. Local Audit and Plan still work.',
+      actionLabel: 'Change key/model',
+      blocked: true,
+    };
+  }
+
+  if (apiStatus === 'no_funds') {
+    return {
+      label: savedModelLabel || 'Add credits',
+      tone: 'no_funds',
+      title: 'Add credits or change provider, API key, or model',
+      heading: 'Model credits unavailable',
+      message:
+        'Model-backed edits are paused because this key has no available credits. Add credits or switch provider/key/model here.',
+      actionLabel: 'Change key/model',
+      blocked: true,
+    };
+  }
+
+  if (provider !== 'webllm' && !hasKey) {
+    return {
+      label: savedModelLabel || 'Configure model',
+      tone: 'idle',
+      title: 'Connect a provider and API key',
+      heading: 'Connect AI to edit with the agent',
+      message: `Local Audit and Plan are available. Connect ${providerLabel} or another provider for model-backed edits.`,
+      actionLabel: 'Configure',
+      blocked: true,
+    };
+  }
+
+  if (!hasModel) {
+    return {
+      label: 'Choose model',
+      tone: 'idle',
+      title: 'Select a model',
+      heading: 'Choose a model',
+      message: 'Select a model to resume model-backed agent edits in this workspace.',
+      actionLabel: 'Choose model',
+      blocked: true,
+    };
+  }
+
+  return {
+    label: getWorkspaceModelLabel({ modelName, modelId, isReady }),
+    tone: isReady ? 'connected' : 'idle',
+    title: 'Change provider, API key, or model',
+    heading: '',
+    message: '',
+    actionLabel: 'Change model',
+    blocked: false,
+  };
 }
 
 /**
@@ -1028,6 +1125,7 @@ export default function ChatPanel({
   const openWorkspaceModelConfig = useCallback(() => {
     setWorkspaceModelConfigOpen(true);
   }, []);
+  const { provider, apiKey, apiStatus, modelId } = useAIConfig();
 
   // Detect agent mode: deliverables with done status exist
   const isAgentMode = !!(
@@ -1970,7 +2068,7 @@ export default function ChatPanel({
 
       const canRunDirectFinalize =
         intent === 'clear_readiness_blockers' &&
-        action?.safeMode === 'safe-auto-fix' &&
+        ['safe-edit', 'safe-auto-fix'].includes(action?.safeMode) &&
         typeof finalizePackageRef.current === 'function' &&
         !agentCommandDisabled &&
         packageQualityPass?.status !== 'running';
@@ -2402,8 +2500,17 @@ export default function ChatPanel({
     ],
   );
 
-  const workspaceModelLabel = getWorkspaceModelLabel({ modelName, isReady: chat.isAgentProviderReady });
-  const workspaceModelTone = chat.isAgentProviderReady ? MODEL_CONFIG_TONES.connected : MODEL_CONFIG_TONES.no_funds;
+  const workspaceModelStatus = getWorkspaceModelStatus({
+    provider,
+    apiKey,
+    apiStatus,
+    modelId,
+    modelName,
+    isReady: chat.isAgentProviderReady,
+  });
+  const workspaceModelTone = MODEL_CONFIG_TONES[workspaceModelStatus.tone] || MODEL_CONFIG_TONES.idle;
+  const showWorkspaceModelRecovery =
+    showsAgentIdentity && workspaceModelStatus.blocked && !workspaceModelConfigOpen && !chat.isStreaming;
 
   return (
     <div
@@ -2453,9 +2560,9 @@ export default function ChatPanel({
                 data-testid="workspace-model-config-trigger"
                 onClick={openWorkspaceModelConfig}
                 className={`min-w-0 max-w-[170px] truncate rounded-full border px-2 py-0.5 text-[10px] font-bold transition-colors ${workspaceModelTone}`}
-                title="Change provider, API key, or model"
+                title={workspaceModelStatus.title}
               >
-                {workspaceModelLabel}
+                {workspaceModelStatus.label}
               </button>
             )}
           </div>
@@ -2518,6 +2625,26 @@ export default function ChatPanel({
               <ModelConfig />
             </div>
           </div>
+        </div>
+      )}
+
+      {showWorkspaceModelRecovery && (
+        <div
+          data-testid="workspace-model-recovery-banner"
+          className="flex flex-shrink-0 items-center justify-between gap-3 border-b border-amber-200/50 bg-amber-50/80 px-3.5 py-2"
+        >
+          <div className="min-w-0">
+            <p className="truncate text-[12px] font-bold text-amber-800">{workspaceModelStatus.heading}</p>
+            <p className="truncate text-[11px] font-medium text-amber-700">{workspaceModelStatus.message}</p>
+          </div>
+          <button
+            type="button"
+            data-testid="workspace-model-recovery-action"
+            onClick={openWorkspaceModelConfig}
+            className="tactile shrink-0 rounded-lg border border-amber-200/80 bg-white/85 px-2.5 py-1 text-[11px] font-bold text-amber-700 hover:bg-amber-100"
+          >
+            {workspaceModelStatus.actionLabel}
+          </button>
         </div>
       )}
 

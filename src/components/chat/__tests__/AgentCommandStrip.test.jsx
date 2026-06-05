@@ -45,6 +45,17 @@ describe('buildAgentCommandItems', () => {
     expect(plan.prompt).toContain('Do not apply changes yet');
   });
 
+  it('grounds the finish command in planning, repair, verification, and missing-deliverable safety', () => {
+    const items = buildAgentCommandItems({ activeTab: 'lessonPlans' });
+    const finish = items.find((item) => item.id === 'finish-package');
+
+    expect(finish.displayText).toBe('Finish package');
+    expect(finish.prompt).toContain('inspect_workspace or plan_workspace_next_step');
+    expect(finish.prompt).toContain('verify exports plus classroom readiness');
+    expect(finish.prompt).toContain('Do not invent missing deliverables');
+    expect(finish.prompt).toContain('changed, skipped, failed, verified');
+  });
+
   it('adds a sync command only when stale downstream deliverables are pending', () => {
     const items = buildAgentCommandItems({ activeTab: 'lessonPlans', syncFeatureCount: 2 });
     const ids = items.map((item) => item.id);
@@ -110,6 +121,7 @@ describe('buildAgentCommandItems', () => {
     const items = buildAgentCommandItems({ activeTab: 'lessonPlans', canUndo: true });
 
     expect(filterAgentCommandItems(items, 'fix').map((item) => item.id)).toContain('finish-package');
+    expect(filterAgentCommandItems(items, 'ready for class').map((item) => item.id)).toContain('finish-package');
     expect(filterAgentCommandItems(items, 'check').map((item) => item.id)).toContain('audit-quality');
     expect(filterAgentCommandItems(items, 'next').map((item) => item.id)).toContain('plan-next');
     expect(filterAgentCommandItems(items, 'revert').map((item) => item.id)).toContain('undo-last');
@@ -128,6 +140,10 @@ describe('buildAgentCommandItems', () => {
     expect(findAgentCommandByText(items, 'please check my course for issues')?.id).toBe('audit-quality');
     expect(findAgentCommandByText(items, 'fix package')?.id).toBe('finish-package');
     expect(findAgentCommandByText(items, 'please finish this package')?.id).toBe('finish-package');
+    expect(findAgentCommandByText(items, 'finish my package')?.id).toBe('finish-package');
+    expect(findAgentCommandByText(items, 'do the final pass')?.id).toBe('finish-package');
+    expect(findAgentCommandByText(items, 'make this ready for class')?.id).toBe('finish-package');
+    expect(findAgentCommandByText(items, 'prepare export')?.id).toBe('finish-package');
     expect(findAgentCommandByText(items, 'revert last change')?.id).toBe('undo-last');
     expect(findAgentCommandByText(items, 'can you undo that last change?')?.id).toBe('undo-last');
     expect(findAgentCommandByText(items, 'review only')).toBeNull();
