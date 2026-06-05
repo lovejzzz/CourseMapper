@@ -28,7 +28,7 @@ import {
   isAgentSourceContextText,
 } from '../../lib/agentSourceContext';
 import { resolveLabel } from './constants';
-// webllm is dynamically imported when needed; its runtime is loaded externally for Local AI users only.
+// webllm is dynamically imported only by legacy compatibility paths.
 
 // ── System prompt for Help / Tutor mode (extracted from FaqChatbot) ─────────
 export function getSystemPrompt(courseMap, activeTab) {
@@ -82,7 +82,6 @@ A free, browser-based tool that transforms syllabi into complete teaching materi
 - **.coursemapper** — Save/load portable project files.
 
 ## AI Providers
-- **Free (Local AI):** Runs Qwen 3 directly in the browser via WebGPU — no API key needed, no cost
 - **OpenAI:** https://platform.openai.com/api-keys
 - **Anthropic:** https://console.anthropic.com/settings/keys
 - **Google:** https://aistudio.google.com/apikey

@@ -7,6 +7,11 @@ const AIConfigContext = createContext(null);
 const ACTIVE_API_KEY_STORAGE_KEY = 'coursemapper-apikey';
 const PROVIDER_API_KEY_STORAGE_PREFIX = 'coursemapper-apikey-provider:';
 
+function normalizeStoredProvider(provider) {
+  if (provider === 'webllm' || provider === 'free') return 'anthropic';
+  return provider || 'anthropic';
+}
+
 export function getProviderApiKeyStorageKey(provider) {
   return `${PROVIDER_API_KEY_STORAGE_PREFIX}${provider || 'unknown'}`;
 }
@@ -32,7 +37,7 @@ export function saveApiKeyForProvider(provider, apiKey) {
 export function AIConfigProvider({ children }) {
   const [provider, setProvider] = useState(() => {
     try {
-      return localStorage.getItem('coursemapper-provider') || 'anthropic';
+      return normalizeStoredProvider(localStorage.getItem('coursemapper-provider'));
     } catch {
       return 'anthropic';
     }
@@ -43,6 +48,8 @@ export function AIConfigProvider({ children }) {
   const [apiStatus, setApiStatus] = useState('idle');
   const [modelName, setModelName] = useState(() => {
     try {
+      const storedProvider = localStorage.getItem('coursemapper-provider');
+      if (storedProvider === 'webllm' || storedProvider === 'free') return '';
       return localStorage.getItem('coursemapper-modelname') || '';
     } catch {
       return '';
@@ -50,6 +57,8 @@ export function AIConfigProvider({ children }) {
   });
   const [modelId, setModelId] = useState(() => {
     try {
+      const storedProvider = localStorage.getItem('coursemapper-provider');
+      if (storedProvider === 'webllm' || storedProvider === 'free') return '';
       return localStorage.getItem('coursemapper-modelid') || '';
     } catch {
       return '';

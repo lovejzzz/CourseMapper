@@ -5,6 +5,7 @@ import App from './App';
 const Changelog = lazy(() => import('./pages/Changelog'));
 const PrivacyPolicy = lazy(() => import('./pages/PrivacyPolicy'));
 const TermsOfService = lazy(() => import('./pages/TermsOfService'));
+const Contact = lazy(() => import('./pages/Contact'));
 import { CourseStoreProvider } from './model/courseStore';
 import { AuthProvider } from './contexts/AuthContext';
 import { AIConfigProvider } from './contexts/AIConfigContext';
@@ -24,6 +25,7 @@ function Router() {
     if (h === '#/changelog') return 'changelog';
     if (h === '#/privacy') return 'privacy';
     if (h === '#/terms') return 'terms';
+    if (h === '#/contact') return 'contact';
     return 'app';
   };
   const [page, setPage] = useState(getPage);
@@ -46,6 +48,7 @@ function Router() {
         {page === 'changelog' && <Changelog />}
         {page === 'privacy' && <PrivacyPolicy />}
         {page === 'terms' && <TermsOfService />}
+        {page === 'contact' && <Contact />}
       </Suspense>
     </>
   );

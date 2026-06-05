@@ -1,7 +1,7 @@
 import React from 'react';
 import Header from '../components/Header';
 
-const LAST_UPDATED = 'May 14, 2026';
+const LAST_UPDATED = 'June 5, 2026';
 
 export default function PrivacyPolicy() {
   return (
@@ -19,9 +19,9 @@ export default function PrivacyPolicy() {
         <div className="glass panel-glow rounded-squircle shadow-glass p-8 space-y-6 text-sm text-slate-700 leading-relaxed">
           <Section title="Overview">
             <p>
-              Course Mapper is a free, browser-based tool developed by the Educational Technology team at NYU Silver
-              School of Social Work. It uses AI to transform course syllabi into structured Course Map spreadsheets.
-              This privacy policy explains how your data is handled when you use Course Mapper.
+              Course Mapper is a free, browser-based tool built by Tian Xing. It uses AI to transform course syllabi
+              into structured Course Map spreadsheets. This privacy policy explains how your data is handled when you
+              use Course Mapper.
             </p>
           </Section>
 
@@ -174,7 +174,7 @@ export default function PrivacyPolicy() {
             <ul className="list-disc list-inside space-y-1.5 ml-1 mt-2">
               <li>Using a modern, up-to-date browser.</li>
               <li>Not sharing your device with untrusted users if you have API keys stored in local storage.</li>
-              <li>Using your own API key or a local browser model for sensitive course materials.</li>
+              <li>Using your own API key only with providers you trust for sensitive course materials.</li>
               <li>Exporting your finished course map and clearing local storage when done.</li>
             </ul>
           </Section>
@@ -188,10 +188,9 @@ export default function PrivacyPolicy() {
 
           <Section title="Contact">
             <p>
-              Course Mapper is developed by the Educational Technology team at NYU Silver School of Social Work. For
-              privacy questions or concerns, contact us at{' '}
-              <a href="mailto:edtech@nyu.edu" className="text-indigo-500 hover:text-indigo-700 underline">
-                edtech@nyu.edu
+              Course Mapper is built by Tian Xing. For privacy questions or concerns, contact{' '}
+              <a href="mailto:xingpicuture@gmail.com" className="text-indigo-500 hover:text-indigo-700 underline">
+                xingpicuture@gmail.com
               </a>
               .
             </p>

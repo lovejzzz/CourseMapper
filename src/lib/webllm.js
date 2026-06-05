@@ -6,8 +6,8 @@
  *
  * This file is dynamically imported to avoid touching Local AI code for BYOK
  * users. The WebLLM runtime itself is loaded from a pinned CDN module only
- * after the user selects Free (Local AI), so the static app does not ship a
- * multi-megabyte webllm asset to everyone.
+ * only if legacy WebLLM code paths request it, so the static app does not ship
+ * a multi-megabyte webllm asset to everyone.
  */
 import { WEBLLM_DEFAULT_MODEL, WEBLLM_MAX_TOKENS } from './webllmConstants';
 

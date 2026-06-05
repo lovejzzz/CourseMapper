@@ -1,7 +1,7 @@
 import React from 'react';
 import Header from '../components/Header';
 
-const LAST_UPDATED = 'May 6, 2026';
+const LAST_UPDATED = 'June 5, 2026';
 
 export default function TermsOfService() {
   return (
@@ -20,7 +20,7 @@ export default function TermsOfService() {
           <Section title="Acceptance of Terms">
             <p>
               By using Course Mapper, you agree to these Terms of Service. If you do not agree, please do not use the
-              tool. Course Mapper is provided by the Educational Technology team at NYU Silver School of Social Work.
+              tool. Course Mapper is provided by Tian Xing.
             </p>
           </Section>
 
@@ -32,11 +32,8 @@ export default function TermsOfService() {
             </p>
           </Section>
 
-          <Section title="Local AI & API Keys">
+          <Section title="API Keys">
             <ul className="list-disc list-inside space-y-1.5 ml-1">
-              <li>
-                Course Mapper may offer local browser models that run on your device when your browser supports them.
-              </li>
               <li>
                 You may provide your own API key from OpenAI, Anthropic, Google, DeepSeek, or another supported
                 provider. You are responsible for any costs incurred through your own API key usage.
@@ -110,8 +107,8 @@ export default function TermsOfService() {
                 ownership claim over generated course maps.
               </li>
               <li>
-                <strong>The tool.</strong> Course Mapper's source code, design, and branding are the property of the
-                development team at NYU Silver School of Social Work.
+                <strong>The tool.</strong> Course Mapper's source code, design, and branding are the property of Tian
+                Xing.
               </li>
             </ul>
           </Section>
@@ -138,10 +135,10 @@ export default function TermsOfService() {
 
           <Section title="Limitation of Liability">
             <p>
-              To the fullest extent permitted by law, the Course Mapper team and NYU shall not be liable for any
-              indirect, incidental, special, or consequential damages arising from your use of the tool, including but
-              not limited to reliance on AI-generated content, loss of data, or API charges incurred through your own
-              keys.
+              To the fullest extent permitted by law, Tian Xing and Course Mapper contributors shall not be liable for
+              any indirect, incidental, special, or consequential damages arising from your use of the tool, including
+              but not limited to reliance on AI-generated content, loss of data, or API charges incurred through your
+              own keys.
             </p>
           </Section>
 
@@ -154,10 +151,9 @@ export default function TermsOfService() {
 
           <Section title="Contact">
             <p>
-              For questions about these terms, contact the Educational Technology team at NYU Silver School of Social
-              Work at{' '}
-              <a href="mailto:edtech@nyu.edu" className="text-indigo-500 hover:text-indigo-700 underline">
-                edtech@nyu.edu
+              For questions about these terms, contact Tian Xing at{' '}
+              <a href="mailto:xingpicuture@gmail.com" className="text-indigo-500 hover:text-indigo-700 underline">
+                xingpicuture@gmail.com
               </a>
               .
             </p>

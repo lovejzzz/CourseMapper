@@ -144,7 +144,7 @@ export default function Landing({
   const { files, setFiles, promptText, setPromptText, columns, setColumns } = useCourse();
   const [isDragging, setIsDragging] = useState(false);
   const [projectDragging, setProjectDragging] = useState(false);
-  const [visibleCourseExamples] = useState(() => pickCourseExamples(COURSE_EXAMPLES, 3));
+  const [visibleCourseExamples, setVisibleCourseExamples] = useState(() => pickCourseExamples(COURSE_EXAMPLES, 3));
 
   // ── Auto-collapse AI config when already connected ──
   const isReady = apiStatus === 'connected';
@@ -170,6 +170,16 @@ export default function Landing({
   const collapseConfig = useCallback(() => {
     configManuallyExpandedRef.current = false;
     setConfigCollapsed(true);
+  }, []);
+
+  const shuffleCourseExamples = useCallback(() => {
+    setVisibleCourseExamples((current) => {
+      for (let attempt = 0; attempt < 8; attempt += 1) {
+        const next = pickCourseExamples(COURSE_EXAMPLES, 3);
+        if (next.map((item) => item.label).join('|') !== current.map((item) => item.label).join('|')) return next;
+      }
+      return pickCourseExamples(COURSE_EXAMPLES, 3);
+    });
   }, []);
 
   const handleDrop = useCallback(
@@ -233,7 +243,7 @@ export default function Landing({
 
   // Build a summary label for the collapsed AI config bar
   const configSummaryLabel = (() => {
-    if (provider === 'webllm') return `Local AI · ${modelName || 'Qwen 3'}`;
+    if (provider === 'webllm') return 'Choose an AI provider';
     if (provider === 'openai') return `OpenAI · ${modelName || modelId || 'GPT'}`;
     if (provider === 'anthropic') return `Anthropic · ${modelName || modelId || 'Claude'}`;
     if (provider === 'google') return `Google · ${modelName || modelId || 'Gemini'}`;
@@ -268,7 +278,7 @@ export default function Landing({
           {/* Tagline */}
           <div className="text-center space-y-2">
             <h1 className="text-2xl sm:text-3xl font-bold text-slate-800 tracking-tight">
-              Everything you need to teach a course.
+              Everything you need to teach/learn a course.
             </h1>
             <p className="text-sm text-slate-500">
               Describe your course, drop a syllabus, or both — we'll handle the rest.
@@ -279,6 +289,22 @@ export default function Landing({
           {!promptText && files.length === 0 && (
             <div className="flex flex-wrap items-center justify-center gap-2 animate-fade-up">
               <span className="text-[10px] font-semibold text-slate-500 uppercase tracking-wider mr-1">Try:</span>
+              <button
+                type="button"
+                onClick={shuffleCourseExamples}
+                aria-label="Shuffle sample courses"
+                title="Shuffle sample courses"
+                className="tactile flex h-7 w-7 items-center justify-center rounded-full bg-white/75 border border-slate-200/80 text-slate-500 hover:text-indigo-600 hover:border-indigo-200 hover:bg-indigo-50/50 transition-all duration-200"
+              >
+                <svg className="h-3.5 w-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                  <path
+                    strokeLinecap="round"
+                    strokeLinejoin="round"
+                    strokeWidth={2}
+                    d="M4 4v6h6M20 20v-6h-6M5.64 18.36A9 9 0 0018.36 5.64M18.36 5.64H14m4.36 0V10M5.64 18.36H10m-4.36 0V14"
+                  />
+                </svg>
+              </button>
               {visibleCourseExamples.map(({ label, text }) => (
                 <button
                   key={label}
@@ -542,7 +568,10 @@ export default function Landing({
       {/* Footer */}
       <footer className="py-4 text-center space-y-1">
         <p className="text-[10px] text-slate-500/80">
-          Built by the Educational Technology team at NYU Silver School of Social Work
+          Built by{' '}
+          <a href="#/contact" className="font-medium hover:text-indigo-500 transition-colors duration-200">
+            Tian Xing
+          </a>
         </p>
         <div className="flex items-center justify-center gap-3 text-[10px] text-slate-500/80">
           <a href="#/changelog" className="font-medium hover:text-indigo-500 transition-colors duration-200">

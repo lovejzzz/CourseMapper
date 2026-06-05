@@ -1,7 +1,7 @@
 import React, { useState, useEffect, useRef, useCallback } from 'react';
 import { fetchModelsFromProvider } from '../hooks/useStreamReader';
 import { getSavedApiKeyForProvider, saveApiKeyForProvider, useAIConfig } from '../contexts/AIConfigContext';
-import { WEBLLM_MODELS, isWebGPUSupported } from '../lib/webllmConstants';
+import { WEBLLM_MODELS } from '../lib/webllmConstants';
 import { getGoogleModelBaseUrl } from '../lib/googleProvider';
 import { recordPendingApiCallEvent } from '../lib/apiCallPendingEvents';
 import { fetchWithTimeout, isTimeoutError } from '../lib/fetchWithTimeout';
@@ -253,8 +253,12 @@ export default function ModelConfig() {
     }
   }, [provider]);
 
-  // When provider switches to webllm, set up local models and start engine download.
+  // Local WebLLM is no longer selectable. Redirect stale saved values before any local runtime work starts.
   useEffect(() => {
+    if (provider === 'webllm' || provider === 'free') {
+      setProvider('anthropic');
+      return;
+    }
     if (provider !== 'webllm') {
       webllmInitRef.current = false;
       return;
@@ -307,7 +311,7 @@ export default function ModelConfig() {
         setWebllmProgress(null);
         webllmInitRef.current = false;
       });
-  }, [provider]);
+  }, [provider, setProvider]);
 
   const applyBaseCapabilityProfile = useCallback(
     (selectedModel, selectedProvider = provider) => {
@@ -598,7 +602,6 @@ export default function ModelConfig() {
               onChange={(e) => setProvider(e.target.value)}
               className="input-glass w-full rounded-xl px-3.5 py-2.5 pr-9 text-sm text-slate-700 focus:outline-none appearance-none cursor-pointer"
             >
-              {isWebGPUSupported() && <option value="webllm">Free (Local AI)</option>}
               <option value="openai">OpenAI</option>
               <option value="anthropic">Anthropic</option>
               <option value="google">Google</option>

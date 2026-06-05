@@ -323,7 +323,8 @@ function selectRetryActionsWithinCallBudget(
 }
 
 function normalizeProjectProvider(provider) {
-  return provider === 'free' ? 'openai' : provider;
+  if (provider === 'free' || provider === 'webllm') return 'openai';
+  return provider;
 }
 
 // ── Add Deliverable dropdown — uses a portal so it escapes the overflow-x-auto tab bar ──
@@ -520,17 +521,23 @@ export default function AppFlow({ startupAction = null, onStartupHandled, onRetu
 
   const restoreProjectAIConfig = useCallback(
     (snapshot, { providerFallback } = {}) => {
-      const nextProvider = snapshot?.provider ? normalizeProjectProvider(snapshot.provider) : providerFallback;
+      const originalProvider = snapshot?.provider || '';
+      const nextProvider = originalProvider ? normalizeProjectProvider(originalProvider) : providerFallback;
+      const providerWasRemapped = Boolean(originalProvider && nextProvider !== originalProvider);
 
       try {
         if (nextProvider) localStorage.setItem('coursemapper-provider', nextProvider);
-        if (snapshot && Object.prototype.hasOwnProperty.call(snapshot, 'modelId')) {
+        if (providerWasRemapped) {
+          localStorage.removeItem('coursemapper-modelid');
+        } else if (snapshot && Object.prototype.hasOwnProperty.call(snapshot, 'modelId')) {
           if (snapshot.modelId) localStorage.setItem('coursemapper-modelid', snapshot.modelId);
           else localStorage.removeItem('coursemapper-modelid');
         } else if (providerFallback !== undefined) {
           localStorage.removeItem('coursemapper-modelid');
         }
-        if (snapshot && Object.prototype.hasOwnProperty.call(snapshot, 'modelName')) {
+        if (providerWasRemapped) {
+          localStorage.removeItem('coursemapper-modelname');
+        } else if (snapshot && Object.prototype.hasOwnProperty.call(snapshot, 'modelName')) {
           if (snapshot.modelName) localStorage.setItem('coursemapper-modelname', snapshot.modelName);
           else localStorage.removeItem('coursemapper-modelname');
         } else if (providerFallback !== undefined) {
@@ -539,8 +546,9 @@ export default function AppFlow({ startupAction = null, onStartupHandled, onRetu
       } catch {}
 
       const restoredApiKey = nextProvider ? getSavedApiKeyForProvider(nextProvider) : '';
-      const restoredModelId =
-        snapshot && Object.prototype.hasOwnProperty.call(snapshot, 'modelId')
+      const restoredModelId = providerWasRemapped
+        ? ''
+        : snapshot && Object.prototype.hasOwnProperty.call(snapshot, 'modelId')
           ? snapshot.modelId || ''
           : providerFallback !== undefined
             ? ''
@@ -548,21 +556,21 @@ export default function AppFlow({ startupAction = null, onStartupHandled, onRetu
 
       if (nextProvider) setProvider(nextProvider);
       if (nextProvider) setApiKey(restoredApiKey);
-      if (snapshot && Object.prototype.hasOwnProperty.call(snapshot, 'modelId')) {
+      if (providerWasRemapped) {
+        setModelId('');
+      } else if (snapshot && Object.prototype.hasOwnProperty.call(snapshot, 'modelId')) {
         setModelId(snapshot.modelId || '');
       } else if (providerFallback !== undefined) {
         setModelId('');
       }
-      if (snapshot && Object.prototype.hasOwnProperty.call(snapshot, 'modelName')) {
+      if (providerWasRemapped) {
+        setModelName('');
+      } else if (snapshot && Object.prototype.hasOwnProperty.call(snapshot, 'modelName')) {
         setModelName(snapshot.modelName || '');
       } else if (providerFallback !== undefined) {
         setModelName('');
       }
-      if (nextProvider === 'webllm') {
-        setApiStatus(restoredModelId ? 'connected' : 'idle');
-      } else {
-        setApiStatus(restoredApiKey && restoredModelId ? 'connected' : 'idle');
-      }
+      setApiStatus(restoredApiKey && restoredModelId ? 'connected' : 'idle');
     },
     [modelId, setApiKey, setApiStatus, setModelId, setModelName, setProvider],
   );
@@ -1991,7 +1999,7 @@ export default function AppFlow({ startupAction = null, onStartupHandled, onRetu
 
   // ── Derived ──
   const canGenerate =
-    (provider === 'webllm' || apiKey.trim()) &&
+    apiKey.trim() &&
     modelId &&
     (files.length > 0 || promptText.trim().length > 0) &&
     gen.status !== 'parsing' &&
@@ -2812,7 +2820,7 @@ export default function AppFlow({ startupAction = null, onStartupHandled, onRetu
           onGenerate={handleLandingContinue}
           canGenerate={
             (files.length > 0 || promptText.trim().length > 0) &&
-            (provider === 'webllm' || apiKey.trim()) &&
+            apiKey.trim() &&
             !!modelId &&
             apiStatus === 'connected'
           }
@@ -4070,7 +4078,10 @@ export default function AppFlow({ startupAction = null, onStartupHandled, onRetu
 
         <footer className="w-full px-6 py-4 text-center space-y-1">
           <p className="text-[10px] text-slate-300/70">
-            Built by the Educational Technology team at NYU Silver School of Social Work
+            Built by{' '}
+            <a href="#/contact" className="font-medium hover:text-indigo-500 transition-colors duration-200">
+              Tian Xing
+            </a>
           </p>
           <div className="flex items-center justify-center gap-3 text-[10px] text-slate-300/70">
             <a href="#/changelog" className="font-medium hover:text-indigo-500 transition-colors duration-200">

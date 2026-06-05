@@ -360,7 +360,7 @@ For controlled pilots, serve `dist/` from Firebase Hosting or an equivalent stat
 
 - **Frontend** — React 18, Vite, TailwindCSS
 - **State** — useReducer + Context (two-context pattern: state + dispatch via `courseStore.jsx`)
-- **AI providers** — OpenAI, Anthropic, Google, DeepSeek, and local WebLLM where supported
+- **AI providers** — OpenAI, Anthropic, Google, and DeepSeek
 - **Auth & Cloud** — Firebase Auth (Google OAuth), Firestore (project cloud storage, professor profiles)
 - **File parsing** — mammoth (docx), pdfjs-dist (pdf), SheetJS (xlsx), JSZip
 - **Export** — ExcelJS (xlsx), docx (Word), jsPDF + jspdf-autotable (pdf), pptxgenjs (PowerPoint), file-saver, JSZip (ZIP bundle)

@@ -31,7 +31,7 @@ test.describe('Landing Page', () => {
 
   test('renders logo and tagline', async ({ page }) => {
     await expect(page.locator('img[alt="Course Mapper"]')).toBeVisible();
-    await expect(page.locator('h1')).toHaveText('Everything you need to teach a course.');
+    await expect(page.locator('h1')).toHaveText('Everything you need to teach/learn a course.');
     await expect(page.locator('text=Describe your course')).toBeVisible();
   });
 
@@ -56,6 +56,17 @@ test.describe('Landing Page', () => {
   test('example chips disappear after prompt is filled', async ({ page }) => {
     await page.getByTestId('course-example-chip').first().click();
     await expect(page.getByTestId('course-example-chip')).toHaveCount(0);
+  });
+
+  test('shuffle button refreshes the visible sample courses', async ({ page }) => {
+    const chips = page.getByTestId('course-example-chip');
+    const before = await chips.allTextContents();
+
+    await page.getByRole('button', { name: 'Shuffle sample courses' }).click();
+
+    await expect
+      .poll(async () => (await chips.allTextContents()).join('|'), { timeout: 5000 })
+      .not.toBe(before.join('|'));
   });
 
   test('textarea accepts typed input', async ({ page }) => {
@@ -85,7 +96,16 @@ test.describe('Landing Page', () => {
     await expect(page.locator('a[href="#/changelog"]')).toBeVisible();
     await expect(page.locator('a[href="#/privacy"]')).toBeVisible();
     await expect(page.locator('a[href="#/terms"]')).toBeVisible();
-    await expect(page.locator('text=NYU Silver School')).toBeVisible();
+    await expect(page.locator('a[href="#/contact"]')).toHaveText('Tian Xing');
+    await expect(page.getByText('Built by')).toBeVisible();
+  });
+
+  test('contact route shows Tian Xing email', async ({ page }) => {
+    await page.getByRole('link', { name: 'Tian Xing' }).click();
+
+    await expect(page.locator('h1:has-text("Contact")')).toBeVisible();
+    await expect(page.getByText('xingpicuture@gmail.com')).toBeVisible();
+    await expect(page.locator('a[href="mailto:xingpicuture@gmail.com"]')).toBeVisible();
   });
 
   test('dark mode toggle exists and works', async ({ page }) => {
@@ -111,6 +131,13 @@ test.describe('Landing Page', () => {
   test('ModelConfig panel is visible for unconfigured state', async ({ page }) => {
     // When no API key is stored, the full ModelConfig should show (not collapsed)
     await expect(page.locator('text=AI Configuration')).toBeVisible({ timeout: 5000 });
+  });
+
+  test('provider picker no longer offers free local AI', async ({ page }) => {
+    const options = await page.getByLabel('Provider').locator('option').allTextContents();
+
+    expect(options).toEqual(['OpenAI', 'Anthropic', 'Google', 'DeepSeek']);
+    expect(options.join(' ')).not.toContain('Local AI');
   });
 
   test('Resume restores the saved project model instead of the landing-page model', async ({ page }) => {
@@ -237,7 +264,7 @@ test.describe('Landing Page', () => {
     await expect(page.getByText('Start a new project?')).toBeVisible();
     await page.getByRole('button', { name: 'Start New Project', exact: true }).click();
 
-    await expect(page.locator('h1')).toHaveText('Everything you need to teach a course.');
+    await expect(page.locator('h1')).toHaveText('Everything you need to teach/learn a course.');
     expect(await page.evaluate(() => localStorage.getItem('coursemapper-project'))).toBeNull();
   });
 
@@ -733,6 +760,12 @@ test.describe('Hash Routing', () => {
   test('#/terms renders the terms of service', async ({ page }) => {
     await page.goto('/#/terms');
     await expect(page.locator('h1:has-text("Terms")')).toBeVisible({ timeout: 10000 });
+  });
+
+  test('#/contact renders the contact page', async ({ page }) => {
+    await page.goto('/#/contact');
+    await expect(page.locator('h1:has-text("Contact")')).toBeVisible({ timeout: 10000 });
+    await expect(page.getByText('xingpicuture@gmail.com')).toBeVisible();
   });
 
   test('#/faq redirects to #/', async ({ page }) => {

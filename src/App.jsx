@@ -128,7 +128,7 @@ export default function App() {
           onGenerate={handleContinue}
           canGenerate={
             (files.length > 0 || promptText.trim().length > 0) &&
-            (provider === 'webllm' || apiKey.trim()) &&
+            apiKey.trim() &&
             !!modelId &&
             apiStatus === 'connected'
           }
