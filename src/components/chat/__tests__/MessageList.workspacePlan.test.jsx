@@ -205,13 +205,8 @@ describe('MessageList workspace plan actions', () => {
     );
     expect(onSuggestionClick).not.toHaveBeenCalled();
 
-    await act(async () => {
-      container
-        .querySelector('[data-testid="configure-agent-ai-button"]')
-        .dispatchEvent(new MouseEvent('click', { bubbles: true }));
-    });
-
-    expect(onConfigureAI).toHaveBeenCalledTimes(1);
+    expect(container.querySelector('[data-testid="configure-agent-ai-button"]')).toBeNull();
+    expect(onConfigureAI).not.toHaveBeenCalled();
   });
 
   it('routes provider-ready direct starters before falling back to model chat', async () => {

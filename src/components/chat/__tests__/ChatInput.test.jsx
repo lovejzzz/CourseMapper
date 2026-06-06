@@ -60,13 +60,14 @@ describe('ChatInput agent execution mode', () => {
     textarea.dispatchEvent(new Event('input', { bubbles: true, cancelable: true }));
   }
 
-  it('renders conversation state without a mode toggle', () => {
+  it('renders a clean composer without a mode toggle', () => {
     const onAgentDryRunChange = vi.fn();
     renderInput({ onAgentDryRunChange });
 
     const toggle = container.querySelector('[data-testid="agent-dry-run-toggle"]');
     expect(toggle).toBeNull();
-    expect(container.textContent).toContain('Conversation');
+    expect(container.textContent).not.toContain('Review only');
+    expect(container.textContent).not.toContain('No edits');
     expect(onAgentDryRunChange).not.toHaveBeenCalled();
   });
 
@@ -85,7 +86,7 @@ describe('ChatInput agent execution mode', () => {
     expect(sendButtonWrapper.className).toContain('right-2');
   });
 
-  it('uses conversation copy and a finish-package prompt', () => {
+  it('uses conversation copy without duplicating the header package action', () => {
     const onSend = vi.fn();
     renderInput({ agentDryRun: true, onSend });
 
@@ -94,32 +95,22 @@ describe('ChatInput agent execution mode', () => {
     expect(toggle).toBeNull();
     expect(textarea.getAttribute('placeholder')).toContain('Tell the agent what to change');
     expect(container.textContent).not.toContain('No edits');
-
-    const reviewButton = Array.from(container.querySelectorAll('button')).find(
-      (button) => button.getAttribute('title') === 'Finish, repair, and verify the course package before export',
-    );
-    expect(reviewButton.textContent).toContain('Finish package');
-    act(() => {
-      reviewButton.dispatchEvent(new MouseEvent('click', { bubbles: true }));
-    });
-
-    expect(onSend).toHaveBeenCalledTimes(1);
-    expect(onSend.mock.calls[0][0]).toContain('Finish this course package');
-    expect(onSend.mock.calls[0][0]).toContain('Only ask the user for decisions');
+    expect(container.textContent).not.toContain('Finish package');
+    expect(onSend).not.toHaveBeenCalled();
   });
 
-  it('routes the package action button through the direct agent command when available', () => {
+  it('routes typed finish-package language through the direct agent command', () => {
     const onSend = vi.fn();
     const onAgentCommand = vi.fn();
     renderInput({ onSend, onAgentCommand });
 
-    const finishButton = Array.from(container.querySelectorAll('button')).find((button) =>
-      button.textContent.includes('Finish package'),
-    );
-    expect(finishButton).not.toBeNull();
+    const textarea = container.querySelector('textarea');
+    act(() => {
+      typeInTextarea(textarea, 'finish package');
+    });
 
     act(() => {
-      finishButton.dispatchEvent(new MouseEvent('click', { bubbles: true }));
+      textarea.dispatchEvent(new KeyboardEvent('keydown', { key: 'Enter', bubbles: true }));
     });
 
     expect(onAgentCommand).toHaveBeenCalledTimes(1);

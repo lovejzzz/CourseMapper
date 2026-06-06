@@ -1457,6 +1457,58 @@ test.describe('Export smoke', () => {
     expect(rubricPath).toBeTruthy();
   });
 
+  test('downloads ZIP when finalizer reports broad rubric readability review guidance', async ({ page }) => {
+    const courseMap = makeIntroPsychCourseMap(2);
+    const complexDescriptor =
+      'Demonstrates comprehensive conceptualization through multidimensional interpretation, methodological differentiation, psychometric contextualization, diagnostically sophisticated synthesis, and theoretically nuanced evaluation of behavioral evidence while maintaining explicit consideration of competing explanatory frameworks, epistemological limitations, and longitudinal developmental implications.';
+
+    await restoreExportWorkspace(page, (snapshot) => {
+      snapshot.courseMap = courseMap;
+      snapshot.promptText = 'Intro to Psychology, 2 lessons, undergraduate';
+      snapshot.activeTab = 'rubrics';
+      snapshot.selectedFeatures = ['courseMap', 'rubrics'];
+      snapshot.deliverableConfig = { rubrics: {} };
+      snapshot.deliverables = {
+        rubrics: {
+          status: 'done',
+          data: {
+            rubrics: courseMap.lessons.map((lesson, index) => ({
+              lessonTitle: lesson.title,
+              title: `Lesson ${index + 1} Case Response Rubric`,
+              gradedWork: 'Case response',
+              totalPoints: 100,
+              criteria: ['Concept accuracy', 'Evidence use', 'Application'].map((criterion) => ({
+                criterion,
+                objectiveAligned: lesson.sections?.[0]?.learningObjectives,
+                weight: 33,
+                points: 33,
+                exemplary: complexDescriptor,
+                proficient: complexDescriptor,
+                developing: complexDescriptor,
+                beginning: complexDescriptor,
+              })),
+            })),
+          },
+          error: null,
+          stale: false,
+        },
+      };
+    });
+
+    await page.getByTestId('export-scope-all').click();
+    await expect(page.getByTestId('readiness-status')).toContainText('Ready to download');
+
+    const zipDownload = await expectDownload(page, () => page.getByTestId('export-download-zip').click(), {
+      extension: 'zip',
+      nameIncludes: 'Intro to Psychology',
+      minBytes: 1000,
+    });
+    const zip = await JSZip.loadAsync(await fs.readFile(zipDownload.path));
+    const rubricPath = Object.keys(zip.files).find((name) => /Rubrics\/.*\.docx$/.test(name));
+    expect(rubricPath).toBeTruthy();
+    await expect(page.getByTestId('readiness-confirm')).toBeHidden();
+  });
+
   test('blocks ZIP export when one selected deliverable failed', async ({ page }) => {
     await restoreExportWorkspace(page, (snapshot) => {
       snapshot.selectedFeatures = ['courseMap', 'lessonPlans', 'courseFaq'];

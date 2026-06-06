@@ -130,7 +130,7 @@ test.describe('Landing to Agent continuity', () => {
     await page.getByRole('button', { name: 'Continue' }).click();
     await expect(page.getByRole('heading', { name: 'Choose materials' })).toBeVisible({ timeout: 10000 });
     await page.getByRole('button', { name: /Lesson Plans/ }).click();
-    await page.getByRole('button', { name: /Configure & Generate/ }).click();
+    await page.getByTestId('feature-select-continue').click();
 
     await expect(page.getByRole('heading', { name: 'Configure generation' })).toBeVisible({ timeout: 10000 });
     await page.getByRole('button', { name: /Generate/ }).click();
@@ -142,7 +142,7 @@ test.describe('Landing to Agent continuity', () => {
     await expect(agentPanel.getByTestId('agent-context-strip')).toContainText(
       'Starting request + starter-notebook-outline.txt + 1 source note',
     );
-    await expect(agentPanel.getByTestId('agent-working-brief')).toContainText('prompt + 1 material + 1 source note');
+    await expect(agentPanel.getByTestId('agent-working-materials')).toContainText('AI connected');
 
     const landingContextCard = agentPanel.getByTestId('landing-context-card');
     await expect(landingContextCard).toContainText('Starting brief', { timeout: 30000 });

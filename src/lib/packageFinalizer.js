@@ -19,19 +19,21 @@ function compactValidationIssues(healthReport, { blockOnValidationWarnings = fal
     .filter(
       (finding) => finding?.severity === 'error' || (blockOnValidationWarnings && finding?.severity === 'warning'),
     )
-    .map((finding) =>
-      normalizeReadinessIssue({
-        severity: finding.severity === 'error' ? 'blocker' : 'warning',
+    .map((finding) => {
+      const reviewOnly = finding.category === 'readability';
+      return normalizeReadinessIssue({
+        severity: finding.severity === 'error' && !reviewOnly ? 'blocker' : 'warning',
         featureId: finding.featureId || 'courseMap',
         label: finding.featureId || 'Course Map',
         message: finding.message,
         classroomCriterion: finding.category,
+        source: reviewOnly ? 'validationReview' : 'validation',
         lessonIndex: Number.isInteger(finding.lessonIndex) ? finding.lessonIndex : null,
         target: Number.isInteger(finding.lessonIndex)
           ? { type: 'lesson', lessonIndex: finding.lessonIndex, featureId: finding.featureId }
           : undefined,
-      }),
-    );
+      });
+    });
 }
 
 function buildReadinessResult(workspaceReadiness, classroomReadiness, healthReport, settings) {

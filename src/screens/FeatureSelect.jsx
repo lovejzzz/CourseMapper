@@ -470,6 +470,7 @@ export default function FeatureSelect({
   const customFeatures = customDeliverables.map(toFeatureEntry);
 
   const selectedCount = selected.length;
+  const selectedMaterialCount = Math.max(0, selectedCount - 1);
 
   // Build ordered list:
   // - No syllabus file: syllabus appears right after courseMap (position 2)
@@ -557,7 +558,7 @@ export default function FeatureSelect({
 
       {/* Main */}
       <main className="flex flex-1 flex-col items-center px-5 py-6 pb-0 sm:px-8">
-        <div className="w-full max-w-4xl animate-fade-up">
+        <div className="w-full max-w-3xl animate-fade-up">
           {/* Title */}
           <div className="mb-6 text-center">
             <p className="mb-3 text-[10px] font-semibold uppercase tracking-[0.28em] text-blue-600 dark:text-blue-300">
@@ -605,12 +606,12 @@ export default function FeatureSelect({
             </div>
           )}
 
-          <section className="rounded-[28px] border border-slate-200/80 bg-white/80 p-4 shadow-[0_24px_80px_rgba(15,23,42,0.08)] backdrop-blur-xl dark:border-slate-700/80 dark:bg-slate-950/70 dark:shadow-[0_24px_80px_rgba(0,0,0,0.35)] sm:p-5">
+          <section className="rounded-2xl border border-slate-200/80 bg-white/86 p-4 shadow-sm dark:border-slate-700/80 dark:bg-slate-950/70 sm:p-5">
             <div className="mb-4 flex flex-col gap-3 border-b border-slate-100 pb-4 sm:flex-row sm:items-center sm:justify-between dark:border-slate-800">
               <div>
                 <h2 className="text-base font-semibold text-slate-900 dark:text-white">Package contents</h2>
                 <p className="mt-0.5 text-[11px] font-medium text-slate-500 dark:text-slate-400">
-                  {selectedCount} selected. Course Map is always included.
+                  Course Map + {selectedMaterialCount} material{selectedMaterialCount === 1 ? '' : 's'}.
                 </p>
               </div>
               <button
@@ -622,9 +623,9 @@ export default function FeatureSelect({
             </div>
 
             {baseFeature && (
-              <div className="rounded-2xl border border-slate-950 bg-slate-950 p-4 text-white shadow-sm dark:border-slate-700 dark:bg-slate-900">
+              <div className="rounded-xl border border-slate-950 bg-slate-950 px-4 py-3 text-white shadow-sm dark:border-slate-700 dark:bg-slate-900">
                 <div className="flex items-start gap-3">
-                  <div className="flex h-9 w-9 flex-shrink-0 items-center justify-center rounded-xl bg-white/10">
+                  <div className="flex h-8 w-8 flex-shrink-0 items-center justify-center rounded-lg bg-white/10">
                     <svg className="h-4.5 w-4.5 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                       <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={1.5} d={baseFeature.icon} />
                     </svg>
@@ -636,7 +637,9 @@ export default function FeatureSelect({
                         Base workspace
                       </span>
                     </div>
-                    <p className="mt-1 text-[11px] leading-relaxed text-slate-300">{baseFeature.description}</p>
+                    <p className="mt-1 line-clamp-1 text-[11px] leading-relaxed text-slate-300">
+                      {baseFeature.description}
+                    </p>
                   </div>
                   <div className="flex h-5 w-5 flex-shrink-0 items-center justify-center rounded-md border border-white/30 bg-white/15">
                     <svg className="h-3 w-3 text-white" fill="currentColor" viewBox="0 0 20 20">
@@ -665,7 +668,7 @@ export default function FeatureSelect({
                     onClick={() => toggle(feature.id)}
                     onMouseEnter={() => setHoveredId(feature.id)}
                     onMouseLeave={() => setHoveredId(null)}
-                    className={`tactile group relative flex min-h-[96px] items-start gap-3 rounded-2xl border p-3 text-left transition-all duration-200 ${
+                    className={`tactile group relative flex min-h-[82px] items-start gap-3 rounded-xl border p-3 text-left transition-all duration-200 ${
                       isSelected
                         ? 'border-slate-950 bg-white shadow-sm dark:border-slate-200 dark:bg-slate-900'
                         : 'border-slate-200 bg-white/65 hover:border-slate-300 hover:bg-white dark:border-slate-800 dark:bg-slate-900/65 dark:hover:border-slate-700'
@@ -739,7 +742,7 @@ export default function FeatureSelect({
 
                     {/* Icon */}
                     <div
-                      className={`flex h-9 w-9 flex-shrink-0 items-center justify-center rounded-xl ${c.iconBg} transition-transform duration-200 ${
+                      className={`flex h-8 w-8 flex-shrink-0 items-center justify-center rounded-lg ${c.iconBg} transition-transform duration-200 ${
                         isHovered ? 'scale-105' : ''
                       }`}
                     >
@@ -762,7 +765,7 @@ export default function FeatureSelect({
                           </span>
                         )}
                       </div>
-                      <p className="mt-1 line-clamp-2 text-[11px] leading-relaxed text-slate-500 dark:text-slate-400">
+                      <p className="mt-1 line-clamp-1 text-[11px] leading-relaxed text-slate-500 dark:text-slate-400">
                         {feature.description}
                       </p>
                     </div>
@@ -778,10 +781,10 @@ export default function FeatureSelect({
                 }}
                 onMouseEnter={() => setHoveredId('__create__')}
                 onMouseLeave={() => setHoveredId(null)}
-                className="tactile group relative flex min-h-[96px] items-center justify-center gap-3 rounded-2xl border border-dashed border-slate-300/80 bg-white/45 p-4 text-left transition-all duration-200 hover:border-blue-300 hover:bg-white dark:border-slate-700 dark:bg-slate-900/45 dark:hover:border-blue-400/50"
+                className="tactile group relative flex min-h-[82px] items-center justify-center gap-3 rounded-xl border border-dashed border-slate-300/80 bg-white/45 p-4 text-left transition-all duration-200 hover:border-blue-300 hover:bg-white dark:border-slate-700 dark:bg-slate-900/45 dark:hover:border-blue-400/50"
               >
                 <div
-                  className={`flex h-9 w-9 items-center justify-center rounded-xl bg-blue-50 transition-transform duration-200 dark:bg-blue-400/10 ${
+                  className={`flex h-8 w-8 items-center justify-center rounded-lg bg-blue-50 transition-transform duration-200 dark:bg-blue-400/10 ${
                     hoveredId === '__create__' ? 'scale-110' : ''
                   }`}
                 >
@@ -809,20 +812,20 @@ export default function FeatureSelect({
           {/* Next button */}
           <div
             data-testid="feature-select-sticky-action"
-            className="sticky bottom-0 z-20 mt-8 border-t border-slate-200/60 bg-white/88 px-6 py-4 text-center shadow-[0_-16px_36px_rgba(15,23,42,0.06)] backdrop-blur-xl"
+            className="mt-5 rounded-2xl border border-slate-200/80 bg-white p-3 text-center shadow-sm dark:border-slate-700 dark:bg-slate-950"
           >
             <button
               data-testid="feature-select-continue"
               onClick={onNext}
               disabled={selectedCount === 0}
-              className={`tactile btn-glow px-10 py-4 rounded-squircle-xs font-semibold text-sm tracking-wide transition-all duration-300 ${
+              className={`tactile btn-glow w-full rounded-squircle-xs px-10 py-4 text-sm font-semibold tracking-wide transition-all duration-300 ${
                 selectedCount > 0
                   ? 'text-white bg-slate-950 shadow-lg shadow-slate-950/12 hover:bg-slate-800'
                   : 'bg-slate-200 text-slate-400 cursor-not-allowed shadow-none'
               }`}
             >
               <span className="flex items-center justify-center gap-2.5">
-                Configure & Generate
+                Continue
                 <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                   <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M14 5l7 7m0 0l-7 7m7-7H3" />
                 </svg>

@@ -73,7 +73,7 @@ describe('AgentWorkingSetPanel', () => {
     expect(summary.hiddenSelectedFeatureCount).toBe(1);
   });
 
-  it('renders compact status chips above the composer', () => {
+  it('renders a compact status receipt above the conversation', () => {
     const messages = [
       ...buildLandingAgentContextMessages({
         promptText: 'Build an applied machine learning lab course.',
@@ -99,20 +99,13 @@ describe('AgentWorkingSetPanel', () => {
     );
 
     expect(html).toContain('data-testid="agent-working-set-panel"');
-    expect(html).toContain('Working set');
-    expect(html).toContain('Slide Decks');
-    expect(html).toContain('Brief');
+    expect(html).toContain('Working on Slide Decks');
     expect(html).toContain('prompt + 2 materials + 2 source notes');
-    expect(html).toContain('Agent');
     expect(html).toContain('Local tools');
     expect(html).toContain('3 lessons');
     expect(html).toContain('1 ready, 1 running, 1 stale');
-    expect(html).toContain('flex-wrap');
-    expect(html).toContain('overflow-hidden');
-    expect(html).not.toContain('data-testid="agent-working-package"');
-    expect(html).not.toContain('Finishing');
-    expect(html).toContain('Selected');
-    expect(html).toContain('Slide Decks, Rubrics');
+    expect(html).toContain('Finishing');
+    expect(html).not.toContain('Selected');
   });
 
   it('surfaces the latest workspace plan state in the working set', () => {
@@ -136,8 +129,7 @@ describe('AgentWorkingSetPanel', () => {
       />,
     );
 
-    expect(html).toContain('data-testid="agent-working-plan"');
-    expect(html).toContain('Plan');
+    expect(html).toContain('Plan:');
     expect(html).toContain('1 running, 1 blocked');
     expect(html).not.toContain('Old plan step');
   });
@@ -193,7 +185,7 @@ describe('AgentWorkingSetPanel', () => {
     });
   });
 
-  it('renders recent Agent activity chips above the composer', () => {
+  it('renders recent Agent activity in the compact receipt', () => {
     const html = renderToStaticMarkup(
       <AgentWorkingSetPanel
         courseMap={courseMap}
@@ -215,7 +207,6 @@ describe('AgentWorkingSetPanel', () => {
       />,
     );
 
-    expect(html).toContain('data-testid="agent-working-activity-0"');
     expect(html).toContain('Planning receipt');
     expect(html).toContain('1 done');
   });

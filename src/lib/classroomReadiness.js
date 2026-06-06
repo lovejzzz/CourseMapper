@@ -36,7 +36,7 @@ const RETRYABLE_FEATURES = new Set([
   'courseFaq',
 ]);
 
-const AUTO_FIX_VALIDATION_CATEGORIES = new Set(['readability', 'difficulty', 'grammar']);
+const AUTO_FIX_VALIDATION_CATEGORIES = new Set(['difficulty', 'grammar']);
 
 const ARRAY_ALIASES = {
   lessonPlans: ['lessonPlans', 'plans'],

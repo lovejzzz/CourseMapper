@@ -277,7 +277,7 @@ describe('classroomReadiness', () => {
     expect(queue.nextTool).toBe('retry_package_weak_spots');
   });
 
-  it('queues a whole-deliverable retry for broad auto-fixable validation issues', () => {
+  it('does not queue broad readability retries from formula-only validation issues', () => {
     const courseMap = makeCourseMap(2);
     const queue = buildPackageRepairQueue({
       courseMap,
@@ -313,15 +313,8 @@ describe('classroomReadiness', () => {
       },
     });
 
-    expect(queue.retryActions).toEqual([
-      expect.objectContaining({
-        featureId: 'courseFaq',
-        lessonIndex: null,
-        scope: 'feature',
-        source: 'validation',
-      }),
-    ]);
-    expect(queue.nextTool).toBe('retry_package_weak_spots');
+    expect(queue.retryActions).toEqual([]);
+    expect(queue.nextTool).toBeNull();
   });
 
   it('does not spend retry calls on non-blocking validation warnings', () => {

@@ -491,6 +491,54 @@ describe('packageFinalizer', () => {
     expect(result.healthReport.findings.filter((finding) => finding.featureId === 'rubrics')).toEqual([]);
   });
 
+  it('keeps broad rubric readability findings as review-only export guidance', () => {
+    const courseMap = makeIntroPsychCourseMap(2);
+    const complexDescriptor =
+      'Demonstrates comprehensive conceptualization through multidimensional interpretation, methodological differentiation, psychometric contextualization, diagnostically sophisticated synthesis, and theoretically nuanced evaluation of behavioral evidence while maintaining explicit consideration of competing explanatory frameworks, epistemological limitations, and longitudinal developmental implications.';
+    const makeComplexRubric = (lesson, index) => ({
+      lessonTitle: lesson.title,
+      title: `Lesson ${index + 1} Case Response Rubric`,
+      gradedWork: 'Case response',
+      totalPoints: 100,
+      criteria: ['Concept accuracy', 'Evidence use', 'Application'].map((criterion) => ({
+        criterion,
+        objectiveAligned: lesson.sections?.[0]?.learningObjectives,
+        weight: 33,
+        points: 33,
+        exemplary: complexDescriptor,
+        proficient: complexDescriptor,
+        developing: complexDescriptor,
+        beginning: complexDescriptor,
+      })),
+    });
+
+    const result = runDeterministicPackageFinalizer({
+      courseMap,
+      selectedFeatures: ['courseMap', 'rubrics'],
+      includeClassroomReadiness: true,
+      blockOnClassroomWarnings: false,
+      includePedagogicalValidation: true,
+      retryWarnings: false,
+      deliverables: {
+        rubrics: {
+          status: 'done',
+          data: {
+            rubrics: courseMap.lessons.map(makeComplexRubric),
+          },
+        },
+      },
+    });
+
+    const readabilityFindings = result.healthReport.findings.filter(
+      (finding) => finding.featureId === 'rubrics' && finding.category === 'readability',
+    );
+    expect(readabilityFindings.length).toBeGreaterThan(0);
+    expect(result.status).toBe('needs_review');
+    expect(result.readiness.blockers.filter((issue) => issue.featureId === 'rubrics')).toEqual([]);
+    expect(result.readiness.warnings.map((issue) => issue.source)).toContain('validationReview');
+    expect(result.retryActions.filter((action) => action.featureId === 'rubrics')).toEqual([]);
+  });
+
   it('returns exact retry actions for localized weak sections', () => {
     const result = runDeterministicPackageFinalizer({
       courseMap: makeCourseMap(2),

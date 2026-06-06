@@ -131,13 +131,14 @@ test.describe('All-deliverables terminal states', () => {
       .filter({ has: page.getByText(CUSTOM_FAILURE_NAME, { exact: true }) })
       .first()
       .click();
-    await page.getByRole('button', { name: /Configure & Generate/ }).click();
+    await page.getByTestId('feature-select-continue').click();
 
     await expect(page.locator('h1:has-text("Configure generation")')).toBeVisible({ timeout: 10000 });
     await page.getByRole('button', { name: /Generate/ }).click();
 
     await expect(page.getByTestId('workspace-shell')).toBeVisible({ timeout: 10000 });
-    const ideButton = page.getByRole('button', { name: 'IDE', exact: true });
+    await page.getByTestId('signed-out-advanced-menu').click();
+    const ideButton = page.getByRole('button', { name: /Open Developer IDE/i });
     await expect(ideButton).toBeDisabled({ timeout: 5000 });
     await expect(ideButton).toHaveAttribute('title', /Deliverables are still generating/i);
     await ideButton.click({ force: true });

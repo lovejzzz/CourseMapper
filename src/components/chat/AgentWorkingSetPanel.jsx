@@ -285,45 +285,10 @@ export function buildAgentWorkingSetSummary({
   };
 }
 
-function StatusChip({ label, value, tone = MUTED_TONE, testId }) {
-  if (!label && !value) return null;
-  return (
-    <span
-      data-testid={testId}
-      className={`inline-flex min-h-[22px] max-w-full shrink-0 items-center gap-1 rounded-full border px-2 py-0.5 text-[10px] font-bold ${tone}`}
-    >
-      {label && <span className="shrink-0 opacity-70">{label}</span>}
-      {value && <span className="truncate">{value}</span>}
-    </span>
-  );
-}
-
-function ActivityChip({ activity, index }) {
-  if (!activity?.title && !activity?.label) return null;
-  return (
-    <span
-      data-testid={`agent-working-activity-${index}`}
-      className={`inline-flex min-h-[22px] max-w-full shrink-0 items-center gap-1 rounded-full border px-2 py-0.5 text-[10px] font-bold ${activity.tone || MUTED_TONE}`}
-      title={`${activity.title || 'Activity'}${activity.label ? `: ${activity.label}` : ''}`}
-    >
-      <span className="shrink-0 opacity-70">{activity.title || 'Activity'}</span>
-      {activity.label && <span className="truncate">{activity.label}</span>}
-    </span>
-  );
-}
-
 export default function AgentWorkingSetPanel(props) {
   const summary = buildAgentWorkingSetSummary(props);
   if (!summary.hasCourseMap && !summary.hasDeliverableContext) return null;
 
-  const materialTone =
-    summary.failedFeatureCount > 0
-      ? BAD_TONE
-      : summary.staleFeatureCount > 0 || summary.missingFeatureCount > 0
-        ? WARN_TONE
-        : summary.readyFeatureCount > 0
-          ? GOOD_TONE
-          : MUTED_TONE;
   const materialParts = [
     summary.readyFeatureCount ? `${summary.readyFeatureCount} ready` : null,
     summary.generatingFeatureCount ? `${summary.generatingFeatureCount} running` : null,
@@ -331,50 +296,43 @@ export default function AgentWorkingSetPanel(props) {
     summary.staleFeatureCount ? `${summary.staleFeatureCount} stale` : null,
     summary.failedFeatureCount ? `${summary.failedFeatureCount} failed` : null,
   ].filter(Boolean);
-  const selectedText =
-    summary.selectedFeatureLabels.length > 0
-      ? `${summary.selectedFeatureLabels.join(', ')}${summary.hiddenSelectedFeatureCount > 0 ? ` +${summary.hiddenSelectedFeatureCount}` : ''}`
-      : 'No deliverables selected';
+  const latestActivity = summary.activityStatus.activities[0];
+  const supportLine = [
+    summary.scopeLabel,
+    materialParts.length > 0 ? materialParts.join(', ') : 'No materials ready',
+    summary.toolStateLabel,
+  ].filter(Boolean);
 
   return (
     <div
       data-testid="agent-working-set-panel"
-      className="flex-shrink-0 border-t border-slate-200/40 bg-white/58 px-3.5 py-1.5"
+      className="flex-shrink-0 border-b border-slate-200/50 bg-slate-50/70 px-3.5 py-2"
     >
-      <div className="flex min-w-0 flex-wrap items-center gap-1.5 overflow-hidden pb-0.5">
-        <StatusChip label="Working set" value={summary.activeTarget} tone={MODE_TONE} testId="agent-working-target" />
-        {summary.briefStatus.hasBrief && (
-          <StatusChip label="Brief" value={summary.briefStatus.label} tone={MODE_TONE} testId="agent-working-brief" />
-        )}
-        {summary.planStatus.hasPlan && (
-          <StatusChip
-            label="Plan"
-            value={summary.planStatus.label}
-            tone={summary.planStatus.tone}
-            testId="agent-working-plan"
-          />
-        )}
-        {summary.activityStatus.hasActivity &&
-          summary.activityStatus.activities.map((activity, index) => (
-            <ActivityChip key={`${activity.title}-${activity.label}-${index}`} activity={activity} index={index} />
-          ))}
-        <StatusChip
-          label="Agent"
-          value={summary.toolStateLabel}
-          tone={summary.toolStateTone}
-          testId="agent-working-mode"
-        />
-        <StatusChip label="Scope" value={summary.scopeLabel} testId="agent-working-scope" />
-        <StatusChip
-          label="Materials"
-          value={materialParts.length > 0 ? materialParts.join(', ') : 'none ready'}
-          tone={materialTone}
-          testId="agent-working-materials"
-        />
-        {summary.selectedFeatureCount > 0 && (
-          <StatusChip label="Selected" value={selectedText} testId="agent-working-selected" />
-        )}
+      <div className="flex min-w-0 items-start justify-between gap-3">
+        <div className="min-w-0">
+          <p data-testid="agent-working-target" className="truncate text-[11px] font-bold text-slate-700">
+            Working on {summary.activeTarget}
+          </p>
+          <p data-testid="agent-working-materials" className="mt-0.5 truncate text-[10px] font-medium text-slate-500">
+            {supportLine.join(' · ')}
+          </p>
+        </div>
+        <span
+          data-testid="agent-working-package-status"
+          className={`shrink-0 rounded-full border px-2 py-0.5 text-[10px] font-bold ${summary.packageStatus.tone}`}
+        >
+          {summary.packageStatus.label}
+        </span>
       </div>
+      {(summary.planStatus.hasPlan || latestActivity || summary.briefStatus.hasBrief) && (
+        <p className="mt-1 truncate text-[10px] font-medium text-slate-400">
+          {summary.planStatus.hasPlan
+            ? `Plan: ${summary.planStatus.label}`
+            : latestActivity
+              ? `${latestActivity.title}: ${latestActivity.label}`
+              : `Brief: ${summary.briefStatus.label}`}
+        </p>
+      )}
     </div>
   );
 }

@@ -250,7 +250,7 @@ describe('getChatOpener — Tier 3 (agent mode)', () => {
     expect(texts.join(' ')).not.toContain('custom_peerReview');
   });
 
-  it('shows local actions plus configure when agent provider is unavailable', () => {
+  it('shows local actions without a permanent configure starter when agent provider is unavailable', () => {
     const cm = makeCourseMap();
     const result = getChatOpener(cm, true, 'quizBank', makeDoneDeliverables(), false, false, false);
 
@@ -264,10 +264,6 @@ describe('getChatOpener — Tier 3 (agent mode)', () => {
       expect.objectContaining({
         text: 'Plan next step',
         action: 'local-plan',
-      }),
-      expect.objectContaining({
-        text: 'Configure AI for chat and edits',
-        action: 'configure-ai',
       }),
     ]);
   });

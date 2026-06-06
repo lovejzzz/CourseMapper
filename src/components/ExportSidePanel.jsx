@@ -141,7 +141,6 @@ function FmtBtn({ fmt, label, disabled, busy, onClick }) {
       className={`tactile flex items-center justify-center gap-1.5 px-3 py-2 rounded-lg text-[11px] font-semibold transition-all duration-200 w-full
         ${disabled ? 'opacity-30 cursor-not-allowed bg-slate-100 text-slate-400 border border-slate-200/40' : colorMap[fmt.color]}
         ${busy ? 'opacity-70' : ''}`}
-      title={disabled ? 'Not available for this deliverable' : ''}
     >
       {busy ? <Spin /> : null}
       {displayLabel}
@@ -166,7 +165,6 @@ function GDriveBtn({ fmt, label, disabled, busy, onClick }) {
       disabled={disabled || busy}
       className={`tactile flex items-center gap-2 px-3 py-2 rounded-lg text-[11px] font-semibold transition-all duration-200 w-full
         ${disabled ? 'opacity-30 cursor-not-allowed bg-slate-100 text-slate-400 border border-slate-200/40' : btnClass}`}
-      title={disabled ? 'Not available for this deliverable' : ''}
     >
       {busy ? (
         <Spin />
@@ -314,8 +312,8 @@ function ReadinessPanel({ readiness, onIssueClick }) {
     issuesToShow.length === 0
       ? summarizeReadiness(readiness)
       : isBlocked
-        ? 'Finish package will fix safe items and show only missing content or course decisions.'
-        : 'Finish package will retry safe fixes and leave only instructor decisions.';
+        ? 'Finish package fixes safe items and stops for decisions.'
+        : 'Finish package retries safe fixes before export.';
   const canNavigate = (issue) => typeof onIssueClick === 'function' && issue?.target;
   const tone = isBlocked
     ? {
@@ -408,8 +406,7 @@ function ReadinessConfirm({
         wrap: isBlocked ? 'border-red-200 bg-red-50/80 text-red-800' : 'border-amber-200 bg-amber-50/80 text-amber-800',
         reviewButton: isBlocked ? 'border-red-200 text-red-700' : 'border-amber-200 text-amber-700',
         title: 'Needs attention before export',
-        description:
-          'Automatic finishing already ran. Open the remaining issue, adjust the material or model, then export again.',
+        description: 'Automatic finishing ran. Open the remaining issue, then export again.',
       };
     }
     return isBlocked
@@ -417,17 +414,13 @@ function ReadinessConfirm({
           wrap: 'border-red-200 bg-red-50/80 text-red-800',
           reviewButton: 'border-red-200 text-red-700',
           title: 'Finish package before export',
-          description: isZipExport
-            ? 'Finish package will repair safe issues, re-check the ZIP, and stop only for decisions you need to make.'
-            : 'Finish package will repair safe issues, re-check this export, and stop only for decisions you need to make.',
+          description: isZipExport ? 'Repair safe issues and re-check the ZIP.' : 'Repair safe issues and re-check.',
         }
       : {
           wrap: 'border-amber-200 bg-amber-50/80 text-amber-800',
           reviewButton: 'border-amber-200 text-amber-700',
           title: 'Finish package before export',
-          description: isZipExport
-            ? 'Automatic fixes ran. Finish package will retry anything safe and prepare the ZIP when clean.'
-            : 'Automatic fixes ran. Finish package will retry anything safe and prepare the export when clean.',
+          description: isZipExport ? 'Retry safe fixes and prepare the ZIP.' : 'Retry safe fixes and prepare export.',
         };
   })();
 
@@ -974,7 +967,7 @@ export default function ExportSidePanel({
       className="export-side-panel flex flex-col gap-4 w-full lg:w-64 lg:flex-shrink-0"
     >
       {/* ── Panel card ── */}
-      <div className="rounded-2xl border border-slate-200/70 bg-white/86 p-4 shadow-sm space-y-4 animate-spring-in">
+      <div className="rounded-2xl border border-slate-200/70 bg-white p-4 shadow-sm space-y-4">
         {/* Header */}
         <div className="flex items-start gap-2">
           <div className="w-7 h-7 rounded-lg bg-slate-950 flex items-center justify-center flex-shrink-0 shadow-sm">
@@ -987,14 +980,16 @@ export default function ExportSidePanel({
               />
             </svg>
           </div>
-          <span className="text-xs font-bold text-slate-800">Export</span>
+          <div className="min-w-0">
+            <p className="text-xs font-bold text-slate-800">Finish package</p>
+          </div>
         </div>
 
         {/* ── Scope toggle ── */}
         <div className="flex items-center bg-slate-100/80 rounded-lg p-0.5 gap-0.5">
           {[
-            { id: 'current', label: 'Current' },
-            { id: 'all', label: 'All' },
+            { id: 'current', label: 'This tab' },
+            { id: 'all', label: 'Package' },
           ].map((s) => (
             <button
               key={s.id}
@@ -1104,7 +1099,7 @@ export default function ExportSidePanel({
             )}
 
             <div>
-              <p className="text-[9px] font-bold text-slate-400 uppercase tracking-wider mb-1.5">Download</p>
+              <p className="text-[9px] font-bold text-slate-400 uppercase tracking-wider mb-1.5">Package ZIP</p>
               <button
                 data-testid="export-download-zip"
                 onClick={() => doExport('zip')}
@@ -1117,23 +1112,6 @@ export default function ExportSidePanel({
                   allReadyCount === 0 ||
                   !courseMap ||
                   (selectedLessons !== null && selectedLessons.length === 0)
-                }
-                title={
-                  finishPackageBusy
-                    ? 'Final checks are finishing this package'
-                    : zipCanFinishPackage
-                      ? 'Fix remaining issues, re-check, and download when clean'
-                      : zipPendingNeedsAttention
-                        ? 'Open the remaining issue before downloading'
-                        : zipPendingReadiness
-                          ? 'Finish the readiness issues above before downloading'
-                          : isPackageQualityRunning
-                            ? 'Package finishing is still running'
-                            : !courseMap
-                              ? 'Course map is required for ZIP export'
-                              : selectedLessons !== null && selectedLessons.length === 0
-                                ? 'Select at least one lesson'
-                                : undefined
                 }
                 className="tactile flex w-full items-center justify-center gap-2 rounded-xl bg-slate-950 py-2.5 text-[12px] font-bold text-white shadow-sm transition-colors hover:bg-slate-800 disabled:cursor-not-allowed disabled:bg-slate-200 disabled:text-slate-400"
               >
@@ -1155,9 +1133,9 @@ export default function ExportSidePanel({
 
             {/* Save Project file */}
             <div className="pt-1 border-t border-slate-100 space-y-1.5">
-              <p className="text-[9px] font-bold text-slate-400 uppercase tracking-wider">Project File</p>
+              <p className="text-[9px] font-bold text-slate-400 uppercase tracking-wider">Backup</p>
               <p className="text-[10px] text-slate-400 leading-snug">
-                Save session to reopen later — includes all generated content.
+                Save a portable .coursemapper file.
               </p>
               <button
                 data-testid="export-save-project"

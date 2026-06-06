@@ -102,7 +102,6 @@ export default function ChatInput({
 
   const isDeliverableTab = activeTab && activeTab !== 'courseMap';
   const delivLabel = isDeliverableTab ? resolveLabel(activeTab) : null;
-  const targetLabel = isAgentMode ? delivLabel || 'Deliverables' : 'Course map';
   const agentUnavailable = isAgentMode && !isAgentProviderReady;
   const busy = isStreaming || isRevising;
   const agentCommandItems = useMemo(
@@ -138,8 +137,6 @@ export default function ChatInput({
     typedScopeCommand ||
     (isAgentMode && !showSlashCommands && !busy ? findAgentCommandByText(agentCommandItems, input) : null);
   const previewAgentCommand = typedAgentCommand && !showSlashCommands ? typedAgentCommand : null;
-  const stateLabel = agentUnavailable ? 'Configure AI' : isAgentMode ? 'Conversation' : 'Ask';
-
   function handleAgentCommandSelect(item) {
     if (!item || isStreaming || isRevising) return;
     if (item.id === 'configure-agent') {
@@ -224,25 +221,6 @@ export default function ChatInput({
     setInput('');
   }
 
-  function handlePackageAction() {
-    const now = Date.now();
-    if (now - lastSendTimeRef.current < SEND_COOLDOWN_MS) {
-      startCooldown();
-      return;
-    }
-    lastSendTimeRef.current = now;
-    startCooldown();
-
-    const packageCommand = agentCommandItems.find((item) => item.id === 'finish-package');
-    if (packageCommand && onAgentCommand) {
-      handleAgentCommandSelect(packageCommand);
-      return;
-    }
-
-    onSend(reviewPrompt);
-    setInput('');
-  }
-
   React.useEffect(
     () => () => {
       if (cooldownTimerRef.current) clearTimeout(cooldownTimerRef.current);
@@ -270,15 +248,6 @@ export default function ChatInput({
               : 'Tell the agent what to change in your deliverables…'
             : 'Ask a question or request changes…';
 
-  const reviewPrompt = [
-    'Finish this course package until it is ready to download.',
-    'Run finalize_package first.',
-    'If localized weak sections remain, call retry_package_weak_spots, then finalize_package again.',
-    'Apply safe deterministic and concrete content fixes directly.',
-    'Do not present the package as ready unless readiness, classroom readiness, validation, and export verification are clean.',
-    'Only ask the user for decisions that require instructor judgment.',
-    'Finish with a concise package handoff that says either Ready to download or lists the remaining instructor decisions.',
-  ].join(' ');
   const sendDisabled =
     (!canRunSlashCommand &&
       (hasUnknownSlashCommand ||
@@ -372,32 +341,7 @@ export default function ChatInput({
           }}
         />
 
-        <div className="flex min-w-0 items-center gap-1.5 text-[10px]">
-          <span className="truncate rounded-full border border-slate-200/70 bg-white/60 px-2 py-0.5 font-semibold text-slate-500">
-            {targetLabel}
-          </span>
-          <span className="shrink-0 rounded-full border border-slate-200/70 bg-white/60 px-2 py-0.5 font-semibold text-slate-500">
-            {stateLabel}
-          </span>
-        </div>
-
         <div className="relative">
-          {agentUnavailable && (
-            <div className="mb-2 flex items-center justify-between gap-2 rounded-xl border border-amber-200/70 bg-amber-50/80 px-3 py-2">
-              <span className="text-[11px] font-medium leading-snug text-amber-700">
-                Local Audit and Plan are available above. Connect AI for chat and model-based edits.
-              </span>
-              {onConfigureAI && (
-                <button
-                  type="button"
-                  onClick={onConfigureAI}
-                  className="tactile shrink-0 rounded-lg border border-amber-200/80 bg-white/80 px-2 py-1 text-[10px] font-bold text-amber-700 hover:bg-amber-100"
-                >
-                  Configure
-                </button>
-              )}
-            </div>
-          )}
           {previewAgentCommand && (
             <button
               type="button"
@@ -581,26 +525,6 @@ export default function ChatInput({
 
               {input.length > 100 && (
                 <span className="text-[10px] font-medium text-slate-400 select-none">{input.length} chars</span>
-              )}
-
-              {/* Package action button. */}
-              {isAgentMode && !agentUnavailable && !busy && (
-                <button
-                  onClick={handlePackageAction}
-                  disabled={isCoolingDown}
-                  className="tactile flex items-center gap-1 rounded-lg border border-emerald-200/70 bg-emerald-50/80 px-2 py-0.5 text-[10px] font-bold text-emerald-700 shadow-sm transition-all duration-200 hover:bg-emerald-100/80 disabled:cursor-not-allowed disabled:opacity-50"
-                  title="Finish, repair, and verify the course package before export"
-                >
-                  <svg className="w-3 h-3" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                    <path
-                      strokeLinecap="round"
-                      strokeLinejoin="round"
-                      strokeWidth={2}
-                      d="M9 5H7a2 2 0 00-2 2v12a2 2 0 002 2h10a2 2 0 002-2V7a2 2 0 00-2-2h-2M9 5a2 2 0 002 2h2a2 2 0 002-2M9 5a2 2 0 012-2h2a2 2 0 012 2m-6 9l2 2 4-4"
-                    />
-                  </svg>
-                  Finish package
-                </button>
               )}
 
               {agentUnavailable && onConfigureAI && (

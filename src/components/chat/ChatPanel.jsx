@@ -2,7 +2,6 @@ import React, { lazy, Suspense, useEffect, useRef, useCallback, useMemo, useStat
 import MessageList from './MessageList';
 import ChatInput from './ChatInput';
 import CustomToolsMenu from './CustomToolsMenu';
-import AgentCommandStrip from './AgentCommandStrip';
 import AgentWorkingSetPanel from './AgentWorkingSetPanel';
 import ModelConfig from '../ModelConfig';
 import useChatRouter from './useChatRouter';
@@ -1012,7 +1011,7 @@ export function getWorkspaceModelStatus({
       tone: 'idle',
       title: 'Connect a provider and API key',
       heading: 'Connect AI to edit with the agent',
-      message: `Local Audit and Plan are available. Connect ${providerLabel} or another provider for model-backed edits.`,
+      message: `Local audit and plan still work. Connect ${providerLabel} for edits.`,
       actionLabel: 'Configure',
       blocked: true,
     };
@@ -2648,19 +2647,6 @@ export default function ChatPanel({
         </div>
       )}
 
-      {isAgentMode && (
-        <AgentCommandStrip
-          activeTab={activeTab}
-          agentDryRun={chat.agentDryRun}
-          disabled={agentCommandDisabled}
-          syncFeatureCount={pendingSyncFeatureIds.length}
-          canUndo={delivCanUndo}
-          isAgentProviderReady={chat.isAgentProviderReady}
-          onConfigureAI={openWorkspaceModelConfig}
-          onCommand={handleAgentCommand}
-        />
-      )}
-
       {showsAgentIdentity && landingContextDetail && (
         <div
           data-testid="agent-context-strip"
@@ -2671,6 +2657,21 @@ export default function ChatPanel({
           </span>
           <span className="min-w-0 truncate font-medium text-slate-600">{landingContextDetail}</span>
         </div>
+      )}
+
+      {showsAgentIdentity && (
+        <AgentWorkingSetPanel
+          courseMap={courseMap}
+          activeTab={activeTab}
+          deliverables={deliverables}
+          selectedFeatures={selectedFeatures}
+          lessonScope={lessonScope}
+          pendingSyncFeatureIds={pendingSyncFeatureIds}
+          packageQualityPass={packageQualityPass}
+          messages={chat.messages}
+          agentDryRun={chat.agentDryRun}
+          isAgentProviderReady={chat.isAgentProviderReady}
+        />
       )}
 
       {/* ── Progress Header (collapsible) — generation + deliverable status ── */}
@@ -2761,21 +2762,6 @@ export default function ChatPanel({
         isDelivGenerating={!!isDelivGenerating}
         workspacePlanActionCapabilities={workspacePlanActionCapabilities}
       />
-
-      {showsAgentIdentity && (
-        <AgentWorkingSetPanel
-          courseMap={courseMap}
-          activeTab={activeTab}
-          deliverables={deliverables}
-          selectedFeatures={selectedFeatures}
-          lessonScope={lessonScope}
-          pendingSyncFeatureIds={pendingSyncFeatureIds}
-          packageQualityPass={packageQualityPass}
-          messages={chat.messages}
-          agentDryRun={chat.agentDryRun}
-          isAgentProviderReady={chat.isAgentProviderReady}
-        />
-      )}
 
       {/* ── Chat Input ── */}
       <ChatInput

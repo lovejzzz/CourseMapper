@@ -233,11 +233,11 @@ test.describe('Agent command entry points', () => {
 
     const workingSet = agentPanel.getByTestId('agent-working-set-panel');
     await expect(workingSet).toBeVisible();
-    await expect(workingSet.getByTestId('agent-working-target')).toContainText('Lesson Plans');
-    await expect(workingSet.getByTestId('agent-working-mode')).toContainText('AI connected');
-    await expect(workingSet.getByTestId('agent-working-scope')).toContainText('1 lesson');
+    await expect(workingSet.getByTestId('agent-working-target')).toContainText('Working on Lesson Plans');
+    await expect(workingSet.getByTestId('agent-working-materials')).toContainText('1 lesson');
     await expect(workingSet.getByTestId('agent-working-materials')).toContainText('1 ready');
-    await expect(workingSet.getByTestId('agent-working-package')).toHaveCount(0);
+    await expect(workingSet.getByTestId('agent-working-materials')).toContainText('AI connected');
+    await expect(workingSet.getByTestId('agent-working-package-status')).toBeVisible();
 
     const composer = agentPanel.locator('textarea');
     await composer.fill('/commands');
@@ -286,7 +286,6 @@ test.describe('Agent command entry points', () => {
     await expect(agentPanel.getByText('Improve Lesson Plans [+1 file]')).toBeVisible({ timeout: 10000 });
     await expect(agentPanel.getByTestId('source-context-card')).toContainText('field-notes.txt');
     await expect(agentPanel.getByTestId('source-context-card')).toContainText('lab notebook scaffolding');
-    await expect(workingSet.getByTestId('agent-working-brief')).toContainText('1 material + 1 source note');
     await expect(
       agentPanel.getByText('Lesson Plans improved. I checked the active deliverable and no export risk changed.'),
     ).toBeVisible({ timeout: 10000 });

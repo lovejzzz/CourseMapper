@@ -1,11 +1,13 @@
 import React, { useState, useEffect, useRef, useCallback, lazy, Suspense } from 'react';
 import { createPortal } from 'react-dom';
 import FocusTrap from 'focus-trap-react';
-import Header from './components/Header';
 import { DEFAULT_COLUMNS } from './components/ColumnEditor';
 import ErrorBoundary from './components/ErrorBoundary';
 import LoadingScreen, { ConfigSkeleton, WorkspaceSkeleton, CourseMapSkeleton } from './components/LoadingScreen';
 import Landing from './screens/Landing';
+import AppLogo from './components/AppLogo';
+import DarkModeToggle from './components/DarkModeToggle';
+import UserMenu from './components/UserMenu';
 
 // Lazy-load screens/components not needed on initial landing page
 const Config = lazy(() => import('./screens/Config'));
@@ -2957,19 +2959,26 @@ export default function AppFlow({ startupAction = null, onStartupHandled, onRetu
         : user
           ? 'border-emerald-200 bg-emerald-50 text-emerald-700'
           : 'border-slate-200 bg-white text-slate-600';
+  const workspaceSaveTextTone =
+    cloudSaveStatus === 'error' || localSaveStatus === 'error'
+      ? 'text-red-600'
+      : cloudSaveStatus === 'saving' || localSaveStatus === 'saving'
+        ? 'text-slate-500'
+        : user
+          ? 'text-emerald-600'
+          : 'text-slate-500';
+  const workspaceModelLabel = gen.activeModelName || modelName || modelId || '';
   const workspaceSaveTitle = user
     ? 'Signed-in projects autosave locally and to My Projects.'
     : 'Anonymous projects autosave only in this browser. Export .coursemapper for a portable backup.';
+  const canRunPackageFinalizer =
+    Boolean(courseMap) && gen.progressStep === 'done' && typeof handleFinishPackageFromExport === 'function';
   const finishPackageDisabled =
-    !courseMap ||
-    gen.progressStep !== 'done' ||
-    packageQualityPass?.status === 'running' ||
-    !canFinishPackageWithAgent ||
-    typeof handleFinishPackageFromExport !== 'function';
-  const finishPackageTitle = !canFinishPackageWithAgent
-    ? 'Configure a working model/key before package finishing.'
-    : packageQualityPass?.status === 'running'
-      ? 'Package finishing is already running.'
+    !canRunPackageFinalizer || packageQualityPass?.status === 'running';
+  const finishPackageTitle = packageQualityPass?.status === 'running'
+    ? 'Package finishing is already running.'
+    : !canFinishPackageWithAgent
+      ? 'Run deterministic package checks. Connect AI for model-backed repairs.'
       : 'Finish, repair, verify, and prepare the package for export.';
 
   const handleTabPointerDown = (feature, tabIdx) => (e) => {
@@ -3117,46 +3126,52 @@ export default function AppFlow({ startupAction = null, onStartupHandled, onRetu
   return (
     <Suspense fallback={<WorkspaceSkeleton />}>
       <div className="min-h-screen mesh-bg noise-overlay">
-        <Header
-          onOpenProjects={() => setShowProjectPicker(true)}
-          developerMode={developerMode}
-          onDeveloperModeChange={setDeveloperMode}
-          onOpenDeveloperPanel={() => {
-            if (!developerIdeDisabled) setShowDeveloperPanel(true);
-          }}
-          developerIdeDisabled={developerIdeDisabled}
-          developerIdeDisabledReason={developerIdeDisabledReason}
-        />
-
         {/* Cloud save runs silently */}
 
-        <main className="w-full px-4 sm:px-6 pb-10 space-y-4">
+        <main className="w-full px-4 py-4 sm:px-6 pb-10 space-y-4">
           {/* Top bar */}
-          <div className="workspace-header-row animate-spring-in rounded-2xl border border-slate-200/70 bg-white/82 px-4 py-3 shadow-sm">
-            <div className="flex flex-col gap-3 lg:flex-row lg:items-center lg:justify-between">
-              <div className="min-w-0">
-                <p className="text-[10px] font-bold uppercase tracking-wider text-slate-400">Course workspace</p>
-                <div className="mt-0.5 flex min-w-0 flex-wrap items-center gap-x-3 gap-y-1.5">
-                  <h1 className="max-w-[min(620px,80vw)] truncate text-lg font-bold tracking-tight text-slate-950">
+          <div
+            data-testid="workspace-header"
+            className="workspace-header-row rounded-2xl border border-slate-200/70 bg-white px-4 py-3 shadow-sm"
+          >
+            <div className="flex flex-col gap-3 xl:flex-row xl:items-center xl:justify-between">
+              <div className="flex min-w-0 items-center gap-3">
+                <a href="#/" className="hidden shrink-0 items-center sm:flex" aria-label="EduTool.dev home">
+                  <AppLogo className="h-9 w-auto object-contain" />
+                </a>
+                <div className="min-w-0">
+                  <p className="text-[10px] font-bold uppercase tracking-wider text-slate-400">Workspace</p>
+                  <h1 className="mt-0.5 max-w-[min(640px,78vw)] truncate text-lg font-bold tracking-tight text-slate-950">
                     {workspaceCourseTitle}
                   </h1>
-                  {workspaceLessonCount > 0 && (
-                    <span className="rounded-full border border-slate-200 bg-slate-50 px-2 py-0.5 text-[10px] font-bold text-slate-500">
-                      {workspaceLessonCount} lesson{workspaceLessonCount === 1 ? '' : 's'}
-                    </span>
-                  )}
+                  <div className="mt-1 flex min-w-0 flex-wrap items-center gap-x-2 gap-y-1 text-[10px] font-semibold text-slate-500">
+                    {workspaceLessonCount > 0 && (
+                      <span>
+                        {workspaceLessonCount} lesson{workspaceLessonCount === 1 ? '' : 's'}
+                      </span>
+                    )}
+                    {workspaceModelLabel && (
+                      <>
+                        <span className="text-slate-300">·</span>
+                        <span className="truncate">{workspaceModelLabel}</span>
+                      </>
+                    )}
+                    {courseMap && (
+                      <>
+                        <span className="text-slate-300 md:hidden">·</span>
+                        <span className={`${workspaceSaveTextTone} md:hidden`} title={workspaceSaveTitle}>
+                          {workspaceSaveText}
+                        </span>
+                      </>
+                    )}
+                  </div>
                 </div>
               </div>
 
               <div className="flex min-w-0 flex-wrap items-center gap-2">
-                {modelName && (
-                  <span className="rounded-full border border-slate-200 bg-white px-3 py-1 text-[10px] font-bold text-slate-600">
-                    {modelName}
-                  </span>
-                )}
                 {courseMap && (
                   <span
-                    className={`rounded-full border px-3 py-1 text-[10px] font-bold ${workspaceSaveTone}`}
+                    className={`hidden rounded-full border px-3 py-1 text-[10px] font-bold md:inline-flex ${workspaceSaveTone}`}
                     title={workspaceSaveTitle}
                   >
                     {workspaceSaveText}
@@ -3187,6 +3202,17 @@ export default function AppFlow({ startupAction = null, onStartupHandled, onRetu
                     {packageQualityPass?.status === 'running' ? 'Finishing' : 'Finish package'}
                   </button>
                 )}
+                <DarkModeToggle />
+                <UserMenu
+                  onOpenProjects={() => setShowProjectPicker(true)}
+                  developerMode={developerMode}
+                  onDeveloperModeChange={setDeveloperMode}
+                  onOpenDeveloperPanel={() => {
+                    if (!developerIdeDisabled) setShowDeveloperPanel(true);
+                  }}
+                  developerIdeDisabled={developerIdeDisabled}
+                  developerIdeDisabledReason={developerIdeDisabledReason}
+                />
                 <details className="relative">
                   <summary
                     data-testid="workspace-more-menu-trigger"
@@ -3313,7 +3339,7 @@ export default function AppFlow({ startupAction = null, onStartupHandled, onRetu
           {workspaceTabs.length > 0 && (
             <div
               data-testid="workspace-deliverable-tabs"
-              className="flex items-center gap-1 overflow-x-auto pb-1 scrollbar-hide"
+              className="flex items-center gap-1 overflow-x-auto rounded-2xl border border-slate-200/70 bg-white/76 p-1 shadow-sm scrollbar-hide"
             >
               {workspaceTabs.map((feature, tabIdx) => {
                 const isActive = activeTab === feature.id;
@@ -3383,14 +3409,14 @@ export default function AppFlow({ startupAction = null, onStartupHandled, onRetu
                           });
                         }
                       }}
-                      className={`tactile flex items-center gap-2 px-4 py-2 rounded-pill text-xs font-semibold whitespace-nowrap transition-all duration-200 flex-shrink-0 cursor-grab active:cursor-grabbing touch-none select-none ${
+                      className={`tactile flex items-center gap-2 px-3 py-1.5 rounded-xl text-xs font-semibold whitespace-nowrap transition-all duration-200 flex-shrink-0 cursor-grab active:cursor-grabbing touch-none select-none ${
                         isDraggingThis
                           ? 'opacity-20 scale-95'
                           : isDropTarget
-                            ? 'scale-[1.03] -translate-y-0.5 bg-indigo-50/70 text-indigo-600 shadow-glass border border-indigo-200/70'
+                            ? 'scale-[1.03] -translate-y-0.5 bg-indigo-50 text-indigo-600'
                             : isActive
-                              ? 'bg-white/80 text-slate-800 shadow-glass border border-slate-200/60'
-                              : 'text-slate-500 hover:bg-white/50 hover:text-slate-700'
+                              ? 'bg-slate-950 text-white shadow-sm'
+                              : 'text-slate-500 hover:bg-slate-100/80 hover:text-slate-700'
                       }`}
                     >
                       {/* Status dot — cascade sync takes priority for non-courseMap tabs */}
@@ -4117,7 +4143,7 @@ export default function AppFlow({ startupAction = null, onStartupHandled, onRetu
                   onReadinessIssueClick={focusCourseMapTarget}
                   onAutoRepairReadiness={applyPackageReadinessRepairs}
                   onFinishPackage={handleFinishPackageFromExport}
-                  canFinishPackage={canFinishPackageWithAgent && typeof handleFinishPackageFromExport === 'function'}
+                  canFinishPackage={canRunPackageFinalizer}
                   packageQualityPass={packageQualityPass}
                 />
               </div>

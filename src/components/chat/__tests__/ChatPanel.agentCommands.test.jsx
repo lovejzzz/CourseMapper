@@ -451,10 +451,10 @@ describe('ChatPanel agent command strip', () => {
     expect(container.querySelector('[data-testid="workspace-model-recovery-banner"]')?.textContent).toContain(
       'Model credits unavailable',
     );
-    expect(container.querySelector('[data-testid="agent-command-audit-quality"]')).not.toBeNull();
-    expect(container.querySelector('[data-testid="agent-command-plan-next"]')).not.toBeNull();
-    expect(container.querySelector('[data-testid="agent-command-undo-last"]')).not.toBeNull();
-    expect(container.querySelector('[data-testid="agent-command-configure-agent"]')).not.toBeNull();
+    expect(container.querySelector('[data-testid="agent-command-strip"]')).toBeNull();
+    expect(chatInputMock.props.isAgentProviderReady).toBe(false);
+    expect(chatInputMock.props.canUndo).toBe(true);
+    expect(messageListMock.props.onStarterAction).toEqual(expect.any(Function));
     expect(container.querySelector('[data-testid="agent-command-finish-package"]')).toBeNull();
   });
 
@@ -1064,10 +1064,12 @@ describe('ChatPanel agent command strip', () => {
     const delivUndoFn = vi.fn();
     root = renderChatPanel(container, { delivCanUndo: true, delivUndoFn });
 
-    const undoButton = container.querySelector('[data-testid="agent-command-undo-last"]');
-    expect(undoButton).not.toBeNull();
+    const undoCommand = buildAgentCommandItems({ activeTab: 'lessonPlans', canUndo: true }).find(
+      (item) => item.id === 'undo-last',
+    );
+    expect(undoCommand).not.toBeNull();
     await act(async () => {
-      undoButton.dispatchEvent(new MouseEvent('click', { bubbles: true }));
+      await chatInputMock.props.onAgentCommand(undoCommand);
     });
 
     expect(delivUndoFn).toHaveBeenCalledTimes(1);
@@ -1415,11 +1417,13 @@ describe('ChatPanel agent command strip', () => {
     chatRouterMock.handleApproveSyncSuggestion.mockResolvedValue(undefined);
     root = renderChatPanel(container);
 
-    const syncButton = container.querySelector('[data-testid="agent-command-sync-stale"]');
-    expect(syncButton).not.toBeNull();
+    const syncCommand = buildAgentCommandItems({ activeTab: 'lessonPlans', syncFeatureCount: 2 }).find(
+      (item) => item.id === 'sync-stale',
+    );
+    expect(syncCommand).not.toBeNull();
 
     await act(async () => {
-      syncButton.dispatchEvent(new MouseEvent('click', { bubbles: true }));
+      await chatInputMock.props.onAgentCommand(syncCommand);
     });
 
     expect(chatRouterMock.handleApproveSyncSuggestion).toHaveBeenCalledWith('sync-1', [quizPlan, rubricsPlan]);

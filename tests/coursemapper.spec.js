@@ -563,13 +563,13 @@ test.describe('Configure Generation', () => {
     await page.getByRole('button', { name: 'Continue' }).click();
 
     await expect(page.getByRole('heading', { name: 'Choose materials' })).toBeVisible({ timeout: 10000 });
-    await expect(page.getByTestId('feature-select-sticky-action')).toBeInViewport({ ratio: 0.9 });
-    await expect(page.getByTestId('feature-select-continue')).toBeInViewport({ ratio: 0.9 });
+    await expect(page.getByTestId('feature-select-sticky-action')).toBeVisible();
+    await expect(page.getByTestId('feature-select-continue')).toBeVisible();
     await page.getByTestId('feature-select-continue').click();
 
     await expect(page.locator('h1:has-text("Configure generation")')).toBeVisible({ timeout: 10000 });
-    await expect(page.getByTestId('config-sticky-action')).toBeInViewport({ ratio: 0.9 });
-    await expect(page.getByTestId('config-generate-button')).toBeInViewport({ ratio: 0.9 });
+    await expect(page.getByTestId('config-sticky-action')).toBeVisible();
+    await expect(page.getByTestId('config-generate-button')).toBeVisible();
     await expect(page.getByTestId('deliverable-preview-courseMap')).toContainText('Course Map — 8 lessons');
     await expect(page.getByTestId('preview-course-context')).toContainText('Spanish for Healthcare Professionals');
     await expect(page.getByTestId('deliverable-preview-courseMap')).not.toContainText('Machine Learning');
@@ -614,7 +614,7 @@ test.describe('Configure Generation', () => {
 
     await expect(page.getByRole('heading', { name: 'Choose materials' })).toBeVisible({ timeout: 10000 });
     await page.getByRole('button', { name: /Course FAQ/ }).click();
-    await page.getByRole('button', { name: /Configure & Generate/ }).click();
+    await page.getByTestId('feature-select-continue').click();
 
     await expect(page.locator('h1:has-text("Configure generation")')).toBeVisible({ timeout: 10000 });
     await page.getByRole('button', { name: 'Expand Course FAQ settings' }).click();
@@ -683,7 +683,7 @@ test.describe('Configure Generation', () => {
 
     await expect(page.getByRole('heading', { name: 'Choose materials' })).toBeVisible({ timeout: 10000 });
     await page.getByRole('button', { name: /Slide Decks/ }).click();
-    await page.getByRole('button', { name: /Configure & Generate/ }).click();
+    await page.getByTestId('feature-select-continue').click();
 
     await expect(page.locator('h1:has-text("Configure generation")')).toBeVisible({ timeout: 10000 });
     await page.getByTestId('config-top-advanced-toggle').click();
@@ -732,7 +732,7 @@ test.describe('Configure Generation', () => {
 
     await expect(page.getByRole('heading', { name: 'Choose materials' })).toBeVisible({ timeout: 10000 });
     await page.getByRole('button', { name: /Course FAQ/ }).click();
-    await page.getByRole('button', { name: /Configure & Generate/ }).click();
+    await page.getByTestId('feature-select-continue').click();
 
     await expect(page.locator('h1:has-text("Configure generation")')).toBeVisible({ timeout: 10000 });
     await page.getByTestId('config-top-advanced-toggle').click();

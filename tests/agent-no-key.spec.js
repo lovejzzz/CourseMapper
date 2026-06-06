@@ -241,16 +241,13 @@ test.describe('Agent no-key behavior', () => {
         'Your generated workspace is ready. I can still run local Audit and Plan. Configure AI for chat and model edits.',
       ),
     ).toBeVisible();
-    await expect(agentPanel.getByTestId('agent-command-audit-quality')).toBeVisible();
-    await expect(agentPanel.getByTestId('agent-command-plan-next')).toBeVisible();
-    await expect(agentPanel.getByTestId('agent-command-configure-agent')).toBeVisible();
+    await expect(agentPanel.getByTestId('agent-command-strip')).toHaveCount(0);
+    await expect(agentPanel.getByTestId('agent-command-audit-quality')).toHaveCount(0);
+    await expect(agentPanel.getByTestId('agent-command-plan-next')).toHaveCount(0);
+    await expect(agentPanel.getByTestId('agent-command-configure-agent')).toHaveCount(0);
     await expect(agentPanel.getByTestId('agent-command-improve-active')).toHaveCount(0);
     await expect(agentPanel.getByTestId('agent-starter-local-audit')).toBeVisible();
     await expect(agentPanel.getByTestId('agent-starter-local-plan')).toBeVisible();
-    await expect(
-      agentPanel.getByText('Local Audit and Plan are available above. Connect AI for chat and model-based edits.'),
-    ).toBeVisible();
-
     const composer = agentPanel.locator('textarea');
     await expect(composer).toBeEnabled();
     await expect(composer).toHaveAttribute('placeholder', 'Configure AI to chat with the agent…');
@@ -304,7 +301,7 @@ test.describe('Agent no-key behavior', () => {
     await expect(agentPanel.getByText('Audit complete.', { exact: false })).toHaveCount(2, { timeout: 10000 });
     expect(aiRequests).toEqual([]);
 
-    await agentPanel.getByTestId('configure-agent-ai-button').click();
+    await agentPanel.getByTestId('workspace-model-recovery-action').click();
     await expect(page.getByTestId('workspace-model-config-panel')).toBeVisible({ timeout: 10000 });
     await expect(page.getByTestId('workspace-shell')).toBeVisible();
     await expect(page.locator('h1:has-text("Everything you need")')).toHaveCount(0);
@@ -323,11 +320,11 @@ test.describe('Agent no-key behavior', () => {
     await expect(page.locator('h1:has-text("Everything you need")')).toHaveCount(0);
   });
 
-  test('opens model configuration from the local-only command strip', async ({ page }) => {
+  test('opens model configuration from the recovery banner action', async ({ page }) => {
     await restoreGeneratedWorkspaceWithoutKey(page);
 
     const agentPanel = page.getByTestId('workspace-agent-panel');
-    await agentPanel.getByTestId('agent-command-configure-agent').click();
+    await agentPanel.getByTestId('workspace-model-recovery-action').click();
 
     await expect(page.getByTestId('workspace-model-config-panel')).toBeVisible({ timeout: 10000 });
     await expect(page.getByTestId('workspace-shell')).toBeVisible();
@@ -353,8 +350,9 @@ test.describe('Agent no-key behavior', () => {
     await expect(panel.getByText('Invalid API key').first()).toBeVisible({ timeout: 15000 });
     const agentPanel = page.getByTestId('workspace-agent-panel');
     await expect(agentPanel.getByText('Provider/key required')).toBeVisible();
-    await expect(agentPanel.getByTestId('agent-command-audit-quality')).toBeVisible();
-    await expect(agentPanel.getByTestId('agent-command-plan-next')).toBeVisible();
+    await expect(agentPanel.getByTestId('agent-command-strip')).toHaveCount(0);
+    await expect(agentPanel.getByTestId('agent-starter-local-audit')).toBeVisible();
+    await expect(agentPanel.getByTestId('agent-starter-local-plan')).toBeVisible();
     await expect(agentPanel.getByTestId('agent-command-improve-active')).toHaveCount(0);
   });
 

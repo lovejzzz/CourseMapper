@@ -219,11 +219,6 @@ export function getChatOpener(
             icon: 'list',
             action: 'local-plan',
           },
-          {
-            text: 'Configure AI for chat and edits',
-            icon: 'settings',
-            action: 'configure-ai',
-          },
         ],
       };
     }
