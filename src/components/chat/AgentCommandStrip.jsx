@@ -99,17 +99,17 @@ export function buildAgentCommandItems({
     {
       id: 'audit-quality',
       icon: 'search',
-      label: 'Audit',
-      displayText: 'Audit quality',
+      label: 'Check',
+      displayText: 'Check package',
       title: 'Inspect quality before changing anything',
       aliases: ['check', 'inspect', 'review', 'quality', 'validate', 'verify', 'issues'],
       prompt:
-        'Audit this workspace without applying changes. Check course-map alignment, generated deliverable quality, readiness, classroom usefulness, export risks, and the biggest cost/quality tradeoffs. Return the exact next fixes in priority order.',
+        'Check this workspace without applying changes. Review course-map alignment, generated deliverable quality, readiness, classroom usefulness, export risks, and the biggest cost/quality tradeoffs. Return the exact next fixes in priority order.',
     },
     {
       id: 'plan-next',
       icon: 'list',
-      label: 'Plan',
+      label: 'Next',
       displayText: 'Plan next step',
       title: 'Find the highest-impact next action',
       aliases: ['next', 'todo', 'roadmap', 'recommend', 'prioritize', 'strategy'],

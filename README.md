@@ -3,7 +3,7 @@
 AI-powered instructional design platform with an embedded teaching assistant agent. Upload your syllabus and generate a structured Course Map, lesson plans, slide decks, rubrics, quizzes, assignments, discussion prompts, study guides, and a polished syllabus — all pedagogically aligned, validated, and fully editable. Then use the AI agent to revise, validate, research, and visualize your curriculum through natural conversation.
 
 **Live:** [https://edutool.dev](https://edutool.dev)
-**Current release:** v0.8.56
+**Current release:** v0.8.57
 
 ---
 
@@ -55,7 +55,7 @@ Fine-tune each deliverable (session length, question count, speaker notes level,
 
 ### Step 5: Edit, Revise, Export
 
-Click any text to edit inline. Use Revision Chat for AI-assisted changes. Export individual deliverables from the right-side Export panel, or use Export All → Download ZIP for everything at once.
+Click any text to edit inline. Use the Agent side panel for AI-assisted changes. Export individual deliverables from the right-side Export panel, or use Export All → Download ZIP for everything at once.
 
 ---
 
@@ -93,7 +93,7 @@ An embedded multi-step AI agent with native tool calling, not a chatbot wrapper.
 
 **Agent Capabilities:**
 
-- **Native tool calling** — Uses each provider's native function-calling API (OpenAI, Anthropic, Google) instead of JSON-in-text parsing. Up to 10 reasoning iterations per request.
+- **Native tool calling** — Uses each provider's native function-calling API (OpenAI, Anthropic, Google) instead of JSON-in-text parsing. Up to 20 reasoning iterations per request.
 - **Parallel tool execution** — Executes multiple tools concurrently (e.g., reading 5 lessons at once), dramatically reducing response time.
 - **Conversation-first edits** — The agent does what you ask when the change is safe and targeted, then verifies by reading the edited state back.
 - **Compact change receipts** — After agent work, receipts show before/after change details, affected deliverables, skipped and failed actions, recovery guidance, and verification results.
@@ -112,6 +112,7 @@ An embedded multi-step AI agent with native tool calling, not a chatbot wrapper.
 - **v0.8.5 export quality sweep** — A 25-course full-package sweep now compiles, finalizes, ZIP-exports, and inspects generated Office files for internal text leaks, placeholders, required assets, speaker notes, FAQ depth, and document structure.
 - **v0.8.55 expanded quality round** — A 34-unique-course sweep now exercises every curated full-course package shape, inspecting 2,500+ exported files alongside the full 132-case blueprint matrix, 40-sample gold audit, and browser E2E recovery/export suite.
 - **v0.8.56 live-agent and slide-quality hardening** — Live OpenAI agent proof now covers 23 scenarios, including state-changing closed-loop edits, while ZIP audits fail over-dense visible PPTX slides and keep generated slide text presentation-scale.
+- **v0.8.57 compact agent side panel** — The agent now shows fewer labels by default, bundles finish/check workflows automatically, hides recoverable details behind receipts, and live OpenAI proof passes 23/23 scenarios with explicit missing-deliverable refusal and alignment routing.
 
 ### Inline AI Editing
 

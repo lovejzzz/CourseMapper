@@ -45,18 +45,19 @@ function PackageIcon({ ready }) {
 }
 
 export default function PackageSummaryCard({ summary, embedded = false }) {
+  const [expanded, setExpanded] = React.useState(false);
   if (!summary) return null;
 
   const tone = TONES[summary.tone] || TONES.assumptions;
   const outcomeTitle = summary.ready
-    ? 'Package ready'
-    : summary.tone === 'blocked'
-      ? 'Package needs attention'
-      : 'Package needs review';
-  const badgeText = summary.ready
     ? 'Ready to download'
     : summary.tone === 'blocked'
-      ? 'Finish package'
+      ? 'Needs your decision'
+      : 'Review before export';
+  const badgeText = summary.ready
+    ? 'Done'
+    : summary.tone === 'blocked'
+      ? 'Needs you'
       : 'Decision needed';
   const repairText =
     summary.repairsApplied > 0
@@ -106,8 +107,12 @@ export default function PackageSummaryCard({ summary, embedded = false }) {
     ? `${summary.checkedSections || 'All selected'} materials checked. Download when ready.`
     : summary.nextAction || 'Review the items below before export.';
   const reviewText = summary.ready ? 'Human check: dates, policies, and official readings.' : reviewRecommendation;
-  const chips = [
+  const primaryChips = [
     summary.repairsApplied > 0 ? repairText : null,
+    summary.blockerCount > 0 || summary.warningCount > 0 ? issueText : null,
+    summary.exportFailed > 0 || summary.exportWarningCount > 0 || summary.ready ? exportText : null,
+  ].filter(Boolean);
+  const detailChips = [
     issueText,
     classroomText,
     exportText,
@@ -116,6 +121,16 @@ export default function PackageSummaryCard({ summary, embedded = false }) {
     spendText,
     compilerSummary?.label,
   ].filter(Boolean);
+  const hasDetails =
+    detailChips.length > 0 ||
+    trustBoundaryItems.length > 0 ||
+    compactReceiptFields.length > 0 ||
+    Boolean(repairEvidenceText && summary.repairsApplied > 0) ||
+    Boolean(reviewText) ||
+    reviewActions.length > 0 ||
+    Boolean(featureSpendText) ||
+    summary.topIssues?.length > 0;
+  const showTopIssues = summary.tone === 'blocked' || expanded;
 
   return (
     <div
@@ -134,13 +149,32 @@ export default function PackageSummaryCard({ summary, embedded = false }) {
             </div>
             <p className={`mt-1 text-[11px] leading-relaxed ${tone.body}`}>{statusText}</p>
             <div className="mt-2 flex flex-wrap gap-1.5 text-[10px] font-medium">
-              {chips.map((chip) => (
+              {primaryChips.map((chip) => (
                 <span key={chip} className="rounded-full bg-white/60 px-2 py-0.5 text-slate-600">
                   {chip}
                 </span>
               ))}
             </div>
-            {trustBoundaryItems.length > 0 && (
+            {hasDetails && (
+              <button
+                type="button"
+                onClick={() => setExpanded((value) => !value)}
+                className="tactile mt-2 rounded-md px-1.5 py-0.5 text-[10px] font-semibold text-slate-500 hover:bg-white/70 hover:text-slate-700"
+                aria-expanded={expanded}
+              >
+                {expanded ? 'Hide details' : 'Details'}
+              </button>
+            )}
+            {expanded && detailChips.length > 0 && (
+              <div className="mt-2 flex flex-wrap gap-1.5 text-[10px] font-medium">
+                {detailChips.map((chip) => (
+                  <span key={chip} className="rounded-full bg-white/60 px-2 py-0.5 text-slate-600">
+                    {chip}
+                  </span>
+                ))}
+              </div>
+            )}
+            {expanded && trustBoundaryItems.length > 0 && (
               <div className="mt-2 flex flex-wrap gap-1.5 text-[10px] leading-snug">
                 {trustBoundaryItems.map((item) => (
                   <span key={item.id || item.label} className="rounded-md bg-white/55 px-2 py-1 text-slate-600">
@@ -150,7 +184,7 @@ export default function PackageSummaryCard({ summary, embedded = false }) {
                 ))}
               </div>
             )}
-            {compactReceiptFields.length > 0 && (
+            {expanded && compactReceiptFields.length > 0 && (
               <div
                 data-testid="package-compact-trust-receipt"
                 className="mt-2 grid grid-cols-1 gap-1.5 text-[10px] leading-snug sm:grid-cols-2"
@@ -163,13 +197,15 @@ export default function PackageSummaryCard({ summary, embedded = false }) {
                 ))}
               </div>
             )}
-            {repairEvidenceText && summary.repairsApplied > 0 && (
+            {expanded && repairEvidenceText && summary.repairsApplied > 0 && (
               <p className="mt-1 text-[10px] font-medium leading-snug text-slate-500">
                 Auto-fixed: {repairEvidenceText}
               </p>
             )}
-            {reviewText && <p className="mt-1 text-[10px] font-medium leading-snug text-slate-500">{reviewText}</p>}
-            {reviewActions.length > 0 && (
+            {expanded && reviewText && (
+              <p className="mt-1 text-[10px] font-medium leading-snug text-slate-500">{reviewText}</p>
+            )}
+            {expanded && reviewActions.length > 0 && (
               <div data-testid="package-review-actions" className="mt-2 space-y-1">
                 {reviewActions.map((item, index) => (
                   <div
@@ -182,7 +218,7 @@ export default function PackageSummaryCard({ summary, embedded = false }) {
                 ))}
               </div>
             )}
-            {featureSpendText && (
+            {expanded && featureSpendText && (
               <p className="mt-1 text-[10px] font-medium leading-snug text-slate-500">
                 Cost drivers: {featureSpendText}
               </p>
@@ -190,7 +226,7 @@ export default function PackageSummaryCard({ summary, embedded = false }) {
           </div>
         </div>
 
-        {summary.topIssues?.length > 0 && (
+        {showTopIssues && summary.topIssues?.length > 0 && (
           <div className="mt-2 border-t border-white/70 pt-2">
             <p className="mb-1 text-[10px] font-semibold uppercase tracking-[0.08em] text-slate-500">
               {summary.tone === 'blocked' ? 'Needs attention' : 'Human judgment'}

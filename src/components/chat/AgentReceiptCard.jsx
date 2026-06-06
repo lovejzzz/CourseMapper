@@ -242,11 +242,11 @@ export function buildAgentReceiptActions(receipt = {}) {
     return [
       receiptAction({
         id: 'audit-quality',
-        label: 'Audit quality',
-        displayText: 'Audit quality',
+        label: 'Check',
+        displayText: 'Check package',
         localIntent: 'audit-package',
         prompt: [
-          'Run a read-only quality audit for the current workspace plan.',
+          'Check package quality for the current workspace plan.',
           `Focus on ${targetText}.`,
           'Check readiness, classroom usefulness, alignment, export risk, and the most important remaining issue.',
         ].join(' '),
@@ -293,11 +293,11 @@ export function buildAgentReceiptActions(receipt = {}) {
     return [
       receiptAction({
         id: 'audit-quality',
-        label: 'Audit quality',
-        displayText: 'Audit quality',
+        label: 'Check',
+        displayText: 'Check package',
         localIntent: 'audit-package',
         prompt: [
-          'Run a read-only quality audit after the latest Agent run.',
+          'Check package quality after the latest Agent run.',
           `Focus on ${targetText}.`,
           'Check readiness, classroom usefulness, alignment, export risk, and the most important remaining issue.',
         ].join(' '),
@@ -328,11 +328,11 @@ export function buildAgentReceiptActions(receipt = {}) {
     }),
     receiptAction({
       id: 'audit-quality',
-      label: 'Audit quality',
-      displayText: 'Audit quality',
+      label: 'Check',
+      displayText: 'Check package',
       localIntent: 'audit-package',
       prompt: [
-        'Run a read-only quality audit after the latest completed Agent run.',
+        'Check package quality after the latest completed Agent run.',
         `Focus on ${targetText}.`,
         'Check readiness, classroom usefulness, alignment, export risk, and the most important remaining issue.',
       ].join(' '),
@@ -597,6 +597,7 @@ export default function AgentReceiptCard({
 }) {
   const safeReceipt = receipt || {};
   const summary = buildAgentReceiptSummary(safeReceipt);
+  const [expanded, setExpanded] = React.useState(summary.status !== 'done');
   const tone = TONES[summary.status] || TONES.done;
   const verificationTone =
     summary.verification?.status === 'verified'
@@ -615,6 +616,24 @@ export default function AgentReceiptCard({
     .join(' · ');
   const actions = onAction ? buildAgentReceiptActions(safeReceipt).slice(0, 2) : [];
   const toolTrace = normalizeToolTrace(safeReceipt.toolManifest);
+  const showDetails = expanded || summary.status !== 'done';
+  const compactResult =
+    summary.issues[0] ||
+    summary.changed.find((item) => item && item !== 'No workspace edits') ||
+    summary.checked[0] ||
+    summary.next ||
+    'Done.';
+  const hasExpandableDetails =
+    summary.changed.length > 0 ||
+    summary.checked.length > 0 ||
+    Boolean(summary.verification?.label) ||
+    Boolean(summary.planning?.label) ||
+    Boolean(summary.quality) ||
+    summary.stateDiffs.length > 0 ||
+    summary.issues.length > 0 ||
+    Boolean(summary.next) ||
+    toolTrace.length > 0 ||
+    actions.length > 0;
   const initialActionStates = React.useMemo(() => {
     if (persistedActionStates && typeof persistedActionStates === 'object') return persistedActionStates;
     if (safeReceipt?.actionStates && typeof safeReceipt.actionStates === 'object') return safeReceipt.actionStates;
@@ -679,11 +698,24 @@ export default function AgentReceiptCard({
               </span>
             </div>
             {meta && <p className={`mt-0.5 text-[10px] font-medium ${tone.body}`}>{meta}</p>}
-            <div className="mt-2 grid gap-2 sm:grid-cols-2">
-              <ReceiptList title="Changed" items={summary.changed} dotClass={tone.dot} />
-              <ReceiptList title="Checked" items={summary.checked} dotClass="bg-indigo-400" />
-            </div>
-            {summary.verification?.required && summary.verification.label && (
+            <p className={`mt-1 text-[11px] leading-snug ${tone.body}`}>{compactResult}</p>
+            {hasExpandableDetails && summary.status === 'done' && (
+              <button
+                type="button"
+                onClick={() => setExpanded((value) => !value)}
+                className="tactile mt-2 rounded-md px-1.5 py-0.5 text-[10px] font-semibold text-slate-500 hover:bg-white/70 hover:text-slate-700"
+                aria-expanded={expanded}
+              >
+                {expanded ? 'Hide details' : 'Details'}
+              </button>
+            )}
+            {showDetails && (
+              <div className="mt-2 grid gap-2 sm:grid-cols-2">
+                <ReceiptList title="Changed" items={summary.changed} dotClass={tone.dot} />
+                <ReceiptList title="Checked" items={summary.checked} dotClass="bg-indigo-400" />
+              </div>
+            )}
+            {showDetails && summary.verification?.required && summary.verification.label && (
               <p
                 data-testid="agent-receipt-verification"
                 className={`mt-2 rounded-md border px-2 py-1.5 text-[11px] font-medium leading-snug ${verificationTone}`}
@@ -692,7 +724,7 @@ export default function AgentReceiptCard({
                 {summary.verification.label}
               </p>
             )}
-            {(summary.planning?.required || summary.planning?.hasPlan) && summary.planning.label && (
+            {showDetails && (summary.planning?.required || summary.planning?.hasPlan) && summary.planning.label && (
               <p
                 data-testid="agent-receipt-planning"
                 className={`mt-2 rounded-md border px-2 py-1.5 text-[11px] font-medium leading-snug ${planningTone}`}
@@ -701,21 +733,21 @@ export default function AgentReceiptCard({
                 {summary.planning.label}
               </p>
             )}
-            <ReceiptQualityScorecard quality={summary.quality} />
-            <ReceiptStateDiffs diffs={summary.stateDiffs} />
-            {summary.issues.length > 0 && (
+            {showDetails && <ReceiptQualityScorecard quality={summary.quality} />}
+            {showDetails && <ReceiptStateDiffs diffs={summary.stateDiffs} />}
+            {showDetails && summary.issues.length > 0 && (
               <div className="mt-2 border-t border-white/70 pt-2">
                 <ReceiptList title="Needs attention" items={summary.issues} dotClass="bg-red-500" />
               </div>
             )}
-            {summary.next && (
+            {showDetails && summary.next && (
               <p className="mt-2 rounded-md bg-white/60 px-2 py-1.5 text-[11px] font-medium leading-snug text-slate-600">
                 <span className="font-bold text-slate-700">Next: </span>
                 {summary.next}
               </p>
             )}
-            <ReceiptToolTrace tools={toolTrace} />
-            {actions.length > 0 && (
+            {showDetails && <ReceiptToolTrace tools={toolTrace} />}
+            {showDetails && actions.length > 0 && (
               <div className="mt-2 flex flex-wrap gap-1.5">
                 {actions.map((action, index) => {
                   const key = getAgentReceiptActionKey(action, index);

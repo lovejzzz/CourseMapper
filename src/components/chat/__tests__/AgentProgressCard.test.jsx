@@ -61,7 +61,7 @@ describe('AgentProgressCard', () => {
     expect(html).toContain('2 steps');
   });
 
-  it('shows a user-facing activity receipt for checks, actions, issues, and targets', () => {
+  it('keeps activity receipt details behind the compact details control', () => {
     const html = renderToStaticMarkup(
       <AgentProgressCard
         status="complete"
@@ -75,12 +75,10 @@ describe('AgentProgressCard', () => {
       />,
     );
 
-    expect(html).toContain('agent-activity-receipt');
     expect(html).toContain('Changes need review');
-    expect(html).toContain('3 tools');
-    expect(html).toContain('2 checks');
-    expect(html).toContain('1 action');
-    expect(html).toContain('1 issue');
+    expect(html).toContain('Show agent progress details');
+    expect(html).not.toContain('agent-activity-receipt');
+    expect(html).not.toContain('3 tools');
     expect(html).toContain('Lesson Plans');
   });
 

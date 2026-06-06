@@ -29,22 +29,21 @@ function latestRunningStep(steps = []) {
 
 function deriveAgentStatus(progress, isStreaming, isAgentMode, _agentDryRun = false, isGeneratingWorkspace = false) {
   if (!isAgentMode && isGeneratingWorkspace) {
-    return { label: 'Building', tone: 'indigo', detail: 'Using your starting request' };
+    return { label: 'Building', tone: 'indigo', detail: 'Starting workspace' };
   }
-  if (!isAgentMode) return { label: 'Ask', tone: 'slate', detail: 'Ready to help' };
-  if (!progress && !isStreaming) return { label: 'Ready', tone: 'emerald', detail: 'Conversation-driven' };
-  if (progress?.status === 'error') return { label: 'Needs attention', tone: 'red', detail: 'Check the latest turn' };
+  if (!isAgentMode) return { label: 'Ask', tone: 'slate', detail: 'Ready' };
+  if (!progress && !isStreaming) return { label: 'Ready', tone: 'emerald', detail: 'Ready' };
+  if (progress?.status === 'error') return { label: 'Needs you', tone: 'red', detail: 'Needs a decision' };
   if (progress?.status === 'complete') {
     const hasIssues = progress.steps?.some((step) => step.status === 'error' || step.status === 'partial');
     return hasIssues
-      ? { label: 'Review', tone: 'amber', detail: 'Finished with issues' }
-      : { label: 'Done', tone: 'emerald', detail: 'Last turn complete' };
+      ? { label: 'Needs you', tone: 'amber', detail: 'Check latest result' }
+      : { label: 'Done', tone: 'emerald', detail: 'Done' };
   }
-  const running = latestRunningStep(progress?.steps);
   return {
-    label: running?.label || running?.tool || 'Working',
+    label: 'Working',
     tone: 'indigo',
-    detail: progress?.steps?.length ? 'Live progress in chat' : 'Thinking',
+    detail: 'Working',
   };
 }
 
@@ -174,19 +173,19 @@ function summarizeDirectPackageFinish(result) {
   const blockerCount = Number(readiness.blockers?.length ?? readiness.blockerCount ?? result?.blockers ?? 0);
   const warningCount = Number(readiness.warnings?.length ?? readiness.warningCount ?? result?.warnings ?? 0);
   if (status === 'ready' || (blockerCount === 0 && warningCount === 0 && result)) {
-    return 'Package finishing finished. Safe checks passed and the export panel is ready.';
+    return 'Package is ready. Safe checks passed and the export panel is ready.';
   }
   if (blockerCount > 0) {
-    return `Package finishing finished with ${blockerCount} blocker${
+    return `Package needs your decision on ${blockerCount} blocker${
       blockerCount === 1 ? '' : 's'
-    } still needing review. Check the quality receipt before downloading.`;
+    }. Check the receipt before downloading.`;
   }
   if (warningCount > 0) {
-    return `Package finishing finished with ${warningCount} review note${
+    return `Package has ${warningCount} review note${
       warningCount === 1 ? '' : 's'
-    }. Check the quality receipt before downloading.`;
+    }. Check the receipt before downloading.`;
   }
-  return 'Package finishing finished. Check the export panel for the latest quality receipt.';
+  return 'Package pass complete. Check the export panel for the latest status.';
 }
 
 function getWorkspacePlanFeatureIds(action) {
@@ -468,14 +467,14 @@ function summarizeDirectGenerationResult(result, requestedFeatureIds = []) {
 }
 
 function summarizeDirectAuditSummary(summary) {
-  if (!summary) return 'Audit complete. Review the package summary card.';
-  if (summary.ready) return 'Audit complete. No blockers found in the read-only checks.';
+  if (!summary) return 'Check complete. Review the package card.';
+  if (summary.ready) return 'Check complete. No blockers found.';
   if (summary.tone === 'blocked') {
-    return `Audit complete. ${summary.blockerCount || summary.topIssues?.length || 1} blocker${
+    return `Check complete. ${summary.blockerCount || summary.topIssues?.length || 1} blocker${
       (summary.blockerCount || summary.topIssues?.length || 1) === 1 ? '' : 's'
     } need attention.`;
   }
-  return `Audit complete. ${summary.warningCount || summary.topIssues?.length || 1} review item${
+  return `Check complete. ${summary.warningCount || summary.topIssues?.length || 1} review item${
     (summary.warningCount || summary.topIssues?.length || 1) === 1 ? '' : 's'
   } found.`;
 }
@@ -562,10 +561,10 @@ function packageReceiptStatus(summary = {}) {
 function buildPackageAuditReceipt(summary = {}) {
   const status = packageReceiptStatus(summary);
   return buildAgentReceiptMessage({
-    title: status === 'done' ? 'Audit receipt' : 'Audit needs review',
+    title: status === 'done' ? 'Package checked' : 'Package needs review',
     status,
     badge: status === 'done' ? 'Passed' : status === 'blocked' ? 'Blocked' : 'Review',
-    mode: 'Local audit',
+    mode: 'Local check',
     target: 'Package',
     changed: 'No content edits',
     checked: ['Readiness', 'Classroom fit', 'Content validation', 'Export files'],
@@ -587,7 +586,7 @@ function buildPackageFinishReceipt(result = {}) {
       : packageReceiptStatus(summary);
   const repairsApplied = Number(summary.repairsApplied || 0);
   return buildAgentReceiptMessage({
-    title: status === 'done' ? 'Package receipt' : 'Package needs review',
+    title: status === 'done' ? 'Package finished' : 'Package needs review',
     status,
     badge: status === 'done' ? 'Ready' : status === 'blocked' ? 'Blocked' : 'Review',
     mode: 'Package finish',
@@ -606,7 +605,7 @@ function buildPackageFinishReceipt(result = {}) {
 function buildWorkspacePlanReceipt(plan = {}, mode = 'Workspace plan') {
   const action = plan?.highestImpactAction || (Array.isArray(plan?.actions) ? plan.actions[0] : null);
   return buildAgentReceiptMessage({
-    title: 'Planning receipt',
+    title: 'Plan ready',
     status: 'done',
     badge: 'Plan ready',
     mode,
@@ -636,7 +635,7 @@ function buildPackageRepairReceiptDiffs(result = {}) {
 
 function buildUndoReceipt(targetLabel) {
   return buildAgentReceiptMessage({
-    title: 'Undo receipt',
+    title: 'Undo complete',
     status: 'done',
     badge: 'Restored',
     mode: 'Undo',
@@ -652,7 +651,7 @@ function buildUndoReceipt(targetLabel) {
         after: 'Previous deliverable snapshot restored.',
       },
     ],
-    next: 'Run Plan or Audit if you want me to check the workspace again.',
+    next: 'Run Check package if you want me to verify the workspace again.',
   });
 }
 
@@ -1011,7 +1010,7 @@ export function getWorkspaceModelStatus({
       tone: 'idle',
       title: 'Connect a provider and API key',
       heading: 'Connect AI to edit with the agent',
-      message: `Local audit and plan still work. Connect ${providerLabel} for edits.`,
+      message: `Local checks still work. Connect ${providerLabel} for edits.`,
       actionLabel: 'Configure',
       blocked: true,
     };
@@ -1456,11 +1455,11 @@ export default function ChatPanel({
       const progressId = `local-agent-audit-${startedAt}`;
       chat.addLocalMessages([
         buildLocalAgentUserMessage(displayText, agentPromptOverride),
-        { role: 'assistant', text: introText || 'Running a read-only package audit.' },
+        { role: 'assistant', text: introText || 'Checking the package.' },
         buildDirectAgentProgress({
           id: progressId,
           startedAt,
-          mode: 'Local audit',
+          mode: 'Local check',
           target: 'Package',
           status: 'running',
           steps: [
@@ -1482,7 +1481,7 @@ export default function ChatPanel({
         const progress = buildDirectAgentProgress({
           id: progressId,
           startedAt,
-          mode: 'Local audit',
+          mode: 'Local check',
           target: 'Package',
           steps: buildPackageAuditProgressSteps(summary),
         });
@@ -1496,7 +1495,7 @@ export default function ChatPanel({
         const progress = buildDirectAgentProgress({
           id: progressId,
           startedAt,
-          mode: 'Local audit',
+          mode: 'Local check',
           target: 'Package',
           steps: [
             buildDirectAgentStep('review_package_readiness', 'Review readiness', {
@@ -1521,7 +1520,7 @@ export default function ChatPanel({
   const runDirectPackageFinish = useCallback(
     async ({
       displayText = 'Finish package',
-      introText = 'Running package finishing.',
+      introText = 'Finishing the package.',
       source = 'agent-command',
       maxRetryActions = 10,
       maxRetryCallBudget = 14,
@@ -1613,7 +1612,7 @@ export default function ChatPanel({
   const runDirectWorkspacePlan = useCallback(
     async ({
       displayText = 'Plan next step',
-      introText = 'Inspecting the workspace and building a plan.',
+      introText = 'Planning the next step.',
       agentPromptOverride = null,
     } = {}) => {
       if (agentCommandDisabled) return false;
@@ -1773,7 +1772,7 @@ export default function ChatPanel({
           buildUndoReceipt(targetLabel),
           {
             role: 'assistant',
-            text: `Last ${targetLabel} change undone. Run Plan or Audit if you want me to check the workspace again.`,
+            text: `Last ${targetLabel} change undone. Run Check package if you want me to verify the workspace again.`,
           },
         ]);
       } catch (err) {
@@ -1881,8 +1880,8 @@ export default function ChatPanel({
           selectedFeatureIds,
           introText:
             intent === 'review_readiness_blockers'
-              ? 'Reviewing package readiness blockers from the workspace plan.'
-              : 'Running a read-only package audit from the workspace plan.',
+              ? 'Checking the blockers.'
+              : 'Checking the package.',
           agentPromptOverride,
         });
         if (handled) return true;
@@ -2076,7 +2075,7 @@ export default function ChatPanel({
       const displayText = followUp.displayText || action?.title || 'Fix package readiness';
       return runDirectPackageFinish({
         displayText,
-        introText: 'Running package finishing from the workspace plan.',
+        introText: 'Finishing the package.',
         source: 'agent-plan',
         maxRetryActions: 10,
         maxRetryCallBudget: 14,
@@ -2298,7 +2297,7 @@ export default function ChatPanel({
       if (item.id === 'plan-next') {
         const handled = await runDirectWorkspacePlan({
           displayText: item.displayText,
-          introText: 'Inspecting the workspace and building a plan from the Agent command.',
+          introText: 'Planning the next step.',
           agentPromptOverride: item.prompt,
         });
         if (handled) return;
@@ -2315,7 +2314,7 @@ export default function ChatPanel({
         const handled = await runDirectPackageAudit({
           displayText: item.displayText,
           selectedFeatureIds: selectedFeatures,
-          introText: 'Running a read-only package audit from the Agent command.',
+          introText: 'Checking the package.',
           agentPromptOverride: item.prompt,
         });
         if (handled) return;
@@ -2323,7 +2322,7 @@ export default function ChatPanel({
       if (item.id === 'finish-package') {
         const handled = await runDirectPackageFinish({
           displayText: item.displayText,
-          introText: 'Running package finishing from the Agent command.',
+          introText: 'Finishing the package.',
           source: 'agent-command',
           maxRetryActions: 10,
           maxRetryCallBudget: 14,
@@ -2365,9 +2364,7 @@ export default function ChatPanel({
         return runDirectPackageAudit({
           displayText,
           selectedFeatureIds: selectedFeatures,
-          introText: fromReceipt
-            ? 'Running a read-only package audit from the Agent receipt.'
-            : 'Running a read-only package audit for the previous Agent issues.',
+          introText: fromReceipt ? 'Checking the package.' : 'Checking the previous issue.',
           agentPromptOverride: action.prompt,
         });
       }
@@ -2375,9 +2372,7 @@ export default function ChatPanel({
       if (action.localIntent === 'finish-package') {
         return runDirectPackageFinish({
           displayText,
-          introText: fromReceipt
-            ? 'Running safe package fixes from the Agent receipt.'
-            : 'Retrying safe package fixes from the previous Agent run.',
+          introText: fromReceipt ? 'Finishing the package.' : 'Retrying the safe fixes.',
           source: 'agent-recovery',
           maxRetryActions: 8,
           maxRetryCallBudget: 12,
@@ -2389,9 +2384,7 @@ export default function ChatPanel({
       if (action.localIntent === 'plan-next') {
         return runDirectWorkspacePlan({
           displayText,
-          introText: fromReceipt
-            ? 'Inspecting the workspace and planning from the Agent receipt.'
-            : 'Inspecting the workspace and planning recovery from the previous Agent issues.',
+          introText: fromReceipt ? 'Planning the next step.' : 'Planning the recovery.',
           agentPromptOverride: action.prompt,
         });
       }
@@ -2450,7 +2443,7 @@ export default function ChatPanel({
         runDirectPackageAudit({
           displayText: starter.text || 'Run local audit',
           selectedFeatureIds: selectedFeatures,
-          introText: 'Running a read-only package audit from the Agent starter.',
+          introText: 'Checking the package.',
         });
         return true;
       }
@@ -2465,7 +2458,7 @@ export default function ChatPanel({
         }
         runDirectWorkspacePlan({
           displayText: starter.text || 'Plan next step',
-          introText: 'Inspecting the workspace and building a plan from the Agent starter.',
+          introText: 'Planning the next step.',
         });
         return true;
       }
@@ -2480,7 +2473,7 @@ export default function ChatPanel({
         }
         runDirectPackageFinish({
           displayText: starter.text || 'Finish package',
-          introText: 'Running package finishing from the Agent starter.',
+          introText: 'Finishing the package.',
           source: 'agent-starter',
           maxRetryActions: 10,
           maxRetryCallBudget: 14,
@@ -2566,7 +2559,7 @@ export default function ChatPanel({
             )}
           </div>
           <p className="text-[10px] text-slate-500 -mt-0.5 truncate">
-            {showsAgentIdentity ? `${activeTabLabel(activeTab)} · ${agentStatus.detail}` : agentStatus.detail}
+            {showsAgentIdentity ? activeTabLabel(activeTab) : agentStatus.detail}
           </p>
         </div>
         {chat.isStreaming && (
@@ -2702,20 +2695,6 @@ export default function ChatPanel({
           />
         </Suspense>
       )}
-
-      {/* ── Stale deliverables banner (persistent, above messages) ── */}
-      {(() => {
-        if (staleDeliverableCount === 0 || isSyncing) return null;
-        return (
-          <div className="flex-shrink-0 px-3.5 py-1.5 bg-amber-50/80 border-b border-amber-200/40 flex items-center gap-2">
-            <div className="w-2 h-2 rounded-full bg-amber-400 animate-pulse" />
-            <span className="text-[11px] font-medium text-amber-700">
-              {staleDeliverableCount} deliverable{staleDeliverableCount !== 1 ? 's' : ''} out of sync
-            </span>
-            <span className="text-[11px] text-amber-500">— check sync suggestions below</span>
-          </div>
-        );
-      })()}
 
       {/* ── Exam Review (if pending) ── */}
       {(pendingExamPatches || (examChanges && examChanges.length > 0)) && (

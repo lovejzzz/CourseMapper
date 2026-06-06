@@ -254,11 +254,11 @@ describe('getChatOpener — Tier 3 (agent mode)', () => {
     const cm = makeCourseMap();
     const result = getChatOpener(cm, true, 'quizBank', makeDoneDeliverables(), false, false, false);
 
-    expect(result.greeting).toContain('local Audit and Plan');
-    expect(result.greeting).toContain('Configure AI');
+    expect(result.greeting).toContain('check the package');
+    expect(result.greeting).toContain('reconnect AI');
     expect(result.starters).toEqual([
       expect.objectContaining({
-        text: 'Run local audit',
+        text: 'Check package',
         action: 'local-audit',
       }),
       expect.objectContaining({

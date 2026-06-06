@@ -42,8 +42,8 @@ export function buildAgentHelpSummary(help = {}) {
     providerReady,
     scopeText,
     localActions: [
-      'Audit package readiness, classroom fit, validation, and export risk without using a model.',
-      'Plan the next safest workspace action from the current generated materials.',
+      'Check package readiness, classroom fit, validation, and export risk without using a model.',
+      'Plan the next safest action from the current generated materials.',
       syncCount > 0
         ? `Sync ${syncCount} stale deliverable${syncCount === 1 ? '' : 's'} from the pending sync plan.`
         : null,
@@ -57,7 +57,7 @@ export function buildAgentHelpSummary(help = {}) {
         ]
       : ['Configure AI to enable free-form chat and model-based edits. Local Audit and Plan still work now.'],
     controls: [
-      'Use the command strip for one-click actions, or type / to open the command palette.',
+      'Type naturally, or type / when you want a direct command.',
       'For broad or destructive changes, the Agent should ask in the conversation before applying the change.',
       'Use recovery buttons on failed Agent runs to review issues, retry safe fixes, or plan recovery.',
     ],

@@ -233,10 +233,9 @@ test.describe('Agent command entry points', () => {
 
     const workingSet = agentPanel.getByTestId('agent-working-set-panel');
     await expect(workingSet).toBeVisible();
-    await expect(workingSet.getByTestId('agent-working-target')).toContainText('Working on Lesson Plans');
+    await expect(workingSet.getByTestId('agent-working-target')).toContainText('Workspace ready');
     await expect(workingSet.getByTestId('agent-working-materials')).toContainText('1 lesson');
     await expect(workingSet.getByTestId('agent-working-materials')).toContainText('1 ready');
-    await expect(workingSet.getByTestId('agent-working-materials')).toContainText('AI connected');
     await expect(workingSet.getByTestId('agent-working-package-status')).toBeVisible();
 
     const composer = agentPanel.locator('textarea');
@@ -249,20 +248,14 @@ test.describe('Agent command entry points', () => {
 
     await composer.fill('audit quality');
     await composer.press('Enter');
-    await expect(agentPanel.getByText('Audit quality')).toBeVisible({ timeout: 10000 });
-    await expect(agentPanel.getByText('Running a read-only package audit from the Agent command.')).toBeVisible({
-      timeout: 10000,
-    });
-    await expect(agentPanel.getByText('Audit complete.', { exact: false })).toBeVisible({ timeout: 10000 });
+    await expect(agentPanel.getByText('Check package', { exact: true })).toBeVisible({ timeout: 10000 });
+    await expect(agentPanel.getByText('Checking the package.')).toBeVisible({ timeout: 10000 });
+    await expect(agentPanel.getByText('Check complete.', { exact: false })).toBeVisible({ timeout: 10000 });
     expect(agentRequests.length).toBe(0);
 
     await agentPanel.getByTestId('agent-starter-finish-package').click();
-    await expect(agentPanel.getByText('Running package finishing from the Agent starter.')).toBeVisible({
-      timeout: 10000,
-    });
-    await expect(agentPanel.getByText('Package finishing finished with', { exact: false })).toBeVisible({
-      timeout: 10000,
-    });
+    await expect(agentPanel.getByText('Finishing the package.')).toBeVisible({ timeout: 10000 });
+    await expect(agentPanel.getByText(/Package (is ready|has|needs)/)).toBeVisible({ timeout: 10000 });
     expect(agentRequests.length).toBe(0);
 
     await agentPanel.locator('input[type="file"]').setInputFiles({
@@ -289,10 +282,13 @@ test.describe('Agent command entry points', () => {
     await expect(
       agentPanel.getByText('Lesson Plans improved. I checked the active deliverable and no export risk changed.'),
     ).toBeVisible({ timeout: 10000 });
-    const activityReceipt = agentPanel
-      .getByTestId('agent-activity-receipt')
+    const progressCard = agentPanel
+      .getByTestId('agent-progress-card')
       .filter({ hasText: 'Lesson Plans' })
-      .first();
+      .last();
+    await expect(progressCard).toContainText('No workspace edits');
+    await progressCard.getByRole('button', { name: /agent progress details|Details/i }).click();
+    const activityReceipt = progressCard.getByTestId('agent-activity-receipt');
     await expect(activityReceipt).toContainText('2 tools');
     await expect(activityReceipt).toContainText('2 checks');
     await expect(activityReceipt).toContainText('0 issues');
@@ -314,11 +310,7 @@ test.describe('Agent command entry points', () => {
     await composer.fill('plan next');
     await composer.press('Enter');
     await expect(agentPanel.getByText('Plan next step')).toBeVisible({ timeout: 10000 });
-    await expect(
-      agentPanel.getByText('Inspecting the workspace and building a plan from the Agent command.'),
-    ).toBeVisible({
-      timeout: 10000,
-    });
+    await expect(agentPanel.getByText('Planning the next step.')).toBeVisible({ timeout: 10000 });
     await expect(agentPanel.getByTestId('workspace-plan-card')).toBeVisible({ timeout: 10000 });
     await expect(agentPanel.getByTestId('workspace-plan-card')).toContainText('Workspace plan');
     await expect(agentPanel.getByTestId('workspace-plan-card')).toContainText('Improve the active Lesson Plans');

@@ -290,7 +290,7 @@ describe('ChatInput agent execution mode', () => {
 
     const preview = container.querySelector('[data-testid="agent-command-preview"]');
     expect(preview).not.toBeNull();
-    expect(preview.textContent).toContain('Audit quality');
+    expect(preview.textContent).toContain('Check package');
 
     const runButton = container.querySelector('button[aria-label="Run command"]');
     expect(runButton).not.toBeNull();

@@ -235,10 +235,10 @@ test.describe('Agent no-key behavior', () => {
     const agentPanel = page.getByTestId('workspace-agent-panel');
     await expect(agentPanel).toBeVisible();
     await expect(agentPanel.getByRole('heading', { name: 'Agent' })).toBeVisible();
-    await expect(agentPanel.getByText('Provider/key required')).toBeVisible();
+    await expect(agentPanel.getByText('Configure').first()).toBeVisible();
     await expect(
       agentPanel.getByText(
-        'Your generated workspace is ready. I can still run local Audit and Plan. Configure AI for chat and model edits.',
+        'Your workspace is still useful. I can check the package and plan the next step while you reconnect AI for model edits.',
       ),
     ).toBeVisible();
     await expect(agentPanel.getByTestId('agent-command-strip')).toHaveCount(0);
@@ -260,45 +260,24 @@ test.describe('Agent no-key behavior', () => {
     await expect(agentPanel.getByTestId('agent-slash-command-palette')).toBeVisible();
     await expect(agentPanel.getByTestId('agent-slash-command-plan-next')).toBeVisible();
     await composer.press('Enter');
-    await expect(
-      agentPanel.getByText('Inspecting the workspace and building a plan from the Agent command.'),
-    ).toBeVisible({ timeout: 10000 });
-    await expect(agentPanel.getByTestId('agent-activity-receipt').first()).toContainText('2 tools', {
-      timeout: 10000,
-    });
-    await expect(agentPanel.getByTestId('agent-activity-receipt').first()).toContainText('0 issues');
+    await expect(agentPanel.getByText('Planning the next step.')).toBeVisible({ timeout: 10000 });
     await expect(agentPanel.getByTestId('workspace-plan-card')).toBeVisible({ timeout: 10000 });
     await expect(agentPanel.getByText('Plan ready. Start with:', { exact: false })).toBeVisible({ timeout: 10000 });
     expect(aiRequests).toEqual([]);
 
-    const planningReceipt = agentPanel.getByTestId('agent-receipt-card').filter({ hasText: 'Planning receipt' });
+    const planningReceipt = agentPanel.getByTestId('agent-receipt-card').filter({ hasText: 'Plan ready' });
     await expect(planningReceipt).toHaveCount(1);
     await expect(planningReceipt).toContainText('Plan ready');
+    await planningReceipt.getByRole('button', { name: /Details/i }).click();
     await planningReceipt.getByTestId('agent-receipt-action-audit-quality').click();
-    await expect(agentPanel.getByText('Running a read-only package audit from the Agent receipt.')).toBeVisible({
-      timeout: 10000,
-    });
-    await expect(agentPanel.getByTestId('agent-activity-receipt').last()).toContainText('3 tools', {
-      timeout: 10000,
-    });
-    await expect(agentPanel.getByText('Audit complete.', { exact: false })).toHaveCount(1, { timeout: 10000 });
-    await expect(agentPanel.getByTestId('package-compact-trust-receipt').last()).toBeVisible({ timeout: 10000 });
-    await expect(agentPanel.getByTestId('package-compact-trust-receipt').last()).toContainText('Compiled');
-    await expect(agentPanel.getByTestId('package-review-actions').last()).toContainText(
-      /Course Map|Lesson Plans|Official dates|Local policy|Source permissions/,
-    );
-    await expect(planningReceipt.getByTestId('agent-receipt-action-audit-quality')).toContainText('Done');
-    await expect(planningReceipt.getByTestId('agent-receipt-action-state-audit-quality')).toContainText('Done');
+    await expect(agentPanel.getByText('Checking the package.').last()).toBeVisible({ timeout: 10000 });
+    await expect(agentPanel.getByText('Check complete.', { exact: false })).toHaveCount(1, { timeout: 10000 });
+    await expect(agentPanel.getByTestId('package-summary-card').last()).toBeVisible({ timeout: 10000 });
     expect(aiRequests).toEqual([]);
 
     await agentPanel.getByTestId('agent-starter-local-audit').click();
-    await expect(agentPanel.getByText('Running a read-only package audit from the Agent starter.')).toBeVisible({
-      timeout: 10000,
-    });
-    await expect(agentPanel.getByTestId('agent-activity-receipt').last()).toContainText('3 tools', {
-      timeout: 10000,
-    });
-    await expect(agentPanel.getByText('Audit complete.', { exact: false })).toHaveCount(2, { timeout: 10000 });
+    await expect(agentPanel.getByText('Checking the package.').last()).toBeVisible({ timeout: 10000 });
+    await expect(agentPanel.getByText('Check complete.', { exact: false })).toHaveCount(2, { timeout: 10000 });
     expect(aiRequests).toEqual([]);
 
     await agentPanel.getByTestId('workspace-model-recovery-action').click();
@@ -349,7 +328,7 @@ test.describe('Agent no-key behavior', () => {
 
     await expect(panel.getByText('Invalid API key').first()).toBeVisible({ timeout: 15000 });
     const agentPanel = page.getByTestId('workspace-agent-panel');
-    await expect(agentPanel.getByText('Provider/key required')).toBeVisible();
+    await expect(agentPanel.getByText('Configure').first()).toBeVisible();
     await expect(agentPanel.getByTestId('agent-command-strip')).toHaveCount(0);
     await expect(agentPanel.getByTestId('agent-starter-local-audit')).toBeVisible();
     await expect(agentPanel.getByTestId('agent-starter-local-plan')).toBeVisible();
@@ -426,13 +405,11 @@ test.describe('Agent no-key behavior', () => {
     const agentPanel = page.getByTestId('workspace-agent-panel');
     const composer = agentPanel.locator('textarea');
     await composer.fill('can you audit this package?');
-    await expect(agentPanel.getByTestId('agent-command-preview')).toContainText('Audit quality');
+    await expect(agentPanel.getByTestId('agent-command-preview')).toContainText('Check package');
     await composer.press('Enter');
 
-    await expect(agentPanel.getByText('Running a read-only package audit from the Agent command.')).toBeVisible({
-      timeout: 10000,
-    });
-    await expect(agentPanel.getByText('Audit complete.', { exact: false })).toBeVisible({ timeout: 10000 });
+    await expect(agentPanel.getByText('Checking the package.')).toBeVisible({ timeout: 10000 });
+    await expect(agentPanel.getByText('Check complete.', { exact: false })).toBeVisible({ timeout: 10000 });
     expect(aiRequests).toEqual([]);
   });
 });

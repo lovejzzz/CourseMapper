@@ -103,11 +103,12 @@ describe('AgentReceiptCard', () => {
       />,
     );
 
-    expect(html).toContain('data-testid="agent-receipt-tool-trace"');
-    expect(html).toContain('Work done');
     expect(html).toContain('2 model calls');
     expect(html).toContain('Validate course materials');
-    expect(html).toContain('Inspect workspace');
+    expect(html).toContain('Details');
+    expect(html).not.toContain('data-testid="agent-receipt-tool-trace"');
+    expect(html).not.toContain('Work done');
+    expect(html).not.toContain('Inspect workspace');
     expect(html).toContain('Package');
     expect(html).not.toContain('sk-proj-');
   });
@@ -128,7 +129,8 @@ describe('AgentReceiptCard', () => {
     );
 
     expect(html).toContain('0 model calls');
-    expect(html).toContain('Model calls: 0');
+    expect(html).toContain('Updated blueprint: Lesson 4 learning objectives');
+    expect(html).not.toContain('Model calls: 0');
   });
 
   it('renders post-mutation verification evidence when present', () => {
@@ -149,9 +151,11 @@ describe('AgentReceiptCard', () => {
       />,
     );
 
-    expect(html).toContain('data-testid="agent-receipt-verification"');
-    expect(html).toContain('Verified by reading back:');
-    expect(html).toContain('Verified after mutation via Read lesson plans');
+    expect(html).toContain('Edit deliverables: 2 changes applied');
+    expect(html).toContain('Details');
+    expect(html).not.toContain('data-testid="agent-receipt-verification"');
+    expect(html).not.toContain('Verified by reading back:');
+    expect(html).not.toContain('Verified after mutation via Read lesson plans');
   });
 
   it('renders planner evidence for serious model runs', () => {
@@ -172,9 +176,10 @@ describe('AgentReceiptCard', () => {
       />,
     );
 
-    expect(html).toContain('data-testid="agent-receipt-planning"');
-    expect(html).toContain('Plan:');
-    expect(html).toContain('Planned before execution via Inspect workspace');
+    expect(html).toContain('Repair package readiness: 1 repaired');
+    expect(html).toContain('Details');
+    expect(html).not.toContain('data-testid="agent-receipt-planning"');
+    expect(html).not.toContain('Planned before execution via Inspect workspace');
   });
 
   it('renders compact state-diff evidence for changed and failed mutation rows', () => {
@@ -243,11 +248,11 @@ describe('AgentReceiptCard', () => {
       />,
     );
 
-    expect(html).toContain('data-testid="agent-receipt-quality-scorecard"');
-    expect(html).toContain('Quality:');
-    expect(html).toContain('96/100');
-    expect(html).toContain('Intent');
-    expect(html).toContain('Verification');
+    expect(html).toContain('Edit course map: 1 applied');
+    expect(html).toContain('Details');
+    expect(html).not.toContain('data-testid="agent-receipt-quality-scorecard"');
+    expect(html).not.toContain('96/100');
+    expect(html).not.toContain('Intent');
   });
 
   it('builds contextual follow-up actions for completed and blocked receipts', () => {
@@ -320,8 +325,9 @@ describe('AgentReceiptCard', () => {
       />,
     );
 
-    expect(html).toContain('Plan next');
-    expect(html).toContain('Audit quality');
+    expect(html).toContain('Details');
+    expect(html).not.toContain('Plan next');
+    expect(html).not.toContain('Check package');
   });
 
   it('tracks receipt action running and completion state', async () => {
@@ -354,6 +360,15 @@ describe('AgentReceiptCard', () => {
         intent: { type: 'workspace_plan' },
       })[0];
       const actionKey = getAgentReceiptActionKey(action, 0);
+      const detailsButton = Array.from(container.querySelectorAll('button')).find((node) =>
+        /details/i.test(node.textContent || ''),
+      );
+      expect(detailsButton).not.toBeNull();
+
+      await act(async () => {
+        detailsButton.dispatchEvent(new MouseEvent('click', { bubbles: true }));
+      });
+
       const button = container.querySelector('[data-testid="agent-receipt-action-audit-quality"]');
       expect(button).not.toBeNull();
 

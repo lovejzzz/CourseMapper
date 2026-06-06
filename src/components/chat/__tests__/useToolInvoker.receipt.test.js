@@ -137,7 +137,7 @@ describe('buildModelAgentReceiptFromProgress', () => {
             after: 'Analyze validation evidence.',
           }),
         ],
-        next: 'Audit quality or plan the next downstream update from the changed workspace.',
+        next: 'Check package or plan the next downstream update from the changed workspace.',
         quality: expect.objectContaining({
           score: expect.any(Number),
           label: expect.any(String),

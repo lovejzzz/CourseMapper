@@ -3,6 +3,49 @@ import Header from '../components/Header';
 
 const releases = [
   {
+    version: '0.8.57',
+    date: 'June 6, 2026',
+    title: 'Compact Agent Side Panel Release',
+    highlights: [
+      'The Agent side panel now shows less by default while keeping receipts and recovery details one click away',
+      'Finish, check, and local no-key workflows use clearer bundled wording instead of exposing internal modes',
+      'Missing deliverables now produce specific generate-first refusals instead of vague completion messages',
+      'The v0.8.57 release proof passed 34/34 courses, 122/122 browser E2E tests, 23/23 live OpenAI scenarios, and the 40-sample gold audit',
+    ],
+    sections: [
+      {
+        label: 'Side Panel UX',
+        icon: 'UX',
+        color: 'indigo',
+        items: [
+          'Workspace status, package summaries, progress cards, and receipts now keep secondary tool counts, skipped actions, and trace details collapsed behind Details.',
+          'Agent labels were simplified from audit/review mode language into instructor-facing outcomes such as Check package, Finish package, Ready to download, and Needs your decision.',
+          'Recoverable package details stay quiet until they matter, reducing side-panel noise while preserving full audit evidence when expanded.',
+        ],
+      },
+      {
+        label: 'Consider It Done',
+        icon: 'AI',
+        color: 'emerald',
+        items: [
+          'The system prompt now makes the Planner -> Executor -> Verifier loop explicit for serious requests and tells the agent to bundle safe finish/check workflows automatically.',
+          'Alignment questions now route to compare_deliverables or evidence reads instead of answering from memory alone.',
+          'Generic model responses such as “Agent completed” are replaced with concrete failed-tool explanations when a missing deliverable or blocked mutation is the real result.',
+        ],
+      },
+      {
+        label: 'Release Proof',
+        icon: 'QA',
+        color: 'amber',
+        items: [
+          'Added `audit:v0857:sweep`, a repeatable 34-course release proof for v0.8.57.',
+          'The v0.8.57 smoke sweep passed 5/5 courses and the full sweep passed 34/34 courses across the curated real-course scenarios.',
+          'Local gates passed lint, production build, 2,166 unit tests, 122 browser E2E tests, the 132-case blueprint matrix, pipeline audit, bundle budget, 40-sample gold audit, and 23 live OpenAI agent scenarios.',
+        ],
+      },
+    ],
+  },
+  {
     version: '0.8.56',
     date: 'June 6, 2026',
     title: 'Live Agent and Slide Quality Release',

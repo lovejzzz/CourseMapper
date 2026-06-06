@@ -69,37 +69,16 @@ describe('PackageSummaryCard', () => {
       />,
     );
 
-    expect(html).toContain('Package ready');
     expect(html).toContain('Ready to download');
+    expect(html).toContain('Done');
     expect(html).toContain('3 safe repairs applied');
-    expect(html).toContain('8/8 materials checked');
-    expect(html).toContain('Classroom checks passed');
     expect(html).toContain('Exports verified');
-    expect(html).toContain('8/8 checked');
-    expect(html).toContain('$0.04 \u00b7 52k tokens estimated');
-    expect(html).toContain('5 compiled');
-    expect(html).toContain('Course source');
-    expect(html).toContain('12 lessons');
-    expect(html).toContain('Compiled');
-    expect(html).toContain('5 materials');
-    expect(html).toContain('Local repairs');
-    expect(html).toContain('Model use');
-    expect(html).toContain('Needs review');
-    expect(html).toContain('External proof');
-    expect(html).toContain('not attached');
-    expect(html).toContain('Model-generated');
-    expect(html).toContain('0 deliverables');
-    expect(html).toContain('Review needed');
-    expect(html).toContain('0 lessons');
-    expect(html).toContain('ZIP, DOCX, PPTX, XLSX, PDF');
-    expect(html).toContain('Local confirmations');
-    expect(html).toContain('Official dates');
-    expect(html).toContain('Confirm the official calendar before publication.');
-    expect(html).toContain('Source permissions');
-    expect(html).toContain('Auto-fixed: Lesson 2 title; Lesson 4 learning goals');
-    expect(html).toContain('Human check: dates, policies, and official readings.');
-    expect(html).toContain('Cost drivers');
-    expect(html).toContain('Slide Decks');
+    expect(html).toContain('Details');
+    expect(html).not.toContain('Course source');
+    expect(html).not.toContain('Model-generated');
+    expect(html).not.toContain('Confirm the official calendar before publication.');
+    expect(html).not.toContain('Auto-fixed: Lesson 2 title; Lesson 4 learning goals');
+    expect(html).not.toContain('Cost drivers');
     expect(html).not.toContain('Compiled from the course map');
     expect(html).not.toMatch(/\bscore\b/i);
   });
@@ -130,13 +109,12 @@ describe('PackageSummaryCard', () => {
       />,
     );
 
-    expect(html).toContain('Package needs attention');
-    expect(html).toContain('Finish package');
+    expect(html).toContain('Needs your decision');
+    expect(html).toContain('Needs you');
     expect(html).toContain('1 issue to fix');
-    expect(html).toContain('1 classroom issue');
     expect(html).toContain('Needs attention');
     expect(html).toContain('Quiz Bank');
-    expect(html).toContain('Assessment weights');
-    expect(html).toContain('Confirm the official grading weight.');
+    expect(html).not.toContain('Assessment weights');
+    expect(html).not.toContain('Confirm the official grading weight.');
   });
 });

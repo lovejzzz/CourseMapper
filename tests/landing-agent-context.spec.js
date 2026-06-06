@@ -142,7 +142,8 @@ test.describe('Landing to Agent continuity', () => {
     await expect(agentPanel.getByTestId('agent-context-strip')).toContainText(
       'Starting request + starter-notebook-outline.txt + 1 source note',
     );
-    await expect(agentPanel.getByTestId('agent-working-materials')).toContainText('AI connected');
+    await expect(agentPanel.getByTestId('agent-working-materials')).toContainText('2 lessons');
+    await expect(agentPanel.getByTestId('agent-working-materials')).toContainText('ready');
 
     const landingContextCard = agentPanel.getByTestId('landing-context-card');
     await expect(landingContextCard).toContainText('Starting brief', { timeout: 30000 });

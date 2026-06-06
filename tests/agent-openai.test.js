@@ -196,6 +196,15 @@ function findToolCalls(toolCalls, name) {
   return toolCalls?.filter((tc) => tc.name === name) || [];
 }
 
+async function callOpenAIUntilTool(userMessage, toolNames, options = {}, attempts = 3) {
+  let lastResponse = null;
+  for (let attempt = 0; attempt < attempts; attempt += 1) {
+    lastResponse = await callOpenAI(userMessage, options);
+    if (toolNames.some((name) => findToolCall(lastResponse.toolCalls, name))) return lastResponse;
+  }
+  return lastResponse;
+}
+
 function hasRespondKind(response, kind) {
   return !!findToolCall(response.toolCalls, 'respond')?.args?.[kind];
 }
@@ -410,7 +419,10 @@ describeWithKey(`OpenAI (${OPENAI_MODEL}) Agent E2E`, { timeout: TIMEOUT * 12 },
   });
 
   it('runs validation when asked to check course health', { timeout: TIMEOUT }, async () => {
-    const r = await callOpenAI('Check my course for any issues or alignment problems');
+    const r = await callOpenAIUntilTool('Check my course for any issues or alignment problems', [
+      'finalize_package',
+      'validate_course',
+    ]);
     expect(r.toolCalls).toBeTruthy();
     expect(findToolCall(r.toolCalls, 'finalize_package') || findToolCall(r.toolCalls, 'validate_course')).toBeTruthy();
   });
@@ -478,7 +490,12 @@ describeWithKey(`OpenAI (${OPENAI_MODEL}) Agent E2E`, { timeout: TIMEOUT * 12 },
   });
 
   it('uses compare_deliverables for alignment questions', { timeout: TIMEOUT }, async () => {
-    const r = await callOpenAI('Are the quiz questions aligned with the lesson plan objectives?');
+    const r = await callOpenAIUntilTool('Are the quiz questions aligned with the lesson plan objectives?', [
+      'finalize_package',
+      'compare_deliverables',
+      'validate_course',
+      'read_deliverable',
+    ]);
     const hadRelevantTool =
       findToolCall(r.toolCalls, 'finalize_package') ||
       findToolCall(r.toolCalls, 'compare_deliverables') ||

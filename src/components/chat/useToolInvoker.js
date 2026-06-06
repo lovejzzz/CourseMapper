@@ -132,6 +132,63 @@ function collectFailedToolDetails(toolResults = []) {
   return failures.filter((failure) => failure.message || failure.featureId);
 }
 
+function deriveFailureFeatureLabel(failure = {}) {
+  if (failure.featureId) return resolveLabel(failure.featureId);
+  const message = String(failure.message || '');
+  const knownLabels = [
+    'Syllabus',
+    'Lesson Plans',
+    'Slide Decks',
+    'Assignment Briefs',
+    'Rubrics',
+    'Discussion Prompts',
+    'Quiz & Exam Bank',
+    'Study Guides',
+    'Course FAQ',
+  ];
+  return knownLabels.find((label) => new RegExp(`\\b${label.replace(/[.*+?^${}()|[\]\\]/g, '\\$&')}\\b`, 'i').test(message));
+}
+
+const DELIVERABLE_REQUEST_TARGETS = [
+  { featureId: 'syllabus', label: 'Syllabus', pattern: /\bsyllabus\b/i },
+  { featureId: 'lessonPlans', label: 'Lesson Plans', pattern: /\blesson\s*plans?\b/i },
+  { featureId: 'slideDecks', label: 'Slide Decks', pattern: /\b(slide\s*decks?|slides?)\b/i },
+  { featureId: 'assignments', label: 'Assignment Briefs', pattern: /\b(assignments?|assignment\s*briefs?)\b/i },
+  { featureId: 'rubrics', label: 'Rubrics', pattern: /\brubrics?\b/i },
+  { featureId: 'discussions', label: 'Discussion Prompts', pattern: /\b(discussions?|discussion\s*prompts?)\b/i },
+  { featureId: 'quizBank', label: 'Quiz & Exam Bank', pattern: /\b(quiz|quizzes|exam|exams|question\s*bank)\b/i },
+  { featureId: 'studyGuides', label: 'Study Guides', pattern: /\bstudy\s*guides?\b/i },
+  { featureId: 'courseFaq', label: 'Course FAQ', pattern: /\b(course\s*)?faqs?\b/i },
+];
+
+function isGeneratedDeliverableEntry(entry) {
+  return entry?.status === 'done' && !!entry?.data;
+}
+
+function isDeliverableMutationRequest(message = '') {
+  const text = String(message || '');
+  if (/\b(add|edit|change|update|rewrite|improve|fix|remove|delete|revise)\b/i.test(text)) return true;
+  return (
+    /\b(create|make)\b/i.test(text) &&
+    /\b(criterion|criteria|item|question|section|slide|prompt|note|field|row)\b/i.test(text)
+  );
+}
+
+function findMissingDeliverableMutationRequest(message = '', deliverables = {}) {
+  if (!isDeliverableMutationRequest(message)) return null;
+  return DELIVERABLE_REQUEST_TARGETS.find(
+    (target) => target.pattern.test(message) && !isGeneratedDeliverableEntry(deliverables?.[target.featureId]),
+  );
+}
+
+function buildMissingDeliverableMutationReply(label = 'the requested deliverable') {
+  return `The ${label} deliverable is not in this workspace yet, so I did not invent it. Generate ${label.toLowerCase()} first, then I can make that change.`;
+}
+
+function isGenericCompletionText(value = '') {
+  return /^(agent\s+)?(completed|complete|done|finished)\.?$/i.test(String(value || '').trim());
+}
+
 function buildToolFailureChatReply(toolResults = []) {
   const failures = collectFailedToolDetails(toolResults);
   if (failures.length === 0) return '';
@@ -141,20 +198,30 @@ function buildToolFailureChatReply(toolResults = []) {
         failure.message,
       ),
     ) || failures[0];
-  const label = primary.featureId ? resolveLabel(primary.featureId) : 'the requested deliverable';
+  const label = deriveFailureFeatureLabel(primary) || 'the requested deliverable';
   const message = String(primary.message || '').trim();
   if (/\b(missing|not generated|not available|does not exist|generate .*first|no .*deliverable)\b/i.test(message)) {
-    return `I did not create a ghost ${label.toLowerCase()}. ${label} is missing or not generated in this workspace yet, so generate it first and then I can edit it.`;
+    return buildMissingDeliverableMutationReply(label);
   }
   return `I could not complete the requested ${label.toLowerCase()} change: ${message}`;
 }
 
 function ensureFinalResponseHasChatReply(response, toolResults = []) {
+  const failureChatReply = buildToolFailureChatReply(toolResults);
+  if (
+    failureChatReply &&
+    !response?.chatReply &&
+    !response?.proposal &&
+    !response?.chart &&
+    !response?.diagram &&
+    (!response?.text || isGenericCompletionText(response.text))
+  ) {
+    return { ...(response || {}), chatReply: failureChatReply };
+  }
   if (response?.chatReply || response?.text || response?.proposal || response?.chart || response?.diagram) {
     return response;
   }
-  const chatReply = buildToolFailureChatReply(toolResults);
-  return chatReply ? { ...(response || {}), chatReply } : response;
+  return failureChatReply ? { ...(response || {}), chatReply: failureChatReply } : response;
 }
 
 const RECEIPT_ACTION_TOOLS = new Set([
@@ -919,7 +986,7 @@ function buildReceiptNext(status, intent, actionSteps, verification = null, hasV
       return 'Review the package summary, then download or audit quality before sharing.';
     case 'content_edit':
     case 'package_repair':
-      return 'Audit quality or plan the next downstream update from the changed workspace.';
+      return 'Check package or plan the next downstream update from the changed workspace.';
     case 'agent_tooling':
       return 'Use the saved macro when this workflow repeats.';
     case 'agent_memory':
@@ -1138,6 +1205,21 @@ export async function runAgentLoop(fullMessage, { silent = false, dryRun = false
     abortRef.current?.abort();
     const controller = new AbortController();
     abortRef.current = controller;
+
+    const missingDeliverableRequest = findMissingDeliverableMutationRequest(fullMessage, delivRef.current);
+    if (missingDeliverableRequest) {
+      const finalResponse = {
+        chatReply: buildMissingDeliverableMutationReply(missingDeliverableRequest.label),
+      };
+      setMessages((prev) => {
+        const updated = [...prev];
+        const progressIdx = updated.findLastIndex((m) => m.role === 'agentProgress');
+        if (progressIdx >= 0) updated.splice(progressIdx, 1);
+        return updated;
+      });
+      if (!silent) handleAgentFinalResponse(finalResponse);
+      return;
+    }
 
     // Load user preferences
     let userPrefs = null;

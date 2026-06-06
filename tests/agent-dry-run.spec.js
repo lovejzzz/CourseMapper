@@ -158,7 +158,7 @@ test.describe('Agent conversation-driven mode', () => {
     await expect(agentPanel.getByRole('heading', { name: 'Agent' })).toBeVisible();
     await expect(agentPanel.getByTestId('agent-dry-run-toggle')).toHaveCount(0);
     await expect(agentPanel.getByText('No edits', { exact: true })).toHaveCount(0);
-    await expect(agentPanel.getByText('Lesson Plans · Conversation-driven', { exact: true })).toBeVisible();
+    await expect(agentPanel.getByText('Lesson Plans', { exact: true }).first()).toBeVisible();
 
     await agentPanel.locator('textarea').fill('Make the lesson plan more active.');
     await agentPanel.getByLabel('Send message').click();

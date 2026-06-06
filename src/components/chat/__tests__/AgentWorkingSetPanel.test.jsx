@@ -99,12 +99,14 @@ describe('AgentWorkingSetPanel', () => {
     );
 
     expect(html).toContain('data-testid="agent-working-set-panel"');
-    expect(html).toContain('Working on Slide Decks');
-    expect(html).toContain('prompt + 2 materials + 2 source notes');
-    expect(html).toContain('Local tools');
+    expect(html).toContain('Finishing package');
     expect(html).toContain('3 lessons');
-    expect(html).toContain('1 ready, 1 running, 1 stale');
+    expect(html).toContain('1 ready, 1 running');
     expect(html).toContain('Finishing');
+    expect(html).toContain('Details');
+    expect(html).not.toContain('prompt + 2 materials + 2 source notes');
+    expect(html).not.toContain('Local tools');
+    expect(html).not.toContain('stale');
     expect(html).not.toContain('Selected');
   });
 
@@ -129,8 +131,10 @@ describe('AgentWorkingSetPanel', () => {
       />,
     );
 
-    expect(html).toContain('Plan:');
-    expect(html).toContain('1 running, 1 blocked');
+    expect(html).toContain('Workspace ready');
+    expect(html).toContain('Details');
+    expect(html).not.toContain('Plan:');
+    expect(html).not.toContain('1 running, 1 blocked');
     expect(html).not.toContain('Old plan step');
   });
 
@@ -169,7 +173,7 @@ describe('AgentWorkingSetPanel', () => {
             status: 'done',
             target: 'Workspace',
             actionStates: {
-              'audit-quality|Audit quality|audit-package|agent-receipt': { status: 'done' },
+              'audit-quality|Check package|audit-package|agent-receipt': { status: 'done' },
             },
           },
         },
@@ -199,7 +203,7 @@ describe('AgentWorkingSetPanel', () => {
               status: 'done',
               target: 'Workspace',
               actionStates: {
-                'audit-quality|Audit quality|audit-package|agent-receipt': { status: 'done' },
+                'audit-quality|Check package|audit-package|agent-receipt': { status: 'done' },
               },
             },
           },
@@ -207,8 +211,9 @@ describe('AgentWorkingSetPanel', () => {
       />,
     );
 
-    expect(html).toContain('Planning receipt');
-    expect(html).toContain('1 done');
+    expect(html).toContain('Workspace ready');
+    expect(html).not.toContain('Planning receipt');
+    expect(html).not.toContain('1 done');
   });
 
   it('does not duplicate package summaries in the working-set activity strip', () => {

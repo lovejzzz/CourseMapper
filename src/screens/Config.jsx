@@ -2158,7 +2158,7 @@ export default function Config({
         <footer className="py-4 text-center">
           <div className="flex items-center justify-center gap-3 text-[10px] text-slate-300/70">
             <a href="#/changelog" className="font-medium hover:text-indigo-500 transition-colors duration-200">
-              v0.8.56
+              v0.8.57
             </a>
             <span>·</span>
             <a href="#/privacy" className="hover:text-indigo-500 transition-colors duration-200">

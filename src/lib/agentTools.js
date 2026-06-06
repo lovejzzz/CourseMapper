@@ -168,7 +168,7 @@ function buildWorkspaceNextChecks({ readiness, features, dryRun }) {
   if (checks.length === 0 && dryRun)
     checks.push('Audit the highest-impact deliverable and propose changes before applying them.');
   if (checks.length === 0)
-    checks.push('Audit quality, then improve the active deliverable if the audit finds a concrete issue.');
+    checks.push('Check package quality, then improve the active deliverable if the check finds a concrete issue.');
 
   return checks.slice(0, 5);
 }
@@ -350,7 +350,7 @@ function buildWorkspacePlan(ctx, { features, readiness, classroomReadiness }) {
             ? `${warningCount} review item${warningCount === 1 ? '' : 's'} remain across package and classroom checks.`
             : 'Multiple deliverables are generated; a cross-package audit can find alignment gaps before export.',
         target: 'Package',
-        suggestedCommand: 'Audit quality',
+        suggestedCommand: 'Check package',
         safeMode: 'inspect-first',
         toolHint: 'inspect_workspace, review_package_readiness, validate_course',
         featureIds: generated.map((feature) => feature.featureId),
@@ -2389,11 +2389,11 @@ export const AGENT_TOOLS = {
 export const TOOL_LABELS = {
   inspect_workspace: 'Inspecting workspace',
   plan_workspace_next_step: 'Planning next step',
-  validate_course: 'Validating course health',
-  finalize_package: 'Finalizing course package',
+  validate_course: 'Checking course health',
+  finalize_package: 'Finishing package',
   verify_package_exports: 'Verifying package exports',
-  review_package_readiness: 'Reviewing package readiness',
-  repair_package_readiness: 'Repairing package readiness',
+  review_package_readiness: 'Checking package',
+  repair_package_readiness: 'Repairing safe issues',
   retry_package_weak_spots: 'Retrying weak sections',
   check_grammar: 'Checking grammar',
   search_research: 'Searching academic sources',

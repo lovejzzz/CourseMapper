@@ -199,7 +199,7 @@ describe('MessageList workspace plan actions', () => {
 
     expect(onStarterAction).toHaveBeenCalledWith(
       expect.objectContaining({
-        text: 'Run local audit',
+        text: 'Check package',
         action: 'local-audit',
       }),
     );
@@ -458,7 +458,8 @@ describe('MessageList workspace plan actions', () => {
     expect(receipt).not.toBeNull();
     expect(receipt.textContent).toContain('Package receipt');
     expect(receipt.textContent).toContain('No safe repairs needed');
-    expect(receipt.textContent).toContain('Export files');
+    expect(receipt.textContent).toContain('Details');
+    expect(receipt.textContent).not.toContain('Export files');
   });
 
   it('routes Agent receipt follow-up actions through the suggestion sender', async () => {
@@ -523,6 +524,15 @@ describe('MessageList workspace plan actions', () => {
       ],
     });
 
+    const detailsButton = Array.from(container.querySelectorAll('button')).find((node) =>
+      /details/i.test(node.textContent || ''),
+    );
+    expect(detailsButton).not.toBeNull();
+
+    await act(async () => {
+      detailsButton.dispatchEvent(new MouseEvent('click', { bubbles: true }));
+    });
+
     const auditButton = container.querySelector('[data-testid="agent-receipt-action-audit-quality"]');
     expect(auditButton).not.toBeNull();
     await act(async () => {
@@ -533,7 +543,7 @@ describe('MessageList workspace plan actions', () => {
     expect(onRecoveryAction).toHaveBeenCalledWith(
       expect.objectContaining({
         id: 'audit-quality',
-        displayText: 'Audit quality',
+        displayText: 'Check package',
         localIntent: 'audit-package',
       }),
     );

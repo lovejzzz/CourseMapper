@@ -26,7 +26,7 @@ function doneReceipt(overrides = {}) {
       },
     ],
     issues: [],
-    next: 'Audit quality or plan the next downstream update from the changed workspace.',
+    next: 'Check package or plan the next downstream update from the changed workspace.',
     ...overrides,
   };
 }

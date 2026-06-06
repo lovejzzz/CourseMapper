@@ -207,10 +207,10 @@ export function getChatOpener(
     if (!isAgentProviderReady) {
       return {
         greeting:
-          'Your generated workspace is ready. I can still run local Audit and Plan. Configure AI for chat and model edits.',
+          'Your workspace is still useful. I can check the package and plan the next step while you reconnect AI for model edits.',
         starters: [
           {
-            text: 'Run local audit',
+            text: 'Check package',
             icon: 'search',
             action: 'local-audit',
           },

@@ -396,6 +396,7 @@ export default function AgentProgressCard({
 
   return (
     <div
+      data-testid="agent-progress-card"
       className={`ml-8 mr-1 rounded-lg border ${styles.border} bg-white/70 shadow-sm animate-spring-in overflow-hidden`}
     >
       <div className="px-3 py-2">
@@ -413,28 +414,14 @@ export default function AgentProgressCard({
 
             <p className="mt-0.5 text-[10px] font-medium text-slate-400">{receiptMeta}</p>
 
-            {(runOutcome || activityReceipt.length > 0) && (
-              <div
-                data-testid="agent-activity-receipt"
-                className="mt-1 flex flex-wrap gap-1.5 text-[10px] font-semibold"
-                aria-label={`Agent activity receipt: ${[runOutcome?.label, ...activityReceipt].filter(Boolean).join(', ')}`}
-              >
-                {runOutcome && (
-                  <span
-                    data-testid="agent-run-outcome"
-                    className={`rounded-full border px-1.5 py-0.5 ${OUTCOME_TONES[runOutcome.tone] || OUTCOME_TONES.slate}`}
-                  >
-                    {runOutcome.label}
-                  </span>
-                )}
-                {activityReceipt.map((item) => (
-                  <span
-                    key={item}
-                    className="rounded-full border border-slate-200/70 bg-white/70 px-1.5 py-0.5 text-slate-500"
-                  >
-                    {item}
-                  </span>
-                ))}
+            {runOutcome && (
+              <div className="mt-1 flex flex-wrap gap-1.5 text-[10px] font-semibold">
+                <span
+                  data-testid="agent-run-outcome"
+                  className={`rounded-full border px-1.5 py-0.5 ${OUTCOME_TONES[runOutcome.tone] || OUTCOME_TONES.slate}`}
+                >
+                  {runOutcome.label}
+                </span>
               </div>
             )}
 
@@ -492,6 +479,22 @@ export default function AgentProgressCard({
             <p className="mb-2 rounded-md bg-slate-50 px-2 py-1.5 text-[11px] leading-relaxed text-slate-500">
               {thinkingText.slice(-220)}
             </p>
+          )}
+          {activityReceipt.length > 0 && (
+            <div
+              data-testid="agent-activity-receipt"
+              className="mb-2 flex flex-wrap gap-1.5 text-[10px] font-semibold"
+              aria-label={`Agent activity receipt: ${activityReceipt.join(', ')}`}
+            >
+              {activityReceipt.map((item) => (
+                <span
+                  key={item}
+                  className="rounded-full border border-slate-200/70 bg-white/70 px-1.5 py-0.5 text-slate-500"
+                >
+                  {item}
+                </span>
+              ))}
+            </div>
           )}
           <div className="space-y-1.5">
             {groupedSteps.map((step, index) => (

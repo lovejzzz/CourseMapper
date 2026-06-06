@@ -625,7 +625,7 @@ describe('ChatPanel agent command strip', () => {
     );
     expectInitialLocalTurn({
       text: 'Finish package',
-      assistantText: 'Running package finishing from the Agent command.',
+      assistantText: 'Finishing the package.',
       promptIncludes: 'Finish the course package',
       progressTool: 'finalize_package',
     });
@@ -633,7 +633,7 @@ describe('ChatPanel agent command strip', () => {
       expect.objectContaining({
         role: 'agentReceipt',
         receipt: expect.objectContaining({
-          title: 'Package receipt',
+          title: 'Package finished',
           status: 'done',
           target: 'Package',
           stateDiffs: [
@@ -646,7 +646,7 @@ describe('ChatPanel agent command strip', () => {
           ],
         }),
       }),
-      { role: 'assistant', text: 'Package finishing finished. Safe checks passed and the export panel is ready.' },
+      { role: 'assistant', text: 'Package is ready. Safe checks passed and the export panel is ready.' },
       expect.objectContaining({
         role: 'packageSummary',
         summary: expect.objectContaining({
@@ -710,15 +710,15 @@ describe('ChatPanel agent command strip', () => {
     );
     expectInitialLocalTurn({
       text: 'Finish package',
-      assistantText: 'Running package finishing from the Agent starter.',
+      assistantText: 'Finishing the package.',
       progressTool: 'finalize_package',
     });
     expect(chatRouterMock.addLocalMessages).toHaveBeenCalledWith([
       expect.objectContaining({
         role: 'agentReceipt',
-        receipt: expect.objectContaining({ title: 'Package receipt', status: 'done', target: 'Package' }),
+        receipt: expect.objectContaining({ title: 'Package finished', status: 'done', target: 'Package' }),
       }),
-      { role: 'assistant', text: 'Package finishing finished. Safe checks passed and the export panel is ready.' },
+      { role: 'assistant', text: 'Package is ready. Safe checks passed and the export panel is ready.' },
       expect.objectContaining({
         role: 'packageSummary',
         summary: expect.objectContaining({
@@ -766,9 +766,9 @@ describe('ChatPanel agent command strip', () => {
       lessonFilter: null,
     });
     expectInitialLocalTurn({
-      text: 'Audit quality',
-      assistantText: 'Running a read-only package audit from the Agent command.',
-      promptIncludes: 'Audit this workspace without applying changes',
+      text: 'Check package',
+      assistantText: 'Checking the package.',
+      promptIncludes: 'Check this workspace without applying changes',
       progressTool: 'review_package_readiness',
     });
     expect(chatRouterMock.addLocalMessages).toHaveBeenCalledWith([
@@ -782,9 +782,9 @@ describe('ChatPanel agent command strip', () => {
       }),
       expect.objectContaining({
         role: 'agentReceipt',
-        receipt: expect.objectContaining({ title: 'Audit receipt', status: 'done', mode: 'Local audit' }),
+        receipt: expect.objectContaining({ title: 'Package checked', status: 'done', mode: 'Local check' }),
       }),
-      { role: 'assistant', text: 'Audit complete. No blockers found in the read-only checks.' },
+      { role: 'assistant', text: 'Check complete. No blockers found.' },
     ]);
     const progress = await waitForAgentProgressMessage((message) =>
       message.steps?.some((step) => step.tool === 'verify_package_exports'),
@@ -792,7 +792,7 @@ describe('ChatPanel agent command strip', () => {
     expect(progress).toMatchObject({
       role: 'agentProgress',
       status: 'complete',
-      runMeta: { mode: 'Local audit', target: 'Package', model: 'Local tools' },
+      runMeta: { mode: 'Local check', target: 'Package', model: 'Local tools' },
       steps: [
         expect.objectContaining({ tool: 'review_package_readiness', status: 'done' }),
         expect.objectContaining({ tool: 'validate_course', status: 'done' }),
@@ -824,7 +824,7 @@ describe('ChatPanel agent command strip', () => {
     expect(onFinalizePackage).toHaveBeenCalled();
     expectInitialLocalTurn({
       text: 'Finish package',
-      assistantText: 'Running package finishing from the Agent command.',
+      assistantText: 'Finishing the package.',
       promptIncludes: 'Finish the course package until it is ready to download',
       progressTool: 'finalize_package',
     });
@@ -888,10 +888,10 @@ describe('ChatPanel agent command strip', () => {
     });
 
     expect(chatRouterMock.send).toHaveBeenCalledWith(
-      'Audit quality',
+      'Check package',
       expect.objectContaining({
-        displayText: 'Audit quality',
-        agentPromptOverride: expect.stringContaining('Audit this workspace without applying changes'),
+        displayText: 'Check package',
+        agentPromptOverride: expect.stringContaining('Check this workspace without applying changes'),
       }),
     );
   });
@@ -905,7 +905,7 @@ describe('ChatPanel agent command strip', () => {
 
     expectInitialLocalTurn({
       text: 'Plan next step',
-      assistantText: 'Inspecting the workspace and building a plan from the Agent command.',
+      assistantText: 'Planning the next step.',
       promptIncludes: 'Call inspect_workspace first',
       progressTool: 'inspect_workspace',
     });
@@ -923,7 +923,7 @@ describe('ChatPanel agent command strip', () => {
       }),
       expect.objectContaining({
         role: 'agentReceipt',
-        receipt: expect.objectContaining({ title: 'Planning receipt', status: 'done', target: 'Workspace' }),
+        receipt: expect.objectContaining({ title: 'Plan ready', status: 'done', target: 'Workspace' }),
       }),
       expect.objectContaining({
         role: 'assistant',
@@ -972,7 +972,7 @@ describe('ChatPanel agent command strip', () => {
   it('persists Agent receipt action states into the chat message', () => {
     root = renderChatPanel(container);
     const actionStates = {
-      'audit-quality|Audit quality|audit-package|agent-receipt': { status: 'done' },
+      'audit-quality|Check package|audit-package|agent-receipt': { status: 'done' },
     };
 
     act(() => {
@@ -985,10 +985,10 @@ describe('ChatPanel agent command strip', () => {
     expect(matcher({ role: 'agentReceipt' }, 3)).toBe(false);
     expect(matcher({ role: 'workspacePlan' }, 4)).toBe(false);
 
-    expect(updater({ role: 'agentReceipt', receipt: { title: 'Planning receipt' } })).toEqual({
+    expect(updater({ role: 'agentReceipt', receipt: { title: 'Plan ready' } })).toEqual({
       role: 'agentReceipt',
       actionStates,
-      receipt: { title: 'Planning receipt', actionStates },
+      receipt: { title: 'Plan ready', actionStates },
     });
   });
 
@@ -1022,7 +1022,7 @@ describe('ChatPanel agent command strip', () => {
     });
     expectInitialLocalTurn({
       text: 'Review package issues',
-      assistantText: 'Running a read-only package audit for the previous Agent issues.',
+      assistantText: 'Checking the previous issue.',
       promptIncludes: 'previous Agent run',
       progressTool: 'review_package_readiness',
     });
@@ -1045,7 +1045,7 @@ describe('ChatPanel agent command strip', () => {
     expect(handled).toBe(true);
     expectInitialLocalTurn({
       text: 'Plan recovery',
-      assistantText: 'Inspecting the workspace and planning recovery from the previous Agent issues.',
+      assistantText: 'Planning the recovery.',
       promptIncludes: 'failed or partial Agent run',
       progressTool: 'inspect_workspace',
     });
@@ -1083,7 +1083,7 @@ describe('ChatPanel agent command strip', () => {
       expect.objectContaining({
         role: 'agentReceipt',
         receipt: expect.objectContaining({
-          title: 'Undo receipt',
+          title: 'Undo complete',
           status: 'done',
           target: 'Lesson Plans',
           stateDiffs: [
@@ -1099,7 +1099,7 @@ describe('ChatPanel agent command strip', () => {
       }),
       {
         role: 'assistant',
-        text: 'Last Lesson Plans change undone. Run Plan or Audit if you want me to check the workspace again.',
+        text: 'Last Lesson Plans change undone. Run Check package if you want me to verify the workspace again.',
       },
     ]);
     const progress = await waitForAgentProgressMessage((message) =>
@@ -1142,7 +1142,8 @@ describe('ChatPanel agent command strip', () => {
 
     expect(container.querySelector('h2')?.textContent).toBe('Agent');
     expect(container.textContent).toContain('Building');
-    expect(container.textContent).toContain('Lesson Plans · Using your starting request');
+    expect(container.textContent).toContain('Lesson Plans');
+    expect(container.textContent).not.toContain('Using your starting request');
     expect(container.querySelector('[data-testid="agent-command-strip"]')).toBeNull();
   });
 
@@ -1211,15 +1212,15 @@ describe('ChatPanel agent command strip', () => {
     );
     expectInitialLocalTurn({
       text: 'Fix: Clear package readiness blockers',
-      assistantText: 'Running package finishing from the workspace plan.',
+      assistantText: 'Finishing the package.',
       progressTool: 'finalize_package',
     });
     expect(chatRouterMock.addLocalMessages).toHaveBeenCalledWith([
       expect.objectContaining({
         role: 'agentReceipt',
-        receipt: expect.objectContaining({ title: 'Package receipt', status: 'done', target: 'Package' }),
+        receipt: expect.objectContaining({ title: 'Package finished', status: 'done', target: 'Package' }),
       }),
-      { role: 'assistant', text: 'Package finishing finished. Safe checks passed and the export panel is ready.' },
+      { role: 'assistant', text: 'Package is ready. Safe checks passed and the export panel is ready.' },
       expect.objectContaining({
         role: 'packageSummary',
         summary: expect.objectContaining({
@@ -1607,7 +1608,7 @@ describe('ChatPanel agent command strip', () => {
     });
     expectInitialLocalTurn({
       text: 'Audit: Run a full quality audit',
-      assistantText: 'Running a read-only package audit from the workspace plan.',
+      assistantText: 'Checking the package.',
       promptIncludes: 'Intent: audit_package',
       progressTool: 'review_package_readiness',
     });
@@ -1622,9 +1623,9 @@ describe('ChatPanel agent command strip', () => {
       }),
       expect.objectContaining({
         role: 'agentReceipt',
-        receipt: expect.objectContaining({ title: 'Audit receipt', status: 'done', mode: 'Local audit' }),
+        receipt: expect.objectContaining({ title: 'Package checked', status: 'done', mode: 'Local check' }),
       }),
-      { role: 'assistant', text: 'Audit complete. No blockers found in the read-only checks.' },
+      { role: 'assistant', text: 'Check complete. No blockers found.' },
     ]);
     expect(chatRouterMock.send).not.toHaveBeenCalled();
   });
@@ -1687,7 +1688,7 @@ describe('ChatPanel agent command strip', () => {
     });
     expectInitialLocalTurn({
       text: 'Review: Clear package readiness blockers',
-      assistantText: 'Reviewing package readiness blockers from the workspace plan.',
+      assistantText: 'Checking the blockers.',
       promptIncludes: 'Intent: review_readiness_blockers',
       progressTool: 'review_package_readiness',
     });
@@ -1701,9 +1702,9 @@ describe('ChatPanel agent command strip', () => {
       }),
       expect.objectContaining({
         role: 'agentReceipt',
-        receipt: expect.objectContaining({ title: 'Audit needs review', status: 'review', mode: 'Local audit' }),
+        receipt: expect.objectContaining({ title: 'Package needs review', status: 'review', mode: 'Local check' }),
       }),
-      expect.objectContaining({ role: 'assistant', text: expect.stringContaining('Audit complete.') }),
+      expect.objectContaining({ role: 'assistant', text: expect.stringContaining('Check complete.') }),
     ]);
     expect(chatRouterMock.send).not.toHaveBeenCalled();
   });

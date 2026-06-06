@@ -287,20 +287,35 @@ export function buildAgentWorkingSetSummary({
 
 export default function AgentWorkingSetPanel(props) {
   const summary = buildAgentWorkingSetSummary(props);
+  const [expanded, setExpanded] = React.useState(false);
   if (!summary.hasCourseMap && !summary.hasDeliverableContext) return null;
 
-  const materialParts = [
+  const quietMaterialParts = [
     summary.readyFeatureCount ? `${summary.readyFeatureCount} ready` : null,
     summary.generatingFeatureCount ? `${summary.generatingFeatureCount} running` : null,
-    summary.missingFeatureCount ? `${summary.missingFeatureCount} missing` : null,
-    summary.staleFeatureCount ? `${summary.staleFeatureCount} stale` : null,
     summary.failedFeatureCount ? `${summary.failedFeatureCount} failed` : null,
   ].filter(Boolean);
+  const detailMaterialParts = [
+    ...quietMaterialParts,
+    summary.missingFeatureCount ? `${summary.missingFeatureCount} not generated yet` : null,
+    summary.staleFeatureCount ? `${summary.staleFeatureCount} will sync when needed` : null,
+  ].filter(Boolean);
   const latestActivity = summary.activityStatus.activities[0];
+  const needsAttention =
+    summary.packageStatus.label === 'Needs attention' ||
+    summary.failedFeatureCount > 0 ||
+    summary.toolStateLabel === 'Local tools';
+  const headline =
+    summary.packageStatus.label === 'Finishing'
+      ? 'Finishing package'
+      : needsAttention
+        ? 'Needs your decision'
+        : summary.packageStatus.label === 'Ready'
+          ? 'Ready to export'
+          : 'Workspace ready';
   const supportLine = [
     summary.scopeLabel,
-    materialParts.length > 0 ? materialParts.join(', ') : 'No materials ready',
-    summary.toolStateLabel,
+    quietMaterialParts.length > 0 ? quietMaterialParts.join(', ') : 'No generated materials yet',
   ].filter(Boolean);
 
   return (
@@ -311,27 +326,47 @@ export default function AgentWorkingSetPanel(props) {
       <div className="flex min-w-0 items-start justify-between gap-3">
         <div className="min-w-0">
           <p data-testid="agent-working-target" className="truncate text-[11px] font-bold text-slate-700">
-            Working on {summary.activeTarget}
+            {headline}
           </p>
           <p data-testid="agent-working-materials" className="mt-0.5 truncate text-[10px] font-medium text-slate-500">
             {supportLine.join(' · ')}
           </p>
         </div>
-        <span
-          data-testid="agent-working-package-status"
-          className={`shrink-0 rounded-full border px-2 py-0.5 text-[10px] font-bold ${summary.packageStatus.tone}`}
-        >
-          {summary.packageStatus.label}
-        </span>
+        <div className="flex shrink-0 items-center gap-1.5">
+          <span
+            data-testid="agent-working-package-status"
+            className={`rounded-full border px-2 py-0.5 text-[10px] font-bold ${summary.packageStatus.tone}`}
+          >
+            {summary.packageStatus.label}
+          </span>
+          <button
+            type="button"
+            onClick={() => setExpanded((value) => !value)}
+            className="tactile rounded-md px-1.5 py-0.5 text-[10px] font-semibold text-slate-400 hover:bg-white/80 hover:text-slate-600"
+            aria-expanded={expanded}
+            aria-label={expanded ? 'Hide workspace details' : 'Show workspace details'}
+          >
+            {expanded ? 'Hide' : 'Details'}
+          </button>
+        </div>
       </div>
-      {(summary.planStatus.hasPlan || latestActivity || summary.briefStatus.hasBrief) && (
-        <p className="mt-1 truncate text-[10px] font-medium text-slate-400">
-          {summary.planStatus.hasPlan
-            ? `Plan: ${summary.planStatus.label}`
-            : latestActivity
-              ? `${latestActivity.title}: ${latestActivity.label}`
-              : `Brief: ${summary.briefStatus.label}`}
-        </p>
+      {expanded && (
+        <div data-testid="agent-working-set-details" className="mt-1.5 space-y-1 text-[10px] font-medium text-slate-500">
+          <p className="truncate">Target: {summary.activeTarget}</p>
+          <p className="truncate">
+            Materials: {detailMaterialParts.length > 0 ? detailMaterialParts.join(', ') : 'No generated materials yet'}
+          </p>
+          <p className="truncate">Tools: {summary.toolStateLabel}</p>
+          {(summary.planStatus.hasPlan || latestActivity || summary.briefStatus.hasBrief) && (
+            <p className="truncate text-slate-400">
+              {summary.planStatus.hasPlan
+                ? `Plan: ${summary.planStatus.label}`
+                : latestActivity
+                  ? `${latestActivity.title}: ${latestActivity.label}`
+                  : `Brief: ${summary.briefStatus.label}`}
+            </p>
+          )}
+        </div>
       )}
     </div>
   );

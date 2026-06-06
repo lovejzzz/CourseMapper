@@ -128,7 +128,7 @@ describe('buildAgentChatHistory', () => {
       {
         role: 'agentReceipt',
         actionStates: {
-          'audit-quality|Audit quality|audit-package|agent-receipt': { status: 'done' },
+          'audit-quality|Check package|audit-package|agent-receipt': { status: 'done' },
         },
         receipt: {
           title: 'Package receipt',
