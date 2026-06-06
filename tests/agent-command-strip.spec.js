@@ -282,10 +282,7 @@ test.describe('Agent command entry points', () => {
     await expect(
       agentPanel.getByText('Lesson Plans improved. I checked the active deliverable and no export risk changed.'),
     ).toBeVisible({ timeout: 10000 });
-    const progressCard = agentPanel
-      .getByTestId('agent-progress-card')
-      .filter({ hasText: 'Lesson Plans' })
-      .last();
+    const progressCard = agentPanel.getByTestId('agent-progress-card').filter({ hasText: 'Lesson Plans' }).last();
     await expect(progressCard).toContainText('No workspace edits');
     await progressCard.getByRole('button', { name: /agent progress details|Details/i }).click();
     const activityReceipt = progressCard.getByTestId('agent-activity-receipt');

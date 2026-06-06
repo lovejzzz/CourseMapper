@@ -351,7 +351,10 @@ export default function AgentWorkingSetPanel(props) {
         </div>
       </div>
       {expanded && (
-        <div data-testid="agent-working-set-details" className="mt-1.5 space-y-1 text-[10px] font-medium text-slate-500">
+        <div
+          data-testid="agent-working-set-details"
+          className="mt-1.5 space-y-1 text-[10px] font-medium text-slate-500"
+        >
           <p className="truncate">Target: {summary.activeTarget}</p>
           <p className="truncate">
             Materials: {detailMaterialParts.length > 0 ? detailMaterialParts.join(', ') : 'No generated materials yet'}

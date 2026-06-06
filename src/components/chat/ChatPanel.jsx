@@ -1878,10 +1878,7 @@ export default function ChatPanel({
         const handled = await runDirectPackageAudit({
           displayText,
           selectedFeatureIds,
-          introText:
-            intent === 'review_readiness_blockers'
-              ? 'Checking the blockers.'
-              : 'Checking the package.',
+          introText: intent === 'review_readiness_blockers' ? 'Checking the blockers.' : 'Checking the package.',
           agentPromptOverride,
         });
         if (handled) return true;

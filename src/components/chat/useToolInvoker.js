@@ -146,7 +146,9 @@ function deriveFailureFeatureLabel(failure = {}) {
     'Study Guides',
     'Course FAQ',
   ];
-  return knownLabels.find((label) => new RegExp(`\\b${label.replace(/[.*+?^${}()|[\]\\]/g, '\\$&')}\\b`, 'i').test(message));
+  return knownLabels.find((label) =>
+    new RegExp(`\\b${label.replace(/[.*+?^${}()|[\]\\]/g, '\\$&')}\\b`, 'i').test(message),
+  );
 }
 
 const DELIVERABLE_REQUEST_TARGETS = [
