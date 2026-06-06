@@ -473,6 +473,36 @@ describe('evaluateWorkspaceReadiness', () => {
   });
 });
 
+describe('repairCourseMapReadiness', () => {
+  it('repairs objective stems, out-of-range lesson titles, and impossible lesson ranges', () => {
+    const result = repairCourseMapReadiness({
+      courseMap: {
+        courseName: 'Intro Psychology',
+        lessons: [
+          {
+            title: 'Lesson 1: What Psychology Is',
+            sections: [
+              {
+                learningObjectives: 'Students will be able to:\n1a. Explain psychological science.',
+                weeklyAssessments: 'Study guide spanning Lessons 1-14.',
+              },
+            ],
+          },
+          {
+            title: 'Lesson 15: Applied Reflection',
+            sections: [{ learningObjectives: '2a. Evaluate course evidence.' }],
+          },
+        ],
+      },
+    });
+
+    expect(result.changed).toBe(true);
+    expect(result.courseMap.lessons[0].sections[0].learningObjectives).toBe('Explain psychological science.');
+    expect(result.courseMap.lessons[0].sections[0].weeklyAssessments).toBe('Study guide spanning Lessons 1-2.');
+    expect(result.courseMap.lessons[1].title).toBe('Lesson 2: Applied Reflection');
+  });
+});
+
 describe('repairWorkspaceReadiness', () => {
   it('repairs course map placeholders before warnings reach export', () => {
     const placeholderMap = {

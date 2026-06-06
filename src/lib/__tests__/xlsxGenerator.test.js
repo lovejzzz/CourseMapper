@@ -1,6 +1,7 @@
 import { describe, expect, it } from 'vitest';
 import JSZip from 'jszip';
 import { buildXlsxBuffer } from '../xlsxGenerator';
+import { assertOfficeExportHasNoInternalText } from '../exportTextInspector';
 
 function decodeXml(value) {
   return String(value || '')
@@ -104,5 +105,53 @@ describe('xlsxGenerator', () => {
 
     expect(styles).toContain('vertical="center"');
     expect(styles).not.toContain('vertical="middle"');
+  });
+
+  it('exports clean course-map headers without instructional prompt text', async () => {
+    const buffer = await buildXlsxBuffer({
+      courseName: 'Intro Psychology',
+      lessons: [
+        {
+          title: 'Lesson 1: What Psychology Is',
+          sections: [{ learningGoals: 'Define the field.', learningObjectives: 'Explain core perspectives.' }],
+        },
+      ],
+    });
+
+    const text = await sheetText(buffer);
+
+    expect(text).toContain('Learning Goals');
+    expect(text).toContain('Learning Objectives');
+    expect(text).not.toContain('What are the big ideas');
+    expect(text).not.toContain('What students will know or be able to do');
+  });
+
+  it('translates internal review tags before writing public course-map exports', async () => {
+    const buffer = await buildXlsxBuffer(
+      {
+        courseName: 'Human Services Field Placement Seminar',
+        lessons: [
+          {
+            title: 'Lesson 1: Orientation',
+            sections: [
+              {
+                learningGoals: 'Prepare for agency-based practice.',
+                topicSection: 'Field placement readiness',
+                evaluateDesign:
+                  'Score pathway accuracy, constraint analysis, feasibility reasoning, and local-review cue. Source-review-required rows use a publish gate before handoff-review focus.',
+              },
+            ],
+          },
+        ],
+      },
+      columns,
+    );
+
+    const text = await sheetText(buffer);
+
+    expect(text).toContain('local confirmation cue');
+    expect(text).toContain('source confirmation needed rows use a publish checkpoint before handoff focus');
+    expect(text).not.toMatch(/\blocal-review\b|\bsource-review-required\b|\bpublish gate\b|\bhandoff-review focus\b/i);
+    await expect(assertOfficeExportHasNoInternalText(buffer, 'xlsx', 'Course Map')).resolves.toBeUndefined();
   });
 });

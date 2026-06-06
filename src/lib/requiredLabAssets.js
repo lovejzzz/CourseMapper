@@ -1,20 +1,55 @@
-function searchableExportText({ courseMap, deliverables, requestedFeatureIds }) {
-  const requestedDeliverables = {};
-  for (const featureId of requestedFeatureIds || []) {
-    if (featureId === 'courseMap') continue;
-    const entry = deliverables?.[featureId];
-    if (entry?.status === 'done' && entry?.data) requestedDeliverables[featureId] = entry.data;
+function collectCourseMapSourceText(courseMap) {
+  const parts = [
+    courseMap?.courseName,
+    courseMap?.description,
+    courseMap?.semester,
+    courseMap?.learningOutcomes,
+    courseMap?.sourceSummary,
+  ];
+  for (const lesson of courseMap?.lessons || []) {
+    parts.push(lesson?.title, lesson?.lessonTitle, lesson?.topic, lesson?.topicSection);
+    for (const section of lesson?.sections || []) {
+      parts.push(
+        section?.topicSection,
+        section?.learningGoals,
+        section?.learningObjectives,
+        section?.weeklyAssessments,
+        section?.asyncActivities,
+        section?.syncActivities,
+        section?.technologyNeeded,
+        section?.presentationFormat,
+        section?.supportingResources,
+        section?.evaluateDesign,
+      );
+    }
   }
-  return JSON.stringify({ courseMap, deliverables: requestedDeliverables }).toLowerCase();
+  return parts
+    .flatMap((part) => (Array.isArray(part) ? part : [part]))
+    .filter(Boolean)
+    .join(' ')
+    .toLowerCase();
 }
 
-export function collectRequiredLabAssets({ courseMap, deliverables, requestedFeatureIds }) {
-  const text = searchableExportText({ courseMap, deliverables, requestedFeatureIds });
-  const hasDataScienceSignal =
-    /\b(applied machine learning|machine learning|data science|predictive model|classification model|regression model|model validation|train[-\s]?test|cross[-\s]?validation|confusion matrix|jupyter|notebook|dataframe|dataset|data set)\b/.test(
+function searchableExportText({ courseMap }) {
+  return collectCourseMapSourceText(courseMap);
+}
+
+function hasDataScienceCourseSignal(text) {
+  const strongCourseSignal =
+    /\b(applied machine learning|machine learning|data science|data analytics|predictive modeling|classification model|regression model|model validation|train[-\s]?test|cross[-\s]?validation|confusion matrix|jupyter|ipynb|dataframe|sklearn|scikit)\b/.test(
       text,
     ) || /\b(precision|recall|threshold|fairness|bias audit|model card)\b/.test(text);
-  if (!hasDataScienceSignal) return [];
+  const datasetWithModelingContext =
+    /\b(dataset|data set)\b/.test(text) &&
+    /\b(model|prediction|classification|regression|validation|notebook|python|dataframe|machine learning|data science)\b/.test(
+      text,
+    );
+  return strongCourseSignal || datasetWithModelingContext;
+}
+
+export function collectRequiredLabAssets({ courseMap }) {
+  const text = searchableExportText({ courseMap });
+  if (!hasDataScienceCourseSignal(text)) return [];
 
   const requirements = [
     {
@@ -31,7 +66,11 @@ export function collectRequiredLabAssets({ courseMap, deliverables, requestedFea
     },
   ];
 
-  if (/\b(notebook|jupyter|ipynb|python|dataframe|sklearn|scikit|model validation)\b/.test(text)) {
+  if (
+    /\b(machine learning|data science|notebook|jupyter|ipynb|python|dataframe|sklearn|scikit|model validation)\b/.test(
+      text,
+    )
+  ) {
     requirements.push({
       id: 'starter-notebook',
       label: 'Starter lab notebook',
@@ -39,7 +78,9 @@ export function collectRequiredLabAssets({ courseMap, deliverables, requestedFea
       note: 'Include starter cells for loading data, inspecting features, running the model or analysis, and recording evidence.',
     });
   }
-  if (/\b(model card|fairness|bias|subgroup|threshold|precision|recall|confusion matrix)\b/.test(text)) {
+  if (
+    /\b(machine learning|model card|fairness|bias|subgroup|threshold|precision|recall|confusion matrix)\b/.test(text)
+  ) {
     requirements.push({
       id: 'model-card-template',
       label: 'Model card or validation template',

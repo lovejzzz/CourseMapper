@@ -1583,15 +1583,18 @@ test.describe('Export smoke', () => {
     });
 
     await page.getByTestId('export-scope-all').click();
-    await expect(page.getByTestId('readiness-status')).toContainText('Ready to download');
+    await expect(page.getByTestId('readiness-status')).toContainText('Finish package');
     await expect(page.getByTestId('readiness-panel')).not.toContainText('fewer than 5 questions');
     await expect(page.getByTestId('readiness-panel')).not.toContainText('missing answer guidance');
+    await expect(page.getByTestId('readiness-panel')).toContainText('Lesson 2 quiz keys every multiple-choice answer');
+    await expect(page.getByTestId('export-download-zip')).toContainText('Finish package');
 
-    await expectDownload(page, () => page.getByTestId('export-download-zip').click(), {
-      extension: 'zip',
-      nameIncludes: 'Export Smoke Course',
-      minBytes: 1000,
-    });
+    await page.getByTestId('export-download-zip').click();
+    await expect(page.getByTestId('readiness-confirm')).toContainText('Needs attention before export');
+    await expect(page.getByTestId('readiness-confirm')).toContainText(
+      'Lesson 2 quiz keys every multiple-choice answer',
+    );
+    await expect(page.getByTestId('readiness-export-anyway')).toHaveCount(0);
   });
 
   test('downloads ZIP when discussion guidance only has review notes', async ({ page }) => {

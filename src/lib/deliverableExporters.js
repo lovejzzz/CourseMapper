@@ -9,6 +9,7 @@ import {
   formatRequiredText,
   normalizeCourseRequirements,
 } from './exporters/syllabusExportUtils.js';
+import { isInternalExportMetadataKey } from './exporters/exporterUtils.js';
 import { expandKeys } from './keyMaps';
 import { buildXlsxWorkbook } from './lightweightXlsx.js';
 import { loadPdfRuntime } from './pdfRuntime.js';
@@ -402,6 +403,7 @@ function deliverableToCsvRows(featureId, data) {
       const seen = new Set();
       for (const item of items) {
         for (const k of Object.keys(item)) {
+          if (isInternalExportMetadataKey(k)) continue;
           if (!seen.has(k)) {
             seen.add(k);
             allKeys.push(k);
@@ -411,11 +413,30 @@ function deliverableToCsvRows(featureId, data) {
       const headers = allKeys.map((k) => k.replace(/([a-z])([A-Z])/g, '$1 $2').replace(/^./, (s) => s.toUpperCase()));
       const rows = items.map((item) =>
         allKeys.map((k) => {
+          if (isInternalExportMetadataKey(k)) return '';
           const v = item[k];
           if (v == null) return '';
           if (typeof v === 'string') return v;
-          if (Array.isArray(v)) return v.map((x) => (typeof x === 'string' ? x : JSON.stringify(x))).join('; ');
-          if (typeof v === 'object') return JSON.stringify(v);
+          if (Array.isArray(v)) {
+            return v
+              .map((x) => {
+                if (typeof x === 'string') return x;
+                if (x && typeof x === 'object') {
+                  return JSON.stringify(
+                    Object.fromEntries(
+                      Object.entries(x).filter(([nestedKey]) => !isInternalExportMetadataKey(nestedKey)),
+                    ),
+                  );
+                }
+                return JSON.stringify(x);
+              })
+              .join('; ');
+          }
+          if (typeof v === 'object') {
+            return JSON.stringify(
+              Object.fromEntries(Object.entries(v).filter(([nestedKey]) => !isInternalExportMetadataKey(nestedKey))),
+            );
+          }
           return String(v);
         }),
       );
@@ -797,7 +818,8 @@ function _buildDocxContentShared(featureId, data, children, docx) {
     new Paragraph({
       spacing: { line: SINGLE_SP, before: 20, after: 20 },
       indent: { left: 360 },
-      children: [new TextRun({ text: `• ${text || ''}`, size: BODY_SIZE, font: FONT })],
+      bullet: { level: 0 },
+      children: [new TextRun({ text: text || '', size: BODY_SIZE, font: FONT })],
     });
   const makeItalic = (text) =>
     new Paragraph({
@@ -991,14 +1013,6 @@ function _buildDocxContentShared(featureId, data, children, docx) {
       const key = expanded.decks ? 'decks' : 'slideDecks';
       for (const d of expanded[key] || []) {
         children.push(makeHeading(d.lessonTitle || 'Deck'));
-        if (d.slideDeckSequenceGuide) {
-          const guide = d.slideDeckSequenceGuide;
-          children.push(makeSubHeading('Deck Sequence Guide'));
-          if (guide.accessibilityStandards)
-            children.push(makeBold('Accessibility Standards', guide.accessibilityStandards));
-          if (guide.cumulativeAssessmentMap)
-            children.push(makeBold('Cumulative Assessment Map', guide.cumulativeAssessmentMap));
-        }
         for (let j = 0; j < (d.slides || []).length; j++) {
           const s = d.slides[j];
           children.push(makeBold(`Slide ${j + 1}`, s.title || ''));
@@ -1033,7 +1047,6 @@ function _buildDocxContentShared(featureId, data, children, docx) {
           if (q.answer) children.push(makeBold('Answer', q.answer));
           if (q.explanation) children.push(makeBold('Explanation', q.explanation));
           if (q.objectiveAligned) children.push(makeItalic(`Aligns to: ${q.objectiveAligned}`));
-          if (q.distractorRationale) children.push(makeItalic(`Distractor Rationale: ${q.distractorRationale}`));
           if (q.sampleAnswer) children.push(makeBold('Sample Answer', q.sampleAnswer));
           if (q.rubricHints) children.push(makeBold('Rubric Hints', q.rubricHints));
           if (q.scoringGuidance) children.push(makeBold('Scoring Guidance', q.scoringGuidance));
@@ -1455,7 +1468,7 @@ function _buildDocxContentShared(featureId, data, children, docx) {
         children.push(makeHeading(subtitle ? `${title} — ${subtitle}` : title));
 
         for (const [k, v] of Object.entries(item)) {
-          if (headerKeys.has(k) || v == null || v === '') continue;
+          if (headerKeys.has(k) || isInternalExportMetadataKey(k) || v == null || v === '') continue;
           const label = toLabel(k);
           if (typeof v === 'string') {
             if (v.length < 100) {
@@ -1471,7 +1484,7 @@ function _buildDocxContentShared(featureId, data, children, docx) {
                 children.push(makeBullet(el));
               } else if (typeof el === 'object' && el !== null) {
                 const parts = Object.entries(el)
-                  .filter(([, val]) => val != null && val !== '')
+                  .filter(([ek, val]) => !isInternalExportMetadataKey(ek) && val != null && val !== '')
                   .map(([ek, ev]) => `${toLabel(ek)}: ${typeof ev === 'string' ? ev : JSON.stringify(ev)}`);
                 children.push(makeBullet(parts.join(' · ')));
               }
@@ -1479,6 +1492,7 @@ function _buildDocxContentShared(featureId, data, children, docx) {
           } else if (typeof v === 'object') {
             children.push(makeSubHeading(label));
             for (const [sk, sv] of Object.entries(v)) {
+              if (isInternalExportMetadataKey(sk)) continue;
               if (sv != null && sv !== '')
                 children.push(makeBold(toLabel(sk), typeof sv === 'string' ? sv : JSON.stringify(sv)));
             }

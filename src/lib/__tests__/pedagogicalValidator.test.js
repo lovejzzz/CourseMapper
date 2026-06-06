@@ -23,6 +23,7 @@ import {
   validateObjectiveAlignment,
   assessCognitiveLoad,
   validateDifficultyProgression,
+  validateSemanticContentQuality,
   validateReadability,
   generateCourseHealthReport,
 } from '../pedagogicalValidator';
@@ -628,6 +629,143 @@ describe('validateReadability', () => {
 
     const findings = validateReadability({ courseName: 'Test Course' }, deliverables);
     expect(findings).toEqual([]);
+  });
+});
+
+// ── validateSemanticContentQuality ──────────────────────────────────────────
+
+describe('validateSemanticContentQuality', () => {
+  it('flags objective stem leakage, out-of-range lesson references, generic quiz templates, and all-same answer keys', () => {
+    const courseMap = {
+      courseName: 'Introduction to Psychology',
+      lessons: [
+        {
+          title: 'Lesson 1: What Psychology Is and Why It Matters',
+          sections: [
+            {
+              learningObjectives: 'Students will be able to:\n1a. Explain major perspectives.',
+              weeklyAssessments: 'Study guide that spans Lessons 1-14.',
+            },
+          ],
+        },
+        {
+          title: 'Lesson 15: Applied Reflection and Course Integration',
+          sections: [{ learningObjectives: 'Analyze course themes.' }],
+        },
+      ],
+    };
+    const deliverables = {
+      quizBank: doneDeliv({
+        quizzes: [
+          {
+            qs: [
+              {
+                ty: 'multiple_choice',
+                an: 'B',
+                oa: 'Students will be able to:',
+                op: [
+                  'A. Treat the concept as background information and move directly to a general summary.',
+                  'B. Use evidence.',
+                  'C. Choose the quickest activity.',
+                  'D. Delay the decision until all possible materials have been reviewed.',
+                ],
+              },
+              { ty: 'multiple_choice', an: 'B', op: ['A. no', 'B. yes', 'C. no', 'D. no'] },
+              { ty: 'multiple_choice', an: 'B', op: ['A. no', 'B. yes', 'C. no', 'D. no'] },
+            ],
+          },
+        ],
+      }),
+    };
+
+    const findings = validateSemanticContentQuality(courseMap, deliverables);
+    const ids = findings.map((finding) => finding.id);
+
+    expect(ids).toEqual(
+      expect.arrayContaining([
+        'semantic-objective-stem-L0',
+        'semantic-lesson-range-L0',
+        'semantic-lesson-number-L1',
+        'semantic-quiz-answer-pattern-L0',
+        'semantic-generic-distractors-L0-Q0',
+        'semantic-quiz-objective-stem-L0',
+      ]),
+    );
+  });
+
+  it('flags notebook and model-card bleed in non-data-science packages', () => {
+    const courseMap = {
+      courseName: 'Film Form and Cultural Analysis',
+      lessons: [{ title: 'Lesson 1: Shot Composition', sections: [{ learningObjectives: 'Analyze framing.' }] }],
+    };
+    const deliverables = {
+      studyGuides: doneDeliv({
+        guides: [
+          {
+            summary:
+              'Use the Westbrook Lab Evidence Packet, starter notebook, and model card to document the analysis.',
+          },
+        ],
+      }),
+    };
+
+    const findings = validateSemanticContentQuality(courseMap, deliverables);
+    const ids = findings.map((finding) => finding.id);
+
+    expect(ids).toEqual(expect.arrayContaining(['semantic-invented-domain-packet', 'semantic-nonml-lab-assets']));
+  });
+
+  it('flags repeated multiple-choice answer text by resolving it to the keyed option position', () => {
+    const courseMap = {
+      courseName: 'Export Reliability',
+      lessons: [{ title: 'Lesson 1: Portable Materials', sections: [{ learningObjectives: 'Evaluate exports.' }] }],
+    };
+    const deliverables = {
+      quizBank: doneDeliv({
+        quizzes: [
+          {
+            questions: Array.from({ length: 5 }, (_, index) => ({
+              type: 'multiple_choice',
+              question: `Portable format question ${index + 1}?`,
+              options: ['DOCX', 'PPTX', 'XLSX', 'PDF'],
+              answer: 'DOCX',
+            })),
+          },
+        ],
+      }),
+    };
+
+    const findings = validateSemanticContentQuality(courseMap, deliverables);
+
+    expect(findings).toEqual(
+      expect.arrayContaining([
+        expect.objectContaining({
+          id: 'semantic-quiz-answer-pattern-L0',
+          message: 'Lesson 1 quiz keys every multiple-choice answer as A',
+        }),
+      ]),
+    );
+  });
+
+  it('allows explicit machine-learning packages to reference notebooks and model cards', () => {
+    const courseMap = {
+      courseName: 'Applied Machine Learning',
+      lessons: [
+        {
+          title: 'Lesson 1: Model Validation',
+          sections: [{ learningObjectives: 'Evaluate validation evidence and model-card limitations.' }],
+        },
+      ],
+    };
+    const deliverables = {
+      studyGuides: doneDeliv({
+        guides: [{ summary: 'Use the Jupyter notebook, dataset, precision, recall, and model card.' }],
+      }),
+    };
+
+    const findings = validateSemanticContentQuality(courseMap, deliverables);
+
+    expect(findings.map((finding) => finding.id)).not.toContain('semantic-nonml-lab-assets');
   });
 });
 

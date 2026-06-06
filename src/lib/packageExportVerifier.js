@@ -4,6 +4,7 @@ import {
   findInternalExportText,
   findInternalOfficeXmlText,
   OFFICE_TEXT_PATH_PATTERNS,
+  sanitizeInternalExportLanguage,
 } from './exportTextInspector';
 import { expandKeys } from './keyMaps';
 import { resolveFeatureLabel } from './exporters/exporterUtils.js';
@@ -62,8 +63,8 @@ function getFailureFormat(featureId) {
 
 function toStr(value) {
   if (value == null) return '';
-  if (Array.isArray(value)) return value.map((item) => String(item)).join('\n');
-  return String(value);
+  if (Array.isArray(value)) return sanitizeInternalExportLanguage(value.map((item) => String(item)).join('\n'));
+  return sanitizeInternalExportLanguage(value);
 }
 
 function buildCourseMapPdfRows(courseMap, columns) {
@@ -103,7 +104,7 @@ function buildCourseMapPdfRows(courseMap, columns) {
     const sections = lesson.sections && lesson.sections.length > 0 ? lesson.sections : [{}];
     for (let sectionIndex = 0; sectionIndex < sections.length; sectionIndex += 1) {
       const section = sections[sectionIndex];
-      const row = [sectionIndex === 0 ? lesson.title : ''];
+      const row = [sectionIndex === 0 ? toStr(lesson.title) : ''];
       for (const key of columnKeys) {
         row.push(
           key === 'evaluateDesign'

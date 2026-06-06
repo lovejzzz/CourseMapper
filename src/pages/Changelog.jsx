@@ -3,6 +3,59 @@ import Header from '../components/Header';
 
 const releases = [
   {
+    version: '0.8.5',
+    date: 'June 6, 2026',
+    title: 'Export Quality Sweep Release',
+    highlights: [
+      'Export readiness now stays aligned with the final package state, so fixed issues do not keep blocking ZIP downloads',
+      'Public DOCX, XLSX, CSV, PPTX, and ZIP outputs are sanitized to keep internal proof and review language out of instructor-facing files',
+      'The compiler produces more lesson-specific concepts, slide guidance, quiz rationales, rubric language, and assignment labels with less repeated boilerplate',
+      'A new 25-course quality sweep compiles, finalizes, exports, and inspects 1,800+ generated files across broad disciplines and lesson scopes',
+    ],
+    sections: [
+      {
+        label: 'Export Reliability',
+        icon: 'ZIP',
+        color: 'emerald',
+        items: [
+          'The export panel now refreshes package readiness after the finalizer applies safe repairs, preventing stale "needs attention" blockers from surviving a completed finish pass.',
+          'ZIP verification reads the actual generated output and blocks only real export problems, not title-only readability noise or already repaired warnings.',
+          'Course-map, syllabus, lesson plan, slide deck, rubric, quiz, assignment, discussion, study guide, and FAQ exports are covered by focused regression checks.',
+        ],
+      },
+      {
+        label: 'Public Output Cleanup',
+        icon: 'TXT',
+        color: 'slate',
+        items: [
+          'Internal terms such as local review, source-review-required, source grounding, and publish gate are scrubbed from public export surfaces.',
+          'Slide deck DOCX exports omit internal sequence-guide metadata while keeping useful instructor-facing notes.',
+          'Quiz exports keep answer and rationale value while removing repetitive distractor-rationale boilerplate from public documents.',
+        ],
+      },
+      {
+        label: 'Generated Quality',
+        icon: '25',
+        color: 'indigo',
+        items: [
+          'Concept selection now prefers lesson-title signals before broad course atoms, improving subject specificity in downstream materials.',
+          'Assessment and activity language is shorter and more readable, reducing false readiness warnings for introductory courses.',
+          'Repeated-boilerplate detection now ignores expected policy and format fields while still catching true repeated instructional copy.',
+        ],
+      },
+      {
+        label: 'Quality Sweep Gate',
+        icon: 'QA',
+        color: 'amber',
+        items: [
+          'Added `audit:v085:sweep`, a repeatable 25-course proof gate that compiles blueprints, finalizes packages, builds ZIPs, and audits Office output.',
+          'The latest sweep passed 25/25 courses with zero blockers and zero warnings across 8-14 lesson packages and 22 course modalities.',
+          'The sweep inspected 1,828 exported files for placeholders, internal text leakage, required assets, speaker notes, FAQ counts, folder structure, and DOCX bullet structure.',
+        ],
+      },
+    ],
+  },
+  {
     version: '0.8.4',
     date: 'June 5, 2026',
     title: 'Compiler Weight Shift Release',

@@ -19,6 +19,26 @@ export const OFFICE_TEXT_PATH_PATTERNS = {
   xlsx: /^xl\/(?:sharedStrings|worksheets\/sheet\d+)\.xml$/,
 };
 
+export function sanitizeInternalExportLanguage(value) {
+  return String(value ?? '')
+    .replace(/\bcompiler decision(s)?\b/gi, 'design rationale$1')
+    .replace(/\bcompiler path\b/gi, 'design path')
+    .replace(/\bdeterministic[- ]blueprint\b/gi, 'course plan')
+    .replace(/\bmodel[- ]use policy\b/gi, 'AI use note')
+    .replace(/\bsource grounding\b/gi, 'source evidence')
+    .replace(/\bsource confidence\b/gi, 'evidence confidence')
+    .replace(/\bpublish(?:ing)? gate\b/gi, 'publish checkpoint')
+    .replace(/\bhandoff[- ]review focus\b/gi, 'handoff focus')
+    .replace(/\blocal[- ]review[- ]required(?:[- ]before[- ]publish)?\b/gi, 'local confirmation needed before use')
+    .replace(/\blocal[- ]review[- ]action\b/gi, 'local confirmation action')
+    .replace(/\blocal[- ]review[- ]gate\b/gi, 'local confirmation checkpoint')
+    .replace(/\blocal[- ]review[- ]focus\b/gi, 'local confirmation focus')
+    .replace(/\blocal[- ]review\b/gi, 'local confirmation')
+    .replace(/\bsource[- ]review[- ]required\b/gi, 'source confirmation needed')
+    .replace(/\bproof packet\b/gi, 'review packet')
+    .replace(/\baudit gate\b/gi, 'quality checkpoint');
+}
+
 export function findInternalTextInString(text) {
   const value = String(text || '');
   const match = INTERNAL_EXPORT_TEXT_PATTERNS.find(({ pattern }) => pattern.test(value));

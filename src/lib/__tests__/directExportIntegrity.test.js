@@ -1,9 +1,21 @@
-import { describe, expect, it } from 'vitest';
+import { describe, expect, it, vi } from 'vitest';
 import JSZip from 'jszip';
 import { exportDeliverableCsv, exportDeliverablePdf } from '../deliverableExporters';
 import { generatePdf } from '../exporters';
 import { exportDeliverablePdf as exportModularDeliverablePdf } from '../exporters/pdfExporter';
 import { saveToGoogleDocsBlob, saveToGoogleSheets, saveToGoogleSlides } from '../googleDrive';
+
+vi.mock('../pdfRuntime', () => ({
+  loadPdfRuntime: vi.fn(async () => ({
+    jsPDF: class {
+      setFontSize() {}
+      setFont() {}
+      text() {}
+      save() {}
+    },
+    autoTable: vi.fn(),
+  })),
+}));
 
 async function makeOfficeXmlBlob(path, xml) {
   const zip = new JSZip();
@@ -36,7 +48,7 @@ describe('direct export integrity guards', () => {
     ).rejects.toThrow('Lesson Plans CSV export exposes internal compiler decision language in Warm-Up.');
   });
 
-  it('blocks course-map PDF exports that expose internal proof language', async () => {
+  it('sanitizes known internal course-map PDF language before rendering', async () => {
     await expect(
       generatePdf({
         courseName: 'Research Methods',
@@ -52,7 +64,7 @@ describe('direct export integrity guards', () => {
           },
         ],
       }),
-    ).rejects.toThrow('Course Map PDF export exposes internal source grounding language in Learning Goals.');
+    ).resolves.toContain('Research Methods Course Map');
   });
 
   it('blocks current-tab deliverable PDF exports that expose internal proof language', async () => {

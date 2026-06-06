@@ -181,6 +181,8 @@ const BOILERPLATE_METADATA_KEYS = new Set([
   'genreReviewProtocol',
   'genreCommonFailure',
   'genreRevisionMove',
+  'academicIntegrityStatement',
+  'formatRequirements',
   'quizPlan',
   'quizBlueprint',
   'tags',

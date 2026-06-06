@@ -71,7 +71,8 @@ export function _buildDocxContentShared(featureId, data, children, docx) {
     new Paragraph({
       spacing: { line: SINGLE_SP, before: 20, after: 20 },
       indent: { left: 360 },
-      children: [new TextRun({ text: `• ${text || ''}`, size: BODY_SIZE, font: FONT })],
+      bullet: { level: 0 },
+      children: [new TextRun({ text: text || '', size: BODY_SIZE, font: FONT })],
     });
   const makeItalic = (text) =>
     new Paragraph({
@@ -265,14 +266,6 @@ export function _buildDocxContentShared(featureId, data, children, docx) {
       const key = expanded.decks ? 'decks' : 'slideDecks';
       for (const d of expanded[key] || []) {
         children.push(makeHeading(d.lessonTitle || 'Deck'));
-        if (d.slideDeckSequenceGuide) {
-          const guide = d.slideDeckSequenceGuide;
-          children.push(makeSubHeading('Deck Sequence Guide'));
-          if (guide.accessibilityStandards)
-            children.push(makeBold('Accessibility Standards', guide.accessibilityStandards));
-          if (guide.cumulativeAssessmentMap)
-            children.push(makeBold('Cumulative Assessment Map', guide.cumulativeAssessmentMap));
-        }
         for (let j = 0; j < (d.slides || []).length; j++) {
           const s = d.slides[j];
           children.push(makeBold(`Slide ${j + 1}`, s.title || ''));
@@ -307,7 +300,6 @@ export function _buildDocxContentShared(featureId, data, children, docx) {
           if (q.answer) children.push(makeBold('Answer', q.answer));
           if (q.explanation) children.push(makeBold('Explanation', q.explanation));
           if (q.objectiveAligned) children.push(makeItalic(`Aligns to: ${q.objectiveAligned}`));
-          if (q.distractorRationale) children.push(makeItalic(`Distractor Rationale: ${q.distractorRationale}`));
           if (q.sampleAnswer) children.push(makeBold('Sample Answer', q.sampleAnswer));
           if (q.rubricHints) children.push(makeBold('Rubric Hints', q.rubricHints));
           if (q.scoringGuidance) children.push(makeBold('Scoring Guidance', q.scoringGuidance));

@@ -1,5 +1,5 @@
 import { safeImport } from './safeImport.js';
-import { assertOfficeExportHasNoInternalText } from './exportTextInspector.js';
+import { assertOfficeExportHasNoInternalText, sanitizeInternalExportLanguage } from './exportTextInspector.js';
 import { buildXlsxWorkbook, columnName, XLSX_MIME } from './lightweightXlsx.js';
 
 // Lazy-loaded download helper
@@ -11,24 +11,16 @@ async function getSaveAs() {
 
 // Default header descriptions for known column keys
 const DEFAULT_HEADERS = {
-  learningGoals:
-    'Learning Goals\n\nWhat are the big ideas and questions to be addressed in the course? (Derived from Values, Knowledge, Skills, Behaviors and Competencies outlined in syllabus)',
+  learningGoals: 'Learning Goals',
   topicSection: 'Topic/Section',
-  learningObjectives:
-    "Learning Objectives\n\nWhat students will know or be able to do by the end of the lesson, using active verbs from Revised Bloom's taxonomy.",
-  weeklyAssessments:
-    'Weekly Assessments\n\n...by doing or demonstrating through some kind of task or activity...\n\nState the Evidence that student has achieved to demonstrate the desired learning objective.',
-  asyncActivities:
-    'ASYNCHRONOUS Activities & Instructional Strategies\n\nWhat must students do or see demonstrated in order to perform effectively and achieve desired results?',
-  syncActivities:
-    'SYNCHRONOUS Activities & Instructional Strategies\n\nWhat must students do or see demonstrated in order to perform effectively and achieve desired results?',
-  technologyNeeded:
-    'Technology Needed\n\nIdentify specific platforms or types of technology that will be needed to facilitate the assessments and activities.',
-  presentationFormat:
-    'Presentation Format of Instructional Material\n\nWhat kind of media or delivery format will be most effective for communicating the instructional material?',
-  supportingResources:
-    'Supporting Resources\n\nAdditional materials and resources aligned to the lesson goals, activities, and assessments.',
-  evaluateDesign: 'Evaluate Design\n\nAlignment check for goals, objectives, assessments, activities, and resources.',
+  learningObjectives: 'Learning Objectives',
+  weeklyAssessments: 'Weekly Assessments',
+  asyncActivities: 'Asynchronous Activities',
+  syncActivities: 'Synchronous Activities',
+  technologyNeeded: 'Technology Needed',
+  presentationFormat: 'Presentation Format',
+  supportingResources: 'Supporting Resources',
+  evaluateDesign: 'Evaluate Design',
 };
 
 function buildColumns(customColumns) {
@@ -61,8 +53,8 @@ function buildColumns(customColumns) {
 // Flatten a cell value to a plain string (handles arrays from AI responses)
 function toStr(val) {
   if (val == null) return '';
-  if (Array.isArray(val)) return val.map((v) => String(v)).join('\n');
-  return String(val);
+  if (Array.isArray(val)) return sanitizeInternalExportLanguage(val.map((v) => String(v)).join('\n'));
+  return sanitizeInternalExportLanguage(val);
 }
 
 // Remove columns that are entirely empty across all data rows (e.g. unused "Evaluate Design")
@@ -127,7 +119,7 @@ export async function buildXlsxBuffer(courseMap, customColumns) {
 
 function buildCourseMapSheet(courseMap, customColumns) {
   const columns = stripEmptyColumns(buildColumns(customColumns), courseMap);
-  const rows = [columns.map((col) => col.header)];
+  const rows = [columns.map((col) => sanitizeInternalExportLanguage(col.header))];
   const merges = [];
   const evaluateDesignColumnIndex = columns.findIndex((col) => col.key === 'evaluateDesign');
 
@@ -138,7 +130,9 @@ function buildCourseMapSheet(courseMap, customColumns) {
     for (const section of sections) {
       rows.push(
         columns.map((col) => {
-          if (col.key === 'weekModule') return section === sections[0] ? lesson.title : '';
+          if (col.key === 'weekModule') {
+            return section === sections[0] ? sanitizeInternalExportLanguage(lesson.title) : '';
+          }
           if (col.key === 'evaluateDesign') {
             if (section[col.key] === true || section[col.key] === 'true') return '\u2713';
             if (section[col.key] === false || section[col.key] === 'false') return '';

@@ -105,6 +105,135 @@ describe('packageFinalizer', () => {
     expect(strict.warnings.map((issue) => issue.message).join(' ')).toContain('boilerplate');
   });
 
+  it('blocks strict readiness when semantic quality defects are present', () => {
+    const courseMap = {
+      courseName: 'Introduction to Psychology',
+      lessons: [
+        {
+          title: 'Lesson 1: What Psychology Is and Why It Matters',
+          sections: [
+            {
+              learningObjectives: 'Students will be able to:\n1a. Explain psychology perspectives.',
+              weeklyAssessments: 'Study guide spanning Lessons 1-14.',
+            },
+          ],
+        },
+      ],
+    };
+    const deliverables = {
+      quizBank: {
+        status: 'done',
+        data: {
+          quizzes: [
+            {
+              qs: [
+                {
+                  ty: 'multiple_choice',
+                  an: 'B',
+                  oa: 'Students will be able to:',
+                  op: [
+                    'A. Treat the concept as background information and move directly to a general summary.',
+                    'B. Use evidence.',
+                    'C. Choose the quickest activity.',
+                    'D. Delay the decision until all possible materials have been reviewed.',
+                  ],
+                },
+                { ty: 'multiple_choice', an: 'B', op: ['A. no', 'B. yes', 'C. no', 'D. no'] },
+                { ty: 'multiple_choice', an: 'B', op: ['A. no', 'B. yes', 'C. no', 'D. no'] },
+              ],
+            },
+          ],
+        },
+      },
+    };
+
+    const readiness = evaluateStrictPackageReadiness(
+      { courseMap, deliverables, selectedFeatures: ['courseMap', 'quizBank'] },
+      { includePedagogicalValidation: true },
+    );
+
+    expect(readiness.status).toBe('blocked');
+    expect(readiness.blockers.map((issue) => issue.message).join(' ')).toContain('objective stem');
+    expect(readiness.blockers.map((issue) => issue.message).join(' ')).toContain('multiple-choice answer');
+  });
+
+  it('scopes semantic validation blockers to the selected export features', () => {
+    const courseMap = makeCourseMap(1);
+    const deliverables = {
+      lessonPlans: {
+        status: 'done',
+        data: {
+          lessonPlans: [
+            {
+              lessonTitle: 'Lesson 1: Research Topic 1',
+              objectives: ['Analyze research topic 1 using evidence and method criteria.'],
+              activities: ['Compare two research designs.'],
+            },
+          ],
+        },
+      },
+      quizBank: {
+        status: 'done',
+        data: {
+          quizzes: [
+            {
+              questions: Array.from({ length: 5 }, (_, index) => ({
+                type: 'multiple_choice',
+                question: `Portable format question ${index + 1}?`,
+                options: ['DOCX', 'PPTX', 'XLSX', 'PDF'],
+                answer: 'DOCX',
+              })),
+            },
+          ],
+        },
+      },
+    };
+
+    const currentTabReadiness = evaluateStrictPackageReadiness(
+      { courseMap, deliverables, selectedFeatures: ['courseMap', 'lessonPlans'] },
+      { includePedagogicalValidation: true },
+    );
+    const packageReadiness = evaluateStrictPackageReadiness(
+      { courseMap, deliverables, selectedFeatures: ['courseMap', 'quizBank'] },
+      { includePedagogicalValidation: true },
+    );
+
+    expect(currentTabReadiness.status).toBe('ready');
+    expect(packageReadiness.status).toBe('blocked');
+    expect(packageReadiness.blockers.map((issue) => issue.message).join(' ')).toContain(
+      'Lesson 1 quiz keys every multiple-choice answer as A',
+    );
+  });
+
+  it('keeps broad pedagogy validation as review guidance instead of export blockers', () => {
+    const courseMap = makeCourseMap(1);
+    const deliverables = {
+      assignments: {
+        status: 'done',
+        data: {
+          assignments: [
+            {
+              title: 'Research Design Audit',
+              rl: ['Lesson 1: Research Topic 1'],
+              et: '3 hours',
+              objectives: ['Analyze research topic 1 using evidence and method criteria.'],
+              instructions: ['Compare two research designs and write a short recommendation.'],
+            },
+          ],
+        },
+      },
+    };
+
+    const readiness = evaluateStrictPackageReadiness(
+      { courseMap, deliverables, selectedFeatures: ['assignments'] },
+      { includePedagogicalValidation: true },
+    );
+
+    expect(readiness.blockers).toEqual([]);
+    expect(readiness.status).toBe('warnings');
+    expect(readiness.warnings.map((issue) => issue.message).join(' ')).toContain('overloaded');
+  });
+
   it('applies deterministic repairs before reporting readiness', () => {
     const courseMap = makeCourseMap(2);
     const result = runDeterministicPackageFinalizer({

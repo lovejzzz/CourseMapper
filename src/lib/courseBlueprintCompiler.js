@@ -101,6 +101,26 @@ function stripLessonPrefix(value) {
   return cleanText(value).replace(/^(?:lesson|week)\s*\d+\s*[:.-]\s*/i, '');
 }
 
+const OBJECTIVE_STEM_RE = /^students?\s+will\s+be\s+able\s+to:?$/i;
+
+function stripListPrefix(value) {
+  return cleanText(value).replace(/^\s*(?:[-*•]|\d+[a-z]?[.)]?|[a-z][.)])\s*/i, '');
+}
+
+function normalizeObjectiveText(value) {
+  return stripListPrefix(value)
+    .replace(/^students?\s+will\s+be\s+able\s+to:?\s*/i, '')
+    .trim();
+}
+
+function isObjectiveStemOnly(value) {
+  return OBJECTIVE_STEM_RE.test(cleanText(value));
+}
+
+function wordCount(value) {
+  return (cleanText(value).match(/[A-Za-z0-9]+/g) || []).length;
+}
+
 function lessonTitle(lesson, lessonNumber) {
   return `Lesson ${lessonNumber}: ${stripLessonPrefix(lesson?.title || lesson?.lessonTitle || lesson?.lt || '') || `Topic ${lessonNumber}`}`;
 }
@@ -111,7 +131,7 @@ function splitList(value) {
   }
   return String(value || '')
     .split(/\n|;|\||\u2022/)
-    .map((item) => item.replace(/^\s*(?:[-*]|\d+[.)])\s*/, '').trim())
+    .map((item) => stripListPrefix(item).trim())
     .filter(Boolean);
 }
 
@@ -160,6 +180,13 @@ function wordsFromConcepts(values, limit = 8) {
     'analyze',
     'evaluate',
     'create',
+    'what',
+    'why',
+    'how',
+    'matters',
+    'overview',
+    'introduction',
+    'intro',
   ]);
   const candidates = values
     .join(' ')
@@ -168,6 +195,56 @@ function wordsFromConcepts(values, limit = 8) {
     .map((word) => word.trim())
     .filter((word) => word.length > 3 && !stopWords.has(word.toLowerCase()));
   return unique(candidates, limit);
+}
+
+function isQuestionLikeTitle(value) {
+  return /^(?:what|why|how|when|where|who)\b/i.test(cleanText(value)) || /\b(?:and why|why it matters)\b/i.test(value);
+}
+
+function splitConceptValues(value) {
+  return splitList(value).flatMap((item) =>
+    cleanText(item)
+      .split(/,\s*/)
+      .map((part) => part.trim())
+      .filter(Boolean),
+  );
+}
+
+function isObjectiveLikeConcept(value) {
+  return (
+    /^(?:analyze|evaluate|create|design|explain|compare|apply|synthesize|formulate|interpret|critique|develop|construct|identify|describe|use)\b/i.test(
+      cleanText(value),
+    ) && wordCount(value) > 4
+  );
+}
+
+function isOverlongConceptCandidate(value) {
+  const text = cleanText(value);
+  return wordCount(text) > 7 || (/[.!?]$/.test(text) && wordCount(text) > 3);
+}
+
+function isOverbroadLessonTitleConcept(value, title) {
+  const text = cleanText(value);
+  const titleText = stripLessonPrefix(title || '');
+  if (!text || !titleText || text.toLowerCase() !== titleText.toLowerCase()) return false;
+  return wordCount(text) > 6 || isQuestionLikeTitle(text);
+}
+
+function normalizeConceptCandidates(values, { title = '', limit = 8 } = {}) {
+  return unique(
+    asArray(values)
+      .flatMap((value) => splitConceptValues(value))
+      .map((value) => normalizeObjectiveText(value))
+      .filter(
+        (value) =>
+          value &&
+          !isWeakConcept(value) &&
+          !isObjectiveLikeConcept(value) &&
+          !isOverlongConceptCandidate(value) &&
+          !isOverbroadLessonTitleConcept(value, title),
+      ),
+    limit,
+  );
 }
 
 function firstNonEmpty(...values) {
@@ -1491,12 +1568,12 @@ function buildCriterionObjectiveAlignment({ lesson, criteria, criterionWeightPla
 }
 
 function objectiveForLesson(title, concepts) {
-  const concept = concepts[0] || stripLessonPrefix(title) || 'the weekly topic';
+  const concept = normalizeConceptCandidates(concepts, { title, limit: 1 })[0] || 'the lesson focus';
   return `Analyze ${concept} using course evidence and explain how it informs an instructional or professional decision.`;
 }
 
 function successCriteriaForLesson(title, concepts) {
-  const concept = concepts[0] || stripLessonPrefix(title) || 'the topic';
+  const concept = normalizeConceptCandidates(concepts, { title, limit: 1 })[0] || 'the lesson focus';
   return [
     `Names the relevant ${concept} concept accurately.`,
     `Uses specific evidence from the ${concept} materials or activity.`,
@@ -3395,7 +3472,7 @@ function assessmentTaskLabel(value, fallback = 'Weekly artifact') {
   const text = stripTerminalPunctuation(value || fallback);
   if (!text) return fallback;
   const colonIndex = text.indexOf(':');
-  const label = colonIndex > 4 && colonIndex <= 80 ? text.slice(0, colonIndex) : conciseClause(text, fallback, 78);
+  const label = colonIndex > 4 && colonIndex <= 64 ? text.slice(0, colonIndex) : conciseClause(text, fallback, 54);
   return sentenceCase(label);
 }
 
@@ -3404,7 +3481,21 @@ function buildStudentArtifactLabel(assessmentText, title, fallback) {
   if (parts.length === 0) return fallback || `${stripLessonPrefix(title)} artifact`;
   const labels = parts.map((part) => assessmentTaskLabel(part, `${stripLessonPrefix(title)} artifact`));
   if (labels.length === 1) return labels[0];
-  return `${labels[0]} and ${labels[1].charAt(0).toLowerCase()}${labels[1].slice(1)}`;
+  const combined = `${labels[0]} and ${labels[1].charAt(0).toLowerCase()}${labels[1].slice(1)}`;
+  return combined.length <= 82 ? combined : labels[0];
+}
+
+function instructorProvidedThroughlineProfile(courseName, domainLabel, setting) {
+  const courseLabel = cleanText(courseName, 'Course');
+  return {
+    projectName: `${courseLabel} ${domainLabel}`,
+    clientName: 'the course audience',
+    datasetName: '',
+    casePacketName: 'Instructor-provided course materials',
+    stakeholderGroup: 'students, instructors, peer reviewers, and relevant course audiences',
+    setting,
+    sourceMode: 'instructor-provided',
+  };
 }
 
 function selectThroughlineProfile({ courseName = '', courseConcepts = [], lens = {}, courseModalityProfile = {} }) {
@@ -3426,87 +3517,64 @@ function selectThroughlineProfile({ courseName = '', courseConcepts = [], lens =
       stakeholderGroup: 'residents, service coordinators, data analysts, program managers, and fairness reviewers',
       setting:
         'a civic-services analytics project where students build, validate, and audit a triage model from a course-created dataset',
+      sourceMode: 'data-science-lab',
     };
   }
   if (/\b(social policy|welfare|benefits|human services|social work|poverty|public assistance)\b/.test(text)) {
-    return {
-      projectName: 'Riverton Family Support Access Initiative',
-      clientName: 'Riverton Human Services Collaborative',
-      datasetName: 'Riverton Benefits Access and Service Gap Dataset',
-      casePacketName: 'Riverton Family Support Evidence Packet',
-      stakeholderGroup: 'families, frontline caseworkers, agency leaders, and local policy staff',
-      setting: 'a midsize city reviewing access to family support, cash assistance, housing, and food benefits',
-    };
+    return instructorProvidedThroughlineProfile(
+      courseName,
+      'Policy Evidence Thread',
+      'a course-specific policy or practice context supplied by the instructor',
+    );
   }
   if (/\b(environment|climate|sustainability|resilience|urban|planning)\b/.test(text)) {
-    return {
-      projectName: 'Harborview Resilience Corridor',
-      clientName: 'Harborview Planning Department',
-      datasetName: 'Harborview Resilience and Equity Dataset',
-      casePacketName: 'Harborview Resilience Evidence Packet',
-      stakeholderGroup: 'residents, neighborhood groups, agency staff, and elected decision makers',
-      setting: 'a coastal community comparing resilience investments and equity tradeoffs',
-    };
+    return instructorProvidedThroughlineProfile(
+      courseName,
+      'Sustainability Evidence Thread',
+      'an instructor-provided environmental, planning, or sustainability context',
+    );
   }
   if (/\b(policy|public administration|governance|regulatory|stakeholder|equity)\b/.test(text)) {
-    return {
-      projectName: 'Harborview Community Policy Lab',
-      clientName: 'Harborview Policy Advisory Office',
-      datasetName: 'Harborview Policy Options Dataset',
-      casePacketName: 'Harborview Policy Evidence Packet',
-      stakeholderGroup: 'community members, service providers, administrators, and policy decision makers',
-      setting: 'a public agency weighing policy options under equity, feasibility, and implementation constraints',
-    };
+    return instructorProvidedThroughlineProfile(
+      courseName,
+      'Policy Analysis Thread',
+      'an instructor-provided policy decision context',
+    );
   }
   if (/\b(healthcare|health care|clinical|patient|nursing|medical|care coordination)\b/.test(text)) {
-    return {
-      projectName: 'Maple Grove Care Coordination Case',
-      clientName: 'Maple Grove Community Health Clinic',
-      datasetName: 'Maple Grove Patient Communication and Care Dataset',
-      casePacketName: 'Maple Grove Care Evidence Packet',
-      stakeholderGroup: 'patients, care teams, clinic staff, and family supporters',
-      setting: 'a community clinic improving patient communication, safety, and follow-up care',
-    };
+    return instructorProvidedThroughlineProfile(
+      courseName,
+      'Clinical Evidence Thread',
+      'an instructor-provided care, safety, or clinical reasoning context',
+    );
   }
   if (/\b(research methods|survey|interview|ethnography|statistics|mixed methods|data collection)\b/.test(text)) {
-    return {
-      projectName: 'Riverton Community Study',
-      clientName: 'Riverton Applied Research Team',
-      datasetName: 'Riverton Community Study Dataset',
-      casePacketName: 'Riverton Research Design Evidence Packet',
-      stakeholderGroup: 'research participants, community partners, analysts, and review stakeholders',
-      setting: 'a mixed-methods study moving from research question design to evidence-based reporting',
-    };
+    return instructorProvidedThroughlineProfile(
+      courseName,
+      'Research Design Thread',
+      'an instructor-provided research question, source set, or methods example',
+    );
   }
   if (/\b(lab|chemistry|biology|experiment|synthesis|chromatography|spectroscopy)\b/.test(text)) {
-    return {
-      projectName: 'Westbrook Lab Investigation',
-      clientName: 'Westbrook Teaching Laboratory',
-      datasetName: 'Westbrook Lab Notebook Dataset',
-      casePacketName: 'Westbrook Lab Evidence Packet',
-      stakeholderGroup: 'student researchers, lab partners, safety reviewers, and technical readers',
-      setting: 'a teaching laboratory where students connect procedures, evidence, and scientific claims',
-    };
+    return instructorProvidedThroughlineProfile(
+      courseName,
+      'Lab Evidence Thread',
+      'an instructor-provided lab procedure, observation, or results context',
+    );
   }
   if (/\b(design|studio|prototype|user experience|ux|product)\b/.test(text)) {
-    return {
-      projectName: 'Northstar Service Design Studio',
-      clientName: 'Northstar Community Services',
-      datasetName: 'Northstar User Research Dataset',
-      casePacketName: 'Northstar Design Evidence Packet',
-      stakeholderGroup: 'users, service staff, product reviewers, and implementation partners',
-      setting: 'a service-design project moving from user evidence to prototype decisions',
-    };
+    return instructorProvidedThroughlineProfile(
+      courseName,
+      'Design Evidence Thread',
+      'an instructor-provided user, prototype, or design critique context',
+    );
   }
 
-  return {
-    projectName: 'Cedar Ridge Community Project',
-    clientName: 'Cedar Ridge Project Team',
-    datasetName: 'Cedar Ridge Course Evidence Dataset',
-    casePacketName: 'Cedar Ridge Evidence Packet',
-    stakeholderGroup: 'learners, practitioners, reviewers, and local decision makers',
-    setting: 'a realistic course project that lets students reuse evidence across lessons',
-  };
+  return instructorProvidedThroughlineProfile(
+    courseName,
+    'Evidence Thread',
+    'the instructor-provided course context and assigned materials',
+  );
 }
 
 function buildCourseThroughlineContext({
@@ -3531,15 +3599,20 @@ function buildCourseThroughlineContext({
         ? `${profile.projectName} starts with ${firstFocus} and returns through ${lastFocus} as students revise evidence, tradeoffs, and recommendations.`
         : `${profile.projectName} gives the course a recurring evidence case across lessons.`,
     evidenceBoundary:
-      'This is a fictional course-created case for classroom practice; replace it with official local sources when the instructor has a required case, dataset, or policy document.',
+      profile.sourceMode === 'data-science-lab'
+        ? 'This is a fictional course-created case for classroom practice; replace it with official local sources when the instructor has a required case, dataset, or policy document.'
+        : 'Use instructor-provided readings, examples, cases, media, notes, or local materials. Do not invent source titles, datasets, authors, URLs, or official facts.',
   };
 }
 
 function buildLessonThroughlineCase(context, lesson) {
   const lessonTitle = stripLessonPrefix(lesson?.title || 'this lesson');
-  const concept = lesson?.keyConcepts?.[0] || lessonTitle;
+  const concept = primaryConceptForLesson(lesson);
   const artifact = stripTerminalPunctuation(lesson?.studentArtifact || 'the lesson artifact');
-  const evidencePacket = `${context.casePacketName}: Lesson ${lesson.lessonNumber} ${lessonTitle}`;
+  const evidencePacket =
+    context.sourceMode === 'instructor-provided'
+      ? `${context.casePacketName} for Lesson ${lesson.lessonNumber}: ${lessonTitle}`
+      : `${context.casePacketName}: Lesson ${lesson.lessonNumber} ${lessonTitle}`;
   const isDataScienceCase = /\b(model|analytics|dataset|notebook|data science|machine learning|triage)\b/i.test(
     [context.projectName, context.clientName, context.datasetName, context.casePacketName, context.setting].join(' '),
   );
@@ -3781,7 +3854,12 @@ function buildTeachingIntent({ lesson, previous, next }) {
 }
 
 function primaryConceptForLesson(lesson = {}) {
-  return lesson.keyConcepts?.[0] || stripLessonPrefix(lesson.title) || 'the lesson focus';
+  return (
+    normalizeConceptCandidates(lesson.keyConcepts || [], { title: lesson.title, limit: 1 })[0] ||
+    normalizeConceptCandidates(lesson.outcomes || [], { title: lesson.title, limit: 1 })[0] ||
+    wordsFromConcepts([lesson.outcomes?.join(' '), lesson.title], 3).find((word) => !isWeakConcept(word)) ||
+    'the lesson focus'
+  );
 }
 
 function buildConceptDependencyGraph({ lessons = [], assessments = [] }) {
@@ -4188,6 +4266,7 @@ function buildEvidenceResponseMap(lessons = []) {
 }
 
 function isWeakConcept(value) {
+  if (isObjectiveStemOnly(value)) return true;
   return /^(?:tbd|to be determined|none|n\/a|lesson|week|topic|topic\s*\d+|lesson\s*\d+\s*focus|block|clinical|community|health|studio|seminar|placement)$/i.test(
     cleanText(value),
   );
@@ -7620,7 +7699,7 @@ function buildCourseAlignmentMatrix(lessons, assessments) {
 }
 
 function normalizeObjectiveKey(value) {
-  return cleanText(value).toLowerCase();
+  return normalizeObjectiveText(value).toLowerCase();
 }
 
 function objectiveOverlapScore(left, right) {
@@ -9545,14 +9624,23 @@ function shouldRebuildAssessmentAnchors(lessons = [], assessments = []) {
 
 function deriveRoutineFieldsForLesson(lesson = {}, index = 0) {
   const title = lesson.title || `Lesson ${index + 1}`;
-  const concepts =
+  const concepts = normalizeConceptCandidates(
     Array.isArray(lesson.keyConcepts) && lesson.keyConcepts.length > 0
       ? lesson.keyConcepts
-      : [stripLessonPrefix(title)];
-  const outcomes =
+      : wordsFromConcepts([lesson.outcomes?.join(' '), title], 6),
+    { title, limit: 8 },
+  );
+  const safeConcepts = concepts.length > 0 ? concepts : ['the lesson focus'];
+  const suppliedOutcomes =
     Array.isArray(lesson.outcomes) && lesson.outcomes.length > 0
-      ? lesson.outcomes
-      : [objectiveForLesson(title, concepts)];
+      ? unique(
+          lesson.outcomes
+            .map((objective) => normalizeObjectiveText(objective))
+            .filter((objective) => objective && !isWeakConcept(objective)),
+          5,
+        )
+      : [];
+  const outcomes = suppliedOutcomes.length > 0 ? suppliedOutcomes : [objectiveForLesson(title, safeConcepts)];
   const readings =
     Array.isArray(lesson.readings) && lesson.readings.length > 0
       ? lesson.readings
@@ -9565,7 +9653,7 @@ function deriveRoutineFieldsForLesson(lesson = {}, index = 0) {
     lesson.studentArtifact ||
     buildSyntheticAssessment({
       title,
-      concepts,
+      concepts: safeConcepts,
       outcomes,
       activities,
       bloomsLevel: lesson.bloomsLevel || 'Apply',
@@ -9589,35 +9677,40 @@ function deriveRoutineFieldsForLesson(lesson = {}, index = 0) {
   const difficultyProfile =
     lesson.difficultyProfile?.cognitiveDemand && lesson.difficultyProfile?.stage
       ? lesson.difficultyProfile
-      : buildDifficultyProfile({ originalIndex: index, bloomsLevel, hasAssessment: Boolean(artifact), concepts });
+      : buildDifficultyProfile({
+          originalIndex: index,
+          bloomsLevel,
+          hasAssessment: Boolean(artifact),
+          concepts: safeConcepts,
+        });
   const evidencePlan =
     lesson.evidencePlan?.sourceCue && lesson.evidencePlan?.evidenceRequirement && lesson.evidencePlan?.limitationCue
       ? lesson.evidencePlan
-      : buildEvidencePlan({ title, concepts, resources: readings, activities, artifact });
+      : buildEvidencePlan({ title, concepts: safeConcepts, resources: readings, activities, artifact });
   const sourceUsePlan =
     Array.isArray(lesson.sourceUsePlan?.approvedSources) &&
     lesson.sourceUsePlan.approvedSources.length > 0 &&
     lesson.sourceUsePlan?.noInventedSources
       ? lesson.sourceUsePlan
-      : buildSourceUsePlan({ title, concepts, resources: readings, evidencePlan, artifact });
+      : buildSourceUsePlan({ title, concepts: safeConcepts, resources: readings, evidencePlan, artifact });
   const misconceptionMap =
     Array.isArray(lesson.misconceptionMap) && lesson.misconceptionMap.length > 0
       ? lesson.misconceptionMap
-      : buildMisconceptionMap({ title, concepts, artifact });
+      : buildMisconceptionMap({ title, concepts: safeConcepts, artifact });
   const modelContrast =
     lesson.modelContrast?.exemplarMove && lesson.modelContrast?.nonExemplarMove
       ? lesson.modelContrast
-      : buildModelContrast({ title, concepts, artifact, evidencePlan });
+      : buildModelContrast({ title, concepts: safeConcepts, artifact, evidencePlan });
   const readinessSupport =
     lesson.readinessSupport?.diagnosticPrompt && lesson.readinessSupport?.supportMove
       ? lesson.readinessSupport
-      : buildReadinessSupportPlan({ title, concepts, artifact, evidencePlan });
+      : buildReadinessSupportPlan({ title, concepts: safeConcepts, artifact, evidencePlan });
   const instructionalRationale =
     lesson.instructionalRationale?.sequenceRationale && lesson.instructionalRationale?.assessmentRationale
       ? lesson.instructionalRationale
       : buildInstructionalRationale({
           title,
-          concepts,
+          concepts: safeConcepts,
           artifact,
           evidencePlan,
           readinessSupport,
@@ -9626,23 +9719,23 @@ function deriveRoutineFieldsForLesson(lesson = {}, index = 0) {
   const accessibilityPlan =
     lesson.accessibilityPlan?.representation && lesson.accessibilityPlan?.accommodationReviewCue
       ? lesson.accessibilityPlan
-      : buildAccessibilityPlan({ title, concepts, artifact, evidencePlan, readinessSupport });
+      : buildAccessibilityPlan({ title, concepts: safeConcepts, artifact, evidencePlan, readinessSupport });
   const feedbackCycle =
     lesson.feedbackCycle?.formativeEvidence && lesson.feedbackCycle?.studentRevisionAction
       ? lesson.feedbackCycle
-      : buildFeedbackCycle({ title, concepts, artifact, evidencePlan });
+      : buildFeedbackCycle({ title, concepts: safeConcepts, artifact, evidencePlan });
 
   return {
     ...lesson,
     outcomes,
-    keyConcepts: concepts,
+    keyConcepts: safeConcepts,
     readings,
     activityPattern,
     studentArtifact: artifact,
     successCriteria:
       Array.isArray(lesson.successCriteria) && lesson.successCriteria.length > 0
         ? lesson.successCriteria
-        : successCriteriaForLesson(title, concepts),
+        : successCriteriaForLesson(title, safeConcepts),
     bloomsLevel,
     bloomInference,
     workloadEstimate,
@@ -10546,22 +10639,23 @@ function extractLessonBlueprint(lesson, originalIndex) {
   const resourceText = extractColumn(lesson, 'supportingResources');
   const asyncActivityText = extractColumn(lesson, 'asyncActivities');
   const syncActivityText = extractColumn(lesson, 'syncActivities');
-  const objectiveEntries = meaningfulEntries(splitList(objectiveText));
+  const objectiveEntries = meaningfulEntries(splitList(objectiveText).map((item) => normalizeObjectiveText(item)));
   const goalEntries = meaningfulEntries(splitList(goalText));
   const hasObjectives = objectiveEntries.length > 0;
   const hasGoals = goalEntries.length > 0;
   const objectives = unique(objectiveEntries.length > 0 ? objectiveEntries : goalEntries, 5);
   const topicEntries = meaningfulEntries(splitList(topicText));
   const hasTopics = topicEntries.length > 0;
-  const topics = unique(topicEntries.length > 0 ? topicEntries : goalEntries, 8);
-  const topicTitleFallback = titleFallbackFromTopics(topics);
+  const topics = normalizeConceptCandidates(topicEntries.length > 0 ? topicEntries : goalEntries, { title, limit: 8 });
+  const topicTitleFallback = titleFallbackFromTopics(topicEntries.length > 0 ? topicEntries : topics);
   if (isWeakConcept(stripLessonPrefix(title)) && topicTitleFallback) {
     title = `Lesson ${lessonNumber}: ${topicTitleFallback}`;
   }
   const rawTitleConcept = stripLessonPrefix(title);
-  const titleConcepts = isWeakConcept(rawTitleConcept)
-    ? []
-    : unique([rawTitleConcept].concat(wordsFromConcepts([rawTitleConcept], 4)), 4);
+  const titleConcepts =
+    isWeakConcept(rawTitleConcept) || isOverbroadLessonTitleConcept(rawTitleConcept, title)
+      ? wordsFromConcepts([rawTitleConcept], 4)
+      : unique([rawTitleConcept].concat(wordsFromConcepts([rawTitleConcept], 4)), 4);
   const resources = unique(meaningfulEntries(splitList(resourceText)), 6);
   const asyncActivities = meaningfulEntries(splitList(asyncActivityText));
   const syncActivities = meaningfulEntries(splitList(syncActivityText));
@@ -10581,12 +10675,18 @@ function extractLessonBlueprint(lesson, originalIndex) {
       ? evaluationDesignEntries.join('; ')
       : firstNonEmpty(weeklyAssessmentText, evaluationDesignText);
   const hasAssessment = hasWeeklyAssessment || hasEvaluationDesign;
-  const concepts = unique(
-    [...titleConcepts, ...topics, ...wordsFromConcepts([...topics, ...objectives, title], 5)],
-    8,
-  ).filter((concept) => !isWeakConcept(concept));
+  const concepts = normalizeConceptCandidates(
+    [...titleConcepts, ...topics, ...wordsFromConcepts([...titleConcepts, ...topics, ...objectives], 5)],
+    { title, limit: 8 },
+  );
   const keyConcepts =
-    concepts.length > 0 ? concepts : [topics.find((topic) => !isWeakConcept(topic)) || `Lesson ${lessonNumber} focus`];
+    concepts.length > 0
+      ? concepts
+      : [
+          topics.find((topic) => !isWeakConcept(topic)) ||
+            wordsFromConcepts([objectiveText, topicText, title], 1)[0] ||
+            'the lesson focus',
+        ];
   const outcomes = objectives.length > 0 ? objectives : [objectiveForLesson(title, keyConcepts)];
   const bloomInference = inferBloomLevelFromSignals([
     { source: hasObjectives ? 'learning objectives' : 'derived objectives', text: outcomes.join('; ') },
@@ -12621,16 +12721,16 @@ function compileAssignments(blueprint) {
           lesson.sourceUsePlan?.studentAttributionMove ||
             `Name the reading, activity, or course note used before explaining the evidence for ${assessmentTitle}.`,
           lesson.evidencePlan?.limitationCue || `Name one limitation before finalizing ${assessmentTitle}.`,
-          submissionProfile.reviewProtocol,
+          `For ${stripLessonPrefix(lesson.title)}, ${submissionProfile.reviewProtocol}.`,
           assessment.anchorExampleSet?.studentFacingUse ||
             `Compare a strong and partial sample before finalizing ${assessmentTitle}.`,
           `Draft ${assessmentTitle} so each section addresses one rubric criterion.`,
           `Use feedback or self-review to revise one evidence link, limitation, or decision step in ${assessmentArtifact} before posting it.`,
         ],
         formatRequirements: {
-          length: `Enough detail to address every ${assessmentTitle} criterion; follow instructor length guidance when provided.`,
+          length: 'Enough detail to address each criterion; follow instructor length guidance when provided.',
           format: submissionProfile.expectedFormat,
-          reviewProtocol: submissionProfile.reviewProtocol,
+          reviewProtocol: `For ${stripLessonPrefix(lesson.title)}, ${submissionProfile.reviewProtocol}.`,
           workloadFit: submissionProfile.workload.outOfClassEstimate,
           citationStyle: `Use the citation style specified for ${assessmentTitle} or the course assignment prompt.`,
           submissionPlatform: 'Official course site',
@@ -12706,7 +12806,7 @@ function compileAssignments(blueprint) {
         ].filter(Boolean),
         citationAndSourceUse: lesson.sourceUsePlan || null,
         academicIntegrityStatement:
-          `For ${assessmentTitle}, submitted work must represent the student or team effort and cite outside sources or approved tools. Course-specific AI use in ${assessmentArtifact} must be disclosed for ${assessmentTitle} when it contributes to submitted work. ` +
+          `Submitted work must represent the student or team effort. Cite outside sources or approved tools, and disclose course-specific AI use when it contributes to the submission. ` +
           `${lesson.sourceUsePlan?.noInventedSources || 'Do not invent source details; mark missing citation details for instructor review.'}`,
         accessibilityAndUDL:
           lesson.accessibilityPlan?.accommodationReviewCue ||
@@ -12719,10 +12819,14 @@ function compileAssignments(blueprint) {
               weight: '',
               evidenceSignal: 'Criterion evidence needs review.',
             }))
-        ).map(
-          (entry) =>
-            `Before submitting, confirm: ${entry.criterion}${entry.weight ? ` (${entry.weight}%)` : ''}. Evidence check: ${entry.evidenceSignal || entry.evidenceNeeded}`,
-        ),
+        ).map((entry) => {
+          const evidenceCheck = conciseClause(
+            entry.evidenceSignal || entry.evidenceNeeded,
+            'Show criterion-specific evidence',
+            140,
+          );
+          return `${entry.criterion}${entry.weight ? ` (${entry.weight}%)` : ''}: ${evidenceCheck}.`;
+        }),
         feedbackLoop: assessment.feedbackUse,
         revisionCheck: assessment.feedbackCycle?.closureCheck || assessment.feedbackUse,
         tags: unique(['assignment', assessment.title, ...assessment.relatedLessons, ...assessment.criteria], 10),
@@ -12988,6 +13092,53 @@ function dataScienceTermGuide(term, lesson = {}) {
   };
 }
 
+function studyGuideTermsForLesson(lesson = {}) {
+  const terms = normalizeConceptCandidates(lesson.keyConcepts || [], { title: lesson.title, limit: 8 });
+  const titleWords = new Set(
+    stripLessonPrefix(lesson.title || '')
+      .toLowerCase()
+      .split(/\s+/)
+      .filter(Boolean),
+  );
+  const withoutTitleFragments = terms.filter(
+    (term) => !(wordCount(term) === 1 && titleWords.has(cleanText(term).toLowerCase())),
+  );
+  if (withoutTitleFragments.length >= 4) return withoutTitleFragments;
+  if (terms.length >= 3) return terms;
+  return unique(
+    [...terms, ...wordsFromConcepts([lesson.outcomes?.join(' '), lesson.successCriteria?.join(' ')], 8)],
+    8,
+  );
+}
+
+function generalTermGuide(term, lesson = {}, lens = {}, termIndex = 0) {
+  const cleanTerm = cleanText(term, 'lesson concept');
+  const lessonTitle = stripLessonPrefix(lesson.title || 'this lesson');
+  const artifact = stripTerminalPunctuation(lesson.studentArtifact || 'the lesson artifact');
+  const evidenceNoun = lens.evidenceNoun || 'course evidence';
+  const decisionNoun = lens.decisionNoun || 'course decision';
+  const sourceCue = lesson.evidencePlan?.sourceCue || 'the assigned materials';
+  const patterns = [
+    {
+      definition: `${cleanTerm} names the evidence focus students use when deciding what counts as support for ${artifact}.`,
+      example: `In ${lessonTitle}, students connect ${cleanTerm} to one detail from ${sourceCue} before explaining the ${decisionNoun}.`,
+    },
+    {
+      definition: `${cleanTerm} helps students separate description from evidence-backed reasoning in ${lessonTitle}.`,
+      example: `A strong ${artifact} response uses ${cleanTerm} to compare evidence, state a limitation, and choose the next step.`,
+    },
+    {
+      definition: `Use ${cleanTerm} as a self-check: the claim should name context, cite ${evidenceNoun}, and avoid overstatement.`,
+      example: `During ${lessonTitle}, students test whether ${cleanTerm} changes the evidence they select for ${artifact}.`,
+    },
+    {
+      definition: `${cleanTerm} is the part of the lesson students must apply to the weekly artifact, not just define from memory.`,
+      example: `For ${artifact}, students show ${cleanTerm} by explaining why one evidence choice supports the ${decisionNoun}.`,
+    },
+  ];
+  return { term: cleanTerm, ...patterns[termIndex % patterns.length] };
+}
+
 function compileStudyGuides(blueprint) {
   const lens = blueprintLens(blueprint);
   return {
@@ -12996,7 +13147,8 @@ function compileStudyGuides(blueprint) {
       const isDataScience = isDataScienceLabLesson(blueprint, lesson);
       const datasetName = lesson.throughlineCase?.datasetName || 'the course dataset';
       const casePacket = lesson.throughlineCase?.evidencePacket || `${stripLessonPrefix(lesson.title)} lab packet`;
-      const primaryConcept = lesson.keyConcepts[0] || stripLessonPrefix(lesson.title);
+      const primaryConcept = primaryConceptForLesson(lesson);
+      const keyTerms = studyGuideTermsForLesson(lesson);
       const dataScienceEvidenceCue =
         'validation metrics, model-performance evidence, data-quality checks, threshold tradeoffs, and fairness or limitation evidence';
       const misconceptionMap = Array.isArray(lesson.misconceptionMap) ? lesson.misconceptionMap : [];
@@ -13024,12 +13176,8 @@ function compileStudyGuides(blueprint) {
         learningTransferPlan: lesson.learningTransferPlan,
         teachingIntent: lesson.teachingIntent,
         keyTerms: isDataScience
-          ? lesson.keyConcepts.slice(0, 8).map((term) => dataScienceTermGuide(term, lesson))
-          : lesson.keyConcepts.slice(0, 8).map((term) => ({
-              term,
-              definition: `${term} as used in ${lesson.title}, with attention to ${lens.evidenceNoun}, context, and application.`,
-              example: `In ${lesson.title}, students use ${term} to explain a concrete ${lens.decisionNoun}.`,
-            })),
+          ? keyTerms.map((term) => dataScienceTermGuide(term, lesson))
+          : keyTerms.map((term, termIndex) => generalTermGuide(term, lesson, lens, termIndex)),
         conceptConnections: [
           `${lesson.title} connects to the assessment artifact: ${lesson.studentArtifact}.`,
           lesson.prerequisitePlan?.prerequisiteEvidence ||
@@ -13137,7 +13285,16 @@ function quizQuestionId(lesson, index) {
 }
 
 function quizTags(lesson, type, bloom, use) {
-  return unique(['quiz', lesson.title, ...lesson.keyConcepts.slice(0, 3), type, bloom, use], 8);
+  return unique(
+    [
+      'quiz',
+      ...normalizeConceptCandidates(lesson.keyConcepts || [], { title: lesson.title, limit: 4 }),
+      type,
+      bloom,
+      use,
+    ],
+    8,
+  );
 }
 
 function nextHigherBloom(level) {
@@ -13169,7 +13326,9 @@ function buildQuizQuestionPlan({ lesson, assessment = {}, targetCount = 6 }) {
   const lessonBloom = lesson.bloomsLevel || lesson.difficultyProfile?.bloomsLevel || 'Apply';
   const lessonObjectives =
     Array.isArray(lesson.outcomes) && lesson.outcomes.length > 0
-      ? lesson.outcomes.map((objective) => cleanText(objective)).filter(Boolean)
+      ? lesson.outcomes
+          .map((objective) => normalizeObjectiveText(objective))
+          .filter((objective) => objective && !isWeakConcept(objective))
       : [objectiveForLesson(lesson.title, lesson.keyConcepts)];
   const objectiveFallback = lessonObjectives[0] || objectiveForLesson(lesson.title, lesson.keyConcepts);
   const sourceSignal = lesson.bloomInference?.matchedSignal || lesson.outcomes?.join('; ') || lesson.title;
@@ -13275,6 +13434,39 @@ function withQuizPlan(question, plan) {
   };
 }
 
+const QUIZ_ANSWER_LETTERS = ['A', 'B', 'C', 'D'];
+
+function correctLetterForQuestion(lesson, index) {
+  const lessonNumber = Number(lesson?.lessonNumber || 1);
+  return QUIZ_ANSWER_LETTERS[(lessonNumber + index) % QUIZ_ANSWER_LETTERS.length];
+}
+
+function labelQuizOption(letter, text) {
+  return `${letter}. ${cleanText(text)}`;
+}
+
+function buildMultipleChoiceOptions({ lesson, index, concept, artifact, use, correct }) {
+  const correctLetter = correctLetterForQuestion(lesson, index);
+  const sourceCue = lesson?.evidencePlan?.sourceCue || 'the assigned course materials';
+  const lessonFocus = stripLessonPrefix(lesson?.title || 'this lesson');
+  const distractors = unique(
+    [
+      `For ${lessonFocus}, define ${concept} but skip evidence from ${sourceCue}.`,
+      `Use a familiar ${lessonFocus} example without checking whether it supports ${artifact}.`,
+      `Recommend the next ${artifact} step before comparing evidence or naming a limitation.`,
+      `Complete the ${use} activity but leave the reasoning behind the evidence unstated.`,
+    ],
+    3,
+  );
+  let distractorIndex = 0;
+  return {
+    answer: correctLetter,
+    options: QUIZ_ANSWER_LETTERS.map((letter) =>
+      labelQuizOption(letter, letter === correctLetter ? correct : distractors[distractorIndex++]),
+    ),
+  };
+}
+
 function buildMultipleChoiceQuestion({
   lesson,
   index,
@@ -13289,6 +13481,7 @@ function buildMultipleChoiceQuestion({
 }) {
   const id = quizQuestionId(lesson, index);
   const artifact = stripTerminalPunctuation(lesson.studentArtifact);
+  const { answer, options } = buildMultipleChoiceOptions({ lesson, index, concept, artifact, use, correct });
   return withQuizPlan(
     {
       id,
@@ -13300,15 +13493,10 @@ function buildMultipleChoiceQuestion({
       objectiveAligned: objective,
       intendedUse: `${use} for ${lesson.title}; review distractor choices before the next ${artifact}.`,
       question: prompt,
-      options: [
-        `A. For this ${use} item, treat ${concept} in ${lesson.title} as background information and move directly to a general summary.`,
-        `B. ${correct}`,
-        `C. For question ${index + 1}, choose the quickest activity even if it weakens evidence for ${artifact}.`,
-        `D. In question ${index + 1}, delay the ${lesson.title} decision until all possible ${concept} materials have been reviewed.`,
-      ],
-      answer: 'B',
-      distractorRationale: `Question ${index + 1} (${use}) distractors: A skips the ${concept} evidence-to-decision move in ${lesson.title}; C favors speed over the ${artifact} evidence standard; D waits for perfect information instead of making the bounded decision this item asks students to justify.`,
-      explanation: `For question ${index + 1}, B is correct because it connects ${concept} to ${artifact} for ${use}, uses lesson evidence, and supports the objective "${objective}".`,
+      options,
+      answer,
+      distractorRationale: `${sentenceCase(use)} distractors test evidence use, example fit, recommendation timing, and reasoning quality for ${stripLessonPrefix(lesson.title)}.`,
+      explanation: `${answer} is correct because it connects ${concept} to ${artifact}, uses lesson evidence, and supports the objective "${objective}".`,
       tags: quizTags(lesson, 'multiple_choice', bloom, use),
     },
     plan,
@@ -13368,8 +13556,9 @@ function buildEssayQuestion({ lesson, index, bloom, objective, concept, lens, pl
 
 export function buildQuizAtomsForLesson(lesson, blueprint, options = {}) {
   const lens = blueprintLens(blueprint);
-  const concept = lesson.keyConcepts[0] || stripLessonPrefix(lesson.title);
-  const secondary = lesson.keyConcepts[1] || concept;
+  const concept = primaryConceptForLesson(lesson);
+  const secondary =
+    normalizeConceptCandidates((lesson.keyConcepts || []).slice(1), { title: lesson.title, limit: 1 })[0] || concept;
   const artifact = stripTerminalPunctuation(lesson.studentArtifact);
   const targetCount = Math.max(5, Math.min(7, Number(options.questionsPerLesson) || 6));
   const assessment =
@@ -13697,8 +13886,8 @@ function slideVisual(lesson, slide) {
   };
   return {
     kind: selected.kind,
-    description: `${sentenceCase(selected.kind)} for ${concept}: ${selected.evidenceUse}`,
-    altText: `${sentenceCase(selected.kind)} for "${title}" showing how ${concept} evidence from ${source} supports ${artifact}.`,
+    description: `${sentenceCase(selected.kind)} for ${stripLessonPrefix(lesson.title)}: ${selected.evidenceUse}`,
+    altText: `${sentenceCase(selected.kind)} for "${title}" in ${stripLessonPrefix(lesson.title)}, showing how ${concept} evidence from ${source} supports ${artifact}.`,
     visualPlan,
   };
 }

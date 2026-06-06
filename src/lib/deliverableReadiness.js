@@ -67,6 +67,19 @@ const DEFAULT_FEATURES = [
   'syllabus',
 ];
 
+const DEFAULT_COURSE_MAP_COLUMN_KEYS = [
+  'learningGoals',
+  'topicSection',
+  'learningObjectives',
+  'weeklyAssessments',
+  'asyncActivities',
+  'syncActivities',
+  'technologyNeeded',
+  'presentationFormat',
+  'supportingResources',
+  'evaluateDesign',
+];
+
 const FAQ_CATEGORIES = new Set([
   'Course Logistics',
   'Assignment Clarification',
@@ -239,6 +252,52 @@ function getCourseMapFallbackValue(key, courseMap, lesson, section, lessonIndex)
   return fieldFallbacks[key] || `Instructor-confirmed material for ${topic}.`;
 }
 
+function stripCourseMapListPrefix(value) {
+  return text(value).replace(/^\s*(?:[-*•]|\d+[a-z]?[.)]?|[a-z][.)])\s*/i, '');
+}
+
+function normalizeCourseMapObjectives(value) {
+  if (Array.isArray(value)) return value.map(normalizeCourseMapObjectives).filter(Boolean);
+  const raw = text(value);
+  if (!raw) return value;
+  const normalizedLines = raw
+    .split(/\n|;/)
+    .map((line) =>
+      stripCourseMapListPrefix(line)
+        .replace(/^students?\s+will\s+be\s+able\s+to:?\s*/i, '')
+        .trim(),
+    )
+    .filter(Boolean);
+  const normalized = normalizedLines.join('\n');
+  return normalized || raw.replace(/^students?\s+will\s+be\s+able\s+to:?\s*/i, '').trim();
+}
+
+function normalizeLessonRangeReferences(value, lessonCount) {
+  if (Array.isArray(value)) return value.map((item) => normalizeLessonRangeReferences(item, lessonCount));
+  const raw = text(value);
+  if (!raw || !Number.isInteger(lessonCount) || lessonCount <= 0) return value;
+  return raw.replace(/\bLessons?\s+1\s*([–-])\s*(\d{1,2})\b/gi, (match, dash, end) => {
+    const endNumber = Number(end);
+    return endNumber > lessonCount ? `Lessons 1${dash}${lessonCount}` : match;
+  });
+}
+
+function normalizeCourseMapCellValue(key, value, lessonCount) {
+  let next = key === 'learningObjectives' ? normalizeCourseMapObjectives(value) : value;
+  next = normalizeLessonRangeReferences(next, lessonCount);
+  return next;
+}
+
+function normalizeCourseMapLessonTitle(title, lessonIndex, lessonCount) {
+  const raw = text(title);
+  const match = raw.match(/^(lesson|week|module)\s*(\d{1,2})\s*[:.-]?\s*(.*)$/i);
+  if (!match) return title;
+  const currentNumber = Number(match[2]);
+  if (currentNumber <= lessonCount && currentNumber === lessonIndex + 1) return title;
+  const topic = match[3]?.trim() || `Topic ${lessonIndex + 1}`;
+  return `Lesson ${lessonIndex + 1}: ${topic}`;
+}
+
 function needsCourseMapFieldRepair(value) {
   return !hasMeaningfulValue(value) || findPublishabilityPlaceholders(value, { limit: 1 }).length > 0;
 }
@@ -251,6 +310,7 @@ export function repairCourseMapReadiness({ courseMap, columns = [], lessonFilter
 
   const lessonIndices = getLessonIndices(courseMap, lessonFilter);
   const columnsToRepair = enabledColumnKeys(columns);
+  const columnsToNormalize = columnsToRepair.length > 0 ? columnsToRepair : DEFAULT_COURSE_MAP_COLUMN_KEYS;
   const repairedFields = [];
   let changed = false;
 
@@ -268,7 +328,17 @@ export function repairCourseMapReadiness({ courseMap, columns = [], lessonFilter
       changed = true;
     }
 
-    if (!Array.isArray(nextLesson.sections) || nextLesson.sections.length === 0 || columnsToRepair.length === 0) {
+    const normalizedTitle = normalizeCourseMapLessonTitle(nextLesson.title, lessonIndex, lessons.length);
+    if (stableJson(normalizedTitle) !== stableJson(nextLesson.title)) {
+      nextLesson = {
+        ...nextLesson,
+        title: normalizedTitle,
+      };
+      repairedFields.push(`Lesson ${lessonIndex + 1} title numbering`);
+      changed = true;
+    }
+
+    if (!Array.isArray(nextLesson.sections) || nextLesson.sections.length === 0 || columnsToNormalize.length === 0) {
       return nextLesson;
     }
 
@@ -280,6 +350,17 @@ export function repairCourseMapReadiness({ courseMap, columns = [], lessonFilter
         nextSection = {
           ...nextSection,
           [key]: getCourseMapFallbackValue(key, courseMap, nextLesson, nextSection, lessonIndex),
+        };
+        repairedFields.push(`Lesson ${lessonIndex + 1}, Section ${sectionIndex + 1} ${columnLabel(columns, key)}`);
+        sectionsChanged = true;
+        changed = true;
+      }
+      for (const key of columnsToNormalize) {
+        const normalizedValue = normalizeCourseMapCellValue(key, nextSection?.[key], lessons.length);
+        if (stableJson(normalizedValue) === stableJson(nextSection?.[key])) continue;
+        nextSection = {
+          ...nextSection,
+          [key]: normalizedValue,
         };
         repairedFields.push(`Lesson ${lessonIndex + 1}, Section ${sectionIndex + 1} ${columnLabel(columns, key)}`);
         sectionsChanged = true;

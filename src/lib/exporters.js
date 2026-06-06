@@ -3,6 +3,7 @@ import { loadPdfRuntime } from './pdfRuntime.js';
 import {
   assertTableRowsHaveNoInternalExportLanguage,
   assertTextHasNoInternalExportLanguage,
+  sanitizeInternalExportLanguage,
 } from './exportTextInspector.js';
 
 // Lazy-loaded heavy dependencies
@@ -18,8 +19,8 @@ async function getSaveAs() {
 // Flatten a cell value to a plain string (handles arrays from AI responses)
 function toStr(val) {
   if (val == null) return '';
-  if (Array.isArray(val)) return val.map((v) => String(v)).join('\n');
-  return String(val);
+  if (Array.isArray(val)) return sanitizeInternalExportLanguage(val.map((v) => String(v)).join('\n'));
+  return sanitizeInternalExportLanguage(val);
 }
 
 /**
@@ -71,7 +72,7 @@ export async function generateCsv(courseMap, customColumns) {
     const sections = lesson.sections && lesson.sections.length > 0 ? lesson.sections : [{}];
     for (let i = 0; i < sections.length; i++) {
       const section = sections[i];
-      const weekModule = i === 0 ? lesson.title : '';
+      const weekModule = i === 0 ? toStr(lesson.title) : '';
       const row = [escape(weekModule)];
       for (const key of colKeys) {
         if (key === 'evaluateDesign') {
@@ -136,7 +137,7 @@ export async function generatePdf(courseMap, customColumns) {
     const sections = lesson.sections && lesson.sections.length > 0 ? lesson.sections : [{}];
     for (let i = 0; i < sections.length; i++) {
       const section = sections[i];
-      const weekModule = i === 0 ? lesson.title : '';
+      const weekModule = i === 0 ? toStr(lesson.title) : '';
       const row = [weekModule];
       for (const key of colKeys) {
         if (key === 'evaluateDesign') {

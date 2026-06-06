@@ -143,7 +143,7 @@ describe('verifyPackageExports', () => {
     });
   });
 
-  it('fails export verification when course-map PDF text would leak internal proof language', async () => {
+  it('passes course-map PDF verification after sanitizing known internal proof language', async () => {
     const result = await verifyPackageExports({
       courseMap: {
         courseName: 'Research Methods',
@@ -158,11 +158,11 @@ describe('verifyPackageExports', () => {
       selectedFeatures: ['courseMap'],
     });
 
-    expect(result.status).toBe('failed');
+    expect(result.status).toBe('passed');
     expect(result.checks.find((check) => check.format === 'pdf')).toMatchObject({
       featureId: 'courseMap',
-      status: 'failed',
-      message: 'Course Map PDF export exposes internal source grounding language in Learning Goals.',
+      status: 'passed',
+      message: 'PDF export text can be generated.',
     });
   });
 

@@ -206,6 +206,8 @@ function evaluateStrictReadiness(
   return evaluateStrictPackageReadiness(options, {
     includeClassroomReadiness,
     blockOnClassroomWarnings,
+    includePedagogicalValidation: true,
+    blockOnValidationWarnings: false,
   });
 }
 

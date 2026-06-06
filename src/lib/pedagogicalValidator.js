@@ -717,6 +717,214 @@ export function validateDifficultyProgression(deliverables) {
   return findings;
 }
 
+// ── 5. Semantic Content Quality ──────────────────────────────────────────────
+
+function answerLetter(question) {
+  const answer = String(question?.answer || question?.an || '').trim();
+  const letter = answer
+    .match(/^[A-D](?:[.)]|\s*$)/i)?.[0]
+    ?.slice(0, 1)
+    ?.toUpperCase();
+  if (letter) return letter;
+
+  const normalizedAnswer = norm(answer);
+  if (!normalizedAnswer) return null;
+  const options = questionOptions(question);
+  const index = options.findIndex((option) => {
+    const optionText = String(option || '')
+      .replace(/^[A-D][.)]\s*/i, '')
+      .trim();
+    return norm(optionText) === normalizedAnswer || norm(option) === normalizedAnswer;
+  });
+  return index >= 0 ? String.fromCharCode('A'.charCodeAt(0) + index) : null;
+}
+
+function questionType(question) {
+  return String(question?.type || question?.ty || '').trim();
+}
+
+function questionOptions(question) {
+  return asArray(question?.options || question?.op);
+}
+
+function isDataScienceCourse(courseMap) {
+  const text = textify(courseMap).toLowerCase();
+  const strong =
+    /\b(applied machine learning|machine learning|data science|data analytics|predictive modeling|classification model|regression model|model validation|train[-\s]?test|cross[-\s]?validation|confusion matrix|jupyter|ipynb|dataframe|sklearn|scikit)\b/.test(
+      text,
+    ) || /\b(precision|recall|threshold|fairness|bias audit|model card)\b/.test(text);
+  const datasetWithModeling =
+    /\b(dataset|data set)\b/.test(text) &&
+    /\b(model|prediction|classification|regression|validation|notebook|python|dataframe|machine learning|data science)\b/.test(
+      text,
+    );
+  return strong || datasetWithModeling;
+}
+
+function validateCourseMapSemanticQuality(courseMap) {
+  const findings = [];
+  const lessons = courseMap?.lessons || [];
+  const lessonCount = lessons.length;
+
+  lessons.forEach((lesson, li) => {
+    const title = String(lesson?.title || lesson?.lessonTitle || '');
+    const titleNumber = title.match(/\b(?:lesson|week|module)\s*(\d{1,2})\b/i)?.[1];
+    if (titleNumber && Number(titleNumber) > lessonCount) {
+      findings.push({
+        id: `semantic-lesson-number-L${li}`,
+        severity: 'error',
+        category: 'semanticQuality',
+        message: `Lesson ${li + 1} title references Lesson ${Number(titleNumber)}, but the course has only ${lessonCount} lesson${lessonCount === 1 ? '' : 's'}`,
+        lessonIndex: li,
+        featureId: 'courseMap',
+        suggestedPrompt: `Repair the course map sequence so lesson titles and downstream references stay within Lessons 1-${lessonCount}.`,
+      });
+    }
+
+    const lessonText = textify(lesson);
+    if (/students?\s+will\s+be\s+able\s+to:?(?:\s|$)/i.test(lessonText)) {
+      findings.push({
+        id: `semantic-objective-stem-L${li}`,
+        severity: 'error',
+        category: 'semanticQuality',
+        message: `Lesson ${li + 1} still contains the objective stem "Students will be able to" as publishable content`,
+        lessonIndex: li,
+        featureId: 'courseMap',
+        suggestedPrompt: `Remove the objective stem and keep only active-verb objectives for Lesson ${li + 1}.`,
+      });
+    }
+
+    const rangeMatch = lessonText.match(/\bLessons?\s+1\s*[–-]\s*(\d{1,2})\b/i);
+    if (rangeMatch && Number(rangeMatch[1]) > lessonCount) {
+      findings.push({
+        id: `semantic-lesson-range-L${li}`,
+        severity: 'error',
+        category: 'semanticQuality',
+        message: `Lesson ${li + 1} references Lessons 1-${Number(rangeMatch[1])}, but the package has only ${lessonCount} lessons`,
+        lessonIndex: li,
+        featureId: 'courseMap',
+        suggestedPrompt: `Update synthesis, review, and study-guide references to match the selected ${lessonCount}-lesson scope.`,
+      });
+    }
+  });
+
+  return findings;
+}
+
+function validateQuizSemanticQuality(deliverables) {
+  const findings = [];
+  const quizzes = getDelivArray(deliverables, 'quizBank');
+  if (!quizzes) return findings;
+
+  quizzes.forEach((quiz, li) => {
+    const multipleChoice = getQuizQuestions(quiz).filter((question) =>
+      /multiple[-_ ]choice/i.test(questionType(question)),
+    );
+    if (multipleChoice.length >= 3) {
+      const counts = multipleChoice.reduce((acc, question) => {
+        const letter = answerLetter(question);
+        if (letter) acc[letter] = (acc[letter] || 0) + 1;
+        return acc;
+      }, {});
+      const dominant = Object.entries(counts).sort((a, b) => b[1] - a[1])[0];
+      if (dominant && dominant[1] === multipleChoice.length) {
+        findings.push({
+          id: `semantic-quiz-answer-pattern-L${li}`,
+          severity: 'error',
+          category: 'semanticQuality',
+          message: `Lesson ${li + 1} quiz keys every multiple-choice answer as ${dominant[0]}`,
+          lessonIndex: li,
+          featureId: 'quizBank',
+          suggestedPrompt: `Regenerate Lesson ${li + 1} multiple-choice items with a varied answer key and reviewed distractors.`,
+        });
+      }
+    }
+
+    multipleChoice.forEach((question, qi) => {
+      const optionText = questionOptions(question).join(' ');
+      if (
+        /background information and move directly to a general summary|choose the quickest activity|delay .* until all possible/i.test(
+          optionText,
+        )
+      ) {
+        findings.push({
+          id: `semantic-generic-distractors-L${li}-Q${qi}`,
+          severity: 'error',
+          category: 'semanticQuality',
+          message: `Lesson ${li + 1} quiz question ${qi + 1} uses generic template distractors instead of content-specific misconceptions`,
+          lessonIndex: li,
+          featureId: 'quizBank',
+          suggestedPrompt: `Rewrite Lesson ${li + 1} question ${qi + 1} with plausible distractors tied to the lesson concept and evidence standard.`,
+        });
+      }
+    });
+
+    const quizText = textify(quiz);
+    if (/students?\s+will\s+be\s+able\s+to:?(?:\s|$)/i.test(quizText)) {
+      findings.push({
+        id: `semantic-quiz-objective-stem-L${li}`,
+        severity: 'error',
+        category: 'semanticQuality',
+        message: `Lesson ${li + 1} quiz uses the objective stem as an alignment target`,
+        lessonIndex: li,
+        featureId: 'quizBank',
+        suggestedPrompt: `Replace objective stem alignments in Lesson ${li + 1} quiz with the actual active-verb objectives.`,
+      });
+    }
+  });
+
+  return findings;
+}
+
+function validateDomainSemanticQuality(courseMap, deliverables) {
+  const findings = [];
+  const text = textify([courseMap, deliverables]);
+  if (isDataScienceCourse(courseMap)) return findings;
+  const affectedFeatureFor = (pattern) => {
+    if (pattern.test(textify(courseMap))) return 'courseMap';
+    for (const [featureId, entry] of Object.entries(deliverables || {})) {
+      if (pattern.test(textify(entry?.data || entry))) return featureId;
+    }
+    return null;
+  };
+
+  if (/\b(Riverton|Westbrook)\b/.test(text)) {
+    findings.push({
+      id: 'semantic-invented-domain-packet',
+      severity: 'error',
+      category: 'semanticQuality',
+      message: 'Package contains invented Riverton/Westbrook case-packet language in a non-data-science course',
+      lessonIndex: null,
+      featureId: affectedFeatureFor(/\b(Riverton|Westbrook)\b/),
+      suggestedPrompt:
+        'Replace invented case-packet names with instructor-provided course materials or explicit source anchors.',
+    });
+  }
+
+  if (/\b(?:jupyter|ipynb|model card|starter notebook)\b/i.test(text)) {
+    findings.push({
+      id: 'semantic-nonml-lab-assets',
+      severity: 'error',
+      category: 'semanticQuality',
+      message: 'Non-data-science package references notebook/model-card lab assets',
+      lessonIndex: null,
+      featureId: affectedFeatureFor(/\b(?:jupyter|ipynb|model card|starter notebook)\b/i),
+      suggestedPrompt:
+        'Remove notebook, model-card, and data-lab requirements unless the course source explicitly asks for them.',
+    });
+  }
+
+  return findings;
+}
+
+export function validateSemanticContentQuality(courseMap, deliverables) {
+  return [
+    ...validateCourseMapSemanticQuality(courseMap),
+    ...validateQuizSemanticQuality(deliverables),
+    ...validateDomainSemanticQuality(courseMap, deliverables),
+  ];
+}
+
 // ── 5. Readability Scoring ────────────────────────────────────────────────────
 
 const READABLE_NAMES = {
@@ -1133,6 +1341,7 @@ export function generateCourseHealthReport(courseMap, deliverables) {
     ...validateObjectiveAlignment(courseMap, deliverables),
     ...assessCognitiveLoad(courseMap, deliverables),
     ...validateDifficultyProgression(deliverables),
+    ...validateSemanticContentQuality(courseMap, deliverables),
     ...validateReadability(courseMap, deliverables),
   ];
 

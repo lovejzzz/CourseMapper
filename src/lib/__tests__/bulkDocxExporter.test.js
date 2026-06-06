@@ -51,4 +51,30 @@ describe('buildDeliverableDocxBlob', () => {
     expect(xml).not.toContain('Internal blueprint trace');
     expect(xml).not.toContain('Internal proof packet');
   });
+
+  it('uses Word list structure instead of literal bullet glyphs for slide-deck bullets', async () => {
+    const blob = await buildDeliverableDocxBlob(
+      'slideDecks',
+      {
+        decks: [
+          {
+            lessonTitle: 'Lesson 1: Export Structure',
+            slides: [
+              {
+                title: 'Structured Bullet Export',
+                bullets: ['Review the generated DOCX.', 'Confirm list semantics survive export.'],
+              },
+            ],
+          },
+        ],
+      },
+      'Export Cleanliness',
+    );
+
+    const xml = await docxDocumentXml(blob);
+
+    expect(xml).toContain('<w:numPr>');
+    expect(xml).toContain('Review the generated DOCX.');
+    expect(xml).not.toContain('• Review the generated DOCX.');
+  });
 });

@@ -13,21 +13,30 @@ function dedupeIssues(issues = []) {
   return [...seen.values()];
 }
 
-function compactValidationIssues(healthReport, { blockOnValidationWarnings = false } = {}) {
+function scopeDeliverablesForValidation(deliverables = {}, selectedFeatures = null) {
+  if (!Array.isArray(selectedFeatures) || selectedFeatures.length === 0) return deliverables || {};
+  const selected = new Set(selectedFeatures);
+  return Object.fromEntries(Object.entries(deliverables || {}).filter(([featureId]) => selected.has(featureId)));
+}
+
+function compactValidationIssues(healthReport, { blockOnValidationWarnings = false, selectedFeatures = null } = {}) {
   const findings = healthReport?.findings || [];
+  const selectedSet = Array.isArray(selectedFeatures) && selectedFeatures.length > 0 ? new Set(selectedFeatures) : null;
   return findings
     .filter(
-      (finding) => finding?.severity === 'error' || (blockOnValidationWarnings && finding?.severity === 'warning'),
+      (finding) =>
+        (finding?.severity === 'error' || (blockOnValidationWarnings && finding?.severity === 'warning')) &&
+        (!selectedSet || !finding?.featureId || selectedSet.has(finding.featureId)),
     )
     .map((finding) => {
-      const reviewOnly = finding.category === 'readability';
+      const semanticBlocker = finding.category === 'semanticQuality' && finding.severity === 'error';
       return normalizeReadinessIssue({
-        severity: finding.severity === 'error' && !reviewOnly ? 'blocker' : 'warning',
+        severity: semanticBlocker ? 'blocker' : 'warning',
         featureId: finding.featureId || 'courseMap',
         label: finding.featureId || 'Course Map',
         message: finding.message,
         classroomCriterion: finding.category,
-        source: reviewOnly ? 'validationReview' : 'validation',
+        source: semanticBlocker ? 'validation' : 'validationReview',
         lessonIndex: Number.isInteger(finding.lessonIndex) ? finding.lessonIndex : null,
         target: Number.isInteger(finding.lessonIndex)
           ? { type: 'lesson', lessonIndex: finding.lessonIndex, featureId: finding.featureId }
@@ -45,6 +54,7 @@ function buildReadinessResult(workspaceReadiness, classroomReadiness, healthRepo
   const validationIssues = settings.includePedagogicalValidation
     ? compactValidationIssues(healthReport, {
         blockOnValidationWarnings: settings.blockOnValidationWarnings,
+        selectedFeatures: settings.selectedFeatures,
       })
     : [];
   const issues = normalizeReadinessIssues(
@@ -87,7 +97,10 @@ export function evaluateStrictPackageReadiness(
     : { status: 'ready', blockers: [], warnings: [], issues: [] };
   const validationReport =
     includePedagogicalValidation && !healthReport
-      ? generateCourseHealthReport(options.courseMap, options.deliverables)
+      ? generateCourseHealthReport(
+          options.courseMap,
+          scopeDeliverablesForValidation(options.deliverables, options.selectedFeatures),
+        )
       : healthReport || { findings: [], errorCount: 0, warningCount: 0, infoCount: 0, summary: '' };
 
   return buildReadinessResult(workspaceReadiness, classroomReadiness, validationReport, {
@@ -95,6 +108,7 @@ export function evaluateStrictPackageReadiness(
     blockOnClassroomWarnings,
     includePedagogicalValidation,
     blockOnValidationWarnings,
+    selectedFeatures: options.selectedFeatures,
   });
 }
 
@@ -224,8 +238,9 @@ export function runDeterministicPackageFinalizer({
   });
   const finalCourseMap = repairResult.courseMap || courseMap;
   const finalDeliverables = repairResult.deliverables || deliverables;
+  const validationDeliverables = scopeDeliverablesForValidation(finalDeliverables, selectedFeatures);
   const healthReport = includePedagogicalValidation
-    ? generateCourseHealthReport(finalCourseMap, finalDeliverables)
+    ? generateCourseHealthReport(finalCourseMap, validationDeliverables)
     : { findings: [], errorCount: 0, warningCount: 0, infoCount: 0, summary: '' };
   const readiness = evaluateStrictPackageReadiness(
     {

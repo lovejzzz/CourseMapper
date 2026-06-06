@@ -1945,7 +1945,7 @@ describe('courseBlueprintCompiler', () => {
     });
   });
 
-  it('adds a concrete course throughline case across compiled social policy materials', () => {
+  it('adds an instructor-provided throughline across compiled social policy materials', () => {
     const blueprint = buildCourseBlueprint(makeCourseMap(2));
     const compiled = compileBlueprintDeliverables(
       blueprint,
@@ -1954,29 +1954,32 @@ describe('courseBlueprintCompiler', () => {
     );
 
     expect(blueprint.courseThroughlineContext).toMatchObject({
-      projectName: 'Riverton Family Support Access Initiative',
-      clientName: 'Riverton Human Services Collaborative',
+      projectName: 'Applied Social Policy Studio Policy Evidence Thread',
+      clientName: 'the course audience',
+      sourceMode: 'instructor-provided',
     });
-    expect(blueprint.courseArc.throughline).toContain('Riverton Family Support Access Initiative');
+    expect(blueprint.courseArc.throughline).toContain('Applied Social Policy Studio Policy Evidence Thread');
     expect(blueprint.lessons[0].throughlineCase).toMatchObject({
-      projectName: 'Riverton Family Support Access Initiative',
-      evidencePacket: expect.stringContaining('Riverton Family Support Evidence Packet'),
+      projectName: 'Applied Social Policy Studio Policy Evidence Thread',
+      evidencePacket: expect.stringContaining('Instructor-provided course materials'),
     });
-    expect(blueprint.lessons[0].readings[0]).toContain('Riverton Family Support Evidence Packet');
+    expect(blueprint.lessons[0].readings[0]).toContain('Instructor-provided course materials');
     expect(blueprint.lessons[0].studentArtifact).toBe('Policy memo checkpoint 1');
 
-    expect(compiled.lessonPlans.lessonPlans[0].materials.join(' ')).toContain(
-      'Riverton Family Support Evidence Packet',
+    expect(compiled.lessonPlans.lessonPlans[0].materials.join(' ')).toContain('Instructor-provided course materials');
+    expect(compiled.slideDecks.decks[0].slides.flatMap((slide) => slide.bullets).join(' ')).toContain(
+      'Instructor-provided course materials',
     );
-    expect(compiled.slideDecks.decks[0].slides.flatMap((slide) => slide.bullets).join(' ')).toContain('Riverton');
-    expect(compiled.assignments.assignments[0].sourceUsePlan.approvedSources[0]).toContain('Riverton');
-    expect(compiled.rubrics.rubrics[0].criteria[0].evidenceSignal).toContain('Riverton');
-    expect(compiled.discussions.discussions[0].sourceArtifacts[0].locator).toContain('Riverton');
+    expect(compiled.assignments.assignments[0].sourceUsePlan.approvedSources[0]).toContain('Instructor-provided');
+    expect(compiled.rubrics.rubrics[0].criteria[0].evidenceSignal).toContain('Instructor-provided');
+    expect(compiled.discussions.discussions[0].sourceArtifacts[0].locator).toContain('Instructor-provided');
     expect(compiled.quizBank.quizzes[0].questions.map((question) => question.sampleAnswer || '').join(' ')).toContain(
-      'Riverton',
+      'Instructor-provided',
     );
-    expect(compiled.studyGuides.studyGuides[0].sourceGrounding.throughlineCase.projectName).toContain('Riverton');
-    expect(compiled.courseFaq.faqs[0].qs.map((item) => item.an).join(' ')).toContain('Riverton');
+    expect(compiled.studyGuides.studyGuides[0].sourceGrounding.throughlineCase.projectName).toContain(
+      'Applied Social Policy Studio',
+    );
+    expect(compiled.courseFaq.faqs[0].qs.map((item) => item.an).join(' ')).toContain('Instructor-provided');
   });
 
   it('decodes economics courses as market analysis instead of lecture-exam, policy, or problem sets', () => {
@@ -3015,7 +3018,7 @@ describe('courseBlueprintCompiler', () => {
           answerabilityStatus: 'answerable-from-blueprint',
           reviewerQuestion: expect.stringContaining('Policy Topic 1'),
           sourceTrace: expect.objectContaining({
-            sourceAnchor: expect.stringContaining('Riverton Family Support Evidence Packet'),
+            sourceAnchor: expect.stringContaining('Instructor-provided course materials'),
             evidenceRequirement: expect.stringContaining('Use a concrete detail'),
             compilerReason: expect.stringContaining('high-confidence source fields'),
             localConfirmationCue: expect.stringContaining('Spot-check official dates'),
@@ -3025,7 +3028,7 @@ describe('courseBlueprintCompiler', () => {
             openingMove: expect.stringContaining('Policy Topic 1'),
             practiceMove: expect.stringContaining('Policy memo checkpoint 1'),
             feedbackMove: expect.stringContaining('Policy memo checkpoint 1'),
-            sourceAnchor: expect.stringContaining('Riverton Family Support Evidence Packet'),
+            sourceAnchor: expect.stringContaining('Instructor-provided course materials'),
             artifactCue: expect.stringContaining('Policy memo checkpoint 1'),
             modalityCue: expect.stringContaining('stakeholder'),
           }),
@@ -4109,7 +4112,7 @@ describe('courseBlueprintCompiler', () => {
       kind: 'learning-thread timeline',
       visualPlan: expect.objectContaining({
         slidePurpose: expect.stringContaining('Policy Topic 1'),
-        evidenceSource: expect.stringContaining('Riverton Family Support Evidence Packet'),
+        evidenceSource: expect.stringContaining('Instructor-provided course materials'),
         artifactConnection: expect.stringContaining('Policy memo checkpoint 1'),
         modalityFit: expect.stringContaining('stakeholder'),
         artifactGenreFit: expect.stringContaining('problem framing'),
@@ -4409,7 +4412,7 @@ describe('courseBlueprintCompiler', () => {
       }),
       evidenceSignal: expect.stringContaining('inspectable Policy Topic 1 detail'),
       calibrationUse: expect.stringContaining('Policy memo checkpoint 1'),
-      exemplary: expect.stringContaining('Riverton Family Support Evidence Packet'),
+      exemplary: expect.stringContaining('Instructor-provided course materials'),
       proficient: expect.stringContaining('Policy Topic 1'),
       developing: expect.stringContaining('evidence link'),
       beginning: expect.stringContaining('unsupported claims'),
@@ -5303,6 +5306,72 @@ describe('courseBlueprintCompiler', () => {
     expect(classificationGuideText).toContain('model-card');
   });
 
+  it('compiles non-data courses without objective-stem leaks, generic quiz keys, or invented lab packets', () => {
+    const blueprint = buildCourseBlueprint({
+      courseName: 'Introduction to Psychology',
+      semester: 'Fall 2026',
+      lessons: [
+        {
+          title: 'Lesson 1: What Psychology Is and Why It Matters',
+          sections: [
+            {
+              topicSection: 'Psychological science, perspectives, research evidence',
+              learningObjectives:
+                'Students will be able to:\n1a. Explain how psychologists study behavior and mental processes.\n1b. Compare major psychological perspectives.',
+              learningGoals: 'Connect evidence-based psychology to everyday reasoning.',
+              weeklyAssessments: 'Concept application quiz with evidence explanation.',
+              asyncActivities: 'Read an introductory chapter and mark examples of evidence-based claims.',
+              syncActivities: 'Small-group analysis of everyday psychology claims.',
+              supportingResources: 'Introductory textbook chapter; instructor lecture notes',
+              evaluateDesign: 'Score concept accuracy, evidence use, and reasoning.',
+            },
+          ],
+        },
+        {
+          title: 'Lesson 2: Research Methods in Psychology',
+          sections: [
+            {
+              topicSection: 'Observation, experiment, correlation, ethics',
+              learningObjectives: 'Analyze research design choices and explain evidence limits.',
+              learningGoals: 'Use methods vocabulary to judge psychological claims.',
+              weeklyAssessments: 'Research claim critique.',
+              asyncActivities: 'Read methods notes and identify variables.',
+              syncActivities: 'Compare two short research scenarios.',
+              supportingResources: 'Methods handout; instructor-provided scenarios',
+              evaluateDesign: 'Score method fit, limitation language, and evidence quality.',
+            },
+          ],
+        },
+      ],
+    });
+    const compiled = compileBlueprintDeliverables(blueprint, ['quizBank', 'studyGuides', 'lessonPlans']);
+    const compiledText = JSON.stringify(compiled);
+    const firstQuiz = compiled.quizBank.quizzes[0];
+    const mcQuestions = firstQuiz.questions.filter((question) => question.type === 'multiple_choice');
+    const studentFacingText = JSON.stringify({
+      questions: firstQuiz.questions.map((question) => ({
+        question: question.question,
+        options: question.options,
+        answer: question.answer,
+        objectiveAligned: question.objectiveAligned,
+        sampleAnswer: question.sampleAnswer,
+        tags: question.tags,
+      })),
+      keyTerms: compiled.studyGuides.studyGuides[0].keyTerms,
+      lessonPlan: compiled.lessonPlans.lessonPlans[0].outline,
+    });
+
+    expect(studentFacingText).not.toMatch(/Students will be able to:?/i);
+    expect(compiledText).not.toMatch(/\b(Riverton|Westbrook)\b/);
+    expect(compiledText).not.toMatch(/\b(?:Jupyter|starter notebook|model card)\b/i);
+    expect(studentFacingText).not.toMatch(/background information and move directly to a general summary/i);
+    expect(new Set(mcQuestions.map((question) => question.answer)).size).toBeGreaterThan(1);
+    expect(firstQuiz.questions.flatMap((question) => question.tags || [])).not.toContain(
+      'Lesson 1: What Psychology Is and Why It Matters',
+    );
+    expect(compiled.studyGuides.studyGuides[0].keyTerms[0].definition).toMatch(/evidence focus|self-check|artifact/i);
+  });
+
   it('decodes engineering design courses as test-and-verification labs', () => {
     const blueprint = buildCourseBlueprint(makeEngineeringDesignLabCourseMap());
     const compiled = compileBlueprintDeliverables(blueprint, ['lessonPlans', 'assignments', 'discussions']);
@@ -5744,7 +5813,7 @@ describe('courseBlueprintCompiler', () => {
     });
   });
 
-  it('keeps compiled messy-import slide decks specific enough for classroom readiness', () => {
+  it('keeps messy-import slide sequencing inspectable without repeated boilerplate warnings', () => {
     const blueprint = buildCourseBlueprint(MESSY_IMPORT_STRESS_PROJECT.courseMap);
     const compiled = compileBlueprintDeliverables(blueprint, ['slideDecks']);
 
@@ -5926,7 +5995,7 @@ describe('courseBlueprintCompiler', () => {
     expect(readingResponse.lesson_reading_response[0].sourceGrounding).toMatchObject({
       confidence: 'high',
       compiledPattern: 'reading-response',
-      focusReading: expect.stringContaining('Riverton Family Support Evidence Packet'),
+      focusReading: expect.stringContaining('Instructor-provided course materials'),
     });
 
     const validation = validateDeliverableGeneration('custom_readingResponse', readingResponse, {
