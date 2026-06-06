@@ -90,7 +90,8 @@ test.describe('Developer IDE diagnostics', () => {
   test('sanitizes secret-bearing snapshots and jumps to the matching diagnostic editor location', async ({ page }) => {
     await restoreDeveloperWorkspace(page);
 
-    await page.getByRole('button', { name: 'IDE', exact: true }).click();
+    await page.getByTestId('signed-out-advanced-menu').click();
+    await page.getByRole('button', { name: 'Open Developer IDE' }).click();
     await expect(page.getByTestId('developer-mode-panel')).toBeVisible({ timeout: 10000 });
 
     await page.getByTestId('developer-section-diagnostics').click();
