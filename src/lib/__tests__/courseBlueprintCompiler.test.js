@@ -1597,6 +1597,32 @@ describe('courseBlueprintCompiler', () => {
     );
     const statisticalQuestionBlueprint = buildCourseBlueprint(statisticalQuestionMap);
     expect(statisticalQuestionBlueprint.lessons[0].artifactGenre.genre).toBe('statistical-inference-report');
+    const chiSquareMap = makeStatisticsInferenceCourseMap();
+    chiSquareMap.lessons = [
+      {
+        title: 'Week 6: Chi-Square Tests and Association',
+        sections: [
+          {
+            topicSection:
+              'Chi-square test, categorical variables, expected counts, association, independence, assumption check',
+            learningObjectives:
+              'Interpret a chi-square test using expected counts, p-value, association language, and limitations.',
+            learningGoals:
+              'Students use categorical data to evaluate association while checking expected counts and assumptions.',
+            weeklyAssessments:
+              'Chi-square inference memo with contingency table, expected-count check, test statistic, p-value explanation, association conclusion, and limitation note.',
+            asyncActivities: 'Inspect a contingency table and identify one expected-count or independence concern.',
+            syncActivities:
+              'Categorical-data clinic with expected-count check, chi-square output trace, and association-language revision.',
+            supportingResources: 'Chi-square guide; contingency-table template; expected-count checklist',
+            evaluateDesign:
+              'Score table setup, expected-count check, p-value interpretation, association claim, and limitation note.',
+          },
+        ],
+      },
+    ];
+    const chiSquareBlueprint = buildCourseBlueprint(chiSquareMap);
+    expect(chiSquareBlueprint.lessons[0].artifactGenre.genre).toBe('statistical-inference-report');
     expect(blueprint.lessons[0].classSessionPlan.segments.map((segment) => segment.phase)).toEqual([
       'question and assumption check',
       'statistical model demonstration',
@@ -1976,6 +2002,24 @@ describe('courseBlueprintCompiler', () => {
     expect(compiled.quizBank.quizzes[0].questions.map((question) => question.sampleAnswer || '').join(' ')).toContain(
       'Instructor-provided',
     );
+    const repeatedOptionGroups = compiled.quizBank.quizzes.flatMap((quiz, quizIndex) => {
+      const groups = new Map();
+      quiz.questions
+        .filter((question) => question.type === 'multiple_choice')
+        .flatMap((question) => question.options || [])
+        .forEach((option) => {
+          const key = option
+            .toLowerCase()
+            .replace(/[^a-z0-9]+/g, ' ')
+            .replace(/\s+/g, ' ')
+            .trim();
+          groups.set(key, (groups.get(key) || 0) + 1);
+        });
+      return [...groups.entries()]
+        .filter(([, count]) => count > 2)
+        .map(([text, count]) => ({ quizIndex, text, count }));
+    });
+    expect(repeatedOptionGroups).toEqual([]);
     expect(compiled.studyGuides.studyGuides[0].sourceGrounding.throughlineCase.projectName).toContain(
       'Applied Social Policy Studio',
     );
@@ -5152,6 +5196,12 @@ describe('courseBlueprintCompiler', () => {
         evidenceRequirement: expect.stringContaining('observable performance attempt'),
       }),
     });
+    expect(compiled.assignments.assignments[0].scaffoldingMilestones[2].feedback).not.toBe(
+      compiled.assignments.assignments[0].instructorFeedbackPriority,
+    );
+    expect(compiled.assignments.assignments[0].scaffoldingMilestones[2].feedback).toContain(
+      compiled.assignments.assignments[0].title,
+    );
     expect(compiled.discussions.discussions[0]).toMatchObject({
       format: 'Rehearsal Critique Lab',
       modalityDecode: expect.objectContaining({ mode: 'performing-arts' }),

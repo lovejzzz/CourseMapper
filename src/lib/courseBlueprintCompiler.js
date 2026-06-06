@@ -5810,14 +5810,14 @@ function buildArtifactGenreDecode(lesson = {}, profile = {}, modalityDecode = {}
     genre = 'engineering-design-test';
   } else if (
     artifactMatches(
-      /\b(statistical inference report|inference question memo|statistical question memo|hypothesis test write[-\s]?up|hypothesis-test write[-\s]?up|confidence interval interpretation|p[-\s]?value explanation|assumption check memo|test statistic report|effect size interpretation|regression inference memo|chi[-\s]?square report|t[-\s]?test report)\b/,
+      /\b(statistical inference report|inference question memo|statistical question memo|hypothesis test write[-\s]?up|hypothesis-test write[-\s]?up|confidence interval interpretation|p[-\s]?value explanation|assumption check memo|test statistic report|effect size interpretation|regression inference memo|chi[-\s]?square (?:report|inference memo|test memo)|categorical association memo|t[-\s]?test report)\b/,
     ) ||
     (profile.primaryMode === 'statistics-inference' &&
       (artifactMatches(
-        /\b(statistical question|inference question|inference claim|sample context|sample|population|variable|parameter|confidence interval|hypothesis test|hypothesis testing|null hypothesis|alternative hypothesis|p[-\s]?value|test statistic|standard error|margin of error|assumption|effect size|statistical significance|sampling distribution|inference decision|regression inference)\b/,
+        /\b(statistical question|inference question|inference claim|sample context|sample|population|variable|parameter|confidence interval|hypothesis test|hypothesis testing|null hypothesis|alternative hypothesis|p[-\s]?value|test statistic|standard error|margin of error|assumption|effect size|statistical significance|sampling distribution|inference decision|regression inference|chi[-\s]?square|categorical variable|expected count|contingency table|association|independence)\b/,
       ) ||
         contextMatches(
-          /\b(statistical question|inference question|inference claim|sample context|sample|population|variable|parameter|confidence interval|hypothesis test|hypothesis testing|null hypothesis|alternative hypothesis|p[-\s]?value|test statistic|standard error|margin of error|assumption|effect size|statistical significance|sampling distribution|inference decision|regression inference)\b/,
+          /\b(statistical question|inference question|inference claim|sample context|sample|population|variable|parameter|confidence interval|hypothesis test|hypothesis testing|null hypothesis|alternative hypothesis|p[-\s]?value|test statistic|standard error|margin of error|assumption|effect size|statistical significance|sampling distribution|inference decision|regression inference|chi[-\s]?square|categorical variable|expected count|contingency table|association|independence)\b/,
         )))
   ) {
     genre = 'statistical-inference-report';
@@ -6044,11 +6044,11 @@ function buildArtifactGenreDecode(lesson = {}, profile = {}, modalityDecode = {}
     genre = 'engineering-design-test';
   } else if (
     contextMatches(
-      /\b(statistical inference report|inference question memo|statistical question memo|hypothesis test write[-\s]?up|hypothesis-test write[-\s]?up|confidence interval interpretation|p[-\s]?value explanation|assumption check memo|test statistic report|effect size interpretation|regression inference memo|chi[-\s]?square report|t[-\s]?test report)\b/,
+      /\b(statistical inference report|inference question memo|statistical question memo|hypothesis test write[-\s]?up|hypothesis-test write[-\s]?up|confidence interval interpretation|p[-\s]?value explanation|assumption check memo|test statistic report|effect size interpretation|regression inference memo|chi[-\s]?square (?:report|inference memo|test memo)|categorical association memo|t[-\s]?test report)\b/,
     ) ||
     (profile.primaryMode === 'statistics-inference' &&
       contextMatches(
-        /\b(statistical question|inference question|inference claim|sample context|sample|population|variable|parameter|confidence interval|hypothesis test|hypothesis testing|null hypothesis|alternative hypothesis|p[-\s]?value|test statistic|standard error|margin of error|assumption|effect size|statistical significance|sampling distribution|inference decision|regression inference)\b/,
+        /\b(statistical question|inference question|inference claim|sample context|sample|population|variable|parameter|confidence interval|hypothesis test|hypothesis testing|null hypothesis|alternative hypothesis|p[-\s]?value|test statistic|standard error|margin of error|assumption|effect size|statistical significance|sampling distribution|inference decision|regression inference|chi[-\s]?square|categorical variable|expected count|contingency table|association|independence)\b/,
       ))
   ) {
     genre = 'statistical-inference-report';
@@ -12618,6 +12618,10 @@ function compileAssignments(blueprint) {
       const assessmentArtifact = stripTerminalPunctuation(
         assessment.artifact || submissionProfile.artifact || assessment.title,
       );
+      const feedbackPriority = preference
+        ? `${assessment.feedbackUse} Preference profile: ${preference}.`
+        : assessment.feedbackUse;
+      const finalMilestoneFeedback = `Final ${assessmentTitle} feedback should identify one criterion strength, one revision priority, and the next use of the submitted evidence. ${assessment.feedbackUse}`;
       return {
         title: assessment.title,
         assignmentType: submissionProfile.assignmentType,
@@ -12646,9 +12650,7 @@ function compileAssignments(blueprint) {
         expectedSubmissionFormat: `Submit ${submissionProfile.artifact} through the official course site using the weekly ${lens.domain} format. ${submissionProfile.submissionMode} Expected format: ${submissionProfile.expectedFormat}. Evidence standard: ${submissionProfile.evidenceRequirement}. Review before submission: ${submissionProfile.reviewProtocol}`,
         submissionProfile,
         highValueSuccessCriteria: assessment.successCriteria,
-        instructorFeedbackPriority: preference
-          ? `${assessment.feedbackUse} Preference profile: ${preference}.`
-          : assessment.feedbackUse,
+        instructorFeedbackPriority: feedbackPriority,
         sourceGrounding: lessonSourceGrounding(lesson, {
           assessmentArtifact: assessment.artifact,
           assessmentTitle: assessment.title,
@@ -12776,7 +12778,7 @@ function compileAssignments(blueprint) {
             milestone: 'Final submission',
             dueDate: `Week ${assessment.lessonNumbers[0]}`,
             description: `Submit the complete ${assessmentArtifact} with all rubric criteria addressed.`,
-            feedback: assessment.feedbackUse,
+            feedback: finalMilestoneFeedback,
             points: 90,
             uploadChecklist: [`${assessmentTitle} complete`, 'criteria addressed', 'reflection included'],
           },
@@ -13445,16 +13447,32 @@ function labelQuizOption(letter, text) {
   return `${letter}. ${cleanText(text)}`;
 }
 
+function quizRoleCue(index, use = '') {
+  return (
+    cleanText(use) ||
+    [
+      'diagnostic retrieval check',
+      'source application item',
+      'artifact analysis item',
+      'written analysis check',
+      'quality evaluation item',
+      'transfer synthesis item',
+    ][index] ||
+    `quiz item ${index + 1}`
+  );
+}
+
 function buildMultipleChoiceOptions({ lesson, index, concept, artifact, use, correct }) {
   const correctLetter = correctLetterForQuestion(lesson, index);
   const sourceCue = lesson?.evidencePlan?.sourceCue || 'the assigned course materials';
   const lessonFocus = stripLessonPrefix(lesson?.title || 'this lesson');
+  const roleCue = quizRoleCue(index, use);
   const distractors = unique(
     [
-      `For ${lessonFocus}, define ${concept} but skip evidence from ${sourceCue}.`,
-      `Use a familiar ${lessonFocus} example without checking whether it supports ${artifact}.`,
-      `Recommend the next ${artifact} step before comparing evidence or naming a limitation.`,
-      `Complete the ${use} activity but leave the reasoning behind the evidence unstated.`,
+      `During the ${roleCue}, define ${concept} for ${lessonFocus} but skip evidence from ${sourceCue}.`,
+      `For the ${roleCue}, use a familiar ${lessonFocus} example without checking whether it supports ${artifact}.`,
+      `In the ${roleCue}, recommend the next ${artifact} step before comparing evidence or naming a limitation.`,
+      `Treat the ${roleCue} as complete but leave the reasoning behind the ${lessonFocus} evidence unstated.`,
     ],
     3,
   );
