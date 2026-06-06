@@ -1704,7 +1704,7 @@ describe('ChatPanel agent command strip', () => {
       }),
       expect.objectContaining({
         role: 'agentReceipt',
-        receipt: expect.objectContaining({ title: 'Package needs review', status: 'review', mode: 'Local check' }),
+        receipt: expect.objectContaining({ title: 'Review required', status: 'review', mode: 'Local check' }),
       }),
       expect.objectContaining({ role: 'assistant', text: expect.stringContaining('Check complete.') }),
     ]);

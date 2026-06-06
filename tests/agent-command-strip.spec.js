@@ -255,7 +255,12 @@ test.describe('Agent command entry points', () => {
 
     await agentPanel.getByTestId('agent-starter-finish-package').click();
     await expect(agentPanel.getByText('Finishing the package.')).toBeVisible({ timeout: 10000 });
-    await expect(agentPanel.getByText(/Package (is ready|has|needs)/)).toBeVisible({ timeout: 10000 });
+    await expect(
+      agentPanel
+        .getByTestId('chat-message-assistant')
+        .filter({ hasText: /Package is ready|Decision needed|Review notes|Package pass complete/ })
+        .last(),
+    ).toBeVisible({ timeout: 10000 });
     expect(agentRequests.length).toBe(0);
 
     await agentPanel.locator('input[type="file"]').setInputFiles({

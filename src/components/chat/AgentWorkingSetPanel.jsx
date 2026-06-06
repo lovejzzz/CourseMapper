@@ -307,7 +307,7 @@ export default function AgentWorkingSetPanel(props) {
     summary.packageStatus.label === 'Finishing'
       ? 'Finishing package'
       : needsAttention
-        ? 'Needs your decision'
+        ? 'Review before export'
         : summary.packageStatus.label === 'Ready'
           ? 'Ready to export'
           : localOnly

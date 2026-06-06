@@ -111,6 +111,13 @@ describe('buildAgentSystemPrompt', () => {
     expect(prompt).toContain('multiple_choice');
   });
 
+  it('requires read_deliverable before lesson-specific deliverable judgments', () => {
+    const prompt = buildAgentSystemPrompt(baseCourseMap, 'quizBank', baseDeliverables);
+    expect(prompt).toContain('Lesson-specific deliverable judgments');
+    expect(prompt).toContain('read_deliverable(target featureId + lessonIndex) first');
+    expect(prompt).toContain("don't judge quality");
+  });
+
   it('does not include ITEM SCHEMA section for courseMap tab', () => {
     const prompt = buildAgentSystemPrompt(baseCourseMap, 'courseMap', baseDeliverables);
     expect(prompt).not.toContain('ITEM SCHEMA for Course Map');

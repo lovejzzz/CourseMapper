@@ -176,14 +176,12 @@ function summarizeDirectPackageFinish(result) {
     return 'Package is ready. Safe checks passed and the export panel is ready.';
   }
   if (blockerCount > 0) {
-    return `Package needs your decision on ${blockerCount} blocker${
+    return `Decision needed: ${blockerCount} blocker${
       blockerCount === 1 ? '' : 's'
     }. Check the receipt before downloading.`;
   }
   if (warningCount > 0) {
-    return `Package has ${warningCount} review note${
-      warningCount === 1 ? '' : 's'
-    }. Check the receipt before downloading.`;
+    return `Review notes: ${warningCount} item${warningCount === 1 ? '' : 's'}. Check the receipt before downloading.`;
   }
   return 'Package pass complete. Check the export panel for the latest status.';
 }
@@ -561,7 +559,7 @@ function packageReceiptStatus(summary = {}) {
 function buildPackageAuditReceipt(summary = {}) {
   const status = packageReceiptStatus(summary);
   return buildAgentReceiptMessage({
-    title: status === 'done' ? 'Package checked' : 'Package needs review',
+    title: status === 'done' ? 'Package checked' : 'Review required',
     status,
     badge: status === 'done' ? 'Passed' : status === 'blocked' ? 'Blocked' : 'Review',
     mode: 'Local check',
@@ -586,7 +584,7 @@ function buildPackageFinishReceipt(result = {}) {
       : packageReceiptStatus(summary);
   const repairsApplied = Number(summary.repairsApplied || 0);
   return buildAgentReceiptMessage({
-    title: status === 'done' ? 'Package finished' : 'Package needs review',
+    title: status === 'done' ? 'Package finished' : 'Finish needs review',
     status,
     badge: status === 'done' ? 'Ready' : status === 'blocked' ? 'Blocked' : 'Review',
     mode: 'Package finish',

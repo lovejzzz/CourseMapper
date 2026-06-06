@@ -19,7 +19,7 @@ const releases = [
         color: 'indigo',
         items: [
           'Workspace status, package summaries, progress cards, and receipts now keep secondary tool counts, skipped actions, and trace details collapsed behind Details.',
-          'Agent labels were simplified from audit/review mode language into instructor-facing outcomes such as Check package, Finish package, Ready to download, and Needs your decision.',
+          'Agent labels were simplified from audit/review mode language into instructor-facing outcomes such as Check package, Finish package, Ready to download, and Review before export.',
           'Recoverable package details stay quiet until they matter, reducing side-panel noise while preserving full audit evidence when expanded.',
         ],
       },
@@ -40,7 +40,7 @@ const releases = [
         items: [
           'Added `audit:v0857:sweep`, a repeatable 34-course release proof for v0.8.57.',
           'The v0.8.57 smoke sweep passed 5/5 courses and the full sweep passed 34/34 courses across the curated real-course scenarios.',
-          'Local gates passed lint, production build, 2,166 unit tests, 122 browser E2E tests, the 132-case blueprint matrix, pipeline audit, bundle budget, 40-sample gold audit, and 23 live OpenAI agent scenarios.',
+          'Local gates passed lint, production build, 2,169 unit tests, 122 browser E2E tests, the 132-case blueprint matrix, pipeline audit, bundle budget, 40-sample gold audit, and 23 live OpenAI agent scenarios.',
         ],
       },
     ],

@@ -49,12 +49,8 @@ export default function PackageSummaryCard({ summary, embedded = false }) {
   if (!summary) return null;
 
   const tone = TONES[summary.tone] || TONES.assumptions;
-  const outcomeTitle = summary.ready
-    ? 'Ready to download'
-    : summary.tone === 'blocked'
-      ? 'Needs your decision'
-      : 'Review before export';
-  const badgeText = summary.ready ? 'Done' : summary.tone === 'blocked' ? 'Needs you' : 'Decision needed';
+  const outcomeTitle = summary.ready ? 'Ready to download' : 'Review before export';
+  const badgeText = summary.ready ? 'Done' : summary.tone === 'blocked' ? 'Action needed' : 'Review';
   const repairText =
     summary.repairsApplied > 0
       ? `${summary.repairsApplied} safe repair${summary.repairsApplied === 1 ? '' : 's'} applied`

@@ -109,8 +109,8 @@ describe('PackageSummaryCard', () => {
       />,
     );
 
-    expect(html).toContain('Needs your decision');
-    expect(html).toContain('Needs you');
+    expect(html).toContain('Review before export');
+    expect(html).toContain('Action needed');
     expect(html).toContain('1 issue to fix');
     expect(html).toContain('Needs attention');
     expect(html).toContain('Quiz Bank');
