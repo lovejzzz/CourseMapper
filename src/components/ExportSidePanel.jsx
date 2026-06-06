@@ -1134,9 +1134,7 @@ export default function ExportSidePanel({
             {/* Save Project file */}
             <div className="pt-1 border-t border-slate-100 space-y-1.5">
               <p className="text-[9px] font-bold text-slate-400 uppercase tracking-wider">Backup</p>
-              <p className="text-[10px] text-slate-400 leading-snug">
-                Save a portable .coursemapper file.
-              </p>
+              <p className="text-[10px] text-slate-400 leading-snug">Save a portable .coursemapper file.</p>
               <button
                 data-testid="export-save-project"
                 onClick={onSaveProject}

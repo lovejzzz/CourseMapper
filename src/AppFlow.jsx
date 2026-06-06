@@ -2973,13 +2973,13 @@ export default function AppFlow({ startupAction = null, onStartupHandled, onRetu
     : 'Anonymous projects autosave only in this browser. Export .coursemapper for a portable backup.';
   const canRunPackageFinalizer =
     Boolean(courseMap) && gen.progressStep === 'done' && typeof handleFinishPackageFromExport === 'function';
-  const finishPackageDisabled =
-    !canRunPackageFinalizer || packageQualityPass?.status === 'running';
-  const finishPackageTitle = packageQualityPass?.status === 'running'
-    ? 'Package finishing is already running.'
-    : !canFinishPackageWithAgent
-      ? 'Run deterministic package checks. Connect AI for model-backed repairs.'
-      : 'Finish, repair, verify, and prepare the package for export.';
+  const finishPackageDisabled = !canRunPackageFinalizer || packageQualityPass?.status === 'running';
+  const finishPackageTitle =
+    packageQualityPass?.status === 'running'
+      ? 'Package finishing is already running.'
+      : !canFinishPackageWithAgent
+        ? 'Run deterministic package checks. Connect AI for model-backed repairs.'
+        : 'Finish, repair, verify, and prepare the package for export.';
 
   const handleTabPointerDown = (feature, tabIdx) => (e) => {
     if (e.button !== 0) return;
