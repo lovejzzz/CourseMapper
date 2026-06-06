@@ -20,6 +20,7 @@ const releases = [
         items: [
           'The export panel now refreshes package readiness after the finalizer applies safe repairs, preventing stale "needs attention" blockers from surviving a completed finish pass.',
           'ZIP verification reads the actual generated output and blocks only real export problems, not title-only readability noise or already repaired warnings.',
+          'Restored projects with dirty course-map state are repaired before export even when the instructor selected only downstream deliverables.',
           'Course-map, syllabus, lesson plan, slide deck, rubric, quiz, assignment, discussion, study guide, and FAQ exports are covered by focused regression checks.',
         ],
       },
@@ -50,6 +51,7 @@ const releases = [
         items: [
           'Added `audit:v085:sweep`, a repeatable 25-course proof gate that compiles blueprints, finalizes packages, builds ZIPs, and audits Office output.',
           'The latest sweep passed 25/25 courses with zero blockers and zero warnings across 8-14 lesson packages and 22 course modalities.',
+          'A fresh 25-course retest now covers restored messy course maps, stale export-only repairs, and repeated counseling checklist copy.',
           'The sweep inspected 1,828 exported files for placeholders, internal text leakage, required assets, speaker notes, FAQ counts, folder structure, and DOCX bullet structure.',
         ],
       },

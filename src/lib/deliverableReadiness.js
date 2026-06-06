@@ -226,12 +226,74 @@ function applyRepair(current, summaries, label, repairFn, ...args) {
   return next;
 }
 
-function getCourseMapTopic(courseMap, lesson, section, lessonIndex) {
-  const raw = text(
-    section?.topicSection || section?.topic || lesson?.title || courseMap?.courseName || `Lesson ${lessonIndex + 1}`,
-  )
-    .replace(/^lesson\s*\d+\s*:\s*/i, '')
+function courseMapTopicList(value) {
+  return String(value || '')
+    .split(/\n|;|\||\u2022/)
+    .map((item) => text(item))
+    .filter(Boolean);
+}
+
+function titleCandidateFromCourseMapTopic(value) {
+  const source = text(value);
+  if (!source) return '';
+  const slashParts = source
+    .split('/')
+    .map((part) => text(part))
+    .filter(Boolean);
+  const candidate =
+    slashParts.length > 1
+      ? /^(?:studio\s+seminar|clinical\s+placement|field\s+application)$/i.test(slashParts[0])
+        ? slashParts[slashParts.length - 1]
+        : slashParts.join(' and ')
+      : source;
+  return text(candidate.replace(/^(?:studio\s+seminar|clinical\s+placement|field\s+application)\s*[:.-]?\s*/i, ''))
+    .replace(/^(?:and\s+)+/i, '')
+    .replace(/\s+/g, ' ')
     .trim();
+}
+
+function isWeakCourseMapTopic(value) {
+  const candidate = text(value);
+  if (!candidate || findPublishabilityPlaceholders(candidate, { limit: 1 }).length > 0) return true;
+  return /^(?:none|n\/a|not applicable|lesson|week|topic|block|clinical|community|health|studio|seminar|placement)$/i.test(
+    candidate,
+  );
+}
+
+function pickCourseMapTopic(candidates = []) {
+  return candidates
+    .map(titleCandidateFromCourseMapTopic)
+    .filter((candidate) => !isWeakCourseMapTopic(candidate))
+    .map((candidate, index) => {
+      const wordLength = candidate.split(/\s+/).filter(Boolean).length;
+      const punctuationPenalty = /[,;]/.test(candidate) ? 4 : 0;
+      const lengthPenalty = wordLength > 8 ? wordLength - 8 : 0;
+      const specificityBonus = /^[A-Z]/.test(candidate) && wordLength >= 2 && wordLength <= 8 ? -2 : 0;
+      return {
+        candidate,
+        score: punctuationPenalty + lengthPenalty + specificityBonus + index * 0.01,
+      };
+    })
+    .sort((a, b) => a.score - b.score)[0]?.candidate;
+}
+
+function getCourseMapTopic(courseMap, lesson, section, lessonIndex) {
+  const sections = Array.isArray(lesson?.sections) && lesson.sections.length > 0 ? lesson.sections : [section || {}];
+  const topicCandidates = sections.flatMap((sourceSection) =>
+    courseMapTopicList(sourceSection?.topicSection || sourceSection?.topic),
+  );
+  const supportingCandidates = sections.flatMap((sourceSection) =>
+    [sourceSection?.learningObjectives, sourceSection?.learningGoals, sourceSection?.weeklyAssessments].flatMap(
+      courseMapTopicList,
+    ),
+  );
+  const titleCandidates = courseMapTopicList(lesson?.title);
+  const courseCandidates = courseMapTopicList(courseMap?.courseName);
+  const raw =
+    pickCourseMapTopic(topicCandidates) ||
+    pickCourseMapTopic(supportingCandidates) ||
+    pickCourseMapTopic(titleCandidates) ||
+    pickCourseMapTopic(courseCandidates);
   return raw || `Lesson ${lessonIndex + 1}`;
 }
 
@@ -309,8 +371,9 @@ export function repairCourseMapReadiness({ courseMap, columns = [], lessonFilter
   }
 
   const lessonIndices = getLessonIndices(courseMap, lessonFilter);
-  const columnsToRepair = enabledColumnKeys(columns);
-  const columnsToNormalize = columnsToRepair.length > 0 ? columnsToRepair : DEFAULT_COURSE_MAP_COLUMN_KEYS;
+  const requestedColumnKeys = enabledColumnKeys(columns);
+  const columnsToRepair = requestedColumnKeys.length > 0 ? requestedColumnKeys : DEFAULT_COURSE_MAP_COLUMN_KEYS;
+  const columnsToNormalize = columnsToRepair;
   const repairedFields = [];
   let changed = false;
 

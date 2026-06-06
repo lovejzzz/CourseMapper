@@ -10527,6 +10527,19 @@ function buildAssignmentSubmissionProfile({ lesson = {}, assessment = {}, lens =
   };
 }
 
+function assignmentChecklistResourceLabel({ submissionProfile = {}, lesson = {}, assessment = {} } = {}) {
+  const artifactLabel = cleanText(
+    submissionProfile.artifactGenreLabel || submissionProfile.assignmentType || 'Assignment',
+    'Assignment',
+  );
+  const lessonFocus = conciseClause(
+    stripLessonPrefix(lesson.title || assessment.relatedLessons?.[0] || assessment.title),
+    'this lesson',
+    42,
+  );
+  return `${artifactLabel} checklist for ${lessonFocus}: evidence, reasoning, format, revision.`;
+}
+
 function lessonSourceGrounding(lesson, extras = {}) {
   return {
     lessonNumber: lesson?.lessonNumber || null,
@@ -12788,7 +12801,7 @@ function compileAssignments(blueprint) {
         supportResources: [
           `${assessment.relatedLessons[0]} notes and assigned readings`,
           `Rubric criteria for ${assessmentTitle}`,
-          `${submissionProfile.artifactGenreLabel} checklist: ${submissionProfile.qualityFocus}`,
+          assignmentChecklistResourceLabel({ submissionProfile, lesson, assessment }),
           'Office hours or course communication channel',
         ],
         progressTracking: `Use the ${assessmentTitle} milestone checklist, rubric criteria, ${submissionProfile.assignmentType.toLowerCase()} format, and ${submissionProfile.workload.outOfClassEstimate} to monitor readiness before submission for ${assessment.relatedLessons[0]}.`,

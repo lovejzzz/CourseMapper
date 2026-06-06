@@ -6198,4 +6198,40 @@ describe('courseBlueprintCompiler', () => {
 
     expect(JSON.stringify(compiled)).not.toMatch(/generic filler|custom_\d+/i);
   });
+
+  it('keeps assignment checklist support resources compact and lesson-specific', () => {
+    const lessons = [
+      ['Client Intake, Rapport, and Helping Goals', 'Intake note with client context and stated concern'],
+      ['Active Listening and Open Questions', 'Helping-skills transcript with open questions'],
+      ['Risk Assessment and Safety Planning', 'Risk assessment and safety plan with risk cue'],
+      ['Supervision Integration and Final Helping Plan', 'Final helping-skills portfolio with intake note'],
+    ].map(([title, assessment], index) => ({
+      title: `Lesson ${index + 1}: ${title}`,
+      sections: [
+        {
+          topicSection: title,
+          learningGoals: `Use counseling skills and social work practice evidence for ${title}.`,
+          learningObjectives: `Analyze ${title} evidence and explain the helping decision.`,
+          weeklyAssessments: assessment,
+          asyncActivities: 'Review client notes and prepare one practice response.',
+          syncActivities: 'Skills rehearsal, peer feedback, and supervision debrief.',
+          supportingResources: 'Client vignette; supervision checklist; practice transcript',
+          evaluateDesign: 'Score client-centered evidence, ethics, and feedback uptake.',
+        },
+      ],
+    }));
+    const blueprint = buildCourseBlueprint({
+      courseName: 'Counseling Skills and Social Work Practice',
+      semester: 'Fall 2026',
+      lessons,
+    });
+    const compiled = compileBlueprintDeliverables(blueprint, ['assignments']);
+    const checklistResources = compiled.assignments.assignments.map((assignment) => assignment.supportResources[2]);
+
+    expect(new Set(checklistResources).size).toBe(checklistResources.length);
+    expect(checklistResources.every((resource) => resource.length < 140)).toBe(true);
+    expect(checklistResources.join(' ')).not.toMatch(
+      /case conceptualization checklist:\s*client-centered evidence, active listening, helping-skill fit/i,
+    );
+  });
 });

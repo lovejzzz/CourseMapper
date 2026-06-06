@@ -105,6 +105,51 @@ describe('packageFinalizer', () => {
     expect(strict.warnings.map((issue) => issue.message).join(' ')).toContain('boilerplate');
   });
 
+  it('repairs dirty course-map export state even when only deliverables are selected', () => {
+    const result = runDeterministicPackageFinalizer({
+      courseMap: {
+        courseName: 'Community Health Clinical Studio',
+        lessons: [
+          {
+            title: 'TBD',
+            sections: [
+              {
+                learningGoals: 'TBD',
+                topicSection: 'Placement orientation / community context',
+                learningObjectives: '',
+                weeklyAssessments: 'To be determined',
+              },
+            ],
+          },
+        ],
+      },
+      selectedFeatures: ['lessonPlans'],
+      includeClassroomReadiness: false,
+      includePedagogicalValidation: false,
+      retryWarnings: false,
+      deliverables: {
+        lessonPlans: {
+          status: 'done',
+          data: {
+            lessonPlans: [
+              {
+                lessonTitle: 'Lesson 1: Placement orientation and community context',
+                objectives: ['Analyze community health evidence.'],
+                outline: [{ time: '10 min', activity: 'Orientation', description: 'Review site context.' }],
+              },
+            ],
+          },
+        },
+      },
+    });
+
+    const exportedCourseMapText = JSON.stringify(result.courseMap);
+
+    expect(result.repairs).toEqual([expect.objectContaining({ featureId: 'courseMap' })]);
+    expect(result.courseMap.lessons[0].title).toBe('Lesson 1: Placement orientation and community context');
+    expect(exportedCourseMapText).not.toMatch(/\bTBD\b|to be determined/i);
+  });
+
   it('blocks strict readiness when semantic quality defects are present', () => {
     const courseMap = {
       courseName: 'Introduction to Psychology',

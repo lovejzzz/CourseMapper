@@ -1,6 +1,7 @@
 import { evaluateWorkspaceReadiness, repairCourseMapReadiness, repairWorkspaceReadiness } from './deliverableReadiness';
 import { buildPackageRepairQueue, evaluateClassroomReadiness } from './classroomReadiness';
 import { generateCourseHealthReport } from './pedagogicalValidator';
+import { findPublishabilityPlaceholders } from './publishabilityPlaceholders';
 import { normalizeReadinessIssue, normalizeReadinessIssues } from './readinessIssueSchema';
 
 function dedupeIssues(issues = []) {
@@ -120,6 +121,27 @@ function getRepairableFeatureIds(workspaceReadiness, classroomReadiness) {
   );
 }
 
+function selectedCourseMapLessons(courseMap, lessonFilter = null) {
+  const lessons = Array.isArray(courseMap?.lessons) ? courseMap.lessons : [];
+  if (!Array.isArray(lessonFilter)) return lessons;
+  return lessonFilter
+    .filter((index) => Number.isInteger(index) && index >= 0 && index < lessons.length)
+    .map((index) => lessons[index]);
+}
+
+function hasPublishabilityPlaceholder(value) {
+  return findPublishabilityPlaceholders(value, { limit: 1 }).length > 0;
+}
+
+function courseMapNeedsExportRepair(courseMap, lessonFilter = null) {
+  return selectedCourseMapLessons(courseMap, lessonFilter).some((lesson) => {
+    if (!String(lesson?.title || '').trim() || hasPublishabilityPlaceholder(lesson?.title)) return true;
+    return (Array.isArray(lesson?.sections) ? lesson.sections : []).some((section) =>
+      Object.values(section || {}).some((value) => hasPublishabilityPlaceholder(value)),
+    );
+  });
+}
+
 function applyDeterministicRepairs({
   courseMap,
   deliverables = {},
@@ -133,26 +155,26 @@ function applyDeterministicRepairs({
   let nextDeliverables = deliverables;
   const repairs = [];
 
-  const workspaceReadiness = evaluateWorkspaceReadiness({
-    courseMap,
-    deliverables,
+  let workspaceReadiness = evaluateWorkspaceReadiness({
+    courseMap: nextCourseMap,
+    deliverables: nextDeliverables,
     selectedFeatures,
     columns,
     lessonFilter,
   });
-  const classroomReadiness = includeClassroomReadiness
+  let classroomReadiness = includeClassroomReadiness
     ? evaluateClassroomReadiness({
-        courseMap,
-        deliverables,
+        courseMap: nextCourseMap,
+        deliverables: nextDeliverables,
         selectedFeatures,
         lessonFilter,
       })
     : { issues: [] };
-  const repairableFeatureIds = getRepairableFeatureIds(workspaceReadiness, classroomReadiness);
+  let repairableFeatureIds = getRepairableFeatureIds(workspaceReadiness, classroomReadiness);
 
-  if (repairableFeatureIds.has('courseMap')) {
+  if (repairableFeatureIds.has('courseMap') || courseMapNeedsExportRepair(nextCourseMap, lessonFilter)) {
     const courseMapRepair = repairCourseMapReadiness({
-      courseMap,
+      courseMap: nextCourseMap,
       columns,
       lessonFilter,
     });
@@ -164,6 +186,22 @@ function applyDeterministicRepairs({
         changes: courseMapRepair.repairedFields,
         message: `Course Map repaired: ${courseMapRepair.repairedFields.join('; ')}`,
       });
+      workspaceReadiness = evaluateWorkspaceReadiness({
+        courseMap: nextCourseMap,
+        deliverables: nextDeliverables,
+        selectedFeatures,
+        columns,
+        lessonFilter,
+      });
+      classroomReadiness = includeClassroomReadiness
+        ? evaluateClassroomReadiness({
+            courseMap: nextCourseMap,
+            deliverables: nextDeliverables,
+            selectedFeatures,
+            lessonFilter,
+          })
+        : { issues: [] };
+      repairableFeatureIds = getRepairableFeatureIds(workspaceReadiness, classroomReadiness);
     }
   }
 
