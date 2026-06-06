@@ -174,11 +174,13 @@ function parseArgs(argv = []) {
     sampleIds: [],
     keepZips: true,
     progress: true,
+    releaseLabel: 'v0.8.5',
   };
   for (let i = 0; i < argv.length; i++) {
     const arg = argv[i];
     if (arg === '--output-dir') args.outputDir = path.resolve(argv[++i]);
     else if (arg === '--count') args.count = Number(argv[++i]);
+    else if (arg === '--release-label') args.releaseLabel = String(argv[++i] || '').trim() || args.releaseLabel;
     else if (arg === '--sample' || arg === '--samples') {
       args.sampleIds.push(
         ...String(argv[++i] || '')
@@ -794,7 +796,7 @@ function summarize(results) {
 
 function renderMarkdown(payload) {
   const lines = [
-    '# v0.8.5 Quality Sweep',
+    `# ${payload.meta.releaseLabel || 'v0.8.5'} Quality Sweep`,
     '',
     `Generated: ${payload.meta.generatedAt}`,
     `Status: ${payload.summary.status}`,
@@ -856,24 +858,26 @@ async function writeReport(payload, outputDir) {
 async function run(options = {}) {
   const runtime = await loadRuntime();
   const samples = selectSweepSamples({ count: options.count, sampleIds: options.sampleIds });
+  const releaseLabel = options.releaseLabel || 'v0.8.5';
   await fs.mkdir(options.outputDir, { recursive: true });
   const results = [];
   const startedAt = Date.now();
   for (const [index, sample] of samples.entries()) {
     if (options.progress) {
-      console.log(`[v0.8.5:sweep] ${index + 1}/${samples.length} start ${sampleCourseName(sample)}`);
+      console.log(`[${releaseLabel}:sweep] ${index + 1}/${samples.length} start ${sampleCourseName(sample)}`);
     }
     const result = await auditSample({ sample, runtime, outputDir: options.outputDir, keepZips: options.keepZips });
     results.push(result);
     if (options.progress) {
       console.log(
-        `[v0.8.5:sweep] ${index + 1}/${samples.length} ${result.status} ${result.courseName} blockers=${result.blockerCount} warnings=${result.warningCount} zipFiles=${result.zip.files}`,
+        `[${releaseLabel}:sweep] ${index + 1}/${samples.length} ${result.status} ${result.courseName} blockers=${result.blockerCount} warnings=${result.warningCount} zipFiles=${result.zip.files}`,
       );
     }
   }
   const payload = {
     meta: {
       generatedAt: new Date().toISOString(),
+      releaseLabel,
       elapsedMs: Date.now() - startedAt,
       sampleSource: 'DEFAULT_GOLD_SAMPLES unique course maps',
       requestedSampleCount: samples.length,
@@ -890,7 +894,7 @@ async function main() {
   const args = parseArgs(process.argv.slice(2));
   try {
     const { payload, paths } = await run(args);
-    console.log(`v0.8.5 quality sweep: ${payload.summary.status}`);
+    console.log(`${payload.meta.releaseLabel} quality sweep: ${payload.summary.status}`);
     console.log(`Courses: ${payload.summary.passed}/${payload.summary.sampleCount} passed`);
     console.log(`Report: ${paths.markdownPath}`);
     if (payload.summary.status !== 'pass') process.exitCode = 1;

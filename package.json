@@ -1,6 +1,6 @@
 {
   "name": "course-mapper",
-  "version": "0.8.5",
+  "version": "0.8.55",
   "type": "module",
   "description": "AI-powered course syllabus to course map generator",
   "scripts": {
@@ -25,6 +25,7 @@
     "audit:self": "node scripts/internalSelfImprovementAudit.mjs",
     "audit:blueprint:quality-sample": "node scripts/blueprintQualitySampleAudit.mjs",
     "audit:v085:sweep": "node scripts/v085QualitySweep.mjs",
+    "audit:v0855:sweep": "node scripts/v085QualitySweep.mjs --release-label v0.8.55 --count 34 --output-dir verification-output/v0.8.55-quality-sweep --no-progress",
     "audit:expert": "node scripts/expertReviewQualityAudit.mjs",
     "audit:expert:external": "node scripts/expertReviewQualityAudit.mjs --require-external-proof",
     "audit:expert:preflight": "node scripts/expertReviewQualityAudit.mjs --require-external-proof --preflight",

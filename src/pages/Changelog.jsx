@@ -3,6 +3,49 @@ import Header from '../components/Header';
 
 const releases = [
   {
+    version: '0.8.55',
+    date: 'June 6, 2026',
+    title: 'Expanded Quality Round Release',
+    highlights: [
+      'The release gate now includes every unique curated full-course ZIP package, not only the 25-course subset',
+      'The expanded sweep passed 34/34 courses with zero blockers and zero warnings while inspecting 2,531 exported files',
+      'The full blueprint/compiler matrix passed 132 restored, sparse, custom, and real-course scenarios',
+      'Browser E2E passed 122 workspace, export, recovery, landing, mobile, and accessibility tests',
+    ],
+    sections: [
+      {
+        label: 'Expanded ZIP Proof',
+        icon: '34',
+        color: 'emerald',
+        items: [
+          'Added `audit:v0855:sweep`, a repeatable 34-unique-course proof gate for the full curated course set.',
+          'The sweep compiles blueprints, finalizes packages, builds ZIPs, and audits actual Office exports for placeholders, internal language, speaker-note depth, FAQ coverage, folder structure, and DOCX list structure.',
+          'The current report passed 34/34 courses with 0 blockers, 0 warnings, and 2,531 exported files inspected.',
+        ],
+      },
+      {
+        label: 'Scenario Matrix',
+        icon: '132',
+        color: 'indigo',
+        items: [
+          'The full blueprint-quality matrix now remains part of the release evidence, covering 132 compact-storage, restored-blueprint, sparse-source, custom-deliverable, and export-verification cases.',
+          'The 40-sample gold audit passed with 0 blockers and 0 warnings, including short, standard, semester-length, counseling, sparse-assessment, and messy-clinical resilience samples.',
+          'The 122-test browser E2E suite passed restored invalid-key recovery, provider switching, no-key local commands, export blocking, auto-repair, mobile layout, and landing-page behavior.',
+        ],
+      },
+      {
+        label: 'Release Operability',
+        icon: 'QA',
+        color: 'amber',
+        items: [
+          'The quality-sweep script now accepts a release label so v0.8.55 proof reports identify the exact release being tested.',
+          'The stale private OpenAI key was caught during live-provider testing; the product-level invalid-key recovery path is covered by browser E2E and remained green.',
+          'v0.8.55 is a quality-proof release rather than a feature expansion: it promotes the larger retest loop into a repeatable command.',
+        ],
+      },
+    ],
+  },
+  {
     version: '0.8.5',
     date: 'June 6, 2026',
     title: 'Export Quality Sweep Release',
