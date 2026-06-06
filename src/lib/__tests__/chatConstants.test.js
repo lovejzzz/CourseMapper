@@ -258,6 +258,10 @@ describe('getChatOpener — Tier 3 (agent mode)', () => {
     expect(result.greeting).toContain('reconnect AI');
     expect(result.starters).toEqual([
       expect.objectContaining({
+        text: 'Finish package',
+        action: 'finish-package',
+      }),
+      expect.objectContaining({
         text: 'Check package',
         action: 'local-audit',
       }),

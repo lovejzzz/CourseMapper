@@ -292,7 +292,7 @@ describe('AgentCommandStrip', () => {
     expect(container.querySelector('[data-testid="agent-command-plan-next"]')).not.toBeNull();
     expect(container.querySelector('[data-testid="agent-command-agent-help"]')).toBeNull();
     expect(container.querySelector('[data-testid="agent-command-improve-active"]')).toBeNull();
-    expect(container.querySelector('[data-testid="agent-command-finish-package"]')).toBeNull();
+    expect(container.querySelector('[data-testid="agent-command-finish-package"]')).not.toBeNull();
 
     act(() => {
       container

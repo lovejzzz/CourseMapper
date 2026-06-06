@@ -451,11 +451,13 @@ describe('ChatPanel agent command strip', () => {
     expect(container.querySelector('[data-testid="workspace-model-recovery-banner"]')?.textContent).toContain(
       'Model credits unavailable',
     );
-    expect(container.querySelector('[data-testid="agent-command-strip"]')).toBeNull();
+    expect(messageListMock.props.isAgentProviderReady).toBe(false);
+    expect(messageListMock.props.onStarterAction).toEqual(expect.any(Function));
     expect(chatInputMock.props.isAgentProviderReady).toBe(false);
     expect(chatInputMock.props.canUndo).toBe(true);
-    expect(messageListMock.props.onStarterAction).toEqual(expect.any(Function));
-    expect(container.querySelector('[data-testid="agent-command-finish-package"]')).toBeNull();
+    expect(buildAgentCommandItems({ localOnly: true }).map((item) => item.id)).toEqual(
+      expect.arrayContaining(['configure-agent', 'finish-package', 'audit-quality', 'plan-next']),
+    );
   });
 
   it('does not expose Review-only mode switching', () => {

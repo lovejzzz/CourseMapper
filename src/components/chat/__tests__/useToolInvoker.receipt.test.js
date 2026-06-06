@@ -1,4 +1,4 @@
-import { describe, expect, it } from 'vitest';
+import { describe, expect, it, vi } from 'vitest';
 import {
   buildAgentStateDiffsFromToolResult,
   buildModelAgentReceiptFromProgress,
@@ -8,6 +8,7 @@ import {
   shouldRequirePlanningBeforeTool,
   shouldNotifyDirectDeliverableEdit,
   projectAgentDeliverableActionToCanonicalPatch,
+  runAgentLoop,
 } from '../useToolInvoker';
 
 describe('buildModelAgentReceiptFromProgress', () => {
@@ -855,5 +856,75 @@ describe('projectAgentDeliverableActionToCanonicalPatch', () => {
       confidence: 'needs-model-mapping',
     });
     expect(projection.canonicalPatchRequests).toHaveLength(1);
+  });
+
+  it('refuses missing deliverable style changes before any provider call', async () => {
+    const originalFetch = globalThis.fetch;
+    const fetchSpy = vi.fn(() => {
+      throw new Error('provider should not be called for missing deliverable preflight');
+    });
+    globalThis.fetch = fetchSpy;
+
+    let messages = [{ role: 'agentProgress', status: 'running' }];
+    const setMessages = (updater) => {
+      messages = typeof updater === 'function' ? updater(messages) : updater;
+    };
+
+    try {
+      await runAgentLoop(
+        'Make the rubrics easier for first-year students.',
+        {},
+        {
+          messages: [],
+          setMessages,
+          setStreaming: vi.fn(),
+          abortRef: { current: null },
+          apiKey: 'sk-test',
+          provider: 'openai',
+          modelId: 'gpt-test',
+          courseMap: {
+            courseName: 'Climate Justice Seminar',
+            lessons: [{ title: 'Lesson 1: Policy Levers', sections: [{ learningObjectives: 'Analyze policy.' }] }],
+          },
+          activeTab: 'courseMap',
+          selectedFeatures: ['courseMap', 'lessonPlans'],
+          columns: [],
+          deliverableConfig: {},
+          lessonFilter: null,
+          delivRef: {
+            current: {
+              lessonPlans: { status: 'done', data: { lessonPlans: [{ lessonTitle: 'Lesson 1' }] } },
+            },
+          },
+          executeActionRef: { current: vi.fn() },
+          optimisticUpdateRef: { current: null },
+          snapshotRef: { current: null },
+          undoFnRef: { current: null },
+          notifyEditRef: { current: null },
+          uid: null,
+          customToolRegistryRef: null,
+          maybeRunValidation: vi.fn(),
+          handleAgentFinalResponse: (response) => {
+            messages = [
+              ...messages,
+              {
+                role: 'assistant',
+                text: response?.chatReply || response?.text || '',
+              },
+            ];
+          },
+        },
+      );
+    } finally {
+      globalThis.fetch = originalFetch;
+    }
+
+    expect(fetchSpy).not.toHaveBeenCalled();
+    expect(messages).toEqual([
+      {
+        role: 'assistant',
+        text: 'The Rubrics deliverable is not in this workspace yet, so I did not invent it. Generate rubrics first, then I can make that change.',
+      },
+    ]);
   });
 });

@@ -193,6 +193,19 @@ describe('MessageList workspace plan actions', () => {
 
     await act(async () => {
       container
+        .querySelector('[data-testid="agent-starter-finish-package"]')
+        .dispatchEvent(new MouseEvent('click', { bubbles: true }));
+    });
+
+    expect(onStarterAction).toHaveBeenCalledWith(
+      expect.objectContaining({
+        text: 'Finish package',
+        action: 'finish-package',
+      }),
+    );
+
+    await act(async () => {
+      container
         .querySelector('[data-testid="agent-starter-local-audit"]')
         .dispatchEvent(new MouseEvent('click', { bubbles: true }));
     });

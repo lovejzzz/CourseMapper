@@ -259,7 +259,7 @@ export function buildAgentWorkingSetSummary({
   const briefStatus = buildBriefStatus(messages);
   const planStatus = buildPlanStatus(messages);
   const activityStatus = buildRecentActivityStatus(messages);
-  const toolStateLabel = !isAgentProviderReady ? 'Local tools' : 'AI connected';
+  const toolStateLabel = !isAgentProviderReady ? 'Local checks available' : 'AI connected';
   const selectedFeatureLabels = selectedDeliverableIds.map(resolveLabel).slice(0, 3);
 
   return {
@@ -301,10 +301,8 @@ export default function AgentWorkingSetPanel(props) {
     summary.staleFeatureCount ? `${summary.staleFeatureCount} will sync when needed` : null,
   ].filter(Boolean);
   const latestActivity = summary.activityStatus.activities[0];
-  const needsAttention =
-    summary.packageStatus.label === 'Needs attention' ||
-    summary.failedFeatureCount > 0 ||
-    summary.toolStateLabel === 'Local tools';
+  const needsAttention = summary.packageStatus.label === 'Needs attention' || summary.failedFeatureCount > 0;
+  const localOnly = summary.toolStateLabel !== 'AI connected';
   const headline =
     summary.packageStatus.label === 'Finishing'
       ? 'Finishing package'
@@ -312,7 +310,9 @@ export default function AgentWorkingSetPanel(props) {
         ? 'Needs your decision'
         : summary.packageStatus.label === 'Ready'
           ? 'Ready to export'
-          : 'Workspace ready';
+          : localOnly
+            ? 'Workspace open'
+            : 'Workspace ready';
   const supportLine = [
     summary.scopeLabel,
     quietMaterialParts.length > 0 ? quietMaterialParts.join(', ') : 'No generated materials yet',

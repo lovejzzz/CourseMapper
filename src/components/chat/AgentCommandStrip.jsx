@@ -143,7 +143,7 @@ export function buildAgentCommandItems({
 
   return [
     ...items.filter((item) =>
-      ['undo-last', 'sync-stale', 'audit-quality', 'plan-next', 'agent-help'].includes(item.id),
+      ['finish-package', 'undo-last', 'sync-stale', 'audit-quality', 'plan-next', 'agent-help'].includes(item.id),
     ),
     {
       id: 'configure-agent',
@@ -271,7 +271,7 @@ export function normalizeNaturalAgentCommandText(text = '') {
 function getVisibleCommandStripItems(items = [], { isAgentProviderReady = true } = {}) {
   const visibleIds = isAgentProviderReady
     ? ['sync-stale', 'undo-last']
-    : ['configure-agent', 'audit-quality', 'plan-next', 'sync-stale', 'undo-last'];
+    : ['configure-agent', 'finish-package', 'audit-quality', 'plan-next', 'sync-stale', 'undo-last'];
 
   return visibleIds.map((id) => items.find((item) => item?.id === id)).filter(Boolean);
 }

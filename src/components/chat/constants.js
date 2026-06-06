@@ -210,6 +210,11 @@ export function getChatOpener(
           'Your workspace is still useful. I can check the package and plan the next step while you reconnect AI for model edits.',
         starters: [
           {
+            text: 'Finish package',
+            icon: 'search',
+            action: 'finish-package',
+          },
+          {
             text: 'Check package',
             icon: 'search',
             action: 'local-audit',

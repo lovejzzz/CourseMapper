@@ -152,6 +152,29 @@ describe('AgentWorkingSetPanel', () => {
     });
   });
 
+  it('keeps no-key restored workspaces calm while local checks are available', () => {
+    const summary = buildAgentWorkingSetSummary({
+      courseMap,
+      selectedFeatures: ['courseMap', 'lessonPlans'],
+      isAgentProviderReady: false,
+      deliverables: { lessonPlans: { status: 'done', data: { lessonPlans: [] } } },
+    });
+    const html = renderToStaticMarkup(
+      <AgentWorkingSetPanel
+        courseMap={courseMap}
+        selectedFeatures={['courseMap', 'lessonPlans']}
+        isAgentProviderReady={false}
+        deliverables={{ lessonPlans: { status: 'done', data: { lessonPlans: [] } } }}
+      />,
+    );
+
+    expect(summary.toolStateLabel).toBe('Local checks available');
+    expect(html).toContain('Workspace open');
+    expect(html).toContain('3 lessons');
+    expect(html).toContain('1 ready');
+    expect(html).not.toContain('Needs your decision');
+  });
+
   it('summarizes recent Agent activity from receipts and run progress', () => {
     const summary = buildAgentWorkingSetSummary({
       courseMap,

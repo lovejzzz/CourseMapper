@@ -170,6 +170,12 @@ function isGeneratedDeliverableEntry(entry) {
 function isDeliverableMutationRequest(message = '') {
   const text = String(message || '');
   if (/\b(add|edit|change|update|rewrite|improve|fix|remove|delete|revise)\b/i.test(text)) return true;
+  if (
+    /\b(make|simplify|strengthen|polish|tighten|soften|expand|shorten)\b/i.test(text) &&
+    DELIVERABLE_REQUEST_TARGETS.some((target) => target.pattern.test(text))
+  ) {
+    return true;
+  }
   return (
     /\b(create|make)\b/i.test(text) &&
     /\b(criterion|criteria|item|question|section|slide|prompt|note|field|row)\b/i.test(text)
