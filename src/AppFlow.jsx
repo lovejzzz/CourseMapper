@@ -76,6 +76,7 @@ import { parseFiles } from './lib/fileParser';
 import { detectExpectedLessons, detectLessonsWithAI } from './lib/detectLessons';
 import { sanitizeMessagesForPersistence } from './lib/messageSanitizer';
 import { upsertLandingAgentContextMessages } from './lib/landingAgentContext';
+import { buildLocalAutosavePayload } from './lib/projectAutosave';
 import { prepareProjectSnapshotForRestore, sanitizeProjectSnapshot } from './lib/projectSnapshotSanitizer';
 import { isAgentProviderReady } from './lib/agentAvailability';
 import {
@@ -1856,20 +1857,36 @@ export default function AppFlow({ startupAction = null, onStartupHandled, onRetu
       if (!hasGenerated || !courseMap) return false;
       try {
         setLocalSaveStatus('saving');
-        localStorage.setItem(STORAGE_KEY, JSON.stringify(buildProjectSnapshot(extra)));
+        const { payload } = buildLocalAutosavePayload({
+          fullSnapshot: buildProjectSnapshot(extra),
+          compactSnapshot: buildCloudProjectSnapshot({ ...extra, localSaveMode: 'compact-autosave' }),
+        });
+        localStorage.setItem(STORAGE_KEY, payload);
         setLocalSaveStatus('saved');
         clearTimeout(localStatusTimerRef.current);
         localStatusTimerRef.current = setTimeout(() => setLocalSaveStatus('idle'), 3000);
         return true;
       } catch (e) {
-        warn('Save failed:', e);
-        setLocalSaveStatus('error');
-        clearTimeout(localStatusTimerRef.current);
-        localStatusTimerRef.current = setTimeout(() => setLocalSaveStatus('idle'), 5000);
-        return false;
+        try {
+          localStorage.removeItem(STORAGE_KEY);
+          localStorage.setItem(
+            STORAGE_KEY,
+            JSON.stringify(buildCloudProjectSnapshot({ ...extra, localSaveMode: 'compact-autosave-fallback' })),
+          );
+          setLocalSaveStatus('saved');
+          clearTimeout(localStatusTimerRef.current);
+          localStatusTimerRef.current = setTimeout(() => setLocalSaveStatus('idle'), 3000);
+          return true;
+        } catch (fallbackError) {
+          warn('Save failed:', fallbackError);
+          setLocalSaveStatus('error');
+          clearTimeout(localStatusTimerRef.current);
+          localStatusTimerRef.current = setTimeout(() => setLocalSaveStatus('idle'), 5000);
+          return false;
+        }
       }
     },
-    [buildProjectSnapshot, courseMap, hasGenerated],
+    [buildCloudProjectSnapshot, buildProjectSnapshot, courseMap, hasGenerated],
   );
 
   // ── Save to localStorage (debounced 3s) ──
@@ -1954,12 +1971,13 @@ export default function AppFlow({ startupAction = null, onStartupHandled, onRetu
   }, []); // eslint-disable-line react-hooks/exhaustive-deps
 
   // ── Restore saved session ──
-  function doRestoreSession() {
+  async function doRestoreSession() {
     try {
       const raw = localStorage.getItem(STORAGE_KEY);
       if (!raw) return;
       const saved = prepareProjectSnapshotForRestore(JSON.parse(raw));
       if (!saved.courseMap) return;
+      const restoredDeliverables = await compileCompactProjectDeliverables(saved);
       setCourseMap(saved.courseMap);
       setColumns(saved.columns || [...DEFAULT_COLUMNS]);
       setHasGenerated(true);
@@ -1984,7 +2002,9 @@ export default function AppFlow({ startupAction = null, onStartupHandled, onRetu
         setProjectId(saved.projectId);
         projectIdRef.current = saved.projectId;
       }
-      if (saved.deliverables) {
+      if (restoredDeliverables && Object.keys(restoredDeliverables).length > 0) {
+        deliv.restoreDeliverables(restoredDeliverables);
+      } else if (saved.deliverables) {
         deliv.restoreDeliverables(saved.deliverables);
       }
       setRestoredSession(true);
@@ -2100,7 +2120,7 @@ export default function AppFlow({ startupAction = null, onStartupHandled, onRetu
     }
   }
 
-  async function compileCompactCloudDeliverables(saved) {
+  async function compileCompactProjectDeliverables(saved) {
     if (saved?.deliverableSaveMode !== 'recompile-on-open') return {};
     if (!saved?.courseMap || !Array.isArray(saved.courseMap.lessons)) return {};
     const selectedFeatureIds = Array.isArray(saved.selectedFeatures)
@@ -2127,8 +2147,8 @@ export default function AppFlow({ startupAction = null, onStartupHandled, onRetu
       const blueprint = compactBlueprintForStorage(
         buildCourseBlueprint(saved.courseMap, {
           compilerPath: {
-            mode: 'cloud-restore',
-            reason: 'Restored from a compact CourseMapper cloud project.',
+            mode: 'compact-restore',
+            reason: 'Restored from a compact CourseMapper project.',
           },
         }),
       );
@@ -2142,12 +2162,12 @@ export default function AppFlow({ startupAction = null, onStartupHandled, onRetu
               ...(saved.deliverableManifest?.[featureId] || {}),
               status: 'done',
               data: compiled[featureId],
-              restoredFrom: 'compact-cloud-project',
+              restoredFrom: 'compact-project',
             },
           ]),
       );
     } catch (e) {
-      warn('[Cloud] compact project restore failed:', e);
+      warn('[Project] compact restore failed:', e);
       return {};
     }
   }
@@ -2164,7 +2184,7 @@ export default function AppFlow({ startupAction = null, onStartupHandled, onRetu
       const restoredDeliverables =
         deliverables && Object.keys(deliverables).length > 0
           ? deliverables
-          : await compileCompactCloudDeliverables(saved);
+          : await compileCompactProjectDeliverables(saved);
       // Restore all state — same as doRestoreSession but from cloud
       setCourseMap(saved.courseMap);
       setColumns(saved.columns || [...DEFAULT_COLUMNS]);
@@ -2782,7 +2802,7 @@ export default function AppFlow({ startupAction = null, onStartupHandled, onRetu
         if (startupAction.type === 'continue') {
           await handleLandingContinue();
         } else if (startupAction.type === 'restore') {
-          doRestoreSession();
+          await doRestoreSession();
         } else if (startupAction.type === 'openProjectFile') {
           await handleOpenProject(startupAction.file);
         } else if (startupAction.type === 'importCourseMap') {
