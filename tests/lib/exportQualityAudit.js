@@ -68,13 +68,16 @@ async function extractXlsxText(buffer) {
 
 async function extractPptxTextAndNotes(buffer) {
   const zip = await loadNestedZip(buffer);
-  if (!zip) return { text: '', notes: [] };
+  if (!zip) return { text: '', notes: [], slides: [] };
 
   const textParts = [];
   const notes = [];
+  const slides = [];
   for (const name of Object.keys(zip.files).sort()) {
     if (/^ppt\/slides\/slide\d+\.xml$/.test(name)) {
-      textParts.push(extractTextNodes(await zip.file(name).async('string')));
+      const slideText = extractTextNodes(await zip.file(name).async('string'));
+      slides.push({ name, text: slideText });
+      textParts.push(slideText);
     }
     if (/^ppt\/notesSlides\/notesSlide\d+\.xml$/.test(name)) {
       const noteText = extractTextNodes(await zip.file(name).async('string'));
@@ -86,6 +89,7 @@ async function extractPptxTextAndNotes(buffer) {
   return {
     text: textParts.join(' ').replace(/\s+/g, ' ').trim(),
     notes,
+    slides,
   };
 }
 
@@ -147,7 +151,12 @@ function checkFaqQuestionCounts(issues, counts, expected) {
 }
 
 export async function auditCourseMaterialsZip(zipPath, options = {}) {
-  const { expectedFolders = [], expectedFaqQuestionsPerLesson = null, minSpeakerNoteWords = 20 } = options;
+  const {
+    expectedFolders = [],
+    expectedFaqQuestionsPerLesson = null,
+    minSpeakerNoteWords = 20,
+    maxVisibleSlideWords = 120,
+  } = options;
   const issues = [];
   const buffer = await fs.readFile(zipPath);
   const zip = await JSZip.loadAsync(buffer);
@@ -182,10 +191,16 @@ export async function auditCourseMaterialsZip(zipPath, options = {}) {
     }
 
     if (lower.endsWith('.pptx')) {
-      const { text, notes } = await extractPptxTextAndNotes(fileBuffer);
+      const { text, notes, slides } = await extractPptxTextAndNotes(fileBuffer);
       extractedText.push(text);
       checkPlaceholders(issues, name, text);
       checkInternalProofLanguage(issues, name, text);
+      for (const slide of slides) {
+        const slideWords = countWords(slide.text.replace(/\b\d+\s*\/\s*\d+\b/g, ''));
+        if (slideWords > maxVisibleSlideWords) {
+          issues.push(`${name}: ${slide.name} has ${slideWords} visible words; move teaching detail into notes.`);
+        }
+      }
       for (const note of notes) {
         const noteWords = countWords(note.text.replace(/\b\d+\s*\/\s*\d+\b/g, ''));
         if (noteWords < minSpeakerNoteWords) {

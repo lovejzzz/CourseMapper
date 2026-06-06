@@ -43,6 +43,8 @@ const makeCourseMap = (lessonCount = 6) => ({
   })),
 });
 
+const countWords = (value) => (String(value || '').match(/[A-Za-z][A-Za-z'-]*/g) || []).length;
+
 const makeBiologyLabCourseMap = () => ({
   courseName: 'Biology Laboratory Methods',
   semester: 'Fall 2026',
@@ -4165,6 +4167,16 @@ describe('courseBlueprintCompiler', () => {
     });
     expect(compiled.slideDecks.decks[0].slides[5].visual.kind).toBe('evidence table');
     expect(['diagram', 'table', 'chart', 'image']).not.toContain(compiled.slideDecks.decks[0].slides[5].visual.kind);
+    expect(
+      Math.max(
+        ...compiled.slideDecks.decks.flatMap((deck) =>
+          deck.slides.map((slide) => countWords([slide.title, ...(slide.bullets || [])].join(' '))),
+        ),
+      ),
+    ).toBeLessThanOrEqual(120);
+    const activitySlide = compiled.slideDecks.decks[0].slides.find((slide) => slide.type === 'activity');
+    expect(activitySlide.notes).toContain('Detailed activity sequence');
+    expect(activitySlide.notes).toContain('stakeholder');
     expect(compiled.slideDecks.decks[0].artifactGenre.genre).toBe('policy-brief');
     expect(compiled.slideDecks.decks[0].slideDeckSequenceGuide.artifactGenreFit).toMatchObject({
       artifactGenre: expect.objectContaining({ genre: 'policy-brief' }),

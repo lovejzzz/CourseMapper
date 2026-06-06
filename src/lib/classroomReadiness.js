@@ -127,6 +127,7 @@ const BOILERPLATE_METADATA_KEYS = new Set([
   'instructorFeedbackLoad',
   'instructorFeedbackLoadPlan',
   'outlineTiming',
+  'slideDeckSequenceGuide',
   'slideTimingFit',
   'difficultyProfile',
   'teachingIntent',
@@ -186,6 +187,7 @@ const BOILERPLATE_METADATA_KEYS = new Set([
   'quizPlan',
   'quizBlueprint',
   'tags',
+  'visualPlan',
 ]);
 
 function collectBoilerplateStrings(value, output = []) {

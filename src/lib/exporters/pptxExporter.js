@@ -138,6 +138,20 @@ function countSpeakerNoteWords(value) {
   return (String(value || '').match(/[A-Za-z][A-Za-z'-]*/g) || []).length;
 }
 
+function compactPlaceholderText(value, maxLength = 110) {
+  const firstSentence =
+    String(value || '')
+      .replace(/\s+/g, ' ')
+      .trim()
+      .split(/(?<=[.!?])\s+/)[0] || '';
+  if (firstSentence.length <= maxLength) return firstSentence;
+  return firstSentence
+    .slice(0, maxLength)
+    .replace(/\s+\S*$/g, '')
+    .replace(/[,:;-]+$/g, '')
+    .trim();
+}
+
 function buildFallbackSpeakerNotes(deck, slide, slideIndex, totalSlides) {
   const lessonTitle = deck.lessonTitle || deck.title || `Lesson ${deck._deckIndex + 1 || 1}`;
   const slideTitle = slide.title || `Slide ${slideIndex + 1}`;
@@ -1442,6 +1456,7 @@ async function buildSlideForDeck(pptx, deck, theme, slideIndex, totalSlides, opt
   const hasVisual = vis && visKind && visKind !== 'none';
   const visDesc = hasVisual ? vis.description || vis.d || '' : '';
   const visAlt = hasVisual ? vis.altText || vis.at || '' : '';
+  const slideVisDesc = compactPlaceholderText(visDesc);
   const generatedVisualImage = hasVisual ? getGeneratedVisualImage(vis) : null;
 
   const rawNotes = s.notes || s.speakerNotes || '';
@@ -1496,7 +1511,7 @@ async function buildSlideForDeck(pptx, deck, theme, slideIndex, totalSlides, opt
           text: `${kindIcon} SUGGESTED VISUAL · ${visKind.toUpperCase()}\n`,
           options: { fontSize: 8, bold: true, color: theme.accent || theme.primary, fontFace: FONT_BODY },
         },
-        { text: visDesc, options: { fontSize: 9, color: '64748B', italic: true, fontFace: FONT_BODY } },
+        { text: slideVisDesc, options: { fontSize: 9, color: '64748B', italic: true, fontFace: FONT_BODY } },
       ],
       {
         x: px + 0.1,

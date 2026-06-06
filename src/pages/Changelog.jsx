@@ -3,6 +3,49 @@ import Header from '../components/Header';
 
 const releases = [
   {
+    version: '0.8.56',
+    date: 'June 6, 2026',
+    title: 'Live Agent and Slide Quality Release',
+    highlights: [
+      'Live OpenAI proof now covers 23 scenarios, including state-changing closed-loop edits with read-back verification',
+      'Course-health and review requests now route through validation/finalization before the agent responds',
+      'PPTX ZIP audits now fail over-dense visible slide text, keeping generated decks presentation-scale',
+      'The 34-course sweep passed 34/34 courses with 0 blockers, 0 warnings, and 2,531 exported files inspected',
+    ],
+    sections: [
+      {
+        label: 'Live OpenAI Loop',
+        icon: '23',
+        color: 'emerald',
+        items: [
+          'The live OpenAI suite now passes 23/23 scenarios, including stateful lesson renames, existing quiz rewrites, and missing-rubric refusal.',
+          'Closed-loop tests execute the selected action, verify the mutated course state, and assert the final receipt does not leak API-key material.',
+          'Audit and course-health prompts now explicitly require validation or finalization before the agent gives a readiness answer.',
+        ],
+      },
+      {
+        label: 'Slide Quality Gate',
+        icon: 'PPT',
+        color: 'indigo',
+        items: [
+          'Compiled slide decks now keep on-slide bullets compact while preserving detailed activity sequences in speaker notes.',
+          'Visual placeholders now render compact instructor-facing descriptions instead of long internal visual guidance.',
+          'ZIP export audits block visible PPTX slides over the density limit, reducing max visible slide words from 267 to 82 and p95 from 211 to 74 across 3,624 slides.',
+        ],
+      },
+      {
+        label: 'Release Proof',
+        icon: 'QA',
+        color: 'amber',
+        items: [
+          'Added `audit:v0856:sweep`, a repeatable 34-course release proof for v0.8.56.',
+          'The v0.8.56 sweep passed 34/34 courses across 8-14 lesson scopes with 0 blockers and 0 warnings.',
+          'The sweep inspected 2,531 exported DOCX, XLSX, CSV, PPTX, and ZIP files for placeholder text, public-output leakage, slide density, notes depth, FAQ coverage, folder structure, and DOCX list structure.',
+        ],
+      },
+    ],
+  },
+  {
     version: '0.8.55',
     date: 'June 6, 2026',
     title: 'Expanded Quality Round Release',

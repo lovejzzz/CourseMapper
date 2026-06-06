@@ -13879,13 +13879,13 @@ function slideVisual(lesson, slide) {
     },
     activity: {
       kind: 'practice workflow',
-      purpose: `Show the steps students follow during ${modality.mode || 'practice'}.`,
+      purpose: `Show the ${concept} practice steps students follow during ${modality.mode || 'practice'}.`,
       evidenceUse: `Connect ${modality.signaturePractice || 'practice'} to the revision evidence for ${artifact}.`,
     },
     discussion: {
       kind: 'decision matrix',
       purpose: `Compare competing ${concept} evidence choices for ${artifact} before students commit to a revision.`,
-      evidenceUse: `Use ${modality.evidenceRoutine || 'course evidence'} to choose the stronger ${artifact} move.`,
+      evidenceUse: `Use ${concept} evidence to choose the stronger ${artifact} move.`,
     },
     summary: {
       kind: 'readiness checklist',
@@ -13915,10 +13915,15 @@ function slideVisual(lesson, slide) {
       : `Students use the visual to decide what evidence changes ${artifact}.`,
     accessibilityCheck: `Alt text names the visual purpose, ${concept} evidence source, and ${artifact} connection without relying on color alone.`,
   };
+  const visualEvidence = conciseClause(
+    selected.evidenceUse,
+    `Connect ${concept} evidence to ${artifact}`,
+    type === 'activity' ? 84 : 100,
+  );
   return {
     kind: selected.kind,
-    description: `${sentenceCase(selected.kind)} for ${stripLessonPrefix(lesson.title)}: ${selected.evidenceUse}`,
-    altText: `${sentenceCase(selected.kind)} for "${title}" in ${stripLessonPrefix(lesson.title)}, showing how ${concept} evidence from ${source} supports ${artifact}.`,
+    description: `${sentenceCase(selected.kind)}: ${visualEvidence}.`,
+    altText: `${sentenceCase(selected.kind)} for "${title}" showing ${concept} evidence for ${artifact}.`,
     visualPlan,
   };
 }
@@ -14070,12 +14075,56 @@ function slideNotes({ lesson, title, type, bullets, nextCue, lens }) {
   const artifact = slideArtifact(lesson);
   const displayTitle = slideLessonTitle(lesson);
   const criterion = slideSuccessCriterion(lesson);
+  const activitySequence =
+    type === 'activity'
+      ? `Detailed activity sequence: ${bullets
+          .map((bullet) => stripTerminalPunctuation(bullet))
+          .filter(Boolean)
+          .join(' ')}`
+      : '';
   return [
     `${focus.opening} ${slideNoteAnchor({ type, anchor, concept, artifact, displayTitle })}`,
     focus.evidence,
     `${focus.misconception} ${slideNoteCriterionCue(type, criterion)}`,
+    activitySequence,
     slideNoteTransition({ type, nextCue, lens, concept, artifact }),
-  ].join(' ');
+  ]
+    .filter(Boolean)
+    .join(' ');
+}
+
+function compactSlideDisplayBullet(slide, bullet, index, lesson) {
+  const type = cleanText(slide?.type).toLowerCase();
+  const maxLength = type === 'activity' || type === 'discussion' ? 78 : 112;
+  const fallback = type === 'activity' ? 'Complete the practice step' : 'Use course evidence';
+  const concept = primarySlideConcept(lesson);
+  const artifact = slideArtifact(lesson);
+  const compact = conciseClause(bullet, fallback, maxLength)
+    .replace(/^students?\s+/i, '')
+    .replace(/^use\s+/i, 'Use ');
+  const needsLessonCue =
+    type === 'activity' ||
+    type === 'discussion' ||
+    (compact.length >= 70 && !cleanText(compact).toLowerCase().includes(cleanText(concept).toLowerCase()));
+  const lessonSpecific = needsLessonCue
+    ? conciseClause(`${concept}: ${compact}`, compact, maxLength)
+    : conciseClause(compact, fallback, maxLength);
+  if (type !== 'activity') return lessonSpecific;
+  const labels = ['Practice', 'Evidence', 'Debrief'];
+  const activityCue =
+    index === 1
+      ? conciseClause(`${concept} evidence for ${artifact}`, lessonSpecific, maxLength)
+      : index === 2
+        ? conciseClause(`${concept} decision for ${artifact}`, lessonSpecific, maxLength)
+        : lessonSpecific;
+  return `${labels[index] || `Step ${index + 1}`}: ${activityCue}`;
+}
+
+function displayBulletsForSlide(slide, lesson) {
+  return asArray(slide?.bullets)
+    .slice(0, slide?.type === 'agenda' ? 5 : 3)
+    .map((bullet, index) => compactSlideDisplayBullet(slide, bullet, index, lesson))
+    .filter(Boolean);
 }
 
 function discussionDurationForFormat(format) {
@@ -14801,10 +14850,11 @@ function compileSlideDecks(blueprint) {
       const lesson = blueprint.lessons.find((item) => item.id === deck.id) || blueprint.lessons[0];
       const slides = deck.slides.map((slide, index) => {
         const visual = slideVisual(lesson, slide);
+        const displayBullets = displayBulletsForSlide(slide, lesson);
         return {
           title: slide.title,
           type: slide.type,
-          bullets: slide.bullets,
+          bullets: displayBullets,
           notes: slideNotes({
             lesson,
             title: slide.title,

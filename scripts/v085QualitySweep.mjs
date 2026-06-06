@@ -444,6 +444,7 @@ function collectRepeatedLongCopyIssuesFromSegments(segments) {
       /\b(use this learner context|compile lesson plans|slides discussions assignments rubrics quizzes|check whether|distinct ready partial and needs support|review flags before finalizing)\b/i.test(
         clean,
       ) ||
+      /^\s*suggested visual\b/i.test(clean) ||
       /\bacademic integrity submitted work must represent the student or team effort cite outside sources or approved tools\b/i.test(
         normalizeText(clean),
       )
@@ -841,7 +842,7 @@ function renderMarkdown(payload) {
   lines.push('- Every package was finalized through `runDeterministicPackageFinalizer`.');
   lines.push('- Every package built a ZIP through `buildCourseMaterialsZip`.');
   lines.push(
-    '- ZIP output was parsed for Office placeholder/internal text, speaker-note depth, FAQ counts, folders, and DOCX bullet structure.',
+    '- ZIP output was parsed for Office placeholder/internal text, visible PPTX slide density, speaker-note depth, FAQ counts, folders, and DOCX bullet structure.',
   );
   return lines.join('\n');
 }

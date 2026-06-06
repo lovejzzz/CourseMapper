@@ -108,6 +108,55 @@ function deriveToolTargets(toolCall, activeTab) {
   return [...targets].slice(0, 4);
 }
 
+function collectFailedToolDetails(toolResults = []) {
+  const failures = [];
+  for (const item of toolResults) {
+    const result = item?.result || {};
+    if (result.error) {
+      failures.push({
+        toolName: item.toolName,
+        message: result.error,
+        featureId: result.featureId,
+      });
+    }
+    for (const detail of result.details || []) {
+      if (detail?.success) continue;
+      failures.push({
+        toolName: item.toolName,
+        message: detail?.message || result.error || 'The requested change could not be applied.',
+        featureId: detail?.featureId || result.featureId,
+        lessonIndex: detail?.lessonIndex,
+      });
+    }
+  }
+  return failures.filter((failure) => failure.message || failure.featureId);
+}
+
+function buildToolFailureChatReply(toolResults = []) {
+  const failures = collectFailedToolDetails(toolResults);
+  if (failures.length === 0) return '';
+  const primary =
+    failures.find((failure) =>
+      /\b(missing|not generated|not available|does not exist|generate .*first|no .*deliverable)\b/i.test(
+        failure.message,
+      ),
+    ) || failures[0];
+  const label = primary.featureId ? resolveLabel(primary.featureId) : 'the requested deliverable';
+  const message = String(primary.message || '').trim();
+  if (/\b(missing|not generated|not available|does not exist|generate .*first|no .*deliverable)\b/i.test(message)) {
+    return `I did not create a ghost ${label.toLowerCase()}. ${label} is missing or not generated in this workspace yet, so generate it first and then I can edit it.`;
+  }
+  return `I could not complete the requested ${label.toLowerCase()} change: ${message}`;
+}
+
+function ensureFinalResponseHasChatReply(response, toolResults = []) {
+  if (response?.chatReply || response?.text || response?.proposal || response?.chart || response?.diagram) {
+    return response;
+  }
+  const chatReply = buildToolFailureChatReply(toolResults);
+  return chatReply ? { ...(response || {}), chatReply } : response;
+}
+
 const RECEIPT_ACTION_TOOLS = new Set([
   'edit_course_map',
   'edit_deliverables',
@@ -1194,6 +1243,7 @@ export async function runAgentLoop(fullMessage, { silent = false, dryRun = false
     let usedTools = false;
     let terminalResponseHandled = false;
     const toolExecutionHistory = [];
+    const toolResultHistory = [];
 
     // ── Adaptive temperature: deterministic for simple edits, creative for complex tasks ──
     const agentTemperature = complexity === 'simple' ? 0.2 : complexity === 'complex' ? 0.5 : 0.4;
@@ -1254,6 +1304,7 @@ export async function runAgentLoop(fullMessage, { silent = false, dryRun = false
       if (toolCalls) {
         const respondCall = toolCalls.find((tc) => tc.name === 'respond');
         if (respondCall) {
+          const finalResponse = ensureFinalResponseHasChatReply(respondCall.args, toolResultHistory);
           if (silent) {
             setMessages((prev) => {
               const updated = [...prev];
@@ -1262,7 +1313,7 @@ export async function runAgentLoop(fullMessage, { silent = false, dryRun = false
               return updated;
             });
           } else if (usedTools) {
-            completeProgressWithReceipt({ stopReason: 'respond', finalResponse: respondCall.args });
+            completeProgressWithReceipt({ stopReason: 'respond', finalResponse });
           } else {
             setMessages((prev) => {
               const updated = [...prev];
@@ -1271,7 +1322,7 @@ export async function runAgentLoop(fullMessage, { silent = false, dryRun = false
               return updated;
             });
           }
-          handleAgentFinalResponse(respondCall.args);
+          handleAgentFinalResponse(finalResponse);
           terminalResponseHandled = true;
           break;
         }
@@ -1679,6 +1730,7 @@ export async function runAgentLoop(fullMessage, { silent = false, dryRun = false
             }
           }),
         );
+        toolResultHistory.push(...toolResults);
 
         // Add assistant tool-call turn + all tool results to loop messages
         loopMessages.push(formatAssistantToolCalls(provider, nonRespondCalls, assistantMessage));

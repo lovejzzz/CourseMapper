@@ -35,6 +35,11 @@ export function handleAgentFinalResponse(response, ctx) {
     return;
   }
 
+  if (response.text) {
+    setMessages((prev) => [...prev, { role: 'assistant', text: response.text }]);
+    return;
+  }
+
   // Proposal — pre-validate options before showing
   if (response.proposal) {
     const options = response.proposal.options || [];

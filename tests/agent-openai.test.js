@@ -17,6 +17,7 @@ import {
   parseAgentResponse as parseProviderResponse,
 } from '../src/lib/agentProviders.js';
 import { AGENT_TOOLS } from '../src/lib/agentTools.js';
+import { executeAction } from '../src/lib/agentActions.js';
 import { runAgentLoop } from '../src/components/chat/useToolInvoker.js';
 
 const OPENAI_API_KEY = process.env.OPENAI_API_KEY || '';
@@ -266,6 +267,124 @@ async function runOpenAIAgentLoop(userMessage, { activeTab = 'courseMap', dryRun
   return messageState;
 }
 
+function createMutableAgentState({ courseMap = COURSE_MAP, deliverables = DELIVERABLES } = {}) {
+  const state = {
+    courseMap: structuredClone(courseMap),
+    deliverables: structuredClone(deliverables),
+  };
+  const editor = {
+    handleCellEdit(lessonIndex, sectionIndex, field, value) {
+      const lesson = state.courseMap.lessons[lessonIndex];
+      if (!lesson) return;
+      if (!lesson.sections) lesson.sections = [];
+      if (!lesson.sections[sectionIndex]) lesson.sections[sectionIndex] = {};
+      lesson.sections[sectionIndex][field] = value;
+    },
+    handleTitleEdit(lessonIndex, newTitle) {
+      if (state.courseMap.lessons[lessonIndex]) state.courseMap.lessons[lessonIndex].title = newTitle;
+    },
+    handleAddLesson({ title = 'New Lesson', sections = [{}], lessonIndex = state.courseMap.lessons.length } = {}) {
+      state.courseMap.lessons.splice(lessonIndex, 0, { title, sections });
+      return lessonIndex;
+    },
+    handleDeleteLesson(lessonIndex) {
+      if (state.courseMap.lessons.length > 1) state.courseMap.lessons.splice(lessonIndex, 1);
+    },
+  };
+  const execCtx = {
+    editor,
+    get courseMap() {
+      return state.courseMap;
+    },
+    get deliverables() {
+      return state.deliverables;
+    },
+    columns: [],
+    optimisticUpdate(featureId, patchedData) {
+      state.deliverables[featureId] = {
+        ...(state.deliverables[featureId] || { status: 'done' }),
+        data: patchedData,
+      };
+    },
+    snapshot() {},
+    regenerateLesson: async (featureId, _courseMap, lessonIndex) => ({
+      success: true,
+      pending: true,
+      message: `[test] regenerate ${featureId} lesson ${lessonIndex + 1}`,
+    }),
+  };
+  return { state, execCtx };
+}
+
+async function runOpenAIClosedLoop(
+  userMessage,
+  { activeTab = 'courseMap', dryRun = false, courseMap = COURSE_MAP, deliverables = DELIVERABLES } = {},
+) {
+  const { state, execCtx } = createMutableAgentState({ courseMap, deliverables });
+  const delivRef = { current: state.deliverables };
+  let messageState = [
+    {
+      id: 'agent-progress-live-openai-closed-loop',
+      role: 'agentProgress',
+      steps: [],
+      status: 'running',
+      startedAt: 100,
+      runMeta: {
+        mode: dryRun ? 'Review only' : 'Auto-fix',
+        target: activeTab,
+        provider: 'openai',
+        model: OPENAI_MODEL,
+      },
+    },
+  ];
+  const setMessages = (updater) => {
+    messageState = typeof updater === 'function' ? updater(messageState) : updater;
+  };
+
+  await runAgentLoop(
+    userMessage,
+    { dryRun },
+    {
+      messages: [],
+      setMessages,
+      setStreaming: () => {},
+      abortRef: { current: null },
+      apiKey: OPENAI_API_KEY,
+      provider: 'openai',
+      modelId: OPENAI_MODEL,
+      get courseMap() {
+        return state.courseMap;
+      },
+      activeTab,
+      slideTheme: null,
+      selectedFeatures: ['courseMap', 'quizBank', 'lessonPlans', 'slideDecks'],
+      columns: [],
+      deliverableConfig: {},
+      lessonFilter: null,
+      delivRef,
+      executeActionRef: { current: (action, opts) => executeAction(action, { ...execCtx, ...(opts || {}) }) },
+      optimisticUpdateRef: { current: (featureId, patchedData) => execCtx.optimisticUpdate(featureId, patchedData) },
+      snapshotRef: { current: execCtx.snapshot },
+      undoFnRef: { current: null },
+      notifyEditRef: { current: null },
+      uid: null,
+      customToolRegistryRef: null,
+      maybeRunValidation: () => {},
+      handleAgentFinalResponse: (response) => {
+        setMessages((prev) => [
+          ...prev,
+          {
+            role: 'assistant',
+            text: response?.chatReply || response?.text || 'Agent completed.',
+          },
+        ]);
+      },
+    },
+  );
+
+  return { state, messages: messageState };
+}
+
 describeWithKey(`OpenAI (${OPENAI_MODEL}) Agent E2E`, { timeout: TIMEOUT * 12 }, () => {
   it('answers a simple question correctly', { timeout: TIMEOUT }, async () => {
     const r = await callOpenAI('How many lessons does this course have?');
@@ -508,4 +627,56 @@ describeWithKey(`OpenAI (${OPENAI_MODEL}) Agent real-life scenarios round 2`, { 
       expect(r.toolCalls || r.textContent).toBeTruthy();
     }
   });
+});
+
+describeWithKey(`OpenAI (${OPENAI_MODEL}) Agent closed-loop state changes`, { timeout: TIMEOUT * 12 }, () => {
+  it('renames a lesson, verifies state, and emits an auditable receipt', { timeout: TIMEOUT * 3 }, async () => {
+    const { state, messages } = await runOpenAIClosedLoop(
+      'Rename Lesson 2 to "Tree-Based Learning Methods". Apply the change, read it back, and report exactly what changed.',
+      { activeTab: 'courseMap' },
+    );
+
+    expect(state.courseMap.lessons[1].title).toBe('Tree-Based Learning Methods');
+    const receipt = messages.find((message) => message.role === 'agentReceipt');
+    const assistant = messages.find((message) => message.role === 'assistant');
+    expect(assistant?.text).toMatch(/Tree-Based Learning Methods/i);
+    expect(receipt?.receipt?.toolManifest?.some((step) => step.tool === 'edit_course_map')).toBe(true);
+    expect(JSON.stringify(receipt?.receipt || {})).not.toContain(OPENAI_API_KEY);
+  });
+
+  it('rewrites an existing quiz item without changing unrelated lessons', { timeout: TIMEOUT * 3 }, async () => {
+    const originalLessonTwo = structuredClone(DELIVERABLES.quizBank.data.quizzes[1]);
+    const { state, messages } = await runOpenAIClosedLoop(
+      'The first Lesson 1 quiz question is too easy. Rewrite that existing question at Apply level with four plausible options. Just do it, then verify Lesson 1 quiz.',
+      { activeTab: 'quizBank' },
+    );
+
+    const lessonOneQuestion = state.deliverables.quizBank.data.quizzes[0].qs[0];
+    expect(lessonOneQuestion.q).not.toBe('What is supervised learning?');
+    expect(String(lessonOneQuestion.bl || lessonOneQuestion.bloomsLevel)).toMatch(/Apply/i);
+    expect(lessonOneQuestion.op || lessonOneQuestion.options).toHaveLength(4);
+    expect(state.deliverables.quizBank.data.quizzes[1]).toEqual(originalLessonTwo);
+    expect(messages.find((message) => message.role === 'agentReceipt')?.receipt?.runStats?.toolCount).toBeGreaterThan(
+      0,
+    );
+  });
+
+  it(
+    'refuses to create a missing rubric deliverable instead of making ghost artifacts',
+    { timeout: TIMEOUT * 2 },
+    async () => {
+      const deliverablesWithoutRubrics = structuredClone(DELIVERABLES);
+      delete deliverablesWithoutRubrics.rubrics;
+
+      const { state, messages } = await runOpenAIClosedLoop(
+        'Add a rubric criterion about model evaluation evidence to Lesson 2.',
+        { activeTab: 'quizBank', deliverables: deliverablesWithoutRubrics },
+      );
+
+      expect(state.deliverables.rubrics).toBeUndefined();
+      const assistant = messages.find((message) => message.role === 'assistant');
+      expect(assistant?.text).toMatch(/rubric/i);
+      expect(assistant?.text).toMatch(/generate|missing|not.*generated|not.*available|does not exist|yet/i);
+    },
+  );
 });
