@@ -4,6 +4,7 @@ import { spawn } from 'node:child_process';
 import { execFile } from 'node:child_process';
 import fs from 'node:fs/promises';
 import net from 'node:net';
+import os from 'node:os';
 import path from 'node:path';
 import { fileURLToPath } from 'node:url';
 import { promisify } from 'node:util';
@@ -508,6 +509,38 @@ async function writeSummary(runDir, summary) {
   await fs.writeFile(path.join(runDir, 'report.md'), formatReport(completed));
 }
 
+function isWritableDirectoryError(error) {
+  return ['EACCES', 'EPERM', 'EROFS'].includes(error?.code);
+}
+
+export async function prepareRunDirectory(outputRoot, runId, options = {}) {
+  const requestedRunDir = path.join(outputRoot, runId);
+  try {
+    await fs.mkdir(requestedRunDir, { recursive: true });
+    return {
+      outputRoot,
+      runDir: requestedRunDir,
+      fallbackUsed: false,
+      requestedRunDir,
+    };
+  } catch (error) {
+    if (!isWritableDirectoryError(error)) throw error;
+
+    const fallbackRoot = path.resolve(
+      options.fallbackRoot || path.join(os.tmpdir(), 'coursemapper-verification-output', 'cron-browser'),
+    );
+    const fallbackRunDir = path.join(fallbackRoot, runId);
+    await fs.mkdir(fallbackRunDir, { recursive: true });
+    return {
+      outputRoot: fallbackRoot,
+      runDir: fallbackRunDir,
+      fallbackUsed: true,
+      requestedRunDir,
+      fallbackReason: `${error.code}: ${error.message}`,
+    };
+  }
+}
+
 async function main() {
   const args = parseArgs(process.argv.slice(2));
   const profile = args.profile || 'nightly';
@@ -515,22 +548,30 @@ async function main() {
   const selectedCourses = selectCourses(courseCount, profile);
   const outputRoot = path.resolve(repoRoot, args.out || path.join('verification-output', 'cron-browser'));
   const runId = new Date().toISOString().replace(/[:.]/g, '-');
-  const runDir = path.join(outputRoot, runId);
   const apiEnvPath = path.resolve(repoRoot, args.apiEnv || process.env.COURSEMAPPER_API_ENV || defaultApiEnvPath);
   const modelId = args.model || process.env.COURSEMAPPER_CRON_MODEL || 'gpt-5.4-mini';
   const modelName = args.modelName || process.env.COURSEMAPPER_CRON_MODEL_NAME || 'GPT-5.4 mini';
   const headed = Boolean(args.headed || args.headful);
+  const runOutput = await prepareRunDirectory(outputRoot, runId);
+  const runDir = runOutput.runDir;
   const summary = {
     status: 'running',
     startedAt: new Date().toISOString(),
     profile,
     modelId,
+    outputRoot: runOutput.outputRoot,
+    requestedOutputRoot: outputRoot,
+    outputFallback: runOutput.fallbackUsed
+      ? {
+          requestedRunDir: runOutput.requestedRunDir,
+          fallbackReason: runOutput.fallbackReason,
+        }
+      : null,
     selectedCourses: selectedCourses.map((course) => course.title),
     git: null,
     results: [],
   };
 
-  await fs.mkdir(runDir, { recursive: true });
   await writeSummary(runDir, summary);
 
   let server = null;
@@ -577,4 +618,6 @@ async function main() {
   console.log(`Browser quality loop ${summary.status}: ${reportPath}`);
 }
 
-main();
+if (process.argv[1] && path.resolve(process.argv[1]) === fileURLToPath(import.meta.url)) {
+  main();
+}
