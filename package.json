@@ -1,6 +1,6 @@
 {
   "name": "course-mapper",
-  "version": "0.8.57",
+  "version": "0.8.58",
   "type": "module",
   "description": "AI-powered course syllabus to course map generator",
   "scripts": {
@@ -15,6 +15,7 @@
     "test:blueprint:quality:release": "npm run test:blueprint:quality && npm run audit:blueprint:quality-sample",
     "test:rules": "firebase emulators:exec --project coursemapper-rules-test --only firestore \"vitest run src/lib/__tests__/firestoreRules.emulator.test.js\"",
     "test:e2e": "playwright test",
+    "test:v0858:agent": "vitest run tests/agent-v0858-red-team.test.jsx",
     "test:offline": "vitest run src/",
     "lint": "eslint . --quiet",
     "format": "prettier . --write",
@@ -28,6 +29,8 @@
     "audit:v0855:sweep": "node scripts/v085QualitySweep.mjs --release-label v0.8.55 --count 34 --output-dir verification-output/v0.8.55-quality-sweep --no-progress",
     "audit:v0856:sweep": "node scripts/v085QualitySweep.mjs --release-label v0.8.56 --count 34 --output-dir verification-output/v0.8.56-quality-sweep --no-progress",
     "audit:v0857:sweep": "node scripts/v085QualitySweep.mjs --release-label v0.8.57 --count 34 --output-dir verification-output/v0.8.57-quality-sweep --no-progress",
+    "audit:v0858:red-team": "node scripts/v0858RedTeamAudit.mjs",
+    "audit:v0858:sweep": "node scripts/v085QualitySweep.mjs --release-label v0.8.58 --count 34 --output-dir verification-output/v0.8.58-export-torture --no-progress",
     "audit:expert": "node scripts/expertReviewQualityAudit.mjs",
     "audit:expert:external": "node scripts/expertReviewQualityAudit.mjs --require-external-proof",
     "audit:expert:preflight": "node scripts/expertReviewQualityAudit.mjs --require-external-proof --preflight",

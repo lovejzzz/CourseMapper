@@ -34,6 +34,21 @@ Goal: make CourseMapper credible for real classroom pilots while keeping the age
 9. Versioned package handoff so users can recover prior generated packages.
 10. Public demo packages showing polished complete outputs across multiple subjects.
 
+## v0.8.58 - Red-Team Quality Hardening Release
+
+Goal: expose as many real weaknesses as possible across agent behavior, export readiness, restored-project recovery, generated-output quality, live provider drift, and workspace UI/UX, then fix every high-severity issue with regression coverage.
+
+Full plan: `docs/V0.8.58_RED_TEAM_HARDENING_ROADMAP.md`
+
+1. Agent closed-loop red team: add 50 in-browser scenarios across safe targeted edits, missing/stale deliverables, multi-turn changes of mind, package finish, source-file assisted edits, and ambiguous/destructive requests.
+2. Export pipeline torture: run at least 60 package/export scenarios across 5, 8, and 14 lesson scopes, restored projects, selected-scope exports, all-export, custom deliverables, failed deliverables, stale deliverables, and repaired packages.
+3. Broken-state recovery: add 30 restored-workspace tests for invalid keys, retired models, provider switches, malformed old projects, partial failures, localStorage pressure, and stale blueprint/deliverable states.
+4. Generated-output quality red team: run at least 80 quality samples, including the 40 gold samples plus adversarial sparse, messy, large, and custom-heavy packages.
+5. UI/UX stress: test long agent conversations, compact receipts, export blockers, provider recovery banners, dark mode, mobile/tablet workspaces, and side-panel label density.
+6. Live provider drift: expand private OpenAI agent proof toward 40 scenarios focused on read-before-judgment, safe mutation, missing-deliverable refusal, package finish, source-file use, ambiguity, and recovery.
+7. Security and privacy red team: verify API keys, source files, hidden prompts, internal feature ids, script-like inputs, and generated exports do not leak sensitive or internal data.
+8. Release proof loop: every found issue gets a reproduction, severity, behavior fix, regression test, report update, and rerun of the affected local/GitHub gates.
+
 ## v0.8.4 - Compiler Weight Shift Release
 
 Goal: shift repeatable artifact assembly out of blueprint/model generation and into deterministic compiler/finalizer code, so CourseMapper reduces provider cost, improves no-key recovery, and makes review boundaries more reliable.

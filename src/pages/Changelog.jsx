@@ -3,6 +3,51 @@ import Header from '../components/Header';
 
 const releases = [
   {
+    version: '0.8.58',
+    date: 'June 6, 2026',
+    title: 'Red-Team Quality Hardening Release',
+    highlights: [
+      'Added a 260-scenario v0.8.58 red-team inventory across agent loops, export torture, recovery, generated quality, and live provider drift',
+      'Added a dedicated v0.8.58 agent safety gate for no-ghost deliverables, lesson-specific readback, prompt rules, and compact side-panel language',
+      'The v0.8.58 export torture sweep passed 34/34 courses with 0 blockers, 0 warnings, and 2,531 exported files inspected',
+      'Final v0.8.58 proof passed 2,177 unit tests, 122 browser E2E tests, 23 live OpenAI scenarios, and the 40-sample gold audit',
+      'Release proof now writes repeatable reports under verification-output/v0.8.58-red-team and verification-output/v0.8.58-export-torture',
+    ],
+    sections: [
+      {
+        label: 'Red-Team Coverage',
+        icon: 'RT',
+        color: 'red',
+        items: [
+          'Added `tests/lib/v0858RedTeamScenarios.js` with 50 agent closed-loop scenarios, 60 export torture scenarios, 30 recovery scenarios, 80 generated-quality scenarios, and 40 live-provider drift scenarios.',
+          'Added `audit:v0858:red-team`, which validates scenario minimums, duplicate IDs, required agent categories, recovery states, and export lesson-scope coverage.',
+          'The generated red-team report records exact release commands so future hardening rounds can expand coverage without losing the existing baseline.',
+        ],
+      },
+      {
+        label: 'Agent Safety',
+        icon: 'AI',
+        color: 'indigo',
+        items: [
+          'Added `test:v0858:agent` to assert missing deliverables stay refused instead of creating ghost rubrics, assignments, or custom artifacts.',
+          'The gate checks that lesson-specific deliverable judgments require `read_deliverable` with the target lesson before the agent claims quality, alignment, or readiness.',
+          'Compact side-panel checks now preserve no-key local command state while avoiding old review-mode labels such as Package needs review, Needs your decision, and Review only.',
+        ],
+      },
+      {
+        label: 'Export Proof',
+        icon: 'ZIP',
+        color: 'emerald',
+        items: [
+          'Added `audit:v0858:sweep`, a 34-course export torture sweep labeled for v0.8.58.',
+          'The sweep compiled every course through the blueprint/compiler path, finalized every package, built ZIP exports, and audited Office files for placeholders, internal text, slide density, speaker notes, FAQ depth, folders, and DOCX structure.',
+          'The v0.8.58 run passed 34/34 courses across 8-14 lesson packages with 0 blockers, 0 warnings, and 2,531 exported files inspected.',
+          'Full release verification also passed lint, production build, bundle budget, 2,177 unit tests, 122 browser E2E tests, the 40-sample gold audit, hybrid pipeline audit, and 23 live OpenAI agent scenarios.',
+        ],
+      },
+    ],
+  },
+  {
     version: '0.8.57',
     date: 'June 6, 2026',
     title: 'Compact Agent Side Panel Release',
