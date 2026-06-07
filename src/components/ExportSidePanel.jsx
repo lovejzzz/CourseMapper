@@ -527,9 +527,12 @@ export default function ExportSidePanel({
   onFinishPackage,
   canFinishPackage = false,
   packageQualityPass,
+  isPackageGenerationRunning = false,
+  preferPackageScope = false,
 }) {
   const { courseMap, columns, selectedFeatures, slideTheme } = useCourse();
   const [scope, setScope] = useState('current'); // 'current' | 'all'
+  const [scopeWasChosen, setScopeWasChosen] = useState(false);
   const [busy, setBusy] = useState(null); // format string or 'zip'
   const [lastError, setLastError] = useState('');
   const [lastOk, setLastOk] = useState('');
@@ -540,6 +543,7 @@ export default function ExportSidePanel({
   const [readinessRepairAttempts, setReadinessRepairAttempts] = useState(() => new Set());
   const readinessConfirmRef = useRef(null);
   const isPackageQualityRunning = packageQualityPass?.status === 'running';
+  const isPackageWorkflowRunning = isPackageGenerationRunning || isPackageQualityRunning;
 
   // All-tab lesson filter (null = all lessons)
   const allLessons = courseMap?.lessons || [];
@@ -571,6 +575,12 @@ export default function ExportSidePanel({
   const allReadyCount = getExportFeatureIds('all').filter((featureId) =>
     featureId === 'courseMap' ? Boolean(courseMap) : deliverables?.[featureId]?.status === 'done',
   ).length;
+
+  useEffect(() => {
+    if (!preferPackageScope || scopeWasChosen || scope === 'all') return;
+    setScope('all');
+    clearPendingReadinessExport();
+  }, [preferPackageScope, scope, scopeWasChosen]);
 
   // Effective lesson filter for ZIP
   const effectiveLessonFilter = selectedLessons; // null means no filter (all)
@@ -621,9 +631,10 @@ export default function ExportSidePanel({
   const canAutoRepairReadiness =
     typeof onAutoRepairReadiness === 'function' &&
     Boolean(readinessIssueSignature) &&
+    !isPackageWorkflowRunning &&
     !readinessRepairAttempts.has(readinessIssueSignature);
   const showReadinessFinalizing =
-    canAutoRepairReadiness || autoRepairingReadiness || isPackageQualityRunning || finishPackageBusy;
+    canAutoRepairReadiness || autoRepairingReadiness || isPackageWorkflowRunning || finishPackageBusy;
 
   useEffect(() => {
     if (!pendingReadinessExport) return;
@@ -636,8 +647,8 @@ export default function ExportSidePanel({
   }, [activeReadiness, pendingReadinessExport, scope]);
 
   useEffect(() => {
-    if (!canAutoRepairReadiness || isPackageQualityRunning || finishPackageBusy) {
-      if (!isPackageQualityRunning) setAutoRepairingReadiness(false);
+    if (!canAutoRepairReadiness || isPackageWorkflowRunning || finishPackageBusy) {
+      if (!isPackageWorkflowRunning) setAutoRepairingReadiness(false);
       return;
     }
 
@@ -665,7 +676,7 @@ export default function ExportSidePanel({
     canAutoRepairReadiness,
     effectiveLessonFilter,
     finishPackageBusy,
-    isPackageQualityRunning,
+    isPackageWorkflowRunning,
     onAutoRepairReadiness,
     readinessIssueSignature,
     scope,
@@ -711,8 +722,12 @@ export default function ExportSidePanel({
   }
 
   async function doExport(format, { pendingExport = null } = {}) {
-    if (isPackageQualityRunning) {
-      setLastNotice('Finishing package is repairing and checking materials before export.');
+    if (isPackageWorkflowRunning) {
+      setLastNotice(
+        isPackageGenerationRunning
+          ? 'Course materials are still generating. Export will be available after the package check finishes.'
+          : 'Finishing package is repairing and checking materials before export.',
+      );
       return;
     }
 
@@ -997,6 +1012,7 @@ export default function ExportSidePanel({
               key={s.id}
               data-testid={`export-scope-${s.id}`}
               onClick={() => {
+                setScopeWasChosen(true);
                 setScope(s.id);
                 clearPendingReadinessExport();
               }}
@@ -1026,7 +1042,13 @@ export default function ExportSidePanel({
         </p>
 
         {showReadinessFinalizing ? (
-          <ReadinessFinalizingPanel finishingPackage={finishPackageBusy} message={packageQualityPass?.message} />
+          <ReadinessFinalizingPanel
+            finishingPackage={finishPackageBusy || isPackageQualityRunning}
+            message={
+              packageQualityPass?.message ||
+              (isPackageGenerationRunning ? 'Generating course materials before export.' : '')
+            }
+          />
         ) : (
           <ReadinessPanel readiness={displayedReadiness} onIssueClick={onReadinessIssueClick} />
         )}

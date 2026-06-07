@@ -683,6 +683,7 @@ export default function AppFlow({ startupAction = null, onStartupHandled, onRetu
   const packageFinalizerRef = useRef(null);
   const packageFinalizerInFlightRef = useRef(null);
   const packageGenerationInFlightRef = useRef(false);
+  const [packageGenerationBusy, setPackageGenerationBusy] = useState(false);
   const suppressedPackageRetryKeysRef = useRef(new Set());
   const canFinishPackageWithAgent = isAgentProviderReady({ provider, apiKey, apiStatus, modelId });
   const version = useVersionHistory(setCourseMap, setDownloadedFile);
@@ -2451,6 +2452,7 @@ export default function AppFlow({ startupAction = null, onStartupHandled, onRetu
       }
 
       packageGenerationInFlightRef.current = true;
+      setPackageGenerationBusy(true);
       try {
         setHasGenerated(true);
         setDownloadedFile('');
@@ -2511,6 +2513,7 @@ export default function AppFlow({ startupAction = null, onStartupHandled, onRetu
         throw err;
       } finally {
         packageGenerationInFlightRef.current = false;
+        setPackageGenerationBusy(false);
       }
     },
     [deliv, handleDeterministicPackageFinalization, lessonScope.indices, lessonScope.type, setDownloadedFile],
@@ -2646,6 +2649,7 @@ export default function AppFlow({ startupAction = null, onStartupHandled, onRetu
   async function onGenerate() {
     if (packageGenerationInFlightRef.current) return;
     packageGenerationInFlightRef.current = true;
+    setPackageGenerationBusy(true);
     try {
       setHasGenerated(true);
       setPackageQualityPass({
@@ -2692,12 +2696,14 @@ export default function AppFlow({ startupAction = null, onStartupHandled, onRetu
       });
     } finally {
       packageGenerationInFlightRef.current = false;
+      setPackageGenerationBusy(false);
     }
   }
 
   async function onResume() {
     if (packageGenerationInFlightRef.current) return;
     packageGenerationInFlightRef.current = true;
+    setPackageGenerationBusy(true);
     try {
       setPackageQualityPass({
         status: 'running',
@@ -2735,6 +2741,7 @@ export default function AppFlow({ startupAction = null, onStartupHandled, onRetu
       });
     } finally {
       packageGenerationInFlightRef.current = false;
+      setPackageGenerationBusy(false);
     }
   }
   function onStop() {
@@ -3006,7 +3013,9 @@ export default function AppFlow({ startupAction = null, onStartupHandled, onRetu
     : 'Anonymous projects autosave only in this browser. Export .coursemapper for a portable backup.';
   const canRunPackageFinalizer =
     Boolean(courseMap) && gen.progressStep === 'done' && typeof handleFinishPackageFromExport === 'function';
-  const finishPackageDisabled = !canRunPackageFinalizer || packageQualityPass?.status === 'running';
+  const isPackageGenerationRunning = packageGenerationBusy || gen.isStreaming || deliv.isGenerating;
+  const finishPackageDisabled =
+    !canRunPackageFinalizer || packageQualityPass?.status === 'running' || isPackageGenerationRunning;
   const finishPackageTitle =
     packageQualityPass?.status === 'running'
       ? 'Package finishing is already running.'
@@ -4178,6 +4187,10 @@ export default function AppFlow({ startupAction = null, onStartupHandled, onRetu
                   onFinishPackage={handleFinishPackageFromExport}
                   canFinishPackage={canRunPackageFinalizer}
                   packageQualityPass={packageQualityPass}
+                  isPackageGenerationRunning={isPackageGenerationRunning}
+                  preferPackageScope={
+                    hasGenerated && selectedFeatures.length > 1 && packageQualityPass?.status !== 'idle'
+                  }
                 />
               </div>
             )}
