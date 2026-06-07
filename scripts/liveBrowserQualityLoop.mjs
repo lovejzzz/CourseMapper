@@ -288,8 +288,32 @@ async function waitForExportIdle(page, timeoutMs = 240_000) {
   await page.waitForTimeout(750);
 }
 
+export async function waitForExportSidePanel(page, timeoutMs = 600_000) {
+  const panel = page.getByTestId('export-side-panel');
+  try {
+    await panel.waitFor({ timeout: timeoutMs });
+    return panel;
+  } catch (error) {
+    const [agentState, workspaceState] = await Promise.all([
+      safeText(page.getByTestId('workspace-agent-panel')),
+      safeText(page.getByTestId('workspace-shell')),
+    ]);
+    const stateDetails = [
+      agentState ? `Agent state:\n${agentState}` : '',
+      workspaceState ? `Workspace state:\n${workspaceState.slice(0, 1200)}` : '',
+    ]
+      .filter(Boolean)
+      .join('\n\n');
+    throw new Error(
+      `Export side panel did not appear after ${Math.round(timeoutMs / 1000)}s. ${
+        stateDetails || 'No workspace state was available.'
+      }\n${error.message || error}`,
+    );
+  }
+}
+
 async function ensurePackageReady(page) {
-  await page.getByTestId('export-side-panel').waitFor({ timeout: 60_000 });
+  await waitForExportSidePanel(page);
   await page.getByTestId('export-scope-all').click();
   await page.getByTestId('readiness-panel').waitFor({ timeout: 30_000 });
 
@@ -419,7 +443,7 @@ async function runCourse({ browser, baseUrl, course, index, runDir, apiKey, mode
     await writeProgress('generating-workspace');
     await page.getByTestId('workspace-shell').waitFor({ timeout: 600_000 });
     await writeProgress('workspace-ready');
-    await page.getByTestId('export-side-panel').waitFor({ timeout: 60_000 });
+    await waitForExportSidePanel(page);
     await writeProgress('finalizing-package');
     await ensurePackageReady(page);
 

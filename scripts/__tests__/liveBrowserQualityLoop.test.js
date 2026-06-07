@@ -4,7 +4,7 @@ import path from 'node:path';
 
 import { afterEach, describe, expect, it, vi } from 'vitest';
 
-import { prepareRunDirectory } from '../liveBrowserQualityLoop.mjs';
+import { prepareRunDirectory, waitForExportSidePanel } from '../liveBrowserQualityLoop.mjs';
 
 describe('prepareRunDirectory', () => {
   afterEach(() => {
@@ -48,5 +48,40 @@ describe('prepareRunDirectory', () => {
 
     await expect(prepareRunDirectory('/missing/root', 'run-3')).rejects.toMatchObject({ code: 'ENOENT' });
     expect(mkdirSpy).toHaveBeenCalled();
+  });
+});
+
+describe('waitForExportSidePanel', () => {
+  it('uses the full generation timeout instead of a short fixed panel wait', async () => {
+    const waitFor = vi.fn().mockResolvedValue();
+    const page = {
+      getByTestId: vi.fn(() => ({ waitFor })),
+    };
+
+    await waitForExportSidePanel(page);
+
+    expect(page.getByTestId).toHaveBeenCalledWith('export-side-panel');
+    expect(waitFor).toHaveBeenCalledWith({ timeout: 600_000 });
+  });
+
+  it('includes current workspace state when the export panel never appears', async () => {
+    const textLocator = (text) => ({
+      count: vi.fn().mockResolvedValue(1),
+      first: vi.fn(() => ({
+        innerText: vi.fn().mockResolvedValue(text),
+      })),
+    });
+    const locators = {
+      'export-side-panel': {
+        waitFor: vi.fn().mockRejectedValue(new Error('Timeout waiting for export-side-panel')),
+      },
+      'workspace-agent-panel': textLocator('Finishing package\n10 lessons - no generated materials yet'),
+      'workspace-shell': textLocator('Course Map Preview\nCommunity Health Program Evaluation'),
+    };
+    const page = {
+      getByTestId: vi.fn((testId) => locators[testId] || { count: vi.fn().mockResolvedValue(0) }),
+    };
+
+    await expect(waitForExportSidePanel(page, 1_000)).rejects.toThrow(/Finishing package[\s\S]*Course Map Preview/);
   });
 });
