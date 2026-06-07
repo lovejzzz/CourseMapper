@@ -101,7 +101,9 @@ describe('buildToolResultFallbackChatReply', () => {
       },
     ]);
 
-    expect(reply).toBe('The Rubrics deliverable is not in this workspace yet, so I did not invent it. Generate rubrics first, then I can make that change.');
+    expect(reply).toBe(
+      'The Rubrics deliverable is not in this workspace yet, so I did not invent it. Generate rubrics first, then I can make that change.',
+    );
   });
 });
 
