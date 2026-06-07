@@ -504,6 +504,7 @@ export default function useDeliverables({
   examChanges,
   columns,
   onApiCallEvent,
+  onCourseMapRepair,
 }) {
   // ── Read deliverables from the store ──
   const storeState = useContext(CourseStateContext);
@@ -1075,6 +1076,12 @@ export default function useDeliverables({
             `Filled sparse fields for blueprint compile: ${courseMapRepair.repairedFields.slice(0, 3).join('; ')}${courseMapRepair.repairedFields.length > 3 ? ` +${courseMapRepair.repairedFields.length - 3} more` : ''}`,
             'progress',
           );
+          if (typeof onCourseMapRepair === 'function') {
+            onCourseMapRepair(courseMapRepair.courseMap, {
+              source: 'blueprintCompiler',
+              repairedFields: courseMapRepair.repairedFields,
+            });
+          }
           traceGeneration(generationRunId, 'blueprint_course_map_repaired', {
             repairedFieldCount: courseMapRepair.repairedFields.length,
             repairedFields: courseMapRepair.repairedFields,
@@ -3658,6 +3665,7 @@ export default function useDeliverables({
       dispatch,
       deliverables,
       recordApiCallEvent,
+      onCourseMapRepair,
       logIfRecovered,
       getGenerationConfig,
     ],

@@ -10,6 +10,7 @@ const releases = [
       'Added a 260-scenario v0.8.58 red-team inventory across agent loops, export torture, recovery, generated quality, and live provider drift',
       'Added a dedicated v0.8.58 agent safety gate for no-ghost deliverables, lesson-specific readback, prompt rules, and compact side-panel language',
       'The v0.8.58 export torture sweep passed 34/34 courses with 0 blockers, 0 warnings, and 2,531 exported files inspected',
+      'Export finishing now persists safe course-map repairs before validation, fixing restored projects blocked by objective-stem cleanup',
       'Final v0.8.58 proof passed 2,177 unit tests, 122 browser E2E tests, 23 live OpenAI scenarios, and the 40-sample gold audit',
       'Release proof now writes repeatable reports under verification-output/v0.8.58-red-team and verification-output/v0.8.58-export-torture',
     ],
@@ -41,6 +42,7 @@ const releases = [
         items: [
           'Added `audit:v0858:sweep`, a 34-course export torture sweep labeled for v0.8.58.',
           'The sweep compiled every course through the blueprint/compiler path, finalized every package, built ZIP exports, and audited Office files for placeholders, internal text, slide density, speaker notes, FAQ depth, folders, and DOCX structure.',
+          'Restored or generated course maps now write deterministic readiness repairs back into workspace state before export, so safe objective-stem cleanup cannot stay as a stale blocker.',
           'The v0.8.58 run passed 34/34 courses across 8-14 lesson packages with 0 blockers, 0 warnings, and 2,531 exported files inspected.',
           'Full release verification also passed lint, production build, bundle budget, 2,177 unit tests, 122 browser E2E tests, the 40-sample gold audit, hybrid pipeline audit, and 23 live OpenAI agent scenarios.',
         ],

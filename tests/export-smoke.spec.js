@@ -1858,6 +1858,49 @@ test.describe('Export smoke', () => {
     expect(documentXml).not.toContain('[Verify time]');
   });
 
+  test('auto-fixes course-map objective stems before ZIP export', async ({ page }) => {
+    await restoreExportWorkspace(page, (snapshot) => {
+      snapshot.courseMap = {
+        courseName: 'Data Analytics for Decision-Making',
+        semester: 'Spring 2026',
+        lessons: Array.from({ length: 15 }, (_, index) => ({
+          title: `Lesson ${index + 1}: Analytics Decision Topic ${index + 1}`,
+          sections: [
+            {
+              learningGoals: `Evaluate analytics decisions for stakeholder context ${index + 1}.`,
+              topicSection: `Analytics workflow ${index + 1}`,
+              learningObjectives: `Students will be able to:\n${index + 1}a. Analyze evidence quality for analytics decision ${index + 1}.\n${index + 1}b. Recommend a responsible action from the data.`,
+              weeklyAssessments: `Lesson ${index + 1} applied analytics checkpoint.`,
+              asyncActivities: `Review the data scenario and prepare a decision note for lesson ${index + 1}.`,
+              syncActivities: `Compare recommendations and revise the decision rationale for lesson ${index + 1}.`,
+              technologyNeeded: 'Spreadsheet software, accessible data files, and LMS submission.',
+            },
+          ],
+        })),
+      };
+      snapshot.promptText = 'Data Analytics for Decision-Making, 15 lessons';
+      snapshot.selectedFeatures = ['courseMap'];
+      snapshot.deliverableConfig = {};
+      snapshot.deliverables = {};
+      snapshot.activeTab = 'courseMap';
+    });
+
+    await page.getByTestId('export-scope-all').click();
+    await expect(page.getByTestId('readiness-status')).toContainText('Ready to download');
+    await expect(page.getByTestId('readiness-panel')).not.toContainText('objective stem');
+    await expect(page.getByTestId('readiness-panel')).not.toContainText('Students will be able to');
+
+    const zipDownload = await expectDownload(page, () => page.getByTestId('export-download-zip').click(), {
+      extension: 'zip',
+      nameIncludes: 'Data Analytics for Decision-Making',
+      minBytes: 1000,
+    });
+    const zip = await JSZip.loadAsync(await fs.readFile(zipDownload.path));
+    const report = await zip.file('READINESS_REPORT.txt')?.async('string');
+    expect(report || '').not.toContain('objective stem');
+    expect(report || '').not.toContain('Students will be able to');
+  });
+
   test('auto-fixes generic syllabus placeholder copy before ZIP export', async ({ page }) => {
     await restoreExportWorkspace(page, (snapshot) => {
       snapshot.selectedFeatures = ['courseMap', 'syllabus'];

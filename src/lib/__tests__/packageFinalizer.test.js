@@ -202,6 +202,41 @@ describe('packageFinalizer', () => {
     expect(readiness.blockers.map((issue) => issue.message).join(' ')).toContain('multiple-choice answer');
   });
 
+  it('auto-repairs course-map objective stems before final package readiness validation', () => {
+    const courseMap = {
+      courseName: 'Data Analytics for Decision-Making',
+      lessons: Array.from({ length: 15 }, (_, index) => ({
+        title: `Lesson ${index + 1}: Analytics Topic ${index + 1}`,
+        sections: [
+          {
+            learningGoals: `Evaluate analytics decisions for stakeholder context ${index + 1}.`,
+            topicSection: `Analytics workflow ${index + 1}`,
+            learningObjectives: `Students will be able to:\n${index + 1}a. Analyze evidence quality for analytics decision ${index + 1}.\n${index + 1}b. Recommend a responsible action from the data.`,
+            weeklyAssessments: `Lesson ${index + 1} applied analytics checkpoint.`,
+            asyncActivities: `Review the data scenario and prepare a decision note for lesson ${index + 1}.`,
+            syncActivities: `Compare recommendations and revise the decision rationale for lesson ${index + 1}.`,
+          },
+        ],
+      })),
+    };
+
+    const result = runDeterministicPackageFinalizer({
+      courseMap,
+      selectedFeatures: ['courseMap'],
+      includeClassroomReadiness: false,
+      includePedagogicalValidation: true,
+      retryWarnings: false,
+    });
+
+    const finalText = JSON.stringify(result.courseMap);
+    const blockerText = result.readiness.blockers.map((issue) => issue.message).join(' ');
+
+    expect(result.status).toBe('ready');
+    expect(result.repairs).toEqual([expect.objectContaining({ featureId: 'courseMap' })]);
+    expect(finalText).not.toMatch(/Students will be able to:?/i);
+    expect(blockerText).not.toContain('objective stem');
+  });
+
   it('scopes semantic validation blockers to the selected export features', () => {
     const courseMap = makeCourseMap(1);
     const deliverables = {

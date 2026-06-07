@@ -685,6 +685,7 @@ export default function AppFlow({ startupAction = null, onStartupHandled, onRetu
   const packageGenerationInFlightRef = useRef(false);
   const suppressedPackageRetryKeysRef = useRef(new Set());
   const canFinishPackageWithAgent = isAgentProviderReady({ provider, apiKey, apiStatus, modelId });
+  const version = useVersionHistory(setCourseMap, setDownloadedFile);
   const handleAIAction = useCallback((prompt) => {
     // Handle "__FOCUS__" prefix — pre-fill chat with context but let user type
     if (prompt.startsWith('__FOCUS__')) {
@@ -710,6 +711,19 @@ export default function AppFlow({ startupAction = null, onStartupHandled, onRetu
       maxRetryPasses: 3,
     });
   }, []);
+  const handleGeneratedCourseMapRepair = useCallback(
+    (repairedCourseMap, meta = {}) => {
+      if (!repairedCourseMap?.lessons) return;
+      setCourseMap(repairedCourseMap);
+      version.pushVersion(
+        repairedCourseMap,
+        meta.source === 'blueprintCompiler'
+          ? 'Cleaned course map before compiling deliverables'
+          : 'Cleaned course map readiness fields',
+      );
+    },
+    [setCourseMap, version.pushVersion],
+  );
 
   useEffect(() => {
     try {
@@ -734,8 +748,6 @@ export default function AppFlow({ startupAction = null, onStartupHandled, onRetu
   }, [courseMap]);
   // Always-fresh ref to deliverables for onRequestProposal callback
   const deliverablesRef = useRef(null);
-
-  const version = useVersionHistory(setCourseMap, setDownloadedFile);
 
   const gen = useGeneration({
     provider,
@@ -794,6 +806,7 @@ export default function AppFlow({ startupAction = null, onStartupHandled, onRetu
     examChanges: gen.examChanges,
     columns,
     onApiCallEvent: recordApiCallEvent,
+    onCourseMapRepair: handleGeneratedCourseMapRepair,
   });
   // Keep deliverables ref fresh for use in stable callbacks
   deliverablesRef.current = deliv.deliverables;
@@ -845,19 +858,9 @@ export default function AppFlow({ startupAction = null, onStartupHandled, onRetu
         [...currentReadiness.issues, ...currentClassroomReadiness.issues].map((issue) => issue.featureId),
       );
 
-      if (repairableFeatureIds.size === 0) {
-        return {
-          changed: false,
-          applied: 0,
-          repairs: [],
-          courseMap: nextCourseMap,
-          deliverables: nextDeliverables,
-        };
-      }
-
-      if (repairableFeatureIds.has('courseMap')) {
+      if (Array.isArray(nextCourseMap?.lessons) && nextCourseMap.lessons.length > 0) {
         const courseMapRepair = repairCourseMapReadiness({
-          courseMap,
+          courseMap: nextCourseMap,
           columns,
           lessonFilter,
         });
@@ -871,6 +874,16 @@ export default function AppFlow({ startupAction = null, onStartupHandled, onRetu
             message: `Course Map repaired: ${courseMapRepair.repairedFields.join('; ')}`,
           });
         }
+      }
+
+      if (repairableFeatureIds.size === 0 && repairs.length === 0) {
+        return {
+          changed: false,
+          applied: 0,
+          repairs: [],
+          courseMap: nextCourseMap,
+          deliverables: nextDeliverables,
+        };
       }
 
       const deliverableFeatureIds = selectedFeatureIds.filter(
