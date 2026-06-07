@@ -34,12 +34,7 @@ function ExportPanelHarness({
   onAutoRepairReadiness = vi.fn(),
   preferPackageScope = false,
 }) {
-  const {
-    courseMap,
-    setCourseMap,
-    setSelectedFeatures,
-    setColumns,
-  } = useCourse();
+  const { courseMap, setCourseMap, setSelectedFeatures, setColumns } = useCourse();
   const [ready, setReady] = useState(false);
 
   useEffect(() => {

@@ -160,6 +160,21 @@ describe('auditCourseMaterialsZip', () => {
     expect(audit.issues.join('\n')).toContain('includes no lab asset file and no Required Assets marker');
   });
 
+  it('does not treat UX research notebooks or usability datasets as data-science lab assets', async () => {
+    const outerZip = new JSZip();
+    outerZip.file(
+      'Study Guides/Lesson 01 - UX Research - Study Guides.docx',
+      await buildDocxBuffer(
+        'Use a critique notebook, interview notes, usability-testing dataset, prototype validation questions, and journey-map evidence to improve the design case study.',
+      ),
+    );
+
+    const zipPath = await writeTempZip('coursemapper-export-quality-audit-ux-research-assets.zip', outerZip);
+    const audit = await auditCourseMaterialsZip(zipPath);
+
+    expect(audit.issues).toEqual([]);
+  });
+
   it('accepts data-science packages with an explicit required lab-assets marker', async () => {
     const outerZip = new JSZip();
     outerZip.file(

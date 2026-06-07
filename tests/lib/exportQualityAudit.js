@@ -107,9 +107,21 @@ function checkInternalProofLanguage(issues, fileName, text) {
 }
 
 function hasDataScienceAssetReference(text) {
-  return /\b(applied machine learning|machine learning|data science|jupyter|notebook|ipynb|dataset|data set|dataframe|model validation|train[-\s]?test|cross[-\s]?validation|confusion matrix|precision|recall|threshold|fairness|bias audit|model card)\b/i.test(
-    text,
-  );
+  const value = String(text || '');
+  if (/\b(jupyter|ipynb)\b/i.test(value)) return true;
+  if (
+    /\bmodel cards?\b/i.test(value) &&
+    /\b(machine learning|predictive|validation|fairness|bias|threshold)\b/i.test(value)
+  ) {
+    return true;
+  }
+
+  const hasLabAssetNoun = /\b(notebooks?|datasets?|data sets?|dataframes?)\b/i.test(value);
+  const hasDataScienceContext =
+    /\b(applied machine learning|machine learning|data science|predictive model|model validation|train[-\s]?test|cross[-\s]?validation|confusion matrix|precision|recall|threshold|bias audit|classification|regression)\b/i.test(
+      value,
+    );
+  return hasLabAssetNoun && hasDataScienceContext;
 }
 
 function hasBundledLabAsset(names) {
