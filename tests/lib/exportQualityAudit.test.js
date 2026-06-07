@@ -175,6 +175,27 @@ describe('auditCourseMaterialsZip', () => {
     expect(audit.issues).toEqual([]);
   });
 
+  it('does not combine generic finance notebook and rubric precision language into a data-science asset signal', async () => {
+    const outerZip = new JSZip();
+    outerZip.file(
+      'Assignment Briefs/Lesson 04 - Finance Worksheet - Assignment Briefs.docx',
+      await buildDocxBuffer(
+        'Complete a cap table worksheet and notebook entry that explains ownership, dilution, and valuation choices.',
+      ),
+    );
+    outerZip.file(
+      'Rubrics/Lesson 04 - Finance Worksheet - Rubrics.docx',
+      await buildDocxBuffer(
+        'Evaluate precision, recall of venture terms, classification of investor-friendly clauses, and explanation quality.',
+      ),
+    );
+
+    const zipPath = await writeTempZip('coursemapper-export-quality-audit-finance-notebook.zip', outerZip);
+    const audit = await auditCourseMaterialsZip(zipPath);
+
+    expect(audit.issues).toEqual([]);
+  });
+
   it('accepts data-science packages with an explicit required lab-assets marker', async () => {
     const outerZip = new JSZip();
     outerZip.file(

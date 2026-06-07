@@ -238,7 +238,7 @@ export async function auditCourseMaterialsZip(zipPath, options = {}) {
   }
 
   if (
-    hasDataScienceAssetReference(extractedText.join(' ')) &&
+    extractedText.some((text) => hasDataScienceAssetReference(text)) &&
     !hasBundledLabAsset(names) &&
     !hasRequiredLabAssetsMarker(names)
   ) {
