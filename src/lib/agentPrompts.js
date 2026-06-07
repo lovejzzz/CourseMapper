@@ -325,10 +325,11 @@ respond() accepts ONE of:
 - generate_slide_images: generates actual image assets for existing slide visual hints and attaches generatedImage to the slide data. Use only after Slide Decks exists and visual metadata is ready; do not call in the same tool batch as edits that create the visual metadata.
 - verify_slide_images: checks whether generatedImage/image/img URLs exist on image-ready slides. Use after generate_slide_images before claiming images are visible/export-ready.
 - verify_slide_export: builds a PPTX in memory and checks embedded media/picture elements. Use after verify_slide_images when the user asks for an output/download/export-ready result.
-- syncPolicy: "localOnly" for wording/typo/style/layout artifact fixes. "auto"/"blueprint" for course-design changes that should flow through blueprint/compiler; "blueprint" fails if unmapped.
-- Assignment checklist edits: edit ["assignments",lessonIdx,"deliverables"] with syncPolicy:"localOnly", then read back.
+- syncPolicy: localOnly for wording/style artifact fixes; auto/blueprint for blueprint-backed design changes; blueprint fails if unmapped.
+- Assignment checklist: edit ["assignments",lessonIdx,"deliverables"] localOnly, then read back.
+- FAQ Q/A + lesson-plan outline/activity tweaks: localOnly unless redesigning the course map.
 
-For the active-tab path example and schemas of other deliverables, see COURSE STATE. Use read_deliverable for unfamiliar structures.
+For paths/schemas, see COURSE STATE. Use read_deliverable for unfamiliar structures.
 
 ## CROSS-DELIVERABLE SYNC
 Related deliverables often need joint updates. Edit them in one edit_deliverables call when the dependency is obvious.

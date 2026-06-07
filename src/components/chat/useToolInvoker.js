@@ -202,34 +202,170 @@ function buildToolFailureChatReply(toolResults = []) {
   if (failures.length === 0) return '';
   const primary =
     failures.find((failure) =>
-      /\b(missing|not generated|not available|does not exist|generate .*first|no .*deliverable)\b/i.test(
+      /\b(missing|not generated|not been generated|not available|does not exist|generate .*first|no .*deliverable)\b/i.test(
         failure.message,
       ),
     ) || failures[0];
   const label = deriveFailureFeatureLabel(primary) || 'the requested deliverable';
   const message = String(primary.message || '').trim();
-  if (/\b(missing|not generated|not available|does not exist|generate .*first|no .*deliverable)\b/i.test(message)) {
+  if (
+    /\b(missing|not generated|not been generated|not available|does not exist|generate .*first|no .*deliverable)\b/i.test(
+      message,
+    )
+  ) {
     return buildMissingDeliverableMutationReply(label);
   }
   return `I could not complete the requested ${label.toLowerCase()} change: ${message}`;
 }
 
-function ensureFinalResponseHasChatReply(response, toolResults = []) {
+const TOOL_RESULT_FALLBACK_MUTATION_TOOLS = new Set([
+  'edit_course_map',
+  'edit_deliverables',
+  'generate_slide_images',
+  'finalize_package',
+  'repair_package_readiness',
+  'retry_package_weak_spots',
+  'undo_last',
+]);
+
+const TOOL_RESULT_FALLBACK_VERIFIER_TOOLS = new Set([
+  'read_lesson',
+  'read_deliverable',
+  'validate_course',
+  'review_package_readiness',
+  'verify_package_exports',
+  'verify_slide_images',
+  'verify_slide_export',
+  'inspect_workspace',
+]);
+
+const TOOL_RESULT_FALLBACK_READ_ONLY_TOOLS = new Set([
+  'inspect_workspace',
+  'plan_workspace_next_step',
+  'validate_course',
+  'review_package_readiness',
+  'verify_package_exports',
+  'read_lesson',
+  'read_deliverable',
+  'compare_deliverables',
+  'check_grammar',
+  'search_research',
+]);
+
+function toolResultSucceeded(result = {}) {
+  if (!result || result.error) return false;
+  if (Number(result.failed || 0) > 0 && Number(result.applied || result.started || 0) <= 0) return false;
+  return true;
+}
+
+function isSuccessfulMutationResult(item = {}) {
+  const toolName = item.toolName;
+  const result = item.result || {};
+  if (!TOOL_RESULT_FALLBACK_MUTATION_TOOLS.has(toolName) || !toolResultSucceeded(result)) return false;
+  if (toolName === 'undo_last') return Boolean(result.success);
+  if (toolName === 'finalize_package') return true;
+  if (Number(result.applied || result.started || 0) > 0) return true;
+  return Boolean(result.success || result.ok || result.confidence || result.exportVerification);
+}
+
+function targetFromToolResult(item = {}) {
+  const toolName = item.toolName;
+  const result = item.result || {};
+  if (toolName === 'edit_course_map') return 'Course Map';
+  if (toolName === 'finalize_package') return 'package';
+  if (toolName === 'repair_package_readiness' || toolName === 'retry_package_weak_spots') return 'package readiness';
+  if (toolName === 'generate_slide_images') return 'Slide Decks';
+  if (toolName === 'undo_last') return 'workspace history';
+  if (result.featureId) return resolveLabel(result.featureId);
+  for (const detail of result.details || []) {
+    if (detail?.featureId) return resolveLabel(detail.featureId);
+  }
+  return '';
+}
+
+function joinTargetLabels(labels = []) {
+  const unique = [...new Set(labels.map((label) => String(label || '').trim()).filter(Boolean))].slice(0, 3);
+  if (unique.length === 0) return 'the workspace';
+  if (unique.length === 1) return /^the\b/i.test(unique[0]) ? unique[0] : `the ${unique[0]}`;
+  const last = unique.pop();
+  return `the ${unique.join(', ')} and ${last}`;
+}
+
+function isContradictoryFailureText(value = '') {
+  return /\b(i wasn't able|i was not able|couldn'?t|could not|unable|failed|did not persist|didn't persist|did not take effect|didn't take effect|still appears|still reads|unchanged|remains unchanged|no changes? (?:were )?made)\b/i.test(
+    String(value || ''),
+  );
+}
+
+export function buildToolResultFallbackChatReply(toolResults = []) {
+  const failures = collectFailedToolDetails(toolResults);
+  const successfulMutations = toolResults.filter(isSuccessfulMutationResult);
+
+  if (successfulMutations.length > 0) {
+    const firstMutationIndex = toolResults.findIndex(isSuccessfulMutationResult);
+    const lastMutationIndex = toolResults.findLastIndex(isSuccessfulMutationResult);
+    const unresolvedFailures = collectFailedToolDetails(toolResults.slice(Math.max(0, lastMutationIndex + 1)));
+    const verifiedAfterMutation = toolResults
+      .slice(Math.max(0, firstMutationIndex + 1))
+      .some((item) => TOOL_RESULT_FALLBACK_VERIFIER_TOOLS.has(item.toolName) && toolResultSucceeded(item.result));
+    const targetText = joinTargetLabels(successfulMutations.map(targetFromToolResult));
+    const verificationText = verifiedAfterMutation ? ' and verified the updated state' : '';
+    if (unresolvedFailures.length > 0) {
+      const issue = unresolvedFailures[0]?.message ? ` ${unresolvedFailures[0].message}` : '';
+      return `I updated ${targetText}${verificationText}, but ${unresolvedFailures.length} item${
+        unresolvedFailures.length === 1 ? ' still needs' : 's still need'
+      } attention.${issue}`;
+    }
+    return `Done. I updated ${targetText}${verificationText}.`;
+  }
+
+  const failureReply = buildToolFailureChatReply(toolResults);
+  if (failureReply) return failureReply;
+
+  const readOnlyResults = toolResults.filter(
+    (item) => TOOL_RESULT_FALLBACK_READ_ONLY_TOOLS.has(item.toolName) && toolResultSucceeded(item.result),
+  );
+  if (readOnlyResults.length > 0) {
+    const last = readOnlyResults.at(-1);
+    const summary = summarizeToolResult(last.toolName, last.result);
+    return `Done. I checked the workspace${summary && summary !== 'Done' ? `: ${summary}` : ''}.`;
+  }
+
+  return '';
+}
+
+export function ensureFinalResponseHasChatReply(response, toolResults = []) {
   const failureChatReply = buildToolFailureChatReply(toolResults);
+  const fallbackChatReply = buildToolResultFallbackChatReply(toolResults);
+  const hasSuccessfulMutation = toolResults.some(isSuccessfulMutationResult);
+  const finalText = response?.chatReply || response?.text || '';
   if (
-    failureChatReply &&
+    fallbackChatReply &&
+    hasSuccessfulMutation &&
+    collectFailedToolDetails(toolResults).length === 0 &&
+    !response?.proposal &&
+    !response?.chart &&
+    !response?.diagram &&
+    isContradictoryFailureText(finalText)
+  ) {
+    return { ...(response || {}), chatReply: fallbackChatReply, text: undefined };
+  }
+  if (
+    (failureChatReply || fallbackChatReply) &&
     !response?.chatReply &&
     !response?.proposal &&
     !response?.chart &&
     !response?.diagram &&
     (!response?.text || isGenericCompletionText(response.text))
   ) {
-    return { ...(response || {}), chatReply: failureChatReply };
+    return { ...(response || {}), chatReply: failureChatReply || fallbackChatReply };
   }
   if (response?.chatReply || response?.text || response?.proposal || response?.chart || response?.diagram) {
     return response;
   }
-  return failureChatReply ? { ...(response || {}), chatReply: failureChatReply } : response;
+  return failureChatReply || fallbackChatReply
+    ? { ...(response || {}), chatReply: failureChatReply || fallbackChatReply }
+    : response;
 }
 
 const RECEIPT_ACTION_TOOLS = new Set([
@@ -1006,11 +1142,11 @@ function buildReceiptNext(status, intent, actionSteps, verification = null, hasV
   }
 }
 
-function inferAgentQualityExpectations(fullMessage = '', complexity = 'moderate') {
+export function inferAgentQualityExpectations(fullMessage = '', complexity = 'moderate') {
   const text = String(fullMessage || '').toLowerCase();
   const requiresPlan =
     complexity === 'complex' ||
-    /\b(finish|finalize|package|download|export|audit|review|readiness|alignment|repair|retry|regenerate|sync|fix all|every lesson|all lessons|whole course|14[-\s]?(lesson|week)|scope)\b/.test(
+    /\b(finish|finalize|package|download|audit|review|readiness|alignment|repair|retry|regenerate|sync|fix all|every lesson|all lessons|whole course|14[-\s]?(lesson|week)|scope)\b/.test(
       text,
     );
   return requiresPlan ? { requiresPlan: true } : {};
@@ -1421,7 +1557,9 @@ export async function runAgentLoop(fullMessage, { silent = false, dryRun = false
       // ── NO TOOL CALLS: text-only fallback ───────────────────────────
       if (!toolCalls) {
         const fallbackText =
-          textContent || "I wasn't able to complete that request. Could you try asking about one specific aspect?";
+          textContent ||
+          buildToolResultFallbackChatReply(toolResultHistory) ||
+          "I wasn't able to complete that request. Could you try asking about one specific aspect?";
         if (silent) {
           setMessages((prev) => {
             const updated = [...prev];
@@ -1929,11 +2067,14 @@ export async function runAgentLoop(fullMessage, { silent = false, dryRun = false
       setMessages((prev) => {
         const lastMsg = prev[prev.length - 1];
         if (FINAL_ROLES.has(lastMsg?.role)) return prev;
+        const fallbackText =
+          buildToolResultFallbackChatReply(toolResultHistory) ||
+          "I've completed several steps but couldn't fully finish. Could you try a more specific request?";
         return [
           ...prev,
           {
             role: 'assistant',
-            text: "I've completed several steps but couldn't fully finish. Could you try a more specific request?",
+            text: fallbackText,
           },
         ];
       });

@@ -199,6 +199,15 @@ describe('artifact blueprint projection', () => {
     expect(isKnownPresentationOnlyEdit('assignments', ['assignments', 2, 'title'])).toBe(false);
   });
 
+  it('treats FAQ answer edits and lesson-plan activities as local-only artifact edits', () => {
+    expect(isKnownPresentationOnlyEdit('courseFaq', ['faqs', 0, 'qs', 1, 'an'])).toBe(true);
+    expect(isKnownPresentationOnlyEdit('courseFaq', ['faqs', 0, 'qs', 1, 'answer'])).toBe(true);
+    expect(isKnownPresentationOnlyEdit('courseFaq', ['faqs', 0, 'qs', 1, 'difficulty'])).toBe(false);
+    expect(isKnownPresentationOnlyEdit('lessonPlans', ['lessonPlans', 0, 'outline', 0, 'activity'])).toBe(true);
+    expect(isKnownPresentationOnlyEdit('lessonPlans', ['lessonPlans', 0, 'outline', 0, 'description'])).toBe(true);
+    expect(isKnownPresentationOnlyEdit('lessonPlans', ['lessonPlans', 0, 'objectives'])).toBe(false);
+  });
+
   it('normalizes model-resolved patch JSON into a canonical course-map patch', () => {
     const request = createCanonicalPatchRequest({
       featureId: 'lessonPlans',

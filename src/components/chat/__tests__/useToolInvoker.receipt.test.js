@@ -2,14 +2,160 @@ import { describe, expect, it, vi } from 'vitest';
 import {
   buildAgentStateDiffsFromToolResult,
   buildModelAgentReceiptFromProgress,
+  buildToolResultFallbackChatReply,
   deriveAgentPlanningState,
   deriveAgentVerificationState,
   deriveModelAgentReceiptIntent,
+  ensureFinalResponseHasChatReply,
+  inferAgentQualityExpectations,
   shouldRequirePlanningBeforeTool,
   shouldNotifyDirectDeliverableEdit,
   projectAgentDeliverableActionToCanonicalPatch,
   runAgentLoop,
 } from '../useToolInvoker';
+
+describe('buildToolResultFallbackChatReply', () => {
+  it('summarizes successful mutations from tool results when the model omits a final response', () => {
+    const reply = buildToolResultFallbackChatReply([
+      {
+        toolName: 'edit_deliverables',
+        result: {
+          featureId: 'assignments',
+          applied: 1,
+          failed: 0,
+        },
+      },
+      {
+        toolName: 'read_deliverable',
+        result: {
+          featureId: 'assignments',
+          totalItems: 3,
+        },
+      },
+    ]);
+
+    expect(reply).toBe('Done. I updated the Assignment Briefs and verified the updated state.');
+  });
+
+  it('does not surface recovered internal tool failures after a later verified mutation succeeds', () => {
+    const reply = buildToolResultFallbackChatReply([
+      {
+        toolName: 'edit_deliverables',
+        result: {
+          featureId: 'lessonPlans',
+          error:
+            'Serious workspace changes need planning before "edit_deliverables" can run. Call inspect_workspace first.',
+        },
+      },
+      {
+        toolName: 'inspect_workspace',
+        result: {
+          course: { lessonCount: 3 },
+          generatedFeatureCount: 6,
+          staleFeatureCount: 0,
+          readiness: { blockerCount: 0 },
+        },
+      },
+      {
+        toolName: 'edit_deliverables',
+        result: {
+          featureId: 'lessonPlans',
+          applied: 1,
+          failed: 0,
+        },
+      },
+      {
+        toolName: 'read_deliverable',
+        result: {
+          featureId: 'lessonPlans',
+          totalItems: 3,
+        },
+      },
+    ]);
+
+    expect(reply).toBe('Done. I updated the Lesson Plans and verified the updated state.');
+  });
+
+  it('keeps read-only fallback responses factual', () => {
+    const reply = buildToolResultFallbackChatReply([
+      {
+        toolName: 'read_deliverable',
+        result: {
+          featureId: 'lessonPlans',
+          totalItems: 3,
+        },
+      },
+    ]);
+
+    expect(reply).toBe('Done. I checked the workspace: 3 items loaded.');
+  });
+
+  it('uses missing-deliverable safety wording for failed mutation tools', () => {
+    const reply = buildToolResultFallbackChatReply([
+      {
+        toolName: 'edit_deliverables',
+        result: {
+          featureId: 'rubrics',
+          error: 'Rubrics has not been generated yet.',
+        },
+      },
+    ]);
+
+    expect(reply).toBe('The Rubrics deliverable is not in this workspace yet, so I did not invent it. Generate rubrics first, then I can make that change.');
+  });
+});
+
+describe('ensureFinalResponseHasChatReply', () => {
+  it('overrides contradictory failure text when verified mutation tools succeeded', () => {
+    const response = ensureFinalResponseHasChatReply(
+      {
+        chatReply:
+          'Renaming did not take effect in the verified course map: Lesson 2 still appears with the old title.',
+      },
+      [
+        {
+          toolName: 'edit_course_map',
+          result: {
+            applied: 1,
+            failed: 0,
+          },
+        },
+        {
+          toolName: 'read_lesson',
+          result: {
+            sections: [{ topicSection: 'Format Handoff Decisions' }],
+          },
+        },
+      ],
+    );
+
+    expect(response.chatReply).toBe('Done. I updated the Course Map and verified the updated state.');
+  });
+});
+
+describe('inferAgentQualityExpectations', () => {
+  it('does not require broad-change planning for safe targeted edits that merely mention export content', () => {
+    expect(
+      inferAgentQualityExpectations(
+        'Add a 5-minute opening check to Lesson 1 lesson plan about export risk. Do it directly and verify it.',
+        'moderate',
+      ),
+    ).toEqual({});
+    expect(
+      inferAgentQualityExpectations(
+        'Update the Course FAQ cloud export failure answer so it says to use the local ZIP first.',
+        'moderate',
+      ),
+    ).toEqual({});
+  });
+
+  it('still requires planning for package/export workflows and broad operations', () => {
+    expect(inferAgentQualityExpectations('Finish the package and prepare it for download.', 'moderate')).toEqual({
+      requiresPlan: true,
+    });
+    expect(inferAgentQualityExpectations('Rewrite the whole course.', 'complex')).toEqual({ requiresPlan: true });
+  });
+});
 
 describe('buildModelAgentReceiptFromProgress', () => {
   it('summarizes model-driven edits and checks as a completed Agent receipt', () => {

@@ -312,6 +312,25 @@ export function isKnownPresentationOnlyEdit(featureId, editPath = []) {
   if (featureId === 'assignments') {
     return new Set(['deliverables', 'dl']).has(leafToken);
   }
+  if (featureId === 'courseFaq') {
+    return new Set(['q', 'question', 'an', 'answer']).has(leafToken);
+  }
+  if (featureId === 'lessonPlans') {
+    return new Set([
+      'outline',
+      'ol',
+      'activity',
+      'description',
+      'time',
+      'warmup',
+      'warmupactivity',
+      'wu',
+      'homework',
+      'hw',
+      'closing',
+      'closingactivity',
+    ]).has(leafToken);
+  }
   return false;
 }
 
