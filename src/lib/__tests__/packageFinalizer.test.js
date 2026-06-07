@@ -237,6 +237,45 @@ describe('packageFinalizer', () => {
     expect(blockerText).not.toContain('objective stem');
   });
 
+  it('auto-repairs objective stems left in course-map alias fields', () => {
+    const courseMap = {
+      courseName: 'UX Design Studio',
+      lessons: [
+        {
+          title: 'Lesson 1: Usability Testing',
+          objectives: 'Students will be able to analyze usability findings.',
+          sections: [
+            {
+              learningGoals: 'Evaluate usability evidence for design decisions.',
+              topicSection: 'Running Tests and Iterating',
+              learningObjectives: 'Students will be able to:\n1a. Analyze usability findings.',
+              lo: ['Students will be able to create an iteration plan.'],
+              weeklyAssessments: 'Usability findings memo.',
+              asyncActivities: 'Review test notes and identify patterns.',
+              syncActivities: 'Compare findings and prioritize revisions.',
+            },
+          ],
+        },
+      ],
+    };
+
+    const result = runDeterministicPackageFinalizer({
+      courseMap,
+      selectedFeatures: ['courseMap'],
+      includeClassroomReadiness: false,
+      includePedagogicalValidation: true,
+      retryWarnings: false,
+    });
+
+    const finalText = JSON.stringify(result.courseMap);
+    const blockerText = result.readiness.blockers.map((issue) => issue.message).join(' ');
+
+    expect(result.status).toBe('ready');
+    expect(result.repairs).toEqual([expect.objectContaining({ featureId: 'courseMap' })]);
+    expect(finalText).not.toMatch(/Students will be able to:?/i);
+    expect(blockerText).not.toContain('objective stem');
+  });
+
   it('scopes semantic validation blockers to the selected export features', () => {
     const courseMap = makeCourseMap(1);
     const deliverables = {

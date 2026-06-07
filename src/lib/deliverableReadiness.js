@@ -334,6 +334,20 @@ function normalizeCourseMapObjectives(value) {
   return normalized || raw.replace(/^students?\s+will\s+be\s+able\s+to:?\s*/i, '').trim();
 }
 
+function stripObjectiveStemText(value) {
+  if (Array.isArray(value)) return value.map(stripObjectiveStemText);
+  if (value && typeof value === 'object') {
+    return Object.fromEntries(Object.entries(value).map(([key, item]) => [key, stripObjectiveStemText(item)]));
+  }
+  if (typeof value !== 'string') return value;
+  const stripped = value.replace(/\bstudents?\s+will\s+be\s+able\s+to:?\s*/gi, '');
+  if (stripped === value) return value;
+  return stripped
+    .replace(/[ \t]{2,}/g, ' ')
+    .replace(/\n{3,}/g, '\n\n')
+    .trim();
+}
+
 function normalizeLessonRangeReferences(value, lessonCount) {
   if (Array.isArray(value)) return value.map((item) => normalizeLessonRangeReferences(item, lessonCount));
   const raw = text(value);
@@ -403,6 +417,13 @@ export function repairCourseMapReadiness({ courseMap, columns = [], lessonFilter
 
     if (!Array.isArray(nextLesson.sections) || nextLesson.sections.length === 0 || columnsToNormalize.length === 0) {
       return nextLesson;
+    }
+
+    const stemCleanedLesson = stripObjectiveStemText(nextLesson);
+    if (stableJson(stemCleanedLesson) !== stableJson(nextLesson)) {
+      nextLesson = stemCleanedLesson;
+      repairedFields.push(`Lesson ${lessonIndex + 1} objective stem text`);
+      changed = true;
     }
 
     let sectionsChanged = false;

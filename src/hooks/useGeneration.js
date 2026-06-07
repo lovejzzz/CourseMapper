@@ -79,6 +79,23 @@ function getCourseMapExamineTriggers({ courseMap, columns, validationWarnings = 
   return [...new Set(triggers)];
 }
 
+export function getLessonCount(courseMap) {
+  return Array.isArray(courseMap?.lessons) ? courseMap.lessons.length : 0;
+}
+
+export function buildIncompleteCourseMapErrorMessage(actual, expected) {
+  return `Course map generation stopped at ${actual} of ${expected} lessons. Try generating again, reducing the lesson scope, or switching models.`;
+}
+
+export function assertExpectedLessonCount(courseMap, expectedCount) {
+  const expected = Number(expectedCount) || 0;
+  const actual = getLessonCount(courseMap);
+  if (expected > 0 && actual < expected) {
+    throw new Error(buildIncompleteCourseMapErrorMessage(actual, expected));
+  }
+  return courseMap;
+}
+
 function recordClassifiedFailedCall(recordApiCallEvent, err, event = {}, context = {}) {
   if (err?.apiCallBudgetRecorded) return;
   recordApiCallEvent({
@@ -600,7 +617,7 @@ Generate lessons ${actual + 1} through ${expectedCount} now as JSON:`;
     initialModelName,
     systemPromptOverride,
   ) {
-    const MAX_ATTEMPTS_PER_MODEL = 2;
+    const MAX_ATTEMPTS_PER_MODEL = 4;
     let workingMap = currentMap;
 
     const model = { id: initialModelId, name: initialModelName, backend: provider, apiKey };
@@ -943,6 +960,7 @@ Generate lessons ${actual + 1} through ${expectedCount} now as JSON:`;
 
           // Step 3: Completeness check — auto-continue if lessons are missing
           const expected = expectedLessonsRef.current?.expected;
+          const generatedLessonCountBeforeContinuation = finalResult.lessons.length;
           if (expected && finalResult.lessons.length < expected) {
             addLog(
               usedModelName,
@@ -974,14 +992,24 @@ Generate lessons ${actual + 1} through ${expectedCount} now as JSON:`;
                 );
                 return null;
               }
+              throw contErr;
             }
             setIsStreaming(false);
+            if (finalResult.lessons.length < expected) {
+              setCompletenessInfo({
+                expected,
+                actual: finalResult.lessons.length,
+                confidence: expectedLessonsRef.current?.confidence,
+                status: 'incomplete',
+                continuationUsed: finalResult.lessons.length > generatedLessonCountBeforeContinuation,
+              });
+              finalResult = assertExpectedLessonCount(finalResult, expected);
+            }
           }
 
           // Update completeness info
           const actualCount = finalResult.lessons.length;
-          const continuationUsed =
-            expected && finalResult.lessons.length > (courseMapRef.current?.lessons?.length || 0);
+          const continuationUsed = expected && finalResult.lessons.length > generatedLessonCountBeforeContinuation;
           if (expected) {
             const cStatus = actualCount >= expected ? 'complete' : 'incomplete';
             setCompletenessInfo({

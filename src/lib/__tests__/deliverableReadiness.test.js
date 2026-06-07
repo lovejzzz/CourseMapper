@@ -501,6 +501,31 @@ describe('repairCourseMapReadiness', () => {
     expect(result.courseMap.lessons[0].sections[0].weeklyAssessments).toBe('Study guide spanning Lessons 1-2.');
     expect(result.courseMap.lessons[1].title).toBe('Lesson 2: Applied Reflection');
   });
+
+  it('removes objective stems from course-map alias fields before semantic validation', () => {
+    const result = repairCourseMapReadiness({
+      courseMap: {
+        courseName: 'UX Design Studio',
+        lessons: [
+          {
+            title: 'Lesson 1: Usability Testing',
+            objectives: 'Students will be able to analyze usability findings.',
+            sections: [
+              {
+                topicSection: 'Running Tests',
+                learningObjectives: 'Students will be able to:\n1a. Analyze usability findings.',
+                lo: ['Students will be able to create an iteration plan.'],
+              },
+            ],
+          },
+        ],
+      },
+    });
+
+    expect(result.changed).toBe(true);
+    expect(JSON.stringify(result.courseMap)).not.toMatch(/Students will be able to/i);
+    expect(result.courseMap.lessons[0].sections[0].learningObjectives).toBe('Analyze usability findings.');
+  });
 });
 
 describe('repairWorkspaceReadiness', () => {
