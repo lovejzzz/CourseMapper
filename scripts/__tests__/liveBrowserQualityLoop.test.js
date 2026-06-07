@@ -4,7 +4,7 @@ import path from 'node:path';
 
 import { afterEach, describe, expect, it, vi } from 'vitest';
 
-import { prepareRunDirectory, waitForExportSidePanel } from '../liveBrowserQualityLoop.mjs';
+import { prepareRunDirectory, waitForExportSidePanel, waitForReadinessPanel } from '../liveBrowserQualityLoop.mjs';
 
 describe('prepareRunDirectory', () => {
   afterEach(() => {
@@ -83,5 +83,41 @@ describe('waitForExportSidePanel', () => {
     };
 
     await expect(waitForExportSidePanel(page, 1_000)).rejects.toThrow(/Finishing package[\s\S]*Course Map Preview/);
+  });
+});
+
+describe('waitForReadinessPanel', () => {
+  it('uses the full finalizer timeout instead of a short fixed readiness wait', async () => {
+    const waitFor = vi.fn().mockResolvedValue();
+    const page = {
+      getByTestId: vi.fn(() => ({ waitFor })),
+    };
+
+    await waitForReadinessPanel(page);
+
+    expect(page.getByTestId).toHaveBeenCalledWith('readiness-panel');
+    expect(waitFor).toHaveBeenCalledWith({ timeout: 600_000 });
+  });
+
+  it('includes current export state when the finalizer never reaches readiness', async () => {
+    const exportPanel = {
+      count: vi.fn().mockResolvedValue(1),
+      first: vi.fn(() => ({
+        innerText: vi.fn().mockResolvedValue('Finishing package\nRetry pass 1/2, fixing 2 weak areas'),
+      })),
+    };
+    const page = {
+      getByTestId: vi.fn((testId) => {
+        if (testId === 'readiness-panel') {
+          return { waitFor: vi.fn().mockRejectedValue(new Error('Timeout waiting for readiness-panel')) };
+        }
+        if (testId === 'export-side-panel') return exportPanel;
+        return { count: vi.fn().mockResolvedValue(0) };
+      }),
+    };
+
+    await expect(waitForReadinessPanel(page, 1_000)).rejects.toThrow(
+      /Finishing package[\s\S]*Timeout waiting for readiness-panel/,
+    );
   });
 });

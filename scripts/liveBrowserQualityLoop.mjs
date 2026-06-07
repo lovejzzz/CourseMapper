@@ -312,10 +312,25 @@ export async function waitForExportSidePanel(page, timeoutMs = 600_000) {
   }
 }
 
+export async function waitForReadinessPanel(page, timeoutMs = 600_000) {
+  const panel = page.getByTestId('readiness-panel');
+  try {
+    await panel.waitFor({ timeout: timeoutMs });
+    return panel;
+  } catch (error) {
+    const exportState = await safeText(page.getByTestId('export-side-panel'));
+    throw new Error(
+      `Readiness panel did not appear after ${Math.round(timeoutMs / 1000)}s. ${
+        exportState ? `Export state:\n${exportState}` : 'No export-panel state was available.'
+      }\n${error.message || error}`,
+    );
+  }
+}
+
 async function ensurePackageReady(page) {
   await waitForExportSidePanel(page);
   await page.getByTestId('export-scope-all').click();
-  await page.getByTestId('readiness-panel').waitFor({ timeout: 30_000 });
+  await waitForReadinessPanel(page);
 
   for (let attempt = 0; attempt < 3; attempt += 1) {
     const status = await safeText(page.getByTestId('readiness-status'));
