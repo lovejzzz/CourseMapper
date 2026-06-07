@@ -118,6 +118,15 @@ describe('buildAgentSystemPrompt', () => {
     expect(prompt).toContain("don't judge quality");
   });
 
+  it('teaches direct local-only assignment checklist edits', () => {
+    const prompt = buildAgentSystemPrompt(baseCourseMap, 'assignments', baseDeliverables);
+
+    expect(prompt).toContain('Assignment checklist edits');
+    expect(prompt).toContain('["assignments",lessonIdx,"deliverables"]');
+    expect(prompt).toContain('syncPolicy:"localOnly"');
+    expect(prompt).toContain('then read back');
+  });
+
   it('does not include ITEM SCHEMA section for courseMap tab', () => {
     const prompt = buildAgentSystemPrompt(baseCourseMap, 'courseMap', baseDeliverables);
     expect(prompt).not.toContain('ITEM SCHEMA for Course Map');
@@ -293,7 +302,7 @@ describe('buildAgentSystemPrompt', () => {
   it('instructs artifact-only edits to use explicit local-only sync policy', () => {
     const prompt = buildAgentSystemPrompt(baseCourseMap, 'quizBank', baseDeliverables);
     expect(prompt).toContain('syncPolicy');
-    expect(prompt).toContain('"localOnly" for wording, typo, style, layout, or presentation-only fixes');
+    expect(prompt).toContain('"localOnly" for wording/typo/style/layout artifact fixes');
     expect(prompt).toContain('syncPolicy:"localOnly"');
   });
 

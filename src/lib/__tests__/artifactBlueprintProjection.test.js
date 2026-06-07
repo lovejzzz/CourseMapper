@@ -3,6 +3,7 @@ import {
   applyCanonicalPatchesToCourseMap,
   createCanonicalPatchRequest,
   inferCourseMapFieldFromArtifactPath,
+  isKnownPresentationOnlyEdit,
   normalizeCanonicalPatchFromModel,
   projectArtifactEditToCourseMapPatch,
 } from '../artifactBlueprintProjection';
@@ -188,6 +189,14 @@ describe('artifact blueprint projection', () => {
     });
 
     expect(request).toBeNull();
+  });
+
+  it('treats assignment brief checklist and handoff fields as local-only artifact edits', () => {
+    expect(isKnownPresentationOnlyEdit('assignments', ['assignments', 2, 'deliverables'])).toBe(true);
+    expect(isKnownPresentationOnlyEdit('assignments', ['assignments', 2, 'dl'])).toBe(true);
+    expect(isKnownPresentationOnlyEdit('assignments', ['assignments', 2, 'instructions'])).toBe(false);
+    expect(isKnownPresentationOnlyEdit('assignments', ['assignments', 2, 'ins'])).toBe(false);
+    expect(isKnownPresentationOnlyEdit('assignments', ['assignments', 2, 'title'])).toBe(false);
   });
 
   it('normalizes model-resolved patch JSON into a canonical course-map patch', () => {

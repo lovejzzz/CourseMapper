@@ -423,8 +423,11 @@ function ReceiptList({ title, items = [], dotClass }) {
     <div>
       <p className="text-[10px] font-bold uppercase tracking-wide text-slate-400">{title}</p>
       <div className="mt-1 space-y-1">
-        {items.map((item) => (
-          <div key={item} className="flex items-start gap-1.5 text-[11px] leading-snug text-slate-600">
+        {items.map((item, index) => (
+          <div
+            key={`${title}-${index}-${item}`}
+            className="flex items-start gap-1.5 text-[11px] leading-snug text-slate-600"
+          >
             <span className={`mt-1.5 h-1.5 w-1.5 shrink-0 rounded-full ${dotClass}`} aria-hidden="true" />
             <span>{item}</span>
           </div>

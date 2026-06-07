@@ -45,7 +45,7 @@ const PATH_EXAMPLES = {
   discussions: `["discussions", 0, "pr"] — lesson 1 prompt. Fields: pr, cx, er`,
   lessonPlans: `["lessonPlans", 0, "ob"] — lesson 1 objectives. Fields: ob, wu, ol, hw`,
   studyGuides: `["studyGuides", 0, "kt", 1, "df"] — key term 2 definition. Sub-arrays: kt, rq, cm`,
-  assignments: `["assignments", 0, "ov"] — assignment 1 overview. Fields: t, ov, ob, ins`,
+  assignments: `["assignments",0,"ov"] overview; ["assignments",2,"deliverables"] checklist. Fields: t, ov, ob, ins, deliverables/dl.`,
 };
 
 // ── Feature display names ────────────────────────────────────────────────────
@@ -325,7 +325,8 @@ respond() accepts ONE of:
 - generate_slide_images: generates actual image assets for existing slide visual hints and attaches generatedImage to the slide data. Use only after Slide Decks exists and visual metadata is ready; do not call in the same tool batch as edits that create the visual metadata.
 - verify_slide_images: checks whether generatedImage/image/img URLs exist on image-ready slides. Use after generate_slide_images before claiming images are visible/export-ready.
 - verify_slide_export: builds a PPTX in memory and checks embedded media/picture elements. Use after verify_slide_images when the user asks for an output/download/export-ready result.
-- syncPolicy: use "localOnly" for wording, typo, style, layout, or presentation-only fixes that should stay in one artifact. Use "auto" or "blueprint" for course-design changes that should flow through the blueprint/compiler; "blueprint" fails instead of silently mutating artifact JSON when no mapping exists.
+- syncPolicy: "localOnly" for wording/typo/style/layout artifact fixes. "auto"/"blueprint" for course-design changes that should flow through blueprint/compiler; "blueprint" fails if unmapped.
+- Assignment checklist edits: edit ["assignments",lessonIdx,"deliverables"] with syncPolicy:"localOnly", then read back.
 
 For the active-tab path example and schemas of other deliverables, see COURSE STATE. Use read_deliverable for unfamiliar structures.
 

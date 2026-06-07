@@ -308,7 +308,11 @@ function sanitizeEditPath(path = []) {
 export function isKnownPresentationOnlyEdit(featureId, editPath = []) {
   const tokens = pathTokens(editPath);
   const leafToken = tokens[tokens.length - 1] || '';
-  return featureId === 'slideDecks' && (leafToken === 'title' || leafToken === 't');
+  if (featureId === 'slideDecks' && (leafToken === 'title' || leafToken === 't')) return true;
+  if (featureId === 'assignments') {
+    return new Set(['deliverables', 'dl']).has(leafToken);
+  }
+  return false;
 }
 
 function normalizeCanonicalField(value) {

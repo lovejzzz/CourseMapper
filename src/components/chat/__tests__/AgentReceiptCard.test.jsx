@@ -72,6 +72,34 @@ describe('AgentReceiptCard', () => {
     expect(html).toContain('Next:');
   });
 
+  it('renders repeated issue text without duplicate React key warnings', () => {
+    const errorSpy = vi.spyOn(console, 'error').mockImplementation(() => {});
+    const container = document.createElement('div');
+    const root = createRoot(container);
+
+    act(() => {
+      root.render(
+        <AgentReceiptCard
+          receipt={{
+            title: 'Audit needs review',
+            status: 'review',
+            target: 'Package',
+            changed: ['No workspace edits'],
+            checked: ['Readiness'],
+            issues: ['Rubrics: Rubrics has not been generated.', 'Rubrics: Rubrics has not been generated.'],
+          }}
+        />,
+      );
+    });
+
+    const warningText = errorSpy.mock.calls.map((call) => call.join(' ')).join('\n');
+    expect(warningText).not.toContain('Encountered two children with the same key');
+    expect(container.textContent).toContain('Rubrics: Rubrics has not been generated.');
+
+    act(() => root.unmount());
+    errorSpy.mockRestore();
+  });
+
   it('renders a compact tool trace for model-driven receipts', () => {
     const html = renderToStaticMarkup(
       <AgentReceiptCard
