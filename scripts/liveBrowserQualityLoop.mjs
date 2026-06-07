@@ -154,7 +154,20 @@ async function runGit(args) {
 }
 
 async function verifyGitGate(skipGitGate) {
-  if (skipGitGate) return { skipped: true };
+  if (skipGitGate) {
+    const branch = await runGit(['rev-parse', '--abbrev-ref', 'HEAD']).catch(() => 'unknown');
+    const commit = await runGit(['rev-parse', '--short', 'HEAD']).catch(() => 'unknown');
+    const aheadOfOriginMain = Number(await runGit(['rev-list', '--count', 'origin/main..HEAD']).catch(() => 0));
+    const behindOriginMain = Number(await runGit(['rev-list', '--count', 'HEAD..origin/main']).catch(() => 0));
+    return {
+      skipped: true,
+      branch,
+      commit,
+      base: 'origin/main',
+      aheadOfOriginMain,
+      behindOriginMain,
+    };
+  }
 
   const branch = await runGit(['rev-parse', '--abbrev-ref', 'HEAD']);
   const status = await runGit(['status', '--short']);
