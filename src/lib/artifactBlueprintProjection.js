@@ -308,7 +308,25 @@ function sanitizeEditPath(path = []) {
 export function isKnownPresentationOnlyEdit(featureId, editPath = []) {
   const tokens = pathTokens(editPath);
   const leafToken = tokens[tokens.length - 1] || '';
-  if (featureId === 'slideDecks' && (leafToken === 'title' || leafToken === 't')) return true;
+  if (featureId === 'slideDecks') {
+    return new Set([
+      'title',
+      't',
+      'notes',
+      'note',
+      'speakernotes',
+      'no',
+      'visual',
+      'vi',
+      'description',
+      'alttext',
+      'kind',
+      'timer',
+      'ti',
+      'activitytype',
+      'at',
+    ]).has(leafToken);
+  }
   if (featureId === 'assignments') {
     return new Set(['deliverables', 'dl']).has(leafToken);
   }

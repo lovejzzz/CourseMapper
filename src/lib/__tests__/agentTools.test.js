@@ -11,6 +11,7 @@ import {
   summarizeToolResult,
   classifyRequestComplexity,
 } from '../agentTools';
+import { executeAction } from '../agentActions';
 import { generateImages } from '../imageSearch';
 
 // ── Mocks ──────────────────────────────────────────────────────────────────
@@ -442,6 +443,14 @@ describe('summarizeToolResult()', () => {
   describe('edit_deliverables', () => {
     it('formats applied/failed counts', () => {
       expect(summarizeToolResult('edit_deliverables', { applied: 2, failed: 0 })).toBe('2 applied, 0 failed');
+    });
+  });
+
+  describe('read_deliverable', () => {
+    it('summarizes quiz-bank question totals instead of lesson-bank items', () => {
+      expect(
+        summarizeToolResult('read_deliverable', { featureId: 'quizBank', totalItems: 3, totalQuestions: 15 }),
+      ).toBe('15 quiz questions loaded');
     });
   });
 
@@ -893,7 +902,7 @@ describe('Tool execute: package readiness', () => {
     expect(result.pending).toBe(1);
     expect(mockCtx.executeAction).toHaveBeenCalledWith(
       { type: 'regenerateLesson', featureId: 'slideDecks', lessonIndex: 0 },
-      { skipSnapshot: true },
+      expect.objectContaining({ skipSnapshot: true }),
     );
   });
 
@@ -1142,6 +1151,7 @@ describe('Tool execute: read_deliverable', () => {
     expect(result.featureId).toBe('quizBank');
     expect(result.name).toBe('Quiz & Exam Bank');
     expect(result.totalItems).toBe(1);
+    expect(result.totalQuestions).toBe(1);
     expect(result.items[0].index).toBe(0);
     expect(result.items[0].questionCount).toBe(1);
   });
@@ -1374,7 +1384,7 @@ describe('Tool execute: edit_deliverables', () => {
     expect(result.failed).toBe(0);
     expect(mockCtx.executeAction).toHaveBeenCalledWith(
       expect.objectContaining({ type: 'editItem', featureId: 'quizBank' }),
-      { skipSnapshot: true },
+      expect.objectContaining({ skipSnapshot: true }),
     );
   });
 
@@ -1416,9 +1426,246 @@ describe('Tool execute: edit_deliverables', () => {
       localOnly: true,
     });
     expect(mockCtx.projectDeliverableActionToCanonicalPatch).not.toHaveBeenCalled();
-    expect(mockCtx.executeAction).toHaveBeenCalledWith(expect.objectContaining({ syncPolicy: 'localOnly' }), {
-      skipSnapshot: true,
+    expect(mockCtx.executeAction).toHaveBeenCalledWith(
+      expect.objectContaining({ syncPolicy: 'localOnly' }),
+      expect.objectContaining({ skipSnapshot: true }),
+    );
+  });
+
+  it('treats direct quiz question wording edits as local-only artifact changes', () => {
+    mockCtx.projectDeliverableActionToCanonicalPatch = vi.fn(() => ({
+      patch: { field: 'learningObjectives', lessonIndex: 0, value: 'Projected objective' },
+    }));
+
+    const result = AGENT_TOOLS.edit_deliverables.execute(
+      {
+        actions: [
+          {
+            type: 'editItem',
+            featureId: 'quizBank',
+            path: ['quizzes', 0, 'questions', 0, 'question'],
+            value: 'What evidence proves export readiness?',
+          },
+        ],
+      },
+      mockCtx,
+    );
+
+    expect(result).toMatchObject({ applied: 1, pending: 0, failed: 0 });
+    expect(result.details[0]).toMatchObject({ featureId: 'quizBank', localOnly: true });
+    expect(mockCtx.projectDeliverableActionToCanonicalPatch).not.toHaveBeenCalled();
+  });
+
+  it('marks lesson-plan outline additions as local-only even when the model omits syncPolicy', () => {
+    mockCtx.projectDeliverableActionToCanonicalPatch = vi.fn();
+    const result = AGENT_TOOLS.edit_deliverables.execute(
+      {
+        actions: [
+          {
+            type: 'addItem',
+            featureId: 'lessonPlans',
+            lessonIndex: 0,
+            subKey: 'outline',
+            item: { time: '5 min', activity: 'Opening check', description: 'Name one export risk.' },
+          },
+        ],
+      },
+      mockCtx,
+    );
+
+    expect(result).toMatchObject({
+      applied: 1,
+      pending: 0,
+      failed: 0,
     });
+    expect(result.details[0]).toMatchObject({
+      action: 'addItem',
+      featureId: 'lessonPlans',
+      success: true,
+      syncPolicy: 'localOnly',
+      localOnly: true,
+    });
+    expect(mockCtx.projectDeliverableActionToCanonicalPatch).not.toHaveBeenCalled();
+    expect(mockCtx.executeAction).toHaveBeenCalledWith(
+      expect.objectContaining({ type: 'addItem' }),
+      expect.objectContaining({ skipSnapshot: true }),
+    );
+  });
+
+  it('preserves multiple direct slide-note edits from one tool call', () => {
+    mockCtx.deliverables.slideDecks = {
+      status: 'done',
+      data: {
+        decks: [
+          { lessonTitle: 'Lesson 1', slides: [{ title: 'L1', speakerNotes: 'L1 notes' }] },
+          {
+            lessonTitle: 'Lesson 2',
+            slides: [
+              { title: 'Purpose', speakerNotes: 'Old opening notes.' },
+              { title: 'Practice', speakerNotes: 'Old practice notes.' },
+            ],
+          },
+        ],
+      },
+    };
+    mockCtx.executeAction = vi.fn((action, opts = {}) =>
+      executeAction(action, {
+        ...mockCtx,
+        deliverables: opts.deliverables || mockCtx.deliverables,
+        optimisticUpdate: opts.optimisticUpdate || mockCtx.optimisticUpdate,
+        skipSnapshot: opts.skipSnapshot,
+      }),
+    );
+
+    const result = AGENT_TOOLS.edit_deliverables.execute(
+      {
+        actions: [
+          {
+            type: 'editItem',
+            featureId: 'slideDecks',
+            lessonIndex: 1,
+            path: ['decks', 1, 'slides', 0, 'speakerNotes'],
+            value: 'Substitute instructor opening: state the purpose, pacing, and fallback question.',
+          },
+          {
+            type: 'editItem',
+            featureId: 'slideDecks',
+            lessonIndex: 1,
+            path: ['decks', 1, 'slides', 1, 'speakerNotes'],
+            value: 'Substitute instructor practice cue: compare artifacts and choose a verbal fallback.',
+          },
+        ],
+      },
+      mockCtx,
+    );
+
+    expect(result).toMatchObject({ applied: 2, failed: 0 });
+    const slides = mockCtx.deliverables.slideDecks.data.decks[1].slides;
+    expect(slides[0].speakerNotes).toContain('Substitute instructor opening');
+    expect(slides[1].speakerNotes).toContain('Substitute instructor practice cue');
+    expect(mockCtx.snapshot).toHaveBeenCalledTimes(1);
+  });
+
+  it('normalizes Course FAQ cloud-export edits to the matching FAQ question across lessons', () => {
+    mockCtx.deliverables.courseFaq = {
+      status: 'done',
+      data: {
+        faqs: [
+          {
+            lessonTitle: 'Lesson 1',
+            questions: [
+              { question: 'What should I check?', answer: 'Open the export.' },
+              {
+                question: 'What should I do if a cloud export fails?',
+                answer: 'Use the local download first, then reconnect Google Drive.',
+              },
+            ],
+          },
+          {
+            lessonTitle: 'Lesson 2',
+            questions: [
+              { question: 'What should I check?', answer: 'Open the export.' },
+              {
+                question: 'What should I do if a cloud export fails?',
+                answer: 'Use the local download first, then reconnect Google Drive.',
+              },
+            ],
+          },
+        ],
+      },
+    };
+    mockCtx.userMessage =
+      'In the Course FAQ, update the cloud export failure answer so it says to use the local ZIP first. Apply it directly.';
+
+    const result = AGENT_TOOLS.edit_deliverables.execute(
+      {
+        actions: [
+          {
+            type: 'editItem',
+            featureId: 'courseFaq',
+            path: ['faqs', 1, 'questions', 0, 'answer'],
+            value: 'Use the local ZIP first.',
+          },
+        ],
+      },
+      mockCtx,
+    );
+
+    expect(result).toMatchObject({ applied: 2, failed: 0 });
+    expect(mockCtx.executeAction).toHaveBeenNthCalledWith(
+      1,
+      expect.objectContaining({
+        featureId: 'courseFaq',
+        lessonIndex: 0,
+        path: ['faqs', 0, 'questions', 1, 'answer'],
+        value: expect.stringContaining('local ZIP first'),
+        syncPolicy: 'localOnly',
+      }),
+      expect.objectContaining({ skipSnapshot: true }),
+    );
+    expect(mockCtx.executeAction).toHaveBeenNthCalledWith(
+      2,
+      expect.objectContaining({
+        featureId: 'courseFaq',
+        lessonIndex: 1,
+        path: ['faqs', 1, 'questions', 1, 'answer'],
+      }),
+      expect.objectContaining({ skipSnapshot: true }),
+    );
+  });
+
+  it('keeps Course FAQ cloud-export shortening on the requested lesson and preserves the local ZIP instruction', () => {
+    mockCtx.deliverables.courseFaq = {
+      status: 'done',
+      data: {
+        faqs: [
+          {
+            lessonTitle: 'Lesson 1',
+            questions: [
+              {
+                question: 'What should I do if a cloud export fails?',
+                answer: 'Use the local ZIP first if cloud export fails, then retry cloud export.',
+              },
+            ],
+          },
+          {
+            lessonTitle: 'Lesson 2',
+            questions: [
+              {
+                question: 'What should I do if a cloud export fails?',
+                answer: 'Use the local ZIP first if cloud export fails, then retry cloud export.',
+              },
+            ],
+          },
+        ],
+      },
+    };
+    mockCtx.userMessage = 'Shorten the Lesson 1 Course FAQ answer about cloud export failure to one sentence.';
+
+    const result = AGENT_TOOLS.edit_deliverables.execute(
+      {
+        actions: [
+          {
+            type: 'editItem',
+            featureId: 'courseFaq',
+            path: ['faqs', 1, 'questions', 0, 'answer'],
+            value: 'Record the failed step, then retry.',
+          },
+        ],
+      },
+      mockCtx,
+    );
+
+    expect(result).toMatchObject({ applied: 1, failed: 0 });
+    expect(mockCtx.executeAction).toHaveBeenCalledWith(
+      expect.objectContaining({
+        featureId: 'courseFaq',
+        lessonIndex: 0,
+        path: ['faqs', 0, 'questions', 0, 'answer'],
+        value: expect.stringContaining('local ZIP first'),
+      }),
+      expect.objectContaining({ skipSnapshot: true }),
+    );
   });
 
   it('returns error for empty actions', () => {

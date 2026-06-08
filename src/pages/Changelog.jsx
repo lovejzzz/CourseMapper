@@ -3,6 +3,51 @@ import Header from '../components/Header';
 
 const releases = [
   {
+    version: '0.8.59',
+    date: 'June 8, 2026',
+    title: 'Real-Browser Agent Quality Harness Release',
+    highlights: [
+      'Added a first-class Playwright/Chromium agent quality harness that drives the real side panel through 25 closed-loop scenarios',
+      'Added response-quality scoring for missing required terms, unnecessary questions, false success, raw tool traces, read-only mutations, and confirmation behavior',
+      'Expanded agent scenario coverage across missing deliverable refusals, safe targeted edits, broad destructive confirmation, ambiguous targets, read-only summaries, finish-package runs, and download readiness',
+      'Hardened side-panel behavior so simple read-only count/list questions stay local and do not quietly run package finalization',
+      'Fixed batched deliverable edits so multiple slide-note or artifact-local updates in one tool call persist together instead of overwriting earlier edits',
+      'Final v0.8.59 proof passed 25/25 real browser agent scenarios with a 100/100 response-quality average',
+    ],
+    sections: [
+      {
+        label: 'Browser Harness',
+        icon: 'QA',
+        color: 'indigo',
+        items: [
+          'Added `quality:agent:browser:smoke` and `quality:agent:browser:full`, backed by `scripts/realBrowserAgentQualityLoop.mjs`.',
+          'The harness starts the local app, seeds a restored workspace, drives the Agent side panel in Chromium, snapshots workspace state after every task, and writes reproducible artifacts under `verification-output/agent-real-browser`.',
+          'The checked-in scenario catalog currently covers 25 high-value real agent tasks, including no-ghost deliverables, safe direct edits, read-only checks, package finishing, destructive confirmation, and ambiguity handling.',
+        ],
+      },
+      {
+        label: 'Response Quality',
+        icon: 'AI',
+        color: 'emerald',
+        items: [
+          'Added response-quality scoring that fails runs for raw tool traces, false success after failed mutations, unnecessary questions, read-only state changes, and missing required instructor-facing terms.',
+          'Simple quiz-count and lesson-title questions now answer from local workspace state before the model can over-route into package finalization.',
+          'Broad destructive requests now get a compact confirmation request before the agent rewrites, replaces, regenerates, or overwrites broad workspace content.',
+        ],
+      },
+      {
+        label: 'Side Panel Reliability',
+        icon: 'UX',
+        color: 'amber',
+        items: [
+          'Batched deliverable edits now keep a working deliverables copy and refresh the UI executor ref after each optimistic update, preventing later actions from overwriting earlier edits in the same tool call.',
+          'Artifact-local slide title, speaker-note, visual, timer, quiz-question, FAQ, and lesson-plan outline edits route directly while course-design edits still sync through the blueprint path when needed.',
+          'The final proof report is `verification-output/agent-real-browser/2026-06-08T00-27-21-843Z/report.md`: 25 passed, 0 failed, 100/100 average response quality, 0 console errors, and 0 failed browser requests.',
+        ],
+      },
+    ],
+  },
+  {
     version: '0.8.58',
     date: 'June 6, 2026',
     title: 'Red-Team Quality Hardening Release',

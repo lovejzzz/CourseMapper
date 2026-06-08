@@ -199,6 +199,13 @@ describe('artifact blueprint projection', () => {
     expect(isKnownPresentationOnlyEdit('assignments', ['assignments', 2, 'title'])).toBe(false);
   });
 
+  it('treats slide deck presentation fields as local-only artifact edits', () => {
+    expect(isKnownPresentationOnlyEdit('slideDecks', ['decks', 1, 'slides', 0, 'notes'])).toBe(true);
+    expect(isKnownPresentationOnlyEdit('slideDecks', ['decks', 1, 'slides', 0, 'no'])).toBe(true);
+    expect(isKnownPresentationOnlyEdit('slideDecks', ['decks', 1, 'slides', 0, 'bullets'])).toBe(false);
+    expect(isKnownPresentationOnlyEdit('slideDecks', ['decks', 1, 'slides', 0, 'visual', 'description'])).toBe(true);
+  });
+
   it('treats FAQ answer edits and lesson-plan activities as local-only artifact edits', () => {
     expect(isKnownPresentationOnlyEdit('courseFaq', ['faqs', 0, 'qs', 1, 'an'])).toBe(true);
     expect(isKnownPresentationOnlyEdit('courseFaq', ['faqs', 0, 'qs', 1, 'answer'])).toBe(true);

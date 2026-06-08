@@ -123,6 +123,15 @@ const SUB_ARRAY_KEYS = {
   syllabus: null, // single object — not per-lesson
 };
 
+function inferAddItemSubArrayKey(featureId, item, requestedSubKey) {
+  if (requestedSubKey) return requestedSubKey;
+  if (featureId === 'lessonPlans') {
+    const outlineKeys = ['time', 'tm', 'activity', 'ac', 'description', 'de', 'instruction', 'in'];
+    if (outlineKeys.some((key) => item?.[key] !== undefined)) return 'outline';
+  }
+  return SUB_ARRAY_KEYS[featureId];
+}
+
 // ── Execute Action ───────────────────────────────────────────────────────────
 
 /**
@@ -388,7 +397,7 @@ function execAddItem({ featureId, lessonIndex, item, subKey }, ctx) {
   const arr = data[arrKey];
   if (!Array.isArray(arr)) return { success: false, message: `No array found for ${featureId}` };
 
-  const requestedSubArrayKey = subKey || SUB_ARRAY_KEYS[featureId];
+  const requestedSubArrayKey = inferAddItemSubArrayKey(featureId, normalizedItem, subKey);
   if (!Number.isInteger(lessonIndex)) {
     return { success: false, message: `Invalid lessonIndex: ${lessonIndex} — expected a number` };
   }

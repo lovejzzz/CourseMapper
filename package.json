@@ -1,6 +1,6 @@
 {
   "name": "course-mapper",
-  "version": "0.8.58",
+  "version": "0.8.59",
   "type": "module",
   "description": "AI-powered course syllabus to course map generator",
   "scripts": {
@@ -34,6 +34,8 @@
     "quality:browser:smoke": "node scripts/liveBrowserQualityLoop.mjs --profile smoke --courses 1",
     "quality:browser:nightly": "node scripts/liveBrowserQualityLoop.mjs --profile nightly --courses 3",
     "quality:browser:weekly": "node scripts/liveBrowserQualityLoop.mjs --profile weekly --courses 10",
+    "quality:agent:browser:smoke": "node scripts/realBrowserAgentQualityLoop.mjs --profile smoke --tasks 10",
+    "quality:agent:browser:full": "node scripts/realBrowserAgentQualityLoop.mjs --profile full --tasks 25",
     "audit:expert": "node scripts/expertReviewQualityAudit.mjs",
     "audit:expert:external": "node scripts/expertReviewQualityAudit.mjs --require-external-proof",
     "audit:expert:preflight": "node scripts/expertReviewQualityAudit.mjs --require-external-proof --preflight",

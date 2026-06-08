@@ -1143,13 +1143,26 @@ export default function ChatPanel({
   // Build the action executor that agent mode uses
   const execAction = useCallback(
     (action, opts = {}) => {
+      const optimisticUpdateWithRef = (featureId, data) => {
+        optimisticUpdate(featureId, data);
+        if (!featureId) return;
+        delivRef.current = {
+          ...(delivRef.current || {}),
+          [featureId]: {
+            ...(delivRef.current?.[featureId] || {}),
+            status: 'done',
+            data,
+            error: null,
+          },
+        };
+      };
       const result = executeAction(action, {
         editor,
-        deliverables: delivRef.current,
-        optimisticUpdate,
+        deliverables: opts.deliverables || delivRef.current,
+        optimisticUpdate: opts.optimisticUpdate || optimisticUpdateWithRef,
         courseMap: courseMapRef.current,
         regenerateLesson,
-        snapshot: delivUndoSnapshot,
+        snapshot: opts.snapshot || delivUndoSnapshot,
         skipSnapshot: opts.skipSnapshot || false,
       });
       // Trigger visual highlight on success

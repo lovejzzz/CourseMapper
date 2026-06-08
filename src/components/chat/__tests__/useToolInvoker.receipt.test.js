@@ -3,11 +3,15 @@ import {
   buildAgentStateDiffsFromToolResult,
   buildModelAgentReceiptFromProgress,
   buildToolResultFallbackChatReply,
+  chooseAgentFallbackText,
   deriveAgentPlanningState,
   deriveAgentVerificationState,
   deriveModelAgentReceiptIntent,
   ensureFinalResponseHasChatReply,
+  findAmbiguousDeliverableMutationRequest,
+  findBroadDestructiveWorkspaceMutationRequest,
   inferAgentQualityExpectations,
+  normalizeAgentFinalResponse,
   shouldRequirePlanningBeforeTool,
   shouldNotifyDirectDeliverableEdit,
   projectAgentDeliverableActionToCanonicalPatch,
@@ -35,6 +39,44 @@ describe('buildToolResultFallbackChatReply', () => {
     ]);
 
     expect(reply).toBe('Done. I updated the Assignment Briefs and verified the updated state.');
+  });
+
+  it('includes the changed value when tool args are available', () => {
+    const reply = buildToolResultFallbackChatReply([
+      {
+        toolName: 'edit_deliverables',
+        args: {
+          actions: [
+            {
+              type: 'addItem',
+              featureId: 'assignments',
+              lessonIndex: 2,
+              item: {
+                title: 'Submission checklist',
+                deliverables: ['Confirm file name', 'Check cited evidence'],
+              },
+            },
+          ],
+        },
+        result: {
+          featureId: 'assignments',
+          applied: 1,
+          failed: 0,
+          details: [{ action: 'addItem', featureId: 'assignments', lessonIndex: 2, success: true }],
+        },
+      },
+      {
+        toolName: 'read_deliverable',
+        result: {
+          featureId: 'assignments',
+          totalItems: 3,
+        },
+      },
+    ]);
+
+    expect(reply).toBe(
+      'Done. I updated the Assignment Briefs and verified the updated state: Lesson 3: Submission checklist.',
+    );
   });
 
   it('does not surface recovered internal tool failures after a later verified mutation succeeds', () => {
@@ -90,6 +132,24 @@ describe('buildToolResultFallbackChatReply', () => {
     expect(reply).toBe('Done. I checked the workspace: 3 items loaded.');
   });
 
+  it('preserves the checked target for read-only alignment fallbacks', () => {
+    const reply = buildToolResultFallbackChatReply(
+      [
+        {
+          toolName: 'validate_course',
+          result: {
+            errorCount: 0,
+            warningCount: 0,
+            infoCount: 0,
+          },
+        },
+      ],
+      { userMessage: 'Compare the quiz bank and lesson objectives.' },
+    );
+
+    expect(reply).toBe('Done. I checked quiz/objective alignment: 0 errors, 0 warnings, 0 info.');
+  });
+
   it('uses missing-deliverable safety wording for failed mutation tools', () => {
     const reply = buildToolResultFallbackChatReply([
       {
@@ -132,6 +192,126 @@ describe('ensureFinalResponseHasChatReply', () => {
     );
 
     expect(response.chatReply).toBe('Done. I updated the Course Map and verified the updated state.');
+  });
+
+  it('does not allow a failed-only mutation to be reported as successful', () => {
+    const response = ensureFinalResponseHasChatReply(
+      {
+        chatReply: 'Done. I renamed slide 1 to Export readiness checkpoint and verified it.',
+      },
+      [
+        {
+          toolName: 'edit_deliverables',
+          result: {
+            featureId: 'slideDecks',
+            applied: 0,
+            failed: 1,
+            details: [
+              {
+                action: 'editItem',
+                featureId: 'slideDecks',
+                lessonIndex: 0,
+                success: false,
+                message:
+                  'Serious workspace changes need planning before "edit_deliverables" can run. Call inspect_workspace first.',
+              },
+            ],
+          },
+        },
+      ],
+    );
+
+    expect(response.chatReply).toContain('I could not complete');
+    expect(response.chatReply).toContain('Serious workspace changes need planning');
+    expect(response.chatReply).not.toContain('renamed slide 1');
+  });
+});
+
+describe('findAmbiguousDeliverableMutationRequest', () => {
+  const deliverables = {
+    assignments: {
+      status: 'done',
+      data: {
+        assignments: [
+          { t: 'Evidence memo', ov: 'Write a memo.' },
+          { t: 'Final portfolio', ov: 'Submit final work.' },
+        ],
+      },
+    },
+  };
+
+  it('asks before editing an unspecified assignment when multiple assignments exist', () => {
+    expect(findAmbiguousDeliverableMutationRequest('Shorten the assignment.', deliverables)).toMatchObject({
+      featureId: 'assignments',
+      count: 2,
+    });
+  });
+
+  it('allows targeted assignment edits to proceed', () => {
+    expect(findAmbiguousDeliverableMutationRequest('Shorten the Lesson 2 assignment.', deliverables)).toBeNull();
+    expect(findAmbiguousDeliverableMutationRequest('Shorten "Final portfolio".', deliverables)).toBeNull();
+  });
+});
+
+describe('normalizeAgentFinalResponse', () => {
+  it('unwraps JSON-string chat replies returned inside respond args', () => {
+    expect(
+      normalizeAgentFinalResponse({
+        chatReply: '{"chatReply":"Rewriting everything needs a scoped direction first."}',
+      }),
+    ).toMatchObject({
+      chatReply: 'Rewriting everything needs a scoped direction first.',
+    });
+  });
+});
+
+describe('chooseAgentFallbackText', () => {
+  it('replaces raw tool trace text with a concise user-facing receipt', () => {
+    const reply = chooseAgentFallbackText(
+      '[Agent used 2 tools: readdeliverable: Data loaded, editdeliverables: 1 applied, 0 failed]',
+      [
+        {
+          toolName: 'edit_deliverables',
+          args: {
+            actions: [
+              {
+                type: 'editItem',
+                featureId: 'lessonPlans',
+                path: ['lessonPlans', 0, 'outline'],
+                value: [{ time: '5 min', activity: 'Opening check', description: 'Name one export risk.' }],
+              },
+            ],
+          },
+          result: {
+            featureId: 'lessonPlans',
+            applied: 1,
+            failed: 0,
+            details: [{ action: 'editItem', featureId: 'lessonPlans', lessonIndex: 0, success: true }],
+          },
+        },
+        {
+          toolName: 'read_deliverable',
+          result: { featureId: 'lessonPlans', totalItems: 3 },
+        },
+      ],
+    );
+
+    expect(reply).toContain('Opening check');
+    expect(reply).not.toContain('Agent used');
+  });
+});
+
+describe('findBroadDestructiveWorkspaceMutationRequest', () => {
+  it('requires confirmation for full course/material replacement requests', () => {
+    expect(
+      findBroadDestructiveWorkspaceMutationRequest('Rewrite the entire course and replace all materials.'),
+    ).toMatchObject({
+      label: 'full course/materials rewrite',
+    });
+  });
+
+  it('does not block safe targeted edits that mention all in another context', () => {
+    expect(findBroadDestructiveWorkspaceMutationRequest('Fix all typos in Lesson 1 quiz.')).toBeNull();
   });
 });
 
@@ -1072,6 +1252,84 @@ describe('projectAgentDeliverableActionToCanonicalPatch', () => {
       {
         role: 'assistant',
         text: 'The Rubrics deliverable is not in this workspace yet, so I did not invent it. Generate rubrics first, then I can make that change.',
+      },
+    ]);
+  });
+
+  it('answers simple quiz-count questions locally without finishing the package', async () => {
+    const originalFetch = globalThis.fetch;
+    const fetchSpy = vi.fn(() => {
+      throw new Error('provider should not be called for quiz count preflight');
+    });
+    globalThis.fetch = fetchSpy;
+
+    let messages = [{ role: 'agentProgress', status: 'running' }];
+    const setMessages = (updater) => {
+      messages = typeof updater === 'function' ? updater(messages) : updater;
+    };
+
+    try {
+      await runAgentLoop(
+        'How many quiz questions are ready across the course? Answer in one sentence.',
+        {},
+        {
+          messages: [],
+          setMessages,
+          setStreaming: vi.fn(),
+          abortRef: { current: null },
+          apiKey: 'sk-test',
+          provider: 'openai',
+          modelId: 'gpt-test',
+          courseMap: {
+            courseName: 'Export Reliability',
+            lessons: [
+              { title: 'Lesson 1', sections: [{ learningObjectives: 'Analyze evidence.' }] },
+              { title: 'Lesson 2', sections: [{ learningObjectives: 'Check export quality.' }] },
+            ],
+          },
+          activeTab: 'quizBank',
+          selectedFeatures: ['courseMap', 'quizBank'],
+          columns: [],
+          deliverableConfig: {},
+          lessonFilter: null,
+          delivRef: {
+            current: {
+              quizBank: {
+                status: 'done',
+                data: {
+                  quizzes: [{ qs: [{ q: 'One?' }, { q: 'Two?' }] }, { qs: [{ q: 'Three?' }, { q: 'Four?' }] }],
+                },
+              },
+            },
+          },
+          executeActionRef: { current: vi.fn() },
+          optimisticUpdateRef: { current: null },
+          snapshotRef: { current: null },
+          undoFnRef: { current: null },
+          notifyEditRef: { current: null },
+          uid: null,
+          customToolRegistryRef: null,
+          maybeRunValidation: vi.fn(),
+          handleAgentFinalResponse: (response) => {
+            messages = [
+              ...messages,
+              {
+                role: 'assistant',
+                text: response?.chatReply || response?.text || '',
+              },
+            ];
+          },
+        },
+      );
+    } finally {
+      globalThis.fetch = originalFetch;
+    }
+
+    expect(fetchSpy).not.toHaveBeenCalled();
+    expect(messages).toEqual([
+      {
+        role: 'assistant',
+        text: 'There are 4 quiz questions ready across the course, with 2 questions in each lesson.',
       },
     ]);
   });

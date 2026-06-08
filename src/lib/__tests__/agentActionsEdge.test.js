@@ -1274,6 +1274,25 @@ describe('Fix 10: addItem for flat deliverables handles gracefully', () => {
     expect(data.lessonPlans[0].hw).toBe('New homework');
   });
 
+  it('adds outline-shaped lessonPlans items to the lesson outline by default', () => {
+    const ctx = makeCtx();
+    const result = executeAction(
+      {
+        type: 'addItem',
+        featureId: 'lessonPlans',
+        lessonIndex: 0,
+        item: { time: '5 min', activity: 'Opening check', description: 'Name one export risk.' },
+      },
+      ctx,
+    );
+    expect(result.success).toBe(true);
+    const data = ctx.optimisticUpdate.mock.calls[0][1];
+    expect(data.lessonPlans[0].ob).toBe('Obj');
+    expect(data.lessonPlans[0].outline).toEqual([
+      { time: '5 min', activity: 'Opening check', description: 'Name one export risk.' },
+    ]);
+  });
+
   it('blocks appending a lessonPlans entry for a missing generated lesson slot', () => {
     const ctx = makeCtx();
     const result = executeAction(

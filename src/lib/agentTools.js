@@ -78,6 +78,22 @@ function resolveFeatureName(featureId) {
   return featureId;
 }
 
+function isArtifactLocalDeliverableAction(action = {}) {
+  if (action.syncPolicy === 'localOnly') return true;
+  if (action.type === 'editItem') {
+    const leaf = Array.isArray(action.path) ? String(action.path.at(-1) || '').toLowerCase() : '';
+    if (action.featureId === 'quizBank' && new Set(['q', 'question']).has(leaf)) return true;
+    if (action.featureId === 'courseFaq' && new Set(['a', 'an', 'answer', 'q', 'question']).has(leaf)) return true;
+  }
+  if (action.type === 'addItem' && action.featureId === 'lessonPlans') {
+    const subKey = String(action.subKey || '').toLowerCase();
+    const item = action.item || {};
+    const outlineKeys = ['time', 'tm', 'activity', 'ac', 'description', 'de', 'instruction', 'in'];
+    return subKey === 'outline' || subKey === 'ol' || outlineKeys.some((key) => item?.[key] !== undefined);
+  }
+  return false;
+}
+
 async function runGrammarCheck(text, language, signal) {
   const { checkGrammar } = await import('./grammarChecker');
   return checkGrammar(text, language, signal);
@@ -95,6 +111,134 @@ function firstText(item, keys) {
     if (typeof item?.[key] === 'string') return item[key];
   }
   return '';
+}
+
+const LESSON_WORD_INDEX = {
+  one: 0,
+  two: 1,
+  three: 2,
+  four: 3,
+  five: 4,
+  six: 5,
+  seven: 6,
+  eight: 7,
+  nine: 8,
+  ten: 9,
+  eleven: 10,
+  twelve: 11,
+  thirteen: 12,
+  fourteen: 13,
+  fifteen: 14,
+};
+
+function inferLessonIndexFromText(text = '') {
+  const match = String(text || '').match(
+    /\blesson\s*(\d+|one|two|three|four|five|six|seven|eight|nine|ten|eleven|twelve|thirteen|fourteen|fifteen)\b/i,
+  );
+  if (!match) return null;
+  const raw = match[1].toLowerCase();
+  const index = /^\d+$/.test(raw) ? Number(raw) - 1 : LESSON_WORD_INDEX[raw];
+  return Number.isInteger(index) && index >= 0 ? index : null;
+}
+
+function hasCourseFaqCloudExportIntent(message = '') {
+  const text = String(message || '');
+  return (
+    /\b(course\s*)?faq\b/i.test(text) &&
+    /\bcloud\s+export\b/i.test(text) &&
+    /\b(fail|failure|fails|error|not work|does not work)\b/i.test(text)
+  );
+}
+
+function courseFaqQuestionScore(question = {}) {
+  const q = firstText(question, ['question', 'q']);
+  const a = firstText(question, ['answer', 'a', 'an']);
+  const category = firstText(question, ['category', 'cat']);
+  const concepts = Array.isArray(question.relatedConcepts || question.rc)
+    ? (question.relatedConcepts || question.rc).join(' ')
+    : '';
+  const combined = `${q} ${a} ${category} ${concepts}`;
+  let score = 0;
+  if (/\bcloud\s+export\b/i.test(q)) score += 10;
+  else if (/\bcloud\s+export\b/i.test(combined)) score += 7;
+  if (/\b(fail|failure|fails|error|not work|does not work)\b/i.test(combined)) score += 5;
+  if (/\btechnical\s+help|zip\s+export|google\s+drive\b/i.test(combined)) score += 2;
+  return score;
+}
+
+function findCourseFaqCloudExportTargets(ctx = {}, requestedLessonIndex = null) {
+  const data = ctx.deliverables?.courseFaq?.data;
+  const arrKey = getArrayKey('courseFaq', data) || (Array.isArray(data?.faqs) ? 'faqs' : null);
+  const faqs = arrKey ? data?.[arrKey] : null;
+  if (!Array.isArray(faqs)) return [];
+
+  const lessonIndexes = Number.isInteger(requestedLessonIndex) ? [requestedLessonIndex] : faqs.map((_, index) => index);
+
+  return lessonIndexes
+    .map((lessonIndex) => {
+      const lessonFaq = faqs[lessonIndex];
+      if (!lessonFaq) return null;
+      const questionKey = Array.isArray(lessonFaq.questions) ? 'questions' : Array.isArray(lessonFaq.qs) ? 'qs' : null;
+      const questions = questionKey ? lessonFaq[questionKey] : [];
+      if (!Array.isArray(questions) || questions.length === 0) return null;
+      let bestIndex = -1;
+      let bestScore = 0;
+      questions.forEach((question, index) => {
+        const score = courseFaqQuestionScore(question);
+        if (score > bestScore) {
+          bestScore = score;
+          bestIndex = index;
+        }
+      });
+      if (bestIndex < 0 || bestScore < 7) return null;
+      const answerKey =
+        questions[bestIndex]?.answer !== undefined ? 'answer' : questions[bestIndex]?.a !== undefined ? 'a' : 'answer';
+      return {
+        lessonIndex,
+        path: [arrKey, lessonIndex, questionKey, bestIndex, answerKey],
+        currentAnswer: firstText(questions[bestIndex], ['answer', 'a', 'an']),
+      };
+    })
+    .filter(Boolean);
+}
+
+function normalizeCourseFaqCloudExportValue(value, userMessage = '', currentAnswer = '') {
+  if (typeof value !== 'string') return value;
+  const text = String(userMessage || '');
+  const next = value.trim();
+  const shouldMentionLocalZip = /\blocal\s+zip\b/i.test(text) || /\blocal\s+zip\b/i.test(currentAnswer);
+  const shouldKeepCloudExport = /\bcloud\s+export\b/i.test(text) || /\bcloud\s+export\b/i.test(currentAnswer);
+  if (
+    (shouldMentionLocalZip && !/\blocal\s+zip\b/i.test(next)) ||
+    (shouldKeepCloudExport && !/\bcloud\s+export\b/i.test(next))
+  ) {
+    return 'Use the local ZIP first if cloud export fails, then retry cloud export after confirming the package opens.';
+  }
+  return next;
+}
+
+function normalizeCourseFaqCloudExportActions(action = {}, ctx = {}) {
+  if (
+    action?.type !== 'editItem' ||
+    action?.featureId !== 'courseFaq' ||
+    !hasCourseFaqCloudExportIntent(ctx.userMessage)
+  ) {
+    return [action];
+  }
+  const requestedLessonIndex = inferLessonIndexFromText(ctx.userMessage);
+  const targets = findCourseFaqCloudExportTargets(ctx, requestedLessonIndex);
+  if (targets.length === 0) return [action];
+  return targets.map((target) => ({
+    ...action,
+    lessonIndex: target.lessonIndex,
+    path: target.path,
+    value: normalizeCourseFaqCloudExportValue(action.value, ctx.userMessage, target.currentAnswer),
+    syncPolicy: 'localOnly',
+  }));
+}
+
+function normalizeDeliverableActionsForContext(actions = [], ctx = {}) {
+  return actions.flatMap((action) => normalizeCourseFaqCloudExportActions(action, ctx));
 }
 
 const IMAGE_WORTHY_SLIDE_TYPES = new Set(['content', 'bridge', 'example', 'keyTerm', 'activity']);
@@ -1368,26 +1512,29 @@ export const AGENT_TOOLS = {
 
       // Summary of all items
       if (arrKey && Array.isArray(data[arrKey])) {
+        const items = data[arrKey].map((item, i) => {
+          const summary = { index: i };
+          const title = firstText(item, ['lessonTitle', 'lt', 'title', 't']);
+          if (title) summary.title = title;
+          const questions = firstArray(item, ['questions', 'qs']);
+          const slides = firstArray(item, ['slides', 'sl']);
+          const criteria = firstArray(item, ['criteria', 'cr']);
+          const reviewQuestions = firstArray(item, ['reviewQuestions', 'rq']);
+          const keyTerms = firstArray(item, ['keyTerms', 'kt']);
+          if (questions.length > 0) summary.questionCount = questions.length;
+          if (slides.length > 0) summary.slideCount = slides.length;
+          if (criteria.length > 0) summary.criteriaCount = criteria.length;
+          if (reviewQuestions.length > 0) summary.reviewQuestionCount = reviewQuestions.length;
+          if (keyTerms.length > 0) summary.keyTermCount = keyTerms.length;
+          return summary;
+        });
+        const totalQuestions = items.reduce((sum, item) => sum + (item.questionCount || 0), 0);
         return {
           featureId: args.featureId,
           name: featureName,
           totalItems: data[arrKey].length,
-          items: data[arrKey].map((item, i) => {
-            const summary = { index: i };
-            const title = firstText(item, ['lessonTitle', 'lt', 'title', 't']);
-            if (title) summary.title = title;
-            const questions = firstArray(item, ['questions', 'qs']);
-            const slides = firstArray(item, ['slides', 'sl']);
-            const criteria = firstArray(item, ['criteria', 'cr']);
-            const reviewQuestions = firstArray(item, ['reviewQuestions', 'rq']);
-            const keyTerms = firstArray(item, ['keyTerms', 'kt']);
-            if (questions.length > 0) summary.questionCount = questions.length;
-            if (slides.length > 0) summary.slideCount = slides.length;
-            if (criteria.length > 0) summary.criteriaCount = criteria.length;
-            if (reviewQuestions.length > 0) summary.reviewQuestionCount = reviewQuestions.length;
-            if (keyTerms.length > 0) summary.keyTermCount = keyTerms.length;
-            return summary;
-          }),
+          ...(totalQuestions > 0 ? { totalQuestions } : {}),
+          items,
         };
       }
 
@@ -1617,7 +1764,7 @@ export const AGENT_TOOLS = {
       required: ['actions'],
     },
     execute: (args, ctx) => {
-      const actions = args.actions || [];
+      const actions = normalizeDeliverableActionsForContext(args.actions || [], ctx);
       if (actions.length === 0) return { error: 'No actions provided.' };
 
       const results = new Array(actions.length);
@@ -1642,8 +1789,9 @@ export const AGENT_TOOLS = {
           continue;
         }
         const syncPolicy = normalizeDeliverableSyncPolicy(action?.syncPolicy);
+        const inferredLocalOnly = isArtifactLocalDeliverableAction(action);
         let projection = null;
-        if (syncPolicy !== 'localOnly') {
+        if (syncPolicy !== 'localOnly' && !inferredLocalOnly) {
           try {
             projection = ctx.projectDeliverableActionToCanonicalPatch?.(action);
           } catch {
@@ -1714,8 +1862,8 @@ export const AGENT_TOOLS = {
         directActions.push({
           index,
           action,
-          localOnly: syncPolicy === 'localOnly' || projectedLocalOnly,
-          syncPolicy: syncPolicy === 'localOnly' || projectedLocalOnly ? 'localOnly' : syncPolicy,
+          localOnly: syncPolicy === 'localOnly' || projectedLocalOnly || inferredLocalOnly,
+          syncPolicy: syncPolicy === 'localOnly' || projectedLocalOnly || inferredLocalOnly ? 'localOnly' : syncPolicy,
         });
       }
 
@@ -1736,8 +1884,29 @@ export const AGENT_TOOLS = {
         }
       }
 
+      let workingDeliverables = ctx.deliverables;
       for (const { index, action, localOnly, syncPolicy } of directActions) {
-        const result = ctx.executeAction(action, { skipSnapshot: true });
+        let updatedFeatureData = null;
+        const result = ctx.executeAction(action, {
+          skipSnapshot: true,
+          deliverables: workingDeliverables,
+          optimisticUpdate: (featureId, data) => {
+            updatedFeatureData = data;
+            ctx.optimisticUpdate?.(featureId, data);
+          },
+        });
+        if (result?.success && action.featureId && updatedFeatureData) {
+          workingDeliverables = {
+            ...(workingDeliverables || {}),
+            [action.featureId]: {
+              ...(workingDeliverables?.[action.featureId] || {}),
+              status: 'done',
+              data: updatedFeatureData,
+              error: null,
+            },
+          };
+          ctx.setCurrentDeliverables?.(workingDeliverables);
+        }
         results[index] = {
           action: action.type,
           featureId: action.featureId,
@@ -2467,6 +2636,9 @@ export function summarizeToolResult(toolName, result) {
     case 'search_research':
       return `${result.totalResults || 0} results found`;
     case 'read_deliverable':
+      if (result.featureId === 'quizBank' && result.totalQuestions !== undefined) {
+        return `${result.totalQuestions} quiz questions loaded`;
+      }
       if (result.totalItems !== undefined) return `${result.totalItems} items loaded`;
       return result.data ? 'Data loaded' : 'No data';
     case 'read_lesson':

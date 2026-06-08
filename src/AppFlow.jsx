@@ -1713,6 +1713,19 @@ export default function AppFlow({ startupAction = null, onStartupHandled, onRetu
     [buildProjectSnapshot],
   );
 
+  useEffect(() => {
+    if (!import.meta.env?.DEV || typeof window === 'undefined') return undefined;
+    if (!hasGenerated || !courseMap) {
+      delete window.__COURSEMAPPER_WORKSPACE_SNAPSHOT__;
+      return undefined;
+    }
+    window.__COURSEMAPPER_WORKSPACE_SNAPSHOT__ = buildProjectSnapshot({
+      projectId: projectIdRef.current,
+      snapshotSource: 'dev-real-browser-harness',
+    });
+    return undefined;
+  }, [buildProjectSnapshot, courseMap, hasGenerated]);
+
   const applyDeveloperSnapshot = useCallback(
     (snapshot) => {
       if (!snapshot || typeof snapshot !== 'object') {

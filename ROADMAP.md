@@ -34,6 +34,19 @@ Goal: make CourseMapper credible for real classroom pilots while keeping the age
 9. Versioned package handoff so users can recover prior generated packages.
 10. Public demo packages showing polished complete outputs across multiple subjects.
 
+## v0.8.59 - Real-Browser Agent Quality Harness Release
+
+Status: shipped. Final proof: `verification-output/agent-real-browser/2026-06-08T00-27-21-843Z/report.md` passed 25/25 real browser agent scenarios with a 100/100 response-quality average, 0 console errors, and 0 failed browser requests.
+
+Goal: make agent quality observable in the real app, not just in isolated unit tests, and keep the side panel compact while proving it can do safe work, refuse unsafe work, verify state, and report clearly.
+
+1. First-class real-browser harness: add repeatable smoke/full commands that start the app, seed a restored workspace, drive the Agent side panel in Chromium, snapshot state, capture screenshots, and write reports under `verification-output/agent-real-browser`.
+2. Response-quality scorecard: fail scenarios for raw tool traces, false success, read-only mutations, unnecessary questions, missing instructor-facing terms, and missing confirmation on destructive work.
+3. Expanded real agent scenarios: cover missing deliverable refusal, safe direct edits, broad destructive confirmation, ambiguous target handling, read-only summaries, finish-package runs, download readiness, and multi-step state verification.
+4. Side-panel refinement: keep simple count/list questions local, hide internal tool noise from final responses, and keep compact receipts centered on changed, checked, skipped, failed, and verified state.
+5. Batch-edit reliability: preserve multiple deliverable edits from the same tool call by refreshing the working deliverables state after every optimistic mutation.
+6. Release proof loop: every harness failure gets a focused fix, regression test, and rerun of the affected unit suite plus the full 25-scenario browser proof.
+
 ## v0.8.58 - Red-Team Quality Hardening Release
 
 Goal: expose as many real weaknesses as possible across agent behavior, export readiness, restored-project recovery, generated-output quality, live provider drift, and workspace UI/UX, then fix every high-severity issue with regression coverage.
