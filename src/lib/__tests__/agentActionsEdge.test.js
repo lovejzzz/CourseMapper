@@ -1176,8 +1176,8 @@ describe('DEDUP_FIELDS — duplicate detection', () => {
 // ─────────────────────────────────────────────────────────────────────────────
 
 describe('ACTION_TYPES', () => {
-  it('exports all 8 action types', () => {
-    expect(Object.keys(ACTION_TYPES)).toHaveLength(8);
+  it('exports all 9 action types', () => {
+    expect(Object.keys(ACTION_TYPES)).toHaveLength(9);
   });
 
   it.each([
@@ -1188,6 +1188,7 @@ describe('ACTION_TYPES', () => {
     'addItem',
     'removeItem',
     'editItem',
+    'replaceItem',
     'regenerateLesson',
   ])('contains action type "%s"', (type) => {
     expect(ACTION_TYPES[type]).toBe(type);

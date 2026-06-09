@@ -75,6 +75,18 @@ export default function useProposalHandler({
           }
           preview.oldValue = val ?? '';
         }
+      } else if (type === 'replaceItem') {
+        const deliv = delivRef.current;
+        const entry = deliv?.[action.featureId];
+        if (entry?.data) {
+          const arrKey =
+            getArrayKey(action.featureId, entry.data) ||
+            Object.keys(entry.data).find((k) => Array.isArray(entry.data[k]));
+          const lessonItem = entry.data?.[arrKey]?.[action.lessonIndex];
+          preview.replacedItem = Number.isInteger(action.itemIndex)
+            ? ((Object.values(lessonItem || {}).find(Array.isArray) || [])[action.itemIndex] ?? null)
+            : (lessonItem ?? null);
+        }
       } else if (type === 'deleteLesson') {
         const lesson = courseMap?.lessons?.[action.lessonIndex];
         preview.lessonTitle = lesson?.title ?? `Lesson ${(action.lessonIndex ?? 0) + 1}`;
@@ -83,6 +95,13 @@ export default function useProposalHandler({
       /* preview is best-effort */
     }
     return preview;
+  }
+
+  // Changeset support (v0.9.1): an option may carry actions[] instead of one
+  // action. Normalize so select/accept paths handle both shapes.
+  function optionActionList(option) {
+    if (Array.isArray(option?.actions) && option.actions.length > 0) return option.actions;
+    return option?.action ? [option.action] : [];
   }
 
   // ── Handle proposal selection -> show diff review first ──────────────────
@@ -104,11 +123,11 @@ export default function useProposalHandler({
 
     proposalLockRef.current = true;
 
-    // Pre-validate before executing
-    const validation = preValidateAction(option.action, {
-      deliverables: delivRef.current,
-      courseMap,
-    });
+    // Pre-validate before executing (every action in the option)
+    const actionList = optionActionList(option);
+    const validation = actionList
+      .map((entryAction) => preValidateAction(entryAction, { deliverables: delivRef.current, courseMap }))
+      .find((result) => !result.valid) || { valid: true };
     if (!validation.valid) {
       setMessages((prev) => {
         const updated = [...prev];
@@ -129,8 +148,9 @@ export default function useProposalHandler({
       return;
     }
 
-    // Generate a diff preview BEFORE applying
-    const preview = generateDiffPreview(option.action);
+    // Generate diff previews BEFORE applying (one per action)
+    const previews = actionList.map((entryAction) => generateDiffPreview(entryAction));
+    const preview = previews[0] || {};
 
     // Mark proposal as "reviewing" and push a diffReview message
     setMessages((prev) => {
@@ -149,8 +169,10 @@ export default function useProposalHandler({
       updated.push({
         role: 'diffReview',
         diff: {
-          action: option.action,
+          action: actionList[0],
+          actions: actionList,
           preview,
+          previews,
           optionTitle: option.title,
         },
         status: 'pending',
@@ -172,10 +194,20 @@ export default function useProposalHandler({
     if (!exec) return;
 
     const { action, optionTitle } = msg.diff;
+    const allActions = Array.isArray(msg.diff.actions) && msg.diff.actions.length > 0 ? msg.diff.actions : [action];
     const proposalIndex = msg._proposalIndex;
     const optionLabel = msg._optionLabel;
 
-    const result = exec(action);
+    let result = { success: true };
+    let appliedCount = 0;
+    for (const entryAction of allActions) {
+      result = exec(entryAction);
+      if (!result.success) break;
+      appliedCount += 1;
+    }
+    if (!result.success && appliedCount > 0) {
+      result = { ...result, message: `${result.message} (${appliedCount}/${allActions.length} changes applied)` };
+    }
 
     if (result.success) {
       // Record accepted edit pattern so agent learns user preferences
@@ -216,8 +248,11 @@ export default function useProposalHandler({
         updated.push({
           role: 'changeSummary',
           summary: {
-            changes: [{ type: actionType, featureId: target, count: 1, label: optionTitle }],
-            message: `Applied "${optionTitle}" to your course.`,
+            changes: [{ type: actionType, featureId: target, count: allActions.length, label: optionTitle }],
+            message:
+              allActions.length > 1
+                ? `Applied "${optionTitle}" (${allActions.length} coordinated changes).`
+                : `Applied "${optionTitle}" to your course.`,
           },
         });
         return updated;

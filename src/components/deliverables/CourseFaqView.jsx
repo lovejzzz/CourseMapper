@@ -191,6 +191,7 @@ export default function CourseFaqView({
       {filteredLessons.length > 0 ? (
         filteredLessons.map((lesson) => (
           <CollapsibleCard
+            viewportIndex={lesson.lessonIndex}
             key={lesson.lessonIndex}
             title={lesson.title}
             subtitle={`${lesson.questions.length} question${lesson.questions.length === 1 ? '' : 's'}`}

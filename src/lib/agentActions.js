@@ -6,6 +6,7 @@
  */
 
 import { getArrayKey } from './syncDependencies';
+import { isInternalExportMetadataKey } from './exporters/exporterUtils';
 import { KEY_MAPS } from './keyMaps';
 
 // ── Course map field aliases (agent shorthand → actual field key) ────────────
@@ -88,6 +89,7 @@ export const ACTION_TYPES = {
   addItem: 'addItem',
   removeItem: 'removeItem',
   editItem: 'editItem',
+  replaceItem: 'replaceItem',
   regenerateLesson: 'regenerateLesson',
 };
 
@@ -162,6 +164,8 @@ export function executeAction(action, ctx) {
         return execRemoveItem(params, ctx);
       case ACTION_TYPES.editItem:
         return execEditItem(params, ctx);
+      case ACTION_TYPES.replaceItem:
+        return execReplaceItem(params, ctx);
       case ACTION_TYPES.regenerateLesson:
         return execRegenerateLesson(params, ctx);
       default:
@@ -584,6 +588,59 @@ function execEditItem({ featureId, path: rawPath, value }, ctx) {
   return { success: true, message: `Updated ${featureId}` };
 }
 
+/**
+ * Author-grade replacement (v0.9.1): swap a whole item's instructor-facing
+ * content while preserving the old item's internal compiler records
+ * (grounding, traces, receipts) so trust evidence survives rewrites.
+ * lessonIndex targets the lesson item; itemIndex (optional) targets a
+ * sub-item (a question, slide, criterion) inside it.
+ */
+function execReplaceItem({ featureId, lessonIndex, itemIndex, item, subKey }, ctx) {
+  const { deliverables, optimisticUpdate, snapshot, skipSnapshot } = ctx;
+  if (!optimisticUpdate) return { success: false, message: 'Optimistic update not available' };
+  if (!item || typeof item !== 'object') return { success: false, message: 'Missing replacement item' };
+  const readyEntry = getReadyDeliverableEntry(featureId, deliverables);
+  if (readyEntry.error) return { success: false, message: readyEntry.error };
+  const entry = readyEntry.entry;
+
+  if (snapshot && !skipSnapshot) snapshot(featureId, entry.data);
+  const data = structuredClone(entry.data);
+  const arrKey = getArrayKey(featureId, data);
+  const arr = data[arrKey];
+  if (!Array.isArray(arr)) return { success: false, message: `No item array found for ${featureId}` };
+  if (!Number.isInteger(lessonIndex) || lessonIndex < 0 || lessonIndex >= arr.length) {
+    return { success: false, message: `lessonIndex ${lessonIndex} out of range (0-${arr.length - 1})` };
+  }
+
+  const normalized = normalizeDeliverableItem(featureId, item);
+  const mergeReplace = (oldItem, nextItem) => {
+    if (!oldItem || typeof oldItem !== 'object') return nextItem;
+    const preserved = {};
+    for (const [key, value] of Object.entries(oldItem)) {
+      if (isInternalExportMetadataKey(key)) preserved[key] = value;
+    }
+    return { ...nextItem, ...preserved };
+  };
+
+  if (Number.isInteger(itemIndex)) {
+    const lessonItem = arr[lessonIndex];
+    const requestedSubArrayKey = subKey || SUB_ARRAY_KEYS[featureId];
+    const subArrayKey = resolveSegment(featureId, lessonItem, requestedSubArrayKey, { final: true });
+    const subArr = subArrayKey ? lessonItem?.[subArrayKey] : null;
+    if (!Array.isArray(subArr)) return { success: false, message: `No sub-array to replace in for ${featureId}` };
+    if (itemIndex < 0 || itemIndex >= subArr.length) {
+      return { success: false, message: `itemIndex ${itemIndex} out of range (0-${subArr.length - 1})` };
+    }
+    subArr[itemIndex] = mergeReplace(subArr[itemIndex], normalized);
+    optimisticUpdate(featureId, data);
+    return { success: true, message: `Replaced item ${itemIndex + 1} in ${featureId} lesson ${lessonIndex + 1}` };
+  }
+
+  arr[lessonIndex] = mergeReplace(arr[lessonIndex], normalized);
+  optimisticUpdate(featureId, data);
+  return { success: true, message: `Replaced ${featureId} item for lesson ${lessonIndex + 1}` };
+}
+
 function execRegenerateLesson({ featureId, lessonIndex }, { regenerateLesson, courseMap, deliverables }) {
   if (!regenerateLesson) return { success: false, message: 'Regenerate not available' };
   const readyEntry = getReadyDeliverableEntry(featureId, deliverables);
@@ -627,7 +684,7 @@ export function preValidateAction(action, ctx) {
   const { deliverables, courseMap } = ctx;
 
   // Deliverable actions require the deliverable to exist with data
-  if (['addItem', 'removeItem', 'editItem', 'regenerateLesson'].includes(action.type)) {
+  if (['addItem', 'removeItem', 'editItem', 'replaceItem', 'regenerateLesson'].includes(action.type)) {
     const readyEntry = getReadyDeliverableEntry(action.featureId, deliverables);
     if (readyEntry.error) return { valid: false, reason: readyEntry.error };
   }
@@ -649,7 +706,7 @@ export function preValidateAction(action, ctx) {
       if (
         Array.isArray(arr) &&
         action.lessonIndex === undefined &&
-        ['addItem', 'removeItem', 'regenerateLesson'].includes(action.type)
+        ['addItem', 'removeItem', 'replaceItem', 'regenerateLesson'].includes(action.type)
       ) {
         return { valid: false, reason: 'Missing lessonIndex' };
       }
@@ -674,6 +731,11 @@ export function preValidateAction(action, ctx) {
   // Cannot delete the only lesson
   if (action.type === 'deleteLesson' && (courseMap?.lessons?.length ?? 0) <= 1) {
     return { valid: false, reason: 'Cannot delete the only lesson' };
+  }
+
+  // replaceItem requires a replacement payload
+  if (action.type === 'replaceItem' && (!action.item || typeof action.item !== 'object')) {
+    return { valid: false, reason: 'replaceItem requires an item object with the full replacement content' };
   }
 
   // Duplicate detection for addItem

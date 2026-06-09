@@ -60,6 +60,7 @@ export default function DiscussionsView({
               />
             )}
             <CollapsibleCard
+              viewportIndex={i}
               title={d.lessonTitle || `Discussion ${i + 1}`}
               subtitle={subtitle}
               defaultOpen={i < 3}

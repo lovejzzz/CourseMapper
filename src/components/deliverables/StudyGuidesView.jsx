@@ -57,6 +57,7 @@ export default function StudyGuidesView({
               />
             )}
             <CollapsibleCard
+              viewportIndex={i}
               title={g.lessonTitle || `Guide ${i + 1}`}
               subtitle={subtitle}
               defaultOpen={i < 3}

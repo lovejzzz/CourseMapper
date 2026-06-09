@@ -234,6 +234,43 @@ export default function DiffReviewCard({ diff, status, onAccept, onReject }) {
           </div>
         )}
 
+        {/* Replace item (v0.9.1 authorship): full before/after */}
+        {type === 'replaceItem' && action.item && (
+          <div className="space-y-1.5">
+            {preview?.replacedItem && (
+              <div className="rounded-lg border border-red-200/40 bg-red-50/40 px-3 py-2">
+                <span className="text-[10px] uppercase tracking-wider font-semibold text-red-500 block mb-1.5">
+                  Before
+                </span>
+                <ItemFields item={preview.replacedItem} featureId={action.featureId} />
+              </div>
+            )}
+            <div className="rounded-lg border border-emerald-200/40 bg-emerald-50/40 px-3 py-2">
+              <span className="text-[10px] uppercase tracking-wider font-semibold text-emerald-500 block mb-1.5">
+                After
+              </span>
+              <ItemFields item={action.item} featureId={action.featureId} />
+            </div>
+          </div>
+        )}
+
+        {/* Changeset (v0.9.1): coordinated changes beyond the first action */}
+        {Array.isArray(diff?.actions) && diff.actions.length > 1 && (
+          <div className="rounded-lg border border-indigo-200/40 bg-indigo-50/40 px-3 py-2">
+            <span className="text-[10px] uppercase tracking-wider font-semibold text-indigo-500 block mb-1.5">
+              {diff.actions.length} coordinated changes
+            </span>
+            <ul className="text-xs text-slate-600 space-y-0.5">
+              {diff.actions.map((entry, i) => (
+                <li key={i}>
+                  {entry.type} → {entry.featureId || 'courseMap'}
+                  {Number.isInteger(entry.lessonIndex) ? ` (lesson ${entry.lessonIndex + 1})` : ''}
+                </li>
+              ))}
+            </ul>
+          </div>
+        )}
+
         {/* Edit item/cell/title: show before → after with inline diff */}
         {(type === 'editItem' || type === 'editCell' || type === 'editTitle') && (
           <div className="space-y-1.5">

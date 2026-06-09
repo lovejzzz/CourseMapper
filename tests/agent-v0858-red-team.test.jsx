@@ -111,7 +111,7 @@ describe('v0.8.58 agent safety invariants', () => {
     const prompt = buildAgentSystemPrompt(baseCourseMap(), 'quizBank', baseDeliverables());
 
     expect(prompt).toContain('Lesson-specific deliverable judgments');
-    expect(prompt).toContain('read_deliverable(target featureId + lessonIndex) first');
+    expect(prompt).toContain('read_rendered(target featureId + lessonIndex) first');
     expect(prompt).toContain('Missing/not-done deliverable: do not fabricate it');
     expect(prompt).toContain('plan/inspect -> execute -> verify -> respond');
   });

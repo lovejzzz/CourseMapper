@@ -65,6 +65,7 @@ export default function QuizBankView({
               />
             )}
             <CollapsibleCard
+              viewportIndex={i}
               title={quiz.lessonTitle || `Quiz ${i + 1}`}
               subtitle={subtitle}
               defaultOpen={i < 3}

@@ -23,6 +23,7 @@ const MAX_LOCAL_MEMORIES = 100;
 // ── Categories ────────────────────────────────────────────────────────────────
 
 export const MEMORY_CATEGORIES = {
+  voice_style: "Instructor's Writing Voice",
   teaching_style: 'Teaching Style & Preferences',
   assessment: 'Assessment Preferences',
   course_design: 'Course Design Patterns',

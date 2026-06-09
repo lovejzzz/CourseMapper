@@ -9,6 +9,7 @@ import ExamReview from '../ExamReview';
 import { executeAction } from '../../lib/agentActions';
 import { resolveLabel } from './constants';
 import { evaluateWorkspaceReadiness } from '../../lib/deliverableReadiness';
+import { buildPostGenerationDigest } from '../../lib/agentDigest';
 import { classifyFinalizePackageStepStatus, normalizePackageSummary } from '../../lib/packageFinalizerSummary';
 import { summarizeLandingAgentContext } from '../../lib/landingAgentContext';
 import { useAIConfig } from '../../contexts/AIConfigContext';
@@ -1043,6 +1044,8 @@ export function getWorkspaceModelStatus({
  * file uploads, and inline progress cards.
  */
 export default function ChatPanel({
+  // Shared focus: ref holding { featureId, itemIndex } for the item on screen
+  viewportRef,
   // Generation state
   currentStep,
   modelName,
@@ -1198,6 +1201,7 @@ export default function ChatPanel({
     slideTheme,
     uid,
     onApiCallEvent,
+    viewportRef,
   });
 
   // ── Expose chat.send to parent via ref (for context menu inline AI) ──
@@ -1358,6 +1362,22 @@ export default function ChatPanel({
       }
     }
   }, [isDelivGenerating, packageQualityPass?.status]); // eslint-disable-line react-hooks/exhaustive-deps
+
+  // v0.9.2 — the TA's eyes: when a generation run completes, surface at most
+  // three grounded observations as quiet chips. Observe-only by contract.
+  const digestRunRef = useRef(false);
+  useEffect(() => {
+    if (isDelivGenerating) {
+      digestRunRef.current = true;
+      return;
+    }
+    if (!digestRunRef.current) return;
+    digestRunRef.current = false;
+    const doneCount = Object.values(deliverables || {}).filter((entry) => entry?.status === 'done').length;
+    if (doneCount === 0) return;
+    const digest = buildPostGenerationDigest({ courseMap, deliverables });
+    if (digest) chat.addLocalMessages([{ role: 'digest', digest, status: 'pending' }]);
+  }, [isDelivGenerating]); // eslint-disable-line react-hooks/exhaustive-deps
   useEffect(
     () => () => {
       if (autoReviewTimerRef.current) clearTimeout(autoReviewTimerRef.current);
@@ -2729,6 +2749,13 @@ export default function ChatPanel({
         onReceiptActionStateChange={handleReceiptActionStateChange}
         onConfigureAI={openWorkspaceModelConfig}
         onSelectProposal={chat.handleSelectProposal}
+        onDigestPrompt={(prompt) => chat.send(prompt)}
+        onDigestDismiss={(messageIndex) =>
+          chat.updateLocalMessage(
+            (msg, i) => i === messageIndex && msg.role === 'digest',
+            (msg) => ({ ...msg, status: 'dismissed' }),
+          )
+        }
         onAcceptDiff={chat.handleAcceptDiff}
         onRejectDiff={chat.handleRejectDiff}
         onUndo={delivUndoFn}

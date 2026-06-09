@@ -1,4 +1,4 @@
-import React, { useState, useCallback, useMemo, useRef, useEffect } from 'react';
+import React, { useState, useCallback, useContext, useMemo, useRef, useEffect } from 'react';
 import GenericDeliverableView from '../../GenericDeliverableView';
 import EditProposalPanel from '../../EditProposalPanel';
 import { computeAvgScore, scoreColor } from '../../../lib/deliverableQualityScorer';
@@ -454,6 +454,10 @@ export function EmptyState({ featureId, onGenerate }) {
   );
 }
 
+// Shared focus: DeliverableView provides { report(itemIndex) } so the chat
+// agent knows which lesson card the instructor is working in.
+export const ViewportContext = React.createContext(null);
+
 export function CollapsibleCard({
   title,
   subtitle,
@@ -464,9 +468,14 @@ export function CollapsibleCard({
   fresh = false,
   onRegenerate,
   onTitleEdit,
+  viewportIndex = null,
   children,
 }) {
   const [open, setOpen] = useState(defaultOpen);
+  const viewport = useContext(ViewportContext);
+  const reportViewport = useCallback(() => {
+    if (viewport?.report && viewportIndex != null) viewport.report(viewportIndex);
+  }, [viewport, viewportIndex]);
   const [editingTitle, setEditingTitle] = useState(false);
   const [titleDraft, setTitleDraft] = useState('');
   const titleInputRef = useRef(null);
@@ -498,6 +507,8 @@ export function CollapsibleCard({
 
   return (
     <div
+      onClickCapture={reportViewport}
+      onFocusCapture={reportViewport}
       className={`glass rounded-squircle-xs overflow-hidden transition-all duration-500 ${streaming ? 'animate-pulse-subtle' : ''} ${regenerating ? 'ring-2 ring-violet-300/60' : ''} ${fresh && !regenerating ? 'ring-2 ring-emerald-400/70 bg-emerald-50/20' : ''}`}
     >
       <div className="flex items-center">

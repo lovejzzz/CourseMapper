@@ -6,6 +6,7 @@
  */
 
 import { buildAgentSystemPromptParts } from '../../lib/agentPrompts';
+import { getAgentTurnModel } from '../../lib/agentModelRouting';
 import { generateCourseHealthReport } from '../../lib/pedagogicalValidator';
 import { AGENT_TOOLS, TOOL_LABELS, summarizeToolResult, classifyRequestComplexity } from '../../lib/agentTools';
 import { estimateTokens, getModelLimit } from '../../lib/tokenEstimator';
@@ -1574,6 +1575,10 @@ export function buildModelAgentReceiptFromProgress(
     stateDiffCount: stateDiffs.length,
     ...(providerCallCount > 0 ? { providerCallCount } : {}),
     ...(maxProviderCallCount > 0 ? { maxProviderCallCount } : {}),
+    ...(progress?.runMeta?.routedModel ? { routedModel: progress.runMeta.routedModel } : {}),
+    ...(progress?.runMeta?.modelEscalated
+      ? { modelEscalated: true, modelRoutingReason: progress.runMeta.modelRoutingReason }
+      : {}),
     ...(stopReason ? { stopReason } : {}),
     ...(startedAt && endedAt && endedAt >= startedAt ? { durationMs: endedAt - startedAt } : {}),
   };
@@ -1641,8 +1646,13 @@ export async function runAgentLoop(fullMessage, { silent = false, dryRun = false
     customToolRegistryRef,
     maybeRunValidation,
     handleAgentFinalResponse,
+    viewportRef,
   } = ctx;
   const executionMode = dryRun ? AGENT_EXECUTION_MODES.DRY_RUN : AGENT_EXECUTION_MODES.APPLY;
+  // v0.9: routing applied to real loop calls — critique/authorship turns
+  // escalate mini models to the high-reasoning sibling for the whole run.
+  const turnRouting = getAgentTurnModel({ provider, modelId, userMessage: fullMessage });
+  const routedModelId = turnRouting.modelId || modelId;
   const runId = `agent-run-${Date.now()}-${Math.random().toString(16).slice(2)}`;
   let agentQualityExpectations = {};
 
@@ -1830,7 +1840,14 @@ export async function runAgentLoop(fullMessage, { silent = false, dryRun = false
     // handle both shapes. Token estimation uses the joined text since models
     // consume the concatenation regardless.
     const systemParts = applyAgentExecutionModePrompt(
-      buildAgentSystemPromptParts(courseMap, activeTab, delivRef.current, healthSummary, userPrefs),
+      buildAgentSystemPromptParts(
+        courseMap,
+        activeTab,
+        delivRef.current,
+        healthSummary,
+        userPrefs,
+        viewportRef?.current || null,
+      ),
       executionMode,
     );
     const systemPrompt =
@@ -1954,6 +1971,8 @@ export async function runAgentLoop(fullMessage, { silent = false, dryRun = false
           ...(card.runMeta || {}),
           providerCallCount: iteration + 1,
           maxProviderCallCount: MAX_ITERATIONS,
+          routedModel: routedModelId,
+          ...(turnRouting.escalated ? { modelEscalated: true, modelRoutingReason: turnRouting.reason } : {}),
         },
       }));
       if (typeof ctx.onApiCallEvent === 'function') {
@@ -1969,7 +1988,7 @@ export async function runAgentLoop(fullMessage, { silent = false, dryRun = false
         controller.signal,
         apiKey,
         provider,
-        modelId,
+        routedModelId,
         nativeTools,
         { temperature: agentTemperature, onThinkingText },
       );

@@ -64,6 +64,7 @@ export default function AssignmentsView({
               />
             )}
             <CollapsibleCard
+              viewportIndex={i}
               title={a.title || `Assignment ${i + 1}`}
               subtitle={subtitle}
               defaultOpen={i < 3}

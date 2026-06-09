@@ -114,7 +114,7 @@ describe('buildAgentSystemPrompt', () => {
   it('requires read_deliverable before lesson-specific deliverable judgments', () => {
     const prompt = buildAgentSystemPrompt(baseCourseMap, 'quizBank', baseDeliverables);
     expect(prompt).toContain('Lesson-specific deliverable judgments');
-    expect(prompt).toContain('read_deliverable(target featureId + lessonIndex) first');
+    expect(prompt).toContain('read_rendered(target featureId + lessonIndex) first');
     expect(prompt).toContain("don't judge quality");
   });
 
@@ -260,12 +260,13 @@ describe('buildAgentSystemPrompt', () => {
     expect(prompt).toContain('read_deliverable');
   });
 
-  it('prompt is compact (under 12500 chars for base case)', () => {
+  it('prompt is compact (under 15000 chars for base case)', () => {
     const prompt = buildAgentSystemPrompt(baseCourseMap, 'quizBank', baseDeliverables);
     // Includes few-shot examples, response style rules, tone rules, quality rules, schema + context,
-    // plus the god-mode agency / self-heal / greeting rules added in the enhance-chatbot-godmode pass
-    // and the split-cache refactor (which adds a small "\n\n" separator + the new ACTIONS cross-ref line).
-    expect(prompt.length).toBeLessThan(12500);
+    // plus the v0.9 TA persona: agency contract, grounding rules, critique pattern, and the
+    // course-brief dynamic section. The static prefix sits behind a prompt-cache breakpoint,
+    // so the added budget is paid once per session, not per call.
+    expect(prompt.length).toBeLessThan(15000);
   });
 
   it('shows path example for slideDecks when that tab is active', () => {

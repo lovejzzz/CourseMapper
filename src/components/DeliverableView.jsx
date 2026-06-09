@@ -8,6 +8,7 @@ import {
   ErrorState,
   WaitingState,
   EmptyState,
+  ViewportContext,
 } from './deliverables/shared/SharedComponents';
 import LessonPlansView from './deliverables/LessonPlansView';
 import RubricsView from './deliverables/RubricsView';
@@ -60,6 +61,7 @@ function getCoverageGap(featureId, data, courseMap) {
 }
 
 export default function DeliverableView({
+  viewportRef,
   featureId,
   data,
   status,
@@ -91,6 +93,20 @@ export default function DeliverableView({
   // ── All hooks MUST come before any early returns (Rules of Hooks) ──
   // Feature 4.1 — Tier detection + toggle state
   const [activeTier, setActiveTier] = useState('standard'); // 'scaffolded' | 'standard' | 'extension'
+
+  // Shared focus: report which lesson card the instructor interacts with so
+  // the chat agent's "ON SCREEN NOW" context tracks the visible artifact.
+  const viewportContextValue = useMemo(
+    () => ({
+      report: (itemIndex) => {
+        if (viewportRef) viewportRef.current = { featureId, itemIndex };
+      },
+    }),
+    [viewportRef, featureId],
+  );
+  useEffect(() => {
+    if (viewportRef) viewportRef.current = null;
+  }, [viewportRef, featureId]);
   const [isFullscreen, setIsFullscreen] = useState(false);
   const hasTiers = useMemo(() => {
     if (!data) return false;
@@ -348,41 +364,43 @@ export default function DeliverableView({
           </div>
         </div>
       )}
-      {(() => {
-        switch (featureId) {
-          case 'lessonPlans':
-            return <LessonPlansView {...viewProps} />;
-          case 'rubrics':
-            return <RubricsView {...viewProps} />;
-          case 'slideDecks':
-            return <SlideDecksView {...viewProps} />;
-          case 'quizBank':
-            return <QuizBankView {...viewProps} />;
-          case 'discussions':
-            return <DiscussionsView {...viewProps} />;
-          case 'assignments':
-            return <AssignmentsView {...viewProps} />;
-          case 'studyGuides':
-            return <StudyGuidesView {...viewProps} />;
-          case 'syllabus':
-            return <SyllabusView {...viewProps} />;
-          case 'courseFaq':
-            return <CourseFaqView {...viewProps} />;
-          default:
-            return featureId?.startsWith('custom_') || data ? (
-              <GenericDeliverableView
-                featureId={featureId}
-                data={data}
-                isStreaming={isStreaming}
-                regeneratingIndex={regeneratingIndex}
-                onRegenerateLesson={onRegenerateLesson}
-                onEdit={editable ? onEdit : undefined}
-              />
-            ) : (
-              <EmptyState featureId={featureId} onGenerate={onRetry} />
-            );
-        }
-      })()}
+      <ViewportContext.Provider value={viewportContextValue}>
+        {(() => {
+          switch (featureId) {
+            case 'lessonPlans':
+              return <LessonPlansView {...viewProps} />;
+            case 'rubrics':
+              return <RubricsView {...viewProps} />;
+            case 'slideDecks':
+              return <SlideDecksView {...viewProps} />;
+            case 'quizBank':
+              return <QuizBankView {...viewProps} />;
+            case 'discussions':
+              return <DiscussionsView {...viewProps} />;
+            case 'assignments':
+              return <AssignmentsView {...viewProps} />;
+            case 'studyGuides':
+              return <StudyGuidesView {...viewProps} />;
+            case 'syllabus':
+              return <SyllabusView {...viewProps} />;
+            case 'courseFaq':
+              return <CourseFaqView {...viewProps} />;
+            default:
+              return featureId?.startsWith('custom_') || data ? (
+                <GenericDeliverableView
+                  featureId={featureId}
+                  data={data}
+                  isStreaming={isStreaming}
+                  regeneratingIndex={regeneratingIndex}
+                  onRegenerateLesson={onRegenerateLesson}
+                  onEdit={editable ? onEdit : undefined}
+                />
+              ) : (
+                <EmptyState featureId={featureId} onGenerate={onRetry} />
+              );
+          }
+        })()}
+      </ViewportContext.Provider>
       {/* ── Add More Lessons button — shown at bottom when scope was limited ── */}
       {onAddLessons && status === 'done' && !isSlides && hasMissingLessons && (
         <div className="flex justify-center pb-8 pt-2">

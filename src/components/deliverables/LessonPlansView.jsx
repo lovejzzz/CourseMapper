@@ -60,6 +60,7 @@ export default function LessonPlansView({
               />
             )}
             <CollapsibleCard
+              viewportIndex={i}
               title={plan.lessonTitle || plan.title || `Plan ${i + 1}`}
               subtitle={subtitle}
               defaultOpen={i < 3}

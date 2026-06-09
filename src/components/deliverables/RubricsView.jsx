@@ -71,6 +71,7 @@ export default function RubricsView({
               />
             )}
             <CollapsibleCard
+              viewportIndex={i}
               title={gradedWork || rubric.lessonTitle || `Rubric ${i + 1}`}
               subtitle={subtitle}
               defaultOpen={i < 3}

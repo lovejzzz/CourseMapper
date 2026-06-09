@@ -3,6 +3,53 @@ import Header from '../components/Header';
 
 const releases = [
   {
+    version: '0.9.0',
+    date: 'June 9, 2026',
+    title: 'The TA Who Built the Course',
+    highlights: [
+      'Ground-up agent redesign: the assistant now reads the actual course materials, quotes them, critiques them, and edits like an author — powerful on request, restrained by default',
+      'New course content index renders every artifact to instructor-facing text with stable anchors; read_rendered, search_course, and explain_design replace metadata-only answers',
+      'explain_design answers "why is this designed this way?" from the compiler\'s own stored grounding and decision records',
+      'Author-grade replaceItem edits and multi-artifact changesets flow through reviewable before/after diffs; compiler trust records survive rewrites',
+      "Post-generation digest surfaces at most three grounded observations (content-quality findings, flat Bloom's levels, unassessed objectives) as observe-only chips — nothing is ever auto-applied",
+      'The chat knows which lesson card is on screen ("this question" needs no disambiguation), and a per-course decision journal carries decisions, rationale, and open threads across sessions',
+      'Model routing is applied to real agent calls: critique and authorship turns escalate mini models to the high-reasoning sibling, recorded in receipts',
+    ],
+    sections: [
+      {
+        label: 'Course-Native Agent',
+        icon: 'AI',
+        color: 'emerald',
+        items: [
+          'courseContentIndex.js renders every deliverable item and course-map lesson to labeled plain text (the CSV-export flattening instructors actually receive) with lexical search and stable anchors.',
+          'New tools: read_rendered (untruncated instructor-facing text), search_course ("where do we introduce X?"), explain_design (compiler grounding, repairs, genre, weight provenance), trace_objective (alignment chain with named gaps), log_decision (course journal).',
+          "The system prompt now carries a TA persona with an explicit agency contract (observe always / propose by default / apply on consent), grounding rules that require quoting read content, the course's assessment arc, and an ON SCREEN NOW block fed by the new viewport tracking.",
+          "read_deliverable's truncation flag now actually trims long fields and points to read_rendered for full text.",
+        ],
+      },
+      {
+        label: 'Authorship',
+        icon: 'UI',
+        color: 'indigo',
+        items: [
+          'replaceItem action rewrites a whole item (or one question/slide/criterion) while preserving internal compiler records; preValidateAction enforces a full replacement payload.',
+          'Proposal options can carry actions[] changesets — coordinated edits across deliverables that apply together on accept, with per-action previews in the diff review card.',
+          "A voice_style memory category captures the instructor's writing voice whenever they rewrite agent text; rewrite rules tell the agent to match it.",
+        ],
+      },
+      {
+        label: 'Proactive, Not Leading',
+        icon: 'QA',
+        color: 'amber',
+        items: [
+          'agentDigest.js builds at most three post-generation observations from deterministic signals; DigestCard renders them as quiet chips whose buttons only start conversations — the non-leading contract is structural and unit-tested.',
+          'courseJournal.js keeps a per-course record of design decisions, rationale, and open threads, surfaced in the dynamic prompt so every conversation starts knowing the story so far.',
+          'Per-turn model routing (getAgentTurnModel) escalates OpenAI mini models to gpt-5.5 for critique/authorship turns and records routedModel and escalation reason in run receipts.',
+        ],
+      },
+    ],
+  },
+  {
     version: '0.8.61',
     date: 'June 9, 2026',
     title: 'Output Quality Release',

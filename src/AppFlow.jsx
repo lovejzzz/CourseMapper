@@ -678,6 +678,9 @@ export default function AppFlow({ startupAction = null, onStartupHandled, onRetu
   const tabButtonRefs = useRef(new Map());
   const trashDropRef = useRef(null);
   const suppressTabClickRef = useRef(false);
+  // Shared focus: the deliverable item currently on the instructor's screen,
+  // reported by DeliverableView and read by the chat agent's context builder.
+  const viewportRef = useRef(null);
 
   // ── AI Context Menu (inline AI editing) ──
   const chatSendRef = useRef(null);
@@ -3919,6 +3922,7 @@ export default function AppFlow({ startupAction = null, onStartupHandled, onRetu
             >
               <ErrorBoundary>
                 <ChatPanel
+                  viewportRef={viewportRef}
                   currentStep={gen.progressStep}
                   modelName={gen.activeModelName || modelName}
                   error={gen.error || null}
@@ -4063,6 +4067,7 @@ export default function AppFlow({ startupAction = null, onStartupHandled, onRetu
               {activeTab !== 'courseMap' && (
                 <ErrorBoundary>
                   <DeliverableView
+                    viewportRef={viewportRef}
                     featureId={activeTab}
                     data={deliv.deliverables[activeTab]?.data ?? null}
                     status={deliv.deliverables[activeTab]?.status ?? 'idle'}

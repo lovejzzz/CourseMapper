@@ -15,8 +15,16 @@ import { saveAgentPrefs } from './cloudStorage';
 import { getCustomDeliverable } from './customDeliverableLibrary';
 import { CREATE_TOOL_JSON_SCHEMA, RUN_TOOL_JSON_SCHEMA, runPlan } from './customAgentTools';
 import { evaluateWorkspaceReadiness, repairWorkspaceReadiness } from './deliverableReadiness';
+import {
+  buildCourseContentIndex,
+  capRenderedText,
+  renderDeliverableItemText,
+  renderDeliverableTexts,
+  searchCourseContent,
+} from './courseContentIndex';
 import { buildHumanReviewRecommendation, summarizeRepairEvidence } from './packageTrust';
 import { evaluateClassroomReadiness } from './classroomReadiness';
+import { addJournalEntry, getJournal, resolveThread } from './courseJournal';
 
 // ── Helpers ──────────────────────────────────────────────────────────────────
 
@@ -1503,8 +1511,20 @@ export const AGENT_TOOLS = {
         const str = JSON.stringify(item);
         const result = { data: item };
         if (pathHints.length > 0) result.editPaths = pathHints;
-        if (str.length > 3000) {
-          result.note = 'Data truncated to fit context.';
+        if (str.length > 12000) {
+          // Actually trim long string leaves instead of only claiming to.
+          const trimmed = JSON.parse(str);
+          const trimLeaves = (node) => {
+            if (typeof node === 'string') return node.length > 400 ? `${node.slice(0, 400)}…` : node;
+            if (Array.isArray(node)) return node.map(trimLeaves);
+            if (node && typeof node === 'object') {
+              for (const key of Object.keys(node)) node[key] = trimLeaves(node[key]);
+              return node;
+            }
+            return node;
+          };
+          result.data = trimLeaves(trimmed);
+          result.note = 'Long fields trimmed; use read_rendered for the full instructor-facing text.';
           result.truncated = true;
         }
         return result;
@@ -1569,6 +1589,153 @@ export const AGENT_TOOLS = {
         result.truncated = true;
       }
       return result;
+    },
+  },
+
+  read_rendered: {
+    description:
+      'Read a deliverable item as the instructor-facing rendered text (labeled prose, not JSON). The primary way to actually read course materials before quoting, judging, or rewriting them. Returns full text with a stable anchor.',
+    params: {
+      featureId:
+        'string — assignments, quizBank, discussions, slideDecks, lessonPlans, rubrics, studyGuides, courseFaq, syllabus, or courseMap',
+      lessonIndex: 'number (optional) — 0-based item index; omit for a per-item outline of the whole deliverable',
+    },
+    execute: (args, ctx) => {
+      if (args.featureId === 'courseMap') {
+        const index = buildCourseContentIndex({ courseMap: ctx.courseMap, deliverables: {} });
+        const entries = index.entries;
+        if (args.lessonIndex === undefined) {
+          return { items: entries.map((entry) => ({ anchor: entry.anchor, title: entry.anchor.lessonTitle })) };
+        }
+        const entry = entries[args.lessonIndex];
+        if (!entry) return { error: `Lesson ${args.lessonIndex} not found (0-${entries.length - 1}).` };
+        const capped = capRenderedText(entry.text);
+        return { anchor: entry.anchor, renderedText: capped.text, truncated: capped.truncated };
+      }
+      const entry = ctx.deliverables?.[args.featureId];
+      if (!entry?.data) return { error: `${resolveFeatureName(args.featureId)} not generated yet.` };
+      if (args.lessonIndex === undefined) {
+        const items = renderDeliverableTexts(args.featureId, entry.data);
+        return {
+          featureId: args.featureId,
+          items: items.map((item) => ({
+            anchor: { featureId: args.featureId, itemIndex: item.itemIndex, lessonTitle: item.title },
+            title: item.title,
+            chars: item.text.length,
+          })),
+          note: 'Call again with lessonIndex to read one item in full.',
+        };
+      }
+      const text = renderDeliverableItemText(args.featureId, entry.data, args.lessonIndex);
+      if (!text) return { error: `Item ${args.lessonIndex} not found in ${resolveFeatureName(args.featureId)}.` };
+      const capped = capRenderedText(text);
+      return {
+        anchor: { featureId: args.featureId, itemIndex: args.lessonIndex },
+        renderedText: capped.text,
+        truncated: capped.truncated,
+      };
+    },
+  },
+
+  search_course: {
+    description:
+      'Search the rendered text of the whole course (course map + every generated deliverable). Use for "where do we introduce X?", "is Y ever defined?", "which lessons mention Z?". Returns anchored snippets.',
+    params: {
+      query: 'string — words or a phrase to find',
+      limit: 'number (optional, default 8) — max hits',
+    },
+    execute: (args, ctx) => {
+      const index = buildCourseContentIndex({ courseMap: ctx.courseMap, deliverables: ctx.deliverables });
+      const hits = searchCourseContent(index, args.query, { limit: args.limit || 8 });
+      if (hits.length === 0) {
+        return {
+          hits: [],
+          note: `No matches for "${args.query}" across ${index.entries.length} indexed items. The course may genuinely not cover it.`,
+        };
+      }
+      return { hits, indexedItems: index.entries.length };
+    },
+  },
+
+  explain_design: {
+    description:
+      'Explain why a compiled artifact is the way it is, from the compiler\'s own stored records: source fields used, repairs applied, genre and teaching intent, weight provenance, and what still needs local review. Use for "why is this like this?" questions.',
+    params: {
+      featureId: 'string — deliverable id',
+      lessonIndex: 'number — 0-based item index',
+    },
+    execute: (args, ctx) => {
+      const entry = ctx.deliverables?.[args.featureId];
+      if (!entry?.data) return { error: `${resolveFeatureName(args.featureId)} not generated yet.` };
+      const arrKey = getArrayKey(args.featureId, entry.data);
+      const item = arrKey ? entry.data[arrKey]?.[args.lessonIndex] : null;
+      if (!item) return { error: `Item ${args.lessonIndex} not found.` };
+
+      const grounding = item.blueprintGrounding || item.sourceGrounding || {};
+      const trace = grounding.sourceEvidenceTrace || {};
+      const explanation = {
+        anchor: { featureId: args.featureId, itemIndex: args.lessonIndex },
+        sourceRow: trace.sourceRowLabel || grounding.sourceRowLabel || null,
+        sourceFields: (trace.sourceFields || [])
+          .slice(0, 8)
+          .map((field) => ({ column: field.sourceColumn || field.label, usedAs: field.label || field.sourceColumn })),
+        repairs: (trace.repairedFields || trace.repairs || []).slice(0, 6),
+        missingSignals: item.missingSignals || trace.missingSignals || [],
+        genre: item.artifactGenre
+          ? {
+              genre: item.artifactGenre.genre || item.artifactGenre.label,
+              qualityFocus: item.artifactGenre.qualityFocus,
+            }
+          : null,
+        teachingIntent: item.teachingIntent || null,
+        rationale: item.instructionalRationale || null,
+        weightProvenance: item.gradingWeightProvenance || null,
+        reviewStatus: grounding.reviewActionability || item.reviewActionability || null,
+      };
+      // Drop empty keys so the agent reads only real records.
+      for (const [key, value] of Object.entries(explanation)) {
+        if (value == null || (Array.isArray(value) && value.length === 0)) delete explanation[key];
+      }
+      const hasRecords = Object.keys(explanation).length > 1;
+      return hasRecords
+        ? explanation
+        : {
+            anchor: explanation.anchor,
+            note: 'No compiler design records on this item — it may be model-generated or hand-edited. Judge it from read_rendered instead.',
+          };
+    },
+  },
+
+  trace_objective: {
+    description:
+      'Trace one learning objective through every generated artifact: where it is taught, practiced, and assessed, with anchored snippets — and where the chain breaks. Use for alignment questions about a specific objective.',
+    params: {
+      objective: 'string — the objective text (or a distinctive phrase from it)',
+      lessonIndex: 'number (optional) — restrict hits to one lesson',
+    },
+    execute: (args, ctx) => {
+      const index = buildCourseContentIndex({ courseMap: ctx.courseMap, deliverables: ctx.deliverables });
+      const hits = searchCourseContent(index, args.objective, { limit: 24 });
+      const scoped = Number.isInteger(args.lessonIndex)
+        ? hits.filter((hit) => hit.anchor.itemIndex === args.lessonIndex || hit.anchor.featureId === 'courseMap')
+        : hits;
+      const byFeature = {};
+      for (const hit of scoped) {
+        (byFeature[hit.anchor.featureId] ||= []).push({ anchor: hit.anchor, snippet: hit.snippet.slice(0, 180) });
+      }
+      const generated = Object.entries(ctx.deliverables || {})
+        .filter(([id, entry]) => id !== 'courseMap' && entry?.status === 'done')
+        .map(([id]) => id);
+      const gaps = generated.filter((featureId) => !byFeature[featureId]);
+      return {
+        objective: args.objective,
+        chain: byFeature,
+        gaps,
+        note:
+          gaps.length > 0
+            ? `No trace of this objective in: ${gaps.join(', ')}. The chain breaks there.`
+            : 'Objective is echoed across all generated artifacts.',
+      };
     },
   },
 
@@ -1715,7 +1882,7 @@ export const AGENT_TOOLS = {
       'Add, edit, or remove deliverable items. Course-design edits may be queued as blueprint sync patches instead of directly mutating artifact JSON; local wording/format edits are applied immediately with undo support when syncPolicy:"localOnly" is set. For slide decks, prefer expanded paths such as decks[].slides[].notes/visual; shorthand aliases are still accepted.',
     params: {
       actions:
-        'array — each: {type:"addItem"|"removeItem"|"editItem"|"regenerateLesson", featureId, lessonIndex, item?, itemIndex?, path?, value?, syncPolicy?:"auto"|"localOnly"|"blueprint"}',
+        'array — each: {type:"addItem"|"removeItem"|"editItem"|"replaceItem"|"regenerateLesson", featureId, lessonIndex, item?, itemIndex?, path?, value?, syncPolicy?:"auto"|"localOnly"|"blueprint"}',
     },
     // Explicit JSON Schema for better LLM tool-calling accuracy
     jsonSchema: {
@@ -1729,7 +1896,8 @@ export const AGENT_TOOLS = {
             properties: {
               type: {
                 type: 'string',
-                description: 'Action type: "addItem", "removeItem", "editItem", or "regenerateLesson"',
+                description:
+                  'Action type: "addItem", "removeItem", "editItem", "replaceItem" (full-item rewrite preserving compiler records), or "regenerateLesson"',
               },
               featureId: {
                 type: 'string',
@@ -1737,8 +1905,12 @@ export const AGENT_TOOLS = {
                   'Deliverable ID: assignments, quizBank, discussions, slideDecks, lessonPlans, rubrics, studyGuides, courseFaq, syllabus',
               },
               lessonIndex: { type: 'number', description: '0-based lesson index' },
-              item: { type: 'object', description: 'Item object to add (for addItem)' },
-              itemIndex: { type: 'number', description: 'Index of item to remove (for removeItem)' },
+              item: { type: 'object', description: 'Item object to add (addItem) or full replacement (replaceItem)' },
+              itemIndex: {
+                type: 'number',
+                description:
+                  'Sub-item index (removeItem; optional for replaceItem to target one question/slide/criterion)',
+              },
               subKey: {
                 type: 'string',
                 description: 'Sub-array key if needed (e.g., "questions"/"qs", "slides"/"sl", "criteria"/"cr")',
@@ -2260,12 +2432,39 @@ export const AGENT_TOOLS = {
     },
   },
 
+  log_decision: {
+    description:
+      "Record a design decision (with rationale) or an open thread (something the instructor deferred, e.g. 'revisit rubric weights') in this course's journal. The journal feeds future conversations, so log decisions the instructor makes and promises worth resurfacing. Use resolve:true with a thread's text to close it.",
+    params: {
+      text: 'string — the decision or deferred thread, 1 sentence',
+      kind: 'string — "decision" (default) or "thread" (something to revisit later)',
+      rationale: "string (optional) — why, in the instructor's terms",
+      resolve: 'boolean (optional) — true to close an open thread matching text instead of adding',
+    },
+    execute: (args, ctx) => {
+      const courseName = ctx.courseMap?.courseName;
+      if (args.resolve) {
+        const closed = resolveThread(courseName, args.text);
+        return closed
+          ? { resolved: true, message: 'Thread closed.' }
+          : { resolved: false, message: 'No matching open thread.' };
+      }
+      const record = addJournalEntry(courseName, { kind: args.kind, text: args.text, rationale: args.rationale });
+      if (!record) return { error: 'Nothing to record.' };
+      const openThreads = getJournal(courseName).filter(
+        (entry) => entry.kind === 'thread' && entry.status === 'open',
+      ).length;
+      return { recorded: record.kind, openThreads };
+    },
+  },
+
   remember: {
     description:
-      'Save a persistent memory about this user for future sessions. Use this to remember teaching philosophy, preferred pedagogy, course patterns, institutional context, or any user preference the agent should recall later.',
+      "Save a persistent memory about this user for future sessions. Use this to remember teaching philosophy, preferred pedagogy, course patterns, institutional context, the instructor's writing voice (category voice_style — capture concrete observations whenever they rewrite your text or correct your tone), or any preference the agent should recall later.",
     params: {
       content: 'string — what to remember (1-2 sentences, specific and actionable)',
-      category: 'string — one of: teaching_style, assessment, course_design, feedback, institutional, general',
+      category:
+        'string — one of: voice_style, teaching_style, assessment, course_design, feedback, institutional, general',
       importance: 'number (optional) — 1 (low) to 5 (critical). Default 3.',
     },
     jsonSchema: {
@@ -2556,6 +2755,11 @@ export const AGENT_TOOLS = {
 // ── UI labels for progress card ──────────────────────────────────────────────
 
 export const TOOL_LABELS = {
+  read_rendered: 'Reading the materials',
+  search_course: 'Searching the course',
+  explain_design: 'Checking design records',
+  trace_objective: 'Tracing the objective',
+  log_decision: 'Updating course journal',
   inspect_workspace: 'Inspecting workspace',
   plan_workspace_next_step: 'Planning next step',
   validate_course: 'Checking course health',

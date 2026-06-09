@@ -44,12 +44,16 @@ export function handleAgentFinalResponse(response, ctx) {
   if (response.proposal) {
     const options = response.proposal.options || [];
     const validationResults = options.map((opt) => {
-      if (!opt.action) return { opt, valid: true };
-      const validation = preValidateAction(opt.action, {
-        deliverables: delivRef.current,
-        courseMap,
-      });
-      return { opt, valid: validation.valid, reason: validation.reason };
+      const optionActions = Array.isArray(opt.actions) ? opt.actions : opt.action ? [opt.action] : [];
+      if (optionActions.length === 0) return { opt, valid: true };
+      for (const optionAction of optionActions) {
+        const validation = preValidateAction(optionAction, {
+          deliverables: delivRef.current,
+          courseMap,
+        });
+        if (!validation.valid) return { opt, valid: false, reason: validation.reason };
+      }
+      return { opt, valid: true };
     });
     const validOptions = validationResults.filter((r) => r.valid).map((r) => r.opt);
 
@@ -192,12 +196,14 @@ export function handleLegacyResponse(fullText, ctx) {
     // Pre-validate proposal options (same as handleAgentFinalResponse)
     const options = parsed.proposal.options || [];
     const validOptions = options.filter((opt) => {
-      if (!opt.action) return true;
-      const v = preValidateAction(opt.action, {
-        deliverables: ctx.delivRef?.current,
-        courseMap: ctx.courseMap,
-      });
-      return v.valid;
+      const optionActions = Array.isArray(opt.actions) ? opt.actions : opt.action ? [opt.action] : [];
+      return optionActions.every(
+        (optionAction) =>
+          preValidateAction(optionAction, {
+            deliverables: ctx.delivRef?.current,
+            courseMap: ctx.courseMap,
+          }).valid,
+      );
     });
     const finalOptions = validOptions.length > 0 ? validOptions : options; // fallback to all if none valid
     setMessages((prev) => {

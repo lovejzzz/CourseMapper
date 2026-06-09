@@ -10,6 +10,7 @@ import AgentProgressCard from './AgentProgressCard';
 import AgentHelpCard from './AgentHelpCard';
 import AgentReceiptCard from './AgentReceiptCard';
 import SyncSuggestionCard from './SyncSuggestionCard';
+import DigestCard from './DigestCard';
 import WorkspacePlanCard, {
   buildWorkspacePlanActionDisplayText,
   buildWorkspacePlanActionSendOptions,
@@ -52,6 +53,8 @@ export default function MessageList({
   onRecoveryAction,
   onConfigureAI,
   onSelectProposal,
+  onDigestPrompt,
+  onDigestDismiss,
   onAcceptDiff,
   onRejectDiff,
   onUndo,
@@ -308,6 +311,17 @@ export default function MessageList({
                 status={msg.status}
                 onAccept={() => onAcceptDiff?.(i)}
                 onReject={() => onRejectDiff?.(i)}
+              />
+            );
+          }
+          if (msg.role === 'digest') {
+            return (
+              <DigestCard
+                key={key}
+                digest={msg.digest}
+                status={msg.status}
+                onPrompt={onDigestPrompt}
+                onDismiss={onDigestDismiss ? () => onDigestDismiss(i) : undefined}
               />
             );
           }

@@ -50,11 +50,17 @@ const RESPOND_TOOL_SCHEMA = {
             type: 'object',
             properties: {
               label: { type: 'string' },
-              title: { type: 'string', description: 'Short title (5 words max)' },
+              title: { type: 'string', description: 'Short title' },
               description: { type: 'string', description: 'What & why (2 sentences)' },
               action: { type: 'object', description: 'Action object: {type, featureId, lessonIndex, item, ...}' },
+              actions: {
+                type: 'array',
+                description:
+                  'Changeset: multiple coordinated actions applied together when accepted (e.g. lesson plan + slides + rubric for one redesign). Use instead of action.',
+                items: { type: 'object' },
+              },
             },
-            required: ['label', 'title', 'description', 'action'],
+            required: ['label', 'title', 'description'],
           },
         },
       },

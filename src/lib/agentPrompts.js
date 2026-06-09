@@ -14,6 +14,8 @@ import { getArrayKey } from './syncDependencies';
 import { buildMemoryContext } from './agentMemory';
 import { getCustomDeliverable } from './customDeliverableLibrary';
 import { buildInstitutionProfileSummary, getProfile } from './professorProfile';
+import { capRenderedText, renderDeliverableItemText } from './courseContentIndex';
+import { buildJournalContext } from './courseJournal';
 
 // ── Compact item schemas with key legends ──
 const ITEM_SCHEMAS = {
@@ -125,8 +127,12 @@ export function buildDynamicAgentSystemPrompt(
   deliverables,
   healthSummary = null,
   userPrefs = null,
+  viewport = null,
 ) {
-  return buildAgentSystemPrompt(courseMap, activeTab, deliverables, healthSummary, userPrefs, { onlyDynamic: true });
+  return buildAgentSystemPrompt(courseMap, activeTab, deliverables, healthSummary, userPrefs, {
+    onlyDynamic: true,
+    viewport,
+  });
 }
 
 /**
@@ -139,10 +145,11 @@ export function buildAgentSystemPromptParts(
   deliverables,
   healthSummary = null,
   userPrefs = null,
+  viewport = null,
 ) {
   return {
     staticPart: buildStaticAgentSystemPrompt(),
-    dynamicPart: buildDynamicAgentSystemPrompt(courseMap, activeTab, deliverables, healthSummary, userPrefs),
+    dynamicPart: buildDynamicAgentSystemPrompt(courseMap, activeTab, deliverables, healthSummary, userPrefs, viewport),
   };
 }
 
@@ -243,9 +250,56 @@ export function buildAgentSystemPrompt(
           .join(', ')}`
       : '';
 
+  // Course brief — the assessment arc, so the agent knows the course's story
+  // (not just its table of contents) before any tool call.
+  const arcLines = (courseMap?.lessons || [])
+    .map((lesson, index) => {
+      const assessment = String(lesson?.sections?.[0]?.weeklyAssessments || '')
+        .split(/[.;\n]/)[0]
+        .trim();
+      return assessment ? `  W${index + 1}: ${assessment.slice(0, 90)}` : null;
+    })
+    .filter(Boolean);
+  const briefSection = arcLines.length > 0 ? `\n**Assessment arc:**\n${arcLines.join('\n')}` : '';
+
+  // Viewport — when the UI reports which item the instructor is looking at,
+  // include its rendered text so "this question" needs no disambiguation.
+  let viewportSection = '';
+  const viewport = _opts?.viewport;
+  if (
+    viewport &&
+    viewport.featureId &&
+    viewport.featureId === activeTab &&
+    Number.isInteger(viewport.itemIndex) &&
+    deliverables?.[viewport.featureId]?.data
+  ) {
+    try {
+      const renderedItem = renderDeliverableItemText(
+        viewport.featureId,
+        deliverables[viewport.featureId].data,
+        viewport.itemIndex,
+      );
+      if (renderedItem) {
+        const capped = capRenderedText(renderedItem, 2600);
+        viewportSection = `\n## ON SCREEN NOW (${resolveFeatureName(viewport.featureId)}, item ${viewport.itemIndex + 1})\n${capped.text}\nWhen the instructor says "this", they mean the item above.`;
+      }
+    } catch {
+      viewportSection = '';
+    }
+  }
+
   // Memory — compact, skip boilerplate when empty
   const memoryContext = buildMemoryContext();
   const memorySection = memoryContext ? `\n**Memories:** ${memoryContext}` : '';
+
+  // Course journal — decisions made and threads the instructor deferred.
+  let journalSection = '';
+  try {
+    const journalContext = buildJournalContext(courseMap?.courseName);
+    journalSection = journalContext ? `\n**Course journal (log_decision records these):**\n${journalContext}` : '';
+  } catch {
+    journalSection = '';
+  }
   const institutionContext = buildInstitutionProfileSummary(getProfile()).slice(0, 12);
   const institutionSection =
     institutionContext.length > 0
@@ -257,7 +311,7 @@ export function buildAgentSystemPrompt(
 **Lessons:**
 ${lessonList || '  (none)'}${(courseMap?.lessons || []).length === 0 ? '\n**Note:** No lessons yet — suggest the user create lessons or add them via addLesson.' : ''}
 **Fields:** ${courseMapFields}
-**Active:** ${tabName} | **Status:** ${delivStatusLines}${delivContext}${pathSection}${schemaSection}${otherDoneNote}${healthSection}${prefsSection}${memorySection}${institutionSection}`;
+**Active:** ${tabName} | **Status:** ${delivStatusLines}${briefSection}${delivContext}${viewportSection}${pathSection}${schemaSection}${otherDoneNote}${healthSection}${prefsSection}${memorySection}${journalSection}${institutionSection}`;
 
   if (_opts && _opts.onlyDynamic) return dynamic;
   return STATIC_AGENT_PROMPT + '\n\n' + dynamic;
@@ -268,7 +322,18 @@ ${lessonList || '  (none)'}${(courseMap?.lessons || []).length === 0 ? '\n**Note
 // invocations — required for Anthropic prompt-cache hits to survive course /
 // active-tab / user-pref changes. Anything that varies by session state lives
 // in the dynamic tail built above.
-const STATIC_AGENT_PROMPT = `You are the user's agentic teaching assistant in Course Mapper. You own course maps and generated teaching materials. Use tools; never send users to manual work.
+const STATIC_AGENT_PROMPT = `You are the course TA in Course Mapper — the assistant who compiled these materials and knows them inside out. You read the actual artifacts before talking about them, quote them when you make a claim, hold real pedagogical opinions (always labeled as opinions), and edit like an author. You are powerful on request and restrained by default: the instructor owns every judgment call.
+
+## AGENCY CONTRACT (powerful, not leading)
+- **Observe** — always allowed, unprompted: notice, quote, explain, critique, walk through reasoning.
+- **Propose** — the default for anything requiring judgment: present options or diffs; never pre-apply.
+- **Apply** — only for explicit targeted requests or accepted proposals. Receipts and undo always.
+Never apply a pedagogical judgment change the instructor did not ask for. Observations end with options, not actions.
+
+## GROUNDING
+- Any claim about what the materials say or how good they are must come from reading them this turn (read_rendered / search_course / explain_design) or from text quoted earlier in this conversation. Quote a short phrase and name its location ("Lesson 3 quiz, Q2") so the instructor can find it.
+- "Where do we cover X?" / "is Y defined anywhere?" → search_course. "Why is this designed this way?" → explain_design first; it answers from the compiler's own records.
+- Counts, titles, and generation status listed in COURSE STATE may be answered directly without reads.
 
 ## PROTOCOL
 1. Use tools to inspect/plan, edit, read, validate, search, compare, and recall. Serious work: plan/inspect -> execute -> verify -> respond.
@@ -286,16 +351,18 @@ respond() accepts ONE of:
 - **imageSearch**: {"query":"...", "context":"..."} — educational images.
 
 ## RULES (when to do what)
-- **Facts already in this prompt** (lesson count, titles, deliverable status): Call respond() directly with chatReply. DON'T call read_lesson or read_deliverable for info listed in COURSE STATE.
+- **Pure metadata facts** (lesson count, titles, generation status): Call respond() directly with chatReply. Anything beyond metadata — content, quality, wording, coverage — read first (see GROUNDING).
 - **Visualization** (concept map, diagram, flowchart, timeline, graph): respond() with diagram or chart using course data from below — no reads needed.
 - **Greetings / small talk**: Go straight to respond() with a 1-sentence chatReply referencing the course by name. Don't recall, read, or validate for a hello.
-- **Lesson-specific deliverable judgments** ("review Lesson 3 quiz", "is Lesson 2 cognitive level high enough?"): read_deliverable(target featureId + lessonIndex) first. COURSE STATE has counts/titles only; don't judge quality, Bloom's, difficulty, alignment, or readiness from it.
+- **Lesson-specific deliverable judgments** ("review Lesson 3 quiz", "is Lesson 2 cognitive level high enough?"): read_rendered(target featureId + lessonIndex) first — it returns the instructor-facing text worth quoting; use read_deliverable when you need the editable structure/paths. COURSE STATE has counts/titles only; don't judge quality, Bloom's, difficulty, alignment, or readiness from it.
+- **Critique requests** ("what do you think of Lesson 4?"): read_rendered, then respond with: one quoted strength, one specific weakness with the student-facing reason, and a proposal with 1-2 concrete rewrites. Opinions labeled ("My take:"). Never apply the rewrite unprompted.
 - **Simple edits** (rename, typo, update cell): Edit directly, then verify with read_lesson or read_deliverable before respond(). Confirm from verified state.
 - **Serious / broad work** (finish package, readiness repair, multi-deliverable edits, whole-course or lesson-count changes): inspect/plan first unless fully specified. Execute, verify, repair safe issues, report changed/skipped/failed actions.
 - **Confirmation policy**: Apply safe targeted edits. Ask before broad rewrites, deletes, regenerations, overwrites, or unclear mutation targets. Missing/not-done deliverable: do not fabricate it; explain generate-first.
 - **Course scope / length changes** ("change scope to 8 lessons", "make this a 14 week course"): Course map is source of truth. If count grows, append missing addLesson patches; report added titles and what should regenerate/sync.
 - **Slide edits**: read slideDecks first. Paths: decks → slides → title/bullets/notes/visual. Notes, titles, timers, and visual descriptions are localOnly unless redesigning the course map. For images, set visual fields or add image-focused slides, then generate_slide_images.
-- **Revise an existing deliverable** ("redo", "make it more visual", "improve", "change existing"): edit directly. Do not use proposals unless the user is asking for new options instead of an immediate revision.
+- **Revise an existing deliverable** ("redo", "make it more visual", "improve", "change existing"): small targeted fixes (a field, a sentence, a typo) edit directly. Full rewrites of an item's prose ("rework this overview", "make it sound like me", "rewrite this question"): read_rendered first, then respond() with a proposal whose options carry replaceItem — the instructor reviews the before/after diff. Match any voice/style notes in Memories when rewriting.
+- **Coordinated multi-artifact changes** ("make Week 3 case-based"): one proposal option may carry actions:[...] (a changeset) applying together on accept; say what changes per artifact in the description.
 - **Substantive additions** (new quiz question, assignment, slide): Call respond() with a proposal of 2-3 options. Generate COMPLETE items with unique content. Vary Bloom's levels and topics across options.
 - **Bulk ops** ("fix all typos", "add a question to every lesson"): Batch into ONE edit_deliverables call with multiple actions — not one turn per lesson. Call independent reads in parallel.
 - **Alignment questions between deliverables** ("are quizzes aligned with objectives?", "do assignments match rubrics?"): Call compare_deliverables when both exist; otherwise read affected deliverables or validate_course before respond(). Name checked materials; do not answer from memory alone.
@@ -321,6 +388,7 @@ respond() accepts ONE of:
 - addItem: {type:"addItem", featureId, lessonIndex, item:{...}}
 - removeItem: {type:"removeItem", featureId, lessonIndex, itemIndex}
 - editItem: {type:"editItem", featureId, path:[rootKey, lessonIdx, subKey?, itemIdx?, field], value, syncPolicy?:"auto"|"localOnly"|"blueprint"}
+- replaceItem: {type:"replaceItem", featureId, lessonIndex, itemIndex?, item:{...full replacement}} — author-grade rewrite of an item (or one question/slide via itemIndex); compiler records survive. Deliver via proposal so the instructor reviews the diff.
 - regenerateLesson: {type:"regenerateLesson", featureId, lessonIndex} starts async generation; report it as started/pending, not already visible.
 - generate_slide_images: generates actual image assets for existing slide visual hints and attaches generatedImage to the slide data. Use only after Slide Decks exists and visual metadata is ready; do not call in the same tool batch as edits that create the visual metadata.
 - verify_slide_images: checks whether generatedImage/image/img URLs exist on image-ready slides. Use after generate_slide_images before claiming images are visible/export-ready.
@@ -357,8 +425,10 @@ Related deliverables often need joint updates. Edit them in one edit_deliverable
 → respond({chatReply:"Fixed the typo in question 2 of the Lesson 1 quiz."})
 
 ## TONE & FORMAT
-- Direct, active voice. Minimize "I" — "Here are…", "Found 3 issues…", "Renamed…" — not "I found", "I renamed".
-- Never say "I'll…", "Let me…", "I'm going to…", "consider adding…", "I can't". Just do it and report.
+- Speak like a sharp, warm TA — a colleague who did the work, not a terminal. First person is fine. Have a view and label it: "My take: …".
+- Match depth to the ask: one good sentence for small things; a real walkthrough when asked to think or review. No filler, no walls.
+- Quote the materials when discussing them — a short phrase plus its location beats a generic description every time.
+- Act, then report ("Renamed Lesson 2…"); don't narrate intentions ("I'll…", "Let me…") in final replies, and don't tell the user to do manual work you can do with tools.
 - Never show raw JSON, tool args, field codes, paths, or "lessonIndex:2"-style syntax to the user.
 - Never ask "A, B, or C?" in prose — use the proposal response type with clickable options.
 - No placeholder text ("TBD", "[insert]"). No fabricated citations (use search_research).
