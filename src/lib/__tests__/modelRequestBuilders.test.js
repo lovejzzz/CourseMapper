@@ -127,7 +127,41 @@ describe('modelRequestBuilders', () => {
     expect(plan.useJsonMode).toBe(false);
     expect(profile.structuredOutput.defaultMode).toBe('tool_schema');
     expect(req.body.thinking).toEqual({ type: 'enabled', budget_tokens: 4096 });
-    expect(req.body.system).toBe('Return JSON.');
+    expect(req.body.system).toEqual([{ type: 'text', text: 'Return JSON.', cache_control: { type: 'ephemeral' } }]);
+  });
+
+  it('marks Anthropic generation system prompts as a prompt-cache prefix and respects opt-out', () => {
+    const profile = createBaseModelCapabilities('anthropic', {
+      id: 'claude-sonnet-4-20250514',
+      name: 'Claude Sonnet 4',
+      maxOutputTokens: 64000,
+      capabilities: { jsonMode: false, toolCalling: true, streaming: true },
+    });
+    const plan = createGenerationPlan(profile);
+
+    const cached = buildProviderTextRequest({
+      provider: 'anthropic',
+      apiKey: 'test-key',
+      modelId: profile.modelId,
+      systemPrompt: 'SYSTEM',
+      userPrompt: 'USER',
+      modelCapabilities: profile,
+      generationPlan: plan,
+      task: 'courseMap',
+    });
+    expect(cached.body.system).toEqual([{ type: 'text', text: 'SYSTEM', cache_control: { type: 'ephemeral' } }]);
+
+    const optedOut = buildProviderTextRequest({
+      provider: 'anthropic',
+      apiKey: 'test-key',
+      modelId: profile.modelId,
+      systemPrompt: 'SYSTEM',
+      userPrompt: 'USER',
+      modelCapabilities: profile,
+      generationPlan: { ...plan, caching: { mode: 'none' } },
+      task: 'courseMap',
+    });
+    expect(optedOut.body.system).toBe('SYSTEM');
   });
 
   it('records DeepSeek reasoning effort only when enabled by the plan', () => {

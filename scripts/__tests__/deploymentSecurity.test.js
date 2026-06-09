@@ -41,9 +41,12 @@ describe('deployment security configuration', () => {
     expect(csp).toContain('https://cdnjs.cloudflare.com');
   });
 
-  it('marks the Express proxy as development-only in production', async () => {
-    const source = await fs.readFile(new URL('../../server.js', import.meta.url), 'utf8');
+  it('keeps the archived Express proxy out of the repo root and development-only', async () => {
+    // v0.8.6: the dormant dev proxy moved to archive/ so the deployable
+    // surface contains no server code.
+    await expect(fs.access(new URL('../../server.js', import.meta.url))).rejects.toThrow();
 
+    const source = await fs.readFile(new URL('../../archive/dev-proxy/server.js', import.meta.url), 'utf8');
     expect(source).toContain('COURSEMAPPER_ENABLE_DEV_PROXY');
     expect(source).toMatch(/development-only proxy/i);
     expect(source).toContain("process.env.NODE_ENV === 'production'");

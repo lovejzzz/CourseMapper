@@ -1,3 +1,5 @@
+import { LEAN_COLUMN_DEFS } from './leanCourseMap';
+
 // Feature 2.3 — BYOM: Reconstruct course structure from uploaded materials
 export const RECONSTRUCT_SYSTEM_PROMPT = `You are an expert instructional designer. Your course maps align with Quality Matters (QM) Higher Education Rubric standards for learning objectives, instructional alignment, and course technology. The instructor has uploaded their existing course materials (slides, notes, lecture outlines, prior syllabi, or other teaching artifacts). Your task is to REVERSE-ENGINEER the course structure from these materials and produce a structured Course Map.
 
@@ -88,16 +90,38 @@ COURSE NAME FIELD RULES (read carefully):
 - Only patch courseName when the source materials explicitly show a different official title or the generated title is clearly wrong.
 - If the current title is "Social Policy and Welfare", a suggestion like "Social Policy and Welfare, 14-week undergraduate course" is invalid because it adds metadata instead of correcting the title.`;
 
-export function buildExamineUserPrompt(courseMap, syllabusText, scopeIndices = null) {
+export function buildExamineUserPrompt(courseMap, syllabusText, scopeIndices = null, options = {}) {
   const scopeNote =
     Array.isArray(scopeIndices) && scopeIndices.length > 0
       ? `\n\n⚠️ SCOPE CONSTRAINT: The instructor intentionally selected ONLY ${scopeIndices.length} lesson(s) to generate (lessons ${scopeIndices.map((i) => i + 1).join(', ')}). Do NOT suggest adding lessons outside this scope. Do NOT flag missing lessons that are outside the selected scope. Only examine the lessons present in the course map.`
       : '';
-  return `Here is the Course Map to examine:\n\n${JSON.stringify(courseMap)}${
+
+  // Focused review: deterministic checks already cleared the other lessons, so
+  // only send the lessons that need model attention. Original 0-based indices
+  // are embedded so patches keep targeting the full course map correctly.
+  const allLessons = Array.isArray(courseMap?.lessons) ? courseMap.lessons : [];
+  const requestedFocus = Array.isArray(options.focusLessonIndices)
+    ? options.focusLessonIndices.filter((i) => Number.isInteger(i) && i >= 0 && i < allLessons.length)
+    : null;
+  const focusIndices =
+    requestedFocus && requestedFocus.length > 0 && requestedFocus.length < allLessons.length ? requestedFocus : null;
+  const mapPayload = focusIndices
+    ? {
+        ...courseMap,
+        lessons: focusIndices.map((i) => ({ lessonIndex: i, ...allLessons[i] })),
+        totalLessonCount: allLessons.length,
+        focusedReview: true,
+      }
+    : courseMap;
+  const focusNote = focusIndices
+    ? `\n\n🎯 FOCUSED REVIEW: Deterministic checks already passed for the other ${allLessons.length - focusIndices.length} lesson(s) of this ${allLessons.length}-lesson course map. Only the ${focusIndices.length} lesson(s) included above need review; each carries its original 0-based "lessonIndex". Patches MUST use those exact lessonIndex values. Do NOT add or remove lessons, and do NOT patch lessons that are not included.`
+    : '';
+
+  return `Here is the Course Map to examine:\n\n${JSON.stringify(mapPayload)}${
     syllabusText
       ? `\n\nHere is the original syllabus/course material for reference:\n\n${syllabusText.slice(0, 30000)}`
       : ''
-  }${scopeNote}\n\nExamine this course map thoroughly. Return ONLY a JSON patches object for cells that need fixing. If nothing needs fixing, return {"patches": []}:`;
+  }${scopeNote}${focusNote}\n\nExamine this course map thoroughly. Return ONLY a JSON patches object for cells that need fixing. If nothing needs fixing, return {"patches": []}:`;
 }
 
 export const REVISION_SYSTEM_PROMPT = `You are an expert instructional designer assistant. You have previously generated a Course Map (provided as JSON). You are now chatting with the user about it.
@@ -185,9 +209,21 @@ export function buildUserPrompt(
   isReconstruct = false,
   expectedLessons = null,
   confidence = null,
+  options = {},
 ) {
   // Filter to only enabled columns (enabled defaults to true when field is missing)
   const enabledColumns = columns && columns.length > 0 ? columns.filter((c) => c.enabled !== false) : columns;
+
+  // Lean mode (v0.8.6): the model emits compact atoms; the app renders prose.
+  const lean = options.lean === true;
+  const activeColumnDefs = lean ? { ...DEFAULT_COLUMN_DEFS, ...LEAN_COLUMN_DEFS } : DEFAULT_COLUMN_DEFS;
+  const sampleFor = (key, label) => {
+    if (!lean) {
+      return activeColumnDefs[key] ? `"Example content for ${label}..."` : `"Thoughtful content for ${label}..."`;
+    }
+    if (key === 'topicSection' || key === 'presentationFormat') return `"Short ${label} string"`;
+    return `["compact atom 1", "compact atom 2"]`;
+  };
 
   // Build column definitions dynamically from the columns array
   let columnDefs = '';
@@ -197,20 +233,19 @@ export function buildUserPrompt(
   if (enabledColumns && enabledColumns.length > 0) {
     for (const col of enabledColumns) {
       const desc =
-        DEFAULT_COLUMN_DEFS[col.key] ||
-        `Content for "${col.label}". Generate thoughtful, pedagogically sound content for this field.`;
+        activeColumnDefs[col.key] ||
+        (lean
+          ? `Array of short, specific atoms for "${col.label}".`
+          : `Content for "${col.label}". Generate thoughtful, pedagogically sound content for this field.`);
       columnDefs += `- ${col.key}: ${desc}\n`;
-      const sampleVal = DEFAULT_COLUMN_DEFS[col.key]
-        ? `"Example content for ${col.label}..."`
-        : `"Thoughtful content for ${col.label}..."`;
-      sampleSection += `          "${col.key}": ${sampleVal},\n`;
+      sampleSection += `          "${col.key}": ${sampleFor(col.key, col.label)},\n`;
       colKeys.push(col.key);
     }
   } else {
     // Fallback to defaults
-    for (const [key, desc] of Object.entries(DEFAULT_COLUMN_DEFS)) {
+    for (const [key, desc] of Object.entries(activeColumnDefs)) {
       columnDefs += `- ${key}: ${desc}\n`;
-      sampleSection += `          "${key}": "Example content...",\n`;
+      sampleSection += `          "${key}": ${lean ? sampleFor(key, key) : '"Example content..."'},\n`;
       colKeys.push(key);
     }
   }
@@ -250,8 +285,13 @@ ${guideline4}
 ${guideline5}
 6. Do NOT leave any field empty — always provide meaningful content. presentationFormat in particular must be a short concrete delivery label, never "" or "TBD".
 7. Each section MUST contain ALL of the following keys: ${colKeys.join(', ')}.
-8. When a section has multiple learning goals, number them sequentially (1, 2, 3… — never skip a number). Then prefix each learning objective with the goal number it maps to (e.g., 1a, 1b, 2a, 2b). If there is only one goal, no numbering is needed.
-9. CRITICAL — For learningObjectives: Write "Students will be able to:" ONCE as the opening stem, then list each objective starting directly with a Bloom's verb. Do NOT repeat "Students will be able to" on every line. Example: "Students will be able to:\\n1a. Analyze the impact of policy...\\n1b. Compare federal and state frameworks...\\n2a. Evaluate advocacy strategies..."
+${
+  lean
+    ? `8. LEAN OUTPUT MODE: Array fields contain compact atoms (short phrases), NOT prose. No stem sentences, no list numbering inside strings — the application renders stems and numbering deterministically. When a section has multiple learning goals, prefix each objective atom with its goal reference (e.g., "1a. Analyze...", "2b. Evaluate...").
+9. Every atom must still be specific to this lesson and grounded in the source materials. Terse but concrete; never generic filler.`
+    : `8. When a section has multiple learning goals, number them sequentially (1, 2, 3… — never skip a number). Then prefix each learning objective with the goal number it maps to (e.g., 1a, 1b, 2a, 2b). If there is only one goal, no numbering is needed.
+9. CRITICAL — For learningObjectives: Write "Students will be able to:" ONCE as the opening stem, then list each objective starting directly with a Bloom's verb. Do NOT repeat "Students will be able to" on every line. Example: "Students will be able to:\\n1a. Analyze the impact of policy...\\n1b. Compare federal and state frameworks...\\n2a. Evaluate advocacy strategies..."`
+}
 10. If the syllabus below contains "--- SEGMENT N ---" markers, use these segments to accurately map content to the correct lesson/week. Each segment corresponds to one lesson.
 11. QM ALIGNMENT: Ensure learning objectives at the module level are measurable, consistent with course-level goals, and suited to the course level. Make the relationship between objectives, activities, and assessments explicit in the evaluateDesign column. Assessments should measure stated objectives; activities should help learners achieve them; instructional materials should support them.
 

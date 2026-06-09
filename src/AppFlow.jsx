@@ -7,6 +7,7 @@ import LoadingScreen, { ConfigSkeleton, WorkspaceSkeleton, CourseMapSkeleton } f
 import Landing from './screens/Landing';
 import AppLogo from './components/AppLogo';
 import DarkModeToggle from './components/DarkModeToggle';
+import PackageTrustStrip from './components/PackageTrustStrip';
 import UserMenu from './components/UserMenu';
 
 // Lazy-load screens/components not needed on initial landing page
@@ -3219,6 +3220,11 @@ export default function AppFlow({ startupAction = null, onStartupHandled, onRetu
                         </span>
                       </>
                     )}
+                    <PackageTrustStrip
+                      deliverables={deliv.deliverables}
+                      selectedFeatures={selectedFeatures}
+                      packageQualityPass={packageQualityPass}
+                    />
                   </div>
                 </div>
               </div>

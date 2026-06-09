@@ -3,6 +3,50 @@ import Header from '../components/Header';
 
 const releases = [
   {
+    version: '0.8.6',
+    date: 'June 9, 2026',
+    title: 'Compiler Efficiency and Trust Surface Release',
+    highlights: [
+      'Anthropic generation calls now mark the shared system prompt as a prompt-cache prefix, so chunked course-map generation and retries stop re-paying for identical instructions',
+      'The conditional course-map review now focuses the model on only the lessons deterministic checks flagged, instead of resending the whole course map',
+      'New lean course-map mode (flag-gated): the model emits compact atoms and the compiler renders the instructor-facing cell prose deterministically',
+      'The gold audit gained a calibrated copy-variety gate that fails any compiler change that measurably increases templated near-duplicate language',
+      'A package trust strip in the workspace header now shows compiled vs custom counts, safe auto-fixes, stale, and failed deliverables at a glance',
+      'The dormant development proxy moved out of the repo root into archive/, so the deployable surface contains no server code',
+    ],
+    sections: [
+      {
+        label: 'Token Efficiency',
+        icon: 'API',
+        color: 'emerald',
+        items: [
+          'Anthropic provider requests built by `buildProviderTextRequest` wrap the system prompt in a cache_control block whenever the model profile supports prompt caching, with a generation-plan opt-out.',
+          'The examine pass builds a focused payload when problems are local: only flagged lessons are sent, each carrying its original lessonIndex, with add/remove-lesson patches rejected in focused mode.',
+          'Lean course-map atoms (`generationPlan.leanCourseMapAtoms`) replace verbose per-cell prose rules with compact array contracts; `expandLeanCourseMap` renders stems, numbering, and labels idempotently before validation.',
+        ],
+      },
+      {
+        label: 'Quality Gates',
+        icon: 'QA',
+        color: 'indigo',
+        items: [
+          'buildCopySpecificityAudit now detects near-duplicate template families (Jaccard similarity within a structural path family) alongside the existing exact-repeat blocker.',
+          'The variety gate is calibrated against all 40 gold samples (worst current sample: 48 families) with a 60-family regression budget per sample.',
+          'New focused unit suites cover prompt caching, focused examine scans, lean expansion, and the variety metric.',
+        ],
+      },
+      {
+        label: 'Trust Surface',
+        icon: 'UI',
+        color: 'amber',
+        items: [
+          'PackageTrustStrip chips summarize deterministically compiled vs custom deliverables, safe repairs from the last finish run, stale items, and failures without opening receipts.',
+          'Deployment security tests now assert the repo root contains no server entry point.',
+        ],
+      },
+    ],
+  },
+  {
     version: '0.8.59',
     date: 'June 8, 2026',
     title: 'Real-Browser Agent Quality Harness Release',

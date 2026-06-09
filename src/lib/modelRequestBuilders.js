@@ -222,6 +222,11 @@ export function buildProviderTextRequest({
   }
 
   if (provider === 'anthropic') {
+    // Generation system prompts (course map, repairs, enrichment) are identical
+    // across chunked calls and retries, so mark them as a prompt-cache prefix.
+    // Anthropic ignores cache_control below the model's minimum cacheable size,
+    // so this is safe for short prompts too.
+    const promptCacheEnabled = controls.caching?.supportsPromptCache === true && controls.caching?.mode !== 'none';
     return {
       url: 'https://api.anthropic.com/v1/messages',
       headers: {
@@ -238,7 +243,9 @@ export function buildProviderTextRequest({
           ? { thinking: { type: 'enabled', budget_tokens: controls.reasoning.budgetTokens } }
           : {}),
         stream: true,
-        system: systemPrompt,
+        system: promptCacheEnabled
+          ? [{ type: 'text', text: systemPrompt, cache_control: { type: 'ephemeral' } }]
+          : systemPrompt,
         messages: [{ role: 'user', content: userPrompt }],
       },
       parseChunk: (parsed) => {

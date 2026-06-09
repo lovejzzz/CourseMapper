@@ -26,7 +26,7 @@ This keeps the initial bundle smaller while making the tradeoff explicit. The ru
 
 ## Express Proxy Status
 
-`server.js` is a development-only proxy, not the production deployment path. In production, it fails closed unless `COURSEMAPPER_ENABLE_DEV_PROXY=true` is set intentionally after a separate hardening pass for CORS, sessions, body limits, rate limiting, CSRF, and API-key handling.
+The development-only proxy formerly at the repo root now lives in `archive/dev-proxy/server.js` (moved in v0.8.6 so the deployable surface contains no server code). It is not the production deployment path, its dependencies are intentionally absent from `package.json`, and in production it fails closed unless `COURSEMAPPER_ENABLE_DEV_PROXY=true` is set intentionally after a separate hardening pass for CORS, sessions, body limits, rate limiting, CSRF, and API-key handling.
 
 ## Live Provider Smoke
 

@@ -3,7 +3,7 @@
 AI-powered instructional design platform with an embedded teaching assistant agent. Upload your syllabus and generate a structured Course Map, lesson plans, slide decks, rubrics, quizzes, assignments, discussion prompts, study guides, and a polished syllabus — all pedagogically aligned, validated, and fully editable. Then use the AI agent to revise, validate, research, and visualize your curriculum through natural conversation.
 
 **Live:** [https://edutool.dev](https://edutool.dev)
-**Current release:** v0.8.59
+**Current release:** v0.8.6
 
 ---
 
@@ -115,6 +115,7 @@ An embedded multi-step AI agent with native tool calling, not a chatbot wrapper.
 - **v0.8.57 compact agent side panel** — The agent now shows fewer labels by default, bundles finish/check workflows automatically, hides recoverable details behind receipts, and live OpenAI proof passes 23/23 scenarios with explicit missing-deliverable refusal and alignment routing.
 - **v0.8.58 red-team quality hardening** — Adds a 260-scenario red-team inventory, a dedicated agent safety gate, and a repeatable 34-course export torture sweep that passed 34/34 courses with 2,531 exported files inspected.
 - **v0.8.59 real-browser agent quality harness** — Adds a checked-in 25-scenario browser harness, response-quality scoring, tighter read-only/mutation guards, and side-panel receipt hardening; final proof passed 25/25 real browser scenarios at 100/100 response quality.
+- **v0.8.6 compiler efficiency and trust surface** — Anthropic prompt caching on generation calls, focused course-map review payloads, flag-gated lean course-map atoms with deterministic prose rendering, a calibrated copy-variety regression gate in the gold audit, and a workspace trust strip showing compiled/repaired/stale/failed package state.
 
 ### Inline AI Editing
 

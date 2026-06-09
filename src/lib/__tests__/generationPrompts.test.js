@@ -325,6 +325,38 @@ describe('buildExamineUserPrompt', () => {
     expect(prompt).not.toContain('SCOPE CONSTRAINT');
   });
 
+  it('sends only focus lessons with original indices in focused review mode', () => {
+    const map = {
+      courseName: 'Focus Course',
+      lessons: [
+        { title: 'Alpha Lesson', sections: [{ topicSection: 'A' }] },
+        { title: 'Beta Lesson', sections: [{ topicSection: 'B' }] },
+        { title: 'Gamma Lesson', sections: [{ topicSection: 'C' }] },
+      ],
+    };
+    const prompt = buildExamineUserPrompt(map, '', null, { focusLessonIndices: [2] });
+    expect(prompt).toContain('FOCUSED REVIEW');
+    expect(prompt).toContain('"lessonIndex":2');
+    expect(prompt).toContain('Gamma Lesson');
+    expect(prompt).not.toContain('Alpha Lesson');
+    expect(prompt).not.toContain('Beta Lesson');
+    expect(prompt).toContain('"totalLessonCount":3');
+  });
+
+  it('falls back to the full map when focus covers all lessons or is invalid', () => {
+    const map = {
+      courseName: 'Focus Course',
+      lessons: [{ title: 'Alpha Lesson' }, { title: 'Beta Lesson' }],
+    };
+    const allFocus = buildExamineUserPrompt(map, '', null, { focusLessonIndices: [0, 1] });
+    expect(allFocus).not.toContain('FOCUSED REVIEW');
+    expect(allFocus).toContain('Alpha Lesson');
+
+    const invalidFocus = buildExamineUserPrompt(map, '', null, { focusLessonIndices: [9] });
+    expect(invalidFocus).not.toContain('FOCUSED REVIEW');
+    expect(invalidFocus).toContain('Beta Lesson');
+  });
+
   it('always asks for JSON patches return format', () => {
     const prompt = buildExamineUserPrompt(sampleMap, '');
     expect(prompt).toContain('patches');

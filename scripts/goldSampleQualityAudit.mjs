@@ -8161,6 +8161,84 @@ function isCopySpecificitySurfacePath(featureId, path) {
   }
 }
 
+// v0.8.6 variety gate: exact duplicates are caught above; near-duplicates
+// (template sentences with one or two swapped words) are the residual
+// "templated sameness" risk every blueprint→compiler weight shift increases.
+const NEAR_DUPLICATE_SIMILARITY = 0.92;
+const NEAR_DUPLICATE_WARNING_MIN_GROUP = 4;
+const NEAR_DUPLICATE_BUCKET_CAP = 400;
+// Calibrated 2026-06-09 against all 40 gold samples: worst current sample is
+// gold-community-health-semester-14 with 48 near-duplicate families; most
+// samples sit at 0-3. The budget allows today's quality plus ~25% headroom —
+// any compiler change that pushes a sample past it has measurably increased
+// templated sameness and must add variety atoms before shipping.
+const NEAR_DUPLICATE_GROUP_BUDGET = 60;
+
+function pathFamily(path) {
+  return String(path || '').replace(/\.\d+/g, '.#');
+}
+
+function wordSet(normalized) {
+  return new Set(normalized.split(' ').filter((word) => word.length > 2));
+}
+
+function jaccard(a, b) {
+  if (!a.size || !b.size) return 0;
+  let shared = 0;
+  for (const word of a) if (b.has(word)) shared += 1;
+  return shared / (a.size + b.size - shared);
+}
+
+export function buildNearDuplicateVarietyRows(rows) {
+  // Bucket by structural path family so we only compare like-with-like
+  // (e.g. distractor vs distractor), then union near-identical strings.
+  const buckets = new Map();
+  for (const row of rows) {
+    const normalized = normalizeCopyString(row.text);
+    if (!normalized) continue;
+    const family = pathFamily(row.path);
+    if (!buckets.has(family)) buckets.set(family, []);
+    const bucket = buckets.get(family);
+    if (bucket.length < NEAR_DUPLICATE_BUCKET_CAP) {
+      bucket.push({ path: row.path, text: row.text, normalized, words: wordSet(normalized) });
+    }
+  }
+
+  const groups = [];
+  for (const [family, entries] of buckets) {
+    const exactSeen = new Map();
+    const unique = [];
+    for (const entry of entries) {
+      // Exact repeats are already gated by the copy-specificity blocker.
+      if (exactSeen.has(entry.normalized)) continue;
+      exactSeen.set(entry.normalized, true);
+      unique.push(entry);
+    }
+    const assigned = new Array(unique.length).fill(-1);
+    for (let i = 0; i < unique.length; i++) {
+      if (assigned[i] !== -1) continue;
+      const members = [unique[i]];
+      for (let j = i + 1; j < unique.length; j++) {
+        if (assigned[j] !== -1) continue;
+        if (jaccard(unique[i].words, unique[j].words) >= NEAR_DUPLICATE_SIMILARITY) {
+          assigned[j] = i;
+          members.push(unique[j]);
+        }
+      }
+      if (members.length >= NEAR_DUPLICATE_WARNING_MIN_GROUP) {
+        assigned[i] = i;
+        groups.push({
+          family,
+          count: members.length,
+          examplePaths: members.slice(0, 4).map((member) => member.path),
+          exampleText: members[0].text,
+        });
+      }
+    }
+  }
+  return groups.sort((a, b) => b.count - a.count);
+}
+
 export function buildCopySpecificityAudit({ compiledFeatures = [], compiled = {} } = {}) {
   const featureRows = compiledFeatures.map((featureId) => {
     const rows = collectStringRows(compiled[featureId]).filter(
@@ -8182,6 +8260,7 @@ export function buildCopySpecificityAudit({ compiledFeatures = [], compiled = {}
     const repeated = [...groups.values()]
       .filter((group) => group.count > COPY_SPECIFICITY_MAX_REPEAT_COUNT)
       .sort((a, b) => b.count - a.count || a.text.localeCompare(b.text));
+    const nearDuplicateGroups = buildNearDuplicateVarietyRows(rows);
     return {
       featureId,
       checkedStrings: rows.length,
@@ -8191,6 +8270,13 @@ export function buildCopySpecificityAudit({ compiledFeatures = [], compiled = {}
         count: group.count,
         text: group.text,
         paths: group.paths,
+      })),
+      nearDuplicateGroups: nearDuplicateGroups.length,
+      nearDuplicateExamples: nearDuplicateGroups.slice(0, 3).map((group) => ({
+        family: group.family,
+        count: group.count,
+        text: group.exampleText,
+        paths: group.examplePaths,
       })),
     };
   });
@@ -8205,6 +8291,26 @@ export function buildCopySpecificityAudit({ compiledFeatures = [], compiled = {}
       `Surface copy repeats ${example.count} times; first paths: ${example.paths.join(', ')}.`,
     ),
   );
+  // Variety regression budget: today's compiled output legitimately reuses
+  // structural templates, so near-duplicate families only become a warning
+  // when a sample exceeds the calibrated baseline budget. This is the gate
+  // that keeps future blueprint→compiler weight shifts from increasing
+  // templated sameness.
+  const nearDuplicateExamples = featureRows.flatMap((row) =>
+    row.nearDuplicateExamples.map((example) => ({ featureId: row.featureId, ...example })),
+  );
+  const nearDuplicateTotal = featureRows.reduce((sum, row) => sum + row.nearDuplicateGroups, 0);
+  if (nearDuplicateTotal > NEAR_DUPLICATE_GROUP_BUDGET) {
+    const worst = nearDuplicateExamples[0];
+    findings.push(
+      makeFinding(
+        'warning',
+        worst?.featureId || 'package',
+        'copyVariety',
+        `Compiled copy variety regressed: ${nearDuplicateTotal} near-duplicate template families exceed the ${NEAR_DUPLICATE_GROUP_BUDGET}-family budget${worst ? `; worst: ${worst.count} variants at ${worst.family}` : ''}.`,
+      ),
+    );
+  }
   return {
     status: summarizeFeatureStatus(findings),
     checkedFeatures: featureRows.filter((row) => row.checkedStrings > 0).length,
@@ -8212,6 +8318,9 @@ export function buildCopySpecificityAudit({ compiledFeatures = [], compiled = {}
     maxAllowedRepeatCount: COPY_SPECIFICITY_MAX_REPEAT_COUNT,
     repeatedLongStringGroups: featureRows.reduce((sum, row) => sum + row.repeatedLongStringGroups, 0),
     maxRepeatCount: featureRows.reduce((max, row) => Math.max(max, row.maxRepeatCount), 0),
+    nearDuplicateGroups: featureRows.reduce((sum, row) => sum + row.nearDuplicateGroups, 0),
+    nearDuplicateSimilarity: NEAR_DUPLICATE_SIMILARITY,
+    nearDuplicateMinGroup: NEAR_DUPLICATE_WARNING_MIN_GROUP,
     featureRows,
     findings,
   };
@@ -14461,6 +14570,7 @@ export function auditGoldSample({ sample, runtime, features = sample.features ||
       checkedStrings: copySpecificity.checkedStrings,
       repeatedLongStringGroups: copySpecificity.repeatedLongStringGroups,
       maxRepeatCount: copySpecificity.maxRepeatCount,
+      nearDuplicateGroups: copySpecificity.nearDuplicateGroups,
       findings: copySpecificity.findings.length,
     },
     copySpecificity,

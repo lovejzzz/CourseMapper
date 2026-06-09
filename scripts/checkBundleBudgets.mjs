@@ -14,7 +14,9 @@ const budgets = {
 };
 
 const lazyChunkBudgets = [
-  { prefix: 'AppFlow-', rawKiB: 214, gzipKiB: 66 },
+  // v0.8.6: +8 KiB raw / +2 KiB gzip for PackageTrustStrip and lean course-map
+  // atoms (deliberate feature growth, measured at 219.2 KiB raw / 66.3 gzip).
+  { prefix: 'AppFlow-', rawKiB: 222, gzipKiB: 68 },
   { prefix: 'ChatPanel-', rawKiB: 330, gzipKiB: 105 },
   { prefix: 'DeliverableView-', rawKiB: 170, gzipKiB: 35 },
   { prefix: 'DeveloperModePanel-', rawKiB: 130, gzipKiB: 35 },

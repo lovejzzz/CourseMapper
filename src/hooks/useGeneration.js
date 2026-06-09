@@ -16,6 +16,7 @@ import { filterExaminePatches } from '../lib/examinePatchFilter';
 import { failureEventFields } from '../lib/failureClassification';
 import { log, warn, error as logError } from '../lib/logger';
 import { getModeSystemAddition, getModeCourseMapNote } from '../lib/pedagogicalModes';
+import { LEAN_SYSTEM_ADDITION, expandLeanCourseMap, isLeanCourseMapEnabled } from '../lib/leanCourseMap';
 import { validateCourseMap } from '../lib/validateCourseMap';
 
 function cellText(value) {
@@ -37,34 +38,45 @@ function getEnabledColumnKeys(columns = []) {
     .map((column) => column.key);
 }
 
-function getCourseMapExamineTriggers({ courseMap, columns, validationWarnings = [], expectedInfo = null } = {}) {
+export function getCourseMapExamineScan({ courseMap, columns, validationWarnings = [], expectedInfo = null } = {}) {
   const triggers = [];
   const lessons = Array.isArray(courseMap?.lessons) ? courseMap.lessons : [];
   const columnKeys = getEnabledColumnKeys(columns);
 
+  // Global problems require the model to see the whole course map.
+  let globalReview = false;
   if (validationWarnings.length > 0) {
     triggers.push(`${validationWarnings.length} structural fix${validationWarnings.length === 1 ? '' : 'es'} applied`);
+    globalReview = true;
   }
   if (lessons.length === 0) {
     triggers.push('no lessons were generated');
+    globalReview = true;
   }
   if (expectedInfo?.expected && expectedInfo.confidence === 'high' && lessons.length < expectedInfo.expected) {
     triggers.push(`expected ${expectedInfo.expected} lessons but generated ${lessons.length}`);
+    globalReview = true;
   }
 
   let emptyFieldCount = 0;
   let structuralGapCount = 0;
-  lessons.forEach((lesson) => {
+  const problemLessonIndices = new Set();
+  lessons.forEach((lesson, lessonIndex) => {
     if (!hasMeaningfulCellValue(lesson?.title) || /^lesson\s+\d+:\s*untitled$/i.test(String(lesson?.title || ''))) {
       structuralGapCount += 1;
+      problemLessonIndices.add(lessonIndex);
     }
     if (!Array.isArray(lesson?.sections) || lesson.sections.length === 0) {
       structuralGapCount += 1;
+      problemLessonIndices.add(lessonIndex);
       return;
     }
     lesson.sections.forEach((section) => {
       columnKeys.forEach((key) => {
-        if (!hasMeaningfulCellValue(section?.[key])) emptyFieldCount += 1;
+        if (!hasMeaningfulCellValue(section?.[key])) {
+          emptyFieldCount += 1;
+          problemLessonIndices.add(lessonIndex);
+        }
       });
     });
   });
@@ -76,7 +88,14 @@ function getCourseMapExamineTriggers({ courseMap, columns, validationWarnings = 
     triggers.push(`${emptyFieldCount} empty enabled course-map field${emptyFieldCount === 1 ? '' : 's'}`);
   }
 
-  return [...new Set(triggers)];
+  // Focused review: when problems are local to a minority of lessons, the
+  // examine call only needs to send those lessons (plus course-level fields).
+  const focusLessonIndices =
+    !globalReview && problemLessonIndices.size > 0 && problemLessonIndices.size < lessons.length
+      ? [...problemLessonIndices].sort((a, b) => a - b)
+      : null;
+
+  return { triggers: [...new Set(triggers)], focusLessonIndices };
 }
 
 export function getLessonCount(courseMap) {
@@ -286,7 +305,7 @@ export default function useGeneration({
   }
 
   // ── Run the Examine step (patch-based) — stores proposals for instructor review ──
-  async function runExamine(finalResult, { reason = 'automatic', triggers = [] } = {}) {
+  async function runExamine(finalResult, { reason = 'automatic', triggers = [], focusLessonIndices = null } = {}) {
     setProgressStep('examining');
     setStreamDetail('Reviewing for missing or inaccurate content...');
     setExamChanges([]);
@@ -303,11 +322,17 @@ export default function useGeneration({
     const examModelId = workingModelRef.current.modelId || modelId;
 
     try {
-      const examUserPrompt = buildExamineUserPrompt(finalResult, syllabusTextRef.current, scopeIndices);
+      const examUserPrompt = buildExamineUserPrompt(finalResult, syllabusTextRef.current, scopeIndices, {
+        focusLessonIndices,
+      });
+      const focusedDetail =
+        Array.isArray(focusLessonIndices) && focusLessonIndices.length > 0
+          ? ` (focused on ${focusLessonIndices.length} lesson${focusLessonIndices.length === 1 ? '' : 's'})`
+          : '';
       recordApiCallEvent({
         type: 'courseMapCall',
         label: reason === 'manual' ? 'Manual course-map review' : 'Conditional course-map review',
-        detail: triggers.join('; '),
+        detail: triggers.join('; ') + focusedDetail,
       });
       const { fullText: examineText } = await streamProvider(
         examProvider,
@@ -347,7 +372,17 @@ export default function useGeneration({
       const patchResult = parsePartialJSON(examineText);
 
       if (patchResult && Array.isArray(patchResult.patches) && patchResult.patches.length > 0) {
-        const filteredPatches = filterExaminePatches(patchResult.patches, finalResult, scopeIndices);
+        let filteredPatches = filterExaminePatches(patchResult.patches, finalResult, scopeIndices);
+        if (Array.isArray(focusLessonIndices) && focusLessonIndices.length > 0) {
+          // Focused review may only patch the focus lessons or course-level fields.
+          const focusSet = new Set(focusLessonIndices);
+          filteredPatches = filteredPatches.filter(
+            (patch) =>
+              patch.action !== 'addLesson' &&
+              patch.action !== 'removeLesson' &&
+              (patch.lessonIndex == null || focusSet.has(patch.lessonIndex)),
+          );
+        }
         if (filteredPatches.length === 0) {
           setOldCourseMap(null);
           return;
@@ -815,10 +850,13 @@ Generate lessons ${actual + 1} through ${expectedCount} now as JSON:`;
         const modeAddition = getModeSystemAddition(pedagogicalMode || 'lecture');
         const modeCourseMapNote = getModeCourseMapNote(pedagogicalMode || 'lecture');
         const baseSystemPrompt = isReconstruct ? RECONSTRUCT_SYSTEM_PROMPT : SYSTEM_PROMPT;
-        const activeSystemPrompt =
-          modeAddition || modeCourseMapNote
-            ? `${baseSystemPrompt}\n\n${[modeAddition, modeCourseMapNote].filter(Boolean).join('\n')}`
-            : baseSystemPrompt;
+        const leanCourseMap = isLeanCourseMapEnabled(generationPlan);
+        const systemAdditions = [modeAddition, modeCourseMapNote, leanCourseMap ? LEAN_SYSTEM_ADDITION : null].filter(
+          Boolean,
+        );
+        const activeSystemPrompt = systemAdditions.length
+          ? `${baseSystemPrompt}\n\n${systemAdditions.join('\n')}`
+          : baseSystemPrompt;
         const userPrompt = buildUserPrompt(
           combinedText,
           columns,
@@ -826,6 +864,7 @@ Generate lessons ${actual + 1} through ${expectedCount} now as JSON:`;
           isReconstruct,
           detected?.expected || null,
           detected?.confidence,
+          { lean: leanCourseMap },
         );
         const fullPromptText = activeSystemPrompt + userPrompt;
         const tokenCheck = checkTokenLimit(fullPromptText, modelId);
@@ -845,6 +884,7 @@ Generate lessons ${actual + 1} through ${expectedCount} now as JSON:`;
               isReconstruct,
               detected?.expected || null,
               detected?.confidence,
+              { lean: leanCourseMap },
             );
             parseWarning =
               (parseWarning ? parseWarning + '\n' : '') +
@@ -940,6 +980,10 @@ Generate lessons ${actual + 1} through ${expectedCount} now as JSON:`;
             })),
           };
 
+          // Lean mode: deterministically render instructor-facing cell prose
+          // from compact model atoms. Idempotent — string cells pass through.
+          finalResult = expandLeanCourseMap(finalResult);
+
           // Post-generation structural validation — auto-fix missing titles, sections, column keys
           const { warnings: validationWarnings } = validateCourseMap(finalResult, columns);
           if (validationWarnings.length > 0) {
@@ -995,6 +1039,8 @@ Generate lessons ${actual + 1} through ${expectedCount} now as JSON:`;
               throw contErr;
             }
             setIsStreaming(false);
+            // Continuation chunks may also carry lean atoms — expand again (idempotent).
+            finalResult = expandLeanCourseMap(finalResult);
             if (finalResult.lessons.length < expected) {
               setCompletenessInfo({
                 expected,
@@ -1032,19 +1078,24 @@ Generate lessons ${actual + 1} through ${expectedCount} now as JSON:`;
           courseMapRef.current = finalResult;
 
           // Examine step: only spend this call when deterministic checks found a reason.
-          const examineTriggers = getCourseMapExamineTriggers({
+          const examineScan = getCourseMapExamineScan({
             courseMap: finalResult,
             columns,
             validationWarnings,
             expectedInfo: expectedLessonsRef.current,
           });
+          const examineTriggers = examineScan.triggers;
           if (examineTriggers.length > 0) {
             addLog(
               usedModelName,
               `Reviewing course map: ${examineTriggers.slice(0, 2).join('; ')}${examineTriggers.length > 2 ? '...' : ''}`,
               'warning',
             );
-            await runExamine(finalResult, { reason: 'automatic', triggers: examineTriggers });
+            await runExamine(finalResult, {
+              reason: 'automatic',
+              triggers: examineTriggers,
+              focusLessonIndices: examineScan.focusLessonIndices,
+            });
           } else {
             setOldCourseMap(null);
             setExamChanges([]);
