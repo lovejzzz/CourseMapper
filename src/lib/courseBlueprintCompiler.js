@@ -1,4 +1,5 @@
 import { COLUMN_EXTRACTORS } from './prompts/promptUtils';
+import { finalizeCompiledDeliverableLanguage } from './compiledLanguageFinalizer';
 import { getChunkCount } from './parallelGenerator';
 import { getCustomDeliverable } from './customDeliverableLibrary';
 import {
@@ -104,13 +105,18 @@ function stripLessonPrefix(value) {
 const OBJECTIVE_STEM_RE = /^students?\s+will\s+be\s+able\s+to:?$/i;
 
 function stripListPrefix(value) {
-  return cleanText(value).replace(/^\s*(?:[-*•]|\d+[a-z]?[.)]?|[a-z][.)])\s*/i, '');
+  return cleanText(value)
+    .replace(/^\s*(?:[-*•]|\(?\d+(?:\.\d+)*[a-z]?[.):]?\)?|\(?[a-z][.)]\)?)\s*/i, '')
+    .replace(/^\s*[:–—-]\s*/, '');
 }
 
 function normalizeObjectiveText(value) {
-  return stripListPrefix(value)
-    .replace(/^students?\s+will\s+be\s+able\s+to:?\s*/i, '')
-    .trim();
+  const stripped = stripListPrefix(value);
+  const withoutStem = stripped.replace(/^students?\s+will\s+(?:be\s+able\s+to:?\s*)?/i, '').trim();
+  if (withoutStem !== stripped.trim() && withoutStem) {
+    return withoutStem.charAt(0).toUpperCase() + withoutStem.slice(1);
+  }
+  return withoutStem;
 }
 
 function isObjectiveStemOnly(value) {
@@ -188,14 +194,39 @@ function wordsFromConcepts(values, limit = 8) {
     'introduction',
     'intro',
   ]);
+  // Emit multi-word phrases, never bare title tokens: splitting on whitespace
+  // turned "Climate Science, Justice Frameworks" into fake concepts like
+  // "Climate" and "Frameworks" that read as word salad in compiled prose.
   const candidates = values
-    .join(' ')
-    .replace(/[^A-Za-z0-9\s-]/g, ' ')
-    .split(/\s+/)
-    .map((word) => word.trim())
-    .filter((word) => word.length > 3 && !stopWords.has(word.toLowerCase()));
+    .filter(Boolean)
+    .flatMap((value) =>
+      String(value)
+        .split(/\n|;|\||•|:|,|\(|\)|–|—|\band\b|\bor\b|\bversus\b|\bvs\.?\b/i)
+        .map((part) => stripListPrefix(part))
+        .map((part) =>
+          part
+            .replace(OBJECTIVE_STEM_LEAD_RE, '')
+            .replace(
+              /\s+(?:in|for|across|within|through)\s+(?:context|course activities|this course|the course)\.?$/i,
+              '',
+            )
+            .replace(/[.!?]+$/, '')
+            .trim(),
+        ),
+    )
+    .filter((phrase) => {
+      if (!phrase) return false;
+      const words = phrase.split(/\s+/);
+      if (words.length > 6) return false;
+      if (words.every((word) => word.length <= 3 || stopWords.has(word.toLowerCase()))) return false;
+      if (/^\d/.test(phrase)) return false;
+      return phrase.length > 3;
+    });
   return unique(candidates, limit);
 }
+
+const OBJECTIVE_STEM_LEAD_RE =
+  /^(?:students?\s+(?:will\s+)?(?:be\s+able\s+to\s+)?)?(?:define|explain|describe|analyze|evaluate|create|design|compare|apply|synthesize|formulate|interpret|critique|develop|construct|identify|use|build|examine|assess|distinguish|review|practice|connect)\s+/i;
 
 function isQuestionLikeTitle(value) {
   return /^(?:what|why|how|when|where|who)\b/i.test(cleanText(value)) || /\b(?:and why|why it matters)\b/i.test(value);
@@ -257,6 +288,15 @@ function sentenceCase(value) {
   return text.charAt(0).toUpperCase() + text.slice(1);
 }
 
+function joinCriteriaSentence(criteria = []) {
+  const parts = asArray(criteria)
+    .map((criterion) => stripTerminalPunctuation(criterion))
+    .filter(Boolean)
+    .map((criterion) => criterion.charAt(0).toLowerCase() + criterion.slice(1));
+  if (parts.length === 0) return 'meets the published success criteria.';
+  return `${parts.join('; ')}.`;
+}
+
 function stripTerminalPunctuation(value) {
   return cleanText(value).replace(/[.!?]+$/g, '');
 }
@@ -266,11 +306,30 @@ function compactList(values, fallback = 'course evidence', limit = 3) {
   return items.length > 0 ? items.join(', ') : fallback;
 }
 
+const DANGLING_TAIL_RE =
+  /(?:\s+(?:and|or|but|for|in|of|to|the|a|an|with|into|onto|from|on|at|by|that|which|as|before|after|around|between|against|toward|towards|about|through|will|should|must|can|their|its|this|these|those|when|while|where|whether|because|so|than|then|also|both|each|per|via|plus|aligned|using)|[,:;–—-])+$/i;
+
+function trimDanglingTail(value) {
+  let text = cleanText(value);
+  let previous;
+  do {
+    previous = text;
+    text = text.replace(DANGLING_TAIL_RE, '').trim();
+  } while (text && text !== previous);
+  return text;
+}
+
 function conciseClause(value, fallback = 'course evidence', maxLength = 120) {
   const firstItem = splitList(value)[0] || cleanText(value, fallback);
   const text = stripTerminalPunctuation(firstItem || fallback);
   if (text.length <= maxLength) return text;
-  return stripTerminalPunctuation(text.slice(0, maxLength).replace(/\s+\S*$/g, '')) || fallback;
+  // Prefer ending on a clause boundary; otherwise cut at a word boundary and
+  // trim any dangling connective so the clause still reads as complete.
+  const slice = text.slice(0, maxLength);
+  const clauseEnd = Math.max(slice.lastIndexOf(','), slice.lastIndexOf(';'));
+  const candidate =
+    clauseEnd >= Math.floor(maxLength * 0.6) ? slice.slice(0, clauseEnd) : slice.replace(/\s+\S*$/g, '');
+  return trimDanglingTail(stripTerminalPunctuation(candidate)) || fallback;
 }
 
 function customPracticeContext(blueprint, lens) {
@@ -1574,10 +1633,28 @@ function objectiveForLesson(title, concepts) {
 
 function successCriteriaForLesson(title, concepts) {
   const concept = normalizeConceptCandidates(concepts, { title, limit: 1 })[0] || 'the lesson focus';
-  return [
+  // Rotate phrasing by lesson title so synthesized criteria do not stamp the
+  // identical sentence stem into every grading row and rubric in the course.
+  const seed = Array.from(cleanText(title)).reduce((sum, char) => sum + char.charCodeAt(0), 0);
+  const accuracyVariants = [
     `Names the relevant ${concept} concept accurately.`,
+    `Uses ${concept} terminology precisely and in context.`,
+    `Identifies the ${concept} idea the task depends on.`,
+  ];
+  const evidenceVariants = [
     `Uses specific evidence from the ${concept} materials or activity.`,
+    `Cites a concrete detail from the ${concept} materials.`,
+    `Grounds each claim in inspectable ${concept} evidence.`,
+  ];
+  const decisionVariants = [
     `Explains a ${concept} decision, implication, or next step instead of only summarizing.`,
+    `Connects ${concept} evidence to a decision or next step rather than summary alone.`,
+    `Justifies one ${concept} choice with evidence instead of restating the material.`,
+  ];
+  return [
+    accuracyVariants[seed % accuracyVariants.length],
+    evidenceVariants[(seed + 1) % evidenceVariants.length],
+    decisionVariants[(seed + 2) % decisionVariants.length],
   ];
 }
 
@@ -3654,7 +3731,7 @@ function attachThroughlineCaseToLesson(lesson, context) {
     ...(lesson.sourceUsePlan || {}),
     approvedSources,
     studentAttributionMove: `Before explaining ${concept}, cite the exact ${context.projectName} packet item, assigned reading, class activity, or instructor note used for ${artifact}.`,
-    noInventedSources: `Do not invent authors, URLs, page numbers, studies, legal authority, or real agency data for ${sourceCue}. Treat the ${concept} throughline case as classroom practice evidence unless the instructor replaces it with an official source.`,
+    noInventedSources: `Do not invent authors, URLs, page numbers, studies, legal authority, or real agency data when citing ${concept} sources from ${sourceCue}. Treat the ${concept} throughline case as classroom practice evidence unless the instructor replaces it with an official source.`,
     sourceEvaluationPrompt: `Ask what ${sourceCue} can support for ${context.clientName}, what it cannot prove, and what local evidence would be needed before publication.`,
     localReplacementCue: `Before publishing ${artifact}, replace or supplement ${sourceCue} with the official local reading, case, dataset, policy document, or agency guidance required by the instructor.`,
     copyrightReviewCue:
@@ -3791,6 +3868,9 @@ function buildPrerequisitePlan({ lesson, previous }) {
     diagnosticCheck: previous
       ? `Ask students to explain how ${previousConcept} from ${previousArtifact} changes today's ${concept} decision.`
       : `Ask students to define ${concept} in their own words and connect it to one concrete example before new instruction begins.`,
+    studentReadinessCheck: previous
+      ? `Before drafting, explain in your own words how ${previousConcept} from ${previousArtifact} shapes today's ${concept} decision.`
+      : `Before drafting, define ${concept} in your own words and connect it to one concrete example.`,
     reteachMove: previous
       ? `If students cannot use ${previousConcept}, revisit one strong ${previousArtifact} example and annotate the evidence move before starting ${artifactName}.`
       : `If students cannot explain ${concept}, model one source-backed example and give a sentence frame before starting ${artifactName}.`,
@@ -3817,6 +3897,7 @@ function buildLearningTransferPlan({ lesson, previous, next }) {
       ? `${artifactName} prepares students for ${stripTerminalPunctuation(nextTarget)} by making ${nextConcept} easier to justify with evidence.`
       : `${artifactName} closes the course arc by helping students synthesize evidence, feedback, and revision into a final transfer explanation.`,
     metacognitivePrompt: `Ask students which ${concept} move they can reuse, which context would change it, and what evidence would make the transfer stronger.`,
+    studentMetacognitivePrompt: `Which ${concept} move can you reuse, what context would change it, and what evidence would make the transfer stronger?`,
   };
 }
 
@@ -11625,7 +11706,8 @@ function buildAssessmentAnchorExamples(lesson, criteria, criterionEvidenceMap, v
     scoringRationale: `Score the strong anchor higher because the evidence is inspectable, tied to ${primaryCriterion}, and aligned with ${validityEvidence?.targetConstruct || `${artifact} performance evidence`}.`,
     revisionPrompt: `Revise the partial ${artifact} anchor by making the ${primaryCriterion} evidence from ${sourceCue} inspectable, naming one limitation, and stating what changed before submission.`,
     scorerCalibrationUse: `Before grading, scorers compare the strong and partial ${artifact} anchors, point to the exact evidence difference, and reconcile disagreements before scoring student work.`,
-    studentFacingUse: `Share the strong/partial ${artifact} anchor contrast before students submit so they can self-check evidence, reasoning, limitation, and revision quality.`,
+    studentFacingUse: `Compare the strong and partial ${artifact} anchor examples before you submit, and self-check your ${concept} evidence, reasoning, limitation, and revision quality against them.`,
+    instructorAnchorShare: `Share the strong/partial ${artifact} anchor contrast before students submit so they can self-check evidence, reasoning, limitation, and revision quality.`,
   };
 }
 
@@ -12306,11 +12388,26 @@ function compileStructuredCustomDeliverable(featureId, blueprint, options = {}) 
 function compileSyllabus(blueprint) {
   const instructorPreferenceReceipt = preferenceReceipt(blueprintPreferenceProfile(blueprint));
   const compilerProofBundle = blueprint.compilerProofBundle || buildCompilerProofBundle(blueprint);
-  const requirements = blueprint.assessments.map((assessment) => ({
-    name: assessment.title,
-    weight: assessment.weight,
-    description: `${assessment.artifact}. Strong work ${assessment.successCriteria.join(' ')} Feedback is used to improve later course artifacts.`,
-  }));
+  const criteriaSignatures = blueprint.assessments.map((assessment) =>
+    joinCriteriaSentence(assessment.successCriteria),
+  );
+  const requirements = blueprint.assessments.map((assessment, index) => {
+    const signature = criteriaSignatures[index];
+    const firstUseIndex = criteriaSignatures.indexOf(signature);
+    // When several assessments share identical success criteria, state them
+    // once instead of stamping the same sentence into every grading row.
+    const criteriaText =
+      firstUseIndex === index
+        ? `Strong work: ${signature}`
+        : `Strong work follows the same success criteria as ${blueprint.assessments[firstUseIndex].title}.`;
+    // The feedback-loop reminder reads once for the whole table, not per row.
+    const feedbackText = index === 0 ? ' Feedback is used to improve later course artifacts.' : '';
+    return {
+      name: assessment.title,
+      weight: assessment.weight,
+      description: `${assessment.artifact}. ${criteriaText}${feedbackText}`,
+    };
+  });
   const compactConceptGraph = compactConceptDependencyGraph(blueprint.conceptDependencyGraph);
   const compactMasteryMap = compactMasteryEvidenceMap(blueprint.masteryEvidenceMap);
   const compactResponseMap = compactEvidenceResponseMap(blueprint.evidenceResponseMap);
@@ -12576,7 +12673,8 @@ function compileSyllabus(blueprint) {
         'Students need reliable access to the course site, assigned readings, document submission tools, and any discipline-specific software named in weekly materials.',
       technicalSkills:
         'Students should be able to navigate the course site, submit files, participate in discussions, access readings, and use feedback to revise work.',
-      aiPolicy: blueprint.policies.academicIntegrity,
+      aiPolicy:
+        'Generative AI tools may be used only as the instructor allows for each task. When approved AI assistance contributes to submitted work, name the tool and describe how it was used. AI output must be verified against course sources, and students remain responsible for accuracy, citations, and final judgment.',
       weeklySchedule: blueprint.lessons.map((lesson) => ({
         week: `Week ${lesson.lessonNumber}`,
         dates: `Week ${lesson.lessonNumber}`,
@@ -12634,7 +12732,7 @@ function compileAssignments(blueprint) {
       const feedbackPriority = preference
         ? `${assessment.feedbackUse} Preference profile: ${preference}.`
         : assessment.feedbackUse;
-      const finalMilestoneFeedback = `Final ${assessmentTitle} feedback should identify one criterion strength, one revision priority, and the next use of the submitted evidence. ${assessment.feedbackUse}`;
+      const finalMilestoneFeedback = `Final feedback on ${assessmentTitle} should identify one criterion strength, one revision priority, and the next use of the submitted evidence. ${assessment.feedbackUse}`;
       return {
         title: assessment.title,
         assignmentType: submissionProfile.assignmentType,
@@ -12729,7 +12827,7 @@ function compileAssignments(blueprint) {
         objectives: assessment.objectives,
         objectiveEvidenceChecklist: objectiveEvidenceChecklist(lesson.objectiveEvidencePlan),
         instructions: [
-          lesson.prerequisitePlan?.diagnosticCheck ||
+          lesson.prerequisitePlan?.studentReadinessCheck ||
             `Confirm you can connect prerequisite knowledge to ${assessmentTitle} before drafting.`,
           `Review the materials for ${assessment.relatedLessons.join(', ')} and identify the central problem or decision.`,
           `Select specific ${lens.evidenceNoun} from course readings, activities, or discussion notes for ${assessmentTitle}.`,
@@ -12835,10 +12933,17 @@ function compileAssignments(blueprint) {
               evidenceSignal: 'Criterion evidence needs review.',
             }))
         ).map((entry) => {
+          // 220 chars fits the full evidence sentence; tighter caps cut the
+          // sentence right after the quoted criterion name. The bullet already
+          // starts with the criterion name, so the quoted restatement inside
+          // the evidence sentence collapses to "this criterion".
           const evidenceCheck = conciseClause(
-            entry.evidenceSignal || entry.evidenceNeeded,
+            String(entry.evidenceSignal || entry.evidenceNeeded || '').replace(
+              `"${entry.criterion}"`,
+              'this criterion',
+            ),
             'Show criterion-specific evidence',
-            140,
+            220,
           );
           return `${entry.criterion}${entry.weight ? ` (${entry.weight}%)` : ''}: ${evidenceCheck}.`;
         }),
@@ -13256,8 +13361,10 @@ function compileStudyGuides(blueprint) {
                   hint: `${lesson.successCriteria.join(' ')} Artifact genre check: ${lesson.artifactGenre?.qualityFocus || 'evidence specificity and revision quality'}.`,
                 },
                 {
+                  // Student-facing study guides ask the student directly; the
+                  // instructor-voice metacognitive prompt stays in lesson plans.
                   question:
-                    lesson.learningTransferPlan?.metacognitivePrompt ||
+                    lesson.learningTransferPlan?.studentMetacognitivePrompt ||
                     `How does feedback from ${lesson.title} improve a later artifact?`,
                   bloomsLevel: 'Apply',
                   hint: lesson.learningTransferPlan?.transferTask || lesson.feedbackMoment,
@@ -13460,35 +13567,39 @@ function labelQuizOption(letter, text) {
   return `${letter}. ${cleanText(text)}`;
 }
 
-function quizRoleCue(index, use = '') {
-  return (
-    cleanText(use) ||
-    [
-      'diagnostic retrieval check',
-      'source application item',
-      'artifact analysis item',
-      'written analysis check',
-      'quality evaluation item',
-      'transfer synthesis item',
-    ][index] ||
-    `quiz item ${index + 1}`
-  );
+function quizCorrectExplanation({ answer, concept, artifact, objective, lesson, index }) {
+  const lessonNumber = Number(lesson?.lessonNumber || 1);
+  const compactObjective = conciseClause(objective, 'the lesson objective', 70);
+  const variants = [
+    `${answer} is correct because it connects ${concept} to ${artifact}, uses lesson evidence, and supports the objective "${objective}".`,
+    `${answer} is the strongest move: it grounds ${concept} in inspectable course evidence and advances the lesson objective.`,
+    `${answer} works because it ties ${concept} evidence to a visible decision in ${artifact} instead of stopping at recall.`,
+    `${answer} best fits the objective (${compactObjective}): it selects relevant evidence and explains why the evidence changes ${artifact}.`,
+  ];
+  return variants[(lessonNumber + index) % variants.length];
 }
 
 function buildMultipleChoiceOptions({ lesson, index, concept, artifact, use, correct }) {
   const correctLetter = correctLetterForQuestion(lesson, index);
   const sourceCue = lesson?.evidencePlan?.sourceCue || 'the assigned course materials';
   const lessonFocus = stripLessonPrefix(lesson?.title || 'this lesson');
-  const roleCue = quizRoleCue(index, use);
-  const distractors = unique(
-    [
-      `During the ${roleCue}, define ${concept} for ${lessonFocus} but skip evidence from ${sourceCue}.`,
-      `For the ${roleCue}, use a familiar ${lessonFocus} example without checking whether it supports ${artifact}.`,
-      `In the ${roleCue}, recommend the next ${artifact} step before comparing evidence or naming a limitation.`,
-      `Treat the ${roleCue} as complete but leave the reasoning behind the ${lessonFocus} evidence unstated.`,
-    ],
-    3,
-  );
+  // A rotating pool of plausible-but-flawed moves, phrased in parallel with
+  // typical correct options so the right answer is not the stylistic odd one
+  // out and adjacent lessons do not reuse the same three distractors.
+  const distractorPool = [
+    `Define ${concept} accurately but stop before connecting it to evidence from ${sourceCue}.`,
+    `Choose a familiar ${lessonFocus} example first, even when it does not support ${artifact}.`,
+    `Recommend the next step for ${artifact} before comparing evidence or naming a limitation.`,
+    `Summarize ${lessonFocus} thoroughly without taking a position the evidence can support.`,
+    `Cite ${sourceCue} from memory instead of checking what it actually says about ${concept}.`,
+    `Treat one strong example as proof that the ${concept} claim holds in every case.`,
+    `Match the response to personal experience rather than to the ${lessonFocus} success criteria.`,
+    `Repeat the strongest ${lessonFocus} claim from class discussion without naming its evidence or limits.`,
+  ];
+  const lessonNumber = Number(lesson?.lessonNumber || 1);
+  const start = (lessonNumber * 3 + index * 2) % distractorPool.length;
+  const rotated = distractorPool.slice(start).concat(distractorPool.slice(0, start));
+  const distractors = unique(rotated, 3);
   let distractorIndex = 0;
   return {
     answer: correctLetter,
@@ -13527,7 +13638,7 @@ function buildMultipleChoiceQuestion({
       options,
       answer,
       distractorRationale: `${sentenceCase(use)} distractors test evidence use, example fit, recommendation timing, and reasoning quality for ${stripLessonPrefix(lesson.title)}.`,
-      explanation: `${answer} is correct because it connects ${concept} to ${artifact}, uses lesson evidence, and supports the objective "${objective}".`,
+      explanation: quizCorrectExplanation({ answer, concept, artifact, objective, lesson, index }),
       tags: quizTags(lesson, 'multiple_choice', bloom, use),
     },
     plan,
@@ -13551,7 +13662,7 @@ function buildShortAnswerQuestion({ lesson, index, bloom, objective, concept, le
       answer: `${concept} should guide the evidence students select and the decision they justify in ${artifact}. A strong ${lesson.title} answer names a specific detail from ${sourceCue}, explains why it fits, and states how the evidence changes the next step.`,
       sampleAnswer: `For ${lesson.title}, I would use ${concept} to choose evidence from ${sourceCue} that directly supports ${artifact}. I would cite the exact source detail that shows what ${concept} changes about ${artifact} and the ${lens.decisionNoun}.`,
       explanation: `A complete response links ${concept}, ${artifact}, and a concrete ${lens.evidenceNoun} source instead of only defining the term.`,
-      scoringGuidance: `Scoring guidance: Full credit for ${lesson.title} requires ${concept}, one concrete evidence source, and a decision implication. Partial credit is appropriate when the answer names ${concept} but omits evidence or the implication. Flag answers that summarize ${lesson.title} without applying it.`,
+      scoringGuidance: `Full credit for ${lesson.title} requires ${concept}, one concrete evidence source, and a decision implication. Partial credit is appropriate when the answer names ${concept} but omits evidence or the implication. Flag answers that summarize ${lesson.title} without applying it.`,
       tags: quizTags(lesson, 'short_answer', bloom, 'formative check'),
     },
     plan,
@@ -13578,7 +13689,7 @@ function buildEssayQuestion({ lesson, index, bloom, objective, concept, lens, pl
       rubricHints: `Strong responses define ${concept}, use at least two pieces of ${lens.evidenceNoun}, justify a ${lens.decisionNoun}, and acknowledge a limitation or risk.`,
       sampleAnswer: `A strong response for ${lesson.title} would identify how ${concept} changes the artifact, cite evidence from ${lesson.throughlineCase?.evidencePacket || 'the lesson activity or readings'}, and propose a next step that is feasible for ${artifact}. It would also name a ${lesson.title} limitation so the recommendation is not overstated.`,
       explanation: `The essay is scored for synthesis: students must turn ${concept} and evidence into a defensible ${lens.decisionNoun}, not merely list lesson facts.`,
-      scoringGuidance: `Scoring guidance: Full credit for ${lesson.title} requires concept accuracy, evidence use, a justified next step, and a limitation. Partial credit is appropriate when the response has ${concept} evidence but weak decision logic. Flag responses that ignore ${artifact}.`,
+      scoringGuidance: `Full credit for ${lesson.title} requires concept accuracy, evidence use, a justified next step, and a limitation. Partial credit is appropriate when the response has ${concept} evidence but weak decision logic. Flag responses that ignore ${artifact}.`,
       tags: quizTags(lesson, 'essay', bloom, 'exam synthesis'),
     },
     plan,
@@ -13618,7 +13729,7 @@ export function buildQuizAtomsForLesson(lesson, blueprint, options = {}) {
       objective: quizPlan[1].objective,
       concept,
       use: quizPlan[1].use,
-      prompt: `A student is preparing ${artifact}. Which action best applies ${concept} from ${lesson.title}?`,
+      prompt: `A student is preparing ${artifact}. Which action best applies ${concept} from this lesson?`,
       correct: `Use ${concept} to select a concrete example, connect it to the objective, and revise the artifact before submission.`,
       plan: quizPlan[1],
     }),
@@ -14472,7 +14583,7 @@ function buildDiscussionFollowUps(lesson, phrase) {
   return [
     `What evidence from ${lesson.title} most strongly supports your position on ${concept}?`,
     `Which alternative reading of the same evidence about ${concept} would challenge your claim, and why might another student prefer it for ${artifact}?`,
-    `If the evidence changed, what part of ${lesson.studentArtifact} would you revise first?`,
+    `If the ${concept} evidence changed, what part of ${lesson.studentArtifact} would you revise first?`,
     `Where is the strongest limitation, risk, or ethical concern in your current reasoning about ${artifact}?`,
     `How does this discussion help students ${stripTerminalPunctuation(phrase.decisionMove).toLowerCase()}?`,
   ];
@@ -14794,7 +14905,11 @@ function buildSlideDeckIrForLesson(blueprint, lesson, index) {
       accessibilityStandards:
         `${lesson.accessibilityPlan?.representation || `${displayTitle} should offer spoken, written, and visual entry points around ${phrase.context}`}; ${lesson.accessibilityPlan?.participationProtocol || 'visuals include alt text, activity directions can be completed without color-only cues, and speaker notes identify how to support learners who need more processing time or text-first participation'}; ${lesson.accessibilityPlan?.accommodationReviewCue || ''}`.trim(),
       localReviewAction: lessonLocalReviewAction(lesson),
-      cumulativeAssessmentMap: `${displayTitle} prepares students for ${sequenceArtifact}; the deck moves from ${phrase.evidenceMove} to ${stripTerminalPunctuation(phrase.decisionMove).toLowerCase()}, while practice slides reinforce ${sequenceCriterion} and the ${artifactGenre.label || artifactGenre.genre || 'artifact'} quality focus before feedback carries into the next artifact.`,
+      cumulativeAssessmentMap: [
+        `${displayTitle} prepares students for ${sequenceArtifact}; the deck moves from ${phrase.evidenceMove} to ${stripTerminalPunctuation(phrase.decisionMove).toLowerCase()}, while practice slides reinforce ${sequenceCriterion} and the ${artifactGenre.label || artifactGenre.genre || 'artifact'} quality focus before feedback carries into the next artifact.`,
+        `${displayTitle} builds toward ${sequenceArtifact}: the deck opens with ${phrase.evidenceMove}, then ${stripTerminalPunctuation(phrase.decisionMove).toLowerCase()}; practice slides rehearse ${sequenceCriterion} so feedback transfers into the next artifact.`,
+        `Across this deck, ${sequenceArtifact} stays the visible product for ${displayTitle}; slides progress from ${phrase.evidenceMove} toward ${stripTerminalPunctuation(phrase.decisionMove).toLowerCase()}, with ${sequenceCriterion} as the practice focus before the next artifact.`,
+      ][(Number(lesson.lessonNumber) || 1) % 3],
       pacingBridge: `${lesson.pacing?.bridgeFrom || ''} ${lesson.pacing?.bridgeTo || ''}`.trim(),
       classSessionPlan,
       slideTimingFit,
@@ -14901,14 +15016,14 @@ function compileCourseFaq(blueprint, config = {}) {
       q: `How does ${stripLessonPrefix(lesson.title)} connect to graded work?`,
       an: `${lesson.title} prepares you for ${lesson.studentArtifact}. Use the ${lesson.title} success criteria as a checklist before submitting or discussing your work.`,
       ca: 'Assignment Clarification',
-      rc: lesson.successCriteria,
+      rc: ['success criteria checklist', ...lesson.keyConcepts.slice(0, 2)],
       df: 'Intermediate',
     }),
     (lesson) => ({
       q: `What does strong work on ${stripLessonPrefix(lesson.title)} look like?`,
-      an: `Strong work on ${lesson.title} ${lesson.successCriteria.join(' ')} It should be specific enough that another reader can see how ${lesson.throughlineCase?.projectName || lesson.title} evidence about ${lesson.keyConcepts[0] || stripLessonPrefix(lesson.title)} supports the decision. For this ${lesson.artifactGenre?.label || lesson.artifactGenre?.genre || 'artifact'}, also check: ${lesson.artifactGenre?.qualityFocus || 'evidence specificity and revision quality'}. Anchor contrast: ${lesson.assessmentAnchorExamples?.strongSample || 'compare strong and partial evidence examples before submitting'}.`,
+      an: `Strong work on ${lesson.title}: ${joinCriteriaSentence(lesson.successCriteria)} It should be specific enough that another reader can see how ${lesson.throughlineCase?.projectName || lesson.title} evidence about ${lesson.keyConcepts[0] || stripLessonPrefix(lesson.title)} supports the decision. For this ${lesson.artifactGenre?.label || lesson.artifactGenre?.genre || 'artifact'}, also check: ${lesson.artifactGenre?.qualityFocus || 'evidence specificity and revision quality'}. Anchor contrast: ${lesson.assessmentAnchorExamples?.strongSample || 'compare strong and partial evidence examples before submitting'}.`,
       ca: 'Assessment Prep',
-      rc: lesson.successCriteria,
+      rc: ['rubric criteria', 'anchor examples', ...lesson.keyConcepts.slice(0, 2)],
       df: 'Intermediate',
     }),
     (lesson) => ({
@@ -15419,6 +15534,12 @@ export function compileBlueprintDeliverable(featureId, blueprint, options = {}) 
   if (!options.skipCompilerContractCheck) {
     assertBlueprintCompilerContract(compilerBlueprint, options);
   }
+  const compiled = compileBlueprintDeliverableRaw(featureId, compilerBlueprint, options);
+  if (!compiled || options.skipLanguageFinalizer) return compiled;
+  return finalizeCompiledDeliverableLanguage(featureId, compiled, compilerBlueprint);
+}
+
+function compileBlueprintDeliverableRaw(featureId, compilerBlueprint, options = {}) {
   if (featureId?.startsWith('custom_')) {
     const templateKind = getCompiledCustomTemplateKind(featureId, options);
     if (templateKind === 'reflection-check-in') {

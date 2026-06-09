@@ -138,20 +138,6 @@ function countSpeakerNoteWords(value) {
   return (String(value || '').match(/[A-Za-z][A-Za-z'-]*/g) || []).length;
 }
 
-function compactPlaceholderText(value, maxLength = 110) {
-  const firstSentence =
-    String(value || '')
-      .replace(/\s+/g, ' ')
-      .trim()
-      .split(/(?<=[.!?])\s+/)[0] || '';
-  if (firstSentence.length <= maxLength) return firstSentence;
-  return firstSentence
-    .slice(0, maxLength)
-    .replace(/\s+\S*$/g, '')
-    .replace(/[,:;-]+$/g, '')
-    .trim();
-}
-
 function buildFallbackSpeakerNotes(deck, slide, slideIndex, totalSlides) {
   const lessonTitle = deck.lessonTitle || deck.title || `Lesson ${deck._deckIndex + 1 || 1}`;
   const slideTitle = slide.title || `Slide ${slideIndex + 1}`;
@@ -1456,7 +1442,6 @@ async function buildSlideForDeck(pptx, deck, theme, slideIndex, totalSlides, opt
   const hasVisual = vis && visKind && visKind !== 'none';
   const visDesc = hasVisual ? vis.description || vis.d || '' : '';
   const visAlt = hasVisual ? vis.altText || vis.at || '' : '';
-  const slideVisDesc = compactPlaceholderText(visDesc);
   const generatedVisualImage = hasVisual ? getGeneratedVisualImage(vis) : null;
 
   const rawNotes = s.notes || s.speakerNotes || '';
@@ -1469,12 +1454,10 @@ async function buildSlideForDeck(pptx, deck, theme, slideIndex, totalSlides, opt
     : baseNotes;
   if (augmentedNotes) slide.addNotes(augmentedNotes);
 
-  // On-slide visual placeholder — a small dashed box in the bottom-right
-  // that signals "insert visual here" with the kind + 1-line description.
-  // Positioned to tuck under bullet content without fighting activity /
-  // example / keyTerm cards that fill the body region. Omitted for
-  // title / agenda / objectives / summary / closing slides where the
-  // layout doesn't leave room.
+  // Generated visual images render on the slide; visual *suggestions* live in
+  // the speaker notes only. v0.8.6 drew a dashed "SUGGESTED VISUAL" meta-box
+  // on student-facing slides, which read as unfinished authoring scaffolding,
+  // so the text placeholder was removed in v0.8.61.
   const PLACEHOLDER_TYPES = new Set(['content', 'bridge', 'example', 'keyTerm', 'activity']);
   if (hasVisual && PLACEHOLDER_TYPES.has(slideType)) {
     const pw = 3.0,
@@ -1491,38 +1474,7 @@ async function buildSlideForDeck(pptx, deck, theme, slideIndex, totalSlides, opt
         altText: visAlt || visDesc || 'Generated slide visual',
       });
       tracker.add({ x: px, y: py, w: pw, h: ph, label: 'generated visual' });
-      return;
     }
-
-    const kindIcon = { diagram: '▲', chart: '📊', image: '🖼', table: '▦', code: '⌨', equation: '∑' }[visKind] || '◈';
-    slide.addShape(pptx.ShapeType.roundRect, {
-      x: px,
-      y: py,
-      w: pw,
-      h: ph,
-      fill: { color: 'FFFFFF', transparency: 40 },
-      line: { color: theme.accent || theme.primary, dashType: 'dash', pt: 1 },
-      rectRadius: 0.08,
-      altText: `Visual placeholder — ${visKind}: ${visAlt || visDesc}`,
-    });
-    slide.addText(
-      [
-        {
-          text: `${kindIcon} SUGGESTED VISUAL · ${visKind.toUpperCase()}\n`,
-          options: { fontSize: 8, bold: true, color: theme.accent || theme.primary, fontFace: FONT_BODY },
-        },
-        { text: slideVisDesc, options: { fontSize: 9, color: '64748B', italic: true, fontFace: FONT_BODY } },
-      ],
-      {
-        x: px + 0.1,
-        y: py + 0.05,
-        w: pw - 0.2,
-        h: ph - 0.1,
-        valign: 'top',
-        align: 'left',
-        margin: 0.05,
-      },
-    );
   }
 }
 

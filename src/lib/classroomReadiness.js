@@ -385,13 +385,18 @@ function splitSentences(text) {
 }
 
 function normalizeSentence(sentence) {
+  // Bare "Lesson 3" / "Week 3" labels are masked so guidance differing only
+  // by its label still counts as boilerplate. Article-anchored short
+  // references ("the Week 3 memo", "the Lesson 3 materials") keep their
+  // numbers: since v0.8.61 the compiler uses them as deliberate per-lesson
+  // references, which is exactly the lesson specificity this gate asks for.
   return sentence
     .toLowerCase()
-    .replace(/\blesson\s+\d+\b/g, 'lesson #')
-    .replace(/\bweek\s+\d+\b/g, 'week #')
-    .replace(/[^a-z0-9#\s]/g, ' ')
+    .replace(/[^a-z0-9\s]/g, ' ')
     .replace(/\s+/g, ' ')
-    .trim();
+    .trim()
+    .replace(/\b(?<!\bthe\s(?:\w+\s){0,3})lesson\s+\d+\b/g, 'lesson #')
+    .replace(/\b(?<!\bthe\s(?:\w+\s){0,3})week\s+\d+\b/g, 'week #');
 }
 
 const RUBRIC_SHARED_SUPPORT_RE =
@@ -463,7 +468,7 @@ function addBoilerplateWarning(featureId, items, issues) {
     makeIssue(
       READINESS_WARNING,
       featureId,
-      `${labelFor(featureId)} repeats the same boilerplate across ${repeated[1]} items; revise with lesson-specific guidance before classroom handoff.`,
+      `${labelFor(featureId)} repeats the same boilerplate across ${repeated[1]} items (e.g., "${repeated[0].slice(0, 110)}"); revise with lesson-specific guidance before classroom handoff.`,
       'specificity',
     ),
   );

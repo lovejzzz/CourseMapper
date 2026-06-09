@@ -190,14 +190,18 @@ describe('PPTX export — visual placeholders', () => {
     expect(slideXmls).toHaveLength(FIXTURE.decks[0].slides.length);
   });
 
-  it('content slide with a visual emits a dashed-line shape', () => {
-    // Fixture slide index 1 (0-based) = content slide with visual
-    expect(slideXmls[1]).toMatch(DASHED_LINE_XML);
+  it('content slide with a visual keeps the slide surface free of placeholder scaffolding (v0.8.61)', () => {
+    // Fixture slide index 1 (0-based) = content slide with visual. v0.8.6
+    // drew a dashed "SUGGESTED VISUAL" box on the student-facing slide; the
+    // suggestion now lives in speaker notes only.
+    expect(slideXmls[1]).not.toMatch(DASHED_LINE_XML);
+    expect(slideXmls[1]).not.toContain(NOTES_MARKER);
   });
 
-  it('keyTerm slide with a visual emits a dashed-line shape', () => {
+  it('keyTerm slide with a visual keeps the slide surface free of placeholder scaffolding (v0.8.61)', () => {
     // Fixture slide index 3 = keyTerm with visual
-    expect(slideXmls[3]).toMatch(DASHED_LINE_XML);
+    expect(slideXmls[3]).not.toMatch(DASHED_LINE_XML);
+    expect(slideXmls[3]).not.toContain(NOTES_MARKER);
   });
 
   it('content slide without a visual does NOT emit the dashed placeholder', () => {

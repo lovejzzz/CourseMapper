@@ -226,6 +226,14 @@ async function verifyDocxExport(featureId, data, courseName) {
       { size, internalText },
     );
   }
+  const { auditOfficeBlobRepetition } = await import('./exportRenderedTextAudit');
+  const repetition = await auditOfficeBlobRepetition(blob, 'docx');
+  if (repetition) {
+    return createCheck(featureId, 'docx', 'warning', `DOCX export generated, but ${repetition.message}`, {
+      size,
+      repetition,
+    });
+  }
   return createCheck(featureId, 'docx', 'passed', 'DOCX export can be generated.', { size });
 }
 
@@ -246,6 +254,14 @@ async function verifyPptxExport(data, courseName, slideTheme) {
       { size, internalText },
     );
   }
+  const { auditOfficeBlobRepetition } = await import('./exportRenderedTextAudit');
+  const repetition = await auditOfficeBlobRepetition(blob, 'pptx');
+  if (repetition) {
+    return createCheck('slideDecks', 'pptx', 'warning', `PPTX export generated, but ${repetition.message}`, {
+      size,
+      repetition,
+    });
+  }
   return createCheck('slideDecks', 'pptx', 'passed', 'Slide deck PowerPoint export can be generated.', { size });
 }
 
@@ -257,6 +273,18 @@ async function verifyDeliverableExport({ featureId, entry, courseMap, lessonFilt
   const courseName = courseMap?.courseName || 'Course';
   const scopedData = scopeDeliverableDataToLessons(featureId, entry.data, lessonFilter);
   const checks = [];
+
+  const { auditDeliverableContentQuality } = await import('./contentQualityChecks');
+  const contentQuality = auditDeliverableContentQuality(featureId, scopedData);
+  checks.push(
+    createCheck(
+      featureId,
+      'content',
+      contentQuality.findings.length > 0 ? 'warning' : 'passed',
+      contentQuality.summary,
+      contentQuality.findings.length > 0 ? { findings: contentQuality.findings.slice(0, 10) } : undefined,
+    ),
+  );
 
   checks.push(await verifyCsvExport(featureId, scopedData));
   if (featureId === 'slideDecks') {

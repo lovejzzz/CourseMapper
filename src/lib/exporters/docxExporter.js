@@ -1,7 +1,7 @@
 import { loadPdfLibs, getDocx, getSaveAs, isInternalExportMetadataKey, resolveFeatureLabel } from './exporterUtils.js';
 import { expandKeys } from '../keyMaps.js';
 import { assertOfficeExportHasNoInternalText } from '../exportTextInspector.js';
-import { formatOutcomeAlignment, formatRequiredText, normalizeCourseRequirements } from './syllabusExportUtils.js';
+import { formatRequiredText, normalizeCourseRequirements } from './syllabusExportUtils.js';
 
 // DOCX EXPORT
 // ════════════════════════════════════════════════════════════════
@@ -26,6 +26,64 @@ function formatSourceArtifact(artifact) {
  * Shared DOCX content builder — used by both exportDeliverableDocx and buildDeliverableDocxBlob.
  * Generates comprehensive content matching ALL fields shown in the UI.
  */
+/**
+ * Shared document shell: Title-styled heading, divider, and a footer with the
+ * course name and page numbers. Used by both the direct exporter and the
+ * bulk/ZIP exporter so every generated DOCX gets the same page furniture.
+ */
+export function buildDocxTitleChildren(docx, courseName, label) {
+  const { Paragraph, TextRun, HeadingLevel, AlignmentType, BorderStyle } = docx;
+  return [
+    new Paragraph({
+      heading: HeadingLevel.TITLE,
+      alignment: AlignmentType.CENTER,
+      spacing: { line: LINE_SP, after: 120 },
+      children: [
+        new TextRun({
+          text: `${courseName || 'Course'} — ${label}`,
+          bold: true,
+          size: H1_SIZE,
+          font: FONT,
+          color: ACCENT,
+        }),
+      ],
+    }),
+    new Paragraph({
+      alignment: AlignmentType.CENTER,
+      spacing: { after: 300 },
+      border: { bottom: { style: BorderStyle.SINGLE, size: 6, color: 'CCCCCC', space: 8 } },
+      children: [],
+    }),
+  ];
+}
+
+export function buildDocxDocument(docx, children, { courseName, label }) {
+  const { Document, Paragraph, TextRun, Footer, PageNumber, TabStopType, TabStopPosition } = docx;
+  const footer = new Footer({
+    children: [
+      new Paragraph({
+        tabStops: [{ type: TabStopType.RIGHT, position: TabStopPosition.MAX }],
+        children: [
+          new TextRun({
+            text: `${courseName || 'Course'} — ${label}`,
+            size: 16,
+            font: FONT,
+            color: '888888',
+          }),
+          new TextRun({ text: '\tPage ', size: 16, font: FONT, color: '888888' }),
+          new TextRun({ children: [PageNumber.CURRENT], size: 16, font: FONT, color: '888888' }),
+          new TextRun({ text: ' of ', size: 16, font: FONT, color: '888888' }),
+          new TextRun({ children: [PageNumber.TOTAL_PAGES], size: 16, font: FONT, color: '888888' }),
+        ],
+      }),
+    ],
+  });
+  return new Document({
+    styles: { default: { document: { run: { font: FONT, size: BODY_SIZE } } } },
+    sections: [{ footers: { default: footer }, children }],
+  });
+}
+
 export function _buildDocxContentShared(featureId, data, children, docx) {
   const {
     Paragraph,
@@ -50,6 +108,10 @@ export function _buildDocxContentShared(featureId, data, children, docx) {
     });
   const makeSubHeading = (text) =>
     new Paragraph({
+      // Real heading level so section labels appear in Word's navigation
+      // pane, TOCs, and screen-reader outlines instead of reading as bold
+      // body text.
+      heading: HeadingLevel.HEADING_3,
       keepNext: true,
       spacing: { line: SINGLE_SP, before: 160, after: 60 },
       children: [new TextRun({ text, bold: true, size: H3_SIZE, font: FONT, color: '444444' })],
@@ -286,6 +348,7 @@ export function _buildDocxContentShared(featureId, data, children, docx) {
       for (const quiz of expanded[key] || []) {
         children.push(makeHeading(quiz.lessonTitle || 'Quiz'));
         if (quiz.bloomsCoverage?.length) children.push(makeBold("Bloom's Coverage", quiz.bloomsCoverage.join(', ')));
+        let prevObjectiveAligned = '';
         for (let j = 0; j < (quiz.questions || []).length; j++) {
           const q = quiz.questions[j];
           const qMeta = [
@@ -299,7 +362,12 @@ export function _buildDocxContentShared(featureId, data, children, docx) {
           if (q.options) q.options.forEach((o) => children.push(makeBullet(o)));
           if (q.answer) children.push(makeBold('Answer', q.answer));
           if (q.explanation) children.push(makeBold('Explanation', q.explanation));
-          if (q.objectiveAligned) children.push(makeItalic(`Aligns to: ${q.objectiveAligned}`));
+          // Single-objective lessons would otherwise repeat the same
+          // "Aligns to" sentence under every question.
+          if (q.objectiveAligned && q.objectiveAligned !== prevObjectiveAligned) {
+            children.push(makeItalic(`Aligns to: ${q.objectiveAligned}`));
+            prevObjectiveAligned = q.objectiveAligned;
+          }
           if (q.sampleAnswer) children.push(makeBold('Sample Answer', q.sampleAnswer));
           if (q.rubricHints) children.push(makeBold('Rubric Hints', q.rubricHints));
           if (q.scoringGuidance) children.push(makeBold('Scoring Guidance', q.scoringGuidance));
@@ -405,7 +473,16 @@ export function _buildDocxContentShared(featureId, data, children, docx) {
           a.deliverables.forEach((d) => children.push(makeBullet(typeof d === 'string' ? d : d.name || '')));
         }
         if (a.submissionFormat) children.push(makeBold('Submission Format', a.submissionFormat));
-        if (a.gradingCriteria) children.push(makeBold('Grading Criteria', a.gradingCriteria));
+        // gradingCriteria is an array of criterion names; rendering it as a
+        // bold label with no value left an empty "Grading Criteria:" line.
+        if (Array.isArray(a.gradingCriteria) && a.gradingCriteria.length > 0) {
+          children.push(makeSubHeading('Grading Criteria'));
+          a.gradingCriteria.forEach((criterion) =>
+            children.push(makeBullet(typeof criterion === 'string' ? criterion : criterion?.criterion || '')),
+          );
+        } else if (a.gradingCriteria && typeof a.gradingCriteria === 'string') {
+          children.push(makeBold('Grading Criteria', a.gradingCriteria));
+        }
         if (a.progressTracking) children.push(makeBold('Progress Tracking', a.progressTracking));
         if (a.accessibilityAndUDL) children.push(makeBold('Accessibility & UDL', a.accessibilityAndUDL));
         if (a.selfAssessmentRubric?.length) {
@@ -592,7 +669,18 @@ export function _buildDocxContentShared(featureId, data, children, docx) {
       }
       if (syl.outcomeAlignmentMatrix?.length) {
         children.push(makeHeading('Outcome & Assessment Alignment'));
-        syl.outcomeAlignmentMatrix.forEach((row) => children.push(makeBullet(formatOutcomeAlignment(row))));
+        children.push(
+          makeTableFn(
+            [3900, 1100, 2180, 2180],
+            ['Outcome', "Bloom's", 'Practiced In', 'Assessed By'],
+            syl.outcomeAlignmentMatrix.map((row) => [
+              row.outcome || '',
+              row.bloomsLevel || '',
+              Array.isArray(row.practicedIn) ? row.practicedIn.join('; ') : row.practicedIn || '',
+              Array.isArray(row.assessedBy) ? row.assessedBy.join('; ') : row.assessedBy || '',
+            ]),
+          ),
+        );
       }
       if (syl.requiredTexts?.length) {
         children.push(makeHeading('Required Texts & Materials'));
@@ -623,7 +711,14 @@ export function _buildDocxContentShared(featureId, data, children, docx) {
       }
       if (syl.gradingScale?.length) {
         children.push(makeHeading('Grading Scale'));
-        children.push(makeText(syl.gradingScale.map((g) => `${g.grade}: ${g.range}`).join('   |   ')));
+        // Two grade/range pairs per row keeps the table compact.
+        const scalePairs = [];
+        for (let gi = 0; gi < syl.gradingScale.length; gi += 2) {
+          const left = syl.gradingScale[gi];
+          const right = syl.gradingScale[gi + 1];
+          scalePairs.push([left?.grade || '', left?.range || '', right?.grade || '', right?.range || '']);
+        }
+        children.push(makeTableFn([1170, 3510, 1170, 3510], ['Grade', 'Range', 'Grade', 'Range'], scalePairs));
       }
       // Course Schedule
       if (syl.weeklySchedule?.length) {
@@ -667,7 +762,13 @@ export function _buildDocxContentShared(featureId, data, children, docx) {
       policySection('Data Privacy', syl.dataPrivacy);
       if (syl.importantDates?.length) {
         children.push(makeHeading('Important Dates'));
-        syl.importantDates.forEach((d) => children.push(makeBold(d.date || '', d.event || '')));
+        children.push(
+          makeTableFn(
+            [1872, 7488],
+            ['When', 'Milestone'],
+            syl.importantDates.map((d) => [d.date || '', d.event || '']),
+          ),
+        );
       }
       const maintenance = [syl.suggestedReviewDate, syl.contentOwnerGroup].filter(Boolean);
       if (maintenance.length) {
@@ -760,71 +861,18 @@ export function _buildDocxContentShared(featureId, data, children, docx) {
 }
 
 export async function exportDeliverableDocx(featureId, data, courseName) {
-  const {
-    Document,
-    Packer,
-    Paragraph,
-    TextRun,
-    HeadingLevel,
-    AlignmentType,
-    Table,
-    TableRow,
-    TableCell,
-    WidthType,
-    BorderStyle,
-    ShadingType,
-    TableLayoutType,
-  } = await getDocx();
+  const docx = await getDocx();
+  const { Packer, BorderStyle } = docx;
   const saveAs = await getSaveAs();
 
   const label = resolveFeatureLabel(featureId);
   const THIN_BORDER = { style: BorderStyle.SINGLE, size: 4, color: 'D0D0D0' };
-  const children = [];
-
-  // Title
-  children.push(
-    new Paragraph({
-      alignment: AlignmentType.CENTER,
-      spacing: { line: LINE_SP, after: 120 },
-      children: [
-        new TextRun({
-          text: `${courseName || 'Course'} — ${label}`,
-          bold: true,
-          size: H1_SIZE,
-          font: FONT,
-          color: ACCENT,
-        }),
-      ],
-    }),
-  );
-  children.push(
-    new Paragraph({
-      alignment: AlignmentType.CENTER,
-      spacing: { after: 300 },
-      border: { bottom: { style: BorderStyle.SINGLE, size: 6, color: 'CCCCCC', space: 8 } },
-      children: [],
-    }),
-  );
+  const children = buildDocxTitleChildren(docx, courseName, label);
 
   // Build content using shared helper
-  _buildDocxContentShared(featureId, data, children, {
-    Paragraph,
-    TextRun,
-    HeadingLevel,
-    Table,
-    TableRow,
-    TableCell,
-    WidthType,
-    ShadingType,
-    TableLayoutType,
-    BorderStyle,
-    THIN_BORDER,
-  });
+  _buildDocxContentShared(featureId, data, children, { ...docx, THIN_BORDER });
 
-  const doc = new Document({
-    styles: { default: { document: { run: { font: FONT, size: BODY_SIZE } } } },
-    sections: [{ children }],
-  });
+  const doc = buildDocxDocument(docx, children, { courseName, label });
 
   const blob = await Packer.toBlob(doc);
   await assertOfficeExportHasNoInternalText(blob, 'docx', label);

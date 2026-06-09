@@ -3,6 +3,55 @@ import Header from '../components/Header';
 
 const releases = [
   {
+    version: '0.8.61',
+    date: 'June 9, 2026',
+    title: 'Output Quality Release',
+    highlights: [
+      'A full audit of a real four-course v0.8.6 export drove this release: compiled deliverables now read like courseware instead of a mail merge',
+      'Concept extraction emits multi-word phrases ("Climate Science"), never bare title fragments ("Science", "Frameworks") stuffed into quiz stems, tags, and key terms',
+      'A new language finalizer shortens repeated assessment and lesson titles to week-anchored references after their first mentions, and repairs template seams (article agreement, double periods, dangling clauses, leading-colon labels)',
+      'Quiz banks rotate distractor families and explanation phrasing so the correct option is no longer the stylistic odd one out, and success criteria vary their stems per lesson',
+      'Student-facing briefs, study guides, and anchor guidance now speak to the student; instructor moves stay in lesson plans and rubric facilitation notes',
+      'DOCX exports gained real heading structure, footers with page numbers, and tables for the syllabus alignment matrix, grading scale, and important dates; slide decks no longer show "SUGGESTED VISUAL" placeholder boxes on student-facing slides',
+      'Export verification now runs deterministic content-quality checks (dangling clauses, instructor voice, uniform answer keys, rendered-text phrase repetition) and reports them as warnings instead of claiming "ready, 0 warnings"',
+    ],
+    sections: [
+      {
+        label: 'Compiler Language',
+        icon: 'AI',
+        color: 'emerald',
+        items: [
+          'wordsFromConcepts splits source text on punctuation and conjunctions into phrase candidates; stripListPrefix understands "1.1:"-style section numbering so key terms never start with a colon.',
+          'compiledLanguageFinalizer.js runs after every compile: per-document budgets keep the first two full-title mentions and convert the rest to references like "the Week 2 check" or the topic\'s first phrase unit, with article-aware joins.',
+          'conciseClause completes at clause boundaries and trims dangling connectives; truncated self-assessment sentences and the empty Grading Criteria section are gone.',
+          'Generative AI Policy and Academic Integrity now carry distinct syllabus text, and grading rows state shared success criteria once instead of stamping them per row.',
+          'Sparse course-map repair filler rotates sentence stems by section so repaired maps stop seeding identical text into every deliverable.',
+        ],
+      },
+      {
+        label: 'Document Formatting',
+        icon: 'UI',
+        color: 'indigo',
+        items: [
+          'Every DOCX gets a Title-styled heading, Heading 2/3 section structure for the Word navigation pane and screen readers, and a footer with the course name plus page X of Y.',
+          'The syllabus outcome alignment matrix, grading scale, and important dates render as real tables instead of pipe-delimited text lines.',
+          'Slide decks keep visual suggestions in speaker notes with alt text; student-visible surfaces carry no authoring scaffolding, and quiz exports collapse repeated "Aligns to" lines.',
+        ],
+      },
+      {
+        label: 'Trust Surface',
+        icon: 'QA',
+        color: 'amber',
+        items: [
+          'contentQualityChecks.js audits compiled deliverables for sentence integrity, instructor voice in student surfaces, and uniform quiz answer keys; findings surface as export warnings.',
+          'exportRenderedTextAudit.js measures phrase repetition on the rendered DOCX/PPTX text per lesson section, matching what instructors actually read.',
+          'The classroom-readiness boilerplate gate names the repeated sentence in its warning and treats week-anchored references as deliberate per-lesson specificity.',
+          'scripts/v0861OutputQualityRepro.mjs replays the audited sparse Climate Justice course shape end-to-end and fails on any recurrence of the audited defect classes.',
+        ],
+      },
+    ],
+  },
+  {
     version: '0.8.6',
     date: 'June 9, 2026',
     title: 'Compiler Efficiency and Trust Surface Release',

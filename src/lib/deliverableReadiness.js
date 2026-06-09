@@ -299,16 +299,48 @@ function getCourseMapTopic(courseMap, lesson, section, lessonIndex) {
 
 function getCourseMapFallbackValue(key, courseMap, lesson, section, lessonIndex) {
   const topic = getCourseMapTopic(courseMap, lesson, section, lessonIndex);
+  // Rotate filler stems by section position so repaired sparse maps do not
+  // stamp the identical sentence into every lesson and section — repeated
+  // stems used to flow verbatim into every compiled deliverable.
+  const sections = Array.isArray(lesson?.sections) ? lesson.sections : [];
+  const sectionIndex = Math.max(0, sections.indexOf(section));
+  const variantIndex = (Number(lessonIndex) || 0) + sectionIndex;
+  const pick = (variants) => variants[variantIndex % variants.length];
   const fieldFallbacks = {
-    learningGoals: `Build a working understanding of ${topic} and connect it to the course outcomes.`,
+    learningGoals: pick([
+      `Build a working understanding of ${topic} and connect it to the course outcomes.`,
+      `Develop fluency with ${topic} and link it to the course outcomes.`,
+      `Strengthen command of ${topic} and relate it to the course outcomes.`,
+    ]),
     topicSection: topic,
-    learningObjectives: `Students will explain key ideas from ${topic} and apply them in course activities.`,
-    weeklyAssessments: `Low-stakes check for understanding aligned to ${topic}.`,
-    asyncActivities: `Review assigned materials and prepare notes on ${topic}.`,
-    syncActivities: `Discuss examples and practice applying ${topic}.`,
+    learningObjectives: pick([
+      `Explain the key ideas in ${topic} and apply them in course activities.`,
+      `Apply the main concepts from ${topic} to a course task or example.`,
+      `Connect ${topic} to the week's work and explain one supporting evidence source.`,
+      `Analyze an example using ${topic} and name one limitation or open question.`,
+    ]),
+    weeklyAssessments: pick([
+      `Low-stakes check for understanding aligned to ${topic}.`,
+      `Short formative check covering ${topic}.`,
+      `Brief practice check tied to ${topic}.`,
+    ]),
+    asyncActivities: pick([
+      `Review assigned materials and prepare notes on ${topic}.`,
+      `Read the assigned materials and write a short note on ${topic}.`,
+      `Study the assigned materials and mark questions about ${topic}.`,
+    ]),
+    syncActivities: pick([
+      `Discuss examples and practice applying ${topic}.`,
+      `Work through examples of ${topic} together and practice applying them.`,
+      `Compare examples of ${topic} in class and rehearse the key moves.`,
+    ]),
     technologyNeeded: 'Course LMS and standard document tools.',
     presentationFormat: 'Brief instructor framing, guided practice, and discussion.',
-    supportingResources: `Assigned readings, instructor notes, and course examples related to ${topic}.`,
+    supportingResources: pick([
+      `Assigned readings, instructor notes, and course examples related to ${topic}.`,
+      `Instructor notes and selected readings on ${topic}.`,
+      `Course readings and worked examples covering ${topic}.`,
+    ]),
     evaluateDesign: 'Activities, resources, and assessments align to the stated goals and objectives.',
   };
   return fieldFallbacks[key] || `Instructor-confirmed material for ${topic}.`;

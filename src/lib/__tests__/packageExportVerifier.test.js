@@ -75,9 +75,9 @@ describe('verifyPackageExports', () => {
     });
 
     expect(result.status).toBe('passed');
-    expect(result.checked).toBe(5);
+    expect(result.checked).toBe(6);
     expect(result.failed).toBe(0);
-    expect(result.checks.map((check) => check.format)).toEqual(['xlsx', 'pdf', 'csv', 'docx', 'pdf']);
+    expect(result.checks.map((check) => check.format)).toEqual(['xlsx', 'pdf', 'content', 'csv', 'docx', 'pdf']);
   });
 
   it('fails honestly when the course map export has no lessons', async () => {
@@ -217,7 +217,7 @@ describe('verifyPackageExports', () => {
     });
 
     expect(result.status).toBe('passed');
-    expect(result.checks.map((check) => check.status)).toEqual(['passed', 'passed', 'passed']);
+    expect(result.checks.map((check) => check.status)).toEqual(['passed', 'passed', 'passed', 'passed']);
   });
 
   it('passes export verification for compiled reading response custom deliverables', async () => {
@@ -255,7 +255,7 @@ describe('verifyPackageExports', () => {
     });
 
     expect(result.status).toBe('passed');
-    expect(result.checks.map((check) => check.status)).toEqual(['passed', 'passed', 'passed']);
+    expect(result.checks.map((check) => check.status)).toEqual(['passed', 'passed', 'passed', 'passed']);
   });
 
   it('fails export verification when exported CSV text leaks internal compiler language', async () => {
@@ -283,7 +283,7 @@ describe('verifyPackageExports', () => {
     });
 
     expect(result.status).toBe('failed');
-    expect(result.checks[0]).toMatchObject({
+    expect(result.checks.find((check) => check.format === 'csv')).toMatchObject({
       featureId: 'custom_weeklyReflection',
       format: 'csv',
       status: 'failed',

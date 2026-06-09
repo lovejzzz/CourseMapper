@@ -164,13 +164,16 @@ describe('hybrid pipeline audit', () => {
 
       expect(result.stress).toBe(true);
       expect(result.stressFocus).toBe('Messy imported clinical studio map');
-      expect(result.summary.status).toBe('warnings');
+      // v0.8.61: varied repair filler and criteria phrasing let the 5-lesson
+      // stress scope compile without boilerplate warnings; the duplicated
+      // lessons at scopes 8/14 still warn (asserted on the markdown below).
+      expect(result.summary.status).toBe('pass');
       expect(result.courseMapRepair.changed).toBe(true);
       expect(result.courseMapRepair.repairedFieldCount).toBeGreaterThanOrEqual(6);
       expect(result.reviewRecommendation).toBe(
-        'Review flagged warnings before treating the package as classroom-ready.',
+        'Spot-check repaired course-map fields plus institution-specific facts before handoff.',
       );
-      expect(result.findings.some((finding) => /repeats the same boilerplate/.test(finding.message))).toBe(true);
+      expect(result.findings.some((finding) => /repeats the same boilerplate/.test(finding.message))).toBe(false);
 
       const payload = await buildHybridPipelineAudit({
         runtime,
@@ -181,7 +184,7 @@ describe('hybrid pipeline audit', () => {
 
       expect(payload.summary.stressCaseCount).toBe(6);
       expect(markdown).toContain('## Stress Case Matrix');
-      expect(markdown).toContain('| messy-import-stress | 5 | warnings |');
+      expect(markdown).toContain('| messy-import-stress | 5 | pass |');
       expect(markdown).toContain('| messy-import-stress | 8 | warnings |');
       expect(markdown).toContain('| messy-import-stress | 14 | warnings |');
       expect(markdown).toContain('Messy imported clinical studio map');
