@@ -120,9 +120,18 @@ describe('iteration 16a — operationalization bridges economics and biology', (
 });
 
 describe('iteration 16b — the alias-collision lint (foundry guardrail)', () => {
-  it('reports the live genome as free of full-containment cross-discipline collisions', () => {
+  it('reports the live genome as free of UNINTENDED cross-discipline collisions', () => {
     const { kernels } = loadShardKernels();
-    expect(findAliasCollisions(kernels)).toEqual([]);
+    // v0.13.5: the nursing shard (OpenStax A&P 2e) and the biology shard both
+    // legitimately carry the SAME concept — homeostasis / negative feedback —
+    // anchored to their own discipline's textbook. That is real shared
+    // knowledge, not the generic-vocabulary contamination this lint guards
+    // against (iter 15's "p-value" ⊆ "percent daily value", caught and fixed
+    // before shipping). Whitelist that one same-concept pair; any NEW
+    // collision still fails the test.
+    const ALLOWED = new Set(['bio/homeostasis<->nursing/homeostasis', 'nursing/homeostasis<->bio/homeostasis']);
+    const unexpected = findAliasCollisions(kernels).filter((c) => !ALLOWED.has(`${c.of}<->${c.containedIn}`));
+    expect(unexpected).toEqual([]);
   });
 
   it('flags a cross-discipline surface whose tokens are fully contained in another', () => {

@@ -83,10 +83,19 @@ export function attachEnrichmentToGraph(graph, enrichment) {
   return graph;
 }
 
+// Origins minted by the knowledge backbone (v0.13.5). Cell-parsed
+// 'syllabus'-origin resources are NOT included: they already render in
+// supportingResources, and passing them would make the graph path diverge
+// from the map path (golden equivalence).
+const KNOWLEDGE_BACKBONE_ORIGINS = new Set(['genome', 'openalex', 'openlibrary']);
+
 /** Compile a course blueprint from the graph (render + enrichment overlay). */
 export function buildBlueprintFromGraph(graph, options = {}) {
   const courseMap = renderCourseMapFromGraph(graph);
   const graphEnrichment = enrichmentFromGraph(graph);
+  const knowledgeResources = (graph?.resources || []).filter((resource) =>
+    KNOWLEDGE_BACKBONE_ORIGINS.has(resource?.origin),
+  );
   const enrichment =
     options.enrichment && typeof options.enrichment === 'object'
       ? { ...graphEnrichment, ...options.enrichment }
@@ -94,5 +103,9 @@ export function buildBlueprintFromGraph(graph, options = {}) {
   return buildCourseBlueprint(courseMap, {
     ...options,
     ...(enrichment ? { enrichment } : {}),
+    // v0.13.5: Resource entities (genome anchor sections, open readings,
+    // book metadata) ride into the blueprint for the syllabus appendix and
+    // required texts. Explicit options win.
+    ...(knowledgeResources.length > 0 && !options.knowledgeResources ? { knowledgeResources } : {}),
   });
 }

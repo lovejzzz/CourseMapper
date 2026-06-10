@@ -65,7 +65,10 @@ function fixtureCourseMap({ courseName, topics }) {
 
 // Every entry mirrors a defect class shipped in the v0.12 production audit.
 const ARTIFACT_PATTERNS = [
-  [/\b[A-Z]\. [A-Z]\. /, 'doubled option letters "A. A."'],
+  // Same letter twice ("A. A. Option"), not preceded by an author-list comma —
+  // v0.13.5's cited references legitimately print APA initials ("H. L.",
+  // "Adesope, O. O.") which the original any-two-initials pattern flagged.
+  [/(?<!, )\b([A-Z])\. \1\. /, 'doubled option letters "A. A."'],
   [/\bits the /i, 'slot grammar "its the"'],
   [/\bname one the /i, '"name one the Week N quiz"'],
   [/[a-z]\.\.(?!\.)/, 'double period'],

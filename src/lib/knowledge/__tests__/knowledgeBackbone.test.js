@@ -1,0 +1,316 @@
+/**
+ * v0.13.5 Open Knowledge Backbone — provider layer, reading-list engine,
+ * pedagogy evidence, and compiler integration. All network is mocked:
+ * recorded-fixture responses only, and the deterministic paths are proven
+ * to make ZERO fetch calls.
+ */
+import { describe, it, expect, beforeEach, afterEach, vi } from 'vitest';
+import { searchScholarlyReadings, searchEducationResearch, searchBookMetadata, isoWeekStamp } from '../providers.js';
+import { attachGenomeResources, attachOpenReadings, knowledgeCoverage } from '../readingListEngine.js';
+import { PEDAGOGY_EVIDENCE, evidenceForMove, buildMethodsStatement } from '../pedagogyEvidence.js';
+import { whyThisWorksNote } from '../pedagogyEvidence.js';
+import { createEmptyCourseGraph } from '../../courseGraph/schema.js';
+import { renderCourseMapFromGraph } from '../../courseGraph/renderCourseMap.js';
+import { buildBlueprintFromGraph } from '../../courseGraph/blueprintFromGraph.js';
+import { compileBlueprintDeliverables } from '../../courseBlueprintCompiler.js';
+
+// ── Recorded fixtures (shape-accurate slices of real API responses) ──
+
+const OPENALEX_FIXTURE = {
+  results: [
+    {
+      id: 'https://openalex.org/W2128635872',
+      display_name: 'Test-enhanced learning in the classroom',
+      authorships: [{ author: { display_name: 'Henry L. Roediger' } }, { author: { display_name: 'Jane Doe' } }],
+      publication_year: 2006,
+      cited_by_count: 4521,
+      doi: 'https://doi.org/10.1111/j.1467-9280.2006.01693.x',
+      primary_location: { license: 'cc-by' },
+      open_access: { oa_url: 'https://example.org/oa.pdf' },
+      abstract_inverted_index: { Testing: [0], improves: [1], retention: [2] },
+    },
+  ],
+};
+
+const ERIC_FIXTURE = {
+  response: {
+    docs: [
+      {
+        id: 'EJ1234567',
+        title: 'Retrieval Practice in College Classrooms',
+        author: ['Smith, A.', 'Jones, B.'],
+        publicationdateyear: '2019',
+        description: 'A study of retrieval practice.',
+        peerreviewed: 'T',
+        url: 'https://eric.ed.gov/?id=EJ1234567',
+      },
+    ],
+  },
+};
+
+const OPENLIBRARY_FIXTURE = {
+  docs: [
+    {
+      title: 'Astronomy',
+      author_name: ['Andrew Fraknoi', 'David Morrison'],
+      first_publish_year: 2016,
+      publisher: ['OpenStax'],
+      isbn: ['9781938168284'],
+      key: '/works/OL17317183W',
+    },
+  ],
+};
+
+function localStorageStub() {
+  const store = new Map();
+  return {
+    getItem: (key) => (store.has(key) ? store.get(key) : null),
+    setItem: (key, value) => store.set(key, String(value)),
+    removeItem: (key) => store.delete(key),
+    clear: () => store.clear(),
+  };
+}
+
+beforeEach(() => {
+  vi.stubGlobal('localStorage', localStorageStub());
+});
+afterEach(() => {
+  vi.unstubAllGlobals();
+  vi.restoreAllMocks();
+});
+
+describe('knowledge providers (P0)', () => {
+  it('parses OpenAlex works with license/attribution/url on every result', async () => {
+    vi.stubGlobal('fetch', vi.fn().mockResolvedValue({ ok: true, json: async () => OPENALEX_FIXTURE }));
+    const works = await searchScholarlyReadings('retrieval practice');
+    expect(works).toHaveLength(1);
+    expect(works[0].title).toBe('Test-enhanced learning in the classroom');
+    expect(works[0].url).toBe('https://example.org/oa.pdf');
+    expect(works[0].license).toBe('cc-by');
+    expect(works[0].attribution).toContain('OpenAlex');
+    expect(works[0].abstract).toContain('Testing improves retention');
+    // Polite pool + retraction filter are part of the contract.
+    const url = fetch.mock.calls[0][0];
+    expect(url).toContain('mailto=');
+    expect(url).toContain('is_retracted:false');
+  });
+
+  it('parses ERIC docs and degrades to [] on HTTP failure', async () => {
+    vi.stubGlobal('fetch', vi.fn().mockResolvedValue({ ok: true, json: async () => ERIC_FIXTURE }));
+    const docs = await searchEducationResearch('retrieval practice');
+    expect(docs[0].ericId).toBe('EJ1234567');
+    expect(docs[0].peerReviewed).toBe(true);
+    expect(docs[0].license).toBeTruthy();
+
+    vi.stubGlobal('fetch', vi.fn().mockResolvedValue({ ok: false, status: 500 }));
+    expect(await searchEducationResearch('anything else')).toEqual([]);
+  });
+
+  it('parses Open Library books and degrades to [] on network error', async () => {
+    vi.stubGlobal('fetch', vi.fn().mockResolvedValue({ ok: true, json: async () => OPENLIBRARY_FIXTURE }));
+    const books = await searchBookMetadata('astronomy');
+    expect(books[0].isbn).toBe('9781938168284');
+    expect(books[0].url).toBe('https://openlibrary.org/works/OL17317183W');
+
+    vi.stubGlobal('fetch', vi.fn().mockRejectedValue(new Error('offline')));
+    expect(await searchBookMetadata('astronomy offline')).toEqual([]);
+  });
+
+  it('caches by query + ISO week: the second identical call makes no fetch', async () => {
+    const fetchMock = vi.fn().mockResolvedValue({ ok: true, json: async () => OPENALEX_FIXTURE });
+    vi.stubGlobal('fetch', fetchMock);
+    await searchScholarlyReadings('kepler laws');
+    await searchScholarlyReadings('kepler laws');
+    expect(fetchMock).toHaveBeenCalledTimes(1);
+  });
+
+  it('isoWeekStamp is stable within a week and ISO-8601 correct', () => {
+    // Local-time constructors — string dates parse as UTC midnight and
+    // shift a day in negative-offset timezones.
+    expect(isoWeekStamp(new Date(2026, 0, 1, 12))).toBe('2026-W01');
+    expect(isoWeekStamp(new Date(2026, 5, 10, 12))).toBe(isoWeekStamp(new Date(2026, 5, 9, 12)));
+  });
+});
+
+// ── Reading-list engine fixtures ──
+
+function genomeLinkedGraph() {
+  const graph = createEmptyCourseGraph({ courseName: 'Introduction to Astronomy' });
+  graph.sessions = [
+    { id: 's1', number: 1, title: 'Lesson 1: The Night Sky', sections: [{ topic: '1.1: Celestial sphere' }] },
+    { id: 's2', number: 2, title: 'Lesson 2: Orbits', sections: [{ topic: '2.1: Kepler' }] },
+  ];
+  graph.concepts = [
+    { id: 'c1', term: 'celestial sphere' },
+    { id: 'c2', term: 'Kepler’s laws' },
+  ];
+  graph.edges.teaches = [
+    { from: 's1', to: 'c1' },
+    { from: 's2', to: 'c2' },
+  ];
+  graph.enrichmentOverlay = {
+    lessonContent: {
+      'lesson-1': {
+        keyTerms: [
+          { term: 'celestial sphere', definition: 'an imaginary sphere', source: 'OpenStax astronomy 2e §2.1' },
+        ],
+        conceptProvenance: { source: 'genome-linked', citations: ['OpenStax astronomy 2e §2.1'] },
+      },
+      'lesson-2': {
+        keyTerms: [
+          { term: 'Kepler’s laws', definition: 'planetary motion laws', source: 'OpenStax astronomy 2e §3.1' },
+        ],
+        conceptProvenance: { source: 'genome-linked', citations: ['OpenStax astronomy 2e §3.1'] },
+      },
+    },
+  };
+  return graph;
+}
+
+describe('reading-list engine (P2)', () => {
+  it('attaches genome anchor sections as Resource entities with NO network', () => {
+    const fetchMock = vi.fn();
+    vi.stubGlobal('fetch', fetchMock);
+    const graph = genomeLinkedGraph();
+    const attached = attachGenomeResources(graph);
+    expect(attached).toBe(2);
+    expect(fetchMock).not.toHaveBeenCalled();
+    expect(graph.resources).toHaveLength(2);
+    expect(graph.resources[0].origin).toBe('genome');
+    expect(graph.resources[0].license).toBe('CC BY 4.0');
+    expect(graph.resources[0].url).toBe('https://openstax.org/books/astronomy-2e');
+    expect(graph.sessions[0].sections[0].resourceRefs).toEqual([graph.resources[0].id]);
+    // Idempotent: a second pass adds nothing.
+    expect(attachGenomeResources(graph)).toBe(0);
+  });
+
+  it('renders attached resources into supportingResources cells', () => {
+    const graph = genomeLinkedGraph();
+    attachGenomeResources(graph);
+    const map = renderCourseMapFromGraph(graph);
+    expect(map.lessons[0].sections[0].supportingResources).toContain('OpenStax astronomy 2e §2.1');
+    expect(map.lessons[0].sections[0].supportingResources).toContain('CC BY 4.0');
+  });
+
+  it('attaches one open reading per session + course book via injected providers', async () => {
+    const graph = genomeLinkedGraph();
+    const providers = {
+      searchScholarlyReadings: vi.fn(async (query) => [
+        {
+          title: `Open study of ${query}`,
+          authors: 'A. Researcher',
+          year: 2021,
+          url: 'https://doi.org/10.1234/example',
+          license: 'cc-by',
+          attribution: 'OpenAlex (CC0 metadata)',
+        },
+      ]),
+      searchBookMetadata: vi.fn(async () => [
+        {
+          title: 'Astronomy',
+          authors: 'Fraknoi',
+          year: 2016,
+          publisher: 'OpenStax',
+          isbn: '9781938168284',
+          url: 'https://openlibrary.org/works/OL1',
+        },
+      ]),
+    };
+    const attached = await attachOpenReadings(graph, { providers });
+    expect(attached).toBe(3); // 2 lesson readings + 1 book
+    expect(providers.searchScholarlyReadings).toHaveBeenCalledWith('celestial sphere', expect.anything());
+    const openalex = graph.resources.filter((resource) => resource.origin === 'openalex');
+    expect(openalex).toHaveLength(2);
+    const book = graph.resources.find((resource) => resource.origin === 'openlibrary');
+    expect(book.kind).toBe('book');
+    expect(book.citation).toContain('ISBN 9781938168284');
+  });
+
+  it('degrades to zero attachments when providers fail — compile never blocks', async () => {
+    const graph = genomeLinkedGraph();
+    const providers = {
+      searchScholarlyReadings: vi.fn(async () => []),
+      searchBookMetadata: vi.fn(async () => {
+        throw new Error('offline');
+      }),
+    };
+    expect(await attachOpenReadings(graph, { providers })).toBe(0);
+    expect(graph.resources).toHaveLength(0);
+  });
+
+  it('knowledgeCoverage reports the trust-surface numbers', async () => {
+    const graph = genomeLinkedGraph();
+    attachGenomeResources(graph);
+    const coverage = knowledgeCoverage(graph);
+    expect(coverage.sessions).toBe(2);
+    expect(coverage.genomeLinkedLessons).toBe(2);
+    expect(coverage.sessionsWithResources).toBe(2);
+    expect(coverage.openResources).toBe(2);
+    expect(coverage.resourcesByOrigin.genome).toBe(2);
+  });
+});
+
+describe('pedagogy evidence (P3)', () => {
+  it('every curated entry carries 1+ citations with resolvable-format DOIs', () => {
+    expect(PEDAGOGY_EVIDENCE.length).toBeGreaterThanOrEqual(6);
+    for (const entry of PEDAGOGY_EVIDENCE) {
+      expect(entry.citations.length).toBeGreaterThanOrEqual(1);
+      for (const citation of entry.citations) {
+        expect(citation.doi).toMatch(/^10\.\d{4,9}\/\S+$/);
+        expect(citation.authors).toBeTruthy();
+        expect(citation.year).toBeGreaterThan(1950);
+      }
+    }
+  });
+
+  it('whyThisWorksNote and buildMethodsStatement render real citations', () => {
+    const note = whyThisWorksNote('worked-example');
+    expect(note.note).toContain('cognitive load');
+    expect(note.note).toContain('doi:10.1207/s1532690xci0201_3');
+    const statement = buildMethodsStatement(['worked-example', 'retrieval-warmup', 'unknown-move']);
+    expect(statement.methods).toHaveLength(2);
+    expect(statement.methods[0].references[0]).toContain('https://doi.org/');
+    expect(buildMethodsStatement([])).toBeNull();
+    expect(evidenceForMove('peer-discussion').citations.length).toBe(2);
+  });
+});
+
+describe('compiler integration (P2/P3/P4)', () => {
+  function compiledFlagship() {
+    const graph = genomeLinkedGraph();
+    attachGenomeResources(graph);
+    graph.resources.push({
+      id: 'krbook',
+      citation: 'Fraknoi (2016). Astronomy. OpenStax. ISBN 9781938168284. https://openlibrary.org/works/OL1',
+      kind: 'book',
+      sessionRefs: [],
+      origin: 'openlibrary',
+      url: 'https://openlibrary.org/works/OL1',
+      license: 'Open Library public metadata',
+      attribution: 'Open Library, Internet Archive',
+    });
+    const blueprint = buildBlueprintFromGraph(graph);
+    return compileBlueprintDeliverables(blueprint, ['syllabus', 'lessonPlans']);
+  }
+
+  it('syllabus ships a Methods Statement, Sources & Licenses, and real required texts', () => {
+    const { syllabus } = compiledFlagship();
+    const syl = syllabus.syllabus;
+    expect(syl.methodsStatement.methods.length).toBeGreaterThanOrEqual(2);
+    expect(JSON.stringify(syl.methodsStatement)).toContain('https://doi.org/');
+    const appendix = syl.sourcesAndLicenses;
+    expect(appendix.groups.some((group) => group.origin === 'genome')).toBe(true);
+    expect(JSON.stringify(appendix)).toContain('CC BY 4.0');
+    // The placeholder reading packet is gone when open texts exist.
+    expect(JSON.stringify(syl.requiredTexts)).not.toContain('Instructor-provided course reading packet');
+    expect(syl.requiredTexts.some((text) => /OpenStax astronomy 2e/i.test(text.title))).toBe(true);
+  });
+
+  it('every lesson plan carries cited "why this works" evidence notes', () => {
+    const { lessonPlans } = compiledFlagship();
+    for (const plan of lessonPlans.lessonPlans) {
+      expect(plan.evidenceBase.length).toBeGreaterThanOrEqual(2);
+      expect(plan.evidenceBase.every((entry) => /doi:10\./.test(entry.note))).toBe(true);
+    }
+  });
+});

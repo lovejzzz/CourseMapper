@@ -8,12 +8,12 @@
  * the three screen footers, and the Changelog entry.
  */
 export const LATEST_RELEASE = {
-  version: '0.13.3',
+  version: '0.13.5',
   date: 'June 10, 2026',
-  title: 'Cited, Quantitative, and Teachable: the Educational Quality Release',
+  title: 'The Open Knowledge Backbone: Receipts for Every Course',
   highlights: [
-    'New astronomy genome shard: 12 OpenStax-cited concepts with quote-verified anchors — astronomy courses now compile with real sources at zero AI cost',
-    'Worked examples (Kepler, parallax, magnitudes, Hubble) bought once and rendered step-by-step in lesson plans and study guides; misconception corrections are real correctives now',
-    'Lesson plans teach the content: misconception-poll warm-ups, board-worked examples, kernel scenarios — plus a concrete night-sky observing protocol for observation courses',
+    'Three new genome shards — Psychology 2e, Anatomy & Physiology + Microbiology (nursing), Human Nutrition (UH OER) — 86 quote-verified concepts back courses with real OpenStax/OER citations at zero AI cost',
+    'Reading lists in every genome-linked lesson: the anchor textbook section, an open-access reading (OpenAlex), and book metadata (Open Library) — placeholder citations retired as a class',
+    'Teaching moves cite their science: DOI-cited "why this works" notes in lesson plans, an accreditor-ready Methods Statement and generated Sources & Licenses appendix in the syllabus, link-checked by npm run knowledge:audit',
   ],
 };

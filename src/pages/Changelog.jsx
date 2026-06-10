@@ -3,6 +3,31 @@ import Header from '../components/Header';
 
 const releases = [
   {
+    version: '0.13.5',
+    date: 'June 10, 2026',
+    title: 'The Open Knowledge Backbone: Receipts for Every Course',
+    highlights: [
+      'Three flagship genome shards join astronomy: Psychology 2e (12 concepts for ed-psych courses), Anatomy & Physiology 2e + Microbiology (13 nursing concepts, cardiac output worked example included), and the University of Hawai‘i Human Nutrition OER (12 concepts with kcal-computation and label-reading worked examples) — the genome now spans 10 disciplines and 86 quote-verified concepts, so the four subjects from the v0.12 audit all compile with real citations at zero AI cost',
+      'The reading-list engine retires placeholder citations as a class: every genome-linked lesson gets its anchor textbook section (with license and URL) as a Resource entity in the Course Graph, plus an open-access peer-reviewed reading (OpenAlex) and course book metadata (Open Library) fetched keylessly, cached weekly, and degrading to nothing offline — the deterministic compile never blocks on the network',
+      'Required Texts names the actual open textbook instead of "Instructor-provided course reading packet", and lesson materials cite real sections instead of "Instructor-provided course materials and notes"',
+      'Teaching moves cite their science: every lesson plan carries "why this works" notes with real DOIs (worked-example effect, testing effect, conceptual change, peer instruction, concept mapping), and the syllabus gains an accreditor-ready Evidence-Based Course Design statement plus a generated Sources & Licenses appendix — CC BY compliance produced, not hoped for',
+      'The trust surface shows coverage: a "cited sources" chip in the workspace strip, genome-linked and resource counts in the run digest and PACKAGE_MANIFEST.json',
+      'The foundry goes industrial: ingestOpenStax.mjs captures checksummed section snapshots, proposeKernels.mjs lets a build-time model propose kernels that the mechanical quote gate disposes (dry-run tested, key-gated), and npm run knowledge:audit link-checks every shard source book and every pedagogy DOI against OpenAlex — including retraction status',
+    ],
+    sections: [
+      {
+        label: 'Proof',
+        icon: 'QA',
+        color: 'emerald',
+        items: [
+          'tests/knowledge-backbone-proof.test.js compiles the four v0.12-audit flagship courses (astronomy, nutrition, nursing, ed-psych) before and after the backbone with zero network: 44/44 lessons genome-linked (target was 60%), cited key terms 0 → 62, 99 open resources attached, placeholder citations 48 → 0.',
+          'npm run knowledge:audit live: every shard source book resolves, all 10 pedagogy DOIs found in OpenAlex, zero retractions. The audit caught and fixed two real dead links (OpenStax econ book slugs) on its first run.',
+          'All 37 new kernels passed the mechanical quote-verification gate (12/12 psychology, 12/12 nutrition, 13/13 nursing); cross-discipline alias lint caught and fixed a real "percent daily value" ⊆ "p-value" collision before it shipped.',
+        ],
+      },
+    ],
+  },
+  {
     version: '0.13.3',
     date: 'June 10, 2026',
     title: 'Cited, Quantitative, and Teachable: the Educational Quality Release',

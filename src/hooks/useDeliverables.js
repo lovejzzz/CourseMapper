@@ -1396,8 +1396,43 @@ export default function useDeliverables({
           courseGraphLib.deriveCourseGraphFromCourseMap(blueprintCourseMap),
           blueprintEnrichment,
         );
+        // v0.13.5 P2: the Open Knowledge Backbone — genome anchor sections
+        // become cited Resource entities (free, offline), then open
+        // peer-reviewed readings and book metadata attach when the network
+        // allows (cached weekly, degrades to nothing, never blocks).
+        let genomeResourceCount = 0;
+        let openReadingCount = 0;
+        try {
+          const knowledge = await import('../lib/knowledge');
+          genomeResourceCount = knowledge.attachGenomeResources(courseGraph);
+          openReadingCount = await knowledge.attachOpenReadings(courseGraph);
+          const coverage = knowledge.knowledgeCoverage(courseGraph);
+          if (coverage && genomeResourceCount + openReadingCount > 0) {
+            appendLog(
+              `✓ Reading lists attached: ${genomeResourceCount} cited textbook section${genomeResourceCount === 1 ? '' : 's'} + ${openReadingCount} open reading${openReadingCount === 1 ? '' : 's'} across ${coverage.sessionsWithResources} lesson${coverage.sessionsWithResources === 1 ? '' : 's'}`,
+              'done',
+            );
+            recordGenerationApiCallEvent({
+              type: 'pipelineDecision',
+              stage: 'knowledgeBackbone',
+              label: 'Knowledge backbone',
+              detail: `${coverage.genomeLinkedLessons}/${coverage.sessions} lessons genome-linked · ${coverage.openResources} open resources (${Object.entries(
+                coverage.resourcesByOrigin,
+              )
+                .map(([origin, count]) => `${origin}: ${count}`)
+                .join(', ')})`,
+            });
+          }
+        } catch {
+          /* the knowledge backbone is additive — generation never fails on it */
+        }
         if (typeof onCourseGraph === 'function') {
           onCourseGraph(courseGraph, { source: 'generation' });
+        }
+        if (genomeResourceCount + openReadingCount > 0 && typeof onCourseMapRepair === 'function') {
+          // Push the resource-bearing render so the visible map (and any
+          // later graph re-derivation) keeps the attached readings.
+          onCourseMapRepair(courseGraphLib.renderCourseMapFromGraph(courseGraph), { source: 'knowledgeBackbone' });
         }
         const graphStats = courseGraphLib.courseGraphStats(courseGraph);
         const alignmentFindings = courseGraphLib.lintCourseGraphAlignment(courseGraph);

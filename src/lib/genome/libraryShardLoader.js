@@ -167,7 +167,10 @@ export function inferCourseDisciplines(courseMap) {
     ['econ', /\beconom|microecon|macroecon|market|supply|demand|inflation|wage|monetary|fiscal/],
     // v0.13.3: the astronomy shard (OpenStax Astronomy 2e foundry run).
     ['astro', /\bastronom|night sky|celestial|planetar|telescope|stargaz|cosmolog|galax|solar system/],
-    ['psych', /\bpsycholog|cognition|behavior|neuroscience/],
+    ['psych', /\bpsycholog|cognition|behavior|neuroscience|educational psych|learning theor|child development/],
+    // v0.13.5: nursing (A&P 2e + Microbiology) and nutrition (UH OER) shards.
+    ['nursing', /\bnursing|patient care|clinical|vital signs|infection control|pathophysiolog|microbiolog|immunolog/],
+    ['nutrition', /\bnutrition|dietetic|macronutrient|micronutrient|dietary|food science|\bdiet\b/],
     ['bio', /\bbiolog|cell|genetic|ecolog|evolution|organism|physiolog|anatomy|homeostasis/],
     ['stats', /\bstatistic|probability|regression|inference|data analysis|hypothesis test/],
     ['chem', /\bchemistr|molecul|reaction|stoichiometr|equilibrium/],

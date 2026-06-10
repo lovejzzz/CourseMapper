@@ -71,7 +71,7 @@ function Chip({ tone = 'slate', title, testId, children }) {
   );
 }
 
-export default function PackageTrustStrip({ deliverables, selectedFeatures, packageQualityPass }) {
+export default function PackageTrustStrip({ deliverables, selectedFeatures, packageQualityPass, knowledgeCoverage }) {
   const trust = summarizePackageTrust({ deliverables, selectedFeatures, packageQualityPass });
   if (trust.done === 0 && trust.failed === 0) return null;
 
@@ -81,6 +81,15 @@ export default function PackageTrustStrip({ deliverables, selectedFeatures, pack
       className="inline-flex min-w-0 flex-wrap items-center gap-1.5"
       aria-label="Package trust summary"
     >
+      {(knowledgeCoverage?.openResources || 0) > 0 && (
+        <Chip
+          tone="emerald"
+          testId="trust-chip-cited"
+          title={`${knowledgeCoverage.genomeLinkedLessons}/${knowledgeCoverage.sessions} lessons genome-linked · ${knowledgeCoverage.sessionsWithResources} lessons with attached open readings — every source carries a license and attribution`}
+        >
+          {knowledgeCoverage.openResources} cited sources
+        </Chip>
+      )}
       {trust.compiled > 0 && (
         <Chip
           tone="emerald"

@@ -115,6 +115,7 @@ function pipelineLines(pipeline = {}) {
     enrichmentModelStage: 'enrichment (model)',
     planHealth: 'plan health',
     courseGraph: 'course graph',
+    knowledgeBackbone: 'knowledge backbone',
   };
   return Object.entries(pipeline).map(([stage, detail]) => `  ${labels[stage] || stage}: ${detail}`);
 }

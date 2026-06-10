@@ -74,11 +74,17 @@ describe('iteration 5a — the flagship cross-department equilibrium bridge', ()
       itemPlan: buildQuizItemPlan(6),
     });
     expect(linked.telemetry.resolvedFromGenome).toBe(2);
-    const equilibriumBridge = linked.bridges.find((b) => b.archetype === 'structure/equilibrium');
+    // v0.13.5: the genome grew to 10 disciplines, so the full library now
+    // holds other equilibrium instances (e.g. nursing fluid balance). The
+    // bridge MECHANISM is unchanged — assert the targeted econ↔chem bridge
+    // is among the rendered bridges (in production inferCourseDisciplines
+    // would not even load the nursing shard for this course).
+    const equilibriumBridge = linked.bridges.find(
+      (b) =>
+        b.archetype === 'structure/equilibrium' &&
+        [b.fromConcept.id, b.toConcept.id].sort().join() === 'chem/chemical-equilibrium,econ/market-equilibrium',
+    );
     expect(equilibriumBridge).toBeTruthy();
-    // The bridge connects econ → chem (or chem → econ by lesson order).
-    const ids = [equilibriumBridge.fromConcept.id, equilibriumBridge.toConcept.id].sort();
-    expect(ids).toEqual(['chem/chemical-equilibrium', 'econ/market-equilibrium']);
     // The note maps one discipline's slot onto the other's — true transfer.
     expect(equilibriumBridge.note).toContain('↔');
     expect(equilibriumBridge.note.toLowerCase()).toContain('equilibrium');
@@ -109,7 +115,10 @@ describe('iteration 5a — the flagship cross-department equilibrium bridge', ()
     });
     const finding = linked.structureFindings.find((f) => f.archetype === 'structure/equilibrium');
     expect(finding).toBeTruthy();
-    expect(finding.conceptIds.sort()).toEqual(['chem/chemical-equilibrium', 'econ/market-equilibrium']);
+    // The targeted pair is reported (the full library may add more valid
+    // equilibrium instances — v0.13.5's 10-discipline genome).
+    expect(finding.conceptIds).toContain('chem/chemical-equilibrium');
+    expect(finding.conceptIds).toContain('econ/market-equilibrium');
   });
 });
 

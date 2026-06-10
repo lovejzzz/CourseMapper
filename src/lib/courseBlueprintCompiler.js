@@ -3,6 +3,7 @@ import { finalizeCompiledDeliverableLanguage } from './compiledLanguageFinalizer
 import { getChunkCount } from './parallelGenerator';
 import { getCustomDeliverable } from './customDeliverableLibrary';
 import { buildObservationProtocol } from './observationProtocols';
+import { whyThisWorksNote, buildMethodsStatement } from './knowledge/pedagogyEvidence';
 import {
   describeInstructorPreferenceForFeature,
   normalizeInstructorPreferenceProfile,
@@ -10541,6 +10542,12 @@ export function compactBlueprintForStorage(blueprint = {}) {
   if (blueprint.instructorPreferenceProfile) {
     compact.instructorPreferenceProfile = clonePlain(blueprint.instructorPreferenceProfile);
   }
+  // v0.13.5: knowledge resources stay ENUMERABLE (hydrated fields are dropped
+  // by deriveBlueprintForCompiler's spread) and persist with the project —
+  // citations are small and exports must survive restore.
+  if (Array.isArray(blueprint.knowledgeResources) && blueprint.knowledgeResources.length > 0) {
+    compact.knowledgeResources = clonePlain(blueprint.knowledgeResources);
+  }
   return attachHydratedFields(compact, blueprint, TOP_LEVEL_HYDRATED_BLUEPRINT_KEYS);
 }
 
@@ -12095,6 +12102,18 @@ export function buildCourseBlueprint(courseMap, options = {}) {
     packageCoherenceMatrix,
     blueprintReviewSurface,
     qualitySignals: buildBlueprintQualitySignals(lessons),
+    ...(Array.isArray(options.knowledgeResources) && options.knowledgeResources.length > 0
+      ? {
+          knowledgeResources: options.knowledgeResources.map((resource) => ({
+            citation: cleanText(resource?.citation),
+            kind: cleanText(resource?.kind),
+            origin: cleanText(resource?.origin),
+            url: cleanText(resource?.url),
+            license: cleanText(resource?.license),
+            attribution: cleanText(resource?.attribution),
+          })),
+        }
+      : {}),
     ...(localization && Object.keys(localization).length > 0 ? { localization } : {}),
     policies: {
       lateWork:
@@ -12516,6 +12535,126 @@ function compileStructuredCustomDeliverable(featureId, blueprint, options = {}) 
   };
 }
 
+// v0.13.5 P3: which evidence-cited teaching moves does this course's compiled
+// package actually use? Derived from lesson data, never asserted blindly —
+// the methods statement only claims moves the deliverables contain.
+function collectCourseTeachingMoves(blueprint) {
+  const moves = new Set(['retrieval-warmup', 'peer-discussion']);
+  for (const lesson of blueprint.lessons || []) {
+    const kernelPayload = lesson.enrichment || null;
+    const hasMisconception =
+      (kernelPayload?.keyTerms || []).some((term) => term.misconception) ||
+      (Array.isArray(lesson.misconceptionMap) && lesson.misconceptionMap.length > 0);
+    if (hasMisconception) moves.add('misconception-poll');
+    if (kernelPayload?.workedExample) moves.add('worked-example');
+    if ((kernelPayload?.keyTerms || []).length >= 3) moves.add('concept-map');
+  }
+  return [...moves];
+}
+
+// v0.13.5 P3: one "why this works" note per teaching move present in THIS
+// lesson — real citations from the curated evidence base. Each note is
+// anchored to the lesson's concept (boilerplate-gate rule: course-wide
+// statements need per-lesson anchors or readiness flags them as template
+// sludge).
+function buildLessonEvidenceBase(lesson) {
+  const kernelPayload = lesson.enrichment || null;
+  const concept = lesson.keyConcepts?.[0] || stripLessonPrefix(lesson.title || '') || 'the lesson focus';
+  const hasMisconception =
+    (kernelPayload?.keyTerms || []).some((term) => term.misconception) ||
+    (Array.isArray(lesson.misconceptionMap) && lesson.misconceptionMap.length > 0);
+  const moves = [hasMisconception ? 'misconception-poll' : 'retrieval-warmup', 'peer-discussion'];
+  if (kernelPayload?.workedExample) moves.push('worked-example');
+  if ((kernelPayload?.keyTerms || []).length >= 3) moves.push('concept-map');
+  return moves.map((move) => whyThisWorksNote(move, { anchor: concept })).filter(Boolean);
+}
+
+const KNOWLEDGE_ORIGIN_LABELS = {
+  genome: 'Open textbook sections (quote-anchored in the curriculum library)',
+  openalex: 'Peer-reviewed readings (open access)',
+  openlibrary: 'Books and reference texts',
+  syllabus: 'Instructor-listed materials',
+};
+
+// v0.13.5 P4: the Sources & Licenses appendix — CC-BY compliance generated,
+// not hoped for. Renders in the syllabus DOCX and the package.
+function buildSourcesAndLicenses(blueprint) {
+  const resources = Array.isArray(blueprint.knowledgeResources) ? blueprint.knowledgeResources : [];
+  if (resources.length === 0) return null;
+  const groups = [];
+  const grouped = new Set();
+  for (const [origin, label] of Object.entries(KNOWLEDGE_ORIGIN_LABELS)) {
+    const entries = resources.filter((resource) => resource.origin === origin);
+    if (entries.length === 0) continue;
+    entries.forEach((resource) => grouped.add(resource));
+    groups.push({
+      origin,
+      label,
+      entries: entries.map((resource) => ({
+        citation: resource.citation,
+        license: resource.license,
+        attribution: resource.attribution,
+        url: resource.url,
+      })),
+    });
+  }
+  const other = resources.filter((resource) => !grouped.has(resource));
+  if (other.length > 0) {
+    groups.push({
+      origin: 'other',
+      label: 'Other course resources',
+      entries: other.map((resource) => ({
+        citation: resource.citation,
+        license: resource.license,
+        attribution: resource.attribution,
+        url: resource.url,
+      })),
+    });
+  }
+  return {
+    title: 'Sources & Licenses',
+    note: 'Open educational resources used in this course package, with their licenses and attribution. Attribution must remain with redistributed materials for CC BY sources.',
+    groups,
+  };
+}
+
+// v0.13.5 P2: real required texts from knowledge resources — the open
+// textbook(s) the genome anchors quote, plus Open Library book metadata —
+// replacing the "Instructor-provided course reading packet" placeholder.
+function buildRequiredTextsFromKnowledge(blueprint) {
+  const resources = Array.isArray(blueprint.knowledgeResources) ? blueprint.knowledgeResources : [];
+  const texts = [];
+  const seen = new Set();
+  for (const resource of resources) {
+    if (resource.origin === 'genome') {
+      // Collapse section-level citations ("OpenStax astronomy 2e §2.1 …")
+      // to one book-level required text.
+      const book = cleanText(resource.citation.replace(/\s*§.*$/, '').replace(/\s*\(open textbook.*$/i, ''));
+      if (!book || seen.has(book.toLowerCase())) continue;
+      seen.add(book.toLowerCase());
+      texts.push({
+        title: book,
+        author: resource.attribution || 'Open textbook authors',
+        edition: '',
+        isbn: '',
+        note: `Open textbook (${resource.license})${resource.url ? ` — ${resource.url}` : ''}. Free to read and redistribute with attribution.`,
+      });
+    } else if (resource.kind === 'book') {
+      const book = cleanText(resource.citation);
+      if (!book || seen.has(book.toLowerCase())) continue;
+      seen.add(book.toLowerCase());
+      texts.push({
+        title: book,
+        author: resource.attribution || '',
+        edition: '',
+        isbn: '',
+        note: `Reference text (metadata via ${resource.attribution || 'Open Library'}). Confirm the edition with the instructor.`,
+      });
+    }
+  }
+  return texts;
+}
+
 function compileSyllabus(blueprint) {
   const instructorPreferenceReceipt = preferenceReceipt(blueprintPreferenceProfile(blueprint));
   const compilerProofBundle = blueprint.compilerProofBundle || buildCompilerProofBundle(blueprint);
@@ -12743,15 +12882,18 @@ function compileSyllabus(blueprint) {
           blueprint.lessons.find((lesson) => lesson.lessonNumber === row.lessonNumber) || {},
         ),
       })),
-      requiredTexts: [
-        {
-          title: 'Instructor-provided course reading packet',
-          author: 'Course instructor',
-          edition: '',
-          isbn: '',
-          note: 'Required course materials are distributed through the official course site or assigned in class.',
-        },
-      ],
+      requiredTexts:
+        buildRequiredTextsFromKnowledge(blueprint).length > 0
+          ? buildRequiredTextsFromKnowledge(blueprint)
+          : [
+              {
+                title: 'Instructor-provided course reading packet',
+                author: 'Course instructor',
+                edition: '',
+                isbn: '',
+                note: 'Required course materials are distributed through the official course site or assigned in class.',
+              },
+            ],
       sourceUsePolicy: {
         citationExpectation:
           'Use instructor-provided readings, datasets, cases, slides, activities, and notes. Name the source used when making evidence-based claims.',
@@ -12834,6 +12976,12 @@ function compileSyllabus(blueprint) {
         date: `Week ${assessment.lessonNumbers[0]}`,
         event: assessment.title,
       })),
+      // v0.13.5 P3/P4: the accreditor-facing receipts — evidence-based design
+      // with real citations, and generated license compliance.
+      ...(buildMethodsStatement(collectCourseTeachingMoves(blueprint))
+        ? { methodsStatement: buildMethodsStatement(collectCourseTeachingMoves(blueprint)) }
+        : {}),
+      ...(buildSourcesAndLicenses(blueprint) ? { sourcesAndLicenses: buildSourcesAndLicenses(blueprint) } : {}),
       tags: unique([blueprint.courseName, ...blueprint.courseConcepts, 'assessment alignment', 'student support'], 12),
     },
   };
@@ -15762,6 +15910,9 @@ function compileLessonPlans(blueprint) {
         },
         difficultyProfile: lesson.difficultyProfile,
         instructionalRationale: lesson.instructionalRationale,
+        // v0.13.5 P3: "why this works" — each teaching move in this plan
+        // cites its learning-science research base.
+        evidenceBase: buildLessonEvidenceBase(lesson),
         sourceUsePlan: lesson.sourceUsePlan,
         accessibilityPlan: lesson.accessibilityPlan,
         feedbackCycle: lesson.feedbackCycle,

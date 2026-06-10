@@ -51,8 +51,11 @@ describe('iteration 7 — genome spans 6 disciplines', () => {
     const manifest = JSON.parse(readFileSync(join(process.cwd(), 'public/genome/manifest.json'), 'utf8'));
     expect(manifest.conceptCount).toBeGreaterThanOrEqual(18);
     const disciplines = new Set(manifest.shards.map((s) => s.discipline));
-    // v0.13.3: the astronomy shard (OpenStax Astronomy 2e) joined the genome.
-    expect(disciplines).toEqual(new Set(['astro', 'econ', 'stats', 'bio', 'chem', 'history', 'lit']));
+    // v0.13.3: astronomy joined; v0.13.5: psychology, nursing, and nutrition
+    // (the Open Knowledge Backbone flagship shards) joined.
+    expect(disciplines).toEqual(
+      new Set(['astro', 'econ', 'stats', 'bio', 'chem', 'history', 'lit', 'psych', 'nursing', 'nutrition']),
+    );
   });
 
   it('most genesis concepts carry a verified archetype mapping', () => {
@@ -89,9 +92,16 @@ describe('iteration 7 — three cross-discipline bridge families render', () => 
         ],
       },
     ]);
-    const bridge = linked.bridges.find((b) => b.archetype === 'structure/feedback-loop');
+    // v0.13.5: the nursing shard adds a second homeostasis (its own clinical
+    // anchoring), so the full library now renders extra feedback-loop bridges.
+    // Assert the targeted bio↔econ bridge is among them — the mechanism is
+    // unchanged (production discipline-scoping wouldn't load nursing here).
+    const bridge = linked.bridges.find(
+      (b) =>
+        b.archetype === 'structure/feedback-loop' &&
+        [b.fromConcept.id, b.toConcept.id].sort().join() === 'bio/homeostasis,econ/wage-price-spiral',
+    );
     expect(bridge).toBeTruthy();
-    expect([bridge.fromConcept.id, bridge.toConcept.id].sort()).toEqual(['bio/homeostasis', 'econ/wage-price-spiral']);
     expect(bridge.note).toContain('↔');
   });
 

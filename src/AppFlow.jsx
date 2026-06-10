@@ -109,6 +109,7 @@ import {
   renderCourseMapFromGraph,
   validateCourseGraph,
 } from './lib/courseGraph';
+import { knowledgeCoverage } from './lib/knowledge';
 
 const STORAGE_KEY = 'coursemapper-project';
 const CLOUD_PROJECT_FORMAT = 'coursemapper-blueprint-v1';
@@ -730,6 +731,7 @@ export default function AppFlow({ startupAction = null, onStartupHandled, onRetu
           ? `genome-only (${outcome.enrichedLessons} lesson${outcome.enrichedLessons === 1 ? '' : 's'}); model stage ${outcome.modelStage}`
           : outcome.modelStage;
     const graphStats = courseGraphStats(courseGraphRef.current);
+    const coverage = knowledgeCoverage(courseGraphRef.current);
     return {
       enrichment,
       genomeLinker: budget.pipeline?.genomeLinker || 'not run',
@@ -738,6 +740,17 @@ export default function AppFlow({ startupAction = null, onStartupHandled, onRetu
       ...(graphStats
         ? {
             courseGraph: `${graphStats.sessions} sessions · ${graphStats.concepts} concepts (${graphStats.genomeLinkedConcepts} genome-linked, ${graphStats.authoredConcepts} authored) · ${graphStats.outcomes} outcomes`,
+          }
+        : {}),
+      // v0.13.5 P4: the coverage meter — how much of this package is backed
+      // by cited open knowledge, recorded where reviewers will look.
+      ...(coverage && coverage.openResources > 0
+        ? {
+            knowledgeBackbone: `${coverage.genomeLinkedLessons}/${coverage.sessions} lessons genome-linked · ${coverage.openResources} cited open resources (${Object.entries(
+              coverage.resourcesByOrigin,
+            )
+              .map(([origin, count]) => `${origin}: ${count}`)
+              .join(', ')}) · ${coverage.sessionsWithResources} lessons with readings`,
           }
         : {}),
     };
@@ -796,7 +809,9 @@ export default function AppFlow({ startupAction = null, onStartupHandled, onRetu
         repairedCourseMap,
         meta.source === 'blueprintCompiler'
           ? 'Cleaned course map before compiling deliverables'
-          : 'Cleaned course map readiness fields',
+          : meta.source === 'knowledgeBackbone'
+            ? 'Attached cited readings and open resources'
+            : 'Cleaned course map readiness fields',
       );
     },
     [setCourseMap, version.pushVersion],
@@ -3393,6 +3408,7 @@ export default function AppFlow({ startupAction = null, onStartupHandled, onRetu
                       deliverables={deliv.deliverables}
                       selectedFeatures={selectedFeatures}
                       packageQualityPass={packageQualityPass}
+                      knowledgeCoverage={knowledgeCoverage(courseGraph)}
                     />
                   </div>
                 </div>

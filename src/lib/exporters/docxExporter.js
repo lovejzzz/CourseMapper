@@ -539,6 +539,14 @@ export function _buildDocxContentShared(featureId, data, children, docx) {
             children.push(makeBold('Cloudy Night', p.observationProtocol.cloudyAlternative));
           if (p.observationProtocol.observingBasics) children.push(makeItalic(p.observationProtocol.observingBasics));
         }
+        // v0.13.5 P3: "why this works" — each teaching move in this plan
+        // cites its learning-science research base (real DOIs).
+        if (p.evidenceBase?.length) {
+          children.push(makeSubHeading('Why This Works (Research Base)'));
+          p.evidenceBase.forEach((entry) => {
+            if (entry?.note) children.push(makeBold(entry.label || entry.move, entry.note));
+          });
+        }
         // Formative Assessment — v0.12.1: label/value pairs as a table.
         if (p.formativeCheck) {
           children.push(makeSubHeading('Formative Assessment'));
@@ -1175,6 +1183,31 @@ export function _buildDocxContentShared(featureId, data, children, docx) {
       policySection('Title IX / Non-Discrimination', syl.titleIX);
       policySection('Student Support Services', syl.supportServices);
       policySection('Data Privacy', syl.dataPrivacy);
+      // v0.13.5 P3: the accreditor-facing Methods Statement — the course's
+      // evidence-based design patterns with full peer-reviewed references.
+      if (syl.methodsStatement?.methods?.length) {
+        children.push(new Paragraph({ children: [new PageBreak()] }));
+        children.push(makeHeading(syl.methodsStatement.title || 'Evidence-Based Course Design'));
+        if (syl.methodsStatement.summary) children.push(makeText(syl.methodsStatement.summary));
+        syl.methodsStatement.methods.forEach((method) => {
+          children.push(makeSubHeading(method.label));
+          if (method.claim) children.push(makeText(method.claim));
+          (method.references || []).forEach((reference) => children.push(makeBullet(reference)));
+        });
+      }
+      // v0.13.5 P4: Sources & Licenses appendix — every open resource with
+      // its license and attribution, generated for CC BY compliance.
+      if (syl.sourcesAndLicenses?.groups?.length) {
+        children.push(makeHeading(syl.sourcesAndLicenses.title || 'Sources & Licenses'));
+        if (syl.sourcesAndLicenses.note) children.push(makeText(syl.sourcesAndLicenses.note));
+        syl.sourcesAndLicenses.groups.forEach((group) => {
+          children.push(makeSubHeading(group.label));
+          group.entries.forEach((entry) => {
+            const licenseTail = [entry.license, entry.attribution].filter(Boolean).join(' · ');
+            children.push(makeBullet(`${entry.citation}${licenseTail ? ` — ${licenseTail}` : ''}`));
+          });
+        });
+      }
       if (syl.importantDates?.length) {
         children.push(makeHeading('Important Dates'));
         children.push(

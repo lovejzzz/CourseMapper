@@ -27,7 +27,13 @@ function cleanText(value) {
 
 function citationLabel(anchor) {
   if (!anchor?.src) return '';
-  const src = anchor.src.replace(/^openstax:/, 'OpenStax ').replace(/-/g, ' ');
+  // "openstax:astronomy-2e#2" → "OpenStax astronomy 2e" (+ " §loc").
+  // The #chapter fragment is internal anchor bookkeeping, not citation text.
+  const src = anchor.src
+    .replace(/#.*$/, '')
+    .replace(/^openstax:/, 'OpenStax ')
+    .replace(/^uh-oer:/, 'UH OER ')
+    .replace(/-/g, ' ');
   return anchor.loc ? `${src} §${anchor.loc}` : src;
 }
 

@@ -1,7 +1,7 @@
 {
   "version": "2026-06-10",
   "generator": "curriculumos-foundry-v1",
-  "conceptCount": 49,
+  "conceptCount": 86,
   "shards": [
     {
       "id": "astro-intro",
@@ -50,6 +50,30 @@
       "path": "lit-intro.json",
       "conceptCount": 2,
       "hash": "d45e30dac4023f67"
+    },
+    {
+      "id": "nursing-intro",
+      "discipline": "nursing",
+      "level": "intro",
+      "path": "nursing-intro.json",
+      "conceptCount": 13,
+      "hash": "cdc43f5bb7b3c4c4"
+    },
+    {
+      "id": "nutrition-intro",
+      "discipline": "nutrition",
+      "level": "intro",
+      "path": "nutrition-intro.json",
+      "conceptCount": 12,
+      "hash": "326fff48a17b02f6"
+    },
+    {
+      "id": "psych-intro",
+      "discipline": "psych",
+      "level": "intro",
+      "path": "psych-intro.json",
+      "conceptCount": 12,
+      "hash": "b8c9843886d2c3e5"
     },
     {
       "id": "stats-intro",

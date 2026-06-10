@@ -1,0 +1,1372 @@
+{
+  "_comment": "v0.13.5 nursing/foundations-of-patient-care shard source — OpenStax Anatomy and Physiology 2e and OpenStax Microbiology (both CC BY 4.0). Source snapshots are faithful condensations of the cited sections built around sentences quoted verbatim from each book (fetched June 10, 2026); every anchored quote below appears in its snapshot and was verified against the live text. Attribution: OpenStax Anatomy and Physiology 2e, openstax.org/details/books/anatomy-and-physiology-2e; OpenStax Microbiology, openstax.org/details/books/microbiology.",
+  "sourceSnapshots": {
+    "openstax:anatomy-and-physiology-2e#1": "Maintaining homeostasis requires that the body continuously monitor its internal conditions. A set point is the physiological value around which the normal range fluctuates. A normal range is the restricted set of values that is optimally healthful and stable. Negative feedback is a mechanism that reverses a deviation from the set point. Therefore, negative feedback maintains body parameters within their normal range. A sensor, also referred to a receptor, is a component of a feedback system that monitors a physiological value. The control center is the component in a feedback system that compares the value to the normal range. An effector is the component in a feedback system that causes a change to reverse the situation and return the value to the normal range.",
+    "openstax:anatomy-and-physiology-2e#1b": "Life processes of the human body are maintained at several levels of structural organization. To study the chemical level of organization, scientists consider the simplest building blocks of matter: subatomic particles, atoms, molecules, organelles, cells, tissues, organs, organ systems, organisms and biosphere. A cell is the smallest independently functioning unit of a living organism. A tissue is a group of many similar cells (though sometimes composed of a few related types) that work together to perform a specific function. An organ is an anatomically distinct structure of the body composed of two or more tissue types. An organ system is a group of organs that work together to perform major functions or meet physiological needs of the body.",
+    "openstax:anatomy-and-physiology-2e#18": "Recall that blood is a connective tissue. Like all connective tissues, it is made up of cellular elements and an extracellular matrix. The extracellular matrix, called plasma, makes blood unique among connective tissues because it is fluid. The primary function of blood is to deliver oxygen and nutrients to and remove wastes from body cells. The cellular elements—referred to as the formed elements—include red blood cells (RBCs), white blood cells (WBCs), and cell fragments called platelets. Blood also helps to maintain the chemical balance of the body and helps to regulate the pH of body tissues. Many types of WBCs protect the body from external threats, such as disease-causing bacteria that have entered the bloodstream.",
+    "openstax:anatomy-and-physiology-2e#19c": "The period of time that begins with contraction of the atria and ends with ventricular relaxation is known as the cardiac cycle. The period of contraction that the heart undergoes while it pumps blood into circulation is called systole. The period of relaxation that occurs as the chambers fill with blood is called diastole. Contraction of the atria follows depolarization, represented by the P wave of the ECG. Ventricular systole follows the depolarization of the ventricles and is represented by the QRS complex in the ECG. Ventricular relaxation, or diastole, follows repolarization of the ventricles and is represented by the T wave of the ECG.",
+    "openstax:anatomy-and-physiology-2e#19": "Cardiac output (CO) is a measurement of the amount of blood pumped by each ventricle in one minute. To calculate this value, multiply stroke volume (SV), the amount of blood pumped by each ventricle, by heart rate (HR), in contractions per minute (or beats per minute, bpm). It can be represented mathematically by the following equation: CO = HR × SV. An average resting HR would be approximately 75 bpm but could range from 60–100 in some individuals. A mean SV for a resting 70-kg (150-lb) individual would be approximately 70 mL. Using these numbers, the mean CO is 5.25 L/min, with a range of 4.0–8.0 L/min.",
+    "openstax:anatomy-and-physiology-2e#20": "One form of hydrostatic pressure is blood pressure, the force exerted by blood upon the walls of the blood vessels or the chambers of the heart. The systolic pressure is the higher value (typically around 120 mm Hg) and reflects the arterial pressure resulting from the ejection of blood during ventricular contraction, or systole. The diastolic pressure is the lower value (usually about 80 mm Hg) and represents the arterial pressure of blood during ventricular relaxation, or diastole. Recall that blood moves from higher pressure to lower pressure. Resistance is a force that opposes the flow of a fluid, and there are only three variables: viscosity, vessel length, and radius.",
+    "openstax:anatomy-and-physiology-2e#22": "External respiration is the exchange of gases with the external environment, and occurs in the alveoli of the lungs. Internal respiration is the exchange of gases with the internal environment, and occurs in the tissues. The actual exchange of gases occurs due to simple diffusion. A gas will move from an area where its partial pressure is higher to an area where its partial pressure is lower. In external respiration, oxygen diffuses across the respiratory membrane from the alveolus to the capillary, whereas carbon dioxide diffuses out of the capillary into the alveolus.",
+    "openstax:anatomy-and-physiology-2e#26": "Human beings are mostly water, ranging from about 75 percent of body mass in infants to about 50–60 percent in adults. The intracellular fluid (ICF) compartment is the system that includes all fluid enclosed in cells by their plasma membranes. Extracellular fluid (ECF) surrounds all cells in the body. Often in medicine, a mineral dissociated from a salt that carries an electrical charge (an ion) is called an electrolyte. In the body, water moves by osmosis from plasma to the IF (and the reverse) and from the IF to the ICF (and the reverse).",
+    "openstax:microbiology#17": "Nonspecific innate defenses provide an immediate (or very rapid) response against potential pathogens. They are called innate because they are built-in mechanisms of the human organism. Unlike the specific adaptive defenses, they are not acquired over time and they have no \"memory\" (they do not improve after repeated exposures to specific pathogens). Nonspecific innate immunity can be characterized as a multifaceted system of defenses that targets invading pathogens in a nonspecific manner.",
+    "openstax:microbiology#18": "Adaptive immunity is often called the third line of defense and is the focus of this chapter. Higher animals, such as humans, also possess an adaptive immune defense, which is highly specific for individual microbial pathogens. This specific adaptive immunity is acquired through active infection or vaccination and serves as an important defense against pathogens that evade the defenses of innate immunity. A hallmark of adaptive immunity is the development of memory, allowing for a rapid and robust response upon subsequent exposure to the same pathogen.",
+    "openstax:microbiology#17b": "Acute inflammation is a short-term inflammatory response to an injury or infection. The five cardinal signs of inflammation are erythema (redness), edema (swelling), heat, pain, and altered function. Vasodilation and increased vascular permeability, as a direct result of the release of histamine from resident mast cells, allow plasma to leak from the blood into the tissue. Increased blood flow and vascular permeability can dilute toxins and bacterial products at the site of injury or infection. The increased vascular permeability allows fluid, proteins, phagocytes, and other immune cells to enter infected tissue.",
+    "openstax:microbiology#3": "Most bacterial cells have a cell wall outside the plasma membrane. The major component of bacterial cell walls is called peptidoglycan (or murein); it is only found in bacteria. Gram-positive cells have a cell wall consisting of many layers of peptidoglycan totaling 30–100 nm in thickness. Gram-negative cells have a much thinner layer of peptidoglycan (no more than about 4 nm thick) than gram-positive cells, and the overall structure of their cell envelope is more complex. The Gram staining protocol is used to differentiate two common types of cell wall structures.",
+    "openstax:microbiology#2": "The Gram stain is a differential stain used to classify bacteria as either gram-positive or gram-negative. Cells that have thick peptidoglycan layers in their cell walls are much less affected by the decolorizing agent; they generally retain the crystal violet dye and remain purple. The decolorizing agent more easily washes the dye out of cells with thinner peptidoglycan layers. Finally, a secondary counterstain, usually safranin, is added. This stains the decolorized cells pink and is less noticeable in the cells that still contain the crystal violet dye. The purple, crystal-violet stained cells are referred to as gram-positive cells, while the red, safranin-dyed cells are gram-negative.",
+    "openstax:microbiology#6": "Viruses are acellular, parasitic entities that are not classified within any kingdom. All viruses depend on cells for reproduction and metabolic processes. The five stages of the bacteriophage replication cycle are attachment, penetration, biosynthesis, maturation, and release. Attachment is the first stage in the infection process in which the phage interacts with specific bacterial surface receptors. During biosynthesis, the phage redirects the host's metabolic machinery to make viral components. Mature viruses burst out of the host cell in a process called lysis and the progeny viruses are liberated into the environment to infect new cells.",
+    "openstax:microbiology#14": "Antimicrobial resistance is not a new phenomenon. Antimicrobial resistance is the acquired ability of a microbe to resist the effects of an antimicrobial drug to which it was previously susceptible. Exposure of a pathogen to an antimicrobial compound can select for chromosomal mutations conferring resistance, which can be transferred vertically to subsequent microbial generations. Several important factors can accelerate the evolution of drug resistance. These include the overuse and misuse of antimicrobials, inappropriate use of antimicrobials, subtherapeutic dosing, and patient noncompliance with the recommended course of treatment. Resistance genes may code for enzymes that chemically modify an antimicrobial, thereby inactivating it, or destroy an antimicrobial through hydrolysis.",
+    "openstax:microbiology#16": "For pathogens to persist over long periods of time they require reservoirs where they normally reside. Contact transmission includes direct contact or indirect contact. Person-to-person transmission is a form of direct contact transmission. Indirect contact transmission involves inanimate objects called fomites that become contaminated by pathogens. Diseases can also be transmitted by a mechanical or biological vector, an animal (typically an arthropod) that carries the disease from one host to another. The term vehicle transmission refers to the transmission of pathogens through vehicles such as water, food, and air."
+  },
+  "kernels": [
+    {
+      "id": "nursing/homeostasis",
+      "rev": 1,
+      "term": "Homeostasis and negative feedback",
+      "aliases": ["homeostasis", "stable internal conditions"],
+      "tags": ["physiology", "regulation", "patient assessment"],
+      "level": "intro",
+      "difficulty": 2,
+      "bloomCeiling": "Analyze",
+      "definition": {
+        "text": "Homeostasis is the body's maintenance of stable internal conditions, achieved largely through negative feedback — a mechanism that reverses any deviation from a set point and so keeps physiological values within their normal range.",
+        "anchor": {
+          "src": "openstax:anatomy-and-physiology-2e#1",
+          "loc": "1.5",
+          "quote": "Negative feedback is a mechanism that reverses a deviation from the set point"
+        },
+        "tier": 2
+      },
+      "facts": [
+        {
+          "text": "A set point is the physiological value around which the normal range fluctuates.",
+          "anchor": {
+            "src": "openstax:anatomy-and-physiology-2e#1",
+            "loc": "1.5",
+            "quote": "A set point is the physiological value around which the normal range fluctuates"
+          },
+          "tier": 2
+        },
+        {
+          "text": "Negative feedback keeps body parameters within their normal range.",
+          "anchor": {
+            "src": "openstax:anatomy-and-physiology-2e#1",
+            "loc": "1.5",
+            "quote": "negative feedback maintains body parameters within their normal range"
+          },
+          "tier": 2
+        },
+        {
+          "text": "A feedback loop has three parts: a sensor (receptor) that monitors the value, a control center that compares it to the normal range, and an effector that drives the correcting change.",
+          "anchor": {
+            "src": "openstax:anatomy-and-physiology-2e#1",
+            "loc": "1.5",
+            "quote": "An effector is the component in a feedback system that causes a change to reverse the situation and return the value to the normal range"
+          },
+          "tier": 2
+        }
+      ],
+      "misconceptions": [
+        {
+          "text": "Students assume negative feedback means an effect that is harmful or that shuts a process down.",
+          "corrective": "\"Negative\" describes the direction of the correction, not a bad outcome: the response opposes (reverses) the deviation to restore the set point — fever-breaking sweating and shivering are both negative-feedback responses.",
+          "tier": 1
+        }
+      ],
+      "examples": [
+        {
+          "text": "Body temperature: when blood warms above the set point, the hypothalamus triggers sweating and vasodilation until temperature falls back toward normal.",
+          "domain": "physiology"
+        }
+      ],
+      "mcBank": [
+        {
+          "stem": "In a negative feedback loop, the role of the effector is to",
+          "options": [
+            "produce a change that reverses the deviation",
+            "detect the original change in the value",
+            "store a memory of past deviations",
+            "set a brand-new physiological set point"
+          ],
+          "answerIndex": 0,
+          "explanationFactRef": 2,
+          "rationaleRefs": [0]
+        },
+        {
+          "stem": "Why is the temperature-regulating system described as negative feedback?",
+          "options": [
+            "The response opposes the change and restores the set point",
+            "The response amplifies the original change",
+            "It always lowers body temperature",
+            "It works only when the patient is ill"
+          ],
+          "answerIndex": 0,
+          "explanationFactRef": 1,
+          "rationaleRefs": [0]
+        }
+      ],
+      "edges": {
+        "requires": [],
+        "recommends": ["nursing/blood-pressure", "nursing/fluid-electrolyte-balance"],
+        "instanceOf": [
+          {
+            "archetype": "structure/feedback-loop",
+            "confidence": 0.92,
+            "verified": true,
+            "mapping": {
+              "system": "a regulated physiological variable such as body temperature",
+              "output signal": "the sensed deviation from the set point",
+              "feedback path": "sensor to control center to effector",
+              "effect on input": "the effector reverses the deviation back toward the set point"
+            }
+          }
+        ]
+      },
+      "attribution": ["OpenStax Anatomy and Physiology 2e, §1.5 Homeostasis"]
+    },
+    {
+      "id": "nursing/levels-of-organization",
+      "rev": 1,
+      "term": "Levels of structural organization",
+      "aliases": ["structural organization", "levels of organization", "cells tissues organs", "organ systems"],
+      "tags": ["anatomy", "physiology", "foundations"],
+      "level": "intro",
+      "difficulty": 1,
+      "bloomCeiling": "Understand",
+      "definition": {
+        "text": "The human body is organized in a hierarchy of increasing complexity — from atoms and molecules to cells, tissues, organs, organ systems, and finally the whole organism.",
+        "anchor": {
+          "src": "openstax:anatomy-and-physiology-2e#1b",
+          "loc": "1.2",
+          "quote": "subatomic particles, atoms, molecules, organelles, cells, tissues, organs, organ systems, organisms and biosphere"
+        },
+        "tier": 2
+      },
+      "facts": [
+        {
+          "text": "A cell is the smallest independently functioning unit of a living organism.",
+          "anchor": {
+            "src": "openstax:anatomy-and-physiology-2e#1b",
+            "loc": "1.2",
+            "quote": "A cell is the smallest independently functioning unit of a living organism"
+          },
+          "tier": 2
+        },
+        {
+          "text": "A tissue is a group of many similar cells that work together to perform a specific function.",
+          "anchor": {
+            "src": "openstax:anatomy-and-physiology-2e#1b",
+            "loc": "1.2",
+            "quote": "A tissue is a group of many similar cells (though sometimes composed of a few related types) that work together to perform a specific function"
+          },
+          "tier": 2
+        },
+        {
+          "text": "An organ is an anatomically distinct structure built from two or more tissue types.",
+          "anchor": {
+            "src": "openstax:anatomy-and-physiology-2e#1b",
+            "loc": "1.2",
+            "quote": "An organ is an anatomically distinct structure of the body composed of two or more tissue types"
+          },
+          "tier": 2
+        },
+        {
+          "text": "An organ system is a group of organs that work together to meet a physiological need of the body.",
+          "anchor": {
+            "src": "openstax:anatomy-and-physiology-2e#1b",
+            "loc": "1.2",
+            "quote": "An organ system is a group of organs that work together to perform major functions or meet physiological needs of the body"
+          },
+          "tier": 2
+        }
+      ],
+      "misconceptions": [
+        {
+          "text": "Students think an organ is just a bigger version of a tissue.",
+          "corrective": "An organ combines two or more different tissue types into one functional structure — the stomach, for example, has epithelial, muscle, nervous, and connective tissue working together.",
+          "tier": 1
+        }
+      ],
+      "examples": [
+        {
+          "text": "The cardiovascular system (organ system) contains the heart (organ), built from cardiac muscle tissue, made of cardiomyocyte cells.",
+          "domain": "anatomy"
+        }
+      ],
+      "mcBank": [
+        {
+          "stem": "Which sequence lists the levels of organization from simplest to most complex?",
+          "options": [
+            "cell, tissue, organ, organ system",
+            "organ, tissue, cell, organ system",
+            "tissue, cell, organ system, organ",
+            "organ system, organ, cell, tissue"
+          ],
+          "answerIndex": 0,
+          "explanationFactRef": 0,
+          "rationaleRefs": [0]
+        },
+        {
+          "stem": "What distinguishes an organ from a tissue?",
+          "options": [
+            "An organ combines two or more tissue types",
+            "An organ is always larger than any tissue",
+            "An organ contains only one kind of cell",
+            "An organ cannot belong to an organ system"
+          ],
+          "answerIndex": 0,
+          "explanationFactRef": 2,
+          "rationaleRefs": [0]
+        }
+      ],
+      "edges": { "requires": [], "recommends": ["nursing/homeostasis", "nursing/blood-components"] },
+      "attribution": ["OpenStax Anatomy and Physiology 2e, §1.2 Structural Organization of the Human Body"]
+    },
+    {
+      "id": "nursing/blood-components",
+      "rev": 1,
+      "term": "Blood components and function",
+      "aliases": ["blood components", "formed elements", "plasma and blood cells", "functions of blood"],
+      "tags": ["hematology", "physiology", "patient care"],
+      "level": "intro",
+      "difficulty": 2,
+      "bloomCeiling": "Understand",
+      "definition": {
+        "text": "Blood is a fluid connective tissue made of a liquid extracellular matrix (plasma) and formed elements — red blood cells, white blood cells, and platelets — that together transport gases and nutrients, defend the body, and regulate its chemistry.",
+        "anchor": {
+          "src": "openstax:anatomy-and-physiology-2e#18",
+          "loc": "18.1",
+          "quote": "Recall that blood is a connective tissue"
+        },
+        "tier": 2
+      },
+      "facts": [
+        {
+          "text": "Plasma is the fluid extracellular matrix that makes blood unique among connective tissues.",
+          "anchor": {
+            "src": "openstax:anatomy-and-physiology-2e#18",
+            "loc": "18.1",
+            "quote": "The extracellular matrix, called plasma, makes blood unique among connective tissues because it is fluid"
+          },
+          "tier": 2
+        },
+        {
+          "text": "The formed elements are red blood cells, white blood cells, and platelets.",
+          "anchor": {
+            "src": "openstax:anatomy-and-physiology-2e#18",
+            "loc": "18.1",
+            "quote": "the formed elements—include red blood cells (RBCs), white blood cells (WBCs), and cell fragments called platelets"
+          },
+          "tier": 2
+        },
+        {
+          "text": "Blood's primary job is to deliver oxygen and nutrients to cells and carry wastes away.",
+          "anchor": {
+            "src": "openstax:anatomy-and-physiology-2e#18",
+            "loc": "18.1",
+            "quote": "The primary function of blood is to deliver oxygen and nutrients to and remove wastes from body cells"
+          },
+          "tier": 2
+        },
+        {
+          "text": "Blood also helps regulate the pH and chemical balance of body tissues.",
+          "anchor": {
+            "src": "openstax:anatomy-and-physiology-2e#18",
+            "loc": "18.1",
+            "quote": "helps to regulate the pH of body tissues"
+          },
+          "tier": 2
+        }
+      ],
+      "misconceptions": [
+        {
+          "text": "Students think of blood as a simple liquid rather than a tissue.",
+          "corrective": "Blood is a connective tissue: it has cellular formed elements suspended in an extracellular matrix (plasma), the same organization as bone or cartilage — only the matrix is fluid.",
+          "tier": 1
+        }
+      ],
+      "examples": [
+        {
+          "text": "A complete blood count (CBC) reports the formed elements — RBCs, WBCs, and platelets — that a nurse reviews when assessing a patient.",
+          "domain": "clinical"
+        }
+      ],
+      "mcBank": [
+        {
+          "stem": "Which three groups make up the formed elements of blood?",
+          "options": [
+            "Red cells, white cells, and platelets",
+            "Plasma, dissolved serum, and water proteins",
+            "Arteries, large veins, and tiny capillaries",
+            "Oxygen, food nutrients, and signaling hormones"
+          ],
+          "answerIndex": 0,
+          "explanationFactRef": 1,
+          "rationaleRefs": [0]
+        },
+        {
+          "stem": "Blood is classified as a connective tissue because it has",
+          "options": [
+            "cellular elements suspended in an extracellular matrix",
+            "no cells, only dissolved gases",
+            "a rigid solid framework like bone",
+            "only one type of cell"
+          ],
+          "answerIndex": 0,
+          "explanationFactRef": 0,
+          "rationaleRefs": [0]
+        }
+      ],
+      "edges": {
+        "requires": ["nursing/levels-of-organization"],
+        "recommends": ["nursing/cardiac-cycle", "nursing/gas-exchange"]
+      },
+      "attribution": ["OpenStax Anatomy and Physiology 2e, §18.1 An Overview of Blood"]
+    },
+    {
+      "id": "nursing/cardiac-cycle",
+      "rev": 1,
+      "term": "Cardiac cycle and cardiac output",
+      "aliases": ["cardiac cycle", "cardiac output", "systole and diastole", "stroke volume"],
+      "tags": ["cardiovascular", "physiology", "quantitative"],
+      "level": "intro",
+      "difficulty": 3,
+      "bloomCeiling": "Apply",
+      "definition": {
+        "text": "The cardiac cycle is one complete heartbeat — from contraction of the atria through ventricular relaxation; cardiac output, the blood each ventricle pumps per minute, equals heart rate times stroke volume.",
+        "anchor": {
+          "src": "openstax:anatomy-and-physiology-2e#19c",
+          "loc": "19.3",
+          "quote": "ends with ventricular relaxation is known as the cardiac cycle"
+        },
+        "tier": 2
+      },
+      "facts": [
+        {
+          "text": "Systole is the contraction phase that pumps blood into circulation.",
+          "anchor": {
+            "src": "openstax:anatomy-and-physiology-2e#19c",
+            "loc": "19.3",
+            "quote": "The period of contraction that the heart undergoes while it pumps blood into circulation is called systole"
+          },
+          "tier": 2
+        },
+        {
+          "text": "Diastole is the relaxation phase during which the chambers fill with blood.",
+          "anchor": {
+            "src": "openstax:anatomy-and-physiology-2e#19c",
+            "loc": "19.3",
+            "quote": "The period of relaxation that occurs as the chambers fill with blood is called diastole"
+          },
+          "tier": 2
+        },
+        {
+          "text": "Cardiac output (CO) is the amount of blood pumped by each ventricle in one minute.",
+          "anchor": {
+            "src": "openstax:anatomy-and-physiology-2e#19",
+            "loc": "19.4",
+            "quote": "Cardiac output (CO) is a measurement of the amount of blood pumped by each ventricle in one minute"
+          },
+          "tier": 2
+        },
+        {
+          "text": "Cardiac output is the product of heart rate and stroke volume: CO = HR × SV.",
+          "anchor": {
+            "src": "openstax:anatomy-and-physiology-2e#19",
+            "loc": "19.4",
+            "quote": "CO = HR × SV"
+          },
+          "tier": 2
+        }
+      ],
+      "misconceptions": [
+        {
+          "text": "Students assume a fast heart rate always means a high cardiac output.",
+          "corrective": "Output depends on both factors (CO = HR × SV): a very fast rate can shorten filling time and lower stroke volume, so cardiac output can fall even as heart rate climbs.",
+          "tier": 1
+        }
+      ],
+      "examples": [
+        {
+          "text": "A resting adult with a heart rate of 75 bpm and a stroke volume of 70 mL has a cardiac output of about 5.25 L/min.",
+          "domain": "clinical"
+        }
+      ],
+      "workedExamples": [
+        {
+          "problem": "A resting patient has a heart rate of 75 beats per minute and a stroke volume of 70 mL. Calculate the cardiac output in liters per minute.",
+          "steps": [
+            "Write the equation: CO = HR × SV.",
+            "Substitute the values: CO = 75 beats/min × 70 mL/beat = 5250 mL/min.",
+            "Convert to liters: 5250 mL/min ÷ 1000 = 5.25 L/min."
+          ],
+          "result": "CO ≈ 5.25 L/min — a normal resting value.",
+          "anchor": {
+            "src": "openstax:anatomy-and-physiology-2e#19",
+            "loc": "19.4",
+            "quote": "the mean CO is 5.25 L/min"
+          }
+        }
+      ],
+      "mcBank": [
+        {
+          "stem": "A patient's heart rate is 80 bpm and stroke volume is 60 mL. What is the cardiac output?",
+          "options": ["4800 mL/min", "140 mL/min", "1.33 mL/min", "480 mL/min"],
+          "answerIndex": 0,
+          "explanationFactRef": 3,
+          "rationaleRefs": [0]
+        },
+        {
+          "stem": "During systole, the heart is",
+          "options": [
+            "contracting and pumping blood into circulation",
+            "relaxing while the chambers fill",
+            "neither contracting nor filling",
+            "filling only the atria with blood"
+          ],
+          "answerIndex": 0,
+          "explanationFactRef": 0,
+          "rationaleRefs": [0]
+        }
+      ],
+      "edges": {
+        "requires": ["nursing/blood-components"],
+        "recommends": ["nursing/blood-pressure"],
+        "instanceOf": [
+          {
+            "archetype": "process/staged-process",
+            "confidence": 0.8,
+            "verified": true,
+            "mapping": {
+              "process": "the cardiac cycle of one heartbeat",
+              "stages": "atrial contraction, ventricular systole, ventricular diastole",
+              "dependency": "ventricles must fill during diastole before they can eject during systole",
+              "failure if skipped": "too little filling time lowers stroke volume and cardiac output"
+            }
+          }
+        ]
+      },
+      "attribution": ["OpenStax Anatomy and Physiology 2e, §19.3 Cardiac Cycle; §19.4 Cardiac Physiology"]
+    },
+    {
+      "id": "nursing/blood-pressure",
+      "rev": 1,
+      "term": "Blood pressure and its regulation",
+      "aliases": ["blood pressure", "systolic and diastolic pressure", "vascular resistance", "blood flow"],
+      "tags": ["cardiovascular", "physiology", "vital signs"],
+      "level": "intro",
+      "difficulty": 2,
+      "bloomCeiling": "Analyze",
+      "definition": {
+        "text": "Blood pressure is the force blood exerts on vessel walls; it is reported as a systolic value (during ventricular contraction) over a diastolic value (during ventricular relaxation), and blood flows from higher to lower pressure against vascular resistance.",
+        "anchor": {
+          "src": "openstax:anatomy-and-physiology-2e#20",
+          "loc": "20.2",
+          "quote": "blood pressure, the force exerted by blood upon the walls of the blood vessels or the chambers of the heart"
+        },
+        "tier": 2
+      },
+      "facts": [
+        {
+          "text": "Systolic pressure (typically around 120 mm Hg) is the higher value, produced during ventricular contraction.",
+          "anchor": {
+            "src": "openstax:anatomy-and-physiology-2e#20",
+            "loc": "20.2",
+            "quote": "The systolic pressure is the higher value (typically around 120 mm Hg)"
+          },
+          "tier": 2
+        },
+        {
+          "text": "Diastolic pressure (usually about 80 mm Hg) is the lower value, present during ventricular relaxation.",
+          "anchor": {
+            "src": "openstax:anatomy-and-physiology-2e#20",
+            "loc": "20.2",
+            "quote": "The diastolic pressure is the lower value (usually about 80 mm Hg)"
+          },
+          "tier": 2
+        },
+        {
+          "text": "Blood moves from a region of higher pressure to one of lower pressure.",
+          "anchor": {
+            "src": "openstax:anatomy-and-physiology-2e#20",
+            "loc": "20.2",
+            "quote": "blood moves from higher pressure to lower pressure"
+          },
+          "tier": 2
+        },
+        {
+          "text": "Resistance to flow depends on just three variables: blood viscosity, vessel length, and vessel radius.",
+          "anchor": {
+            "src": "openstax:anatomy-and-physiology-2e#20",
+            "loc": "20.2",
+            "quote": "there are only three variables: viscosity, vessel length, and radius"
+          },
+          "tier": 2
+        }
+      ],
+      "misconceptions": [
+        {
+          "text": "Students think the diastolic number reflects the heart actively pumping.",
+          "corrective": "Diastolic pressure is measured during ventricular relaxation, when the heart is not ejecting blood — it reflects the residual arterial pressure between beats, not active pumping.",
+          "tier": 1
+        }
+      ],
+      "examples": [
+        {
+          "text": "A reading of 120/80 mm Hg gives the systolic pressure over the diastolic pressure — the standard way a nurse records a blood pressure.",
+          "domain": "clinical"
+        }
+      ],
+      "mcBank": [
+        {
+          "stem": "In a blood pressure of 118/76 mm Hg, the value 76 represents the",
+          "options": [
+            "arterial pressure during ventricular relaxation",
+            "arterial pressure during ventricular contraction",
+            "total resistance of the vessels",
+            "heart rate in beats per minute"
+          ],
+          "answerIndex": 0,
+          "explanationFactRef": 1,
+          "rationaleRefs": [0]
+        },
+        {
+          "stem": "Which factor does NOT directly determine resistance to blood flow?",
+          "options": ["The patient's heart rate", "Blood viscosity", "Vessel length", "Vessel radius"],
+          "answerIndex": 0,
+          "explanationFactRef": 3,
+          "rationaleRefs": [0]
+        }
+      ],
+      "edges": { "requires": ["nursing/cardiac-cycle"], "recommends": ["nursing/homeostasis"] },
+      "attribution": ["OpenStax Anatomy and Physiology 2e, §20.2 Blood Flow, Blood Pressure, and Resistance"]
+    },
+    {
+      "id": "nursing/gas-exchange",
+      "rev": 1,
+      "term": "Gas exchange in the lungs",
+      "aliases": ["gas exchange", "external respiration", "pulmonary gas exchange", "alveolar diffusion"],
+      "tags": ["respiratory", "physiology", "oxygenation"],
+      "level": "intro",
+      "difficulty": 2,
+      "bloomCeiling": "Analyze",
+      "definition": {
+        "text": "Gas exchange is the diffusion of oxygen and carbon dioxide between air and blood; external respiration moves these gases between the alveoli and the pulmonary capillaries, each gas flowing from higher to lower partial pressure.",
+        "anchor": {
+          "src": "openstax:anatomy-and-physiology-2e#22",
+          "loc": "22.4",
+          "quote": "External respiration is the exchange of gases with the external environment, and occurs in the alveoli of the lungs"
+        },
+        "tier": 2
+      },
+      "facts": [
+        {
+          "text": "Internal respiration is the exchange of gases between blood and the tissues.",
+          "anchor": {
+            "src": "openstax:anatomy-and-physiology-2e#22",
+            "loc": "22.4",
+            "quote": "Internal respiration is the exchange of gases with the internal environment, and occurs in the tissues"
+          },
+          "tier": 2
+        },
+        {
+          "text": "A gas diffuses from where its partial pressure is higher to where it is lower.",
+          "anchor": {
+            "src": "openstax:anatomy-and-physiology-2e#22",
+            "loc": "22.4",
+            "quote": "A gas will move from an area where its partial pressure is higher to an area where its partial pressure is lower"
+          },
+          "tier": 2
+        },
+        {
+          "text": "In external respiration oxygen diffuses from the alveolus into the capillary while carbon dioxide diffuses out of the capillary into the alveolus.",
+          "anchor": {
+            "src": "openstax:anatomy-and-physiology-2e#22",
+            "loc": "22.4",
+            "quote": "oxygen diffuses across the respiratory membrane from the alveolus to the capillary, whereas carbon dioxide diffuses out of the capillary into the alveolus"
+          },
+          "tier": 2
+        }
+      ],
+      "misconceptions": [
+        {
+          "text": "Students think the body actively pumps oxygen across the lung membrane.",
+          "corrective": "No energy is spent moving the gas across the membrane: oxygen and carbon dioxide cross by simple diffusion down their own partial-pressure gradients, from high to low.",
+          "tier": 1
+        }
+      ],
+      "examples": [
+        {
+          "text": "Supplemental oxygen raises the partial pressure of oxygen in the alveoli, steepening the gradient so more oxygen diffuses into a hypoxic patient's blood.",
+          "domain": "clinical"
+        }
+      ],
+      "mcBank": [
+        {
+          "stem": "Why does oxygen move from the alveoli into the pulmonary capillary blood?",
+          "options": [
+            "Its partial pressure is higher in the alveoli than in the blood",
+            "The blood actively pumps it across the membrane",
+            "Carbon dioxide pushes it out of the alveoli",
+            "The lungs heat the oxygen until it expands"
+          ],
+          "answerIndex": 0,
+          "explanationFactRef": 1,
+          "rationaleRefs": [0]
+        },
+        {
+          "stem": "External respiration takes place",
+          "options": [
+            "in the alveoli of the lungs",
+            "in the body's tissue cells",
+            "inside red blood cells only",
+            "in the walls of the heart"
+          ],
+          "answerIndex": 0,
+          "explanationFactRef": 1,
+          "rationaleRefs": [0]
+        }
+      ],
+      "edges": { "requires": ["nursing/blood-components"], "recommends": ["nursing/blood-pressure"] },
+      "attribution": ["OpenStax Anatomy and Physiology 2e, §22.4 Gas Exchange"]
+    },
+    {
+      "id": "nursing/fluid-electrolyte-balance",
+      "rev": 1,
+      "term": "Fluid and electrolyte balance",
+      "aliases": [
+        "fluid and electrolyte regulation",
+        "body fluid compartments",
+        "intracellular and extracellular fluid"
+      ],
+      "tags": ["physiology", "fluids", "patient care"],
+      "level": "intro",
+      "difficulty": 3,
+      "bloomCeiling": "Analyze",
+      "definition": {
+        "text": "Fluid and electrolyte balance is the maintenance of water and dissolved ions across the body's compartments — chiefly the intracellular fluid inside cells and the extracellular fluid around them — with water shifting by osmosis to keep them in equilibrium.",
+        "anchor": {
+          "src": "openstax:anatomy-and-physiology-2e#26",
+          "loc": "26.1",
+          "quote": "The intracellular fluid (ICF) compartment is the system that includes all fluid enclosed in cells by their plasma membranes"
+        },
+        "tier": 2
+      },
+      "facts": [
+        {
+          "text": "Adults are roughly 50–60 percent water by mass; infants are about 75 percent.",
+          "anchor": {
+            "src": "openstax:anatomy-and-physiology-2e#26",
+            "loc": "26.1",
+            "quote": "ranging from about 75 percent of body mass in infants to about 50–60 percent in adults"
+          },
+          "tier": 2
+        },
+        {
+          "text": "Extracellular fluid surrounds all the cells of the body.",
+          "anchor": {
+            "src": "openstax:anatomy-and-physiology-2e#26",
+            "loc": "26.1",
+            "quote": "Extracellular fluid (ECF) surrounds all cells in the body"
+          },
+          "tier": 2
+        },
+        {
+          "text": "An electrolyte is a mineral that has dissociated from a salt and carries an electrical charge (an ion).",
+          "anchor": {
+            "src": "openstax:anatomy-and-physiology-2e#26",
+            "loc": "26.1",
+            "quote": "a mineral dissociated from a salt that carries an electrical charge (an ion) is called an electrolyte"
+          },
+          "tier": 2
+        },
+        {
+          "text": "Water moves between the compartments by osmosis to keep them balanced.",
+          "anchor": {
+            "src": "openstax:anatomy-and-physiology-2e#26",
+            "loc": "26.1",
+            "quote": "water moves by osmosis from plasma to the IF (and the reverse) and from the IF to the ICF (and the reverse)"
+          },
+          "tier": 2
+        }
+      ],
+      "misconceptions": [
+        {
+          "text": "Students think water is actively pumped from one fluid compartment to another.",
+          "corrective": "Water itself follows osmosis passively — it moves toward the compartment with more solute; the body controls fluid shifts mainly by moving electrolytes, and water follows.",
+          "tier": 1
+        }
+      ],
+      "examples": [
+        {
+          "text": "Giving a hypertonic IV solution draws water out of cells by osmosis into the extracellular fluid — the basis for treating some cases of cerebral edema.",
+          "domain": "clinical"
+        }
+      ],
+      "mcBank": [
+        {
+          "stem": "A substance that dissociates from a salt and carries an electrical charge is called",
+          "options": ["an electrolyte", "an organelle", "a tissue", "a counterstain"],
+          "answerIndex": 0,
+          "explanationFactRef": 2,
+          "rationaleRefs": [0]
+        },
+        {
+          "stem": "How does water move between the body's fluid compartments?",
+          "options": [
+            "Passively by osmosis toward higher solute concentration",
+            "By active transport requiring ATP",
+            "Only from the ICF into the ECF, never back",
+            "Only when the patient is dehydrated"
+          ],
+          "answerIndex": 0,
+          "explanationFactRef": 3,
+          "rationaleRefs": [0]
+        }
+      ],
+      "edges": {
+        "requires": ["nursing/homeostasis"],
+        "recommends": ["nursing/blood-pressure"],
+        "instanceOf": [
+          {
+            "archetype": "structure/equilibrium",
+            "confidence": 0.85,
+            "verified": true,
+            "mapping": {
+              "system": "the body's intracellular and extracellular fluid compartments",
+              "opposing processes": "osmotic water movement into versus out of the cells",
+              "balanced quantity": "water distribution across the compartments",
+              "perturbation": "a change in solute (electrolyte) concentration",
+              "restoring force": "osmosis shifting water until concentrations equalize"
+            }
+          }
+        ]
+      },
+      "attribution": ["OpenStax Anatomy and Physiology 2e, §26.1 Body Fluids and Fluid Compartments"]
+    },
+    {
+      "id": "nursing/innate-adaptive-immunity",
+      "rev": 1,
+      "term": "Innate versus adaptive immunity",
+      "aliases": [
+        "innate immunity",
+        "adaptive immunity",
+        "nonspecific and specific defenses",
+        "immune system defenses"
+      ],
+      "tags": ["immunology", "microbiology", "host defense"],
+      "level": "intro",
+      "difficulty": 2,
+      "bloomCeiling": "Analyze",
+      "definition": {
+        "text": "Innate immunity is the body's built-in, nonspecific first response that lacks memory, while adaptive immunity is a slower, highly specific defense that targets individual pathogens and remembers them after exposure.",
+        "anchor": {
+          "src": "openstax:microbiology#17",
+          "loc": "17 intro",
+          "quote": "Nonspecific innate defenses provide an immediate (or very rapid) response against potential pathogens"
+        },
+        "tier": 2
+      },
+      "facts": [
+        {
+          "text": "Innate defenses are built-in mechanisms that are not acquired over time and have no memory.",
+          "anchor": {
+            "src": "openstax:microbiology#17",
+            "loc": "17 intro",
+            "quote": "they are not acquired over time and they have no \"memory\""
+          },
+          "tier": 2
+        },
+        {
+          "text": "Innate immunity targets pathogens in a nonspecific manner.",
+          "anchor": {
+            "src": "openstax:microbiology#17",
+            "loc": "17 intro",
+            "quote": "a multifaceted system of defenses that targets invading pathogens in a nonspecific manner"
+          },
+          "tier": 2
+        },
+        {
+          "text": "Adaptive immunity is highly specific for individual microbial pathogens.",
+          "anchor": {
+            "src": "openstax:microbiology#18",
+            "loc": "18 intro",
+            "quote": "an adaptive immune defense, which is highly specific for individual microbial pathogens"
+          },
+          "tier": 2
+        },
+        {
+          "text": "Adaptive immunity is acquired through active infection or vaccination and defends against pathogens that evade innate immunity.",
+          "anchor": {
+            "src": "openstax:microbiology#18",
+            "loc": "18 intro",
+            "quote": "acquired through active infection or vaccination and serves as an important defense against pathogens that evade the defenses of innate immunity"
+          },
+          "tier": 2
+        }
+      ],
+      "misconceptions": [
+        {
+          "text": "Students think the innate immune system gets stronger after repeated exposure to the same pathogen.",
+          "corrective": "Innate defenses have no memory and do not improve with repeated exposure — it is adaptive immunity that builds memory through infection or vaccination for a faster response next time.",
+          "tier": 1
+        }
+      ],
+      "examples": [
+        {
+          "text": "A vaccine trains adaptive immunity to recognize one pathogen, whereas the skin barrier and fever respond to any invader nonspecifically.",
+          "domain": "clinical"
+        }
+      ],
+      "mcBank": [
+        {
+          "stem": "Which feature best distinguishes adaptive immunity from innate immunity?",
+          "options": [
+            "It is specific for individual pathogens",
+            "It responds within minutes to any invader",
+            "It is built in and never changes",
+            "It works without any prior exposure"
+          ],
+          "answerIndex": 0,
+          "explanationFactRef": 2,
+          "rationaleRefs": [0]
+        },
+        {
+          "stem": "Why does a second exposure to a pathogen produce a faster response?",
+          "options": [
+            "Adaptive immunity formed memory of that pathogen",
+            "Innate immunity improves with each exposure",
+            "The skin barrier becomes thicker",
+            "Fever lasts longer the second time"
+          ],
+          "answerIndex": 0,
+          "explanationFactRef": 3,
+          "rationaleRefs": [0]
+        }
+      ],
+      "edges": { "requires": [], "recommends": ["nursing/inflammation", "nursing/disease-transmission"] },
+      "attribution": [
+        "OpenStax Microbiology, Ch. 17 Innate Nonspecific Host Defenses (intro); Ch. 18 Adaptive Specific Host Defenses (intro)"
+      ]
+    },
+    {
+      "id": "nursing/inflammation",
+      "rev": 1,
+      "term": "Inflammation",
+      "aliases": ["inflammation", "inflammatory response", "acute inflammation", "cardinal signs of inflammation"],
+      "tags": ["immunology", "microbiology", "host defense"],
+      "level": "intro",
+      "difficulty": 2,
+      "bloomCeiling": "Analyze",
+      "definition": {
+        "text": "Inflammation is the body's short-term innate response to injury or infection, marked by five cardinal signs — redness, swelling, heat, pain, and altered function — and driven by vasodilation and increased vascular permeability.",
+        "anchor": {
+          "src": "openstax:microbiology#17b",
+          "loc": "17.5",
+          "quote": "Acute inflammation is a short-term inflammatory response to an injury or infection"
+        },
+        "tier": 2
+      },
+      "facts": [
+        {
+          "text": "The five cardinal signs of inflammation are erythema (redness), edema (swelling), heat, pain, and altered function.",
+          "anchor": {
+            "src": "openstax:microbiology#17b",
+            "loc": "17.5",
+            "quote": "erythema (redness), edema (swelling), heat, pain, and altered function"
+          },
+          "tier": 2
+        },
+        {
+          "text": "Vasodilation and increased vascular permeability follow the release of histamine from mast cells.",
+          "anchor": {
+            "src": "openstax:microbiology#17b",
+            "loc": "17.5",
+            "quote": "Vasodilation and increased vascular permeability, as a direct result of the release of histamine from resident mast cells"
+          },
+          "tier": 2
+        },
+        {
+          "text": "Increased vascular permeability lets fluid, proteins, and immune cells enter the infected tissue.",
+          "anchor": {
+            "src": "openstax:microbiology#17b",
+            "loc": "17.5",
+            "quote": "increased vascular permeability allows fluid, proteins, phagocytes, and other immune cells to enter infected tissue"
+          },
+          "tier": 2
+        }
+      ],
+      "misconceptions": [
+        {
+          "text": "Students view inflammation as purely harmful and always to be suppressed.",
+          "corrective": "Inflammation is a protective innate response that delivers immune cells and dilutes toxins at the injury site; it becomes harmful mainly when it is excessive or chronic, not by its nature.",
+          "tier": 1
+        }
+      ],
+      "examples": [
+        {
+          "text": "A splinter site turns red, warm, swollen, and painful — the cardinal signs as blood flow and permeability rise to fight infection.",
+          "domain": "clinical"
+        }
+      ],
+      "mcBank": [
+        {
+          "stem": "Which chemical mediator causes the vasodilation seen in acute inflammation?",
+          "options": [
+            "Histamine released from mast cells",
+            "Crystal violet from the Gram stain",
+            "Safranin from the counterstain",
+            "Peptidoglycan from the cell wall"
+          ],
+          "answerIndex": 0,
+          "explanationFactRef": 1,
+          "rationaleRefs": [0]
+        },
+        {
+          "stem": "Increased vascular permeability during inflammation primarily allows",
+          "options": [
+            "fluid and immune cells to enter the infected tissue",
+            "red blood cells to stop carrying oxygen",
+            "bacteria to leave the tissue unharmed",
+            "the heart rate to slow down"
+          ],
+          "answerIndex": 0,
+          "explanationFactRef": 2,
+          "rationaleRefs": [0]
+        }
+      ],
+      "edges": {
+        "requires": ["nursing/innate-adaptive-immunity"],
+        "recommends": ["nursing/blood-components"],
+        "instanceOf": [
+          {
+            "archetype": "process/staged-process",
+            "confidence": 0.72,
+            "verified": true,
+            "mapping": {
+              "process": "the acute inflammatory response",
+              "stages": "tissue injury, histamine release, vasodilation and increased permeability, immune-cell influx",
+              "dependency": "vasodilation and permeability must rise before fluid and cells can reach the tissue",
+              "failure if skipped": "without the permeability change immune cells cannot enter the infected site"
+            }
+          }
+        ]
+      },
+      "attribution": ["OpenStax Microbiology, §17.5 Inflammation and Fever"]
+    },
+    {
+      "id": "nursing/bacterial-cell-structure",
+      "rev": 1,
+      "term": "Bacterial cell structure",
+      "aliases": ["bacterial cell wall", "gram-positive and gram-negative", "peptidoglycan", "Gram stain"],
+      "tags": ["microbiology", "bacteriology", "infection control"],
+      "level": "intro",
+      "difficulty": 3,
+      "bloomCeiling": "Analyze",
+      "definition": {
+        "text": "Bacteria are distinguished by a cell wall whose main component is peptidoglycan; the Gram stain sorts them into gram-positive species with a thick peptidoglycan layer and gram-negative species with a thin layer plus an outer membrane.",
+        "anchor": {
+          "src": "openstax:microbiology#3",
+          "loc": "3.3",
+          "quote": "The major component of bacterial cell walls is called peptidoglycan (or murein); it is only found in bacteria"
+        },
+        "tier": 2
+      },
+      "facts": [
+        {
+          "text": "Gram-positive cells have many layers of peptidoglycan, totaling 30–100 nm thick.",
+          "anchor": {
+            "src": "openstax:microbiology#3",
+            "loc": "3.3",
+            "quote": "Gram-positive cells have a cell wall consisting of many layers of peptidoglycan totaling 30–100 nm in thickness"
+          },
+          "tier": 2
+        },
+        {
+          "text": "Gram-negative cells have a much thinner peptidoglycan layer and a more complex cell envelope.",
+          "anchor": {
+            "src": "openstax:microbiology#3",
+            "loc": "3.3",
+            "quote": "Gram-negative cells have a much thinner layer of peptidoglycan (no more than about 4 nm thick)"
+          },
+          "tier": 2
+        },
+        {
+          "text": "Gram-positive cells retain the crystal violet dye and remain purple.",
+          "anchor": {
+            "src": "openstax:microbiology#2",
+            "loc": "2.4",
+            "quote": "they generally retain the crystal violet dye and remain purple"
+          },
+          "tier": 2
+        },
+        {
+          "text": "Gram-negative cells lose the crystal violet and take up the pink safranin counterstain.",
+          "anchor": {
+            "src": "openstax:microbiology#2",
+            "loc": "2.4",
+            "quote": "the red, safranin-dyed cells are gram-negative"
+          },
+          "tier": 2
+        }
+      ],
+      "misconceptions": [
+        {
+          "text": "Students think the Gram stain color is just an arbitrary dye choice.",
+          "corrective": "The color reflects real wall structure: a thick peptidoglycan layer traps crystal violet (purple, gram-positive) while a thin layer washes out and takes the safranin counterstain (pink, gram-negative).",
+          "tier": 1
+        }
+      ],
+      "examples": [
+        {
+          "text": "A Gram stain showing purple clusters points the team toward gram-positive Staphylococcus, guiding the choice of antibiotic.",
+          "domain": "clinical"
+        }
+      ],
+      "mcBank": [
+        {
+          "stem": "A bacterium appears pink after Gram staining. This indicates it is",
+          "options": [
+            "gram-negative with a thin peptidoglycan layer",
+            "gram-positive with a thick peptidoglycan layer",
+            "a virus rather than a bacterium",
+            "dead and unable to take up dye"
+          ],
+          "answerIndex": 0,
+          "explanationFactRef": 3,
+          "rationaleRefs": [0]
+        },
+        {
+          "stem": "What is the major component of the bacterial cell wall?",
+          "options": ["Peptidoglycan", "Cholesterol", "Crystal violet", "Hemoglobin"],
+          "answerIndex": 0,
+          "explanationFactRef": 0,
+          "rationaleRefs": [0]
+        }
+      ],
+      "edges": {
+        "requires": [],
+        "recommends": ["nursing/antimicrobial-resistance", "nursing/disease-transmission"],
+        "instanceOf": [
+          {
+            "archetype": "structure/system-boundary",
+            "confidence": 0.78,
+            "verified": true,
+            "mapping": {
+              "system": "the bacterial cell",
+              "boundary": "the peptidoglycan cell wall and cell envelope",
+              "what crosses": "nutrients and the Gram-stain dyes that probe wall thickness",
+              "what is excluded": "the loss of crystal violet in thin-walled gram-negative cells"
+            }
+          }
+        ]
+      },
+      "attribution": [
+        "OpenStax Microbiology, §3.3 Unique Characteristics of Prokaryotic Cells; §2.4 Staining Microscopic Specimens"
+      ]
+    },
+    {
+      "id": "nursing/viral-replication",
+      "rev": 1,
+      "term": "Viral replication",
+      "aliases": ["viral replication", "viral life cycle", "virus reproduction", "stages of viral infection"],
+      "tags": ["microbiology", "virology", "infection"],
+      "level": "intro",
+      "difficulty": 3,
+      "bloomCeiling": "Understand",
+      "definition": {
+        "text": "Viruses are acellular parasites that cannot reproduce on their own; they replicate through an ordered cycle inside a host cell — attachment, penetration, biosynthesis, maturation, and release.",
+        "anchor": {
+          "src": "openstax:microbiology#6",
+          "loc": "6.2",
+          "quote": "All viruses depend on cells for reproduction and metabolic processes"
+        },
+        "tier": 2
+      },
+      "facts": [
+        {
+          "text": "The five stages of the bacteriophage replication cycle are attachment, penetration, biosynthesis, maturation, and release.",
+          "anchor": {
+            "src": "openstax:microbiology#6",
+            "loc": "6.2",
+            "quote": "attachment, penetration, biosynthesis, maturation, and release"
+          },
+          "tier": 2
+        },
+        {
+          "text": "Attachment begins when the virus interacts with specific receptors on the host cell surface.",
+          "anchor": {
+            "src": "openstax:microbiology#6",
+            "loc": "6.2",
+            "quote": "the phage interacts with specific bacterial surface receptors"
+          },
+          "tier": 2
+        },
+        {
+          "text": "Many viruses are released when mature progeny burst the host cell in a process called lysis.",
+          "anchor": {
+            "src": "openstax:microbiology#6",
+            "loc": "6.2",
+            "quote": "Mature viruses burst out of the host cell in a process called lysis"
+          },
+          "tier": 2
+        }
+      ],
+      "misconceptions": [
+        {
+          "text": "Students think antibiotics can cure viral infections such as the common cold or influenza.",
+          "corrective": "Antibiotics target bacterial structures like the cell wall and have no effect on viruses, which replicate inside host cells; viral illnesses need antivirals or are managed supportively, and misusing antibiotics only drives resistance.",
+          "tier": 1
+        }
+      ],
+      "examples": [
+        {
+          "text": "Influenza virus attaches to receptors on respiratory cells, hijacks them to make new virions, then releases them to infect neighboring cells.",
+          "domain": "clinical"
+        }
+      ],
+      "mcBank": [
+        {
+          "stem": "Which is the correct order of the viral replication cycle?",
+          "options": [
+            "Attachment, penetration, biosynthesis, maturation, release",
+            "Release, maturation, attachment, penetration, biosynthesis",
+            "Biosynthesis, attachment, release, penetration, maturation",
+            "Penetration, release, attachment, maturation, biosynthesis"
+          ],
+          "answerIndex": 0,
+          "explanationFactRef": 0,
+          "rationaleRefs": [0]
+        },
+        {
+          "stem": "Why are antibiotics ineffective against the influenza virus?",
+          "options": [
+            "Antibiotics target bacterial structures, not viruses",
+            "Viruses are larger than bacteria",
+            "Influenza has a thick peptidoglycan wall",
+            "Antibiotics only work after vaccination"
+          ],
+          "answerIndex": 0,
+          "explanationFactRef": 0,
+          "rationaleRefs": [0]
+        }
+      ],
+      "edges": {
+        "requires": [],
+        "recommends": ["nursing/disease-transmission", "nursing/innate-adaptive-immunity"],
+        "instanceOf": [
+          {
+            "archetype": "process/staged-process",
+            "confidence": 0.88,
+            "verified": true,
+            "mapping": {
+              "process": "the viral replication cycle",
+              "stages": "attachment, penetration, biosynthesis, maturation, release",
+              "dependency": "the virus must attach and penetrate before its genome can be biosynthesized",
+              "failure if skipped": "blocking attachment prevents the whole cycle and stops infection"
+            }
+          }
+        ]
+      },
+      "attribution": ["OpenStax Microbiology, §6.2 The Viral Life Cycle"]
+    },
+    {
+      "id": "nursing/antimicrobial-resistance",
+      "rev": 1,
+      "term": "Antimicrobial resistance",
+      "aliases": ["antimicrobial resistance", "drug resistance", "antibiotic resistance", "resistance mechanisms"],
+      "tags": ["microbiology", "pharmacology", "infection control"],
+      "level": "intro",
+      "difficulty": 3,
+      "bloomCeiling": "Evaluate",
+      "definition": {
+        "text": "Antimicrobial resistance is a microbe's acquired ability to withstand a drug it was once susceptible to; it spreads through selection of resistant mutants and is accelerated by overuse and misuse of antimicrobials.",
+        "anchor": {
+          "src": "openstax:microbiology#14",
+          "loc": "14.5",
+          "quote": "Antimicrobial resistance is the acquired ability of a microbe to resist the effects of an antimicrobial drug to which it was previously susceptible"
+        },
+        "tier": 2
+      },
+      "facts": [
+        {
+          "text": "Drug exposure selects for chromosomal mutations that confer resistance, which pass to later generations.",
+          "anchor": {
+            "src": "openstax:microbiology#14",
+            "loc": "14.5",
+            "quote": "select for chromosomal mutations conferring resistance, which can be transferred vertically to subsequent microbial generations"
+          },
+          "tier": 2
+        },
+        {
+          "text": "Overuse and misuse of antimicrobials, subtherapeutic dosing, and patient noncompliance accelerate resistance.",
+          "anchor": {
+            "src": "openstax:microbiology#14",
+            "loc": "14.5",
+            "quote": "the overuse and misuse of antimicrobials, inappropriate use of antimicrobials, subtherapeutic dosing, and patient noncompliance"
+          },
+          "tier": 2
+        },
+        {
+          "text": "Some resistance genes code for enzymes that chemically modify or destroy the drug.",
+          "anchor": {
+            "src": "openstax:microbiology#14",
+            "loc": "14.5",
+            "quote": "Resistance genes may code for enzymes that chemically modify an antimicrobial, thereby inactivating it"
+          },
+          "tier": 2
+        }
+      ],
+      "misconceptions": [
+        {
+          "text": "Patients believe stopping an antibiotic early once they feel better is harmless.",
+          "corrective": "Stopping early is subtherapeutic dosing and patient noncompliance — exactly the conditions that select for resistant survivors; finishing the full prescribed course helps prevent resistance.",
+          "tier": 1
+        }
+      ],
+      "examples": [
+        {
+          "text": "MRSA (methicillin-resistant Staphylococcus aureus) survives drugs that once killed it, a resistance pattern driven by years of antibiotic exposure.",
+          "domain": "clinical"
+        }
+      ],
+      "mcBank": [
+        {
+          "stem": "Which patient behavior most directly accelerates antimicrobial resistance?",
+          "options": [
+            "Stopping antibiotics early after symptoms ease",
+            "Finishing the full prescribed course",
+            "Taking the drug at the prescribed dose",
+            "Reporting side effects to the nurse"
+          ],
+          "answerIndex": 0,
+          "explanationFactRef": 1,
+          "rationaleRefs": [0]
+        },
+        {
+          "stem": "One common molecular mechanism of antimicrobial resistance is",
+          "options": [
+            "enzymes that chemically inactivate the drug",
+            "the microbe growing a thicker bone matrix",
+            "the host producing more histamine",
+            "the drug binding more tightly to its target"
+          ],
+          "answerIndex": 0,
+          "explanationFactRef": 2,
+          "rationaleRefs": [0]
+        }
+      ],
+      "edges": { "requires": ["nursing/bacterial-cell-structure"], "recommends": ["nursing/disease-transmission"] },
+      "attribution": ["OpenStax Microbiology, §14.5 Drug Resistance"]
+    },
+    {
+      "id": "nursing/disease-transmission",
+      "rev": 1,
+      "term": "Modes of disease transmission",
+      "aliases": ["disease transmission", "chain of infection", "modes of transmission", "reservoirs of infection"],
+      "tags": ["microbiology", "epidemiology", "infection control"],
+      "level": "intro",
+      "difficulty": 2,
+      "bloomCeiling": "Analyze",
+      "definition": {
+        "text": "Disease transmission is how pathogens move from a reservoir to new hosts — by direct or indirect contact, by living vectors, or through vehicles such as water, food, and air — a chain that infection control aims to break.",
+        "anchor": {
+          "src": "openstax:microbiology#16",
+          "loc": "16.3",
+          "quote": "Contact transmission includes direct contact or indirect contact"
+        },
+        "tier": 2
+      },
+      "facts": [
+        {
+          "text": "Pathogens persist by living in reservoirs where they normally reside.",
+          "anchor": {
+            "src": "openstax:microbiology#16",
+            "loc": "16.3",
+            "quote": "they require reservoirs where they normally reside"
+          },
+          "tier": 2
+        },
+        {
+          "text": "Indirect contact transmission spreads pathogens through contaminated inanimate objects called fomites.",
+          "anchor": {
+            "src": "openstax:microbiology#16",
+            "loc": "16.3",
+            "quote": "Indirect contact transmission involves inanimate objects called fomites that become contaminated by pathogens"
+          },
+          "tier": 2
+        },
+        {
+          "text": "A vector is an animal, typically an arthropod, that carries a disease from one host to another.",
+          "anchor": {
+            "src": "openstax:microbiology#16",
+            "loc": "16.3",
+            "quote": "an animal (typically an arthropod) that carries the disease from one host to another"
+          },
+          "tier": 2
+        },
+        {
+          "text": "Vehicle transmission spreads pathogens through water, food, and air.",
+          "anchor": {
+            "src": "openstax:microbiology#16",
+            "loc": "16.3",
+            "quote": "the transmission of pathogens through vehicles such as water, food, and air"
+          },
+          "tier": 2
+        }
+      ],
+      "misconceptions": [
+        {
+          "text": "Students assume that touching a contaminated object cannot spread infection unless the source person is present.",
+          "corrective": "Indirect contact through fomites — doorknobs, bed rails, stethoscopes — transmits pathogens long after the source has gone, which is why surface disinfection and hand hygiene matter.",
+          "tier": 1
+        }
+      ],
+      "examples": [
+        {
+          "text": "Hand hygiene breaks the chain of infection by removing pathogens before a nurse's hands act as a fomite between patients.",
+          "domain": "clinical"
+        }
+      ],
+      "mcBank": [
+        {
+          "stem": "A contaminated stethoscope that passes a pathogen between patients is an example of",
+          "options": [
+            "indirect contact transmission via a fomite",
+            "vector transmission by an arthropod",
+            "vehicle transmission through air",
+            "direct person-to-person contact"
+          ],
+          "answerIndex": 0,
+          "explanationFactRef": 1,
+          "rationaleRefs": [0]
+        },
+        {
+          "stem": "A mosquito carrying a pathogen from one person to another is acting as a",
+          "options": ["vector", "fomite", "reservoir", "vehicle"],
+          "answerIndex": 0,
+          "explanationFactRef": 2,
+          "rationaleRefs": [0]
+        }
+      ],
+      "edges": {
+        "requires": [],
+        "recommends": ["nursing/innate-adaptive-immunity", "nursing/antimicrobial-resistance"],
+        "instanceOf": [
+          {
+            "archetype": "process/staged-process",
+            "confidence": 0.7,
+            "verified": true,
+            "mapping": {
+              "process": "the chain of infection",
+              "stages": "reservoir, mode of transmission, susceptible host",
+              "dependency": "a pathogen must leave a reservoir and travel a route before it can reach a new host",
+              "failure if skipped": "breaking any link, such as hand hygiene removing the transmission route, stops the spread"
+            }
+          }
+        ]
+      },
+      "attribution": ["OpenStax Microbiology, §16.3 Modes of Disease Transmission"]
+    }
+  ]
+}
