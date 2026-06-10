@@ -13426,6 +13426,17 @@ function compileStudyGuides(blueprint) {
               ? keyTerms.map((term) => dataScienceTermGuide(term, lesson))
               : keyTerms.map((term, termIndex) => generalTermGuide(term, lesson, lens, termIndex)),
         }),
+        // CurriculumOS Layer 2: the expert's reasoning routine for this deep
+        // structure — metacognitive scaffolding that teaches HOW to think
+        // about the kind of problem, not just the facts. Genome-linked only.
+        ...(Array.isArray(lesson.enrichment?.reasoningScaffolds) && lesson.enrichment.reasoningScaffolds.length > 0
+          ? {
+              reasoningRoutine: lesson.enrichment.reasoningScaffolds.map((scaffold) => ({
+                structure: scaffold.archetypeName,
+                howToReason: `To reason about ${scaffold.term} as ${String(scaffold.archetypeName).toLowerCase()}: ${scaffold.moves.join('; ')}.`,
+              })),
+            }
+          : {}),
         conceptConnections: [
           // Layer 2: analogical bridges lead — structural transfer is the
           // highest-value connection a study guide can name.

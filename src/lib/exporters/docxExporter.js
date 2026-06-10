@@ -584,6 +584,11 @@ export function _buildDocxContentShared(featureId, data, children, docx) {
             children.push(makeBold(t.term || '', parts.join(' — ')));
           });
         }
+        // How to reason about this structure (metacognitive scaffold)
+        if (g.reasoningRoutine?.length) {
+          children.push(makeSubHeading('How to Reason About This'));
+          g.reasoningRoutine.forEach((r) => children.push(makeBullet(r.howToReason || '')));
+        }
         // Concept connections
         if (g.conceptConnections?.length) {
           children.push(makeSubHeading('Concept Connections'));

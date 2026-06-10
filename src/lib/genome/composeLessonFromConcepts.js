@@ -52,6 +52,7 @@ export function composeLessonFromConcepts(conceptKernels = [], courseLayer = {},
   const archetypeMisconceptions = []; // { term, definition, example, misconception }
   const archetypeTaskItems = []; // { stem, bloom, rubricFocus }
   const archetypesUsed = [];
+  const reasoningScaffolds = []; // { term, archetypeName, moves } — the expert routine
   for (const kernel of kernels) {
     const conceptText = `${kernel.definition?.text || ''} ${(kernel.facts || []).map((f) => f.text).join(' ')}`;
     for (const instance of kernel.edges?.instanceOf || []) {
@@ -69,6 +70,14 @@ export function composeLessonFromConcepts(conceptKernels = [], courseLayer = {},
         });
       }
       if (taskItems[0]) archetypeTaskItems.push(taskItems[0]);
+      // The archetype's reasoning moves are the expert's thinking routine for
+      // this deep structure — metacognitive scaffolding that turns recall into
+      // understanding. Currently the highest-value archetype data with no
+      // surface; render it as a "how to reason about this" study-guide block.
+      const moves = (archetype.reasoningMoves || []).map(cleanText).filter(Boolean);
+      if (moves.length >= 2 && !reasoningScaffolds.some((s) => s.archetypeName === archetype.name)) {
+        reasoningScaffolds.push({ term: cleanText(kernel.term), archetypeName: archetype.name, moves });
+      }
     }
   }
 
@@ -138,6 +147,9 @@ export function composeLessonFromConcepts(conceptKernels = [], courseLayer = {},
 
   // Restore the citation-bearing key terms (projection strips extra fields).
   payload.keyTerms = keyTerms;
+
+  // Metacognitive scaffold: the expert reasoning routine for this structure.
+  if (reasoningScaffolds.length > 0) payload.reasoningScaffolds = reasoningScaffolds;
 
   // Append one archetype-schema task item as a short-answer question — a
   // proven task form for the structure, slot-filled to this discipline.

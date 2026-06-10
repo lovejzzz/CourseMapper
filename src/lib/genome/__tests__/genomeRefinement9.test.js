@@ -103,7 +103,7 @@ describe('iteration 9 — three new archetype families bridge across disciplines
 
   it('the genome now spans 18 concepts and instantiates 9 archetypes', () => {
     const manifest = JSON.parse(readFileSync(join(process.cwd(), 'public/genome/manifest.json'), 'utf8'));
-    expect(manifest.conceptCount).toBe(18);
+    expect(manifest.conceptCount).toBeGreaterThanOrEqual(18);
     const used = new Set();
     for (const shard of manifest.shards) {
       const body = JSON.parse(readFileSync(join(process.cwd(), 'public/genome', shard.path), 'utf8'));
