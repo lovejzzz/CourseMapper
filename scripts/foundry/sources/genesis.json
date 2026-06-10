@@ -28,7 +28,9 @@
     "openstax:macroeconomics-2e#6": "Economists use a proxy variable, an observable stand-in, to measure a construct they cannot observe directly. Gross domestic product is widely used as a proxy for economic well-being, but it captures only marketed output and misses unpaid work, income distribution, and environmental costs. Because the proxy is not the construct, conclusions drawn from it inherit whatever the measure leaves out.",
     "openstax:biology-2e#47": "A bioindicator is a species or biological response used to measure the health of an ecosystem that cannot be assessed all at once. The presence of pollution-sensitive mayfly larvae, for example, indicates good water quality, while their absence signals degradation. A bioindicator captures the conditions it is sensitive to and misses stressors it does not respond to, so one indicator alone gives an incomplete picture.",
     "literary-close-reading:reference": "Close reading interprets a literary work by moving between its parts and the whole: each textual detail is read in light of the whole work, and the reader's sense of the whole is revised as more details accumulate. A close reading earns an interpretive claim by showing how specific passages support it, rather than cataloguing details for their own sake. Meaning emerges from the circle between part and whole, not from any single line in isolation.",
-    "historical-context:reference": "Contextual interpretation reads a historical source by moving between the detail and its context: each detail is understood in light of the broader period, and the historian's picture of the period is revised as more details come to light. A claim about the past earns support when specific evidence is situated in its context, not when details are listed in isolation. Understanding emerges from the circle between the particular source and the whole era."
+    "historical-context:reference": "Contextual interpretation reads a historical source by moving between the detail and its context: each detail is understood in light of the broader period, and the historian's picture of the period is revised as more details come to light. A claim about the past earns support when specific evidence is situated in its context, not when details are listed in isolation. Understanding emerges from the circle between the particular source and the whole era.",
+    "openstax:biology-2e#18": "A species is often defined as a group of organisms that can interbreed and produce fertile offspring, but this biological species concept fails for organisms that reproduce asexually or are known only as fossils. Because no single definition fits every case, where to draw the boundary of a species is a contested choice, and the choice matters: it determines which populations are counted as endangered and protected. Different species concepts include and exclude different organisms.",
+    "openstax:macroeconomics-2e#8": "To be counted as unemployed, a person must be without a job, available to work, and actively looking; people who have given up looking are classified as out of the labor force, not unemployed. Where this boundary is drawn changes the measured unemployment rate, so the classification is consequential: discouraged workers who are excluded make unemployment look lower than the felt experience of joblessness. The category is a choice with policy stakes."
   },
   "kernels": [
     {
@@ -2446,6 +2448,168 @@
         ]
       },
       "attribution": ["Historical thinking framework: contextualization"]
+    },
+    {
+      "id": "bio/species-concept",
+      "rev": 1,
+      "term": "Species concept",
+      "aliases": ["the species problem", "defining a species"],
+      "level": "intro",
+      "difficulty": 3,
+      "bloomCeiling": "Evaluate",
+      "definition": {
+        "text": "Where to draw the boundary of a species is a contested choice, because no single definition fits every case.",
+        "anchor": {
+          "src": "openstax:biology-2e#18",
+          "loc": "18.1",
+          "quote": "where to draw the boundary of a species is a contested choice"
+        },
+        "tier": 2
+      },
+      "facts": [
+        {
+          "text": "Drawing the species boundary determines which populations are counted as endangered and protected.",
+          "anchor": {
+            "src": "openstax:biology-2e#18",
+            "loc": "18.1",
+            "quote": "it determines which populations are counted as endangered and protected"
+          },
+          "tier": 2
+        },
+        {
+          "text": "Different species concepts include and exclude different organisms.",
+          "anchor": {
+            "src": "openstax:biology-2e#18",
+            "loc": "18.1",
+            "quote": "Different species concepts include and exclude different organisms"
+          },
+          "tier": 2
+        }
+      ],
+      "misconceptions": [
+        {
+          "text": "Students treat a species as a fixed natural fact rather than a human-drawn boundary that different definitions place differently.",
+          "corrective": "Sort the same organisms under two species concepts and ask which populations gain or lose protection.",
+          "tier": 1
+        }
+      ],
+      "examples": [
+        {
+          "text": "Two populations ranked as one species or two — depending on the concept used — can decide whether a rare population is legally protected.",
+          "domain": "biology"
+        }
+      ],
+      "mcBank": [
+        {
+          "stem": "Where to draw the boundary of a species matters because",
+          "options": [
+            "it determines which populations are protected as endangered",
+            "the definition of a species is fixed and never debated anywhere",
+            "species boundaries carry no real-world consequences",
+            "every organism belongs to one obvious species"
+          ],
+          "answerIndex": 0,
+          "explanationFactRef": 0,
+          "rationaleRefs": [0]
+        }
+      ],
+      "edges": {
+        "instanceOf": [
+          {
+            "archetype": "interpretive/contested-categories",
+            "confidence": 0.93,
+            "verified": true,
+            "mapping": {
+              "category": "the species",
+              "what it includes": "organisms grouped as one species",
+              "what it excludes": "organisms placed in other species",
+              "stake of the boundary": "which populations count as endangered and protected"
+            }
+          }
+        ]
+      },
+      "attribution": ["OpenStax Biology 2e, Ch. 18"]
+    },
+    {
+      "id": "econ/labor-force-classification",
+      "rev": 1,
+      "term": "Labor force classification",
+      "aliases": ["who counts as unemployed", "labor force participation"],
+      "level": "intro",
+      "difficulty": 3,
+      "bloomCeiling": "Evaluate",
+      "definition": {
+        "text": "People who have given up looking for work are classified as out of the labor force, not unemployed.",
+        "anchor": {
+          "src": "openstax:macroeconomics-2e#8",
+          "loc": "8.1",
+          "quote": "people who have given up looking are classified as out of the labor force, not unemployed"
+        },
+        "tier": 2
+      },
+      "facts": [
+        {
+          "text": "Discouraged workers who are excluded make unemployment look lower than the felt experience of joblessness.",
+          "anchor": {
+            "src": "openstax:macroeconomics-2e#8",
+            "loc": "8.1",
+            "quote": "discouraged workers who are excluded make unemployment look lower than the felt experience of joblessness"
+          },
+          "tier": 2
+        },
+        {
+          "text": "Where this boundary is drawn changes the measured unemployment rate.",
+          "anchor": {
+            "src": "openstax:macroeconomics-2e#8",
+            "loc": "8.1",
+            "quote": "Where this boundary is drawn changes the measured unemployment rate"
+          },
+          "tier": 2
+        }
+      ],
+      "misconceptions": [
+        {
+          "text": "Students read the unemployment rate as a neutral fact, missing that the labor-force boundary excludes discouraged workers by choice.",
+          "corrective": "Recount the rate including discouraged workers and ask whose situation each definition makes visible.",
+          "tier": 1
+        }
+      ],
+      "examples": [
+        {
+          "text": "In a weak job market the official rate can fall simply because discouraged workers stop looking and drop out of the labor force.",
+          "domain": "economics"
+        }
+      ],
+      "mcBank": [
+        {
+          "stem": "A discouraged worker who has stopped looking for a job is",
+          "options": [
+            "classified as out of the labor force, not unemployed",
+            "still counted as unemployed in the official statistics",
+            "automatically guaranteed a government job placement",
+            "the largest single category in every modern economy"
+          ],
+          "answerIndex": 0,
+          "explanationFactRef": 0,
+          "rationaleRefs": [0]
+        }
+      ],
+      "edges": {
+        "instanceOf": [
+          {
+            "archetype": "interpretive/contested-categories",
+            "confidence": 0.9,
+            "verified": true,
+            "mapping": {
+              "category": "the labor force",
+              "what it includes": "people working or actively looking",
+              "what it excludes": "discouraged workers who stopped looking",
+              "stake of the boundary": "the measured unemployment rate and the policy it drives"
+            }
+          }
+        ]
+      },
+      "attribution": ["OpenStax Principles of Macroeconomics 2e, Ch. 8"]
     }
   ]
 }

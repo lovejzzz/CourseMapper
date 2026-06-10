@@ -3,6 +3,47 @@ import Header from '../components/Header';
 
 const releases = [
   {
+    version: '0.11.3',
+    date: 'June 10, 2026',
+    title: 'Every Deep Structure, Covered: All 16 Archetypes Instantiated',
+    highlights: [
+      'All 16 deep-structure archetypes are now instantiated in the Curriculum Genome — every reasoning pattern the Archetype Layer defines now has real, source-anchored exemplars and can power cross-discipline transfer',
+      'Five new cross-discipline bridge families since v0.11.2: stock-and-flow (a population level ↔ a capital stock), source-criticism (a primary source ↔ a dataset’s provenance), operationalization (GDP ↔ a bioindicator), part-and-whole interpretation (a close reading ↔ a historian reading a source in context), and contested categories (the species concept ↔ who counts as unemployed)',
+      'A new foundry guardrail catches cross-discipline alias collisions — surfaces that would make one discipline’s lesson wrongly pull in another’s concept — and it immediately surfaced and fixed a latent one ("model assumptions" shared by the economic and statistical model concepts)',
+      'The Curriculum Genome reached 32 source-anchored concepts across 6 disciplines and 13 cross-discipline bridge families, all on the zero-cost, fully-cited path',
+    ],
+    sections: [
+      {
+        label: 'All 16 Archetypes Live',
+        icon: 'AI',
+        color: 'emerald',
+        items: [
+          'Instantiated the final archetypes — stock-and-flow, source-criticism, operationalization, part-and-whole interpretation (hermeneutic circle), and contested categories — each as a verified cross-discipline bridge pair with grounded slot mappings.',
+          'Every bridge automatically lights up all three teaching surfaces shipped in v0.11.2 (study-guide reasoning routine, "How Experts Think" slide, "Same Structure" transfer slide) with zero new machinery.',
+          'Genome grew to 32 concepts / 16 archetypes / 13 bridge families; 32/32 admitted through anchor verification + the test-wiseness battery.',
+        ],
+      },
+      {
+        label: 'Resolution Precision Guardrail',
+        icon: 'QA',
+        color: 'indigo',
+        items: [
+          'New alias-collision lint flags any concept surface whose words are fully contained in a concept from another discipline — the exact condition under which a mixed-discipline course mis-resolves a lesson.',
+          'It caught and fixed a real latent collision: the economic-model and statistical-model concepts both carried the generic alias "model assumptions"; their surfaces are now disjoint.',
+          'Two earlier cross-discipline mis-resolutions (history source criticism vs. statistics data provenance) were found and fixed the same way; the lint now runs clean on every genome build.',
+        ],
+      },
+      {
+        label: 'Release Hygiene',
+        icon: 'UI',
+        color: 'amber',
+        items: [
+          'Fixed a stale version stamp: the run-digest header (appVersion) had lagged at 0.11.1 through v0.11.2; it is now unified with package.json and the screen footers at 0.11.3.',
+        ],
+      },
+    ],
+  },
+  {
     version: '0.11.2',
     date: 'June 10, 2026',
     title: 'Teach How to Think: Expert Reasoning on Every Surface',
