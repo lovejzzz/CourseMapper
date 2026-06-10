@@ -301,8 +301,10 @@ function SlideCanvas({
   const useTwoCol = type === 'content' && bullets.length >= 4;
   const generatedVisual = getGeneratedSlideVisual(slide);
 
-  const headingFont = "'Montserrat', 'Inter', system-ui, sans-serif";
-  const bodyFont = "'Open Sans', 'Inter', system-ui, sans-serif";
+  // Match the PPTX export pairing (Georgia + Trebuchet MS) so the in-app
+  // preview is what the downloaded deck actually looks like.
+  const headingFont = "Georgia, 'Times New Roman', serif";
+  const bodyFont = "'Trebuchet MS', 'Segoe UI', system-ui, sans-serif";
 
   // ── TITLE SLIDE ──────────────────────────────────────────────────────────
   if (type === 'title')
@@ -1053,7 +1055,7 @@ function SlideThumbnail({ slide, slideIndex, deckTitle, deckIndex, themeIndex })
           <div className="flex-1 flex flex-col justify-center pl-1">
             <p
               className="text-[6px] font-bold leading-tight truncate max-w-[65%]"
-              style={{ color: theme.titleText, fontFamily: "'Montserrat', sans-serif" }}
+              style={{ color: theme.titleText, fontFamily: 'Georgia, serif' }}
             >
               {slide?.title || 'Untitled'}
             </p>

@@ -3,6 +3,49 @@ import Header from '../components/Header';
 
 const releases = [
   {
+    version: '0.12.0',
+    date: 'June 10, 2026',
+    title: 'Materials That Look Designed: Export Redesign + Economics Depth',
+    highlights: [
+      'Every downloaded document was rerendered with a real design system — an editorial serif/sans type pairing, a clear type scale, letter-spaced section labels, generous spacing, and themed tables with banded rows and cell padding — so a downloaded Lesson Plan, Quiz, or Study Guide reads like a publisher made it, not a form dump',
+      'Slide decks now use fonts that are installed on every Windows and macOS machine (Georgia + Trebuchet MS), so the .pptx renders with its designed typography in PowerPoint and Keynote instead of silently falling back to a default face — the single biggest cause of the old "dull" look',
+      'The slide-deck PDF handout was rebuilt to match the deck themes: a full-bleed title page per lesson, accent side bars, round bullet markers, and a styled speaker-notes panel — and the generic deliverable PDF gained a designed header band, readable type, banded tables, and page footers',
+      'Economics depth sprint: the Curriculum Genome’s economics shard grew from 11 to 16 source-anchored concepts (opportunity cost, supply, comparative advantage, externalities, monopoly), so a realistic intro-economics syllabus now resolves nearly every lesson on the free, fully-cited path — 37 concepts total across 6 disciplines',
+    ],
+    sections: [
+      {
+        label: 'Designed Documents',
+        icon: 'UI',
+        color: 'indigo',
+        items: [
+          'Rebuilt the DOCX design: Georgia headings + Calibri body, a real type scale (18pt title / 15pt section / tracked-uppercase 9pt labels), accent-barred lesson headings, tinted callouts for answer keys and misconception corrections, and tables with white-on-accent headers, banded rows, cell padding, and hairline rules instead of a heavy grid.',
+          'Quiz answers and explanations now render in a single highlighted "Answer" callout with lettered (A/B/C/D) options, so a printed quiz reads like an exam paper.',
+          'Removed a long-drifted duplicate copy of the CSV/PDF/DOCX builders: direct downloads now share the exact builders the ZIP/Google paths use, so every download path gets the new design and the CurriculumOS citations (key-term sources, reasoning routines) identically.',
+        ],
+      },
+      {
+        label: 'Slide & PDF Polish',
+        icon: 'AI',
+        color: 'amber',
+        items: [
+          'Switched the .pptx export and the in-app slide preview to a universally-installed font pairing (Georgia + Trebuchet MS) and pinned them in the deck theme so the file renders as designed everywhere — the fix for decks that looked plain after download.',
+          'Redesigned the slide-deck PDF handout with per-lesson color themes, full-bleed title pages, accent side bars, readable bullet typography, and a tinted speaker-notes panel.',
+          'Gave the generic deliverable PDF a header band with the course name, larger readable type, themed banded tables, and a page footer with page numbers.',
+        ],
+      },
+      {
+        label: 'Economics Depth',
+        icon: 'QA',
+        color: 'emerald',
+        items: [
+          'Added five foundational intro-microeconomics concepts — opportunity cost, supply curve, comparative advantage, externality, monopoly — each source-anchored and admitted through the same anchor-verification + test-wiseness gate.',
+          'A realistic 12-lesson Principles of Economics syllabus now resolves at least 11 lessons against the genome, on the zero-cost, fully-cited path.',
+          'externality also genuinely instantiates the system-boundary archetype (the market boundary excludes third-party spillovers), adding a bonus cross-discipline bridge to the cell membrane. Genome: 37 concepts / 16 archetypes; alias-collision lint clean.',
+        ],
+      },
+    ],
+  },
+  {
     version: '0.11.3',
     date: 'June 10, 2026',
     title: 'Every Deep Structure, Covered: All 16 Archetypes Instantiated',

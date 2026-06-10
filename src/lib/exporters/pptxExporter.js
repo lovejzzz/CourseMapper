@@ -1,6 +1,6 @@
 /**
  * Export slide decks as PowerPoint (.pptx) using pptxgenjs.
- * World-class educational slide design with Google-native fonts,
+ * World-class educational slide design with universally-installed fonts,
  * assertion-evidence layouts, and rich visual hierarchy.
  *
  * Features:
@@ -8,7 +8,13 @@
  *   - Slide element validation (out-of-bounds + overlap detection)
  *   - LaTeX rendering for STEM courses (Unicode + KaTeX image)
  *
- * Fonts: Montserrat (headings) + Open Sans (body) — both Google Slides native.
+ * Fonts: Georgia (headings) + Trebuchet MS (body). Until v0.12.0 this file
+ * specced Montserrat + Open Sans, which are NOT installed on most machines:
+ * PowerPoint and Keynote silently substituted their default faces, so the
+ * downloaded deck lost the designed typography entirely ("dull font").
+ * Georgia and Trebuchet MS ship with every Windows and macOS install AND are
+ * native in Google Slides, so the deck renders as designed on every path.
+ * pptxgenjs cannot embed fonts — only universally-present faces are safe.
  */
 
 import { autoFitFontSize, autoFitBullets, createElementTracker, SLIDE_W, SLIDE_H } from './slideTextFit.js';
@@ -27,10 +33,11 @@ async function getPptxGen() {
   return _PptxGenJS;
 }
 
-// ── Font constants (Google Slides native) ──────────────────────────────────
-const FONT_HEADING = 'Montserrat';
-const FONT_BODY = 'Open Sans';
-const FONT_LABEL = 'Open Sans';
+// ── Font constants (installed on every Windows/macOS machine + Google
+// Slides native — see header note; do not spec fonts that need installing) ──
+const FONT_HEADING = 'Georgia';
+const FONT_BODY = 'Trebuchet MS';
+const FONT_LABEL = 'Trebuchet MS';
 
 // ── Rich university color themes ───────────────────────────────────────────
 export const THEMES = [
@@ -1500,6 +1507,7 @@ async function createPptxWithDecks(data, courseName, themeIndex) {
   pptx.lang = 'en-US';
   pptx.author = 'CourseMapper';
   pptx.title = courseName || 'Slide Decks';
+  pptx.theme = { headFontFace: FONT_HEADING, bodyFontFace: FONT_BODY };
 
   const key = expanded.decks ? 'decks' : 'slideDecks';
   const decks = (expanded[key] || []).map((d, i) => ({ ...d, _deckIndex: i }));
@@ -1576,6 +1584,7 @@ export async function buildSingleDeckPptxBlob(deck, deckIndex, courseName, theme
   pptx.layout = 'LAYOUT_16x9';
   pptx.lang = 'en-US';
   pptx.title = expandedDeck.lessonTitle || courseName || 'Slide Deck';
+  pptx.theme = { headFontFace: FONT_HEADING, bodyFontFace: FONT_BODY };
 
   const theme = resolveTheme(deckIndex, themeIndex);
   const deckWithIndex = { ...expandedDeck, _deckIndex: deckIndex };

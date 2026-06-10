@@ -13,7 +13,6 @@ import { assertTableRowsHaveNoInternalExportLanguage } from '../exportTextInspec
 
 export async function exportDeliverablePdf(featureId, data, courseName) {
   const label = resolveFeatureLabel(featureId);
-  const title = `${courseName || 'Course'} — ${label}`;
 
   // Syllabus gets a specially formatted multi-section PDF
   if (featureId === 'syllabus') {
@@ -271,35 +270,73 @@ export async function exportDeliverablePdf(featureId, data, courseName) {
     return fileName;
   }
 
-  // All other deliverables: generic table-based PDF
+  // All other deliverables: generic table-based PDF with a designed header
+  // band, themed table styling, and page footers (matches the DOCX theme).
   const { headers, rows } = deliverableToCsvRows(featureId, data);
   if (rows.length === 0) throw new Error('No data to export');
   assertTableRowsHaveNoInternalExportLanguage({ headers, rows }, label, 'PDF');
 
+  const { getDocTheme } = await import('./docTheme.js');
+  const theme = getDocTheme();
+  const hexToRgb = (hex) => {
+    const h = String(hex || '000000').replace('#', '');
+    return [parseInt(h.slice(0, 2), 16), parseInt(h.slice(2, 4), 16), parseInt(h.slice(4, 6), 16)];
+  };
+  const accent = hexToRgb(theme.accent);
+  const heading = hexToRgb(theme.headingColor);
+  const band = hexToRgb(theme.bandFill || 'F3F7FB');
+  const rule = hexToRgb(theme.ruleColor || 'C9D6E8');
+
   const { jsPDF, autoTable } = await loadPdfLibs();
   const landscape = headers.length > 5;
   const doc = new jsPDF({ orientation: landscape ? 'landscape' : 'portrait', unit: 'mm', format: 'a4' });
+  const pageW = landscape ? 297 : 210;
+  const pageH = landscape ? 210 : 297;
 
-  doc.setFontSize(14);
-  doc.setFont('helvetica', 'bold');
-  doc.text(title, 14, 15);
+  const drawPageChrome = (pageNumber) => {
+    // Header band.
+    doc.setFillColor(...heading);
+    doc.rect(0, 0, pageW, 20, 'F');
+    doc.setFillColor(...accent);
+    doc.rect(0, 20, pageW, 1.2, 'F');
+    doc.setFont('helvetica', 'bold');
+    doc.setFontSize(7.5);
+    doc.setTextColor(...band);
+    doc.setCharSpace(0.7);
+    doc.text(String(label).toUpperCase(), 12, 8);
+    doc.setCharSpace(0);
+    doc.setFontSize(13);
+    doc.setTextColor(255, 255, 255);
+    doc.text(courseName || 'Course', 12, 15.5);
+    // Footer.
+    doc.setDrawColor(...rule);
+    doc.setLineWidth(0.2);
+    doc.line(12, pageH - 10, pageW - 12, pageH - 10);
+    doc.setFont('helvetica', 'normal');
+    doc.setFontSize(7.5);
+    doc.setTextColor(130, 140, 155);
+    doc.text(`${courseName || 'Course'} — ${label}`, 12, pageH - 5.5);
+    doc.text(`Page ${pageNumber}`, pageW - 12, pageH - 5.5, { align: 'right' });
+  };
 
   autoTable(doc, {
     head: [headers],
     body: rows,
-    startY: 22,
+    startY: 27,
     styles: {
-      fontSize: 7,
-      cellPadding: 2,
+      fontSize: 8.5,
+      cellPadding: 2.6,
       overflow: 'linebreak',
-      lineWidth: 0.1,
-      lineColor: [180, 198, 231],
+      lineWidth: { bottom: 0.2 },
+      lineColor: rule,
       valign: 'top',
+      textColor: [50, 55, 65],
     },
-    headStyles: { fillColor: [68, 114, 196], textColor: 255, fontStyle: 'bold', fontSize: 7.5 },
-    alternateRowStyles: { fillColor: [245, 247, 252] },
-    margin: { top: 22, left: 8, right: 8 },
+    headStyles: { fillColor: accent, textColor: 255, fontStyle: 'bold', fontSize: 8.5, lineWidth: 0 },
+    alternateRowStyles: { fillColor: band },
+    margin: { top: 27, bottom: 14, left: 10, right: 10 },
     tableWidth: 'auto',
+    didDrawPage: (hookData) => drawPageChrome(hookData.pageNumber),
   });
 
   const fileName = `${courseName || 'Course'} - ${label}.pdf`;

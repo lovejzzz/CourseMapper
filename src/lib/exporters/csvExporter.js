@@ -354,11 +354,30 @@ export function deliverableToCsvRows(featureId, data) {
       const headers = allKeys.map((k) => k.replace(/([a-z])([A-Z])/g, '$1 $2').replace(/^./, (s) => s.toUpperCase()));
       const rows = items.map((item) =>
         allKeys.map((k) => {
+          if (isInternalExportMetadataKey(k)) return '';
           const v = item[k];
           if (v == null) return '';
           if (typeof v === 'string') return v;
-          if (Array.isArray(v)) return v.map((x) => (typeof x === 'string' ? x : JSON.stringify(x))).join('; ');
-          if (typeof v === 'object') return JSON.stringify(v);
+          if (Array.isArray(v)) {
+            return v
+              .map((x) => {
+                if (typeof x === 'string') return x;
+                if (x && typeof x === 'object') {
+                  return JSON.stringify(
+                    Object.fromEntries(
+                      Object.entries(x).filter(([nestedKey]) => !isInternalExportMetadataKey(nestedKey)),
+                    ),
+                  );
+                }
+                return JSON.stringify(x);
+              })
+              .join('; ');
+          }
+          if (typeof v === 'object') {
+            return JSON.stringify(
+              Object.fromEntries(Object.entries(v).filter(([nestedKey]) => !isInternalExportMetadataKey(nestedKey))),
+            );
+          }
           return String(v);
         }),
       );

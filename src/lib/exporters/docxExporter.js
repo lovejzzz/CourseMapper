@@ -6,9 +6,10 @@ import { formatRequiredText, normalizeCourseRequirements } from './syllabusExpor
 // DOCX EXPORT
 // ════════════════════════════════════════════════════════════════
 
-import { getDocTheme } from './docTheme.js';
+import { getDocTheme, DOC_FONTS } from './docTheme.js';
 
-export const FONT = 'Calibri';
+export const FONT = DOC_FONTS.body;
+export const FONT_HEAD = DOC_FONTS.heading;
 // Theme-aware accent: documents pick up the active doc theme at build time;
 // the constant remains the indigo default for callers that import it.
 export const ACCENT = '2B579A';
@@ -16,15 +17,28 @@ function activeTheme() {
   try {
     return getDocTheme();
   } catch {
-    return { accent: ACCENT, headingColor: '1F3864', metaColor: '7A869A', ruleColor: 'CCCCCC' };
+    return {
+      accent: ACCENT,
+      accentSoft: 'D6E4F0',
+      headingColor: '1F3864',
+      metaColor: '7A869A',
+      ruleColor: 'CCCCCC',
+      bandFill: 'F3F7FB',
+      calloutFill: 'EEF4FA',
+    };
   }
 }
+// Type scale in half-points: 11pt body, 18pt doc title, 15pt section
+// headings (serif), 9pt tracked-uppercase sub-headings and labels.
 export const BODY_SIZE = 22;
-export const H1_SIZE = 28;
-const H2_SIZE = 24;
-const H3_SIZE = 22;
+export const H1_SIZE = 36;
+const H2_SIZE = 30;
+const H3_SIZE = 18;
+const META_SIZE = 18;
+// characterSpacing is in twentieths of a point: 16 ≈ 0.8pt letter tracking.
+const LABEL_TRACKING = 16;
 export const LINE_SP = 276;
-const SINGLE_SP = 240;
+const SINGLE_SP = 252;
 
 function formatSourceArtifact(artifact) {
   if (typeof artifact === 'string') return artifact;
@@ -50,50 +64,86 @@ export function buildDocxTitleChildren(docx, courseName, label, options = {}) {
   // first page instead of dropping straight into Lesson 1.
   if (options.cover) {
     children.push(
-      new Paragraph({ spacing: { before: 2400 }, children: [] }),
+      new Paragraph({ spacing: { before: 2800 }, children: [] }),
       new Paragraph({
         alignment: AlignmentType.CENTER,
-        spacing: { after: 200 },
+        spacing: { after: 280 },
         children: [
-          new TextRun({ text: courseName || 'Course', bold: true, size: 56, font: FONT, color: theme.headingColor }),
+          new TextRun({
+            text: String(label || '').toUpperCase(),
+            bold: true,
+            size: 22,
+            font: FONT,
+            color: theme.accent,
+            characterSpacing: LABEL_TRACKING * 2,
+          }),
         ],
       }),
       new Paragraph({
         alignment: AlignmentType.CENTER,
-        spacing: { after: 120 },
-        children: [new TextRun({ text: label, size: 32, font: FONT, color: theme.accent })],
+        spacing: { after: 240, line: 312 },
+        children: [
+          new TextRun({
+            text: courseName || 'Course',
+            bold: true,
+            size: 64,
+            font: FONT_HEAD,
+            color: theme.headingColor,
+          }),
+        ],
+      }),
+      // Short centered accent rule between the title and the meta line.
+      new Paragraph({
+        alignment: AlignmentType.CENTER,
+        spacing: { after: 240 },
+        indent: { left: 3600, right: 3600 },
+        border: { bottom: { style: BorderStyle.SINGLE, size: 12, color: theme.accent, space: 1 } },
+        children: [],
       }),
       ...(options.coverMeta
         ? [
             new Paragraph({
               alignment: AlignmentType.CENTER,
               spacing: { after: 80 },
-              children: [new TextRun({ text: options.coverMeta, size: 22, font: FONT, color: theme.metaColor })],
+              children: [new TextRun({ text: options.coverMeta, size: 24, font: FONT, color: theme.metaColor })],
             }),
           ]
         : []),
       new Paragraph({ children: [new PageBreak()] }),
     );
   }
+  // Document masthead: tracked-uppercase deliverable label over the course
+  // name, closed by a full-width accent rule.
   children.push(
     new Paragraph({
-      heading: HeadingLevel.TITLE,
-      alignment: AlignmentType.CENTER,
-      spacing: { line: LINE_SP, after: 120 },
+      spacing: { after: 60 },
       children: [
         new TextRun({
-          text: `${courseName || 'Course'} — ${label}`,
+          text: String(label || '').toUpperCase(),
           bold: true,
-          size: H1_SIZE,
+          size: META_SIZE,
           font: FONT,
           color: theme.accent,
+          characterSpacing: LABEL_TRACKING,
         }),
       ],
     }),
     new Paragraph({
-      alignment: AlignmentType.CENTER,
-      spacing: { after: 300 },
-      border: { bottom: { style: BorderStyle.SINGLE, size: 6, color: theme.ruleColor, space: 8 } },
+      heading: HeadingLevel.TITLE,
+      spacing: { line: LINE_SP, after: 100 },
+      children: [
+        new TextRun({
+          text: courseName || 'Course',
+          bold: true,
+          size: H1_SIZE,
+          font: FONT_HEAD,
+          color: theme.headingColor,
+        }),
+      ],
+    }),
+    new Paragraph({
+      spacing: { after: 320 },
+      border: { bottom: { style: BorderStyle.SINGLE, size: 12, color: theme.accent, space: 6 } },
       children: [],
     }),
   );
@@ -101,22 +151,24 @@ export function buildDocxTitleChildren(docx, courseName, label, options = {}) {
 }
 
 export function buildDocxDocument(docx, children, { courseName, label }) {
-  const { Document, Paragraph, TextRun, Footer, PageNumber, TabStopType, TabStopPosition } = docx;
+  const { Document, Paragraph, TextRun, Footer, PageNumber, TabStopType, TabStopPosition, BorderStyle } = docx;
+  const theme = activeTheme();
   const footer = new Footer({
     children: [
       new Paragraph({
         tabStops: [{ type: TabStopType.RIGHT, position: TabStopPosition.MAX }],
+        border: { top: { style: BorderStyle.SINGLE, size: 4, color: theme.ruleColor, space: 4 } },
         children: [
           new TextRun({
             text: `${courseName || 'Course'} — ${label}`,
             size: 16,
             font: FONT,
-            color: '888888',
+            color: theme.metaColor,
           }),
-          new TextRun({ text: '\tPage ', size: 16, font: FONT, color: '888888' }),
-          new TextRun({ children: [PageNumber.CURRENT], size: 16, font: FONT, color: '888888' }),
-          new TextRun({ text: ' of ', size: 16, font: FONT, color: '888888' }),
-          new TextRun({ children: [PageNumber.TOTAL_PAGES], size: 16, font: FONT, color: '888888' }),
+          new TextRun({ text: '\tPage ', size: 16, font: FONT, color: theme.metaColor }),
+          new TextRun({ children: [PageNumber.CURRENT], size: 16, font: FONT, color: theme.metaColor }),
+          new TextRun({ text: ' of ', size: 16, font: FONT, color: theme.metaColor }),
+          new TextRun({ children: [PageNumber.TOTAL_PAGES], size: 16, font: FONT, color: theme.metaColor }),
         ],
       }),
     ],
@@ -139,99 +191,157 @@ export function _buildDocxContentShared(featureId, data, children, docx) {
     ShadingType,
     TableLayoutType,
     BorderStyle,
-    THIN_BORDER,
   } = docx;
+
+  const theme = activeTheme();
 
   const makeHeading = (text) =>
     new Paragraph({
       heading: HeadingLevel.HEADING_2,
       keepNext: true,
-      spacing: { line: LINE_SP, before: 300, after: 120 },
-      children: [new TextRun({ text, bold: true, size: H2_SIZE, font: FONT, color: ACCENT })],
+      spacing: { line: LINE_SP, before: 420, after: 140 },
+      // Accent bar in the left margin anchors each lesson section.
+      border: { left: { style: BorderStyle.SINGLE, size: 24, color: theme.accent, space: 10 } },
+      children: [new TextRun({ text, bold: true, size: H2_SIZE, font: FONT_HEAD, color: theme.headingColor })],
     });
   const makeSubHeading = (text) =>
     new Paragraph({
       // Real heading level so section labels appear in Word's navigation
       // pane, TOCs, and screen-reader outlines instead of reading as bold
-      // body text.
+      // body text. Rendered as a tracked-uppercase kicker.
       heading: HeadingLevel.HEADING_3,
       keepNext: true,
-      spacing: { line: SINGLE_SP, before: 160, after: 60 },
-      children: [new TextRun({ text, bold: true, size: H3_SIZE, font: FONT, color: '444444' })],
+      spacing: { line: SINGLE_SP, before: 280, after: 80 },
+      children: [
+        new TextRun({
+          text: String(text || '').toUpperCase(),
+          bold: true,
+          size: H3_SIZE,
+          font: FONT,
+          color: theme.accent,
+          characterSpacing: LABEL_TRACKING,
+        }),
+      ],
     });
   const makeText = (text) =>
     new Paragraph({
-      spacing: { line: SINGLE_SP, before: 40, after: 40 },
-      children: [new TextRun({ text: text || '', size: BODY_SIZE, font: FONT })],
+      spacing: { line: SINGLE_SP, before: 40, after: 80 },
+      children: [new TextRun({ text: text || '', size: BODY_SIZE, font: FONT, color: '333333' })],
+    });
+  // Meta strip for the "90 min · Week 3"-style lines under a heading.
+  const makeMeta = (text) =>
+    new Paragraph({
+      spacing: { line: SINGLE_SP, before: 0, after: 140 },
+      children: [
+        new TextRun({
+          text: String(text || '').toUpperCase(),
+          size: META_SIZE,
+          font: FONT,
+          color: theme.metaColor,
+          characterSpacing: LABEL_TRACKING / 2,
+        }),
+      ],
     });
   const makeBold = (label, text) =>
     new Paragraph({
-      spacing: { line: SINGLE_SP, before: 40, after: 40 },
+      spacing: { line: SINGLE_SP, before: 40, after: 60 },
       children: [
-        new TextRun({ text: label + ': ', bold: true, size: BODY_SIZE, font: FONT, color: '333333' }),
-        new TextRun({ text: text || '', size: BODY_SIZE, font: FONT }),
+        new TextRun({ text: label + '  ', bold: true, size: BODY_SIZE, font: FONT, color: theme.headingColor }),
+        new TextRun({ text: text || '', size: BODY_SIZE, font: FONT, color: '404040' }),
       ],
     });
   const makeBullet = (text) =>
     new Paragraph({
-      spacing: { line: SINGLE_SP, before: 20, after: 20 },
+      spacing: { line: SINGLE_SP, before: 20, after: 50 },
       indent: { left: 360 },
       bullet: { level: 0 },
-      children: [new TextRun({ text: text || '', size: BODY_SIZE, font: FONT })],
+      children: [new TextRun({ text: text || '', size: BODY_SIZE, font: FONT, color: '333333' })],
     });
   const makeItalic = (text) =>
     new Paragraph({
-      spacing: { line: SINGLE_SP, before: 20, after: 20 },
+      spacing: { line: SINGLE_SP, before: 20, after: 50 },
       indent: { left: 360 },
-      children: [new TextRun({ text: text || '', italics: true, size: BODY_SIZE, font: FONT, color: '666666' })],
+      children: [new TextRun({ text: text || '', italics: true, size: BODY_SIZE, font: FONT, color: theme.metaColor })],
     });
   const makeNumbered = (num, text) =>
     new Paragraph({
-      spacing: { line: SINGLE_SP, before: 20, after: 20 },
+      spacing: { line: SINGLE_SP, before: 20, after: 50 },
       indent: { left: 360 },
       children: [
-        new TextRun({ text: `${num}. `, bold: true, size: BODY_SIZE, font: FONT }),
-        new TextRun({ text: text || '', size: BODY_SIZE, font: FONT }),
+        new TextRun({ text: `${num}. `, bold: true, size: BODY_SIZE, font: FONT, color: theme.accent }),
+        new TextRun({ text: text || '', size: BODY_SIZE, font: FONT, color: '333333' }),
       ],
     });
+  // Tinted callout strip with a tracked-uppercase label — used for answer
+  // keys, misconception corrections, and other "stop and look" content.
+  const makeCallout = (label, text) =>
+    new Paragraph({
+      spacing: { line: SINGLE_SP, before: 80, after: 120 },
+      shading: { type: ShadingType.CLEAR, fill: theme.calloutFill || theme.accentSoft },
+      border: { left: { style: BorderStyle.SINGLE, size: 24, color: theme.accent, space: 8 } },
+      indent: { left: 120, right: 120 },
+      children: [
+        new TextRun({
+          text: String(label || '').toUpperCase(),
+          bold: true,
+          size: META_SIZE,
+          font: FONT,
+          color: theme.accent,
+          characterSpacing: LABEL_TRACKING,
+        }),
+        new TextRun({ text: text || '', size: BODY_SIZE, font: FONT, color: '333333', break: 1 }),
+      ],
+    });
+  const NO_BORDER = { style: BorderStyle.NONE, size: 0, color: 'FFFFFF' };
+  const HAIRLINE = { style: BorderStyle.SINGLE, size: 4, color: theme.ruleColor };
   const makeTableFn = (colDXA, headerTexts, dataRows) => {
     const hdr = new TableRow({
+      tableHeader: true,
       children: headerTexts.map(
         (h, idx) =>
           new TableCell({
             width: { size: colDXA[idx], type: WidthType.DXA },
-            shading: { type: ShadingType.CLEAR, fill: 'D6E4F0' },
+            shading: { type: ShadingType.CLEAR, fill: theme.accent },
+            margins: { top: 80, bottom: 80, left: 120, right: 120 },
             children: [
-              new Paragraph({ children: [new TextRun({ text: h, bold: true, size: BODY_SIZE, font: FONT })] }),
+              new Paragraph({
+                children: [new TextRun({ text: h, bold: true, size: 20, font: FONT, color: 'FFFFFF' })],
+              }),
             ],
           }),
       ),
     });
     const rows = dataRows.map(
-      (row) =>
+      (row, ri) =>
         new TableRow({
           children: row.map(
             (v, idx) =>
               new TableCell({
                 width: { size: colDXA[idx], type: WidthType.DXA },
+                shading: ri % 2 === 1 ? { type: ShadingType.CLEAR, fill: theme.bandFill || 'F5F7FA' } : undefined,
+                margins: { top: 80, bottom: 80, left: 120, right: 120 },
                 children: [
-                  new Paragraph({ children: [new TextRun({ text: String(v || ''), size: BODY_SIZE, font: FONT })] }),
+                  new Paragraph({
+                    spacing: { line: SINGLE_SP },
+                    children: [new TextRun({ text: String(v || ''), size: BODY_SIZE, font: FONT, color: '333333' })],
+                  }),
                 ],
               }),
           ),
         }),
     );
+    // Horizontal hairlines only — no vertical grid — keeps tables airy.
     return new Table({
       layout: TableLayoutType.FIXED,
       width: { size: 9360, type: WidthType.DXA },
       columnWidths: colDXA,
       borders: {
-        top: THIN_BORDER,
-        bottom: THIN_BORDER,
-        left: THIN_BORDER,
-        right: THIN_BORDER,
-        insideHorizontal: THIN_BORDER,
-        insideVertical: THIN_BORDER,
+        top: HAIRLINE,
+        bottom: { style: BorderStyle.SINGLE, size: 8, color: theme.accent },
+        left: NO_BORDER,
+        right: NO_BORDER,
+        insideHorizontal: HAIRLINE,
+        insideVertical: NO_BORDER,
       },
       rows: [hdr, ...rows],
     });
@@ -246,7 +356,7 @@ export function _buildDocxContentShared(featureId, data, children, docx) {
         children.push(makeHeading(p.lessonTitle || p.title || 'Lesson'));
         // Meta line
         const meta = [p.duration, p.weekNumber].filter(Boolean);
-        if (meta.length) children.push(makeText(meta.join(' · ')));
+        if (meta.length) children.push(makeMeta(meta.join('  ·  ')));
         // Bloom's levels
         if (p.bloomsLevels?.length) children.push(makeBold("Bloom's Levels", p.bloomsLevels.join(', ')));
         // Objectives
@@ -334,7 +444,7 @@ export function _buildDocxContentShared(featureId, data, children, docx) {
         if (gradedWork) children.push(makeBold('Graded Student Work', gradedWork));
         if (r.title && r.lessonTitle) children.push(makeBold('Rubric', r.title));
         const rMeta = [r.totalPoints && `${r.totalPoints} points`, r.assessmentType, r.bloomsLevel].filter(Boolean);
-        if (rMeta.length) children.push(makeText(rMeta.join(' · ')));
+        if (rMeta.length) children.push(makeMeta(rMeta.join('  ·  ')));
         if (r.taskDirections) children.push(makeBold('Task Directions', r.taskDirections));
         if (r.instructorFacilitationNote)
           children.push(makeBold('Instructor Facilitation', r.instructorFacilitationNote));
@@ -402,9 +512,18 @@ export function _buildDocxContentShared(featureId, data, children, docx) {
             q.estimatedMinutes && `~${q.estimatedMinutes} min`,
           ].filter(Boolean);
           children.push(makeBold(`Q${j + 1}` + (qMeta.length ? ` (${qMeta.join(', ')})` : ''), q.question || ''));
-          if (q.options) q.options.forEach((o) => children.push(makeBullet(o)));
-          if (q.answer) children.push(makeBold('Answer', q.answer));
-          if (q.explanation) children.push(makeBold('Explanation', q.explanation));
+          // Lettered options read as an exam paper, not a bullet list.
+          if (q.options)
+            q.options.forEach((o, oi) =>
+              children.push(makeNumbered(String.fromCharCode(65 + (oi % 26)), typeof o === 'string' ? o : String(o))),
+            );
+          if (q.answer && q.explanation) {
+            children.push(makeCallout(`Answer — ${q.answer}`, q.explanation));
+          } else if (q.answer) {
+            children.push(makeCallout('Answer', q.answer));
+          } else if (q.explanation) {
+            children.push(makeBold('Explanation', q.explanation));
+          }
           // Single-objective lessons would otherwise repeat the same
           // "Aligns to" sentence under every question.
           if (q.objectiveAligned && q.objectiveAligned !== prevObjectiveAligned) {
@@ -429,7 +548,7 @@ export function _buildDocxContentShared(featureId, data, children, docx) {
       for (const d of expanded.discussions || []) {
         children.push(makeHeading(d.lessonTitle || 'Discussion'));
         const dMeta = [d.bloomsLevel, d.format, d.estimatedDuration].filter(Boolean);
-        if (dMeta.length) children.push(makeText(dMeta.join(' · ')));
+        if (dMeta.length) children.push(makeMeta(dMeta.join('  ·  ')));
         if (d.prompt) children.push(makeBold('Prompt', d.prompt));
         if (d.context) children.push(makeBold('Context', d.context));
         if (d.evidenceRequirement) children.push(makeBold('Evidence Requirement', d.evidenceRequirement));
@@ -484,7 +603,7 @@ export function _buildDocxContentShared(featureId, data, children, docx) {
           a.totalPoints && `${a.totalPoints} pts`,
           a.percentOfGrade,
         ].filter(Boolean);
-        if (aMeta.length) children.push(makeText(aMeta.join(' · ')));
+        if (aMeta.length) children.push(makeMeta(aMeta.join('  ·  ')));
         if (a.relatedLessons?.length) children.push(makeBold('Related Lessons', a.relatedLessons.join(', ')));
         if (a.overview) children.push(makeBold('Overview', a.overview));
         if (a.description) children.push(makeBold('Description', a.description));
@@ -606,8 +725,12 @@ export function _buildDocxContentShared(featureId, data, children, docx) {
               children.push(makeBullet(m));
               return;
             }
-            children.push(makeBold('Misconception', m.misconception || ''));
-            if (m.correction) children.push(makeItalic(`Correction: ${m.correction}`));
+            if (m.correction) {
+              children.push(makeBold('Misconception', m.misconception || ''));
+              children.push(makeCallout('Correction', m.correction));
+            } else {
+              children.push(makeBold('Misconception', m.misconception || ''));
+            }
           });
         }
         // Review questions

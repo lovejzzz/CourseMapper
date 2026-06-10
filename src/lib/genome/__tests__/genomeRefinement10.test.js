@@ -86,7 +86,9 @@ describe('iteration 10a — reasoning-move scaffold (metacognition)', () => {
     const blob = await buildDeliverableDocxBlob('studyGuides', compiled.studyGuides, 'Physiology');
     const zip = await JSZip.loadAsync(await blob.arrayBuffer());
     const xml = await zip.file('word/document.xml').async('string');
-    expect(xml).toContain('How to Reason About This');
+    // The section heading renders as a tracked-uppercase kicker (v0.12.0
+    // DOCX redesign); the metacognition content itself is the real assertion.
+    expect(xml).toContain('HOW TO REASON ABOUT THIS');
     expect(xml).toContain('trace one signal around the loop');
     expect(xml).not.toContain('reasoningScaffolds');
     expect(xml).not.toContain('archetypeName');

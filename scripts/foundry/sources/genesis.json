@@ -30,7 +30,12 @@
     "literary-close-reading:reference": "Close reading interprets a literary work by moving between its parts and the whole: each textual detail is read in light of the whole work, and the reader's sense of the whole is revised as more details accumulate. A close reading earns an interpretive claim by showing how specific passages support it, rather than cataloguing details for their own sake. Meaning emerges from the circle between part and whole, not from any single line in isolation.",
     "historical-context:reference": "Contextual interpretation reads a historical source by moving between the detail and its context: each detail is understood in light of the broader period, and the historian's picture of the period is revised as more details come to light. A claim about the past earns support when specific evidence is situated in its context, not when details are listed in isolation. Understanding emerges from the circle between the particular source and the whole era.",
     "openstax:biology-2e#18": "A species is often defined as a group of organisms that can interbreed and produce fertile offspring, but this biological species concept fails for organisms that reproduce asexually or are known only as fossils. Because no single definition fits every case, where to draw the boundary of a species is a contested choice, and the choice matters: it determines which populations are counted as endangered and protected. Different species concepts include and exclude different organisms.",
-    "openstax:macroeconomics-2e#8": "To be counted as unemployed, a person must be without a job, available to work, and actively looking; people who have given up looking are classified as out of the labor force, not unemployed. Where this boundary is drawn changes the measured unemployment rate, so the classification is consequential: discouraged workers who are excluded make unemployment look lower than the felt experience of joblessness. The category is a choice with policy stakes."
+    "openstax:macroeconomics-2e#8": "To be counted as unemployed, a person must be without a job, available to work, and actively looking; people who have given up looking are classified as out of the labor force, not unemployed. Where this boundary is drawn changes the measured unemployment rate, so the classification is consequential: discouraged workers who are excluded make unemployment look lower than the felt experience of joblessness. The category is a choice with policy stakes.",
+    "openstax:microeconomics-3e#2": "Because resources are scarce, every choice involves a trade-off: the opportunity cost of a choice is the value of the next best alternative that must be given up. A decision that looks free still has an opportunity cost if it uses time or resources that could have produced something else. Rational decision-makers weigh the opportunity cost, not just the out-of-pocket price.",
+    "openstax:microeconomics-3e#7": "The law of supply states that, all else equal, a higher price raises the quantity that producers are willing to supply, so the supply curve slopes upward. A change in the good's own price moves along the supply curve, while a change in input costs or technology shifts the whole curve. Quantity supplied is a flow per period, not a fixed stock.",
+    "openstax:microeconomics-3e#8": "A producer has a comparative advantage in the good it can make at the lower opportunity cost, even if another producer is better at making everything. When each producer specializes according to comparative advantage and then trades, total output rises and both can consume beyond what they could produce alone. Gains from trade come from differences in opportunity cost, not from absolute skill.",
+    "openstax:microeconomics-3e#9": "An externality is a cost or benefit from a transaction that falls on a third party who is not part of the exchange. When a negative externality like pollution is present, the market produces more than the socially efficient quantity because the price excludes the spillover cost. Correcting an externality means making the decision-makers face the costs or benefits the market boundary leaves out.",
+    "openstax:microeconomics-3e#10": "A monopoly is a market with a single seller of a product that has no close substitutes, protected by barriers to entry. Unlike a price-taking competitive firm, a monopoly is a price maker: it can raise price by restricting the quantity it sells. Because it produces less and charges more than a competitive market, a monopoly creates deadweight loss."
   },
   "kernels": [
     {
@@ -2610,6 +2615,355 @@
         ]
       },
       "attribution": ["OpenStax Principles of Macroeconomics 2e, Ch. 8"]
+    },
+    {
+      "id": "econ/opportunity-cost",
+      "rev": 1,
+      "term": "Opportunity cost",
+      "aliases": ["trade-off", "next best alternative"],
+      "level": "intro",
+      "difficulty": 2,
+      "bloomCeiling": "Apply",
+      "definition": {
+        "text": "The opportunity cost of a choice is the value of the next best alternative that must be given up.",
+        "anchor": {
+          "src": "openstax:microeconomics-3e#2",
+          "loc": "2.1",
+          "quote": "the opportunity cost of a choice is the value of the next best alternative that must be given up"
+        },
+        "tier": 2
+      },
+      "facts": [
+        {
+          "text": "A decision that looks free still has an opportunity cost if it uses time or resources that could have produced something else.",
+          "anchor": {
+            "src": "openstax:microeconomics-3e#2",
+            "loc": "2.1",
+            "quote": "A decision that looks free still has an opportunity cost if it uses time or resources that could have produced something else"
+          },
+          "tier": 2
+        },
+        {
+          "text": "Rational decision-makers weigh the opportunity cost, not just the out-of-pocket price.",
+          "anchor": {
+            "src": "openstax:microeconomics-3e#2",
+            "loc": "2.1",
+            "quote": "Rational decision-makers weigh the opportunity cost, not just the out-of-pocket price"
+          },
+          "tier": 2
+        }
+      ],
+      "misconceptions": [
+        {
+          "text": "Students count only the money paid and ignore the value of the foregone alternative.",
+          "corrective": "Always ask what the next best use of the time or money was; that foregone value is the real cost.",
+          "tier": 1
+        }
+      ],
+      "examples": [
+        {
+          "text": "A free concert ticket still costs the wage and study time you give up to attend — its opportunity cost is not zero.",
+          "domain": "economics"
+        }
+      ],
+      "mcBank": [
+        {
+          "stem": "The opportunity cost of a choice is",
+          "options": [
+            "the value of the next best alternative given up",
+            "only the money paid out of pocket for it",
+            "the combined value of every option not chosen",
+            "zero whenever the choice happens to feel free"
+          ],
+          "answerIndex": 0,
+          "explanationFactRef": 1,
+          "rationaleRefs": [0]
+        }
+      ],
+      "edges": {},
+      "attribution": ["OpenStax Principles of Microeconomics 3e, Ch. 2"]
+    },
+    {
+      "id": "econ/supply-curve",
+      "rev": 1,
+      "term": "Supply curve",
+      "aliases": ["law of supply", "supply schedule"],
+      "level": "intro",
+      "difficulty": 2,
+      "bloomCeiling": "Apply",
+      "definition": {
+        "text": "By the law of supply, a higher price raises the quantity producers are willing to supply, so the supply curve slopes upward.",
+        "anchor": {
+          "src": "openstax:microeconomics-3e#7",
+          "loc": "3.2",
+          "quote": "a higher price raises the quantity that producers are willing to supply, so the supply curve slopes upward"
+        },
+        "tier": 2
+      },
+      "facts": [
+        {
+          "text": "A change in the good's own price moves along the supply curve, while a change in input costs or technology shifts the whole curve.",
+          "anchor": {
+            "src": "openstax:microeconomics-3e#7",
+            "loc": "3.2",
+            "quote": "A change in the good's own price moves along the supply curve, while a change in input costs or technology shifts the whole curve"
+          },
+          "tier": 2
+        },
+        {
+          "text": "Quantity supplied is a flow per period, not a fixed stock.",
+          "anchor": {
+            "src": "openstax:microeconomics-3e#7",
+            "loc": "3.2",
+            "quote": "Quantity supplied is a flow per period, not a fixed stock"
+          },
+          "tier": 2
+        }
+      ],
+      "misconceptions": [
+        {
+          "text": "Students treat a price change as shifting the whole supply curve, confusing a move along the curve with a shift of it.",
+          "corrective": "A change in the good's own price moves along the curve; only non-price factors shift the curve.",
+          "tier": 1
+        }
+      ],
+      "examples": [
+        {
+          "text": "When the price of coffee rises, growers offer more beans (move along the curve); a frost that kills plants shifts the curve instead.",
+          "domain": "economics"
+        }
+      ],
+      "mcBank": [
+        {
+          "stem": "Along the curve, a rise in a good's own price",
+          "options": [
+            "increases the quantity supplied",
+            "shifts the entire curve to the left",
+            "always lowers the firm’s input costs",
+            "has no effect on the quantity offered"
+          ],
+          "answerIndex": 0,
+          "explanationFactRef": 0,
+          "rationaleRefs": [0]
+        }
+      ],
+      "edges": {},
+      "attribution": ["OpenStax Principles of Microeconomics 3e, Ch. 3"]
+    },
+    {
+      "id": "econ/comparative-advantage",
+      "rev": 1,
+      "term": "Comparative advantage",
+      "aliases": ["gains from trade", "specialization"],
+      "level": "intro",
+      "difficulty": 3,
+      "bloomCeiling": "Analyze",
+      "definition": {
+        "text": "A producer has a comparative advantage in the good it can make at the lower opportunity cost, even if another producer is better at making everything.",
+        "anchor": {
+          "src": "openstax:microeconomics-3e#8",
+          "loc": "19.1",
+          "quote": "A producer has a comparative advantage in the good it can make at the lower opportunity cost"
+        },
+        "tier": 2
+      },
+      "facts": [
+        {
+          "text": "When each producer specializes according to comparative advantage and then trades, total output rises and both can consume beyond what they could produce alone.",
+          "anchor": {
+            "src": "openstax:microeconomics-3e#8",
+            "loc": "19.1",
+            "quote": "When each producer specializes according to comparative advantage and then trades, total output rises"
+          },
+          "tier": 2
+        },
+        {
+          "text": "Gains from trade come from differences in opportunity cost, not from absolute skill.",
+          "anchor": {
+            "src": "openstax:microeconomics-3e#8",
+            "loc": "19.1",
+            "quote": "Gains from trade come from differences in opportunity cost, not from absolute skill"
+          },
+          "tier": 2
+        }
+      ],
+      "misconceptions": [
+        {
+          "text": "Students think the producer who is best at everything (absolute advantage) should make everything, missing comparative advantage.",
+          "corrective": "Compare opportunity costs, not absolute skill; specialize where your opportunity cost is lowest.",
+          "tier": 1
+        }
+      ],
+      "examples": [
+        {
+          "text": "A lawyer who types faster than her assistant still gains by letting the assistant type, freeing her higher-value legal hours.",
+          "domain": "economics"
+        }
+      ],
+      "mcBank": [
+        {
+          "stem": "A country should specialize in the good for which it has",
+          "options": [
+            "the lower opportunity cost",
+            "the largest total workforce",
+            "an absolute advantage in everything",
+            "the highest selling price abroad"
+          ],
+          "answerIndex": 0,
+          "explanationFactRef": 1,
+          "rationaleRefs": [0]
+        }
+      ],
+      "edges": {},
+      "attribution": ["OpenStax Principles of Microeconomics 3e, Ch. 19"]
+    },
+    {
+      "id": "econ/externality",
+      "rev": 1,
+      "term": "Externality",
+      "aliases": ["spillover cost", "third-party effect"],
+      "level": "intro",
+      "difficulty": 3,
+      "bloomCeiling": "Analyze",
+      "definition": {
+        "text": "An externality is a cost or benefit from a transaction that falls on a third party who is not part of the exchange.",
+        "anchor": {
+          "src": "openstax:microeconomics-3e#9",
+          "loc": "12.1",
+          "quote": "An externality is a cost or benefit from a transaction that falls on a third party who is not part of the exchange"
+        },
+        "tier": 2
+      },
+      "facts": [
+        {
+          "text": "With a negative externality like pollution, the market produces more than the socially efficient quantity because the price excludes the spillover cost.",
+          "anchor": {
+            "src": "openstax:microeconomics-3e#9",
+            "loc": "12.1",
+            "quote": "the market produces more than the socially efficient quantity because the price excludes the spillover cost"
+          },
+          "tier": 2
+        },
+        {
+          "text": "Correcting an externality means making decision-makers face the costs or benefits the market boundary leaves out.",
+          "anchor": {
+            "src": "openstax:microeconomics-3e#9",
+            "loc": "12.1",
+            "quote": "making the decision-makers face the costs or benefits the market boundary leaves out"
+          },
+          "tier": 2
+        }
+      ],
+      "misconceptions": [
+        {
+          "text": "Students assume a free market always reaches the efficient quantity, ignoring costs that fall outside the price.",
+          "corrective": "Ask who else is affected by the transaction; a cost outside the price means the market over-produces.",
+          "tier": 1
+        }
+      ],
+      "examples": [
+        {
+          "text": "A factory that dumps waste into a river imposes a cost on downstream users that its product price never reflects.",
+          "domain": "economics"
+        }
+      ],
+      "mcBank": [
+        {
+          "stem": "A negative externality such as pollution leads a free market to",
+          "options": [
+            "produce more than the socially efficient quantity",
+            "produce exactly the efficient quantity anyway",
+            "shut the polluting industry down on its own",
+            "set a price that already includes every spillover"
+          ],
+          "answerIndex": 0,
+          "explanationFactRef": 0,
+          "rationaleRefs": [0]
+        }
+      ],
+      "edges": {
+        "instanceOf": [
+          {
+            "archetype": "structure/system-boundary",
+            "confidence": 0.88,
+            "verified": true,
+            "mapping": {
+              "system": "the market transaction between buyer and seller",
+              "boundary": "the price that coordinates the exchange",
+              "what crosses": "the costs and benefits captured in the price",
+              "what is excluded": "spillover costs or benefits that fall on third parties"
+            }
+          }
+        ]
+      },
+      "attribution": ["OpenStax Principles of Microeconomics 3e, Ch. 12"]
+    },
+    {
+      "id": "econ/monopoly",
+      "rev": 1,
+      "term": "Monopoly",
+      "aliases": ["price maker", "market power"],
+      "level": "intro",
+      "difficulty": 3,
+      "bloomCeiling": "Analyze",
+      "definition": {
+        "text": "A monopoly is a market with a single seller of a product that has no close substitutes, protected by barriers to entry.",
+        "anchor": {
+          "src": "openstax:microeconomics-3e#10",
+          "loc": "9.1",
+          "quote": "a market with a single seller of a product that has no close substitutes, protected by barriers to entry"
+        },
+        "tier": 2
+      },
+      "facts": [
+        {
+          "text": "Unlike a price-taking competitive firm, a monopoly is a price maker: it can raise price by restricting the quantity it sells.",
+          "anchor": {
+            "src": "openstax:microeconomics-3e#10",
+            "loc": "9.1",
+            "quote": "a monopoly is a price maker: it can raise price by restricting the quantity it sells"
+          },
+          "tier": 2
+        },
+        {
+          "text": "Because it produces less and charges more than a competitive market, a monopoly creates deadweight loss.",
+          "anchor": {
+            "src": "openstax:microeconomics-3e#10",
+            "loc": "9.1",
+            "quote": "a monopoly creates deadweight loss"
+          },
+          "tier": 2
+        }
+      ],
+      "misconceptions": [
+        {
+          "text": "Students think a monopoly can charge any price it likes with no limit, ignoring that higher prices cut the quantity sold.",
+          "corrective": "A monopoly is constrained by the demand curve: to raise price it must sell less.",
+          "tier": 1
+        }
+      ],
+      "examples": [
+        {
+          "text": "A patent-protected drug with no substitute lets its maker set a high price by limiting supply, until the patent expires.",
+          "domain": "economics"
+        }
+      ],
+      "mcBank": [
+        {
+          "stem": "Unlike a competitive firm, a monopoly can",
+          "options": [
+            "raise its price by restricting quantity",
+            "sell all it wants at the going market price",
+            "be forced to take the market price as given",
+            "never earn more than zero economic profit"
+          ],
+          "answerIndex": 0,
+          "explanationFactRef": 0,
+          "rationaleRefs": [0]
+        }
+      ],
+      "edges": {},
+      "attribution": ["OpenStax Principles of Microeconomics 3e, Ch. 9"]
     }
   ]
 }
