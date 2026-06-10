@@ -1,7 +1,7 @@
 {
   "version": "2026-06-10",
   "generator": "curriculumos-foundry-v1",
-  "conceptCount": 24,
+  "conceptCount": 26,
   "shards": [
     {
       "id": "bio-intro",
@@ -32,8 +32,8 @@
       "discipline": "history",
       "level": "intro",
       "path": "history-intro.json",
-      "conceptCount": 1,
-      "hash": "68f392e305c0080c"
+      "conceptCount": 2,
+      "hash": "246484ffaa63a336"
     },
     {
       "id": "lit-intro",
@@ -48,8 +48,8 @@
       "discipline": "stats",
       "level": "intro",
       "path": "stats-intro.json",
-      "conceptCount": 4,
-      "hash": "9a84ea3440d392a5"
+      "conceptCount": 5,
+      "hash": "51537d7e5441ad57"
     }
   ],
   "archetypeShard": {

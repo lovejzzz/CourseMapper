@@ -22,7 +22,9 @@
     "openstax:statistics#1": "An observational study measures variables without assigning treatments, so an association it finds may be due to a confounding variable rather than a causal effect. A confounding variable influences both the supposed cause and the supposed effect, creating a spurious association. Establishing causation generally requires ruling out confounders, often through a randomized experiment.",
     "openstax:macroeconomics-2e#2": "A natural experiment uses a policy change or external event that affects one group but not another to estimate a causal effect from observational data. The credibility of the causal claim depends on whether the two groups were comparable apart from the change, so that the difference can be attributed to the policy rather than to a confounding factor.",
     "openstax:macroeconomics-2e#1": "In the circular flow of income, money that households earn returns to firms as spending unless it leaks out of the flow as saving, taxes, or spending on imports. Leakages are balanced by injections such as investment, government spending, and exports that add spending back into the flow. When total leakages equal total injections, the circular flow is in balance and national income neither rises nor falls.",
-    "openstax:macroeconomics-2e#7": "The capital stock is the total quantity of equipment, structures, and tools available for production at a point in time. It rises through gross investment and falls through depreciation as capital wears out. Net investment, which is gross investment minus depreciation, is the change in the capital stock over a period; the stock grows only when net investment is positive."
+    "openstax:macroeconomics-2e#7": "The capital stock is the total quantity of equipment, structures, and tools available for production at a point in time. It rises through gross investment and falls through depreciation as capital wears out. Net investment, which is gross investment minus depreciation, is the change in the capital stock over a period; the stock grows only when net investment is positive.",
+    "historical-method:reference": "In historical method, a primary source is evidence about its maker and moment as much as its ostensible subject. Source criticism asks who created the source, when, why, and for whom before asking what it reports, because the maker's position and purpose shape what the source can reliably support. A single source is corroborated against others, since provenance and bias bound the claims any one document can support.",
+    "openstax:statistics#2": "Data provenance is the record of where a dataset came from: who collected it, by what method, and for what purpose. Before trusting the numbers, a statistician asks how the data were sampled and measured, because the collection method and its purpose can bias what the data can support. Conclusions are only as trustworthy as the provenance of the data behind them."
   },
   "kernels": [
     {
@@ -1954,6 +1956,168 @@
         ]
       },
       "attribution": ["OpenStax Principles of Macroeconomics 2e, Ch. 7"]
+    },
+    {
+      "id": "history/primary-source-criticism",
+      "rev": 1,
+      "term": "Source criticism",
+      "aliases": ["primary source criticism", "evaluating a primary source", "historical source analysis"],
+      "level": "intro",
+      "difficulty": 3,
+      "bloomCeiling": "Analyze",
+      "definition": {
+        "text": "In historical method, a primary source is evidence about its maker and moment as much as its ostensible subject.",
+        "anchor": {
+          "src": "historical-method:reference",
+          "loc": "1",
+          "quote": "a primary source is evidence about its maker and moment as much as its ostensible subject"
+        },
+        "tier": 2
+      },
+      "facts": [
+        {
+          "text": "Source criticism asks who created the source, when, why, and for whom before asking what it reports.",
+          "anchor": {
+            "src": "historical-method:reference",
+            "loc": "1",
+            "quote": "Source criticism asks who created the source, when, why, and for whom before asking what it reports"
+          },
+          "tier": 2
+        },
+        {
+          "text": "Provenance and bias bound the claims any one document can support.",
+          "anchor": {
+            "src": "historical-method:reference",
+            "loc": "1",
+            "quote": "provenance and bias bound the claims any one document can support"
+          },
+          "tier": 2
+        }
+      ],
+      "misconceptions": [
+        {
+          "text": "Students read a primary source as a transparent window onto the past, ignoring how its author's purpose and audience shape what it can support.",
+          "corrective": "Ask who made the source, when, for whom, and why before asking what it says.",
+          "tier": 1
+        }
+      ],
+      "examples": [
+        {
+          "text": "A general's victory dispatch is strong evidence of how he wanted the battle remembered, and weaker evidence of what actually happened on the field.",
+          "domain": "history"
+        }
+      ],
+      "mcBank": [
+        {
+          "stem": "Before using a primary source as evidence, a historian first asks",
+          "options": [
+            "who made it, when, and for what purpose",
+            "whether it agrees with the course textbook",
+            "whether it is written in the original language",
+            "how many total pages the document runs"
+          ],
+          "answerIndex": 0,
+          "explanationFactRef": 0,
+          "rationaleRefs": [0]
+        }
+      ],
+      "edges": {
+        "instanceOf": [
+          {
+            "archetype": "interpretive/source-criticism",
+            "confidence": 0.93,
+            "verified": true,
+            "mapping": {
+              "source": "the primary source",
+              "maker and context": "who created it, when, and why",
+              "intended audience": "whom it was made for",
+              "what it can support": "the historical claims it can support"
+            }
+          }
+        ]
+      },
+      "attribution": ["Historical thinking framework: source criticism"]
+    },
+    {
+      "id": "stats/data-provenance",
+      "rev": 1,
+      "term": "Data provenance",
+      "aliases": ["data collection bias", "how the data were collected", "where the data came from"],
+      "level": "intro",
+      "difficulty": 3,
+      "bloomCeiling": "Analyze",
+      "definition": {
+        "text": "Data provenance is the record of where a dataset came from: who collected it, by what method, and for what purpose.",
+        "anchor": {
+          "src": "openstax:statistics#2",
+          "loc": "1.2",
+          "quote": "Data provenance is the record of where a dataset came from: who collected it, by what method, and for what purpose"
+        },
+        "tier": 2
+      },
+      "facts": [
+        {
+          "text": "The collection method and its purpose can bias what the data can support.",
+          "anchor": {
+            "src": "openstax:statistics#2",
+            "loc": "1.2",
+            "quote": "the collection method and its purpose can bias what the data can support"
+          },
+          "tier": 2
+        },
+        {
+          "text": "Conclusions are only as trustworthy as the provenance of the data behind them.",
+          "anchor": {
+            "src": "openstax:statistics#2",
+            "loc": "1.2",
+            "quote": "Conclusions are only as trustworthy as the provenance of the data behind them"
+          },
+          "tier": 2
+        }
+      ],
+      "misconceptions": [
+        {
+          "text": "Students treat a dataset as objective fact, ignoring how the collection method and purpose shape what it can support.",
+          "corrective": "Ask who collected the data, how, and why before trusting what the numbers say.",
+          "tier": 1
+        }
+      ],
+      "examples": [
+        {
+          "text": "A customer-satisfaction survey emailed only to repeat buyers overstates satisfaction, because its provenance excludes the unhappy customers who already left.",
+          "domain": "statistics"
+        }
+      ],
+      "mcBank": [
+        {
+          "stem": "Before trusting the numbers in a dataset, a statistician first asks",
+          "options": [
+            "who collected it, how, and for what purpose",
+            "whether the spreadsheet file opens without any errors",
+            "whether the reported numbers are large",
+            "whether the average is a round value"
+          ],
+          "answerIndex": 0,
+          "explanationFactRef": 0,
+          "rationaleRefs": [0]
+        }
+      ],
+      "edges": {
+        "instanceOf": [
+          {
+            "archetype": "interpretive/source-criticism",
+            "confidence": 0.9,
+            "verified": true,
+            "mapping": {
+              "source": "the dataset",
+              "maker and context": "who collected the data and how",
+              "intended audience": "the purpose the data were collected for",
+              "what it can support": "the conclusions the data can credibly support"
+            }
+          }
+        ]
+      },
+      "attribution": ["OpenStax Introductory Statistics, Ch. 1"]
     }
   ]
 }

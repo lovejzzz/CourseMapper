@@ -166,9 +166,9 @@ describe('iteration 14b — the new family drives every teaching surface', () =>
 });
 
 describe('iteration 14c — genome coverage milestone', () => {
-  it('spans 24 concepts and at least 12 instantiated archetypes incl. stock-and-flow', () => {
+  it('spans at least 24 concepts and 12 instantiated archetypes incl. stock-and-flow', () => {
     const manifest = JSON.parse(readFileSync(join(process.cwd(), 'public/genome/manifest.json'), 'utf8'));
-    expect(manifest.conceptCount).toBe(24);
+    expect(manifest.conceptCount).toBeGreaterThanOrEqual(24);
     const used = new Set();
     for (const shard of manifest.shards) {
       const body = JSON.parse(readFileSync(join(process.cwd(), 'public/genome', shard.path), 'utf8'));
