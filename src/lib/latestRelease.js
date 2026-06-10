@@ -8,12 +8,12 @@
  * the three screen footers, and the Changelog entry.
  */
 export const LATEST_RELEASE = {
-  version: '0.13.1',
+  version: '0.13.2',
   date: 'June 10, 2026',
-  title: 'Course Graph Fixes: Cloud Save + Enrichment Restored',
+  title: 'Enrichment Verified Live — and Its Digest Warning Made Honest',
   highlights: [
-    'Fixed cloud save failing on v0.13.0 graph-backed projects (Firestore rejects nested arrays — graph edges are now objects, and the cloud copy travels as a string)',
-    'Fixed every subject-matter enrichment call failing with an OpenAI 400 — kernels generate again',
-    'Every restore path (local, cloud, .coursemapper file) now adopts or derives the Course Graph',
+    'First verified enriched production run: real subject-matter kernels in slides, quizzes, and study guides at $0.11 for a 12-lesson course',
+    'Fixed the false "compiled without enrichment (mail-merge risk)" digest warning on enriched runs — the structured outcome was dropped mid-run by the budget constructor',
+    'The package manifest now reports the enrichment state correctly instead of "unknown"',
   ],
 };

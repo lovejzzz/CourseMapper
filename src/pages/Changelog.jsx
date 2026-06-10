@@ -3,6 +3,17 @@ import Header from '../components/Header';
 
 const releases = [
   {
+    version: '0.13.2',
+    date: 'June 10, 2026',
+    title: 'Enrichment Verified Live — and Its Digest Warning Made Honest',
+    highlights: [
+      'The first verified enriched production run (12-lesson astronomy course, $0.11 total): all three kernel calls succeeded, key-concept slides state real propositions, quiz items test actual domain knowledge with correct keys, study-guide key terms carry real definitions, and the export artifact greps come back clean',
+      'Fixed a false "compiled without enrichment (mail-merge risk)" warning on enriched runs: the structured enrichment outcome was silently dropped mid-run because the budget constructor rebuilds state on every event from a field whitelist that did not include it — the regression test now applies trailing events so survival is what is tested',
+      'PACKAGE_MANIFEST.json reports the enrichment state correctly instead of "unknown" for the same reason',
+    ],
+    sections: [],
+  },
+  {
     version: '0.13.1',
     date: 'June 10, 2026',
     title: 'Course Graph Fixes: Cloud Save + Enrichment Restored',

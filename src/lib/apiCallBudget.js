@@ -80,6 +80,12 @@ export function createApiCallBudget(overrides = {}) {
     // v0.10.1: pipeline decision trail for the run digest — small strings
     // recording what each stage did and WHY skipped stages were skipped.
     pipeline: { ...(overrides.pipeline || {}) },
+    // v0.13.1: structured enrichment outcome for the digest's content-risk
+    // gate. MUST be carried here — every event rebuilds the budget through
+    // this constructor, so any field not listed is silently dropped by the
+    // next event (the first enriched production run printed the mail-merge
+    // warning because this field vanished mid-run).
+    ...(overrides.enrichmentOutcome ? { enrichmentOutcome: { ...overrides.enrichmentOutcome } } : {}),
   };
   return {
     ...budget,

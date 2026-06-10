@@ -123,6 +123,24 @@ describe('runDigest', () => {
       detail: 'skipped: enrichment flag off (linker: ran)',
       outcome: { modelStage: 'skipped: enrichment flag off', enrichedLessons: 13 },
     });
+    // v0.13.1 regression: every event rebuilds the budget through
+    // createApiCallBudget — the outcome must SURVIVE later events. The first
+    // enriched production run printed a false mail-merge warning because it
+    // did not (the original test applied the pipelineDecision last).
+    budget = applyApiCallBudgetEvent(budget, {
+      type: 'compiledDeliverable',
+      compiledFeatureIds: ['quizBank', 'studyGuides', 'slideDecks'],
+      savedProviderCalls: 12,
+      compilerSource: 'enriched-blueprint',
+    });
+    budget = applyApiCallBudgetEvent(budget, {
+      type: 'apiUsage',
+      provider: 'openai',
+      modelId: 'gpt-5.4-mini',
+      task: 'blueprintEnrichment',
+      usage: { inputTokens: 1000, outputTokens: 3000 },
+      costUsd: 0.01,
+    });
     const genomeDigest = buildRunDigest({ budget });
     expect(genomeDigest.gates.compiledWithoutEnrichment).toBe(false);
     expect(genomeDigest.gates.flaggedChecks).toHaveLength(0);
