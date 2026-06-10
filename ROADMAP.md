@@ -34,6 +34,19 @@ Goal: make CourseMapper credible for real classroom pilots while keeping the age
 9. Versioned package handoff so users can recover prior generated packages.
 10. Public demo packages showing polished complete outputs across multiple subjects.
 
+## v0.13.5 - The Open Knowledge Backbone (planned)
+
+Goal: connect OpenStax, OpenAlex, CORE, ERIC, OER Commons, and Open Library into CurriculumOS so every compiled course is backed by real, licensed, verifiable knowledge — cited facts, real readings, licensed activities, and teaching moves that cite the learning science.
+
+Full plan: `docs/V0.13.5_OPEN_KNOWLEDGE_BACKBONE_ROADMAP.md`
+
+1. Knowledge provider layer split by where it runs: heavy/keyed ingestion at foundry build time (OpenStax full text, CORE, bulk OpenAlex), keyless CORS-friendly lookups at runtime (OpenAlex, ERIC, Open Library) — no backend appears, the deterministic compile never blocks on a network call.
+2. The foundry goes industrial: model-proposed, mechanically quote-verified kernel extraction from OpenStax books; Psychology, A&P/Microbiology, and Human Nutrition shards take all four flagship audit subjects onto the cited path (+100-150 concepts).
+3. The reading-list engine retires the placeholder-citation problem class: every lesson gets real, linked, licensed readings and activities as Course Graph Resource entities, with instructor swap/pin/reject control.
+4. Evidence-based pedagogy: the compiler's own teaching moves cite their research base (worked-example effect, misconception instruction, retrieval practice) via a curated ERIC/OpenAlex-backed evidence file, rendered as instructor notes and an accreditor-ready syllabus methods statement.
+5. The trust surface makes receipts visible: per-course coverage meters, per-lesson source panels with the trust ladder, and a generated Sources & Licenses appendix in every package.
+6. Living knowledge: build-time link health, OpenAlex retraction flags, shard freshness review, and checksum-bound instructor verification.
+
 ## v0.13 - The Course Graph Release (planned)
 
 Goal: replace the prose course map as the source of truth with a typed, model-authored course graph (concepts, outcomes, assessments, sessions, resources, and their alignment edges); the course map becomes one deterministic render of the graph.
