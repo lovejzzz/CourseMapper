@@ -423,6 +423,20 @@ Telemetry priors (Layer 3), the tiny encoder/embedder/decoder models
 (Layer 4), EduBench publication, K-12/cert expansions, region variants at
 scale. Each gets its own design doc when its predecessor phase proves out.
 
+### Layer 2 addendum (June 2026): the Archetype Layer
+
+V1 shipped (v0.10.0/v0.10.1) and the next tier is now designed: the
+**Archetype Layer** — the deep structures that repeat across disciplines
+(equilibrium, feedback, sampling-and-inference, evidence-vs-claim, …),
+their universal misconception SHAPES, task schemas, and pedagogy bindings,
+plus the per-instructor **Portfolio Layer**. It formalizes the observation
+that an instructor teaching five courses holds the structures once: concept
+kernels gain an `instanceOf` edge, kernel calls become scaffolded mappings
+instead of from-scratch structures, and the compiler renders analogical
+bridges — structural transfer — deterministically and verification-gated.
+Full design: `CURRICULUMOS_ARCHETYPE_LAYER_DESIGN.md`; phased plan:
+`V0.11_ARCHETYPE_ROADMAP.md`.
+
 ## 11. Success metrics (honest numbers we publish)
 
 - **Hit rate**: % of resolved concepts per course (target: >50% on intro
