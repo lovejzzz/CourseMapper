@@ -578,6 +578,9 @@ export function _buildDocxContentShared(featureId, data, children, docx) {
           g.keyTerms.forEach((t) => {
             const parts = [t.definition || ''];
             if (t.example) parts.push(`Example: ${t.example}`);
+            // CurriculumOS: genome-linked terms carry a source citation —
+            // render the receipt instructors trust ("Source: OpenStax …").
+            if (t.source) parts.push(`Source: ${t.source}`);
             children.push(makeBold(t.term || '', parts.join(' — ')));
           });
         }
