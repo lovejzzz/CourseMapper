@@ -11,6 +11,7 @@
  */
 
 import { getArrayKey } from './syncDependencies';
+import { isProvenanceMirrorKey } from './compiledLanguageFinalizer';
 import readability from 'text-readability';
 
 // ── Bloom's Taxonomy ─────────────────────────────────────────────────────────
@@ -182,7 +183,16 @@ function collectText(value, output = []) {
     return output;
   }
   if (typeof value === 'object') {
-    Object.values(value).forEach((item) => collectText(item, output));
+    // Provenance mirrors (blueprintGrounding, evidence plans, …) quote source
+    // course-map text verbatim and never render in exports. Judging them as
+    // instructor-facing content produced false findings — e.g., every quiz's
+    // grounding record contains the objective stem, which tripped the
+    // "objective stem as alignment target" rule on every compiled package and
+    // burned finalizer retry calls trying to fix unrenderable text.
+    Object.entries(value).forEach(([key, item]) => {
+      if (isProvenanceMirrorKey(key)) return;
+      collectText(item, output);
+    });
   }
   return output;
 }

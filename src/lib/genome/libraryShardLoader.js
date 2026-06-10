@@ -37,6 +37,32 @@ async function fetchJson(url, { signal } = {}) {
   return response.json();
 }
 
+async function fetchText(url, { signal } = {}) {
+  const response = await fetch(url, { signal });
+  if (!response.ok) throw new Error(`shard fetch ${response.status} for ${url}`);
+  return response.text();
+}
+
+/**
+ * Iteration-2 refinement: the manifest pins each shard's sha256 prefix, and
+ * the loader now actually verifies it. Fail-closed on a MISMATCH (a tampered
+ * or corrupted shard is skipped); fail-open only when the runtime lacks
+ * WebCrypto or the manifest carries no hash (older genomes).
+ */
+async function sha256Prefix(text) {
+  try {
+    const subtle = globalThis.crypto?.subtle;
+    if (!subtle) return null;
+    const digest = await subtle.digest('SHA-256', new TextEncoder().encode(text));
+    return [...new Uint8Array(digest)]
+      .map((byte) => byte.toString(16).padStart(2, '0'))
+      .join('')
+      .slice(0, 16);
+  } catch {
+    return null;
+  }
+}
+
 /**
  * Load the manifest. Returns { version, shards: [{ id, discipline, level,
  * path, conceptCount, hash }] } or null if the genome is not deployed.
@@ -62,20 +88,31 @@ export function selectShardsForDisciplines(manifest, disciplines = []) {
 }
 
 /**
- * Load the given shards into a kernel library. Best-effort: a failed shard is
- * skipped, never fatal. Returns the number of kernels added.
+ * Load the given shards into a kernel library. Best-effort: an unavailable
+ * shard is skipped, never fatal — but a shard whose content fails its
+ * manifest hash is REJECTED (integrity over availability). Returns
+ * { added, rejectedShards }.
  */
 export async function loadShardsIntoLibrary(library, shards = [], options = {}) {
   let added = 0;
+  const rejectedShards = [];
   for (const shard of shards) {
     try {
-      const data = await fetchJson(joinUrl(`${SHARD_DIR}/${shard.path || `${shard.id}.json`}`), options);
+      const text = await fetchText(joinUrl(`${SHARD_DIR}/${shard.path || `${shard.id}.json`}`), options);
+      if (shard.hash) {
+        const actual = await sha256Prefix(text);
+        if (actual && actual !== shard.hash) {
+          rejectedShards.push({ id: shard.id, reason: 'hash-mismatch' });
+          continue;
+        }
+      }
+      const data = JSON.parse(text);
       added += library.addKernels(Array.isArray(data?.kernels) ? data.kernels : [], { source: 'shard' });
     } catch {
       /* skip unavailable shard */
     }
   }
-  return added;
+  return { added, rejectedShards };
 }
 
 /**
@@ -85,10 +122,15 @@ export async function loadShardsIntoLibrary(library, shards = [], options = {}) 
  */
 export async function hydrateLibraryForDisciplines(library, disciplines, options = {}) {
   const manifest = await loadGenomeManifest(options);
-  if (!manifest) return { manifestVersion: null, added: 0, shardIds: [] };
+  if (!manifest) return { manifestVersion: null, added: 0, shardIds: [], rejectedShards: [] };
   const shards = selectShardsForDisciplines(manifest, disciplines);
-  const added = await loadShardsIntoLibrary(library, shards, options);
-  return { manifestVersion: manifest.version || null, added, shardIds: shards.map((shard) => shard.id) };
+  const { added, rejectedShards } = await loadShardsIntoLibrary(library, shards, options);
+  return {
+    manifestVersion: manifest.version || null,
+    added,
+    shardIds: shards.map((shard) => shard.id),
+    rejectedShards,
+  };
 }
 
 /** Infer candidate disciplines from a course map (title + concept hints). */
