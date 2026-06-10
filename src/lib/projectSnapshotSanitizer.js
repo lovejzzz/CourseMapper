@@ -76,5 +76,16 @@ function migrateRestoredDeliverables(snapshot) {
 export function prepareProjectSnapshotForRestore(snapshot) {
   const restored = sanitizeProjectSnapshot(snapshot || {});
   if (!restored.formatVersion) restored.formatVersion = 1;
+  // v0.13.1: cloud snapshots carry the course graph as a JSON string
+  // (Firestore rejects nested arrays anywhere in a document, and the graph's
+  // enrichment overlay can embed model-shaped payloads we don't control).
+  if (!restored.courseGraph && typeof restored.courseGraphJson === 'string' && restored.courseGraphJson) {
+    try {
+      restored.courseGraph = JSON.parse(restored.courseGraphJson);
+    } catch {
+      /* fall back to deriving the graph from the course map on restore */
+    }
+  }
+  delete restored.courseGraphJson;
   return migrateRestoredDeliverables(restored);
 }

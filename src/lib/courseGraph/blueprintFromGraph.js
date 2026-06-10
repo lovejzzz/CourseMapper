@@ -28,9 +28,9 @@ export function enrichmentFromGraph(graph) {
 
   // Concepts carrying kernels contribute to the sessions that teach them.
   const sessionById = new Map((graph.sessions || []).map((session) => [session.id, session]));
-  for (const [sessionId, conceptId] of graph.edges?.teaches || []) {
-    const session = sessionById.get(sessionId);
-    const concept = (graph.concepts || []).find((entry) => entry.id === conceptId);
+  for (const edge of graph.edges?.teaches || []) {
+    const session = sessionById.get(edge?.from);
+    const concept = (graph.concepts || []).find((entry) => entry.id === edge?.to);
     if (!session || !concept?.kernel || typeof concept.kernel !== 'object') continue;
     const key = `lesson-${session.number}`;
     // Session-level composed content (from the overlay) wins; per-concept
@@ -65,8 +65,8 @@ export function attachEnrichmentToGraph(graph, enrichment) {
   const sessionById = new Map((graph.sessions || []).map((session) => [session.id, session]));
   const conceptsById = new Map((graph.concepts || []).map((concept) => [concept.id, concept]));
   const primaryConceptBySessionId = new Map();
-  for (const [sessionId, conceptId] of graph.edges?.teaches || []) {
-    if (!primaryConceptBySessionId.has(sessionId)) primaryConceptBySessionId.set(sessionId, conceptId);
+  for (const edge of graph.edges?.teaches || []) {
+    if (edge?.from && !primaryConceptBySessionId.has(edge.from)) primaryConceptBySessionId.set(edge.from, edge.to);
   }
 
   for (const [key, payload] of Object.entries(lessonContent)) {

@@ -1025,6 +1025,11 @@ export function buildLessonKernelPrompt(courseMap, lessonIndices, options = {}) 
     `Course: ${truncateText(courseMap?.courseName || 'Untitled Course', 120)}`,
     'Lessons:',
     JSON.stringify(lessons),
+    // OpenAI's json_object response format requires the word "JSON" in an
+    // INPUT message — the system prompt maps to `instructions`, which the
+    // guard does not scan. Without this line every kernel call 400s
+    // ("Response input messages must contain the word 'json'…").
+    'Return ONLY valid JSON matching the kernel shape from the instructions.',
   ].join('\n');
 
   return {

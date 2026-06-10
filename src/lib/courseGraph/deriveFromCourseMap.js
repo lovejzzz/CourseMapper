@@ -119,7 +119,7 @@ export function deriveCourseGraphFromCourseMap(courseMap, options = {}) {
           conceptIdByTerm.set(term.toLowerCase(), conceptId);
           graph.concepts.push({ id: conceptId, term, kernel: null, source: null });
         }
-        graph.edges.teaches.push([sessionId, conceptId]);
+        graph.edges.teaches.push({ from: sessionId, to: conceptId });
         section.conceptRefs = [...(section.conceptRefs || []), conceptId];
       }
 
@@ -135,7 +135,7 @@ export function deriveCourseGraphFromCourseMap(courseMap, options = {}) {
           sessionRef: sessionId,
         };
         graph.outcomes.push(outcome);
-        graph.edges.practicedIn.push([outcome.id, sessionId]);
+        graph.edges.practicedIn.push({ from: outcome.id, to: sessionId });
         section.objectiveRefs.push(outcome.id);
       }
 
@@ -154,7 +154,7 @@ export function deriveCourseGraphFromCourseMap(courseMap, options = {}) {
         // Alignment assumption at derive time: a section's assessments
         // assess that section's outcomes. Authored graphs refine this.
         for (const outcomeId of section.objectiveRefs) {
-          graph.edges.assesses.push([assessment.id, outcomeId]);
+          graph.edges.assesses.push({ from: assessment.id, to: outcomeId });
         }
         section.assessmentRefs.push(assessment.id);
       }

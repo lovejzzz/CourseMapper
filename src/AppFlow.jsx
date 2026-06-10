@@ -807,13 +807,34 @@ export default function AppFlow({ startupAction = null, onStartupHandled, onRetu
     if (!graph || !validateCourseGraph(graph).valid) return;
     setCourseGraph(graph);
   }, []);
+  // v0.13.1: every restore path (local session, cloud project, .coursemapper
+  // file, developer snapshot) adopts the saved graph when it validates, or
+  // derives a fresh one from the restored map. Invalid graphs (e.g. the
+  // tuple-edge encoding v0.13.0 briefly shipped) silently re-derive.
+  const adoptCourseGraph = useCallback((saved) => {
+    if (saved?.courseGraph && validateCourseGraph(saved.courseGraph).valid) {
+      setCourseGraph(saved.courseGraph);
+      return;
+    }
+    try {
+      setCourseGraph(saved?.courseMap?.lessons ? deriveCourseGraphFromCourseMap(saved.courseMap) : null);
+    } catch {
+      setCourseGraph(null);
+    }
+  }, []);
   // v0.13 write-back: course-map edits (grid cells, agent actions, repairs)
   // re-derive the graph so it never drifts from what the instructor sees.
   // The enrichment overlay (authored kernels, lens) is preserved across
   // re-derivation — edits to structure never discard authored content.
+  // Also the safety net: any path that sets a course map without a graph
+  // gets one derived here.
   useEffect(() => {
-    if (!courseMap?.lessons || !courseGraphRef.current) return;
+    if (!courseMap?.lessons) return;
     try {
+      if (!courseGraphRef.current) {
+        setCourseGraph(deriveCourseGraphFromCourseMap(courseMap));
+        return;
+      }
       const rendered = renderCourseMapFromGraph(courseGraphRef.current);
       if (JSON.stringify(rendered) === JSON.stringify(courseMap)) return;
       const rederived = attachEnrichmentToGraph(
@@ -1837,8 +1858,14 @@ export default function AppFlow({ startupAction = null, onStartupHandled, onRetu
         ]),
       );
 
+      // v0.13.1: Firestore rejects nested arrays anywhere in a document and
+      // the graph's enrichment overlay embeds model-shaped payloads we don't
+      // fully control — the cloud copy of the graph travels as a JSON string.
+      // prepareProjectSnapshotForRestore parses it back on open.
+      const { courseGraph: snapshotCourseGraph, ...cloudSnapshot } = snapshot;
       return {
-        ...snapshot,
+        ...cloudSnapshot,
+        ...(snapshotCourseGraph ? { courseGraphJson: JSON.stringify(snapshotCourseGraph) } : {}),
         cloudProjectFormat: CLOUD_PROJECT_FORMAT,
         deliverableSaveMode: 'recompile-on-open',
         deliverableFeatureIds,
@@ -1885,6 +1912,7 @@ export default function AppFlow({ startupAction = null, onStartupHandled, onRetu
           : nextSelected[0] || 'courseMap';
 
       setCourseMap(restored.courseMap);
+      adoptCourseGraph(restored);
       setOldCourseMap(restored.oldCourseMap || null);
       setColumns(Array.isArray(restored.columns) ? restored.columns : [...DEFAULT_COLUMNS]);
       setHasGenerated(true);
@@ -1913,6 +1941,7 @@ export default function AppFlow({ startupAction = null, onStartupHandled, onRetu
       window.setTimeout(() => setLocalSaveStatus('saved'), 0);
     },
     [
+      adoptCourseGraph,
       deliv,
       gen,
       setActiveTab,
@@ -2142,17 +2171,8 @@ export default function AppFlow({ startupAction = null, onStartupHandled, onRetu
       if (!saved.courseMap) return;
       const restoredDeliverables = await compileCompactProjectDeliverables(saved);
       setCourseMap(saved.courseMap);
-      // v0.13: restore the CourseGraph (formatVersion 2) or derive one from
-      // the legacy map — every restored project becomes graph-backed.
-      if (saved.courseGraph && validateCourseGraph(saved.courseGraph).valid) {
-        setCourseGraph(saved.courseGraph);
-      } else {
-        try {
-          setCourseGraph(deriveCourseGraphFromCourseMap(saved.courseMap));
-        } catch {
-          setCourseGraph(null);
-        }
-      }
+      // v0.13: every restored project becomes graph-backed.
+      adoptCourseGraph(saved);
       setColumns(saved.columns || [...DEFAULT_COLUMNS]);
       setHasGenerated(true);
       restoreProjectAIConfig(saved, { providerFallback: 'openai' });
@@ -2233,6 +2253,7 @@ export default function AppFlow({ startupAction = null, onStartupHandled, onRetu
         if (!saved.courseMap) throw new Error('Invalid .coursemapper file');
         restoreProjectAIConfig(saved);
         setCourseMap(saved.courseMap);
+        adoptCourseGraph(saved);
         setOldCourseMap(null);
         setColumns(saved.columns || [...DEFAULT_COLUMNS]);
         setUserEdits(saved.userEdits || []);
@@ -2361,6 +2382,7 @@ export default function AppFlow({ startupAction = null, onStartupHandled, onRetu
           : await compileCompactProjectDeliverables(saved);
       // Restore all state — same as doRestoreSession but from cloud
       setCourseMap(saved.courseMap);
+      adoptCourseGraph(saved);
       setColumns(saved.columns || [...DEFAULT_COLUMNS]);
       setHasGenerated(true);
       restoreProjectAIConfig(saved, { providerFallback: 'openai' });

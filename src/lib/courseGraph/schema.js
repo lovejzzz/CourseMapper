@@ -105,11 +105,18 @@ export function validateCourseGraph(graph) {
       continue;
     }
     for (const edge of list) {
-      if (!Array.isArray(edge) || edge.length < 2) {
-        push('malformed-edge', `A "${collection}" edge is not a [from, to, ...] tuple.`);
+      // Edges are { from, to } objects — NOT tuples. Firestore rejects
+      // directly nested arrays, and the cloud project snapshot carries the
+      // graph; tuple edges broke cloud save the day v0.13.0 shipped.
+      if (!edge || typeof edge !== 'object' || Array.isArray(edge)) {
+        push('malformed-edge', `A "${collection}" edge is not a { from, to } object.`);
         continue;
       }
-      const [from, to] = edge;
+      const { from, to } = edge;
+      if (!isNonEmptyString(from) || !isNonEmptyString(to)) {
+        push('malformed-edge', `A "${collection}" edge is missing its from/to ids.`);
+        continue;
+      }
       // instanceOf/genomeLink point outside the graph (archetype/genome ids)
       // on the `to` side; only the `from` side must resolve locally.
       const checkTo = collection !== 'instanceOf' && collection !== 'genomeLink';
@@ -136,7 +143,7 @@ export function validateCourseGraph(graph) {
 /** Summary counts for the run digest and manifest. */
 export function courseGraphStats(graph) {
   if (!graph || typeof graph !== 'object') return null;
-  const linked = new Set((graph.edges?.genomeLink || []).map(([from]) => from));
+  const linked = new Set((graph.edges?.genomeLink || []).map((edge) => edge?.from).filter(Boolean));
   const authored = (graph.concepts || []).filter((concept) => concept?.kernel && !linked.has(concept.id)).length;
   return {
     sessions: (graph.sessions || []).length,

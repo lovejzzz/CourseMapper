@@ -17,7 +17,7 @@ export function lintCourseGraphAlignment(graph) {
   const sessions = [...(graph.sessions || [])].sort((a, b) => (a.number || 0) - (b.number || 0));
   const outcomes = graph.outcomes || [];
   const assessments = graph.assessments || [];
-  const assessedOutcomeIds = new Set((graph.edges?.assesses || []).map(([, outcomeId]) => outcomeId));
+  const assessedOutcomeIds = new Set((graph.edges?.assesses || []).map((edge) => edge?.to).filter(Boolean));
   const outcomesBySession = new Map();
   for (const outcome of outcomes) {
     if (!outcome?.sessionRef) continue;
@@ -46,9 +46,9 @@ export function lintCourseGraphAlignment(graph) {
   const outcomeSessionNumber = new Map(
     outcomes.map((outcome) => [outcome.id, sessionNumberById.get(outcome.sessionRef) ?? null]),
   );
-  for (const [assessmentId, outcomeId] of graph.edges?.assesses || []) {
-    const assessment = assessments.find((entry) => entry.id === assessmentId);
-    const taughtIn = outcomeSessionNumber.get(outcomeId);
+  for (const edge of graph.edges?.assesses || []) {
+    const assessment = assessments.find((entry) => entry.id === edge?.from);
+    const taughtIn = outcomeSessionNumber.get(edge?.to);
     if (!assessment || !Number.isInteger(assessment.dueSession) || !Number.isInteger(taughtIn)) continue;
     if (assessment.dueSession < taughtIn) {
       push(

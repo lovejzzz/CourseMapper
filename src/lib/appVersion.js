@@ -4,4 +4,4 @@
  * three screen footers; consumed by the run digest so every diagnostic
  * log states which build produced it.
  */
-export const APP_VERSION = '0.13.0';
+export const APP_VERSION = '0.13.1';

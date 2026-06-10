@@ -49,7 +49,7 @@ describe('courseGraph (v0.13 P0)', () => {
     expect(graph.version).toBe(COURSE_GRAPH_VERSION);
     expect(validateCourseGraph(graph).valid).toBe(true);
 
-    graph.edges.teaches.push(['s99', 'c99']);
+    graph.edges.teaches.push({ from: 's99', to: 'c99' });
     const invalid = validateCourseGraph(graph);
     expect(invalid.valid).toBe(false);
     expect(invalid.issues.some((issue) => issue.code === 'dangling-edge')).toBe(true);
@@ -105,11 +105,11 @@ describe('courseGraph (v0.13 P0)', () => {
     expect(lintCourseGraphAlignment(graph)).toEqual([]);
 
     // Break alignment: an outcome nothing assesses…
-    graph.edges.assesses = graph.edges.assesses.filter(([, outcomeId]) => outcomeId !== graph.outcomes[0].id);
+    graph.edges.assesses = graph.edges.assesses.filter((edge) => edge.to !== graph.outcomes[0].id);
     // …and an assessment due before its outcome's session is taught.
     const lateOutcome = graph.outcomes.find((outcome) => outcome.sessionRef === graph.sessions[1].id);
     graph.assessments[0].dueSession = 1;
-    graph.edges.assesses.push([graph.assessments[0].id, lateOutcome.id]);
+    graph.edges.assesses.push({ from: graph.assessments[0].id, to: lateOutcome.id });
     // …and weights that cannot account for the whole grade.
     graph.assessments.forEach((assessment, index) => {
       assessment.weightPct = index === 0 ? 10 : 20;
@@ -123,11 +123,33 @@ describe('courseGraph (v0.13 P0)', () => {
     expect(codes).toContain('weights-do-not-sum');
   });
 
+  // The cloud project snapshot carries the graph, and Firestore rejects
+  // directly nested arrays — tuple-shaped edges broke cloud save the day
+  // v0.13.0 shipped. Edges are { from, to } objects; this walk guards the
+  // whole structure against the class of bug, not just edges.
+  it('serializes without nested arrays (Firestore-safe)', () => {
+    const graph = deriveCourseGraphFromCourseMap(fixtureMap());
+    graph.edges.genomeLink.push({ from: graph.concepts[0].id, to: 'econ/opportunity-cost' });
+    const offenders = [];
+    const walk = (node, path) => {
+      if (Array.isArray(node)) {
+        node.forEach((item, index) => {
+          if (Array.isArray(item)) offenders.push(`${path}[${index}]`);
+          walk(item, `${path}[${index}]`);
+        });
+      } else if (node && typeof node === 'object') {
+        for (const [key, value] of Object.entries(node)) walk(value, `${path}.${key}`);
+      }
+    };
+    walk(graph, '$');
+    expect(offenders, offenders.join(', ')).toEqual([]);
+  });
+
   it('assembles the enrichment overlay from concept kernels and reports stats', () => {
     const graph = deriveCourseGraphFromCourseMap(fixtureMap());
     const conceptId = graph.concepts[0].id;
     graph.concepts[0].kernel = { tm: 'Opportunity Cost', fs: [{ tx: 'A real fact.' }] };
-    graph.edges.genomeLink.push([conceptId, 'econ/opportunity-cost']);
+    graph.edges.genomeLink.push({ from: conceptId, to: 'econ/opportunity-cost' });
 
     const overlay = enrichmentFromGraph(graph);
     expect(overlay.lessonContent['lesson-1']).toMatchObject({ tm: 'Opportunity Cost' });

@@ -111,7 +111,7 @@ describe('course graph golden equivalence (v0.13 P0)', () => {
 
     // Graph path: the kernel lives on the Concept entity (Concept ≡ kernel).
     const graph = deriveCourseGraphFromCourseMap(repaired);
-    const lessonOneConceptId = graph.edges.teaches.find(([sessionId]) => sessionId === graph.sessions[0].id)?.[1];
+    const lessonOneConceptId = graph.edges.teaches.find((edge) => edge.from === graph.sessions[0].id)?.to;
     const concept = graph.concepts.find((entry) => entry.id === lessonOneConceptId);
     concept.kernel = kernel;
     const graphBlueprint = buildBlueprintFromGraph(graph);

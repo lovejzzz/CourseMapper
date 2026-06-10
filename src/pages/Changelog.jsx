@@ -3,6 +3,28 @@ import Header from '../components/Header';
 
 const releases = [
   {
+    version: '0.13.1',
+    date: 'June 10, 2026',
+    title: 'Course Graph Fixes: Cloud Save + Enrichment Restored',
+    highlights: [
+      'Fixed "Cloud save failed" on graph-backed projects: Firestore rejects nested arrays anywhere in a document, and v0.13.0 stored graph edges as tuples — edges are now { from, to } objects, the cloud copy of the graph travels as a JSON string, and a regression test walks the entire serialized graph to keep it Firestore-safe',
+      'Fixed every subject-matter enrichment kernel call failing with an OpenAI 400: the Responses API requires the word "JSON" in an input message when json_object format is requested, but the kernel instruction lived in the system prompt (mapped to instructions, which the guard does not scan) — kernels generate again',
+      'Every restore path — local session, cloud project, .coursemapper file, developer snapshot — now adopts the saved Course Graph or derives one from the restored map, with invalid graphs (including the brief tuple-edge encoding) silently re-deriving',
+    ],
+    sections: [
+      {
+        label: 'Fixes',
+        icon: 'QA',
+        color: 'emerald',
+        items: [
+          'Graph edges switched from [from, to] tuples to { from, to } objects across the schema, derivation, compile adapter, and alignment lint; the cloud project snapshot serializes the graph to a string so model-shaped enrichment payloads can never reintroduce a Firestore-incompatible structure.',
+          'The lesson-kernel user prompt now states "Return ONLY valid JSON…" explicitly — the v0.12.1 capability-profile fix had enrichment firing in production for the first time, which surfaced the latent 400; the course-level enrichment prompt already passed.',
+          'A shared adoptCourseGraph path covers all four project-open flows, so a missing or invalid graph always falls back to derivation instead of leaving the workspace graph-less.',
+        ],
+      },
+    ],
+  },
+  {
     version: '0.13.0',
     date: 'June 10, 2026',
     title: 'The Course Graph: Structure Becomes the Source of Truth',
