@@ -3,7 +3,7 @@
 AI-powered instructional design platform running on **CurriculumOS** — a deterministic course compiler linked to a **Curriculum Genome** of source-anchored, citable concept knowledge — with an embedded teaching assistant agent. Upload your syllabus and generate a structured Course Map, lesson plans, slide decks, rubrics, quizzes, assignments, discussion prompts, study guides, and a polished syllabus — all pedagogically aligned, validated, and fully editable. Then use the AI agent to revise, validate, research, and visualize your curriculum through natural conversation.
 
 **Live:** [https://edutool.dev](https://edutool.dev)
-**Current release:** v0.11.0
+**Current release:** v0.13.0
 
 ---
 
@@ -42,6 +42,22 @@ Most AI tools regenerate everything with every request and bill you for every wo
 - **Coherence by construction** — every artifact draws from the same kernel, so the quiz, slides, study guide, and assignment for a lesson agree with each other.
 - **Honest provenance** — model-written fields carry enrichment-source marks; compiler-derived cells carry derivation marks; nothing pretends to be instructor-verified.
 - **Reproducibility** — the same blueprint compiles to the same package, byte-for-byte where it matters.
+
+---
+
+## The Course Graph (v0.13): structure is the source of truth
+
+As of v0.13.0 the project's source of truth is not a spreadsheet of prose — it is a **typed Course Graph**: concepts (each one a knowledge kernel), outcomes, assessments, sessions, and resources, connected by explicit edges (`teaches`, `assesses`, `practicedIn`, genome links). The Course Map you see in the workspace is a deterministic **render** of this graph, and so is every other deliverable.
+
+What this changes in practice:
+
+- **Course structure is always included, not selected.** The old locked "Course Map" deliverable card is gone — generation produces the graph, and the Course Map view plus the XLSX export render from it.
+- **Alignment is checked, not asserted.** Outcomes nobody assesses, assessments due before their concepts are taught, and grade weights that don't sum to 100% surface as structural findings at generation time — the class of defect a prose pipeline cannot see.
+- **Edits never drift.** Course-map edits (grid, agent, repairs) re-derive the graph automatically while preserving authored enrichment; a manual-override layer keeps free-text edits verbatim.
+- **Provenance travels with the package.** The run digest and every downloaded `PACKAGE_MANIFEST.json` record the graph the package was compiled from (sessions, concepts, genome-linked vs authored, outcomes, assessments).
+- **The architecture changed; the output did not.** A golden equivalence harness (`tests/course-graph-golden.test.js`) proves the graph-driven compile is byte-identical to the proven map-driven path — including the kernel/enrichment overlay case.
+
+Design + phased status ledger: [docs/V0.13_COURSE_GRAPH_IR_ROADMAP.md](docs/V0.13_COURSE_GRAPH_IR_ROADMAP.md).
 
 ---
 
@@ -85,7 +101,7 @@ Course Mapper auto-detects lesson count and structure from your files using AI.
 
 ### Step 3: Choose Your Deliverables
 
-Pick which deliverables to generate. Course Map is always included. Add any combination of: Syllabus, Lesson Plans, Slide Decks, Rubrics, Quiz Bank, Assignments, Discussion Prompts, Study Guides, and Course FAQ.
+Pick which deliverables to generate. Course structure (the Course Graph, with its Course Map view) is always built. Add any combination of: Syllabus, Lesson Plans, Slide Decks, Rubrics, Quiz Bank, Assignments, Discussion Prompts, Study Guides, and Course FAQ.
 
 ### Step 4: Configure & Generate
 
@@ -158,6 +174,10 @@ An embedded multi-step AI agent with native tool calling, not a chatbot wrapper.
 - **v0.9.1 classroom-ready program** — Subject-matter enrichment: budgeted per-lesson model calls write real quiz items, key terms, slide content, discussion prompts, and assignment cores inside compiler-owned frames, with Haladyna item lint, meta-content detection, grounding rules, localization interview, pre-export checklist, and a university-standard CCR rubric with a standing judge.
 - **v0.9.11 super-power compiler** — The cost-shift release: per-run token telemetry with reasoning-token visibility, task-tiered reasoning effort (kills the silent medium-effort default on reasoning models), compact key contracts, lean course-map atoms on by default with compiler-derived alignment/format/technology columns, the per-lesson knowledge kernel with deterministic projection across all surfaces, and segment-trimmed review payloads — roughly half the billed output tokens per course with quality gates unchanged.
 - **v0.10.0 CurriculumOS V1** — The genome release: source-anchored concept kernels with a mechanical quote-verification admission gate, the Linker pre-pass (library hits compile with citations at zero AI cost; the own-kernel cache makes revisions free), prerequisite-graph curriculum audits, canonical per-course glossaries with spiral references, the red-team-tested contribution privacy boundary, academic-email instructor verification, and the genesis genome shards built by the foundry pipeline.
+- **v0.11 Archetype Layer** — All 16 deep-structure archetypes instantiated with source-anchored exemplars; misconceptions written once as shapes and skinned per discipline; verification-gated analogical bridges across 13 cross-discipline bridge families; 37 concepts across 6 disciplines on the zero-cost cited path.
+- **v0.12.0 export design system** — Every downloaded document rerendered with a real design system (editorial type pairing, themed tables, designed PDF/PPTX), universally-installed fonts so decks render as designed everywhere, and an economics genome depth sprint.
+- **v0.12.1 enrichment activation + export polish** — Fixed the degraded-plan bug that silently disabled enrichment and the lean contract; added the Subject-matter enrichment control, compiled-without-enrichment digest warnings, and manifest pipeline provenance; removed every deterministic text artifact found by the four-course output audit and locked them behind a permanent export artifact gate; DOCX/PPTX/XLSX render overhauls (pct-width tables, native slide visuals, real row heights).
+- **v0.13.0 the Course Graph** — A typed course graph (concepts ≡ kernels, outcomes, assessments, sessions + alignment edges) became the source of truth; the Course Map is now a deterministic render of it; structural alignment lint at generation time; golden equivalence harness proving identical compiled output; project format v2 with automatic legacy migration.
 
 ### Inline AI Editing
 
@@ -492,6 +512,12 @@ src/
     useDeliverableUndo.js      # Deliverable-level undo snapshots
     useEditProposal.js         # Edit proposal state management
   lib/
+    courseGraph/               # v0.13 Course Graph IR — the project's source of truth
+      schema.js                # Typed graph schema, validation, stats
+      deriveFromCourseMap.js   # Course map → graph (parse + legacy migration)
+      renderCourseMap.js       # Graph → course map (deterministic render)
+      blueprintFromGraph.js    # Graph → blueprint compile (+ enrichment overlay)
+      alignmentLint.js         # Structural alignment constraints (QM as edges)
     agentProviders.js          # Provider abstraction for native tool calling (OpenAI/Anthropic/Google)
     agentTools.js              # Agent tool definitions, JSON schemas, execution, result summarization
     agentPrompts.js            # Dynamic system prompt for the agentic teaching assistant

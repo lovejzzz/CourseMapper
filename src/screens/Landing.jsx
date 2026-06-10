@@ -6,6 +6,7 @@ import { useCourse } from '../contexts/CourseContext';
 import UserMenu from '../components/UserMenu';
 import DarkModeToggle from '../components/DarkModeToggle';
 import AppLogo from '../components/AppLogo';
+import { LATEST_RELEASE } from '../lib/latestRelease';
 
 const ACCEPTED_EXTENSIONS = [
   '.doc',
@@ -762,12 +763,46 @@ export default function Landing({
 
       <footer className="px-5 py-4 text-center">
         <div className="flex items-center justify-center gap-3 text-[10px] text-slate-500/80 dark:text-slate-400">
-          <a
-            href="#/changelog"
-            className="font-medium transition-colors duration-200 hover:text-blue-600 dark:hover:text-blue-300"
-          >
-            v0.13.0
-          </a>
+          {/* v0.13: the version number carries a "what's new" popover — the
+              latest release summary on hover/focus, full history on click. */}
+          <span className="group relative inline-block">
+            <a
+              href="#/changelog"
+              className="font-medium transition-colors duration-200 hover:text-blue-600 dark:hover:text-blue-300"
+              aria-describedby="latest-release-popover"
+            >
+              v{LATEST_RELEASE.version}
+            </a>
+            <div
+              id="latest-release-popover"
+              role="tooltip"
+              className="pointer-events-none absolute bottom-full left-1/2 z-30 mb-2 w-72 -translate-x-1/2 rounded-xl border border-slate-200/80 bg-white/95 p-3 text-left opacity-0 shadow-xl backdrop-blur-sm transition-opacity duration-200 group-hover:pointer-events-auto group-hover:opacity-100 group-focus-within:pointer-events-auto group-focus-within:opacity-100 dark:border-slate-700 dark:bg-slate-900/95"
+            >
+              <p className="text-[10px] font-semibold uppercase tracking-wide text-indigo-500 dark:text-indigo-300">
+                What's new in v{LATEST_RELEASE.version} · {LATEST_RELEASE.date}
+              </p>
+              <p className="mt-1 text-[11px] font-semibold leading-snug text-slate-700 dark:text-slate-200">
+                {LATEST_RELEASE.title}
+              </p>
+              <ul className="mt-1.5 space-y-1">
+                {LATEST_RELEASE.highlights.map((highlight) => (
+                  <li
+                    key={highlight}
+                    className="flex gap-1.5 text-[10px] leading-snug text-slate-500 dark:text-slate-400"
+                  >
+                    <span className="mt-0.5 h-1 w-1 flex-shrink-0 rounded-full bg-indigo-400" />
+                    <span>{highlight}</span>
+                  </li>
+                ))}
+              </ul>
+              <a
+                href="#/changelog"
+                className="mt-2 inline-block text-[10px] font-semibold text-blue-600 hover:underline dark:text-blue-300"
+              >
+                Read the full changelog →
+              </a>
+            </div>
+          </span>
           <span>·</span>
           <a href="#/privacy" className="transition-colors duration-200 hover:text-blue-600 dark:hover:text-blue-300">
             Privacy
