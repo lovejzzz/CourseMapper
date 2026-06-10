@@ -46,24 +46,23 @@ function bridgeFor(lessons) {
   });
 }
 
-describe('iteration 7 — genome spans 6 disciplines, 12 concepts', () => {
+describe('iteration 7 — genome spans 6 disciplines', () => {
   it('the manifest carries the expanded genome', () => {
     const manifest = JSON.parse(readFileSync(join(process.cwd(), 'public/genome/manifest.json'), 'utf8'));
-    expect(manifest.conceptCount).toBe(12);
+    expect(manifest.conceptCount).toBeGreaterThanOrEqual(18);
     const disciplines = new Set(manifest.shards.map((s) => s.discipline));
     expect(disciplines).toEqual(new Set(['econ', 'stats', 'bio', 'chem', 'history', 'lit']));
   });
 
-  it('every genesis concept carries a verified archetype mapping where applicable', () => {
+  it('most genesis concepts carry a verified archetype mapping', () => {
     const ids = [];
     const manifest = JSON.parse(readFileSync(join(process.cwd(), 'public/genome/manifest.json'), 'utf8'));
     for (const shard of manifest.shards) {
       const body = JSON.parse(readFileSync(join(process.cwd(), 'public/genome', shard.path), 'utf8'));
       for (const k of body.kernels) if (k.edges?.instanceOf?.length) ids.push(k.id);
     }
-    // 10 of 12 concepts now instance an archetype (demand-curve + photosynthesis
-    // are the two without a confident mapping).
-    expect(ids.length).toBeGreaterThanOrEqual(9);
+    // demand-curve + photosynthesis are the only two without a confident mapping.
+    expect(ids.length).toBeGreaterThanOrEqual(15);
   });
 });
 

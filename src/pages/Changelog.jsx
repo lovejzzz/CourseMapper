@@ -3,6 +3,49 @@ import Header from '../components/Header';
 
 const releases = [
   {
+    version: '0.11.1',
+    date: 'June 10, 2026',
+    title: 'Archetype Layer Hardening: Wider Genome, Transfer on Screen',
+    highlights: [
+      'The Curriculum Genome tripled to 18 source-anchored concepts across 6 disciplines (econ, stats, bio, chem, history, literature), instantiating 9 deep-structure archetypes — so more real courses get free cited content, template-priced misconceptions, and cross-discipline transfer',
+      'Six cross-discipline bridge families now render: equilibrium (chem↔econ), feedback (bio↔econ), evidence-vs-claim (history↔lit), optimization (econ↔bio), model-vs-reality (econ↔stats), and staged process (bio↔chem)',
+      'Analogical bridges now reach students during the lecture: a genome-linked lesson that shares a deep structure with an earlier one gets a "Same Structure" slide with clean mapping bullets and speaker notes that coach the analogy and its limits',
+      'Source citations now actually render in the downloaded study-guide DOCX, and genome-linked content was audited through real DOCX and PPTX XML for metadata leaks and unfilled templates — both clean',
+      "Privacy hardening: the contribution strip now folds Unicode (accents, fullwidth homoglyphs, case) so an instructor's identity can never leak into the opt-in commons through a normalization gap",
+    ],
+    sections: [
+      {
+        label: 'Wider Genome & Bridges',
+        icon: 'AI',
+        color: 'emerald',
+        items: [
+          'Genome grew 6 → 18 concepts (added market/chemical equilibrium, homeostasis, wage-price spiral, historical & literary argument, consumer choice, optimal foraging, economic & statistical models, cellular respiration, titration), all quote-anchored through the foundry (18/18 admission).',
+          'New cross-discipline bridge pairs instantiate previously-unused archetypes (optimization-under-constraint, model-vs-reality, staged-process); the interpretive/epistemic families bridge the humanities, not just STEM.',
+          'Resolver precision verified at 200-concept scale: no false-positive flooding, per-lesson caps hold, true positives still resolve.',
+        ],
+      },
+      {
+        label: 'Transfer at the Point of Instruction',
+        icon: 'UI',
+        color: 'indigo',
+        items: [
+          'The "Same Structure" slide renders one verification-gated transfer slide per bridged lesson — "X ↔ Y" mapping bullets plus a speaker note that asks students to predict where the analogy breaks down (the move that turns comparison into transfer).',
+          'Bridge phrasing uses a number-safe "↔" mapping (no subject-verb agreement traps); study-guide DOCX renders the term citations it had been silently dropping.',
+        ],
+      },
+      {
+        label: 'Hardening (refine loop iters 4-9)',
+        icon: 'QA',
+        color: 'amber',
+        items: [
+          'Real DOCX/PPTX export audits: no genome/archetype metadata leak, no unfilled {slot} braces in slides or speaker notes.',
+          'contributionStrip folds Unicode (NFKD + combining-mark strip) so accented and fullwidth course-identity variants are scrubbed even when stored plain ASCII.',
+          'Pedagogical validator no longer judges internal provenance records; shard loader enforces manifest sha256 hashes (tampered shards rejected).',
+        ],
+      },
+    ],
+  },
+  {
     version: '0.11.0',
     date: 'June 10, 2026',
     title: 'The Archetype Layer: Deep Structures Across Disciplines',
