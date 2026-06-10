@@ -1,7 +1,7 @@
 import React from 'react';
 import Header from '../components/Header';
 
-const CONTACT_EMAIL = 'xingpicuture@gmail.com';
+const CONTACT_EMAIL = 'xingpicture@gmail.com';
 
 export default function Contact() {
   return (
@@ -16,14 +16,25 @@ export default function Contact() {
           <p className="text-slate-600 text-[12px] font-medium mt-1">Course Mapper contact</p>
         </div>
 
-        <div className="glass panel-glow rounded-squircle shadow-glass p-8 space-y-4 text-sm text-slate-700 leading-relaxed">
-          <p>For questions, feedback, or collaboration, contact Tian Xing by email.</p>
+        <div className="glass panel-glow rounded-squircle shadow-glass p-8 space-y-5 text-sm text-slate-700 leading-relaxed">
+          <p>
+            Course Mapper is designed and developed by <strong>Tian Xing</strong>. For questions, feedback, bug reports,
+            or collaboration, reach out by email.
+          </p>
           <a
             href={`mailto:${CONTACT_EMAIL}`}
             className="inline-flex items-center gap-2 rounded-pill border border-indigo-200/60 bg-indigo-50/70 px-4 py-2 text-sm font-semibold text-indigo-600 hover:border-indigo-300 hover:bg-indigo-100/70 transition-colors"
           >
             {CONTACT_EMAIL}
           </a>
+
+          <div className="border-t border-slate-200/70 pt-5">
+            <p className="text-[11px] font-semibold uppercase tracking-wide text-slate-500">Acknowledgements</p>
+            <p className="mt-2">
+              Special thanks to <strong>Professor Henry S. Samelson</strong>, NYU Silver School of Social Work, for his
+              guidance and support.
+            </p>
+          </div>
         </div>
       </main>
     </div>

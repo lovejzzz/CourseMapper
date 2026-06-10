@@ -2168,6 +2168,10 @@ export default function Config({
             <a href="#/terms" className="hover:text-indigo-500 transition-colors duration-200">
               Terms
             </a>
+            <span>·</span>
+            <a href="#/contact" className="hover:text-indigo-500 transition-colors duration-200">
+              Contact
+            </a>
           </div>
         </footer>
       </div>

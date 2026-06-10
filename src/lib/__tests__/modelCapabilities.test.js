@@ -71,6 +71,43 @@ describe('modelCapabilities', () => {
     );
   });
 
+  it('classifies a flagship family (Fable) as top-tier, not a fast draft', () => {
+    const profile = createBaseModelCapabilities('anthropic', {
+      id: 'claude-fable-5',
+      name: 'Claude Fable 5',
+      maxOutputTokens: 64000,
+      capabilities: { jsonMode: true, toolCalling: true, streaming: true },
+    });
+    const plan = createGenerationPlan(profile);
+    expect(profile.quality).toBe('high');
+    expect(getPrimaryModelFitLabel(profile, plan)).toBe('Best for full courses');
+    expect(getModelFitBadges(profile, plan).map((b) => b.label)).not.toContain('Fast draft');
+  });
+
+  it('keeps economy families (Haiku) labeled as fast drafts', () => {
+    const profile = createBaseModelCapabilities('anthropic', {
+      id: 'claude-haiku-4-5',
+      name: 'Claude Haiku 4.5',
+      maxOutputTokens: 8192,
+      capabilities: { jsonMode: true, toolCalling: true, streaming: true },
+    });
+    expect(profile.quality).toBe('fast');
+    expect(getPrimaryModelFitLabel(profile)).toBe('Fast draft');
+  });
+
+  it('never labels an unrecognized future model as a fast draft by default', () => {
+    // No economy or flagship name signal, modest reported output: a brand-new
+    // line must not be silently downgraded to "Fast draft".
+    const profile = createBaseModelCapabilities('anthropic', {
+      id: 'claude-aurora-7',
+      name: 'Claude Aurora 7',
+      maxOutputTokens: 8192,
+      capabilities: { jsonMode: false, toolCalling: true, streaming: true },
+    });
+    expect(profile.quality).not.toBe('fast');
+    expect(getPrimaryModelFitLabel(profile)).not.toBe('Fast draft');
+  });
+
   it('probes selected model JSON behavior once and reuses the cached profile', async () => {
     installStorage();
     const fetchMock = vi.spyOn(globalThis, 'fetch').mockImplementation(async () => {

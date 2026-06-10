@@ -110,18 +110,32 @@ function providerStreamingSupport(provider, model) {
   return UNKNOWN_SUPPORT;
 }
 
-function qualityFromSignals({ modelId, maxOutputTokens, supportsTools, supportsJsonMode }) {
+// ── Model capability tiers — the single, extensible source of truth ──────────
+// Classify a model by FAMILY signal first, then by its reported capabilities.
+// To support a provider's new line, add a family token below; never enumerate
+// individual model ids. Economy is tested before flagship so a hypothetical
+// "sonnet-mini" reads as economy. Unknown families are classified by capability
+// and default to 'balanced' — NEVER silently 'fast' — so a brand-new flagship
+// (e.g. the next "claude-fable-N") is not mislabeled before we know its name.
+const ECONOMY_MODEL_HINT = /flash|haiku|instant|(?:^|[-_\s])(?:mini|lite|nano|small)(?:$|[-_\s])/;
+const FLAGSHIP_MODEL_HINT = /fable|opus|sonnet|reasoner|thinking|(?:^|[-_\s])pro(?:$|[-_\s])|gpt-[5-9]|(?:^|[-_\s])o\d/;
+
+function qualityFromSignals({ modelId, maxOutputTokens, supportsTools, supportsJsonMode, reasoning } = {}) {
   const id = String(modelId || '').toLowerCase();
+  // Known families short-circuit on name, independent of the (often-defaulted)
+  // output-token estimate, so classification is stable for a freshly-listed model.
+  if (ECONOMY_MODEL_HINT.test(id)) return 'fast';
+  if (FLAGSHIP_MODEL_HINT.test(id)) return 'high';
+
+  // Unknown family → score by actual capabilities.
   let score = 0;
-  if (maxOutputTokens >= 64000) score += 2;
-  else if (maxOutputTokens >= 16000) score += 1;
+  if (Number(maxOutputTokens) >= 64000) score += 2;
+  else if (Number(maxOutputTokens) >= 16000) score += 1;
   if (supportsTools === true) score += 1;
   if (supportsJsonMode === true) score += 1;
-  if (/pro|opus|sonnet|reasoner|^o\d/.test(id)) score += 2;
-  if (/flash|mini|haiku|lite|nano/.test(id)) score -= 1;
+  if (reasoning?.supported === true) score += 2;
   if (score >= 4) return 'high';
-  if (score >= 2) return 'balanced';
-  return 'fast';
+  return 'balanced';
 }
 
 function inferApiControls(provider, modelId) {
@@ -174,7 +188,7 @@ function inferStructuredOutputControls(provider, modelId, supportsJsonMode) {
     provider === 'openai' ||
     provider === 'google' ||
     provider === 'deepseek' ||
-    (provider === 'anthropic' && /claude-(?:opus|sonnet|haiku)-(?:[4-9]|\d{2,})|claude-3-7/.test(id));
+    (provider === 'anthropic' && /claude-(?:fable|opus|sonnet|haiku)-(?:[4-9]|\d{2,})|claude-3-7/.test(id));
   const toolSchemaOnly = provider === 'anthropic' && supportsJsonSchema;
   return {
     supportsJsonObject,
@@ -952,11 +966,11 @@ function modelHintText(profile = {}) {
 }
 
 function hasFastModelHint(profile = {}) {
-  return /flash|haiku|instant|small|(?:^|[-_\s])(mini|lite|nano)(?:$|[-_\s])/.test(modelHintText(profile));
+  return ECONOMY_MODEL_HINT.test(modelHintText(profile));
 }
 
 function hasReasoningModelHint(profile = {}) {
-  return /pro|opus|sonnet|reasoner|thinking|^o\d/.test(modelHintText(profile));
+  return FLAGSHIP_MODEL_HINT.test(modelHintText(profile));
 }
 
 export function getModelFitBadges(profile = {}, plan = createGenerationPlan(profile)) {

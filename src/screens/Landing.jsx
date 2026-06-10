@@ -93,6 +93,206 @@ export const COURSE_EXAMPLES = [
     label: '🏙️ Urban Planning',
     text: 'Urban Planning and Community Development, 14-week graduate studio with neighborhood fieldwork, zoning analysis, stakeholder interviews, planning memo drafts, and a final community development plan. Covers land use, housing affordability, transportation equity, zoning, participatory planning, GIS mapping, economic development, and public meeting facilitation.',
   },
+  {
+    label: '📐 Calculus I',
+    text: 'Calculus I: Limits and Derivatives, 15-week undergraduate course with weekly problem sets, recitation worksheets, two midterms, and a cumulative final. Covers limits, continuity, the definition of the derivative, differentiation rules, the chain rule, implicit differentiation, related rates, optimization, curve sketching, and an introduction to integration.',
+  },
+  {
+    label: '➗ Linear Algebra',
+    text: 'Linear Algebra, 14-week undergraduate course with proof-based problem sets, computational labs in Python, a midterm, and a final exam. Covers systems of linear equations, matrices, vector spaces, linear independence, bases and dimension, determinants, eigenvalues and eigenvectors, orthogonality, and the singular value decomposition.',
+  },
+  {
+    label: '🎲 Probability & Statistics',
+    text: 'Probability and Statistics for Engineers, 13-week undergraduate course with weekly homework, simulation labs, a data project, and a final exam. Covers sample spaces, conditional probability, random variables, common distributions, expectation and variance, the central limit theorem, estimation, hypothesis testing, and linear regression.',
+  },
+  {
+    label: '🧮 Discrete Mathematics',
+    text: 'Discrete Mathematics, 15-week undergraduate computer-science course with proof problem sets, weekly quizzes, a midterm, and a final. Covers logic and proofs, sets, functions, mathematical induction, combinatorics, recurrence relations, graph theory, trees, relations, and Boolean algebra.',
+  },
+  {
+    label: '⚛️ Physics: Mechanics',
+    text: "Introductory Physics I: Mechanics, 15-week calculus-based undergraduate course with weekly labs, problem sets, two midterms, and a final. Covers kinematics, Newton's laws of motion, work and energy, momentum and collisions, rotational motion, torque, angular momentum, gravitation, oscillations, and an introduction to fluids.",
+  },
+  {
+    label: '🔌 Physics: Electricity & Magnetism',
+    text: "Introductory Physics II: Electricity and Magnetism, 15-week calculus-based course with circuit labs, problem sets, midterms, and a final. Covers electric charge and fields, Gauss's law, electric potential, capacitance, current and resistance, DC circuits, magnetic fields, Faraday's law of induction, inductance, and Maxwell's equations.",
+  },
+  {
+    label: '🧫 General Chemistry',
+    text: 'General Chemistry I, 15-week undergraduate course with weekly labs, online homework, three midterms, and a final exam. Covers atomic structure, the periodic table, chemical bonding, stoichiometry, the gas laws, thermochemistry, electron configuration, molecular geometry, intermolecular forces, and solutions.',
+  },
+  {
+    label: '🧬 Genetics',
+    text: 'Genetics, 14-week undergraduate biology course with problem sets, a model-organism lab, two midterms, and a final. Covers Mendelian inheritance, meiosis, linkage and gene mapping, the molecular structure of DNA, gene expression, mutation, population genetics, epigenetics, and modern genetic technologies.',
+  },
+  {
+    label: '🦠 Microbiology',
+    text: 'Microbiology, 13-week undergraduate course with aseptic-technique labs, lab practicals, weekly quizzes, and a final. Covers prokaryotic cell structure, microbial metabolism, microbial growth, control of microorganisms, bacterial genetics, viruses, host-pathogen interactions, the basics of immunology, and antibiotic resistance.',
+  },
+  {
+    label: '🫀 Anatomy & Physiology',
+    text: 'Human Anatomy and Physiology I, 15-week undergraduate course with model and microscope labs, lab practicals, lecture exams, and a final. Covers tissue types, the integumentary system, the skeletal system, the muscular system, the nervous system, sensory physiology, and the principles of homeostasis and feedback regulation.',
+  },
+  {
+    label: '🌲 Ecology',
+    text: 'Ecology, 13-week undergraduate course with field sampling exercises, data analysis labs, a research poster, and a final. Covers population dynamics, life-history strategies, species interactions, community structure, ecological succession, energy flow, nutrient cycling, biodiversity, and conservation biology.',
+  },
+  {
+    label: '🔭 Introductory Astronomy',
+    text: 'Introduction to Astronomy, 12-week undergraduate course with night-sky observation logs, planetarium activities, quizzes, and a final project. Covers the celestial sphere, the solar system, stellar formation and evolution, the Hertzsprung-Russell diagram, galaxies, the interstellar medium, cosmology, and the search for exoplanets.',
+  },
+  {
+    label: '🪨 Physical Geology',
+    text: 'Physical Geology, 14-week undergraduate course with mineral and rock identification labs, a field-trip report, exams, and a final. Covers minerals, the rock cycle, igneous, sedimentary, and metamorphic rocks, plate tectonics, earthquakes, volcanism, weathering and erosion, surface water, and geologic time.',
+  },
+  {
+    label: '💻 Intro to Programming',
+    text: 'Introduction to Computer Science with Python, 15-week undergraduate course with weekly coding labs, autograded assignments, a midterm, and a final project. Covers variables and types, control flow, functions, lists and dictionaries, strings, file input and output, recursion, object-oriented basics, debugging, and algorithmic thinking.',
+  },
+  {
+    label: '🧱 Data Structures & Algorithms',
+    text: 'Data Structures and Algorithms, 15-week undergraduate course with programming assignments, problem sets, a midterm, and a final. Covers asymptotic analysis, arrays and linked lists, stacks and queues, trees, hash tables, heaps, graphs, sorting and searching, dynamic programming, and algorithm design strategies.',
+  },
+  {
+    label: '🖥️ Operating Systems',
+    text: 'Operating Systems, 14-week undergraduate course with C programming projects, a systems lab, a midterm, and a final. Covers processes and threads, CPU scheduling, synchronization, deadlock, memory management, virtual memory, file systems, input and output, and an introduction to virtualization.',
+  },
+  {
+    label: '🗄️ Database Systems',
+    text: 'Database Systems, 13-week undergraduate course with SQL labs, a schema design project, quizzes, and a final. Covers the relational model, SQL queries, entity-relationship modeling, normalization, indexing, transactions, concurrency control, recovery, and an introduction to NoSQL stores.',
+  },
+  {
+    label: '🔐 Cybersecurity',
+    text: 'Introduction to Cybersecurity, 12-week undergraduate course with hands-on labs in a sandbox, a defensive capture-the-flag exercise, quizzes, and a final report. Covers the confidentiality-integrity-availability triad, cryptography basics, authentication, network security, common vulnerabilities, threat modeling, secure coding, incident response, and security policy.',
+  },
+  {
+    label: '🤝 Software Engineering',
+    text: 'Software Engineering, 14-week project-based undergraduate course with an agile team project, sprint demos, code reviews, and a final release. Covers requirements engineering, version control, agile methods, design patterns, testing, continuous integration, code quality, refactoring, documentation, and team collaboration.',
+  },
+  {
+    label: '🌐 Web Development',
+    text: 'Full-Stack Web Development, 12-week project-based course with weekly build labs, code reviews, a portfolio site, and a final application. Covers HTML and CSS, responsive design, JavaScript, the document object model, working with APIs, a front-end framework, server-side basics, databases, authentication, and deployment.',
+  },
+  {
+    label: '🤖 Artificial Intelligence',
+    text: 'Introduction to Artificial Intelligence, 14-week undergraduate course with programming assignments, problem sets, a midterm, and a final project. Covers search algorithms, heuristics, constraint satisfaction, adversarial games, logic and knowledge representation, planning, probabilistic reasoning, machine learning basics, and the ethics of AI.',
+  },
+  {
+    label: '📊 Microeconomics',
+    text: 'Principles of Microeconomics, 15-week undergraduate course with weekly problem sets, graphing exercises, two midterms, and a final. Covers scarcity and opportunity cost, supply and demand, elasticity, consumer choice, production and costs, perfect competition, monopoly, externalities, public goods, and labor markets.',
+  },
+  {
+    label: '📈 Macroeconomics',
+    text: 'Principles of Macroeconomics, 15-week undergraduate course with problem sets, data interpretation exercises, midterms, and a final. Covers gross domestic product, the circular flow of income, inflation and the consumer price index, unemployment, aggregate demand and supply, fiscal policy, money and banking, monetary policy, and economic growth.',
+  },
+  {
+    label: '👥 Introduction to Sociology',
+    text: 'Introduction to Sociology, 14-week undergraduate course with reading responses, a community observation paper, quizzes, and a final project. Covers the sociological imagination, culture, socialization, social structure, deviance, social stratification, race and ethnicity, gender, family, and social change.',
+  },
+  {
+    label: '🌏 Cultural Anthropology',
+    text: 'Cultural Anthropology, 13-week undergraduate course with ethnographic reading journals, a mini-fieldwork exercise, exams, and a final ethnography. Covers culture and ethnocentrism, fieldwork methods, language and communication, kinship, economic systems, political organization, religion and ritual, globalization, and cultural change.',
+  },
+  {
+    label: '🏛️ American Government',
+    text: 'American Government and Politics, 15-week undergraduate course with current-events briefs, a policy debate, exams, and a final paper. Covers the Constitution, federalism, civil liberties, civil rights, Congress, the presidency, the judiciary, the bureaucracy, political parties, elections, interest groups, and public opinion.',
+  },
+  {
+    label: '🌍 International Relations',
+    text: 'Introduction to International Relations, 14-week undergraduate course with position papers, a crisis simulation, exams, and a final analysis. Covers realism, liberalism, and constructivism, the state system, war and security, international institutions, global political economy, human rights, the environment, and contemporary global challenges.',
+  },
+  {
+    label: '⚖️ Ethics',
+    text: 'Introduction to Ethics, 14-week undergraduate philosophy course with argument-analysis exercises, short response papers, a debate, and a final paper. Covers metaethics, consequentialism, deontology, virtue ethics, social contract theory, moral relativism, applied ethics cases, moral psychology, and constructing ethical arguments.',
+  },
+  {
+    label: '🧠 Logic',
+    text: 'Introduction to Logic, 13-week undergraduate course with weekly proof exercises, quizzes, a midterm, and a final. Covers arguments and validity, informal fallacies, categorical logic, propositional logic, truth tables, natural deduction, predicate logic, quantifiers, and an introduction to inductive reasoning.',
+  },
+  {
+    label: '📜 Western Civilization',
+    text: 'Western Civilization to 1500, 15-week undergraduate history survey with primary-source analyses, map exercises, exams, and a research essay. Covers Mesopotamia and Egypt, ancient Greece, the Roman Republic and Empire, early Christianity, the Byzantine world, the rise of Islam, the early Middle Ages, feudalism, and the late medieval crises.',
+  },
+  {
+    label: '🇺🇸 U.S. History',
+    text: 'United States History since 1865, 15-week undergraduate survey with document-based questions, a historiography paper, exams, and a final project. Covers Reconstruction, industrialization, immigration, Progressivism, the world wars, the Great Depression and the New Deal, the Cold War, the civil rights movement, and the modern era.',
+  },
+  {
+    label: '📖 World Literature',
+    text: 'World Literature, 14-week undergraduate humanities course with reading responses, close-reading exercises, a comparative essay, and a final paper. Covers epic and oral tradition, classical drama, lyric poetry, the rise of the novel, postcolonial literature, magical realism, translation, narrative perspective, and methods of literary analysis.',
+  },
+  {
+    label: '✍️ English Composition',
+    text: 'College Writing and Rhetoric, 15-week first-year course with drafting workshops, peer review, a research paper, and a reflective portfolio. Covers the writing process, thesis development, paragraphing, rhetorical appeals, audience and purpose, argumentation, source evaluation, citation, revision, and academic style.',
+  },
+  {
+    label: '🎭 Introduction to Theater',
+    text: 'Introduction to Theater, 13-week undergraduate arts course with performance responses, a scene study, a production analysis, and a final project. Covers the elements of drama, theater history, dramatic structure, acting fundamentals, directing, scenic and lighting design, dramaturgy, genre, and critiquing live performance.',
+  },
+  {
+    label: '🎼 Music Theory',
+    text: 'Music Theory I, 15-week undergraduate course with part-writing exercises, ear-training drills, weekly quizzes, and a final. Covers notation, scales and key signatures, intervals, triads and seventh chords, diatonic harmony, voice leading, cadences, nonchord tones, phrase structure, and basic analysis.',
+  },
+  {
+    label: '🎨 Drawing Studio',
+    text: 'Foundations of Drawing, 12-week studio course with weekly drawing assignments, sketchbook reviews, group critiques, and a final portfolio. Covers line and contour, proportion, linear perspective, value and shading, composition, gesture, still life, the figure, texture, and developing a personal visual vocabulary.',
+  },
+  {
+    label: '📷 Digital Photography',
+    text: 'Digital Photography, 12-week studio course with weekly shooting assignments, editing labs, critiques, and a final portfolio. Covers exposure, aperture and shutter speed, ISO, composition, lighting, color and white balance, the RAW workflow, editing software, genres of photography, and building a cohesive body of work.',
+  },
+  {
+    label: '💰 Financial Accounting',
+    text: 'Financial Accounting, 15-week undergraduate business course with problem sets, spreadsheet exercises, two midterms, and a final. Covers the accounting equation, the double-entry system, journal entries, adjusting entries, the income statement, the balance sheet, the statement of cash flows, inventory, receivables, and financial statement analysis.',
+  },
+  {
+    label: '📣 Principles of Marketing',
+    text: 'Principles of Marketing, 14-week undergraduate course with case analyses, a marketing-plan project, quizzes, and a final presentation. Covers the marketing concept, market research, consumer behavior, segmentation and targeting, positioning, the marketing mix, branding, pricing, distribution channels, and digital marketing.',
+  },
+  {
+    label: '🏢 Organizational Behavior',
+    text: 'Organizational Behavior, 13-week undergraduate management course with case discussions, a team project, reflection memos, and a final. Covers individual differences, motivation, perception, decision-making, group dynamics, teams, communication, leadership, organizational culture, power and politics, and managing change.',
+  },
+  {
+    label: '💵 Corporate Finance',
+    text: 'Corporate Finance, 14-week undergraduate course with spreadsheet problem sets, a valuation case, two midterms, and a final. Covers the time value of money, reading financial statements, risk and return, the cost of capital, capital budgeting, net present value, capital structure, dividend policy, and working capital management.',
+  },
+  {
+    label: '📋 Project Management',
+    text: 'Project Management, 12-week professional course with a project charter, a scheduling lab, scenario quizzes, and a final project plan. Covers the project life cycle, scope management, work breakdown structures, scheduling and the critical path, budgeting, risk management, stakeholder management, agile approaches, and project closure.',
+  },
+  {
+    label: '🩺 Nursing Fundamentals',
+    text: 'Fundamentals of Nursing, 15-week course with skills-lab checkoffs, clinical simulations, dosage-calculation quizzes, and a final. Covers the nursing process, patient assessment, vital signs, infection control, patient safety, medication administration, documentation, therapeutic communication, basic care skills, and professional and ethical practice.',
+  },
+  {
+    label: '💊 Pharmacology',
+    text: 'Introduction to Pharmacology, 13-week health-sciences course with drug-classification worksheets, case studies, exams, and a final. Covers pharmacokinetics, pharmacodynamics, routes of administration, dosage calculation, autonomic nervous system drugs, cardiovascular drugs, antibiotics, analgesics, adverse effects, and patient education.',
+  },
+  {
+    label: '🥗 Nutrition',
+    text: 'Introduction to Nutrition, 14-week undergraduate course with diet-analysis logs, a case project, quizzes, and a final. Covers macronutrients, micronutrients, digestion and absorption, energy balance, dietary guidelines, nutrition across the life span, weight management, food safety, reading nutrition labels, and evaluating nutrition claims.',
+  },
+  {
+    label: '🏃 Exercise Science',
+    text: 'Foundations of Exercise Science, 13-week undergraduate course with laboratory measurements, a training-program project, exams, and a final. Covers bioenergetics, the muscular and cardiovascular response to exercise, the principles of training, strength and endurance adaptations, flexibility, body composition, fitness assessment, and program design.',
+  },
+  {
+    label: '🍎 Educational Psychology',
+    text: 'Educational Psychology, 14-week course for future teachers with classroom observation logs, a case analysis, quizzes, and a final lesson plan. Covers cognitive development, learning theories, motivation, individual differences, assessment, classroom management, instructional design, culturally responsive teaching, and supporting diverse learners.',
+  },
+  {
+    label: '🗞️ Journalism',
+    text: 'Introduction to Journalism, 13-week course with reporting assignments, interview practice, a beat project, and a final multimedia story. Covers news values, story structure, interviewing, sourcing and verification, AP style, media ethics, the basics of media law, investigative methods, multimedia storytelling, and writing on deadline.',
+  },
+  {
+    label: '🗣️ Public Speaking',
+    text: 'Public Speaking, 13-week undergraduate communication course with graded speeches, peer feedback, a self-evaluation, and a final persuasive speech. Covers audience analysis, topic selection, research and support, organization, outlining, delivery, language, visual aids, managing speech anxiety, and the principles of persuasion.',
+  },
+  {
+    label: '🇨🇳 Elementary Mandarin',
+    text: 'Elementary Mandarin Chinese I, 15-week beginner language course with daily character practice, speaking drills, listening quizzes, and an oral final. Covers pinyin and tones, basic characters, greetings and introductions, numbers and dates, family and daily routines, food and shopping, simple sentence patterns, and foundational listening and speaking.',
+  },
 ];
 
 export function pickCourseExamples(examples = COURSE_EXAMPLES, count = 3) {
@@ -561,16 +761,7 @@ export default function Landing({
       </main>
 
       <footer className="px-5 py-4 text-center">
-        <p className="text-[10px] text-slate-500/80 dark:text-slate-400">
-          Built by{' '}
-          <a
-            href="#/contact"
-            className="font-medium transition-colors duration-200 hover:text-blue-600 dark:hover:text-blue-300"
-          >
-            Tian Xing
-          </a>
-        </p>
-        <div className="mt-1 flex items-center justify-center gap-3 text-[10px] text-slate-500/80 dark:text-slate-400">
+        <div className="flex items-center justify-center gap-3 text-[10px] text-slate-500/80 dark:text-slate-400">
           <a
             href="#/changelog"
             className="font-medium transition-colors duration-200 hover:text-blue-600 dark:hover:text-blue-300"
@@ -584,6 +775,10 @@ export default function Landing({
           <span>·</span>
           <a href="#/terms" className="transition-colors duration-200 hover:text-blue-600 dark:hover:text-blue-300">
             Terms
+          </a>
+          <span>·</span>
+          <a href="#/contact" className="transition-colors duration-200 hover:text-blue-600 dark:hover:text-blue-300">
+            Contact
           </a>
         </div>
       </footer>
