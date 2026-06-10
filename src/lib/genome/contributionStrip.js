@@ -23,10 +23,25 @@ function cleanText(value) {
     .trim();
 }
 
+/**
+ * Unicode fold: NFKD decomposes fullwidth/compatibility forms to ASCII and
+ * splits accented letters into base + combining mark; stripping the marks
+ * leaves a comparable ASCII-ish form. Without this, a name stored plain
+ * ("Renee") fails to scrub the model's accented output ("Renée"), and
+ * fullwidth homoglyphs slip through — leaking instructor identity into the
+ * public commons. (Iteration 6.)
+ */
+function foldUnicode(value) {
+  return cleanText(value)
+    .normalize('NFKD')
+    .replace(/[\u0300-\u036f]/g, '')
+    .toLowerCase();
+}
+
 function buildForbiddenMatcher(courseContext = {}) {
   const needles = [];
   const push = (value) => {
-    const text = cleanText(value).toLowerCase();
+    const text = foldUnicode(value);
     if (text.length >= 4) needles.push(text);
   };
   push(courseContext.courseName);
@@ -36,13 +51,12 @@ function buildForbiddenMatcher(courseContext = {}) {
   push(courseContext.classLocation);
   push(courseContext.lmsName);
   // Multi-word course-name fragments (so "Smith's Policy Seminar" also blocks "Policy Seminar").
-  const courseWords = cleanText(courseContext.courseName)
-    .toLowerCase()
+  const courseWords = foldUnicode(courseContext.courseName)
     .split(/\s+/)
     .filter((word) => word.length >= 5);
   for (const word of courseWords) needles.push(word);
   return (text) => {
-    const haystack = cleanText(text).toLowerCase();
+    const haystack = foldUnicode(text);
     return needles.some((needle) => haystack.includes(needle));
   };
 }
