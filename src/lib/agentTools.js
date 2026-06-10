@@ -25,6 +25,7 @@ import {
 import { buildHumanReviewRecommendation, summarizeRepairEvidence } from './packageTrust';
 import { evaluateClassroomReadiness } from './classroomReadiness';
 import { addJournalEntry, getJournal, resolveThread } from './courseJournal';
+import { getProfile, updateProfile, LOCALIZATION_FIELDS } from './professorProfile';
 
 // ── Helpers ──────────────────────────────────────────────────────────────────
 
@@ -2432,6 +2433,44 @@ export const AGENT_TOOLS = {
     },
   },
 
+  update_local_facts: {
+    description:
+      'Save instructor-confirmed local facts (term, meeting pattern, instructor name/contact, office hours, class location, LMS name) so every compiled artifact uses them instead of neutral placeholders. Run the localization interview: ask for the missing facts conversationally (a few at a time), then save what the instructor provides. Read current values first by calling with no arguments.',
+    params: {
+      facts:
+        'object (optional) — any of: instructorName, instructorEmail, officeHours, officeLocation, meetingPattern, classLocation, termLabel, lmsName',
+    },
+    execute: (args, ctx) => {
+      const current = getProfile();
+      if (!args?.facts || typeof args.facts !== 'object' || Object.keys(args.facts).length === 0) {
+        const missing = LOCALIZATION_FIELDS.filter((field) => !String(current?.[field] || '').trim());
+        return {
+          facts: Object.fromEntries(LOCALIZATION_FIELDS.map((field) => [field, current?.[field] || ''])),
+          missing,
+          note:
+            missing.length > 0
+              ? `Ask the instructor for: ${missing.join(', ')}. Save answers with this tool, then regenerate or edit the syllabus so the facts flow through.`
+              : 'All localization facts are set.',
+        };
+      }
+      const patch = {};
+      for (const field of LOCALIZATION_FIELDS) {
+        if (typeof args.facts[field] === 'string' && args.facts[field].trim()) {
+          patch[field] = args.facts[field].trim();
+        }
+      }
+      if (Object.keys(patch).length === 0) return { error: 'No recognized localization fields in facts.' };
+      updateProfile(patch, ctx.uid);
+      const after = getProfile();
+      const stillMissing = LOCALIZATION_FIELDS.filter((field) => !String(after?.[field] || '').trim());
+      return {
+        saved: Object.keys(patch),
+        stillMissing,
+        note: 'Saved. New compiles use these facts; for the current syllabus, apply targeted edits or regenerate it.',
+      };
+    },
+  },
+
   log_decision: {
     description:
       "Record a design decision (with rationale) or an open thread (something the instructor deferred, e.g. 'revisit rubric weights') in this course's journal. The journal feeds future conversations, so log decisions the instructor makes and promises worth resurfacing. Use resolve:true with a thread's text to close it.",
@@ -2755,6 +2794,7 @@ export const AGENT_TOOLS = {
 // ── UI labels for progress card ──────────────────────────────────────────────
 
 export const TOOL_LABELS = {
+  update_local_facts: 'Saving course details',
   read_rendered: 'Reading the materials',
   search_course: 'Searching the course',
   explain_design: 'Checking design records',

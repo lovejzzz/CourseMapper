@@ -23,7 +23,9 @@ const lazyChunkBudgets = [
   { prefix: 'ChatPanel-', rawKiB: 350, gzipKiB: 105 },
   { prefix: 'DeliverableView-', rawKiB: 170, gzipKiB: 35 },
   { prefix: 'DeveloperModePanel-', rawKiB: 130, gzipKiB: 35 },
-  { prefix: 'ExportSidePanel-', rawKiB: 35, gzipKiB: 12 },
+  // v0.9.1: +3 KiB raw for the pre-export checklist (localization gaps +
+  // compiler-flagged local reviews, measured at 38.0 KiB raw / 10.x gzip).
+  { prefix: 'ExportSidePanel-', rawKiB: 40, gzipKiB: 12 },
   { prefix: 'webllm-', rawKiB: 5, gzipKiB: 2 },
 ];
 

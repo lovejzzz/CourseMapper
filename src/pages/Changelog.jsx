@@ -3,6 +3,52 @@ import Header from '../components/Header';
 
 const releases = [
   {
+    version: '0.9.1',
+    date: 'June 10, 2026',
+    title: 'Classroom-Ready Program: Subject-Matter Enrichment',
+    highlights: [
+      'Compiled materials can now teach the subject, not just the course: a budgeted enrichment pass writes real quiz items, key terms with correct definitions, teaching-slide assertions, debatable discussion prompts, and concrete assignment tasks inside compiler-owned frames',
+      'Every enriched item passes Haladyna-derived item-writing lint (complete stems, homogeneous distractor sets, no all-of-the-above), a meta-content check, and source-grounding rules before it is accepted — invalid items fall back to compiled frames individually',
+      'A substance audit now measures how much of each assessment talks about the course process instead of the discipline (baseline: 56% of quiz surfaces, 100% of key terms) and feeds the post-generation digest',
+      'Localization: the assistant can interview you for the dozen facts only you know (term, meeting pattern, contact, office hours, LMS) and compiled syllabi use them; a pre-export checklist lists every item that still needs your eyes',
+      'Visual craft: three designed document themes, cover pages for multi-lesson documents, content-driven slide-deck length (11-14 slides instead of always 12), and an accessibility scan in export verification',
+      'Quality governance: the Classroom-Ready Rubric (QM 7th Edition-style gates, Biggs alignment, UDL 3.0, Mayer) is now the standing judging instrument, with phase-exit scorecards in verification-output',
+      'Seven residual v0.9 language bugs fixed, including the lesson-plan run-on template, semicolon-in-parentheses citation truncation, and concept-list duplicates',
+    ],
+    sections: [
+      {
+        label: 'Subject-Matter Enrichment',
+        icon: 'AI',
+        color: 'emerald',
+        items: [
+          'blueprintEnrichmentPass gained a per-lesson content stage: chunked calls (two lessons per request) produce quizItems, keyTerms, slideContent, discussionPrompt, and assignmentCore under strict JSON contracts with per-item validation and individual fallback.',
+          'Compilers overlay enriched content onto their frames: quiz ids/points/rotation, deck shape/timing, brief milestones/policies all stay deterministic, and every enriched field carries enrichmentSource provenance.',
+          "Grounding is enforced: enrichment may only use the course map's own readings; URLs and page citations not present in the source are rejected by lint.",
+        ],
+      },
+      {
+        label: 'Truth & Localization',
+        icon: 'QA',
+        color: 'amber',
+        items: [
+          'update_local_facts powers a conversational localization interview; saved facts flow into the compiled syllabus identity block and the semester label.',
+          'The pre-export checklist combines missing localization facts with compiler-flagged local-review actions, confirmable per course; export stays allowed while the state stays honest.',
+          'Meta-content/substance audit (auditSubstance) reports per-deliverable how many assessment surfaces are course-process talk, with samples.',
+        ],
+      },
+      {
+        label: 'Visual Craft & Governance',
+        icon: 'UI',
+        color: 'indigo',
+        items: [
+          'docTheme.js ships indigo/graphite/forest themes; multi-lesson DOCX exports open with a designed cover page.',
+          'Slide decks vary 11-14 slides by content: extra enriched assertions become content slides; single-concept lessons drop the generic second content slide.',
+          'auditOfficeAccessibility verifies heading structure, footers, table header shading, and image alt text on every export; CLASSROOM_READY_RUBRIC.md and per-phase scorecards govern release quality from now on.',
+        ],
+      },
+    ],
+  },
+  {
     version: '0.9.0',
     date: 'June 9, 2026',
     title: 'The TA Who Built the Course',

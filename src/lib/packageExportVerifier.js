@@ -226,12 +226,19 @@ async function verifyDocxExport(featureId, data, courseName) {
       { size, internalText },
     );
   }
-  const { auditOfficeBlobRepetition } = await import('./exportRenderedTextAudit');
+  const { auditOfficeBlobRepetition, auditOfficeAccessibility } = await import('./exportRenderedTextAudit');
   const repetition = await auditOfficeBlobRepetition(blob, 'docx');
   if (repetition) {
     return createCheck(featureId, 'docx', 'warning', `DOCX export generated, but ${repetition.message}`, {
       size,
       repetition,
+    });
+  }
+  const accessibility = await auditOfficeAccessibility(blob, 'docx');
+  if (accessibility) {
+    return createCheck(featureId, 'docx', 'warning', `DOCX export generated, but ${accessibility.message}`, {
+      size,
+      accessibility,
     });
   }
   return createCheck(featureId, 'docx', 'passed', 'DOCX export can be generated.', { size });
@@ -254,12 +261,19 @@ async function verifyPptxExport(data, courseName, slideTheme) {
       { size, internalText },
     );
   }
-  const { auditOfficeBlobRepetition } = await import('./exportRenderedTextAudit');
+  const { auditOfficeBlobRepetition, auditOfficeAccessibility } = await import('./exportRenderedTextAudit');
   const repetition = await auditOfficeBlobRepetition(blob, 'pptx');
   if (repetition) {
     return createCheck('slideDecks', 'pptx', 'warning', `PPTX export generated, but ${repetition.message}`, {
       size,
       repetition,
+    });
+  }
+  const accessibility = await auditOfficeAccessibility(blob, 'pptx');
+  if (accessibility) {
+    return createCheck('slideDecks', 'pptx', 'warning', `PPTX export generated, but ${accessibility.message}`, {
+      size,
+      accessibility,
     });
   }
   return createCheck('slideDecks', 'pptx', 'passed', 'Slide deck PowerPoint export can be generated.', { size });

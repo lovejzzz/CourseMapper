@@ -4,6 +4,7 @@ import { safeImport } from '../lib/safeImport';
 import { summarizeReadiness } from '../lib/deliverableReadiness';
 import { evaluateStrictPackageReadiness } from '../lib/packageFinalizer';
 import { normalizeReadinessIssue } from '../lib/readinessIssueSchema';
+import { buildPreExportChecklist, setChecklistItemConfirmed, summarizeChecklist } from '../lib/preExportChecklist';
 import {
   exportDeliverableCsv,
   exportDeliverablePdf,
@@ -551,6 +552,24 @@ export default function ExportSidePanel({
 
   const courseName = courseMap?.courseName || 'Course';
 
+  // ── Pre-export checklist (v0.9.1): localization gaps + compiler-flagged
+  // local-review items, confirmable in place. Honest, never blocking.
+  const [checklistVersion, setChecklistVersion] = useState(0);
+  const [checklistOpen, setChecklistOpen] = useState(false);
+  const checklistItems = useMemo(() => {
+    void checklistVersion;
+    try {
+      return buildPreExportChecklist({ courseMap, deliverables });
+    } catch {
+      return [];
+    }
+  }, [courseMap, deliverables, checklistVersion]);
+  const checklistSummary = useMemo(() => summarizeChecklist(checklistItems), [checklistItems]);
+  const toggleChecklistItem = (item) => {
+    setChecklistItemConfirmed(courseName, item.id, !item.confirmed);
+    setChecklistVersion((version) => version + 1);
+  };
+
   // ── Determine what we're exporting ──────────────────────────────────────────
   const isCurrentCourseMap = scope === 'current' && activeTab === 'courseMap';
   const isCurrentSlideDecks = scope === 'current' && activeTab === 'slideDecks';
@@ -1001,6 +1020,49 @@ export default function ExportSidePanel({
             <p className="text-xs font-bold text-slate-800">Finish package</p>
           </div>
         </div>
+
+        {/* ── Pre-export checklist (v0.9.1) ── */}
+        {checklistItems.length > 0 && (
+          <div
+            data-testid="preexport-checklist"
+            className={`rounded-xl border px-3 py-2 ${checklistSummary.open > 0 ? 'border-amber-200/70 bg-amber-50/50' : 'border-emerald-200/70 bg-emerald-50/40'}`}
+          >
+            <button
+              onClick={() => setChecklistOpen((open) => !open)}
+              className="w-full flex items-center justify-between text-left"
+            >
+              <span
+                className={`text-[11px] font-semibold ${checklistSummary.open > 0 ? 'text-amber-700' : 'text-emerald-700'}`}
+              >
+                {checklistSummary.headline}
+              </span>
+              <span className="text-[10px] text-slate-400">{checklistOpen ? 'Hide' : 'Review'}</span>
+            </button>
+            {checklistOpen && (
+              <ul className="mt-2 space-y-1.5 max-h-48 overflow-y-auto">
+                {checklistItems.map((item) => (
+                  <li key={item.id} className="flex items-start gap-2">
+                    <input
+                      type="checkbox"
+                      checked={item.confirmed}
+                      onChange={() => toggleChecklistItem(item)}
+                      className="mt-0.5 accent-emerald-600"
+                      aria-label={`Confirm: ${item.label}`}
+                    />
+                    <div className="min-w-0">
+                      <p
+                        className={`text-[11px] leading-snug ${item.confirmed ? 'text-slate-400 line-through' : 'text-slate-700'}`}
+                      >
+                        {item.label}
+                      </p>
+                      {!item.confirmed && <p className="text-[10px] text-slate-400 leading-snug">{item.detail}</p>}
+                    </div>
+                  </li>
+                ))}
+              </ul>
+            )}
+          </div>
+        )}
 
         {/* ── Scope toggle ── */}
         <div className="flex items-center bg-slate-100/80 rounded-lg p-0.5 gap-0.5">

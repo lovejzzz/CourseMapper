@@ -104,3 +104,69 @@ export function auditDeliverableContentQuality(featureId, data) {
         : `${findings.length} content quality finding(s): ${codes.join(', ')}.`,
   };
 }
+
+// ── Substance audit (CCR D2.1 / D3.1 instrument) ────────────────────────────
+// Measures whether assessment surfaces talk about the discipline or about the
+// course's own process. Reported separately from auditDeliverableContentQuality
+// because compiled-only packages are legitimately meta until enrichment runs —
+// this is a measurement first, a gate later.
+
+const PROCESS_MARKER_RE =
+  /\b(?:evidence move|success criteri\w*|course evidence|lesson evidence|inspectable (?:course )?evidence|the (?:Week\s*\d+|weekly) (?:check|memo|quiz|artifact|discussion(?: post)?|brief|plan|paper|reflection|recording|exam|report|project|lab work|analysis|presentation|portfolio|mapping work)|the lesson(?:'s)? (?:materials|artifact|focus|objective)|checkpoint response|professional decision|rubric criteri\w*|feedback routine|artifact revision|distractor)\b/i;
+
+const CIRCULAR_DEFINITION_RE =
+  /(?:names the evidence focus|is the part of the lesson students must apply|as a self-check|helps students separate description from|helps students choose relevant evidence)/i;
+
+function quizSurfaceStrings(data) {
+  const surfaces = [];
+  for (const quiz of data?.quizzes || data?.quizBank || []) {
+    for (const question of Array.isArray(quiz?.questions) ? quiz.questions : []) {
+      if (question?.question) surfaces.push({ kind: 'stem', text: String(question.question) });
+      for (const option of Array.isArray(question?.options) ? question.options : []) {
+        surfaces.push({ kind: 'option', text: String(option) });
+      }
+    }
+  }
+  return surfaces;
+}
+
+function keyTermSurfaceStrings(data) {
+  const surfaces = [];
+  for (const guide of data?.studyGuides || []) {
+    for (const term of Array.isArray(guide?.keyTerms) ? guide.keyTerms : []) {
+      const text = typeof term === 'string' ? term : `${term?.term || ''}: ${term?.definition || term?.df || ''}`;
+      surfaces.push({ kind: 'keyTerm', text });
+    }
+  }
+  return surfaces;
+}
+
+/**
+ * Substance metrics for one deliverable: how many assessment surfaces are
+ * course-process talk instead of disciplinary content.
+ * Returns { surfaces, meta, metaShare, samples } or null for other features.
+ */
+export function auditSubstance(featureId, data) {
+  let surfaces = [];
+  if (featureId === 'quizBank') surfaces = quizSurfaceStrings(data);
+  else if (featureId === 'studyGuides') surfaces = keyTermSurfaceStrings(data);
+  else return null;
+  if (surfaces.length === 0) return null;
+  const samples = [];
+  let meta = 0;
+  for (const surface of surfaces) {
+    const isMeta =
+      PROCESS_MARKER_RE.test(surface.text) || (surface.kind === 'keyTerm' && CIRCULAR_DEFINITION_RE.test(surface.text));
+    if (isMeta) {
+      meta += 1;
+      if (samples.length < 5) samples.push({ kind: surface.kind, text: surface.text.slice(0, 120) });
+    }
+  }
+  return {
+    featureId,
+    surfaces: surfaces.length,
+    meta,
+    metaShare: Math.round((meta / surfaces.length) * 100) / 100,
+    samples,
+  };
+}

@@ -206,9 +206,9 @@ describe('AGENT_TOOLS registry', () => {
     'run_tool',
   ];
 
-  it('contains exactly 30 tools', () => {
+  it('contains exactly 31 tools', () => {
     // Domain tools + create_tool / run_tool meta-tools for session macros.
-    expect(Object.keys(AGENT_TOOLS)).toHaveLength(30);
+    expect(Object.keys(AGENT_TOOLS)).toHaveLength(31);
   });
 
   it.each(EXPECTED_TOOLS)('has tool "%s" with description, params, and execute', (name) => {

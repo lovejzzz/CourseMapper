@@ -138,3 +138,51 @@ export async function auditOfficeBlobRepetition(blob, format) {
   }
   return null;
 }
+
+/**
+ * Accessibility structure scan (v0.9.1 Phase 3 — CCR D5.1 proxy).
+ * DOCX: requires a real heading structure and a footer part; flags tables
+ * whose first row carries no header shading. PPTX: every picture needs a
+ * non-empty alt description.
+ */
+export async function auditOfficeAccessibility(blob, format) {
+  const buffer = await toArrayBuffer(blob);
+  if (!buffer) return null;
+  const JSZip = (await import('jszip')).default;
+  const zip = await JSZip.loadAsync(buffer);
+  const problems = [];
+  if (format === 'docx') {
+    const documentXml = await zip.file('word/document.xml')?.async('string');
+    if (documentXml) {
+      if (!/w:val="(?:Title|Heading[1-6])"/.test(documentXml)) problems.push('no-heading-structure');
+      const tables = documentXml.split('<w:tbl>').slice(1);
+      for (const table of tables) {
+        const firstRow = table.split('</w:tr>')[0] || '';
+        if (!/w:shd /.test(firstRow)) {
+          problems.push('table-without-header-shading');
+          break;
+        }
+      }
+    }
+    if (!Object.keys(zip.files).some((name) => /^word\/footer\d*\.xml$/.test(name))) problems.push('no-footer');
+  } else {
+    for (const file of Object.values(zip.files)) {
+      if (file.dir || !/^ppt\/slides\/[^/]+\.xml$/.test(file.name)) continue;
+      const xml = await file.async('string');
+      const pictures = xml.split('<pic:pic>').slice(1);
+      for (const picture of pictures) {
+        const descr = picture.match(/descr="([^"]*)"/);
+        if (!descr || !descr[1].trim()) {
+          problems.push('image-without-alt');
+          break;
+        }
+      }
+    }
+  }
+  if (problems.length === 0) return null;
+  return {
+    code: 'accessibility',
+    problems: [...new Set(problems)],
+    message: `Accessibility scan: ${[...new Set(problems)].join(', ')}.`,
+  };
+}

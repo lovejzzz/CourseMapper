@@ -117,6 +117,23 @@ function buildReferenceTargets(blueprint = {}) {
     targets.push(target);
   };
   const lessons = Array.isArray(blueprint.lessons) ? blueprint.lessons : [];
+  // Assessment records sometimes carry their own title/artifact phrasings
+  // distinct from lesson.studentArtifact; cover both so cross-lesson
+  // references ("carry into <next artifact>") shorten too.
+  for (const assessment of Array.isArray(blueprint.assessments) ? blueprint.assessments : []) {
+    const assessmentLesson = Array.isArray(assessment?.lessonNumbers) ? assessment.lessonNumbers[0] : 0;
+    for (const phrasing of [assessment?.title, assessment?.artifact]) {
+      const text = String(phrasing || '')
+        .trim()
+        .replace(/[.!?]+$/, '');
+      push({
+        pattern: text,
+        replacement: shortArtifactReference(text, assessmentLesson),
+        startsWithArticle: true,
+        keep: 2,
+      });
+    }
+  }
   for (const lesson of lessons) {
     const lessonNumber = lesson?.lessonNumber || 0;
     const title = String(lesson?.title || '').trim();

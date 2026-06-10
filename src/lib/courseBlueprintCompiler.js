@@ -135,10 +135,25 @@ function splitList(value) {
   if (Array.isArray(value)) {
     return value.flatMap(splitList);
   }
-  return String(value || '')
-    .split(/\n|;|\||\u2022/)
-    .map((item) => stripListPrefix(item).trim())
-    .filter(Boolean);
+  // Split on newlines, semicolons, pipes, and bullets — but never on a
+  // semicolon inside parentheses, so citations like
+  // "Duke University Press (copyrighted text; library access)" stay whole.
+  const text = String(value || '');
+  const items = [];
+  let current = '';
+  let depth = 0;
+  for (const char of text) {
+    if (char === '(') depth += 1;
+    else if (char === ')') depth = Math.max(0, depth - 1);
+    if (char === '\n' || char === '|' || char === '\u2022' || (char === ';' && depth === 0)) {
+      items.push(current);
+      current = '';
+    } else {
+      current += char;
+    }
+  }
+  items.push(current);
+  return items.map((item) => stripListPrefix(item).trim()).filter(Boolean);
 }
 
 function unique(values, limit = 12) {
@@ -236,7 +251,7 @@ function splitConceptValues(value) {
   return splitList(value).flatMap((item) =>
     cleanText(item)
       .split(/,\s*/)
-      .map((part) => part.trim())
+      .map((part) => part.trim().replace(/^(?:and|or)\s+/i, ''))
       .filter(Boolean),
   );
 }
@@ -262,7 +277,7 @@ function isOverbroadLessonTitleConcept(value, title) {
 }
 
 function normalizeConceptCandidates(values, { title = '', limit = 8 } = {}) {
-  return unique(
+  const candidates = unique(
     asArray(values)
       .flatMap((value) => splitConceptValues(value))
       .map((value) => normalizeObjectiveText(value))
@@ -274,8 +289,24 @@ function normalizeConceptCandidates(values, { title = '', limit = 8 } = {}) {
           !isOverlongConceptCandidate(value) &&
           !isOverbroadLessonTitleConcept(value, title),
       ),
-    limit,
+    limit * 2,
   );
+  // Substring-dedupe: "Camera Style" adds nothing next to "Cinematography and
+  // Camera Style". Prefer the longer phrasing — replace a kept substring when
+  // a superstring arrives, skip candidates already covered.
+  const kept = [];
+  for (const candidate of candidates) {
+    const lower = candidate.toLowerCase();
+    const coveredBy = kept.findIndex((existing) => existing.toLowerCase().includes(lower));
+    if (coveredBy !== -1) continue;
+    const covers = kept.findIndex((existing) => lower.includes(existing.toLowerCase()));
+    if (covers !== -1) {
+      kept[covers] = candidate;
+      continue;
+    }
+    kept.push(candidate);
+  }
+  return kept.slice(0, limit);
 }
 
 function firstNonEmpty(...values) {
@@ -751,13 +782,17 @@ function inferDisciplineLens(courseName, concepts = []) {
   }
   if (hasDataScienceLabEvidence(text)) {
     return {
-      domain: /\b(machine learning|predictive model|classification|regression|model evaluation)\b/.test(text)
-        ? 'applied machine learning lab'
-        : 'data science analytics lab',
+      domain:
+        /\b(machine learning|predictive model|classification|regression|model evaluation)\b/.test(text) &&
+        !/\b(analytics|data analysis|statistical analysis|statistics)\b/.test(text)
+          ? 'applied machine learning lab'
+          : 'data science analytics lab',
       evidenceNoun: 'validation and model-performance evidence',
-      decisionNoun: /\b(machine learning|predictive model|classification|regression|model evaluation)\b/.test(text)
-        ? 'modeling decision'
-        : 'analytic decision',
+      decisionNoun:
+        /\b(machine learning|predictive model|classification|regression|model evaluation)\b/.test(text) &&
+        !/\b(analytics|data analysis|statistical analysis|statistics)\b/.test(text)
+          ? 'modeling decision'
+          : 'analytic decision',
       learnerRole: 'data analyst',
       exampleNoun: 'dataset and notebook scenario',
     };
@@ -1126,6 +1161,11 @@ function normalizeBlueprintEnrichment({
       6,
     ),
     ...(provided.quality && typeof provided.quality === 'object' ? { quality: provided.quality } : {}),
+    // Per-lesson content payloads (v0.9.1 subject-matter enrichment): pass
+    // through untouched; lesson normalization attaches them per lesson.
+    ...(provided.lessonContent && typeof provided.lessonContent === 'object'
+      ? { lessonContent: provided.lessonContent }
+      : {}),
   };
 }
 
@@ -3841,7 +3881,7 @@ function buildFeedbackCycle({ title, concepts, artifact, evidencePlan }) {
   const artifactName = stripTerminalPunctuation(artifact);
   const sourceCue = evidencePlan?.sourceCue || `${stripLessonPrefix(title)} course materials`;
   return {
-    formativeEvidence: `Collect one annotated ${artifactName} line or checkpoint response showing how ${concept} evidence from ${sourceCue} supports the decision.`,
+    formativeEvidence: `Collect one annotated ${artifactName} line or checkpoint response showing how ${concept} evidence from ${stripTerminalPunctuation(sourceCue)} supports the decision.`,
     feedbackMethod: `Give criterion-level feedback that names the strongest evidence move, the weakest reasoning link, and one revision priority for ${artifactName}.`,
     studentRevisionAction: `Students revise ${artifactName} by replacing a general ${concept} claim with evidence-backed ${concept} reasoning, one limitation, and one next decision.`,
     nextUse: `Carry the revised ${concept} evidence move into the next course artifact, discussion, or synthesis task.`,
@@ -9354,11 +9394,16 @@ function compactEnrichmentLanguage(enrichment = {}) {
   const signatureTerms = unique(enrichment.signatureTerms || [], 10);
   const styleNotes = unique(enrichment.styleNotes || [], 3);
   const teachingMoves = normalizeEnrichmentTeachingMoves(enrichment.teachingMoves);
+  const hasLessonContent =
+    enrichment.lessonContent &&
+    typeof enrichment.lessonContent === 'object' &&
+    Object.keys(enrichment.lessonContent).length > 0;
   if (
     signatureTerms.length === 0 &&
     Object.keys(lens).length === 0 &&
     styleNotes.length === 0 &&
-    Object.keys(teachingMoves).length === 0
+    Object.keys(teachingMoves).length === 0 &&
+    !hasLessonContent
   ) {
     return null;
   }
@@ -9374,6 +9419,11 @@ function compactEnrichmentLanguage(enrichment = {}) {
     },
     teachingMoves,
     styleNotes,
+    // Per-lesson content payloads (v0.9.1 subject-matter enrichment) pass
+    // through untouched; lesson normalization attaches them per lesson.
+    ...(enrichment.lessonContent && typeof enrichment.lessonContent === 'object'
+      ? { lessonContent: enrichment.lessonContent }
+      : {}),
   };
 }
 
@@ -9846,8 +9896,14 @@ function normalizeLessonsForCompiler(blueprint = {}, context = {}) {
   return routineReadyLessons.map((lesson) => {
     const modalityDecode =
       lesson.modalityDecode || buildLessonModalityDecode(context.courseModalityProfile || {}, lesson);
+    const contentEnrichment =
+      lesson.enrichment ||
+      context.lessonContentEnrichment?.[`lesson-${(lesson.lessonIndex ?? 0) + 1}`] ||
+      context.lessonContentEnrichment?.[lesson.id] ||
+      null;
     const lessonWithCompilerKnobs = {
       ...lesson,
+      ...(contentEnrichment ? { enrichment: contentEnrichment } : {}),
       learnerContextCue:
         lesson.learnerContextCue || buildLessonLearnerContextCue(context.learnerContextProfile || {}, lesson),
       modalityCue: lesson.modalityCue || buildLessonModalityCue(context.courseModalityProfile || {}, lesson),
@@ -9935,6 +9991,7 @@ function deriveBlueprintForCompiler(blueprint = {}, options = {}) {
     });
 
   let lessons = normalizeLessonsForCompiler(blueprint, {
+    lessonContentEnrichment: options.enrichment?.lessonContent || enrichment.lessonContent || null,
     courseModalityProfile,
     learnerContextProfile,
     courseThroughlineContext,
@@ -10317,6 +10374,7 @@ const LESSON_STORAGE_KEYS = new Set([
   'id',
   'lessonIndex',
   'lessonNumber',
+  'enrichment',
   'title',
   'outcomes',
   'keyConcepts',
@@ -10424,6 +10482,7 @@ export function compactBlueprintForStorage(blueprint = {}) {
     learnerContextProfile: clonePlain(blueprint.learnerContextProfile || null),
     courseModalityProfile: clonePlain(blueprint.courseModalityProfile || null),
     enrichment: clonePlain(blueprint.enrichment || null),
+    localization: clonePlain(blueprint.localization || null),
     qualitySignals: clonePlain(blueprint.qualitySignals || null),
     policies: clonePlain(blueprint.policies || null),
     designRules: clonePlain(blueprint.designRules || null),
@@ -11857,12 +11916,25 @@ export function buildCourseBlueprint(courseMap, options = {}) {
   });
   const assessments = buildAssessmentAnchors(baseLessons);
   const sourceRiskRegister = buildSourceRiskRegister({ lessons: baseLessons, assessments });
+  const localization =
+    options.localization && typeof options.localization === 'object'
+      ? Object.fromEntries(
+          Object.entries(options.localization).filter(([, value]) => typeof value === 'string' && value.trim()),
+        )
+      : null;
+  const lessonContentEnrichment =
+    options.enrichment?.lessonContent && typeof options.enrichment.lessonContent === 'object'
+      ? options.enrichment.lessonContent
+      : null;
   let lessons = baseLessons.map((lesson) => {
     const sourceRiskRow = sourceRiskRegister.lessonRows.find((row) => row.lessonNumber === lesson.lessonNumber) || null;
     const assessment =
       assessments.find((item) => (item.lessonNumbers || []).includes(lesson.lessonNumber)) || assessments[0] || {};
+    const contentEnrichment =
+      lessonContentEnrichment?.[lesson.id] || lessonContentEnrichment?.[`lesson-${lesson.lessonNumber}`] || null;
     return {
       ...lesson,
+      ...(contentEnrichment ? { enrichment: contentEnrichment } : {}),
       sourceRisk: sourceRiskRow,
       compilerDecision: buildLessonCompilerDecision({ lesson, sourceRiskRow, assessment }),
     };
@@ -11945,7 +12017,7 @@ export function buildCourseBlueprint(courseMap, options = {}) {
     version: 1,
     source: 'deterministic-course-map',
     courseName,
-    semester: publishableCourseTerm(courseMap?.semester),
+    semester: publishableCourseTerm(options.localization?.termLabel || courseMap?.semester),
     totalLessons: lessons.length,
     lessons,
     assessments,
@@ -11972,6 +12044,7 @@ export function buildCourseBlueprint(courseMap, options = {}) {
     packageCoherenceMatrix,
     blueprintReviewSurface,
     qualitySignals: buildBlueprintQualitySignals(lessons),
+    ...(localization && Object.keys(localization).length > 0 ? { localization } : {}),
     policies: {
       lateWork:
         'Submit work by the listed due week. If you need an extension, contact the instructor before the deadline with a concrete completion plan.',
@@ -12439,14 +12512,19 @@ function compileSyllabus(blueprint) {
       courseTitle: blueprint.courseName,
       semester: blueprint.semester,
       credits: '3 credits',
-      meetingPattern: 'Weekly course sessions with applied practice and feedback checkpoints',
-      location: 'Official course site and assigned class meeting space',
+      meetingPattern:
+        blueprint.localization?.meetingPattern ||
+        'Weekly course sessions with applied practice and feedback checkpoints',
+      location: blueprint.localization?.classLocation || 'Official course site and assigned class meeting space',
       deliveryMode: blueprint.courseModalityProfile?.sessionPattern || 'Course format listed by the program',
       prerequisites: 'No formal prerequisites listed; students should review program requirements.',
-      instructor: 'Course instructor',
-      instructorEmail: 'Use the contact method listed in the course site',
-      officeHours: 'Office hours are available through the course communication channel',
-      officeLocation: 'Office hours location or meeting link is available in the course site',
+      instructor: blueprint.localization?.instructorName || 'Course instructor',
+      instructorEmail: blueprint.localization?.instructorEmail || 'Use the contact method listed in the course site',
+      officeHours:
+        blueprint.localization?.officeHours || 'Office hours are available through the course communication channel',
+      officeLocation:
+        blueprint.localization?.officeLocation ||
+        'Office hours location or meeting link is available in the course site',
       instructorBio:
         'The instructor supports rigorous, applied learning and expects students to connect course ideas to professional decisions. Office hours and course messages are available for clarification, planning, and feedback on work in progress.',
       courseDescription: `In ${blueprint.courseName}, students work through ${blueprint.totalLessons} connected lessons that build from core concepts to applied decisions. ${blueprint.courseArc.throughline} The course emphasizes evidence use, structured practice, and feedback-informed improvement across the major assessments.`,
@@ -12829,13 +12907,19 @@ function compileAssignments(blueprint) {
           proficient: `${assessmentTitle} includes accurate evidence and understandable analysis tied to ${assessment.relatedLessons[0]} with minor gaps in depth or polish.`,
           revisionNeeded: `${assessmentTitle} needs stronger evidence for ${assessment.relatedLessons[0]}, clearer reasoning, or a closer connection to the listed criteria.`,
         },
-        overview: `${assessmentArtifact} is a ${assessment.roleLabel || 'course assessment'} worth ${assessment.weight}; it asks students to turn ${assessment.relatedLessons[0]} concepts into a concrete ${submissionProfile.assignmentType.toLowerCase()}. The task is designed to show how students use evidence for ${assessmentTitle}, make decisions, and prepare for later work. Genre-specific quality focus: ${submissionProfile.qualityFocus}.`,
+        overview: lesson.enrichment?.assignmentCore?.taskDescription
+          ? `${lesson.enrichment.assignmentCore.taskDescription} ${assessmentArtifact} is worth ${assessment.weight}. Genre-specific quality focus: ${submissionProfile.qualityFocus}.`
+          : `${assessmentArtifact} is a ${assessment.roleLabel || 'course assessment'} worth ${assessment.weight}; it asks students to turn ${assessment.relatedLessons[0]} concepts into a concrete ${submissionProfile.assignmentType.toLowerCase()}. The task is designed to show how students use evidence for ${assessmentTitle}, make decisions, and prepare for later work. Genre-specific quality focus: ${submissionProfile.qualityFocus}.`,
+        ...(lesson.enrichment?.assignmentCore ? { enrichmentSource: 'lesson-content-enrichment' } : {}),
         gradingWeightProvenance: compactWeightProvenance(assessment.weightProvenance),
         objectives: assessment.objectives,
         objectiveEvidenceChecklist: objectiveEvidenceChecklist(lesson.objectiveEvidencePlan),
         instructions: [
           lesson.prerequisitePlan?.studentReadinessCheck ||
             `Confirm you can connect prerequisite knowledge to ${assessmentTitle} before drafting.`,
+          ...(lesson.enrichment?.assignmentCore?.parameters?.length > 0
+            ? [`Work within these parameters: ${lesson.enrichment.assignmentCore.parameters.join('; ')}.`]
+            : []),
           `Review the materials for ${assessment.relatedLessons.join(', ')} and identify the central problem or decision.`,
           `Select specific ${lens.evidenceNoun} from course readings, activities, or discussion notes for ${assessmentTitle}.`,
           lesson.sourceUsePlan?.studentAttributionMove ||
@@ -13268,6 +13352,22 @@ function generalTermGuide(term, lesson = {}, lens = {}, termIndex = 0) {
   return { term: cleanTerm, ...patterns[termIndex % patterns.length] };
 }
 
+/**
+ * v0.9.1 subject-matter enrichment: model-written key terms (real
+ * disciplinary definitions with examples and misconceptions) replace the
+ * deterministic role-based term guides when present; fallback otherwise.
+ */
+function enrichedKeyTermsForLesson(lesson, { fallback }) {
+  const enriched = lesson?.enrichment?.keyTerms;
+  if (!Array.isArray(enriched) || enriched.length === 0) return fallback();
+  return enriched.map((term) => ({
+    term: term.term,
+    definition: term.definition,
+    example: term.example || '',
+    enrichmentSource: 'lesson-content-enrichment',
+  }));
+}
+
 function compileStudyGuides(blueprint) {
   const lens = blueprintLens(blueprint);
   return {
@@ -13280,7 +13380,19 @@ function compileStudyGuides(blueprint) {
       const keyTerms = studyGuideTermsForLesson(lesson);
       const dataScienceEvidenceCue =
         'validation metrics, model-performance evidence, data-quality checks, threshold tradeoffs, and fairness or limitation evidence';
-      const misconceptionMap = Array.isArray(lesson.misconceptionMap) ? lesson.misconceptionMap : [];
+      const enrichedMisconceptions = (lesson.enrichment?.keyTerms || [])
+        .filter((term) => term.misconception)
+        .slice(0, 3)
+        .map((term) => ({
+          misconception: term.misconception,
+          correction: `${term.term}: ${term.definition}`,
+        }));
+      const misconceptionMap =
+        enrichedMisconceptions.length > 0
+          ? enrichedMisconceptions
+          : Array.isArray(lesson.misconceptionMap)
+            ? lesson.misconceptionMap
+            : [];
       const assessment =
         blueprint.assessments.find((item) => (item.lessonNumbers || []).includes(lesson.lessonNumber)) ||
         blueprint.assessments[index] ||
@@ -13304,9 +13416,12 @@ function compileStudyGuides(blueprint) {
         anchorExampleSet: assessment.anchorExampleSet || null,
         learningTransferPlan: lesson.learningTransferPlan,
         teachingIntent: lesson.teachingIntent,
-        keyTerms: isDataScience
-          ? keyTerms.map((term) => dataScienceTermGuide(term, lesson))
-          : keyTerms.map((term, termIndex) => generalTermGuide(term, lesson, lens, termIndex)),
+        keyTerms: enrichedKeyTermsForLesson(lesson, {
+          fallback: () =>
+            isDataScience
+              ? keyTerms.map((term) => dataScienceTermGuide(term, lesson))
+              : keyTerms.map((term, termIndex) => generalTermGuide(term, lesson, lens, termIndex)),
+        }),
         conceptConnections: [
           `${lesson.title} connects to the assessment artifact: ${lesson.studentArtifact}.`,
           lesson.prerequisitePlan?.prerequisiteEvidence ||
@@ -13578,7 +13693,9 @@ function labelQuizOption(letter, text) {
 
 function quizCorrectExplanation({ answer, concept, artifact, objective, lesson, index }) {
   const lessonNumber = Number(lesson?.lessonNumber || 1);
-  const compactObjective = conciseClause(objective, 'the lesson objective', 70);
+  const fullObjective = stripTerminalPunctuation(cleanText(objective, 'the lesson objective'));
+  const clipped = conciseClause(objective, 'the lesson objective', 90);
+  const compactObjective = clipped.length < fullObjective.length ? `${clipped}…` : clipped;
   // Six variants, each anchored to the artifact or quoted objective: with six
   // questions per lesson no two same-lesson questions share a variant, and
   // cross-lesson collisions differ through the artifact reference.
@@ -13674,9 +13791,9 @@ function buildShortAnswerQuestion({ lesson, index, bloom, objective, concept, le
       intendedUse: `Formative written check after ${lesson.title}; use responses to identify review needs before ${artifact}.`,
       question: `In 2-3 sentences, explain how ${concept} should shape ${artifact} and name one ${lens.evidenceNoun} source from ${sourceCue} students should use.`,
       answer: `${concept} should guide the evidence students select and the decision they justify in ${artifact}. A strong ${lesson.title} answer names a specific detail from ${sourceCue}, explains why it fits, and states how the evidence changes the next step.`,
-      sampleAnswer: `For ${lesson.title}, I would use ${concept} to choose evidence from ${sourceCue} that directly supports ${artifact}. I would cite the exact source detail that shows what ${concept} changes about ${artifact} and the ${lens.decisionNoun}.`,
+      sampleAnswer: `For this lesson, I would use ${concept} to choose evidence from ${sourceCue} that directly supports ${artifact}. I would cite the exact source detail that shows what that evidence changes about ${artifact} and the ${lens.decisionNoun}.`,
       explanation: `A complete response links ${concept}, ${artifact}, and a concrete ${lens.evidenceNoun} source instead of only defining the term.`,
-      scoringGuidance: `Full credit for ${lesson.title} requires ${concept}, one concrete evidence source, and a decision implication. Partial credit is appropriate when the answer names ${concept} but omits evidence or the implication. Flag answers that summarize ${lesson.title} without applying it.`,
+      scoringGuidance: `Full credit requires accurate use of ${concept}, one concrete evidence source, and a decision implication. Partial credit is appropriate when the answer names ${concept} but omits the evidence or the implication. Flag answers that summarize ${stripLessonPrefix(lesson.title)} without applying it.`,
       tags: quizTags(lesson, 'short_answer', bloom, 'formative check'),
     },
     plan,
@@ -13790,7 +13907,47 @@ export function buildQuizAtomsForLesson(lesson, blueprint, options = {}) {
       plan: quizPlan[5],
     }),
   ];
-  return atoms.slice(0, targetCount).map((atom, index) => ({ ...atom, id: quizQuestionId(lesson, index) }));
+  const framed = atoms.slice(0, targetCount).map((atom, index) => ({ ...atom, id: quizQuestionId(lesson, index) }));
+  return overlayEnrichedQuizItems(framed, lesson);
+}
+
+/**
+ * v0.9.1 subject-matter enrichment: when the lesson carries model-written
+ * quiz content, overlay stems/options/answers onto the compiler's frames.
+ * The frame keeps everything structural — ids, points, minutes, tags, plan
+ * metadata, intended use, and the deterministic answer-letter rotation — so
+ * trust records and gates treat enriched items like any compiled item.
+ */
+function overlayEnrichedQuizItems(framedAtoms, lesson) {
+  const enrichedItems = lesson?.enrichment?.quizItems;
+  if (!Array.isArray(enrichedItems) || enrichedItems.length === 0) return framedAtoms;
+  const byIndex = new Map(enrichedItems.map((item) => [Number(item.index), item]));
+  return framedAtoms.map((atom, index) => {
+    const enriched = byIndex.get(index);
+    if (!enriched || cleanText(enriched.question).length === 0) return atom;
+    const next = { ...atom, question: enriched.question, enrichmentSource: 'lesson-content-enrichment' };
+    if (atom.type === 'multiple_choice' && Array.isArray(enriched.options) && enriched.options.length === 4) {
+      const keyText = enriched.options[enriched.answerIndex] || enriched.options[0];
+      const distractors = enriched.options.filter((_, optionIndex) => optionIndex !== enriched.answerIndex);
+      // Preserve the compiler's deterministic key rotation.
+      const targetLetter = atom.answer;
+      const targetSlot = QUIZ_ANSWER_LETTERS.indexOf(targetLetter);
+      const ordered = [...distractors];
+      ordered.splice(targetSlot < 0 ? 0 : targetSlot, 0, keyText);
+      next.options = ordered.map((text, optionIndex) => labelQuizOption(QUIZ_ANSWER_LETTERS[optionIndex], text));
+      next.answer = targetLetter;
+      if (enriched.distractorRationales?.length > 0) {
+        next.distractorRationale = enriched.distractorRationales.join(' ');
+      }
+      if (enriched.explanation) next.explanation = `${next.answer}. ${enriched.explanation}`;
+    } else if (atom.type !== 'multiple_choice') {
+      if (enriched.answer) next.answer = enriched.answer;
+      if (enriched.answer) next.sampleAnswer = enriched.answer;
+      if (enriched.explanation) next.explanation = enriched.explanation;
+      if (enriched.scoringGuidance) next.scoringGuidance = enriched.scoringGuidance;
+    }
+    return next;
+  });
 }
 
 function compileQuizBank(blueprint, config = {}) {
@@ -14649,6 +14806,67 @@ function buildDiscussionGuidelinesForFormat(lesson, protocol) {
   return `For ${lessonFocus}, come prepared with one brief ${concept} evidence note before class, speak or post at least twice during the ${format}, and respond directly to one peer by building on or challenging their evidence for ${lesson.studentArtifact}. Use this ${protocol.artifactGenre} protocol for ${lessonFocus}: ${protocol.participationPattern}. Reference a course concept, case detail, or reading when you contribute, and connect at least one comment to ${lesson.studentArtifact}. If you need an alternative participation mode, use the instructor-approved written or chat response option during the same activity window for ${lesson.title}. Participation is judged by evidence use, reasoning, peer response quality, ${protocol.reviewFocus}, and whether you name a limitation or revision move tied to ${concept}.`;
 }
 
+/**
+ * v0.9.1 subject-matter enrichment: replace the scaffold bullets of the
+ * teaching slides (keyTerm, content, example) with model-written assertion
+ * titles and evidence-bearing bullets. Deck shape, timing, objectives, and
+ * activity slides stay compiler-owned.
+ */
+function overlayEnrichedSlideContent(slides, lesson) {
+  const enriched = lesson?.enrichment?.slideContent;
+  if (!Array.isArray(enriched) || enriched.length === 0) return;
+  const targets = slides.filter((slide) => ['keyTerm', 'content', 'example'].includes(slide.type));
+  targets.forEach((slide, index) => {
+    const content = enriched[index];
+    if (!content || !content.title || !Array.isArray(content.bullets) || content.bullets.length === 0) return;
+    slide.title = content.title;
+    slide.bullets = content.bullets.slice(0, 4);
+    if (content.notes) slide.notes = content.notes;
+    slide.enrichmentSource = 'lesson-content-enrichment';
+  });
+}
+
+/**
+ * v0.9.1 Phase 3: deck length follows content instead of a fixed 12-slide
+ * template. Lessons with extra enriched teaching content gain up to two
+ * content slides; light lessons (a single concept, no enrichment) drop the
+ * second generic content slide. Range stays a teachable 11-14.
+ */
+function adjustDeckLengthForContent(slides, lesson) {
+  const enriched = Array.isArray(lesson?.enrichment?.slideContent) ? lesson.enrichment.slideContent : [];
+  const teachingSlots = slides.filter((slide) => ['keyTerm', 'content', 'example'].includes(slide.type)).length;
+  // Extra enriched assertions beyond the standard teaching slots become
+  // additional content slides placed before the activity slide.
+  const extras = enriched.slice(teachingSlots, teachingSlots + 2);
+  if (extras.length > 0) {
+    const activityIndex = slides.findIndex((slide) => slide.type === 'activity');
+    const insertAt = activityIndex > 0 ? activityIndex : slides.length - 2;
+    extras.forEach((content, offset) => {
+      if (!content?.title || !Array.isArray(content.bullets) || content.bullets.length === 0) return;
+      slides.splice(insertAt + offset, 0, {
+        type: 'content',
+        title: content.title,
+        bullets: content.bullets.slice(0, 4),
+        ...(content.notes ? { notes: content.notes } : {}),
+        minutes: 5,
+        bloom: 'Understand',
+        objective: slides[insertAt]?.objective || null,
+        activity: null,
+        enrichmentSource: 'lesson-content-enrichment',
+      });
+    });
+    return;
+  }
+  // Light lesson: one concept, no enrichment — drop the second generic
+  // content slide instead of padding the deck.
+  if ((lesson?.keyConcepts || []).length < 2) {
+    const contentIndexes = slides
+      .map((slide, index) => (slide.type === 'content' && !slide.enrichmentSource ? index : -1))
+      .filter((index) => index >= 0);
+    if (contentIndexes.length > 1) slides.splice(contentIndexes[1], 1);
+  }
+}
+
 function compileDiscussions(blueprint) {
   const lens = blueprintLens(blueprint);
   const preference = featurePreference(blueprint, 'discussions');
@@ -14691,8 +14909,16 @@ function compileDiscussions(blueprint) {
         artifactGenre: lesson.artifactGenre,
         prerequisitePlan: lesson.prerequisitePlan,
         anchorExampleSet: assessment.anchorExampleSet || null,
-        context: `${lesson.title} asks students to work with ${phrase.context}. The discussion should test how students ${phrase.evidenceMove} and whether they can ${stripTerminalPunctuation(phrase.decisionMove).toLowerCase()} before they finalize ${lesson.studentArtifact}.`,
-        prompt: buildDiscussionPrompt(lesson, phrase, lens),
+        context: lesson.enrichment?.discussionPrompt?.tension
+          ? `${lesson.enrichment.discussionPrompt.tension} ${lesson.title} asks students to take and defend a position with course evidence.`
+          : `${lesson.title} asks students to work with ${phrase.context}. The discussion should test how students ${phrase.evidenceMove} and whether they can ${stripTerminalPunctuation(phrase.decisionMove).toLowerCase()} before they finalize ${lesson.studentArtifact}.`,
+        prompt: lesson.enrichment?.discussionPrompt?.prompt || buildDiscussionPrompt(lesson, phrase, lens),
+        ...(lesson.enrichment?.discussionPrompt?.positions?.length > 0
+          ? {
+              positionMap: lesson.enrichment.discussionPrompt.positions,
+              enrichmentSource: 'lesson-content-enrichment',
+            }
+          : {}),
         evidenceRequirement: `Use at least one ${lens.evidenceNoun} source from ${lesson.title} and one concrete detail from ${lesson.studentArtifact} or its success criteria.`,
         sourceArtifacts: buildDiscussionArtifactSet(lesson, phrase),
         followUpProbes: buildDiscussionFollowUps(lesson, phrase),
@@ -14903,6 +15129,8 @@ function buildSlideDeckIrForLesson(blueprint, lesson, index) {
       activity: null,
     },
   ];
+  overlayEnrichedSlideContent(slides, lesson);
+  adjustDeckLengthForContent(slides, lesson);
   const slideMinutes = slides.reduce((sum, slide) => sum + Number(slide.minutes || 0), 0);
   const slideTimingFit = {
     slideMinutes,
@@ -14979,24 +15207,32 @@ function compileSlideDecks(blueprint) {
       const lesson = blueprint.lessons.find((item) => item.id === deck.id) || blueprint.lessons[0];
       const slides = deck.slides.map((slide, index) => {
         const visual = slideVisual(lesson, slide);
-        const displayBullets = displayBulletsForSlide(slide, lesson);
+        // Enriched teaching slides keep their model-written assertion bullets
+        // and explanatory notes verbatim; the display rewriter only shapes
+        // compiler-template bullets.
+        const isEnriched = slide.enrichmentSource === 'lesson-content-enrichment';
+        const displayBullets = isEnriched ? slide.bullets : displayBulletsForSlide(slide, lesson);
         return {
           title: slide.title,
           type: slide.type,
           bullets: displayBullets,
-          notes: slideNotes({
-            lesson,
-            title: slide.title,
-            type: slide.type,
-            bullets: slide.bullets,
-            nextCue: deck.slides[index + 1]?.title,
-            lens,
-          }),
+          notes:
+            isEnriched && slide.notes
+              ? slide.notes
+              : slideNotes({
+                  lesson,
+                  title: slide.title,
+                  type: slide.type,
+                  bullets: slide.bullets,
+                  nextCue: deck.slides[index + 1]?.title,
+                  lens,
+                }),
           visual,
           activityType: slide.activity,
           timer: `${slide.minutes} min`,
           bloomsLevel: slide.bloom,
           objectiveLink: slide.objective,
+          ...(isEnriched ? { enrichmentSource: slide.enrichmentSource } : {}),
         };
       });
       return {
@@ -15180,8 +15416,8 @@ function buildLessonPlanOutline(blueprint, lesson) {
       time: formatDuration(guided),
       activity: 'Guided analysis',
       type: sentenceCase(modality.mode.replace(/-/g, ' ')),
-      description: `Students ${modality.signaturePractice} while identifying which evidence, assumptions, and constraints matter most for ${stripLessonPrefix(lesson.title)}.`,
-      instructorNotes: `${modality.instructorMove} for ${artifact} evidence about ${concept}. Watch for this misconception: ${misconception?.misconception || `students may use ${concept} without evidence`}.`,
+      description: `${sentenceCase(stripTerminalPunctuation(modality.signaturePractice))}. Students identify which evidence, assumptions, and constraints matter most for ${stripLessonPrefix(lesson.title)}.`,
+      instructorNotes: `${stripTerminalPunctuation(modality.instructorMove)}; press for ${artifact} evidence about ${concept}. Watch for this misconception: ${misconception?.misconception || `students may use ${concept} without evidence`}.`,
       instructorRole: `Coach the ${modality.mode} evidence routine and press for specificity in ${artifact}.`,
       grouping: 'Pairs with instructor check-ins',
       bloomsLevel: 'Analyze',
@@ -15211,7 +15447,7 @@ function buildLessonPlanOutline(blueprint, lesson) {
       activity: 'Debrief and exit ticket',
       type: 'Closure',
       description: `Students share one revision they made to ${artifact}, one question they still have about ${concept}, and one way today’s ${modality.mode} work prepares them for the next artifact.`,
-      instructorNotes: `${modality.feedbackRoutine} for ${artifact} evidence about ${concept}. Use exit-ticket responses to decide whether the next lesson should review ${concept} before extending it.`,
+      instructorNotes: `${stripTerminalPunctuation(modality.feedbackRoutine)}; ground the debrief in ${artifact} evidence about ${concept}. Use exit-ticket responses to decide whether the next lesson should review ${concept} before extending it.`,
       instructorRole: `Synthesize patterns from ${stripLessonPrefix(lesson.title)} and set up the next lesson.`,
       grouping: 'Whole class plus individual exit ticket',
       bloomsLevel: 'Evaluate',

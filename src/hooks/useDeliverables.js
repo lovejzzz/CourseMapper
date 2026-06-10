@@ -1044,6 +1044,76 @@ export default function useDeliverables({
             `✓ Blueprint enrichment applied (${enrichment.signatureTerms.length} terms, ${enrichment.quality?.sourceGroundingSignalCount || 0} source signal${enrichment.quality?.sourceGroundingSignalCount === 1 ? '' : 's'})`,
             'done',
           );
+
+          // v0.9.1 Phase 1: per-lesson subject-matter content (quiz items +
+          // key terms), chunked two lessons per call, individually validated.
+          if (generationOptions.lessonContentEnrichment !== false) {
+            const { buildLessonContentEnrichmentPrompt, parseLessonContentEnrichmentResponse } =
+              await import('../lib/blueprintEnrichmentPass');
+            const lessonIndices = Array.isArray(scopeIndices)
+              ? scopeIndices
+              : (blueprintCourseMap.lessons || []).map((_, lessonIdx) => lessonIdx);
+            const lessonContent = {};
+            const chunkSize = 2;
+            for (let start = 0; start < lessonIndices.length; start += chunkSize) {
+              if (!hasProviderCallBudget()) {
+                appendLog('⚠ Content enrichment stopped early: call cap', 'warn');
+                break;
+              }
+              const chunk = lessonIndices.slice(start, start + chunkSize);
+              const contentPrompt = buildLessonContentEnrichmentPrompt(blueprintCourseMap, chunk, {
+                questionsPerLesson: getGenerationConfig('quizBank')?.questionsPerLesson,
+              });
+              recordGenerationApiCallEvent({
+                type: 'blueprintEnrichmentCall',
+                label: 'Enrich lesson content',
+                detail: `Lessons ${chunk.map((lessonIdx) => lessonIdx + 1).join(', ')} — ${contentPrompt.approxInputTokens} input tokens estimated`,
+                featureId: 'blueprintEnrichment',
+              });
+              try {
+                const contentResult = await streamProvider(
+                  provider,
+                  apiKey,
+                  modelId,
+                  contentPrompt.systemPrompt,
+                  contentPrompt.userPrompt,
+                  {
+                    maxOutputTokens: Math.max(enrichmentMaxOutputTokens, 2400),
+                    modelCapabilities,
+                    generationPlan,
+                    featureId: 'blueprintEnrichment',
+                    task: 'blueprintEnrichment',
+                    allowProviderFallback: maxProviderCalls === null || getRemainingProviderCalls() > 0,
+                    onApiCallEvent: recordGenerationApiCallEvent,
+                    signal: controller.signal,
+                  },
+                );
+                const parsedContent = parseLessonContentEnrichmentResponse(contentResult?.fullText || '', {
+                  prompt: contentPrompt,
+                });
+                if (parsedContent) {
+                  Object.assign(lessonContent, parsedContent.lessons);
+                  if (parsedContent.issues.length > 0) {
+                    appendLog(
+                      `Content enrichment dropped ${parsedContent.issues.length} item(s) that failed item-writing or grounding checks`,
+                      'progress',
+                    );
+                  }
+                }
+              } catch (chunkErr) {
+                if (chunkErr?.name === 'AbortError') throw chunkErr;
+                appendLog(`⚠ Content enrichment chunk failed: ${chunkErr.message || 'model error'}`, 'warn');
+              }
+            }
+            const enrichedLessonCount = Object.keys(lessonContent).length;
+            if (enrichedLessonCount > 0) {
+              enrichment.lessonContent = lessonContent;
+              appendLog(
+                `✓ Subject-matter content enriched for ${enrichedLessonCount} lesson${enrichedLessonCount === 1 ? '' : 's'} (quiz items + key terms)`,
+                'done',
+              );
+            }
+          }
           return enrichment;
         } catch (err) {
           if (err?.name === 'AbortError') {
@@ -1099,6 +1169,7 @@ export default function useDeliverables({
           buildCourseBlueprint(blueprintCourseMap, {
             scopeIndices,
             enrichment: blueprintEnrichment,
+            localization: (await import('../lib/professorProfile')).getProfile(),
             compilerPath: {
               mode: blueprintEnrichment ? 'enriched' : 'deterministic',
               reason: blueprintEnrichment

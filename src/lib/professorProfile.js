@@ -48,6 +48,18 @@ const DEFAULTS = {
   assistantFocus: '',
 };
 
+// v0.9.1 localization facts — the dozen things only the instructor knows.
+export const LOCALIZATION_FIELDS = [
+  'instructorName',
+  'instructorEmail',
+  'officeHours',
+  'officeLocation',
+  'meetingPattern',
+  'classLocation',
+  'termLabel',
+  'lmsName',
+];
+
 const COMPLETENESS_FIELDS = [
   'institution',
   'department',

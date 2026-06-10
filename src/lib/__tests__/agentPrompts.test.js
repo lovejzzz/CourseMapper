@@ -260,13 +260,15 @@ describe('buildAgentSystemPrompt', () => {
     expect(prompt).toContain('read_deliverable');
   });
 
-  it('prompt is compact (under 15000 chars for base case)', () => {
+  it('prompt is compact (under 15500 chars for base case)', () => {
     const prompt = buildAgentSystemPrompt(baseCourseMap, 'quizBank', baseDeliverables);
     // Includes few-shot examples, response style rules, tone rules, quality rules, schema + context,
     // plus the v0.9 TA persona: agency contract, grounding rules, critique pattern, and the
     // course-brief dynamic section. The static prefix sits behind a prompt-cache breakpoint,
     // so the added budget is paid once per session, not per call.
-    expect(prompt.length).toBeLessThan(15000);
+    // v0.9.1 adds the localization-interview rule; the static prefix remains
+    // behind a prompt-cache breakpoint, so growth is paid once per session.
+    expect(prompt.length).toBeLessThan(15500);
   });
 
   it('shows path example for slideDecks when that tab is active', () => {

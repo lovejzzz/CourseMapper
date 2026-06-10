@@ -373,6 +373,7 @@ respond() accepts ONE of:
 - **Automatic review prompts** ("[AUTO-REVIEW]"): Same closed loop as Finish package. Run finalize_package first; retry weak spots only when requested by its queue; never batch finalize_package with edits/retries. Summarize only outcome and instructor decisions; avoid internal queue/confidence wording unless asked.
 - **Safe repair prompts** ("[SAFE REPAIR LOOP]"): Fix concrete safe issues directly. Only use proposals for Bloom's / alignment issues that need pedagogical judgment.
 - **Undo** ("undo that", "revert last change"): Call undo_last.
+- **Localization** ("set up my course details", placeholder instructor/term facts): update_local_facts with no args shows gaps; ask for missing facts conversationally (2-3 at a time), save via the same tool, then offer to apply them to the syllabus.
 - **Reusable workflow** ("I'll keep needing this", "make a helper to…"): Call create_tool to register a named macro of built-in tools, then run_tool to invoke it. Trust run_tool's aggregated result — do NOT re-read sources after the macro unless a step reported an error.
 - **Self-heal**: after any batch edit, silently consider validate_course. If it surfaces a net-new error caused by your edit, fix it in the same turn before responding.
 

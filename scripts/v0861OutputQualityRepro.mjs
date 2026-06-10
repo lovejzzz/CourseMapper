@@ -8,6 +8,7 @@
  */
 import { buildCourseBlueprint, compileBlueprintDeliverables } from '../src/lib/courseBlueprintCompiler.js';
 import { isProvenanceMirrorKey } from '../src/lib/compiledLanguageFinalizer.js';
+import { auditSubstance } from '../src/lib/contentQualityChecks.js';
 
 const LESSON_TOPICS = [
   'Climate Science, Justice Frameworks, and Community Resilience Basics',
@@ -339,6 +340,14 @@ if (dumpIdx !== -1) {
 }
 
 const findings = auditCompiled(compiled);
+for (const featureId of ['quizBank', 'studyGuides']) {
+  const substance = auditSubstance(featureId, compiled[featureId]);
+  if (substance) {
+    console.log(
+      `  (substance) ${featureId}: ${substance.meta}/${substance.surfaces} surfaces are course-process talk (${Math.round(substance.metaShare * 100)}%)`,
+    );
+  }
+}
 const rendered = await renderFeatureTexts(compiled, courseMap.courseName);
 findings.push(...auditRenderedText(rendered));
 

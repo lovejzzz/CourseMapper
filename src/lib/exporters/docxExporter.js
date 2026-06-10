@@ -6,8 +6,19 @@ import { formatRequiredText, normalizeCourseRequirements } from './syllabusExpor
 // DOCX EXPORT
 // ════════════════════════════════════════════════════════════════
 
+import { getDocTheme } from './docTheme.js';
+
 export const FONT = 'Calibri';
+// Theme-aware accent: documents pick up the active doc theme at build time;
+// the constant remains the indigo default for callers that import it.
 export const ACCENT = '2B579A';
+function activeTheme() {
+  try {
+    return getDocTheme();
+  } catch {
+    return { accent: ACCENT, headingColor: '1F3864', metaColor: '7A869A', ruleColor: 'CCCCCC' };
+  }
+}
 export const BODY_SIZE = 22;
 export const H1_SIZE = 28;
 const H2_SIZE = 24;
@@ -31,9 +42,40 @@ function formatSourceArtifact(artifact) {
  * course name and page numbers. Used by both the direct exporter and the
  * bulk/ZIP exporter so every generated DOCX gets the same page furniture.
  */
-export function buildDocxTitleChildren(docx, courseName, label) {
-  const { Paragraph, TextRun, HeadingLevel, AlignmentType, BorderStyle } = docx;
-  return [
+export function buildDocxTitleChildren(docx, courseName, label, options = {}) {
+  const { Paragraph, TextRun, HeadingLevel, AlignmentType, BorderStyle, PageBreak } = docx;
+  const theme = activeTheme();
+  const children = [];
+  // Cover page for multi-lesson documents: course identity gets a designed
+  // first page instead of dropping straight into Lesson 1.
+  if (options.cover) {
+    children.push(
+      new Paragraph({ spacing: { before: 2400 }, children: [] }),
+      new Paragraph({
+        alignment: AlignmentType.CENTER,
+        spacing: { after: 200 },
+        children: [
+          new TextRun({ text: courseName || 'Course', bold: true, size: 56, font: FONT, color: theme.headingColor }),
+        ],
+      }),
+      new Paragraph({
+        alignment: AlignmentType.CENTER,
+        spacing: { after: 120 },
+        children: [new TextRun({ text: label, size: 32, font: FONT, color: theme.accent })],
+      }),
+      ...(options.coverMeta
+        ? [
+            new Paragraph({
+              alignment: AlignmentType.CENTER,
+              spacing: { after: 80 },
+              children: [new TextRun({ text: options.coverMeta, size: 22, font: FONT, color: theme.metaColor })],
+            }),
+          ]
+        : []),
+      new Paragraph({ children: [new PageBreak()] }),
+    );
+  }
+  children.push(
     new Paragraph({
       heading: HeadingLevel.TITLE,
       alignment: AlignmentType.CENTER,
@@ -44,17 +86,18 @@ export function buildDocxTitleChildren(docx, courseName, label) {
           bold: true,
           size: H1_SIZE,
           font: FONT,
-          color: ACCENT,
+          color: theme.accent,
         }),
       ],
     }),
     new Paragraph({
       alignment: AlignmentType.CENTER,
       spacing: { after: 300 },
-      border: { bottom: { style: BorderStyle.SINGLE, size: 6, color: 'CCCCCC', space: 8 } },
+      border: { bottom: { style: BorderStyle.SINGLE, size: 6, color: theme.ruleColor, space: 8 } },
       children: [],
     }),
-  ];
+  );
+  return children;
 }
 
 export function buildDocxDocument(docx, children, { courseName, label }) {

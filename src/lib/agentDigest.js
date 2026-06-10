@@ -8,7 +8,7 @@
  * follow-up prompts; nothing is ever auto-applied.
  */
 
-import { auditDeliverableContentQuality } from './contentQualityChecks';
+import { auditDeliverableContentQuality, auditSubstance } from './contentQualityChecks';
 import { buildCourseContentIndex, searchCourseContent } from './courseContentIndex';
 import { getArrayKey } from './syncDependencies';
 
@@ -20,6 +20,37 @@ function firstArrayKeyItems(featureId, entry) {
   const arrKey = getArrayKey(featureId, entry.data);
   const arr = arrKey ? entry.data[arrKey] : null;
   return Array.isArray(arr) ? arr : [];
+}
+
+// CCR D2.1/D3.1: assessments should test the discipline, not the course's
+// own process. Highest-priority observation because instructors judge
+// credibility on exactly these surfaces.
+function observeSubstance(deliverables, observations) {
+  for (const featureId of ['quizBank', 'studyGuides']) {
+    if (observations.length >= MAX_OBSERVATIONS) return;
+    const entry = deliverables?.[featureId];
+    if (entry?.status !== 'done') continue;
+    const result = auditSubstance(featureId, entry.data);
+    if (!result || result.metaShare < 0.5) continue;
+    const surfaceLabel = featureId === 'quizBank' ? 'quiz questions and options' : 'key terms';
+    observations.push({
+      id: `substance-${featureId}`,
+      observation: `${Math.round(result.metaShare * 100)}% of ${surfaceLabel} talk about the course process ("evidence moves", weekly artifacts) rather than the subject itself.`,
+      whyItMatters:
+        'Students can answer these without knowing the discipline — the gradebook would measure compliance, not learning.',
+      anchor: { featureId, itemIndex: 0 },
+      prompts: [
+        {
+          label: 'Show me',
+          prompt: `Quote three ${surfaceLabel} from ${featureId} that test course process instead of subject knowledge, and contrast each with what a discipline-focused version would ask.`,
+        },
+        {
+          label: 'Rewrite options',
+          prompt: `Propose discipline-focused replacements for the most process-heavy ${surfaceLabel} in ${featureId}, as reviewable options.`,
+        },
+      ],
+    });
+  }
 }
 
 function observeContentQuality(deliverables, observations) {
@@ -123,6 +154,7 @@ function observeObjectiveCoverage(courseMap, deliverables, observations) {
 export function buildPostGenerationDigest({ courseMap, deliverables } = {}) {
   const observations = [];
   try {
+    observeSubstance(deliverables, observations);
     observeContentQuality(deliverables, observations);
     observeBloomsDistribution(deliverables, observations);
     observeObjectiveCoverage(courseMap, deliverables, observations);
