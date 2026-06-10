@@ -3,6 +3,48 @@ import Header from '../components/Header';
 
 const releases = [
   {
+    version: '0.10.1',
+    date: 'June 10, 2026',
+    title: 'CurriculumOS Activation: Enrichment On, Accurate Costs, Run Digest',
+    highlights: [
+      'Subject-matter enrichment and the CurriculumOS genome linker are now ON by default for capable models — the v0.9.1→v0.10 content stack was shipping behind a flag nothing set, so production packages were compiling structural frames without the disciplinary content the machinery produces',
+      'The genome linker is now independent of the model enrichment switch and of model availability: library hits are free and deterministic, so they run and contribute citations even when model enrichment is off, declined, or fails',
+      'API cost accuracy fixed: gpt-5.4-mini (and the rest of the GPT-5.x lineup) were billed at full base-model rates by a greedy fallback — about 2x overstated. Pricing now matches by model family first, with current published rates and honest "approximate" labels for versions newer than the table',
+      'New per-run RUN DIGEST replaces the repetitive cumulative log blobs: one structured report per course with the pipeline decision trail (what ran, what was skipped and why), an accurate cost breakdown by task, and the actual export-gate findings — not just counts',
+      'Lab courses now derive laboratory equipment in the technology column instead of only LMS + video; multi-item single-lesson documents no longer mislabel their cover ("48 lessons" on a one-lesson quiz is now "1 section")',
+    ],
+    sections: [
+      {
+        label: 'CurriculumOS Activation',
+        icon: 'AI',
+        color: 'emerald',
+        items: [
+          'createGenerationPlan defaults blueprintEnrichment to "adaptive" for structured-output models (off for webllm/prompt-only); the adaptive gate still declines on sparse/ungrounded maps and respects call caps. generationOptions.useBlueprintEnrichment=false is the off switch.',
+          'runBlueprintEnrichment restructured into a free genome-linker stage that always runs, then gated model stages; genome hits survive a skipped, declined, or failed model stage (quality.source "genome-only"), and the compilerPath reason reflects which path produced the content.',
+          'A pipeline decision trail records each stage outcome with reasons for the run digest.',
+        ],
+      },
+      {
+        label: 'Accurate Cost Telemetry',
+        icon: 'QA',
+        color: 'amber',
+        items: [
+          'OpenAI pricing matches by tier (nano/mini/pro/base) before base rows, with verified June 2026 rates for the GPT-5.x lineup (5.4-mini $0.75/$4.50, 5.4 $2.50/$15, 5.5 $5/$30); newer versions fall back to tier rates labeled "family-estimate", never to base rates.',
+          'The usage ledger records the pricing source so the digest can mark a cost as exact or approximate.',
+        ],
+      },
+      {
+        label: 'Run Digest',
+        icon: 'UI',
+        color: 'indigo',
+        items: [
+          'runDigest.js builds one versioned report per finish (readable block + machine-parseable [CM][DIGEST] JSON), stamped with the app version: pipeline trail, per-task cost with accuracy label, gate results with the real flagged-check messages, compiler savings.',
+          'The legacy per-event [CM][API] dump is collapsed to one line each by default; localStorage["coursemapper-trace"]="verbose" restores the full state blobs.',
+        ],
+      },
+    ],
+  },
+  {
     version: '0.10.0',
     date: 'June 10, 2026',
     title: 'CurriculumOS V1: The Knowledge Model That Is Not a Neural Network',

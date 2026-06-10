@@ -997,21 +997,122 @@ export default function useDeliverables({
       };
 
       const runBlueprintEnrichment = async (blueprintCourseMap) => {
-        if (!blueprintEnrichmentRequested) return null;
-        if (!enrichmentModelAvailable) {
-          appendLog('⚠ Blueprint enrichment skipped: no model', 'warn');
-          return null;
-        }
-        if (!hasProviderCallBudget()) {
-          appendLog('⚠ Blueprint enrichment skipped: call cap', 'warn');
-          return null;
-        }
-
         const abortKey = 'blueprintEnrichment';
         const controller = new AbortController();
         abortMapRef.current.set(abortKey, controller);
         const outputCap = Number(generationOptions.blueprintEnrichmentMaxOutputTokens) || 1800;
         const enrichmentMaxOutputTokens = Math.max(512, Math.min(outputCap, Number(maxOutputTokens) || outputCap));
+        // Decision trail for the run digest: why each stage ran or was skipped.
+        const stageDecisions = { genomeLinker: 'ran', modelStage: 'ran' };
+        const allLessonIndices = Array.isArray(scopeIndices)
+          ? scopeIndices
+          : (blueprintCourseMap.lessons || []).map((_, lessonIdx) => lessonIdx);
+
+        // ── Stage 1: CurriculumOS genome linker — free, deterministic, and
+        // independent of the enrichment flag and model availability. Library
+        // hits cost zero tokens, so they must never sit behind the model
+        // switch (v0.10.1 fix: in v0.10.0 this lived inside the model gates
+        // and never ran when enrichment was off — which it was, by default).
+        let genomeLink = null;
+        let lessonKernelCache = null;
+        try {
+          const [
+            { getKernelLibrary },
+            { hydrateLibraryForDisciplines, inferCourseDisciplines },
+            { createLessonKernelCache },
+            { runGenomeLinker },
+            { buildQuizItemPlan },
+          ] = await Promise.all([
+            import('../lib/genome/kernelLibrary'),
+            import('../lib/genome/libraryShardLoader'),
+            import('../lib/genome/lessonKernelCache'),
+            import('../lib/genome/runGenomeLinker'),
+            import('../lib/blueprintEnrichmentPass'),
+          ]);
+          const library = getKernelLibrary();
+          const hydration = await hydrateLibraryForDisciplines(library, inferCourseDisciplines(blueprintCourseMap), {
+            signal: controller.signal,
+          });
+          lessonKernelCache = createLessonKernelCache();
+          const linked = runGenomeLinker({
+            courseMap: blueprintCourseMap,
+            lessonIndices: allLessonIndices,
+            library,
+            cache: lessonKernelCache,
+            itemPlan: buildQuizItemPlan(getGenerationConfig('quizBank')?.questionsPerLesson),
+          });
+          genomeLink = {
+            lessonContent: linked.lessonContent,
+            telemetry: {
+              ...linked.telemetry,
+              shardIds: hydration.shardIds,
+              rejectedShards: hydration.rejectedShards || [],
+            },
+            powers: {
+              prerequisiteFindings: linked.prerequisiteFindings || [],
+              glossary: linked.glossary || [],
+              spiralReferences: linked.spiralReferences || {},
+            },
+          };
+          recordGenerationApiCallEvent({
+            type: 'genomeLink',
+            label: 'CurriculumOS linker',
+            detail: `${linked.telemetry.resolvedFromGenome} genome + ${linked.telemetry.resolvedFromCache} cached of ${allLessonIndices.length} lessons (${linked.telemetry.conceptHits} concepts, ${linked.telemetry.citationsRendered} citations)`,
+            featureId: 'blueprintEnrichment',
+          });
+          if (linked.telemetry.resolvedFromGenome + linked.telemetry.resolvedFromCache > 0) {
+            appendLog(
+              `✓ Linked ${linked.telemetry.resolvedFromGenome + linked.telemetry.resolvedFromCache}/${allLessonIndices.length} lesson(s) from the curriculum library — no AI cost (${linked.telemetry.conceptHits} concept${linked.telemetry.conceptHits === 1 ? '' : 's'}, ${linked.telemetry.citationsRendered} citation${linked.telemetry.citationsRendered === 1 ? '' : 's'})`,
+              'done',
+            );
+          }
+          if (linked.prerequisiteFindings?.length > 0) {
+            appendLog(
+              `⚑ Curriculum check: ${linked.prerequisiteFindings.length} prerequisite gap${linked.prerequisiteFindings.length === 1 ? '' : 's'} detected — ${linked.prerequisiteFindings[0].message}`,
+              'progress',
+            );
+          }
+        } catch (linkErr) {
+          if (linkErr?.name === 'AbortError') {
+            abortMapRef.current.delete(abortKey);
+            throw linkErr;
+          }
+          // Genome is best-effort; the model path (or plain compile) continues.
+          stageDecisions.genomeLinker = `failed: ${linkErr?.message || 'unknown'}`;
+          genomeLink = null;
+        }
+
+        const genomeOnlyEnrichment = () => {
+          abortMapRef.current.delete(abortKey);
+          const linkedCount = genomeLink ? Object.keys(genomeLink.lessonContent).length : 0;
+          if (linkedCount === 0) return null;
+          return {
+            signatureTerms: [],
+            lens: null,
+            styleNotes: [],
+            quality: { source: 'genome-only' },
+            lessonContent: genomeLink.lessonContent,
+            genomeTelemetry: genomeLink.telemetry,
+            genomeLinkPowers: genomeLink.powers,
+            stageDecisions,
+          };
+        };
+
+        // ── Stage 2 gates: the MODEL enrichment stage ──
+        if (!blueprintEnrichmentRequested) {
+          stageDecisions.modelStage = 'skipped: enrichment flag off';
+          return genomeOnlyEnrichment();
+        }
+        if (!enrichmentModelAvailable) {
+          stageDecisions.modelStage = 'skipped: no model configured';
+          appendLog('⚠ Subject-matter enrichment skipped: no model', 'warn');
+          return genomeOnlyEnrichment();
+        }
+        if (!hasProviderCallBudget()) {
+          stageDecisions.modelStage = 'skipped: call cap reached';
+          appendLog('⚠ Subject-matter enrichment skipped: call cap', 'warn');
+          return genomeOnlyEnrichment();
+        }
 
         try {
           const {
@@ -1031,7 +1132,10 @@ export default function useDeliverables({
             remainingProviderCalls: getRemainingProviderCalls(),
             costMode,
           });
-          if (!decision.shouldRunEnrichment) return null;
+          if (!decision.shouldRunEnrichment) {
+            stageDecisions.modelStage = `skipped: ${decision.reason || 'adaptive compiler declined'}`;
+            return genomeOnlyEnrichment();
+          }
           const kernelStage = generationOptions.lessonContentEnrichment !== false;
 
           let enrichment = null;
@@ -1059,12 +1163,20 @@ export default function useDeliverables({
             enrichment = parseBlueprintEnrichmentResponse(result?.fullText || '', { payload: prompts.payload });
             if (!enrichment) {
               appendLog('⚠ Blueprint enrichment was rejected by source-grounding checks', 'warn');
-              return null;
+              stageDecisions.modelStage = 'rejected: source-grounding checks';
+              return genomeOnlyEnrichment();
             }
             appendLog(
               `✓ Blueprint enrichment applied (${enrichment.signatureTerms.length} terms, ${enrichment.quality?.sourceGroundingSignalCount || 0} source signal${enrichment.quality?.sourceGroundingSignalCount === 1 ? '' : 's'})`,
               'done',
             );
+            // Genome hits ride along with the course-level enrichment.
+            if (genomeLink && Object.keys(genomeLink.lessonContent).length > 0) {
+              enrichment.lessonContent = genomeLink.lessonContent;
+              enrichment.genomeTelemetry = genomeLink.telemetry;
+              enrichment.genomeLinkPowers = genomeLink.powers;
+            }
+            enrichment.stageDecisions = stageDecisions;
             return enrichment;
           }
 
@@ -1073,77 +1185,11 @@ export default function useDeliverables({
           // projection fans it out across quiz, slides, study guide,
           // discussion, and assignment surfaces. Chunked four lessons per
           // call; chunk #1 also carries the absorbed course-level block.
-          const allLessonIndices = Array.isArray(scopeIndices)
-            ? scopeIndices
-            : (blueprintCourseMap.lessons || []).map((_, lessonIdx) => lessonIdx);
-          const lessonContent = {};
+          // Lessons the genome linker already resolved never reach the model.
+          const lessonContent = { ...(genomeLink?.lessonContent || {}) };
           let absorbedCourseLevel = null;
-
-          // CurriculumOS V1: the Linker pre-pass. Resolve lessons against the
-          // genome + own-kernel cache first; only misses reach the model.
-          let genomeTelemetry = null;
-          let genomeLinkPowers = null;
-          let lessonKernelCache = null;
-          let linkedLessons = {};
-          try {
-            const [
-              { getKernelLibrary },
-              { hydrateLibraryForDisciplines, inferCourseDisciplines },
-              { createLessonKernelCache },
-              { runGenomeLinker },
-              { buildQuizItemPlan },
-            ] = await Promise.all([
-              import('../lib/genome/kernelLibrary'),
-              import('../lib/genome/libraryShardLoader'),
-              import('../lib/genome/lessonKernelCache'),
-              import('../lib/genome/runGenomeLinker'),
-              import('../lib/blueprintEnrichmentPass'),
-            ]);
-            const library = getKernelLibrary();
-            await hydrateLibraryForDisciplines(library, inferCourseDisciplines(blueprintCourseMap), {
-              signal: controller.signal,
-            });
-            lessonKernelCache = createLessonKernelCache();
-            const linked = runGenomeLinker({
-              courseMap: blueprintCourseMap,
-              lessonIndices: allLessonIndices,
-              library,
-              cache: lessonKernelCache,
-              itemPlan: buildQuizItemPlan(getGenerationConfig('quizBank')?.questionsPerLesson),
-            });
-            genomeLinkPowers = {
-              prerequisiteFindings: linked.prerequisiteFindings || [],
-              glossary: linked.glossary || [],
-              spiralReferences: linked.spiralReferences || {},
-            };
-            linkedLessons = linked.lessonContent;
-            genomeTelemetry = linked.telemetry;
-            Object.assign(lessonContent, linkedLessons);
-            if (linked.prerequisiteFindings?.length > 0) {
-              appendLog(
-                `⚑ Curriculum check: ${linked.prerequisiteFindings.length} prerequisite gap${linked.prerequisiteFindings.length === 1 ? '' : 's'} detected — ${linked.prerequisiteFindings[0].message}`,
-                'progress',
-              );
-            }
-            recordGenerationApiCallEvent({
-              type: 'genomeLink',
-              label: 'CurriculumOS linker',
-              detail: `${genomeTelemetry.resolvedFromGenome} genome + ${genomeTelemetry.resolvedFromCache} cached of ${allLessonIndices.length} lessons (${genomeTelemetry.conceptHits} concepts, ${genomeTelemetry.citationsRendered} citations)`,
-              featureId: 'blueprintEnrichment',
-            });
-            if (genomeTelemetry.resolvedFromGenome + genomeTelemetry.resolvedFromCache > 0) {
-              appendLog(
-                `✓ Linked ${genomeTelemetry.resolvedFromGenome + genomeTelemetry.resolvedFromCache}/${allLessonIndices.length} lesson(s) from the curriculum library — no AI cost (${genomeTelemetry.conceptHits} concept${genomeTelemetry.conceptHits === 1 ? '' : 's'}, ${genomeTelemetry.citationsRendered} citation${genomeTelemetry.citationsRendered === 1 ? '' : 's'})`,
-                'done',
-              );
-            }
-          } catch (linkErr) {
-            if (linkErr?.name === 'AbortError') throw linkErr;
-            // Genome is best-effort; on any failure the model path runs for all.
-            genomeTelemetry = null;
-          }
-
-          // Only lessons the Linker could not resolve reach the model.
+          const genomeTelemetry = genomeLink?.telemetry || null;
+          const genomeLinkPowers = genomeLink?.powers || null;
           const lessonIndices = allLessonIndices.filter((lessonIndex) => !lessonContent[`lesson-${lessonIndex + 1}`]);
           const chunkSize = 4;
           for (let start = 0; start < lessonIndices.length; start += chunkSize) {
@@ -1217,7 +1263,8 @@ export default function useDeliverables({
           const enrichedLessonCount = Object.keys(lessonContent).length;
           if (enrichedLessonCount === 0) {
             appendLog('⚠ Blueprint enrichment produced no usable lesson kernels', 'warn');
-            return null;
+            stageDecisions.modelStage = 'failed: no usable kernels parsed';
+            return genomeOnlyEnrichment();
           }
           enrichment = {
             signatureTerms: absorbedCourseLevel?.signatureTerms || [],
@@ -1227,6 +1274,7 @@ export default function useDeliverables({
             lessonContent,
             ...(genomeTelemetry ? { genomeTelemetry } : {}),
             ...(genomeLinkPowers ? { genomeLinkPowers } : {}),
+            stageDecisions,
           };
           appendLog(
             `✓ Knowledge kernels enriched for ${enrichedLessonCount} lesson${enrichedLessonCount === 1 ? '' : 's'} (quiz, slides, study guide, discussion, assignment from one payload)${absorbedCourseLevel ? ` + course lens (${absorbedCourseLevel.signatureTerms.length} terms)` : ''}`,
@@ -1236,10 +1284,13 @@ export default function useDeliverables({
         } catch (err) {
           if (err?.name === 'AbortError') {
             appendLog('Blueprint enrichment stopped', 'warn');
-          } else {
-            appendLog(`⚠ Blueprint enrichment failed: ${err.message || 'model error'}`, 'warn');
+            return null;
           }
-          return null;
+          appendLog(`⚠ Blueprint enrichment failed: ${err.message || 'model error'}`, 'warn');
+          // Genome hits are deterministic and already paid for — never lose
+          // them because the model stage failed.
+          stageDecisions.modelStage = `failed: ${err.message || 'model error'}`;
+          return genomeOnlyEnrichment();
         } finally {
           abortMapRef.current.delete(abortKey);
         }
@@ -1276,6 +1327,14 @@ export default function useDeliverables({
           });
         }
         const blueprintEnrichment = await runBlueprintEnrichment(blueprintCourseMap);
+        recordGenerationApiCallEvent({
+          type: 'pipelineDecision',
+          stage: 'enrichmentModelStage',
+          label: 'Enrichment decision',
+          detail: blueprintEnrichment?.stageDecisions
+            ? `${blueprintEnrichment.stageDecisions.modelStage} (linker: ${blueprintEnrichment.stageDecisions.genomeLinker})`
+            : 'deterministic compile only (no enrichment object)',
+        });
         const instructorPreferenceProfile = await loadInstructorPreferenceProfile();
         if (instructorPreferenceProfile?.signalCount > 0) {
           appendLog(
@@ -1290,9 +1349,11 @@ export default function useDeliverables({
             localization: (await import('../lib/professorProfile')).getProfile(),
             compilerPath: {
               mode: blueprintEnrichment ? 'enriched' : 'deterministic',
-              reason: blueprintEnrichment
-                ? 'Adaptive compiler accepted source-grounded enrichment before deterministic output.'
-                : 'Adaptive compiler used deterministic output without an enrichment call.',
+              reason: !blueprintEnrichment
+                ? 'Adaptive compiler used deterministic output without an enrichment call.'
+                : blueprintEnrichment.quality?.source === 'genome-only'
+                  ? 'Curriculum library supplied source-cited lesson content with no AI cost.'
+                  : 'Adaptive compiler accepted source-grounded enrichment before deterministic output.',
             },
             instructorPreferences: instructorPreferenceProfile,
           }),

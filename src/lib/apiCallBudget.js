@@ -77,6 +77,9 @@ export function createApiCallBudget(overrides = {}) {
     },
     recentEvents: Array.isArray(overrides.recentEvents) ? overrides.recentEvents.slice(0, MAX_RECENT_EVENTS) : [],
     usageLedger: Array.isArray(overrides.usageLedger) ? overrides.usageLedger.slice(-MAX_USAGE_LEDGER_ROWS) : [],
+    // v0.10.1: pipeline decision trail for the run digest — small strings
+    // recording what each stage did and WHY skipped stages were skipped.
+    pipeline: { ...(overrides.pipeline || {}) },
   };
   return {
     ...budget,
@@ -250,8 +253,23 @@ export function applyApiCallBudgetEvent(currentBudget, event = {}) {
         totalTokens: usage.totalTokens || 0,
         costUsd: event.costUsd ?? usage.costUsd ?? null,
         estimated: Boolean(usage.estimated),
+        pricingSource: event.pricingSource || '',
       },
     ].slice(-MAX_USAGE_LEDGER_ROWS);
+  }
+  // Pipeline decision trail (run digest): what each stage did, and why
+  // skipped stages were skipped.
+  if (event.type === 'genomeLink') {
+    next.pipeline = { ...next.pipeline, genomeLinker: event.detail || 'ran' };
+  }
+  if (event.type === 'skippedExamine') {
+    next.pipeline = { ...next.pipeline, examine: `skipped: ${event.detail || 'deterministic checks passed'}` };
+  }
+  if (event.type === 'courseMapCall') {
+    next.pipeline = { ...next.pipeline, courseMap: event.detail || 'ran' };
+  }
+  if (event.type === 'pipelineDecision') {
+    next.pipeline = { ...next.pipeline, [event.stage || 'stage']: event.detail || '' };
   }
   if (usage) {
     next.tokenUsage = addUsageTotals(next.tokenUsage || {}, usage, {

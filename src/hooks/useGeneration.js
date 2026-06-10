@@ -936,7 +936,7 @@ Generate lessons ${actual + 1} through ${expectedCount} now as JSON:`;
           recordApiCallEvent({
             type: 'courseMapCall',
             label: 'Course-map generation',
-            detail: currentModelName,
+            detail: `${currentModelName}${leanCourseMap ? ' · lean atoms + compiler-derived columns' : ' · verbose contract'}`,
           });
           const { fullText } = await streamProvider(provider, apiKey, modelId, activeSystemPrompt, finalUserPrompt, {
             maxOutputTokens: generationPlan?.courseMapOutputTokens || maxOutputTokens,

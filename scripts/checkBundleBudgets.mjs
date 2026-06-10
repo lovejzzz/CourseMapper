@@ -16,9 +16,10 @@ const budgets = {
 const lazyChunkBudgets = [
   // v0.8.6: +8 KiB raw / +2 KiB gzip for PackageTrustStrip and lean course-map
   // atoms (deliberate feature growth, measured at 219.2 KiB raw / 66.3 gzip).
-  // v0.9.11: +5 KiB raw measured for the generation cost report (per-call
-  // usage ledger, per-task table, reasoning-token surfacing).
-  { prefix: 'AppFlow-', rawKiB: 230, gzipKiB: 70 },
+  // v0.9.11: +5 KiB raw for the generation cost report.
+  // v0.10.1: +3 KiB raw for the run-digest wiring + slimmed trace branch
+  // (the digest builder/formatter are lazy-imported, not in this chunk).
+  { prefix: 'AppFlow-', rawKiB: 234, gzipKiB: 71 },
   // v0.9.0: +12 KiB raw / +4 KiB gzip for the course-native agent (content
   // index + renderer reuse, digest card, journal — measured at 341.0 KiB raw
   // / 92.8 gzip). Deliberate feature growth; gzip headroom unchanged.

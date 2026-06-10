@@ -875,7 +875,15 @@ export function createGenerationPlan(profile = {}) {
     chunkScale,
     outputBudgetScale,
     blueprintCompiler: profile.blueprintCompiler !== false,
-    blueprintEnrichment: profile.blueprintEnrichment === true,
+    // v0.10.1: subject-matter enrichment defaults to ADAPTIVE for capable
+    // models. The v0.9.1→v0.10 content stack (kernels, enrichment, genome
+    // linker) shipped behind `=== true` that nothing ever set — production
+    // packages compiled meta-only frames while the machinery sat dark.
+    // Adaptive still declines on sparse/ungrounded maps and respects call
+    // caps; generationOptions.useBlueprintEnrichment=false is the off switch.
+    blueprintEnrichment:
+      profile.blueprintEnrichment ??
+      (profile.provider !== 'webllm' && structuredOutputMode !== 'prompt_only' ? 'adaptive' : false),
     // v0.9.11 P3: lean course-map atoms are the default for models that can
     // follow a structured contract — the compiler renders stems, numbering,
     // and the compiler-owned columns. prompt_only/webllm profiles keep the

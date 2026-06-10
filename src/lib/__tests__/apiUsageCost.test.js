@@ -108,6 +108,32 @@ describe('apiUsageCost', () => {
     expect(compilerSummary.label).toContain('2 compiled');
   });
 
+  it('prices the current GPT-5.x lineup correctly (v0.10.1 family-first matching)', () => {
+    const cost = (modelId, inputTokens, outputTokens) =>
+      estimateUsageCost({ provider: 'openai', modelId, usage: { inputTokens, outputTokens } });
+
+    // The production bug: gpt-5.4-mini billed at full gpt-5 rates ($0.11
+    // instead of ~$0.05 for the audited course-map call).
+    const mini = cost('gpt-5.4-mini', 1226, 11223);
+    expect(mini.inputPerMillion).toBe(0.75);
+    expect(mini.outputPerMillion).toBe(4.5);
+    expect(mini.costUsd).toBeCloseTo(0.0514, 3);
+
+    expect(cost('gpt-5.4', 1000, 1000).outputPerMillion).toBe(15);
+    expect(cost('gpt-5.5', 1000, 1000).outputPerMillion).toBe(30);
+    expect(cost('gpt-5.1-mini', 1000, 1000).outputPerMillion).toBe(2);
+    expect(cost('gpt-4o-mini', 1000, 1000).outputPerMillion).toBe(0.6);
+
+    // Future versions fall back to tier rates, never to base rates, and are
+    // labeled as estimates.
+    const futureMini = cost('gpt-5.7-mini', 1000, 1000);
+    expect(futureMini.outputPerMillion).toBe(4.5);
+    expect(futureMini.pricingSource).toBe('family-estimate');
+    const futureBase = cost('gpt-6.0', 1000, 1000);
+    expect(futureBase.outputPerMillion).toBe(30);
+    expect(futureBase.pricingSource).toBe('family-estimate');
+  });
+
   it('builds a per-task generation cost report from the usage ledger', () => {
     let budget = createApiCallBudget();
     budget = applyApiCallBudgetEvent(budget, {

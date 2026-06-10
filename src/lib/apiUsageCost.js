@@ -44,16 +44,34 @@ export function getModelPricing(provider = '', modelId = '', inputTokens = 0) {
   if (provider === 'webllm') return pricing(0, 0, { source: 'local' });
 
   if (provider === 'openai') {
+    // v0.10.1: family-first matching. The old table let the bare ^gpt-5
+    // fallback swallow newer variants — gpt-5.4-mini billed at full gpt-5
+    // rates ($1.25/$10 instead of $0.75/$4.50), overstating cost ~2x in the
+    // user-facing spend display. Rules:
+    //  1. Known versioned rows first (verified against published pricing).
+    //  2. Tier fallbacks (nano/mini/pro/base) for versions newer than this
+    //     table, at the latest known tier rate, labeled 'family-estimate'
+    //     so the run digest can mark the number as approximate.
+    //  3. A base-model row never matches an id carrying a tier suffix.
+    const tier = /nano/.test(id) ? 'nano' : /mini/.test(id) ? 'mini' : /pro/.test(id) ? 'pro' : 'base';
+
+    // Known rows (June 2026).
+    if (/^gpt-5\.5/.test(id) && tier === 'base') return pricing(5, 30, { cachedInputPerMillion: 0.5 });
+    if (/^gpt-5\.4-mini/.test(id)) return pricing(0.75, 4.5, { cachedInputPerMillion: 0.075 });
+    if (/^gpt-5\.4/.test(id) && tier === 'base') return pricing(2.5, 15, { cachedInputPerMillion: 0.25 });
     if (/^gpt-5\.2-pro/.test(id)) return pricing(21, 168);
     if (/^gpt-5-pro/.test(id)) return pricing(15, 120);
-    if (/^gpt-5\.2/.test(id)) return pricing(1.75, 14, { cachedInputPerMillion: 0.175 });
+    if (/^gpt-5\.2/.test(id) && tier === 'base') return pricing(1.75, 14, { cachedInputPerMillion: 0.175 });
     if (/^gpt-5\.(?:1|0)?-?nano|^gpt-5-nano/.test(id)) {
       return pricing(0.05, 0.4, { cachedInputPerMillion: 0.005 });
     }
     if (/^gpt-5\.(?:1|0)?-?mini|^gpt-5-mini|^gpt-5\.1-codex-mini/.test(id)) {
       return pricing(0.25, 2, { cachedInputPerMillion: 0.025 });
     }
-    if (/^gpt-5(?:\.1)?|^gpt-5-chat|^gpt-5-codex|^gpt-5\.1-codex/.test(id)) {
+    if (
+      (/^gpt-5(?:\.1)?(?:-|$)|^gpt-5-chat|^gpt-5-codex|^gpt-5\.1-codex/.test(id) || /^gpt-5\.1\b/.test(id)) &&
+      tier === 'base'
+    ) {
       return pricing(1.25, 10, { cachedInputPerMillion: 0.125 });
     }
     if (/^gpt-4\.1-nano/.test(id)) return pricing(0.1, 0.4, { cachedInputPerMillion: 0.025 });
@@ -67,6 +85,14 @@ export function getModelPricing(provider = '', modelId = '', inputTokens = 0) {
     if (/^o4-mini/.test(id)) return pricing(1.1, 4.4, { cachedInputPerMillion: 0.275 });
     if (/^o1-pro/.test(id)) return pricing(150, 600);
     if (/^o1(?:-|$)/.test(id)) return pricing(15, 60, { cachedInputPerMillion: 7.5 });
+
+    // Tier fallbacks for GPT versions newer than this table.
+    if (/^gpt-[5-9]/.test(id)) {
+      if (tier === 'nano') return pricing(0.05, 0.4, { cachedInputPerMillion: 0.005, source: 'family-estimate' });
+      if (tier === 'mini') return pricing(0.75, 4.5, { cachedInputPerMillion: 0.075, source: 'family-estimate' });
+      if (tier === 'pro') return pricing(21, 168, { source: 'family-estimate' });
+      return pricing(5, 30, { cachedInputPerMillion: 0.5, source: 'family-estimate' });
+    }
     return null;
   }
 

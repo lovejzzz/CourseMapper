@@ -230,6 +230,15 @@ function deriveTechnologyNeeded(section) {
   if (/\b(video|watch|screencast|documentary)\b/i.test(combined)) {
     tools.push('Streaming video platform (assigned media)');
   }
+  // v0.10.1 (live-run audit): lab courses derived only LMS + video — surface
+  // the bench reality when activities are clearly laboratory work.
+  if (
+    /\b(lab|laboratory|experiment\w*|titration|spectroscop\w+|chromatograph\w+|microscop\w+|synthesis|reagent|specimen|dissect\w+|assay|recrystalliz\w+)\b/i.test(
+      combined,
+    )
+  ) {
+    tools.push('Laboratory equipment and instrumentation (see experiment list)');
+  }
   for (const tool of cellLines(section.specialTools)) {
     if (!tools.some((existing) => existing.toLowerCase().startsWith(tool.toLowerCase()))) tools.push(tool);
   }

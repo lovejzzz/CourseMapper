@@ -224,7 +224,29 @@ function buildQualityReceipt({
   };
 }
 
+function isVerboseTraceEnabled() {
+  try {
+    return localStorage.getItem('coursemapper-trace') === 'verbose';
+  } catch {
+    return false;
+  }
+}
+
 function traceApiCallBudget(event = {}, budget = {}) {
+  // v0.10.1: default to one readable line per event — the cumulative-state
+  // blob on every event made real logs unreadable and buried the signal.
+  // `localStorage['coursemapper-trace'] = 'verbose'` restores the full dump.
+  if (!isVerboseTraceEnabled()) {
+    traceLog(`[CM][API] ${event.type || 'event'}`, {
+      label: event.label || '',
+      detail: event.detail || '',
+      featureId: event.featureId || '',
+      calls: getApiCallBudgetTotal(budget),
+      spendUsd: budget.tokenUsage?.costUsd ? Number(budget.tokenUsage.costUsd.toFixed(4)) : 0,
+      ...(event.failureClass ? { failureClass: event.failureClass, statusCode: event.statusCode } : {}),
+    });
+    return;
+  }
   const counters = {
     modelDiscovery: budget.modelDiscoveryCalls || 0,
     creditCheck: budget.creditCheckCalls || 0,
@@ -1478,17 +1500,43 @@ export default function AppFlow({ startupAction = null, onStartupHandled, onRetu
           retryPassCount,
           retryCallCount,
           skippedRetryActionCount,
-          skippedRetryCallCount,
-          suppressedRetryActionCount,
           retryBudgetRemaining: remainingRetryCallBudget,
-          retryBudgetExhausted,
-          retryPassLimitReached,
-          retryNoProgress,
           exportStatus: exportVerification?.status,
-          apiSpend: apiSpendSummary,
-          apiFeatureSpend: apiFeatureSpendSummary,
-          compilerSavings: compilerSummary,
+          // Slimmed in v0.10.1 — the structured detail now lives in the run
+          // digest emitted below instead of repeating cumulative blobs here.
+          apiSpend: apiSpendSummary?.label || '',
+          compilerSavings: compilerSummary?.label || '',
         });
+
+        // v0.10.1: the RUN DIGEST — one structured diagnostic per finish,
+        // built for auditing real runs (decisions + reasons, honest costs,
+        // actual gate messages). Lazy import keeps it out of this chunk.
+        try {
+          const { buildRunDigest, formatRunDigest } = await import('./lib/runDigest');
+          const digest = buildRunDigest({
+            budget: apiCallBudgetRef.current || {},
+            exportVerification,
+            finish: {
+              finalStatus,
+              blockers,
+              warnings,
+              repairsApplied: totalRepairsApplied,
+              retryCallCount,
+              finishRunId,
+            },
+            generation: {
+              provider: result.provider || '',
+              lessonCount: Array.isArray((result.courseMap || courseMapRef.current)?.lessons)
+                ? (result.courseMap || courseMapRef.current).lessons.length
+                : null,
+              featureIds,
+            },
+          });
+          console.info(`[CM][RUN DIGEST]\n${formatRunDigest(digest)}`);
+          console.info(`[CM][DIGEST] ${JSON.stringify(digest)}`);
+        } catch {
+          /* digest is diagnostics-only — never block the finish on it */
+        }
 
         return {
           ...result,
