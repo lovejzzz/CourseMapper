@@ -10,14 +10,14 @@ compiler capability; measured real output from the V09 production courses.
 
 ## 1. Where every API token goes today (v0.9.1, 14-lesson course)
 
-| # | Call | Count | Input (est.) | Output (est.) | Notes |
-|---|------|-------|-------------|---------------|-------|
-| 1 | Course-map generation (`prompts.js` verbose contract) | 1 (+continuations) | 8–30k (syllabus) | **~9–10k** | Measured: 30,139 chars of rendered cell prose in the Social Policy map = ~7.5k tokens, plus JSON structure overhead |
-| 2 | Examine pass (`EXAMINE_SYSTEM_PROMPT`) | 0–1, trigger-gated | 5–35k | 0.5–1.5k | Already focused (v0.8.6) — only flagged lessons sent |
-| 3 | Course-level blueprint enrichment | 0–1 | ~2.5k | ~0.6–0.9k | `lessonPhrases` output scales with lesson count |
-| 4 | Per-lesson content enrichment (v0.9.1) | ⌈N/2⌉ = 7 | ~12k (7 × ~1.7k) | **~14–17k** | Now the largest output spend in the pipeline |
-| 5 | All 9 deliverables | **0** | 0 | 0 | `BLUEPRINT_COMPILED_FEATURES` covers everything |
-| — | **Hidden: reasoning tokens** | every OpenAI gpt-5.x call | — | **+30–70% of billed output** | No `reasoning.effort` is ever sent (see §2.1) — server defaults to *medium* |
+| #   | Call                                                  | Count                     | Input (est.)     | Output (est.)                | Notes                                                                                                               |
+| --- | ----------------------------------------------------- | ------------------------- | ---------------- | ---------------------------- | ------------------------------------------------------------------------------------------------------------------- |
+| 1   | Course-map generation (`prompts.js` verbose contract) | 1 (+continuations)        | 8–30k (syllabus) | **~9–10k**                   | Measured: 30,139 chars of rendered cell prose in the Social Policy map = ~7.5k tokens, plus JSON structure overhead |
+| 2   | Examine pass (`EXAMINE_SYSTEM_PROMPT`)                | 0–1, trigger-gated        | 5–35k            | 0.5–1.5k                     | Already focused (v0.8.6) — only flagged lessons sent                                                                |
+| 3   | Course-level blueprint enrichment                     | 0–1                       | ~2.5k            | ~0.6–0.9k                    | `lessonPhrases` output scales with lesson count                                                                     |
+| 4   | Per-lesson content enrichment (v0.9.1)                | ⌈N/2⌉ = 7                 | ~12k (7 × ~1.7k) | **~14–17k**                  | Now the largest output spend in the pipeline                                                                        |
+| 5   | All 9 deliverables                                    | **0**                     | 0                | 0                            | `BLUEPRINT_COMPILED_FEATURES` covers everything                                                                     |
+| —   | **Hidden: reasoning tokens**                          | every OpenAI gpt-5.x call | —                | **+30–70% of billed output** | No `reasoning.effort` is ever sent (see §2.1) — server defaults to _medium_                                         |
 
 Total billed output ≈ **24–29k tokens/course**, plus invisible reasoning tokens
 on the default OpenAI path.
@@ -37,11 +37,11 @@ For JSON transcription/extraction tasks this can exceed the visible output.
 
 **Shift.** Always send an explicit effort, tiered by task:
 
-| Task | Effort | Why |
-|------|--------|-----|
-| `course-map` | `medium` (keep) | genuine structure inference from messy syllabi |
-| `blueprintEnrichment` / lesson content | `low` | constrained JSON authoring against a fixed schema |
-| `examine` / `repair` / gap-fill | `low` | patch emission against explicit rules |
+| Task                                   | Effort          | Why                                               |
+| -------------------------------------- | --------------- | ------------------------------------------------- |
+| `course-map`                           | `medium` (keep) | genuine structure inference from messy syllabi    |
+| `blueprintEnrichment` / lesson content | `low`           | constrained JSON authoring against a fixed schema |
+| `examine` / `repair` / gap-fill        | `low`           | patch emission against explicit rules             |
 
 **Mechanism.** Replace the boolean `highValueTasks` gate with a
 `taskEffortMap` in the capability profile; `createReasoningRequestControl`
@@ -70,9 +70,9 @@ grep finds zero writers. Every production course map pays the verbose contract.
 `courseMapOutputTokens` is computed) for capable models, prove on the gold
 suite + copy-variety budget, then default-on.
 
-**Quality guard.** The expansion renders the *same* downstream contract
+**Quality guard.** The expansion renders the _same_ downstream contract
 (stems, numbering, labels) that validators, the blueprint compiler, and
-exports already consume. Atoms force *more* specificity per phrase, not less
+exports already consume. Atoms force _more_ specificity per phrase, not less
 ("Terse but concrete beats long and generic" is already in the contract).
 Gates: `audit:gold` 40/40, blueprint matrix, `audit:deliverables`.
 
@@ -84,11 +84,11 @@ numbering, list scaffolding, and sentence padding move into `expandLeanCourseMap
 **Finding.** Three columns the model writes are derivable, and one is pure
 self-talk:
 
-- **`evaluateDesign`** — measured as the *longest cells in the real output*
+- **`evaluateDesign`** — measured as the _longest cells in the real output_
   (the top 3 cells in the Social Policy map are all 380+ char alignment
   self-checks). The blueprint already computes objective↔assessment↔activity
   alignment deterministically (alignment matrices, `trace_objective`). Paying
-  a model to write prose *about* alignment the compiler *verifies* is the
+  a model to write prose _about_ alignment the compiler _verifies_ is the
   definition of waste. ~15–18% of all cell text.
 - **`presentationFormat`** — a short label the compiler can decode from
   modality + activities (it already validates "never blank" and has fallbacks).
@@ -99,10 +99,10 @@ self-talk:
 **Shift.** In lean mode, remove all three from the requested contract.
 Compiler synthesizes them with provenance marks. For technologyNeeded, keep an
 optional `specialTools` atom array so source-mentioned tools (SPSS, Logic Pro,
-GIS) are never lost — the model emits it *only* when the syllabus names tools.
+GIS) are never lost — the model emits it _only_ when the syllabus names tools.
 
 **Quality guard.** evaluateDesign: compiled from the actual alignment matrix —
-*more* truthful than model prose (it can cite the real mapping instead of
+_more_ truthful than model prose (it can cite the real mapping instead of
 asserting one). Provenance: `compiler-inferred`, surfaced in trust records.
 Existing local-review gates stay.
 
@@ -128,7 +128,7 @@ every item of every lesson of every chunk.
 pays for the same disciplinary knowledge two or three times:
 
 - `keyTerms[].misconception` and `quizItems[].distractorRationales` encode the
-  *same misconceptions* in different prose.
+  _same misconceptions_ in different prose.
 - `slideContent[].bullets` restate the facts that `quizItems[].explanation`
   states.
 - `slideContent[].notes` (2–4 sentences × 3) restate the bullets — and the
@@ -136,7 +136,7 @@ pays for the same disciplinary knowledge two or three times:
   builds speaker notes deterministically.
 - `scoringGuidance` re-derives criteria the compiler frames anyway.
 
-**Shift.** Restructure the contract from *surfaces* to a per-lesson
+**Shift.** Restructure the contract from _surfaces_ to a per-lesson
 **knowledge kernel** — the model writes knowledge atoms ONCE; the compiler
 projects them into every artifact:
 
@@ -152,6 +152,7 @@ kernel: {
 ```
 
 Compiler projections (all existing machinery):
+
 - **Slides** ← assertion titles + evidence bullets from `facts`; notes from
   `slideNotes()` over facts (drop model-written notes).
 - **Quiz MC** ← `mc` items; **distractor rationales** ← matched `terms[].misconception`;
@@ -198,7 +199,7 @@ per-lesson output scaling.**
 tokens) is re-paid in all 7 chunks = ~6.3k input/course. Anthropic gets
 `cache_control` (modelRequestBuilders.js:229) — good — but OpenAI's automatic
 prefix caching needs ≥1,024 identical leading tokens, and the current layout
-puts `Course:` + lesson data *before* nothing reusable in `input`.
+puts `Course:` + lesson data _before_ nothing reusable in `input`.
 
 **Shift.** (a) chunk size 2 → 4 with `maxOutputTokens` scaled (~4.8k/call):
 7 calls → 4 for a 14-lesson course. (b) Move everything static into
@@ -212,7 +213,7 @@ the rest.** Risk: low (parse failures degrade per item, not per chunk).
 
 ### 2.8 Trim the examine pass's syllabus payload
 
-**Finding.** Focused review (v0.8.6) trims *lessons* but still ships up to
+**Finding.** Focused review (v0.8.6) trims _lessons_ but still ships up to
 30,000 chars of syllabus. `segmentSyllabus()` already maps segments to lessons.
 
 **Shift.** When `focusLessonIndices` is set, send only the matching syllabus
@@ -232,24 +233,24 @@ scenario, the debatable tension, and the assignment task. Specifically:
 - **No template essay prompts without a model scenario** — compiled frames
   around model substance (the v0.9.1 pattern) is the floor.
 - Lean atoms still come from the model reading the syllabus — lean mode
-  compresses *form*, never *sourcing*.
+  compresses _form_, never _sourcing_.
 
 ## 4. Cost model: before → after (14-lesson course, all shifts)
 
-| Call | Today (out) | After (out) |
-|------|------------|-------------|
-| Course map | ~9–10k | **~3.5–4.5k** (lean + dropped columns) |
-| Course-level enrichment | ~0.7k | **0** (absorbed) |
-| Lesson content | ~14–17k | **~6.5–8k** (kernel + compact keys, 4 chunks) |
-| Examine (when triggered) | ~1k | ~1k (input −5–7k) |
-| Hidden reasoning (OpenAI) | +30–70% | **≈ 0** (explicit low effort) |
-| **Total billed output** | **24–29k (+reasoning)** | **~11–13.5k** |
+| Call                      | Today (out)             | After (out)                                   |
+| ------------------------- | ----------------------- | --------------------------------------------- |
+| Course map                | ~9–10k                  | **~3.5–4.5k** (lean + dropped columns)        |
+| Course-level enrichment   | ~0.7k                   | **0** (absorbed)                              |
+| Lesson content            | ~14–17k                 | **~6.5–8k** (kernel + compact keys, 4 chunks) |
+| Examine (when triggered)  | ~1k                     | ~1k (input −5–7k)                             |
+| Hidden reasoning (OpenAI) | +30–70%                 | **≈ 0** (explicit low effort)                 |
+| **Total billed output**   | **24–29k (+reasoning)** | **~11–13.5k**                                 |
 
 **≈ 55–60% reduction in billed output tokens — and on the default OpenAI
 path, total spend drops further once the silent medium-reasoning default is
 gone. Per-course cost roughly drops from ~$0.50–2 to ~$0.20–0.80.**
 
-Quality moves *up*, not sideways: §2.3 replaces asserted alignment with
+Quality moves _up_, not sideways: §2.3 replaces asserted alignment with
 computed alignment; §2.5 gives every artifact one kernel of truth per lesson.
 
 ## 5. Recommended order
@@ -263,5 +264,6 @@ computed alignment; §2.5 gives every artifact one kernel of truth per lesson.
 4. **§2.8 examine trim** anytime.
 
 Gates for every step: unit + blueprint matrix + `audit:gold` + `audit:deliverables`
-+ bundle budgets locally before push (standing rule), `auditSubstance` ≤5% meta
-on enriched output, CCR judge re-score on the first post-change generation.
+
+- bundle budgets locally before push (standing rule), `auditSubstance` ≤5% meta
+  on enriched output, CCR judge re-score on the first post-change generation.
