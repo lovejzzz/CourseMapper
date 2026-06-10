@@ -91,17 +91,33 @@ function lessonVocabulary(lesson) {
 }
 
 function scoreCandidate(kernel, vocabSet, { level, priorIds }) {
-  const surfaceTokens = new Set(tokens([kernel.term, ...(kernel.aliases || [])].join(' ')));
-  if (surfaceTokens.size === 0) return 0;
-  let matched = 0;
-  for (const token of surfaceTokens) if (vocabSet.has(token)) matched += 1;
-  if (matched === 0) return 0;
+  // Iteration-1 refinement: score each surface form (the term and each alias)
+  // INDEPENDENTLY and take the best. Scoring the union punished multi-alias
+  // kernels — "p-value" matched 1 of 4 union tokens and missed, while a
+  // single-surface kernel with the same lesson would have resolved.
+  const surfaces = [kernel.term, ...(kernel.aliases || [])];
+  let best = 0;
+  for (const surface of surfaces) {
+    const surfaceTokens = [...new Set(tokens(surface))];
+    if (surfaceTokens.length === 0) continue;
+    // Guard: a single short token ("ped") is too weak to identify a concept
+    // on its own; require either a multi-token surface or a long token.
+    if (surfaceTokens.length === 1 && surfaceTokens[0].length < 5) continue;
+    let matched = 0;
+    for (const token of surfaceTokens) if (vocabSet.has(token)) matched += 1;
+    if (matched === 0) continue;
 
-  // Coverage: how much of the kernel's own name the lesson vocabulary covers.
-  const coverage = matched / surfaceTokens.size;
-  // Specificity: multi-word concept names matched in full are stronger signals
-  // than single-token hits.
-  const specificity = Math.min(1, matched / 2);
+    // Coverage: how much of THIS surface form the lesson vocabulary covers.
+    const coverage = matched / surfaceTokens.length;
+    // Specificity: multi-word matches are stronger signals than single-token
+    // hits; full single-token surfaces stay below the resolve threshold
+    // without corroboration (level fit + coherence push true hits over).
+    const specificity = Math.min(1, matched / 2);
+    const score = coverage * 0.6 + specificity * 0.4;
+    if (score > best) best = score;
+  }
+  if (best === 0) return 0;
+
   // Level fit: a small penalty for mismatched course/kernel level.
   const levelFit = !level || level === kernel.level ? 1 : 0.85;
   // Prerequisite coherence: kernels whose prerequisites already appeared in the
@@ -110,7 +126,7 @@ function scoreCandidate(kernel, vocabSet, { level, priorIds }) {
   const prereqHits = requires.filter((id) => priorIds.has(id)).length;
   const coherence = requires.length > 0 ? 1 + Math.min(0.15, prereqHits * 0.05) : 1;
 
-  return coverage * 0.6 * coherence * levelFit + specificity * 0.4 * levelFit;
+  return best * levelFit * coherence;
 }
 
 /**
