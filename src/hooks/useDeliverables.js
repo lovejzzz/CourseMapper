@@ -1047,19 +1047,30 @@ export default function useDeliverables({
               ...linked.telemetry,
               shardIds: hydration.shardIds,
               rejectedShards: hydration.rejectedShards || [],
+              archetypesLoaded: hydration.archetypesAdded || 0,
             },
             powers: {
               prerequisiteFindings: linked.prerequisiteFindings || [],
               glossary: linked.glossary || [],
               spiralReferences: linked.spiralReferences || {},
+              bridges: linked.bridges || [],
+              bridgeObservations: linked.bridgeObservations || [],
+              structureFindings: linked.structureFindings || [],
             },
           };
+          const t = linked.telemetry;
           recordGenerationApiCallEvent({
             type: 'genomeLink',
             label: 'CurriculumOS linker',
-            detail: `${linked.telemetry.resolvedFromGenome} genome + ${linked.telemetry.resolvedFromCache} cached of ${allLessonIndices.length} lessons (${linked.telemetry.conceptHits} concepts, ${linked.telemetry.citationsRendered} citations)`,
+            detail: `${t.resolvedFromGenome} genome + ${t.resolvedFromCache} cached of ${allLessonIndices.length} lessons (${t.conceptHits} concepts, ${t.citationsRendered} citations, ${t.bridgeCount || 0} bridges)`,
             featureId: 'blueprintEnrichment',
           });
+          if ((linked.bridges || []).length > 0) {
+            appendLog(
+              `✓ Drew ${linked.bridges.length} structural bridge${linked.bridges.length === 1 ? '' : 's'} between concepts sharing a deep structure (transfer learning)`,
+              'done',
+            );
+          }
           if (linked.telemetry.resolvedFromGenome + linked.telemetry.resolvedFromCache > 0) {
             appendLog(
               `✓ Linked ${linked.telemetry.resolvedFromGenome + linked.telemetry.resolvedFromCache}/${allLessonIndices.length} lesson(s) from the curriculum library — no AI cost (${linked.telemetry.conceptHits} concept${linked.telemetry.conceptHits === 1 ? '' : 's'}, ${linked.telemetry.citationsRendered} citation${linked.telemetry.citationsRendered === 1 ? '' : 's'})`,

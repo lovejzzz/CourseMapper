@@ -18,6 +18,7 @@ import { resolveCourseConcepts } from './conceptResolver';
 import { composeLessonFromConcepts } from './composeLessonFromConcepts';
 import { auditPrerequisites } from './prerequisiteAudit';
 import { buildGlossaryGraph } from './glossaryGraph';
+import { buildArchetypeBridges } from './archetypeBridges';
 
 function lessonIdFor(lessonIndex) {
   return `lesson-${lessonIndex + 1}`;
@@ -64,7 +65,14 @@ export function runGenomeLinker({ courseMap, lessonIndices, library, cache = nul
     const refs = byLesson.get(lessonIndex)?.conceptRefs || [];
     const conceptKernels = refs.map((ref) => library.getKernel(ref.id)).filter(Boolean);
     if (conceptKernels.length > 0) {
-      const composed = composeLessonFromConcepts(conceptKernels, {}, { itemPlan });
+      const composed = composeLessonFromConcepts(
+        conceptKernels,
+        {},
+        {
+          itemPlan,
+          getArchetype: library.getArchetype ? (id) => library.getArchetype(id) : undefined,
+        },
+      );
       if (composed?.payload && (composed.payload.quizItems?.length || composed.payload.keyTerms?.length)) {
         lessonContent[lessonId] = { ...composed.payload, enrichmentSource: 'genome-linked' };
         telemetry.resolvedFromGenome += 1;
@@ -90,8 +98,20 @@ export function runGenomeLinker({ courseMap, lessonIndices, library, cache = nul
   // These are deterministic observations, never auto-edits.
   const { findings: prerequisiteFindings } = auditPrerequisites(resolution.perLesson, library);
   const { glossary, spiralReferences } = buildGlossaryGraph(resolution.perLesson, library);
+  // Layer 2: analogical bridges between concepts sharing a deep structure.
+  const { bridges, observations, structureFindings } = buildArchetypeBridges(resolution.perLesson, library);
+  // Attach each renderable bridge to its target lesson's payload so the study
+  // guide can show the structural connection inline (student-facing).
+  for (const bridge of bridges) {
+    const targetId = `lesson-${bridge.toConcept.lessonIndex + 1}`;
+    const payload = lessonContent[targetId];
+    if (!payload) continue;
+    payload.structuralConnections = [...(payload.structuralConnections || []), bridge.note];
+  }
   telemetry.prerequisiteFindingCount = prerequisiteFindings.length;
   telemetry.glossaryConceptCount = glossary.length;
+  telemetry.bridgeCount = bridges.length;
+  telemetry.structureFindingCount = structureFindings.length;
 
   return {
     lessonContent,
@@ -100,5 +120,8 @@ export function runGenomeLinker({ courseMap, lessonIndices, library, cache = nul
     prerequisiteFindings,
     glossary,
     spiralReferences: Object.fromEntries(spiralReferences),
+    bridges,
+    bridgeObservations: observations,
+    structureFindings,
   };
 }

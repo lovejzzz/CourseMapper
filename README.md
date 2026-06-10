@@ -3,7 +3,7 @@
 AI-powered instructional design platform running on **CurriculumOS** — a deterministic course compiler linked to a **Curriculum Genome** of source-anchored, citable concept knowledge — with an embedded teaching assistant agent. Upload your syllabus and generate a structured Course Map, lesson plans, slide decks, rubrics, quizzes, assignments, discussion prompts, study guides, and a polished syllabus — all pedagogically aligned, validated, and fully editable. Then use the AI agent to revise, validate, research, and visualize your curriculum through natural conversation.
 
 **Live:** [https://edutool.dev](https://edutool.dev)
-**Current release:** v0.10.0
+**Current release:** v0.11.0
 
 ---
 
@@ -56,6 +56,8 @@ As of v0.10.0, the compiler is the inference engine of something bigger. **Curri
 **The Linker.** Before any model call, each lesson resolves against the genome and your own kernel cache: hits compile for **zero AI cost with citations** ("Source: OpenStax Microeconomics §5.1" under quiz answers and key terms); misses fall back to the model path, so there is no regression floor. The prerequisite graph gives the compiler audits no model could be trusted to do — _"Lesson 5 teaches p-values, but no lesson covers sampling distributions"_ — plus one canonical definition per concept per course and compiled spiral references.
 
 **Privacy is structural.** The course-specific layer (your scenario, assignment, discussion framing, instructor facts) never leaves the browser. Contribution to the commons is opt-in, and the strip pass is red-team tested: no course-identifying string survives.
+
+**The Archetype Layer (v0.11).** Above concept knowledge sits the deep structure: ~16 archetypes (equilibrium, feedback, sampling-and-inference, evidence-vs-claim, source criticism, …) that recur across disciplines — the formalization that a professor teaching five courses holds the structures once, not five times. Concepts link to archetypes with an explicit discipline mapping, so misconceptions are written once as a SHAPE and skinned per discipline at template prices, and the compiler renders **analogical bridges** — the best-evidenced transfer technique in learning science — when two concepts in a course share a structure ("the p-value shares the deep structure of the sampling distribution; the test statistic plays the role of the sample mean"). Every bridge is verification-gated: a forced analogy never reaches a student. Design: [docs/CURRICULUMOS_ARCHETYPE_LAYER_DESIGN.md](docs/CURRICULUMOS_ARCHETYPE_LAYER_DESIGN.md).
 
 The full architecture lives in [docs/CURRICULUMOS_V1_DESIGN.md](docs/CURRICULUMOS_V1_DESIGN.md).
 

@@ -13427,6 +13427,9 @@ function compileStudyGuides(blueprint) {
               : keyTerms.map((term, termIndex) => generalTermGuide(term, lesson, lens, termIndex)),
         }),
         conceptConnections: [
+          // Layer 2: analogical bridges lead — structural transfer is the
+          // highest-value connection a study guide can name.
+          ...(Array.isArray(lesson.enrichment?.structuralConnections) ? lesson.enrichment.structuralConnections : []),
           `${lesson.title} connects to the assessment artifact: ${lesson.studentArtifact}.`,
           lesson.prerequisitePlan?.prerequisiteEvidence ||
             `Prerequisite readiness should be checked before students prepare ${lesson.studentArtifact}.`,

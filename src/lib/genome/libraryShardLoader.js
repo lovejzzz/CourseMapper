@@ -120,16 +120,40 @@ export async function loadShardsIntoLibrary(library, shards = [], options = {}) 
  * disciplines, and hydrate the library. Returns { manifestVersion, added,
  * shardIds } — or a zeroed result when no genome is deployed.
  */
+/**
+ * Load the global archetype shard (Layer 2) into the library, hash-verified
+ * like concept shards. Loaded once per session; idempotent.
+ */
+export async function loadArchetypeShard(library, manifest, options = {}) {
+  const meta = manifest?.archetypeShard;
+  if (!meta || !library?.addArchetypes || library.archetypeCount?.() > 0) return 0;
+  try {
+    const text = await fetchText(joinUrl(`${SHARD_DIR}/${meta.path || 'archetypes.json'}`), options);
+    if (meta.hash) {
+      const actual = await sha256Prefix(text);
+      if (actual && actual !== meta.hash) return 0; // tampered → reject
+    }
+    const data = JSON.parse(text);
+    return library.addArchetypes(Array.isArray(data?.archetypes) ? data.archetypes : []);
+  } catch {
+    return 0;
+  }
+}
+
 export async function hydrateLibraryForDisciplines(library, disciplines, options = {}) {
   const manifest = await loadGenomeManifest(options);
-  if (!manifest) return { manifestVersion: null, added: 0, shardIds: [], rejectedShards: [] };
+  if (!manifest) return { manifestVersion: null, added: 0, shardIds: [], rejectedShards: [], archetypesAdded: 0 };
   const shards = selectShardsForDisciplines(manifest, disciplines);
   const { added, rejectedShards } = await loadShardsIntoLibrary(library, shards, options);
+  // The archetype shard is global (not discipline-keyed) — load it whenever any
+  // genome is consulted, so scaffolding works even on a concept miss.
+  const archetypesAdded = await loadArchetypeShard(library, manifest, options);
   return {
     manifestVersion: manifest.version || null,
     added,
     shardIds: shards.map((shard) => shard.id),
     rejectedShards,
+    archetypesAdded,
   };
 }
 

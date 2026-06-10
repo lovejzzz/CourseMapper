@@ -17,6 +17,7 @@
 
 import { projectKernelToSurfaces } from '../kernelProjection';
 import { kernelTrustTier, TRUST_TIER_LABELS } from './kernelSchema';
+import { instantiateArchetype } from './archetypeInstantiation';
 
 function cleanText(value) {
   return String(value ?? '')
@@ -43,6 +44,33 @@ function citationLabel(anchor) {
 export function composeLessonFromConcepts(conceptKernels = [], courseLayer = {}, options = {}) {
   const kernels = conceptKernels.filter((kernel) => kernel && kernel.id);
   if (kernels.length === 0) return null;
+  const getArchetype = typeof options.getArchetype === 'function' ? options.getArchetype : () => null;
+
+  // Layer 2: instantiate each concept's verified archetype mapping into
+  // template-priced misconceptions and a structural task item. Grounded
+  // mappings only — instantiateArchetype enforces the forced-analogy guard.
+  const archetypeMisconceptions = []; // { term, definition, example, misconception }
+  const archetypeTaskItems = []; // { stem, bloom, rubricFocus }
+  const archetypesUsed = [];
+  for (const kernel of kernels) {
+    const conceptText = `${kernel.definition?.text || ''} ${(kernel.facts || []).map((f) => f.text).join(' ')}`;
+    for (const instance of kernel.edges?.instanceOf || []) {
+      const archetype = getArchetype(instance.archetype);
+      if (!archetype) continue;
+      const { misconceptions, taskItems, status } = instantiateArchetype(archetype, instance, conceptText);
+      if (status !== 'verified-ready') continue;
+      archetypesUsed.push(instance.archetype);
+      for (const text of misconceptions) {
+        archetypeMisconceptions.push({
+          term: cleanText(kernel.term),
+          definition: cleanText(kernel.definition?.text),
+          example: cleanText((kernel.examples || [])[0]?.text),
+          misconception: text,
+        });
+      }
+      if (taskItems[0]) archetypeTaskItems.push(taskItems[0]);
+    }
+  }
 
   // facts: union across concepts, anchored ones first so slides/explanations
   // prefer cited claims.
@@ -83,15 +111,19 @@ export function composeLessonFromConcepts(conceptKernels = [], courseLayer = {},
     }
   }
 
-  // Misconceptions union (for distractor-rationale matching + study guide).
-  const mergedMisconceptions = kernels.flatMap((kernel) =>
-    (kernel.misconceptions || []).map((misconception) => ({
-      term: cleanText(kernel.term),
-      definition: cleanText(kernel.definition?.text),
-      example: cleanText((kernel.examples || [])[0]?.text),
-      misconception: cleanText(misconception.text),
-    })),
-  );
+  // Misconceptions union (for distractor-rationale matching + study guide),
+  // enriched with template-priced archetype-instantiated misconceptions.
+  const mergedMisconceptions = [
+    ...kernels.flatMap((kernel) =>
+      (kernel.misconceptions || []).map((misconception) => ({
+        term: cleanText(kernel.term),
+        definition: cleanText(kernel.definition?.text),
+        example: cleanText((kernel.examples || [])[0]?.text),
+        misconception: cleanText(misconception.text),
+      })),
+    ),
+    ...archetypeMisconceptions,
+  ];
 
   const lessonKernel = {
     facts,
@@ -106,6 +138,28 @@ export function composeLessonFromConcepts(conceptKernels = [], courseLayer = {},
 
   // Restore the citation-bearing key terms (projection strips extra fields).
   payload.keyTerms = keyTerms;
+
+  // Append one archetype-schema task item as a short-answer question — a
+  // proven task form for the structure, slot-filled to this discipline.
+  if (archetypeTaskItems[0] && Array.isArray(payload.quizItems)) {
+    const task = archetypeTaskItems[0];
+    const maxIndex = payload.quizItems.reduce((max, item) => Math.max(max, item.index ?? 0), -1);
+    payload.quizItems.push({
+      index: maxIndex + 1,
+      type: 'short_answer',
+      question: task.stem,
+      options: [],
+      answerIndex: 0,
+      distractorRationales: [],
+      answer: '',
+      explanation: '',
+      scoringGuidance: task.rubricFocus
+        ? `Full credit ${task.rubricFocus}.`
+        : 'Full credit applies the structure correctly to this lesson with course evidence.',
+      bloom: task.bloom,
+      enrichmentSource: 'archetype-schema',
+    });
+  }
 
   // Provenance: tiers, citations, and the concept ids that fed this lesson.
   const tier = Math.max(0, ...kernels.map((kernel) => kernelTrustTier(kernel)));
@@ -123,6 +177,9 @@ export function composeLessonFromConcepts(conceptKernels = [], courseLayer = {},
     tierLabel: TRUST_TIER_LABELS[tier],
     citations,
     fullyAnchored: factSources.length > 0 && factSources.every(Boolean),
+    ...(archetypesUsed.length > 0
+      ? { archetypes: [...new Set(archetypesUsed)], archetypeMisconceptionCount: archetypeMisconceptions.length }
+      : {}),
   };
 
   return { payload: { ...payload, conceptProvenance }, conceptProvenance };

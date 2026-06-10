@@ -9,7 +9,7 @@
       "level": "intro",
       "path": "bio-intro.json",
       "conceptCount": 2,
-      "hash": "2a4cf34855ea1301"
+      "hash": "53860d7ca82dc88a"
     },
     {
       "id": "econ-intro",
@@ -17,7 +17,7 @@
       "level": "intro",
       "path": "econ-intro.json",
       "conceptCount": 2,
-      "hash": "592a6d162964fec6"
+      "hash": "e8e2a25036e72868"
     },
     {
       "id": "stats-intro",
@@ -25,7 +25,12 @@
       "level": "intro",
       "path": "stats-intro.json",
       "conceptCount": 2,
-      "hash": "4452b64fd2d7e2d3"
+      "hash": "4cba76d3e43021e5"
     }
-  ]
+  ],
+  "archetypeShard": {
+    "path": "archetypes.json",
+    "archetypeCount": 16,
+    "hash": "9edcd75e86f39585"
+  }
 }

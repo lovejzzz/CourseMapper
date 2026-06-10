@@ -74,7 +74,23 @@
           "rationaleRefs": [0]
         }
       ],
-      "edges": { "requires": ["econ/demand-curve"], "recommends": ["econ/substitute-goods"] },
+      "edges": {
+        "requires": ["econ/demand-curve"],
+        "recommends": ["econ/substitute-goods"],
+        "instanceOf": [
+          {
+            "archetype": "method/marginal-analysis",
+            "confidence": 0.88,
+            "verified": true,
+            "mapping": {
+              "decision": "a pricing change",
+              "marginal benefit": "the change in quantity demanded from the next price step",
+              "marginal cost": "the revenue change from that price step",
+              "unit": "percentage change in price"
+            }
+          }
+        ]
+      },
       "attribution": ["OpenStax Principles of Microeconomics 3e, Ch. 5"]
     },
     {
@@ -205,7 +221,22 @@
           "rationaleRefs": [0]
         }
       ],
-      "edges": { "recommends": ["stats/p-value"] },
+      "edges": {
+        "recommends": ["stats/p-value"],
+        "instanceOf": [
+          {
+            "archetype": "method/sampling-and-inference",
+            "confidence": 0.95,
+            "verified": true,
+            "mapping": {
+              "population": "the full population the samples are drawn from",
+              "sample": "each sample drawn from the population",
+              "statistic": "the sample mean across repeated samples",
+              "uncertainty": "the sampling variability captured by the standard deviation of the sampling distribution"
+            }
+          }
+        ]
+      },
       "attribution": ["OpenStax Introductory Statistics, Ch. 7"]
     },
     {
@@ -272,7 +303,22 @@
           "rationaleRefs": [0]
         }
       ],
-      "edges": { "requires": ["stats/sampling-distribution"] },
+      "edges": {
+        "requires": ["stats/sampling-distribution"],
+        "instanceOf": [
+          {
+            "archetype": "method/sampling-and-inference",
+            "confidence": 0.9,
+            "verified": true,
+            "mapping": {
+              "population": "the population under the null hypothesis",
+              "sample": "the observed data sample",
+              "statistic": "the test statistic computed from the observed data",
+              "uncertainty": "the probability of data at least as extreme assuming the null hypothesis is true"
+            }
+          }
+        ]
+      },
       "attribution": ["OpenStax Introductory Statistics, Ch. 9"]
     },
     {
@@ -410,7 +456,21 @@
           "rationaleRefs": [0]
         }
       ],
-      "edges": {},
+      "edges": {
+        "instanceOf": [
+          {
+            "archetype": "structure/system-boundary",
+            "confidence": 0.92,
+            "verified": true,
+            "mapping": {
+              "system": "the cell",
+              "boundary": "the selectively permeable membrane (phospholipid bilayer)",
+              "what crosses": "nutrients and wastes that the membrane regulates",
+              "what is excluded": "large charged ions that cannot cross without protein channels"
+            }
+          }
+        ]
+      },
       "attribution": ["OpenStax Biology 2e, Ch. 3"]
     }
   ]

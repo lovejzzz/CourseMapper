@@ -21,6 +21,7 @@ import { dirname, join } from 'node:path';
 import { fileURLToPath } from 'node:url';
 import { admitBatch } from '../../src/lib/genome/foundryAdmission.js';
 import { buildConceptIndex } from '../../src/lib/genome/conceptResolver.js';
+import { normalizeArchetype } from '../../src/lib/genome/archetypeSchema.js';
 
 const here = dirname(fileURLToPath(import.meta.url));
 const sourcesDir = join(here, 'sources');
@@ -47,9 +48,25 @@ function main() {
   const sourceFiles = readdirSync(sourcesDir).filter((name) => name.endsWith('.json'));
   const allAdmitted = [];
   const fullReport = [];
+  const archetypes = [];
 
   for (const file of sourceFiles) {
     const raw = JSON.parse(readFileSync(join(sourcesDir, file), 'utf8'));
+    // Archetype sources (Layer 2) carry `archetypes`, not concept `kernels`.
+    if (Array.isArray(raw.archetypes)) {
+      let admitted = 0;
+      for (const candidate of raw.archetypes) {
+        const { archetype, issues } = normalizeArchetype(candidate);
+        if (archetype) {
+          archetypes.push(archetype);
+          admitted += 1;
+        } else {
+          fullReport.push({ file, id: candidate?.id || '(no id)', admitted: false, rejections: issues });
+        }
+      }
+      console.log(`[foundry] ${file}: admitted ${admitted}/${raw.archetypes.length} archetypes`);
+      continue;
+    }
     const sources = raw.sourceSnapshots || {};
     const { admitted, report } = admitBatch(raw.kernels || [], { sources, requireAnchors: true });
     allAdmitted.push(...admitted);
@@ -91,14 +108,31 @@ function main() {
     console.log(`[foundry] wrote ${path}: ${kernels.length} concepts`);
   }
 
+  // Archetype Layer (Layer 2): one global shard, manifest-pinned by hash.
+  let archetypeManifest = null;
+  if (archetypes.length > 0) {
+    const archetypeBody = {
+      id: 'archetypes',
+      archetypeCount: archetypes.length,
+      archetypes: archetypes.sort((a, b) => a.id.localeCompare(b.id)),
+    };
+    const json = JSON.stringify(archetypeBody, null, 0);
+    writeFileSync(join(outDir, 'archetypes.json'), json);
+    archetypeManifest = { path: 'archetypes.json', archetypeCount: archetypes.length, hash: hashContent(json) };
+    console.log(`[foundry] wrote archetypes.json: ${archetypes.length} archetypes`);
+  }
+
   const manifest = {
     version: new Date().toISOString().slice(0, 10),
     generator: 'curriculumos-foundry-v1',
     conceptCount: allAdmitted.length,
     shards: shards.sort((a, b) => a.id.localeCompare(b.id)),
+    ...(archetypeManifest ? { archetypeShard: archetypeManifest } : {}),
   };
   writeFileSync(join(outDir, 'manifest.json'), JSON.stringify(manifest, null, 2));
-  console.log(`[foundry] manifest: ${shards.length} shards, ${allAdmitted.length} concepts total`);
+  console.log(
+    `[foundry] manifest: ${shards.length} shards, ${allAdmitted.length} concepts, ${archetypes.length} archetypes`,
+  );
 
   const rejected = fullReport.filter((entry) => !entry.admitted);
   if (rejected.length > 0) {

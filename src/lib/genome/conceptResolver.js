@@ -205,3 +205,46 @@ export function resolveCourseConcepts(courseMap, index, options = {}) {
 }
 
 export const RESOLVER_THRESHOLDS = { RESOLVED_THRESHOLD, SUGGESTED_THRESHOLD };
+
+/**
+ * Layer 2: resolve a lesson to deep-structure archetypes by trigger-vocabulary
+ * overlap (same lexical machinery as concept resolution). Used to scaffold
+ * kernel calls — the archetype supplies the abstract structure and the
+ * misconception shapes so the model writes only the discipline mapping.
+ *
+ * @param {object} lesson
+ * @param {{ postings: Map, archetypes: Map }} archetypeIndex (from buildArchetypeIndex)
+ * @returns {{ archetypeRefs: [{id, name, family, score}] }}
+ */
+export function resolveArchetypes(lesson, archetypeIndex, options = {}) {
+  const { maxArchetypes = 2 } = options;
+  if (!archetypeIndex || archetypeIndex.archetypes.size === 0) return { archetypeRefs: [] };
+  const vocab = new Set(lessonVocabulary(lesson));
+  if (vocab.size === 0) return { archetypeRefs: [] };
+
+  const hits = new Map(); // id -> matched trigger-token count
+  for (const token of vocab) {
+    const posting = archetypeIndex.postings.get(token);
+    if (posting) for (const id of posting) hits.set(id, (hits.get(id) || 0) + 1);
+  }
+
+  const scored = [];
+  for (const [id, matched] of hits) {
+    const archetype = archetypeIndex.archetypes.get(id);
+    if (!archetype) continue;
+    // Require ≥2 trigger matches OR one strong multi-word trigger present in
+    // the lesson — a single generic token ("system", "rate") is too weak to
+    // claim a deep structure.
+    const strongTrigger = archetype.triggerVocabulary.some((trigger) => {
+      const words = trigger
+        .toLowerCase()
+        .split(/\s+/)
+        .filter((w) => w.length > 3);
+      return words.length >= 2 && words.every((w) => vocab.has(w.replace(/(?:ing|ed|es|s)$/, '')));
+    });
+    if (matched < 2 && !strongTrigger) continue;
+    scored.push({ id, name: archetype.name, family: archetype.family, score: matched + (strongTrigger ? 1 : 0) });
+  }
+  scored.sort((a, b) => b.score - a.score);
+  return { archetypeRefs: scored.slice(0, maxArchetypes) };
+}

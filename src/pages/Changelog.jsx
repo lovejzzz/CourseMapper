@@ -3,6 +3,50 @@ import Header from '../components/Header';
 
 const releases = [
   {
+    version: '0.11.0',
+    date: 'June 10, 2026',
+    title: 'The Archetype Layer: Deep Structures Across Disciplines',
+    highlights: [
+      'CurriculumOS Layer 2 ships: ~16 deep-structure archetypes (equilibrium, feedback, sampling-and-inference, evidence-vs-claim, source criticism, …) that recur across disciplines — the formalization that a professor teaching five courses holds the structures once, not five times',
+      'Misconceptions are now bought once and skinned everywhere: a universal misconception SHAPE (equilibrium-as-static) is instantiated per discipline from a grounded slot mapping at template prices, instead of being model-written for every course',
+      'Analogical bridges — the highest-evidence transfer technique — render deterministically: when two concepts in a course share a deep structure, the study guide names it ("p-value shares the deep structure of sampling distribution; the test statistic plays the role of the sample mean"). No context-bound chat model can do this; only the genome graph holds both concepts',
+      'Every bridge and mapping is verification-gated: forced analogies never reach students — an unverified or low-confidence mapping surfaces only as a TA observation, because a bad analogy actively harms learning',
+      'The interpretive family (hermeneutic circle, source criticism, contested categories) is first-class — humanities get their own structures, never STEM hand-me-downs',
+      'Genome-linked lessons gain archetype-instantiated misconceptions, a structural task item, and structural-connection notes — all free, all cited, all privacy-safe (no cross-lesson reference can leave the browser through the contribution boundary)',
+    ],
+    sections: [
+      {
+        label: 'The Archetype Layer',
+        icon: 'AI',
+        color: 'emerald',
+        items: [
+          'archetypeSchema.js validates archetype kernels (slots, trigger vocabulary, misconception SHAPES, task SCHEMAS, pedagogy bindings) with a slot-template lint; the genesis set of 16 archetypes across five families (systems/quantitative/epistemic/interpretive/process) is literature-anchored to Shulman PCK, Meyer & Land threshold concepts, NGSS crosscutting concepts, and Gentner structure-mapping.',
+          'Concept kernels gain an instanceOf edge with an explicit discipline mapping; lintInstanceMapping enforces that every slot is filled with nouns grounded in the concept own text — invented mappings are demoted, never rendered.',
+          'The foundry builds a global archetypes.json shard (hash-pinned); the genesis genome concepts carry verified archetype mappings.',
+        ],
+      },
+      {
+        label: 'Instantiation & Bridges',
+        icon: 'UI',
+        color: 'indigo',
+        items: [
+          'archetypeInstantiation.js fills misconception shapes and task schemas from a verified mapping — template-priced assessment content that is plausible-by-design and course-specific; composeLessonFromConcepts folds these into the genome-linked lesson payload.',
+          'archetypeBridges.js detects concepts that share a deep structure within a course and renders gated analogical bridges into the study guide; below the render threshold they become TA observations only.',
+          'A structure audit reports when a course teaches multiple instances of one structure without connecting them — a named transfer opportunity.',
+        ],
+      },
+      {
+        label: 'Guardrails & Telemetry',
+        icon: 'QA',
+        color: 'amber',
+        items: [
+          'Forced-analogy guard, red-team tested: ungrounded, partial, and low-confidence mappings never produce student-facing content; cross-lesson structural references are scrubbed by the contribution strip.',
+          'The run digest and generation log surface genome+archetype activity (concepts, citations, bridges); the archetype shard rides the existing lazy genome chunk, so the initial landing bundle is unchanged.',
+        ],
+      },
+    ],
+  },
+  {
     version: '0.10.1',
     date: 'June 10, 2026',
     title: 'CurriculumOS Activation: Enrichment On, Accurate Costs, Run Digest',

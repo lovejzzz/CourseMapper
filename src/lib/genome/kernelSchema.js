@@ -105,6 +105,31 @@ function normalizeMcItem(raw, factCount, misconceptionCount) {
   return { stem, options, answerIndex, explanationFactRef, rationaleRefs };
 }
 
+const ARCHETYPE_ID_RE = /^(?:structure|method|epistemic|interpretive|process)\/[a-z0-9]+(?:-[a-z0-9]+)*$/;
+
+function normalizeInstanceOf(raw) {
+  // Layer 2: a concept's instanceOf edges link it to archetypes with an
+  // explicit slot mapping (the discipline skin). The mapping is grounded-lint
+  // checked at composition time; here we just keep well-formed entries.
+  return asArray(raw)
+    .map((entry) => {
+      const archetype = cleanText(entry?.archetype).toLowerCase();
+      if (!ARCHETYPE_ID_RE.test(archetype)) return null;
+      const mapping =
+        entry?.mapping && typeof entry.mapping === 'object'
+          ? Object.fromEntries(Object.entries(entry.mapping).map(([slot, fill]) => [slot, cleanText(fill)]))
+          : {};
+      const confidence = Number(entry?.confidence);
+      return {
+        archetype,
+        confidence: Number.isFinite(confidence) ? Math.max(0, Math.min(1, confidence)) : 0.7,
+        mapping,
+        verified: entry?.verified === true,
+      };
+    })
+    .filter(Boolean);
+}
+
 function normalizeEdges(raw) {
   const edges = {};
   for (const kind of EDGE_KINDS) {
@@ -113,6 +138,8 @@ function normalizeEdges(raw) {
       .filter((id) => DISCIPLINE_SLUG_RE.test(id));
     if (ids.length > 0) edges[kind] = [...new Set(ids)];
   }
+  const instanceOf = normalizeInstanceOf(raw?.instanceOf);
+  if (instanceOf.length > 0) edges.instanceOf = instanceOf;
   return edges;
 }
 

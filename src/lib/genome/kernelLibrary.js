@@ -16,6 +16,7 @@
 
 import { buildConceptIndex } from './conceptResolver';
 import { normalizeConceptKernel } from './kernelSchema';
+import { buildArchetypeIndex, normalizeArchetype } from './archetypeSchema';
 
 const LOCAL_CACHE_KEY = 'coursemapper-genome-local';
 
@@ -31,7 +32,9 @@ function getStore(injected) {
 
 export function createKernelLibrary({ storage } = {}) {
   const kernels = new Map(); // id → kernel (highest rev/tier wins)
+  const archetypes = new Map(); // id → archetype (Layer 2)
   let index = buildConceptIndex([]);
+  let archetypeIndex = buildArchetypeIndex([]);
   let dirty = false;
 
   function rebuild() {
@@ -91,6 +94,32 @@ export function createKernelLibrary({ storage } = {}) {
     return kernels.size;
   }
 
+  // ── Archetype Layer (Layer 2) ────────────────────────────────────────────
+  function addArchetypes(rawList) {
+    let added = 0;
+    for (const raw of rawList || []) {
+      const { archetype } = normalizeArchetype(raw);
+      if (archetype) {
+        archetypes.set(archetype.id, archetype);
+        added += 1;
+      }
+    }
+    if (added > 0) archetypeIndex = buildArchetypeIndex([...archetypes.values()]);
+    return added;
+  }
+
+  function getArchetype(id) {
+    return archetypes.get(id) || null;
+  }
+
+  function getArchetypeIndex() {
+    return archetypeIndex;
+  }
+
+  function archetypeCount() {
+    return archetypes.size;
+  }
+
   // ── Local cache of the user's own generated kernels ──────────────────────
   function loadLocalCache() {
     const store = getStore(storage);
@@ -131,8 +160,12 @@ export function createKernelLibrary({ storage } = {}) {
     addKernel,
     addKernels,
     addShard,
+    addArchetypes,
     getIndex,
     getKernel,
+    getArchetype,
+    getArchetypeIndex,
+    archetypeCount,
     size,
     loadLocalCache,
     persistLocalKernels,
