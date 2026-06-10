@@ -101,12 +101,24 @@ export function runGenomeLinker({ courseMap, lessonIndices, library, cache = nul
   // Layer 2: analogical bridges between concepts sharing a deep structure.
   const { bridges, observations, structureFindings } = buildArchetypeBridges(resolution.perLesson, library);
   // Attach each renderable bridge to its target lesson's payload so the study
-  // guide can show the structural connection inline (student-facing).
+  // guide (note string) and the slide deck (structured mapping pairs) can both
+  // show the structural connection inline (student-facing).
   for (const bridge of bridges) {
     const targetId = `lesson-${bridge.toConcept.lessonIndex + 1}`;
     const payload = lessonContent[targetId];
     if (!payload) continue;
     payload.structuralConnections = [...(payload.structuralConnections || []), bridge.note];
+    payload.structuralBridges = [
+      ...(payload.structuralBridges || []),
+      {
+        archetypeName: bridge.archetypeName,
+        fromTerm: bridge.fromConcept.term,
+        fromLesson: bridge.fromConcept.lessonIndex + 1,
+        toTerm: bridge.toConcept.term,
+        mappingPairs: (bridge.mappingPairs || []).slice(0, 3).map((pair) => ({ from: pair.from, to: pair.to })),
+        note: bridge.note,
+      },
+    ];
   }
   telemetry.prerequisiteFindingCount = prerequisiteFindings.length;
   telemetry.glossaryConceptCount = glossary.length;

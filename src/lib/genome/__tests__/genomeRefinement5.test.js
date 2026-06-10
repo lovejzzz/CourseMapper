@@ -80,7 +80,7 @@ describe('iteration 5a — the flagship cross-department equilibrium bridge', ()
     const ids = [equilibriumBridge.fromConcept.id, equilibriumBridge.toConcept.id].sort();
     expect(ids).toEqual(['chem/chemical-equilibrium', 'econ/market-equilibrium']);
     // The note maps one discipline's slot onto the other's — true transfer.
-    expect(equilibriumBridge.note).toContain('corresponds to');
+    expect(equilibriumBridge.note).toContain('↔');
     expect(equilibriumBridge.note.toLowerCase()).toContain('equilibrium');
   });
 

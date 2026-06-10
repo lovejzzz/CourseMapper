@@ -15242,6 +15242,38 @@ function compileSlideDecks(blueprint) {
           ...(isEnriched ? { enrichmentSource: slide.enrichmentSource } : {}),
         };
       });
+      // CurriculumOS Layer 2: when this lesson bridges to a deep structure
+      // taught earlier in the course, add a "Same Structure" slide so the
+      // transfer is taught at the point of instruction, not just in the study
+      // guide. Structural transfer is the highest-evidence teaching move; this
+      // puts it on screen during the lecture.
+      const structuralBridges = Array.isArray(lesson.enrichment?.structuralBridges)
+        ? lesson.enrichment.structuralBridges
+        : [];
+      for (const bridge of structuralBridges.slice(0, 1)) {
+        const pairBullets = (bridge.mappingPairs || [])
+          .filter((pair) => pair.from && pair.to)
+          .map((pair) => {
+            const to = String(pair.to);
+            return `${to.charAt(0).toUpperCase()}${to.slice(1)} ↔ ${pair.from}`;
+          });
+        if (pairBullets.length < 2) continue;
+        slides.push({
+          title: `Same Structure: ${bridge.toTerm} and ${bridge.fromTerm}`,
+          type: 'content',
+          bullets: [
+            `Both are instances of ${bridge.archetypeName.toLowerCase()} — the same deep structure in different disciplines.`,
+            ...pairBullets,
+          ],
+          notes: `Draw the analogy explicitly: ${bridge.note} Ask students to predict one place where the analogy breaks down — naming the limit of a structural mapping deepens transfer.`,
+          visual: null,
+          activityType: 'discussion',
+          timer: '4 min',
+          bloomsLevel: 'Analyze',
+          objectiveLink: `Transfer the structure of ${bridge.fromTerm} to ${bridge.toTerm}`,
+          enrichmentSource: 'archetype-bridge',
+        });
+      }
       return {
         lessonTitle: deck.lessonTitle,
         totalSlides: slides.length,

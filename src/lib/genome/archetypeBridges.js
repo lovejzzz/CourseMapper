@@ -109,11 +109,12 @@ export function buildArchetypeBridges(perLesson = [], library) {
         mappingPairs: sharedSlots,
       };
       if (bridgeIsRenderable(anchor, target) && sharedSlots.length >= 2) {
-        // "corresponds to" reads correctly whether a slot value is singular or
-        // plural (avoids "the forward and reverse reactions plays the role…").
+        // The "↔" mapping is number-safe (no subject-verb agreement trap when
+        // a slot value is plural, e.g. "the forward and reverse reactions")
+        // and reads cleanly as a structural correspondence.
         bridge.note = `${target.term} shares the deep structure of ${anchor.term} (${archetype?.name || archetypeId}, Lesson ${anchor.lessonIndex + 1}): ${sharedSlots
           .slice(0, 3)
-          .map((pair) => `${pair.to} corresponds to ${pair.from}`)
+          .map((pair) => `${pair.to} ↔ ${pair.from}`)
           .join('; ')}.`;
         bridges.push(bridge);
       } else {

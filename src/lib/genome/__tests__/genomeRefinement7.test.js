@@ -92,7 +92,7 @@ describe('iteration 7 — three cross-discipline bridge families render', () => 
     const bridge = linked.bridges.find((b) => b.archetype === 'structure/feedback-loop');
     expect(bridge).toBeTruthy();
     expect([bridge.fromConcept.id, bridge.toConcept.id].sort()).toEqual(['bio/homeostasis', 'econ/wage-price-spiral']);
-    expect(bridge.note).toContain('corresponds to');
+    expect(bridge.note).toContain('↔');
   });
 
   it('evidence-vs-claim bridges history and literature', () => {
