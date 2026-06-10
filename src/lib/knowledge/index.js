@@ -16,3 +16,4 @@ export {
 } from './providers.js';
 export { attachGenomeResources, attachOpenReadings, knowledgeCoverage } from './readingListEngine.js';
 export { PEDAGOGY_EVIDENCE, evidenceForMove, buildMethodsStatement } from './pedagogyEvidence.js';
+export { buildCompetencyMap, competencyStandardsUrls } from './competencyMap.js';

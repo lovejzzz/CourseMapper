@@ -547,6 +547,19 @@ export function _buildDocxContentShared(featureId, data, children, docx) {
             if (entry?.note) children.push(makeBold(entry.label || entry.move, entry.note));
           });
         }
+        // v0.14 P1: prerequisite check — cited primers for genome
+        // prerequisites this lesson builds on but the course never teaches.
+        if (p.prerequisiteCheck?.primers?.length) {
+          children.push(makeSubHeading('Prerequisite Check'));
+          if (p.prerequisiteCheck.note) children.push(makeText(p.prerequisiteCheck.note));
+          p.prerequisiteCheck.primers.forEach((primer) => {
+            children.push(
+              makeBold(primer.term, `${primer.definition}${primer.source ? ` (Source: ${primer.source})` : ''}`),
+            );
+            if (primer.keyFact) children.push(makeBullet(primer.keyFact));
+            if (primer.why) children.push(makeItalic(primer.why));
+          });
+        }
         // Formative Assessment — v0.12.1: label/value pairs as a table.
         if (p.formativeCheck) {
           children.push(makeSubHeading('Formative Assessment'));
@@ -1194,6 +1207,36 @@ export function _buildDocxContentShared(featureId, data, children, docx) {
           if (method.claim) children.push(makeText(method.claim));
           (method.references || []).forEach((reference) => children.push(makeBullet(reference)));
         });
+      }
+      // v0.14 P2: Course Competency Map — each concept to its Bloom level and
+      // any curated standards codes, generated from the verified concepts.
+      if (syl.competencyMap?.rows?.length) {
+        children.push(makeHeading('Course Competency Map'));
+        children.push(
+          makeText(
+            `Generated from this course's source-verified concepts. Bloom span: ${syl.competencyMap.bloomSpan.lowest}–${syl.competencyMap.bloomSpan.highest}.${
+              syl.competencyMap.frameworks.length
+                ? ` Standards frameworks: ${syl.competencyMap.frameworks.join(', ')}.`
+                : ''
+            }`,
+          ),
+        );
+        const hasStandards = syl.competencyMap.rows.some((r) => r.standards.length);
+        const headers = hasStandards
+          ? ['Concept', 'Taught In', "Bloom's", 'Standards']
+          : ['Concept', 'Taught In', "Bloom's"];
+        const colDXA = hasStandards ? [3000, 2600, 1400, 2360] : [4000, 3360, 2000];
+        children.push(
+          makeTableFn(
+            colDXA,
+            headers,
+            syl.competencyMap.rows.map((row) => {
+              const base = [row.concept, row.lesson, row.bloom];
+              if (hasStandards) base.push(row.standards.map((s) => `${s.framework} ${s.code}`).join('; ') || '—');
+              return base;
+            }),
+          ),
+        );
       }
       // v0.13.5 P4: Sources & Licenses appendix — every open resource with
       // its license and attribution, generated for CC BY compliance.

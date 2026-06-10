@@ -16,7 +16,7 @@
 
 import { resolveCourseConcepts } from './conceptResolver';
 import { composeLessonFromConcepts } from './composeLessonFromConcepts';
-import { auditPrerequisites } from './prerequisiteAudit';
+import { auditPrerequisites, buildPrerequisiteJudgment } from './prerequisiteAudit';
 import { buildGlossaryGraph } from './glossaryGraph';
 import { buildArchetypeBridges } from './archetypeBridges';
 
@@ -96,7 +96,21 @@ export function runGenomeLinker({ courseMap, lessonIndices, library, cache = nul
 
   // Linker powers: prerequisite gap audit + glossary graph over the resolution.
   // These are deterministic observations, never auto-edits.
-  const { findings: prerequisiteFindings } = auditPrerequisites(resolution.perLesson, library);
+  const { findings: rawPrerequisiteFindings } = auditPrerequisites(resolution.perLesson, library);
+  // V0.14 P1: detection → judgment. Classify each gap (bridgeable vs
+  // assumed-background) and build cited prerequisite primers for the gaps the
+  // genome can fill. Attach each primer to the lesson that needs it so the
+  // overlay carries it into the compiler and exporters.
+  const {
+    findings: prerequisiteFindings,
+    primers: prerequisitePrimers,
+    summary: prerequisiteJudgmentSummary,
+  } = buildPrerequisiteJudgment(rawPrerequisiteFindings, library);
+  for (const primer of prerequisitePrimers) {
+    const payload = lessonContent[lessonIdFor(primer.neededForLessonIndex)];
+    if (!payload) continue;
+    payload.prerequisitePrimers = [...(payload.prerequisitePrimers || []), primer];
+  }
   const { glossary, spiralReferences } = buildGlossaryGraph(resolution.perLesson, library);
   // Layer 2: analogical bridges between concepts sharing a deep structure.
   const { bridges, observations, structureFindings } = buildArchetypeBridges(resolution.perLesson, library);
@@ -121,6 +135,7 @@ export function runGenomeLinker({ courseMap, lessonIndices, library, cache = nul
     ];
   }
   telemetry.prerequisiteFindingCount = prerequisiteFindings.length;
+  telemetry.prerequisiteBridgesBuilt = prerequisitePrimers.length;
   telemetry.glossaryConceptCount = glossary.length;
   telemetry.bridgeCount = bridges.length;
   telemetry.structureFindingCount = structureFindings.length;
@@ -130,6 +145,8 @@ export function runGenomeLinker({ courseMap, lessonIndices, library, cache = nul
     missingIndices,
     telemetry,
     prerequisiteFindings,
+    prerequisitePrimers,
+    prerequisiteJudgment: prerequisiteJudgmentSummary,
     glossary,
     spiralReferences: Object.fromEntries(spiralReferences),
     bridges,

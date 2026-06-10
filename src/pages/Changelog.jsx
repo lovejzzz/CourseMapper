@@ -3,6 +3,30 @@ import Header from '../components/Header';
 
 const releases = [
   {
+    version: '0.14.0',
+    date: 'June 10, 2026',
+    title: 'Judgment: the genome reasons about teaching',
+    highlights: [
+      'Prerequisite-gap diagnosis turns detection into judgment: the linker walks the genome’s prerequisite edges against a course’s lesson order and classifies every gap — "bridgeable" when the missing concept is a kernel in the genome, "assumed background" when it’s a foundational concept outside it — so a course that teaches spectral lines without ever teaching the electromagnetic spectrum is caught, deterministically, before students hit the wall',
+      'Cited bridge injection fills the holes the genome can fill: each bridgeable gap produces a quote-anchored prerequisite primer (the missing kernel’s definition, one anchored fact, and its real OpenStax citation), rendered as a "Prerequisite Check" note in the affected lesson plan, a genome-prerequisite resource in supportingResources, and an entry in the Sources & Licenses appendix — receipts, not a generated guess, at zero AI cost',
+      'The Course Competency Map maps every concept to its Bloom level (owned kernel data) and any curated, link-checked standards codes — seeded with NGSS performance expectations (Kepler’s laws → HS-ESS1-4, the expanding universe → HS-ESS1-2) — and renders as an accreditation-ready crosswalk table in the syllabus, generated from the course’s source-verified concepts',
+      'The judgment surface makes it visible: a "course judgment" line in the run digest and PACKAGE_MANIFEST.json (gaps found, bridged, assumed), and the generation log reports what the genome reasoned about your course',
+      'npm run knowledge:audit now also link-checks every standards-framework URL alongside shard source books and pedagogy DOIs',
+    ],
+    sections: [
+      {
+        label: 'Proof',
+        icon: 'QA',
+        color: 'emerald',
+        items: [
+          'tests/judgment-proof.test.js compiles a deliberately gapped course (spectral lines without the electromagnetic spectrum) through the real linker → graph → compiler path and asserts the full loop: gap detected, classified bridgeable, cited primer built from the genome kernel, primer surfaced as a resource and a lesson-plan Prerequisite Check, and a soundly-sequenced course producing zero gaps and zero primers (no false positives) — all offline.',
+          'Competency crosswalk proven: the syllabus maps concepts to Bloom levels and renders the curated NGSS standard (HS-ESS1-4) with its code; npm run knowledge:audit confirms the framework URL resolves.',
+          'Full suite green (2580 passed); golden equivalence, output-artifact gate, and the v0.13.5 backbone proof all hold. Generation cost unchanged — judgment is deterministic graph reasoning over data already shipped.',
+        ],
+      },
+    ],
+  },
+  {
     version: '0.13.5',
     date: 'June 10, 2026',
     title: 'The Open Knowledge Backbone: Receipts for Every Course',

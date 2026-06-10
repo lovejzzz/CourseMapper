@@ -753,6 +753,9 @@ export default function AppFlow({ startupAction = null, onStartupHandled, onRetu
               .join(', ')}) · ${coverage.sessionsWithResources} lessons with readings`,
           }
         : {}),
+      // v0.14 P3: the judgment surface — what the genome reasoned about this
+      // course (prerequisite gaps found, bridged, or flagged).
+      ...(budget.pipeline?.judgment ? { judgment: budget.pipeline.judgment } : {}),
     };
   }, []);
 

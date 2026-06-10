@@ -221,8 +221,23 @@ export function normalizeConceptKernel(raw) {
           : { sourceEdition: '', reviewBy: '', volatility: 'low' },
       license: cleanText(raw?.license) || 'CC-BY-4.0',
       attribution: asArray(raw?.attribution).map(cleanText).filter(Boolean),
+      // v0.14 P2: competency/standards tags — curated, link-checked, never
+      // model-asserted. Each: { framework, code, label, url }.
+      standards: asArray(raw?.standards).map(normalizeStandard).filter(Boolean),
     },
     issues: [],
+  };
+}
+
+function normalizeStandard(raw) {
+  const framework = cleanText(raw?.framework);
+  const code = cleanText(raw?.code);
+  if (!framework || !code) return null;
+  return {
+    framework,
+    code,
+    label: cleanText(raw?.label),
+    url: cleanText(raw?.url),
   };
 }
 

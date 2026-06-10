@@ -4,6 +4,7 @@ import { getChunkCount } from './parallelGenerator';
 import { getCustomDeliverable } from './customDeliverableLibrary';
 import { buildObservationProtocol } from './observationProtocols';
 import { whyThisWorksNote, buildMethodsStatement } from './knowledge/pedagogyEvidence';
+import { buildCompetencyMap } from './knowledge/competencyMap';
 import {
   describeInstructorPreferenceForFeature,
   normalizeInstructorPreferenceProfile,
@@ -12569,8 +12570,29 @@ function buildLessonEvidenceBase(lesson) {
   return moves.map((move) => whyThisWorksNote(move, { anchor: concept })).filter(Boolean);
 }
 
+// v0.14 P1: the lesson's prerequisite check — cited primers (from the genome)
+// for prerequisites this lesson builds on that the course never teaches.
+// Renders as an instructor-facing "before this lesson, students need …" note
+// with a real source, never a generated guess.
+function buildLessonPrerequisiteCheck(lesson) {
+  const primers = lesson.enrichment?.prerequisitePrimers;
+  if (!Array.isArray(primers) || primers.length === 0) return null;
+  return {
+    note: 'This lesson builds on concept(s) not taught earlier in the course. Confirm students have this background, or use the cited primer(s) below before teaching.',
+    primers: primers.map((primer) => ({
+      term: cleanText(primer.prerequisiteTerm),
+      neededFor: cleanText(primer.neededForTerm),
+      definition: cleanText(primer.definition),
+      keyFact: cleanText(primer.keyFact),
+      source: cleanText(primer.source),
+      why: cleanText(primer.whyNote),
+    })),
+  };
+}
+
 const KNOWLEDGE_ORIGIN_LABELS = {
   genome: 'Open textbook sections (quote-anchored in the curriculum library)',
+  'genome-prerequisite': 'Prerequisite primers (cited background the course assumes)',
   openalex: 'Peer-reviewed readings (open access)',
   openlibrary: 'Books and reference texts',
   syllabus: 'Instructor-listed materials',
@@ -12982,6 +13004,10 @@ function compileSyllabus(blueprint) {
         ? { methodsStatement: buildMethodsStatement(collectCourseTeachingMoves(blueprint)) }
         : {}),
       ...(buildSourcesAndLicenses(blueprint) ? { sourcesAndLicenses: buildSourcesAndLicenses(blueprint) } : {}),
+      // v0.14 P2: the Course Competency Map — every concept to its Bloom
+      // level (owned data) and curated standards codes, generated from the
+      // course's verified concepts.
+      ...(buildCompetencyMap(blueprint) ? { competencyMap: buildCompetencyMap(blueprint) } : {}),
       tags: unique([blueprint.courseName, ...blueprint.courseConcepts, 'assessment alignment', 'student support'], 12),
     },
   };
@@ -15913,6 +15939,9 @@ function compileLessonPlans(blueprint) {
         // v0.13.5 P3: "why this works" — each teaching move in this plan
         // cites its learning-science research base.
         evidenceBase: buildLessonEvidenceBase(lesson),
+        // v0.14 P1: prerequisite check — cited primers for any genome
+        // prerequisite this lesson builds on but the course never teaches.
+        prerequisiteCheck: buildLessonPrerequisiteCheck(lesson),
         sourceUsePlan: lesson.sourceUsePlan,
         accessibilityPlan: lesson.accessibilityPlan,
         feedbackCycle: lesson.feedbackCycle,

@@ -153,6 +153,30 @@ export function attachGenomeResources(graph) {
       });
       attached += 1;
     }
+
+    // V0.14 P1: cited prerequisite primers — the genome filling a gap the
+    // course assumes but never teaches. One resource per primer, marked so
+    // the lesson plan and appendix render it as a "needed background" item.
+    for (const primer of payload.prerequisitePrimers || []) {
+      const { url, license, attribution } = openTextbookUrl(cleanText(primer.source));
+      const definition = cleanText(primer.definition);
+      const citation = `Prerequisite primer — ${cleanText(primer.prerequisiteTerm)}: ${definition}${
+        primer.source ? ` (${cleanText(primer.source)})` : ''
+      }`;
+      if (seen.has(citation.toLowerCase())) continue;
+      seen.add(citation.toLowerCase());
+      attachResource(graph, session, {
+        id: nextId(),
+        citation,
+        kind: 'prerequisite primer',
+        sessionRefs: [],
+        origin: 'genome-prerequisite',
+        url,
+        license,
+        attribution,
+      });
+      attached += 1;
+    }
   }
   return attached;
 }
@@ -259,7 +283,7 @@ export function knowledgeCoverage(graph) {
     (payload) => payload?.conceptProvenance?.source === 'genome-linked',
   ).length;
   const citedResources = resources.filter((resource) =>
-    ['genome', 'openalex', 'openlibrary'].includes(resource.origin),
+    ['genome', 'genome-prerequisite', 'openalex', 'openlibrary'].includes(resource.origin),
   );
   return {
     sessions: sessions.length,

@@ -397,7 +397,15 @@
         }
       ],
       "edges": { "requires": [], "recommends": ["astro/solar-nebula"] },
-      "attribution": ["OpenStax Astronomy 2e, §3.1 The Laws of Planetary Motion"]
+      "attribution": ["OpenStax Astronomy 2e, §3.1 The Laws of Planetary Motion"],
+      "standards": [
+        {
+          "framework": "NGSS",
+          "code": "HS-ESS1-4",
+          "label": "Use mathematical or computational representations to predict the motion of orbiting objects in the solar system.",
+          "url": "https://www.nextgenscience.org/"
+        }
+      ]
     },
     {
       "id": "astro/electromagnetic-spectrum",
@@ -1009,7 +1017,15 @@
         }
       ],
       "edges": { "requires": ["astro/parallax"], "recommends": [] },
-      "attribution": ["OpenStax Astronomy 2e, §26.5 The Expanding Universe"]
+      "attribution": ["OpenStax Astronomy 2e, §26.5 The Expanding Universe"],
+      "standards": [
+        {
+          "framework": "NGSS",
+          "code": "HS-ESS1-2",
+          "label": "Construct an explanation of the Big Bang theory based on astronomical evidence of light spectra, motion of distant galaxies, and composition of matter in the universe.",
+          "url": "https://www.nextgenscience.org/"
+        }
+      ]
     }
   ]
 }

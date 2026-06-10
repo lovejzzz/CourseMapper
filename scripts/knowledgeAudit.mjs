@@ -102,6 +102,26 @@ async function auditShards() {
     if (url === 'internal' || url.startsWith('unknown:')) continue;
     await checkUrl(url, label);
   }
+
+  // v0.14 P2: standards-framework link health — every curated standards tag's
+  // URL must resolve, same bar as shard books and pedagogy DOIs.
+  console.log('\n— Standards framework link health —');
+  const standardsUrls = new Map();
+  for (const shardMeta of manifest.shards || []) {
+    const shard = JSON.parse(readFileSync(join(genomeDir, shardMeta.path), 'utf8'));
+    for (const kernel of shard.kernels || []) {
+      for (const standard of kernel.standards || []) {
+        if (standard.url && !standardsUrls.has(standard.url)) {
+          standardsUrls.set(standard.url, `${standard.framework} ${standard.code}`);
+        }
+      }
+    }
+  }
+  if (standardsUrls.size === 0) {
+    console.log('  (no standards tags in genome yet)');
+  } else {
+    for (const [url, label] of standardsUrls) await checkUrl(url, label);
+  }
 }
 
 async function auditEvidence() {

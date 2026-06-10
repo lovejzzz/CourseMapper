@@ -1076,6 +1076,8 @@ export default function useDeliverables({
             },
             powers: {
               prerequisiteFindings: linked.prerequisiteFindings || [],
+              prerequisitePrimers: linked.prerequisitePrimers || [],
+              prerequisiteJudgment: linked.prerequisiteJudgment || null,
               glossary: linked.glossary || [],
               spiralReferences: linked.spiralReferences || {},
               bridges: linked.bridges || [],
@@ -1090,6 +1092,17 @@ export default function useDeliverables({
             detail: `${t.resolvedFromGenome} genome + ${t.resolvedFromCache} cached of ${allLessonIndices.length} lessons (${t.conceptHits} concepts, ${t.citationsRendered} citations, ${t.bridgeCount || 0} bridges)`,
             featureId: 'blueprintEnrichment',
           });
+          // v0.14 P3: the judgment surface — what the genome reasoned about
+          // this course (prerequisite gaps found, bridged, or flagged).
+          const judgment = linked.prerequisiteJudgment;
+          if (judgment && (judgment.missing > 0 || judgment.outOfOrder > 0)) {
+            recordGenerationApiCallEvent({
+              type: 'pipelineDecision',
+              stage: 'judgment',
+              label: 'Course judgment',
+              detail: `${judgment.missing} prerequisite gap${judgment.missing === 1 ? '' : 's'} (${judgment.bridgeable} bridgeable with cited primers, ${judgment.assumedBackground} assumed background)${judgment.outOfOrder ? ` · ${judgment.outOfOrder} out-of-order` : ''} · ${judgment.primersBuilt} primer${judgment.primersBuilt === 1 ? '' : 's'} built`,
+            });
+          }
           if ((linked.bridges || []).length > 0) {
             appendLog(
               `✓ Drew ${linked.bridges.length} structural bridge${linked.bridges.length === 1 ? '' : 's'} between concepts sharing a deep structure (transfer learning)`,
@@ -1103,8 +1116,15 @@ export default function useDeliverables({
             );
           }
           if (linked.prerequisiteFindings?.length > 0) {
+            // v0.14 P1: detection → judgment. Report what the genome can fill
+            // (cited primers) vs. what it can only flag (assumed background).
+            const j = linked.prerequisiteJudgment;
             appendLog(
-              `⚑ Curriculum check: ${linked.prerequisiteFindings.length} prerequisite gap${linked.prerequisiteFindings.length === 1 ? '' : 's'} detected — ${linked.prerequisiteFindings[0].message}`,
+              `⚑ Curriculum check: ${linked.prerequisiteFindings.length} prerequisite gap${linked.prerequisiteFindings.length === 1 ? '' : 's'} detected${
+                j
+                  ? ` — ${j.primersBuilt} bridged with cited primers, ${j.assumedBackground} flagged as assumed background`
+                  : ''
+              } — ${linked.prerequisiteFindings[0].message}`,
               'progress',
             );
           }

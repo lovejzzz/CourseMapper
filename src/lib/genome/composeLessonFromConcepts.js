@@ -197,12 +197,21 @@ export function composeLessonFromConcepts(conceptKernels = [], courseLayer = {},
       ),
     ),
   ];
+  // v0.14 P2: competency data rides along so the syllabus can build a
+  // Course Competency Map — Bloom level (owned data) + curated standards tags.
+  const competencies = kernels.map((kernel) => ({
+    term: cleanText(kernel.term),
+    bloom: cleanText(kernel.bloomCeiling) || 'Analyze',
+    standards: Array.isArray(kernel.standards) ? kernel.standards : [],
+  }));
+
   const conceptProvenance = {
     source: 'genome-linked',
     conceptIds: kernels.map((kernel) => kernel.id),
     tier,
     tierLabel: TRUST_TIER_LABELS[tier],
     citations,
+    competencies,
     fullyAnchored: factSources.length > 0 && factSources.every(Boolean),
     ...(archetypesUsed.length > 0
       ? { archetypes: [...new Set(archetypesUsed)], archetypeMisconceptionCount: archetypeMisconceptions.length }
