@@ -2,6 +2,7 @@ import { COLUMN_EXTRACTORS } from './prompts/promptUtils';
 import { finalizeCompiledDeliverableLanguage } from './compiledLanguageFinalizer';
 import { getChunkCount } from './parallelGenerator';
 import { getCustomDeliverable } from './customDeliverableLibrary';
+import { buildObservationProtocol } from './observationProtocols';
 import {
   describeInstructorPreferenceForFeature,
   normalizeInstructorPreferenceProfile,
@@ -13439,7 +13440,11 @@ function compileStudyGuides(blueprint) {
         .slice(0, 3)
         .map((term) => ({
           misconception: term.misconception,
-          correction: `${term.term}: ${term.definition}`,
+          // v0.13.3: the correction is the corrective statement when the
+          // kernel/genome supplies one — never the definition restated. The
+          // fallback phrases the definition as a counter, which at least
+          // reads as a correction instead of a glossary entry.
+          correction: term.correction || `In fact: ${stripTerminalPunctuation(term.definition)}.`,
         }));
       const misconceptionMap =
         enrichedMisconceptions.length > 0
@@ -13498,6 +13503,7 @@ function compileStudyGuides(blueprint) {
             `Compare strong and partial anchor examples before preparing ${lesson.studentArtifact}.`,
           `The lesson prepares students to meet this success criterion: ${lesson.successCriteria[0]}`,
         ],
+        ...(lesson.enrichment?.workedExample ? { workedExample: lesson.enrichment.workedExample } : {}),
         commonMisconceptions:
           misconceptionMap.length > 0
             ? misconceptionMap
@@ -13547,11 +13553,25 @@ function compileStudyGuides(blueprint) {
                   bloomsLevel: 'Analyze',
                   hint: `Name ${phrase.context}, cite evidence, and explain why it matters.`,
                 },
-                {
-                  question: `What would strong work on ${lesson.studentArtifact} need to show?`,
-                  bloomsLevel: 'Evaluate',
-                  hint: `${lesson.successCriteria.join(' ')} Artifact genre check: ${lesson.artifactGenre?.qualityFocus || 'evidence specificity and revision quality'}.`,
-                },
+                // v0.13.3: when the lesson carries kernel facts, the second
+                // review question asks about the SUBJECT, not the assessment
+                // process (the v0.13.1 audit's "what would strong work need
+                // to show" meta-question).
+                ...(lesson.enrichment?.kernel?.facts?.[0]
+                  ? [
+                      {
+                        question: `Explain why this is true and what evidence supports it: “${stripTerminalPunctuation(lesson.enrichment.kernel.facts[0])}.”`,
+                        bloomsLevel: 'Analyze',
+                        hint: `Use ${lesson.keyConcepts.slice(0, 2).join(' and ') || 'the lesson concepts'} in your explanation, and name one observation that backs the claim.`,
+                      },
+                    ]
+                  : [
+                      {
+                        question: `What would strong work on ${lesson.studentArtifact} need to show?`,
+                        bloomsLevel: 'Evaluate',
+                        hint: `${lesson.successCriteria.join(' ')} Artifact genre check: ${lesson.artifactGenre?.qualityFocus || 'evidence specificity and revision quality'}.`,
+                      },
+                    ]),
                 {
                   // Student-facing study guides ask the student directly; the
                   // instructor-voice metacognitive prompt stays in lesson plans.
@@ -14223,6 +14243,21 @@ function slideVisual(lesson, slide) {
       kind: 'concept map',
       purpose: `Define ${concept} as a decision tool, not a vocabulary-only term.`,
       evidenceUse: `Link ${concept} to evidence cues and decision cues students will use in ${artifact}.`,
+      // v0.13.3: explicit hub/spokes from the lesson's kernel key terms —
+      // short disciplinary terms the exporter can render as a native
+      // hub-and-spoke group (full-sentence bullets always failed its guard).
+      ...(() => {
+        const hub = conciseClause(concept, concept, 36);
+        const spokes = unique(
+          [
+            ...(lesson.enrichment?.keyTerms || []).map((term) => cleanText(term.term)),
+            ...(lesson.keyConcepts || []).map((term) => cleanText(term)),
+            cleanText(secondary),
+          ].filter((term) => term && term.length <= 26 && term.toLowerCase() !== hub.toLowerCase()),
+          4,
+        );
+        return spokes.length >= 2 ? { hub, spokes } : {};
+      })(),
     },
     content: {
       kind: /limit|honest|gap/i.test(title) ? 'constraint map' : 'evidence table',
@@ -14281,6 +14316,9 @@ function slideVisual(lesson, slide) {
     kind: selected.kind,
     description: `${sentenceCase(selected.kind)}: ${visualEvidence}.`,
     altText: `${sentenceCase(selected.kind)} for "${title}" showing ${concept} evidence for ${artifact}.`,
+    // v0.13.3: renderable concept-map data (hub + short spoke terms) rides
+    // the descriptor so the PPTX exporter can draw a native group.
+    ...(selected.hub && Array.isArray(selected.spokes) ? { hub: selected.hub, spokes: selected.spokes } : {}),
     visualPlan,
   };
 }
@@ -15571,14 +15609,26 @@ function buildLessonPlanOutline(blueprint, lesson) {
   const misconception = lesson.misconceptionMap?.[0];
   const evidencePlan = lesson.evidencePlan;
   const modality = lesson.modalityDecode || buildLessonModalityDecode(blueprint.courseModalityProfile || {}, lesson);
+  // v0.13.3: kernel-aware teaching script — when this lesson carries authored
+  // or genome-linked subject matter, the script teaches THAT content instead
+  // of the generic process frame (the v0.13.1 live audit's weakest surface).
+  const kernelPayload = lesson.enrichment || null;
+  const kernelMisconception = (kernelPayload?.keyTerms || []).find((term) => term.misconception) || null;
+  const kernelFact = (kernelPayload?.kernel?.facts || [])[0] || '';
+  const kernelScenario = kernelPayload?.kernel?.scenario || null;
+  const kernelWorkedExample = kernelPayload?.workedExample || null;
 
   return [
     {
       time: formatDuration(warmUp),
       activity: 'Warm-up retrieval and framing',
       type: 'Warm-up',
-      description: `Students respond to a short prompt that asks them to ${phrase.decisionMove} using prior course evidence before the day’s lesson work begins.`,
-      instructorNotes: `Collect two fast examples about ${concept}, name the evidence move worth imitating, and connect the prompt to ${lesson.outcomes[0]}.`,
+      description: kernelMisconception
+        ? `Misconception poll: display “${stripTerminalPunctuation(kernelMisconception.misconception)}” and have students vote true or false, then defend the vote with one observation or example.`
+        : `Students respond to a short prompt that asks them to ${phrase.decisionMove} using prior course evidence before the day’s lesson work begins.`,
+      instructorNotes: kernelMisconception
+        ? `Reveal the correction only after the vote: ${stripTerminalPunctuation(kernelMisconception.correction || `in fact, ${kernelMisconception.definition}`)}. Connect the discussion to ${lesson.outcomes[0]}.`
+        : `Collect two fast examples about ${concept}, name the evidence move worth imitating, and connect the prompt to ${lesson.outcomes[0]}.`,
       instructorRole: `Facilitate retrieval, surface misconceptions about ${concept}, and set the purpose for ${stripLessonPrefix(lesson.title)}.`,
       grouping: 'Whole class, then quick pair share',
       bloomsLevel: 'Apply',
@@ -15587,8 +15637,14 @@ function buildLessonPlanOutline(blueprint, lesson) {
       time: formatDuration(context),
       activity: 'Model the weekly concept',
       type: 'Mini-lesson',
-      description: `Introduce ${concept} with a concise worked example that shows how ${lens.learnerRole}s ${phrase.evidenceMove}.`,
-      instructorNotes: `Keep the model concrete, point to ${evidencePlan?.sourceCue || 'one source cue'}, and show one line of reasoning students should reuse in ${artifact}.`,
+      description: kernelWorkedExample
+        ? `Work the example step by step on the board: ${stripTerminalPunctuation(kernelWorkedExample.problem)}.`
+        : kernelFact
+          ? `Introduce ${concept} from its anchor fact — “${stripTerminalPunctuation(kernelFact)}” — and build the explanation students will reuse in ${artifact}.`
+          : `Introduce ${concept} with a concise worked example that shows how ${lens.learnerRole}s ${phrase.evidenceMove}.`,
+      instructorNotes: kernelWorkedExample
+        ? `Solution path: ${kernelWorkedExample.steps.join(' → ')}. Result: ${kernelWorkedExample.result}. Have students annotate each step, then assign one variation with different numbers.`
+        : `Keep the model concrete, point to ${evidencePlan?.sourceCue || 'one source cue'}, and show one line of reasoning students should reuse in ${artifact}.`,
       instructorRole: `Model thinking aloud and annotate the exemplar for ${concept}.`,
       grouping: 'Instructor model with guided notes',
       bloomsLevel: 'Understand',
@@ -15597,7 +15653,9 @@ function buildLessonPlanOutline(blueprint, lesson) {
       time: formatDuration(guided),
       activity: 'Guided analysis',
       type: sentenceCase(modality.mode.replace(/-/g, ' ')),
-      description: `${sentenceCase(stripTerminalPunctuation(modality.signaturePractice))}. Students identify which evidence, assumptions, and constraints matter most for ${stripLessonPrefix(lesson.title)}.`,
+      description: kernelScenario?.setup
+        ? `${stripTerminalPunctuation(kernelScenario.setup)}. Students identify which evidence, assumptions, and constraints matter most.`
+        : `${sentenceCase(stripTerminalPunctuation(modality.signaturePractice))}. Students identify which evidence, assumptions, and constraints matter most for ${stripLessonPrefix(lesson.title)}.`,
       instructorNotes: `${stripTerminalPunctuation(modality.instructorMove)}; press for ${artifact} evidence about ${concept}. Watch for this misconception: ${misconception?.misconception || `students may use ${concept} without evidence`}.`,
       instructorRole: `Coach the ${modality.mode} evidence routine and press for specificity in ${artifact}.`,
       grouping: 'Pairs with instructor check-ins',
@@ -15763,6 +15821,19 @@ function compileLessonPlans(blueprint) {
           facilitation: `${teachingMoves.openingMove} Then name the quality cue students should carry into ${artifact}.`,
         },
         outline,
+        // v0.13.3: the quantitative walkthrough the mini-lesson references —
+        // authored once (genome exemplar or kernel call), rendered in full.
+        ...(lesson.enrichment?.workedExample ? { workedExample: lesson.enrichment.workedExample } : {}),
+        // v0.13.3 G6: signature pedagogy — when the course promises sky
+        // observation, every lesson plan carries the concrete protocol.
+        ...(() => {
+          const observationProtocol = buildObservationProtocol({
+            courseName: blueprint.courseName,
+            lessons: blueprint.lessons,
+            lesson,
+          });
+          return observationProtocol ? { observationProtocol } : {};
+        })(),
         formativeCheck: {
           type: 'Formative exit ticket',
           prompt:

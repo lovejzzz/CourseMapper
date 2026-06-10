@@ -521,6 +521,24 @@ export function _buildDocxContentShared(featureId, data, children, docx) {
           });
           children.push(makeTableFn(colDXA, ['Time', 'Activity', 'Description & Notes'], outlineRows));
         }
+        // v0.13.3: the quantitative walkthrough — problem, numbered steps,
+        // result callout — so "a concise worked example" is never a promise.
+        if (p.workedExample?.problem) {
+          children.push(makeSubHeading('Worked Example'));
+          children.push(makeText(p.workedExample.problem));
+          (p.workedExample.steps || []).forEach((step, si) => children.push(makeNumbered(si + 1, step)));
+          if (p.workedExample.result) children.push(makeCallout('Result', p.workedExample.result));
+        }
+        // v0.13.3 G6: the observing protocol for sky-observation courses.
+        if (p.observationProtocol) {
+          children.push(makeSubHeading('Observation Protocol'));
+          if (p.observationProtocol.weeklyFocus)
+            children.push(makeCallout('This Week', p.observationProtocol.weeklyFocus));
+          (p.observationProtocol.logFields || []).forEach((field) => children.push(makeBullet(field)));
+          if (p.observationProtocol.cloudyAlternative)
+            children.push(makeBold('Cloudy Night', p.observationProtocol.cloudyAlternative));
+          if (p.observationProtocol.observingBasics) children.push(makeItalic(p.observationProtocol.observingBasics));
+        }
         // Formative Assessment — v0.12.1: label/value pairs as a table.
         if (p.formativeCheck) {
           children.push(makeSubHeading('Formative Assessment'));
@@ -891,6 +909,13 @@ export function _buildDocxContentShared(featureId, data, children, docx) {
               }),
             ),
           );
+        }
+        // v0.13.3: the worked example students study from.
+        if (g.workedExample?.problem) {
+          children.push(makeSubHeading('Worked Example'));
+          children.push(makeText(g.workedExample.problem));
+          (g.workedExample.steps || []).forEach((step, si) => children.push(makeNumbered(si + 1, step)));
+          if (g.workedExample.result) children.push(makeCallout('Result', g.workedExample.result));
         }
         // How to reason about this structure (metacognitive scaffold)
         if (g.reasoningRoutine?.length) {

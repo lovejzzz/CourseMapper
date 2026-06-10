@@ -287,6 +287,11 @@ const enrichment = {
   // kernel contract (v0.9.11 P4): scenario block
   su: 'setup',
   ma: 'materials',
+  // v0.13.3: misconception corrections + quantitative worked examples
+  cx: 'correction',
+  wp: 'problem',
+  ws: 'steps',
+  wr: 'result',
 };
 
 export const KEY_MAPS = {

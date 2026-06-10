@@ -285,6 +285,17 @@ export function projectKernelToSurfaces(kernel, { itemPlan = [] } = {}) {
       }
     : null;
 
+  // v0.13.3: optional quantitative worked example — projected into the
+  // lesson-plan mini-lesson and the study guide.
+  const workedExample =
+    kernel?.workedExample && cleanText(kernel.workedExample.problem)
+      ? {
+          problem: cleanText(kernel.workedExample.problem),
+          steps: (kernel.workedExample.steps || []).map(cleanText).filter(Boolean),
+          result: cleanText(kernel.workedExample.result),
+        }
+      : null;
+
   return {
     quizItems,
     keyTerms: keyTerms.map((term) => ({
@@ -292,10 +303,15 @@ export function projectKernelToSurfaces(kernel, { itemPlan = [] } = {}) {
       definition: cleanText(term.definition),
       example: cleanText(term.example),
       misconception: cleanText(term.misconception),
+      // v0.13.3: the corrective statement rides with the term so study
+      // guides pair each misconception with a real correction, not the
+      // definition restated.
+      correction: cleanText(term.correction),
     })),
     ...(slideContent.length > 0 ? { slideContent } : {}),
     ...(discussionPrompt ? { discussionPrompt } : {}),
     ...(assignmentCore ? { assignmentCore } : {}),
+    ...(workedExample ? { workedExample } : {}),
     kernel: {
       facts: Array.isArray(kernel?.facts) ? kernel.facts.map(cleanText).filter(Boolean) : [],
       scenario: kernel?.scenario

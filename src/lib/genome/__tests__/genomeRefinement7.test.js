@@ -51,7 +51,8 @@ describe('iteration 7 — genome spans 6 disciplines', () => {
     const manifest = JSON.parse(readFileSync(join(process.cwd(), 'public/genome/manifest.json'), 'utf8'));
     expect(manifest.conceptCount).toBeGreaterThanOrEqual(18);
     const disciplines = new Set(manifest.shards.map((s) => s.discipline));
-    expect(disciplines).toEqual(new Set(['econ', 'stats', 'bio', 'chem', 'history', 'lit']));
+    // v0.13.3: the astronomy shard (OpenStax Astronomy 2e) joined the genome.
+    expect(disciplines).toEqual(new Set(['astro', 'econ', 'stats', 'bio', 'chem', 'history', 'lit']));
   });
 
   it('most genesis concepts carry a verified archetype mapping', () => {

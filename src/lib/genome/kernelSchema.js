@@ -87,6 +87,17 @@ function normalizeExample(raw) {
   return { text, domain: cleanText(raw?.domain), anchor: normalizeAnchor(raw?.anchor) };
 }
 
+// v0.13.3: quantitative worked example — a numeric problem solved step by
+// step, authored once per concept (the genome buys math once; the compiler
+// projects it into lesson plans and study guides).
+function normalizeWorkedExample(raw) {
+  const problem = cleanText(raw?.problem);
+  const steps = asArray(raw?.steps).map(cleanText).filter(Boolean);
+  const result = cleanText(raw?.result);
+  if (problem.length < 15 || steps.length < 2 || !result) return null;
+  return { problem, steps, result, anchor: normalizeAnchor(raw?.anchor) };
+}
+
 function normalizeMcItem(raw, factCount, misconceptionCount) {
   const stem = cleanText(raw?.stem ?? raw?.question);
   const options = asArray(raw?.options).map(cleanText).filter(Boolean);
@@ -162,6 +173,7 @@ export function normalizeConceptKernel(raw) {
   const facts = asArray(raw?.facts).map(normalizeFact).filter(Boolean);
   const misconceptions = asArray(raw?.misconceptions).map(normalizeMisconception).filter(Boolean);
   const examples = asArray(raw?.examples).map(normalizeExample).filter(Boolean);
+  const workedExamples = asArray(raw?.workedExamples).map(normalizeWorkedExample).filter(Boolean);
   const mcBank = asArray(raw?.mcBank)
     .map((item) => normalizeMcItem(item, facts.length, misconceptions.length))
     .filter(Boolean);
@@ -193,6 +205,7 @@ export function normalizeConceptKernel(raw) {
       facts,
       misconceptions,
       examples,
+      workedExamples,
       mcBank,
       edges: normalizeEdges(raw?.edges),
       variants: asArray(raw?.variants),

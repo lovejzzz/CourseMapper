@@ -310,8 +310,22 @@ function planNativeVisual(s, slideType, visKind, hasGeneratedImage, hasLatex) {
   }
 
   if (slideType === 'keyTerm' && /\bconcept\s*map\b/i.test(visKind)) {
-    // Concept map: hub = the concept (slide title), spokes = short phrases
-    // from the explanatory bullets, definition keeps the central card.
+    // v0.13.3: the compiler can attach explicit hub/spokes (the lesson's
+    // kernel key terms — short disciplinary phrases). Prefer them: bullet
+    // sentences almost never fit the spoke guard, which is why no concept
+    // map rendered in the v0.13.1 live audit.
+    const visual = s.visual || s.vi || {};
+    const descriptorHub = String(visual.hub || '').trim();
+    const descriptorSpokes = (Array.isArray(visual.spokes) ? visual.spokes : [])
+      .map((spoke) => String(spoke ?? '').trim())
+      .filter((spoke) => spoke && spoke.length <= NATIVE_VISUAL_LIMITS.spokeLabel)
+      .slice(0, 4);
+    if (descriptorHub && descriptorHub.length <= NATIVE_VISUAL_LIMITS.hubLabel && descriptorSpokes.length >= 2) {
+      const definition = bullets.find((b) => b.length <= NATIVE_VISUAL_LIMITS.definition) || '';
+      if (definition) return { type: 'conceptMap', hub: descriptorHub, definition, spokes: descriptorSpokes };
+    }
+    // Fallback: hub = the slide title, spokes = short phrases from the
+    // explanatory bullets, definition keeps the central card.
     const hub = String(s.title || '').trim();
     if (!hub || hub.length > NATIVE_VISUAL_LIMITS.hubLabel) return null;
     const definition = bullets[0];

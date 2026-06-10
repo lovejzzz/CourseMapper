@@ -1,0 +1,1015 @@
+{
+  "_comment": "v0.13.3 astronomy shard source — OpenStax Astronomy 2e (CC BY 4.0). Source snapshots are faithful condensations of the cited sections built around sentences quoted verbatim from the book (fetched June 10, 2026); every anchored quote below appears in its snapshot and was verified against the live text. Attribution: OpenStax Astronomy 2e, openstax.org/details/books/astronomy-2e.",
+  "sourceSnapshots": {
+    "openstax:astronomy-2e#2": "Gazing up, you get the impression that the sky is a great hollow dome with you at the center. The ancient Greeks regarded the sky as just such a celestial sphere, with the stars attached to it. If you lie back in an open field and observe the night sky for hours, as ancient shepherds and travelers regularly did, you will see stars rising on the eastern horizon (just as the Sun and Moon do), moving across the dome of the sky in the course of the night, and setting on the western horizon. Today we understand the sky only appears to turn: It is because Earth turns on this axis every 24 hours that we see the Sun, Moon, and stars rise and set with clockwork regularity.",
+    "openstax:astronomy-2e#4": "Many people believe Earth's varying distance from the Sun makes the seasons, but the seasons are actually caused by the 23.5° tilt of Earth's axis. Although Earth's orbit around the Sun is an ellipse, its distance from the Sun varies by only about 3%. Earth is actually closest to the Sun in January, when the Northern Hemisphere is in the middle of winter. When we lean into the Sun, sunlight hits us at a more direct angle and is more effective at heating Earth's surface, and the hours of daylight increase in summer and decrease in winter. In June, the Sun is north of the celestial equator and spends more time with those who live in the Northern Hemisphere.",
+    "openstax:astronomy-2e#4b": "The Moon's phases are not caused by Earth's shadow. As we watch the Moon from our vantage point on Earth, how much of its face we see illuminated by sunlight depends on the angle the Sun makes with the Moon. Note that in every position on Figure 4.14, the Moon is half illuminated and half dark (as a ball in sunlight should be). The difference at each position has to do with what part of the Moon faces Earth. Earth's shadow misses the Moon most months. That's why we regularly get treated to a full moon. The sidereal month is 27.3217 days to be exact. The time interval in which the phases repeat—say, from full to full—is the solar month, 29.5306 days.",
+    "openstax:astronomy-2e#3": "Kepler found that the orbits of all the planets are ellipses with the Sun at one focus, that in equal intervals of time (t), the areas swept out in space by this imaginary line are always equal, and that a planet's orbital period squared is proportional to the semimajor axis of its orbit cubed, or P²∝a³. When P (the orbital period) is measured in years, and a is expressed in astronomical units (AU), the two sides of the formula are not only proportional but equal. In these units, P²=a³. For Mars, with an orbital period of 1.88 Earth years, P² = 1.88² = 3.53, which equals a³, so a = 1.52 AU: Mars orbits about 50% farther from the Sun than Earth does.",
+    "openstax:astronomy-2e#5": "Scientists call this range the electromagnetic spectrum, which they have divided into a number of categories, including radio waves, infrared, visible light, ultraviolet, X-rays, and gamma rays. Wavelength and frequency are inversely related, and higher energy waves have a higher frequency and a shorter wavelength. Although visible light is what most people associate with astronomy, the light that our eyes can see is only a tiny fraction of the broad range of waves generated in the universe. Many high-frequency waves from space do not make it to the surface and must therefore be observed from space.",
+    "openstax:astronomy-2e#5b": "Atoms absorb and emit light at particular energies. Only photons with these exact energies can be absorbed, so hydrogen atoms absorb light at only certain wavelengths and produce dark lines at those wavelengths. Each type of atom has its own unique pattern of electron orbits, and no two sets of orbits are exactly alike, which means each type of atom shows its own unique set of spectral lines. Astronomers and physicists have worked hard to learn the lines that go with each element by studying the way atoms absorb and emit light in laboratories here on Earth. We now know the chemical makeup of not just any star, but even galaxies of stars so distant that their light started on its way to us long before Earth had even formed. The absorption lines in a spectrum give astronomers information about the temperature of the regions where the lines originate.",
+    "openstax:astronomy-2e#6": "The most important functions of a telescope are (1) to collect the faint light from an astronomical source and (2) to focus all the light into a point or an image. Light-gathering ability scales with the area of the aperture: a telescope with a mirror that is 4 meters in diameter can collect 16 times as much light as a telescope that is 1 meter in diameter.",
+    "openstax:astronomy-2e#19": "When we observe a nearby star from opposite sides of Earth's orbit, it appears to shift against the background of more distant stars. This apparent change in direction of the remote object due to a change in vantage point of the observer is called parallax. Astronomers actually define parallax to be one-half the angle that a star shifts when seen from opposite sides of Earth's orbit. For a parallax of one arcsecond, we give this unit a special name, the parsec (pc)—derived from 'the distance at which we have a parallax of one arcsecond.' The distance (D) of a star in parsecs is just the reciprocal of its parallax (p) in arcseconds. A star with a parallax of 0.1 arcsecond lies at a distance of 10 parsecs, and one with a parallax of 0.05 arcsecond lies 20 parsecs away.",
+    "openstax:astronomy-2e#17": "Astronomers describe the brightness of stars using the magnitude scale, in which a difference of five magnitudes corresponds exactly to a brightness ratio of 100:1. A magnitude 1.0 star and a magnitude 2.0 star differ in brightness by a factor of about 2.5, so a magnitude 1.0 star and a magnitude 3.0 star differ by about 2.5 × 2.5 = 6.25 times. On this scale, the larger the magnitude, the fainter the object you are observing.",
+    "openstax:astronomy-2e#14": "Astronomical evidence indicates the solar system formed 4.5 billion years ago out of a rotating cloud of vapor and dust—which we call the solar nebula. As it shrank, the collapsing nebula began to rotate faster through the conservation of angular momentum, and collapsed into a flat disk revolving around the central object. The grains that condensed in the solar nebula rather quickly joined into larger and larger chunks, until most of the solid material was in the form of planetesimals. The temperature within the disk decreased with increasing distance from the Sun: in the inner parts of the disk, the temperature never dropped low enough for such materials as ice or carbonaceous organic compounds to condense, while far from the Sun, cooler temperatures allowed the oxygen to combine with hydrogen and condense in the form of water (H2O) ice.",
+    "openstax:astronomy-2e#26": "Hubble found that the more distant the galaxy, the faster it was receding from us: the recession velocities of galaxies are directly proportional to their distances from us, written v=H×d where v is the velocity, d is the distance, and H is a number called the Hubble constant. If H is 22 kilometers per second per million light-years, a galaxy moves away from us at a speed of 22 kilometers per second for every million light-years of its distance. Since all but the nearest galaxies appear to be in motion away from us, with the most distant ones moving the fastest, we must be living in an expanding universe."
+  },
+  "kernels": [
+    {
+      "id": "astro/diurnal-motion",
+      "rev": 1,
+      "term": "Diurnal motion",
+      "aliases": ["apparent daily motion", "motions of the sky", "daily motion of the sky", "rising and setting"],
+      "tags": ["night sky", "observing", "Earth rotation"],
+      "level": "intro",
+      "difficulty": 1,
+      "bloomCeiling": "Analyze",
+      "definition": {
+        "text": "Diurnal motion is the apparent daily turning of the sky — stars, Sun, and Moon rising in the east and setting in the west — caused by Earth's rotation on its axis every 24 hours.",
+        "anchor": {
+          "src": "openstax:astronomy-2e#2",
+          "loc": "2.1",
+          "quote": "It is because Earth turns on this axis every 24 hours that we see the Sun, Moon, and stars rise and set with clockwork regularity"
+        },
+        "tier": 2
+      },
+      "facts": [
+        {
+          "text": "Observed over hours, stars rise on the eastern horizon, cross the sky, and set on the western horizon.",
+          "anchor": {
+            "src": "openstax:astronomy-2e#2",
+            "loc": "2.1",
+            "quote": "you will see stars rising on the eastern horizon (just as the Sun and Moon do), moving across the dome of the sky in the course of the night, and setting on the western horizon"
+          },
+          "tier": 2
+        },
+        {
+          "text": "The sky only appears to turn; the rotation belongs to Earth, not to the stars.",
+          "anchor": {
+            "src": "openstax:astronomy-2e#2",
+            "loc": "2.1",
+            "quote": "Today we understand the sky only appears to turn"
+          },
+          "tier": 2
+        }
+      ],
+      "misconceptions": [
+        {
+          "text": "Students assume the stars truly orbit Earth each day because the sky visibly wheels overhead.",
+          "corrective": "The nightly motion is apparent, not real: Earth's rotation carries the observer eastward, so the whole sky seems to turn westward once every 24 hours.",
+          "tier": 1
+        }
+      ],
+      "examples": [
+        {
+          "text": "Photographing the northern sky with a long exposure shows star trails circling Polaris — the camera records Earth's rotation.",
+          "domain": "observing"
+        }
+      ],
+      "mcBank": [
+        {
+          "stem": "Stars appear to rise in the east and set in the west primarily because",
+          "options": [
+            "Earth rotates on its axis from west to east",
+            "the stars orbit Earth once per day",
+            "Earth revolves around the Sun once per year",
+            "the celestial sphere physically spins around Earth"
+          ],
+          "answerIndex": 0,
+          "explanationFactRef": 1,
+          "rationaleRefs": [0]
+        }
+      ],
+      "edges": { "requires": [], "recommends": ["astro/celestial-sphere"] },
+      "attribution": ["OpenStax Astronomy 2e, §2.1 The Sky Above"]
+    },
+    {
+      "id": "astro/celestial-sphere",
+      "rev": 1,
+      "term": "Celestial sphere",
+      "aliases": ["sky dome", "the sky above", "celestial coordinates backdrop"],
+      "tags": ["night sky", "observing", "coordinates"],
+      "level": "intro",
+      "difficulty": 1,
+      "bloomCeiling": "Apply",
+      "definition": {
+        "text": "The celestial sphere is the imaginary hollow dome of sky surrounding an observer, a model the ancient Greeks took literally and astronomers still use to map positions of objects.",
+        "anchor": {
+          "src": "openstax:astronomy-2e#2",
+          "loc": "2.1",
+          "quote": "Gazing up, you get the impression that the sky is a great hollow dome with you at the center"
+        },
+        "tier": 2
+      },
+      "facts": [
+        {
+          "text": "The ancient Greeks regarded the sky as a real celestial sphere with the stars attached to it.",
+          "anchor": {
+            "src": "openstax:astronomy-2e#2",
+            "loc": "2.1",
+            "quote": "The ancient Greeks regarded the sky as just such a celestial sphere, with the stars attached to it"
+          },
+          "tier": 2
+        },
+        {
+          "text": "The celestial sphere is a useful fiction: positions on it describe directions to objects, not their distances.",
+          "tier": 0
+        }
+      ],
+      "misconceptions": [
+        {
+          "text": "Students treat positions on the celestial sphere as if all sky objects were at the same distance.",
+          "corrective": "The sphere records only direction; two objects that appear side by side can differ in distance by billions of light-years.",
+          "tier": 1
+        }
+      ],
+      "examples": [
+        {
+          "text": "A planetarium projects the celestial sphere onto a dome — the same model used for star charts.",
+          "domain": "observing"
+        }
+      ],
+      "mcBank": [
+        {
+          "stem": "What does a position on the celestial sphere tell you about an object?",
+          "options": [
+            "Its direction in the sky as seen from Earth",
+            "Its physical distance from Earth",
+            "Its size relative to other objects",
+            "Its chemical composition"
+          ],
+          "answerIndex": 0,
+          "explanationFactRef": 1,
+          "rationaleRefs": [0]
+        }
+      ],
+      "edges": { "requires": [], "recommends": [] },
+      "attribution": ["OpenStax Astronomy 2e, §2.1 The Sky Above"]
+    },
+    {
+      "id": "astro/seasons",
+      "rev": 1,
+      "term": "Seasons and axial tilt",
+      "aliases": ["the seasons", "axial tilt", "solstice and equinox", "sun path"],
+      "tags": ["Earth-Sun geometry", "observing", "sun angle"],
+      "level": "intro",
+      "difficulty": 2,
+      "bloomCeiling": "Evaluate",
+      "definition": {
+        "text": "Earth's seasons are caused by the 23.5° tilt of its rotation axis, which changes the directness of sunlight and the length of daylight through the year — not by changes in Earth's distance from the Sun.",
+        "anchor": {
+          "src": "openstax:astronomy-2e#4",
+          "loc": "4.2",
+          "quote": "the seasons are actually caused by the 23.5° tilt of Earth's axis"
+        },
+        "tier": 2
+      },
+      "facts": [
+        {
+          "text": "Earth's distance from the Sun varies by only about 3% over its orbit.",
+          "anchor": {
+            "src": "openstax:astronomy-2e#4",
+            "loc": "4.2",
+            "quote": "its distance from the Sun varies by only about 3%"
+          },
+          "tier": 2
+        },
+        {
+          "text": "Earth is closest to the Sun in January, during Northern Hemisphere winter.",
+          "anchor": {
+            "src": "openstax:astronomy-2e#4",
+            "loc": "4.2",
+            "quote": "Earth is actually closest to the Sun in January, when the Northern Hemisphere is in the middle of winter"
+          },
+          "tier": 2
+        },
+        {
+          "text": "When a hemisphere leans toward the Sun, sunlight arrives at a more direct angle and heats the surface more effectively.",
+          "anchor": {
+            "src": "openstax:astronomy-2e#4",
+            "loc": "4.2",
+            "quote": "When we lean into the Sun, sunlight hits us at a more direct angle and is more effective at heating Earth's surface"
+          },
+          "tier": 2
+        },
+        {
+          "text": "Daylight hours increase in summer and decrease in winter, reinforcing the heating difference.",
+          "anchor": {
+            "src": "openstax:astronomy-2e#4",
+            "loc": "4.2",
+            "quote": "the hours of daylight increase in summer and decrease in winter"
+          },
+          "tier": 2
+        }
+      ],
+      "misconceptions": [
+        {
+          "text": "Students think seasons are caused mainly by Earth's changing distance from the Sun.",
+          "corrective": "Seasons come from sun angle and day length changing with the 23.5° axial tilt — Earth is actually closest to the Sun in January, in the middle of northern winter.",
+          "tier": 1
+        }
+      ],
+      "examples": [
+        {
+          "text": "Australia has summer in December and winter in June — opposite to the Northern Hemisphere — exactly as the tilt explanation predicts and the distance explanation cannot.",
+          "domain": "observing"
+        }
+      ],
+      "mcBank": [
+        {
+          "stem": "Which observation most directly contradicts the idea that seasons are caused by Earth's distance from the Sun?",
+          "options": [
+            "Earth is closest to the Sun during Northern Hemisphere winter",
+            "The Sun rises in the east throughout the year",
+            "The Moon shows phases each month",
+            "Stars are visible in every season"
+          ],
+          "answerIndex": 0,
+          "explanationFactRef": 1,
+          "rationaleRefs": [0]
+        },
+        {
+          "stem": "In June, the Northern Hemisphere experiences summer primarily because",
+          "options": [
+            "sunlight strikes it more directly and days are longer",
+            "Earth is nearest the Sun in June",
+            "the Sun emits more energy in June",
+            "Earth's orbital speed is slowest in June"
+          ],
+          "answerIndex": 0,
+          "explanationFactRef": 2,
+          "rationaleRefs": [0]
+        }
+      ],
+      "edges": { "requires": ["astro/diurnal-motion"], "recommends": [] },
+      "attribution": ["OpenStax Astronomy 2e, §4.2 The Seasons"]
+    },
+    {
+      "id": "astro/moon-phases",
+      "rev": 1,
+      "term": "Phases of the Moon",
+      "aliases": ["lunar phases", "moon phase cycle", "new moon and full moon"],
+      "tags": ["observing", "Earth-Moon-Sun geometry"],
+      "level": "intro",
+      "difficulty": 2,
+      "bloomCeiling": "Analyze",
+      "definition": {
+        "text": "The Moon's phases are the changing visible fractions of its sunlit half as seen from Earth; they depend on the Sun-Moon angle in our sky, not on Earth's shadow.",
+        "anchor": {
+          "src": "openstax:astronomy-2e#4b",
+          "loc": "4.5",
+          "quote": "how much of its face we see illuminated by sunlight depends on the angle the Sun makes with the Moon"
+        },
+        "tier": 2
+      },
+      "facts": [
+        {
+          "text": "At every point in its orbit the Moon is half illuminated; phases differ by which part of the lit half faces Earth.",
+          "anchor": {
+            "src": "openstax:astronomy-2e#4b",
+            "loc": "4.5",
+            "quote": "the Moon is half illuminated and half dark (as a ball in sunlight should be)"
+          },
+          "tier": 2
+        },
+        {
+          "text": "Earth's shadow misses the Moon in most months, which is why a full moon is a regular sight rather than a rare eclipse.",
+          "anchor": {
+            "src": "openstax:astronomy-2e#4b",
+            "loc": "4.5",
+            "quote": "Earth's shadow misses the Moon most months"
+          },
+          "tier": 2
+        },
+        {
+          "text": "The phase cycle repeats every 29.53 days (the solar month), longer than the 27.32-day sidereal orbit.",
+          "anchor": {
+            "src": "openstax:astronomy-2e#4b",
+            "loc": "4.5",
+            "quote": "the phases repeat—say, from full to full—is the solar month, 29.5306 days"
+          },
+          "tier": 2
+        }
+      ],
+      "misconceptions": [
+        {
+          "text": "Students believe the Moon's phases are caused by Earth's shadow falling on the Moon.",
+          "corrective": "Earth's shadow misses the Moon almost every month; phases are a viewing-angle effect — we see different fractions of the Moon's permanently sunlit half as it orbits us.",
+          "tier": 1
+        }
+      ],
+      "examples": [
+        {
+          "text": "A ball lit by a lamp and walked in a circle around your head reproduces every lunar phase — no shadow from your head required.",
+          "domain": "classroom demo"
+        }
+      ],
+      "mcBank": [
+        {
+          "stem": "Why do we see a full moon roughly once a month rather than a lunar eclipse?",
+          "options": [
+            "Earth's shadow misses the Moon in most months",
+            "The Moon generates its own light at full phase",
+            "The Sun moves behind Earth each month",
+            "The Moon's orbit takes exactly 24 hours"
+          ],
+          "answerIndex": 0,
+          "explanationFactRef": 1,
+          "rationaleRefs": [0]
+        }
+      ],
+      "edges": { "requires": ["astro/diurnal-motion"], "recommends": [] },
+      "attribution": ["OpenStax Astronomy 2e, §4.5 Phases and Motions of the Moon"]
+    },
+    {
+      "id": "astro/keplers-third-law",
+      "rev": 1,
+      "term": "Kepler's third law",
+      "aliases": ["P squared equals a cubed", "harmonic law", "orbital period law", "laws of planetary motion"],
+      "tags": ["orbits", "solar system", "quantitative"],
+      "level": "intro",
+      "difficulty": 3,
+      "bloomCeiling": "Apply",
+      "definition": {
+        "text": "Kepler's third law states that a planet's orbital period squared is proportional to the cube of its orbit's semimajor axis; with the period in years and the axis in astronomical units, P² = a³ exactly.",
+        "anchor": {
+          "src": "openstax:astronomy-2e#3",
+          "loc": "3.1",
+          "quote": "a planet's orbital period squared is proportional to the semimajor axis of its orbit cubed"
+        },
+        "tier": 2
+      },
+      "facts": [
+        {
+          "text": "Planetary orbits are ellipses with the Sun at one focus (Kepler's first law).",
+          "anchor": {
+            "src": "openstax:astronomy-2e#3",
+            "loc": "3.1",
+            "quote": "the orbits of all the planets are ellipses"
+          },
+          "tier": 2
+        },
+        {
+          "text": "In units of years and astronomical units the relation is an equality: P² = a³.",
+          "anchor": {
+            "src": "openstax:astronomy-2e#3",
+            "loc": "3.1",
+            "quote": "In these units, P²=a³"
+          },
+          "tier": 2
+        }
+      ],
+      "misconceptions": [
+        {
+          "text": "Students plug periods in days or distances in kilometers into P² = a³ and get nonsense values.",
+          "corrective": "The simple equality holds only with the period in Earth years and the semimajor axis in astronomical units; other units need the full Newtonian constant.",
+          "tier": 1
+        }
+      ],
+      "examples": [
+        {
+          "text": "Mars: a 1.88-year period gives a semimajor axis of 1.52 AU — about 50% farther from the Sun than Earth.",
+          "domain": "solar system"
+        }
+      ],
+      "workedExamples": [
+        {
+          "problem": "Mars orbits the Sun with a period of 1.88 Earth years. Use Kepler's third law to find the semimajor axis of its orbit in astronomical units.",
+          "steps": [
+            "Write the law in year-AU units: P² = a³.",
+            "Square the period: P² = 1.88² = 3.53.",
+            "Set a³ = 3.53 and take the cube root: a = 3.53^(1/3) ≈ 1.52."
+          ],
+          "result": "a ≈ 1.52 AU — Mars orbits about 50% farther from the Sun than Earth.",
+          "anchor": {
+            "src": "openstax:astronomy-2e#3",
+            "loc": "3.1",
+            "quote": "For Mars, with an orbital period of 1.88 Earth years"
+          }
+        }
+      ],
+      "mcBank": [
+        {
+          "stem": "An asteroid orbits the Sun with a semimajor axis of 4 AU. Its orbital period is",
+          "options": ["8 years", "4 years", "16 years", "64 years"],
+          "answerIndex": 0,
+          "explanationFactRef": 1,
+          "rationaleRefs": [0]
+        }
+      ],
+      "edges": { "requires": [], "recommends": ["astro/solar-nebula"] },
+      "attribution": ["OpenStax Astronomy 2e, §3.1 The Laws of Planetary Motion"]
+    },
+    {
+      "id": "astro/electromagnetic-spectrum",
+      "rev": 1,
+      "term": "Electromagnetic spectrum",
+      "aliases": ["EM spectrum", "light spectrum", "radiation and spectra", "wavelengths of light"],
+      "tags": ["light", "radiation", "multiwavelength astronomy"],
+      "level": "intro",
+      "difficulty": 2,
+      "bloomCeiling": "Analyze",
+      "definition": {
+        "text": "The electromagnetic spectrum is the full range of light, divided into radio waves, infrared, visible light, ultraviolet, X-rays, and gamma rays by wavelength and energy.",
+        "anchor": {
+          "src": "openstax:astronomy-2e#5",
+          "loc": "5.2",
+          "quote": "Scientists call this range the electromagnetic spectrum"
+        },
+        "tier": 2
+      },
+      "facts": [
+        {
+          "text": "Wavelength and frequency are inversely related: shorter wavelengths mean higher frequencies and higher photon energies.",
+          "anchor": {
+            "src": "openstax:astronomy-2e#5",
+            "loc": "5.2",
+            "quote": "higher energy waves have a higher frequency and a shorter wavelength"
+          },
+          "tier": 2
+        },
+        {
+          "text": "Visible light is only a tiny fraction of the radiation the universe produces.",
+          "anchor": {
+            "src": "openstax:astronomy-2e#5",
+            "loc": "5.2",
+            "quote": "the light that our eyes can see is only a tiny fraction of the broad range of waves generated in the universe"
+          },
+          "tier": 2
+        },
+        {
+          "text": "Many high-frequency wavelengths never reach the ground and must be observed from space.",
+          "anchor": {
+            "src": "openstax:astronomy-2e#5",
+            "loc": "5.2",
+            "quote": "high-frequency waves from space do not make it to the surface and must therefore be observed from space"
+          },
+          "tier": 2
+        }
+      ],
+      "misconceptions": [
+        {
+          "text": "Students assume invisible wavelengths are less scientifically useful than visible light because humans cannot see them.",
+          "corrective": "Instruments detect every band, and nonvisible wavelengths often reveal what visible light cannot — infrared penetrates dust, X-rays trace million-degree gas.",
+          "tier": 1
+        }
+      ],
+      "examples": [
+        {
+          "text": "The same nebula photographed in visible light shows dark dust lanes; in infrared, stars forming inside the dust shine through.",
+          "domain": "observing"
+        }
+      ],
+      "mcBank": [
+        {
+          "stem": "Which statement about wavelength and frequency is correct?",
+          "options": [
+            "Shorter wavelengths have higher frequencies and higher photon energies",
+            "Shorter wavelengths have lower frequencies",
+            "Wavelength and frequency are unrelated",
+            "All wavelengths carry the same energy"
+          ],
+          "answerIndex": 0,
+          "explanationFactRef": 0,
+          "rationaleRefs": [0]
+        }
+      ],
+      "edges": { "requires": [], "recommends": ["astro/spectral-lines"] },
+      "attribution": ["OpenStax Astronomy 2e, §5.2 The Electromagnetic Spectrum"]
+    },
+    {
+      "id": "astro/spectral-lines",
+      "rev": 1,
+      "term": "Spectral lines",
+      "aliases": ["absorption lines", "emission lines", "spectroscopy", "spectra of stars"],
+      "tags": ["light", "composition", "spectroscopy"],
+      "level": "intro",
+      "difficulty": 3,
+      "bloomCeiling": "Analyze",
+      "definition": {
+        "text": "Spectral lines are wavelengths where atoms absorb or emit light; because each element has a unique pattern of electron energies, each element shows its own unique set of lines.",
+        "anchor": {
+          "src": "openstax:astronomy-2e#5b",
+          "loc": "5.5",
+          "quote": "each type of atom shows its own unique set of spectral lines"
+        },
+        "tier": 2
+      },
+      "facts": [
+        {
+          "text": "Atoms absorb only photons whose energies exactly match allowed electron transitions.",
+          "anchor": {
+            "src": "openstax:astronomy-2e#5b",
+            "loc": "5.5",
+            "quote": "Only photons with these exact energies can be absorbed"
+          },
+          "tier": 2
+        },
+        {
+          "text": "Line patterns are calibrated against laboratory measurements of how each element absorbs and emits light.",
+          "anchor": {
+            "src": "openstax:astronomy-2e#5b",
+            "loc": "5.5",
+            "quote": "by studying the way atoms absorb and emit light in laboratories here on Earth"
+          },
+          "tier": 2
+        },
+        {
+          "text": "Spectral lines reveal the chemical makeup of stars and even of galaxies whose light left before Earth formed.",
+          "anchor": {
+            "src": "openstax:astronomy-2e#5b",
+            "loc": "5.5",
+            "quote": "even galaxies of stars so distant that their light started on its way to us long before Earth had even formed"
+          },
+          "tier": 2
+        },
+        {
+          "text": "Absorption lines also carry information about the temperature of the gas that formed them.",
+          "anchor": {
+            "src": "openstax:astronomy-2e#5b",
+            "loc": "5.5",
+            "quote": "information about the temperature of the regions where the lines originate"
+          },
+          "tier": 2
+        }
+      ],
+      "misconceptions": [
+        {
+          "text": "Students treat a star's spectrum as just its color rather than a fingerprint of its composition.",
+          "corrective": "The dark-line pattern is element-specific: matching observed lines to laboratory patterns identifies which elements are present and at what temperature, far beyond what overall color shows.",
+          "tier": 1
+        }
+      ],
+      "examples": [
+        {
+          "text": "Helium was identified in the Sun's spectrum before it was found on Earth — its lines matched no known element at the time.",
+          "domain": "history"
+        }
+      ],
+      "mcBank": [
+        {
+          "stem": "A star's spectrum shows strong absorption lines. What is the best interpretation?",
+          "options": [
+            "Its light carries information about composition and physical conditions",
+            "The star emits no light at those colors by chance",
+            "The lines prove the star is nearby",
+            "The star is made only of visible light"
+          ],
+          "answerIndex": 0,
+          "explanationFactRef": 2,
+          "rationaleRefs": [0]
+        }
+      ],
+      "edges": { "requires": ["astro/electromagnetic-spectrum"], "recommends": [] },
+      "attribution": ["OpenStax Astronomy 2e, §5.5 Formation of Spectral Lines"]
+    },
+    {
+      "id": "astro/telescope-aperture",
+      "rev": 1,
+      "term": "Telescope light-gathering power",
+      "aliases": ["telescopes", "aperture", "light-collecting area", "light gathering"],
+      "tags": ["instruments", "observing"],
+      "level": "intro",
+      "difficulty": 2,
+      "bloomCeiling": "Apply",
+      "definition": {
+        "text": "A telescope's primary jobs are to collect faint light from an astronomical source and focus it into an image; collecting power grows with the area of the aperture, not its diameter.",
+        "anchor": {
+          "src": "openstax:astronomy-2e#6",
+          "loc": "6.1",
+          "quote": "to collect the faint light from an astronomical source and (2) to focus all the light into a point or an image"
+        },
+        "tier": 2
+      },
+      "facts": [
+        {
+          "text": "A 4-meter mirror collects 16 times as much light as a 1-meter mirror, because area scales with diameter squared.",
+          "anchor": {
+            "src": "openstax:astronomy-2e#6",
+            "loc": "6.1",
+            "quote": "a telescope with a mirror that is 4 meters in diameter can collect 16 times as much light as a telescope that is 1 meter in diameter"
+          },
+          "tier": 2
+        }
+      ],
+      "misconceptions": [
+        {
+          "text": "Students think a telescope's main purpose is magnification.",
+          "corrective": "Light-gathering area is what matters: doubling aperture quadruples collected light, revealing fainter objects — magnification alone just enlarges a dim blur.",
+          "tier": 1
+        }
+      ],
+      "examples": [
+        {
+          "text": "Binoculars (50 mm) reveal hundreds of stars invisible to the 7 mm dark-adapted eye — roughly 50× more collecting area.",
+          "domain": "observing"
+        }
+      ],
+      "workedExamples": [
+        {
+          "problem": "How much more light does a 4-meter telescope collect than a 1-meter telescope?",
+          "steps": [
+            "Collecting power scales with mirror area, and area scales with diameter squared.",
+            "Compute the diameter ratio: 4 / 1 = 4.",
+            "Square it: 4² = 16."
+          ],
+          "result": "16 times as much light — which is why observatories chase aperture, not magnification.",
+          "anchor": {
+            "src": "openstax:astronomy-2e#6",
+            "loc": "6.1",
+            "quote": "can collect 16 times as much light"
+          }
+        }
+      ],
+      "mcBank": [
+        {
+          "stem": "Why are telescopes essential in astronomy?",
+          "options": [
+            "They collect far more light than the eye and can reveal fainter objects",
+            "They bring stars physically closer to Earth",
+            "They work only for visible light",
+            "They remove the need for any analysis"
+          ],
+          "answerIndex": 0,
+          "explanationFactRef": 0,
+          "rationaleRefs": [0]
+        }
+      ],
+      "edges": { "requires": [], "recommends": ["astro/electromagnetic-spectrum"] },
+      "attribution": ["OpenStax Astronomy 2e, §6.1 Telescopes"]
+    },
+    {
+      "id": "astro/parallax",
+      "rev": 1,
+      "term": "Stellar parallax",
+      "aliases": ["parallax", "parsec", "stellar distances", "celestial distances"],
+      "tags": ["distances", "measurement", "quantitative"],
+      "level": "intro",
+      "difficulty": 3,
+      "bloomCeiling": "Apply",
+      "definition": {
+        "text": "Stellar parallax is the apparent shift of a nearby star against distant background stars as Earth moves around its orbit; astronomers define it as half the star's total annual shift.",
+        "anchor": {
+          "src": "openstax:astronomy-2e#19",
+          "loc": "19.2",
+          "quote": "This apparent change in direction of the remote object due to a change in vantage point of the observer is called parallax"
+        },
+        "tier": 2
+      },
+      "facts": [
+        {
+          "text": "A parsec is the distance at which a star shows a parallax of one arcsecond.",
+          "anchor": {
+            "src": "openstax:astronomy-2e#19",
+            "loc": "19.2",
+            "quote": "the distance at which we have a parallax of one arcsecond"
+          },
+          "tier": 2
+        },
+        {
+          "text": "Distance in parsecs is the reciprocal of parallax in arcseconds: D = 1/p.",
+          "anchor": {
+            "src": "openstax:astronomy-2e#19",
+            "loc": "19.2",
+            "quote": "The distance (D) of a star in parsecs is just the reciprocal of its parallax (p) in arcseconds"
+          },
+          "tier": 2
+        }
+      ],
+      "misconceptions": [
+        {
+          "text": "Students expect a larger parallax to mean a more distant star.",
+          "corrective": "Parallax shrinks with distance — the relation is inverse: nearby stars shift the most, and a star twice as far shows half the parallax.",
+          "tier": 1
+        }
+      ],
+      "examples": [
+        {
+          "text": "Hold a thumb at arm's length and blink between eyes: the thumb jumps against the wall — bring it closer and the jump grows.",
+          "domain": "classroom demo"
+        }
+      ],
+      "workedExamples": [
+        {
+          "problem": "A star is measured to have a parallax of 0.1 arcsecond. How far away is it in parsecs?",
+          "steps": [
+            "Use the parallax-distance relation: D = 1/p, with p in arcseconds.",
+            "Substitute the measurement: D = 1 / 0.1.",
+            "Check the inverse logic: a star at 0.05 arcsecond would be twice as far."
+          ],
+          "result": "D = 10 parsecs (about 32.6 light-years).",
+          "anchor": {
+            "src": "openstax:astronomy-2e#19",
+            "loc": "19.2",
+            "quote": "A star with a parallax of 0.1 arcsecond lies at a distance of 10 parsecs"
+          }
+        }
+      ],
+      "mcBank": [
+        {
+          "stem": "Star A has parallax 0.05 arcsecond; star B has parallax 0.1 arcsecond. Which is true?",
+          "options": [
+            "Star A is twice as far away as star B",
+            "Star B is twice as far away as star A",
+            "Both stars are at the same distance",
+            "Star A is one hundred times more distant"
+          ],
+          "answerIndex": 0,
+          "explanationFactRef": 1,
+          "rationaleRefs": [0]
+        }
+      ],
+      "edges": { "requires": ["astro/celestial-sphere"], "recommends": ["astro/apparent-magnitude"] },
+      "attribution": ["OpenStax Astronomy 2e, §19.2 Surveying the Stars"]
+    },
+    {
+      "id": "astro/apparent-magnitude",
+      "rev": 1,
+      "term": "Apparent magnitude",
+      "aliases": ["magnitude scale", "brightness of stars", "stellar brightness"],
+      "tags": ["brightness", "measurement", "quantitative"],
+      "level": "intro",
+      "difficulty": 3,
+      "bloomCeiling": "Apply",
+      "definition": {
+        "text": "Apparent magnitude is astronomy's logarithmic scale for how bright objects look from Earth: a difference of five magnitudes is exactly a factor of 100 in brightness, and larger magnitudes mean fainter objects.",
+        "anchor": {
+          "src": "openstax:astronomy-2e#17",
+          "loc": "17.1",
+          "quote": "a difference of five magnitudes corresponds exactly to a brightness ratio of 100:1"
+        },
+        "tier": 2
+      },
+      "facts": [
+        {
+          "text": "One magnitude step corresponds to a brightness factor of about 2.5.",
+          "anchor": {
+            "src": "openstax:astronomy-2e#17",
+            "loc": "17.1",
+            "quote": "differ in brightness by a factor of about 2.5"
+          },
+          "tier": 2
+        },
+        {
+          "text": "The scale runs backwards by historical convention: the larger the magnitude, the fainter the object.",
+          "anchor": {
+            "src": "openstax:astronomy-2e#17",
+            "loc": "17.1",
+            "quote": "the larger the magnitude, the fainter the object you are observing"
+          },
+          "tier": 2
+        },
+        {
+          "text": "Apparent magnitude measures received brightness only — it says nothing by itself about a star's true luminosity or distance.",
+          "tier": 0
+        }
+      ],
+      "misconceptions": [
+        {
+          "text": "Students assume a brighter-looking star is intrinsically more luminous.",
+          "corrective": "Apparent magnitude confounds luminosity with distance — a faint nearby star can outshine a brilliant distant one; separating the two requires a distance measurement like parallax.",
+          "tier": 1
+        }
+      ],
+      "examples": [
+        {
+          "text": "Sirius (magnitude −1.5) looks far brighter than Rigel (magnitude 0.1), yet Rigel is tens of thousands of times more luminous — it is simply much farther away.",
+          "domain": "observing"
+        }
+      ],
+      "workedExamples": [
+        {
+          "problem": "How many times brighter is a magnitude 1.0 star than a magnitude 3.0 star?",
+          "steps": [
+            "Each magnitude step is a brightness factor of about 2.5.",
+            "The stars differ by 2 magnitudes, so multiply the factor twice: 2.5 × 2.5.",
+            "Sanity-check against the anchor: 5 magnitudes would be exactly 100×."
+          ],
+          "result": "About 6.25 times brighter.",
+          "anchor": {
+            "src": "openstax:astronomy-2e#17",
+            "loc": "17.1",
+            "quote": "a magnitude 1.0 star and a magnitude 3.0 star"
+          }
+        }
+      ],
+      "mcBank": [
+        {
+          "stem": "Star X is magnitude 2 and star Y is magnitude 7. Star X is",
+          "options": [
+            "100 times brighter than Y",
+            "5 times brighter than Y",
+            "100 times fainter than Y",
+            "equally bright but bluer than Y"
+          ],
+          "answerIndex": 0,
+          "explanationFactRef": 0,
+          "rationaleRefs": [0]
+        }
+      ],
+      "edges": {
+        "requires": [],
+        "recommends": ["astro/parallax"],
+        "instanceOf": [
+          {
+            "archetype": "epistemic/operationalization",
+            "confidence": 0.85,
+            "verified": true,
+            "mapping": {
+              "construct": "how bright a star really is",
+              "measure": "the apparent magnitude scale",
+              "what the measure captures": "the brightness received at Earth",
+              "what it misses": "the star's true luminosity and its distance"
+            }
+          }
+        ]
+      },
+      "attribution": ["OpenStax Astronomy 2e, §17.1 The Brightness of Stars"]
+    },
+    {
+      "id": "astro/solar-nebula",
+      "rev": 1,
+      "term": "Solar nebula hypothesis",
+      "aliases": ["origin of the solar system", "protoplanetary disk", "formation of the solar system", "accretion"],
+      "tags": ["solar system", "formation", "frost line"],
+      "level": "intro",
+      "difficulty": 3,
+      "bloomCeiling": "Analyze",
+      "definition": {
+        "text": "The solar nebula hypothesis holds that the solar system formed 4.5 billion years ago from a rotating cloud of gas and dust that collapsed, spun up, and flattened into a disk where planets accreted.",
+        "anchor": {
+          "src": "openstax:astronomy-2e#14",
+          "loc": "14.3",
+          "quote": "the solar system formed 4.5 billion years ago out of a rotating cloud of vapor and dust—which we call the solar nebula"
+        },
+        "tier": 2
+      },
+      "facts": [
+        {
+          "text": "Conservation of angular momentum spun the collapsing cloud faster and flattened it into a disk.",
+          "anchor": {
+            "src": "openstax:astronomy-2e#14",
+            "loc": "14.3",
+            "quote": "the collapsing nebula began to rotate faster through the conservation of angular momentum"
+          },
+          "tier": 2
+        },
+        {
+          "text": "Condensed grains accreted into larger bodies until most solid material formed planetesimals.",
+          "anchor": {
+            "src": "openstax:astronomy-2e#14",
+            "loc": "14.3",
+            "quote": "until most of the solid material was in the form of planetesimals"
+          },
+          "tier": 2
+        },
+        {
+          "text": "Disk temperature fell with distance from the Sun, so ices could only condense far out — the inner disk stayed too hot.",
+          "anchor": {
+            "src": "openstax:astronomy-2e#14",
+            "loc": "14.3",
+            "quote": "the temperature never dropped low enough for such materials as ice or carbonaceous organic compounds to condense"
+          },
+          "tier": 2
+        }
+      ],
+      "misconceptions": [
+        {
+          "text": "Students treat the arrangement of rocky inner planets and icy/gas-rich outer planets as coincidence.",
+          "corrective": "The temperature gradient of the disk explains the architecture: only metals and rock condensed near the hot Sun, while beyond the frost line ices condensed too, giving outer planets far more building material.",
+          "tier": 1
+        }
+      ],
+      "examples": [
+        {
+          "text": "A spinning pizza dough flattens as it spins — the same physics that turned the collapsing nebula into a disk.",
+          "domain": "classroom demo"
+        }
+      ],
+      "mcBank": [
+        {
+          "stem": "Why did icy materials condense only in the outer solar nebula?",
+          "options": [
+            "Disk temperature decreased with distance from the Sun",
+            "The outer disk had no hydrogen or oxygen",
+            "The Sun's gravity repelled ices outward",
+            "Planetesimals formed only in the inner disk"
+          ],
+          "answerIndex": 0,
+          "explanationFactRef": 2,
+          "rationaleRefs": [0]
+        }
+      ],
+      "edges": {
+        "requires": ["astro/keplers-third-law"],
+        "recommends": [],
+        "instanceOf": [
+          {
+            "archetype": "method/conservation-balance",
+            "confidence": 0.86,
+            "verified": true,
+            "mapping": {
+              "quantity": "angular momentum",
+              "system": "the collapsing solar nebula",
+              "inputs": "the slow rotation of the original cloud",
+              "outputs": "the fast-spinning flattened disk"
+            }
+          }
+        ]
+      },
+      "attribution": ["OpenStax Astronomy 2e, §14.3 Formation of the Solar System"]
+    },
+    {
+      "id": "astro/hubble-law",
+      "rev": 1,
+      "term": "Hubble's law",
+      "aliases": ["expanding universe", "Hubble constant", "velocity-distance relation", "galaxy recession"],
+      "tags": ["cosmology", "galaxies", "quantitative"],
+      "level": "intro",
+      "difficulty": 3,
+      "bloomCeiling": "Analyze",
+      "definition": {
+        "text": "Hubble's law states that galaxies recede from us with velocities directly proportional to their distances, v = H × d, the observational basis for the expanding universe.",
+        "anchor": {
+          "src": "openstax:astronomy-2e#26",
+          "loc": "26.5",
+          "quote": "The recession velocities of galaxies are directly proportional to their"
+        },
+        "tier": 2
+      },
+      "facts": [
+        {
+          "text": "The more distant a galaxy, the faster it recedes from us.",
+          "anchor": {
+            "src": "openstax:astronomy-2e#26",
+            "loc": "26.5",
+            "quote": "The more distant the galaxy, the faster it was receding from us"
+          },
+          "tier": 2
+        },
+        {
+          "text": "With H near 22 km/s per million light-years, each million light-years of distance adds about 22 km/s of recession speed.",
+          "anchor": {
+            "src": "openstax:astronomy-2e#26",
+            "loc": "26.5",
+            "quote": "a galaxy moves away from us at a speed of 22 kilometers per second for every million light-years of its distance"
+          },
+          "tier": 2
+        },
+        {
+          "text": "Because nearly all galaxies recede, with the most distant receding fastest, the universe must be expanding.",
+          "anchor": {
+            "src": "openstax:astronomy-2e#26",
+            "loc": "26.5",
+            "quote": "we must be living in an expanding universe"
+          },
+          "tier": 2
+        }
+      ],
+      "misconceptions": [
+        {
+          "text": "Students conclude that Earth must sit at the center of the universe because everything recedes from us.",
+          "corrective": "In a uniform expansion every observer sees the same recession pattern — raisins in rising bread dough all see the other raisins moving away, with no raisin at a center.",
+          "tier": 1
+        }
+      ],
+      "examples": [
+        {
+          "text": "Raisin-bread dough rising in the oven: every raisin sees every other raisin recede, faster for more distant raisins.",
+          "domain": "classroom demo"
+        }
+      ],
+      "workedExamples": [
+        {
+          "problem": "Taking the Hubble constant as 22 km/s per million light-years, how fast is a galaxy 100 million light-years away receding from us?",
+          "steps": [
+            "Write Hubble's law: v = H × d.",
+            "Substitute: v = 22 km/s per Mly × 100 Mly.",
+            "Multiply: v = 2200."
+          ],
+          "result": "v ≈ 2200 km/s away from us.",
+          "anchor": {
+            "src": "openstax:astronomy-2e#26",
+            "loc": "26.5",
+            "quote": "22 kilometers per second for every million light-years of its distance"
+          }
+        }
+      ],
+      "mcBank": [
+        {
+          "stem": "Hubble's law implies the universe is expanding because",
+          "options": [
+            "recession speed grows in proportion to distance for galaxies in every direction",
+            "all galaxies have exactly the same speed",
+            "nearby galaxies recede faster than distant ones",
+            "the Milky Way is at the exact center of the cosmos"
+          ],
+          "answerIndex": 0,
+          "explanationFactRef": 2,
+          "rationaleRefs": [0]
+        }
+      ],
+      "edges": { "requires": ["astro/parallax"], "recommends": [] },
+      "attribution": ["OpenStax Astronomy 2e, §26.5 The Expanding Universe"]
+    }
+  ]
+}

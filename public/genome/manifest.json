@@ -1,15 +1,23 @@
 {
   "version": "2026-06-10",
   "generator": "curriculumos-foundry-v1",
-  "conceptCount": 37,
+  "conceptCount": 49,
   "shards": [
+    {
+      "id": "astro-intro",
+      "discipline": "astro",
+      "level": "intro",
+      "path": "astro-intro.json",
+      "conceptCount": 12,
+      "hash": "ff734d87cc5a6734"
+    },
     {
       "id": "bio-intro",
       "discipline": "bio",
       "level": "intro",
       "path": "bio-intro.json",
       "conceptCount": 8,
-      "hash": "44dba8d86f2fddc9"
+      "hash": "1011f15856368925"
     },
     {
       "id": "chem-intro",
@@ -17,7 +25,7 @@
       "level": "intro",
       "path": "chem-intro.json",
       "conceptCount": 3,
-      "hash": "9009d152ecfab8bf"
+      "hash": "bd1badfd09bdea7d"
     },
     {
       "id": "econ-intro",
@@ -25,7 +33,7 @@
       "level": "intro",
       "path": "econ-intro.json",
       "conceptCount": 16,
-      "hash": "6de47ad3c6f0cdf3"
+      "hash": "c0f20f91dbeefe1c"
     },
     {
       "id": "history-intro",
@@ -33,7 +41,7 @@
       "level": "intro",
       "path": "history-intro.json",
       "conceptCount": 3,
-      "hash": "22f6b66a94767799"
+      "hash": "e09504e58d86fe15"
     },
     {
       "id": "lit-intro",
@@ -41,7 +49,7 @@
       "level": "intro",
       "path": "lit-intro.json",
       "conceptCount": 2,
-      "hash": "1b54d9210004004e"
+      "hash": "d45e30dac4023f67"
     },
     {
       "id": "stats-intro",
@@ -49,7 +57,7 @@
       "level": "intro",
       "path": "stats-intro.json",
       "conceptCount": 5,
-      "hash": "d47efe8ade29abd4"
+      "hash": "c3613cd791689c4f"
     }
   ],
   "archetypeShard": {

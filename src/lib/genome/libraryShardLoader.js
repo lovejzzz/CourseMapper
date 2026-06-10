@@ -165,6 +165,8 @@ export function inferCourseDisciplines(courseMap) {
     .toLowerCase();
   const map = [
     ['econ', /\beconom|microecon|macroecon|market|supply|demand|inflation|wage|monetary|fiscal/],
+    // v0.13.3: the astronomy shard (OpenStax Astronomy 2e foundry run).
+    ['astro', /\bastronom|night sky|celestial|planetar|telescope|stargaz|cosmolog|galax|solar system/],
     ['psych', /\bpsycholog|cognition|behavior|neuroscience/],
     ['bio', /\bbiolog|cell|genetic|ecolog|evolution|organism|physiolog|anatomy|homeostasis/],
     ['stats', /\bstatistic|probability|regression|inference|data analysis|hypothesis test/],

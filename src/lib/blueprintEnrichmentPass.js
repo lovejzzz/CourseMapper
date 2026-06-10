@@ -929,7 +929,7 @@ export function parseLessonContentEnrichmentResponse(text, { prompt } = {}) {
 // ════════════════════════════════════════════════════════════════════════════
 
 const KERNEL_KEY_LEGEND =
-  'Abbreviated JSON keys: q=question, op=options, ai=answerIndex, ex=explanation, tr=term, df=definition, eg=example, mi=misconception, pr=prompt, tn=tension, po=positions, td=taskDescription, pa=parameters, su=setup, ma=materials.';
+  'Abbreviated JSON keys: q=question, op=options, ai=answerIndex, ex=explanation, tr=term, df=definition, eg=example, mi=misconception, cx=correction, pr=prompt, tn=tension, po=positions, td=taskDescription, pa=parameters, su=setup, ma=materials, wp=problem, ws=steps, wr=result.';
 
 function buildKernelSchema() {
   return {
@@ -945,8 +945,14 @@ function buildKernelSchema() {
             df: 'correct 1-2 sentence definition in subject language',
             eg: 'concrete domain example',
             mi: 'common student misunderstanding of this term',
+            cx: 'the accurate corrective statement that directly counters the misconception (NOT a restated definition)',
           },
         ],
+        workedExample: {
+          wp: 'OPTIONAL, only for quantitative lessons: one concrete numeric problem statement',
+          ws: ['2-4 short solution steps with the actual numbers'],
+          wr: 'the numeric result with units',
+        },
         scenario: {
           su: '2-3 sentence concrete case/dataset/text setup students can analyze',
           ma: 'the specific materials, data, or text students examine',
@@ -1122,9 +1128,25 @@ export function parseLessonKernelResponse(text, { prompt } = {}) {
           definition: cleanText(term.definition),
           example: cleanText(term.example),
           misconception: cleanText(term.misconception),
+          // v0.13.3: the corrective statement — the payoff line that counters
+          // the misconception (never a restated definition).
+          correction: cleanText(term.correction),
         });
       }
     });
+
+    // v0.13.3: optional quantitative worked example for the lesson.
+    let workedExample = null;
+    if (entry?.workedExample) {
+      const problem = cleanText(entry.workedExample.problem);
+      const steps = asArray(entry.workedExample.steps).map(cleanText).filter(Boolean);
+      const result = cleanText(entry.workedExample.result);
+      if (problem.length >= 15 && steps.length >= 2 && result) {
+        workedExample = { problem, steps, result };
+      } else if (problem || steps.length > 0) {
+        issues.push({ lessonId, surface: 'workedExample', index: 0, problems: ['incomplete-worked-example'] });
+      }
+    }
 
     let scenario = null;
     if (entry?.scenario) {
@@ -1175,7 +1197,7 @@ export function parseLessonKernelResponse(text, { prompt } = {}) {
     if (keyTerms.length === 0 && mc.length === 0) continue;
 
     const payload = projectKernelToSurfaces(
-      { facts, keyTerms, scenario, discussionPrompt, assignmentCore, mc },
+      { facts, keyTerms, scenario, discussionPrompt, assignmentCore, mc, workedExample },
       { itemPlan },
     );
     // Projected slides must pass the same surface lint the direct contract does.

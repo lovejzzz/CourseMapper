@@ -98,6 +98,9 @@ export function composeLessonFromConcepts(conceptKernels = [], courseLayer = {},
     definition: cleanText(kernel.definition?.text),
     example: cleanText((kernel.examples || [])[0]?.text),
     misconception: cleanText((kernel.misconceptions || [])[0]?.text),
+    // v0.13.3: the genome's corrective travels with the term so study guides
+    // pair the misconception with a real correction.
+    correction: cleanText((kernel.misconceptions || [])[0]?.corrective),
     source: citationLabel(kernel.definition?.anchor),
     tier: kernel.definition?.tier ?? kernelTrustTier(kernel),
   }));
@@ -129,10 +132,15 @@ export function composeLessonFromConcepts(conceptKernels = [], courseLayer = {},
         definition: cleanText(kernel.definition?.text),
         example: cleanText((kernel.examples || [])[0]?.text),
         misconception: cleanText(misconception.text),
+        correction: cleanText(misconception.corrective),
       })),
     ),
     ...archetypeMisconceptions,
   ];
+
+  // v0.13.3: the first concept carrying a worked example supplies the
+  // lesson's quantitative walkthrough (math bought once in the genome).
+  const workedExample = kernels.map((kernel) => (kernel.workedExamples || [])[0]).find(Boolean) || null;
 
   const lessonKernel = {
     facts,
@@ -141,6 +149,7 @@ export function composeLessonFromConcepts(conceptKernels = [], courseLayer = {},
     discussionPrompt: courseLayer?.discussionPrompt || null,
     assignmentCore: courseLayer?.assignmentCore || null,
     mc,
+    workedExample,
   };
 
   const payload = projectKernelToSurfaces(lessonKernel, { itemPlan: options.itemPlan || [] });

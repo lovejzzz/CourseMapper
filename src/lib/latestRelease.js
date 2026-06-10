@@ -8,12 +8,12 @@
  * the three screen footers, and the Changelog entry.
  */
 export const LATEST_RELEASE = {
-  version: '0.13.2',
+  version: '0.13.3',
   date: 'June 10, 2026',
-  title: 'Enrichment Verified Live — and Its Digest Warning Made Honest',
+  title: 'Cited, Quantitative, and Teachable: the Educational Quality Release',
   highlights: [
-    'First verified enriched production run: real subject-matter kernels in slides, quizzes, and study guides at $0.11 for a 12-lesson course',
-    'Fixed the false "compiled without enrichment (mail-merge risk)" digest warning on enriched runs — the structured outcome was dropped mid-run by the budget constructor',
-    'The package manifest now reports the enrichment state correctly instead of "unknown"',
+    'New astronomy genome shard: 12 OpenStax-cited concepts with quote-verified anchors — astronomy courses now compile with real sources at zero AI cost',
+    'Worked examples (Kepler, parallax, magnitudes, Hubble) bought once and rendered step-by-step in lesson plans and study guides; misconception corrections are real correctives now',
+    'Lesson plans teach the content: misconception-poll warm-ups, board-worked examples, kernel scenarios — plus a concrete night-sky observing protocol for observation courses',
   ],
 };

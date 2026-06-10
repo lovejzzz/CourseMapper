@@ -3,6 +3,30 @@ import Header from '../components/Header';
 
 const releases = [
   {
+    version: '0.13.3',
+    date: 'June 10, 2026',
+    title: 'Cited, Quantitative, and Teachable: the Educational Quality Release',
+    highlights: [
+      'The astronomy genome shard: 12 source-anchored concepts from OpenStax Astronomy 2e (diurnal motion, seasons, moon phases, Kepler’s third law, the electromagnetic spectrum, spectral lines, telescope aperture, parallax, apparent magnitude, the solar nebula, Hubble’s law) — every fact carries a quote verified verbatim against the live book, so astronomy courses now compile with real citations at zero AI cost',
+      'Worked examples are bought once and rendered everywhere they teach: genome concepts carry numeric walkthroughs (Mars’ orbit from P²=a³, distance from parallax, magnitude ratios, recession speed from Hubble’s law), model kernels can author one for quantitative lessons, and lesson plans render problem → numbered steps → result instead of promising "a concise worked example" and never delivering',
+      'Lesson plans teach the subject now: warm-ups become misconception polls (vote, defend, then reveal the correction), mini-lessons work the example on the board or build from the kernel’s anchor fact, guided analysis opens with the kernel scenario, and study-guide review questions ask about the content instead of the assessment process',
+      'Misconception corrections are real correctives: the genome’s corrective field travels end-to-end, the kernel contract demands an explicit correction (never a restated definition), and the seasons misconception now pairs with "Earth is closest to the Sun in January" instead of the axial-tilt glossary entry',
+      'Sky-observation courses get their promised pedagogy: a concrete observing protocol in every lesson plan — log fields with limiting magnitude and altitude-in-fists, a weekly naked-eye focus keyed to the lesson’s concepts, a Stellarium cloudy-night alternative, and observing basics',
+      'Key-term slides carry renderable concept-map data (hub + short spoke terms), so the native hub-and-spoke visual finally draws — full-sentence bullets could never pass the exporter’s size guard',
+    ],
+    sections: [
+      {
+        label: 'Proof',
+        icon: 'QA',
+        color: 'emerald',
+        items: [
+          'tests/astronomy-shard-proof.test.js replays the v0.13.1 audited course through the real linker → blueprint → compiler path and asserts all six educational gaps closed: citations present, worked examples rendered, misconception-poll warm-ups, real correctives, renderable concept maps, and the observing protocol with weekly foci.',
+          'Foundry: 12/12 astronomy kernels admitted through the mechanical quote-verification gate; alias-collision lint clean; the genome now spans 7 disciplines with 49 concepts and 16 archetypes.',
+        ],
+      },
+    ],
+  },
+  {
     version: '0.13.2',
     date: 'June 10, 2026',
     title: 'Enrichment Verified Live — and Its Digest Warning Made Honest',
