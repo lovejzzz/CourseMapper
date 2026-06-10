@@ -877,8 +877,19 @@ export function createGenerationPlan(profile = {}) {
   const maxRepairRounds = Math.max(1, Math.min(4, Number(repair.maxRepairRounds || 2)));
   const parallelFeatureCalls = chunkStrategy === 'conservative' ? 2 : chunkStrategy === 'expanded' ? 5 : 3;
   const retryConcurrency = chunkStrategy === 'conservative' ? 2 : chunkStrategy === 'expanded' ? 6 : 4;
+  // v0.12.1: a plan built from a profile that never went through
+  // enrichControlProfile (no structuredOutput block) for a first-party
+  // provider is a degraded plan — it falls back to prompt_only and silently
+  // turns off enrichment + lean atoms. The v0.12 audit traced four mail-merge
+  // packages to exactly this state. Callers surface this as a loud warning.
+  const FIRST_PARTY_PROVIDERS = ['openai', 'anthropic', 'google', 'deepseek'];
+  const planDegraded =
+    FIRST_PARTY_PROVIDERS.includes(profile.provider) &&
+    !profile.structuredOutput &&
+    structuredOutputMode === 'prompt_only';
   return {
     version: 1,
+    planDegraded,
     provider: profile.provider || '',
     modelId: profile.modelId || '',
     quality: profile.quality || 'balanced',

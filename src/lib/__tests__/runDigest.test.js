@@ -95,4 +95,36 @@ describe('runDigest', () => {
     expect(digest.cost.accuracy).toBe('no model calls');
     expect(formatRunDigest(digest)).toContain('RUN DIGEST');
   });
+
+  // v0.12.1 content-risk gate: compiled deliverables with zero enrichment
+  // contribution (no model stage, no genome lessons) must be flagged loudly.
+  it('flags compiled-without-enrichment packages as a content-risk warning', () => {
+    let budget = createApiCallBudget({ runId: 'run-risk' });
+    budget = applyApiCallBudgetEvent(budget, {
+      type: 'compiledDeliverable',
+      compiledFeatureIds: ['quizBank', 'studyGuides', 'slideDecks'],
+      savedProviderCalls: 12,
+    });
+    budget = applyApiCallBudgetEvent(budget, {
+      type: 'pipelineDecision',
+      stage: 'enrichmentModelStage',
+      detail: 'deterministic compile only (no enrichment object)',
+      outcome: { modelStage: 'none', enrichedLessons: 0 },
+    });
+    const digest = buildRunDigest({ budget });
+    expect(digest.gates.compiledWithoutEnrichment).toBe(true);
+    expect(digest.gates.flaggedChecks[0].featureId).toBe('content');
+    expect(formatRunDigest(digest)).toContain('mail-merge risk');
+
+    // genome-only enrichment still counts as content — no warning
+    budget = applyApiCallBudgetEvent(budget, {
+      type: 'pipelineDecision',
+      stage: 'enrichmentModelStage',
+      detail: 'skipped: enrichment flag off (linker: ran)',
+      outcome: { modelStage: 'skipped: enrichment flag off', enrichedLessons: 13 },
+    });
+    const genomeDigest = buildRunDigest({ budget });
+    expect(genomeDigest.gates.compiledWithoutEnrichment).toBe(false);
+    expect(genomeDigest.gates.flaggedChecks).toHaveLength(0);
+  });
 });

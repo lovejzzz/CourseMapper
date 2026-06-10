@@ -28,12 +28,31 @@ function activeTheme() {
     };
   }
 }
+// Internal enum ids (multiple_choice, short_answer) must never print in a
+// student-facing document — humanize known ids, sentence-case the rest.
+function humanizeQuestionType(type) {
+  if (!type) return '';
+  const labels = {
+    multiple_choice: 'Multiple choice',
+    short_answer: 'Short answer',
+    true_false: 'True/False',
+    fill_in_blank: 'Fill in the blank',
+    essay: 'Essay',
+    matching: 'Matching',
+  };
+  if (labels[type]) return labels[type];
+  const spaced = String(type).replace(/[_-]+/g, ' ').trim();
+  return spaced.charAt(0).toUpperCase() + spaced.slice(1);
+}
+
 // Type scale in half-points: 11pt body, 18pt doc title, 15pt section
 // headings (serif), 9pt tracked-uppercase sub-headings and labels.
 export const BODY_SIZE = 22;
 export const H1_SIZE = 36;
 const H2_SIZE = 30;
-const H3_SIZE = 18;
+// v0.12.1: subsection heads were 9pt — smaller than the 11pt body text, a
+// visual hierarchy inversion flagged in the v0.12 audit. Now 11pt.
+const H3_SIZE = 22;
 const META_SIZE = 18;
 // characterSpacing is in twentieths of a point: 16 ≈ 0.8pt letter tracking.
 const LABEL_TRACKING = 16;
@@ -111,6 +130,9 @@ export function buildDocxTitleChildren(docx, courseName, label, options = {}) {
         : []),
       new Paragraph({ children: [new PageBreak()] }),
     );
+    // v0.12.1: cover OR masthead, never both — the v0.12 audit found the
+    // reader greeted by the identical kicker + title twice in a row.
+    return children;
   }
   // Document masthead: tracked-uppercase deliverable label over the course
   // name, closed by a full-width accent rule.
@@ -150,9 +172,15 @@ export function buildDocxTitleChildren(docx, courseName, label, options = {}) {
   return children;
 }
 
-export function buildDocxDocument(docx, children, { courseName, label }) {
+export function buildDocxDocument(docx, children, { courseName, label, landscape = false }) {
   const { Document, Paragraph, TextRun, Footer, PageNumber, TabStopType, TabStopPosition, BorderStyle } = docx;
   const theme = activeTheme();
+  // v0.12.1: explicit US Letter (the docx default is A4, which clipped every
+  // fixed-width table in the v0.12 audit); rubrics render landscape so the
+  // 6-column matrix gets usable column widths.
+  const pageSize = landscape
+    ? { width: 15840, height: 12240, orientation: 'landscape' }
+    : { width: 12240, height: 15840 };
   const footer = new Footer({
     children: [
       new Paragraph({
@@ -174,8 +202,35 @@ export function buildDocxDocument(docx, children, { courseName, label }) {
     ],
   });
   return new Document({
-    styles: { default: { document: { run: { font: FONT, size: BODY_SIZE } } } },
-    sections: [{ footers: { default: footer }, children }],
+    // v0.12.1: documents identify themselves (the v0.12 audit found
+    // dc:creator "Un-named" and empty titles in all 410 files).
+    creator: 'CourseMapper',
+    title: `${courseName || 'Course'} — ${label || 'Course Materials'}`,
+    // v0.12.1: style definitions now MATCH the rendered formatting, so
+    // Word's navigation pane, ToC generation, and instructor restyling work
+    // instead of fighting run-level overrides.
+    styles: {
+      default: {
+        document: { run: { font: FONT, size: BODY_SIZE, color: '333333' } },
+        title: {
+          run: { font: FONT_HEAD, size: H1_SIZE, bold: true, color: theme.headingColor },
+          paragraph: { spacing: { line: LINE_SP, after: 100 } },
+        },
+        heading1: {
+          run: { font: FONT_HEAD, size: H2_SIZE, bold: true, color: theme.headingColor },
+          paragraph: { spacing: { before: 420, after: 140 } },
+        },
+        heading2: {
+          run: { font: FONT_HEAD, size: H2_SIZE, bold: true, color: theme.headingColor },
+          paragraph: { spacing: { before: 420, after: 140 } },
+        },
+        heading3: {
+          run: { font: FONT, size: H3_SIZE, bold: true, color: theme.accent },
+          paragraph: { spacing: { before: 280, after: 80 } },
+        },
+      },
+    },
+    sections: [{ properties: { page: { size: pageSize } }, footers: { default: footer }, children }],
   });
 }
 
@@ -191,6 +246,7 @@ export function _buildDocxContentShared(featureId, data, children, docx) {
     ShadingType,
     TableLayoutType,
     BorderStyle,
+    PageBreak,
   } = docx;
 
   const theme = activeTheme();
@@ -246,10 +302,70 @@ export function _buildDocxContentShared(featureId, data, children, docx) {
     new Paragraph({
       spacing: { line: SINGLE_SP, before: 40, after: 60 },
       children: [
-        new TextRun({ text: label + '  ', bold: true, size: BODY_SIZE, font: FONT, color: theme.headingColor }),
+        // v0.12.1: an explicit "Label: value" separator — the old two-space
+        // glue read as a typo in hundreds of paragraphs per package.
+        new TextRun({
+          text: `${String(label || '').replace(/[:\s]+$/, '')}: `,
+          bold: true,
+          size: BODY_SIZE,
+          font: FONT,
+          color: theme.headingColor,
+        }),
         new TextRun({ text: text || '', size: BODY_SIZE, font: FONT, color: '404040' }),
       ],
     });
+  // v0.12.1: borderless two-column layout table for label/value blocks
+  // (study-guide key terms, lesson-plan assessment and homework, FAQ
+  // see-also) — real structure instead of glued label paragraphs.
+  const makeKeyValueTable = (pairs) => {
+    const rows = pairs
+      .filter(([k, v]) => k && v)
+      .map(
+        ([k, v]) =>
+          new TableRow({
+            cantSplit: true,
+            children: [
+              new TableCell({
+                width: { size: 2400, type: WidthType.DXA },
+                shading: { type: ShadingType.CLEAR, fill: theme.bandFill || 'F3F7FB' },
+                margins: { top: 60, bottom: 60, left: 120, right: 120 },
+                children: [
+                  new Paragraph({
+                    spacing: { line: SINGLE_SP },
+                    children: [
+                      new TextRun({ text: String(k), bold: true, size: BODY_SIZE, font: FONT, color: theme.headingColor }),
+                    ],
+                  }),
+                ],
+              }),
+              new TableCell({
+                width: { size: 6960, type: WidthType.DXA },
+                margins: { top: 60, bottom: 60, left: 120, right: 120 },
+                children: [
+                  new Paragraph({
+                    spacing: { line: SINGLE_SP },
+                    children: [new TextRun({ text: String(v), size: BODY_SIZE, font: FONT, color: '333333' })],
+                  }),
+                ],
+              }),
+            ],
+          }),
+      );
+    return new Table({
+      layout: TableLayoutType.FIXED,
+      width: { size: 100, type: WidthType.PERCENTAGE },
+      columnWidths: [2400, 6960],
+      borders: {
+        top: NO_BORDER,
+        bottom: NO_BORDER,
+        left: NO_BORDER,
+        right: NO_BORDER,
+        insideHorizontal: { style: BorderStyle.SINGLE, size: 2, color: 'FFFFFF' },
+        insideVertical: NO_BORDER,
+      },
+      rows,
+    });
+  };
   const makeBullet = (text) =>
     new Paragraph({
       spacing: { line: SINGLE_SP, before: 20, after: 50 },
@@ -294,7 +410,7 @@ export function _buildDocxContentShared(featureId, data, children, docx) {
     });
   const NO_BORDER = { style: BorderStyle.NONE, size: 0, color: 'FFFFFF' };
   const HAIRLINE = { style: BorderStyle.SINGLE, size: 4, color: theme.ruleColor };
-  const makeTableFn = (colDXA, headerTexts, dataRows) => {
+  const makeTableFn = (colDXA, headerTexts, dataRows, { cantSplit = false } = {}) => {
     const hdr = new TableRow({
       tableHeader: true,
       children: headerTexts.map(
@@ -314,12 +430,14 @@ export function _buildDocxContentShared(featureId, data, children, docx) {
     const rows = dataRows.map(
       (row, ri) =>
         new TableRow({
+          cantSplit,
           children: row.map(
             (v, idx) =>
               new TableCell({
                 width: { size: colDXA[idx], type: WidthType.DXA },
                 shading: ri % 2 === 1 ? { type: ShadingType.CLEAR, fill: theme.bandFill || 'F5F7FA' } : undefined,
                 margins: { top: 80, bottom: 80, left: 120, right: 120 },
+                verticalAlign: 'top',
                 children: [
                   new Paragraph({
                     spacing: { line: SINGLE_SP },
@@ -331,9 +449,13 @@ export function _buildDocxContentShared(featureId, data, children, docx) {
         }),
     );
     // Horizontal hairlines only — no vertical grid — keeps tables airy.
+    // v0.12.1: table width is 100% of the text column (the old fixed 9360dxa
+    // was US-Letter width on what rendered as A4 pages — every table in the
+    // v0.12 audit overflowed the right margin). columnWidths stay DXA: with
+    // fixed layout Word treats the grid as proportions of the pct width.
     return new Table({
       layout: TableLayoutType.FIXED,
-      width: { size: 9360, type: WidthType.DXA },
+      width: { size: 100, type: WidthType.PERCENTAGE },
       columnWidths: colDXA,
       borders: {
         top: HAIRLINE,
@@ -393,22 +515,30 @@ export function _buildDocxContentShared(featureId, data, children, docx) {
           });
           children.push(makeTableFn(colDXA, ['Time', 'Activity', 'Description & Notes'], outlineRows));
         }
-        // Formative Assessment
+        // Formative Assessment — v0.12.1: label/value pairs as a table.
         if (p.formativeCheck) {
           children.push(makeSubHeading('Formative Assessment'));
-          if (p.formativeCheck.type) children.push(makeBold('Type', p.formativeCheck.type));
+          const fcPairs = [
+            ['Type', p.formativeCheck.type],
+            ['Aligns to', p.formativeCheck.objectiveAligned],
+          ].filter(([, v]) => v);
+          if (fcPairs.length) children.push(makeKeyValueTable(fcPairs));
           if (p.formativeCheck.prompt) children.push(makeItalic(`"${p.formativeCheck.prompt}"`));
-          if (p.formativeCheck.objectiveAligned)
-            children.push(makeBold('Aligns to', p.formativeCheck.objectiveAligned));
           if (p.formativeCheck.instructorAction)
             children.push(makeItalic(`Instructor Action: ${p.formativeCheck.instructorAction}`));
         }
         // UDL Notes
         if (p.udlNotes && (p.udlNotes.representation || p.udlNotes.engagement || p.udlNotes.expression)) {
           children.push(makeSubHeading('UDL Notes'));
-          if (p.udlNotes.representation) children.push(makeBold('Representation', p.udlNotes.representation));
-          if (p.udlNotes.engagement) children.push(makeBold('Engagement', p.udlNotes.engagement));
-          if (p.udlNotes.expression) children.push(makeBold('Expression', p.udlNotes.expression));
+          children.push(
+            makeKeyValueTable(
+              [
+                ['Representation', p.udlNotes.representation],
+                ['Engagement', p.udlNotes.engagement],
+                ['Expression', p.udlNotes.expression],
+              ].filter(([, v]) => v),
+            ),
+          );
         }
         // Homework
         if (p.homework) {
@@ -416,9 +546,11 @@ export function _buildDocxContentShared(featureId, data, children, docx) {
           if (typeof p.homework === 'object') {
             if (p.homework.title) children.push(makeBold('Title', p.homework.title));
             if (p.homework.description) children.push(makeText(p.homework.description));
-            if (p.homework.estimatedTime) children.push(makeBold('Estimated Time', p.homework.estimatedTime));
-            if (p.homework.connectionToNext)
-              children.push(makeBold('Connection to Next Lesson', p.homework.connectionToNext));
+            const hwPairs = [
+              ['Estimated Time', p.homework.estimatedTime],
+              ['Connection to Next Lesson', p.homework.connectionToNext],
+            ].filter(([, v]) => v);
+            if (hwPairs.length) children.push(makeKeyValueTable(hwPairs));
           } else {
             children.push(makeText(String(p.homework)));
           }
@@ -461,12 +593,16 @@ export function _buildDocxContentShared(featureId, data, children, docx) {
               ['Criterion', 'Weight', 'Excellent', 'Proficient', 'Developing', 'Beginning'],
               criteria.map((c) => [
                 c.criterion || c.name || '',
-                String(c.weight || ''),
+                // v0.12.1: a bare "30" reads as nothing — show the unit.
+                c.weight ? `${String(c.weight).replace(/%$/, '')}%` : '',
                 c.excellent || c.exemplary || '',
                 c.proficient || '',
                 c.developing || '',
                 c.beginning || '',
               ]),
+              // Level cells run to ~280 chars — a row split across a page
+              // break is unreadable.
+              { cantSplit: true },
             ),
           );
         }
@@ -495,47 +631,82 @@ export function _buildDocxContentShared(featureId, data, children, docx) {
     }
 
     // ─── QUIZ BANK ──────────────────────────────────────────────
+    // v0.12.1: two-part layout — a distributable question paper first, then
+    // a page-broken Answer Key with rationale and instructor metadata. The
+    // v0.12 audit found answers printed inline under every question (the
+    // file could not be handed out) and ~40% of page area consumed by
+    // per-question repeated metadata.
     case 'quizBank': {
       const expanded = expandKeys('quizBank', data);
       const key = expanded.quizzes ? 'quizzes' : 'quizBank';
+      const stripOptionLetter = (option) => String(option ?? '').replace(/^[A-Z][.)]\s+/, '');
       for (const quiz of expanded[key] || []) {
         children.push(makeHeading(quiz.lessonTitle || 'Quiz'));
         if (quiz.bloomsCoverage?.length) children.push(makeBold("Bloom's Coverage", quiz.bloomsCoverage.join(', ')));
-        let prevObjectiveAligned = '';
-        for (let j = 0; j < (quiz.questions || []).length; j++) {
-          const q = quiz.questions[j];
+        const questions = quiz.questions || [];
+
+        // Part 1 — the student-facing question paper.
+        for (let j = 0; j < questions.length; j++) {
+          const q = questions[j];
           const qMeta = [
-            q.type,
-            q.bloomsLevel,
-            q.difficulty,
+            humanizeQuestionType(q.type),
             q.points && `${q.points} pts`,
             q.estimatedMinutes && `~${q.estimatedMinutes} min`,
           ].filter(Boolean);
           children.push(makeBold(`Q${j + 1}` + (qMeta.length ? ` (${qMeta.join(', ')})` : ''), q.question || ''));
-          // Lettered options read as an exam paper, not a bullet list.
+          // Lettered options read as an exam paper, not a bullet list. The
+          // compiler bakes "A. " into the option text — strip it so the
+          // exporter's own letter doesn't double up ("A. A. unit elastic").
           if (q.options)
             q.options.forEach((o, oi) =>
-              children.push(makeNumbered(String.fromCharCode(65 + (oi % 26)), typeof o === 'string' ? o : String(o))),
+              children.push(makeNumbered(String.fromCharCode(65 + (oi % 26)), stripOptionLetter(o))),
             );
-          if (q.answer && q.explanation) {
-            children.push(makeCallout(`Answer — ${q.answer}`, q.explanation));
-          } else if (q.answer) {
-            children.push(makeCallout('Answer', q.answer));
-          } else if (q.explanation) {
-            children.push(makeBold('Explanation', q.explanation));
+        }
+
+        // Part 2 — the instructor answer key, on its own page.
+        const hasKeyContent = questions.some(
+          (q) => q.answer || q.explanation || q.sampleAnswer || q.rubricHints || q.scoringGuidance,
+        );
+        if (hasKeyContent) {
+          children.push(new Paragraph({ children: [new PageBreak()] }));
+          children.push(makeHeading(`Answer Key — ${quiz.lessonTitle || 'Quiz'}`));
+          let prevObjectiveAligned = '';
+          const allTags = new Set();
+          for (let j = 0; j < questions.length; j++) {
+            const q = questions[j];
+            (q.tags || []).forEach((tag) => allTags.add(tag));
+            const keyMeta = [q.bloomsLevel, q.difficulty].filter(Boolean);
+            children.push(makeBold(`Q${j + 1}`, keyMeta.length ? `(${keyMeta.join(', ')})` : ''));
+            // The callout label is rendered in tracked uppercase — only
+            // short keys (a letter / a phrase) belong there. Full-sentence
+            // answers (short-answer keys) must stay in body case.
+            const answerText = String(q.answer || '').trim();
+            if (answerText && q.explanation) {
+              if (answerText.length <= 40) {
+                children.push(makeCallout(`Answer — ${answerText}`, q.explanation));
+              } else {
+                children.push(makeCallout('Answer', answerText));
+                children.push(makeBold('Explanation', q.explanation));
+              }
+            } else if (answerText) {
+              children.push(makeCallout('Answer', answerText));
+            } else if (q.explanation) {
+              children.push(makeBold('Explanation', q.explanation));
+            }
+            // Single-objective lessons would otherwise repeat the same
+            // "Aligns to" sentence under every question.
+            if (q.objectiveAligned && q.objectiveAligned !== prevObjectiveAligned) {
+              children.push(makeItalic(`Aligns to: ${q.objectiveAligned}`));
+              prevObjectiveAligned = q.objectiveAligned;
+            }
+            if (q.sampleAnswer) children.push(makeBold('Sample Answer', q.sampleAnswer));
+            if (q.rubricHints) children.push(makeBold('Rubric Hints', q.rubricHints));
+            if (q.scoringGuidance) children.push(makeBold('Scoring Guidance', q.scoringGuidance));
+            if (q.intendedUse) children.push(makeItalic(`Intended use: ${q.intendedUse}`));
+            if (q.feedback) children.push(makeItalic(`Feedback: ${q.feedback}`));
           }
-          // Single-objective lessons would otherwise repeat the same
-          // "Aligns to" sentence under every question.
-          if (q.objectiveAligned && q.objectiveAligned !== prevObjectiveAligned) {
-            children.push(makeItalic(`Aligns to: ${q.objectiveAligned}`));
-            prevObjectiveAligned = q.objectiveAligned;
-          }
-          if (q.sampleAnswer) children.push(makeBold('Sample Answer', q.sampleAnswer));
-          if (q.rubricHints) children.push(makeBold('Rubric Hints', q.rubricHints));
-          if (q.scoringGuidance) children.push(makeBold('Scoring Guidance', q.scoringGuidance));
-          if (q.intendedUse) children.push(makeItalic(`Intended use: ${q.intendedUse}`));
-          if (q.tags?.length) children.push(makeItalic(`Tags: ${q.tags.join(', ')}`));
-          if (q.feedback) children.push(makeItalic(`Feedback: ${q.feedback}`));
+          // Tags once per quiz instead of after every question.
+          if (allTags.size > 0) children.push(makeItalic(`Tags: ${[...allTags].join(', ')}`));
         }
         children.push(new Paragraph({ spacing: { before: 200, after: 100 }, children: [] }));
       }
@@ -549,7 +720,9 @@ export function _buildDocxContentShared(featureId, data, children, docx) {
         children.push(makeHeading(d.lessonTitle || 'Discussion'));
         const dMeta = [d.bloomsLevel, d.format, d.estimatedDuration].filter(Boolean);
         if (dMeta.length) children.push(makeMeta(dMeta.join('  ·  ')));
-        if (d.prompt) children.push(makeBold('Prompt', d.prompt));
+        // v0.12.1: the prompt is the one thing students must read — render it
+        // as a shaded callout instead of another label paragraph.
+        if (d.prompt) children.push(makeCallout('Prompt', d.prompt));
         if (d.context) children.push(makeBold('Context', d.context));
         if (d.evidenceRequirement) children.push(makeBold('Evidence Requirement', d.evidenceRequirement));
         if (d.sourceArtifacts?.length) {
@@ -620,15 +793,19 @@ export function _buildDocxContentShared(featureId, data, children, docx) {
             children.push(makeNumbered(j + 1, stripped));
           });
         }
-        // Format requirements
+        // Format requirements — v0.12.1: a two-column table instead of five
+        // glued label paragraphs.
         if (a.formatRequirements) {
           children.push(makeSubHeading('Format Requirements'));
           const fr = a.formatRequirements;
-          if (fr.length) children.push(makeBold('Length', fr.length));
-          if (fr.format) children.push(makeBold('Format', fr.format));
-          if (fr.citationStyle) children.push(makeBold('Citation Style', fr.citationStyle));
-          if (fr.submissionPlatform) children.push(makeBold('Submission', fr.submissionPlatform));
-          if (fr.latePolicy) children.push(makeBold('Late Policy', fr.latePolicy));
+          const frPairs = [
+            ['Length', fr.length],
+            ['Format', fr.format],
+            ['Citation Style', fr.citationStyle],
+            ['Submission', fr.submissionPlatform],
+            ['Late Policy', fr.latePolicy],
+          ].filter(([, v]) => v);
+          if (frPairs.length) children.push(makeKeyValueTable(frPairs));
         }
         if (a.deliverables?.length) {
           children.push(makeSubHeading('Deliverables'));
@@ -694,14 +871,20 @@ export function _buildDocxContentShared(featureId, data, children, docx) {
         }
         if (g.keyTerms?.length) {
           children.push(makeSubHeading('Key Terms'));
-          g.keyTerms.forEach((t) => {
-            const parts = [t.definition || ''];
-            if (t.example) parts.push(`Example: ${t.example}`);
-            // CurriculumOS: genome-linked terms carry a source citation —
-            // render the receipt instructors trust ("Source: OpenStax …").
-            if (t.source) parts.push(`Source: ${t.source}`);
-            children.push(makeBold(t.term || '', parts.join(' — ')));
-          });
+          // v0.12.1: a real two-column definition table instead of glued
+          // label-value paragraphs.
+          children.push(
+            makeKeyValueTable(
+              g.keyTerms.map((t) => {
+                const parts = [t.definition || ''];
+                if (t.example) parts.push(`Example: ${t.example}`);
+                // CurriculumOS: genome-linked terms carry a source citation —
+                // render the receipt instructors trust ("Source: OpenStax …").
+                if (t.source) parts.push(`Source: ${t.source}`);
+                return [t.term || '', parts.join(' — ')];
+              }),
+            ),
+          );
         }
         // How to reason about this structure (metacognitive scaffold)
         if (g.reasoningRoutine?.length) {
@@ -799,26 +982,33 @@ export function _buildDocxContentShared(featureId, data, children, docx) {
     // ─── SYLLABUS ───────────────────────────────────────────────
     case 'syllabus': {
       const syl = data.syllabus || data;
-      // Course info
-      const infoLines = [
-        syl.semester && `Semester: ${syl.semester}`,
-        syl.credits && `Credits: ${syl.credits}`,
-        syl.meetingPattern && `Meeting: ${syl.meetingPattern}`,
-        syl.location && `Location: ${syl.location}`,
-        syl.deliveryMode && `Delivery: ${syl.deliveryMode}`,
-        syl.prerequisites && `Prerequisites: ${syl.prerequisites}`,
-      ].filter(Boolean);
-      if (infoLines.length) infoLines.forEach((l) => children.push(makeText(l)));
+      // v0.12.1: a ~10-page document gets a navigable ToC (heading styles now
+      // match the rendered formatting, so Word can actually build it).
+      if (docx.TableOfContents) {
+        children.push(makeHeading('Contents'));
+        children.push(new docx.TableOfContents('Contents', { hyperlink: true, headingStyleRange: '1-3' }));
+        children.push(new Paragraph({ children: [new PageBreak()] }));
+      }
+      // Course info — a tidy two-column table instead of stacked lines.
+      const infoPairs = [
+        ['Semester', syl.semester],
+        ['Credits', syl.credits],
+        ['Meeting', syl.meetingPattern],
+        ['Location', syl.location],
+        ['Delivery', syl.deliveryMode],
+        ['Prerequisites', syl.prerequisites],
+      ].filter(([, v]) => v);
+      if (infoPairs.length) children.push(makeKeyValueTable(infoPairs));
       // Instructor info
-      const instrLines = [
-        syl.instructor && `Instructor: ${syl.instructor}`,
-        syl.instructorEmail && `Email: ${syl.instructorEmail}`,
-        syl.officeHours && `Office Hours: ${syl.officeHours}`,
-        syl.officeLocation && `Office: ${syl.officeLocation}`,
-      ].filter(Boolean);
-      if (instrLines.length) {
+      const instrPairs = [
+        ['Instructor', syl.instructor],
+        ['Email', syl.instructorEmail],
+        ['Office Hours', syl.officeHours],
+        ['Office', syl.officeLocation],
+      ].filter(([, v]) => v);
+      if (instrPairs.length) {
         children.push(makeHeading('Instructor Information'));
-        instrLines.forEach((l) => children.push(makeText(l)));
+        children.push(makeKeyValueTable(instrPairs));
       }
       if (syl.instructorBio) {
         children.push(makeSubHeading('Instructor Bio'));
@@ -839,7 +1029,11 @@ export function _buildDocxContentShared(featureId, data, children, docx) {
       if (syl.learningOutcomes?.length) {
         children.push(makeHeading('Student Learning Outcomes'));
         children.push(makeText('Upon successful completion of this course, students will be able to:'));
-        syl.learningOutcomes.forEach((o, i) => children.push(makeBullet(`${i + 1}. ${o}`)));
+        // v0.12.1: numbered lines, not bullets-with-manual-numbers — the old
+        // combination rendered the double marker "● 1. Explain…".
+        syl.learningOutcomes.forEach((o, i) =>
+          children.push(makeNumbered(i + 1, String(o || '').replace(/^\d+[a-z]?[.)]\s+/i, ''))),
+        );
       }
       if (syl.outcomeAlignmentMatrix?.length) {
         children.push(makeHeading('Outcome & Assessment Alignment'));
@@ -890,14 +1084,19 @@ export function _buildDocxContentShared(featureId, data, children, docx) {
         for (let gi = 0; gi < syl.gradingScale.length; gi += 2) {
           const left = syl.gradingScale[gi];
           const right = syl.gradingScale[gi + 1];
-          scalePairs.push([left?.grade || '', left?.range || '', right?.grade || '', right?.range || '']);
+          // v0.12.1: an odd-length scale used to leave two blank cells on the
+          // last row — print an em dash so the row reads as intentional.
+          scalePairs.push([left?.grade || '', left?.range || '', right?.grade || '—', right?.range || '—']);
         }
         children.push(makeTableFn([1170, 3510, 1170, 3510], ['Grade', 'Range', 'Grade', 'Range'], scalePairs));
       }
       // Course Schedule
       if (syl.weeklySchedule?.length) {
+        children.push(new Paragraph({ children: [new PageBreak()] }));
         children.push(makeHeading('Course Schedule'));
-        const hasDates = syl.weeklySchedule.some((w) => w.dates);
+        // v0.12.1: a Dates column that merely repeats the Week label rendered
+        // as "Week 1 || Week 1" — only keep it when it adds information.
+        const hasDates = syl.weeklySchedule.some((w) => w.dates && w.dates !== w.week);
         const headers = hasDates
           ? ['Week', 'Dates', 'Topic', 'Readings', 'Assignments']
           : ['Week', 'Topic', 'Readings', 'Assignments'];
@@ -908,15 +1107,20 @@ export function _buildDocxContentShared(featureId, data, children, docx) {
             headers,
             syl.weeklySchedule.map((w) =>
               hasDates
-                ? [w.week || '', w.dates || '', w.topic || '', w.readings || '', w.assignments || '']
+                ? [w.week || '', (w.dates !== w.week && w.dates) || '', w.topic || '', w.readings || '', w.assignments || '']
                 : [w.week || '', w.topic || '', w.readings || '', w.assignments || ''],
             ),
           ),
         );
       }
-      // Policies
+      // Policies — start the policy block on a fresh page.
+      let policyPageBroken = false;
       const policySection = (heading, text) => {
         if (text) {
+          if (!policyPageBroken) {
+            children.push(new Paragraph({ children: [new PageBreak()] }));
+            policyPageBroken = true;
+          }
           children.push(makeHeading(heading));
           children.push(makeText(text));
         }
@@ -964,8 +1168,24 @@ export function _buildDocxContentShared(featureId, data, children, docx) {
         const questions = lesson.questions || [];
         for (let qi = 0; qi < questions.length; qi++) {
           const q = questions[qi];
-          // Bold question
-          children.push(makeBold(`Q${qi + 1}`, q.question || ''));
+          // v0.12.1: questions are real Heading 3 entries (sentence case, not
+          // the uppercase kicker) so the FAQ is navigable in Word's pane.
+          children.push(
+            new Paragraph({
+              heading: HeadingLevel.HEADING_3,
+              keepNext: true,
+              spacing: { line: SINGLE_SP, before: 240, after: 60 },
+              children: [
+                new TextRun({
+                  text: `Q${qi + 1}. ${q.question || ''}`,
+                  bold: true,
+                  size: H3_SIZE,
+                  font: FONT,
+                  color: theme.headingColor,
+                }),
+              ],
+            }),
+          );
           // Answer text
           children.push(makeText(q.answer || ''));
           if (q.studentAction) children.push(makeBold('Student Action', q.studentAction));
@@ -1046,7 +1266,7 @@ export async function exportDeliverableDocx(featureId, data, courseName) {
   // Build content using shared helper
   _buildDocxContentShared(featureId, data, children, { ...docx, THIN_BORDER });
 
-  const doc = buildDocxDocument(docx, children, { courseName, label });
+  const doc = buildDocxDocument(docx, children, { courseName, label, landscape: featureId === 'rubrics' });
 
   const blob = await Packer.toBlob(doc);
   await assertOfficeExportHasNoInternalText(blob, 'docx', label);

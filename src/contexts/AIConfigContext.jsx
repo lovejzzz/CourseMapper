@@ -1,7 +1,7 @@
 // src/contexts/AIConfigContext.jsx — AI provider/model configuration state
 import React, { createContext, useContext, useState, useEffect } from 'react';
 import { getSecure, setSecure, removeSecure } from '../lib/secureStorage';
-import { createGenerationPlan } from '../lib/modelCapabilities';
+import { createBaseModelCapabilities, createGenerationPlan } from '../lib/modelCapabilities';
 
 const AIConfigContext = createContext(null);
 const ACTIVE_API_KEY_STORAGE_KEY = 'coursemapper-apikey';
@@ -74,7 +74,16 @@ export function AIConfigProvider({ children }) {
       return null;
     }
   });
-  const [generationPlan, setGenerationPlan] = useState(() => createGenerationPlan(modelCapabilities || {}));
+  // v0.12.1: a missing/stale capability profile must never produce a bare
+  // prompt_only plan for a known provider — that silently disables blueprint
+  // enrichment AND lean course-map atoms (the v0.12 four-course audit shipped
+  // mail-merge packages exactly this way). Fall back to the catalog baseline
+  // profile, which carries provider-level structured-output metadata.
+  const [generationPlan, setGenerationPlan] = useState(() =>
+    createGenerationPlan(
+      modelCapabilities || createBaseModelCapabilities(provider, { id: modelId, maxOutputTokens }),
+    ),
+  );
 
   // ── Persist API key, provider & model to localStorage ──
   useEffect(() => {
@@ -104,7 +113,11 @@ export function AIConfigProvider({ children }) {
       modelCapabilities?.provider === provider &&
       (!modelCapabilities?.modelId || modelCapabilities.modelId === modelId);
     if (!matchesCurrentModel) {
-      setGenerationPlan(createGenerationPlan({ provider, modelId, maxOutputTokens }));
+      // Same v0.12.1 rule as the initial state: resolve the catalog baseline
+      // for the current provider/model instead of a bare (degraded) profile.
+      setGenerationPlan(
+        createGenerationPlan(createBaseModelCapabilities(provider, { id: modelId, maxOutputTokens })),
+      );
       return;
     }
     setGenerationPlan(createGenerationPlan(modelCapabilities));

@@ -14,6 +14,11 @@ import {
   resolveModelCapabilities,
 } from '../lib/modelCapabilities';
 import { buildOpenAIResponsesBody, prefersOpenAIResponsesApi } from '../lib/openaiProvider';
+import {
+  describeEnrichmentResolution,
+  readEnrichmentPreference,
+  saveEnrichmentPreference,
+} from '../lib/enrichmentPreference';
 
 /**
  * Detect provider from API key prefix and auto-switch if mismatched.
@@ -212,6 +217,12 @@ export default function ModelConfig() {
   const modelIdSelectId = 'ai-model-select';
   const [capabilityStatus, setCapabilityStatus] = useState('idle');
   const [validationMessage, setValidationMessage] = useState('');
+  // v0.12.1: user-facing subject-matter enrichment control (auto/on/off).
+  const [enrichmentPref, setEnrichmentPref] = useState(readEnrichmentPreference);
+  const handleEnrichmentPref = (mode) => {
+    setEnrichmentPref(mode);
+    saveEnrichmentPreference(mode);
+  };
   const latestConfigRef = useRef({ apiStatus, availableModels, modelId });
 
   useEffect(() => {
@@ -240,7 +251,7 @@ export default function ModelConfig() {
     setAvailableModels([]);
     setModelId('');
     setModelCapabilities(null);
-    setGenerationPlan(createGenerationPlan({ provider }));
+    setGenerationPlan(createGenerationPlan(createBaseModelCapabilities(provider, {})));
     setCapabilityStatus('idle');
     setValidationMessage('');
 
@@ -816,6 +827,33 @@ export default function ModelConfig() {
               {badge.label}
             </span>
           ))}
+        </div>
+      )}
+      {hasSelectableModels && (
+        <div className="mt-4" data-testid="enrichment-preference">
+          <label className="block text-xs font-medium text-slate-500 mb-1.5 tracking-wide uppercase">
+            Subject-matter enrichment
+          </label>
+          <div className="inline-flex rounded-squircle-xs border border-slate-200/70 bg-white/70 p-0.5">
+            {['auto', 'on', 'off'].map((mode) => (
+              <button
+                key={mode}
+                type="button"
+                onClick={() => handleEnrichmentPref(mode)}
+                aria-pressed={enrichmentPref === mode}
+                className={`rounded-squircle-xs px-3 py-1 text-[11px] font-semibold capitalize transition-colors ${
+                  enrichmentPref === mode
+                    ? 'bg-slate-900 text-white dark:bg-white dark:text-slate-900'
+                    : 'text-slate-500 hover:text-slate-700'
+                }`}
+              >
+                {mode}
+              </button>
+            ))}
+          </div>
+          <p className="mt-1.5 text-[11px] text-slate-500">
+            {describeEnrichmentResolution(enrichmentPref, generationPlan?.blueprintEnrichment)}
+          </p>
         </div>
       )}
     </div>

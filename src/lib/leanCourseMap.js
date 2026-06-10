@@ -79,8 +79,11 @@ function renderLearningGoals(items) {
 
 function renderLearningObjectives(items) {
   if (items.length === 0) return '';
+  // v0.12.1: the stem never lives in the cell — the readiness repair strips
+  // it (logging a fake per-lesson "repair") and the pedagogical validator
+  // treats it as non-publishable. Exporters/preview render the stem.
   const lines = items.map((item, index) => (hasListPrefix(item) ? item : `${index + 1}. ${item}`));
-  return `Students will be able to:\n${lines.join('\n')}`;
+  return lines.join('\n');
 }
 
 export function expandLeanSectionField(key, value) {

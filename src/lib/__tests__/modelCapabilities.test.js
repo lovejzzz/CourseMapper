@@ -143,4 +143,28 @@ describe('modelCapabilities', () => {
     expect(second.fromCache).toBe(true);
     expect(fetchMock).toHaveBeenCalledTimes(1);
   });
+
+  // v0.12.1: the v0.12 audit traced four mail-merge packages to a bare
+  // profile (no structuredOutput block) resolving to prompt_only, which
+  // silently disabled enrichment AND lean atoms. Bare first-party profiles
+  // must be flagged; catalog baselines must keep the content stack on.
+  it('flags bare first-party profiles as degraded and keeps catalog baselines healthy', () => {
+    const bare = createGenerationPlan({ provider: 'openai', modelId: 'gpt-5.4-mini', maxOutputTokens: 16384 });
+    expect(bare.planDegraded).toBe(true);
+    expect(bare.blueprintEnrichment).toBe(false);
+    expect(bare.leanCourseMapAtoms).toBe(false);
+
+    const baseline = createGenerationPlan(
+      createBaseModelCapabilities('openai', { id: 'gpt-5.4-mini', maxOutputTokens: 16384 }),
+    );
+    expect(baseline.planDegraded).toBe(false);
+    expect(baseline.structuredOutputMode).not.toBe('prompt_only');
+    expect(baseline.blueprintEnrichment).toBe('adaptive');
+    expect(baseline.leanCourseMapAtoms).toBe(true);
+
+    // webllm is legitimately prompt-only — no degraded flag, content stack off
+    const local = createGenerationPlan(createBaseModelCapabilities('webllm', { id: 'llama-3-8b' }));
+    expect(local.planDegraded).toBe(false);
+    expect(local.blueprintEnrichment).toBe(false);
+  });
 });

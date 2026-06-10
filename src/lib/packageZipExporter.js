@@ -161,11 +161,22 @@ function lessonFileStem(courseMap, lessonIndex) {
   return `Lesson ${String(lessonIndex + 1).padStart(2, '0')} - ${safeTitle}`;
 }
 
-function buildManifest({ courseName, lessonFilter, readiness, files, requestedFeatureIds, requiredAssets = [] }) {
+function buildManifest({
+  courseName,
+  lessonFilter,
+  readiness,
+  files,
+  requestedFeatureIds,
+  requiredAssets = [],
+  pipelineState = null,
+}) {
   return {
     courseName,
     generatedAt: new Date().toISOString(),
     lessonScope: Array.isArray(lessonFilter) ? lessonFilter.map((index) => index + 1) : 'all',
+    // v0.12.1: how the content was produced (enrichment / genome linker /
+    // plan health) so downloaded packages are auditable without console logs.
+    ...(pipelineState ? { pipeline: pipelineState } : {}),
     requestedFeatures: requestedFeatureIds.map((featureId) => ({
       featureId: publicFeatureId(featureId),
       label: resolveFeatureLabel(featureId),
@@ -190,6 +201,7 @@ export async function buildCourseMaterialsZip({
   slideTheme = 0,
   readiness = null,
   featureIds = null,
+  pipelineState = null,
 } = {}) {
   const JSZip = (await safeImport(() => import('jszip'))).default;
   const { buildDeliverableDocxBlob } = await safeImport(() => import('./exporters/bulkDocxExporter'));
@@ -336,6 +348,7 @@ export async function buildCourseMaterialsZip({
     files,
     requestedFeatureIds,
     requiredAssets,
+    pipelineState,
   });
   const manifestText = JSON.stringify(manifest, null, 2);
   zip.file('PACKAGE_MANIFEST.json', manifestText);

@@ -148,6 +148,85 @@ const FIXTURE = {
             altText: 'An open book with a pencil resting on the page.',
           },
         },
+
+        // 6. content — evidence-table kind with short, splittable bullets:
+        // should render a NATIVE table (v0.12.1) from the slide's own data.
+        {
+          title: 'Markets clear where supply meets demand',
+          type: 'content',
+          bullets: [
+            'Each evidence row names the signal and what it tells you about the market.',
+            'Price signal — shows willingness to pay at the margin',
+            'Cost curve — reveals the producer break-even point',
+            'Elasticity — predicts the response to a price change',
+          ],
+          timeEstimate: '5 min',
+          speakerNotes: 'Walk the table row by row.',
+          visual: {
+            kind: 'evidence table',
+            description: 'Evidence table comparing price, cost, and elasticity signals',
+            altText: 'Three-row table of market evidence signals.',
+          },
+        },
+
+        // 7. discussion — decision-matrix kind with four short options:
+        // should render a NATIVE 2x2 grid table (v0.12.1).
+        {
+          title: 'Which intervention should the city choose?',
+          type: 'discussion',
+          bullets: [
+            'Price ceiling: protects renters now',
+            'Subsidy: raises supply over time',
+            'Voucher: targets the neediest households',
+            'Deregulation: lowers building costs',
+          ],
+          timeEstimate: '8 min',
+          speakerNotes: 'Let students argue each quadrant.',
+          visual: {
+            kind: 'decision matrix',
+            description: 'Decision matrix comparing four housing interventions',
+            altText: 'Two-by-two grid of policy options.',
+          },
+        },
+
+        // 8. keyTerm — concept-map kind with short phrases:
+        // should render a NATIVE hub-and-spoke shape group (v0.12.1).
+        {
+          title: 'Opportunity Cost',
+          type: 'keyTerm',
+          bullets: [
+            'The value of the next-best alternative you give up when you choose.',
+            'Always measured against the next-best use',
+            'Includes non-money costs like time',
+            'Drives the shape of the production frontier',
+          ],
+          timeEstimate: '6 min',
+          speakerNotes: 'Anchor the spokes to the definition.',
+          visual: {
+            kind: 'concept map',
+            description: 'Concept map linking opportunity cost to its uses',
+            altText: 'Hub-and-spoke diagram centered on opportunity cost.',
+          },
+        },
+
+        // 9. content — evidence-table kind but a row exceeds the short-string
+        // limit: must keep the existing text layout (no native table).
+        {
+          title: 'Long-form evidence stays as text',
+          type: 'content',
+          bullets: [
+            'Lead assertion for the long-form slide.',
+            'This deliberately overlong evidence bullet keeps going and going so that it blows well past the one-hundred-and-thirty-character table-row limit and disqualifies the slide.',
+            'A second supporting bullet.',
+          ],
+          timeEstimate: '4 min',
+          speakerNotes: 'No table here.',
+          visual: {
+            kind: 'evidence table',
+            description: 'Evidence table that does not fit the data',
+            altText: 'Table suggestion that stays in the notes.',
+          },
+        },
       ],
     },
   ],
@@ -297,5 +376,80 @@ describe('PPTX export — visual placeholders', () => {
     expect(slideXml).toContain('Compact slide titles render');
     expect(slideXml).toContain('Compact bullets render');
     expect(notesXml).toContain('compact generated speaker notes');
+  });
+});
+
+describe('PPTX export — native visuals (v0.12.1)', () => {
+  const NATIVE_TABLE_XML = /<a:tbl[\s>]/;
+  const count = (xml, re) => (xml.match(new RegExp(re, 'g')) || []).length;
+
+  it('content slide with an evidence-table visual renders a native PPTX table', () => {
+    // Fixture slide index 5 = content with kind 'evidence table'
+    const xml = slideXmls[5];
+    expect(xml).toMatch(NATIVE_TABLE_XML);
+    // Header row carries the descriptor kind, uppercased
+    expect(xml).toContain('EVIDENCE TABLE');
+    // Rows split on the em-dash into lead + detail cells
+    expect(xml).toContain('Price signal');
+    expect(xml).toContain('shows willingness to pay at the margin');
+    expect(xml).toContain('reveals the producer break-even point');
+    // Lead assertion stays on the slide as text
+    expect(xml).toContain('Each evidence row names the signal');
+  });
+
+  it('discussion slide with a decision-matrix visual renders a native grid table', () => {
+    // Fixture slide index 6 = discussion with kind 'decision matrix'
+    const xml = slideXmls[6];
+    expect(xml).toMatch(NATIVE_TABLE_XML);
+    expect(xml).toContain('Price ceiling: protects renters now');
+    expect(xml).toContain('Voucher: targets the neediest households');
+  });
+
+  it('keyTerm slide with a concept-map visual renders a hub-and-spoke shape group', () => {
+    // Fixture slide index 7 = keyTerm with kind 'concept map'
+    const xml = slideXmls[7];
+    // Hub label = the concept (slide title)
+    expect(xml).toContain('Opportunity Cost');
+    // Spoke phrases from the explanatory bullets
+    expect(xml).toContain('Includes non-money costs like time');
+    expect(xml).toContain('Drives the shape of the production frontier');
+    // Shape group: card + slide-number chip + hub + 3 spokes ≥ 6 roundRects…
+    expect(count(xml, 'prst="roundRect"')).toBeGreaterThanOrEqual(6);
+    // …and one connector line per spoke
+    expect(count(xml, 'prst="line"')).toBeGreaterThanOrEqual(3);
+    // The definition still renders in the concept card
+    expect(xml).toContain('next-best alternative');
+  });
+
+  it('baseline keyTerm slide (non concept-map kind) has no connector lines', () => {
+    // Fixture slide index 3 = keyTerm with kind 'chart' — text layout kept
+    expect(count(slideXmls[3], 'prst="line"')).toBe(0);
+    expect(slideXmls[3]).not.toMatch(NATIVE_TABLE_XML);
+  });
+
+  it('evidence-table kind with oversize rows keeps the text layout (no table)', () => {
+    // Fixture slide index 8 = content whose row bullet exceeds the limit
+    const xml = slideXmls[8];
+    expect(xml).not.toMatch(NATIVE_TABLE_XML);
+    // The bullets still render as plain text
+    expect(xml).toContain('Lead assertion for the long-form slide');
+  });
+
+  it('slides without a matching visual kind never get a native table', () => {
+    // Fixture slide index 1 = content with kind 'diagram' (no table data)
+    expect(slideXmls[1]).not.toMatch(NATIVE_TABLE_XML);
+  });
+
+  it('keeps the SUGGESTED VISUAL block in notes as alt-text even when rendered natively', () => {
+    expect(notesXmls[5]).toContain(NOTES_MARKER);
+    expect(notesXmls[5]).toContain(ALT_MARKER);
+    expect(notesXmls[6]).toContain(NOTES_MARKER);
+    expect(notesXmls[7]).toContain(NOTES_MARKER);
+  });
+
+  it('native visuals never reintroduce the dashed placeholder scaffolding', () => {
+    expect(slideXmls[5]).not.toMatch(DASHED_LINE_XML);
+    expect(slideXmls[6]).not.toMatch(DASHED_LINE_XML);
+    expect(slideXmls[7]).not.toMatch(DASHED_LINE_XML);
   });
 });

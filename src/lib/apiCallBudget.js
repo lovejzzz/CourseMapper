@@ -270,6 +270,12 @@ export function applyApiCallBudgetEvent(currentBudget, event = {}) {
   }
   if (event.type === 'pipelineDecision') {
     next.pipeline = { ...next.pipeline, [event.stage || 'stage']: event.detail || '' };
+    // v0.12.1: the enrichment stage also reports a structured outcome so the
+    // run digest can flag compiled-without-enrichment packages without
+    // parsing the human-readable detail string.
+    if (event.stage === 'enrichmentModelStage' && event.outcome) {
+      next.enrichmentOutcome = { ...event.outcome };
+    }
   }
   if (usage) {
     next.tokenUsage = addUsageTotals(next.tokenUsage || {}, usage, {

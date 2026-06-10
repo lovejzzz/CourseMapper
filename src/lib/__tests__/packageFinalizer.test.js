@@ -903,4 +903,30 @@ describe('packageFinalizer', () => {
     expect(result.readiness.warnings.length).toBeGreaterThan(0);
     expect(result.retryActions).toEqual([]);
   });
+
+  // v0.12.1 P2: mechanical content-quality seams (double periods etc.) are
+  // repaired deterministically during finalize — the v0.12 audit shipped a
+  // courseFaq double-period as a permanent export warning because the audit
+  // only ran in the export verifier, after the retry loop.
+  it('repairs mechanical content-quality seams deterministically during finalize', () => {
+    const courseMap = makeCourseMap(2);
+    const blueprint = buildCourseBlueprint(courseMap);
+    const faq = compileBlueprintDeliverable('courseFaq', blueprint);
+    // Seed the exact defect class from the v0.12 production log.
+    faq.faqGuide.purpose = 'Student-facing support FAQ compiled from the shared course blueprint..';
+
+    const result = runDeterministicPackageFinalizer({
+      courseMap,
+      deliverables: { courseFaq: { status: 'done', data: faq } },
+      selectedFeatures: ['courseFaq'],
+    });
+
+    expect(result.repairs.some((repair) => /content-quality seam/.test(repair.message))).toBe(true);
+    expect(result.deliverables.courseFaq.data.faqGuide.purpose).toBe(
+      'Student-facing support FAQ compiled from the shared course blueprint.',
+    );
+    expect(
+      (result.readiness.warnings || []).filter((warning) => /double-period/.test(warning.message)),
+    ).toHaveLength(0);
+  });
 });

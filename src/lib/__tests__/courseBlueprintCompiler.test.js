@@ -1991,26 +1991,28 @@ describe('courseBlueprintCompiler', () => {
     expect(blueprint.courseArc.throughline).toContain('Applied Social Policy Studio Policy Evidence Thread');
     expect(blueprint.lessons[0].throughlineCase).toMatchObject({
       projectName: 'Applied Social Policy Studio Policy Evidence Thread',
-      evidencePacket: expect.stringContaining('Instructor-provided course materials'),
+      // v0.12.1: lesson-specific resources resolve as the evidence packet
+      // instead of the unresolved placeholder.
+      evidencePacket: expect.stringContaining('Case packet 1'),
     });
-    expect(blueprint.lessons[0].readings[0]).toContain('Instructor-provided course materials');
+    expect(blueprint.lessons[0].readings[0]).toContain('Case packet 1');
     expect(blueprint.lessons[0].studentArtifact).toBe('Policy memo checkpoint 1');
 
-    expect(compiled.lessonPlans.lessonPlans[0].materials.join(' ')).toContain('Instructor-provided course materials');
+    expect(compiled.lessonPlans.lessonPlans[0].materials.join(' ')).toContain('Case packet 1');
     expect(compiled.slideDecks.decks[0].slides.flatMap((slide) => slide.bullets).join(' ')).toContain(
-      'Instructor-provided course materials',
+      'Case packet 1',
     );
     expect(compiled.assignments.assignments[0].sourceUsePlan.approvedSources[0]).toMatch(
-      /Instructor-provided|the Lesson 1 materials/,
+      /Case packet|Instructor-provided|the Lesson 1 materials/,
     );
     expect(compiled.rubrics.rubrics[0].criteria[0].evidenceSignal).toMatch(
-      /Instructor-provided|the Lesson 1 materials/,
+      /Case packet|Instructor-provided|the Lesson 1 materials/,
     );
     expect(compiled.discussions.discussions[0].sourceArtifacts[0].locator).toMatch(
-      /Instructor-provided|[Tt]he Lesson 1 materials/,
+      /Case packet|Instructor-provided|[Tt]he Lesson 1 materials/,
     );
     expect(compiled.quizBank.quizzes[0].questions.map((question) => question.sampleAnswer || '').join(' ')).toMatch(
-      /Instructor-provided|[Tt]he Lesson 1 materials/,
+      /Case packet|Instructor-provided|[Tt]he Lesson 1 materials/,
     );
     const repeatedOptionGroups = compiled.quizBank.quizzes.flatMap((quiz, quizIndex) => {
       const groups = new Map();
@@ -2034,7 +2036,7 @@ describe('courseBlueprintCompiler', () => {
       'Applied Social Policy Studio',
     );
     expect(compiled.courseFaq.faqs[0].qs.map((item) => item.an).join(' ')).toMatch(
-      /Instructor-provided|[Tt]he Lesson 1 materials/,
+      /Case packet|Instructor-provided|[Tt]he Lesson 1 materials/,
     );
   });
 
@@ -3076,7 +3078,7 @@ describe('courseBlueprintCompiler', () => {
           answerabilityStatus: 'answerable-from-blueprint',
           reviewerQuestion: expect.stringContaining('Policy Topic 1'),
           sourceTrace: expect.objectContaining({
-            sourceAnchor: expect.stringContaining('Instructor-provided course materials'),
+            sourceAnchor: expect.stringContaining('Case packet'),
             evidenceRequirement: expect.stringContaining('Use a concrete detail'),
             compilerReason: expect.stringContaining('high-confidence source fields'),
             localConfirmationCue: expect.stringContaining('Spot-check official dates'),
@@ -3086,7 +3088,7 @@ describe('courseBlueprintCompiler', () => {
             openingMove: expect.stringContaining('Policy Topic 1'),
             practiceMove: expect.stringContaining('Policy memo checkpoint 1'),
             feedbackMove: expect.stringContaining('Policy memo checkpoint 1'),
-            sourceAnchor: expect.stringContaining('Instructor-provided course materials'),
+            sourceAnchor: expect.stringContaining('Case packet'),
             artifactCue: expect.stringContaining('Policy memo checkpoint 1'),
             modalityCue: expect.stringContaining('stakeholder'),
           }),
@@ -4172,7 +4174,7 @@ describe('courseBlueprintCompiler', () => {
       kind: 'learning-thread timeline',
       visualPlan: expect.objectContaining({
         slidePurpose: expect.stringContaining('Policy Topic 1'),
-        evidenceSource: expect.stringContaining('Instructor-provided course materials'),
+        evidenceSource: expect.stringContaining('Case packet'),
         artifactConnection: expect.stringContaining('Policy memo checkpoint 1'),
         modalityFit: expect.stringContaining('stakeholder'),
         artifactGenreFit: expect.stringContaining('problem framing'),
@@ -4482,7 +4484,7 @@ describe('courseBlueprintCompiler', () => {
       }),
       evidenceSignal: expect.stringContaining('inspectable Policy Topic 1 detail'),
       calibrationUse: expect.stringContaining('Policy memo checkpoint 1'),
-      exemplary: expect.stringMatching(/Instructor-provided course materials|the Lesson 1 materials/),
+      exemplary: expect.stringMatching(/Case packet|Instructor-provided course materials|the Lesson 1 materials/),
       proficient: expect.stringContaining('Policy Topic 1'),
       developing: expect.stringContaining('evidence link'),
       beginning: expect.stringContaining('unsupported claims'),
@@ -6073,7 +6075,7 @@ describe('courseBlueprintCompiler', () => {
     expect(readingResponse.lesson_reading_response[0].sourceGrounding).toMatchObject({
       confidence: 'high',
       compiledPattern: 'reading-response',
-      focusReading: expect.stringContaining('Instructor-provided course materials'),
+      focusReading: expect.stringContaining('Case packet'),
     });
 
     const validation = validateDeliverableGeneration('custom_readingResponse', readingResponse, {

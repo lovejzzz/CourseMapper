@@ -103,6 +103,52 @@ export const THEMES = [
   },
 ];
 
+// ── Per-course accent families (v0.12.1) ───────────────────────────────────
+// The v0.12 audit found all four flagship courses shipping the identical
+// navy/gold palette. Keep the navy base but derive a stable accent family
+// from the course name so each course is visibly distinct in a thumbnail
+// strip. Accents are applied ONLY to accent elements (tags, progress dots,
+// highlight bands, label text) — body text colors are untouched. Every value
+// keeps ≥4.5:1 contrast against the navy primary (1E3A5F) because the accent
+// doubles as label text on dark slides.
+export const ACCENT_FAMILIES = [
+  { name: 'Gold', accent: 'F6C90E' }, // current default — family 0 keeps it
+  { name: 'Sage', accent: 'A8C686' },
+  { name: 'Teal', accent: '4FD1C5' },
+  { name: 'Terracotta', accent: 'E89072' },
+  { name: 'Plum', accent: 'C9A0DC' },
+];
+
+/**
+ * Deterministically pick an accent family for a course name.
+ * FNV-1a over the normalized name — same name always maps to the same
+ * family; no randomness, no ordering dependence.
+ */
+export function accentFamilyForCourse(courseName) {
+  const key = String(courseName || '')
+    .trim()
+    .toLowerCase();
+  if (!key) return ACCENT_FAMILIES[0];
+  let h = 0x811c9dc5; // FNV-1a 32-bit offset basis
+  for (let i = 0; i < key.length; i++) {
+    h ^= key.charCodeAt(i);
+    h = Math.imul(h, 0x01000193);
+  }
+  return ACCENT_FAMILIES[(h >>> 0) % ACCENT_FAMILIES.length];
+}
+
+/**
+ * Apply the course-derived accent to a resolved theme. Only the default
+ * Navy & Gold theme is re-accented — when an instructor explicitly picks a
+ * non-default theme (Forest & Amber, …) their accent choice is respected.
+ */
+function themeWithCourseAccent(theme, courseName) {
+  if (!theme || theme.name !== 'Navy & Gold') return theme;
+  const family = accentFamilyForCourse(courseName);
+  if (!family || family.accent === theme.accent) return theme;
+  return { ...theme, accent: family.accent };
+}
+
 // ── Slide type detection ───────────────────────────────────────────────────
 function getSlideType(slide) {
   if (slide.type) {
@@ -187,6 +233,273 @@ function addProgressDots(pptx, slide, theme, slideIndex, totalSlides, isDark) {
   }
 }
 
+// ── Native visual rendering (v0.12.1) ──────────────────────────────────────
+// The v0.12 audit found 464/708 speaker notes carrying a "SUGGESTED VISUAL"
+// descriptor and 0 native pictures/tables/charts on the slides themselves.
+// For the three descriptor kinds with structured data behind them we now
+// render real PPTX objects from the slide's own bullets: evidence-table-like
+// kinds become a native table (content slides), decision matrices become a
+// 2-column option grid (discussion slides), and concept maps become a
+// hub-and-spoke shape group (key-concept slides). The SUGGESTED VISUAL block
+// stays in the speaker notes as alt-text either way. Rendering only happens
+// when the data fits — short strings, enough bullets — otherwise the slide
+// keeps its existing text layout.
+
+const NATIVE_VISUAL_LIMITS = {
+  tableLead: 220, // max chars for the lead assertion kept as text
+  tableRow: 130, // max chars per table row bullet
+  tableRowLead: 42, // max chars for the split-off first cell of a row
+  matrixCell: 140, // max chars per decision-matrix cell
+  hubLabel: 48, // max chars for the concept-map hub label
+  spokeLabel: 60, // max chars per concept-map spoke phrase
+  definition: 260, // max chars for the concept-map definition card
+};
+
+/** Split "Lead — rest" / "Lead: rest" bullets into two table cells. */
+function splitBulletForTable(bullet) {
+  const match = /\s+[—–-]\s+|:\s+/.exec(bullet);
+  if (!match) return null;
+  const lead = bullet.slice(0, match.index).trim();
+  const rest = bullet.slice(match.index + match[0].length).trim();
+  if (!lead || !rest || lead.length > NATIVE_VISUAL_LIMITS.tableRowLead) return null;
+  return [lead, rest];
+}
+
+/** Shorten a bullet to a spoke-sized phrase, or null when it won't fit. */
+function spokePhrase(bullet, maxLen = NATIVE_VISUAL_LIMITS.spokeLabel) {
+  const clean = String(bullet || '')
+    .trim()
+    .replace(/[.!?]+\s*$/, '');
+  if (!clean) return null;
+  if (clean.length <= maxLen) return clean;
+  const clause = clean.split(/[,;:—–]/)[0].trim();
+  return clause.length >= 12 && clause.length <= maxLen ? clause : null;
+}
+
+/**
+ * Decide whether this slide's visual descriptor can be rendered natively
+ * from the data it already carries. Returns a render plan or null.
+ */
+function planNativeVisual(s, slideType, visKind, hasGeneratedImage, hasLatex) {
+  if (!visKind || hasGeneratedImage) return null;
+  const bullets = (Array.isArray(s.bullets) ? s.bullets : [])
+    .map((b) => String(b ?? '').trim())
+    .filter(Boolean);
+  if (bullets.length === 0) return null;
+  // LaTeX bullets go through image rendering — keep the plain text layout.
+  if (hasLatex && bullets.concat(s.title || '').some((t) => containsLatex(t))) return null;
+
+  if (slideType === 'content' && /\b(table|organizer)\b/i.test(visKind)) {
+    // Evidence table: lead assertion stays as text, remaining bullets become
+    // table rows (two columns when every row splits on an em-dash/colon).
+    if (bullets.length < 3) return null;
+    const lead = bullets[0];
+    if (lead.length > NATIVE_VISUAL_LIMITS.tableLead) return null;
+    const rowSources = bullets.slice(1, 5);
+    if (rowSources.some((b) => b.length > NATIVE_VISUAL_LIMITS.tableRow)) return null;
+    const splits = rowSources.map(splitBulletForTable);
+    const twoCol = splits.every(Boolean);
+    return { type: 'evidenceTable', lead, twoCol, rows: twoCol ? splits : rowSources.map((b) => [b]) };
+  }
+
+  if (slideType === 'question' && /\bmatrix\b/i.test(visKind)) {
+    // Decision matrix: the competing options ARE the bullets — lay the first
+    // four out as a 2-column grid so the comparison reads as a matrix.
+    const cells = bullets.slice(0, 4);
+    if (cells.length < 2) return null;
+    if (cells.some((b) => b.length > NATIVE_VISUAL_LIMITS.matrixCell)) return null;
+    return { type: 'decisionMatrix', cells };
+  }
+
+  if (slideType === 'keyTerm' && /\bconcept\s*map\b/i.test(visKind)) {
+    // Concept map: hub = the concept (slide title), spokes = short phrases
+    // from the explanatory bullets, definition keeps the central card.
+    const hub = String(s.title || '').trim();
+    if (!hub || hub.length > NATIVE_VISUAL_LIMITS.hubLabel) return null;
+    const definition = bullets[0];
+    if (!definition || definition.length > NATIVE_VISUAL_LIMITS.definition) return null;
+    const spokes = bullets
+      .slice(1)
+      .map((b) => spokePhrase(b))
+      .filter(Boolean)
+      .slice(0, 4);
+    if (spokes.length < 2) return null;
+    return { type: 'conceptMap', hub, definition, spokes };
+  }
+
+  return null;
+}
+
+/** Render the evidence table on the right half of a content slide. */
+function addEvidenceTable(pptx, slide, theme, plan, visKind, tracker) {
+  const tableX = 4.95,
+    tableY = 1.35;
+  const tableW = SLIDE_W - tableX - 0.4;
+  const leadColW = 1.55;
+  const headerRow = [
+    {
+      text: String(visKind || 'Evidence').toUpperCase(),
+      options: {
+        ...(plan.twoCol ? { colspan: 2 } : {}),
+        fill: { color: theme.primary },
+        color: 'FFFFFF',
+        bold: true,
+        fontSize: 9,
+        charSpacing: 2,
+        align: 'left',
+        valign: 'middle',
+      },
+    },
+  ];
+  const bodyRows = plan.rows.map((cells) =>
+    cells.map((cell, ci) => ({
+      text: cell,
+      options: {
+        fill: { color: plan.twoCol && ci === 0 ? theme.light : 'FFFFFF' },
+        color: theme.bodyText,
+        bold: plan.twoCol && ci === 0,
+        fontSize: 10,
+        align: 'left',
+        valign: 'middle',
+      },
+    })),
+  );
+  slide.addTable([headerRow, ...bodyRows], {
+    x: tableX,
+    y: tableY,
+    w: tableW,
+    colW: plan.twoCol ? [leadColW, tableW - leadColW] : [tableW],
+    border: { type: 'solid', pt: 0.5, color: 'D5DEEA' },
+    fontFace: FONT_BODY,
+    margin: 0.06,
+    autoPage: false,
+  });
+  tracker.add({ x: tableX, y: tableY, w: tableW, h: 3.4, label: 'evidence-table' });
+}
+
+/** Render the decision matrix grid on a discussion slide. */
+function addDecisionMatrix(pptx, slide, theme, plan, tracker) {
+  const x = 0.7,
+    y = 2.15;
+  const w = SLIDE_W - 1.4;
+  const rows = [];
+  for (let i = 0; i < plan.cells.length; i += 2) {
+    const pair = plan.cells.slice(i, i + 2);
+    rows.push(
+      pair.map((cell) => ({
+        text: cell,
+        options: {
+          ...(pair.length === 1 ? { colspan: 2 } : {}),
+          fill: { color: 'FFFFFF' },
+          color: theme.bodyText,
+          fontSize: 11,
+          align: 'left',
+          valign: 'middle',
+        },
+      })),
+    );
+  }
+  slide.addTable(rows, {
+    x,
+    y,
+    w,
+    colW: [w / 2, w / 2],
+    border: { type: 'solid', pt: 1, color: theme.accent },
+    fontFace: FONT_BODY,
+    margin: 0.08,
+    autoPage: false,
+  });
+  tracker.add({ x, y, w, h: 2.4, label: 'decision-matrix' });
+}
+
+/** Render the hub-and-spoke concept map group on a key-concept slide. */
+function addConceptMapGroup(pptx, slide, theme, plan, tracker) {
+  const hubX = 6.45,
+    hubY = 2.42,
+    hubW = 2.4,
+    hubH = 0.8;
+  const hubCx = hubX + hubW / 2,
+    hubCy = hubY + hubH / 2;
+  const spokeW = 2.05,
+    spokeH = 0.95;
+  const slots = [
+    { x: 5.05, y: 1.05 },
+    { x: 7.6, y: 1.05 },
+    { x: 5.05, y: 3.7 },
+    { x: 7.6, y: 3.7 },
+  ];
+  const spokes = plan.spokes.map((text, i) => ({ text, ...slots[i] }));
+
+  // Connector lines first so the shapes draw on top of them.
+  for (const spoke of spokes) {
+    const scx = spoke.x + spokeW / 2,
+      scy = spoke.y + spokeH / 2;
+    slide.addShape(pptx.ShapeType.line, {
+      x: Math.min(hubCx, scx),
+      y: Math.min(hubCy, scy),
+      w: Math.abs(scx - hubCx),
+      h: Math.abs(scy - hubCy),
+      flipH: (scx - hubCx) * (scy - hubCy) < 0,
+      line: { color: theme.secondary, pt: 1.25 },
+      altText: 'Decorative',
+    });
+  }
+
+  for (const spoke of spokes) {
+    slide.addShape(pptx.ShapeType.roundRect, {
+      x: spoke.x,
+      y: spoke.y,
+      w: spokeW,
+      h: spokeH,
+      fill: { color: 'FFFFFF' },
+      line: { color: theme.secondary, pt: 1 },
+      rectRadius: 0.08,
+      altText: `Related idea: ${spoke.text}`,
+    });
+    const spokeSize = autoFitFontSize(spoke.text, spokeW - 0.2, spokeH - 0.1, FONT_BODY, 11, 8, 1.2);
+    slide.addText(spoke.text, {
+      x: spoke.x + 0.1,
+      y: spoke.y + 0.05,
+      w: spokeW - 0.2,
+      h: spokeH - 0.1,
+      fontSize: spokeSize,
+      fontFace: FONT_BODY,
+      color: theme.bodyText,
+      align: 'center',
+      valign: 'middle',
+      lineSpacingMultiple: 1.2,
+    });
+    tracker.add({ x: spoke.x, y: spoke.y, w: spokeW, h: spokeH, label: `concept-spoke` });
+  }
+
+  // Hub on top.
+  slide.addShape(pptx.ShapeType.roundRect, {
+    x: hubX,
+    y: hubY,
+    w: hubW,
+    h: hubH,
+    fill: { color: theme.primary },
+    line: { color: theme.accent, pt: 1.5 },
+    rectRadius: 0.1,
+    altText: `Central concept: ${plan.hub}`,
+  });
+  const hubSize = autoFitFontSize(plan.hub, hubW - 0.2, hubH - 0.1, FONT_HEADING, 14, 10, 1.15);
+  slide.addText(plan.hub, {
+    x: hubX + 0.1,
+    y: hubY + 0.05,
+    w: hubW - 0.2,
+    h: hubH - 0.1,
+    fontSize: hubSize,
+    fontFace: FONT_HEADING,
+    color: 'FFFFFF',
+    bold: true,
+    align: 'center',
+    valign: 'middle',
+    lineSpacingMultiple: 1.15,
+  });
+  tracker.add({ x: hubX, y: hubY, w: hubW, h: hubH, label: 'concept-hub' });
+}
+
 /**
  * Process text for LaTeX if applicable, returning { text, images }.
  * @param {string} text
@@ -219,6 +532,18 @@ async function buildSlideForDeck(pptx, deck, theme, slideIndex, totalSlides, opt
     H = SLIDE_H;
   const hasLatex = opts.hasLatex || false;
   const tracker = createElementTracker();
+
+  // Visual descriptor — accepts both expanded (slide.visual) and abbreviated
+  // (slide.vi) shapes from the generator. Hoisted above the layout branches
+  // so they can render native visuals (v0.12.1) from the same descriptor the
+  // speaker-notes block below has always used.
+  const vis = s.visual || s.vi;
+  const visKind = vis?.kind || vis?.k;
+  const hasVisual = Boolean(vis && visKind && visKind !== 'none');
+  const visDesc = hasVisual ? vis.description || vis.d || '' : '';
+  const visAlt = hasVisual ? vis.altText || vis.at || '' : '';
+  const generatedVisualImage = hasVisual ? getGeneratedVisualImage(vis) : null;
+  const nativeVisual = hasVisual ? planNativeVisual(s, slideType, visKind, Boolean(generatedVisualImage), hasLatex) : null;
 
   if (slideType === 'title') {
     // ── TITLE SLIDE ─────────────────────────────────────────────────────
@@ -338,6 +663,11 @@ async function buildSlideForDeck(pptx, deck, theme, slideIndex, totalSlides, opt
         align: 'left',
         italic: true,
         lineSpacingMultiple: 1.5,
+        // v0.12.1: audited overflow box (subtitles up to ~107 chars in a
+        // 0.6in box). The canvas pre-fit above gets the size close; the
+        // normAutofit flag lets PowerPoint itself shrink-on-overflow when
+        // the real font metrics differ from the canvas estimate.
+        fit: 'shrink',
       });
       tracker.add({ x: 0.7, y: 3.65, w: subBoxW, h: subBoxH, label: 'subtitle' });
     }
@@ -517,6 +847,14 @@ async function buildSlideForDeck(pptx, deck, theme, slideIndex, totalSlides, opt
 
     if (s.bullets?.length > 0) {
       const agendaBullets = s.bullets.slice(0, 6);
+      // v0.12.1: one shared font size for the whole list. Per-row auto-fit
+      // used to mix 13–16pt within a single agenda; use the smallest of the
+      // rows' computed sizes so the list reads as one unit.
+      const agendaItemW = W - 1.7,
+        agendaItemH = 0.55;
+      const agendaFontSize = Math.min(
+        ...agendaBullets.map((b) => autoFitFontSize(b, agendaItemW, agendaItemH, FONT_BODY, 16, 12, 1.5)),
+      );
       for (let i = 0; i < agendaBullets.length; i++) {
         const b = agendaBullets[i];
         const y = 1.3 + i * 0.68;
@@ -541,10 +879,6 @@ async function buildSlideForDeck(pptx, deck, theme, slideIndex, totalSlides, opt
           valign: 'middle',
           fontFace: FONT_HEADING,
         });
-        // Auto-fit agenda item from 16pt down to 12pt
-        const agendaItemW = W - 1.7,
-          agendaItemH = 0.55;
-        const agendaFontSize = autoFitFontSize(b, agendaItemW, agendaItemH, FONT_BODY, 16, 12, 1.5);
         const agendaResult = await maybeProcessLatex(b, hasLatex, {
           color: i === 0 ? theme.bodyText : '555555',
           fontSizePt: agendaFontSize,
@@ -633,6 +967,7 @@ async function buildSlideForDeck(pptx, deck, theme, slideIndex, totalSlides, opt
       bold: true,
       valign: 'top',
       lineSpacingMultiple: 1.2,
+      fit: 'shrink', // v0.12.1: audited overflow box ("LAST TIME" panel headline, ~0.7in)
     });
     tracker.add({ x: 0.4, y: 0.75, w: bridgeTitleW, h: bridgeTitleH, label: 'bridge-title' });
 
@@ -880,11 +1215,13 @@ async function buildSlideForDeck(pptx, deck, theme, slideIndex, totalSlides, opt
       charSpacing: 4,
     });
 
-    // Large central card
-    const cardX = 1.2,
+    // Large central card — shifts to the left half when the visual
+    // descriptor's concept map renders natively beside it (v0.12.1).
+    const isConceptMap = nativeVisual?.type === 'conceptMap';
+    const cardX = isConceptMap ? 0.5 : 1.2,
       cardY = 1.0;
-    const cardW = W - 2.4,
-      cardH = 2.8;
+    const cardW = isConceptMap ? 4.3 : W - 2.4,
+      cardH = isConceptMap ? 3.4 : 2.8;
     slide.addShape(pptx.ShapeType.roundRect, {
       x: cardX,
       y: cardY,
@@ -908,11 +1245,20 @@ async function buildSlideForDeck(pptx, deck, theme, slideIndex, totalSlides, opt
       altText: 'Decorative',
     });
 
-    // Main term/concept (auto-fit from 26pt down to 16pt)
-    const mainText = s.bullets?.[0] || s.title || 'Key Concept';
+    // Main term/concept (auto-fit from 26pt down to 16pt; tighter when the
+    // definition shares the slide with a native concept map)
+    const mainText = isConceptMap ? nativeVisual.definition : s.bullets?.[0] || s.title || 'Key Concept';
     const conceptW = cardW - 0.8,
-      conceptH = 1.6;
-    const conceptSize = autoFitFontSize(mainText, conceptW, conceptH, FONT_HEADING, 26, 16, 1.3);
+      conceptH = isConceptMap ? cardH - 0.6 : 1.6;
+    const conceptSize = autoFitFontSize(
+      mainText,
+      conceptW,
+      conceptH,
+      FONT_HEADING,
+      isConceptMap ? 20 : 26,
+      isConceptMap ? 12 : 16,
+      1.3,
+    );
     const conceptResult = await maybeProcessLatex(mainText, hasLatex, {
       color: theme.primary,
       fontSizePt: conceptSize,
@@ -942,8 +1288,13 @@ async function buildSlideForDeck(pptx, deck, theme, slideIndex, totalSlides, opt
       });
     }
 
-    // Explanatory text below card
-    if (s.bullets?.length > 1) {
+    if (isConceptMap) {
+      // Native concept map (v0.12.1): the explanatory bullets render as the
+      // hub-and-spoke group on the right, so no separate explanation block —
+      // the full bullet text remains available in the speaker notes.
+      addConceptMapGroup(pptx, slide, theme, nativeVisual, tracker);
+    } else if (s.bullets?.length > 1) {
+      // Explanatory text below card
       const explanation = s.bullets.slice(1).join('\n');
       slide.addText(explanation, {
         x: 1.5,
@@ -1207,7 +1558,12 @@ async function buildSlideForDeck(pptx, deck, theme, slideIndex, totalSlides, opt
     });
     tracker.add({ x: 1.6, y: 0.7, w: qTitleW, h: qTitleH, label: 'question-title' });
 
-    if (s.bullets?.length > 0) {
+    // Native decision matrix (v0.12.1): when the visual descriptor calls for
+    // a matrix and the prompts fit, lay them out as a 2-column comparison
+    // grid instead of a flat bullet list.
+    if (nativeVisual?.type === 'decisionMatrix') {
+      addDecisionMatrix(pptx, slide, theme, nativeVisual, tracker);
+    } else if (s.bullets?.length > 0) {
       const bulletText = s.bullets.map((b) => ({
         text: `${b}\n`,
         options: {
@@ -1289,11 +1645,35 @@ async function buildSlideForDeck(pptx, deck, theme, slideIndex, totalSlides, opt
       bold: true,
       valign: 'middle',
       lineSpacingMultiple: 1.1,
+      fit: 'shrink', // v0.12.1: audited overflow box (content headline, ~0.9in)
     });
     tracker.add({ x: 0.45, y: 0.1, w: contentTitleW, h: contentTitleH, label: 'content-title' });
 
-    // Content bullets — two-column if 4+
-    if (bullets.length > 0) {
+    // Native evidence table (v0.12.1): when the visual descriptor calls for
+    // a table and the bullets fit, the lead assertion stays as text on the
+    // left and the remaining bullets render as a native table on the right.
+    // Both zones are sized so the reflow cannot overflow the slide.
+    if (nativeVisual?.type === 'evidenceTable') {
+      const leadW = 4.15,
+        leadH = H - 2.0;
+      const leadSize = autoFitFontSize(nativeVisual.lead, leadW, leadH, FONT_BODY, 15, 11, 1.4);
+      slide.addText(nativeVisual.lead, {
+        x: 0.45,
+        y: 1.35,
+        w: leadW,
+        h: leadH,
+        fontSize: leadSize,
+        fontFace: FONT_BODY,
+        color: theme.bodyText,
+        bold: true,
+        valign: 'top',
+        lineSpacingMultiple: 1.4,
+        fit: 'shrink',
+      });
+      tracker.add({ x: 0.45, y: 1.35, w: leadW, h: leadH, label: 'evidence-lead' });
+      addEvidenceTable(pptx, slide, theme, nativeVisual, visKind, tracker);
+    } else if (bullets.length > 0) {
+      // Content bullets — two-column if 4+
       if (useTwoCol) {
         const mid = Math.ceil(bullets.length / 2);
         const leftBullets = bullets.slice(0, mid);
@@ -1441,16 +1821,9 @@ async function buildSlideForDeck(pptx, deck, theme, slideIndex, totalSlides, opt
 
   // Speaker notes — prepend a "Suggested visual" block (with alt text) when
   // the slide carries a visual hint. This keeps the cue visible in the
-  // PPT's Notes Page view even if the instructor never looks at the on-
-  // slide placeholder below. Accepts both expanded (slide.visual) and
-  // abbreviated (slide.vi) shapes from the generator.
-  const vis = s.visual || s.vi;
-  const visKind = vis?.kind || vis?.k;
-  const hasVisual = vis && visKind && visKind !== 'none';
-  const visDesc = hasVisual ? vis.description || vis.d || '' : '';
-  const visAlt = hasVisual ? vis.altText || vis.at || '' : '';
-  const generatedVisualImage = hasVisual ? getGeneratedVisualImage(vis) : null;
-
+  // PPT's Notes Page view even if the instructor never looks at the slide.
+  // The block stays even when the visual was rendered natively above — it
+  // doubles as alt-text for the rendered table/shape group.
   const rawNotes = s.notes || s.speakerNotes || '';
   const baseNotes =
     countSpeakerNoteWords(rawNotes) >= 20
@@ -1521,7 +1894,7 @@ async function createPptxWithDecks(data, courseName, themeIndex) {
   const deckAudit = [];
   for (let di = 0; di < decks.length; di++) {
     const deck = decks[di];
-    const theme = resolveTheme(di, themeIndex);
+    const theme = themeWithCourseAccent(resolveTheme(di, themeIndex), courseName);
     const slides = deck.slides || [];
 
     for (let si = 0; si < slides.length; si++) {
@@ -1532,7 +1905,10 @@ async function createPptxWithDecks(data, courseName, themeIndex) {
   }
 
   // ── Slide deck audit logging ──
-  if (deckAudit.length > 0) {
+  // v0.12.1: only log for multi-deck builds. The package ZIP exporter slices
+  // decks one lesson per file through this builder, which used to print 15
+  // statistically meaningless "1 decks (min=max=median)" lines per package.
+  if (deckAudit.length > 1) {
     const slideCounts = deckAudit.map((d) => d.slides);
     const totalSlides = slideCounts.reduce((a, b) => a + b, 0);
     const minSlides = Math.min(...slideCounts);
@@ -1586,7 +1962,7 @@ export async function buildSingleDeckPptxBlob(deck, deckIndex, courseName, theme
   pptx.title = expandedDeck.lessonTitle || courseName || 'Slide Deck';
   pptx.theme = { headFontFace: FONT_HEADING, bodyFontFace: FONT_BODY };
 
-  const theme = resolveTheme(deckIndex, themeIndex);
+  const theme = themeWithCourseAccent(resolveTheme(deckIndex, themeIndex), courseName);
   const deckWithIndex = { ...expandedDeck, _deckIndex: deckIndex };
   const slides = expandedDeck.slides || [];
 

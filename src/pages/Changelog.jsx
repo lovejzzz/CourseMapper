@@ -3,6 +3,54 @@ import Header from '../components/Header';
 
 const releases = [
   {
+    version: '0.12.1',
+    date: 'June 10, 2026',
+    title: 'Content Stack Always On: Enrichment Activation + Export Polish',
+    highlights: [
+      'Fixed the silent failure behind the v0.12 four-course audit: a stale model-capability profile could rebuild the generation plan as "prompt-only", which switched off both subject-matter enrichment AND the lean course-map contract without telling anyone — packages compiled as pure template mail-merge while logging "ready, 0 warnings"',
+      'Enrichment is now visible and controllable: a Subject-matter enrichment control (Auto / On / Off) next to the model picker, a loud digest warning whenever a package compiles without any enrichment contribution, and a pipeline provenance block inside every downloaded PACKAGE_MANIFEST.json',
+      'Every deterministic text artifact from the audit is fixed at the source and locked by a permanent regression gate: doubled quiz option letters ("A. A."), ALL-CAPS answer keys, raw enum ids in print, FAQ double-periods, "its the" slot grammar, "name one the Week N quiz", self-echoing colon chains, mid-phrase truncation, and the unresolved "Instructor-provided course materials" citation',
+      'Exports open clean: DOCX tables no longer overflow the page margins, quizzes split into a distributable question paper plus a page-broken answer key, rubrics render landscape, slide decks gain native tables/concept-map shapes and per-course accent palettes, and the course-map XLSX finally opens with readable row heights and lesson banding',
+    ],
+    sections: [
+      {
+        label: 'Enrichment Activation',
+        icon: 'AI',
+        color: 'indigo',
+        items: [
+          'A missing or mismatched capability profile now falls back to the catalog baseline for the provider instead of a bare profile — first-party models keep structured-output metadata, so the adaptive enrichment default (v0.10.1) and lean course-map atoms (v0.9.11) stay on. The degraded state is also flagged explicitly (planDegraded) with a console warning and a "plan health" digest line.',
+          'New three-state Subject-matter enrichment control in the model configuration panel (Auto follows the plan; On forces it; Off disables it), persisted across sessions and threaded into every generation run.',
+          'The run digest gates section now flags "compiled without enrichment (mail-merge risk)" whenever deliverables compile with no model stage and no genome-linked lessons; PACKAGE_MANIFEST.json records how the content was produced (enrichment state, genome linker result, plan health).',
+          'Course-map contract cleanup: the "Students will be able to:" stem is no longer requested from the model, re-added by the lean expander, or stripped by repair — one owner, zero fake per-lesson "repairs", fewer output tokens. Objective lines also get deterministic terminal punctuation (one audited course shipped 120/120 lines without periods).',
+        ],
+      },
+      {
+        label: 'Deterministic Text Fixes',
+        icon: 'QA',
+        color: 'emerald',
+        items: [
+          'Quiz exports: option letters never double ("A. A. unit elastic"), full-sentence short-answer keys stay sentence case instead of shouting in caps, question types print as "Multiple choice" rather than multiple_choice (including tags), and per-question metadata moved into a separate Answer Key section.',
+          'Slide and document prose: archetype slot-filling drops a leading article after a possessive (the 58 "its the" hits), the readiness-check slide asks for "one feedback action for the Week N quiz" instead of "one the Week N quiz feedback action", teaching moves no longer prefix every sentence with the full lesson title (the "Practice with X: For X" echo), and clause truncation backs up to a phrase boundary instead of stranding "…inspect in Instructor-provided".',
+          'Real sources replace the placeholder: a lesson-specific resource (appearing in at most two lessons) is now cited as the evidence packet; when only a course-wide packet exists, slides drop the citation clause instead of printing "Instructor-provided course materials" (112 slides in the audit).',
+          'Content-quality findings now feed the finalizer: mechanical seams (double periods, article agreement, stranded connectives, leading-colon labels) are repaired deterministically at zero provider calls during finalize, and remaining authorship findings surface as readiness warnings that the retry queue can spend budget on — previously the audit only ran in the export verifier, after the retry loop had already finished.',
+          'A permanent output artifact gate (tests/output-artifact-gate.test.js) compiles two full fixture packages through the real DOCX/PPTX/XLSX exporters and greps every rendered surface for all audited defect classes.',
+        ],
+      },
+      {
+        label: 'Export Polish',
+        icon: 'UI',
+        color: 'amber',
+        items: [
+          'DOCX: pages are explicit US Letter with percentage-width tables (every fixed-width table overflowed the A4 margins in the audit), style definitions now match the rendered design so Word’s navigation pane / ToC / restyling work, subsection heads grew from 9pt to 11pt (they were smaller than body text), label-value blocks render as shaded two-column tables, the syllabus gains a ToC + page breaks + tidy info tables, rubrics render landscape with unsplittable rows and % weights, discussion prompts render as callouts, FAQ questions are navigable headings, and every file carries real document metadata instead of "Un-named".',
+          'PPTX: slides with structured visual descriptors now render native objects — evidence tables, decision matrices, and hub-and-spoke concept maps (464 speaker notes specified a visual; zero slides rendered one) — plus shrink-on-overflow autofit on the known overflow boxes, unified agenda row sizing, variable activity timing from the lesson’s actual session plan (every audited deck said "Duration: 10 min"), and a deterministic per-course accent family so four courses no longer ship the identical navy/gold deck.',
+          'XLSX: stored row heights end the opens-as-slivers problem, the Evaluate Design column wraps like the others, alternating lesson bands use the fill that was defined-but-unused since v0.12.0, the header band dropped from 120pt to 32pt, columns are right-sized with an autofilter and tab color, print setup is landscape fit-to-width with repeated headers, and fonts are universally-installed Calibri instead of Inter.',
+          '"How Experts Think" and "Same Structure" slides dedupe across the course — the audit found one expert-routine body repeated verbatim on four different lessons.',
+          'The per-lesson ZIP export no longer logs fifteen meaningless single-deck "PPTX audit" lines per package.',
+        ],
+      },
+    ],
+  },
+  {
     version: '0.12.0',
     date: 'June 10, 2026',
     title: 'Materials That Look Designed: Export Redesign + Economics Depth',

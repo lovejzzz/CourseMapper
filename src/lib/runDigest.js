@@ -46,6 +46,17 @@ export function buildRunDigest({ budget = {}, exportVerification = null, finish 
     }));
   const models = [...new Set(ledger.map((row) => row.modelId).filter(Boolean))];
 
+  // v0.12.1 content-risk gate: a package whose deliverables were compiled
+  // deterministically with NO enrichment contribution (no model stage, no
+  // genome-linked lessons) is a mail-merge package — the v0.12 audit shipped
+  // four of these silently. Flag it at warning severity in the digest.
+  const compiledFeatureCount = budget.compilerSavings?.compiledFeatureCount || 0;
+  const enrichmentOutcome = budget.enrichmentOutcome || null;
+  const compiledWithoutEnrichment =
+    compiledFeatureCount > 0 &&
+    (!enrichmentOutcome ||
+      (enrichmentOutcome.modelStage !== 'ran' && (enrichmentOutcome.enrichedLessons || 0) === 0));
+
   return {
     digestVersion: 1,
     appVersion: APP_VERSION,
@@ -82,7 +93,17 @@ export function buildRunDigest({ budget = {}, exportVerification = null, finish 
       exportChecked: exportVerification?.checked ?? 0,
       exportFailed: exportVerification?.failed ?? 0,
       exportWarnings: exportVerification?.warningCount ?? 0,
-      flaggedChecks,
+      compiledWithoutEnrichment,
+      flaggedChecks: compiledWithoutEnrichment
+        ? [
+            {
+              featureId: 'content',
+              status: 'warning',
+              message: `${compiledFeatureCount} deliverable type(s) compiled without enrichment (mail-merge risk) — check enrichment setting and model capability profile`,
+            },
+            ...flaggedChecks,
+          ]
+        : flaggedChecks,
     },
   };
 }
@@ -93,6 +114,7 @@ function pipelineLines(pipeline = {}) {
     examine: 'examine pass',
     genomeLinker: 'genome linker',
     enrichmentModelStage: 'enrichment (model)',
+    planHealth: 'plan health',
   };
   return Object.entries(pipeline).map(([stage, detail]) => `  ${labels[stage] || stage}: ${detail}`);
 }

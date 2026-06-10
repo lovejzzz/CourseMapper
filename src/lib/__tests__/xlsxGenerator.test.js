@@ -23,6 +23,11 @@ async function stylesText(buffer) {
   return zip.file('xl/styles.xml').async('string');
 }
 
+async function workbookText(buffer) {
+  const zip = await JSZip.loadAsync(buffer);
+  return decodeXml(await zip.file('xl/workbook.xml').async('string'));
+}
+
 describe('xlsxGenerator', () => {
   const columns = [
     { key: 'learningGoals', label: 'Learning Goals', enabled: true },
@@ -153,5 +158,118 @@ describe('xlsxGenerator', () => {
     expect(text).toContain('source confirmation needed rows use a publish checkpoint before handoff focus');
     expect(text).not.toMatch(/\blocal-review\b|\bsource-review-required\b|\bpublish gate\b|\bhandoff-review focus\b/i);
     await expect(assertOfficeExportHasNoInternalText(buffer, 'xlsx', 'Course Map')).resolves.toBeUndefined();
+  });
+
+  const longText =
+    'Students will analyze primary sources, synthesize competing interpretations, and draft an evidence-based argument that ' +
+    'addresses counterclaims, cites at least three peer-reviewed studies, and reflects on the limits of the available evidence.';
+
+  function twoLessonMap() {
+    return {
+      courseName: 'Render Audit',
+      semester: 'Fall 2026',
+      lessons: [
+        {
+          title: 'Lesson 1: Foundations of Evidence-Based Reasoning in the Social Sciences',
+          sections: [
+            { learningGoals: longText, topicSection: 'Evidence foundations', evaluateDesign: longText },
+          ],
+        },
+        {
+          title: 'Lesson 2: Checkpoint',
+          sections: [
+            { learningGoals: 'Check alignment.\nReview rubric.', topicSection: 'Alignment checkpoint', evaluateDesign: true },
+          ],
+        },
+      ],
+    };
+  }
+
+  it('stores explicit heights on the header and every data row', async () => {
+    const buffer = await buildXlsxBuffer(twoLessonMap(), columns);
+    const text = await sheetText(buffer);
+
+    // Header band shrinks from 120pt to a 32pt label row
+    expect(text).toContain('<row r="1" ht="32" customHeight="1">');
+
+    // Every data row carries an estimated height tall enough to show wrapped text
+    const dataRowHeights = [...text.matchAll(/<row r="(\d+)" ht="([\d.]+)" customHeight="1">/g)]
+      .filter(([, rowNumber]) => Number(rowNumber) > 1)
+      .map(([, , height]) => Number(height));
+    expect(dataRowHeights).toHaveLength(2);
+    for (const height of dataRowHeights) {
+      expect(height).toBeGreaterThan(15);
+    }
+    // The long-text lesson row needs several wrapped lines, not a sliver
+    expect(dataRowHeights[0]).toBeGreaterThan(60);
+  });
+
+  it('wraps Evaluate Design cells top-aligned like every other data column', async () => {
+    const buffer = await buildXlsxBuffer(twoLessonMap(), columns);
+    const text = await sheetText(buffer);
+    const styles = await stylesText(buffer);
+
+    // Evaluate Design (col D here) uses the wrapped data style, not the centered one
+    expect(text).toContain('<c r="D2" t="inlineStr" s="2">');
+    expect(text).not.toContain('s="5"');
+    expect(styles).toMatch(/<xf numFmtId="0" fontId="2" fillId="0" [^>]*><alignment vertical="top" horizontal="left" wrapText="1"\/>/);
+  });
+
+  it('bands alternating lesson blocks with the soft fill', async () => {
+    const buffer = await buildXlsxBuffer(twoLessonMap(), columns);
+    const text = await sheetText(buffer);
+    const styles = await stylesText(buffer);
+
+    // Lesson 1 rows stay plain, lesson 2 rows pick up the band style (xf 4 -> FFF2F6FC)
+    expect(text).toContain('<c r="B2" t="inlineStr" s="2">');
+    expect(text).toContain('<c r="B3" t="inlineStr" s="4">');
+    expect(text).toContain('<c r="D3" t="inlineStr" s="4">');
+    // Lesson title column keeps its own style in banded blocks
+    expect(text).toContain('<c r="A3" t="inlineStr" s="3">');
+    expect(styles).toContain('FFF2F6FC');
+  });
+
+  it('adds autofilter, tab color, and landscape fit-to-width print setup', async () => {
+    const buffer = await buildXlsxBuffer(twoLessonMap(), columns);
+    const text = await sheetText(buffer);
+    const workbook = await workbookText(buffer);
+
+    expect(text).toContain('<autoFilter ref="A1:D1"/>');
+    expect(text).toContain('<tabColor rgb="FF4472C4"/>');
+    expect(text).toContain('<pageSetUpPr fitToPage="1"/>');
+    expect(text).toContain('<pageSetup orientation="landscape" fitToWidth="1" fitToHeight="0"/>');
+    expect(text).toContain('<pageMargins');
+    // Header row repeats on every printed page
+    expect(workbook).toContain('_xlnm.Print_Titles');
+    expect(workbook).toContain("'Course Map'!$1:$1");
+  });
+
+  it('right-sizes columns from the production audit', async () => {
+    const map = twoLessonMap();
+    map.lessons[0].sections[0].presentationFormat = 'Slides + live demo';
+    const buffer = await buildXlsxBuffer(map, [
+      ...columns,
+      { key: 'presentationFormat', label: 'Presentation Format', enabled: true },
+    ]);
+    const text = await sheetText(buffer);
+
+    expect(text).toContain('<col min="1" max="1" width="34" customWidth="1"/>'); // lesson titles
+    expect(text).toContain('<col min="4" max="4" width="46" customWidth="1"/>'); // evaluateDesign
+    expect(text).toContain('<col min="5" max="5" width="22" customWidth="1"/>'); // presentationFormat
+  });
+
+  it('uses universally installed fonts instead of Inter', async () => {
+    const buffer = await buildXlsxBuffer(twoLessonMap(), columns);
+    const styles = await stylesText(buffer);
+
+    expect(styles).toContain('name val="Calibri"');
+    expect(styles).not.toContain('Inter');
+  });
+
+  it('vertically centers the header labels', async () => {
+    const buffer = await buildXlsxBuffer(twoLessonMap(), columns);
+    const styles = await stylesText(buffer);
+
+    expect(styles).toMatch(/<xf numFmtId="0" fontId="1" fillId="2" [^>]*><alignment vertical="center" horizontal="left" wrapText="1"\/>/);
   });
 });

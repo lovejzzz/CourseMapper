@@ -10,19 +10,22 @@ import { createBaseModelCapabilities, createGenerationPlan } from '../modelCapab
 import { buildUserPrompt } from '../prompts';
 
 describe('expandLeanSectionField', () => {
-  it('renders the objectives stem once and numbers unprefixed atoms', () => {
+  // v0.12.1: the stem never lives in the cell — the readiness repair strips
+  // it and the validator treats it as non-publishable, so the expander must
+  // not add it back (it used to, guaranteeing a fake "repair" every run).
+  it('numbers unprefixed atoms without adding the objectives stem', () => {
     const out = expandLeanSectionField('learningObjectives', [
       'Analyze the impact of immigration policy on communities',
       'Compare federal and state policy frameworks',
     ]);
     expect(out).toBe(
-      'Students will be able to:\n1. Analyze the impact of immigration policy on communities\n2. Compare federal and state policy frameworks',
+      '1. Analyze the impact of immigration policy on communities\n2. Compare federal and state policy frameworks',
     );
   });
 
   it('preserves goal-reference prefixes from the model', () => {
     const out = expandLeanSectionField('learningObjectives', ['1a. Analyze policy impact', '2b. Evaluate strategies']);
-    expect(out).toBe('Students will be able to:\n1a. Analyze policy impact\n2b. Evaluate strategies');
+    expect(out).toBe('1a. Analyze policy impact\n2b. Evaluate strategies');
   });
 
   it('renders numbered lines for list fields and joins evaluateDesign sentences', () => {
@@ -67,7 +70,7 @@ describe('expandLeanCourseMap', () => {
   it('expands every lean section into standard course-map prose', () => {
     const expanded = expandLeanCourseMap(leanMap);
     const section = expanded.lessons[0].sections[0];
-    expect(section.learningObjectives).toBe('Students will be able to:\n1. Analyze policy frameworks');
+    expect(section.learningObjectives).toBe('1. Analyze policy frameworks');
     expect(section.asyncActivities).toBe('1. Read: Chapter 1');
     expect(section.topicSection).toBe('1.1: Overview');
   });
@@ -100,7 +103,8 @@ describe('lean prompt contract', () => {
   it('keeps the verbose contract by default', () => {
     const prompt = buildUserPrompt('Syllabus text', columns, null, false, null, null);
     expect(prompt).not.toContain('LEAN OUTPUT MODE');
-    expect(prompt).toContain('Students will be able to:');
+    // v0.12.1: both contracts forbid the stem in the cell — the app renders it.
+    expect(prompt).toContain('do NOT write any "Students will be able to" stem');
   });
 
   it('is meaningfully shorter than the verbose prompt', () => {

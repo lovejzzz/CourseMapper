@@ -34,6 +34,21 @@ Goal: make CourseMapper credible for real classroom pilots while keeping the age
 9. Versioned package handoff so users can recover prior generated packages.
 10. Public demo packages showing polished complete outputs across multiple subjects.
 
+## v0.12.1 - Enrichment Activation and Export Polish Release
+
+Goal: fix the degraded-plan bug that silently shipped all four v0.12 test courses as zero-enrichment mail merge, remove every deterministic text artifact, and make the DOCX/PPTX/XLSX exports open clean without manual fixing.
+
+Full plan: `docs/V0.12.1_ENRICHMENT_ACTIVATION_AND_EXPORT_POLISH_ROADMAP.md`
+
+1. Root cause first: stale capability profiles must never resolve first-party providers to prompt_only — that one fallback disabled both adaptive enrichment and lean course-map atoms in every audited run.
+2. Enrichment visibility: Config screen toggle (Auto/On/Off), loud digest warning when a package compiles without enrichment, pipeline state in PACKAGE_MANIFEST.json.
+3. Deterministic text fixes at zero API cost: doubled quiz option letters, ALL-CAPS answer keys, raw enums, FAQ double-periods, broken slot grammar, mid-phrase truncation, objective-stem strip/re-add contradiction, placeholder source citations, lesson-title mail-merge cap.
+4. Content-quality findings wired into the finalizer repair queue with a deterministic repair pass before any AI retry.
+5. DOCX overhaul: table width vs A4 mismatch (all 136 tables overflow), missing Normal style/theme, heading hierarchy inversion, label-value glue paragraphs to tables, quiz answer key as separate section, rubrics to landscape.
+6. PPTX overhaul: render the 464 note-specified visuals as native tables/shape groups, autofit on overflow-prone boxes, variable activity timing, per-course accent palette.
+7. XLSX render fixes: stored row heights, wrapped Evaluate Design column, apply the orphaned band fill, print setup, universal fonts instead of Inter.
+8. Release gate: four-course re-run with artifact grep gates, content spot-gates (dosage quiz must contain dosage math), and cross-course sameness targets (rubrics 83% to 50% or lower).
+
 ## v0.8.59 - Real-Browser Agent Quality Harness Release
 
 Status: shipped. Final proof: `verification-output/agent-real-browser/2026-06-08T00-27-21-843Z/report.md` passed 25/25 real browser agent scenarios with a 100/100 response-quality average, 0 console errors, and 0 failed browser requests.

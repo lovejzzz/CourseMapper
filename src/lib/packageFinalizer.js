@@ -1,7 +1,25 @@
-import { evaluateWorkspaceReadiness, repairCourseMapReadiness, repairWorkspaceReadiness } from './deliverableReadiness';
+import {
+  READINESS_FEATURE_LABELS,
+  evaluateWorkspaceReadiness,
+  repairCourseMapReadiness,
+  repairWorkspaceReadiness,
+} from './deliverableReadiness';
 import { buildPackageRepairQueue, evaluateClassroomReadiness } from './classroomReadiness';
 import { generateCourseHealthReport } from './pedagogicalValidator';
 import { normalizeReadinessIssue, normalizeReadinessIssues } from './readinessIssueSchema';
+import { auditDeliverableContentQuality } from './contentQualityChecks';
+import { repairDeliverableContentQuality } from './contentQualityRepair';
+
+function featureLabel(featureId) {
+  return READINESS_FEATURE_LABELS[featureId] || (featureId?.startsWith('custom_') ? 'Custom Deliverable' : featureId);
+}
+
+function contentRepairFeatureIds(selectedFeatures, deliverables = {}) {
+  if (Array.isArray(selectedFeatures) && selectedFeatures.length > 0) return [...new Set(selectedFeatures)];
+  return Object.entries(deliverables)
+    .filter(([, entry]) => entry?.status === 'done')
+    .map(([featureId]) => featureId);
+}
 
 function dedupeIssues(issues = []) {
   const seen = new Map();
@@ -205,6 +223,29 @@ function applyDeterministicRepairs({
     }
   }
 
+  // v0.12.1 P2: deterministic content-quality pass. Mechanical template seams
+  // (double periods, article agreement, stranded connectives, leading-colon
+  // labels) are fixed here at zero provider calls — previously they were only
+  // detected by the export verifier, AFTER the retry loop, so they shipped as
+  // permanent warnings while retry budget sat unused.
+  const contentFeatureIds = contentRepairFeatureIds(selectedFeatures, nextDeliverables).filter(
+    (featureId) => featureId !== 'courseMap',
+  );
+  for (const featureId of contentFeatureIds) {
+    const entry = nextDeliverables?.[featureId];
+    if (entry?.status !== 'done' || !entry.data) continue;
+    const contentRepair = repairDeliverableContentQuality(featureId, entry.data);
+    if (!contentRepair.changed) continue;
+    if (nextDeliverables === deliverables) nextDeliverables = { ...deliverables };
+    nextDeliverables[featureId] = { ...entry, data: contentRepair.data };
+    repairs.push({
+      featureId,
+      label: featureLabel(featureId),
+      changes: [`content quality: ${contentRepair.repairedStrings} string(s) normalized`],
+      message: `${featureLabel(featureId)} repaired: ${contentRepair.repairedStrings} content-quality seam(s) fixed (deterministic)`,
+    });
+  }
+
   return {
     changed: repairs.length > 0,
     applied: repairs.length,
@@ -262,11 +303,33 @@ export function runDeterministicPackageFinalizer({
   });
   const finalCourseMap = repairResult.courseMap || courseMap;
   const finalDeliverables = repairResult.deliverables || deliverables;
+  // v0.12.1 P2: findings that survive the deterministic content repair need
+  // authorship — surface them as readiness warnings HERE (not only in the
+  // post-retry export verifier) so the repair queue can spend retry budget
+  // on them.
+  const contentQualityIssues = [];
+  for (const featureId of contentRepairFeatureIds(selectedFeatures, finalDeliverables)) {
+    if (featureId === 'courseMap') continue;
+    const entry = finalDeliverables?.[featureId];
+    if (entry?.status !== 'done' || !entry.data) continue;
+    const audit = auditDeliverableContentQuality(featureId, entry.data);
+    if (audit.findings.length === 0) continue;
+    const codes = [...new Set(audit.findings.map((finding) => finding.code))];
+    contentQualityIssues.push(
+      normalizeReadinessIssue({
+        severity: 'warning',
+        featureId,
+        label: featureLabel(featureId),
+        message: `${audit.findings.length} content quality finding(s): ${codes.join(', ')} — e.g. "${audit.findings[0].sample}"`,
+        source: 'contentQuality',
+      }),
+    );
+  }
   const validationDeliverables = scopeDeliverablesForValidation(finalDeliverables, selectedFeatures);
   const healthReport = includePedagogicalValidation
     ? generateCourseHealthReport(finalCourseMap, validationDeliverables)
     : { findings: [], errorCount: 0, warningCount: 0, infoCount: 0, summary: '' };
-  const readiness = evaluateStrictPackageReadiness(
+  const baseReadiness = evaluateStrictPackageReadiness(
     {
       courseMap: finalCourseMap,
       deliverables: finalDeliverables,
@@ -282,8 +345,30 @@ export function runDeterministicPackageFinalizer({
       healthReport,
     },
   );
+  const readiness =
+    contentQualityIssues.length === 0
+      ? baseReadiness
+      : (() => {
+          const issues = normalizeReadinessIssues(dedupeIssues([...(baseReadiness.issues || []), ...contentQualityIssues]));
+          const blockers = issues.filter((issue) => issue.severity === 'blocker');
+          const warnings = issues.filter((issue) => issue.severity === 'warning');
+          return {
+            ...baseReadiness,
+            status: blockers.length > 0 ? 'blocked' : warnings.length > 0 ? 'warnings' : 'ready',
+            isBlocked: blockers.length > 0,
+            blockers,
+            warnings,
+            issues,
+          };
+        })();
   const retryReadiness = retryWarnings
-    ? readiness.workspaceReadiness
+    ? {
+        ...readiness.workspaceReadiness,
+        // Content-quality warnings ride the workspace channel into the
+        // repair queue so retry budget can target them.
+        warnings: [...(readiness.workspaceReadiness?.warnings || []), ...contentQualityIssues],
+        issues: [...(readiness.workspaceReadiness?.issues || []), ...contentQualityIssues],
+      }
     : {
         ...readiness.workspaceReadiness,
         warnings: [],

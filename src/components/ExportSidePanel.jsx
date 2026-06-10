@@ -530,6 +530,7 @@ export default function ExportSidePanel({
   packageQualityPass,
   isPackageGenerationRunning = false,
   preferPackageScope = false,
+  getPipelineState = null, // v0.12.1: () => manifest pipeline block, read at export time
 }) {
   const { courseMap, columns, selectedFeatures, slideTheme } = useCourse();
   const [scope, setScope] = useState('current'); // 'current' | 'all'
@@ -863,6 +864,7 @@ export default function ExportSidePanel({
             slideTheme,
             readiness: downloadReadiness,
             featureIds: getExportFeatureIds(exportScope),
+            pipelineState: typeof getPipelineState === 'function' ? getPipelineState() : null,
           });
           setLastOk(`ZIP downloaded with ${zipResult.files.length} file${zipResult.files.length === 1 ? '' : 's'}.`);
         }

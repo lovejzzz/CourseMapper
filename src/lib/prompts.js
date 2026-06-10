@@ -5,7 +5,7 @@ export const RECONSTRUCT_SYSTEM_PROMPT = `You are an expert instructional design
 
 DO NOT invent content that isn't implied by the materials. Extract, infer, and organize what is actually there.
 
-CRITICAL WRITING RULE: All content will be read by humans. Never repeat boilerplate phrases across cells. For Learning Objectives, write "Students will be able to:" ONCE as a stem, then list objectives starting directly with Bloom's verbs (e.g., "1a. Analyze...", "2a. Evaluate...") — do NOT repeat "Students will be able to" on every line. Vary sentence structure across all fields to sound natural, not templated.
+CRITICAL WRITING RULE: All content will be read by humans. Never repeat boilerplate phrases across cells. For Learning Objectives, do NOT write any "Students will be able to" stem — list objectives starting directly with Bloom's verbs (e.g., "1a. Analyze...", "2a. Evaluate..."); the app renders the stem automatically. Vary sentence structure across all fields to sound natural, not templated.
 
 You must return ONLY valid JSON. No markdown, no explanation—just the JSON object.`;
 
@@ -13,7 +13,7 @@ export const SYSTEM_PROMPT = `You are an expert instructional designer and cours
 
 A Course Map breaks down a course into weekly lessons, each with multiple topic sections, and maps out learning goals, objectives, assessments, activities, resources, and technology needs.
 
-CRITICAL WRITING RULE: All content will be read by humans. Never repeat boilerplate phrases across cells. For Learning Objectives, write "Students will be able to:" ONCE as a stem, then list objectives starting directly with Bloom's verbs (e.g., "1a. Analyze...", "2a. Evaluate...") — do NOT repeat "Students will be able to" on every line. Vary sentence structure across all fields to sound natural, not templated.
+CRITICAL WRITING RULE: All content will be read by humans. Never repeat boilerplate phrases across cells. For Learning Objectives, do NOT write any "Students will be able to" stem — list objectives starting directly with Bloom's verbs (e.g., "1a. Analyze...", "2a. Evaluate..."); the app renders the stem automatically. Vary sentence structure across all fields to sound natural, not templated.
 
 You must return ONLY valid JSON. No markdown, no explanation—just the JSON object.`;
 
@@ -23,7 +23,7 @@ const DEFAULT_COLUMN_DEFS = {
     'The big ideas and questions to be addressed. Derived from values, knowledge, skills, behaviors, and competencies outlined in the syllabus. When there are multiple goals, number them (1, 2, 3…) so objectives can reference them.',
   topicSection: 'A numbered subsection title (e.g., "1.1: Historical Overview of Immigration Policy").',
   learningObjectives:
-    'Write the stem "Students will be able to:" ONCE at the top, then list each objective on its own numbered line using ONLY a Bloom\'s action verb + content — do NOT repeat the stem. Use the goal number prefix (1a, 1b, 2a) when goals are numbered. Every objective must be measurable and consistent with course-level learning goals (QM 2.1, 2.2). Objectives must be suited to the level of the course (QM 2.5). Example:\\n"Students will be able to:\\n1a. Analyze the impact of immigration policy on communities\\n1b. Compare federal and state policy frameworks\\n2a. Evaluate the effectiveness of advocacy strategies"',
+    'List each objective on its own numbered line using ONLY a Bloom\'s action verb + content — do NOT write any "Students will be able to" stem (the app renders it automatically). Use the goal number prefix (1a, 1b, 2a) when goals are numbered. Every objective must be measurable and consistent with course-level learning goals (QM 2.1, 2.2). Objectives must be suited to the level of the course (QM 2.5). Example:\\n"1a. Analyze the impact of immigration policy on communities\\n1b. Compare federal and state policy frameworks\\n2a. Evaluate the effectiveness of advocacy strategies"',
   weeklyAssessments:
     'How students demonstrate learning. Each assessment must explicitly connect to stated learning objectives (QM 3.1). Include a variety of assessment types across lessons (QM 3.4). List each assessment on its own line with a numbered prefix (e.g., "1. Reflection Paper: Analyze the impact of...\\n2. Discussion Post: Compare two theories...").',
   asyncActivities:

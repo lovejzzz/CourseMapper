@@ -24,7 +24,22 @@ function cleanText(value) {
 }
 
 function fillTemplate(template, mapping) {
-  return cleanText(String(template || '').replace(/\{([^{}]+)\}/g, (_, slot) => mapping[slot.trim()] ?? `{${slot}}`));
+  const filled = String(template || '').replace(/\{([^{}]+)\}/g, (match, slot, offset, source) => {
+    const raw = mapping[slot.trim()];
+    if (raw == null) return `{${slot}}`;
+    let value = cleanText(raw);
+    // v0.12.1 article-collision guard: templates like "Compare its {marginal
+    // benefit}" filled with "the change in quantity demanded" used to render
+    // "its the change…" (58 hits in the v0.12 audit). When the template
+    // already supplies a determiner/possessive before the slot, drop the
+    // value's own leading article.
+    const determinerBefore = /\b(?:its|the|a|an|one|each|every|this|that|their|your)\s+$/i.test(
+      source.slice(0, offset),
+    );
+    if (determinerBefore) value = value.replace(/^(?:the|a|an)\s+/i, '');
+    return value;
+  });
+  return cleanText(filled);
 }
 
 function fullyFilled(template, mapping) {

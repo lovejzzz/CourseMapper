@@ -62,6 +62,7 @@ import {
   validateDeliverableGeneration,
 } from '../lib/deliverablePostProcess';
 import { repairCourseMapReadiness } from '../lib/deliverableReadiness';
+import { enrichmentPreferenceOverride } from '../lib/enrichmentPreference';
 import { buildApiCostPlan, isNonRetryableFailureClass } from '../lib/apiCostControl';
 import { classifyError } from '../lib/failureClassification';
 import { traceLog } from '../lib/traceLog';
@@ -630,11 +631,33 @@ export default function useDeliverables({
       });
       const blueprintCompiledSet = new Set(blueprintCompiledFeatureIds);
       const toGenerate = requestedFeatures.filter((featureId) => !blueprintCompiledSet.has(featureId));
+      // v0.12.1 resolution order: explicit per-call option → the user's saved
+      // Config preference → the generation plan's default ('adaptive' for
+      // structured-output models) → off.
       const blueprintEnrichmentMode =
-        generationOptions.useBlueprintEnrichment ?? generationPlan?.blueprintEnrichment ?? false;
+        generationOptions.useBlueprintEnrichment ??
+        enrichmentPreferenceOverride() ??
+        generationPlan?.blueprintEnrichment ??
+        false;
       const enrichmentModelAvailable = Boolean(provider && modelId && (provider === 'webllm' || apiKey));
       const blueprintEnrichmentRequested =
         costMode !== 'finalizerRetry' && blueprintCompiledFeatureIds.length > 0 && blueprintEnrichmentMode !== false;
+      // v0.12.1: never let a degraded plan (bare capability profile →
+      // prompt_only) silently disable the content stack — the v0.12 audit
+      // traced four mail-merge packages to exactly this state.
+      if (generationPlan?.planDegraded && costMode !== 'finalizerRetry') {
+        recordGenerationApiCallEvent({
+          type: 'pipelineDecision',
+          stage: 'planHealth',
+          label: 'Generation plan degraded',
+          detail:
+            'degraded: capability profile missing structured-output metadata — enrichment and lean contract disabled; re-validate the model in Config',
+        });
+        appendLog(
+          '⚠ Generation plan degraded — stale model capability profile disabled enrichment and the lean contract; re-validate the model in Config',
+          'warn',
+        );
+      }
 
       startedRef.current = true;
       timedOutFeaturesRef.current = new Set();
@@ -1345,6 +1368,14 @@ export default function useDeliverables({
           detail: blueprintEnrichment?.stageDecisions
             ? `${blueprintEnrichment.stageDecisions.modelStage} (linker: ${blueprintEnrichment.stageDecisions.genomeLinker})`
             : 'deterministic compile only (no enrichment object)',
+          // v0.12.1: structured outcome for the run digest's content-risk
+          // gate — string parsing of `detail` is too fragile to gate on.
+          outcome: {
+            modelStage: blueprintEnrichment?.stageDecisions?.modelStage || 'none',
+            enrichedLessons: blueprintEnrichment?.lessonContent
+              ? Object.keys(blueprintEnrichment.lessonContent).length
+              : 0,
+          },
         });
         const instructorPreferenceProfile = await loadInstructorPreferenceProfile();
         if (instructorPreferenceProfile?.signalCount > 0) {

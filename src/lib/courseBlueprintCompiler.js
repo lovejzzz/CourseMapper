@@ -358,8 +358,20 @@ function conciseClause(value, fallback = 'course evidence', maxLength = 120) {
   // trim any dangling connective so the clause still reads as complete.
   const slice = text.slice(0, maxLength);
   const clauseEnd = Math.max(slice.lastIndexOf(','), slice.lastIndexOf(';'));
+  if (clauseEnd >= Math.floor(maxLength * 0.6)) {
+    return trimDanglingTail(stripTerminalPunctuation(slice.slice(0, clauseEnd))) || fallback;
+  }
+  const wordCut = slice.replace(/\s+\S*$/g, '');
+  // v0.12.1: a word-boundary cut can still strand a phrase head ("…inspect
+  // in Instructor-provided" — 62 hits in the v0.12 audit, because the final
+  // token is a content word the dangling-tail pass keeps). Back up to before
+  // the last connective when it strands 1–3 trailing tokens, so the kept
+  // clause ends on a complete phrase.
+  const strandedPhrase = wordCut.match(
+    /^(.+)\s(?:and|or|but|for|in|of|to|the|a|an|with|into|onto|from|on|at|by|that|which|as|before|after|around|between|against|toward|towards|about|through|when|while|where|whether|because|so|than|then|using|aligned)(?:\s\S+){1,3}$/i,
+  );
   const candidate =
-    clauseEnd >= Math.floor(maxLength * 0.6) ? slice.slice(0, clauseEnd) : slice.replace(/\s+\S*$/g, '');
+    strandedPhrase && strandedPhrase[1].length >= Math.floor(maxLength * 0.5) ? strandedPhrase[1] : wordCut;
   return trimDanglingTail(stripTerminalPunctuation(candidate)) || fallback;
 }
 
@@ -1439,23 +1451,24 @@ function blueprintTeachingMoves(blueprint) {
   );
 }
 
-function lowerInitial(value) {
-  const text = stripTerminalPunctuation(cleanText(value));
-  if (!text) return '';
-  return `${text.charAt(0).toLowerCase()}${text.slice(1)}`;
-}
 
 function lessonTeachingMoves(blueprint, lesson = {}) {
   const moves = blueprintTeachingMoves(blueprint);
   const lessonTitle = stripLessonPrefix(lesson.title || 'this lesson');
   const concept = lesson.keyConcepts?.[0] || lessonTitle;
   const artifact = stripTerminalPunctuation(lesson.studentArtifact || 'student artifact');
+  // v0.12.1: no "For ${lessonTitle}," prefix — every consumer already sits in
+  // a lesson context, and the prefix produced "Practice with X: For X, …"
+  // chains plus a mid-sentence period (the base moves end with one).
   return {
-    openingMove: `For ${lessonTitle}, ${lowerInitial(moves.openingMove)} around ${concept}.`,
-    practiceMove: `For ${lessonTitle}, ${lowerInitial(moves.practiceMove)} before students revise ${artifact}.`,
-    feedbackMove: `For ${lessonTitle}, ${lowerInitial(moves.feedbackMove)} tied to ${artifact}.`,
-    assessmentMove: `For ${lessonTitle}, ${lowerInitial(moves.assessmentMove)} using ${artifact}.`,
-    reviewMove: `For ${lessonTitle}, ${lowerInitial(moves.reviewMove)} before publishing ${artifact}.`,
+    openingMove: `${stripTerminalPunctuation(moves.openingMove)} around ${concept}.`,
+    // The concept anchor keeps each lesson's move distinct — courses with a
+    // single course-wide artifact would otherwise repeat one identical
+    // sentence across every lesson (boilerplate gate).
+    practiceMove: `${stripTerminalPunctuation(moves.practiceMove)}, anchored in ${concept}, before students revise ${artifact}.`,
+    feedbackMove: `${stripTerminalPunctuation(moves.feedbackMove)} tied to ${artifact}.`,
+    assessmentMove: `${stripTerminalPunctuation(moves.assessmentMove)} using ${artifact}.`,
+    reviewMove: `${stripTerminalPunctuation(moves.reviewMove)} before publishing ${artifact}.`,
   };
 }
 
@@ -3706,9 +3719,25 @@ function buildCourseThroughlineContext({
   const last = lessons[lessons.length - 1];
   const firstFocus = stripLessonPrefix(first?.title || courseName || 'the opening lesson');
   const lastFocus = stripLessonPrefix(last?.title || 'final synthesis');
+  // v0.12.1: how often each resource string appears across lessons — a
+  // resource shared by many lessons is a course-wide packet, not a
+  // lesson-specific citation (buildLessonThroughlineCase uses this to decide
+  // whether a real resource can replace the evidence-packet descriptor).
+  const resourceCounts = {};
+  for (const lesson of lessons) {
+    const seen = new Set();
+    for (const reading of [...(lesson?.readings || []), ...(lesson?.resources || [])]) {
+      const normalized = cleanText(reading).toLowerCase();
+      if (normalized) seen.add(normalized);
+    }
+    seen.forEach((normalized) => {
+      resourceCounts[normalized] = (resourceCounts[normalized] || 0) + 1;
+    });
+  }
   return {
     version: 1,
     source: 'course-throughline',
+    resourceCounts,
     ...profile,
     recurringQuestion: `What should ${profile.clientName} do next in ${profile.setting}, and what evidence makes that decision defensible?`,
     sequenceSummary:
@@ -3726,9 +3755,31 @@ function buildLessonThroughlineCase(context, lesson) {
   const lessonTitle = stripLessonPrefix(lesson?.title || 'this lesson');
   const concept = primaryConceptForLesson(lesson);
   const artifact = stripTerminalPunctuation(lesson?.studentArtifact || 'the lesson artifact');
+  // v0.12.1: prefer the lesson's real resource as the evidence packet — the
+  // generic "Instructor-provided course materials for Lesson N" fallback
+  // shipped as an unresolved citation on 112 slides plus lesson plans,
+  // rubrics, and discussions in the v0.12 audit. Only LESSON-SPECIFIC
+  // resources qualify (appearing in at most 2 lessons): citing one
+  // course-wide packet verbatim in every lesson would trade the placeholder
+  // for boilerplate repetition.
+  const resourceCounts = context.resourceCounts || {};
+  const isLessonSpecific = (reading) => (resourceCounts[cleanText(reading).toLowerCase()] ?? 1) <= 2;
+  const lessonResource =
+    context.sourceMode === 'instructor-provided'
+      ? (lesson?.readings || [])
+          .map((reading) => stripTerminalPunctuation(cleanText(reading)))
+          .find(
+            (reading) =>
+              reading &&
+              reading.length >= 8 &&
+              reading.length <= 90 &&
+              !/instructor-provided course/i.test(reading) &&
+              isLessonSpecific(reading),
+          )
+      : null;
   const evidencePacket =
     context.sourceMode === 'instructor-provided'
-      ? `${context.casePacketName} for Lesson ${lesson.lessonNumber}: ${lessonTitle}`
+      ? lessonResource || `${context.casePacketName} for Lesson ${lesson.lessonNumber}: ${lessonTitle}`
       : `${context.casePacketName}: Lesson ${lesson.lessonNumber} ${lessonTitle}`;
   const isDataScienceCase = /\b(model|analytics|dataset|notebook|data science|machine learning|triage)\b/i.test(
     [context.projectName, context.clientName, context.datasetName, context.casePacketName, context.setting].join(' '),
@@ -13553,7 +13604,9 @@ function quizTags(lesson, type, bloom, use) {
     [
       'quiz',
       ...normalizeConceptCandidates(lesson.keyConcepts || [], { title: lesson.title, limit: 4 }),
-      type,
+      // v0.12.1: tags print in student-facing documents — never the raw
+      // enum id ("multiple_choice").
+      String(type || '').replace(/[_-]+/g, ' '),
       bloom,
       use,
     ],
@@ -14138,9 +14191,14 @@ function slideDeckPhrase(blueprint, lesson) {
   const lens = blueprintLens(blueprint);
   const concept = primarySlideConcept(lesson);
   const source = slideSourceCue(lesson);
+  // v0.12.1: cite the source only when it resolved to something real — never
+  // the "… course materials" placeholder.
+  const realSource = !/(?:instructor-provided\s+)?course materials(?:\s+and notes)?$/i.test(cleanText(source));
   return {
     context: slideConceptList(lesson, concept),
-    evidenceMove: `use ${lens.evidenceNoun} from ${source} to test ${concept}`,
+    evidenceMove: realSource
+      ? `use ${lens.evidenceNoun} from ${source} to test ${concept}`
+      : `use ${lens.evidenceNoun} to test ${concept}`,
     decisionMove: `choose the ${lens.decisionNoun} for ${slideArtifact(lesson)}`,
   };
 }
@@ -14402,10 +14460,12 @@ function compactSlideDisplayBullet(slide, bullet, index, lesson) {
   const compact = conciseClause(bullet, fallback, maxLength)
     .replace(/^students?\s+/i, '')
     .replace(/^use\s+/i, 'Use ');
+  // v0.12.1: never prepend the concept when the bullet already names it —
+  // activity slides used to render "Practice: Constructivism: Constructivism
+  // adapts…" because the cue was unconditional for that slide type.
+  const conceptAlreadyNamed = cleanText(compact).toLowerCase().includes(cleanText(concept).toLowerCase());
   const needsLessonCue =
-    type === 'activity' ||
-    type === 'discussion' ||
-    (compact.length >= 70 && !cleanText(compact).toLowerCase().includes(cleanText(concept).toLowerCase()));
+    !conceptAlreadyNamed && (type === 'activity' || type === 'discussion' || compact.length >= 70);
   const lessonSpecific = needsLessonCue
     ? conciseClause(`${concept}: ${compact}`, compact, maxLength)
     : conciseClause(compact, fallback, maxLength);
@@ -14961,6 +15021,19 @@ function compileDiscussions(blueprint) {
   };
 }
 
+// v0.12.1: the activity slide's duration comes from the lesson's actual
+// session plan (which varies by modality) instead of a hardcoded constant.
+// Picks the longest practice-flavored segment, clamped to slide scale.
+function activityMinutesFromSessionPlan(classSessionPlan) {
+  const segments = Array.isArray(classSessionPlan?.segments) ? classSessionPlan.segments : [];
+  const practice = segments
+    .filter((segment) => /practice|sprint|workshop|appl|rehears|drill|simulat|lab|studio|build/i.test(segment?.phase || ''))
+    .map((segment) => Number(segment?.minutes))
+    .filter((minutes) => Number.isFinite(minutes) && minutes > 0);
+  if (practice.length === 0) return null;
+  return Math.max(6, Math.min(25, Math.max(...practice)));
+}
+
 function buildSlideDeckIrForLesson(blueprint, lesson, index) {
   const lens = blueprintLens(blueprint);
   const teachingMoves = lessonTeachingMoves(blueprint, lesson);
@@ -14974,6 +15047,12 @@ function buildSlideDeckIrForLesson(blueprint, lesson, index) {
     {};
   const displayTitle = slideLessonTitle(lesson);
   const concept = primarySlideConcept(lesson);
+  // v0.12.1: a slide must never cite the unresolved source placeholder —
+  // "Instructor-provided course materials" shipped on 112 slides in the
+  // v0.12 audit. With no real source, drop the citation clause instead.
+  const hasRealSource = !/(?:instructor-provided\s+)?course materials(?:\s+and notes)?$/i.test(
+    cleanText(slideSourceCue(lesson)),
+  );
   const secondary = secondarySlideConcept(lesson, concept);
   const artifact = slideArtifact(lesson);
   const sourceCue = slideSourceCue(lesson);
@@ -15005,7 +15084,7 @@ function buildSlideDeckIrForLesson(blueprint, lesson, index) {
       type: 'agenda',
       title: 'Session Plan',
       bullets: [
-        `Frame ${concept} through ${sourceCue}.`,
+        hasRealSource ? `Frame ${concept} through ${sourceCue}.` : `Frame ${concept} with one inspectable example.`,
         `Model the evidence decision for ${artifact}.`,
         `Practice with ${concept}: ${teachingMoves.practiceMove}`,
         `Debrief against this criterion: ${successCriterion}`,
@@ -15072,8 +15151,10 @@ function buildSlideDeckIrForLesson(blueprint, lesson, index) {
       type: 'example',
       title: `${sentenceCase(concept)} in a ${lens.exampleNoun}`,
       bullets: [
-        `Start with a short scenario from ${sourceCue}.`,
-        `Identify the ${concept} evidence students can actually inspect in ${sourceCue}.`,
+        hasRealSource ? `Start with a short scenario from ${sourceCue}.` : 'Start with a short, concrete scenario.',
+        hasRealSource
+          ? `Identify the ${concept} evidence students can actually inspect in ${sourceCue}.`
+          : `Identify the ${concept} evidence students can actually inspect.`,
         `Key insight: the strongest answer explains why the evidence changes ${artifact}.`,
       ],
       minutes: 7,
@@ -15084,12 +15165,21 @@ function buildSlideDeckIrForLesson(blueprint, lesson, index) {
     {
       type: 'activity',
       title: `${sentenceCase(modality.mode.replace(/-/g, ' '))}: revise one evidence move for ${artifact}`,
+      // v0.12.1: signaturePractice and practiceMove both derive from the
+      // modality routine — when they open with the same phrase, keep only
+      // the move ("Annotated example. Annotated example: annotate…").
       bullets: [
-        `${sentenceCase(modality.signaturePractice)}. ${teachingMoves.practiceMove}`,
+        cleanText(sentenceCase(modality.signaturePractice)).slice(0, 24).toLowerCase() ===
+        cleanText(teachingMoves.practiceMove).slice(0, 24).toLowerCase()
+          ? teachingMoves.practiceMove
+          : `${sentenceCase(modality.signaturePractice)}. ${teachingMoves.practiceMove}`,
         modality.evidenceRoutine,
         `${teachingMoves.feedbackMove} Debrief by naming the revision choice for ${artifact}.`,
       ],
-      minutes: 10,
+      // v0.12.1: real practice timing from the lesson's session plan — the
+      // hardcoded 10 printed "Duration: 10 min" on slide 8 of all 58 audited
+      // decks, regardless of modality or session length.
+      minutes: activityMinutesFromSessionPlan(classSessionPlan) || 10,
       bloom: 'Apply',
       objective: objectiveOne,
       activity: sentenceCase(modality.mode.replace(/-/g, ' ')),
@@ -15126,7 +15216,7 @@ function buildSlideDeckIrForLesson(blueprint, lesson, index) {
       bullets: [
         `Can you now ${stripTerminalPunctuation(objectiveOne).toLowerCase()}?`,
         `Can you explain how ${concept} improves ${artifact}?`,
-        `Can you name one ${artifact} feedback action before the next submission?`,
+        `Can you name one feedback action for ${stripTerminalPunctuation(artifact)} before the next submission?`,
       ],
       minutes: 4,
       bloom: 'Evaluate',
@@ -15220,6 +15310,12 @@ export function buildSlideDeckIntermediateRepresentation(blueprint) {
 function compileSlideDecks(blueprint) {
   const ir = buildSlideDeckIntermediateRepresentation(blueprint);
   const lens = blueprintLens(blueprint);
+  // v0.12.1: the same genome concept can link in several lessons — the v0.12
+  // audit found one "How Experts Think" body repeated verbatim across four
+  // Micro lessons. Each expert routine / structural bridge renders once per
+  // course, in the first lesson that earns it.
+  const seenScaffolds = new Set();
+  const seenBridges = new Set();
   return {
     decks: ir.decks.map((deck) => {
       const lesson = blueprint.lessons.find((item) => item.id === deck.id) || blueprint.lessons[0];
@@ -15265,6 +15361,9 @@ function compileSlideDecks(blueprint) {
       for (const scaffold of reasoningScaffolds.slice(0, 1)) {
         const moves = (scaffold.moves || []).map((m) => String(m).trim()).filter(Boolean);
         if (moves.length < 2) continue;
+        const scaffoldKey = `${scaffold.term}::${scaffold.archetypeName}`;
+        if (seenScaffolds.has(scaffoldKey)) continue;
+        seenScaffolds.add(scaffoldKey);
         const structure = String(scaffold.archetypeName || '').toLowerCase();
         slides.push({
           title: `How Experts Think: ${scaffold.term}`,
@@ -15298,6 +15397,9 @@ function compileSlideDecks(blueprint) {
             return `${to.charAt(0).toUpperCase()}${to.slice(1)} ↔ ${pair.from}`;
           });
         if (pairBullets.length < 2) continue;
+        const bridgeKey = `${bridge.fromTerm}::${bridge.toTerm}::${bridge.archetypeName}`;
+        if (seenBridges.has(bridgeKey)) continue;
+        seenBridges.add(bridgeKey);
         slides.push({
           title: `Same Structure: ${bridge.toTerm} and ${bridge.fromTerm}`,
           type: 'content',
@@ -15336,35 +15438,35 @@ function compileCourseFaq(blueprint, config = {}) {
   const builders = [
     (lesson) => ({
       q: `What should I focus on for ${lesson.title}?`,
-      an: `Focus on ${lesson.keyConcepts.slice(0, 3).join(', ')}, then connect those ideas to ${lesson.studentArtifact}. Strong ${lesson.title} work uses ${lesson.throughlineCase?.evidencePacket || lens.evidenceNoun} and explains a decision or implication.`,
+      an: `Focus on ${lesson.keyConcepts.slice(0, 3).join(', ')}, then connect those ideas to ${stripTerminalPunctuation(lesson.studentArtifact)}. Strong work uses ${stripTerminalPunctuation(lesson.throughlineCase?.evidencePacket || lens.evidenceNoun)} and explains a decision or implication.`,
       ca: 'Concept Explanation',
       rc: lesson.keyConcepts.slice(0, 4),
       df: 'Basic',
     }),
     (lesson) => ({
       q: `How does ${stripLessonPrefix(lesson.title)} connect to graded work?`,
-      an: `${lesson.title} prepares you for ${lesson.studentArtifact}. Use the ${lesson.title} success criteria as a checklist before submitting or discussing your work.`,
+      an: `${lesson.title} prepares you for ${stripTerminalPunctuation(lesson.studentArtifact)}. Use the ${stripTerminalPunctuation(lesson.keyConcepts?.[0] || stripLessonPrefix(lesson.title))} success criteria as a checklist before submitting or discussing your work.`,
       ca: 'Assignment Clarification',
       rc: ['success criteria checklist', ...lesson.keyConcepts.slice(0, 2)],
       df: 'Intermediate',
     }),
     (lesson) => ({
       q: `What does strong work on ${stripLessonPrefix(lesson.title)} look like?`,
-      an: `Strong work on ${lesson.title}: ${joinCriteriaSentence(lesson.successCriteria)} It should be specific enough that another reader can see how ${lesson.throughlineCase?.projectName || lesson.title} evidence about ${lesson.keyConcepts[0] || stripLessonPrefix(lesson.title)} supports the decision. For this ${lesson.artifactGenre?.label || lesson.artifactGenre?.genre || 'artifact'}, also check: ${lesson.artifactGenre?.qualityFocus || 'evidence specificity and revision quality'}. Anchor contrast: ${lesson.assessmentAnchorExamples?.strongSample || 'compare strong and partial evidence examples before submitting'}.`,
+      an: `Strong work on ${lesson.title}: ${joinCriteriaSentence(lesson.successCriteria)} It should be specific enough that another reader can see how ${lesson.throughlineCase?.projectName || lesson.title} evidence about ${lesson.keyConcepts[0] || stripLessonPrefix(lesson.title)} supports the decision. For this ${lesson.artifactGenre?.label || lesson.artifactGenre?.genre || 'artifact'}, also check: ${lesson.artifactGenre?.qualityFocus || 'evidence specificity and revision quality'}. Anchor contrast: ${stripTerminalPunctuation(lesson.assessmentAnchorExamples?.strongSample || 'compare strong and partial evidence examples before submitting')}.`,
       ca: 'Assessment Prep',
       rc: ['rubric criteria', 'anchor examples', ...lesson.keyConcepts.slice(0, 2)],
       df: 'Intermediate',
     }),
     (lesson) => ({
       q: `Where should I ask questions about ${stripLessonPrefix(lesson.title)}?`,
-      an: `Use the official course communication channel, office hours, peer discussion spaces, and ${lesson.title} support resources. For ${lesson.title}, bring a specific concept, ${lens.evidenceNoun} point, or draft section when asking for help.`,
+      an: `Use the official course communication channel, office hours, peer discussion spaces, and ${lesson.title} support resources. Bring a specific question about ${stripTerminalPunctuation(lesson.keyConcepts?.[0] || stripLessonPrefix(lesson.title))}, one ${lens.evidenceNoun} point, or a draft section when asking for help.`,
       ca: 'Course Logistics',
       rc: [`${lesson.title} support`, 'office hours', 'course communication'],
       df: 'Basic',
     }),
     (lesson) => ({
       q: `What common mistake should I avoid in ${stripLessonPrefix(lesson.title)}?`,
-      an: `Do not stop at summary. For ${lesson.title}, explain how the concept works, what evidence supports it, and how it changes the artifact or decision.`,
+      an: `Do not stop at summary. Explain how ${stripTerminalPunctuation(lesson.keyConcepts?.[0] || stripLessonPrefix(lesson.title))} works, what evidence supports it, and how it changes the artifact or decision.`,
       ca: 'Assessment Prep',
       rc: lesson.keyConcepts.slice(0, 4),
       df: 'Advanced',
@@ -15387,7 +15489,7 @@ function compileCourseFaq(blueprint, config = {}) {
       q: `How can I check readiness for ${stripLessonPrefix(lesson.title)} before class or submission?`,
       an:
         lesson.prerequisitePlan?.diagnosticCheck ||
-        `You are ready when you can define ${lesson.keyConcepts[0] || 'the main concept'}, cite lesson evidence, and explain one implication for ${lesson.studentArtifact}.`,
+        `You are ready when you can define ${lesson.keyConcepts[0] || 'the main concept'}, cite lesson evidence, and explain one implication for ${stripTerminalPunctuation(lesson.studentArtifact)}.`,
       ca: 'Assessment Prep',
       rc: lesson.keyConcepts.slice(0, 4),
       df: 'Intermediate',
@@ -15505,7 +15607,9 @@ function buildLessonPlanOutline(blueprint, lesson) {
       time: formatDuration(collaborative),
       activity: 'Collaborative application',
       type: 'Discussion',
-      description: `Teams apply ${concept} to a new scenario, compare options, and use this routine: ${modality.evidenceRoutine}.`,
+      // v0.12.1: strip a leading "For <lesson>," from the routine variant —
+      // after "use this routine:" it produced an "X … : For X," echo.
+      description: `Teams apply ${concept} to a new scenario, compare options, and use this routine: ${stripTerminalPunctuation(cleanText(modality.evidenceRoutine)).replace(/^For [^,]{2,70},\s*/i, '')}.`,
       instructorNotes: `Require each group to cite at least one reading, example, or class note about ${concept} before they report out. ${modality.artifactCheck}`,
       instructorRole: `Moderate the ${stripLessonPrefix(lesson.title)} tradeoff discussion and calibrate ${artifact} against ${modality.studentProduct}.`,
       grouping: 'Small groups then share-out',

@@ -361,7 +361,11 @@ function normalizeCourseMapObjectives(value) {
         .replace(/^students?\s+will\s+be\s+able\s+to:?\s*/i, '')
         .trim(),
     )
-    .filter(Boolean);
+    .filter(Boolean)
+    // v0.12.1: deterministic terminal punctuation — the v0.12 audit shipped
+    // one course with 120/120 objective lines missing periods while the
+    // other three had them (same template, different-run drift).
+    .map((line) => (/[.?!:]$/.test(line) ? line : `${line}.`));
   const normalized = normalizedLines.join('\n');
   return normalized || raw.replace(/^students?\s+will\s+be\s+able\s+to:?\s*/i, '').trim();
 }
@@ -656,8 +660,11 @@ function enabledColumnKeys(columns) {
 function columnLabel(columns, key) {
   const column = asArray(columns).find((item) => item?.key === key);
   const raw = column?.label || column?.title || key || 'field';
-  return raw
-    .replace(/([A-Z])/g, ' $1')
+  // Only camelCase keys need splitting — applying the regex to a label that
+  // already has spaces produced "Learning  Objectives" in repair logs.
+  const spaced = raw.includes(' ') ? raw : raw.replace(/([A-Z])/g, ' $1');
+  return spaced
+    .replace(/\s{2,}/g, ' ')
     .replace(/^./, (char) => char.toUpperCase())
     .trim();
 }

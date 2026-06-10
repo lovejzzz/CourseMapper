@@ -700,6 +700,24 @@ export default function AppFlow({ startupAction = null, onStartupHandled, onRetu
     traceApiCallBudget(event, next);
     setApiCallBudget(next);
   }, []);
+  // v0.12.1: pipeline provenance for PACKAGE_MANIFEST.json — read at export
+  // time so downloaded packages record how their content was produced.
+  const getManifestPipelineState = useCallback(() => {
+    const budget = apiCallBudgetRef.current || {};
+    const outcome = budget.enrichmentOutcome || null;
+    const enrichment = !outcome
+      ? 'unknown'
+      : outcome.modelStage === 'ran'
+        ? `ran (${outcome.enrichedLessons} lesson${outcome.enrichedLessons === 1 ? '' : 's'} enriched)`
+        : (outcome.enrichedLessons || 0) > 0
+          ? `genome-only (${outcome.enrichedLessons} lesson${outcome.enrichedLessons === 1 ? '' : 's'}); model stage ${outcome.modelStage}`
+          : outcome.modelStage;
+    return {
+      enrichment,
+      genomeLinker: budget.pipeline?.genomeLinker || 'not run',
+      ...(budget.pipeline?.planHealth ? { planHealth: budget.pipeline.planHealth } : {}),
+    };
+  }, []);
 
   // ── Misc ──
   const [downloadedFile, setDownloadedFile] = useState('');
@@ -4276,6 +4294,7 @@ export default function AppFlow({ startupAction = null, onStartupHandled, onRetu
                   preferPackageScope={
                     hasGenerated && selectedFeatures.length > 1 && packageQualityPass?.status !== 'idle'
                   }
+                  getPipelineState={getManifestPipelineState}
                 />
               </div>
             )}

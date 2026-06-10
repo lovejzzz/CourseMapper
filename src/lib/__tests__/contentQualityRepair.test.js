@@ -1,0 +1,42 @@
+import { describe, expect, it } from 'vitest';
+import { repairDeliverableContentQuality } from '../contentQualityRepair';
+import { auditDeliverableContentQuality } from '../contentQualityChecks';
+
+describe('contentQualityRepair (v0.12.1 P2)', () => {
+  it('fixes every mechanical finding class so the detector passes afterwards', () => {
+    const data = {
+      faq: [
+        {
+          question: 'What should I focus on?',
+          answer: 'Connect ideas to the weekly memo.. Strong work explains a decision.',
+        },
+        { question: ': Leading label', answer: 'Pick a Evidence example aligned to .' },
+      ],
+    };
+    const before = auditDeliverableContentQuality('courseFaq', data);
+    expect(before.findings.length).toBeGreaterThan(0);
+
+    const { data: repaired, changed, repairedStrings } = repairDeliverableContentQuality('courseFaq', data);
+    expect(changed).toBe(true);
+    expect(repairedStrings).toBeGreaterThan(0);
+    expect(repaired.faq[0].answer).toBe('Connect ideas to the weekly memo. Strong work explains a decision.');
+    expect(repaired.faq[1].question).toBe('Leading label');
+    expect(repaired.faq[1].answer).toBe('Pick an Evidence example.');
+
+    const after = auditDeliverableContentQuality('courseFaq', repaired);
+    expect(after.findings).toHaveLength(0);
+  });
+
+  it('preserves identity when nothing needs fixing and leaves ellipses alone', () => {
+    const data = { notes: ['All good here.', 'Thinking… more thoughts...'] };
+    const { data: repaired, changed } = repairDeliverableContentQuality('studyGuides', data);
+    expect(changed).toBe(false);
+    expect(repaired).toBe(data);
+  });
+
+  it('does not touch abbreviation periods (e.g., etc.)', () => {
+    const data = { tip: 'Bring examples, readings, etc.' };
+    const { changed } = repairDeliverableContentQuality('studyGuides', data);
+    expect(changed).toBe(false);
+  });
+});
