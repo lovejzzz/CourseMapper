@@ -3,6 +3,48 @@ import Header from '../components/Header';
 
 const releases = [
   {
+    version: '0.11.2',
+    date: 'June 10, 2026',
+    title: 'Teach How to Think: Expert Reasoning on Every Surface',
+    highlights: [
+      'Every deep structure now ships its expert reasoning routine — the step-by-step way a specialist thinks about that kind of problem — and it renders on three surfaces: a "How to Reason About This" block in the study guide, the same routine in the downloaded DOCX, and a "How Experts Think" slide in the lecture deck',
+      'The "How Experts Think" slide models the thinking aloud (with speaker notes coaching the instructor to walk the steps on a worked example before students try it) — putting metacognition on screen at the point of instruction, the move that turns recall into transferable understanding',
+      'Two new cross-discipline bridge families: causation-vs-correlation (statistics observational study ↔ economics natural experiment) and conservation-and-balance (balancing a chemical equation ↔ balancing the national accounts) — the same cognitive move taught in different departments',
+      'The Curriculum Genome grew to 22 source-anchored concepts across 6 disciplines instantiating 11 deep-structure archetypes and 8 bridge families — all on the zero-cost, fully-cited genome path',
+    ],
+    sections: [
+      {
+        label: 'Metacognition on Every Surface',
+        icon: 'AI',
+        color: 'emerald',
+        items: [
+          'Each archetype carries a reasoning routine (e.g. for a feedback loop: trace one signal around the loop, classify it as damping or amplifying, predict long-run behavior) that had been dead data; it now renders as a study-guide "How to Reason About This" block, in the DOCX export, and on a "How Experts Think" lecture slide.',
+          'One archetype mapping now drives three teaching surfaces (study-guide routine, lecture routine slide, and the "Same Structure" transfer slide) — so every current and future archetype lights all of them up for free.',
+          'All surfaces are verification-gated (only genome-linked lessons with a real routine), number-safe, and never leak provenance tags or unfilled templates into the downloaded DOCX/PPTX.',
+        ],
+      },
+      {
+        label: 'Two New Bridge Families',
+        icon: 'UI',
+        color: 'indigo',
+        items: [
+          'Causation-vs-correlation bridges statistics and economics: an observational study (confounding) ↔ a natural experiment (credible causal claim), both anchored to OpenStax source text.',
+          "Conservation-and-balance bridges chemistry and economics: balancing a chemical equation (atoms in = atoms out) ↔ balancing the circular flow of income (leakages = injections) — the genome's most striking cross-discipline transfer.",
+          'Adding a bridge family is now pure data — two quote-anchored kernels plus snapshot text — with zero machinery changes.',
+        ],
+      },
+      {
+        label: 'Hardening (refine loop iters 10-12)',
+        icon: 'QA',
+        color: 'amber',
+        items: [
+          'New adversarial suites prove the reasoning routine reaches the DOCX and PPTX with no metadata leak, the bridges resolve the exact discipline pairs, and an unrelated lesson never falsely resolves a concept.',
+          'Genome 22/22 admission (anchor verification + test-wiseness battery); full battery green: 2,455 unit tests, 132 blueprint-quality cases, 40/40 gold-sample audit (0 blockers).',
+        ],
+      },
+    ],
+  },
+  {
     version: '0.11.1',
     date: 'June 10, 2026',
     title: 'Archetype Layer Hardening: Wider Genome, Transfer on Screen',
