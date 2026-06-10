@@ -134,9 +134,9 @@ describe('iteration 10b — causation-vs-correlation bridges stats and economics
     ]);
   });
 
-  it('the genome now spans 20 concepts and 10 archetypes', () => {
+  it('the genome spans at least 20 concepts and 10 archetypes', () => {
     const manifest = JSON.parse(readFileSync(join(process.cwd(), 'public/genome/manifest.json'), 'utf8'));
-    expect(manifest.conceptCount).toBe(20);
+    expect(manifest.conceptCount).toBeGreaterThanOrEqual(20);
     const used = new Set();
     for (const shard of manifest.shards) {
       const body = JSON.parse(readFileSync(join(process.cwd(), 'public/genome', shard.path), 'utf8'));

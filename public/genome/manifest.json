@@ -1,7 +1,7 @@
 {
   "version": "2026-06-10",
   "generator": "curriculumos-foundry-v1",
-  "conceptCount": 20,
+  "conceptCount": 22,
   "shards": [
     {
       "id": "bio-intro",
@@ -16,16 +16,16 @@
       "discipline": "chem",
       "level": "intro",
       "path": "chem-intro.json",
-      "conceptCount": 2,
-      "hash": "c9a07f7a047e439b"
+      "conceptCount": 3,
+      "hash": "9009d152ecfab8bf"
     },
     {
       "id": "econ-intro",
       "discipline": "econ",
       "level": "intro",
       "path": "econ-intro.json",
-      "conceptCount": 7,
-      "hash": "1711238c2c47b878"
+      "conceptCount": 8,
+      "hash": "83010013f202b768"
     },
     {
       "id": "history-intro",
